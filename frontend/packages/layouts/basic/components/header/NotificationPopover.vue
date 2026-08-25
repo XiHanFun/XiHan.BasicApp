@@ -387,7 +387,8 @@ function handleClickOutside() {
 
 .notification-dropdown {
   position: fixed;
-  z-index: 2000;
+  /* 与组件库的浮层同层：写死 2000 会被库里 2300 的 popover / tooltip 盖住 */
+  z-index: var(--xh-layer-popover);
   width: min(420px, calc(100vw - 24px));
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));

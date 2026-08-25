@@ -80,6 +80,7 @@ const zhCN: XhTranslationOverrides = {
     prevTrigger: '上一页',
     nextTrigger: '下一页',
     item: page => `第 ${page} 页`,
+    ellipsis: count => `还有 ${count} 页`,
   },
   'password-input': {
     visibilityTriggerShow: '显示密码',

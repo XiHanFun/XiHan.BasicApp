@@ -48,8 +48,6 @@ defineProps<{
     </XhTreeBranch>
 
     <XhTreeItem v-else :value="String(node.value)" :disabled="node.disabled">
-      <!-- 叶子没有展开箭头，补一格等宽占位，才能与同层分支的勾选框和文字对齐 -->
-      <span class="x-tree__leaf-indent" aria-hidden="true" />
       <XhTreeItemCheckbox v-if="checkable" @mousedown.prevent />
       <XhTreeItemIndicator v-else />
       <XhTreeItemText>
@@ -61,11 +59,3 @@ defineProps<{
     </XhTreeItem>
   </template>
 </template>
-
-<style scoped>
-/* 与组件库箭头同宽：叶子行少这一格就会比同层分支往左错开 */
-.x-tree__leaf-indent {
-  flex: none;
-  inline-size: var(--xh-tree-indicator-size, var(--xh-control-indicator-size));
-}
-</style>

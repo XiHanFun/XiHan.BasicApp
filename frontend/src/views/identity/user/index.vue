@@ -71,7 +71,7 @@ interface UserFormState {
   maxDev: number
 }
 
-/** 头像色板：跟随 Naive 语义色，明暗主题均可用 */
+/** 头像色板：跟随语义色，明暗主题均可用 */
 const AVATAR_TONES = ['primary', 'info', 'success', 'warning', 'error'] as const
 
 // 搜索/表单选项

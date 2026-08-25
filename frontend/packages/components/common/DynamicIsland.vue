@@ -19,7 +19,8 @@ const router = useRouter()
 const appStore = useAppStore()
 const enabled = computed(() => appStore.widgetDynamicIsland)
 
-// 关闭灵动岛时，终态（成功/失败/信息）由 Naive Message 接管；开启时不接管，全程走灵动岛configureDynamicIsland({
+// 关闭灵动岛时，终态（成功/失败/信息）由轻提示接管；开启时不接管，全程走灵动岛
+configureDynamicIsland({
   isEnabled: () => appStore.widgetDynamicIsland,
   message: (state, content) => {
     if (state === 'success') {

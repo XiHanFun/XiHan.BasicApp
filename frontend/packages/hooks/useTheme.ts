@@ -152,7 +152,7 @@ export function useTheme() {
     }
   }
 
-  /** 将当前 uiRadius 同步到根元素 CSS 变量，供非 Naive UI 的自定义元素使用 */
+  /** 将当前 uiRadius 同步到根元素 CSS 变量，供组件库之外的自定义元素使用 */
   function syncRadiusCssVars(r: number) {
     if (typeof document === 'undefined')
       return

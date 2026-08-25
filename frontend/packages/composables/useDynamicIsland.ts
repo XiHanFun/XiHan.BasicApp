@@ -358,14 +358,14 @@ restoreState()
 watch([tasks, history], persistState, { deep: true })
 
 // ── 关闭灵动岛时的兜底接管 ──────────────────────────────────────
-// 由全局挂载的 DynamicIsland 组件在 setup 时注入：是否启用 + 关闭时由 Naive Message 接管终态。
+// 由全局挂载的 DynamicIsland 组件在 setup 时注入：是否启用 + 关闭时由轻提示接管终态。
 type IslandMessageSink = (state: 'success' | 'error' | 'info', content: string) => void
 let enabledResolver: (() => boolean) | null = null
 let messageSink: IslandMessageSink | null = null
 
 /**
  * 注入灵动岛启用判定与「关闭时」的消息兜底。
- * 启用时：进度/终态均由灵动岛呈现；关闭时：进行中态静默，终态（成功/失败/信息）改由 Naive Message 接管。
+ * 启用时：进度/终态均由灵动岛呈现；关闭时：进行中态静默，终态（成功/失败/信息）改由轻提示接管。
  */
 export function configureDynamicIsland(options: { isEnabled: () => boolean, message: IslandMessageSink }): void {
   enabledResolver = options.isEnabled
@@ -376,7 +376,7 @@ function islandEnabled(): boolean {
   return enabledResolver ? enabledResolver() : true
 }
 
-/** 关闭灵动岛时的事件兜底句柄：进行中态静默，终态交给 Naive Message，其余为空操作 */
+/** 关闭灵动岛时的事件兜底句柄：进行中态静默，终态交给轻提示，其余为空操作 */
 function fallbackEventHandle(initialLabel: string): IslandHandle {
   let label = initialLabel
   const emit = (state: 'success' | 'error' | 'info', next?: string) => {
@@ -421,7 +421,7 @@ function silentHandle(): IslandHandle {
  * @param init  可选：detail/icon/state/progress/actions/onClick/link/persistent
  */
 export function islandStart(id: string, label: string, init: IslandTaskInit = {}): IslandHandle {
-  // 灵动岛关闭：不进岛，终态由 Naive Message 接管
+  // 灵动岛关闭：不进岛，终态由轻提示接管
   if (!islandEnabled()) {
     return fallbackEventHandle(label)
   }

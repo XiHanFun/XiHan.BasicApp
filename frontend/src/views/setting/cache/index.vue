@@ -157,7 +157,7 @@ function resetDetail() {
 
 /**
  * 选择变化：分组不可选，keys 仅含叶子。
- * 单击 = 替换为单选；Ctrl/⌘ 点击 = 累加；Shift 点击 = 范围选（Naive 原生）。
+ * 单击 = 替换为单选；Ctrl/⌘ 点击 = 累加；Shift 点击 = 范围选。
  * 本次点击的叶子（meta.node）加载到右侧详情。
  */
 function handleSelect(keys: string[]) {

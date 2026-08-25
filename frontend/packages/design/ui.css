@@ -82,10 +82,6 @@
   }
 }
 
-.z-popup {
-  z-index: var(--popup-z-index);
-}
-
 /* ==================== 布局核心样式 ==================== */
 
 .bg-sidebar {
@@ -286,12 +282,7 @@
 .xh-skeleton-bone {
   display: block;
   border-radius: var(--xh-shape-control);
-  background: linear-gradient(
-    90deg,
-    var(--xh-bg-subtle) 25%,
-    var(--xh-bg-subtle-hover) 37%,
-    var(--xh-bg-subtle) 63%
-  );
+  background: linear-gradient(90deg, var(--xh-bg-subtle) 25%, var(--xh-bg-subtle-hover) 37%, var(--xh-bg-subtle) 63%);
   background-size: 400% 100%;
   animation: xh-app-skeleton-shimmer 1.4s ease infinite;
 }

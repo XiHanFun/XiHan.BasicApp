@@ -125,7 +125,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 }
 
 /**
- * 获取状态对应的 Naive UI type
+ * 获取状态对应的语气档
  */
 export function getStatusType(
   status: number,

@@ -1,6 +1,6 @@
 <!--
   模拟打印数据单值编辑器。
-  职责：根据注册字段类型或当前样例值选择 Naive UI 控件，并保持打印数据的字符串、数值和布尔类型。
+  职责：根据注册字段类型或当前样例值选择输入控件，并保持打印数据的字符串、数值和布尔类型。
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleInputType } from '~/printing'
@@ -40,7 +40,7 @@ const dateValue = computed(() => {
 
 /**
  * 发布文本值；不自动转换数字，避免条码、二维码和前导零编码被破坏。
- * @param value Naive UI 输入框的新值。
+ * @param value 输入框的新值。
  * @returns 无返回值。
  */
 function updateText(value: string): void {

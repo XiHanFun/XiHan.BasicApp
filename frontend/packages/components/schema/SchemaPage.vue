@@ -120,11 +120,11 @@ function onCycleSort(key: string) {
 }
 
 /**
- * 表格重挂载令牌：拖拽列宽会写入 Naive 内部缓存（覆盖 column.width），
+ * 表格重挂载令牌：拖拽列宽会写进表格面板自己的 draggedWidths（它盖住 column.width），
  * 当通过「列宽输入框 / 恢复默认」改宽度时需重建表格清掉该缓存，新值才生效。
  */
 const tableRemountKey = ref(0)
-/** 本会话被拖拽过的列（其宽度由 Naive 内部缓存接管，需重挂载才能被输入框覆盖） */
+/** 本会话被拖拽过的列（宽度已被面板内的 draggedWidths 接管，需重挂载才能被输入框覆盖） */
 const draggedColumnKeys = new Set<string>()
 
 function remountTable() {
@@ -138,7 +138,7 @@ function onColumnResize(key: string, width: number) {
   settings.setWidth(key, width)
 }
 
-/** 输入框改列宽 → 写入列设置；若该列曾被拖拽，重建表格以让新值覆盖 Naive 缓存 */
+/** 输入框改列宽 → 写入列设置；若该列曾被拖拽，重建表格以清掉面板内的拖拽覆盖 */
 function onColumnWidthInput(key: string, width: number | undefined) {
   settings.setWidth(key, width)
   if (draggedColumnKeys.has(key)) {
@@ -146,7 +146,7 @@ function onColumnWidthInput(key: string, width: number | undefined) {
   }
 }
 
-/** 恢复默认：重置设置并重建表格，清掉 Naive 的列宽拖拽缓存 */
+/** 恢复默认：重置设置并重建表格，清掉面板内的列宽拖拽覆盖 */
 function onResetTableSettings() {
   settings.resetDefault()
   remountTable()
@@ -190,7 +190,7 @@ function applyView(code: string) {
   if (!snapshot) {
     return
   }
-  // 置 null 而非 delete：保持搜索控件受控，避免 Naive 回退内部值而残留旧选择（同 reset）
+  // 置 null 而非 delete：保持搜索控件受控，避免控件回退到自己的内部值而残留旧选择（同 reset）
   for (const key of Object.keys(filters)) {
     filters[key] = null
   }
