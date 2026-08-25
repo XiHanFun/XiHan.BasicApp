@@ -10,8 +10,9 @@ defineOptions({ name: 'AboutPage' })
 
 const { t } = useI18n()
 
-const dependencies = PackageJson.dependencies ?? {}
-const devDependencies = PackageJson.devDependencies ?? {}
+// package.json 里的依赖值是 pnpm 的 catalog:/link: 协议串，真实版本由构建期解析后注入
+const dependencies = __APP_DEPENDENCIES__
+const devDependencies = __APP_DEV_DEPENDENCIES__
 const keywords = Array.isArray(PackageJson.keyword) ? PackageJson.keyword : []
 
 const appName = PackageJson.name ?? 'XiHan.BasicApp'
