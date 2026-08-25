@@ -507,7 +507,8 @@ function handleClickOutside() {
   word-break: break-word;
 }
 
-.notification-item-header :deep([data-scope='badge']) {
+/* 类型标记不跟着标题被挤扁：这一行是 space-between 的 flex */
+.notification-item-header :deep([data-scope='tag'][data-part='root']) {
   flex-shrink: 0;
 }
 
