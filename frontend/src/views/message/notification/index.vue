@@ -10,7 +10,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhButton, XhCheckboxGroupIndicator, XhCheckboxGroupItem, XhCheckboxGroupItemText, XhCheckboxGroupRoot, XhCheckboxGroupTrigger, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckboxGroupIndicator, XhCheckboxGroupItem, XhCheckboxGroupItemText, XhCheckboxGroupRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -25,7 +25,7 @@ import {
   querySortsFromSchema,
   roleApi,
 } from '@/api'
-import { Icon, IconPicker, NotificationContent, SchemaPage, SchemaPagination, XContentEditorField, XDataTable, XDatePicker, XEditModal, XInput, XMdEditor, XSelect, XTagsInput } from '~/components'
+import { IconPicker, NotificationContent, SchemaPage, SchemaPagination, XContentEditorField, XDataTable, XDatePicker, XEditModal, XInput, XMdEditor, XSelect, XTagsInput } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { downloadBlob, formatDate, getOptionLabel } from '~/utils'
@@ -790,12 +790,9 @@ async function handleSubmit() {
                     v-for="option in deliveryChannelOptions"
                     :key="option.value"
                     :value="String(option.value)"
+                    :disabled="option.disabled"
                   >
-                    <XhCheckboxGroupTrigger>
-                      <XhCheckboxGroupIndicator>
-                        <Icon icon="lucide:check" width="12" height="12" />
-                      </XhCheckboxGroupIndicator>
-                    </XhCheckboxGroupTrigger>
+                    <XhCheckboxGroupIndicator />
                     <XhCheckboxGroupItemText>
                       {{ option.label }}
                     </XhCheckboxGroupItemText>
