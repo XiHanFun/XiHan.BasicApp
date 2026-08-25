@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { NotificationPreference } from '~/types'
-import { XhBadge, XhButton, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { XhButton, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from '~/composables'
@@ -138,9 +138,11 @@ onMounted(loadPreference)
               <div class="pf-list-body">
                 <div class="pf-list-title">
                   {{ item.label }}
-                  <XhBadge v-if="item.marketing" variant="subtle" size="sm">
-                    {{ t('component.profile.notifications.tag_marketing') }}
-                  </XhBadge>
+                  <XhTagRoot v-if="item.marketing" variant="subtle" size="sm">
+                    <XhTagLabel>
+                      {{ t('component.profile.notifications.tag_marketing') }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </div>
                 <div class="pf-list-desc">
                   {{ item.desc }}

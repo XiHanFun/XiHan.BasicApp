@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
-import { XhBadge, XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhCardTitle, XhFlex } from '@xihan-ui/vue'
+import { XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhCardTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
@@ -457,12 +457,16 @@ function cancelChange() {
                 <div class="pf-setting-row__main">
                   <div class="pf-setting-row__label">
                     {{ t('component.profile.info.field_username') }}
-                    <XhBadge v-if="profile?.isSystemAccount" variant="subtle" tone="info" size="sm">
-                      {{ t('component.profile.info.tag_system_account') }}
-                    </XhBadge>
-                    <XhBadge v-else-if="!profile?.canChangeUserName && usernameHint" variant="subtle" tone="warning" size="sm">
-                      {{ usernameHint }}
-                    </XhBadge>
+                    <XhTagRoot v-if="profile?.isSystemAccount" variant="subtle" tone="info" size="sm">
+                      <XhTagLabel>
+                        {{ t('component.profile.info.tag_system_account') }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                    <XhTagRoot v-else-if="!profile?.canChangeUserName && usernameHint" variant="subtle" tone="warning" size="sm">
+                      <XhTagLabel>
+                        {{ usernameHint }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                   </div>
                   <div class="pf-setting-row__desc">
                     @{{ profile?.userName || '---' }}
@@ -508,12 +512,16 @@ function cancelChange() {
                 <div class="pf-setting-row__main">
                   <div class="pf-setting-row__label">
                     {{ t('component.profile.info.field_email') }}
-                    <XhBadge v-if="profile?.emailVerified" variant="subtle" tone="success" size="sm">
-                      {{ t('component.profile.info.tag_verified') }}
-                    </XhBadge>
-                    <XhBadge v-else-if="profile?.email" variant="subtle" tone="warning" size="sm">
-                      {{ t('component.profile.info.tag_unverified') }}
-                    </XhBadge>
+                    <XhTagRoot v-if="profile?.emailVerified" variant="subtle" tone="success" size="sm">
+                      <XhTagLabel>
+                        {{ t('component.profile.info.tag_verified') }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                    <XhTagRoot v-else-if="profile?.email" variant="subtle" tone="warning" size="sm">
+                      <XhTagLabel>
+                        {{ t('component.profile.info.tag_unverified') }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                   </div>
                   <div class="pf-setting-row__desc">
                     {{ profile?.email || t('component.profile.info.value_not_set') }}
@@ -554,12 +562,16 @@ function cancelChange() {
                 <div class="pf-setting-row__main">
                   <div class="pf-setting-row__label">
                     {{ t('component.profile.info.field_phone') }}
-                    <XhBadge v-if="profile?.phoneVerified" variant="subtle" tone="success" size="sm">
-                      {{ t('component.profile.info.tag_verified') }}
-                    </XhBadge>
-                    <XhBadge v-else-if="profile?.phone" variant="subtle" tone="warning" size="sm">
-                      {{ t('component.profile.info.tag_unverified') }}
-                    </XhBadge>
+                    <XhTagRoot v-if="profile?.phoneVerified" variant="subtle" tone="success" size="sm">
+                      <XhTagLabel>
+                        {{ t('component.profile.info.tag_verified') }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                    <XhTagRoot v-else-if="profile?.phone" variant="subtle" tone="warning" size="sm">
+                      <XhTagLabel>
+                        {{ t('component.profile.info.tag_unverified') }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                   </div>
                   <div class="pf-setting-row__desc">
                     {{ profile?.phone || t('component.profile.info.value_not_set') }}

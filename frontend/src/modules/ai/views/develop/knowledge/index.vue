@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -78,7 +78,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as KnowledgeListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTagType(r.status) }, () => getOptionLabel(KNOWLEDGE_INDEX_STATUS_OPTIONS, r.status))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTagType(r.status) }, () => h(XhTagLabel, () => getOptionLabel(KNOWLEDGE_INDEX_STATUS_OPTIONS, r.status)))
     },
   },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, sortable: true, order: 6 },
@@ -444,13 +444,17 @@ async function handleQuery() {
             <XhCardRoot v-for="(citation, idx) in citations" :key="`${citation.documentId}-${citation.index}`" variant="outline" class="playground__citation">
               <XhCardHeader>
                 <XhFlex align="center" gap="sm">
-                  <XhBadge variant="subtle" size="sm" tone="info">
-                    [{{ idx + 1 }}]
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" size="sm" tone="info">
+                    <XhTagLabel>
+                      [{{ idx + 1 }}]
+                    </XhTagLabel>
+                  </XhTagRoot>
                   <span class="playground__citation-title">{{ citation.title || citation.source || citation.documentId }}</span>
-                  <XhBadge v-if="citation.score != null" variant="subtle" size="sm">
-                    {{ citation.score.toFixed(3) }}
-                  </XhBadge>
+                  <XhTagRoot v-if="citation.score != null" variant="subtle" size="sm">
+                    <XhTagLabel>
+                      {{ citation.score.toFixed(3) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhFlex>
               </XhCardHeader>
               <XhCardBody>

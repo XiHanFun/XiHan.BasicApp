@@ -2,7 +2,7 @@
 import type { FormRules } from '@xihan-ui/headless'
 
 import type { UserProfile } from '~/types'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPinInputInput, XhPinInputRoot, XhQrCode, XhSwitch } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPinInputInput, XhPinInputRoot, XhQrCode, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XInput, XTooltip } from '~/components'
@@ -482,9 +482,11 @@ function handleDeleteAccount() {
           </div>
         </div>
         <div v-if="enabledCount > 0" class="pf-section__extra">
-          <XhBadge variant="subtle" tone="success" size="sm">
-            {{ t('component.profile.security.enabled_count', { count: enabledCount }) }}
-          </XhBadge>
+          <XhTagRoot variant="subtle" tone="success" size="sm">
+            <XhTagLabel>
+              {{ t('component.profile.security.enabled_count', { count: enabledCount }) }}
+            </XhTagLabel>
+          </XhTagRoot>
         </div>
       </div>
       <div class="pf-section__body">
@@ -494,9 +496,11 @@ function handleDeleteAccount() {
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
               <span>{{ t('component.profile.security.totp_method') }}</span>
-              <XhBadge v-if="hasTotpEnabled" variant="subtle" tone="success" size="sm">
-                {{ t('component.profile.security.tag_enabled') }}
-              </XhBadge>
+              <XhTagRoot v-if="hasTotpEnabled" variant="subtle" tone="success" size="sm">
+                <XhTagLabel>
+                  {{ t('component.profile.security.tag_enabled') }}
+                </XhTagLabel>
+              </XhTagRoot>
             </div>
             <div class="pf-setting-row__desc">
               {{ t('component.profile.security.totp_desc') }}
@@ -597,12 +601,16 @@ function handleDeleteAccount() {
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
               <span>{{ t('component.profile.security.email_method') }}</span>
-              <XhBadge v-if="hasEmailEnabled" variant="subtle" tone="success" size="sm">
-                {{ t('component.profile.security.tag_enabled') }}
-              </XhBadge>
-              <XhBadge v-else-if="!profile?.emailVerified" variant="subtle" tone="warning" size="sm">
-                {{ t('component.profile.security.tag_unverified') }}
-              </XhBadge>
+              <XhTagRoot v-if="hasEmailEnabled" variant="subtle" tone="success" size="sm">
+                <XhTagLabel>
+                  {{ t('component.profile.security.tag_enabled') }}
+                </XhTagLabel>
+              </XhTagRoot>
+              <XhTagRoot v-else-if="!profile?.emailVerified" variant="subtle" tone="warning" size="sm">
+                <XhTagLabel>
+                  {{ t('component.profile.security.tag_unverified') }}
+                </XhTagLabel>
+              </XhTagRoot>
             </div>
             <div class="pf-setting-row__desc">
               {{ t('component.profile.security.email_method_desc') }}
@@ -705,12 +713,16 @@ function handleDeleteAccount() {
           <div class="pf-setting-row__main">
             <div class="pf-setting-row__label">
               <span>{{ t('component.profile.security.sms_method') }}</span>
-              <XhBadge v-if="hasPhoneEnabled" variant="subtle" tone="success" size="sm">
-                {{ t('component.profile.security.tag_enabled') }}
-              </XhBadge>
-              <XhBadge v-else-if="!profile?.phoneVerified" variant="subtle" tone="warning" size="sm">
-                {{ t('component.profile.security.tag_unverified') }}
-              </XhBadge>
+              <XhTagRoot v-if="hasPhoneEnabled" variant="subtle" tone="success" size="sm">
+                <XhTagLabel>
+                  {{ t('component.profile.security.tag_enabled') }}
+                </XhTagLabel>
+              </XhTagRoot>
+              <XhTagRoot v-else-if="!profile?.phoneVerified" variant="subtle" tone="warning" size="sm">
+                <XhTagLabel>
+                  {{ t('component.profile.security.tag_unverified') }}
+                </XhTagLabel>
+              </XhTagRoot>
             </div>
             <div class="pf-setting-row__desc">
               {{ t('component.profile.security.sms_method_desc') }}
@@ -827,9 +839,9 @@ function handleDeleteAccount() {
           <div class="pf-info-card">
             <span class="pf-info-card__label">{{ t('component.profile.security.label_account_lock') }}</span>
             <span class="pf-info-card__value">
-              <XhBadge variant="subtle" :tone="profile?.isLocked ? 'danger' : 'success'" size="sm">
+              <XhTagRoot variant="subtle" :tone="profile?.isLocked ? 'danger' : 'success'" size="sm"><XhTagLabel>
                 {{ profile?.isLocked ? t('component.profile.security.value_locked') : t('component.profile.security.value_normal') }}
-              </XhBadge>
+              </XhTagLabel></XhTagRoot>
             </span>
           </div>
           <div v-if="profile?.isLocked && profile?.lockoutEndTime" class="pf-info-card">

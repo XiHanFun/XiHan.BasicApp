@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { VNodeChild } from 'vue'
-import { XhBadge } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { h } from 'vue'
 
 /** 菜单标签信息 */
@@ -42,12 +42,12 @@ export function renderSidebarBadgeLabel(
   return () =>
     h('span', { class: 'menu-badge-wrapper' }, [
       h('span', { class: 'menu-badge-text' }, text),
-      h(XhBadge, {
+      h(XhTagRoot, {
         size: 'sm',
         variant: 'subtle',
         tone: resolveBadgeTone(badge.type),
         class: 'menu-badge-tag',
-      }, () => String(badge.text)),
+      }, () => h(XhTagLabel, () => String(badge.text))),
     ])
 }
 
@@ -69,11 +69,11 @@ export function renderHorizontalBadgeLabel(
   return () =>
     h('span', { class: 'inline-flex items-center gap-1.5' }, [
       text,
-      h(XhBadge, {
+      h(XhTagRoot, {
         size: 'sm',
         variant: 'subtle',
         tone: resolveBadgeTone(badge.type),
-      }, () => String(badge.text)),
+      }, () => h(XhTagLabel, () => String(badge.text))),
     ])
 }
 </script>
@@ -103,18 +103,18 @@ const badgeTone = resolveBadgeTone(props.badge.type)
   <span v-if="mode === 'sidebar'" class="menu-badge-wrapper">
     <span class="menu-badge-text">{{ text }}</span>
     <span v-if="badge.dot" class="menu-badge-dot" />
-    <XhBadge v-else size="sm" variant="subtle" :tone="badgeTone" class="menu-badge-tag">
+    <XhTagRoot v-else size="sm" variant="subtle" :tone="badgeTone" class="menu-badge-tag"><XhTagLabel>
       {{ badge.text }}
-    </XhBadge>
+    </XhTagLabel></XhTagRoot>
   </span>
 
   <!-- 水平模式：行内紧跟 -->
   <span v-else class="inline-flex items-center gap-1.5">
     {{ text }}
     <span v-if="badge.dot" class="menu-badge-dot" style="margin-left: 2px" />
-    <XhBadge v-else size="sm" variant="subtle" :tone="badgeTone">
+    <XhTagRoot v-else size="sm" variant="subtle" :tone="badgeTone"><XhTagLabel>
       {{ badge.text }}
-    </XhBadge>
+    </XhTagLabel></XhTagRoot>
   </span>
 </template>
 

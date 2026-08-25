@@ -6,6 +6,8 @@ export default {
   },
   favorites: {
     title: 'Favorites',
+    /** 角标的读屏文案：按钮说这是什么，角标说有几个 */
+    count_label: '{n} favorites',
     empty: 'No favorites yet. Right-click a tab and choose "Favorite" to add one.',
     remove: 'Remove favorite',
     hint: 'Click to navigate; drag to reorder; × to remove.',
@@ -19,7 +21,7 @@ export default {
   },
   notification: {
     bell: 'Notifications',
-    unread_label: 'Unread messages',
+    unread_label: '{n} unread messages',
     title: 'Notifications',
     refresh: 'Refresh',
     mark_all_read: 'Mark all read',

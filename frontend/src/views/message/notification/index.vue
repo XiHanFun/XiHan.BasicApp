@@ -10,7 +10,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhBadge, XhButton, XhCheckboxGroupIndicator, XhCheckboxGroupItem, XhCheckboxGroupItemText, XhCheckboxGroupRoot, XhCheckboxGroupTrigger, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch } from '@xihan-ui/vue'
+import { XhButton, XhCheckboxGroupIndicator, XhCheckboxGroupItem, XhCheckboxGroupItemText, XhCheckboxGroupRoot, XhCheckboxGroupTrigger, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -230,7 +230,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 11,
     render: (row) => {
       const r = row as unknown as NotificationListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: NOTIFICATION_TYPE_TAG[r.notificationType] ?? 'neutral' }, () => getOptionLabel(notificationTypeOptions.value, r.notificationType))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: NOTIFICATION_TYPE_TAG[r.notificationType] ?? 'neutral' }, () => h(XhTagLabel, () => getOptionLabel(notificationTypeOptions.value, r.notificationType)))
     },
   },
   {
@@ -255,7 +255,7 @@ const fields = computed<ListFieldSchema[]>(() => [
         'div',
         { style: 'display:flex;flex-wrap:wrap;gap:4px' },
         channelsToArray(mask).map(bit =>
-          h(XhBadge, { variant: 'subtle', key: bit, size: 'sm', tone: bit === MessageChannel.SiteNotification ? 'neutral' : 'info' }, () => getOptionLabel(deliveryChannelOptions.value, bit))),
+          h(XhTagRoot, { variant: 'subtle', key: bit, size: 'sm', tone: bit === MessageChannel.SiteNotification ? 'neutral' : 'info' }, () => h(XhTagLabel, () => getOptionLabel(deliveryChannelOptions.value, bit)))),
       )
     },
   },
@@ -271,7 +271,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 14,
     render: (row) => {
       const published = (row as unknown as NotificationListItemDto).isPublished
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: published ? 'success' : 'neutral' }, () => published ? t('message.notification.published') : t('message.notification.unpublished'))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: published ? 'success' : 'neutral' }, () => h(XhTagLabel, () => published ? t('message.notification.published') : t('message.notification.unpublished')))
     },
   },
   { key: 'sendTime', title: t('message.notification.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15 },
@@ -957,9 +957,11 @@ async function handleSubmit() {
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('message.notification.detail.label.is_published') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
-                <XhBadge variant="subtle" size="sm" :tone="currentDetail.isPublished ? 'success' : 'neutral'">
-                  {{ currentDetail.isPublished ? t('message.notification.published') : t('message.notification.unpublished') }}
-                </XhBadge>
+                <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.isPublished ? 'success' : 'neutral'">
+                  <XhTagLabel>
+                    {{ currentDetail.isPublished ? t('message.notification.published') : t('message.notification.unpublished') }}
+                  </XhTagLabel>
+                </XhTagRoot>
               </XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem>

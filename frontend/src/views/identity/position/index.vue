@@ -7,7 +7,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -309,9 +309,11 @@ async function handleSubmit() {
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('identity.position.status') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
-              <XhBadge variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
-                {{ formatStatus(currentDetail.status) }}
-              </XhBadge>
+              <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                <XhTagLabel>
+                  {{ formatStatus(currentDetail.status) }}
+                </XhTagLabel>
+              </XhTagRoot>
             </XhDescriptionsValue>
           </XhDescriptionsItem>
           <XhDescriptionsItem>

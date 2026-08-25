@@ -6,7 +6,7 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import { XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot } from '@xihan-ui/vue'
+import { XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, XEditModal, XInput, XSelect } from '~/components'
@@ -209,9 +209,11 @@ async function handleImport() {
         {{ t('develop.code_gen.import.result_failed_title') }}
       </div>
       <div v-for="item in importResult.failed" :key="item.tableName" class="import-result__row">
-        <XhBadge variant="subtle" size="sm" tone="danger">
-          {{ item.tableName }}
-        </XhBadge>
+        <XhTagRoot variant="subtle" size="sm" tone="danger">
+          <XhTagLabel>
+            {{ item.tableName }}
+          </XhTagLabel>
+        </XhTagRoot>
         <span class="import-result__reason">{{ item.reason }}</span>
       </div>
     </div>

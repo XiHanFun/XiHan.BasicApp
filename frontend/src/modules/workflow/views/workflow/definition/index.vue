@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -78,14 +78,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: (row) => {
       const r = row as unknown as WorkflowDefinitionListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => statusLabel(r.status))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => h(XhTagLabel, () => statusLabel(r.status)))
     },
   },
   { key: 'code', title: t('workflow.definition.code'), dataType: 'string', sortable: true, minWidth: 160, order: 10 },
   { key: 'name', title: t('workflow.definition.name'), dataType: 'string', sortable: true, minWidth: 180, order: 11 },
   { key: 'version', title: t('workflow.definition.version'), dataType: 'number', sortable: true, width: 90, order: 12, render: (row) => {
     const r = row as unknown as WorkflowDefinitionListItemDto
-    return h(XhBadge, { variant: 'subtle', size: 'sm' }, () => `v${r.version}`)
+    return h(XhTagRoot, { variant: 'subtle', size: 'sm' }, () => h(XhTagLabel, () => `v${r.version}`))
   } },
   { key: 'category', title: t('workflow.definition.category'), dataType: 'string', searchable: true, minWidth: 120, order: 13 },
   { key: 'description', title: t('workflow.definition.description'), dataType: 'string', minWidth: 200, ellipsis: true, order: 14 },
@@ -334,9 +334,11 @@ function onAction(payload: SchemaActionPayload) {
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('workflow.definition.status') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
-                <XhBadge variant="subtle" :tone="statusTag(detailData.status)" size="sm">
-                  {{ statusLabel(detailData.status) }}
-                </XhBadge>
+                <XhTagRoot variant="subtle" :tone="statusTag(detailData.status)" size="sm">
+                  <XhTagLabel>
+                    {{ statusLabel(detailData.status) }}
+                  </XhTagLabel>
+                </XhTagRoot>
               </XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem>

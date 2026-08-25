@@ -13,7 +13,7 @@ import type {
   TenantUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -283,7 +283,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: getTenantStatusTagType(r.tenantStatus) }, () => getOptionLabel(tenantStatusOptions.value, r.tenantStatus))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: getTenantStatusTagType(r.tenantStatus) }, () => h(XhTagLabel, () => getOptionLabel(tenantStatusOptions.value, r.tenantStatus)))
     },
   },
   {
@@ -308,7 +308,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 9,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.isExpired ? 'danger' : 'success' }, () => (r.isExpired ? t('tenant.list.yes') : t('tenant.list.no')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.isExpired ? 'danger' : 'success' }, () => h(XhTagLabel, () => (r.isExpired ? t('tenant.list.yes') : t('tenant.list.no'))))
     },
   },
   { key: 'userLimit', title: t('tenant.list.user_limit'), dataType: 'number', sortable: true, minWidth: 100, order: 10 },
@@ -912,17 +912,21 @@ async function handleSubmit() {
                   <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenant.list.tenant_status') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>
-                      <XhBadge variant="subtle" :tone="getTenantStatusTagType(currentDetail.tenantStatus)" size="sm">
-                        {{ getOptionLabel(tenantStatusOptions, currentDetail.tenantStatus) }}
-                      </XhBadge>
+                      <XhTagRoot variant="subtle" :tone="getTenantStatusTagType(currentDetail.tenantStatus)" size="sm">
+                        <XhTagLabel>
+                          {{ getOptionLabel(tenantStatusOptions, currentDetail.tenantStatus) }}
+                        </XhTagLabel>
+                      </XhTagRoot>
                     </XhDescriptionsValue>
                   </XhDescriptionsItem>
                   <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('tenant.list.config_status') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>
-                      <XhBadge variant="subtle" :tone="resolveStatusTagTone('TenantConfigStatus', currentDetail.configStatus)" size="sm">
-                        {{ getOptionLabel(configStatusOptions, currentDetail.configStatus) }}
-                      </XhBadge>
+                      <XhTagRoot variant="subtle" :tone="resolveStatusTagTone('TenantConfigStatus', currentDetail.configStatus)" size="sm">
+                        <XhTagLabel>
+                          {{ getOptionLabel(configStatusOptions, currentDetail.configStatus) }}
+                        </XhTagLabel>
+                      </XhTagRoot>
                     </XhDescriptionsValue>
                   </XhDescriptionsItem>
                   <XhDescriptionsItem>
@@ -1039,19 +1043,25 @@ async function handleSubmit() {
                           <td>{{ item.userId }}</td>
                           <td>{{ formatNullable(resolveMemberName(item)) }}</td>
                           <td>
-                            <XhBadge variant="subtle" :tone="item.memberType === TenantMemberType.Owner ? 'warning' : item.memberType === TenantMemberType.Admin ? 'brand' : 'neutral'" size="sm">
-                              {{ getOptionLabel(memberTypeOptions, item.memberType) }}
-                            </XhBadge>
+                            <XhTagRoot variant="subtle" :tone="item.memberType === TenantMemberType.Owner ? 'warning' : item.memberType === TenantMemberType.Admin ? 'brand' : 'neutral'" size="sm">
+                              <XhTagLabel>
+                                {{ getOptionLabel(memberTypeOptions, item.memberType) }}
+                              </XhTagLabel>
+                            </XhTagRoot>
                           </td>
                           <td>
-                            <XhBadge variant="subtle" :tone="getInviteStatusTagType(item.inviteStatus)" size="sm">
-                              {{ getOptionLabel(inviteStatusOptions, item.inviteStatus) }}
-                            </XhBadge>
+                            <XhTagRoot variant="subtle" :tone="getInviteStatusTagType(item.inviteStatus)" size="sm">
+                              <XhTagLabel>
+                                {{ getOptionLabel(inviteStatusOptions, item.inviteStatus) }}
+                              </XhTagLabel>
+                            </XhTagRoot>
                           </td>
                           <td>
-                            <XhBadge variant="subtle" :tone="item.status === ValidityStatus.Valid ? 'success' : 'danger'" size="sm">
-                              {{ getOptionLabel(validityStatusOptions, item.status) }}
-                            </XhBadge>
+                            <XhTagRoot variant="subtle" :tone="item.status === ValidityStatus.Valid ? 'success' : 'danger'" size="sm">
+                              <XhTagLabel>
+                                {{ getOptionLabel(validityStatusOptions, item.status) }}
+                              </XhTagLabel>
+                            </XhTagRoot>
                           </td>
                           <td>{{ formatNullableDate(item.createdTime) }}</td>
                           <td>

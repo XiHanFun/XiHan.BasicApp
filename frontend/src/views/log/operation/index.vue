@@ -2,7 +2,7 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { OperationLogDetailDto, OperationLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhBadge } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -94,7 +94,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.operation.result_placeholder'),
     width: 90,
     order: 26,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: resultTagType((row as unknown as OperationLogListItemDto).result) }, () => getOptionLabel(resultOptions.value, (row as unknown as OperationLogListItemDto).result)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: resultTagType((row as unknown as OperationLogListItemDto).result) }, () => h(XhTagLabel, () => getOptionLabel(resultOptions.value, (row as unknown as OperationLogListItemDto).result))),
   },
   { key: 'operationTime', title: t('log.operation.operation_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 28 },

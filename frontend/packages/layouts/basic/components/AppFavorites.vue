@@ -99,13 +99,15 @@ onBeforeUnmount(() => {
         :title="t('header.favorites.title')"
         :aria-label="t('header.favorites.title')"
       >
-        <Icon icon="lucide:star" width="16" height="16" />
-        <!-- 数字、99+ 与「零则收起」都归组件库算 -->
+        <!-- 数字、99+、「零则收起」与贴角定位都归组件库算 -->
         <XhBadge
-          class="fav-btn__badge"
+          size="sm"
+          tone="brand"
           :count="favoritesStore.count"
-          :label="t('header.favorites.title')"
-        />
+          :label="t('header.favorites.count_label', { n: favoritesStore.count })"
+        >
+          <Icon icon="lucide:star" width="16" height="16" />
+        </XhBadge>
       </XhPopoverTrigger>
     </span>
 
@@ -176,30 +178,6 @@ onBeforeUnmount(() => {
 /* 收藏面板定宽，与表格设置/搜索设置浮层一致 */
 .fav-popover {
   inline-size: 340px;
-}
-
-/* 收藏夹触发按钮：皮肤走全局 .xihan-icon-btn，这里只留徽标与脉冲需要的定位 */
-.fav-btn {
-  position: relative;
-}
-
-.fav-btn__badge {
-  position: absolute;
-  top: -1px;
-  right: -1px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 14px;
-  height: 14px;
-  padding: 0 3px;
-  border-radius: 9999px;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 14px;
-  text-align: center;
 }
 
 /* 飞入命中脉冲 */

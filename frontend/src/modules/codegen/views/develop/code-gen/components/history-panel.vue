@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFlex } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -93,7 +93,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 2,
     render: (row) => {
       const r = row as unknown as CodeGenHistoryListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: genStatusTagType(r.genStatus) }, () => getOptionLabel(GEN_STATUS_OPTIONS, r.genStatus))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: genStatusTagType(r.genStatus) }, () => h(XhTagLabel, () => getOptionLabel(GEN_STATUS_OPTIONS, r.genStatus)))
     },
   },
   {
@@ -251,9 +251,11 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_status') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
-                <XhBadge variant="subtle" size="sm" :tone="genStatusTagType(detail.genStatus)">
-                  {{ getOptionLabel(GEN_STATUS_OPTIONS, detail.genStatus) }}
-                </XhBadge>
+                <XhTagRoot variant="subtle" size="sm" :tone="genStatusTagType(detail.genStatus)">
+                  <XhTagLabel>
+                    {{ getOptionLabel(GEN_STATUS_OPTIONS, detail.genStatus) }}
+                  </XhTagLabel>
+                </XhTagRoot>
               </XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem>

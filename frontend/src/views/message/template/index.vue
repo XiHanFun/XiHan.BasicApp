@@ -6,7 +6,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -115,7 +115,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 14,
     render: (row) => {
       const isGlobal = (row as unknown as MessageTemplateListItemDto).isGlobal
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: isGlobal ? 'info' : 'neutral' }, () => isGlobal ? t('message.template.scope_global') : t('message.template.scope_tenant'))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: isGlobal ? 'info' : 'neutral' }, () => h(XhTagLabel, () => isGlobal ? t('message.template.scope_global') : t('message.template.scope_tenant')))
     },
   },
   {
@@ -140,7 +140,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('message.template.search_status_placeholder'),
     width: 90,
     order: 17,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? t('message.template.status_enabled') : t('message.template.status_disabled')),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? t('message.template.status_enabled') : t('message.template.status_disabled'))),
   },
   { key: 'sort', title: t('message.template.col_sort'), dataType: 'number', width: 80, order: 18, sortable: true },
 ])

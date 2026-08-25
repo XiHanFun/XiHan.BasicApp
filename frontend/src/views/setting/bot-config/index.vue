@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BotConfigListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { botConfigApi, BotProviderType, createPageRequest, querySortsFromSchema } from '@/api'
@@ -72,7 +72,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('message.bot_config.columns.provider_placeholder'),
     width: 110,
     order: 3,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => getOptionLabel(providerOptions.value, (row as unknown as BotConfigListItemDto).provider)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => getOptionLabel(providerOptions.value, (row as unknown as BotConfigListItemDto).provider))),
   },
   {
     key: 'isDefault',
@@ -87,7 +87,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const isDefault = (row as unknown as BotConfigListItemDto).isDefault
       return isDefault
-        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => t('message.bot_config.tag.default'))
+        ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => h(XhTagLabel, () => t('message.bot_config.tag.default')))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -103,7 +103,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const enabled = (row as unknown as BotConfigListItemDto).isEnabled
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => enabled ? t('message.bot_config.tag.enabled') : t('message.bot_config.tag.disabled'))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('message.bot_config.tag.enabled') : t('message.bot_config.tag.disabled')))
     },
   },
   { key: 'sort', title: t('message.bot_config.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 6 },

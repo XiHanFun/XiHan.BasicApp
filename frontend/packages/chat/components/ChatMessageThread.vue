@@ -4,7 +4,7 @@ import type {
   ChatMessageItem,
 } from '../types'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
-import { useThread, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner } from '@xihan-ui/vue'
+import { useThread, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -573,9 +573,11 @@ onBeforeUnmount(() => {
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5">
           <span class="truncate text-sm font-semibold text-foreground">{{ conversation.displayName }}</span>
-          <XhBadge variant="subtle" size="sm">
-            {{ conversationTypeLabel }}
-          </XhBadge>
+          <XhTagRoot variant="subtle" size="sm">
+            <XhTagLabel>
+              {{ conversationTypeLabel }}
+            </XhTagLabel>
+          </XhTagRoot>
         </div>
         <div v-if="isGroupLike" class="text-[11px] text-muted-foreground">
           {{ t('chat.members.count', { n: conversation.memberCount }) }}

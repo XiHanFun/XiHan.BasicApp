@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Tone } from '@xihan-ui/kernel'
 import type { UserInboxItemDto } from '@/api'
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -230,12 +230,16 @@ onMounted(loadNotifications)
       </div>
 
       <div class="inbox-toolbar-right">
-        <XhBadge variant="subtle" size="sm">
-          {{ t('workbench.inbox.unread_count', { n: unreadCount }) }}
-        </XhBadge>
-        <XhBadge variant="subtle" size="sm" :tone="confirmCount > 0 ? 'warning' : 'neutral'">
-          {{ t('workbench.inbox.confirm_count', { n: confirmCount }) }}
-        </XhBadge>
+        <XhTagRoot variant="subtle" size="sm">
+          <XhTagLabel>
+            {{ t('workbench.inbox.unread_count', { n: unreadCount }) }}
+          </XhTagLabel>
+        </XhTagRoot>
+        <XhTagRoot variant="subtle" size="sm" :tone="confirmCount > 0 ? 'warning' : 'neutral'">
+          <XhTagLabel>
+            {{ t('workbench.inbox.confirm_count', { n: confirmCount }) }}
+          </XhTagLabel>
+        </XhTagRoot>
         <XhButton
           :disabled="unreadCount === 0"
           :loading="loading"
@@ -288,15 +292,21 @@ onMounted(loadNotifications)
               {{ item.title }}
             </div>
             <div class="inbox-item-tags">
-              <XhBadge variant="subtle" :tone="notificationTypeTag(item.notificationType)" size="sm">
-                {{ notificationTypeLabel(item.notificationType) }}
-              </XhBadge>
-              <XhBadge v-if="item.notificationStatus === NotificationStatus.Unread" variant="subtle" size="sm" tone="warning">
-                {{ t('workbench.inbox.unread') }}
-              </XhBadge>
-              <XhBadge v-if="item.needConfirm && !item.confirmTime" variant="subtle" size="sm" tone="danger">
-                {{ t('workbench.inbox.pending_confirm') }}
-              </XhBadge>
+              <XhTagRoot variant="subtle" :tone="notificationTypeTag(item.notificationType)" size="sm">
+                <XhTagLabel>
+                  {{ notificationTypeLabel(item.notificationType) }}
+                </XhTagLabel>
+              </XhTagRoot>
+              <XhTagRoot v-if="item.notificationStatus === NotificationStatus.Unread" variant="subtle" size="sm" tone="warning">
+                <XhTagLabel>
+                  {{ t('workbench.inbox.unread') }}
+                </XhTagLabel>
+              </XhTagRoot>
+              <XhTagRoot v-if="item.needConfirm && !item.confirmTime" variant="subtle" size="sm" tone="danger">
+                <XhTagLabel>
+                  {{ t('workbench.inbox.pending_confirm') }}
+                </XhTagLabel>
+              </XhTagRoot>
             </div>
           </div>
 

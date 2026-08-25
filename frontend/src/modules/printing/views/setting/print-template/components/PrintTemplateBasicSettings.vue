@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
-import { XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot } from '@xihan-ui/vue'
+import { XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XInput } from '~/components'
@@ -60,9 +60,11 @@ const basicComplete = computed(() => completedRequiredCount.value === 2)
             :placeholder="t('setting.print_template.template_code_placeholder')"
           >
             <template v-if="editing" #suffix>
-              <XhBadge variant="subtle" size="sm">
-                {{ t('setting.print_template.template_code_immutable') }}
-              </XhBadge>
+              <XhTagRoot variant="subtle" size="sm">
+                <XhTagLabel>
+                  {{ t('setting.print_template.template_code_immutable') }}
+                </XhTagLabel>
+              </XhTagRoot>
             </template>
           </XInput>
         </XhFieldControl>

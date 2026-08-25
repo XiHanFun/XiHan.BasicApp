@@ -7,7 +7,7 @@ import type { PrintTemplateDetailDto, PrintTemplateListItemDto } from '../../../
 import type PrintTemplateEditor from './components/PrintTemplateEditor.vue'
 import type { PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave } from 'vue-router'
@@ -114,7 +114,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const code = (row as unknown as PrintTemplateListItemDto).dataSourceCode
-      return code || h(XhBadge, { variant: 'subtle', tone: 'neutral', size: 'sm' }, () => t('setting.print_template.free_template'))
+      return code || h(XhTagRoot, { variant: 'subtle', tone: 'neutral', size: 'sm' }, () => h(XhTagLabel, () => t('setting.print_template.free_template')))
     },
   },
   { key: 'engineVersion', title: t('setting.print_template.engine_version'), dataType: 'string', width: 110, order: 4 },
@@ -125,7 +125,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     width: 110,
     order: 5,
     visible: activeScope.value === PrintTemplateScope.Global,
-    render: row => h(XhBadge, { variant: 'subtle', tone: (row as unknown as PrintTemplateListItemDto).allowTenantUse ? 'success' : 'neutral', size: 'sm' }, () => (row as unknown as PrintTemplateListItemDto).allowTenantUse ? t('common.statuses.yes') : t('common.statuses.no')),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: (row as unknown as PrintTemplateListItemDto).allowTenantUse ? 'success' : 'neutral', size: 'sm' }, () => h(XhTagLabel, () => (row as unknown as PrintTemplateListItemDto).allowTenantUse ? t('common.statuses.yes') : t('common.statuses.no'))),
   },
   {
     key: 'status',
@@ -135,7 +135,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     sortable: true,
     order: 6,
     dictionaryCode: 'EnableStatus',
-    render: row => h(XhBadge, { variant: 'subtle', tone: (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => h(XhTagLabel, () => (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled'))),
   },
   { key: 'sort', title: t('setting.print_template.sort'), dataType: 'number', width: 80, sortable: true, order: 7 },
   { key: 'remark', title: t('setting.print_template.remark'), dataType: 'string', minWidth: 180, order: 8 },

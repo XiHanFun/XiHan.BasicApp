@@ -88,6 +88,10 @@
     --xh-shape-control: var(--radius);
     --xh-shape-surface: var(--radius-card, var(--radius));
 
+    /* 状态药丸恒是药丸：它们表达的是「一小块状态」，不跟控件的圆角走。
+       组件库里 tag 默认取 shape-control，本站几百枚状态标记因此需要这一条 */
+    --xh-tag-radius: var(--xh-shape-pill);
+
     /* —— 层级：整族抬到应用旧有的 --popup-z-index(2000) 之上，
            避免遗留的 .z-popup 元素盖住组件库的模态与浮层 —— */
     --xh-z-sticky: var(--z-sidebar);

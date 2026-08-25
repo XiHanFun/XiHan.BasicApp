@@ -7,7 +7,7 @@ import type {
   OAuthAppUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType, querySortsFromSchema } from '@/api'
@@ -118,7 +118,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('openapi.app.skip_consent_placeholder'),
     width: 110,
     order: 7,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as OAuthAppListItemDto).skipConsent ? 'warning' : 'neutral' }, () => (row as unknown as OAuthAppListItemDto).skipConsent ? t('openapi.app.tag_skip') : t('openapi.app.tag_confirm')),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as OAuthAppListItemDto).skipConsent ? 'warning' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as OAuthAppListItemDto).skipConsent ? t('openapi.app.tag_skip') : t('openapi.app.tag_confirm'))),
   },
   {
     key: 'status',

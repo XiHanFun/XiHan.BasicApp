@@ -10,7 +10,7 @@ import type {
   DictUpdateDto,
 } from '@/api'
 import type { XDataTableColumn } from '~/components'
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
@@ -176,7 +176,7 @@ const dictColumns = computed<XDataTableColumn<DictListItemDto>[]>(() => [
       h('div', { class: 'dict-name' }, [
         h('span', { class: 'dict-name__text' }, row.dictName),
         row.isBuiltIn
-          ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => t('setting.dict.builtin'))
+          ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => h(XhTagLabel, () => t('setting.dict.builtin')))
           : null,
       ]),
   },
@@ -198,7 +198,7 @@ const dictColumns = computed<XDataTableColumn<DictListItemDto>[]>(() => [
     width: 72,
     align: 'center',
     render: (row: DictListItemDto) =>
-      h(XhBadge, { variant: 'subtle', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => getOptionLabel(statusEnumOptions.value, row.status)),
+      h(XhTagRoot, { variant: 'subtle', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, row.status))),
   },
   {
     key: 'actions',
@@ -290,14 +290,14 @@ const itemColumns = computed<XDataTableColumn<DictItemListItemDto>[]>(() => [
     title: t('setting.dict.default'),
     width: 70,
     render: (row: DictItemListItemDto) =>
-      h(XhBadge, { variant: 'subtle', tone: row.isDefault ? 'info' : 'neutral', size: 'sm' }, () => (row.isDefault ? t('common.statuses.yes') : t('common.statuses.no'))),
+      h(XhTagRoot, { variant: 'subtle', tone: row.isDefault ? 'info' : 'neutral', size: 'sm' }, () => h(XhTagLabel, () => (row.isDefault ? t('common.statuses.yes') : t('common.statuses.no')))),
   },
   {
     key: 'status',
     title: t('setting.dict.status'),
     width: 80,
     render: (row: DictItemListItemDto) =>
-      h(XhBadge, { variant: 'subtle', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => getOptionLabel(statusEnumOptions.value, row.status)),
+      h(XhTagRoot, { variant: 'subtle', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, row.status))),
   },
   {
     key: 'sort',

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { XhBadge, XhCardBody, XhCardHeader, XhCardRoot } from '@xihan-ui/vue'
+import { XhCardBody, XhCardHeader, XhCardRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -136,15 +136,21 @@ onMounted(() => {
             <span class="ab-hero-desc">{{ description }}</span>
           </div>
           <div class="ab-hero-line2">
-            <XhBadge variant="subtle" size="sm" tone="brand">
-              {{ t('component.about.tag_enterprise_ready') }}
-            </XhBadge>
-            <XhBadge variant="subtle" size="sm" tone="success">
-              {{ t('component.about.tag_composable') }}
-            </XhBadge>
-            <XhBadge variant="subtle" size="sm" tone="info">
-              {{ t('component.about.tag_modern_stack') }}
-            </XhBadge>
+            <XhTagRoot variant="subtle" size="sm" tone="brand">
+              <XhTagLabel>
+                {{ t('component.about.tag_enterprise_ready') }}
+              </XhTagLabel>
+            </XhTagRoot>
+            <XhTagRoot variant="subtle" size="sm" tone="success">
+              <XhTagLabel>
+                {{ t('component.about.tag_composable') }}
+              </XhTagLabel>
+            </XhTagRoot>
+            <XhTagRoot variant="subtle" size="sm" tone="info">
+              <XhTagLabel>
+                {{ t('component.about.tag_modern_stack') }}
+              </XhTagLabel>
+            </XhTagRoot>
           </div>
         </div>
       </div>
@@ -234,9 +240,11 @@ onMounted(() => {
         <div class="ab-card-header">
           <Icon icon="lucide:box" width="16" />
           <span>{{ t('component.about.backend_dependencies') }}</span>
-          <XhBadge variant="subtle" size="sm" tone="info" class="ab-pkg-count">
-            {{ backendDependencies.length }}
-          </XhBadge>
+          <XhTagRoot variant="subtle" size="sm" tone="info" class="ab-pkg-count">
+            <XhTagLabel>
+              {{ backendDependencies.length }}
+            </XhTagLabel>
+          </XhTagRoot>
         </div>
       </XhCardHeader>
       <XhCardBody>
@@ -249,9 +257,11 @@ onMounted(() => {
             <span class="ab-pkg-name" :title="pkg.packageName">
               {{ pkg.packageName }}
             </span>
-            <XhBadge variant="subtle" tone="success" size="sm" class="ab-pkg-ver">
-              {{ pkg.packageVersion }}
-            </XhBadge>
+            <XhTagRoot variant="subtle" tone="success" size="sm" class="ab-pkg-ver">
+              <XhTagLabel>
+                {{ pkg.packageVersion }}
+              </XhTagLabel>
+            </XhTagRoot>
           </div>
         </div>
       </XhCardBody>
@@ -262,9 +272,11 @@ onMounted(() => {
         <div class="ab-card-header">
           <Icon icon="lucide:box" width="16" />
           <span>{{ t('component.about.frontend_dependencies') }}</span>
-          <XhBadge variant="subtle" size="sm" tone="info" class="ab-pkg-count">
-            {{ dependencyCount }}
-          </XhBadge>
+          <XhTagRoot variant="subtle" size="sm" tone="info" class="ab-pkg-count">
+            <XhTagLabel>
+              {{ dependencyCount }}
+            </XhTagLabel>
+          </XhTagRoot>
         </div>
       </XhCardHeader>
       <XhCardBody>
@@ -277,9 +289,11 @@ onMounted(() => {
             <span class="ab-pkg-name" :title="String(key)">
               {{ key }}
             </span>
-            <XhBadge variant="subtle" tone="success" size="sm" class="ab-pkg-ver">
-              {{ value }}
-            </XhBadge>
+            <XhTagRoot variant="subtle" tone="success" size="sm" class="ab-pkg-ver">
+              <XhTagLabel>
+                {{ value }}
+              </XhTagLabel>
+            </XhTagRoot>
           </div>
         </div>
       </XhCardBody>
@@ -290,9 +304,11 @@ onMounted(() => {
         <div class="ab-card-header">
           <Icon icon="lucide:wrench" width="16" />
           <span>{{ t('component.about.frontend_dev_dependencies') }}</span>
-          <XhBadge variant="subtle" size="sm" tone="info" class="ab-pkg-count">
-            {{ devDependencyCount }}
-          </XhBadge>
+          <XhTagRoot variant="subtle" size="sm" tone="info" class="ab-pkg-count">
+            <XhTagLabel>
+              {{ devDependencyCount }}
+            </XhTagLabel>
+          </XhTagRoot>
         </div>
       </XhCardHeader>
       <XhCardBody>
@@ -305,9 +321,11 @@ onMounted(() => {
             <span class="ab-pkg-name" :title="String(key)">
               {{ key }}
             </span>
-            <XhBadge variant="subtle" tone="danger" size="sm" class="ab-pkg-ver">
-              {{ value }}
-            </XhBadge>
+            <XhTagRoot variant="subtle" tone="danger" size="sm" class="ab-pkg-ver">
+              <XhTagLabel>
+                {{ value }}
+              </XhTagLabel>
+            </XhTagRoot>
           </div>
         </div>
       </XhCardBody>
@@ -322,15 +340,17 @@ onMounted(() => {
       </XhCardHeader>
       <XhCardBody>
         <div class="ab-keywords">
-          <XhBadge
+          <XhTagRoot
             v-for="(value, index) in keywords"
             :key="String(value)"
             variant="subtle"
             size="sm"
             tone="brand"
           >
-            #{{ index + 1 }} {{ value }}
-          </XhBadge>
+            <XhTagLabel>
+              #{{ index + 1 }} {{ value }}
+            </XhTagLabel>
+          </XhTagRoot>
           <span v-if="keywords.length === 0" class="about-empty-hint">
             {{ t('page.about.empty_keywords') }}
           </span>

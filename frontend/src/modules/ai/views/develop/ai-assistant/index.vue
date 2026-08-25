@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -74,7 +74,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as AiAssistantListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.enableKnowledge ? 'success' : 'neutral' }, () => (r.enableKnowledge ? t('common.statuses.yes') : t('common.statuses.no')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.enableKnowledge ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (r.enableKnowledge ? t('common.statuses.yes') : t('common.statuses.no'))))
     },
   },
   {
@@ -86,7 +86,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const r = row as unknown as AiAssistantListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.isDefault ? 'info' : 'neutral' }, () => (r.isDefault ? t('common.statuses.yes') : t('common.statuses.no')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.isDefault ? 'info' : 'neutral' }, () => h(XhTagLabel, () => (r.isDefault ? t('common.statuses.yes') : t('common.statuses.no'))))
     },
   },
   {
@@ -98,7 +98,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as AiAssistantListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.isEnabled ? 'success' : 'neutral' }, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.isEnabled ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no'))))
     },
   },
   {
@@ -115,7 +115,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 8,
     render: (row) => {
       const r = row as unknown as AiAssistantListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusEnumOptions.value, r.status))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, r.status)))
     },
   },
   { key: 'sort', title: t('common.fields.sort'), dataType: 'number', width: 80, sortable: true, order: 9 },

@@ -9,7 +9,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import { createHighlighter } from '@xihan-ui/code-highlight'
-import { XhBadge, XhButton, XhCodeBlock, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFileUploadDropzone, XhFileUploadHiddenInput, XhFileUploadRoot, XhFlex, XhSwitch } from '@xihan-ui/vue'
+import { XhButton, XhCodeBlock, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFileUploadDropzone, XhFileUploadHiddenInput, XhFileUploadRoot, XhFlex, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
@@ -263,7 +263,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('file.library.columns.file_type_placeholder'),
     width: 110,
     order: 3,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm' }, () => getOptionLabel(fileTypeOptions.value, (row as unknown as FileListItemDto).fileType)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm' }, () => h(XhTagLabel, () => getOptionLabel(fileTypeOptions.value, (row as unknown as FileListItemDto).fileType))),
   },
   {
     key: 'fileSize',
@@ -286,7 +286,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('file.library.columns.status_placeholder'),
     width: 110,
     order: 5,
-    render: row => h(XhBadge, { variant: 'subtle', tone: getFileStatusTagType((row as unknown as FileListItemDto).status), size: 'sm' }, () => getOptionLabel(fileStatusOptions.value, (row as unknown as FileListItemDto).status)),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: getFileStatusTagType((row as unknown as FileListItemDto).status), size: 'sm' }, () => h(XhTagLabel, () => getOptionLabel(fileStatusOptions.value, (row as unknown as FileListItemDto).status))),
   },
   {
     key: 'accessLevel',
@@ -920,7 +920,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     title: t('file.library.storage_list.columns.is_primary'),
     width: 80,
     render: row => row.isPrimary
-      ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => t('file.library.flag.primary'))
+      ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => t('file.library.flag.primary')))
       : h('span', { class: 'text-foreground/40' }, '-'),
   },
   {
@@ -933,7 +933,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     key: 'status',
     title: t('file.library.storage_list.columns.status'),
     width: 100,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: getStorageStatusTagType(row.status) }, () => getOptionLabel(storageStatusOptions.value, row.status)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: getStorageStatusTagType(row.status) }, () => h(XhTagLabel, () => getOptionLabel(storageStatusOptions.value, row.status))),
   },
   {
     key: 'actions',

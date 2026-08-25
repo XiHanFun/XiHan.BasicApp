@@ -9,7 +9,7 @@ import type {
   NumberingRuleUpdateDto,
   NumberingScope,
 } from '@/api'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -353,9 +353,11 @@ async function submit(): Promise<void> {
             <XhButton :loading="previewLoading" @click="preview">
               {{ t('setting.numbering.preview_action') }}
             </XhButton>
-            <XhBadge v-if="previewNumber" variant="subtle" tone="info" size="lg">
-              {{ previewNumber }}
-            </XhBadge>
+            <XhTagRoot v-if="previewNumber" variant="subtle" tone="info" size="lg">
+              <XhTagLabel>
+                {{ previewNumber }}
+              </XhTagLabel>
+            </XhTagRoot>
           </XhFlex>
         </XhFieldControl>
         <XhFieldErrorText />

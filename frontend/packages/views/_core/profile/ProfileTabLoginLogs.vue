@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { LoginAuditResult, LoginLogItem } from '~/types'
-import { XhBadge, XhButton, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SchemaPagination } from '~/components'
@@ -133,9 +133,11 @@ onMounted(() => loadLogs())
               </div>
               <div class="pf-list-body">
                 <div class="pf-list-title">
-                  <XhBadge variant="subtle" :tone="resultTagType(log.loginResult)" size="sm">
-                    {{ loginResultLabel[log.loginResult] || t('component.profile.login_logs.result_unknown', { result: log.loginResult }) }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" :tone="resultTagType(log.loginResult)" size="sm">
+                    <XhTagLabel>
+                      {{ loginResultLabel[log.loginResult] || t('component.profile.login_logs.result_unknown', { result: log.loginResult }) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                   <span v-if="log.message" class="pf-log-message">{{ log.message }}</span>
                 </div>
                 <div class="pf-list-desc">

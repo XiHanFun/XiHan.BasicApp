@@ -15,7 +15,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhBadge, XhButton, XhCheckbox, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -117,7 +117,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.is_global_placeholder'),
     width: 82,
     order: 5,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'neutral' }, () => (row as unknown as RoleListItemDto).isGlobal ? t('common.statuses.yes') : t('common.statuses.no')),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as RoleListItemDto).isGlobal ? t('common.statuses.yes') : t('common.statuses.no'))),
   },
   {
     key: 'dataScope',
@@ -147,7 +147,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.status_placeholder'),
     width: 82,
     order: 9,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled')),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled'))),
   },
   {
     key: 'createdTime',
@@ -1295,9 +1295,11 @@ async function handleToggleStatus(row: RoleListItemDto) {
           <div v-else class="scope-list">
             <div v-for="grant in scopeGrants" :key="String(grant.basicId)" class="scope-row">
               <span class="scope-dept">{{ grant.departmentName || grant.departmentId }}</span>
-              <XhBadge variant="subtle" size="sm" :tone="grant.includeChildren ? 'info' : 'neutral'">
-                {{ grant.includeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
-              </XhBadge>
+              <XhTagRoot variant="subtle" size="sm" :tone="grant.includeChildren ? 'info' : 'neutral'">
+                <XhTagLabel>
+                  {{ grant.includeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
+                </XhTagLabel>
+              </XhTagRoot>
               <XhButton variant="ghost" size="sm" tone="danger" @click="removeScope(grant)">
                 {{ t('identity.role.scope_remove') }}
               </XhButton>

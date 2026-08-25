@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ApiCredentialItem, ApiCredentialSecret } from '~/types'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -245,9 +245,11 @@ onMounted(() => {
               <div class="pf-list-body">
                 <div class="pf-list-title pf-credential__name">
                   <span>{{ cred.credentialName }}</span>
-                  <XhBadge variant="subtle" size="sm" :tone="cred.status === 'Enabled' ? 'success' : 'neutral'">
-                    {{ cred.status === 'Enabled' ? t('component.profile.developer.tag_enabled') : t('component.profile.developer.tag_disabled') }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" size="sm" :tone="cred.status === 'Enabled' ? 'success' : 'neutral'">
+                    <XhTagLabel>
+                      {{ cred.status === 'Enabled' ? t('component.profile.developer.tag_enabled') : t('component.profile.developer.tag_disabled') }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </div>
                 <div class="pf-credential__key">
                   <code>{{ cred.appKey }}</code>

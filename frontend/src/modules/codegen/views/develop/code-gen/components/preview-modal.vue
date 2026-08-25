@@ -5,7 +5,7 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import { XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, XCodeEditor, XSegmented, XTree } from '~/components'
@@ -197,7 +197,7 @@ function renderNodeLabel(node: Record<string, unknown>) {
     h(Icon, { class: 'gen__node-icon', icon }),
     h('span', null, item.label),
     item.writeOnce
-      ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'success' }, () => t('develop.code_gen.preview.badge_manual'))
+      ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'success' }, () => h(XhTagLabel, () => t('develop.code_gen.preview.badge_manual')))
       : null,
   ])
 }

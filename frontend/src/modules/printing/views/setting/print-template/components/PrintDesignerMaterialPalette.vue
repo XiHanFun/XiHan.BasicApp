@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintFieldKind } from '~/printing'
-import { XhBadge, XhButton, XhCollapsibleContent, XhCollapsibleRoot } from '@xihan-ui/vue'
+import { XhButton, XhCollapsibleContent, XhCollapsibleRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -163,9 +163,11 @@ function getFieldIcon(kind: PrintFieldKind): string {
             {{ activeDataSource?.name || t('setting.print_template.palette_free_mode_compact_hint') }}
           </span>
         </span>
-        <XhBadge v-if="activeDataSource" variant="subtle" size="sm" tone="info">
-          {{ t('setting.print_template.palette_field_count', { count: dataSourceMaterials.length }) }}
-        </XhBadge>
+        <XhTagRoot v-if="activeDataSource" variant="subtle" size="sm" tone="info">
+          <XhTagLabel>
+            {{ t('setting.print_template.palette_field_count', { count: dataSourceMaterials.length }) }}
+          </XhTagLabel>
+        </XhTagRoot>
         <span
           v-if="activeDataSource"
           class="data-source-chevron"
