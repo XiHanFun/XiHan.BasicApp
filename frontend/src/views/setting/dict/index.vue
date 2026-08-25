@@ -1150,10 +1150,11 @@ onMounted(fetchDictData)
   padding: 8px 14px;
 }
 
-/* 表格：占满 body 中段并在内部 tbody 滚动，不撑破容器 */
+/* 表格：占满 body 中段并在内部 tbody 滚动，不撑破容器；高度上限跟随 body 的高 */
 .pane__table {
   flex: 1;
   min-height: 0;
+  --xh-table-max-h: 100%;
 }
 
 .pane__empty {
