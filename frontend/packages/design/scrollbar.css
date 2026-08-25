@@ -1,28 +1,7 @@
-/* 自定义滚动条。
+/* 自定义滚动条：细条、透明轨道，滑块取令牌桥里的 --xh-fg-scrollbar-thumb，与组件库自绘的那套同色。
    带 [data-xh-scrollbar] 的容器交给组件库自绘，这里要让开：
    库那条藏原生条的规则在 xihan.components 层里，本文件无层，不排除就会压过它、原生条与自绘条一起出现。 */
-:not([data-xh-scrollbar])::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-:not([data-xh-scrollbar])::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 3px;
-}
-
-:not([data-xh-scrollbar])::-webkit-scrollbar-thumb {
-  background: rgba(144, 147, 153, 0.4);
-  border-radius: 3px;
-  transition: background 0.2s;
-}
-
-:not([data-xh-scrollbar])::-webkit-scrollbar-thumb:hover {
-  background: rgba(144, 147, 153, 0.7);
-}
-
-/* Firefox */
 :not([data-xh-scrollbar]) {
   scrollbar-width: thin;
-  scrollbar-color: rgba(144, 147, 153, 0.4) transparent;
+  scrollbar-color: var(--xh-fg-scrollbar-thumb) transparent;
 }

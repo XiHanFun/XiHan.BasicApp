@@ -339,7 +339,7 @@ const sidebarEnableState = computed(
       </div>
 
       <!-- Page content -->
-      <div class="flex min-h-0 flex-1 flex-col overflow-hidden transition-[margin-top] duration-200" :style="[{ scrollbarGutter: 'stable' }, shell.contentStyle.value]">
+      <div class="flex min-h-0 flex-1 flex-col overflow-hidden transition-[margin-top] duration-200" :style="shell.contentStyle.value">
         <!-- 通知横幅：置于正文容器内（容器已按固定顶栏做 margin-top 让位），
              紧贴标签栏下方、块级推下页面内容；放容器外会被固定顶栏遮住并顶出空白条 -->
         <NotificationBanner />
