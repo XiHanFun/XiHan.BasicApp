@@ -121,7 +121,8 @@ const appAuthorUrl = __APP_AUTHOR_URL__
               :class="formAlign === 'center' ? 'max-w-[560px]' : 'max-w-[460px]'"
             >
               <AuthEntrySwitcher v-if="showEntryTabs" class="mb-7" />
-              <div class="overflow-hidden" :class="showEntryTabs ? 'min-h-[520px]' : ''">
+              <!-- 这层裁掉切换过渡的 ±24px 平移；4px 内衬同时给控件聚焦环（外扩 ring-offset 2px + ring-width 2px）留出显示空间 -->
+              <div class="overflow-hidden p-1" :class="showEntryTabs ? 'min-h-[520px]' : ''">
                 <router-view v-slot="{ Component }">
                   <transition name="auth-slide" mode="out-in">
                     <component :is="Component" />
