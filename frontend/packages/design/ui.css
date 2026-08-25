@@ -317,8 +317,9 @@
   }
 }
 
-/* 轻提示描述保留换行：多行结果（如连通性探测逐项结果）直接用 \n 分行 */
-[data-scope='toast'][data-part='description'] {
+/* 通知正文保留换行：多行结果（如连通性探测逐项结果）直接用 \n 分行。
+   轻提示没有正文这一层——它只出一句话，多行的那些一律走通知 */
+[data-scope='notification'][data-part='item-description'] {
   white-space: pre-line;
 }
 
