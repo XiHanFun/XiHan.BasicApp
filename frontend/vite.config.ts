@@ -1,5 +1,6 @@
 import type { ComponentResolver } from 'unplugin-vue-components'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import process from 'node:process'
 import { fileURLToPath, URL } from 'node:url'
 
@@ -11,6 +12,43 @@ import Components from 'unplugin-vue-components/vite'
 import { defineConfig, loadEnv } from 'vite'
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf-8'))
+
+const rootDir = fileURLToPath(new URL('.', import.meta.url))
+
+/** pnpm 内部依赖协议前缀，这类声明不是版本号 */
+const PNPM_PROTOCOL_RE = /^(?:catalog|workspace|link|file|npm):/
+
+/**
+ * 解析单个依赖的真实版本：读 node_modules 里已安装那一份的 version。
+ * 安装态一次覆盖 catalog / workspace / link / overrides 四种协议，
+ * 而 pnpm-workspace.yaml 的 catalog 段只写范围符、且可能与实装漂移。
+ * 读不到时具体版本号原样保留，pnpm 协议串显示为 '-'。
+ */
+function resolveDependencyVersion(name: string, spec: string): string {
+  const file = join(rootDir, 'node_modules', name, 'package.json')
+  if (existsSync(file)) {
+    try {
+      const version = (JSON.parse(readFileSync(file, 'utf-8')) as { version?: string }).version
+      if (typeof version === 'string' && version)
+        return version
+    }
+    catch {
+      // 装坏的包按读不到处理
+    }
+  }
+  return PNPM_PROTOCOL_RE.test(spec) ? '-' : spec
+}
+
+/** 把一组依赖声明整体解析成 包名 → 真实版本 */
+function resolveDependencyVersions(declarations: Record<string, unknown>): Record<string, string> {
+  const result: Record<string, string> = {}
+  for (const [name, spec] of Object.entries(declarations))
+    result[name] = resolveDependencyVersion(name, typeof spec === 'string' ? spec : '')
+  return result
+}
+
+const appDependencies = resolveDependencyVersions(pkg.dependencies ?? {})
+const appDevDependencies = resolveDependencyVersions(pkg.devDependencies ?? {})
 
 /**
  * XiHan.UI 是解剖式组件库：一个组件由 Root / Trigger / Content 等多个部件组成，
@@ -184,6 +222,8 @@ export default defineConfig(({ mode }) => {
       __APP_NAME__: JSON.stringify(pkg.name),
       __APP_AUTHOR_NAME__: JSON.stringify(pkg.author?.name ?? ''),
       __APP_AUTHOR_URL__: JSON.stringify(pkg.author?.url ?? ''),
+      __APP_DEPENDENCIES__: JSON.stringify(appDependencies),
+      __APP_DEV_DEPENDENCIES__: JSON.stringify(appDevDependencies),
     },
     plugins: [
       tailwindcss(),
