@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UserSessionItem } from '~/types'
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTitle, XhPopconfirmTrigger, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTitle, XhPopconfirmTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { dialog, toast } from '~/composables'
@@ -142,9 +142,11 @@ onMounted(loadSessions)
                   · {{ s.isCurrent ? t('component.profile.devices.status_online') : formatDate(s.lastActivityTime, 'MM-DD HH:mm') }}
                 </div>
               </div>
-              <XhBadge v-if="s.isCurrent" variant="subtle" tone="success" size="sm">
-                {{ t('component.profile.devices.tag_current') }}
-              </XhBadge>
+              <XhTagRoot v-if="s.isCurrent" variant="subtle" tone="success" size="sm">
+                <XhTagLabel>
+                  {{ t('component.profile.devices.tag_current') }}
+                </XhTagLabel>
+              </XhTagRoot>
               <XhPopconfirmRoot v-else @confirm="handleRevokeSession(s.sessionId)">
                 <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
                 <XhPopconfirmTrigger class="xh-linklike-trigger xh-linklike-trigger--danger">

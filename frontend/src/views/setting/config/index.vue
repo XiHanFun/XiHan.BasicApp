@@ -7,7 +7,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -453,9 +453,11 @@ async function handleToggleStatus(row: ConfigListItemDto) {
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.config.status') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
-                  <XhBadge variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
-                    {{ getOptionLabel(statusOptions, currentDetail.status) }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                    <XhTagLabel>
+                      {{ getOptionLabel(statusOptions, currentDetail.status) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem>
@@ -522,9 +524,11 @@ async function handleToggleStatus(row: ConfigListItemDto) {
                 <XhDescriptionsValue>
                   <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:hsl(var(--muted-foreground))">{{ t('setting.config.encrypted_hint') }}</span>
                   <pre v-else-if="currentDetail.hasCurrentValue" class="config-value-block">{{ formatConfigValue(currentDetail.configValue) }}</pre>
-                  <XhBadge v-else variant="subtle" size="sm">
-                    {{ t('setting.config.not_configured') }}
-                  </XhBadge>
+                  <XhTagRoot v-else variant="subtle" size="sm">
+                    <XhTagLabel>
+                      {{ t('setting.config.not_configured') }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem>
@@ -532,9 +536,11 @@ async function handleToggleStatus(row: ConfigListItemDto) {
                 <XhDescriptionsValue>
                   <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:hsl(var(--muted-foreground))">{{ t('setting.config.encrypted_hint') }}</span>
                   <pre v-else-if="currentDetail.hasFallbackValue" class="config-value-block">{{ formatConfigValue(currentDetail.defaultValue) }}</pre>
-                  <XhBadge v-else variant="subtle" size="sm">
-                    {{ t('setting.config.value_unset') }}
-                  </XhBadge>
+                  <XhTagRoot v-else variant="subtle" size="sm">
+                    <XhTagLabel>
+                      {{ t('setting.config.value_unset') }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem v-if="currentDetail.hasNote">

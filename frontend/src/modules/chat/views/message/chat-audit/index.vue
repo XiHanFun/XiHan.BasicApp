@@ -2,7 +2,7 @@
 import type { ChatAuditListItemDto } from '../../../api/chat-audit.types'
 import type { PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaQueryParams } from '~/components'
-import { XhBadge } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema } from '@/api'
@@ -77,8 +77,8 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const item = row as unknown as ChatAuditListItemDto
       return item.isRecalled
-        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'danger' }, () => t('chat.audit.recalled_yes'))
-        : h(XhBadge, { variant: 'subtle', size: 'sm' }, () => t('chat.audit.recalled_no'))
+        ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'danger' }, () => h(XhTagLabel, () => t('chat.audit.recalled_yes')))
+        : h(XhTagRoot, { variant: 'subtle', size: 'sm' }, () => h(XhTagLabel, () => t('chat.audit.recalled_no')))
     },
   },
   { key: 'editedTime', title: t('chat.audit.edited_time'), dataType: 'datetime', minWidth: 170, order: 18 },

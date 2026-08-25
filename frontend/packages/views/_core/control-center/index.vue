@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { AppTenantSwitcherItem } from '~/types'
-import { XhBadge, XhButton, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
@@ -177,9 +177,11 @@ onMounted(loadTenants)
                   <div class="cc-tenant__body">
                     <div class="cc-tenant__name">
                       {{ t('page.control_center.platform_panel') }}
-                      <XhBadge v-if="platformIsCurrent" variant="subtle" tone="success" size="sm">
-                        {{ t('page.control_center.current') }}
-                      </XhBadge>
+                      <XhTagRoot v-if="platformIsCurrent" variant="subtle" tone="success" size="sm">
+                        <XhTagLabel>
+                          {{ t('page.control_center.current') }}
+                        </XhTagLabel>
+                      </XhTagRoot>
                     </div>
                     <div class="cc-tenant__meta">
                       <span class="cc-tenant__code">{{ t('page.control_center.platform_desc') }}</span>
@@ -225,14 +227,18 @@ onMounted(loadTenants)
                 <div class="cc-tenant__body">
                   <div class="cc-tenant__name">
                     {{ tenant.tenantName }}
-                    <XhBadge v-if="tenant.isCurrent" variant="subtle" tone="success" size="sm">
-                      {{ t('page.control_center.current') }}
-                    </XhBadge>
+                    <XhTagRoot v-if="tenant.isCurrent" variant="subtle" tone="success" size="sm">
+                      <XhTagLabel>
+                        {{ t('page.control_center.current') }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                   </div>
                   <div class="cc-tenant__meta">
-                    <XhBadge variant="subtle" :tone="memberTagType(tenant.memberType)" size="sm">
-                      {{ memberTypeLabel(tenant.memberType) }}
-                    </XhBadge>
+                    <XhTagRoot variant="subtle" :tone="memberTagType(tenant.memberType)" size="sm">
+                      <XhTagLabel>
+                        {{ memberTypeLabel(tenant.memberType) }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                     <span class="cc-tenant__code">{{ tenant.tenantCode }}</span>
                   </div>
                 </div>

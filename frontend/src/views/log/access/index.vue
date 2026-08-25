@@ -2,7 +2,7 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { AccessLogDetailDto, AccessLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhBadge } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -89,7 +89,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 18,
     render: (row) => {
       const r = row as unknown as AccessLogListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: accessResultType(r.accessResult) }, () => getOptionLabel(accessResultOptions.value, r.accessResult))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: accessResultType(r.accessResult) }, () => h(XhTagLabel, () => getOptionLabel(accessResultOptions.value, r.accessResult)))
     },
   },
   { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, sortable: true, width: 100, order: 19 },

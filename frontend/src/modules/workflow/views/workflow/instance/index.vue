@@ -9,7 +9,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { DiagramNodeStatus } from '~/diagram'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -102,14 +102,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: (row) => {
       const r = row as unknown as WorkflowInstanceListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => statusLabel(r.status))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => h(XhTagLabel, () => statusLabel(r.status)))
     },
   },
   { key: 'definitionCode', title: t('workflow.instance.definition_code'), dataType: 'string', searchable: true, sortable: true, minWidth: 150, order: 2 },
   { key: 'name', title: t('workflow.instance.name'), dataType: 'string', sortable: true, minWidth: 180, order: 10 },
   { key: 'definitionVersion', title: t('workflow.instance.version'), dataType: 'number', width: 80, order: 11, render: (row) => {
     const r = row as unknown as WorkflowInstanceListItemDto
-    return h(XhBadge, { variant: 'subtle', size: 'sm' }, () => `v${r.definitionVersion}`)
+    return h(XhTagRoot, { variant: 'subtle', size: 'sm' }, () => h(XhTagLabel, () => `v${r.definitionVersion}`))
   } },
   { key: 'correlationId', title: t('workflow.instance.correlation_id'), dataType: 'string', searchable: true, minWidth: 140, order: 12 },
   { key: 'starterId', title: t('workflow.instance.starter'), dataType: 'string', minWidth: 110, order: 13 },
@@ -360,9 +360,11 @@ function onAction(payload: SchemaActionPayload) {
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('workflow.instance.status') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
-                <XhBadge variant="subtle" :tone="statusTag(detailData.status)" size="sm">
-                  {{ statusLabel(detailData.status) }}
-                </XhBadge>
+                <XhTagRoot variant="subtle" :tone="statusTag(detailData.status)" size="sm">
+                  <XhTagLabel>
+                    {{ statusLabel(detailData.status) }}
+                  </XhTagLabel>
+                </XhTagRoot>
               </XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem>
@@ -451,9 +453,11 @@ function onAction(payload: SchemaActionPayload) {
                 <td>{{ node.name }} ({{ node.nodeId }})</td>
                 <td>{{ node.activityType }}</td>
                 <td>
-                  <XhBadge variant="subtle" :tone="nodeStatusTag(node.status)" size="sm">
-                    {{ node.status }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" :tone="nodeStatusTag(node.status)" size="sm">
+                    <XhTagLabel>
+                      {{ node.status }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </td>
                 <td>{{ node.tryCount }}</td>
                 <td>{{ formatDate(node.startTime) }}</td>
@@ -468,9 +472,11 @@ function onAction(payload: SchemaActionPayload) {
             </div>
             <XhFlex direction="column" gap="xs">
               <div v-for="bookmark in detailData.pendingBookmarks" :key="bookmark.id" class="text-xs text-gray-500">
-                <XhBadge variant="subtle" size="sm">
-                  {{ bookmark.kind }}
-                </XhBadge>
+                <XhTagRoot variant="subtle" size="sm">
+                  <XhTagLabel>
+                    {{ bookmark.kind }}
+                  </XhTagLabel>
+                </XhTagRoot>
                 {{ t('workflow.instance.bookmark_node') }}: {{ bookmark.nodeId }}
                 <template v-if="bookmark.key">
                   / {{ t('workflow.instance.bookmark_key') }}: {{ bookmark.key }}

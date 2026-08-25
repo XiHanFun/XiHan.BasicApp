@@ -9,7 +9,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -79,7 +79,7 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h('div', { class: 'ds-name' }, [
         h('span', { class: 'ds-name__text' }, r.sourceName),
         r.isDefault
-          ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => t('common.statuses.default_tag'))
+          ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => t('common.statuses.default_tag')))
           : null,
       ])
     },
@@ -120,8 +120,8 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as CodeGenDataSourceListItemDto
       return r.lastTestTime
-        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.lastTestResult ? 'success' : 'danger' }, () => (r.lastTestResult ? t('develop.code_gen.datasource.tag_normal') : t('develop.code_gen.datasource.tag_failed')))
-        : h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'neutral' }, () => t('develop.code_gen.datasource.tag_untested'))
+        ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.lastTestResult ? 'success' : 'danger' }, () => h(XhTagLabel, () => (r.lastTestResult ? t('develop.code_gen.datasource.tag_normal') : t('develop.code_gen.datasource.tag_failed'))))
+        : h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'neutral' }, () => h(XhTagLabel, () => t('develop.code_gen.datasource.tag_untested')))
     },
   },
   {
@@ -138,7 +138,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const r = row as unknown as CodeGenDataSourceListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusEnumOptions.value, r.status))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, r.status)))
     },
   },
   { key: 'sort', title: t('common.fields.sort'), dataType: 'number', width: 80, sortable: true, order: 7 },

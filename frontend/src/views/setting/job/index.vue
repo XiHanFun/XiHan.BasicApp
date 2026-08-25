@@ -10,7 +10,7 @@ import type {
   TaskUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
@@ -156,7 +156,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: runStatusTag(r.runTaskStatus) }, () => getOptionLabel(runTaskStatusOptions.value, r.runTaskStatus))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: runStatusTag(r.runTaskStatus) }, () => h(XhTagLabel, () => getOptionLabel(runTaskStatusOptions.value, r.runTaskStatus)))
     },
   },
   {
@@ -171,7 +171,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => getOptionLabel(statusOptions.value, r.status))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, r.status)))
     },
   },
   {
@@ -185,7 +185,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.allowConcurrent ? 'warning' : 'info' }, () => (r.allowConcurrent ? t('common.statuses.allow') : t('common.statuses.forbid')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.allowConcurrent ? 'warning' : 'info' }, () => h(XhTagLabel, () => (r.allowConcurrent ? t('common.statuses.allow') : t('common.statuses.forbid'))))
     },
   },
   { key: 'executedCount', title: t('setting.job.executed_count'), dataType: 'number', minWidth: 100, order: 8 },
@@ -318,7 +318,7 @@ const taskLogColumns = computed<XDataTableColumn<TaskLogListItemDto>[]>(() => [
   { ellipsis: true, key: 'batchNumber', render: row => row.batchNumber || '-', title: t('setting.job.batch_number'), width: 150 },
   {
     key: 'taskStatus',
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: runStatusTag(row.taskStatus) }, () => getOptionLabel(runTaskStatusOptions.value, row.taskStatus)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: runStatusTag(row.taskStatus) }, () => h(XhTagLabel, () => getOptionLabel(runTaskStatusOptions.value, row.taskStatus))),
     title: t('setting.job.log_status'),
     width: 96,
   },
@@ -633,9 +633,11 @@ async function handleSubmit() {
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('setting.job.run_status') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
-              <XhBadge variant="subtle" size="sm" :tone="runStatusTag(asTask(row).runTaskStatus)">
-                {{ getOptionLabel(runTaskStatusOptions, asTask(row).runTaskStatus) }}
-              </XhBadge>
+              <XhTagRoot variant="subtle" size="sm" :tone="runStatusTag(asTask(row).runTaskStatus)">
+                <XhTagLabel>
+                  {{ getOptionLabel(runTaskStatusOptions, asTask(row).runTaskStatus) }}
+                </XhTagLabel>
+              </XhTagRoot>
             </XhDescriptionsValue>
           </XhDescriptionsItem>
           <XhDescriptionsItem>
@@ -746,17 +748,21 @@ async function handleSubmit() {
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.job.run_status') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
-                  <XhBadge variant="subtle" :tone="runStatusTag(detailData.runTaskStatus)" size="sm">
-                    {{ getOptionLabel(runTaskStatusOptions, detailData.runTaskStatus) }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" :tone="runStatusTag(detailData.runTaskStatus)" size="sm">
+                    <XhTagLabel>
+                      {{ getOptionLabel(runTaskStatusOptions, detailData.runTaskStatus) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.job.status') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
-                  <XhBadge variant="subtle" :tone="statusTag(detailData.status)" size="sm">
-                    {{ getOptionLabel(statusOptions, detailData.status) }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" :tone="statusTag(detailData.status)" size="sm">
+                    <XhTagLabel>
+                      {{ getOptionLabel(statusOptions, detailData.status) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem>
@@ -949,9 +955,11 @@ async function handleSubmit() {
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.job.log_status') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
-                  <XhBadge variant="subtle" :tone="runStatusTag(logDetail.taskStatus)" size="sm">
-                    {{ getOptionLabel(runTaskStatusOptions, logDetail.taskStatus) }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" :tone="runStatusTag(logDetail.taskStatus)" size="sm">
+                    <XhTagLabel>
+                      {{ getOptionLabel(runTaskStatusOptions, logDetail.taskStatus) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem>

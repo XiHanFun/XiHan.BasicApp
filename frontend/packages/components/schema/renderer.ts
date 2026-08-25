@@ -1,6 +1,6 @@
 import type { VNodeChild } from 'vue'
 import type { ListFieldSchema } from './types'
-import { XhBadge, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { h } from 'vue'
 import { i18n } from '~/locales'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -93,11 +93,9 @@ export function renderFieldCell<TRow extends object>(
       return '-'
     }
     const label = getOptionLabel(toMutableOptions(field.options), raw as string | number)
-    const tone = resolveStatusTagTone(field.dictionaryCode, raw)
-    // 状态类字典说的是「此刻怎么样」，走徽标；其余枚举是分类身份，走标签
-    return tone
-      ? h(XhBadge, { variant: 'subtle', size: 'sm', tone }, () => label)
-      : h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'neutral' }, () => h(XhTagLabel, null, () => label))
+    // 登记过语气的状态字典按语气着色，其余枚举走中性
+    const tone = resolveStatusTagTone(field.dictionaryCode, raw) ?? 'neutral'
+    return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone }, () => h(XhTagLabel, () => label))
   }
 
   if (field.dataType === 'boolean') {
@@ -105,11 +103,7 @@ export function renderFieldCell<TRow extends object>(
       return '-'
     }
     // 是 / 否是状态，不是身份
-    return h(
-      XhBadge,
-      { variant: 'subtle', size: 'sm', tone: raw ? 'success' : 'neutral' },
-      () => (raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no')),
-    )
+    return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: raw ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no'))))
   }
 
   return formatFieldText(field, row)

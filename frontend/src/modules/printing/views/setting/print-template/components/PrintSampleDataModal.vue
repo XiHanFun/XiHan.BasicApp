@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleFormSchema } from '~/printing'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -226,12 +226,16 @@ function clearSession(): void {
       <XhDialogTitle>{{ t('setting.print_template.sample_data_title') }}</XhDialogTitle>
       <XhDialogCloseTrigger />
       <XhFlex align="center" gap="sm" class="sample-data-tags">
-        <XhBadge variant="subtle" size="sm" tone="info">
-          {{ dataSourceName || dataSourceCode || t('setting.print_template.free_template') }}
-        </XhBadge>
-        <XhBadge v-if="templateCode" variant="subtle" size="sm">
-          {{ templateCode }}
-        </XhBadge>
+        <XhTagRoot variant="subtle" size="sm" tone="info">
+          <XhTagLabel>
+            {{ dataSourceName || dataSourceCode || t('setting.print_template.free_template') }}
+          </XhTagLabel>
+        </XhTagRoot>
+        <XhTagRoot v-if="templateCode" variant="subtle" size="sm">
+          <XhTagLabel>
+            {{ templateCode }}
+          </XhTagLabel>
+        </XhTagRoot>
       </XhFlex>
 
       <div class="xh-loading-stage">

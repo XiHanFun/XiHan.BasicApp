@@ -2,7 +2,7 @@
 import type { Tone } from '@xihan-ui/kernel'
 import type { PageResult, ReviewDetailDto, ReviewListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSeparator } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSeparator, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus, querySortsFromSchema } from '@/api'
@@ -97,7 +97,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: reviewStatusTag(r.reviewStatus) }, () => getOptionLabel(reviewStatusOptions.value, r.reviewStatus))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: reviewStatusTag(r.reviewStatus) }, () => h(XhTagLabel, () => getOptionLabel(reviewStatusOptions.value, r.reviewStatus)))
     },
   },
   {
@@ -114,7 +114,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 2,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: reviewResultTag(r.reviewResult) }, () => (r.reviewResult === null || r.reviewResult === undefined ? t('approval.review.no_result') : getOptionLabel(reviewResultOptions.value, r.reviewResult)))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: reviewResultTag(r.reviewResult) }, () => h(XhTagLabel, () => (r.reviewResult === null || r.reviewResult === undefined ? t('approval.review.no_result') : getOptionLabel(reviewResultOptions.value, r.reviewResult))))
     },
   },
   {
@@ -131,7 +131,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => getOptionLabel(enableStatusOptions.value, r.status))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => h(XhTagLabel, () => getOptionLabel(enableStatusOptions.value, r.status)))
     },
   },
   // 仅列（不搜索）
@@ -369,26 +369,32 @@ function onAction(payload: SchemaActionPayload) {
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('approval.review.review_status') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
-              <XhBadge variant="subtle" :tone="reviewStatusTag(detailData.reviewStatus)" size="sm">
-                {{ getOptionLabel(reviewStatusOptions, detailData.reviewStatus) }}
-              </XhBadge>
+              <XhTagRoot variant="subtle" :tone="reviewStatusTag(detailData.reviewStatus)" size="sm">
+                <XhTagLabel>
+                  {{ getOptionLabel(reviewStatusOptions, detailData.reviewStatus) }}
+                </XhTagLabel>
+              </XhTagRoot>
             </XhDescriptionsValue>
           </XhDescriptionsItem>
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('approval.review.review_result') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
-              <XhBadge v-if="detailData.reviewResult !== null && detailData.reviewResult !== undefined" variant="subtle" :tone="reviewResultTag(detailData.reviewResult)" size="sm">
-                {{ getOptionLabel(reviewResultOptions, detailData.reviewResult) }}
-              </XhBadge>
+              <XhTagRoot v-if="detailData.reviewResult !== null && detailData.reviewResult !== undefined" variant="subtle" :tone="reviewResultTag(detailData.reviewResult)" size="sm">
+                <XhTagLabel>
+                  {{ getOptionLabel(reviewResultOptions, detailData.reviewResult) }}
+                </XhTagLabel>
+              </XhTagRoot>
               <span v-else>{{ t('approval.review.no_result') }}</span>
             </XhDescriptionsValue>
           </XhDescriptionsItem>
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('approval.review.enable_status') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
-              <XhBadge variant="subtle" :tone="statusTag(detailData.status)" size="sm">
-                {{ getOptionLabel(enableStatusOptions, detailData.status) }}
-              </XhBadge>
+              <XhTagRoot variant="subtle" :tone="statusTag(detailData.status)" size="sm">
+                <XhTagLabel>
+                  {{ getOptionLabel(enableStatusOptions, detailData.status) }}
+                </XhTagLabel>
+              </XhTagRoot>
             </XhDescriptionsValue>
           </XhDescriptionsItem>
           <XhDescriptionsItem>

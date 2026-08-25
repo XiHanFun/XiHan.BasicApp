@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ExportTaskDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhProgress } from '@xihan-ui/vue'
+import { XhProgress, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { ExportFormat, ExportScope, exportTaskApi, ExportTaskStatus, fileApi } from '@/api'
@@ -89,7 +89,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: statusOptions.value,
     width: 100,
     order: 12,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: statusTagType((row as unknown as ExportTaskDto).status) }, () => getOptionLabel(statusOptions.value, (row as unknown as ExportTaskDto).status)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTagType((row as unknown as ExportTaskDto).status) }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, (row as unknown as ExportTaskDto).status))),
   },
   {
     key: 'progress',

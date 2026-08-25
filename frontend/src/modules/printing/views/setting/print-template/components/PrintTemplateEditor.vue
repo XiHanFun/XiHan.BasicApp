@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
 import type { PrintTemplateFormModel } from './models'
-import { XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhFlex } from '@xihan-ui/vue'
+import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XSelect } from '~/components'
@@ -158,9 +158,11 @@ defineExpose({ confirmDiscard })
         <div class="template-settings-header">
           <strong>{{ title }}</strong>
           <span>{{ t('setting.print_template.template_settings_subtitle') }}</span>
-          <XhBadge variant="subtle" :tone="dirty ? 'warning' : 'success'" size="sm">
-            {{ dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved') }}
-          </XhBadge>
+          <XhTagRoot variant="subtle" :tone="dirty ? 'warning' : 'success'" size="sm">
+            <XhTagLabel>
+              {{ dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved') }}
+            </XhTagLabel>
+          </XhTagRoot>
         </div>
       </XhDialogTitle>
       <XhDialogCloseTrigger v-if="!saveLoading && !directLoading" />
@@ -201,9 +203,11 @@ defineExpose({ confirmDiscard })
                 <span><Icon icon="tabler:settings" /></span>
                 {{ t('setting.print_template.template_settings') }}
               </XhButton>
-              <XhBadge v-if="metadataIncomplete" variant="subtle" size="sm" tone="warning">
-                {{ t('setting.print_template.metadata_incomplete') }}
-              </XhBadge>
+              <XhTagRoot v-if="metadataIncomplete" variant="subtle" size="sm" tone="warning">
+                <XhTagLabel>
+                  {{ t('setting.print_template.metadata_incomplete') }}
+                </XhTagLabel>
+              </XhTagRoot>
               <span v-else class="template-context" :title="form.dataSourceCode || t('setting.print_template.free_template')">
                 <Icon width="16" height="16" :icon="form.dataSourceCode ? 'tabler:database' : 'tabler:database-off'" />
                 {{ form.templateCode }} · {{ form.dataSourceCode || t('setting.print_template.free_template') }}

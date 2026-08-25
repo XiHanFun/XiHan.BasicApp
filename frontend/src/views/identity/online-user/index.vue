@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { OnlineUserListItemDto, OnlineUserSummaryDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, DeviceType, onlineUserApi, querySortsFromSchema, userSessionApi } from '@/api'
@@ -93,7 +93,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 11,
     render: (row) => {
       const online = (row as unknown as OnlineUserListItemDto).isRealtimeOnline
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: online ? 'success' : 'neutral' }, () => online ? t('identity.online_user.realtime_online') : t('identity.online_user.realtime_logged'))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: online ? 'success' : 'neutral' }, () => h(XhTagLabel, () => online ? t('identity.online_user.realtime_online') : t('identity.online_user.realtime_logged')))
     },
   },
   {
@@ -108,7 +108,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.online_user.device_type_placeholder'),
     width: 100,
     order: 12,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => getOptionLabel(deviceTypeOptions.value, (row as unknown as OnlineUserListItemDto).deviceType)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => getOptionLabel(deviceTypeOptions.value, (row as unknown as OnlineUserListItemDto).deviceType))),
   },
   { key: 'deviceName', title: t('identity.online_user.col_device_name'), dataType: 'string', sortable: true, minWidth: 120, order: 13 },
   { key: 'operatingSystem', title: t('identity.online_user.col_os'), dataType: 'string', sortable: true, minWidth: 110, order: 14 },

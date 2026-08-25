@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TelegramBotListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, telegramBotApi } from '@/api'
@@ -56,7 +56,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 2,
     render: (row) => {
       const hasToken = (row as unknown as TelegramBotListItemDto).hasToken
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: hasToken ? 'success' : 'warning' }, () => hasToken ? t('message.telegram_bot.tag.token_configured') : t('message.telegram_bot.tag.token_missing'))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: hasToken ? 'success' : 'warning' }, () => h(XhTagLabel, () => hasToken ? t('message.telegram_bot.tag.token_configured') : t('message.telegram_bot.tag.token_missing')))
     },
   },
   {
@@ -69,7 +69,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const enabled = (row as unknown as TelegramBotListItemDto).enableFallbackReply
       return enabled
-        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => t('message.telegram_bot.tag.fallback_on'))
+        ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => t('message.telegram_bot.tag.fallback_on')))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -85,7 +85,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const enabled = (row as unknown as TelegramBotListItemDto).isEnabled
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => enabled ? t('message.telegram_bot.tag.enabled') : t('message.telegram_bot.tag.disabled'))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('message.telegram_bot.tag.enabled') : t('message.telegram_bot.tag.disabled')))
     },
   },
   { key: 'sort', title: t('message.telegram_bot.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 5 },

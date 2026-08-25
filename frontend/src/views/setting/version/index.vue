@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PageResult, VersionDetailDto, VersionListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, versionApi } from '@/api'
@@ -51,7 +51,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const upgrading = (row as unknown as VersionListItemDto).isUpgrading
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: upgrading ? 'warning' : 'success' }, () => (upgrading ? t('setting.version.upgrading') : t('setting.version.normal')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: upgrading ? 'warning' : 'success' }, () => h(XhTagLabel, () => (upgrading ? t('setting.version.upgrading') : t('setting.version.normal'))))
     },
   },
   { key: 'upgradeNode', title: t('setting.version.upgrade_node'), dataType: 'string', sortable: true, minWidth: 140, order: 5 },
@@ -163,9 +163,11 @@ async function handleDetail(row: VersionListItemDto) {
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.version.upgrade_status') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
-                  <XhBadge variant="subtle" :tone="detailData.isUpgrading ? 'warning' : 'success'" size="sm">
-                    {{ detailData.isUpgrading ? t('setting.version.upgrading') : t('setting.version.normal') }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" :tone="detailData.isUpgrading ? 'warning' : 'success'" size="sm">
+                    <XhTagLabel>
+                      {{ detailData.isUpgrading ? t('setting.version.upgrading') : t('setting.version.normal') }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem>

@@ -2,7 +2,7 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { PageResult, PermissionChangeLogDetailDto, PermissionChangeLogListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhBadge } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -67,7 +67,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 10,
     render: (row) => {
       const type = (row as unknown as PermissionChangeLogListItemDto).changeType
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: changeTypeTagType(type) }, () => getOptionLabel(changeTypeOptions.value, type))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: changeTypeTagType(type) }, () => h(XhTagLabel, () => getOptionLabel(changeTypeOptions.value, type)))
     },
   },
   { key: 'operatorUserName', title: t('log.permission_change.operator_user_name'), dataType: 'string', minWidth: 130, order: 11 },

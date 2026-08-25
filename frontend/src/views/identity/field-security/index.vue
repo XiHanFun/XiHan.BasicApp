@@ -7,7 +7,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -219,7 +219,7 @@ function ensureRowOptions(row: FieldLevelSecurityListItemDto) {
 }
 
 function boolTag(value: boolean, onText: string, offText: string) {
-  return h(XhBadge, { variant: 'subtle', size: 'sm', tone: value ? 'success' : 'danger', style: { fontSize: '11px' } }, () => (value ? onText : offText))
+  return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: value ? 'success' : 'danger', style: { fontSize: '11px' } }, () => h(XhTagLabel, () => (value ? onText : offText)))
 }
 
 // ── 字段单一事实源 ──────────────────────────────────────────────

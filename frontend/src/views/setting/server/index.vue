@@ -8,7 +8,7 @@ import type {
   SysNetworkInfo,
   SysRuntimeInfo,
 } from '@/api'
-import { XhBadge, XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot } from '@xihan-ui/vue'
+import { XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { serverManagementApi } from '@/api'
@@ -261,10 +261,10 @@ onUnmounted(() => {
             <span>{{ t('setting.server.system_overview') }}</span>
           </div>
           <div class="sv-banner-actions">
-            <XhBadge variant="subtle" size="sm" tone="success">
+            <XhTagRoot variant="subtle" size="sm" tone="success">
               <Icon icon="lucide:activity" width="12" />
-              {{ t('setting.server.running_normal') }}
-            </XhBadge>
+              <XhTagLabel>{{ t('setting.server.running_normal') }}</XhTagLabel>
+            </XhTagRoot>
             <XhButton
               size="sm"
               variant="ghost"
@@ -410,9 +410,11 @@ onUnmounted(() => {
                     {{ disk.diskName }}
                   </span>
                   <div class="sv-disk-head-right">
-                    <XhBadge variant="subtle" size="sm">
-                      {{ disk.typeName }}
-                    </XhBadge>
+                    <XhTagRoot variant="subtle" size="sm">
+                      <XhTagLabel>
+                        {{ disk.typeName }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                     <span
                       class="sv-disk-pct"
                       :style="{ color: usageColor(usagePct(disk.usedSpace, disk.totalSpace)) }"
@@ -447,9 +449,11 @@ onUnmounted(() => {
           <div class="sv-card-header">
             <Icon icon="lucide:monitor" width="16" />
             <span>{{ t('setting.server.gpu_info') }}</span>
-            <XhBadge v-if="gpuInfos.length" variant="subtle" size="sm" tone="info" class="sv-pkg-count">
-              {{ t('setting.server.count_unit', { count: gpuInfos.length }) }}
-            </XhBadge>
+            <XhTagRoot v-if="gpuInfos.length" variant="subtle" size="sm" tone="info" class="sv-pkg-count">
+              <XhTagLabel>
+                {{ t('setting.server.count_unit', { count: gpuInfos.length }) }}
+              </XhTagLabel>
+            </XhTagRoot>
           </div>
         </XhCardHeader>
         <XhCardBody>
@@ -465,15 +469,17 @@ onUnmounted(() => {
                     <span class="sv-collapse-title-text">
                       {{ gpu.name || `GPU ${idx}` }}
                     </span>
-                    <XhBadge
+                    <XhTagRoot
                       v-if="gpu.status"
                       variant="subtle"
                       size="sm"
                       :tone="gpu.status === 'OK' ? 'success' : 'danger'"
                       class="ml-2"
                     >
-                      {{ gpu.status }}
-                    </XhBadge>
+                      <XhTagLabel>
+                        {{ gpu.status }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                   </div>
                 </XhAccordionTrigger>
               </XhAccordionHeader>
@@ -512,9 +518,11 @@ onUnmounted(() => {
           <div class="sv-card-header">
             <Icon icon="lucide:network" width="16" />
             <span>{{ t('setting.server.network_info') }}</span>
-            <XhBadge v-if="activeNetworks.length" variant="subtle" size="sm" tone="info" class="sv-pkg-count">
-              {{ t('setting.server.active_count', { count: activeNetworks.length }) }}
-            </XhBadge>
+            <XhTagRoot v-if="activeNetworks.length" variant="subtle" size="sm" tone="info" class="sv-pkg-count">
+              <XhTagLabel>
+                {{ t('setting.server.active_count', { count: activeNetworks.length }) }}
+              </XhTagLabel>
+            </XhTagRoot>
           </div>
         </XhCardHeader>
         <XhCardBody>
@@ -534,9 +542,11 @@ onUnmounted(() => {
                     <span class="sv-collapse-title-text">
                       {{ net.name }}
                     </span>
-                    <XhBadge variant="subtle" size="sm" class="ml-2">
-                      {{ net.type }}
-                    </XhBadge>
+                    <XhTagRoot variant="subtle" size="sm" class="ml-2">
+                      <XhTagLabel>
+                        {{ net.type }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                   </div>
                 </XhAccordionTrigger>
               </XhAccordionHeader>
@@ -559,15 +569,15 @@ onUnmounted(() => {
                       <div v-if="net.iPv4Addresses?.length" class="sv-kv">
                         <span class="sv-kv-label">IPv4</span>
                         <span class="sv-kv-value">
-                          <XhBadge
+                          <XhTagRoot
                             v-for="ip in net.iPv4Addresses"
                             :key="ip.address"
                             variant="subtle"
                             size="sm"
                             class="mr-1"
-                          >
+                          ><XhTagLabel>
                             {{ ip.address }}
-                          </XhBadge>
+                          </XhTagLabel></XhTagRoot>
                         </span>
                       </div>
                     </div>

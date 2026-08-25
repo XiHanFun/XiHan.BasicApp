@@ -3,7 +3,7 @@ import type {
   ChatConversationListItem,
   ChatMemberItem,
 } from '../types'
-import { XhBadge, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -415,12 +415,16 @@ async function handleLeave() {
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-1.5">
                 <span class="truncate text-[13px] text-foreground">{{ member.userName }}</span>
-                <XhBadge variant="subtle" size="sm" :tone="roleTagType(member.memberRole)">
-                  {{ roleLabel(member.memberRole) }}
-                </XhBadge>
-                <XhBadge v-if="member.isSilenced" variant="subtle" size="sm" tone="danger">
-                  {{ t('chat.members.silenced') }}
-                </XhBadge>
+                <XhTagRoot variant="subtle" size="sm" :tone="roleTagType(member.memberRole)">
+                  <XhTagLabel>
+                    {{ roleLabel(member.memberRole) }}
+                  </XhTagLabel>
+                </XhTagRoot>
+                <XhTagRoot v-if="member.isSilenced" variant="subtle" size="sm" tone="danger">
+                  <XhTagLabel>
+                    {{ t('chat.members.silenced') }}
+                  </XhTagLabel>
+                </XhTagRoot>
               </div>
               <div class="text-[11px] text-muted-foreground">
                 {{ t('chat.members.joined', { time: formatMessageTime(member.joinTime) }) }}

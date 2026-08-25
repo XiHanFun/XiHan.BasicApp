@@ -10,7 +10,7 @@ import type {
   TenantEditionUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhButton, XhCheckbox, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -83,7 +83,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
       if (r.isFree) {
-        return h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'success' }, () => t('tenant.edition.free'))
+        return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'success' }, () => h(XhTagLabel, () => t('tenant.edition.free')))
       }
       return h('span', r.price == null ? '-' : `¥ ${r.price}`)
     },
@@ -136,7 +136,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.isFree ? 'success' : 'neutral' }, () => (r.isFree ? t('tenant.edition.yes') : t('tenant.edition.no')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.isFree ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (r.isFree ? t('tenant.edition.yes') : t('tenant.edition.no'))))
     },
   },
   {
@@ -152,7 +152,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
       return r.isDefault
-        ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => t('tenant.edition.default_tag'))
+        ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => h(XhTagLabel, () => t('tenant.edition.default_tag')))
         : h('span', { style: 'opacity:.45' }, '-')
     },
   },
@@ -170,7 +170,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 9,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusOptions.value, r.status))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, r.status)))
     },
   },
   { key: 'sort', title: t('tenant.edition.sort'), dataType: 'number', sortable: true, width: 80, order: 10 },

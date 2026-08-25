@@ -9,7 +9,7 @@ import type {
   ApiId,
 } from '@/api'
 import type { XDataTableColumn } from '~/components'
-import { XhBadge, XhCheckbox } from '@xihan-ui/vue'
+import { XhCheckbox, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDataTable, XEditModal, XInput, XSelect } from '~/components'
@@ -139,7 +139,7 @@ const columns = computed<XDataTableColumn<CodeGenTableColumnListItemDto>[]>(() =
       h('div', { class: 'col-name' }, [
         h('span', null, row.columnName),
         isLocked(row)
-          ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'neutral' }, () => t('develop.code_gen.column.base_column'))
+          ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'neutral' }, () => h(XhTagLabel, () => t('develop.code_gen.column.base_column')))
           : null,
       ]),
   },

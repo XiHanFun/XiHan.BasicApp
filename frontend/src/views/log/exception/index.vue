@@ -2,7 +2,7 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { ExceptionLogDetailDto, ExceptionLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhBadge } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -84,7 +84,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.exception.severity_level_placeholder'),
     width: 90,
     order: 19,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: severityType((row as unknown as ExceptionLogListItemDto).severityLevel) }, () => getOptionLabel(severityOptions.value, (row as unknown as ExceptionLogListItemDto).severityLevel)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: severityType((row as unknown as ExceptionLogListItemDto).severityLevel) }, () => h(XhTagLabel, () => getOptionLabel(severityOptions.value, (row as unknown as ExceptionLogListItemDto).severityLevel))),
   },
   { key: 'requestPath', title: t('log.exception.request_path'), dataType: 'string', advancedSearch: true, minWidth: 200, order: 20 },
   { key: 'requestMethod', title: t('log.exception.request_method'), dataType: 'string', advancedSearch: true, sortable: true, width: 90, order: 21 },
@@ -125,7 +125,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.exception.is_handled_placeholder'),
     width: 100,
     order: 37,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as ExceptionLogListItemDto).isHandled ? 'success' : 'warning' }, () => (row as unknown as ExceptionLogListItemDto).isHandled ? t('log.exception.handled') : t('log.exception.unhandled')),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as ExceptionLogListItemDto).isHandled ? 'success' : 'warning' }, () => h(XhTagLabel, () => (row as unknown as ExceptionLogListItemDto).isHandled ? t('log.exception.handled') : t('log.exception.unhandled'))),
   },
   { key: 'handledTime', title: t('log.exception.handled_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 38 },
   { key: 'errorCode', title: t('log.exception.error_code'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 100, order: 39 },

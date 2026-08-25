@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { MyOAuthAppItem, MyOAuthAppSecret } from '~/types'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhAlertTitle, XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch } from '@xihan-ui/vue'
+import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -250,12 +250,16 @@ onMounted(() => {
               <div class="pf-list-body">
                 <div class="pf-list-title pf-credential__name">
                   <span>{{ app.appName }}</span>
-                  <XhBadge variant="subtle" size="sm" :tone="app.clientType === 'Public' ? 'info' : 'neutral'">
-                    {{ app.clientType === 'Public' ? t('component.profile.oauth.tag_public') : t('component.profile.oauth.tag_confidential') }}
-                  </XhBadge>
-                  <XhBadge variant="subtle" size="sm" :tone="app.status === 'Enabled' ? 'success' : 'neutral'">
-                    {{ app.status === 'Enabled' ? t('component.profile.oauth.tag_enabled') : t('component.profile.oauth.tag_disabled') }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" size="sm" :tone="app.clientType === 'Public' ? 'info' : 'neutral'">
+                    <XhTagLabel>
+                      {{ app.clientType === 'Public' ? t('component.profile.oauth.tag_public') : t('component.profile.oauth.tag_confidential') }}
+                    </XhTagLabel>
+                  </XhTagRoot>
+                  <XhTagRoot variant="subtle" size="sm" :tone="app.status === 'Enabled' ? 'success' : 'neutral'">
+                    <XhTagLabel>
+                      {{ app.status === 'Enabled' ? t('component.profile.oauth.tag_enabled') : t('component.profile.oauth.tag_disabled') }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </div>
                 <div class="pf-credential__key">
                   <code>{{ app.clientId }}</code>

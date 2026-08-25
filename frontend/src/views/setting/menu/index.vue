@@ -2,7 +2,7 @@
 import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
 import type { PageSchema, SchemaActionPayload, SchemaQueryParams, XDataTableColumn } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -268,7 +268,7 @@ const schema = computed<PageSchema>(() => ({
       order: 2,
       render: (row) => {
         const menuType = (row as unknown as MenuListItemDto).menuType
-        return h(XhBadge, { variant: 'subtle', size: 'sm', tone: menuTypeTagType(menuType) }, () => getOptionLabel(menuTypeOptions.value, menuType))
+        return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: menuTypeTagType(menuType) }, () => h(XhTagLabel, () => getOptionLabel(menuTypeOptions.value, menuType)))
       },
     },
     {
@@ -315,7 +315,7 @@ const schema = computed<PageSchema>(() => ({
           })
         }
         if (item.badge) {
-          return h(XhBadge, { variant: 'subtle', size: 'sm', tone: badgeTone(item.badgeType) }, () => item.badge)
+          return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: badgeTone(item.badgeType) }, () => h(XhTagLabel, () => item.badge))
         }
         return '-'
       },
@@ -327,7 +327,7 @@ const schema = computed<PageSchema>(() => ({
       width: 80,
       order: 6,
       render: row =>
-        h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'neutral' }, () => ((row as unknown as MenuListItemDto).isVisible ? t('common.statuses.yes') : t('common.statuses.no'))),
+        h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'neutral' }, () => h(XhTagLabel, () => ((row as unknown as MenuListItemDto).isVisible ? t('common.statuses.yes') : t('common.statuses.no')))),
     },
     {
       key: 'status',
@@ -340,7 +340,7 @@ const schema = computed<PageSchema>(() => ({
       width: 90,
       order: 7,
       render: row =>
-        h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as MenuListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusOptions.value, (row as unknown as MenuListItemDto).status)),
+        h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as MenuListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, (row as unknown as MenuListItemDto).status))),
     },
     {
       key: 'sort',
@@ -597,7 +597,7 @@ const childMenuColumns = computed<XDataTableColumn<MenuTreeNodeDto>[]>(() => [
     key: 'menuType',
     width: 80,
     render: row =>
-      h(XhBadge, { variant: 'subtle', size: 'sm', tone: menuTypeTagType(row.menuType) }, () => getOptionLabel(menuTypeOptions.value, row.menuType)),
+      h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: menuTypeTagType(row.menuType) }, () => h(XhTagLabel, () => getOptionLabel(menuTypeOptions.value, row.menuType))),
   },
   {
     title: t('setting.menu.child_path'),
@@ -679,9 +679,11 @@ onMounted(() => {
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.menu.status') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
-                  <XhBadge variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
-                    {{ formatStatus(currentDetail.status) }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                    <XhTagLabel>
+                      {{ formatStatus(currentDetail.status) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem>
@@ -727,9 +729,11 @@ onMounted(() => {
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.menu.badge') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
-                  <XhBadge v-if="currentDetail.badge" variant="subtle" size="sm" :tone="badgeTone(currentDetail.badgeType)">
-                    {{ currentDetail.badge }}
-                  </XhBadge>
+                  <XhTagRoot v-if="currentDetail.badge" variant="subtle" size="sm" :tone="badgeTone(currentDetail.badgeType)">
+                    <XhTagLabel>
+                      {{ currentDetail.badge }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                   <span
                     v-else-if="currentDetail.badgeDot"
                     :style="{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: badgeDotColor(currentDetail.badgeType) }"

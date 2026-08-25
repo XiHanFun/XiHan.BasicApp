@@ -14,7 +14,7 @@ import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhBadge, XhButton, XhCheckbox, XhClipboardControl, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhClipboardTrigger, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhClipboardControl, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhClipboardTrigger, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -347,7 +347,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as UserListItemDto
       const label = getOptionLabel(genderEnumOptions.value, r.gender)
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: GENDER_TAG_TYPE[r.gender] ?? 'neutral', style: { fontSize: '11px', fontWeight: 500 } }, () => label)
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: GENDER_TAG_TYPE[r.gender] ?? 'neutral', style: { fontSize: '11px', fontWeight: 500 } }, () => h(XhTagLabel, () => label))
     },
   },
   // 地区/语言（仅列）
@@ -378,7 +378,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as UserListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger', style: { fontSize: '11px', fontWeight: 500 } }, () => (r.status === EnableStatus.Enabled ? t('identity.user.status_enabled') : t('identity.user.status_disabled')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger', style: { fontSize: '11px', fontWeight: 500 } }, () => h(XhTagLabel, () => (r.status === EnableStatus.Enabled ? t('identity.user.status_enabled') : t('identity.user.status_disabled'))))
     },
   },
   // 角色（仅列，来自后端批量聚合 roleNames）
@@ -395,7 +395,7 @@ const fields = computed<ListFieldSchema[]>(() => [
         return h('span', { class: 'text-foreground/40' }, '—')
       }
       return h('div', { class: 'flex flex-wrap gap-1' }, names.map(name =>
-        h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info', style: { fontSize: '11px' } }, () => name)))
+        h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info', style: { fontSize: '11px' } }, () => h(XhTagLabel, () => name))))
     },
   },
   // 部门（仅列，主部门名称）
@@ -409,7 +409,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as UserListItemDto
       return r.departmentName
-        ? h(XhBadge, { variant: 'subtle', size: 'sm', style: { fontSize: '11px' } }, () => r.departmentName)
+        ? h(XhTagRoot, { variant: 'subtle', size: 'sm', style: { fontSize: '11px' } }, () => h(XhTagLabel, () => r.departmentName))
         : h('span', { class: 'text-foreground/40' }, '—')
     },
   },
@@ -424,10 +424,10 @@ const fields = computed<ListFieldSchema[]>(() => [
       const r = row as unknown as UserListItemDto
       const tags = []
       if (r.isLocked) {
-        tags.push(h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'danger', style: { fontSize: '11px' } }, () => t('identity.user.security_locked')))
+        tags.push(h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'danger', style: { fontSize: '11px' } }, () => h(XhTagLabel, () => t('identity.user.security_locked'))))
       }
       if (r.twoFactorEnabled) {
-        tags.push(h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'success', style: { fontSize: '11px' } }, () => '2FA'))
+        tags.push(h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'success', style: { fontSize: '11px' } }, () => h(XhTagLabel, () => '2FA')))
       }
       if (tags.length === 0) {
         return h('span', { class: 'text-foreground/40' }, t('identity.user.security_normal'))

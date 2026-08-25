@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="T extends PermissionGrantItem">
 import type { PermissionGrantItem } from './permission-grant-panel'
-import { XhBadge, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -97,9 +97,11 @@ const groups = computed(() => {
   <div class="xh-perm-panel">
     <div class="xh-perm-panel__toolbar">
       <XInput v-model:value="keyword" clearable :placeholder="searchPlaceholder" style="inline-size: 240px" />
-      <XhBadge v-if="grantedCountLabel" variant="subtle" size="sm" tone="success">
-        {{ grantedCountLabel }}
-      </XhBadge>
+      <XhTagRoot v-if="grantedCountLabel" variant="subtle" size="sm" tone="success">
+        <XhTagLabel>
+          {{ grantedCountLabel }}
+        </XhTagLabel>
+      </XhTagRoot>
       <!-- 额外工具位：如版本权限的「授予」入口 -->
       <slot name="toolbar" />
     </div>

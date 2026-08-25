@@ -2,7 +2,7 @@
 import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { LoginLogDetailDto, LoginLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhBadge } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -90,7 +90,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: riskOptions.value,
     width: 120,
     order: 20,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: (row as unknown as LoginLogListItemDto).isRiskLogin ? 'danger' : 'info' }, () => (row as unknown as LoginLogListItemDto).isRiskLogin ? t('common.statuses.yes') : t('common.statuses.no')),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as LoginLogListItemDto).isRiskLogin ? 'danger' : 'info' }, () => h(XhTagLabel, () => (row as unknown as LoginLogListItemDto).isRiskLogin ? t('common.statuses.yes') : t('common.statuses.no'))),
   },
   {
     key: 'loginResult',
@@ -103,7 +103,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.login.login_result_placeholder'),
     width: 120,
     order: 21,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: loginResultType((row as unknown as LoginLogListItemDto).loginResult) }, () => getOptionLabel(loginResultOptions.value, (row as unknown as LoginLogListItemDto).loginResult)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: loginResultType((row as unknown as LoginLogListItemDto).loginResult) }, () => h(XhTagLabel, () => getOptionLabel(loginResultOptions.value, (row as unknown as LoginLogListItemDto).loginResult))),
   },
   { key: 'message', title: t('log.login.message'), dataType: 'string', minWidth: 220, order: 22 },
   { key: 'loginTime', title: t('log.login.login_time'), dataType: 'datetime', sortable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 23 },

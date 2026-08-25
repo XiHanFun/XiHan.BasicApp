@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cacheApi } from '@/api'
@@ -106,7 +106,7 @@ function renderTreeLabel(option: Record<string, unknown>) {
   return h('span', { class: 'cache-tree-group' }, [
     h('span', null, String(node.label ?? '')),
     // 键数用徽标显示（与顶部「缓存键」计数同款），不再用括号
-    h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, { default: () => String(node.leafCount ?? 0) }),
+    h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => String(node.leafCount ?? 0))),
   ])
 }
 
@@ -376,9 +376,11 @@ onMounted(loadKeys)
           <div class="cache-card-header">
             <Icon icon="lucide:database-backup" width="15" />
             <span>{{ t('setting.cache.cache_keys') }}</span>
-            <XhBadge v-if="keyCount > 0" variant="subtle" size="sm" tone="info">
-              {{ keyCount }}
-            </XhBadge>
+            <XhTagRoot v-if="keyCount > 0" variant="subtle" size="sm" tone="info">
+              <XhTagLabel>
+                {{ keyCount }}
+              </XhTagLabel>
+            </XhTagRoot>
           </div>
         </XhCardHeader>
         <XhCardBody :style="cardContentStyle">
@@ -457,9 +459,11 @@ onMounted(loadKeys)
           <div v-if="detailKey" class="cache-detail-header">
             <span class="cache-detail-key" :title="detailKey">{{ detailKey }}</span>
             <div class="cache-detail-actions">
-              <XhBadge v-if="sizeText" variant="subtle" size="sm">
-                {{ sizeText }}
-              </XhBadge>
+              <XhTagRoot v-if="sizeText" variant="subtle" size="sm">
+                <XhTagLabel>
+                  {{ sizeText }}
+                </XhTagLabel>
+              </XhTagRoot>
               <XSegmented v-if="!editing" v-model:value="format" :options="[{ value: 'text', label: 'Text' }, { value: 'json', label: 'Json' }]" size="sm" />
               <XTooltip :content="t('common.actions.copy')">
                 <XhButton size="sm" variant="ghost" @click="handleCopy">

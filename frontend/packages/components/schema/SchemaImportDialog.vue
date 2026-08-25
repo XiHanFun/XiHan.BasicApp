@@ -6,7 +6,6 @@ import {
   XhAlertDescription,
   XhAlertIcon,
   XhAlertRoot,
-  XhBadge,
   XhButton,
   XhDialogCloseTrigger,
   XhDialogContent,
@@ -22,6 +21,8 @@ import {
   XhTableHeader,
   XhTableRoot,
   XhTableRow,
+  XhTagLabel,
+  XhTagRoot,
 } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -204,15 +205,21 @@ function handleClose(): void {
 
         <!-- 解析结果汇总 -->
         <div v-if="phase !== 'idle' && rows.length > 0" class="xh-import-summary">
-          <XhBadge variant="subtle" size="sm" tone="neutral">
-            {{ t('component.schema_import.total_rows', { count: rows.length }) }}
-          </XhBadge>
-          <XhBadge variant="subtle" size="sm" tone="success">
-            {{ t('component.schema_import.valid_rows', { count: validRows.length }) }}
-          </XhBadge>
-          <XhBadge v-if="errorItems.length > 0" variant="subtle" size="sm" tone="danger">
-            {{ phase === 'done' ? t('component.schema_import.failed_rows', { count: errorRows.length }) : t('component.schema_import.validation_failed_rows', { count: errorRows.length }) }}
-          </XhBadge>
+          <XhTagRoot variant="subtle" size="sm" tone="neutral">
+            <XhTagLabel>
+              {{ t('component.schema_import.total_rows', { count: rows.length }) }}
+            </XhTagLabel>
+          </XhTagRoot>
+          <XhTagRoot variant="subtle" size="sm" tone="success">
+            <XhTagLabel>
+              {{ t('component.schema_import.valid_rows', { count: validRows.length }) }}
+            </XhTagLabel>
+          </XhTagRoot>
+          <XhTagRoot v-if="errorItems.length > 0" variant="subtle" size="sm" tone="danger">
+            <XhTagLabel>
+              {{ phase === 'done' ? t('component.schema_import.failed_rows', { count: errorRows.length }) : t('component.schema_import.validation_failed_rows', { count: errorRows.length }) }}
+            </XhTagLabel>
+          </XhTagRoot>
         </div>
 
         <!-- 错误明细 -->
@@ -273,12 +280,16 @@ function handleClose(): void {
           <div v-for="item in recentImports" :key="item.basicId" class="xh-import-recent__row">
             <span class="xh-import-recent__time">{{ formatDate(item.createdTime) }}</span>
             <span class="xh-import-recent__file" :title="item.fileName">{{ item.fileName }}</span>
-            <XhBadge variant="subtle" size="sm" tone="success">
-              {{ t('component.schema_import.recent_success', { count: item.successCount }) }}
-            </XhBadge>
-            <XhBadge v-if="item.failCount > 0" variant="subtle" size="sm" tone="danger">
-              {{ t('component.schema_import.recent_failed', { count: item.failCount }) }}
-            </XhBadge>
+            <XhTagRoot variant="subtle" size="sm" tone="success">
+              <XhTagLabel>
+                {{ t('component.schema_import.recent_success', { count: item.successCount }) }}
+              </XhTagLabel>
+            </XhTagRoot>
+            <XhTagRoot v-if="item.failCount > 0" variant="subtle" size="sm" tone="danger">
+              <XhTagLabel>
+                {{ t('component.schema_import.recent_failed', { count: item.failCount }) }}
+              </XhTagLabel>
+            </XhTagRoot>
           </div>
         </div>
       </div>

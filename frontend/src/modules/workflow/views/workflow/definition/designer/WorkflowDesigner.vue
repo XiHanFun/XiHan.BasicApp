@@ -3,7 +3,7 @@ import type { ActivityTypeMeta } from './catalog'
 import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, DesignerNodeData, ValidationIssue } from './transform'
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
 import { useDebounceFn } from '@vueuse/core'
-import { XhBadge, XhButton, XhCheckbox, XhContextMenuRoot, XhDynamicInputAddTrigger, XhDynamicInputItem, XhDynamicInputItemAction, XhDynamicInputItemContent, XhDynamicInputItemDeleteTrigger, XhDynamicInputRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhContextMenuRoot, XhDynamicInputAddTrigger, XhDynamicInputItem, XhDynamicInputItemAction, XhDynamicInputItemContent, XhDynamicInputItemDeleteTrigger, XhDynamicInputRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, indexDropdownOptions, toDropdownCollection, VNodeRender, XDropdown, XInput, XNumberInput, XSegmented, XSelect, XTagsInput } from '~/components'
@@ -556,9 +556,11 @@ function onContextSelect(key: string) {
       <!-- 设计 / JSON 切换（内联在工具栏最前） -->
       <XSegmented v-model:value="activeTab" :options="[{ value: 'design', label: t('workflow.designer.tab_design') }, { value: 'json', label: t('workflow.designer.tab_json') }]" size="sm" />
       <XhSeparator orientation="vertical" class="!mx-1" />
-      <XhBadge variant="subtle" size="sm">
-        {{ meta.code || t('workflow.designer.untitled') }}
-      </XhBadge>
+      <XhTagRoot variant="subtle" size="sm">
+        <XhTagLabel>
+          {{ meta.code || t('workflow.designer.untitled') }}
+        </XhTagLabel>
+      </XhTagRoot>
       <span class="max-w-40 truncate text-sm text-gray-500">{{ meta.name }}</span>
       <div class="flex-1" />
 
@@ -690,7 +692,7 @@ function onContextSelect(key: string) {
                 </XhFieldRoot>
                 <div v-if="outcomeHints.length > 0" class="mb-2">
                   <XhFlex gap="xs">
-                    <XhBadge
+                    <XhTagRoot
                       v-for="outcome in outcomeHints"
                       :key="outcome"
                       variant="subtle"
@@ -698,8 +700,10 @@ function onContextSelect(key: string) {
                       class="cursor-pointer"
                       @click="applyOutcomeHint(outcome)"
                     >
-                      {{ outcome }}
-                    </XhBadge>
+                      <XhTagLabel>
+                        {{ outcome }}
+                      </XhTagLabel>
+                    </XhTagRoot>
                   </XhFlex>
                 </div>
                 <XhFieldRoot>

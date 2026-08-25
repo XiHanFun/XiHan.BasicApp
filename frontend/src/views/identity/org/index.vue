@@ -11,7 +11,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhBadge, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -110,7 +110,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dictionaryCode: 'EnableStatus',
     render: (row) => {
       const status = (row as unknown as DepartmentListItemDto).status
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: status === EnableStatus.Enabled ? 'success' : 'danger' }, () => getOptionLabel(statusOptions.value, status))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, status)))
     },
   },
   { key: 'phone', title: t('identity.org.col_phone'), dataType: 'phone', minWidth: 130, order: 5 },
@@ -258,7 +258,7 @@ const childDeptColumns = computed<XDataTableColumn<DepartmentListItemDto>[]>(() 
     title: t('identity.org.detail_table_status'),
     key: 'status',
     width: 72,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => formatStatus(row.status)),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => formatStatus(row.status))),
   },
 ])
 
@@ -277,14 +277,14 @@ const memberColumns = computed<XDataTableColumn<DepartmentManagementMemberDto>[]
     key: 'isMain',
     width: 72,
     render: row => row.isMain
-      ? h(XhBadge, { variant: 'subtle', size: 'sm', tone: 'info' }, () => t('common.statuses.yes'))
+      ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => t('common.statuses.yes')))
       : h('span', { style: 'color:hsl(var(--muted-foreground))' }, '—'),
   },
   {
     title: t('identity.org.detail_table_status'),
     key: 'status',
     width: 72,
-    render: row => h(XhBadge, { variant: 'subtle', size: 'sm', tone: row.status === ValidityStatus.Valid ? 'success' : 'neutral' }, () => (row.status === ValidityStatus.Valid ? t('identity.org.member_valid') : t('identity.org.member_invalid'))),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: row.status === ValidityStatus.Valid ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row.status === ValidityStatus.Valid ? t('identity.org.member_valid') : t('identity.org.member_invalid')))),
   },
   {
     title: t('identity.org.detail_table_actions'),
@@ -582,9 +582,11 @@ onMounted(() => {
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('identity.org.label_status') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
-                  <XhBadge variant="subtle" size="sm" :tone="detDept!.status === EnableStatus.Enabled ? 'success' : 'danger'">
-                    {{ formatStatus(detDept!.status) }}
-                  </XhBadge>
+                  <XhTagRoot variant="subtle" size="sm" :tone="detDept!.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                    <XhTagLabel>
+                      {{ formatStatus(detDept!.status) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </XhDescriptionsValue>
               </XhDescriptionsItem>
               <XhDescriptionsItem>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TabsNode } from '@xihan-ui/headless'
-import { XhBadge, XhButton, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot } from '@xihan-ui/vue'
+import { XhButton, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -412,9 +412,11 @@ function applyPreset(v: string): void {
               class="cron-preset"
               @click="applyPreset(p.value)"
             >
-              <XhBadge variant="subtle" size="sm" tone="neutral">
-                {{ p.label }}
-              </XhBadge>
+              <XhTagRoot variant="subtle" size="sm" tone="neutral">
+                <XhTagLabel>
+                  {{ p.label }}
+                </XhTagLabel>
+              </XhTagRoot>
             </button>
           </div>
           <label class="cron-seconds">

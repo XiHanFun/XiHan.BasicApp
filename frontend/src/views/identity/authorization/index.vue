@@ -7,7 +7,7 @@ import type {
   PermissionRequestListItemDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhBadge, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -194,7 +194,7 @@ const requestFields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const r = row as unknown as PermissionRequestListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: REQUEST_STATUS_TYPE[r.requestStatus] ?? 'neutral', style: { fontSize: '11px' } }, () => getOptionLabel(requestStatusOptions.value, r.requestStatus))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: REQUEST_STATUS_TYPE[r.requestStatus] ?? 'neutral', style: { fontSize: '11px' } }, () => h(XhTagLabel, () => getOptionLabel(requestStatusOptions.value, r.requestStatus)))
     },
   },
   {
@@ -331,7 +331,7 @@ const delegationFields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const r = row as unknown as PermissionDelegationListItemDto
-      return h(XhBadge, { variant: 'subtle', size: 'sm', tone: DELEGATION_STATUS_TYPE[r.delegationStatus] ?? 'neutral', style: { fontSize: '11px' } }, () => getOptionLabel(delegationStatusOptions.value, r.delegationStatus))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: DELEGATION_STATUS_TYPE[r.delegationStatus] ?? 'neutral', style: { fontSize: '11px' } }, () => h(XhTagLabel, () => getOptionLabel(delegationStatusOptions.value, r.delegationStatus)))
     },
   },
   {

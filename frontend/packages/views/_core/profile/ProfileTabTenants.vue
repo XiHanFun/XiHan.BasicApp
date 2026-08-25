@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { AppTenantSwitcherItem } from '~/types'
-import { XhBadge, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
@@ -127,9 +127,11 @@ onMounted(loadTenants)
                 <div class="pf-list-title">
                   {{ tenant.tenantName }}
                   <span v-if="tenant.tenantShortName" class="pf-tenant-short">{{ tenant.tenantShortName }}</span>
-                  <XhBadge v-if="tenant.isCurrent" variant="subtle" tone="success" size="sm">
-                    {{ t('component.profile.tenants.tag_current') }}
-                  </XhBadge>
+                  <XhTagRoot v-if="tenant.isCurrent" variant="subtle" tone="success" size="sm">
+                    <XhTagLabel>
+                      {{ t('component.profile.tenants.tag_current') }}
+                    </XhTagLabel>
+                  </XhTagRoot>
                 </div>
                 <div class="pf-list-desc">
                   {{ memberTypeLabel(tenant.memberType) }}
@@ -145,9 +147,11 @@ onMounted(loadTenants)
                 </div>
               </div>
               <div class="pf-tenant-actions">
-                <XhBadge variant="subtle" :tone="memberTagType(tenant.memberType)" size="sm">
-                  {{ memberTypeLabel(tenant.memberType) }}
-                </XhBadge>
+                <XhTagRoot variant="subtle" :tone="memberTagType(tenant.memberType)" size="sm">
+                  <XhTagLabel>
+                    {{ memberTypeLabel(tenant.memberType) }}
+                  </XhTagLabel>
+                </XhTagRoot>
                 <XhButton
                   v-if="!tenant.isCurrent"
                   size="sm"

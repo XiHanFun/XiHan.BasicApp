@@ -13,6 +13,8 @@ import {
   XhTabsList,
   XhTabsRoot,
   XhTabsTrigger,
+  XhTagLabel,
+  XhTagRoot,
   XhTooltipArrow,
   XhTooltipContent,
   XhTooltipPositioner,
@@ -172,13 +174,15 @@ function handleClickOutside() {
         class="xihan-icon-btn notification-btn mr-1"
         @click="showPopover = !showPopover"
       >
-        <Icon icon="lucide:bell" width="16" height="16" />
-        <!-- 数字、99+ 与「零则收起」都归组件库算 -->
+        <!-- 数字、99+、「零则收起」与贴角定位都归组件库算 -->
         <XhBadge
-          class="notification-btn__badge"
+          size="sm"
+          tone="danger"
           :count="props.unreadCount"
-          :label="t('header.notification.unread_label')"
-        />
+          :label="t('header.notification.unread_label', { n: props.unreadCount })"
+        >
+          <Icon icon="lucide:bell" width="16" height="16" />
+        </XhBadge>
       </XhTooltipTrigger>
       <XhTooltipPositioner>
         <XhTooltipContent>
@@ -259,9 +263,11 @@ function handleClickOutside() {
                     <div class="notification-item-body">
                       <div class="notification-item-header">
                         <span class="notification-item-title">{{ item.title }}</span>
-                        <XhBadge :tone="getTypeInfo(item.notificationType).type" size="sm" variant="subtle">
-                          {{ getTypeInfo(item.notificationType).label }}
-                        </XhBadge>
+                        <XhTagRoot :tone="getTypeInfo(item.notificationType).type" size="sm" variant="subtle">
+                          <XhTagLabel>
+                            {{ getTypeInfo(item.notificationType).label }}
+                          </XhTagLabel>
+                        </XhTagRoot>
                       </div>
                       <div v-if="item.content" class="notification-item-content">
                         <NotificationContent :content="item.content" :format="item.contentFormat" />
@@ -305,9 +311,11 @@ function handleClickOutside() {
                     <div class="notification-item-body">
                       <div class="notification-item-header">
                         <span class="notification-item-title">{{ item.title }}</span>
-                        <XhBadge :tone="getTypeInfo(item.notificationType).type" size="sm" variant="subtle">
-                          {{ getTypeInfo(item.notificationType).label }}
-                        </XhBadge>
+                        <XhTagRoot :tone="getTypeInfo(item.notificationType).type" size="sm" variant="subtle">
+                          <XhTagLabel>
+                            {{ getTypeInfo(item.notificationType).label }}
+                          </XhTagLabel>
+                        </XhTagRoot>
                       </div>
                       <div v-if="item.content" class="notification-item-content">
                         <NotificationContent :content="item.content" :format="item.contentFormat" />
@@ -369,30 +377,6 @@ function handleClickOutside() {
   position: relative;
   display: inline-flex;
   align-items: center;
-}
-
-/* 通知未读徽标：与收藏夹徽标同尺寸（14px 小圆 + 9px 字），红色为通知语义色 */
-.notification-btn {
-  position: relative;
-}
-
-.notification-btn__badge {
-  position: absolute;
-  top: -1px;
-  right: -1px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 14px;
-  height: 14px;
-  padding: 0 3px;
-  border-radius: 9999px;
-  background: hsl(var(--destructive, 0 84% 60%));
-  color: #fff;
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 14px;
-  text-align: center;
 }
 
 .notification-overlay {
