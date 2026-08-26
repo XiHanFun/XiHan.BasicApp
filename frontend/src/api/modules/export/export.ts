@@ -1,4 +1,4 @@
-import type { ApiId, PageResult } from '../../types'
+import type { ApiId, PageRequest, PageResult } from '../../types'
 import { createDynamicApiClient } from '../../base'
 
 /** 导出任务状态（与后端 JsonStringEnumConverter 序列化值一致） */
@@ -40,6 +40,15 @@ export interface ExportTaskSubmitInput {
   columns: ExportColumn[]
 }
 
+/**
+ * 我的导出任务分页查询入参。
+ * businessType / status / scope / format 多选与 createdTime / finishedTime 区间走 conditions.filters，
+ * 排序走 conditions.sorts；顶层只有关键字。
+ */
+export interface ExportTaskPageQuery extends PageRequest {
+  keyword?: null | string
+}
+
 /** 导出任务 DTO */
 export interface ExportTaskDto {
   basicId: ApiId
@@ -68,9 +77,9 @@ export const exportTaskApi = {
   submit(input: ExportTaskSubmitInput) {
     return exportCommandApi.post<ExportTaskDto, ExportTaskSubmitInput>('Submit', input)
   },
-  /** 我的导出任务分页 → GET /ExportTaskQuery/Mine */
-  mine(pageIndex = 1, pageSize = 10) {
-    return exportQueryApi.get<PageResult<ExportTaskDto>>('Mine', { pageIndex, pageSize })
+  /** 我的导出任务分页 → POST /ExportTaskQuery/Mine */
+  mine(input: ExportTaskPageQuery) {
+    return exportQueryApi.post<PageResult<ExportTaskDto>, ExportTaskPageQuery>('Mine', input)
   },
   /** 任务详情（轮询用） → GET /ExportTaskQuery/Detail/{id} */
   detail(id: ApiId) {

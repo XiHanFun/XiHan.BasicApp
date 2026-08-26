@@ -1,9 +1,25 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Dtos;
+
+/// <summary>
+/// 导出任务分页查询入参（导出中心「我的任务」）
+/// </summary>
+/// <remarks>
+/// 基类 <see cref="BasicAppPRDto"/> 提供 Page（页码/页大小）与 Conditions（通用排序 sorts + 过滤 filters）。
+/// 业务类型 / 状态 / 范围 / 格式的多选与时间区间均经 Conditions.Filters 下发；此处只额外承载关键字。
+/// </remarks>
+public sealed class ExportTaskPageQueryDto : BasicAppPRDto
+{
+    /// <summary>
+    /// 关键字（匹配任务名称 / 业务类型 / 产物文件名）
+    /// </summary>
+    public string? Keyword { get; set; }
+}
 
 /// <summary>
 /// 导出列定义（前端按当前列设置派生后随提交快照上送）

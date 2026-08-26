@@ -13,9 +13,9 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 public interface IExportTaskQueryService : IApplicationService
 {
     /// <summary>
-    /// 获取当前用户的导出任务分页（按创建时间倒序）
+    /// 获取当前用户的导出任务分页（支持关键字 / 多选 / 时间区间；无排序时按创建时间倒序）
     /// </summary>
-    Task<PageResultDtoBase<ExportTaskDto>> GetMineAsync(int pageIndex = 1, int pageSize = 10, CancellationToken cancellationToken = default);
+    Task<PageResultDtoBase<ExportTaskDto>> GetMineAsync(ExportTaskPageQueryDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 获取当前用户的导出任务详情（自鉴权；不存在返回 null）
