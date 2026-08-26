@@ -657,6 +657,10 @@ export default {
   },
   date_picker: {
     label: 'Select date',
+    prev_year: 'Previous year',
+    prev_month: 'Previous month',
+    next_month: 'Next month',
+    next_year: 'Next year',
   },
   search_date_range: {
     start: 'Start',
