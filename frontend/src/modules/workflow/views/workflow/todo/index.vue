@@ -6,14 +6,14 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot } from '@xihan-ui/vue'
-import { computed, ref } from 'vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot } from '@xihan-ui/vue'
+import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XInput, XTagsInput } from '~/components'
+import { SchemaPage, XEditModal, XInput, XTagsInput } from '~/components'
 import { toast } from '~/composables'
 import {
   workflowTodoApi,
@@ -69,6 +69,8 @@ const schema = computed<PageSchema>(() => ({
 }))
 
 // ── 办理（同意/拒绝） ──────────────────────────────────────────
+/** 弹窗底部的确认钮靠这个 id 关联到表单，点它走表单提交 */
+const completeFormId = useId()
 const completeVisible = ref(false)
 const completeLoading = ref(false)
 const completeOutcome = ref<'approved' | 'rejected'>('approved')
@@ -105,6 +107,8 @@ async function handleComplete() {
 }
 
 // ── 转办 ───────────────────────────────────────────────────────
+/** 弹窗底部的确认钮靠这个 id 关联到表单，点它走表单提交 */
+const transferFormId = useId()
 const transferVisible = ref(false)
 const transferLoading = ref(false)
 const transferTargetUser = ref('')
@@ -145,6 +149,8 @@ async function handleTransfer() {
 }
 
 // ── 加签 ───────────────────────────────────────────────────────
+/** 弹窗底部的确认钮靠这个 id 关联到表单，点它走表单提交 */
+const addSignFormId = useId()
 const addSignVisible = ref(false)
 const addSignLoading = ref(false)
 const addSignUsers = ref<string[]>([])
@@ -208,33 +214,54 @@ function onAction(payload: SchemaActionPayload) {
 <template>
   <SchemaPage ref="schemaPageRef" :schema="schema" @action="onAction">
     <!-- 办理（同意/拒绝） -->
-    <XhDialogRoot v-model:open="completeVisible">
-      <XhDialogContent style="--xh-dialog-max-w: 480px">
-        <XhDialogTitle>{{ completeOutcome === 'approved' ? t('workflow.todo.approve_title') : t('workflow.todo.reject_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger />
-        <XhFlex direction="column" gap="md">
-          <XInput
-            v-model:value="completeComment"
-            type="textarea"
-            :autosize="{ minRows: 2, maxRows: 5 }"
-            :placeholder="t('workflow.todo.comment_placeholder')"
-          />
-          <XhButton block :tone="completeOutcome === 'approved' ? 'success' : 'danger'" :loading="completeLoading" @click="handleComplete">
-            {{ completeOutcome === 'approved' ? t('workflow.todo.btn_approve') : t('workflow.todo.btn_reject') }}
-          </XhButton>
-        </XhFlex>
-      </XhDialogContent>
-    </XhDialogRoot>
+    <XEditModal
+      v-model:show="completeVisible"
+      :title="completeOutcome === 'approved' ? t('workflow.todo.approve_title') : t('workflow.todo.reject_title')"
+      :width="480"
+      :loading="completeLoading"
+      :save-text="completeOutcome === 'approved' ? t('workflow.todo.btn_approve') : t('workflow.todo.btn_reject')"
+      :save-tone="completeOutcome === 'approved' ? 'success' : 'danger'"
+      :form-id="completeFormId"
+    >
+      <!-- 必填由提交处理器判定；这里不配 rules，错误文本槽位留着备用 -->
+      <XhFormRoot
+        :id="completeFormId"
+        class="xh-edit-form-grid"
+        @submit="handleComplete"
+      >
+        <XhFormFieldGroup value="comment" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('workflow.todo.comment') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="completeComment"
+                type="textarea"
+                :autosize="{ minRows: 2, maxRows: 5 }"
+                :placeholder="t('workflow.todo.comment_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
+    </XEditModal>
 
     <!-- 转办 -->
-    <XhDialogRoot v-model:open="transferVisible">
-      <XhDialogContent style="--xh-dialog-max-w: 480px">
-        <XhDialogTitle>{{ t('workflow.todo.transfer_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger />
-        <XhFormRoot
-          validate-on="blur"
-          layout="horizontal"
-        >
+    <XEditModal
+      v-model:show="transferVisible"
+      :title="t('workflow.todo.transfer_title')"
+      :width="480"
+      :loading="transferLoading"
+      :save-text="t('workflow.todo.btn_transfer')"
+      :form-id="transferFormId"
+    >
+      <!-- 必填由提交处理器判定；这里不配 rules，错误文本槽位留着备用 -->
+      <XhFormRoot
+        :id="transferFormId"
+        class="xh-edit-form-grid"
+        @submit="handleTransfer"
+      >
+        <XhFormFieldGroup value="targetAssigneeId" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.todo.transfer_target') }}</XhFieldLabel>
             <XhFieldControl>
@@ -242,6 +269,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="comment" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.todo.comment') }}</XhFieldLabel>
             <XhFieldControl>
@@ -249,22 +278,26 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
-        </XhFormRoot>
-        <XhButton block tone="brand" :loading="transferLoading" @click="handleTransfer">
-          {{ t('workflow.todo.btn_transfer') }}
-        </XhButton>
-      </XhDialogContent>
-    </XhDialogRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
+    </XEditModal>
 
     <!-- 加签 -->
-    <XhDialogRoot v-model:open="addSignVisible">
-      <XhDialogContent style="--xh-dialog-max-w: 480px">
-        <XhDialogTitle>{{ t('workflow.todo.add_sign_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger />
-        <XhFormRoot
-          validate-on="blur"
-          layout="horizontal"
-        >
+    <XEditModal
+      v-model:show="addSignVisible"
+      :title="t('workflow.todo.add_sign_title')"
+      :width="480"
+      :loading="addSignLoading"
+      :save-text="t('workflow.todo.btn_add_sign')"
+      :form-id="addSignFormId"
+    >
+      <!-- 必填由提交处理器判定；这里不配 rules，错误文本槽位留着备用 -->
+      <XhFormRoot
+        :id="addSignFormId"
+        class="xh-edit-form-grid"
+        @submit="handleAddSign"
+      >
+        <XhFormFieldGroup value="assigneeIds" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.todo.add_sign_users') }}</XhFieldLabel>
             <XhFieldControl>
@@ -272,6 +305,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="comment" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.todo.comment') }}</XhFieldLabel>
             <XhFieldControl>
@@ -279,11 +314,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
-        </XhFormRoot>
-        <XhButton block tone="brand" :loading="addSignLoading" @click="handleAddSign">
-          {{ t('workflow.todo.btn_add_sign') }}
-        </XhButton>
-      </XhDialogContent>
-    </XhDialogRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
+    </XEditModal>
   </SchemaPage>
 </template>

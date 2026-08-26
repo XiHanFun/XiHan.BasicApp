@@ -738,7 +738,7 @@ function onContextSelect(key: string) {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormRoot>
-              <XhButton size="sm" tone="danger" variant="subtle" block @click="deleteSelectedEdge">
+              <XhButton size="sm" tone="danger" variant="subtle" full-width @click="deleteSelectedEdge">
                 {{ t('workflow.designer.btn_delete_edge') }}
               </XhButton>
             </template>
@@ -898,7 +898,7 @@ function onContextSelect(key: string) {
                   </XhFieldRoot>
                 </template>
               </XhFormRoot>
-              <XhButton size="sm" tone="danger" variant="subtle" block @click="deleteSelectedNode">
+              <XhButton size="sm" tone="danger" variant="subtle" full-width @click="deleteSelectedNode">
                 {{ t('workflow.designer.btn_delete_node') }}
               </XhButton>
             </template>

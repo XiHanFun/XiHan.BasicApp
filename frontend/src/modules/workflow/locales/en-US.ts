@@ -106,6 +106,7 @@ export default {
       cancel_title: 'Cancel Instance (with compensation)',
       terminate_title: 'Terminate Instance (no compensation)',
       suspend_title: 'Suspend Instance',
+      reason: 'Reason',
       reason_placeholder: 'Reason (optional)',
       btn_confirm: 'Confirm',
       signal_title: 'Publish Signal',

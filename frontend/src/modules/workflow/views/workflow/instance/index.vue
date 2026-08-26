@@ -9,14 +9,14 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { DiagramNodeStatus } from '~/diagram'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, h, ref } from 'vue'
+import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSeparator, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XInput, XJsonBlock } from '~/components'
+import { SchemaPage, XEditModal, XInput, XJsonBlock } from '~/components'
 import { toast } from '~/composables'
 import { formatDate } from '~/utils'
 import {
@@ -222,6 +222,8 @@ async function handleDetail(row: WorkflowInstanceListItemDto) {
 }
 
 // ── 带原因的操作（取消/终止/挂起） ──────────────────────────────
+/** 弹窗底部的确认钮靠这个 id 关联到表单，点它走表单提交 */
+const reasonFormId = useId()
 const reasonVisible = ref(false)
 const reasonLoading = ref(false)
 const reasonAction = ref<'cancel' | 'terminate' | 'suspend'>('cancel')
@@ -285,6 +287,8 @@ async function handleSimple(action: 'retry' | 'resume', row: WorkflowInstanceLis
 }
 
 // ── 发布信号 ───────────────────────────────────────────────────
+/** 弹窗底部的发布钮靠这个 id 关联到表单，点它走表单提交 */
+const signalFormId = useId()
 const signalVisible = ref(false)
 const signalLoading = ref(false)
 const signalForm = ref({ signalName: '', correlationId: '', payloadJson: '{}' })
@@ -492,33 +496,53 @@ function onAction(payload: SchemaActionPayload) {
     </XhDrawerRoot>
 
     <!-- 带原因操作 -->
-    <XhDialogRoot v-model:open="reasonVisible">
-      <XhDialogContent style="--xh-dialog-max-w: 480px">
-        <XhDialogTitle>{{ reasonTitle }}</XhDialogTitle>
-        <XhDialogCloseTrigger />
-        <XhFlex direction="column" gap="md">
-          <XInput
-            v-model:value="reasonText"
-            type="textarea"
-            :autosize="{ minRows: 2, maxRows: 5 }"
-            :placeholder="t('workflow.instance.reason_placeholder')"
-          />
-          <XhButton block :tone="reasonAction === 'terminate' ? 'danger' : 'warning'" :loading="reasonLoading" @click="handleReasonConfirm">
-            {{ t('workflow.instance.btn_confirm') }}
-          </XhButton>
-        </XhFlex>
-      </XhDialogContent>
-    </XhDialogRoot>
+    <XEditModal
+      v-model:show="reasonVisible"
+      :title="reasonTitle"
+      :width="480"
+      :loading="reasonLoading"
+      :save-text="t('workflow.instance.btn_confirm')"
+      :save-tone="reasonAction === 'terminate' ? 'danger' : 'warning'"
+      :form-id="reasonFormId"
+    >
+      <!-- 必填由提交处理器判定；这里不配 rules，错误文本槽位留着备用 -->
+      <XhFormRoot
+        :id="reasonFormId"
+        class="xh-edit-form-grid"
+        @submit="handleReasonConfirm"
+      >
+        <XhFormFieldGroup value="reason" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('workflow.instance.reason') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="reasonText"
+                type="textarea"
+                :autosize="{ minRows: 2, maxRows: 5 }"
+                :placeholder="t('workflow.instance.reason_placeholder')"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
+    </XEditModal>
 
     <!-- 发布信号 -->
-    <XhDialogRoot v-model:open="signalVisible">
-      <XhDialogContent style="--xh-dialog-max-w: 520px">
-        <XhDialogTitle>{{ t('workflow.instance.signal_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger />
-        <XhFormRoot
-          validate-on="blur"
-          layout="horizontal"
-        >
+    <XEditModal
+      v-model:show="signalVisible"
+      :title="t('workflow.instance.signal_title')"
+      :loading="signalLoading"
+      :save-text="t('workflow.instance.btn_signal')"
+      :form-id="signalFormId"
+    >
+      <!-- 必填由提交处理器判定；这里不配 rules，错误文本槽位留着备用 -->
+      <XhFormRoot
+        :id="signalFormId"
+        class="xh-edit-form-grid"
+        @submit="handleSignal"
+      >
+        <XhFormFieldGroup value="signalName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.instance.signal_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -526,6 +550,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="correlationId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.instance.correlation_id') }}</XhFieldLabel>
             <XhFieldControl>
@@ -533,6 +559,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="payloadJson" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.instance.signal_payload') }}</XhFieldLabel>
             <XhFieldControl>
@@ -540,11 +568,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
-        </XhFormRoot>
-        <XhButton block tone="brand" :loading="signalLoading" @click="handleSignal">
-          {{ t('workflow.instance.btn_signal') }}
-        </XhButton>
-      </XhDialogContent>
-    </XhDialogRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
+    </XEditModal>
   </SchemaPage>
 </template>

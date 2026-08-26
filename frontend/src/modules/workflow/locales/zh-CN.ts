@@ -106,6 +106,7 @@ export default {
       cancel_title: '取消实例（触发补偿）',
       terminate_title: '终止实例（不补偿）',
       suspend_title: '挂起实例',
+      reason: '原因',
       reason_placeholder: '原因（可选）',
       btn_confirm: '确认',
       signal_title: '发布信号',

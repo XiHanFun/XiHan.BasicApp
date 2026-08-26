@@ -8,14 +8,14 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, h, ref } from 'vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XInput, XJsonBlock, XNumberInput } from '~/components'
+import { SchemaPage, XEditModal, XInput, XJsonBlock, XNumberInput } from '~/components'
 import { toast } from '~/composables'
 import { formatDate } from '~/utils'
 import {
@@ -209,6 +209,8 @@ async function handleDesignerSave(json: string) {
 }
 
 // ── 发起实例 ───────────────────────────────────────────────────
+/** 弹窗底部的发起钮靠这个 id 关联到表单，点它走表单提交 */
+const startFormId = useId()
 const startVisible = ref(false)
 const startLoading = ref(false)
 const startForm = ref({ definitionCode: '', definitionVersion: null as number | null, name: '', correlationId: '', variablesJson: '{}' })
@@ -391,14 +393,20 @@ function onAction(payload: SchemaActionPayload) {
     </XhDialogRoot>
 
     <!-- 发起实例 -->
-    <XhDialogRoot v-model:open="startVisible">
-      <XhDialogContent style="--xh-dialog-max-w: 560px">
-        <XhDialogTitle>{{ t('workflow.definition.start_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger />
-        <XhFormRoot
-          validate-on="blur"
-          layout="horizontal"
-        >
+    <XEditModal
+      v-model:show="startVisible"
+      :title="t('workflow.definition.start_title')"
+      :loading="startLoading"
+      :save-text="t('workflow.definition.btn_start')"
+      :form-id="startFormId"
+    >
+      <!-- 必填由提交处理器判定；这里不配 rules，错误文本槽位留着备用 -->
+      <XhFormRoot
+        :id="startFormId"
+        class="xh-edit-form-grid"
+        @submit="handleStart"
+      >
+        <XhFormFieldGroup value="definitionCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -406,6 +414,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="definitionVersion">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.version') }}</XhFieldLabel>
             <XhFieldControl>
@@ -413,6 +423,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="name">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.instance_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -420,6 +432,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="correlationId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.correlation_id') }}</XhFieldLabel>
             <XhFieldControl>
@@ -427,6 +441,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup value="variablesJson" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.variables') }}</XhFieldLabel>
             <XhFieldControl>
@@ -434,11 +450,8 @@ function onAction(payload: SchemaActionPayload) {
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
-        </XhFormRoot>
-        <XhButton block tone="brand" :loading="startLoading" @click="handleStart">
-          {{ t('workflow.definition.btn_start') }}
-        </XhButton>
-      </XhDialogContent>
-    </XhDialogRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
+    </XEditModal>
   </SchemaPage>
 </template>

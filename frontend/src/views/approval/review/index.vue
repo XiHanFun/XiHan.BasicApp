@@ -539,7 +539,8 @@ function onAction(payload: SchemaActionPayload) {
             :autosize="{ minRows: 2, maxRows: 6 }"
           />
           <XhButton
-            block
+            full-width
+            variant="solid"
             :tone="auditResult === AuditResult.Pass ? 'success' : auditResult === AuditResult.Reject ? 'danger' : 'warning'"
             :loading="actionLoading"
             @click="handleAudit"
