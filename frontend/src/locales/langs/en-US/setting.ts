@@ -426,7 +426,7 @@ export default {
     key_pattern_placeholder: 'Key pattern, e.g. basicapp:* or *',
     search_by_pattern: 'Search by pattern',
     empty_keys: 'No cache keys',
-    multi_select_hint: 'Ctrl/⌘ or Shift click to multi-select',
+    multi_select_hint: 'Ticking a group takes its whole branch; use the arrow to expand',
     selected: 'Selected',
     count_unit: ' ',
     clear: 'Clear',

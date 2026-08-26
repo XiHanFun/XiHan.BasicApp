@@ -156,17 +156,18 @@ function resetDetail() {
 }
 
 /**
- * 选择变化：分组不可选，keys 仅含叶子。
- * 单击 = 替换为单选；Ctrl/⌘ 点击 = 累加；Shift 点击 = 范围选。
- * 本次点击的叶子（meta.node）加载到右侧详情。
+ * 选择变化：级联收敛后 keys 仅含叶子，分组键（若有）在此滤掉。
+ * 本次只新增一个键时把它加载到右侧详情；勾目录一次进来一批，右侧不动。
  */
 function handleSelect(keys: string[]) {
   // 分组键只用于展开，不参与选择
   const leaves = keys.filter(key => !key.startsWith(GROUP_PREFIX))
+  const previous = new Set(selectedKeys.value)
+  const added = leaves.filter(key => !previous.has(key))
   selectedKeys.value = leaves
-  const last = leaves[leaves.length - 1]
-  if (last && last !== detailKey.value) {
-    void loadValue(last)
+  const only = added.length === 1 ? added[0] : undefined
+  if (only && only !== detailKey.value) {
+    void loadValue(only)
   }
 }
 
@@ -419,12 +420,16 @@ onMounted(loadKeys)
                     <XhEmptyStateDescription>{{ t('setting.cache.empty_keys') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
                 </div>
+                <!-- 管理档点目录名即勾整枝、展开归箭头；只读档没有勾选，点目录名照常展开 -->
                 <XTree
                   v-else
                   v-model:expanded-keys="expandedKeys"
                   :selected-keys="selectedKeys"
                   :data="treeData"
                   :selection-mode="canManage ? 'multiple' : 'single'"
+                  :cascade="canManage"
+                  checked-strategy="child"
+                  :expand-on-click="!canManage"
                   :render-label="renderTreeLabel"
                   @update:selected-keys="handleSelect"
                 />

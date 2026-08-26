@@ -426,7 +426,7 @@ export default {
     key_pattern_placeholder: '键模式，如 basicapp:* 或 *',
     search_by_pattern: '按模式搜索',
     empty_keys: '暂无缓存键',
-    multi_select_hint: 'Ctrl/⌘ 或 Shift 点击可多选',
+    multi_select_hint: '勾目录连同整枝，点箭头展开',
     selected: '已选',
     count_unit: '个',
     clear: '清空',
