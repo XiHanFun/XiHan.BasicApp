@@ -544,6 +544,8 @@ export default {
     load_failed: '查询失败',
   },
   schema_table: {
+    sort_tip: '点击表头按「不排序 / 升序 / 降序」循环，并把整条排序换成这一列；按住 Shift 点击是把这一列追加为次级排序，列名旁的角标数字就是它的优先级。',
+    resize_tip: '按住这条边线拖动可调整该列宽度，拖动时不会触发排序。',
     index: '序号',
     total_prefix: '共',
     total_suffix: '条',
@@ -621,7 +623,7 @@ export default {
     sort_asc: '升序',
     sort_desc: '降序',
     sort_none: '不排序',
-    sort_tip: '排序：{label}（点击切换 无/升/降；多列按列顺序定优先级）',
+    sort_tip: '排序：{label}。点击在「不排序 / 升序 / 降序」间循环；可同时给多列置位，优先级按各列在本面板中的先后顺序，拖动手柄改列顺序即改优先级。',
     column_name: '列名',
     column_width: '列宽',
     fixed: '固定',
@@ -630,7 +632,7 @@ export default {
     fixed_right: '右',
     fixed_none: '－',
     fixed_tip: '固定：{label}',
-    hint: '勾选=显示该列；列宽可在此输入或拖动表头右边框调整（留空为自动）；点钉选图标在「左 / 右 / 不固定」间循环；拖拽手柄可排序',
+    hint: '勾选=显示该列；列宽可在此输入或拖动表头右边框调整（留空为自动）；点排序图标在「不排序 / 升序 / 降序」间循环，多列可同时置位；点钉选图标在「左 / 右 / 不固定」间循环；拖动手柄调整列的先后顺序，多列排序的优先级也按这个顺序',
   },
   icon_picker: {
     select_placeholder: '选择图标',

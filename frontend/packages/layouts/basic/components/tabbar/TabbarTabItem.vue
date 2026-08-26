@@ -80,6 +80,19 @@ function onAuxClick(event: MouseEvent) {
     emit('middleClose', props.item.path)
   }
 }
+
+/** 悬停提示：逐条列出这枚标签当前真正可用的鼠标手势（拖拽、中键、右键） */
+const gestureHint = computed(() => {
+  const parts: string[] = []
+  if (props.draggable) {
+    parts.push(t('tabbar.tab_hint_drag'))
+  }
+  if (props.item.closable && props.middleCloseEnabled !== false) {
+    parts.push(t('tabbar.tab_hint_middle'))
+  }
+  parts.push(t('tabbar.tab_hint_context'))
+  return parts.join(t('tabbar.tab_hint_sep'))
+})
 </script>
 
 <template>
@@ -95,6 +108,7 @@ function onAuxClick(event: MouseEvent) {
     :data-dragging="isDragging || undefined"
     role="button"
     tabindex="0"
+    :title="gestureHint"
     @click="emit('jump', item.path)"
     @mousedown.middle.prevent
     @auxclick.prevent="onAuxClick"

@@ -388,7 +388,11 @@ function rowPeekHandlers(row: TRow) {
             :style="minWidthStyle(column)"
           >
             <!-- 截断落在内部文字节点上：皮肤把排序箭头做成把手的伪元素，加在把手上会连箭头一起裁掉 -->
-            <XhTableSortTrigger v-if="column.sortable" class="xh-table-panel__sort">
+            <XhTableSortTrigger
+              v-if="column.sortable"
+              class="xh-table-panel__sort"
+              :title="t('component.schema_table.sort_tip')"
+            >
               <span class="xh-table-panel__title">{{ column.title }}</span>
             </XhTableSortTrigger>
             <span v-else class="xh-table-panel__title">{{ column.title }}</span>
@@ -396,6 +400,7 @@ function rowPeekHandlers(row: TRow) {
             <span
               aria-hidden="true"
               class="xh-table-panel__resize"
+              :title="t('component.schema_table.resize_tip')"
               @pointerdown="onResizeGrab($event, column)"
               @pointermove="onResizeDrag"
               @pointerup="onResizeRelease"

@@ -544,6 +544,9 @@ export default {
     load_failed: 'Query failed',
   },
   schema_table: {
+    sort_tip:
+      'Clicking the header cycles Unsorted / Ascending / Descending and replaces the whole sort with this column. Shift-clicking appends this column as a secondary sort, and the small number next to the name is its priority.',
+    resize_tip: 'Dragging this edge resizes the column, and never triggers sorting.',
     index: 'Index',
     total_prefix: 'Total',
     total_suffix: 'items',
@@ -621,7 +624,8 @@ export default {
     sort_asc: 'Asc',
     sort_desc: 'Desc',
     sort_none: 'Unsorted',
-    sort_tip: 'Sort: {label} (click to cycle none/asc/desc; priority follows column order)',
+    sort_tip:
+      'Sort: {label}. Clicking cycles Unsorted / Asc / Desc; several columns can be set at once, and priority follows their order in this panel — dragging the handle to reorder a column also changes its priority.',
     column_name: 'Column',
     column_width: 'Width',
     fixed: 'Fixed',
@@ -630,7 +634,7 @@ export default {
     fixed_right: 'R',
     fixed_none: '－',
     fixed_tip: 'Fixed: {label}',
-    hint: 'Check to show the column; set width here or drag the header edge (blank = auto); click the pin icon to cycle Left / Right / None; drag the handle to reorder.',
+    hint: 'Check to show the column; set width here or drag the header edge (blank = auto); click the sort icon to cycle Unsorted / Asc / Desc, and several columns can be sorted at once; click the pin icon to cycle Left / Right / None; drag the handle to reorder columns, which is also the priority order for multi-column sorting.',
   },
   icon_picker: {
     select_placeholder: 'Select icon',
