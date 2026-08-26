@@ -135,8 +135,8 @@ function handleItemAction(key: string) {
     </div>
 
     <!-- 会话列表 -->
-    <div class="xh-loading-stage min-h-0 flex-1">
-      <div v-if="chatStore.conversationsLoading && !chatStore.conversations.length" class="xh-loading-stage__veil">
+    <div class="xh-loading-stage min-h-0 flex-1" :class="{ 'is-loading': chatStore.conversationsLoading && !chatStore.conversations.length }">
+      <div class="xh-loading-stage__veil">
         <XhSpinner size="md" />
       </div>
       <div class="xh-scroll-area h-full">

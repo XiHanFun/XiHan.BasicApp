@@ -337,8 +337,8 @@ async function handleSubmit() {
     @update:show="emit('update:show', $event)"
   >
     <!-- 表单常驻、加载期叠一层遮罩：v-if 摘挂会让弹窗高度在打开瞬间连跳两次 -->
-    <div class="xh-loading-stage">
-      <div v-if="loading" class="xh-loading-stage__veil">
+    <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
+      <div class="xh-loading-stage__veil">
         <XhSpinner />
       </div>
       <XhFormRoot

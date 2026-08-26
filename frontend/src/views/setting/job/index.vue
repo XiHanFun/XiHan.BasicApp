@@ -678,8 +678,8 @@ async function handleSubmit() {
       <XhDrawerContent style="--xh-drawer-size: 640px">
         <XhDrawerTitle>{{ t('setting.job.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage">
-          <div v-if="detailLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': detailLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !detailData" class="xh-detail-empty">
@@ -921,8 +921,8 @@ async function handleSubmit() {
       <XhDialogContent style="--xh-dialog-max-w: 760px">
         <XhDialogTitle>{{ t('setting.job.log_detail_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger />
-        <div class="xh-loading-stage">
-          <div v-if="logDetailLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': logDetailLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!logDetailLoading && !logDetail" class="xh-detail-empty">

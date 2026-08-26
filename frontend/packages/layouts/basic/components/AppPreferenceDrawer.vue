@@ -199,26 +199,27 @@ watch(visible, (open, was) => {
         </button>
       </div>
 
-      <XhScrollAreaRoot class="preference-scrollbar">
-        <XhScrollAreaViewport>
-          <XhScrollAreaContent>
-            <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
-            <XhTabsRoot v-model:value="activeTab" class="preference-tabs" variant="segment">
-              <XhTabsList>
-                <XhTabsTrigger value="appearance">
-                  {{ t('preference.drawer.tab.appearance') }}
-                </XhTabsTrigger>
-                <XhTabsTrigger value="layout">
-                  {{ t('preference.drawer.tab.layout') }}
-                </XhTabsTrigger>
-                <XhTabsTrigger value="shortcut">
-                  {{ t('preference.drawer.tab.shortcut') }}
-                </XhTabsTrigger>
-                <XhTabsTrigger value="general">
-                  {{ t('preference.drawer.tab.general') }}
-                </XhTabsTrigger>
-              </XhTabsList>
+      <!-- 面板内容各不相同，标签与面板手摆而不喂 collection。
+           滚动区只包面板，标签行留在外面：它不随内容滚，也就不会和滚动条压在一起 -->
+      <XhTabsRoot v-model:value="activeTab" class="preference-tabs" variant="segment">
+        <XhTabsList>
+          <XhTabsTrigger value="appearance">
+            {{ t('preference.drawer.tab.appearance') }}
+          </XhTabsTrigger>
+          <XhTabsTrigger value="layout">
+            {{ t('preference.drawer.tab.layout') }}
+          </XhTabsTrigger>
+          <XhTabsTrigger value="shortcut">
+            {{ t('preference.drawer.tab.shortcut') }}
+          </XhTabsTrigger>
+          <XhTabsTrigger value="general">
+            {{ t('preference.drawer.tab.general') }}
+          </XhTabsTrigger>
+        </XhTabsList>
 
+        <XhScrollAreaRoot class="preference-scrollbar">
+          <XhScrollAreaViewport>
+            <XhScrollAreaContent>
               <XhTabsContent value="appearance">
                 <PreferenceAppearanceTab
                   :app-store="appStore"
@@ -245,16 +246,16 @@ watch(visible, (open, was) => {
               <XhTabsContent value="general">
                 <PreferenceGeneralTab :app-store="appStore" />
               </XhTabsContent>
-            </XhTabsRoot>
-          </XhScrollAreaContent>
-        </XhScrollAreaViewport>
-        <!-- 滑块的行程按轨道节点量：少了 Track 这层，拖滑块与点轨道都会变成空操作 -->
-        <XhScrollAreaScrollbar orientation="vertical">
-          <XhScrollAreaTrack>
-            <XhScrollAreaThumb />
-          </XhScrollAreaTrack>
-        </XhScrollAreaScrollbar>
-      </XhScrollAreaRoot>
+            </XhScrollAreaContent>
+          </XhScrollAreaViewport>
+          <!-- 滑块的行程按轨道节点量：少了 Track 这层，拖滑块与点轨道都会变成空操作 -->
+          <XhScrollAreaScrollbar orientation="vertical">
+            <XhScrollAreaTrack>
+              <XhScrollAreaThumb />
+            </XhScrollAreaTrack>
+          </XhScrollAreaScrollbar>
+        </XhScrollAreaRoot>
+      </XhTabsRoot>
 
       <div class="drawer-footer">
         <div class="flex gap-2">
@@ -311,22 +312,27 @@ watch(visible, (open, was) => {
 
 /* 这几个目标元素都写在本组件模板里、自带 scopeId；
    套上 :deep() 反而要求祖先带 scopeId，而它们的祖先在 portal 之后一个都没有 */
+/* 标签行固定、滚动区吃掉面板剩下的高度 */
+.preference-tabs {
+  flex: 1;
+  min-height: 0;
+
+  --xh-tabs-gap: 12px;
+  --xh-tabs-content-py: 8px;
+}
+
 .preference-scrollbar {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .preference-scrollbar [data-scope='scroll-area'][data-part='content'] {
   padding: 0 16px 16px;
 }
 
-/* 标签栏吸顶。底色与内边距归 segment 档的皮肤（灰底轨道 + 白色活动药丸），
-   在这里改写会把轨道盖成白底、活动项就此看不出来；滚动时挡住下方内容改用外扩投影 */
+/* 标签行在滚动区之外，左右缩进自己写，与面板内容的 16px 对齐 */
 .preference-tabs > [data-scope='tabs'][data-part='list'] {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  margin-block-start: 12px;
-  box-shadow: 0 0 0 12px hsl(var(--background));
+  margin-inline: 16px;
 }
 
 /* 四段等分铺满：组件库不定各段宽度，由使用者按容器决定 */

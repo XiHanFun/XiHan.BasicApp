@@ -205,36 +205,41 @@ onUnmounted(() => {
 <template>
   <div class="sv-page">
     <template v-if="showSkeleton">
-      <XhCardRoot variant="ghost" class="sv-card">
-        <XhCardBody>
-          <div class="space-y-3">
-            <span class="xh-skeleton-bone" />
-            <XhGridRoot :cols="{ base: 1, sm: 2, lg: 5 }" gap="md">
-              <XhGridItem v-for="i in 5" :key="`ov-${i}`">
-                <div class="sv-skeleton-panel">
-                  <span class="xh-skeleton-bone xh-skeleton-bone--circle" style="inline-size: 36px; block-size: 36px" />
-                  <div class="flex-1 space-y-2">
-                    <span class="xh-skeleton-bone" />
-                    <span class="xh-skeleton-bone" />
-                    <span class="xh-skeleton-bone" />
-                  </div>
-                </div>
-              </XhGridItem>
-            </XhGridRoot>
+      <!-- 骨架直接复用真实内容的布局类，底色、列数与断点自然一致 -->
+      <div class="sv-banner">
+        <div class="sv-banner-head">
+          <span class="xh-skeleton-bone" style="inline-size: 96px; block-size: 15px" />
+          <span class="xh-skeleton-bone" style="inline-size: 108px; block-size: 24px" />
+        </div>
+        <div class="sv-overview-grid">
+          <div v-for="i in 5" :key="`sk-ov-${i}`" class="sv-overview-item">
+            <span class="xh-skeleton-bone xh-skeleton-bone--circle" style="inline-size: 36px; block-size: 36px" />
+            <div class="sv-overview-body space-y-1">
+              <span class="xh-skeleton-bone" style="inline-size: 48%; block-size: 12px" />
+              <span class="xh-skeleton-bone" style="inline-size: 86%; block-size: 13px" />
+              <span class="xh-skeleton-bone" style="inline-size: 62%; block-size: 11px" />
+            </div>
           </div>
-        </XhCardBody>
-      </XhCardRoot>
+        </div>
+      </div>
 
+      <!-- CPU 5 行明细、内存 4 行 -->
       <XhGridRoot :cols="{ base: 1, md: 2 }" gap="md">
-        <XhGridItem v-for="i in 2" :key="`perf-${i}`">
+        <XhGridItem v-for="(rows, i) in [5, 4]" :key="`sk-perf-${i}`">
           <XhCardRoot variant="ghost" class="sv-card">
+            <XhCardHeader>
+              <span class="xh-skeleton-bone" style="inline-size: 88px; block-size: 14px" />
+            </XhCardHeader>
             <XhCardBody>
-              <div class="sv-skeleton-panel-col">
-                <div class="sv-skeleton-circle">
+              <div class="sv-perf">
+                <div class="sv-gauge">
                   <span class="xh-skeleton-bone xh-skeleton-bone--circle" style="inline-size: 160px; block-size: 160px" />
                 </div>
-                <div class="space-y-2 w-full">
-                  <span class="xh-skeleton-bone" />
+                <div class="sv-details">
+                  <div v-for="r in rows" :key="r" class="sv-detail-row">
+                    <span class="xh-skeleton-bone" style="inline-size: 56px; block-size: 13px" />
+                    <span class="xh-skeleton-bone" style="inline-size: 64px; block-size: 13px" />
+                  </div>
                 </div>
               </div>
             </XhCardBody>
@@ -242,11 +247,57 @@ onUnmounted(() => {
         </XhGridItem>
       </XhGridRoot>
 
-      <XhCardRoot v-for="i in 4" :key="`card-${i}`" variant="ghost" class="sv-card">
+      <!-- 磁盘：3 列，每格 标题行 + 进度条 + 统计行 -->
+      <XhCardRoot variant="ghost" class="sv-card">
+        <XhCardHeader>
+          <span class="xh-skeleton-bone" style="inline-size: 88px; block-size: 14px" />
+        </XhCardHeader>
         <XhCardBody>
-          <div class="space-y-3">
-            <span class="xh-skeleton-bone" />
-            <span class="xh-skeleton-bone" />
+          <XhGridRoot :cols="{ base: 1, sm: 2, lg: 3 }" gap="md">
+            <XhGridItem v-for="i in 3" :key="`sk-disk-${i}`">
+              <div class="sv-disk-item">
+                <div class="sv-disk-head">
+                  <span class="xh-skeleton-bone" style="inline-size: 72px; block-size: 14px" />
+                  <span class="xh-skeleton-bone" style="inline-size: 88px; block-size: 14px" />
+                </div>
+                <span class="xh-skeleton-bone" style="block-size: 6px" />
+                <div class="sv-disk-stats">
+                  <span v-for="n in 3" :key="n" class="xh-skeleton-bone" style="inline-size: 64px; block-size: 12px" />
+                </div>
+              </div>
+            </XhGridItem>
+          </XhGridRoot>
+        </XhCardBody>
+      </XhCardRoot>
+
+      <!-- 显卡 2 行、网络 3 行：折叠列表画成等高的触发行 -->
+      <XhCardRoot v-for="(rows, i) in [2, 3]" :key="`sk-acc-${i}`" variant="ghost" class="sv-card">
+        <XhCardHeader>
+          <span class="xh-skeleton-bone" style="inline-size: 88px; block-size: 14px" />
+        </XhCardHeader>
+        <XhCardBody>
+          <div class="space-y-1">
+            <div v-for="r in rows" :key="r" class="sv-collapse-title" style="padding: 10px 0">
+              <span class="xh-skeleton-bone xh-skeleton-bone--circle" style="inline-size: 14px; block-size: 14px" />
+              <span class="xh-skeleton-bone" style="inline-size: 180px; block-size: 13px" />
+              <span class="xh-skeleton-bone" style="inline-size: 48px; block-size: 18px" />
+            </div>
+          </div>
+        </XhCardBody>
+      </XhCardRoot>
+
+      <!-- 主板 4 项、系统信息 12 项：同一种格子，只是数量与网格类不同 -->
+      <XhCardRoot v-for="g in [{ cls: 'sv-board-grid', n: 4 }, { cls: 'sv-sys-grid', n: 12 }]" :key="g.cls" variant="ghost" class="sv-card">
+        <XhCardHeader>
+          <span class="xh-skeleton-bone" style="inline-size: 88px; block-size: 14px" />
+        </XhCardHeader>
+        <XhCardBody>
+          <div :class="g.cls">
+            <div v-for="i in g.n" :key="i" class="sv-sys-item">
+              <span class="xh-skeleton-bone" style="inline-size: 26px; block-size: 26px; border-radius: 6px" />
+              <span class="xh-skeleton-bone" style="inline-size: 56px; block-size: 12px" />
+              <span class="xh-skeleton-bone" style="inline-size: 96px; block-size: 13px; margin-left: auto" />
+            </div>
           </div>
         </XhCardBody>
       </XhCardRoot>
@@ -671,38 +722,6 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.sv-skeleton-panel {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border-radius: var(--radius);
-  background: var(--bg-surface);
-  border: 1px solid var(--border-color);
-}
-
-.sv-skeleton-panel-col {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.sv-skeleton-circle {
-  flex-shrink: 0;
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.sv-skeleton-circle [data-scope='skeleton'][data-part='bone'] {
-  width: 160px !important;
-  height: 160px !important;
-  min-width: 160px !important;
-  min-height: 160px !important;
-  border-radius: 50% !important;
 }
 
 /* ========== Banner ========== */

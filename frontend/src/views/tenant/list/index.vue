@@ -858,8 +858,8 @@ async function handleSubmit() {
       <XhDrawerContent style="--xh-drawer-size: 800px">
         <XhDrawerTitle>{{ t('tenant.list.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage">
-          <div v-if="detailLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': detailLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
@@ -1000,8 +1000,8 @@ async function handleSubmit() {
                     {{ t('tenant.list.member_invite') }}
                   </XhButton>
                 </XhFlex>
-                <div class="xh-loading-stage">
-                  <div v-if="memberLoading" class="xh-loading-stage__veil">
+                <div class="xh-loading-stage" :class="{ 'is-loading': memberLoading }">
+                  <div class="xh-loading-stage__veil">
                     <XhSpinner />
                   </div>
                   <div v-if="memberError" class="xh-detail-empty">

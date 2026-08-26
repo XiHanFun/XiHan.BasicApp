@@ -149,8 +149,8 @@ function handlePageSizeChange(value: number) {
     <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1200px)">
       <XhDialogTitle>{{ modalTitle }}</XhDialogTitle>
       <XhDialogCloseTrigger />
-      <div class="xh-loading-stage">
-        <div v-if="schemaLoading" class="xh-loading-stage__veil">
+      <div class="xh-loading-stage" :class="{ 'is-loading': schemaLoading }">
+        <div class="xh-loading-stage__veil">
           <XhSpinner />
         </div>
         <div class="runtime">

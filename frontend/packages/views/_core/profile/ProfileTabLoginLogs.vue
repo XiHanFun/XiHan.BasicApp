@@ -118,8 +118,8 @@ onMounted(() => loadLogs())
         </div>
       </div>
       <div class="pf-section__body">
-        <div class="xh-loading-stage">
-          <div v-if="loading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <div v-if="logs.length === 0 && !loading" class="pf-empty">

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { Size } from '@xihan-ui/kernel'
 import {
+  XhEmptyStateIcon,
+  XhEmptyStateRoot,
+  XhEmptyStateTitle,
   XhSelectClearTrigger,
   XhSelectContent,
   XhSelectControl,
@@ -13,8 +16,11 @@ import {
   XhSelectRoot,
   XhSelectTrigger,
   XhSelectValueText,
+  XhSpinner,
 } from '@xihan-ui/vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { Icon } from '~/iconify'
 import { useControlAttrs } from './control-attrs'
 
 /**
@@ -41,6 +47,8 @@ const props = withDefaults(defineProps<{
   size?: Size
   /** 多选标签超出几个后折叠 */
   maxTagCount?: number
+  /** 选项正在取回 */
+  loading?: boolean
 }>(), {
   options: () => [],
   value: null,
@@ -50,6 +58,7 @@ const props = withDefaults(defineProps<{
   placeholder: undefined,
   size: 'sm',
   maxTagCount: undefined,
+  loading: false,
 })
 
 const emit = defineEmits<{
@@ -57,6 +66,7 @@ const emit = defineEmits<{
 }>()
 
 // 字段挂来的 id 与 aria-* 转交给触发器，见 control-attrs.ts
+const { t } = useI18n()
 const { attrs, controlAttrs } = useControlAttrs()
 
 const collection = computed(() => props.options.map(option => ({
@@ -107,7 +117,16 @@ function onValueChange(next: string[]): void {
     </XhSelectControl>
     <XhSelectPositioner>
       <XhSelectContent>
-        <XhSelectList>
+        <div v-if="loading" class="x-select__spin">
+          <XhSpinner size="sm" />
+        </div>
+        <XhEmptyStateRoot v-else-if="!collection.length" size="sm">
+          <XhEmptyStateIcon>
+            <Icon icon="lucide:inbox" width="24" height="24" />
+          </XhEmptyStateIcon>
+          <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+        </XhEmptyStateRoot>
+        <XhSelectList v-else>
           <XhSelectItem v-for="node in collection" :key="node.value" :value="node.value">
             <XhSelectItemText>{{ node.label }}</XhSelectItemText>
             <XhSelectItemIndicator />
@@ -117,3 +136,12 @@ function onValueChange(next: string[]): void {
     </XhSelectPositioner>
   </XhSelectRoot>
 </template>
+
+<style scoped>
+.x-select__spin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: var(--xh-space-4);
+}
+</style>

@@ -837,8 +837,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
       <XhDrawerContent style="--xh-drawer-size: 900px">
         <XhDrawerTitle>{{ t('identity.role.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage">
-          <div v-if="detailLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': detailLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
@@ -1242,8 +1242,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
       <XhDrawerContent style="--xh-drawer-size: 520px">
         <XhDrawerTitle>{{ t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage menu-tree-stage">
-          <div v-if="menuLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage menu-tree-stage" :class="{ 'is-loading': menuLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="menuTreeData.length === 0 && !menuLoading" size="sm" class="perm-empty">
@@ -1296,8 +1296,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
             {{ t('identity.role.scope_add') }}
           </XhButton>
         </div>
-        <div class="xh-loading-stage">
-          <div v-if="scopeLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': scopeLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="scopeGrants.length === 0 && !scopeLoading" size="sm" class="perm-empty">

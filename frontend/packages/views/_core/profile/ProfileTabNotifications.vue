@@ -83,8 +83,8 @@ onMounted(loadPreference)
 
 <template>
   <div class="pf-tab-body">
-    <div class="xh-loading-stage">
-      <div v-if="loading" class="xh-loading-stage__veil">
+    <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
+      <div class="xh-loading-stage__veil">
         <XhSpinner />
       </div>
       <section class="pf-section">

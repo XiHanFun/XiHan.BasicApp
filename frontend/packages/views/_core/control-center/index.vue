@@ -154,8 +154,8 @@ onMounted(loadTenants)
               {{ t('page.control_center.refresh') }}
             </XhButton>
           </div>
-          <div class="xh-loading-stage">
-            <div v-if="loading" class="xh-loading-stage__veil">
+          <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
+            <div class="xh-loading-stage__veil">
               <XhSpinner />
             </div>
             <!-- 平台分组：与租户同构的可选中项，选中态表示当前处于平台运维态 -->

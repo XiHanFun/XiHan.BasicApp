@@ -254,8 +254,8 @@ async function loadPreview() {
     <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1840px)">
       <XhDialogTitle>{{ modalTitle }}</XhDialogTitle>
       <XhDialogCloseTrigger />
-      <div class="xh-loading-stage">
-        <div v-if="previewLoading" class="xh-loading-stage__veil">
+      <div class="xh-loading-stage" :class="{ 'is-loading': previewLoading }">
+        <div class="xh-loading-stage__veil">
           <XhSpinner />
         </div>
         <div class="gen">
