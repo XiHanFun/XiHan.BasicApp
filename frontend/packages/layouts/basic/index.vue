@@ -14,6 +14,7 @@ import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { XDropdown } from '~/components'
 import { setupContainerTransform } from '~/composables/useContainerTransform'
+import { FOUNDATION_PROJECTS } from '~/constants'
 import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useShellExtensions, useSplitViewStore, useTabbarStore } from '~/stores'
@@ -223,8 +224,6 @@ const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
 const appHomepage = __APP_HOMEPAGE__
 const appName = __APP_NAME__
-const appAuthorName = __APP_AUTHOR_NAME__
-const appAuthorUrl = __APP_AUTHOR_URL__
 
 const sidebarForceDark = computed(() => shell.appStore.sidebarDark && !isDark.value)
 const headerForceDark = computed(() => shell.appStore.headerDark && !isDark.value)
@@ -523,8 +522,11 @@ const sidebarEnableState = computed(
         <div v-if="shell.appStore.footerShowDevInfo" class="footer-section-left" :class="{ 'text-center': shell.isMobile.value }">
           <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>
           v{{ appVersion }}({{ appBuildTime }})
-          · by
-          <a :href="appAuthorUrl" target="_blank" class="hover:underline">{{ appAuthorName }}</a>
+          · Powered by
+          <template v-for="(p, i) in FOUNDATION_PROJECTS" :key="p.name">
+            <span v-if="i > 0"> &amp; </span>
+            <a :href="p.url" target="_blank" class="hover:underline">{{ p.name }}</a>
+          </template>
         </div>
         <div v-else-if="!shell.isMobile.value" class="footer-section-left" />
 

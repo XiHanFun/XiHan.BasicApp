@@ -3,7 +3,7 @@ import type { LoginFormAlign } from './LoginToolbar.vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
-import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from '~/constants'
+import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, FOUNDATION_PROJECTS, LOGIN_PATH, QRCODE_LOGIN_PATH } from '~/constants'
 import { useAppStore } from '~/stores'
 import AuthEntrySwitcher from './AuthEntrySwitcher.vue'
 import LoginToolbar from './LoginToolbar.vue'
@@ -35,8 +35,6 @@ const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
 const appHomepage = __APP_HOMEPAGE__
 const appName = __APP_NAME__
-const appAuthorName = __APP_AUTHOR_NAME__
-const appAuthorUrl = __APP_AUTHOR_URL__
 </script>
 
 <template>
@@ -142,8 +140,11 @@ const appAuthorUrl = __APP_AUTHOR_URL__
     >
       <div v-if="appStore.footerShowDevInfo" class="leading-tight">
         <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>
-        v{{ appVersion }}({{ appBuildTime }}) · by
-        <a :href="appAuthorUrl" target="_blank" class="hover:underline">{{ appAuthorName }}</a>
+        v{{ appVersion }}({{ appBuildTime }}) · Powered by
+        <template v-for="(item, i) in FOUNDATION_PROJECTS" :key="item.name">
+          <span v-if="i > 0"> &amp; </span>
+          <a :href="item.url" target="_blank" class="hover:underline">{{ item.name }}</a>
+        </template>
       </div>
       <div
         v-if="appStore.copyrightEnable"
