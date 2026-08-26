@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Saas.Application.Caching;
 /// SaaS 会话状态缓存项（session_id → 有效性 + 锁定位；会话闸门每请求读取的热路径）。
 /// </summary>
 /// <remarks>
-/// <see cref="IgnoreMultiTenancy"/>：会话闸门跑在租户解析之后但服务于全租户，键本身即 session_id（全局唯一），
+/// 会话闸门跑在租户解析之后但服务于全租户，键本身即 session_id（全局唯一），
 /// 不按租户分片，避免同一会话在不同租户上下文下缓存出多份。
 /// </remarks>
 [IgnoreMultiTenancy]
