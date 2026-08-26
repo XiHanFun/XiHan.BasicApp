@@ -1,5 +1,5 @@
 import { usePreferredDark } from '@vueuse/core'
-import { ON_COLOR_CROSSOVER, relativeLuminance } from '@xihan-ui/tokens'
+import { deriveBrandScale, ON_COLOR_CROSSOVER, relativeLuminance } from '@xihan-ui/tokens'
 import { computed, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { setPendingPreferenceOrigin, useAppStore } from '~/stores'
@@ -86,11 +86,12 @@ function generatePrimaryScale(hex: string) {
 }
 
 /**
- * 主色上的前景文字：亮过交叉点用深字，暗于它用浅字。
+ * 实心底上的前景文字：亮过交叉点用深字，暗于它用浅字。
  * 判据与交叉点都取组件库的公共能力，别在这里另起一套。
+ * 传进来的要是实际当底色的那一档（色阶的 600），不是用户挑的原色。
  */
-function onPrimaryFor(hex: string): string {
-  return relativeLuminance(hex) > ON_COLOR_CROSSOVER ? '220 12% 12%' : '0 0% 98%'
+function onSolidFor(color: string): string {
+  return relativeLuminance(color) > ON_COLOR_CROSSOVER ? '220 12% 12%' : '0 0% 98%'
 }
 
 /**
@@ -169,9 +170,14 @@ export function useTheme() {
     const el = document.documentElement
     // 主色：始终保持用户所选精确颜色
     el.style.setProperty('--primary', hexToHslVars(hex))
-    // 主色上的前景跟着主色走，与 Material You 开关无关：它不是派生的装饰色，
-    // 而是「这个主色上的字读不读得清」，关掉动态取色一样要算
-    el.style.setProperty('--primary-foreground', onPrimaryFor(hex))
+    // 品牌色阶按组件库的固定明度曲线派生：实心底取的是 600 档而不是用户挑的原色，
+    // 明度定住，上面的字才能恒是白的
+    const brand = deriveBrandScale(hex)
+    for (const [step, value] of Object.entries(brand))
+      el.style.setProperty(`--xh-color-brand-${step}`, value)
+    // 主色上的前景跟着实心底那一档走，与 Material You 开关无关：它不是派生的装饰色，
+    // 而是「这个底上的字读不读得清」，关掉动态取色一样要算
+    el.style.setProperty('--primary-foreground', onSolidFor(brand['600']))
     el.style.setProperty('--primary-hover', hexToHslVars(scale.hover))
     el.style.setProperty('--primary-active', hexToHslVars(scale.active))
     el.style.setProperty('--primary-suppl', hexToHslVars(scale.suppl))
