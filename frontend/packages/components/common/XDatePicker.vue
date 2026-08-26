@@ -146,13 +146,15 @@ function onValueChange(next: string[]): void {
       <XhDatePickerContent>
         <!-- 不写默认插槽就按 presets 数据自动铺 -->
         <XhDatePickerPresets v-if="presets?.length" />
-        <XhDatePickerCalendar v-for="panel in panels" :key="panel.index">
+        <!-- 面板号写在日历上，面板内的标题、网格与格子跟着它走 -->
+        <XhDatePickerCalendar v-for="panel in panels" :key="panel.index" :index="panel.index">
           <XhDatePickerHeader>
-            <XhDatePickerPrevTrigger>
+            <!-- 翻页整窗一起走：往前只画在最左那张，往后只画在最右那张 -->
+            <XhDatePickerPrevTrigger v-if="panel.index === 0">
               <Icon icon="lucide:chevron-left" width="14" height="14" />
             </XhDatePickerPrevTrigger>
             <XhDatePickerHeading />
-            <XhDatePickerNextTrigger>
+            <XhDatePickerNextTrigger v-if="panel.index === panels.length - 1">
               <Icon icon="lucide:chevron-right" width="14" height="14" />
             </XhDatePickerNextTrigger>
           </XhDatePickerHeader>
