@@ -561,7 +561,7 @@ const sidebarEnableState = computed(
     <!-- 壳层扩展浮层（可选模块注册的抽屉/全局对话框） -->
     <component :is="overlay" v-for="(overlay, index) in shellOverlays" :key="index" />
     <AppTabOverview />
-    <XihanBackTop :scroll-y="shell.scrollY.value" />
+    <XihanBackTop />
 
     <!-- 通知展示分级：登录后弹窗 + 强制阅读拦截（teleport 到 body，位置不敏感） -->
     <NotificationGate />
