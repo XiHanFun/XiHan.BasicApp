@@ -77,8 +77,8 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const item = row as unknown as ChatAuditListItemDto
       return item.isRecalled
-        ? h(XhTagRoot, { variant: 'solid', tone: 'danger' }, () => h(XhTagLabel, () => t('chat.audit.recalled_yes')))
-        : h(XhTagRoot, { variant: 'solid', tone: 'neutral' }, () => h(XhTagLabel, () => t('chat.audit.recalled_no')))
+        ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'danger' }, () => h(XhTagLabel, () => t('chat.audit.recalled_yes')))
+        : h(XhTagRoot, { variant: 'subtle', size: 'sm' }, () => h(XhTagLabel, () => t('chat.audit.recalled_no')))
     },
   },
   { key: 'editedTime', title: t('chat.audit.edited_time'), dataType: 'datetime', minWidth: 170, order: 18 },

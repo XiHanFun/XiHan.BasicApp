@@ -110,7 +110,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dictionaryCode: 'EnableStatus',
     render: (row) => {
       const status = (row as unknown as DepartmentListItemDto).status
-      return h(XhTagRoot, { variant: 'solid', tone: status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, status)))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, status)))
     },
   },
   { key: 'phone', title: t('identity.org.col_phone'), dataType: 'phone', minWidth: 130, order: 5 },
@@ -258,7 +258,7 @@ const childDeptColumns = computed<XDataTableColumn<DepartmentListItemDto>[]>(() 
     title: t('identity.org.detail_table_status'),
     key: 'status',
     width: 72,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => formatStatus(row.status))),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => formatStatus(row.status))),
   },
 ])
 
@@ -277,14 +277,14 @@ const memberColumns = computed<XDataTableColumn<DepartmentManagementMemberDto>[]
     key: 'isMain',
     width: 72,
     render: row => row.isMain
-      ? h(XhTagRoot, { variant: 'solid', tone: 'info' }, () => h(XhTagLabel, () => t('common.statuses.yes')))
+      ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => t('common.statuses.yes')))
       : h('span', { style: 'color:hsl(var(--muted-foreground))' }, '—'),
   },
   {
     title: t('identity.org.detail_table_status'),
     key: 'status',
     width: 72,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: row.status === ValidityStatus.Valid ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row.status === ValidityStatus.Valid ? t('identity.org.member_valid') : t('identity.org.member_invalid')))),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: row.status === ValidityStatus.Valid ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row.status === ValidityStatus.Valid ? t('identity.org.member_valid') : t('identity.org.member_invalid')))),
   },
   {
     title: t('identity.org.detail_table_actions'),

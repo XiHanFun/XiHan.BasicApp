@@ -230,7 +230,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 11,
     render: (row) => {
       const r = row as unknown as NotificationListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: NOTIFICATION_TYPE_TAG[r.notificationType] ?? 'neutral' }, () => h(XhTagLabel, () => getOptionLabel(notificationTypeOptions.value, r.notificationType)))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: NOTIFICATION_TYPE_TAG[r.notificationType] ?? 'neutral' }, () => h(XhTagLabel, () => getOptionLabel(notificationTypeOptions.value, r.notificationType)))
     },
   },
   {
@@ -255,7 +255,7 @@ const fields = computed<ListFieldSchema[]>(() => [
         'div',
         { style: 'display:flex;flex-wrap:wrap;gap:4px' },
         channelsToArray(mask).map(bit =>
-          h(XhTagRoot, { variant: 'solid', key: bit, tone: bit === MessageChannel.SiteNotification ? 'neutral' : 'info' }, () => h(XhTagLabel, () => getOptionLabel(deliveryChannelOptions.value, bit)))),
+          h(XhTagRoot, { variant: 'subtle', key: bit, size: 'sm', tone: bit === MessageChannel.SiteNotification ? 'neutral' : 'info' }, () => h(XhTagLabel, () => getOptionLabel(deliveryChannelOptions.value, bit)))),
       )
     },
   },
@@ -271,7 +271,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 14,
     render: (row) => {
       const published = (row as unknown as NotificationListItemDto).isPublished
-      return h(XhTagRoot, { variant: 'solid', tone: published ? 'success' : 'neutral' }, () => h(XhTagLabel, () => published ? t('message.notification.published') : t('message.notification.unpublished')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: published ? 'success' : 'neutral' }, () => h(XhTagLabel, () => published ? t('message.notification.published') : t('message.notification.unpublished')))
     },
   },
   { key: 'sendTime', title: t('message.notification.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15 },

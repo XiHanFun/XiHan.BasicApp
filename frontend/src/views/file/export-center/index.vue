@@ -133,7 +133,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('file.export_center.columns.status_placeholder'),
     width: 100,
     order: 12,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: statusTagType((row as unknown as ExportTaskDto).status) }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, (row as unknown as ExportTaskDto).status))),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTagType((row as unknown as ExportTaskDto).status) }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, (row as unknown as ExportTaskDto).status))),
   },
   {
     key: 'progress',
