@@ -84,6 +84,14 @@ function generatePrimaryScale(hex: string) {
   }
 }
 
+/** 白字与黑字对比度相等的那一点：解 (1.05)/(Y+0.05) = (Y+0.05)/0.05 得 Y = 0.179 */
+const FG_CROSSOVER = 0.179
+
+/** 主色上的前景文字：亮过交叉点用深字，暗于它用浅字 */
+function onPrimaryFor(hex: string): string {
+  return relLuminance(hex) > FG_CROSSOVER ? '220 12% 12%' : '0 0% 98%'
+}
+
 /** 计算 hex 的相对亮度（WCAG），用于决定主色上的前景文字取深/浅 */
 function relLuminance(hex: string): number {
   const channel = (i: number) => {
@@ -105,13 +113,10 @@ function relLuminance(hex: string): number {
  */
 function deriveMaterialPalette(hex: string, dark: boolean): Record<string, string> {
   const [h, s, l] = hexToHsl(hex)
-  // 主色上的前景：主色偏亮用深字，偏暗用浅字（修复如黄色主色上白字看不清）
-  const onPrimary = relLuminance(hex) > 0.55 ? '220 12% 12%' : '0 0% 98%'
   const cs = (v: number) => Math.max(0, Math.min(100, Math.round(v)))
 
   if (dark) {
     return {
-      '--primary-foreground': onPrimary,
       '--ring': `${h} ${cs(Math.min(s, 80))}% ${cs(Math.max(l, 60))}%`,
       '--accent': `${h} ${cs(Math.min(s * 0.4, 40))}% 22%`,
       '--accent-foreground': `${h} 22% 90%`,
@@ -122,7 +127,6 @@ function deriveMaterialPalette(hex: string, dark: boolean): Record<string, strin
     }
   }
   return {
-    '--primary-foreground': onPrimary,
     '--ring': `${h} ${cs(Math.min(s, 85))}% ${cs(Math.max(Math.min(l, 55), 40))}%`,
     '--accent': `${h} ${cs(Math.min(s * 0.5, 45))}% 93%`,
     '--accent-foreground': `${h} ${cs(Math.min(s, 45))}% 24%`,
@@ -173,6 +177,9 @@ export function useTheme() {
     const el = document.documentElement
     // 主色：始终保持用户所选精确颜色
     el.style.setProperty('--primary', hexToHslVars(hex))
+    // 主色上的前景跟着主色走，与 Material You 开关无关：它不是派生的装饰色，
+    // 而是「这个主色上的字读不读得清」，关掉动态取色一样要算
+    el.style.setProperty('--primary-foreground', onPrimaryFor(hex))
     el.style.setProperty('--primary-hover', hexToHslVars(scale.hover))
     el.style.setProperty('--primary-active', hexToHslVars(scale.active))
     el.style.setProperty('--primary-suppl', hexToHslVars(scale.suppl))
