@@ -11,11 +11,6 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 public interface IExportTaskRepository : ISaasRepository<SysExportTask>
 {
     /// <summary>
-    /// 获取当前用户的导出任务分页（按创建时间倒序）
-    /// </summary>
-    Task<(List<SysExportTask> Items, int Total)> GetMineAsync(long userId, int pageIndex, int pageSize, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 按主键获取当前用户的导出任务（自鉴权：仅返回本人创建的）
     /// </summary>
     Task<SysExportTask?> GetByIdForUserAsync(long id, long userId, CancellationToken cancellationToken = default);
