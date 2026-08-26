@@ -1,4 +1,5 @@
 import { usePreferredDark } from '@vueuse/core'
+import { ON_COLOR_CROSSOVER, relativeLuminance } from '@xihan-ui/tokens'
 import { computed, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { setPendingPreferenceOrigin, useAppStore } from '~/stores'
@@ -84,21 +85,12 @@ function generatePrimaryScale(hex: string) {
   }
 }
 
-/** 白字与黑字对比度相等的那一点：解 (1.05)/(Y+0.05) = (Y+0.05)/0.05 得 Y = 0.179 */
-const FG_CROSSOVER = 0.179
-
-/** 主色上的前景文字：亮过交叉点用深字，暗于它用浅字 */
+/**
+ * 主色上的前景文字：亮过交叉点用深字，暗于它用浅字。
+ * 判据与交叉点都取组件库的公共能力，别在这里另起一套。
+ */
 function onPrimaryFor(hex: string): string {
-  return relLuminance(hex) > FG_CROSSOVER ? '220 12% 12%' : '0 0% 98%'
-}
-
-/** 计算 hex 的相对亮度（WCAG），用于决定主色上的前景文字取深/浅 */
-function relLuminance(hex: string): number {
-  const channel = (i: number) => {
-    const c = Number.parseInt(hex.slice(i, i + 2), 16) / 255
-    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4
-  }
-  return 0.2126 * channel(1) + 0.7152 * channel(3) + 0.0722 * channel(5)
+  return relativeLuminance(hex) > ON_COLOR_CROSSOVER ? '220 12% 12%' : '0 0% 98%'
 }
 
 /**
