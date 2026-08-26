@@ -11,7 +11,7 @@ using XiHan.Framework.Upgrade.Abstractions;
 namespace XiHan.BasicApp.Saas.Infrastructure.Upgrade;
 
 /// <summary>
-/// 升级分布式锁：以 <see cref="SysUpgradeLock"/> 之外的既有版本行承载租约，避免为一把锁单开一张表。
+/// 升级分布式锁
 /// </summary>
 /// <remarks>
 /// 采用「条件更新抢占 + 到期自动失效」的租约模型，而非数据库会话级建议锁：
