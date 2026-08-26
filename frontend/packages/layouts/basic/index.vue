@@ -1,5 +1,14 @@
 <script lang="ts" setup>
 import type { SplitterPanelProps, SplitterSizesChangeDetails } from '@xihan-ui/headless'
+import {
+  XhScrollAreaContent,
+  XhScrollAreaCorner,
+  XhScrollAreaRoot,
+  XhScrollAreaScrollbar,
+  XhScrollAreaThumb,
+  XhScrollAreaTrack,
+  XhScrollAreaViewport,
+} from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -344,11 +353,10 @@ const sidebarEnableState = computed(
              紧贴标签栏下方、块级推下页面内容；放容器外会被固定顶栏遮住并顶出空白条 -->
         <NotificationBanner />
 
-        <!-- 普通内容 -->
-        <div
+        <!-- 普通内容：root 由 flex 定高并承载紧凑布局的居中与最大宽度，viewport 是真正 overflow:auto 的那层 -->
+        <XhScrollAreaRoot
           v-if="!showSplit"
-          :ref="shell.setContentScrollEl"
-          class="min-h-0 flex-1 overflow-auto"
+          class="min-h-0 flex-1"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
             shell.appStore.contentCompact
@@ -356,8 +364,25 @@ const sidebarEnableState = computed(
               : {}
           "
         >
-          <LayoutContentRenderer :transition-name="shell.transitionName.value" />
-        </div>
+          <XhScrollAreaViewport :ref="shell.setContentScrollEl">
+            <!-- content 撑满视口高度，LayoutContentRenderer 的 height:100% 照旧解析得到高度 -->
+            <XhScrollAreaContent class="h-full">
+              <LayoutContentRenderer :transition-name="shell.transitionName.value" />
+            </XhScrollAreaContent>
+          </XhScrollAreaViewport>
+          <!-- 滑块的行程按轨道节点量：少了 Track 这层，拖滑块与点轨道都会变成空操作 -->
+          <XhScrollAreaScrollbar orientation="vertical">
+            <XhScrollAreaTrack>
+              <XhScrollAreaThumb />
+            </XhScrollAreaTrack>
+            <XhScrollAreaCorner />
+          </XhScrollAreaScrollbar>
+          <XhScrollAreaScrollbar orientation="horizontal">
+            <XhScrollAreaTrack>
+              <XhScrollAreaThumb />
+            </XhScrollAreaTrack>
+          </XhScrollAreaScrollbar>
+        </XhScrollAreaRoot>
         <!-- 分屏对照：锚定标签（主视图）+ 副标签（应用内直接渲染）；reversed 时仅交换视觉顺序 -->
         <div
           v-else
@@ -379,9 +404,24 @@ const sidebarEnableState = computed(
                 class="split-anchor h-full"
                 :style="{ order: splitView.reversed ? 3 : 1 }"
               >
-                <div :ref="shell.setContentScrollEl" class="h-full w-full overflow-auto">
-                  <LayoutContentRenderer :transition-name="shell.transitionName.value" />
-                </div>
+                <XhScrollAreaRoot class="h-full w-full">
+                  <XhScrollAreaViewport :ref="shell.setContentScrollEl">
+                    <XhScrollAreaContent class="h-full">
+                      <LayoutContentRenderer :transition-name="shell.transitionName.value" />
+                    </XhScrollAreaContent>
+                  </XhScrollAreaViewport>
+                  <XhScrollAreaScrollbar orientation="vertical">
+                    <XhScrollAreaTrack>
+                      <XhScrollAreaThumb />
+                    </XhScrollAreaTrack>
+                    <XhScrollAreaCorner />
+                  </XhScrollAreaScrollbar>
+                  <XhScrollAreaScrollbar orientation="horizontal">
+                    <XhScrollAreaTrack>
+                      <XhScrollAreaThumb />
+                    </XhScrollAreaTrack>
+                  </XhScrollAreaScrollbar>
+                </XhScrollAreaRoot>
               </XhSplitterPanel>
 
               <XhSplitterResizeTrigger

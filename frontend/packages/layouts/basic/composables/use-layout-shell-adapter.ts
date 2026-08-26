@@ -397,9 +397,11 @@ export function useLayoutShellAdapter() {
     handleAutoScrollHeader()
   }
 
-  // 内容滚动容器由布局通过 :ref 注入；滚动搬入容器后，滚动源改读容器 scrollTop（back-top/顶栏阴影/自动隐藏都依赖它）
+  // 内容滚动容器由布局通过 :ref 注入；滚动搬入容器后，滚动源改读容器 scrollTop（back-top/顶栏阴影/自动隐藏都依赖它）。
+  // 组件实例取 $el 拿到它的根元素，收到的必须是真正 overflow:auto 的那层
   function setContentScrollEl(el: ComponentPublicInstance | Element | null) {
-    const next = (el as HTMLElement) ?? null
+    const host = el && '$el' in el ? (el.$el as HTMLElement | null) : el
+    const next = (host as HTMLElement | null) ?? null
     if (next === contentScrollEl.value)
       return
     contentScrollEl.value?.removeEventListener('scroll', handleScroll)
