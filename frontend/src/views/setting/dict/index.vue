@@ -209,17 +209,17 @@ const dictColumns = computed<XDataTableColumn<DictListItemDto>[]>(() => [
   {
     key: 'actions',
     title: t('setting.dict.actions'),
-    width: 110,
+    width: 132,
     align: 'center',
     render: (row: DictListItemDto) =>
       h(XhFlex, { gap: 'xs', justify: 'center', wrap: false }, () => [
-        h(XhButton, { ariaLabel: t('common.actions.edit'), variant: 'ghost', size: 'sm', tone: 'brand', onClick: stopAnd(() => { void handleEdit(row) }) }, { icon: () => h(Icon, { icon: 'lucide:pencil' }) }),
+        h(XhButton, { iconOnly: true, ariaLabel: t('common.actions.edit'), variant: 'ghost', size: 'sm', tone: 'brand', onClick: stopAnd(() => { void handleEdit(row) }) }, () => h(Icon, { icon: 'lucide:pencil' })),
         h(XPopconfirm, { onConfirm: () => handleToggleStatus(row) }, {
-          trigger: () => h(XhButton, { ariaLabel: t('setting.dict.confirm_toggle_dict'), variant: 'ghost', size: 'sm', tone: 'warning', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' }) }),
+          trigger: () => h(XhButton, { iconOnly: true, ariaLabel: t('setting.dict.confirm_toggle_dict'), variant: 'ghost', size: 'sm', tone: 'warning', onClick: (e: MouseEvent) => e.stopPropagation() }, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })),
           default: () => t('setting.dict.confirm_toggle_dict'),
         }),
         h(XPopconfirm, { onConfirm: () => handleDelete(row) }, {
-          trigger: () => h(XhButton, { ariaLabel: t('common.actions.delete'), variant: 'ghost', size: 'sm', tone: 'danger', onClick: (e: MouseEvent) => e.stopPropagation() }, { icon: () => h(Icon, { icon: 'lucide:trash-2' }) }),
+          trigger: () => h(XhButton, { iconOnly: true, ariaLabel: t('common.actions.delete'), variant: 'ghost', size: 'sm', tone: 'danger', onClick: (e: MouseEvent) => e.stopPropagation() }, () => h(Icon, { icon: 'lucide:trash-2' })),
           default: () => t('setting.dict.confirm_delete_dict'),
         }),
       ]),
@@ -316,13 +316,13 @@ const itemColumns = computed<XDataTableColumn<DictItemListItemDto>[]>(() => [
     width: 128,
     render: (row: DictItemListItemDto) =>
       h(XhFlex, { gap: 'sm' }, () => [
-        h(XhButton, { ariaLabel: t('common.actions.edit'), variant: 'ghost', size: 'sm', tone: 'brand', onClick: () => { void handleItemEdit(row) } }, { icon: () => h(Icon, { icon: 'lucide:pencil' }) }),
+        h(XhButton, { iconOnly: true, ariaLabel: t('common.actions.edit'), variant: 'ghost', size: 'sm', tone: 'brand', onClick: () => { void handleItemEdit(row) } }, () => h(Icon, { icon: 'lucide:pencil' })),
         h(XPopconfirm, { onConfirm: () => handleItemToggleStatus(row) }, {
-          trigger: () => h(XhButton, { ariaLabel: t('setting.dict.confirm_toggle_item'), variant: 'ghost', size: 'sm', tone: 'warning' }, { icon: () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' }) }),
+          trigger: () => h(XhButton, { iconOnly: true, ariaLabel: t('setting.dict.confirm_toggle_item'), variant: 'ghost', size: 'sm', tone: 'warning' }, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })),
           default: () => t('setting.dict.confirm_toggle_item'),
         }),
         h(XPopconfirm, { onConfirm: () => handleItemDelete(row) }, {
-          trigger: () => h(XhButton, { ariaLabel: t('common.actions.delete'), variant: 'ghost', size: 'sm', tone: 'danger' }, { icon: () => h(Icon, { icon: 'lucide:trash-2' }) }),
+          trigger: () => h(XhButton, { iconOnly: true, ariaLabel: t('common.actions.delete'), variant: 'ghost', size: 'sm', tone: 'danger' }, () => h(Icon, { icon: 'lucide:trash-2' })),
           default: () => t('setting.dict.confirm_delete_item'),
         }),
       ]),

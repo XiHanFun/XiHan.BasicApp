@@ -942,16 +942,18 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     fixed: 'right',
     render: row => h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
       // 图标钮的说明文字走原生 title：气泡触发器本身是按钮，按钮里再套按钮不合法
-      h(XhButton, { size: 'sm', variant: 'ghost', title: t('file.library.storage_list.tooltip.detail'), onClick: () => viewStorageDetail(row.basicId) }, { icon: () => h(Icon, { icon: 'lucide:eye' }) }),
-      h(XhButton, { size: 'sm', variant: 'ghost', tone: 'brand', disabled: row.isPrimary, title: row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), onClick: () => handleSwitchPrimary(row) }, { icon: () => h(Icon, { icon: 'lucide:star' }) }),
-      h(XhButton, { size: 'sm', variant: 'ghost', tone: 'info', title: t('file.library.storage_list.tooltip.verify'), onClick: () => handleVerifyStorage(row) }, { icon: () => h(Icon, { icon: 'lucide:shield-check' }) }),
+      h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', ariaLabel: t('file.library.storage_list.tooltip.detail'), title: t('file.library.storage_list.tooltip.detail'), onClick: () => viewStorageDetail(row.basicId) }, () => h(Icon, { icon: 'lucide:eye' })),
+      h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', tone: 'brand', disabled: row.isPrimary, ariaLabel: row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), title: row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), onClick: () => handleSwitchPrimary(row) }, () => h(Icon, { icon: 'lucide:star' })),
+      h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', tone: 'info', ariaLabel: t('file.library.storage_list.tooltip.verify'), title: t('file.library.storage_list.tooltip.verify'), onClick: () => handleVerifyStorage(row) }, () => h(Icon, { icon: 'lucide:shield-check' })),
       h(XPopconfirm, { onConfirm: () => handleToggleStorageStatus(row) }, {
         trigger: () => h(XhButton, {
+          iconOnly: true,
           size: 'sm',
           variant: 'ghost',
           tone: row.status === FileStorageStatus.Normal ? 'warning' : 'success',
+          ariaLabel: row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable'),
           title: row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable'),
-        }, { icon: () => h(Icon, { icon: row.status === FileStorageStatus.Normal ? 'lucide:ban' : 'lucide:circle-check' }) }),
+        }, () => h(Icon, { icon: row.status === FileStorageStatus.Normal ? 'lucide:ban' : 'lucide:circle-check' })),
         default: () => t('file.library.storage_list.confirm_toggle', { action: row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable') }),
       }),
     ]),
