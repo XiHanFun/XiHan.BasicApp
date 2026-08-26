@@ -38,7 +38,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: successOptions.value,
     width: 110,
     order: 12,
-    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as MigrationHistoryListItemDto).success ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as MigrationHistoryListItemDto).success ? t('log.migration.success_yes') : t('log.migration.success_no'))),
+    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as MigrationHistoryListItemDto).success ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as MigrationHistoryListItemDto).success ? t('log.migration.success_yes') : t('log.migration.success_no'))),
   },
   { key: 'executedTime', title: t('log.migration.executed_time'), dataType: 'datetime', sortable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 13 },
   { key: 'nodeName', title: t('log.migration.node_name'), dataType: 'string', advancedSearch: true, searchPlaceholder: t('log.migration.node_name_placeholder'), minWidth: 150, order: 14 },

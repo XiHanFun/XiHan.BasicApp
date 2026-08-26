@@ -94,7 +94,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.operation.result_placeholder'),
     width: 90,
     order: 26,
-    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: resultTagType((row as unknown as OperationLogListItemDto).result) }, () => h(XhTagLabel, () => getOptionLabel(resultOptions.value, (row as unknown as OperationLogListItemDto).result))),
+    render: row => h(XhTagRoot, { variant: 'solid', tone: resultTagType((row as unknown as OperationLogListItemDto).result) }, () => h(XhTagLabel, () => getOptionLabel(resultOptions.value, (row as unknown as OperationLogListItemDto).result))),
   },
   { key: 'operationTime', title: t('log.operation.operation_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 28 },

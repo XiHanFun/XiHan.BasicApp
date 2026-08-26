@@ -51,7 +51,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const upgrading = (row as unknown as VersionListItemDto).isUpgrading
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: upgrading ? 'warning' : 'success' }, () => h(XhTagLabel, () => (upgrading ? t('setting.version.upgrading') : t('setting.version.normal'))))
+      return h(XhTagRoot, { variant: 'solid', tone: upgrading ? 'warning' : 'success' }, () => h(XhTagLabel, () => (upgrading ? t('setting.version.upgrading') : t('setting.version.normal'))))
     },
   },
   { key: 'upgradeNode', title: t('setting.version.upgrade_node'), dataType: 'string', sortable: true, minWidth: 140, order: 5 },
