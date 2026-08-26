@@ -1,34 +1,25 @@
 # eslint-disable pnpm/yaml-enforce-settings -- 该规则要求补 trustPolicy: no-downgrade，
 # 启用后 pnpm install 因 semver@6.3.1 的 trust downgrade 判定直接失败，需先处置该锁文件条目
-packages:
-  - 'packages/*'
 allowBuilds:
   core-js: true
   vue-demi: true
 verifyDepsBeforeRun: false
 
-# @xihan-ui/* 改指同级 XiHan.UI 工作区源码。
-# overrides 相对「工作区根」解析，一处生效覆盖根包与全部 packages/*；
-# catalog 里保留 npm 版本号，删掉本段即回落到 npm 发布版。
-# 注意：link 指向的是各包的构建产物（dist），改了 XiHan.UI 源码须在 XiHan.UI/ui 下跑 pnpm build。
-overrides:
-  '@xihan-ui/animations': 'link:../../XiHan.UI/ui/packages/features/animations'
-  '@xihan-ui/backgrounds': 'link:../../XiHan.UI/ui/packages/features/backgrounds'
-  '@xihan-ui/behavior': 'link:../../XiHan.UI/ui/packages/engine/behavior'
-  '@xihan-ui/chat-stream': 'link:../../XiHan.UI/ui/packages/features/chat-stream'
-  '@xihan-ui/code-highlight': 'link:../../XiHan.UI/ui/packages/engine/code-highlight'
-  '@xihan-ui/headless': 'link:../../XiHan.UI/ui/packages/engine/headless'
-  '@xihan-ui/icons': 'link:../../XiHan.UI/ui/packages/design/icons'
-  '@xihan-ui/kernel': 'link:../../XiHan.UI/ui/packages/engine/kernel'
-  '@xihan-ui/machine': 'link:../../XiHan.UI/ui/packages/engine/machine'
-  '@xihan-ui/markdown': 'link:../../XiHan.UI/ui/packages/features/markdown'
-  '@xihan-ui/motion': 'link:../../XiHan.UI/ui/packages/engine/motion'
-  '@xihan-ui/position': 'link:../../XiHan.UI/ui/packages/engine/position'
-  '@xihan-ui/sound': 'link:../../XiHan.UI/ui/packages/features/sound'
-  '@xihan-ui/styles': 'link:../../XiHan.UI/ui/packages/design/styles'
-  '@xihan-ui/tokens': 'link:../../XiHan.UI/ui/packages/design/tokens'
-  '@xihan-ui/vue': 'link:../../XiHan.UI/ui/packages/adapters/vue'
-
+# pnpm 对刚发布不久的包有最短发布时长的默认闸门，装 @xihan-ui 那批时由它自动登记。
+# 这批包过了时长门槛后本段即可删除；pnpm 会自己维护这里的条目。
+minimumReleaseAgeExclude:
+  - '@xihan-ui/behavior@1.0.0'
+  - '@xihan-ui/code-highlight@1.0.0'
+  - '@xihan-ui/headless@1.0.0'
+  - '@xihan-ui/kernel@1.0.0'
+  - '@xihan-ui/machine@1.0.0'
+  - '@xihan-ui/motion@1.0.0'
+  - '@xihan-ui/position@1.0.0'
+  - '@xihan-ui/styles@1.0.0'
+  - '@xihan-ui/tokens@1.0.0'
+  - '@xihan-ui/vue@1.0.0'
+packages:
+  - 'packages/*'
 # 依赖目录（单一版本事实源）：入口包与所有 @xihan/* 底层包用 catalog: 引用，升级只改这里一处
 catalog:
   '@antfu/eslint-config': ^9.3.0
@@ -71,13 +62,13 @@ catalog:
   '@vitejs/plugin-vue': ^6.0.8
   '@vitejs/plugin-vue-jsx': ^5.1.6
   '@vueuse/core': ^14.4.0
-  '@xihan-ui/code-highlight': 1.0.0-alpha.2
-  '@xihan-ui/headless': 1.0.0-alpha.2
-  '@xihan-ui/kernel': 1.0.0-alpha.2
-  '@xihan-ui/motion': 1.0.0-alpha.2
-  '@xihan-ui/styles': 1.0.0-alpha.2
-  '@xihan-ui/tokens': 1.0.0-alpha.2
-  '@xihan-ui/vue': 1.0.0-alpha.2
+  '@xihan-ui/code-highlight': ^1.0.0
+  '@xihan-ui/headless': ^1.0.0
+  '@xihan-ui/kernel': ^1.0.0
+  '@xihan-ui/motion': ^1.0.0
+  '@xihan-ui/styles': ^1.0.0
+  '@xihan-ui/tokens': ^1.0.0
+  '@xihan-ui/vue': ^1.0.0
   axios: ^1.18.1
   cross-env: ^10.1.0
   dayjs: ^1.11.21
