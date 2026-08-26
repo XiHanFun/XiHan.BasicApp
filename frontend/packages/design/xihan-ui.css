@@ -17,7 +17,9 @@
 @layer xihan.overrides {
   :root,
   .dark {
-    /* —— 品牌色阶：以用户所选主色为轴推导，供皮肤里直接引 500/600 的地方使用 —— */
+    /* —— 品牌色阶：这一份只是首帧兜底，useTheme 挂载后由组件库的 deriveBrandScale
+       按固定明度曲线派生同名令牌内联覆盖它。曲线固定是要紧的：实心底的明度定住，
+       上面的字才能恒是白的——直接拿用户挑的原色当实心底，挑一枚浅色就只能翻深字 —— */
     --xh-color-brand-50: color-mix(in oklab, hsl(var(--primary)) 8%, white);
     --xh-color-brand-100: color-mix(in oklab, hsl(var(--primary)) 16%, white);
     --xh-color-brand-200: color-mix(in oklab, hsl(var(--primary)) 32%, white);
@@ -52,9 +54,10 @@
     --xh-bg-subtle-hover: hsl(var(--accent));
     --xh-bg-subtle-active: hsl(var(--heavy));
     --xh-bg-muted: hsl(var(--muted));
-    --xh-bg-brand: hsl(var(--primary));
-    --xh-bg-brand-hover: hsl(var(--primary-hover));
-    --xh-bg-brand-active: hsl(var(--primary-active));
+    /* 实心底走色阶而不是用户挑的原色：原色的明度由用户定，浅一点白字就压不住 */
+    --xh-bg-brand: var(--xh-color-brand-600);
+    --xh-bg-brand-hover: var(--xh-color-brand-700);
+    --xh-bg-brand-active: var(--xh-color-brand-800);
     --xh-bg-brand-subtle: hsl(var(--primary) / 12%);
     --xh-bg-overlay: hsl(var(--overlay));
 
@@ -109,5 +112,23 @@
 
   [data-scope='tag'][data-part='root'][data-variant='subtle'][data-tone] {
     border-color: var(--xh-_tone-border-control);
+  }
+
+  /* 状态色的实心底按固定明度校准：上面那份是「原色兑黑八成」，明度由用户挑的那枚状态色定，
+     偏浅就压不住白字（实测 success 3.21、warning 3.00、danger 4.47），前景只好翻成深字，
+     而深字压在饱和底上小字号下就是糊的。压到能上白字的深度，色相与彩度原样保留。
+
+     黄比另外两族浅一档：它压到 0.53 会塌成褐色、认不出是「警告」。0.56 是还能上白字的
+     最浅那一档（实测 4.81 / 4.78），既过线又保住琥珀感。
+     蓝色不在此列——品牌走 deriveBrandScale 的曲线，info 本来就够深。
+
+     相对颜色语法高于浏览器地板，包 @supports；够不着的引擎退回上面那份。 */
+  @supports (color: oklch(from red l c h)) {
+    :root,
+    .dark {
+      --xh-color-success-600: oklch(from hsl(var(--success)) 0.53 c h);
+      --xh-color-danger-600: oklch(from hsl(var(--destructive)) 0.53 c h);
+      --xh-color-warning-600: oklch(from hsl(var(--warning)) 0.56 c h);
+    }
   }
 }
