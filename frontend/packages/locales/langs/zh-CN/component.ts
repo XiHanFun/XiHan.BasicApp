@@ -657,6 +657,10 @@ export default {
   },
   date_picker: {
     label: '选择日期',
+    prev_year: '上一年',
+    prev_month: '上个月',
+    next_month: '下个月',
+    next_year: '下一年',
   },
   search_date_range: {
     start: '开始时间',
