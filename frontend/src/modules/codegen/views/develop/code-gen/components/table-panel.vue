@@ -112,7 +112,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as CodeGenTableListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: genStatusTagType(r.genStatus) }, () => h(XhTagLabel, () => getOptionLabel(GEN_STATUS_OPTIONS, r.genStatus)))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: genStatusTagType(r.genStatus) }, () => h(XhTagLabel, () => getOptionLabel(GEN_STATUS_OPTIONS, r.genStatus)))
     },
   },
   {
@@ -129,7 +129,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 8,
     render: (row) => {
       const r = row as unknown as CodeGenTableListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, r.status)))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, r.status)))
     },
   },
   { key: 'lastGenTime', title: t('develop.code_gen.table.col_last_gen'), dataType: 'datetime', minWidth: 170, sortable: true, order: 9 },

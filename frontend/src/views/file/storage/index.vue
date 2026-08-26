@@ -76,7 +76,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('file.storage.columns.storage_type_placeholder'),
     width: 110,
     order: 3,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: 'info' }, () => h(XhTagLabel, () => getOptionLabel(storageTypeOptions.value, (row as unknown as StorageConfigListItemDto).storageType))),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => getOptionLabel(storageTypeOptions.value, (row as unknown as StorageConfigListItemDto).storageType))),
   },
   {
     key: 'bucketName',
@@ -104,7 +104,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const isDefault = (row as unknown as StorageConfigListItemDto).isDefault
       return isDefault
-        ? h(XhTagRoot, { variant: 'solid', tone: 'warning' }, () => h(XhTagLabel, () => t('file.storage.tag.default')))
+        ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => h(XhTagLabel, () => t('file.storage.tag.default')))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -120,7 +120,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const enabled = (row as unknown as StorageConfigListItemDto).isEnabled
-      return h(XhTagRoot, { variant: 'solid', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('file.storage.tag.enabled') : t('file.storage.tag.disabled')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('file.storage.tag.enabled') : t('file.storage.tag.disabled')))
     },
   },
   { key: 'sort', title: t('file.storage.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 7 },

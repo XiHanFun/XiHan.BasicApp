@@ -109,7 +109,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     // 内置模板随程序版本回刷、不可编辑删除，单列呈现比挂在名称后更容易扫读
     render: (row) => {
       const r = row as unknown as CodeGenTemplateListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: r.isBuiltIn ? 'warning' : 'neutral' }, () => h(XhTagLabel, () => (r.isBuiltIn ? t('develop.code_gen.template.built_in') : t('develop.code_gen.template.custom'))))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.isBuiltIn ? 'warning' : 'neutral' }, () => h(XhTagLabel, () => (r.isBuiltIn ? t('develop.code_gen.template.built_in') : t('develop.code_gen.template.custom'))))
     },
   },
   {
@@ -121,7 +121,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 8,
     render: (row) => {
       const r = row as unknown as CodeGenTemplateListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: r.isEnabled ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no'))))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.isEnabled ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (r.isEnabled ? t('common.statuses.yes') : t('common.statuses.no'))))
     },
   },
   {
@@ -138,7 +138,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 9,
     render: (row) => {
       const r = row as unknown as CodeGenTemplateListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, r.status)))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, r.status)))
     },
   },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, sortable: true, order: 10 },

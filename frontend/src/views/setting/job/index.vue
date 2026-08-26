@@ -156,7 +156,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: runStatusTag(r.runTaskStatus) }, () => h(XhTagLabel, () => getOptionLabel(runTaskStatusOptions.value, r.runTaskStatus)))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: runStatusTag(r.runTaskStatus) }, () => h(XhTagLabel, () => getOptionLabel(runTaskStatusOptions.value, r.runTaskStatus)))
     },
   },
   {
@@ -171,7 +171,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: statusTag(r.status) }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, r.status)))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, r.status)))
     },
   },
   {
@@ -185,7 +185,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as TaskListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: r.allowConcurrent ? 'warning' : 'info' }, () => h(XhTagLabel, () => (r.allowConcurrent ? t('common.statuses.allow') : t('common.statuses.forbid'))))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.allowConcurrent ? 'warning' : 'info' }, () => h(XhTagLabel, () => (r.allowConcurrent ? t('common.statuses.allow') : t('common.statuses.forbid'))))
     },
   },
   { key: 'executedCount', title: t('setting.job.executed_count'), dataType: 'number', minWidth: 100, order: 8 },
@@ -318,7 +318,7 @@ const taskLogColumns = computed<XDataTableColumn<TaskLogListItemDto>[]>(() => [
   { ellipsis: true, key: 'batchNumber', render: row => row.batchNumber || '-', title: t('setting.job.batch_number'), width: 150 },
   {
     key: 'taskStatus',
-    render: row => h(XhTagRoot, { variant: 'solid', tone: runStatusTag(row.taskStatus) }, () => h(XhTagLabel, () => getOptionLabel(runTaskStatusOptions.value, row.taskStatus))),
+    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: runStatusTag(row.taskStatus) }, () => h(XhTagLabel, () => getOptionLabel(runTaskStatusOptions.value, row.taskStatus))),
     title: t('setting.job.log_status'),
     width: 96,
   },

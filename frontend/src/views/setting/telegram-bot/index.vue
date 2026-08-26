@@ -56,7 +56,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 2,
     render: (row) => {
       const hasToken = (row as unknown as TelegramBotListItemDto).hasToken
-      return h(XhTagRoot, { variant: 'solid', tone: hasToken ? 'success' : 'warning' }, () => h(XhTagLabel, () => hasToken ? t('message.telegram_bot.tag.token_configured') : t('message.telegram_bot.tag.token_missing')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: hasToken ? 'success' : 'warning' }, () => h(XhTagLabel, () => hasToken ? t('message.telegram_bot.tag.token_configured') : t('message.telegram_bot.tag.token_missing')))
     },
   },
   {
@@ -69,7 +69,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const enabled = (row as unknown as TelegramBotListItemDto).enableFallbackReply
       return enabled
-        ? h(XhTagRoot, { variant: 'solid', tone: 'info' }, () => h(XhTagLabel, () => t('message.telegram_bot.tag.fallback_on')))
+        ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => t('message.telegram_bot.tag.fallback_on')))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -85,7 +85,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const enabled = (row as unknown as TelegramBotListItemDto).isEnabled
-      return h(XhTagRoot, { variant: 'solid', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('message.telegram_bot.tag.enabled') : t('message.telegram_bot.tag.disabled')))
+      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('message.telegram_bot.tag.enabled') : t('message.telegram_bot.tag.disabled')))
     },
   },
   { key: 'sort', title: t('message.telegram_bot.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 5 },
