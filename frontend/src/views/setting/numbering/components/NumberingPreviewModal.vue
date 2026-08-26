@@ -287,7 +287,7 @@ async function executePreview(): Promise<void> {
                 </XhFieldRoot>
               </XhFormRoot>
 
-              <XhButton block tone="brand" :loading="loading" :disabled="!rule" @click="executePreview">
+              <XhButton full-width variant="solid" tone="brand" :loading="loading" :disabled="!rule" @click="executePreview">
                 {{ t('setting.numbering.preview_execute') }}
               </XhButton>
             </XhFlex>

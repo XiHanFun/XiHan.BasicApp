@@ -107,7 +107,7 @@ function handleClear() {
 
 <template>
   <div class="icon-picker">
-    <XhButton v-bind="fieldControl" variant="ghost" block class="icon-picker-trigger" @click="openPicker">
+    <XhButton v-bind="fieldControl" variant="ghost" full-width class="icon-picker-trigger" @click="openPicker">
       <Icon v-if="currentIconId" :icon="currentIconId" width="20" />
       <span v-else class="icon-picker-placeholder">{{ placeholderText }}</span>
     </XhButton>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { Tone } from '@xihan-ui/kernel'
 import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -21,6 +22,11 @@ const props = withDefaults(defineProps<{
   /** 取消按钮文案（默认 common.actions.cancel） */
   cancelText?: string
   /**
+   * 保存按钮语气：不传时不写 tone，按钮走实心形态的品牌配色。
+   * 传 danger / warning 等，让终止、拒绝这类动作在按钮上保留视觉警示。
+   */
+  saveTone?: Tone
+  /**
    * 弹窗内表单的 id。
    *
    * 保存钮在按钮行里、表单在正文里，两者是兄弟节点——不关联的话点保存会绕过整表校验。
@@ -41,6 +47,7 @@ const props = withDefaults(defineProps<{
   saveDisabled: false,
   saveText: undefined,
   cancelText: undefined,
+  saveTone: undefined,
   formId: undefined,
   initialFocus: undefined,
 })
@@ -91,6 +98,7 @@ function handleCancel() {
         <XhButton
           size="sm"
           variant="solid"
+          :tone="saveTone"
           :type="formId ? 'submit' : 'button'"
           :form="formId"
           :loading="loading"

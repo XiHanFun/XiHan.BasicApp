@@ -1072,7 +1072,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
           <XInput v-model:value="metadataForm.tags" clearable :placeholder="t('file.library.upload.tags_placeholder')" />
           <XInput v-model:value="metadataForm.remark" clearable :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
 
-          <XhButton block :loading="metadataLoading" tone="brand" @click="handleSaveMetadata">
+          <XhButton full-width variant="solid" tone="brand" :loading="metadataLoading" @click="handleSaveMetadata">
             <span><Icon icon="lucide:save" /></span>
             {{ t('file.library.metadata.save') }}
           </XhButton>

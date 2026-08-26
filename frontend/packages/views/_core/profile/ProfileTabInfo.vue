@@ -693,7 +693,7 @@ function cancelChange() {
                   type="password"
                   :placeholder="t('component.profile.info.current_password_placeholder')"
                 />
-                <XhButton tone="brand" block :loading="changeLoading" @click="sendChangeCode">
+                <XhButton variant="solid" tone="brand" full-width :loading="changeLoading" @click="sendChangeCode">
                   {{ t('component.profile.info.send_code') }}
                 </XhButton>
               </template>

@@ -422,8 +422,9 @@ const onAuthInvalid = useAuthFormInvalid()
         </div>
 
         <XhButton
+          variant="solid"
           tone="brand"
-          block
+          full-width
           :loading="sendingCode"
           class="!h-12 !rounded-xl !text-[15px] !font-semibold"
           @click="handleSelectMethod"

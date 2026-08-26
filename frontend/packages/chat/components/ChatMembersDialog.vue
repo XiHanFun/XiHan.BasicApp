@@ -367,7 +367,7 @@ async function handleLeave() {
 
         <!-- 添加成员 -->
         <div v-if="canManage" class="mb-3">
-          <XhButton v-if="!showAdd" size="sm" dashed block @click="showAdd = true">
+          <XhButton v-if="!showAdd" size="sm" dashed full-width @click="showAdd = true">
             <Icon icon="lucide:user-plus" width="14" height="14" />
             {{ t('chat.members.add') }}
           </XhButton>
