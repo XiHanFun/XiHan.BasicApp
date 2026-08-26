@@ -150,7 +150,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     width: 110,
     order: 8,
     visible: activeScope.value === NumberingScope.Global,
-    render: row => h(XhTagRoot, { variant: 'subtle', tone: (row as unknown as NumberingRuleListItemDto).allowTenantUse ? 'success' : 'neutral', size: 'sm' }, () => h(XhTagLabel, () => (row as unknown as NumberingRuleListItemDto).allowTenantUse ? t('common.statuses.yes') : t('common.statuses.no'))),
+    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as NumberingRuleListItemDto).allowTenantUse ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as NumberingRuleListItemDto).allowTenantUse ? t('common.statuses.yes') : t('common.statuses.no'))),
   },
   {
     key: 'status',
@@ -160,7 +160,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     sortable: true,
     order: 9,
     dictionaryCode: 'EnableStatus',
-    render: row => h(XhTagRoot, { variant: 'subtle', tone: (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => h(XhTagLabel, () => (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled'))),
+    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled'))),
   },
 ])
 

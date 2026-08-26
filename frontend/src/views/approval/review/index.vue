@@ -97,7 +97,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: reviewStatusTag(r.reviewStatus) }, () => h(XhTagLabel, () => getOptionLabel(reviewStatusOptions.value, r.reviewStatus)))
+      return h(XhTagRoot, { variant: 'solid', tone: reviewStatusTag(r.reviewStatus) }, () => h(XhTagLabel, () => getOptionLabel(reviewStatusOptions.value, r.reviewStatus)))
     },
   },
   {
@@ -114,7 +114,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 2,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: reviewResultTag(r.reviewResult) }, () => h(XhTagLabel, () => (r.reviewResult === null || r.reviewResult === undefined ? t('approval.review.no_result') : getOptionLabel(reviewResultOptions.value, r.reviewResult))))
+      return h(XhTagRoot, { variant: 'solid', tone: reviewResultTag(r.reviewResult) }, () => h(XhTagLabel, () => (r.reviewResult === null || r.reviewResult === undefined ? t('approval.review.no_result') : getOptionLabel(reviewResultOptions.value, r.reviewResult))))
     },
   },
   {
@@ -131,7 +131,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as ReviewListItemDto
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => h(XhTagLabel, () => getOptionLabel(enableStatusOptions.value, r.status)))
+      return h(XhTagRoot, { variant: 'solid', tone: statusTag(r.status) }, () => h(XhTagLabel, () => getOptionLabel(enableStatusOptions.value, r.status)))
     },
   },
   // 仅列（不搜索）
