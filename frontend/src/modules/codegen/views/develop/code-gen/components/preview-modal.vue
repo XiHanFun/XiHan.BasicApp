@@ -263,25 +263,23 @@ async function loadPreview() {
             <div class="gen__tree-head">
               <XSegmented v-model:value="activeSide" :options="sideOptions" size="sm" />
             </div>
-            <div class="xh-scroll-area" style="max-height: 70vh">
-              <XhEmptyStateRoot v-if="artifactTree.length === 0" class="gen__tree-empty" size="sm">
-                <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
-                <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
-                <XhEmptyStateDescription>{{ t('develop.code_gen.preview.side_empty') }}</XhEmptyStateDescription>
-              </XhEmptyStateRoot>
-              <XTree
-                v-else
-                :data="artifactTree"
-                :render-label="renderNodeLabel"
-                :expanded-keys="expandedKeys"
-                :selected-keys="selectedKeys"
-                @update:expanded-keys="handleExpand"
-                @update:selected-keys="handleSelect"
-              />
-            </div>
+            <XhEmptyStateRoot v-if="artifactTree.length === 0" class="gen__tree-empty" size="sm">
+              <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('develop.code_gen.preview.side_empty') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+            <XTree
+              v-else
+              :data="artifactTree"
+              :render-label="renderNodeLabel"
+              :expanded-keys="expandedKeys"
+              :selected-keys="selectedKeys"
+              @update:expanded-keys="handleExpand"
+              @update:selected-keys="handleSelect"
+            />
           </div>
           <div class="gen__content">
-            <XhEmptyStateRoot v-if="!activeArtifact">
+            <XhEmptyStateRoot v-if="!activeArtifact" class="gen__content-empty">
               <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
               <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('develop.code_gen.preview.empty') }}</XhEmptyStateDescription>
@@ -291,7 +289,7 @@ async function loadPreview() {
               :value="activeArtifact.content"
               :file-name="activeArtifact.fileName"
               copyable
-              height="76vh"
+              height="100%"
               readonly
             />
           </div>
@@ -311,22 +309,23 @@ async function loadPreview() {
 </template>
 
 <style scoped>
+/* 两栏的唯一高度真源：短屏改用视口高扣掉弹窗标题、页脚与内外边距的余量 */
 .gen {
   display: flex;
   gap: 12px;
-  min-height: 480px;
+  block-size: min(76vh, calc(100vh - 220px));
 }
 
 .gen__tree {
+  /* 树自带 24rem 的最大高，不放开就是一块矮框加大片空白 */
+  --xh-tree-max-h: 100%;
+
+  display: flex;
   flex: 0 0 360px;
+  flex-direction: column;
+  min-block-size: 0;
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
-  overflow: hidden;
-}
-
-.gen__tree {
-  display: flex;
-  flex-direction: column;
 }
 
 .gen__tree-head {
@@ -335,12 +334,23 @@ async function loadPreview() {
   border-bottom: 1px solid hsl(var(--border));
 }
 
+/* 无产物时占位撑满剩余高度，框不塌回内容高 */
 .gen__tree-empty {
+  flex: 1;
+  min-block-size: 0;
   padding: 32px 0;
 }
 
-.gen__tree :deep([data-scope='tree'][data-part='root']) {
+/* 树分外层 root 与内层 tree 两级，两级都让出高度，滚动落在内层 */
+.gen__tree :deep(.x-tree) {
+  flex: 1;
+  min-block-size: 0;
   padding: 6px;
+}
+
+.gen__tree :deep([data-scope='tree'][data-part='tree']) {
+  flex: 1;
+  min-block-size: 0;
 }
 
 .gen__node-icon {
@@ -349,11 +359,20 @@ async function loadPreview() {
 }
 
 .gen__content {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-width: 0;
+  min-block-size: 0;
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
   padding: 8px 12px;
+}
+
+/* 未选中文件时占位撑满剩余高度，框不塌回内容高 */
+.gen__content-empty {
+  flex: 1;
+  min-block-size: 0;
 }
 
 .gen__hint {
