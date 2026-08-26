@@ -131,7 +131,9 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  width: 180px;
+  /* 至少够一个控件的最小宽：控件的下限随字号走，写死像素时字号一调大，
+     控件就撑出条目盒、相邻两列糊在一起 */
+  inline-size: max(180px, var(--xh-control-min-w));
 }
 
 /* 区间字段：双端日期/时间需要更宽的输入位 */
