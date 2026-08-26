@@ -193,13 +193,6 @@ export function useTheme() {
     }
   }
 
-  /** 同步字号到 CSS 变量 */
-  function syncFontSize(size: number) {
-    if (typeof document === 'undefined')
-      return
-    document.documentElement.style.setProperty('--font-size-base', `${size}px`)
-  }
-
   watch(() => appStore.uiRadius, syncRadiusCssVars, { immediate: true })
   // 主色 / 明暗 / 动态取色开关 变化都需重算派生色阶（Material You 明暗自适应）
   watch(
@@ -207,7 +200,6 @@ export function useTheme() {
     ([hex, dark, dynamic]) => applyThemePalette(hex, dark, dynamic),
     { immediate: true },
   )
-  watch(() => appStore.fontSize, syncFontSize, { immediate: true })
 
   /** 解析目标模式切换后「实际呈现的明暗」（auto 取当前系统主题） */
   function resolveEffectiveDark(mode: 'light' | 'dark' | 'auto'): boolean {

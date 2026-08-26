@@ -32,8 +32,9 @@
     @apply bg-background text-foreground;
 
     scroll-behavior: smooth;
+
+    /* 根字号不在这里给值：由 useHtmlStyle 按偏好写成内联百分比，浏览器默认字号即基准 */
     font-family: var(--font-family);
-    font-size: var(--font-size-base);
     text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
   }

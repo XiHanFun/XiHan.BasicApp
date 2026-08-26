@@ -27,16 +27,10 @@
   --border: 240 5.9% 90%;
   --input: 240deg 5.88% 90%;
   --ring: 222.2 84% 4.9%;
-  --radius: 0.5rem;
+  /* 圆角默认值，等于圆角偏好默认档（0.25）经 useTheme 换算出的像素值；单位与运行时写入的内联值保持一致 */
+  --radius: 7px;
   --overlay: 0 0% 0% / 45%;
   --overlay-content: 0 0% 95% / 45%;
-  --font-size-base: 16px;
-  --font-size-xs: calc(var(--font-size-base) * 0.75);
-  --font-size-sm: calc(var(--font-size-base) * 0.875);
-  --font-size-md: var(--font-size-base);
-  --font-size-lg: calc(var(--font-size-base) * 1.125);
-  --font-size-xl: calc(var(--font-size-base) * 1.25);
-  --menu-font-size: var(--font-size-sm);
 
   /* 圆角 token */
   --radius-sm: calc(var(--radius) * 0.5);
