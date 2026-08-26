@@ -671,8 +671,8 @@ watch(() => appStore.sidebarCollapsed, (val) => {
 }
 
 .btn-toggle.is-active {
-  border-color: hsl(var(--primary));
-  background: hsl(var(--primary));
+  border-color: var(--xh-color-brand-600);
+  background: var(--xh-color-brand-600);
   color: hsl(var(--primary-foreground));
   font-weight: 500;
 }

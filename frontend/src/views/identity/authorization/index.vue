@@ -194,7 +194,7 @@ const requestFields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const r = row as unknown as PermissionRequestListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: REQUEST_STATUS_TYPE[r.requestStatus] ?? 'neutral' }, () => h(XhTagLabel, () => getOptionLabel(requestStatusOptions.value, r.requestStatus)))
+      return h(XhTagRoot, { variant: 'outline', tone: REQUEST_STATUS_TYPE[r.requestStatus] ?? 'neutral' }, () => h(XhTagLabel, () => getOptionLabel(requestStatusOptions.value, r.requestStatus)))
     },
   },
   {
@@ -331,7 +331,7 @@ const delegationFields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const r = row as unknown as PermissionDelegationListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: DELEGATION_STATUS_TYPE[r.delegationStatus] ?? 'neutral' }, () => h(XhTagLabel, () => getOptionLabel(delegationStatusOptions.value, r.delegationStatus)))
+      return h(XhTagRoot, { variant: 'outline', tone: DELEGATION_STATUS_TYPE[r.delegationStatus] ?? 'neutral' }, () => h(XhTagLabel, () => getOptionLabel(delegationStatusOptions.value, r.delegationStatus)))
     },
   },
   {

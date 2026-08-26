@@ -235,7 +235,7 @@ function handleItemAction(key: string) {
   min-inline-size: 16px;
   padding: 0 4px;
   border-radius: 999px;
-  background: var(--xh-color-danger-500);
+  background: var(--xh-color-danger-600);
   color: #fff;
   font-size: 10px;
   line-height: 16px;

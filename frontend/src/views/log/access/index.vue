@@ -89,7 +89,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 18,
     render: (row) => {
       const r = row as unknown as AccessLogListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: accessResultType(r.accessResult) }, () => h(XhTagLabel, () => getOptionLabel(accessResultOptions.value, r.accessResult)))
+      return h(XhTagRoot, { variant: 'outline', tone: accessResultType(r.accessResult) }, () => h(XhTagLabel, () => getOptionLabel(accessResultOptions.value, r.accessResult)))
     },
   },
   { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, sortable: true, width: 100, order: 19 },

@@ -91,7 +91,7 @@ function generatePrimaryScale(hex: string) {
  * 传进来的要是实际当底色的那一档（色阶的 600），不是用户挑的原色。
  */
 function onSolidFor(color: string): string {
-  return relativeLuminance(color) > ON_COLOR_CROSSOVER ? '220 12% 12%' : '0 0% 98%'
+  return relativeLuminance(color) > ON_COLOR_CROSSOVER ? '220 12% 12%' : '0 0% 100%'
 }
 
 /**

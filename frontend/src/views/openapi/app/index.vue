@@ -118,7 +118,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('openapi.app.skip_consent_placeholder'),
     width: 110,
     order: 7,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as OAuthAppListItemDto).skipConsent ? 'warning' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as OAuthAppListItemDto).skipConsent ? t('openapi.app.tag_skip') : t('openapi.app.tag_confirm'))),
+    render: row => h(XhTagRoot, { variant: 'outline', tone: (row as unknown as OAuthAppListItemDto).skipConsent ? 'warning' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as OAuthAppListItemDto).skipConsent ? t('openapi.app.tag_skip') : t('openapi.app.tag_confirm'))),
   },
   {
     key: 'status',

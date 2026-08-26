@@ -74,7 +74,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('message.sms_config.columns.provider_placeholder'),
     width: 110,
     order: 3,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: 'info' }, () => h(XhTagLabel, () => getOptionLabel(providerOptions.value, (row as unknown as SmsConfigListItemDto).provider))),
+    render: row => h(XhTagRoot, { variant: 'outline', tone: 'info' }, () => h(XhTagLabel, () => getOptionLabel(providerOptions.value, (row as unknown as SmsConfigListItemDto).provider))),
   },
   { key: 'signName', title: t('message.sms_config.columns.sign_name'), dataType: 'string', sortable: true, minWidth: 120, order: 4 },
   {
@@ -90,7 +90,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const isDefault = (row as unknown as SmsConfigListItemDto).isDefault
       return isDefault
-        ? h(XhTagRoot, { variant: 'solid', tone: 'warning' }, () => h(XhTagLabel, () => t('message.sms_config.tag.default')))
+        ? h(XhTagRoot, { variant: 'outline', tone: 'warning' }, () => h(XhTagLabel, () => t('message.sms_config.tag.default')))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -106,7 +106,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 6,
     render: (row) => {
       const enabled = (row as unknown as SmsConfigListItemDto).isEnabled
-      return h(XhTagRoot, { variant: 'solid', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('message.sms_config.tag.enabled') : t('message.sms_config.tag.disabled')))
+      return h(XhTagRoot, { variant: 'outline', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('message.sms_config.tag.enabled') : t('message.sms_config.tag.disabled')))
     },
   },
   { key: 'sort', title: t('message.sms_config.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 7 },

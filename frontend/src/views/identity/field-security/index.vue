@@ -219,7 +219,7 @@ function ensureRowOptions(row: FieldLevelSecurityListItemDto) {
 }
 
 function boolTag(value: boolean, onText: string, offText: string) {
-  return h(XhTagRoot, { variant: 'solid', tone: value ? 'success' : 'danger' }, () => h(XhTagLabel, () => (value ? onText : offText)))
+  return h(XhTagRoot, { variant: 'outline', tone: value ? 'success' : 'danger' }, () => h(XhTagLabel, () => (value ? onText : offText)))
 }
 
 // ── 字段单一事实源 ──────────────────────────────────────────────

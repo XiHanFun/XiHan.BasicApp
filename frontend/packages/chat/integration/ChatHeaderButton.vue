@@ -53,7 +53,7 @@ const unread = computed(() => chatStore.totalUnread)
   height: 14px;
   padding: 0 3px;
   border-radius: 9999px;
-  background: hsl(var(--destructive, 0 84% 60%));
+  background: var(--xh-color-danger-600);
   color: #fff;
   font-size: 9px;
   font-weight: 600;

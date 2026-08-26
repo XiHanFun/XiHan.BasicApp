@@ -139,7 +139,7 @@ const columns = computed<XDataTableColumn<CodeGenTableColumnListItemDto>[]>(() =
       h('div', { class: 'col-name' }, [
         h('span', null, row.columnName),
         isLocked(row)
-          ? h(XhTagRoot, { variant: 'solid', tone: 'neutral' }, () => h(XhTagLabel, () => t('develop.code_gen.column.base_column')))
+          ? h(XhTagRoot, { variant: 'outline', tone: 'neutral' }, () => h(XhTagLabel, () => t('develop.code_gen.column.base_column')))
           : null,
       ]),
   },
