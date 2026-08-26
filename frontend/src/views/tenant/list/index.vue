@@ -283,7 +283,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: getTenantStatusTagType(r.tenantStatus) }, () => h(XhTagLabel, () => getOptionLabel(tenantStatusOptions.value, r.tenantStatus)))
+      return h(XhTagRoot, { variant: 'solid', tone: getTenantStatusTagType(r.tenantStatus) }, () => h(XhTagLabel, () => getOptionLabel(tenantStatusOptions.value, r.tenantStatus)))
     },
   },
   {
@@ -308,7 +308,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 9,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: r.isExpired ? 'danger' : 'success' }, () => h(XhTagLabel, () => (r.isExpired ? t('tenant.list.yes') : t('tenant.list.no'))))
+      return h(XhTagRoot, { variant: 'solid', tone: r.isExpired ? 'danger' : 'success' }, () => h(XhTagLabel, () => (r.isExpired ? t('tenant.list.yes') : t('tenant.list.no'))))
     },
   },
   { key: 'userLimit', title: t('tenant.list.user_limit'), dataType: 'number', sortable: true, minWidth: 100, order: 10 },

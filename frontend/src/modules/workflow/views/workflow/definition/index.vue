@@ -78,14 +78,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: (row) => {
       const r = row as unknown as WorkflowDefinitionListItemDto
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTag(r.status) }, () => h(XhTagLabel, () => statusLabel(r.status)))
+      return h(XhTagRoot, { variant: 'solid', tone: statusTag(r.status) }, () => h(XhTagLabel, () => statusLabel(r.status)))
     },
   },
   { key: 'code', title: t('workflow.definition.code'), dataType: 'string', sortable: true, minWidth: 160, order: 10 },
   { key: 'name', title: t('workflow.definition.name'), dataType: 'string', sortable: true, minWidth: 180, order: 11 },
   { key: 'version', title: t('workflow.definition.version'), dataType: 'number', sortable: true, width: 90, order: 12, render: (row) => {
     const r = row as unknown as WorkflowDefinitionListItemDto
-    return h(XhTagRoot, { variant: 'subtle', size: 'sm' }, () => h(XhTagLabel, () => `v${r.version}`))
+    return h(XhTagRoot, { variant: 'solid', tone: 'neutral' }, () => h(XhTagLabel, () => `v${r.version}`))
   } },
   { key: 'category', title: t('workflow.definition.category'), dataType: 'string', searchable: true, minWidth: 120, order: 13 },
   { key: 'description', title: t('workflow.definition.description'), dataType: 'string', minWidth: 200, ellipsis: true, order: 14 },
