@@ -278,6 +278,14 @@
   justify-content: flex-end;
 }
 
+/* 正文滚动区：内容层按视口宽排版，不跟着页内最宽的东西长。
+   组件库给 content 的 min-inline-size: fit-content 是为「整块内容一起横向滚」准备的；
+   页面外壳要的是另一种——页面自己占满视口宽，真正超宽的表格由它自身的滚动容器收。
+   不收窄的话页面被撑到表格那么宽，靠右的搜索按钮会被推出屏幕。 */
+.xh-content-scroll [data-scope='scroll-area'][data-part='content'] {
+  min-inline-size: 0;
+}
+
 /* 定高滚动区（原先由 NScrollbar 承担；这里只需要溢出滚动，不需要自绘滚动条） */
 .xh-scroll-area {
   overflow: auto;

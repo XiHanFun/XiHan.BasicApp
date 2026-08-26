@@ -355,7 +355,7 @@ const sidebarEnableState = computed(
         <!-- 普通内容：root 由 flex 定高并承载紧凑布局的居中与最大宽度，viewport 是真正 overflow:auto 的那层 -->
         <XhScrollAreaRoot
           v-if="!showSplit"
-          class="min-h-0 flex-1"
+          class="xh-content-scroll min-h-0 flex-1"
           :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
           :style="
             shell.appStore.contentCompact
@@ -403,7 +403,7 @@ const sidebarEnableState = computed(
                 class="split-anchor h-full"
                 :style="{ order: splitView.reversed ? 3 : 1 }"
               >
-                <XhScrollAreaRoot class="h-full w-full">
+                <XhScrollAreaRoot class="xh-content-scroll h-full w-full">
                   <XhScrollAreaViewport :ref="shell.setContentScrollEl">
                     <XhScrollAreaContent class="h-full">
                       <LayoutContentRenderer :transition-name="shell.transitionName.value" />

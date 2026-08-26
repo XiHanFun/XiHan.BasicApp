@@ -33,7 +33,7 @@ defineOptions({ name: 'XPageShell' })
       <slot name="header" />
     </div>
     <!-- root 由 flex 定高（皮肤给它 overflow:hidden + 定位上下文），viewport 是真正 overflow:auto 的那层 -->
-    <XhScrollAreaRoot class="min-h-0 flex-1">
+    <XhScrollAreaRoot class="xh-content-scroll min-h-0 flex-1">
       <XhScrollAreaViewport>
         <!-- content 撑满视口高度，插槽里按百分比定高的元素照旧解析得到高度 -->
         <XhScrollAreaContent class="h-full">
