@@ -115,7 +115,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as EmailListItemDto
-      return h(XhTagRoot, { variant: 'subtle', tone: getMessageStatusTagType(r.emailStatus), size: 'sm' }, () => h(XhTagLabel, () => getOptionLabel(emailStatusOptions.value, r.emailStatus)))
+      return h(XhTagRoot, { variant: 'solid', tone: getMessageStatusTagType(r.emailStatus) }, () => h(XhTagLabel, () => getOptionLabel(emailStatusOptions.value, r.emailStatus)))
     },
   },
   {
@@ -126,7 +126,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
     order: 4,
     render: (row) => {
       const r = row as unknown as EmailListItemDto
-      return h(XhTagRoot, { variant: 'subtle', tone: r.isHtml ? 'info' : 'neutral', size: 'sm' }, () => h(XhTagLabel, () => formatFlag(r.isHtml)))
+      return h(XhTagRoot, { variant: 'solid', tone: r.isHtml ? 'info' : 'neutral' }, () => h(XhTagLabel, () => formatFlag(r.isHtml)))
     },
   },
   { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 5 },
@@ -269,7 +269,7 @@ const smsFields = computed<ListFieldSchema[]>(() => [
     order: 3,
     render: (row) => {
       const r = row as unknown as SmsListItemDto
-      return h(XhTagRoot, { variant: 'subtle', tone: getMessageStatusTagType(r.smsStatus), size: 'sm' }, () => h(XhTagLabel, () => getOptionLabel(smsStatusOptions.value, r.smsStatus)))
+      return h(XhTagRoot, { variant: 'solid', tone: getMessageStatusTagType(r.smsStatus) }, () => h(XhTagLabel, () => getOptionLabel(smsStatusOptions.value, r.smsStatus)))
     },
   },
   { key: 'businessType', title: t('message.record.col_business_type'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('message.record.search_business_type_placeholder'), minWidth: 130, order: 4 },

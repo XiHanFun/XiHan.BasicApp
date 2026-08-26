@@ -131,7 +131,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('approval.constraint.constraint_type_placeholder'),
     minWidth: 130,
     order: 3,
-    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info' }, () => h(XhTagLabel, () => getOptionLabel(constraintTypeOptions.value, (row as unknown as ConstraintRuleListItemDto).constraintType))),
+    render: row => h(XhTagRoot, { variant: 'solid', tone: 'info' }, () => h(XhTagLabel, () => getOptionLabel(constraintTypeOptions.value, (row as unknown as ConstraintRuleListItemDto).constraintType))),
   },
   {
     key: 'targetType',
@@ -152,7 +152,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as ConstraintRuleListItemDto
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: VIOLATION_TAG_TYPE[r.violationAction] ?? 'neutral' }, () => h(XhTagLabel, () => getOptionLabel(violationActionOptions.value, r.violationAction)))
+      return h(XhTagRoot, { variant: 'solid', tone: VIOLATION_TAG_TYPE[r.violationAction] ?? 'neutral' }, () => h(XhTagLabel, () => getOptionLabel(violationActionOptions.value, r.violationAction)))
     },
   },
   { key: 'itemCount', title: t('approval.constraint.item_count'), dataType: 'number', width: 92, order: 6 },
@@ -169,7 +169,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('approval.constraint.status_placeholder'),
     width: 82,
     order: 8,
-    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as ConstraintRuleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as ConstraintRuleListItemDto).status === EnableStatus.Enabled ? t('approval.constraint.status_enabled') : t('approval.constraint.status_disabled'))),
+    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as ConstraintRuleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as ConstraintRuleListItemDto).status === EnableStatus.Enabled ? t('approval.constraint.status_enabled') : t('approval.constraint.status_disabled'))),
   },
   {
     key: 'isActive',
@@ -177,7 +177,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     dataType: 'boolean',
     width: 92,
     order: 9,
-    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as ConstraintRuleListItemDto).isActive ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as ConstraintRuleListItemDto).isActive ? t('approval.constraint.active_yes') : t('approval.constraint.active_no'))),
+    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as ConstraintRuleListItemDto).isActive ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as ConstraintRuleListItemDto).isActive ? t('approval.constraint.active_yes') : t('approval.constraint.active_no'))),
   },
   { key: 'description', title: t('approval.constraint.description'), dataType: 'string', minWidth: 200, order: 10 },
   {

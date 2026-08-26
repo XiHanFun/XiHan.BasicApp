@@ -99,7 +99,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 19,
     render: (row) => {
       const level = (row as unknown as DiffLogListItemDto).riskLevel
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: riskTagType(level) }, () => h(XhTagLabel, () => getOptionLabel(riskLevelOptions.value, level)))
+      return h(XhTagRoot, { variant: 'solid', tone: riskTagType(level) }, () => h(XhTagLabel, () => getOptionLabel(riskLevelOptions.value, level)))
     },
   },
   {
@@ -112,7 +112,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.diff.is_success_placeholder'),
     width: 90,
     order: 20,
-    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as DiffLogListItemDto).isSuccess ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as DiffLogListItemDto).isSuccess ? t('log.diff.result_success') : t('log.diff.result_failed'))),
+    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as DiffLogListItemDto).isSuccess ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as DiffLogListItemDto).isSuccess ? t('log.diff.result_success') : t('log.diff.result_failed'))),
   },
   { key: 'executionTime', title: t('log.common.execution_time'), dataType: 'number', sortable: true, width: 110, order: 21, render: row => `${(row as unknown as DiffLogListItemDto).executionTime}ms` },
   { key: 'operationIp', title: t('log.diff.operation_ip'), dataType: 'string', searchable: true, sortable: true, searchPlaceholder: t('log.diff.operation_ip_placeholder'), minWidth: 130, order: 22 },

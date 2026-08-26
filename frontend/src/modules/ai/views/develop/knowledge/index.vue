@@ -78,7 +78,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 5,
     render: (row) => {
       const r = row as unknown as KnowledgeListItemDto
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: statusTagType(r.status) }, () => h(XhTagLabel, () => getOptionLabel(KNOWLEDGE_INDEX_STATUS_OPTIONS, r.status)))
+      return h(XhTagRoot, { variant: 'solid', tone: statusTagType(r.status) }, () => h(XhTagLabel, () => getOptionLabel(KNOWLEDGE_INDEX_STATUS_OPTIONS, r.status)))
     },
   },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', minWidth: 170, sortable: true, order: 6 },

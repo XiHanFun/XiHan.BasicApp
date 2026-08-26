@@ -176,7 +176,7 @@ const dictColumns = computed<XDataTableColumn<DictListItemDto>[]>(() => [
       h('div', { class: 'dict-name' }, [
         h('span', { class: 'dict-name__text' }, row.dictName),
         row.isBuiltIn
-          ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'warning' }, () => h(XhTagLabel, () => t('setting.dict.builtin')))
+          ? h(XhTagRoot, { variant: 'solid', tone: 'warning' }, () => h(XhTagLabel, () => t('setting.dict.builtin')))
           : null,
       ]),
   },
@@ -198,7 +198,7 @@ const dictColumns = computed<XDataTableColumn<DictListItemDto>[]>(() => [
     width: 72,
     align: 'center',
     render: (row: DictListItemDto) =>
-      h(XhTagRoot, { variant: 'subtle', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, row.status))),
+      h(XhTagRoot, { variant: 'solid', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, row.status))),
   },
   {
     key: 'actions',
@@ -290,14 +290,14 @@ const itemColumns = computed<XDataTableColumn<DictItemListItemDto>[]>(() => [
     title: t('setting.dict.default'),
     width: 70,
     render: (row: DictItemListItemDto) =>
-      h(XhTagRoot, { variant: 'subtle', tone: row.isDefault ? 'info' : 'neutral', size: 'sm' }, () => h(XhTagLabel, () => (row.isDefault ? t('common.statuses.yes') : t('common.statuses.no')))),
+      h(XhTagRoot, { variant: 'solid', tone: row.isDefault ? 'info' : 'neutral' }, () => h(XhTagLabel, () => (row.isDefault ? t('common.statuses.yes') : t('common.statuses.no')))),
   },
   {
     key: 'status',
     title: t('setting.dict.status'),
     width: 80,
     render: (row: DictItemListItemDto) =>
-      h(XhTagRoot, { variant: 'subtle', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger', size: 'sm' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, row.status))),
+      h(XhTagRoot, { variant: 'solid', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, row.status))),
   },
   {
     key: 'sort',

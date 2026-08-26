@@ -115,7 +115,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 14,
     render: (row) => {
       const isGlobal = (row as unknown as MessageTemplateListItemDto).isGlobal
-      return h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: isGlobal ? 'info' : 'neutral' }, () => h(XhTagLabel, () => isGlobal ? t('message.template.scope_global') : t('message.template.scope_tenant')))
+      return h(XhTagRoot, { variant: 'solid', tone: isGlobal ? 'info' : 'neutral' }, () => h(XhTagLabel, () => isGlobal ? t('message.template.scope_global') : t('message.template.scope_tenant')))
     },
   },
   {
@@ -140,7 +140,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('message.template.search_status_placeholder'),
     width: 90,
     order: 17,
-    render: row => h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? t('message.template.status_enabled') : t('message.template.status_disabled'))),
+    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled ? t('message.template.status_enabled') : t('message.template.status_disabled'))),
   },
   { key: 'sort', title: t('message.template.col_sort'), dataType: 'number', width: 80, order: 18, sortable: true },
 ])
