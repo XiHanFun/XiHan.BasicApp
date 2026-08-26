@@ -424,8 +424,8 @@ watch(tracePreset, (preset) => {
 
     <XhCardRoot class="flex-1" style="height: 0">
       <XhCardBody style="height: 100%; display: flex; flex-direction: column; min-height: 0; padding: 0">
-        <div class="xh-loading-stage">
-          <div v-if="loading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <div v-if="result" class="trace-panel">

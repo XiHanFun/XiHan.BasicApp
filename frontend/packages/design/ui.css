@@ -179,7 +179,7 @@
 /* 偏好设置的分区面：一块无边框的内边距面（原先由卡片承担，现在只需要这点样式） */
 .pref-card {
   display: block;
-  padding: 12px 16px;
+  padding: 6px 16px;
   border-radius: var(--radius);
   background: hsl(var(--card));
 }
@@ -192,6 +192,12 @@
  */
 .xh-loading-stage {
   position: relative;
+}
+
+/* 罩层恒在 DOM 里，由容器上的 is-loading 决定显不显示：
+   留着节点才能给进出场做过渡，也省得每处各写一遍 v-if */
+.xh-loading-stage:not(.is-loading) > .xh-loading-stage__veil {
+  display: none;
 }
 
 .xh-loading-stage__veil {
@@ -281,6 +287,8 @@
    而这些占位散落在各处容器里 */
 .xh-skeleton-bone {
   display: block;
+  /* 缺省按一行正文高度：空 span 没有内容撑不出盒子，作者可用 block-size 覆盖 */
+  block-size: var(--xh-text-body-size);
   border-radius: var(--xh-shape-control);
   background: linear-gradient(90deg, var(--xh-bg-subtle) 25%, var(--xh-bg-subtle-hover) 37%, var(--xh-bg-subtle) 63%);
   background-size: 400% 100%;

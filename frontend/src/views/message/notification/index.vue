@@ -783,6 +783,8 @@ async function handleSubmit() {
             <div>
               <XhFieldControl>
                 <XhCheckboxGroupRoot
+                  orientation="horizontal"
+                  style="--xh-checkbox-group-gap: 12px"
                   :value="notificationForm.deliveryChannels.map(String)"
                   @update:value="(value: string[]) => (notificationForm.deliveryChannels = value as unknown as MessageChannel[])"
                 >

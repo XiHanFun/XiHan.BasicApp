@@ -1426,8 +1426,8 @@ async function confirmDelete() {
       <XhDrawerContent style="--xh-drawer-size: 720px">
         <XhDrawerTitle>{{ t('identity.user.grant_title', { name: grantUser?.userName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage">
-          <div v-if="grantLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': grantLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->

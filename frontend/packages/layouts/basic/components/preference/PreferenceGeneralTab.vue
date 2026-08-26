@@ -14,7 +14,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-2">
     <section class="pref-card">
       <div class="section-title">
         {{ t('preference.general.title') }}

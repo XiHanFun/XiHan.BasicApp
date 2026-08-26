@@ -573,8 +573,8 @@ async function handleToggleStatus(row: PermissionListItemDto) {
       <XhDrawerContent style="--xh-drawer-size: 980px">
         <XhDrawerTitle>{{ t('identity.permission.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage">
-          <div v-if="detailLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': detailLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">

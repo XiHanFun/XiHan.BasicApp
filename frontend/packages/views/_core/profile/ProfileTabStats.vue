@@ -152,8 +152,8 @@ const recentTimes = computed(() => {
 
 <template>
   <div class="pf-tab-body">
-    <div class="xh-loading-stage">
-      <div v-if="loading && !activity" class="xh-loading-stage__veil">
+    <div class="xh-loading-stage" :class="{ 'is-loading': loading && !activity }">
+      <div class="xh-loading-stage__veil">
         <XhSpinner />
       </div>
       <!-- 本月概览 -->

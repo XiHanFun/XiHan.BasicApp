@@ -229,8 +229,8 @@ onMounted(() => {
           </XhAlertDescription>
         </XhAlertRoot>
 
-        <div class="xh-loading-stage">
-          <div v-if="credentialsLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': credentialsLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="credentials.length === 0 && !credentialsLoading" class="pf-empty">

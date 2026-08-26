@@ -269,8 +269,8 @@ async function handleLeave() {
     <XhDialogContent style="--xh-dialog-max-w: 480px">
       <XhDialogTitle>{{ t('chat.members.title', { n: members.length }) }}</XhDialogTitle>
       <XhDialogCloseTrigger />
-      <div class="xh-loading-stage">
-        <div v-if="loading" class="xh-loading-stage__veil">
+      <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
+        <div class="xh-loading-stage__veil">
           <XhSpinner />
         </div>
         <!-- 群信息（群主/管理员可编辑；部门群名称随部门禁改） -->

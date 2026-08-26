@@ -162,6 +162,12 @@ function handleDictPageChange(page: number) {
   fetchDictData()
 }
 
+function handleDictPageSizeChange(pageSize: number) {
+  dictPageSize.value = pageSize
+  dictPage.value = 1
+  fetchDictData()
+}
+
 function reloadDict() {
   fetchDictData()
 }
@@ -787,9 +793,10 @@ onMounted(fetchDictData)
         </div>
         <SchemaPagination
           v-model:page="dictPage"
+          v-model:page-size="dictPageSize"
           :total="dictTotal"
-          :page-size="dictPageSize" compact
           @update:page="handleDictPageChange"
+          @update:page-size="handleDictPageSizeChange"
         />
       </footer>
     </section>

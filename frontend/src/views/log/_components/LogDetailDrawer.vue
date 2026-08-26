@@ -107,8 +107,8 @@ function formatValue(field: LogDetailField) {
     <XhDrawerContent :style="{ '--xh-drawer-size': `${width}px` }">
       <XhDrawerTitle>{{ title }}</XhDrawerTitle>
       <XhDrawerCloseTrigger />
-      <div class="xh-loading-stage">
-        <div v-if="loading" class="xh-loading-stage__veil">
+      <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
+        <div class="xh-loading-stage__veil">
           <XhSpinner />
         </div>
         <div class="xh-scroll-area log-detail-scroll">

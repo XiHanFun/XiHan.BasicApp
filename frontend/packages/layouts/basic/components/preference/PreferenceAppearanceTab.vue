@@ -99,7 +99,7 @@ const loaderItems = computed(() =>
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-2">
     <!-- 模式 -->
     <section class="pref-card">
       <div class="section-title">

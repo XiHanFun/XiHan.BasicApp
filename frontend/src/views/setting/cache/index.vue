@@ -406,8 +406,8 @@ onMounted(loadKeys)
           <!-- 滚动区：相对壳 + 绝对内胆（脱离文档流，树高不撑页面），树在内部滚动 -->
           <div class="cache-scroll-host">
             <div class="cache-scroll-body">
-              <div class="xh-loading-stage">
-                <div v-if="loadingKeys" class="xh-loading-stage__veil">
+              <div class="xh-loading-stage" :class="{ 'is-loading': loadingKeys }">
+                <div class="xh-loading-stage__veil">
                   <XhSpinner />
                 </div>
                 <div v-if="cacheKeys.length === 0 && !loadingKeys" class="cache-empty">
@@ -495,8 +495,8 @@ onMounted(loadKeys)
           <!-- 滚动区：相对壳 + 绝对内胆，详情在内部滚动 -->
           <div class="cache-scroll-host">
             <div class="cache-scroll-body">
-              <div class="xh-loading-stage">
-                <div v-if="loadingValue" class="xh-loading-stage__veil">
+              <div class="xh-loading-stage" :class="{ 'is-loading': loadingValue }">
+                <div class="xh-loading-stage__veil">
                   <XhSpinner />
                 </div>
                 <div v-if="!detailKey" class="cache-empty">
@@ -607,17 +607,24 @@ onMounted(loadKeys)
   overflow: auto;
 }
 
-/* 加载态占满内胆（内容少时空态居中/编辑器撑满），内容多时自然撑高、由内胆滚动 */
-.cache-scroll-spin {
+/* 内胆里这一层是唯一的内容承载层：撑满内胆并成为 flex 列，
+   下面的树 / pre / 编辑器才有可分配的高度。
+   内容多时自然撑高，由内胆滚动 */
+.cache-scroll-body > .xh-loading-stage {
   display: flex;
   flex-direction: column;
   min-height: 100%;
 }
 
-.cache-scroll-spin :deep(.xh-loading-stage) {
-  display: flex;
+/* 树自带 24rem 的最大高（--xh-viewport-h-lg），不放开就是一块矮框加大片空白 */
+.cache-tree-card .xh-loading-stage {
+  --xh-tree-max-h: 100%;
+}
+
+.cache-tree-card :deep(.x-tree),
+.cache-tree-card :deep([data-scope='tree'][data-part='tree']) {
   flex: 1;
-  flex-direction: column;
+  min-block-size: 0;
 }
 
 .cache-tree-leaf {
@@ -716,12 +723,23 @@ onMounted(loadKeys)
 }
 
 .cache-value-editor {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 0;
 }
 
+.cache-value-editor :deep(.x-input__box) {
+  flex: 1;
+  min-block-size: 0;
+}
+
+/* textarea 的高由 rows 定死，百分比和 align-items: stretch 都拿不动它；
+   输入盒本身是定位参照，直接把 textarea 铺满它 */
 .cache-value-editor :deep(textarea) {
-  height: 100% !important;
+  position: absolute;
+  inset: 0;
+  resize: none;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 

@@ -441,8 +441,8 @@ async function handleDelete(row: OAuthAppListItemDto) {
       <XhDrawerContent style="--xh-drawer-size: 560px">
         <XhDrawerTitle>{{ t('openapi.app.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage">
-          <div v-if="detailLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': detailLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">

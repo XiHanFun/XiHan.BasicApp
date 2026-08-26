@@ -106,8 +106,8 @@ onMounted(loadSessions)
         </div>
       </div>
       <div class="pf-section__body">
-        <div class="xh-loading-stage">
-          <div v-if="sessionsLoading" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': sessionsLoading }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="sessions.length === 0 && sessionsLoaded">

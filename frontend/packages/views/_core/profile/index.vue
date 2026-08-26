@@ -188,8 +188,8 @@ onMounted(loadProfile)
 
       <!-- 右侧：内容区 -->
       <main class="pc__content">
-        <div class="xh-loading-stage">
-          <div v-if="profileLoading && !profile" class="xh-loading-stage__veil">
+        <div class="xh-loading-stage" :class="{ 'is-loading': profileLoading && !profile }">
+          <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
           <KeepAlive>

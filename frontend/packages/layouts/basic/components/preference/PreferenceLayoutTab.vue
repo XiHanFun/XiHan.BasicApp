@@ -95,7 +95,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-2">
     <!-- 布局 -->
     <section class="pref-card">
       <div class="section-title">
