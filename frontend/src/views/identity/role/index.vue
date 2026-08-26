@@ -24,6 +24,7 @@ import {
   departmentApi,
   EnableStatus,
   menuApi,
+  MenuType,
   permissionApi,
   querySortsFromSchema,
   roleDataScopeApi,
@@ -350,22 +351,35 @@ async function savePermGrants() {
 interface MenuNode {
   basicId: ApiId
   menuName: string
+  menuType: MenuType
   permissionId?: ApiId | null
   // 叶子节点省略 children（undefined），树据此判定为末节点、不显示展开箭头
   children?: MenuNode[]
+}
+
+/** 树选项再带一条排布标记：树按它决定这一层子节点横排还是竖排 */
+interface MenuTreeOption extends TreeSelectOption {
+  childrenOrientation?: 'horizontal' | 'vertical'
+  children?: MenuTreeOption[]
 }
 
 const menuVisible = ref(false)
 const menuRole = ref<RoleListItemDto | null>(null)
 const menuTreeData = ref<MenuNode[]>([])
 
-/** 菜单节点 → 通用树选项：原先靠 key-field/label-field 指字段，现在显式映射 */
-function toMenuOptions(nodes: MenuNode[]): TreeSelectOption[] {
-  return nodes.map(node => ({
-    value: String(node.basicId),
-    label: node.menuName,
-    ...(node.children?.length ? { children: toMenuOptions(node.children) } : {}),
-  }))
+/** 菜单节点 → 通用树选项：键与文本显式映射。
+    子节点全是按钮的菜单标上横排，一行铺完；其余层不标，保持竖排读层级 */
+function toMenuOptions(nodes: MenuNode[]): MenuTreeOption[] {
+  return nodes.map((node) => {
+    const children = node.children ?? []
+    const buttonsOnly = children.length > 0 && children.every(child => child.menuType === MenuType.Button)
+    return {
+      value: String(node.basicId),
+      label: node.menuName,
+      ...(buttonsOnly ? { childrenOrientation: 'horizontal' as const } : {}),
+      ...(children.length ? { children: toMenuOptions(children) } : {}),
+    }
+  })
 }
 const menuTreeOptions = computed(() => toMenuOptions(menuTreeData.value))
 const menuGrants = ref<RolePermissionListItemDto[]>([])
@@ -439,6 +453,7 @@ function buildMenuTree(flat: MenuListItemDto[]): MenuNode[] {
     byId.set(item.basicId, {
       basicId: item.basicId,
       menuName: item.menuName,
+      menuType: item.menuType,
       permissionId: item.permissionId,
       children: [],
     })
