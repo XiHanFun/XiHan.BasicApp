@@ -268,7 +268,7 @@ const schema = computed<PageSchema>(() => ({
       order: 2,
       render: (row) => {
         const menuType = (row as unknown as MenuListItemDto).menuType
-        return h(XhTagRoot, { variant: 'solid', tone: menuTypeTagType(menuType) }, () => h(XhTagLabel, () => getOptionLabel(menuTypeOptions.value, menuType)))
+        return h(XhTagRoot, { variant: 'outline', tone: menuTypeTagType(menuType) }, () => h(XhTagLabel, () => getOptionLabel(menuTypeOptions.value, menuType)))
       },
     },
     {
@@ -315,7 +315,7 @@ const schema = computed<PageSchema>(() => ({
           })
         }
         if (item.badge) {
-          return h(XhTagRoot, { variant: 'solid', tone: badgeTone(item.badgeType) }, () => h(XhTagLabel, () => item.badge))
+          return h(XhTagRoot, { variant: 'outline', tone: badgeTone(item.badgeType) }, () => h(XhTagLabel, () => item.badge))
         }
         return '-'
       },
@@ -327,7 +327,7 @@ const schema = computed<PageSchema>(() => ({
       width: 80,
       order: 6,
       render: row =>
-        h(XhTagRoot, { variant: 'solid', tone: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'neutral' }, () => h(XhTagLabel, () => ((row as unknown as MenuListItemDto).isVisible ? t('common.statuses.yes') : t('common.statuses.no')))),
+        h(XhTagRoot, { variant: 'outline', tone: (row as unknown as MenuListItemDto).isVisible ? 'success' : 'neutral' }, () => h(XhTagLabel, () => ((row as unknown as MenuListItemDto).isVisible ? t('common.statuses.yes') : t('common.statuses.no')))),
     },
     {
       key: 'status',
@@ -340,7 +340,7 @@ const schema = computed<PageSchema>(() => ({
       width: 90,
       order: 7,
       render: row =>
-        h(XhTagRoot, { variant: 'solid', tone: (row as unknown as MenuListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, (row as unknown as MenuListItemDto).status))),
+        h(XhTagRoot, { variant: 'outline', tone: (row as unknown as MenuListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, (row as unknown as MenuListItemDto).status))),
     },
     {
       key: 'sort',
@@ -597,7 +597,7 @@ const childMenuColumns = computed<XDataTableColumn<MenuTreeNodeDto>[]>(() => [
     key: 'menuType',
     width: 80,
     render: row =>
-      h(XhTagRoot, { variant: 'solid', tone: menuTypeTagType(row.menuType) }, () => h(XhTagLabel, () => getOptionLabel(menuTypeOptions.value, row.menuType))),
+      h(XhTagRoot, { variant: 'outline', tone: menuTypeTagType(row.menuType) }, () => h(XhTagLabel, () => getOptionLabel(menuTypeOptions.value, row.menuType))),
   },
   {
     title: t('setting.menu.child_path'),

@@ -95,7 +95,7 @@ export function renderFieldCell<TRow extends object>(
     const label = getOptionLabel(toMutableOptions(field.options), raw as string | number)
     // 登记过语气的状态字典按语气着色，其余枚举走中性
     const tone = resolveStatusTagTone(field.dictionaryCode, raw) ?? 'neutral'
-    return h(XhTagRoot, { variant: 'solid', tone }, () => h(XhTagLabel, () => label))
+    return h(XhTagRoot, { variant: 'outline', tone }, () => h(XhTagLabel, () => label))
   }
 
   if (field.dataType === 'boolean') {
@@ -103,7 +103,7 @@ export function renderFieldCell<TRow extends object>(
       return '-'
     }
     // 是 / 否是状态，不是身份
-    return h(XhTagRoot, { variant: 'solid', tone: raw ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no'))))
+    return h(XhTagRoot, { variant: 'outline', tone: raw ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (raw ? i18n.global.t('common.statuses.yes') : i18n.global.t('common.statuses.no'))))
   }
 
   return formatFieldText(field, row)

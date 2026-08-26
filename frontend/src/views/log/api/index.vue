@@ -81,7 +81,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: [{ label: t('log.api.signature_valid'), value: 1 }, { label: t('log.api.signature_invalid'), value: 0 }],
     width: 120,
     order: 17,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as ApiLogListItemDto).isSignatureValid ? 'success' : 'warning' }, () => h(XhTagLabel, () => (row as unknown as ApiLogListItemDto).isSignatureValid ? t('log.api.signature_valid') : t('log.api.signature_invalid'))),
+    render: row => h(XhTagRoot, { variant: 'outline', tone: (row as unknown as ApiLogListItemDto).isSignatureValid ? 'success' : 'warning' }, () => h(XhTagLabel, () => (row as unknown as ApiLogListItemDto).isSignatureValid ? t('log.api.signature_valid') : t('log.api.signature_invalid'))),
   },
   {
     key: 'signatureType',
@@ -119,7 +119,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.api.success_placeholder'),
     width: 100,
     order: 33,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as ApiLogListItemDto).isSuccess ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as ApiLogListItemDto).isSuccess ? t('common.statuses.success') : t('common.statuses.failed'))),
+    render: row => h(XhTagRoot, { variant: 'outline', tone: (row as unknown as ApiLogListItemDto).isSuccess ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as ApiLogListItemDto).isSuccess ? t('common.statuses.success') : t('common.statuses.failed'))),
   },
   { key: 'apiVersion', title: t('log.api.api_version'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 90, order: 34 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 35 },

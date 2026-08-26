@@ -83,7 +83,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
       if (r.isFree) {
-        return h(XhTagRoot, { variant: 'solid', tone: 'success' }, () => h(XhTagLabel, () => t('tenant.edition.free')))
+        return h(XhTagRoot, { variant: 'outline', tone: 'success' }, () => h(XhTagLabel, () => t('tenant.edition.free')))
       }
       return h('span', r.price == null ? '-' : `¥ ${r.price}`)
     },
@@ -136,7 +136,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: r.isFree ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (r.isFree ? t('tenant.edition.yes') : t('tenant.edition.no'))))
+      return h(XhTagRoot, { variant: 'outline', tone: r.isFree ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (r.isFree ? t('tenant.edition.yes') : t('tenant.edition.no'))))
     },
   },
   {
@@ -152,7 +152,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
       return r.isDefault
-        ? h(XhTagRoot, { variant: 'solid', tone: 'warning' }, () => h(XhTagLabel, () => t('tenant.edition.default_tag')))
+        ? h(XhTagRoot, { variant: 'outline', tone: 'warning' }, () => h(XhTagLabel, () => t('tenant.edition.default_tag')))
         : h('span', { style: 'opacity:.45' }, '-')
     },
   },
@@ -170,7 +170,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 9,
     render: (row) => {
       const r = row as unknown as TenantEditionListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, r.status)))
+      return h(XhTagRoot, { variant: 'outline', tone: r.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusOptions.value, r.status)))
     },
   },
   { key: 'sort', title: t('tenant.edition.sort'), dataType: 'number', sortable: true, width: 80, order: 10 },

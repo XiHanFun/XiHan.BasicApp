@@ -67,7 +67,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 10,
     render: (row) => {
       const type = (row as unknown as PermissionChangeLogListItemDto).changeType
-      return h(XhTagRoot, { variant: 'solid', tone: changeTypeTagType(type) }, () => h(XhTagLabel, () => getOptionLabel(changeTypeOptions.value, type)))
+      return h(XhTagRoot, { variant: 'outline', tone: changeTypeTagType(type) }, () => h(XhTagLabel, () => getOptionLabel(changeTypeOptions.value, type)))
     },
   },
   { key: 'operatorUserName', title: t('log.permission_change.operator_user_name'), dataType: 'string', minWidth: 130, order: 11 },

@@ -384,7 +384,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   margin-top: 12px;
   padding: 9px 32px;
   border-radius: 10px;
-  background: hsl(var(--primary));
+  background: var(--xh-color-brand-600);
   color: hsl(var(--primary-foreground));
   font-size: 14px;
   font-weight: 500;

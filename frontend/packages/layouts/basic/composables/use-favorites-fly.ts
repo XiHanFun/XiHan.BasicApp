@@ -69,7 +69,7 @@ export function flyToFavorites(source: DOMRect | null, payload: FlyPayload): voi
     fontWeight: '500',
     lineHeight: '20px',
     color: 'hsl(var(--primary-foreground))',
-    background: 'hsl(var(--primary))',
+    background: 'var(--xh-color-brand-600)',
     boxShadow: '0 8px 24px hsl(var(--primary) / 45%)',
     pointerEvents: 'none',
     willChange: 'transform, opacity',

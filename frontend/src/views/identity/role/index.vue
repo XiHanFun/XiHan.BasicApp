@@ -118,7 +118,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.is_global_placeholder'),
     width: 82,
     order: 5,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as RoleListItemDto).isGlobal ? t('common.statuses.yes') : t('common.statuses.no'))),
+    render: row => h(XhTagRoot, { variant: 'outline', tone: (row as unknown as RoleListItemDto).isGlobal ? 'warning' : 'neutral' }, () => h(XhTagLabel, () => (row as unknown as RoleListItemDto).isGlobal ? t('common.statuses.yes') : t('common.statuses.no'))),
   },
   {
     key: 'dataScope',
@@ -148,7 +148,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('identity.role.status_placeholder'),
     width: 82,
     order: 9,
-    render: row => h(XhTagRoot, { variant: 'solid', tone: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled'))),
+    render: row => h(XhTagRoot, { variant: 'outline', tone: (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => (row as unknown as RoleListItemDto).status === EnableStatus.Enabled ? t('common.statuses.enabled') : t('common.statuses.disabled'))),
   },
   {
     key: 'createdTime',

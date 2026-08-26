@@ -104,16 +104,6 @@
     --xh-z-tooltip: 2500;
   }
 
-  /* 淡底状态标签描一道边：底色只兑了一成语气色，白底表格里看不出边界。
-     带语气的取语气本体那一档（组件库为「3:1 边界」备的就是它），其余取默认描边色。 */
-  [data-scope='tag'][data-part='root'][data-variant='subtle'] {
-    border-color: var(--xh-border-default);
-  }
-
-  [data-scope='tag'][data-part='root'][data-variant='subtle'][data-tone] {
-    border-color: var(--xh-_tone-border-control);
-  }
-
   /* 状态色的实心底按固定明度校准：上面那份是「原色兑黑八成」，明度由用户挑的那枚状态色定，
      偏浅就压不住白字（实测 success 3.21、warning 3.00、danger 4.47），前景只好翻成深字，
      而深字压在饱和底上小字号下就是糊的。压到能上白字的深度，色相与彩度原样保留。

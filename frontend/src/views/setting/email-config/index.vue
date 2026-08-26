@@ -76,7 +76,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: (row) => {
       const isDefault = (row as unknown as EmailConfigListItemDto).isDefault
       return isDefault
-        ? h(XhTagRoot, { variant: 'solid', tone: 'warning' }, () => h(XhTagLabel, () => t('message.email_config.tag.default')))
+        ? h(XhTagRoot, { variant: 'outline', tone: 'warning' }, () => h(XhTagLabel, () => t('message.email_config.tag.default')))
         : h('span', { style: 'opacity:.45' }, '—')
     },
   },
@@ -92,7 +92,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 8,
     render: (row) => {
       const enabled = (row as unknown as EmailConfigListItemDto).isEnabled
-      return h(XhTagRoot, { variant: 'solid', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('message.email_config.tag.enabled') : t('message.email_config.tag.disabled')))
+      return h(XhTagRoot, { variant: 'outline', tone: enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => enabled ? t('message.email_config.tag.enabled') : t('message.email_config.tag.disabled')))
     },
   },
   { key: 'sort', title: t('message.email_config.columns.sort'), dataType: 'number', sortable: true, width: 80, order: 9 },

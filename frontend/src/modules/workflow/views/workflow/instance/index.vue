@@ -102,14 +102,14 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: (row) => {
       const r = row as unknown as WorkflowInstanceListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: statusTag(r.status) }, () => h(XhTagLabel, () => statusLabel(r.status)))
+      return h(XhTagRoot, { variant: 'outline', tone: statusTag(r.status) }, () => h(XhTagLabel, () => statusLabel(r.status)))
     },
   },
   { key: 'definitionCode', title: t('workflow.instance.definition_code'), dataType: 'string', searchable: true, sortable: true, minWidth: 150, order: 2 },
   { key: 'name', title: t('workflow.instance.name'), dataType: 'string', sortable: true, minWidth: 180, order: 10 },
   { key: 'definitionVersion', title: t('workflow.instance.version'), dataType: 'number', width: 80, order: 11, render: (row) => {
     const r = row as unknown as WorkflowInstanceListItemDto
-    return h(XhTagRoot, { variant: 'solid', tone: 'neutral' }, () => h(XhTagLabel, () => `v${r.definitionVersion}`))
+    return h(XhTagRoot, { variant: 'outline', tone: 'neutral' }, () => h(XhTagLabel, () => `v${r.definitionVersion}`))
   } },
   { key: 'correlationId', title: t('workflow.instance.correlation_id'), dataType: 'string', searchable: true, minWidth: 140, order: 12 },
   { key: 'starterId', title: t('workflow.instance.starter'), dataType: 'string', minWidth: 110, order: 13 },
