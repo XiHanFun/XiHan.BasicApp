@@ -90,3 +90,11 @@ export const ALL_THEME_COLORS = [
   DEFAULT_THEME_COLOR,
   ...THEME_COLOR_GROUPS.flatMap(g => g.items.map(i => i.color)),
 ]
+
+// ==================== 底座项目 ====================
+
+/** 页脚署名列出的底座项目：后端框架与前端组件库 */
+export const FOUNDATION_PROJECTS = [
+  { name: 'XiHan.Framework', url: 'https://github.com/XiHanFun/XiHan.Framework' },
+  { name: 'XiHan.UI', url: 'https://github.com/XiHanFun/XiHan.UI' },
+] as const
