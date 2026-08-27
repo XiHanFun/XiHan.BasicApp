@@ -92,6 +92,10 @@ export function filterTree<T extends { children?: T[] }>(
 
 /**
  * 获取节点的所有父节点 id
+ *
+ * 沿 parentId 逐级上溯时记录走过的节点：菜单、部门、字典这些树的 parentId 由人工维护，
+ * 一旦配成环（a 的父是 b、b 的父是 a），无记录的上溯会在环上无限交替取值，
+ * result 一直增长到内存耗尽，主线程直接卡死。命中环时就地截断，返回已求得的那段。
  */
 export function getParentIds<T extends { basicId: string, parentId?: string }>(
   list: T[],
@@ -99,10 +103,16 @@ export function getParentIds<T extends { basicId: string, parentId?: string }>(
 ): string[] {
   const map = new Map(list.map(item => [item.basicId, item]))
   const result: string[] = []
+  const visited = new Set<string>([basicId])
   let current = map.get(basicId)
   while (current?.parentId) {
-    result.unshift(current.parentId)
-    current = map.get(current.parentId)
+    const { parentId } = current
+    if (visited.has(parentId)) {
+      break
+    }
+    visited.add(parentId)
+    result.unshift(parentId)
+    current = map.get(parentId)
   }
   return result
 }
