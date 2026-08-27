@@ -52,11 +52,21 @@ public sealed class DataProtectionAiProviderSecretProtector : IAiProviderSecretP
     /// </summary>
     /// <param name="value">密文</param>
     /// <returns>明文密钥</returns>
+    /// <exception cref="InvalidOperationException">值不带 <c>dp:</c> 前缀，即不是本保护器写入的密文。</exception>
     public string? Unprotect(string? value)
     {
         if (string.IsNullOrEmpty(value))
         {
             return value;
+        }
+
+        // 先判前缀再切片：不带前缀的历史明文/脏值直接给出可读的错误语义。
+        // 否则短于 3 字符的值会在切片处抛 ArgumentOutOfRangeException，
+        // 够长但无前缀的值会被砍掉 3 个有效字符后抛 CryptographicException，
+        // 两者都会把「不是本保护器写的值」误报成「密钥环不匹配」，误导排查方向。
+        if (!value.StartsWith(SaasSecretProtectionPurposes.CipherPrefix, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException("AI Provider 密钥不是有效密文（缺少 dp: 前缀）。");
         }
 
         // 密钥一律为本保护器写入的密文，去前缀直接解密；解密失败即抛（fail-closed，不做旧明文兼容）

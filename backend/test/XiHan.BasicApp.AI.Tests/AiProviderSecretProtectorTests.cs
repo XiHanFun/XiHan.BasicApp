@@ -1,8 +1,11 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
+using System.Reflection;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.DataProtection;
+using XiHan.BasicApp.AI.Domain.Entities;
 using XiHan.BasicApp.AI.Infrastructure.Security;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
 
@@ -169,17 +172,57 @@ public sealed class AiProviderSecretProtectorTests
     }
 
     /// <summary>
-    /// 无 <c>dp:</c> 前缀的历史明文必须解密失败（fail-closed，源码注释明确不做旧明文兼容）。
+    /// 无 <c>dp:</c> 前缀的历史明文必须解密失败（fail-closed，源码注释明确不做旧明文兼容），
+    /// 且必须给出"不是本保护器写的值"这一明确语义。
     /// </summary>
+    /// <remarks>
+    /// 回归锚点：旧实现不判前缀直接切片——短于 3 字符的脏值在切片处抛 ArgumentOutOfRangeException，
+    /// 够长但无前缀的历史明文被砍掉 3 个有效字符后抛 CryptographicException，
+    /// 两者都会被误读成"密钥环不匹配/密文损坏"，把排查方向带偏。
+    /// </remarks>
     /// <param name="value">未加密的历史值。</param>
     [Theory]
     [InlineData("sk-legacy-plaintext")]
     [InlineData("xy")]
-    public void Unprotect_LegacyPlaintextWithoutPrefixShouldThrow(string value)
+    [InlineData("d")]
+    [InlineData("dp")]
+    [InlineData("DP:cipher")]
+    public void Unprotect_LegacyPlaintextWithoutPrefixShouldThrowInvalidOperation(string value)
     {
         var protector = CreateProtector();
 
-        _ = Assert.ThrowsAny<Exception>(() => protector.Unprotect(value));
+        var exception = Assert.Throws<InvalidOperationException>(() => protector.Unprotect(value));
+
+        Assert.Contains("不是有效密文", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 取到领域层上限（1000 字符）的明文加密后必须仍能落进 Api_Key 列，
+    /// 这是 AiProviderDomainService.ApiKeyMaxLength 的推导依据。
+    /// </summary>
+    /// <remarks>
+    /// 回归锚点：落库的是密文不是明文。Data Protection 密文约为明文的 4/3 再加固定头部与 <c>dp:</c> 前缀，
+    /// 明文越过列长对应的临界点后密文会被截断（截断的密文永久解不开）或写库直接报错，
+    /// 而领域层原先对 ApiKey 没有任何长度校验。
+    /// 列长直接从实体读，上限与列长任何一侧被改窄都会在此先红。
+    /// </remarks>
+    [Fact]
+    public void Protect_MaxLengthPlaintextCipherShouldFitColumn()
+    {
+        // 必须与 AiProviderDomainService.ApiKeyMaxLength 保持一致（该常量为私有，故此处按值复刻）。
+        const int ApiKeyMaxLength = 1000;
+        var columnLength = typeof(SysAiProvider)
+            .GetProperty(nameof(SysAiProvider.ApiKey))!
+            .GetCustomAttribute<SugarColumn>()!
+            .Length;
+        var protector = CreateProtector();
+
+        var cipher = protector.Protect(new string('k', ApiKeyMaxLength))!;
+
+        Assert.True(columnLength > 0, "Api_Key 改成不定长列后，本用例的列长推导前提失效，需同步修订领域层上限注释。");
+        Assert.True(
+            cipher.Length <= columnLength,
+            $"明文 {ApiKeyMaxLength} 字符加密后为 {cipher.Length} 字符，已超出 Api_Key 列长 {columnLength}。");
     }
 
     /// <summary>

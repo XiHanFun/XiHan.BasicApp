@@ -39,8 +39,12 @@ public sealed class SaasAiProviderConfigStore : IAiProviderConfigStore
     }
 
     /// <summary>
-    /// 取指定 provider 的生效配置（null 取默认 provider）；无匹配返回 null（调用方 fail-closed 处理）
+    /// 取指定 provider 的生效配置（null 取默认 provider）；无匹配或密钥解密失败均返回 null（调用方 fail-closed 处理）
     /// </summary>
+    /// <remarks>
+    /// 密钥解不开时与 <see cref="GetAllAsync"/> 的坏行降级口径一致：记 Warning 后按「未配置 provider」处理，
+    /// 不把解密异常抛进请求管道（同一份数据两条读路径不能给出两种失败语义），更不回退明文。
+    /// </remarks>
     public async Task<AiProviderOptions?> GetAsync(string? providerName = null, CancellationToken cancellationToken = default)
     {
         SysAiProvider? provider;
@@ -52,7 +56,21 @@ public sealed class SaasAiProviderConfigStore : IAiProviderConfigStore
                 : await repository.GetEnabledByCodeAsync(providerName, cancellationToken);
         }
 
-        return provider is null ? null : Map(provider);
+        if (provider is null)
+        {
+            return null;
+        }
+
+        try
+        {
+            return Map(provider);
+        }
+        catch (Exception ex)
+        {
+            // 与 GetAllAsync 同一口径：密钥解不开即视作该 provider 不可用（fail-closed，不回退明文）
+            _logger.LogWarning(ex, "AI Provider [{ConfigCode}] 密钥解密失败，已按未配置处理。", provider.ConfigCode);
+            return null;
+        }
     }
 
     /// <summary>
