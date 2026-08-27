@@ -147,15 +147,29 @@ describe('useTabs.disableState 禁用位判定', () => {
     expect(state.closeAll).toBe(false)
   })
 
-  it('当前路由不在标签列表中时按「无当前标签」处理，关闭当前被禁用', () => {
+  // 回归锚点（清单条目 17）：currentIndex 为 -1 时 slice(0, -1) / slice(0) 会误判「左右有可关闭项」，
+  // 但 store 的 closeLeft/closeRight 在找不到 key 时直接 return，菜单项可点却无效；
+  // closeOthers 更会把全部可关闭标签清空。故除「关闭全部」外必须全部禁用。
+  it('当前路由不在标签列表中时，除关闭全部外的动作一律禁用', () => {
     seedTabs()
     routeStub.path = '/ghost'
 
-    const state = useTabs().disableState.value
+    expect(useTabs().disableState.value).toEqual({
+      closeCurrent: true,
+      closeLeft: true,
+      closeRight: true,
+      closeOthers: true,
+      closeAll: false,
+    })
+  })
 
-    expect(state.closeCurrent).toBe(true)
-    // findIndex 返回 -1，slice(0, -1) 覆盖到倒数第二个 → 左侧仍判定有可关闭项
-    expect(state.closeLeft).toBe(false)
+  // 回归锚点（清单条目 17）：无当前标签且没有任何可关闭标签时，关闭全部也应禁用。
+  it('当前路由不在标签列表中且无可关闭标签时，关闭全部同样禁用', () => {
+    const store = useTabbarStore()
+    store.tabs = [tab(HOME_PATH, false)]
+    routeStub.path = '/ghost'
+
+    expect(useTabs().disableState.value.closeAll).toBe(true)
   })
 })
 

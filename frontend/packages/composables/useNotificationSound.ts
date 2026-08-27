@@ -42,7 +42,6 @@ const VOICES: Record<string, NotifyToneSpec[]> = {
  * 注册一套具名音色；同名覆盖。
  * @param kind 音色名。
  * @param specs 音序列。
- * @returns 无返回值。
  */
 export function registerNotificationSound(kind: NotifySoundKind, specs: NotifyToneSpec[]): void {
   VOICES[kind] = specs
@@ -51,6 +50,8 @@ export function registerNotificationSound(kind: NotifySoundKind, specs: NotifyTo
 type AudioContextCtor = typeof AudioContext
 
 let context: AudioContext | null = null
+/** 音频上下文已确认不可用（不支持 / 构造即抛）；记住失败，不再逐条消息重试构造 */
+let contextUnavailable = false
 /** 下一声最早可以从什么时候开始（AudioContext 时钟） */
 let nextAvailableAt = 0
 let enabledResolver: (() => boolean) | null = null
@@ -64,17 +65,23 @@ function resolveContext(): AudioContext | null {
   if (context) {
     return context
   }
+  if (contextUnavailable) {
+    return null
+  }
   const Ctor: AudioContextCtor | undefined = window.AudioContext
     ?? (window as unknown as { webkitAudioContext?: AudioContextCtor }).webkitAudioContext
   if (!Ctor) {
+    contextUnavailable = true
     return null
   }
   try {
     context = new Ctor()
   }
   catch {
-    // 部分环境（无音频设备、隐私模式）构造即抛，静默降级为不发声
+    // 部分环境（无音频设备、隐私模式）构造即抛，静默降级为不发声。
+    // 记住这次失败：消息密集时否则每条都要再 new 一次并再抛一次。
     context = null
+    contextUnavailable = true
   }
   return context
 }

@@ -23,8 +23,22 @@ export function useTabs() {
     const tabs = tabbarStore.tabs
     const currentPath = route.path
     const currentIndex = tabs.findIndex(tab => tab.path === currentPath)
-    const tab = tabs[currentIndex]
     const closableTabs = tabs.filter(t => t.closable)
+
+    // 当前路由还没有对应标签（标签被别处关掉、或路由尚未 ensureTab）：
+    // 此时 store 的 closeLeft/closeRight 会直接 return、closeOthers 会误清空全部可关闭标签，
+    // 因此除「关闭全部」外一律禁用，避免菜单项可点却无效（或反而做错事）。
+    if (currentIndex < 0) {
+      return {
+        closeCurrent: true,
+        closeLeft: true,
+        closeRight: true,
+        closeOthers: true,
+        closeAll: closableTabs.length === 0,
+      }
+    }
+
+    const tab = tabs[currentIndex]
     const leftClosable = tabs.slice(0, currentIndex).some(t => t.closable)
     const rightClosable = tabs.slice(currentIndex + 1).some(t => t.closable)
 

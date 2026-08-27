@@ -3,8 +3,8 @@
  * 职责：锁定「安装幂等且在捕获期记录点击源」「点击源与弹窗必须落在 800ms 关联窗口内」
  * 「开关关闭 / 系统减弱动效时整体跳过」「幽灵容器动画结束后自我清理」以及关闭时的反向播放。
  *
- * 该模块是应用级一次性安装（装上的 pointerdown 监听与 MutationObserver 不提供卸载入口），
- * 因此全文件共用同一次安装，用例之间靠时间轴推进使上一次点击源过期来隔离。
+ * 该模块是应用级一次性安装，全文件共用同一次安装，用例之间靠时间轴推进使上一次点击源过期来隔离；
+ * 卸载入口（setupContainerTransform 的返回值）单独在文末一组用例里验证并当场重装还原。
  * WAAPI / DOMMatrix / rAF 在 jsdom 缺失，全部用替身注入并在收尾还原。
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest'
@@ -26,6 +26,16 @@ let reduceMotion = false
 let enabled = true
 let clock = 1_000_000
 const addSpyCalls: Array<[string, unknown, unknown]> = []
+/**
+ * beforeAll 里那三次幂等安装刚做完时的监听登记快照。
+ *
+ * 断言安装幂等性必须看这份快照而不是 addSpyCalls 本身：文末「卸载后重装」那组用例会
+ * 再装一次，往 addSpyCalls 里追加新的 pointerdown。按声明顺序执行时它排在最后、影响不到
+ * 前面的断言，一旦乱序（vitest --sequence.shuffle）先跑到它，前面的
+ * toHaveLength(1) 就会看到 2 条而失败 —— 用例通过与否取决于执行顺序。
+ */
+let installSnapshot: Array<[string, unknown, unknown]> = []
+let setup: typeof import('./useContainerTransform').setupContainerTransform
 
 beforeAll(async () => {
   globalThis.requestAnimationFrame = ((cb: FrameRequestCallback) => {
@@ -79,11 +89,13 @@ beforeAll(async () => {
     return realAdd(type as keyof DocumentEventMap, listener as EventListener, options as boolean)
   }) as typeof document.addEventListener
 
-  const { setupContainerTransform } = await import('./useContainerTransform')
+  const mod = await import('./useContainerTransform')
+  setup = mod.setupContainerTransform
   // 幂等：连装三次也只应留下一份监听
-  setupContainerTransform({ enabled: () => enabled })
-  setupContainerTransform({ enabled: () => false })
-  setupContainerTransform()
+  setup({ enabled: () => enabled })
+  setup({ enabled: () => false })
+  setup()
+  installSnapshot = [...addSpyCalls]
 })
 
 beforeEach(() => {
@@ -173,11 +185,11 @@ async function flushObserver(): Promise<void> {
 
 describe('setupContainerTransform 安装', () => {
   it('重复调用只装一次全局 pointerdown 监听', () => {
-    expect(addSpyCalls.filter(call => call[0] === 'pointerdown')).toHaveLength(1)
+    expect(installSnapshot.filter(call => call[0] === 'pointerdown')).toHaveLength(1)
   })
 
   it('点击源在捕获期记录，早于任何 UI 框架的处理', () => {
-    const call = addSpyCalls.find(item => item[0] === 'pointerdown')
+    const call = installSnapshot.find(item => item[0] === 'pointerdown')
 
     expect(call?.[2]).toBe(true)
   })
@@ -412,5 +424,55 @@ describe('弹窗关闭时的反向播放', () => {
     await flushObserver()
 
     expect(animations).toHaveLength(0)
+  })
+})
+
+// 放在文件末尾：这组用例会真的卸载再重装，避免影响前面共用同一次安装的用例。
+describe('卸载入口', () => {
+  // 回归锚点（清单条目 46）：修复前 setupContainerTransform 返回 void，
+  // pointerdown 监听与 MutationObserver 装上后没有任何卸载入口，
+  // 微前端 / 多实例卸载场景会残留监听，lastSource 也长期握着 DOMRect。
+  it('卸载后 pointerdown 不再被记录、弹窗挂载也不再变形，重装后恢复', async () => {
+    const dispose = setup({ enabled: () => enabled })
+    expect(typeof dispose).toBe('function')
+
+    dispose()
+
+    clickSource()
+    openModal()
+    await flushObserver()
+    flushFrames()
+    expect(animations).toHaveLength(0)
+
+    // 重装后重新生效（installed 标志已随卸载复位）
+    const reinstalled = setup({ enabled: () => enabled })
+    clock += 1_000_000
+    clickSource()
+    openModal()
+    await flushObserver()
+    flushFrames()
+
+    expect(animations).toHaveLength(1)
+    expect(typeof reinstalled).toBe('function')
+  })
+
+  it('重复安装拿到的是同一个卸载函数，重复卸载不误伤后来的安装', async () => {
+    const first = setup({ enabled: () => enabled })
+    const second = setup({ enabled: () => false })
+
+    expect(second).toBe(first)
+
+    first()
+    // 卸载后重装，再拿旧句柄卸一次：不应把新安装也卸掉
+    setup({ enabled: () => enabled })
+    first()
+
+    clock += 1_000_000
+    clickSource()
+    openModal()
+    await flushObserver()
+    flushFrames()
+
+    expect(animations).toHaveLength(1)
   })
 })

@@ -107,15 +107,31 @@ describe('getPinyinIndex 索引内容', () => {
     expect(getPinyinIndex('2号楼')?.initials).toBe('2hl')
   })
 
-  it('emoji 按 UTF-16 码元逐个入索引，各占一位映射（当前行为）', async () => {
+  // 回归锚点（清单条目 44）：代理对必须按码点整体入索引。
+  // 修复前 fullMap 是 [0, 1, 2, 2, 2]——emoji 的低位半字符被映射成一个独立字符下标，
+  // 高亮到该位会切出半个代理对（乱码方块），首字母串也多算一位。
+  it('emoji 按码点整体入索引，代理对两个码元一并映射到同一原字符', async () => {
     const { ensurePinyin, getPinyinIndex } = await loadModule()
     await ensurePinyin()
     const index = getPinyinIndex('🚀盘')
 
     expect(index?.full).toBe('🚀pan')
-    // 代理对被拆成两个码元，各自映射到自己的下标
-    expect(index?.fullMap).toEqual([0, 1, 2, 2, 2])
+    expect(index?.fullMap).toEqual([0, 0, 2, 2, 2])
     expect(index?.initials).toBe('🚀p')
+    // 首字母串按码点数只有两位（emoji + p），而不是三位
+    expect([...(index?.initials ?? '')]).toHaveLength(2)
+  })
+
+  // 回归锚点（清单条目 44）：fullMap 必须与 full 逐码元等长，
+  // 消费方按 full 的码元下标反查 fullMap，短一位就会取到 undefined。
+  it('含 emoji 时 fullMap 仍与全拼逐码元等长', async () => {
+    const { ensurePinyin, getPinyinIndex } = await loadModule()
+    await ensurePinyin()
+    const index = getPinyinIndex('🚀盘符🎉')
+
+    expect(index?.fullMap).toHaveLength(index?.full.length ?? -1)
+    // 'pan' 的三位全部映射到 '盘' 所在的码元下标 2
+    expect(index?.fullMap.slice(2, 5)).toEqual([2, 2, 2])
   })
 })
 

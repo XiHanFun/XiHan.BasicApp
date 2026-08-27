@@ -52,7 +52,10 @@ export function useEnumService() {
    */
   async function ensureAll(language?: string): Promise<Record<string, EnumDefinition>> {
     const lang = resolveLanguage(language)
-    if (loadedLang.value === lang && Object.keys(enumState.value).length > 0) {
+    // 命中条件只看 loadedLang——它仅在请求成功回调里写入，失败时保持原值自然会重取。
+    // 不能再叠加「集合非空」：后端合法地返回 {}（枚举模块未部署 / 全部隐藏）时缓存永不命中，
+    // 一屏 N 个下拉就会打 N 次全量请求。
+    if (loadedLang.value === lang) {
       return enumState.value
     }
     if (inflight && inflightLang === lang) {
