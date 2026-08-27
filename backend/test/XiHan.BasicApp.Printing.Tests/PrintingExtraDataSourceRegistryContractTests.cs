@@ -235,21 +235,88 @@ public sealed class PrintingExtraDataSourceRegistryContractTests
     }
 
     /// <summary>
-    /// 非 table 字段上的列定义当前不参与校验，这是「只有 table 才读 Columns」的直接后果；
-    /// 该用例锁定现状，若将来改为一并校验，此处会立刻变红提示同步契约文档。
+    /// 回归锚点：非 table 字段带列定义必须拒绝。列契约只对明细表有意义，
+    /// 挂在 text/image 字段上的列在设计器与解析器侧都是死数据，只能靠人工比对才能发现，
+    /// 因此必须在注册阶段（应用启动）就暴露，而不是静默收下。
     /// </summary>
     [Fact]
-    public void Register_NonTableFieldWithInvalidColumns_ShouldStillBeAccepted()
+    public void Register_NonTableFieldWithColumns_ShouldBeRejected()
+    {
+        var registry = new PrintDataSourceRegistry([]);
+
+        var exception = Assert.Throws<ArgumentException>(() => registry.Register(new PrintDataSourceDefinition(
+            "erp.ignored-columns",
+            "被忽略的列",
+            [new("f", "字段", "text", [new(" ", " ")])],
+            "{}")));
+
+        Assert.Contains("不能携带明细表列定义", exception.Message, StringComparison.Ordinal);
+        Assert.False(registry.IsRegistered("erp.ignored-columns"));
+    }
+
+    /// <summary>
+    /// 合法的列定义挂在非 table 字段上同样拒绝：判定依据是「类型不是 table 却带了列」，
+    /// 而不是「列本身写得对不对」。
+    /// </summary>
+    [Theory]
+    [InlineData("text")]
+    [InlineData("image")]
+    [InlineData("barcode")]
+    [InlineData("qrcode")]
+    public void Register_NonTableFieldWithValidColumns_ShouldBeRejected(string kind)
+    {
+        var registry = new PrintDataSourceRegistry([]);
+
+        _ = Assert.Throws<ArgumentException>(() => registry.Register(new PrintDataSourceDefinition(
+            $"erp.columns-{kind}",
+            "类型与列不匹配",
+            [new("f", "字段", kind, [new("c", "列")])],
+            "{}")));
+    }
+
+    /// <summary>
+    /// 非 table 字段的空列表与 null 等价，不构成「携带了列定义」，必须继续放行。
+    /// </summary>
+    [Fact]
+    public void Register_NonTableFieldWithEmptyColumns_ShouldBeAccepted()
     {
         var registry = new PrintDataSourceRegistry([]);
 
         registry.Register(new PrintDataSourceDefinition(
-            "erp.ignored-columns",
-            "被忽略的列",
-            [new("f", "字段", "text", [new(" ", " ")])],
+            "erp.empty-columns",
+            "空列表",
+            [new("f", "字段", "text", [])],
             "{}"));
 
-        Assert.True(registry.IsRegistered("erp.ignored-columns"));
+        Assert.True(registry.IsRegistered("erp.empty-columns"));
+    }
+
+    /// <summary>
+    /// 回归锚点：字段级与列级的全部拒绝路径，异常参数名都必须是公开入口
+    /// <c>Register(PrintDataSourceDefinition definition)</c> 的形参名，
+    /// 而不是私有辅助方法的形参（field / inputType）——后者是调用方根本看不到的名字。
+    /// </summary>
+    [Fact]
+    public void Register_FieldAndColumnRejections_ShouldReportPublicParameterName()
+    {
+        var registry = new PrintDataSourceRegistry([]);
+
+        var invalidKind = Assert.Throws<ArgumentException>(() => registry.Register(
+            new PrintDataSourceDefinition("erp.p1", "非法类型", [new("f", "字段", "video")], "{}")));
+        var invalidFieldInputType = Assert.Throws<ArgumentException>(() => registry.Register(
+            new PrintDataSourceDefinition("erp.p2", "非法控件", [new("f", "字段", "text", null, "richtext")], "{}")));
+        var invalidColumnInputType = Assert.Throws<ArgumentException>(() => registry.Register(
+            new PrintDataSourceDefinition("erp.p3", "非法列控件", [new("items", "明细", "table", [new("c", "列", 60, "richtext")])], "{}")));
+        var emptyTableColumns = Assert.Throws<ArgumentException>(() => registry.Register(
+            new PrintDataSourceDefinition("erp.p4", "空列明细", [new("items", "明细", "table")], "{}")));
+        var duplicatedField = Assert.Throws<ArgumentException>(() => registry.Register(
+            new PrintDataSourceDefinition("erp.p5", "重复字段", [new("f", "字段一"), new("f", "字段二")], "{}")));
+        var duplicatedColumn = Assert.Throws<ArgumentException>(() => registry.Register(
+            new PrintDataSourceDefinition("erp.p6", "重复列", [new("items", "明细", "table", [new("c", "列一"), new("c", "列二")])], "{}")));
+
+        Assert.All(
+            new[] { invalidKind, invalidFieldInputType, invalidColumnInputType, emptyTableColumns, duplicatedField, duplicatedColumn },
+            exception => Assert.Equal("definition", exception.ParamName ?? string.Empty, StringComparer.Ordinal));
     }
 
     /// <summary>

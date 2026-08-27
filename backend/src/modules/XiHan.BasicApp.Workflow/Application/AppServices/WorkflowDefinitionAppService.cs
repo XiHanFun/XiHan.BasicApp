@@ -55,6 +55,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
     public async Task<WorkflowDefinitionDetailDto> UpdateDraftAsync(WorkflowDefinitionUpdateDraftDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
+        RequirePositiveKey(input.BasicId, nameof(input));
 
         var definition = ParseDefinition(input.DefinitionJson);
         definition.Id = ToWorkflowId(input.BasicId);
@@ -69,6 +70,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
     public async Task<WorkflowDefinitionDetailDto> PublishAsync(WorkflowDefinitionIdDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
+        RequirePositiveKey(input.BasicId, nameof(input));
 
         var published = await TranslateAsync(() => _definitionManager.PublishAsync(ToWorkflowId(input.BasicId), cancellationToken));
         return WorkflowApplicationMapper.ToDetailDto(published);
@@ -94,6 +96,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
     public async Task<WorkflowDefinitionDetailDto> DisableAsync(WorkflowDefinitionIdDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
+        RequirePositiveKey(input.BasicId, nameof(input));
 
         var disabled = await TranslateAsync(() => _definitionManager.DisableAsync(ToWorkflowId(input.BasicId), cancellationToken));
         return WorkflowApplicationMapper.ToDetailDto(disabled);
@@ -106,6 +109,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
     public async Task<WorkflowDefinitionDetailDto> ArchiveAsync(WorkflowDefinitionIdDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
+        RequirePositiveKey(input.BasicId, nameof(input));
 
         var archived = await TranslateAsync(() => _definitionManager.ArchiveAsync(ToWorkflowId(input.BasicId), cancellationToken));
         return WorkflowApplicationMapper.ToDetailDto(archived);
@@ -117,10 +121,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
     [PermissionAuthorize(WorkflowPermissionCodes.Delete)]
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "定义主键必须大于 0。");
-        }
+        RequirePositiveKey(id, nameof(id));
 
         await TranslateAsync(async () =>
         {
@@ -158,6 +159,24 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         catch (WorkflowException ex)
         {
             throw new BusinessException(message: ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// 按主键操作的统一入参守卫：定义主键必须为正数。
+    /// </summary>
+    /// <remarks>
+    /// 0 与负数会被 <see cref="ToWorkflowId"/> 原样拼成 "0" / "-1" 下探给定义管理器，
+    /// 再由框架侧以 NumberStyles.None 解析失败抛协议异常，最终翻译成一条带框架内部标识文本的业务异常，
+    /// 调用方无从判断是自己漏传了主键。在入口拒绝，错误就停在参数层。
+    /// </remarks>
+    /// <param name="id">定义主键</param>
+    /// <param name="paramName">对外暴露的参数名</param>
+    private static void RequirePositiveKey(long id, string paramName)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(paramName, "定义主键必须大于 0。");
         }
     }
 

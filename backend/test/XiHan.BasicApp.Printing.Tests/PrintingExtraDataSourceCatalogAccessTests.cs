@@ -104,6 +104,25 @@ public sealed class PrintingExtraDataSourceCatalogAccessTests
     }
 
     /// <summary>
+    /// 回归锚点：入口必须先检查取消。权限检查器可能走缓存命中而不做任何异步 IO，
+    /// 只把令牌透传下去并不能让已取消的请求停下来，目录投影仍会整份跑完。
+    /// 这与 PrintTemplateQueryService 三个查询方法「方法体第一行检查取消」是同一口径。
+    /// </summary>
+    [Fact]
+    public async Task GetListAsync_WithCancelledToken_ShouldThrowBeforeAnyWork()
+    {
+        var fixture = CreateFixture(hasRead: true, hasUse: true);
+        using var cancellation = new CancellationTokenSource();
+        await cancellation.CancelAsync();
+
+        _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => fixture.Service.GetListAsync(cancellation.Token));
+
+        fixture.PermissionChecker.Verify(
+            checker => checker.IsGrantedAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
     /// 目录投影必须完整搬运字段与明细表列，设计器素材面板依赖这份结构生成拖拽元素。
     /// </summary>
     [Fact]
