@@ -151,7 +151,9 @@ describe('草稿 API 由门面透出且与 helpers 共享同一份状态', () =>
     expect(localStorage.getItem(THEME_COLOR_KEY)).toBeNull()
   })
 
-  it('还原动作本身又把 dirty 顶回 true（还原值经 watch 在暂停期被当成一次草稿变更）', async () => {
+  // 回归锚点（缺陷 32）：还原值经 watch 在暂停期会被当成一次草稿变更，把刚复位的 dirty 顶回 true；
+  // 修复后在解除暂停的同一步再复位一次，取消之后不得再提示「有未保存改动」
+  it('放弃草稿后 dirty 保持 false —— 还原动作自身不得把它顶回 true', async () => {
     const store = freshStore()
     store.beginPreferenceDraft()
     store.setThemeColor('#abcabc')
@@ -160,9 +162,6 @@ describe('草稿 API 由门面透出且与 helpers 共享同一份状态', () =>
     store.discardPreferenceDraft()
     await nextTick()
 
-    // 下一次打开抽屉时 beginPreferenceDraft 会把它重新归零，所以界面上看不出来
-    expect(store.preferenceDraftDirty).toBe(true)
-    store.beginPreferenceDraft()
     expect(store.preferenceDraftDirty).toBe(false)
   })
 })

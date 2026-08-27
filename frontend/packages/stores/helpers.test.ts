@@ -371,7 +371,9 @@ describe('偏好草稿：预览 / 保存 / 还原', () => {
     expect(saveApi).not.toHaveBeenCalled()
   })
 
-  it('进入草稿前排队的防抖上行仍会触发，并把草稿预览值一起带走（当前真实行为）', async () => {
+  // 回归锚点（缺陷 11）：定时器回调原先只复查同步开关，进入草稿前排队的那一次上行会照常触发，
+  // 用当前内存值构建整份快照，把未保存的草稿预览值落库并实时推给其它设备。
+  it('进入草稿前排队的防抖上行到期时被草稿门拦下，草稿预览值不会上行', async () => {
     vi.useFakeTimers()
     getApi.mockResolvedValue({ scene: 0, settingKey: PREFERENCE_SETTING_KEY, settingValue: '{}' })
     const appStore = freshAppStore()
@@ -382,10 +384,46 @@ describe('偏好草稿：预览 / 保存 / 还原', () => {
     await vi.advanceTimersByTimeAsync(400)
     beginPreferenceDraft()
     appStore.setUiRadius(0.99)
+    await vi.advanceTimersByTimeAsync(2000)
+
+    expect(saveApi).not.toHaveBeenCalled()
+  })
+
+  // 回归锚点（缺陷 11）：草稿期被拦下的上行不是丢数据——快照是全量的，保存草稿即整份补上
+  it('草稿期被拦下后点保存，最新值仍会整份上行', async () => {
+    vi.useFakeTimers()
+    getApi.mockResolvedValue({ scene: 0, settingKey: PREFERENCE_SETTING_KEY, settingValue: '{}' })
+    const appStore = freshAppStore()
+    await hydratePreferencesFromBackend({ showIsland: false })
+    saveApi.mockClear()
+
+    appStore.setThemeColor('#111111')
     await vi.advanceTimersByTimeAsync(400)
+    beginPreferenceDraft()
+    appStore.setUiRadius(0.99)
+    await vi.advanceTimersByTimeAsync(2000)
+    commitPreferenceDraft()
 
     expect(saveApi).toHaveBeenCalledTimes(1)
-    expect(lastSavedSnapshot()[UI_RADIUS_KEY]).toBe(0.99)
+    const snapshot = lastSavedSnapshot()
+    expect(snapshot[THEME_COLOR_KEY]).toBe('#111111')
+    expect(snapshot[UI_RADIUS_KEY]).toBe(0.99)
+  })
+
+  // 回归锚点（缺陷 11）：退出登录同样是一道门——排队中的上行不得在登出后打到后端
+  it('排队期间退出登录（关闭会话回写门）后不再上行', async () => {
+    vi.useFakeTimers()
+    getApi.mockResolvedValue({ scene: 0, settingKey: PREFERENCE_SETTING_KEY, settingValue: '{}' })
+    const appStore = freshAppStore()
+    await hydratePreferencesFromBackend({ showIsland: false })
+    saveApi.mockClear()
+
+    appStore.setThemeColor('#111111')
+    await vi.advanceTimersByTimeAsync(400)
+    resetPreferenceBackendSync()
+    await vi.advanceTimersByTimeAsync(2000)
+
+    expect(saveApi).not.toHaveBeenCalled()
   })
 })
 

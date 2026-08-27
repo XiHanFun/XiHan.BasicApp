@@ -295,7 +295,9 @@ describe('批量关闭', () => {
     expect(store.activeTab).toBe('/b')
   })
 
-  it('closeLeft 关掉了当前标签时 activeTab 仍指向已消失的标签（当前真实行为，不做兜底）', () => {
+  // 回归锚点（缺陷 34）：closeLeft/closeRight 曾只做 filter 不碰 activeTab，
+  // 关掉的正好是当前标签时留下悬空激活值——标签栏没有高亮项，内容区还停在已关闭的页
+  it('closeLeft 关掉了当前标签时 activeTab 收敛到目标标签', () => {
     const store = useTabbarStore()
     store.ensureTab(tab('/a'))
     store.ensureTab(tab('/b'))
@@ -304,10 +306,11 @@ describe('批量关闭', () => {
     store.closeLeft('/b')
 
     expect(store.tabKeys).toEqual([HOME_PATH, '/b'])
-    expect(store.activeTab).toBe('/a')
+    expect(store.activeTab).toBe('/b')
   })
 
-  it('closeRight 关掉了当前标签时 activeTab 同样悬空（与 removeTab / closeAll 的兜底不一致）', () => {
+  // 回归锚点（缺陷 34）：与 removeTab / closeOthers / closeAll 的兜底口径对齐
+  it('closeRight 关掉了当前标签时 activeTab 收敛到目标标签', () => {
     const store = useTabbarStore()
     store.ensureTab(tab('/a'))
     store.ensureTab(tab('/b'))
@@ -315,7 +318,7 @@ describe('批量关闭', () => {
     store.closeRight('/a')
 
     expect(store.tabKeys).toEqual([HOME_PATH, '/a'])
-    expect(store.activeTab).toBe('/b')
+    expect(store.activeTab).toBe('/a')
   })
 
   it('closeLeft 传不存在的 key 时不做任何事', () => {

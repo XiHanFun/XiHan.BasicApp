@@ -197,6 +197,14 @@ describe('formatFileSize 文件大小', () => {
     expect(formatFileSize(-1)).toBe('')
   })
 
+  // 回归锚点（缺陷 41）：守卫原先只挡 null 与负数，NaN / Infinity 会一路走到换算，
+  // 渲染出 "NaN KB" / "Infinity TB" 摆到界面上（附件 fileSize 缺失被 Number() 化即为 NaN）
+  it('非有限数（NaN / Infinity）按无效输入返回空串，不渲染出 "NaN KB"', () => {
+    expect(formatFileSize(Number.NaN)).toBe('')
+    expect(formatFileSize(Number.POSITIVE_INFINITY)).toBe('')
+    expect(formatFileSize(Number.NEGATIVE_INFINITY)).toBe('')
+  })
+
   it('小于 1024 字节保持整数 B，不换算', () => {
     expect(formatFileSize(0)).toBe('0 B')
     expect(formatFileSize(1)).toBe('1 B')

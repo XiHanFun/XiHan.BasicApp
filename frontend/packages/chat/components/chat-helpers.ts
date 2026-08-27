@@ -83,7 +83,9 @@ export function formatMessageTime(time?: null | string): string {
 
 /** 文件大小：B/KB/MB/GB（保留一位小数） */
 export function formatFileSize(bytes?: null | number): string {
-  if (bytes == null || bytes < 0) {
+  // NaN / ±Infinity 也算无效输入：后端字段缺失被 Number() 化即为 NaN，
+  // 不挡住会一路渲染成 "NaN KB" / "Infinity TB" 摆到界面上
+  if (bytes == null || !Number.isFinite(bytes) || bytes < 0) {
     return ''
   }
   if (bytes < 1024) {
