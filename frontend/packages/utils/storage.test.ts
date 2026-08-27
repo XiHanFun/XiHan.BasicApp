@@ -44,11 +44,24 @@ describe('本地存储读写往返', () => {
     expect(localStorage.getItem('raw')).toBe('"abc"')
   })
 
-  it('写入 undefined 会存成字面量 undefined，读回时解析失败降级为 null', () => {
+  it('写入 undefined 等同于删键，has 与 get 的结论保持一致', () => {
+    // 回归锚点：JSON.stringify(undefined) 返回 undefined，setItem 会把它转成字面量字符串
+    // 'undefined' 落盘，随后 has 判真、get 解析失败返回 null——以 has 做「是否已初始化」
+    // 判断的调用方拿到 true 再 get 却是 null，走进未预期分支。
+    LocalStorage.set('u', { a: 1 })
     LocalStorage.set('u', undefined)
 
-    expect(localStorage.getItem('u')).toBe('undefined')
+    expect(localStorage.getItem('u')).toBeNull()
     expect(LocalStorage.get('u')).toBeNull()
+    expect(LocalStorage.has('u')).toBe(false)
+  })
+
+  it('写入 undefined 不抛错也不残留脏值（会话级存储同口径）', () => {
+    SessionStorage.set('u', 'v')
+    SessionStorage.set('u', undefined)
+
+    expect(sessionStorage.getItem('u')).toBeNull()
+    expect(SessionStorage.get('u')).toBeNull()
   })
 
   it('写入 null 能正确往返为 null', () => {
@@ -125,6 +138,13 @@ describe('本地存储的 remove / clear / has', () => {
 
     expect(LocalStorage.has('empty')).toBe(true)
     expect(LocalStorage.get('empty')).toBeNull()
+  })
+
+  it('set(key, null) 是一次合法写入，has 判真而 get 如实返回 null —— has 有意保持键存在性语义', () => {
+    LocalStorage.set('n', null)
+
+    expect(LocalStorage.has('n')).toBe(true)
+    expect(LocalStorage.get('n')).toBeNull()
   })
 
   it('has 对损坏 JSON 的键返回真，判存与可读是两件事', () => {

@@ -5,7 +5,7 @@
  * 重点覆盖树工具最容易出错的输入：空集合、孤儿节点（父不存在）、重复 id、自引用、
  * 空字符串 parentId。其中若干条用例锁定的是源码**当前**行为（含缺陷），已在标题中标注。
  */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { filterTree, findTreeNode, getParentIds, listToTree, treeToList } from './tree'
 
 interface FlatNode {
@@ -62,21 +62,50 @@ describe('listToTree', () => {
     ])
   })
 
-  it('孤儿节点（父 id 在列表中不存在）被整个丢弃，不会提升为根（当前行为）', () => {
-    expect(listToTree<FlatNode>([{ basicId: 'x', parentId: 'ghost' }])).toEqual([])
+  it('孤儿节点（父 id 在列表中不存在）被提升为根节点，而不是静默消失', () => {
+    // 回归锚点：原实现的根层筛选只认「没有 parentId」，父 id 悬空的节点既进不了根层，
+    // 也没有任何一次递归会拿那个悬空 id 当 parentId，整条数据在接口里存在、树上却看不到也搜不到。
+    // 父被删除、或分页 / 权限过滤后父不在本批集合中都会命中，此时提升到根至少保证可见可操作。
+    expect(listToTree<FlatNode>([{ basicId: 'x', parentId: 'ghost' }])).toEqual([
+      { basicId: 'x', parentId: 'ghost' },
+    ])
   })
 
-  it('自引用节点因永远不在根层而被丢弃，不会造成死循环（当前行为）', () => {
+  it('被提升的孤儿节点仍然带着自己的子树', () => {
+    expect(
+      listToTree<FlatNode>([
+        { basicId: 'x', parentId: 'ghost' },
+        { basicId: 'x-1', parentId: 'x' },
+      ]),
+    ).toEqual([{ basicId: 'x', parentId: 'ghost', children: [{ basicId: 'x-1', parentId: 'x' }] }])
+  })
+
+  it('自引用节点的父确实存在（就是自己），不提升为根而是丢弃并告警', () => {
+    // 环上的节点父确实存在，只是这组数据构不成树，提升等于凭空造出一个假根 —— 与孤儿区别对待
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
     expect(listToTree<FlatNode>([{ basicId: 'a', parentId: 'a' }])).toEqual([])
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('a')
   })
 
-  it('互为父子的两个节点全部被丢弃，环不会挂到任何根上', () => {
+  it('互为父子的两个节点全部被丢弃，环不会挂到任何根上，并在开发期告警', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
     expect(
       listToTree<FlatNode>([
         { basicId: 'a', parentId: 'b' },
         { basicId: 'b', parentId: 'a' },
       ]),
     ).toEqual([])
+    expect(warn).toHaveBeenCalledTimes(1)
+  })
+
+  it('全部节点都挂上时不产生任何告警', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+    listToTree<FlatNode>([{ basicId: 'a' }, { basicId: 'a-1', parentId: 'a' }])
+    expect(warn).not.toHaveBeenCalled()
   })
 
   it('重复 basicId 的根节点会让同一批子节点被挂载多份', () => {
@@ -91,10 +120,35 @@ describe('listToTree', () => {
     expect(result[1]?.children).toEqual([{ basicId: 'c', parentId: 'a' }])
   })
 
-  it('重复 id 且其中一份自引用时递归不收敛，直接爆栈（源码缺陷，此处锁定现状）', () => {
-    expect(() =>
-      listToTree<FlatNode>([{ basicId: 'a' }, { basicId: 'a', parentId: 'a' }]),
-    ).toThrow(RangeError)
+  it('重复 id 且其中一份自引用时在祖先链上截断为叶子，不再递归爆栈', () => {
+    // 回归锚点：原实现构建第一份 'a' 的 children 时命中第二份 parentId==='a' 的 'a'，
+    // 又以同一个 id 递归同一集合，无限重入直到 RangeError: Maximum call stack size exceeded，
+    // 整棵树渲染失败。现在祖先链上再次遇到同一 basicId 即停止下钻。
+    expect(listToTree<FlatNode>([{ basicId: 'a' }, { basicId: 'a', parentId: 'a' }])).toEqual([
+      { basicId: 'a', children: [{ basicId: 'a', parentId: 'a' }] },
+    ])
+  })
+
+  it('长环挂在真实根下时同样截断，不会无限展开', () => {
+    expect(
+      listToTree<FlatNode>([
+        { basicId: 'root' },
+        { basicId: 'a', parentId: 'root' },
+        { basicId: 'b', parentId: 'a' },
+        { basicId: 'a', parentId: 'b' },
+      ]),
+    ).toEqual([
+      {
+        basicId: 'root',
+        children: [
+          {
+            basicId: 'a',
+            parentId: 'root',
+            children: [{ basicId: 'b', parentId: 'a', children: [{ basicId: 'a', parentId: 'b' }] }],
+          },
+        ],
+      },
+    ])
   })
 
   it('显式传入 parentId 时只构建该子树', () => {
@@ -220,8 +274,19 @@ describe('filterTree', () => {
     expect(new Set(received)).toEqual(new Set(['abc']))
   })
 
-  it('父节点自身命中而子节点全不命中时，其原有子树被整体保留而非清空（当前行为）', () => {
+  it('父节点自身命中而子节点全不命中时按叶子返回，不再把未过滤的原子树带出来', () => {
+    // 回归锚点：原实现只在过滤后子集非空时才覆盖 children，此处 children 为空跳过覆盖，
+    // `...node` 把那份**未过滤**的原始 children 整棵带出，搜到一个分组就把它下面全部子菜单一起显示。
+    // 表现为非单调：命中父级 + 0 个子级 → 显示全部 2 个；命中父级 + 1 个子级 → 只显示 1 个。
     const result = filterTree(tree, '系统', node => node.basicId === 'sys')
+
+    expect(result).toHaveLength(1)
+    expect(result[0]?.basicId).toBe('sys')
+    expect(result[0] && 'children' in result[0]).toBe(false)
+  })
+
+  it('命中父级且命中其中一个子级时只保留那个子级（与上一条构成同一条单调口径）', () => {
+    const result = filterTree(tree, '管理', node => (node.name ?? '').includes('管理'))
 
     expect(result[0]?.children?.map(child => child.basicId)).toEqual(['user', 'role'])
   })

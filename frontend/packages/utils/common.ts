@@ -2,22 +2,38 @@ import dayjs from 'dayjs'
 
 /**
  * 格式化日期时间
+ *
+ * 判空只认「没有值」（null / undefined / 空串）：原来的 `!date` 会把数字 0 一并吞掉，
+ * 以时间戳传参时 Unix 纪元时刻格式化不出来。NaN 不是有效时间，仍归到占位符，
+ * 否则会把 'Invalid Date' 渲染到界面上。
  */
-export function formatDate(date: string | Date | number, format = 'YYYY-MM-DD HH:mm:ss'): string {
-  if (!date)
+export function formatDate(
+  date: string | Date | number | null | undefined,
+  format = 'YYYY-MM-DD HH:mm:ss',
+): string {
+  if (date === null || date === undefined || date === '')
+    return '-'
+  if (typeof date === 'number' && Number.isNaN(date))
     return '-'
   return dayjs(date).format(format)
 }
 
 /**
  * 格式化文件大小
+ *
+ * 非有限数与负数返回 '-'，与 formatDate / getOptionLabel 的占位符口径一致：
+ * 后端字段缺失被 Number() 化成 NaN 时，原实现会把 'NaN undefined' 直接渲染到文件列表与配额统计上。
+ * 下标两侧都要夹：0~1 字节的小数得到 -1、≥1PB 得到 5，越界那一侧 sizes[i] 是 undefined，
+ * 输出成 '512 undefined' / '1 undefined'。
  */
 export function formatFileSize(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes < 0)
+    return '-'
   if (bytes === 0)
     return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  const i = Math.min(Math.max(Math.floor(Math.log(bytes) / Math.log(k)), 0), sizes.length - 1)
   return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`
 }
 
@@ -70,6 +86,11 @@ export function deepClone<T>(obj: T): T {
 
 /**
  * 判断是否为空值
+ *
+ * Date、Map、Set 都没有自有可枚举键，落到最后的 Object.keys 分支会一律被判为空——
+ * 表单 / 查询条件用本函数裁参数时，用户选中的日期与 Map/Set 型集合会被静默丢掉，请求少带条件。
+ * 因此在通用对象分支之前按各自的「有没有内容」口径短路：
+ * 日期只有 Invalid Date（没选出有效时间）才算空，集合看 size。
  */
 export function isEmpty(value: unknown): boolean {
   if (value === null || value === undefined)
@@ -78,6 +99,10 @@ export function isEmpty(value: unknown): boolean {
     return value.trim() === ''
   if (Array.isArray(value))
     return value.length === 0
+  if (value instanceof Date)
+    return Number.isNaN(value.getTime())
+  if (value instanceof Map || value instanceof Set)
+    return value.size === 0
   if (typeof value === 'object')
     return Object.keys(value).length === 0
   return false
