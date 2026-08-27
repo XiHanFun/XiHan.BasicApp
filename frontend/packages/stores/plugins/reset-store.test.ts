@@ -172,7 +172,10 @@ describe('自定义 $reset 优先', () => {
     expect(store.value).toBe(3)
   })
 
-  it('options store 被脱离 this 调用原生 $reset：抛错后同样落到快照回退，state() 不会重新求值', () => {
+  // 回归锚点（缺陷 33）：插件曾以 originalReset() 裸调用保存下来的原生 $reset，
+  // options store 的原生实现内部依赖 this.$patch，丢 this 必抛 TypeError 并被 catch 吞掉，
+  // 退化成快照回退——state() 里的动态默认值（递增序号 / Date.now() / 随机 id）不会重新生成。
+  it('options store 的原生 $reset 被绑回 store 调用，state() 的动态默认值重新生成', () => {
     let seed = 0
     const useSeeded = defineStore(nextId('options-seeded'), {
       state: () => ({ seed: ++seed }),
@@ -183,9 +186,8 @@ describe('自定义 $reset 优先', () => {
 
     store.$reset()
 
-    // state() 确实被重新执行了（计数器涨到 2），但紧接着的 this.$patch 因 this 丢失抛错，
-    // 被插件吞掉后套用初始快照，最终值回到 1 —— 原生语义（应为 2）被覆盖。
+    // 原生语义：state() 重新求值并被 $patch 应用，得到新的一轮默认值 2，而不是初始快照的 1
     expect(seed).toBe(2)
-    expect(store.seed).toBe(1)
+    expect(store.seed).toBe(2)
   })
 })

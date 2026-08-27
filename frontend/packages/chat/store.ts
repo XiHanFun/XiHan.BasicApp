@@ -457,13 +457,17 @@ export const useChatStore = defineStore('chat', () => {
     const me = currentUserId()
     const userStore = useUserStore()
     const item = messages.value[conversationId]?.find(m => m.messageId === messageId)
-    const hadMine = item?.reactions.some(r => r.userId === me && r.emoji === emoji) ?? false
+    const mine = item?.reactions.find(r => r.userId === me && r.emoji === emoji)
+    const hadMine = Boolean(mine)
+    // 回滚要把同一个展示名原样放回去：优先沿用被乐观移除的那一项的名字（可能来自服务端），
+    // 没有才退回本机昵称——传 null 会让加回来的那一项丢名字，气泡悬浮提示变空白
+    const myName = mine?.userName || userStore.nickname || userStore.username
     applyReactionChanged({
       conversationId,
       messageId,
       emoji,
       userId: me,
-      userName: userStore.nickname || userStore.username,
+      userName: myName,
       added: !hadMine,
     })
     try {
@@ -471,7 +475,7 @@ export const useChatStore = defineStore('chat', () => {
     }
     catch (error) {
       // 回滚乐观应用
-      applyReactionChanged({ conversationId, messageId, emoji, userId: me, userName: null, added: hadMine })
+      applyReactionChanged({ conversationId, messageId, emoji, userId: me, userName: myName, added: hadMine })
       throw error
     }
   }

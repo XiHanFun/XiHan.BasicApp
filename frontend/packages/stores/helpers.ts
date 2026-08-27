@@ -189,8 +189,11 @@ function scheduleBackendSync() {
     clearTimeout(syncTimer)
   }
   syncTimer = setTimeout(() => {
-    // 防抖期间可能被关闭，触发时再确认
-    if (!isPreferenceSyncEnabled())
+    syncTimer = null
+    // 防抖期间三道门都可能关闭，触发时必须与入口同样复查：
+    // 只查同步开关会让「排队后才进入草稿」的场景把草稿预览值随整份快照上行并推给其它设备。
+    // 此处丢弃这一次上行是安全的：快照是全量的，保存草稿 / 下一次任意偏好变更都会把最新值补上。
+    if (persistSuspended || !backendSyncEnabled || !isPreferenceSyncEnabled())
       return
     pushPreferencesToBackend()
   }, 800)
@@ -282,6 +285,9 @@ export function discardPreferenceDraft(): void {
   if (reverted) {
     void nextTick(() => {
       persistSuspended = false
+      // 还原本身也会经 bindPersist 的 watch 在暂停期把 dirty 顶回 true，
+      // 故在 watch flush 完成后再复位一次，避免「已取消却仍提示未保存」
+      preferenceDraftDirty.value = false
     })
   }
   else {

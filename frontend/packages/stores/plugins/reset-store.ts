@@ -13,7 +13,9 @@ export function resetSetupStorePlugin(): PiniaPlugin {
 
     store.$reset = () => {
       try {
-        originalReset()
+        // 必须绑回 store：options store 的原生 $reset 内部依赖 this.$patch，
+        // 裸调用会丢 this 抛 TypeError 并被下方 catch 吞掉，退化成快照回退
+        originalReset.call(store)
       }
       catch {
         // 默认 setup store 的 $reset 会抛异常，此时使用初始状态快照回退

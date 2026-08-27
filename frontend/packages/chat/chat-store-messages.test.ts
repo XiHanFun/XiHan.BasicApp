@@ -615,6 +615,22 @@ describe('表情回应与 Pin 的乐观写', () => {
     expect(store.messages.a?.[0]?.reactions.map(item => item.userId)).toStrictEqual(['me'])
   })
 
+  // 回归锚点（缺陷 39）：回滚原先传 userName: null，加回来的那一项没了展示名，
+  // 表情气泡的悬浮提示变空白，直到重新拉历史才恢复
+  it('取消已有表情失败回滚时沿用原展示名，不会把名字抹成 null', async () => {
+    const store = setup({ toggleReaction: () => Promise.reject(new Error('网络断了')) })
+    store.messages.a = [message({
+      messageId: '1',
+      reactions: [{ emoji: '👍', userId: 'me', userName: '服务端给的名字' }],
+    })]
+
+    await expect(store.toggleReaction('a', '1', '👍')).rejects.toThrow('网络断了')
+
+    expect(store.messages.a?.[0]?.reactions).toStrictEqual([
+      { emoji: '👍', userId: 'me', userName: '服务端给的名字' },
+    ])
+  })
+
   it('置顶消息成功后刷新 Pin 列表并把消息标记为已置顶', async () => {
     let pinnedCalls = 0
     const store = setup({

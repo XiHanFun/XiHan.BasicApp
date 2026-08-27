@@ -155,10 +155,15 @@ describe('非浏览器环境', () => {
     expect(getPreferredPrinter('')).toBeNull()
   })
 
-  it('没有 localStorage 时写入按「存储不可写」抛出，交给调用方提示', () => {
+  // 回归锚点（缺陷 40）：写侧原先没有读侧那样的环境守卫，抛的是底层
+  // TypeError: Cannot read properties of undefined，调用方无法与「模板编码为空」区分。
+  // 写入不能像读侧一样静默（用户选了打印机却没存下来必须让调用方知道），但错误要带业务语义。
+  it('没有 localStorage 时写入抛出带业务语义的「存储不可用」错误，可与编码为空区分', () => {
     vi.stubGlobal('localStorage', undefined)
 
-    expect(() => savePreferredPrinter('invoice', 'HP-1')).toThrow()
+    expect(() => savePreferredPrinter('invoice', 'HP-1')).toThrow(/本地存储不可用/u)
+    expect(() => savePreferredPrinter('invoice', null)).toThrow(/本地存储不可用/u)
+    expect(() => savePreferredPrinter('', 'HP-1')).toThrow(/不能为空/u)
   })
 
   it('替身撤销后读写回到正常状态，不污染后续用例', () => {

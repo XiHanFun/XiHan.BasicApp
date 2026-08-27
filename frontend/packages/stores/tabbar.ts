@@ -100,12 +100,25 @@ export const useTabbarStore = defineStore('tabbar', () => {
     activeTab.value = key
   }
 
+  /**
+   * 批量关闭后若激活标签已被移除，把激活位收敛到本次操作的目标标签（它必然被保留），
+   * 目标也不在时回落首页。与 removeTab / closeOthers / closeAll 的兜底口径一致，
+   * 避免标签栏无高亮项而内容区仍停在已关闭页。
+   */
+  function ensureActiveTabAlive(fallbackKey: string) {
+    if (tabs.value.some(tab => tab.key === activeTab.value)) {
+      return
+    }
+    activeTab.value = tabs.value.some(tab => tab.key === fallbackKey) ? fallbackKey : HOME_PATH
+  }
+
   function closeLeft(key: string) {
     const currentIndex = tabs.value.findIndex(tab => tab.key === key)
     if (currentIndex < 0) {
       return
     }
     tabs.value = tabs.value.filter((tab, index) => !tab.closable || index >= currentIndex)
+    ensureActiveTabAlive(key)
     if (appStore.tabbarPersist) {
       SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }
@@ -117,6 +130,7 @@ export const useTabbarStore = defineStore('tabbar', () => {
       return
     }
     tabs.value = tabs.value.filter((tab, index) => !tab.closable || index <= currentIndex)
+    ensureActiveTabAlive(key)
     if (appStore.tabbarPersist) {
       SessionStorage.set(TABS_LIST_KEY, tabs.value)
     }

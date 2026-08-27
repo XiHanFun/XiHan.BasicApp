@@ -23,10 +23,14 @@ export function getPreferredPrinter(templateCode: string): string | null {
  * @param templateCode 模板编码。
  * @param printerName 打印机名称；null/空白表示清除。
  * @returns 无返回值。
- * @throws 模板编码为空或浏览器存储不可写。
+ * @throws 模板编码为空或浏览器存储不可用（非浏览器环境）。
  */
 export function savePreferredPrinter(templateCode: string, printerName: null | string): void {
   const key = createPreferenceKey(templateCode)
+  // 读侧无存储时静默返回 null（等价于「没有偏好」），写侧不能静默——用户选了打印机却没存下来必须让调用方知道；
+  // 但要抛带业务语义的错误，而不是底层 TypeError，否则调用方无法与「编码为空」区分
+  if (typeof localStorage === 'undefined')
+    throw new Error('浏览器本地存储不可用，无法保存打印机偏好。')
   const normalized = printerName?.trim()
   if (normalized)
     localStorage.setItem(key, normalized)
