@@ -10,6 +10,7 @@ import type {
   TenantMemberListItemDto,
   TenantMemberStatusUpdateDto,
   TenantMemberUpdateDto,
+  TenantOverQuotaDto,
   TenantUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
@@ -416,6 +417,7 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('tenant.list.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'quota-audit', title: t('tenant.list.quota_audit'), scope: 'page', icon: 'lucide:gauge' },
     { key: 'view', title: t('tenant.list.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('tenant.list.edit'), scope: 'row' },
     {
@@ -450,11 +452,40 @@ function isTenantDeletable(status: TenantStatus) {
 }
 
 // ── 行/页面操作分发 ─────────────────────────────────────────────
+/** 超配额租户清单（存量核对） */
+const quotaAlerts = ref<TenantOverQuotaDto[]>([])
+const quotaAuditVisible = ref(false)
+const quotaAuditLoading = ref(false)
+
+/**
+ * 存量配额核对
+ *
+ * 配额拦截只作用于新增、不追溯存量，启用配额之前就已超限的租户不会被动暴露出来。
+ * 列表里虽然会标红，但租户一多就得翻页找，这里一次列全。
+ */
+async function handleQuotaAudit() {
+  quotaAuditVisible.value = true
+  quotaAuditLoading.value = true
+  try {
+    quotaAlerts.value = await tenantManagementApi.overQuotaTenants()
+  }
+  catch (error) {
+    quotaAlerts.value = []
+    toast.error((error as Error)?.message || t('tenant.list.quota_audit_failed'))
+  }
+  finally {
+    quotaAuditLoading.value = false
+  }
+}
+
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as TenantListItemDto | undefined
   switch (payload.key) {
     case 'create':
       handleAdd()
+      break
+    case 'quota-audit':
+      void handleQuotaAudit()
       break
     case 'view':
       if (row) {
@@ -1196,6 +1227,48 @@ async function handleSubmit() {
       </XhDrawerContent>
     </XhDrawerRoot>
 
+    <XhDrawerRoot v-model:open="quotaAuditVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 620px">
+        <XhDrawerTitle>{{ t('tenant.list.quota_audit_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage" :class="{ 'is-loading': quotaAuditLoading }">
+          <div class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="!quotaAuditLoading && quotaAlerts.length === 0" class="xh-detail-empty">
+            <XhEmptyStateIcon>
+              <Icon icon="lucide:shield-check" />
+            </XhEmptyStateIcon>
+            <XhEmptyStateTitle>{{ t('tenant.list.quota_audit_clear') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('tenant.list.quota_audit_clear_desc') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <div v-else class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+            <p class="xh-quota-audit__hint">
+              {{ t('tenant.list.quota_audit_hint', { count: quotaAlerts.length }) }}
+            </p>
+            <div v-for="item in quotaAlerts" :key="String(item.tenantId)" class="xh-quota-alert">
+              <div class="xh-quota-alert__title">
+                {{ item.tenantName }}
+                <span class="xh-quota-alert__code">{{ item.tenantCode }}</span>
+              </div>
+              <XhFlex gap="sm">
+                <XhTagRoot v-if="item.seatExceeded" variant="outline" tone="danger">
+                  <XhTagLabel>
+                    {{ t('tenant.list.seat_usage') }} {{ seatUsageText(item.usedUserCount, item.userLimit) }}
+                  </XhTagLabel>
+                </XhTagRoot>
+                <XhTagRoot v-if="item.storageExceeded" variant="outline" tone="danger">
+                  <XhTagLabel>
+                    {{ t('tenant.list.storage_usage') }} {{ storageUsageText(item.usedStorageBytes, item.storageLimit) }}
+                  </XhTagLabel>
+                </XhTagRoot>
+              </XhFlex>
+            </div>
+          </div>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
@@ -1665,6 +1738,36 @@ async function handleSubmit() {
 
 .xh-member-toolbar {
   margin-bottom: 12px;
+}
+
+.xh-quota-audit__hint {
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+
+.xh-quota-alert {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.xh-quota-alert:last-child {
+  border-bottom: none;
+}
+
+.xh-quota-alert__title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.xh-quota-alert__code {
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 400;
+  color: hsl(var(--muted-foreground));
 }
 
 .xh-detail-table th,

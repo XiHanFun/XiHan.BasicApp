@@ -53,6 +53,25 @@ export interface TenantDetailDto extends TenantListItemDto {
   remark?: string | null
 }
 
+/** 已超出配额的租户（存量核对用；上限为空即不限的租户不会出现在结果里） */
+export interface TenantOverQuotaDto {
+  /** 席位是否已超出上限 */
+  seatExceeded: boolean
+  /** 生效存储上限(MB) */
+  storageLimit?: number | null
+  /** 存储是否已超出上限 */
+  storageExceeded: boolean
+  tenantCode: string
+  tenantId: ApiId
+  tenantName: string
+  /** 已占用存储空间(字节) */
+  usedStorageBytes: number
+  /** 已占用席位数 */
+  usedUserCount: number
+  /** 生效席位上限 */
+  userLimit?: number | null
+}
+
 export interface TenantCreateDto extends BasicCreateDto {
   /** 租户管理员用户名（必填，租户内唯一；开通后自动创建管理员 + Owner 角色 + 按版本授权） */
   adminUserName: string

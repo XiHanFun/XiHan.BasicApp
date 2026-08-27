@@ -171,11 +171,10 @@ public sealed class UserDomainService
         await EnsurePasswordMeetsPolicyAsync(command, cancellationToken);
 
         // 席位配额放在轻量校验之后：用户名/邮箱冲突这类错误先短路，避免无谓的用量统计查询。
-        // 平台管理员成员不计入席位（与 CountActiveMembersByTenantIdsAsync 的统计口径一致），因此不占配额。
-        if (command.MemberType != TenantMemberType.PlatformAdmin)
-        {
-            await _tenantQuotaDomainService.EnsureSeatQuotaAsync(1, cancellationToken);
-        }
+        // 此处不必排除 PlatformAdmin —— 本流程只能创建普通成员，Owner 与 PlatformAdmin
+        // 在上面的 ValidateCreateCommand → EnsureMemberTypeCanBeCreated 已被拒；
+        // 「平台管理员不占席位」由统计侧的 CountActiveMembersByTenantIdsAsync 保证。
+        await _tenantQuotaDomainService.EnsureSeatQuotaAsync(1, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
         var user = new SysUser

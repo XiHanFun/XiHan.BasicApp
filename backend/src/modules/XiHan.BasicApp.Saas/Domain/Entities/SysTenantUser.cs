@@ -29,6 +29,11 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 邀请流程：InviteStatus=Pending → 用户接受后改为 Accepted；拒绝/撤销/过期按状态流转
 /// - 仅 InviteStatus=Accepted 且 Status=Yes 且当前时间在 Effective~Expiration 范围内方可用于鉴权
 /// - MemberType=PlatformAdmin 必须由平台运营账号创建，禁止租户管理员操作
+/// - 新增成员前必须先过 ITenantQuotaDomainService.EnsureSeatQuotaAsync：席位只能在写入前拦，
+///   写完再回收就是超卖。当前唯一写入路径是 UserDomainService.CreateUserAsync，
+///   上面那条邀请流程落地时同样适用——新开的入口若绕过校验，配额就被架空了
+/// - 席位统计排除 MemberType=PlatformAdmin（见 TenantUserRepository.CountActiveMembersByTenantIdsAsync）：
+///   平台方切入租户代管是运维行为，不消耗客户购买的席位
 ///
 /// 查询：
 /// - 登录后"我能进入的租户列表"：IX_UsId + WHERE UserId=? AND InviteStatus=Accepted AND Status=Yes
