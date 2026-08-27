@@ -1,12 +1,8 @@
 <script setup lang="ts">
 import type { BoardItem } from './components'
-import type { DragEndEvent } from '~/components'
-import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger } from '@xihan-ui/vue'
+import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSortableItem, XhSortableItemHandle, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DragDropProvider } from '~/components'
-import { resolveSortMove } from '~/components/common/sortable'
-import SortableItem from '~/components/common/SortableItem.vue'
 import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
 import { useUserSettingSync } from '~/components/schema'
 import { usePermission } from '~/hooks'
@@ -149,10 +145,7 @@ const activeKeys = computed(() => new Set(board.value.map(item => item.key)))
 const available = computed(() => WIDGETS.filter(widget => !activeKeys.value.has(widget.key) && canShow(widget.key)))
 const ids = computed(() => board.value.map(item => item.key))
 
-function onDragEnd(event: DragEndEvent) {
-  const move = resolveSortMove(event, ids.value)
-  if (!move)
-    return
+function onSort(move: { from: number, to: number }) {
   const next = board.value.slice()
   const [moved] = next.splice(move.from, 1)
   if (!moved)
@@ -191,7 +184,9 @@ function finishCustomize() {
 }
 
 // 边缘拖拽调宽：把像素位移换算成栅格列数，实时跟随光标；靠近预设档位时磁吸（左把手方向取反）
-const gridRef = ref<HTMLElement | null>(null)
+const gridHostRef = ref<{ $el?: HTMLElement } | null>(null)
+/** 网格根节点。ref 落在组件上得到的是实例，按栅格折算宽度要的是那个元素。 */
+const gridRef = computed<HTMLElement | null>(() => gridHostRef.value?.$el ?? null)
 let resize: { item: BoardItem, startX: number, startSpan: number, colUnit: number, sign: number } | null = null
 
 // 实时列数 → 落地列数：吸附到最近的尺寸档位（全部列宽都吸）
@@ -324,77 +319,83 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
       </XhEmptyStateRoot>
     </div>
 
-    <DragDropProvider v-else @drag-end="onDragEnd">
-      <div ref="gridRef" class="grid grid-cols-1 gap-4 md:grid-cols-12">
-        <SortableItem
-          v-for="(item, index) in board"
-          :id="item.key"
-          :key="item.key"
-          :index="index"
-          handle=".widget-drag-handle"
-          :disabled="!customizing"
-          class="widget-cell min-w-0"
-          :style="{ '--widget-span': item.span }"
-        >
-          <div class="relative h-full" :class="customizing ? 'rounded-xl ring-1 ring-dashed ring-[hsl(var(--primary)/0.45)]' : ''">
-            <component :is="WIDGET_MAP[item.key]?.component" />
-            <!-- 边缘拖拽调宽：左右各一把手，拖动按 12 栅格吸附到最近档位（Windows 窗口式） -->
-            <template v-if="customizing">
-              <div
-                class="group/lh absolute left-0 top-0 z-10 flex h-full w-2.5 cursor-ew-resize touch-none items-center justify-start"
-                :title="t('workbench.widgets.resize')"
-                @pointerdown="onResizeStart($event, item, 'left')"
-              >
-                <span class="h-10 w-1 rounded-full bg-border transition-colors group-hover/lh:bg-[hsl(var(--primary))]" />
-              </div>
-              <div
-                class="group/rh absolute right-0 top-0 z-10 flex h-full w-2.5 cursor-ew-resize touch-none items-center justify-end"
-                :title="t('workbench.widgets.resize')"
-                @pointerdown="onResizeStart($event, item, 'right')"
-              >
-                <span class="h-10 w-1 rounded-full bg-border transition-colors group-hover/rh:bg-[hsl(var(--primary))]" />
-              </div>
-            </template>
-            <!-- 自定义工具条：始终在 DOM（v-show），仅手柄 span 可拖（非交互元素 + handle 选择器） -->
+    <XhSortableRoot
+      v-else
+      ref="gridHostRef"
+      :ids="ids"
+      orientation="both"
+      :disabled="!customizing"
+      class="grid grid-cols-1 gap-4 md:grid-cols-12"
+      style="--xh-sortable-gap: 0"
+      @sort="onSort"
+    >
+      <XhSortableItem
+        v-for="item in board"
+        :key="item.key"
+        :item-id="item.key"
+        class="widget-cell min-w-0"
+        :style="{ '--widget-span': item.span }"
+      >
+        <div class="relative h-full" :class="customizing ? 'rounded-xl ring-1 ring-dashed ring-[hsl(var(--primary)/0.45)]' : ''">
+          <component :is="WIDGET_MAP[item.key]?.component" />
+          <!-- 边缘拖拽调宽：左右各一把手，拖动按 12 栅格吸附到最近档位（Windows 窗口式） -->
+          <template v-if="customizing">
             <div
-              v-show="customizing"
-              class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg border border-border bg-card/95 px-1 py-0.5 shadow-sm backdrop-blur"
+              class="group/lh absolute left-0 top-0 z-10 flex h-full w-2.5 cursor-ew-resize touch-none items-center justify-start"
+              :title="t('workbench.widgets.resize')"
+              @pointerdown="onResizeStart($event, item, 'left')"
             >
-              <span
-                class="widget-drag-handle flex h-6 w-6 cursor-grab touch-none select-none items-center justify-center rounded text-muted-foreground hover:bg-muted active:cursor-grabbing"
-                :title="t('workbench.widgets.drag')"
-              >
-                <Icon icon="lucide:grip-vertical" width="15" />
-              </span>
-              <XhPopoverRoot placement="bottom-end">
-                <XhPopoverTrigger class="xh-linklike-trigger">
-                  {{ spanLabel(item.span) }}
-                </XhPopoverTrigger>
-                <XhPopoverPositioner>
-                  <XhPopoverContent>
-                    <div class="grid grid-cols-6 gap-1">
-                      <button
-                        v-for="s in SIZE_OPTIONS"
-                        :key="s"
-                        type="button"
-                        class="flex h-7 min-w-[2.75rem] items-center justify-center rounded px-1 text-xs transition-colors"
-                        :class="s === item.span ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'text-muted-foreground hover:bg-muted'"
-                        @click="setSpan(item, s)"
-                      >
-                        {{ spanLabel(s) }}
-                      </button>
-                    </div>
-                  </XhPopoverContent>
-                </XhPopoverPositioner>
-              </XhPopoverRoot>
-              <button type="button" class="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-[hsl(var(--destructive))]" @click="removeWidget(item.key)">
-                <Icon icon="lucide:x" width="15" />
-              </button>
+              <span class="h-10 w-1 rounded-full bg-border transition-colors group-hover/lh:bg-[hsl(var(--primary))]" />
             </div>
+            <div
+              class="group/rh absolute right-0 top-0 z-10 flex h-full w-2.5 cursor-ew-resize touch-none items-center justify-end"
+              :title="t('workbench.widgets.resize')"
+              @pointerdown="onResizeStart($event, item, 'right')"
+            >
+              <span class="h-10 w-1 rounded-full bg-border transition-colors group-hover/rh:bg-[hsl(var(--primary))]" />
+            </div>
+          </template>
+          <!-- 自定义工具条：始终在 DOM（v-show），仅手柄 span 可拖（非交互元素 + handle 选择器） -->
+          <div
+            v-show="customizing"
+            class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg border border-border bg-card/95 px-1 py-0.5 shadow-sm backdrop-blur"
+          >
+            <XhSortableItemHandle
+              :item-id="item.key"
+              class="widget-drag-handle flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted"
+              :title="t('workbench.widgets.drag')"
+            >
+              <Icon icon="lucide:grip-vertical" width="15" />
+            </XhSortableItemHandle>
+            <XhPopoverRoot placement="bottom-end">
+              <XhPopoverTrigger class="xh-linklike-trigger">
+                {{ spanLabel(item.span) }}
+              </XhPopoverTrigger>
+              <XhPopoverPositioner>
+                <XhPopoverContent>
+                  <div class="grid grid-cols-6 gap-1">
+                    <button
+                      v-for="s in SIZE_OPTIONS"
+                      :key="s"
+                      type="button"
+                      class="flex h-7 min-w-[2.75rem] items-center justify-center rounded px-1 text-xs transition-colors"
+                      :class="s === item.span ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'text-muted-foreground hover:bg-muted'"
+                      @click="setSpan(item, s)"
+                    >
+                      {{ spanLabel(s) }}
+                    </button>
+                  </div>
+                </XhPopoverContent>
+              </XhPopoverPositioner>
+            </XhPopoverRoot>
+            <button type="button" class="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-[hsl(var(--destructive))]" @click="removeWidget(item.key)">
+              <Icon icon="lucide:x" width="15" />
+            </button>
           </div>
-        </SortableItem>
-      </div>
-    </DragDropProvider>
+        </div>
+      </XhSortableItem>
+      <XhSortableLiveRegion />
+    </XhSortableRoot>
 
     <XhDrawerRoot v-model:open="showAdd" side="right">
       <XhDrawerContent style="--xh-drawer-size: 340px">
