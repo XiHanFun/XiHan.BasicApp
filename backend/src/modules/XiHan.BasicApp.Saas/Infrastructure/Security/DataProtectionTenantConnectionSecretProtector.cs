@@ -47,7 +47,7 @@ public sealed class DataProtectionTenantConnectionSecretProtector : ITenantConne
     }
 
     /// <summary>
-    /// 解密连接字符串（历史明文原样返回，解密失败兜底返回原值）
+    /// 解密连接字符串（非本保护器写入的值与解密失败一律抛 CryptographicException，fail-closed）
     /// </summary>
     /// <param name="value">密文或历史明文</param>
     /// <returns>明文连接字符串</returns>
@@ -58,7 +58,8 @@ public sealed class DataProtectionTenantConnectionSecretProtector : ITenantConne
             return value;
         }
 
-        // 连接串一律为本保护器写入的密文，去前缀直接解密；解密失败即抛（fail-closed，不做旧明文兼容）
-        return _protector.Unprotect(value[SaasSecretProtectionPurposes.CipherPrefix.Length..]);
+        // 先认前缀再解密：非本保护器写入的值（历史明文/截断脏值）一律按解密失败处理，
+        // 抛可诊断的 CryptographicException，而不是在字符串切片处抛参数越界（fail-closed，不做旧明文兼容）
+        return _protector.Unprotect(SaasSecretCipherText.StripPrefixOrThrow(value, "租户数据库连接字符串"));
     }
 }

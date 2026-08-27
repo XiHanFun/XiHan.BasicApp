@@ -125,17 +125,30 @@ public sealed class SaasAppSecretProtectorTests
     }
 
     /// <summary>
-    /// 输入短于前缀长度时越界抛出（当前实现无条件裁掉前 3 个字符，此处锁定真实行为）。
+    /// 回归锚点：非本保护器写入的值（含短于前缀的脏值）一律按"解密失败"抛出，八个保护器口径一致。
     /// </summary>
-    /// <param name="value">短于前缀的输入。</param>
+    /// <remarks>
+    /// 修复前 <c>Unprotect</c> 无条件裁掉前 3 个字符，<c>"a"</c> / <c>"dp"</c> 会在字符串切片处抛
+    /// <see cref="ArgumentOutOfRangeException"/>——那是"参数越界"，把排查方向指向调用方传参，
+    /// 而真实原因是库里那行不是密文。本用例当时锁定的正是那份错误语义，现改为锁定修复后的行为：
+    /// 抛 <see cref="CryptographicException"/> 且消息里点明缺少前缀。
+    /// </remarks>
+    /// <param name="value">不是本保护器写出的值。</param>
     [Theory]
     [InlineData("a")]
     [InlineData("dp")]
-    public void Unprotect_ValueShorterThanPrefix_ShouldThrowOutOfRange(string value)
+    [InlineData("d")]
+    [InlineData("这是一段历史明文密钥")]
+    [InlineData("xdp:something")]
+    public void Unprotect_ValueWithoutCipherPrefix_ShouldThrowCryptographicException(string value)
     {
-        var protector = new DataProtectionStorageSecretProtector(_provider);
+        foreach (var (_, _, unprotect) in BuildProtectors())
+        {
+            var exception = Assert.ThrowsAny<CryptographicException>(() => unprotect(value));
 
-        Assert.ThrowsAny<ArgumentOutOfRangeException>(() => protector.Unprotect(value));
+            // 消息里必须点名前缀，否则运维只能看到一句泛化的"解密失败"，分不清是值不对还是密钥环不对
+            Assert.Contains(SaasSecretProtectionPurposes.CipherPrefix, exception.Message, StringComparison.Ordinal);
+        }
     }
 
     /// <summary>

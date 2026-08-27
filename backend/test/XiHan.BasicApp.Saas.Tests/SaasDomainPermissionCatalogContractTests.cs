@@ -243,11 +243,8 @@ public sealed class SaasDomainPermissionCatalogContractTests
     }
 
     /// <summary>
-    /// 汇总列表 <see cref="SaasPermissionCodes.All"/> 允许是子集，但不得出现常量表中不存在的野码，也不得重复。
+    /// 汇总列表 <see cref="SaasPermissionCodes.All"/> 不得出现常量表中不存在的野码，也不得重复。
     /// </summary>
-    /// <remarks>
-    /// 该列表是手工维护的，与常量表存在已知漂移（见 sourceBugs），因此此处只锁定「无野码、无重复」这两条硬约束。
-    /// </remarks>
     [Fact]
     public void PermissionCodesAll_ShouldContainNoUnknownOrDuplicateCode()
     {
@@ -262,6 +259,30 @@ public sealed class SaasDomainPermissionCatalogContractTests
 
         Assert.True(unknown.Count == 0, $"All 中存在常量表未定义的权限码：{string.Join(" / ", unknown)}");
         Assert.True(duplicates.Count == 0, $"All 中存在重复权限码：{string.Join(" / ", duplicates)}");
+    }
+
+    /// <summary>
+    /// 回归锚点：<see cref="SaasPermissionCodes.All"/> 必须覆盖常量表里的每一条权限码，一条都不能少。
+    /// </summary>
+    /// <remarks>
+    /// 此前 <c>All</c> 是手写清单，与常量表已经漂移（漏了 <c>saas:log-trace:read</c>），
+    /// 而按 <c>All</c> 做白名单/授权枚举的调用方会静默少一条权限——没有任何编译期或运行期信号。
+    /// 现已改为由 <see cref="SaasPermissionDefinitions.All"/> 派生；本用例是"不许再退回手写清单"的守卫：
+    /// 只要有人重新手抄一份并漏抄，这里立刻变红。
+    /// </remarks>
+    [Fact]
+    public void PermissionCodesAll_ShouldCoverEveryDeclaredConstant()
+    {
+        var enumerated = SaasPermissionCodes.All.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var missing = GetDeclaredCodes()
+            .Where(item => !enumerated.Contains(item.Code))
+            .Select(item => $"{item.Name} = {item.Code}")
+            .ToList();
+
+        Assert.True(
+            missing.Count == 0,
+            $"以下权限码常量没有出现在自称「全部权限码」的 All 中：{Environment.NewLine}{string.Join(Environment.NewLine, missing)}");
     }
 
     /// <summary>

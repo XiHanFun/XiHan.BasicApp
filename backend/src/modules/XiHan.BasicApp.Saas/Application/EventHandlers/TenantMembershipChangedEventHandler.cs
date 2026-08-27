@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.Logging;
+using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Data.SqlSugar.Clients;
@@ -13,10 +14,11 @@ namespace XiHan.BasicApp.Saas.Application.EventHandlers;
 /// 租户成员变更事件处理器
 /// </summary>
 /// <remarks>
-/// 当租户成员身份被撤销或过期时，移除该用户在该租户下的所有角色绑定。
+/// 当租户成员身份被撤销或过期时，移除该用户在该租户下的所有角色绑定，并失效该用户的授权快照缓存。
 /// </remarks>
 public sealed class TenantMembershipChangedEventHandler : ILocalEventHandler<TenantMembershipChangedDomainEvent>
 {
+    private readonly ISaasCacheInvalidator _cacheInvalidator;
     private readonly ISqlSugarClientResolver _clientResolver;
     private readonly ILogger<TenantMembershipChangedEventHandler> _logger;
 
@@ -25,9 +27,11 @@ public sealed class TenantMembershipChangedEventHandler : ILocalEventHandler<Ten
     /// </summary>
     public TenantMembershipChangedEventHandler(
         ISqlSugarClientResolver clientResolver,
+        ISaasCacheInvalidator cacheInvalidator,
         ILogger<TenantMembershipChangedEventHandler> logger)
     {
         _clientResolver = clientResolver ?? throw new ArgumentNullException(nameof(clientResolver));
+        _cacheInvalidator = cacheInvalidator ?? throw new ArgumentNullException(nameof(cacheInvalidator));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -78,6 +82,10 @@ public sealed class TenantMembershipChangedEventHandler : ILocalEventHandler<Ten
                 .Where(r => r.UserId == userId && r.TenantId == tenantId)
                 .ExecuteCommandAsync();
 
+            // 删了绑定不清授权快照 = 权限照旧生效：鉴权决策读的是缓存里的快照，
+            // 与其它授权写路径（RoleAppService / UserRoleAppService 等）同一口径，按用户精准失效。
+            await InvalidateAuthorizationCacheAsync(userId);
+
             _logger.LogWarning(
                 "[TenantMembershipChanged] Removed {Count} role bindings for user {UserId} in tenant {TenantId}, status: {Status}, roles: [{RoleIds}]",
                 bindings.Count, userId, tenantId, status, string.Join(", ", roleIds));
@@ -87,6 +95,25 @@ public sealed class TenantMembershipChangedEventHandler : ILocalEventHandler<Ten
             _logger.LogError(ex,
                 "[TenantMembershipChanged] Failed to remove role bindings for user {UserId} in tenant {TenantId}",
                 userId, tenantId);
+        }
+    }
+
+    /// <summary>
+    /// 失效指定用户的授权快照缓存（该模式命中 user:{userId}:tenant:* ，覆盖该用户全部租户上下文）
+    /// </summary>
+    /// <remarks>
+    /// 失效失败只记日志，不把已经落库的解绑动作回滚掉；快照另有 TTL 兜底。
+    /// </remarks>
+    private async Task InvalidateAuthorizationCacheAsync(long userId)
+    {
+        try
+        {
+            await _cacheInvalidator.InvalidateAuthorizationAsync(userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "[TenantMembershipChanged] 用户 {UserId} 的授权快照缓存失效失败，被移除的角色权限最长要等缓存过期才失效", userId);
         }
     }
 }
