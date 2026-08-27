@@ -21,6 +21,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - TenantId + FileHash 组合用于租户内去重（IX_TeId_FiHa），上传前先查同 hash 实现"秒传"
 /// - IsTemporary=true 的文件应设置 ExpirationTime，后台定时清理
 /// - Status 变更需同步更新统计（引用计数等）
+/// - 新增占用前必须先过 ITenantQuotaDomainService.EnsureStorageQuotaAsync：
+///   落库入口 FileDomainService.CreateUploadingFileAsync 的命令自带 FileSize，
+///   所以能在文件真正开始传输前就拒绝，不必等传完再回滚。
+///   秒传复用同租户既有记录、不新增占用，不在该路径上
+/// - 存储用量计入 Normal 与 Uploading 两种状态（见 FileRepository.SumUsedStorageByTenantIdsAsync）：
+///   上传中的文件已经预占空间，漏算会让并发上传绕过配额；软删文件不占配额
 ///
 /// 查询：
 /// - 按业务关联查文件：BusinessType/BusinessId 过滤
@@ -47,7 +53,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_IsTe", nameof(IsTemporary), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_FiHa", nameof(TenantId), OrderByType.Asc, nameof(FileHash), OrderByType.Asc)]
-[SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_St_IsDe_FiSi", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, nameof(FileSize), OrderByType.Asc)]
 public partial class SysFile : BasicAppFullAuditedEntity
 {
     #region 基本信息

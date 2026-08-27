@@ -29,6 +29,17 @@ public interface ITenantQueryService : IApplicationService
     Task<TenantDetailDto?> GetTenantDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取已超出配额的租户清单
+    /// </summary>
+    /// <remarks>
+    /// 配额拦截只作用于新增、不追溯存量，因此启用配额前建立的租户可能早已超限却不会被动暴露。
+    /// 上线前调用一次即可核对存量；上限为空（不限）的租户不参与判定。
+    /// </remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>超配额租户清单，无超限时为空集合</returns>
+    Task<IReadOnlyList<TenantOverQuotaDto>> GetOverQuotaTenantsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取当前用户可进入的租户列表
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>

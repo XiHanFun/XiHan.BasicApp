@@ -3,6 +3,7 @@ import type {
   TenantCreateDto,
   TenantDetailDto,
   TenantListItemDto,
+  TenantOverQuotaDto,
   TenantPageQueryDto,
   TenantStatusUpdateDto,
   TenantSwitcherDto,
@@ -31,6 +32,10 @@ export const tenantApi = {
   initializeDatabase(id: TenantDetailDto['basicId']) {
     // 仅库隔离租户：建库 → 建表 → 基线种子（POST /api/Tenant/InitializeDatabase/{id}）
     return tenantCommandApi.post<TenantDetailDto>('InitializeDatabase', { id })
+  },
+  /** 已超出配额的租户清单：配额拦截只作用于新增，存量超限的租户需要主动查一次 */
+  overQuotaTenants() {
+    return tenantQueryApi.get<TenantOverQuotaDto[]>('OverQuotaTenants')
   },
   myAvailableTenants() {
     return tenantQueryApi.get<TenantSwitcherDto[]>('MyAvailableTenants')

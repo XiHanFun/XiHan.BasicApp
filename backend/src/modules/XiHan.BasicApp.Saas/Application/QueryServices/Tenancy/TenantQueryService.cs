@@ -62,6 +62,11 @@ public sealed class TenantQueryService
     private const string SuperAdminRoleCode = "super_admin";
 
     /// <summary>
+    /// 每 MB 字节数：套餐存储上限以 MB 表达，已用量以字节统计
+    /// </summary>
+    private const long BytesPerMegabyte = 1024L * 1024L;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public TenantQueryService(
@@ -143,6 +148,60 @@ public sealed class TenantQueryService
         }
 
         return detail;
+    }
+
+    /// <summary>
+    /// 获取已超出配额的租户清单
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>超配额租户清单，无超限时为空集合</returns>
+    [PermissionAuthorize(SaasPermissionCodes.Tenant.Read)]
+    public async Task<IReadOnlyList<TenantOverQuotaDto>> GetOverQuotaTenantsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 平台态可见全部租户，租户态自然收敛到自身，无需额外分支
+        var tenants = await _tenantRepository.GetAllAsync(cancellationToken);
+        if (tenants.Count == 0)
+        {
+            return [];
+        }
+
+        var snapshots = await _tenantQuotaDomainService.GetQuotaSnapshotsAsync(
+            [.. tenants.Select(tenant => tenant.BasicId)], cancellationToken);
+
+        var alerts = new List<TenantOverQuotaDto>();
+        foreach (var tenant in tenants)
+        {
+            if (!snapshots.TryGetValue(tenant.BasicId, out var snapshot))
+            {
+                continue;
+            }
+
+            // 上限为空表示不限，不参与判定
+            var seatExceeded = snapshot.UserLimit is { } userLimit && snapshot.UsedUserCount > userLimit;
+            var storageExceeded = snapshot.StorageLimit is { } storageLimit
+                && snapshot.UsedStorageBytes > storageLimit * BytesPerMegabyte;
+            if (!seatExceeded && !storageExceeded)
+            {
+                continue;
+            }
+
+            alerts.Add(new TenantOverQuotaDto
+            {
+                TenantId = tenant.BasicId,
+                TenantCode = tenant.TenantCode,
+                TenantName = tenant.TenantName,
+                SeatExceeded = seatExceeded,
+                UserLimit = snapshot.UserLimit,
+                UsedUserCount = snapshot.UsedUserCount,
+                StorageExceeded = storageExceeded,
+                StorageLimit = snapshot.StorageLimit,
+                UsedStorageBytes = snapshot.UsedStorageBytes
+            });
+        }
+
+        return alerts;
     }
 
     /// <summary>
