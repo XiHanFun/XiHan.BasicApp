@@ -19,9 +19,16 @@ export function setupRouterGuard(router: Router) {
       const routeName = route.name ? String(route.name) : ''
       const routePathExists = router.getRoutes().some(item => item.path === route.path)
       if (routePathExists) {
+        // 路径已装载：正常的去重，静默跳过
         continue
       }
-      if (routeName && !router.hasRoute(routeName)) {
+      if (!routeName) {
+        // 后端菜单表允许 name 为空，这类菜单装不上。侧边栏照样渲染出条目，点进去却落 404，
+        // 而整条链路一行日志都没有——配错的人无从查起。这里必须出声，与下面加载失败的日志同级。
+        console.error('[router] 菜单缺少路由名，已跳过装载，导航到该路径会落 404', route.path)
+        continue
+      }
+      if (!router.hasRoute(routeName)) {
         router.addRoute('RootLayout', route)
       }
     }

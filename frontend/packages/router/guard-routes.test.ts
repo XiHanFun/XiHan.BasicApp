@@ -253,15 +253,43 @@ describe('动态模式：后端菜单装载', () => {
     expect(router.getRoutes().some(route => route.path === '/brand-new')).toBe(false)
   })
 
-  it('无路由名的菜单不会被装载，避免出现无法按名寻址的路由', async () => {
+  it('无路由名的菜单不会被装载，且必须留下错误日志', async () => {
+    // 回归锚点：这类菜单原本被静默跳过。侧边栏照样渲染出条目、点进去落 404，
+    // 而整条链路一行日志都没有，配错菜单的人无从查起。
     signInWithoutRoutes()
     const nameless = { path: '/nameless', name: '', component: 'Identity/User', meta: { title: 't' } } as MenuRoute
     registerApis({ getPermissionsApi: vi.fn(async () => permissionFixture({ menus: [nameless] })) })
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-    const router = createGuardedRouter()
-    await router.push('/first')
+    try {
+      const router = createGuardedRouter()
+      await router.push('/first')
 
-    expect(router.getRoutes().some(route => route.path === '/nameless')).toBe(false)
+      expect(router.getRoutes().some(route => route.path === '/nameless')).toBe(false)
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('菜单缺少路由名'), '/nameless')
+    }
+    finally {
+      errorSpy.mockRestore()
+    }
+  })
+
+  it('路径已装载的菜单静默跳过，不当成配置错误报错', async () => {
+    // 与上一条对照：去重是正常行为，不能和「配错了 name」混在一起刷日志。
+    signInWithoutRoutes()
+    const duplicated = [menuFixture('/identity/user', 'IdentityUser'), menuFixture('/identity/user', 'IdentityUserAgain')]
+    registerApis({ getPermissionsApi: vi.fn(async () => permissionFixture({ menus: duplicated })) })
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    try {
+      const router = createGuardedRouter()
+      await router.push('/identity/user')
+
+      expect(router.getRoutes().filter(route => route.path === '/identity/user')).toHaveLength(1)
+      expect(errorSpy).not.toHaveBeenCalled()
+    }
+    finally {
+      errorSpy.mockRestore()
+    }
   })
 
   it('外链菜单不落地成路由，但仍完整保存在 accessStore 供菜单渲染', async () => {
