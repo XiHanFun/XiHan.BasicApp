@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System.Reflection;
@@ -459,6 +460,94 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
+    /// 回归锚点：操作表存在同编码多行时，权限种子必须取一条继续播种并记 Warning，而不是整体抛异常。
+    /// </summary>
+    /// <remarks>
+    /// 操作表的唯一约束是 (TenantId, OperationCode, IsDeleted)，同编码跨租户并存是合法数据形态；
+    /// 原实现对全表结果直接 ToDictionary(o =&gt; o.OperationCode)，一旦命中重复键就以
+    /// 「An item with the same key has already been added」让整个播种失败，
+    /// 权限 → 菜单 → 角色授权整条链在干净库上一起断掉。
+    /// 收敛规则：优先取平台租户（TenantId = 0）那行——它才是操作种子播下的动作模板。
+    /// </remarks>
+    [Fact]
+    public void PermissionSeeder_DuplicateOperationCodes_ShouldPickPlatformRowAndWarn()
+    {
+        var logger = new RecordingLogger<SysPermissionSeeder>();
+        var seeder = CreatePermissionSeeder(logger);
+        List<SysOperation> operations =
+        [
+            CreateOperation(id: 200, tenantId: 5, code: "read"),
+            CreateOperation(id: 100, tenantId: 0, code: "read"),
+            CreateOperation(id: 300, tenantId: 0, code: "create")
+        ];
+
+        var map = InvokeBuildOperationMap(seeder, operations);
+
+        Assert.Equal(["create", "read"], map.Keys.OrderBy(key => key, StringComparer.Ordinal));
+        Assert.Equal(100, map["read"].BasicId);
+        Assert.Equal(300, map["create"].BasicId);
+        Assert.Contains(
+            logger.Entries,
+            entry => entry.Level == LogLevel.Warning && entry.Message.Contains("read", StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// 同编码全部来自业务租户（平台行因操作种子按编码去重而从未插入）时，不得把字典清空，
+    /// 否则权限一条都播不出来；此时按主键取最早的一条兜底。
+    /// </summary>
+    [Fact]
+    public void PermissionSeeder_DuplicateOperationCodesWithoutPlatformRow_ShouldFallBackToLowestKey()
+    {
+        var seeder = CreatePermissionSeeder(new RecordingLogger<SysPermissionSeeder>());
+        List<SysOperation> operations =
+        [
+            CreateOperation(id: 900, tenantId: 8, code: "update"),
+            CreateOperation(id: 400, tenantId: 6, code: "update")
+        ];
+
+        var map = InvokeBuildOperationMap(seeder, operations);
+
+        var single = Assert.Single(map);
+        Assert.Equal("update", single.Key, StringComparer.Ordinal);
+        Assert.Equal(400, single.Value.BasicId);
+    }
+
+    /// <summary>
+    /// 反射调用权限种子的私有操作字典收敛方法（方法被改名即在此变红）。
+    /// </summary>
+    /// <param name="seeder">权限种子实例。</param>
+    /// <param name="operations">操作表记录。</param>
+    /// <returns>操作编码到操作的映射。</returns>
+    private static Dictionary<string, SysOperation> InvokeBuildOperationMap(SysPermissionSeeder seeder, List<SysOperation> operations)
+    {
+        var method = typeof(SysPermissionSeeder)
+            .GetMethod("BuildOperationMap", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        Assert.True(method is not null, "SysPermissionSeeder.BuildOperationMap 不存在：操作字典的重复键收敛已丢失，同编码多行会让整次播种失败。");
+
+        return (Dictionary<string, SysOperation>)method!.Invoke(seeder, [operations])!;
+    }
+
+    /// <summary>
+    /// 构造一行操作记录。
+    /// </summary>
+    /// <param name="id">主键。</param>
+    /// <param name="tenantId">租户号（0 为平台）。</param>
+    /// <param name="code">操作编码。</param>
+    /// <returns>操作记录。</returns>
+    private static SysOperation CreateOperation(long id, long tenantId, string code)
+    {
+        var operation = new SysOperation
+        {
+            TenantId = tenantId,
+            OperationCode = code,
+            OperationName = code
+        };
+        WorkflowTestHelper.SetBasicId(operation, id);
+        return operation;
+    }
+
+    /// <summary>
     /// 读取操作种子内置操作字典里的操作编码（私有静态字段，锁定"三处一致"这条跨文件约定）。
     /// </summary>
     /// <returns>操作编码集合。</returns>
@@ -538,11 +627,11 @@ public sealed class WorkflowPermissionAndSeedingTests
     /// 构造权限种子。
     /// </summary>
     /// <returns>权限种子。</returns>
-    private static SysPermissionSeeder CreatePermissionSeeder()
+    private static SysPermissionSeeder CreatePermissionSeeder(RecordingLogger<SysPermissionSeeder>? logger = null)
     {
         return new SysPermissionSeeder(
             Mock.Of<ISqlSugarClientResolver>(),
-            new RecordingLogger<SysPermissionSeeder>(),
+            logger ?? new RecordingLogger<SysPermissionSeeder>(),
             Mock.Of<IServiceProvider>());
     }
 

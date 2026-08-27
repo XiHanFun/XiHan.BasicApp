@@ -47,6 +47,10 @@ public sealed class PrintDataSourceQueryService : PrintingApplicationService, IP
     /// <returns>数据源目录。</returns>
     public async Task<List<PrintDataSourceDto>> GetListAsync(CancellationToken cancellationToken = default)
     {
+        // 与 PrintTemplateQueryService 各方法同一取消口径：权限检查器可能走缓存命中而不做异步 IO，
+        // 不在入口显式检查取消，已取消的请求仍会把整份目录投影跑完。
+        cancellationToken.ThrowIfCancellationRequested();
+
         await EnsureCatalogAccessAsync(cancellationToken);
         return [.. _registry.GetAll().Select(ToDto)];
     }

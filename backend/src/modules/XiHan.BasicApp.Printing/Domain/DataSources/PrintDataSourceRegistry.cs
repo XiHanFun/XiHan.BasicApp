@@ -59,7 +59,7 @@ public sealed class PrintDataSourceRegistry : IPrintDataSourceRegistry
         var keys = new HashSet<string>(StringComparer.Ordinal);
         foreach (var field in definition.Fields)
         {
-            ValidateField(definition.Code, field, keys);
+            ValidateField(definition.Code, field, keys, nameof(definition));
         }
 
         if (!_sources.TryAdd(definition.Code, definition))
@@ -91,63 +91,81 @@ public sealed class PrintDataSourceRegistry : IPrintDataSourceRegistry
         }
     }
 
-    /// <summary>校验单个字段的编码、类型、控件类型与明细表列契约。</summary>
-    private static void ValidateField(string dataSourceCode, PrintDataSourceField field, HashSet<string> keys)
+    /// <summary>
+    /// 校验单个字段的编码、类型、控件类型与明细表列契约。
+    /// </summary>
+    /// <param name="dataSourceCode">所属数据源编码（仅用于错误消息定位）</param>
+    /// <param name="field">待校验字段</param>
+    /// <param name="keys">同一数据源内已出现过的字段编码</param>
+    /// <param name="paramName">对外暴露的参数名，统一为公开入口 <see cref="Register"/> 的形参名</param>
+    private static void ValidateField(string dataSourceCode, PrintDataSourceField field, HashSet<string> keys, string paramName)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(field.Key);
-        ArgumentException.ThrowIfNullOrWhiteSpace(field.Label);
+        ArgumentException.ThrowIfNullOrWhiteSpace(field.Key, paramName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(field.Label, paramName);
         if (field.Key.Length > 100 || field.Key.Any(char.IsWhiteSpace))
         {
-            throw new ArgumentException($"打印字段编码无效：{field.Key}", nameof(field));
+            throw new ArgumentException($"打印字段编码无效：{field.Key}", paramName);
         }
 
         if (!SupportedKinds.Contains(field.Kind))
         {
-            throw new ArgumentException($"打印字段 {field.Key} 的类型无效：{field.Kind}", nameof(field));
+            throw new ArgumentException($"打印字段 {field.Key} 的类型无效：{field.Kind}", paramName);
         }
 
         if (!keys.Add(field.Key))
         {
-            throw new ArgumentException($"打印数据源 {dataSourceCode} 存在重复字段：{field.Key}", nameof(field));
+            throw new ArgumentException($"打印数据源 {dataSourceCode} 存在重复字段：{field.Key}", paramName);
         }
 
-        ValidateInputType(field.InputType, $"打印字段 {field.Key}");
+        ValidateInputType(field.InputType, $"打印字段 {field.Key}", paramName);
 
         if (field.Kind != "table")
         {
+            // 列契约只对明细表有意义：非明细表字段带列定义是定义方写错了类型或多写了列，
+            // 这类列在设计器与解析器侧都是死数据，必须在注册阶段就拒绝而不是静默收下。
+            if (field.Columns is { Count: > 0 })
+            {
+                throw new ArgumentException($"打印字段 {field.Key} 的类型为 {field.Kind}，不能携带明细表列定义。", paramName);
+            }
+
             return;
         }
 
         if (field.Columns is null || field.Columns.Count == 0)
         {
-            throw new ArgumentException($"明细表字段 {field.Key} 至少需要一列。", nameof(field));
+            throw new ArgumentException($"明细表字段 {field.Key} 至少需要一列。", paramName);
         }
 
         var columnFields = new HashSet<string>(StringComparer.Ordinal);
         foreach (var column in field.Columns)
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(column.Field);
-            ArgumentException.ThrowIfNullOrWhiteSpace(column.Title);
+            ArgumentException.ThrowIfNullOrWhiteSpace(column.Field, paramName);
+            ArgumentException.ThrowIfNullOrWhiteSpace(column.Title, paramName);
             if (column.Field.Any(char.IsWhiteSpace))
             {
-                throw new ArgumentException($"明细表 {field.Key} 的列字段无效：{column.Field}", nameof(field));
+                throw new ArgumentException($"明细表 {field.Key} 的列字段无效：{column.Field}", paramName);
             }
 
             if (!columnFields.Add(column.Field))
             {
-                throw new ArgumentException($"明细表 {field.Key} 存在重复列字段：{column.Field}", nameof(field));
+                throw new ArgumentException($"明细表 {field.Key} 存在重复列字段：{column.Field}", paramName);
             }
 
-            ValidateInputType(column.InputType, $"明细表 {field.Key} 列 {column.Field}");
+            ValidateInputType(column.InputType, $"明细表 {field.Key} 列 {column.Field}", paramName);
         }
     }
 
-    /// <summary>校验可选样例控件类型在支持范围内。</summary>
-    private static void ValidateInputType(string? inputType, string label)
+    /// <summary>
+    /// 校验可选样例控件类型在支持范围内。
+    /// </summary>
+    /// <param name="inputType">样例控件类型（可空）</param>
+    /// <param name="label">错误消息中的定位文案</param>
+    /// <param name="paramName">对外暴露的参数名，统一为公开入口 <see cref="Register"/> 的形参名</param>
+    private static void ValidateInputType(string? inputType, string label, string paramName)
     {
         if (inputType is not null && !SupportedInputTypes.Contains(inputType))
         {
-            throw new ArgumentException($"{label} 的样例控件类型无效：{inputType}", nameof(inputType));
+            throw new ArgumentException($"{label} 的样例控件类型无效：{inputType}", paramName);
         }
     }
 

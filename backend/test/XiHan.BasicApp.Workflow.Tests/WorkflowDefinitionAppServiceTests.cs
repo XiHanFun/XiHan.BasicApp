@@ -278,6 +278,60 @@ public sealed class WorkflowDefinitionAppServiceTests
     }
 
     /// <summary>
+    /// 回归锚点：发布 / 停用 / 归档的主键必须为正，与 DeleteAsync 同一口径。
+    /// </summary>
+    /// <remarks>
+    /// 未校验时 BasicId 的默认值 0（前端漏传主键的典型形态）会被拼成标识串 "0" 下探给定义管理器，
+    /// 用户最终看到的是一条含框架内部标识文本的报错，既看不出是自己漏传，也无法定位。
+    /// </remarks>
+    /// <param name="basicId">非法主键。</param>
+    [Theory]
+    [InlineData(0L)]
+    [InlineData(-1L)]
+    [InlineData(long.MinValue)]
+    public async Task LifecycleOperations_NonPositiveKey_ShouldThrowArgumentOutOfRange(long basicId)
+    {
+        var (service, manager) = CreateService();
+
+        var published = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => service.PublishAsync(new WorkflowDefinitionIdDto { BasicId = basicId }));
+        var disabled = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => service.DisableAsync(new WorkflowDefinitionIdDto { BasicId = basicId }));
+        var archived = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => service.ArchiveAsync(new WorkflowDefinitionIdDto { BasicId = basicId }));
+
+        Assert.All(
+            new[] { published, disabled, archived },
+            exception => Assert.Contains("定义主键必须大于 0", exception.Message, StringComparison.Ordinal));
+        manager.Verify(value => value.PublishAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        manager.Verify(value => value.DisableAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        manager.Verify(value => value.ArchiveAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    /// <summary>
+    /// 回归锚点：更新草稿的主键同样必须为正，且要在解析定义 JSON 之前就拦下
+    /// （否则合法 JSON + 主键 0 会走完整条解析再以框架标识错误收尾）。
+    /// </summary>
+    /// <param name="basicId">非法主键。</param>
+    [Theory]
+    [InlineData(0L)]
+    [InlineData(-1L)]
+    public async Task UpdateDraftAsync_NonPositiveKey_ShouldThrowArgumentOutOfRange(long basicId)
+    {
+        var (service, manager) = CreateService();
+
+        var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => service.UpdateDraftAsync(new WorkflowDefinitionUpdateDraftDto
+            {
+                BasicId = basicId,
+                DefinitionJson = ValidDefinitionJson
+            }));
+
+        Assert.Contains("定义主键必须大于 0", exception.Message, StringComparison.Ordinal);
+        manager.Verify(value => value.UpdateDraftAsync(It.IsAny<WorkflowDefinition>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    /// <summary>
     /// 取消令牌必须透传到定义管理器，长事务的取消才有意义。
     /// </summary>
     [Fact]
