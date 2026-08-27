@@ -28,10 +28,16 @@
     <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj" />
   </Folder>
   <Folder Name="/2.test/">
+    <Project Path="test/XiHan.BasicApp.AI.Tests/XiHan.BasicApp.AI.Tests.csproj" />
     <Project Path="test/XiHan.BasicApp.Api.Tests/XiHan.BasicApp.Api.Tests.csproj" />
     <Project Path="test/XiHan.BasicApp.Chat.Tests/XiHan.BasicApp.Chat.Tests.csproj" />
+    <Project Path="test/XiHan.BasicApp.CodeGeneration.Tests/XiHan.BasicApp.CodeGeneration.Tests.csproj" />
+    <Project Path="test/XiHan.BasicApp.Core.Tests/XiHan.BasicApp.Core.Tests.csproj" />
     <Project Path="test/XiHan.BasicApp.Printing.Tests/XiHan.BasicApp.Printing.Tests.csproj" />
     <Project Path="test/XiHan.BasicApp.Saas.Tests/XiHan.BasicApp.Saas.Tests.csproj" />
+    <Project Path="test/XiHan.BasicApp.Web.Core.Tests/XiHan.BasicApp.Web.Core.Tests.csproj" />
+    <Project Path="test/XiHan.BasicApp.WebHost.Tests/XiHan.BasicApp.WebHost.Tests.csproj" />
+    <Project Path="test/XiHan.BasicApp.Workflow.Tests/XiHan.BasicApp.Workflow.Tests.csproj" />
   </Folder>
   <Folder Name="/3.others/" />
   <Folder Name="/3.others/1.Props/">
