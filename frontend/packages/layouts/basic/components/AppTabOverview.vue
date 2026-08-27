@@ -1,12 +1,8 @@
 <script lang="ts" setup>
-import type { DragEndEvent } from '@dnd-kit/vue'
-import { DragDropProvider } from '@dnd-kit/vue'
-import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { resolveSortMove } from '~/components/common/sortable'
-import SortableItem from '~/components/common/SortableItem.vue'
 import { ensurePinyin, getPinyinIndex, usePinyinReady } from '~/composables/usePinyin'
 import { usePageScrollLock } from '~/composables/useScrollLock'
 import { Icon } from '~/iconify'
@@ -26,7 +22,9 @@ const visible = ref(false)
 const keyword = ref('')
 const activeIndex = ref(0)
 const inputRef = ref<HTMLInputElement | null>(null)
-const gridRef = ref<HTMLElement | null>(null)
+const gridHostRef = ref<{ $el?: HTMLElement } | null>(null)
+/** 网格的根节点。ref 落在组件上得到的是实例，键盘导航要的是它渲染出的那个元素。 */
+const gridRef = computed<HTMLElement | null>(() => gridHostRef.value?.$el ?? null)
 
 // 总览铺满视口期间背后的内容不该还能滚
 usePageScrollLock(visible)
@@ -149,12 +147,9 @@ function closeTab(card: OverviewCard, e?: Event): void {
 
 /** 拖拽排序（仅未过滤时启用，避免子集排序歧义）；固定/非固定不互换 */
 const dragEnabled = computed(() => keyword.value.trim() === '')
-function onDragEnd(event: DragEndEvent): void {
+function onSort(details: { from: number, to: number }): void {
   const list = filteredCards.value
-  const move = resolveSortMove(event, list.map(card => card.path))
-  if (!move) {
-    return
-  }
+  const move = details
   if (list[move.from]?.pinned !== list[move.to]?.pinned) {
     return
   }
@@ -260,54 +255,60 @@ function onKeydown(e: KeyboardEvent): void {
           </div>
 
           <!-- 卡片网格 -->
-          <DragDropProvider @drag-end="onDragEnd">
-            <div ref="gridRef" class="tab-ov__grid">
-              <SortableItem
-                v-for="(card, index) in filteredCards"
-                :id="card.path"
-                :key="card.path"
-                :index="index"
-                :disabled="!dragEnabled"
-                data-overview-card="true"
-                class="tab-ov-card"
-                :class="{ 'is-active': card.active, 'is-focused': index === activeIndex }"
-                :style="{ animationDelay: `${Math.min(index * 18, 240)}ms` }"
-                role="button"
-                tabindex="0"
-                @click="jumpTo(card)"
-                @mousemove="activeIndex = index"
-                @keydown.enter.prevent="jumpTo(card)"
+          <XhSortableRoot
+            ref="gridHostRef"
+            :ids="filteredCards.map(c => c.path)"
+            orientation="both"
+            :disabled="!dragEnabled"
+            class="tab-ov__grid"
+            style="--xh-sortable-gap: 0"
+            @sort="onSort"
+          >
+            <XhSortableItem
+              v-for="(card, index) in filteredCards"
+              :key="card.path"
+              :item-id="card.path"
+              data-overview-card="true"
+              class="tab-ov-card"
+              :class="{ 'is-active': card.active, 'is-focused': index === activeIndex }"
+              :style="{ animationDelay: `${Math.min(index * 18, 240)}ms` }"
+              role="button"
+              tabindex="0"
+              @click="jumpTo(card)"
+              @mousemove="activeIndex = index"
+              @keydown.enter.prevent="jumpTo(card)"
+            >
+              <span class="tab-ov-card__icon">
+                <Icon :icon="card.splitWith ? 'lucide:columns-2' : card.icon" width="22" height="22" />
+              </span>
+              <span class="tab-ov-card__title" :title="card.splitWith ? `${card.title} | ${card.splitWith}` : card.title">
+                {{ card.title }}<template v-if="card.splitWith"> | {{ card.splitWith }}</template>
+              </span>
+              <span class="tab-ov-card__path">{{ card.path }}</span>
+              <span v-if="card.pinned" class="tab-ov-card__pin">
+                <Icon icon="lucide:pin" width="11" height="11" />
+              </span>
+              <button
+                v-if="card.closable"
+                type="button"
+                class="tab-ov-card__close"
+                :aria-label="t('tabbar.close')"
+                @click="(e) => closeTab(card, e)"
               >
-                <span class="tab-ov-card__icon">
-                  <Icon :icon="card.splitWith ? 'lucide:columns-2' : card.icon" width="22" height="22" />
-                </span>
-                <span class="tab-ov-card__title" :title="card.splitWith ? `${card.title} | ${card.splitWith}` : card.title">
-                  {{ card.title }}<template v-if="card.splitWith"> | {{ card.splitWith }}</template>
-                </span>
-                <span class="tab-ov-card__path">{{ card.path }}</span>
-                <span v-if="card.pinned" class="tab-ov-card__pin">
-                  <Icon icon="lucide:pin" width="11" height="11" />
-                </span>
-                <button
-                  v-if="card.closable"
-                  type="button"
-                  class="tab-ov-card__close"
-                  :aria-label="t('tabbar.close')"
-                  @click="(e) => closeTab(card, e)"
-                >
-                  <Icon icon="lucide:x" width="13" height="13" />
-                </button>
-              </SortableItem>
+                <Icon icon="lucide:x" width="13" height="13" />
+              </button>
+            </XhSortableItem>
 
-              <XhEmptyStateRoot v-if="!filteredCards.length" class="tab-ov__empty">
-                <XhEmptyStateIcon>
-                  <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:app-window'" width="28" height="28" />
-                </XhEmptyStateIcon>
-                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-                <XhEmptyStateDescription>{{ t('tabbar.overview_empty') }}</XhEmptyStateDescription>
-              </XhEmptyStateRoot>
-            </div>
-          </DragDropProvider>
+            <XhEmptyStateRoot v-if="!filteredCards.length" class="tab-ov__empty">
+              <XhEmptyStateIcon>
+                <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:app-window'" width="28" height="28" />
+              </XhEmptyStateIcon>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('tabbar.overview_empty') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+
+            <XhSortableLiveRegion />
+          </XhSortableRoot>
 
           <!-- 底部提示 -->
           <div class="tab-ov__footer">

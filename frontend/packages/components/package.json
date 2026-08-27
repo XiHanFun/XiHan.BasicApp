@@ -4,8 +4,6 @@
   "private": true,
   "main": "./index.ts",
   "dependencies": {
-    "@dnd-kit/geometry": "catalog:",
-    "@dnd-kit/vue": "catalog:",
     "@tiptap/extension-color": "catalog:",
     "@tiptap/extension-highlight": "catalog:",
     "@tiptap/extension-image": "catalog:",
