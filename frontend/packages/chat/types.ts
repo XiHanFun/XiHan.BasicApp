@@ -295,6 +295,8 @@ export interface ChatApiContract {
   openDepartmentConversation: (departmentId: string) => Promise<ChatConversationOpenResult>
   addMembers: (conversationId: string, userIds: string[]) => Promise<void>
   removeMember: (conversationId: string, userId: string) => Promise<void>
+  /** 主动退群：退出对象恒为当前登录用户，因而只需 chat:read，不需要群治理权限 */
+  leaveConversation: (conversationId: string) => Promise<void>
   sendMessage: (input: ChatMessageSendInput) => Promise<ChatMessageItem>
   recallMessage: (messageId: string) => Promise<void>
   markRead: (conversationId: string, upToMessageId?: null | string) => Promise<void>

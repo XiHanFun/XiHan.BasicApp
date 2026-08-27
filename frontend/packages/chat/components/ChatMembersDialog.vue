@@ -252,7 +252,7 @@ async function handleLeave() {
     return
   }
   try {
-    await getChatApi().removeMember(id, currentUserId.value)
+    await getChatApi().leaveConversation(id)
     show.value = false
     chatStore.closeActiveConversation()
     chatStore.loadConversations().catch(() => {})

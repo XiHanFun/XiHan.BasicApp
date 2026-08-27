@@ -162,6 +162,18 @@ describe('聊天接口的动词前缀剥离', () => {
     ])
   })
 
+  it('主动退群走独立端点，且请求体不带 userId', async () => {
+    // 回归锚点：界面上的「退出群聊」原本调 removeMember(会话, 自己)，而那个端点挂 chat:manage，
+    // 普通成员在权限过滤器阶段就被 403 —— 按钮点了没反应，错误还被组件的 catch 吞掉。
+    // 退出对象必须由服务端从登录态解析：请求体一旦带 userId，就等于开了「改包退别人的群」的口子。
+    await chatApi.leaveConversation('c1')
+
+    expect(calls).toEqual([
+      { method: 'POST', url: '/Chat/LeaveConversation', body: { conversationId: 'c1' }, params: undefined },
+    ])
+    expect(calls[0]?.body).not.toHaveProperty('userId')
+  })
+
   it('编辑消息与改会话信息的 Edit / Update 前缀映射为 PUT 且被剥离', async () => {
     await chatApi.editMessage('m1', '新内容')
     await chatApi.updateConversationInfo({ conversationId: 'c1' } as never)
