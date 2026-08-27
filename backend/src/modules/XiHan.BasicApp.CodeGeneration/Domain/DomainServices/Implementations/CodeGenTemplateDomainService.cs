@@ -33,6 +33,7 @@ public sealed class CodeGenTemplateDomainService
         EnsureEnum(command.TemplateType, nameof(command.TemplateType));
 
         EnsureEnum(command.TemplateEngine, nameof(command.TemplateEngine));
+        EnsureEnum(command.WriteMode, nameof(command.WriteMode));
         EnsureEnum(command.Status, nameof(command.Status));
 
         var templateCode = Required(command.TemplateCode, 100, nameof(command.TemplateCode), "模板编码不能超过 100 个字符。");
@@ -66,7 +67,7 @@ public sealed class CodeGenTemplateDomainService
     }
 
     /// <summary>
-    /// 更新模板（编码不可变；内置模板允许改内容）
+    /// 更新模板（编码不可变；内置模板不可编辑，由种子按嵌入资源回刷）
     /// </summary>
     public async Task<CodeGenTemplateCommandResult> UpdateTemplateAsync(CodeGenTemplateUpdateCommand command, CancellationToken cancellationToken = default)
     {
@@ -77,6 +78,7 @@ public sealed class CodeGenTemplateDomainService
         EnsureEnum(command.TemplateType, nameof(command.TemplateType));
 
         EnsureEnum(command.TemplateEngine, nameof(command.TemplateEngine));
+        EnsureEnum(command.WriteMode, nameof(command.WriteMode));
 
         var template = await GetTemplateOrThrowAsync(command.BasicId, cancellationToken);
 
@@ -88,7 +90,7 @@ public sealed class CodeGenTemplateDomainService
         }
 
         // 模板编码不可变（内置或非内置均不允许改编码），故此处不更新 TemplateCode。
-        // 内置模板允许修改内容、名称等业务字段。
+        // 能走到这里的一定是自有模板，其余业务字段整体覆盖。
         template.TemplateName = Required(command.TemplateName, 200, nameof(command.TemplateName), "模板名称不能超过 200 个字符。");
         template.TemplateDescription = Optional(command.TemplateDescription, 500, nameof(command.TemplateDescription), "模板描述不能超过 500 个字符。");
         template.TemplateGroup = Optional(command.TemplateGroup, 100, nameof(command.TemplateGroup), "模板分组不能超过 100 个字符。");

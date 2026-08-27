@@ -14,7 +14,7 @@ public interface ICodeGenTemplateDomainService
     Task<CodeGenTemplateCommandResult> CreateTemplateAsync(CodeGenTemplateCreateCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 更新模板（编码不可变；内置模板允许改内容）
+    /// 更新模板（编码不可变；内置模板不可编辑，由种子按嵌入资源回刷）
     /// </summary>
     Task<CodeGenTemplateCommandResult> UpdateTemplateAsync(CodeGenTemplateUpdateCommand command, CancellationToken cancellationToken = default);
 

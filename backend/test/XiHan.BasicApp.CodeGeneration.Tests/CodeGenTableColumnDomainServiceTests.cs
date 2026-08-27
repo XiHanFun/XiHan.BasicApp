@@ -447,21 +447,62 @@ public sealed class CodeGenTableColumnDomainServiceTests
     }
 
     /// <summary>
-    /// 常量 JSON 的合法性在分支之前统一校验：即使选的是系统字典，带上非法常量 JSON 也会被拒。
+    /// 选系统字典时，残留的非法常量 JSON 不参与校验，直接被清空。
     /// </summary>
-    /// <remarks>写成回归用例是为了让"把校验挪进 ConstSelector 分支"这类改动能被立刻发现。</remarks>
+    /// <remarks>
+    /// 回归锚点（原用例锁定的是"分支之外统一校验常量 JSON"的缺陷行为）：
+    /// 三分互斥下常量字段本来就要被清空，却先拿它去做 JSON 合法性判定，
+    /// 于是从"常量数组"切到"系统字典"时，用户会收到一条与当前选择完全无关的报错。
+    /// 现在只校验当前选择器真正生效的那个字段。
+    /// </remarks>
     [Fact]
-    public async Task UpdateColumnAsync_InvalidConstValuesShouldBeRejectedEvenForDictSelector()
+    public async Task UpdateColumnAsync_InvalidConstValuesShouldBeIgnoredForDictSelector()
     {
         GivenColumns(ExistingColumn());
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _service.UpdateColumnAsync(Command(
-                dictSelectorType: DictSelectorType.DictSelector,
-                dictCode: "sys_status",
-                constValues: "not-json")));
+        var result = await _service.UpdateColumnAsync(Command(
+            dictSelectorType: DictSelectorType.DictSelector,
+            dictCode: "sys_status",
+            constValues: "not-json"));
 
-        Assert.Equal("常量项必须是合法 JSON。", exception.Message, StringComparer.Ordinal);
+        Assert.Equal(DictSelectorType.DictSelector, result.Column.DictSelectorType);
+        Assert.Equal("sys_status", result.Column.DictCode, StringComparer.Ordinal);
+        Assert.Null(result.Column.ConstValues);
+    }
+
+    /// <summary>
+    /// 选枚举时，残留的非法常量 JSON 同样不参与校验。
+    /// </summary>
+    [Fact]
+    public async Task UpdateColumnAsync_InvalidConstValuesShouldBeIgnoredForEnumSelector()
+    {
+        GivenColumns(ExistingColumn());
+
+        var result = await _service.UpdateColumnAsync(Command(
+            dictSelectorType: DictSelectorType.EnumSelector,
+            enumTypeName: "XiHan.BasicApp.Saas.Domain.Enums.EnableStatus",
+            constValues: "not-json"));
+
+        Assert.Equal(DictSelectorType.EnumSelector, result.Column.DictSelectorType);
+        Assert.Null(result.Column.ConstValues);
+    }
+
+    /// <summary>
+    /// 选常量时，残留的超长字典码不参与校验——同一条"只校验生效字段"口径的反向验证。
+    /// </summary>
+    [Fact]
+    public async Task UpdateColumnAsync_TooLongDictCodeShouldBeIgnoredForConstSelector()
+    {
+        GivenColumns(ExistingColumn());
+
+        var result = await _service.UpdateColumnAsync(Command(
+            dictSelectorType: DictSelectorType.ConstSelector,
+            dictCode: new string('d', 201),
+            constValues: "[]"));
+
+        Assert.Equal(DictSelectorType.ConstSelector, result.Column.DictSelectorType);
+        Assert.Equal("[]", result.Column.ConstValues, StringComparer.Ordinal);
+        Assert.Null(result.Column.DictCode);
     }
 
     /// <summary>
