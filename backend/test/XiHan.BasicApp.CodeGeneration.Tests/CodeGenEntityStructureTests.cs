@@ -353,28 +353,32 @@ public sealed class CodeGenEntityStructureTests
     }
 
     /// <summary>
-    /// 三个业务唯一键（数据源名 / 表名 / 模板编码）当前是"全库唯一"，既不含租户也不含软删标记。
+    /// 三个业务唯一键（数据源名 / 表名 / 模板编码）必须是 <c>(TenantId, 业务码, IsDeleted)</c> 三段式。
     /// </summary>
     /// <remarks>
-    /// 这是锁定当前真实行为的回归锚点，不是对该设计的背书：Saas 侧同类实体的唯一索引一律是
-    /// <c>(TenantId, 业务码, IsDeleted)</c> 三段式。当前形态意味着软删一条数据源后无法再用同名新建，
-    /// 且两个租户不能配置同一张表。若后续改为三段式，本用例会红，届时应改为断言含 TenantId 与 IsDeleted。
+    /// 本用例原本锁的是"全库唯一"的旧形态，并在注释里写明「若后续改为三段式，本用例会红，
+    /// 届时应改为断言含 TenantId 与 IsDeleted」——2026-08-27 已按该预案改正，这里同步更新为新契约。
+    /// <para>
+    /// 缺 TenantId：数据源名在全平台全局唯一，租户互相占名，且撞上的那一行被租户过滤掉、看不见，
+    /// 表现为"名字没被占用却建不出来"。缺 IsDeleted：软删一条后同名无法复用。
+    /// 配套迁移脚本见 <c>UpdateScripts/4.0.2/4.0.2.sql</c>。
+    /// </para>
     /// </remarks>
     /// <param name="entityTypeName">实体类型名</param>
     /// <param name="indexName">唯一索引名</param>
-    /// <param name="expectedField">唯一索引当前包含的唯一列</param>
+    /// <param name="businessField">唯一索引里的业务码列</param>
     [Theory]
-    [InlineData(nameof(SysCodeGenDataSource), "UX_{table}_SoNa", nameof(SysCodeGenDataSource.SourceName))]
-    [InlineData(nameof(SysCodeGenTable), "UX_{table}_TaNa", nameof(SysCodeGenTable.TableName))]
-    [InlineData(nameof(SysCodeGenTemplate), "UX_{table}_TeCo", nameof(SysCodeGenTemplate.TemplateCode))]
-    public void PersistentEntity_BusinessUniqueIndexIsCurrentlyGlobal(string entityTypeName, string indexName, string expectedField)
+    [InlineData(nameof(SysCodeGenDataSource), "UX_{table}_TeId_SoNa", nameof(SysCodeGenDataSource.SourceName))]
+    [InlineData(nameof(SysCodeGenTable), "UX_{table}_TeId_TaNa", nameof(SysCodeGenTable.TableName))]
+    [InlineData(nameof(SysCodeGenTemplate), "UX_{table}_TeId_TeCo", nameof(SysCodeGenTemplate.TemplateCode))]
+    public void PersistentEntity_BusinessUniqueIndexShouldBeTenantScoped(string entityTypeName, string indexName, string businessField)
     {
         var entityType = EntityTypeByName(entityTypeName);
         var index = entityType.GetCustomAttributes<SugarIndexAttribute>()
             .Single(item => string.Equals(item.IndexName, indexName, StringComparison.Ordinal));
 
         Assert.True(index.IsUnique, $"{entityTypeName}.{indexName} 必须是唯一索引。");
-        Assert.Equal([expectedField], index.IndexFields.Keys);
+        Assert.Equal(["TenantId", businessField, "IsDeleted"], index.IndexFields.Keys);
     }
 
     /// <summary>

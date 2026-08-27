@@ -40,7 +40,9 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_SoNa", nameof(SourceName), OrderByType.Asc, true)]
+// 补 TenantId 与 IsDeleted，与 Saas 侧同类实体的三段式唯一索引对齐：
+// 缺 TenantId 会让数据源名在全平台全局唯一、租户互相占名；缺 IsDeleted 则软删后名字无法复用。
+[SugarIndex("UX_{table}_TeId_SoNa", nameof(TenantId), OrderByType.Asc, nameof(SourceName), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_DaTy", nameof(DatabaseType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysCodeGenDataSource : BasicAppFullAuditedEntity
