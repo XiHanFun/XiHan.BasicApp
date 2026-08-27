@@ -103,6 +103,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDictDomainService, DictDomainService>();
         services.AddScoped<IVersionDomainService, VersionDomainService>();
         services.AddScoped<ITenantProvisionDomainService, TenantProvisionDomainService>();
+        services.AddScoped<ITenantQuotaDomainService, TenantQuotaDomainService>();
         services.AddScoped<IRoleHierarchyDomainService, RoleHierarchyDomainService>();
         services.AddScoped<IPermissionMergeDomainService, PermissionMergeDomainService>();
         services.AddScoped<IPermissionCatalogDomainService, PermissionCatalogDomainService>();

@@ -41,6 +41,8 @@ export default {
     user_limit: '用户上限',
     storage_limit: '存储上限',
     storage_limit_mb: '存储上限(MB)',
+    seat_usage: '席位使用',
+    storage_usage: '存储使用',
     sort: '排序',
     expiration_time: '到期时间',
     created_time: '创建时间',

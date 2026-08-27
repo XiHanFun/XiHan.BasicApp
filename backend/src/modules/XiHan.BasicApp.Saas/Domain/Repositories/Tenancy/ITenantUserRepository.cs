@@ -28,4 +28,19 @@ public interface ITenantUserRepository : ISaasRepository<SysTenantUser>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>成员关系，不存在返回 null</returns>
     Task<SysTenantUser?> GetMembershipAsync(long tenantId, long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 统计指定租户已占用的席位数
+    /// </summary>
+    /// <remarks>
+    /// 口径与鉴权一致：InviteStatus=Accepted、Status=Valid 且当前时间落在生效期内。
+    /// 排除 MemberType=PlatformAdmin——平台方切入租户代管属于运维行为，不消耗客户购买的席位。
+    /// 按 TenantId 精确匹配而非依赖全局租户过滤器：后者放行 TenantId=0 的平台级成员，
+    /// 会把平台账号计进任意租户的席位。
+    /// </remarks>
+    /// <param name="tenantIds">租户主键集合</param>
+    /// <param name="now">当前时间，用于判定成员关系是否在生效期内</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户主键到已占用席位数的映射；无成员的租户不在结果中</returns>
+    Task<IReadOnlyDictionary<long, long>> CountActiveMembersByTenantIdsAsync(IReadOnlyCollection<long> tenantIds, DateTimeOffset now, CancellationToken cancellationToken = default);
 }

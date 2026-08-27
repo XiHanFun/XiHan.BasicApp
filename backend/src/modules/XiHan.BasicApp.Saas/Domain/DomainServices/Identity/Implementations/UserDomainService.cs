@@ -96,6 +96,11 @@ public sealed class UserDomainService
 
     private readonly IConstraintRuleEnforcementDomainService _constraintRuleEnforcementDomainService;
 
+    /// <summary>
+    /// 租户配额领域服务
+    /// </summary>
+    private readonly ITenantQuotaDomainService _tenantQuotaDomainService;
+
     private readonly ILogger<UserDomainService> _logger;
 
     /// <summary>
@@ -118,6 +123,7 @@ public sealed class UserDomainService
         ICurrentTenant currentTenant,
         IPasswordHistoryDomainService passwordHistoryDomainService,
         IConstraintRuleEnforcementDomainService constraintRuleEnforcementDomainService,
+        ITenantQuotaDomainService tenantQuotaDomainService,
         ILogger<UserDomainService> logger)
     {
         _userRepository = userRepository;
@@ -136,6 +142,7 @@ public sealed class UserDomainService
         _currentTenant = currentTenant;
         _passwordHistoryDomainService = passwordHistoryDomainService;
         _constraintRuleEnforcementDomainService = constraintRuleEnforcementDomainService;
+        _tenantQuotaDomainService = tenantQuotaDomainService;
         _logger = logger;
     }
 
@@ -162,6 +169,13 @@ public sealed class UserDomainService
 
         await EnsureEmailUniqueAsync(NormalizeNullable(command.Email), excludeUserId: null, cancellationToken);
         await EnsurePasswordMeetsPolicyAsync(command, cancellationToken);
+
+        // 席位配额放在轻量校验之后：用户名/邮箱冲突这类错误先短路，避免无谓的用量统计查询。
+        // 平台管理员成员不计入席位（与 CountActiveMembersByTenantIdsAsync 的统计口径一致），因此不占配额。
+        if (command.MemberType != TenantMemberType.PlatformAdmin)
+        {
+            await _tenantQuotaDomainService.EnsureSeatQuotaAsync(1, cancellationToken);
+        }
 
         var now = DateTimeOffset.UtcNow;
         var user = new SysUser

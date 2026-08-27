@@ -33,7 +33,7 @@ import { MEMBER_INVITE_STATUS_OPTIONS, MEMBER_TYPE_OPTIONS, TENANT_CONFIG_STATUS
 import { Icon, resolveStatusTagTone, SchemaPage, SchemaPagination, XDatePicker, XEditModal, XInput, XNumberInput, XSelect, XUserAvatar } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
-import { formatDate, getOptionLabel } from '~/utils'
+import { formatDate, formatFileSize, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformTenantPage' })
 
@@ -233,6 +233,49 @@ function getTenantStatusTagType(status: TenantStatus) {
   return 'warning'
 }
 
+/** 套餐存储上限以 MB 表达，已用量以字节统计，比较与展示前统一换算到字节 */
+const BYTES_PER_MB = 1024 * 1024
+
+/** 配额吃紧的判定水位：到达即提示，避免用户在毫无预兆的情况下被拒 */
+const QUOTA_WARNING_RATIO = 0.8
+
+/**
+ * 配额用量文本：已用 / 生效上限，上限为空时显示"不限"
+ */
+function quotaUsageText(used: number, limit: number | null | undefined, format: (value: number) => string) {
+  const limitText = limit == null ? t('tenant.list.unlimited') : format(limit)
+  return `${format(used)} / ${limitText}`
+}
+
+/**
+ * 配额用量单元格：超限标红、逼近上限标黄，其余为普通文本
+ */
+function renderQuotaUsage(used: number, limit: number | null | undefined, format: (value: number) => string) {
+  const text = quotaUsageText(used, limit, format)
+  if (limit == null) {
+    return h('span', {}, text)
+  }
+
+  const ratio = limit <= 0 ? 1 : used / limit
+  if (ratio >= 1) {
+    return h(XhTagRoot, { variant: 'outline', tone: 'danger' }, () => h(XhTagLabel, () => text))
+  }
+  if (ratio >= QUOTA_WARNING_RATIO) {
+    return h(XhTagRoot, { variant: 'outline', tone: 'warning' }, () => h(XhTagLabel, () => text))
+  }
+  return h('span', {}, text)
+}
+
+/** 席位用量文本（详情抽屉用） */
+function seatUsageText(used: number, limit?: number | null) {
+  return quotaUsageText(used, limit, value => String(value))
+}
+
+/** 存储用量文本（详情抽屉用；上限来自套餐、单位 MB） */
+function storageUsageText(usedBytes: number, limitMb?: number | null) {
+  return quotaUsageText(usedBytes, limitMb == null ? null : limitMb * BYTES_PER_MB, formatFileSize)
+}
+
 // ── 字段单一事实源:列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   // 仅搜索(不作为列)
@@ -311,8 +354,34 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(XhTagRoot, { variant: 'outline', tone: r.isExpired ? 'danger' : 'success' }, () => h(XhTagLabel, () => (r.isExpired ? t('tenant.list.yes') : t('tenant.list.no'))))
     },
   },
-  { key: 'userLimit', title: t('tenant.list.user_limit'), dataType: 'number', sortable: true, minWidth: 100, order: 10 },
-  { key: 'storageLimit', title: t('tenant.list.storage_limit'), dataType: 'number', sortable: true, minWidth: 120, order: 11 },
+  {
+    key: 'userLimit',
+    title: t('tenant.list.seat_usage'),
+    dataType: 'number',
+    sortable: true,
+    minWidth: 130,
+    order: 10,
+    render: (row) => {
+      const r = row as unknown as TenantListItemDto
+      return renderQuotaUsage(r.usedUserCount, r.effectiveUserLimit, value => String(value))
+    },
+  },
+  {
+    key: 'storageLimit',
+    title: t('tenant.list.storage_usage'),
+    dataType: 'number',
+    sortable: true,
+    minWidth: 160,
+    order: 11,
+    render: (row) => {
+      const r = row as unknown as TenantListItemDto
+      return renderQuotaUsage(
+        r.usedStorageBytes,
+        r.effectiveStorageLimit == null ? null : r.effectiveStorageLimit * BYTES_PER_MB,
+        formatFileSize,
+      )
+    },
+  },
   { key: 'sort', title: t('tenant.list.sort'), dataType: 'number', sortable: true, minWidth: 80, order: 12 },
   { key: 'expirationTime', title: t('tenant.list.expiration_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 13 },
   { key: 'createdTime', title: t('tenant.list.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 14 },
@@ -948,15 +1017,15 @@ async function handleSubmit() {
                     </XhDescriptionsValue>
                   </XhDescriptionsItem>
                   <XhDescriptionsItem>
-                    <XhDescriptionsLabel>{{ t('tenant.list.user_limit') }}</XhDescriptionsLabel>
+                    <XhDescriptionsLabel>{{ t('tenant.list.seat_usage') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>
-                      {{ formatNullable(currentDetail.userLimit) }}
+                      {{ seatUsageText(currentDetail.usedUserCount, currentDetail.effectiveUserLimit) }}
                     </XhDescriptionsValue>
                   </XhDescriptionsItem>
                   <XhDescriptionsItem>
-                    <XhDescriptionsLabel>{{ t('tenant.list.storage_limit_mb') }}</XhDescriptionsLabel>
+                    <XhDescriptionsLabel>{{ t('tenant.list.storage_usage') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>
-                      {{ formatNullable(currentDetail.storageLimit) }}
+                      {{ storageUsageText(currentDetail.usedStorageBytes, currentDetail.effectiveStorageLimit) }}
                     </XhDescriptionsValue>
                   </XhDescriptionsItem>
                   <XhDescriptionsItem>

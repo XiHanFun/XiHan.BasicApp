@@ -19,17 +19,21 @@ public sealed class FileDomainService
 
     private readonly IFileStorageRepository _fileStorageRepository;
 
+    private readonly ITenantQuotaDomainService _tenantQuotaDomainService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public FileDomainService(
         IFileRepository fileRepository,
         IFileStorageRepository fileStorageRepository,
-        IFileStorageDomainService fileStorageDomainService)
+        IFileStorageDomainService fileStorageDomainService,
+        ITenantQuotaDomainService tenantQuotaDomainService)
     {
         _fileRepository = fileRepository;
         _fileStorageRepository = fileStorageRepository;
         _fileStorageDomainService = fileStorageDomainService;
+        _tenantQuotaDomainService = tenantQuotaDomainService;
     }
 
     /// <summary>
@@ -213,6 +217,10 @@ public sealed class FileDomainService
 
         ValidateMutableMetadata(command.AccessLevel, command.RetentionDays, command.Width, command.Height, command.Duration, command.ThumbnailFileId);
         _fileStorageDomainService.EnsureUploadMetadata(command.FileSize, command.IsTemporary, command.ExpirationTime, command.RetentionDays);
+
+        // 命令自带 FileSize，故能在文件真正传输前就拒绝超限，不必等传完再回滚。
+        // 秒传走 FastUploadFileAsync 复用同租户既有文件、不新增占用，不在此路径上。
+        await _tenantQuotaDomainService.EnsureStorageQuotaAsync(command.FileSize, cancellationToken);
 
         var file = new SysFile
         {

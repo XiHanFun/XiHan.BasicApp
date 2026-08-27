@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -54,5 +55,36 @@ public sealed class TenantUserRepository(ISqlSugarClientResolver clientResolver)
             .Where(user => user.TenantId == tenantId)
             .Where(user => user.UserId == userId)
             .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 统计指定租户已占用的席位数
+    /// </summary>
+    public async Task<IReadOnlyDictionary<long, long>> CountActiveMembersByTenantIdsAsync(IReadOnlyCollection<long> tenantIds, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(tenantIds);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (tenantIds.Count == 0)
+        {
+            return new Dictionary<long, long>();
+        }
+
+        var ids = tenantIds.Distinct().ToList();
+
+        // 清租户过滤后按 TenantId 精确匹配：读共享过滤器会放行 TenantId=0 的平台级成员，
+        // 依赖它会把平台账号计进每个租户的席位。生效期口径与 GetActiveByUserIdAsync 的鉴权口径保持一致。
+        var rows = await CreateNoTenantQueryable()
+            .Where(user => ids.Contains(user.TenantId))
+            .Where(user => user.InviteStatus == TenantMemberInviteStatus.Accepted)
+            .Where(user => user.Status == ValidityStatus.Valid)
+            .Where(user => user.MemberType != TenantMemberType.PlatformAdmin)
+            .Where(user => user.EffectiveTime == null || user.EffectiveTime <= now)
+            .Where(user => user.ExpirationTime == null || user.ExpirationTime > now)
+            .GroupBy(user => user.TenantId)
+            .Select(user => new TenantUsageRow { TenantId = user.TenantId, Value = SqlFunc.AggregateCount(user.UserId) })
+            .ToListAsync(cancellationToken);
+
+        return rows.ToDictionary(row => row.TenantId, row => row.Value);
     }
 }
