@@ -301,15 +301,48 @@ public sealed class CodeGenTableDomainServiceTests
     }
 
     /// <summary>
-    /// 表名超过 200 字必须拒绝。
+    /// 表名超过 200 字必须拒绝，且提示语要说"超长"而不是"不能为空"。
     /// </summary>
+    /// <remarks>
+    /// 回归锚点：Required 原先对"为空"和"超长"复用同一条 message，
+    /// 填了 201 字的表名却被告知"数据库表名不能为空。"，用户会去检查一个根本没空着的输入框。
+    /// </remarks>
     [Fact]
-    public async Task UpdateTableAsync_TooLongTableNameShouldThrow()
+    public async Task UpdateTableAsync_TooLongTableNameShouldThrowWithLengthMessage()
     {
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _service.UpdateTableAsync(UpdateCommand(tableName: new string('t', 201))));
 
         Assert.Equal("TableName", exception.ParamName);
+        Assert.Contains("数据库表名长度不能超过 200 个字符。", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("不能为空", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 类名超过 200 字必须拒绝，且提示语要说"超长"而不是"不能为空"。
+    /// </summary>
+    /// <remarks>回归锚点：与表名同因，ClassName 也复用了"实体类名称不能为空。"这条 message。</remarks>
+    [Fact]
+    public async Task UpdateTableAsync_TooLongClassNameShouldThrowWithLengthMessage()
+    {
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _service.UpdateTableAsync(UpdateCommand(className: new string('c', 201))));
+
+        Assert.Equal("ClassName", exception.ParamName);
+        Assert.Contains("实体类名称长度不能超过 200 个字符。", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("不能为空", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 表名为空时的提示语必须仍然是"不能为空"，不能被超长提示顶掉。
+    /// </summary>
+    [Fact]
+    public async Task UpdateTableAsync_BlankTableNameShouldThrowWithBlankMessage()
+    {
+        var exception = await Assert.ThrowsAsync<ArgumentException>(
+            () => _service.UpdateTableAsync(UpdateCommand(tableName: "   ")));
+
+        Assert.Contains("数据库表名不能为空。", exception.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -466,10 +499,16 @@ public sealed class CodeGenTableDomainServiceTests
     }
 
     /// <summary>
-    /// 状态变更时空白备注会把原备注清空（当前实现的真实口径，与数据源/模板的"留空即不改"不同）。
+    /// 状态变更时空白备注表示"不修改"，原备注必须保留。
     /// </summary>
+    /// <remarks>
+    /// 回归锚点（原用例锁定的是"空白备注把原备注清空"的缺陷行为）：
+    /// 同模块的 <c>UpdateDataSourceStatusAsync</c> / <c>UpdateTemplateStatusAsync</c> 都写成
+    /// <c>Optional(...) ?? entity.Remark</c>，只有表配置漏了兜底。状态切换弹窗不回填原备注，
+    /// 于是每切一次状态就把原备注静默抹掉一次。三处口径必须一致。
+    /// </remarks>
     [Fact]
-    public async Task UpdateTableStatusAsync_BlankRemarkShouldClearExistingRemark()
+    public async Task UpdateTableStatusAsync_BlankRemarkShouldKeepExistingRemark()
     {
         var existing = Existing();
         GivenExisting(existing);
@@ -477,7 +516,23 @@ public sealed class CodeGenTableDomainServiceTests
         var result = await _service.UpdateTableStatusAsync(
             new CodeGenTableStatusChangeCommand(1, EnableStatus.Disabled, "   "));
 
-        Assert.Null(result.Table.Remark);
+        Assert.Equal(EnableStatus.Disabled, result.Table.Status);
+        Assert.Equal("原备注", result.Table.Remark, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 状态变更时备注传 null 同样表示"不修改"。
+    /// </summary>
+    [Fact]
+    public async Task UpdateTableStatusAsync_NullRemarkShouldKeepExistingRemark()
+    {
+        var existing = Existing();
+        GivenExisting(existing);
+
+        var result = await _service.UpdateTableStatusAsync(
+            new CodeGenTableStatusChangeCommand(1, EnableStatus.Disabled, null));
+
+        Assert.Equal("原备注", result.Table.Remark, StringComparer.Ordinal);
     }
 
     /// <summary>

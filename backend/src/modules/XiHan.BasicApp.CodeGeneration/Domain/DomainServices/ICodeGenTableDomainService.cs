@@ -15,7 +15,7 @@ public interface ICodeGenTableDomainService
     Task<CodeGenTableCommandResult> UpdateTableAsync(CodeGenTableUpdateCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 更新表配置状态（仅改 Status/Remark）
+    /// 更新表配置状态（仅改 Status/Remark；备注留空即不修改）
     /// </summary>
     Task<CodeGenTableCommandResult> UpdateTableStatusAsync(CodeGenTableStatusChangeCommand command, CancellationToken cancellationToken = default);
 

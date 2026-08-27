@@ -149,26 +149,29 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
         }
 
         EnsureEnum(selectorType, "字典选择器类型无效。");
-        var dictCode = NormalizeNullable(command.DictCode, 200, "字典码最长 200 个字符。");
-        var enumTypeName = NormalizeNullable(command.EnumTypeName, 500, "枚举类型全名最长 500 个字符。");
-        var constValues = NormalizeConstValues(command.ConstValues);
 
+        // 只校验当前选择器真正生效的那个字段：三分互斥下另外两个字段本就要被清空，
+        // 前端从「常量数组」切到「系统字典」时常把上一次的残留值一并提交，
+        // 若在分支外统一校验，用户会看到一条与当前选择完全无关的报错。
         switch (selectorType)
         {
             case DictSelectorType.DictSelector:
-                column.DictCode = dictCode ?? throw new InvalidOperationException("系统字典选择器必须填写字典码。");
+                column.DictCode = NormalizeNullable(command.DictCode, 200, "字典码最长 200 个字符。")
+                    ?? throw new InvalidOperationException("系统字典选择器必须填写字典码。");
                 column.EnumTypeName = null;
                 column.ConstValues = null;
                 break;
 
             case DictSelectorType.EnumSelector:
-                column.EnumTypeName = enumTypeName ?? throw new InvalidOperationException("枚举选择器必须填写枚举类型全名。");
+                column.EnumTypeName = NormalizeNullable(command.EnumTypeName, 500, "枚举类型全名最长 500 个字符。")
+                    ?? throw new InvalidOperationException("枚举选择器必须填写枚举类型全名。");
                 column.DictCode = null;
                 column.ConstValues = null;
                 break;
 
             case DictSelectorType.ConstSelector:
-                column.ConstValues = constValues ?? throw new InvalidOperationException("常量选择器必须填写常量项 JSON。");
+                column.ConstValues = NormalizeConstValues(command.ConstValues)
+                    ?? throw new InvalidOperationException("常量选择器必须填写常量项 JSON。");
                 column.DictCode = null;
                 column.EnumTypeName = null;
                 break;

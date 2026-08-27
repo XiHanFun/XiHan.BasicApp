@@ -44,8 +44,8 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         ValidateEnum(command.DatabaseType, nameof(command.DatabaseType));
         ValidateEnum(command.Status, nameof(command.Status));
 
-        var tableName = Required(command.TableName, 200, nameof(command.TableName), "数据库表名不能为空。");
-        var className = Required(command.ClassName, 200, nameof(command.ClassName), "实体类名称不能为空。");
+        var tableName = Required(command.TableName, 200, nameof(command.TableName), "数据库表名不能为空。", "数据库表名长度不能超过 200 个字符。");
+        var className = Required(command.ClassName, 200, nameof(command.ClassName), "实体类名称不能为空。", "实体类名称长度不能超过 200 个字符。");
 
         // 表名唯一（排除自身）
         if (await _tableRepository.ExistsTableNameAsync(tableName, command.BasicId, cancellationToken))
@@ -106,7 +106,7 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
     ];
 
     /// <summary>
-    /// 更新表配置状态（仅改 Status/Remark）
+    /// 更新表配置状态（仅改 Status/Remark；备注留空即不修改）
     /// </summary>
     public async Task<CodeGenTableCommandResult> UpdateTableStatusAsync(CodeGenTableStatusChangeCommand command, CancellationToken cancellationToken = default)
     {
@@ -119,7 +119,9 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         var table = await GetTableOrThrowAsync(command.BasicId, cancellationToken);
 
         table.Status = command.Status;
-        table.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注长度不能超过 500 个字符。");
+        // 留空即不修改备注，与数据源/模板的状态变更同口径：状态切换弹窗通常不回填原备注，
+        // 直接覆盖会把原备注静默抹掉。要清空备注请走完整的更新表配置。
+        table.Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注长度不能超过 500 个字符。") ?? table.Remark;
 
         return new CodeGenTableCommandResult(await _tableRepository.UpdateAsync(table, cancellationToken));
     }
@@ -170,17 +172,20 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         }
     }
 
-    private static string Required(string? value, int maxLength, string paramName, string message)
+    /// <summary>
+    /// 校验必填字符串：为空与超长是两种错误，各自给出独立提示，避免超长时报"不能为空"
+    /// </summary>
+    private static string Required(string? value, int maxLength, string paramName, string blankMessage, string tooLongMessage)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
-            throw new ArgumentException(message, paramName);
+            throw new ArgumentException(blankMessage, paramName);
         }
 
         var trimmed = value.Trim();
         if (trimmed.Length > maxLength)
         {
-            throw new ArgumentException(message, paramName);
+            throw new ArgumentException(tooLongMessage, paramName);
         }
 
         return trimmed;

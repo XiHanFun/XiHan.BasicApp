@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Xml.Linq;
 using Moq;
 using XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
@@ -91,6 +92,7 @@ public sealed class CodeGenTemplateDomainServiceTests
     /// <param name="isEnabled">是否启用</param>
     /// <param name="templateContent">模板内容</param>
     /// <param name="remark">备注</param>
+    /// <param name="writeMode">写入策略</param>
     private static CodeGenTemplateUpdateCommand UpdateCommand(
         long basicId = 1,
         string templateName = "改后的名字",
@@ -98,7 +100,8 @@ public sealed class CodeGenTemplateDomainServiceTests
         TemplateEngine templateEngine = TemplateEngine.Scriban,
         bool isEnabled = true,
         string? templateContent = "{{ ClassName }}",
-        string? remark = null)
+        string? remark = null,
+        ArtifactWriteMode writeMode = ArtifactWriteMode.WriteOnce)
     {
         return new CodeGenTemplateUpdateCommand(
             basicId,
@@ -107,7 +110,7 @@ public sealed class CodeGenTemplateDomainServiceTests
             "backend-crud",
             templateType,
             templateEngine,
-            ArtifactWriteMode.WriteOnce,
+            writeMode,
             templateContent,
             "{{ ClassName }}.cs",
             "Domain/Entities",
@@ -340,19 +343,38 @@ public sealed class CodeGenTemplateDomainServiceTests
     }
 
     /// <summary>
-    /// 写入策略当前未做枚举合法性校验，未定义值会原样落库。
+    /// 写入策略取未定义枚举值必须拒绝。
     /// </summary>
     /// <remarks>
-    /// 这是"锁定当前真实行为"的回归锚点，不是对该行为的背书：
-    /// 其余枚举（模板类型/引擎/状态）都过了 <c>Enum.IsDefined</c>，唯独 WriteMode 漏了。
-    /// 一旦补上校验，本用例会红，届时应改为断言拒绝。
+    /// 回归锚点（原用例锁定的是"未定义值原样落库"的缺陷行为）：
+    /// 下游 ZipArtifactPackager / FileSystemArtifactWriter 都按 <c>== WriteOnce</c> 判定，
+    /// 脏值会被静默当成"总是覆盖"，从而覆盖开发者手写的文件。
+    /// 校验口径与同方法内的模板类型/引擎/状态一致。
     /// </remarks>
     [Fact]
-    public async Task CreateTemplateAsync_UndefinedWriteModeIsCurrentlyAccepted()
+    public async Task CreateTemplateAsync_UndefinedWriteModeShouldThrow()
     {
-        var result = await _service.CreateTemplateAsync(CreateCommand(writeMode: (ArtifactWriteMode)77));
+        var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => _service.CreateTemplateAsync(CreateCommand(writeMode: (ArtifactWriteMode)77)));
 
-        Assert.Equal((ArtifactWriteMode)77, result.Template.WriteMode);
+        Assert.Equal("WriteMode", exception.ParamName);
+        _repository.Verify(
+            repository => repository.AddAsync(It.IsAny<SysCodeGenTemplate>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 更新时写入策略取未定义枚举值必须拒绝，且在读库之前就拒绝。
+    /// </summary>
+    /// <remarks>回归锚点：补校验之前 <c>template.WriteMode = command.WriteMode</c> 会把脏值直接写回实体。</remarks>
+    [Fact]
+    public async Task UpdateTemplateAsync_UndefinedWriteModeShouldThrowBeforeLoading()
+    {
+        var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => _service.UpdateTemplateAsync(UpdateCommand(writeMode: (ArtifactWriteMode)77)));
+
+        Assert.Equal("WriteMode", exception.ParamName);
+        _repository.Verify(repository => repository.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -379,6 +401,57 @@ public sealed class CodeGenTemplateDomainServiceTests
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateTemplateAsync(UpdateCommand()));
 
         Assert.Equal("模板不存在。", exception.Message, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 契约文档必须和"内置模板不可编辑"的实现口径一致。
+    /// </summary>
+    /// <remarks>
+    /// 回归锚点：接口与实现的摘要原本都写着"内置模板允许改内容"，而方法体一进来就整体拒绝内置模板
+    /// （理由写在实现的行内注释里：种子会按嵌入资源整体回刷）。文档与行为矛盾时按实现为准改文档，
+    /// 因为拒绝编辑与"内置模板不能删除"是同一条口径，且已被 <see cref="UpdateTemplateAsync_BuiltInTemplateShouldBeRejected"/> 钉死。
+    /// 本用例读的是编译产出的 XML 文档，摘要一改回去就会红。
+    /// </remarks>
+    [Fact]
+    public void UpdateTemplateAsyncSummary_ShouldNotClaimBuiltInTemplateIsEditable()
+    {
+        var documentation = LoadDomainDocumentation();
+
+        foreach (var declaringType in new[] { "ICodeGenTemplateDomainService", "CodeGenTemplateDomainService" })
+        {
+            var summary = ReadSummary(
+                documentation,
+                $"M:XiHan.BasicApp.CodeGeneration.Domain.DomainServices.{declaringType}.UpdateTemplateAsync(" +
+                "XiHan.BasicApp.CodeGeneration.Domain.DomainServices.CodeGenTemplateUpdateCommand,System.Threading.CancellationToken)");
+
+            Assert.DoesNotContain("内置模板允许改内容", summary, StringComparison.Ordinal);
+            Assert.Contains("内置模板不可编辑", summary, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>
+    /// 载入代码生成模块编译产出的 XML 文档。
+    /// </summary>
+    private static XDocument LoadDomainDocumentation()
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "XiHan.BasicApp.CodeGeneration.xml");
+        Assert.True(File.Exists(path), $"未找到 XML 文档：{path}");
+        return XDocument.Load(path);
+    }
+
+    /// <summary>
+    /// 按成员标识读取摘要文本。
+    /// </summary>
+    /// <param name="documentation">XML 文档</param>
+    /// <param name="memberName">成员标识</param>
+    private static string ReadSummary(XDocument documentation, string memberName)
+    {
+        var member = documentation
+            .Descendants("member")
+            .FirstOrDefault(element => string.Equals(element.Attribute("name")?.Value, memberName, StringComparison.Ordinal));
+
+        Assert.NotNull(member);
+        return member.Element("summary")?.Value.Trim() ?? string.Empty;
     }
 
     /// <summary>
