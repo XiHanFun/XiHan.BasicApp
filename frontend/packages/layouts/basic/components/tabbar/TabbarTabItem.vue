@@ -81,8 +81,11 @@ function onAuxClick(event: MouseEvent) {
   }
 }
 
-/** 悬停提示：逐条列出这枚标签当前真正可用的鼠标手势（拖拽、中键、右键） */
-const gestureHint = computed(() => {
+/**
+ * 悬停提示：首行是标签名（标题会被 120px 截断，悬停第一眼要看得到全名），
+ * 次行逐条列出这枚标签当前真正可用的鼠标手势。
+ */
+const tabHint = computed(() => {
   const parts: string[] = []
   if (props.draggable) {
     parts.push(t('tabbar.tab_hint_drag'))
@@ -91,7 +94,8 @@ const gestureHint = computed(() => {
     parts.push(t('tabbar.tab_hint_middle'))
   }
   parts.push(t('tabbar.tab_hint_context'))
-  return parts.join(t('tabbar.tab_hint_sep'))
+  return `${props.item.displayTitle}
+${parts.join(t('tabbar.tab_hint_sep'))}`
 })
 </script>
 
@@ -108,7 +112,7 @@ const gestureHint = computed(() => {
     :data-dragging="isDragging || undefined"
     role="button"
     tabindex="0"
-    :title="gestureHint"
+    :title="tabHint"
     @click="emit('jump', item.path)"
     @mousedown.middle.prevent
     @auxclick.prevent="onAuxClick"
@@ -158,6 +162,7 @@ const gestureHint = computed(() => {
             class="chrome-tab__close chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
             type="button"
             :aria-label="t('tabbar.close_tab')"
+            :title="t('tabbar.close_tab')"
             @click.stop="emit('close', item.path, $event)"
           >
             <Icon width="12" height="12" icon="lucide:x" />
@@ -167,6 +172,7 @@ const gestureHint = computed(() => {
             class="chrome-tab__pin chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
             type="button"
             :aria-label="t('tabbar.unpin')"
+            :title="t('tabbar.unpin')"
             @click.stop="emit('togglePin', item.path)"
           >
             <Icon width="12" height="12" icon="lucide:pin" />
@@ -176,6 +182,7 @@ const gestureHint = computed(() => {
             v-else-if="item.pinned && item.path === HOME_PATH"
             class="chrome-tab__lock chrome-tab__action flex h-5 w-5 items-center justify-center rounded-full"
             :aria-label="t('tabbar.pinned')"
+            :title="t('tabbar.pinned')"
           >
             <Icon width="12" height="12" icon="lucide:lock" />
           </span>
@@ -202,6 +209,7 @@ const gestureHint = computed(() => {
           class="flat-tab__close flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
           type="button"
           :aria-label="t('tabbar.close_tab')"
+          :title="t('tabbar.close_tab')"
           @click.stop="emit('close', item.path, $event)"
         >
           <Icon width="12" height="12" icon="lucide:x" />
@@ -211,6 +219,7 @@ const gestureHint = computed(() => {
           class="flat-tab__pin flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
           type="button"
           :aria-label="t('tabbar.unpin')"
+          :title="t('tabbar.unpin')"
           @click.stop="emit('togglePin', item.path)"
         >
           <Icon width="12" height="12" icon="lucide:pin" />
@@ -220,6 +229,7 @@ const gestureHint = computed(() => {
           v-else-if="item.pinned && item.path === HOME_PATH"
           class="flat-tab__lock flat-tab__action flex h-5 w-5 items-center justify-center rounded-full"
           :aria-label="t('tabbar.pinned')"
+          :title="t('tabbar.pinned')"
         >
           <Icon width="12" height="12" icon="lucide:lock" />
         </span>
