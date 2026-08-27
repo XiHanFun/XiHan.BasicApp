@@ -112,8 +112,15 @@ public sealed class ChatAppService
     }
 
     /// <summary>
-    /// 移除群成员/退群
+    /// 移除群成员（管理动作：把别人移出群，需群治理权限）
     /// </summary>
+    /// <remarks>
+    /// 本端点只承载「移除他人」。主动退群走 <see cref="LeaveConversationAsync"/>：
+    /// 领域层 RemoveMemberAsync 对「操作人 == 被移出人」刻意跳过群主/管理员校验，
+    /// 而普通成员默认只持有 chat:read + chat:send，挂在本端点上的 chat:manage 会让他们
+    /// 在权限过滤器阶段就被 403，根本走不到领域层那条自助分支。
+    /// 入参 UserId 传当前用户时仍会被领域层接受（等价于退群），但普通成员到不了这里。
+    /// </remarks>
     [UnitOfWork(true)]
     [PermissionAuthorize(ChatPermissionCodes.Manage)]
     public async Task RemoveMemberAsync(ChatMemberRemoveDto input, CancellationToken cancellationToken = default)
@@ -121,11 +128,41 @@ public sealed class ChatAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await RemoveMemberCoreAsync(input.ConversationId, input.UserId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 主动退群（任何群成员自助；群主须先移交群主）
+    /// </summary>
+    /// <remarks>
+    /// 与 <see cref="RemoveMemberAsync"/> 共用同一个领域方法，差别只在退出对象恒为当前登录用户，
+    /// 因而不需要群治理权限：门槛定为 chat:read（能看到这个群就能退出这个群），
+    /// 具体能否退出仍由领域层判定（非成员/群主/非群聊一律拒绝）。
+    /// </remarks>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(ChatPermissionCodes.Read)]
+    public async Task LeaveConversationAsync(ChatConversationLeaveDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var currentUserId = GetCurrentUserIdOrThrow();
+        await RemoveMemberCoreAsync(input.ConversationId, currentUserId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 成员移除的共用写路径：落库后剩余成员收系统提示与成员变更，被移出者单独收一次会话变更
+    /// </summary>
+    /// <param name="conversationId">会话主键。</param>
+    /// <param name="userId">被移出（或主动退出）的用户主键。</param>
+    /// <param name="cancellationToken">取消令牌。</param>
+    private async Task RemoveMemberCoreAsync(long conversationId, long userId, CancellationToken cancellationToken)
+    {
         var result = await _chatDomainService.RemoveMemberAsync(
-            new ChatMemberRemoveCommand(input.ConversationId, GetCurrentUserIdOrThrow(), input.UserId), cancellationToken);
+            new ChatMemberRemoveCommand(conversationId, GetCurrentUserIdOrThrow(), userId), cancellationToken);
         // 剩余成员收到系统提示与成员变更；被移出者只收会话变更（其会话列表随之收敛）
         await PushGovernanceAsync(result, "member-removed");
-        await _pushService.PushConversationChangedAsync(input.ConversationId, "member-removed", [input.UserId]);
+        await _pushService.PushConversationChangedAsync(conversationId, "member-removed", [userId]);
     }
 
     /// <summary>

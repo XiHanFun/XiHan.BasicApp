@@ -119,6 +119,8 @@ public sealed class ChatExtraStructureTests
             ["ChatAppService.CreateGroupConversationAsync"] = ChatPermissionCodes.Manage,
             ["ChatAppService.AddMembersAsync"] = ChatPermissionCodes.Manage,
             ["ChatAppService.RemoveMemberAsync"] = ChatPermissionCodes.Manage,
+            // 回归锚点（缺陷清单条目 20）：主动退群是自助动作，门槛必须是 read 而非 manage
+            ["ChatAppService.LeaveConversationAsync"] = ChatPermissionCodes.Read,
             ["ChatAppService.UpdateConversationInfoAsync"] = ChatPermissionCodes.Manage,
             ["ChatAppService.TransferOwnerAsync"] = ChatPermissionCodes.Manage,
             ["ChatAppService.SetMemberSilenceAsync"] = ChatPermissionCodes.Manage,
@@ -260,6 +262,73 @@ public sealed class ChatExtraStructureTests
         Assert.True(violations.Count == 0,
             $"{implementationType.Name} 与 {contractType.Name} 的签名不一致：" +
             $"{Environment.NewLine}{string.Join(Environment.NewLine, violations)}");
+    }
+
+    /// <summary>
+    /// 回归锚点（缺陷清单条目 20）：主动退群必须有一条不需要群治理权限的自助入口。
+    /// </summary>
+    /// <remarks>
+    /// 领域层 <c>ChatDomainService.RemoveMemberAsync</c> 对「操作人 == 被移出人」刻意跳过
+    /// 群主/管理员校验，即退群不属于管理动作；但普通成员默认只拿到 chat:read + chat:send，
+    /// 若唯一入口挂 chat:manage，他们在权限过滤器阶段就被 403，永远走不到领域层那条自助分支，
+    /// 现网表现为「普通成员无法退群」。故这里同时钉死三件事：入口存在、门槛是 read、
+    /// 且不接受目标用户入参（能指定别人就等于把管理动作降级成了自助动作）。
+    /// </remarks>
+    [Fact]
+    public void LeaveConversationAsync_ShouldBeSelfServiceGatedByReadOnly()
+    {
+        var leave = typeof(ChatAppService).GetMethod(nameof(ChatAppService.LeaveConversationAsync))
+            ?? throw new InvalidOperationException("ChatAppService 缺少主动退群入口 LeaveConversationAsync。");
+
+        var codes = leave.GetCustomAttributes<PermissionAuthorizeAttribute>(inherit: true)
+            .Select(attribute => attribute.PermissionCode)
+            .ToList();
+        Assert.Equal(new[] { ChatPermissionCodes.Read }, codes, StringComparer.Ordinal);
+        Assert.DoesNotContain(ChatPermissionCodes.Manage, codes, StringComparer.Ordinal);
+
+        var inputType = leave.GetParameters()[0].ParameterType;
+        Assert.Null(inputType.GetProperty("UserId"));
+
+        // 移除他人仍是管理动作，其门槛不得被本次拆分顺带放宽
+        var remove = typeof(ChatAppService).GetMethod(nameof(ChatAppService.RemoveMemberAsync))!;
+        Assert.Equal(
+            new[] { ChatPermissionCodes.Manage },
+            remove.GetCustomAttributes<PermissionAuthorizeAttribute>(inherit: true)
+                .Select(attribute => attribute.PermissionCode)
+                .ToArray(),
+            StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 回归锚点（缺陷清单条目 55）：每个被暴露为 HTTP 端点的方法都必须在契约接口上有声明。
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Contracts_ShouldBeImplementedWithIdenticalSignatures"/> 只查「契约 → 实现」一个方向，
+    /// 实现类多出来的端点它看不见。少一条声明不影响端点生成，但按接口做替身/按接口生成前端契约的
+    /// 路径全都会漏掉这个端点（<c>ChatQueryService.GetDepartmentTreeAsync</c> 即如此）。
+    /// </remarks>
+    /// <param name="contractType">契约接口类型。</param>
+    /// <param name="implementationType">实现类型。</param>
+    [Theory]
+    [InlineData(typeof(IChatAppService), typeof(ChatAppService))]
+    [InlineData(typeof(IChatQueryService), typeof(ChatQueryService))]
+    [InlineData(typeof(IChatAuditQueryService), typeof(ChatAuditQueryService))]
+    public void ExposedMethods_ShouldAllBeDeclaredOnContract(Type contractType, Type implementationType)
+    {
+        var declared = contractType
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            .Select(method => method.Name)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var violations = EnumerateExposedMethods(implementationType)
+            .Where(method => !declared.Contains(method.Name))
+            .Select(method => method.Name)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.True(violations.Count == 0,
+            $"{implementationType.Name} 的下列端点未声明在 {contractType.Name} 上，" +
+            $"按接口替身或按接口生成契约的路径都看不到它们：{string.Join("、", violations)}");
     }
 
     /// <summary>

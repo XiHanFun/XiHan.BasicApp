@@ -146,6 +146,42 @@ public sealed class ChatExtraAppServiceTests
     }
 
     /// <summary>
+    /// 回归锚点（缺陷清单条目 20）：主动退群必须把操作人与退出对象双双锁定为当前登录用户。
+    /// </summary>
+    /// <remarks>
+    /// 只有 OperatorUserId == UserId 才会命中领域层那条「非本人操作才需要群主/管理员权限」的
+    /// 自助分支；一旦这里让入参决定退出对象，普通成员就能借这个 chat:read 门槛的端点移除别人。
+    /// 扇出口径与管理员移人一致：剩余成员一次、退出者单独一次（其会话列表随之收敛）。
+    /// </remarks>
+    [Fact]
+    public async Task LeaveConversationAsync_ShouldRemoveCurrentUserAsSelfOperation()
+    {
+        var context = new AppServiceContext();
+        var conversation = CreateConversation(100, ChatConversationType.Group);
+        context.Domain
+            .Setup(value => value.RemoveMemberAsync(It.IsAny<ChatMemberRemoveCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ChatGovernanceResult(conversation, SystemMessage: null, [1, 2]));
+
+        await context.Service.LeaveConversationAsync(new ChatConversationLeaveDto { ConversationId = 100 });
+
+        context.Domain.Verify(
+            value => value.RemoveMemberAsync(
+                It.Is<ChatMemberRemoveCommand>(command =>
+                    command.ConversationId == 100
+                    && command.OperatorUserId == CurrentUserId
+                    && command.UserId == CurrentUserId),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        context.Push.Verify(
+            value => value.PushConversationChangedAsync(100, "member-removed", It.Is<IReadOnlyList<long>>(ids => ids.Count == 2)),
+            Times.Once);
+        context.Push.Verify(
+            value => value.PushConversationChangedAsync(
+                100, "member-removed", It.Is<IReadOnlyList<long>>(ids => ids.Count == 1 && ids[0] == CurrentUserId)),
+            Times.Once);
+    }
+
+    /// <summary>
     /// 敏感词拦截必须发生在落库之前：命中时领域服务与推送都不得被调用。
     /// </summary>
     [Fact]
@@ -405,6 +441,7 @@ public sealed class ChatExtraAppServiceTests
         _ = await Assert.ThrowsAnyAsync<ArgumentNullException>(() => context.Service.OpenDepartmentConversationAsync(null!));
         _ = await Assert.ThrowsAnyAsync<ArgumentNullException>(() => context.Service.AddMembersAsync(null!));
         _ = await Assert.ThrowsAnyAsync<ArgumentNullException>(() => context.Service.RemoveMemberAsync(null!));
+        _ = await Assert.ThrowsAnyAsync<ArgumentNullException>(() => context.Service.LeaveConversationAsync(null!));
         _ = await Assert.ThrowsAnyAsync<ArgumentNullException>(() => context.Service.SendMessageAsync(null!));
         _ = await Assert.ThrowsAnyAsync<ArgumentNullException>(() => context.Service.EditMessageAsync(null!));
         _ = await Assert.ThrowsAnyAsync<ArgumentNullException>(() => context.Service.ToggleReactionAsync(null!));
@@ -436,6 +473,9 @@ public sealed class ChatExtraAppServiceTests
         _ = await Assert.ThrowsAsync<InvalidOperationException>(
             () => context.Service.MarkReadAsync(new ChatMarkReadDto { ConversationId = 100 }));
         _ = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Service.RecallMessageAsync(200));
+        // 退群的退出对象取自当前登录用户，取不到时必须失败而不是退掉用户 0
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => context.Service.LeaveConversationAsync(new ChatConversationLeaveDto { ConversationId = 100 }));
 
         context.Domain.Verify(
             value => value.SendMessageAsync(It.IsAny<ChatMessageSendCommand>(), It.IsAny<CancellationToken>()),
