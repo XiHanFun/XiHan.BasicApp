@@ -22,13 +22,17 @@ public sealed class EndpointAuthorizationCoverageTests
     [
         typeof(BasicApp.Saas.XiHanBasicAppSaasModule).Assembly,
         typeof(BasicApp.AI.XiHanBasicAppAIModule).Assembly,
+        typeof(BasicApp.Chat.XiHanBasicAppChatModule).Assembly,
         typeof(BasicApp.CodeGeneration.XiHanBasicAppCodeGenerationModule).Assembly,
+        typeof(BasicApp.Printing.XiHanBasicAppPrintingModule).Assembly,
         typeof(BasicApp.Workflow.XiHanBasicAppWorkflowModule).Assembly
     ];
 
     /// <summary>
     /// 自助端点白名单，元素为「类名.方法名」。
-    /// 列入即声明该端点只按登录态门控，分组注释记录其数据边界由什么锁定。
+    /// 列入即声明该端点不靠 <see cref="PermissionAuthorizeAttribute"/> 门控，
+    /// 分组注释记录其数据边界由什么锁定：或是按调用者身份限定数据（自助），
+    /// 或是在方法体内用 <c>IPermissionChecker</c> 做属性表达不了的命令式判定（如「二者取一」）。
     /// </summary>
     private static readonly IReadOnlySet<string> SelfServiceEndpoints =
         new HashSet<string>(StringComparer.Ordinal)
@@ -85,6 +89,12 @@ public sealed class EndpointAuthorizationCoverageTests
             // OAuthConsentAppService（2）：当前用户对自己那次授权请求的确认
             "OAuthConsentAppService.AuthorizeAsync",
             "OAuthConsentAppService.ResolveAuthorizationAsync",
+
+            // PrintDataSourceQueryService（1）：并非只按登录态门控 —— 方法内经 IPermissionChecker
+            // 命令式校验 PrintingPermissionCodes.Read 或 Use，持有任一即可读，缺失两者抛
+            // UserFriendlyException。目录同时服务模板管理与业务打印两条路径，单个
+            // PermissionAuthorize 特性表达不了「二者取一」，故权限判定下沉到方法体，属性扫描看不见。
+            "PrintDataSourceQueryService.GetListAsync",
 
             // ProfileAppService（32）：个人中心自助，全部方法经 GetCurrentUserIdOrThrow 锁定当前用户
             "ProfileAppService.ChangePasswordAsync",
@@ -205,6 +215,79 @@ public sealed class EndpointAuthorizationCoverageTests
             $"下列 {violations.Count} 个应用服务类既无 Authorize 也无 AllowAnonymous，其鉴权取决于 " +
             $"XiHan:Web:Api:Auth:RequireAuthenticatedUser（框架侧默认 false）：" +
             $"{Environment.NewLine}{string.Join(Environment.NewLine, violations)}");
+    }
+
+    /// <summary>
+    /// 凡被本测试工程引用、且承载动态 API 的业务模块，都必须登记进 <see cref="ModuleAssemblies"/>。
+    /// </summary>
+    /// <remarks>
+    /// 起因：Chat 与 Printing 早就被 csproj 引用、各自暴露 3 个动态 API 服务，却漏登记在
+    /// <see cref="ModuleAssemblies"/> 里，导致这两个模块的全部端点静默逃出上面三条授权守卫——
+    /// 测试照常全绿，没有任何信号。csproj 里那句「新增模块时必须在此登记」的注释显然没兜住。
+    /// <para>
+    /// 这里把它换成会红的断言：扫描输出目录中全部 <c>XiHan.BasicApp.*.dll</c>，
+    /// 凡含动态 API 服务却不在册的，直接失败。判据复用框架的 <see cref="TypeHelper"/>，
+    /// 与运行期生成控制器的集合保持一致。
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void ModuleAssemblies_ShouldCoverEveryReferencedModuleCarryingDynamicApi()
+    {
+        var registered = ModuleAssemblies
+            .Select(assembly => assembly.GetName().Name)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var missing = Directory
+            .EnumerateFiles(AppContext.BaseDirectory, "XiHan.BasicApp.*.dll")
+            .Select(path => (Path: path, Name: Path.GetFileNameWithoutExtension(path)))
+            .Where(candidate => !registered.Contains(candidate.Name))
+            .Where(candidate => !candidate.Name.EndsWith(".Tests", StringComparison.Ordinal))
+            .Where(candidate => CarriesDynamicApi(candidate.Path))
+            .Select(candidate => candidate.Name)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.True(missing.Count == 0,
+            $"下列 {missing.Count} 个模块承载动态 API 却未登记进 ModuleAssemblies，其端点不受本文件任何授权守卫约束：" +
+            $"{Environment.NewLine}{string.Join(Environment.NewLine, missing)}");
+    }
+
+    /// <summary>
+    /// 判断指定程序集文件里是否存在被启用的动态 API 应用服务。
+    /// </summary>
+    /// <remarks>
+    /// 只吞 <see cref="BadImageFormatException"/>（本机镜像不是托管程序集）；
+    /// 其余加载异常一律外抛，避免"加载不了就当没有"把本守卫悄悄架空。
+    /// </remarks>
+    /// <param name="assemblyPath">程序集文件路径。</param>
+    private static bool CarriesDynamicApi(string assemblyPath)
+    {
+        Assembly assembly;
+        try
+        {
+            assembly = Assembly.LoadFrom(assemblyPath);
+        }
+        catch (BadImageFormatException)
+        {
+            return false;
+        }
+
+        Type?[] types;
+        try
+        {
+            types = assembly.GetTypes();
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            // 部分类型加载失败时按已加载出来的那部分判断，宁可误报也不漏报
+            types = ex.Types;
+        }
+
+        return types
+            .Where(type => type is not null)
+            .Select(type => type!)
+            .Where(TypeHelper.IsApplicationService)
+            .Any(service => DynamicApiAttributeMergeHelper.IsEnabled(service));
     }
 
     /// <summary>
