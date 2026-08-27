@@ -93,7 +93,11 @@ export function setupRouterGuard(router: Router) {
       }
     }
 
-    if (!accessStore.isRoutesLoaded) {
+    // 白名单页对已登录用户同样是终点，不能再触发装载：
+    // 装载失败时会重定向到 /500，若 /500 自身又进装载分支（isRoutesLoaded 仍为假），
+    // 就是失败 → /500 → 再装载 → 再失败的自我循环，最终被 vue-router 判为无限重定向而中止，
+    // 用户既看不到 500 页也停在白屏，权限接口还被连打多次。后端菜单接口整体不可用时必然命中。
+    if (!accessStore.isRoutesLoaded && !WHITE_LIST.includes(to.path)) {
       try {
         if (!permissionInfo) {
           permissionInfo = await ctx.apis.getPermissionsApi()
@@ -151,7 +155,14 @@ export function setupRouterGuard(router: Router) {
       catch (error) {
         console.error('[preferences] 偏好同步失败，已跳过', error)
       }
-      return { path: to.fullPath, replace: true }
+      // 按 path + query + hash 三段重进，两种写法都不能用：
+      // 1) { path: to.fullPath }：vue-router 不解析 path 里的查询串，含 ?query#hash 的 fullPath
+      //    塞进 path 会把两者静默丢掉。这条分支只在「本次会话首次装载动态路由」时命中，
+      //    也就是刷新页面/直接打开深链——正是查询参数最要紧的场景：带筛选条件的分享链接、
+      //    OAuth 回调的 ?code=、登录后按 redirect 回跳的带参地址。
+      // 2) { ...to }：会把 name 与 matched 一并带上，而 vue-router 优先按 name 解析；
+      //    此刻动态路由刚装好、to 仍是装载前的匹配结果（通常是 404 兜底），重进会直接落回 404。
+      return { path: to.path, query: to.query, hash: to.hash, replace: true }
     }
 
     const resolvedHomePath = accessStore.homePath || HOME_PATH
