@@ -48,9 +48,21 @@ describe('formatDate', () => {
     expect(formatDate('')).toBe('-')
   })
 
-  it('时间戳 0 被当成空值返回占位符，纪元时刻无法格式化', () => {
-    // 源码用 !date 判空，数字 0 一并落入占位分支
-    expect(formatDate(0)).toBe('-')
+  it('时间戳 0（Unix 纪元）按正常时间格式化，不再落进占位分支', () => {
+    // 回归锚点：源码原本用 !date 判空，数字 0 与空串一起落入占位分支，纪元时刻格式化不出来。
+    // 断言写成与等价 Date 实例比对而不是硬编码 '1970-01-01 08:00:00'，避免绑死运行时区；
+    // 修复前 formatDate(0) 是 '-' 而 formatDate(new Date(0)) 是正常时间串，两侧必然不等。
+    expect(formatDate(0)).toBe(formatDate(new Date(0)))
+    expect(formatDate(0)).not.toBe('-')
+  })
+
+  it('数字 NaN 仍按占位符返回，不把 Invalid Date 渲染出去', () => {
+    expect(formatDate(Number.NaN)).toBe('-')
+  })
+
+  it('null 与 undefined 按占位符返回', () => {
+    expect(formatDate(null)).toBe('-')
+    expect(formatDate(undefined)).toBe('-')
   })
 
   it('默认格式为 YYYY-MM-DD HH:mm:ss 且按本地时区解释无时区标记的字符串', () => {
@@ -96,16 +108,23 @@ describe('formatFileSize', () => {
     expect(formatFileSize(1024 ** 4)).toBe('1 TB')
   })
 
-  it('超过 TB 量级时单位下标越界，输出 undefined 单位（当前行为，缺少上限收口）', () => {
-    expect(formatFileSize(1024 ** 5)).toBe('1 undefined')
+  it('超过 TB 量级时下标夹到末位，继续以 TB 计而不是输出 undefined 单位', () => {
+    // 回归锚点：原实现 i 取到 5 越过 sizes 上界，sizes[5] 为 undefined，输出 '1 undefined'
+    expect(formatFileSize(1024 ** 5)).toBe('1024 TB')
+    expect(formatFileSize(1024 ** 6)).toBe('1048576 TB')
   })
 
-  it('负数字节因 Math.log 返回 NaN 而输出 NaN undefined（当前行为，缺少入参校验）', () => {
-    expect(formatFileSize(-1)).toBe('NaN undefined')
+  it('负数与非有限数返回占位符 -，不再把 NaN undefined 渲染到界面上', () => {
+    // 回归锚点：Math.log(-1) 为 NaN → 下标 NaN → sizes[NaN] 为 undefined，原本输出 'NaN undefined'。
+    // 后端 fileSize 字段缺失被 Number() 化成 NaN 时，文件列表与配额统计会直接显示这串文案。
+    expect(formatFileSize(-1)).toBe('-')
+    expect(formatFileSize(Number.NaN)).toBe('-')
+    expect(formatFileSize(Number.POSITIVE_INFINITY)).toBe('-')
   })
 
-  it('0 与 1 之间的小数使下标为 -1，输出 undefined 单位（当前行为）', () => {
-    expect(formatFileSize(0.5)).toBe('512 undefined')
+  it('0 与 1 之间的小数下标夹到 0，按 B 输出而不是 undefined 单位', () => {
+    // 回归锚点：Math.floor(log(0.5)/log(1024)) 为 -1，原本输出 '512 undefined'
+    expect(formatFileSize(0.5)).toBe('0.5 B')
   })
 })
 
@@ -292,12 +311,20 @@ describe('isEmpty', () => {
     expect(isEmpty(Number.NaN)).toBe(false)
   })
 
-  it('日期实例因没有自有可枚举键被判为空（当前行为，调用方需自行排除）', () => {
-    expect(isEmpty(new Date())).toBe(true)
+  it('有效日期实例不判为空，无效日期才判为空', () => {
+    // 回归锚点：Date 没有自有可枚举键，原本落到 Object.keys 分支被一律判空 ——
+    // 表单 / 查询条件用 isEmpty 裁参数时，用户选中的日期会被静默丢掉，请求少带条件。
+    expect(isEmpty(new Date())).toBe(false)
+    expect(isEmpty(new Date(0))).toBe(false)
+    expect(isEmpty(new Date('不是日期'))).toBe(true)
   })
 
-  it('非空 Map 同样被判为空，size 不参与判定（当前行为）', () => {
-    expect(isEmpty(new Map([['k', 'v']]))).toBe(true)
+  it('容器类型 Map 与 Set 按 size 判定，非空集合不再被判为空', () => {
+    // 回归锚点：同上，Map/Set 也没有自有可枚举键，原本非空集合一律判空
+    expect(isEmpty(new Map([['k', 'v']]))).toBe(false)
+    expect(isEmpty(new Set([1, 2]))).toBe(false)
+    expect(isEmpty(new Map())).toBe(true)
+    expect(isEmpty(new Set())).toBe(true)
   })
 })
 
