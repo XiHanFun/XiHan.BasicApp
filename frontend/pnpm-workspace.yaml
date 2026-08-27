@@ -34,6 +34,7 @@ overrides:
   '@xihan-ui/machine': 'link:../../XiHan.UI/ui/packages/engine/machine'
   '@xihan-ui/markdown': 'link:../../XiHan.UI/ui/packages/features/markdown'
   '@xihan-ui/motion': 'link:../../XiHan.UI/ui/packages/engine/motion'
+  '@xihan-ui/pointer': 'link:../../XiHan.UI/ui/packages/engine/pointer'
   '@xihan-ui/position': 'link:../../XiHan.UI/ui/packages/engine/position'
   '@xihan-ui/sound': 'link:../../XiHan.UI/ui/packages/features/sound'
   '@xihan-ui/styles': 'link:../../XiHan.UI/ui/packages/design/styles'
@@ -52,8 +53,6 @@ catalog:
   '@antv/x6-plugin-selection': ^2.2.2
   '@antv/x6-plugin-snapline': ^2.1.7
   '@antv/x6-vue-shape': ^2.1.2
-  '@dnd-kit/geometry': ^0.5.0
-  '@dnd-kit/vue': ^0.5.0
   '@emoji-mart/data': ^1.2.1
   '@iconify-json/carbon': ^1.2.24
   '@iconify-json/ep': ^1.2.4

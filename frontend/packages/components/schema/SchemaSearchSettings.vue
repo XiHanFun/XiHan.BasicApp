@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { DragEndEvent } from '@dnd-kit/vue'
 import type { SearchFieldSetting } from './useSearchSettings'
-import { DragDropProvider } from '@dnd-kit/vue'
 import {
   XhButton,
   XhCheckbox,
@@ -15,14 +13,12 @@ import {
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useAppStore } from '~/stores'
-import { resolveSortMove } from '../common/sortable'
-import SortableItem from '../common/SortableItem.vue'
 import SyncStatusBadge from '../common/SyncStatusBadge.vue'
 import XTooltip from '../common/XTooltip.vue'
 
 defineOptions({ name: 'SchemaSearchSettings' })
 
-const props = defineProps<{
+defineProps<{
   /** 搜索字段设置（来自 useSearchSettings.settings） */
   settings: SearchFieldSetting[]
 }>()
@@ -38,12 +34,9 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const appStore = useAppStore()
 
-// ── 拖拽排序（@dnd-kit/vue，仅手柄可拖） ──────────────────────────
-function onDragEnd(event: DragEndEvent) {
-  const move = resolveSortMove(event, props.settings.map(s => s.key))
-  if (move) {
-    emit('move', move.from, move.to)
-  }
+// ── 拖拽排序（仅手柄可拖） ──────────────────────────────────────
+function onSort(details: { from: number, to: number }) {
+  emit('move', details.from, details.to)
 }
 </script>
 
@@ -83,47 +76,53 @@ function onDragEnd(event: DragEndEvent) {
             <span class="xh-set-head__col">{{ t('component.search_settings.mode_header') }}</span>
           </div>
 
-          <DragDropProvider @drag-end="onDragEnd">
-            <div class="flex flex-col max-h-72 overflow-auto">
-              <SortableItem
-                v-for="(item, index) in settings"
-                :id="item.key"
-                :key="item.key"
-                :index="index"
-                handle=".xh-set-drag-handle"
-                class="xh-set-row flex gap-2 items-center"
+          <XhSortableRoot
+            :ids="settings.map(x => x.key)"
+            class="flex flex-col max-h-72 overflow-auto"
+            style="--xh-sortable-gap: 0"
+            @sort="onSort"
+          >
+            <XhSortableItem
+              v-for="item in settings"
+              :key="item.key"
+              :item-id="item.key"
+              class="xh-set-row flex gap-2 items-center"
+            >
+              <XhSortableItemHandle
+                :item-id="item.key"
+                class="xh-set-drag-handle flex items-center text-foreground/40"
+                :title="t('component.search_settings.drag_sort')"
               >
-                <span class="xh-set-drag-handle flex items-center cursor-grab text-foreground/40" :title="t('component.search_settings.drag_sort')">
-                  <Icon icon="lucide:grip-vertical" />
-                </span>
-                <!-- 勾选框只有框本身，标签是并排的一段文字，点它也切换 -->
-                <XhCheckbox
-                  :checked="item.visible"
-                  size="sm"
-                  :aria-label="item.title"
-                  @update:checked="(value: boolean) => emit('toggleVisible', item.key, value)"
-                />
+                <Icon icon="lucide:grip-vertical" />
+              </XhSortableItemHandle>
+              <!-- 勾选框只有框本身，标签是并排的一段文字，点它也切换 -->
+              <XhCheckbox
+                :checked="item.visible"
+                size="sm"
+                :aria-label="item.title"
+                @update:checked="(value: boolean) => emit('toggleVisible', item.key, value)"
+              />
+              <span
+                class="xh-set-row__label flex-1"
+                @click="emit('toggleVisible', item.key, !item.visible)"
+              >
+                {{ item.title }}
+              </span>
+              <XTooltip :content="item.pinned ? t('component.search_settings.tip_pinned') : t('component.search_settings.tip_advanced')">
                 <span
-                  class="xh-set-row__label flex-1"
-                  @click="emit('toggleVisible', item.key, !item.visible)"
+                  class="xh-set-row__switch"
                 >
-                  {{ item.title }}
+                  <XhSwitch
+                    :checked="item.pinned"
+                    :disabled="!item.visible"
+                    size="sm"
+                    @update:checked="(value: boolean) => emit('togglePin', item.key, value)"
+                  />
                 </span>
-                <XTooltip :content="item.pinned ? t('component.search_settings.tip_pinned') : t('component.search_settings.tip_advanced')">
-                  <span
-                    class="xh-set-row__switch"
-                  >
-                    <XhSwitch
-                      :checked="item.pinned"
-                      :disabled="!item.visible"
-                      size="sm"
-                      @update:checked="(value: boolean) => emit('togglePin', item.key, value)"
-                    />
-                  </span>
-                </XTooltip>
-              </SortableItem>
-            </div>
-          </DragDropProvider>
+              </XTooltip>
+            </XhSortableItem>
+            <XhSortableLiveRegion />
+          </XhSortableRoot>
 
           <XhSeparator class="my-1" />
           <span class="text-xs text-foreground/40">{{ t('component.search_settings.hint') }}</span>
@@ -209,7 +208,7 @@ function onDragEnd(event: DragEndEvent) {
   cursor: grabbing;
 }
 
-/* 拖拽中的行（dnd-kit 通过 SortableItem 写入 data-dragging） */
+/* 拖拽中的行（sortable 在被拖那一项上写 data-dragging） */
 .xh-set-row[data-dragging] {
   opacity: 0.5;
   background: rgb(var(--primary) / 0.08);

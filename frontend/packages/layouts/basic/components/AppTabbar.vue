@@ -1,14 +1,11 @@
 <script lang="ts" setup>
-import type { DragEndEvent } from '@dnd-kit/vue'
 import type { TabItem } from '~/types'
-import { DragDropProvider } from '@dnd-kit/vue'
 import { useDebounceFn } from '@vueuse/core'
 import { resolveMotionPreference } from '@xihan-ui/motion'
-import { XhButton } from '@xihan-ui/vue'
+import { XhButton, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { resolveSortMove } from '~/components/common/sortable'
 import { GLOBAL_HOTKEYS } from '~/composables/useGlobalShortcuts'
 import { usePlatform } from '~/composables/usePlatform'
 import { useContentMaximize, useRefresh } from '~/hooks'
@@ -327,12 +324,8 @@ function onTabLeaveCancelled(el: Element) {
 
 // 拖拽结束：按路径提交新顺序。固定标签（pinned）在 TabbarTabItem 中已被禁用拖拽，
 // 此处再以数据校验「固定 / 非固定不互换」，保证最终顺序不破坏约束。
-function onTabDragEnd(event: DragEndEvent) {
+function onTabSort(move: { from: number, to: number }) {
   const tabs = localizedTabs.value
-  const move = resolveSortMove(event, tabs.map(tab => tab.path))
-  if (!move) {
-    return
-  }
   if (Boolean(tabs[move.from]?.pinned) !== Boolean(tabs[move.to]?.pinned)) {
     return
   }
@@ -495,44 +488,47 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
         ref="scrollViewportRef"
         class="tabbar-viewport h-full overflow-x-auto"
       >
-        <div
+        <XhSortableRoot
+          orientation="horizontal"
+          :ids="localizedTabs.map(tab => tab.path)"
           class="pr-2"
           :class="appStore.tabbarStyle === 'chrome'
-            ? 'flex h-full min-w-max items-end'
-            : 'flex h-full min-w-max items-stretch'"
+            ? 'h-full min-w-max items-end'
+            : 'h-full min-w-max items-stretch'"
+          style="--xh-sortable-gap: 0"
+          @sort="onTabSort"
         >
-          <DragDropProvider @drag-end="onTabDragEnd">
-            <TransitionGroup
-              name="tabs-slide"
-              :css="false"
-              @before-enter="onTabBeforeEnter"
-              @enter="onTabEnter"
-              @before-leave="onTabBeforeLeave"
-              @leave="onTabLeave"
-              @enter-cancelled="onTabEnterCancelled"
-              @leave-cancelled="onTabLeaveCancelled"
-            >
-              <TabbarTabItem
-                v-for="(item, index) in localizedTabs"
-                :key="item.key"
-                :item="item"
-                :index="index"
-                :active="route.fullPath === item.path"
-                :is-last="index === localizedTabs.length - 1"
-                :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
-                :show-icon="appStore.tabbarShowIcon"
-                :middle-close-enabled="appStore.tabbarMiddleClickClose"
-                :style-type="appStore.tabbarStyle"
-                data-tab-item="true"
-                @jump="handleJump"
-                @contextmenu="openContextMenu"
-                @close="handleClose"
-                @toggle-pin="tabbarStore.togglePin"
-                @middle-close="handleMiddleClose"
-              />
-            </TransitionGroup>
-          </DragDropProvider>
-        </div>
+          <TransitionGroup
+            name="tabs-slide"
+            :css="false"
+            @before-enter="onTabBeforeEnter"
+            @enter="onTabEnter"
+            @before-leave="onTabBeforeLeave"
+            @leave="onTabLeave"
+            @enter-cancelled="onTabEnterCancelled"
+            @leave-cancelled="onTabLeaveCancelled"
+          >
+            <TabbarTabItem
+              v-for="(item, index) in localizedTabs"
+              :key="item.key"
+              :item="item"
+              :index="index"
+              :active="route.fullPath === item.path"
+              :is-last="index === localizedTabs.length - 1"
+              :draggable="tabbarPreferences.tabbarDraggable.value && !item.pinned"
+              :show-icon="appStore.tabbarShowIcon"
+              :middle-close-enabled="appStore.tabbarMiddleClickClose"
+              :style-type="appStore.tabbarStyle"
+              data-tab-item="true"
+              @jump="handleJump"
+              @contextmenu="openContextMenu"
+              @close="handleClose"
+              @toggle-pin="tabbarStore.togglePin"
+              @middle-close="handleMiddleClose"
+            />
+          </TransitionGroup>
+          <XhSortableLiveRegion />
+        </XhSortableRoot>
       </div>
     </div>
 
