@@ -284,6 +284,8 @@ export interface SchemaColumn<TRow = Record<string, unknown>> {
   width?: number
   /** 最小列宽（px），拖拽调宽的下限 */
   minWidth?: number
+  /** 这一列能不能拖着改宽，默认能。写 false 关掉（如操作列） */
+  resizable?: boolean
   /** 横向吸附方向 */
   fixed?: 'left' | 'right'
   /** 可排序（服务端排序，点击列头累加进排序链） */
