@@ -121,6 +121,21 @@ public sealed class SaasAppExportRowProjectorTests
     }
 
     /// <summary>
+    /// 回归锚点：null 入参必须抛 <see cref="ArgumentNullException"/>，而不是 NullReferenceException。
+    /// </summary>
+    /// <remarks>
+    /// 修复前方法体第一句就是 <c>dto.GetType()</c>，传 null 直接以 NullReferenceException 崩在投影器内部，
+    /// 调用栈指向"反射取类型"，看不出是调用方给了空对象。同层的导出写入器与全部映射器都做了空守卫，
+    /// 这里是最后一个缺口。
+    /// </remarks>
+    [Fact]
+    public void Project_NullArguments_ShouldThrowArgumentNullException()
+    {
+        Assert.Throws<ArgumentNullException>(() => DtoRowProjector.Project(null!, [Column("name")]));
+        Assert.Throws<ArgumentNullException>(() => DtoRowProjector.Project(new SampleDto(), null!));
+    }
+
+    /// <summary>
     /// 字段键大小写不敏感：前端 camelCase 的键要能命中后端 PascalCase 属性。
     /// </summary>
     /// <param name="key">列定义中的字段键。</param>

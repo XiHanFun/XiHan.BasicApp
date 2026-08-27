@@ -267,16 +267,17 @@ public sealed class SaasAppServiceStructureTests
     /// <para>
     /// 名单是当前事实快照：新写的裸特性会落在名单外而变红。
     /// </para>
+    /// <para>
+    /// 回归锚点：名单曾登记过 <c>FileAppService.DownloadFileAsync</c> 与
+    /// <c>FileAppService.GenerateFilePresignedUrlAsync</c> 两处裸特性，二者都夹带了一次计数写入。
+    /// 它们已显式改成 <c>[UnitOfWork(true)]</c>（下载/取链失败时那次计数一并回滚），名单随之清空——
+    /// 名单为空正是本条约定的达成状态，任何人写回裸特性都会立刻变红。
+    /// </para>
     /// </remarks>
     [Fact]
     public void UnitOfWorkAttributes_ShouldDeclareTransactionalityExplicitly()
     {
-        var known = new HashSet<string>(StringComparer.Ordinal)
-        {
-            // 二者都只是"读文件顺带写一条访问日志"，裸特性等价于非事务；意图未在注释中写明
-            "FileAppService.DownloadFileAsync",
-            "FileAppService.GenerateFilePresignedUrlAsync"
-        };
+        var known = new HashSet<string>(StringComparer.Ordinal);
 
         var offenders = PublicMethods()
             .Select(item => (item.Type, item.Method, Attribute: item.Method.GetCustomAttributes<UnitOfWorkAttribute>(inherit: true).FirstOrDefault()))

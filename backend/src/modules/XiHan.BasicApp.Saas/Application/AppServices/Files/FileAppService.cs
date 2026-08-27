@@ -87,7 +87,13 @@ public sealed class FileAppService
     /// <summary>
     /// 下载文件
     /// </summary>
-    [UnitOfWork]
+    /// <remarks>
+    /// 事务不是为了"读"，而是为了那次下载计数：下载失败（主存储不可达/流打开失败）时
+    /// 计数应当一并回滚，否则统计会把打不开的文件也算成一次下载。
+    /// 注意裸 <c>[UnitOfWork]</c> 实际不开事务（IsTransactional 可空，不传即不覆盖，选项默认非事务），
+    /// 所以这里必须显式写 true。
+    /// </remarks>
+    [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.File.Read)]
     public async Task<Stream> DownloadFileAsync(long fileId, CancellationToken cancellationToken = default)
     {
@@ -118,7 +124,11 @@ public sealed class FileAppService
     /// <summary>
     /// 生成文件预签名访问 URL
     /// </summary>
-    [UnitOfWork]
+    /// <remarks>
+    /// 与下载同理：签名链接生成失败时，那次访问计数应当一并回滚。
+    /// 裸 <c>[UnitOfWork]</c> 读起来像开事务、实际不开，故显式声明为事务性。
+    /// </remarks>
+    [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.File.Read)]
     public async Task<string> GenerateFilePresignedUrlAsync(long fileId, TimeSpan? expiresIn = null, CancellationToken cancellationToken = default)
     {

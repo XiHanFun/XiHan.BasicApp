@@ -54,7 +54,8 @@ public sealed class DataProtectionUserApiCredentialSecretProtector : IUserApiCre
             return value;
         }
 
-        // 密钥一律为本保护器写入的密文，去前缀直接解密；解密失败即抛（fail-closed，不做旧明文兼容）
-        return _protector.Unprotect(value[SaasSecretProtectionPurposes.CipherPrefix.Length..]);
+        // 先认前缀再解密：非本保护器写入的值（历史明文/截断脏值）一律按解密失败处理，
+        // 抛可诊断的 CryptographicException，而不是在字符串切片处抛参数越界（fail-closed，不做旧明文兼容）
+        return _protector.Unprotect(SaasSecretCipherText.StripPrefixOrThrow(value, "用户 OpenAPI 凭证密钥"));
     }
 }

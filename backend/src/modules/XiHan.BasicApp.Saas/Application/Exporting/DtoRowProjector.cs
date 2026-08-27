@@ -24,8 +24,17 @@ public static class DtoRowProjector
     /// <summary>
     /// 按列投影
     /// </summary>
+    /// <param name="dto">资源 DTO（不可为空）。</param>
+    /// <param name="columns">列定义（不可为空）。</param>
+    /// <returns>与列定义等长的字符串行。</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="dto"/> 或 <paramref name="columns"/> 为 null。</exception>
     public static IReadOnlyList<string> Project(object dto, IReadOnlyList<ExportColumnDto> columns)
     {
+        // 与同层导出写入器、全部映射器同一口径：null 入参当场抛 ArgumentNullException，
+        // 而不是让 dto.GetType() / columns.Count 抛出无从定位的 NullReferenceException
+        ArgumentNullException.ThrowIfNull(dto);
+        ArgumentNullException.ThrowIfNull(columns);
+
         var type = dto.GetType();
         var row = new string[columns.Count];
         for (var i = 0; i < columns.Count; i++)

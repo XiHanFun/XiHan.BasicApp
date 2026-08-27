@@ -331,9 +331,8 @@ public sealed class SaasAppPageRegistryTests
     /// 页面权限码必须是会被种子播下去的权限，杜绝"菜单挂了个库里不存在的权限码 → 永远无人可见"。
     /// </summary>
     /// <remarks>
-    /// 基准取 <see cref="SaasPermissionDefinitions.All"/>（种子落库的扁平清单）而非
-    /// <see cref="SaasPermissionCodes.All"/>：后者是手写枚举，目前漏登了 <c>saas:log-trace:read</c>，
-    /// 而决定"权限在库里存不存在"的是前者。
+    /// 基准取 <see cref="SaasPermissionDefinitions.All"/>（种子落库的扁平清单）：决定"权限在库里存不存在"的是它。
+    /// <see cref="SaasPermissionCodes.All"/> 现已改为由它派生，两者等价。
     /// </remarks>
     [Fact]
     public void PagePermissionCodes_ShouldBeSeededPermissions()
@@ -352,15 +351,15 @@ public sealed class SaasAppPageRegistryTests
     }
 
     /// <summary>
-    /// 回归锚点：<see cref="SaasPermissionCodes.All"/> 自称"全部权限码"，但当前漏登了链路追踪读权限。
+    /// 回归锚点：<see cref="SaasPermissionCodes.All"/> 自称"全部权限码"，就必须一条不漏。
     /// </summary>
     /// <remarks>
-    /// 这条锁定的是**当前真实行为**而非期望行为——目前 src 内无人消费 <c>All</c>，故只是清单不完整；
-    /// 一旦有人补上这条常量（或把 <c>All</c> 改成由 <see cref="SaasPermissionDefinitions"/> 派生），
-    /// 本用例会红，提醒把这段说明一并删掉。
+    /// 修复前 <c>All</c> 是一份手写枚举，漏登了 <c>saas:log-trace:read</c>（本用例当时锁定的是那份漏登事实）；
+    /// 现已改为由 <see cref="SaasPermissionDefinitions.All"/> 派生，这里改为锁定修复后的正确行为：
+    /// 两份清单必须完全一致。手工清单一旦回潮，本用例立刻变红。
     /// </remarks>
     [Fact]
-    public void SaasPermissionCodesAll_CurrentlyOmitsLogTraceRead()
+    public void SaasPermissionCodesAll_ShouldCoverEverySeededCode()
     {
         var seeded = SaasPermissionDefinitions.All
             .Select(definition => definition.PermissionCode)
@@ -368,8 +367,11 @@ public sealed class SaasAppPageRegistryTests
         var enumerated = SaasPermissionCodes.All.ToHashSet(StringComparer.Ordinal);
 
         var missing = seeded.Except(enumerated, StringComparer.Ordinal).OrderBy(code => code, StringComparer.Ordinal).ToList();
+        var extra = enumerated.Except(seeded, StringComparer.Ordinal).OrderBy(code => code, StringComparer.Ordinal).ToList();
 
-        Assert.Equal([SaasPermissionCodes.LogTrace.Read], missing);
+        Assert.True(missing.Count == 0, $"All 漏登了这些已播种权限码：{string.Join(", ", missing)}");
+        Assert.True(extra.Count == 0, $"All 里存在不会被播种的权限码：{string.Join(", ", extra)}");
+        Assert.Contains(SaasPermissionCodes.LogTrace.Read, SaasPermissionCodes.All);
     }
 
     /// <summary>
