@@ -1,4 +1,5 @@
-import { createDynamicApiClient } from '../base'
+import type { DynamicApiParams } from '../base'
+import { appendDynamicApiParam, createDynamicApiClient } from '../base'
 
 const serverApiClient = createDynamicApiClient('Server')
 
@@ -158,10 +159,13 @@ export const serverApi = {
   getRuntimeInfo() {
     return serverApiClient.get<SysRuntimeInfo>('RuntimeInfo')
   },
-  getServerInfo(params?: { includeDisk?: boolean, includeNetwork?: boolean }) {
-    return serverApiClient.get<SysServerInfo>('ServerInfo', {
-      IncludeDisk: params?.includeDisk,
-      IncludeNetwork: params?.includeNetwork,
-    })
+  getServerInfo(input?: { includeDisk?: boolean, includeNetwork?: boolean }) {
+    // 与 dictApi.itemTree / departmentApi.tree / menuApi.tree 同口径：逐字段 append，空值不入查询串
+    // （0 与 false 是有效取值照发）。直接拼对象字面量会把 undefined 写进 params，
+    // 开启接口签名后 query 串形态不一致会影响签名。
+    const params: DynamicApiParams = {}
+    appendDynamicApiParam(params, 'IncludeDisk', input?.includeDisk)
+    appendDynamicApiParam(params, 'IncludeNetwork', input?.includeNetwork)
+    return serverApiClient.get<SysServerInfo>('ServerInfo', params)
   },
 }

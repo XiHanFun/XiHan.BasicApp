@@ -5,7 +5,6 @@ import type {
   UserDetailDto,
   UserListItemDto,
   UserPageQueryDto,
-  UserPasswordResetDto,
   UserSelectItemDto,
   UserSelectQueryDto,
   UserStatusUpdateDto,
@@ -20,11 +19,13 @@ import {
 
 const userQueryApi = createDynamicApiClient('UserQuery')
 const userCommandApi = createDynamicApiClient('User')
-// 安全类命令在 UserSecurityAppService（控制器 UserSecurity）
-const userSecurityCommandApi = createDynamicApiClient('UserSecurity')
 const userReadApi = createReadApi<UserListItemDto, UserDetailDto, UserPageQueryDto>('UserQuery', 'User')
 const userBaseCommandApi = createCommandApi<UserCreateDto, UserUpdateDto, UserDetailDto>('User', 'User')
 
+// 重置密码不在这里挂：后端实现在 UserSecurityAppService，返回 UserSecurityDetailDto，
+// 唯一入口是 userSecurityApi.resetPassword（= userManagementApi.security.resetPassword）。
+// 这里原先另有一条同端点、却声明返回 UserDetailDto 的重复方法，展开进 userManagementApi 后
+// 形成两个语义不同的等价入口，已删除。
 export const userApi = {
   create(input: UserCreateDto) {
     return userBaseCommandApi.create(input)
@@ -37,10 +38,6 @@ export const userApi = {
   },
   page(input: UserPageQueryDto) {
     return userQueryApi.post<PageResult<UserListItemDto>, UserPageQueryDto>('UserPage', input)
-  },
-  resetPassword(input: UserPasswordResetDto) {
-    // 后端为 UserSecurityAppService.ResetUserPasswordAsync：Reset 前缀不剥离、动词 POST
-    return userSecurityCommandApi.post<UserDetailDto, UserPasswordResetDto>('ResetUserPassword', input)
   },
   select(input: UserSelectQueryDto) {
     const params: DynamicApiParams = { Limit: input.limit }

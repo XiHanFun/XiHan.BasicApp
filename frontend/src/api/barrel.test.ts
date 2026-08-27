@@ -7,6 +7,7 @@
  */
 import { describe, expect, it, vi } from 'vitest'
 import * as base from './base'
+import * as factory from './factory'
 import * as helpers from './helpers'
 import * as api from './index'
 import * as audit from './modules/audit'
@@ -43,6 +44,9 @@ vi.mock('@/api/request', () => ({
 /** 被 `@/api` 聚合的全部子桶（顺序与 index.ts 的 export 顺序一致） */
 const barrels: [string, Record<string, unknown>][] = [
   ['./base', base],
+  // 资源工厂曾是取不到的死模块：文件在、桶文件没挂，照文档 import { defineResource } from '@/api' 拿到 undefined。
+  // 这里把它并入完整性校验，桶文件再漏挂就直接红。
+  ['./factory', factory],
   ['./helpers', helpers],
   ['./modules/audit', audit],
   ['./modules/authorization', authorization],

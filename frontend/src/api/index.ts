@@ -1,4 +1,7 @@
 export * from './base'
+// 资源工厂：docs/frontend/development.md 与 docs/frontend/request.md 都把 defineResource 列为标准 CRUD 的写法，
+// 此前桶文件漏挂，照文档写 `import { defineResource } from '@/api'` 只会拿到 undefined（export * 不报编译错）。
+export * from './factory'
 export * from './helpers'
 export * from './modules/audit'
 export * from './modules/authorization'

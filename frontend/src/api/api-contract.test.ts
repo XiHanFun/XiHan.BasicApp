@@ -43,14 +43,14 @@ vi.mock('@/api/request', () => ({
 const READONLY_RUNTIME_PAGE = '/DynamicRuntime/Page'
 
 /**
- * 已知的「同一门面内同谓词同 URL」重复项。
- * userApi.resetPassword 与 userSecurityApi.resetPassword 都打 POST /UserSecurity/ResetUserPassword，
- * 被 userManagementApi 同时展开（`...userApi` + `security: userSecurityApi`）后在一个门面里重复出现。
- * 这里锁的是当前真实行为：清理掉其中一条时本用例会失败，提示同步更新清单。
+ * 已知的「同一门面内同谓词同 URL」重复项，正常应为空。
+ *
+ * 回归锚点：曾经 userApi.resetPassword 与 userSecurityApi.resetPassword 都打
+ * POST /UserSecurity/ResetUserPassword，被 userManagementApi 同时展开（`...userApi` +
+ * `security: userSecurityApi`）后在一个门面里出现两个等价入口、且两者声明的返回 DTO 不同。
+ * 前者已删除，这里锁定「不再有重复路由」；新增重复项必须先消除，而不是往这张清单里追加。
  */
-const KNOWN_DUPLICATE_ROUTES = [
-  'userManagementApi: resetPassword 与 security.resetPassword 同为 POST /UserSecurity/ResetUserPassword',
-]
+const KNOWN_DUPLICATE_ROUTES: string[] = []
 
 /** 分页探针入参：用同一个对象实例，便于断言「原样作 body 上送」而不是被拆成查询串 */
 const PAGE_QUERY = {

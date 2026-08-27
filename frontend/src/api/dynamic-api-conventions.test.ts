@@ -12,7 +12,7 @@ import { cacheApi } from './modules/cache'
 import { dictApi } from './modules/configuration'
 import { exportTaskApi } from './modules/export'
 import { fileApi, storageConfigApi } from './modules/files'
-import { userApi, userSessionApi } from './modules/identity'
+import { userApi, userSecurityApi, userSessionApi } from './modules/identity'
 import { logManagementApi } from './modules/log'
 import { botConfigApi, notificationApi, userInboxApi } from './modules/messaging'
 import { menuApi } from './modules/navigation'
@@ -219,10 +219,18 @@ describe('非 CRUD 前缀的动作保留完整方法名', () => {
 })
 
 describe('易写错的控制器归属', () => {
+  // 回归锚点：重置密码曾在 userApi 与 userSecurityApi 上各挂一条（同端点、不同返回 DTO），
+  // userApi 那条已删除，入口只剩 userSecurityApi.resetPassword（= userManagementApi.security.resetPassword）。
   it('重置密码打的是 UserSecurity 控制器，不是 User——后端实现在 UserSecurityAppService', async () => {
-    await userApi.resetPassword({ basicId: '1', newPassword: 'x' } as never)
+    await userSecurityApi.resetPassword({ basicId: '1', newPassword: 'x' } as never)
 
     expect(only()).toMatchObject({ method: 'POST', url: '/UserSecurity/ResetUserPassword' })
+  })
+
+  it('userApi 上不再挂重置密码，避免同端点两个入口给出不同返回类型', () => {
+    expect('resetPassword' in userApi).toBe(false)
+    expect('resetPassword' in userManagementApi).toBe(false)
+    expect(typeof userManagementApi.security.resetPassword).toBe('function')
   })
 
   it('用户部门归属的命令端是 UserDepartment 控制器（曾误写成 User 直接 404）', async () => {
@@ -292,10 +300,16 @@ describe('查询参数的空值裁剪与默认值', () => {
     ])
   })
 
-  it('字典项树三个参数无条件下发，0 与 false 也照发（与部门树的裁剪口径不同）', async () => {
+  // 回归锚点：itemTree 曾直接拼对象字面量，缺字段时会把 undefined 写进 params；
+  // 现改为与部门树/菜单树同一口径——逐字段 append，空值不入查询串，0 与 false 仍是有效取值。
+  it('字典项树逐字段裁剪：0 与 false 照发，缺字段不写进查询串', async () => {
     await dictApi.itemTree({ dictId: '1', limit: 0, onlyEnabled: false })
-
     expect(only().config?.params).toEqual({ DictId: '1', Limit: 0, OnlyEnabled: false })
+
+    calls.length = 0
+    // DTO 上三个字段都是必填，但调用方常以类型断言绕过；此处用 toStrictEqual 才能查出 undefined 键
+    await dictApi.itemTree({ dictId: '1' } as never)
+    expect(only().config?.params).toStrictEqual({ DictId: '1' })
   })
 
   it('缓存键查询与批量删除的模式默认为 *', async () => {
@@ -317,10 +331,20 @@ describe('查询参数的空值裁剪与默认值', () => {
     expect(call.config?.params).toEqual({ Key: 'auth:token:1' })
   })
 
-  it('服务器信息的两个开关不传时以 undefined 下发，由 axios 负责丢弃', async () => {
+  it('服务器信息的两个开关不传时不进查询串，与其它树形/可选参数接口同口径', async () => {
+    // 回归锚点：原实现直接拼 { IncludeDisk: undefined, IncludeNetwork: undefined }，
+    // 与 dictApi.itemTree / departmentApi.tree / menuApi.tree 的 appendDynamicApiParam 裁剪口径不一致；
+    // 开启接口签名后 query 串形态不一致会影响签名。
+    // 必须用 toStrictEqual：toEqual 把「值为 undefined 的键」视同「键不存在」，改前改后都会绿。
     await serverApi.getServerInfo()
 
-    expect(only().config?.params).toEqual({ IncludeDisk: undefined, IncludeNetwork: undefined })
+    expect(only().config?.params).toStrictEqual({})
+  })
+
+  it('服务器信息的开关显式传 false 时照常下发（false 是有效取值，不是空值）', async () => {
+    await serverApi.getServerInfo({ includeDisk: false, includeNetwork: true })
+
+    expect(only().config?.params).toStrictEqual({ IncludeDisk: false, IncludeNetwork: true })
   })
 })
 
