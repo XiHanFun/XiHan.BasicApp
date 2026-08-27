@@ -15,6 +15,22 @@ namespace XiHan.BasicApp.AI.Domain.DomainServices.Implementations;
 /// </summary>
 public sealed class AiProviderDomainService : IAiProviderDomainService
 {
+    /// <summary>
+    /// ApiKey 明文长度上限（按加密后密文能落进 Api_Key 列长反推）
+    /// </summary>
+    /// <remarks>
+    /// 落库的是密文不是明文：Data Protection 密文为 base64，长度约为 <c>明文字节数 × 4/3 + 固定头部</c>，
+    /// 再加 3 个字符的 <c>dp:</c> 前缀。实测（EphemeralDataProtectionProvider + <see cref="IAiProviderSecretProtector.Protect"/>，
+    /// ASCII 明文）：100→222、200→355、300→489，拟合出 <c>密文长度 ≈ 1.334 × 明文长度 + 89</c>。
+    /// 对应 SysAiProvider.ApiKey 的列长 2000，密文装得下的明文临界点在 1432 字符附近；
+    /// 取 1000 这个带三成余量的整数上限（1000 字符 ASCII 明文加密后约 1423 字符，仍在列长之内），
+    /// 该边界由 AiProviderSecretProtectorTests.Protect_MaxLengthPlaintextCipherShouldFitColumn 对实际列长锁定。
+    /// 超限必须在领域层就拒绝：密文被列长截断即永久解不开，比报错更难排查。
+    /// 注意：推导基于单字节（ASCII）密钥材料——主流厂商密钥与 JWT 型 Token 均为 ASCII；
+    /// 多字节明文的字节数大于字符数，密文会更长，余量正是留给这种情况的，故上限只可下调不可上浮。
+    /// </remarks>
+    private const int ApiKeyMaxLength = 1000;
+
     private readonly IAiProviderRepository _providerRepository;
     private readonly IAiProviderSecretProtector _secretProtector;
     private readonly OpenAiCompatibleChatClientFactory _chatClientFactory;
@@ -61,7 +77,7 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
             Model = Required(command.Model, 100, nameof(command.Model), "模型名称不能超过 100 个字符。"),
             EmbeddingModel = Optional(command.EmbeddingModel, 100, nameof(command.EmbeddingModel), "嵌入模型名称不能超过 100 个字符。"),
             BaseUrl = Optional(command.BaseUrl, 500, nameof(command.BaseUrl), "端点地址不能超过 500 个字符。"),
-            ApiKey = _secretProtector.Protect(NormalizeNullable(command.ApiKey)),
+            ApiKey = _secretProtector.Protect(Optional(command.ApiKey, ApiKeyMaxLength, nameof(command.ApiKey), "API 密钥不能超过 1000 个字符。")),
             MaxOutputTokens = command.MaxOutputTokens,
             Temperature = command.Temperature,
             TimeoutSeconds = command.TimeoutSeconds,
@@ -103,7 +119,7 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         provider.BaseUrl = Optional(command.BaseUrl, 500, nameof(command.BaseUrl), "端点地址不能超过 500 个字符。");
 
         // ApiKey 仅在传入新值时重新加密；为空表示保留原密钥。
-        var newApiKey = NormalizeNullable(command.ApiKey);
+        var newApiKey = Optional(command.ApiKey, ApiKeyMaxLength, nameof(command.ApiKey), "API 密钥不能超过 1000 个字符。");
         if (newApiKey is not null)
         {
             provider.ApiKey = _secretProtector.Protect(newApiKey);
@@ -317,12 +333,28 @@ public sealed class AiProviderDomainService : IAiProviderDomainService
         }
     }
 
+    /// <summary>
+    /// 校验采样温度：未设置放行，否则必须落在闭区间 [0, 2] 内
+    /// </summary>
+    /// <remarks>
+    /// 必须写成"必须落进区间"的正向判定：IEEE754 下 NaN 与任何值的比较都为 false，
+    /// 反向的 <c>is &lt; 0f or > 2f</c> 会让 <see cref="float.NaN"/> 两个分支都不命中而被放行落库，
+    /// 再透传给 AiProviderOptions.Temperature 被上游 400。±Infinity 与 NaN 在此走同一条拒绝路径。
+    /// </remarks>
     private static void EnsureTemperature(float? temperature)
     {
-        if (temperature is < 0f or > 2f)
+        if (temperature is null)
         {
-            throw new ArgumentOutOfRangeException(nameof(temperature), "采样温度须在 0~2 之间。");
+            return;
         }
+
+        var value = temperature.Value;
+        if (value is >= 0f and <= 2f)
+        {
+            return;
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(temperature), "采样温度须在 0~2 之间。");
     }
 
     private static string? NormalizeNullable(string? value)

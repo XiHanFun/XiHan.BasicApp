@@ -103,6 +103,61 @@ public sealed class AiProviderDomainServiceTests
     }
 
     /// <summary>
+    /// 明文密钥超过 1000 字符必须在领域层就被拒绝，不能带着注定装不下的密文去写库。
+    /// </summary>
+    /// <remarks>
+    /// 回归锚点：ApiKey 曾只走 NormalizeNullable（仅 trim）而无任何长度校验（对比同文件里 BaseUrl 走 Optional）。
+    /// 落库的是密文不是明文，Data Protection 密文约为明文的 4/3 再加固定头部，明文越过约 1432 字符后
+    /// 就超出 Api_Key 列长 2000，写库会被截断（密文截断即永久解不开）或直接报错；
+    /// 上限 1000 的推导见 AiProviderDomainService.ApiKeyMaxLength 的注释，
+    /// 密文侧边界由 AiProviderSecretProtectorTests.Protect_MaxLengthPlaintextCipherShouldFitColumn 对实际列长锁定。
+    /// </remarks>
+    [Fact]
+    public async Task CreateProviderAsync_ApiKeyOverMaxLengthShouldReject()
+    {
+        var fixture = CreateFixture();
+
+        var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => fixture.Service.CreateProviderAsync(
+                AiTestHelper.CreateProviderCommand() with { ApiKey = new string('k', 1001) }));
+
+        Assert.Contains("API 密钥不能超过 1000 个字符", exception.Message, StringComparison.Ordinal);
+        fixture.Repository.Verify(
+            repository => repository.AddAsync(It.IsAny<SysAiProvider>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 明文密钥恰好 1000 字符必须通过并照常加密，边界不得少一格。
+    /// </summary>
+    [Fact]
+    public async Task CreateProviderAsync_ApiKeyAtMaxLengthShouldPass()
+    {
+        var fixture = CreateFixture();
+        var apiKey = new string('k', 1000);
+
+        var result = await fixture.Service.CreateProviderAsync(
+            AiTestHelper.CreateProviderCommand() with { ApiKey = apiKey });
+
+        Assert.Equal("cipher:" + apiKey, result.Provider.ApiKey, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 密钥长度以裁剪后的明文计：两端空白不计入上限。
+    /// </summary>
+    [Fact]
+    public async Task CreateProviderAsync_ApiKeyLengthShouldBeMeasuredAfterTrim()
+    {
+        var fixture = CreateFixture();
+        var apiKey = new string('k', 1000);
+
+        var result = await fixture.Service.CreateProviderAsync(
+            AiTestHelper.CreateProviderCommand() with { ApiKey = "  " + apiKey + "\n" });
+
+        Assert.Equal("cipher:" + apiKey, result.Provider.ApiKey, StringComparer.Ordinal);
+    }
+
+    /// <summary>
     /// 空命令必须在任何仓储调用前被拒。
     /// </summary>
     [Fact]
@@ -149,6 +204,11 @@ public sealed class AiProviderDomainServiceTests
     /// <summary>
     /// 采样温度越界必须拒绝，超出模型接受区间会被上游直接 400。
     /// </summary>
+    /// <remarks>
+    /// 回归锚点：<see cref="float.NaN"/> 曾被放行落库——旧实现用反向判定 <c>is &lt; 0f or > 2f</c>，
+    /// 而 IEEE754 下 NaN 的两个比较都为 false。校验必须改成"必须落进 [0,2]"的正向判定，
+    /// 让 NaN 与 ±Infinity 走同一条拒绝路径。
+    /// </remarks>
     /// <param name="temperature">越界的采样温度。</param>
     [Theory]
     [InlineData(-0.01f)]
@@ -157,6 +217,7 @@ public sealed class AiProviderDomainServiceTests
     [InlineData(100f)]
     [InlineData(float.NegativeInfinity)]
     [InlineData(float.PositiveInfinity)]
+    [InlineData(float.NaN)]
     public async Task CreateProviderAsync_TemperatureOutOfRangeShouldReject(float temperature)
     {
         var fixture = CreateFixture();
@@ -498,6 +559,44 @@ public sealed class AiProviderDomainServiceTests
 
         Assert.Equal("cipher:sk-new-key", result.Provider.ApiKey, StringComparer.Ordinal);
         fixture.Protector.Verify(protector => protector.Protect("sk-new-key"), Times.Once);
+    }
+
+    /// <summary>
+    /// 更新路径同样必须卡密钥长度，不得只在创建时把关（回归锚点，原实现两条路径都无长度校验）。
+    /// </summary>
+    [Fact]
+    public async Task UpdateProviderAsync_ApiKeyOverMaxLengthShouldReject()
+    {
+        var existing = AiTestHelper.CreateProvider(7);
+        existing.ApiKey = "dp:old-cipher";
+        var fixture = CreateFixture(existing);
+
+        var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => fixture.Service.UpdateProviderAsync(
+                AiTestHelper.UpdateProviderCommand(7) with { ApiKey = new string('k', 1001) }));
+
+        Assert.Contains("API 密钥不能超过 1000 个字符", exception.Message, StringComparison.Ordinal);
+        Assert.Equal("dp:old-cipher", existing.ApiKey, StringComparer.Ordinal);
+        fixture.Repository.Verify(
+            repository => repository.UpdateAsync(It.IsAny<SysAiProvider>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 更新路径的密钥恰好 1000 字符必须通过并重新加密。
+    /// </summary>
+    [Fact]
+    public async Task UpdateProviderAsync_ApiKeyAtMaxLengthShouldPass()
+    {
+        var existing = AiTestHelper.CreateProvider(7);
+        existing.ApiKey = "dp:old-cipher";
+        var fixture = CreateFixture(existing);
+        var apiKey = new string('k', 1000);
+
+        var result = await fixture.Service.UpdateProviderAsync(
+            AiTestHelper.UpdateProviderCommand(7) with { ApiKey = apiKey });
+
+        Assert.Equal("cipher:" + apiKey, result.Provider.ApiKey, StringComparer.Ordinal);
     }
 
     /// <summary>

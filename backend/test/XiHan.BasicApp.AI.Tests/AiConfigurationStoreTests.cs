@@ -294,10 +294,16 @@ public sealed class AiConfigurationStoreTests
     }
 
     /// <summary>
-    /// 单条解析路径不吞解密异常：默认 provider 解不开必须直接抛出，避免拿空密钥去请求上游。
+    /// 单条解析路径的解密失败必须与全表枚举同口径：记 Warning 后按「未配置 provider」返回 null，
+    /// 不把解密异常抛进请求管道。
     /// </summary>
+    /// <remarks>
+    /// 回归锚点：此处原先直接调用会解密的 Map 而无 try/catch，一条密钥损坏就会让默认 provider 解析抛异常打断请求，
+    /// 与同类 GetAllAsync「坏行跳过、不阻断枚举」的降级口径相互矛盾（同一份数据、两条读路径两种失败语义）。
+    /// 两条路径都是 fail-closed：坏行宁可不可用，也不回退明文。
+    /// </remarks>
     [Fact]
-    public async Task ProviderStoreGetAsync_UndecryptableApiKeyShouldPropagate()
+    public async Task ProviderStoreGetAsync_UndecryptableApiKeyShouldFallBackToNull()
     {
         var fixture = CreateProviderStore();
         _ = fixture.Protector
@@ -307,9 +313,24 @@ public sealed class AiConfigurationStoreTests
             .Setup(item => item.GetDefaultAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(AiTestHelper.CreateProvider(7));
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Store.GetAsync());
+        Assert.Null(await fixture.Store.GetAsync());
+    }
 
-        Assert.Equal("密钥解密失败", exception.Message, StringComparer.Ordinal);
+    /// <summary>
+    /// 按编码解析的路径同样不得把解密异常抛给调用方。
+    /// </summary>
+    [Fact]
+    public async Task ProviderStoreGetAsync_NamedProviderWithUndecryptableKeyShouldFallBackToNull()
+    {
+        var fixture = CreateProviderStore();
+        _ = fixture.Protector
+            .Setup(item => item.Unprotect(It.IsAny<string?>()))
+            .Throws(new InvalidOperationException("密钥解密失败"));
+        _ = fixture.Repository
+            .Setup(item => item.GetEnabledByCodeAsync("alpha", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(AiTestHelper.CreateProvider(7, "alpha"));
+
+        Assert.Null(await fixture.Store.GetAsync("alpha"));
     }
 
     /// <summary>
