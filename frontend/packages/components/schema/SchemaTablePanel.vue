@@ -224,11 +224,8 @@ const prefixColumns = computed<Array<{ id: string, width: number }>>(() => {
   return list
 })
 
-/** 拖拽产生的列宽覆盖：只活在本次挂载内，落库由上层的列设置负责 */
-const draggedWidths = ref<Record<string, number>>({})
-
 function widthOf(column: SchemaColumn<TRow>): number | undefined {
-  return draggedWidths.value[column.key] ?? column.width
+  return column.width
 }
 
 /**
@@ -264,9 +261,6 @@ function prefixStyle(id: string): Record<string, string> {
   }
 }
 
-/** 本次挂载内拖过列宽：拖过之后各列不再吃容器余量，看到的宽度即落库的宽度 */
-const hasDraggedWidth = computed(() => Object.keys(draggedWidths.value).length > 0)
-
 /**
  * 喂给组件库的列契约：列号、列宽、可排序与吸附的唯一事实源。
  * 前缀列也必须在此声明，否则右侧所有列的 aria-colindex 串位。
@@ -283,9 +277,30 @@ const tableColumns = computed<TableColumnDef[]>(() => {
       // 吸附偏移由库按列宽累加，这里只报侧别
       ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
       width: declaredWidthOf(column),
+      // 改宽由库接管：它按下那一刻量出各列的实际宽度做基线，因此钉住的一瞬间视觉不跳
+      // 操作列不给拖：它的宽度跟着按钮走，拖窄了按钮会被挤掉
+      ...(column.resizable === false || column.key === ACTION_COL ? {} : { resizable: true, minWidth: column.minWidth ?? 80 }),
     })),
   ]
 })
+
+/**
+ * 列宽由库写进列偏好，这里只把变化转成既有的 resizeColumn 出口。
+ * 库在按下那一刻会把同排各列的实际宽度一并写进去当基线，因此这里只报真正变过的那些。
+ */
+const lastWidths = ref<Record<string, number>>({})
+function onColumnPreferenceChange(details: { value: { widths?: Record<string, number | string> } }): void {
+  const widths = details.value.widths ?? {}
+  for (const [key, raw] of Object.entries(widths)) {
+    const width = typeof raw === 'number' ? raw : Number.NaN
+    if (Number.isFinite(width) && lastWidths.value[key] !== width) {
+      lastWidths.value = { ...lastWidths.value, [key]: width }
+      // 前缀列不归业务侧管，它们的宽度是固定的
+      if (!key.startsWith('__'))
+        emit('resizeColumn', key, width)
+    }
+  }
+}
 
 const tableRows = computed<TableRowDef[]>(() => flatRows.value.map(r => ({
   id: r.key,
@@ -311,40 +326,6 @@ function onSelectionChange(next: TableSelection): void {
   emit('update:checkedKeys', keys)
 }
 
-// ── 列宽拖拽 ──────────────────────────────────────────────────────────
-let grabbed: { key: string, startX: number, startWidth: number } | null = null
-
-function onResizeGrab(event: PointerEvent, column: SchemaColumn<TRow>): void {
-  const el = event.currentTarget as HTMLElement
-  // 未显式给宽的列以当前实测宽度起量，拖拽不会跳一下
-  const startWidth = widthOf(column) ?? el.parentElement?.getBoundingClientRect().width ?? 120
-  grabbed = { key: column.key, startX: event.clientX, startWidth }
-  el.setPointerCapture(event.pointerId)
-  event.preventDefault()
-}
-
-function onResizeDrag(event: PointerEvent): void {
-  if (!grabbed) {
-    return
-  }
-  const column = props.columns.find(c => c.key === grabbed!.key)
-  const min = column?.minWidth ?? 80
-  draggedWidths.value = {
-    ...draggedWidths.value,
-    [grabbed.key]: Math.max(min, Math.round(grabbed.startWidth + event.clientX - grabbed.startX)),
-  }
-}
-
-function onResizeRelease(): void {
-  if (grabbed) {
-    const width = draggedWidths.value[grabbed.key]
-    if (width !== undefined) {
-      emit('resizeColumn', grabbed.key, width)
-    }
-  }
-  grabbed = null
-}
-
 // 悬停速览的行事件：未启用时不挂，省掉每行三个监听
 function rowPeekHandlers(row: TRow) {
   return peekEnabled.value ? peek.rowProps(row) : {}
@@ -357,7 +338,6 @@ function rowPeekHandlers(row: TRow) {
     <XhTableRoot
       :key="remountKey"
       class="xh-table-panel__grid"
-      :class="{ 'xh-table-panel__grid--fixed-cols': hasDraggedWidth }"
       :columns="tableColumns"
       :rows="tableRows"
       :sort="sortChain"
@@ -369,6 +349,7 @@ function rowPeekHandlers(row: TRow) {
       :striped="striped"
       :borderless="!bordered"
       :ruled="!singleLine"
+      @column-preference-change="onColumnPreferenceChange"
       @update:sort="onSortChange"
       @update:selection="onSelectionChange"
     >
@@ -397,15 +378,7 @@ function rowPeekHandlers(row: TRow) {
             </XhTableSortTrigger>
             <span v-else class="xh-table-panel__title">{{ column.title }}</span>
             <!-- 调宽把手与排序把手是兄弟节点，拖它不会连带触发排序 -->
-            <span
-              aria-hidden="true"
-              class="xh-table-panel__resize"
-              :title="t('component.schema_table.resize_tip')"
-              @pointerdown="onResizeGrab($event, column)"
-              @pointermove="onResizeDrag"
-              @pointerup="onResizeRelease"
-              @pointercancel="onResizeRelease"
-            />
+            <XhTableColumnResizeTrigger :title="t('component.schema_table.resize_tip')" />
           </XhTableColumnHeader>
         </XhTableRow>
       </XhTableHeader>
@@ -528,12 +501,6 @@ function rowPeekHandlers(row: TRow) {
 /* 前缀列与操作列的「不吃余量」改由 minWidthStyle / prefixStyle 写成内联样式，
    两侧同一个函数出，见脚本区 */
 
-/* 拖过列宽之后所有列都不再吃余量：拖到多少就是多少，与落库的数值一致 */
-.xh-table-panel__grid--fixed-cols :deep([data-scope='table'][data-part='column-header']),
-.xh-table-panel__grid--fixed-cols :deep([data-scope='table'][data-part='cell']) {
-  flex-grow: 0;
-}
-
 /* 排序把手：文字段占满、箭头贴右缘 */
 .xh-table-panel__sort {
   min-width: 0;
@@ -555,22 +522,6 @@ function rowPeekHandlers(row: TRow) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* 调宽把手：贴列标题右缘的一条窄带，悬停才显形 */
-.xh-table-panel__resize {
-  flex: none;
-  align-self: stretch;
-  inline-size: 5px;
-  margin-inline-end: -4px;
-  cursor: col-resize;
-  touch-action: none;
-  background: transparent;
-  transition: background-color 0.15s ease;
-}
-
-.xh-table-panel__resize:hover {
-  background: var(--xh-border-strong);
 }
 
 /* 树形缩进与展开箭头 */
