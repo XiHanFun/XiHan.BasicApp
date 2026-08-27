@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import type { DragEndEvent } from '@dnd-kit/vue'
-import { DragDropProvider } from '@dnd-kit/vue'
-import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { resolveSortMove } from '~/components/common/sortable'
-import SortableItem from '~/components/common/SortableItem.vue'
 import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
 import { Icon } from '~/iconify'
 import { useAppStore, useFavoritesStore } from '~/stores'
@@ -50,11 +46,8 @@ function handleRemove(path: string, e: MouseEvent): void {
   favoritesStore.remove(path)
 }
 
-function onDragEnd(event: DragEndEvent): void {
-  const move = resolveSortMove(event, items.value.map(item => item.path))
-  if (move) {
-    favoritesStore.move(move.from, move.to)
-  }
+function onSort(details: { from: number, to: number }): void {
+  favoritesStore.move(details.from, details.to)
 }
 
 // ── 按钮脉冲（飞入命中时抖动一下） ──────────────────────────────
@@ -134,35 +127,40 @@ onBeforeUnmount(() => {
           </XhEmptyStateRoot>
 
           <!-- 收藏药丸（可拖拽排序，点击导航，× 移除） -->
-          <DragDropProvider v-else @drag-end="onDragEnd">
-            <div class="fav-list flex flex-wrap gap-2">
-              <SortableItem
-                v-for="(item, index) in items"
-                :id="item.path"
-                :key="item.path"
-                :index="index"
-                class="fav-chip"
-                :class="{ 'fav-chip--current': route.fullPath === item.path }"
-                role="button"
-                tabindex="0"
-                :title="display(item.title)"
-                @click="handleNavigate(item.path)"
-                @keydown.enter.prevent="handleNavigate(item.path)"
+          <XhSortableRoot
+            v-else
+            :ids="items.map(i => i.path)"
+            orientation="both"
+            class="fav-list flex flex-wrap gap-2"
+            style="--xh-sortable-gap: 0"
+            @sort="onSort"
+          >
+            <XhSortableItem
+              v-for="item in items"
+              :key="item.path"
+              :item-id="item.path"
+              class="fav-chip"
+              :class="{ 'fav-chip--current': route.fullPath === item.path }"
+              role="button"
+              tabindex="0"
+              :title="display(item.title)"
+              @click="handleNavigate(item.path)"
+              @keydown.enter.prevent="handleNavigate(item.path)"
+            >
+              <Icon :icon="resolveIcon(item.icon)" width="14" height="14" class="shrink-0 opacity-70" />
+              <span class="fav-chip__label">{{ display(item.title) }}</span>
+              <button
+                type="button"
+                class="fav-chip__close"
+                :aria-label="t('header.favorites.remove')"
+                @click="(e) => handleRemove(item.path, e)"
+                @keydown.enter.stop
               >
-                <Icon :icon="resolveIcon(item.icon)" width="14" height="14" class="shrink-0 opacity-70" />
-                <span class="fav-chip__label">{{ display(item.title) }}</span>
-                <button
-                  type="button"
-                  class="fav-chip__close"
-                  :aria-label="t('header.favorites.remove')"
-                  @click="(e) => handleRemove(item.path, e)"
-                  @keydown.enter.stop
-                >
-                  <Icon icon="lucide:x" width="12" height="12" />
-                </button>
-              </SortableItem>
-            </div>
-          </DragDropProvider>
+                <Icon icon="lucide:x" width="12" height="12" />
+              </button>
+            </XhSortableItem>
+            <XhSortableLiveRegion />
+          </XhSortableRoot>
 
           <div v-if="items.length > 0" class="fav-footer">
             <XhSeparator class="my-1" />
@@ -289,7 +287,7 @@ onBeforeUnmount(() => {
   background: hsl(var(--primary) / 20%);
 }
 
-/* 拖拽中的药丸（dnd-kit 在 SortableItem 根节点写入 data-dragging） */
+/* 拖拽中的药丸（sortable 在被拖那一项上写 data-dragging） */
 .fav-chip[data-dragging] {
   opacity: 0.5;
   box-shadow: inset 0 0 0 1px hsl(var(--primary) / 40%);

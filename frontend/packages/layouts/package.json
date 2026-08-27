@@ -4,8 +4,6 @@
   "private": true,
   "main": "./basic/index.vue",
   "dependencies": {
-    "@dnd-kit/geometry": "catalog:",
-    "@dnd-kit/vue": "catalog:",
     "@xihan-ui/headless": "catalog:",
     "@xihan-ui/kernel": "catalog:",
     "@xihan-ui/motion": "catalog:",

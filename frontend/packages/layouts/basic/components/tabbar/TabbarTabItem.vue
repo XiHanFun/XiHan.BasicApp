@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { TabItem } from '~/types'
-import { useSortable } from '@dnd-kit/vue/sortable'
-import { computed, ref } from 'vue'
+import { XhSortableItem } from '@xihan-ui/vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { HOME_PATH } from '~/constants'
 import { Icon } from '~/iconify'
@@ -34,14 +34,6 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-// ── 拖拽排序（@dnd-kit/vue）：固定标签 / 关闭拖拽时禁用 ──────────────
-const rootRef = ref<HTMLElement | null>(null)
-const { isDragging } = useSortable({
-  id: () => props.item.path,
-  index: () => props.index,
-  element: rootRef,
-  disabled: () => !props.draggable,
-})
 
 function resolveIcon(icon: string) {
   if (!icon) {
@@ -105,11 +97,11 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
     TransitionGroup 始终看到同一 DOM 节点类型，切换风格时只做原地 patch，
     不触发 leave/enter 动画，彻底消除切换闪烁。
   -->
-  <div
-    ref="rootRef"
+  <XhSortableItem
+    :item-id="item.path"
+    :disabled="!draggable"
     class="tab-item group relative flex shrink-0 select-none"
     :class="tabClass"
-    :data-dragging="isDragging || undefined"
     role="button"
     tabindex="0"
     :title="tabHint"
@@ -235,7 +227,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
         </span>
       </div>
     </template>
-  </div>
+  </XhSortableItem>
 </template>
 
 <style scoped>
@@ -527,7 +519,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   color: var(--tab-active-color);
 }
 
-/* 拖拽中的标签（dnd-kit 通过 data-dragging 标记拖拽源） */
+/* 拖拽中的标签（sortable 在被拖那一项上写 data-dragging） */
 .tab-item[data-dragging] {
   z-index: 3;
   cursor: grabbing;
