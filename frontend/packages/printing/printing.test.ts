@@ -12,35 +12,47 @@ import type {
   ResolvedPrintTemplate,
 } from './types'
 import assert from 'node:assert/strict'
-import { createPinia, setActivePinia } from 'pinia'
-import { afterEach, it } from 'vitest'
-import { useUserStore } from '~/stores'
-import { buildHiprintElementDefinitions } from './hiprint-adapter'
-import {
-  configurePrinting,
-  createBlankPrintSampleRecord,
-  createDefaultPrintSampleData,
-  createPrintDesigner,
-  createPrintSamplePayload,
-  directPrintByCode,
-  ensureRemotePrintDataSourcesLoaded,
-  extractPrintSampleFormSchema,
-  getPrintDataSource,
-  getPrintSampleValue,
-  inferPrintSampleInputType,
-  normalizePrintSampleData,
-  previewPrintByCode,
-  PrintTemplateVersionChangedError,
-  registerPrintDataSource,
-  setPreferredPrinter,
-  setPrintingAdapter,
-  setPrintSampleValue,
-} from './index'
+import { afterEach, beforeEach, it, vi } from 'vitest'
+
+/**
+ * 被测模块的当前实例。
+ *
+ * 打印包有多处模块级可变单例、且不对外暴露重置入口：
+ * remote-data-sources 的 loadPromise（目录拉取缓存）、print-service 的 directQueueTail
+ * （直打 FIFO 队列尾）、hiprint-adapter 的 configuration / adapterPromise / adapterOverride。
+ * 静态导入时这些状态在同文件的用例之间累积：目录类用例会读到上一个用例缓存下来的 loadPromise，
+ * 队列类用例会接到上一个用例遗留的队列尾 —— 用例因此只在「按声明顺序执行」时成立，
+ * 一旦乱序（vitest --sequence.shuffle）就随机失败。
+ * 这里改为每个用例前 resetModules + 动态导入，让每个用例拿到全新的模块实例。
+ */
+let printing: typeof import('./index')
+let adapterModule: typeof import('./hiprint-adapter')
+let piniaModule: typeof import('pinia')
+let storesModule: typeof import('~/stores')
+
+beforeEach(async () => {
+  vi.resetModules()
+  // pinia 与 stores 必须跟被测模块来自同一次 resetModules 后的实例：
+  // resetModules 之后 printing 内部 import 到的是全新的 pinia 模块，
+  // 若测试仍用静态导入那份去 setActivePinia，printing 侧的 getActivePinia() 会拿到 null，
+  // 报「there was no active Pinia」。
+  ;[printing, adapterModule, piniaModule, storesModule] = await Promise.all([
+    import('./index'),
+    import('./hiprint-adapter'),
+    import('pinia'),
+    import('~/stores'),
+  ])
+  // 每个用例都装一个空 pinia：打印机偏好按用户/租户分域，直打路径会读用户 store。
+  // 原先只有 installBrowserPreferenceContext 装 pinia，直打类用例是靠先跑过的偏好类用例
+  // 泄漏过来的 activePinia 才没炸 —— 乱序时先跑直打就报「no active Pinia」。
+  piniaModule.setActivePinia(piniaModule.createPinia())
+})
 
 const TemplateJson = '{"panels":[{"printElements":[]}]}'
 
 afterEach(() => {
-  setPrintingAdapter(null)
+  printing.setPrintingAdapter(null)
+  restoreBrowserPreferenceContext()
 })
 
 it('重复数据源编码立即报错', () => {
@@ -51,7 +63,7 @@ it('重复数据源编码立即报错', () => {
 })
 
 it('字段目录按 hiprint 0.0.60 协议映射全部支持类型', () => {
-  const definitions = buildHiprintElementDefinitions({
+  const definitions = adapterModule.buildHiprintElementDefinitions({
     code: uniqueCode('field-kinds'),
     name: '字段类型',
     fields: [
@@ -88,7 +100,7 @@ it('字段目录按 hiprint 0.0.60 协议映射全部支持类型', () => {
 
 it('多面板模板按视觉顺序提取三种绑定、去重并忽略静态元素', () => {
   const code = uniqueCode('sample-schema')
-  registerPrintDataSource({
+  printing.registerPrintDataSource({
     code,
     name: '模拟字段数据源',
     fields: [
@@ -127,7 +139,7 @@ it('多面板模板按视觉顺序提取三种绑定、去重并忽略静态元�
     ],
   }
 
-  const schema = extractPrintSampleFormSchema(template, code)
+  const schema = printing.extractPrintSampleFormSchema(template, code)
 
   assert.deepEqual(schema.fields.map(field => field.key), [
     'logo',
@@ -185,8 +197,8 @@ it('自由模板按元素元数据推断图片、条码、表格和空白默认�
     }],
   }
 
-  const schema = extractPrintSampleFormSchema(template, null)
-  const sample = await createDefaultPrintSampleData(template, null)
+  const schema = printing.extractPrintSampleFormSchema(template, null)
+  const sample = await printing.createDefaultPrintSampleData(template, null)
 
   assert.deepEqual(schema.fields.map(field => ({
     key: field.key,
@@ -210,15 +222,15 @@ it('自由模板按元素元数据推断图片、条码、表格和空白默认�
 
 it('模拟数据安全处理嵌套路径、控件类型、对象数组与内部标识隔离', () => {
   const nested: Record<string, unknown> = {}
-  setPrintSampleValue(nested, 'customer.address.city', '杭州')
-  assert.equal(getPrintSampleValue(nested, 'customer.address.city'), '杭州')
-  assert.throws(() => setPrintSampleValue(nested, '__proto__.polluted', true), /不安全片段/u)
+  printing.setPrintSampleValue(nested, 'customer.address.city', '杭州')
+  assert.equal(printing.getPrintSampleValue(nested, 'customer.address.city'), '杭州')
+  assert.throws(() => printing.setPrintSampleValue(nested, '__proto__.polluted', true), /不安全片段/u)
   assert.equal(({} as { polluted?: unknown }).polluted, undefined)
-  assert.equal(inferPrintSampleInputType(undefined, 3), 'number')
-  assert.equal(inferPrintSampleInputType(undefined, false), 'boolean')
-  assert.equal(inferPrintSampleInputType('date', '2026-07-30'), 'date')
+  assert.equal(printing.inferPrintSampleInputType(undefined, 3), 'number')
+  assert.equal(printing.inferPrintSampleInputType(undefined, false), 'boolean')
+  assert.equal(printing.inferPrintSampleInputType('date', '2026-07-30'), 'date')
 
-  const blank = createBlankPrintSampleRecord([
+  const blank = printing.createBlankPrintSampleRecord([
     { key: 'customer.name', kind: 'text', label: '客户', registered: true },
     { key: 'quantity', kind: 'text', label: '数量', inputType: 'number', registered: true },
     { key: 'enabled', kind: 'text', label: '启用', inputType: 'boolean', registered: true },
@@ -232,19 +244,19 @@ it('模拟数据安全处理嵌套路径、控件类型、对象数组与内部�
   })
 
   const source = [{ enabled: true, quantity: 2, details: [{ quantity: 1 }] }]
-  const normalized = normalizePrintSampleData(source)
+  const normalized = printing.normalizePrintSampleData(source)
   assert.equal(normalized.isCollection, true)
   assert.notEqual(normalized.records[0], source[0])
   assert.notEqual(normalized.records[0]?.details, source[0]?.details)
-  assert.deepEqual(normalizePrintSampleData([]), { isCollection: true, records: [{}] })
-  assert.throws(() => normalizePrintSampleData('invalid'), /对象或对象数组/u)
-  assert.throws(() => normalizePrintSampleData([{}, 'invalid']), /每一项都必须是对象/u)
+  assert.deepEqual(printing.normalizePrintSampleData([]), { isCollection: true, records: [{}] })
+  assert.throws(() => printing.normalizePrintSampleData('invalid'), /对象或对象数组/u)
+  assert.throws(() => printing.normalizePrintSampleData([{}, 'invalid']), /每一项都必须是对象/u)
 
   const editableRecords = [
     { id: crypto.randomUUID(), data: normalized.records[0]! },
     { id: crypto.randomUUID(), data: { enabled: false, quantity: 3 } },
   ]
-  const payload = createPrintSamplePayload(editableRecords.map(record => record.data), true)
+  const payload = printing.createPrintSamplePayload(editableRecords.map(record => record.data), true)
   assert.deepEqual(payload, [
     { enabled: true, quantity: 2, details: [{ quantity: 1 }] },
     { enabled: false, quantity: 3 },
@@ -294,9 +306,9 @@ it('设计器旋转和 JSON 整体更新会发布最终模板，更新失败时�
     refreshPrinters: async () => [],
     removePrintListeners: () => undefined,
   }
-  setPrintingAdapter(adapter)
+  printing.setPrintingAdapter(adapter)
 
-  const designer = await createPrintDesigner({
+  const designer = await printing.createPrintDesigner({
     canvas: '#designer-test-canvas',
     dataSourceCode: code,
     onDataChanged: json => changes.push(structuredClone(json)),
@@ -362,9 +374,9 @@ it('设计器元素对齐与固定间距校验选择数量并发布最终模板'
     refreshPrinters: async () => [],
     removePrintListeners: () => undefined,
   }
-  setPrintingAdapter(adapter)
+  printing.setPrintingAdapter(adapter)
 
-  const designer = await createPrintDesigner({
+  const designer = await printing.createPrintDesigner({
     canvas: '#designer-alignment-canvas',
     dataSourceCode: code,
     onDataChanged: json => changes.push(structuredClone(json)),
@@ -398,12 +410,12 @@ it('浏览器预览原样接收对象和数组数据', async () => {
   registerSource(code)
   const fixture = createAdapterFixture()
   configureFor(code)
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
   const objectData = { documentNo: 'A-1' }
   const arrayData = [{ documentNo: 'A-2' }, { documentNo: 'A-3' }]
 
-  await previewPrintByCode(code, objectData)
-  await previewPrintByCode(code, arrayData)
+  await printing.previewPrintByCode(code, objectData)
+  await printing.previewPrintByCode(code, arrayData)
 
   assert.deepEqual(fixture.previewData, [objectData, arrayData])
 })
@@ -412,9 +424,9 @@ it('自由模板无需注册数据源即可使用公共预览 API', async () => 
   const code = uniqueCode('free-preview')
   const fixture = createAdapterFixture()
   configureFor(code, '1', null)
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
-  await previewPrintByCode(code, { customField: '自由数据' })
+  await printing.previewPrintByCode(code, { customField: '自由数据' })
 
   assert.deepEqual(fixture.previewData, [{ customField: '自由数据' }])
 })
@@ -424,9 +436,9 @@ it('浏览器预览在预期模板版本一致时继续打开', async () => {
   registerSource(code)
   const fixture = createAdapterFixture()
   configureFor(code, 'version-7')
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
-  await previewPrintByCode(code, { documentNo: 'V-1' }, { expectedRowVersion: 'version-7' })
+  await printing.previewPrintByCode(code, { documentNo: 'V-1' }, { expectedRowVersion: 'version-7' })
 
   assert.equal(fixture.createdTemplateCount, 1)
 })
@@ -436,11 +448,11 @@ it('浏览器预览在模板版本冲突时阻止旧表单数据且不创建模�
   registerSource(code)
   const fixture = createAdapterFixture()
   configureFor(code, 'version-8')
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
   await assert.rejects(
-    previewPrintByCode(code, { documentNo: 'V-2' }, { expectedRowVersion: 'version-7' }),
-    error => error instanceof PrintTemplateVersionChangedError,
+    printing.previewPrintByCode(code, { documentNo: 'V-2' }, { expectedRowVersion: 'version-7' }),
+    error => error instanceof printing.PrintTemplateVersionChangedError,
   )
   assert.equal(fixture.createdTemplateCount, 0)
 })
@@ -450,9 +462,9 @@ it('浏览器预览未传预期版本时保持原有调用兼容性', async () =
   registerSource(code)
   const fixture = createAdapterFixture()
   configureFor(code, 'version-9')
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
-  await previewPrintByCode(code, { documentNo: 'V-3' })
+  await printing.previewPrintByCode(code, { documentNo: 'V-3' })
 
   assert.equal(fixture.createdTemplateCount, 1)
 })
@@ -469,13 +481,13 @@ it('直打按显式、本地偏好、客户端默认的顺序选择打印机', a
     ],
   })
   configureFor(code)
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
-  const explicit = await directPrintByCode(code, { documentNo: 'P-1' }, { printerName: 'Explicit Printer' })
-  await setPreferredPrinter(code, 'Preferred Printer')
-  const preferred = await directPrintByCode(code, { documentNo: 'P-2' })
-  await setPreferredPrinter(code, null)
-  const clientDefault = await directPrintByCode(code, { documentNo: 'P-3' })
+  const explicit = await printing.directPrintByCode(code, { documentNo: 'P-1' }, { printerName: 'Explicit Printer' })
+  await printing.setPreferredPrinter(code, 'Preferred Printer')
+  const preferred = await printing.directPrintByCode(code, { documentNo: 'P-2' })
+  await printing.setPreferredPrinter(code, null)
+  const clientDefault = await printing.directPrintByCode(code, { documentNo: 'P-3' })
 
   assert.equal(explicit.printerName, 'Explicit Printer')
   assert.equal(preferred.printerName, 'Preferred Printer')
@@ -494,10 +506,10 @@ it('当前会话直打队列严格 FIFO 且逐任务清理监听器', async () =
     },
   })
   configureFor(code)
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
-  const first = directPrintByCode(code, { documentNo: 'F-1' })
-  const second = directPrintByCode(code, { documentNo: 'F-2' })
+  const first = printing.directPrintByCode(code, { documentNo: 'F-1' })
+  const second = printing.directPrintByCode(code, { documentNo: 'F-2' })
   await new Promise(resolve => setTimeout(resolve, 5))
   assert.deepEqual(fixture.directStartOrder, [1])
 
@@ -516,10 +528,10 @@ it('客户端失败事件明确拒绝且不回退浏览器预览', async () => {
     ),
   })
   configureFor(code)
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
   await assert.rejects(
-    directPrintByCode(code, { documentNo: 'E-1' }),
+    printing.directPrintByCode(code, { documentNo: 'E-1' }),
     /驱动拒绝任务/u,
   )
   assert.equal(fixture.previewData.length, 0)
@@ -531,10 +543,10 @@ it('直打超时后拒绝并清理任务监听器', async () => {
   registerSource(code)
   const fixture = createAdapterFixture({ onPrint2: () => undefined })
   configureFor(code)
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
   await assert.rejects(
-    directPrintByCode(code, { documentNo: 'T-1' }, { timeoutMs: 10 }),
+    printing.directPrintByCode(code, { documentNo: 'T-1' }, { timeoutMs: 10 }),
     /超时/u,
   )
   assert.equal(fixture.cleanupCount, 1)
@@ -546,9 +558,9 @@ it('组件卸载取消直打后立即拒绝并清理任务监听器', async () =
   const fixture = createAdapterFixture({ onPrint2: () => undefined })
   const controller = new AbortController()
   configureFor(code)
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
-  const task = directPrintByCode(
+  const task = printing.directPrintByCode(
     code,
     { documentNo: 'A-1' },
     { signal: controller.signal, timeoutMs: 5_000 },
@@ -567,10 +579,10 @@ it('客户端离线时直接报错且不创建打印模板实例', async () => {
   registerSource(code)
   const fixture = createAdapterFixture({ connected: false })
   configureFor(code)
-  setPrintingAdapter(fixture.adapter)
+  printing.setPrintingAdapter(fixture.adapter)
 
   await assert.rejects(
-    directPrintByCode(code, { documentNo: 'O-1' }),
+    printing.directPrintByCode(code, { documentNo: 'O-1' }),
     /客户端未连接/u,
   )
   assert.equal(fixture.createdTemplateCount, 0)
@@ -578,13 +590,13 @@ it('客户端离线时直接报错且不创建打印模板实例', async () => {
 
 it('未注入 listDataSources 时目录直接完成且不缓存空结果', async () => {
   configureCatalog(undefined)
-  await ensureRemotePrintDataSourcesLoaded()
+  await printing.ensureRemotePrintDataSourcesLoaded()
 
   // 注入取数函数后必须真正拉取；若空结果被缓存，这里将拿不到注入函数的拒绝
   configureCatalog(async () => {
     throw new Error('catalog-after-configure')
   })
-  await assert.rejects(ensureRemotePrintDataSourcesLoaded(), /catalog-after-configure/u)
+  await assert.rejects(printing.ensureRemotePrintDataSourcesLoaded(), /catalog-after-configure/u)
 })
 
 it('目录拉取失败不缓存，下一次调用重新拉取', async () => {
@@ -594,8 +606,8 @@ it('目录拉取失败不缓存，下一次调用重新拉取', async () => {
     throw new Error('catalog-unavailable')
   })
 
-  await assert.rejects(ensureRemotePrintDataSourcesLoaded(), /catalog-unavailable/u)
-  await assert.rejects(ensureRemotePrintDataSourcesLoaded(), /catalog-unavailable/u)
+  await assert.rejects(printing.ensureRemotePrintDataSourcesLoaded(), /catalog-unavailable/u)
+  await assert.rejects(printing.ensureRemotePrintDataSourcesLoaded(), /catalog-unavailable/u)
   assert.equal(calls, 2)
 })
 
@@ -633,7 +645,7 @@ it('目录拉取注册后端数据源：跳过已注册编码、隔离坏样例�
     isolationLogCount++
   }
   try {
-    await Promise.all([ensureRemotePrintDataSourcesLoaded(), ensureRemotePrintDataSourcesLoaded()])
+    await Promise.all([printing.ensureRemotePrintDataSourcesLoaded(), printing.ensureRemotePrintDataSourcesLoaded()])
   }
   finally {
     console.error = originalConsoleError
@@ -641,12 +653,12 @@ it('目录拉取注册后端数据源：跳过已注册编码、隔离坏样例�
 
   assert.equal(calls, 1)
   // 本地已注册的编码保持原定义
-  assert.equal(getPrintDataSource(localCode)?.name, localCode)
+  assert.equal(printing.getPrintDataSource(localCode)?.name, localCode)
   // 坏样例只跳过自身，不拖垮其余数据源
-  assert.equal(getPrintDataSource(brokenCode), undefined)
+  assert.equal(printing.getPrintDataSource(brokenCode), undefined)
   assert.equal(isolationLogCount, 1)
 
-  const remote = getPrintDataSource(remoteCode)
+  const remote = printing.getPrintDataSource(remoteCode)
   assert.equal(remote?.name, '后端数据源')
   assert.deepEqual(remote?.fields.map(field => field.key), ['title', 'items'])
   assert.equal(remote?.fields[0]?.inputType, 'textarea')
@@ -662,7 +674,7 @@ it('目录拉取注册后端数据源：跳过已注册编码、隔离坏样例�
 
 /** 注册单字段测试数据源。 */
 function registerSource(code: string): void {
-  registerPrintDataSource({
+  printing.registerPrintDataSource({
     code,
     name: code,
     fields: [{ key: 'documentNo', label: '单据编号', kind: 'text' }],
@@ -672,7 +684,7 @@ function registerSource(code: string): void {
 
 /** 注入返回指定模板与数据源的稳定解析函数。 */
 function configureFor(code: string, rowVersion = '1', dataSourceCode: null | string = code): void {
-  configurePrinting({
+  printing.configurePrinting({
     host: 'http://localhost:17521',
     token: 'test-token',
     resolveTemplate: async (_templateCode, scope): Promise<ResolvedPrintTemplate> => ({
@@ -691,7 +703,7 @@ function configureFor(code: string, rowVersion = '1', dataSourceCode: null | str
 
 /** 注入指定目录取数函数（可为空）的运行配置。 */
 function configureCatalog(listDataSources: (() => Promise<RemotePrintDataSourceDto[]>) | undefined): void {
-  configurePrinting({
+  printing.configurePrinting({
     host: 'http://localhost:17521',
     token: 'test-token',
     resolveTemplate: async () => {
@@ -701,20 +713,46 @@ function configureCatalog(listDataSources: (() => Promise<RemotePrintDataSourceD
   })
 }
 
-/** 安装隔离的 Pinia 与内存 localStorage，支持本地打印机偏好测试。 */
+/** 安装本用例前的原始 localStorage 描述符，用于用例结束后原样还原。 */
+let originalLocalStorageDescriptor: PropertyDescriptor | undefined
+
+/**
+ * 安装隔离的 Pinia 与内存 localStorage，支持本地打印机偏好测试。
+ *
+ * 替身实现完整的 Storage 接口（而不只是用到的三个方法）：
+ * 这个替身会覆盖全局，缺方法时后续用例或测试基建碰到它就会以
+ * "xxx is not a function" 的形式炸在无关的地方。
+ * 覆盖前记下原描述符，由 afterEach 还原，避免污染同文件的后续用例。
+ */
 function installBrowserPreferenceContext(): void {
-  setActivePinia(createPinia())
-  const userStore = useUserStore()
+  piniaModule.setActivePinia(piniaModule.createPinia())
+  const userStore = storesModule.useUserStore()
   userStore.userInfo = { basicId: 'tester', tenantId: 'tenant-7' } as typeof userStore.userInfo
   const values = new Map<string, string>()
+
+  originalLocalStorageDescriptor ??= Object.getOwnPropertyDescriptor(globalThis, 'localStorage')
   Object.defineProperty(globalThis, 'localStorage', {
     configurable: true,
     value: {
+      get length() {
+        return values.size
+      },
+      clear: () => values.clear(),
       getItem: (key: string) => values.get(key) ?? null,
+      key: (index: number) => [...values.keys()][index] ?? null,
       removeItem: (key: string) => values.delete(key),
       setItem: (key: string, value: string) => values.set(key, value),
-    },
+    } satisfies Storage,
   })
+}
+
+/** 还原被 installBrowserPreferenceContext 覆盖的全局 localStorage。 */
+function restoreBrowserPreferenceContext(): void {
+  if (!originalLocalStorageDescriptor)
+    return
+
+  Object.defineProperty(globalThis, 'localStorage', originalLocalStorageDescriptor)
+  originalLocalStorageDescriptor = undefined
 }
 
 /** 生成不会与其它测试或应用启动数据源冲突的编码。 */
