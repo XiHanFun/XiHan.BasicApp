@@ -67,11 +67,25 @@ it('失败信封的 message 不是字符串时同样抛通用「请求失败」'
   await expect(client.post('/Role/Create', {})).rejects.toThrow('请求失败')
 })
 
-it('code 为字符串 "200" 时不被判为成功而按业务失败抛出', async () => {
-  // 锁定当前真实行为：成功判据用严格相等比数字 200，字符串码走失败分支
-  const client = clientReturning({ code: '200', message: '字符串状态码', data: { id: 1 } })
+it('code 为字符串 "200" / "0" 时同样判为成功并返回 data 层', async () => {
+  // 回归锚点：ApiResponse 把 code 声明为 number | string，判据一旦退回严格比数字 200，
+  // 网关或第三方后端返回字符串码的接口会整条链路被判业务失败、业务数据被丢弃
+  const stringSuccess = clientReturning({ code: '200', message: '字符串状态码', data: { id: 1 } })
+  const stringZero = clientReturning({ code: ' 0 ', data: 'zero-as-text' })
 
-  await expect(client.get('/Sys/StringCode')).rejects.toThrow('字符串状态码')
+  await expect(stringSuccess.get('/Sys/StringCode')).resolves.toEqual({ id: 1 })
+  await expect(stringZero.get('/Sys/StringZero')).resolves.toBe('zero-as-text')
+})
+
+it('code 为空串或非数字串时仍按业务失败，不被 Number 归零后误判为成功', async () => {
+  // 回归锚点：Number('') 与 Number(null) 都是 0，直接 Number(code) 会把它们当成成功码
+  const emptyCode = clientReturning({ code: '', message: '空业务码', data: { id: 1 } })
+  const wordCode = clientReturning({ code: 'OK', message: '非数字业务码', data: { id: 1 } })
+  const nullCode = clientReturning({ isSuccess: false, code: null, message: '空业务码对象' })
+
+  await expect(emptyCode.get('/Sys/EmptyCode')).rejects.toThrow('空业务码')
+  await expect(wordCode.get('/Sys/WordCode')).rejects.toThrow('非数字业务码')
+  await expect(nullCode.get('/Sys/NullCode')).rejects.toThrow('空业务码对象')
 })
 
 it('不含 isSuccess/code/data 的普通对象整体原样返回', async () => {

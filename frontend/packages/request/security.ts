@@ -89,6 +89,15 @@ export async function applyApiSecurityToRequest(
   if (shouldHandleBody) {
     const serialized = stringifyPayload(config.data)
     if (serialized === null) {
+      // 请求体拿不到可签名的文本（FormData / Blob / ArrayBuffer / 循环引用）时整条请求不签名。
+      //
+      // 这确实留下一条无防重放保护的上传通道，但**不能**靠前端单方面改成「以空串当请求体照常签名」：
+      // 后端 XiHanOpenApiSecurityMiddleware 把原始请求体按 UTF-8 读成字符串后计算 contentSign
+      // （见 ReadRequestBodyAsync + ComputeContentSignature），且规定「X-Content-Sign 一旦出现就必须
+      // 与服务端自算值一致」，而 multipart 边界由浏览器生成、前端根本无从复算。
+      // 前端单独送出签名头只会把「未签名上传」变成「必定 401 内容签名校验失败」。
+      // 要真正堵上，得先由后端约定二进制请求体的 contentSign 口径（跳过 multipart/以空串入规范串），
+      // 前后端同一版本一起改。
       return
     }
 

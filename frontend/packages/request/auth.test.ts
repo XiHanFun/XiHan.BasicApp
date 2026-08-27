@@ -306,9 +306,27 @@ it('并发 401 遇刷新失败时全部请求被拒绝且只刷新一次', async
     '登录已过期，请重新登录',
   ])
   expect(LocalStorage.get<string>(TOKEN_KEY)).toBeNull()
-  // 锁定当前真实行为：每个被拒绝的挂起请求各自触发一次强制登出
-  expect(logout).toHaveBeenCalledTimes(3)
-  expect(replace).toHaveBeenCalledTimes(3)
+  // 回归锚点：首个刷新者与每个被 resolve(null) 唤醒的挂起请求都会走到 forceLogout，
+  // 一次会话失效只允许清理与跳转一次，否则登出钩子里的埋点/请求会被放大 N 倍
+  expect(logout).toHaveBeenCalledTimes(1)
+  expect(replace).toHaveBeenCalledTimes(1)
+})
+
+it('重新登录后的下一轮会话失效仍能正常登出，闸门不会永久闭合', async () => {
+  // 回归锚点：幂等闸门必须随新会话复位——请求带着令牌出站即视为新会话
+  storeTokens()
+  const client = makeClient(config => (config.url === REFRESH_URL
+    ? Promise.reject(httpError(500, null, config))
+    : Promise.reject(httpError(401, null, config))))
+
+  await client.getFlat('/Sys/A')
+  expect(logout).toHaveBeenCalledTimes(1)
+
+  storeTokens()
+  await client.getFlat('/Sys/B')
+
+  expect(logout).toHaveBeenCalledTimes(2)
+  expect(replace).toHaveBeenCalledTimes(2)
 })
 
 it('刷新失败清空挂起队列，下一轮 401 仍能重新发起刷新', async () => {
