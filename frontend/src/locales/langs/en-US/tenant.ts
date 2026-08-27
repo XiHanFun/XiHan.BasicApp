@@ -41,6 +41,8 @@ export default {
     user_limit: 'User Limit',
     storage_limit: 'Storage Limit',
     storage_limit_mb: 'Storage Limit (MB)',
+    seat_usage: 'Seats Used',
+    storage_usage: 'Storage Used',
     sort: 'Sort',
     expiration_time: 'Expiration Time',
     created_time: 'Created Time',

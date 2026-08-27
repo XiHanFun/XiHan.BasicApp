@@ -220,6 +220,7 @@ public sealed class UserRoleGrantSoDEnforcementTests
             currentTenant.Object,
             new Mock<IPasswordHistoryDomainService>().Object,
             enforcement.Object,
+            new Mock<ITenantQuotaDomainService>().Object,
             NullLogger<UserDomainService>.Instance);
         return new GrantFixture(service, userRoleRepository, tenantUserRepository, roleRepository, enforcement);
     }

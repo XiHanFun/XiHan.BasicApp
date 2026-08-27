@@ -9,6 +9,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -51,6 +52,11 @@ public sealed class TenantQueryService
     private readonly IFieldSecurityService _fieldSecurity;
 
     /// <summary>
+    /// 租户配额领域服务（解析生效上限并统计已用量）
+    /// </summary>
+    private readonly ITenantQuotaDomainService _tenantQuotaDomainService;
+
+    /// <summary>
     /// 超级管理员角色编码（与种子/授权快照/SwitchTenant 约定一致，运行时特判可进入任意租户）
     /// </summary>
     private const string SuperAdminRoleCode = "super_admin";
@@ -62,12 +68,14 @@ public sealed class TenantQueryService
         ITenantUserRepository tenantUserRepository,
         ITenantRepository tenantRepository,
         ICurrentUser currentUser,
-        IFieldSecurityService fieldSecurityService)
+        IFieldSecurityService fieldSecurityService,
+        ITenantQuotaDomainService tenantQuotaDomainService)
     {
         _tenantUserRepository = tenantUserRepository;
         _tenantRepository = tenantRepository;
         _currentUser = currentUser;
         _fieldSecurity = fieldSecurityService;
+        _tenantQuotaDomainService = tenantQuotaDomainService;
     }
 
     /// <summary>
@@ -97,7 +105,9 @@ public sealed class TenantQueryService
         var tenants = await _tenantRepository.GetPagedAsync(request, cancellationToken);
         var now = DateTimeOffset.UtcNow;
 
-        return tenants.Map(tenant => TenantApplicationMapper.ToListItemDto(tenant, now));
+        var page = tenants.Map(tenant => TenantApplicationMapper.ToListItemDto(tenant, now));
+        await FillQuotaUsageAsync(page.Items, cancellationToken);
+        return page;
     }
 
     /// <summary>
@@ -117,7 +127,22 @@ public sealed class TenantQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var tenant = await _tenantRepository.GetByIdAsync(id, cancellationToken);
-        return tenant is null ? null : TenantApplicationMapper.ToDetailDto(tenant, DateTimeOffset.UtcNow);
+        if (tenant is null)
+        {
+            return null;
+        }
+
+        var detail = TenantApplicationMapper.ToDetailDto(tenant, DateTimeOffset.UtcNow);
+        var snapshots = await _tenantQuotaDomainService.GetQuotaSnapshotsAsync([detail.BasicId], cancellationToken);
+        if (snapshots.TryGetValue(detail.BasicId, out var snapshot))
+        {
+            detail.EffectiveUserLimit = snapshot.UserLimit;
+            detail.UsedUserCount = snapshot.UsedUserCount;
+            detail.EffectiveStorageLimit = snapshot.StorageLimit;
+            detail.UsedStorageBytes = snapshot.UsedStorageBytes;
+        }
+
+        return detail;
     }
 
     /// <summary>
@@ -248,5 +273,35 @@ public sealed class TenantQueryService
     {
         request.Conditions.AddSort((SysTenant tenant) => tenant.Sort, SortDirection.Ascending, 0);
         request.Conditions.AddSort((SysTenant tenant) => tenant.CreatedTime, SortDirection.Descending, 1);
+    }
+
+    /// <summary>
+    /// 批量填充租户配额用量
+    /// </summary>
+    /// <remarks>
+    /// 一次分组查询拿回本页全部租户的席位与存储用量，不按行逐个统计，避免 N+1。
+    /// </remarks>
+    private async Task FillQuotaUsageAsync(IList<TenantListItemDto> items, CancellationToken cancellationToken)
+    {
+        if (items.Count == 0)
+        {
+            return;
+        }
+
+        var snapshots = await _tenantQuotaDomainService.GetQuotaSnapshotsAsync(
+            [.. items.Select(item => item.BasicId)], cancellationToken);
+
+        foreach (var item in items)
+        {
+            if (!snapshots.TryGetValue(item.BasicId, out var snapshot))
+            {
+                continue;
+            }
+
+            item.EffectiveUserLimit = snapshot.UserLimit;
+            item.UsedUserCount = snapshot.UsedUserCount;
+            item.EffectiveStorageLimit = snapshot.StorageLimit;
+            item.UsedStorageBytes = snapshot.UsedStorageBytes;
+        }
     }
 }

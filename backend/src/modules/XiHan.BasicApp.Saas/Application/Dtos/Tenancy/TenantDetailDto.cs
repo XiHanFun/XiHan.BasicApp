@@ -82,6 +82,26 @@ public sealed class TenantDetailDto : BasicAppDto
     public long? StorageLimit { get; set; }
 
     /// <summary>
+    /// 生效用户数上限（租户未设值时回落到所属版本套餐，null 表示不限）
+    /// </summary>
+    public int? EffectiveUserLimit { get; set; }
+
+    /// <summary>
+    /// 已占用席位数（不含平台管理员成员）
+    /// </summary>
+    public long UsedUserCount { get; set; }
+
+    /// <summary>
+    /// 生效存储上限(MB)（租户未设值时回落到所属版本套餐，null 表示不限）
+    /// </summary>
+    public long? EffectiveStorageLimit { get; set; }
+
+    /// <summary>
+    /// 已占用存储空间(字节)
+    /// </summary>
+    public long UsedStorageBytes { get; set; }
+
+    /// <summary>
     /// 排序
     /// </summary>
     public int Sort { get; set; }
