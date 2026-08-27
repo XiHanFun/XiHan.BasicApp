@@ -1,11 +1,17 @@
 # 数据库升级脚本
 
-由 `SqlScriptMigrationRunner` 在应用初始化阶段执行，执行台账记入 `sys_migration_history`。
+由 `UpgradeEngine` 在应用初始化阶段执行，执行台账记入 `sys_migration_history`。
 
 ## 约定
 
-- **文件名即版本号**，如 `3.10.0.sql`。高于当前程序版本（`props/version.props`）的脚本会被跳过，
-  因此发布时脚本版本与 `Version` 必须一起抬。
+- **目录名即版本号**：脚本放在 `UpdateScripts/<版本>/` 下，如 `3.10.0/3.10.0.sql`。
+  框架的 `FileSystemUpgradeScriptProvider` 只扫**子目录**（`Directory.GetDirectories`），
+  把 .sql 平铺在本目录根下会一条都收不到——2026-08-27 之前正是这个布局，四个脚本从未执行过。
+  同一版本目录内可以放多个 .sql，按文件名升序执行。
+- **只有版本号高于库中 `db_version` 的脚本会执行**（记在 `sys_version`，随脚本执行推进）。
+  与程序版本 `props/version.props` **无关**——`UpgradeEngine.ExecuteMigrationsAsync` 只比库版本，
+  不比较 AppVersion。新库的 `db_version` 初始为 `0.0.0`，因此会把全部脚本走一遍，
+  **每个脚本都必须在最新结构上也能安全空转**。
 - **标识符一律小写、不加引号。** SqlSugar 建表时未加引号，PostgreSQL 将未加引号的标识符折叠为小写，
   所以库里的实际名是 `sys_oauth_code`、`basic_id`，而不是实体上声明的 `Sys_OAuth_Code`、`Basic_Id`。
   写成 `"Sys_OAuth_Code"` 会因引号带来大小写敏感而报 `42P01 relation does not exist`。
