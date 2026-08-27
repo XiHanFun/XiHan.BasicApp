@@ -1,3 +1,4 @@
+import type { DynamicApiParams } from '../../base'
 import type { ApiId, PageResult } from '../../types'
 import type {
   DictCreateDto,
@@ -16,6 +17,7 @@ import type {
   DictUpdateDto,
 } from './dict.types'
 import {
+  appendDynamicApiParam,
   createDynamicApiClient,
   createReadApi,
 } from '../../base'
@@ -48,11 +50,13 @@ export const dictApi = {
     return dictQueryApi.post<PageResult<DictItemListItemDto>>('DictItemPage', input)
   },
   itemTree(input: DictItemTreeQueryDto) {
-    return dictQueryApi.get<DictItemTreeNodeDto[]>('DictItemTree', {
-      DictId: input.dictId,
-      Limit: input.limit,
-      OnlyEnabled: input.onlyEnabled,
-    })
+    // 与 departmentApi.tree / menuApi.tree 同口径：逐字段 append，空值不入查询串（0 与 false 是有效取值照发）。
+    // 直接拼对象字面量会把 undefined 写进 params，开启接口签名后 query 串形态不一致会影响签名。
+    const params: DynamicApiParams = {}
+    appendDynamicApiParam(params, 'DictId', input.dictId)
+    appendDynamicApiParam(params, 'Limit', input.limit)
+    appendDynamicApiParam(params, 'OnlyEnabled', input.onlyEnabled)
+    return dictQueryApi.get<DictItemTreeNodeDto[]>('DictItemTree', params)
   },
   itemUpdate(input: DictItemUpdateDto) {
     return dictCommandApi.put<DictItemDetailDto, DictItemUpdateDto>('DictItem', input)

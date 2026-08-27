@@ -29,7 +29,7 @@ export function createDynamicApiClient(controllerName: string): DynamicApiClient
     get<TResult>(action: string, params?: DynamicApiParams, config?: AxiosRequestConfig) {
       return requestClient.get<TResult>(buildActionUrl(normalizedControllerName, action), {
         ...config,
-        params,
+        params: mergeDynamicApiParams(config?.params, params),
       })
     },
     post<TResult, TBody = unknown>(action: string, body?: TBody, config?: AxiosRequestConfig) {
@@ -41,7 +41,7 @@ export function createDynamicApiClient(controllerName: string): DynamicApiClient
     delete<TResult = void>(action: string, params?: DynamicApiParams, config?: AxiosRequestConfig) {
       return requestClient.delete<TResult>(buildActionUrl(normalizedControllerName, action), {
         ...config,
-        params,
+        params: mergeDynamicApiParams(config?.params, params),
       })
     },
   }
@@ -84,6 +84,32 @@ export function createCommandApi<TCreate, TUpdate, TDetail>(
 
 function buildActionUrl(controllerName: string, action: string) {
   return `/${controllerName}/${normalizeSegment(action)}`
+}
+
+/**
+ * 合并读取谓词（GET / DELETE）的两条查询参数通道：params 位与 config.params。
+ *
+ * params 位优先（同名键覆盖 config.params），但不再因为 params 位没传就把 config.params 整段清掉——
+ * 此前写作 `{ ...config, params }`，`client.get(action, undefined, { params })` 会静默丢掉查询条件，
+ * 与 post/put 「config 原样透传」的语义相反。两侧都没给时返回 undefined，保持「不带查询串」的原状。
+ */
+function mergeDynamicApiParams(configParams: unknown, params: DynamicApiParams | undefined) {
+  if (params === undefined) {
+    return configParams
+  }
+  // URLSearchParams 等非普通对象不做展开（展开会得到空对象），此时仍以 params 位为准
+  if (!isPlainParams(configParams)) {
+    return params
+  }
+  return { ...configParams, ...params }
+}
+
+function isPlainParams(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  const prototype: unknown = Object.getPrototypeOf(value)
+  return prototype === Object.prototype || prototype === null
 }
 
 // 分页查询已统一改走 POST（整个查询对象作 JSON body 上送），旧的「查询串序列化」函数

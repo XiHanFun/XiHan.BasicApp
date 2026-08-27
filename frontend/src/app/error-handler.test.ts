@@ -2,8 +2,9 @@
  * 全局错误边界（src/app/error-handler.ts）单元测试。
  *
  * 职责边界：验证三条错误通道（Vue 渲染错误 / window 未捕获错误 / 未处理的 Promise 拒绝）
- * 都被接进同一个上报出口，且日志前缀能区分来源。
- * 用例会往 window 上挂监听器，afterEach 逐条摘掉，避免污染同文件后续用例。
+ * 都被接进同一个上报出口，日志前缀能区分来源，以及注册本身对 window 监听器幂等、可卸载。
+ * window 监听器的挂载计数是模块级状态，afterEach 必须调用每次注册返回的卸载函数复位，
+ * 否则会污染同文件后续用例。
  */
 import type { App } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -11,8 +12,10 @@ import { setupGlobalErrorHandler } from './error-handler'
 
 type WindowListener = Parameters<typeof window.addEventListener>[1]
 
-/** 本文件内注册过的 window 监听器，afterEach 全部摘掉 */
+/** 本文件内注册过的 window 监听器（由 addEventListener 探针记录），afterEach 清空 */
 const registered: [string, WindowListener][] = []
+/** 本文件内每次注册返回的卸载函数，afterEach 全部调用，复位模块级挂载计数 */
+const disposers: (() => void)[] = []
 const originalAddEventListener = window.addEventListener.bind(window)
 
 let consoleError: ReturnType<typeof vi.spyOn>
@@ -24,7 +27,7 @@ function createFakeApp() {
 
 function setup() {
   const app = createFakeApp()
-  setupGlobalErrorHandler(app)
+  disposers.push(setupGlobalErrorHandler(app))
   return app
 }
 
@@ -37,6 +40,10 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  for (const dispose of disposers.splice(0)) {
+    dispose()
+  }
+  // 卸载函数已经把监听器摘干净，这里兜底防止用例中途抛错导致残留
   for (const [type, listener] of registered) {
     window.removeEventListener(type, listener)
   }
@@ -64,12 +71,24 @@ describe('注册全局错误边界', () => {
     expect(registered.map(([type]) => type)).toEqual(['error', 'unhandledrejection'])
   })
 
-  it('重复调用会重复注册监听器，同一个错误被上报两次——启动流程必须只调一次', () => {
+  // 回归锚点：修复前每次调用都无条件 addEventListener，重复挂载（微前端多实例 / 热更新重挂）
+  // 会让同一个错误被上报 N 次；现在 window 监听器全局只挂一份。
+  it('重复调用不会重复注册 window 监听器，同一个错误只上报一次', () => {
     setup()
     setup()
     dispatchWindowError({ error: new Error('重复') })
 
-    expect(consoleError).toHaveBeenCalledTimes(2)
+    expect(registered.map(([type]) => type)).toEqual(['error', 'unhandledrejection'])
+    expect(consoleError).toHaveBeenCalledTimes(1)
+  })
+
+  it('每个应用实例各自接管自己的 errorHandler——window 监听器共用不影响 Vue 通道', () => {
+    const first = setup()
+    const second = setup()
+
+    expect(typeof first.config.errorHandler).toBe('function')
+    expect(typeof second.config.errorHandler).toBe('function')
+    expect(first.config.errorHandler).not.toBe(second.config.errorHandler)
   })
 })
 
@@ -168,5 +187,40 @@ describe('监听器的摘除', () => {
     dispatchRejection('已摘除')
 
     expect(consoleError).not.toHaveBeenCalled()
+  })
+
+  // 回归锚点：修复前函数返回 void，装上的监听器没有任何卸载入口。
+  it('注册函数返回卸载入口：调用后监听器被摘掉，Vue 通道也一并交还', () => {
+    const app = createFakeApp()
+    const dispose = setupGlobalErrorHandler(app)
+    dispose()
+
+    dispatchWindowError({ message: '已卸载' })
+    dispatchRejection('已卸载')
+
+    expect(consoleError).not.toHaveBeenCalled()
+    expect(app.config.errorHandler).toBeUndefined()
+  })
+
+  it('卸载函数可重复调用且不误摘其它实例：仍在用的实例继续收到上报', () => {
+    setup()
+    const app = createFakeApp()
+    const dispose = setupGlobalErrorHandler(app)
+    dispose()
+    dispose()
+
+    dispatchWindowError({ message: '仍有实例在用' })
+
+    expect(consoleError).toHaveBeenCalledTimes(1)
+  })
+
+  it('全部实例卸载后重新注册，监听器会重新挂上', () => {
+    const dispose = setupGlobalErrorHandler(createFakeApp())
+    dispose()
+    setup()
+
+    dispatchWindowError({ message: '重新挂载' })
+
+    expect(consoleError).toHaveBeenCalledTimes(1)
   })
 })

@@ -148,9 +148,27 @@ describe('createDynamicApiClient 的参数位置约定', () => {
     expect(call.config?.params).toEqual({ id: '99' })
   })
 
-  it('读取谓词的 params 位优先于 config.params：显式传 undefined 也会把 config 里的查询参数覆盖掉', async () => {
+  // 回归锚点：修复前 get/delete 写作 `{ ...config, params }`，params 位为 undefined 也会把
+  // config.params 整段覆盖成 undefined，查询条件静默丢失（与 post/put 的透传语义相反）。
+  it('读取谓词不传 params 位时，config.params 照常下发——不再被 undefined 覆盖掉', async () => {
     const client = createDynamicApiClient('Server')
     await client.get('ServerInfo', undefined, { params: { IncludeDisk: true } })
+    expect(lastCall().config?.params).toEqual({ IncludeDisk: true })
+
+    await client.delete('ServerCache', undefined, { params: { Scope: 'all' } })
+    expect(lastCall().config?.params).toEqual({ Scope: 'all' })
+  })
+
+  it('两条通道同时给值时按键合并，params 位覆盖同名键', async () => {
+    const client = createDynamicApiClient('Server')
+    await client.get('ServerInfo', { IncludeDisk: false, Limit: 10 }, { params: { IncludeDisk: true, IncludeNetwork: true } })
+
+    expect(lastCall().config?.params).toEqual({ IncludeDisk: false, IncludeNetwork: true, Limit: 10 })
+  })
+
+  it('两条通道都不给时 params 保持 undefined，不凭空拼出一个空查询对象', async () => {
+    const client = createDynamicApiClient('Server')
+    await client.get('ServerInfo')
 
     expect(lastCall().config?.params).toBeUndefined()
   })
