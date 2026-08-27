@@ -33,6 +33,15 @@ public interface IChatQueryService : IApplicationService
     Task<List<ChatMemberItemDto>> GetMembersAsync(long conversationId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取当前作用域内可参与聊天的部门树
+    /// </summary>
+    /// <remarks>
+    /// 不复用通用部门树端点：那条走「读共享」口径，平台态会列出全部租户的部门；
+    /// 本端点按聊天的严格隔离口径收窄部门候选，只列当前作用域内启用的部门。
+    /// </remarks>
+    Task<IReadOnlyList<DepartmentTreeNodeDto>> GetDepartmentTreeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取聊天可选用户（发起单聊/建群/加成员选人；仅需聊天查看权限的轻量端点）
     /// </summary>
     Task<IReadOnlyList<UserSelectItemDto>> GetUserOptionsAsync(UserSelectQueryDto input, CancellationToken cancellationToken = default);
