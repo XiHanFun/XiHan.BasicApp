@@ -9,7 +9,6 @@ using XiHan.BasicApp.Printing.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Printing.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
-using XiHan.BasicApp.Printing.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Domain.Enums;

@@ -3,7 +3,6 @@
 
 using System.ComponentModel.DataAnnotations;
 using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Enums;
 

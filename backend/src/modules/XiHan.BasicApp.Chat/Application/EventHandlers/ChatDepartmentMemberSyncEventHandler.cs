@@ -3,12 +3,9 @@
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Chat.Application.Services;
-using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Chat.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Chat.Domain.Repositories;
-using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.EventBus.Abstractions.Local;
 
 namespace XiHan.BasicApp.Chat.Application.EventHandlers;

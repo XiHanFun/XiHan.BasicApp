@@ -10,12 +10,10 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Chat.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Mappers;
-using XiHan.BasicApp.Chat.Application.Services;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
-using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Chat.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -24,7 +22,6 @@ using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.MultiTenancy.Abstractions;
-
 using XiHan.BasicApp.Chat.Domain.Permissions;
 
 namespace XiHan.BasicApp.Chat.Application.QueryServices;
@@ -268,26 +265,6 @@ public sealed class ChatQueryService
     }
 
     /// <summary>
-    /// 批量带出消息的表情回应（一次查询按消息ID聚合）
-    /// </summary>
-    private async Task<List<ChatMessageItemDto>> AttachReactionsAsync(IReadOnlyList<SysChatMessage> messages, CancellationToken cancellationToken)
-    {
-        if (messages.Count == 0)
-        {
-            return [];
-        }
-
-        var messageIds = messages.Select(message => message.BasicId).ToList();
-        var reactions = await _reactionRepository.GetByMessageIdsAsync(messageIds, cancellationToken);
-        var reactionMap = reactions
-            .GroupBy(reaction => reaction.MessageId)
-            .ToDictionary(group => group.Key, group => group.ToList());
-
-        return [.. messages.Select(message =>
-            ChatApplicationMapper.ToMessageItemDto(message, reactionMap.GetValueOrDefault(message.BasicId)))];
-    }
-
-    /// <summary>
     /// 获取会话成员列表（仅会话成员）
     /// </summary>
     [PermissionAuthorize(ChatPermissionCodes.Read)]
@@ -310,23 +287,6 @@ public sealed class ChatQueryService
     }
 
     /// <summary>
-    /// 解析当前作用域内可参与聊天的用户集合
-    /// </summary>
-    private async Task<IReadOnlyList<long>> ResolveScopedUserIdsAsync(CancellationToken cancellationToken)
-    {
-        if (_currentTenant.Id is not { } scopeId || scopeId == 0)
-        {
-            // 平台作用域：仅平台归属用户
-            var platformUsers = await _userRepository.GetListAsync(user => user.TenantId == 0, cancellationToken);
-            return [.. platformUsers.Select(user => user.BasicId)];
-        }
-
-        // 租户作用域：该租户的成员（含平台归属但已加入该租户的用户）
-        var members = await _tenantUserRepository.GetListAsync(member => member.TenantId == scopeId, cancellationToken);
-        return [.. members.Select(member => member.UserId).Distinct()];
-    }
-
-    /// <summary>
     /// 获取当前作用域内可参与聊天的部门树
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>
@@ -346,22 +306,6 @@ public sealed class ChatQueryService
             cancellationToken);
 
         return BuildDepartmentTree(departments, parentId: null);
-    }
-
-    /// <summary>
-    /// 递归组装部门树
-    /// </summary>
-    private static IReadOnlyList<DepartmentTreeNodeDto> BuildDepartmentTree(IReadOnlyList<SysDepartment> departments, long? parentId)
-    {
-        return [.. departments
-            .Where(department => (department.ParentId ?? 0) == (parentId ?? 0))
-            .OrderBy(department => department.Sort)
-            .Select(department =>
-            {
-                var node = DepartmentApplicationMapper.ToTreeNodeDto(department);
-                node.Children = [.. BuildDepartmentTree(departments, department.BasicId)];
-                return node;
-            })];
     }
 
     /// <summary>
@@ -418,6 +362,59 @@ public sealed class ChatQueryService
 
         var users = await _userRepository.GetPagedAsync(request, cancellationToken);
         return [.. users.Items.Select(UserApplicationMapper.ToSelectItemDto)];
+    }
+
+    /// <summary>
+    /// 递归组装部门树
+    /// </summary>
+    private static IReadOnlyList<DepartmentTreeNodeDto> BuildDepartmentTree(IReadOnlyList<SysDepartment> departments, long? parentId)
+    {
+        return [.. departments
+            .Where(department => (department.ParentId ?? 0) == (parentId ?? 0))
+            .OrderBy(department => department.Sort)
+            .Select(department =>
+            {
+                var node = DepartmentApplicationMapper.ToTreeNodeDto(department);
+                node.Children = [.. BuildDepartmentTree(departments, department.BasicId)];
+                return node;
+            })];
+    }
+
+    /// <summary>
+    /// 批量带出消息的表情回应（一次查询按消息ID聚合）
+    /// </summary>
+    private async Task<List<ChatMessageItemDto>> AttachReactionsAsync(IReadOnlyList<SysChatMessage> messages, CancellationToken cancellationToken)
+    {
+        if (messages.Count == 0)
+        {
+            return [];
+        }
+
+        var messageIds = messages.Select(message => message.BasicId).ToList();
+        var reactions = await _reactionRepository.GetByMessageIdsAsync(messageIds, cancellationToken);
+        var reactionMap = reactions
+            .GroupBy(reaction => reaction.MessageId)
+            .ToDictionary(group => group.Key, group => group.ToList());
+
+        return [.. messages.Select(message =>
+            ChatApplicationMapper.ToMessageItemDto(message, reactionMap.GetValueOrDefault(message.BasicId)))];
+    }
+
+    /// <summary>
+    /// 解析当前作用域内可参与聊天的用户集合
+    /// </summary>
+    private async Task<IReadOnlyList<long>> ResolveScopedUserIdsAsync(CancellationToken cancellationToken)
+    {
+        if (_currentTenant.Id is not { } scopeId || scopeId == 0)
+        {
+            // 平台作用域：仅平台归属用户
+            var platformUsers = await _userRepository.GetListAsync(user => user.TenantId == 0, cancellationToken);
+            return [.. platformUsers.Select(user => user.BasicId)];
+        }
+
+        // 租户作用域：该租户的成员（含平台归属但已加入该租户的用户）
+        var members = await _tenantUserRepository.GetListAsync(member => member.TenantId == scopeId, cancellationToken);
+        return [.. members.Select(member => member.UserId).Distinct()];
     }
 
     private async Task EnsureMemberAsync(long conversationId, CancellationToken cancellationToken)

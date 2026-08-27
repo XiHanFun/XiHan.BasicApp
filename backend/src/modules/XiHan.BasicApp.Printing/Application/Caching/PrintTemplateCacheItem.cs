@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Printing.Domain.Enums;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.MultiTenancy.Abstractions;
 

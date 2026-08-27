@@ -3,9 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Chat.Application.Dtos;
-using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Chat.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Chat.Hubs;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
 using XiHan.Framework.Web.RealTime.Services;

@@ -10,7 +10,6 @@ using XiHan.BasicApp.Printing.Application.Mappers;
 using XiHan.BasicApp.Printing.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Printing.Domain.Enums;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Printing.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
