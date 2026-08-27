@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Printing.Domain.Entities;
-using XiHan.BasicApp.Printing.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Printing.Domain.DomainServices;

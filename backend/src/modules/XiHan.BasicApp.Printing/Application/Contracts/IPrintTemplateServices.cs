@@ -3,7 +3,6 @@
 
 using XiHan.BasicApp.Printing.Application.Dtos;
 using XiHan.BasicApp.Printing.Domain.Enums;
-using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Application.Contracts.Services;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 

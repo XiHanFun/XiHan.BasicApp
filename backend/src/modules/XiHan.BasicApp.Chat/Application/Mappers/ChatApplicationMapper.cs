@@ -2,11 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Chat.Application.Dtos;
-using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Chat.Domain.DomainServices;
-using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Chat.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Chat.Application.Mappers;
 

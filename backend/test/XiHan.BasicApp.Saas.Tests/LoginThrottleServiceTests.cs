@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.Caching.Distributed;
-using Moq;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.Framework.Core.Exceptions;
 

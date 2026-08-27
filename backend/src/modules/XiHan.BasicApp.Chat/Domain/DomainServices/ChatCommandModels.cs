@@ -3,7 +3,6 @@
 
 using System.Text.Json;
 using XiHan.BasicApp.Chat.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Chat.Domain.DomainServices;
 

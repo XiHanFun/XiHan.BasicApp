@@ -3,7 +3,6 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.BasicApp.Printing.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Printing.Domain.Entities;

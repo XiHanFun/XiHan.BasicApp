@@ -7,7 +7,6 @@ using System.Reflection;
 using XiHan.BasicApp.Printing.Domain.DataSources;
 using XiHan.BasicApp.Printing.Domain.DomainServices;
 using XiHan.BasicApp.Printing.Domain.Entities;
-using XiHan.BasicApp.Printing.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Printing.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
