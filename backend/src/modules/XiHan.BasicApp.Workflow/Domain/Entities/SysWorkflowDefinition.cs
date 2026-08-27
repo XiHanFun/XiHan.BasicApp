@@ -18,7 +18,11 @@ namespace XiHan.BasicApp.Workflow.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_Co_Ve", nameof(Code), OrderByType.Asc, nameof(Version), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+// 唯一索引必须以 TenantId 打头：读写两侧都按租户维度（WorkflowStoreMapper 写 TenantId、
+// WorkflowDefinitionRepository 经 SaasRepository 做租户行过滤），唯独约束若是全局的，
+// 租户 B 建同名同版本流程会撞上租户 A 的行——而那一行被租户过滤掉、B 根本看不见，
+// 表现为「编码没被占用却建不出来」。同仓库 SysPrintTemplate 用的就是三段式。
+[SugarIndex("UX_{table}_TeId_Co_Ve", nameof(TenantId), OrderByType.Asc, nameof(Code), OrderByType.Asc, nameof(Version), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 public partial class SysWorkflowDefinition : BasicAppFullAuditedEntity
 {
     /// <summary>

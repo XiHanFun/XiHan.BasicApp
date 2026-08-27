@@ -79,7 +79,12 @@ public partial class SysAiProvider : BasicAppFullAuditedEntity
     /// </summary>
     [Newtonsoft.Json.JsonIgnore]
     [System.Text.Json.Serialization.JsonIgnore]
-    [SugarColumn(ColumnName = "Api_Key", ColumnDescription = "API 密钥（加密）", Length = 500, IsNullable = true)]
+    // 列长按密文而非明文算：Data Protection 密文 = "dp:" + base64(4 字节头 + 16 字节密钥 id +
+    // 16 字节 IV + 明文补齐到 16 的倍数 + 32 字节 HMAC)，约 (明文 + 84) / 3 * 4 + 3。
+    // 原来的 500 只装得下约 289 字符明文，而 JWT 形态的供应商密钥轻易超过它，
+    // 超长时写库被截断（密文截断即永久解不开）或直接报错。放到 2000 可容纳约 1400 字符明文，
+    // 实际上限由领域层校验兜住，这里只保证列不会成为瓶颈。
+    [SugarColumn(ColumnName = "Api_Key", ColumnDescription = "API 密钥（加密）", Length = 2000, IsNullable = true)]
     public virtual string? ApiKey { get; set; }
 
     /// <summary>

@@ -331,7 +331,12 @@ public sealed class AiEntityStructureTests
         var column = typeof(SysAiProvider).GetProperty(nameof(SysAiProvider.ApiKey))!.GetCustomAttribute<SugarColumn>()!;
 
         Assert.True(column.IsNullable, "ApiKey 必须可空：未配置密钥是合法状态。");
-        Assert.Equal(500, column.Length);
+        // 2000 而非原来的 500：密文长度约 (明文 + 84) / 3 * 4 + 3
+        //（"dp:" 前缀 + base64(4 字节头 + 16 字节密钥 id + 16 字节 IV + 明文补齐到 16 的倍数 + 32 字节 HMAC)）。
+        // 500 只装得下约 289 字符明文，JWT 形态的供应商密钥轻易超过它，
+        // 超长时写库被截断——密文一截断就永久解不开，且直到下次调用该供应商才会暴露。
+        // 迁移脚本见 UpdateScripts/4.0.2/4.0.2.sql；明文侧的上限由领域层校验单独兜住。
+        Assert.Equal(2000, column.Length);
         Assert.Equal("Api_Key", column.ColumnName, StringComparer.Ordinal);
     }
 

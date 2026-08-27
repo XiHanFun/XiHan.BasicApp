@@ -40,7 +40,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-[SugarIndex("UX_{table}_TeCo", nameof(TemplateCode), OrderByType.Asc, true)]
+// 补 TenantId 与 IsDeleted，理由同 SysCodeGenDataSource。
+[SugarIndex("UX_{table}_TeId_TeCo", nameof(TenantId), OrderByType.Asc, nameof(TemplateCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeGr", nameof(TemplateGroup), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 public partial class SysCodeGenTemplate : BasicAppFullAuditedEntity
