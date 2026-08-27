@@ -72,31 +72,58 @@ describe('filterRoutesByPermission 过滤口径', () => {
     expect(paths(result)).toEqual(['/secret'])
   })
 
-  it('通配 * 只作用于权限侧：只声明 roles 的路由不靠 * 通过（当前实现下它本就恒通过）', () => {
-    const denied = filterRoutesByPermission(
-      [route('/role-only', { roles: ['admin'] })],
-      ['guest'],
-      [],
-    )
-    expect(paths(denied)).toEqual(['/role-only'])
-  })
-
-  it('仅声明 roles 且用户无该角色时依然放行——当前实现的真实行为（疑似缺陷，已上报）', () => {
+  it('仅声明 roles 且用户无该角色时必须被过滤掉', () => {
+    // 回归锚点：排除条件曾写成「两侧都不通过才排除」，而未声明的那一侧恒为 true，
+    // 于是只写 meta.roles 的路由排除条件恒假、任何用户都拿得到。路由 meta 通常只写一侧，
+    // 等于静态模式（VITE_AUTH_ROUTE_MODE=static）下的路由级过滤整体失效。
     const result = filterRoutesByPermission(
       [route('/role-only', { roles: ['admin'] })],
       ['guest'],
       ['nothing'],
     )
-    expect(paths(result)).toEqual(['/role-only'])
+    expect(paths(result)).toEqual([])
   })
 
-  it('仅声明 permissions 且用户无该权限时依然放行——当前实现的真实行为（疑似缺陷，已上报）', () => {
+  it('仅声明 permissions 且用户无该权限时必须被过滤掉', () => {
     const result = filterRoutesByPermission(
       [route('/perm-only', { permissions: ['sys:view'] })],
       ['guest'],
       ['other'],
     )
-    expect(paths(result)).toEqual(['/perm-only'])
+    expect(paths(result)).toEqual([])
+  })
+
+  it('通配 * 放行任何受限路由，包括只声明 roles 的', () => {
+    // 与 guard.ts 的口径一致：userStore.hasPermission 内部就是 includes(code) || includes('*')，
+    // 所以超管的 * 对角色侧声明的路由同样放行，不能只作用于权限侧。
+    const granted = filterRoutesByPermission(
+      [route('/role-only', { roles: ['admin'] }), route('/perm-only', { permissions: ['sys:view'] })],
+      ['guest'],
+      ['*'],
+    )
+    expect(paths(granted)).toEqual(['/role-only', '/perm-only'])
+  })
+
+  it('角色与权限之间是或：命中任一声明项即放行', () => {
+    const byRole = filterRoutesByPermission(
+      [route('/both', { roles: ['admin'], permissions: ['sys:view'] })],
+      ['admin'],
+      [],
+    )
+    const byPermission = filterRoutesByPermission(
+      [route('/both', { roles: ['admin'], permissions: ['sys:view'] })],
+      [],
+      ['sys:view'],
+    )
+    const neither = filterRoutesByPermission(
+      [route('/both', { roles: ['admin'], permissions: ['sys:view'] })],
+      ['guest'],
+      ['other'],
+    )
+
+    expect(paths(byRole)).toEqual(['/both'])
+    expect(paths(byPermission)).toEqual(['/both'])
+    expect(paths(neither)).toEqual([])
   })
 
   it('roles 为空数组视同未声明，不参与过滤', () => {
