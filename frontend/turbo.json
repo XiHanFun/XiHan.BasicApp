@@ -27,8 +27,16 @@
       "inputs": ["src/**", "vite.config.ts", "package.json"],
       "outputs": []
     },
+    "//#app:test": {
+      "inputs": ["src/**", "packages/**", "vitest.config.ts", "vite.config.ts", "package.json"],
+      "outputs": []
+    },
+    "//#app:test:coverage": {
+      "inputs": ["src/**", "packages/**", "vitest.config.ts", "vite.config.ts", "package.json"],
+      "outputs": ["coverage/**"]
+    },
     "//#app:test:printing": {
-      "inputs": ["src/**", "package.json"],
+      "inputs": ["src/**", "packages/**", "vitest.config.ts", "package.json"],
       "outputs": []
     }
   }
