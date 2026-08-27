@@ -149,10 +149,26 @@ function tRequestError(key: string, fallback: string, params?: Record<string, un
   return translated === `error.${key}` ? fallback : translated
 }
 
+/**
+ * 判断响应体是否仍是未解开的安全信封（`{ alg | iv, data: '<base64 密文>' }`）。
+ *
+ * 错误分支的解密被 try/catch 包住（解密失败不得中断原始错误流程），失败后 response.data
+ * 仍是这份信封，其 data 是一串 base64 密文而**不是**后端业务消息——直接透出会让用户
+ * 看到 'ZmFrZQ==' 这样的乱码而不是「服务暂时不可用」。
+ * 用 alg / iv 认信封：后端统一信封（code/message/data/isSuccess）不会带这两个字段。
+ */
+function isSecureEnvelope(record: Record<string, unknown>): boolean {
+  const hasEnvelopeMarker = typeof record.alg === 'string' || typeof record.iv === 'string'
+  return hasEnvelopeMarker && typeof record.data === 'string'
+}
+
 /** 从响应体提取后端业务错误消息（非二进制响应时优先采用） */
 function extractBackendMessage(data: unknown): string | undefined {
   if (data && typeof data === 'object' && !(data instanceof Blob)) {
     const record = data as Record<string, unknown>
+    if (isSecureEnvelope(record)) {
+      return undefined
+    }
     // 后端错误工厂把具体错误放在 data（message 仅为通用码描述，如「服务器内部错误」），故优先取 data，其次 message
     for (const candidate of [record.data, record.message]) {
       if (typeof candidate === 'string' && candidate.trim()) {
@@ -188,11 +204,51 @@ function resolveRequestErrorMessage(error: unknown): string {
   return tRequestError('request_failed', `请求失败（${status}）`, { status })
 }
 
+/**
+ * 判定信封业务码是否代表成功。
+ *
+ * 本仓库后端的 ApiResponse.Code 走 NumericEnumConverter，序列化恒为 int；但 `~/types` 的
+ * ApiResponse 把 code 声明成 `number | string`，网关或第三方后端把它改写成字符串码是可能的，
+ * 故数字与"数字字符串"都接受。
+ * 不直接用 Number(code)：空串、null、空数组都会被 Number 归零而误判为成功码 0，
+ * 这里只放行真正的数字与非空数字串。
+ */
+function isSuccessEnvelopeCode(code: unknown): boolean {
+  if (typeof code === 'number') {
+    return code === BIZ_CODE.SUCCESS || code === 0
+  }
+  if (typeof code !== 'string' || code.trim() === '') {
+    return false
+  }
+  const numeric = Number(code)
+  return Number.isFinite(numeric) && (numeric === BIZ_CODE.SUCCESS || numeric === 0)
+}
+
+/**
+ * 把非 Error 的拒绝值转成可读文案。
+ *
+ * 适配器或拦截器以普通对象拒绝时，拦截器已经把归一化后的中文文案写进该对象的 message，
+ * 直接 String(err) 会得到 '[object Object]'，把拦截器算好的文案整段丢掉。
+ * 故优先取对象上的字符串 message，取不到才回落 String()。
+ */
+function describeRejection(err: unknown): string {
+  const message = asRecord(err)?.message
+  return typeof message === 'string' && message.trim() ? message : String(err)
+}
+
 export class RequestClient {
   private instance: AxiosInstance
   private apiPrefix: string
   private refreshTokenUrl: string
   private isRefreshing = false
+  /**
+   * 强制登出闸门：一次会话失效只清理并跳转一次。
+   *
+   * 并发 401 且刷新失败时，首个发起刷新的请求与每个被 resolve(null) 唤醒的挂起请求都会
+   * 各自走到 forceLogout，登出钩子（重置 stores、埋点）与路由替换会被放大 N 倍。
+   * 闸门在请求带着令牌出站时复位（见请求拦截器），保证重新登录后的下一轮失效仍能正常登出。
+   */
+  private isLoggingOut = false
   private pendingRequests: Array<(token: string | null) => void> = []
   private readonly securityConfig = resolveApiSecurityRuntimeConfig()
 
@@ -275,6 +331,9 @@ export class RequestClient {
         const token = LocalStorage.get<string>(TOKEN_KEY)
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
+          // 本地又有令牌 = 新会话已建立（重新登录或刷新成功），复位强制登出闸门。
+          // 登出时令牌已被清掉，所以同一轮失效里的并发 401 不会在这里把闸门顶开。
+          this.isLoggingOut = false
         }
 
         // 用户时区（已选优先，否则跟随浏览器）：后端据此将 UTC 时间换算为该时区返回
@@ -355,6 +414,13 @@ export class RequestClient {
           }
         }
 
+        // 统一化错误提示：覆盖 axios 默认英文消息，业务 catch 可直接用 error.message。
+        // 必须先于 updateRequestLog：否则日志记的是 axios 的英文原文，
+        // 排障时按用户描述的中文文案去日志面板里搜将一无所获（状态码另有 statusCode 字段可查）。
+        if (error) {
+          error.message = resolveRequestErrorMessage(error)
+        }
+
         const meta = this.tryExtractMeta(error?.config)
         if (meta) {
           const now = Date.now()
@@ -370,11 +436,6 @@ export class RequestClient {
           })
         }
 
-        // 统一化错误提示：覆盖 axios 默认英文消息，业务 catch 可直接用 error.message
-        if (error) {
-          error.message = resolveRequestErrorMessage(error)
-        }
-
         if (error.response) {
           const { status } = error.response
 
@@ -386,7 +447,9 @@ export class RequestClient {
             return Promise.reject(error)
           }
 
-          if (status === BIZ_CODE.UNAUTHORIZED) {
+          // 这里比的是 HTTP 状态码，必须用 HTTP_STATUS 族（与上面的 HTTP_STATUS.LOCKED 同族）：
+          // BIZ_CODE 是业务码，里面还有 TOKEN_EXPIRED: 4001 这类永远不可能等于 HTTP status 的值
+          if (status === HTTP_STATUS.UNAUTHORIZED) {
             const originalRequest = error.config as InternalAxiosRequestConfig & {
               _retry?: boolean
               _isRefresh?: boolean
@@ -414,6 +477,10 @@ export class RequestClient {
   }
 
   private forceLogout() {
+    if (this.isLoggingOut) {
+      return
+    }
+    this.isLoggingOut = true
     LocalStorage.remove(TOKEN_KEY)
     LocalStorage.remove(REFRESH_TOKEN_KEY)
     this.pendingRequests.forEach(cb => cb(null))
@@ -485,7 +552,7 @@ export class RequestClient {
       return { data, error: null }
     }
     catch (err) {
-      return { data: null, error: err instanceof Error ? err : new Error(String(err)) }
+      return { data: null, error: err instanceof Error ? err : new Error(describeRejection(err)) }
     }
   }
 
@@ -506,7 +573,7 @@ export class RequestClient {
       const hasEnvelope = typeof responseSuccess === 'boolean' || (responseData !== undefined && responseCode !== undefined)
 
       if (hasEnvelope) {
-        if (responseSuccess === true || responseCode === BIZ_CODE.SUCCESS || responseCode === 0) {
+        if (responseSuccess === true || isSuccessEnvelopeCode(responseCode)) {
           return (responseData ?? null) as T
         }
         if (meta) {

@@ -177,13 +177,13 @@ it('flat 模式把归一化后的错误放进 error 字段且 data 为 null', as
   expect(error?.message).toBe('请求参数校验失败')
 })
 
-it('适配器以非 Error 值拒绝时 flat 模式包装出的消息丢失归一化文案', async () => {
-  // 锁定当前真实行为：requestFlat 用 String(err) 兜底包装，
-  // 拦截器算好的中文文案在这条路径上拿不到
+it('适配器以非 Error 值拒绝时 flat 模式仍保住归一化文案', async () => {
+  // 回归锚点：拦截器已把归一化文案写进该对象的 message，
+  // requestFlat 若一律 String(err) 包装会得到 '[object Object]' 并直接弹给用户
   const { data, error } = await failWith(() => ({ status: 'weird' }))
 
   expect(data).toBeNull()
-  expect(error?.message).toBe('[object Object]')
+  expect(error?.message).toBe('网络连接失败，请检查网络后重试')
 })
 
 it('请求层用到的每个状态码在中英文里都有非空文案', () => {

@@ -205,22 +205,24 @@ it('状态码错误把日志更新为 error 并优先记录后端返回的消息
   expect(logs.value[0]).toMatchObject({ status: 'error', statusCode: 500, responseCode: 500, message: '后端记账消息' })
 })
 
-it('状态码错误无后端消息时日志记录 axios 原始消息，而不是归一化后的中文文案', async () => {
-  // 锁定当前真实行为：日志在 error.message 被覆盖之前写入
+it('状态码错误无后端消息时日志记录的是用户看到的中文文案，而不是 axios 英文原文', async () => {
+  // 回归锚点：日志必须在 error.message 归一化之后写入，
+  // 否则排障时按用户描述的中文文案去日志面板里搜将一无所获
   const client = failingClient(config => httpError(500, null, config))
 
   const { error } = await client.getFlat('/Sys/Boom')
 
-  expect(logs.value[0]?.message).toBe('Request failed with status code 500')
-  expect(error?.message).toBe('服务器内部错误')
+  expect(logs.value[0]?.message).toBe('服务器内部错误')
+  expect(logs.value[0]?.message).toBe(error?.message)
+  expect(logs.value[0]?.statusCode).toBe(500)
 })
 
-it('网络错误（无响应）同样写入 error 日志且不带状态码', async () => {
+it('网络错误（无响应）同样写入归一化文案的 error 日志且不带状态码', async () => {
   const client = failingClient(config => new AxiosError('Network Error', 'ERR_NETWORK', config))
 
   await client.getFlat('/Sys/Offline')
 
-  expect(logs.value[0]).toMatchObject({ status: 'error', message: 'Network Error' })
+  expect(logs.value[0]).toMatchObject({ status: 'error', message: '网络连接失败，请检查网络后重试' })
   expect(logs.value[0]?.statusCode).toBeUndefined()
 })
 

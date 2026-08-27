@@ -342,7 +342,10 @@ it('请求体为 null 或 undefined 时按无请求体处理', async () => {
 })
 
 it('表单 FormData 上传被整体跳过，连访问标识与签名头都不会写', async () => {
-  // 锁定当前真实行为：二进制请求体无法序列化签名，整条请求以未签名状态发出
+  // 锁定当前真实行为：二进制请求体无法序列化签名，整条请求以未签名状态发出。
+  // 已上报为缺陷但**不能**只改前端：后端按 UTF-8 读原始请求体算 contentSign，
+  // 且要求「X-Content-Sign 一旦出现就必须与服务端自算值一致」，multipart 边界前端无从复算，
+  // 单方面补签名头只会把未签名上传变成必定 401。改法需前后端同版本约定二进制体的 contentSign 口径。
   const form = new FormData()
   form.append('file', new Blob(['bytes']), 'a.txt')
   const config = makeConfig({ data: form, method: 'POST' })

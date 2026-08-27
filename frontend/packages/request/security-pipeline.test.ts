@@ -103,10 +103,10 @@ it('开关打开时错误响应也先解密，业务错误消息因此能被读�
   expect(error?.message).toBe('库存不足')
 })
 
-it('错误响应解密失败时不中断原始错误流程，但当前会把密文当成错误消息透出', async () => {
+it('错误响应解密失败时不中断原始错误流程，且不把密文当成错误消息透出', async () => {
   // 回归锚点：错误分支里的解密被 try/catch 包住，抛错不得中断原始错误流程；
-  // 同时锁定当前真实行为——解密失败后信封的 data 仍是 base64 密文，
-  // 却被 extractBackendMessage 当作后端业务消息直接展示给用户
+  // 解密失败后 response.data 仍是安全信封，其 data 是 base64 密文而不是后端业务消息，
+  // extractBackendMessage 必须认出信封形态并跳过，让文案回落到状态码兜底
   enableSecurity()
   const client = new RequestClient({
     adapter: ((config: InternalAxiosRequestConfig) => Promise.reject(new AxiosError(
@@ -128,7 +128,32 @@ it('错误响应解密失败时不中断原始错误流程，但当前会把密�
 
   expect(data).toBeNull()
   expect((error as AxiosError).response?.status).toBe(503)
-  expect(error?.message).toBe('ZmFrZQ==')
+  expect(error?.message).toBe('服务暂时不可用')
+})
+
+it('明文错误响应里的 data 仍然优先当作后端业务消息，信封判定不误伤', async () => {
+  // 与上一条配对：跳过的只能是 { alg|iv, data: 密文 } 这种信封形态，
+  // 普通错误体（后端把具体错误写在 data 里）必须照常透出
+  enableSecurity()
+  const client = new RequestClient({
+    adapter: ((config: InternalAxiosRequestConfig) => Promise.reject(new AxiosError(
+      'Request failed with status code 400',
+      AxiosError.ERR_BAD_RESPONSE,
+      config,
+      null,
+      {
+        config,
+        data: { code: 400, message: '通用码描述', data: '库存不足' },
+        headers: new AxiosHeaders(),
+        status: 400,
+        statusText: '',
+      },
+    ))) as unknown as AxiosAdapter,
+  })
+
+  const { error } = await client.getFlat('/Order/Create')
+
+  expect(error?.message).toBe('库存不足')
 })
 
 it('成功响应解密失败时错误向调用方暴露，不返回半解密的响应体', async () => {
