@@ -159,7 +159,8 @@ describe('usePagination 边界翻页', () => {
     expect(paginationList.value).toEqual([1, 2, 3])
   })
 
-  it('源数组缩短后页码不会自动回收，切片变空直到再次调用 setCurrentPage', () => {
+  // 回归锚点（清单条目 15）：源数组缩短后页码必须自动回收，否则「在末页删完记录」会看到空表。
+  it('源数组缩短后页码自动回收到末页，切片不会变空', () => {
     const source = ref(makeList(30))
     const pager = usePagination(source, 10)
 
@@ -169,13 +170,23 @@ describe('usePagination 边界翻页', () => {
     source.value = makeList(5)
 
     expect(pager.totalPages.value).toBe(1)
-    expect(pager.currentPage.value).toBe(3)
-    expect(pager.paginationList.value).toEqual([])
-
-    pager.setCurrentPage(pager.currentPage.value)
-
     expect(pager.currentPage.value).toBe(1)
     expect(pager.paginationList.value).toEqual([1, 2, 3, 4, 5])
+  })
+
+  // 回归锚点（清单条目 15）：回收只发生在读取侧，源数组补回来后仍回到原页码。
+  it('源数组恢复长度后页码回到用户此前选定的页', () => {
+    const source = ref(makeList(30))
+    const pager = usePagination(source, 10)
+
+    pager.setCurrentPage(3)
+    source.value = makeList(5)
+    expect(pager.currentPage.value).toBe(1)
+
+    source.value = makeList(30)
+
+    expect(pager.currentPage.value).toBe(3)
+    expect(pager.paginationList.value).toEqual([21, 22, 23, 24, 25, 26, 27, 28, 29, 30])
   })
 })
 
@@ -188,22 +199,36 @@ describe('usePagination 非法输入', () => {
     expect(paginationList.value).toEqual([])
   })
 
-  it('页长被设成 NaN 后总页数一并变成 NaN，页数保护失效', () => {
+  // 回归锚点（清单条目 42）：NaN 页长会让 totalPages 变 NaN，后续所有边界保护随之失效。
+  it('页长传 NaN 被忽略，页长与总页数保持原值', () => {
     const { pageSize, totalPages, setPageSize } = usePagination(makeList(10))
 
     setPageSize(Number.NaN)
 
-    expect(Number.isNaN(pageSize.value)).toBe(true)
-    expect(Number.isNaN(totalPages.value)).toBe(true)
+    expect(pageSize.value).toBe(10)
+    expect(totalPages.value).toBe(1)
   })
 
-  it('跳转页码传 NaN 时被写进 currentPage，切片退化为空', () => {
+  // 回归锚点（清单条目 42）：分页组件清空输入框常给出 NaN，不能把它写进页码。
+  it('跳转页码传 NaN 被忽略，停在原页且切片不变', () => {
     const { currentPage, setCurrentPage, paginationList } = usePagination(makeList(30))
 
+    setCurrentPage(2)
     setCurrentPage(Number.NaN)
 
-    expect(Number.isNaN(currentPage.value)).toBe(true)
-    expect(paginationList.value).toEqual([])
+    expect(currentPage.value).toBe(2)
+    expect(paginationList.value).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
+  })
+
+  // 回归锚点（清单条目 42）：Infinity 同样不是有效页长/页码。
+  it('页长与页码传 Infinity 一并被忽略', () => {
+    const { currentPage, pageSize, setCurrentPage, setPageSize } = usePagination(makeList(30))
+
+    setPageSize(Number.POSITIVE_INFINITY)
+    setCurrentPage(Number.POSITIVE_INFINITY)
+
+    expect(pageSize.value).toBe(10)
+    expect(currentPage.value).toBe(1)
   })
 
   it('小数页长向上取整算页数，切片按小数下标截断', () => {

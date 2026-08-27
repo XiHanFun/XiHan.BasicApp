@@ -161,8 +161,25 @@ describe('usePermission.hasAnyPermission', () => {
     expect(usePermission().hasAnyPermission(['sys:user:list', 'sys:dept:list'])).toBe(true)
   })
 
-  it('数组含空串项时因空串放行而整组通过', () => {
-    expect(usePermission().hasAnyPermission(['sys:none', ''])).toBe(true)
+  // 回归锚点（清单条目 16）：空串项不得触发「不限制」豁免而整组放行，
+  // 且必须与 hasPermission(同一数组) 得出相同结论。
+  it('数组含空串项时空串被剔除，未登录用户仍被拒绝', () => {
+    expect(usePermission().hasAnyPermission(['sys:none', ''])).toBe(false)
+    expect(usePermission().hasPermission(['sys:none', ''])).toBe(false)
+  })
+
+  // 回归锚点（清单条目 16）：全是空串等价于没有任何候选，按空数组口径拒绝。
+  it('数组全部为空串时判定为 false，不整组放行', () => {
+    useUserStore().setUserInfo(makeUser(['sys:user:list']))
+
+    expect(usePermission().hasAnyPermission(['', ''])).toBe(false)
+  })
+
+  // 回归锚点（清单条目 16）：剔除空串不能误伤同数组里真实命中的权限码。
+  it('空串与有效权限码混排时，有效项命中仍然放行', () => {
+    useUserStore().setUserInfo(makeUser(['sys:user:list']))
+
+    expect(usePermission().hasAnyPermission(['', 'sys:user:list'])).toBe(true)
   })
 
   it('全部未命中才判定为 false', () => {

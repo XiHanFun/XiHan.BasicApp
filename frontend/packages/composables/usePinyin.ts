@@ -57,14 +57,25 @@ export function getPinyinIndex(text: string): PinyinIndex | null {
     let full = ''
     const fullMap: number[] = []
     let initials = ''
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i]!
+    // 按码点遍历（for...of 迭代的是码点）：emoji 等代理对不会被拆成两半各占一位。
+    // i 仍是 UTF-16 码元下标——fullMap 的值直接喂给按码元切段的高亮函数。
+    let i = 0
+    for (const char of text) {
       const syllable = HAN_RE.test(char) ? pinyinFn(char, { toneType: 'none' }).toLowerCase() : char.toLowerCase()
-      initials += syllable[0] ?? ''
+      let isFirst = true
       for (const c of syllable) {
+        // 首字母取整个首码点，而不是半个代理对
+        if (isFirst) {
+          initials += c
+          isFirst = false
+        }
         full += c
-        fullMap.push(i)
+        // 一个码点占几个码元就压几位，保证 fullMap 与 full 逐码元对齐
+        for (let unit = 0; unit < c.length; unit++) {
+          fullMap.push(i)
+        }
       }
+      i += char.length
     }
     index = { full, fullMap, initials }
     cache.set(text, index)

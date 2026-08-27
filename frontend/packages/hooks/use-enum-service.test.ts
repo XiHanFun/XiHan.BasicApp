@@ -136,14 +136,17 @@ describe('useEnumService 整库拉取与缓存', () => {
     expect(definition?.enumName).toBe('EnableStatus')
   })
 
-  it('返回空映射时不算加载成功，下一次仍会重新拉取', async () => {
+  // 回归锚点（清单条目 43）：空映射是合法响应（枚举模块未部署 / 全部隐藏），
+  // 必须照常写缓存；否则一屏 N 个下拉就会打 N 次全量请求。
+  it('返回空映射同样算加载成功，后续 ensure 命中缓存不再发请求', async () => {
     const getBatch = vi.fn<BatchFn>(async () => ({}))
     const { useEnumService } = await bootstrap(getBatch)
 
     await useEnumService().ensureEnum('EnableStatus')
     await useEnumService().ensureEnum('EnableStatus')
+    await useEnumService().ensureBatch(['Other'])
 
-    expect(getBatch).toHaveBeenCalledTimes(2)
+    expect(getBatch).toHaveBeenCalledTimes(1)
   })
 
   it('枚举名为空串时直接返回 null，不触发任何请求', async () => {

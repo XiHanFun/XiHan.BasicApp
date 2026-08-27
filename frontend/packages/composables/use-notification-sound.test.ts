@@ -196,14 +196,17 @@ describe('静默跳过的分支', () => {
     expect(audio).toBeNull()
   })
 
+  // 回归锚点（清单条目 45）：构造失败必须被记住。修复前 catch 只把 context 置回 null，
+  // 而缓存判断是 `if (context)`，于是每条消息都会再 new 一次并再抛一次。
   it('构造 AudioContext 即抛（无音频设备 / 隐私模式）时静默降级，且不反复重试构造', async () => {
     const { playNotificationSound } = await loadModule({ throws: true })
 
     playNotificationSound('notice')
     playNotificationSound('notice')
+    playNotificationSound('notice')
 
     expect(audio).toBeNull()
-    expect(constructCount).toBe(2)
+    expect(constructCount).toBe(1)
   })
 })
 
