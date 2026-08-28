@@ -137,6 +137,7 @@ public sealed class MyOAuthAppAppService
     [UnitOfWork(true)]
     public async Task<MyOAuthAppItemDto> UpdateMyOAuthAppAsync(MyOAuthAppUpdateDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("更新 OAuth 应用");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -210,6 +211,7 @@ public sealed class MyOAuthAppAppService
     [UnitOfWork(true)]
     public async Task<MyOAuthAppItemDto> UpdateMyOAuthAppStatusAsync(MyOAuthAppStatusDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("启停 OAuth 应用");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 

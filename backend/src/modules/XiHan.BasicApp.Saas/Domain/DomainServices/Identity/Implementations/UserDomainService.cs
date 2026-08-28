@@ -1150,8 +1150,10 @@ public sealed class UserDomainService
 
         var user = await _userRepository.GetByIdAsync(command.UserId, cancellationToken)
             ?? throw new InvalidOperationException("用户不存在。");
+        // 既取该用户自己的会话，也取由他发起的模仿会话（后者的 UserId 是被模仿者）
         var sessions = await _userSessionRepository.GetListAsync(
-            session => session.UserId == user.BasicId && session.Status != SessionStatus.Revoked,
+            session => (session.UserId == user.BasicId || session.ImpersonatorUserId == user.BasicId)
+                && session.Status != SessionStatus.Revoked,
             cancellationToken);
 
         if (sessions.Count == 0)

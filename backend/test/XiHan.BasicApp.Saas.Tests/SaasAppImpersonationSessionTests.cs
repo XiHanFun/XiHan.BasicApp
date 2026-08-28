@@ -163,6 +163,71 @@ public sealed class SaasAppImpersonationSessionTests
     }
 
     /// <summary>
+    /// 模仿会话的令牌台账不留刷新令牌。
+    /// </summary>
+    /// <remarks>
+    /// 留了就能在 OAuth 令牌端点用 refresh_token 授权换出一条长效刷新链，
+    /// 绕开 AuthAppService 对模仿会话的刷新拒绝。
+    /// </remarks>
+    [Fact]
+    public async Task IssueImpersonationAsync_ShouldNotStoreRefreshToken()
+    {
+        ArrangeSessionCapture();
+        SysOAuthToken? captured = null;
+        _oauthTokenRepository
+            .Setup(repository => repository.AddAsync(It.IsAny<SysOAuthToken>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SysOAuthToken token, CancellationToken _) =>
+            {
+                captured = token;
+                return token;
+            });
+
+        _ = await CreateDomainService().IssueImpersonationAsync(
+            BuildTarget(),
+            BuildOriginSession(),
+            OperatorUserId,
+            "admin",
+            impersonatorTenantId: null,
+            "sess-impersonation",
+            "jti-1",
+            BuildTokenResult(),
+            reason: null,
+            TimeSpan.FromMinutes(30),
+            BuildClientInfo(),
+            _now);
+
+        Assert.NotNull(captured);
+        Assert.Null(captured.RefreshToken);
+        Assert.Equal(_now.AddMinutes(30), captured.RefreshTokenExpirationTime);
+    }
+
+    /// <summary>
+    /// 令牌身份解析走「忽略有效期」的取声明。
+    /// </summary>
+    /// <remarks>
+    /// 刷新只在令牌过期后才会被调用；若解析按有效期校验，则解析恒为 null，
+    /// 挂在其结果上的模仿拒绝与会话校验会在唯一会触发刷新的场景里一起空转。
+    /// </remarks>
+    [Fact]
+    public void ResolveTokenIdentity_ShouldParseExpiredTokens()
+    {
+        var jwt = new Mock<IJwtTokenService>();
+        jwt.Setup(service => service.GetClaimsFromToken(It.IsAny<string>())).Returns((List<Claim>?)null);
+        jwt.Setup(service => service.GetClaimsIgnoringLifetime(It.IsAny<string>())).Returns(
+        [
+            new Claim(XiHanClaimTypes.UserId, TargetUserId.ToString()),
+            new Claim(XiHanClaimTypes.SessionId, "sess-impersonation"),
+            new Claim(XiHanClaimTypes.ImpersonatorUserId, OperatorUserId.ToString())
+        ]);
+
+        var identity = new AuthTokenIssueService(jwt.Object).ResolveTokenIdentity("expired-token");
+
+        Assert.NotNull(identity);
+        Assert.Equal(OperatorUserId, identity.ImpersonatorUserId);
+        jwt.Verify(service => service.GetClaimsFromToken(It.IsAny<string>()), Times.Never);
+    }
+
+    /// <summary>
     /// 结束模仿把模仿会话整条置为已撤销，并吊销其关联令牌台账。
     /// </summary>
     [Fact]
@@ -242,7 +307,7 @@ public sealed class SaasAppImpersonationSessionTests
     public void ResolveTokenIdentity_ShouldCarryImpersonatorUserId()
     {
         var jwt = new Mock<IJwtTokenService>();
-        jwt.Setup(service => service.GetClaimsFromToken(It.IsAny<string>())).Returns(
+        jwt.Setup(service => service.GetClaimsIgnoringLifetime(It.IsAny<string>())).Returns(
         [
             new Claim(XiHanClaimTypes.UserId, TargetUserId.ToString()),
             new Claim(XiHanClaimTypes.UserName, "target"),

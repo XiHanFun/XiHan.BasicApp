@@ -63,6 +63,15 @@ public sealed partial class AuthAppService
             throw new UserFriendlyException("当前已处于模仿状态，不能再次发起模仿。");
         }
 
+        // 一条原会话同时只挂一条模仿会话：多挂的那些在「结束模仿」时吊销不到，会滞留到过期
+        var activeImpersonations = await _userSessionRepository.GetListAsync(
+            session => session.ImpersonatorSessionId == originSession.UserSessionId && session.Status == SessionStatus.Active,
+            cancellationToken);
+        if (activeImpersonations.Count > 0)
+        {
+            throw new UserFriendlyException("当前已有进行中的模仿会话，请先结束。");
+        }
+
         var lifetime = await ResolveImpersonationLifetimeAsync(cancellationToken);
         var sessionBusinessId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
@@ -142,34 +151,19 @@ public sealed partial class AuthAppService
         if (impersonationSession.ImpersonatorUserId != impersonatorUserId ||
             string.IsNullOrWhiteSpace(impersonationSession.ImpersonatorSessionId))
         {
-            await PublishSecurityAuditAsync(
-                impersonatedTenantId,
-                impersonatedUserId,
-                impersonatedUserName,
-                LoginResult.Failed,
-                "结束模仿被拒绝：令牌声明与会话记录的模仿者不一致");
+            LogImpersonationDenied(
+                "结束模仿被拒绝：令牌声明与会话记录的模仿者不一致",
+                impersonatorUserId,
+                impersonatedUserId);
             throw new UserFriendlyException("模仿状态校验失败，请重新登录。");
         }
 
+        // 全部前置校验先做完再落写：方法带 [UnitOfWork(true)]，中途抛异常会把已写的吊销一并回滚，
+        // 先写后校验会读起来像「模仿态一定结束」而实际什么都没发生。
+        // 校验不过时模仿会话保持原状，由其短过期或一次登出收场。
         var originSession = await _userSessionRepository.GetByUserSessionIdAsync(
             impersonationSession.ImpersonatorSessionId,
             cancellationToken);
-
-        // 无论原会话能否恢复，模仿态都必须在此结束
-        _ = await _loginSessionDomainService.RevokeImpersonationAsync(
-            impersonationSession,
-            ImpersonationRevokeReason,
-            now,
-            cancellationToken);
-        await _cacheInvalidator.InvalidateSessionStateAsync(impersonationSession.UserSessionId, cancellationToken);
-
-        await PublishSecurityAuditAsync(
-            impersonatedTenantId,
-            impersonatedUserId,
-            impersonatedUserName,
-            LoginResult.ImpersonationEnded,
-            $"管理员 {impersonationSession.ImpersonatorUserName ?? impersonatorUserId.ToString()}({impersonatorUserId}) 结束了对本账号的模仿");
-
         if (originSession is null ||
             originSession.UserId != impersonatorUserId ||
             originSession.Status != SessionStatus.Active ||
@@ -195,6 +189,20 @@ public sealed partial class AuthAppService
                 ?? throw new UserFriendlyException("原租户当前不可用，请重新登录。");
             originTenantName = originTenant.TenantName;
         }
+
+        _ = await _loginSessionDomainService.RevokeImpersonationAsync(
+            impersonationSession,
+            ImpersonationRevokeReason,
+            now,
+            cancellationToken);
+        await _cacheInvalidator.InvalidateSessionStateAsync(impersonationSession.UserSessionId, cancellationToken);
+
+        await PublishSecurityAuditAsync(
+            impersonatedTenantId,
+            impersonatedUserId,
+            impersonatedUserName,
+            LoginResult.ImpersonationEnded,
+            $"管理员 {impersonationSession.ImpersonatorUserName ?? impersonatorUserId.ToString()}({impersonatorUserId}) 结束了对本账号的模仿");
 
         using var originScope = _currentTenant.Change(originTenantId, originTenantName);
 
@@ -249,14 +257,32 @@ public sealed partial class AuthAppService
         }
         catch (UserFriendlyException exception)
         {
-            await PublishSecurityAuditAsync(
-                operatorTenantId,
+            LogImpersonationDenied(
+                $"发起模仿登录被拒绝：{exception.Message}",
                 operatorUserId,
-                operatorUserName,
-                LoginResult.Failed,
-                $"发起模仿登录被拒绝：目标用户 {input.TargetUserId}，{exception.Message}");
+                input.TargetUserId);
             throw;
         }
+    }
+
+    /// <summary>
+    /// 记录一次模仿相关的拒绝
+    /// </summary>
+    /// <remarks>
+    /// 走应用日志而不是审计事件：拒绝路径以抛异常收尾，而两个端点都带 [UnitOfWork(true)]，
+    /// 排在工作单元里的领域事件在回滚时整个丢弃，落不到登录日志。
+    /// </remarks>
+    /// <param name="message">拒绝原因</param>
+    /// <param name="operatorUserId">发起人用户标识</param>
+    /// <param name="targetUserId">目标用户标识</param>
+    private void LogImpersonationDenied(string message, long operatorUserId, long targetUserId)
+    {
+        _logger.LogWarning(
+            "模仿登录拒绝：{Message}（发起人 {OperatorUserId}，目标 {TargetUserId}，链路 {TraceId}）",
+            message,
+            operatorUserId,
+            targetUserId,
+            _traceIdProvider.GetCurrentTraceId());
     }
 
     /// <summary>

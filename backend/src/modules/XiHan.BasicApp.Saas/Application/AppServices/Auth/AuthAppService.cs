@@ -498,6 +498,16 @@ public sealed partial class AuthAppService
 
         var now = DateTimeOffset.UtcNow;
         var snapshot = await _authorizationSnapshotQueryService.BuildAsync(userId, now, cancellationToken);
+
+        // 与鉴权入口同口径：模仿态下禁用清单里的码不下发，菜单裁剪也吃过滤后的快照
+        if (_currentUser.IsImpersonating())
+        {
+            snapshot = snapshot with
+            {
+                Permissions = [.. snapshot.Permissions.Where(permission => !ImpersonationDefaults.DeniedPermissionCodes.Contains(permission))]
+            };
+        }
+
         var menus = await _menuRouteQueryService.GetRoutesAsync(snapshot, cancellationToken);
 
         return new PermissionInfoDto
@@ -727,6 +737,9 @@ public sealed partial class AuthAppService
     [UnitOfWork(true)]
     public async Task<LoginTokenDto> SwitchTenantAsync(SwitchTenantRequestDto input, CancellationToken cancellationToken = default)
     {
+        // 模仿会话是一次性短会话，不参与上下文迁移：此处重签的令牌不带 impersonator_* 声明，
+        // 而模仿态的全部判定都读该声明，放行等于一次调用洗掉整套约束
+        _currentUser.EnsureNotImpersonating("切换租户");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -1007,7 +1020,8 @@ public sealed partial class AuthAppService
             throw new InvalidOperationException("刷新令牌参数不完整。");
         }
 
-        var identity = _authTokenIssueService.ResolveTokenIdentity(input.AccessToken);
+        var identity = _authTokenIssueService.ResolveTokenIdentity(input.AccessToken)
+            ?? throw new InvalidOperationException("访问令牌无效，请重新登录。");
 
         // 模仿令牌不参与刷新链：刷新原样复制 claims 且零 DB 访问，允许刷新等于模仿关系永不复审、可无限续期。
         // 模仿会话到期即结束，管理员需重新发起。

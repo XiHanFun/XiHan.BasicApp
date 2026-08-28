@@ -4,6 +4,7 @@ import type { AppDropdownOption, AppMenuOption } from '~/types'
 
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
@@ -222,7 +223,12 @@ async function handleUserAction(key: string) {
     return
   }
   if (key === 'stop-impersonation') {
-    await authStore.stopImpersonation()
+    try {
+      await authStore.stopImpersonation()
+    }
+    catch (error) {
+      toast.error((error as Error)?.message || t('header.impersonation.stop_failed'))
+    }
     return
   }
   if (key === 'lock') {

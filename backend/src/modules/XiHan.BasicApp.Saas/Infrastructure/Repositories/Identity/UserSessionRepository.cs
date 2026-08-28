@@ -71,4 +71,21 @@ public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver
             .Where(session => session.UserId == userId && session.Status == SessionStatus.Active)
             .ExecuteCommandAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 吊销由指定用户发起的全部模仿会话
+    /// </summary>
+    /// <param name="impersonatorUserId">模仿者用户标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>受影响行数</returns>
+    public async Task<int> RevokeByImpersonatorUserIdAsync(long impersonatorUserId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await DbClient.Updateable<SysUserSession>()
+            .SetColumns(session => session.Status == SessionStatus.Revoked)
+            .SetColumns(session => session.RevokedTime == DateTimeOffset.UtcNow)
+            .Where(session => session.ImpersonatorUserId == impersonatorUserId && session.Status == SessionStatus.Active)
+            .ExecuteCommandAsync(cancellationToken);
+    }
 }

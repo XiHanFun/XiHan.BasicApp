@@ -99,6 +99,8 @@ public sealed class UserAppService
         await _userDomainService.DeleteUserAsync(id, cancellationToken);
         // 删除用户后：吊销其全部会话（请求期会话校验随即拒绝）+ 失效授权快照
         await _userSessionRepository.RevokeByUserIdAsync(id, cancellationToken);
+        // 其发起的模仿会话行 UserId 是被模仿者，须按模仿者另吊销一次
+        await _userSessionRepository.RevokeByImpersonatorUserIdAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(id, cancellationToken);
 
         // 实时踢出被删用户的在线连接（仓储级批量吊销不走领域事件，这里直推 ForceLogout）
@@ -157,6 +159,8 @@ public sealed class UserAppService
         if (input.Status == EnableStatus.Disabled)
         {
             await _userSessionRepository.RevokeByUserIdAsync(input.BasicId, cancellationToken);
+            // 其发起的模仿会话行 UserId 是被模仿者，须按模仿者另吊销一次
+            await _userSessionRepository.RevokeByImpersonatorUserIdAsync(input.BasicId, cancellationToken);
         }
 
         await _cacheInvalidator.InvalidateAuthorizationAsync(input.BasicId, cancellationToken);

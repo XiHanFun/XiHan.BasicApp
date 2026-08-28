@@ -44,6 +44,7 @@ using XiHan.Framework.Upgrade.Abstractions;
 using XiHan.Framework.Utils.Collections;
 using XiHan.Framework.Web.Api.Security.OpenApi;
 using XiHan.Framework.Web.Api.Session;
+using XiHan.Framework.Web.Core.Session;
 
 namespace XiHan.BasicApp.Saas.Extensions;
 

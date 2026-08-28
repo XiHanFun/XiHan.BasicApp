@@ -75,7 +75,8 @@ public sealed class AuthTokenIssueService
 
         try
         {
-            var claims = _jwtTokenService.GetClaimsFromToken(accessToken.Trim());
+            // 刷新场景下令牌必然已过期，必须用忽略有效期的解析，否则解析恒为 null、后续判定全部空转
+            var claims = _jwtTokenService.GetClaimsIgnoringLifetime(accessToken.Trim());
             if (claims is null || claims.Count == 0)
             {
                 return null;

@@ -117,6 +117,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task<ProfileApiCredentialDto> UpdateApiCredentialStatusAsync(ProfileApiCredentialStatusDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("启停接口凭证");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
