@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Saas.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
@@ -44,6 +45,8 @@ public sealed class PermissionDelegationAppService
     /// </summary>
     private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
 
+    private readonly IImpersonationPolicyService _impersonationPolicyService;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -51,12 +54,14 @@ public sealed class PermissionDelegationAppService
         IPermissionDelegationDomainService permissionDelegationDomainService,
         IPermissionDelegationQueryService permissionDelegationQueryService,
         ISaasCacheInvalidator cacheInvalidator,
-        IAuthorizationChangeNotifier authorizationChangeNotifier)
+        IAuthorizationChangeNotifier authorizationChangeNotifier,
+        IImpersonationPolicyService impersonationPolicyService)
     {
         _permissionDelegationDomainService = permissionDelegationDomainService;
         _permissionDelegationQueryService = permissionDelegationQueryService;
         _cacheInvalidator = cacheInvalidator;
         _authorizationChangeNotifier = authorizationChangeNotifier;
+        _impersonationPolicyService = impersonationPolicyService;
     }
 
     /// <summary>
@@ -83,6 +88,8 @@ public sealed class PermissionDelegationAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync(input.PermissionId is > 0 ? [input.PermissionId.Value] : [], cancellationToken);
 
         var result = await _permissionDelegationDomainService.CreatePermissionDelegationAsync(PermissionDelegationApplicationMapper.ToCreateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
@@ -115,6 +122,8 @@ public sealed class PermissionDelegationAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync(input.PermissionId is > 0 ? [input.PermissionId.Value] : [], cancellationToken);
 
         var result = await _permissionDelegationDomainService.UpdatePermissionDelegationAsync(PermissionDelegationApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);

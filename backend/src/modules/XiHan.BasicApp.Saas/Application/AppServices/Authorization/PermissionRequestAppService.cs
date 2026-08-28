@@ -1,6 +1,8 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.Framework.Core.Exceptions;
+using XiHan.BasicApp.Saas.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
@@ -50,6 +52,10 @@ public sealed class PermissionRequestAppService
     /// </summary>
     private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
 
+    private readonly IImpersonationPolicyService _impersonationPolicyService;
+
+    private readonly ISuperAdminProtector _superAdminProtector;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -58,13 +64,17 @@ public sealed class PermissionRequestAppService
         IPermissionRequestQueryService permissionRequestQueryService,
         ICurrentUser currentUser,
         ISaasCacheInvalidator cacheInvalidator,
-        IAuthorizationChangeNotifier authorizationChangeNotifier)
+        IAuthorizationChangeNotifier authorizationChangeNotifier,
+        IImpersonationPolicyService impersonationPolicyService,
+        ISuperAdminProtector superAdminProtector)
     {
         _permissionRequestDomainService = permissionRequestDomainService;
         _permissionRequestQueryService = permissionRequestQueryService;
         _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
         _authorizationChangeNotifier = authorizationChangeNotifier;
+        _impersonationPolicyService = impersonationPolicyService;
+        _superAdminProtector = superAdminProtector;
     }
 
     #region PermissionRequest
@@ -139,6 +149,7 @@ public sealed class PermissionRequestAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await EnsureApprovableAsync(input.BasicId, cancellationToken);
         var result = await _permissionRequestDomainService.UpdatePermissionRequestStatusAsync(
             PermissionRequestApplicationMapper.ToStatusCommand(input, GetCurrentUserIdOrThrow()),
             cancellationToken);
@@ -160,6 +171,7 @@ public sealed class PermissionRequestAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await EnsureApprovableAsync(input.BasicId, cancellationToken);
         var result = await _permissionRequestDomainService.ApprovePermissionRequestAsync(
             PermissionRequestApplicationMapper.ToApprovalCommand(input, GetCurrentUserIdOrThrow()),
             cancellationToken);
@@ -232,4 +244,35 @@ public sealed class PermissionRequestAppService
     }
 
     #endregion PermissionRequest
+
+    /// <summary>
+    /// 校验当前用户可以审批该申请：不得审批自己提交的，且被授出的权限/角色须过与直授同一道准入
+    /// </summary>
+    /// <remarks>
+    /// 审批通过会自动直授权限或分配角色，是一条不经 RoleAppService / UserPermissionAppService 的授权路径；
+    /// 缺了这道校验，持有申请与审批两个权限码的人可以给自己授出任意权限码。
+    /// </remarks>
+    /// <param name="requestId">申请主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    private async Task EnsureApprovableAsync(long requestId, CancellationToken cancellationToken)
+    {
+        var request = await _permissionRequestQueryService.GetPermissionRequestDetailAsync(requestId, cancellationToken)
+            ?? throw new UserFriendlyException("权限申请不存在。");
+
+        if (request.RequestUserId == GetCurrentUserIdOrThrow())
+        {
+            throw new UserFriendlyException("不能审批自己提交的权限申请。");
+        }
+
+        if (request.PermissionId is > 0)
+        {
+            await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync([request.PermissionId.Value], cancellationToken);
+        }
+
+        if (request.RoleId is > 0)
+        {
+            await _superAdminProtector.EnsureCanAssignRoleAsync(request.RoleId.Value, cancellationToken);
+        }
+    }
+
 }

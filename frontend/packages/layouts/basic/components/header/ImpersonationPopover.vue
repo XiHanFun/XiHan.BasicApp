@@ -37,6 +37,8 @@ const candidates = ref<ImpersonationCandidate[]>([])
 const errorMessage = ref('')
 
 let searchTimer: ReturnType<typeof setTimeout> | null = null
+// 候选查询按最新一笔收敛：慢响应回来时不覆盖新结果
+let requestSeq = 0
 
 /** 展示名：昵称 → 真名 → 用户名 */
 function displayName(candidate: ImpersonationCandidate) {
@@ -44,19 +46,28 @@ function displayName(candidate: ImpersonationCandidate) {
 }
 
 async function loadCandidates() {
+  const seq = ++requestSeq
   loading.value = true
   errorMessage.value = ''
   try {
     const items = await authStore.impersonationCandidates(keyword.value.trim() || undefined)
+    if (seq !== requestSeq) {
+      return
+    }
     // 自己不出现在候选里：服务端也会拒，先在这里省掉一次无效往返
     candidates.value = items.filter(item => item.basicId !== userStore.userInfo?.basicId)
   }
   catch (error) {
+    if (seq !== requestSeq) {
+      return
+    }
     candidates.value = []
     errorMessage.value = (error as Error)?.message || t('header.impersonation.load_failed')
   }
   finally {
-    loading.value = false
+    if (seq === requestSeq) {
+      loading.value = false
+    }
   }
 }
 
@@ -87,6 +98,11 @@ watch(showPopover, (open) => {
   if (open) {
     keyword.value = ''
     reason.value = ''
+    // 上一行置空 keyword 会触发下面那个 watch 排一次防抖查，这里撤掉它，只留本次直查
+    if (searchTimer) {
+      clearTimeout(searchTimer)
+      searchTimer = null
+    }
     void loadCandidates()
   }
 })

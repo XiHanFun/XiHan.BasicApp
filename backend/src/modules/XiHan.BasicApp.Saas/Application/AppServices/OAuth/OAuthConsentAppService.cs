@@ -43,6 +43,7 @@ public sealed class OAuthConsentAppService
     [HttpPost]
     public async Task<OAuthConsentPreviewDto> ResolveAuthorizationAsync(OAuthAuthorizeRequestDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("授权第三方应用");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -69,6 +70,7 @@ public sealed class OAuthConsentAppService
     [UnitOfWork(true)]
     public async Task<OAuthConsentResultDto> AuthorizeAsync(OAuthAuthorizeRequestDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("授权第三方应用");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 

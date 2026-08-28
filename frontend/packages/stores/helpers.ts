@@ -17,6 +17,8 @@ const registry = new Map<string, { value: unknown }>()
 const defaults = new Map<string, unknown>()
 /** 后端回写开关：仅登录并完成水合后开启，避免登录页 / 离线时产生无谓的失败请求 */
 let backendSyncEnabled = false
+/** 本次会话由身份切换而来（切租户 / 模仿登录），水合时不拿本地偏好播种 */
+let identitySwitched = false
 /** 一次会话仅水合一次（登录或刷新后），退出登录时重置 */
 let hydrated = false
 let syncTimer: ReturnType<typeof setTimeout> | null = null
@@ -340,8 +342,9 @@ export async function hydratePreferencesFromBackend(options?: { showIsland?: boo
         }
       })
     }
-    else {
-      // 后端无偏好记录：登录后以本地当前偏好播种
+    else if (!identitySwitched) {
+      // 后端无偏好记录：登录后以本地当前偏好播种。
+      // 身份切换（切租户 / 模仿登录）而来的会话不播种：本地那份属于上一身份，播下去等于替新身份做主
       needSeed = true
     }
     task?.success()
@@ -418,6 +421,13 @@ export async function applyRemotePreferenceSnapshot(settingValue?: null | string
 }
 
 /** 退出登录：停止后端回写、清空待发请求，允许下次登录重新水合 */
+/**
+ * 标记本次会话由身份切换而来，随后的水合不再以本地偏好播种新身份的账号。
+ */
+export function markPreferenceIdentitySwitched(): void {
+  identitySwitched = true
+}
+
 export function resetPreferenceBackendSync(): void {
   backendSyncEnabled = false
   hydrated = false

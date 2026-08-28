@@ -331,6 +331,13 @@ public sealed class OAuthServerService : IOAuthServerService
             return TokenError(400, "invalid_grant", "刷新令牌与客户端不匹配。");
         }
 
+        // 会话型令牌（Web 登录/模仿签发，带 SessionId）只由 /api/Auth/RefreshToken 续期：
+        // 那条路径才校验会话有效性与模仿态，从这里换会绕开两者
+        if (stored.SessionId is > 0)
+        {
+            return TokenError(400, "invalid_grant", "刷新令牌无效。");
+        }
+
         // 已撤销的刷新令牌被再次使用：视为令牌被窃取/重放，吊销整个令牌族
         if (stored.IsRevoked)
         {

@@ -116,9 +116,13 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
             throw new UserFriendlyException("目标用户已被禁用，无法模仿。");
         }
 
-        if (await _superAdminProtector.IsProtectedUserAsync(target.BasicId, cancellationToken))
+        // 「是不是超管」必须是全局事实：租户上下文下的读过滤器会挡掉租户戳不同的授权行
+        using (_currentTenant.Change(null))
         {
-            throw new UserFriendlyException("不能模仿超级管理员。");
+            if (await _superAdminProtector.IsProtectedUserAsync(target.BasicId, cancellationToken))
+            {
+                throw new UserFriendlyException("不能模仿超级管理员。");
+            }
         }
 
         var operatorSnapshot = await _authorizationSnapshotQueryService.BuildAsync(operatorUserId, now, cancellationToken);
@@ -263,14 +267,20 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
             return operatorTenantId;
         }
 
-        // 平台运维态发起：按目标用户自己登录时的落点解析，使模仿态与其真实登录体验一致
+        // 平台运维态发起：按目标用户自己登录时的落点解析，使模仿态与其真实登录体验一致。
+        // 解析不出唯一落点时 fail-closed，不能兜底成平台态——那会跳过整条成员有效性校验
         if (target.TenantId == 0)
         {
             return null;
         }
 
         var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(target.BasicId, now, cancellationToken);
-        return memberships.Count == 1 ? memberships[0].TenantId : null;
+        return memberships.Count switch
+        {
+            1 => memberships[0].TenantId,
+            0 => throw new UserFriendlyException("目标用户不是任何租户的有效成员，无法模仿。"),
+            _ => throw new UserFriendlyException("目标用户归属多个租户，请指定要进入的租户。")
+        };
     }
 
     /// <summary>

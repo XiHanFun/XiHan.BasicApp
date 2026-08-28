@@ -22,7 +22,7 @@ import { collectRouteNames, CORE_ROUTE_NAMES } from '~/router/routes/core'
 import { useAccessStore } from './access'
 import { useAppStore } from './app'
 import { useAppContext } from './app-context'
-import { hydratePreferencesFromBackend, resetPreferenceBackendSync } from './helpers'
+import { hydratePreferencesFromBackend, markPreferenceIdentitySwitched, resetPreferenceBackendSync } from './helpers'
 import { useTabbarStore } from './tabbar'
 import { useUserStore } from './user'
 
@@ -184,10 +184,14 @@ export const useAuthStore = defineStore('auth', () => {
   function applySwitchedIdentity(token: LoginToken) {
     accessStore.setAccessToken(token.accessToken)
     accessStore.setRefreshToken(token.refreshToken)
+    userStore.$reset()
     tabbarStore.closeAll()
     sessionStorage.removeItem(TABS_LIST_KEY)
     localStorage.removeItem(TABS_LIST_KEY)
     resetPreferenceBackendSync()
+    // 新身份的偏好由后端水合，本地这份属于上一身份：标记后让水合阶段不拿它当种子回写进新账号
+    markPreferenceIdentitySwitched()
+    clearLockState()
     void destroyAllSignalRConnections()
     window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
   }

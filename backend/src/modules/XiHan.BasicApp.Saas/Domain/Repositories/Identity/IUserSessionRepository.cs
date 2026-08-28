@@ -29,4 +29,16 @@ public interface IUserSessionRepository : ISaasRepository<SysUserSession>
     /// 吊销用户所有会话
     /// </summary>
     Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 吊销由指定用户发起的全部模仿会话
+    /// </summary>
+    /// <remarks>
+    /// 模仿会话行的 <c>UserId</c> 是被模仿者，<see cref="RevokeByUserIdAsync"/> 打不到它们；
+    /// 停用/删除/踢下线发起人时须另外调用本方法，否则模仿会话在剩余寿命内继续有效。
+    /// </remarks>
+    /// <param name="impersonatorUserId">模仿者用户标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>受影响行数</returns>
+    Task<int> RevokeByImpersonatorUserIdAsync(long impersonatorUserId, CancellationToken cancellationToken = default);
 }

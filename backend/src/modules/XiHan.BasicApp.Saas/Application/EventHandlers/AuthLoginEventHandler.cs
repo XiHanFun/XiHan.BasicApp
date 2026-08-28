@@ -231,8 +231,10 @@ public sealed class AuthLoginEventHandler
             var db = _clientResolver.GetCurrentClient();
 
             var otherActiveCount = await db.Queryable<SysUserSession>()
+                // 过期会话仍留在 Active（无扫描任务把它们置 Expired），不排掉会把过期会话误报成「另一台设备在线」
                 .Where(session => session.UserId == eventData.UserId
                     && session.Status == SessionStatus.Active
+                    && (session.ExpirationTime == null || session.ExpirationTime > DateTimeOffset.UtcNow)
                     && session.BasicId != eventData.SessionRecordId)
                 .CountAsync();
             if (otherActiveCount <= 0)

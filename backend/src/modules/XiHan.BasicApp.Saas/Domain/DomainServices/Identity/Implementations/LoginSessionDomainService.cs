@@ -325,7 +325,8 @@ public sealed class LoginSessionDomainService
             SessionId = session.BasicId,
             AccessTokenJti = accessTokenJti,
             AccessToken = null,
-            RefreshToken = tokenResult.RefreshToken,
+            // 模仿令牌不许刷新，台账也不留刷新令牌：留了就能在 OAuth 令牌端点用 refresh_token 授权换出长效链
+            RefreshToken = null,
             TokenType = tokenResult.TokenType,
             ClientId = SaasOAuthClientIds.Web,
             UserId = target.BasicId,

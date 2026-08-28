@@ -655,6 +655,9 @@ describe('模仿登录', () => {
     expect(useAccessStore().accessToken).toBe('imp-1')
     expect(useAccessStore().refreshToken).toBe('imp-r1')
     expect(tabbar.tabs.some(item => item.key === '/known/a')).toBe(false)
+    // 上一身份的用户信息必须清掉：userInfo 从 localStorage 初始化，不清会带着旧身份进新会话
+    expect(useUserStore().userInfo).toBeNull()
+    expect(localStorage.getItem(USER_INFO_KEY)).toBeNull()
     expect(destroyAllSignalRConnections).toHaveBeenCalled()
     expect(location.href).not.toBe('')
   })
