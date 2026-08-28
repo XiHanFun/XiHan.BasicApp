@@ -62,6 +62,9 @@ const emailLoginApi = vi.fn()
 const logoutApi = vi.fn<() => Promise<void>>()
 const getUserInfoApi = vi.fn<() => Promise<UserInfo>>()
 const getPermissionsApi = vi.fn<() => Promise<PermissionInfo>>()
+const impersonationCandidates = vi.fn()
+const impersonationStart = vi.fn()
+const impersonationStop = vi.fn()
 const userSettingGet = vi.fn()
 const userSettingSave = vi.fn()
 
@@ -114,6 +117,11 @@ function registerContext(options?: {
       getUserInfoApi,
       getPermissionsApi,
       userSettingApi: { get: userSettingGet, save: userSettingSave },
+      impersonationApi: {
+        candidates: impersonationCandidates,
+        start: impersonationStart,
+        stop: impersonationStop,
+      },
     } as unknown as AppContextApis,
   })
 }
@@ -127,6 +135,9 @@ beforeEach(() => {
   logoutApi.mockResolvedValue(undefined)
   getUserInfoApi.mockResolvedValue(user())
   getPermissionsApi.mockResolvedValue(permissions())
+  impersonationCandidates.mockResolvedValue([])
+  impersonationStart.mockResolvedValue(token())
+  impersonationStop.mockResolvedValue(token())
   userSettingGet.mockResolvedValue({ scene: 0, settingKey: 'global', settingValue: '{}' })
   userSettingSave.mockResolvedValue({ scene: 0, settingKey: 'global' })
   registerContext()
@@ -627,5 +638,82 @@ describe('登出清场', () => {
     await useAuthStore().logout()
 
     expect(fakeLocation.href).toContain(LOGIN_PATH)
+  })
+})
+
+describe('模仿登录', () => {
+  it('发起模仿：换上新令牌、清掉上一身份的标签页与偏好回写通道，并整页重载', async () => {
+    const location = stubLocation()
+    impersonationStart.mockResolvedValue(token({ accessToken: 'imp-1', refreshToken: 'imp-r1' }))
+    const tabbar = useTabbarStore()
+    tabbar.ensureTab({ key: '/known/a', name: 'A', path: '/known/a', title: 'A', closable: true } as never)
+    const auth = useAuthStore()
+
+    await auth.startImpersonation({ targetUserId: 'u-2', reason: '排查导出失败' })
+
+    expect(impersonationStart).toHaveBeenCalledWith({ targetUserId: 'u-2', reason: '排查导出失败' })
+    expect(useAccessStore().accessToken).toBe('imp-1')
+    expect(useAccessStore().refreshToken).toBe('imp-r1')
+    expect(tabbar.tabs.some(item => item.key === '/known/a')).toBe(false)
+    expect(destroyAllSignalRConnections).toHaveBeenCalled()
+    expect(location.href).not.toBe('')
+  })
+
+  it('结束模仿：同样换令牌并整页重载', async () => {
+    const location = stubLocation()
+    impersonationStop.mockResolvedValue(token({ accessToken: 'back-1', refreshToken: 'back-r1' }))
+    const auth = useAuthStore()
+
+    await auth.stopImpersonation()
+
+    expect(impersonationStop).toHaveBeenCalled()
+    expect(useAccessStore().accessToken).toBe('back-1')
+    expect(location.href).not.toBe('')
+  })
+
+  it('发起失败时不动令牌，并复位 loading 供重试', async () => {
+    impersonationStart.mockRejectedValue(new Error('无权模仿'))
+    const auth = useAuthStore()
+
+    await expect(auth.startImpersonation({ targetUserId: 'u-2' })).rejects.toThrow('无权模仿')
+
+    expect(useAccessStore().accessToken).toBeNull()
+    expect(auth.impersonationLoading).toBe(false)
+  })
+
+  it('结束失败时不动令牌，并复位 loading 供重试', async () => {
+    impersonationStop.mockRejectedValue(new Error('原会话已失效'))
+    const auth = useAuthStore()
+
+    await expect(auth.stopImpersonation()).rejects.toThrow('原会话已失效')
+
+    expect(useAccessStore().accessToken).toBeNull()
+    expect(auth.impersonationLoading).toBe(false)
+  })
+
+  it('进行中重复点击不会再发一次请求', async () => {
+    stubLocation()
+    let resolveStart: ((value: unknown) => void) | undefined
+    impersonationStart.mockImplementation(() => new Promise((resolve) => {
+      resolveStart = resolve
+    }))
+    const auth = useAuthStore()
+
+    const first = auth.startImpersonation({ targetUserId: 'u-2' })
+    await auth.startImpersonation({ targetUserId: 'u-3' })
+
+    expect(impersonationStart).toHaveBeenCalledTimes(1)
+    resolveStart?.(token())
+    await first
+  })
+
+  it('候选查询透传关键词', async () => {
+    impersonationCandidates.mockResolvedValue([{ basicId: 'u-2', userName: 'bob' }])
+    const auth = useAuthStore()
+
+    const items = await auth.impersonationCandidates('bo')
+
+    expect(impersonationCandidates).toHaveBeenCalledWith('bo')
+    expect(items).toHaveLength(1)
   })
 })

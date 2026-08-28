@@ -19,6 +19,33 @@ export interface UserInfo {
   canAccessPlatform?: boolean
   roles: string[]
   permissions: string[]
+  /** 是否可发起模仿登录（服务端按实时权限判定后下发） */
+  canImpersonate?: boolean
+  /** 是否处于模仿态（当前身份由他人以模仿方式登录得到） */
+  isImpersonating?: boolean
+  /** 模仿者用户主键 */
+  impersonatorUserId?: null | string
+  /** 模仿者用户名 */
+  impersonatorUserName?: null | string
+}
+
+/** 发起模仿登录参数 */
+export interface StartImpersonationParams {
+  /** 目标用户主键 */
+  targetUserId: string
+  /** 目标租户主键；为空时沿用发起人当前上下文 */
+  tenantId?: null | string
+  /** 模仿事由（落审计） */
+  reason?: null | string
+}
+
+/** 模仿登录的候选目标 */
+export interface ImpersonationCandidate {
+  basicId: string
+  userName: string
+  nickName?: null | string
+  realName?: null | string
+  avatar?: null | string
 }
 
 /** 切换租户 / 进入平台运维态参数（切换复用当前登录会话，无需设备标识） */

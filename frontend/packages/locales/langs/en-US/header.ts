@@ -4,6 +4,20 @@ export default {
     lock: 'Lock Screen',
     logout: 'Sign Out',
   },
+  impersonation: {
+    entry: 'Impersonate',
+    title: 'Sign in as another user',
+    hint: 'For troubleshooting issues reported by that user. Actions are audited and sensitive operations are blocked.',
+    search_placeholder: 'Search by username, nickname or name',
+    reason_placeholder: 'Reason (optional, recorded in the audit trail)',
+    empty_title: 'No user available',
+    empty_description: 'Try another keyword, or check whether you administer this tenant',
+    load_failed: 'Failed to load candidates',
+    start_failed: 'Failed to start impersonation',
+    stop: 'Stop impersonating',
+    stop_failed: 'Failed to stop impersonation',
+    banner: 'Acting as "{target}" — started by {operator}',
+  },
   favorites: {
     title: 'Favorites',
     /** 角标的读屏文案：按钮说这是什么，角标说有几个 */

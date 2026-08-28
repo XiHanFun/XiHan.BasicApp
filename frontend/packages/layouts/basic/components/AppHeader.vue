@@ -172,6 +172,13 @@ const userOptions = computed<AppDropdownOption[]>(() => [
         icon: () => h(Icon, { icon: 'lucide:building-2' }),
       }]
     : []),
+  ...(userStore.userInfo?.isImpersonating
+    ? [{
+        label: t('header.impersonation.stop'),
+        key: 'stop-impersonation',
+        icon: () => h(Icon, { icon: 'lucide:user-round-x' }),
+      }]
+    : []),
   ...(appStore.widgetLockScreen
     ? [
         {
@@ -212,6 +219,10 @@ async function handleUserAction(key: string) {
   }
   if (key === 'control-center' && appContext.shellRoutes.controlCenter) {
     router.push(appContext.shellRoutes.controlCenter)
+    return
+  }
+  if (key === 'stop-impersonation') {
+    await authStore.stopImpersonation()
     return
   }
   if (key === 'lock') {

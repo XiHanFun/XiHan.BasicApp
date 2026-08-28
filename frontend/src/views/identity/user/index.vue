@@ -36,12 +36,15 @@ import { GENDER_OPTIONS, STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XPermissionGrantPanel, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
+import { useAuthStore, useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 import UserAvatarCell from './UserAvatarCell.vue'
 
 defineOptions({ name: 'SystemUserPage' })
 
 const { t } = useI18n()
+const authStore = useAuthStore()
+const userStore = useUserStore()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -492,6 +495,13 @@ const schema = computed<PageSchema>(() => ({
       icon: 'lucide:shield-off',
       visible: row => (row as unknown as UserListItemDto).twoFactorEnabled,
     },
+    {
+      key: 'impersonate',
+      title: t('identity.user.action_impersonate'),
+      scope: 'row',
+      icon: 'lucide:user-round-cog',
+      visible: row => canImpersonate((row as unknown as UserListItemDto)),
+    },
     { key: 'logout', title: t('identity.user.action_logout'), scope: 'row', icon: 'lucide:log-out' },
     {
       key: 'delete',
@@ -532,6 +542,10 @@ function onAction(payload: SchemaActionPayload) {
     case 'resetOtp':
       if (row)
         resetOtp(row)
+      break
+    case 'impersonate':
+      if (row)
+        impersonate(row)
       break
     case 'logout':
       if (row)
@@ -789,6 +803,31 @@ function displayName(row: UserListItemDto): string {
   return row.nickName || row.userName
 }
 
+/** 行操作是否出现：服务端下发的能力位为真、目标已启用、且不是自己 */
+function canImpersonate(row: UserListItemDto) {
+  return userStore.userInfo?.canImpersonate === true
+    && row.status === EnableStatus.Enabled
+    && String(row.basicId) !== userStore.userInfo?.basicId
+}
+
+function impersonate(row: UserListItemDto) {
+  void dialog.confirm({
+    badge: 'warning',
+    tone: 'warning',
+    title: t('identity.user.impersonate_title'),
+    content: t('identity.user.impersonate_content', { name: displayName(row) }),
+    okText: t('identity.user.impersonate_confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        await authStore.startImpersonation({ targetUserId: String(row.basicId) })
+      }
+      catch (error) {
+        toast.error((error as Error)?.message || t('identity.user.impersonate_failed'))
+      }
+    },
+  })
+}
 function forceLogout(row: UserListItemDto) {
   void dialog.confirm({
     badge: 'warning',

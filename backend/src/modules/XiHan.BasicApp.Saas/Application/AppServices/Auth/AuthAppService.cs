@@ -21,10 +21,12 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Messaging;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Otp;
+using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Bot.Email.Abstractions;
 using XiHan.Framework.Bot.Email.Options;
 using XiHan.Framework.Core.Exceptions;
@@ -98,6 +100,8 @@ public sealed partial class AuthAppService
 
     private readonly IMenuRouteQueryService _menuRouteQueryService;
 
+    private readonly IPermissionChecker _permissionChecker;
+
     private readonly ISaasConfigurationService _saasConfigurationService;
 
     private readonly IUserRepository _userRepository;
@@ -137,6 +141,7 @@ public sealed partial class AuthAppService
         IAuthContextQueryService authContextQueryService,
         IAuthorizationSnapshotQueryService authorizationSnapshotQueryService,
         IMenuRouteQueryService menuRouteQueryService,
+        IPermissionChecker permissionChecker,
         ISaasConfigurationService saasConfigurationService,
         IAuthTokenIssueService authTokenIssueService,
         IAuthEmailLoginCodeService emailLoginCodeService,
@@ -176,6 +181,7 @@ public sealed partial class AuthAppService
         _authContextQueryService = authContextQueryService;
         _authorizationSnapshotQueryService = authorizationSnapshotQueryService;
         _menuRouteQueryService = menuRouteQueryService;
+        _permissionChecker = permissionChecker;
         _saasConfigurationService = saasConfigurationService;
         _authTokenIssueService = authTokenIssueService;
         _emailLoginCodeService = emailLoginCodeService;
@@ -523,6 +529,11 @@ public sealed partial class AuthAppService
         userInfo.IsImpersonating = impersonatorUserId.HasValue;
         userInfo.ImpersonatorUserId = impersonatorUserId;
         userInfo.ImpersonatorUserName = _currentUser.FindImpersonatorUserName();
+        // 能力位由服务端判定后下发，前端不持有权限码；模仿态下该码在检查器里被短路，因而恒为 false
+        userInfo.CanImpersonate = await _permissionChecker.IsGrantedAsync(
+            userId.ToString(),
+            SaasPermissionCodes.Impersonation.Start,
+            cancellationToken);
         return userInfo;
     }
 
