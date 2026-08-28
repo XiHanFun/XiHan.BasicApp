@@ -4,9 +4,9 @@
 
 <h1>XiHan.BasicApp</h1>
 
-<p><b>企业级中后台内核</b></p>
+<p><b>企业级通用中后台内核</b></p>
 
-<p>后端基于 .NET 10 与 <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>，前端基于 Vue 3<br/>多租户 · RBAC + ABAC 权限 · 代码生成 · 实时通信</p>
+<p>后端基于 .NET 10 与 <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>，前端基于 Vue 3 与 <a href="https://github.com/XiHanFun/XiHan.UI">XiHan.UI</a><br/>多租户 · RBAC + ABAC 权限 · 代码生成 · 实时通信</p>
 
 <p>
   <a href="https://github.com/XiHanFun/XiHan.BasicApp/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/XiHanFun/XiHan.BasicApp?style=flat-square&logo=github&label=Stars&color=1f6feb" /></a>
@@ -346,7 +346,8 @@ sudo supervisorctl start XiHanBasicApp
 | 项目                                                         | 致谢                                           |
 | ------------------------------------------------------------ | ---------------------------------------------- |
 | [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) | 作为本项目的后端底层框架支持                   |
-| [NaiveUI](https://github.com/tusen-ai/naive-ui)              | 作为本项目的前端 UI 组件支持                   |
+| [XiHan.UI](https://github.com/XiHanFun/XiHan.UI)             | 作为本项目的前端视图组件支持                   |
+| [NaiveUI](https://github.com/tusen-ai/naive-ui)              | 作为本项目的前端视图组件支持（v4.0.0前）       |
 | [Blog.Core](https://github.com/anjoy8/Blog.Core)             | 作为部分后端架构、逻辑功能灵感来源（启蒙项目） |
 | [ Admin.Core.ZR](https://gitee.com/izory/ZrAdminNetCore)     | 作为部分后端功能灵感来源                       |
 | [YuebonCore](https://gitee.com/yuebon/YuebonNetCore)         | 作为部分后端功能灵感来源                       |

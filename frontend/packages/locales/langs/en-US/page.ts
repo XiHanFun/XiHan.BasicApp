@@ -15,8 +15,8 @@ export default {
     captcha_load_failed: 'Failed to load captcha, click to retry',
   },
   auth: {
-    slogan_title: 'B2B SaaS Middleware Core',
-    slogan_desc: 'Engineered · Intelligent · Internationalized',
+    slogan_title: 'Enterprise-Grade Admin Platform Core',
+    slogan_desc: 'Full-Ecosystem · Engineered · Intelligent · Internationalized',
     login_subtitle: 'Enter your credentials to access the admin panel',
     mobile_login: 'Phone Login',
     email_login: 'Email Login',

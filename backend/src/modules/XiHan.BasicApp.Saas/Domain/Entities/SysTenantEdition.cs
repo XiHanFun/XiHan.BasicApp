@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
 /// 租户版本/套餐实体
-/// B2B SaaS 产品订阅单元：定义可售卖版本、计费周期、资源配额；与 SysTenantEditionPermission 组合实现功能门控
+/// 产品订阅单元：定义可售卖版本、计费周期、资源配额；与 SysTenantEditionPermission 组合实现功能门控
 /// </summary>
 /// <remarks>
 /// 职责边界：

@@ -15,8 +15,8 @@ export default {
     captcha_load_failed: '验证码加载失败，请点击重试',
   },
   auth: {
-    slogan_title: 'B2B SaaS 中台内核',
-    slogan_desc: '工程化、智能化、国际化',
+    slogan_title: '企业级通用中后台内核',
+    slogan_desc: '全生态、工程化、智能化、国际化',
     login_subtitle: '请输入您的账号密码以登录管理系统',
     mobile_login: '手机登录',
     email_login: '邮箱登录',
