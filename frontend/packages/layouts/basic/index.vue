@@ -24,6 +24,7 @@ import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
 import AppTabbar from './components/AppTabbar.vue'
 import AppTabOverview from './components/AppTabOverview.vue'
+import ImpersonationBanner from './components/ImpersonationBanner.vue'
 import NotificationBanner from './components/NotificationBanner.vue'
 import NotificationGate from './components/NotificationGate.vue'
 import SplitPane from './components/SplitPane.vue'
@@ -350,6 +351,8 @@ const sidebarEnableState = computed(
       <div class="flex min-h-0 flex-1 flex-col overflow-hidden transition-[margin-top] duration-200" :style="shell.contentStyle.value">
         <!-- 通知横幅：置于正文容器内（容器已按固定顶栏做 margin-top 让位），
              紧贴标签栏下方、块级推下页面内容；放容器外会被固定顶栏遮住并顶出空白条 -->
+        <ImpersonationBanner />
+
         <NotificationBanner />
 
         <!-- 普通内容：root 由 flex 定高并承载紧凑布局的居中与最大宽度，viewport 是真正 overflow:auto 的那层 -->

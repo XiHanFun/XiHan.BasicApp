@@ -28,6 +28,7 @@ import type {
   PasswordResetResult,
   PermissionInfo,
   PhoneLoginParams,
+  StartImpersonationParams,
   SwitchTenantParams,
   TwoFactorSetupResult,
   UpdateProfileParams,
@@ -39,6 +40,7 @@ import type {
 } from '~/types'
 import { ResourceAccessLevel } from '@/api/modules/authorization'
 import { fileApi } from '@/api/modules/files'
+import { impersonationApi } from '@/api/modules/identity'
 import { enumMetadataApi } from '@/api/modules/metadata/enum-metadata'
 import { tenantApi } from '@/api/modules/tenant'
 import { workbenchApi } from '@/api/modules/workbench'
@@ -425,6 +427,16 @@ function createShellApis() {
   }
 }
 
+function createImpersonationApis() {
+  return {
+    impersonationApi: {
+      candidates: (keyword?: string) => impersonationApi.candidates(keyword),
+      start: (input: StartImpersonationParams) => impersonationApi.start(input),
+      stop: () => impersonationApi.stop(),
+    },
+  }
+}
+
 function createTenantApis() {
   return {
     tenantApi: {
@@ -438,6 +450,7 @@ export function createApplicationApis() {
   return {
     ...createAuthApis(),
     ...createProfileApis(),
+    ...createImpersonationApis(),
     ...createShellApis(),
     ...createTenantApis(),
   }

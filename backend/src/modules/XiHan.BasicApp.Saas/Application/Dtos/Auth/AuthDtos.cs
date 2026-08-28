@@ -391,6 +391,11 @@ public sealed class UserInfoDto
     public List<string> Permissions { get; set; } = [];
 
     /// <summary>
+    /// 是否可发起模仿登录（服务端按实时权限判定；模仿态下恒为 false）
+    /// </summary>
+    public bool CanImpersonate { get; set; }
+
+    /// <summary>
     /// 是否处于模仿态（当前身份由他人以模仿方式登录得到）
     /// </summary>
     public bool IsImpersonating { get; set; }

@@ -1,11 +1,13 @@
 import type {
   EmailLoginParams,
+  ImpersonationCandidate,
   LoginParams,
   LoginResponse,
   LoginToken,
   OAuthProviderItem,
   PermissionInfo,
   PhoneLoginParams,
+  StartImpersonationParams,
   UserInfo,
 } from '~/types'
 import { defineStore } from 'pinia'
@@ -13,7 +15,7 @@ import { ref } from 'vue'
 import { clearLockState, isLockedState } from '~/composables/session-lock'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { destroyAllSignalRConnections } from '~/composables/useSignalR'
-import { HOME_PATH, LOGIN_PATH } from '~/constants'
+import { HOME_PATH, LOGIN_PATH, TABS_LIST_KEY } from '~/constants'
 import { i18n } from '~/locales'
 import { mapMenuToRoutes } from '~/router/dynamic'
 import { collectRouteNames, CORE_ROUTE_NAMES } from '~/router/routes/core'
@@ -31,6 +33,7 @@ export const useAuthStore = defineStore('auth', () => {
   const tabbarStore = useTabbarStore()
 
   const loginLoading = ref(false)
+  const impersonationLoading = ref(false)
 
   async function afterLogin(result: LoginToken, redirect?: string) {
     const loginTask = islandStart('auth:login', i18n.global.t('island.auth.logging_in'))
@@ -174,6 +177,58 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * 身份切换后重建整个应用壳层：换令牌 → 清掉上一身份留在本地的标签页/偏好回写通道 → 整页重载。
+   * 走整页重载而不是热切换，是因为路由表、权限码、菜单、SignalR 连接全都绑在旧身份上。
+   */
+  function applySwitchedIdentity(token: LoginToken) {
+    accessStore.setAccessToken(token.accessToken)
+    accessStore.setRefreshToken(token.refreshToken)
+    tabbarStore.closeAll()
+    sessionStorage.removeItem(TABS_LIST_KEY)
+    localStorage.removeItem(TABS_LIST_KEY)
+    resetPreferenceBackendSync()
+    void destroyAllSignalRConnections()
+    window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
+  }
+
+  /** 可模仿的候选用户 */
+  function impersonationCandidates(keyword?: string): Promise<ImpersonationCandidate[]> {
+    return useAppContext().apis.impersonationApi.candidates(keyword)
+  }
+
+  /** 发起模仿登录：以目标用户身份重建会话 */
+  async function startImpersonation(input: StartImpersonationParams) {
+    if (impersonationLoading.value) {
+      return
+    }
+    impersonationLoading.value = true
+    try {
+      const token = await useAppContext().apis.impersonationApi.start(input)
+      applySwitchedIdentity(token)
+    }
+    catch (error) {
+      impersonationLoading.value = false
+      throw error
+    }
+  }
+
+  /** 结束模仿登录：回到发起人身份 */
+  async function stopImpersonation() {
+    if (impersonationLoading.value) {
+      return
+    }
+    impersonationLoading.value = true
+    try {
+      const token = await useAppContext().apis.impersonationApi.stop()
+      applySwitchedIdentity(token)
+    }
+    catch (error) {
+      impersonationLoading.value = false
+      throw error
+    }
+  }
+
   async function logout() {
     const ctx = useAppContext()
     const router = await ctx.getRouter()
@@ -246,6 +301,10 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     loginLoading,
+    impersonationLoading,
+    impersonationCandidates,
+    startImpersonation,
+    stopImpersonation,
     login,
     loginByPhoneCode,
     loginByEmailCode,

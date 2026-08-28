@@ -4,6 +4,20 @@ export default {
     lock: '锁屏',
     logout: '退出登录',
   },
+  impersonation: {
+    entry: '模仿登录',
+    title: '以他人身份登录',
+    hint: '用于排查该用户遇到的问题。期间的操作会记入审计，敏感操作被禁用。',
+    search_placeholder: '搜索用户名 / 昵称 / 姓名',
+    reason_placeholder: '模仿事由（选填，落审计）',
+    empty_title: '没有可模仿的用户',
+    empty_description: '换个关键词试试，或确认是否具备该租户的管理权限',
+    load_failed: '候选用户加载失败',
+    start_failed: '发起模仿登录失败',
+    stop: '退出模仿',
+    stop_failed: '退出模仿失败',
+    banner: '正在以「{target}」的身份操作，发起人：{operator}',
+  },
   favorites: {
     title: '收藏夹',
     /** 角标的读屏文案：按钮说这是什么，角标说有几个 */

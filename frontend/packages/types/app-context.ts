@@ -1,6 +1,7 @@
 import type {
   CaptchaChallenge,
   EmailLoginParams,
+  ImpersonationCandidate,
   LoginConfig,
   LoginParams,
   LoginResponse,
@@ -9,6 +10,7 @@ import type {
   PasswordResetResult,
   PermissionInfo,
   PhoneLoginParams,
+  StartImpersonationParams,
   SwitchTenantParams,
   UserInfo,
   VerificationCodeResult,
@@ -206,6 +208,12 @@ export interface AppContextApis {
   /** 上传头像，返回文件主键(fileId)。访问级别/存储目录属应用策略，由 src 决定，契约层不暴露业务枚举 */
   uploadAvatarApi: (file: File, onProgress?: (percent: number) => void) => Promise<{ fileId: string }>
   /** 租户切换（控制中心 / 个人中心「我的租户」）：tenantId 传 null → 退回平台运维态 */
+  /** 模仿登录：以他人身份登录排查问题；start/stop 都返回一枚新令牌，前端换令牌后整页重载 */
+  impersonationApi: {
+    candidates: (keyword?: string) => Promise<ImpersonationCandidate[]>
+    start: (input: StartImpersonationParams) => Promise<LoginToken>
+    stop: () => Promise<LoginToken>
+  }
   tenantApi: {
     myAvailableTenants: () => Promise<AppTenantSwitcherItem[]>
     switchTenant: (input: SwitchTenantParams) => Promise<LoginToken>
