@@ -27,7 +27,7 @@ ORM 是 SqlSugar，`DbType` 取它的枚举值：
       "SqlSugarCore": {
         "ConnectionConfigs": [
           {
-            "ConfigId": "1",
+            "ConfigId": "Default",
             "ConnectionString": "Server=127.0.0.1;Database=XiHanBasicApp;Username=postgres;Password=***;TrustServerCertificate=true;",
             "DbType": "PostgreSQL",
             "IsAutoCloseConnection": true,
