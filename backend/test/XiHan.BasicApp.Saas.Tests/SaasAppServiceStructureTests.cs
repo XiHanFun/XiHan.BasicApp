@@ -40,7 +40,9 @@ public sealed class SaasAppServiceStructureTests
         "Create", "Update", "Delete", "Remove", "Add", "Batch", "Assign", "Grant", "Revoke",
         "Reset", "Rotate", "Regenerate", "Set", "Publish", "Withdraw", "Approve", "Reject",
         "Audit", "Cancel", "Submit", "Confirm", "Switch", "Save", "Mark", "Unlink", "Deactivate",
-        "Enable", "Disable", "Initialize", "Verify", "Consume", "Upload", "FastUpload", "Run", "Generate"
+        "Enable", "Disable", "Initialize", "Verify", "Consume", "Upload", "FastUpload", "Run", "Generate",
+        // 长前缀而非 Start/Stop：模仿登录这两个方法要受事务守卫覆盖，又不牵连其它 Start*/Stop* 方法
+        "StartImpersonation", "StopImpersonation"
     ];
 
     /// <summary>

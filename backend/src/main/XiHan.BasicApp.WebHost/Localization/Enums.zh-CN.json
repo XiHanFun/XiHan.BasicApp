@@ -176,6 +176,8 @@
     "LoginResult.MfaUnbound": "解绑MFA",
     "LoginResult.TenantSwitched": "切换租户",
     "LoginResult.SessionRevoked": "会话撤销",
+    "LoginResult.ImpersonationStarted": "发起模仿登录",
+    "LoginResult.ImpersonationEnded": "结束模仿登录",
     "LoginResult.Failed": "其他失败",
     "MenuType.Directory": "目录",
     "MenuType.Menu": "菜单",

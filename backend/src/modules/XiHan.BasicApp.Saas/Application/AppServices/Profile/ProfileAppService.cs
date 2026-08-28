@@ -132,6 +132,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task ChangeUserNameAsync(ProfileChangeUserNameDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("修改用户名");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -156,6 +157,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task DeactivateAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("停用账号");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -178,6 +180,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task DeleteAccountAsync(ProfilePasswordConfirmDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("注销账号");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -218,6 +221,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task UnlinkAccountAsync(ProfileUnlinkAccountDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("解绑第三方账号");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 

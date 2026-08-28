@@ -44,6 +44,10 @@ public static class UserSessionApplicationMapper
             LogoutTime = session.LogoutTime,
             ExpirationTime = session.ExpirationTime,
             IsExpired = IsExpired(session, now),
+            ImpersonatorUserId = session.ImpersonatorUserId,
+            ImpersonatorUserName = session.ImpersonatorUserName,
+            ImpersonationStartTime = session.ImpersonationStartTime,
+            ImpersonationReason = session.ImpersonationReason,
             CreatedTime = session.CreatedTime,
             ModifiedTime = session.ModifiedTime
         };
@@ -77,6 +81,8 @@ public static class UserSessionApplicationMapper
             Location = session.Location,
             LoginTime = session.LoginTime,
             LastActivityTime = session.LastActivityTime,
+            ImpersonatorUserId = session.ImpersonatorUserId,
+            ImpersonatorUserName = session.ImpersonatorUserName,
             OnlineDurationSeconds = Math.Max(0, (long)(now - session.LoginTime).TotalSeconds),
             IsRealtimeOnline = isRealtimeOnline
         };
@@ -116,6 +122,11 @@ public static class UserSessionApplicationMapper
             LogoutTime = item.LogoutTime,
             ExpirationTime = item.ExpirationTime,
             IsExpired = item.IsExpired,
+            ImpersonatorUserId = item.ImpersonatorUserId,
+            ImpersonatorUserName = item.ImpersonatorUserName,
+            ImpersonatorTenantId = session.ImpersonatorTenantId,
+            ImpersonationStartTime = item.ImpersonationStartTime,
+            ImpersonationReason = item.ImpersonationReason,
             Remark = session.Remark,
             CreatedTime = item.CreatedTime,
             CreatedId = session.CreatedId,

@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Extensions;
 
 namespace XiHan.BasicApp.Saas.Application.Services;
 
@@ -40,7 +41,11 @@ public sealed class AuthTokenIssueService
             command.AccessTokenJti,
             command.Roles,
             command.Permissions,
-            command.DeviceId);
+            command.DeviceId,
+            command.ImpersonatorUserId,
+            command.ImpersonatorUserName,
+            command.ImpersonatorTenantId,
+            command.ImpersonatorTenantName);
         var tokenResult = _jwtTokenService.GenerateAccessToken(claims);
         return new AuthAccessTokenIssueResult(tokenResult, ToLoginTokenDto(tokenResult));
     }
@@ -85,9 +90,12 @@ public sealed class AuthTokenIssueService
             long? tenantId = long.TryParse(tenantIdValue, out var parsedTenantId) ? parsedTenantId : null;
             // 刷新令牌时要靠它校验会话是否仍然有效（被踢下线的会话不得再刷新续命）
             var sessionId = claims.FirstOrDefault(c => c.Type == XiHanClaimTypes.SessionId)?.Value;
+            // 刷新令牌端点据此拒绝模仿会话续命
+            var impersonatorUserIdValue = claims.FirstOrDefault(c => c.Type == XiHanClaimTypes.ImpersonatorUserId)?.Value;
+            long? impersonatorUserId = long.TryParse(impersonatorUserIdValue, out var parsedImpersonatorUserId) ? parsedImpersonatorUserId : null;
             return userId is null && string.IsNullOrWhiteSpace(userName)
                 ? null
-                : new AuthTokenIdentity(userId, userName, tenantId, sessionId);
+                : new AuthTokenIdentity(userId, userName, tenantId, sessionId, impersonatorUserId);
         }
         catch
         {
@@ -103,7 +111,11 @@ public sealed class AuthTokenIssueService
         string accessTokenJti,
         IReadOnlyCollection<string> roles,
         IReadOnlyCollection<string> permissions,
-        string? deviceId)
+        string? deviceId,
+        long? impersonatorUserId = null,
+        string? impersonatorUserName = null,
+        long? impersonatorTenantId = null,
+        string? impersonatorTenantName = null)
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentNullException.ThrowIfNull(roles);
@@ -163,6 +175,15 @@ public sealed class AuthTokenIssueService
             {
                 claims.Add(new Claim(XiHanClaimTypes.Permission, permission));
             }
+        }
+
+        if (impersonatorUserId is > 0)
+        {
+            claims.AddRange(XiHanClaimsIdentityExtensions.BuildImpersonatorClaims(
+                impersonatorUserId.Value,
+                NormalizeNullable(impersonatorUserName, 50),
+                impersonatorTenantId,
+                NormalizeNullable(impersonatorTenantName, 100)));
         }
 
         return claims;

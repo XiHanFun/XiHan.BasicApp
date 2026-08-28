@@ -33,4 +33,10 @@ public interface IAuthTokenIssueService
 /// <param name="UserName">用户名</param>
 /// <param name="TenantId">租户标识</param>
 /// <param name="SessionId">会话标识</param>
-public sealed record AuthTokenIdentity(long? UserId, string? UserName, long? TenantId, string? SessionId = null);
+/// <param name="ImpersonatorUserId">模仿者用户标识；非空表示该令牌由模仿登录签发</param>
+public sealed record AuthTokenIdentity(
+    long? UserId,
+    string? UserName,
+    long? TenantId,
+    string? SessionId = null,
+    long? ImpersonatorUserId = null);

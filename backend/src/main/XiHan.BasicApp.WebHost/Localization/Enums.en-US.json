@@ -176,6 +176,8 @@
     "LoginResult.MfaUnbound": "MFA Unbound",
     "LoginResult.TenantSwitched": "Tenant Switched",
     "LoginResult.SessionRevoked": "Session Revoked",
+    "LoginResult.ImpersonationStarted": "Impersonation Started",
+    "LoginResult.ImpersonationEnded": "Impersonation Ended",
     "LoginResult.Failed": "Other Failure",
     "MenuType.Directory": "Directory",
     "MenuType.Menu": "Menu",

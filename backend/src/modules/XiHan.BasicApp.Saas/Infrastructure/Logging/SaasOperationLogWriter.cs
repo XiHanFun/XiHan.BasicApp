@@ -9,6 +9,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Web.Api.Constants;
 using XiHan.Framework.Auditing;
 using XiHan.Framework.Auditing.Writers;
@@ -76,7 +77,7 @@ public class SaasOperationLogWriter : IOperationLogWriter
         var clientInfo = _clientInfoProvider.GetCurrent();
         var elapsedMilliseconds = SaasLogMappingHelper.NormalizeElapsed(record.ElapsedMilliseconds);
         var title = BuildTitle(record);
-        var description = BuildDescription(record);
+        var description = BuildDescription(record, _httpContextAccessor.HttpContext?.User);
 
         var httpContext = _httpContextAccessor.HttpContext;
         var traceId = record.TraceId;
@@ -127,9 +128,17 @@ public class SaasOperationLogWriter : IOperationLogWriter
         return $"{record.Method} {record.Path}";
     }
 
-    private static string BuildDescription(OperationLogRecord record)
+    private static string BuildDescription(OperationLogRecord record, ClaimsPrincipal? principal)
     {
-        return $"HTTP {record.Method} {record.Path} => {record.StatusCode}";
+        var description = $"HTTP {record.Method} {record.Path} => {record.StatusCode}";
+        var impersonatorUserId = principal?.FindImpersonatorUserId();
+        if (impersonatorUserId is null)
+        {
+            return description;
+        }
+
+        var impersonatorUserName = principal?.FindFirstValue(XiHanClaimTypes.ImpersonatorUserName);
+        return $"{description}｜模仿者 {impersonatorUserName ?? impersonatorUserId.Value.ToString()}({impersonatorUserId.Value})";
     }
 
     private static string? ResolveSessionId(HttpContext? httpContext, OperationLogRecord record)
