@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -43,6 +44,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task<ProfileApiCredentialSecretDto> CreateApiCredentialAsync(ProfileApiCredentialCreateDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("创建接口凭证");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -88,6 +90,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task<ProfileApiCredentialSecretDto> RotateApiCredentialSecretAsync(ProfileApiCredentialIdDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("重置接口凭证密钥");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -137,6 +140,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task DeleteApiCredentialAsync(long id, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("删除接口凭证");
         cancellationToken.ThrowIfCancellationRequested();
 
         var userId = GetCurrentUserIdOrThrow();

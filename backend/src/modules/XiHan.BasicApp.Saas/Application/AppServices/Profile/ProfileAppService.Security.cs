@@ -21,6 +21,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task ChangePasswordAsync(ProfileChangePasswordDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("修改密码");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -76,6 +77,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task Disable2FAAsync(ProfileTwoFactorVerifyDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("关闭两步验证");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -100,6 +102,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task Enable2FAAsync(ProfileTwoFactorVerifyDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("开启两步验证");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -118,6 +121,7 @@ public sealed partial class ProfileAppService
     /// </summary>
     public async Task<ProfileVerificationCodeResultDto> Send2FASetupCodeAsync(ProfileTwoFactorMethodDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("发送两步验证设置验证码");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -137,6 +141,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task<ProfileTwoFactorSetupDto> Setup2FAAsync(CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("设置两步验证");
         cancellationToken.ThrowIfCancellationRequested();
 
         var currentUserId = GetCurrentUserIdOrThrow();

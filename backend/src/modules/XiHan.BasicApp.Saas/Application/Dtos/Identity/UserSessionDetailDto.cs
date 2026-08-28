@@ -37,4 +37,10 @@ public sealed class UserSessionDetailDto : UserSessionListItemDto
     /// 修改者
     /// </summary>
     public string? ModifiedBy { get; set; }
+
+    /// <summary>
+    /// 模仿者发起时所处租户主键
+    /// </summary>
+    public long? ImpersonatorTenantId { get; set; }
+
 }

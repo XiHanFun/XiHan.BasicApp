@@ -20,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
+[SugarIndex("IX_{table}_ImUsId", nameof(ImpersonatorUserId), OrderByType.Asc)]
 public partial class SysUserSession : BasicAppFullAuditedEntity
 {
     /// <summary>
@@ -188,6 +189,42 @@ public partial class SysUserSession : BasicAppFullAuditedEntity
     /// </summary>
     [SugarColumn(ColumnName = "Expiration_Time", ColumnDescription = "会话过期时间", IsNullable = true)]
     public virtual DateTimeOffset? ExpirationTime { get; set; }
+
+    /// <summary>
+    /// 模仿者用户ID（非空表示本会话由他人以模仿方式发起，<see cref="UserId"/> 是被模仿者）
+    /// </summary>
+    [SugarColumn(ColumnName = "Impersonator_User_Id", ColumnDescription = "模仿者用户ID", IsNullable = true)]
+    public virtual long? ImpersonatorUserId { get; set; }
+
+    /// <summary>
+    /// 模仿者用户名（落库冗余，审计列表免联表）
+    /// </summary>
+    [SugarColumn(ColumnName = "Impersonator_User_Name", ColumnDescription = "模仿者用户名", Length = 50, IsNullable = true)]
+    public virtual string? ImpersonatorUserName { get; set; }
+
+    /// <summary>
+    /// 模仿者发起时所处租户ID（空表示平台运维态）
+    /// </summary>
+    [SugarColumn(ColumnName = "Impersonator_Tenant_Id", ColumnDescription = "模仿者租户ID", IsNullable = true)]
+    public virtual long? ImpersonatorTenantId { get; set; }
+
+    /// <summary>
+    /// 模仿者原会话标识（退出模仿时按它找回原会话并重新签发发起人身份的令牌）
+    /// </summary>
+    [SugarColumn(ColumnName = "Impersonator_Session_Id", ColumnDescription = "模仿者原会话标识", Length = 100, IsNullable = true)]
+    public virtual string? ImpersonatorSessionId { get; set; }
+
+    /// <summary>
+    /// 模仿开始时间
+    /// </summary>
+    [SugarColumn(ColumnName = "Impersonation_Start_Time", ColumnDescription = "模仿开始时间", IsNullable = true)]
+    public virtual DateTimeOffset? ImpersonationStartTime { get; set; }
+
+    /// <summary>
+    /// 模仿事由（发起时填写，落审计）
+    /// </summary>
+    [SugarColumn(ColumnName = "Impersonation_Reason", ColumnDescription = "模仿事由", Length = 200, IsNullable = true)]
+    public virtual string? ImpersonationReason { get; set; }
 
     /// <summary>
     /// 备注

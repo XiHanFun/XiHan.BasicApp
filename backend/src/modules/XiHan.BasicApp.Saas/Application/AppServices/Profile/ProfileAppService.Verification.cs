@@ -20,6 +20,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task ConfirmChangeEmailAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("更换邮箱");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -36,6 +37,7 @@ public sealed partial class ProfileAppService
     [UnitOfWork(true)]
     public async Task ConfirmChangePhoneAsync(ProfileVerificationCodeDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("更换手机号");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -51,6 +53,7 @@ public sealed partial class ProfileAppService
     /// </summary>
     public async Task<ProfileVerificationCodeResultDto> SendChangeEmailCodeAsync(ProfileChangeEmailDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("更换邮箱");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -66,6 +69,7 @@ public sealed partial class ProfileAppService
     /// </summary>
     public async Task<ProfileVerificationCodeResultDto> SendChangePhoneCodeAsync(ProfileChangePhoneDto input, CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("更换手机号");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 

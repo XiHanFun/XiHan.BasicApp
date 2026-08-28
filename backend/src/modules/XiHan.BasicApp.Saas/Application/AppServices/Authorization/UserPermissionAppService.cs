@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -32,6 +33,8 @@ public sealed class UserPermissionAppService
 
     private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
 
+    private readonly IImpersonationPolicyService _impersonationPolicyService;
+
     private readonly IUserPermissionRepository _userPermissionRepository;
 
     /// <summary>
@@ -41,11 +44,13 @@ public sealed class UserPermissionAppService
         IUserDomainService userDomainService,
         ISaasCacheInvalidator cacheInvalidator,
         IAuthorizationChangeNotifier authorizationChangeNotifier,
+        IImpersonationPolicyService impersonationPolicyService,
         IUserPermissionRepository userPermissionRepository)
     {
         _userDomainService = userDomainService;
         _cacheInvalidator = cacheInvalidator;
         _authorizationChangeNotifier = authorizationChangeNotifier;
+        _impersonationPolicyService = impersonationPolicyService;
         _userPermissionRepository = userPermissionRepository;
     }
 
@@ -61,6 +66,7 @@ public sealed class UserPermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync([input.PermissionId], cancellationToken);
         var result = await _userDomainService.CreateUserPermissionAsync(UserPermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _authorizationChangeNotifier.NotifyAsync(
@@ -84,6 +90,9 @@ public sealed class UserPermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync(
+            [.. input.Grants.Select(static grant => grant.PermissionId)],
+            cancellationToken);
         var result = await _userDomainService.BatchUpdateUserPermissionsAsync(
             new UserPermissionBatchUpdateCommand(
                 input.UserId,

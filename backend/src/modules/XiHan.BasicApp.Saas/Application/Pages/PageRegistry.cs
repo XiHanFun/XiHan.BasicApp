@@ -221,6 +221,7 @@ public static class PageRegistry
          new("identity.user.status", "启停", "identity.user", SaasPermissionCodes.User.Status, 4),
          new("identity.user.reset-password", "重置密码", "identity.user", SaasPermissionCodes.UserSecurity.ResetPassword, 5),
          new("identity.user.export", "导出", "identity.user", SaasPermissionCodes.User.Export, 6),
+         new("identity.user.impersonate", "模仿登录", "identity.user", SaasPermissionCodes.Impersonation.Start, 7),
 
         // [2.2] 角色管理
          new("identity.role.create", "新增", "identity.role", SaasPermissionCodes.Role.Create, 1),

@@ -80,10 +80,7 @@ public sealed class TenantMigrationQuerySqlTests : IDisposable
     public void Dispose()
     {
         _client.Dispose();
-        if (File.Exists(_databasePath))
-        {
-            File.Delete(_databasePath);
-        }
+        SaasTestHelper.DeleteTemporaryDatabase(_databasePath);
     }
 
     private void InsertTenant(string name, TenantIsolationMode isolationMode, TenantConfigStatus configStatus)

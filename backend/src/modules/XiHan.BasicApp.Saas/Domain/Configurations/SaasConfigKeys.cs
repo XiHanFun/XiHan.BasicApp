@@ -85,6 +85,16 @@ public static class SaasConfigKeys
         /// OAuth 提供商，JSON 数组。
         /// </summary>
         public const string OAuthProviders = "saas.auth.oauth.providers";
+
+        /// <summary>
+        /// 模仿会话存活分钟数（由 <c>AuthAppService.StartImpersonationAsync</c> 强类型读取）。
+        /// </summary>
+        public const string ImpersonationSessionMinutes = "saas.auth.impersonation.session-minutes";
+
+        /// <summary>
+        /// 发起模仿时是否向被模仿者投递安全通知（由 <c>AuthAppService.StartImpersonationAsync</c> 强类型读取）。
+        /// </summary>
+        public const string ImpersonationNotifyTarget = "saas.auth.impersonation.notify-target";
     }
 
     /// <summary>

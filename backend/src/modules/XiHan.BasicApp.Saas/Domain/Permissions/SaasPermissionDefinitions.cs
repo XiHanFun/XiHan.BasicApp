@@ -495,6 +495,11 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.MessageTemplate.Delete, "消息模板删除", "删除当前租户消息模板", true, 2440),
             new(SaasPermissionCodes.MessageTemplate.Export, "消息模板导出", "导出当前数据范围内的消息模板列表数据", false, 2600),
         ]),
+        new(SaasPermissionCodes.Impersonation.Group, "模仿登录",
+        [
+            new(SaasPermissionCodes.Impersonation.Start, "发起模仿登录", "以指定用户身份登录系统，用于排查该用户遇到的问题", true, 2900),
+            new(SaasPermissionCodes.Impersonation.CrossTenant, "跨租户模仿登录", "模仿其它租户的用户，或在平台运维态发起模仿", true, 2910),
+        ]),
     ];
 
     /// <summary>

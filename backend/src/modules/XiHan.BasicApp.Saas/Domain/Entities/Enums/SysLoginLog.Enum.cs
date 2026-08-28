@@ -95,6 +95,18 @@ public enum LoginResult
     SessionRevoked = 17,
 
     /// <summary>
+    /// 发起模仿登录（认证审计事件：管理员以他人身份登录，消息里写清操作人与目标）
+    /// </summary>
+    [Description("发起模仿登录")]
+    ImpersonationStarted = 18,
+
+    /// <summary>
+    /// 结束模仿登录（认证审计事件：回到发起人身份，模仿会话同时被吊销）
+    /// </summary>
+    [Description("结束模仿登录")]
+    ImpersonationEnded = 19,
+
+    /// <summary>
     /// 失败 - 其他错误
     /// </summary>
     [Description("其他失败")]

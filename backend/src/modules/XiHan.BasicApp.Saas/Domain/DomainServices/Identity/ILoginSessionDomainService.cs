@@ -63,6 +63,57 @@ public interface ILoginSessionDomainService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 签发模仿登录会话：新建一条被模仿者身份的独立会话行并落令牌台账
+    /// </summary>
+    /// <remarks>
+    /// 与密码登录的三点差异：不做同设备顶下线（模仿会话与发起人本体常在同一设备）、
+    /// 不回写被模仿者的登录痕迹（LastLoginIp / LastSecurityCheckTime）、
+    /// 过期时间取 <paramref name="lifetime"/> 而非刷新令牌寿命。
+    /// </remarks>
+    /// <param name="target">被模仿者</param>
+    /// <param name="originSession">发起人的当前会话</param>
+    /// <param name="impersonatorUserId">模仿者用户标识</param>
+    /// <param name="impersonatorUserName">模仿者用户名</param>
+    /// <param name="impersonatorTenantId">模仿者发起时所处租户</param>
+    /// <param name="sessionBusinessId">模仿会话的业务标识</param>
+    /// <param name="accessTokenJti">访问令牌 JTI</param>
+    /// <param name="tokenResult">令牌结果</param>
+    /// <param name="reason">模仿事由</param>
+    /// <param name="lifetime">模仿会话存活时长</param>
+    /// <param name="client">客户端信息</param>
+    /// <param name="now">当前时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>模仿会话</returns>
+    Task<SysUserSession> IssueImpersonationAsync(
+        SysUser target,
+        SysUserSession originSession,
+        long impersonatorUserId,
+        string? impersonatorUserName,
+        long? impersonatorTenantId,
+        string sessionBusinessId,
+        string accessTokenJti,
+        JwtTokenResult tokenResult,
+        string? reason,
+        TimeSpan lifetime,
+        ClientInfo client,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 吊销模仿会话并撤销其关联 OAuth Token
+    /// </summary>
+    /// <param name="impersonationSession">模仿会话</param>
+    /// <param name="reason">吊销原因</param>
+    /// <param name="now">当前时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已吊销的模仿会话</returns>
+    Task<SysUserSession> RevokeImpersonationAsync(
+        SysUserSession impersonationSession,
+        string reason,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 退出当前登录会话并撤销关联 OAuth Token
     /// </summary>
     /// <param name="userId">用户标识</param>

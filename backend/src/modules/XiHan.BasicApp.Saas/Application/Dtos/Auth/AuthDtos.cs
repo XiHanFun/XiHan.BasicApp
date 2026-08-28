@@ -389,6 +389,42 @@ public sealed class UserInfoDto
     /// 权限编码
     /// </summary>
     public List<string> Permissions { get; set; } = [];
+
+    /// <summary>
+    /// 是否处于模仿态（当前身份由他人以模仿方式登录得到）
+    /// </summary>
+    public bool IsImpersonating { get; set; }
+
+    /// <summary>
+    /// 模仿者用户主键
+    /// </summary>
+    public long? ImpersonatorUserId { get; set; }
+
+    /// <summary>
+    /// 模仿者用户名
+    /// </summary>
+    public string? ImpersonatorUserName { get; set; }
+}
+
+/// <summary>
+/// 发起模仿登录请求 DTO
+/// </summary>
+public sealed class StartImpersonationRequestDto
+{
+    /// <summary>
+    /// 目标用户主键
+    /// </summary>
+    public long TargetUserId { get; set; }
+
+    /// <summary>
+    /// 目标租户主键；为空时沿用发起人当前上下文，平台运维态下按目标用户自身登录落点解析
+    /// </summary>
+    public long? TenantId { get; set; }
+
+    /// <summary>
+    /// 模仿事由（落审计，最长 200 字符）
+    /// </summary>
+    public string? Reason { get; set; }
 }
 
 /// <summary>

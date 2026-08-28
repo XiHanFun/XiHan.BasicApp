@@ -60,6 +60,8 @@ public sealed class PermissionQueryService
     /// <summary>
     /// 字段级安全（排序门控）
     /// </summary>
+    private readonly ISuperAdminProtector _superAdminProtector;
+
     private readonly IFieldSecurityService _fieldSecurity;
 
     /// <summary>
@@ -71,7 +73,8 @@ public sealed class PermissionQueryService
         IOperationRepository operationRepository,
         IDistributedCache<SaasPermissionSelectCacheItem, string> permissionSelectCache,
         IDistributedCache<SaasPermissionCatalogCacheItem, string> permissionCatalogCache,
-        IFieldSecurityService fieldSecurityService)
+        IFieldSecurityService fieldSecurityService,
+        ISuperAdminProtector superAdminProtector)
     {
         _permissionRepository = permissionRepository;
         _resourceRepository = resourceRepository;
@@ -79,6 +82,7 @@ public sealed class PermissionQueryService
         _permissionSelectCache = permissionSelectCache;
         _permissionCatalogCache = permissionCatalogCache;
         _fieldSecurity = fieldSecurityService;
+        _superAdminProtector = superAdminProtector;
     }
 
     /// <summary>
@@ -192,9 +196,10 @@ public sealed class PermissionQueryService
             hideErrors: true,
             token: cancellationToken);
 
-        return item is null
+        var selectItems = item is null
             ? await QueryAvailableGlobalPermissionsAsync(input, cancellationToken)
             : item.Items;
+        return FilterPlatformOnly(selectItems, static permission => permission.PermissionCode);
     }
 
     /// <summary>
@@ -220,7 +225,21 @@ public sealed class PermissionQueryService
             hideErrors: true,
             token: cancellationToken);
 
-        return item?.Items ?? await QueryPermissionCatalogAsync(cancellationToken);
+        var catalogItems = item?.Items ?? await QueryPermissionCatalogAsync(cancellationToken);
+        return FilterPlatformOnly(catalogItems, static permission => permission.PermissionCode);
+    }
+
+    /// <summary>
+    /// 非超管看不到平台专属权限码：授权界面勾不到，写路径也另有守卫拒绝。
+    /// </summary>
+    private IReadOnlyList<TItem> FilterPlatformOnly<TItem>(IReadOnlyList<TItem> items, Func<TItem, string> codeSelector)
+    {
+        if (items.Count == 0 || _superAdminProtector.IsCurrentUserSuperAdmin())
+        {
+            return items;
+        }
+
+        return [.. items.Where(item => !SaasPlatformPermissions.PlatformOnlyCodes.Contains(codeSelector(item)))];
     }
 
     private async Task<IReadOnlyList<PermissionListItemDto>> QueryPermissionCatalogAsync(CancellationToken cancellationToken)

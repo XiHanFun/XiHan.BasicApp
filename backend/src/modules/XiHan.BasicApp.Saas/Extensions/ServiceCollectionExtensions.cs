@@ -167,6 +167,8 @@ public static class ServiceCollectionExtensions
                 "/api/Auth/LockSession",
                 "/api/Auth/Logout",
                 "/api/Auth/RefreshToken",
+                // 模仿态被锁定时仍须能退出模仿回到发起人身份
+                "/api/Auth/StopImpersonation",
                 // 强制改密锁（PasswordChangeRequired）的解锁方式就是改密：改密端点必须在锁定期间可达
                 "/api/Profile/ChangePassword"
             ];
@@ -209,6 +211,7 @@ public static class ServiceCollectionExtensions
         services.AddTelegramBotBuiltinHandlers();
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
+        services.AddScoped<IImpersonationPolicyService, ImpersonationPolicyService>();
         // OAuth2 授权服务端协议服务：普通 Scoped（非 [DynamicApi]/不被代理），供同意页 AppService 与匿名 /connect/token 端点直接调用
         services.AddScoped<IOAuthServerService, OAuthServerService>();
         // OpenAPI 安全客户端存储：以数据库凭证（SysUserApiCredential）实现覆盖框架默认配置源实现

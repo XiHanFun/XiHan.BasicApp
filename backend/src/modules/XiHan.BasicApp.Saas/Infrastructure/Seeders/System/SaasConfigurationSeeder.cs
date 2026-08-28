@@ -135,6 +135,7 @@ public sealed class SaasConfigurationSeeder(
     {
         // 仅保留运行期被强类型读取入口实际消费的配置键：
         // - SaasConfigurationService.GetLoginConfigAsync（认证）
+        // - AuthAppService.StartImpersonationAsync（模仿登录会话时长与通知开关）
         // - SaasTelegramBotSettingsStore.GetSettingsAsync（Telegram 机器人平台设置）
         // 其余历史占位键未被任何代码引用，已移除以避免无效内置参数（详见配置审计）。
         return
@@ -143,6 +144,8 @@ public sealed class SaasConfigurationSeeder(
             // name 必须与 XiHan:Authentication:OAuth:Providers 里的 Name 一致：本键只管登录页展示什么，
             // 实际能不能登由那边注册的认证方案决定，两边对不上就会点出一个 404 的方案
             new("OAuth 提供商", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.OAuthProviders, "[{\"name\":\"github\",\"displayName\":\"Github\"},{\"name\":\"gitee\",\"displayName\":\"Gitee\"},{\"name\":\"google\",\"displayName\":\"Google\"},{\"name\":\"qq\",\"displayName\":\"QQ\"},{\"name\":\"wechat\",\"displayName\":\"微信\"},{\"name\":\"wecom\",\"displayName\":\"企业微信\"},{\"name\":\"feishu\",\"displayName\":\"飞书\"},{\"name\":\"dingtalk\",\"displayName\":\"钉钉\"}]", "[]", ConfigType.Feature, ConfigDataType.Array, "登录页展示的 OAuth 提供商 JSON 数组", 70),
+            new("模仿会话时长", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.ImpersonationSessionMinutes, "30", "30", ConfigType.Feature, ConfigDataType.Number, "模仿登录会话的存活分钟数，越界按 1~480 归一", 80),
+            new("模仿通知被模仿者", SaasConfigKeys.Groups.Auth, SaasConfigKeys.Auth.ImpersonationNotifyTarget, "true", "true", ConfigType.Feature, ConfigDataType.Boolean, "发起模仿登录时是否向被模仿者投递安全通知", 81),
             new("Telegram 机器人开关", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.Enabled, "false", "false", ConfigType.Feature, ConfigDataType.Boolean, "是否启用 Telegram 机器人平台（总开关，关闭时不拉起任何机器人）", 100),
             new("Telegram Webhook 基础地址", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.WebhookBaseUrl, "", "", ConfigType.Feature, ConfigDataType.String, "Webhook 基础地址（如 https://example.com）；留空使用长轮询（Polling）模式", 101),
             new("Telegram Webhook 路由前缀", SaasConfigKeys.Groups.Bot, SaasConfigKeys.Bot.Telegram.WebhookRoutePrefix, TelegramBotPlatformConsts.DefaultWebhookRoutePrefix, TelegramBotPlatformConsts.DefaultWebhookRoutePrefix, ConfigType.Feature, ConfigDataType.String, "Webhook 接收中间件路由前缀（匹配 POST {前缀}/{机器人名}）", 102),

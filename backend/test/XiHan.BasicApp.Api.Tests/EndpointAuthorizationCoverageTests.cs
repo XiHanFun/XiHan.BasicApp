@@ -40,12 +40,14 @@ public sealed class EndpointAuthorizationCoverageTests
             // AiAssistantQueryService（1）：聊天页助手选项，助手管理权限属后台配置，不用于门控普通用户使用助手
             "AiAssistantQueryService.GetAvailableAsync",
 
-            // AuthAppService（7）：当前会话自助，只读写调用者自身的登录态
+            // AuthAppService（8）：当前会话自助，只读写调用者自身的登录态
             "AuthAppService.CreateOAuthBindTicketAsync",
             "AuthAppService.GetPermissionsAsync",
             "AuthAppService.GetUserInfoAsync",
             "AuthAppService.LockSessionAsync",
             "AuthAppService.LogoutAsync",
+            // 模仿态下当前主体是被模仿者、不持有模仿类权限码，准入靠令牌声明与会话行的模仿者交叉验证
+            "AuthAppService.StopImpersonationAsync",
             "AuthAppService.SwitchTenantAsync",
             "AuthAppService.UnlockSessionAsync",
 

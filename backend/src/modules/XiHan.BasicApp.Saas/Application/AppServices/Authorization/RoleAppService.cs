@@ -33,6 +33,8 @@ public sealed class RoleAppService
 
     private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
 
+    private readonly IImpersonationPolicyService _impersonationPolicyService;
+
     private readonly ISuperAdminProtector _superAdminProtector;
 
     private readonly IRolePermissionRepository _rolePermissionRepository;
@@ -48,6 +50,7 @@ public sealed class RoleAppService
         IRoleDomainService roleDomainService,
         ISaasCacheInvalidator cacheInvalidator,
         IAuthorizationChangeNotifier authorizationChangeNotifier,
+        IImpersonationPolicyService impersonationPolicyService,
         ISuperAdminProtector superAdminProtector,
         IRolePermissionRepository rolePermissionRepository,
         IRoleDataScopeRepository roleDataScopeRepository,
@@ -56,6 +59,7 @@ public sealed class RoleAppService
         _roleDomainService = roleDomainService;
         _cacheInvalidator = cacheInvalidator;
         _authorizationChangeNotifier = authorizationChangeNotifier;
+        _impersonationPolicyService = impersonationPolicyService;
         _superAdminProtector = superAdminProtector;
         _rolePermissionRepository = rolePermissionRepository;
         _roleDataScopeRepository = roleDataScopeRepository;
@@ -122,6 +126,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
+        await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync([input.PermissionId], cancellationToken);
         var result = await _roleDomainService.CreateRolePermissionAsync(RolePermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _authorizationChangeNotifier.NotifyAsync(
@@ -146,6 +151,7 @@ public sealed class RoleAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
+        await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync(input.GrantPermissionIds, cancellationToken);
         var result = await _roleDomainService.BatchUpdateRolePermissionsAsync(
             new RolePermissionBatchUpdateCommand(input.RoleId, input.GrantPermissionIds, input.RevokeRolePermissionIds),
             cancellationToken);

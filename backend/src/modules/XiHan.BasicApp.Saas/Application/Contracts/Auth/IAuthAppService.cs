@@ -98,6 +98,22 @@ public interface IAuthAppService : IApplicationService
     Task<LoginTokenDto> SwitchTenantAsync(SwitchTenantRequestDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 发起模仿登录：以目标用户身份签发一枚新令牌并新建独立的模仿会话
+    /// </summary>
+    /// <remarks>不是目标用户的一次新登录：不回写其登录痕迹，也不发布登录成功事件</remarks>
+    /// <param name="input">模仿登录参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>模仿态的登录令牌</returns>
+    Task<LoginTokenDto> StartImpersonationAsync(StartImpersonationRequestDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 结束模仿登录：吊销模仿会话，并在发起人的原会话上重新签发其本人身份的令牌
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>发起人本人身份的登录令牌</returns>
+    Task<LoginTokenDto> StopImpersonationAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 退出登录
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>

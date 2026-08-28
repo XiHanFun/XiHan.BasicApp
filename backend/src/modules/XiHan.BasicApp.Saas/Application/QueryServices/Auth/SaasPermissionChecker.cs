@@ -1,10 +1,12 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
@@ -60,6 +62,11 @@ public sealed class SaasPermissionChecker : IPermissionChecker
             return false;
         }
 
+        if (IsDeniedWhileImpersonating(permissionName))
+        {
+            return false;
+        }
+
         if (!await IsCurrentSessionValidAsync(cancellationToken))
         {
             return false;
@@ -79,6 +86,13 @@ public sealed class SaasPermissionChecker : IPermissionChecker
     public async Task<bool> IsAnyGrantedAsync(string userId, List<string> permissionNames, CancellationToken cancellationToken = default)
     {
         if (permissionNames is not { Count: > 0 } || !TryResolveUserId(userId, out var id))
+        {
+            return false;
+        }
+
+        // 逐条过滤而不是整体拒绝：任一未被禁用的权限码仍应按快照判定
+        permissionNames = [.. permissionNames.Where(name => !IsDeniedWhileImpersonating(name))];
+        if (permissionNames.Count == 0)
         {
             return false;
         }
@@ -106,6 +120,11 @@ public sealed class SaasPermissionChecker : IPermissionChecker
             return false;
         }
 
+        if (permissionNames.Exists(IsDeniedWhileImpersonating))
+        {
+            return false;
+        }
+
         if (!await IsCurrentSessionValidAsync(cancellationToken))
         {
             return false;
@@ -129,7 +148,9 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         }
 
         var snapshot = await BuildSnapshotAsync(id, cancellationToken);
-        return [.. snapshot.Permissions];
+        return _currentUser.IsImpersonating()
+            ? [.. snapshot.Permissions.Where(permission => !IsDeniedWhileImpersonating(permission))]
+            : [.. snapshot.Permissions];
     }
 
     /// <summary>
@@ -141,6 +162,16 @@ public sealed class SaasPermissionChecker : IPermissionChecker
     public Task<bool> PermissionExistsAsync(string permissionName, CancellationToken cancellationToken = default)
     {
         return Task.FromResult(!string.IsNullOrWhiteSpace(permissionName));
+    }
+
+    /// <summary>
+    /// 模仿态下是否拒绝该权限码（清单见 <see cref="ImpersonationDefaults.DeniedPermissionCodes"/>）。
+    /// </summary>
+    private bool IsDeniedWhileImpersonating(string permissionName)
+    {
+        return !string.IsNullOrWhiteSpace(permissionName)
+            && _currentUser.IsImpersonating()
+            && ImpersonationDefaults.DeniedPermissionCodes.Contains(permissionName.Trim());
     }
 
     private static bool HasPermission(AuthorizationSnapshot snapshot, string permissionName)

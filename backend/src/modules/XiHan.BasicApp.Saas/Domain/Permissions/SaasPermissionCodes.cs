@@ -1989,4 +1989,29 @@ public static class SaasPermissionCodes
         /// </summary>
         public const string Export = "saas:constraint-rule:export";
     }
+
+    /// <summary>
+    /// 模仿登录权限码
+    /// </summary>
+    /// <remarks>
+    /// <see cref="Start"/> 是发起模仿的门槛，可授予租户管理员；
+    /// <see cref="CrossTenant"/> 是跨租户 / 平台态发起模仿的升级权，登记为平台专属。
+    /// </remarks>
+    public static class Impersonation
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "impersonation";
+
+        /// <summary>
+        /// 发起模仿登录
+        /// </summary>
+        public const string Start = "saas:impersonation:start";
+
+        /// <summary>
+        /// 跨租户模仿登录
+        /// </summary>
+        public const string CrossTenant = "saas:impersonation:cross-tenant";
+    }
 }

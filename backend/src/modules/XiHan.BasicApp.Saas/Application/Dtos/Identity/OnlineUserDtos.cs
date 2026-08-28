@@ -110,6 +110,17 @@ public class OnlineUserListItemDto : BasicAppDto
     /// 是否持有实时连接（SignalR 在线）
     /// </summary>
     public bool IsRealtimeOnline { get; set; }
+
+    /// <summary>
+    /// 模仿者用户主键；非空表示本会话由他人以模仿方式发起
+    /// </summary>
+    public long? ImpersonatorUserId { get; set; }
+
+    /// <summary>
+    /// 模仿者用户名
+    /// </summary>
+    public string? ImpersonatorUserName { get; set; }
+
 }
 
 /// <summary>
@@ -131,4 +142,5 @@ public sealed class OnlineUserSummaryDto
     /// 活跃用户数（活跃会话去重用户数，当前租户范围）
     /// </summary>
     public int ActiveUsers { get; set; }
+
 }

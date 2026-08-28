@@ -110,4 +110,25 @@ public class UserSessionListItemDto : BasicAppDto
     /// 修改时间
     /// </summary>
     public DateTimeOffset? ModifiedTime { get; set; }
+
+    /// <summary>
+    /// 模仿者用户主键；非空表示本会话由他人以模仿方式发起
+    /// </summary>
+    public long? ImpersonatorUserId { get; set; }
+
+    /// <summary>
+    /// 模仿者用户名
+    /// </summary>
+    public string? ImpersonatorUserName { get; set; }
+
+    /// <summary>
+    /// 模仿开始时间
+    /// </summary>
+    public DateTimeOffset? ImpersonationStartTime { get; set; }
+
+    /// <summary>
+    /// 模仿事由
+    /// </summary>
+    public string? ImpersonationReason { get; set; }
+
 }

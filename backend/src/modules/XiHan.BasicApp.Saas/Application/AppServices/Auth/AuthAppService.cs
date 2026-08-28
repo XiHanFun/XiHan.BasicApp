@@ -33,6 +33,7 @@ using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
 using XiHan.Framework.Web.Core.Clients;
@@ -43,7 +44,7 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// 认证应用服务
 /// </summary>
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "认证", RouteTemplate = "api/Auth")]
-public sealed class AuthAppService
+public sealed partial class AuthAppService
     : SaasApplicationService, IAuthAppService
 {
     /// <summary>
@@ -70,6 +71,8 @@ public sealed class AuthAppService
     private readonly IAuthTokenIssueService _authTokenIssueService;
 
     private readonly IAuthEmailLoginCodeService _emailLoginCodeService;
+
+    private readonly IImpersonationPolicyService _impersonationPolicyService;
 
     private readonly IProfileVerificationService _profileVerificationService;
 
@@ -137,6 +140,7 @@ public sealed class AuthAppService
         ISaasConfigurationService saasConfigurationService,
         IAuthTokenIssueService authTokenIssueService,
         IAuthEmailLoginCodeService emailLoginCodeService,
+        IImpersonationPolicyService impersonationPolicyService,
         IProfileVerificationService profileVerificationService,
         IMessageDeliveryService messageDeliveryService,
         IOtpService otpService,
@@ -175,6 +179,7 @@ public sealed class AuthAppService
         _saasConfigurationService = saasConfigurationService;
         _authTokenIssueService = authTokenIssueService;
         _emailLoginCodeService = emailLoginCodeService;
+        _impersonationPolicyService = impersonationPolicyService;
         _profileVerificationService = profileVerificationService;
         _messageDeliveryService = messageDeliveryService;
         _otpService = otpService;
@@ -242,6 +247,7 @@ public sealed class AuthAppService
     [UnitOfWork(IsDisabled = true)]
     public async Task<string> CreateOAuthBindTicketAsync(CancellationToken cancellationToken = default)
     {
+        _currentUser.EnsureNotImpersonating("绑定第三方账号");
         cancellationToken.ThrowIfCancellationRequested();
         var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
         var ticket = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
@@ -507,11 +513,17 @@ public sealed class AuthAppService
         var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
         using var tenantScope = _currentTenant.Change(_currentUser.TenantId, _currentUser.TenantId?.ToString());
 
-        return await _authContextQueryService.GetCurrentUserInfoAsync(
+        var userInfo = await _authContextQueryService.GetCurrentUserInfoAsync(
             userId,
             _currentUser.TenantId,
             _currentUser.Roles,
             cancellationToken);
+
+        var impersonatorUserId = _currentUser.FindImpersonatorUserId();
+        userInfo.IsImpersonating = impersonatorUserId.HasValue;
+        userInfo.ImpersonatorUserId = impersonatorUserId;
+        userInfo.ImpersonatorUserName = _currentUser.FindImpersonatorUserName();
+        return userInfo;
     }
 
     /// <summary>
@@ -985,6 +997,19 @@ public sealed class AuthAppService
         }
 
         var identity = _authTokenIssueService.ResolveTokenIdentity(input.AccessToken);
+
+        // 模仿令牌不参与刷新链：刷新原样复制 claims 且零 DB 访问，允许刷新等于模仿关系永不复审、可无限续期。
+        // 模仿会话到期即结束，管理员需重新发起。
+        if (identity?.ImpersonatorUserId is > 0)
+        {
+            await PublishSecurityAuditAsync(
+                identity.TenantId,
+                identity.UserId,
+                identity.UserName,
+                LoginResult.Failed,
+                "模仿会话不支持刷新令牌");
+            throw new InvalidOperationException("模仿会话不支持刷新令牌，请结束模仿后重试。");
+        }
 
         // 会话闸门：被踢下线/登出/过期的会话，不得再靠刷新令牌续命。
         // 这个端点是 [AllowAnonymous]，走不到 XiHanSessionStateMiddleware，必须在此自行把关——
