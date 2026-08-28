@@ -2,7 +2,7 @@
 
 ## 概述
 
-`XiHan.BasicApp.Saas` 提供 B2B SaaS 场景的 RBAC、轻量 ABAC、多租户基础设施及系统配置能力，并按照现有 DDD 分层组织应用服务、领域服务、实体和仓储。
+`XiHan.BasicApp.Saas` 提供企业级通用中后台场景的 RBAC、轻量 ABAC、多租户基础设施及系统配置能力，并按照现有 DDD 分层组织应用服务、领域服务、实体和仓储。
 
 ## 核心能力
 
