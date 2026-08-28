@@ -4,9 +4,11 @@
 
 <h1>XiHan.BasicApp</h1>
 
-<p><b>企业级通用中后台内核</b></p>
+<p><b>A beautifully crafted admin kernel built on .NET and Vue</b></p>
 
-<p>后端基于 .NET 10 与 <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>，前端基于 Vue 3 与 <a href="https://github.com/XiHanFun/XiHan.UI">XiHan.UI</a><br/>多租户 · RBAC + ABAC 权限 · 代码生成 · 实时通信</p>
+<p>A .NET 10 backend on <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>, a Vue 3 frontend on <a href="https://github.com/XiHanFun/XiHan.UI">XiHan.UI</a><br/>Multi-tenancy · RBAC with data scopes and field masking · Code generation · Realtime</p>
+
+<p><b>English</b> | <a href="./README_cn.md">简体中文</a></p>
 
 <p>
   <a href="https://github.com/XiHanFun/XiHan.BasicApp/stargazers"><img alt="GitHub Stars" src="https://img.shields.io/github/stars/XiHanFun/XiHan.BasicApp?style=flat-square&logo=github&label=Stars&color=1f6feb" /></a>
@@ -17,7 +19,7 @@
 
 <p>
   <img alt=".NET" src="https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet&logoColor=white" />
-  <a href="https://github.com/XiHanFun/XiHan.Framework"><img alt="XiHan.Framework" src="https://img.shields.io/badge/XiHan.Framework-3.5.0-6f42c1?style=flat-square" /></a>
+  <a href="https://github.com/XiHanFun/XiHan.Framework"><img alt="XiHan.Framework" src="https://img.shields.io/badge/XiHan.Framework-4.0.0-6f42c1?style=flat-square" /></a>
   <img alt="Vue" src="https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" />
   <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" />
   <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" />
@@ -44,208 +46,207 @@
 </p>
 
 
-<img src="./assets/login.png" alt="登录" />
+<img src="./assets/login.png" alt="Sign in" />
 
 </div>
 
-## 简介
+## Introduction
 
-XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层与 CQRS，应用服务经动态 API 直接暴露为 REST 接口；前端使用 Vue 3 + TypeScript + Naive UI。系统内置完整的身份、权限、租户与审计能力，既可作为中后台项目的起点，也可作为 .NET + Vue 全栈实践的参考。
+XiHan.BasicApp is a decoupled frontend/backend system. The backend follows DDD layering — writes go through application services, reads through query services — and application services are exposed directly as REST endpoints by the dynamic API convention. The frontend is Vue 3 + TypeScript + XiHan.UI. Identity, permissions, tenancy and auditing are built in, so it works both as the starting point for an admin project and as a reference for full-stack .NET + Vue practice. XiHan.BasicApp is the application layer of the XiHanFun open-source ecosystem, which spans foundation, components and applications.
 
-## 预览
+## Documentation
+
+| Destination | Contents |
+| --- | --- |
+| [Documentation site](https://basicapp.docs.xihanfun.com) | Full guides and topic-by-topic documentation |
+| [Backend engineering notes](./backend/README.md) | Structure, project catalog, endpoint exposure, dependencies, local development |
+| [Frontend engineering notes](./frontend/README.md) | Stack, monorepo structure, architectural constraints, local development |
+
+## Preview
 
 <table>
   <tr>
-    <td align="center"><img src="./assets/tenant-select.png" /><br/>租户选择</td>
-    <td align="center"><img src="./assets/user-management.png" /><br/>用户管理</td>
+    <td align="center"><img src="./assets/tenant-select.png" /><br/>Tenant selection</td>
+    <td align="center"><img src="./assets/user-management.png" /><br/>User management</td>
   </tr>
   <tr>
-    <td align="center"><img src="./assets/user-management-dark.png" /><br/>用户管理（暗色）</td>
-    <td align="center"><img src="./assets/server-monitor.png" /><br/>服务监控</td>
+    <td align="center"><img src="./assets/user-management-dark.png" /><br/>User management (dark)</td>
+    <td align="center"><img src="./assets/server-monitor.png" /><br/>Server monitoring</td>
   </tr>
   <tr>
-    <td align="center"><img src="./assets/preference-settings.png" /><br/>偏好设置</td>
-    <td align="center"><img src="./assets/operation-log.png" /><br/>操作日志</td>
+    <td align="center"><img src="./assets/preference-settings.png" /><br/>Preferences</td>
+    <td align="center"><img src="./assets/operation-log.png" /><br/>Operation log</td>
   </tr>
   <tr>
-    <td align="center"><img src="./assets/log-traceability.png" /><br/>日志链路</td>
-    <td align="center"><img src="./assets/about.png" /><br/>关于</td>
+    <td align="center"><img src="./assets/log-traceability.png" /><br/>Log traceability</td>
+    <td align="center"><img src="./assets/about.png" /><br/>About</td>
   </tr>
 </table>
 
 
 
-移动端：
+Mobile:
 
 <img src="./assets/mobile.png" />
 
-## 功能
+## Features
 
-**身份与认证**
+**Identity and authentication**
 
-- 用户、角色、部门、菜单管理
-- JWT 双令牌（Access + Refresh），多端登录与会话管理
-- 多种登录方式：账号密码、邮箱 / 短信验证码、OAuth2（GitHub / Google / QQ）、2FA（TOTP / 邮箱 / 短信）
-- 登录防护：图形验证码（SVG 数字码，一次性消费、可配置关闭）、账号+IP 与纯 IP 双维度防爆破节流、失败计数锁定、默认密码登录强制改密
-- 密码 PBKDF2 哈希；一次性验证码消费即销毁、恒定时间比较
+- User, role, department and menu management
+- JWT with two tokens (access 120 minutes + refresh 7 days), multi-device sign-in and session management
+- Multiple sign-in methods: password, email / SMS code, 2FA (TOTP / email / SMS, combinable as flags)
+- Eight first-party OAuth providers built in — GitHub, Gitee, Google, QQ, WeChat, WeCom, DingTalk, Lark — enabled by configuration
+- Sign-in protection: first-party SVG captcha (single-use, can be turned off), throttling on both account+IP and IP alone, failure lockout, forced password change after signing in with the default password
+- PBKDF2 password hashing (OWASP-recommended iterations); one-time codes are destroyed on consumption and compared in constant time
 
-**权限（RBAC + ABAC）**
+**Permissions**
 
-- 权限码 `resource:action:scope`，超级管理员通配 `*:*:*`
-- 角色层级继承（闭包表）、数据范围（本人 / 部门 / 租户）、字段级脱敏
-- ABAC 约束规则（时间窗 / IP / 表达式）、会话角色激活（动态职责分离）
-- 权限申请审批、权限委托（临时授权、可撤销）与变更留痕
+- Three-segment permission codes `module:resource:action`; the super administrator wildcard is `*`
+- Role hierarchy through a closure table, five data scopes (self / own department / department and children / all / custom), six field-masking strategies
+- Static separation of duties: mutually exclusive roles and cardinality constraints, evaluated per constraint group
+- Permission requests with approval, revocable temporary delegation, and a change audit trail
 
-**多租户**
+**Multi-tenancy**
 
-- 字段级隔离，全局数据使用 `TenantId=0` 约定
-- 邮箱全局唯一登录，登录后按归属自动落点（控制台 / 工作台 / 租户选择），可随时切换租户
-- 超级管理员平台态运维，可切入任意租户代为管理
-- 租户版本（Edition）权限白名单运行时门控；开通一站式建管理员、角色与授权；降级自动回收越权授权
+- Column-level isolation by default with `TenantId=0` reserved for global data; per-tenant databases are also supported
+- Globally unique email sign-in that routes the user by membership (console / workbench / tenant picker), with tenant switching at any time
+- Platform-mode operations for super administrators, who can step into any tenant
+- Runtime gating by tenant edition allowlist; onboarding creates the administrator, roles and grants in one go; downgrading reclaims grants that fall outside the allowlist
 
-**审计日志**
+**Audit logging**
 
-- 访问 / API / 操作 / 异常 / 登录 / 实体变更 六类日志，各自独立写入
-- 落库前自动脱敏（密码、令牌、密钥、证件号等）；实体变更区分新增 / 修改 / 删除 / 恢复
-- 链路追踪时间线：按 TraceId 跨六类日志聚合，时间倒序还原一次请求的完整轨迹
+- Six independent log streams: access, API, operation, exception, sign-in and entity change
+- Automatic masking before persistence (passwords, tokens, secrets, ID numbers and more, with a counter-example allowlist to avoid over-masking); entity changes distinguish create / update / delete / restore
+- Traceability timeline: aggregate across log types by trace ID, username, session, IP or user ID
 
-**代码生成**
+**Code generation**
 
-- 单表 / 树形 / 主从三种模式，从实体、DTO、API 到前端页面一键生成
-- 基于 Scriban 模板，支持自定义；Zip 下载或直接写入文件
+- Single-table, tree and master-detail modes: entities, DTOs, APIs and frontend pages in one shot
+- Native Scriban templates embedded into the assembly, each with a manual variant; menu permissions, permission seeds, page descriptors and seeders are generated alongside
+- Download as a zip or write to disk; writing to disk is off by default and requires an explicit absolute-path allowlist root, with fail-closed path traversal checks
 
-**AI 能力**
+**AI**
 
-- AI 提供商接入与密钥托管（DataProtection 加密保护，Chat / Embedding 模型可配置）
-- 提示词库：数据库存储、可替换框架默认提示词
-- 知识库 RAG：文档摄取、向量检索（Qdrant），租户级知识库管理
-- AI 技能注册即自动暴露为对话工具与 MCP 工具（知识检索技能等）
+- Provider onboarding and API-key custody (encrypted at rest with DataProtection; chat and embedding models are configurable)
+- Prompt library stored in the database, able to override the framework defaults
+- Knowledge-base RAG: document ingestion and vector search (Qdrant), isolated per tenant, keeping the raw content so indexes can be rebuilt
+- Registered skills automatically become chat tools and MCP tools; knowledge retrieval ships built in, and business skills join by implementing `IAiSkill`
+- Configurable assistants, bridged into the chat page
 
-**平台能力**
+**Platform**
 
-- 动态 API：应用服务经 `[DynamicApi]` 暴露，无 Controller 样板，Scalar 文档自动生成
-- 菜单单一事实源：后端 `PageRegistry` 统一注册菜单、路由、组件路径、权限码与国际化键
-- 全链路分布式缓存（授权快照、版本门控、菜单、配置、字典），写路径精准失效
-- 网关灰度发布（百分比 / 白名单 / 租户 / 请求头）、请求追踪、限流熔断
-- 消息模板（邮件 / 短信 / 站内通知，Scriban 渲染，租户可覆盖默认）、SignalR 实时通知与在线聊天
-- 开放平台：内置 OAuth2/OIDC 身份提供方（第三方应用注册、用户同意授权），个人级 OpenAPI 凭证（AppKey/AppSecret 签名调用）
-- 服务器信息监控（主板 / CPU / 内存 / 磁盘 / GPU / 网络 / 运行时）、缓存键查询与清理
-- 文件多存储（本地 / S3 / OSS / COS / MinIO）、定时任务、审核工作流、国际化（中 / 英）
+- Dynamic APIs: application services are exposed through `[DynamicApi]` with no controller boilerplate, and Scalar documentation is generated automatically
+- One source of truth for menus: the backend `PageRegistry` registers menu, route, component path, permission code and i18n key together
+- Distributed caching end to end (authorization snapshots, edition gating, menus, settings, dictionaries) with precise invalidation on write paths
+- Request tracing; two SignalR hubs (notifications and chat)
+- Message center: email / SMS / in-app notification templates, overridable per tenant
+- Open platform: a built-in OAuth2 / OIDC provider (third-party app registration, user consent) and per-user OpenAPI credentials with signed calls
+- Server monitoring (motherboard / CPU / memory / disk / GPU / network / runtime), cache key lookup and pattern-based clearing
+- Multi-backend file storage (local / Aliyun OSS / Tencent COS / MinIO), database-backed scheduled jobs, review workflow, i18n (Chinese / English)
+- Export center: async tasks with CSV and XLSX writers on a delayed queue
 
-**前端体验**
+**Frontend experience**
 
-- Schema 驱动列表页：搜索 / 表格 / 导出由配置生成，内置列设置、密度切换、高级搜索、个人视图保存、行悬停速览、树形模式与列宽拖拽
-- 权限 / 租户 / 偏好感知：页面、字段、操作三级按权限码过滤，字段级脱敏；列设置与搜索偏好同步到后端，多端一致
-- 灵动岛全局反馈、多标签页、收藏夹、命令面板式全局搜索
-- 消息中心：顶部横幅、登录弹窗、通知中心，支持强制阅读与按角色 / 部门定向
-- 偏好中心：亮 / 暗主题、主题色、布局风格与紧凑度，偏好云端同步
-- 富文本（Tiptap）与 Markdown 编辑器、Cron 可视化、JSON 编辑 / 查看
-- 锁屏、水印、时区切换、导入 / 导出中心（模板导入、异步导出任务）
+- Schema-driven list pages: search, table and export generated from configuration, with column settings, density switching, advanced search, saved personal views, row hover previews, tree mode and column resizing
+- Permission-, tenant- and preference-aware: pages, fields and actions filtered by permission code with field masking; column and search preferences sync to the backend and stay consistent across devices
+- Dynamic-island feedback, tabbed pages, favorites, command-palette global search
+- Message center: top banner, sign-in dialog, notification center, with forced reading and role/department targeting
+- Preference center: light/dark theme, brand color, layout style and density, synced to the cloud
+- Rich text (Tiptap) and markdown editors, visual cron builder, JSON editor/viewer, code editor
+- Lock screen, watermark, time zone switching, export center
 
-## 技术栈
+## Tech Stack
 
-### 后端
+Backend: .NET 10 with XiHan.Framework 4.0.0 (SqlSugar, Redis, SignalR, Serilog and Scalar all arrive through the framework). Frontend: Vue 3 + TypeScript + Vite 8 + XiHan.UI + Pinia + Tailwind CSS 4.
 
-| 技术 | 说明 |
-| --- | --- |
-| .NET 10 / C# | 运行时与语言 |
-| XiHan.Framework 3.5.0 | 自研模块化应用框架 |
-| SqlSugar | ORM，支持 PostgreSQL / MySQL / MariaDB |
-| Redis | 分布式缓存与分布式锁 |
-| SignalR | 实时通信 |
-| Serilog | 结构化日志 |
-| Scalar | API 文档 |
+Item-by-item lists live in the [backend](./backend/README.md#dependency-footprint) and [frontend](./frontend/README.md#stack) engineering notes.
 
-### 前端
+## Architecture
 
-| 技术 | 说明 |
-| --- | --- |
-| Vue 3.5+ | UI 框架 |
-| TypeScript 6.0+ | 类型系统 |
-| Vite 8 | 构建工具 |
-| Naive UI | 组件库 |
-| Pinia | 状态管理 |
-| Tailwind CSS 4 | 原子化 CSS |
-| Tiptap | 富文本编辑器 |
-| vue-i18n | 国际化 |
-
-## 架构
-
-系统分为框架层、模块层与主应用层，每个模块内部遵循 DDD 分层（Domain / Application / Infrastructure）。
+The system splits into a framework layer, a module layer and the host application; each module follows DDD layering internally (domain / application / infrastructure).
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                   XiHan.BasicApp.WebHost                      │
-│                   (启动入口与模块聚合)                          │
+│                   XiHan.BasicApp.WebHost                    │
+│             (startup host, module composition)              │
 ├──────────┬──────────┬──────────┬──────────┬─────────────────┤
 │ CodeGen  │    AI    │ Workflow │ Printing │      Chat       │
-│ (代码生成)  │ (AI/RAG) │ (工作流引擎) │ (打印模板)  │   (在线聊天)      │
+│(codegen) │ (AI/RAG) │(workflow)│(printing)│     (chat)      │
 ├──────────┴──────────┴──────────┴──────────┴─────────────────┤
-│                     XiHan.BasicApp.Saas                       │
-│           (RBAC / 多租户 / 组织 / 审批 / 审计 / 消息中心)          │
+│                     XiHan.BasicApp.Saas                     │
+│    (RBAC / tenancy / org / approval / audit / messaging)    │
 ├─────────────────────────────────────────────────────────────┤
-│                   XiHan.BasicApp.Web.Core                     │
-│              (Web 核心能力 / 动态 API / 网关 / 灰度)            │
+│                   XiHan.BasicApp.Web.Core                   │
+│     (web base / dynamic API / docs / maintenance mode)      │
 ├─────────────────────────────────────────────────────────────┤
-│                     XiHan.BasicApp.Core                       │
-│               (基础应用能力 / DDD / CQRS / 模块化)             │
+│                     XiHan.BasicApp.Core                     │
+│            (application base / DDD / modularity)            │
 ├─────────────────────────────────────────────────────────────┤
-│                      XiHan.Framework.*                        │
-│         底层框架(认证 / 授权 / 数据 / 缓存 / 事件总线 / 多租户)         │
+│                      XiHan.Framework.*                      │
+│ (auth / authorization / data / caching / events / tenancy)  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-| 项目 | 说明 | 可卸载 |
+| Project | Description | Removable |
 | --- | --- | --- |
-| `XiHan.BasicApp.Core` | 基础应用能力，集成 DDD / CQRS / 事件总线 / 认证 / 授权 / 缓存 / 多租户 | 否 |
-| `XiHan.BasicApp.Web.Core` | Web 核心能力，动态 API / Scalar / SignalR / 网关 / 灰度路由 | 否 |
-| `XiHan.BasicApp.Saas` | 平台治理模块：用户 / 角色 / 权限 / 菜单 / 部门 / 租户 / 配置 / 字典 / 文件 / 通知 / 审批 / 日志 / 任务 | 否 |
-| `XiHan.BasicApp.CodeGeneration` | 代码生成：数据源管理 / 表结构导入 / 模板配置 / 全栈生成 | 是 |
-| `XiHan.BasicApp.AI` | AI 能力：提供商与密钥管理 / 提示词库 / 知识库 RAG / AI 技能（MCP 工具）/ 聊天 AI 助手 | 是（助手桥接依赖 Chat） |
-| `XiHan.BasicApp.Workflow` | 工作流引擎落地：流程定义 / 实例 / 待办（框架引擎的持久化与 API） | 是 |
-| `XiHan.BasicApp.Printing` | 打印模板：可视化设计 / 租户与平台双作用域 / 按编码解析 | 是 |
-| `XiHan.BasicApp.Chat` | 在线聊天：单聊 / 群聊 / 部门群 / AI 助手会话 / 实时推送 / 合规审计 | 是（删除须连带处理 AI 的助手桥接） |
-| `XiHan.BasicApp.WebHost` | 启动入口，聚合所有模块 | — |
+| `XiHan.BasicApp.Core` | Application base composing the non-web framework modules and shared conventions | No |
+| `XiHan.BasicApp.Web.Core` | Web base composing six framework web modules, provides the maintenance-mode middleware | No |
+| `XiHan.BasicApp.Saas` | Platform governance: users / roles / permissions / menus / departments / tenants / settings / dictionaries / files / notifications / approvals / logs / jobs | No |
+| `XiHan.BasicApp.CodeGeneration` | Code generation: data sources / schema import / template configuration / full-stack output | Yes |
+| `XiHan.BasicApp.AI` | AI: providers and key custody / prompt library / knowledge-base RAG / skills as MCP tools / chat assistant | Yes (the assistant bridge depends on Chat) |
+| `XiHan.BasicApp.Workflow` | Workflow: definitions / instances / todos — persistence and APIs over the framework engine | Yes |
+| `XiHan.BasicApp.Printing` | Print templates: visual design / tenant and platform scopes / resolution by code | Yes |
+| `XiHan.BasicApp.Chat` | Chat: direct / group / department / assistant conversations, realtime delivery, compliance auditing | Yes (also handle the AI assistant bridge) |
+| `XiHan.BasicApp.WebHost` | Startup host composing every module | — |
 
 ```text
 XiHan.BasicApp/
-├── backend/                 # 后端（.NET 10）
+├── backend/                 # backend (.NET 10)
 │   ├── src/
-│   │   ├── framework/       #   Core / Web.Core 基础能力
-│   │   ├── modules/         #   Saas + 五个可选模块（CodeGen/AI/Workflow/Printing/Chat）
-│   │   └── main/            #   WebHost 启动入口
-│   ├── props/               #   共享 MSBuild 属性
-│   ├── scripts/             #   部署与运维脚本
-│   └── test/                #   测试项目
-├── frontend/                # 前端（Vue 3 + Naive UI）
-│   ├── src/                 #   应用源码（src/modules/ 与后端可选模块一一对应）
-│   └── packages/            #   内部包
-└── assets/                  # README 资源
+│   │   ├── framework/       #   Core / Web.Core base capabilities
+│   │   ├── modules/         #   Saas + five optional modules (CodeGen/AI/Workflow/Printing/Chat)
+│   │   └── main/            #   WebHost startup entry
+│   ├── props/               #   shared MSBuild properties
+│   ├── scripts/             #   version bump and cleanup scripts
+│   └── test/                #   test projects
+├── frontend/                # frontend (Vue 3 + XiHan.UI)
+│   ├── src/                 #   application sources (src/modules/ mirrors the optional backend modules)
+│   └── packages/            #   internal packages
+└── assets/                  # README assets
 ```
 
-### 卸载可选模块
+### Removing Optional Modules
 
-一个可选模块 = 后端一个工程 + 前端一个 `src/modules/<模块>` 目录。卸载步骤：
+An optional module is one backend project plus one `src/modules/<module>` directory on the frontend. The per-side steps live in the [backend](./backend/README.md#removing-optional-modules) and [frontend](./frontend/README.md#removing-optional-modules) engineering notes.
 
-1. 后端：删除 `backend/src/modules/XiHan.BasicApp.<模块>`，并摘除四处一行级登记——WebHost 的 csproj 引用与 `[DependsOn]`、`backend/XiHan.BasicApp.slnx`、`Api.Tests.csproj`（删漏任何一处编译立刻报错，不会静默残留）；
-2. 前端：删除 `frontend/src/modules/<模块>` 目录（视图/API/文案/启动钩子随目录消失，无需改接线）；个别模块另有自包含功能包（Chat 的 `packages/chat`、Printing 的 `packages/printing`、Workflow 的 `packages/diagram`）与 catalog 依赖条目可一并清理——聊天的顶栏入口、全局抽屉与灵动岛提醒经壳层扩展注册点挂载，随模块删除自动消失；
-3. 特例：Chat 被 AI 的助手桥接依赖（`AI → Chat`），删 Chat 须连带删除 AI 模块或摘除其中的桥接（后端 ChatAssistant 三文件与 csproj 引用、前端 `src/modules/ai/api/chat-assistant.ts` 与 setup 注册）；
-4. **卸载必须伴随重建数据库**：菜单、权限、角色授权、定时任务的种子行不会随模块删除自动回收。
+⚠️ **Removal must be paired with rebuilding the database**: seeded menus, permissions, role grants and scheduled jobs are not reclaimed when a module is deleted.
 
+## Getting Started
 
-## 快速开始
+### Requirements
 
-### 环境要求
+| Dependency | Version | Notes |
+| --- | --- | --- |
+| .NET SDK | 10.0+ | required by the backend |
+| Node.js | 24.0+ | required by the frontend |
+| pnpm | 11.0+ | required by the frontend |
+| PostgreSQL | 14+ | the only hard requirement; MySQL / SQL Server / SQLite / Oracle also work |
+| Redis | 6.0+ | optional; falls back to in-process memory caching when disabled |
+| Qdrant | v1.15+ | only needed for the AI knowledge base |
 
-| 依赖 | 版本 |
-| --- | --- |
-| .NET SDK | 10.0+ |
-| Node.js | 24.0+ |
-| pnpm | 11.0+ |
-| PostgreSQL | 14+（或 MySQL / MariaDB） |
-| Redis | 6.0+ |
+### One Command with Containers
 
-### 后端
+The repository root ships a `docker-compose.yml` with five services — PostgreSQL, Redis, Qdrant, backend and frontend:
+
+```bash
+cp .env.example .env
+docker compose up -d
+```
+
+The frontend defaults to `http://localhost:8080` and the backend to `http://localhost:9708`; both ports are configurable in `.env`.
+
+### Backend
 
 ```bash
 git clone https://github.com/XiHanFun/XiHan.BasicApp.git
@@ -254,40 +255,13 @@ cd XiHan.BasicApp/backend
 dotnet run --project src/main/XiHan.BasicApp.WebHost --launch-profile Development
 ```
 
-启动后访问 `http://127.0.0.1:9708/scalar` 查看 API 文档。
+Then open `http://127.0.0.1:9708/scalar` for the API documentation. Ports per environment: Development `9708`, Production `9709`.
 
-各环境端口：Development `9708`、Production `9709`。
+The connection string goes into `XiHan:Data:SqlSugarCore:ConnectionConfigs` in `backend/src/main/XiHan.BasicApp.WebHost/appsettings.Development.json`. The first start creates the schema and seeds it automatically.
 
-#### 曦寒框架的引用方式
+The framework is consumed from NuGet by default, so cloning this repository alone is enough to build. See the [backend engineering notes](./backend/README.md#how-the-framework-is-referenced) for working on the framework at the same time.
 
-本仓库依赖 [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework)，默认走 **NuGet 包**——按上面的步骤克隆即可编译、运行、发布，不需要框架源码。
-
-如果你要连框架一起改（跟到框架内部断点、改完立刻生效），把两个仓库**并列检出**，并用工作区解决方案打开：
-
-```text
-XiHanFun/
-├─ XiHan.BasicApp/      # 本仓库
-├─ XiHan.Framework/     # 框架源码
-└─ XiHanFun.slnx        # 工作区解决方案（含两者全部工程）
-```
-
-**引用方式由你打开的解决方案决定**，不需要改任何文件：
-
-| 解决方案 | 框架引用 | 场景 |
-| --- | --- | --- |
-| `backend/XiHan.BasicApp.slnx` | `PackageReference` → NuGet | 常规开发、发布 |
-| 仓库根 `XiHanFun.slnx` | `ProjectReference` → 框架源码 | 连框架一起调试 |
-
-想强制指定：
-
-```bash
-dotnet build -p:UseXiHanFrameworkSource=true    # 只用框架源码
-dotnet build -p:UseXiHanFrameworkSource=false   # 只用 NuGet 包
-```
-
-> 为什么以解决方案为准：源码模式下 Visual Studio 要求被 `ProjectReference` 的工程也是解决方案成员，否则设计时报 `NU1105`。`XiHan.BasicApp.slnx` 里没有框架工程（它要能被单独克隆的人打开），所以它始终走 NuGet；`XiHanFun.slnx` 已登记全部框架工程，走源码才成立。
-
-### 前端
+### Frontend
 
 ```bash
 cd frontend
@@ -295,81 +269,49 @@ pnpm install
 pnpm dev
 ```
 
-### 数据库
+> ⚠️ The `overrides` block in `pnpm-workspace.yaml` points `@xihan-ui/*` at a sibling `../../XiHan.UI` checkout, so **`pnpm install` fails without one**. To use the published npm versions instead, delete that overrides block.
 
-在 `backend/src/main/XiHan.BasicApp.WebHost/appsettings.Development.json` 配置连接串：
+### Default Account
 
-```json
-{
-  "XiHan": {
-    "Data": {
-      "SqlSugarCore": {
-        "ConnectionConfigs": [
-          {
-            "DbType": "PostgreSQL",
-            "ConnectionString": "Host=localhost;Port=5432;Database=xihan_basic_app;Username=postgres;Password=your_password;"
-          }
-        ]
-      }
-    }
-  }
-}
-```
+The initial super administrator is `superadmin` with the password `SuperAdmin@123`. Override it through `Saas:Seed:SuperAdminPassword` (environment variable `Saas__Seed__SuperAdminPassword`). Always override it in production, and change it right after the first sign-in.
 
-首次启动会自动建表并执行数据种子初始化。
+## Ecosystem
 
-### 默认账号
+- [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) - A fast, lightweight, efficient and thoughtfully built modern modular framework for .NET
+- [XiHan.UI](https://github.com/XiHanFun/XiHan.UI) - A fast, lightweight, efficient and thoughtfully built framework-agnostic component library
+- [XiHan.BasicApp](https://github.com/XiHanFun/XiHan.BasicApp) - A beautifully crafted admin kernel built on .NET and Vue
 
-初始超级管理员账号为 `superadmin`，密码 `SuperAdmin@123`。可通过 `Saas:Seed:SuperAdminPassword`（环境变量 `Saas__Seed__SuperAdminPassword`）覆盖。生产环境请务必覆盖，并在首次登录后立即修改。
+## Acknowledgements
 
-## 部署
+In no particular order.
 
-### Linux（Supervisor）
-
-```bash
-dotnet publish backend/src/main/XiHan.BasicApp.WebHost -c Release -o /home/basicappapi
-
-sudo cp backend/scripts/service/XiHan.BasicApp.ini /etc/supervisor/conf.d/
-sudo supervisorctl reread
-sudo supervisorctl update
-sudo supervisorctl start XiHanBasicApp
-```
-
-### Windows
-
-使用 `backend/scripts/service/XiHan.BasicApp.bat` 启动。
-
-## 诚挚致谢
-
-排名不分先后。
-
-| 项目                                                         | 致谢                                           |
-| ------------------------------------------------------------ | ---------------------------------------------- |
-| [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) | 作为本项目的后端底层框架支持                   |
-| [XiHan.UI](https://github.com/XiHanFun/XiHan.UI)             | 作为本项目的前端视图组件支持                   |
-| [NaiveUI](https://github.com/tusen-ai/naive-ui)              | 作为本项目的前端视图组件支持（v4.0.0前）       |
-| [Blog.Core](https://github.com/anjoy8/Blog.Core)             | 作为部分后端架构、逻辑功能灵感来源（启蒙项目） |
-| [ Admin.Core.ZR](https://gitee.com/izory/ZrAdminNetCore)     | 作为部分后端功能灵感来源                       |
-| [YuebonCore](https://gitee.com/yuebon/YuebonNetCore)         | 作为部分后端功能灵感来源                       |
-| [VbenAdmin](https://github.com/vbenjs/vue-vben-admin)        | 作为部分前端架构、视觉功能灵感来源（启蒙项目） |
-| [SoybeanAdmin](https://github.com/soybeanjs/soybean-admin)   | 作为部分前端视觉功能灵感来源                   |
-| [LitheAdmin](https://github.com/tenianon/lithe-admin)        | 作为部分前端视觉功能灵感来源                   |
-| 其他第三方依赖                                               | 作为项目功能丰富与拓展的基石                   |
+| Project                                                        | Thanks for                                              |
+| -------------------------------------------------------------- | ------------------------------------------------------- |
+| [XiHan.Framework](https://github.com/XiHanFun/XiHan.Framework) | Being the backend foundation of this project            |
+| [XiHan.UI](https://github.com/XiHanFun/XiHan.UI)               | Being the frontend component foundation of this project |
+| [NaiveUI](https://github.com/tusen-ai/naive-ui)                | The frontend component library before v4.0.0            |
+| [Blog.Core](https://github.com/anjoy8/Blog.Core)               | Inspiring parts of the backend architecture             |
+| [ Admin.Core.ZR](https://gitee.com/izory/ZrAdminNetCore)       | Inspiring parts of the backend features                 |
+| [YuebonCore](https://gitee.com/yuebon/YuebonNetCore)           | Inspiring parts of the backend features                 |
+| [VbenAdmin](https://github.com/vbenjs/vue-vben-admin)          | Inspiring parts of the frontend architecture and visuals |
+| [SoybeanAdmin](https://github.com/soybeanjs/soybean-admin)     | Inspiring parts of the frontend visuals                 |
+| [LitheAdmin](https://github.com/tenianon/lithe-admin)          | Inspiring parts of the frontend visuals                 |
+| Other third-party dependencies                                 | Being the foundation this project is built upon         |
 
 
-## 支持&赞助
+## Support & Sponsorship
 
-如果此项目对你的开发有助益，也欢迎请作者一杯咖啡。
+If this project helps your work, feel free to buy the author a coffee.
 
-官方赞助页 https://docs.xihanfun.com/cosmos/sponsor
+Official sponsorship page: https://docs.xihanfun.com/cosmos/sponsor
 
 
-## 版权&授权
+## License
 
 Copyright (c) 2021-Present XiHanFun and contributors.
 
-本项目采用 MIT 授权，详见 [License](./LICENSE)
+Released under the MIT License — see [License](./LICENSE).
 
-XiHan.BasicApp Logo、XiHan.BasicApp名称、界面视觉设计与原创视觉表达归作者所有，第三方依赖和第三方服务分别遵循其各自授权与服务条款。
+The XiHan.BasicApp logo, name, interface visual design and original visual expression belong to the author; third-party dependencies and services are governed by their own licenses and terms.
 
-项目仅供学习参考，作者不承担任何软件的使用风险。
+This project is provided for study and reference; the author assumes no liability for any use of the software.
