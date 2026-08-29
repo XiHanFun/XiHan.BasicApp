@@ -65,6 +65,79 @@ public sealed class MenuRouteQueryService
             : item.Routes;
     }
 
+    /// <summary>
+    /// 按授权快照获取当前用户可用的按钮码
+    /// </summary>
+    /// <remarks>
+    /// 不缓存：本方法只在登录与权限刷新时被调用，两次仓储查询的代价低于维护一份随权限集变化的缓存。
+    /// 按钮行缺 PermissionId 视为未授权（fail-closed）——按钮登记必带权限码，缺失说明权限没播种到位。
+    /// </remarks>
+    /// <param name="snapshot">授权快照</param>
+    /// <param name="deniedPermissionCodes">额外禁用的权限码（如模仿态禁用清单）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>可用按钮码</returns>
+    public async Task<List<string>> GetGrantedButtonCodesAsync(
+        AuthorizationSnapshot snapshot,
+        IReadOnlySet<string>? deniedPermissionCodes = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(snapshot);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var buttons = await _menuRepository.GetListAsync(
+            menu => menu.Status == EnableStatus.Enabled && menu.MenuType == MenuType.Button,
+            cancellationToken);
+        if (buttons.Count == 0)
+        {
+            return [];
+        }
+
+        var permissions = await _permissionRepository.GetListAsync(
+            permission => permission.Status == EnableStatus.Enabled,
+            cancellationToken);
+        var permissionCodeMap = permissions.ToDictionary(
+            permission => permission.BasicId,
+            permission => permission.PermissionCode);
+
+        var hasAllPermissions = snapshot.Permissions.Contains("*", StringComparer.OrdinalIgnoreCase);
+
+        return
+        [
+            .. buttons
+                .Where(menu => menu.IsVisible)
+                .Where(menu => IsButtonGranted(menu, snapshot, hasAllPermissions, permissionCodeMap, deniedPermissionCodes))
+                .Select(menu => menu.MenuCode)
+                .Where(code => !string.IsNullOrWhiteSpace(code))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(code => code, StringComparer.Ordinal)
+        ];
+    }
+
+    /// <summary>
+    /// 判定单个按钮是否可用
+    /// </summary>
+    private static bool IsButtonGranted(
+        SysMenu menu,
+        AuthorizationSnapshot snapshot,
+        bool hasAllPermissions,
+        IReadOnlyDictionary<long, string> permissionCodeMap,
+        IReadOnlySet<string>? deniedPermissionCodes)
+    {
+        if (!menu.PermissionId.HasValue)
+        {
+            return false;
+        }
+
+        if (deniedPermissionCodes is { Count: > 0 }
+            && permissionCodeMap.TryGetValue(menu.PermissionId.Value, out var permissionCode)
+            && deniedPermissionCodes.Contains(permissionCode))
+        {
+            return false;
+        }
+
+        return hasAllPermissions || snapshot.PermissionIds.Contains(menu.PermissionId.Value);
+    }
+
     private static DistributedCacheEntryOptions CreateCacheOptions()
     {
         return new DistributedCacheEntryOptions

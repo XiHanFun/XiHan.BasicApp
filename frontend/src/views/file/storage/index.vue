@@ -129,9 +129,9 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'file.storage',
-  exportPermission: 'saas:storage-config:export',
+  exportPermission: 'file.storage.export',
   pageName: t('file.storage.page_name'),
-  statusPermission: 'saas:storage-config:status',
+  statusPermission: 'file.storage.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {
@@ -152,15 +152,15 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => storageConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('file.storage.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:storage-config:create' },
-    { key: 'edit', title: t('file.storage.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'saas:storage-config:update' },
-    { key: 'toggle', title: t('file.storage.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'saas:storage-config:status' },
+    { key: 'create', title: t('file.storage.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'file.storage.create' },
+    { key: 'edit', title: t('file.storage.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'file.storage.update' },
+    { key: 'toggle', title: t('file.storage.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'file.storage.status' },
     {
       key: 'setDefault',
       title: t('file.storage.actions.set_default'),
       scope: 'row',
       icon: 'lucide:star',
-      permission: 'saas:storage-config:update',
+      permission: 'file.storage.update',
       visible: row => !(row as unknown as StorageConfigListItemDto).isDefault,
     },
     {
@@ -169,7 +169,7 @@ const schema = computed<PageSchema>(() => ({
       scope: 'row',
       icon: 'lucide:trash-2',
       type: 'error',
-      permission: 'saas:storage-config:delete',
+      permission: 'file.storage.delete',
       visible: row => !(row as unknown as StorageConfigListItemDto).isDefault,
     },
   ],

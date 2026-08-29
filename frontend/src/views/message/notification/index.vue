@@ -285,7 +285,7 @@ function toStr(v: unknown): string | undefined {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'message.notification',
-  exportPermission: 'saas:notification:export',
+  exportPermission: 'message.notification.export',
   pageName: t('message.notification.page_name'),
   rowKey: 'basicId',
   fields: fields.value,
@@ -307,12 +307,12 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'create', title: t('message.notification.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:message:create' },
+    { key: 'create', title: t('message.notification.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'message.notification.create' },
     { key: 'view', title: t('message.notification.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'stats', title: t('message.notification.action_stats'), scope: 'row', icon: 'lucide:bar-chart-3', permission: 'saas:message:read', visible: isPublished },
-    { key: 'edit', title: t('message.notification.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'saas:message:update', visible: isUnpublished },
-    { key: 'publish', title: t('message.notification.action_publish'), scope: 'row', type: 'primary', icon: 'lucide:send', permission: 'saas:message:publish', visible: isUnpublished },
-    { key: 'delete', title: t('message.notification.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:message:delete', confirm: true, confirmText: t('message.notification.confirm_delete') },
+    { key: 'stats', title: t('message.notification.action_stats'), scope: 'row', icon: 'lucide:bar-chart-3', permission: 'message.notification.read', visible: isPublished },
+    { key: 'edit', title: t('message.notification.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'message.notification.update', visible: isUnpublished },
+    { key: 'publish', title: t('message.notification.action_publish'), scope: 'row', type: 'primary', icon: 'lucide:send', permission: 'message.notification.publish', visible: isUnpublished },
+    { key: 'delete', title: t('message.notification.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'message.notification.delete', confirm: true, confirmText: t('message.notification.confirm_delete') },
   ],
 }))
 

@@ -190,9 +190,9 @@ function toBool(v: unknown): boolean | undefined {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'tenant.edition',
-  exportPermission: 'saas:tenant-edition:export',
+  exportPermission: 'tenant.edition.export',
   pageName: t('tenant.edition.page_name'),
-  statusPermission: 'saas:tenant-edition:status',
+  statusPermission: 'tenant.edition.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {
@@ -211,15 +211,15 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => tenantEditionApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: t('tenant.edition.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:tenant-edition:create' },
-    { key: 'edit', title: t('tenant.edition.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'saas:tenant-edition:update' },
+    { key: 'create', title: t('tenant.edition.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'tenant.edition.create' },
+    { key: 'edit', title: t('tenant.edition.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'tenant.edition.update' },
     {
       key: 'enable',
       title: t('tenant.edition.enable'),
       scope: 'row',
       type: 'success',
       icon: 'lucide:play',
-      permission: 'saas:tenant-edition:status',
+      permission: 'tenant.edition.status',
       visible: row => (row as unknown as TenantEditionListItemDto).status === EnableStatus.Disabled,
     },
     {
@@ -228,7 +228,7 @@ const schema = computed<PageSchema>(() => ({
       scope: 'row',
       type: 'warning',
       icon: 'lucide:pause',
-      permission: 'saas:tenant-edition:status',
+      permission: 'tenant.edition.status',
       visible: row => (row as unknown as TenantEditionListItemDto).status === EnableStatus.Enabled,
     },
     {
@@ -236,10 +236,10 @@ const schema = computed<PageSchema>(() => ({
       title: t('tenant.edition.set_default'),
       scope: 'row',
       icon: 'lucide:star',
-      permission: 'saas:tenant-edition:default',
+      permission: 'tenant.edition.default',
       visible: row => !(row as unknown as TenantEditionListItemDto).isDefault,
     },
-    { key: 'permissions', title: t('tenant.edition.permissions'), scope: 'row', icon: 'lucide:shield-check', permission: 'saas:tenant-edition-permission:read' },
+    { key: 'permissions', title: t('tenant.edition.permissions'), scope: 'row', icon: 'lucide:shield-check', permission: 'tenant.edition.permission-read' },
   ],
 }))
 
@@ -448,9 +448,9 @@ function confirmSetDefault(row: TenantEditionListItemDto) {
 }
 
 // ── 版本权限抽屉 ────────────────────────────────────────────────
-const canGrantPermission = computed(() => hasPermission('saas:tenant-edition-permission:grant'))
-const canRevokePermission = computed(() => hasPermission('saas:tenant-edition-permission:revoke'))
-const canUpdateMapping = computed(() => hasPermission('saas:tenant-edition-permission:update'))
+const canGrantPermission = computed(() => hasPermission('tenant.edition.permission-grant'))
+const canRevokePermission = computed(() => hasPermission('tenant.edition.permission-revoke'))
+const canUpdateMapping = computed(() => hasPermission('tenant.edition.permission-update'))
 
 const permDrawerVisible = ref(false)
 const permLoading = ref(false)

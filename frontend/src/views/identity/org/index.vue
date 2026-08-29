@@ -123,11 +123,11 @@ const fields = computed<ListFieldSchema[]>(() => [
 // DepartmentTreeQueryDto 仅支持 keyword/limit/onlyEnabled；类型/状态仅作为列展示。
 const schema = computed<PageSchema>(() => ({
   pageCode: 'system.org',
-  exportPermission: 'saas:department:export',
+  exportPermission: 'identity.org.export',
   pageName: t('identity.org.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:department:delete',
-  statusPermission: 'saas:department:status',
+  removePermission: 'identity.org.delete',
+  statusPermission: 'identity.org.status',
   rowKey: 'basicId',
   tree: { childrenKey: 'children', defaultExpandAll: false },
   fields: fields.value,

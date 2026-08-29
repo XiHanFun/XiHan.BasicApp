@@ -211,11 +211,11 @@ function buildTree(items: MenuListItemDto[]): MenuTreeItem[] {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.menu',
-  exportPermission: 'saas:menu:export',
+  exportPermission: 'setting.menu.export',
   pageName: t('setting.menu.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:menu:delete',
-  statusPermission: 'saas:menu:status',
+  removePermission: 'setting.menu.delete',
+  statusPermission: 'setting.menu.status',
   rowKey: 'basicId',
   tree: { childrenKey: 'children', defaultExpandAll: false },
   resource: {

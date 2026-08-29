@@ -46,7 +46,7 @@ const activeScope = ref<NumberingScope>(isPlatform.value ? NumberingScope.Global
 const actionLoading = ref(false)
 
 const canMaintain = computed(() => activeScope.value === NumberingScope.Tenant
-  || (isPlatform.value && userStore.hasPermission('saas:numbering:global-manage')))
+  || (isPlatform.value && userStore.hasPermission('setting.numbering.global-manage')))
 
 /** 当前租户视图的作用域名称，用于让紧凑工具栏按钮仍具备明确的无障碍语义。 */
 const currentScopeLabel = computed(() => activeScope.value === NumberingScope.Tenant
@@ -188,15 +188,15 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     // SchemaActionPanel 仅按权限筛选页面级动作，因此只在可维护作用域中组装“新增”按钮。
     ...(canMaintain.value
-      ? [{ key: 'create', title: t('setting.numbering.action_create'), scope: 'page' as const, type: 'primary' as const, icon: 'lucide:plus', permission: 'saas:numbering:create' }]
+      ? [{ key: 'create', title: t('setting.numbering.action_create'), scope: 'page' as const, type: 'primary' as const, icon: 'lucide:plus', permission: 'setting.numbering.create' }]
       : []),
-    { key: 'preview', title: t('setting.numbering.action_preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'saas:numbering:read' },
+    { key: 'preview', title: t('setting.numbering.action_preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'setting.numbering.read' },
     { key: 'view', title: t('setting.numbering.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('setting.numbering.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'saas:numbering:update', visible: () => canMaintain.value },
-    { key: 'toggle', title: t('setting.numbering.action_toggle'), scope: 'row', icon: 'lucide:power', permission: 'saas:numbering:status', visible: () => canMaintain.value },
-    { key: 'reset', title: t('setting.numbering.action_reset'), scope: 'row', icon: 'lucide:rotate-ccw', permission: 'saas:numbering:reset', visible: () => canMaintain.value },
-    { key: 'allocations', title: t('setting.numbering.action_allocations'), scope: 'row', icon: 'lucide:history', permission: 'saas:numbering:allocation-read' },
-    { key: 'delete', title: t('setting.numbering.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'saas:numbering:delete', visible: () => canMaintain.value, disabled: row => (row as unknown as NumberingRuleListItemDto).hasAllocated },
+    { key: 'edit', title: t('setting.numbering.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'setting.numbering.update', visible: () => canMaintain.value },
+    { key: 'toggle', title: t('setting.numbering.action_toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.numbering.status', visible: () => canMaintain.value },
+    { key: 'reset', title: t('setting.numbering.action_reset'), scope: 'row', icon: 'lucide:rotate-ccw', permission: 'setting.numbering.reset', visible: () => canMaintain.value },
+    { key: 'allocations', title: t('setting.numbering.action_allocations'), scope: 'row', icon: 'lucide:history', permission: 'setting.numbering.allocations' },
+    { key: 'delete', title: t('setting.numbering.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'setting.numbering.delete', visible: () => canMaintain.value, disabled: row => (row as unknown as NumberingRuleListItemDto).hasAllocated },
   ],
 }))
 

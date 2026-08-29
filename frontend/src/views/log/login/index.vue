@@ -137,7 +137,7 @@ function buildLoginQuery(params: SchemaQueryParams) {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'log.login',
-  exportPermission: 'saas:login-log:export',
+  exportPermission: 'log.login.export',
   pageName: t('log.login.page_name'),
   rowKey: 'basicId',
   fields: decorateTraceFields(fields.value, router, { timeField: 'loginTime', ipKey: 'loginIp' }),

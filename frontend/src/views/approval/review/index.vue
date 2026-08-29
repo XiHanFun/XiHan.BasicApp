@@ -150,10 +150,10 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.approval',
-  exportPermission: 'saas:review:export',
+  exportPermission: 'approval.review.export',
   pageName: t('approval.review.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:review:delete',
+  removePermission: 'approval.review.delete',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {

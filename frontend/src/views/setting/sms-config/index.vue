@@ -115,9 +115,9 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.sms-config',
-  exportPermission: 'saas:sms-config:export',
+  exportPermission: 'setting.sms-config.export',
   pageName: t('message.sms_config.page_name'),
-  statusPermission: 'saas:sms-config:status',
+  statusPermission: 'setting.sms-config.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {
@@ -138,15 +138,15 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => smsConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('message.sms_config.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:sms-config:create' },
-    { key: 'edit', title: t('message.sms_config.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'saas:sms-config:update' },
-    { key: 'toggle', title: t('message.sms_config.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'saas:sms-config:status' },
+    { key: 'create', title: t('message.sms_config.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.sms-config.create' },
+    { key: 'edit', title: t('message.sms_config.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.sms-config.update' },
+    { key: 'toggle', title: t('message.sms_config.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.sms-config.status' },
     {
       key: 'setDefault',
       title: t('message.sms_config.actions.set_default'),
       scope: 'row',
       icon: 'lucide:star',
-      permission: 'saas:sms-config:update',
+      permission: 'setting.sms-config.update',
       visible: row => !(row as unknown as SmsConfigListItemDto).isDefault,
     },
     {
@@ -155,7 +155,7 @@ const schema = computed<PageSchema>(() => ({
       scope: 'row',
       icon: 'lucide:trash-2',
       type: 'error',
-      permission: 'saas:sms-config:delete',
+      permission: 'setting.sms-config.delete',
       visible: row => !(row as unknown as SmsConfigListItemDto).isDefault,
     },
   ],

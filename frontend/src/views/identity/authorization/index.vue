@@ -217,7 +217,7 @@ function isPending(row: unknown) {
 
 const requestSchema = computed<PageSchema>(() => ({
   pageCode: 'system.authorization.request',
-  exportPermission: 'saas:permission-request:export',
+  exportPermission: 'identity.authorization.export',
   pageName: t('identity.authorization.req_page_name'),
   rowKey: 'basicId',
   fields: requestFields.value,

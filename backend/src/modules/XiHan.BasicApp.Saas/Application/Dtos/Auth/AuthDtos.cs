@@ -438,6 +438,11 @@ public sealed class StartImpersonationRequestDto
 public sealed class PermissionInfoDto
 {
     /// <summary>
+    /// 可用按钮码（页面按钮的门控由服务端判定，权限码不下发给客户端）
+    /// </summary>
+    public List<string> Buttons { get; set; } = [];
+
+    /// <summary>
     /// 角色编码
     /// </summary>
     public List<string> Roles { get; set; } = [];

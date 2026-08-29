@@ -116,15 +116,15 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'create', title: t('workflow.definition.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'workflow:create' },
+    { key: 'create', title: t('workflow.definition.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'workflow_definition.create' },
     { key: 'view', title: t('workflow.definition.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('workflow.definition.action_edit'), scope: 'row', permission: 'workflow:update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
-    { key: 'publish', title: t('workflow.definition.action_publish'), scope: 'row', type: 'success', permission: 'workflow:update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
-    { key: 'start', title: t('workflow.definition.action_start'), scope: 'row', type: 'primary', permission: 'workflow:execute', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Published },
-    { key: 'newVersion', title: t('workflow.definition.action_new_version'), scope: 'row', permission: 'workflow:create', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status !== WorkflowDefinitionStatus.Draft },
-    { key: 'disable', title: t('workflow.definition.action_disable'), scope: 'row', type: 'warning', permission: 'workflow:update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Published },
-    { key: 'archive', title: t('workflow.definition.action_archive'), scope: 'row', permission: 'workflow:update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Disabled },
-    { key: 'delete', title: t('workflow.definition.action_delete'), scope: 'row', type: 'error', permission: 'workflow:delete', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
+    { key: 'edit', title: t('workflow.definition.action_edit'), scope: 'row', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
+    { key: 'publish', title: t('workflow.definition.action_publish'), scope: 'row', type: 'success', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
+    { key: 'start', title: t('workflow.definition.action_start'), scope: 'row', type: 'primary', permission: 'workflow_definition.execute', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Published },
+    { key: 'newVersion', title: t('workflow.definition.action_new_version'), scope: 'row', permission: 'workflow_definition.create', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status !== WorkflowDefinitionStatus.Draft },
+    { key: 'disable', title: t('workflow.definition.action_disable'), scope: 'row', type: 'warning', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Published },
+    { key: 'archive', title: t('workflow.definition.action_archive'), scope: 'row', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Disabled },
+    { key: 'delete', title: t('workflow.definition.action_delete'), scope: 'row', type: 'error', permission: 'workflow_definition.delete', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
   ],
 }))
 

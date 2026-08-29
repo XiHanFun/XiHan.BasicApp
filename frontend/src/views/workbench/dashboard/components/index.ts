@@ -23,7 +23,7 @@ export interface WidgetDef {
 export const WIDGETS: WidgetDef[] = [
   { key: 'clock', titleKey: 'workbench.widgets.clock.title', descKey: 'workbench.widgets.clock.desc', icon: 'lucide:clock', defaultSpan: 2, component: markRaw(ClockWidget) },
   { key: 'welcome', titleKey: 'workbench.widgets.welcome.title', descKey: 'workbench.widgets.welcome.desc', icon: 'lucide:sparkles', defaultSpan: 4, component: markRaw(WelcomeWidget) },
-  { key: 'stats', titleKey: 'workbench.widgets.stats.title', descKey: 'workbench.widgets.stats.desc', icon: 'lucide:gauge', defaultSpan: 3, component: markRaw(StatsWidget), permission: 'saas:user-statistics:read' },
+  { key: 'stats', titleKey: 'workbench.widgets.stats.title', descKey: 'workbench.widgets.stats.desc', icon: 'lucide:gauge', defaultSpan: 3, component: markRaw(StatsWidget), permission: 'workbench.dashboard.user-statistics' },
   { key: 'favorites', titleKey: 'workbench.widgets.favorites.title', descKey: 'workbench.widgets.favorites.desc', icon: 'lucide:star', defaultSpan: 3, component: markRaw(FavoritesWidget) },
   { key: 'todo', titleKey: 'workbench.widgets.todo.title', descKey: 'workbench.widgets.todo.desc', icon: 'lucide:check-square', defaultSpan: 3, component: markRaw(TodoWidget) },
   { key: 'announcement', titleKey: 'workbench.widgets.announcement.title', descKey: 'workbench.widgets.announcement.desc', icon: 'lucide:megaphone', defaultSpan: 6, component: markRaw(AnnouncementWidget) },

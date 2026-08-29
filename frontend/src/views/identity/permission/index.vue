@@ -230,11 +230,11 @@ const fields = computed<ListFieldSchema[]>(() => [
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema = computed<PageSchema>(() => ({
   pageCode: 'system.permission',
-  exportPermission: 'saas:permission:export',
+  exportPermission: 'identity.permission.export',
   pageName: t('identity.permission.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:permission:delete',
-  statusPermission: 'saas:permission:status',
+  removePermission: 'identity.permission.delete',
+  statusPermission: 'identity.permission.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {

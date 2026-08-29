@@ -44,5 +44,16 @@ public static class PageRegistry
     /// <summary>
     /// 页面内按钮（本模块暂无独立按钮级权限）
     /// </summary>
-    public static IReadOnlyList<ButtonDescriptor> Buttons { get; } = [];
+    public static IReadOnlyList<ButtonDescriptor> Buttons { get; } =
+    [
+        // 流程定义
+        new("workflow_definition.create", "新增", "workflow_definition", WorkflowPermissionCodes.Create, 1),
+        new("workflow_definition.update", "编辑", "workflow_definition", WorkflowPermissionCodes.Update, 2),
+        new("workflow_definition.execute", "发起流程", "workflow_definition", WorkflowPermissionCodes.Execute, 3),
+        new("workflow_definition.delete", "删除", "workflow_definition", WorkflowPermissionCodes.Delete, 4),
+
+        // 流程实例
+        new("workflow_instance.update", "挂起恢复", "workflow_instance", WorkflowPermissionCodes.Update, 1),
+        new("workflow_instance.execute", "重试与终止", "workflow_instance", WorkflowPermissionCodes.Execute, 2),
+    ];
 }

@@ -9,6 +9,7 @@ export const useAccessStore = defineStore('access', () => {
   const refreshToken = ref<string | null>(LocalStorage.get<string>(REFRESH_TOKEN_KEY))
   const accessRoutes = ref<MenuRoute[]>([])
   const accessCodes = ref<string[]>([])
+  const accessButtons = ref<string[]>([])
   const isRoutesLoaded = ref(false)
   const loginExpired = ref(false)
 
@@ -43,12 +44,19 @@ export const useAccessStore = defineStore('access', () => {
     accessCodes.value = codes
   }
 
+  /** 服务端下发的可用按钮码：页面按钮门控的唯一依据，前端不持有权限码 */
+  function setAccessButtons(buttons: string[]) {
+    accessButtons.value = buttons
+  }
+
   function setLoginExpired(expired: boolean) {
     loginExpired.value = expired
   }
 
   function hasCode(code: string): boolean {
-    return accessCodes.value.includes(code) || accessCodes.value.includes('*')
+    return accessCodes.value.includes(code)
+      || accessButtons.value.includes(code)
+      || accessCodes.value.includes('*')
   }
 
   function $reset() {
@@ -56,6 +64,7 @@ export const useAccessStore = defineStore('access', () => {
     refreshToken.value = null
     accessRoutes.value = []
     accessCodes.value = []
+    accessButtons.value = []
     isRoutesLoaded.value = false
     loginExpired.value = false
     LocalStorage.remove(TOKEN_KEY)
@@ -67,6 +76,7 @@ export const useAccessStore = defineStore('access', () => {
     refreshToken,
     accessRoutes,
     accessCodes,
+    accessButtons,
     isRoutesLoaded,
     loginExpired,
     homePath,
@@ -74,6 +84,7 @@ export const useAccessStore = defineStore('access', () => {
     setRefreshToken,
     setAccessRoutes,
     setAccessCodes,
+    setAccessButtons,
     setLoginExpired,
     hasCode,
     $reset,

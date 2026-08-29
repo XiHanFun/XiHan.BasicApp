@@ -176,7 +176,7 @@ function buildExceptionQuery(params: SchemaQueryParams) {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'log.exception',
-  exportPermission: 'saas:exception-log:export',
+  exportPermission: 'log.exception.export',
   pageName: t('log.exception.page_name'),
   rowKey: 'basicId',
   fields: decorateTraceFields(fields.value, router, { timeField: 'exceptionTime', ipKey: 'operationIp' }),

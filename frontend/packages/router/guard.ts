@@ -82,6 +82,7 @@ export function setupRouterGuard(router: Router) {
           permissions: authPermission.permissions,
         })
         accessStore.setAccessCodes(authPermission.permissions)
+        accessStore.setAccessButtons(authPermission.buttons ?? [])
       }
       catch {
         // 会话锁定（423）：令牌仍有效，放行进入壳层，锁定遮罩（LockScreen）接管 UI；
@@ -109,6 +110,7 @@ export function setupRouterGuard(router: Router) {
         if (!permissionInfo) {
           permissionInfo = await ctx.apis.getPermissionsApi()
           accessStore.setAccessCodes(permissionInfo.permissions)
+          accessStore.setAccessButtons(permissionInfo.buttons ?? [])
           if (userStore.userInfo) {
             userStore.setUserInfo({
               ...userStore.userInfo,

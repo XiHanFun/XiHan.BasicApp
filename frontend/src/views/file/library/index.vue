@@ -333,7 +333,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.file',
-  exportPermission: 'saas:file:export',
+  exportPermission: 'file.library.export',
   pageName: t('file.library.page_name'),
   rowKey: 'basicId',
   fields: fields.value,
