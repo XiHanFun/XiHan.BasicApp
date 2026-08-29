@@ -1,5 +1,6 @@
 ﻿# 设置控制台编码为 UTF-8 以正确显示中文
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 
 # 设置 version.props 文件路径
 $versionPropsPath = "..\..\props\version.props"
@@ -33,31 +34,109 @@ else {
 }
 Write-Output "主版本: $currentMajor，次版本: $currentMinor，修订版本: $currentPatch，发布标签: $currentReleaseTag，发布编号: $currentReleaseNumber"
 
+# 按提交推导升级级别。约定式提交的类型即级别：类型后带 ! 或正文写了 BREAKING CHANGE
+# 的算破坏性变更、升主版本，feat 升次版本，fix / perf / revert 升修订版本。
+# 起点取最近一个版本标签，没有标签就从仓库开头算起。
+$derivedLevel = $null
+$derivedPreview = ''
+$derivedNote = '推导不可用：没找到 git'
+if (Get-Command git -ErrorAction SilentlyContinue) {
+    $lastTag = & git describe --tags --abbrev=0 --match 'v[0-9]*' 2>$null
+    $range = if ($LASTEXITCODE -eq 0 -and $lastTag) { "$lastTag..HEAD" } else { 'HEAD' }
+    # 主题与正文之间垫 0x1F、提交之间垫 0x1E：正文本身有换行，按行拆会把一个提交拆成好几个
+    $raw = (& git log $range --no-merges --format="%s%x1f%b%x1e") -join "`n"
+    if ($LASTEXITCODE -ne 0) {
+        $derivedNote = '推导不可用：这里不是 git 仓库'
+    }
+    else {
+        $records = @($raw.Split([char]0x1e) | Where-Object { $_.Trim() -ne '' })
+        $breaking = 0
+        $feats = 0
+        $fixes = 0
+        foreach ($record in $records) {
+            $parts = $record.Split([char]0x1f)
+            $subject = $parts[0].Trim()
+            $body = if ($parts.Length -gt 1) { $parts[1] } else { '' }
+            # 一个提交只算一次：feat! 记在破坏性那一栏，不再往 feat 里记
+            if ($subject -match '^[a-zA-Z]+(\([^)]*\))?!:' -or $body -match 'BREAKING[ -]CHANGE:') {
+                $breaking = $breaking + 1
+            }
+            elseif ($subject -match '^feat(\([^)]*\))?:') {
+                $feats = $feats + 1
+            }
+            elseif ($subject -match '^(fix|perf|revert)(\([^)]*\))?:') {
+                $fixes = $fixes + 1
+            }
+        }
+
+        if ($breaking -gt 0) {
+            $derivedLevel = 'major'
+            $derivedPreview = "$($currentMajor + 1).0.0"
+        }
+        elseif ($feats -gt 0) {
+            $derivedLevel = 'minor'
+            $derivedPreview = "$currentMajor.$($currentMinor + 1).0"
+        }
+        elseif ($fixes -gt 0) {
+            $derivedLevel = 'patch'
+            $derivedPreview = "$currentMajor.$currentMinor.$($currentPatch + 1)"
+        }
+
+        $levelLabel = switch ($derivedLevel) {
+            'major' { '主版本' }
+            'minor' { '次版本' }
+            'patch' { '修订版本' }
+            default { '不升级' }
+        }
+        $since = if ($lastTag) { $lastTag } else { '仓库开头' }
+        $derivedNote = "$since 以来 $($records.Count) 个提交：破坏性 $breaking · feat $feats · fix/perf $fixes -> $levelLabel"
+        if ($derivedPreview) { $derivedNote = "$derivedNote（$derivedPreview）" }
+    }
+}
+Write-Output "按提交推导：$derivedNote"
+
+# 推导算的是「最近一个标签到现在」，而提升加在 version.props 上。
+# 两者对不上时说明已经有一次提升没发布，再按推导升一次会把中间那个号跳过去。
+if ($lastTag -and $lastTag.TrimStart('v') -ne $currentVersion) {
+    Write-Output "留意：version.props 是 $currentVersion，最近的标签是 $lastTag，中间这次提升还没发布"
+}
+
 # 提示用户选择升级类型
 Write-Output "请选择升级类型："
 Write-Output "0: 不升级"
-Write-Output "1: 主版本"
-Write-Output "2: 大版本"
-Write-Output "3: 小版本"
-$upgradeType = Read-Host ">>> 请选择升级类型 (0-3)"
+Write-Output "1: 按提交推导$(if ($derivedPreview) { "（$derivedPreview）" })"
+Write-Output "2: 主版本"
+Write-Output "3: 次版本"
+Write-Output "4: 修订版本"
+$upgradeType = Read-Host ">>> 请选择升级类型 (0-4)"
+
+# 推导出来的级别折回具体选项，后面那段升级逻辑一份就够
+if ($upgradeType -eq '1') {
+    if (-not $derivedLevel) {
+        Write-Output "推导不出要升哪一级，退出程序"
+        exit
+    }
+    $upgradeType = switch ($derivedLevel) { 'major' { '2' } 'minor' { '3' } 'patch' { '4' } }
+}
+
 switch ($upgradeType) {
     0 {
         Write-Output "不升级"
     }
-    1 {
+    2 {
         $currentMajor = $currentMajor + 1
         $currentMinor = 0
         $currentPatch = 0
         $currentReleaseTag = ""
         $currentReleaseNumber = 0
     }
-    2 {
+    3 {
         $currentMinor = $currentMinor + 1
         $currentPatch = 0
         $currentReleaseTag = ""
         $currentReleaseNumber = 0
     }
-    3 {
+    4 {
         $currentPatch = $currentPatch + 1
         $currentReleaseTag = ""
         $currentReleaseNumber = 0
