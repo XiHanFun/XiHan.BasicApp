@@ -11,6 +11,13 @@ export default antfu(
     rules: {
       'no-console': 'warn',
       'vue/component-name-in-template-casing': ['error', 'PascalCase'],
+      // 模板里用了没导入的组件时 Vue 不报错，直接把标签名当未知原生元素渲染出一个零尺寸空节点
+      // （聊天输入框整块消失就是这么来的：XInput 少了一行 import）。类型检查也兜不住——
+      // tsconfig 没开 vueCompilerOptions.strictTemplates，未解析组件在模板里退化成 any。
+      // Xh* 由 vite.config.ts 的 XiHanUiResolver 自动解析，Router* 由 vue-router 插件全局注册，都要放行。
+      'vue/no-undef-components': ['error', {
+        ignorePatterns: ['Xh.*', 'RouterView', 'RouterLink', 'router-view', 'router-link'],
+      }],
       'vue/multi-word-component-names': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
     },

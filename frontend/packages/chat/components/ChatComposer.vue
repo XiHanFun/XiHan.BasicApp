@@ -9,6 +9,7 @@ import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watc
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
 import XDropdown from '~/components/common/XDropdown.vue'
+import XInput from '~/components/common/XInput.vue'
 import XTooltip from '~/components/common/XTooltip.vue'
 import { toast } from '~/composables'
 
@@ -651,11 +652,15 @@ function handlePaste(event: ClipboardEvent) {
       <!-- 工具条（QQ 式：表情/图片/文件在输入区上方一排） -->
       <div class="flex items-center gap-0.5 px-2 pt-1.5">
         <XhPopoverRoot v-model:open="showEmojiPicker" placement="top-start">
-          <XhPopoverTrigger class="xh-linklike-trigger">
-            <Icon icon="lucide:smile" width="18" height="18" />
+          <!-- as-child：触发器缺省渲染成 button，这里借用作者自己的按钮，好与同排另外三个图标钮同款 -->
+          <XhPopoverTrigger as-child>
+            <button type="button" class="chat-composer-btn">
+              <Icon icon="lucide:smile" width="18" height="18" />
+            </button>
           </XhPopoverTrigger>
           <XhPopoverPositioner>
-            <XhPopoverContent>
+            <!-- 表情面板自带完整卡片相，浮层这层只当容器：去掉内边距、放开高度上限 -->
+            <XhPopoverContent class="chat-emoji-popover">
               <ChatEmojiPicker @select="insertEmoji" />
             </XhPopoverContent>
           </XhPopoverPositioner>
@@ -731,19 +736,27 @@ function handlePaste(event: ClipboardEvent) {
       <div class="relative px-1">
         <!-- 浮层由输入内容驱动开合（打 @ 才弹），触发器只作锚点、不接管点击 -->
         <XhPopoverRoot v-model:open="showMentionPicker" placement="top-start">
-          <XhPopoverTrigger as="div" class="chat-composer-anchor">
-            <XInput
-              ref="textInputRef"
-              v-model:value="draft"
-              type="textarea"
-              :autosize="{ minRows: 3, maxRows: 7 }"
-              :max-length="CHAT_MAX_CONTENT_LENGTH"
-              :placeholder="placeholder"
-              class="chat-composer-input"
-              @input="handleInput"
-              @keydown="handleKeydown"
-              @paste="handlePaste"
-            />
+          <!-- 触发器缺省渲染成 button，而这里只要一个锚点：套 button 会把 textarea 塞进按钮里
+               （非法嵌套，输入区会塌成一条）。用 as-child 把接线属性并到自己的 div 上 -->
+          <XhPopoverTrigger as-child>
+            <div class="chat-composer-anchor">
+              <!-- 触发器接线里带着 onClick TOGGLE，点输入框会顺着冒泡把 @ 面板翻开；
+                   这里把点击拦在锚点之前，开合仍只由输入内容驱动 -->
+              <div @click.stop>
+                <XInput
+                  ref="textInputRef"
+                  v-model:value="draft"
+                  type="textarea"
+                  :autosize="{ minRows: 3, maxRows: 7 }"
+                  :max-length="CHAT_MAX_CONTENT_LENGTH"
+                  :placeholder="placeholder"
+                  class="chat-composer-input"
+                  @input="handleInput"
+                  @keydown="handleKeydown"
+                  @paste="handlePaste"
+                />
+              </div>
+            </div>
           </XhPopoverTrigger>
           <XhPopoverPositioner>
             <XhPopoverContent>
@@ -792,16 +805,27 @@ function handlePaste(event: ClipboardEvent) {
 </template>
 
 <style scoped>
-/* 浮层触发器恒渲染成 button：这里只当锚点用，去掉按钮相，让它像一个普通块 */
+/* 表情浮层：卡片相（面/描边/投影/圆角）一律交给浮层皮肤，面板自己不再画一层，
+   否则既是两层卡片，硬编码的 10px 圆角与自制阴影也和站内其他浮层不是一套。
+   这里只做两件事：
+   ① 内边距归零，让面板贴着浮层的边；
+   ② 抬高度上限——皮肤缺省是 --xh-overlay-max-h（16rem=256px），而表情面板固定 320px，
+      缺省值会把底部裁掉半行。写 px 不写 rem：面板是第三方定的像素高，
+      而根字号是用户可调偏好，用 rem 卡在 12px 档下又会被裁。
+      仍写具体值而不是 none，是为了留住皮肤那条 min(上限, 可用高)，继续按视口可用高度收口。 */
+.chat-emoji-popover {
+  --xh-popover-max-h: 336px;
+  --xh-popover-px: 0px;
+  --xh-popover-py: 0px;
+
+  /* 面板内部是自定义元素、自带方角背景，浮层不裁就会从圆角处顶出来 */
+  overflow: hidden;
+}
+
+/* 浮层锚点：as-child 后它就是个普通 div，这里只保证它铺满一行 */
 .chat-composer-anchor {
   display: block;
   inline-size: 100%;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  text-align: start;
-  cursor: auto;
 }
 
 .chat-composer-btn {
