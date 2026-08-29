@@ -82,9 +82,8 @@ public sealed class TenantDatabaseInitializer : ITenantDatabaseInitializer
             // 切到目标租户上下文：DbInitializer 经运行时连接提供器解析到该租户独立库
             using (_currentTenant.Change(tenantId, tenant.TenantName))
             {
-                await _dbInitializer.CreateDatabaseAsync();
-                await _dbInitializer.CreateTablesAsync();
-                await _dbInitializer.SeedDataAsync();
+                // 整套布局一起初始化：租户主库，加上该租户自带的模块库（Tenant_{id}_Erp 这类）
+                await _dbInitializer.InitializeCurrentLayoutAsync();
             }
 
             tenant.MarkConfigStatus(TenantConfigStatus.Configured);
