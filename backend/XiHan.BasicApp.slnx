@@ -23,7 +23,9 @@
   <Folder Name="/1.src/2.Modules/6.Chat/">
     <Project Path="src/modules/XiHan.BasicApp.Chat/XiHan.BasicApp.Chat.csproj" />
   </Folder>
-  <Folder Name="/1.src/3.Business/" Id="2f085c7a-1d8c-b948-19d6-8a4bf31afbfa" />
+  <Folder Name="/1.src/3.Business/" Id="2f085c7a-1d8c-b948-19d6-8a4bf31afbfa">
+    <Project Path="src/business/XiHan.BasicApp.Sample/XiHan.BasicApp.Sample.csproj" />
+  </Folder>
   <Folder Name="/1.src/4.Main/" Id="d2d033ac-57c1-ffc6-883a-a6944cad0e51">
     <Project Path="src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj" />
   </Folder>

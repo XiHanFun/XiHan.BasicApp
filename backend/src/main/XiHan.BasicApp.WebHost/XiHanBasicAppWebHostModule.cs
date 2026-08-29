@@ -8,6 +8,7 @@ using XiHan.BasicApp.Chat;
 using XiHan.BasicApp.CodeGeneration;
 using XiHan.BasicApp.Printing;
 using XiHan.BasicApp.Saas;
+using XiHan.BasicApp.Sample;
 using XiHan.BasicApp.Workflow;
 using XiHan.BasicApp.WebHost.HealthChecks;
 using XiHan.Framework.Bot.Telegram.Webhook;
@@ -27,7 +28,9 @@ namespace XiHan.BasicApp.WebHost;
     typeof(XiHanBasicAppAIModule),
     typeof(XiHanBasicAppWorkflowModule),
     typeof(XiHanBasicAppPrintingModule),
-    typeof(XiHanBasicAppChatModule)
+    typeof(XiHanBasicAppChatModule),
+    // 示例业务模块：演示在本仓上加一块自己的业务，可整体删除
+    typeof(XiHanBasicAppSampleModule)
 )]
 public class XiHanBasicAppWebHostModule : XiHanModule
 {
