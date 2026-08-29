@@ -98,10 +98,11 @@ public sealed class UserAppService
         await _superAdminProtector.EnsureCanWriteUserAsync(id, cancellationToken);
         await _userDomainService.DeleteUserAsync(id, cancellationToken);
         // 删除用户后：吊销其全部会话（请求期会话校验随即拒绝）+ 失效授权快照
-        await _userSessionRepository.RevokeByUserIdAsync(id, cancellationToken);
+        var revokedSessionIds = await _userSessionRepository.RevokeByUserIdAsync(id, cancellationToken);
         // 其发起的模仿会话行 UserId 是被模仿者，须按模仿者另吊销一次
-        await _userSessionRepository.RevokeByImpersonatorUserIdAsync(id, cancellationToken);
+        var revokedImpersonationIds = await _userSessionRepository.RevokeByImpersonatorUserIdAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(id, cancellationToken);
+        await InvalidateSessionStatesAsync([.. revokedSessionIds, .. revokedImpersonationIds], cancellationToken);
 
         // 实时踢出被删用户的在线连接（仓储级批量吊销不走领域事件，这里直推 ForceLogout）
         try
@@ -158,13 +159,31 @@ public sealed class UserAppService
         // 禁用时吊销其全部会话，使禁用即时生效（请求期会话校验随即拒绝；禁用用户重新启用后需重新登录）
         if (input.Status == EnableStatus.Disabled)
         {
-            await _userSessionRepository.RevokeByUserIdAsync(input.BasicId, cancellationToken);
+            var revokedSessionIds = await _userSessionRepository.RevokeByUserIdAsync(input.BasicId, cancellationToken);
             // 其发起的模仿会话行 UserId 是被模仿者，须按模仿者另吊销一次
-            await _userSessionRepository.RevokeByImpersonatorUserIdAsync(input.BasicId, cancellationToken);
+            var revokedImpersonationIds = await _userSessionRepository.RevokeByImpersonatorUserIdAsync(input.BasicId, cancellationToken);
+            await InvalidateSessionStatesAsync([.. revokedSessionIds, .. revokedImpersonationIds], cancellationToken);
         }
 
         await _cacheInvalidator.InvalidateAuthorizationAsync(input.BasicId, cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
+    }
+
+    /// <summary>
+    /// 失效已吊销会话的会话状态缓存
+    /// </summary>
+    /// <remarks>
+    /// 仓储级批量吊销只改库、不走领域事件，而会话闸门每请求读的是 60 秒 TTL 的会话状态缓存，
+    /// 不清这一刀，被吊销的会话最长还能再放行 60 秒。
+    /// </remarks>
+    /// <param name="userSessionIds">被吊销的会话业务标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    private async Task InvalidateSessionStatesAsync(IReadOnlyCollection<string> userSessionIds, CancellationToken cancellationToken)
+    {
+        foreach (var userSessionId in userSessionIds)
+        {
+            await _cacheInvalidator.InvalidateSessionStateAsync(userSessionId, cancellationToken);
+        }
     }
 
     #endregion

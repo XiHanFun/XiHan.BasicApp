@@ -39,7 +39,10 @@ public sealed class MenuRouteQueryService
     /// <summary>
     /// 按授权快照获取菜单路由
     /// </summary>
-    public async Task<List<MenuRouteDto>> GetRoutesAsync(AuthorizationSnapshot snapshot, CancellationToken cancellationToken = default)
+    public async Task<List<MenuRouteDto>> GetRoutesAsync(
+        AuthorizationSnapshot snapshot,
+        IReadOnlySet<string>? deniedPermissionCodes = null,
+        CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
         cancellationToken.ThrowIfCancellationRequested();
@@ -48,12 +51,14 @@ public sealed class MenuRouteQueryService
         // 分布式缓存：按权限集缓存菜单路由（同权限集的用户共享）。失效由写路径直接触发——
         // 菜单增删改时 MenuAppService、权限定义启停删时 PermissionAppService 调 InvalidateNavigationAsync
         //（considerUow，事务提交后失效）；用户授权变更则因权限集实时变化使缓存键自动改变。
-        var cacheKey = SaasCacheKeys.MenuRoutes(snapshot.PermissionIds, hasAllPermissions);
+        // 禁用清单必须进缓存键：模仿态与常态的权限主键集是同一份（清单过滤的是权限码），
+        // 不并进去两者就共用同一条缓存，模仿态直接吃到常态那份完整菜单
+        var cacheKey = SaasCacheKeys.MenuRoutes(snapshot.PermissionIds, hasAllPermissions, deniedPermissionCodes);
         var item = await _menuRoutesCache.GetOrAddAsync(
             cacheKey,
             async () => new SaasMenuRoutesCacheItem
             {
-                Routes = await BuildRoutesAsync(snapshot, hasAllPermissions, cancellationToken),
+                Routes = await BuildRoutesAsync(snapshot, hasAllPermissions, deniedPermissionCodes, cancellationToken),
                 CachedAt = DateTimeOffset.UtcNow
             },
             CreateCacheOptions,
@@ -61,7 +66,7 @@ public sealed class MenuRouteQueryService
             token: cancellationToken);
 
         return item is null
-            ? await BuildRoutesAsync(snapshot, hasAllPermissions, cancellationToken)
+            ? await BuildRoutesAsync(snapshot, hasAllPermissions, deniedPermissionCodes, cancellationToken)
             : item.Routes;
     }
 
@@ -111,6 +116,35 @@ public sealed class MenuRouteQueryService
                 .Distinct(StringComparer.Ordinal)
                 .OrderBy(code => code, StringComparer.Ordinal)
         ];
+    }
+
+    /// <summary>
+    /// 判定单个菜单是否可见
+    /// </summary>
+    /// <remarks>
+    /// 与按钮同口径：禁用清单先于通配权限判断，否则被模仿者持有通配权限时禁用项照旧显示。
+    /// 不关联权限的菜单（目录、公共页）对所有人可见。
+    /// </remarks>
+    private static bool IsMenuGranted(
+        SysMenu menu,
+        AuthorizationSnapshot snapshot,
+        bool hasAllPermissions,
+        IReadOnlyDictionary<long, string> permissionCodeMap,
+        IReadOnlySet<string>? deniedPermissionCodes)
+    {
+        if (!menu.PermissionId.HasValue)
+        {
+            return true;
+        }
+
+        if (deniedPermissionCodes is { Count: > 0 }
+            && permissionCodeMap.TryGetValue(menu.PermissionId.Value, out var permissionCode)
+            && deniedPermissionCodes.Contains(permissionCode))
+        {
+            return false;
+        }
+
+        return hasAllPermissions || snapshot.PermissionIds.Contains(menu.PermissionId.Value);
     }
 
     /// <summary>
@@ -271,7 +305,11 @@ public sealed class MenuRouteQueryService
     /// <summary>
     /// 构建菜单路由树（缓存未命中时执行，含空目录剪枝）。
     /// </summary>
-    private async Task<List<MenuRouteDto>> BuildRoutesAsync(AuthorizationSnapshot snapshot, bool hasAllPermissions, CancellationToken cancellationToken)
+    private async Task<List<MenuRouteDto>> BuildRoutesAsync(
+        AuthorizationSnapshot snapshot,
+        bool hasAllPermissions,
+        IReadOnlySet<string>? deniedPermissionCodes,
+        CancellationToken cancellationToken)
     {
         var allPermissions = await _permissionRepository.GetListAsync(permission => permission.Status == EnableStatus.Enabled, cancellationToken);
         var permissionCodeMap = allPermissions.ToDictionary(permission => permission.BasicId, permission => permission.PermissionCode);
@@ -280,7 +318,7 @@ public sealed class MenuRouteQueryService
             cancellationToken);
         var visibleMenus = menus
             .Where(menu => menu.IsVisible)
-            .Where(menu => !menu.PermissionId.HasValue || hasAllPermissions || snapshot.PermissionIds.Contains(menu.PermissionId.Value))
+            .Where(menu => IsMenuGranted(menu, snapshot, hasAllPermissions, permissionCodeMap, deniedPermissionCodes))
             .OrderBy(menu => menu.Sort)
             .ThenBy(menu => menu.BasicId)
             .ToList();

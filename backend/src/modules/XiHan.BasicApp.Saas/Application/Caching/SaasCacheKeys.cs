@@ -96,12 +96,22 @@ public static class SaasCacheKeys
     /// </summary>
     /// <param name="permissionIds">权限标识集合。</param>
     /// <param name="hasAllPermissions">是否拥有全部权限。</param>
+    /// <param name="deniedPermissionCodes">额外禁用的权限码（如模仿态禁用清单）。</param>
     /// <returns>业务缓存键。</returns>
-    public static string MenuRoutes(IEnumerable<long> permissionIds, bool hasAllPermissions)
+    public static string MenuRoutes(
+        IEnumerable<long> permissionIds,
+        bool hasAllPermissions,
+        IReadOnlySet<string>? deniedPermissionCodes = null)
     {
         var source = hasAllPermissions
             ? "*"
             : string.Join(',', permissionIds.Distinct().OrderBy(static id => id));
+        if (deniedPermissionCodes is { Count: > 0 })
+        {
+            var denied = string.Join(',', deniedPermissionCodes.OrderBy(static code => code, StringComparer.Ordinal));
+            source = $"{source}|denied:{denied}";
+        }
+
         return $"permission-set:{Hash(source)}";
     }
 

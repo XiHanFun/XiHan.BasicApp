@@ -272,6 +272,7 @@ public sealed class PermissionRequestAppService
         if (request.RoleId is > 0)
         {
             await _superAdminProtector.EnsureCanAssignRoleAsync(request.RoleId.Value, cancellationToken);
+            await _impersonationPolicyService.EnsureCanGrantRoleIdsAsync([request.RoleId.Value], cancellationToken);
         }
     }
 

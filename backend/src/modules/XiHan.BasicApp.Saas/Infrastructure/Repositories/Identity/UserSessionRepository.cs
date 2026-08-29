@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Domain.Repositories;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
@@ -59,33 +60,80 @@ public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver
     }
 
     /// <summary>
-    /// 吊销用户所有会话
+    /// 吊销用户所有会话（跨租户）
     /// </summary>
-    public async Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default)
+    /// <remarks>
+    /// 同一自然人在不同租户会落成不同租户戳的独立会话行，账号状态却是全局的，
+    /// 因此吊销必须跨租户，否则在租户 A 停用的用户拿着租户 B 的会话照常可用。
+    /// </remarks>
+    public async Task<IReadOnlyList<string>> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await DbClient.Updateable<SysUserSession>()
-            .SetColumns(session => session.Status == SessionStatus.Revoked)
-            .SetColumns(session => session.RevokedTime == DateTimeOffset.UtcNow)
+        var sessions = await CreateNoTenantQueryable()
             .Where(session => session.UserId == userId && session.Status == SessionStatus.Active)
-            .ExecuteCommandAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+
+        return await RevokeAllAsync(sessions, cancellationToken);
     }
 
     /// <summary>
-    /// 吊销由指定用户发起的全部模仿会话
+    /// 吊销由指定用户发起的全部模仿会话（跨租户）
     /// </summary>
+    /// <remarks>
+    /// 模仿会话行的租户戳是「被模仿者所在租户」，跨租户模仿又是允许的，
+    /// 因此这里同样必须跨租户，否则发起人被停用后他借来的身份还活着。
+    /// </remarks>
     /// <param name="impersonatorUserId">模仿者用户标识</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>受影响行数</returns>
-    public async Task<int> RevokeByImpersonatorUserIdAsync(long impersonatorUserId, CancellationToken cancellationToken = default)
+    /// <returns>被吊销的会话业务标识</returns>
+    public async Task<IReadOnlyList<string>> RevokeByImpersonatorUserIdAsync(long impersonatorUserId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await DbClient.Updateable<SysUserSession>()
-            .SetColumns(session => session.Status == SessionStatus.Revoked)
-            .SetColumns(session => session.RevokedTime == DateTimeOffset.UtcNow)
+        var sessions = await CreateNoTenantQueryable()
             .Where(session => session.ImpersonatorUserId == impersonatorUserId && session.Status == SessionStatus.Active)
-            .ExecuteCommandAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+
+        return await RevokeAllAsync(sessions, cancellationToken);
+    }
+
+    /// <summary>
+    /// 批量置为已吊销
+    /// </summary>
+    /// <remarks>
+    /// 走对象式 Updateable：表达式式工厂会自动挂上全局租户过滤，
+    /// 把 UPDATE 的 WHERE 收窄到当前租户，跨租户的会话行就改不动了。
+    /// 对象式按主键写，再用写边界豁免放行别的租户戳的行。
+    /// </remarks>
+    /// <param name="sessions">待吊销的会话行</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>被吊销的会话业务标识，供调用方精确失效会话状态缓存</returns>
+    private async Task<IReadOnlyList<string>> RevokeAllAsync(List<SysUserSession> sessions, CancellationToken cancellationToken)
+    {
+        if (sessions.Count == 0)
+        {
+            return [];
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        foreach (var session in sessions)
+        {
+            session.Status = SessionStatus.Revoked;
+            session.RevokedTime = now;
+        }
+
+        // 写的是别的租户戳的行，显式声明写边界豁免
+        using (TenantWriteGuard.Suppress())
+        {
+            _ = await DbClient.Updateable(sessions)
+                .UpdateColumns(session => new { session.Status, session.RevokedTime })
+                .ExecuteCommandAsync(cancellationToken);
+        }
+
+        return [.. sessions
+            .Select(static session => session.UserSessionId)
+            .Where(static id => !string.IsNullOrWhiteSpace(id))
+            .Distinct(StringComparer.Ordinal)];
     }
 }

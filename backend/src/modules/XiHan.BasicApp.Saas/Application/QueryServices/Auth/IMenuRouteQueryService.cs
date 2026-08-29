@@ -13,7 +13,13 @@ public interface IMenuRouteQueryService
     /// <summary>
     /// 按授权快照获取菜单路由
     /// </summary>
-    Task<List<MenuRouteDto>> GetRoutesAsync(AuthorizationSnapshot snapshot, CancellationToken cancellationToken = default);
+    /// <param name="snapshot">授权快照</param>
+    /// <param name="deniedPermissionCodes">额外禁用的权限码（如模仿态禁用清单）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task<List<MenuRouteDto>> GetRoutesAsync(
+        AuthorizationSnapshot snapshot,
+        IReadOnlySet<string>? deniedPermissionCodes = null,
+        CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 按授权快照获取当前用户可用的按钮码

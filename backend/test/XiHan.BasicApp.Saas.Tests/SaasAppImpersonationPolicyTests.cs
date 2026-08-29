@@ -37,6 +37,8 @@ public sealed class SaasAppImpersonationPolicyTests
     private readonly Mock<ICurrentUser> _currentUser = new();
     private readonly Mock<IPermissionChecker> _permissionChecker = new();
     private readonly Mock<IPermissionRepository> _permissionRepository = new();
+    private readonly Mock<IRoleHierarchyRepository> _roleHierarchyRepository = new();
+    private readonly Mock<IRolePermissionRepository> _rolePermissionRepository = new();
     private readonly Mock<ISuperAdminProtector> _superAdminProtector = new();
     private readonly Mock<ITenantUserRepository> _tenantUserRepository = new();
     private readonly Mock<IUserRepository> _userRepository = new();
@@ -390,6 +392,112 @@ public sealed class SaasAppImpersonationPolicyTests
             Times.Never);
     }
 
+    /// <summary>
+    /// 角色里含模仿登录权限时，非管理类成员不得把这个角色授出去。
+    /// </summary>
+    /// <remarks>
+    /// 角色是与直授等价的授权通道；这条断言堵住"绕开直授准入、改用角色发模仿权限"的路。
+    /// </remarks>
+    [Fact]
+    public async Task EnsureCanGrantRoleIdsAsync_RoleCarryingImpersonation_ShouldThrow()
+    {
+        ArrangeRoleExpansion(roleId: 9, permissionId: 2);
+        ArrangePermissionLookup(2, SaasPermissionCodes.Impersonation.Start);
+        _currentUser.Setup(user => user.UserId).Returns(OperatorUserId);
+        _currentTenant.Setup(tenant => tenant.Id).Returns(TenantId);
+        ArrangeMembership(OperatorUserId, TenantMemberType.Member);
+
+        var exception = await Assert.ThrowsAsync<UserFriendlyException>(
+            () => CreateService().EnsureCanGrantRoleIdsAsync([9]));
+
+        Assert.Contains("模仿登录权限", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 继承链上的祖先角色带来的模仿权限同样被拦住。
+    /// </summary>
+    [Fact]
+    public async Task EnsureCanGrantRoleIdsAsync_AncestorRoleCarryingImpersonation_ShouldThrow()
+    {
+        _roleHierarchyRepository
+            .Setup(repository => repository.GetAncestorIdsAsync(
+                It.IsAny<IEnumerable<long>>(), true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([9, 10]);
+        _rolePermissionRepository
+            .Setup(repository => repository.GetValidByRoleIdsAsync(
+                It.IsAny<IEnumerable<long>>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new SysRolePermission { RoleId = 10, PermissionId = 2 }]);
+        ArrangePermissionLookup(2, SaasPermissionCodes.Impersonation.Start);
+        _currentUser.Setup(user => user.UserId).Returns(OperatorUserId);
+        _currentTenant.Setup(tenant => tenant.Id).Returns(TenantId);
+        ArrangeMembership(OperatorUserId, TenantMemberType.Member);
+
+        await Assert.ThrowsAsync<UserFriendlyException>(
+            () => CreateService().EnsureCanGrantRoleIdsAsync([9]));
+    }
+
+    /// <summary>
+    /// 租户管理员可以授出含模仿登录权限的角色。
+    /// </summary>
+    [Fact]
+    public async Task EnsureCanGrantRoleIdsAsync_TenantAdmin_ShouldPass()
+    {
+        ArrangeRoleExpansion(roleId: 9, permissionId: 2);
+        ArrangePermissionLookup(2, SaasPermissionCodes.Impersonation.Start);
+        _currentUser.Setup(user => user.UserId).Returns(OperatorUserId);
+        _currentTenant.Setup(tenant => tenant.Id).Returns(TenantId);
+        ArrangeMembership(OperatorUserId, TenantMemberType.Admin);
+
+        await CreateService().EnsureCanGrantRoleIdsAsync([9]);
+    }
+
+    /// <summary>
+    /// 不含模仿登录权限的普通角色照常可授。
+    /// </summary>
+    [Fact]
+    public async Task EnsureCanGrantRoleIdsAsync_OrdinaryRole_ShouldPass()
+    {
+        ArrangeRoleExpansion(roleId: 9, permissionId: 3);
+        ArrangePermissionLookup(3, SaasPermissionCodes.User.Read);
+
+        await CreateService().EnsureCanGrantRoleIdsAsync([9]);
+
+        _tenantUserRepository.Verify(
+            repository => repository.GetMembershipAsync(It.IsAny<long>(), It.IsAny<long>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 超级管理员授出角色不查角色权限。
+    /// </summary>
+    [Fact]
+    public async Task EnsureCanGrantRoleIdsAsync_SuperAdmin_ShouldPass()
+    {
+        _superAdminProtector.Setup(protector => protector.IsCurrentUserSuperAdmin()).Returns(true);
+
+        await CreateService().EnsureCanGrantRoleIdsAsync([9]);
+
+        _rolePermissionRepository.Verify(
+            repository => repository.GetValidByRoleIdsAsync(
+                It.IsAny<IEnumerable<long>>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 把角色展开成「角色自身 + 祖先角色」的权限集合。
+    /// </summary>
+    private void ArrangeRoleExpansion(long roleId, long permissionId)
+    {
+        _roleHierarchyRepository
+            .Setup(repository => repository.GetAncestorIdsAsync(
+                It.IsAny<IEnumerable<long>>(), true, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([roleId]);
+        _rolePermissionRepository
+            .Setup(repository => repository.GetValidByRoleIdsAsync(
+                It.IsAny<IEnumerable<long>>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new SysRolePermission { RoleId = roleId, PermissionId = permissionId }]);
+    }
+
     private ImpersonationPolicyService CreateService()
     {
         return new ImpersonationPolicyService(
@@ -399,6 +507,8 @@ public sealed class SaasAppImpersonationPolicyTests
             _currentUser.Object,
             _permissionChecker.Object,
             _permissionRepository.Object,
+            _roleHierarchyRepository.Object,
+            _rolePermissionRepository.Object,
             _superAdminProtector.Object,
             _tenantUserRepository.Object,
             _userRepository.Object);

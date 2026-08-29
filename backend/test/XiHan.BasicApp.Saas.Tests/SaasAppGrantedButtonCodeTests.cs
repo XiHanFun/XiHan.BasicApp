@@ -123,6 +123,129 @@ public sealed class SaasAppGrantedButtonCodeTests
             Times.Never);
     }
 
+    /// <summary>
+    /// 模仿态下菜单也按禁用清单剔除，通配顶不掉。
+    /// </summary>
+    /// <remarks>
+    /// 菜单可见性判的是权限主键，而禁用清单是权限码：只把清单里的码从快照里删掉裁不掉菜单，
+    /// 必须把清单本身传进来。
+    /// </remarks>
+    [Fact]
+    public async Task GetRoutesAsync_WhileImpersonating_ShouldDropDeniedMenus()
+    {
+        ArrangeMenuCatalog();
+
+        var routes = await CreateService().GetRoutesAsync(
+            Snapshot(["*"], []),
+            ImpersonationDefaults.DeniedPermissionCodes);
+
+        // saas:user:delete 在模仿态禁用清单里
+        Assert.Equal(["user-create"], routes.Select(route => route.Name).ToList());
+    }
+
+    /// <summary>
+    /// 不传禁用清单时菜单照常全下发。
+    /// </summary>
+    [Fact]
+    public async Task GetRoutesAsync_WithoutDeniedCodes_ShouldKeepEveryMenu()
+    {
+        ArrangeMenuCatalog();
+
+        var routes = await CreateService().GetRoutesAsync(Snapshot(["*"], []));
+
+        Assert.Equal(["user-create", "user-delete"], routes.Select(route => route.Name).ToList());
+    }
+
+    /// <summary>
+    /// 不关联权限的菜单对所有人可见。
+    /// </summary>
+    [Fact]
+    public async Task GetRoutesAsync_MenuWithoutPermission_ShouldStayVisible()
+    {
+        ArrangeMenuCatalog(unboundMenuName: "public-page");
+
+        var routes = await CreateService().GetRoutesAsync(
+            Snapshot([], []),
+            ImpersonationDefaults.DeniedPermissionCodes);
+
+        Assert.Equal(["public-page"], routes.Select(route => route.Name).ToList());
+    }
+
+    /// <summary>
+    /// 禁用清单进缓存键：模仿态与常态不共用同一条菜单缓存。
+    /// </summary>
+    [Fact]
+    public void MenuRoutesCacheKey_ShouldDifferByDeniedCodes()
+    {
+        var normal = SaasCacheKeys.MenuRoutes([1, 2], hasAllPermissions: false);
+        var impersonating = SaasCacheKeys.MenuRoutes([1, 2], hasAllPermissions: false, ImpersonationDefaults.DeniedPermissionCodes);
+
+        Assert.NotEqual(normal, impersonating);
+    }
+
+    /// <summary>
+    /// 通配权限同样要按禁用清单分键。
+    /// </summary>
+    [Fact]
+    public void MenuRoutesCacheKey_WithWildcard_ShouldDifferByDeniedCodes()
+    {
+        var normal = SaasCacheKeys.MenuRoutes([], hasAllPermissions: true);
+        var impersonating = SaasCacheKeys.MenuRoutes([], hasAllPermissions: true, ImpersonationDefaults.DeniedPermissionCodes);
+
+        Assert.NotEqual(normal, impersonating);
+    }
+
+    /// <summary>
+    /// 布置两张菜单：新增页（saas:user:create）与删除页（saas:user:delete，在模仿态禁用清单里）。
+    /// </summary>
+    private void ArrangeMenuCatalog(string? unboundMenuName = null)
+    {
+        var menus = new List<SysMenu>
+        {
+            BuildMenu(201, "user-create", permissionId: 1),
+            BuildMenu(202, "user-delete", permissionId: 2)
+        };
+        if (unboundMenuName is not null)
+        {
+            menus.Clear();
+            menus.Add(BuildMenu(203, unboundMenuName, permissionId: null));
+        }
+
+        _menuRepository
+            .Setup(repository => repository.GetListAsync(
+                It.IsAny<Expression<Func<SysMenu, bool>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(menus);
+
+        var createPermission = new SysPermission { PermissionCode = SaasPermissionCodes.User.Create };
+        SaasTestHelper.SetBasicId(createPermission, 1);
+        var deletePermission = new SysPermission { PermissionCode = SaasPermissionCodes.User.Delete };
+        SaasTestHelper.SetBasicId(deletePermission, 2);
+
+        _permissionRepository
+            .Setup(repository => repository.GetListAsync(
+                It.IsAny<Expression<Func<SysPermission, bool>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync([createPermission, deletePermission]);
+    }
+
+    private static SysMenu BuildMenu(long id, string routeName, long? permissionId)
+    {
+        var menu = new SysMenu
+        {
+            MenuCode = routeName,
+            MenuName = routeName,
+            RouteName = routeName,
+            Path = $"/{routeName}",
+            MenuType = MenuType.Menu,
+            Status = EnableStatus.Enabled,
+            IsVisible = true,
+            PermissionId = permissionId
+        };
+        SaasTestHelper.SetBasicId(menu, id);
+        return menu;
+    }
+
     private MenuRouteQueryService CreateService()
     {
         return new MenuRouteQueryService(
