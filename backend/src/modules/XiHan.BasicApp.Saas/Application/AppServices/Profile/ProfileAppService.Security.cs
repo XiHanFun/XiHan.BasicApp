@@ -30,6 +30,13 @@ public sealed partial class ProfileAppService
             ProfileApplicationMapper.ToChangePasswordCommand(input, currentUserId),
             cancellationToken);
 
+        // 改密后踢掉其它设备：当前会话保留（否则改完密码自己先掉线），
+        // 其余会话与由本人发起的模仿会话一并吊销，旧令牌不再可用
+        var revoked = await _profileDomainService.RevokeOtherSessionsAsync(
+            ProfileApplicationMapper.ToOtherSessionsRevokeCommand(currentUserId, GetCurrentSessionId(), currentUserId),
+            cancellationToken);
+        await PublishSessionRevokedEventsAsync(revoked.DomainEvents, cancellationToken);
+
         // 认证审计：密码修改落登录日志
         await PublishSecurityAuditAsync(LoginResult.PasswordChanged, "用户修改密码");
 
