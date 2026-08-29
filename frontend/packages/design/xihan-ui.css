@@ -122,3 +122,9 @@
     }
   }
 }
+
+/* 表格里的标签是「一格里的一小块信息」，跟单元格一样是方的，不用上面那条全站状态药丸；
+   药丸留给正文里独立出现的状态标记。取 shape-control 即跟随偏好设置里的圆角滑块 */
+[data-scope='table'][data-part='root'] {
+  --xh-tag-radius: var(--xh-shape-inset);
+}
