@@ -2,6 +2,12 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $OutputEncoding = [System.Text.Encoding]::UTF8
 
+# 标题打在这里：.bat 只负责快捷调用，直接跑 .ps1 也该看到同样的开头
+Write-Output ""
+Write-Output "========================================"
+Write-Output " VersionUpgrade - XiHan.BasicApp"
+Write-Output "========================================"
+
 # 设置 version.props 文件路径
 $versionPropsPath = "..\..\props\version.props"
 $projectPath = "..\..\XiHan.BasicApp.slnx"
