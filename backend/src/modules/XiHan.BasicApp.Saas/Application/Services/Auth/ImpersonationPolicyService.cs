@@ -41,6 +41,10 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
 
     private readonly IPermissionRepository _permissionRepository;
 
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+
+    private readonly IRolePermissionRepository _rolePermissionRepository;
+
     private readonly ITenantUserRepository _tenantUserRepository;
 
     private readonly IUserRepository _userRepository;
@@ -55,6 +59,8 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
         ICurrentUser currentUser,
         IPermissionChecker permissionChecker,
         IPermissionRepository permissionRepository,
+        IRoleHierarchyRepository roleHierarchyRepository,
+        IRolePermissionRepository rolePermissionRepository,
         ISuperAdminProtector superAdminProtector,
         ITenantUserRepository tenantUserRepository,
         IUserRepository userRepository)
@@ -65,6 +71,8 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
         _currentUser = currentUser;
         _permissionChecker = permissionChecker;
         _permissionRepository = permissionRepository;
+        _roleHierarchyRepository = roleHierarchyRepository;
+        _rolePermissionRepository = rolePermissionRepository;
         _superAdminProtector = superAdminProtector;
         _tenantUserRepository = tenantUserRepository;
         _userRepository = userRepository;
@@ -245,6 +253,51 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
         {
             throw new UserFriendlyException("只有超级管理员或租户管理员可以授予模仿登录权限。");
         }
+    }
+
+    /// <summary>
+    /// 判定当前用户能否授出指定角色，不能则抛出禁止异常。
+    /// </summary>
+    /// <param name="roleIds">被授出的角色主键集合</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task EnsureCanGrantRoleIdsAsync(IReadOnlyCollection<long> roleIds, CancellationToken cancellationToken = default)
+    {
+        if (roleIds is not { Count: > 0 })
+        {
+            return;
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (_superAdminProtector.IsCurrentUserSuperAdmin())
+        {
+            return;
+        }
+
+        var ids = roleIds.Where(static id => id > 0).Distinct().ToList();
+        if (ids.Count == 0)
+        {
+            return;
+        }
+
+        // 角色自身与继承链上的祖先角色都会把权限带给被授予者，一并展开
+        var expandedRoleIds = await _roleHierarchyRepository.GetAncestorIdsAsync(ids, includeSelf: true, cancellationToken);
+        if (expandedRoleIds.Count == 0)
+        {
+            return;
+        }
+
+        var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(
+            expandedRoleIds,
+            DateTimeOffset.UtcNow,
+            cancellationToken);
+        var permissionIds = rolePermissions
+            .Select(static rolePermission => rolePermission.PermissionId)
+            .Where(static id => id > 0)
+            .Distinct()
+            .ToList();
+
+        await EnsureCanGrantPermissionIdsAsync(permissionIds, cancellationToken);
     }
 
     /// <summary>

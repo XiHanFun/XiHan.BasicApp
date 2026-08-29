@@ -28,7 +28,7 @@ public interface IUserSessionRepository : ISaasRepository<SysUserSession>
     /// <summary>
     /// 吊销用户所有会话
     /// </summary>
-    Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<string>> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 吊销由指定用户发起的全部模仿会话
@@ -40,5 +40,5 @@ public interface IUserSessionRepository : ISaasRepository<SysUserSession>
     /// <param name="impersonatorUserId">模仿者用户标识</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>受影响行数</returns>
-    Task<int> RevokeByImpersonatorUserIdAsync(long impersonatorUserId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<string>> RevokeByImpersonatorUserIdAsync(long impersonatorUserId, CancellationToken cancellationToken = default);
 }

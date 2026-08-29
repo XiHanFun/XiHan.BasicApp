@@ -294,8 +294,9 @@ public sealed class ProfileDomainService
             throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
         }
 
+        // 既取自己的会话，也取由自己发起的模仿会话（后者的 UserId 是被模仿者）
         var sessions = await _userSessionRepository.GetListAsync(
-            session => session.UserId == command.UserId &&
+            session => (session.UserId == command.UserId || session.ImpersonatorUserId == command.UserId) &&
                        session.Status != SessionStatus.Revoked &&
                        session.UserSessionId != command.CurrentSessionId,
             cancellationToken);
@@ -691,7 +692,11 @@ public sealed class ProfileDomainService
         CancellationToken cancellationToken)
     {
         var (user, _) = await GetUserSecurityOrThrowAsync(userId, cancellationToken);
-        var sessions = await _userSessionRepository.GetListAsync(session => session.UserId == user.BasicId && session.Status != SessionStatus.Revoked, cancellationToken);
+        // 既取该用户自己的会话，也取由他发起的模仿会话（后者的 UserId 是被模仿者）
+        var sessions = await _userSessionRepository.GetListAsync(
+            session => (session.UserId == user.BasicId || session.ImpersonatorUserId == user.BasicId)
+                && session.Status != SessionStatus.Revoked,
+            cancellationToken);
         if (sessions.Count == 0)
         {
             return new ProfileSessionRevokeResult([]);

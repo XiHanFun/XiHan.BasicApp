@@ -33,6 +33,8 @@ public sealed class UserRoleAppService
 
     private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
 
+    private readonly IImpersonationPolicyService _impersonationPolicyService;
+
     private readonly ISuperAdminProtector _superAdminProtector;
 
     private readonly IUserRoleRepository _userRoleRepository;
@@ -44,12 +46,14 @@ public sealed class UserRoleAppService
         IUserDomainService userDomainService,
         ISaasCacheInvalidator cacheInvalidator,
         IAuthorizationChangeNotifier authorizationChangeNotifier,
+        IImpersonationPolicyService impersonationPolicyService,
         ISuperAdminProtector superAdminProtector,
         IUserRoleRepository userRoleRepository)
     {
         _userDomainService = userDomainService;
         _cacheInvalidator = cacheInvalidator;
         _authorizationChangeNotifier = authorizationChangeNotifier;
+        _impersonationPolicyService = impersonationPolicyService;
         _superAdminProtector = superAdminProtector;
         _userRoleRepository = userRoleRepository;
     }
@@ -69,6 +73,8 @@ public sealed class UserRoleAppService
         // 超管保护：非超管不得改超管用户的角色，也不得把 super_admin 角色授予他人
         await _superAdminProtector.EnsureCanWriteUserAsync(input.UserId, cancellationToken);
         await _superAdminProtector.EnsureCanAssignRoleAsync(input.RoleId, cancellationToken);
+        // 角色是与直授等价的授权通道：角色里含模仿权限时，走与直授同一道准入
+        await _impersonationPolicyService.EnsureCanGrantRoleIdsAsync([input.RoleId], cancellationToken);
 
         var result = await _userDomainService.CreateUserRoleAsync(UserRoleApplicationMapper.ToGrantCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
@@ -176,6 +182,7 @@ public sealed class UserRoleAppService
 
         await _superAdminProtector.EnsureCanWriteUserAsync(userRole.UserId, cancellationToken);
         await _superAdminProtector.EnsureCanAssignRoleAsync(userRole.RoleId, cancellationToken);
+        await _impersonationPolicyService.EnsureCanGrantRoleIdsAsync([userRole.RoleId], cancellationToken);
     }
 
     #endregion

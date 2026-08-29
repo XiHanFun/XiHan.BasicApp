@@ -62,8 +62,11 @@ public sealed class TenantStatusChangedEventHandler : ILocalEventHandler<TenantS
     {
         var db = _clientResolver.GetCurrentClient();
 
+        // 除本租户的会话外，还要带上本租户用户借身份进别的租户的模仿会话：
+        // 那些行的租户戳是目标租户，只有 ImpersonatorTenantId 才是本租户
         var activeSessions = await db.Queryable<SysUserSession>()
-            .Where(s => s.TenantId == tenantId && s.Status == SessionStatus.Active && !s.IsDeleted)
+            .Where(s => (s.TenantId == tenantId || s.ImpersonatorTenantId == tenantId)
+                && s.Status == SessionStatus.Active && !s.IsDeleted)
             .ToListAsync();
 
         if (activeSessions.Count == 0)

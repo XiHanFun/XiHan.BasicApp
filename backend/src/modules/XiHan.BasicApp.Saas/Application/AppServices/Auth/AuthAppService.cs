@@ -499,20 +499,23 @@ public sealed partial class AuthAppService
         var now = DateTimeOffset.UtcNow;
         var snapshot = await _authorizationSnapshotQueryService.BuildAsync(userId, now, cancellationToken);
 
-        // 与鉴权入口同口径：模仿态下禁用清单里的码不下发，菜单裁剪也吃过滤后的快照
-        if (_currentUser.IsImpersonating())
+        // 与鉴权入口同口径：模仿态下禁用清单里的码不下发
+        var deniedPermissionCodes = _currentUser.IsImpersonating() ? ImpersonationDefaults.DeniedPermissionCodes : null;
+        if (deniedPermissionCodes is not null)
         {
             snapshot = snapshot with
             {
-                Permissions = [.. snapshot.Permissions.Where(permission => !ImpersonationDefaults.DeniedPermissionCodes.Contains(permission))]
+                Permissions = [.. snapshot.Permissions.Where(permission => !deniedPermissionCodes.Contains(permission))]
             };
         }
 
-        var menus = await _menuRouteQueryService.GetRoutesAsync(snapshot, cancellationToken);
+        // 菜单与按钮都要吃这份清单：过滤快照去掉的是权限码，而菜单可见性判的是权限主键，
+        // 只过滤快照裁不掉菜单
+        var menus = await _menuRouteQueryService.GetRoutesAsync(snapshot, deniedPermissionCodes, cancellationToken);
         // 按钮门控由服务端判定后以按钮码下发，前端不持有权限码
         var buttons = await _menuRouteQueryService.GetGrantedButtonCodesAsync(
             snapshot,
-            _currentUser.IsImpersonating() ? ImpersonationDefaults.DeniedPermissionCodes : null,
+            deniedPermissionCodes,
             cancellationToken);
 
         return new PermissionInfoDto
@@ -1031,7 +1034,7 @@ public sealed partial class AuthAppService
 
         // 模仿令牌不参与刷新链：刷新原样复制 claims 且零 DB 访问，允许刷新等于模仿关系永不复审、可无限续期。
         // 模仿会话到期即结束，管理员需重新发起。
-        if (identity?.ImpersonatorUserId is > 0)
+        if (identity.ImpersonatorUserId is > 0)
         {
             await PublishSecurityAuditAsync(
                 identity.TenantId,
@@ -1045,9 +1048,20 @@ public sealed partial class AuthAppService
         // 会话闸门：被踢下线/登出/过期的会话，不得再靠刷新令牌续命。
         // 这个端点是 [AllowAnonymous]，走不到 XiHanSessionStateMiddleware，必须在此自行把关——
         // 否则刷新链会成为吊销的绕过口（刷新原样复制 claims、零 DB 访问，等于永久有效）。
-        if (!string.IsNullOrWhiteSpace(identity?.SessionId))
+        // 不带会话标识的令牌一律拒刷：放过它等于给闸门留一条“旧令牌”绕行道
+        if (string.IsNullOrWhiteSpace(identity.SessionId))
         {
-            using var refreshTenantScope = _currentTenant.Change(identity.TenantId, identity.TenantId?.ToString());
+            await PublishSecurityAuditAsync(
+                identity.TenantId,
+                identity.UserId,
+                identity.UserName,
+                LoginResult.Failed,
+                "访问令牌缺少会话标识，拒绝刷新令牌");
+            throw new InvalidOperationException("会话已失效，请重新登录。");
+        }
+
+        using (_currentTenant.Change(identity.TenantId, identity.TenantId?.ToString()))
+        {
             var session = await _userSessionRepository.GetByUserSessionIdAsync(identity.SessionId, cancellationToken);
             if (session is null || session.Status != SessionStatus.Active ||
                 (session.ExpirationTime.HasValue && session.ExpirationTime.Value <= DateTimeOffset.UtcNow))
@@ -1066,9 +1080,9 @@ public sealed partial class AuthAppService
 
         // 认证审计：令牌刷新落登录日志（身份从旧令牌解析，仅用于审计归属）
         await PublishSecurityAuditAsync(
-            identity?.TenantId,
-            identity?.UserId,
-            identity?.UserName,
+            identity.TenantId,
+            identity.UserId,
+            identity.UserName,
             LoginResult.TokenRefreshed,
             "访问令牌刷新");
 

@@ -54,4 +54,15 @@ public interface IImpersonationPolicyService
     /// <param name="permissionIds">被授出的权限主键集合</param>
     /// <param name="cancellationToken">取消令牌</param>
     Task EnsureCanGrantPermissionIdsAsync(IReadOnlyCollection<long> permissionIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 判定当前用户能否授出指定角色，不能则抛出禁止异常。
+    /// </summary>
+    /// <remarks>
+    /// 角色是一条与直授等价的授权通道：把含模仿权限的角色绑给谁，谁就拿到了模仿权限。
+    /// 这里把角色（含继承链上的祖先角色）展开成权限后，走与直授同一道准入。
+    /// </remarks>
+    /// <param name="roleIds">被授出的角色主键集合</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task EnsureCanGrantRoleIdsAsync(IReadOnlyCollection<long> roleIds, CancellationToken cancellationToken = default);
 }
