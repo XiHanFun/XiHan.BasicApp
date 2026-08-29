@@ -21,6 +21,7 @@
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.Printing\XiHan.BasicApp.Printing.csproj" />
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.Saas\XiHan.BasicApp.Saas.csproj" />
       <ProjectReference Include="..\..\modules\XiHan.BasicApp.Workflow\XiHan.BasicApp.Workflow.csproj" />
+      <ProjectReference Include="..\..\business\XiHan.BasicApp.Sample\XiHan.BasicApp.Sample.csproj" />
     </ItemGroup>
 
     <ItemGroup>
