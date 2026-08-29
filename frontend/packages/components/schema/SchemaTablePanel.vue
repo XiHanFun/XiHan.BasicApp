@@ -480,21 +480,28 @@ function rowPeekHandlers(row: TRow) {
   height: 100%;
 }
 
-/* 表格占满中段，内部纵向滚动而非撑高外层。
- * 皮肤给表格的缺省高度上限是 24rem，管理页要的是「填满卡片剩余高度」，故改写这个槽位；
+/* 以下三条都从 .xh-table-panel 用 :deep() 打进去，不能直接写 .xh-table-panel__grid。
+ * XhTableRoot 的 render 返回的是 Fragment（表格根 div + aria 播报区两个兄弟节点），
+ * 而 Vue 只会把父组件的 scoped 属性打到「单根」子组件的根元素上，fragment 根拿不到 data-v-x。
+ * 于是 `.xh-table-panel__grid { ... }` 编译出的 .xh-table-panel__grid[data-v-x] 永远选不中表格根：
+ * class 确实挂上去了（attrs 被 mergeProps 合进根 div），但属性选择器那一半不成立。
+ * 这条链断了之后，表格既拿不到 flex:1、也拿不到 --xh-table-max-h 改写，
+ * 一直吃皮肤的缺省上限 24rem —— 卡片再高，表格也只显示 384px 一截。 */
+
+/* 表格占满中段，内部纵向滚动而非撑高外层。高度全部交给 flex 分配，皮肤那道上限直接撤掉。
  * 溢出滚动皮肤已经给了，这里不重复声明。 */
-.xh-table-panel__grid {
+.xh-table-panel :deep([data-scope='table'][data-part='root']) {
   flex: 1;
-  min-height: 0;
-  --xh-table-max-h: 100%;
+  min-block-size: 0;
+  max-block-size: none;
 }
 
 /* 区段的下限从 max-content 换成 min-content：
    max-content 等于各列声明宽之和，容器再窄也不压缩、必出横向滚动；
    0 则让区段收到容器宽，而单元格压到各自下限后仍溢出行盒，行底色（斑马纹）就在中途断掉。
    min-content 正是各列下限之和：既允许按比例压缩，行盒又始终罩得住所有单元格 */
-.xh-table-panel__grid :deep([data-scope='table'][data-part='header']),
-.xh-table-panel__grid :deep([data-scope='table'][data-part='body']) {
+.xh-table-panel :deep([data-scope='table'][data-part='header']),
+.xh-table-panel :deep([data-scope='table'][data-part='body']) {
   min-inline-size: min-content;
 }
 
