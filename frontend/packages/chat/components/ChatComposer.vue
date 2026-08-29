@@ -733,7 +733,7 @@ function handlePaste(event: ClipboardEvent) {
       </div>
 
       <!-- 大面积无边框输入区；群聊输入 @ 唤起成员选择 -->
-      <div class="relative px-1">
+      <div class="relative px-2.5">
         <!-- 浮层由输入内容驱动开合（打 @ 才弹），触发器只作锚点、不接管点击 -->
         <XhPopoverRoot v-model:open="showMentionPicker" placement="top-start">
           <!-- 触发器缺省渲染成 button，而这里只要一个锚点：套 button 会把 textarea 塞进按钮里
@@ -781,7 +781,7 @@ function handlePaste(event: ClipboardEvent) {
       </div>
 
       <!-- 底部：发送按钮 + 发送模式下拉（QQ 式分体按钮） -->
-      <div class="flex items-center justify-end px-2.5 pb-2.5">
+      <div class="flex items-center justify-end px-2.5 pt-2 pb-2.5">
         <div class="chat-send-group">
           <XhButton
             tone="brand"
@@ -817,6 +817,12 @@ function handlePaste(event: ClipboardEvent) {
   --xh-popover-max-h: 336px;
   --xh-popover-px: 0px;
   --xh-popover-py: 0px;
+
+  /* 宽度上限撤掉：皮肤缺省是 --xh-overlay-max-w（20rem=320px），比表情面板窄，
+     面板被压窄后最右一列表情与搜索框都会溢出、再被下面那条 overflow 裁掉。
+     皮肤给的是 inline-size:max-content，撤掉上限即按面板实宽站好；
+     视口方向的收口由面板自己的 max-width: calc(100vw - 24px) 兜着 */
+  --xh-popover-max-w: none;
 
   /* 面板内部是自定义元素、自带方角背景，浮层不裁就会从圆角处顶出来 */
   overflow: hidden;
