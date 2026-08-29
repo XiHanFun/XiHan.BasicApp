@@ -13,7 +13,7 @@ const { t } = useI18n()
 const { hasPermission } = usePermission()
 
 /** 维护权限（写入/删除）；无则只读浏览 */
-const canManage = computed(() => hasPermission('saas:cache:clear'))
+const canManage = computed(() => hasPermission('setting.cache.clear'))
 
 /**
  * 卡片内容容器样式：让内容区成为定高 flex 列。

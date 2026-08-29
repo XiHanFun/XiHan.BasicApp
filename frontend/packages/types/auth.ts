@@ -150,6 +150,8 @@ export interface LoginToken {
 }
 
 export interface PermissionInfo {
+  /** 可用按钮码：页面按钮是否可见由服务端判定后下发，前端不持有权限码。缺省视为一个都没有（fail-closed） */
+  buttons?: string[]
   roles: string[]
   permissions: string[]
   menus: MenuRoute[]

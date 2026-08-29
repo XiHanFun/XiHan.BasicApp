@@ -135,7 +135,7 @@ function toStr(v: unknown): string | undefined {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'identity.online-user',
-  exportPermission: 'saas:user-session:export',
+  exportPermission: 'identity.online-user.export',
   pageName: t('identity.online_user.page_name'),
   rowKey: 'basicId',
   fields: fields.value,
@@ -155,7 +155,7 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'revoke', title: t('identity.online_user.action_revoke'), scope: 'row', icon: 'lucide:log-out', type: 'error', permission: 'saas:user-session:revoke' },
+    { key: 'revoke', title: t('identity.online_user.action_revoke'), scope: 'row', icon: 'lucide:log-out', type: 'error', permission: 'identity.online-user.revoke' },
   ],
 }))
 

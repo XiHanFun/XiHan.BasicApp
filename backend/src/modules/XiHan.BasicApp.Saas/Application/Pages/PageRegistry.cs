@@ -119,7 +119,7 @@ public static class PageRegistry
         // [4] 消息中心
          new("message", "消息中心", "menu.message", MenuType.Directory, "/message", "Message", null, null, null, "lucide:mail", 500, "/message/notification"),
         // [4.1] 通知公告
-         new("message.notification", "通知公告", "menu.message_notification", MenuType.Menu, "/message/notification", "MessageNotification", "message/notification/index", "message", SaasPermissionCodes.Notification.Read, "lucide:bell", 310),
+         new("message.notification", "通知公告", "menu.message_notification", MenuType.Menu, "/message/notification", "MessageNotification", "message/notification/index", "message", SaasPermissionCodes.Message.Read, "lucide:bell", 310),
         // [4.2] 邮件短信
          new("message.record", "邮件短信", "menu.message_record", MenuType.Menu, "/message/record", "MessageRecord", "message/record/index", "message", SaasPermissionCodes.Message.Read, "lucide:send", 320),
         // [4.3] 消息模板
@@ -273,6 +273,8 @@ public static class PageRegistry
          new("tenant.list.create", "新增", "tenant.list", SaasPermissionCodes.Tenant.Create, 1),
          new("tenant.list.update", "编辑", "tenant.list", SaasPermissionCodes.Tenant.Update, 2),
          new("tenant.list.status", "启停", "tenant.list", SaasPermissionCodes.Tenant.Status, 3),
+         new("tenant.list.initdb", "初始化数据库", "tenant.list", SaasPermissionCodes.Tenant.InitDb, 4),
+         new("tenant.list.delete", "删除", "tenant.list", SaasPermissionCodes.Tenant.Delete, 5),
          new("tenant.list.export", "导出", "tenant.list", SaasPermissionCodes.Tenant.Export, 9),
 
         // [3.2] 版本套餐
@@ -280,13 +282,18 @@ public static class PageRegistry
          new("tenant.edition.update", "编辑", "tenant.edition", SaasPermissionCodes.TenantEdition.Update, 2),
          new("tenant.edition.status", "启停", "tenant.edition", SaasPermissionCodes.TenantEdition.Status, 3),
          new("tenant.edition.default", "设为默认", "tenant.edition", SaasPermissionCodes.TenantEdition.Default, 4),
+         new("tenant.edition.permission-read", "版本权限查看", "tenant.edition", SaasPermissionCodes.TenantEditionPermission.Read, 5),
+         new("tenant.edition.permission-grant", "版本权限授予", "tenant.edition", SaasPermissionCodes.TenantEditionPermission.Grant, 6),
+         new("tenant.edition.permission-update", "版本权限更新", "tenant.edition", SaasPermissionCodes.TenantEditionPermission.Update, 7),
+         new("tenant.edition.permission-revoke", "版本权限撤销", "tenant.edition", SaasPermissionCodes.TenantEditionPermission.Revoke, 8),
          new("tenant.edition.export", "导出", "tenant.edition", SaasPermissionCodes.TenantEdition.Export, 9),
 
-        // [4.1] 通知公告
-         new("message.notification.create", "新增", "message.notification", SaasPermissionCodes.Notification.Create, 1),
-         new("message.notification.update", "编辑", "message.notification", SaasPermissionCodes.Notification.Update, 2),
-         new("message.notification.publish", "发布", "message.notification", SaasPermissionCodes.Notification.Publish, 3),
-         new("message.notification.delete", "删除", "message.notification", SaasPermissionCodes.Notification.Delete, 4),
+        // [4.1] 通知公告（端点要求的是 saas:message:*，见 NotificationAppService / NotificationQueryService）
+         new("message.notification.read", "查看", "message.notification", SaasPermissionCodes.Message.Read, 0),
+         new("message.notification.create", "新增", "message.notification", SaasPermissionCodes.Message.Create, 1),
+         new("message.notification.update", "编辑", "message.notification", SaasPermissionCodes.Message.Update, 2),
+         new("message.notification.publish", "发布", "message.notification", SaasPermissionCodes.Message.Publish, 3),
+         new("message.notification.delete", "删除", "message.notification", SaasPermissionCodes.Message.Delete, 4),
          new("message.notification.export", "导出", "message.notification", SaasPermissionCodes.Notification.Export, 9),
 
         // [4.2] 邮件短信
@@ -335,6 +342,7 @@ public static class PageRegistry
          new("approval.review.export", "导出", "approval.review", SaasPermissionCodes.Review.Export, 9),
 
         // [5.2] 约束规则
+         new("approval.constraint.read", "查看", "approval.constraint", SaasPermissionCodes.ConstraintRule.Read, 0),
          new("approval.constraint.create", "新增", "approval.constraint", SaasPermissionCodes.ConstraintRule.Create, 1),
          new("approval.constraint.update", "编辑", "approval.constraint", SaasPermissionCodes.ConstraintRule.Update, 2),
          new("approval.constraint.delete", "删除", "approval.constraint", SaasPermissionCodes.ConstraintRule.Delete, 3),
@@ -385,6 +393,7 @@ public static class PageRegistry
          new("setting.config.export", "导出", "setting.config", SaasPermissionCodes.Config.Export, 9),
 
         // [8.3.1] 业务编号（页面不提供真实发号按钮，Generate 权限仅供 API/DI 调用）
+         new("setting.numbering.read", "预览", "setting.numbering", SaasPermissionCodes.Numbering.Read, 0),
          new("setting.numbering.create", "新增", "setting.numbering", SaasPermissionCodes.Numbering.Create, 1),
          new("setting.numbering.update", "编辑", "setting.numbering", SaasPermissionCodes.Numbering.Update, 2),
          new("setting.numbering.status", "启停", "setting.numbering", SaasPermissionCodes.Numbering.Status, 3),
@@ -407,6 +416,9 @@ public static class PageRegistry
 
         // [8.7] 版本管理（系统版本与升级迁移）
          new("setting.version.export", "导出", "setting.version", SaasPermissionCodes.Version.Export, 9),
+
+        // [1.1] 仪表盘（统计卡片按权限出现）
+         new("workbench.dashboard.user-statistics", "用户统计", "workbench.dashboard", SaasPermissionCodes.UserStatistics.Read, 1),
 
         // [9.1] 访问日志
          new("log.access.export", "导出", "log.access", SaasPermissionCodes.AccessLog.Export, 1),

@@ -397,7 +397,7 @@ function toStr(v: unknown): string | undefined {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.tenant',
-  exportPermission: 'saas:tenant:export',
+  exportPermission: 'tenant.list.export',
   pageName: t('tenant.list.page_name'),
   rowKey: 'basicId',
   fields: fields.value,
@@ -425,7 +425,7 @@ const schema = computed<PageSchema>(() => ({
       title: t('tenant.list.init_db'),
       scope: 'row',
       icon: 'lucide:database',
-      permission: 'saas:tenant:initdb',
+      permission: 'tenant.list.initdb',
       confirm: true,
       confirmText: t('tenant.list.init_db_confirm'),
       // 仅库隔离租户可初始化独立数据库
@@ -437,7 +437,7 @@ const schema = computed<PageSchema>(() => ({
       scope: 'row',
       type: 'error',
       icon: 'lucide:trash-2',
-      permission: 'saas:tenant:delete',
+      permission: 'tenant.list.delete',
       confirm: true,
       confirmText: t('tenant.list.delete_confirm'),
       // 后端要求先停用：正常状态下不给入口，避免点了才报错

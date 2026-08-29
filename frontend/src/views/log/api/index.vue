@@ -170,7 +170,7 @@ function buildApiQuery(params: SchemaQueryParams) {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'log.api',
-  exportPermission: 'saas:api-log:export',
+  exportPermission: 'log.api.export',
   pageName: t('log.api.page_name'),
   rowKey: 'basicId',
   fields: decorateTraceFields(fields.value, router, { timeField: 'requestTime', ipKey: 'requestIp' }),

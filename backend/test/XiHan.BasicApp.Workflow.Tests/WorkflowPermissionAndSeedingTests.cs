@@ -257,12 +257,90 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 本模块暂无按钮级权限，按钮登记表必须为空——一旦新增按钮，需同步补齐按钮权限码的结构约束。
+    /// 按钮码必须唯一。
     /// </summary>
     [Fact]
-    public void PageRegistry_ButtonsShouldStayEmpty()
+    public void ButtonCodes_ShouldBeUnique()
     {
-        Assert.Empty(WorkflowPageRegistry.Buttons);
+        var duplicated = WorkflowPageRegistry.Buttons
+            .GroupBy(button => button.Code, StringComparer.Ordinal)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        Assert.True(duplicated.Count == 0, $"按钮码重复：{string.Join("、", duplicated)}。");
+    }
+
+    /// <summary>
+    /// 按钮必须挂在本模块已登记的页面下，否则种子建不出这条按钮节点。
+    /// </summary>
+    [Fact]
+    public void ButtonParents_ShouldBeRegisteredPages()
+    {
+        var pages = WorkflowPageRegistry.All
+            .Select(page => page.Code)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var violations = WorkflowPageRegistry.Buttons
+            .Where(button => !pages.Contains(button.ParentCode))
+            .Select(button => $"{button.Code}（父项 {button.ParentCode}）")
+            .ToList();
+
+        Assert.True(violations.Count == 0, $"按钮的父页面未登记：{string.Join("、", violations)}。");
+    }
+
+    /// <summary>
+    /// 按钮码约定为 <c>{页面码}.{动作}</c>，前端按这个码判定按钮是否可见。
+    /// </summary>
+    [Fact]
+    public void ButtonCodes_ShouldBePrefixedByParentCode()
+    {
+        var violations = WorkflowPageRegistry.Buttons
+            .Where(button => !button.Code.StartsWith(button.ParentCode + ".", StringComparison.Ordinal))
+            .Select(button => $"{button.Code}（父项 {button.ParentCode}）")
+            .ToList();
+
+        Assert.True(violations.Count == 0, $"按钮码未以所属页面码为前缀：{string.Join("、", violations)}。");
+    }
+
+    /// <summary>
+    /// 按钮权限码必须是本模块声明过的常量——按钮是写操作入口，挂个不存在的码等于无门。
+    /// </summary>
+    [Fact]
+    public void ButtonPermissionCodes_ShouldBeDeclaredWorkflowCodes()
+    {
+        var declared = new[]
+        {
+            WorkflowPermissionCodes.Read,
+            WorkflowPermissionCodes.Create,
+            WorkflowPermissionCodes.Update,
+            WorkflowPermissionCodes.Delete,
+            WorkflowPermissionCodes.Execute
+        }.ToHashSet(StringComparer.Ordinal);
+
+        var violations = WorkflowPageRegistry.Buttons
+            .Where(button => !declared.Contains(button.PermissionCode))
+            .Select(button => $"{button.Code}={button.PermissionCode}")
+            .ToList();
+
+        Assert.True(violations.Count == 0, $"按钮权限码未声明：{string.Join("、", violations)}。");
+    }
+
+    /// <summary>
+    /// 同一页面内按钮排序不得重复，否则菜单里按钮顺序不稳定。
+    /// </summary>
+    [Fact]
+    public void ButtonSorts_ShouldBeUniqueWithinTheSamePage()
+    {
+        var violations = WorkflowPageRegistry.Buttons
+            .GroupBy(button => button.ParentCode, StringComparer.Ordinal)
+            .SelectMany(page => page
+                .GroupBy(button => button.Sort)
+                .Where(sortGroup => sortGroup.Count() > 1)
+                .Select(sortGroup => $"{page.Key} 的排序 {sortGroup.Key}"))
+            .ToList();
+
+        Assert.True(violations.Count == 0, $"同页面按钮排序重复：{string.Join("、", violations)}。");
     }
 
     /// <summary>

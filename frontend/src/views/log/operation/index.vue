@@ -139,7 +139,7 @@ function buildOperationQuery(params: SchemaQueryParams) {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'log.operation',
-  exportPermission: 'saas:operation-log:export',
+  exportPermission: 'log.operation.export',
   pageName: t('log.operation.page_name'),
   rowKey: 'basicId',
   fields: decorateTraceFields(fields.value, router, { timeField: 'operationTime', ipKey: 'operationIp' }),

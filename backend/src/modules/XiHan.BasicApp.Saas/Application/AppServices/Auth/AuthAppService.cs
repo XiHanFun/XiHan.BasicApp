@@ -509,12 +509,18 @@ public sealed partial class AuthAppService
         }
 
         var menus = await _menuRouteQueryService.GetRoutesAsync(snapshot, cancellationToken);
+        // 按钮门控由服务端判定后以按钮码下发，前端不持有权限码
+        var buttons = await _menuRouteQueryService.GetGrantedButtonCodesAsync(
+            snapshot,
+            _currentUser.IsImpersonating() ? ImpersonationDefaults.DeniedPermissionCodes : null,
+            cancellationToken);
 
         return new PermissionInfoDto
         {
             Roles = snapshot.Roles,
             Permissions = snapshot.Permissions,
-            Menus = menus
+            Menus = menus,
+            Buttons = buttons
         };
     }
 

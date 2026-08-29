@@ -151,9 +151,9 @@ function toStr(v: unknown): string | undefined {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'message.template',
-  exportPermission: 'saas:message-template:export',
+  exportPermission: 'message.template.export',
   pageName: t('message.template.page_name'),
-  statusPermission: 'saas:message-template:status',
+  statusPermission: 'message.template.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {

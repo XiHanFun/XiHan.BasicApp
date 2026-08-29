@@ -198,11 +198,11 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.job',
-  exportPermission: 'saas:task:export',
+  exportPermission: 'setting.job.export',
   pageName: t('setting.job.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:task:delete',
-  statusPermission: 'saas:task:status',
+  removePermission: 'setting.job.delete',
+  statusPermission: 'setting.job.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {
@@ -225,7 +225,7 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'create', title: t('setting.job.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: t('setting.job.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'logs', title: t('setting.job.logs'), scope: 'row', icon: 'lucide:history', permission: 'saas:task-log:read' },
+    { key: 'logs', title: t('setting.job.logs'), scope: 'row', icon: 'lucide:history', permission: 'setting.job.logs' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
     { key: 'trigger', title: t('setting.job.trigger_immediate'), scope: 'row', icon: 'lucide:play', disabled: row => triggerDisabled(row as unknown as TaskListItemDto) },
     { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', icon: 'lucide:power', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running },

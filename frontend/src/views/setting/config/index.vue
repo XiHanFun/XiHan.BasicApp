@@ -92,12 +92,12 @@ const fields = computed<ListFieldSchema[]>(() => [
 // ── 资源适配器：归一化查询参数 → 后端 API（仅放后端支持的搜索字段） ──
 const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.config',
-  exportPermission: 'saas:config:export',
-  importPermission: 'saas:config:import',
+  exportPermission: 'setting.config.export',
+  importPermission: 'setting.config.import',
   pageName: t('setting.config.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:config:delete',
-  statusPermission: 'saas:config:status',
+  removePermission: 'setting.config.delete',
+  statusPermission: 'setting.config.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {

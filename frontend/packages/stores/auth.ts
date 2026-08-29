@@ -77,6 +77,7 @@ export const useAuthStore = defineStore('auth', () => {
       logo: userInfo.appLogo,
     })
     accessStore.setAccessCodes(permissionInfo.permissions)
+    accessStore.setAccessButtons(permissionInfo.buttons ?? [])
     accessStore.setAccessRoutes(permissionInfo.menus)
 
     for (const route of mapMenuToRoutes(permissionInfo.menus)) {

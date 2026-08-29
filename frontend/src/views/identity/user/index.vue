@@ -468,11 +468,11 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'system.user',
-  exportPermission: 'saas:user:export',
+  exportPermission: 'identity.user.export',
   pageName: t('identity.user.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:user:delete',
-  statusPermission: 'saas:user:status',
+  removePermission: 'identity.user.delete',
+  statusPermission: 'identity.user.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {

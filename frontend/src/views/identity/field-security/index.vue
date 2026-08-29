@@ -313,11 +313,11 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'system.field-security',
-  exportPermission: 'saas:field-level-security:export',
+  exportPermission: 'identity.field-security.export',
   pageName: t('identity.field_security.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:field-level-security:delete',
-  statusPermission: 'saas:field-level-security:status',
+  removePermission: 'identity.field-security.delete',
+  statusPermission: 'identity.field-security.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {

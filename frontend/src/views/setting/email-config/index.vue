@@ -101,9 +101,9 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.email-config',
-  exportPermission: 'saas:email-config:export',
+  exportPermission: 'setting.email-config.export',
   pageName: t('message.email_config.page_name'),
-  statusPermission: 'saas:email-config:status',
+  statusPermission: 'setting.email-config.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {
@@ -123,15 +123,15 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => emailConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('message.email_config.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:email-config:create' },
-    { key: 'edit', title: t('message.email_config.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'saas:email-config:update' },
-    { key: 'toggle', title: t('message.email_config.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'saas:email-config:status' },
+    { key: 'create', title: t('message.email_config.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.email-config.create' },
+    { key: 'edit', title: t('message.email_config.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.email-config.update' },
+    { key: 'toggle', title: t('message.email_config.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.email-config.status' },
     {
       key: 'setDefault',
       title: t('message.email_config.actions.set_default'),
       scope: 'row',
       icon: 'lucide:star',
-      permission: 'saas:email-config:update',
+      permission: 'setting.email-config.update',
       visible: row => !(row as unknown as EmailConfigListItemDto).isDefault,
     },
     {
@@ -140,7 +140,7 @@ const schema = computed<PageSchema>(() => ({
       scope: 'row',
       icon: 'lucide:trash-2',
       type: 'error',
-      permission: 'saas:email-config:delete',
+      permission: 'setting.email-config.delete',
       visible: row => !(row as unknown as EmailConfigListItemDto).isDefault,
     },
   ],

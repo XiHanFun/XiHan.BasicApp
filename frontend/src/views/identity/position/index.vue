@@ -59,11 +59,11 @@ const fields = computed<ListFieldSchema[]>(() => [
 // ── 资源适配器：归一化查询参数 → 后端 API ──
 const schema = computed<PageSchema>(() => ({
   pageCode: 'identity.position',
-  exportPermission: 'saas:position:export',
+  exportPermission: 'identity.position.export',
   pageName: t('identity.position.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:position:delete',
-  statusPermission: 'saas:position:status',
+  removePermission: 'identity.position.delete',
+  statusPermission: 'identity.position.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {

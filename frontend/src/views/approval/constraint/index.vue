@@ -194,9 +194,9 @@ const fields = computed<ListFieldSchema[]>(() => [
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema = computed<PageSchema>(() => ({
   pageCode: 'approval.constraint',
-  exportPermission: 'saas:constraint-rule:export',
+  exportPermission: 'approval.constraint.export',
   pageName: t('approval.constraint.page_name'),
-  statusPermission: 'saas:constraint-rule:status',
+  statusPermission: 'approval.constraint.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {
@@ -215,11 +215,11 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => constraintRuleApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('approval.constraint.remark_batch_enable') : t('approval.constraint.remark_batch_disable') }),
   },
   actions: [
-    { key: 'create', title: t('approval.constraint.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:constraint-rule:create' },
-    { key: 'view', title: t('approval.constraint.action_view'), scope: 'row', permission: 'saas:constraint-rule:read' },
-    { key: 'edit', title: t('approval.constraint.action_edit'), scope: 'row', permission: 'saas:constraint-rule:update' },
-    { key: 'toggle', title: t('approval.constraint.action_toggle'), scope: 'row', permission: 'saas:constraint-rule:status' },
-    { key: 'delete', title: t('approval.constraint.action_delete'), scope: 'row', type: 'error', permission: 'saas:constraint-rule:delete' },
+    { key: 'create', title: t('approval.constraint.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'approval.constraint.create' },
+    { key: 'view', title: t('approval.constraint.action_view'), scope: 'row', permission: 'approval.constraint.read' },
+    { key: 'edit', title: t('approval.constraint.action_edit'), scope: 'row', permission: 'approval.constraint.update' },
+    { key: 'toggle', title: t('approval.constraint.action_toggle'), scope: 'row', permission: 'approval.constraint.status' },
+    { key: 'delete', title: t('approval.constraint.action_delete'), scope: 'row', type: 'error', permission: 'approval.constraint.delete' },
   ],
 }))
 

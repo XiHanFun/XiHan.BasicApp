@@ -62,7 +62,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 // 只读页：版本行由升级引擎写入并把 IsUpgrading 用作分布式锁，页面不再提供任何写操作
 const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.version',
-  exportPermission: 'saas:version:export',
+  exportPermission: 'setting.version.export',
   pageName: t('setting.version.page_name'),
   rowKey: 'basicId',
   fields: fields.value,

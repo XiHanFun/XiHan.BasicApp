@@ -142,13 +142,13 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'signal', title: t('workflow.instance.action_signal'), scope: 'page', icon: 'lucide:radio', permission: 'workflow:execute' },
+    { key: 'signal', title: t('workflow.instance.action_signal'), scope: 'page', icon: 'lucide:radio', permission: 'workflow_instance.execute' },
     { key: 'view', title: t('workflow.instance.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'suspend', title: t('workflow.instance.action_suspend'), scope: 'row', type: 'warning', permission: 'workflow:update', visible: row => isRunning(row as unknown as WorkflowInstanceListItemDto) },
-    { key: 'resume', title: t('workflow.instance.action_resume'), scope: 'row', type: 'success', permission: 'workflow:update', visible: row => (row as unknown as WorkflowInstanceListItemDto).status === WorkflowInstanceStatus.Suspended },
-    { key: 'retry', title: t('workflow.instance.action_retry'), scope: 'row', type: 'primary', permission: 'workflow:execute', visible: row => (row as unknown as WorkflowInstanceListItemDto).status === WorkflowInstanceStatus.Faulted },
-    { key: 'cancel', title: t('workflow.instance.action_cancel'), scope: 'row', type: 'warning', permission: 'workflow:execute', visible: row => isRunning(row as unknown as WorkflowInstanceListItemDto) || (row as unknown as WorkflowInstanceListItemDto).status === WorkflowInstanceStatus.Suspended },
-    { key: 'terminate', title: t('workflow.instance.action_terminate'), scope: 'row', type: 'error', permission: 'workflow:execute', visible: row => !['Completed', 'Canceled', 'Faulted', 'Terminated'].includes((row as unknown as WorkflowInstanceListItemDto).status) },
+    { key: 'suspend', title: t('workflow.instance.action_suspend'), scope: 'row', type: 'warning', permission: 'workflow_instance.update', visible: row => isRunning(row as unknown as WorkflowInstanceListItemDto) },
+    { key: 'resume', title: t('workflow.instance.action_resume'), scope: 'row', type: 'success', permission: 'workflow_instance.update', visible: row => (row as unknown as WorkflowInstanceListItemDto).status === WorkflowInstanceStatus.Suspended },
+    { key: 'retry', title: t('workflow.instance.action_retry'), scope: 'row', type: 'primary', permission: 'workflow_instance.execute', visible: row => (row as unknown as WorkflowInstanceListItemDto).status === WorkflowInstanceStatus.Faulted },
+    { key: 'cancel', title: t('workflow.instance.action_cancel'), scope: 'row', type: 'warning', permission: 'workflow_instance.execute', visible: row => isRunning(row as unknown as WorkflowInstanceListItemDto) || (row as unknown as WorkflowInstanceListItemDto).status === WorkflowInstanceStatus.Suspended },
+    { key: 'terminate', title: t('workflow.instance.action_terminate'), scope: 'row', type: 'error', permission: 'workflow_instance.execute', visible: row => !['Completed', 'Canceled', 'Faulted', 'Terminated'].includes((row as unknown as WorkflowInstanceListItemDto).status) },
   ],
 }))
 

@@ -156,7 +156,7 @@ function buildDiffQuery(params: SchemaQueryParams) {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'log.diff',
-  exportPermission: 'saas:diff-log:export',
+  exportPermission: 'log.diff.export',
   pageName: t('log.diff.page_name'),
   rowKey: 'basicId',
   fields: decorateTraceFields(fields.value, router, { timeField: 'auditTime', ipKey: 'operationIp' }),

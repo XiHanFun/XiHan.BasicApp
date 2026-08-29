@@ -112,9 +112,9 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.bot-config',
-  exportPermission: 'saas:bot-config:export',
+  exportPermission: 'setting.bot-config.export',
   pageName: t('message.bot_config.page_name'),
-  statusPermission: 'saas:bot-config:status',
+  statusPermission: 'setting.bot-config.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {
@@ -135,15 +135,15 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => botConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('message.bot_config.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:bot-config:create' },
-    { key: 'edit', title: t('message.bot_config.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'saas:bot-config:update' },
-    { key: 'toggle', title: t('message.bot_config.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'saas:bot-config:status' },
+    { key: 'create', title: t('message.bot_config.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.bot-config.create' },
+    { key: 'edit', title: t('message.bot_config.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.bot-config.update' },
+    { key: 'toggle', title: t('message.bot_config.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.bot-config.status' },
     {
       key: 'setDefault',
       title: t('message.bot_config.actions.set_default'),
       scope: 'row',
       icon: 'lucide:star',
-      permission: 'saas:bot-config:update',
+      permission: 'setting.bot-config.update',
       visible: row => !(row as unknown as BotConfigListItemDto).isDefault,
     },
     {
@@ -152,7 +152,7 @@ const schema = computed<PageSchema>(() => ({
       scope: 'row',
       icon: 'lucide:trash-2',
       type: 'error',
-      permission: 'saas:bot-config:delete',
+      permission: 'setting.bot-config.delete',
       visible: row => !(row as unknown as BotConfigListItemDto).isDefault,
     },
   ],

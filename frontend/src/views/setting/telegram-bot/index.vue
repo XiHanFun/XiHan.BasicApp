@@ -94,9 +94,9 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'setting.telegram-bot',
-  exportPermission: 'saas:telegram-bot:export',
+  exportPermission: 'setting.telegram-bot.export',
   pageName: t('message.telegram_bot.page_name'),
-  statusPermission: 'saas:telegram-bot:status',
+  statusPermission: 'setting.telegram-bot.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {
@@ -115,10 +115,10 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => telegramBotApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('message.telegram_bot.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'saas:telegram-bot:create' },
-    { key: 'edit', title: t('message.telegram_bot.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'saas:telegram-bot:update' },
-    { key: 'toggle', title: t('message.telegram_bot.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'saas:telegram-bot:status' },
-    { key: 'delete', title: t('message.telegram_bot.actions.delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', permission: 'saas:telegram-bot:delete' },
+    { key: 'create', title: t('message.telegram_bot.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.telegram-bot.create' },
+    { key: 'edit', title: t('message.telegram_bot.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.telegram-bot.update' },
+    { key: 'toggle', title: t('message.telegram_bot.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.telegram-bot.status' },
+    { key: 'delete', title: t('message.telegram_bot.actions.delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', permission: 'setting.telegram-bot.delete' },
   ],
 }))
 

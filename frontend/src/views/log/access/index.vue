@@ -139,7 +139,7 @@ function buildAccessQuery(params: SchemaQueryParams) {
 
 const schema = computed<PageSchema>(() => ({
   pageCode: 'log.access',
-  exportPermission: 'saas:access-log:export',
+  exportPermission: 'log.access.export',
   pageName: t('log.access.page_name'),
   rowKey: 'basicId',
   fields: decorateTraceFields(fields.value, router, { timeField: 'accessTime', ipKey: 'accessIp' }),

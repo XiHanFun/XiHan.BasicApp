@@ -139,11 +139,11 @@ const fields = computed<ListFieldSchema[]>(() => [
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema = computed<PageSchema>(() => ({
   pageCode: 'platform.app',
-  exportPermission: 'saas:oauth-app:export',
+  exportPermission: 'openapi.app.export',
   pageName: t('openapi.app.page_name'),
   batchRemovable: true,
-  removePermission: 'saas:oauth-app:delete',
-  statusPermission: 'saas:oauth-app:status',
+  removePermission: 'openapi.app.delete',
+  statusPermission: 'openapi.app.status',
   rowKey: 'basicId',
   fields: fields.value,
   resource: {
