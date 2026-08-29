@@ -13,6 +13,7 @@ import { useEffectiveLayoutMode, useLayoutMenuDomain, usePreferenceEntry } from 
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
 import HeaderTopMenu from './header/HeaderTopMenu.vue'
+import ImpersonationDialog from './ImpersonationDialog.vue'
 import { renderHorizontalBadgeLabel } from './MenuBadge.vue'
 import XihanIconButton from './XihanIconButton.vue'
 
@@ -31,6 +32,7 @@ const notificationStore = useNotificationStore()
 const appContext = useAppContext()
 const { t, te } = useI18n()
 const { isDark, toggleThemeWithTransition } = useTheme()
+const showImpersonationDialog = ref(false)
 const {
   route,
   router,
@@ -173,6 +175,14 @@ const userOptions = computed<AppDropdownOption[]>(() => [
         icon: () => h(Icon, { icon: 'lucide:building-2' }),
       }]
     : []),
+  // 能否发起模仿由服务端判定后随用户信息下发；模仿态下服务端恒返回 false，此时只出「退出模仿」
+  ...(userStore.userInfo?.canImpersonate
+    ? [{
+        label: t('header.impersonation.entry'),
+        key: 'impersonate',
+        icon: () => h(Icon, { icon: 'lucide:user-round-cog' }),
+      }]
+    : []),
   ...(userStore.userInfo?.isImpersonating
     ? [{
         label: t('header.impersonation.stop'),
@@ -220,6 +230,10 @@ async function handleUserAction(key: string) {
   }
   if (key === 'control-center' && appContext.shellRoutes.controlCenter) {
     router.push(appContext.shellRoutes.controlCenter)
+    return
+  }
+  if (key === 'impersonate') {
+    showImpersonationDialog.value = true
     return
   }
   if (key === 'stop-impersonation') {
@@ -490,6 +504,9 @@ watch(() => route.fullPath, () => {
     @preferences-open="openPreferenceDrawer"
     @user-action="handleUserAction"
   />
+
+  <!-- 模仿登录：由用户菜单打开，选中目标即以其身份重建会话 -->
+  <ImpersonationDialog v-model:show="showImpersonationDialog" />
 </template>
 
 <style>

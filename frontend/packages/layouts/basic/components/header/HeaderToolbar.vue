@@ -12,7 +12,6 @@ import { Icon } from '~/iconify'
 import { useShellExtensions } from '~/stores'
 import AppGlobalSearch from '../AppGlobalSearch.vue'
 import XihanIconButton from '../XihanIconButton.vue'
-import ImpersonationPopover from './ImpersonationPopover.vue'
 import NotificationPopover from './NotificationPopover.vue'
 
 defineOptions({ name: 'HeaderToolbar' })
@@ -42,8 +41,6 @@ const emit = defineEmits<{
 const shellHeaderItems = computed(() => useShellExtensions().flatMap(extension => extension.headerToolbarItems ?? []))
 
 const { t } = useI18n()
-// 能否发起模仿由服务端判定后随用户信息下发；模仿态下服务端恒返回 false，退出入口改由横幅与用户菜单提供
-const canImpersonate = computed(() => props.userStore.userInfo?.canImpersonate === true)
 // 小屏（<768）：隐藏次要工具（语言/时区/全屏）与用户名文字，避免头部溢出裁切头像菜单
 const { isMobile } = useIsMobile()
 </script>
@@ -120,9 +117,6 @@ const { isMobile } = useIsMobile()
 
     <!-- 壳层扩展按钮（可选模块注册的顶栏入口，如聊天） -->
     <component :is="item" v-for="(item, index) in shellHeaderItems" :key="index" />
-
-    <!-- 模仿登录入口 -->
-    <ImpersonationPopover v-if="canImpersonate" />
 
     <!-- 通知弹窗 -->
     <NotificationPopover
