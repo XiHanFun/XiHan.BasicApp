@@ -254,6 +254,11 @@ public sealed class NumberingRuleRepositorySqlTests : IDisposable
         public IReadOnlyCollection<string> GetAllConfigIds() => [];
 
         /// <summary>
+        /// 获取当前布局的全部连接配置标识
+        /// </summary>
+        public IReadOnlyList<string> GetCurrentLayoutConfigIds() => [];
+
+        /// <summary>
         /// 按顺序获取所有库的客户端（初始化/种子数据等场景使用）
         /// </summary>
         public IEnumerable<ISqlSugarClient> GetAllClients() => [client];
