@@ -101,7 +101,7 @@ public sealed class TenantAppService
     /// 校验租户管理员账号：用户名长度、邮箱格式、密码策略
     /// </summary>
     /// <remarks>
-    /// 用户名与邮箱的唯一性在 <see cref="ITenantProvisionDomainService.InitializeTenantAdminAsync"/> 内校验（需要租户上下文）。
+    /// 用户名与邮箱的唯一性在 <see cref="ITenantProvisionDomainService.InitializeTenantAdminAsync"/> 内校验（平台态查账号注册表）。
     /// </remarks>
     private async Task ValidateTenantAdminAsync(TenantCreateDto input, string adminUserName, string adminEmail, string adminPassword)
     {

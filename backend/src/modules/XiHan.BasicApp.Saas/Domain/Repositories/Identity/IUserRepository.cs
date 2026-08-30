@@ -35,10 +35,26 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     /// <summary>
     /// 检查邮箱是否已被占用（全平台范围，邮箱为登录身份标识须全局唯一）
     /// </summary>
+    /// <remarks>
+    /// 平台态执行：账号注册表落在平台库，租户上下文下连接会被解析到该租户独立库（库隔离部署）。
+    /// </remarks>
     /// <param name="email">邮箱（调用方已 Trim）</param>
     /// <param name="excludeUserId">排除的用户主键（更新自身时传入）</param>
     /// <param name="cancellationToken">取消令牌</param>
     Task<bool> ExistsEmailGloballyAsync(string email, long? excludeUserId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 检查指定租户下用户名是否已被占用（连带平台账号一起比对，避免与平台账号重名）
+    /// </summary>
+    /// <remarks>
+    /// 租户范围来自入参而非当前上下文：平台态执行，租户范围显式落进 WHERE。
+    /// 与 <see cref="ExistsUserNameAsync"/> 的区别是后者按当前租户上下文经全局过滤器隔离。
+    /// </remarks>
+    /// <param name="tenantId">目标租户主键</param>
+    /// <param name="userName">用户名（调用方已 Trim）</param>
+    /// <param name="excludeUserId">排除的用户主键（更新自身时传入）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task<bool> ExistsUserNameInTenantAsync(long tenantId, string userName, long? excludeUserId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 忽略租户过滤，按主键获取用户（平台运维 / 跨租户切换场景使用，需上层做权限校验）

@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Uow;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
@@ -13,9 +14,15 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// </summary>
 public sealed class UserRepository(
     ISqlSugarClientResolver clientResolver,
-    IUnitOfWorkManager unitOfWorkManager)
+    IUnitOfWorkManager unitOfWorkManager,
+    ICurrentTenant currentTenant)
     : SaasAggregateRepository<SysUser>(clientResolver, unitOfWorkManager), IUserRepository
 {
+    /// <summary>
+    /// 平台租户标识（账号注册表里平台账号的归属值）
+    /// </summary>
+    private const long PlatformTenantId = 0;
+
     /// <summary>
     /// 根据当前租户和用户名获取用户
     /// </summary>
@@ -69,6 +76,9 @@ public sealed class UserRepository(
     /// <summary>
     /// 检查邮箱是否已被占用（全平台范围，邮箱为登录身份标识须全局唯一）
     /// </summary>
+    /// <remarks>
+    /// 平台态执行：账号注册表落在平台库，租户上下文下连接会被解析到该租户独立库（库隔离部署）。
+    /// </remarks>
     /// <param name="email">邮箱（调用方已 Trim）</param>
     /// <param name="excludeUserId">排除的用户主键（更新自身时传入）</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -77,7 +87,38 @@ public sealed class UserRepository(
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
         cancellationToken.ThrowIfCancellationRequested();
 
+        using var platformScope = currentTenant.Change(null);
+
         var query = CreateNoTenantQueryable().Where(user => user.Email == email);
+        if (excludeUserId.HasValue)
+        {
+            query = query.Where(user => user.BasicId != excludeUserId.Value);
+        }
+
+        return await query.AnyAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 检查指定租户下用户名是否已被占用（连带平台账号一起比对，避免与平台账号重名）
+    /// </summary>
+    /// <remarks>
+    /// 租户范围来自入参而非当前上下文：平台态执行，租户范围显式落进 WHERE。
+    /// 与 <see cref="ExistsUserNameAsync"/> 的区别是后者按当前租户上下文经全局过滤器隔离。
+    /// </remarks>
+    /// <param name="tenantId">目标租户主键</param>
+    /// <param name="userName">用户名（调用方已 Trim）</param>
+    /// <param name="excludeUserId">排除的用户主键（更新自身时传入）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<bool> ExistsUserNameInTenantAsync(long tenantId, string userName, long? excludeUserId = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(userName);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var platformScope = currentTenant.Change(null);
+
+        var query = CreateNoTenantQueryable()
+            .Where(user => user.TenantId == tenantId || user.TenantId == PlatformTenantId)
+            .Where(user => user.UserName == userName);
         if (excludeUserId.HasValue)
         {
             query = query.Where(user => user.BasicId != excludeUserId.Value);
