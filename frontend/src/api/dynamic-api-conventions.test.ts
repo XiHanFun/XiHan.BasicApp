@@ -190,24 +190,36 @@ describe('非 CRUD 前缀的动作保留完整方法名', () => {
     expect(only()).toMatchObject({ method: 'POST', url: '/UserSession/RevokeUserSession' })
   })
 
-  it('版本权限撤销是 POST 而不是 DELETE，主键走请求体', async () => {
+  it('版本权限撤销是 POST 而不是 DELETE，id 走 query', async () => {
     await tenantEditionPermissionApi.revoke('9')
 
     expect(only()).toEqual({
       method: 'POST',
       url: '/TenantEdition/RevokeTenantEditionPermission',
-      body: { id: '9' },
-      config: undefined,
+      body: undefined,
+      config: { params: { id: '9' } },
     })
   })
 
-  it('第三方应用重置密钥走 POST，主键放请求体', async () => {
+  it('第三方应用重置密钥走 POST，id 走 query', async () => {
     await oauthAppApi.regenerateSecret('3')
 
-    expect(only()).toMatchObject({
+    expect(only()).toEqual({
       method: 'POST',
       url: '/OAuthApp/RegenerateOAuthAppSecret',
-      body: { id: '3' },
+      body: undefined,
+      config: { params: { id: '3' } },
+    })
+  })
+
+  it('租户初始化数据库走 POST /Tenant/InitializeDatabase，id 走 query', async () => {
+    await tenantApi.initializeDatabase('7')
+
+    expect(only()).toEqual({
+      method: 'POST',
+      url: '/Tenant/InitializeDatabase',
+      body: undefined,
+      config: { params: { id: '7' } },
     })
   })
 
