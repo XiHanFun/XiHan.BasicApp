@@ -27,6 +27,12 @@ namespace XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 /// </list>
 /// 读取租户元数据时切到平台上下文（<c>ICurrentTenant.Change(null)</c>）以走默认连接并避免递归；结果按租户缓存，
 /// 隔离配置变更须经 <see cref="ITenantConnectionCacheInvalidator"/> 失效。
+/// <para>
+/// 本类只负责租户维度（这个租户有没有独立主库）。库隔离租户的模块库由框架按约定派生
+/// （<c>XiHan:Data:SqlSugarCore:EnableTenantModuleDatabaseConvention</c>）：库名从租户主库名派生为
+/// <c>{租户库名}_{模块名}</c>，与主库一并建连。要把某租户的模块库指到别的机器上，在这里显式给出
+/// <c>ModuleDataSourceConfigs</c> 即可——显式的优先，约定只补没说的部分。
+/// </para>
 /// </remarks>
 public sealed class SaasTenantConnectionProvider : ISqlSugarTenantConnectionProvider, ITenantConnectionCacheInvalidator
 {
