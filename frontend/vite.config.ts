@@ -7,6 +7,7 @@ import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import { xihanUiBanner } from '@xihan-ui/kernel/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig, loadEnv } from 'vite'
@@ -226,6 +227,8 @@ export default defineConfig(({ mode }) => {
       __APP_DEV_DEPENDENCIES__: JSON.stringify(appDevDependencies),
     },
     plugins: [
+      // XiHan.UI 的启动横幅打在这个终端里，不占浏览器控制台
+      xihanUiBanner(),
       tailwindcss(),
       vue(),
       vueJsx(),
