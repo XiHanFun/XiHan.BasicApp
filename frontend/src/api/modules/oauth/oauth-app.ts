@@ -36,7 +36,9 @@ export const oauthAppApi = {
     return oauthAppCommandApi.delete('OAuthApp', { id })
   },
   regenerateSecret(id: OAuthAppDetailDto['basicId']) {
-    return oauthAppCommandApi.post<OAuthAppSecretDto>('RegenerateOAuthAppSecret', { id })
+    // RegenerateOAuthAppSecretAsync(long id)：简单类型参数被动态 API 推断为 query，
+    // 放进请求体绑不上（会静默变成 0），故 id 走 query
+    return oauthAppCommandApi.post<OAuthAppSecretDto>('RegenerateOAuthAppSecret', undefined, { params: { id } })
   },
   update(input: OAuthAppUpdateDto) {
     return oauthAppCommandApi.put<OAuthAppDetailDto, OAuthAppUpdateDto>('OAuthApp', input)
