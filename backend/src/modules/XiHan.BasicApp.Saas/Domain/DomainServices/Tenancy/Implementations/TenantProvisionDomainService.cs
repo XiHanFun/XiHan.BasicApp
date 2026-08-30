@@ -88,17 +88,18 @@ public sealed class TenantProvisionDomainService
         ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 1) 确保版本：未指定则取默认版本并持久化——必须在进入租户上下文之前完成：
-        //    SysTenant 行本身是 TenantId=0 的平台数据，租户上下文内写它会被写路径租户边界拒绝（语义上这本就是平台态操作）
+        // 平台态代写：SysTenant 行、账号注册表、租户授权绑定都落平台库（库隔离租户的独立库此时尚未建立，
+        //           其 ConfigStatus 为 Pending，建库是 InitializeDatabase 的独立步骤）。
+        //           各实体均显式置 TenantId，平台态插入保留该预置值
+        using var platformScope = _currentTenant.Change(null);
+
+        // 1) 确保版本：未指定则取默认版本并持久化
         var editionId = tenant.EditionId ?? await AssignDefaultEditionAsync(tenant, cancellationToken);
         if (editionId.HasValue && tenant.EditionId != editionId)
         {
             tenant.EditionId = editionId;
             await _tenantRepository.UpdateAsync(tenant, cancellationToken);
         }
-
-        // 在新租户上下文内开通，确保审计/上下文一致（实体均显式置 TenantId）
-        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
 
         // 2) 创建管理员（用户/安全/成员）
         var adminUser = await InitializeTenantAdminAsync(tenant, adminUserName, adminEmail, passwordHash, cancellationToken);
@@ -129,6 +130,9 @@ public sealed class TenantProvisionDomainService
         ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 平台态代写：账号注册表落平台库（实体显式置 TenantId，平台态插入保留该预置值）
+        using var platformScope = _currentTenant.Change(null);
+
         // 邮箱是全平台唯一的登录身份标识
         var normalizedEmail = adminEmail.Trim();
         if (await _userRepository.ExistsEmailGloballyAsync(normalizedEmail, cancellationToken: cancellationToken))
@@ -136,14 +140,11 @@ public sealed class TenantProvisionDomainService
             throw new UserFriendlyException("管理员邮箱已被其他账号使用。");
         }
 
-        // 用户名在租户内唯一（读共享过滤器会连带平台账号一起比对，避免与平台账号重名）
+        // 用户名在目标租户内唯一，租户范围显式传入（连带平台账号一起比对，避免与平台账号重名）
         var normalizedUserName = adminUserName.Trim();
-        using (_currentTenant.Change(tenant.BasicId, tenant.TenantName))
+        if (await _userRepository.ExistsUserNameInTenantAsync(tenant.BasicId, normalizedUserName, cancellationToken: cancellationToken))
         {
-            if (await _userRepository.ExistsUserNameAsync(normalizedUserName, cancellationToken: cancellationToken))
-            {
-                throw new UserFriendlyException("管理员用户名已被使用。");
-            }
+            throw new UserFriendlyException("管理员用户名已被使用。");
         }
 
         // 创建管理员用户
@@ -192,6 +193,9 @@ public sealed class TenantProvisionDomainService
     {
         ArgumentNullException.ThrowIfNull(tenant);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 平台态代写：授权绑定落平台库（实体显式置 TenantId，平台态插入保留该预置值）
+        using var platformScope = _currentTenant.Change(null);
 
         var userRole = new SysUserRole
         {
@@ -245,6 +249,10 @@ public sealed class TenantProvisionDomainService
             return 0;
         }
 
+        // 平台态执行：版本白名单是平台数据，授权绑定与开通期一致地落在平台库；
+        //           租户范围显式落进下面的 WHERE，不依赖当前上下文
+        using var platformScope = _currentTenant.Change(null);
+
         var whitelist = await _tenantEditionPermissionRepository.GetByEditionIdAsync(tenant.EditionId.Value, cancellationToken);
         var allowedIds = whitelist
             .Where(item => item.Status == ValidityStatus.Valid)
@@ -258,7 +266,6 @@ public sealed class TenantProvisionDomainService
         }
 
         // 仅处理该租户自有绑定行（TenantId=本租户）；全局行（TenantId=0）属平台运维资产，不在回收范围
-        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
         var tenantId = tenant.BasicId;
         var now = DateTimeOffset.UtcNow;
 
@@ -313,6 +320,9 @@ public sealed class TenantProvisionDomainService
         {
             return 0;
         }
+
+        // 平台态执行：SysTenant 是平台数据
+        using var platformScope = _currentTenant.Change(null);
 
         var tenants = await _tenantRepository.GetListAsync(tenant => tenant.EditionId == editionId, cancellationToken);
         var total = 0;

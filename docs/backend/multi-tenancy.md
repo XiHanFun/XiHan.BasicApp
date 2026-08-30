@@ -120,7 +120,7 @@ BasicApp 采用**先登录后选租户**：登录页不选择租户，统一在�
 
 ### 开通一站式：建管理员 + 角色 + 授权
 
-创建租户时若同时提供 `AdminUserName` + `AdminPassword`（此时 `AdminEmail` 必填且须为有效邮箱），`CreateTenantAsync` 会调 `ProvisionTenantAdminAsync` 一站式开通（`TenantProvisionDomainService`），全程在新租户上下文内进行：
+创建租户时若同时提供 `AdminUserName` + `AdminPassword`（此时 `AdminEmail` 必填且须为有效邮箱），`CreateTenantAsync` 会调 `ProvisionTenantAdminAsync` 一站式开通（`TenantProvisionDomainService`），全程在**平台态**（`ICurrentTenant.Change(null)`）内进行——账号注册表与租户授权绑定都落平台库，各实体显式置 `TenantId`，平台态插入保留该预置值（库隔离租户的独立库此时还没建，见下面的「库隔离租户的开通顺序」）：
 
 1. **确保版本**：租户未指定则取默认版本并回写 `SysTenant.EditionId`；
 2. **建管理员**：创建 `SysUser`（校验邮箱全局唯一）+ `SysUserSecurity`（密码哈希）+ `SysTenantUser`（`MemberType=Owner`、`InviteStatus=Accepted`）；
@@ -128,6 +128,12 @@ BasicApp 采用**先登录后选租户**：登录页不选择租户，统一在�
 4. **绑定**：把管理员挂到 Owner 角色（`SysUserRole`）。
 
 于是新租户开通即"能登录、有 Owner、拥有版本范围内的全部权限"，无需人工逐项授权。
+
+#### 库隔离租户的开通顺序
+
+`Database` 隔离的租户创建出来时 `ConfigStatus` 是 `Pending`，独立库要等 `InitializeDatabase` 才建（建库是 DDL，不能包在事务型工作单元里，所以是独立一步）。因此开通期**不能碰租户库**：上面四步全部在平台态执行，写的是平台库。
+
+对应地，账号定位与授权绑定的读侧也都在平台态：登录统一在平台态按全局唯一邮箱定位账号（见上文「登录与落点」），`ExistsEmailGloballyAsync` / `ExistsUserNameInTenantAsync` 自身会切到平台态执行——租户上下文下连接会被解析到该租户独立库，"全平台判重"就会查错库。租户范围由入参显式落进 `WHERE`，不依赖当前上下文。
 
 ### 降级自动回收越权授权
 
