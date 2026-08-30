@@ -14,7 +14,6 @@
 | `Domain/Entities/SampleErpOrder.cs` | 标了 `[ModuleDataSource("Erp")]` 的实体 |
 | `Domain/Entities/SampleModuleDataSources.cs` | 模块数据源名常量 |
 | `Infrastructure/Repositories/*.cs` | 两个仓储，写法完全一样 |
-| `Infrastructure/MultiTenancy/*.cs` | 给库隔离租户补挂自己模块库的提供器与其配置 |
 
 ## 顺带演示：模块分库 × 租户分库
 
@@ -24,16 +23,15 @@
 ```text
                      ┌── SampleNote ─────→ Default（主库）
 平台态 / 字段隔离租户 ┤
-                     └── SampleErpOrder ─→ Default_Erp（所有租户共享的模块库）
+                     └── SampleErpOrder ─→ Default_Erp（这套布局的模块库）
 
                      ┌── SampleNote ─────→ Tenant_{租户Id}（该租户的主库）
-库隔离租户（不配模块）┤
-                     └── SampleErpOrder ─→ Default_Erp（回落共享模块库）
-
-                     ┌── SampleNote ─────→ Tenant_{租户Id}（该租户的主库）
-库隔离租户（配了模块）┤
+库隔离租户            ┤
                      └── SampleErpOrder ─→ Tenant_{租户Id}_Erp（该租户的模块库）
 ```
+
+库隔离租户那一套由框架按约定派生，不需要配置：声明了库隔离，它的数据就都在它自己的库里，
+不会有一部分悄悄落回公共模块库。
 
 模块库的连接标识由主连接派生（`{主连接}_{模块名}`），所以模块名不占用顶层 `ConfigId` 命名空间，
 跟租户连接标识撞不上；同一个模块在不同布局下自然是不同的库。
@@ -71,41 +69,30 @@
 
 ## 验证二维路由
 
-默认配置下所有租户共用一个 `Default_Erp` 模块库，与不启用该特性时行为一致。要看到二维效果：
+租户维度不需要本模块写任何东西：库隔离租户的整套模块库由框架按约定派生
+（`XiHan:Data:SqlSugarCore:EnableTenantModuleDatabaseConvention`，默认开）。
 
 1. 启动一次，让种子把演示租户建出来
-2. 在 SaaS 租户管理里把某个租户改成**库隔离**并填上它的主库连接串
-3. 从 `sys_tenant` 表取这个租户 Id，填进 `appsettings.Development.json` 的 `Sample:TenantModuleDataSources`：
+2. 在 SaaS 租户管理里把某个租户改成**库隔离**、填上它的主库连接串（比如库名 `qqq`），保存后点「初始化数据库」
+3. 建出来的是**两个**库：`qqq`（主库，含 `sample_note`）和 `qqq_Erp`（模块库，含 `sample_erp_order`）
 
-```json
-"Sample": {
-  "TenantModuleDataSources": {
-    "1962xxxxxxxxxxxxx": {
-      "Erp": "Server=127.0.0.1;Database=XiHanBasicAppErp_T1;Username=postgres;Password=postgres;TrustServerCertificate=true;"
-    }
-  }
-}
-```
-
-4. 重启，日志里会多出这一组，同一个实体落到了不同的库：
+登录进这个租户，请求日志里同一个实体落到了不同的库：
 
 ```text
 [租户 1962xxxxxxxxxxxxx] SampleNote → 连接 Tenant_1962xxxxxxxxxxxxx（PostgreSQL）
 [租户 1962xxxxxxxxxxxxx] SampleErpOrder → 连接 Tenant_1962xxxxxxxxxxxxx_Erp（PostgreSQL）
 ```
 
-**一行代码都不用改。**
+**一行代码、一条配置都不用加。**
 
-第 3 步只做模块维度：跳过它，该租户的 `SampleErpOrder` 会回落共享的 `Default_Erp`——
-「租户主库独立、模块库仍共享」是默认行为，不需要配置。
-
-租户 Id 用配置而不是常量，是因为它是雪花值、由种子在运行期生成，没有编译期常量可用。
-真实业务若要把这份映射存进数据库，照 `SaasTenantConnectionProvider` 读 `SysTenant` 的写法做即可
-（记得读元数据时切平台上下文并自行缓存）。
+派生规则是把主库连接串里的库名换成 `{租户库名}_{模块名}`，其余字段照抄；主连接下那条模块连接串
+留空（该模块不分库）时，租户也不分，`sample_erp_order` 就落进 `qqq` 自己。
+要把某个租户的模块库指到别的机器上，实现 `ISqlSugarTenantConnectionProvider` 显式给出
+`ModuleDataSourceConfigs` 即可——显式的优先，约定只补没说的部分。
 
 ## 不需要它的时候
 
 删掉本工程、`XiHan.BasicApp.slnx` 里的登记、WebHost 的 `ProjectReference` 与 `[DependsOn]`，
-再删掉 appsettings 里的 `Sample` 节与主连接下的 `ModuleDataSourceConfigs` 即可。
+再删掉 appsettings 主连接下的 `ModuleDataSourceConfigs` 即可。
 
 ⚠️ 已经建过表的库里，`Sample_Note` 与 `Sample_Erp_Order` 不会自动回收，需要自行清理。
