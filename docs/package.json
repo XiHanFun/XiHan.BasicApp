@@ -1,6 +1,6 @@
 {
   "name": "xihan-basicapp-docs",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "type": "module",
   "description": "XiHan.BasicApp document site. Enterprise admin application built on XiHan.Framework and Vue.",
   "author": {
