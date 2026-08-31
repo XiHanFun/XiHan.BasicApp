@@ -17,7 +17,7 @@ export default {
   auth: {
     slogan_title: 'Enterprise-Grade Admin Platform Core',
     slogan_desc: 'Full-Ecosystem · Engineered · Intelligent · Internationalized',
-    login_subtitle: 'Enter your credentials to access the admin panel',
+    login_subtitle: 'Enter your credentials to access the panel',
     mobile_login: 'Phone Login',
     email_login: 'Email Login',
     qrcode_login: 'QR Login',

@@ -17,7 +17,7 @@ export default {
   auth: {
     slogan_title: '企业级通用中后台内核',
     slogan_desc: '全生态、工程化、智能化、国际化',
-    login_subtitle: '请输入您的账号密码以登录管理系统',
+    login_subtitle: '请输入您的账号密码以登录系统',
     mobile_login: '手机登录',
     email_login: '邮箱登录',
     qrcode_login: '扫码登录',
