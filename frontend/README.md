@@ -18,7 +18,9 @@ Tooling: Vite, `@vitejs/plugin-vue(-jsx)`, vue-tsc, Turbo, Tailwind CSS v4 (`@ta
 
 `packageManager` is `pnpm@11.7.0`; `engines` requires Node ≥ 24 and pnpm ≥ 11.
 
-> ⚠️ **Before installing**: the `overrides` block in `pnpm-workspace.yaml` points all 18 `@xihan-ui/*` packages at `link:../../XiHan.UI/ui/packages/*`. **Cloning this repository on its own, without a sibling `../../XiHan.UI` checkout, makes `pnpm install` fail.** To fall back to the published versions, delete that overrides block.
+`@xihan-ui/*` comes from the published npm releases (pinned to `^1.1.0` in the `pnpm-workspace.yaml` catalog), so cloning this repository on its own and running `pnpm install` just works — no sibling `XiHan.UI` checkout required.
+
+> To debug against the component library sources, add an `overrides` block to `pnpm-workspace.yaml` pointing `@xihan-ui/*` at `link:../../XiHan.UI/ui/packages/*`, then remove it when you are done. That is a local-only change; do not commit it.
 
 ## Monorepo Structure
 

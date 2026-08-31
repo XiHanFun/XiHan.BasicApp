@@ -70,8 +70,8 @@ function XiHanUiResolver(): ComponentResolver {
 function createManualChunks(id: string) {
   const normalizedId = id.replace(/\\/g, '/')
 
-  // @xihan-ui/* 经 pnpm overrides 链到同级 XiHan.UI 工作区，路径不含 /node_modules/，
-  // 因此这条判断必须排在下面的 node_modules 早退之前。
+  // 两种装法都要认：装 npm 正式版时路径是 /@xihan-ui/；临时用 overrides 链到同级
+  // XiHan.UI 源码调试时路径不含 /node_modules/，因此本判断必须排在下面的 node_modules 早退之前。
   if (normalizedId.includes('/XiHan.UI/ui/packages/') || normalizedId.includes('/@xihan-ui/')) {
     if (normalizedId.includes('/features/backgrounds/') || normalizedId.includes('/@xihan-ui/backgrounds/'))
       return 'vendor-backgrounds'
@@ -248,8 +248,9 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         '~': fileURLToPath(new URL('./packages', import.meta.url)),
       },
-      // @xihan-ui/* 是链到同级仓的符号链接，其 peer 依赖会解析到 XiHan.UI 自己的
-      // node_modules。不去重就会出现两份 Vue 运行时，provide/inject 与响应式当场断掉。
+      // @xihan-ui/* 的 peer 依赖可能解析到另一份 Vue：pnpm 的隔离 store 下如此，
+      // 临时链到同级 XiHan.UI 源码时更是如此。不去重就会出现两份 Vue 运行时，
+      // provide/inject 与响应式当场断掉。
       dedupe: ['vue', 'vue-router', 'pinia', 'vue-i18n', '@vue/runtime-core'],
     },
     css: {
@@ -261,7 +262,8 @@ export default defineConfig(({ mode }) => {
       warmup: {
         clientFiles: ['./src/main.ts', './src/App.vue', './packages/layouts/basic/index.vue'],
       },
-      // 链到仓外的源码不在 Vite 默认允许的文件系统范围内
+      // 留着 ../../XiHan.UI：临时用 overrides 链到同级源码调试时，仓外路径不在
+      // Vite 默认允许的文件系统范围内。装正式版时这一条不起作用，也没有副作用。
       fs: {
         allow: ['..', '../../XiHan.UI'],
       },

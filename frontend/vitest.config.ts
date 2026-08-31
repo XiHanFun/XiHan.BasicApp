@@ -30,8 +30,8 @@ export default defineConfig(async (env) => {
       setupFiles: [fileURLToPath(new URL('./scripts/vitest-setup.ts', import.meta.url))],
       include: ['src/**/*.{test,spec}.ts', 'packages/**/*.{test,spec}.ts'],
       exclude: ['**/node_modules/**', '**/dist/**', '**/.turbo/**'],
-      // 链到同级 XiHan.UI 的 @xihan-ui/* 是符号链接，不内联的话会走 Node 原生 ESM 解析，
-      // 拿不到 vite 的别名与 dedupe，出现两份 Vue 运行时。
+      // @xihan-ui/* 不内联的话会走 Node 原生 ESM 解析，拿不到 vite 的别名与 dedupe，
+      // 出现两份 Vue 运行时。临时链到同级 XiHan.UI 源码调试时同样要靠这条。
       server: {
         deps: {
           inline: [/@xihan-ui\//],

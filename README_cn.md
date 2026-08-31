@@ -269,7 +269,7 @@ pnpm install
 pnpm dev
 ```
 
-> ⚠️ `pnpm-workspace.yaml` 的 `overrides` 把 `@xihan-ui/*` 指向同级的 `../../XiHan.UI` 检出，**没有并列检出 XiHan.UI 时 `pnpm install` 会失败**。想直接用已发布的 npm 版本，删掉该 overrides 块即可。
+> `@xihan-ui/*` 取 npm 上的正式版，单独 clone 本仓即可 `pnpm install`，不需要并列检出 `XiHan.UI`。要连组件库源码一起调试，临时在 `pnpm-workspace.yaml` 加 `overrides` 指到 `link:../../XiHan.UI/ui/packages/*`，调完删掉、不要提交。
 
 ### 默认账号
 

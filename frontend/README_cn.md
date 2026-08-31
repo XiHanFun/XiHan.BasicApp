@@ -18,7 +18,9 @@ Vue 3 + TypeScript + Vite。应用根的运行时依赖只有 vue、vue-router�
 
 `packageManager` 为 `pnpm@11.7.0`，`engines` 要求 Node ≥ 24、pnpm ≥ 11。
 
-> ⚠️ **安装前置**：`pnpm-workspace.yaml` 的 `overrides` 把 18 个 `@xihan-ui/*` 全部指向 `link:../../XiHan.UI/ui/packages/*`。**单独 clone 本仓、没有同级 `../../XiHan.UI` 检出时 `pnpm install` 会失败**。想回落到已发布版本，删掉该 overrides 块即可。
+`@xihan-ui/*` 取 npm 上的正式版（`pnpm-workspace.yaml` 的 catalog 里统一钉 `^1.1.0`），单独 clone 本仓即可 `pnpm install`，不需要并列检出 `XiHan.UI`。
+
+> 要连组件库源码一起调试，在 `pnpm-workspace.yaml` 加一段 `overrides` 把 `@xihan-ui/*` 指到 `link:../../XiHan.UI/ui/packages/*` 即可，调完删掉。那属于本地临时改动，不要提交。
 
 ## Monorepo 结构
 
