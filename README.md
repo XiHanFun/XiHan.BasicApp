@@ -269,7 +269,7 @@ pnpm install
 pnpm dev
 ```
 
-> ⚠️ The `overrides` block in `pnpm-workspace.yaml` points `@xihan-ui/*` at a sibling `../../XiHan.UI` checkout, so **`pnpm install` fails without one**. To use the published npm versions instead, delete that overrides block.
+> `@xihan-ui/*` comes from the published npm releases, so cloning this repository on its own and running `pnpm install` just works — no sibling `XiHan.UI` checkout required. To debug against the component library sources, temporarily add an `overrides` block in `pnpm-workspace.yaml` pointing at `link:../../XiHan.UI/ui/packages/*`, then remove it; do not commit it.
 
 ### Default Account
 
