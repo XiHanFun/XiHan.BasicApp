@@ -16,7 +16,7 @@ const route = useRoute()
 const appStore = useAppStore()
 
 const appTitle = computed(
-  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan Admin',
+  () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan BasicApp',
 )
 const appLogo = computed(
   () => appStore.brandLogo || import.meta.env.VITE_APP_LOGO || '/favicon.png',
