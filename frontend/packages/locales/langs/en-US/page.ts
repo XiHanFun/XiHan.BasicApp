@@ -23,7 +23,7 @@ export default {
     qrcode_login: 'QR Login',
     login_method: 'Sign-in method',
     third_party_login: 'Third-party login',
-    demo_login: 'One-click demo login',
+    third_party_more: 'More sign-in options',
     no_account: 'Don\'t have an account?',
     back_to_login: 'Back to login',
     // Code login

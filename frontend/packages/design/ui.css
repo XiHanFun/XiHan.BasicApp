@@ -431,3 +431,12 @@
   background: var(--xh-bg-subtle-hover);
   color: var(--xh-fg-brand);
 }
+
+/* 认证页的主提交钮：账号/手机/邮箱登录、注册、找回与重置密码共用同一颗。
+   本文件不进任何层，压得住皮肤按钮的分档尺寸，无需 !important */
+.auth-submit {
+  block-size: 48px;
+  border-radius: var(--xh-radius-xl);
+  font-size: 15px;
+  font-weight: 600;
+}

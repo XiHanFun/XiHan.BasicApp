@@ -119,7 +119,7 @@ const onAuthInvalid = useAuthFormInvalid()
         </XhFieldRoot>
       </XhFormFieldGroup>
 
-      <XhFormSubmitTrigger class="!h-12 !rounded-xl !text-[15px] !font-semibold" :disabled="loading">
+      <XhFormSubmitTrigger class="auth-submit" :disabled="loading">
         确认重置
       </XhFormSubmitTrigger>
     </XhFormRoot>
