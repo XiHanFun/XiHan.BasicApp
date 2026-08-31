@@ -90,7 +90,7 @@ const onAuthInvalid = useAuthFormInvalid()
         </XhFieldRoot>
       </XhFormFieldGroup>
 
-      <XhFormSubmitTrigger class="!h-12 !rounded-xl !text-[15px] !font-semibold" :disabled="loading">
+      <XhFormSubmitTrigger class="auth-submit" :disabled="loading">
         {{ t('page.auth.send_reset_link') }}
       </XhFormSubmitTrigger>
     </XhFormRoot>

@@ -2,7 +2,7 @@
 import type { FormRules } from '@xihan-ui/headless'
 import type { CaptchaChallenge, LoginConfig, LoginResponse } from '~/types'
 
-import { XhButton, XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhSeparator } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -88,25 +88,6 @@ const rules = computed<FormRules>(() => ({
   ],
 }))
 
-// 快捷登录账号（种子数据内置；用于演示不同权限层级 / 便于测试站快速登录）
-// 登录标识：
-// - 普通租户用户在「先登录后选租户」模型下需以邮箱登录（含 @ → 邮箱全平台唯一定位）。
-// - 超级管理员是平台账号（TenantId=0），用用户名 superadmin 登录（不含 @ → 平台用户名分支）。
-// 注：超管默认密码为 SuperAdmin@123；若线上经环境变量 Saas__Seed__SuperAdminPassword 覆盖，请同步此处。
-const quickAccounts = [
-  { label: '超级管理员', login: 'superadmin', password: 'SuperAdmin@123' },
-  { label: '系统管理员', login: 'admin@xihan.fun', password: 'Admin@123' },
-  { label: '普通用户', login: 'user@xihan.fun', password: 'User@123' },
-  { label: '游客', login: 'guest@xihan.fun', password: 'Guest@123' },
-]
-
-/** 填入对应账号并直接登录 */
-function quickLogin(account: { login: string, password: string }) {
-  formData.value.username = account.login
-  formData.value.password = account.password
-  onSubmit()
-}
-
 const redirect = computed(() => {
   return (route.query.redirect as string) || undefined
 })
@@ -127,11 +108,19 @@ const oauthProviderIcons: Record<string, string> = {
 
 const oauthProviders = computed(() => loginConfig.value.oAuthProviders ?? [])
 
+/** 一行放得下的渠道数；多出来的收进「更多」浮层，免得换行把卡片撑高 */
+const OAUTH_INLINE_COUNT = 3
+
+const inlineOauthProviders = computed(() => oauthProviders.value.slice(0, OAUTH_INLINE_COUNT))
+const moreOauthProviders = computed(() => oauthProviders.value.slice(OAUTH_INLINE_COUNT))
+const showMoreOauth = ref(false)
+
 function getOauthProviderIcon(name: string) {
   return oauthProviderIcons[name.toLowerCase()] ?? 'lucide:link-2'
 }
 
 function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
+  showMoreOauth.value = false
   authStore.startOAuthLogin(provider)
 }
 
@@ -354,7 +343,7 @@ const onAuthInvalid = useAuthFormInvalid()
           </p>
         </div>
 
-        <XhFormSubmitTrigger class="!mt-4 !h-12 !rounded-xl !text-[15px] !font-semibold" :disabled="authStore.loginLoading">
+        <XhFormSubmitTrigger class="auth-submit !mt-4" :disabled="authStore.loginLoading">
           {{ t('page.auth.two_factor_verify') }}
         </XhFormSubmitTrigger>
 
@@ -426,7 +415,7 @@ const onAuthInvalid = useAuthFormInvalid()
           tone="brand"
           full-width
           :loading="sendingCode"
-          class="!h-12 !rounded-xl !text-[15px] !font-semibold"
+          class="auth-submit"
           @click="handleSelectMethod"
         >
           继续
@@ -517,7 +506,7 @@ const onAuthInvalid = useAuthFormInvalid()
             </span>
           </div>
 
-          <XhFormSubmitTrigger class="!h-12 !rounded-xl !text-[15px] !font-semibold" :disabled="authStore.loginLoading">
+          <XhFormSubmitTrigger class="auth-submit" :disabled="authStore.loginLoading">
             {{ t('page.login.login_btn') }}
           </XhFormSubmitTrigger>
         </XhFormRoot>
@@ -540,9 +529,9 @@ const onAuthInvalid = useAuthFormInvalid()
           </span>
           <XhSeparator class="flex-1" :class="isDark ? '!border-white/10' : '!border-[hsl(var(--border))]'" />
         </div>
-        <div v-if="oauthProviders.length > 0" class="flex flex-wrap gap-3 justify-center items-center">
+        <div v-if="oauthProviders.length > 0" class="flex gap-3 justify-center items-center">
           <XhButton
-            v-for="provider in oauthProviders"
+            v-for="provider in inlineOauthProviders"
             :key="provider.name"
             variant="subtle"
             class="!h-10 !rounded-xl !px-4 !text-sm"
@@ -551,28 +540,32 @@ const onAuthInvalid = useAuthFormInvalid()
             <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
             {{ provider.displayName }}
           </XhButton>
-        </div>
 
-        <!-- 快捷登录：内置演示账号，一键填入并登录（超管置顶） -->
-        <p
-          class="mt-6 text-xs text-center"
-          :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
-        >
-          {{ t('page.auth.demo_login') }}
-        </p>
-        <div class="flex flex-wrap gap-x-3 gap-y-1 justify-center items-center mt-1 text-xs">
-          <XhButton
-            v-for="acc in quickAccounts"
-            :key="acc.login"
-            variant="ghost"
-            tone="brand"
-            size="sm"
-            class="!text-xs"
-            :disabled="authStore.loginLoading"
-            @click="quickLogin(acc)"
-          >
-            {{ acc.label }}
-          </XhButton>
+          <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
+          <XhPopoverRoot v-if="moreOauthProviders.length > 0" v-model:open="showMoreOauth" placement="top">
+            <XhPopoverTrigger
+              class="oauth-more-trigger !h-10 !w-10 !rounded-xl"
+              :aria-label="t('page.auth.third_party_more')"
+            >
+              <Icon icon="lucide:ellipsis" width="16" />
+            </XhPopoverTrigger>
+            <XhPopoverPositioner>
+              <XhPopoverContent :aria-label="t('page.auth.third_party_more')">
+                <div class="oauth-more-grid">
+                  <XhButton
+                    v-for="provider in moreOauthProviders"
+                    :key="provider.name"
+                    variant="subtle"
+                    class="!h-10 !rounded-xl !px-4 !text-sm !justify-start"
+                    @click="handleOAuthLogin(provider)"
+                  >
+                    <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
+                    {{ provider.displayName }}
+                  </XhButton>
+                </div>
+              </XhPopoverContent>
+            </XhPopoverPositioner>
+          </XhPopoverRoot>
         </div>
       </div>
     </Transition>
@@ -580,6 +573,37 @@ const onAuthInvalid = useAuthFormInvalid()
 </template>
 
 <style scoped>
+/* 「更多渠道」触发器：浮层触发器自己就是 button，套不了 XhButton，只能照 subtle 变体补皮。
+   尺寸走和旁边那几颗同一串工具类（!h-10 !w-10 !rounded-xl）——那是带 !important 的，
+   本作用域样式压不过它，两处各写一份迟早对不齐，所以这里只管观感不管尺寸。
+   边框留 1px 透明，与按钮同样的 border-box 盒模型 */
+.oauth-more-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: var(--xh-stroke-thin) solid transparent;
+  background: var(--xh-bg-subtle);
+  color: var(--xh-fg-default);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.oauth-more-trigger:hover {
+  background: var(--xh-bg-subtle-hover);
+}
+
+.oauth-more-trigger:active {
+  background: var(--xh-bg-subtle-active);
+}
+
+/* 收进浮层的渠道排两列，条目左对齐便于扫读 */
+.oauth-more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 8px;
+}
+
 .link-primary {
   color: hsl(var(--primary));
 }

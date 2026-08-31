@@ -40,7 +40,7 @@ const activeEntry = computed({
   <XSegmented
     v-model:value="activeEntry"
     block
-    size="md"
+    size="lg"
     :options="entryList"
     :aria-label="t('page.auth.login_method')"
   />
