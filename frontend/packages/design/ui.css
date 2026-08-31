@@ -433,9 +433,10 @@
 }
 
 /* 认证页的主提交钮：账号/手机/邮箱登录、注册、找回与重置密码共用同一颗。
+   高度取 lg 档控件令牌，与这几页 size="lg" 的输入框同高，且一起跟随 density 换档。
    本文件不进任何层，压得住皮肤按钮的分档尺寸，无需 !important */
 .auth-submit {
-  block-size: 48px;
+  block-size: var(--xh-control-h-lg);
   border-radius: var(--xh-radius-xl);
   font-size: 15px;
   font-weight: 600;
