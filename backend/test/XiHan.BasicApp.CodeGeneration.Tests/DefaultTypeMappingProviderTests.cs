@@ -27,12 +27,12 @@ public sealed class DefaultTypeMappingProviderTests
     /// <param name="htmlType">期望的表单控件</param>
     /// <param name="queryType">期望的查询方式</param>
     [Theory]
-    // 长整型族
-    [InlineData("bigint", "long", "number", HtmlType.InputNumber, QueryType.Equal)]
-    [InlineData("long", "long", "number", HtmlType.InputNumber, QueryType.Equal)]
-    [InlineData("int8", "long", "number", HtmlType.InputNumber, QueryType.Equal)]
-    [InlineData("bigserial", "long", "number", HtmlType.InputNumber, QueryType.Equal)]
-    [InlineData("serial8", "long", "number", HtmlType.InputNumber, QueryType.Equal)]
+    // 长整型族：TS 侧是字符串（全局 LongJsonConverter 把 long 写成 JSON 字符串），控件随之是文本框
+    [InlineData("bigint", "long", "string", HtmlType.Input, QueryType.Equal)]
+    [InlineData("long", "long", "string", HtmlType.Input, QueryType.Equal)]
+    [InlineData("int8", "long", "string", HtmlType.Input, QueryType.Equal)]
+    [InlineData("bigserial", "long", "string", HtmlType.Input, QueryType.Equal)]
+    [InlineData("serial8", "long", "string", HtmlType.Input, QueryType.Equal)]
     // 整型族
     [InlineData("int", "int", "number", HtmlType.InputNumber, QueryType.Equal)]
     [InlineData("integer", "int", "number", HtmlType.InputNumber, QueryType.Equal)]
@@ -143,7 +143,7 @@ public sealed class DefaultTypeMappingProviderTests
     /// <param name="expectedNullableCSharp">期望的可空 C# 类型</param>
     /// <param name="expectedTs">期望的 TS 类型</param>
     [Theory]
-    [InlineData("bigint", "long?", "number")]
+    [InlineData("bigint", "long?", "string")]
     [InlineData("bit", "bool?", "boolean")]
     [InlineData("datetime", "DateTimeOffset?", "string")]
     [InlineData("varchar", "string?", "string")]

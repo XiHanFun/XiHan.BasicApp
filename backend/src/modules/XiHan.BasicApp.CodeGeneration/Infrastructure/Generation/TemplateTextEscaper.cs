@@ -76,6 +76,23 @@ public static class TemplateTextEscaper
     }
 
     /// <summary>
+    /// 转义为 HTML/Vue 模板的文本节点内容
+    /// </summary>
+    /// <param name="value">原始文本</param>
+    /// <returns>在 <see cref="XmlDoc"/> 之上把花括号转成实体的单行文本</returns>
+    /// <remarks>
+    /// 文本节点位置比属性位置多一层风险：Vue 把 <c>{{ }}</c> 当插值。
+    /// 列注释里出现半个 <c>{{</c> 会让 SFC 直接解析失败，出现完整的 <c>{{ x }}</c>
+    /// 则被当成表达式求值、编译期报标识符不存在。转成实体后 Vue 按字面文本渲染。
+    /// </remarks>
+    public static string HtmlText(string? value)
+    {
+        return XmlDoc(value)
+            .Replace("{", "&#123;", StringComparison.Ordinal)
+            .Replace("}", "&#125;", StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 转义为 TypeScript 单引号字符串字面量内容
     /// </summary>
     /// <param name="value">原始文本</param>
@@ -210,6 +227,105 @@ public static class TemplateTextEscaper
         {
             return json;
         }
+    }
+
+    /// <summary>
+    /// 常量选择器候选项 → JS 数组字面量（形状不合规时 fail-closed）
+    /// </summary>
+    /// <param name="json">候选项 JSON（列配置里的自由文本）</param>
+    /// <param name="columnLabel">列注释，仅用于报错定位</param>
+    /// <param name="tsType">该列的 TS 类型，用于校验候选项值的类型是否对得上</param>
+    /// <returns>形如 <c>[{ label: '甲', value: 'a' }]</c> 的字面量</returns>
+    /// <remarks>
+    /// 候选项是界面上的自由文本，填错的形式远多于填对的。原样吐进产物的话，
+    /// 轻则渲成 <c>const xOptions = 日用,生鲜</c> 这种语法错，重则渲出能解析但类型对不上的值，
+    /// 用户拿到的是一份编译不过的代码而非一条可读的错误。此处在生成期就拦下。
+    /// </remarks>
+    public static string SelectOptions(string? json, string? columnLabel, string? tsType)
+    {
+        var where = $"列「{(string.IsNullOrWhiteSpace(columnLabel) ? "(无注释)" : columnLabel)}」的";
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            // 不能回退成空数组：产出的是一个「必填却一个选项都没有」的下拉，表单从此提交不了，
+            // 而且空数组字面量在 strict 下还会被推断成 any[]
+            throw new InvalidOperationException($"{where}选择器没有候选项，请在列配置里填写或改掉选择器类型。");
+        }
+
+        JsonDocument document;
+        try
+        {
+            document = JsonDocument.Parse(json);
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException($"{where}常量候选项不是合法 JSON：{Preview(json)}（{ex.Message}）");
+        }
+
+        using (document)
+        {
+            if (document.RootElement.ValueKind != JsonValueKind.Array)
+            {
+                throw new InvalidOperationException($"{where}常量候选项必须是数组：{Preview(json)}");
+            }
+
+            var count = 0;
+            foreach (var item in document.RootElement.EnumerateArray())
+            {
+                count++;
+                if (item.ValueKind != JsonValueKind.Object)
+                {
+                    throw new InvalidOperationException(
+                        $"{where}常量候选项每一项都要形如 {{\"label\": \"文本\", \"value\": \"文本或数字\"}}：{Preview(json)}");
+                }
+
+                // 同名键在 JSON 里合法，写成 JS 对象字面量却是 TS1117
+                var names = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var property in item.EnumerateObject())
+                {
+                    if (!names.Add(property.Name))
+                    {
+                        throw new InvalidOperationException($"{where}常量候选项里有重复键 {property.Name}：{Preview(json)}");
+                    }
+                }
+
+                if (!item.TryGetProperty("label", out var label) || label.ValueKind != JsonValueKind.String)
+                {
+                    throw new InvalidOperationException($"{where}常量候选项缺少文本 label：{Preview(json)}");
+                }
+
+                if (!item.TryGetProperty("value", out var value)
+                    || value.ValueKind is not (JsonValueKind.String or JsonValueKind.Number))
+                {
+                    throw new InvalidOperationException($"{where}常量候选项的 value 只能是文本或数字：{Preview(json)}");
+                }
+
+                // 候选项的值会被下拉原样回抛进表单字段，类型对不上时提交必被后端拒
+                var expected = value.ValueKind == JsonValueKind.Number ? "number" : "string";
+                if (!string.IsNullOrEmpty(tsType) && tsType != expected)
+                {
+                    throw new InvalidOperationException(
+                        $"{where}列类型是 {tsType}，候选项的 value 却是 {expected}：{Preview(json)}");
+                }
+            }
+
+            if (count == 0)
+            {
+                throw new InvalidOperationException($"{where}选择器的候选项是空数组，请填写或改掉选择器类型。");
+            }
+
+            var builder = new StringBuilder(json.Length + 16);
+            WriteJsValue(document.RootElement, builder);
+            return builder.ToString();
+        }
+    }
+
+    /// <summary>
+    /// 报错用的内容摘要（过长截断，避免把整段 JSON 灌进错误信息）
+    /// </summary>
+    private static string Preview(string value)
+    {
+        var single = CollapseNewLines(value).Trim();
+        return single.Length <= 120 ? single : single[..120] + "…";
     }
 
     /// <summary>

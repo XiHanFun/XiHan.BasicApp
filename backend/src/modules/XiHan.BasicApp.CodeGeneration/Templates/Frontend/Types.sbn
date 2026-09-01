@@ -2,13 +2,23 @@
  * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手工编辑。
  * 自定义类型与类型扩展请写在 {{ ClassNameKebab }}.types.ts（该文件会 re-export 本文件全部导出）。
  */
-import type { ApiId, BasicDto, DateTimeString, PageRequest } from '../../types'
+{{~ # long 列以字符串过线（雪花 ID 超出 Number 安全范围），用仓内已有的语义别名标注 ~}}
+{{~ # 判据要与下面五个消费点一样带业务列守卫：主键、租户、审计 ID 在库里都是 bigint， ~}}
+{{~ # 不加守卫就会给「基类列是 bigint、业务列没有 long」的表引进一个用不上的类型，撞 noUnusedLocals。 ~}}
+{{~ # InDetail 恰好等于「是业务列」，且是五个消费点的并集。 ~}}
+{{~ has_numeric_string = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InDetail && col.IsLongColumn ~}}
+{{~ has_numeric_string = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+import type { ApiId, BasicDto, DateTimeString{{ if has_numeric_string }}, NumericString{{ end }}, PageRequest } from '../../types'
 
 export interface {{ ClassName }}PageQueryDto extends PageRequest {
   keyword?: string | null
 {{~ for col in Columns ~}}
 {{~ if col.IsScalarQuery ~}}
-  {{ col.TsProperty }}?: {{ col.TsType }} | null
+  {{ col.TsProperty }}?: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }} | null
 {{~ end ~}}
 {{~ end ~}}
 }
@@ -18,23 +28,22 @@ export interface {{ ClassName }}ListItemDto extends BasicDto {
 {{~ for col in Columns ~}}
 {{~ if col.InList ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
-  {{ col.TsProperty }}?: {{ col.TsType }} | null
+  {{ col.TsProperty }}?: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }} | null
 {{~ else ~}}
-  {{ col.TsProperty }}: {{ col.TsType }}
+  {{ col.TsProperty }}: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 }
 
-/** 详情承载全部业务列（列表列受「是否进入列表」裁剪，详情与编辑回填需要全量） */
-export interface {{ ClassName }}DetailDto extends BasicDto {
-  createdTime: DateTimeString
+/** 详情在列表项之上补齐未进入列表的业务列与审计字段（编辑回填需要全量） */
+export interface {{ ClassName }}DetailDto extends {{ ClassName }}ListItemDto {
 {{~ for col in Columns ~}}
-{{~ if col.InDetail ~}}
+{{~ if col.InDetail && !col.InList ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
-  {{ col.TsProperty }}?: {{ col.TsType }} | null
+  {{ col.TsProperty }}?: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }} | null
 {{~ else ~}}
-  {{ col.TsProperty }}: {{ col.TsType }}
+  {{ col.TsProperty }}: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -55,9 +64,9 @@ export interface {{ ClassName }}CreateDto {
 {{~ for col in Columns ~}}
 {{~ if col.InCreate ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
-  {{ col.TsProperty }}?: {{ col.TsType }} | null
+  {{ col.TsProperty }}?: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }} | null
 {{~ else ~}}
-  {{ col.TsProperty }}: {{ col.TsType }}
+  {{ col.TsProperty }}: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -67,9 +76,9 @@ export interface {{ ClassName }}UpdateDto extends BasicDto {
 {{~ for col in Columns ~}}
 {{~ if col.InUpdate ~}}
 {{~ if col.IsNullable || !col.IsRequired ~}}
-  {{ col.TsProperty }}?: {{ col.TsType }} | null
+  {{ col.TsProperty }}?: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }} | null
 {{~ else ~}}
-  {{ col.TsProperty }}: {{ col.TsType }}
+  {{ col.TsProperty }}: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}

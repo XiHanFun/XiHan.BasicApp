@@ -287,7 +287,8 @@ public sealed class ScribanTemplateRendererTests
     /// <summary>
     /// 八个模板共用的查询派生布尔口径：
     /// 日期列 = 日期/日期时间控件；可查询 = 业务列 且 IsQuery 且非二进制；
-    /// 区间查询 = 可查询 且 Between 且日期列；标量查询 = 可查询 且 非区间 且 QueryType ∈ {Equal, Between}；
+    /// 区间查询 = 可查询 且 日期列（不论配的是等值还是区间：搜索区对日期列恒渲日期控件、给出的是时间戳，
+    /// 走等值那条路会被前端的字符串归一化丢掉）；标量查询 = 可查询 且 非区间 且 QueryType ∈ {Equal, Between}；
     /// 关键字查询 = 可查询 且 Like。漂移会让取数侧与展现侧对不上。
     /// </summary>
     /// <param name="csharpType">C# 类型</param>
@@ -301,7 +302,7 @@ public sealed class ScribanTemplateRendererTests
     [InlineData("DateTimeOffset", HtmlType.DateTimePicker, QueryType.Between, true, "true|true|true|false|false")]
     [InlineData("DateTimeOffset", HtmlType.DatePicker, QueryType.Between, true, "true|true|true|false|false")]
     [InlineData("decimal", HtmlType.InputNumber, QueryType.Between, true, "false|true|false|true|false")]
-    [InlineData("DateTimeOffset", HtmlType.DateTimePicker, QueryType.Equal, true, "true|true|false|true|false")]
+    [InlineData("DateTimeOffset", HtmlType.DateTimePicker, QueryType.Equal, true, "true|true|true|false|false")]
     [InlineData("byte[]", HtmlType.FileUpload, QueryType.Equal, true, "false|false|false|false|false")]
     [InlineData("string", HtmlType.Input, QueryType.Like, false, "false|false|false|false|false")]
     [InlineData("string", HtmlType.Input, QueryType.In, true, "false|true|false|false|false")]

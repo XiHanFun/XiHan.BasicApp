@@ -34,7 +34,7 @@ const {{ ClassNameCamel }}CommandApi = createDynamicApiClient('{{ ClassName }}')
 {{~ end ~}}
 const {{ ClassNameCamel }}ReadApi = createReadApi<{{ ClassName }}ListItemDto, {{ ClassName }}DetailDto, {{ ClassName }}PageQueryDto>('{{ ClassName }}Query', '{{ ClassName }}')
 
-export const {{ ClassNameCamel }}BaseManagementApi = {
+export const {{ ClassNameCamel }}BaseApi = {
 {{~ if CanCreate ~}}
   create(input: {{ ClassName }}CreateDto) {
     return {{ ClassNameCamel }}CommandApi.post<{{ ClassName }}DetailDto, {{ ClassName }}CreateDto>('{{ ClassName }}', input)

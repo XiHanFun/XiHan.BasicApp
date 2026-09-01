@@ -117,8 +117,11 @@ public sealed class TableConfigInferenceEngine(
             Sort = index
         };
 
-        // 文本类列按列名语义把控件推断得更贴合（数值/布尔/时间由类型映射决定，语义无需干预）
-        if (mapping.TsType == "string" && ColumnSemanticRules.Infer(column.ColumnName, column.Length) is { } semanticHtml)
+        // 文本类列按列名语义把控件推断得更贴合（数值/布尔/时间由类型映射决定，语义无需干预）。
+        // 判据取 C# 类型而非 TsType：long 的 TsType 也是 string（雪花 ID 以字符串过线），
+        // 按 TsType 判会让 detail_id / cover_id / attachment_id 这类外键列被列名子串规则
+        // 推断成多行文本框或上传控件。
+        if (mapping.CSharpType.TrimEnd('?') == "string" && ColumnSemanticRules.Infer(column.ColumnName, column.Length) is { } semanticHtml)
         {
             suggestion.HtmlType = semanticHtml;
         }
