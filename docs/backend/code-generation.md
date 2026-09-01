@@ -44,28 +44,58 @@
 
 ## 全栈生成：从实体到前端页面
 
-一次生成铺开**后端 8 件 + 前端 3 件**的整套 CRUD，均为内置模板（`IsBuiltIn=true`，分组 `backend-crud` / `frontend-crud`）：
+一次生成铺开**后端 16 件 + 前端 7 件**的整套 CRUD，均为内置模板（`IsBuiltIn=true`，分组 `backend-crud` / `frontend-crud`）。
 
-| 模板编码 | 产物 | 文件名表达式 |
+除页面 `index.vue` 外，每个产物都成对登记：**自动侧**重新生成时整体覆盖，**手动侧**仅首次创建、此后永不触碰。二者在语言层面拼接——C# 数据类经 `partial` 合并，行为类经抽象基类与派生类继承，前端经 re-export / transform 组合。所以改表结构重新生成不会冲掉手写实现。
+
+| 模板编码 | 自动侧（每次覆盖） | 手动侧（仅首次创建） |
 | --- | --- | --- |
-| `backend.entity` | 实体 | <code v-pre>{{ ClassName }}.cs</code> |
-| `backend.dtos` | DTO 集 | <code v-pre>{{ ClassName }}Dtos.cs</code> |
-| `backend.irepository` | 仓储接口 | <code v-pre>I{{ ClassName }}Repository.cs</code> |
-| `backend.repository` | 仓储实现 | <code v-pre>{{ ClassName }}Repository.cs</code> |
-| `backend.contracts` | 应用契约 | <code v-pre>I{{ ClassName }}Contracts.cs</code> |
-| `backend.mapper` | 对象映射 | <code v-pre>{{ ClassName }}ApplicationMapper.cs</code> |
-| `backend.appservice` | 应用服务 | <code v-pre>{{ ClassName }}AppService.cs</code> |
-| `backend.queryservice` | 查询服务 | <code v-pre>{{ ClassName }}QueryService.cs</code> |
-| `frontend.types` | TS 类型 | <code v-pre>{{ ClassNameKebab }}.types.ts</code> |
-| `frontend.api` | 接口请求 | <code v-pre>{{ ClassNameKebab }}.ts</code> |
-| `frontend.page` | 列表页 | `index.vue` |
+| `backend.entity` | <code v-pre>{{ ClassName }}.Generated.cs</code> | <code v-pre>{{ ClassName }}.cs</code> |
+| `backend.dtos` | <code v-pre>{{ ClassName }}Dtos.Generated.cs</code> | <code v-pre>{{ ClassName }}Dtos.cs</code> |
+| `backend.irepository` | <code v-pre>I{{ ClassName }}Repository.Generated.cs</code> | <code v-pre>I{{ ClassName }}Repository.cs</code> |
+| `backend.repository` | <code v-pre>{{ ClassName }}Repository.Generated.cs</code> | <code v-pre>{{ ClassName }}Repository.cs</code> |
+| `backend.contracts` | <code v-pre>I{{ ClassName }}Contracts.Generated.cs</code> | <code v-pre>I{{ ClassName }}Contracts.cs</code> |
+| `backend.mapper` | <code v-pre>{{ ClassName }}ApplicationMapper.Generated.cs</code> | <code v-pre>{{ ClassName }}ApplicationMapper.cs</code> |
+| `backend.appservice` | <code v-pre>{{ ClassName }}AppServiceBase.Generated.cs</code> | <code v-pre>{{ ClassName }}AppService.cs</code> |
+| `backend.queryservice` | <code v-pre>{{ ClassName }}QueryServiceBase.Generated.cs</code> | <code v-pre>{{ ClassName }}QueryService.cs</code> |
+| `frontend.types` | <code v-pre>{{ ClassNameKebab }}.types.generated.ts</code> | <code v-pre>{{ ClassNameKebab }}.types.ts</code> |
+| `frontend.api` | <code v-pre>{{ ClassNameKebab }}.generated.ts</code> | <code v-pre>{{ ClassNameKebab }}.ts</code> |
+| `frontend.schema` | <code v-pre>{{ ClassNameKebab }}.schema.generated.ts</code> | <code v-pre>{{ ClassNameKebab }}.schema.ts</code> |
+| `frontend.page` | —— | `index.vue` |
 
-前端产物落到 `src/api/modules/<module>/` 与 `src/views/<module>/<class-kebab>/`（路径表达式里 `ModuleName` 会 `string.downcase`）。生成的前端页直接用项目的 `SchemaPage` 组件驱动列表 + 表单弹窗，与手写页面同构。
+页面与 schema 按 `TemplateType` 分化，各自另有一套登记：单表 `frontend.schema` / `frontend.page`，主子表 `frontend.schema.masterdetail` / `frontend.page.masterdetail`，树表 `frontend.schema.tree` / `frontend.page.tree`。产物文件名相同，一张表只会命中其中一套。
+
+前端产物落到 `src/api/modules/<module>/` 与 `src/views/<module>/<class-kebab>/`（路径表达式里 `ModuleName` 会 `string.downcase`）。生成的页面与手写页面同构：`SchemaPage` 驱动列表与搜索，`XEditModal` + `XhFormRoot` 承载表单弹窗，控件取 `~/components` 的 `XInput` / `XSelect` / `XNumberInput` / `XTreeSelect`，提示走 `~/composables` 的 `toast`，枚举下拉走 `useEnumOptions`。文案为中文字面量，接 i18n 需自行替换。
 
 除模板产物外，引擎每次还追加**二阶产物**（目录 `_GeneratedMenuPermission/`）：
 
 - <code v-pre>{{ClassName}}PermissionCodes.cs</code>——权限码常量类（资源段取表名，`{资源}:{操作}` 两段式）。
+- <code v-pre>{{ClassName}}PermissionDefinitions.cs</code>——权限定义片段。
+- <code v-pre>{{ClassName}}PageRegistry.snippet.txt</code>——`PageDescriptor` / `ButtonDescriptor` 粘贴片段。
+- <code v-pre>{{ClassName}}PermissionSeeder.cs</code> 与 <code v-pre>{{ClassName}}MenuSeeder.cs</code>——种子骨架。
 - `README.md`——落地说明：权限码表、按钮→权限码映射、`SysMenu` 菜单规格，以及并入源码后的 Seeder / 升级脚本接线清单。
+
+::: tip 从旧版本升级
+前端模板此前产出的是 naive-ui 页面，现已整体迁到 XiHan.UI。已生成过代码的工程重新生成时：
+
+- `{kebab}.generated.ts` 的导出由 `xxxBaseManagementApi` 改名为 `xxxBaseApi`，而 `{kebab}.ts` 与 `index.vue` 是仅首次创建的手动文件、不会被覆盖，需手工把这两处的 `xxxManagementApi` / `xxxBaseManagementApi` 改成 `xxxApi` / `xxxBaseApi`。
+- 旧 `index.vue` 引用的 `naive-ui` 与旧 schema 里的 `scrollX` 在当前前端都已不存在，那些文件本来就编译不过，建议删掉后重新生成。
+- bigint 列的 TS 类型由 `number` 改为 `string`（后端 `LongJsonConverter` 把 long 全部序列化为字符串）。存量表配置**不用管**：渲染期会按 C# 类型归一化，库里存着 `ts_type='number'` 也照样产出正确的产物。升级脚本 `UpdateScripts/4.0.4` 只是顺带把库里的配置刷成一致，好让列配置界面显示的类型与实际产物对得上。
+:::
+
+::: warning 日期时间列目前是文本框
+纯日期列（`date`）用日期选择器，按本地年月日提交，不会因时区换算退掉一天。
+
+而日期时间列（`datetime` / `timestamp` / `datetimeoffset`）渲染成带格式校验的文本框：组件库的 `XDatePicker` 只到日，用它承载会在编辑时把时分秒抹成本地零点。等 `XDatePicker` 补上 `show-time`（headless 层已支持 `showTime` / `timeGranularity`）再切回选择器。
+
+时间列（`time`）同理，也是文本框 + `HH:mm(:ss)` 校验。二进制列用文本框承载 Base64，接真实上传需自行替换成上传组件。
+:::
+
+::: warning 按钮码必须先落到 PageRegistry
+生成页面的行/页面操作用 `permission: '{页面码}.{按钮键}'` 门控，这是服务端下发的**按钮码**。
+把 <code v-pre>{{ClassName}}PageRegistry.snippet.txt</code> 里的 `ButtonDescriptor` 条目粘进 `PageRegistry.Buttons` 之前，
+这些按钮不会显示，前端 `view-permission-hygiene` 门禁也会逐条列出未登记的码并判红。
+:::
 
 > 二阶产物是**待并入源码的代码片段，不是运行时写库**。这符合 BasicApp 的单一事实源 + 菜单即绑约定：把片段并入源码后，全新库由 Seeder 初始化；存量库还要把必要的数据变化纳入同版本 `UpdateScripts`。
 

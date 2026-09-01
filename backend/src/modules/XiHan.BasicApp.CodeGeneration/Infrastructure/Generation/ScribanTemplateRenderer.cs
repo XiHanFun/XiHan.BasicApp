@@ -84,10 +84,12 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
         scriptObject.Import("xml_doc", new Func<string?, string>(TemplateTextEscaper.XmlDoc));
         scriptObject.Import("ts_string", new Func<string?, string>(TemplateTextEscaper.TsString));
         scriptObject.Import("html_attr", new Func<string?, string>(TemplateTextEscaper.HtmlAttribute));
+        scriptObject.Import("html_text", new Func<string?, string>(TemplateTextEscaper.HtmlText));
         scriptObject.Import("block_comment", new Func<string?, string>(TemplateTextEscaper.BlockComment));
         scriptObject.Import("html_comment", new Func<string?, string>(TemplateTextEscaper.HtmlComment));
         scriptObject.Import("i18n_message", new Func<string?, string>(TemplateTextEscaper.I18nMessage));
         scriptObject.Import("js_literal", new Func<string?, string>(TemplateTextEscaper.JsLiteral));
+        scriptObject.Import("select_options", new Func<string?, string?, string?, string>(TemplateTextEscaper.SelectOptions));
     }
 
     /// <summary>
@@ -128,6 +130,8 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["I18nNamespace"] = NamingConventions.I18nSegment(MenuPermissionArtifactShared.ModuleSegment(context)),
             ["ClassNameSnake"] = NamingConventions.Snakeize(context.ClassName),
             ["I18nPrefix"] = BuildI18nPrefix(context),
+            // 页面码：与 PageRegistry 片段同一处推导，模板不再各自拼接
+            ["PageCode"] = MenuPermissionArtifactShared.PageCode(context),
             // en-US 侧唯一素材：列注释只有中文，标识符才是英文
             ["ClassNameEn"] = NamingConventions.HumanizeIdentifier(context.ClassName),
             ["BusinessName"] = context.BusinessName,
@@ -168,7 +172,9 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["ClassNameKebab"] = table.ClassNameKebab,
             ["ClassNameSnake"] = NamingConventions.Snakeize(table.ClassName),
             ["ClassNameEn"] = NamingConventions.HumanizeIdentifier(table.ClassName),
-            ["ModuleName"] = table.ModuleName,
+            // 与主表同口径回退：DbFirst 导入的关联表 ModuleName 恒为 null，
+            // 裸值会让前端产物渲出 '@/api/modules//sys-xxx' 这种解析不到的双斜杠路径
+            ["ModuleName"] = MenuPermissionArtifactShared.SafeSegment(table.ModuleName) ?? table.ClassName,
             ["Namespace"] = table.Namespace,
             ["ForeignKeyColumn"] = table.ForeignKeyColumn,
             ["ForeignKeyProperty"] = table.ForeignKeyProperty,
@@ -190,10 +196,18 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
         var isQueryable = isBusinessColumn
             && column.IsQuery
             && !CSharpTypeFacts.IsBinary(column.CSharpType);
-        var isRangeQuery = isQueryable && column.QueryType == QueryType.Between && isDateColumn;
+        // 日期列一律按区间下发：搜索区渲的是日期控件、给出的是时间戳，
+        // 走等值那条路只会被前端的字符串归一化丢掉，等于搜索框恒不生效
+        var isRangeQuery = isQueryable && isDateColumn;
         var isScalarQuery = isQueryable && !isRangeQuery
             && column.QueryType is QueryType.Equal or QueryType.Between;
         var isKeywordQuery = isQueryable && column.QueryType == QueryType.Like;
+
+        // long 在报文里是字符串（全局 LongJsonConverter），前端一律按字符串承载。
+        // 存量列配置可能还存着 ts_type='number'，这里统一归一化，免得模板各自判两把尺子。
+        var isLongColumn = column.CSharpType.TrimEnd('?') == "long";
+        var tsType = isLongColumn ? "string" : column.TsType;
+        var controlKind = ResolveControlKind(column, tsType);
 
         return new Dictionary<string, object?>
         {
@@ -228,7 +242,19 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             // 文案键段与推导英文标签（键段从属性名派生：中文列注释会塌缩成同一个键）
             ["I18nKey"] = NamingConventions.I18nSegment(column.CSharpProperty),
             ["EnLabel"] = NamingConventions.HumanizeIdentifier(column.CSharpProperty),
-            ["TsType"] = column.TsType,
+            ["TsType"] = tsType,
+            // 表单控件的唯一判据。模板不要再按 HtmlType/TsType 各自级联——
+            // 标志段、渲染段、回填、提交、表单模型、默认值分散在六份模板里，
+            // 任何一处次序不同都会渲出「控件是下拉、模型是时间戳」这类自相矛盾的代码。
+            ["ControlKind"] = controlKind,
+            // 表单模型里该列的 TS 类型（开关恒 boolean、日期按时间戳承载，其余同 TsType）
+            ["FormTsType"] = controlKind switch
+            {
+                "switch" => "boolean",
+                "date" => "number",
+                _ => tsType
+            },
+            ["IsLongColumn"] = isLongColumn,
             ["IsPrimaryKey"] = column.IsPrimaryKey,
             ["IsIdentity"] = column.IsIdentity,
             ["IsNullable"] = column.IsNullable,
@@ -249,6 +275,57 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["EnumDefaultMember"] = column.EnumDefaultMember,
             ["ConstValues"] = column.ConstValues
         };
+    }
+
+    /// <summary>
+    /// 解析该列在表单里用哪种控件
+    /// </summary>
+    /// <remarks>
+    /// 判定次序即「类型优先于配置」：当列类型与控件配置打架时，能与表单模型类型自洽的那一方胜出。
+    /// 布尔只能是开关、日期只能是日期控件——给它们挂下拉会渲出绑不上的 v-model；
+    /// 而数字与文本都能被下拉承载，故下拉排在这两者之前，用户的选择器配置得以保留。
+    /// </remarks>
+    /// <param name="column">列结构</param>
+    /// <param name="tsType">归一化后的 TS 类型</param>
+    /// <returns>控件种类：binary/switch/date/datetime/time/select/number/textarea/text</returns>
+    private static string ResolveControlKind(ColumnSchema column, string tsType)
+    {
+        if (CSharpTypeFacts.IsBinary(column.CSharpType))
+        {
+            return "binary";
+        }
+
+        if (tsType == "boolean")
+        {
+            return "switch";
+        }
+
+        if (column.HtmlType == HtmlType.DatePicker)
+        {
+            return "date";
+        }
+
+        if (column.HtmlType == HtmlType.DateTimePicker)
+        {
+            return "datetime";
+        }
+
+        if (column.HtmlType == HtmlType.TimePicker)
+        {
+            return "time";
+        }
+
+        if (column.DictSelectorType is not null)
+        {
+            return "select";
+        }
+
+        if (tsType == "number")
+        {
+            return "number";
+        }
+
+        return column.HtmlType == HtmlType.Textarea ? "textarea" : "text";
     }
 
     /// <summary>

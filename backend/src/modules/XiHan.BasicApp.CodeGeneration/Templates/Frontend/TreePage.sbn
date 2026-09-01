@@ -1,33 +1,78 @@
 {{~ # 预计算控件需求标志（避免按列重复 import 造成 eslint no-unused） ~}}
+{{~ # 父列单独判：它在表单里渲染成树形下拉，不走下面这段控件级联 ~}}
+{{~ has_form_field = false ~}}
+{{~ parent_in_form = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+{{~ has_form_field = true ~}}
+{{~ if col.ColumnName == TreeParentColumn.ColumnName ~}}
+{{~ parent_in_form = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ has_text_input = false ~}}
 {{~ has_number = false ~}}
 {{~ has_switch = false ~}}
 {{~ has_select = false ~}}
 {{~ has_enum_select = false ~}}
+{{~ has_dynamic_select = false ~}}
+{{~ has_date_picker = false ~}}
+{{~ has_time_input = false ~}}
+{{~ has_datetime_input = false ~}}
+{{~ has_long_input = false ~}}
+{{~ # 控件由渲染器的 col.ControlKind 单点决定；父列除外，它恒是树形下拉。 ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName ~}}
-{{~ if col.DictSelectorType ~}}
+{{~ if col.ControlKind == "switch" ~}}
+{{~ has_switch = true ~}}
+{{~ else if col.ControlKind == "select" ~}}
 {{~ has_select = true ~}}
+{{~ if col.DictSelectorType != "ConstSelector" ~}}
+{{~ has_dynamic_select = true ~}}
+{{~ end ~}}
 {{~ if col.EnumTypeShortName ~}}
 {{~ has_enum_select = true ~}}
 {{~ end ~}}
-{{~ else if col.HtmlType == "Switch" ~}}
-{{~ has_switch = true ~}}
-{{~ else if col.HtmlType != "Textarea" && col.TsType == "number" ~}}
+{{~ else if col.ControlKind == "date" ~}}
+{{~ has_date_picker = true ~}}
+{{~ else if col.ControlKind == "number" ~}}
 {{~ has_number = true ~}}
+{{~ else ~}}
+{{~ has_text_input = true ~}}
+{{~ if col.ControlKind == "time" ~}}
+{{~ has_time_input = true ~}}
+{{~ end ~}}
+{{~ if col.ControlKind == "datetime" ~}}
+{{~ has_datetime_input = true ~}}
+{{~ end ~}}
+{{~ if col.IsLongColumn ~}}
+{{~ has_long_input = true ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
-{{~ # 必填文本列（提交前校验用；无则不产出校验函数，避免未被引用） ~}}
+{{~ end ~}}
+{{~ # 提交前校验的三类列（都没有就不产出校验函数，避免未被引用）： ~}}
+{{~ # 一是必填文本输入框——下拉不算，它清空后是 null，.trim() 会直接抛； ~}}
+{{~ # 二是 long 列，前端按字符串承载，填进非数字后端会静默解析成 0； ~}}
+{{~ # 三是时间列，脚手架用文本框承载，格式不对后端同样会静默落成默认值。 ~}}
 {{~ has_required_text = false ~}}
+{{~ has_required_date = false ~}}
 {{~ for col in Columns ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && col.TsType == "string" && !col.EnumTypeShortName ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && (col.ControlKind == "text" || col.ControlKind == "textarea" || col.ControlKind == "time" || col.ControlKind == "datetime" || col.ControlKind == "binary") ~}}
 {{~ has_required_text = true ~}}
 {{~ end ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && col.ControlKind == "date" ~}}
+{{~ has_required_date = true ~}}
 {{~ end ~}}
+{{~ end ~}}
+{{~ has_validation = has_required_text || has_required_date || has_long_input || has_time_input || has_datetime_input ~}}
 {{~ # 操作裁剪标志（EnabledActions 门控；读取基线 tree/detail 始终生成） ~}}
-{{~ has_modal = CanCreate || CanUpdate ~}}
-{{~ has_row_action = CanUpdate || CanDelete ~}}
-{{~ has_actions = CanCreate || CanUpdate || CanDelete ~}}
+{{~ # 一列都不进表单时不产弹窗与增改按钮：空表单没有意义，且会留下未被引用的 import ~}}
+{{~ can_create = CanCreate && has_form_field ~}}
+{{~ can_update = CanUpdate && has_form_field ~}}
+{{~ has_modal = can_create || can_update ~}}
+{{~ has_row_action = can_update || CanDelete ~}}
+{{~ has_actions = can_create || can_update || CanDelete ~}}
 <!--
   {{ TableComment | html_comment }}管理页（树形）
 
@@ -36,102 +81,83 @@
   会随表结构变化自动更新）；需要增删列或改渲染，改那个文件而不是这里。
 
   树形取数走 resource.tree（返回嵌套数组、不分页），父级选择器复用同一份树数据。
+
+  文案为中文字面量：接 i18n 时把它们换成 t('{{ ModuleName | string.downcase }}.{{ ClassNameSnake }}.xxx')，
+  并在语言包补上对应键。
 -->
 <script setup lang="ts">
 {{~ if has_modal ~}}
 import type { {{ ClassName }}FormModel } from './{{ ClassNameKebab }}.schema'
 {{~ end ~}}
 import type {
-{{~ if CanCreate ~}}
+{{~ if can_create ~}}
   {{ ClassName }}CreateDto,
 {{~ end ~}}
-{{~ if CanUpdate ~}}
+{{~ if can_update ~}}
   {{ ClassName }}DetailDto,
 {{~ end ~}}
 {{~ if has_row_action ~}}
   {{ ClassName }}ListItemDto,
 {{~ end ~}}
   {{ ClassName }}TreeNodeDto,
-{{~ if CanUpdate ~}}
+{{~ if can_update ~}}
   {{ ClassName }}UpdateDto,
 {{~ end ~}}
 } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}.types'
-import type {
-  PageSchema,
+import type { PageSchema{{ if has_actions }}, SchemaActionPayload{{ end }} } from '~/components'
+{{~ if has_modal && (has_dynamic_select || parent_in_form) ~}}
+import type { {{ if has_dynamic_select }}SelectOption{{ end }}{{ if has_dynamic_select && parent_in_form }}, {{ end }}{{ if parent_in_form }}TreeSelectOption{{ end }} } from '~/types'
+{{~ end ~}}
+{{~ if has_modal ~}}
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot{{ if has_switch }}, XhSwitch{{ end }} } from '@xihan-ui/vue'
+{{~ end ~}}
+{{~ if has_modal ~}}
+import { computed, ref, useId } from 'vue'
+{{~ else ~}}
+import { ref } from 'vue'
+{{~ end ~}}
+import { {{ ClassNameCamel }}Api } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
+import { SchemaPage{{ if has_modal && has_date_picker }}, XDatePicker{{ end }}{{ if has_modal }}, XEditModal{{ end }}{{ if has_modal && has_text_input }}, XInput{{ end }}{{ if has_modal && has_number }}, XNumberInput{{ end }}{{ if has_modal && has_select }}, XSelect{{ end }}{{ if has_modal && parent_in_form }}, XTreeSelect{{ end }} } from '~/components'
 {{~ if has_actions ~}}
-  SchemaActionPayload,
+import { toast } from '~/composables'
 {{~ end ~}}
-} from '~/components'
-{{~ if has_actions ~}}
-import {
-{{~ if has_modal ~}}
-  NForm,
-  NFormItem,
-  NInput,
-{{~ end ~}}
-{{~ if has_modal && has_number ~}}
-  NInputNumber,
-{{~ end ~}}
-{{~ if has_modal && has_select ~}}
-  NSelect,
-{{~ end ~}}
-{{~ if has_modal && has_switch ~}}
-  NSwitch,
-{{~ end ~}}
-{{~ if has_modal ~}}
-  NTreeSelect,
-{{~ end ~}}
-  useMessage,
-} from 'naive-ui'
-{{~ end ~}}
-import {
-{{~ if has_modal ~}}
-  computed,
-{{~ end ~}}
-  ref,
-} from 'vue'
-import { {{ ClassNameCamel }}ManagementApi } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
-import { SchemaPage{{ if has_modal }}, XEditModal{{ end }} } from '~/components'
 {{~ if has_modal && has_enum_select ~}}
 import { useEnumOptions } from '~/hooks'
 {{~ end ~}}
-import {
-  actions,
-{{~ if has_modal ~}}
-  createDefaultForm,
-{{~ end ~}}
-  fields,
-  pageMeta,
-} from './{{ ClassNameKebab }}.schema'
+import { {{ if has_actions }}actions, {{ end }}{{ if has_modal }}createDefaultForm, {{ end }}fields, pageMeta } from './{{ ClassNameKebab }}.schema'
 
 defineOptions({ name: '{{ ClassName }}Page' })
+{{~ if has_modal ~}}
 
-{{~ if has_actions ~}}
-const message = useMessage()
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
+const editFormId = useId()
 {{~ end ~}}
-const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
-
-/** 父级选择器数据源：与表格共用同一次树查询结果 */
-const treeNodes = ref<{{ ClassName }}TreeNodeDto[]>([])
 {{~ if has_actions ~}}
+
+const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
 
 function reloadList() {
   void schemaPageRef.value?.reload()
 }
 {{~ end ~}}
 
+/** 父级选择器数据源：与表格共用同一次树查询结果 */
+const treeNodes = ref<{{ ClassName }}TreeNodeDto[]>([])
+
 const schema: PageSchema = {
   ...pageMeta,
   fields,
+{{~ if has_actions ~}}
   actions,
+{{~ end ~}}
   resource: {
     tree: async () => {
-      const nodes = await {{ ClassNameCamel }}ManagementApi.tree()
+      const nodes = await {{ ClassNameCamel }}Api.tree()
       treeNodes.value = nodes ?? []
       return (nodes ?? []) as unknown as Record<string, unknown>[]
     },
 {{~ if CanDelete ~}}
-    remove: id => {{ ClassNameCamel }}ManagementApi.delete(id),
+    remove: id => {{ ClassNameCamel }}Api.delete(id),
 {{~ end ~}}
   },
 }
@@ -142,12 +168,12 @@ function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as {{ ClassName }}ListItemDto | undefined
 {{~ end ~}}
   switch (payload.key) {
-{{~ if CanCreate ~}}
+{{~ if can_create ~}}
     case 'create':
       handleAdd()
       break
 {{~ end ~}}
-{{~ if CanUpdate ~}}
+{{~ if can_update ~}}
     case 'edit':
       if (row) {
         void handleEdit(row)
@@ -166,14 +192,15 @@ function onAction(payload: SchemaActionPayload) {
 {{~ end ~}}
 {{~ if has_modal ~}}
 
+{{~ # 布尔列排除在外：它渲染成开关，不消费选项 ~}}
 {{~ for col in Columns ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.DictSelectorType == "ConstSelector" ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" && col.DictSelectorType == "ConstSelector" ~}}
 /** {{ col.ColumnComment | block_comment }}常量选项 */
-const {{ col.TsProperty }}ConstOptions = {{ col.ConstValues | js_literal }}
-{{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.EnumTypeShortName ~}}
+const {{ col.TsProperty }}ConstOptions = {{ col.ConstValues | select_options col.ColumnComment col.TsType }}
+{{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" && col.EnumTypeShortName ~}}
 /** {{ col.ColumnComment | block_comment }}枚举选项（后端枚举元数据按 X-Language 返回标签） */
 const {{ col.TsProperty }}Options = useEnumOptions('{{ col.EnumTypeShortName }}')
-{{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.DictSelectorType ~}}
+{{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" ~}}
 /** {{ col.ColumnComment | block_comment }}选项来源未接通（{{ if col.DictSelectorType == "DictSelector" }}字典 {{ col.DictCode | block_comment }}{{ else }}枚举 {{ col.EnumTypeName | block_comment }}{{ end }}），需业务层提供 */
 const {{ col.TsProperty }}Options = [{ label: '选项来源未接通', value: -1, disabled: true }]
 {{~ end ~}}
@@ -182,38 +209,49 @@ const modalVisible = ref(false)
 const submitLoading = ref(false)
 const form = ref<{{ ClassName }}FormModel>(createDefaultForm())
 const modalTitle = computed(() => (form.value.basicId ? '编辑{{ TableComment | ts_string }}' : '新增{{ TableComment | ts_string }}'))
+{{~ if parent_in_form ~}}
 
-/** 编辑时排除自身及其子树，避免把节点挂到自己的后代下形成环 */
-const parentOptions = computed(() => {
+/** 编辑时排除自身：整枝过滤掉，其后代也随之不出现，避免把节点挂到自己的子树下形成环 */
+const parentOptions = computed<TreeSelectOption[]>(() => {
   const excludeId = form.value.basicId
-  const map = (nodes: {{ ClassName }}TreeNodeDto[]): unknown[] =>
+  const map = (nodes: {{ ClassName }}TreeNodeDto[]): TreeSelectOption[] =>
     nodes
       .filter(node => node.basicId !== excludeId)
       .map(node => ({
-        key: node.basicId,
-        label: node.{{ TreeNameColumn.TsProperty }},
         children: node.children?.length ? map(node.children) : undefined,
+        label: String(node.{{ TreeNameColumn.TsProperty }}),
+        value: node.basicId,
       }))
   return map(treeNodes.value)
 })
 {{~ end ~}}
-{{~ if CanCreate ~}}
+{{~ end ~}}
+{{~ if can_create ~}}
 
 function handleAdd() {
   form.value = createDefaultForm()
   modalVisible.value = true
 }
 {{~ end ~}}
-{{~ if CanUpdate ~}}
+{{~ if can_update ~}}
 
 async function handleEdit(row: {{ ClassName }}ListItemDto) {
-  const detail = await {{ ClassNameCamel }}ManagementApi.detail(row.basicId)
+  // 详情取不到就退回列表行：列表列是详情列的子集，缺的字段在下面按可空/默认值兜住
+  let detail: {{ ClassName }}DetailDto | null = null
+  try {
+    detail = await {{ ClassNameCamel }}Api.detail(row.basicId)
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || '加载详情失败')
+  }
   const src = (detail ?? row) as {{ ClassName }}DetailDto
   form.value = {
     basicId: row.basicId,
 {{~ for col in Columns ~}}
 {{~ if col.InForm ~}}
-{{~ if col.IsNullable || !col.IsRequired ~}}
+{{~ if col.ControlKind == "date" ~}}
+    {{ col.TsProperty }}: src.{{ col.TsProperty }} ? new Date(src.{{ col.TsProperty }}).getTime() : null,
+{{~ else if col.IsNullable || !col.IsRequired ~}}
     {{ col.TsProperty }}: src.{{ col.TsProperty }} ?? null,
 {{~ else ~}}
     {{ col.TsProperty }}: src.{{ col.TsProperty }},
@@ -227,76 +265,163 @@ async function handleEdit(row: {{ ClassName }}ListItemDto) {
 {{~ if CanDelete ~}}
 
 async function handleDelete(row: {{ ClassName }}ListItemDto) {
-  await {{ ClassNameCamel }}ManagementApi.delete(row.basicId)
-  message.success('删除成功')
-  reloadList()
+  try {
+    await {{ ClassNameCamel }}Api.delete(row.basicId)
+    toast.success('删除成功')
+    reloadList()
+  }
+  catch (error) {
+    toast.error((error as Error)?.message || '删除失败')
+  }
 }
 {{~ end ~}}
 {{~ if has_modal ~}}
-{{~ if has_required_text ~}}
-/** 提交前校验：必填文本列不得为空。仓内约定用提示而非表单规则（全仓 0 处 NForm rules） */
+{{~ if has_date_picker ~}}
+
+/**
+ * 纯日期列按本地年月日发送。
+ *
+ * 走 toISOString 会把「本地零点」换算成 UTC，东八区下 8-31 会退成 8-30，
+ * 存进物理 DATE 列就少了一天。日期控件给出的也正是本地零点的时间戳。
+ */
+function toDateOnly(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) {
+    return ''
+  }
+  const date = new Date(value)
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${date.getFullYear()}-${month}-${day}`
+}
+{{~ end ~}}
+{{~ if has_validation ~}}
+{{~ if has_long_input ~}}
+
+/** long 列在前端按字符串承载（雪花 ID 超出 Number 安全范围），提交前按整数校验 */
+const INTEGER_PATTERN = /^-?\d+$/
+{{~ end ~}}
+{{~ if has_time_input ~}}
+
+/** 时间列脚手架用文本框承载，提交前按 HH:mm(:ss) 校验，避免后端解析失败静默落成默认值 */
+const TIME_PATTERN = /^\d{1,2}:\d{2}(?::\d{2})?$/
+{{~ end ~}}
+{{~ if has_datetime_input ~}}
+
+/** 日期时间列同理：组件库没有带时分秒的选择器包装，脚手架用文本框 + 格式校验兜住 */
+const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}(?:[ T]\d{1,2}:\d{2}(?::\d{2})?)?$/
+{{~ end ~}}
+
+{{~ # 只勾单侧新增/编辑的列在另一侧被 v-if 藏起来，校验也得跟着分侧 ~}}
+/** 提交前校验：必填项不得为空；long 与时间格式不对时后端会静默落成 0 或默认值，先拦下 */
 function validateForm() {
 {{~ for col in Columns ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && col.TsType == "string" && !col.EnumTypeShortName ~}}
-  if (!form.value.{{ col.TsProperty }}.trim()) {
-    message.warning('请输入{{ col.ColumnComment | ts_string }}')
+{{~ side_guard = "" ~}}
+{{~ if col.InCreate && !col.InUpdate ~}}
+{{~ side_guard = "!form.value.basicId && " ~}}
+{{~ else if col.InUpdate && !col.InCreate ~}}
+{{~ side_guard = "form.value.basicId && " ~}}
+{{~ end ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && (col.ControlKind == "text" || col.ControlKind == "textarea" || col.ControlKind == "time" || col.ControlKind == "datetime" || col.ControlKind == "binary") ~}}
+  if ({{ side_guard }}!form.value.{{ col.TsProperty }}?.trim()) {
+    toast.warning('请输入{{ col.ColumnComment | ts_string }}')
+    return false
+  }
+{{~ end ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && col.ControlKind == "date" ~}}
+  if ({{ side_guard }}(form.value.{{ col.TsProperty }} == null || Number.isNaN(form.value.{{ col.TsProperty }}))) {
+    toast.warning('请选择{{ col.ColumnComment | ts_string }}')
+    return false
+  }
+{{~ end ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsLongColumn && (col.ControlKind == "text" || col.ControlKind == "textarea") ~}}
+  if ({{ side_guard }}form.value.{{ col.TsProperty }} && !INTEGER_PATTERN.test(String(form.value.{{ col.TsProperty }}))) {
+    toast.warning('{{ col.ColumnComment | ts_string }}只能填整数')
+    return false
+  }
+{{~ end ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "time" ~}}
+  if ({{ side_guard }}form.value.{{ col.TsProperty }} && !TIME_PATTERN.test(String(form.value.{{ col.TsProperty }}))) {
+    toast.warning('{{ col.ColumnComment | ts_string }}格式应为 HH:mm 或 HH:mm:ss')
+    return false
+  }
+{{~ end ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "datetime" ~}}
+  if ({{ side_guard }}form.value.{{ col.TsProperty }} && !DATE_TIME_PATTERN.test(String(form.value.{{ col.TsProperty }}))) {
+    toast.warning('{{ col.ColumnComment | ts_string }}格式应为 YYYY-MM-DD HH:mm:ss')
     return false
   }
 {{~ end ~}}
 {{~ end ~}}
   return true
 }
+{{~ end ~}}
+
+async function handleSubmit() {
+{{~ if has_validation ~}}
+  if (!validateForm()) {
+    return
+  }
 
 {{~ end ~}}
-async function handleSubmit() {
-{{~ if has_required_text ~}}
-  if (!validateForm()) {
+{{~ if can_update && !can_create ~}}
+  // 页面没有新增入口，basicId 必然已有；缺了就明说，别静默提示保存成功
+  const editingId = form.value.basicId
+  if (!editingId) {
+    toast.warning('缺少记录标识，无法保存')
     return
   }
 
 {{~ end ~}}
   submitLoading.value = true
   try {
-{{~ if CanUpdate ~}}
+{{~ if can_update && can_create ~}}
     if (form.value.basicId) {
       const updateInput: {{ ClassName }}UpdateDto = {
         basicId: form.value.basicId,
 {{~ for col in Columns ~}}
 {{~ if col.InUpdate ~}}
-        {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
+        {{ col.TsProperty }}: {{ if col.ControlKind == "date" }}{{ if col.IsNullable || !col.IsRequired }}form.value.{{ col.TsProperty }} == null ? null : toDateOnly(form.value.{{ col.TsProperty }}){{ else }}toDateOnly(form.value.{{ col.TsProperty }}){{ end }}{{ else }}form.value.{{ col.TsProperty }}{{ end }},
 {{~ end ~}}
 {{~ end ~}}
       }
-      await {{ ClassNameCamel }}ManagementApi.update(updateInput)
+      await {{ ClassNameCamel }}Api.update(updateInput)
     }
-{{~ if CanCreate ~}}
     else {
       const createInput: {{ ClassName }}CreateDto = {
 {{~ for col in Columns ~}}
 {{~ if col.InCreate ~}}
-        {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
+        {{ col.TsProperty }}: {{ if col.ControlKind == "date" }}{{ if col.IsNullable || !col.IsRequired }}form.value.{{ col.TsProperty }} == null ? null : toDateOnly(form.value.{{ col.TsProperty }}){{ else }}toDateOnly(form.value.{{ col.TsProperty }}){{ end }}{{ else }}form.value.{{ col.TsProperty }}{{ end }},
 {{~ end ~}}
 {{~ end ~}}
       }
-      await {{ ClassNameCamel }}ManagementApi.create(createInput)
+      await {{ ClassNameCamel }}Api.create(createInput)
     }
+{{~ else if can_update ~}}
+    const updateInput: {{ ClassName }}UpdateDto = {
+      basicId: editingId,
+{{~ for col in Columns ~}}
+{{~ if col.InUpdate ~}}
+      {{ col.TsProperty }}: {{ if col.ControlKind == "date" }}{{ if col.IsNullable || !col.IsRequired }}form.value.{{ col.TsProperty }} == null ? null : toDateOnly(form.value.{{ col.TsProperty }}){{ else }}toDateOnly(form.value.{{ col.TsProperty }}){{ end }}{{ else }}form.value.{{ col.TsProperty }}{{ end }},
 {{~ end ~}}
+{{~ end ~}}
+    }
+    await {{ ClassNameCamel }}Api.update(updateInput)
 {{~ else ~}}
     const createInput: {{ ClassName }}CreateDto = {
 {{~ for col in Columns ~}}
 {{~ if col.InCreate ~}}
-      {{ col.TsProperty }}: form.value.{{ col.TsProperty }},
+      {{ col.TsProperty }}: {{ if col.ControlKind == "date" }}{{ if col.IsNullable || !col.IsRequired }}form.value.{{ col.TsProperty }} == null ? null : toDateOnly(form.value.{{ col.TsProperty }}){{ else }}toDateOnly(form.value.{{ col.TsProperty }}){{ end }}{{ else }}form.value.{{ col.TsProperty }}{{ end }},
 {{~ end ~}}
 {{~ end ~}}
     }
-    await {{ ClassNameCamel }}ManagementApi.create(createInput)
+    await {{ ClassNameCamel }}Api.create(createInput)
 {{~ end ~}}
-    message.success('保存成功')
+    toast.success('保存成功')
     modalVisible.value = false
     reloadList()
   }
   catch (error) {
-    message.error((error as Error)?.message || '保存失败')
+    toast.error((error as Error)?.message || '保存失败')
   }
   finally {
     submitLoading.value = false
@@ -306,45 +431,64 @@ async function handleSubmit() {
 </script>
 
 <template>
-  <SchemaPage ref="schemaPageRef" :schema="schema"{{ if has_actions }} @action="onAction"{{ end }}>
 {{~ if has_modal ~}}
+  <SchemaPage{{ if has_actions }} ref="schemaPageRef"{{ end }} :schema="schema"{{ if has_actions }} @action="onAction"{{ end }}>
     <XEditModal
       v-model:show="modalVisible"
       :title="modalTitle"
       :loading="submitLoading"
-      @save="handleSubmit"
+      :form-id="editFormId"
     >
-      <NForm :model="form" class="xh-edit-form-grid" label-placement="top">
+      <XhFormRoot
+        :id="editFormId"
+        v-model:values="form"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSubmit"
+      >
 {{~ for col in Columns ~}}
 {{~ if col.InForm ~}}
-        <NFormItem label="{{ col.ColumnComment | html_attr }}" path="{{ col.TsProperty }}">
+{{~ # 控件按 col.ControlKind 分派，与表单模型、回填、提交同源；父列除外，它恒是树形下拉 ~}}
+{{~ # 只勾了单侧新增/编辑的列按状态显隐，否则新增弹窗里会出现一个提交时必被丢弃的字段 ~}}
+        <XhFormFieldGroup{{ if col.InCreate && !col.InUpdate }} v-if="!form.basicId"{{ else if col.InUpdate && !col.InCreate }} v-if="form.basicId"{{ end }} value="{{ col.TsProperty }}"{{ if col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "textarea" }} class="xh-span-2"{{ end }}>
+          <XhFieldRoot>
+            <XhFieldLabel>{{ col.ColumnComment | html_text }}</XhFieldLabel>
+            <XhFieldControl>
 {{~ if col.ColumnName == TreeParentColumn.ColumnName ~}}
-          <NTreeSelect
-            v-model:value="form.{{ col.TsProperty }}"
-            clearable
-            key-field="key"
-            label-field="label"
-            :options="parentOptions as never"
-            placeholder="不选则作为根节点"
-          />
-{{~ else if col.DictSelectorType == "ConstSelector" ~}}
-          <NSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="{{ col.TsProperty }}ConstOptions" placeholder="请选择{{ col.ColumnComment | html_attr }}" />
-{{~ else if col.DictSelectorType ~}}
-          <NSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="{{ col.TsProperty }}Options" placeholder="请选择{{ col.ColumnComment | html_attr }}" />
-{{~ else if col.HtmlType == "Switch" ~}}
-          <NSwitch v-model:value="form.{{ col.TsProperty }}" />
-{{~ else if col.HtmlType == "Textarea" ~}}
-          <NInput v-model:value="form.{{ col.TsProperty }}" clearable :rows="3" type="textarea" placeholder="请输入{{ col.ColumnComment | html_attr }}" />
-{{~ else if col.TsType == "number" ~}}
-          <NInputNumber v-model:value="form.{{ col.TsProperty }}" :min="0" style="width: 100%" />
+              <XTreeSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="parentOptions" placeholder="不选则作为根节点" />
+{{~ else if col.ControlKind == "switch" ~}}
+              <XhSwitch :checked="form.{{ col.TsProperty }} ?? false" @update:checked="(next: boolean) => form.{{ col.TsProperty }} = next" />
+{{~ else if col.ControlKind == "select" && col.DictSelectorType == "ConstSelector" ~}}
+              <XSelect v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="{{ col.TsProperty }}ConstOptions" placeholder="请选择{{ col.ColumnComment | html_attr }}" />
+{{~ else if col.ControlKind == "select" ~}}
+              <XSelect v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="({{ col.TsProperty }}Options as SelectOption[])" placeholder="请选择{{ col.ColumnComment | html_attr }}" />
+{{~ else if col.ControlKind == "date" ~}}
+              <XDatePicker v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请选择{{ col.ColumnComment | html_attr }}" />
+{{~ else if col.ControlKind == "datetime" ~}}
+              <!-- 日期时间：组件库没有带时分秒的选择器包装，脚手架用文本框 + 提交前格式校验 -->
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="YYYY-MM-DD HH:mm:ss" />
+{{~ else if col.ControlKind == "time" ~}}
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="HH:mm:ss" />
+{{~ else if col.ControlKind == "number" ~}}
+              <XNumberInput v-model:value="form.{{ col.TsProperty }}" :min="0" />
+{{~ else if col.ControlKind == "binary" ~}}
+              <!-- 二进制列：脚手架用文本框承载 Base64，接真实上传请替换成上传组件 -->
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="{{ col.ColumnComment | html_attr }}（Base64 内容）" />
+{{~ else if col.ControlKind == "textarea" ~}}
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable :rows="3" type="textarea" placeholder="请输入{{ col.ColumnComment | html_attr }}" />
 {{~ else ~}}
-          <NInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请输入{{ col.ColumnComment | html_attr }}" />
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请输入{{ col.ColumnComment | html_attr }}" />
 {{~ end ~}}
-        </NFormItem>
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
 {{~ end ~}}
 {{~ end ~}}
-      </NForm>
+      </XhFormRoot>
     </XEditModal>
-{{~ end ~}}
   </SchemaPage>
+{{~ else ~}}
+  <SchemaPage{{ if has_actions }} ref="schemaPageRef"{{ end }} :schema="schema"{{ if has_actions }} @action="onAction"{{ end }} />
+{{~ end ~}}
 </template>

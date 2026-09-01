@@ -56,6 +56,7 @@ internal static class SeederArtifactGenerator
             .Replace("%MODULE%", Shared.ModuleSegment(context))
             .Replace("%DISPLAY%", Shared.Display(context))
             .Replace("%RESOURCE%", Shared.Resource(context))
+            .Replace("%PAGECODE%", $"{Shared.ModuleLower(context)}.{Shared.Kebab(context)}")
             .Replace("%PATH%", $"/{Shared.ModuleLower(context)}/{Shared.Kebab(context)}")
             .Replace("%COMPONENT%", Shared.Component(context))
             .Replace("%ROUTE%", Shared.RouteName(context));
@@ -205,6 +206,11 @@ namespace %NS%.Infrastructure.Seeders;
 /// 如挂父菜单：插入后用 Updateable 按 MenuCode 回写 ParentId。
 /// 若走模块 PageRegistry 单一事实源（推荐，见 Saas/AI/CodeGeneration 各自的 Application/Pages/PageRegistry.cs），
 /// 则删除本种子，改为登记条目并让模块菜单种子继承 PageRegistryMenuSeederBase。
+///
+/// 本种子只种菜单行（MenuType.Menu），不种按钮行。生成页面的新增/编辑/删除按钮用按钮码
+/// %PAGECODE%.{create|update|delete} 门控，按钮码只由 PageRegistry.Buttons 下发——
+/// 只注册本种子的话按钮一个都不会显示，须把 %CLASS%PageRegistry.snippet.txt 的
+/// ButtonDescriptor 条目粘进 PageRegistry.Buttons。
 /// </remarks>
 public sealed class %CLASS%MenuSeeder : DataSeederBase
 {

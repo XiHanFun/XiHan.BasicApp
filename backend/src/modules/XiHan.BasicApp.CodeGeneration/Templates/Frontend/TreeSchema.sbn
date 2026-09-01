@@ -1,3 +1,12 @@
+{{~ # 一列都不进表单就没有可编辑内容，页面不产弹窗，这里也不产增改按钮（与 index.vue 的裁剪同源） ~}}
+{{~ has_form_field = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+{{~ has_form_field = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ can_create = CanCreate && has_form_field ~}}
+{{~ can_update = CanUpdate && has_form_field ~}}
 /**
  * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手工编辑。
  * 列定义/表单默认值的微调请写在 {{ ClassNameKebab }}.schema.ts（在那里对下列 base* 做 transform）。
@@ -9,12 +18,14 @@ import type { ListFieldSchema, PageSchema } from '~/components'
  */
 export interface {{ ClassName }}FormModel {
   basicId?: string
+{{~ # 字段类型取 FormTsType（渲染器按 ControlKind 算好的）：开关恒 boolean、纯日期列按时间戳承载。 ~}}
+{{~ # 纯日期列一律可空：日期控件的段位可被键盘清空，藏起清除钮也拦不住，空值得能被表示出来。 ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InForm ~}}
-{{~ if col.IsNullable || !col.IsRequired ~}}
-  {{ col.TsProperty }}?: {{ col.TsType }} | null
+{{~ if col.IsNullable || !col.IsRequired || col.ControlKind == "date" ~}}
+  {{ col.TsProperty }}?: {{ col.FormTsType }} | null
 {{~ else ~}}
-  {{ col.TsProperty }}: {{ col.TsType }}
+  {{ col.TsProperty }}: {{ col.FormTsType }}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -24,24 +35,26 @@ export interface {{ ClassName }}FormModel {
  * 页面元信息（树形模式：走 resource.tree 取数、不分页、按 children 展开）
  */
 export const basePageMeta = {
-  pageCode: '{{ ModuleName | string.downcase }}.{{ ClassNameKebab }}',
+  pageCode: '{{ PageCode }}',
   pageName: '{{ TableComment | ts_string }}',
   batchRemovable: {{ CanDelete }},
 {{~ if CanDelete ~}}
-  removePermission: '{{ TableName }}:delete',
+  removePermission: '{{ PageCode }}.delete',
 {{~ end ~}}
   rowKey: 'basicId',
-  scrollX: 1200,
   tree: {
     childrenKey: 'children',
+    // 生成的 tree() 不收查询参数、页面也没有搜索框与「展开全部」，收起来就只能逐级点开
     defaultExpandAll: true,
   },
-} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'batchRemovable' | 'removePermission' | 'rowKey' | 'scrollX' | 'tree'>
+} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'batchRemovable' | 'removePermission' | 'rowKey' | 'tree'>
 
 /**
  * 列定义（{{ TreeNameColumn.TsProperty }} 承载展开箭头）
  */
-{{~ # 树形取数走 resource.tree（取全量后在内存组树、不接收过滤），故本文件不产出任何 searchable/sortable ~}}
+{{~ # 生成的树接口 Get{Class}TreeAsync 不带查询参数（按关键字裁剪会截断父链导致节点丢失）， ~}}
+{{~ # 取数也不分页，故本文件不产出 searchable/sortable——产了也是恒不生效的控件。 ~}}
+{{~ # 需要搜索请改用分页接口，或在 .schema.ts 里给 baseFields 补 searchable 并同步扩展 tree() 的入参。 ~}}
 export const baseFields: ListFieldSchema[] = [
 {{~ for col in Columns ~}}
 {{~ if col.InList ~}}
@@ -50,7 +63,7 @@ export const baseFields: ListFieldSchema[] = [
 {{~ else if col.ColumnName == TreeParentColumn.ColumnName ~}}
   { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.TsType == "number" }}number{{ else }}string{{ end }}', visible: false, minWidth: 140, order: {{ for.index + 1 }} },
 {{~ else ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.HtmlType == "DateTimePicker" }}datetime{{ else if col.HtmlType == "DatePicker" }}date{{ else if col.EnumTypeShortName }}enum{{ else if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.EnumTypeShortName }} dictionaryCode: '{{ col.EnumTypeShortName }}',{{ end }}{{ if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.ColumnComment | ts_string }}', dataType: '{{ if col.ControlKind == "datetime" }}datetime{{ else if col.ControlKind == "date" }}date{{ else if col.EnumTypeShortName }}enum{{ else if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.EnumTypeShortName }} dictionaryCode: '{{ col.EnumTypeShortName }}',{{ end }}{{ if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -59,16 +72,20 @@ export const baseFields: ListFieldSchema[] = [
 
 /**
  * 页面与行操作
+ *
+ * permission 填的是服务端下发的「按钮码」{页面码}.{按钮键}，不是权限码。
+ * 这些码必须先粘进后端 PageRegistry.Buttons（见二阶产物 {{ ClassName }}PageRegistry.snippet.txt），
+ * 否则按钮永不显示、前端 view-permission-hygiene 门禁也会判红。
  */
 export const baseActions: NonNullable<PageSchema['actions']> = [
-{{~ if CanCreate ~}}
-  { key: 'create', title: '新增{{ TableComment | ts_string }}', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: '{{ TableName }}:create' },
+{{~ if can_create ~}}
+  { key: 'create', title: '新增{{ TableComment | ts_string }}', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: '{{ PageCode }}.create' },
 {{~ end ~}}
-{{~ if CanUpdate ~}}
-  { key: 'edit', title: '编辑', scope: 'row', permission: '{{ TableName }}:update' },
+{{~ if can_update ~}}
+  { key: 'edit', title: '编辑', scope: 'row', permission: '{{ PageCode }}.update' },
 {{~ end ~}}
 {{~ if CanDelete ~}}
-  { key: 'delete', title: '删除', scope: 'row', permission: '{{ TableName }}:delete' },
+  { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: '{{ PageCode }}.delete', confirm: true, confirmText: '确定删除该{{ TableComment | ts_string }}吗？删除后不可恢复。' },
 {{~ end ~}}
 ]
 
@@ -77,20 +94,19 @@ export const baseActions: NonNullable<PageSchema['actions']> = [
  */
 export function createDefaultFormModel(): {{ ClassName }}FormModel {
   return {
+{{~ # 默认值按 FormTsType 取，与上面的字段类型同源；日期不预填，交给提交前校验强制选一次 ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InForm ~}}
-{{~ if col.EnumTypeShortName ~}}
-{{~ if col.IsNullable || !col.IsRequired ~}}
+{{~ if col.ControlKind == "date" ~}}
     {{ col.TsProperty }}: null,
-{{~ else ~}}
-    {{ col.TsProperty }}: '{{ col.EnumDefaultMember }}',
-{{~ end ~}}
-{{~ else if col.TsType == "number" ~}}
-    {{ col.TsProperty }}: 0,
-{{~ else if col.TsType == "boolean" ~}}
+{{~ else if col.FormTsType == "boolean" ~}}
     {{ col.TsProperty }}: false,
 {{~ else if col.IsNullable || !col.IsRequired ~}}
     {{ col.TsProperty }}: null,
+{{~ else if col.EnumTypeShortName ~}}
+    {{ col.TsProperty }}: '{{ col.EnumDefaultMember }}',
+{{~ else if col.FormTsType == "number" ~}}
+    {{ col.TsProperty }}: 0,
 {{~ else ~}}
     {{ col.TsProperty }}: '',
 {{~ end ~}}

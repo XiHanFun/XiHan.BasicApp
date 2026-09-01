@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
@@ -19,7 +20,7 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// 区分自动产物（总是覆盖）与手动产物（仅首次创建），保证重新生成不冲掉手写代码。
 /// 待完善：树表/主子表上下文扩展（见 M1-1）。
 /// </remarks>
-public sealed class CodeGenerationEngine(
+public sealed partial class CodeGenerationEngine(
     ICodeGenTableRepository tableRepository,
     ICodeGenTableColumnRepository columnRepository,
     ICodeGenTemplateRepository templateRepository,
@@ -295,6 +296,15 @@ public sealed class CodeGenerationEngine(
             }
         };
 
+        // 页面码是表级推导，在这里一次校验：模块名是自由输入，填中文或带空格照样能两端一致地产出，
+        // 但前端权限码卫生门禁的码形正则匹配不上，整页按钮码会被静默跳过检查。
+        // 放在渲染器里校验会漏掉空模板早退，也会把与页面码无关的纯后端生成一并挡住。
+        var pageCode = MenuPermissionArtifactShared.PageCode(context);
+        if (!PageCodeRegex().IsMatch(pageCode))
+        {
+            return (context, $"表 {table.TableName} 推导出的页面码 {pageCode} 不合规：模块名须为 [a-z][a-z0-9_-]*，请在表配置里改成英文模块名。");
+        }
+
         if (table.TemplateType == TemplateType.Tree)
         {
             var error = ResolveTreeColumns(table, columnSchemas, context);
@@ -320,6 +330,12 @@ public sealed class CodeGenerationEngine(
 
         return (context, null);
     }
+
+    /// <summary>
+    /// 页面码合规判据（与前端权限码卫生门禁的码形正则同源）
+    /// </summary>
+    [GeneratedRegex(@"^[a-z][a-z0-9_-]*(?:\.[a-z0-9_-]+)+$")]
+    private static partial Regex PageCodeRegex();
 
     /// <summary>
     /// 解析树表的父级列与显示名列（fail-closed）
@@ -348,6 +364,13 @@ public sealed class CodeGenerationEngine(
         if (name is null)
         {
             return $"表 {table.TableName} 配置的显示名列 {table.TreeNameColumn} 不在列配置中，请重新导入或同步表结构。";
+        }
+
+        // 显示名列承载展开箭头，且树节点 DTO 由列表列推导：不勾「列表显示」会让树既没有展开列、
+        // 前端父级选择器也取不到该属性
+        if (!name.IsList)
+        {
+            return $"表 {table.TableName} 的显示名列 {table.TreeNameColumn} 未勾选「列表显示」，树表无法渲染展开列，请在列配置中勾选。";
         }
 
         context.TreeParentColumn = parent;

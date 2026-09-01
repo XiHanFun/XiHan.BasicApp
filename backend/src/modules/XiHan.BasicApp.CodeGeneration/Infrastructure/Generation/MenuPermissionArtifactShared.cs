@@ -107,6 +107,15 @@ internal static class MenuPermissionArtifactShared
     public static string Kebab(CodeGenerationContext context) => Kebabize(context.ClassName);
 
     /// <summary>
+    /// 页面码（{module}.{kebab}）
+    /// </summary>
+    /// <remarks>
+    /// 前端 schema 的 pageCode、按钮码前缀、PageRegistry 片段的 PageDescriptor.Code 共用这一个推导，
+    /// 任何一处另算都会让按钮码对不上、按钮静默不显示。
+    /// </remarks>
+    public static string PageCode(CodeGenerationContext context) => $"{ModuleLower(context)}.{Kebab(context)}";
+
+    /// <summary>
     /// 前端组件路径（{module}/{kebab}/index，对齐生成的 Vue 页面落点 src/views/{module}/{kebab}/index.vue）
     /// </summary>
     public static string Component(CodeGenerationContext context) => $"{ModuleLower(context)}/{Kebab(context)}/index";

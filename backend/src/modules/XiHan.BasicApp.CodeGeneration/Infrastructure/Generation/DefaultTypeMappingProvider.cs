@@ -28,7 +28,10 @@ public sealed class DefaultTypeMappingProvider : ITypeMappingProvider
 
         return normalized switch
         {
-            "bigint" or "long" or "int8" or "bigserial" or "serial8" => ValueType("long", "number", HtmlType.InputNumber, QueryType.Equal, isNullable),
+            // long 的 TS 侧是字符串：全局 LongJsonConverter 把所有 long 写成 JSON 字符串
+            // （雪花 ID 超出 JavaScript Number 安全范围）。标成 number 会让产物里的类型与实际报文对不上，
+            // 且编译期毫无信号。读取方向该转换器同时接受字符串与数字，故查询参数照发字符串即可。
+            "bigint" or "long" or "int8" or "bigserial" or "serial8" => ValueType("long", "string", HtmlType.Input, QueryType.Equal, isNullable),
             "int" or "integer" or "int4" or "mediumint" or "serial" or "serial4" => ValueType("int", "number", HtmlType.InputNumber, QueryType.Equal, isNullable),
             "smallint" or "tinyint" or "int2" or "smallserial" or "serial2" => ValueType("int", "number", HtmlType.InputNumber, QueryType.Equal, isNullable),
             "bit" or "bool" or "boolean" => ValueType("bool", "boolean", HtmlType.Switch, QueryType.Equal, isNullable),

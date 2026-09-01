@@ -28,7 +28,7 @@ internal static class PageDescriptorArtifactGenerator
         var resource = Shared.Resource(context);
         var display = Shared.Display(context);
         var codes = $"{context.ClassName}PermissionCodes";
-        var pageCode = $"{Shared.ModuleLower(context)}.{Shared.Kebab(context)}";
+        var pageCode = Shared.PageCode(context);
         var path = $"/{Shared.ModuleLower(context)}/{Shared.Kebab(context)}";
         var effective = Shared.EffectiveActions(context);
         var parentNote = context.Options.TryGetValue("ParentMenuId", out var pid) && pid is not null
@@ -36,7 +36,10 @@ internal static class PageDescriptorArtifactGenerator
             : "null（顶级菜单；如需挂父目录，改成父页面码字符串）";
 
         var sb = new StringBuilder();
-        sb.AppendLine($"// {display} PageRegistry 片段（可选：走 Saas PageRegistry 单一事实源时使用，替代 {context.ClassName}MenuSeeder）");
+        sb.AppendLine($"// {display} PageRegistry 片段");
+        sb.AppendLine($"// 按钮行必做：生成页面的写操作按钮用按钮码 {pageCode}.{{create|update|delete}} 门控，");
+        sb.AppendLine($"// 而按钮码只由 PageRegistry.Buttons 下发——{context.ClassName}MenuSeeder 只种菜单行、不种按钮行。");
+        sb.AppendLine($"// 页面行（PageDescriptor）在走 PageRegistry 单一事实源时同时替代 {context.ClassName}MenuSeeder。");
         sb.AppendLine("//");
         sb.AppendLine("// 用法：");
         sb.AppendLine($"//   1) 确保已引用生成的权限码常量类 {codes}（using 到其命名空间）。");
