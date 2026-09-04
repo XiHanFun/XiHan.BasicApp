@@ -4,7 +4,7 @@
 
 <h1>XiHan.BasicApp</h1>
 
-<p><b>基于 .Net + Vue 的超高颜值中后台内核</b></p>
+<p><b>基于 .Net + Vue 的超高颜值通用中后台内核</b></p>
 
 <p>后端基于 .NET 10 与 <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>，前端基于 Vue 3 与 <a href="https://github.com/XiHanFun/XiHan.UI">XiHan.UI</a><br/>多租户 · RBAC + 数据范围 + 字段脱敏 · 代码生成 · 实时通信</p>
 
@@ -52,7 +52,7 @@
 
 ## 简介
 
-XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层，写路径走应用服务、读路径走查询服务，应用服务经动态 API 直接暴露为 REST 接口；前端使用 Vue 3 + TypeScript + XiHan.UI。系统内置完整的身份、权限、租户与审计能力，既可作为中后台项目的起点，也可作为 .NET + Vue 全栈实践的参考。属于曦寒懿（XiHanFun）开源生态的基础应用，拥有底座、组件、应用的完整生态。
+XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层，写路径走应用服务、读路径走查询服务，应用服务经动态 API 直接暴露为 REST 接口；前端使用 Vue 3 + TypeScript + XiHan.UI，后端使用 .NET 10 + XiHan.Framework。系统内置完整的身份、权限、租户与审计能力，既可作为中后台项目的起点，也可作为 .NET + Vue 全栈实践的参考。属于曦寒懿（XiHanFun）开源生态的基础应用，拥有底座、组件、应用的完整生态。
 
 ## 文档
 

@@ -4,7 +4,7 @@
 
 <h1>XiHan.BasicApp</h1>
 
-<p><b>A beautifully crafted admin kernel built on .NET and Vue</b></p>
+<p><b>A beautifully crafted general-purpose admin kernel built on .NET and Vue</b></p>
 
 <p>A .NET 10 backend on <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>, a Vue 3 frontend on <a href="https://github.com/XiHanFun/XiHan.UI">XiHan.UI</a><br/>Multi-tenancy · RBAC with data scopes and field masking · Code generation · Realtime</p>
 
@@ -52,7 +52,7 @@
 
 ## Introduction
 
-XiHan.BasicApp is a decoupled frontend/backend system. The backend follows DDD layering — writes go through application services, reads through query services — and application services are exposed directly as REST endpoints by the dynamic API convention. The frontend is Vue 3 + TypeScript + XiHan.UI. Identity, permissions, tenancy and auditing are built in, so it works both as the starting point for an admin project and as a reference for full-stack .NET + Vue practice. XiHan.BasicApp is the application layer of the XiHanFun open-source ecosystem, which spans foundation, components and applications.
+XiHan.BasicApp is a decoupled frontend/backend system. The backend follows DDD layering — writes go through application services, reads through query services — and application services are exposed directly as REST endpoints by the dynamic API convention. The frontend is Vue 3 + TypeScript + XiHan.UI, and the backend .NET 10 + XiHan.Framework. Identity, permissions, tenancy and auditing are built in, so it works both as the starting point for an admin project and as a reference for full-stack .NET + Vue practice. XiHan.BasicApp is the application layer of the XiHanFun open-source ecosystem, which spans foundation, components and applications.
 
 ## Documentation
 
