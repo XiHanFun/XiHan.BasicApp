@@ -5,16 +5,16 @@
 ## v5.1.0 (2026-09-04)
 
 ::: warning 升级须知
-随附 `UpdateScripts/5.1.0`：把存量代码生成列配置里 bigint 列的 TS 类型与控件刷成字符串加文本框，与后端全局 `LongJsonConverter` 的报文形状一致（雪花 ID 超出 JavaScript Number 安全范围，`long` 在报文里一律是字符串）。只刷未被人工冻结的字段——`user_modified_fields` 里命中 `TsType` / `HtmlType` 的保留原值。产物正确性不依赖这个脚本，渲染期会按 C# 类型归一化；它只是让列配置界面显示的类型与实际产物对得上。
+随附 `UpdateScripts/5.1.0`：把存量代码生成列配置里 bigint 列的 TS 类型与控件刷成字符串加文本框，与后端全局 `LongJsonConverter` 的报文形状一致（雪花 ID 超出 JavaScript Number 安全范围，`long` 在报文里一律是字符串）。
 :::
 
-- **调整** 代码生成的前端模板迁到 XiHan.UI：模板上一次改动还在换组件库之前，此后前端 naive-ui 整体下线、按钮门控改成服务端下发按钮码、`PageSchema` 上删掉了 `scrollX`，生成出来的 `index.vue` 因此连模块都解析不到、schema 也过不了 type-check。SchemaPage 壳保持不变，弹窗改 `XEditModal` 加 `form-id` 走整表校验，控件取 `~/components` 的 `X*` 包装与 `@xihan-ui/vue` 的字段族，提示走 `~/composables` 的 toast
+- **调整** 代码生成的前端模板迁到 XiHan.UI：前端 naive-ui 整体下线、按钮门控改成服务端下发按钮码
 - **调整** 生成产物的 `actions.permission` 改成按钮码 `{页面码}.{按钮键}`，与 `PageRegistry` 片段同一处推导；按钮码只能由 `PageRegistry.Buttons` 下发，`MenuSeeder` 不种按钮行
 - **调整** 生成产物的 `DetailDto` 继承 `ListItemDto`，接口导出名由 `xxxManagementApi` 改为 `xxxApi`
 - **修复** 控件判定收敛到渲染器：原先六份模板各判一次，次序稍有不同就会渲出「控件是下拉、表单模型是时间戳」这类自相矛盾、编译期还看不出来的代码。现在由渲染器一次算出 `ControlKind` / `FormTsType`，标志段、渲染段、回填、提交、表单模型与默认值一律读它
 - **修复** `TsType` 在渲染期按 C# 类型归一化，`long` 列一律产出 `string`，产物正确性不再依赖存量列配置
-- **修复** 纯日期列改用日期选择器并按本地年月日提交，不再因 UTC 换算退掉一天；日期时间与时间列组件库没有对应包装，用文本框加提交前格式校验兜住
-- **修复** 生成期三处改 fail-closed：页面码码形、树表显示名列未进列表、常量候选项形状。此前都是静默产出坏代码，拿到手的是编译不过的产物而不是一条能照着改的错误
+- **修复** 纯日期列改用日期选择器并按本地年月日提交，不再因 UTC 换算退掉一天；日期时间与时间列组件库没有对应包装，暂用文本框加提交前格式校验
+- **修复** 生成期三处改 fail-closed：页面码码形、树表显示名列未进列表、常量候选项形状
 - **升级** 升级依赖至框架 v4.2.0，发布 v5.1.0
 
 ## v5.0.0 (2026-08-31)
