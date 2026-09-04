@@ -1,4 +1,4 @@
--- 4.0.4
+﻿-- 5.1.0
 -- 存量代码生成列配置里的 bigint 列改按字符串承载。
 --
 -- 后端全局 LongJsonConverter 把所有 long 写成 JSON 字符串（雪花 ID 超出 JavaScript Number
