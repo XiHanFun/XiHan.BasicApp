@@ -700,9 +700,9 @@ watch(tracePreset, (preset) => {
   background: linear-gradient(135deg, color-mix(in srgb, var(--k) 9%, var(--t-card)) 0%, var(--t-card) 62%);
   cursor: pointer;
   transition:
-    border-color 0.14s ease,
-    box-shadow 0.14s ease,
-    background 0.14s ease;
+    border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 /* 状态 → 状态色（见 statusKind，来源于后端权威结果） */

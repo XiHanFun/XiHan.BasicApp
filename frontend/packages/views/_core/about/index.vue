@@ -493,7 +493,7 @@ onMounted(() => {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   min-width: 0;
-  transition: border-color 0.2s;
+  transition: border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .ab-overview-item:hover {
@@ -692,7 +692,7 @@ onMounted(() => {
   border: 1px solid var(--border-color);
   background: var(--bg-surface);
   min-width: 0;
-  transition: border-color 0.2s;
+  transition: border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .ab-pkg-item:hover {

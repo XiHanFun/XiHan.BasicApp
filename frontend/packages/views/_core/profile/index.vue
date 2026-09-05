@@ -302,7 +302,7 @@ onMounted(loadProfile)
   font-size: 13.5px;
   text-align: left;
   cursor: pointer;
-  transition: background 0.14s;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .pc__nav-item:hover {

@@ -153,8 +153,8 @@ function onAlignChange(align: LoginFormAlign) {
   border: 2px solid transparent;
   cursor: pointer;
   transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    transform var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   flex-shrink: 0;
 }
 

@@ -228,20 +228,20 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
     <div class="pointer-events-none sticky top-2 z-40 -mb-4 -mr-4 flex h-0 items-start justify-end overflow-x-clip sm:-mb-5 sm:-mr-5">
       <div
         class="flex justify-end"
-        :style="{ transform: `translateY(${toolbarOffsetY}px)`, transition: draggingToolbar ? 'none' : 'transform 0.15s ease' }"
+        :style="{ transform: `translateY(${toolbarOffsetY}px)`, transition: draggingToolbar ? 'none' : 'transform var(--xh-motion-duration-micro) var(--xh-motion-ease-enter)' }"
       >
         <!-- 折叠态：右侧半隐藏按钮，悬停滑出 -->
         <Transition
-          enter-active-class="transition-opacity duration-200"
+          enter-active-class="transition-opacity duration-[var(--xh-motion-duration-enter)]"
           enter-from-class="opacity-0"
-          leave-active-class="transition-opacity duration-150"
+          leave-active-class="transition-opacity duration-[var(--xh-motion-duration-exit)]"
           leave-to-class="opacity-0"
         >
           <button
             v-if="!panelOpen"
             type="button"
             :title="t('workbench.widgets.customize')"
-            class="group pointer-events-auto mt-2 flex h-9 translate-x-[40%] items-center gap-1.5 rounded-l-xl border border-r-0 border-border/60 bg-background/55 pl-3 pr-2 text-muted-foreground shadow-sm backdrop-blur-md transition-all duration-200 hover:translate-x-0 hover:bg-background/90 hover:text-foreground"
+            class="group pointer-events-auto mt-2 flex h-9 translate-x-[40%] items-center gap-1.5 rounded-l-xl border border-r-0 border-border/60 bg-background/55 pl-3 pr-2 text-muted-foreground shadow-sm backdrop-blur-md transition-all duration-[var(--xh-motion-duration-enter)] hover:translate-x-0 hover:bg-background/90 hover:text-foreground"
             @click="panelOpen = true"
           >
             <Icon icon="lucide:settings-2" width="16" />
@@ -250,9 +250,9 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
         </Transition>
         <!-- 展开态：半透明毛玻璃悬浮操作栏 -->
         <Transition
-          enter-active-class="transition duration-200 ease-out"
+          enter-active-class="transition duration-[var(--xh-motion-duration-enter)] ease-[var(--xh-motion-ease-enter)]"
           enter-from-class="translate-x-4 opacity-0"
-          leave-active-class="transition duration-150 ease-in"
+          leave-active-class="transition duration-[var(--xh-motion-duration-exit)] ease-[var(--xh-motion-ease-exit)]"
           leave-to-class="translate-x-4 opacity-0"
         >
           <div

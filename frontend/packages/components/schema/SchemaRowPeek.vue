@@ -114,12 +114,12 @@ watch(
 /* iOS Peek 弹出：轻微上移 + 缩放 + 淡入 */
 .row-peek-enter-active {
   transition:
-    opacity 0.16s ease,
-    transform 0.22s cubic-bezier(0.22, 1.2, 0.36, 1);
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-settle);
 }
 
 .row-peek-leave-active {
-  transition: opacity 0.12s ease;
+  transition: opacity var(--xh-motion-duration-exit) var(--xh-motion-ease-exit);
 }
 
 .row-peek-enter-from {

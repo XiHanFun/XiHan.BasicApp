@@ -187,32 +187,32 @@ const appName = __APP_NAME__
 
 .slogan-tag {
   transition:
-    background 0.3s ease,
-    border-color 0.3s ease,
-    color 0.3s ease;
+    background var(--xh-motion-duration-slide) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-slide) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-slide) var(--xh-motion-ease-enter);
 }
 
 .auth-blob {
-  transition: background-color 0.6s ease;
+  transition: background-color var(--xh-motion-duration-slide) var(--xh-motion-ease-enter);
   will-change: transform;
 }
 
 .auth-blob--1 {
   left: -8%;
   top: -12%;
-  animation: blob-flow-1 16s ease-in-out infinite;
+  animation: blob-flow-1 16s var(--xh-motion-ease-sweep) infinite;
 }
 
 .auth-blob--2 {
   right: 10%;
   top: -6%;
-  animation: blob-flow-2 20s ease-in-out infinite;
+  animation: blob-flow-2 20s var(--xh-motion-ease-sweep) infinite;
 }
 
 .auth-blob--3 {
   left: 20%;
   bottom: -16%;
-  animation: blob-flow-3 18s ease-in-out infinite;
+  animation: blob-flow-3 18s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes blob-flow-1 {
@@ -272,9 +272,17 @@ const appName = __APP_NAME__
   }
 }
 
+/* 尊重系统的「减少动态效果」：光斑停在起始位置，仍作为背景色块存在 */
+@media (prefers-reduced-motion: reduce) {
+  .auth-blob {
+    animation: none;
+    will-change: auto;
+  }
+}
+
 .auth-slide-enter-active,
 .auth-slide-leave-active {
-  transition: opacity 0.24s ease;
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .auth-slide-enter-from,

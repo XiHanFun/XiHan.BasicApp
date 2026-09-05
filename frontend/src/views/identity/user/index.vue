@@ -1662,7 +1662,7 @@ async function confirmDelete() {
   justify-content: space-between;
   padding: 10px 12px;
   border: 1px solid hsl(var(--border));
-  border-radius: var(--xh-shape-radius-md);
+  border-radius: var(--xh-shape-control);
   margin-bottom: 8px;
   background: hsl(var(--muted));
 }
@@ -1716,7 +1716,7 @@ async function confirmDelete() {
   padding: 12px;
   background: hsl(var(--muted));
   border: 1px solid hsl(var(--border));
-  border-radius: var(--xh-shape-radius-md);
+  border-radius: var(--xh-shape-control);
   min-height: 48px;
 }
 
@@ -1725,7 +1725,7 @@ async function confirmDelete() {
   align-items: center;
   gap: 5px;
   padding: 4px 10px;
-  border-radius: var(--xh-shape-radius-md);
+  border-radius: var(--xh-shape-control);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -1817,7 +1817,7 @@ async function confirmDelete() {
   align-items: center;
   gap: 3px;
   padding: 2px 7px;
-  border-radius: var(--xh-shape-radius-md);
+  border-radius: var(--xh-shape-control);
   font-size: 11px;
   font-weight: 500;
 }
@@ -1875,7 +1875,7 @@ async function confirmDelete() {
   padding: 10px 11px;
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
-  border-radius: var(--xh-shape-radius-md);
+  border-radius: var(--xh-shape-control);
   overflow: hidden;
 }
 
@@ -1931,7 +1931,7 @@ async function confirmDelete() {
   gap: 8px;
   padding: 9px 10px;
   border: 1px solid hsl(var(--border));
-  border-radius: var(--xh-shape-radius-md);
+  border-radius: var(--xh-shape-control);
   background: hsl(var(--muted));
 }
 

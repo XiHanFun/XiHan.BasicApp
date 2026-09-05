@@ -213,7 +213,7 @@ function handleClear() {
 .icon-picker-item {
   border-radius: 6px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .icon-picker-cell {

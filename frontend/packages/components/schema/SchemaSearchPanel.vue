@@ -186,8 +186,8 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
 .xh-search-expand-enter-active,
 .xh-search-expand-leave-active {
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-slide);
 }
 
 .xh-search-expand-enter-from,

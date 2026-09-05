@@ -137,7 +137,7 @@ function switchTab(tab: 'advanced' | 'basic'): void {
   left: 2px;
   height: 2px;
   content: '';
-  transition: background-color 0.2s ease;
+  transition: background-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
   background: transparent;
 }
 
@@ -197,7 +197,7 @@ function switchTab(tab: 'advanced' | 'basic'): void {
 }
 
 .security-chevron {
-  transition: transform 0.2s ease;
+  transition: transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .security-chevron.expanded {

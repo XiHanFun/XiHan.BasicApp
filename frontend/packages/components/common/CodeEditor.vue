@@ -272,7 +272,7 @@ async function handleCopy() {
   border: 1px solid hsl(var(--border));
   border-radius: 4px;
   opacity: 0;
-  transition: opacity 0.15s;
+  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 /* 默认隐藏、hover 编辑器时才浮现：避免常驻遮挡首行内容与右侧滚动条 */

@@ -415,7 +415,7 @@ async function handleDownload(fileId: string) {
 }
 
 .chat-bubble--highlight {
-  animation: chat-highlight-pulse 3s ease-out;
+  animation: chat-highlight-pulse 3s var(--xh-motion-ease-enter);
 }
 
 @keyframes chat-highlight-pulse {
@@ -483,7 +483,7 @@ async function handleDownload(fileId: string) {
   background: hsl(var(--card));
   color: hsl(var(--foreground));
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-voice:hover {
@@ -504,7 +504,7 @@ async function handleDownload(fileId: string) {
   inset: 0 auto 0 0;
   border-radius: 999px;
   background: hsl(var(--primary));
-  transition: width 0.15s linear;
+  transition: width var(--xh-motion-duration-micro) var(--xh-motion-ease-continuous);
 }
 
 .chat-voice__time {
@@ -539,7 +539,7 @@ async function handleDownload(fileId: string) {
   background: hsl(var(--card));
   color: hsl(var(--foreground));
   cursor: pointer;
-  transition: border-color 0.15s ease;
+  transition: border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-file-card:hover {
@@ -557,7 +557,7 @@ async function handleDownload(fileId: string) {
   font-size: 13px;
   line-height: 1.4;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-reaction-chip:hover {

@@ -680,11 +680,11 @@ onBeforeUnmount(() => {
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 7%);
   backdrop-filter: blur(14px);
   transition:
-    width 0.45s cubic-bezier(0.3, 1.15, 0.35, 1),
-    height 0.45s cubic-bezier(0.3, 1.15, 0.35, 1),
-    border-radius 0.45s cubic-bezier(0.3, 1.15, 0.35, 1),
-    transform 0.32s cubic-bezier(0.3, 1.15, 0.35, 1),
-    opacity 0.24s ease;
+    width var(--xh-motion-duration-slide) var(--xh-motion-ease-settle),
+    height var(--xh-motion-duration-slide) var(--xh-motion-ease-settle),
+    border-radius var(--xh-motion-duration-slide) var(--xh-motion-ease-settle),
+    transform var(--xh-motion-duration-slide) var(--xh-motion-ease-settle),
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 /* 入栈动效：新叠层从「最前那条的原位、原尺寸」沉到后方，看着就是上一条被压下去。
@@ -693,7 +693,7 @@ onBeforeUnmount(() => {
 .di-stack-enter-active {
   /* 关掉基础 transition：入场只跑关键帧，避免与之并存时 Vue 把过渡类型判成 transition */
   transition: none;
-  animation: di-stack-push 0.46s cubic-bezier(0.25, 1.15, 0.4, 1);
+  animation: di-stack-push var(--xh-motion-duration-slide) var(--xh-motion-ease-settle);
 }
 
 @keyframes di-stack-push {
@@ -707,7 +707,7 @@ onBeforeUnmount(() => {
    与入场对称——关键帧只写结束态，起始态隐式取元素自身的行内 transform。 */
 .di-stack-leave-active {
   transition: none;
-  animation: di-stack-drop 0.3s cubic-bezier(0.4, 0, 0.7, 0.3) forwards;
+  animation: di-stack-drop var(--xh-motion-duration-slide) var(--xh-motion-ease-exit) forwards;
 }
 
 @keyframes di-stack-drop {
@@ -738,9 +738,9 @@ onBeforeUnmount(() => {
   overflow: hidden;
   /* 宽/高/圆角统一缓动：展开收起为同一容器的形变，不再上下抖动 */
   transition:
-    width 0.45s cubic-bezier(0.3, 1.15, 0.35, 1),
-    height 0.45s cubic-bezier(0.3, 1.15, 0.35, 1),
-    border-radius 0.45s cubic-bezier(0.3, 1.15, 0.35, 1);
+    width var(--xh-motion-duration-slide) var(--xh-motion-ease-settle),
+    height var(--xh-motion-duration-slide) var(--xh-motion-ease-settle),
+    border-radius var(--xh-motion-duration-slide) var(--xh-motion-ease-settle);
 }
 
 /* 两层内容：淡入淡出交叉过渡，非活动层不可交互 */
@@ -750,13 +750,14 @@ onBeforeUnmount(() => {
   left: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.22s ease;
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .di-layer.is-active {
   opacity: 1;
   pointer-events: auto;
-  transition: opacity 0.26s ease 0.1s;
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter)
+    calc(2 * var(--xh-motion-stagger-step));
 }
 
 /* ============ 折叠层：胶囊 ============ */
@@ -836,7 +837,7 @@ onBeforeUnmount(() => {
   border-radius: 9999px;
   color: rgb(12 16 22 / 92%);
   /* 完成反馈：状态图标弹现，呼应 iOS 灵动岛完成态的图标弹入 */
-  animation: di-badge-pop 0.42s cubic-bezier(0.3, 1.45, 0.4, 1);
+  animation: di-badge-pop var(--xh-motion-duration-slide) var(--xh-motion-ease-settle);
 }
 
 @keyframes di-badge-pop {
@@ -885,12 +886,12 @@ onBeforeUnmount(() => {
   stroke: #60a5fa;
   stroke-width: 2.5;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.4s cubic-bezier(0.25, 1, 0.35, 1);
+  transition: stroke-dashoffset var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong);
 }
 
 /* 不确定态：固定弧长旋转 */
 .di-ring--spin {
-  animation: di-ring-rotate 1s linear infinite;
+  animation: di-ring-rotate 1s var(--xh-motion-ease-loop) infinite;
 }
 
 .di-ring--spin .di-ring__bar {
@@ -1034,8 +1035,8 @@ onBeforeUnmount(() => {
   cursor: pointer;
   opacity: 0;
   transition:
-    opacity 0.15s ease,
-    color 0.15s ease;
+    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .di-item:hover .di-item__dismiss {
@@ -1071,7 +1072,7 @@ onBeforeUnmount(() => {
   height: 100%;
   background: linear-gradient(90deg, #60a5fa, #818cf8);
   border-radius: 9999px;
-  transition: width 0.35s cubic-bezier(0.25, 1, 0.35, 1);
+  transition: width var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong);
 }
 
 .di-progress__pct {
@@ -1101,7 +1102,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   background: rgb(255 255 255 / 12%);
   color: rgb(255 255 255 / 92%);
-  transition: background 0.15s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .di-action:hover {
@@ -1194,15 +1195,15 @@ onBeforeUnmount(() => {
 /* 入场：自顶部滑入并轻微回弹（appear 保证刷新恢复任务时的初始挂载同样有动效） */
 .island-enter-active {
   transition:
-    opacity 0.32s ease,
-    transform 0.52s cubic-bezier(0.24, 1.32, 0.36, 1);
+    opacity var(--xh-motion-duration-slide) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-slide) var(--xh-motion-ease-settle);
 }
 
 /* 离场：加速收回顶部 */
 .island-leave-active {
   transition:
-    opacity 0.26s ease 0.04s,
-    transform 0.3s cubic-bezier(0.55, 0, 0.8, 0.25);
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-exit) var(--xh-motion-stagger-step),
+    transform var(--xh-motion-duration-slide) var(--xh-motion-ease-exit);
 }
 
 .island-enter-from,
@@ -1215,7 +1216,7 @@ onBeforeUnmount(() => {
 /* 入栈：新消息自顶缘落下压到最前（岛已在屏上、不重新入场时）。
    方向与堆叠一致——堆朝下延伸，新的就从上方来。 */
 .di-slide {
-  animation: di-slide-in 0.42s cubic-bezier(0.25, 1.15, 0.4, 1);
+  animation: di-slide-in var(--xh-motion-duration-slide) var(--xh-motion-ease-settle);
 }
 
 @keyframes di-slide-in {
@@ -1233,8 +1234,8 @@ onBeforeUnmount(() => {
 .di-text-enter-active,
 .di-text-leave-active {
   transition:
-    opacity 0.18s ease,
-    transform 0.18s ease;
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .di-text-enter-from {

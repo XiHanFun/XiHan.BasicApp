@@ -610,7 +610,7 @@ function applyPreset(v: string): void {
   gap: 6px;
   font-size: 13px;
   color: hsl(var(--foreground));
-  transition: opacity 0.15s ease;
+  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .cron-inline.is-disabled {

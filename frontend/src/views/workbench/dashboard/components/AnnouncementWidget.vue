@@ -257,7 +257,7 @@ onMounted(async () => {
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .carousel-arrow:hover {
@@ -284,8 +284,8 @@ onMounted(async () => {
   border-radius: 999px;
   cursor: pointer;
   transition:
-    width 0.3s ease,
-    background 0.3s ease;
+    width var(--xh-motion-duration-slide) var(--xh-motion-ease-slide),
+    background var(--xh-motion-duration-slide) var(--xh-motion-ease-enter);
 }
 
 .carousel-dot.is-active {

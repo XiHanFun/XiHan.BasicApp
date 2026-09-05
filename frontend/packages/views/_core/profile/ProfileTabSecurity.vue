@@ -935,8 +935,8 @@ function handleDeleteAccount() {
   border-radius: var(--radius);
   background: transparent;
   transition:
-    background 0.2s,
-    border-color 0.2s;
+    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .pf-2fa-icon {
@@ -950,8 +950,8 @@ function handleDeleteAccount() {
   background: hsl(var(--muted));
   color: var(--text-secondary);
   transition:
-    background 0.2s,
-    color 0.2s;
+    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .pf-2fa-method.is-on {

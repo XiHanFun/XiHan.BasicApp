@@ -122,7 +122,7 @@ function updateDraft(value: null | string) {
   border: 1px solid var(--xh-border-default);
   border-radius: 3px;
   cursor: pointer;
-  transition: border-color 0.2s;
+  transition: border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .xh-content-field__summary:hover:not(:disabled) {

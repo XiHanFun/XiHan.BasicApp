@@ -506,7 +506,7 @@ async function handleLeave() {
   background: hsl(0deg 0% 0% / 40%);
   color: #fff;
   opacity: 0;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-avatar-upload:hover .chat-avatar-upload__mask,

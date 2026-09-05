@@ -446,7 +446,7 @@ onMounted(loadNotifications)
   align-items: start;
   padding: 14px 16px;
   border-bottom: 1px solid hsl(var(--border) / 50%);
-  transition: background 0.15s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .inbox-item:last-child {

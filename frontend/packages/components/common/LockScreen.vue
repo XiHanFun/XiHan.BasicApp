@@ -218,7 +218,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   overflow: hidden;
   /* 完全不透明：锁屏就该真的挡住内容，不能靠模糊糊弄过去 */
   background: hsl(var(--background-deep));
-  animation: lock-screen-fade 0.24s ease;
+  animation: lock-screen-fade var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .lock-screen-bg {
@@ -241,7 +241,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   height: 620px;
   background: hsl(var(--primary) / 0.22);
   filter: blur(100px);
-  animation: lock-blob-1 18s ease-in-out infinite;
+  animation: lock-blob-1 18s var(--xh-motion-ease-sweep) infinite;
 }
 
 .lock-blob--2 {
@@ -251,7 +251,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   height: 520px;
   background: hsl(var(--info) / 0.18);
   filter: blur(120px);
-  animation: lock-blob-2 22s ease-in-out infinite;
+  animation: lock-blob-2 22s var(--xh-motion-ease-sweep) infinite;
 }
 
 .lock-blob--3 {
@@ -261,7 +261,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   height: 580px;
   background: hsl(var(--success) / 0.14);
   filter: blur(100px);
-  animation: lock-blob-3 20s ease-in-out infinite;
+  animation: lock-blob-3 20s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes lock-screen-fade {
@@ -327,6 +327,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
 
   .lock-blob {
     animation: none;
+    will-change: auto;
   }
 }
 
@@ -389,7 +390,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   border: none;
   display: inline-flex;
   align-items: center;
@@ -412,7 +413,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
   font-size: 13px;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .lock-text-btn:hover {

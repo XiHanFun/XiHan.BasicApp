@@ -125,7 +125,7 @@ async function handleForward(conversationId: string) {
   border-radius: 8px;
   background: transparent;
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-forward-item:hover:not(:disabled) {

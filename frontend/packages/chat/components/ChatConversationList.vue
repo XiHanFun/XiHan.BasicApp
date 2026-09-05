@@ -255,7 +255,7 @@ function handleItemAction(key: string) {
   color: hsl(var(--muted-foreground));
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-icon-btn:hover {
@@ -269,7 +269,7 @@ function handleItemAction(key: string) {
   align-items: center;
   padding: 9px 12px;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-conv-item:hover {

@@ -397,9 +397,9 @@ onMounted(loadTenants)
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
   transition:
-    border-color 0.15s ease,
-    background 0.15s ease,
-    transform 0.15s ease;
+    border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .cc-tenant:hover:not(:disabled) {

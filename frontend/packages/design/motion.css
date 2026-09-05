@@ -22,3 +22,45 @@
   --transition-fast: var(--xh-motion-duration-enter);
   --transition-normal: var(--xh-motion-duration-slide);
 }
+
+/* ----------------------------------------------------------------------------
+ * 钉版补位
+ *
+ * 上面引用的语义名里有一批在当前钉住的 @xihan-ui/tokens 里还没有。CSS 解析不到
+ * var() 的值时整条声明作废——不是退化成默认值，是那条规则根本不存在，
+ * 于是那些过渡与动画一帧都不播。
+ *
+ * 补在 xihan.reset 层：层序表里它排在 xihan.tokens 之前，令牌包一旦发出这几支，
+ * 库自己那份就压过这里，这一段自动失效，不必回头删。
+ * -------------------------------------------------------------------------- */
+@layer xihan.reset {
+  :where(:root) {
+    --xh-motion-duration-slide: 320ms;
+    --xh-motion-duration-nudge: 200ms;
+    --xh-motion-stagger-step: 40ms;
+    --xh-motion-scale-exit: 0.98;
+    --xh-motion-ease-enter-strong: cubic-bezier(0.23, 1, 0.32, 1);
+    --xh-motion-ease-continuous: cubic-bezier(0.2, 0, 0, 1);
+    --xh-motion-ease-loop: linear;
+    --xh-motion-ease-slide: cubic-bezier(0.32, 0.72, 0, 1);
+    --xh-motion-ease-sweep: cubic-bezier(0.4, 0, 0.2, 1);
+    --xh-motion-ease-settle: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* 减弱档同样要补：库那份只压它自己发出来的三档，压不到这里补的这几支 */
+  @media (prefers-reduced-motion: reduce) {
+    :where(:root) {
+      --xh-motion-duration-slide: 1ms;
+      --xh-motion-duration-nudge: 1ms;
+      --xh-motion-stagger-step: 0ms;
+      --xh-motion-scale-exit: 1;
+    }
+  }
+
+  :where([data-motion='reduce']) {
+    --xh-motion-duration-slide: 1ms;
+    --xh-motion-duration-nudge: 1ms;
+    --xh-motion-stagger-step: 0ms;
+    --xh-motion-scale-exit: 1;
+  }
+}

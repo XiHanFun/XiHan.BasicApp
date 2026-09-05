@@ -232,8 +232,8 @@
   border-radius: var(--radius);
   background: transparent;
   transition:
-    background 0.2s,
-    border-color 0.2s;
+    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .pf-list-item:hover {
@@ -337,8 +337,8 @@
   border-radius: var(--radius);
   background: transparent;
   transition:
-    background 0.2s,
-    border-color 0.2s;
+    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .pf-method-card.is-on {

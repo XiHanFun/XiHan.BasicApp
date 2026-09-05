@@ -80,7 +80,7 @@ function handleOpenFullPage() {
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-drawer-btn:hover {

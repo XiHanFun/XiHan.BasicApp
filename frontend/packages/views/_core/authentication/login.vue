@@ -586,7 +586,7 @@ const onAuthInvalid = useAuthFormInvalid()
   background: var(--xh-bg-subtle);
   color: var(--xh-fg-default);
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .oauth-more-trigger:hover {
@@ -614,7 +614,7 @@ const onAuthInvalid = useAuthFormInvalid()
 
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: all 0.3s ease;
+  transition: all var(--xh-motion-duration-slide) var(--xh-motion-ease-slide);
 }
 
 .fade-slide-enter-from {

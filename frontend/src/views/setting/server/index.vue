@@ -773,7 +773,7 @@ onUnmounted(() => {
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   min-width: 0;
-  transition: border-color 0.2s;
+  transition: border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .sv-overview-item:hover {
@@ -865,7 +865,7 @@ onUnmounted(() => {
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.5px;
-  transition: color 0.4s;
+  transition: color var(--xh-motion-duration-slide) var(--xh-motion-ease-continuous);
 }
 
 .sv-gauge-pct small {
@@ -927,7 +927,7 @@ onUnmounted(() => {
   padding: 12px;
   border-radius: 8px;
   background: hsl(var(--muted));
-  transition: background 0.2s;
+  transition: background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .sv-disk-item:hover {
@@ -1048,7 +1048,7 @@ onUnmounted(() => {
   border-radius: 6px;
   background: hsl(var(--muted));
   overflow: hidden;
-  transition: background 0.2s;
+  transition: background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .sv-sys-item:hover {

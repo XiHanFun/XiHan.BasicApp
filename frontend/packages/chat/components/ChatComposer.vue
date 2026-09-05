@@ -847,7 +847,7 @@ function handlePaste(event: ClipboardEvent) {
   color: hsl(var(--muted-foreground));
   cursor: pointer;
   flex-shrink: 0;
-  transition: all 0.15s ease;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-composer-btn:hover:not(:disabled) {
@@ -881,8 +881,8 @@ function handlePaste(event: ClipboardEvent) {
     0 0 0 10px hsl(var(--primary) / 10%),
     0 8px 24px hsl(var(--primary) / 35%);
   transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
   /* 按住说话期间不要触发文本选中与长按菜单 */
   user-select: none;
   touch-action: none;
@@ -899,7 +899,7 @@ function handlePaste(event: ClipboardEvent) {
 
 .chat-voice-orb.is-recording {
   transform: scale(1.08);
-  animation: chat-voice-pulse 1.4s ease-in-out infinite;
+  animation: chat-voice-pulse 1.4s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes chat-voice-pulse {
@@ -914,6 +914,13 @@ function handlePaste(event: ClipboardEvent) {
     box-shadow:
       0 0 0 20px hsl(var(--primary) / 6%),
       0 8px 28px hsl(var(--primary) / 45%);
+  }
+}
+
+/* 尊重系统的「减少动态效果」：停掉脉冲，录音态仍由放大的球体与光环表示 */
+@media (prefers-reduced-motion: reduce) {
+  .chat-voice-orb.is-recording {
+    animation: none;
   }
 }
 
@@ -975,7 +982,7 @@ function handlePaste(event: ClipboardEvent) {
   border-radius: 6px;
   background: transparent;
   cursor: pointer;
-  transition: background 0.12s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chat-mention-item:hover {
