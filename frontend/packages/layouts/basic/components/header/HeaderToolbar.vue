@@ -159,7 +159,7 @@ const { isMobile } = useIsMobile()
   border: none;
   background: transparent;
   outline: none;
-  transition: background 0.15s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .user-btn:hover {

@@ -71,7 +71,7 @@ const appStore = useAppStore()
 
 .xh-loading-fade-enter-active,
 .xh-loading-fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .xh-loading-fade-enter-from,

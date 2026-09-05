@@ -614,7 +614,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
   color: hsl(var(--muted-foreground));
   text-align: center;
   line-height: 1.2;
-  transition: color 0.15s ease;
+  transition: color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .preset-item:hover .preset-label {
@@ -630,7 +630,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
   width: 100%;
   overflow: hidden;
   text-align: center;
-  transition: all 0.2s ease;
+  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .layout-preset-card:hover {
@@ -662,7 +662,7 @@ watch(() => appStore.sidebarCollapsed, (val) => {
   background: hsl(var(--card));
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .btn-toggle:hover {

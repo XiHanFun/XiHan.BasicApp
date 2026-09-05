@@ -120,9 +120,9 @@ function onDetail(item: AppUserInboxDisplayItem): void {
 .banner-slide-enter-active,
 .banner-slide-leave-active {
   transition:
-    max-height 0.25s ease,
-    opacity 0.25s ease,
-    transform 0.25s ease;
+    max-height var(--xh-motion-duration-enter) var(--xh-motion-ease-slide),
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-slide);
   max-height: 48px;
 }
 
@@ -136,7 +136,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
 /* 多条切换：fade */
 .banner-fade-enter-active,
 .banner-fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .banner-fade-enter-from,
@@ -232,8 +232,8 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   opacity: 0.25;
   cursor: pointer;
   transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .notif-banner__dot.is-active {
@@ -254,7 +254,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .notif-banner__action:hover {
@@ -276,8 +276,8 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   opacity: 0.6;
   cursor: pointer;
   transition:
-    background 0.15s ease,
-    opacity 0.15s ease;
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .notif-banner__close:hover {

@@ -260,9 +260,12 @@ function handleMiddleClose(path: string) {
 
 // ---- 标签入场 / 离场动画（JS hooks + 内联 transition，绕开 scoped CSS 跨组件边界问题） ----
 // 流程：@before-enter 设初始态 → @enter 强制 reflow + 设 transition 动到终态
+// 时长与曲线取组件库的语义令牌；下面两个毫秒数只用作兜底定时器的上限，
+// 减弱动效下令牌降到 1ms，定时器提前于它触发即可
+const TAB_ENTER = 'var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong)'
+const TAB_LEAVE = 'var(--xh-motion-duration-enter) var(--xh-motion-ease-exit)'
 const TAB_ENTER_DURATION = 320
-const TAB_LEAVE_DURATION = 260
-const TAB_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
+const TAB_LEAVE_DURATION = 200
 
 function setTabStyle(el: HTMLElement, styles: Partial<CSSStyleDeclaration>) {
   Object.assign(el.style, styles)
@@ -280,7 +283,7 @@ function onTabEnter(el: Element, done: () => void) {
   const htmlEl = el as HTMLElement
   void htmlEl.offsetHeight
   setTabStyle(htmlEl, {
-    transition: `opacity ${TAB_ENTER_DURATION}ms ${TAB_EASING}, transform ${TAB_ENTER_DURATION}ms ${TAB_EASING}`,
+    transition: `opacity ${TAB_ENTER}, transform ${TAB_ENTER}`,
     opacity: '1',
     transform: 'translateX(0px)',
   })
@@ -303,7 +306,7 @@ function onTabLeave(el: Element, done: () => void) {
   const htmlEl = el as HTMLElement
   void htmlEl.offsetHeight
   setTabStyle(htmlEl, {
-    transition: `opacity ${TAB_LEAVE_DURATION}ms ${TAB_EASING}, transform ${TAB_LEAVE_DURATION}ms ${TAB_EASING}`,
+    transition: `opacity ${TAB_LEAVE}, transform ${TAB_LEAVE}`,
     opacity: '0',
     transform: 'translateX(-18px)',
   })

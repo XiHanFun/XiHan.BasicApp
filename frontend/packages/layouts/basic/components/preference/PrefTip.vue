@@ -40,7 +40,7 @@ defineProps<{ content: string }>()
   opacity: 0.6;
   flex-shrink: 0;
   cursor: help;
-  transition: opacity 0.15s ease;
+  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .tip-icon:hover {

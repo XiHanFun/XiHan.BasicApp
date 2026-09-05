@@ -2,7 +2,6 @@
 import type { TreeSelectOption } from '~/types'
 import { XhTreeSelectClearTrigger, XhTreeSelectContent, XhTreeSelectControl, XhTreeSelectIndicator, XhTreeSelectPositioner, XhTreeSelectRoot, XhTreeSelectTree, XhTreeSelectTrigger, XhTreeSelectValueText } from '@xihan-ui/vue'
 import { computed } from 'vue'
-import { Icon } from '~/iconify'
 import { useControlAttrs } from './control-attrs'
 import XTreeSelectNodes from './XTreeSelectNodes.vue'
 
@@ -67,11 +66,11 @@ function handleChange(next: string[]) {
     <XhTreeSelectControl>
       <XhTreeSelectTrigger v-bind="controlAttrs">
         <XhTreeSelectValueText />
-        <XhTreeSelectIndicator>
-          <Icon icon="lucide:chevron-down" width="14" height="14" />
-        </XhTreeSelectIndicator>
+        <!-- 不写内容：字形由组件库出，展开时它自己翻转 -->
+        <XhTreeSelectIndicator />
       </XhTreeSelectTrigger>
-      <XhTreeSelectClearTrigger v-if="clearable && selected.length" />
+      <!-- 不写内容：字形由组件库出；无值或禁用时它自己收起 -->
+      <XhTreeSelectClearTrigger v-if="clearable" />
     </XhTreeSelectControl>
     <XhTreeSelectPositioner>
       <XhTreeSelectContent>

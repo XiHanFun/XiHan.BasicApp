@@ -367,8 +367,8 @@ watch(visible, (open, was) => {
   color: hsl(var(--muted-foreground));
   cursor: pointer;
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   outline: none;
 }
 

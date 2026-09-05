@@ -180,7 +180,7 @@ onBeforeUnmount(() => {
 
 /* 飞入命中脉冲 */
 .fav-btn--pulse {
-  animation: fav-pulse 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: fav-pulse var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong);
 }
 
 @keyframes fav-pulse {
@@ -241,9 +241,9 @@ onBeforeUnmount(() => {
   cursor: pointer;
   user-select: none;
   transition:
-    background 0.15s ease,
-    color 0.15s ease,
-    box-shadow 0.15s ease;
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .fav-chip:hover {
@@ -278,8 +278,8 @@ onBeforeUnmount(() => {
   opacity: 0.55;
   cursor: pointer;
   transition:
-    background 0.15s ease,
-    opacity 0.15s ease;
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .fav-chip__close:hover {

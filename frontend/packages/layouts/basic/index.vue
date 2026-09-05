@@ -617,7 +617,7 @@ const sidebarEnableState = computed(
   cursor: col-resize;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.18s ease;
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .split-divider:hover .split-tools,
@@ -664,8 +664,8 @@ const sidebarEnableState = computed(
   color: hsl(var(--foreground) / 65%);
   cursor: pointer;
   transition:
-    background 0.15s ease,
-    color 0.15s ease;
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .split-tools__btn:hover {
@@ -691,8 +691,8 @@ const sidebarEnableState = computed(
 .split-secondary {
   transform-origin: center;
   transition:
-    transform 0.24s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-sweep),
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-sweep);
 }
 
 .split-collapsed .split-anchor,
@@ -710,7 +710,7 @@ const sidebarEnableState = computed(
   top: 0;
   z-index: 22;
   pointer-events: none;
-  transition: transform 0.34s cubic-bezier(0.45, 0.05, 0.25, 1);
+  transition: transform var(--xh-motion-duration-slide) var(--xh-motion-ease-sweep);
 }
 
 .swap-icon__center {
@@ -731,11 +731,11 @@ const sidebarEnableState = computed(
 }
 
 .swap-icon__card.is-in {
-  animation: swap-card-in 0.24s cubic-bezier(0.22, 1.3, 0.36, 1) both;
+  animation: swap-card-in var(--xh-motion-duration-enter) var(--xh-motion-ease-settle) both;
 }
 
 .swap-icon__card.is-out {
-  animation: swap-card-out 0.22s ease both;
+  animation: swap-card-out var(--xh-motion-duration-enter) var(--xh-motion-ease-exit) both;
 }
 
 @keyframes swap-card-in {

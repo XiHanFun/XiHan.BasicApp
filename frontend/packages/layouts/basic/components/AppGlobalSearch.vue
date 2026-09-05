@@ -523,8 +523,8 @@ watch(
   background: hsl(var(--muted) / 0.4);
   cursor: pointer;
   transition:
-    background 0.15s ease,
-    border-color 0.15s ease;
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   outline: none;
 }
 
@@ -555,7 +555,7 @@ watch(
   background: transparent;
   cursor: pointer;
   color: hsl(var(--foreground));
-  transition: background 0.15s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   outline: none;
 }
 
@@ -740,11 +740,11 @@ watch(
 
 /* 过渡 */
 .cmdk-enter-active {
-  transition: opacity 0.18s ease;
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .cmdk-leave-active {
-  transition: opacity 0.14s ease;
+  transition: opacity var(--xh-motion-duration-exit) var(--xh-motion-ease-exit);
 }
 
 .cmdk-enter-from,
@@ -753,7 +753,7 @@ watch(
 }
 
 .cmdk-enter-active .cmdk-panel {
-  transition: transform 0.24s cubic-bezier(0.22, 1.2, 0.36, 1);
+  transition: transform var(--xh-motion-duration-enter) var(--xh-motion-ease-settle);
 }
 
 .cmdk-enter-from .cmdk-panel {

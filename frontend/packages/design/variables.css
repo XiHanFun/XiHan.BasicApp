@@ -78,9 +78,7 @@
   --z-message: 2000;
   --z-loading: 3000;
 
-  /* motion tokens */
-  --transition-fast: 0.2s;
-  --transition-normal: 0.32s;
+  /* 动效令牌在 motion.css，取值来自组件库的 --xh-motion-* */
 
   /* xihan-compatible layout variables */
   --xihan-header-height: var(--layout-header-height);

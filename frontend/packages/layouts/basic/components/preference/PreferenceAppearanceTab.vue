@@ -474,7 +474,7 @@ const loaderItems = computed(() =>
   border-radius: var(--radius);
   background: hsl(var(--card));
   color: hsl(var(--muted-foreground));
-  transition: all 0.18s ease;
+  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .mode-item:hover .theme-mode-card {
@@ -496,7 +496,7 @@ const loaderItems = computed(() =>
   color: hsl(var(--muted-foreground));
   text-align: center;
   line-height: 1.2;
-  transition: color 0.15s ease;
+  transition: color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .mode-item:hover .mode-label {
@@ -546,7 +546,7 @@ const loaderItems = computed(() =>
   border-radius: var(--radius-card);
   background: hsl(var(--card));
   cursor: pointer;
-  transition: all 0.16s ease;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .theme-color-card:hover {
@@ -638,7 +638,7 @@ const loaderItems = computed(() =>
   color: hsl(var(--muted-foreground));
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   text-align: center;
 }
 
@@ -687,7 +687,7 @@ const loaderItems = computed(() =>
   /* 居中容器内的加载器（绝对定位的 .preview-block 不受影响） */
   display: grid;
   place-items: center;
-  transition: border-color 0.18s ease;
+  transition: border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .transition-item.is-active .transition-preview {
@@ -719,6 +719,8 @@ const loaderItems = computed(() =>
   background: hsl(var(--primary) / 0.72);
 }
 
+/* 下面是过渡选项的预览循环：一次循环里含进场、停留、退场三段，时长按预览节奏写，
+   不取组件库的单段过渡档；曲线取组件库的语义令牌 */
 @keyframes anim-fade {
   0%,
   100% {
@@ -730,7 +732,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-fade {
-  animation: anim-fade 2s ease-in-out infinite;
+  animation: anim-fade 2s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-slide-left {
@@ -750,7 +752,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-slide-left {
-  animation: anim-slide-left 2.2s ease-in-out infinite;
+  animation: anim-slide-left 2.2s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-slide-up {
@@ -770,7 +772,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-slide-up {
-  animation: anim-slide-up 2.2s ease-in-out infinite;
+  animation: anim-slide-up 2.2s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-slide-down {
@@ -790,7 +792,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-slide-down {
-  animation: anim-slide-down 2.2s ease-in-out infinite;
+  animation: anim-slide-down 2.2s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-slide-right {
@@ -810,7 +812,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-slide-right {
-  animation: anim-slide-right 2.2s ease-in-out infinite;
+  animation: anim-slide-right 2.2s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-zoom-fade {
@@ -826,7 +828,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-zoom-fade {
-  animation: anim-zoom-fade 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+  animation: anim-zoom-fade 2s var(--xh-motion-ease-enter-strong) infinite;
 }
 
 @keyframes anim-flip-fade {
@@ -843,7 +845,7 @@ const loaderItems = computed(() =>
 }
 .anim-flip-fade {
   transform-origin: center;
-  animation: anim-flip-fade 2.1s ease-in-out infinite;
+  animation: anim-flip-fade 2.1s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-scale-up {
@@ -859,7 +861,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-scale-up {
-  animation: anim-scale-up 2s ease-in-out infinite;
+  animation: anim-scale-up 2s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-scale-down {
@@ -875,7 +877,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-scale-down {
-  animation: anim-scale-down 2.1s ease-in-out infinite;
+  animation: anim-scale-down 2.1s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-blur-fade {
@@ -891,7 +893,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-blur-fade {
-  animation: anim-blur-fade 2s ease-in-out infinite;
+  animation: anim-blur-fade 2s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-rotate-fade {
@@ -908,7 +910,7 @@ const loaderItems = computed(() =>
 }
 .anim-rotate-fade {
   transform-origin: center;
-  animation: anim-rotate-fade 2s ease-in-out infinite;
+  animation: anim-rotate-fade 2s var(--xh-motion-ease-sweep) infinite;
 }
 
 @keyframes anim-skew-slide {
@@ -928,7 +930,7 @@ const loaderItems = computed(() =>
   }
 }
 .anim-skew-slide {
-  animation: anim-skew-slide 2.2s ease-in-out infinite;
+  animation: anim-skew-slide 2.2s var(--xh-motion-ease-sweep) infinite;
 }
 
 /* 数字输入框里的文字对齐：input 由组件库渲染，只能经 :deep 够到 */

@@ -143,8 +143,8 @@ function isLast(isHome: boolean, index?: number): boolean {
   line-height: 20px;
   white-space: nowrap;
   transition:
-    color 0.2s ease,
-    background 0.15s ease;
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .crumb-item--link {

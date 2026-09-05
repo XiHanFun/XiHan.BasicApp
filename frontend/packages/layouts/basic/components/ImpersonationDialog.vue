@@ -219,7 +219,7 @@ onBeforeUnmount(() => {
   background: transparent;
   border: none;
   border-radius: 6px;
-  transition: background-color 120ms ease;
+  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .impersonation-item:hover:not(:disabled) {

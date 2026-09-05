@@ -407,7 +407,7 @@ function onKeydown(e: KeyboardEvent): void {
   background: rgb(255 255 255 / 14%);
   color: #fff;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .tab-ov__close-btn:hover {
@@ -433,10 +433,10 @@ function onKeydown(e: KeyboardEvent): void {
   cursor: pointer;
   user-select: none;
   transition:
-    transform 0.16s ease,
-    border-color 0.16s ease,
-    box-shadow 0.16s ease;
-  animation: tab-ov-card-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+    transform var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  animation: tab-ov-card-in var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong) both;
 }
 
 .tab-ov-card:hover,
@@ -502,9 +502,9 @@ function onKeydown(e: KeyboardEvent): void {
   cursor: pointer;
   opacity: 0;
   transition:
-    opacity 0.15s ease,
-    background 0.15s ease,
-    color 0.15s ease;
+    opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .tab-ov-card:hover .tab-ov-card__close,
@@ -553,11 +553,11 @@ function onKeydown(e: KeyboardEvent): void {
 
 /* 进出场 */
 .tab-ov-enter-active {
-  transition: opacity 0.2s ease;
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .tab-ov-leave-active {
-  transition: opacity 0.16s ease;
+  transition: opacity var(--xh-motion-duration-exit) var(--xh-motion-ease-exit);
 }
 
 .tab-ov-enter-from,

@@ -388,7 +388,7 @@ function handleItemClick(item: NotificationItem) {
   background: transparent;
   color: hsl(var(--muted-foreground));
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .notification-header-btn:hover {
@@ -414,7 +414,7 @@ function handleItemClick(item: NotificationItem) {
   align-items: flex-start;
   padding: 10px 16px;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   border-bottom: 1px solid hsl(var(--border) / 50%);
 }
 

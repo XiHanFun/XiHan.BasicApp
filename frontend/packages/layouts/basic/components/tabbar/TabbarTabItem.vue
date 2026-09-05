@@ -235,7 +235,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 .chrome-tab {
   font-size: 13px;
   font-weight: 500;
-  transition: color 0.18s ease;
+  transition: color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .chrome-tab:not(.chrome-tab--dragging) {
@@ -250,27 +250,27 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 
 .chrome-tab__divider {
   background: hsl(var(--border));
-  transition: opacity 0.15s ease;
+  transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chrome-tab__background-content {
   background: transparent;
-  transition: all 0.15s ease-in-out;
+  transition: all var(--xh-motion-duration-micro) var(--xh-motion-ease-sweep);
 }
 
 .chrome-tab__background-before,
 .chrome-tab__background-after {
   fill: transparent;
-  transition: fill 0.15s ease;
+  transition: fill var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .chrome-tab__main {
   color: hsl(var(--muted-foreground));
   border-radius: 6px;
   transition:
-    color 0.15s ease-in-out,
-    background-color 0.15s ease-in-out,
-    box-shadow 0.15s ease-in-out;
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-sweep),
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-sweep),
+    box-shadow var(--xh-motion-duration-micro) var(--xh-motion-ease-sweep);
 }
 
 .chrome-tab__title {
@@ -292,7 +292,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   opacity: 0.72;
   transform: scale(1);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .chrome-tab__pin,
@@ -304,7 +304,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   opacity: 0.72;
   transform: scale(1);
   cursor: default;
-  transition: all 0.2s ease;
+  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .tab-item.chrome-tab:hover .chrome-tab__close,
@@ -393,7 +393,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   transform: scale(1);
   cursor: default;
   flex-shrink: 0;
-  transition: all 0.2s ease;
+  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .flat-tab__close {
@@ -428,8 +428,8 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
 .flat-tab--plain {
   height: 100%;
   transition:
-    color 0.18s ease,
-    background 0.18s ease;
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .flat-tab--plain.has-left-divider {
@@ -458,9 +458,9 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   border-radius: 6px;
   border: 1px solid hsl(var(--border));
   transition:
-    color 0.18s ease,
-    background 0.18s ease,
-    border-color 0.18s ease;
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .flat-tab--card:hover:not(.is-active) {
@@ -480,8 +480,8 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   height: 100%;
   position: relative;
   transition:
-    color 0.18s ease,
-    background 0.18s ease;
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
 .flat-tab--brisk.has-left-divider {
@@ -502,7 +502,7 @@ ${parts.join(t('tabbar.tab_hint_sep'))}`
   background: var(--tab-active-color);
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform var(--xh-motion-duration-slide) var(--xh-motion-ease-sweep);
 }
 
 .flat-tab--brisk:hover::after,

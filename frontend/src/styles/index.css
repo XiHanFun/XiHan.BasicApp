@@ -25,6 +25,8 @@
 
 /* 设计系统层（global.css 使用 @apply，依赖上面的 utilities） */
 @import '../../packages/design/global.css';
+/* 动效令牌桥：应用侧的速度名指向组件库的 --xh-motion-*，须排在用到它的 transition.css 之前 */
+@import '../../packages/design/motion.css';
 @import '../../packages/design/transition.css';
 @import '../../packages/design/scrollbar.css';
 @import '../../packages/design/ui.css';

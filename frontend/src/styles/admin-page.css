@@ -1,62 +1,24 @@
-/* 管理页查询区布局（与用户页一致） */
-.xh-query-panel {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-  padding: 10px 16px;
-  background: var(--xh-bg-surface);
-  border-radius: var(--xh-shape-surface);
-}
-
-.xh-query-panel__content {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
 /*
  * 新增/编辑弹窗统一表单网格（以用户页为基准，配合 XEditModal 使用）：
  * 两列等宽、行列间距 10px、紧凑标签；跨整行字段（备注/长文本等）加 .xh-span-2。
  * 加在 XhFormRoot 或普通 div 容器上均可。
+ *
+ * 标签字号与「标签↔控件」的间距走组件库的覆盖槽，两个值在这里一处给全网格内的字段。
  */
 .xh-edit-form-grid {
+  --xh-field-label-font-size: 11px;
+  --xh-field-gap: 8px;
+
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-}
-
-/* 表单根本身是竖排 flex，落到网格容器上时要让位给 grid */
-.xh-edit-form-grid[data-scope='form'][data-part='root'] {
-  display: grid;
 }
 
 .xh-edit-form-grid .xh-span-2 {
   grid-column: span 2;
 }
 
-/* 分组分隔线与显式整行项跨满两列，避免标题落在单列导致布局错位 */
-.xh-edit-form-grid > [data-scope='separator'][data-part='root'],
-.xh-edit-form-grid > .xh-form-full-row {
-  grid-column: 1 / -1;
-}
-
-.xh-edit-form-grid > [data-scope='separator'][data-part='root'] {
-  margin: 4px 0 8px;
-}
-
-/* 编辑弹窗表单标签紧凑 */
-.xh-edit-form-grid [data-scope='field'][data-part='label'] {
-  font-size: 11px;
-  font-weight: 500;
-  padding-bottom: 4px;
-}
-
-/* 网格内日期/数字输入默认占满整格，免去逐个设置宽度 */
+/* 网格内的控件一律撑满所在格：这几族的根是 inline-flex，容器不是竖排 flex 时不会自己铺开 */
 .xh-edit-form-grid [data-scope='cascader'][data-part='root'],
 .xh-edit-form-grid [data-scope='date-picker'][data-part='root'],
 .xh-edit-form-grid [data-scope='number-field'][data-part='root'],
@@ -120,16 +82,6 @@
 .xh-mgmt-detail-modal .xh-detail-table-wrap {
   max-height: 280px;
   overflow: auto;
-}
-
-/*
- * 抽屉响应式：左右两侧抽屉默认用固定 px 宽度，小屏视口比其窄时会超出视口、内容被裁切。
- * 用 max-width 约束——大屏不触发（保持设定宽度），小屏自动收窄到视口内，内容完整可滚动。
- * 全局生效，覆盖所有页面的抽屉，无需逐个改成弹窗。
- */
-[data-scope='drawer'][data-part='content'][data-side='left'],
-[data-scope='drawer'][data-part='content'][data-side='right'] {
-  max-width: calc(100vw - 24px);
 }
 
 /*

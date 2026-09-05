@@ -1,6 +1,6 @@
 .side-content {
-  animation-duration: 0.3s;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-duration: var(--xh-motion-duration-slide);
+  animation-timing-function: var(--xh-motion-ease-enter-strong);
 }
 
 .side-content[data-side='top'] {
@@ -21,8 +21,8 @@
 
 .breadcrumb-transition-enter-active {
   transition:
-    transform 0.4s cubic-bezier(0.76, 0, 0.24, 1),
-    opacity 0.4s cubic-bezier(0.76, 0, 0.24, 1);
+    transform var(--xh-motion-duration-slide) var(--xh-motion-ease-sweep),
+    opacity var(--xh-motion-duration-slide) var(--xh-motion-ease-sweep);
 }
 
 .breadcrumb-transition-leave-active {
@@ -146,7 +146,7 @@
   margin: 1px 0;
   height: 38px;
   font-size: 13px;
-  transition: background-color 0.15s ease;
+  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 /* 偏好行右侧的取值列只有百来像素，而组件库的输入类控件自带 12rem 最小宽。
@@ -300,7 +300,7 @@
   border-radius: var(--xh-shape-control);
   background: linear-gradient(90deg, var(--xh-bg-subtle) 25%, var(--xh-bg-subtle-hover) 37%, var(--xh-bg-subtle) 63%);
   background-size: 400% 100%;
-  animation: xh-app-skeleton-shimmer 1.4s ease infinite;
+  animation: xh-app-skeleton-shimmer var(--xh-shimmer-duration) var(--xh-motion-ease-loop) infinite;
 }
 
 .xh-skeleton-bone--circle {
@@ -364,8 +364,8 @@
   color: var(--xh-fg-muted);
   cursor: pointer;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .xh-icon-btn:hover:not(:disabled) {
@@ -407,8 +407,8 @@
   color: var(--xh-fg-muted);
   cursor: pointer;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease;
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .xihan-icon-btn:hover:not(:disabled) {
