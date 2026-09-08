@@ -1,0 +1,17 @@
+{
+  "resource": "Errors",
+  "culture": "hi-IN",
+  "texts": {
+    "Auth.UserNotFound": "उपयोगकर्ता मौजूद नहीं है।",
+    "Auth.InvalidOrExpiredResetLink": "रीसेट लिंक अमान्य है या समाप्त हो चुका है, कृपया पासवर्ड पुनर्प्राप्ति के लिए फिर से अनुरोध करें।",
+    "Auth.InvalidPasswordLength": "नया पासवर्ड 8-128 वर्णों का होना चाहिए।",
+    "Profile.Credential.InvalidId": "क्रेडेंशियल प्राथमिक कुंजी अमान्य है।",
+    "Profile.Credential.NotFoundOrNoPermission": "क्रेडेंशियल मौजूद नहीं है या आपके पास संचालन की अनुमति नहीं है।",
+    "CodeGeneration.TableNameRequired": "डेटाबेस तालिका का नाम खाली नहीं हो सकता।",
+    "CodeGeneration.TableAlreadyConfigured": "डेटाबेस तालिका “{0}” पहले से कॉन्फ़िगर है, कृपया दोबारा आयात न करें।",
+    "CodeGeneration.TableHasNoColumn": "डेटाबेस तालिका “{0}” में कोई भी कॉलम नहीं पढ़ा जा सका, आयात नहीं किया जा सकता।",
+    "Tenant.CodeAlreadyExists": "टेनेंट कोड पहले से मौजूद है।",
+    "Authorization.Role.CodeAlreadyExists": "भूमिका कोड पहले से मौजूद है।",
+    "Configuration.Dict.CodeAlreadyExists": "शब्दकोश कोड पहले से मौजूद है।"
+  }
+}

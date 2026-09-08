@@ -1,0 +1,17 @@
+{
+  "resource": "Errors",
+  "culture": "ko-KR",
+  "texts": {
+    "Auth.UserNotFound": "사용자가 존재하지 않습니다.",
+    "Auth.InvalidOrExpiredResetLink": "재설정 링크가 유효하지 않거나 만료되었습니다. 비밀번호 찾기를 다시 요청하세요.",
+    "Auth.InvalidPasswordLength": "새 비밀번호는 8~128자여야 합니다.",
+    "Profile.Credential.InvalidId": "자격 증명 기본 키가 유효하지 않습니다.",
+    "Profile.Credential.NotFoundOrNoPermission": "자격 증명이 존재하지 않거나 조작 권한이 없습니다.",
+    "CodeGeneration.TableNameRequired": "데이터베이스 테이블 이름은 비워 둘 수 없습니다.",
+    "CodeGeneration.TableAlreadyConfigured": "데이터베이스 테이블 “{0}”은(는) 이미 설정되었습니다. 중복하여 가져오지 마세요.",
+    "CodeGeneration.TableHasNoColumn": "데이터베이스 테이블 “{0}”에서 열을 하나도 읽을 수 없어 가져올 수 없습니다.",
+    "Tenant.CodeAlreadyExists": "테넌트 코드가 이미 존재합니다.",
+    "Authorization.Role.CodeAlreadyExists": "역할 코드가 이미 존재합니다.",
+    "Configuration.Dict.CodeAlreadyExists": "사전 코드가 이미 존재합니다."
+  }
+}

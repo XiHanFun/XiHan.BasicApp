@@ -1,0 +1,17 @@
+{
+  "resource": "Errors",
+  "culture": "zh-TW",
+  "texts": {
+    "Auth.UserNotFound": "使用者不存在。",
+    "Auth.InvalidOrExpiredResetLink": "重設連結無效或已過期，請重新申請找回密碼。",
+    "Auth.InvalidPasswordLength": "新密碼長度須為 8-128 位。",
+    "Profile.Credential.InvalidId": "憑證主鍵無效。",
+    "Profile.Credential.NotFoundOrNoPermission": "憑證不存在或無權操作。",
+    "CodeGeneration.TableNameRequired": "資料庫表名不得為空。",
+    "CodeGeneration.TableAlreadyConfigured": "資料庫表「{0}」已設定，請勿重複匯入。",
+    "CodeGeneration.TableHasNoColumn": "資料庫表「{0}」未讀取到任何欄位，無法匯入。",
+    "Tenant.CodeAlreadyExists": "租戶編碼已存在。",
+    "Authorization.Role.CodeAlreadyExists": "角色編碼已存在。",
+    "Configuration.Dict.CodeAlreadyExists": "字典編碼已存在。"
+  }
+}

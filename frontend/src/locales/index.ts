@@ -13,7 +13,11 @@
  */
 import { registerLocaleMessages } from '~/locales'
 import enUS from './langs/en-US'
+import hiIN from './langs/hi-IN'
+import jaJP from './langs/ja-JP'
+import koKR from './langs/ko-KR'
 import zhCN from './langs/zh-CN'
+import zhTW from './langs/zh-TW'
 
 const moduleLocales = import.meta.glob('/src/modules/*/locales/*.ts', { eager: true })
 
@@ -21,7 +25,11 @@ const moduleLocales = import.meta.glob('/src/modules/*/locales/*.ts', { eager: t
 export function setupBusinessLocales() {
   registerLocaleMessages({
     'zh-CN': zhCN,
+    'zh-TW': zhTW,
     'en-US': enUS,
+    'ja-JP': jaJP,
+    'ko-KR': koKR,
+    'hi-IN': hiIN,
   })
 
   for (const [path, mod] of Object.entries(moduleLocales)) {

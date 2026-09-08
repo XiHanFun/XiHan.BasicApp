@@ -60,7 +60,11 @@ const { t } = useI18n()
 
 const LOCALES = [
   { value: 'zh-CN', labelKey: 'header.locale.zh_cn' },
+  { value: 'zh-TW', labelKey: 'header.locale.zh_tw' },
   { value: 'en-US', labelKey: 'header.locale.en_us' },
+  { value: 'ja-JP', labelKey: 'header.locale.ja_jp' },
+  { value: 'ko-KR', labelKey: 'header.locale.ko_kr' },
+  { value: 'hi-IN', labelKey: 'header.locale.hi_in' },
 ] as const
 
 /** 当前选中：apply 取应用语言，否则取受控值（兜底应用语言） */

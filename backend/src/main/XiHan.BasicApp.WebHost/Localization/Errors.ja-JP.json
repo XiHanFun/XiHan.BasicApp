@@ -1,0 +1,17 @@
+{
+  "resource": "Errors",
+  "culture": "ja-JP",
+  "texts": {
+    "Auth.UserNotFound": "ユーザーが存在しません。",
+    "Auth.InvalidOrExpiredResetLink": "リセットリンクが無効または有効期限切れです。パスワードの再設定を改めて申請してください。",
+    "Auth.InvalidPasswordLength": "新しいパスワードは 8〜128 文字である必要があります。",
+    "Profile.Credential.InvalidId": "資格情報の主キーが無効です。",
+    "Profile.Credential.NotFoundOrNoPermission": "資格情報が存在しないか、操作する権限がありません。",
+    "CodeGeneration.TableNameRequired": "データベースのテーブル名は空にできません。",
+    "CodeGeneration.TableAlreadyConfigured": "データベーステーブル「{0}」は設定済みです。重複してインポートしないでください。",
+    "CodeGeneration.TableHasNoColumn": "データベーステーブル「{0}」から列を読み取れないため、インポートできません。",
+    "Tenant.CodeAlreadyExists": "テナントコードは既に存在します。",
+    "Authorization.Role.CodeAlreadyExists": "ロールコードは既に存在します。",
+    "Configuration.Dict.CodeAlreadyExists": "辞書コードは既に存在します。"
+  }
+}

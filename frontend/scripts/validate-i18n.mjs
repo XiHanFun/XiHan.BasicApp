@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // 两处文案聚合根：壳层（packages）与应用业务层（src），结构同为 langs/<locale>.ts 聚合 langs/<locale>/*.ts
 const LANGS_ROOTS = [join(ROOT, 'packages/locales/langs'), join(ROOT, 'src/locales/langs')]
-const LOCALES = ['zh-CN', 'en-US']
+const LOCALES = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR', 'hi-IN']
 
 function read(p) {
   return readFileSync(p, 'utf8')
@@ -133,9 +133,18 @@ function main() {
     keys[loc] = new Set(Object.keys(merged[loc]))
   }
 
-  // 1) 对称性
-  const onlyZh = [...keys['zh-CN']].filter(k => !keys['en-US'].has(k))
-  const onlyEn = [...keys['en-US']].filter(k => !keys['zh-CN'].has(k))
+  // 1) 对称性：zh-CN 是基准语言，其余每种语言都要与它键集完全一致。
+  //    只两两对比基准，不做全排列——缺谁多谁一眼能定位到语言。
+  const BASE = 'zh-CN'
+  const asymmetry = []
+  for (const loc of LOCALES) {
+    if (loc === BASE)
+      continue
+    const missing = [...keys[BASE]].filter(k => !keys[loc].has(k))
+    const extra = [...keys[loc]].filter(k => !keys[BASE].has(k))
+    if (missing.length > 0 || extra.length > 0)
+      asymmetry.push({ locale: loc, missing, extra })
+  }
 
   // 2) 孤儿键：扫全库 t()/$t() 字面量
   const topModules = new Set([...keys['zh-CN']].map(k => k.split('.')[0]))
@@ -162,15 +171,19 @@ function main() {
   const orphans = [...used].filter(([k]) => !keys['zh-CN'].has(k))
 
   // 报告
-  console.log(`locale keys: zh-CN=${keys['zh-CN'].size} en-US=${keys['en-US'].size}`)
+  console.log(`locale keys: ${LOCALES.map(l => `${l}=${keys[l].size}`).join(' ')}`)
   console.log(`t() refs (known-module, static): ${used.size}`)
-  console.log(`asymmetry: onlyZh=${onlyZh.length} onlyEn=${onlyEn.length}`)
+  console.log(`asymmetry: ${asymmetry.length === 0 ? 'none' : `${asymmetry.length} locale(s)`}`)
   console.log(`orphans (referenced but undefined): ${orphans.length}`)
-  for (const k of onlyZh.slice(0, 30)) console.log(`  onlyZh: ${k}`)
-  for (const k of onlyEn.slice(0, 30)) console.log(`  onlyEn: ${k}`)
+  for (const { locale, missing, extra } of asymmetry) {
+    for (const k of missing.slice(0, 20)) console.log(`  ${locale} MISSING: ${k}`)
+    for (const k of extra.slice(0, 20)) console.log(`  ${locale} EXTRA:   ${k}`)
+    if (missing.length > 20 || extra.length > 20)
+      console.log(`  ${locale}: 共缺 ${missing.length} 多 ${extra.length}（上面只列前 20）`)
+  }
   for (const [k, f] of orphans.slice(0, 50)) console.log(`  ORPHAN: ${k}  <- ${f.replace(ROOT, '').replace(/^[\\/]/, '')}`)
 
-  const ok = onlyZh.length === 0 && onlyEn.length === 0 && orphans.length === 0
+  const ok = asymmetry.length === 0 && orphans.length === 0
   console.log(ok ? 'PASS' : 'FAIL')
   process.exit(ok ? 0 : 1)
 }

@@ -10,8 +10,8 @@ import { describe, expect, it } from 'vitest'
 
 /** 模块目录顶层允许出现的条目（与 scripts/validate-modules.mjs 的白名单一致） */
 const ALLOWED_ENTRIES = new Set(['views', 'api', 'locales', 'setup.ts', 'README.md'])
-/** locales 目录只允许这两个语言文件，且必须成对 */
-const ALLOWED_LOCALES = ['zh-CN.ts', 'en-US.ts']
+/** locales 目录只允许这些语言文件，且必须齐备 */
+const ALLOWED_LOCALES = ['zh-CN.ts', 'zh-TW.ts', 'en-US.ts', 'ja-JP.ts', 'ko-KR.ts', 'hi-IN.ts']
 
 // 非 eager：只要文件路径清单，不加载任何内容
 const modulePaths = Object.keys(import.meta.glob('/src/modules/**/*', { query: '?raw', import: 'default' }))
