@@ -3,25 +3,7 @@
   <!-- 宿主层契约测试项目：动态 API 暴露面的授权判定完整性、数据库升级脚本的选取规则。 -->
   <Import Project="..\..\props\netcore.props" />
   <Import Project="..\..\props\common.props" />
-
-  <PropertyGroup>
-    <IsPackable>false</IsPackable>
-    <IsTestProject>true</IsTestProject>
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="10.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+  <Import Project="..\..\props\test.props" />
 
   <!-- 全部承载动态 API 的业务模块：新增模块时必须在此登记，否则其端点不受本测试约束 -->
   <ItemGroup>

@@ -1,0 +1,30 @@
+﻿<Project>
+	<PropertyGroup>
+		<!-- 全局警告抑制 -->
+		<!-- xUnit1051：建议改用 TestContext 取消令牌的风格规则，非缺陷，量大约 170 处，暂抑制；NU1903/1904 由 common.props 升级为错误 -->
+		<NoWarn>$(NoWarn);1591;1701;1702;1816;8603;8604;8625;xUnit1051;xUnit1069</NoWarn>
+		<IsPackable>false</IsPackable>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+		<GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+		<GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+		<GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+		<!-- dotnet test MTP 模式：失败用例逐条输出到构建日志，而不是只报一个汇总 -->
+		<TestingPlatformShowTestsFailure>true</TestingPlatformShowTestsFailure>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="18.11.2" />
+		<PackageReference Include="Moq" Version="4.20.72" />
+		<PackageReference Include="xunit.v3" Version="4.0.0" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="4.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+</Project>

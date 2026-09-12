@@ -4,7 +4,6 @@
 using System.Globalization;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Numbering;
-using Xunit.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
@@ -174,6 +173,15 @@ public sealed class NumberingFormatterTests
     }
 
     /// <summary>
+    /// 流水值超出固定位数容量时必须拒绝格式化。
+    /// </summary>
+    [Fact]
+    public void Format_ShouldRejectSerialOverflow()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => _formatter.Format("ORD", "-", null, 2, 100));
+    }
+
+    /// <summary>
     /// 使用与部署平台相反的标识转换路径解析测试选项，独立验证目录中的 IANA ID 可在当前系统落地。
     /// </summary>
     private static TimeZoneInfo ResolveSystemTimeZone(string timeZoneId)
@@ -207,14 +215,5 @@ public sealed class NumberingFormatterTests
         }
 
         throw new InvalidOperationException($"Windows 时区“{windowsTimeZoneId}”无法映射到当前 Unix 运行环境。");
-    }
-
-    /// <summary>
-    /// 流水值超出固定位数容量时必须拒绝格式化。
-    /// </summary>
-    [Fact]
-    public void Format_ShouldRejectSerialOverflow()
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(() => _formatter.Format("ORD", "-", null, 2, 100));
     }
 }

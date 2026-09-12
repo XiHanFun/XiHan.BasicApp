@@ -44,8 +44,10 @@
   <Folder Name="/3.others/" />
   <Folder Name="/3.others/1.Props/">
     <File Path="props/common.props" />
+    <File Path="props/framework.props" />
     <File Path="props/netcore.props" />
     <File Path="props/nuget.props" />
+    <File Path="props/test.props" />
     <File Path="props/version.props" />
   </Folder>
   <Folder Name="/3.others/2.Scripts/" />
