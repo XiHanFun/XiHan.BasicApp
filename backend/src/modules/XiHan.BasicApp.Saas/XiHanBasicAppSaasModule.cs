@@ -84,7 +84,7 @@ public class XiHanBasicAppSaasModule : XiHanModule
         // 注册 SaaS 消息发送器（Email / SMS）
         services.AddSaasMessageSenders();
 
-        // 注册任务调度基础设施（替换 InMemoryJobStore 为数据库持久化，注册 IJobWorker 实现）
+        // 注册任务调度基础设施（替换 DefaultJobStore 为数据库持久化，注册 IJobWorker 实现）
         services.AddSaasJobInfrastructure();
 
         // 注册导出中心基础设施（导出引擎 + Provider + 后台执行 worker）

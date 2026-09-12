@@ -28,6 +28,20 @@ public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver
     }
 
     /// <summary>
+    /// 统计当前租户范围内活跃且未过期的去重用户数
+    /// </summary>
+    public async Task<long> CountActiveUsersAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(session => session.Status == SessionStatus.Active && (session.ExpirationTime == null || session.ExpirationTime > now))
+            .Select(session => session.UserId)
+            .Distinct()
+            .CountAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// 按会话业务标识查询会话（跨租户，标识全局唯一；用于请求期会话有效性校验，不依赖当前租户上下文）
     /// </summary>
     public async Task<SysUserSession?> GetByUserSessionIdAsync(string userSessionId, CancellationToken cancellationToken = default)

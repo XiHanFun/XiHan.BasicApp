@@ -27,7 +27,7 @@ public sealed class SaasTelegramUpdateDeduplicator : ITelegramUpdateDeduplicator
     private static readonly TimeSpan EntryTtl = TimeSpan.FromMinutes(30);
 
     private readonly IConnectionMultiplexer? _redis;
-    private readonly InMemoryTelegramUpdateDeduplicator? _fallback;
+    private readonly DefaultTelegramUpdateDeduplicator? _fallback;
 
     /// <summary>
     /// 构造函数
@@ -41,7 +41,7 @@ public sealed class SaasTelegramUpdateDeduplicator : ITelegramUpdateDeduplicator
         _redis = serviceProvider.GetService<IConnectionMultiplexer>();
         if (_redis is null)
         {
-            _fallback = new InMemoryTelegramUpdateDeduplicator();
+            _fallback = new DefaultTelegramUpdateDeduplicator();
             logger.LogWarning("Redis 未启用，Telegram Update 去重回退进程内实现；多实例部署必须启用 Redis，否则跨实例重复投递无法拦截");
         }
     }

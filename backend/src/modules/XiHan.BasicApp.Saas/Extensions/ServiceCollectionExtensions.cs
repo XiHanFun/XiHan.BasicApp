@@ -24,6 +24,7 @@ using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Auditing;
 using XiHan.Framework.Auditing.Writers;
+using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Authorization.Permissions;
@@ -349,6 +350,9 @@ public static class ServiceCollectionExtensions
         // 注册密码历史存储
         services.AddScoped<IPasswordHistoryStore, SaasPasswordHistoryStore>();
 
+        // 刷新令牌跟随应用层缓存配置：生产 Redis 跨实例共享，未启用 Redis 时仍有绝对过期回收。
+        services.Replace(ServiceDescriptor.Singleton<IRefreshTokenStore, SaasRefreshTokenStore>());
+
         return services;
     }
 
@@ -388,7 +392,7 @@ public static class ServiceCollectionExtensions
     /// <returns>服务集合</returns>
     public static IServiceCollection AddSaasJobInfrastructure(this IServiceCollection services)
     {
-        // 替换框架默认的 InMemoryJobStore 为数据库持久化实现
+        // 替换框架默认的 DefaultJobStore 为数据库持久化实现
         services.Replace(ServiceDescriptor.Singleton<IJobStore, SaasJobStore>());
 
         // 注册动态任务执行器（桥接 SysTask.TaskClass/TaskMethod 反射模型，同时实现 IJobWorker）

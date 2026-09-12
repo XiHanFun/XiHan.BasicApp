@@ -2,7 +2,7 @@
 import type { OnlineUserListItemDto, OnlineUserSummaryDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, h, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, h, onActivated, onBeforeUnmount, onDeactivated, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, DeviceType, onlineUserApi, querySortsFromSchema, userSessionApi } from '@/api'
 import { Icon, SchemaPage } from '~/components'
@@ -29,17 +29,26 @@ async function loadSummary() {
   }
 }
 
-onMounted(() => {
+function startSummaryPolling() {
+  if (summaryTimer) {
+    return
+  }
+
   void loadSummary()
   summaryTimer = setInterval(() => void loadSummary(), SUMMARY_REFRESH_MS)
-})
+}
 
-onBeforeUnmount(() => {
+function stopSummaryPolling() {
   if (summaryTimer) {
     clearInterval(summaryTimer)
     summaryTimer = null
   }
-})
+}
+
+onMounted(startSummaryPolling)
+onActivated(startSummaryPolling)
+onDeactivated(stopSummaryPolling)
+onBeforeUnmount(stopSummaryPolling)
 
 // ── 列表 ─────────────────────────────────────────────────────────
 const deviceTypeOptions = computed(() => [

@@ -146,15 +146,16 @@ public sealed class OnlineUserQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var now = DateTimeOffset.UtcNow;
-        var activeSessions = await _userSessionRepository.GetListAsync(
+        var activeSessions = await _userSessionRepository.CountAsync(
             session => session.Status == SessionStatus.Active && (session.ExpirationTime == null || session.ExpirationTime > now),
             cancellationToken);
+        var activeUsers = await _userSessionRepository.CountActiveUsersAsync(now, cancellationToken);
 
         return new OnlineUserSummaryDto
         {
             RealtimeOnlineUsers = await _connectionManager.GetOnlineUserCountAsync(),
-            ActiveSessions = activeSessions.Count,
-            ActiveUsers = activeSessions.Select(session => session.UserId).Distinct().Count()
+            ActiveSessions = checked((int)activeSessions),
+            ActiveUsers = checked((int)activeUsers)
         };
     }
 

@@ -96,6 +96,7 @@ public sealed class SaasJobStore : IJobStore
         if (task is null)
         {
             _logger.LogWarning("未找到对应 SysTask: {TaskCode}, TenantId={TenantId}", mapping.TaskCode, mapping.TenantId);
+            RemoveTerminalInstanceMapping(instanceId, status);
             return;
         }
 
@@ -114,6 +115,7 @@ public sealed class SaasJobStore : IJobStore
         }
 
         await repository.UpdateAsync(task);
+        RemoveTerminalInstanceMapping(instanceId, status);
     }
 
     /// <summary>
@@ -344,6 +346,14 @@ public sealed class SaasJobStore : IJobStore
         RunTaskStatus.Paused => JobStatus.Paused,
         _ => JobStatus.Pending
     };
+
+    private void RemoveTerminalInstanceMapping(string instanceId, JobStatus status)
+    {
+        if (status is JobStatus.Succeeded or JobStatus.Failed or JobStatus.Canceled)
+        {
+            _instanceMappings.TryRemove(instanceId, out _);
+        }
+    }
 
     /// <summary>
     /// 将 TriggerType 映射到 JobTriggerType
