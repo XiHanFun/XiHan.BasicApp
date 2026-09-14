@@ -1,0 +1,7 @@
+interface:
+  display_name: "XiHan.BasicApp 全栈契约"
+  short_description: "维护 API、DTO、权限、租户、菜单与运维契约"
+  default_prompt: "使用 $xihan-basicapp-fullstack-contracts 设计并核对一项跨端契约变更。"
+
+policy:
+  allow_implicit_invocation: true
