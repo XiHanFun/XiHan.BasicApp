@@ -1,7 +1,0 @@
-interface:
-  display_name: "XiHan.BasicApp 全栈工程"
-  short_description: "开发和审查 XiHan.BasicApp 前后端功能"
-  default_prompt: "使用 $xihan-basicapp 实现并验证一项符合模块、契约和统一设计规范的全栈功能。"
-
-policy:
-  allow_implicit_invocation: true

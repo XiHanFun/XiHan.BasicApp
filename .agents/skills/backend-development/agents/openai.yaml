@@ -1,0 +1,7 @@
+interface:
+  display_name: "XiHan.BasicApp 后端开发"
+  short_description: "开发 Dynamic API、领域模型、权限与 SqlSugar 模块"
+  default_prompt: "使用 $xihan-basicapp-backend-development 实现并验证一项后端功能。"
+
+policy:
+  allow_implicit_invocation: true

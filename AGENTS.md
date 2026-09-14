@@ -18,19 +18,21 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 模块化后端与基于 Xi
 
 ## 开始前必须做
 
-1. 读取 `.agents/skills/xihan-basicapp/SKILL.md`。
-2. 按任务类型读取该技能指向的 references，不要一次加载无关资料。
+1. 按任务读取对应技能：后端实现读取 `.agents/skills/backend-development/SKILL.md`；Vue 管理端读取 `.agents/skills/frontend-development/SKILL.md`；跨端 API、权限、租户和运维契约读取 `.agents/skills/fullstack-contracts/SKILL.md`。
+2. 同时涉及多个职责时加载对应多个技能，不要一次读取无关资料。
 3. 检查当前分支、`git status` 和最近提交；保留用户已有改动。
 4. 阅读目标模块 README、相邻实现、测试和配置，确认当前契约。
 5. 跨前后端改动先固定 DTO、Dynamic API 路由、权限码、菜单组件路径和错误语义。
-6. 前端视觉或交互改动必须读取 `.agents/skills/xihan-basicapp/references/frontend.md`。
+6. 前端视觉或交互改动必须读取 `.agents/skills/frontend-development/references/frontend.md`。
 
 ## 目录结构
 
 ```text
 /
 ├─ AGENTS.md
-├─ .agents/skills/xihan-basicapp/       # Codex 仓库技能与工程规范
+├─ .agents/skills/                      # 按后端、前端和全栈契约分类的仓库技能
+├─ .claude/skills -> ../.agents/skills
+├─ CLAUDE.md -> AGENTS.md
 ├─ backend/
 │  ├─ XiHan.BasicApp.slnx
 │  ├─ props/                            # 公共构建与 Framework 引用策略

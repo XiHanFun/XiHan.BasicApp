@@ -1,0 +1,7 @@
+interface:
+  display_name: "XiHan.BasicApp 前端开发"
+  short_description: "开发 Vue、XiHan.UI、状态、路由和类型化 API"
+  default_prompt: "使用 $xihan-basicapp-frontend-development 实现并验证一个管理端功能。"
+
+policy:
+  allow_implicit_invocation: true
