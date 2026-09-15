@@ -1,0 +1,7 @@
+interface:
+  display_name: "XiHan.BasicApp 提交信息"
+  short_description: "根据 BasicApp 暂存改动生成一行规范提交信息"
+  default_prompt: "使用 $xihan-basicapp-commit-msg 为当前暂存区生成提交信息。"
+
+policy:
+  allow_implicit_invocation: true

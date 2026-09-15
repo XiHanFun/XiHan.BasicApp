@@ -1,0 +1,7 @@
+interface:
+  display_name: "XiHan.BasicApp 测试审查"
+  short_description: "判断全栈、权限与租户测试应保留还是改写"
+  default_prompt: "使用 $xihan-basicapp-test-review 审查指定测试的价值和覆盖边界。"
+
+policy:
+  allow_implicit_invocation: true

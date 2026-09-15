@@ -1,0 +1,7 @@
+interface:
+  display_name: "XiHan.BasicApp 创建 PR"
+  short_description: "按模板准备、检查并创建 BasicApp Pull Request"
+  default_prompt: "使用 $xihan-basicapp-create-pr 为当前分支准备并创建 Pull Request。"
+
+policy:
+  allow_implicit_invocation: true
