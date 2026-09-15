@@ -1,0 +1,7 @@
+interface:
+  display_name: "XiHan.BasicApp 变更日志"
+  short_description: "从前后端、权限和升级脚本整理用户可感知日志"
+  default_prompt: "使用 $xihan-basicapp-changelog-collect 整理指定版本范围的变更日志。"
+
+policy:
+  allow_implicit_invocation: true
