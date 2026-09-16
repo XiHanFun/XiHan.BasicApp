@@ -54,7 +54,7 @@
 ```bash
 dotnet restore backend/XiHan.BasicApp.slnx
 dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore
-dotnet test backend/XiHan.BasicApp.slnx -c Release --no-build
+dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
 ```
 
 启动必须指向具体 WebHost 项目文件，不能只传包含多个项目文件的目录。

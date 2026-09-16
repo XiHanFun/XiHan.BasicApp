@@ -23,7 +23,7 @@ description: 实现、重构、审查或测试 XiHan.BasicApp 后端模块时使
 
 ```bash
 dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore
-dotnet test backend/XiHan.BasicApp.slnx -c Release --no-build
+dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build
 ```
 
 实体、应用服务、仓储、种子、测试和必要升级脚本应形成同一功能闭环。
