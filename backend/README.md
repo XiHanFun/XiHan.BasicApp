@@ -77,7 +77,7 @@ A few endpoints are neither HTTP-dynamic-API nor plain HTTP: the SignalR notific
 ```bash
 dotnet restore backend/XiHan.BasicApp.slnx
 dotnet build backend/XiHan.BasicApp.slnx --configuration Release
-dotnet test backend/XiHan.BasicApp.slnx --configuration Release
+dotnet test --solution backend/XiHan.BasicApp.slnx --configuration Release
 ```
 
 Run `src/main/XiHan.BasicApp.WebHost`. Development listens on `http://127.0.0.1:9708` (with `launchUrl` pointing at the scalar docs page), Production on `:9709`; both can be overridden through the `Hosting:Urls` setting.
