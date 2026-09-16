@@ -40,8 +40,10 @@ jobs:
       - name: 构建
         run: dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore
 
+      # MTP 模式（见仓库根 global.json 的 test.runner）：解决方案须由 --solution 传入，
+      # VSTest 的 --logger 不再受理，trx 改由 MTP 的 --report-trx 产出（置于 -- 之后转发给测试应用）
       - name: 测试
-        run: dotnet test backend/XiHan.BasicApp.slnx -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+        run: dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build -- --report-trx
 
       - name: 上传测试结果
         if: always()
