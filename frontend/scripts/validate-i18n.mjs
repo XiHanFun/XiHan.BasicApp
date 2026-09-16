@@ -93,7 +93,9 @@ function walk(dir, out = []) {
       if (!/[\\/](?:node_modules|dist|\.git|\.turbo)(?:[\\/]|$)/.test(p))
         walk(p, out)
     }
-    else if (/\.(?:vue|ts|tsx)$/.test(p) && !p.endsWith('.d.ts')) {
+    // 单测会故意引用未定义的键，断言 vue-i18n 原样返回 key 的回落行为；这类引用不是漏定义，
+    // 只排除测试文件本身，业务代码里的孤儿引用照抓。
+    else if (/\.(?:vue|ts|tsx)$/.test(p) && !p.endsWith('.d.ts') && !/\.(?:test|spec)\.[jt]sx?$/.test(p)) {
       out.push(p)
     }
   }
