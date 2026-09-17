@@ -2,6 +2,7 @@ import type { App } from 'vue'
 import { createI18n } from 'vue-i18n'
 import { DEFAULT_LOCALE, LOCALE_KEY } from '~/constants'
 import { LocalStorage } from '~/utils'
+import deDE from './langs/de-DE'
 import enUS from './langs/en-US'
 import hiIN from './langs/hi-IN'
 import jaJP from './langs/ja-JP'
@@ -20,6 +21,7 @@ export const i18n = createI18n({
     'ja-JP': jaJP,
     'ko-KR': koKR,
     'hi-IN': hiIN,
+    'de-DE': deDE,
   },
 })
 

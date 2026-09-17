@@ -110,4 +110,6 @@ const enUS: XhTranslationOverrides = {}
 export const xhTranslations: Record<string, XhTranslationOverrides> = {
   'zh-CN': zhCN,
   'en-US': enUS,
+  // 德文不另写覆盖：组件内建英文；不登记则回退 zh-CN，德文界面会冒出中文
+  'de-DE': enUS,
 }

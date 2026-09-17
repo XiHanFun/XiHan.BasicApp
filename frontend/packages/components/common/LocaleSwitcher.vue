@@ -66,6 +66,7 @@ const LOCALES = [
   { value: 'ja-JP', labelKey: 'header.locale.ja_jp' },
   { value: 'ko-KR', labelKey: 'header.locale.ko_kr' },
   { value: 'hi-IN', labelKey: 'header.locale.hi_in' },
+  { value: 'de-DE', labelKey: 'header.locale.de_de' },
 ] as const
 
 /** 当前选中：apply 取应用语言，否则取受控值（兜底应用语言） */
