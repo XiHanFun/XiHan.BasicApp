@@ -29,7 +29,7 @@ beforeEach(() => {
 })
 
 describe('默认值', () => {
-  it('语言与时区默认：zh-CN + Asia/Shanghai（默认北京时间，不跟随浏览器）', () => {
+  it('语言默认跟随浏览器（测试环境固定为 zh-CN），时区默认 Asia/Shanghai 不跟随浏览器', () => {
     const store = freshStore()
 
     expect(store.locale).toBe(DEFAULT_LOCALE)
@@ -171,6 +171,23 @@ describe('locale 是 vue-i18n 的唯一入口', () => {
     freshStore()
 
     expect(i18n.global.locale.value).toBe('en-US')
+  })
+})
+
+describe('重置偏好', () => {
+  it('语言重置为浏览器语言，而不是固定回退 DEFAULT_LOCALE', () => {
+    Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['de-DE'] })
+    try {
+      const store = freshStore()
+      store.setLocale('ja-JP')
+
+      store.resetPreferences()
+
+      expect(store.locale).toBe('de-DE')
+    }
+    finally {
+      Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['zh-CN'] })
+    }
   })
 })
 
