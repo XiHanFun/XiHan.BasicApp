@@ -34,28 +34,65 @@ public sealed class WebHostLocalizationResourceTests
     }
 
     /// <summary>
-    /// 同一资源在两种文化下的键集合必须完全一致，任何一侧缺键都会造成静默回落。
+    /// 同一资源在每种文化下的键集合都必须与基准文化 zh-CN 完全一致，任何一侧缺键都会造成静默回落。
     /// </summary>
     [Fact]
     public void Localization_TextKeysShouldMatchAcrossCultures()
     {
         foreach (var group in ReadResourceFiles().GroupBy(file => file.Resource, StringComparer.Ordinal))
         {
-            var chinese = group.Single(file => string.Equals(file.Culture, "zh-CN", StringComparison.Ordinal));
-            var english = group.Single(file => string.Equals(file.Culture, "en-US", StringComparison.Ordinal));
+            var baseline = group.Single(file => string.Equals(file.Culture, "zh-CN", StringComparison.Ordinal));
 
-            var missingInEnglish = chinese.Keys.Except(english.Keys, StringComparer.Ordinal)
-                .Order(StringComparer.Ordinal).ToList();
-            var missingInChinese = english.Keys.Except(chinese.Keys, StringComparer.Ordinal)
-                .Order(StringComparer.Ordinal).ToList();
+            foreach (var other in group.Where(file => !string.Equals(file.Culture, "zh-CN", StringComparison.Ordinal)))
+            {
+                var missing = baseline.Keys.Except(other.Keys, StringComparer.Ordinal)
+                    .Order(StringComparer.Ordinal).ToList();
+                var extra = other.Keys.Except(baseline.Keys, StringComparer.Ordinal)
+                    .Order(StringComparer.Ordinal).ToList();
 
-            Assert.True(
-                missingInEnglish.Count == 0,
-                $"资源 {group.Key} 的 en-US 缺少这些键：{string.Join("、", missingInEnglish)}");
-            Assert.True(
-                missingInChinese.Count == 0,
-                $"资源 {group.Key} 的 zh-CN 缺少这些键：{string.Join("、", missingInChinese)}");
+                Assert.True(
+                    missing.Count == 0,
+                    $"资源 {group.Key} 的 {other.Culture} 缺少这些键：{string.Join("、", missing)}");
+                Assert.True(
+                    extra.Count == 0,
+                    $"资源 {group.Key} 的 {other.Culture} 多出这些键：{string.Join("、", extra)}");
+            }
         }
+    }
+
+    /// <summary>
+    /// 开发配置 SupportedCultures 列出的每种文化，都必须为每个资源提供文件；
+    /// 否则切到该语言时后端文案静默回落到默认文化。
+    /// </summary>
+    [Fact]
+    public void Localization_EverySupportedCultureShouldHaveAllResources()
+    {
+        var settingsPath = Path.Combine(WebHostTestHelper.ResolveWebHostProjectRoot(), "appsettings.Development.json");
+        using var settings = JsonDocument.Parse(
+            File.ReadAllText(settingsPath),
+            new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip, AllowTrailingCommas = true });
+        var cultures = settings.RootElement
+            .GetProperty("XiHan")
+            .GetProperty("Localization")
+            .GetProperty("SupportedCultures")
+            .EnumerateArray()
+            .Select(item => item.GetString()!)
+            .ToList();
+        Assert.NotEmpty(cultures);
+
+        var files = ReadResourceFiles();
+        var missing = files
+            .Select(file => file.Resource)
+            .Distinct(StringComparer.Ordinal)
+            .SelectMany(resource => cultures
+                .Where(culture => !files.Any(file =>
+                    string.Equals(file.Resource, resource, StringComparison.Ordinal)
+                    && string.Equals(file.Culture, culture, StringComparison.Ordinal)))
+                .Select(culture => $"{resource}.{culture}.json"))
+            .Order(StringComparer.Ordinal)
+            .ToList();
+
+        Assert.True(missing.Count == 0, $"SupportedCultures 声明了但缺少资源文件：{string.Join("、", missing)}");
     }
 
     /// <summary>
