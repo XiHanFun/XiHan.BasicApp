@@ -113,6 +113,13 @@ const height = computed(() => Math.round((props.size * 2) / 3))
       </g>
     </svg>
 
+    <!-- Deutsch：德国国旗 -->
+    <svg v-else-if="locale === 'de-DE'" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
+      <rect width="30" height="6.67" fill="#000000" />
+      <rect y="6.67" width="30" height="6.67" fill="#DD0000" />
+      <rect y="13.33" width="30" height="6.67" fill="#FFCE00" />
+    </svg>
+
     <!-- English：美国国旗 -->
     <svg v-else-if="locale === 'en-US'" viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
       <rect width="30" height="20" fill="#FFFFFF" />

@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest'
 /** 模块目录顶层允许出现的条目（与 scripts/validate-modules.mjs 的白名单一致） */
 const ALLOWED_ENTRIES = new Set(['views', 'api', 'locales', 'setup.ts', 'README.md'])
 /** locales 目录只允许这些语言文件，且必须齐备 */
-const ALLOWED_LOCALES = ['zh-CN.ts', 'zh-TW.ts', 'en-US.ts', 'ja-JP.ts', 'ko-KR.ts', 'hi-IN.ts']
+const ALLOWED_LOCALES = ['zh-CN.ts', 'zh-TW.ts', 'en-US.ts', 'ja-JP.ts', 'ko-KR.ts', 'hi-IN.ts', 'de-DE.ts']
 
 // 非 eager：只要文件路径清单，不加载任何内容
 const modulePaths = Object.keys(import.meta.glob('/src/modules/**/*', { query: '?raw', import: 'default' }))
@@ -147,7 +147,7 @@ describe('模块视图键的唯一性', () => {
 })
 
 describe('模块文案的成对与齐全', () => {
-  it('locales 目录只放 zh-CN.ts 与 en-US.ts，且两语言必须成对', () => {
+  it('locales 目录只放约定的语言文件，且各语言必须成对', () => {
     const bad: string[] = []
     for (const moduleName of moduleNames) {
       const files = moduleFiles(moduleName, 'locales').map(path => path.split('/').at(-1) ?? '')

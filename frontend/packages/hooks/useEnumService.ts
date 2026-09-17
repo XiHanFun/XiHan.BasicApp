@@ -4,6 +4,7 @@ import type {
   AppEnumOption as EnumOption,
 } from '~/types'
 import { computed, effectScope, ref, watch } from 'vue'
+import { DEFAULT_LOCALE } from '~/constants'
 import { useAppStore } from '~/stores'
 import { useAppContext } from '~/stores/app-context'
 
@@ -43,7 +44,7 @@ export function useEnumService() {
   const enumMap = computed(() => enumState.value)
 
   function resolveLanguage(language?: string) {
-    return language ?? appStore.locale ?? 'zh-CN'
+    return language ?? appStore.locale ?? DEFAULT_LOCALE
   }
 
   /**

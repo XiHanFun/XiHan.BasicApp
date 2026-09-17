@@ -79,10 +79,28 @@ it('已选语言优先写入 X-Language', async () => {
   expect(config.headers.get('X-Language')).toBe('en-US')
 })
 
-it('未选语言时回落到默认语言 zh-CN', async () => {
-  const config = await captureRequest()
+it('未选语言时跟随浏览器语言写入 X-Language', async () => {
+  Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['de-DE'] })
+  try {
+    const config = await captureRequest()
 
-  expect(config.headers.get('X-Language')).toBe('zh-CN')
+    expect(config.headers.get('X-Language')).toBe('de-DE')
+  }
+  finally {
+    Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['zh-CN'] })
+  }
+})
+
+it('未选语言且浏览器没给语言时回落到默认语言 zh-CN', async () => {
+  Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => [] })
+  try {
+    const config = await captureRequest()
+
+    expect(config.headers.get('X-Language')).toBe('zh-CN')
+  }
+  finally {
+    Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['zh-CN'] })
+  }
 })
 
 it('请求标识头以毫秒时间戳编码且同一批请求互不重复', async () => {

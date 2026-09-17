@@ -1,10 +1,5 @@
 # eslint-disable pnpm/yaml-enforce-settings -- 该规则要求补 trustPolicy: no-downgrade，
 # 启用后 pnpm install 因 semver@6.3.1 的 trust downgrade 判定直接失败，需先处置该锁文件条目
-allowBuilds:
-  core-js: true
-  vue-demi: true
-verifyDepsBeforeRun: false
-
 # pnpm 对刚发布不久的包有最短发布时长的默认闸门，装 @xihan-ui 那批时由它自动登记。
 # 这批包过了时长门槛后本段即可删除；pnpm 会自己维护这里的条目。
 minimumReleaseAgeExclude:
@@ -19,8 +14,15 @@ minimumReleaseAgeExclude:
   - '@xihan-ui/styles@1.1.0'
   - '@xihan-ui/tokens@1.1.0'
   - '@xihan-ui/vue@1.1.0'
+
+verifyDepsBeforeRun: false
+
 packages:
   - 'packages/*'
+
+allowBuilds:
+  core-js: true
+  vue-demi: true
 # 开发期临时：@xihan-ui/* 改指同级 XiHan.UI 源码，改库不用发版、应用立刻吃到。
 # 缩放口径与响应式那批做完并发版之后，删掉本段即回落到 catalog 里的发布版。
 # overrides:

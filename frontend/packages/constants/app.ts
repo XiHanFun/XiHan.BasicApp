@@ -7,6 +7,10 @@ export const THEME_AUTO = 'auto'
 // ==================== 默认配置 ====================
 
 export const DEFAULT_LOCALE = 'zh-CN'
+/** 已上架语言（与 i18n 实例载入的语言包一一对应，由 i18n-instance.test.ts 守门） */
+export const SUPPORTED_LOCALES = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR', 'hi-IN', 'de-DE'] as const
+/** 浏览器语言全部不受支持时的退回语言：外语用户读英文比读中文容易 */
+export const FALLBACK_LOCALE = 'en-US'
 export const DEFAULT_THEME = THEME_LIGHT
 export const DEFAULT_PAGE_SIZE = 20
 export const TOKEN_EXPIRES_IN = 7 * 24 * 60 * 60 * 1000

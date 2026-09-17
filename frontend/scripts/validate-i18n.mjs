@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 // 两处文案聚合根：壳层（packages）与应用业务层（src），结构同为 langs/<locale>.ts 聚合 langs/<locale>/*.ts
 const LANGS_ROOTS = [join(ROOT, 'packages/locales/langs'), join(ROOT, 'src/locales/langs')]
-const LOCALES = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR', 'hi-IN']
+const LOCALES = ['zh-CN', 'zh-TW', 'en-US', 'ja-JP', 'ko-KR', 'hi-IN', 'de-DE']
 
 function read(p) {
   return readFileSync(p, 'utf8')
@@ -93,7 +93,9 @@ function walk(dir, out = []) {
       if (!/[\\/](?:node_modules|dist|\.git|\.turbo)(?:[\\/]|$)/.test(p))
         walk(p, out)
     }
-    else if (/\.(?:vue|ts|tsx)$/.test(p) && !p.endsWith('.d.ts')) {
+    // 单测会故意引用未定义的键，断言 vue-i18n 原样返回 key 的回落行为；这类引用不是漏定义，
+    // 只排除测试文件本身，业务代码里的孤儿引用照抓。
+    else if (/\.(?:vue|ts|tsx)$/.test(p) && !p.endsWith('.d.ts') && !/\.(?:test|spec)\.[jt]sx?$/.test(p)) {
       out.push(p)
     }
   }

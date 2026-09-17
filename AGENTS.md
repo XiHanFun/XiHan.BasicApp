@@ -57,8 +57,10 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 模块化后端与基于 Xi
 | --- | --- |
 | 还原 | `dotnet restore backend/XiHan.BasicApp.slnx` |
 | 构建 | `dotnet build backend/XiHan.BasicApp.slnx -c Release --no-restore` |
-| 测试 | `dotnet test backend/XiHan.BasicApp.slnx -c Release --no-build` |
+| 测试 | `dotnet test --solution backend/XiHan.BasicApp.slnx -c Release --no-build` |
 | 启动 | `dotnet run --project backend/src/main/XiHan.BasicApp.WebHost/XiHan.BasicApp.WebHost.csproj --launch-profile Development` |
+
+测试走 Microsoft.Testing.Platform 模式（仓库根 `global.json` 的 `test.runner`）：解决方案必须由 `--solution` 传入，VSTest 的 `--logger` 不再受理；需要 trx 时用 `dotnet test --solution ... -- --report-trx`，报告落在仓库根 `TestResults/`。
 
 `XiHan.BasicApp.slnx` 默认使用 XiHan.Framework NuGet 包。联调同级 Framework 源码时，通过工作区解决方案或显式 `-p:UseXiHanFrameworkSource=true`；不要根据磁盘目录自行猜测引用模式。
 
