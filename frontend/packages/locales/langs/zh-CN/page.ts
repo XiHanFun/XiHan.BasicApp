@@ -22,6 +22,13 @@ export default {
     email_login: '邮箱登录',
     qrcode_login: '扫码登录',
     login_method: '登录方式',
+    // 登录方式切换器专用短标签：卡片右栏固定宽，页面标题式的长说法会把扫码入口挤出容器
+    entry: {
+      account: '账号登录',
+      mobile: '手机登录',
+      email: '邮箱登录',
+      qrcode: '扫码登录',
+    },
     third_party_login: '第三方登录',
     third_party_more: '更多登录方式',
     no_account: '还没有账号?',
