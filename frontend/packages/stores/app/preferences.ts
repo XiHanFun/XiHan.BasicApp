@@ -41,12 +41,12 @@ import {
   WIDGETS_SYNC_KEY,
 } from '~/constants'
 import { i18n } from '~/locales'
-import { LocalStorage } from '~/utils'
+import { LocalStorage, resolveInitialLocale } from '~/utils'
 import { bindPersist, save } from '../helpers'
 
 /** 通用偏好、Widget、快捷键、页脚版权相关状态 */
 export function createPreferencesSlice() {
-  const locale = ref<string>(LocalStorage.get<string>(LOCALE_KEY) ?? DEFAULT_LOCALE)
+  const locale = ref<string>(resolveInitialLocale())
   const searchEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_ENABLED_KEY) ?? true)
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
   // 各类后端同步开关：默认开启（保存时上行后端并实时推送多端），关闭后仅本地存储
