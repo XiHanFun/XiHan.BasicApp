@@ -74,8 +74,8 @@ export default {
   toolbar: {
     switch_language: 'Sprache wechseln',
     switch_timezone: 'Zeitzone wechseln',
-    theme_to_light: 'Zu hell wechseln',
-    theme_to_dark: 'Zu dunkel wechseln',
+    theme_to_light: 'Zu hellem Design wechseln',
+    theme_to_dark: 'Zu dunklem Design wechseln',
     fullscreen_enter: 'Vollbild',
     fullscreen_exit: 'Vollbild verlassen',
     preferences: 'Einstellungen',
