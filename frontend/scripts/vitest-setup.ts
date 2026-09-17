@@ -57,6 +57,16 @@ Object.defineProperty(Element.prototype, 'scrollIntoView', {
 })
 
 /**
+ * navigator.languages：jsdom 默认 ['en-US', 'en']，初始语言会跟随浏览器，
+ * 若不固定，整个测试套件的默认界面语言会悄悄变成英文。这里固定为 zh-CN，
+ * 要测浏览器语言偵测的用例请自行覆写（用 Object.defineProperty，并在 afterEach 还原）。
+ */
+Object.defineProperty(window.navigator, 'languages', {
+  configurable: true,
+  get: () => ['zh-CN'],
+})
+
+/**
  * 每个用例之间清干净跨用例可见的状态，保证测试可任意顺序、可并行执行。
  * localStorage / sessionStorage 由 jsdom 实现，但在同一文件的用例之间是共享的。
  */
