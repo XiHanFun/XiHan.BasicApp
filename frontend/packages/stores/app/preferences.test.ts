@@ -109,6 +109,19 @@ describe('本地还原', () => {
     expect(store.appTimezone).toBe('UTC')
   })
 
+  it('未保存语言时跟随浏览器语言，且不把偵测结果写回本地存储', () => {
+    Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['ja'] })
+    try {
+      const store = freshStore()
+
+      expect(store.locale).toBe('ja-JP')
+      expect(localStorage.getItem(LOCALE_KEY)).toBeNull()
+    }
+    finally {
+      Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => ['zh-CN'] })
+    }
+  })
+
   it('同步开关存的 false 会被正确读回（不被 ?? 当成缺省）', () => {
     localStorage.setItem(PREFERENCE_SYNC_KEY, 'false')
 

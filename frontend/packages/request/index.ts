@@ -10,15 +10,13 @@ import axios from 'axios'
 import {
   APP_TIMEZONE_KEY,
   BIZ_CODE,
-  DEFAULT_LOCALE,
   HTTP_STATUS,
-  LOCALE_KEY,
   LOGIN_PATH,
   REFRESH_TOKEN_KEY,
   TOKEN_KEY,
 } from '~/constants'
 import { i18n } from '~/locales'
-import { appendRequestLog, LocalStorage, updateRequestLog } from '~/utils'
+import { appendRequestLog, LocalStorage, resolveInitialLocale, updateRequestLog } from '~/utils'
 import {
   applyApiSecurityToRequest,
   resolveApiSecurityRuntimeConfig,
@@ -343,8 +341,8 @@ export class RequestClient {
           config.headers['X-Timezone'] = timezone
         }
 
-        // 用户语言（当前 locale，如 'zh-CN'/'en-US'）：后端据此返回本地化文案（取值方式同 X-Timezone）
-        const language = LocalStorage.get<string>(LOCALE_KEY) || DEFAULT_LOCALE
+        // 用户语言（手动选过的 locale，否则跟随浏览器语言）：后端据此返回本地化文案（取值方式同 X-Timezone）
+        const language = resolveInitialLocale()
         if (language) {
           config.headers['X-Language'] = language
         }
