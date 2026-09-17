@@ -8,7 +8,7 @@ export default {
     type_security: 'Sicherheitshinweis',
     type_business: 'Geschäftsmitteilung',
     type_todo: 'Aufgabenhinweis',
-    type_emergency: 'Dringende Mitteilung',
+    type_emergency: 'Dringender Hinweis',
     // Target types
     target_all: 'Alle Benutzer',
     target_role: 'Rolle',
@@ -57,7 +57,7 @@ export default {
     stats_export: 'Ungelesene exportieren',
     stats_export_truncated: 'Mehr als 1000 ungelesene Benutzer, nur die ersten 1000 werden exportiert',
     col_user_name: 'Benutzername',
-    col_real_name: 'Vollständiger Name',
+    col_real_name: 'Echter Name',
     col_received_time: 'Empfangen am',
     // Form
     form_title: 'Titel',
