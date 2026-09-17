@@ -1,5 +1,5 @@
 export default {
-  title: 'New Version Available',
-  description: 'A new version has been detected. Please refresh the page to load the latest version.',
-  refresh: 'Refresh Now',
+  title: 'Neue Version verfügbar',
+  description: 'Es wurde eine neue Version erkannt. Bitte aktualisieren Sie die Seite, um die neueste Version zu laden.',
+  refresh: 'Jetzt aktualisieren',
 }
