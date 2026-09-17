@@ -69,6 +69,8 @@ const defaultLoginConfig: LoginConfig = {
 
 function emptyEnum(name: string): AppEnumDefinition {
   return {
+    // cultureName 目前无消费者：全库仅此处与 mapEnumMetadata 赋值，类型里有声明但没人读。
+    // 枚举文案实际由后端按 X-Language 解析后直接返回，前端不据此二次判断，故保持常量。
     cultureName: 'zh-CN',
     displayName: name,
     enumName: name,

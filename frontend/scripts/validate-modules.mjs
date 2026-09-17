@@ -74,7 +74,7 @@ function main() {
       }
       for (const required of ALLOWED_LOCALES) {
         if (files.length > 0 && !files.includes(required))
-          errors.push(`模块 ${m} 的 locales 缺少 ${required}（两语言必须成对）`)
+          errors.push(`模块 ${m} 的 locales 缺少 ${required}（各语言必须齐备）`)
       }
     }
   }

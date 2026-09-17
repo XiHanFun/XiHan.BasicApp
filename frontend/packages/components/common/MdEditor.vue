@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<{
   previewTheme?: 'default' | 'github' | 'vuepress' | 'mk-cute' | 'smart-blue' | 'cyanosis'
   /** 代码高亮主题 */
   codeTheme?: 'atom' | 'a11y' | 'github' | 'gradient' | 'kimbie' | 'paraiso' | 'qtcreator' | 'stackoverflow'
-  /** 编辑器语言 */
+  /** 编辑器语言，不传则跟随应用语言（md-editor-v3 仅内置中英，其余语言回退 en-US） */
   language?: 'zh-CN' | 'en-US'
   /** 占位文本 */
   placeholder?: string
@@ -35,7 +35,7 @@ const props = withDefaults(defineProps<{
   theme: undefined,
   previewTheme: 'default',
   codeTheme: 'atom',
-  language: 'zh-CN',
+  language: undefined,
   placeholder: undefined,
   showCodeRowNumber: true,
   editorId: 'x-md-editor',
@@ -61,6 +61,13 @@ const resolvedTheme = computed(() => props.theme ?? (appStore.isDark ? 'dark' : 
 /** 占位文本：外部未传时回落到 i18n 默认值 */
 const resolvedPlaceholder = computed(() => props.placeholder ?? t('component.md_editor.placeholder'))
 
+// 编辑器语言：外部未传时跟随应用语言。md-editor-v3 只内置 zh-CN / en-US 两套界面文案，
+// 中文语系（zh-CN / zh-TW）统一用 zh-CN——繁中用户读简中工具栏比读英文更顺；
+// 其余语言回退 en-US——回退中文会让中文工具栏混进外语界面。
+const resolvedLanguage = computed<'zh-CN' | 'en-US'>(
+  () => props.language ?? (appStore.locale.startsWith('zh') ? 'zh-CN' : 'en-US'),
+)
+
 function handleSave(val: string) {
   emit('save', val)
 }
@@ -78,7 +85,7 @@ function handleUploadImg(files: File[], callback: (urls: string[]) => void) {
     :theme="resolvedTheme"
     :preview-theme="props.previewTheme"
     :code-theme="props.codeTheme"
-    :language="props.language"
+    :language="resolvedLanguage"
     :show-code-row-number="props.showCodeRowNumber"
   />
   <Editor
@@ -88,7 +95,7 @@ function handleUploadImg(files: File[], callback: (urls: string[]) => void) {
     :theme="resolvedTheme"
     :preview-theme="props.previewTheme"
     :code-theme="props.codeTheme"
-    :language="props.language"
+    :language="resolvedLanguage"
     :placeholder="resolvedPlaceholder"
     :show-code-row-number="props.showCodeRowNumber"
     :toolbars-exclude="props.toolbarsExclude"
