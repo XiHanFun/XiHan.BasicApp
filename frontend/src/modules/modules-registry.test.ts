@@ -147,7 +147,7 @@ describe('模块视图键的唯一性', () => {
 })
 
 describe('模块文案的成对与齐全', () => {
-  it('locales 目录只放 zh-CN.ts 与 en-US.ts，且两语言必须成对', () => {
+  it('locales 目录只放约定的语言文件，且各语言必须成对', () => {
     const bad: string[] = []
     for (const moduleName of moduleNames) {
       const files = moduleFiles(moduleName, 'locales').map(path => path.split('/').at(-1) ?? '')

@@ -18,7 +18,7 @@ export default {
       login_log: 'Anmeldeprotokoll',
       exception_log: 'Ausnahmeprotokoll',
       diff_log: 'Datenänderungsprotokoll',
-      operation_log: 'Betriebsprotokoll',
+      operation_log: 'Vorgangsprotokoll',
       user: 'Benutzerverwaltung',
     },
     columns: {

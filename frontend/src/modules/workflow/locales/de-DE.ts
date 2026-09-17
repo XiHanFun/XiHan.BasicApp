@@ -317,7 +317,7 @@ export default {
   menu: {
     workflow: 'Workflow',
     workflow_todo: 'Meine Aufgaben',
-    workflow_definition: 'Prozessdefinitionen',
-    workflow_instance: 'Prozessinstanzen',
+    workflow_definition: 'Workflow-Definitionen',
+    workflow_instance: 'Workflow-Instanzen',
   },
 }

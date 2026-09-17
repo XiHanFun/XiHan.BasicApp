@@ -10,12 +10,12 @@ namespace XiHan.BasicApp.WebHost.Tests;
 /// </summary>
 /// <remarks>
 /// 本地化缺键不会报错，只会让该语言静默回落到键名或另一种语言——用户看到的是一串英文标识符。
-/// 这类劣化没有任何运行期信号，只能靠对账测试兜住，所以这里逐资源比对两种文化的键集合。
+/// 这类劣化没有任何运行期信号，只能靠对账测试兜住，所以这里逐资源比对各文化的键集合。
 /// </remarks>
 public sealed class WebHostLocalizationResourceTests
 {
     /// <summary>
-    /// 每个资源都必须同时提供中英两种文化的文件，不允许只加中文不加英文。
+    /// 每个资源都必须至少同时提供两种文化的文件，不允许只有一种文化。
     /// </summary>
     [Fact]
     public void Localization_EveryResourceShouldShipBothCultures()
