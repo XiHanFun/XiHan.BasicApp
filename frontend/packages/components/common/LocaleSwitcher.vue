@@ -58,6 +58,7 @@ const appStore = useAppStore()
 const { setLocale } = useLocale()
 const { t } = useI18n()
 
+// 已上架语言。新增语言时此处、LocaleFlag 的国旗、locales/xihan-ui 的 xhTranslations 三处需同步
 const LOCALES = [
   { value: 'zh-CN', labelKey: 'header.locale.zh_cn' },
   { value: 'zh-TW', labelKey: 'header.locale.zh_tw' },
