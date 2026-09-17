@@ -8,6 +8,7 @@ import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from
 /**
  * 登录方式切换。四种入口互斥、各自是一条路由，没有面板，
  * 所以用分段控制器而不是标签页——tablist 却没有 tabpanel 是错的语义。
+ * 标签用 page.auth.entry.* 短说法，不借页面标题键：登录卡片右栏固定宽，长标题会把扫码入口挤出容器。
  */
 defineOptions({ name: 'AuthEntrySwitcher' })
 
@@ -16,10 +17,10 @@ const router = useRouter()
 const { t } = useI18n()
 
 const entryList = computed(() => [
-  { value: LOGIN_PATH, label: t('page.login.title') },
-  { value: CODE_LOGIN_PATH, label: t('page.auth.mobile_login') },
-  { value: EMAIL_LOGIN_PATH, label: t('page.auth.email_login') },
-  { value: QRCODE_LOGIN_PATH, label: t('page.auth.qrcode_login') },
+  { value: LOGIN_PATH, label: t('page.auth.entry.account') },
+  { value: CODE_LOGIN_PATH, label: t('page.auth.entry.mobile') },
+  { value: EMAIL_LOGIN_PATH, label: t('page.auth.entry.email') },
+  { value: QRCODE_LOGIN_PATH, label: t('page.auth.entry.qrcode') },
 ])
 
 /** 选中项取自当前路由；选中即跳转，不另存一份状态 */

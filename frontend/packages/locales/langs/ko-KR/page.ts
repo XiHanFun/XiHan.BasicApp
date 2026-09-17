@@ -22,6 +22,13 @@ export default {
     email_login: '이메일 로그인',
     qrcode_login: 'QR 코드 로그인',
     login_method: '로그인 방식',
+    // 登录方式切换器专用短标签：卡片右栏固定宽，页面标题式的长说法会把扫码入口挤出容器
+    entry: {
+      account: '계정',
+      mobile: '휴대폰',
+      email: '이메일',
+      qrcode: 'QR 코드',
+    },
     third_party_login: '외부 계정 로그인',
     third_party_more: '다른 로그인 방식',
     no_account: '아직 계정이 없으신가요?',

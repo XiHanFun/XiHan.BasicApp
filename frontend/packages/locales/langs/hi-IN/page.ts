@@ -22,6 +22,13 @@ export default {
     email_login: 'ईमेल लॉगिन',
     qrcode_login: 'QR कोड लॉगिन',
     login_method: 'लॉगिन का तरीका',
+    // 登录方式切换器专用短标签：卡片右栏固定宽，页面标题式的长说法会把扫码入口挤出容器
+    entry: {
+      account: 'खाता',
+      mobile: 'फ़ोन',
+      email: 'ईमेल',
+      qrcode: 'QR कोड',
+    },
     third_party_login: 'तृतीय-पक्ष लॉगिन',
     third_party_more: 'लॉगिन के और तरीके',
     no_account: 'खाता नहीं है?',

@@ -22,6 +22,13 @@ export default {
     email_login: 'Anmeldung per E-Mail',
     qrcode_login: 'QR-Code-Anmeldung',
     login_method: 'Anmeldemethode',
+    // 登录方式切换器专用短标签：卡片右栏固定宽，页面标题式的长说法会把扫码入口挤出容器
+    entry: {
+      account: 'Konto',
+      mobile: 'Telefon',
+      email: 'E-Mail',
+      qrcode: 'QR-Code',
+    },
     third_party_login: 'Anmeldung über Drittanbieter',
     third_party_more: 'Weitere Anmeldeoptionen',
     no_account: 'Noch kein Konto?',
