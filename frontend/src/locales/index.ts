@@ -12,6 +12,7 @@
  * 若将来要按语言分包，改成动态 import 后在此处 await 即可，调用方无需变。
  */
 import { registerLocaleMessages } from '~/locales'
+import deDE from './langs/de-DE'
 import enUS from './langs/en-US'
 import hiIN from './langs/hi-IN'
 import jaJP from './langs/ja-JP'
@@ -30,6 +31,7 @@ export function setupBusinessLocales() {
     'ja-JP': jaJP,
     'ko-KR': koKR,
     'hi-IN': hiIN,
+    'de-DE': deDE,
   })
 
   for (const [path, mod] of Object.entries(moduleLocales)) {

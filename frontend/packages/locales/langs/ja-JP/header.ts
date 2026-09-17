@@ -33,6 +33,7 @@ export default {
     ja_jp: '日本語（日本）',
     ko_kr: '韓国語（韓国）',
     hi_in: 'ヒンディー語（インド）',
+    de_de: 'ドイツ語（ドイツ）',
   },
   timezone: {
     switch_success: 'タイムゾーンを切り替えました：{timezone}',
