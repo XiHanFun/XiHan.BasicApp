@@ -1,0 +1,17 @@
+{
+  "resource": "Errors",
+  "culture": "de-DE",
+  "texts": {
+    "Auth.UserNotFound": "Der Benutzer existiert nicht.",
+    "Auth.InvalidOrExpiredResetLink": "Der Link zum Zurücksetzen ist ungültig oder abgelaufen. Bitte beantragen Sie die Passwortwiederherstellung erneut.",
+    "Auth.InvalidPasswordLength": "Das Passwort muss zwischen 8 und 128 Zeichen lang sein.",
+    "Profile.Credential.InvalidId": "Die ID der Anmeldeinformationen ist ungültig.",
+    "Profile.Credential.NotFoundOrNoPermission": "Die Anmeldeinformationen existieren nicht, oder Sie haben keine Berechtigung für diesen Vorgang.",
+    "CodeGeneration.TableNameRequired": "Der Datenbanktabellenname darf nicht leer sein.",
+    "CodeGeneration.TableAlreadyConfigured": "Die Datenbanktabelle „{0}“ ist bereits konfiguriert. Bitte nicht erneut importieren.",
+    "CodeGeneration.TableHasNoColumn": "Die Datenbanktabelle „{0}“ hat keine lesbare Spalte und kann nicht importiert werden.",
+    "Tenant.CodeAlreadyExists": "Der Mandantencode existiert bereits.",
+    "Authorization.Role.CodeAlreadyExists": "Der Rollencode existiert bereits.",
+    "Configuration.Dict.CodeAlreadyExists": "Der Wörterbuchcode existiert bereits."
+  }
+}

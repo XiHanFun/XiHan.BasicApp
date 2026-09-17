@@ -9,13 +9,17 @@
  * 保证用例之间互不串状态、可任意顺序执行。
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { DEFAULT_LOCALE, LOCALE_KEY } from '~/constants'
+import { DEFAULT_LOCALE, LOCALE_KEY, SUPPORTED_LOCALES } from '~/constants'
 
 type LocalesModule = typeof import('./index')
 
 async function loadLocales(): Promise<LocalesModule> {
   vi.resetModules()
   return import('./index')
+}
+
+function stubBrowserLanguages(languages: string[]): void {
+  Object.defineProperty(window.navigator, 'languages', { configurable: true, get: () => languages })
 }
 
 beforeEach(() => {
@@ -25,17 +29,34 @@ beforeEach(() => {
 afterEach(() => {
   vi.resetModules()
   localStorage.clear()
+  stubBrowserLanguages(['zh-CN'])
 })
 
 describe('初始语言取值', () => {
-  it('本地存储没有语言偏好时落到 DEFAULT_LOCALE', async () => {
+  it('本地存储没有语言偏好、浏览器也没给语言时落到 DEFAULT_LOCALE', async () => {
+    stubBrowserLanguages([])
     const { i18n } = await loadLocales()
 
     expect(i18n.global.locale.value).toBe(DEFAULT_LOCALE)
     expect(DEFAULT_LOCALE).toBe('zh-CN')
   })
 
-  it('本地存储写了语言偏好时按存储值启动，而不是固定用默认语言', async () => {
+  it('本地存储没有语言偏好时跟随浏览器语言', async () => {
+    stubBrowserLanguages(['de-AT', 'en'])
+    const { i18n } = await loadLocales()
+
+    expect(i18n.global.locale.value).toBe('de-DE')
+  })
+
+  it('浏览器语言全不受支持时启动为 en-US', async () => {
+    stubBrowserLanguages(['fr-FR'])
+    const { i18n } = await loadLocales()
+
+    expect(i18n.global.locale.value).toBe('en-US')
+  })
+
+  it('本地存储写了语言偏好时按存储值启动，不看浏览器语言', async () => {
+    stubBrowserLanguages(['de-DE'])
     localStorage.setItem(LOCALE_KEY, JSON.stringify('en-US'))
 
     const { i18n } = await loadLocales()
@@ -43,12 +64,19 @@ describe('初始语言取值', () => {
     expect(i18n.global.locale.value).toBe('en-US')
   })
 
-  it('本地存储里是坏 JSON 时按默认语言启动，不让首屏崩在解析上', async () => {
+  it('本地存储里是坏 JSON 时视同未选择，按浏览器语言启动，不让首屏崩在解析上', async () => {
+    stubBrowserLanguages(['zh-CN'])
     localStorage.setItem(LOCALE_KEY, '{ this is not json')
 
     const { i18n } = await loadLocales()
 
     expect(i18n.global.locale.value).toBe(DEFAULT_LOCALE)
+  })
+
+  it('语言包与 SUPPORTED_LOCALES 完全一致（新增语言漏改清单即失败）', async () => {
+    const { i18n } = await loadLocales()
+
+    expect([...i18n.global.availableLocales].sort()).toEqual([...SUPPORTED_LOCALES].sort())
   })
 })
 

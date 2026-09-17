@@ -1,7 +1,7 @@
 import type { App } from 'vue'
 import { createI18n } from 'vue-i18n'
-import { DEFAULT_LOCALE, LOCALE_KEY } from '~/constants'
-import { LocalStorage } from '~/utils'
+import { resolveInitialLocale } from '~/utils'
+import deDE from './langs/de-DE'
 import enUS from './langs/en-US'
 import hiIN from './langs/hi-IN'
 import jaJP from './langs/ja-JP'
@@ -11,7 +11,7 @@ import zhTW from './langs/zh-TW'
 
 export const i18n = createI18n({
   legacy: false,
-  locale: LocalStorage.get<string>(LOCALE_KEY) ?? DEFAULT_LOCALE,
+  locale: resolveInitialLocale(),
   fallbackLocale: 'zh-CN',
   messages: {
     'zh-CN': zhCN,
@@ -20,6 +20,7 @@ export const i18n = createI18n({
     'ja-JP': jaJP,
     'ko-KR': koKR,
     'hi-IN': hiIN,
+    'de-DE': deDE,
   },
 })
 

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAppStore } from '~/stores'
 import WidgetCard from './WidgetCard.vue'
 
 defineOptions({ name: 'ClockWidget' })
 
 const { t } = useI18n()
+const appStore = useAppStore()
 const now = ref(new Date())
 let timer: number | undefined
 
@@ -17,9 +19,11 @@ onUnmounted(() => {
     window.clearInterval(timer)
 })
 
-const time = computed(() => now.value.toLocaleTimeString('zh-CN', { hour12: false }))
+// 时间与日期都跟随应用语言：原先时间写死 zh-CN、日期用浏览器默认，
+// 两者不一致，且日语界面下会显示中文格式
+const time = computed(() => now.value.toLocaleTimeString(appStore.locale, { hour12: false }))
 const date = computed(() =>
-  now.value.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }),
+  now.value.toLocaleDateString(appStore.locale, { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' }),
 )
 const greeting = computed(() => {
   const h = now.value.getHours()

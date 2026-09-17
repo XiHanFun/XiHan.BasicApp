@@ -22,6 +22,13 @@ export default {
     email_login: 'メールログイン',
     qrcode_login: 'QRコードログイン',
     login_method: 'ログイン方法',
+    // 登录方式切换器专用短标签：卡片右栏固定宽，页面标题式的长说法会把扫码入口挤出容器
+    entry: {
+      account: 'アカウント',
+      mobile: '電話番号',
+      email: 'メール',
+      qrcode: 'QRコード',
+    },
     third_party_login: '外部サービスでログイン',
     third_party_more: 'その他のログイン方法',
     no_account: 'アカウントをお持ちでない方',

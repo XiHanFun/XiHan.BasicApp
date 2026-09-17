@@ -22,6 +22,13 @@ export default {
     email_login: 'Email Login',
     qrcode_login: 'QR Login',
     login_method: 'Sign-in method',
+    // 登录方式切换器专用短标签：卡片右栏固定宽，页面标题式的长说法会把扫码入口挤出容器
+    entry: {
+      account: 'Account',
+      mobile: 'Phone',
+      email: 'Email',
+      qrcode: 'QR Code',
+    },
     third_party_login: 'Third-party login',
     third_party_more: 'More sign-in options',
     no_account: 'Don\'t have an account?',

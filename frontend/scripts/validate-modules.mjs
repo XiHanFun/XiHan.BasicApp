@@ -18,7 +18,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MODULES = join(ROOT, 'src/modules')
 const VIEWS = join(ROOT, 'src/views')
 const ALLOWED_ENTRIES = new Set(['views', 'api', 'locales', 'setup.ts', 'README.md'])
-const ALLOWED_LOCALES = ['zh-CN.ts', 'zh-TW.ts', 'en-US.ts', 'ja-JP.ts', 'ko-KR.ts', 'hi-IN.ts']
+const ALLOWED_LOCALES = ['zh-CN.ts', 'zh-TW.ts', 'en-US.ts', 'ja-JP.ts', 'ko-KR.ts', 'hi-IN.ts', 'de-DE.ts']
 
 function walkVues(dir, out = []) {
   if (!existsSync(dir))
@@ -74,7 +74,7 @@ function main() {
       }
       for (const required of ALLOWED_LOCALES) {
         if (files.length > 0 && !files.includes(required))
-          errors.push(`模块 ${m} 的 locales 缺少 ${required}（两语言必须成对）`)
+          errors.push(`模块 ${m} 的 locales 缺少 ${required}（各语言必须齐备）`)
       }
     }
   }

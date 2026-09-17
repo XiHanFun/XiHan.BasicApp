@@ -77,7 +77,7 @@ src/framework/  XiHan.BasicApp.Core             全仓唯一引用 XiHan.Framewo
 ```bash
 dotnet restore backend/XiHan.BasicApp.slnx
 dotnet build backend/XiHan.BasicApp.slnx --configuration Release
-dotnet test backend/XiHan.BasicApp.slnx --configuration Release
+dotnet test --solution backend/XiHan.BasicApp.slnx --configuration Release
 ```
 
 启动 `src/main/XiHan.BasicApp.WebHost`。Development 监听 `http://127.0.0.1:9708`（`launchUrl` 为 scalar 文档页），Production 监听 `:9709`，均可由配置 `Hosting:Urls` 覆盖。

@@ -1,0 +1,24 @@
+{
+    "i18n-ally-next.localesPaths": [
+        "frontend/packages/locales",
+        "frontend/src/locales",
+        "frontend/packages/locales/langs",
+        "frontend/src/locales/langs",
+        "frontend/src/modules/ai/locales",
+        "frontend/src/modules/chat/locales",
+        "frontend/src/modules/codegen/locales",
+        "frontend/src/modules/printing/locales",
+        "frontend/src/modules/workflow/locales"
+    ],
+    "i18n-ally.localesPaths": [
+        "frontend/packages/locales",
+        "frontend/src/locales",
+        "frontend/packages/locales/langs",
+        "frontend/src/locales/langs",
+        "frontend/src/modules/ai/locales",
+        "frontend/src/modules/chat/locales",
+        "frontend/src/modules/codegen/locales",
+        "frontend/src/modules/printing/locales",
+        "frontend/src/modules/workflow/locales"
+    ]
+}
