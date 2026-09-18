@@ -38,7 +38,7 @@ export default {
     // Email login
     email_login_subtitle: 'Geben Sie Ihre E-Mail-Adresse ein, um einen Bestätigungscode zu erhalten',
     phone_placeholder: 'Telefonnummer eingeben',
-    phone_invalid: 'Bitte geben Sie eine gültige 11-stellige Telefonnummer ein',
+    phone_invalid: 'Bitte geben Sie eine gültige Telefonnummer ein',
     code_placeholder: 'Bestätigungscode eingeben',
     code_length_tip: 'Bitte einen 6-stelligen Code eingeben',
     code_send_failed: 'Code konnte nicht gesendet werden',

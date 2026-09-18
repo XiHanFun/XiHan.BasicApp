@@ -38,7 +38,7 @@ export default {
     // 邮箱登录
     email_login_subtitle: 'ईमेल दर्ज कर सत्यापन कोड प्राप्त करें और लॉगिन करें',
     phone_placeholder: 'मोबाइल नंबर दर्ज करें',
-    phone_invalid: 'कृपया सही 11 अंकों का मोबाइल नंबर दर्ज करें',
+    phone_invalid: 'कृपया सही फ़ोन नंबर दर्ज करें',
     code_placeholder: 'सत्यापन कोड दर्ज करें',
     code_length_tip: 'कृपया 6 अंकों का सत्यापन कोड दर्ज करें',
     code_send_failed: 'सत्यापन कोड भेजने में विफल',

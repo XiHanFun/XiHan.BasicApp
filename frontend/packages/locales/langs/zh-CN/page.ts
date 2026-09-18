@@ -38,7 +38,7 @@ export default {
     // 邮箱登录
     email_login_subtitle: '输入邮箱获取验证码进行登录',
     phone_placeholder: '请输入手机号',
-    phone_invalid: '请输入正确的11位手机号',
+    phone_invalid: '请输入正确的手机号码',
     code_placeholder: '请输入验证码',
     code_length_tip: '请输入6位验证码',
     code_send_failed: '发送验证码失败',

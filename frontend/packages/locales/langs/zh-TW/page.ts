@@ -38,7 +38,7 @@ export default {
     // 邮箱登录
     email_login_subtitle: '輸入電子郵件取得驗證碼進行登入',
     phone_placeholder: '請輸入手機號碼',
-    phone_invalid: '請輸入正確的 11 位手機號碼',
+    phone_invalid: '請輸入正確的手機號碼',
     code_placeholder: '請輸入驗證碼',
     code_length_tip: '請輸入 6 位驗證碼',
     code_send_failed: '傳送驗證碼失敗',

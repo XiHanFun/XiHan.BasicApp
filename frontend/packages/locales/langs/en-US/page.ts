@@ -38,7 +38,7 @@ export default {
     // Email login
     email_login_subtitle: 'Enter your email to receive a verification code',
     phone_placeholder: 'Enter phone number',
-    phone_invalid: 'Please enter a valid 11-digit phone number',
+    phone_invalid: 'Please enter a valid phone number',
     code_placeholder: 'Enter verification code',
     code_length_tip: 'Please enter a 6-digit code',
     code_send_failed: 'Failed to send code',

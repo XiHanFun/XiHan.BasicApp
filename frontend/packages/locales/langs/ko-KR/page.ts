@@ -38,7 +38,7 @@ export default {
     // 邮箱登录
     email_login_subtitle: '이메일을 입력하고 인증 코드를 받아 로그인해요',
     phone_placeholder: '휴대폰 번호를 입력하세요',
-    phone_invalid: '올바른 11자리 휴대폰 번호를 입력하세요',
+    phone_invalid: '올바른 휴대폰 번호를 입력하세요',
     code_placeholder: '인증 코드를 입력하세요',
     code_length_tip: '6자리 인증 코드를 입력하세요',
     code_send_failed: '인증 코드를 발송하지 못했어요',

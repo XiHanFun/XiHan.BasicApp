@@ -3,7 +3,7 @@ import type { FormRules } from '@xihan-ui/headless'
 import { XhButton, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XInput } from '~/components'
+import { PhoneInput, XInput } from '~/components'
 import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
 import { useAppContext, useAuthStore } from '~/stores'
@@ -21,16 +21,20 @@ const loading = ref(false)
 const resendSeconds = ref(0)
 
 const formData = ref({
+  /** E.164 手机号码，由 PhoneInput 组装吐出 */
   phone: '',
   code: '',
 })
+/** PhoneInput 的号码有效性；required 拦空值，这里拦「填了但格式不对」 */
+const phoneValid = ref(false)
 
 // 规则写成 computed：文案要跟着语言切换。组件库按 rule.message 优先、
 // 没写则回落 validateMessages 模板，这里逐条给了文案就不需要模板
 const rules = computed<FormRules>(() => ({
   phone: [
     { required: true, message: t('page.auth.phone_placeholder') },
-    { pattern: /^\d{11}$/, message: t('page.auth.phone_invalid') },
+    // 返回文案即失败、返回空即通过：空值交给上面那条 required 管，这里只拦格式错误
+    { validator: () => (phoneValid.value ? null : t('page.auth.phone_invalid')) },
   ],
   code: [
     { required: true, message: t('page.auth.code_placeholder') },
@@ -45,7 +49,7 @@ const rules = computed<FormRules>(() => ({
  * 提交那一路仍走表单自己的整表校验。
  */
 function handleSendCode() {
-  if (!/^\d{11}$/.test(formData.value.phone)) {
+  if (!phoneValid.value || !formData.value.phone) {
     toast.warning(t('page.auth.phone_invalid'))
     return
   }
@@ -110,12 +114,11 @@ const onAuthInvalid = useAuthFormInvalid()
       <XhFormFieldGroup v-slot="{ value, setValue }" value="phone" class="!mb-6">
         <XhFieldRoot>
           <XhFieldControl>
-            <XInput
+            <PhoneInput
               size="lg"
               :value="(value as string)"
-              :placeholder="t('page.auth.phone_placeholder')"
-              :max-length="11"
               @update:value="setValue"
+              @valid="(v: boolean) => phoneValid = v"
             />
           </XhFieldControl>
         </XhFieldRoot>

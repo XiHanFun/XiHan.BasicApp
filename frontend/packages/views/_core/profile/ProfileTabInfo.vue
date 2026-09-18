@@ -3,7 +3,7 @@ import type { UserProfile } from '~/types'
 import { XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhCardTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
+import { PhoneInput, XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
 import { dialog, prompt, toast } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
@@ -684,9 +684,11 @@ function cancelChange() {
           <XhCardBody>
             <div class="pf-change-body">
               <template v-if="!changeCodeSent">
+                <PhoneInput v-if="changeTarget === 'phone'" v-model:value="changeNewValue" />
                 <XInput
+                  v-else
                   v-model:value="changeNewValue"
-                  :placeholder="changeTarget === 'email' ? t('component.profile.info.new_email_placeholder') : t('component.profile.info.new_phone_placeholder')"
+                  :placeholder="t('component.profile.info.new_email_placeholder')"
                 />
                 <XInput
                   v-model:value="changePassword"

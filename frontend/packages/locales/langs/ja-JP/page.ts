@@ -38,7 +38,7 @@ export default {
     // 邮箱登录
     email_login_subtitle: 'メールアドレスを入力し、認証コードを受け取ってログインします',
     phone_placeholder: '電話番号を入力してください',
-    phone_invalid: '正しい11桁の電話番号を入力してください',
+    phone_invalid: '正しい電話番号を入力してください',
     code_placeholder: '認証コードを入力してください',
     code_length_tip: '6桁の認証コードを入力してください',
     code_send_failed: '認証コードの送信に失敗しました',

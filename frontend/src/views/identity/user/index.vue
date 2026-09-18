@@ -33,7 +33,7 @@ import {
   userManagementApi,
 } from '@/api'
 import { GENDER_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XPermissionGrantPanel, XSelect } from '~/components'
+import { Icon, PhoneInput, SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XPermissionGrantPanel, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { useAuthStore, useUserStore } from '~/stores'
@@ -1158,7 +1158,7 @@ async function confirmDelete() {
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" autocomplete="off" />
+                <PhoneInput v-model:value="userForm.phone" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
