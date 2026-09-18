@@ -57,8 +57,12 @@ public sealed class UserRepository(
     }
 
     /// <summary>
-    /// 按手机号码查询用户（全平台唯一，E.164 精确匹配）
+    /// 根据当前租户和手机号码获取用户
     /// </summary>
+    /// <remarks>
+    /// 经 CreateQueryable 的全局租户过滤（AOP）按当前租户上下文隔离，E.164 精确匹配；手机号码列为唯一索引（UX_Ph），至多一条匹配。
+    /// 需要平台范围查找时（如手机号登录尚未选定租户），须在当前租户上下文未设置（平台态）时调用本方法，做法同邮箱登录路径（<see cref="GetByEmailAsync"/> 在 AuthenticateEmailLoginAsync 中的用法）。
+    /// </remarks>
     /// <param name="phone">E.164 手机号码</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户；不存在返回 null</returns>
@@ -117,6 +121,9 @@ public sealed class UserRepository(
     /// <summary>
     /// 手机号码是否已被其他账号占用（跨租户）
     /// </summary>
+    /// <remarks>
+    /// 平台态执行：账号注册表落在平台库，租户上下文下连接会被解析到该租户独立库（库隔离部署）。
+    /// </remarks>
     /// <param name="phone">E.164 手机号码</param>
     /// <param name="excludeUserId">排除的用户标识（更新自身时传入）</param>
     /// <param name="cancellationToken">取消令牌</param>
