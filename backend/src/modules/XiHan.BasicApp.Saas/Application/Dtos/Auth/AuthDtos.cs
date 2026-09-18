@@ -181,6 +181,38 @@ public sealed class EmailLoginRequestDto
 }
 
 /// <summary>
+/// 手机登录验证码请求 DTO
+/// </summary>
+public sealed class PhoneLoginCodeRequestDto
+{
+    /// <summary>
+    /// 手机号码（E.164，如 +886912345678）
+    /// </summary>
+    public string Phone { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 手机验证码登录请求 DTO
+/// </summary>
+public sealed class PhoneLoginRequestDto
+{
+    /// <summary>
+    /// 手机号码（E.164）
+    /// </summary>
+    public string Phone { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 短信验证码
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 设备标识（可选，用于登录设备记录）
+    /// </summary>
+    public string? DeviceId { get; set; }
+}
+
+/// <summary>
 /// 验证码下发结果 DTO
 /// </summary>
 public sealed class VerificationCodeResultDto

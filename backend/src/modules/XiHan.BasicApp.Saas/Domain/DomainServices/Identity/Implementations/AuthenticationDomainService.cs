@@ -121,6 +121,34 @@ public sealed class AuthenticationDomainService
     }
 
     /// <summary>
+    /// 执行手机验证码登录的用户定位与应用级安全校验（验证码本身由应用层校验）
+    /// </summary>
+    /// <param name="phone">手机号码（E.164）</param>
+    /// <param name="tenantId">租户标识</param>
+    /// <param name="now">当前时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>登录认证结果</returns>
+    public async Task<LoginAuthenticationResult> AuthenticatePhoneLoginAsync(
+        string phone,
+        long? tenantId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ArgumentException.ThrowIfNullOrWhiteSpace(phone);
+
+        var user = await _userRepository.GetByPhoneAsync(phone.Trim(), cancellationToken);
+        if (user is null)
+        {
+            return LoginAuthenticationResult.Failed(LoginResult.InvalidCredentials, "手机号码未注册或验证码错误。");
+        }
+
+        var security = await _userSecurityRepository.GetByUserIdAsync(user.BasicId, cancellationToken);
+        var access = await ValidateUserAccessAsync(user, security, tenantId, now, cancellationToken);
+        return access ?? LoginAuthenticationResult.Success(user, security);
+    }
+
+    /// <summary>
     /// 应用级账号可用性校验（启用状态、租户成员身份、密码有效期），通过返回空，否则返回失败结果
     /// </summary>
     private async Task<LoginAuthenticationResult?> ValidateUserAccessAsync(

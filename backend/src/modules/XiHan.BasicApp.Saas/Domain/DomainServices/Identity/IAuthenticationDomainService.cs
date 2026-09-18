@@ -37,4 +37,18 @@ public interface IAuthenticationDomainService
         long? tenantId,
         DateTimeOffset now,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 执行手机验证码登录的用户定位与应用级安全校验（验证码本身由应用层校验）
+    /// </summary>
+    /// <param name="phone">手机号码（E.164）</param>
+    /// <param name="tenantId">租户标识</param>
+    /// <param name="now">当前时间</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>登录认证结果</returns>
+    Task<LoginAuthenticationResult> AuthenticatePhoneLoginAsync(
+        string phone,
+        long? tenantId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken = default);
 }

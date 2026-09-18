@@ -67,6 +67,22 @@ public interface IAuthAppService : IApplicationService
     Task<LoginTokenDto> EmailLoginAsync(EmailLoginRequestDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 发送手机登录验证码
+    /// </summary>
+    /// <param name="input">手机登录验证码请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>验证码下发结果</returns>
+    Task<VerificationCodeResultDto> PhoneLoginCodeAsync(PhoneLoginCodeRequestDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 手机验证码登录
+    /// </summary>
+    /// <param name="input">手机验证码登录请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>登录令牌</returns>
+    Task<LoginTokenDto> PhoneLoginAsync(PhoneLoginRequestDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 刷新访问令牌
     /// </summary>
     /// <param name="input">刷新参数</param>

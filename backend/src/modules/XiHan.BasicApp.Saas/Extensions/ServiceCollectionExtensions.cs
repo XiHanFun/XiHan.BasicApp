@@ -224,6 +224,7 @@ public static class ServiceCollectionExtensions
         // （框架 XiHanWebApiModule 以 TryAddScoped 先注册 DefaultOpenApiSecurityClientStore，故须 Replace，否则 DB 凭证永不生效）
         services.Replace(ServiceDescriptor.Scoped<IOpenApiSecurityClientStore, SaasOpenApiSecurityClientStore>());
         services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
+        services.AddSingleton<IAuthPhoneLoginCodeService, AuthPhoneLoginCodeService>();
         // 验证码防刷限流（发送间隔/日配额/错误计数封禁）：覆盖 Profile 全部发码用途与消费校验
         services.AddScoped<IVerificationThrottleService, VerificationThrottleService>();
         services.AddScoped<IProfileVerificationService, ProfileVerificationService>();
