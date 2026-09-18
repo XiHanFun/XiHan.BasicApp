@@ -2,7 +2,7 @@
 import { XhComboboxRoot } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { defaultPhoneCountry, normalizePhone, parsePhone, phoneCountryOptions } from '~/utils'
+import { defaultPhoneCountry, normalizePhone, parsePhone, phoneCountryOptions, rememberPhoneCountry } from '~/utils'
 import { useControlAttrs } from './control-attrs'
 import XInput from './XInput.vue'
 
@@ -32,9 +32,14 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const { attrs, controlAttrs } = useControlAttrs()
 
+/** 非空但解析不了的存量写法：把原始数字摘出来回填，让管理员能看见并手工修正 */
+function rawNationalDigits(value: string | null | undefined): string {
+  return value ? value.replace(/\D/g, '') : ''
+}
+
 const parsed = parsePhone(props.value)
 const country = ref(parsed?.country ?? defaultPhoneCountry())
-const national = ref(parsed?.national ?? '')
+const national = ref(parsed?.national ?? rawNationalDigits(props.value))
 const query = ref('')
 
 /**
@@ -67,7 +72,8 @@ watch(() => props.value, (next) => {
     national.value = result.national
   }
   else {
-    national.value = ''
+    // 非空但解析不了（存量非 E.164 写法）：保留默认国家，回填原始数字供管理员查看/修正
+    national.value = rawNationalDigits(next)
   }
   emit('valid', result !== null || !next)
 })
@@ -81,6 +87,7 @@ function publish() {
 
 function setCountry(next: string) {
   country.value = next
+  rememberPhoneCountry(next)
   if (national.value) {
     publish()
   }

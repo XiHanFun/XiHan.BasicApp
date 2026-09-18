@@ -7,13 +7,18 @@
  * 国家下拉的交互由组件库负责，这里不重复测。
  */
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { i18n } from '~/locales'
 import PhoneInput from './PhoneInput.vue'
 
 function mountInput(props: Record<string, unknown> = {}, attrs: Record<string, unknown> = {}) {
   return mount(PhoneInput, { props, attrs, global: { plugins: [i18n] } })
 }
+
+// setCountry 会把选择写入 localStorage（记住国家），测试之间必须互相隔离
+beforeEach(() => {
+  localStorage.clear()
+})
 
 describe('phoneInput', () => {
   it('输入本地号码后按所选国家吐出 E.164', async () => {
@@ -117,5 +122,32 @@ describe('phoneInput', () => {
 
     expect(wrapper.find('[data-scope="text-field"][data-part="input"]').attributes('id')).toBe('phone-x')
     expect(wrapper.attributes('id')).toBeUndefined()
+  })
+
+  describe('存量非 E.164 写法（解析不了）时回填原始数字', () => {
+    it('挂载时传入非空但解析不了的号码，按原始数字回填本地号码框，国家保持默认，valid=false', () => {
+      const wrapper = mountInput({ value: '0912345678' })
+
+      // 无法解析（没有国码信息），国家保持默认兜底而非被清空
+      expect(wrapper.vm.country).toBe('CN')
+      expect(wrapper.vm.national).toBe('0912345678')
+      expect(wrapper.emitted('valid')?.at(-1)).toEqual([false])
+    })
+
+    it('外部把值换成非空但解析不了的号码（非回声）时，按原始数字回填', async () => {
+      const wrapper = mountInput({ value: '+886912345678' })
+
+      await wrapper.setProps({ value: '0912-345-678' })
+
+      expect(wrapper.vm.national).toBe('0912345678')
+      expect(wrapper.emitted('valid')?.at(-1)).toEqual([false])
+    })
+  })
+
+  it('setCountry 记住选择，供下次默认使用', async () => {
+    const wrapper = mountInput({ value: '' })
+    await wrapper.vm.setCountry('JP')
+
+    expect(localStorage.getItem('xihan_phone_country')).toBe('JP')
   })
 })

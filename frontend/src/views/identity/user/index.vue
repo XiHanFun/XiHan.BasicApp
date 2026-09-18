@@ -104,6 +104,13 @@ const existingDepts = ref<UserDepartmentListItemDto[]>([])
 const userForm = ref<UserFormState>(createDefaultForm())
 /** PhoneInput 的号码有效性；空号码视为有效（清空手机号），仅拦「填了但格式不对」 */
 const phoneValid = ref(true)
+/**
+ * 弹窗复用同一个 PhoneInput 实例：仅当 props.value 变化时组件才会回填/重判，
+ * 而「上次没保存就关掉的无效号码」→「新开一个空值表单」这两次 props.value 都可能是同一个空串，
+ * 组件感知不到变化，会把上次残留的已输入数字留在输入框里。每次打开（新建/编辑）自增这个计数器
+ * 并绑定为 :key，强制重新挂载一个干净的 PhoneInput。
+ */
+const phoneInputKey = ref(0)
 
 const formTitle = computed(() =>
   userForm.value.basicId ? t('identity.user.form_edit_title', { name: userForm.value.userName }) : t('identity.user.form_create_title'),
@@ -571,6 +578,8 @@ function openCreate() {
   // 弹窗复用同一个 PhoneInput 实例：值从「上次没保存就关掉的无效号码」变回默认空值时，
   // props 没变（都是空串），组件内部不会再吐一次 valid，这里手动归位避免误挡这次保存
   phoneValid.value = true
+  // 强制重新挂载 PhoneInput，避免上次残留的已输入数字（同上，props 没变不会自己清）
+  phoneInputKey.value++
   selRoleIds.value = []
   selDeptIds.value = []
   existingRoles.value = []
@@ -600,8 +609,10 @@ onMounted(() => {
 async function fillFormFromDetail(detail: UserManagementDetailDto) {
   const u = detail.user
   const sec = detail.security
-  // 后端存的手机号永远是合法 E.164 或空；同一处 PhoneInput 被复用，先归位再让组件按新值重新判定
+  // 后端存量数据可能仍有未转换的旧写法（升级脚本转不动的号码原样保留），不保证已是合法 E.164；
+  // 同一处 PhoneInput 被复用，先归位再让组件按新值重新判定，并强制重新挂载避免残留上一个用户的输入
   phoneValid.value = true
+  phoneInputKey.value++
   userForm.value = {
     basicId: u.basicId,
     userName: u.userName,
@@ -1171,7 +1182,7 @@ async function confirmDelete() {
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <PhoneInput v-model:value="userForm.phone" @valid="(v: boolean) => phoneValid = v" />
+                <PhoneInput :key="phoneInputKey" v-model:value="userForm.phone" @valid="(v: boolean) => phoneValid = v" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>

@@ -4,8 +4,15 @@
  * 职责边界：号码正规化为 E.164、E.164 反解为「国家 + 本地号码」、默认国家取值、
  * 国家选项列表的形状。号码规则本身由 libphonenumber-js 保证，这里只锁本仓库的约定。
  */
-import { describe, expect, it } from 'vitest'
-import { defaultPhoneCountry, normalizePhone, parsePhone, phoneCountryOptions } from './phone'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { defaultPhoneCountry, normalizePhone, parsePhone, phoneCountryOptions, rememberPhoneCountry } from './phone'
+
+const COUNTRY_STORAGE_KEY = 'xihan_phone_country'
+
+// 记住的国家写入同一把 localStorage，测试之间必须互相隔离，否则先跑的用例会污染后跑的默认值
+beforeEach(() => {
+  localStorage.clear()
+})
 
 describe('normalizePhone', () => {
   it('本地号码按所选国家转成 E.164', () => {
@@ -56,6 +63,24 @@ describe('defaultPhoneCountry', () => {
 
   it('语言标签格式不合法时跳过，不抛错', () => {
     expect(defaultPhoneCountry(['not a tag', 'de-DE'])).toBe('DE')
+  })
+
+  it('存过的国家优先于浏览器语言', () => {
+    localStorage.setItem(COUNTRY_STORAGE_KEY, 'JP')
+    expect(defaultPhoneCountry(['zh-TW'])).toBe('JP')
+  })
+
+  it('存的值不是受支持的国家码时忽略，退回浏览器语言', () => {
+    localStorage.setItem(COUNTRY_STORAGE_KEY, 'XX')
+    expect(defaultPhoneCountry(['zh-TW'])).toBe('TW')
+  })
+})
+
+describe('rememberPhoneCountry', () => {
+  it('把选择写入 localStorage，供下次 defaultPhoneCountry 读取', () => {
+    rememberPhoneCountry('JP')
+    expect(localStorage.getItem(COUNTRY_STORAGE_KEY)).toBe('JP')
+    expect(defaultPhoneCountry([])).toBe('JP')
   })
 })
 
