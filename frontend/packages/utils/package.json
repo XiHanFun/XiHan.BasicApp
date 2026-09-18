@@ -6,6 +6,7 @@
   "dependencies": {
     "@xihan/constants": "workspace:*",
     "dayjs": "catalog:",
+    "libphonenumber-js": "catalog:",
     "papaparse": "catalog:"
   },
   "devDependencies": {

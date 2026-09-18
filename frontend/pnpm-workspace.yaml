@@ -100,6 +100,7 @@ catalog:
   eslint: ^10.9.1
   eslint-plugin-format: ^2.0.1
   jsdom: ^30.0.1
+  libphonenumber-js: ^1.13.13
   lint-staged: ^17.4.1
   md-editor-v3: ^6.5.3
   monaco-editor: ^0.52.2
