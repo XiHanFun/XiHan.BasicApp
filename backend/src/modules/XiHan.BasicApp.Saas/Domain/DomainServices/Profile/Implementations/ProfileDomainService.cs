@@ -37,6 +37,8 @@ public sealed class ProfileDomainService
 
     private readonly IUserRepository _userRepository;
 
+    private readonly IPhoneIdentityService _phoneIdentityService;
+
     private readonly IUserSecurityRepository _userSecurityRepository;
 
     private readonly IUserSessionRepository _userSessionRepository;
@@ -46,6 +48,7 @@ public sealed class ProfileDomainService
     /// </summary>
     public ProfileDomainService(
         IUserRepository userRepository,
+        IPhoneIdentityService phoneIdentityService,
         IUserSecurityRepository userSecurityRepository,
         IUserSessionRepository userSessionRepository,
         IExternalLoginRepository externalLoginRepository,
@@ -56,6 +59,7 @@ public sealed class ProfileDomainService
         IPasswordHistoryDomainService passwordHistoryDomainService)
     {
         _userRepository = userRepository;
+        _phoneIdentityService = phoneIdentityService;
         _userSecurityRepository = userSecurityRepository;
         _userSessionRepository = userSessionRepository;
         _externalLoginRepository = externalLoginRepository;
@@ -157,7 +161,8 @@ public sealed class ProfileDomainService
         }
         else
         {
-            user.Phone = target;
+            user.Phone = await _phoneIdentityService.ResolveForWriteAsync(target, user.BasicId, cancellationToken)
+                ?? throw new InvalidOperationException("手机号码不能为空。");
             security.PhoneVerified = true;
         }
 

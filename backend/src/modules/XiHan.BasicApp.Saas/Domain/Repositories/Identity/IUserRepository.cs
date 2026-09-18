@@ -28,6 +28,14 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     Task<SysUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 按手机号码查询用户（全平台唯一，E.164 精确匹配）
+    /// </summary>
+    /// <param name="phone">E.164 手机号码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>用户；不存在返回 null</returns>
+    Task<SysUser?> GetByPhoneAsync(string phone, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 检查当前租户下用户名是否存在
     /// </summary>
     Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default);
@@ -42,6 +50,15 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     /// <param name="excludeUserId">排除的用户主键（更新自身时传入）</param>
     /// <param name="cancellationToken">取消令牌</param>
     Task<bool> ExistsEmailGloballyAsync(string email, long? excludeUserId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 手机号码是否已被其他账号占用（跨租户）
+    /// </summary>
+    /// <param name="phone">E.164 手机号码</param>
+    /// <param name="excludeUserId">排除的用户标识（更新自身时传入）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否已被占用</returns>
+    Task<bool> ExistsPhoneGloballyAsync(string phone, long? excludeUserId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 检查指定租户下用户名是否已被占用（连带平台账号一起比对，避免与平台账号重名）

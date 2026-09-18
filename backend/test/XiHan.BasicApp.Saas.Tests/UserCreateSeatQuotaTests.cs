@@ -140,6 +140,7 @@ public sealed class UserCreateSeatQuotaTests
 
         var service = new UserDomainService(
             userRepository.Object,
+            new PhoneIdentityService(userRepository.Object, new PhoneNumberNormalizer()),
             new Mock<IUserSecurityRepository>().Object,
             new Mock<ITenantUserRepository>().Object,
             new Mock<IPasswordHasher>().Object,

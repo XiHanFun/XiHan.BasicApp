@@ -205,6 +205,7 @@ public sealed class UserRoleGrantSoDEnforcementTests
 
         var service = new UserDomainService(
             new Mock<IUserRepository>().Object,
+            new Mock<IPhoneIdentityService>().Object,
             new Mock<IUserSecurityRepository>().Object,
             tenantUserRepository.Object,
             new Mock<IPasswordHasher>().Object,

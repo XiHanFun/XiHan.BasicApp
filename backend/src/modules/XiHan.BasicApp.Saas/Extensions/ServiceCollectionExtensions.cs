@@ -86,6 +86,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMenuDomainService, MenuDomainService>();
         services.AddScoped<IRoleDomainService, RoleDomainService>();
         services.AddScoped<IUserDomainService, UserDomainService>();
+        // 依赖 IUserRepository（作用域生命周期的仓储），跟随 UserDomainService 同为作用域注册。
+        services.AddScoped<IPhoneIdentityService, PhoneIdentityService>();
         services.AddScoped<IPasswordHistoryDomainService, PasswordHistoryDomainService>();
         services.AddScoped<IConstraintRuleDomainService, ConstraintRuleDomainService>();
         services.AddScoped<IConstraintRuleEnforcementDomainService, ConstraintRuleEnforcementDomainService>();

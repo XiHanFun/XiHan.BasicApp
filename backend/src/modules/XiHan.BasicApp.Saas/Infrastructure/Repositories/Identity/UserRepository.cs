@@ -57,6 +57,22 @@ public sealed class UserRepository(
     }
 
     /// <summary>
+    /// 按手机号码查询用户（全平台唯一，E.164 精确匹配）
+    /// </summary>
+    /// <param name="phone">E.164 手机号码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>用户；不存在返回 null</returns>
+    public async Task<SysUser?> GetByPhoneAsync(string phone, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(phone);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(user => user.Phone == phone)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// 检查当前租户下用户名是否存在
     /// </summary>
     public async Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default)
@@ -90,6 +106,29 @@ public sealed class UserRepository(
         using var platformScope = currentTenant.Change(null);
 
         var query = CreateNoTenantQueryable().Where(user => user.Email == email);
+        if (excludeUserId.HasValue)
+        {
+            query = query.Where(user => user.BasicId != excludeUserId.Value);
+        }
+
+        return await query.AnyAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 手机号码是否已被其他账号占用（跨租户）
+    /// </summary>
+    /// <param name="phone">E.164 手机号码</param>
+    /// <param name="excludeUserId">排除的用户标识（更新自身时传入）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>是否已被占用</returns>
+    public async Task<bool> ExistsPhoneGloballyAsync(string phone, long? excludeUserId = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(phone);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var platformScope = currentTenant.Change(null);
+
+        var query = CreateNoTenantQueryable().Where(user => user.Phone == phone);
         if (excludeUserId.HasValue)
         {
             query = query.Where(user => user.BasicId != excludeUserId.Value);

@@ -32,7 +32,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///                              (2) 登录成功后按成员关系决定落点：超管/平台→控制中心(平台态)；恰一个租户→直进；多个→控制中心选择
 ///                              (3) 进入租户后可随时通过 SwitchTenant 切换租户 / 返回平台态
 /// - 鉴权决策：UserId + 当前会话 TenantId → 查 SysTenantUser 校验成员身份 → 再查 SysUserRole 加载角色
-/// - 手机查询走 IX_Ph（非唯一，仅作辅助找回/验证）
+/// - 手机查询走 UX_Ph（登录身份标识，全平台唯一，有值必唯一）
 /// - 按激活状态筛选：IX_TeId_St_IsAc
 ///
 /// 删除：
@@ -55,7 +55,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_TeId_UsNa", nameof(TenantId), OrderByType.Asc, nameof(UserName), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_UsNa", nameof(UserName), OrderByType.Asc)]
 [SugarIndex("UX_{table}_Em", nameof(Email), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
-[SugarIndex("IX_{table}_Ph", nameof(Phone), OrderByType.Asc)]
+[SugarIndex("UX_{table}_Ph", nameof(Phone), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St_IsAc", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(IsActive), OrderByType.Asc)]
 public partial class SysUser : BasicAppAggregateRoot
@@ -93,7 +93,7 @@ public partial class SysUser : BasicAppAggregateRoot
     /// <summary>
     /// 手机号
     /// </summary>
-    [SugarColumn(ColumnName = "Phone", ColumnDescription = "手机号", Length = 20, IsNullable = true)]
+    [SugarColumn(ColumnName = "Phone", ColumnDescription = "手机号（登录身份标识，全平台唯一）", Length = 20, IsNullable = true)]
     public virtual string? Phone { get; set; }
 
     /// <summary>

@@ -182,6 +182,7 @@ public sealed class SaasAppImpersonationRevokeTests
     {
         return new ProfileDomainService(
             _userRepository.Object,
+            new Mock<IPhoneIdentityService>().Object,
             _userSecurityRepository.Object,
             _userSessionRepository.Object,
             _externalLoginRepository.Object,

@@ -25,6 +25,11 @@ public sealed class UserDomainService
     private readonly IUserRepository _userRepository;
 
     /// <summary>
+    /// 手机号码写入口径
+    /// </summary>
+    private readonly IPhoneIdentityService _phoneIdentityService;
+
+    /// <summary>
     /// 用户安全仓储
     /// </summary>
     private readonly IUserSecurityRepository _userSecurityRepository;
@@ -108,6 +113,7 @@ public sealed class UserDomainService
     /// </summary>
     public UserDomainService(
         IUserRepository userRepository,
+        IPhoneIdentityService phoneIdentityService,
         IUserSecurityRepository userSecurityRepository,
         ITenantUserRepository tenantUserRepository,
         IPasswordHasher passwordHasher,
@@ -127,6 +133,7 @@ public sealed class UserDomainService
         ILogger<UserDomainService> logger)
     {
         _userRepository = userRepository;
+        _phoneIdentityService = phoneIdentityService;
         _userSecurityRepository = userSecurityRepository;
         _tenantUserRepository = tenantUserRepository;
         _passwordHasher = passwordHasher;
@@ -176,6 +183,8 @@ public sealed class UserDomainService
         // 「平台管理员不占席位」由统计侧的 CountActiveMembersByTenantIdsAsync 保证。
         await _tenantQuotaDomainService.EnsureSeatQuotaAsync(1, cancellationToken);
 
+        var normalizedPhone = await _phoneIdentityService.ResolveForWriteAsync(command.Phone, excludeUserId: null, cancellationToken);
+
         var now = DateTimeOffset.UtcNow;
         var user = new SysUser
         {
@@ -184,7 +193,7 @@ public sealed class UserDomainService
             NickName = NormalizeNullable(command.NickName),
             Avatar = NormalizeNullable(command.Avatar),
             Email = NormalizeNullable(command.Email),
-            Phone = NormalizeNullable(command.Phone),
+            Phone = normalizedPhone,
             Gender = command.Gender,
             Birthday = command.Birthday,
             Status = command.Status,
@@ -215,7 +224,7 @@ public sealed class UserDomainService
 
         var user = await GetUserOrThrowAsync(command.BasicId, cancellationToken);
         var normalizedEmail = NormalizeNullable(command.Email);
-        var normalizedPhone = NormalizeNullable(command.Phone);
+        var normalizedPhone = await _phoneIdentityService.ResolveForWriteAsync(command.Phone, user.BasicId, cancellationToken);
         var emailChanged = !string.Equals(user.Email, normalizedEmail, StringComparison.OrdinalIgnoreCase);
         var phoneChanged = !string.Equals(user.Phone, normalizedPhone, StringComparison.Ordinal);
 

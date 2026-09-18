@@ -55,8 +55,9 @@ public sealed class UniqueIndexTenantScopeTests
             "SysTenantEdition.UX_{table}_EdCo",             // 套餐是平台售卖单元
             "SysTenantEditionPermission.UX_{table}_EdId_PeId", // 已由平台级 EditionId 定域
 
-            // 平台级账号身份（2）：登录先按全局身份定位账号，再按成员关系选租户
+            // 平台级账号身份（3）：登录先按全局身份定位账号，再按成员关系选租户
             "SysUser.UX_{table}_Em",                 // 实体注释：Email 全平台唯一，是登录身份标识
+            "SysUser.UX_{table}_Ph",                 // 实体注释：Phone 全平台唯一，比照 Email 亦为登录身份标识
             "SysUserApiCredential.UX_{table}_ApKe",  // 实体注释：AppKey 全局唯一，验签时不带租户上下文
 
             // 已由平台级 UserId 定域（3）：SysUser 本身是平台级实体，按 UserId 定域即已足够
