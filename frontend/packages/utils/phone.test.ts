@@ -44,6 +44,19 @@ describe('defaultPhoneCountry', () => {
     expect(defaultPhoneCountry(['zh', 'en'])).toBe('CN')
     expect(defaultPhoneCountry([])).toBe('CN')
   })
+
+  it('带文字代码的语言标签也能取出地区', () => {
+    expect(defaultPhoneCountry(['zh-Hant-TW'])).toBe('TW')
+    expect(defaultPhoneCountry(['sr-Latn-RS'])).toBe('RS')
+  })
+
+  it('仅文字代码没有地区时跳过，看下一个语言', () => {
+    expect(defaultPhoneCountry(['zh-Hant', 'ja-JP'])).toBe('JP')
+  })
+
+  it('语言标签格式不合法时跳过，不抛错', () => {
+    expect(defaultPhoneCountry(['not a tag', 'de-DE'])).toBe('DE')
+  })
 })
 
 describe('phoneCountryOptions', () => {

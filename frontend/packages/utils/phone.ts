@@ -40,7 +40,14 @@ export function defaultPhoneCountry(
 ): string {
   const supported = new Set<string>(getCountries())
   for (const language of languages ?? []) {
-    const region = language.split('-')[1]?.toUpperCase()
+    let region: string | undefined
+    try {
+      region = new Intl.Locale(language).region
+    }
+    catch {
+      continue
+    }
+
     if (region && supported.has(region)) {
       return region
     }
