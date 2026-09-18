@@ -36,5 +36,10 @@ public enum ProfileVerificationPurpose
     /// <summary>
     /// 手机两步验证
     /// </summary>
-    TwoFactorPhone
+    TwoFactorPhone,
+
+    /// <summary>
+    /// 手机验证码登录发码（匿名端点；发送阶段已按手机号定位到具体用户，故仍可按用户维度计入日配额/封禁）
+    /// </summary>
+    PhoneLoginCode
 }

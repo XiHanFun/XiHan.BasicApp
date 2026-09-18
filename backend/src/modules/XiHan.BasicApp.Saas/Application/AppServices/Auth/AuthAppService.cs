@@ -82,6 +82,8 @@ public sealed partial class AuthAppService
 
     private readonly IProfileVerificationService _profileVerificationService;
 
+    private readonly IVerificationThrottleService _verificationThrottleService;
+
     private readonly IMessageDeliveryService _messageDeliveryService;
 
     private readonly IOtpService _otpService;
@@ -153,6 +155,7 @@ public sealed partial class AuthAppService
         IPhoneNumberNormalizer phoneNumberNormalizer,
         IImpersonationPolicyService impersonationPolicyService,
         IProfileVerificationService profileVerificationService,
+        IVerificationThrottleService verificationThrottleService,
         IMessageDeliveryService messageDeliveryService,
         IOtpService otpService,
         IEmailConfigStore emailConfigStore,
@@ -195,6 +198,7 @@ public sealed partial class AuthAppService
         _phoneNumberNormalizer = phoneNumberNormalizer;
         _impersonationPolicyService = impersonationPolicyService;
         _profileVerificationService = profileVerificationService;
+        _verificationThrottleService = verificationThrottleService;
         _messageDeliveryService = messageDeliveryService;
         _otpService = otpService;
         _emailConfigStore = emailConfigStore;
@@ -761,7 +765,7 @@ public sealed partial class AuthAppService
             ?? throw new InvalidOperationException("手机号码不能为空。");
         var now = DateTimeOffset.UtcNow;
 
-        // 频率限制（手机号+IP）：防刷验证码
+        // 频率限制（手机号+IP，60 秒窗口）：防刷验证码，独立于下面的日配额检查
         await EnsureNotRateLimitedAsync("phone-code", phone, cancellationToken);
 
         // 先登录后选租户：平台态按全平台唯一手机号码定位用户
@@ -775,6 +779,11 @@ public sealed partial class AuthAppService
         }
 
         var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
+
+        // 日配额（同一手机号每日上限 / 同一来源 IP 每日上限）：复用 IVerificationThrottleService 的机制，
+        // 60 秒窗口只挡"连点"，挡不住"每 61 秒发一条、刷一整天"式的短信轰炸
+        await _verificationThrottleService.EnsureSendAllowedAsync(user.BasicId, ProfileVerificationPurpose.PhoneLoginCode, phone, cancellationToken);
+
         var code = await IssueAndSendPhoneLoginCodeAsync(user, phone, cancellationToken);
 
         return new VerificationCodeResultDto
