@@ -24,6 +24,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="libphonenumber-csharp" Version="9.0.19" />
+    </ItemGroup>
+
+    <ItemGroup>
       <ProjectReference Include="..\..\framework\XiHan.BasicApp.Web.Core\XiHan.BasicApp.Web.Core.csproj" />
     </ItemGroup>
 

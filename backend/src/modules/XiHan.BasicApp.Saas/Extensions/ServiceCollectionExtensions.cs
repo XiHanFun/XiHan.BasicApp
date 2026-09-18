@@ -71,6 +71,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITaskScheduleDomainService, TaskScheduleDomainService>();
         // 编号格式器是无共享可变状态的纯计算服务，可安全注册为单例。
         services.AddSingleton<INumberingFormatter, NumberingFormatter>();
+        // 手机号码正规化是无共享可变状态的纯计算服务（PhoneNumberUtil 单例内部线程安全），可安全注册为单例。
+        services.AddSingleton<IPhoneNumberNormalizer, PhoneNumberNormalizer>();
 
         // 升级引擎的四个实现槽。框架侧以 TryAdd 注册内存版默认实现，此处后注册即覆盖解析结果。
         services.AddScoped<IUpgradeVersionStore, SaasUpgradeVersionStore>();
