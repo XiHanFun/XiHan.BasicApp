@@ -712,4 +712,9 @@ export default {
     preset_weekly: '매주 월요일 0시',
     preset_monthly: '매월 1일 0시',
   },
+  phone_input: {
+    country: '국가/지역',
+    placeholder: '휴대폰 번호를 입력하세요',
+    invalid: '휴대폰 번호 형식이 올바르지 않습니다',
+  },
 }

@@ -15,6 +15,7 @@ export { default as XJsonBlock } from './JsonBlock.vue'
 export { default as XPageShell } from './PageShell.vue'
 export type { PermissionGrantItem } from './permission-grant-panel'
 export { default as XPermissionGrantPanel } from './PermissionGrantPanel.vue'
+export { default as PhoneInput } from './PhoneInput.vue'
 export { default as XUserAvatar } from './UserAvatar.vue'
 // 把 (row) => VNodeChild 这类渲染函数塞进模板的稳定壳子
 export { VNodeRender } from './VNodeRender'

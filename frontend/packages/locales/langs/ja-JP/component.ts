@@ -712,4 +712,9 @@ export default {
     preset_weekly: '毎週月曜 0 時',
     preset_monthly: '毎月 1 日 0 時',
   },
+  phone_input: {
+    country: '国／地域',
+    placeholder: '電話番号を入力してください',
+    invalid: '電話番号の形式が正しくありません',
+  },
 }

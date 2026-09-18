@@ -714,4 +714,9 @@ export default {
     preset_weekly: 'Mon 0:00',
     preset_monthly: 'Day 1 0:00',
   },
+  phone_input: {
+    country: 'Country/Region',
+    placeholder: 'Enter phone number',
+    invalid: 'Invalid phone number',
+  },
 }

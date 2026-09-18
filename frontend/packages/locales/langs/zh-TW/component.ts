@@ -712,4 +712,9 @@ export default {
     preset_weekly: '每週一 0 點',
     preset_monthly: '每月 1 號 0 點',
   },
+  phone_input: {
+    country: '國家/地區',
+    placeholder: '請輸入手機號碼',
+    invalid: '手機號碼格式不正確',
+  },
 }

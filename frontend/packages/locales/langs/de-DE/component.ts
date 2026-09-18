@@ -714,4 +714,9 @@ export default {
     preset_weekly: 'Montags 0:00 Uhr',
     preset_monthly: 'Am 1. jeden Monats 0:00 Uhr',
   },
+  phone_input: {
+    country: 'Land/Region',
+    placeholder: 'Bitte Telefonnummer eingeben',
+    invalid: 'Ungültige Telefonnummer',
+  },
 }

@@ -712,4 +712,9 @@ export default {
     preset_weekly: 'हर सोमवार 0 बजे',
     preset_monthly: 'हर माह 1 तारीख 0 बजे',
   },
+  phone_input: {
+    country: 'देश/क्षेत्र',
+    placeholder: 'फ़ोन नंबर दर्ज करें',
+    invalid: 'फ़ोन नंबर अमान्य है',
+  },
 }
