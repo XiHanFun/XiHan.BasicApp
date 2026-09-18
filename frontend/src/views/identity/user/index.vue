@@ -102,6 +102,8 @@ const selDeptIds = ref<ApiId[]>([])
 const existingDepts = ref<UserDepartmentListItemDto[]>([])
 
 const userForm = ref<UserFormState>(createDefaultForm())
+/** PhoneInput 的号码有效性；空号码视为有效（清空手机号），仅拦「填了但格式不对」 */
+const phoneValid = ref(true)
 
 const formTitle = computed(() =>
   userForm.value.basicId ? t('identity.user.form_edit_title', { name: userForm.value.userName }) : t('identity.user.form_create_title'),
@@ -566,6 +568,9 @@ function closeModals() {
 
 function openCreate() {
   userForm.value = createDefaultForm()
+  // 弹窗复用同一个 PhoneInput 实例：值从「上次没保存就关掉的无效号码」变回默认空值时，
+  // props 没变（都是空串），组件内部不会再吐一次 valid，这里手动归位避免误挡这次保存
+  phoneValid.value = true
   selRoleIds.value = []
   selDeptIds.value = []
   existingRoles.value = []
@@ -595,6 +600,8 @@ onMounted(() => {
 async function fillFormFromDetail(detail: UserManagementDetailDto) {
   const u = detail.user
   const sec = detail.security
+  // 后端存的手机号永远是合法 E.164 或空；同一处 PhoneInput 被复用，先归位再让组件按新值重新判定
+  phoneValid.value = true
   userForm.value = {
     basicId: u.basicId,
     userName: u.userName,
@@ -707,6 +714,12 @@ async function saveUser() {
   }
   if (!form.basicId && !form.initialPassword.trim()) {
     toast.warning(t('identity.user.msg_initial_password_required'))
+    formTab.value = '0'
+    return
+  }
+  // 手机号填了但格式不对：PhoneInput 已吐出空串，静默保存会把号码清掉，这里拦下来
+  if (!phoneValid.value) {
+    toast.warning(t('component.phone_input.invalid'))
     formTab.value = '0'
     return
   }
@@ -1158,7 +1171,7 @@ async function confirmDelete() {
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <PhoneInput v-model:value="userForm.phone" />
+                <PhoneInput v-model:value="userForm.phone" @valid="(v: boolean) => phoneValid = v" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>

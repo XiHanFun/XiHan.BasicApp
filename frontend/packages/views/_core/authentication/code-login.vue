@@ -32,9 +32,11 @@ const phoneValid = ref(false)
 // 没写则回落 validateMessages 模板，这里逐条给了文案就不需要模板
 const rules = computed<FormRules>(() => ({
   phone: [
-    { required: true, message: t('page.auth.phone_placeholder') },
-    // 返回文案即失败、返回空即通过：空值交给上面那条 required 管，这里只拦格式错误
+    // 校验规则首败即停：PhoneInput 对无效号码吐出的是空串，required 单看 formData.phone
+    // 会把「填了但格式不对」误判成「没填」。validator 只认 phoneValid（空值在该组件里算有效），
+    // 放在 required 前面，格式错误才能在 required 之前先被拦下、显示 phone_invalid 而非必填文案
     { validator: () => (phoneValid.value ? null : t('page.auth.phone_invalid')) },
+    { required: true, message: t('page.auth.phone_placeholder') },
   ],
   code: [
     { required: true, message: t('page.auth.code_placeholder') },
