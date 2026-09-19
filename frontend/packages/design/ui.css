@@ -442,3 +442,20 @@
   font-size: 15px;
   font-weight: 600;
 }
+
+/* 认证页「验证码输入 + 取得验证码」一行：按钮是独立动作，不拼进 .xh-input-group
+   （输入组只给「拼成一体」的附加件用，如手机号的国家下拉）；间距取与 size="lg" 同档的控件间距令牌 */
+.auth-code-row {
+  /* 窄屏时输入框只分到百来像素，放开组件库输入类的 12rem 最小宽（同 .pref-row），否则会顶掉间距压到按钮 */
+  --xh-text-field-control-min-w: 0;
+  --xh-text-field-input-min-w: 0;
+
+  display: flex;
+  align-items: stretch;
+  gap: var(--xh-control-gap-lg);
+}
+
+.auth-code-row > :first-child {
+  flex: 1;
+  min-width: 0;
+}

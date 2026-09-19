@@ -128,7 +128,7 @@ const onAuthInvalid = useAuthFormInvalid()
 
       <XhFormFieldGroup v-slot="{ value, setValue }" value="code" class="!mb-6">
         <XhFieldRoot>
-          <div class="xh-input-group">
+          <div class="auth-code-row">
             <XhFieldControl>
               <XInput
                 size="lg"
