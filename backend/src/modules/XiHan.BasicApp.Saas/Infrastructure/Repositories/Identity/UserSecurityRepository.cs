@@ -14,13 +14,17 @@ public sealed class UserSecurityRepository(ISqlSugarClientResolver clientResolve
     : SaasRepository<SysUserSecurity>(clientResolver), IUserSecurityRepository
 {
     /// <summary>
-    /// 根据用户ID获取安全信息
+    /// 根据用户ID获取安全信息（跨租户）
     /// </summary>
+    /// <remarks>
+    /// 唯一索引 UX_UsId 不含租户：每个用户全局仅一行，行带的是归属租户戳。
+    /// 跨租户成员在别的租户里定位自己的安全记录，带租户过滤会查不到。
+    /// </remarks>
     public async Task<SysUserSecurity?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await CreateQueryable()
+        return await CreateNoTenantQueryable()
             .Where(security => security.UserId == userId)
             .FirstAsync(cancellationToken);
     }

@@ -24,4 +24,17 @@ public sealed class UserStatisticsRepository(ISqlSugarClientResolver clientResol
             .Where(stats => stats.UserId == userId)
             .FirstAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 跨租户获取用户全部统计快照
+    /// </summary>
+    public async Task<IReadOnlyList<SysUserStatistics>> GetListByUserIdIgnoreTenantAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 聚合任务按日志的租户戳分别落快照，同一个人的活跃散落在各租户行下
+        return await CreateNoTenantQueryable()
+            .Where(stats => stats.UserId == userId)
+            .ToListAsync(cancellationToken);
+    }
 }

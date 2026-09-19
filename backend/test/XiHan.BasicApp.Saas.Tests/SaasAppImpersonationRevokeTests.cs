@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Linq.Expressions;
 using Moq;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -18,8 +17,10 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// </summary>
 /// <remarks>
 /// 模仿会话行的 <c>UserId</c> 是被模仿者、<c>ImpersonatorUserId</c> 才是发起人，
-/// 因此凡是"吊销某个用户的全部会话"的路径都必须同时按这两列取，
+/// 因此凡是"吊销某个用户的全部会话"的路径都必须从「自己的 + 由自己发起的」这一整组取
+/// （<see cref="IUserSessionRepository.GetNotRevokedByUserIgnoreTenantAsync"/>），
 /// 否则发起人被停用/注销后，他借来的身份仍然活着。
+/// 这里断言的是领域服务对该组的取用与放行：整组按用户取、不再自己按租户过滤、只放过当前会话。
 /// </remarks>
 public sealed class SaasAppImpersonationRevokeTests
 {
@@ -42,11 +43,11 @@ public sealed class SaasAppImpersonationRevokeTests
     [Fact]
     public async Task DeactivateAccountAsync_ShouldAlsoRevokeSessionsStartedByThisUser()
     {
-        var predicate = await CaptureRevokePredicateAsync(
+        var revoked = await CaptureRevokedSessionsAsync(
+            [OwnSession("own"), ImpersonationSession("impersonation")],
             service => service.DeactivateAccountAsync(new ProfilePasswordConfirmCommand(OperatorUserId, "pwd", OperatorUserId)));
 
-        Assert.True(predicate(OwnSession()), "自己的会话必须被吊销。");
-        Assert.True(predicate(ImpersonationSession()), "由自己发起的模仿会话必须被吊销。");
+        Assert.Equal(["impersonation", "own"], revoked);
     }
 
     /// <summary>
@@ -55,41 +56,29 @@ public sealed class SaasAppImpersonationRevokeTests
     [Fact]
     public async Task DeleteAccountAsync_ShouldAlsoRevokeSessionsStartedByThisUser()
     {
-        var predicate = await CaptureRevokePredicateAsync(
+        var revoked = await CaptureRevokedSessionsAsync(
+            [OwnSession("own"), ImpersonationSession("impersonation")],
             service => service.DeleteAccountAsync(new ProfilePasswordConfirmCommand(OperatorUserId, "pwd", OperatorUserId)));
 
-        Assert.True(predicate(OwnSession()), "自己的会话必须被吊销。");
-        Assert.True(predicate(ImpersonationSession()), "由自己发起的模仿会话必须被吊销。");
+        Assert.Equal(["impersonation", "own"], revoked);
     }
 
     /// <summary>
-    /// 别人的会话与别人发起的模仿会话都不在吊销范围内。
+    /// 会话组按发起人跨租户取，取用的是当前用户而不是别人的标识。
     /// </summary>
     [Fact]
-    public async Task DeactivateAccountAsync_ShouldNotRevokeUnrelatedSessions()
+    public async Task DeactivateAccountAsync_ShouldLoadSessionsOfCurrentUserAcrossTenants()
     {
-        var predicate = await CaptureRevokePredicateAsync(
+        _ = await CaptureRevokedSessionsAsync(
+            [],
             service => service.DeactivateAccountAsync(new ProfilePasswordConfirmCommand(OperatorUserId, "pwd", OperatorUserId)));
 
-        Assert.False(predicate(new SysUserSession { UserId = TargetUserId, Status = SessionStatus.Active }));
-        Assert.False(predicate(new SysUserSession
-        {
-            UserId = TargetUserId,
-            ImpersonatorUserId = TargetUserId,
-            Status = SessionStatus.Active
-        }));
-    }
-
-    /// <summary>
-    /// 已吊销的会话不重复处理。
-    /// </summary>
-    [Fact]
-    public async Task DeactivateAccountAsync_ShouldSkipAlreadyRevokedSessions()
-    {
-        var predicate = await CaptureRevokePredicateAsync(
-            service => service.DeactivateAccountAsync(new ProfilePasswordConfirmCommand(OperatorUserId, "pwd", OperatorUserId)));
-
-        Assert.False(predicate(new SysUserSession { UserId = OperatorUserId, Status = SessionStatus.Revoked }));
+        _userSessionRepository.Verify(
+            repository => repository.GetNotRevokedByUserIgnoreTenantAsync(OperatorUserId, It.IsAny<CancellationToken>()),
+            Times.Once);
+        _userSessionRepository.Verify(
+            repository => repository.UpdateRangeAsync(It.IsAny<IEnumerable<SysUserSession>>(), It.IsAny<CancellationToken>()),
+            Times.Never);
     }
 
     /// <summary>
@@ -98,57 +87,42 @@ public sealed class SaasAppImpersonationRevokeTests
     [Fact]
     public async Task RevokeOtherSessionsAsync_ShouldAlsoRevokeSessionsStartedByThisUser()
     {
-        var predicate = await CaptureRevokePredicateAsync(
+        var revoked = await CaptureRevokedSessionsAsync(
+            [OwnSession("other-session"), ImpersonationSession("impersonation-session"), OwnSession("current-session")],
             service => service.RevokeOtherSessionsAsync(
                 new ProfileOtherSessionsRevokeCommand(OperatorUserId, "current-session", OperatorUserId)));
 
-        Assert.True(predicate(new SysUserSession
-        {
-            UserId = OperatorUserId,
-            UserSessionId = "other-session",
-            Status = SessionStatus.Active
-        }));
-        Assert.True(predicate(new SysUserSession
-        {
-            UserId = TargetUserId,
-            ImpersonatorUserId = OperatorUserId,
-            UserSessionId = "impersonation-session",
-            Status = SessionStatus.Active
-        }));
-        Assert.False(predicate(new SysUserSession
-        {
-            UserId = OperatorUserId,
-            UserSessionId = "current-session",
-            Status = SessionStatus.Active
-        }));
+        Assert.Equal(["impersonation-session", "other-session"], revoked);
     }
 
-    private static SysUserSession OwnSession()
+    private static SysUserSession OwnSession(string sessionId)
     {
-        return new SysUserSession { UserId = OperatorUserId, Status = SessionStatus.Active };
+        return new SysUserSession { UserId = OperatorUserId, UserSessionId = sessionId, Status = SessionStatus.Active };
     }
 
-    private static SysUserSession ImpersonationSession()
+    private static SysUserSession ImpersonationSession(string sessionId)
     {
         return new SysUserSession
         {
             UserId = TargetUserId,
             ImpersonatorUserId = OperatorUserId,
+            UserSessionId = sessionId,
             Status = SessionStatus.Active
         };
     }
 
     /// <summary>
-    /// 驱动一次关闭账号流程，取回它下发给会话仓储的查询条件并编译成可执行谓词。
+    /// 把会话组喂给仓储替身、驱动一次流程，取回被置为已吊销并写回的会话标识（按序）。
     /// </summary>
-    private async Task<Func<SysUserSession, bool>> CaptureRevokePredicateAsync(
+    private async Task<List<string>> CaptureRevokedSessionsAsync(
+        IReadOnlyList<SysUserSession> candidates,
         Func<ProfileDomainService, Task> invoke)
     {
         var user = new SysUser { UserName = "operator", IsSystemAccount = false };
         SaasTestHelper.SetBasicId(user, OperatorUserId);
         var security = new SysUserSecurity { UserId = OperatorUserId, Password = "hashed" };
 
-        _userRepository.Setup(repository => repository.GetByIdAsync(OperatorUserId, It.IsAny<CancellationToken>()))
+        _userRepository.Setup(repository => repository.GetByIdIgnoreTenantAsync(OperatorUserId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
         _userRepository.Setup(repository => repository.UpdateAsync(It.IsAny<SysUser>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SysUser entity, CancellationToken _) => entity);
@@ -163,19 +137,25 @@ public sealed class SaasAppImpersonationRevokeTests
             .Setup(repository => repository.GetActiveByUserIdAsync(OperatorUserId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        Expression<Func<SysUserSession, bool>>? captured = null;
         _userSessionRepository
-            .Setup(repository => repository.GetListAsync(It.IsAny<Expression<Func<SysUserSession, bool>>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Expression<Func<SysUserSession, bool>> expression, CancellationToken _) =>
+            .Setup(repository => repository.GetNotRevokedByUserIgnoreTenantAsync(OperatorUserId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(candidates);
+
+        List<SysUserSession>? written = null;
+        _userSessionRepository
+            .Setup(repository => repository.UpdateRangeAsync(It.IsAny<IEnumerable<SysUserSession>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IEnumerable<SysUserSession> sessions, CancellationToken _) =>
             {
-                captured = expression;
-                return [];
+                written = [.. sessions];
+                return written;
             });
 
         await invoke(CreateService());
 
-        Assert.NotNull(captured);
-        return captured.Compile();
+        return [.. (written ?? [])
+            .Where(session => session.Status == SessionStatus.Revoked)
+            .Select(session => session.UserSessionId)
+            .Order(StringComparer.Ordinal)];
     }
 
     private ProfileDomainService CreateService()

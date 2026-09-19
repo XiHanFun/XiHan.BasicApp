@@ -6,6 +6,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.Domain.Repositories;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.Uow.Attributes;
 using XiHan.Framework.Utils.Security;
@@ -99,7 +100,7 @@ public sealed partial class ProfileAppService
 
         var secret = GenerateApiSecret();
         credential.SecretCipher = _apiCredentialSecretProtector.Protect(secret)!;
-        _ = await _userApiCredentialRepository.UpdateAsync(credential, cancellationToken);
+        await SaveOwnedApiCredentialAsync(credential, cancellationToken);
 
         await NotifyApiCredentialChangeAsync(userId, "API 凭证密钥已滚动", $"凭证「{credential.CredentialName}」（{credential.AppKey}）的密钥已重置，旧密钥立即失效。", credential.BasicId, cancellationToken);
 
@@ -130,7 +131,7 @@ public sealed partial class ProfileAppService
         var credential = await GetOwnedApiCredentialOrThrowAsync(userId, input.BasicId, cancellationToken);
 
         credential.Status = input.Status;
-        _ = await _userApiCredentialRepository.UpdateAsync(credential, cancellationToken);
+        await SaveOwnedApiCredentialAsync(credential, cancellationToken);
 
         return ToApiCredentialDto(credential);
     }
@@ -147,7 +148,10 @@ public sealed partial class ProfileAppService
         var userId = GetCurrentUserIdOrThrow();
         var credential = await GetOwnedApiCredentialOrThrowAsync(userId, id, cancellationToken);
 
-        _ = await _userApiCredentialRepository.DeleteAsync(credential, cancellationToken);
+        // 软删：唯一索引 UX_ApKe 含 IsDeleted，删后 AppKey 经带软删过滤的鉴权查询即不可用
+        credential.IsDeleted = true;
+        credential.DeletedTime = DateTimeOffset.UtcNow;
+        await SaveOwnedApiCredentialAsync(credential, cancellationToken);
 
         await NotifyApiCredentialChangeAsync(userId, "API 凭证已删除", $"凭证「{credential.CredentialName}」（{credential.AppKey}）已删除，该 AppKey 立即不可用。", credential.BasicId, cancellationToken);
     }
@@ -184,13 +188,26 @@ public sealed partial class ProfileAppService
             throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Profile.Credential.InvalidId"), "凭证主键无效。");
         }
 
-        var credential = await _userApiCredentialRepository.GetByIdAsync(credentialId, cancellationToken);
-        if (credential is null || credential.UserId != userId)
+        // 凭证行带创建时所在租户的戳，按人跨租户取再按主键定位
+        var credentials = await _userApiCredentialRepository.GetListByUserIdAsync(userId, cancellationToken);
+        var credential = credentials.FirstOrDefault(item => item.BasicId == credentialId);
+        if (credential is null)
         {
             throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Profile.Credential.NotFoundOrNoPermission"), "凭证不存在或无权操作。");
         }
 
         return credential;
+    }
+
+    /// <summary>
+    /// 写回当前用户自己的凭证行（行带创建时所在租户的戳，须豁免写路径租户边界）
+    /// </summary>
+    private async Task SaveOwnedApiCredentialAsync(SysUserApiCredential credential, CancellationToken cancellationToken)
+    {
+        using (TenantWriteGuard.Suppress())
+        {
+            _ = await _userApiCredentialRepository.UpdateAsync(credential, cancellationToken);
+        }
     }
 
     /// <summary>
