@@ -26,4 +26,17 @@ public sealed class ExternalLoginRepository(ISqlSugarClientResolver clientResolv
             .Where(login => login.Provider == provider && login.ProviderKey == providerKey)
             .FirstAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 跨租户获取用户全部第三方账号绑定
+    /// </summary>
+    public async Task<IReadOnlyList<SysExternalLogin>> GetListByUserIdIgnoreTenantAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 绑定行带绑定时所在租户的戳，跨租户成员在别的租户里看自己的绑定须忽略租户过滤
+        return await CreateNoTenantQueryable()
+            .Where(login => login.UserId == userId)
+            .ToListAsync(cancellationToken);
+    }
 }

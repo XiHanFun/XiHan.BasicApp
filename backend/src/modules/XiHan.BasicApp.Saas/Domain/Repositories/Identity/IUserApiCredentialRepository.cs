@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 public interface IUserApiCredentialRepository : ISaasRepository<SysUserApiCredential>
 {
     /// <summary>
-    /// 获取用户全部凭证（创建时间倒序）
+    /// 获取用户全部凭证（创建时间倒序；跨租户，凭证是个人级、行带创建时所在租户的戳）
     /// </summary>
     Task<IReadOnlyList<SysUserApiCredential>> GetListByUserIdAsync(long userId, CancellationToken cancellationToken = default);
 

@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 public interface IUserSettingRepository : ISaasRepository<SysUserSetting>
 {
     /// <summary>
-    /// 按用户 × 场景 × 设置键获取设置
+    /// 按用户 × 场景 × 设置键获取设置（跨租户；唯一索引不含租户，每个键全局仅一行）
     /// </summary>
     Task<SysUserSetting?> GetByUserSettingAsync(long userId, UserSettingScene scene, string settingKey, CancellationToken cancellationToken = default);
 }

@@ -14,13 +14,17 @@ public sealed class UserApiCredentialRepository(ISqlSugarClientResolver clientRe
     : SaasRepository<SysUserApiCredential>(clientResolver), IUserApiCredentialRepository
 {
     /// <summary>
-    /// 获取用户全部凭证（创建时间倒序）
+    /// 获取用户全部凭证（创建时间倒序；跨租户）
     /// </summary>
+    /// <remarks>
+    /// 凭证是个人级的：AppKey 标识的是用户而非租户，行带的只是创建时所在租户的戳。
+    /// 跨租户成员在别的租户里看自己的凭证、数量上限按人统计，都须忽略租户过滤。
+    /// </remarks>
     public async Task<IReadOnlyList<SysUserApiCredential>> GetListByUserIdAsync(long userId, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await CreateQueryable()
+        return await CreateNoTenantQueryable()
             .Where(credential => credential.UserId == userId)
             .OrderByDescending(credential => credential.CreatedTime)
             .ToListAsync(cancellationToken);

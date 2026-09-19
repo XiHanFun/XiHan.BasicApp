@@ -6,12 +6,18 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
 /// <summary>
 /// 当前用户个人中心查询服务实现
 /// </summary>
+/// <remarks>
+/// 个人中心读的全是当前用户的自有行（按 UserId 归属）：账号、安全记录、会话、三方绑定、统计快照、日志、偏好。
+/// 这些行带的是归属租户 / 产生时所在租户的戳，跨租户成员切进别的租户后经全局租户过滤会看不到自己的行，
+/// 因此本服务一律忽略租户过滤、只按 UserId 取。
+/// </remarks>
 public sealed class ProfileQueryService
     : IProfileQueryService
 {
@@ -89,7 +95,7 @@ public sealed class ProfileQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("当前用户不存在。");
         var security = await _userSecurityRepository.GetByUserIdAsync(user.BasicId, cancellationToken)
             ?? throw new InvalidOperationException("用户安全记录不存在。");
@@ -112,13 +118,13 @@ public sealed class ProfileQueryService
         var client = _clientResolver.GetCurrentClient();
         var result = new ProfileActivityDto();
 
-        // 周期摘要与最后行为时间取自预聚合的用户统计快照（由定时任务按周期写入；缺失则保持默认 0）
-        var stats = await _userStatisticsRepository.GetListAsync(item => item.UserId == userId, cancellationToken);
+        // 周期摘要与最后行为时间取自预聚合的用户统计快照（定时任务按「租户 × 周期」写入，同一天可能一租户一行；缺失则保持默认 0）
+        var stats = await _userStatisticsRepository.GetListByUserIdIgnoreTenantAsync(userId, cancellationToken);
         if (stats.Count > 0)
         {
-            result.Today = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.Today));
-            result.ThisWeek = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisWeek));
-            result.ThisMonth = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisMonth));
+            result.Today = ToPeriodDto(GetLatestSnapshots(stats, StatisticsPeriod.Today));
+            result.ThisWeek = ToPeriodDto(GetLatestSnapshots(stats, StatisticsPeriod.ThisWeek));
+            result.ThisMonth = ToPeriodDto(GetLatestSnapshots(stats, StatisticsPeriod.ThisMonth));
 
             result.LastLoginTime = stats.Where(item => item.LastLoginTime.HasValue).Max(item => item.LastLoginTime);
             result.LastAccessTime = stats.Where(item => item.LastAccessTime.HasValue).Max(item => item.LastAccessTime);
@@ -131,12 +137,14 @@ public sealed class ProfileQueryService
         var since = new DateTimeOffset(startDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
 
         var operationRows = await client.Queryable<SysOperationLog>()
+            .ClearFilter<IMultiTenantEntity>()
             .Where(log => log.UserId == userId && log.OperationTime >= since)
             .SplitTable()
             .Select(log => new SysOperationLog { OperationTime = log.OperationTime })
             .ToListAsync(cancellationToken);
 
         var accessRows = await client.Queryable<SysAccessLog>()
+            .ClearFilter<IMultiTenantEntity>()
             .Where(log => log.UserId == userId && log.AccessTime >= since)
             .SplitTable()
             .Select(log => new SysAccessLog { AccessTime = log.AccessTime })
@@ -149,11 +157,11 @@ public sealed class ProfileQueryService
             .GroupBy(item => DateOnly.FromDateTime(item.AccessTime.UtcDateTime))
             .ToDictionary(group => group.Key, group => group.Count());
 
-        // 每日在线分钟取自当日 Today 周期快照（聚合任务按日 upsert，天然形成逐日历史）
+        // 每日在线分钟取自当日 Today 周期快照（聚合任务按日 upsert，天然形成逐日历史；跨租户行按天合计）
         var onlineByDate = stats
             .Where(item => item.Period == StatisticsPeriod.Today && item.StatisticsDate >= startDate)
             .GroupBy(item => item.StatisticsDate)
-            .ToDictionary(group => group.Key, group => group.Max(item => item.OnlineTime) / 60);
+            .ToDictionary(group => group.Key, group => group.Sum(item => item.OnlineTime) / 60);
 
         // 仅返回有活跃记录的日期（稀疏），前端日历自行补齐空白格
         result.Trend = [.. operationByDate.Keys
@@ -193,7 +201,7 @@ public sealed class ProfileQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var accounts = await _externalLoginRepository.GetListAsync(item => item.UserId == userId, cancellationToken);
+        var accounts = await _externalLoginRepository.GetListByUserIdIgnoreTenantAsync(userId, cancellationToken);
         return [.. accounts
             .OrderBy(item => item.Provider)
             .Select(item => new ProfileExternalLoginDto
@@ -222,6 +230,7 @@ public sealed class ProfileQueryService
         pageSize = Math.Clamp(pageSize, 1, 50);
 
         var query = _clientResolver.GetCurrentClient().Queryable<SysLoginLog>()
+            .ClearFilter<IMultiTenantEntity>()
             .Where(log => log.UserId == userId)
             .SplitTable()
             .OrderBy(log => log.LoginTime, OrderByType.Desc);
@@ -266,14 +275,11 @@ public sealed class ProfileQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var now = DateTimeOffset.UtcNow;
-        var expireFallback = now.AddYears(100);
-        var sessions = await _userSessionRepository.GetListAsync(
-            session => session.UserId == userId &&
-                       session.Status != SessionStatus.Revoked &&
-                       SqlFunc.IsNull(session.ExpirationTime, expireFallback) > now,
-            cancellationToken);
+        var sessions = await _userSessionRepository.GetNotRevokedByUserIgnoreTenantAsync(userId, cancellationToken);
 
+        // 只列自己的设备（模仿会话行的 UserId 是被模仿者，由发起人自己的列表排除），过期的不列
         return [.. sessions
+            .Where(session => session.UserId == userId && (session.ExpirationTime is null || session.ExpirationTime > now))
             .OrderByDescending(session => string.Equals(session.UserSessionId, currentSessionId, StringComparison.Ordinal))
             .ThenByDescending(session => session.LastActivityTime)
             .Select(session => new ProfileSessionDto
@@ -308,27 +314,37 @@ public sealed class ProfileQueryService
         return preference is null ? new ProfileNotificationPreferenceDto() : ToPreferenceDto(preference);
     }
 
-    private static SysUserStatistics? GetLatestSnapshot(IEnumerable<SysUserStatistics> stats, StatisticsPeriod period)
+    /// <summary>
+    /// 取该周期最新一天的全部快照行（一租户一行）
+    /// </summary>
+    private static List<SysUserStatistics> GetLatestSnapshots(IEnumerable<SysUserStatistics> stats, StatisticsPeriod period)
     {
-        return stats
-            .Where(item => item.Period == period)
-            .OrderByDescending(item => item.StatisticsDate)
-            .FirstOrDefault();
+        var periodRows = stats.Where(item => item.Period == period).ToList();
+        if (periodRows.Count == 0)
+        {
+            return periodRows;
+        }
+
+        var latestDate = periodRows.Max(item => item.StatisticsDate);
+        return [.. periodRows.Where(item => item.StatisticsDate == latestDate)];
     }
 
-    private static ProfileActivityPeriodDto ToPeriodDto(SysUserStatistics? stats)
+    /// <summary>
+    /// 同一天各租户行合计为该人的周期摘要
+    /// </summary>
+    private static ProfileActivityPeriodDto ToPeriodDto(IReadOnlyCollection<SysUserStatistics> snapshots)
     {
-        if (stats is null)
+        if (snapshots.Count == 0)
         {
             return new ProfileActivityPeriodDto();
         }
 
         return new ProfileActivityPeriodDto
         {
-            LoginCount = stats.LoginCount,
-            AccessCount = stats.AccessCount,
-            OperationCount = stats.OperationCount,
-            OnlineTime = stats.OnlineTime
+            LoginCount = snapshots.Sum(item => item.LoginCount),
+            AccessCount = snapshots.Sum(item => item.AccessCount),
+            OperationCount = snapshots.Sum(item => item.OperationCount),
+            OnlineTime = snapshots.Sum(item => item.OnlineTime)
         };
     }
 

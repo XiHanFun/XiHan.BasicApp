@@ -15,6 +15,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
+using XiHan.Framework.Domain.Repositories;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Users;
@@ -120,7 +121,12 @@ public sealed partial class ProfileAppService
         else
         {
             ApplyPreference(preference, input);
-            await _notificationPreferenceRepository.UpdateAsync(preference, cancellationToken);
+
+            // 用户自有行：行带首次保存时所在租户的戳，在别的租户里改自己的偏好须豁免写路径租户边界
+            using (TenantWriteGuard.Suppress())
+            {
+                await _notificationPreferenceRepository.UpdateAsync(preference, cancellationToken);
+            }
         }
 
         return ProfileQueryService.ToPreferenceDto(preference);

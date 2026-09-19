@@ -16,6 +16,11 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// <summary>
 /// 当前用户个人中心领域服务实现
 /// </summary>
+/// <remarks>
+/// 本服务读写的全是当前用户的自有行（按 UserId 归属）。这些行带的是归属租户 / 产生时所在租户的戳，
+/// 跨租户成员切进别的租户后经全局租户过滤会看不到自己的行，因此读一律忽略租户过滤、写一律经
+/// <see cref="TenantWriteGuard"/> 豁免（见 <see cref="AsSelfWriteAsync{T}"/>）。
+/// </remarks>
 public sealed class ProfileDomainService
     : IProfileDomainService
 {
@@ -120,7 +125,9 @@ public sealed class ProfileDomainService
         }
 
         EnsurePasswordMatches(security, command.Password);
-        if (await _userRepository.ExistsUserNameAsync(newUserName, user.BasicId, cancellationToken))
+
+        // 唯一索引是「归属租户 × 用户名」，查重按账号的归属租户而非当前活动租户
+        if (await _userRepository.ExistsUserNameInTenantAsync(user.TenantId, newUserName, user.BasicId, cancellationToken))
         {
             throw new InvalidOperationException("用户名已存在。");
         }
@@ -295,11 +302,9 @@ public sealed class ProfileDomainService
         }
 
         // 既取自己的会话，也取由自己发起的模仿会话（后者的 UserId 是被模仿者）
-        var sessions = await _userSessionRepository.GetListAsync(
-            session => (session.UserId == command.UserId || session.ImpersonatorUserId == command.UserId) &&
-                       session.Status != SessionStatus.Revoked &&
-                       session.UserSessionId != command.CurrentSessionId,
-            cancellationToken);
+        var sessions = (await _userSessionRepository.GetNotRevokedByUserIgnoreTenantAsync(command.UserId, cancellationToken))
+            .Where(session => !string.Equals(session.UserSessionId, command.CurrentSessionId, StringComparison.Ordinal))
+            .ToList();
         if (sessions.Count == 0)
         {
             return new ProfileSessionRevokeResult([]);
@@ -334,9 +339,8 @@ public sealed class ProfileDomainService
             throw new InvalidOperationException("不能在个人中心踢下线当前会话。");
         }
 
-        var session = await _userSessionRepository.GetFirstAsync(
-            item => item.UserId == command.UserId && item.UserSessionId == sessionId,
-            cancellationToken)
+        var session = (await _userSessionRepository.GetNotRevokedByUserIgnoreTenantAsync(command.UserId, cancellationToken))
+            .FirstOrDefault(item => item.UserId == command.UserId && string.Equals(item.UserSessionId, sessionId, StringComparison.Ordinal))
             ?? throw new InvalidOperationException("会话不存在。");
 
         const string Reason = "用户在个人中心撤销会话";
@@ -373,16 +377,20 @@ public sealed class ProfileDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         var provider = NormalizeRequired(command.Provider, "第三方提供商不能为空。", 50, "第三方提供商不能超过 50 个字符。");
-        var account = await _externalLoginRepository.GetFirstAsync(
-            item => item.UserId == command.UserId && item.Provider == provider,
-            cancellationToken)
-            ?? throw new InvalidOperationException("第三方账号绑定不存在。");
+        var accounts = await _externalLoginRepository.GetListByUserIdIgnoreTenantAsync(command.UserId, cancellationToken);
+
+        // 同一提供商在不同租户里各绑过一次会落成多行，解绑按提供商整体解除
+        var providerAccounts = accounts
+            .Where(item => string.Equals(item.Provider, provider, StringComparison.Ordinal))
+            .ToList();
+        if (providerAccounts.Count == 0)
+        {
+            throw new InvalidOperationException("第三方账号绑定不存在。");
+        }
 
         // 解绑前防锁死：若这是用户最后一个三方绑定，且账号没有可找回密码的真实邮箱，拒绝解绑。
         // （自动建号的三方用户密码随机、不可知，占位邮箱 @external.local 又无法找回 → 解绑即永久失去全部登录入口）
-        var hasOtherBinding = await _externalLoginRepository.GetFirstAsync(
-            item => item.UserId == command.UserId && item.Provider != provider,
-            cancellationToken) is not null;
+        var hasOtherBinding = accounts.Any(item => !string.Equals(item.Provider, provider, StringComparison.Ordinal));
         if (!hasOtherBinding)
         {
             var (user, _) = await GetUserSecurityOrThrowAsync(command.UserId, cancellationToken);
@@ -394,9 +402,14 @@ public sealed class ProfileDomainService
             }
         }
 
-        account.IsDeleted = true;
-        account.DeletedTime = DateTimeOffset.UtcNow;
-        _ = await AsSelfWriteAsync(() => _externalLoginRepository.UpdateAsync(account, cancellationToken));
+        var now = DateTimeOffset.UtcNow;
+        foreach (var account in providerAccounts)
+        {
+            account.IsDeleted = true;
+            account.DeletedTime = now;
+        }
+
+        _ = await AsSelfWriteAsync(() => _externalLoginRepository.UpdateRangeAsync(providerAccounts, cancellationToken));
     }
 
     /// <summary>
@@ -643,7 +656,7 @@ public sealed class ProfileDomainService
             throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
         }
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("当前用户不存在。");
         var security = await _userSecurityRepository.GetByUserIdAsync(user.BasicId, cancellationToken)
             ?? throw new InvalidOperationException("用户安全记录不存在。");
@@ -656,7 +669,7 @@ public sealed class ProfileDomainService
     /// </summary>
     /// <remarks>
     /// 本服务全部方法都是个人中心自助场景、只写当前用户自己的行（用户/安全/会话/三方绑定）；
-    /// 平台归属用户（行 TenantId=0）在租户上下文内写自己的数据是合法路径，
+    /// 平台归属用户（行 TenantId=0）与跨租户成员（行带归属租户戳）在当前租户上下文内写自己的数据都是合法路径，
     /// 须经 <see cref="TenantWriteGuard"/> 显式豁免（行归属键是 UserId，TenantId 只是注册地元数据）。
     /// </remarks>
     private static async Task<T> AsSelfWriteAsync<T>(Func<Task<T>> write)
@@ -672,7 +685,7 @@ public sealed class ProfileDomainService
     /// </summary>
     /// <remarks>
     /// 本服务全部方法都是个人中心自助场景、只写当前用户自己的行（用户/安全/会话/三方绑定）；
-    /// 平台归属用户（行 TenantId=0）在租户上下文内写自己的数据是合法路径，
+    /// 平台归属用户（行 TenantId=0）与跨租户成员（行带归属租户戳）在当前租户上下文内写自己的数据都是合法路径，
     /// 须经 <see cref="TenantWriteGuard"/> 显式豁免（行归属键是 UserId，TenantId 只是注册地元数据）。
     /// </remarks>
     /// <param name="write">写入委托</param>
@@ -693,10 +706,7 @@ public sealed class ProfileDomainService
     {
         var (user, _) = await GetUserSecurityOrThrowAsync(userId, cancellationToken);
         // 既取该用户自己的会话，也取由他发起的模仿会话（后者的 UserId 是被模仿者）
-        var sessions = await _userSessionRepository.GetListAsync(
-            session => (session.UserId == user.BasicId || session.ImpersonatorUserId == user.BasicId)
-                && session.Status != SessionStatus.Revoked,
-            cancellationToken);
+        var sessions = (await _userSessionRepository.GetNotRevokedByUserIgnoreTenantAsync(user.BasicId, cancellationToken)).ToList();
         if (sessions.Count == 0)
         {
             return new ProfileSessionRevokeResult([]);
