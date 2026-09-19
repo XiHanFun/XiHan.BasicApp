@@ -6,7 +6,6 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
-using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -14,9 +13,9 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// 当前用户个人中心查询服务实现
 /// </summary>
 /// <remarks>
-/// 个人中心读的全是当前用户的自有行（按 UserId 归属）：账号、安全记录、会话、三方绑定、统计快照、日志、偏好。
-/// 这些行带的是归属租户 / 产生时所在租户的戳，跨租户成员切进别的租户后经全局租户过滤会看不到自己的行，
-/// 因此本服务一律忽略租户过滤、只按 UserId 取。
+/// 账号、安全记录、会话、三方绑定、偏好是当前用户的自有行（按 UserId 归属），带的是归属租户 / 产生时所在租户的戳，
+/// 跨租户成员切进别的租户后经全局租户过滤会看不到自己的行，这些一律忽略租户过滤、只按 UserId 取。
+/// 活跃度（统计快照 / 操作与访问日志）与登录日志按当前租户切分，沿用全局租户过滤。
 /// </remarks>
 public sealed class ProfileQueryService
     : IProfileQueryService
@@ -118,13 +117,13 @@ public sealed class ProfileQueryService
         var client = _clientResolver.GetCurrentClient();
         var result = new ProfileActivityDto();
 
-        // 周期摘要与最后行为时间取自预聚合的用户统计快照（定时任务按「租户 × 周期」写入，同一天可能一租户一行；缺失则保持默认 0）
-        var stats = await _userStatisticsRepository.GetListByUserIdIgnoreTenantAsync(userId, cancellationToken);
+        // 周期摘要与最后行为时间取自预聚合的用户统计快照（由定时任务按周期写入；缺失则保持默认 0）
+        var stats = await _userStatisticsRepository.GetListAsync(item => item.UserId == userId, cancellationToken);
         if (stats.Count > 0)
         {
-            result.Today = ToPeriodDto(GetLatestSnapshots(stats, StatisticsPeriod.Today));
-            result.ThisWeek = ToPeriodDto(GetLatestSnapshots(stats, StatisticsPeriod.ThisWeek));
-            result.ThisMonth = ToPeriodDto(GetLatestSnapshots(stats, StatisticsPeriod.ThisMonth));
+            result.Today = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.Today));
+            result.ThisWeek = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisWeek));
+            result.ThisMonth = ToPeriodDto(GetLatestSnapshot(stats, StatisticsPeriod.ThisMonth));
 
             result.LastLoginTime = stats.Where(item => item.LastLoginTime.HasValue).Max(item => item.LastLoginTime);
             result.LastAccessTime = stats.Where(item => item.LastAccessTime.HasValue).Max(item => item.LastAccessTime);
@@ -137,14 +136,12 @@ public sealed class ProfileQueryService
         var since = new DateTimeOffset(startDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
 
         var operationRows = await client.Queryable<SysOperationLog>()
-            .ClearFilter<IMultiTenantEntity>()
             .Where(log => log.UserId == userId && log.OperationTime >= since)
             .SplitTable()
             .Select(log => new SysOperationLog { OperationTime = log.OperationTime })
             .ToListAsync(cancellationToken);
 
         var accessRows = await client.Queryable<SysAccessLog>()
-            .ClearFilter<IMultiTenantEntity>()
             .Where(log => log.UserId == userId && log.AccessTime >= since)
             .SplitTable()
             .Select(log => new SysAccessLog { AccessTime = log.AccessTime })
@@ -157,11 +154,11 @@ public sealed class ProfileQueryService
             .GroupBy(item => DateOnly.FromDateTime(item.AccessTime.UtcDateTime))
             .ToDictionary(group => group.Key, group => group.Count());
 
-        // 每日在线分钟取自当日 Today 周期快照（聚合任务按日 upsert，天然形成逐日历史；跨租户行按天合计）
+        // 每日在线分钟取自当日 Today 周期快照（聚合任务按日 upsert，天然形成逐日历史）
         var onlineByDate = stats
             .Where(item => item.Period == StatisticsPeriod.Today && item.StatisticsDate >= startDate)
             .GroupBy(item => item.StatisticsDate)
-            .ToDictionary(group => group.Key, group => group.Sum(item => item.OnlineTime) / 60);
+            .ToDictionary(group => group.Key, group => group.Max(item => item.OnlineTime) / 60);
 
         // 仅返回有活跃记录的日期（稀疏），前端日历自行补齐空白格
         result.Trend = [.. operationByDate.Keys
@@ -230,7 +227,6 @@ public sealed class ProfileQueryService
         pageSize = Math.Clamp(pageSize, 1, 50);
 
         var query = _clientResolver.GetCurrentClient().Queryable<SysLoginLog>()
-            .ClearFilter<IMultiTenantEntity>()
             .Where(log => log.UserId == userId)
             .SplitTable()
             .OrderBy(log => log.LoginTime, OrderByType.Desc);
@@ -314,37 +310,27 @@ public sealed class ProfileQueryService
         return preference is null ? new ProfileNotificationPreferenceDto() : ToPreferenceDto(preference);
     }
 
-    /// <summary>
-    /// 取该周期最新一天的全部快照行（一租户一行）
-    /// </summary>
-    private static List<SysUserStatistics> GetLatestSnapshots(IEnumerable<SysUserStatistics> stats, StatisticsPeriod period)
+    private static SysUserStatistics? GetLatestSnapshot(IEnumerable<SysUserStatistics> stats, StatisticsPeriod period)
     {
-        var periodRows = stats.Where(item => item.Period == period).ToList();
-        if (periodRows.Count == 0)
-        {
-            return periodRows;
-        }
-
-        var latestDate = periodRows.Max(item => item.StatisticsDate);
-        return [.. periodRows.Where(item => item.StatisticsDate == latestDate)];
+        return stats
+            .Where(item => item.Period == period)
+            .OrderByDescending(item => item.StatisticsDate)
+            .FirstOrDefault();
     }
 
-    /// <summary>
-    /// 同一天各租户行合计为该人的周期摘要
-    /// </summary>
-    private static ProfileActivityPeriodDto ToPeriodDto(IReadOnlyCollection<SysUserStatistics> snapshots)
+    private static ProfileActivityPeriodDto ToPeriodDto(SysUserStatistics? stats)
     {
-        if (snapshots.Count == 0)
+        if (stats is null)
         {
             return new ProfileActivityPeriodDto();
         }
 
         return new ProfileActivityPeriodDto
         {
-            LoginCount = snapshots.Sum(item => item.LoginCount),
-            AccessCount = snapshots.Sum(item => item.AccessCount),
-            OperationCount = snapshots.Sum(item => item.OperationCount),
-            OnlineTime = snapshots.Sum(item => item.OnlineTime)
+            LoginCount = stats.LoginCount,
+            AccessCount = stats.AccessCount,
+            OperationCount = stats.OperationCount,
+            OnlineTime = stats.OnlineTime
         };
     }
 

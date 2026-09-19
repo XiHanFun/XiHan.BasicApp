@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// 跨租户成员（归属租户 1）切进租户 2 后，账号 / 安全记录 / 会话 / 三方绑定 / 统计快照 / 偏好 / 设置 / 凭证
+/// 跨租户成员（归属租户 1）切进租户 2 后，账号 / 安全记录 / 会话 / 三方绑定 / 偏好 / 设置 / 凭证
 /// 这些按 UserId 归属的行带的仍是租户 1（或产生时所在租户）的戳，经全局租户过滤会整体不可见。
 /// 每条用例先用带过滤的常规读证明过滤器确实生效，再断言个人中心用的读法能取到。
 /// </para>
@@ -51,7 +51,6 @@ public sealed class ProfileUserOwnedRowsSqlTests : IDisposable
         _client.CodeFirst.InitTables<SysUserSession>();
         _client.CodeFirst.InitTables<SysUserSecurity>();
         _client.CodeFirst.InitTables<SysExternalLogin>();
-        _client.CodeFirst.InitTables<SysUserStatistics>();
         _client.CodeFirst.InitTables<SysUserNotificationPreference>();
         _client.CodeFirst.InitTables<SysUserSetting>();
         _client.CodeFirst.InitTables<SysUserApiCredential>();
@@ -115,25 +114,6 @@ public sealed class ProfileUserOwnedRowsSqlTests : IDisposable
         Assert.Null(await repository.GetByIdAsync(1));
         var bindings = await repository.GetListByUserIdIgnoreTenantAsync(UserId);
         Assert.Equal(["gitee", "github"], bindings.Select(binding => binding.Provider).Order(StringComparer.Ordinal));
-    }
-
-    /// <summary>
-    /// 统计快照：同一个人各租户戳下的行都取到。
-    /// </summary>
-    [Fact]
-    public async Task UserStatistics_GetListByUserIdIgnoreTenantAsync_ShouldReturnSnapshotsAcrossTenants()
-    {
-        var today = new DateOnly(2026, 9, 20);
-        Insert(new SysUserStatistics { UserId = UserId, TenantId = HomeTenantId, StatisticsDate = today, Period = StatisticsPeriod.Today, LoginCount = 1 }, 1);
-        Insert(new SysUserStatistics { UserId = UserId, TenantId = ActiveTenantId, StatisticsDate = today, Period = StatisticsPeriod.Today, LoginCount = 2 }, 2);
-        Insert(new SysUserStatistics { UserId = OtherUserId, TenantId = HomeTenantId, StatisticsDate = today, Period = StatisticsPeriod.Today, LoginCount = 9 }, 3);
-        var repository = new UserStatisticsRepository(_resolver);
-
-        using var tenantScope = _currentTenant.Change(ActiveTenantId);
-
-        Assert.Null(await repository.GetByIdAsync(1));
-        var snapshots = await repository.GetListByUserIdIgnoreTenantAsync(UserId);
-        Assert.Equal(3, snapshots.Sum(snapshot => snapshot.LoginCount));
     }
 
     /// <summary>
