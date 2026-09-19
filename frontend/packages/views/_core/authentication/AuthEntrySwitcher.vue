@@ -43,7 +43,9 @@ function measure() {
   }
   if (!iconOnly.value) {
     if (segmented.scrollWidth > segmented.clientWidth + 1) {
-      textWidth = segmented.scrollWidth
+      // scrollWidth 不含边框，而下面拿来比的是容器宽度（含分段控制器的边框）；
+      // 不补上边框，会在「只差边框那一两像素」的宽度切回文字、立刻又溢出切回图标，来回闪一下
+      textWidth = segmented.scrollWidth + (segmented.offsetWidth - segmented.clientWidth)
       iconOnly.value = true
     }
   }
