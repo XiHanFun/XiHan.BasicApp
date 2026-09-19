@@ -6,13 +6,13 @@
  * valid、字段接线（id/aria-*）落在真正的号码输入框上。
  * 国家下拉的交互由组件库负责，这里不重复测。
  */
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { i18n } from '~/locales'
 import PhoneInput from './PhoneInput.vue'
 
-function mountInput(props: Record<string, unknown> = {}, attrs: Record<string, unknown> = {}) {
-  return mount(PhoneInput, { props, attrs, global: { plugins: [i18n] } })
+function mountInput(props: Record<string, unknown> = {}, attrs: Record<string, unknown> = {}, options: { attachTo?: Element } = {}) {
+  return mount(PhoneInput, { props, attrs, global: { plugins: [i18n] }, ...options })
 }
 
 // setCountry 会把选择写入 localStorage（记住国家），测试之间必须互相隔离
@@ -44,6 +44,43 @@ describe('phoneInput', () => {
 
     expect(wrapper.vm.country).toBe('CN')
     expect(wrapper.vm.national).toBe('13800138000')
+  })
+
+  describe('国家下拉的输入框显示所选国家', () => {
+    function countryText(wrapper: ReturnType<typeof mountInput>): string {
+      return (wrapper.find('[role="combobox"]').element as HTMLInputElement).value
+    }
+
+    it('挂载时显示回填号码所属的国家', async () => {
+      const wrapper = mountInput({ value: '+886912345678' })
+      await flushPromises()
+
+      expect(countryText(wrapper)).toContain('+886')
+    })
+
+    it('点输入框时整段选取已选国家名称，键入即取代它开始搜索（不会插进名称中间）', async () => {
+      const wrapper = mountInput({ value: '+886912345678' }, {}, { attachTo: document.body })
+      await flushPromises()
+      const input = wrapper.find('[role="combobox"]')
+      const element = input.element as HTMLInputElement
+      element.setSelectionRange(2, 2)
+
+      await input.trigger('click')
+
+      expect(element.selectionStart).toBe(0)
+      expect(element.selectionEnd).toBe(element.value.length)
+      wrapper.unmount()
+    })
+
+    it('外部改值换了国家时，显示跟着换', async () => {
+      const wrapper = mountInput({ value: '+886912345678' })
+      await flushPromises()
+      await wrapper.setProps({ value: '+8613800138000' })
+      await flushPromises()
+
+      expect(countryText(wrapper)).toContain('+86')
+      expect(countryText(wrapper)).not.toContain('+886')
+    })
   })
 
   it('未传值时国家取浏览器地区（测试环境固定 zh-CN → CN）', () => {

@@ -40,6 +40,11 @@ function rawNationalDigits(value: string | null | undefined): string {
 const parsed = parsePhone(props.value)
 const country = ref(parsed?.country ?? defaultPhoneCountry())
 const national = ref(parsed?.national ?? rawNationalDigits(props.value))
+/**
+ * 国家下拉输入框里的文字。
+ * 组件库只在没接 input-value 时才在挂载时填入选中项文字，这里接了（要拿到键入内容来过滤），
+ * 所以得自己填；外部改值换国家、切换语言时也由下方 watch 同步，不然输入框会是空的或停在旧国家。
+ */
 const query = ref('')
 
 /**
@@ -51,10 +56,31 @@ const query = ref('')
 const lastEmitted = ref(props.value)
 
 const options = computed(() => phoneCountryOptions(locale.value))
+const selectedLabel = computed(() => options.value.find(option => option.value === country.value)?.label ?? '')
 const filteredOptions = computed(() => {
   const keyword = query.value.trim().toLowerCase()
-  return keyword ? options.value.filter(option => option.label.toLowerCase().includes(keyword)) : options.value
+  // 输入框里就是已选国家的名称（刚选完、失焦复原、挂载回填）时不算在搜索，展开下拉要能看到全部国家
+  if (!keyword || query.value === selectedLabel.value) {
+    return options.value
+  }
+  return options.value.filter(option => option.label.toLowerCase().includes(keyword))
 })
+
+watch(selectedLabel, (label) => {
+  query.value = label
+}, { immediate: true })
+
+/**
+ * 点国家输入框时整段选取已选国家名称：输入框平时显示着名称，不选取的话键入会插进名称中间
+ * （「台灣 日本+886」）而搜不到任何国家。已在搜索中（文字不是已选名称）就不动，留着让用户移动光标。
+ * 键盘 Tab 进来时浏览器本来就会整段选取，这里只补鼠标点击。
+ */
+function selectCountryText(event: MouseEvent) {
+  const target = event.target
+  if (target instanceof HTMLInputElement && target.getAttribute('role') === 'combobox' && target.value === selectedLabel.value) {
+    target.select()
+  }
+}
 
 // 挂载时就把当前值的有效性吐出去：表单回填一个已存在的合法号码时，使用方也要能立即拿到校验结果，
 // 不必等用户碰一下输入框。
@@ -102,7 +128,8 @@ defineExpose({ country, national, setCountry, setNational })
 </script>
 
 <template>
-  <div class="xh-input-group" :class="attrs.class" :style="attrs.style">
+  <div class="phone-input" :data-size="props.size" :class="attrs.class" :style="attrs.style" @click="selectCountryText">
+    <!-- 下拉的输入行自带 12rem 最小宽度，比这里给的 140px 宽，不归零会溢出压到右侧号码框（聚焦环也跟着压上去） -->
     <XhComboboxRoot
       v-model:input-value="query"
       :collection="filteredOptions"
@@ -110,7 +137,8 @@ defineExpose({ country, national, setCountry, setNational })
       :disabled="props.disabled"
       :size="props.size"
       :aria-label="t('component.phone_input.country')"
-      style="inline-size: 140px"
+      open-on-click
+      style="inline-size: 140px; --xh-combobox-control-min-w: 0"
       @update:value="(v: string[]) => v[0] && setCountry(v[0])"
     />
     <XInput
@@ -123,3 +151,30 @@ defineExpose({ country, national, setCountry, setNational })
     />
   </div>
 </template>
+
+<style scoped>
+/* 国家与号码分开摆、留控件间距（与认证页「验证码 + 取得验证码」一致），不拼成输入组；间距随尺寸档取同档令牌 */
+.phone-input {
+  /* 号码框在窄屏只分到百来像素，放开组件库输入类的 12rem 最小宽，否则会顶出容器右缘 */
+  --xh-text-field-control-min-w: 0;
+  --xh-text-field-input-min-w: 0;
+
+  display: flex;
+  align-items: stretch;
+  gap: var(--xh-control-gap-md);
+  min-width: 0;
+}
+
+.phone-input[data-size='sm'] {
+  gap: var(--xh-control-gap-sm);
+}
+
+.phone-input[data-size='lg'] {
+  gap: var(--xh-control-gap-lg);
+}
+
+.phone-input > :last-child {
+  flex: 1;
+  min-width: 0;
+}
+</style>
