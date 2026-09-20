@@ -576,7 +576,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="configName">
+        <XhFormFieldGroup name="configName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.config_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -585,7 +585,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="configKey">
+        <XhFormFieldGroup name="configKey">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.config_key') }}</XhFieldLabel>
             <XhFieldControl>
@@ -599,7 +599,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="configGroup">
+        <XhFormFieldGroup name="configGroup">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.config_group') }}</XhFieldLabel>
             <XhFieldControl>
@@ -608,7 +608,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="configType">
+        <XhFormFieldGroup name="configType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.config_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -617,7 +617,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="dataType">
+        <XhFormFieldGroup name="dataType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.data_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -626,7 +626,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="configValue" class="xh-span-2">
+        <XhFormFieldGroup name="configValue" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.config_value') }}</XhFieldLabel>
             <XhFieldControl>
@@ -641,7 +641,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="defaultValue" class="xh-span-2">
+        <XhFormFieldGroup name="defaultValue" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.default_value') }}</XhFieldLabel>
             <XhFieldControl>
@@ -656,7 +656,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isGlobal">
+        <XhFormFieldGroup name="isGlobal">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.is_global_field') }}</XhFieldLabel>
             <XhFieldControl>
@@ -665,7 +665,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isBuiltIn">
+        <XhFormFieldGroup name="isBuiltIn">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.is_builtin_field') }}</XhFieldLabel>
             <XhFieldControl>
@@ -674,7 +674,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isEncrypted">
+        <XhFormFieldGroup name="isEncrypted">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.is_encrypted_field') }}</XhFieldLabel>
             <XhFieldControl>
@@ -683,7 +683,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -692,7 +692,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark">
+        <XhFormFieldGroup name="remark">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.remark') }}</XhFieldLabel>
             <XhFieldControl>
@@ -701,7 +701,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!configForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!configForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.config.status') }}</XhFieldLabel>
             <XhFieldControl>

@@ -92,7 +92,7 @@ const onAuthInvalid = useAuthFormInvalid()
       @keydown="handleKeydown"
       @submit="onSubmit"
     >
-      <XhFormFieldGroup value="newPassword" class="!mb-4">
+      <XhFormFieldGroup name="newPassword" class="!mb-4">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput
@@ -105,7 +105,7 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
-      <XhFormFieldGroup value="confirmPassword" class="!mb-6">
+      <XhFormFieldGroup name="confirmPassword" class="!mb-6">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput

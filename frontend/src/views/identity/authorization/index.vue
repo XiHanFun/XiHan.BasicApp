@@ -526,7 +526,7 @@ async function submitDelegation() {
               class="xh-edit-form-grid"
               @submit="submitDelegation"
             >
-              <XhFormFieldGroup value="delegatorUserId">
+              <XhFormFieldGroup name="delegatorUserId">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_delegator') }}</XhFieldLabel>
                   <XhFieldControl>
@@ -541,7 +541,7 @@ async function submitDelegation() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup value="delegateeUserId">
+              <XhFormFieldGroup name="delegateeUserId">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_delegatee') }}</XhFieldLabel>
                   <XhFieldControl>
@@ -556,7 +556,7 @@ async function submitDelegation() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup value="targetKind">
+              <XhFormFieldGroup name="targetKind">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_target_kind') }}</XhFieldLabel>
                   <XhFieldControl>
@@ -565,7 +565,7 @@ async function submitDelegation() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup v-if="delegationForm.targetKind === 'role'" value="roleId">
+              <XhFormFieldGroup v-if="delegationForm.targetKind === 'role'" name="roleId">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_role') }}</XhFieldLabel>
                   <XhFieldControl>
@@ -580,7 +580,7 @@ async function submitDelegation() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup v-else value="permissionId">
+              <XhFormFieldGroup v-else name="permissionId">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_permission') }}</XhFieldLabel>
                   <XhFieldControl>
@@ -595,7 +595,7 @@ async function submitDelegation() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup value="effectiveTime">
+              <XhFormFieldGroup name="effectiveTime">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_effective_time') }}</XhFieldLabel>
                   <XhFieldControl>
@@ -604,7 +604,7 @@ async function submitDelegation() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup value="expirationTime">
+              <XhFormFieldGroup name="expirationTime">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_expiration_time') }}</XhFieldLabel>
                   <XhFieldControl>
@@ -613,7 +613,7 @@ async function submitDelegation() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup value="delegationReason" class="xh-span-2">
+              <XhFormFieldGroup name="delegationReason" class="xh-span-2">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_reason') }}</XhFieldLabel>
                   <XhFieldControl>

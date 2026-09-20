@@ -441,7 +441,7 @@ const onAuthInvalid = useAuthFormInvalid()
           @keydown="handleKeydown"
           @submit="onSubmit"
         >
-          <XhFormFieldGroup value="username" class="!mb-6">
+          <XhFormFieldGroup name="username" class="!mb-6">
             <XhFieldRoot>
               <XhFieldControl>
                 <XInput
@@ -453,7 +453,7 @@ const onAuthInvalid = useAuthFormInvalid()
               </XhFieldControl>
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="password" class="!mb-6">
+          <XhFormFieldGroup name="password" class="!mb-6">
             <XhFieldRoot>
               <XhFieldControl>
                 <XInput
@@ -466,7 +466,7 @@ const onAuthInvalid = useAuthFormInvalid()
               </XhFieldControl>
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup v-if="loginConfig.captchaEnabled" value="captchaCode" class="!mb-6">
+          <XhFormFieldGroup v-if="loginConfig.captchaEnabled" name="captchaCode" class="!mb-6">
             <XhFieldRoot>
               <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆 -->
               <div class="flex items-center gap-3">

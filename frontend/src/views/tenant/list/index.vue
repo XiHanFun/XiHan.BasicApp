@@ -1282,7 +1282,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="tenantName">
+        <XhFormFieldGroup name="tenantName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.tenant_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1291,7 +1291,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="tenantCode">
+        <XhFormFieldGroup name="tenantCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.tenant_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1305,7 +1305,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="tenantShortName">
+        <XhFormFieldGroup name="tenantShortName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.tenant_short_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1314,7 +1314,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="domain">
+        <XhFormFieldGroup name="domain">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.domain') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1323,7 +1323,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isolationMode">
+        <XhFormFieldGroup name="isolationMode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.isolation_mode') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1333,7 +1333,7 @@ async function handleSubmit() {
           </XhFieldRoot>
         </XhFormFieldGroup>
         <template v-if="tenantForm.isolationMode === TenantIsolationMode.Database">
-          <XhFormFieldGroup value="databaseType">
+          <XhFormFieldGroup name="databaseType">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('tenant.list.database_type') }}</XhFieldLabel>
               <XhFieldControl>
@@ -1347,7 +1347,7 @@ async function handleSubmit() {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="connectionString" class="xh-span-2">
+          <XhFormFieldGroup name="connectionString" class="xh-span-2">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('tenant.list.connection_string') }}</XhFieldLabel>
               <XhFieldControl>
@@ -1363,7 +1363,7 @@ async function handleSubmit() {
             </XhFieldRoot>
           </XhFormFieldGroup>
         </template>
-        <XhFormFieldGroup value="editionId">
+        <XhFormFieldGroup name="editionId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.edition') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1377,7 +1377,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!tenantForm.basicId" value="adminUserName">
+        <XhFormFieldGroup v-if="!tenantForm.basicId" name="adminUserName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.admin_user_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1386,7 +1386,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!tenantForm.basicId" value="adminEmail">
+        <XhFormFieldGroup v-if="!tenantForm.basicId" name="adminEmail">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.admin_email') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1401,7 +1401,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!tenantForm.basicId" value="adminPassword">
+        <XhFormFieldGroup v-if="!tenantForm.basicId" name="adminPassword">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.admin_password') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1416,7 +1416,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="userLimit">
+        <XhFormFieldGroup name="userLimit">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.user_limit') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1430,7 +1430,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="storageLimit">
+        <XhFormFieldGroup name="storageLimit">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.storage_limit') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1444,7 +1444,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1453,7 +1453,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="tenantForm.basicId" value="tenantStatus">
+        <XhFormFieldGroup v-if="tenantForm.basicId" name="tenantStatus">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.tenant_status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1462,7 +1462,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="expirationTime">
+        <XhFormFieldGroup name="expirationTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1475,7 +1475,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="logo">
+        <XhFormFieldGroup name="logo">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.logo') }}</XhFieldLabel>
             <XhFieldControl :as-child="false">
@@ -1484,7 +1484,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.remark') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1514,7 +1514,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSaveNewMember"
       >
-        <XhFormFieldGroup value="userId" class="xh-span-2">
+        <XhFormFieldGroup name="userId" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_user') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1529,7 +1529,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="memberType">
+        <XhFormFieldGroup name="memberType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1538,7 +1538,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="displayName">
+        <XhFormFieldGroup name="displayName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_display_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1547,7 +1547,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="effectiveTime">
+        <XhFormFieldGroup name="effectiveTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_effective_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1560,7 +1560,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="expirationTime">
+        <XhFormFieldGroup name="expirationTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1573,7 +1573,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="memberAddMode === 'invite'" value="inviteRemark" class="xh-span-2">
+        <XhFormFieldGroup v-if="memberAddMode === 'invite'" name="inviteRemark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_invite_remark') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1588,7 +1588,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.remark') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1619,7 +1619,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSaveMember"
       >
-        <XhFormFieldGroup value="displayName">
+        <XhFormFieldGroup name="displayName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_display_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1628,7 +1628,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="memberType">
+        <XhFormFieldGroup name="memberType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1637,7 +1637,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="effectiveTime">
+        <XhFormFieldGroup name="effectiveTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_effective_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1650,7 +1650,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="expirationTime">
+        <XhFormFieldGroup name="expirationTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1663,7 +1663,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="inviteRemark" class="xh-span-2">
+        <XhFormFieldGroup name="inviteRemark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_invite_remark') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1678,7 +1678,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_remark') }}</XhFieldLabel>
             <XhFieldControl>

@@ -909,7 +909,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="permissionName">
+        <XhFormFieldGroup name="permissionName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_permission_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -918,7 +918,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="permissionCode">
+        <XhFormFieldGroup name="permissionCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_permission_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -932,7 +932,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="moduleCode">
+        <XhFormFieldGroup name="moduleCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_module_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -946,7 +946,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="permissionType">
+        <XhFormFieldGroup name="permissionType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_permission_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -959,7 +959,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="isResourceBasedForm" value="resourceId">
+        <XhFormFieldGroup v-if="isResourceBasedForm" name="resourceId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_resource') }}</XhFieldLabel>
             <XhFieldControl>
@@ -976,7 +976,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="isResourceBasedForm" value="operationId">
+        <XhFormFieldGroup v-if="isResourceBasedForm" name="operationId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_operation') }}</XhFieldLabel>
             <XhFieldControl>
@@ -993,7 +993,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isRequireAudit">
+        <XhFormFieldGroup name="isRequireAudit">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_need_audit') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1002,7 +1002,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!permissionForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!permissionForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1011,7 +1011,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="priority">
+        <XhFormFieldGroup name="priority">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_priority') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1020,7 +1020,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1029,7 +1029,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="tags" class="xh-span-2">
+        <XhFormFieldGroup name="tags" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_tags_json') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1044,7 +1044,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark">
+        <XhFormFieldGroup name="remark">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_remark') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1053,7 +1053,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="permissionDescription" class="xh-span-2">
+        <XhFormFieldGroup name="permissionDescription" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_description') }}</XhFieldLabel>
             <XhFieldControl>

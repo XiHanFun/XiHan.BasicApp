@@ -366,7 +366,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="assistantCode">
+        <XhFormFieldGroup name="assistantCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_assistant_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -380,7 +380,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="assistantName">
+        <XhFormFieldGroup name="assistantName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_assistant_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -389,7 +389,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="providerCode">
+        <XhFormFieldGroup name="providerCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_provider_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -398,7 +398,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="promptCode">
+        <XhFormFieldGroup name="promptCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_prompt_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -407,7 +407,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="enableKnowledge">
+        <XhFormFieldGroup name="enableKnowledge">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_enable_knowledge') }}</XhFieldLabel>
             <XhFieldControl>
@@ -416,7 +416,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="knowledgeProviderCode">
+        <XhFormFieldGroup name="knowledgeProviderCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_knowledge_provider_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -425,7 +425,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="knowledgeTopK">
+        <XhFormFieldGroup name="knowledgeTopK">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_knowledge_top_k') }}</XhFieldLabel>
             <XhFieldControl>
@@ -434,7 +434,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="historyRounds">
+        <XhFormFieldGroup name="historyRounds">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_history_rounds') }}</XhFieldLabel>
             <XhFieldControl>
@@ -443,7 +443,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="avatar">
+        <XhFormFieldGroup name="avatar">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_avatar') }}</XhFieldLabel>
             <XhFieldControl>
@@ -452,7 +452,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('common.fields.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -461,7 +461,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isDefault">
+        <XhFormFieldGroup name="isDefault">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_is_default') }}</XhFieldLabel>
             <XhFieldControl>
@@ -470,7 +470,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isEnabled">
+        <XhFormFieldGroup name="isEnabled">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_is_enabled') }}</XhFieldLabel>
             <XhFieldControl>
@@ -479,7 +479,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!form.basicId" value="status">
+        <XhFormFieldGroup v-if="!form.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -488,7 +488,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="description" class="xh-span-2">
+        <XhFormFieldGroup name="description" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_description') }}</XhFieldLabel>
             <XhFieldControl>
@@ -497,7 +497,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="greeting" class="xh-span-2">
+        <XhFormFieldGroup name="greeting" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_assistant.form_greeting') }}</XhFieldLabel>
             <XhFieldControl>
@@ -512,7 +512,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('common.fields.remark') }}</XhFieldLabel>
             <XhFieldControl>

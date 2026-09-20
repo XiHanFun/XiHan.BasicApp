@@ -1111,7 +1111,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="roleName">
+        <XhFormFieldGroup name="roleName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_role_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1120,7 +1120,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="roleCode">
+        <XhFormFieldGroup name="roleCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_role_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1134,7 +1134,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="roleType">
+        <XhFormFieldGroup name="roleType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_role_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1143,7 +1143,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="dataScope">
+        <XhFormFieldGroup name="dataScope">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_data_scope') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1152,7 +1152,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="maxMembers">
+        <XhFormFieldGroup name="maxMembers">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_max_members') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1161,7 +1161,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1170,7 +1170,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="status">
+        <XhFormFieldGroup name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1179,7 +1179,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark">
+        <XhFormFieldGroup name="remark">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_remark') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1188,7 +1188,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="roleDescription" class="xh-span-2">
+        <XhFormFieldGroup name="roleDescription" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_description') }}</XhFieldLabel>
             <XhFieldControl>

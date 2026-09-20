@@ -334,7 +334,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="templateCode">
+        <XhFormFieldGroup name="templateCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_template_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -348,7 +348,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="channel">
+        <XhFormFieldGroup name="channel">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_channel') }}</XhFieldLabel>
             <XhFieldControl>
@@ -361,7 +361,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="templateName">
+        <XhFormFieldGroup name="templateName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_template_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -370,7 +370,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -379,7 +379,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="subject" class="xh-span-2">
+        <XhFormFieldGroup name="subject" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_subject') }}</XhFieldLabel>
             <XhFieldControl>
@@ -388,7 +388,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="content" class="xh-span-2">
+        <XhFormFieldGroup name="content" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_content') }}</XhFieldLabel>
             <XhFieldControl :as-child="false">
@@ -414,7 +414,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isHtml">
+        <XhFormFieldGroup name="isHtml">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_is_html') }}</XhFieldLabel>
             <XhFieldControl>
@@ -423,7 +423,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!templateForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!templateForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -432,7 +432,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="description" class="xh-span-2">
+        <XhFormFieldGroup name="description" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_description') }}</XhFieldLabel>
             <XhFieldControl>
@@ -441,7 +441,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.template.form_remark') }}</XhFieldLabel>
             <XhFieldControl>

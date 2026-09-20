@@ -1042,7 +1042,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="taskCode">
+        <XhFormFieldGroup name="taskCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.task_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1056,7 +1056,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="taskName">
+        <XhFormFieldGroup name="taskName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.task_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1065,7 +1065,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="taskGroup">
+        <XhFormFieldGroup name="taskGroup">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.task_group') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1074,7 +1074,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="triggerType">
+        <XhFormFieldGroup name="triggerType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.trigger_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1083,7 +1083,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="taskClass">
+        <XhFormFieldGroup name="taskClass">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.task_class') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1092,7 +1092,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="taskMethod">
+        <XhFormFieldGroup name="taskMethod">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.task_method') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1101,7 +1101,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="cronExpression" class="xh-span-2">
+        <XhFormFieldGroup name="cronExpression" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.cron_expression') }}</XhFieldLabel>
             <XhFieldControl :as-child="false">
@@ -1110,7 +1110,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="intervalSeconds">
+        <XhFormFieldGroup name="intervalSeconds">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.interval_label') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1119,7 +1119,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="priority">
+        <XhFormFieldGroup name="priority">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.priority') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1128,7 +1128,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="timeoutSeconds">
+        <XhFormFieldGroup name="timeoutSeconds">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.timeout_label') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1137,7 +1137,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="maxRetryCount">
+        <XhFormFieldGroup name="maxRetryCount">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.max_retry_count') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1146,7 +1146,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="allowConcurrent">
+        <XhFormFieldGroup name="allowConcurrent">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.allow_concurrent') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1155,7 +1155,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="taskParams" class="xh-span-2">
+        <XhFormFieldGroup name="taskParams" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.task_params') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1170,7 +1170,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="taskDescription" class="xh-span-2">
+        <XhFormFieldGroup name="taskDescription" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.task_description') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1185,7 +1185,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.remark') }}</XhFieldLabel>
             <XhFieldControl>

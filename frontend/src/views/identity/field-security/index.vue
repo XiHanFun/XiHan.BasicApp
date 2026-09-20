@@ -509,7 +509,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="targetType">
+        <XhFormFieldGroup name="targetType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_target_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -522,7 +522,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="targetId">
+        <XhFormFieldGroup name="targetId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_target') }}</XhFieldLabel>
             <XhFieldControl>
@@ -538,7 +538,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="resourceId">
+        <XhFormFieldGroup name="resourceId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_resource') }}</XhFieldLabel>
             <XhFieldControl>
@@ -554,7 +554,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="fieldName">
+        <XhFormFieldGroup name="fieldName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_field_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -563,7 +563,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isReadable">
+        <XhFormFieldGroup name="isReadable">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_readable') }}</XhFieldLabel>
             <XhFieldControl>
@@ -572,7 +572,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isEditable">
+        <XhFormFieldGroup name="isEditable">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_editable') }}</XhFieldLabel>
             <XhFieldControl>
@@ -581,7 +581,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="maskStrategy">
+        <XhFormFieldGroup name="maskStrategy">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_mask_strategy') }}</XhFieldLabel>
             <XhFieldControl>
@@ -590,7 +590,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="needMaskPattern" value="maskPattern">
+        <XhFormFieldGroup v-if="needMaskPattern" name="maskPattern">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_mask_pattern') }}</XhFieldLabel>
             <XhFieldControl>
@@ -603,7 +603,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="priority">
+        <XhFormFieldGroup name="priority">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_priority') }}</XhFieldLabel>
             <XhFieldControl>
@@ -612,7 +612,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!flsForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!flsForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -621,7 +621,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="description" class="xh-span-2">
+        <XhFormFieldGroup name="description" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_description') }}</XhFieldLabel>
             <XhFieldControl>
@@ -636,7 +636,7 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark">
+        <XhFormFieldGroup name="remark">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_remark') }}</XhFieldLabel>
             <XhFieldControl>

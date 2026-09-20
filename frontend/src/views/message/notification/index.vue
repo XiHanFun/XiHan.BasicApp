@@ -700,7 +700,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="title" class="xh-span-2">
+        <XhFormFieldGroup name="title" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_title') }}</XhFieldLabel>
             <XhFieldControl>
@@ -709,7 +709,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="priority">
+        <XhFormFieldGroup name="priority">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_priority') }}</XhFieldLabel>
             <XhFieldControl>
@@ -718,7 +718,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="contentFormat">
+        <XhFormFieldGroup name="contentFormat">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_content_format') }}</XhFieldLabel>
             <XhFieldControl>
@@ -727,7 +727,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="content" class="xh-span-2">
+        <XhFormFieldGroup name="content" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_content') }}</XhFieldLabel>
             <XhFieldControl :as-child="false">
@@ -759,7 +759,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="notificationType">
+        <XhFormFieldGroup name="notificationType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -768,7 +768,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="targetType">
+        <XhFormFieldGroup name="targetType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_target_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -777,7 +777,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="deliveryChannels" class="xh-span-2">
+        <XhFormFieldGroup name="deliveryChannels" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_delivery_channels') }}</XhFieldLabel>
             <div>
@@ -808,7 +808,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="isUserTarget" value="userIds" class="xh-span-2">
+        <XhFormFieldGroup v-if="isUserTarget" name="userIds" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_user_ids') }}</XhFieldLabel>
             <XhFieldControl>
@@ -817,7 +817,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-else-if="isRoleTarget" value="userIds" class="xh-span-2">
+        <XhFormFieldGroup v-else-if="isRoleTarget" name="userIds" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_role_ids') }}</XhFieldLabel>
             <XhFieldControl>
@@ -826,7 +826,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-else-if="isDepartmentTarget" value="userIds" class="xh-span-2">
+        <XhFormFieldGroup v-else-if="isDepartmentTarget" name="userIds" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_department_ids') }}</XhFieldLabel>
             <XhFieldControl>
@@ -835,7 +835,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="icon">
+        <XhFormFieldGroup name="icon">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_icon') }}</XhFieldLabel>
             <XhFieldControl :as-child="false">
@@ -844,7 +844,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="link">
+        <XhFormFieldGroup name="link">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_link') }}</XhFieldLabel>
             <XhFieldControl>
@@ -853,7 +853,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="startTime">
+        <XhFormFieldGroup name="startTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_start_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -866,7 +866,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="expirationTime">
+        <XhFormFieldGroup name="expirationTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -880,7 +880,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="needConfirm">
+        <XhFormFieldGroup name="needConfirm">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_need_confirm') }}</XhFieldLabel>
             <XhFieldControl>
@@ -889,7 +889,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isMandatory">
+        <XhFormFieldGroup name="isMandatory">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_mandatory') }}</XhFieldLabel>
             <XhFieldControl>
@@ -898,7 +898,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isBanner">
+        <XhFormFieldGroup name="isBanner">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_banner') }}</XhFieldLabel>
             <XhFieldControl>
@@ -907,7 +907,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isPopup">
+        <XhFormFieldGroup name="isPopup">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_popup') }}</XhFieldLabel>
             <XhFieldControl>

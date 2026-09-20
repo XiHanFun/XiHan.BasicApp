@@ -294,7 +294,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="promptCode">
+        <XhFormFieldGroup name="promptCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_prompt.form_prompt_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -308,7 +308,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="promptName">
+        <XhFormFieldGroup name="promptName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_prompt.form_prompt_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -317,7 +317,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="category">
+        <XhFormFieldGroup name="category">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_prompt.form_category') }}</XhFieldLabel>
             <XhFieldControl>
@@ -326,7 +326,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="version">
+        <XhFormFieldGroup name="version">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_prompt.form_version') }}</XhFieldLabel>
             <XhFieldControl>
@@ -335,7 +335,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_prompt.form_sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -344,7 +344,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isEnabled">
+        <XhFormFieldGroup name="isEnabled">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_prompt.form_is_enabled') }}</XhFieldLabel>
             <XhFieldControl>
@@ -353,7 +353,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!form.basicId" value="status">
+        <XhFormFieldGroup v-if="!form.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -362,7 +362,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="content" class="xh-span-2">
+        <XhFormFieldGroup name="content" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_prompt.form_content') }}</XhFieldLabel>
             <XhFieldControl>
@@ -377,7 +377,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('common.fields.remark') }}</XhFieldLabel>
             <XhFieldControl>

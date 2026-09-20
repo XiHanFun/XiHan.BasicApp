@@ -576,7 +576,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="appName">
+        <XhFormFieldGroup name="appName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_app_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -585,7 +585,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!appForm.basicId" value="clientId">
+        <XhFormFieldGroup v-if="!appForm.basicId" name="clientId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_client_id') }}</XhFieldLabel>
             <XhFieldControl>
@@ -594,7 +594,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-else value="clientId">
+        <XhFormFieldGroup v-else name="clientId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_client_id') }}</XhFieldLabel>
             <XhFieldControl>
@@ -603,7 +603,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!appForm.basicId" value="appType">
+        <XhFormFieldGroup v-if="!appForm.basicId" name="appType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_app_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -612,7 +612,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="grantTypes">
+        <XhFormFieldGroup name="grantTypes">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_grant_types') }}</XhFieldLabel>
             <XhFieldControl>
@@ -621,7 +621,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="scopes">
+        <XhFormFieldGroup name="scopes">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_scopes') }}</XhFieldLabel>
             <XhFieldControl>
@@ -630,7 +630,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="redirectUris" class="xh-span-2">
+        <XhFormFieldGroup name="redirectUris" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_redirect_uris') }}</XhFieldLabel>
             <XhFieldControl>
@@ -639,7 +639,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="homepage">
+        <XhFormFieldGroup name="homepage">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_homepage') }}</XhFieldLabel>
             <XhFieldControl>
@@ -648,7 +648,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="logo">
+        <XhFormFieldGroup name="logo">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_logo') }}</XhFieldLabel>
             <XhFieldControl>
@@ -657,7 +657,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="accessTokenLifetime">
+        <XhFormFieldGroup name="accessTokenLifetime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_access_token_lifetime') }}</XhFieldLabel>
             <XhFieldControl>
@@ -666,7 +666,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="refreshTokenLifetime">
+        <XhFormFieldGroup name="refreshTokenLifetime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_refresh_token_lifetime') }}</XhFieldLabel>
             <XhFieldControl>
@@ -675,7 +675,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="authorizationCodeLifetime">
+        <XhFormFieldGroup name="authorizationCodeLifetime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_authorization_code_lifetime') }}</XhFieldLabel>
             <XhFieldControl>
@@ -684,7 +684,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="skipConsent">
+        <XhFormFieldGroup name="skipConsent">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_skip_consent') }}</XhFieldLabel>
             <XhFieldControl>
@@ -693,7 +693,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!appForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!appForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -702,7 +702,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="appDescription" class="xh-span-2">
+        <XhFormFieldGroup name="appDescription" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_app_description') }}</XhFieldLabel>
             <XhFieldControl>
@@ -717,7 +717,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('openapi.app.form_remark') }}</XhFieldLabel>
             <XhFieldControl>

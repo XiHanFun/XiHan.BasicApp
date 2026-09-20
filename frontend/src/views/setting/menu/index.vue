@@ -848,7 +848,7 @@ onMounted(() => {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="menuName">
+        <XhFormFieldGroup name="menuName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.menu_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -857,7 +857,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="menuCode">
+        <XhFormFieldGroup name="menuCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.menu_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -871,7 +871,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="parentId">
+        <XhFormFieldGroup name="parentId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.parent_menu') }}</XhFieldLabel>
             <XhFieldControl>
@@ -880,7 +880,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="menuType">
+        <XhFormFieldGroup name="menuType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.menu_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -889,7 +889,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="path">
+        <XhFormFieldGroup name="path">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.route_path') }}</XhFieldLabel>
             <XhFieldControl>
@@ -898,7 +898,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="routeName">
+        <XhFormFieldGroup name="routeName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.route_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -907,7 +907,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="component">
+        <XhFormFieldGroup name="component">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.component_path') }}</XhFieldLabel>
             <XhFieldControl>
@@ -916,7 +916,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="redirect">
+        <XhFormFieldGroup name="redirect">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.redirect') }}</XhFieldLabel>
             <XhFieldControl>
@@ -925,7 +925,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="icon">
+        <XhFormFieldGroup name="icon">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.icon') }}</XhFieldLabel>
             <XhFieldControl :as-child="false">
@@ -934,7 +934,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="title">
+        <XhFormFieldGroup name="title">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.title') }}</XhFieldLabel>
             <XhFieldControl>
@@ -943,7 +943,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="i18nKey">
+        <XhFormFieldGroup name="i18nKey">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.i18n_key') }}</XhFieldLabel>
             <XhFieldControl>
@@ -952,7 +952,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -961,7 +961,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="badge">
+        <XhFormFieldGroup name="badge">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.badge_content') }}</XhFieldLabel>
             <XhFieldControl>
@@ -970,7 +970,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="badgeType">
+        <XhFormFieldGroup name="badgeType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.badge_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -986,7 +986,7 @@ onMounted(() => {
           </XhFieldControl>
           <XhFieldErrorText />
         </XhFieldRoot>
-        <XhFormFieldGroup v-if="!menuForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!menuForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1023,7 +1023,7 @@ onMounted(() => {
           </XhFieldControl>
           <XhFieldErrorText />
         </XhFieldRoot>
-        <XhFormFieldGroup v-if="menuForm.isExternal" value="externalUrl" class="xh-span-2">
+        <XhFormFieldGroup v-if="menuForm.isExternal" name="externalUrl" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.external_url') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1032,7 +1032,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.menu.remark') }}</XhFieldLabel>
             <XhFieldControl>

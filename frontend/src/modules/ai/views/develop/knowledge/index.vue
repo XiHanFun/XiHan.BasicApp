@@ -327,7 +327,7 @@ async function handleQuery() {
               class="xh-edit-form-grid"
               @submit="handleSubmit"
             >
-              <XhFormFieldGroup value="title">
+              <XhFormFieldGroup name="title">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('develop.knowledge.form_title') }}</XhFieldLabel>
                   <XhFieldControl>
@@ -336,7 +336,7 @@ async function handleQuery() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup value="embeddingProviderCode">
+              <XhFormFieldGroup name="embeddingProviderCode">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('develop.knowledge.form_provider') }}</XhFieldLabel>
                   <XhFieldControl>
@@ -345,7 +345,7 @@ async function handleQuery() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup value="text" class="xh-span-2">
+              <XhFormFieldGroup name="text" class="xh-span-2">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('develop.knowledge.form_text') }}</XhFieldLabel>
                   <div class="knowledge__text">
@@ -368,7 +368,7 @@ async function handleQuery() {
                   <XhFieldErrorText />
                 </XhFieldRoot>
               </XhFormFieldGroup>
-              <XhFormFieldGroup value="remark" class="xh-span-2">
+              <XhFormFieldGroup name="remark" class="xh-span-2">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('common.fields.remark') }}</XhFieldLabel>
                   <XhFieldControl>

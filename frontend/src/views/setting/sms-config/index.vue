@@ -451,7 +451,7 @@ function handleDelete(row: SmsConfigListItemDto) {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="configCode">
+        <XhFormFieldGroup name="configCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.config_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -465,7 +465,7 @@ function handleDelete(row: SmsConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="configName">
+        <XhFormFieldGroup name="configName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.config_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -474,7 +474,7 @@ function handleDelete(row: SmsConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="provider">
+        <XhFormFieldGroup name="provider">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.provider') }}</XhFieldLabel>
             <XhFieldControl>
@@ -483,7 +483,7 @@ function handleDelete(row: SmsConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="signName">
+        <XhFormFieldGroup name="signName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.sign_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -492,7 +492,7 @@ function handleDelete(row: SmsConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="accessKeyId">
+        <XhFormFieldGroup name="accessKeyId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.access_key_id') }}</XhFieldLabel>
             <XhFieldControl>
@@ -501,7 +501,7 @@ function handleDelete(row: SmsConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="accessKeySecret">
+        <XhFormFieldGroup name="accessKeySecret">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.access_key_secret') }}</XhFieldLabel>
             <XhFieldControl>
@@ -517,7 +517,7 @@ function handleDelete(row: SmsConfigListItemDto) {
         </XhFormFieldGroup>
 
         <template v-if="isTencentCloud">
-          <XhFormFieldGroup value="sdkAppId">
+          <XhFormFieldGroup name="sdkAppId">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('message.sms_config.form.sdk_app_id') }}</XhFieldLabel>
               <XhFieldControl>
@@ -526,7 +526,7 @@ function handleDelete(row: SmsConfigListItemDto) {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="region">
+          <XhFormFieldGroup name="region">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('message.sms_config.form.region') }}</XhFieldLabel>
               <XhFieldControl>
@@ -537,7 +537,7 @@ function handleDelete(row: SmsConfigListItemDto) {
           </XhFormFieldGroup>
         </template>
 
-        <XhFormFieldGroup value="templateMap" class="xh-span-2">
+        <XhFormFieldGroup name="templateMap" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.template_map') }}</XhFieldLabel>
             <XhFieldControl>
@@ -551,7 +551,7 @@ function handleDelete(row: SmsConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -562,7 +562,7 @@ function handleDelete(row: SmsConfigListItemDto) {
         </XhFormFieldGroup>
 
         <template v-if="!form.basicId">
-          <XhFormFieldGroup value="isEnabled">
+          <XhFormFieldGroup name="isEnabled">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('message.sms_config.form.is_enabled') }}</XhFieldLabel>
               <XhFieldControl>
@@ -571,7 +571,7 @@ function handleDelete(row: SmsConfigListItemDto) {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="isDefault">
+          <XhFormFieldGroup name="isDefault">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('message.sms_config.form.is_default') }}</XhFieldLabel>
               <XhFieldControl>
@@ -582,7 +582,7 @@ function handleDelete(row: SmsConfigListItemDto) {
           </XhFormFieldGroup>
         </template>
 
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.sms_config.form.remark') }}</XhFieldLabel>
             <XhFieldControl>
