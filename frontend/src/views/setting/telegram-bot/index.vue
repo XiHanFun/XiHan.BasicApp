@@ -201,7 +201,7 @@ async function handleEdit(row: TelegramBotListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.telegram_bot.message.load_detail_failed'))
+    toast.danger((e as Error).message || t('message.telegram_bot.message.load_detail_failed'))
   }
 }
 
@@ -276,7 +276,7 @@ async function handleSubmit() {
     reloadList()
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.telegram_bot.message.save_failed'))
+    toast.danger((e as Error).message || t('message.telegram_bot.message.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -300,7 +300,7 @@ function handleToggleStatus(row: TelegramBotListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('message.telegram_bot.message.status_update_failed'))
+        toast.danger((e as Error).message || t('message.telegram_bot.message.status_update_failed'))
       }
     },
   })
@@ -321,7 +321,7 @@ function handleDelete(row: TelegramBotListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('message.telegram_bot.message.delete_failed'))
+        toast.danger((e as Error).message || t('message.telegram_bot.message.delete_failed'))
       }
     },
   })

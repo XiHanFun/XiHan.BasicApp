@@ -263,7 +263,7 @@ async function handleGenerate(row: CodeGenTableListItemDto) {
       genType: GenType.Zip,
     })
     if (!result.success) {
-      toast.error(result.message || t('develop.code_gen.generate.generate_failed'))
+      toast.danger(result.message || t('develop.code_gen.generate.generate_failed'))
       return
     }
     if (result.packageBase64) {
@@ -276,7 +276,7 @@ async function handleGenerate(row: CodeGenTableListItemDto) {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.generate.generate_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.generate.generate_failed'))
   }
   finally {
     generating.value = false
@@ -295,7 +295,7 @@ async function handleGenerateToDisk(row: CodeGenTableListItemDto) {
       genType: GenType.CustomPath,
     })
     if (!result.success) {
-      toast.error(result.message || t('develop.code_gen.generate.write_failed'))
+      toast.danger(result.message || t('develop.code_gen.generate.write_failed'))
       return
     }
     toast.success(t('develop.code_gen.generate.write_success', {
@@ -305,7 +305,7 @@ async function handleGenerateToDisk(row: CodeGenTableListItemDto) {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.generate.write_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.generate.write_failed'))
   }
   finally {
     generating.value = false
@@ -331,7 +331,7 @@ function handleSync(row: CodeGenTableListItemDto) {
         reload()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('develop.code_gen.table.sync_failed'))
+        toast.danger((error as Error)?.message || t('develop.code_gen.table.sync_failed'))
       }
     },
   })
@@ -352,7 +352,7 @@ function handleDelete(row: CodeGenTableListItemDto) {
         reload()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })

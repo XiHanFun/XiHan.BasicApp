@@ -215,7 +215,7 @@ async function handleDetail(row: ReviewListItemDto) {
     detailData.value = await approvalManagementApi.detail(row.basicId) ?? null
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('approval.review.err_load_detail'))
+    toast.danger((error as Error)?.message || t('approval.review.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -251,7 +251,7 @@ async function handleAudit() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('approval.review.err_audit'))
+    toast.danger((error as Error)?.message || t('approval.review.err_audit'))
   }
   finally {
     actionLoading.value = false
@@ -269,7 +269,7 @@ async function handleWithdraw() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('approval.review.err_withdraw'))
+    toast.danger((error as Error)?.message || t('approval.review.err_withdraw'))
   }
   finally {
     actionLoading.value = false
@@ -284,7 +284,7 @@ async function handleToggleStatus(row: ReviewListItemDto) {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('approval.review.err_update_status'))
+    toast.danger((error as Error)?.message || t('approval.review.err_update_status'))
   }
 }
 
@@ -295,7 +295,7 @@ async function handleDelete(row: ReviewListItemDto) {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('approval.review.err_delete'))
+    toast.danger((error as Error)?.message || t('approval.review.err_delete'))
   }
 }
 

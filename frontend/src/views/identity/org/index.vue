@@ -324,7 +324,7 @@ async function handleEdit(row: DepartmentListItemDto) {
     deptForm.value = buildFormModel(detail ?? row)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
+    toast.danger((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
     deptForm.value = buildFormModel(row)
   }
   modalVisible.value = true
@@ -346,7 +346,7 @@ async function handleView(row: DepartmentListItemDto) {
     managementDetail.value = detail
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
+    toast.danger((error as Error)?.message || t('identity.org.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -361,7 +361,7 @@ async function handleToggleStatus(row: DepartmentListItemDto) {
     await reloadAll()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.org.msg_status_failed'))
+    toast.danger((error as Error)?.message || t('identity.org.msg_status_failed'))
   }
 }
 
@@ -441,7 +441,7 @@ async function submitMembership() {
     await refreshManagementDetail()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     membershipLoading.value = false
@@ -505,7 +505,7 @@ async function handleSubmit() {
     await reloadAll()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

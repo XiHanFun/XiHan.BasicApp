@@ -254,7 +254,7 @@ async function handleEdit(row: SmsConfigListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.sms_config.message.load_detail_failed'))
+    toast.danger((e as Error).message || t('message.sms_config.message.load_detail_failed'))
   }
 }
 
@@ -360,7 +360,7 @@ async function handleSubmit() {
     reloadList()
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.sms_config.message.save_failed'))
+    toast.danger((e as Error).message || t('message.sms_config.message.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -384,7 +384,7 @@ function handleToggleStatus(row: SmsConfigListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('message.sms_config.message.status_update_failed'))
+        toast.danger((e as Error).message || t('message.sms_config.message.status_update_failed'))
       }
     },
   })
@@ -404,7 +404,7 @@ function handleSetDefault(row: SmsConfigListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('message.sms_config.message.set_default_failed'))
+        toast.danger((e as Error).message || t('message.sms_config.message.set_default_failed'))
       }
     },
   })
@@ -425,7 +425,7 @@ function handleDelete(row: SmsConfigListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('message.sms_config.message.delete_failed'))
+        toast.danger((e as Error).message || t('message.sms_config.message.delete_failed'))
       }
     },
   })

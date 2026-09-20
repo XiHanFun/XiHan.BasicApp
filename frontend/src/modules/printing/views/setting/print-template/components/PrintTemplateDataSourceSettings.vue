@@ -29,7 +29,7 @@ onMounted(async () => {
   }
   catch (error) {
     // 拉取失败明确提示，避免把网络或权限异常误呈现为「数据源不存在」
-    toast.error(t('setting.print_template.data_source_catalog_load_failed'))
+    toast.danger(t('setting.print_template.data_source_catalog_load_failed'))
     console.error(error)
   }
   finally {

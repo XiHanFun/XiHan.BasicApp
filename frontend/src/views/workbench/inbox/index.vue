@@ -134,7 +134,7 @@ async function loadNotifications() {
     syncHeaderStore(list)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workbench.inbox.load_failed'))
+    toast.danger((error as Error)?.message || t('workbench.inbox.load_failed'))
   }
   finally {
     loading.value = false
@@ -153,7 +153,7 @@ async function handleMarkRead(item: UserInboxItemDto) {
     notificationStore.markItemRead(item.basicId)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workbench.inbox.mark_read_failed'))
+    toast.danger((error as Error)?.message || t('workbench.inbox.mark_read_failed'))
   }
 }
 
@@ -167,7 +167,7 @@ async function handleConfirm(item: UserInboxItemDto) {
     notificationStore.markItemConfirmed(item.basicId)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workbench.inbox.confirm_failed'))
+    toast.danger((error as Error)?.message || t('workbench.inbox.confirm_failed'))
   }
 }
 
@@ -188,7 +188,7 @@ async function handleMarkAllRead() {
     notificationStore.markAllRead()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workbench.inbox.mark_all_read_failed'))
+    toast.danger((error as Error)?.message || t('workbench.inbox.mark_all_read_failed'))
   }
 }
 

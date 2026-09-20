@@ -97,7 +97,7 @@ async function handleDetail(row: MigrationHistoryListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    toast.error((error as Error)?.message || t('log.migration.detail_load_failed'))
+    toast.danger((error as Error)?.message || t('log.migration.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

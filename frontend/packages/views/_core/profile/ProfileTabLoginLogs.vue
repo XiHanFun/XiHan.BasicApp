@@ -88,7 +88,7 @@ async function loadLogs(nextPage = 1) {
   catch (e: unknown) {
     logs.value = []
     total.value = 0
-    toast.error((e as Error)?.message || t('component.profile.login_logs.err_load_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.login_logs.err_load_failed'))
   }
   finally {
     loading.value = false

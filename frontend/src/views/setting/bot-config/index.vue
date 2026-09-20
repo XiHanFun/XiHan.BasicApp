@@ -256,7 +256,7 @@ async function handleEdit(row: BotConfigListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.bot_config.message.load_detail_failed'))
+    toast.danger((e as Error).message || t('message.bot_config.message.load_detail_failed'))
   }
 }
 
@@ -322,7 +322,7 @@ async function handleSubmit() {
     reloadList()
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.bot_config.message.save_failed'))
+    toast.danger((e as Error).message || t('message.bot_config.message.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -346,7 +346,7 @@ function handleToggleStatus(row: BotConfigListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('message.bot_config.message.status_update_failed'))
+        toast.danger((e as Error).message || t('message.bot_config.message.status_update_failed'))
       }
     },
   })
@@ -366,7 +366,7 @@ function handleSetDefault(row: BotConfigListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('message.bot_config.message.set_default_failed'))
+        toast.danger((e as Error).message || t('message.bot_config.message.set_default_failed'))
       }
     },
   })
@@ -387,7 +387,7 @@ function handleDelete(row: BotConfigListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('message.bot_config.message.delete_failed'))
+        toast.danger((e as Error).message || t('message.bot_config.message.delete_failed'))
       }
     },
   })

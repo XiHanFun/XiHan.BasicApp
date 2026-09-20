@@ -106,7 +106,7 @@ async function handleDetail(row: VersionListItemDto) {
     detailData.value = await versionApi.detail(row.basicId) ?? null
   }
   catch (e) {
-    toast.error((e as Error).message || t('setting.version.load_detail_failed'))
+    toast.danger((e as Error).message || t('setting.version.load_detail_failed'))
   }
   finally {
     detailLoading.value = false

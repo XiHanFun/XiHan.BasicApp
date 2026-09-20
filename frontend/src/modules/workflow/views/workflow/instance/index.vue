@@ -214,7 +214,7 @@ async function handleDetail(row: WorkflowInstanceListItemDto) {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.instance.err_load_detail'))
+    toast.danger((error as Error)?.message || t('workflow.instance.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -265,7 +265,7 @@ async function handleReasonConfirm() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.instance.err_operation'))
+    toast.danger((error as Error)?.message || t('workflow.instance.err_operation'))
   }
   finally {
     reasonLoading.value = false
@@ -282,7 +282,7 @@ async function handleSimple(action: 'retry' | 'resume', row: WorkflowInstanceLis
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.instance.err_operation'))
+    toast.danger((error as Error)?.message || t('workflow.instance.err_operation'))
   }
 }
 
@@ -310,7 +310,7 @@ async function handleSignal() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.instance.err_operation'))
+    toast.danger((error as Error)?.message || t('workflow.instance.err_operation'))
   }
   finally {
     signalLoading.value = false

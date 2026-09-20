@@ -58,7 +58,7 @@ async function loadColumns() {
     rows.value = await codeGenTableColumnApi.getByTable(props.tableId)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.column.load_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.column.load_failed'))
     rows.value = []
   }
   finally {
@@ -291,7 +291,7 @@ async function handleSubmit() {
     emit('update:show', false)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

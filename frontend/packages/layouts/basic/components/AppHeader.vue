@@ -241,7 +241,7 @@ async function handleUserAction(key: string) {
       await authStore.stopImpersonation()
     }
     catch (error) {
-      toast.error((error as Error)?.message || t('header.impersonation.stop_failed'))
+      toast.danger((error as Error)?.message || t('header.impersonation.stop_failed'))
     }
     return
   }

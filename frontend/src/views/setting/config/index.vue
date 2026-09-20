@@ -235,7 +235,7 @@ async function handleEdit(row: ConfigListItemDto) {
     detail = await configManagementApi.detail(row.basicId)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.config.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('setting.config.load_detail_failed'))
     return
   }
   configForm.value = {
@@ -289,7 +289,7 @@ async function handleView(row: ConfigListItemDto) {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.config.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('setting.config.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -368,7 +368,7 @@ async function handleSubmit() {
     reloadConfig()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

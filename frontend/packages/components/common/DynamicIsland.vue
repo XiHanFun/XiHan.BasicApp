@@ -27,7 +27,7 @@ configureDynamicIsland({
       toast.success(content)
     }
     else if (state === 'error') {
-      toast.error(content)
+      toast.danger(content)
     }
     else {
       toast.info(content)

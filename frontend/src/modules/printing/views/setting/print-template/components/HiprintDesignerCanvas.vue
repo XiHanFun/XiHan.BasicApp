@@ -207,7 +207,7 @@ function rotatePaper(): void {
     queueMicrotask(syncToolbarState)
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.print_template.rotate_failed'))
+    toast.danger((error as Error).message || t('setting.print_template.rotate_failed'))
   }
 }
 
@@ -229,7 +229,7 @@ function alignElements(action: PrintElementAlignAction): void {
     designer.alignElements(action)
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.print_template.alignment_failed'))
+    toast.danger((error as Error).message || t('setting.print_template.alignment_failed'))
   }
 }
 
@@ -246,7 +246,7 @@ function setElementSpacing(direction: PrintElementSpacingDirection, spacing: num
     designer.setElementSpacing(spacing, direction)
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.print_template.spacing_failed'))
+    toast.danger((error as Error).message || t('setting.print_template.spacing_failed'))
   }
 }
 

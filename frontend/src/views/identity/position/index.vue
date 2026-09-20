@@ -169,7 +169,7 @@ async function handleEdit(row: PositionListItemDto) {
     detail = await positionApi.detail(row.basicId)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.position.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('identity.position.load_detail_failed'))
   }
   positionForm.value = {
     basicId: row.basicId,
@@ -194,7 +194,7 @@ async function handleView(row: PositionListItemDto) {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.position.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('identity.position.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -215,7 +215,7 @@ async function handleToggleStatus(row: PositionListItemDto) {
     reloadPage()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.status_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.status_failed'))
   }
 }
 
@@ -263,7 +263,7 @@ async function handleSubmit() {
     reloadPage()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

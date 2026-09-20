@@ -42,7 +42,7 @@ async function loadApps() {
     apps.value = await apis.getMyOAuthAppsApi()
   }
   catch (e) {
-    toast.error((e as Error).message || t('component.profile.oauth.err_load_failed'))
+    toast.danger((e as Error).message || t('component.profile.oauth.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -73,11 +73,11 @@ function openEdit(app: MyOAuthAppItem) {
 
 async function handleSubmit() {
   if (!form.appName.trim()) {
-    toast.error(t('component.profile.oauth.err_name_required'))
+    toast.danger(t('component.profile.oauth.err_name_required'))
     return false
   }
   if (!form.redirectUris.trim()) {
-    toast.error(t('component.profile.oauth.err_callback_required'))
+    toast.danger(t('component.profile.oauth.err_callback_required'))
     return false
   }
 
@@ -110,7 +110,7 @@ async function handleSubmit() {
     return true
   }
   catch (e) {
-    toast.error((e as Error).message || t('component.profile.oauth.err_save_failed'))
+    toast.danger((e as Error).message || t('component.profile.oauth.err_save_failed'))
     return false
   }
   finally {
@@ -132,7 +132,7 @@ function handleRegenerate(app: MyOAuthAppItem) {
         await loadApps()
       }
       catch (e) {
-        toast.error((e as Error).message || t('component.profile.oauth.err_save_failed'))
+        toast.danger((e as Error).message || t('component.profile.oauth.err_save_failed'))
       }
     },
   })
@@ -145,7 +145,7 @@ async function handleToggleStatus(app: MyOAuthAppItem, enabled: boolean) {
     await loadApps()
   }
   catch (e) {
-    toast.error((e as Error).message || t('component.profile.oauth.err_save_failed'))
+    toast.danger((e as Error).message || t('component.profile.oauth.err_save_failed'))
     await loadApps()
   }
 }
@@ -168,7 +168,7 @@ function handleDelete(app: MyOAuthAppItem) {
         await loadApps()
       }
       catch (e) {
-        toast.error((e as Error).message || t('component.profile.oauth.err_delete_failed'))
+        toast.danger((e as Error).message || t('component.profile.oauth.err_delete_failed'))
       }
     },
   })

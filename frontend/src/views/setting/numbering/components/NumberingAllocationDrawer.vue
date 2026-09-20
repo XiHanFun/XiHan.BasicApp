@@ -112,7 +112,7 @@ async function load(): Promise<void> {
   }
   catch (error) {
     if (version === requestVersion)
-      toast.error((error as Error).message || t('setting.numbering.allocation_load_failed'))
+      toast.danger((error as Error).message || t('setting.numbering.allocation_load_failed'))
   }
   finally {
     if (version === requestVersion)

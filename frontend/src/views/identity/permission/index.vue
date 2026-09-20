@@ -344,7 +344,7 @@ async function handleView(row: PermissionListItemDto) {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.permission.msg_load_detail_failed'))
+    toast.danger((error as Error)?.message || t('identity.permission.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -361,7 +361,7 @@ async function loadResourceOptions(keyword = '') {
     resourceOptions.value = mergeOptions(resourceOptions.value, items.map(toResourceOption))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.permission.msg_load_resource_failed'))
+    toast.danger((error as Error)?.message || t('identity.permission.msg_load_resource_failed'))
   }
   finally {
     resourceLoading.value = false
@@ -378,7 +378,7 @@ async function loadOperationOptions(keyword = '') {
     operationOptions.value = mergeOptions(operationOptions.value, items.map(toOperationOption))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.permission.msg_load_operation_failed'))
+    toast.danger((error as Error)?.message || t('identity.permission.msg_load_operation_failed'))
   }
   finally {
     operationLoading.value = false
@@ -539,7 +539,7 @@ async function handleSubmit() {
     reloadPermission()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

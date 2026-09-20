@@ -229,7 +229,7 @@ async function loadPreview() {
   try {
     const result = await codeGenerationApi.preview({ tableId: props.tableId })
     if (!result.success) {
-      toast.error(result.message || t('develop.code_gen.preview.preview_failed'))
+      toast.danger(result.message || t('develop.code_gen.preview.preview_failed'))
       artifacts.value = []
       return
     }
@@ -237,7 +237,7 @@ async function loadPreview() {
     activeIndex.value = 0
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.preview.preview_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.preview.preview_failed'))
     artifacts.value = []
   }
   finally {

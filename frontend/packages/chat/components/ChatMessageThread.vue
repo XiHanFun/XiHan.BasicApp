@@ -369,7 +369,7 @@ async function handleCtxSelect(key: string | number) {
         toast.success(t('chat.thread.copied'))
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('chat.thread.copy_failed'))
+        toast.danger((error as Error)?.message || t('chat.thread.copy_failed'))
       }
       break
     case 'reply':
@@ -507,7 +507,7 @@ async function handleRecall(item: ChatLocalMessage) {
     await chatStore.recallMessage(conversationId.value, item.messageId)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('chat.thread.recall_failed'))
+    toast.danger((error as Error)?.message || t('chat.thread.recall_failed'))
   }
 }
 

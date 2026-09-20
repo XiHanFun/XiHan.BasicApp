@@ -206,7 +206,7 @@ async function handleDetail(row: ApiLogListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    toast.error((error as Error)?.message || t('log.api.detail_load_failed'))
+    toast.danger((error as Error)?.message || t('log.api.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

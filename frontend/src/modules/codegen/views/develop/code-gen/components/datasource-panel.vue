@@ -205,12 +205,12 @@ async function handleTest(row: CodeGenDataSourceListItemDto) {
       toast.success(t('develop.code_gen.datasource.test_success', { ms: result.elapsedMilliseconds }))
     }
     else {
-      toast.error(result.message || t('develop.code_gen.datasource.test_failed'))
+      toast.danger(result.message || t('develop.code_gen.datasource.test_failed'))
     }
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.datasource.test_error'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.datasource.test_error'))
   }
   finally {
     testingId.value = null
@@ -232,7 +232,7 @@ function handleDelete(row: CodeGenDataSourceListItemDto) {
         reload()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -275,7 +275,7 @@ async function handleEdit(row: CodeGenDataSourceListItemDto) {
   try {
     const detail = await codeGenDataSourceApi.detail(row.basicId)
     if (!detail) {
-      toast.error(t('develop.code_gen.datasource.not_found'))
+      toast.danger(t('develop.code_gen.datasource.not_found'))
       return
     }
     editingStatus.value = detail.status
@@ -300,7 +300,7 @@ async function handleEdit(row: CodeGenDataSourceListItemDto) {
     modalVisible.value = true
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.datasource.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.datasource.load_detail_failed'))
   }
 }
 
@@ -378,7 +378,7 @@ async function handleSubmit() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

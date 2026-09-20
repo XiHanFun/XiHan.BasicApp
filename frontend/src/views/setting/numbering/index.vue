@@ -263,13 +263,13 @@ async function openDetail(row: NumberingRuleListItemDto): Promise<void> {
   try {
     detail.value = await numberingApi.detail(row.basicId, activeScope.value)
     if (!detail.value) {
-      toast.error(t('setting.numbering.not_found'))
+      toast.danger(t('setting.numbering.not_found'))
       return
     }
     detailVisible.value = true
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.numbering.not_found'))
+    toast.danger((error as Error).message || t('setting.numbering.not_found'))
   }
 }
 
@@ -278,13 +278,13 @@ async function openEditor(row: NumberingRuleListItemDto): Promise<void> {
   try {
     editorDetail.value = await numberingApi.detail(row.basicId, activeScope.value)
     if (!editorDetail.value) {
-      toast.error(t('setting.numbering.not_found'))
+      toast.danger(t('setting.numbering.not_found'))
       return
     }
     editorVisible.value = true
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.numbering.not_found'))
+    toast.danger((error as Error).message || t('setting.numbering.not_found'))
   }
 }
 
@@ -299,7 +299,7 @@ async function toggleStatus(row: NumberingRuleListItemDto): Promise<void> {
     void schemaPageRef.value?.reload()
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.numbering.status_failed'))
+    toast.danger((error as Error).message || t('setting.numbering.status_failed'))
   }
   finally {
     actionLoading.value = false
@@ -335,7 +335,7 @@ async function submitReset(): Promise<void> {
     void schemaPageRef.value?.reload()
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.numbering.reset_failed'))
+    toast.danger((error as Error).message || t('setting.numbering.reset_failed'))
   }
   finally {
     actionLoading.value = false
@@ -362,7 +362,7 @@ function remove(row: NumberingRuleListItemDto): void {
         return true
       }
       catch (error) {
-        toast.error((error as Error).message || t('setting.numbering.delete_failed'))
+        toast.danger((error as Error).message || t('setting.numbering.delete_failed'))
         return false
       }
       finally {

@@ -57,7 +57,7 @@ async function loadPreference() {
     pref.value = await apis.getNotificationPreferenceApi()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.notifications.err_load_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.notifications.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -71,7 +71,7 @@ async function savePreference() {
     toast.success(t('component.profile.notifications.msg_saved'))
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.notifications.err_save_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.notifications.err_save_failed'))
   }
   finally {
     saving.value = false

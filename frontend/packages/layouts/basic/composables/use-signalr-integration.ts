@@ -1,3 +1,4 @@
+import type { NotificationTone } from '@xihan-ui/headless'
 import type { ServerTaskProgressPayload } from '~/composables'
 import type { UserSettingChangedPayload } from '~/constants'
 import type { NotificationContentFormat } from '~/types/enums'
@@ -85,18 +86,18 @@ export function useSignalRIntegration() {
     content?: string
     contentFormat?: NotificationContentFormat
   }) {
-    const typeMap: Record<string, 'info' | 'success' | 'warning' | 'error'> = {
+    const toneMap: Record<string, NotificationTone> = {
       Info: 'info',
       Success: 'success',
       Warning: 'warning',
-      Error: 'error',
+      Error: 'danger',
     }
-    const nType = typeMap[payload?.type ?? 'Info'] ?? 'info'
+    const tone = toneMap[payload?.type ?? 'Info'] ?? 'info'
 
     // 弹条只出纯文本：命令式通知的 title/description 都是 string，承不了富文本组件。
     // 完整正文（markdown/html）仍在消息中心里按原格式渲染。
     notification.create({
-      type: nType,
+      tone,
       title: payload?.title || t('page.signalr.new_notification'),
       description: payload?.content ?? '',
       placement: 'bottom-end',

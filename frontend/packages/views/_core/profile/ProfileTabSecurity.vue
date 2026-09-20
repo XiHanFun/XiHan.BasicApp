@@ -65,7 +65,7 @@ async function onSubmit() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.security.err_password_change_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.security.err_password_change_failed'))
   }
   finally {
     pwdSaving.value = false
@@ -130,7 +130,7 @@ async function startTotpSetup() {
     tfTotpSetup.value = await apis.setup2FAApi()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.security.err_init_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.security.err_init_failed'))
     tfTotpSettingUp.value = false
   }
   finally {
@@ -153,7 +153,7 @@ async function confirmEnableTotp() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.security.err_enable_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.security.err_enable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -176,7 +176,7 @@ async function sendSetupCode(method: number) {
     tfResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
   }
   finally {
     tfLoading.value = false
@@ -212,7 +212,7 @@ async function confirmEnableEmail() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.security.err_enable_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.security.err_enable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -234,7 +234,7 @@ async function confirmEnablePhone() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.security.err_enable_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.security.err_enable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -272,7 +272,7 @@ async function sendDisableCode(method: number) {
     tfResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.security.err_code_send_failed'))
   }
   finally {
     tfLoading.value = false
@@ -294,7 +294,7 @@ async function confirmDisable() {
     emit('updated')
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.security.err_disable_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.security.err_disable_failed'))
   }
   finally {
     tfLoading.value = false
@@ -349,7 +349,7 @@ function handleDeactivateAccount() {
         }, 1500)
       }
       catch (e: unknown) {
-        toast.error((e as Error)?.message || t('component.profile.security.err_deactivate_failed'))
+        toast.danger((e as Error)?.message || t('component.profile.security.err_deactivate_failed'))
         return false
       }
       finally {
@@ -387,7 +387,7 @@ function handleDeleteAccount() {
         }, 1500)
       }
       catch (e: unknown) {
-        toast.error((e as Error)?.message || t('component.profile.security.err_delete_failed'))
+        toast.danger((e as Error)?.message || t('component.profile.security.err_delete_failed'))
         return false
       }
       finally {

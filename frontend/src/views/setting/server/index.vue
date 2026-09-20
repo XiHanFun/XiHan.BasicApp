@@ -181,7 +181,7 @@ async function fetchData() {
     gpuInfos.value = gpuRes ?? []
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.server.fetch_failed'))
+    toast.danger((error as Error)?.message || t('setting.server.fetch_failed'))
   }
   finally {
     loading.value = false

@@ -305,7 +305,7 @@ async function loadTargetOptions(type: ConstraintTargetType, keyword = '') {
     targetOptions.value[type] = mergeOptions(targetOptions.value[type], next)
   }
   catch (e) {
-    toast.error((e as Error).message || t('approval.constraint.err_load_targets'))
+    toast.danger((e as Error).message || t('approval.constraint.err_load_targets'))
   }
   finally {
     targetLoading.value[type] = false
@@ -352,7 +352,7 @@ async function handleView(row: ConstraintRuleListItemDto) {
     }
   }
   catch (e) {
-    toast.error((e as Error).message || t('approval.constraint.err_load_detail'))
+    toast.danger((e as Error).message || t('approval.constraint.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -434,7 +434,7 @@ async function handleEdit(row: ConstraintRuleListItemDto) {
     void loadTargetOptions(detail.targetType)
   }
   catch (e) {
-    toast.error((e as Error).message || t('approval.constraint.err_load_detail'))
+    toast.danger((e as Error).message || t('approval.constraint.err_load_detail'))
   }
 }
 
@@ -580,7 +580,7 @@ async function handleSubmit() {
     reload()
   }
   catch (e) {
-    toast.error((e as Error).message || t('approval.constraint.msg_save_failed'))
+    toast.danger((e as Error).message || t('approval.constraint.msg_save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -607,7 +607,7 @@ function confirmToggleStatus(row: ConstraintRuleListItemDto) {
         reload()
       }
       catch (e) {
-        toast.error((e as Error).message || t('approval.constraint.msg_status_update_failed'))
+        toast.danger((e as Error).message || t('approval.constraint.msg_status_update_failed'))
       }
     },
   })
@@ -628,7 +628,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
         reload()
       }
       catch (e) {
-        toast.error((e as Error).message || t('approval.constraint.msg_delete_failed'))
+        toast.danger((e as Error).message || t('approval.constraint.msg_delete_failed'))
       }
     },
   })

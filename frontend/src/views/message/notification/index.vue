@@ -142,7 +142,7 @@ async function loadTargetOptions() {
     targetOptionsLoaded.value = true
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.danger((e as Error).message || t('message.notification.msg_load_failed'))
   }
 }
 
@@ -351,13 +351,13 @@ async function openDetail(row: NotificationListItemDto) {
   try {
     currentDetail.value = await notificationApi.detail(row.basicId)
     if (!currentDetail.value) {
-      toast.error(t('message.notification.msg_not_found'))
+      toast.danger(t('message.notification.msg_not_found'))
       return
     }
     detailVisible.value = true
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.notification.msg_load_detail_failed'))
+    toast.danger((e as Error).message || t('message.notification.msg_load_detail_failed'))
   }
 }
 
@@ -366,7 +366,7 @@ async function openEdit(row: NotificationListItemDto) {
   try {
     const detail = await notificationApi.detail(row.basicId)
     if (!detail) {
-      toast.error(t('message.notification.msg_not_found'))
+      toast.danger(t('message.notification.msg_not_found'))
       return
     }
     if (detail.isPublished) {
@@ -399,7 +399,7 @@ async function openEdit(row: NotificationListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.danger((e as Error).message || t('message.notification.msg_load_failed'))
   }
 }
 
@@ -421,7 +421,7 @@ function confirmPublish(row: NotificationListItemDto) {
         void schemaPageRef.value?.reload()
       }
       catch (e) {
-        toast.error((e as Error).message || t('message.notification.msg_publish_failed'))
+        toast.danger((e as Error).message || t('message.notification.msg_publish_failed'))
       }
     },
   })
@@ -435,7 +435,7 @@ async function removeRow(row: NotificationListItemDto) {
     void schemaPageRef.value?.reload()
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.notification.msg_delete_failed'))
+    toast.danger((e as Error).message || t('message.notification.msg_delete_failed'))
   }
 }
 
@@ -492,7 +492,7 @@ async function openStats(row: NotificationListItemDto) {
     readStats.value = stats
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.danger((e as Error).message || t('message.notification.msg_load_failed'))
   }
   finally {
     statsLoading.value = false
@@ -509,7 +509,7 @@ async function handleUnreadPageChange(page: number) {
     await loadUnreadUsers(statsRow.value.id, page)
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.danger((e as Error).message || t('message.notification.msg_load_failed'))
   }
   finally {
     statsLoading.value = false
@@ -528,7 +528,7 @@ async function confirmRemind() {
     readStats.value = await notificationApi.readStats(row.id)
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.notification.msg_publish_failed'))
+    toast.danger((e as Error).message || t('message.notification.msg_publish_failed'))
   }
   finally {
     remindLoading.value = false
@@ -566,7 +566,7 @@ async function exportUnread() {
     downloadBlob(new Blob([csv], { type: 'text/csv;charset=utf-8' }), `unread-users-${row.id}.csv`)
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.notification.msg_load_failed'))
+    toast.danger((e as Error).message || t('message.notification.msg_load_failed'))
   }
   finally {
     exportLoading.value = false
@@ -676,7 +676,7 @@ async function handleSubmit() {
     void schemaPageRef.value?.reload()
   }
   catch (e) {
-    toast.error((e as Error).message || t('message.notification.msg_save_failed'))
+    toast.danger((e as Error).message || t('message.notification.msg_save_failed'))
   }
   finally {
     submitLoading.value = false

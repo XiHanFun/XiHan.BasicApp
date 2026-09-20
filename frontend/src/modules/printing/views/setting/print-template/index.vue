@@ -205,7 +205,7 @@ async function openEditor(row: PrintTemplateListItemDto): Promise<void> {
     editorVisible.value = true
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.print_template.not_found'))
+    toast.danger((error as Error).message || t('setting.print_template.not_found'))
   }
 }
 
@@ -226,7 +226,7 @@ async function openSamplePreview(row: PrintTemplateListItemDto): Promise<void> {
     samplePreviewVisible.value = true
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.print_template.preview_failed'))
+    toast.danger((error as Error).message || t('setting.print_template.preview_failed'))
   }
   finally {
     actionLoading.value = false
@@ -243,7 +243,7 @@ async function previewSampleData(sample: Record<string, unknown> | Record<string
     return
   const context = samplePreviewContext.value
   if (!context) {
-    toast.error(t('setting.print_template.sample_template_missing'))
+    toast.danger(t('setting.print_template.sample_template_missing'))
     return
   }
 
@@ -257,7 +257,7 @@ async function previewSampleData(sample: Record<string, unknown> | Record<string
     samplePreviewVisible.value = false
   }
   catch (error) {
-    toast.error(error instanceof PrintTemplateVersionChangedError
+    toast.danger(error instanceof PrintTemplateVersionChangedError
       ? t('setting.print_template.sample_version_changed')
       : (error as Error).message || t('setting.print_template.preview_failed'))
   }
@@ -285,7 +285,7 @@ async function direct(row: PrintTemplateListItemDto): Promise<void> {
     toast.success(t('setting.print_template.direct_success'))
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.print_template.direct_failed'))
+    toast.danger((error as Error).message || t('setting.print_template.direct_failed'))
   }
   finally {
     actionLoading.value = false
@@ -308,7 +308,7 @@ async function toggleStatus(row: PrintTemplateListItemDto): Promise<void> {
     void schemaPageRef.value?.reload()
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.print_template.status_failed'))
+    toast.danger((error as Error).message || t('setting.print_template.status_failed'))
   }
   finally {
     actionLoading.value = false
@@ -335,7 +335,7 @@ function remove(row: PrintTemplateListItemDto): void {
         return true
       }
       catch (error) {
-        toast.error((error as Error).message || t('setting.print_template.delete_failed'))
+        toast.danger((error as Error).message || t('setting.print_template.delete_failed'))
         return false
       }
       finally {

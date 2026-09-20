@@ -116,7 +116,7 @@ function loadFromJson(json: string): boolean {
     return true
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.designer.err_parse'))
+    toast.danger((error as Error)?.message || t('workflow.designer.err_parse'))
     return false
   }
 }

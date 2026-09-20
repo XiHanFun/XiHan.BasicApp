@@ -156,7 +156,7 @@ async function handleDetail(row: PermissionChangeLogListItemDto) {
   }
   catch (error) {
     detailData.value = row
-    toast.error((error as Error)?.message || t('log.permission_change.detail_load_failed'))
+    toast.danger((error as Error)?.message || t('log.permission_change.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

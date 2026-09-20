@@ -136,7 +136,7 @@ async function loadKeys() {
     expandedKeys.value = cacheKeys.value.length <= 100 ? collectGroupKeys(treeData.value) : []
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.cache.query_keys_failed'))
+    toast.danger((error as Error)?.message || t('setting.cache.query_keys_failed'))
   }
   finally {
     loadingKeys.value = false
@@ -182,7 +182,7 @@ async function loadValue(key: string) {
     format.value = isJson(value ?? '') ? 'json' : 'text'
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.cache.get_value_failed'))
+    toast.danger((error as Error)?.message || t('setting.cache.get_value_failed'))
     rawValue.value = null
   }
   finally {
@@ -249,7 +249,7 @@ async function handleCopy() {
     toast.success(t('setting.cache.copied'))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.cache.copy_failed'))
+    toast.danger((error as Error)?.message || t('setting.cache.copy_failed'))
   }
 }
 
@@ -276,7 +276,7 @@ async function handleSave() {
     reloadValue()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.cache.save_failed_key_protected'))
+    toast.danger((error as Error)?.message || t('setting.cache.save_failed_key_protected'))
   }
   finally {
     saving.value = false
@@ -303,7 +303,7 @@ function handleDeleteCurrent() {
         await loadKeys()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -359,7 +359,7 @@ function handleDeleteByPattern() {
         await loadKeys()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('setting.cache.delete_by_pattern_failed'))
+        toast.danger((error as Error)?.message || t('setting.cache.delete_by_pattern_failed'))
       }
     },
   })

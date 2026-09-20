@@ -180,7 +180,7 @@ async function runQuery() {
     hasQueried.value = true
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('log.trace.query_failed'))
+    toast.danger((error as Error)?.message || t('log.trace.query_failed'))
   }
   finally {
     loading.value = false
@@ -357,7 +357,7 @@ async function openDetail(item: TraceTimelineItemDto) {
   }
   catch (error) {
     detailData.value = item as unknown as Record<string, unknown>
-    toast.error((error as Error)?.message || t('log.trace.detail_load_failed'))
+    toast.danger((error as Error)?.message || t('log.trace.detail_load_failed'))
   }
   finally {
     detailLoading.value = false

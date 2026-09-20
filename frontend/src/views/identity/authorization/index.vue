@@ -121,7 +121,7 @@ async function loadUserOptions(keyword = '') {
     )
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.authorization.msg_load_user_failed'))
+    toast.danger((error as Error)?.message || t('identity.authorization.msg_load_user_failed'))
   }
   finally {
     userLoading.value = false
@@ -135,7 +135,7 @@ async function loadRoleOptions(keyword = '') {
     roleOptions.value = mergeOptions(roleOptions.value, roles.map(r => ({ label: `${r.roleName} (${r.roleCode})`, value: r.basicId })))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.authorization.msg_load_role_failed'))
+    toast.danger((error as Error)?.message || t('identity.authorization.msg_load_role_failed'))
   }
   finally {
     roleLoading.value = false
@@ -149,7 +149,7 @@ async function loadPermissionOptions(keyword = '') {
     permissionOptions.value = mergeOptions(permissionOptions.value, perms.map(p => ({ label: `${p.permissionName} (${p.permissionCode})`, value: p.basicId })))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.authorization.msg_load_permission_failed'))
+    toast.danger((error as Error)?.message || t('identity.authorization.msg_load_permission_failed'))
   }
   finally {
     permissionLoading.value = false
@@ -252,7 +252,7 @@ async function reviewRequest(row: PermissionRequestListItemDto, approved: boolea
     reloadRequest()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('common.messages.operation_failed'))
+    toast.danger((e as Error)?.message || t('common.messages.operation_failed'))
   }
 }
 
@@ -431,7 +431,7 @@ async function revokeDelegation(row: PermissionDelegationListItemDto) {
     reloadDelegation()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.authorization.del_revoke_failed'))
+    toast.danger((error as Error)?.message || t('identity.authorization.del_revoke_failed'))
   }
 }
 
@@ -488,7 +488,7 @@ async function submitDelegation() {
     reloadDelegation()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.authorization.msg_create_failed'))
+    toast.danger((error as Error)?.message || t('identity.authorization.msg_create_failed'))
   }
   finally {
     delegationSubmitting.value = false

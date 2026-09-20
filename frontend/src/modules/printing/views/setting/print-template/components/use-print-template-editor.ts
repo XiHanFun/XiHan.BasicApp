@@ -102,7 +102,7 @@ export function usePrintTemplateEditor(
         designerReady.value = false
       }
       catch (error) {
-        toast.error((error as Error).message || t('setting.print_template.designer_not_ready'))
+        toast.danger((error as Error).message || t('setting.print_template.designer_not_ready'))
       }
     },
     { flush: 'sync' },
@@ -138,7 +138,7 @@ export function usePrintTemplateEditor(
       void loadPrinters(false)
     }
     catch (error) {
-      toast.error((error as Error).message || t('setting.print_template.invalid_json'))
+      toast.danger((error as Error).message || t('setting.print_template.invalid_json'))
       emit('update:show', false)
     }
     finally {
@@ -227,7 +227,7 @@ export function usePrintTemplateEditor(
       return saved
     }
     catch (error) {
-      toast.error((error as Error).message || t('setting.print_template.save_failed'))
+      toast.danger((error as Error).message || t('setting.print_template.save_failed'))
       return null
     }
     finally {
@@ -244,7 +244,7 @@ export function usePrintTemplateEditor(
       samplePreviewVisible.value = true
     }
     catch (error) {
-      toast.error((error as Error).message || t('setting.print_template.preview_failed'))
+      toast.danger((error as Error).message || t('setting.print_template.preview_failed'))
     }
   }
 
@@ -262,7 +262,7 @@ export function usePrintTemplateEditor(
       samplePreviewVisible.value = false
     }
     catch (error) {
-      toast.error((error as Error).message || t('setting.print_template.preview_failed'))
+      toast.danger((error as Error).message || t('setting.print_template.preview_failed'))
     }
     finally {
       previewLoading.value = false
@@ -291,7 +291,7 @@ export function usePrintTemplateEditor(
     }
     catch (error) {
       if ((error as Error).name !== 'AbortError')
-        toast.error((error as Error).message || t('setting.print_template.direct_failed'))
+        toast.danger((error as Error).message || t('setting.print_template.direct_failed'))
     }
     finally {
       directLoading.value = false
@@ -310,7 +310,7 @@ export function usePrintTemplateEditor(
     catch (error) {
       printers.value = []
       if (forceRefresh)
-        toast.error((error as Error).message || t('setting.print_template.printer_load_failed'))
+        toast.danger((error as Error).message || t('setting.print_template.printer_load_failed'))
     }
     finally {
       printerLoading.value = false
@@ -326,7 +326,7 @@ export function usePrintTemplateEditor(
       await setPreferredPrinter(form.value.templateCode, selectedPrinter.value)
     }
     catch (error) {
-      toast.error((error as Error).message)
+      toast.danger((error as Error).message)
     }
   }
 

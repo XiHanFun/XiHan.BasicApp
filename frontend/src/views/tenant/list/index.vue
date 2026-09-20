@@ -471,7 +471,7 @@ async function handleQuotaAudit() {
   }
   catch (error) {
     quotaAlerts.value = []
-    toast.error((error as Error)?.message || t('tenant.list.quota_audit_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.quota_audit_failed'))
   }
   finally {
     quotaAuditLoading.value = false
@@ -517,7 +517,7 @@ async function handleDelete(row: TenantListItemDto) {
     reloadTenant()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('tenant.list.delete_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.delete_failed'))
   }
 }
 
@@ -528,7 +528,7 @@ async function handleInitDb(row: TenantListItemDto) {
     reloadTenant()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('tenant.list.init_db_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.init_db_failed'))
   }
 }
 
@@ -631,7 +631,7 @@ async function handleView(row: TenantListItemDto) {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('tenant.list.detail_load_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.detail_load_failed'))
   }
   finally {
     detailLoading.value = false
@@ -670,7 +670,7 @@ async function loadMembers() {
     memberError.value = true
     members.value = []
     memberTotal.value = 0
-    toast.error((error as Error)?.message || t('tenant.list.member_list_load_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.member_list_load_failed'))
   }
   finally {
     memberLoading.value = false
@@ -708,7 +708,7 @@ async function handleSaveMember() {
     await loadMembers()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('tenant.list.member_update_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.member_update_failed'))
   }
   finally {
     memberEditLoading.value = false
@@ -737,7 +737,7 @@ async function handleSaveMemberStatus() {
     await loadMembers()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('tenant.list.member_status_update_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.member_status_update_failed'))
   }
   finally {
     memberStatusLoading.value = false
@@ -821,7 +821,7 @@ async function handleSaveNewMember() {
     await loadMembers()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('tenant.list.member_add_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.member_add_failed'))
   }
   finally {
     memberAddLoading.value = false
@@ -940,7 +940,7 @@ async function handleSubmit() {
     reloadTenant()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('tenant.list.save_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.save_failed'))
   }
   finally {
     submitLoading.value = false

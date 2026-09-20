@@ -142,7 +142,7 @@ async function handleDetail(row: WorkflowDefinitionListItemDto) {
     detailData.value = await workflowDefinitionApi.detail(row.basicId) ?? null
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.definition.err_load_detail'))
+    toast.danger((error as Error)?.message || t('workflow.definition.err_load_detail'))
   }
   finally {
     detailLoading.value = false
@@ -176,7 +176,7 @@ function openCreate() {
 async function openEdit(row: WorkflowDefinitionListItemDto) {
   const detail = await workflowDefinitionApi.detail(row.basicId)
   if (!detail) {
-    toast.error(t('workflow.definition.err_load_detail'))
+    toast.danger(t('workflow.definition.err_load_detail'))
     return
   }
   editMode.value = 'edit'
@@ -201,7 +201,7 @@ async function handleDesignerSave(json: string) {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.definition.err_save'))
+    toast.danger((error as Error)?.message || t('workflow.definition.err_save'))
   }
   finally {
     editLoading.value = false
@@ -234,7 +234,7 @@ async function handleStart() {
     startVisible.value = false
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.definition.err_start'))
+    toast.danger((error as Error)?.message || t('workflow.definition.err_start'))
   }
   finally {
     startLoading.value = false
@@ -269,7 +269,7 @@ async function runLifecycle(action: 'publish' | 'newVersion' | 'disable' | 'arch
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.definition.err_operation'))
+    toast.danger((error as Error)?.message || t('workflow.definition.err_operation'))
   }
 }
 

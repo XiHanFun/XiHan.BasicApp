@@ -24,7 +24,7 @@ async function loadActivity() {
     activity.value = await apis.getActivityApi()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.stats.err_load_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.stats.err_load_failed'))
   }
   finally {
     loading.value = false

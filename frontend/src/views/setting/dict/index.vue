@@ -108,7 +108,7 @@ async function fetchDictData() {
     syncSelectionAfterDictLoad()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.dict.query_dict_failed'))
+    toast.danger((error as Error)?.message || t('setting.dict.query_dict_failed'))
     dictList.value = []
     dictTotal.value = 0
     currentDict.value = null
@@ -263,7 +263,7 @@ async function fetchItemData() {
     itemTotal.value = result.page.totalCount
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.dict.query_item_failed'))
+    toast.danger((error as Error)?.message || t('setting.dict.query_item_failed'))
     itemList.value = []
     itemTotal.value = 0
   }
@@ -471,7 +471,7 @@ async function handleSubmit() {
     reloadDict()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -505,7 +505,7 @@ async function handleBatchDeleteDict() {
     toast.success(t('setting.dict.batch_deleted_dict', { count: ids.length }))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.batch_delete_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.batch_delete_failed'))
   }
   finally {
     checkedDictKeys.value = []
@@ -527,7 +527,7 @@ async function handleBatchToggleDict(enable: boolean) {
     toast.success(t('common.messages.status_updated'))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.batch_action_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.batch_action_failed'))
   }
   finally {
     checkedDictKeys.value = []
@@ -638,7 +638,7 @@ async function handleItemSubmit() {
     fetchItemData()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     itemSubmitLoading.value = false
@@ -672,7 +672,7 @@ async function handleBatchDeleteItem() {
     toast.success(t('setting.dict.batch_deleted_item', { count: ids.length }))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.batch_delete_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.batch_delete_failed'))
   }
   finally {
     checkedItemKeys.value = []
@@ -694,7 +694,7 @@ async function handleBatchToggleItem(enable: boolean) {
     toast.success(t('common.messages.status_updated'))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.batch_action_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.batch_action_failed'))
   }
   finally {
     checkedItemKeys.value = []
