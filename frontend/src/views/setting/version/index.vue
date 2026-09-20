@@ -141,7 +141,7 @@ async function handleDetail(row: VersionListItemDto) {
             <XhEmptyStateDescription>{{ t('setting.version.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="detailData" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
-            <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+            <XhDescriptionsRoot :columns="2" variant="outline" placement="left" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.version.app_version') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>

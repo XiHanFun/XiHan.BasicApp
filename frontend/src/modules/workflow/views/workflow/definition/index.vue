@@ -314,7 +314,7 @@ function onAction(payload: SchemaActionPayload) {
           {{ t('workflow.definition.loading') }}
         </div>
         <template v-else-if="detailData">
-          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+          <XhDescriptionsRoot :columns="2" variant="outline" placement="left" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('workflow.definition.code') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>

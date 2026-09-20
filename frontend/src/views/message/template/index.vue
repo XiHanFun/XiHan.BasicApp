@@ -459,7 +459,7 @@ async function handleSubmit() {
         <XhDialogTitle>{{ t('message.template.detail_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger />
         <template v-if="currentDetail">
-          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+          <XhDescriptionsRoot :columns="2" variant="outline" placement="left" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('message.template.detail_template_code') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
@@ -485,7 +485,7 @@ async function handleSubmit() {
               </XhDescriptionsValue>
             </XhDescriptionsItem>
           </XhDescriptionsRoot>
-          <XhDescriptionsRoot :columns="1" bordered placement="left" size="sm">
+          <XhDescriptionsRoot :columns="1" variant="outline" placement="left" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('message.template.detail_subject') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>

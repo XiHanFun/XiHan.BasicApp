@@ -140,7 +140,7 @@ function changePage(page: number): void {
     <XhDrawerContent style="--xh-drawer-size: 1080px">
       <XhDrawerTitle>{{ title }}</XhDrawerTitle>
       <XhDrawerCloseTrigger />
-      <XhFlex direction="column" gap="md">
+      <XhFlex orientation="vertical" gap="md">
         <XInput
           v-model:value="keyword"
           clearable

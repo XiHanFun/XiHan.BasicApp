@@ -872,7 +872,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
                 </XhTabsTrigger>
               </XhTabsList>
               <XhTabsContent value="overview">
-                <XhDescriptionsRoot :columns="2" bordered size="sm">
+                <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
                   <XhDescriptionsItem>
                     <XhDescriptionsLabel>{{ t('identity.role.label_role_name') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>
@@ -1256,7 +1256,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
           <XTree
             v-else
             :data="menuTreeOptions"
-            selection-mode="multiple"
+            multiple
             cascade
             checked-strategy="all"
             :selected-keys="menuCheckedKeys.map(String)"

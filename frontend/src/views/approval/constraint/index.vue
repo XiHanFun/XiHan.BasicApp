@@ -658,7 +658,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhEmptyStateDescription>{{ t('approval.constraint.empty_detail') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="currentDetail" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
-            <XhDescriptionsRoot :columns="2" bordered size="sm">
+            <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('approval.constraint.rule_code') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>

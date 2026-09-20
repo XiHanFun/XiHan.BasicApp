@@ -560,7 +560,7 @@ onMounted(() => {
             </XhTabsTrigger>
           </XhTabsList>
           <XhTabsContent value="overview">
-            <XhDescriptionsRoot :columns="2" bordered size="sm">
+            <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('identity.org.label_department_type') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>

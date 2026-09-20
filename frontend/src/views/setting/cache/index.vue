@@ -426,7 +426,7 @@ onMounted(loadKeys)
                   v-model:expanded-keys="expandedKeys"
                   :selected-keys="selectedKeys"
                   :data="treeData"
-                  :selection-mode="canManage ? 'multiple' : 'single'"
+                  :multiple="canManage"
                   :cascade="canManage"
                   checked-strategy="child"
                   :expand-on-click="!canManage"

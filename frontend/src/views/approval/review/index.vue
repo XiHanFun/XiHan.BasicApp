@@ -335,7 +335,7 @@ function onAction(payload: SchemaActionPayload) {
         <div v-if="detailLoading" class="py-8 text-center text-gray-400">
           {{ t('approval.review.loading') }}
         </div>
-        <XhDescriptionsRoot v-else-if="detailData" :columns="1" bordered placement="left" size="sm">
+        <XhDescriptionsRoot v-else-if="detailData" :columns="1" variant="outline" placement="left" size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('approval.review.review_title') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -531,7 +531,7 @@ function onAction(payload: SchemaActionPayload) {
       <XhDrawerContent style="--xh-drawer-size: 420px">
         <XhDrawerTitle>{{ auditResult === AuditResult.Pass ? t('approval.review.approve_dialog_pass') : auditResult === AuditResult.Reject ? t('approval.review.approve_dialog_reject') : t('approval.review.approve_dialog_return') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <XhFlex direction="column" gap="md">
+        <XhFlex orientation="vertical" gap="md">
           <XInput
             v-model:value="auditComment"
             :placeholder="t('approval.review.comment_placeholder')"

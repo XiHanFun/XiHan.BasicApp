@@ -347,7 +347,7 @@ function rowPeekHandlers(row: TRow) {
       :size="density"
       sticky-header
       :striped="striped"
-      :borderless="!bordered"
+      :variant="bordered ? 'outline' : 'ghost'"
       :ruled="!singleLine"
       @column-preference-change="onColumnPreferenceChange"
       @update:sort="onSortChange"

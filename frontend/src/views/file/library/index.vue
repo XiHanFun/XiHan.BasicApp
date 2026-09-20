@@ -971,7 +971,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
       <XhDialogContent style="--xh-dialog-max-w: 520px">
         <XhDialogTitle>{{ t('file.library.upload.title') }}</XhDialogTitle>
         <XhDialogCloseTrigger />
-        <XhFlex direction="column" gap="lg">
+        <XhFlex orientation="vertical" gap="lg">
           <!-- 拖拽区：点击或拖入文件即上传（按当前默认存储配置保存） -->
           <XhFileUploadRoot
             :upload="handleUploadRequest"
@@ -1040,7 +1040,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
       <XhDrawerContent style="--xh-drawer-size: 460px">
         <XhDrawerTitle>{{ t('file.library.metadata.title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <XhFlex direction="column" gap="lg">
+        <XhFlex orientation="vertical" gap="lg">
           <div class="file-upload-field">
             <span class="file-upload-field__label">{{ t('file.library.upload.access_level') }}</span>
             <XSelect
@@ -1090,7 +1090,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
           {{ t('common.statuses.loading') }}
         </XhFlex>
 
-        <XhDescriptionsRoot v-else-if="detailKind === 'file' && currentFileDetail" :columns="2" bordered placement="left" size="sm">
+        <XhDescriptionsRoot v-else-if="detailKind === 'file' && currentFileDetail" :columns="2" variant="outline" placement="left" size="sm">
           <XhDescriptionsItem style="grid-column: span 2">
             <XhDescriptionsLabel>{{ t('file.library.detail.original_name') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -1225,7 +1225,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
           </XhDescriptionsItem>
         </XhDescriptionsRoot>
 
-        <XhDescriptionsRoot v-else-if="detailKind === 'storage' && currentStorageDetail" :columns="1" bordered size="sm">
+        <XhDescriptionsRoot v-else-if="detailKind === 'storage' && currentStorageDetail" :columns="1" variant="outline" size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('file.library.detail.storage_basic_id') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -1389,7 +1389,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
       <XhDrawerContent style="--xh-drawer-size: 760px">
         <XhDrawerTitle>{{ t('file.library.storage_list.title', { name: storageFile?.originalName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <XhFlex direction="column" gap="md">
+        <XhFlex orientation="vertical" gap="md">
           <div class="flex items-center justify-between">
             <span class="text-sm text-foreground/60">{{ t('file.library.storage_list.total', { count: storageRows.length }) }}</span>
             <XhButton size="sm" :loading="storageListLoading" @click="loadStorageRows">
