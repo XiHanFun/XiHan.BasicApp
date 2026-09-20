@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import {
-  XhColorPickerArea,
   XhColorPickerAreaThumb,
-  XhColorPickerChannelSlider,
-  XhColorPickerChannelSliderThumb,
-  XhColorPickerChannelSliderTrack,
   XhColorPickerContent,
   XhColorPickerControl,
+  XhColorPickerHueSlider,
   XhColorPickerPositioner,
   XhColorPickerRoot,
+  XhColorPickerSaturationArea,
   XhColorPickerSwatch,
-  XhColorPickerSwatchGroup,
-  XhColorPickerSwatchItem,
+  XhColorPickerSwatchPicker,
   XhColorPickerTrigger,
   XhColorPickerValueText,
 } from '@xihan-ui/vue'
@@ -56,16 +53,11 @@ const emit = defineEmits<{
     </XhColorPickerControl>
     <XhColorPickerPositioner>
       <XhColorPickerContent>
-        <XhColorPickerArea>
+        <XhColorPickerSaturationArea>
           <XhColorPickerAreaThumb />
-        </XhColorPickerArea>
-        <XhColorPickerChannelSlider channel="hue">
-          <XhColorPickerChannelSliderTrack />
-          <XhColorPickerChannelSliderThumb />
-        </XhColorPickerChannelSlider>
-        <XhColorPickerSwatchGroup v-if="swatches?.length">
-          <XhColorPickerSwatchItem v-for="color in swatches" :key="color" :value="color" />
-        </XhColorPickerSwatchGroup>
+        </XhColorPickerSaturationArea>
+        <XhColorPickerHueSlider />
+        <XhColorPickerSwatchPicker v-if="swatches?.length" />
       </XhColorPickerContent>
     </XhColorPickerPositioner>
   </XhColorPickerRoot>
