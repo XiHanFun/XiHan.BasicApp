@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<{
   value?: string | number | null | undefined
   options?: TreeSelectOption[]
   placeholder?: string
+  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
   clearable?: boolean
   loading?: boolean
@@ -19,7 +20,7 @@ const props = withDefaults(defineProps<{
   value: null,
   options: () => [],
   placeholder: undefined,
-  disabled: false,
+  disabled: undefined,
   clearable: false,
   loading: false,
 })
@@ -59,7 +60,7 @@ function handleChange(next: string[]) {
     :value="selected"
     :collection="collection"
     :placeholder="placeholder"
-    :disabled="disabled || loading"
+    :disabled="loading ? true : disabled"
     @update:value="handleChange"
   >
     <!-- 视觉盒在 Control 上；清空钮是 Trigger 的兄弟，塞进去会变成按钮套按钮、且点它会冒泡把浮层打开 -->

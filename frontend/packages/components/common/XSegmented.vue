@@ -9,12 +9,13 @@ defineOptions({ name: 'XSegmented', inheritAttrs: false })
 const props = withDefaults(defineProps<{
   options: ReadonlyArray<{ label: string, value: V, disabled?: boolean }>
   size?: 'sm' | 'md' | 'lg'
+  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
   /** 铺满容器宽度，各段等分 */
   block?: boolean
 }>(), {
   size: 'sm',
-  disabled: false,
+  disabled: undefined,
   block: false,
 })
 

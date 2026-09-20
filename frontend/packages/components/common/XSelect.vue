@@ -42,6 +42,7 @@ const props = withDefaults(defineProps<{
   value?: string | number | Array<string | number> | null
   multiple?: boolean
   clearable?: boolean
+  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
   placeholder?: string
   size?: Size
@@ -54,7 +55,7 @@ const props = withDefaults(defineProps<{
   value: null,
   multiple: false,
   clearable: false,
-  disabled: false,
+  disabled: undefined,
   placeholder: undefined,
   size: 'sm',
   maxTagCount: undefined,

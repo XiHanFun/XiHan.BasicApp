@@ -25,11 +25,12 @@ withDefaults(defineProps<{
   value?: string | null
   /** 预设色板 */
   swatches?: string[]
+  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
 }>(), {
   value: undefined,
   swatches: undefined,
-  disabled: false,
+  disabled: undefined,
 })
 
 const emit = defineEmits<{

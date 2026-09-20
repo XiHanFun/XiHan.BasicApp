@@ -14,13 +14,14 @@ const props = withDefaults(defineProps<{
   min?: number
   max?: number
   step?: number
+  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
 }>(), {
   value: 0,
   min: 0,
   max: 100,
   step: 1,
-  disabled: false,
+  disabled: undefined,
 })
 
 const emit = defineEmits<{

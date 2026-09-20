@@ -15,12 +15,13 @@ defineOptions({ name: 'XTagsInput', inheritAttrs: false })
 
 withDefaults(defineProps<{
   placeholder?: string
+  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
   /** 最多几条 */
   max?: number
 }>(), {
   placeholder: undefined,
-  disabled: false,
+  disabled: undefined,
   max: undefined,
 })
 
