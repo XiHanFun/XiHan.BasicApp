@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { VNode } from 'vue'
-import { XhCountdown } from '@xihan-ui/vue'
+import { XhTimerDisplay, XhTimerRoot } from '@xihan-ui/vue'
 
-// 验证码重发倒计时：秒数大于 0 时逐帧倒数，走到 0 发 finish。
+// 验证码重发倒计时：秒数大于 0 时逐拍倒数，走到 0 发 finish。
 
 defineProps<{
   /** 这一轮的时长（秒），大于 0 才计时 */
@@ -23,17 +23,24 @@ function toSeconds(ms: number) {
 </script>
 
 <template>
-  <!-- 倒计时多半嵌在按钮里，字色跟着按钮走 -->
-  <XhCountdown
+  <!-- 倒计时多半嵌在按钮里：字色与字号都跟着宿主走，不带 Timer 自己的展示档 -->
+  <XhTimerRoot
     v-if="seconds > 0"
     v-slot="{ value }"
     :value="seconds * 1000"
     :precision="3"
-    :style="{ '--xh-countdown-fg': 'currentColor', '--xh-countdown-finished-fg': 'currentColor' }"
-    @finish="emit('finish')"
+    :style="{
+      '--xh-timer-fg': 'currentColor',
+      '--xh-timer-display-fg': 'currentColor',
+      '--xh-timer-completed-fg': 'currentColor',
+      '--xh-timer-digit-font-size': 'inherit',
+    }"
+    @complete="emit('finish')"
   >
-    <slot :seconds="toSeconds(value)">
-      {{ toSeconds(value) }}s
-    </slot>
-  </XhCountdown>
+    <XhTimerDisplay>
+      <slot :seconds="toSeconds(value)">
+        {{ toSeconds(value) }}s
+      </slot>
+    </XhTimerDisplay>
+  </XhTimerRoot>
 </template>
