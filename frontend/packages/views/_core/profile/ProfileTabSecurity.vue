@@ -425,7 +425,7 @@ function handleDeleteAccount() {
             class="pf-pwd__form"
             @submit="onSubmit"
           >
-            <XhFormFieldGroup value="oldPassword">
+            <XhFormFieldGroup name="oldPassword">
               <XhFieldRoot>
                 <!-- 三个字段靠占位文案表意，标签只留给读屏 -->
                 <XhFieldLabel class="sr-only">
@@ -437,7 +437,7 @@ function handleDeleteAccount() {
                 <XhFieldErrorText />
               </XhFieldRoot>
             </XhFormFieldGroup>
-            <XhFormFieldGroup value="newPassword">
+            <XhFormFieldGroup name="newPassword">
               <XhFieldRoot>
                 <!-- 三个字段靠占位文案表意，标签只留给读屏 -->
                 <XhFieldLabel class="sr-only">
@@ -449,7 +449,7 @@ function handleDeleteAccount() {
                 <XhFieldErrorText />
               </XhFieldRoot>
             </XhFormFieldGroup>
-            <XhFormFieldGroup value="confirmPassword">
+            <XhFormFieldGroup name="confirmPassword">
               <XhFieldRoot>
                 <!-- 三个字段靠占位文案表意，标签只留给读屏 -->
                 <XhFieldLabel class="sr-only">

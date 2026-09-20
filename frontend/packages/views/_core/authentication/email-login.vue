@@ -115,7 +115,7 @@ const onAuthInvalid = useAuthFormInvalid()
       @invalid="onAuthInvalid"
       @submit="onSubmit"
     >
-      <XhFormFieldGroup v-slot="{ value, setValue }" value="email" class="!mb-6">
+      <XhFormFieldGroup v-slot="{ value, setValue }" name="email" class="!mb-6">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput
@@ -128,7 +128,7 @@ const onAuthInvalid = useAuthFormInvalid()
         </XhFieldRoot>
       </XhFormFieldGroup>
 
-      <XhFormFieldGroup v-slot="{ value, setValue }" value="code" class="!mb-6">
+      <XhFormFieldGroup v-slot="{ value, setValue }" name="code" class="!mb-6">
         <XhFieldRoot>
           <div class="xh-input-group">
             <XhFieldControl>

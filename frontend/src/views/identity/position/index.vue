@@ -367,7 +367,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="positionName">
+        <XhFormFieldGroup name="positionName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.position.position_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -376,7 +376,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="positionCode">
+        <XhFormFieldGroup name="positionCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.position.position_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -390,7 +390,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.position.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -399,7 +399,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!positionForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!positionForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.position.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -408,7 +408,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.position.remark') }}</XhFieldLabel>
             <XhFieldControl>

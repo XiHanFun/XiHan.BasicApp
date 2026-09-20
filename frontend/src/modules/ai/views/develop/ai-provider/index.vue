@@ -419,7 +419,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="configCode">
+        <XhFormFieldGroup name="configCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_config_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -433,7 +433,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="configName">
+        <XhFormFieldGroup name="configName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_config_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -442,7 +442,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="provider">
+        <XhFormFieldGroup name="provider">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_provider') }}</XhFieldLabel>
             <XhFieldControl>
@@ -455,7 +455,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="model">
+        <XhFormFieldGroup name="model">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_model') }}</XhFieldLabel>
             <XhFieldControl>
@@ -464,7 +464,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="embeddingModel">
+        <XhFormFieldGroup name="embeddingModel">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_embedding_model') }}</XhFieldLabel>
             <XhFieldControl>
@@ -473,7 +473,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="baseUrl" class="xh-span-2">
+        <XhFormFieldGroup name="baseUrl" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_base_url') }}</XhFieldLabel>
             <XhFieldControl>
@@ -482,7 +482,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="apiKey" class="xh-span-2">
+        <XhFormFieldGroup name="apiKey" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ form.basicId ? t('develop.ai_provider.form_api_key_edit') : t('develop.ai_provider.form_api_key') }}</XhFieldLabel>
             <XhFieldControl>
@@ -497,7 +497,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="maxOutputTokens">
+        <XhFormFieldGroup name="maxOutputTokens">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_max_output_tokens') }}</XhFieldLabel>
             <XhFieldControl>
@@ -506,7 +506,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="temperature">
+        <XhFormFieldGroup name="temperature">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_temperature') }}</XhFieldLabel>
             <XhFieldControl>
@@ -515,7 +515,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="timeoutSeconds">
+        <XhFormFieldGroup name="timeoutSeconds">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_timeout_seconds') }}</XhFieldLabel>
             <XhFieldControl>
@@ -524,7 +524,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -533,7 +533,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isDefault">
+        <XhFormFieldGroup name="isDefault">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_is_default') }}</XhFieldLabel>
             <XhFieldControl>
@@ -542,7 +542,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isEnabled">
+        <XhFormFieldGroup name="isEnabled">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_is_enabled') }}</XhFieldLabel>
             <XhFieldControl>
@@ -551,7 +551,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!form.basicId" value="status">
+        <XhFormFieldGroup v-if="!form.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -560,7 +560,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="extraJson" class="xh-span-2">
+        <XhFormFieldGroup name="extraJson" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_extra_json') }}</XhFieldLabel>
             <XhFieldControl>

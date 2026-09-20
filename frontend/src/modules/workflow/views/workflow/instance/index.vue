@@ -511,7 +511,7 @@ function onAction(payload: SchemaActionPayload) {
         class="xh-edit-form-grid"
         @submit="handleReasonConfirm"
       >
-        <XhFormFieldGroup value="reason" class="xh-span-2">
+        <XhFormFieldGroup name="reason" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.instance.reason') }}</XhFieldLabel>
             <XhFieldControl>
@@ -542,7 +542,7 @@ function onAction(payload: SchemaActionPayload) {
         class="xh-edit-form-grid"
         @submit="handleSignal"
       >
-        <XhFormFieldGroup value="signalName">
+        <XhFormFieldGroup name="signalName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.instance.signal_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -551,7 +551,7 @@ function onAction(payload: SchemaActionPayload) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="correlationId">
+        <XhFormFieldGroup name="correlationId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.instance.correlation_id') }}</XhFieldLabel>
             <XhFieldControl>
@@ -560,7 +560,7 @@ function onAction(payload: SchemaActionPayload) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="payloadJson" class="xh-span-2">
+        <XhFormFieldGroup name="payloadJson" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.instance.signal_payload') }}</XhFieldLabel>
             <XhFieldControl>

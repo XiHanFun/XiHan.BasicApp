@@ -77,7 +77,7 @@ const onAuthInvalid = useAuthFormInvalid()
       @keydown="handleKeydown"
       @submit="onSubmit"
     >
-      <XhFormFieldGroup value="email" class="!mb-6">
+      <XhFormFieldGroup name="email" class="!mb-6">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput

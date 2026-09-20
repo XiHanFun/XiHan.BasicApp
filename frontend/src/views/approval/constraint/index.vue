@@ -803,7 +803,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="ruleCode">
+        <XhFormFieldGroup name="ruleCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_rule_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -817,7 +817,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="ruleName">
+        <XhFormFieldGroup name="ruleName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_rule_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -826,7 +826,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="constraintType">
+        <XhFormFieldGroup name="constraintType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_constraint_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -839,7 +839,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="targetType">
+        <XhFormFieldGroup name="targetType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_target_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -852,7 +852,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="violationAction">
+        <XhFormFieldGroup name="violationAction">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_violation_action') }}</XhFieldLabel>
             <XhFieldControl>
@@ -861,7 +861,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="priority">
+        <XhFormFieldGroup name="priority">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_priority') }}</XhFieldLabel>
             <XhFieldControl>
@@ -870,7 +870,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="status">
+        <XhFormFieldGroup name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -879,7 +879,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark">
+        <XhFormFieldGroup name="remark">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_remark') }}</XhFieldLabel>
             <XhFieldControl>
@@ -888,7 +888,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="effectiveTime">
+        <XhFormFieldGroup name="effectiveTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_effective_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -897,7 +897,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="expirationTime">
+        <XhFormFieldGroup name="expirationTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -906,7 +906,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="parameters" class="xh-span-2">
+        <XhFormFieldGroup name="parameters" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_parameters') }}</XhFieldLabel>
             <XhFieldControl>
@@ -921,7 +921,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="description" class="xh-span-2">
+        <XhFormFieldGroup name="description" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_description') }}</XhFieldLabel>
             <XhFieldControl>

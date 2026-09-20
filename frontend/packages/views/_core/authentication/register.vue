@@ -160,7 +160,7 @@ const onAuthInvalid = useAuthFormInvalid()
       @keydown="handleKeydown"
       @submit="onSubmit"
     >
-      <XhFormFieldGroup value="username" class="!mb-6">
+      <XhFormFieldGroup name="username" class="!mb-6">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput
@@ -172,7 +172,7 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
-      <XhFormFieldGroup value="email" class="!mb-6">
+      <XhFormFieldGroup name="email" class="!mb-6">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput
@@ -184,7 +184,7 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
-      <XhFormFieldGroup value="password" class="!mb-3">
+      <XhFormFieldGroup name="password" class="!mb-3">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput
@@ -223,7 +223,7 @@ const onAuthInvalid = useAuthFormInvalid()
       </div>
       <div v-else class="mb-3" />
 
-      <XhFormFieldGroup value="confirmPassword" class="!mb-6">
+      <XhFormFieldGroup name="confirmPassword" class="!mb-6">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput

@@ -348,7 +348,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="tableName">
+        <XhFormFieldGroup name="tableName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_table_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -357,7 +357,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="className">
+        <XhFormFieldGroup name="className">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_class_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -366,7 +366,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="namespace">
+        <XhFormFieldGroup name="namespace">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_namespace') }}</XhFieldLabel>
             <XhFieldControl>
@@ -375,7 +375,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="moduleName">
+        <XhFormFieldGroup name="moduleName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_module_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -384,7 +384,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="businessName">
+        <XhFormFieldGroup name="businessName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_business_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -393,7 +393,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="functionName">
+        <XhFormFieldGroup name="functionName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_function_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -402,7 +402,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="author">
+        <XhFormFieldGroup name="author">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_author') }}</XhFieldLabel>
             <XhFieldControl>
@@ -411,7 +411,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="templateType">
+        <XhFormFieldGroup name="templateType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_template_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -420,7 +420,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="genType">
+        <XhFormFieldGroup name="genType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_gen_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -429,7 +429,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="generationScope">
+        <XhFormFieldGroup name="generationScope">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_generation_scope') }}</XhFieldLabel>
             <XhFieldControl>
@@ -438,7 +438,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="enabledActions">
+        <XhFormFieldGroup name="enabledActions">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_enabled_actions') }}</XhFieldLabel>
             <XhFieldControl>
@@ -453,7 +453,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="databaseType">
+        <XhFormFieldGroup name="databaseType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_database_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -462,7 +462,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="genPath">
+        <XhFormFieldGroup name="genPath">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_gen_path') }}</XhFieldLabel>
             <XhFieldControl>
@@ -471,7 +471,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="primaryKeyColumn">
+        <XhFormFieldGroup name="primaryKeyColumn">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_primary_key_column') }}</XhFieldLabel>
             <XhFieldControl>
@@ -486,7 +486,7 @@ async function handleSubmit() {
           </XhFieldRoot>
         </XhFormFieldGroup>
         <template v-if="isTreeTemplate">
-          <XhFormFieldGroup value="treeParentColumn">
+          <XhFormFieldGroup name="treeParentColumn">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_tree_parent_column') }}</XhFieldLabel>
               <XhFieldControl>
@@ -500,7 +500,7 @@ async function handleSubmit() {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="treeNameColumn">
+          <XhFormFieldGroup name="treeNameColumn">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_tree_name_column') }}</XhFieldLabel>
               <XhFieldControl>
@@ -516,7 +516,7 @@ async function handleSubmit() {
           </XhFormFieldGroup>
         </template>
         <template v-if="isMasterDetailTemplate">
-          <XhFormFieldGroup value="masterTableId">
+          <XhFormFieldGroup name="masterTableId">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_master_table') }}</XhFieldLabel>
               <XhFieldControl>
@@ -530,7 +530,7 @@ async function handleSubmit() {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="masterForeignKey">
+          <XhFormFieldGroup name="masterForeignKey">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_master_foreign_key') }}</XhFieldLabel>
               <XhFieldControl>
@@ -545,7 +545,7 @@ async function handleSubmit() {
             </XhFieldRoot>
           </XhFormFieldGroup>
         </template>
-        <XhFormFieldGroup value="status">
+        <XhFormFieldGroup name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -554,7 +554,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="tableComment" class="xh-span-2">
+        <XhFormFieldGroup name="tableComment" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_table_comment') }}</XhFieldLabel>
             <XhFieldControl>

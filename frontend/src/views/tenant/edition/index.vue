@@ -614,7 +614,7 @@ async function savePermChanges() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="editionCode">
+        <XhFormFieldGroup name="editionCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.edition_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -628,7 +628,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="editionName">
+        <XhFormFieldGroup name="editionName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.edition_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -637,7 +637,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="price">
+        <XhFormFieldGroup name="price">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.price') }}</XhFieldLabel>
             <XhFieldControl>
@@ -653,7 +653,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="billingPeriodMonths">
+        <XhFormFieldGroup name="billingPeriodMonths">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.billing_period_form') }}</XhFieldLabel>
             <XhFieldControl>
@@ -668,7 +668,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="userLimit">
+        <XhFormFieldGroup name="userLimit">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.user_limit') }}</XhFieldLabel>
             <XhFieldControl>
@@ -683,7 +683,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="storageLimit">
+        <XhFormFieldGroup name="storageLimit">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.storage_limit_form') }}</XhFieldLabel>
             <XhFieldControl>
@@ -698,7 +698,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isFree">
+        <XhFormFieldGroup name="isFree">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.is_free') }}</XhFieldLabel>
             <XhFieldControl>
@@ -707,7 +707,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isDefault">
+        <XhFormFieldGroup name="isDefault">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.set_default') }}</XhFieldLabel>
             <XhFieldControl>
@@ -716,7 +716,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!editionForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!editionForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -725,7 +725,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -734,7 +734,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="description" class="xh-span-2">
+        <XhFormFieldGroup name="description" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.description') }}</XhFieldLabel>
             <XhFieldControl>
@@ -749,7 +749,7 @@ async function savePermChanges() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.edition.remark') }}</XhFieldLabel>
             <XhFieldControl>

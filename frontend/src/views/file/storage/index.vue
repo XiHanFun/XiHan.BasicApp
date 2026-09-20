@@ -436,7 +436,7 @@ function handleDelete(row: StorageConfigListItemDto) {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="configCode">
+        <XhFormFieldGroup name="configCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('file.storage.form.config_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -450,7 +450,7 @@ function handleDelete(row: StorageConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="configName">
+        <XhFormFieldGroup name="configName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('file.storage.form.config_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -459,7 +459,7 @@ function handleDelete(row: StorageConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="storageType">
+        <XhFormFieldGroup name="storageType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('file.storage.form.storage_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -468,7 +468,7 @@ function handleDelete(row: StorageConfigListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('file.storage.form.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -479,7 +479,7 @@ function handleDelete(row: StorageConfigListItemDto) {
         </XhFormFieldGroup>
 
         <template v-if="isObjectStorage">
-          <XhFormFieldGroup value="endpoint">
+          <XhFormFieldGroup name="endpoint">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('file.storage.form.endpoint') }}</XhFieldLabel>
               <XhFieldControl>
@@ -488,7 +488,7 @@ function handleDelete(row: StorageConfigListItemDto) {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="region">
+          <XhFormFieldGroup name="region">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('file.storage.form.region') }}</XhFieldLabel>
               <XhFieldControl>
@@ -497,7 +497,7 @@ function handleDelete(row: StorageConfigListItemDto) {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="bucketName">
+          <XhFormFieldGroup name="bucketName">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('file.storage.form.bucket_name') }}</XhFieldLabel>
               <XhFieldControl>
@@ -506,7 +506,7 @@ function handleDelete(row: StorageConfigListItemDto) {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="accessKeyId">
+          <XhFormFieldGroup name="accessKeyId">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('file.storage.form.access_key_id') }}</XhFieldLabel>
               <XhFieldControl>
@@ -515,7 +515,7 @@ function handleDelete(row: StorageConfigListItemDto) {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="secretAccessKey" class="xh-span-2">
+          <XhFormFieldGroup name="secretAccessKey" class="xh-span-2">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('file.storage.form.secret_access_key') }}</XhFieldLabel>
               <XhFieldControl>
@@ -531,7 +531,7 @@ function handleDelete(row: StorageConfigListItemDto) {
           </XhFormFieldGroup>
         </template>
         <template v-else>
-          <XhFormFieldGroup value="bucketName" class="xh-span-2">
+          <XhFormFieldGroup name="bucketName" class="xh-span-2">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('file.storage.form.root_path') }}</XhFieldLabel>
               <XhFieldControl>
@@ -543,7 +543,7 @@ function handleDelete(row: StorageConfigListItemDto) {
         </template>
 
         <template v-if="!form.basicId">
-          <XhFormFieldGroup value="isEnabled">
+          <XhFormFieldGroup name="isEnabled">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('file.storage.form.is_enabled') }}</XhFieldLabel>
               <XhFieldControl>
@@ -552,7 +552,7 @@ function handleDelete(row: StorageConfigListItemDto) {
               <XhFieldErrorText />
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <XhFormFieldGroup value="isDefault">
+          <XhFormFieldGroup name="isDefault">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('file.storage.form.is_default') }}</XhFieldLabel>
               <XhFieldControl>
@@ -563,7 +563,7 @@ function handleDelete(row: StorageConfigListItemDto) {
           </XhFormFieldGroup>
         </template>
 
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('file.storage.form.remark') }}</XhFieldLabel>
             <XhFieldControl>

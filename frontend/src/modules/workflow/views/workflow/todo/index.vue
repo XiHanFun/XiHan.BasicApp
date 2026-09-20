@@ -229,7 +229,7 @@ function onAction(payload: SchemaActionPayload) {
         class="xh-edit-form-grid"
         @submit="handleComplete"
       >
-        <XhFormFieldGroup value="comment" class="xh-span-2">
+        <XhFormFieldGroup name="comment" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.todo.comment') }}</XhFieldLabel>
             <XhFieldControl>
@@ -261,7 +261,7 @@ function onAction(payload: SchemaActionPayload) {
         class="xh-edit-form-grid"
         @submit="handleTransfer"
       >
-        <XhFormFieldGroup value="targetAssigneeId" class="xh-span-2">
+        <XhFormFieldGroup name="targetAssigneeId" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.todo.transfer_target') }}</XhFieldLabel>
             <XhFieldControl>
@@ -270,7 +270,7 @@ function onAction(payload: SchemaActionPayload) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="comment" class="xh-span-2">
+        <XhFormFieldGroup name="comment" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.todo.comment') }}</XhFieldLabel>
             <XhFieldControl>
@@ -297,7 +297,7 @@ function onAction(payload: SchemaActionPayload) {
         class="xh-edit-form-grid"
         @submit="handleAddSign"
       >
-        <XhFormFieldGroup value="assigneeIds" class="xh-span-2">
+        <XhFormFieldGroup name="assigneeIds" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.todo.add_sign_users') }}</XhFieldLabel>
             <XhFieldControl>
@@ -306,7 +306,7 @@ function onAction(payload: SchemaActionPayload) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="comment" class="xh-span-2">
+        <XhFormFieldGroup name="comment" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.todo.comment') }}</XhFieldLabel>
             <XhFieldControl>

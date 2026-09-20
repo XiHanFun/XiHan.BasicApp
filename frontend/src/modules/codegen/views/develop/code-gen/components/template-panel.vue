@@ -421,7 +421,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="templateCode">
+        <XhFormFieldGroup name="templateCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_template_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -435,7 +435,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="templateName">
+        <XhFormFieldGroup name="templateName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_template_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -444,7 +444,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="templateGroup">
+        <XhFormFieldGroup name="templateGroup">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_template_group') }}</XhFieldLabel>
             <XhFieldControl>
@@ -453,7 +453,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="templateType">
+        <XhFormFieldGroup name="templateType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_template_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -462,7 +462,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="templateEngine">
+        <XhFormFieldGroup name="templateEngine">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_template_engine') }}</XhFieldLabel>
             <XhFieldControl>
@@ -471,7 +471,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="writeMode">
+        <XhFormFieldGroup name="writeMode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_write_mode') }}</XhFieldLabel>
             <XhFieldControl>
@@ -480,7 +480,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="fileExtension">
+        <XhFormFieldGroup name="fileExtension">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_file_extension') }}</XhFieldLabel>
             <XhFieldControl>
@@ -489,7 +489,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="fileNameExpression">
+        <XhFormFieldGroup name="fileNameExpression">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_file_name_expression') }}</XhFieldLabel>
             <XhFieldControl>
@@ -498,7 +498,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="filePathExpression">
+        <XhFormFieldGroup name="filePathExpression">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_file_path_expression') }}</XhFieldLabel>
             <XhFieldControl>
@@ -507,7 +507,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -516,7 +516,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!form.basicId" value="status">
+        <XhFormFieldGroup v-if="!form.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -525,7 +525,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="templateDescription" class="xh-span-2">
+        <XhFormFieldGroup name="templateDescription" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_template_description') }}</XhFieldLabel>
             <XhFieldControl>
@@ -534,7 +534,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="templateContent" class="xh-span-2">
+        <XhFormFieldGroup name="templateContent" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.template.form_template_content') }}</XhFieldLabel>
             <XhFieldControl :as-child="false">

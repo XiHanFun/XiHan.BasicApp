@@ -406,7 +406,7 @@ function onAction(payload: SchemaActionPayload) {
         class="xh-edit-form-grid"
         @submit="handleStart"
       >
-        <XhFormFieldGroup value="definitionCode">
+        <XhFormFieldGroup name="definitionCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -415,7 +415,7 @@ function onAction(payload: SchemaActionPayload) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="definitionVersion">
+        <XhFormFieldGroup name="definitionVersion">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.version') }}</XhFieldLabel>
             <XhFieldControl>
@@ -424,7 +424,7 @@ function onAction(payload: SchemaActionPayload) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="name">
+        <XhFormFieldGroup name="name">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.instance_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -433,7 +433,7 @@ function onAction(payload: SchemaActionPayload) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="correlationId">
+        <XhFormFieldGroup name="correlationId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.correlation_id') }}</XhFieldLabel>
             <XhFieldControl>
@@ -442,7 +442,7 @@ function onAction(payload: SchemaActionPayload) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="variablesJson" class="xh-span-2">
+        <XhFormFieldGroup name="variablesJson" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('workflow.definition.variables') }}</XhFieldLabel>
             <XhFieldControl>

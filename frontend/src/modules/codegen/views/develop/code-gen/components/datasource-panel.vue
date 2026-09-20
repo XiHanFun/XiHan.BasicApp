@@ -401,7 +401,7 @@ async function handleSubmit() {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="sourceName">
+        <XhFormFieldGroup name="sourceName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_source_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -410,7 +410,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="databaseType">
+        <XhFormFieldGroup name="databaseType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_database_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -419,7 +419,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="host">
+        <XhFormFieldGroup name="host">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_host') }}</XhFieldLabel>
             <XhFieldControl>
@@ -428,7 +428,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="port">
+        <XhFormFieldGroup name="port">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_port') }}</XhFieldLabel>
             <XhFieldControl>
@@ -437,7 +437,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="databaseName">
+        <XhFormFieldGroup name="databaseName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_database_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -446,7 +446,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="userName">
+        <XhFormFieldGroup name="userName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_user_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -455,7 +455,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="password">
+        <XhFormFieldGroup name="password">
           <XhFieldRoot>
             <XhFieldLabel>{{ form.basicId ? t('develop.code_gen.datasource.form_password_edit') : t('develop.code_gen.datasource.form_password') }}</XhFieldLabel>
             <XhFieldControl>
@@ -464,7 +464,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="connectionTimeout">
+        <XhFormFieldGroup name="connectionTimeout">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_connection_timeout') }}</XhFieldLabel>
             <XhFieldControl>
@@ -473,7 +473,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -482,7 +482,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isDefault">
+        <XhFormFieldGroup name="isDefault">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_is_default') }}</XhFieldLabel>
             <XhFieldControl>
@@ -491,7 +491,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!form.basicId" value="status">
+        <XhFormFieldGroup v-if="!form.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('common.fields.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -500,7 +500,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="connectionString" class="xh-span-2">
+        <XhFormFieldGroup name="connectionString" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_connection_string') }}</XhFieldLabel>
             <XhFieldControl>
@@ -515,7 +515,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sourceDescription" class="xh-span-2">
+        <XhFormFieldGroup name="sourceDescription" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.datasource.form_description') }}</XhFieldLabel>
             <XhFieldControl>

@@ -703,7 +703,7 @@ onMounted(() => {
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="departmentName">
+        <XhFormFieldGroup name="departmentName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_department_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -712,7 +712,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="departmentCode">
+        <XhFormFieldGroup name="departmentCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_department_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -726,7 +726,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="parentId">
+        <XhFormFieldGroup name="parentId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_parent_dept') }}</XhFieldLabel>
             <XhFieldControl>
@@ -741,7 +741,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="departmentType">
+        <XhFormFieldGroup name="departmentType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_department_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -750,7 +750,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="phone">
+        <XhFormFieldGroup name="phone">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_phone') }}</XhFieldLabel>
             <XhFieldControl>
@@ -759,7 +759,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="email">
+        <XhFormFieldGroup name="email">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_email') }}</XhFieldLabel>
             <XhFieldControl>
@@ -768,7 +768,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="address">
+        <XhFormFieldGroup name="address">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_address') }}</XhFieldLabel>
             <XhFieldControl>
@@ -777,7 +777,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -786,7 +786,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_remark') }}</XhFieldLabel>
             <XhFieldControl>
@@ -810,7 +810,7 @@ onMounted(() => {
         class="xh-edit-form-grid"
         @submit="submitMembership"
       >
-        <XhFormFieldGroup value="positionId">
+        <XhFormFieldGroup name="positionId">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_position') }}</XhFieldLabel>
             <XhFieldControl>
@@ -824,7 +824,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="jobNumber">
+        <XhFormFieldGroup name="jobNumber">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_job_number') }}</XhFieldLabel>
             <XhFieldControl>
@@ -833,7 +833,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="jobLevel">
+        <XhFormFieldGroup name="jobLevel">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_job_level') }}</XhFieldLabel>
             <XhFieldControl>
@@ -842,7 +842,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="joinTime">
+        <XhFormFieldGroup name="joinTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_join_time') }}</XhFieldLabel>
             <XhFieldControl>
@@ -851,7 +851,7 @@ onMounted(() => {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="remark" class="xh-span-2">
+        <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_remark') }}</XhFieldLabel>
             <XhFieldControl>

@@ -899,7 +899,7 @@ onMounted(fetchDictData)
         class="xh-edit-form-grid"
         @submit="handleSubmit"
       >
-        <XhFormFieldGroup value="dictCode">
+        <XhFormFieldGroup name="dictCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.dict_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -913,7 +913,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="dictName">
+        <XhFormFieldGroup name="dictName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.dict_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -922,7 +922,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="dictType">
+        <XhFormFieldGroup name="dictType">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.dict_type') }}</XhFieldLabel>
             <XhFieldControl>
@@ -931,7 +931,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="dictDescription" class="xh-span-2">
+        <XhFormFieldGroup name="dictDescription" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.description') }}</XhFieldLabel>
             <XhFieldControl>
@@ -946,7 +946,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -955,7 +955,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!dictForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!dictForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.status') }}</XhFieldLabel>
             <XhFieldControl>
@@ -980,7 +980,7 @@ onMounted(fetchDictData)
         class="xh-edit-form-grid"
         @submit="handleItemSubmit"
       >
-        <XhFormFieldGroup value="itemCode">
+        <XhFormFieldGroup name="itemCode">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.item_code') }}</XhFieldLabel>
             <XhFieldControl>
@@ -994,7 +994,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="itemName">
+        <XhFormFieldGroup name="itemName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.item_name_label') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1003,7 +1003,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="itemValue">
+        <XhFormFieldGroup name="itemValue">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.item_value_label') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1012,7 +1012,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="itemDescription" class="xh-span-2">
+        <XhFormFieldGroup name="itemDescription" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.description') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1027,7 +1027,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="isDefault">
+        <XhFormFieldGroup name="isDefault">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.is_default') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1036,7 +1036,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup value="sort">
+        <XhFormFieldGroup name="sort">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.sort') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1045,7 +1045,7 @@ onMounted(fetchDictData)
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!itemForm.basicId" value="status">
+        <XhFormFieldGroup v-if="!itemForm.basicId" name="status">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.dict.status') }}</XhFieldLabel>
             <XhFieldControl>
