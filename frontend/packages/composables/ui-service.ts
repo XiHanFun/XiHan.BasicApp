@@ -41,12 +41,19 @@ function notificationService(): NotificationService {
   return notificationInstance
 }
 
-/** 确认框服务；确定/取消的兜底文案按当前语言取，调用点显式给了就以调用点为准。 */
+/**
+ * 确认框服务；确定/取消的兜底文案按当前语言取，调用点显式给了就以调用点为准。
+ *
+ * onOk 抛错或 Promise 拒绝不再被吞成 false：服务把它记进 actionError、弹窗保持打开，
+ * 并在正文下方用 actionErrorText 给一句可见提示。这句兜底文案也按当前语言取，
+ * 调用点在 onOk 里自己 toast 过的场景仍然会看到这条，属于服务的固定行为。
+ */
 export function dialogService(): DialogService {
   dialogInstance ??= createDialogService({
     config: xhConfigValue,
     okText: () => $t('common.actions.confirm'),
     cancelText: () => $t('common.actions.cancel'),
+    actionErrorText: () => $t('common.messages.operation_failed'),
   })
   return dialogInstance
 }
@@ -110,7 +117,9 @@ export const notification = {
  * 确认框与告知框。
  *
  * confirm 返回 Promise<boolean>：确认走完 onOk 才 resolve(true)，取消/Esc resolve(false)。
- * onOk 返回 Promise 时确认钮自动进入 pending 并拦住关闭，拒绝则保持打开以便重试。
+ * onOk 返回 Promise 时确认钮自动进入 pending 并拦住关闭；返回 false 只阻止关闭，抛错或拒绝
+ * 进入服务的 actionError、弹窗保持打开并显示兜底提示，可换值重试或经 onActionError 自行处理。
+ * 宿主挂载失败时这几个 Promise 会明确拒绝，调用点用 void 丢弃返回值的要接受这一点。
  * 删除这类不可逆操作传 `tone: 'danger'`，确认钮即转危险色。
  */
 export const dialog = {
