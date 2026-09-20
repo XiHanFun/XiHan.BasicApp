@@ -338,7 +338,7 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
 
         <div class="xh-dialog-footer">
           <XhFlex justify="end">
-            <XhButton @click="detailVisible = false">
+            <XhButton variant="subtle" @click="detailVisible = false">
               {{ t('common.actions.close') }}
             </XhButton>
           </XhFlex>

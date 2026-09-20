@@ -627,7 +627,7 @@ onBeforeUnmount(() => {
           <span class="block truncate text-left text-xs text-foreground">{{ messageBodyLabel(hit) }}</span>
         </button>
         <div v-if="searchHasMore" class="flex justify-center py-1">
-          <XhButton text size="sm" @click="runSearch(true)">
+          <XhButton variant="subtle" text size="sm" @click="runSearch(true)">
             {{ t('chat.thread.load_more') }}
           </XhButton>
         </div>
@@ -759,7 +759,7 @@ onBeforeUnmount(() => {
             <div class="max-w-[80%] rounded-lg bg-card px-3 py-2 text-[13px] leading-relaxed whitespace-pre-wrap break-words">
               <template v-if="assistantStream.error">
                 <span class="text-error">{{ assistantStream.error }}</span>
-                <XhButton size="sm" text tone="brand" class="ml-2" @click="chatStore.dismissAssistantStream(conversation.conversationId)">
+                <XhButton variant="subtle" size="sm" text tone="brand" class="ml-2" @click="chatStore.dismissAssistantStream(conversation.conversationId)">
                   {{ t('chat.thread.assistant_dismiss') }}
                 </XhButton>
               </template>

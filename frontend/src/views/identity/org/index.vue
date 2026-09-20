@@ -674,11 +674,12 @@ onMounted(() => {
 
         <div class="xh-dialog-footer">
           <XhFlex justify="end">
-            <XhButton size="sm" @click="detailVisible = false">
+            <XhButton variant="subtle" size="sm" @click="detailVisible = false">
               {{ t('common.actions.close') }}
             </XhButton>
             <XhButton
               v-if="detDept"
+              variant="subtle"
               size="sm"
               tone="brand"
               @click="detailVisible = false; handleEdit(detDept as DepartmentListItemDto)"

@@ -1392,7 +1392,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
         <XhFlex orientation="vertical" gap="md">
           <div class="flex items-center justify-between">
             <span class="text-sm text-foreground/60">{{ t('file.library.storage_list.total', { count: storageRows.length }) }}</span>
-            <XhButton size="sm" :loading="storageListLoading" @click="loadStorageRows">
+            <XhButton variant="subtle" size="sm" :loading="storageListLoading" @click="loadStorageRows">
               <span><Icon icon="lucide:refresh-cw" /></span>
               {{ t('common.actions.refresh') }}
             </XhButton>

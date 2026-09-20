@@ -99,7 +99,7 @@ onMounted(loadSessions)
             <XhButton size="sm" variant="ghost" @click="loadSessions">
               <span><Icon icon="lucide:refresh-cw" /></span>
             </XhButton>
-            <XhButton size="sm" @click="handleRevokeOthers">
+            <XhButton variant="subtle" size="sm" @click="handleRevokeOthers">
               {{ t('component.profile.devices.btn_logout_others') }}
             </XhButton>
           </XhFlex>

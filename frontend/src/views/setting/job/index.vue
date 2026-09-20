@@ -842,11 +842,12 @@ async function handleSubmit() {
         </div>
         <div v-if="detailData" class="xh-dialog-footer">
           <XhFlex justify="end" gap="md">
-            <XhButton @click="handleLogs(detailData); detailVisible = false">
+            <XhButton variant="subtle" @click="handleLogs(detailData); detailVisible = false">
               <span><Icon icon="lucide:history" /></span>
               {{ t('setting.job.logs') }}
             </XhButton>
             <XhButton
+              variant="subtle"
               tone="brand"
               :disabled="triggerDisabled(detailData)"
               @click="handleTrigger(detailData); detailVisible = false"
@@ -855,6 +856,7 @@ async function handleSubmit() {
               {{ t('setting.job.trigger_immediate') }}
             </XhButton>
             <XhButton
+              variant="subtle"
               :tone="detailData.status === EnableStatus.Enabled ? 'warning' : 'success'"
               :disabled="detailData.runTaskStatus === RunTaskStatus.Running"
               @click="handleToggleStatus(detailData); detailVisible = false"
@@ -891,7 +893,7 @@ async function handleSubmit() {
             @clear="loadTaskLogs(1)"
             @keyup.enter="loadTaskLogs(1)"
           />
-          <XhButton size="sm" @click="loadTaskLogs(1)">
+          <XhButton variant="subtle" size="sm" @click="loadTaskLogs(1)">
             <span><Icon icon="lucide:refresh-cw" /></span>
             {{ t('common.actions.refresh') }}
           </XhButton>

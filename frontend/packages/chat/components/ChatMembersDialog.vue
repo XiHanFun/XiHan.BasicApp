@@ -339,7 +339,7 @@ async function handleLeave() {
           </div>
 
           <div class="flex justify-end">
-            <XhButton size="sm" tone="brand" :loading="infoSaving" @click="handleSaveInfo">
+            <XhButton variant="subtle" size="sm" tone="brand" :loading="infoSaving" @click="handleSaveInfo">
               {{ t('chat.members.info_save') }}
             </XhButton>
           </div>
@@ -367,7 +367,7 @@ async function handleLeave() {
 
         <!-- 添加成员 -->
         <div v-if="canManage" class="mb-3">
-          <XhButton v-if="!showAdd" size="sm" dashed full-width @click="showAdd = true">
+          <XhButton v-if="!showAdd" variant="subtle" size="sm" dashed full-width @click="showAdd = true">
             <Icon icon="lucide:user-plus" width="14" height="14" />
             {{ t('chat.members.add') }}
           </XhButton>
@@ -379,10 +379,11 @@ async function handleLeave() {
               :placeholder="t('chat.start.users_placeholder')"
             />
             <div class="flex justify-end gap-2">
-              <XhButton size="sm" :disabled="adding" @click="showAdd = false">
+              <XhButton variant="subtle" size="sm" :disabled="adding" @click="showAdd = false">
                 {{ t('chat.start.cancel') }}
               </XhButton>
               <XhButton
+                variant="subtle"
                 size="sm"
                 tone="brand"
                 :loading="adding"

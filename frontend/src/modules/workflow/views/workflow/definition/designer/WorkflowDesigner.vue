@@ -594,11 +594,11 @@ function onContextSelect(key: string) {
 
       <XhSeparator orientation="vertical" class="!mx-0.5" />
 
-      <XhButton size="sm" @click="handleAutoLayout">
+      <XhButton variant="subtle" size="sm" @click="handleAutoLayout">
         <Icon icon="lucide:layout-dashboard" />
         {{ t('workflow.designer.btn_layout') }}
       </XhButton>
-      <XhButton size="sm" tone="brand" :loading="saving" @click="handleSave">
+      <XhButton variant="subtle" size="sm" tone="brand" :loading="saving" @click="handleSave">
         <Icon icon="lucide:save" />
         {{ t('workflow.designer.btn_save') }}
       </XhButton>
@@ -644,7 +644,7 @@ function onContextSelect(key: string) {
                   <span v-if="errorCount" class="text-red-500">· {{ errorCount }} {{ t('workflow.designer.validate_errors') }}</span>
                   <span v-if="warningCount" class="text-amber-500">· {{ warningCount }} {{ t('workflow.designer.validate_warnings') }}</span>
                 </span>
-                <XhButton text size="sm" @click="showIssues = false">
+                <XhButton variant="subtle" text size="sm" @click="showIssues = false">
                   <Icon icon="lucide:x" />
                 </XhButton>
               </div>
@@ -997,7 +997,7 @@ function onContextSelect(key: string) {
             :autosize="{ minRows: 24, maxRows: 24 }"
             :placeholder="t('workflow.designer.json_placeholder')"
           />
-          <XhButton size="sm" @click="applyJsonToCanvas">
+          <XhButton variant="subtle" size="sm" @click="applyJsonToCanvas">
             {{ t('workflow.designer.btn_apply_json') }}
           </XhButton>
         </div>

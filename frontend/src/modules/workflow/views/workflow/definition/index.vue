@@ -364,7 +364,7 @@ function onAction(payload: SchemaActionPayload) {
           </XhDescriptionsRoot>
           <div class="mb-2 mt-4 flex items-center justify-between">
             <span class="text-sm font-medium">{{ t('workflow.definition.graph_label') }}</span>
-            <XhButton text size="sm" @click="showDetailJson = !showDetailJson">
+            <XhButton variant="subtle" text size="sm" @click="showDetailJson = !showDetailJson">
               {{ showDetailJson ? t('workflow.definition.hide_json') : t('workflow.definition.show_json') }}
             </XhButton>
           </div>

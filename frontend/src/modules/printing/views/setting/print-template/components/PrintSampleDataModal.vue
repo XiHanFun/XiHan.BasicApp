@@ -368,10 +368,11 @@ function clearSession(): void {
             {{ t('setting.print_template.sample_fields_count', { count: schema.fields.length }) }}
           </span>
           <XhFlex>
-            <XhButton :disabled="submitting" @click="requestVisible(false)">
+            <XhButton variant="subtle" :disabled="submitting" @click="requestVisible(false)">
               {{ t('common.actions.cancel') }}
             </XhButton>
             <XhButton
+              variant="subtle"
               data-testid="print-sample-preview-submit"
               tone="brand"
               :loading="submitting"

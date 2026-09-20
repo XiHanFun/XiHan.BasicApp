@@ -39,6 +39,7 @@ async function stop() {
     </span>
     <span v-if="errorMessage" class="impersonation-banner-error">{{ errorMessage }}</span>
     <XhButton
+      variant="subtle"
       size="sm"
       tone="warning"
       :disabled="authStore.impersonationLoading"

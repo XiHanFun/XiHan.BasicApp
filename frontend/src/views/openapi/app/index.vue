@@ -764,7 +764,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <span><Icon icon="lucide:copy" /></span>
             {{ t('openapi.app.secret_copy') }}
           </XhButton>
-          <XhButton full-width @click="secretVisible = false">
+          <XhButton variant="subtle" full-width @click="secretVisible = false">
             {{ t('openapi.app.secret_close') }}
           </XhButton>
         </XhFlex>

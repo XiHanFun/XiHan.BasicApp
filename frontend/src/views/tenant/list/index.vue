@@ -1093,10 +1093,10 @@ async function handleSubmit() {
               </XhTabsContent>
               <XhTabsContent value="members">
                 <XhFlex class="xh-member-toolbar" gap="sm">
-                  <XhButton size="sm" tone="brand" @click="handleAddMember('add')">
+                  <XhButton variant="subtle" size="sm" tone="brand" @click="handleAddMember('add')">
                     {{ t('tenant.list.member_add') }}
                   </XhButton>
-                  <XhButton size="sm" @click="handleAddMember('invite')">
+                  <XhButton variant="subtle" size="sm" @click="handleAddMember('invite')">
                     {{ t('tenant.list.member_invite') }}
                   </XhButton>
                 </XhFlex>
@@ -1112,7 +1112,7 @@ async function handleSubmit() {
                       <XhEmptyStateTitle>{{ t('common.messages.load_failed') }}</XhEmptyStateTitle>
                       <XhEmptyStateDescription>{{ t('tenant.list.member_load_failed') }}</XhEmptyStateDescription>
                       <XhEmptyStateAction>
-                        <XhButton size="sm" @click="loadMembers">
+                        <XhButton variant="subtle" size="sm" @click="loadMembers">
                           {{ t('tenant.list.member_retry') }}
                         </XhButton>
                       </XhEmptyStateAction>
@@ -1166,10 +1166,10 @@ async function handleSubmit() {
                           <td>{{ formatNullableDate(item.createdTime) }}</td>
                           <td>
                             <XhFlex gap="sm">
-                              <XhButton size="sm" @click="handleEditMember(item)">
+                              <XhButton variant="subtle" size="sm" @click="handleEditMember(item)">
                                 {{ t('tenant.list.member_edit') }}
                               </XhButton>
-                              <XhButton size="sm" tone="warning" @click="handleChangeMemberStatus(item)">
+                              <XhButton variant="subtle" size="sm" tone="warning" @click="handleChangeMemberStatus(item)">
                                 {{ t('tenant.list.member_change_status') }}
                               </XhButton>
                             </XhFlex>

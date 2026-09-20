@@ -1112,7 +1112,7 @@ async function handleSubmit() {
                 </XhPopconfirmContent>
               </XhPopconfirmPositioner>
             </XhPopconfirmRoot>
-            <XhButton size="sm" :loading="exportLoading" @click="exportUnread">
+            <XhButton variant="subtle" size="sm" :loading="exportLoading" @click="exportUnread">
               {{ t('message.notification.stats_export') }}
             </XhButton>
           </div>

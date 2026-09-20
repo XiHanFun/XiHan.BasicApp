@@ -781,13 +781,14 @@ async function savePermChanges() {
           :other-group-label="t('tenant.edition.perm_group_other')"
         >
           <template #toolbar>
-            <XhButton v-if="permError" size="sm" @click="loadPermissionList">
+            <XhButton v-if="permError" variant="subtle" size="sm" @click="loadPermissionList">
               {{ t('tenant.edition.perm_retry') }}
             </XhButton>
           </template>
           <template #action="{ item }">
             <XhButton
               v-if="permDraftGranted.has(item.basicId) && permByPermissionId.get(item.basicId)"
+              variant="subtle"
               :disabled="!canUpdateMapping || permLoading"
               size="sm"
               :tone="permDraftStatus.get(item.basicId) === ValidityStatus.Valid ? 'success' : 'warning'"
@@ -804,10 +805,10 @@ async function savePermChanges() {
         </XPermissionGrantPanel>
         <!-- 按钮行排在抽屉内容区末尾，右对齐 -->
         <div class="xh-dialog-footer">
-          <XhButton @click="permDrawerVisible = false">
+          <XhButton variant="subtle" @click="permDrawerVisible = false">
             {{ t('tenant.edition.cancel') }}
           </XhButton>
-          <XhButton tone="brand" :loading="permLoading" :disabled="!permDirty" @click="savePermChanges">
+          <XhButton variant="subtle" tone="brand" :loading="permLoading" :disabled="!permDirty" @click="savePermChanges">
             {{ t('tenant.edition.perm_save') }}
           </XhButton>
         </div>

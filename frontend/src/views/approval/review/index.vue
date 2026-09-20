@@ -493,15 +493,15 @@ function onAction(payload: SchemaActionPayload) {
             {{ t('approval.review.review_operation') }}
           </div>
           <XhFlex justify="start" gap="sm">
-            <XhButton tone="success" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Pass)">
+            <XhButton variant="subtle" tone="success" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Pass)">
               <span><Icon icon="lucide:check" /></span>
               {{ t('approval.review.btn_pass') }}
             </XhButton>
-            <XhButton tone="danger" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Reject)">
+            <XhButton variant="subtle" tone="danger" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Reject)">
               <span><Icon icon="lucide:x" /></span>
               {{ t('approval.review.btn_reject') }}
             </XhButton>
-            <XhButton tone="warning" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Return)">
+            <XhButton variant="subtle" tone="warning" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Return)">
               <span><Icon icon="lucide:corner-down-left" /></span>
               {{ t('approval.review.btn_return') }}
             </XhButton>

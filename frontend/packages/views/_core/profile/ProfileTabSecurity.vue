@@ -461,7 +461,7 @@ function handleDeleteAccount() {
                 <XhFieldErrorText />
               </XhFieldRoot>
             </XhFormFieldGroup>
-            <XhButton class="pf-pwd__submit" type="submit" tone="brand" :loading="pwdSaving">
+            <XhButton variant="subtle" class="pf-pwd__submit" type="submit" tone="brand" :loading="pwdSaving">
               {{ t('component.profile.security.btn_update_password') }}
             </XhButton>
           </XhFormRoot>
@@ -552,7 +552,7 @@ function handleDeleteAccount() {
                       <XhPinInputInput v-for="i in 6" :key="i" :index="i - 1" />
                     </div>
                   </XhPinInputRoot>
-                  <XhButton tone="brand" size="sm" :loading="tfLoading" @click="confirmEnableTotp">
+                  <XhButton variant="subtle" tone="brand" size="sm" :loading="tfLoading" @click="confirmEnableTotp">
                     {{ t('component.profile.security.btn_enable') }}
                   </XhButton>
                   <XhButton size="sm" variant="ghost" @click="cancelTotpSetup">
@@ -588,7 +588,7 @@ function handleDeleteAccount() {
                     <XhPinInputInput v-for="i in 6" :key="i" :index="i - 1" />
                   </div>
                 </XhPinInputRoot>
-                <XhButton tone="danger" size="sm" :loading="tfLoading" @click="confirmDisable">
+                <XhButton variant="subtle" tone="danger" size="sm" :loading="tfLoading" @click="confirmDisable">
                   {{ t('component.profile.security.btn_disable') }}
                 </XhButton>
                 <XhButton size="sm" variant="ghost" @click="cancelDisable">
@@ -647,7 +647,7 @@ function handleDeleteAccount() {
                     <XhPinInputInput v-for="i in 6" :key="i" :index="i - 1" />
                   </div>
                 </XhPinInputRoot>
-                <XhButton tone="brand" size="sm" :loading="tfLoading" @click="confirmEnableEmail">
+                <XhButton variant="subtle" tone="brand" size="sm" :loading="tfLoading" @click="confirmEnableEmail">
                   {{ t('component.profile.security.btn_enable') }}
                 </XhButton>
                 <XhButton
@@ -692,7 +692,7 @@ function handleDeleteAccount() {
                     <XhPinInputInput v-for="i in 6" :key="i" :index="i - 1" />
                   </div>
                 </XhPinInputRoot>
-                <XhButton tone="danger" size="sm" :loading="tfLoading" @click="confirmDisable">
+                <XhButton variant="subtle" tone="danger" size="sm" :loading="tfLoading" @click="confirmDisable">
                   {{ t('component.profile.security.btn_disable') }}
                 </XhButton>
                 <XhButton
@@ -761,7 +761,7 @@ function handleDeleteAccount() {
                     <XhPinInputInput v-for="i in 6" :key="i" :index="i - 1" />
                   </div>
                 </XhPinInputRoot>
-                <XhButton tone="brand" size="sm" :loading="tfLoading" @click="confirmEnablePhone">
+                <XhButton variant="subtle" tone="brand" size="sm" :loading="tfLoading" @click="confirmEnablePhone">
                   {{ t('component.profile.security.btn_enable') }}
                 </XhButton>
                 <XhButton
@@ -806,7 +806,7 @@ function handleDeleteAccount() {
                     <XhPinInputInput v-for="i in 6" :key="i" :index="i - 1" />
                   </div>
                 </XhPinInputRoot>
-                <XhButton tone="danger" size="sm" :loading="tfLoading" @click="confirmDisable">
+                <XhButton variant="subtle" tone="danger" size="sm" :loading="tfLoading" @click="confirmDisable">
                   {{ t('component.profile.security.btn_disable') }}
                 </XhButton>
                 <XhButton
@@ -905,7 +905,7 @@ function handleDeleteAccount() {
                 {{ t('component.profile.security.deactivate_desc') }}
               </div>
             </div>
-            <XhButton size="sm" tone="warning" ghost @click="handleDeactivateAccount">
+            <XhButton variant="subtle" size="sm" tone="warning" ghost @click="handleDeactivateAccount">
               {{ t('component.profile.security.btn_deactivate') }}
             </XhButton>
           </div>
@@ -921,7 +921,7 @@ function handleDeleteAccount() {
                 {{ t('component.profile.security.delete_desc') }}
               </div>
             </div>
-            <XhButton size="sm" tone="danger" ghost @click="handleDeleteAccount">
+            <XhButton variant="subtle" size="sm" tone="danger" ghost @click="handleDeleteAccount">
               {{ t('component.profile.security.btn_delete') }}
             </XhButton>
           </div>

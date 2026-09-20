@@ -195,7 +195,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="pf-section__extra">
-          <XhButton size="sm" tone="brand" @click="openCreateModal">
+          <XhButton variant="subtle" size="sm" tone="brand" @click="openCreateModal">
             <span><Icon icon="lucide:plus" /></span>
             {{ t('component.profile.developer.btn_create_credential') }}
           </XhButton>
@@ -213,7 +213,7 @@ onMounted(() => {
                 <span class="pf-secret-label">AppKey</span>
                 <div class="xh-input-group">
                   <XInput :value="newSecret.appKey" readonly size="sm" />
-                  <XhButton size="sm" @click="copyText(newSecret.appKey)">
+                  <XhButton variant="subtle" size="sm" @click="copyText(newSecret.appKey)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
                 </div>
@@ -222,7 +222,7 @@ onMounted(() => {
                 <span class="pf-secret-label">Secret</span>
                 <div class="xh-input-group">
                   <XInput :value="newSecret.appSecret" readonly size="sm" type="password" />
-                  <XhButton size="sm" @click="copyText(newSecret.appSecret)">
+                  <XhButton variant="subtle" size="sm" @click="copyText(newSecret.appSecret)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
                 </div>
@@ -339,7 +339,7 @@ onMounted(() => {
         </div>
       </div>
       <div class="pf-section__actions">
-        <XhButton tone="brand" size="sm" :loading="settingsSaving" @click="handleSaveOpenApiSettings">
+        <XhButton variant="subtle" tone="brand" size="sm" :loading="settingsSaving" @click="handleSaveOpenApiSettings">
           {{ t('component.profile.developer.btn_save_settings') }}
         </XhButton>
       </div>

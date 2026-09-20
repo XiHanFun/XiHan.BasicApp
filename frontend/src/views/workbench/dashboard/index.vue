@@ -272,15 +272,15 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
             </div>
             <div class="mx-0.5 h-5 w-px bg-border/70" />
             <template v-if="customizing">
-              <XhButton size="sm" @click="showAdd = true">
+              <XhButton variant="subtle" size="sm" @click="showAdd = true">
                 <Icon icon="lucide:plus" />
                 {{ t('workbench.widgets.add') }}
               </XhButton>
-              <XhButton size="sm" @click="resetBoard">
+              <XhButton variant="subtle" size="sm" @click="resetBoard">
                 <Icon icon="lucide:rotate-ccw" />
                 {{ t('workbench.widgets.reset') }}
               </XhButton>
-              <XhButton size="sm" tone="brand" @click="finishCustomize">
+              <XhButton variant="subtle" size="sm" tone="brand" @click="finishCustomize">
                 <Icon icon="lucide:check" />
                 {{ t('workbench.widgets.done') }}
               </XhButton>
@@ -312,7 +312,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
         <XhEmptyStateTitle>{{ t('workbench.widgets.empty_title') }}</XhEmptyStateTitle>
         <XhEmptyStateDescription>{{ t('workbench.widgets.empty') }}</XhEmptyStateDescription>
         <XhEmptyStateAction>
-          <XhButton size="sm" @click="customizing = true; showAdd = true">
+          <XhButton variant="subtle" size="sm" @click="customizing = true; showAdd = true">
             {{ t('workbench.widgets.add') }}
           </XhButton>
         </XhEmptyStateAction>

@@ -714,7 +714,7 @@ onMounted(fetchDictData)
           <span class="pane__title">{{ t('setting.dict.dict_list') }}</span>
           <span class="pane__count">{{ dictTotal }}</span>
         </div>
-        <XhButton size="sm" tone="brand" @click="handleAdd">
+        <XhButton variant="subtle" size="sm" tone="brand" @click="handleAdd">
           <span><Icon icon="lucide:plus" /></span>
           {{ t('setting.dict.add_dict') }}
         </XhButton>
@@ -748,7 +748,7 @@ onMounted(fetchDictData)
           size="sm"
           @update:value="handleDictSearch"
         />
-        <XhButton class="pane__search" size="sm" tone="brand" @click="handleDictSearch">
+        <XhButton variant="subtle" class="pane__search" size="sm" tone="brand" @click="handleDictSearch">
           {{ t('common.actions.search') }}
         </XhButton>
       </div>
@@ -771,10 +771,10 @@ onMounted(fetchDictData)
         <div class="pane__foot-left">
           <template v-if="checkedDictKeys.length">
             <span class="pane__sel">{{ t('setting.dict.selected', { count: checkedDictKeys.length }) }}</span>
-            <XhButton size="sm" @click="handleBatchToggleDict(true)">
+            <XhButton variant="subtle" size="sm" @click="handleBatchToggleDict(true)">
               {{ t('common.actions.enable') }}
             </XhButton>
-            <XhButton size="sm" @click="handleBatchToggleDict(false)">
+            <XhButton variant="subtle" size="sm" @click="handleBatchToggleDict(false)">
               {{ t('common.actions.disable') }}
             </XhButton>
             <XhPopconfirmRoot @confirm="handleBatchDeleteDict">
@@ -808,7 +808,7 @@ onMounted(fetchDictData)
           <span class="pane__title">{{ currentDict ? currentDict.dictName : t('setting.dict.no_dict_selected') }}</span>
           <span v-if="currentDict" class="pane__count">{{ t('setting.dict.item_count', { count: itemTotal }) }}</span>
         </div>
-        <XhButton size="sm" tone="brand" :disabled="!currentDict" @click="handleItemAdd">
+        <XhButton variant="subtle" size="sm" tone="brand" :disabled="!currentDict" @click="handleItemAdd">
           <span><Icon icon="lucide:plus" /></span>
           {{ t('setting.dict.add_item') }}
         </XhButton>
@@ -825,7 +825,7 @@ onMounted(fetchDictData)
           @keyup.enter="handleItemSearch"
           @clear="handleItemSearch"
         />
-        <XhButton class="pane__search" size="sm" tone="brand" :disabled="!currentDict" @click="handleItemSearch">
+        <XhButton variant="subtle" class="pane__search" size="sm" tone="brand" :disabled="!currentDict" @click="handleItemSearch">
           {{ t('common.actions.search') }}
         </XhButton>
       </div>
@@ -855,10 +855,10 @@ onMounted(fetchDictData)
         <div class="pane__foot-left">
           <template v-if="checkedItemKeys.length">
             <span class="pane__sel">{{ t('setting.dict.selected', { count: checkedItemKeys.length }) }}</span>
-            <XhButton size="sm" @click="handleBatchToggleItem(true)">
+            <XhButton variant="subtle" size="sm" @click="handleBatchToggleItem(true)">
               {{ t('common.actions.enable') }}
             </XhButton>
-            <XhButton size="sm" @click="handleBatchToggleItem(false)">
+            <XhButton variant="subtle" size="sm" @click="handleBatchToggleItem(false)">
               {{ t('common.actions.disable') }}
             </XhButton>
             <XhPopconfirmRoot @confirm="handleBatchDeleteItem">

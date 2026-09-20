@@ -1228,10 +1228,10 @@ async function handleToggleStatus(row: RoleListItemDto) {
           </template>
         </XPermissionGrantPanel>
         <div class="xh-dialog-footer">
-          <XhButton @click="permissionVisible = false">
+          <XhButton variant="subtle" @click="permissionVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton tone="brand" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+          <XhButton variant="subtle" tone="brand" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
             {{ t('identity.role.perm_save') }}
           </XhButton>
         </div>
@@ -1267,10 +1267,10 @@ async function handleToggleStatus(row: RoleListItemDto) {
           {{ t('identity.role.menu_tip') }}
         </p>
         <div class="xh-dialog-footer">
-          <XhButton @click="menuVisible = false">
+          <XhButton variant="subtle" @click="menuVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton tone="brand" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
+          <XhButton variant="subtle" tone="brand" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
             {{ t('identity.role.menu_save') }}
           </XhButton>
         </div>
@@ -1292,7 +1292,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
           <XhSwitch v-model:checked="scopeIncludeChildren">
             {{ scopeIncludeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
           </XhSwitch>
-          <XhButton :loading="scopeSubmitting" tone="brand" @click="addScope">
+          <XhButton variant="subtle" :loading="scopeSubmitting" tone="brand" @click="addScope">
             {{ t('identity.role.scope_add') }}
           </XhButton>
         </div>

@@ -398,7 +398,7 @@ onMounted(loadKeys)
               </template>
             </XInput>
             <XTooltip :content="t('setting.cache.search_by_pattern')">
-              <XhButton size="sm" tone="brand" :loading="loadingKeys" @click="handleSearch">
+              <XhButton variant="subtle" size="sm" tone="brand" :loading="loadingKeys" @click="handleSearch">
                 <span><Icon icon="lucide:search" /></span>
               </XhButton>
             </XTooltip>
@@ -447,7 +447,7 @@ onMounted(loadKeys)
               <XhButton v-if="selectedCount > 0" size="sm" variant="ghost" @click="clearSelection">
                 {{ t('setting.cache.clear') }}
               </XhButton>
-              <XhButton v-if="selectedCount > 0" size="sm" tone="danger" @click="handleBatchDelete">
+              <XhButton v-if="selectedCount > 0" variant="subtle" size="sm" tone="danger" @click="handleBatchDelete">
                 {{ t('setting.cache.delete_selected') }}
               </XhButton>
               <XhButton v-else size="sm" variant="ghost" tone="warning" @click="handleDeleteByPattern">
@@ -480,7 +480,7 @@ onMounted(loadKeys)
                   <span><Icon icon="lucide:refresh-cw" /></span>
                 </XhButton>
               </XTooltip>
-              <XhButton v-if="canManage && !editing" size="sm" @click="startEdit">
+              <XhButton v-if="canManage && !editing" variant="subtle" size="sm" @click="startEdit">
                 <span><Icon icon="lucide:pencil-line" /></span>
                 {{ t('setting.cache.edit') }}
               </XhButton>
@@ -532,10 +532,10 @@ onMounted(loadKeys)
                       :placeholder="t('setting.cache.value_placeholder')"
                     />
                     <div class="cache-edit-actions">
-                      <XhButton size="sm" @click="cancelEdit">
+                      <XhButton variant="subtle" size="sm" @click="cancelEdit">
                         {{ t('common.actions.cancel') }}
                       </XhButton>
-                      <XhButton size="sm" tone="brand" :loading="saving" @click="handleSave">
+                      <XhButton variant="subtle" size="sm" tone="brand" :loading="saving" @click="handleSave">
                         {{ t('common.actions.save') }}
                       </XhButton>
                     </div>

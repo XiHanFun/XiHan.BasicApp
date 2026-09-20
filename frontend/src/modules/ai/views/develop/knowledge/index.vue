@@ -350,7 +350,7 @@ async function handleQuery() {
                   <XhFieldLabel>{{ t('develop.knowledge.form_text') }}</XhFieldLabel>
                   <div class="knowledge__text">
                     <XhFlex class="knowledge__text-bar" justify="between">
-                      <XhButton size="sm" @click="triggerFilePicker">
+                      <XhButton variant="subtle" size="sm" @click="triggerFilePicker">
                         {{ t('develop.knowledge.form_pick_file') }}
                       </XhButton>
                       <span v-if="form.source" class="knowledge__source">{{ form.source }}</span>
@@ -421,7 +421,7 @@ async function handleQuery() {
                     </XhFieldControl>
                     <XhFieldErrorText />
                   </XhFieldRoot>
-                  <XhButton :loading="queryLoading" tone="brand" @click="handleQuery">
+                  <XhButton variant="subtle" :loading="queryLoading" tone="brand" @click="handleQuery">
                     {{ t('develop.knowledge.query_submit') }}
                   </XhButton>
                 </XhFlex>

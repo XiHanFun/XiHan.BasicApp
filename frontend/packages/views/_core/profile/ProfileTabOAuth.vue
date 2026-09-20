@@ -197,7 +197,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="pf-section__extra">
-          <XhButton size="sm" tone="brand" @click="openCreate">
+          <XhButton variant="subtle" size="sm" tone="brand" @click="openCreate">
             <span><Icon icon="lucide:plus" /></span>
             {{ t('component.profile.oauth.btn_create') }}
           </XhButton>
@@ -215,7 +215,7 @@ onMounted(() => {
                 <span class="pf-secret-label">Client ID</span>
                 <div class="xh-input-group">
                   <XInput :value="newSecret.clientId" readonly size="sm" />
-                  <XhButton size="sm" @click="copyText(newSecret.clientId)">
+                  <XhButton variant="subtle" size="sm" @click="copyText(newSecret.clientId)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
                 </div>
@@ -224,7 +224,7 @@ onMounted(() => {
                 <span class="pf-secret-label">Secret</span>
                 <div class="xh-input-group">
                   <XInput :value="newSecret.clientSecret" readonly size="sm" type="password" />
-                  <XhButton size="sm" @click="copyText(newSecret.clientSecret)">
+                  <XhButton variant="subtle" size="sm" @click="copyText(newSecret.clientSecret)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
                 </div>

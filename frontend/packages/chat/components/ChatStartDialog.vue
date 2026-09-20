@@ -232,10 +232,10 @@ async function handleConfirm() {
 
       <div class="xh-dialog-footer">
         <div class="flex justify-end gap-2">
-          <XhButton size="sm" :disabled="submitting" @click="show = false">
+          <XhButton variant="subtle" size="sm" :disabled="submitting" @click="show = false">
             {{ t('chat.start.cancel') }}
           </XhButton>
-          <XhButton size="sm" tone="brand" :loading="submitting" @click="handleConfirm">
+          <XhButton variant="subtle" size="sm" tone="brand" :loading="submitting" @click="handleConfirm">
             {{ t('chat.start.confirm') }}
           </XhButton>
         </div>
