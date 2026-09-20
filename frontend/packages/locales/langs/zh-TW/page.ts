@@ -26,7 +26,7 @@ export default {
     entry: {
       account: '帳號登入',
       mobile: '手機登入',
-      email: '電子郵件登入',
+      email: '郵件登入',
       qrcode: '掃碼登入',
     },
     third_party_login: '第三方登入',
