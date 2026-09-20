@@ -9,7 +9,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import { createHighlighter } from '@xihan-ui/code-highlight'
-import { XhButton, XhCodeBlock, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFileUploadDropzone, XhFileUploadHiddenInput, XhFileUploadRoot, XhFlex, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCodeViewCode, XhCodeViewPre, XhCodeViewRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFileUploadDropzone, XhFileUploadHiddenInput, XhFileUploadRoot, XhFlex, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
@@ -1434,11 +1434,17 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
               {{ t('file.library.preview.copy_code') }}
             </button>
             <div class="file-preview-code-scroll">
-              <XhCodeBlock
+              <!-- 预览文本已整段到手，complete 让它一次着色 -->
+              <XhCodeViewRoot
                 :code="previewText"
                 :lang="previewLang || undefined"
                 :highlighter="highlighter"
-              />
+                complete
+              >
+                <XhCodeViewPre>
+                  <XhCodeViewCode />
+                </XhCodeViewPre>
+              </XhCodeViewRoot>
             </div>
           </div>
           <XDataTable
