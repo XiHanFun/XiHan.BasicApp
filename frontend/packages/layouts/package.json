@@ -4,8 +4,8 @@
   "private": true,
   "main": "./basic/index.vue",
   "dependencies": {
+    "@xihan-ui/core": "catalog:",
     "@xihan-ui/headless": "catalog:",
-    "@xihan-ui/kernel": "catalog:",
     "@xihan-ui/motion": "catalog:",
     "@xihan-ui/vue": "catalog:",
     "@xihan/components": "workspace:*",
