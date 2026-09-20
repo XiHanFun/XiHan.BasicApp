@@ -644,7 +644,7 @@ function onContextSelect(key: string) {
                   <span v-if="errorCount" class="text-red-500">· {{ errorCount }} {{ t('workflow.designer.validate_errors') }}</span>
                   <span v-if="warningCount" class="text-amber-500">· {{ warningCount }} {{ t('workflow.designer.validate_warnings') }}</span>
                 </span>
-                <XhButton variant="subtle" text size="sm" @click="showIssues = false">
+                <XhButton variant="subtle" size="sm" @click="showIssues = false">
                   <Icon icon="lucide:x" />
                 </XhButton>
               </div>
@@ -793,7 +793,7 @@ function onContextSelect(key: string) {
                       <XhSwitch
                         v-else-if="descriptor.input === 'boolean'"
                         :checked="(nodeProp<boolean>(descriptor.key)) ?? false"
-                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as unknown as boolean; setNodeProp(descriptor.key, value) }"
+                        @update:checked="(checked: boolean) => setNodeProp(descriptor.key, checked)"
                       />
                       <XSelect
                         v-else-if="descriptor.input === 'select'"

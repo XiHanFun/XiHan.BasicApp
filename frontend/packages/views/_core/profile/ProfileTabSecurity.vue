@@ -905,7 +905,7 @@ function handleDeleteAccount() {
                 {{ t('component.profile.security.deactivate_desc') }}
               </div>
             </div>
-            <XhButton variant="subtle" size="sm" tone="warning" ghost @click="handleDeactivateAccount">
+            <XhButton variant="subtle" size="sm" tone="warning" @click="handleDeactivateAccount">
               {{ t('component.profile.security.btn_deactivate') }}
             </XhButton>
           </div>
@@ -921,7 +921,7 @@ function handleDeleteAccount() {
                 {{ t('component.profile.security.delete_desc') }}
               </div>
             </div>
-            <XhButton variant="subtle" size="sm" tone="danger" ghost @click="handleDeleteAccount">
+            <XhButton variant="subtle" size="sm" tone="danger" @click="handleDeleteAccount">
               {{ t('component.profile.security.btn_delete') }}
             </XhButton>
           </div>

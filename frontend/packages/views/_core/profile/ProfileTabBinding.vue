@@ -185,7 +185,7 @@ onMounted(() => {
                   </XhPopconfirmContent>
                 </XhPopconfirmPositioner>
               </XhPopconfirmRoot>
-              <XhButton v-else variant="subtle" size="sm" tone="brand" text @click="handleStartBind(provider.name)">
+              <XhButton v-else variant="subtle" size="sm" tone="brand" @click="handleStartBind(provider.name)">
                 {{ t('component.profile.binding.btn_bind') }}
               </XhButton>
             </div>

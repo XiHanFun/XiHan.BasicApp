@@ -47,7 +47,7 @@ defineProps<{
       </XhTreeBranchContent>
     </XhTreeBranch>
 
-    <XhTreeItem v-else :value="String(node.value)" :disabled="node.disabled">
+    <XhTreeItem v-else :value="String(node.value)">
       <XhTreeItemCheckbox v-if="checkable" @mousedown.prevent />
       <XhTreeItemIndicator v-else />
       <XhTreeItemText>

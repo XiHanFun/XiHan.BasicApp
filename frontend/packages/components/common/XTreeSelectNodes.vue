@@ -21,7 +21,7 @@ defineProps<{
         <XTreeSelectNodes :nodes="node.children" />
       </XhTreeSelectBranchContent>
     </XhTreeSelectBranch>
-    <XhTreeSelectItem v-else :value="String(node.value)" :disabled="node.disabled">
+    <XhTreeSelectItem v-else :value="String(node.value)">
       <!-- 不写内容：选中勾由组件库出 -->
       <XhTreeSelectItemIndicator />
       <XhTreeSelectItemText>{{ node.label }}</XhTreeSelectItemText>

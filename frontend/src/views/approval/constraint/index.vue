@@ -942,7 +942,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
         <div class="rule-items__head">
           <span class="rule-items__title">{{ t('approval.constraint.items_title', { count: ruleForm.items.length }) }}</span>
           <span class="rule-items__hint">{{ itemHint }}</span>
-          <XhButton variant="subtle" dashed size="sm" @click="addItem">
+          <XhButton variant="subtle" size="sm" @click="addItem">
             {{ t('approval.constraint.add_item') }}
           </XhButton>
         </div>
