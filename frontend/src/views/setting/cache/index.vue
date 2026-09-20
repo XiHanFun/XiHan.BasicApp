@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cacheApi } from '@/api'
@@ -384,7 +384,7 @@ onMounted(loadKeys)
             </XhTagRoot>
           </div>
         </XhCardHeader>
-        <XhCardBody :style="cardContentStyle">
+        <XhCardContent :style="cardContentStyle">
           <div class="cache-tree-toolbar">
             <XInput
               v-model:value="keyPattern"
@@ -413,9 +413,9 @@ onMounted(loadKeys)
                 </div>
                 <div v-if="cacheKeys.length === 0 && !loadingKeys" class="cache-empty">
                   <XhEmptyStateRoot size="sm">
-                    <XhEmptyStateIcon>
+                    <XhEmptyStateIndicator>
                       <Icon icon="lucide:inbox" width="28" height="28" />
-                    </XhEmptyStateIcon>
+                    </XhEmptyStateIndicator>
                     <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                     <XhEmptyStateDescription>{{ t('setting.cache.empty_keys') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
@@ -455,7 +455,7 @@ onMounted(loadKeys)
               </XhButton>
             </div>
           </div>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
 
       <!-- 右侧：键值 -->
@@ -496,7 +496,7 @@ onMounted(loadKeys)
             <span>{{ t('setting.cache.cache_content') }}</span>
           </div>
         </XhCardHeader>
-        <XhCardBody :style="cardContentStyle">
+        <XhCardContent :style="cardContentStyle">
           <!-- 滚动区：相对壳 + 绝对内胆，详情在内部滚动 -->
           <div class="cache-scroll-host">
             <div class="cache-scroll-body">
@@ -506,18 +506,18 @@ onMounted(loadKeys)
                 </div>
                 <div v-if="!detailKey" class="cache-empty">
                   <XhEmptyStateRoot>
-                    <XhEmptyStateIcon>
+                    <XhEmptyStateIndicator>
                       <Icon icon="lucide:mouse-pointer-click" width="28" height="28" />
-                    </XhEmptyStateIcon>
+                    </XhEmptyStateIndicator>
                     <XhEmptyStateTitle>{{ t('setting.cache.select_key_hint_title') }}</XhEmptyStateTitle>
                     <XhEmptyStateDescription>{{ t('setting.cache.select_key_hint') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
                 </div>
                 <div v-else-if="rawValue === null" class="cache-empty">
                   <XhEmptyStateRoot>
-                    <XhEmptyStateIcon>
+                    <XhEmptyStateIndicator>
                       <Icon icon="lucide:search-x" width="28" height="28" />
-                    </XhEmptyStateIcon>
+                    </XhEmptyStateIndicator>
                     <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                     <XhEmptyStateDescription>{{ t('setting.cache.key_not_exist') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
@@ -546,7 +546,7 @@ onMounted(loadKeys)
               </div>
             </div>
           </div>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
     </div>
   </div>

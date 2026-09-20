@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhClipboardIndicator, XhClipboardRoot, XhClipboardTrigger, XhJsonViewerRoot } from '@xihan-ui/vue'
+import { XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardRoot, XhJsonViewerRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -53,10 +53,10 @@ const tree = computed(() => {
 <template>
   <div class="x-json-block" :style="{ '--x-json-block-max-h': maxHeight }">
     <XhClipboardRoot v-if="text" class="x-json-block__copy" :value="text">
-      <XhClipboardTrigger :aria-label="t('common.actions.copy')">
+      <XhClipboardCopyTrigger :aria-label="t('common.actions.copy')">
         <XhClipboardIndicator />
         <XhClipboardIndicator copied />
-      </XhClipboardTrigger>
+      </XhClipboardCopyTrigger>
     </XhClipboardRoot>
 
     <XhJsonViewerRoot

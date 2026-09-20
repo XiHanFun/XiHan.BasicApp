@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Component } from 'vue'
-import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, defineAsyncComponent, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -61,9 +61,9 @@ defineExpose({ reload })
       :key="`${splitView.rightPath}#${reloadKey}`"
     />
     <XhEmptyStateRoot v-else class="py-12">
-      <XhEmptyStateIcon>
+      <XhEmptyStateIndicator>
         <Icon icon="lucide:circle-alert" width="28" height="28" />
-      </XhEmptyStateIcon>
+      </XhEmptyStateIndicator>
       <XhEmptyStateTitle>{{ t('common.messages.load_failed') }}</XhEmptyStateTitle>
       <XhEmptyStateDescription>{{ t('tabbar.split_load_failed') }}</XhEmptyStateDescription>
     </XhEmptyStateRoot>

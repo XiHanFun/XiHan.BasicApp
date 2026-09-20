@@ -3,8 +3,9 @@ import type { TableColumnDef } from '@xihan-ui/headless'
 import type { ListFieldSchema } from './types'
 import type { ImportSummary } from './useSchemaImport'
 import {
+  XhAlertContent,
   XhAlertDescription,
-  XhAlertIcon,
+  XhAlertIndicator,
   XhAlertRoot,
   XhButton,
   XhDialogCloseTrigger,
@@ -165,18 +166,20 @@ function handleClose(): void {
       <div class="xh-import-body">
         <!-- 模板说明 + 下载 -->
         <XhAlertRoot tone="info">
-          <XhAlertIcon>
+          <XhAlertIndicator>
             <Icon icon="lucide:info" width="16" height="16" />
-          </XhAlertIcon>
-          <XhAlertDescription>
-            <div class="xh-import-tip">
-              <span>{{ t('component.schema_import.tip') }}</span>
-              <XhButton size="sm" variant="ghost" @click="importer.downloadTemplate">
-                <Icon icon="lucide:file-down" />
-                {{ t('component.schema_import.download_template') }}
-              </XhButton>
-            </div>
-          </XhAlertDescription>
+          </XhAlertIndicator>
+          <XhAlertContent>
+            <XhAlertDescription>
+              <div class="xh-import-tip">
+                <span>{{ t('component.schema_import.tip') }}</span>
+                <XhButton size="sm" variant="ghost" @click="importer.downloadTemplate">
+                  <Icon icon="lucide:file-down" />
+                  {{ t('component.schema_import.download_template') }}
+                </XhButton>
+              </div>
+            </XhAlertDescription>
+          </XhAlertContent>
         </XhAlertRoot>
 
         <!-- 选择文件（idle / ready 可重选） -->
@@ -197,10 +200,12 @@ function handleClose(): void {
 
         <!-- 文件级错误 -->
         <XhAlertRoot v-for="error in fileErrors" :key="error" tone="danger">
-          <XhAlertIcon>
+          <XhAlertIndicator>
             <Icon icon="lucide:circle-alert" width="16" height="16" />
-          </XhAlertIcon>
-          <XhAlertDescription>{{ error }}</XhAlertDescription>
+          </XhAlertIndicator>
+          <XhAlertContent>
+            <XhAlertDescription>{{ error }}</XhAlertDescription>
+          </XhAlertContent>
         </XhAlertRoot>
 
         <!-- 解析结果汇总 -->
@@ -261,15 +266,17 @@ function handleClose(): void {
           v-if="phase === 'done' && summary"
           :tone="summary.failed === 0 ? 'success' : 'warning'"
         >
-          <XhAlertIcon>
+          <XhAlertIndicator>
             <Icon :icon="summary.failed === 0 ? 'lucide:circle-check' : 'lucide:triangle-alert'" width="16" height="16" />
-          </XhAlertIcon>
-          <XhAlertDescription>
-            {{ t('component.schema_import.import_done', { success: summary.success, failed: summary.failed }) }}
-            <template v-if="summary.failed > 0">
-              {{ t('component.schema_import.redownload_hint') }}
-            </template>
-          </XhAlertDescription>
+          </XhAlertIndicator>
+          <XhAlertContent>
+            <XhAlertDescription>
+              {{ t('component.schema_import.import_done', { success: summary.success, failed: summary.failed }) }}
+              <template v-if="summary.failed > 0">
+                {{ t('component.schema_import.redownload_hint') }}
+              </template>
+            </XhAlertDescription>
+          </XhAlertContent>
         </XhAlertRoot>
 
         <!-- 最近导入（当前用户 × 当前页面） -->

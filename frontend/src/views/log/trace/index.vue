@@ -3,7 +3,7 @@ import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { TracePreset } from '../_components/trace-nav'
 import type { TraceTimelineItemDto, TraceTimelineResultDto } from '@/api'
 import type { ListFieldSchema } from '~/components'
-import { XhCardBody, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhCardContent, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { logManagementApi, TraceDimension, TraceLogType } from '@/api'
@@ -408,7 +408,7 @@ watch(tracePreset, (preset) => {
 <template>
   <div class="trace-page">
     <XhCardRoot variant="ghost">
-      <XhCardBody>
+      <XhCardContent>
         <SchemaSearchPanel
           :advanced-fields="EMPTY_FIELDS"
           :common-fields="searchFields"
@@ -419,11 +419,11 @@ watch(tracePreset, (preset) => {
         <span v-if="showUnsupportedHint" class="trace-hint">
           {{ t('log.trace.unsupported_hint') }}
         </span>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
 
     <XhCardRoot class="flex-1" style="height: 0">
-      <XhCardBody style="height: 100%; display: flex; flex-direction: column; min-height: 0; padding: 0">
+      <XhCardContent style="height: 100%; display: flex; flex-direction: column; min-height: 0; padding: 0">
         <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
           <div class="xh-loading-stage__veil">
             <XhSpinner />
@@ -500,23 +500,23 @@ watch(tracePreset, (preset) => {
             </XhTimelineRoot>
 
             <XhEmptyStateRoot v-else class="trace-empty">
-              <XhEmptyStateIcon>
+              <XhEmptyStateIndicator>
                 <Icon height="28" icon="lucide:search-x" width="28" />
-              </XhEmptyStateIcon>
+              </XhEmptyStateIndicator>
               <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ emptyDescription }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>
           </div>
 
           <XhEmptyStateRoot v-else class="trace-empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon height="28" icon="lucide:search-x" width="28" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ emptyDescription }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
         </div>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
 
     <LogDetailDrawer

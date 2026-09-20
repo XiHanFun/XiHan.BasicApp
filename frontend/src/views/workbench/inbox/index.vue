@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Tone } from '@xihan-ui/core'
 import type { UserInboxItemDto } from '@/api'
-import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -268,9 +268,9 @@ onMounted(loadNotifications)
     </div>
 
     <XhEmptyStateRoot v-else-if="visibleItems.length === 0" class="inbox-empty">
-      <XhEmptyStateIcon>
+      <XhEmptyStateIndicator>
         <Icon icon="lucide:inbox" width="28" height="28" />
-      </XhEmptyStateIcon>
+      </XhEmptyStateIndicator>
       <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
       <XhEmptyStateDescription>{{ t('workbench.inbox.empty') }}</XhEmptyStateDescription>
     </XhEmptyStateRoot>

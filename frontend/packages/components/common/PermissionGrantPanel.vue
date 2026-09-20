@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="T extends PermissionGrantItem">
 import type { PermissionGrantItem } from './permission-grant-panel'
-import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -111,9 +111,9 @@ const groups = computed(() => {
         <XhSpinner :label="searchPlaceholder" />
       </div>
       <XhEmptyStateRoot v-if="groups.length === 0 && !loading" class="xh-perm-panel__empty">
-        <XhEmptyStateIcon>
+        <XhEmptyStateIndicator>
           <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:inbox'" width="28" height="28" />
-        </XhEmptyStateIcon>
+        </XhEmptyStateIndicator>
         <XhEmptyStateTitle>{{ keyword.trim() ? t('common.no_result') : t('common.no_data') }}</XhEmptyStateTitle>
         <XhEmptyStateDescription>{{ emptyDescription }}</XhEmptyStateDescription>
       </XhEmptyStateRoot>

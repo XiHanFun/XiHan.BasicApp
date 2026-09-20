@@ -2,7 +2,7 @@
 import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
 import type { PageSchema, SchemaActionPayload, SchemaQueryParams, XDataTableColumn } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -807,9 +807,9 @@ onMounted(() => {
                 :row-key="(row: MenuTreeNodeDto) => row.basicId"
               />
               <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
-                <XhEmptyStateIcon>
+                <XhEmptyStateIndicator>
                   <Icon icon="lucide:inbox" width="24" />
-                </XhEmptyStateIcon>
+                </XhEmptyStateIndicator>
                 <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                 <XhEmptyStateDescription>{{ t('setting.menu.no_children') }}</XhEmptyStateDescription>
               </XhEmptyStateRoot>

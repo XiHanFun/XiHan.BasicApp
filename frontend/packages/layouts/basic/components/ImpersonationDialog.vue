@@ -7,7 +7,7 @@ import {
   XhDialogRoot,
   XhDialogTitle,
   XhEmptyStateDescription,
-  XhEmptyStateIcon,
+  XhEmptyStateIndicator,
   XhEmptyStateRoot,
   XhEmptyStateTitle,
   XhSpinner,
@@ -159,9 +159,9 @@ onBeforeUnmount(() => {
             </button>
           </template>
           <XhEmptyStateRoot v-else class="impersonation-empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:user-round-search" width="24" height="24" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('header.impersonation.empty_title') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('header.impersonation.empty_description') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>

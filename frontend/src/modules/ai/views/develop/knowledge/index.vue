@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCardContent, XhCardHeader, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -384,7 +384,7 @@ async function handleQuery() {
       <XhTabsContent value="playground">
         <div class="playground">
           <XhCardRoot variant="ghost">
-            <XhCardBody>
+            <XhCardContent>
               <XhFormRoot validate-on="blur">
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('develop.knowledge.query_label') }}</XhFieldLabel>
@@ -426,15 +426,15 @@ async function handleQuery() {
                   </XhButton>
                 </XhFlex>
               </XhFormRoot>
-            </XhCardBody>
+            </XhCardContent>
           </XhCardRoot>
 
           <XhCardRoot v-if="answerText" variant="ghost" class="playground__answer">
-            <XhCardBody>
+            <XhCardContent>
               <div class="playground__answer-text">
                 {{ answerText }}
               </div>
-            </XhCardBody>
+            </XhCardContent>
           </XhCardRoot>
 
           <div v-if="citations.length > 0" class="playground__citations">
@@ -457,18 +457,18 @@ async function handleQuery() {
                   </XhTagRoot>
                 </XhFlex>
               </XhCardHeader>
-              <XhCardBody>
+              <XhCardContent>
                 <div class="playground__citation-text">
                   {{ citation.text }}
                 </div>
-              </XhCardBody>
+              </XhCardContent>
             </XhCardRoot>
           </div>
 
           <XhEmptyStateRoot v-if="hasQueried && citations.length === 0" class="playground__empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:search-x" width="28" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('develop.knowledge.no_result_title') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('develop.knowledge.no_result') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>

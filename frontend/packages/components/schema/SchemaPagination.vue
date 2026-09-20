@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {
-  XhPaginationEllipsis,
+  XhPaginationEllipsisTrigger,
   XhPaginationItem,
   XhPaginationNextTrigger,
   XhPaginationPrevTrigger,
@@ -71,9 +71,9 @@ function onSizeChange(value: string[]): void {
         <XhPaginationItem v-if="item !== 'ellipsis'" :value="item">
           {{ item }}
         </XhPaginationItem>
-        <XhPaginationEllipsis v-else :side="index < pages.length / 2 ? 'start' : 'end'">
+        <XhPaginationEllipsisTrigger v-else :side="index < pages.length / 2 ? 'start' : 'end'">
           …
-        </XhPaginationEllipsis>
+        </XhPaginationEllipsisTrigger>
       </template>
       <XhPaginationNextTrigger>
         <Icon icon="lucide:chevron-right" width="14" height="14" />

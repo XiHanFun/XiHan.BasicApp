@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
-import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemHandle, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -221,13 +221,13 @@ function onSort(details: { from: number, to: number }) {
               :item-id="col.key"
               class="xh-set-row flex gap-2 items-center"
             >
-              <XhSortableItemHandle
+              <XhSortableItemDragTrigger
                 :item-id="col.key"
                 class="xh-set-drag-handle flex items-center text-foreground/40"
                 :title="t('component.schema_table_settings.drag_sort')"
               >
                 <Icon icon="lucide:grip-vertical" />
-              </XhSortableItemHandle>
+              </XhSortableItemDragTrigger>
               <!-- 勾选框只有框本身，列名是并排的一段文字，点它也切换 -->
               <XhCheckbox
                 :checked="col.visible"

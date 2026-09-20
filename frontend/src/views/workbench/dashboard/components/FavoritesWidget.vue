@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -69,9 +69,9 @@ onMounted(() => {
     </div>
     <div v-else class="flex h-full items-center justify-center py-6">
       <XhEmptyStateRoot size="sm">
-        <XhEmptyStateIcon>
+        <XhEmptyStateIndicator>
           <Icon icon="lucide:inbox" width="24" />
-        </XhEmptyStateIcon>
+        </XhEmptyStateIndicator>
         <XhEmptyStateTitle>{{ t('workbench.dashboard.quick_empty_title') }}</XhEmptyStateTitle>
         <XhEmptyStateDescription>{{ t('workbench.dashboard.quick_empty') }}</XhEmptyStateDescription>
       </XhEmptyStateRoot>

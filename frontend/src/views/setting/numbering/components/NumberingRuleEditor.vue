@@ -9,7 +9,7 @@ import type {
   NumberingRuleUpdateDto,
   NumberingScope,
 } from '@/api'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -225,12 +225,14 @@ async function submit(): Promise<void> {
     @update:show="emit('update:show', $event)"
   >
     <XhAlertRoot v-if="formatFrozen" tone="warning" class="mb-3">
-      <XhAlertIcon>
+      <XhAlertIndicator>
         <Icon icon="lucide:triangle-alert" width="16" height="16" />
-      </XhAlertIcon>
-      <XhAlertDescription>
-        {{ t('setting.numbering.format_frozen_tip') }}
-      </XhAlertDescription>
+      </XhAlertIndicator>
+      <XhAlertContent>
+        <XhAlertDescription>
+          {{ t('setting.numbering.format_frozen_tip') }}
+        </XhAlertDescription>
+      </XhAlertContent>
     </XhAlertRoot>
     <XhFormRoot
       :id="editFormId"

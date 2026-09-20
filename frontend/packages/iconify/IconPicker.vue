@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/offline'
-import { useFieldControl, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { useFieldControl, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XInput from '../components/common/XInput.vue'
@@ -154,9 +154,9 @@ function handleClear() {
                   {{ t('common.loading') }}
                 </div>
                 <XhEmptyStateRoot v-else-if="!displayIcons.length" size="sm">
-                  <XhEmptyStateIcon>
+                  <XhEmptyStateIndicator>
                     <Icon icon="lucide:search-x" width="28" height="28" />
-                  </XhEmptyStateIcon>
+                  </XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.no_result') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('component.icon_picker.empty') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>

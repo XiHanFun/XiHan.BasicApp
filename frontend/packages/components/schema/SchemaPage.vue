@@ -3,7 +3,7 @@ import type { Tone } from '@xihan-ui/core'
 import type { MenuNode } from '@xihan-ui/headless'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaColumn } from './types'
 import type { ApiId } from '~/types/contracts'
-import { XhButton, XhCardBody, XhCardRoot, XhMenuRoot, XhSkeletonBone, XhSkeletonRoot } from '@xihan-ui/vue'
+import { XhButton, XhCardContent, XhCardRoot, XhMenuRoot, XhSkeletonItem, XhSkeletonRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { dialog, toast } from '~/composables'
@@ -630,7 +630,7 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
       variant="outline"
       style="overflow: visible"
     >
-      <XhCardBody class="xh-schema-card__body">
+      <XhCardContent class="xh-schema-card__body">
         <SchemaSearchPanel
           :advanced-fields="advancedFields"
           :common-fields="searchFields"
@@ -649,12 +649,12 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
             />
           </template>
         </SchemaSearchPanel>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
 
     <!-- 操作工具栏：页面级操作按钮 + 内置工具（刷新/导入/导出/列设置/全屏） -->
     <XhCardRoot variant="outline" style="overflow: visible">
-      <XhCardBody class="xh-schema-card__body xh-schema-card__body--toolbar">
+      <XhCardContent class="xh-schema-card__body xh-schema-card__body--toolbar">
         <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
           <template #toolbar>
             <!-- 页面自定义工具栏项 -->
@@ -719,12 +719,12 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
             />
           </template>
         </SchemaActionPanel>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
 
     <!-- 表格容器：定高卡片（flex-1 + height:0），卡片体成为定高 flex 列，滚动只发生在表格内部 -->
     <XhCardRoot class="flex-1" variant="outline" style="height: 0">
-      <XhCardBody class="xh-schema-card__body xh-schema-card__body--table">
+      <XhCardContent class="xh-schema-card__body xh-schema-card__body--table">
         <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据 -->
         <XhSkeletonRoot v-if="!firstLoaded" class="xh-table-skeleton" aria-hidden="true">
           <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
@@ -734,7 +734,7 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
               class="xh-skel-cell"
               :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
             >
-              <XhSkeletonBone v-if="!col.control" class="xh-skel-bar" style="inline-size: 52%; block-size: 13px" />
+              <XhSkeletonItem v-if="!col.control" class="xh-skel-bar" style="inline-size: 52%; block-size: 13px" />
             </div>
           </div>
           <div
@@ -749,8 +749,8 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
               class="xh-skel-cell"
               :style="col.width ? { flex: `0 0 ${col.width}` } : { flex: '1 1 0' }"
             >
-              <XhSkeletonBone v-if="col.control" class="xh-skel-bar xh-skel-bar--square" style="inline-size: 16px; block-size: 16px" />
-              <XhSkeletonBone v-else class="xh-skel-bar" :style="{ inlineSize: col.fill, blockSize: '15px' }" />
+              <XhSkeletonItem v-if="col.control" class="xh-skel-bar xh-skel-bar--square" style="inline-size: 16px; block-size: 16px" />
+              <XhSkeletonItem v-else class="xh-skel-bar" :style="{ inlineSize: col.fill, blockSize: '15px' }" />
             </div>
           </div>
         </XhSkeletonRoot>
@@ -834,7 +834,7 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
             </template>
           </SchemaTablePanel>
         </template>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
 
     <!-- 内置导入对话框（模板下载/解析/预校验/批量创建） -->

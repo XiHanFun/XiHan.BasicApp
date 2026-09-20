@@ -10,7 +10,7 @@ import {
   XhTableExpandedRow,
   XhTableExpandTrigger,
   XhTableHeader,
-  XhTableLoadingState,
+  XhTableLoading,
   XhTableRoot,
   XhTableRow,
   XhTableRowSelectTrigger,
@@ -430,7 +430,7 @@ function rowPeekHandlers(row: TRow) {
       </XhTableBody>
 
       <XhTableEmpty>{{ t('component.schema_table.empty') }}</XhTableEmpty>
-      <XhTableLoadingState>{{ t('component.schema_table.loading') }}</XhTableLoadingState>
+      <XhTableLoading>{{ t('component.schema_table.loading') }}</XhTableLoading>
     </XhTableRoot>
 
     <!-- 悬停速览卡（Teleport 到 body，pointer-events none 不干扰交互） -->

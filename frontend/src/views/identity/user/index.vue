@@ -14,7 +14,7 @@ import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhButton, XhCheckbox, XhClipboardControl, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhClipboardTrigger, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -898,7 +898,7 @@ function resetPassword(row: UserListItemDto) {
               h(XhClipboardLabel, () => t('identity.user.reset_password_done_content', { name: displayName(row) })),
               h(XhClipboardControl, null, () => [
                 h(XhClipboardInput),
-                h(XhClipboardTrigger, { 'aria-label': t('identity.user.reset_password_copy') }, () => [
+                h(XhClipboardCopyTrigger, { 'aria-label': t('identity.user.reset_password_copy') }, () => [
                   h(XhClipboardIndicator),
                   h(XhClipboardIndicator, { copied: true }),
                 ]),

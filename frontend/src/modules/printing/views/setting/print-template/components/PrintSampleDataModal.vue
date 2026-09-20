@@ -4,7 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleFormSchema } from '~/printing'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -244,12 +244,14 @@ function clearSession(): void {
         </div>
         <div class="sample-data-body">
           <XhAlertRoot v-if="loadError" tone="danger">
-            <XhAlertIcon>
+            <XhAlertIndicator>
               <Icon icon="lucide:circle-alert" width="16" height="16" />
-            </XhAlertIcon>
-            <XhAlertDescription>
-              {{ loadError }}
-            </XhAlertDescription>
+            </XhAlertIndicator>
+            <XhAlertContent>
+              <XhAlertDescription>
+                {{ loadError }}
+              </XhAlertDescription>
+            </XhAlertContent>
           </XhAlertRoot>
 
           <template v-else>
@@ -270,12 +272,14 @@ function clearSession(): void {
             </div>
 
             <XhAlertRoot v-for="field in unregisteredFields" :key="field.key" tone="warning">
-              <XhAlertIcon>
+              <XhAlertIndicator>
                 <Icon icon="lucide:triangle-alert" width="16" height="16" />
-              </XhAlertIcon>
-              <XhAlertDescription>
-                {{ t('setting.print_template.sample_unregistered_field', { field: field.key, source: dataSourceCode }) }}
-              </XhAlertDescription>
+              </XhAlertIndicator>
+              <XhAlertContent>
+                <XhAlertDescription>
+                  {{ t('setting.print_template.sample_unregistered_field', { field: field.key, source: dataSourceCode }) }}
+                </XhAlertDescription>
+              </XhAlertContent>
             </XhAlertRoot>
 
             <section v-if="isCollection" class="sample-records">
@@ -319,9 +323,9 @@ function clearSession(): void {
               size="sm"
               class="sample-fields-empty"
             >
-              <XhEmptyStateIcon>
+              <XhEmptyStateIndicator>
                 <Icon icon="lucide:inbox" width="28" height="28" />
-              </XhEmptyStateIcon>
+              </XhEmptyStateIndicator>
               <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('setting.print_template.sample_no_bound_fields') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>

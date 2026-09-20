@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { MyOAuthAppItem, MyOAuthAppSecret } from '~/types'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -205,33 +205,35 @@ onMounted(() => {
       </div>
       <div class="pf-section__body">
         <XhAlertRoot v-if="newSecret" tone="warning" class="pf-secret-alert">
-          <XhAlertIcon>
+          <XhAlertIndicator>
             <Icon icon="lucide:triangle-alert" width="16" height="16" />
-          </XhAlertIcon>
-          <XhAlertTitle>{{ t('component.profile.oauth.secret_alert_title') }}</XhAlertTitle>
-          <XhAlertDescription>
-            <div class="pf-secret-row">
-              <span class="pf-secret-label">Client ID</span>
-              <div class="xh-input-group">
-                <XInput :value="newSecret.clientId" readonly size="sm" />
-                <XhButton size="sm" @click="copyText(newSecret.clientId)">
-                  <span><Icon icon="lucide:copy" /></span>
-                </XhButton>
+          </XhAlertIndicator>
+          <XhAlertContent>
+            <XhAlertTitle>{{ t('component.profile.oauth.secret_alert_title') }}</XhAlertTitle>
+            <XhAlertDescription>
+              <div class="pf-secret-row">
+                <span class="pf-secret-label">Client ID</span>
+                <div class="xh-input-group">
+                  <XInput :value="newSecret.clientId" readonly size="sm" />
+                  <XhButton size="sm" @click="copyText(newSecret.clientId)">
+                    <span><Icon icon="lucide:copy" /></span>
+                  </XhButton>
+                </div>
               </div>
-            </div>
-            <div v-if="newSecret.clientType === 'Confidential' && newSecret.clientSecret" class="pf-secret-row">
-              <span class="pf-secret-label">Secret</span>
-              <div class="xh-input-group">
-                <XInput :value="newSecret.clientSecret" readonly size="sm" type="password" />
-                <XhButton size="sm" @click="copyText(newSecret.clientSecret)">
-                  <span><Icon icon="lucide:copy" /></span>
-                </XhButton>
+              <div v-if="newSecret.clientType === 'Confidential' && newSecret.clientSecret" class="pf-secret-row">
+                <span class="pf-secret-label">Secret</span>
+                <div class="xh-input-group">
+                  <XInput :value="newSecret.clientSecret" readonly size="sm" type="password" />
+                  <XhButton size="sm" @click="copyText(newSecret.clientSecret)">
+                    <span><Icon icon="lucide:copy" /></span>
+                  </XhButton>
+                </div>
               </div>
-            </div>
-            <div v-else class="pf-secret-public-hint">
-              {{ t('component.profile.oauth.secret_alert_public') }}
-            </div>
-          </XhAlertDescription>
+              <div v-else class="pf-secret-public-hint">
+                {{ t('component.profile.oauth.secret_alert_public') }}
+              </div>
+            </XhAlertDescription>
+          </XhAlertContent>
         </XhAlertRoot>
 
         <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
@@ -239,9 +241,9 @@ onMounted(() => {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="apps.length === 0 && !loading" class="pf-empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="28" height="28" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('component.profile.oauth.empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>

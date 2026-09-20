@@ -15,7 +15,7 @@ import {
   XhDatePickerNextTrigger,
   XhDatePickerNextYearTrigger,
   XhDatePickerPositioner,
-  XhDatePickerPresets,
+  XhDatePickerPresetGroup,
   XhDatePickerPrevTrigger,
   XhDatePickerPrevYearTrigger,
   XhDatePickerRoot,
@@ -147,7 +147,7 @@ function onValueChange(next: string[]): void {
     <XhDatePickerPositioner>
       <XhDatePickerContent>
         <!-- 不写默认插槽就按 presets 数据自动铺 -->
-        <XhDatePickerPresets v-if="presets?.length" />
+        <XhDatePickerPresetGroup v-if="presets?.length" />
         <!-- 面板号写在日历上，面板内的标题、网格与格子跟着它走 -->
         <XhDatePickerCalendar v-for="panel in panels" :key="panel.index" :index="panel.index">
           <XhDatePickerHeader>

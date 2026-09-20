@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
 import type { AppDropdownOption } from '~/types'
-import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -142,9 +142,9 @@ function handleItemAction(key: string) {
       <div class="xh-scroll-area h-full">
         <div v-if="!filteredConversations.length" class="py-10">
           <XhEmptyStateRoot size="sm">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="28" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('chat.list.empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>

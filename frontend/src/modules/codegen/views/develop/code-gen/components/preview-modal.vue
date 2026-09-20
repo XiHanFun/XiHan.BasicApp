@@ -5,7 +5,7 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, XCodeEditor, XSegmented, XTree } from '~/components'
@@ -264,7 +264,7 @@ async function loadPreview() {
               <XSegmented v-model:value="activeSide" :options="sideOptions" size="sm" />
             </div>
             <XhEmptyStateRoot v-if="artifactTree.length === 0" class="gen__tree-empty" size="sm">
-              <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+              <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
               <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('develop.code_gen.preview.side_empty') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>
@@ -280,7 +280,7 @@ async function loadPreview() {
           </div>
           <div class="gen__content">
             <XhEmptyStateRoot v-if="!activeArtifact" class="gen__content-empty">
-              <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+              <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
               <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('develop.code_gen.preview.empty') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>

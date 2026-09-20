@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '../store'
-import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
+import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -83,9 +83,9 @@ async function handleForward(conversationId: string) {
 
       <div v-if="!candidates.length" class="py-8">
         <XhEmptyStateRoot size="sm">
-          <XhEmptyStateIcon>
+          <XhEmptyStateIndicator>
             <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:inbox'" width="24" />
-          </XhEmptyStateIcon>
+          </XhEmptyStateIndicator>
           <XhEmptyStateTitle>{{ keyword.trim() ? t('common.no_result') : t('common.empty') }}</XhEmptyStateTitle>
           <XhEmptyStateDescription>{{ t('chat.list.empty') }}</XhEmptyStateDescription>
         </XhEmptyStateRoot>

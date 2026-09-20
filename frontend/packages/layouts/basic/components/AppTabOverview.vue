@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -300,9 +300,9 @@ function onKeydown(e: KeyboardEvent): void {
             </XhSortableItem>
 
             <XhEmptyStateRoot v-if="!filteredCards.length" class="tab-ov__empty">
-              <XhEmptyStateIcon>
+              <XhEmptyStateIndicator>
                 <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:app-window'" width="28" height="28" />
-              </XhEmptyStateIcon>
+              </XhEmptyStateIndicator>
               <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('tabbar.overview_empty') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>

@@ -7,7 +7,7 @@ import type {
   ApiId,
 } from '@/api'
 import type { XDataTableColumn } from '~/components'
-import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SchemaPagination, XDataTable } from '~/components'
@@ -157,9 +157,9 @@ function handlePageSizeChange(value: number) {
           <XhEmptyStateRoot
             v-if="!schemaLoading && (!schema || schema.columns.length === 0)"
           >
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('develop.code_gen.runtime.empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
