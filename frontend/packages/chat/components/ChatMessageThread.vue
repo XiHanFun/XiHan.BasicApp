@@ -4,7 +4,7 @@ import type {
   ChatMessageItem,
 } from '../types'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
-import { useThread, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { useMessageFeed, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -47,12 +47,16 @@ const { t } = useI18n()
 const chatStore = useChatStore()
 const userStore = useUserStore()
 
-// 消息区的滚动机器：新消息来了跟到底，用户上翻就松手，往上补历史时按锚元素补偿滚动位置
-const { api: thread, viewportRef, contentRef } = useThread({
+// 消息流的滚动机器：新消息来了跟到底，用户上翻就松手，往上补历史时按锚元素补偿滚动位置。
+// 每条消息是 list 的直接子节点、role=article，根上带方向键 / PageUp / PageDown 的巡航
+const { api: feed, rootRef, viewportRef, contentRef } = useMessageFeed({
   // 距底 80px 内算在底，沿用旧判定的阈值
   threshold: 80,
+  get count() {
+    return chatStore.activeMessages.length
+  },
   get translations() {
-    return xhTranslationsOfCurrentLocale().thread
+    return xhTranslationsOfCurrentLocale()['message-feed']
   },
 })
 
@@ -476,11 +480,11 @@ function toggleSearch() {
 }
 
 function isNearBottom(): boolean {
-  return thread.value.atBottom
+  return feed.value.atBottom
 }
 
 function scrollToBottom() {
-  void nextTick(() => thread.value.scrollToBottom())
+  void nextTick(() => feed.value.scrollToBottom())
 }
 
 async function handleLoadOlder() {
@@ -702,34 +706,36 @@ onBeforeUnmount(() => {
     </div>
 
     <!-- 消息流 -->
-    <div v-bind="thread.getRootProps()" class="min-h-0 flex-1">
+    <div v-bind="feed.getRootProps()" :ref="(el) => (rootRef = el as HTMLElement | null)" class="min-h-0 flex-1">
       <div
-        v-bind="thread.getViewportProps()"
+        v-bind="feed.getViewportProps()"
         :ref="(el) => (viewportRef = el as HTMLElement | null)"
         class="px-3 py-2"
         @scroll.passive="handleScroll"
       >
+        <!-- 补历史与空态不是消息，放在 list 外：role=feed 只认 article 子节点 -->
+        <div v-if="hasMoreOlder || historyLoading" class="flex justify-center py-1.5">
+          <XhSpinner v-if="historyLoading" size="sm" />
+          <XhButton v-else variant="ghost" size="sm" @click="handleLoadOlder">
+            {{ t('chat.thread.load_more') }}
+          </XhButton>
+        </div>
+
+        <div v-if="!chatStore.activeMessages.length && !historyLoading" class="py-12">
+          <XhEmptyStateRoot size="sm">
+            <XhEmptyStateIndicator>
+              <Icon icon="lucide:inbox" width="28" height="28" />
+            </XhEmptyStateIndicator>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('chat.thread.empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+        </div>
+
         <!-- 消息之间的间距各自带着，这一层不再叠加 -->
-        <div v-bind="thread.getContentProps()" :ref="(el) => (contentRef = el as HTMLElement | null)" style="--xh-thread-content-gap: 0; --xh-thread-content-py: 0">
-          <div v-if="hasMoreOlder || historyLoading" class="flex justify-center py-1.5">
-            <XhSpinner v-if="historyLoading" size="sm" />
-            <XhButton v-else variant="ghost" size="sm" @click="handleLoadOlder">
-              {{ t('chat.thread.load_more') }}
-            </XhButton>
-          </div>
-
-          <div v-if="!chatStore.activeMessages.length && !historyLoading" class="py-12">
-            <XhEmptyStateRoot size="sm">
-              <XhEmptyStateIndicator>
-                <Icon icon="lucide:inbox" width="28" height="28" />
-              </XhEmptyStateIndicator>
-              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-              <XhEmptyStateDescription>{{ t('chat.thread.empty') }}</XhEmptyStateDescription>
-            </XhEmptyStateRoot>
-          </div>
-
+        <div v-bind="feed.getListProps()" :ref="(el) => (contentRef = el as HTMLElement | null)" style="--xh-message-feed-gap: 0; --xh-message-feed-p: 0">
           <div
-            v-for="item in chatStore.activeMessages"
+            v-for="(item, index) in chatStore.activeMessages"
+            v-bind="feed.getItemProps({ id: String(item.messageId), index })"
             :id="`chat-msg-${item.messageId}`"
             :key="item.messageId"
             @contextmenu="openContextMenu($event, item)"
