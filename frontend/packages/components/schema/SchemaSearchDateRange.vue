@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { datePickerPresetMonth, datePickerPresetRange } from '@xihan-ui/headless'
+import { dateRangePickerPresetMonth, dateRangePickerPresetRange } from '@xihan-ui/headless'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import XDatePicker from '../common/XDatePicker.vue'
+import XDateRangePicker from '../common/XDateRangePicker.vue'
 
 /**
  * 搜索区间日期组件（封装：双端日期 + 便捷预设区间）。
@@ -41,24 +41,21 @@ function endOfDay(date: Date): number {
  * 把「今天」放进渲染期会跨零点算出两个答案。
  */
 const presets = computed(() => [
-  { label: t('component.search_date_range.today'), value: datePickerPresetRange(0, 0) },
-  { label: t('component.search_date_range.yesterday'), value: datePickerPresetRange(-1, -1) },
-  { label: t('component.search_date_range.last7'), value: datePickerPresetRange(-6, 0) },
-  { label: t('component.search_date_range.last30'), value: datePickerPresetRange(-29, 0) },
-  { label: t('component.search_date_range.this_month'), value: datePickerPresetMonth(0) },
-  { label: t('component.search_date_range.last_month'), value: datePickerPresetMonth(-1) },
+  { label: t('component.search_date_range.today'), value: dateRangePickerPresetRange(0, 0) },
+  { label: t('component.search_date_range.yesterday'), value: dateRangePickerPresetRange(-1, -1) },
+  { label: t('component.search_date_range.last7'), value: dateRangePickerPresetRange(-6, 0) },
+  { label: t('component.search_date_range.last30'), value: dateRangePickerPresetRange(-29, 0) },
+  { label: t('component.search_date_range.this_month'), value: dateRangePickerPresetMonth(0) },
+  { label: t('component.search_date_range.last_month'), value: dateRangePickerPresetMonth(-1) },
 ])
 
 /**
  * 日历给的是整日零点的两端；终点补到当日 23:59:59.999，
  * 否则「选到今天」会把今天整天排除在外。
  */
-function onRangeChange(next: number | [number, number] | null): void {
+function onRangeChange(next: [number, number] | null): void {
   if (next == null) {
     emit('update:value', null)
-    return
-  }
-  if (!Array.isArray(next)) {
     return
   }
   emit('update:value', [next[0], endOfDay(new Date(next[1]))])
@@ -66,8 +63,7 @@ function onRangeChange(next: number | [number, number] | null): void {
 </script>
 
 <template>
-  <XDatePicker
-    range
+  <XDateRangePicker
     clearable
     size="sm"
     class="w-full"

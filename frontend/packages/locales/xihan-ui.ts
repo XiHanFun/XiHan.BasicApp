@@ -34,7 +34,8 @@ const zhCN: XhTranslationOverrides = {
   'combobox': { clearTrigger: '清空' },
   'composer': { send: '发送', stop: '停止', input: '输入消息' },
   'context-menu': { content: '右键菜单' },
-  'date-picker': { startDate: '开始日期', endDate: '结束日期', presets: '快捷选项', clearTrigger: '清空' },
+  'date-picker': { presets: '快捷选项', clearTrigger: '清空' },
+  'date-range-picker': { startDate: '开始日期', endDate: '结束日期', presets: '快捷选项', clearTrigger: '清空' },
   'dialog': { close: '关闭' },
   'drawer': { close: '关闭' },
   'dynamic-input': {
