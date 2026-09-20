@@ -61,6 +61,20 @@
     --xh-bg-brand-subtle: hsl(var(--primary) / 12%);
     --xh-bg-overlay: hsl(var(--overlay));
 
+    /* —— 浮层材质：组件库的弹出面（popover / menu / select / 日期面板…）读 frosted，
+       对话框与悬浮按钮读 elevated，提示词输入读 soft。这几族的底与线在库里是裸 oklch，
+       不再经 --xh-bg-surface-raised，上面那条桥到不了它们；这里把底、描边、分隔线接到
+       应用的浮层配色上，浮层才跟着换主色 / 切暗色走。磨砂的透明度、模糊与高光留给库。
+       减少透明与强制色由库在 [data-scope] 上直接改写材质名，压得住这份 :root 声明 —— */
+    --xh-material-frosted-bg: hsl(var(--popover) / var(--xh-alpha-high));
+    --xh-material-frosted-border: hsl(var(--border));
+    --xh-material-frosted-separator: hsl(var(--border) / 60%);
+    --xh-material-elevated-bg: hsl(var(--popover));
+    --xh-material-elevated-border: hsl(var(--border));
+    --xh-material-elevated-separator: hsl(var(--border) / 60%);
+    --xh-material-elevated-fg-muted: hsl(var(--muted-foreground));
+    --xh-material-soft-bg: hsl(var(--card));
+
     /* —— 字 —— */
     --xh-fg-default: hsl(var(--foreground));
     --xh-fg-muted: hsl(var(--muted-foreground));
