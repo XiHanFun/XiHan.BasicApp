@@ -106,7 +106,6 @@ function onValueChange(details: { value: readonly string[] | readonly (readonly 
             v-for="node in column.items"
             :key="node.value"
             :value="node.value"
-            :level="column.level"
           >
             <XhCascaderItemText>{{ node.label }}</XhCascaderItemText>
           </XhCascaderItem>

@@ -529,7 +529,7 @@ function cancelChange() {
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
-                  <XhButton variant="subtle" size="sm" ghost tone="brand" @click="openChangeDialog('email')">
+                  <XhButton variant="subtle" size="sm" tone="brand" @click="openChangeDialog('email')">
                     {{ profile?.email ? t('component.profile.info.btn_modify') : t('component.profile.info.btn_bind') }}
                   </XhButton>
                   <XhButton
@@ -546,7 +546,7 @@ function cancelChange() {
                   <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
-                  <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" quaternary @click="sendVerifyCode('email')">
+                  <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" @click="sendVerifyCode('email')">
                     <CodeCountdown v-if="verifyResendSeconds > 0" :seconds="verifyResendSeconds" @finish="verifyResendSeconds = 0" />
                     <template v-else>
                       {{ t('common.actions.resend') }}
@@ -579,7 +579,7 @@ function cancelChange() {
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
-                  <XhButton variant="subtle" size="sm" ghost tone="brand" @click="openChangeDialog('phone')">
+                  <XhButton variant="subtle" size="sm" tone="brand" @click="openChangeDialog('phone')">
                     {{ profile?.phone ? t('component.profile.info.btn_modify') : t('component.profile.info.btn_bind') }}
                   </XhButton>
                   <XhButton
@@ -596,7 +596,7 @@ function cancelChange() {
                   <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
-                  <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" quaternary @click="sendVerifyCode('phone')">
+                  <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" @click="sendVerifyCode('phone')">
                     <CodeCountdown v-if="verifyResendSeconds > 0" :seconds="verifyResendSeconds" @finish="verifyResendSeconds = 0" />
                     <template v-else>
                       {{ t('common.actions.resend') }}
@@ -711,7 +711,7 @@ function cancelChange() {
                   <XhButton variant="subtle" tone="brand" :loading="changeLoading" :disabled="changeCode.length < 6" @click="confirmChange">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
-                  <XhButton variant="subtle" :disabled="changeResendSeconds > 0" quaternary @click="sendChangeCode">
+                  <XhButton variant="subtle" :disabled="changeResendSeconds > 0" @click="sendChangeCode">
                     <CodeCountdown
                       v-if="changeResendSeconds > 0"
                       v-slot="{ seconds }"
