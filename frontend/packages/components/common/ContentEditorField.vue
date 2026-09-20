@@ -176,8 +176,9 @@ function updateDraft(value: null | string) {
   height: 100%;
 }
 
-/* 纯文本编辑同样撑满，不再受 autosize 行数限制 */
+/* 纯文本编辑同样撑满，不再受 autosize 行数限制：根、视觉盒与 textarea 三层都拉满 */
 .xh-content-field__editor :deep([data-scope='text-field'][data-part='root']),
+.xh-content-field__editor :deep([data-scope='text-field'][data-part='control']),
 .xh-content-field__editor :deep([data-scope='text-field'][data-part='input']) {
   height: 100%;
 }

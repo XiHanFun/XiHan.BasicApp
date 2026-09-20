@@ -155,7 +155,6 @@
   --xh-number-field-control-min-w: 0;
   --xh-select-control-min-w: 0;
   --xh-text-field-control-min-w: 0;
-  --xh-text-field-input-min-w: 0;
 }
 
 .pref-row [data-scope='number-field'][data-part='control'],
@@ -210,7 +209,8 @@
   background: hsl(var(--card) / 70%);
 }
 
-/* 贴合成一组的输入与按钮：中缝不留描边，只在两端留圆角 */
+/* 贴合成一组的输入与按钮：中缝不留描边，只在两端留圆角。
+   输入框的圆角画在 control 部件上（Field Chrome），走它的 radius 槽 */
 .xh-input-group {
   display: flex;
   align-items: stretch;
@@ -218,7 +218,7 @@
 }
 
 .xh-input-group > * {
-  --xh-text-field-input-radius: 0;
+  --xh-text-field-control-radius: 0;
   --xh-button-radius: 0;
 
   margin-inline-end: calc(-1 * var(--xh-stroke-thin));
@@ -229,17 +229,17 @@
 }
 
 .xh-input-group > *:first-child {
-  --xh-text-field-input-radius: var(--radius) 0 0 var(--radius);
+  --xh-text-field-control-radius: var(--radius) 0 0 var(--radius);
   --xh-button-radius: var(--radius) 0 0 var(--radius);
 }
 
 .xh-input-group > *:last-child {
-  --xh-text-field-input-radius: 0 var(--radius) var(--radius) 0;
+  --xh-text-field-control-radius: 0 var(--radius) var(--radius) 0;
   --xh-button-radius: 0 var(--radius) var(--radius) 0;
 }
 
 .xh-input-group > *:only-child {
-  --xh-text-field-input-radius: var(--radius);
+  --xh-text-field-control-radius: var(--radius);
   --xh-button-radius: var(--radius);
 }
 

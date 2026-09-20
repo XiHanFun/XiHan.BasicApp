@@ -734,16 +734,19 @@ onMounted(loadKeys)
   min-height: 0;
 }
 
-.cache-value-editor :deep(.x-input__box) {
+/* 视觉盒是组件库的 control 部件：吃掉编辑区的余量，并当 textarea 的定位参照 */
+.cache-value-editor :deep([data-scope='text-field'][data-part='control']) {
+  position: relative;
   flex: 1;
   min-block-size: 0;
 }
 
 /* textarea 的高由 rows 定死，百分比和 align-items: stretch 都拿不动它；
-   输入盒本身是定位参照，直接把 textarea 铺满它 */
+   直接把 textarea 铺满盒子，行内衬补回盒子自己那份，字不贴着描边 */
 .cache-value-editor :deep(textarea) {
   position: absolute;
   inset: 0;
+  padding-inline: var(--xh-control-px-sm);
   resize: none;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
