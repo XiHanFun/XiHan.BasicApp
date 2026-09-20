@@ -90,25 +90,26 @@ function onLinkClick(event: MouseEvent, key: string): void {
 </template>
 
 <style scoped>
-/* 顶级入口的观感对齐旧版顶栏：40px 高、左右 10px、圆角 6px。
+/* 顶级入口的观感对齐旧版顶栏：大档控件高（40px）、左右 10px、圆角 6px、正文字号。
    几何与各态配色走组件库的公开槽：展开中的入口套品牌淡底、指向当前页的链接染品牌字，
-   悬停 / 按下 / 焦点环由 Collection Item 家族按状态给，这里不再直接盖 background / color */
+   悬停 / 按下 / 焦点环由 Collection Item 家族按状态给，这里不再直接盖 background / color。
+   无子级的入口（link）与触发器同一副几何，取值直接引触发器那几支 */
 .header-top-menu {
-  --xh-navigation-menu-font-size: 14px;
-  --xh-navigation-menu-trigger-h: 40px;
+  --xh-navigation-menu-font-size: var(--xh-text-body-size);
+  --xh-navigation-menu-trigger-h: var(--xh-control-h-lg);
   --xh-navigation-menu-trigger-px: 10px;
   --xh-navigation-menu-trigger-radius: 6px;
   --xh-navigation-menu-trigger-bg-active: hsl(var(--primary) / 15%);
-  --xh-navigation-menu-link-font-size: 14px;
-  --xh-navigation-menu-link-px: 10px;
+  --xh-navigation-menu-link-font-size: var(--xh-navigation-menu-font-size);
+  --xh-navigation-menu-link-px: var(--xh-navigation-menu-trigger-px);
   --xh-navigation-menu-link-py: 0;
-  --xh-navigation-menu-link-radius: 6px;
+  --xh-navigation-menu-link-radius: var(--xh-navigation-menu-trigger-radius);
   --xh-navigation-menu-link-fg-current: hsl(var(--primary));
 }
 
-/* 无子级的入口与触发器同高：链接只有内衬槽没有高度槽，高度直接给 */
+/* 链接只有内衬槽没有高度槽，高度直接给 */
 .header-top-menu :deep([data-scope='navigation-menu'][data-part='link']) {
-  block-size: 40px;
+  block-size: var(--xh-navigation-menu-trigger-h);
 }
 
 .header-top-menu__panel {

@@ -91,10 +91,6 @@
     "cap": 1,
     "reason": "站内自绘公共组件的排版刻度"
   },
-  "packages/components/common/XInput.vue": {
-    "cap": 2,
-    "reason": "站内自绘公共组件的排版刻度"
-  },
   "packages/components/schema/SchemaImportDialog.vue": {
     "cap": 15,
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
@@ -200,7 +196,7 @@
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
   },
   "packages/layouts/basic/components/header/HeaderTopMenu.vue": {
-    "cap": 7,
+    "cap": 5,
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
   },
   "packages/layouts/basic/components/header/HeaderTopMenuPanel.vue": {
