@@ -253,7 +253,7 @@ async function handleView(row: OAuthAppListItemDto) {
   }
   catch (error) {
     currentDetail.value = null
-    toast.error((error as Error)?.message || t('openapi.app.msg_load_detail_failed'))
+    toast.danger((error as Error)?.message || t('openapi.app.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -269,7 +269,7 @@ async function handleEdit(row: OAuthAppListItemDto) {
   try {
     const detail = await appManagementApi.detail(row.basicId)
     if (!detail) {
-      toast.error(t('openapi.app.msg_load_app_detail_failed'))
+      toast.danger(t('openapi.app.msg_load_app_detail_failed'))
       return
     }
     appForm.value = {
@@ -293,7 +293,7 @@ async function handleEdit(row: OAuthAppListItemDto) {
     modalVisible.value = true
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('openapi.app.msg_load_app_detail_failed'))
+    toast.danger((error as Error)?.message || t('openapi.app.msg_load_app_detail_failed'))
   }
 }
 
@@ -374,7 +374,7 @@ async function handleSubmit() {
     reloadApp()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('openapi.app.msg_save_failed'))
+    toast.danger((error as Error)?.message || t('openapi.app.msg_save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -388,7 +388,7 @@ async function handleRegenerateSecret(id: string) {
     toast.success(t('openapi.app.msg_secret_regenerated'))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('openapi.app.msg_secret_regenerate_failed'))
+    toast.danger((error as Error)?.message || t('openapi.app.msg_secret_regenerate_failed'))
   }
 }
 
@@ -399,7 +399,7 @@ function copySecret() {
   navigator.clipboard.writeText(currentSecret.value.clientSecret).then(() => {
     toast.success(t('openapi.app.msg_secret_copied'))
   }).catch(() => {
-    toast.error(t('openapi.app.msg_copy_failed'))
+    toast.danger(t('openapi.app.msg_copy_failed'))
   })
 }
 
@@ -414,7 +414,7 @@ async function handleToggleStatus(row: OAuthAppListItemDto) {
     reloadApp()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('openapi.app.msg_update_status_failed'))
+    toast.danger((error as Error)?.message || t('openapi.app.msg_update_status_failed'))
   }
 }
 
@@ -425,7 +425,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
     reloadApp()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('openapi.app.msg_delete_failed'))
+    toast.danger((error as Error)?.message || t('openapi.app.msg_delete_failed'))
   }
 }
 </script>

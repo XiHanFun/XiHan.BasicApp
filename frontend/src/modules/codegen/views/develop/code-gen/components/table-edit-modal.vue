@@ -163,7 +163,7 @@ async function loadDetail() {
   try {
     const detail = await codeGenTableApi.detail(props.tableId)
     if (!detail) {
-      toast.error(t('develop.code_gen.table_edit.not_found'))
+      toast.danger(t('develop.code_gen.table_edit.not_found'))
       emit('update:show', false)
       return
     }
@@ -203,7 +203,7 @@ async function loadDetail() {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.table_edit.load_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.table_edit.load_failed'))
   }
   finally {
     loading.value = false
@@ -320,7 +320,7 @@ async function handleSubmit() {
     emit('update:show', false)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

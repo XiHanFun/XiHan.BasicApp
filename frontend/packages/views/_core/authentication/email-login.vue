@@ -68,7 +68,7 @@ function handleSendCode() {
     }
     catch (err: unknown) {
       const error = err as { message?: string }
-      toast.error(error?.message || t('page.auth.code_send_failed'))
+      toast.danger(error?.message || t('page.auth.code_send_failed'))
     }
   })()
 }
@@ -85,7 +85,7 @@ async function onSubmit() {
   catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
-      toast.error(error.message)
+      toast.danger(error.message)
     }
   }
   finally {

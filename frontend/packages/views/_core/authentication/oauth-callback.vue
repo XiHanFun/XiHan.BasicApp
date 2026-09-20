@@ -66,7 +66,7 @@ onMounted(async () => {
       toast.success(t('page.auth.oauth_bind_success'))
     }
     else {
-      toast.error(BIND_ERROR_TEXT[bind] ?? t('page.auth.oauth_bind_failed'))
+      toast.danger(BIND_ERROR_TEXT[bind] ?? t('page.auth.oauth_bind_failed'))
     }
     setTimeout(() => {
       // 个人中心路由由应用注册；未配置时回落到首页，别把用户扔到一个不存在的路径上
@@ -82,7 +82,7 @@ onMounted(async () => {
   if (error) {
     errorMsg.value = decodeURIComponent(error)
     loading.value = false
-    toast.error(errorMsg.value)
+    toast.danger(errorMsg.value)
     setTimeout(() => {
       void router.push(LOGIN_PATH)
     }, 3000)
@@ -95,7 +95,7 @@ onMounted(async () => {
   if (!accessToken || !refreshToken) {
     errorMsg.value = t('page.auth.oauth_callback_missing_token')
     loading.value = false
-    toast.error(errorMsg.value)
+    toast.danger(errorMsg.value)
     setTimeout(() => {
       void router.push(LOGIN_PATH)
     }, 3000)
@@ -117,7 +117,7 @@ onMounted(async () => {
   catch (err: unknown) {
     const e = err as { message?: string }
     errorMsg.value = e?.message || t('page.auth.oauth_callback_failed')
-    toast.error(errorMsg.value!)
+    toast.danger(errorMsg.value!)
     setTimeout(() => {
       void router.push(LOGIN_PATH)
     }, 3000)

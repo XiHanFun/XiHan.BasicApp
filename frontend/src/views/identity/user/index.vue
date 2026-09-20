@@ -631,7 +631,7 @@ async function openEdit(id: ApiId) {
     showFormModal.value = true
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.user.msg_load_user_failed'))
+    toast.danger((error as Error)?.message || t('identity.user.msg_load_user_failed'))
   }
 }
 
@@ -643,7 +643,7 @@ async function openDetail(id: ApiId) {
     currentDetail.value = await userManagementApi.detailView(id)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.user.msg_load_detail_failed'))
+    toast.danger((error as Error)?.message || t('identity.user.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -775,7 +775,7 @@ async function saveUser() {
     reloadList()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -795,7 +795,7 @@ async function toggleLock(row: UserListItemDto) {
     reloadList()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.operation_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.operation_failed'))
   }
 }
 
@@ -823,7 +823,7 @@ function impersonate(row: UserListItemDto) {
         await authStore.startImpersonation({ targetUserId: String(row.basicId) })
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('identity.user.impersonate_failed'))
+        toast.danger((error as Error)?.message || t('identity.user.impersonate_failed'))
       }
     },
   })
@@ -846,7 +846,7 @@ function forceLogout(row: UserListItemDto) {
         reloadList()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('identity.user.logout_failed'))
+        toast.danger((error as Error)?.message || t('identity.user.logout_failed'))
       }
     },
   })
@@ -908,7 +908,7 @@ function resetPassword(row: UserListItemDto) {
         })
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('identity.user.reset_password_failed'))
+        toast.danger((error as Error)?.message || t('identity.user.reset_password_failed'))
       }
     },
   })
@@ -931,7 +931,7 @@ function resetOtp(row: UserListItemDto) {
         reloadList()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('identity.user.reset_otp_failed'))
+        toast.danger((error as Error)?.message || t('identity.user.reset_otp_failed'))
       }
     },
   })
@@ -984,7 +984,7 @@ async function openGrantDrawer(row: UserListItemDto) {
     await loadPermCatalog()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.user.grant_load_failed'))
+    toast.danger((error as Error)?.message || t('identity.user.grant_load_failed'))
   }
   finally {
     grantLoading.value = false
@@ -1011,7 +1011,7 @@ async function toggleGrantRole(role: RoleSelectItemDto, checked: boolean) {
     grantRoleList.value = await userManagementApi.roles.list(grantUser.value.basicId)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.operation_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.operation_failed'))
   }
   finally {
     grantBusyId.value = null
@@ -1071,7 +1071,7 @@ async function savePermGrants() {
     toast.success(t('identity.user.grant_perm_saved', { grant: grants.length, revoke: revokeIds.length }))
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     grantLoading.value = false
@@ -1088,7 +1088,7 @@ async function confirmDelete() {
     reloadList()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
   }
 }
 </script>

@@ -44,7 +44,7 @@ const rules = computed<FormRules>(() => ({
 
 async function onSubmit() {
   if (!token.value) {
-    toast.error(t('page.auth.reset_token_invalid'))
+    toast.danger(t('page.auth.reset_token_invalid'))
     return
   }
   try {
@@ -56,7 +56,7 @@ async function onSubmit() {
   catch (e: unknown) {
     const msg = (e as Error)?.message
     if (msg)
-      toast.error(msg)
+      toast.danger(msg)
   }
   finally {
     loading.value = false

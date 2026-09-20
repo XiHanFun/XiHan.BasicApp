@@ -216,7 +216,7 @@ async function handleDownload(row: ExportTaskDto) {
     downloadBlob(blob, row.fileName || `${row.taskName}.csv`)
   }
   catch (e) {
-    toast.error((e as Error).message || t('file.export_center.download_failed'))
+    toast.danger((e as Error).message || t('file.export_center.download_failed'))
   }
 }
 
@@ -227,7 +227,7 @@ async function handleCancel(row: ExportTaskDto) {
     reload()
   }
   catch (e) {
-    toast.error((e as Error).message || t('file.export_center.cancel_failed'))
+    toast.danger((e as Error).message || t('file.export_center.cancel_failed'))
   }
 }
 
@@ -246,7 +246,7 @@ function handleDelete(row: ExportTaskDto) {
         reload()
       }
       catch (e) {
-        toast.error((e as Error).message || t('file.export_center.delete_failed'))
+        toast.danger((e as Error).message || t('file.export_center.delete_failed'))
       }
     },
   })

@@ -433,7 +433,7 @@ async function openEdit(row: MenuListItemDto) {
     menuForm.value = buildFormModel(detail ?? row)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.menu.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('setting.menu.load_detail_failed'))
     menuForm.value = buildFormModel(row)
   }
   modalVisible.value = true
@@ -451,7 +451,7 @@ async function openDetail(row: MenuListItemDto) {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.menu.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('setting.menu.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -467,7 +467,7 @@ async function toggleStatus(row: MenuListItemDto) {
     void loadTree()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.menu.status_update_failed'))
+    toast.danger((error as Error)?.message || t('setting.menu.status_update_failed'))
   }
 }
 
@@ -479,7 +479,7 @@ async function removeRow(row: MenuListItemDto) {
     void loadTree()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
   }
 }
 
@@ -581,7 +581,7 @@ async function handleSubmit() {
     void loadTree()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

@@ -104,7 +104,7 @@ async function copyPreferences() {
     toast.success(t('preference.drawer.copy_success'))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('preference.drawer.copy_failed'))
+    toast.danger((error as Error)?.message || t('preference.drawer.copy_failed'))
   }
 }
 

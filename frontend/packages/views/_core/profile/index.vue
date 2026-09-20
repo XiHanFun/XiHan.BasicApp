@@ -130,7 +130,7 @@ async function loadProfile() {
     profile.value = await apis.getProfileApi()
   }
   catch (error: unknown) {
-    toast.error(error instanceof Error && error.message ? error.message : t('component.profile.msg_load_profile_failed'))
+    toast.danger(error instanceof Error && error.message ? error.message : t('component.profile.msg_load_profile_failed'))
   }
   finally {
     profileLoading.value = false

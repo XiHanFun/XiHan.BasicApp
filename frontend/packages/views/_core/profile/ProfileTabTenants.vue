@@ -36,7 +36,7 @@ async function loadTenants() {
     loaded.value = true
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.tenants.err_load_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.tenants.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -58,7 +58,7 @@ async function switchTo(tenantId: string, label: string) {
     window.location.reload()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.tenants.err_switch_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.tenants.err_switch_failed'))
     switching.value = false
   }
 }

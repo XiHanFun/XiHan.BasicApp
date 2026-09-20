@@ -71,7 +71,7 @@ function handleChangeUserName() {
         emit('saved')
       }
       catch (e: unknown) {
-        toast.error((e as Error)?.message || t('component.profile.info.err_username_update_failed'))
+        toast.danger((e as Error)?.message || t('component.profile.info.err_username_update_failed'))
         return false
       }
       finally {
@@ -186,7 +186,7 @@ function handleAvatarRemove() {
         toast.success(t('component.profile.info.msg_avatar_removed'))
       }
       catch (e: unknown) {
-        toast.error((e as Error)?.message || t('component.profile.info.err_avatar_remove_failed'))
+        toast.danger((e as Error)?.message || t('component.profile.info.err_avatar_remove_failed'))
         return false
       }
       finally {
@@ -229,7 +229,7 @@ async function saveProfile() {
     emit('saved')
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.info.err_profile_save_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.info.err_profile_save_failed'))
   }
   finally {
     profileSaving.value = false
@@ -274,7 +274,7 @@ async function sendVerifyCode(type: ContactTarget) {
     verifyResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
   }
   finally {
     verifyLoading.value = false
@@ -297,7 +297,7 @@ async function confirmVerify() {
     emit('saved')
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.info.err_verify_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.info.err_verify_failed'))
   }
   finally {
     verifyLoading.value = false
@@ -347,7 +347,7 @@ async function sendChangeCode() {
     changeResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.info.err_code_send_failed'))
   }
   finally {
     changeLoading.value = false
@@ -370,7 +370,7 @@ async function confirmChange() {
     emit('saved')
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.info.err_operation_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.info.err_operation_failed'))
   }
   finally {
     changeLoading.value = false

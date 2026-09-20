@@ -343,7 +343,7 @@ async function handleSendText() {
         ({ images, files } = await uploadPending(attachments))
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('chat.composer.upload_failed'))
+        toast.danger((error as Error)?.message || t('chat.composer.upload_failed'))
         return
       }
       clearPendingAttachments()
@@ -431,7 +431,7 @@ async function startTalking(): Promise<void> {
   }
   catch {
     // getUserMedia 被拒绝或无可用设备；也可能是非安全上下文（HTTPS 之外）
-    toast.error(t('chat.composer.voice_denied'))
+    toast.danger(t('chat.composer.voice_denied'))
     exitVoiceMode()
   }
 }
@@ -463,7 +463,7 @@ async function stopTalking(): Promise<void> {
     // 发完留在面板：连着说几条是常态，退出交给 Esc 或「退出」
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('chat.composer.voice_failed'))
+    toast.danger((error as Error)?.message || t('chat.composer.voice_failed'))
   }
   finally {
     sending.value = false

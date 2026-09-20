@@ -290,7 +290,7 @@ async function handleDetail(row: TaskListItemDto) {
     detailData.value = await jobManagementApi.detail(row.basicId) ?? null
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.job.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('setting.job.load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -364,7 +364,7 @@ async function loadTaskLogs(page?: number) {
     logPagination.value.itemCount = result.page.totalCount
   }
   catch (e) {
-    toast.error((e as Error).message || t('setting.job.load_logs_failed'))
+    toast.danger((e as Error).message || t('setting.job.load_logs_failed'))
   }
   finally {
     logLoading.value = false
@@ -384,7 +384,7 @@ async function handleLogDetail(row: TaskLogListItemDto) {
     logDetail.value = await taskLogApi.detail(row.basicId) ?? null
   }
   catch (e) {
-    toast.error((e as Error).message || t('setting.job.load_log_detail_failed'))
+    toast.danger((e as Error).message || t('setting.job.load_log_detail_failed'))
   }
   finally {
     logDetailLoading.value = false
@@ -408,7 +408,7 @@ async function handleTrigger(row: TaskListItemDto) {
     reloadJob()
   }
   catch (e) {
-    toast.error((e as Error)?.message || t('setting.job.trigger_failed'))
+    toast.danger((e as Error)?.message || t('setting.job.trigger_failed'))
   }
 }
 
@@ -427,7 +427,7 @@ async function handleToggleStatus(row: TaskListItemDto) {
     reloadJob()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.job.toggle_failed'))
+    toast.danger((error as Error)?.message || t('setting.job.toggle_failed'))
   }
 }
 
@@ -442,7 +442,7 @@ async function handleDelete(row: TaskListItemDto) {
     reloadJob()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.job.delete_failed'))
+    toast.danger((error as Error)?.message || t('setting.job.delete_failed'))
   }
 }
 
@@ -488,7 +488,7 @@ async function handleEdit(row: TaskListItemDto) {
     detail = await jobManagementApi.detail(row.basicId) ?? null
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('setting.job.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('setting.job.load_detail_failed'))
     return
   }
   const src = detail ?? (row as unknown as TaskDetailDto)
@@ -593,7 +593,7 @@ async function handleSubmit() {
     reloadJob()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

@@ -214,7 +214,7 @@ function handleDelete(row: CodeGenTemplateListItemDto) {
         reload()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -274,7 +274,7 @@ async function handleEdit(row: CodeGenTemplateListItemDto) {
   try {
     const detail = await codeGenTemplateApi.detail(row.basicId)
     if (!detail) {
-      toast.error(t('develop.code_gen.template.not_found'))
+      toast.danger(t('develop.code_gen.template.not_found'))
       return
     }
     editingStatus.value = detail.status
@@ -299,7 +299,7 @@ async function handleEdit(row: CodeGenTemplateListItemDto) {
     modalVisible.value = true
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.template.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.template.load_detail_failed'))
   }
 }
 
@@ -318,11 +318,11 @@ async function handleValidate(templateContent: string) {
       toast.success(t('develop.code_gen.template.validate_pass'))
     }
     else {
-      toast.error(t('develop.code_gen.template.validate_fail', { errors: result.errors.join('；') || t('develop.code_gen.template.validate_unknown_error') }))
+      toast.danger(t('develop.code_gen.template.validate_fail', { errors: result.errors.join('；') || t('develop.code_gen.template.validate_unknown_error') }))
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.template.validate_error'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.template.validate_error'))
   }
   finally {
     validating.value = false
@@ -397,7 +397,7 @@ async function handleSubmit() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

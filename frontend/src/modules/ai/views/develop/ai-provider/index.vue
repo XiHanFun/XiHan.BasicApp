@@ -209,14 +209,14 @@ async function handleTest(row: AiProviderListItemDto) {
       : t('develop.ai_provider.probe_embedding_absent'))
 
     // 探测结果逐行罗列，一句话说不完：走通知的标题加正文两层
-    notification[result.success ? 'success' : 'error'](
+    notification[result.success ? 'success' : 'danger'](
       t(result.success ? 'develop.ai_provider.test_success' : 'develop.ai_provider.test_failed'),
       { description: lines.join('\n'), duration: result.success ? 5000 : 0 },
     )
   }
   catch (error) {
     reset.destroy()
-    toast.error((error as Error)?.message || t('develop.ai_provider.test_error'))
+    toast.danger((error as Error)?.message || t('develop.ai_provider.test_error'))
   }
 }
 
@@ -227,7 +227,7 @@ async function handleSetDefault(row: AiProviderListItemDto) {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.ai_provider.set_default_error'))
+    toast.danger((error as Error)?.message || t('develop.ai_provider.set_default_error'))
   }
 }
 
@@ -246,7 +246,7 @@ function handleDelete(row: AiProviderListItemDto) {
         reload()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -290,7 +290,7 @@ async function handleEdit(row: AiProviderListItemDto) {
   try {
     const detail = await aiProviderApi.detail(row.basicId)
     if (!detail) {
-      toast.error(t('develop.ai_provider.not_found'))
+      toast.danger(t('develop.ai_provider.not_found'))
       return
     }
     editingStatus.value = detail.status
@@ -317,7 +317,7 @@ async function handleEdit(row: AiProviderListItemDto) {
     modalVisible.value = true
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.ai_provider.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('develop.ai_provider.load_detail_failed'))
   }
 }
 
@@ -396,7 +396,7 @@ async function handleSubmit() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

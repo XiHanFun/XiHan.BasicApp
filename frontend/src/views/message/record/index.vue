@@ -196,7 +196,7 @@ async function openEmailDetail(row: EmailListItemDto) {
   }
   catch (error) {
     currentEmailDetail.value = null
-    toast.error((error as Error)?.message || t('message.record.msg_load_email_detail_failed'))
+    toast.danger((error as Error)?.message || t('message.record.msg_load_email_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -210,7 +210,7 @@ async function resendEmail(row: EmailListItemDto) {
     void emailPageRef.value?.reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('message.record.msg_email_resend_failed'))
+    toast.danger((error as Error)?.message || t('message.record.msg_email_resend_failed'))
   }
 }
 
@@ -233,7 +233,7 @@ async function deleteEmail(row: EmailListItemDto) {
     void emailPageRef.value?.reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('message.record.msg_email_delete_failed'))
+    toast.danger((error as Error)?.message || t('message.record.msg_email_delete_failed'))
   }
 }
 
@@ -341,7 +341,7 @@ async function openSmsDetail(row: SmsListItemDto) {
   }
   catch (error) {
     currentSmsDetail.value = null
-    toast.error((error as Error)?.message || t('message.record.msg_load_sms_detail_failed'))
+    toast.danger((error as Error)?.message || t('message.record.msg_load_sms_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -355,7 +355,7 @@ async function resendSms(row: SmsListItemDto) {
     void smsPageRef.value?.reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('message.record.msg_sms_resend_failed'))
+    toast.danger((error as Error)?.message || t('message.record.msg_sms_resend_failed'))
   }
 }
 
@@ -378,7 +378,7 @@ async function deleteSms(row: SmsListItemDto) {
     void smsPageRef.value?.reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('message.record.msg_sms_delete_failed'))
+    toast.danger((error as Error)?.message || t('message.record.msg_sms_delete_failed'))
   }
 }
 </script>

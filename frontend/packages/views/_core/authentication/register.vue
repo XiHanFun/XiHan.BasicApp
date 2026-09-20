@@ -123,7 +123,7 @@ async function onSubmit() {
   catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
-      toast.error(error.message)
+      toast.danger(error.message)
     }
   }
   finally {

@@ -205,7 +205,7 @@ async function openDetail(row: MessageTemplateListItemDto) {
     detailVisible.value = true
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('message.template.msg_load_detail_failed'))
+    toast.danger((e as Error)?.message || t('message.template.msg_load_detail_failed'))
   }
 }
 
@@ -213,7 +213,7 @@ async function openEdit(row: MessageTemplateListItemDto) {
   try {
     const detail = await messageTemplateApi.detail(row.basicId)
     if (!detail) {
-      toast.error(t('message.template.msg_not_found'))
+      toast.danger(t('message.template.msg_not_found'))
       return
     }
     templateForm.value = {
@@ -232,7 +232,7 @@ async function openEdit(row: MessageTemplateListItemDto) {
     modalVisible.value = true
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('message.template.msg_load_failed'))
+    toast.danger((e as Error)?.message || t('message.template.msg_load_failed'))
   }
 }
 
@@ -246,7 +246,7 @@ async function toggleStatus(row: MessageTemplateListItemDto) {
     schemaPageRef.value?.reload()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('message.template.msg_status_update_failed'))
+    toast.danger((e as Error)?.message || t('message.template.msg_status_update_failed'))
   }
 }
 
@@ -257,7 +257,7 @@ async function removeRow(row: MessageTemplateListItemDto) {
     schemaPageRef.value?.reload()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('message.template.msg_delete_failed'))
+    toast.danger((e as Error)?.message || t('message.template.msg_delete_failed'))
   }
 }
 
@@ -310,7 +310,7 @@ async function handleSubmit() {
     schemaPageRef.value?.reload()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('message.template.msg_save_failed'))
+    toast.danger((e as Error)?.message || t('message.template.msg_save_failed'))
   }
   finally {
     submitLoading.value = false

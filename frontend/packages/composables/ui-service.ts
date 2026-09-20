@@ -64,7 +64,8 @@ function loadingBarService(): LoadingBarService {
 
 /**
  * 轻提示。用法与位置同旧版：`toast.success('保存成功')`。
- * loading 返回 id，收尾用 `toast.update(id, { type: 'success', title: '完成' })`。
+ * loading 返回 id，收尾用 `toast.update(id, { loading: false, tone: 'success', title: '完成' })`。
+ * 失败语气叫 danger，与 XiHan.UI 的 tone 轴同名。
  */
 export const toast = {
   create: (options?: Parameters<ToastService['create']>[0]) => toastService().create(options),
@@ -74,7 +75,7 @@ export const toast = {
   info: (msg: string, options?: ToastMessageOptions) => toastService().info(msg, options),
   success: (msg: string, options?: ToastMessageOptions) => toastService().success(msg, options),
   warning: (msg: string, options?: ToastMessageOptions) => toastService().warning(msg, options),
-  error: (msg: string, options?: ToastMessageOptions) => toastService().error(msg, options),
+  danger: (msg: string, options?: ToastMessageOptions) => toastService().danger(msg, options),
   /**
    * 返回带收尾方法的句柄：等待期的提示要么改写成结果、要么撤掉，
    * 拿着 id 再调一次服务不如把两个动作挂在句柄上顺手。
@@ -102,7 +103,7 @@ export const notification = {
   info: (title: string, options?: NotificationMessageOptions) => notificationService().info(title, options),
   success: (title: string, options?: NotificationMessageOptions) => notificationService().success(title, options),
   warning: (title: string, options?: NotificationMessageOptions) => notificationService().warning(title, options),
-  error: (title: string, options?: NotificationMessageOptions) => notificationService().error(title, options),
+  danger: (title: string, options?: NotificationMessageOptions) => notificationService().danger(title, options),
 }
 
 /**

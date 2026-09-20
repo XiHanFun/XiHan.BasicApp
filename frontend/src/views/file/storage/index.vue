@@ -266,7 +266,7 @@ async function handleEdit(row: StorageConfigListItemDto) {
     modalVisible.value = true
   }
   catch (e) {
-    toast.error((e as Error).message || t('file.storage.message.load_detail_failed'))
+    toast.danger((e as Error).message || t('file.storage.message.load_detail_failed'))
   }
 }
 
@@ -345,7 +345,7 @@ async function handleSubmit() {
     reloadList()
   }
   catch (e) {
-    toast.error((e as Error).message || t('file.storage.message.save_failed'))
+    toast.danger((e as Error).message || t('file.storage.message.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -369,7 +369,7 @@ function handleToggleStatus(row: StorageConfigListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('file.storage.message.status_update_failed'))
+        toast.danger((e as Error).message || t('file.storage.message.status_update_failed'))
       }
     },
   })
@@ -389,7 +389,7 @@ function handleSetDefault(row: StorageConfigListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('file.storage.message.set_default_failed'))
+        toast.danger((e as Error).message || t('file.storage.message.set_default_failed'))
       }
     },
   })
@@ -410,7 +410,7 @@ function handleDelete(row: StorageConfigListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('file.storage.message.delete_failed'))
+        toast.danger((e as Error).message || t('file.storage.message.delete_failed'))
       }
     },
   })

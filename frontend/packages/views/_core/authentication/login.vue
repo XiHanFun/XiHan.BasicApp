@@ -45,7 +45,7 @@ async function refreshCaptcha() {
     captchaCode.value = ''
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('page.login.captcha_load_failed'))
+    toast.danger((error as Error)?.message || t('page.login.captcha_load_failed'))
   }
   finally {
     captchaLoading.value = false
@@ -191,7 +191,7 @@ async function onSubmit() {
     }
     const error = err as { message?: string }
     if (error?.message) {
-      toast.error(error.message)
+      toast.danger(error.message)
     }
     // 验证码一次性消费：无论对错都已销毁，提示后立即换新码，避免反复撞已销毁的码
     if (error?.message && error.message.includes('验证码')) {
@@ -226,7 +226,7 @@ async function handleSelectMethod() {
   catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message) {
-      toast.error(error.message)
+      toast.danger(error.message)
     }
   }
   finally {
@@ -247,7 +247,7 @@ async function handleResendCode() {
   catch (err: unknown) {
     const error = err as { message?: string }
     if (error?.message)
-      toast.error(error.message)
+      toast.danger(error.message)
   }
   finally {
     sendingCode.value = false
@@ -283,7 +283,7 @@ onMounted(async () => {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('page.auth.load_config_failed'))
+    toast.danger((error as Error)?.message || t('page.auth.load_config_failed'))
   }
 })
 const onAuthInvalid = useAuthFormInvalid()

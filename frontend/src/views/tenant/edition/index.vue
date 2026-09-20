@@ -396,7 +396,7 @@ async function handleSubmit() {
     reloadList()
   }
   catch (e) {
-    toast.error((e as Error).message || t('tenant.edition.save_failed'))
+    toast.danger((e as Error).message || t('tenant.edition.save_failed'))
   }
   finally {
     submitLoading.value = false
@@ -421,7 +421,7 @@ function confirmToggleStatus(row: TenantEditionListItemDto, next: EnableStatus) 
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('tenant.edition.status_update_failed'))
+        toast.danger((e as Error).message || t('tenant.edition.status_update_failed'))
       }
     },
   })
@@ -441,7 +441,7 @@ function confirmSetDefault(row: TenantEditionListItemDto) {
         reloadList()
       }
       catch (e) {
-        toast.error((e as Error).message || t('tenant.edition.set_default_failed'))
+        toast.danger((e as Error).message || t('tenant.edition.set_default_failed'))
       }
     },
   })
@@ -508,7 +508,7 @@ async function loadPermissionList() {
     permError.value = true
     permList.value = []
     derivePermDraft()
-    toast.error((error as Error)?.message || t('tenant.edition.perm_load_failed'))
+    toast.danger((error as Error)?.message || t('tenant.edition.perm_load_failed'))
   }
   finally {
     permLoading.value = false
@@ -587,7 +587,7 @@ async function savePermChanges() {
     }))
   }
   catch (e) {
-    toast.error((e as Error).message || t('common.messages.save_failed'))
+    toast.danger((e as Error).message || t('common.messages.save_failed'))
   }
   finally {
     permLoading.value = false

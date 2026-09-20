@@ -24,7 +24,7 @@ async function loadSessions() {
     sessionsLoaded.value = true
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.devices.err_load_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.devices.err_load_failed'))
   }
   finally {
     sessionsLoading.value = false
@@ -38,7 +38,7 @@ async function handleRevokeSession(sid: string) {
     await loadSessions()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
   }
 }
 
@@ -62,7 +62,7 @@ function handleRevokeOthers() {
         await loadSessions()
       }
       catch (e: unknown) {
-        toast.error((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
+        toast.danger((e as Error)?.message || t('component.profile.devices.err_operation_failed'))
       }
     },
   })

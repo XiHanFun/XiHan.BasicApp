@@ -178,7 +178,7 @@ async function loadTargetOptions(keyword = '') {
     targetOptions.value = mergeOptions(targetOptions.value, next)
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.field_security.msg_load_target_failed'))
+    toast.danger((error as Error)?.message || t('identity.field_security.msg_load_target_failed'))
   }
   finally {
     targetLoading.value = false
@@ -195,7 +195,7 @@ async function loadResourceOptions(keyword = '') {
     )
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.field_security.msg_load_resource_failed'))
+    toast.danger((error as Error)?.message || t('identity.field_security.msg_load_resource_failed'))
   }
   finally {
     resourceLoading.value = false
@@ -470,7 +470,7 @@ async function handleSubmit() {
     reloadList()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

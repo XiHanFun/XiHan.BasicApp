@@ -289,7 +289,7 @@ async function openPermissionDrawer(row: RoleListItemDto) {
     derivePermChecked()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('identity.role.perm_load_failed'))
+    toast.danger((e as Error)?.message || t('identity.role.perm_load_failed'))
   }
   finally {
     permLoading.value = false
@@ -340,7 +340,7 @@ async function savePermGrants() {
     toast.success(t('identity.role.perm_saved', { grant: toGrant.length, revoke: toRevoke.length }))
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     permLoading.value = false
@@ -502,7 +502,7 @@ async function openMenuDrawer(row: RoleListItemDto) {
     menuDirty.value = false
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('identity.role.menu_load_failed'))
+    toast.danger((e as Error)?.message || t('identity.role.menu_load_failed'))
   }
   finally {
     menuLoading.value = false
@@ -556,7 +556,7 @@ async function saveMenuGrants() {
     toast.success(t('identity.role.menu_saved', { grant: toGrant.length, revoke: toRevoke.length }))
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     menuLoading.value = false
@@ -596,7 +596,7 @@ async function openScopeDrawer(row: RoleListItemDto) {
     scopeGrants.value = grants
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('identity.role.scope_load_failed'))
+    toast.danger((e as Error)?.message || t('identity.role.scope_load_failed'))
   }
   finally {
     scopeLoading.value = false
@@ -620,7 +620,7 @@ async function addScope() {
     scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('identity.role.scope_add_failed'))
+    toast.danger((e as Error)?.message || t('identity.role.scope_add_failed'))
   }
   finally {
     scopeSubmitting.value = false
@@ -637,7 +637,7 @@ async function removeScope(grant: RoleDataScopeListItemDto) {
     scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('identity.role.scope_remove_failed'))
+    toast.danger((e as Error)?.message || t('identity.role.scope_remove_failed'))
   }
 }
 
@@ -732,7 +732,7 @@ async function handleView(row: RoleListItemDto) {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('identity.role.msg_load_detail_failed'))
+    toast.danger((error as Error)?.message || t('identity.role.msg_load_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -803,7 +803,7 @@ async function handleSubmit() {
     reloadRole()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

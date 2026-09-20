@@ -99,7 +99,7 @@ async function handleComplete() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.todo.err_complete'))
+    toast.danger((error as Error)?.message || t('workflow.todo.err_complete'))
   }
   finally {
     completeLoading.value = false
@@ -141,7 +141,7 @@ async function handleTransfer() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.todo.err_transfer'))
+    toast.danger((error as Error)?.message || t('workflow.todo.err_transfer'))
   }
   finally {
     transferLoading.value = false
@@ -183,7 +183,7 @@ async function handleAddSign() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('workflow.todo.err_add_sign'))
+    toast.danger((error as Error)?.message || t('workflow.todo.err_add_sign'))
   }
   finally {
     addSignLoading.value = false

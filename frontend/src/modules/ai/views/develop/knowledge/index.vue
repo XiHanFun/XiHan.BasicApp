@@ -143,7 +143,7 @@ function handleReindex(row: KnowledgeListItemDto) {
         reload()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('develop.knowledge.reindex_failed'))
+        toast.danger((error as Error)?.message || t('develop.knowledge.reindex_failed'))
       }
     },
   })
@@ -164,7 +164,7 @@ function handleDelete(row: KnowledgeListItemDto) {
         reload()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -220,7 +220,7 @@ function onFileSelected(event: Event) {
       form.value.title = file.name
     }
   }
-  reader.onerror = () => toast.error(t('develop.knowledge.file_read_failed'))
+  reader.onerror = () => toast.danger(t('develop.knowledge.file_read_failed'))
   reader.readAsText(file)
   // 允许再次选同一文件
   target.value = ''
@@ -247,7 +247,7 @@ async function handleSubmit() {
     }
     const result = await knowledgeApi.ingest(input)
     if (result.status === KnowledgeIndexStatus.Failed) {
-      toast.error(t('develop.knowledge.ingest_index_failed', { msg: result.errorMessage || '' }))
+      toast.danger(t('develop.knowledge.ingest_index_failed', { msg: result.errorMessage || '' }))
     }
     else {
       toast.success(t('develop.knowledge.ingest_success', { count: result.chunkCount }))
@@ -256,7 +256,7 @@ async function handleSubmit() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.knowledge.ingest_failed'))
+    toast.danger((error as Error)?.message || t('develop.knowledge.ingest_failed'))
   }
   finally {
     submitLoading.value = false
@@ -291,7 +291,7 @@ async function handleQuery() {
     hasQueried.value = true
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.knowledge.query_failed'))
+    toast.danger((error as Error)?.message || t('develop.knowledge.query_failed'))
   }
   finally {
     queryLoading.value = false

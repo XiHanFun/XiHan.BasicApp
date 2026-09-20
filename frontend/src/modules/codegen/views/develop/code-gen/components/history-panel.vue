@@ -213,11 +213,11 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
   try {
     detail.value = await codeGenHistoryApi.detail(row.basicId)
     if (!detail.value) {
-      toast.error(t('develop.code_gen.history.not_found'))
+      toast.danger(t('develop.code_gen.history.not_found'))
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.history.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.history.load_detail_failed'))
   }
   finally {
     detailLoading.value = false

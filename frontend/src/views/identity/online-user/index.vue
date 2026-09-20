@@ -192,7 +192,7 @@ function confirmRevoke(row: OnlineUserListItemDto) {
         void schemaPageRef.value?.reload()
       }
       catch (e) {
-        toast.error((e as Error).message || t('identity.online_user.revoke_failed'))
+        toast.danger((e as Error).message || t('identity.online_user.revoke_failed'))
       }
     },
   })

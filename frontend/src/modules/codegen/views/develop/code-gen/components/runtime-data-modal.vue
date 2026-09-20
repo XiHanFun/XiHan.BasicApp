@@ -95,7 +95,7 @@ async function loadSchema(tableId: ApiId) {
     await loadData()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.runtime.load_schema_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.runtime.load_schema_failed'))
     schema.value = null
     rows.value = []
     total.value = 0
@@ -120,7 +120,7 @@ async function loadData() {
     total.value = result.totalCount
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.runtime.load_data_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.runtime.load_data_failed'))
     rows.value = []
     total.value = 0
   }

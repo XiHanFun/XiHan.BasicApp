@@ -158,7 +158,7 @@ async function preview(): Promise<void> {
     previewNumber.value = result.number
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.numbering.preview_failed'))
+    toast.danger((error as Error).message || t('setting.numbering.preview_failed'))
   }
   finally {
     previewLoading.value = false
@@ -208,7 +208,7 @@ async function submit(): Promise<void> {
     emit('saved')
   }
   catch (error) {
-    toast.error((error as Error).message || t('setting.numbering.save_failed'))
+    toast.danger((error as Error).message || t('setting.numbering.save_failed'))
   }
   finally {
     submitLoading.value = false

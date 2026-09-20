@@ -28,7 +28,7 @@ async function loadCredentials() {
     credentials.value = await apis.getApiCredentialsApi()
   }
   catch (e) {
-    toast.error((e as Error).message || t('component.profile.developer.err_load_failed'))
+    toast.danger((e as Error).message || t('component.profile.developer.err_load_failed'))
   }
   finally {
     credentialsLoading.value = false
@@ -49,7 +49,7 @@ async function handleCreateCredential() {
     await loadCredentials()
   }
   catch (e) {
-    toast.error((e as Error).message || t('component.profile.developer.err_create_failed'))
+    toast.danger((e as Error).message || t('component.profile.developer.err_create_failed'))
   }
   finally {
     createSubmitting.value = false
@@ -70,7 +70,7 @@ function handleRotateSecret(cred: ApiCredentialItem) {
         await loadCredentials()
       }
       catch (e) {
-        toast.error((e as Error).message || t('component.profile.developer.err_rotate_failed'))
+        toast.danger((e as Error).message || t('component.profile.developer.err_rotate_failed'))
       }
     },
   })
@@ -83,7 +83,7 @@ async function handleToggleStatus(cred: ApiCredentialItem, enabled: boolean) {
     await loadCredentials()
   }
   catch (e) {
-    toast.error((e as Error).message || t('component.profile.developer.err_update_status_failed'))
+    toast.danger((e as Error).message || t('component.profile.developer.err_update_status_failed'))
     await loadCredentials()
   }
 }
@@ -106,7 +106,7 @@ function handleDeleteCredential(cred: ApiCredentialItem) {
         await loadCredentials()
       }
       catch (e) {
-        toast.error((e as Error).message || t('component.profile.developer.err_delete_failed'))
+        toast.danger((e as Error).message || t('component.profile.developer.err_delete_failed'))
       }
     },
   })
@@ -153,7 +153,7 @@ async function handleSaveOpenApiSettings() {
     .filter(Boolean)
     .find(line => !/^\d{1,3}(?:\.\d{1,3}){3}(?:\/\d{1,2})?$/.test(line))
   if (invalid) {
-    toast.error(t('component.profile.developer.err_ip_whitelist_invalid', { value: invalid }))
+    toast.danger(t('component.profile.developer.err_ip_whitelist_invalid', { value: invalid }))
     return
   }
 
@@ -168,7 +168,7 @@ async function handleSaveOpenApiSettings() {
     toast.success(t('component.profile.developer.msg_settings_saved'))
   }
   catch (e) {
-    toast.error((e as Error).message || t('component.profile.developer.err_save_failed'))
+    toast.danger((e as Error).message || t('component.profile.developer.err_save_failed'))
   }
   finally {
     settingsSaving.value = false

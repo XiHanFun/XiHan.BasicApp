@@ -96,7 +96,7 @@ async function loadTables() {
     tableOptions.value = (tables ?? []).map(name => ({ label: name, value: name }))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.import.load_tables_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.import.load_tables_failed'))
     tableOptions.value = []
   }
   finally {
@@ -138,7 +138,7 @@ async function handleImport() {
     }
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.code_gen.import.import_failed'))
+    toast.danger((error as Error)?.message || t('develop.code_gen.import.import_failed'))
   }
   finally {
     submitLoading.value = false

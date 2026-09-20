@@ -150,7 +150,7 @@ function handleDelete(row: AiPromptListItemDto) {
         reload()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('common.messages.delete_failed'))
+        toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
       }
     },
   })
@@ -187,7 +187,7 @@ async function handleEdit(row: AiPromptListItemDto) {
   try {
     const detail = await aiPromptApi.detail(row.basicId)
     if (!detail) {
-      toast.error(t('develop.ai_prompt.not_found'))
+      toast.danger(t('develop.ai_prompt.not_found'))
       return
     }
     editingStatus.value = detail.status
@@ -206,7 +206,7 @@ async function handleEdit(row: AiPromptListItemDto) {
     modalVisible.value = true
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('develop.ai_prompt.load_detail_failed'))
+    toast.danger((error as Error)?.message || t('develop.ai_prompt.load_detail_failed'))
   }
 }
 
@@ -271,7 +271,7 @@ async function handleSubmit() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('common.messages.save_failed'))
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     submitLoading.value = false

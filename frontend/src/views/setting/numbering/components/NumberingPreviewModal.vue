@@ -217,7 +217,7 @@ async function executePreview(): Promise<void> {
   }
   catch (error) {
     if (version === requestVersion)
-      toast.error((error as Error).message || t('setting.numbering.preview_failed'))
+      toast.danger((error as Error).message || t('setting.numbering.preview_failed'))
   }
   finally {
     if (version === requestVersion)

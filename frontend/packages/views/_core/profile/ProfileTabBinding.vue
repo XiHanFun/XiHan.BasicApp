@@ -50,7 +50,7 @@ async function loadData() {
     loaded.value = true
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.binding.err_load_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.binding.err_load_failed'))
   }
   finally {
     loading.value = false
@@ -64,7 +64,7 @@ async function handleUnlinkAccount(provider: string) {
     await loadData()
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.binding.err_operation_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.binding.err_operation_failed'))
   }
 }
 
@@ -101,7 +101,7 @@ async function handleStartBind(provider: string) {
     window.location.href = `${baseUrl}${apiPrefix}/OAuth/ExternalLogin?provider=${encodeURIComponent(provider)}&bindTicket=${encodeURIComponent(ticket)}`
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('component.profile.binding.err_bind_start_failed'))
+    toast.danger((e as Error)?.message || t('component.profile.binding.err_bind_start_failed'))
   }
 }
 

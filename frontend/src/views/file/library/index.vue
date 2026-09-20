@@ -544,7 +544,7 @@ async function handleSaveMetadata() {
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('file.library.metadata.update_failed'))
+    toast.danger((error as Error)?.message || t('file.library.metadata.update_failed'))
   }
   finally {
     metadataLoading.value = false
@@ -559,7 +559,7 @@ async function handleUpdateFileStatus(row: FileListItemDto, status: FileStatus, 
     reload()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('file.library.message.operation_failed'))
+    toast.danger((error as Error)?.message || t('file.library.message.operation_failed'))
   }
   finally {
     actionLoading.value = false
@@ -583,7 +583,7 @@ function handleDestroyFile(row: FileListItemDto) {
         reload()
       }
       catch (error) {
-        toast.error((error as Error)?.message || t('file.library.message.destroy_failed'))
+        toast.danger((error as Error)?.message || t('file.library.message.destroy_failed'))
       }
       finally {
         actionLoading.value = false
@@ -644,7 +644,7 @@ async function handleFileDetail(row: FileListItemDto) {
   }
   catch (error) {
     currentFileDetail.value = null
-    toast.error((error as Error)?.message || t('file.library.message.file_detail_failed'))
+    toast.danger((error as Error)?.message || t('file.library.message.file_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -681,7 +681,7 @@ async function copyPreviewText() {
     toast.success(t('file.library.preview.copied'))
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('file.library.preview.copy_failed'))
+    toast.danger((error as Error)?.message || t('file.library.preview.copy_failed'))
   }
 }
 
@@ -731,7 +731,7 @@ async function handlePreview(row: FileListItemDto) {
     if (kind === 'markdown' || kind === 'text') {
       previewTextError.value = reason
     }
-    toast.error(reason)
+    toast.danger(reason)
   }
   finally {
     previewLoading.value = false
@@ -770,7 +770,7 @@ async function handleDownload(row: FileListItemDto) {
     downloadBlob(blob, row.originalName)
   }
   catch (error) {
-    toast.error((error as Error).message || t('file.library.message.download_failed'))
+    toast.danger((error as Error).message || t('file.library.message.download_failed'))
   }
 }
 
@@ -820,7 +820,7 @@ async function loadStorageRows() {
   }
   catch (error) {
     storageRows.value = []
-    toast.error((error as Error)?.message || t('file.library.storage_list.load_failed'))
+    toast.danger((error as Error)?.message || t('file.library.storage_list.load_failed'))
   }
   finally {
     storageListLoading.value = false
@@ -839,7 +839,7 @@ async function viewStorageDetail(storageId: string) {
   }
   catch (error) {
     currentStorageDetail.value = null
-    toast.error((error as Error)?.message || t('file.library.message.storage_detail_failed'))
+    toast.danger((error as Error)?.message || t('file.library.message.storage_detail_failed'))
   }
   finally {
     detailLoading.value = false
@@ -859,7 +859,7 @@ async function handleSwitchPrimary(storage: FileStorageListItemDto) {
     await loadStorageRows()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('file.library.message.set_primary_failed'))
+    toast.danger((error as Error)?.message || t('file.library.message.set_primary_failed'))
   }
   finally {
     actionLoading.value = false
@@ -875,7 +875,7 @@ async function handleVerifyStorage(storage: FileStorageListItemDto) {
     await loadStorageRows()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('file.library.message.verify_failed'))
+    toast.danger((error as Error)?.message || t('file.library.message.verify_failed'))
   }
   finally {
     actionLoading.value = false
@@ -894,7 +894,7 @@ async function handleToggleStorageStatus(storage: FileStorageListItemDto) {
     await loadStorageRows()
   }
   catch (error) {
-    toast.error((error as Error)?.message || t('file.library.message.storage_status_failed'))
+    toast.danger((error as Error)?.message || t('file.library.message.storage_status_failed'))
   }
   finally {
     actionLoading.value = false

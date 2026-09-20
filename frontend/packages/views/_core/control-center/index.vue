@@ -53,7 +53,7 @@ async function loadTenants() {
     loaded.value = true
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('page.control_center.load_failed'))
+    toast.danger((e as Error)?.message || t('page.control_center.load_failed'))
   }
   finally {
     loading.value = false
@@ -74,7 +74,7 @@ async function enterTenant(tenant: AppTenantSwitcherItem) {
     window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('page.control_center.switch_failed'))
+    toast.danger((e as Error)?.message || t('page.control_center.switch_failed'))
     switching.value = false
   }
 }
@@ -94,7 +94,7 @@ async function enterPlatform() {
     window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
   }
   catch (e: unknown) {
-    toast.error((e as Error)?.message || t('page.control_center.switch_failed'))
+    toast.danger((e as Error)?.message || t('page.control_center.switch_failed'))
     switching.value = false
   }
 }
