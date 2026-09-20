@@ -947,11 +947,12 @@ function handlePaste(event: ClipboardEvent) {
   cursor: not-allowed;
 }
 
-/* 无边框输入区：去掉描边与聚焦描边，保持 QQ 式纯净输入面（走文本框皮肤留的边框槽） */
-.chat-composer-input :deep([data-scope='text-field'][data-part='input']) {
-  --xh-text-field-input-border: transparent;
-  --xh-text-field-input-border-hover: transparent;
-  --xh-text-field-input-border-focus: transparent;
+/* 无边框输入区：去掉描边与聚焦描边，保持 QQ 式纯净输入面。
+   描边画在 control 部件上（Field Chrome），走文本框皮肤留的 control 边框槽 */
+.chat-composer-input :deep([data-scope='text-field'][data-part='control']) {
+  --xh-text-field-control-border: transparent;
+  --xh-text-field-control-border-hover: transparent;
+  --xh-text-field-control-border-focus: transparent;
 }
 
 .chat-composer-inline-btn {

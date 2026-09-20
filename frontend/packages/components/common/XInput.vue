@@ -7,7 +7,9 @@ import {
   XhPasswordInputRoot,
   XhPasswordInputVisibilityTrigger,
   XhTextFieldClearTrigger,
+  XhTextFieldControl,
   XhTextFieldInput,
+  XhTextFieldPrefix,
   XhTextFieldRoot,
 } from '@xihan-ui/vue'
 import { computed, ref, useSlots } from 'vue'
@@ -16,11 +18,12 @@ import { useControlAttrs } from './control-attrs'
 /**
  * 单行文本输入。
  *
- * 把「根 + 输入 + 清除钮」三个部件收成一个标签——清除钮在组件库里是要自己摆的部件，
+ * 把「根 + 视觉盒 + 输入 + 清除钮」几个部件收成一个标签——清除钮在组件库里是要自己摆的部件，
  * 不是一个开关，全站几百处输入框没必要各摆一遍。回车提交也收在这里。
  *
- * 前缀图标叠在输入框内：描边与底色画在 input 上而不是根节点上，因而需要一层定位容器 +
- * 给 input 让出内边距。这段布局收在这里，调用方只给插槽。
+ * 描边、底色、高度与聚焦环画在 control 部件上（Field Chrome），input 本身是透明的；
+ * 不套 control 的 input 没有盒。前缀图标是组件库的 prefix 部件，与输入框同排在盒内，
+ * 间距由盒的 gap 给，调用方只给插槽。
  *
  * 密码档由组件库的 password-input 拼出：显隐钮、大写锁定提示与切换明暗后的光标复位都归它。
  *
@@ -70,11 +73,10 @@ const { attrs, controlAttrs } = useControlAttrs()
 const isMultiline = computed(() => props.type === 'textarea')
 const hasPrefix = computed(() => !!slots.prefix)
 
-const boxRef = ref<HTMLElement | null>(null)
-const controlRef = ref<InstanceType<typeof XhPasswordInputControl> | null>(null)
+const controlRef = ref<InstanceType<typeof XhPasswordInputControl> | InstanceType<typeof XhTextFieldControl> | null>(null)
 
-/** 装着输入框的那层盒子：文本档是自绘的容器，密码档是组件库的 control 部件 */
-const hostEl = computed<HTMLElement | null>(() => boxRef.value ?? (controlRef.value?.$el as HTMLElement | null) ?? null)
+/** 装着输入框的那层盒子：两档都是组件库的 control 部件 */
+const hostEl = computed<HTMLElement | null>(() => (controlRef.value?.$el as HTMLElement | null) ?? null)
 
 /** 底层的 input/textarea 元素：读光标位置、程序化聚焦这类事要用到 */
 const el = computed<HTMLInputElement | HTMLTextAreaElement | null>(
@@ -131,7 +133,7 @@ defineExpose({ el, focus, blur })
   <XhTextFieldRoot
     v-else
     class="x-input"
-    :class="[{ 'x-input--has-prefix': hasPrefix }, attrs.class]"
+    :class="attrs.class"
     :style="attrs.style"
     :value="value ?? ''"
     :placeholder="placeholder"
@@ -144,10 +146,11 @@ defineExpose({ el, focus, blur })
     :auto-size="autosize"
     @update:value="(next: string) => emit('update:value', next)"
   >
-    <div ref="boxRef" class="x-input__box">
-      <span v-if="hasPrefix" class="x-input__prefix" aria-hidden="true">
+    <!-- 盒里除输入框外还排着前缀与清除钮，点在空处时把焦点交回输入框 -->
+    <XhTextFieldControl ref="controlRef" class="x-input__control" @mousedown.self.prevent="focus">
+      <XhTextFieldPrefix v-if="hasPrefix">
         <slot name="prefix" />
-      </span>
+      </XhTextFieldPrefix>
       <XhTextFieldInput
         v-if="isMultiline"
         as="textarea"
@@ -161,7 +164,7 @@ defineExpose({ el, focus, blur })
         @keyup.enter="emit('enter')"
       />
       <XhTextFieldClearTrigger v-if="clearable" />
-    </div>
+    </XhTextFieldControl>
   </XhTextFieldRoot>
 </template>
 
@@ -170,24 +173,7 @@ defineExpose({ el, focus, blur })
   inline-size: 100%;
 }
 
-/* 输入框与叠在其上的前缀/后缀共处一个定位上下文 */
-.x-input__box {
-  position: relative;
-  display: flex;
-  align-items: center;
-  inline-size: 100%;
-}
-
-.x-input__box :deep([data-scope='text-field'][data-part='input']) {
-  inline-size: 100%;
-}
-
-/* 有前缀时给输入框让出左侧位置 */
-.x-input--has-prefix .x-input__box :deep([data-scope='text-field'][data-part='input']) {
-  padding-inline-start: 30px;
-}
-
-/* 密码档的视觉盒由组件库的 control 部件承担，这里只把它铺满整行 */
+/* 视觉盒由组件库的 control 部件承担，这里只把它铺满整行 */
 .x-input__control {
   inline-size: 100%;
 }
@@ -196,15 +182,6 @@ defineExpose({ el, focus, blur })
 .x-input__control-prefix {
   display: inline-flex;
   flex: none;
-  align-items: center;
-  color: var(--xh-fg-muted);
-  pointer-events: none;
-}
-
-.x-input__prefix {
-  position: absolute;
-  inset-inline-start: 9px;
-  display: inline-flex;
   align-items: center;
   color: var(--xh-fg-muted);
   pointer-events: none;
