@@ -1420,7 +1420,7 @@ async function confirmDelete() {
 
         <div class="xh-dialog-footer">
           <XhFlex justify="end">
-            <XhButton size="sm" @click="closeModals">
+            <XhButton variant="subtle" size="sm" @click="closeModals">
               {{ t('common.actions.close') }}
             </XhButton>
           </XhFlex>
@@ -1449,10 +1449,10 @@ async function confirmDelete() {
 
         <div class="xh-dialog-footer">
           <XhFlex justify="end">
-            <XhButton size="sm" @click="closeModals">
+            <XhButton variant="subtle" size="sm" @click="closeModals">
               {{ t('common.actions.cancel') }}
             </XhButton>
-            <XhButton size="sm" tone="danger" @click="confirmDelete">
+            <XhButton variant="subtle" size="sm" tone="danger" @click="confirmDelete">
               {{ t('identity.user.del_confirm_btn') }}
             </XhButton>
           </XhFlex>
@@ -1509,6 +1509,7 @@ async function confirmDelete() {
               >
                 <template #action="{ item }">
                   <XhButton
+                    variant="subtle"
                     :disabled="grantLoading"
                     size="sm"
                     :tone="permActions.get(item.basicId) === PermissionAction.Grant ? 'success' : 'neutral'"
@@ -1517,6 +1518,7 @@ async function confirmDelete() {
                     {{ t('identity.user.grant_perm_allow') }}
                   </XhButton>
                   <XhButton
+                    variant="subtle"
                     :disabled="grantLoading"
                     size="sm"
                     :tone="permActions.get(item.basicId) === PermissionAction.Deny ? 'danger' : 'neutral'"
@@ -1531,10 +1533,10 @@ async function confirmDelete() {
         </div>
         <!-- 角色页签逐项即时生效，仅权限直授需要提交 -->
         <div v-if="grantTab === 'perm'" class="xh-dialog-footer">
-          <XhButton @click="grantVisible = false">
+          <XhButton variant="subtle" @click="grantVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton tone="brand" :loading="grantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+          <XhButton variant="subtle" tone="brand" :loading="grantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
             {{ t('identity.user.grant_perm_save') }}
           </XhButton>
         </div>

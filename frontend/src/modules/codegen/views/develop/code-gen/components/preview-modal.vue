@@ -299,7 +299,7 @@ async function loadPreview() {
       <div class="xh-dialog-footer">
         <XhFlex justify="between">
           <span class="gen__hint">{{ t('develop.code_gen.preview.total_files', { count: artifacts.length }) }}</span>
-          <XhButton @click="emit('update:show', false)">
+          <XhButton variant="subtle" @click="emit('update:show', false)">
             {{ t('common.actions.close') }}
           </XhButton>
         </XhFlex>

@@ -557,7 +557,7 @@ async function handleSubmit() {
                 </template>
                 <!-- 校验的是正在编辑的草稿，而非已回写表单的值 -->
                 <template #footer-extra="{ value }">
-                  <XhButton size="sm" :loading="validating" @click="handleValidate(value)">
+                  <XhButton variant="subtle" size="sm" :loading="validating" @click="handleValidate(value)">
                     <span><Icon icon="lucide:check-check" /></span>
                     {{ t('develop.code_gen.template.validate_syntax') }}
                   </XhButton>

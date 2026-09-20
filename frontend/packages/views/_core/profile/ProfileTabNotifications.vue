@@ -153,10 +153,10 @@ onMounted(loadPreference)
           </div>
         </div>
         <div class="pf-section__actions">
-          <XhButton @click="loadPreference">
+          <XhButton variant="subtle" @click="loadPreference">
             {{ t('common.actions.reset') }}
           </XhButton>
-          <XhButton tone="brand" :loading="saving" @click="savePreference">
+          <XhButton variant="subtle" tone="brand" :loading="saving" @click="savePreference">
             <Icon icon="lucide:save" width="16" />
             {{ t('component.profile.notifications.btn_save_preference') }}
           </XhButton>

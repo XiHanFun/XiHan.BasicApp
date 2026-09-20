@@ -212,6 +212,7 @@ function toggleAlignmentTools(): void {
           <XhButton
             v-for="preset in PRINT_PAPER_PRESETS"
             :key="preset"
+            variant="subtle"
             :tone="paperType === preset ? 'brand' : 'neutral'"
             :disabled="disabled"
             @click="emit('paperPresetChange', preset)"
@@ -219,6 +220,7 @@ function toggleAlignmentTools(): void {
             {{ preset }}
           </XhButton>
           <XhButton
+            variant="subtle"
             class="custom-paper-button"
             :tone="paperType === 'CUSTOM' ? 'brand' : 'neutral'"
             :disabled="disabled"
@@ -231,6 +233,7 @@ function toggleAlignmentTools(): void {
         <div class="canvas-view-tools">
           <XhButtonGroup class="zoom-group" :aria-label="t('setting.print_template.canvas_zoom')">
             <XhButton
+              variant="subtle"
               :disabled="disabled || normalizedZoomPercent <= MIN_ZOOM_PERCENT"
               :title="t('setting.print_template.zoom_out')"
               :aria-label="t('setting.print_template.zoom_out')"
@@ -239,6 +242,7 @@ function toggleAlignmentTools(): void {
               <span><Icon icon="tabler:zoom-out" /></span>
             </XhButton>
             <XhButton
+              variant="subtle"
               class="zoom-value"
               :disabled="disabled"
               :title="t('setting.print_template.reset_zoom')"
@@ -247,6 +251,7 @@ function toggleAlignmentTools(): void {
               {{ normalizedZoomPercent }}%
             </XhButton>
             <XhButton
+              variant="subtle"
               :disabled="disabled || normalizedZoomPercent >= MAX_ZOOM_PERCENT"
               :title="t('setting.print_template.zoom_in')"
               :aria-label="t('setting.print_template.zoom_in')"
@@ -257,6 +262,7 @@ function toggleAlignmentTools(): void {
           </XhButtonGroup>
           <XhButtonGroup class="canvas-command-group" :aria-label="t('setting.print_template.canvas_commands')">
             <XhButton
+              variant="subtle"
               :disabled="disabled"
               :title="t('setting.print_template.rotate_paper')"
               @click="emit('rotate')"
@@ -265,6 +271,7 @@ function toggleAlignmentTools(): void {
               {{ t('setting.print_template.rotate') }}
             </XhButton>
             <XhButton
+              variant="subtle"
               class="json-command-button"
               :disabled="disabled"
               :title="t('setting.print_template.json_editor_title')"
@@ -291,6 +298,7 @@ function toggleAlignmentTools(): void {
               {{ t('setting.print_template.element_alignment') }}
             </span>
             <XhButton
+              variant="subtle"
               class="spacing-command-button"
               tone="brand"
               :disabled="disabled"
@@ -299,6 +307,7 @@ function toggleAlignmentTools(): void {
               {{ t('setting.print_template.horizontal_spacing', { spacing: ELEMENT_SPACING }) }}
             </XhButton>
             <XhButton
+              variant="subtle"
               class="spacing-command-button"
               tone="brand"
               :disabled="disabled"
@@ -360,10 +369,11 @@ function toggleAlignmentTools(): void {
         </div>
         <div class="xh-dialog-footer">
           <div class="modal-actions">
-            <XhButton :disabled="customPaperSubmitting" @click="customPaperVisible = false">
+            <XhButton variant="subtle" :disabled="customPaperSubmitting" @click="customPaperVisible = false">
               {{ t('common.actions.cancel') }}
             </XhButton>
             <XhButton
+              variant="subtle"
               tone="brand"
               :loading="customPaperSubmitting"
               :disabled="!canSubmitCustomPaper"

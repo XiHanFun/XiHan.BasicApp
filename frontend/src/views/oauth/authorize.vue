@@ -220,6 +220,7 @@ onMounted(async () => {
         <!-- 操作按钮 -->
         <div class="grid grid-cols-2 gap-3 mt-6 w-full">
           <XhButton
+            variant="subtle"
             size="lg"
             :disabled="submitting"
             @click="deny"
@@ -227,6 +228,7 @@ onMounted(async () => {
             {{ t('page.oauth.deny') }}
           </XhButton>
           <XhButton
+            variant="subtle"
             tone="brand"
             size="lg"
             :loading="submitting"

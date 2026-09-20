@@ -170,7 +170,7 @@ async function handleImport() {
         :placeholder="t('develop.code_gen.import.keyword_placeholder')"
         @keyup.enter="loadTables"
       />
-      <XhButton :loading="tableLoading" tone="brand" @click="loadTables">
+      <XhButton variant="subtle" :loading="tableLoading" tone="brand" @click="loadTables">
         <span><Icon icon="lucide:search" /></span>
         {{ t('common.actions.search') }}
       </XhButton>

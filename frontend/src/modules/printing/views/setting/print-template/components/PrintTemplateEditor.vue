@@ -179,15 +179,15 @@ defineExpose({ confirmDiscard })
         >
           <template #template-actions>
             <div class="toolbar-primary-actions">
-              <XhButton data-testid="print-template-save" tone="brand" :loading="saveLoading" :disabled="!designerReady" @click="handleSave">
+              <XhButton variant="subtle" data-testid="print-template-save" tone="brand" :loading="saveLoading" :disabled="!designerReady" @click="handleSave">
                 <span><Icon icon="tabler:device-floppy" /></span>
                 {{ t('common.actions.save') }}
               </XhButton>
-              <XhButton :loading="previewLoading" :disabled="!designerReady" @click="openSamplePreview">
+              <XhButton variant="subtle" :loading="previewLoading" :disabled="!designerReady" @click="openSamplePreview">
                 <span><Icon icon="tabler:eye" /></span>
                 {{ t('setting.print_template.sample_preview') }}
               </XhButton>
-              <XhButton tone="success" :loading="directLoading" :disabled="!designerReady || (currentDetail !== null && !canDirectPrint)" @click="directPrint">
+              <XhButton variant="subtle" tone="success" :loading="directLoading" :disabled="!designerReady || (currentDetail !== null && !canDirectPrint)" @click="directPrint">
                 <span><Icon icon="tabler:printer" /></span>
                 {{ t('setting.print_template.direct_print') }}
               </XhButton>
@@ -260,10 +260,11 @@ defineExpose({ confirmDiscard })
       </XhDrawerRoot>
       <div class="xh-dialog-footer">
         <div class="template-settings-footer">
-          <XhButton :disabled="saveLoading" @click="cancelMetadata">
+          <XhButton variant="subtle" :disabled="saveLoading" @click="cancelMetadata">
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton
+            variant="subtle"
             tone="brand"
             :loading="saveLoading"
             :disabled="metadataDraftIncomplete"

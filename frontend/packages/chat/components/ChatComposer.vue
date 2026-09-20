@@ -784,6 +784,7 @@ function handlePaste(event: ClipboardEvent) {
       <div class="flex items-center justify-end px-2.5 pt-2 pb-2.5">
         <div class="chat-send-group">
           <XhButton
+            variant="subtle"
             tone="brand"
             size="sm"
             :disabled="(!trimmedDraft && !pendingAttachments.length) || sending"
@@ -794,7 +795,7 @@ function handlePaste(event: ClipboardEvent) {
             {{ isEditing ? t('chat.composer.save_edit') : t('chat.composer.send') }}
           </XhButton>
           <XDropdown :options="sendKeyOptions" placement="top-end" @select="handleSendKeySelect">
-            <XhButton tone="brand" size="sm" class="chat-send-arrow">
+            <XhButton variant="subtle" tone="brand" size="sm" class="chat-send-arrow">
               <Icon icon="lucide:chevron-up" width="14" height="14" />
             </XhButton>
           </XDropdown>

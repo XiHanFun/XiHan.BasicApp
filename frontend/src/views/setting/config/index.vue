@@ -555,7 +555,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
 
         <div class="xh-dialog-footer">
           <XhFlex justify="end" gap="md">
-            <XhButton size="sm" @click="detailVisible = false">
+            <XhButton variant="subtle" size="sm" @click="detailVisible = false">
               {{ t('common.actions.close') }}
             </XhButton>
           </XhFlex>

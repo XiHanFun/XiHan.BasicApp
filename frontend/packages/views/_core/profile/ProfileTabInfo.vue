@@ -428,6 +428,7 @@ function cancelChange() {
           >
           <div class="pf-setting-row__control">
             <XhButton
+              variant="subtle"
               tone="brand"
               :loading="avatarUploading"
               @click="triggerAvatarUpload"
@@ -528,7 +529,7 @@ function cancelChange() {
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
-                  <XhButton size="sm" ghost tone="brand" @click="openChangeDialog('email')">
+                  <XhButton variant="subtle" size="sm" ghost tone="brand" @click="openChangeDialog('email')">
                     {{ profile?.email ? t('component.profile.info.btn_modify') : t('component.profile.info.btn_bind') }}
                   </XhButton>
                   <XhButton
@@ -542,10 +543,10 @@ function cancelChange() {
                 </div>
                 <div v-if="verifyTarget === 'email'" class="pf-inline-form">
                   <XInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :max-length="6" class="pf-field" />
-                  <XhButton tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
+                  <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
-                  <XhButton :disabled="verifyResendSeconds > 0" quaternary @click="sendVerifyCode('email')">
+                  <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" quaternary @click="sendVerifyCode('email')">
                     <CodeCountdown v-if="verifyResendSeconds > 0" :seconds="verifyResendSeconds" @finish="verifyResendSeconds = 0" />
                     <template v-else>
                       {{ t('common.actions.resend') }}
@@ -578,7 +579,7 @@ function cancelChange() {
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
-                  <XhButton size="sm" ghost tone="brand" @click="openChangeDialog('phone')">
+                  <XhButton variant="subtle" size="sm" ghost tone="brand" @click="openChangeDialog('phone')">
                     {{ profile?.phone ? t('component.profile.info.btn_modify') : t('component.profile.info.btn_bind') }}
                   </XhButton>
                   <XhButton
@@ -592,10 +593,10 @@ function cancelChange() {
                 </div>
                 <div v-if="verifyTarget === 'phone'" class="pf-inline-form">
                   <XInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :max-length="6" class="pf-field" />
-                  <XhButton tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
+                  <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
-                  <XhButton :disabled="verifyResendSeconds > 0" quaternary @click="sendVerifyCode('phone')">
+                  <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" quaternary @click="sendVerifyCode('phone')">
                     <CodeCountdown v-if="verifyResendSeconds > 0" :seconds="verifyResendSeconds" @finish="verifyResendSeconds = 0" />
                     <template v-else>
                       {{ t('common.actions.resend') }}
@@ -661,10 +662,10 @@ function cancelChange() {
         </div>
       </div>
       <div class="pf-section__actions">
-        <XhButton @click="syncProfileForm">
+        <XhButton variant="subtle" @click="syncProfileForm">
           {{ t('common.actions.cancel') }}
         </XhButton>
-        <XhButton tone="brand" :loading="profileSaving" @click="saveProfile">
+        <XhButton variant="subtle" tone="brand" :loading="profileSaving" @click="saveProfile">
           <span><Icon icon="lucide:save" /></span>
           {{ t('component.profile.info.btn_save_changes') }}
         </XhButton>
@@ -707,10 +708,10 @@ function cancelChange() {
                   :max-length="6"
                 />
                 <XhFlex gap="sm">
-                  <XhButton tone="brand" :loading="changeLoading" :disabled="changeCode.length < 6" @click="confirmChange">
+                  <XhButton variant="subtle" tone="brand" :loading="changeLoading" :disabled="changeCode.length < 6" @click="confirmChange">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
-                  <XhButton :disabled="changeResendSeconds > 0" quaternary @click="sendChangeCode">
+                  <XhButton variant="subtle" :disabled="changeResendSeconds > 0" quaternary @click="sendChangeCode">
                     <CodeCountdown
                       v-if="changeResendSeconds > 0"
                       v-slot="{ seconds }"

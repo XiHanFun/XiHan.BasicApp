@@ -42,7 +42,7 @@ const textareaId = `print-template-json-${crypto.randomUUID()}`
           <strong>{{ t('setting.print_template.json_template_content') }}</strong>
           <span>{{ t('setting.print_template.json_editor_hint') }}</span>
         </div>
-        <XhButton :disabled="disabled || applying" @click="emit('export')">
+        <XhButton variant="subtle" :disabled="disabled || applying" @click="emit('export')">
           {{ t('setting.print_template.export_json_to_textarea') }}
         </XhButton>
       </div>
@@ -77,10 +77,11 @@ const textareaId = `print-template-json-${crypto.randomUUID()}`
 
       <div class="xh-dialog-footer">
         <div class="json-modal-actions">
-          <XhButton :disabled="applying" @click="emit('update:show', false)">
+          <XhButton variant="subtle" :disabled="applying" @click="emit('update:show', false)">
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton
+            variant="subtle"
             tone="brand"
             :loading="applying"
             :disabled="disabled || !value.trim()"
