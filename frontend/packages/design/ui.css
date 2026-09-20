@@ -220,12 +220,21 @@
 .xh-input-group > * {
   --xh-text-field-control-radius: 0;
   --xh-button-radius: 0;
+  /* 输入段要能缩到比控件的缺省最小宽（12rem）还窄：窄屏上整行只剩两百多像素，
+     动作钮是定宽的，剩下多少全给输入；不放开这两条，整行会从容器右缘凸出去 */
+  --xh-field-control-min-inline-size: 0;
 
+  min-inline-size: 0;
   margin-inline-end: calc(-1 * var(--xh-stroke-thin));
 }
 
 .xh-input-group > *:last-child {
   margin-inline-end: 0;
+}
+
+/* 动作钮不参与收缩：文案不能被挤成两行或省略号 */
+.xh-input-group > [data-scope='button'] {
+  flex: none;
 }
 
 .xh-input-group > *:first-child {
