@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NotificationListItemDto } from '@/api'
-import { XhCarouselIndicator, XhCarouselIndicatorGroup, XhCarouselItem, XhCarouselItemGroup, XhCarouselNextTrigger, XhCarouselPrevTrigger, XhCarouselRoot, XhCarouselViewport, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
+import { XhCarouselIndicator, XhCarouselIndicatorGroup, XhCarouselItem, XhCarouselList, XhCarouselNextTrigger, XhCarouselPrevTrigger, XhCarouselRoot, XhCarouselViewport, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -80,7 +80,7 @@ onMounted(async () => {
     class="announce-carousel"
   >
     <XhCarouselViewport>
-      <XhCarouselItemGroup>
+      <XhCarouselList>
         <XhCarouselItem
           v-for="(item, slideIndex) in announcements"
           :key="item.basicId"
@@ -105,7 +105,7 @@ onMounted(async () => {
             </div>
           </div>
         </XhCarouselItem>
-      </XhCarouselItemGroup>
+      </XhCarouselList>
     </XhCarouselViewport>
 
     <div class="carousel-arrows">
@@ -130,9 +130,9 @@ onMounted(async () => {
   </XhCarouselRoot>
   <div v-else class="announce-empty">
     <XhEmptyStateRoot size="sm">
-      <XhEmptyStateIcon>
+      <XhEmptyStateIndicator>
         <Icon icon="lucide:inbox" width="28" height="28" />
-      </XhEmptyStateIcon>
+      </XhEmptyStateIndicator>
       <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
       <XhEmptyStateDescription>{{ t('workbench.widgets.announcement.empty') }}</XhEmptyStateDescription>
     </XhEmptyStateRoot>

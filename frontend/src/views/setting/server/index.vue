@@ -8,7 +8,7 @@ import type {
   SysNetworkInfo,
   SysRuntimeInfo,
 } from '@/api'
-import { XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCardContent, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { serverManagementApi } from '@/api'
@@ -230,7 +230,7 @@ onUnmounted(() => {
             <XhCardHeader>
               <span class="xh-skeleton-bone" style="inline-size: 88px; block-size: 14px" />
             </XhCardHeader>
-            <XhCardBody>
+            <XhCardContent>
               <div class="sv-perf">
                 <div class="sv-gauge">
                   <span class="xh-skeleton-bone xh-skeleton-bone--circle" style="inline-size: 160px; block-size: 160px" />
@@ -242,7 +242,7 @@ onUnmounted(() => {
                   </div>
                 </div>
               </div>
-            </XhCardBody>
+            </XhCardContent>
           </XhCardRoot>
         </XhGridItem>
       </XhGridRoot>
@@ -252,7 +252,7 @@ onUnmounted(() => {
         <XhCardHeader>
           <span class="xh-skeleton-bone" style="inline-size: 88px; block-size: 14px" />
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <XhGridRoot :cols="{ base: 1, sm: 2, lg: 3 }" gap="md">
             <XhGridItem v-for="i in 3" :key="`sk-disk-${i}`">
               <div class="sv-disk-item">
@@ -267,7 +267,7 @@ onUnmounted(() => {
               </div>
             </XhGridItem>
           </XhGridRoot>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
 
       <!-- 显卡 2 行、网络 3 行：折叠列表画成等高的触发行 -->
@@ -275,7 +275,7 @@ onUnmounted(() => {
         <XhCardHeader>
           <span class="xh-skeleton-bone" style="inline-size: 88px; block-size: 14px" />
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <div class="space-y-1">
             <div v-for="r in rows" :key="r" class="sv-collapse-title" style="padding: 10px 0">
               <span class="xh-skeleton-bone xh-skeleton-bone--circle" style="inline-size: 14px; block-size: 14px" />
@@ -283,7 +283,7 @@ onUnmounted(() => {
               <span class="xh-skeleton-bone" style="inline-size: 48px; block-size: 18px" />
             </div>
           </div>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
 
       <!-- 主板 4 项、系统信息 12 项：同一种格子，只是数量与网格类不同 -->
@@ -291,7 +291,7 @@ onUnmounted(() => {
         <XhCardHeader>
           <span class="xh-skeleton-bone" style="inline-size: 88px; block-size: 14px" />
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <div :class="g.cls">
             <div v-for="i in g.n" :key="i" class="sv-sys-item">
               <span class="xh-skeleton-bone" style="inline-size: 26px; block-size: 26px; border-radius: 6px" />
@@ -299,7 +299,7 @@ onUnmounted(() => {
               <span class="xh-skeleton-bone" style="inline-size: 96px; block-size: 13px; margin-left: auto" />
             </div>
           </div>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
     </template>
 
@@ -357,7 +357,7 @@ onUnmounted(() => {
                 <span>{{ t('setting.server.cpu_info') }}</span>
               </div>
             </XhCardHeader>
-            <XhCardBody>
+            <XhCardContent>
               <div class="sv-perf">
                 <div class="sv-gauge">
                   <XhProgress
@@ -391,7 +391,7 @@ onUnmounted(() => {
                   </div>
                 </div>
               </div>
-            </XhCardBody>
+            </XhCardContent>
           </XhCardRoot>
         </XhGridItem>
         <XhGridItem>
@@ -402,7 +402,7 @@ onUnmounted(() => {
                 <span>{{ t('setting.server.memory_info') }}</span>
               </div>
             </XhCardHeader>
-            <XhCardBody>
+            <XhCardContent>
               <div class="sv-perf">
                 <div class="sv-gauge">
                   <XhProgress
@@ -436,7 +436,7 @@ onUnmounted(() => {
                   </div>
                 </div>
               </div>
-            </XhCardBody>
+            </XhCardContent>
           </XhCardRoot>
         </XhGridItem>
       </XhGridRoot>
@@ -449,7 +449,7 @@ onUnmounted(() => {
             <span>{{ t('setting.server.disk_info') }}</span>
           </div>
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <div v-if="!diskInfos.length" class="sv-empty">
             {{ t('setting.server.no_data') }}
           </div>
@@ -491,7 +491,7 @@ onUnmounted(() => {
               </div>
             </XhGridItem>
           </XhGridRoot>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
 
       <!-- 显卡 -->
@@ -507,7 +507,7 @@ onUnmounted(() => {
             </XhTagRoot>
           </div>
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <div v-if="!gpuInfos.length" class="sv-empty">
             {{ t('setting.server.no_data') }}
           </div>
@@ -560,7 +560,7 @@ onUnmounted(() => {
               </XhAccordionContent>
             </XhAccordionItem>
           </XhAccordionRoot>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
 
       <!-- 网络信息 -->
@@ -576,7 +576,7 @@ onUnmounted(() => {
             </XhTagRoot>
           </div>
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <div v-if="!activeNetworks.length" class="sv-empty">
             {{ t('setting.server.no_data') }}
           </div>
@@ -661,7 +661,7 @@ onUnmounted(() => {
               </XhAccordionContent>
             </XhAccordionItem>
           </XhAccordionRoot>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
 
       <!-- 主板信息 -->
@@ -672,7 +672,7 @@ onUnmounted(() => {
             <span>{{ t('setting.server.board_info') }}</span>
           </div>
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <div class="sv-board-grid">
             <div v-for="d in boardDetails" :key="d.label" class="sv-sys-item">
               <div class="sv-sys-icon">
@@ -686,7 +686,7 @@ onUnmounted(() => {
               </span>
             </div>
           </div>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
 
       <!-- 系统信息 -->
@@ -697,7 +697,7 @@ onUnmounted(() => {
             <span>{{ t('setting.server.system_info') }}</span>
           </div>
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <div class="sv-sys-grid">
             <div v-for="d in sysDetails" :key="d.label" class="sv-sys-item">
               <div class="sv-sys-icon">
@@ -711,7 +711,7 @@ onUnmounted(() => {
               </span>
             </div>
           </div>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
     </template>
   </div>

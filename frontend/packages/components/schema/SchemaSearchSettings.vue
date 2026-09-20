@@ -88,13 +88,13 @@ function onSort(details: { from: number, to: number }) {
               :item-id="item.key"
               class="xh-set-row flex gap-2 items-center"
             >
-              <XhSortableItemHandle
+              <XhSortableItemDragTrigger
                 :item-id="item.key"
                 class="xh-set-drag-handle flex items-center text-foreground/40"
                 :title="t('component.search_settings.drag_sort')"
               >
                 <Icon icon="lucide:grip-vertical" />
-              </XhSortableItemHandle>
+              </XhSortableItemDragTrigger>
               <!-- 勾选框只有框本身，标签是并排的一段文字，点它也切换 -->
               <XhCheckbox
                 :checked="item.visible"

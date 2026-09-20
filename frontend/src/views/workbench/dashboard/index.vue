@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { BoardItem } from './components'
-import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSortableItem, XhSortableItemHandle, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
+import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
@@ -306,9 +306,9 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
 
     <div v-if="!board.length" class="py-20">
       <XhEmptyStateRoot>
-        <XhEmptyStateIcon>
+        <XhEmptyStateIndicator>
           <Icon icon="lucide:inbox" width="28" />
-        </XhEmptyStateIcon>
+        </XhEmptyStateIndicator>
         <XhEmptyStateTitle>{{ t('workbench.widgets.empty_title') }}</XhEmptyStateTitle>
         <XhEmptyStateDescription>{{ t('workbench.widgets.empty') }}</XhEmptyStateDescription>
         <XhEmptyStateAction>
@@ -360,13 +360,13 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
             v-show="customizing"
             class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg border border-border bg-card/95 px-1 py-0.5 shadow-sm backdrop-blur"
           >
-            <XhSortableItemHandle
+            <XhSortableItemDragTrigger
               :item-id="item.key"
               class="widget-drag-handle flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted"
               :title="t('workbench.widgets.drag')"
             >
               <Icon icon="lucide:grip-vertical" width="15" />
-            </XhSortableItemHandle>
+            </XhSortableItemDragTrigger>
             <XhPopoverRoot placement="bottom-end">
               <XhPopoverTrigger class="xh-linklike-trigger">
                 {{ spanLabel(item.span) }}
@@ -403,9 +403,9 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
         <XhDrawerCloseTrigger />
         <div v-if="!available.length" class="py-10">
           <XhEmptyStateRoot size="sm">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="24" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('workbench.widgets.all_added_title') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('workbench.widgets.all_added') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>

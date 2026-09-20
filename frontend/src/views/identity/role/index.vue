@@ -15,7 +15,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhButton, XhCheckbox, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -842,9 +842,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="28" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('identity.role.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
@@ -969,9 +969,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon>
+                  <XhEmptyStateIndicator>
                     <Icon icon="lucide:inbox" width="28" />
-                  </XhEmptyStateIcon>
+                  </XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.role.empty_permissions') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
@@ -998,9 +998,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon>
+                  <XhEmptyStateIndicator>
                     <Icon icon="lucide:inbox" width="28" />
-                  </XhEmptyStateIcon>
+                  </XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.role.empty_data_scopes') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
@@ -1027,9 +1027,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon>
+                  <XhEmptyStateIndicator>
                     <Icon icon="lucide:inbox" width="28" />
-                  </XhEmptyStateIcon>
+                  </XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.role.empty_ancestors') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
@@ -1056,9 +1056,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon>
+                  <XhEmptyStateIndicator>
                     <Icon icon="lucide:inbox" width="28" />
-                  </XhEmptyStateIcon>
+                  </XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.role.empty_descendants') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
@@ -1085,9 +1085,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon>
+                  <XhEmptyStateIndicator>
                     <Icon icon="lucide:inbox" width="28" />
-                  </XhEmptyStateIcon>
+                  </XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.role.empty_granted_users') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
@@ -1247,9 +1247,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="menuTreeData.length === 0 && !menuLoading" size="sm" class="perm-empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="28" height="28" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('identity.role.menu_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
@@ -1301,9 +1301,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="scopeGrants.length === 0 && !scopeLoading" size="sm" class="perm-empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="28" height="28" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('identity.role.scope_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>

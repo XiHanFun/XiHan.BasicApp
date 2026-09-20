@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { AppTenantSwitcherItem } from '~/types'
-import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
@@ -103,9 +103,9 @@ onMounted(loadTenants)
           </div>
           <div class="pf-list">
             <XhEmptyStateRoot v-if="tenants.length === 0 && loaded">
-              <XhEmptyStateIcon>
+              <XhEmptyStateIndicator>
                 <Icon icon="lucide:inbox" width="28" height="28" />
-              </XhEmptyStateIcon>
+              </XhEmptyStateIndicator>
               <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('component.profile.tenants.empty') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>

@@ -10,7 +10,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { EnumOptionItem } from '~/hooks'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -463,12 +463,14 @@ function remove(row: NumberingRuleListItemDto): void {
 
     <XEditModal v-model:show="resetVisible" :title="t('setting.numbering.reset_title')" :loading="actionLoading" :form-id="editFormId">
       <XhAlertRoot tone="warning" class="mb-3">
-        <XhAlertIcon>
+        <XhAlertIndicator>
           <Icon icon="lucide:triangle-alert" width="16" />
-        </XhAlertIcon>
-        <XhAlertDescription>
-          {{ t('setting.numbering.reset_tip') }}
-        </XhAlertDescription>
+        </XhAlertIndicator>
+        <XhAlertContent>
+          <XhAlertDescription>
+            {{ t('setting.numbering.reset_tip') }}
+          </XhAlertDescription>
+        </XhAlertContent>
       </XhAlertRoot>
       <XhFormRoot
         :id="editFormId"

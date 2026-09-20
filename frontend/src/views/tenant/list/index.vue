@@ -14,7 +14,7 @@ import type {
   TenantUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -963,9 +963,9 @@ async function handleSubmit() {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('tenant.list.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
@@ -1106,9 +1106,9 @@ async function handleSubmit() {
                   </div>
                   <div v-if="memberError" class="xh-detail-empty">
                     <XhEmptyStateRoot>
-                      <XhEmptyStateIcon>
+                      <XhEmptyStateIndicator>
                         <Icon icon="lucide:alert-circle" />
-                      </XhEmptyStateIcon>
+                      </XhEmptyStateIndicator>
                       <XhEmptyStateTitle>{{ t('common.messages.load_failed') }}</XhEmptyStateTitle>
                       <XhEmptyStateDescription>{{ t('tenant.list.member_load_failed') }}</XhEmptyStateDescription>
                       <XhEmptyStateAction>
@@ -1119,9 +1119,9 @@ async function handleSubmit() {
                     </XhEmptyStateRoot>
                   </div>
                   <XhEmptyStateRoot v-else-if="!memberLoading && members.length === 0" class="xh-detail-empty">
-                    <XhEmptyStateIcon>
+                    <XhEmptyStateIndicator>
                       <Icon icon="lucide:inbox" />
-                    </XhEmptyStateIcon>
+                    </XhEmptyStateIndicator>
                     <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                     <XhEmptyStateDescription>{{ t('tenant.list.member_empty') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
@@ -1236,9 +1236,9 @@ async function handleSubmit() {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!quotaAuditLoading && quotaAlerts.length === 0" class="xh-detail-empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:shield-check" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('tenant.list.quota_audit_clear') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('tenant.list.quota_audit_clear_desc') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>

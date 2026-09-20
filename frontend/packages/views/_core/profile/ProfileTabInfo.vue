@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
-import { XhButton, XhCardBody, XhCardHeader, XhCardRoot, XhCardTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCardContent, XhCardHeader, XhCardRoot, XhCardTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
@@ -674,14 +674,14 @@ function cancelChange() {
     <!-- 换绑对话框（邮箱/手机共用） -->
     <Teleport to="body">
       <div v-if="changeTarget" class="pf-change-overlay" @click.self="cancelChange">
-        <XhCardRoot class="pf-change-dialog" variant="elevated">
+        <XhCardRoot class="pf-change-dialog" variant="outline">
           <XhCardHeader class="pf-change-dialog__head">
             <XhCardTitle>{{ changeTarget === 'email' ? t('component.profile.info.change_email_title') : t('component.profile.info.change_phone_title') }}</XhCardTitle>
             <button type="button" class="pf-change-dialog__close" :aria-label="t('common.actions.close')" @click="cancelChange">
               <Icon icon="lucide:x" width="16" height="16" />
             </button>
           </XhCardHeader>
-          <XhCardBody>
+          <XhCardContent>
             <div class="pf-change-body">
               <template v-if="!changeCodeSent">
                 <XInput
@@ -726,7 +726,7 @@ function cancelChange() {
                 </XhFlex>
               </template>
             </div>
-          </XhCardBody>
+          </XhCardContent>
         </XhCardRoot>
       </div>
     </Teleport>
@@ -780,6 +780,8 @@ function cancelChange() {
 .pf-change-dialog {
   width: 380px;
   max-width: 90vw;
+  /* Card 没有抬升档，浮在遮罩上的对话面自己取 sheet 层阴影 */
+  box-shadow: var(--xh-elevation-sheet);
 }
 
 .pf-change-body {

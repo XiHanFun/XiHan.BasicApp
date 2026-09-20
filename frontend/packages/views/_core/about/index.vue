@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { XhCardBody, XhCardHeader, XhCardRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhCardContent, XhCardHeader, XhCardRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -194,7 +194,7 @@ onMounted(() => {
             <span>{{ t('component.about.core_capabilities') }}</span>
           </div>
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <div class="ab-cap-grid">
             <div v-for="item in coreCapabilities" :key="item.title" class="ab-cap-item">
               <div class="ab-cap-icon">
@@ -210,7 +210,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
 
       <XhCardRoot variant="ghost" class="ab-card">
@@ -220,7 +220,7 @@ onMounted(() => {
             <span>{{ t('component.about.platform_features') }}</span>
           </div>
         </XhCardHeader>
-        <XhCardBody>
+        <XhCardContent>
           <div class="ab-governance">
             <div v-for="item in governanceItems" :key="item.label" class="ab-gov-item">
               <div class="ab-gov-left">
@@ -232,7 +232,7 @@ onMounted(() => {
               <span class="ab-gov-value">{{ item.value }}</span>
             </div>
           </div>
-        </XhCardBody>
+        </XhCardContent>
       </XhCardRoot>
     </div>
 
@@ -248,7 +248,7 @@ onMounted(() => {
           </XhTagRoot>
         </div>
       </XhCardHeader>
-      <XhCardBody>
+      <XhCardContent>
         <div v-if="!backendDependencies.length" class="ab-empty">
           {{ t('common.no_data') }}
         </div>
@@ -265,7 +265,7 @@ onMounted(() => {
             </XhTagRoot>
           </div>
         </div>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
 
     <XhCardRoot variant="ghost" class="ab-card">
@@ -280,7 +280,7 @@ onMounted(() => {
           </XhTagRoot>
         </div>
       </XhCardHeader>
-      <XhCardBody>
+      <XhCardContent>
         <div v-if="!dependencyCount" class="ab-empty">
           {{ t('common.no_data') }}
         </div>
@@ -297,7 +297,7 @@ onMounted(() => {
             </XhTagRoot>
           </div>
         </div>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
 
     <XhCardRoot variant="ghost" class="ab-card">
@@ -312,7 +312,7 @@ onMounted(() => {
           </XhTagRoot>
         </div>
       </XhCardHeader>
-      <XhCardBody>
+      <XhCardContent>
         <div v-if="!devDependencyCount" class="ab-empty">
           {{ t('common.no_data') }}
         </div>
@@ -329,7 +329,7 @@ onMounted(() => {
             </XhTagRoot>
           </div>
         </div>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
 
     <XhCardRoot variant="ghost" class="ab-card">
@@ -339,7 +339,7 @@ onMounted(() => {
           <span>{{ t('page.about.keywords') }}</span>
         </div>
       </XhCardHeader>
-      <XhCardBody>
+      <XhCardContent>
         <div class="ab-keywords">
           <XhTagRoot
             v-for="(value, index) in keywords"
@@ -356,7 +356,7 @@ onMounted(() => {
             {{ t('page.about.empty_keywords') }}
           </span>
         </div>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
   </div>
 </template>

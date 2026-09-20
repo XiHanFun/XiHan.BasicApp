@@ -13,7 +13,7 @@ import type {
   PrintElementAlignAction,
   PrintElementSpacingDirection,
 } from '~/printing'
-import { useHotkeys, XhAlertDescription, XhAlertIcon, XhAlertRoot, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { useHotkeys, XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from '~/composables'
@@ -488,12 +488,14 @@ defineExpose({ clear, getJson, preview, redo, undo })
         >
           <XhSpinner v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center" />
           <XhAlertRoot v-if="loadError" tone="danger" class="canvas-error">
-            <XhAlertIcon>
+            <XhAlertIndicator>
               <Icon icon="lucide:alert-circle" width="16" />
-            </XhAlertIcon>
-            <XhAlertDescription>
-              {{ loadError }}
-            </XhAlertDescription>
+            </XhAlertIndicator>
+            <XhAlertContent>
+              <XhAlertDescription>
+                {{ loadError }}
+              </XhAlertDescription>
+            </XhAlertContent>
           </XhAlertRoot>
           <div :id="canvasId" class="hiprint-canvas-host" />
         </main>
@@ -516,9 +518,9 @@ defineExpose({ clear, getJson, preview, redo, undo })
         <div :id="settingId" class="property-setting-host" />
         <div class="property-empty">
           <XhEmptyStateRoot size="sm">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="24" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('setting.print_template.properties_empty_title') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('setting.print_template.properties_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>

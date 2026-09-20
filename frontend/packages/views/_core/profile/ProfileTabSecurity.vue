@@ -2,7 +2,7 @@
 import type { FormRules } from '@xihan-ui/headless'
 
 import type { UserProfile } from '~/types'
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPinInputInput, XhPinInputRoot, XhQrCode, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPinInputInput, XhPinInputRoot, XhQrCode, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XInput, XTooltip } from '~/components'
@@ -565,12 +565,14 @@ function handleDeleteAccount() {
           <template v-if="tfDisableTarget === TF_TOTP">
             <div class="pf-inline-form">
               <XhAlertRoot tone="warning" class="pf-full">
-                <XhAlertIcon>
+                <XhAlertIndicator>
                   <Icon icon="lucide:triangle-alert" width="16" height="16" />
-                </XhAlertIcon>
-                <XhAlertDescription>
-                  {{ t('component.profile.security.totp_disable_hint') }}
-                </XhAlertDescription>
+                </XhAlertIndicator>
+                <XhAlertContent>
+                  <XhAlertDescription>
+                    {{ t('component.profile.security.totp_disable_hint') }}
+                  </XhAlertDescription>
+                </XhAlertContent>
               </XhAlertRoot>
               <div class="pf-otp-row">
                 <XhPinInputRoot
@@ -667,12 +669,14 @@ function handleDeleteAccount() {
           <template v-if="tfDisableTarget === TF_EMAIL">
             <div class="pf-inline-form">
               <XhAlertRoot tone="warning" class="pf-full">
-                <XhAlertIcon>
+                <XhAlertIndicator>
                   <Icon icon="lucide:triangle-alert" width="16" height="16" />
-                </XhAlertIcon>
-                <XhAlertDescription>
-                  {{ t('component.profile.security.email_disable_hint') }}
-                </XhAlertDescription>
+                </XhAlertIndicator>
+                <XhAlertContent>
+                  <XhAlertDescription>
+                    {{ t('component.profile.security.email_disable_hint') }}
+                  </XhAlertDescription>
+                </XhAlertContent>
               </XhAlertRoot>
               <div class="pf-otp-row">
                 <XhPinInputRoot
@@ -779,12 +783,14 @@ function handleDeleteAccount() {
           <template v-if="tfDisableTarget === TF_PHONE">
             <div class="pf-inline-form">
               <XhAlertRoot tone="warning" class="pf-full">
-                <XhAlertIcon>
+                <XhAlertIndicator>
                   <Icon icon="lucide:triangle-alert" width="16" height="16" />
-                </XhAlertIcon>
-                <XhAlertDescription>
-                  {{ t('component.profile.security.phone_disable_hint') }}
-                </XhAlertDescription>
+                </XhAlertIndicator>
+                <XhAlertContent>
+                  <XhAlertDescription>
+                    {{ t('component.profile.security.phone_disable_hint') }}
+                  </XhAlertDescription>
+                </XhAlertContent>
               </XhAlertRoot>
               <div class="pf-otp-row">
                 <XhPinInputRoot

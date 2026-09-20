@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -651,9 +651,9 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="rule-detail-empty">
-            <XhEmptyStateIcon>
+            <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="28" />
-            </XhEmptyStateIcon>
+            </XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('approval.constraint.empty_detail') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
@@ -778,9 +778,9 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
               </tbody>
             </table>
             <XhEmptyStateRoot v-else size="sm" style="padding: 24px 0">
-              <XhEmptyStateIcon>
+              <XhEmptyStateIndicator>
                 <Icon icon="lucide:inbox" width="24" />
-              </XhEmptyStateIcon>
+              </XhEmptyStateIndicator>
               <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
               <XhEmptyStateDescription>{{ t('approval.constraint.empty_items') }}</XhEmptyStateDescription>
             </XhEmptyStateRoot>
@@ -947,9 +947,9 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           </XhButton>
         </div>
         <XhEmptyStateRoot v-if="ruleForm.items.length === 0" size="sm" style="padding: 20px 0">
-          <XhEmptyStateIcon>
+          <XhEmptyStateIndicator>
             <Icon icon="lucide:inbox" width="24" />
-          </XhEmptyStateIcon>
+          </XhEmptyStateIndicator>
           <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
           <XhEmptyStateDescription>{{ t('approval.constraint.empty_no_items') }}</XhEmptyStateDescription>
         </XhEmptyStateRoot>

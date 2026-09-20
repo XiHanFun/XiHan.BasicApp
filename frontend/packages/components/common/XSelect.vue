@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Size } from '@xihan-ui/core'
 import {
-  XhEmptyStateIcon,
+  XhEmptyStateIndicator,
   XhEmptyStateRoot,
   XhEmptyStateTitle,
   XhSelectClearTrigger,
@@ -121,9 +121,9 @@ function onValueChange(next: string[]): void {
           <XhSpinner size="sm" />
         </div>
         <XhEmptyStateRoot v-else-if="!collection.length" size="sm">
-          <XhEmptyStateIcon>
+          <XhEmptyStateIndicator>
             <Icon icon="lucide:inbox" width="24" height="24" />
-          </XhEmptyStateIcon>
+          </XhEmptyStateIndicator>
           <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
         </XhEmptyStateRoot>
         <XhSelectList v-else>

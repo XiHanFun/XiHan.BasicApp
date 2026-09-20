@@ -11,7 +11,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -637,9 +637,9 @@ onMounted(() => {
                 :row-key="(row: DepartmentListItemDto) => row.basicId"
               />
               <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
-                <XhEmptyStateIcon>
+                <XhEmptyStateIndicator>
                   <Icon icon="lucide:inbox" width="24" />
-                </XhEmptyStateIcon>
+                </XhEmptyStateIndicator>
                 <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                 <XhEmptyStateDescription>{{ t('identity.org.empty_children') }}</XhEmptyStateDescription>
               </XhEmptyStateRoot>
@@ -655,9 +655,9 @@ onMounted(() => {
                 :row-key="(row: DepartmentManagementMemberDto) => row.basicId"
               />
               <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
-                <XhEmptyStateIcon>
+                <XhEmptyStateIndicator>
                   <Icon icon="lucide:inbox" width="24" />
-                </XhEmptyStateIcon>
+                </XhEmptyStateIndicator>
                 <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
                 <XhEmptyStateDescription>{{ t('identity.org.empty_members') }}</XhEmptyStateDescription>
               </XhEmptyStateRoot>
@@ -665,9 +665,9 @@ onMounted(() => {
           </XhTabsContent>
         </XhTabsRoot>
         <XhEmptyStateRoot v-else style="padding: 48px 0">
-          <XhEmptyStateIcon>
+          <XhEmptyStateIndicator>
             <Icon icon="lucide:inbox" width="28" />
-          </XhEmptyStateIcon>
+          </XhEmptyStateIndicator>
           <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
           <XhEmptyStateDescription>{{ t('identity.org.msg_detail_not_found') }}</XhEmptyStateDescription>
         </XhEmptyStateRoot>

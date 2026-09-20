@@ -7,7 +7,7 @@ import {
   XhTableColumnHeader,
   XhTableEmpty,
   XhTableHeader,
-  XhTableLoadingState,
+  XhTableLoading,
   XhTableRoot,
   XhTableRow,
   XhTableRowSelectTrigger,
@@ -172,11 +172,11 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
       </XhTableRow>
     </XhTableBody>
 
-    <XhTableLoadingState>
+    <XhTableLoading>
       <slot name="loading">
         {{ t('common.loading') }}
       </slot>
-    </XhTableLoadingState>
+    </XhTableLoading>
     <XhTableEmpty>
       <slot name="empty">
         {{ emptyText ?? t('common.empty') }}

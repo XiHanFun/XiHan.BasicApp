@@ -1,6 +1,6 @@
 <!-- 编辑器示例页面：集中演示 Markdown、JSON 与富文本组件的双向绑定能力。 -->
 <script lang="ts" setup>
-import { XhCardBody, XhCardHeader, XhCardRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhCardContent, XhCardHeader, XhCardRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { ref } from 'vue'
 import { XJsonEditor, XMdEditor, XRichTextEditor } from '~/components'
 
@@ -49,7 +49,7 @@ const richContent = ref('<h2>富文本编辑器演示</h2><p>这是一段示例�
       <XhCardHeader>
         <span class="text-base font-semibold">编辑器组件演示</span>
       </XhCardHeader>
-      <XhCardBody>
+      <XhCardContent>
         <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
         <XhTabsRoot v-model:value="activeTab" variant="segment">
           <XhTabsList>
@@ -68,9 +68,9 @@ const richContent = ref('<h2>富文本编辑器演示</h2><p>这是一段示例�
             <div class="flex flex-col gap-3 pt-3">
               <XMdEditor v-model="mdContent" editor-id="demo-md" />
               <XhCardRoot variant="ghost">
-                <XhCardBody>
+                <XhCardContent>
                   <pre class="max-h-48 overflow-auto rounded bg-gray-50 p-3 text-xs leading-5">{{ mdContent }}</pre>
-                </XhCardBody>
+                </XhCardContent>
               </XhCardRoot>
             </div>
           </XhTabsContent>
@@ -80,9 +80,9 @@ const richContent = ref('<h2>富文本编辑器演示</h2><p>这是一段示例�
             <div class="flex flex-col gap-3 pt-3">
               <XJsonEditor v-model:json="jsonData" mode="tree" :height="420" />
               <XhCardRoot variant="ghost">
-                <XhCardBody>
+                <XhCardContent>
                   <pre class="max-h-48 overflow-auto rounded bg-gray-50 p-3 text-xs leading-5">{{ JSON.stringify(jsonData, null, 2) }}</pre>
-                </XhCardBody>
+                </XhCardContent>
               </XhCardRoot>
             </div>
           </XhTabsContent>
@@ -92,14 +92,14 @@ const richContent = ref('<h2>富文本编辑器演示</h2><p>这是一段示例�
             <div class="flex flex-col gap-3 pt-3">
               <XRichTextEditor v-model="richContent" min-height="280px" />
               <XhCardRoot variant="ghost">
-                <XhCardBody>
+                <XhCardContent>
                   <pre class="max-h-48 overflow-auto rounded bg-gray-50 p-3 text-xs leading-5">{{ richContent }}</pre>
-                </XhCardBody>
+                </XhCardContent>
               </XhCardRoot>
             </div>
           </XhTabsContent>
         </XhTabsRoot>
-      </XhCardBody>
+      </XhCardContent>
     </XhCardRoot>
   </div>
 </template>

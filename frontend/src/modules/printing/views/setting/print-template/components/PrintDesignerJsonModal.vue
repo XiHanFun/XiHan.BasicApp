@@ -3,7 +3,7 @@
   职责：在不占用常驻画布空间的前提下，提供当前设计导出到 TextArea、手工编辑和回写画布入口。
 -->
 <script setup lang="ts">
-import { XhAlertDescription, XhAlertIcon, XhAlertRoot, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
 import { XInput } from '~/components'
 import { Icon } from '~/iconify'
@@ -61,12 +61,14 @@ const textareaId = `print-template-json-${crypto.randomUUID()}`
       </label>
 
       <XhAlertRoot v-if="error" tone="danger" class="json-error">
-        <XhAlertIcon>
+        <XhAlertIndicator>
           <Icon icon="lucide:circle-alert" width="16" />
-        </XhAlertIcon>
-        <XhAlertDescription>
-          {{ error }}
-        </XhAlertDescription>
+        </XhAlertIndicator>
+        <XhAlertContent>
+          <XhAlertDescription>
+            {{ error }}
+          </XhAlertDescription>
+        </XhAlertContent>
       </XhAlertRoot>
 
       <p class="json-memory-tip">

@@ -13,7 +13,7 @@ import type {
   ValidityStatus,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -578,7 +578,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
             <XhSpinner />
           </div>
           <XhEmptyStateRoot v-if="!detailLoading && !currentDetail" class="xh-detail-empty">
-            <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+            <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
             <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
             <XhEmptyStateDescription>{{ t('identity.permission.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
@@ -765,7 +765,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.permission.empty_conditions') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
@@ -794,7 +794,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.permission.empty_delegations') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
@@ -823,7 +823,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.permission.empty_requests') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
@@ -854,7 +854,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.permission.empty_field_securities') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
@@ -885,7 +885,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                   </tbody>
                 </table>
                 <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIcon><Icon icon="lucide:inbox" /></XhEmptyStateIcon>
+                  <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.permission.empty_change_logs') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>

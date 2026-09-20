@@ -10,7 +10,7 @@ import type {
   DictUpdateDto,
 } from '@/api'
 import type { XDataTableColumn } from '~/components'
-import { XhButton, XhEmptyStateDescription, XhEmptyStateIcon, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
@@ -832,9 +832,9 @@ onMounted(fetchDictData)
 
       <div class="pane__body">
         <XhEmptyStateRoot v-if="!currentDict" class="pane__empty">
-          <XhEmptyStateIcon>
+          <XhEmptyStateIndicator>
             <Icon icon="lucide:list-tree" width="28" />
-          </XhEmptyStateIcon>
+          </XhEmptyStateIndicator>
           <XhEmptyStateTitle>{{ t('setting.dict.select_dict_hint_title') }}</XhEmptyStateTitle>
           <XhEmptyStateDescription>{{ t('setting.dict.select_dict_hint') }}</XhEmptyStateDescription>
         </XhEmptyStateRoot>

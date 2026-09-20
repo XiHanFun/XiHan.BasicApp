@@ -5,7 +5,7 @@ import {
   XhBadge,
   XhButton,
   XhEmptyStateDescription,
-  XhEmptyStateIcon,
+  XhEmptyStateIndicator,
   XhEmptyStateRoot,
   XhEmptyStateTitle,
   XhPopoverContent,
@@ -207,9 +207,9 @@ function handleItemClick(item: NotificationItem) {
                 <div class="notification-scroll">
                   <div v-if="allItems.length === 0" class="notification-empty">
                     <XhEmptyStateRoot size="sm">
-                      <XhEmptyStateIcon>
+                      <XhEmptyStateIndicator>
                         <Icon icon="lucide:inbox" width="24" />
-                      </XhEmptyStateIcon>
+                      </XhEmptyStateIndicator>
                       <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                       <XhEmptyStateDescription>{{ t('header.notification.empty.inbox') }}</XhEmptyStateDescription>
                     </XhEmptyStateRoot>
@@ -255,9 +255,9 @@ function handleItemClick(item: NotificationItem) {
                 <div class="notification-scroll">
                   <div v-if="mentionedItems.length === 0" class="notification-empty">
                     <XhEmptyStateRoot size="sm">
-                      <XhEmptyStateIcon>
+                      <XhEmptyStateIndicator>
                         <Icon icon="lucide:inbox" width="24" />
-                      </XhEmptyStateIcon>
+                      </XhEmptyStateIndicator>
                       <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                       <XhEmptyStateDescription>{{ t('header.notification.empty.mention') }}</XhEmptyStateDescription>
                     </XhEmptyStateRoot>
