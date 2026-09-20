@@ -3,7 +3,7 @@ import type { ActivityTypeMeta } from './catalog'
 import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, DesignerNodeData, ValidationIssue } from './transform'
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
 import { useDebounceFn } from '@vueuse/core'
-import { XhButton, XhCheckbox, XhContextMenuRoot, XhDynamicInputAddTrigger, XhDynamicInputItem, XhDynamicInputItemAction, XhDynamicInputItemContent, XhDynamicInputItemDeleteTrigger, XhDynamicInputRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhContextMenuRoot, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, indexDropdownOptions, toDropdownCollection, VNodeRender, XDropdown, XInput, XNumberInput, XSegmented, XSelect, XTagsInput } from '~/components'
@@ -949,31 +949,32 @@ function onContextSelect(key: string) {
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('workflow.designer.flow_variables') }}</XhFieldLabel>
                   <XhFieldControl>
-                    <XhDynamicInputRoot
+                    <XhFieldArrayRoot
                       v-slot="{ items }"
                       v-model:value="meta.variables"
                       :create-item="() => ({ name: '', required: false, defaultValue: null, description: null })"
                     >
-                      <XhDynamicInputItem
-                        v-for="(item, index) in items"
-                        :key="index"
-                        :index="index"
+                      <!-- items 是每行的投影（index / key / value…），行数据在 item.value 上 -->
+                      <XhFieldArrayItem
+                        v-for="item in items"
+                        :key="item.key"
+                        :index="item.index"
                       >
-                        <XhDynamicInputItemContent>
+                        <XhFieldArrayItemContent>
                           <div class="flex w-full items-center gap-2">
-                            <XInput v-model:value="(item as unknown as DefinitionVariableMeta).name" size="sm" :placeholder="t('workflow.designer.variable_name')" />
+                            <XInput v-model:value="(item.value as DefinitionVariableMeta).name" size="sm" :placeholder="t('workflow.designer.variable_name')" />
                             <span class="xh-checkbox-row">
-                              <XhCheckbox v-model:checked="(item as unknown as DefinitionVariableMeta).required" size="sm" />
-                              <span class="xh-checkbox-row__label" @click="(item as unknown as DefinitionVariableMeta).required = !(item as unknown as DefinitionVariableMeta).required">{{ t('workflow.designer.variable_required') }}</span>
+                              <XhCheckbox v-model:checked="(item.value as DefinitionVariableMeta).required" size="sm" />
+                              <span class="xh-checkbox-row__label" @click="(item.value as DefinitionVariableMeta).required = !(item.value as DefinitionVariableMeta).required">{{ t('workflow.designer.variable_required') }}</span>
                             </span>
                           </div>
-                        </XhDynamicInputItemContent>
-                        <XhDynamicInputItemAction>
-                          <XhDynamicInputItemDeleteTrigger>−</XhDynamicInputItemDeleteTrigger>
-                          <XhDynamicInputAddTrigger>＋</XhDynamicInputAddTrigger>
-                        </XhDynamicInputItemAction>
-                      </XhDynamicInputItem>
-                    </XhDynamicInputRoot>
+                        </XhFieldArrayItemContent>
+                        <XhFieldArrayItemAction>
+                          <XhFieldArrayItemDeleteTrigger>−</XhFieldArrayItemDeleteTrigger>
+                          <XhFieldArrayAddTrigger>＋</XhFieldArrayAddTrigger>
+                        </XhFieldArrayItemAction>
+                      </XhFieldArrayItem>
+                    </XhFieldArrayRoot>
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>
