@@ -3,11 +3,8 @@
 # pnpm 对刚发布不久的包有最短发布时长的默认闸门，装 @xihan-ui 那批时由它自动登记。
 # 这批包过了时长门槛后本段即可删除；pnpm 会自己维护这里的条目。
 minimumReleaseAgeExclude:
-  - '@xihan-ui/behavior@1.1.0'
   - '@xihan-ui/code-highlight@1.1.0'
   - '@xihan-ui/headless@1.1.0'
-  - '@xihan-ui/kernel@1.1.0'
-  - '@xihan-ui/machine@1.1.0'
   - '@xihan-ui/motion@1.1.0'
   - '@xihan-ui/pointer@1.1.0'
   - '@xihan-ui/position@1.1.0'

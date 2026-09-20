@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Placement } from '@xihan-ui/kernel'
+import type { Placement } from '@xihan-ui/core'
 import type { AppDropdownOption } from '~/types'
 import { XhMenuRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'

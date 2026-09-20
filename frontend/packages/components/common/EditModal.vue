@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Tone } from '@xihan-ui/kernel'
+import type { Tone } from '@xihan-ui/core'
 import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

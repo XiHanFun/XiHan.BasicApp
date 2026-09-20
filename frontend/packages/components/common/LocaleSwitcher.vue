@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { Placement, Size } from '@xihan-ui/core'
 import type { MenuNode } from '@xihan-ui/headless'
-import type { Placement, Size } from '@xihan-ui/kernel'
 import {
   XhMenuRoot,
   XhSelectContent,

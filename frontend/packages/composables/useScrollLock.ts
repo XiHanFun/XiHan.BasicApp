@@ -1,6 +1,6 @@
-import type { RuntimeConfig } from '@xihan-ui/kernel'
+import type { RuntimeConfig } from '@xihan-ui/core'
 import type { MaybeRefOrGetter } from 'vue'
-import { createRuntimeConfig } from '@xihan-ui/kernel'
+import { createRuntimeConfig } from '@xihan-ui/core'
 import { useScrollLock } from '@xihan-ui/vue/behavior'
 import { getScrollRoot } from './useScrollRoot'
 

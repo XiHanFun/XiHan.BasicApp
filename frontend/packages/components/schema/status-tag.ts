@@ -1,4 +1,4 @@
-import type { Tone } from '@xihan-ui/kernel'
+import type { Tone } from '@xihan-ui/core'
 
 /** 状态标签语气（组件库的 tone 轴） */
 export type SchemaTagTone = Tone

@@ -1,4 +1,4 @@
-import type { Tone } from '@xihan-ui/kernel'
+import type { Tone } from '@xihan-ui/core'
 import type { VNodeChild } from 'vue'
 import {
   XhDialogDescription,

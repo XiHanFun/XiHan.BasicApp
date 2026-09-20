@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Size } from '@xihan-ui/kernel'
+import type { Size } from '@xihan-ui/core'
 import {
   XhEmptyStateIcon,
   XhEmptyStateRoot,

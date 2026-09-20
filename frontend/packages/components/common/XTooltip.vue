@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { Placement } from '@xihan-ui/kernel'
+import type { Placement } from '@xihan-ui/core'
 import { XhTooltipArrow, XhTooltipContent, XhTooltipPositioner, XhTooltipRoot, XhTooltipTrigger } from '@xihan-ui/vue'
 
 /** 悬停说明：包住任意一个元素或组件（按钮、开关、图标），它自己就是触发器 */

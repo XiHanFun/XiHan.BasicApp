@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Tone } from '@xihan-ui/kernel'
+import type { Tone } from '@xihan-ui/core'
 import type {
   PageResult,
   TaskCreateDto,
