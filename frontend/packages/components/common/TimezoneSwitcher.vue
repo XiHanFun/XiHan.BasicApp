@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { Placement, Size } from '@xihan-ui/core'
 import type { MenuNode } from '@xihan-ui/headless'
-import type { Placement, Size } from '@xihan-ui/kernel'
 import { XhComboboxRoot, XhMenuRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'

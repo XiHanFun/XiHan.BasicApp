@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { Placement } from '@xihan-ui/core'
 import type { MenuNode } from '@xihan-ui/headless'
-import type { Placement } from '@xihan-ui/kernel'
 import { XhMenuRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'

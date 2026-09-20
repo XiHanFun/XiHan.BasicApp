@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { Tone } from '@xihan-ui/core'
 import type { MenuNode } from '@xihan-ui/headless'
-import type { Tone } from '@xihan-ui/kernel'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaColumn } from './types'
 import type { ApiId } from '~/types/contracts'
 import { XhButton, XhCardBody, XhCardRoot, XhMenuRoot, XhSkeletonBone, XhSkeletonRoot } from '@xihan-ui/vue'

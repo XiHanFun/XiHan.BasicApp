@@ -1,6 +1,6 @@
 <script setup lang="ts" generic="TRow extends object">
+import type { Tone } from '@xihan-ui/core'
 import type { MenuNode } from '@xihan-ui/headless'
-import type { Tone } from '@xihan-ui/kernel'
 import type { ActionSchema } from './types'
 import { XhButton, XhMenuRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Tone } from '@xihan-ui/kernel'
+import type { Tone } from '@xihan-ui/core'
 import type { PageResult, ReviewDetailDto, ReviewListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSeparator, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
