@@ -531,7 +531,7 @@ function onKeydown(e: KeyboardEvent): void {
 
   --xh-empty-state-title-fg: #fff;
   --xh-empty-state-description-fg: rgb(255 255 255 / 70%);
-  --xh-empty-state-icon-fg: rgb(255 255 255 / 60%);
+  --xh-empty-state-indicator-fg: rgb(255 255 255 / 60%);
 }
 
 .tab-ov__footer {
