@@ -43,6 +43,7 @@ const props = withDefaults(defineProps<{
   value?: number | null
   placeholder?: string
   clearable?: boolean
+  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
   size?: Size
   /** 快捷选项：值取 datePickerPreset* 系列算出的串 */
@@ -51,7 +52,7 @@ const props = withDefaults(defineProps<{
   value: null,
   placeholder: undefined,
   clearable: true,
-  disabled: false,
+  disabled: undefined,
   size: 'sm',
   presets: undefined,
 })

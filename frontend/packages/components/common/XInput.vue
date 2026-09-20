@@ -39,6 +39,7 @@ const props = withDefaults(defineProps<{
   /** 密码档会在右侧出一个显隐钮；textarea 档换成多行宿主 */
   type?: 'text' | 'password' | 'textarea'
   clearable?: boolean
+  /** 三态不写时随外层 Field / Form 走（字段校验出错、表单整体禁用都能落到这个盒上）；写了以本处为准 */
   disabled?: boolean
   readOnly?: boolean
   invalid?: boolean
@@ -52,9 +53,9 @@ const props = withDefaults(defineProps<{
   placeholder: undefined,
   type: 'text',
   clearable: false,
-  disabled: false,
-  readOnly: false,
-  invalid: false,
+  disabled: undefined,
+  readOnly: undefined,
+  invalid: undefined,
   maxLength: undefined,
   autocomplete: undefined,
   size: 'sm',
