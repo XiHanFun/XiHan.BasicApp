@@ -1,10 +1,10 @@
-import { useHotkeys } from '@xihan-ui/vue'
 import { onMounted, onUnmounted } from 'vue'
 import { LAYOUT_EVENT_LOCK_SCREEN } from '~/constants'
 import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
+import { useHotkey } from './useHotkey'
 
 /**
- * 全局快捷键的键位声明。注册端与偏好设置里的键帽读同一份。
+ * 全局快捷键的键位声明。注册端（useHotkey）与偏好设置里的键帽（XhKbd）读同一份。
  * `Mod` 在 Mac 上解析成 ⌘、其余平台解析成 Ctrl。
  */
 export const GLOBAL_HOTKEYS = {
@@ -23,25 +23,25 @@ export function useGlobalShortcuts() {
   const authStore = useAuthStore()
   const layoutBridgeStore = useLayoutBridgeStore()
 
-  useHotkeys(() => ({
+  useHotkey(() => ({
     keys: [...GLOBAL_HOTKEYS.search],
     enabled: appStore.shortcutEnable && appStore.shortcutSearch,
     onHotKey: () => layoutBridgeStore.requestOpenGlobalSearch(),
   }))
 
-  useHotkeys(() => ({
+  useHotkey(() => ({
     keys: [...GLOBAL_HOTKEYS.tabOverview],
     enabled: appStore.shortcutEnable && appStore.shortcutTabOverview,
     onHotKey: () => layoutBridgeStore.requestOpenTabOverview(),
   }))
 
-  useHotkeys(() => ({
+  useHotkey(() => ({
     keys: [...GLOBAL_HOTKEYS.lock],
     enabled: appStore.shortcutEnable && appStore.shortcutLock && appStore.widgetLockScreen,
     onHotKey: () => layoutBridgeStore.requestLockScreen(),
   }))
 
-  useHotkeys(() => ({
+  useHotkey(() => ({
     keys: [...GLOBAL_HOTKEYS.logout],
     enabled: appStore.shortcutEnable && appStore.shortcutLogout,
     onHotKey: () => {
