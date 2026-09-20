@@ -55,8 +55,10 @@ const appName = __APP_NAME__
 
     <LoginToolbar @layout-change="(align) => (formAlign = align)" />
 
+    <!-- 小屏上下各留 80px：上面给绝对定位的工具条（16 + 42）让路，下面给页脚折成两行（约 65）让路；
+         宽屏两者都够不着卡片，退回 56 -->
     <div
-      class="relative z-[1] mx-auto flex min-h-screen w-full max-w-[1420px] items-center px-4 py-14 sm:px-8"
+      class="relative z-[1] mx-auto flex min-h-screen w-full max-w-[1420px] items-center px-4 py-20 sm:px-8 sm:py-14"
     >
       <div
         class="auth-card relative w-full overflow-hidden rounded-[30px] border border-[hsl(var(--border))] shadow-[0_32px_80px_hsl(var(--foreground)/0.12)]"
