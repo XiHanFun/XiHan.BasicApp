@@ -2,7 +2,7 @@
 import type { FormRules } from '@xihan-ui/headless'
 
 import type { UserProfile } from '~/types'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPinInputInput, XhPinInputRoot, XhQrCode, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhMatrixCode, XhPinInputInput, XhPinInputRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XInput, XTooltip } from '~/components'
@@ -518,12 +518,14 @@ function handleDeleteAccount() {
           <template v-if="tfTotpSettingUp && !hasTotpEnabled">
             <div v-if="tfTotpSetup" class="pf-inline-form pf-2fa-setup">
               <div class="pf-2fa-qr">
-                <XhQrCode
+                <!-- 容器自带白底，码自己的底色让开；宽度经 pixelSize 给，静区归容器内边距 -->
+                <XhMatrixCode
                   :value="tfTotpSetup.authenticatorUri"
-                  :size="120"
-                  :padding="0"
-                  background-color="transparent"
-                  error-correction-level="M"
+                  :pixel-size="120"
+                  :margin="0"
+                  level="M"
+                  :label="t('component.profile.security.scan_qr')"
+                  style="--xh-matrix-code-bg: transparent"
                 />
                 <span class="pf-hint">{{ t('component.profile.security.scan_qr') }}</span>
               </div>
