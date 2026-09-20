@@ -62,6 +62,20 @@ const collection = computed(() => toCollection(props.menuOptions))
   --xh-side-nav-w: 100%;
   --xh-side-nav-collapsed-w: 100%;
 
+  /* 行的几何与各态配色走组件库的公开槽：悬停 / 按下 / 当前 / 展开路径的面由
+     Collection Item 家族按状态给，这里只换数值，不再直接盖 background / color。
+     行高与配色对齐旧版侧栏 */
+  --xh-side-nav-link-h: 38px;
+  --xh-side-nav-link-px: 12px;
+  --xh-side-nav-link-gap: 8px;
+  --xh-side-nav-link-font-size: 14px;
+  --xh-side-nav-row-fg: hsl(var(--foreground) / 80%);
+  --xh-side-nav-row-bg-hover: hsl(var(--accent));
+  --xh-side-nav-row-bg-active: hsl(var(--primary) / 15%);
+  --xh-side-nav-row-fg-active: hsl(var(--primary));
+  /* 只有当前叶子高亮，展开中的父级分支不着色 */
+  --xh-side-nav-row-bg-in-path: transparent;
+
   background: transparent;
   font-size: 14px;
 }
@@ -70,7 +84,7 @@ const collection = computed(() => toCollection(props.menuOptions))
   padding-block-start: 0;
 }
 
-/* 一行的骨架：图标 + 标签 + 箭头。行高与配色对齐旧版侧栏 */
+/* 一行的骨架：图标 + 标签 + 箭头 */
 /* 叶子的类名落在 li 上、可交互的是它内部的 link；行盒一律交给交互元素本身，
    hover 与选中才画在同一个盒子上 */
 .sidebar-menu :deep(li.sidebar-menu__row) {
@@ -79,28 +93,10 @@ const collection = computed(() => toCollection(props.menuOptions))
   margin-block: 0;
 }
 
+/* 行与行之间留一点气口；字重是版式不是状态，家族没有静息字重槽，直接给 */
 .sidebar-menu :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
-  inline-size: 100%;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  min-block-size: 38px;
   margin-block: 2px;
-  padding-inline: 12px;
-  color: hsl(var(--foreground) / 80%);
-  font-size: 14px;
   font-weight: 500;
-}
-
-.sidebar-menu :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link']):hover) {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
-}
-
-/* 只有当前叶子高亮，父级分支不着色 */
-.sidebar-menu :deep([data-scope='side-nav'][data-part='link'][data-current]) {
-  background: hsl(var(--primary) / 15%);
-  color: hsl(var(--primary));
 }
 
 .sidebar-menu :deep(.sidebar-menu__icon) {
@@ -133,22 +129,31 @@ const collection = computed(() => toCollection(props.menuOptions))
   color: hsl(var(--foreground) / 55%);
 }
 
-/* —— 圆角档 / 直角档 —— */
+/* —— 圆角档 / 直角档：圆角走行的 radius 槽 —— */
+.sidebar-menu--rounded {
+  --xh-side-nav-link-radius: 8px;
+}
+
 .sidebar-menu--rounded :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   margin-inline: 8px;
-  border-radius: 8px;
+}
+
+.sidebar-menu--plain {
+  --xh-side-nav-link-radius: 0;
 }
 
 .sidebar-menu--plain :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   margin-inline: 0;
-  border-radius: 0;
 }
 
-/* —— 折叠：只留图标 —— */
+/* —— 折叠：只留图标。行内衬归零走 px 槽 —— */
+.sidebar-menu--collapsed-icon {
+  --xh-side-nav-link-px: 0;
+}
+
 .sidebar-menu--collapsed-icon :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   justify-content: center;
   padding-block: 12px;
-  padding-inline: 0;
   margin-inline: 6px;
 }
 
@@ -158,12 +163,15 @@ const collection = computed(() => toCollection(props.menuOptions))
 }
 
 /* —— 折叠：图标在上、小字标题在下 —— */
+.sidebar-menu--collapsed-titled {
+  --xh-side-nav-link-px: 0;
+  --xh-side-nav-link-gap: 4px;
+}
+
 .sidebar-menu--collapsed-titled :deep([data-scope='side-nav']:is([data-part='branch-trigger'], [data-part='link'])) {
   flex-direction: column;
-  gap: 4px;
   justify-content: center;
   padding-block: 8px;
-  padding-inline: 0;
   margin-inline: 6px;
   line-height: normal;
 }
