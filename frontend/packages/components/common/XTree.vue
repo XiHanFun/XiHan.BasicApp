@@ -11,8 +11,8 @@ defineOptions({ name: 'XTree' })
 const props = withDefaults(defineProps<{
   /** 节点除键与文本外可挂业务字段，渲染标签时原样拿得到 */
   data: ReadonlyArray<{ value: string | number, label?: string, children?: readonly unknown[] }>
-  /** single 单选；multiple 多选（带勾选指示，对应旧的 checkable） */
-  selectionMode?: 'single' | 'multiple'
+  /** 多选：带勾选指示、选中集合可多项；缺省单选 */
+  multiple?: boolean
   /** 逐节点自定义标签 */
   renderLabel?: (node: Record<string, unknown>) => VNodeChild
   /** 点分支文字即展开，不必点把手 */
@@ -22,7 +22,7 @@ const props = withDefaults(defineProps<{
   /** 联动下回传哪些键：all 全部勾中节点、parent 只收最高整枝、child 只留叶，缺省 child */
   checkedStrategy?: 'all' | 'parent' | 'child'
 }>(), {
-  selectionMode: 'single',
+  multiple: false,
   renderLabel: undefined,
   expandOnClick: true,
   cascade: false,
@@ -52,7 +52,7 @@ const collection = computed(() => toNodes(props.data))
   <XhTreeRoot
     class="x-tree"
     :collection="collection"
-    :selection-mode="selectionMode"
+    :multiple="multiple"
     :selection="selectedKeys"
     :expanded-value="expandedKeys"
     :expand-on-click="expandOnClick"
@@ -62,7 +62,7 @@ const collection = computed(() => toNodes(props.data))
     @update:expanded-value="(value: string[]) => (expandedKeys = value)"
   >
     <XhTreeTree>
-      <XTreeNodes :nodes="collection" :checkable="selectionMode === 'multiple'" :render-label="renderLabel" />
+      <XTreeNodes :nodes="collection" :checkable="multiple" :render-label="renderLabel" />
     </XhTreeTree>
   </XhTreeRoot>
 </template>

@@ -928,7 +928,7 @@ async function handleSubmit() {
         <XhDrawerTitle>{{ t('message.notification.detail_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <template v-if="currentDetail">
-          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+          <XhDescriptionsRoot :columns="2" variant="outline" placement="left" size="sm">
             <XhDescriptionsItem style="grid-column: span 2">
               <XhDescriptionsLabel>{{ t('message.notification.detail.label.title') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>

@@ -411,7 +411,7 @@ async function deleteSms(row: SmsListItemDto) {
           {{ t('message.record.detail_loading') }}
         </XhFlex>
 
-        <XhDescriptionsRoot v-else-if="detailTab === 'email' && currentEmailDetail" :columns="1" bordered size="sm">
+        <XhDescriptionsRoot v-else-if="detailTab === 'email' && currentEmailDetail" :columns="1" variant="outline" size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('message.record.detail_subject') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -480,7 +480,7 @@ async function deleteSms(row: SmsListItemDto) {
           </XhDescriptionsItem>
         </XhDescriptionsRoot>
 
-        <XhDescriptionsRoot v-else-if="detailTab === 'sms' && currentSmsDetail" :columns="1" bordered size="sm">
+        <XhDescriptionsRoot v-else-if="detailTab === 'sms' && currentSmsDetail" :columns="1" variant="outline" size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('message.record.detail_provider') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>

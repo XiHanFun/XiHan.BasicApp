@@ -610,7 +610,7 @@ async function handleSubmit() {
     <!-- 行下拉展开：触发器信息（触发类型 / Cron / 间隔 / 运行态 / 上下次执行 / 起止 / 执行统计） -->
     <template #expand="{ row }">
       <div class="xh-trigger-expand">
-        <XhDescriptionsRoot :columns="3" bordered placement="left" size="sm">
+        <XhDescriptionsRoot :columns="3" variant="outline" placement="left" size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('setting.job.trigger_type') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -690,7 +690,7 @@ async function handleSubmit() {
             <XhEmptyStateDescription>{{ t('setting.job.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="detailData" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
-            <XhDescriptionsRoot :columns="1" bordered placement="left" size="sm">
+            <XhDescriptionsRoot :columns="1" variant="outline" placement="left" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.job.task_name') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -933,7 +933,7 @@ async function handleSubmit() {
             <XhEmptyStateDescription>{{ t('setting.job.log_detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="logDetail" class="xh-scroll-area" style="max-height: 70vh">
-            <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+            <XhDescriptionsRoot :columns="2" variant="outline" placement="left" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.job.task_name') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>

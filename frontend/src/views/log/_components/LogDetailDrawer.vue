@@ -112,7 +112,7 @@ function formatValue(field: LogDetailField) {
           <XhSpinner />
         </div>
         <div class="xh-scroll-area log-detail-scroll">
-          <XhDescriptionsRoot v-if="record" :columns="2" bordered placement="left" size="sm">
+          <XhDescriptionsRoot v-if="record" :columns="2" variant="outline" placement="left" size="sm">
             <XhDescriptionsItem v-for="field in normalFields" :key="field.key" :style="{ gridColumn: `span ${field.span ?? 1}` }">
               <XhDescriptionsLabel>{{ field.label }}</XhDescriptionsLabel>
               <XhDescriptionsValue>

@@ -453,7 +453,7 @@ async function handleDelete(row: OAuthAppListItemDto) {
             <XhEmptyStateDescription>{{ t('openapi.app.detail_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else-if="currentDetail" class="xh-scroll-area" style="max-height: calc(100vh - 180px)">
-            <XhDescriptionsRoot :columns="1" bordered size="sm">
+            <XhDescriptionsRoot :columns="1" variant="outline" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('openapi.app.detail_app_name') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -740,8 +740,8 @@ async function handleDelete(row: OAuthAppListItemDto) {
       <XhDrawerContent style="--xh-drawer-size: 420px">
         <XhDrawerTitle>{{ t('openapi.app.secret_title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <XhFlex v-if="currentSecret" direction="column" gap="md">
-          <XhDescriptionsRoot :columns="1" bordered size="sm">
+        <XhFlex v-if="currentSecret" orientation="vertical" gap="md">
+          <XhDescriptionsRoot :columns="1" variant="outline" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('openapi.app.secret_client_id') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>

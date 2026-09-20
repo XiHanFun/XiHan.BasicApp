@@ -431,7 +431,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             </XhTabsTrigger>
           </XhTabsList>
           <XhTabsContent value="overview">
-            <XhDescriptionsRoot :columns="2" bordered size="sm">
+            <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.config.config_group') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
@@ -518,7 +518,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
             </XhDescriptionsRoot>
           </XhTabsContent>
           <XhTabsContent value="values">
-            <XhDescriptionsRoot :columns="1" bordered size="sm">
+            <XhDescriptionsRoot :columns="1" variant="outline" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('setting.config.current_value') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>

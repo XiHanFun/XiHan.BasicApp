@@ -354,7 +354,7 @@ function onAction(payload: SchemaActionPayload) {
           {{ t('workflow.instance.loading') }}
         </div>
         <template v-else-if="detailData">
-          <XhDescriptionsRoot :columns="2" bordered placement="left" size="sm">
+          <XhDescriptionsRoot :columns="2" variant="outline" placement="left" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('workflow.instance.name') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
@@ -399,7 +399,7 @@ function onAction(payload: SchemaActionPayload) {
           <XhDescriptionsRoot
             v-if="detailData.faultMessage || detailData.cancellationReason"
             :columns="1"
-            bordered
+            variant="outline"
             placement="left"
             size="sm"
           >
@@ -474,7 +474,7 @@ function onAction(payload: SchemaActionPayload) {
             <div class="flex items-center gap-3 my-3">
               <XhSeparator class="flex-1" /><span class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('workflow.instance.bookmarks_label') }}</span><XhSeparator class="flex-1" />
             </div>
-            <XhFlex direction="column" gap="xs">
+            <XhFlex orientation="vertical" gap="xs">
               <div v-for="bookmark in detailData.pendingBookmarks" :key="bookmark.id" class="text-xs text-gray-500">
                 <XhTagRoot variant="subtle" size="sm">
                   <XhTagLabel>

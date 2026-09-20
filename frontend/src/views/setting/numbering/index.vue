@@ -414,7 +414,7 @@ function remove(row: NumberingRuleListItemDto): void {
       <XhDialogContent style="--xh-dialog-max-w: 680px">
         <XhDialogTitle>{{ t('setting.numbering.detail_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger />
-        <XhDescriptionsRoot v-if="detail" :columns="2" bordered placement="left">
+        <XhDescriptionsRoot v-if="detail" :columns="2" variant="outline" placement="left">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('setting.numbering.rule_code') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>

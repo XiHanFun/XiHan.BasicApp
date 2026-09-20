@@ -299,7 +299,7 @@ async function handleSubmit() {
         <div v-if="detailLoading" class="modal-loading">
           {{ t('common.statuses.loading') }}
         </div>
-        <XhDescriptionsRoot v-else-if="currentDetail" :columns="2" bordered size="sm">
+        <XhDescriptionsRoot v-else-if="currentDetail" :columns="2" variant="outline" size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('identity.position.position_code') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
