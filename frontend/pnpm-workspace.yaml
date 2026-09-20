@@ -87,8 +87,8 @@ catalog:
   '@vue/test-utils': ^2.5.0
   '@vueuse/core': ^14.4.0
   '@xihan-ui/code-highlight': ^1.1.0
+  '@xihan-ui/core': ^1.1.0
   '@xihan-ui/headless': ^1.1.0
-  '@xihan-ui/kernel': ^1.1.0
   '@xihan-ui/motion': ^1.1.0
   '@xihan-ui/styles': ^1.1.0
   '@xihan-ui/tokens': ^1.1.0

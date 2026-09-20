@@ -5,7 +5,7 @@
   "main": "./index.ts",
   "dependencies": {
     "@microsoft/signalr": "catalog:",
-    "@xihan-ui/kernel": "catalog:",
+    "@xihan-ui/core": "catalog:",
     "@xihan-ui/vue": "catalog:",
     "@xihan/constants": "workspace:*",
     "@xihan/locales": "workspace:*",
