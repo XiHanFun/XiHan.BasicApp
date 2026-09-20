@@ -30,7 +30,7 @@ import { Icon } from '~/iconify'
 import { useControlAttrs } from './control-attrs'
 
 /**
- * 日期选择（单选 / 区间）。
+ * 日期选择（单选）。区间选择是另一件组件，见 XDateRangePicker。
  *
  * 组件库那侧是二十来个部件的完整日历，摆一遍要六十行；这里摆一次，全站复用。
  * 另一件必须收口的事是值类型：组件库收发 ISO 日期串（`YYYY-MM-DD`），
@@ -39,10 +39,8 @@ import { useControlAttrs } from './control-attrs'
 defineOptions({ name: 'XDatePicker', inheritAttrs: false })
 
 const props = withDefaults(defineProps<{
-  /** 单选传时间戳，区间传 [起, 止] */
-  value?: number | [number, number] | null
-  /** 区间模式 */
-  range?: boolean
+  /** 时间戳（毫秒） */
+  value?: number | null
   placeholder?: string
   clearable?: boolean
   disabled?: boolean
@@ -51,7 +49,6 @@ const props = withDefaults(defineProps<{
   presets?: Array<{ label: string, value: string }>
 }>(), {
   value: null,
-  range: false,
   placeholder: undefined,
   clearable: true,
   disabled: false,
@@ -60,7 +57,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
-  'update:value': [value: number | [number, number] | null]
+  'update:value': [value: number | null]
 }>()
 
 // 字段挂来的 id 与 aria-* 转交给输入区，见 control-attrs.ts
@@ -88,54 +85,28 @@ function toTimestamp(iso: string): number | null {
   return new Date(year, month - 1, day).getTime()
 }
 
-const isoValue = computed<string[]>(() => {
-  if (props.value == null) {
-    return []
-  }
-  return Array.isArray(props.value) ? props.value.map(toIso) : [toIso(props.value)]
-})
+const isoValue = computed<string[]>(() => (props.value == null ? [] : [toIso(props.value)]))
 
 function onValueChange(next: string[]): void {
-  if (next.length === 0) {
-    emit('update:value', null)
-    return
-  }
-  if (!props.range) {
-    const single = toTimestamp(next[0] ?? '')
-    emit('update:value', single)
-    return
-  }
-  // 区间只选了起点时不上抛：调用方拿到的区间要么两端齐备、要么为空
-  const start = toTimestamp(next[0] ?? '')
-  const end = toTimestamp(next[1] ?? '')
-  if (start == null || end == null) {
-    return
-  }
-  emit('update:value', [start, end])
+  emit('update:value', next.length === 0 ? null : toTimestamp(next[0] ?? ''))
 }
 </script>
 
 <template>
   <XhDatePickerRoot
-    v-slot="{ panels, weeks, weekDays, segments, endSegments }"
+    v-slot="{ panels, weeks, weekDays, segments }"
     :class="attrs.class"
     :style="attrs.style"
     :value="isoValue"
     :locale="locale"
-    :selection-mode="range ? 'range' : 'single'"
     :disabled="disabled"
     :size="size"
     :presets="presets"
     @update:value="onValueChange"
   >
     <XhDatePickerControl v-bind="controlAttrs" :aria-label="placeholder">
-      <!-- 区间要两组段位：组号定这组认领哪一端，0 起点、1 终点 -->
-      <XhDatePickerSegmentGroup
-        v-for="end in (range ? 2 : 1)"
-        :key="end"
-        :index="end - 1"
-      >
-        <template v-for="(seg, i) in (end === 1 ? segments : endSegments)" :key="seg.type">
+      <XhDatePickerSegmentGroup>
+        <template v-for="(seg, i) in segments" :key="seg.type">
           <span v-if="i > 0">-</span>
           <!-- 段位不写内容：显示什么由组件按当前值填 -->
           <XhDatePickerSegment :index="i" />
@@ -187,8 +158,8 @@ function onValueChange(next: string[]): void {
             </XhDatePickerGridHead>
             <XhDatePickerGridBody>
               <!-- v-for 必带 key：就地复用会让承载焦点的那一格换了身份 -->
-              <XhDatePickerWeekRow v-for="week in (panel.weeks ?? weeks)" :key="week[0]!.value">
-                <XhDatePickerCell v-for="day in week" :key="day.value" :value="day.value">
+              <XhDatePickerWeekRow v-for="week in (panel.weeks ?? weeks)" :key="week[0]!.start">
+                <XhDatePickerCell v-for="day in week" :key="day.start" :value="day.start">
                   <XhDatePickerCellTrigger>{{ day.day }}</XhDatePickerCellTrigger>
                 </XhDatePickerCell>
               </XhDatePickerWeekRow>
