@@ -13,10 +13,10 @@ import type {
   PrintElementAlignAction,
   PrintElementSpacingDirection,
 } from '~/printing'
-import { useHotkeys, XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { toast } from '~/composables'
+import { toast, useHotkey } from '~/composables'
 import { Icon } from '~/iconify'
 import { createPrintDesigner, enablePrintFieldDragging } from '~/printing'
 import { PRINT_PAPER_PRESETS } from './models'
@@ -251,7 +251,7 @@ function setElementSpacing(direction: PrintElementSpacingDirection, spacing: num
 }
 
 // 在画布焦点范围内支持 Ctrl/Cmd+A 全选，避免拦截属性输入框和可编辑文本的原生全选。
-useHotkeys({
+useHotkey({
   keys: ['Mod', 'A'],
   // 拦不拦默认动作交由回调按按键落点决定。
   preventDefault: false,

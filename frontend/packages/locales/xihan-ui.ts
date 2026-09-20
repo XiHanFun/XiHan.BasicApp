@@ -50,7 +50,7 @@ const zhCN: XhTranslationOverrides = {
   },
   'float-button': { trigger: '悬浮操作' },
   // 只覆盖整组的读法；每一枚键的名字随平台变（Mac 念 Command/Option），交回组件库
-  'hotkeys': { hotkey: names => `快捷键 ${names.join(' 加 ')}` },
+  'kbd': { hotkey: names => `快捷键 ${names.join(' 加 ')}` },
   'image-viewer': {
     content: '图片预览',
     close: '关闭',

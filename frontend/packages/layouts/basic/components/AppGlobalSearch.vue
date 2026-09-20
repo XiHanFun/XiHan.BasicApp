@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MenuRoute } from '~/types'
 import { useFullscreen } from '@vueuse/core'
-import { XhHotkeys } from '@xihan-ui/vue'
+import { XhKbd } from '@xihan-ui/vue'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -428,7 +428,7 @@ watch(
           <Icon icon="lucide:search" />
         </span>
         <span class="search-trigger-text">{{ t('header.search.placeholder') }}</span>
-        <XhHotkeys v-if="showShortcut" class="search-kbd" :keys="[...GLOBAL_HOTKEYS.search]" :prevent-default="false" />
+        <XhKbd v-if="showShortcut" class="search-kbd" :keys="[...GLOBAL_HOTKEYS.search]" />
       </button>
     </div>
     <div class="sm:hidden">
