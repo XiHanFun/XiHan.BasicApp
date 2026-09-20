@@ -86,8 +86,8 @@ if (missing.size > 0) {
     if (sites.length > 4)
       console.error(`    …另有 ${sites.length - 4} 处`)
   }
-  console.error('  含未定义 var() 的声明整条作废。要么等上游发版并抬 catalog，')
-  console.error('  要么在 packages/design/motion.css 的钉版补位里加一行（那一段排在 xihan.tokens 之前，发版后自动失效）。')
+  console.error('  含未定义 var() 的声明整条作废。改用组件库现有的令牌名，或等上游发出该令牌后抬 catalog；')
+  console.error('  不要在应用里声明同名令牌兜底——那只会让这里过检，样式照样对不上。')
   process.exit(1)
 }
 
