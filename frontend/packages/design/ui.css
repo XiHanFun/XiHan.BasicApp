@@ -366,6 +366,29 @@
   background: var(--xh-bg-subtle);
 }
 
+/* 抽屉 / 弹窗里的明细表（角色、权限、租户成员）：与 .xh-plain-table 同一把尺，只是四边描边的
+   网格形态；三处页面不再各自 scoped 一份 9px 竖衬的版本 */
+.xh-detail-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--xh-control-font-md);
+}
+
+.xh-detail-table th,
+.xh-detail-table td {
+  padding-block: var(--xh-space-1);
+  padding-inline: var(--xh-space-2_5);
+  block-size: calc(var(--xh-control-h-sm) + 2 * var(--xh-space-1));
+  border: 1px solid var(--xh-border-default);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.xh-detail-table th {
+  font-weight: var(--xh-font-weight-medium);
+  background: var(--xh-bg-subtle);
+}
+
 /* @iconify/vue 的 svg 只认 1em，跟着字号走就只有 12px，在 28px 的图标钮里显得太小。
    组件库的图标随控件尺寸档走（xs / sm 16、md 20、lg 24），XhIcon 自己会读家族下发的槽；
    这里按 Action Control 的档位属性给直接塞进按钮 / 触发器的 Iconify 图标接上同一把尺，

@@ -1724,12 +1724,6 @@ async function handleSubmit() {
   padding: 48px 0;
 }
 
-.xh-detail-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
 .xh-member-pager {
   display: flex;
   justify-content: flex-end;
@@ -1768,22 +1762,5 @@ async function handleSubmit() {
   font-size: 12px;
   font-weight: 400;
   color: hsl(var(--muted-foreground));
-}
-
-/* 行高与列表的紧凑数据行同一把尺（control-h-sm + 4px×2 = 36）：md 标签行框 24 落在里面不撑高，
-   纯文本行也补到同高；单元格竖向居中，一行里的文字与标签对齐 */
-.xh-detail-table th,
-.xh-detail-table td {
-  padding-block: var(--xh-space-1);
-  padding-inline: var(--xh-space-2_5);
-  block-size: calc(var(--xh-control-h-sm) + 2 * var(--xh-space-1));
-  border: 1px solid hsl(var(--border));
-  text-align: left;
-  vertical-align: middle;
-}
-
-.xh-detail-table th {
-  background: hsl(var(--muted));
-  font-weight: 500;
 }
 </style>
