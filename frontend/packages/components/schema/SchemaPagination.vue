@@ -105,6 +105,8 @@ function onSizeChange(value: string[]): void {
 .schema-pagination__size {
   --xh-select-control-min-w: 0;
 
+  /* 定宽不参与收缩：窄栏里让页码组在外层横向滚动，不把下拉压成一条竖线 */
+  flex: none;
   inline-size: 110px;
 }
 

@@ -359,6 +359,28 @@
   background: var(--xh-bg-subtle);
 }
 
+/* @iconify/vue 的 svg 只认 1em，跟着字号走就只有 12px，在 28px 的图标钮里显得太小。
+   组件库的图标随控件尺寸档走（xs / sm 16、md 20、lg 24），XhIcon 自己会读家族下发的槽；
+   这里按 Action Control 的档位属性给直接塞进按钮 / 触发器的 Iconify 图标接上同一把尺，
+   没有档位的圆形图标钮与设置触发器取 sm 档字形 */
+[data-xh-action-control] > svg,
+.xh-icon-btn > svg,
+.xh-set-trigger > svg {
+  flex: none;
+  inline-size: var(--xh-glyph-size-sm);
+  block-size: var(--xh-glyph-size-sm);
+}
+
+[data-xh-action-control][data-xh-action-size='md']:not(.xh-set-trigger) > svg {
+  inline-size: var(--xh-glyph-size-md);
+  block-size: var(--xh-glyph-size-md);
+}
+
+[data-xh-action-control][data-xh-action-size='lg'] > svg {
+  inline-size: var(--xh-glyph-size-lg);
+  block-size: var(--xh-glyph-size-lg);
+}
+
 /* 圆形图标钮：工具栏里一排透明底按钮（列设置/刷新/导出等），XIconButton 与借用它当触发器的菜单共用。
    盒尺寸取 sm 档控件方盒，随密度轴换档（紧凑 28px、宽松 32px），与同排的 sm 按钮齐高 */
 .xh-icon-btn {

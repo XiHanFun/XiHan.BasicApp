@@ -600,10 +600,11 @@ function rowPeekHandlers(row: TRow) {
   min-width: 0;
 }
 
-/* 分页：限制不超过页脚宽度；窄屏/页数极多时内部横向滚动，避免撑破页面 */
+/* 分页：限制不超过页脚宽度；页数极多时靠分页条自己的 flex-wrap 折行。
+   不能在这里开 overflow-x: auto——那会连带把 overflow-y 变成 auto，粗指针下页码钮的 44px 热区伪元素
+   竖向探出 8px 就冒出一条竖向滚动条，手机上页码右侧那根「竖线」就是它 */
 .xh-table-panel__pagination {
   max-width: 100%;
-  overflow-x: auto;
 }
 
 .xh-table__count {
