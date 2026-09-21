@@ -151,7 +151,7 @@ onMounted(async () => {
           {{ errorMsg }}
         </p>
         <p
-          class="text-sm"
+          class="auth-helper"
           :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
         >
           {{ t('page.auth.oauth_callback_redirect') }}

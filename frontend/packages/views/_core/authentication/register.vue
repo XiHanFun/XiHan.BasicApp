@@ -145,7 +145,7 @@ const onAuthInvalid = useAuthFormInvalid()
         {{ t('page.auth.create_account_title') }}
       </h1>
       <p
-        class="mt-3 text-[15px] leading-7"
+        class="mt-3 auth-body"
         :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
       >
         {{ t('page.auth.register_subtitle') }}

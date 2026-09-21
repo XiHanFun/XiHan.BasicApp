@@ -307,7 +307,7 @@ const onAuthInvalid = useAuthFormInvalid()
             </h1>
           </div>
           <p
-            class="text-[15px] leading-7"
+            class="auth-body"
             :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
           >
             <template v-if="selectedMethod === 'totp'">
@@ -385,7 +385,7 @@ const onAuthInvalid = useAuthFormInvalid()
             </h1>
           </div>
           <p
-            class="text-[15px] leading-7"
+            class="auth-body"
             :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
           >
             您的账号已开启两步验证，请选择一种方式进行身份验证
@@ -408,7 +408,7 @@ const onAuthInvalid = useAuthFormInvalid()
                 ? 'text-[hsl(var(--primary))]'
                 : isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'" style="display: inline-flex; font-size: 20px"
             ><Icon :icon="methodIcons[m] || 'lucide:shield-check'" /></span>
-            <span class="text-[15px]">{{ methodLabels[m] || m }}</span>
+            <span class="auth-body">{{ methodLabels[m] || m }}</span>
           </button>
         </div>
 
@@ -428,7 +428,7 @@ const onAuthInvalid = useAuthFormInvalid()
       <div v-else key="credentials">
         <div class="mb-8">
           <p
-            class="mt-3 text-[15px] leading-7"
+            class="mt-3 auth-body"
             :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
           >
             {{ t('page.auth.login_subtitle') }}
