@@ -502,16 +502,6 @@ function rowPeekHandlers(row: TRow) {
   min-inline-size: min-content;
 }
 
-/* 单元格里的状态 chip 统一走小档：组件库把 Tag 缺省抬到 secondary 字号 + 4px 竖衬（行框 25px），
-   38px 的紧凑数据行放不下这么重的 chip。这里按 size="sm" 那组公开槽取值，
-   调用点不必逐个传 size；显式写了 size 的标签不动 */
-.xh-table-panel :deep([data-scope='table'][data-part='cell'] [data-scope='tag'][data-part='root']:not([data-size])) {
-  --xh-tag-gap: var(--xh-space-0_5);
-  --xh-tag-px: var(--xh-space-1_5);
-  --xh-tag-py: var(--xh-space-0_5);
-  --xh-tag-font-size: var(--xh-text-caption-size);
-}
-
 /* 紧凑密度下的中档表格回到迁移前的行距：每行都带一颗 sm 档的「更多」钮，库给的 md 竖衬（6px）
    把行撑到 41px；这里把竖衬收到 sm 档那格（4px），再给单元格一个「刚好容下一颗 sm 控件」的下限，
    纯文字行、chip 行与按钮行统一到 36px（加行间线 37px），不再随内容忽高忽低。
