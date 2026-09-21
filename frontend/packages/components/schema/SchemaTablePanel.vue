@@ -515,6 +515,25 @@ function rowPeekHandlers(row: TRow) {
   --xh-tag-font-size: var(--xh-text-caption-size);
 }
 
+/* 紧凑密度下的中档表格回到迁移前的行距：每行都带一颗 sm 档的「更多」钮，库给的 md 竖衬（6px）
+   把行撑到 41px；这里把竖衬收到 sm 档那格（4px），再给单元格一个「刚好容下一颗 sm 控件」的下限，
+   纯文字行、chip 行与按钮行统一到 36px（加行间线 37px），不再随内容忽高忽低。
+   列标题没有控件，反向放宽到 8px 竖衬（32px + 底线 33px），标题行才压得住表体。
+   宽松档与用户自选的 small / large 表格密度不碰，仍由组件库按 density 轴换档 */
+[data-density='compact']
+  .xh-table-panel
+  :deep([data-scope='table'][data-part='root'][data-size='md'] [data-scope='table'][data-part='cell']) {
+  --xh-table-cell-py: var(--xh-space-1);
+
+  min-block-size: calc(var(--xh-control-h-sm) + 2 * var(--xh-space-1));
+}
+
+[data-density='compact']
+  .xh-table-panel
+  :deep([data-scope='table'][data-part='root'][data-size='md'] [data-scope='table'][data-part='column-header']) {
+  --xh-table-cell-py: var(--xh-space-2);
+}
+
 /* 前缀列与操作列的「不吃余量」改由 minWidthStyle / prefixStyle 写成内联样式，
    两侧同一个函数出，见脚本区 */
 
