@@ -627,10 +627,11 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
     <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉 -->
     <XhCardRoot
       v-if="searchFields.length || advancedFields.length"
+      class="xh-schema-card"
       variant="outline"
       style="overflow: visible"
     >
-      <XhCardContent class="xh-schema-card__body">
+      <XhCardContent>
         <SchemaSearchPanel
           :advanced-fields="advancedFields"
           :common-fields="searchFields"
@@ -653,8 +654,8 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
     </XhCardRoot>
 
     <!-- 操作工具栏：页面级操作按钮 + 内置工具（刷新/导入/导出/列设置/全屏） -->
-    <XhCardRoot variant="outline" style="overflow: visible">
-      <XhCardContent class="xh-schema-card__body xh-schema-card__body--toolbar">
+    <XhCardRoot class="xh-schema-card xh-schema-card--toolbar" variant="outline" style="overflow: visible">
+      <XhCardContent>
         <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
           <template #toolbar>
             <!-- 页面自定义工具栏项 -->
@@ -723,8 +724,8 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
     </XhCardRoot>
 
     <!-- 表格容器：定高卡片（flex-1 + height:0），卡片体成为定高 flex 列，滚动只发生在表格内部 -->
-    <XhCardRoot class="flex-1" variant="outline" style="height: 0">
-      <XhCardContent class="xh-schema-card__body xh-schema-card__body--table">
+    <XhCardRoot class="xh-schema-card flex-1" variant="outline" style="height: 0">
+      <XhCardContent class="xh-schema-card__body--table">
         <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据 -->
         <XhSkeletonRoot v-if="!firstLoaded" class="xh-table-skeleton" aria-hidden="true">
           <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
@@ -854,13 +855,15 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
 </template>
 
 <style scoped>
-/* 卡片体内边距：卡片皮肤给的是通用值，管理页三块卡片各有自己的紧凑档 */
-.xh-schema-card__body {
-  padding: 12px 16px;
+/* 卡片内边距：Card 皮肤把内边距放在根上（--xh-card-p，缺省 surface-pad-lg），管理页三块卡片走更紧的档。
+ * 只改这一个公开槽，随密度轴换档（紧凑 8/12、宽松 12/16）；不要再给 content 叠一层内边距，会双倍。 */
+.xh-schema-card {
+  --xh-card-p: var(--xh-surface-pad-md) var(--xh-surface-pad-lg);
 }
 
-.xh-schema-card__body--toolbar {
-  padding: 8px 16px;
+/* 工具条一行按钮，竖向再收一档 */
+.xh-schema-card--toolbar {
+  --xh-card-p: var(--xh-surface-pad-sm) var(--xh-surface-pad-lg);
 }
 
 /* 表格卡片：卡片体成为定高 flex 列，内部滚动 */

@@ -589,7 +589,7 @@ function rowPeekHandlers(row: TRow) {
   gap: 8px 12px;
   align-items: center;
   justify-content: space-between;
-  padding-top: 12px;
+  padding-top: var(--xh-space-2);
 }
 
 /* 左侧：统计 + 批量浮条 */
