@@ -505,6 +505,16 @@ function rowPeekHandlers(row: TRow) {
   min-inline-size: min-content;
 }
 
+/* 单元格里的状态 chip 统一走小档：组件库把 Tag 缺省抬到 secondary 字号 + 4px 竖衬（行框 25px），
+   38px 的紧凑数据行放不下这么重的 chip。这里按 size="sm" 那组公开槽取值，
+   调用点不必逐个传 size；显式写了 size 的标签不动 */
+.xh-table-panel :deep([data-scope='table'][data-part='cell'] [data-scope='tag'][data-part='root']:not([data-size])) {
+  --xh-tag-gap: var(--xh-space-0_5);
+  --xh-tag-px: var(--xh-space-1_5);
+  --xh-tag-py: var(--xh-space-0_5);
+  --xh-tag-font-size: var(--xh-text-caption-size);
+}
+
 /* 前缀列与操作列的「不吃余量」改由 minWidthStyle / prefixStyle 写成内联样式，
    两侧同一个函数出，见脚本区 */
 
