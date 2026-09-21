@@ -1143,21 +1143,21 @@ async function handleSubmit() {
                           <td>{{ item.userId }}</td>
                           <td>{{ formatNullable(resolveMemberName(item)) }}</td>
                           <td>
-                            <XhTagRoot variant="subtle" :tone="item.memberType === TenantMemberType.Owner ? 'warning' : item.memberType === TenantMemberType.Admin ? 'brand' : 'neutral'" size="sm">
+                            <XhTagRoot variant="subtle" :tone="item.memberType === TenantMemberType.Owner ? 'warning' : item.memberType === TenantMemberType.Admin ? 'brand' : 'neutral'">
                               <XhTagLabel>
                                 {{ getOptionLabel(memberTypeOptions, item.memberType) }}
                               </XhTagLabel>
                             </XhTagRoot>
                           </td>
                           <td>
-                            <XhTagRoot variant="subtle" :tone="getInviteStatusTagType(item.inviteStatus)" size="sm">
+                            <XhTagRoot variant="subtle" :tone="getInviteStatusTagType(item.inviteStatus)">
                               <XhTagLabel>
                                 {{ getOptionLabel(inviteStatusOptions, item.inviteStatus) }}
                               </XhTagLabel>
                             </XhTagRoot>
                           </td>
                           <td>
-                            <XhTagRoot variant="subtle" :tone="item.status === ValidityStatus.Valid ? 'success' : 'danger'" size="sm">
+                            <XhTagRoot variant="subtle" :tone="item.status === ValidityStatus.Valid ? 'success' : 'danger'">
                               <XhTagLabel>
                                 {{ getOptionLabel(validityStatusOptions, item.status) }}
                               </XhTagLabel>
@@ -1770,12 +1770,16 @@ async function handleSubmit() {
   color: hsl(var(--muted-foreground));
 }
 
+/* 行高与列表的紧凑数据行同一把尺（control-h-sm + 4px×2 = 36）：md 标签行框 24 落在里面不撑高，
+   纯文本行也补到同高；单元格竖向居中，一行里的文字与标签对齐 */
 .xh-detail-table th,
 .xh-detail-table td {
-  padding: 9px 10px;
+  padding-block: var(--xh-space-1);
+  padding-inline: var(--xh-space-2_5);
+  block-size: calc(var(--xh-control-h-sm) + 2 * var(--xh-space-1));
   border: 1px solid hsl(var(--border));
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
 }
 
 .xh-detail-table th {

@@ -349,9 +349,13 @@
   font-size: var(--xh-control-font-md);
 }
 
+/* 行高与列表的紧凑数据行同一把尺（control-h-sm + 4px×2 = 36）：md 标签行框 24 落在里面不撑高，
+   纯文本行也补到同高 */
 .xh-plain-table th,
 .xh-plain-table td {
-  padding: 6px 12px;
+  padding-block: var(--xh-space-1);
+  padding-inline: var(--xh-space-3);
+  block-size: calc(var(--xh-control-h-sm) + 2 * var(--xh-space-1));
   text-align: start;
   border-block-end: 1px solid var(--xh-border-subtle);
 }

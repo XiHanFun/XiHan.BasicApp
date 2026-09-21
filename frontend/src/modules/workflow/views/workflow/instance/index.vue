@@ -457,7 +457,7 @@ function onAction(payload: SchemaActionPayload) {
                 <td>{{ node.name }} ({{ node.nodeId }})</td>
                 <td>{{ node.activityType }}</td>
                 <td>
-                  <XhTagRoot variant="subtle" :tone="nodeStatusTag(node.status)" size="sm">
+                  <XhTagRoot variant="subtle" :tone="nodeStatusTag(node.status)">
                     <XhTagLabel>
                       {{ node.status }}
                     </XhTagLabel>

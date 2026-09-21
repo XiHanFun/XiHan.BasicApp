@@ -132,7 +132,7 @@
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/design/ui.css": {
-    "cap": 20,
+    "cap": 18,
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/design/variables.css": {
@@ -464,7 +464,7 @@
     "reason": "业务页面的排版刻度"
   },
   "src/views/tenant/list/index.vue": {
-    "cap": 13,
+    "cap": 11,
     "reason": "业务页面的排版刻度"
   },
   "src/views/workbench/dashboard/components/AnnouncementWidget.vue": {
