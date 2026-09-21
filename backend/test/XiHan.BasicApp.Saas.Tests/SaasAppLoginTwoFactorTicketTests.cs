@@ -41,7 +41,8 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// <item>首段通过图形码与密码后随挑战签发票据；</item>
 /// <item>后续阶段带票免图形码，票据在有效期内可多次出示，登录完成后作废；</item>
 /// <item>不带票的后续阶段仍要图形码，带上方式或验证码不能绕过；</item>
-/// <item>票据不存在 / 过期 / 不属于本次认证用户一律按「两步验证已过期」拒绝，且伪票不能借免图形码去试密码。</item>
+/// <item>票据不存在 / 过期 / 不属于本次认证用户一律按「两步验证已过期」拒绝，且伪票不能借免图形码去试密码；</item>
+/// <item>票据同时绑定首段登录名：持自己合法票据也不能免图形码去试探他人账号，登录名不匹配在密码认证之前即作废拒绝。</item>
 /// </list>
 /// </remarks>
 public sealed class SaasAppLoginTwoFactorTicketTests
@@ -49,6 +50,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
     private const long UserId = 1001;
     private const long OtherUserId = 2002;
     private const string LoginName = "admin";
+    private const string OtherLoginName = "someone-else";
     private const string Password = "P@ssw0rd!";
     private const string CaptchaId = "captcha-1";
     private const string CaptchaCode = "4821";
@@ -78,10 +80,10 @@ public sealed class SaasAppLoginTwoFactorTicketTests
                 id is not null && code == CaptchaCode && _liveCaptchas.Remove(id));
 
         _authenticationDomainService
-            .Setup(service => service.AuthenticatePasswordLoginAsync(LoginName, Password, null, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .Setup(service => service.AuthenticatePasswordLoginAsync(It.Is<string>(value => IsLoginName(value)), Password, null, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(() => LoginAuthenticationResult.TwoFactorRequired(_user, BuildTotpSecurity(UserId)));
         _authenticationDomainService
-            .Setup(service => service.AuthenticatePasswordLoginAsync(LoginName, It.Is<string>(value => value != Password), null, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            .Setup(service => service.AuthenticatePasswordLoginAsync(It.Is<string>(value => IsLoginName(value)), It.Is<string>(value => value != Password), null, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(LoginAuthenticationResult.Failed(LoginResult.InvalidCredentials, "用户名或密码错误。"));
 
         _otpService
@@ -100,7 +102,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
     }
 
     /// <summary>
-    /// 首段通过图形码与密码：挑战响应随行两步验证票据，票据绑定本次认证出的用户。
+    /// 首段通过图形码与密码：挑战响应随行两步验证票据，票据绑定本次认证出的用户与首段提交的登录名。
     /// </summary>
     [Fact]
     public async Task Login_FirstStage_ShouldIssueTicketWithChallenge()
@@ -112,7 +114,10 @@ public sealed class SaasAppLoginTwoFactorTicketTests
         Assert.True(challenge.RequiresTwoFactor);
         Assert.Null(challenge.Token);
         Assert.False(string.IsNullOrWhiteSpace(challenge.TwoFactorTicket));
-        Assert.Equal(UserId.ToString(), _cache.Values[TwoFactorTicketService.CacheKey(challenge.TwoFactorTicket!)]);
+        var payload = await new TwoFactorTicketService(_cache).ResolveAsync(challenge.TwoFactorTicket);
+        Assert.NotNull(payload);
+        Assert.Equal(UserId, payload.UserId);
+        Assert.Equal(LoginName, payload.Login);
     }
 
     /// <summary>
@@ -279,13 +284,14 @@ public sealed class SaasAppLoginTwoFactorTicketTests
     }
 
     /// <summary>
-    /// 票据属于他人：密码认证出的用户与票据绑定用户不一致，按「两步验证已过期」拒绝且不签发令牌。
+    /// 票据登录名相符但绑定用户不一致（例如同名账号已被重建）：密码认证出的用户与票据绑定用户不一致，
+    /// 按「两步验证已过期」拒绝、作废票据且不签发令牌。
     /// </summary>
     [Fact]
-    public async Task Login_TicketBoundToAnotherUser_ShouldReject()
+    public async Task Login_TicketBoundToAnotherUser_ShouldRejectAndRevoke()
     {
         var service = CreateService();
-        var foreignTicket = await new TwoFactorTicketService(_cache).IssueAsync(OtherUserId);
+        var foreignTicket = await new TwoFactorTicketService(_cache).IssueAsync(OtherUserId, LoginName);
 
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
         {
@@ -297,7 +303,88 @@ public sealed class SaasAppLoginTwoFactorTicketTests
         }));
 
         Assert.Equal(TicketExpiredMessage, error.Message);
+        Assert.False(_cache.Values.ContainsKey(TwoFactorTicketService.CacheKey(foreignTicket)));
         _authTokenIssueService.Verify(issue => issue.IssueAccessToken(It.IsAny<AuthAccessTokenIssueCommand>()), Times.Never);
+    }
+
+    /// <summary>
+    /// 审核指出的弱点：持自己账号合法票据的人拿它去试探他人账号的错密码。登录名与票据不符须在密码认证之前
+    /// 即按「两步验证已过期」拒绝并作废票据——不能返回「账号或密码错误」泄露猜测结果，也不消费图形码。
+    /// </summary>
+    [Fact]
+    public async Task Login_ForeignTicketWithWrongPassword_ShouldRejectBeforeAuthenticationAndRevoke()
+    {
+        var service = CreateService();
+        var foreignTicket = await new TwoFactorTicketService(_cache).IssueAsync(OtherUserId, OtherLoginName);
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
+        {
+            Username = LoginName,
+            Password = "wrong-password",
+            TwoFactorMethod = "totp",
+            TwoFactorTicket = foreignTicket
+        }));
+
+        Assert.Equal(TicketExpiredMessage, error.Message);
+        Assert.False(_cache.Values.ContainsKey(TwoFactorTicketService.CacheKey(foreignTicket)));
+        _authenticationDomainService.Verify(
+            auth => auth.AuthenticatePasswordLoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _captchaService.Verify(
+            captcha => captcha.TryConsumeAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 他人票据 + 他人账号的正确密码：同样在密码认证之前按「两步验证已过期」拒绝并作废票据，
+    /// 与错密码文案一致、不签发令牌，猜对与猜错不可区分。
+    /// </summary>
+    [Fact]
+    public async Task Login_ForeignTicketWithCorrectPassword_ShouldRejectAndRevoke()
+    {
+        var service = CreateService();
+        var foreignTicket = await new TwoFactorTicketService(_cache).IssueAsync(OtherUserId, OtherLoginName);
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
+        {
+            Username = LoginName,
+            Password = Password,
+            TwoFactorMethod = "totp",
+            TwoFactorCode = TotpCode,
+            TwoFactorTicket = foreignTicket
+        }));
+
+        Assert.Equal(TicketExpiredMessage, error.Message);
+        Assert.False(_cache.Values.ContainsKey(TwoFactorTicketService.CacheKey(foreignTicket)));
+        _authenticationDomainService.Verify(
+            auth => auth.AuthenticatePasswordLoginAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        _authTokenIssueService.Verify(issue => issue.IssueAccessToken(It.IsAny<AuthAccessTokenIssueCommand>()), Times.Never);
+    }
+
+    /// <summary>
+    /// 自己的票据 + 自己的账号：登录名按既有规范去空白、不区分大小写比对，后续阶段照旧免图形码并签发令牌。
+    /// </summary>
+    [Fact]
+    public async Task Login_OwnTicketWithDifferentLoginCasing_ShouldStillSkipCaptcha()
+    {
+        var service = CreateService();
+        var ticket = (await service.LoginAsync(CredentialsRequest())).TwoFactorTicket!;
+
+        var completed = await service.LoginAsync(new LoginRequestDto
+        {
+            Username = " ADMIN ",
+            Password = Password,
+            TwoFactorMethod = "totp",
+            TwoFactorCode = TotpCode,
+            TwoFactorTicket = ticket
+        });
+
+        Assert.False(completed.RequiresTwoFactor);
+        Assert.NotNull(completed.Token);
+        _captchaService.Verify(
+            captcha => captcha.TryConsumeAsync(It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     /// <summary>
@@ -319,6 +406,11 @@ public sealed class SaasAppLoginTwoFactorTicketTests
         }));
 
         Assert.True(_cache.Values.ContainsKey(TwoFactorTicketService.CacheKey(ticket)));
+    }
+
+    private static bool IsLoginName(string value)
+    {
+        return string.Equals(value, LoginName, StringComparison.OrdinalIgnoreCase);
     }
 
     private static LoginRequestDto CredentialsRequest()
