@@ -119,7 +119,14 @@ export const useAuthStore = defineStore('auth', () => {
     loginTask.success(i18n.global.t('island.auth.login_success'))
   }
 
+  /**
+   * 账号密码登录（含双因素的后续几步）。在途时再次调用直接返回 null、不发第二个请求：
+   * 页面上点击、Enter、验证码输满自动提交几条路都汇到这里，靠这一处同步置位的 loginLoading 守住重入，
+   * 按钮的 loading 拦截只在重渲染之后才生效。
+   */
   async function login(params: LoginParams, redirect?: string): Promise<LoginResponse | null> {
+    if (loginLoading.value)
+      return null
     loginLoading.value = true
     try {
       const ctx = useAppContext()

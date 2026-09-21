@@ -5,7 +5,7 @@
  * 路由、API、SignalR 均以替身注入；不发真实请求、不做真实导航。
  */
 import type { RouteRecordRaw } from 'vue-router'
-import type { AppContextApis, LoginToken, MenuRoute, PermissionInfo, UserInfo } from '~/types'
+import type { AppContextApis, LoginResponse, LoginToken, MenuRoute, PermissionInfo, UserInfo } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HOME_PATH, LOCK_REASON_KEY, LOCK_STATE_KEY, LOGIN_PATH, REFRESH_TOKEN_KEY, TOKEN_KEY, USER_INFO_KEY } from '~/constants'
@@ -208,6 +208,24 @@ describe('密码登录', () => {
     await auth.login({ username: 'a', password: 'b' })
 
     expect(duringCall).toBe(true)
+    expect(auth.loginLoading).toBe(false)
+  })
+
+  it('登录在途时再次调用直接返回 null、不发第二个请求', async () => {
+    let release!: (value: LoginResponse) => void
+    loginApi.mockImplementation(() => new Promise<LoginResponse>((resolve) => {
+      release = resolve
+    }))
+    const auth = useAuthStore()
+
+    const first = auth.login({ username: 'a', password: 'b' })
+    const second = await auth.login({ username: 'a', password: 'b' })
+
+    expect(second).toBeNull()
+    expect(loginApi).toHaveBeenCalledTimes(1)
+
+    release({ requiresTwoFactor: true, availableTwoFactorMethods: ['email'], token: null })
+    expect((await first)?.requiresTwoFactor).toBe(true)
     expect(auth.loginLoading).toBe(false)
   })
 
