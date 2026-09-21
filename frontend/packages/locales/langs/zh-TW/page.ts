@@ -54,6 +54,10 @@ export default {
     two_factor_subtitle: '您的帳號已啟用雙因素驗證，請輸入驗證器應用程式中的 6 位驗證碼',
     two_factor_hint: '開啟 Google Authenticator / Microsoft Authenticator 等應用程式檢視驗證碼',
     two_factor_verify: '驗證並登入',
+    // 登录页方式项的名字，键名对齐服务端给出的方式标识 totp / email / phone
+    two_factor_method_totp: '驗證器（Authenticator）',
+    two_factor_method_email: '電子郵件驗證碼',
+    two_factor_method_phone: '手機簡訊驗證碼',
     // 扫码登录
     qrcode_subtitle: '使用手機掃描 QR Code 快速登入',
     qrcode_prompt: '開啟手機 APP，掃描 QR Code 後即可登入',

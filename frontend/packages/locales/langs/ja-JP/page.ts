@@ -54,6 +54,10 @@ export default {
     two_factor_subtitle: 'このアカウントは二要素認証が有効です。認証アプリに表示される6桁のコードを入力してください',
     two_factor_hint: 'Google Authenticator / Microsoft Authenticator などのアプリでコードを確認してください',
     two_factor_verify: '認証してログイン',
+    // 登录页方式项的名字，键名对齐服务端给出的方式标识 totp / email / phone
+    two_factor_method_totp: '認証アプリ（Authenticator）',
+    two_factor_method_email: 'メール認証コード',
+    two_factor_method_phone: 'SMS 認証コード',
     // 扫码登录
     qrcode_subtitle: 'スマートフォンでQRコードを読み取って素早くログイン',
     qrcode_prompt: 'モバイルアプリを開き、QRコードを読み取るとログインできます',

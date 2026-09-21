@@ -55,6 +55,10 @@ export default {
       'Für Ihr Konto ist die Zwei-Faktor-Authentifizierung aktiviert. Bitte geben Sie den 6-stelligen Code aus Ihrer Authenticator-App ein',
     two_factor_hint: 'Öffnen Sie Google Authenticator / Microsoft Authenticator, um den Code anzuzeigen',
     two_factor_verify: 'Verifizieren & anmelden',
+    // 登录页方式项的名字，键名对齐服务端给出的方式标识 totp / email / phone
+    two_factor_method_totp: 'Authenticator-App',
+    two_factor_method_email: 'E-Mail-Code',
+    two_factor_method_phone: 'SMS-Code',
     // QR login
     qrcode_subtitle: 'Scannen Sie den QR-Code mit Ihrem Telefon, um sich anzumelden',
     qrcode_prompt: 'Öffnen Sie Ihre mobile App und scannen Sie den QR-Code, um sich anzumelden',

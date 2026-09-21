@@ -54,6 +54,10 @@ export default {
     two_factor_subtitle: 'आपके खाते पर दो-चरणीय सत्यापन चालू है, कृपया ऑथेंटिकेटर ऐप में दिख रहा 6 अंकों का कोड दर्ज करें',
     two_factor_hint: 'कोड देखने के लिए Google Authenticator / Microsoft Authenticator जैसा ऐप खोलें',
     two_factor_verify: 'सत्यापित कर लॉगिन करें',
+    // 登录页方式项的名字，键名对齐服务端给出的方式标识 totp / email / phone
+    two_factor_method_totp: 'Authenticator ऐप',
+    two_factor_method_email: 'ईमेल सत्यापन कोड',
+    two_factor_method_phone: 'SMS सत्यापन कोड',
     // 扫码登录
     qrcode_subtitle: 'तेज़ लॉगिन के लिए मोबाइल से QR कोड स्कैन करें',
     qrcode_prompt: 'मोबाइल ऐप खोलें, QR कोड स्कैन करते ही लॉगिन हो जाएगा',
