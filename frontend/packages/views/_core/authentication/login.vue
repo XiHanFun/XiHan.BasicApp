@@ -64,6 +64,13 @@ const selectedMethod = ref('')
 const twoFactorCode = ref<string[]>([])
 const codeSent = ref(false)
 const sendingCode = ref(false)
+/**
+ * 两步验证票据：三个阶段都重新提交同一个登录请求，而图形验证码一次性消费、首段过后即销毁；
+ * 服务端在首段通过图形码与密码后随挑战签发票据，后续阶段改带票据免图形码，登录完成后作废
+ */
+const twoFactorTicket = ref('')
+/** 服务端票据失效（不存在 / 过期 / 用户不匹配）的提示片段，对齐 AuthAppService.TwoFactorTicketExpiredMessage */
+const TWO_FACTOR_TICKET_EXPIRED_HINT = '两步验证已过期'
 
 // 键名对齐服务端 ResolveTwoFactorMethods 给出的方式标识：totp / email / phone
 const methodLabels = computed<Record<string, string>>(() => ({
@@ -140,15 +147,46 @@ onMounted(async () => {
 })
 
 function buildLoginParams() {
+  // 持票即为两步验证的后续阶段：只带票不带图形码（图形码已在首段消费销毁，再带必红）；
+  // 无票时才是凭据阶段，按配置携带图形码
+  const hasTicket = Boolean(twoFactorTicket.value)
+  const carryCaptcha = !hasTicket && loginConfig.value.captchaEnabled
   return {
     username: formData.value.username,
     password: formData.value.password,
-    captchaId: loginConfig.value.captchaEnabled ? captcha.value?.captchaId : undefined,
-    captchaCode: loginConfig.value.captchaEnabled ? captchaCodeStr.value || undefined : undefined,
+    captchaId: carryCaptcha ? captcha.value?.captchaId : undefined,
+    captchaCode: carryCaptcha ? captchaCodeStr.value || undefined : undefined,
     twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
+    twoFactorTicket: twoFactorTicket.value || undefined,
     deviceId: cachedDeviceId.value || undefined,
   }
+}
+
+/** 挑战响应随行票据时记下，后续阶段都凭它免图形码 */
+function rememberTwoFactorTicket(result: LoginResponse | null) {
+  if (result?.twoFactorTicket) {
+    twoFactorTicket.value = result.twoFactorTicket
+  }
+}
+
+/**
+ * 票据失效（不存在 / 过期 / 用户不匹配）：服务端要求重新登录，回到凭据阶段并换一枚新图形码。
+ * 返回是否已按票据失效处理，调用方据此跳过通用错误分支。
+ */
+function handleTicketExpired(message?: string) {
+  if (!message || !message.includes(TWO_FACTOR_TICKET_EXPIRED_HINT)) {
+    return false
+  }
+  tfStage.value = 'credentials'
+  twoFactorTicket.value = ''
+  twoFactorCode.value = []
+  availableMethods.value = []
+  selectedMethod.value = ''
+  codeSent.value = false
+  toast.danger(message)
+  void refreshCaptcha()
+  return true
 }
 
 /**
@@ -174,7 +212,8 @@ async function onSubmit() {
       return
     }
 
-    // 服务端返回需要 2FA
+    // 服务端返回需要 2FA：先记票据，再决定下一阶段——唯一方式时会立刻发起第二段请求，届时必须已持票
+    rememberTwoFactorTicket(result)
     if (result.availableTwoFactorMethods?.length) {
       availableMethods.value = result.availableTwoFactorMethods
     }
@@ -201,11 +240,15 @@ async function onSubmit() {
       twoFactorCode.value = []
     }
     const error = err as { message?: string }
+    if (handleTicketExpired(error?.message)) {
+      return
+    }
     if (error?.message) {
       toast.danger(error.message)
     }
-    // 验证码一次性消费：无论对错都已销毁，提示后立即换新码，避免反复撞已销毁的码
-    if (error?.message && error.message.includes('验证码')) {
+    // 图形验证码一次性消费：凭据阶段无论对错都已销毁，提示后立即换新码，避免反复撞已销毁的码；
+    // 持票的后续阶段不再消费图形码，两步验证码出错时不必换
+    if (tfStage.value === 'credentials' && error?.message && error.message.includes('验证码')) {
       void refreshCaptcha()
     }
   }
@@ -232,6 +275,7 @@ async function handleSelectMethod() {
   sendingCode.value = true
   try {
     const result = await authStore.login(buildLoginParams(), redirect.value)
+    rememberTwoFactorTicket(result)
     if (result && result.twoFactorMethod) {
       codeSent.value = result.codeSent ?? false
       tfStage.value = 'code-input'
@@ -239,6 +283,9 @@ async function handleSelectMethod() {
   }
   catch (err: unknown) {
     const error = err as { message?: string }
+    if (handleTicketExpired(error?.message)) {
+      return
+    }
     if (error?.message) {
       toast.danger(error.message)
     }
@@ -255,6 +302,7 @@ async function handleResendCode() {
   sendingCode.value = true
   try {
     const result = await authStore.login(buildLoginParams(), redirect.value)
+    rememberTwoFactorTicket(result)
     if (result?.codeSent) {
       codeSent.value = true
       toast.success(t('page.auth.code_resent'))
@@ -262,6 +310,9 @@ async function handleResendCode() {
   }
   catch (err: unknown) {
     const error = err as { message?: string }
+    if (handleTicketExpired(error?.message)) {
+      return
+    }
     if (error?.message)
       toast.danger(error.message)
   }

@@ -64,6 +64,11 @@ public sealed partial class AuthAppService
     /// </summary>
     private const int MaxUnlockAttempts = 5;
 
+    /// <summary>
+    /// 两步验证票据无效（不存在 / 过期 / 不属于本次认证用户）的统一提示：前端据此回到凭据阶段并刷新图形验证码
+    /// </summary>
+    private const string TwoFactorTicketExpiredMessage = "两步验证已过期，请重新登录。";
+
     private readonly IAuthContextQueryService _authContextQueryService;
 
     private readonly IAuthenticationDomainService _authenticationDomainService;
@@ -128,6 +133,8 @@ public sealed partial class AuthAppService
 
     private readonly ICaptchaService _captchaService;
 
+    private readonly ITwoFactorTicketService _twoFactorTicketService;
+
     private readonly IConfiguration _configuration;
 
     private readonly ILogger<AuthAppService> _logger;
@@ -168,6 +175,7 @@ public sealed partial class AuthAppService
         IWebHostEnvironment webHostEnvironment,
         ILoginThrottleService loginThrottleService,
         ICaptchaService captchaService,
+        ITwoFactorTicketService twoFactorTicketService,
         IConfiguration configuration,
         ILogger<AuthAppService> logger)
     {
@@ -176,6 +184,7 @@ public sealed partial class AuthAppService
         _cacheInvalidator = cacheInvalidator;
         _loginThrottleService = loginThrottleService;
         _captchaService = captchaService;
+        _twoFactorTicketService = twoFactorTicketService;
         _authenticationDomainService = authenticationDomainService;
         _loginSessionDomainService = loginSessionDomainService;
         _authContextQueryService = authContextQueryService;
@@ -576,9 +585,19 @@ public sealed partial class AuthAppService
         // 防爆破节流：账号+IP 与纯 IP 双维度固定窗口计数，先于昂贵/带副作用的认证流程执行
         await _loginThrottleService.EnsureLoginAllowedAsync(login, _clientInfoProvider.GetCurrent().IpAddress, cancellationToken);
 
-        // 图形验证码（默认开启）：先于认证流程校验，消费即销毁——校验失败不可重试同一枚码
-        if (_captchaService.IsEnabled && !await _captchaService.TryConsumeAsync(input.CaptchaId, input.CaptchaCode, cancellationToken))
+        // 两步验证是无状态三段式，每段都重新提交本请求；图形验证码消费即销毁，只在首段校验。
+        // 首段通过后签发两步验证票据，后续阶段凭票免图形验证码。票据先于密码认证查存在性：
+        // 伪造票据不能借「带票免图形码」去试密码，无效票据在触碰凭据之前即被拒绝
+        var twoFactorTicket = string.IsNullOrWhiteSpace(input.TwoFactorTicket) ? null : input.TwoFactorTicket.Trim();
+        long? ticketUserId = null;
+        if (twoFactorTicket is not null)
         {
+            ticketUserId = await _twoFactorTicketService.ResolveUserIdAsync(twoFactorTicket, cancellationToken)
+                ?? throw new InvalidOperationException(TwoFactorTicketExpiredMessage);
+        }
+        else if (_captchaService.IsEnabled && !await _captchaService.TryConsumeAsync(input.CaptchaId, input.CaptchaCode, cancellationToken))
+        {
+            // 图形验证码（默认开启）：先于认证流程校验，消费即销毁——校验失败不可重试同一枚码
             throw new InvalidOperationException("验证码错误或已过期，请重试。");
         }
 
@@ -596,16 +615,26 @@ public sealed partial class AuthAppService
         // 默认密码登录 → 会话创建即锁定（强制改密）；两条成功路径共用同一判定
         var initialLockReason = ResolveInitialLockReason(password);
 
+        // 票据只替代图形验证码、不替代密码：出示的票据必须属于本次密码认证出的用户，
+        // 否则视同过期（不区分错票与他人票，避免票据被当作用户枚举探针）
+        if (twoFactorTicket is not null && authResult.User is not null && ticketUserId != authResult.User.BasicId)
+        {
+            throw new InvalidOperationException(TwoFactorTicketExpiredMessage);
+        }
+
         if (authResult.RequiresTwoFactor)
         {
             var security = authResult.Security ?? throw new InvalidOperationException("用户双因素配置不存在。");
             var twoFactorUser = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
             var availableMethods = ResolveTwoFactorMethods(twoFactorUser, security);
 
-            // 尚未提交验证码：进入方式选择 / 验证码下发阶段（不签发令牌）
+            // 尚未提交验证码：进入方式选择 / 验证码下发阶段（不签发令牌）。
+            // 首段签发票据随挑战下发；后续阶段沿用来票，票据在有效期内可多次出示直到登录完成
             if (string.IsNullOrWhiteSpace(input.TwoFactorCode))
             {
-                return await BuildTwoFactorChallengeAsync(twoFactorUser, availableMethods, input.TwoFactorMethod, tenantId: null, cancellationToken);
+                var challenge = await BuildTwoFactorChallengeAsync(twoFactorUser, availableMethods, input.TwoFactorMethod, tenantId: null, cancellationToken);
+                challenge.TwoFactorTicket = twoFactorTicket ?? await _twoFactorTicketService.IssueAsync(twoFactorUser.BasicId, cancellationToken);
+                return challenge;
             }
 
             // 已提交验证码：按所选方式校验，未通过抛出（记录失败事件）；通过则继续往下签发令牌
@@ -613,6 +642,7 @@ public sealed partial class AuthAppService
 
             await NotifyDefaultPasswordLoginIfNeededAsync(twoFactorUser, initialLockReason, cancellationToken);
             var twoFactorToken = await IssueLoginTokenWithLandingAsync(twoFactorUser, security, login, input.DeviceId, now, initialLockReason, cancellationToken);
+            await RevokeTwoFactorTicketAsync(twoFactorTicket, cancellationToken);
             return new LoginResponseDto
             {
                 RequiresTwoFactor = false,
@@ -641,6 +671,8 @@ public sealed partial class AuthAppService
         var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
         await NotifyDefaultPasswordLoginIfNeededAsync(user, initialLockReason, cancellationToken);
         var token = await IssueLoginTokenWithLandingAsync(user, authResult.Security, login, input.DeviceId, now, initialLockReason, cancellationToken);
+        // 两步验证在中途被关闭时带票也会走到这里：登录已完成，票据同样作废
+        await RevokeTwoFactorTicketAsync(twoFactorTicket, cancellationToken);
 
         return new LoginResponseDto
         {
@@ -1878,6 +1910,16 @@ public sealed partial class AuthAppService
                 client.IpAddress,
                 client.UserAgent));
         throw new InvalidOperationException("双因素验证码无效或已过期。");
+    }
+
+    /// <summary>
+    /// 登录完成后作废两步验证票据（未带票的登录无事可做）
+    /// </summary>
+    private Task RevokeTwoFactorTicketAsync(string? twoFactorTicket, CancellationToken cancellationToken)
+    {
+        return twoFactorTicket is null
+            ? Task.CompletedTask
+            : _twoFactorTicketService.RevokeAsync(twoFactorTicket, cancellationToken);
     }
 
     /// <summary>

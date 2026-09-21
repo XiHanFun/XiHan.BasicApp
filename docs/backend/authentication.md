@@ -140,9 +140,9 @@ OAuth 走**独立的 Web 端点**（不是动态 API），落在 `Infrastructure
 
 当密码/邮箱登录判定 `RequiresTwoFactor`：
 
-1. 未提交验证码 → 返回 `LoginResponseDto { RequiresTwoFactor=true, AvailableTwoFactorMethods, TwoFactorMethod, CodeSent }`；对 email/phone 方式会**先下发验证码**（TOTP 由认证器本地生成，无需下发）。
+1. 未提交验证码 → 返回 `LoginResponseDto { RequiresTwoFactor=true, AvailableTwoFactorMethods, TwoFactorMethod, CodeSent, TwoFactorTicket }`；对 email/phone 方式会**先下发验证码**（TOTP 由认证器本地生成，无需下发）。`TwoFactorTicket` 由 `ITwoFactorTicketService` 签发（分布式缓存、绑定用户主键、10 分钟），代表「本次登录已通过图形验证码」：后续阶段带票即跳过图形验证码（图形码一次性消费，第二段起无法重校验），票据先于密码认证查存在性、认证后与认证用户比对，不存在 / 过期 / 用户不匹配一律抛「两步验证已过期，请重新登录。」；不带票的后续阶段仍照旧消费图形验证码。
 2. 提交验证码 → 按方式校验：`totp` 走 `IOtpService.VerifyTotpCode`；`email` 走一次性验证码消费；`phone` 走个人中心验证服务消费。校验失败发布失败事件并抛错。
-3. 通过 → 继续签发令牌。
+3. 通过 → 继续签发令牌，并作废本次的两步验证票据。
 
 TOTP 遵循 RFC 6238：HMAC-SHA1、Base32 密钥、6 位、30 秒步长、±1 窗口容差；provisioning URI 形如 `otpauth://totp/{issuer}:{account}?secret=...&period=30&digits=6`。用户在[个人中心](#个人中心)开启/关闭各方式。
 
