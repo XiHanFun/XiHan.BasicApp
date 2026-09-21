@@ -98,8 +98,23 @@ const zhCN: XhTranslationOverrides = {
   'select': { clearTrigger: '清空', deleteItem: label => `移除 ${label}`, content: '选项列表' },
   'side-nav': { root: '侧边导航' },
   'spinner': { label: '加载中' },
-  // 排序钮是列头里独立的图标钮、不包列名，这句是它对读屏唯一的自述；其余把手（调宽 / 全选 / 列设置）暂沿用内建英文
-  'table': { sort: label => `按 ${label} 排序` },
+  'table': {
+    // 排序钮、列宽把手、列拖拽把手都是列头里独立的图标钮、不包列名，这句是它们对读屏唯一的自述
+    sort: label => `按 ${label} 排序`,
+    columnResize: label => `调整 ${label} 列宽`,
+    columnDrag: label => `拖动 ${label} 列换位`,
+    // 全选把手默认是空的角色节点，行内的勾选框又对读屏隐藏，这是整张表选择功能唯一的入口
+    selectAll: '全选所有行',
+    toolbar: '表格工具栏',
+    columnList: '列设置',
+    columnVisibility: label => `显示 ${label} 列`,
+    // 列 / 行拖动换位的读屏播报。item 不覆盖：组件库拿它把列 id 换成列名，这里写了会把列名盖回 id；
+    // movedInto / droppedInto / canceledInto / rootLevel 是带容器（树）的那三句，表格不报容器，不写
+    moved: (name, position, total) => `已将 ${name} 移到第 ${position} 位，共 ${total} 位`,
+    dropped: (name, position) => `${name} 已放到第 ${position} 位`,
+    canceled: (name, position) => `已取消移动，${name} 回到第 ${position} 位`,
+    rejected: name => `${name} 不能放在这里`,
+  },
   'tags-input': {
     deleteItem: value => `删除 ${value}`,
     editTagInput: value => `编辑 ${value}`,
