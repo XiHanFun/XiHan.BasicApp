@@ -62,11 +62,12 @@ const twoFactorCode = ref<string[]>([])
 const codeSent = ref(false)
 const sendingCode = ref(false)
 
-const methodLabels: Record<string, string> = {
-  totp: '认证器（Authenticator）',
-  email: '邮箱验证码',
-  phone: '手机短信验证码',
-}
+// 键名对齐服务端 ResolveTwoFactorMethods 给出的方式标识：totp / email / phone
+const methodLabels = computed<Record<string, string>>(() => ({
+  totp: t('page.auth.two_factor_method_totp'),
+  email: t('page.auth.two_factor_method_email'),
+  phone: t('page.auth.two_factor_method_phone'),
+}))
 
 const methodIcons: Record<string, string> = {
   totp: 'lucide:smartphone',
@@ -343,9 +344,18 @@ const onAuthInvalid = useAuthFormInvalid()
           </p>
         </div>
 
-        <XhFormSubmitTrigger class="auth-submit !mt-4" :disabled="authStore.loginLoading">
+        <!-- 这一阶段没有可校验的字段，验证码输满、Enter 与这颗钮都直接走 onSubmit，
+             不套 XhFormRoot：表单提交钮离开表单根会抛错、整颗钮不渲染 -->
+        <XhButton
+          variant="solid"
+          tone="brand"
+          full-width
+          :loading="authStore.loginLoading"
+          class="auth-submit !mt-4"
+          @click="onSubmit"
+        >
           {{ t('page.auth.two_factor_verify') }}
-        </XhFormSubmitTrigger>
+        </XhButton>
 
         <div class="flex gap-2 mt-3">
           <XhButton

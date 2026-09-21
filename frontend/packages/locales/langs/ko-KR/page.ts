@@ -54,6 +54,10 @@ export default {
     two_factor_subtitle: '이 계정은 2단계 인증이 켜져 있어요. 인증 앱에 표시된 6자리 코드를 입력하세요',
     two_factor_hint: 'Google Authenticator / Microsoft Authenticator 등의 앱에서 코드를 확인하세요',
     two_factor_verify: '인증 후 로그인',
+    // 登录页方式项的名字，键名对齐服务端给出的方式标识 totp / email / phone
+    two_factor_method_totp: '인증 앱(Authenticator)',
+    two_factor_method_email: '이메일 인증 코드',
+    two_factor_method_phone: 'SMS 인증 코드',
     // 扫码登录
     qrcode_subtitle: '휴대폰으로 QR 코드를 스캔하여 빠르게 로그인',
     qrcode_prompt: '모바일 앱을 열고 QR 코드를 스캔하면 로그인돼요',
