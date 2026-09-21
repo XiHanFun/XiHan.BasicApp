@@ -86,7 +86,7 @@ const appName = __APP_NAME__
             <div class="relative z-[1] lg:absolute lg:left-10 lg:top-14 xl:left-14 xl:top-16">
               <img :src="appLogo" :alt="appTitle" class="mb-3 h-[78px] w-[78px] rounded-2xl object-contain">
               <p
-                class="text-xs font-semibold uppercase tracking-[0.32em] text-[hsl(var(--primary))]"
+                class="auth-caption font-semibold uppercase tracking-[0.32em] text-[hsl(var(--primary))]"
               >
                 {{ appTitle }}
               </p>
@@ -98,7 +98,7 @@ const appName = __APP_NAME__
                   {{ appSubtitle || t('page.auth.slogan_title') }}
                 </h2>
                 <span
-                  class="slogan-tag -mt-px inline-block rounded-full border-2 border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.1)] px-3.5 py-1 text-[15px] leading-5 font-semibold text-[hsl(var(--primary))]"
+                  class="slogan-tag -mt-px inline-block rounded-full border-2 border-[hsl(var(--primary)/0.25)] bg-[hsl(var(--primary)/0.1)] px-3.5 py-1 auth-body font-semibold text-[hsl(var(--primary))]"
                 >
                   {{ appDescription || t('page.auth.slogan_desc') }}
                 </span>
@@ -138,7 +138,7 @@ const appName = __APP_NAME__
     <!-- Footer -->
     <footer
       v-if="showFooter"
-      class="auth-footer absolute bottom-0 left-0 flex w-full flex-col items-center justify-center gap-1 px-4 py-3 text-xs text-[hsl(var(--muted-foreground))]"
+      class="auth-footer absolute bottom-0 left-0 flex w-full flex-col items-center justify-center gap-1 px-4 py-3 auth-caption text-[hsl(var(--muted-foreground))]"
     >
       <div v-if="appStore.footerShowDevInfo" class="leading-tight">
         <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>

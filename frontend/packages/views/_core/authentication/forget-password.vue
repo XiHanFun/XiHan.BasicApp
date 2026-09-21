@@ -62,7 +62,7 @@ const onAuthInvalid = useAuthFormInvalid()
         {{ t('page.auth.forget_password_title') }}
       </h1>
       <p
-        class="mt-3 text-[15px] leading-7"
+        class="mt-3 auth-body"
         :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
       >
         {{ t('page.auth.forget_password_subtitle') }}
@@ -96,7 +96,7 @@ const onAuthInvalid = useAuthFormInvalid()
     </XhFormRoot>
 
     <p
-      class="mt-6 text-sm text-center"
+      class="mt-6 auth-helper text-center"
       :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
     >
       <span class="cursor-pointer link-primary" @click="router.push(LOGIN_PATH)">

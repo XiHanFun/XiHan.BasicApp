@@ -92,7 +92,7 @@ const onAuthInvalid = useAuthFormInvalid()
   <div class="py-1">
     <div class="mb-8">
       <p
-        class="mt-3 text-[15px] leading-7"
+        class="mt-3 auth-body"
         :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
       >
         {{ t('page.auth.code_login_subtitle') }}

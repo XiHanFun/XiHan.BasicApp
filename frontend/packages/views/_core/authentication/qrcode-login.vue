@@ -77,7 +77,7 @@ onMounted(() => {
   <div class="py-1">
     <div class="mb-8">
       <p
-        class="mt-3 text-[15px] leading-7"
+        class="mt-3 auth-body"
         :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
       >
         {{ t('page.auth.qrcode_subtitle') }}
@@ -101,7 +101,7 @@ onMounted(() => {
       </div>
 
       <p
-        class="mt-5 text-center text-[15px]"
+        class="mt-5 text-center auth-helper"
         :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
       >
         {{ t('page.auth.qrcode_prompt') }}

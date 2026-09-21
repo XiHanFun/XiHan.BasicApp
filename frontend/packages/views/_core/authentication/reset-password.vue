@@ -77,7 +77,7 @@ const onAuthInvalid = useAuthFormInvalid()
         重置密码
       </h1>
       <p
-        class="mt-3 text-[15px] leading-7"
+        class="mt-3 auth-body"
         :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
       >
         请设置新的登录密码，该链接仅可使用一次。
@@ -125,7 +125,7 @@ const onAuthInvalid = useAuthFormInvalid()
     </XhFormRoot>
 
     <p
-      class="mt-6 text-sm text-center"
+      class="mt-6 auth-helper text-center"
       :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
     >
       <span class="cursor-pointer link-primary" @click="router.push(LOGIN_PATH)">
