@@ -98,6 +98,8 @@ const zhCN: XhTranslationOverrides = {
   'select': { clearTrigger: '清空', deleteItem: label => `移除 ${label}`, content: '选项列表' },
   'side-nav': { root: '侧边导航' },
   'spinner': { label: '加载中' },
+  // 排序钮是列头里独立的图标钮、不包列名，这句是它对读屏唯一的自述；其余把手（调宽 / 全选 / 列设置）暂沿用内建英文
+  'table': { sort: label => `按 ${label} 排序` },
   'tags-input': {
     deleteItem: value => `删除 ${value}`,
     editTagInput: value => `编辑 ${value}`,

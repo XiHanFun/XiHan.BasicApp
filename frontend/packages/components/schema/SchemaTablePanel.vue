@@ -6,6 +6,7 @@ import {
   XhTableBody,
   XhTableCell,
   XhTableColumnHeader,
+  XhTableColumnLabel,
   XhTableEmpty,
   XhTableExpandedRow,
   XhTableExpandTrigger,
@@ -368,16 +369,12 @@ function rowPeekHandlers(row: TRow) {
             :value="column.key"
             :style="minWidthStyle(column)"
           >
-            <!-- 截断落在内部文字节点上：皮肤把排序箭头做成把手的伪元素，加在把手上会连箭头一起裁掉 -->
-            <XhTableSortTrigger
-              v-if="column.sortable"
-              class="xh-table-panel__sort"
-              :title="t('component.schema_table.sort_tip')"
-            >
-              <span class="xh-table-panel__title">{{ column.title }}</span>
-            </XhTableSortTrigger>
-            <span v-else class="xh-table-panel__title">{{ column.title }}</span>
-            <!-- 调宽把手与排序把手是兄弟节点，拖它不会连带触发排序 -->
+            <!-- 列名一律放进 column-label：它是列头里唯一可收窄的一格，超宽出省略号；
+                 排序钮与调宽把手都是它的兄弟，排在列名之后被推到行尾并排。点列名不排序，点钮才排序 -->
+            <XhTableColumnLabel>{{ column.title }}</XhTableColumnLabel>
+            <!-- 定尺图标钮，不包列名；箭头由皮肤按当前方向兜底画，可及名由库的 translations.sort(列名) 给 -->
+            <XhTableSortTrigger v-if="column.sortable" :title="t('component.schema_table.sort_tip')" />
+            <!-- 调宽把手与排序钮是兄弟节点，拖它不会连带触发排序 -->
             <XhTableColumnResizeTrigger :title="t('component.schema_table.resize_tip')" />
           </XhTableColumnHeader>
         </XhTableRow>
@@ -537,22 +534,8 @@ function rowPeekHandlers(row: TRow) {
 /* 前缀列与操作列的「不吃余量」改由 minWidthStyle / prefixStyle 写成内联样式，
    两侧同一个函数出，见脚本区 */
 
-/* 排序把手：文字段占满、箭头贴右缘 */
-.xh-table-panel__sort {
-  min-width: 0;
-}
-
 /* 单元格里的文字段：超宽出省略号 */
 .xh-table-panel__cell-text {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* 列标题里的文字段：占满剩余宽度并省略，把手才贴得住右缘 */
-.xh-table-panel__title {
   flex: 1;
   min-width: 0;
   overflow: hidden;

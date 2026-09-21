@@ -5,6 +5,7 @@ import {
   XhTableBody,
   XhTableCell,
   XhTableColumnHeader,
+  XhTableColumnLabel,
   XhTableEmpty,
   XhTableHeader,
   XhTableLoading,
@@ -142,7 +143,8 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
           :value="column.key"
           :style="cellStyle(column)"
         >
-          {{ column.title }}
+          <!-- 列名放进 column-label：列头是 flex 行，裸文本缩不下去；这一格超宽出省略号 -->
+          <XhTableColumnLabel>{{ column.title }}</XhTableColumnLabel>
         </XhTableColumnHeader>
       </XhTableRow>
     </XhTableHeader>

@@ -545,7 +545,7 @@ export default {
   },
   schema_table: {
     sort_tip:
-      'Ein Klick auf den Spaltenkopf schaltet zwischen Unsortiert / Aufsteigend / Absteigend um und ersetzt die gesamte Sortierung durch diese Spalte. Umschalt+Klick fügt diese Spalte als sekundäre Sortierung hinzu; die kleine Zahl neben dem Namen zeigt ihre Priorität.',
+      'Ein Klick auf das Sortiersymbol schaltet zwischen Unsortiert / Aufsteigend / Absteigend um und ersetzt die gesamte Sortierung durch diese Spalte. Umschalt+Klick fügt diese Spalte als sekundäre Sortierung hinzu; die kleine Zahl neben dem Namen zeigt ihre Priorität.',
     resize_tip: 'Das Ziehen dieser Kante ändert die Spaltenbreite und löst niemals eine Sortierung aus.',
     index: 'Nr.',
     total_prefix: 'Gesamt',
