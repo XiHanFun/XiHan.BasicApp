@@ -530,25 +530,30 @@ const onAuthInvalid = useAuthFormInvalid()
           </span>
           <XhSeparator class="flex-1" :class="isDark ? '!border-white/10' : '!border-[hsl(var(--border))]'" />
         </div>
+        <!-- 第三方渠道跟表单其余控件同走 lg 档：高度与圆角都由库的控件令牌给，不再用工具类盖 -->
         <div v-if="oauthProviders.length > 0" class="flex gap-3 justify-center items-center">
           <XhButton
             v-for="provider in inlineOauthProviders"
             :key="provider.name"
             variant="subtle"
-            class="!h-10 !rounded-xl !px-4"
+            size="lg"
             @click="handleOAuthLogin(provider)"
           >
             <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
             {{ provider.displayName }}
           </XhButton>
 
-          <!-- 触发器本身就是那颗按钮：浮层触发器渲染成 button，不能再往里套一颗 -->
+          <!-- as-child：浮层触发器缺省渲染成 button，这里借用 XhButton 本体，好与同排渠道钮同款同档 -->
           <XhPopoverRoot v-if="moreOauthProviders.length > 0" v-model:open="showMoreOauth" placement="top">
-            <XhPopoverTrigger
-              class="oauth-more-trigger !h-10 !w-10 !rounded-xl"
-              :aria-label="t('page.auth.third_party_more')"
-            >
-              <Icon icon="lucide:ellipsis" width="16" />
+            <XhPopoverTrigger as-child>
+              <XhButton
+                variant="subtle"
+                size="lg"
+                icon-only
+                :aria-label="t('page.auth.third_party_more')"
+              >
+                <Icon icon="lucide:ellipsis" width="16" />
+              </XhButton>
             </XhPopoverTrigger>
             <XhPopoverPositioner>
               <XhPopoverContent :aria-label="t('page.auth.third_party_more')">
@@ -557,7 +562,8 @@ const onAuthInvalid = useAuthFormInvalid()
                     v-for="provider in moreOauthProviders"
                     :key="provider.name"
                     variant="subtle"
-                    class="!h-10 !rounded-xl !px-4 !justify-start"
+                    size="lg"
+                    class="!justify-start"
                     @click="handleOAuthLogin(provider)"
                   >
                     <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
@@ -574,30 +580,6 @@ const onAuthInvalid = useAuthFormInvalid()
 </template>
 
 <style scoped>
-/* 「更多渠道」触发器：浮层触发器自己就是 button，套不了 XhButton，只能照 subtle 变体补皮。
-   尺寸走和旁边那几颗同一串工具类（!h-10 !w-10 !rounded-xl）——那是带 !important 的，
-   本作用域样式压不过它，两处各写一份迟早对不齐，所以这里只管观感不管尺寸。
-   边框留 1px 透明，与按钮同样的 border-box 盒模型 */
-.oauth-more-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: var(--xh-stroke-thin) solid transparent;
-  background: var(--xh-bg-subtle);
-  color: var(--xh-fg-default);
-  cursor: pointer;
-  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-}
-
-.oauth-more-trigger:hover {
-  background: var(--xh-bg-subtle-hover);
-}
-
-.oauth-more-trigger:active {
-  background: var(--xh-bg-subtle-active);
-}
-
 /* 收进浮层的渠道排两列，条目左对齐便于扫读 */
 .oauth-more-grid {
   display: grid;
