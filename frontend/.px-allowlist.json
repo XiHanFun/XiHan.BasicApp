@@ -96,7 +96,7 @@
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaPage.vue": {
-    "cap": 7,
+    "cap": 3,
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaPagination.vue": {
@@ -116,7 +116,7 @@
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaTablePanel.vue": {
-    "cap": 8,
+    "cap": 7,
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaTableSettings.vue": {
@@ -132,7 +132,7 @@
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/design/ui.css": {
-    "cap": 28,
+    "cap": 26,
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/design/variables.css": {
