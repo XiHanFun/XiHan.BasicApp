@@ -219,7 +219,7 @@ const onAuthInvalid = useAuthFormInvalid()
             }"
           />
         </div>
-        <span class="text-xs" :style="{ color: strengthColor }">{{ strengthLabel }}</span>
+        <span class="auth-caption" :style="{ color: strengthColor }">{{ strengthLabel }}</span>
       </div>
       <div v-else class="mb-3" />
 
@@ -249,7 +249,7 @@ const onAuthInvalid = useAuthFormInvalid()
       <div class="mb-6">
         <span class="xh-checkbox-row">
           <XhCheckbox v-model:checked="agreePolicy" />
-          <span class="xh-checkbox-row__label text-sm">
+          <span class="xh-checkbox-row__label auth-body">
             {{ t('page.auth.agree_text') }}
             <a class="link-primary" href="#">{{ t('page.auth.privacy_policy') }}</a>
             {{ t('page.auth.and') }}
@@ -264,7 +264,7 @@ const onAuthInvalid = useAuthFormInvalid()
     </XhFormRoot>
 
     <p
-      class="mt-6 text-sm text-center"
+      class="mt-6 auth-helper text-center"
       :class="isDark ? 'text-gray-400' : 'text-[hsl(var(--muted-foreground))]'"
     >
       {{ t('page.auth.already_have_account') }}
