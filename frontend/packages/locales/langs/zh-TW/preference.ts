@@ -72,6 +72,13 @@ export default {
     radius: {
       title: '圓角',
     },
+    density: {
+      title: '密度',
+      level: '介面密度',
+      comfortable: '寬鬆',
+      compact: '緊湊',
+      tip: '切換控制項高度、內距與清單列距的整體檔位；緊湊檔更貼近表格與表單密集的管理情境',
+    },
     navigation: {
       title: '導覽',
       sidebar_dark: '深色側邊欄',

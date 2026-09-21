@@ -72,6 +72,13 @@ export default {
     radius: {
       title: 'Rundung',
     },
+    density: {
+      title: 'Dichte',
+      level: 'Oberflächendichte',
+      comfortable: 'Komfortabel',
+      compact: 'Kompakt',
+      tip: 'Schaltet die Gesamtstufe von Steuerelementhöhe, Innenabstand und Listenzeilenabstand um; Kompakt passt zu tabellen- und formularlastiger Verwaltungsarbeit',
+    },
     navigation: {
       title: 'Navigation',
       sidebar_dark: 'Dunkle Seitenleiste',

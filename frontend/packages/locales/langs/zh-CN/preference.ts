@@ -72,6 +72,13 @@ export default {
     radius: {
       title: '圆角',
     },
+    density: {
+      title: '密度',
+      level: '界面密度',
+      comfortable: '宽松',
+      compact: '紧凑',
+      tip: '切换控件高度、内距与列表行距的整体档位；紧凑档更贴近表格与表单密集的管理场景',
+    },
     navigation: {
       title: '导航',
       sidebar_dark: '深色侧边栏',

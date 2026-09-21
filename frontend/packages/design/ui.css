@@ -359,13 +359,14 @@
   background: var(--xh-bg-subtle);
 }
 
-/* 圆形图标钮：工具栏里一排 28px 的透明底按钮（列设置/刷新/导出等），XIconButton 与借用它当触发器的菜单共用 */
+/* 圆形图标钮：工具栏里一排透明底按钮（列设置/刷新/导出等），XIconButton 与借用它当触发器的菜单共用。
+   盒尺寸取 sm 档控件方盒，随密度轴换档（紧凑 28px、宽松 32px），与同排的 sm 按钮齐高 */
 .xh-icon-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  inline-size: 28px;
-  block-size: 28px;
+  inline-size: var(--xh-control-box-sm);
+  block-size: var(--xh-control-box-sm);
   padding: 0;
   border: 0;
   border-radius: var(--xh-radius-full);

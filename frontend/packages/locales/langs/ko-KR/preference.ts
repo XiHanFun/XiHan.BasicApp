@@ -72,6 +72,13 @@ export default {
     radius: {
       title: '모서리 둥글기',
     },
+    density: {
+      title: '밀도',
+      level: '화면 밀도',
+      comfortable: '넉넉하게',
+      compact: '촘촘하게',
+      tip: '컨트롤 높이, 안쪽 여백, 목록 행 간격을 한꺼번에 전환합니다. 촘촘하게는 표와 폼이 많은 관리 화면에 알맞습니다',
+    },
     navigation: {
       title: '내비게이션',
       sidebar_dark: '다크 사이드바',

@@ -1,9 +1,11 @@
+import type { UiDensity } from '~/constants'
 import { computed, ref } from 'vue'
 import {
   COLOR_WEAKNESS_ENABLED_KEY,
   DEFAULT_FONT_SIZE,
   DEFAULT_THEME,
   DEFAULT_THEME_COLOR,
+  DEFAULT_UI_DENSITY,
   DEFAULT_UI_RADIUS,
   FONT_SIZE_KEY,
   FROSTED_GLASS_ENABLED_KEY,
@@ -20,6 +22,7 @@ import {
   TRANSITION_LOADING_KEY,
   TRANSITION_NAME_KEY,
   TRANSITION_PROGRESS_KEY,
+  UI_DENSITY_KEY,
   UI_RADIUS_KEY,
   WATERMARK_ENABLED_KEY,
   WATERMARK_TEXT_KEY,
@@ -37,6 +40,8 @@ export function createThemeSlice() {
   const themeDynamicColor = ref<boolean>(LocalStorage.get<boolean>(THEME_DYNAMIC_COLOR_KEY) ?? true)
   const uiRadius = ref<number>(LocalStorage.get<number>(UI_RADIUS_KEY) ?? DEFAULT_UI_RADIUS)
   const fontSize = ref<number>(LocalStorage.get<number>(FONT_SIZE_KEY) ?? DEFAULT_FONT_SIZE)
+  // 界面密度：由 useHtmlStyle 写到 <html data-density>，XiHan.UI 的控件高度、内距、列表行距整轴换档
+  const uiDensity = ref<UiDensity>(LocalStorage.get<UiDensity>(UI_DENSITY_KEY) ?? DEFAULT_UI_DENSITY)
 
   const themeAnimationEnabled = ref<boolean>(
     LocalStorage.get<boolean>(THEME_ANIMATION_ENABLED_KEY) ?? true,
@@ -71,6 +76,7 @@ export function createThemeSlice() {
   bindPersist(THEME_DYNAMIC_COLOR_KEY, themeDynamicColor, true)
   bindPersist(UI_RADIUS_KEY, uiRadius, DEFAULT_UI_RADIUS)
   bindPersist(FONT_SIZE_KEY, fontSize, DEFAULT_FONT_SIZE)
+  bindPersist(UI_DENSITY_KEY, uiDensity, DEFAULT_UI_DENSITY)
   bindPersist(THEME_ANIMATION_ENABLED_KEY, themeAnimationEnabled, true)
   bindPersist(TRANSITION_ENABLE_KEY, transitionEnable, true)
   bindPersist(TRANSITION_NAME_KEY, transitionName, 'scale-up')
@@ -105,6 +111,9 @@ export function createThemeSlice() {
   }
   function setFontSize(size: number) {
     save(FONT_SIZE_KEY, fontSize, size)
+  }
+  function setUiDensity(v: UiDensity) {
+    save(UI_DENSITY_KEY, uiDensity, v)
   }
   function setThemeAnimationEnabled(v: boolean) {
     save(THEME_ANIMATION_ENABLED_KEY, themeAnimationEnabled, v)
@@ -152,6 +161,7 @@ export function createThemeSlice() {
     themeDynamicColor,
     uiRadius,
     fontSize,
+    uiDensity,
     isDark,
     themeAnimationEnabled,
     transitionEnable,
@@ -173,6 +183,7 @@ export function createThemeSlice() {
     setThemeDynamicColor,
     setUiRadius,
     setFontSize,
+    setUiDensity,
     setThemeAnimationEnabled,
     setTransitionEnable,
     setTransitionName,
