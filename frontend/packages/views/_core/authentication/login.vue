@@ -350,8 +350,9 @@ const onAuthInvalid = useAuthFormInvalid()
         <div class="flex gap-2 mt-3">
           <XhButton
             v-if="selectedMethod !== 'totp'"
-            class="!h-11 flex-1 !rounded-xl"
+            class="flex-1"
             variant="ghost"
+            size="lg"
             :loading="sendingCode"
             @click="handleResendCode"
           >
@@ -359,8 +360,9 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhButton>
           <XhButton
             v-if="availableMethods.length > 1"
-            class="!h-11 flex-1 !rounded-xl"
+            class="flex-1"
             variant="ghost"
+            size="lg"
             @click="handleBackToMethodSelect"
           >
             换种方式
