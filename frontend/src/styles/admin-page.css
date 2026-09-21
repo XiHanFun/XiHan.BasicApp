@@ -4,9 +4,10 @@
  * 加在 XhFormRoot 或普通 div 容器上均可。
  *
  * 标签字号与「标签↔控件」的间距走组件库的覆盖槽，两个值在这里一处给全网格内的字段。
+ * 紧凑网格里标签刻意比 md 控件文字低一档，取说明 / helper 那档字号，层级靠字号差表达。
  */
 .xh-edit-form-grid {
-  --xh-field-label-font-size: 11px;
+  --xh-field-label-font-size: var(--xh-text-secondary-size);
   --xh-field-gap: 8px;
 
   display: grid;
@@ -60,14 +61,16 @@
   color: hsl(var(--primary));
 }
 
+/* 实体名是弹窗头部的主标题：取 lg 档字号、semibold */
 .xh-mgmt-detail-modal .det-hd-name {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--xh-font-size-lg);
+  font-weight: var(--xh-font-weight-semibold);
   color: hsl(var(--foreground));
 }
 
+/* 实体名下的副标题（标识、时间戳一类）是次级标注 */
 .xh-mgmt-detail-modal .det-hd-sub {
-  font-size: 12px;
+  font-size: var(--xh-text-caption-size);
   color: hsl(var(--muted-foreground));
   margin-top: 2px;
 }
@@ -76,7 +79,8 @@
   padding: 48px 0;
   text-align: center;
   color: hsl(var(--muted-foreground));
-  font-size: 13px;
+  /* 读数中的占位提示是说明文字 */
+  font-size: var(--xh-text-secondary-size);
 }
 
 .xh-mgmt-detail-modal .xh-detail-table-wrap {
@@ -91,5 +95,6 @@
 .preference-drawer-content {
   --xh-drawer-size: 396px;
 
-  font-size: 14px;
+  /* 面板正文与 md 控件同档 */
+  font-size: var(--xh-text-body-size);
 }

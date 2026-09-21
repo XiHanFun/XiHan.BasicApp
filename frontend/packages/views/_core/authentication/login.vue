@@ -535,7 +535,7 @@ const onAuthInvalid = useAuthFormInvalid()
             v-for="provider in inlineOauthProviders"
             :key="provider.name"
             variant="subtle"
-            class="!h-10 !rounded-xl !px-4 !text-sm"
+            class="!h-10 !rounded-xl !px-4"
             @click="handleOAuthLogin(provider)"
           >
             <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
@@ -557,7 +557,7 @@ const onAuthInvalid = useAuthFormInvalid()
                     v-for="provider in moreOauthProviders"
                     :key="provider.name"
                     variant="subtle"
-                    class="!h-10 !rounded-xl !px-4 !text-sm !justify-start"
+                    class="!h-10 !rounded-xl !px-4 !justify-start"
                     @click="handleOAuthLogin(provider)"
                   >
                     <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
