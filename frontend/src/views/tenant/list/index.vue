@@ -259,10 +259,10 @@ function renderQuotaUsage(used: number, limit: number | null | undefined, format
 
   const ratio = limit <= 0 ? 1 : used / limit
   if (ratio >= 1) {
-    return h(XhTagRoot, { variant: 'solid', tone: 'danger' }, () => h(XhTagLabel, () => text))
+    return h(XhTagRoot, { variant: 'subtle', tone: 'danger' }, () => h(XhTagLabel, () => text))
   }
   if (ratio >= QUOTA_WARNING_RATIO) {
-    return h(XhTagRoot, { variant: 'solid', tone: 'warning' }, () => h(XhTagLabel, () => text))
+    return h(XhTagRoot, { variant: 'subtle', tone: 'warning' }, () => h(XhTagLabel, () => text))
   }
   return h('span', {}, text)
 }
@@ -327,7 +327,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 7,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: getTenantStatusTagType(r.tenantStatus) }, () => h(XhTagLabel, () => getOptionLabel(tenantStatusOptions.value, r.tenantStatus)))
+      return h(XhTagRoot, { variant: 'subtle', tone: getTenantStatusTagType(r.tenantStatus) }, () => h(XhTagLabel, () => getOptionLabel(tenantStatusOptions.value, r.tenantStatus)))
     },
   },
   {
@@ -352,7 +352,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 9,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return h(XhTagRoot, { variant: 'solid', tone: r.isExpired ? 'danger' : 'success' }, () => h(XhTagLabel, () => (r.isExpired ? t('tenant.list.yes') : t('tenant.list.no'))))
+      return h(XhTagRoot, { variant: 'subtle', tone: r.isExpired ? 'danger' : 'success' }, () => h(XhTagLabel, () => (r.isExpired ? t('tenant.list.yes') : t('tenant.list.no'))))
     },
   },
   {
