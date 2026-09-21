@@ -586,14 +586,20 @@ public sealed partial class AuthAppService
         await _loginThrottleService.EnsureLoginAllowedAsync(login, _clientInfoProvider.GetCurrent().IpAddress, cancellationToken);
 
         // 两步验证是无状态三段式，每段都重新提交本请求；图形验证码消费即销毁，只在首段校验。
-        // 首段通过后签发两步验证票据，后续阶段凭票免图形验证码。票据先于密码认证查存在性：
-        // 伪造票据不能借「带票免图形码」去试密码，无效票据在触碰凭据之前即被拒绝
+        // 首段通过后签发两步验证票据，后续阶段凭票免图形验证码。票据先于密码认证查存在性并比对签发时的登录名：
+        // 伪造票据不能借「带票免图形码」去试密码；持自己账号合法票据的人也不能拿它免图形码去试探他人账号——
+        // 登录名不匹配的票据在触碰凭据之前即作废并按过期拒绝，不区分「账号或密码错误」文案
         var twoFactorTicket = string.IsNullOrWhiteSpace(input.TwoFactorTicket) ? null : input.TwoFactorTicket.Trim();
-        long? ticketUserId = null;
+        TwoFactorTicketPayload? ticketPayload = null;
         if (twoFactorTicket is not null)
         {
-            ticketUserId = await _twoFactorTicketService.ResolveUserIdAsync(twoFactorTicket, cancellationToken)
+            ticketPayload = await _twoFactorTicketService.ResolveAsync(twoFactorTicket, cancellationToken)
                 ?? throw new InvalidOperationException(TwoFactorTicketExpiredMessage);
+            if (!string.Equals(ticketPayload.Login, login, StringComparison.OrdinalIgnoreCase))
+            {
+                await _twoFactorTicketService.RevokeAsync(twoFactorTicket, cancellationToken);
+                throw new InvalidOperationException(TwoFactorTicketExpiredMessage);
+            }
         }
         else if (_captchaService.IsEnabled && !await _captchaService.TryConsumeAsync(input.CaptchaId, input.CaptchaCode, cancellationToken))
         {
@@ -616,9 +622,10 @@ public sealed partial class AuthAppService
         var initialLockReason = ResolveInitialLockReason(password);
 
         // 票据只替代图形验证码、不替代密码：出示的票据必须属于本次密码认证出的用户，
-        // 否则视同过期（不区分错票与他人票，避免票据被当作用户枚举探针）
-        if (twoFactorTicket is not null && authResult.User is not null && ticketUserId != authResult.User.BasicId)
+        // 否则作废并视同过期（不区分错票与他人票，避免票据被当作用户枚举探针）
+        if (twoFactorTicket is not null && ticketPayload is not null && authResult.User is not null && ticketPayload.UserId != authResult.User.BasicId)
         {
+            await _twoFactorTicketService.RevokeAsync(twoFactorTicket, cancellationToken);
             throw new InvalidOperationException(TwoFactorTicketExpiredMessage);
         }
 
@@ -633,7 +640,7 @@ public sealed partial class AuthAppService
             if (string.IsNullOrWhiteSpace(input.TwoFactorCode))
             {
                 var challenge = await BuildTwoFactorChallengeAsync(twoFactorUser, availableMethods, input.TwoFactorMethod, tenantId: null, cancellationToken);
-                challenge.TwoFactorTicket = twoFactorTicket ?? await _twoFactorTicketService.IssueAsync(twoFactorUser.BasicId, cancellationToken);
+                challenge.TwoFactorTicket = twoFactorTicket ?? await _twoFactorTicketService.IssueAsync(twoFactorUser.BasicId, login, cancellationToken);
                 return challenge;
             }
 
