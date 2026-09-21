@@ -14,6 +14,7 @@ import {
   DEFAULT_PAGE_SIZE,
   DEFAULT_THEME,
   DEFAULT_THEME_COLOR,
+  DEFAULT_UI_DENSITY,
   DEFAULT_UI_RADIUS,
   FOUNDATION_PROJECTS,
   THEME_AUTO,
@@ -21,6 +22,9 @@ import {
   THEME_DARK,
   THEME_LIGHT,
   TOKEN_EXPIRES_IN,
+  UI_DENSITIES,
+  UI_DENSITY_COMFORTABLE,
+  UI_DENSITY_COMPACT,
 } from './app'
 
 const allPresets = THEME_COLOR_GROUPS.flatMap(group => group.items)
@@ -66,6 +70,13 @@ describe('默认配置', () => {
     expect(DEFAULT_FONT_SIZE).toBe(14)
     expect(DEFAULT_UI_RADIUS).toBeGreaterThanOrEqual(0)
     expect(DEFAULT_FONT_SIZE).toBeGreaterThan(0)
+  })
+
+  it('界面密度两档对应 XiHan.UI 的 data-density 取值，管理端缺省紧凑', () => {
+    expect(UI_DENSITY_COMFORTABLE).toBe('comfortable')
+    expect(UI_DENSITY_COMPACT).toBe('compact')
+    expect(UI_DENSITIES).toEqual([UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT])
+    expect(DEFAULT_UI_DENSITY).toBe(UI_DENSITY_COMPACT)
   })
 })
 

@@ -19,6 +19,16 @@ export const DEFAULT_LAYOUT_MODE = 'side'
 export const DEFAULT_UI_RADIUS = 0.25
 export const DEFAULT_FONT_SIZE = 14
 
+// ==================== 界面密度 ====================
+
+/** 对应 XiHan.UI 的 data-density 轴：comfortable 控件 sm 32 / md 36，compact 收到 28 / 32 */
+export const UI_DENSITY_COMFORTABLE = 'comfortable'
+export const UI_DENSITY_COMPACT = 'compact'
+export const UI_DENSITIES = [UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT] as const
+export type UiDensity = (typeof UI_DENSITIES)[number]
+/** 管理端缺省紧凑：与迁移前 Naive UI 时期的控件高度（28 / 32）同档 */
+export const DEFAULT_UI_DENSITY: UiDensity = UI_DENSITY_COMPACT
+
 // ==================== 主题颜色预设 ====================
 
 export interface ThemeColorPreset {

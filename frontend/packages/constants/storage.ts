@@ -44,6 +44,7 @@ export const WATERMARK_ENABLED_KEY = `${STORAGE_PREFIX}watermark_enabled`
 export const WATERMARK_TEXT_KEY = `${STORAGE_PREFIX}watermark_text`
 export const UI_RADIUS_KEY = `${STORAGE_PREFIX}ui_radius`
 export const FONT_SIZE_KEY = `${STORAGE_PREFIX}font_size`
+export const UI_DENSITY_KEY = `${STORAGE_PREFIX}ui_density`
 export const DYNAMIC_TITLE_KEY = `${STORAGE_PREFIX}dynamic_title`
 export const PREFERENCE_SYNC_KEY = `${STORAGE_PREFIX}preference_sync`
 export const FAVORITES_SYNC_KEY = `${STORAGE_PREFIX}favorites_sync`

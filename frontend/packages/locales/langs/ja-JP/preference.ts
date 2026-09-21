@@ -72,6 +72,13 @@ export default {
     radius: {
       title: '角丸',
     },
+    density: {
+      title: '密度',
+      level: '画面の密度',
+      comfortable: 'ゆったり',
+      compact: 'コンパクト',
+      tip: 'コントロールの高さ・余白・リストの行間をまとめて切り替えます。コンパクトは表やフォームが多い管理画面向きです',
+    },
     navigation: {
       title: 'ナビゲーション',
       sidebar_dark: 'ダークサイドバー',

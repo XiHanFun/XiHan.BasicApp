@@ -479,8 +479,9 @@ const onAuthInvalid = useAuthFormInvalid()
                     autocomplete="off"
                   />
                 </XhFieldControl>
+                <!-- 高度跟旁边 lg 档输入框同一个控件令牌，密度换档时两者一起缩放 -->
                 <div
-                  class="flex justify-center items-center shrink-0 w-[120px] h-[40px] rounded-lg overflow-hidden"
+                  class="flex justify-center items-center shrink-0 w-[120px] h-[var(--xh-control-h-lg)] rounded-lg overflow-hidden"
                   :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--muted)/0.15)]'"
                   :title="t('page.login.captcha_refresh_title')"
                   @click="refreshCaptcha"

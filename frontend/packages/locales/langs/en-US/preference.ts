@@ -72,6 +72,13 @@ export default {
     radius: {
       title: 'Radius',
     },
+    density: {
+      title: 'Density',
+      level: 'Interface density',
+      comfortable: 'Comfortable',
+      compact: 'Compact',
+      tip: 'Switches the overall scale of control height, padding and list row spacing; compact suits table- and form-heavy admin work',
+    },
     navigation: {
       title: 'Navigation',
       sidebar_dark: 'Dark Sidebar',

@@ -1,12 +1,13 @@
 <script setup lang="ts">
+import type { UiDensity } from '~/constants'
 import type { useAppStore } from '~/stores'
 import { XhSwitch } from '@xihan-ui/vue'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XColorPicker, XInput, XNumberInput, XSlider } from '~/components'
+import { XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
 import PageLoader from '~/components/common/PageLoader.vue'
-import { ALL_THEME_COLORS, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS } from '~/constants'
+import { ALL_THEME_COLORS, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS, UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import PrefTip from './PrefTip.vue'
@@ -73,6 +74,12 @@ function handleModeChange(value: 'light' | 'dark' | 'auto', event: Event) {
     clientY: rect.top + rect.height / 2,
   })
 }
+
+// 界面密度：两档对应 XiHan.UI 的 data-density，控件 32/36 与 28/32
+const densityOptions = computed<Array<{ value: UiDensity, label: string }>>(() => [
+  { value: UI_DENSITY_COMFORTABLE, label: t('preference.appearance.density.comfortable') },
+  { value: UI_DENSITY_COMPACT, label: t('preference.appearance.density.compact') },
+])
 
 const transitionItems = computed(() => [
   { value: 'scale-up', label: t('preference.general.animation.scale_up') },
@@ -221,6 +228,25 @@ const loaderItems = computed(() =>
         >
           {{ r }}
         </button>
+      </div>
+    </section>
+
+    <!-- 密度 -->
+    <section class="pref-card">
+      <div class="section-title">
+        {{ t('preference.appearance.density.title') }}
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.appearance.density.level') }}</span>
+          <PrefTip :content="t('preference.appearance.density.tip')" />
+        </div>
+        <XSegmented
+          :value="appStore.uiDensity"
+          :options="densityOptions"
+          size="sm"
+          @update:value="(value) => appStore.setUiDensity(value)"
+        />
       </div>
     </section>
 

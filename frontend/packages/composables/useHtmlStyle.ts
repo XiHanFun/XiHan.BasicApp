@@ -6,7 +6,7 @@ import { useAppStore } from '~/stores'
 const ROOT_FONT_SIZE_BASELINE = 16
 
 /**
- * 将主题 / 灰度 / 色弱 / 字号 / 磨砂等偏好实时同步到 <html> 元素。
+ * 将主题 / 密度 / 灰度 / 色弱 / 字号 / 磨砂等偏好实时同步到 <html> 元素。
  * 在 App 根组件中调用一次即可。
  */
 export function useHtmlStyle() {
@@ -22,6 +22,10 @@ export function useHtmlStyle() {
     // XiHan.UI 的令牌按 [data-theme] 取值（color-scheme 也在那儿声明），
     // 与上面两个类名一并写，组件库与应用样式才认同一个明暗
     el.dataset.theme = isDark.value ? 'dark' : 'light'
+
+    // 密度轴同样由组件库按 [data-density] 取值：控件高度、内距、列表行距整套换档，
+    // Portal 视觉桥再把它投影到浮层壳，下拉、菜单与页面同一档
+    el.dataset.density = appStore.uiDensity
 
     el.style.filter = appStore.grayscaleEnabled
       ? 'grayscale(100%)'

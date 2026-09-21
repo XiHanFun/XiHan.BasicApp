@@ -1,6 +1,6 @@
 /**
  * 主题外观切片（app/theme）单元测试。
- * 职责边界：主题模式/品牌色/圆角/字号/动画/毛玻璃/无障碍/水印等外观偏好的
+ * 职责边界：主题模式/品牌色/圆角/字号/密度/动画/毛玻璃/无障碍/水印等外观偏好的
  * 默认值、本地还原、setter 落地与取值夹取，以及 isDark 派生的口径。
  */
 import { createPinia, setActivePinia } from 'pinia'
@@ -9,12 +9,16 @@ import {
   DEFAULT_FONT_SIZE,
   DEFAULT_THEME,
   DEFAULT_THEME_COLOR,
+  DEFAULT_UI_DENSITY,
   DEFAULT_UI_RADIUS,
   FROSTED_GLASS_INTENSITY_KEY,
   THEME_AUTO,
   THEME_COLOR_KEY,
   THEME_DYNAMIC_COLOR_KEY,
   THEME_MODE_KEY,
+  UI_DENSITY_COMFORTABLE,
+  UI_DENSITY_COMPACT,
+  UI_DENSITY_KEY,
   WATERMARK_TEXT_KEY,
 } from '~/constants'
 import { useAppStore } from '../app'
@@ -36,6 +40,13 @@ describe('默认值', () => {
     expect(store.themeColor).toBe(DEFAULT_THEME_COLOR)
     expect(store.uiRadius).toBe(DEFAULT_UI_RADIUS)
     expect(store.fontSize).toBe(DEFAULT_FONT_SIZE)
+    expect(store.uiDensity).toBe(DEFAULT_UI_DENSITY)
+  })
+
+  it('界面密度缺省紧凑：管理端控件回到 28 / 32 那档', () => {
+    const store = freshStore()
+
+    expect(store.uiDensity).toBe(UI_DENSITY_COMPACT)
   })
 
   it('动态取色、主题动画、页面过渡默认开启；毛玻璃、灰度、色弱、水印默认关闭', () => {
@@ -74,6 +85,14 @@ describe('本地还原', () => {
     expect(store.themeMode).toBe('dark')
     expect(store.themeColor).toBe('#123456')
     expect(store.watermarkText).toBe('机密')
+  })
+
+  it('已保存的界面密度在 store 初始化时被读回', () => {
+    localStorage.setItem(UI_DENSITY_KEY, JSON.stringify(UI_DENSITY_COMFORTABLE))
+
+    const store = freshStore()
+
+    expect(store.uiDensity).toBe(UI_DENSITY_COMFORTABLE)
   })
 
   it('本地值损坏时逐项回落默认值，不影响其它偏好', () => {
@@ -143,6 +162,22 @@ describe('主题模式切换', () => {
 
     store.setTheme('light')
     expect(store.isDark).toBe(false)
+  })
+})
+
+describe('界面密度切换', () => {
+  it('setUiDensity 写入指定档位并落地', () => {
+    const store = freshStore()
+
+    store.setUiDensity(UI_DENSITY_COMFORTABLE)
+
+    expect(store.uiDensity).toBe(UI_DENSITY_COMFORTABLE)
+    expect(localStorage.getItem(UI_DENSITY_KEY)).toBe(JSON.stringify(UI_DENSITY_COMFORTABLE))
+
+    store.setUiDensity(UI_DENSITY_COMPACT)
+
+    expect(store.uiDensity).toBe(UI_DENSITY_COMPACT)
+    expect(localStorage.getItem(UI_DENSITY_KEY)).toBe(JSON.stringify(UI_DENSITY_COMPACT))
   })
 })
 
