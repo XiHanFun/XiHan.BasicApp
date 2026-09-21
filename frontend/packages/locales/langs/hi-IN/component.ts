@@ -60,7 +60,6 @@ export default {
       msg_phone_updated: 'मोबाइल नंबर अपडेट हो गया',
       err_operation_failed: 'कार्रवाई विफल रही',
       nickname_placeholder: 'आपका उपनाम',
-      verify_code_placeholder: '6 अंकों का सत्यापन कोड दर्ज करें',
       real_name_placeholder: 'आपका वास्तविक नाम',
       birthday_placeholder: 'जन्मदिन चुनें',
       country_placeholder: 'उदाहरण: चीन',

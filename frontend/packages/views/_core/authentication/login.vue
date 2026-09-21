@@ -11,6 +11,7 @@ import { toast } from '~/composables'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAuthStore } from '~/stores'
+import { CAPTCHA_CODE_LENGTH } from '../shared/pin-code'
 import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'LoginPage' })
@@ -31,7 +32,9 @@ const loginConfig = ref<LoginConfig>({
 // ==================== 图形验证码 ====================
 
 const captcha = ref<CaptchaChallenge | null>(null)
-const captchaCode = ref('')
+/** 图形验证码的逐格值；提交时拼成串 */
+const captchaCode = ref<string[]>([])
+const captchaCodeStr = computed(() => captchaCode.value.join(''))
 const captchaLoading = ref(false)
 
 /** 拉取新验证码（页面加载、点击图片、验证码错误提示后调用） */
@@ -42,7 +45,7 @@ async function refreshCaptcha() {
   captchaLoading.value = true
   try {
     captcha.value = await apis.getCaptchaApi()
-    captchaCode.value = ''
+    captchaCode.value = []
   }
   catch (error) {
     toast.danger((error as Error)?.message || t('page.login.captcha_load_failed'))
@@ -141,7 +144,7 @@ function buildLoginParams() {
     username: formData.value.username,
     password: formData.value.password,
     captchaId: loginConfig.value.captchaEnabled ? captcha.value?.captchaId : undefined,
-    captchaCode: loginConfig.value.captchaEnabled ? captchaCode.value || undefined : undefined,
+    captchaCode: loginConfig.value.captchaEnabled ? captchaCodeStr.value || undefined : undefined,
     twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
     twoFactorMethod: selectedMethod.value || undefined,
     deviceId: cachedDeviceId.value || undefined,
@@ -159,7 +162,7 @@ async function onSubmit() {
   try {
     if (tfStage.value === 'credentials') {
       // 图形验证码：提交前校验非空，避免白白消耗一次登录节流计数
-      if (loginConfig.value.captchaEnabled && (!captcha.value || !captchaCode.value.trim())) {
+      if (loginConfig.value.captchaEnabled && (!captcha.value || captchaCodeStr.value.length < CAPTCHA_CODE_LENGTH)) {
         toast.warning(t('page.login.captcha_required'))
         return
       }
@@ -489,16 +492,22 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFormFieldGroup>
           <XhFormFieldGroup v-if="loginConfig.captchaEnabled" name="captchaCode" class="!mb-6">
             <XhFieldRoot>
-              <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆 -->
+              <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆。
+                   服务端签发的是四位纯数字（CaptchaService 走框架一次性验证码，只出 0-9），格子按 numeric 准入、
+                   弹数字键盘；不是一次性验证码，不开 otp，格子自带 autocomplete=off。
+                   格子取缺省档：正方格的缺省档与旁边 lg 档文本框、验证码图片同一个控件高度 -->
               <div class="flex items-center gap-3">
                 <XhFieldControl>
-                  <XInput
+                  <XhPinInputRoot
                     v-model:value="captchaCode"
-                    size="lg"
-                    :max-length="4"
-                    :placeholder="t('page.login.captcha_placeholder')"
-                    autocomplete="off"
-                  />
+                    :length="CAPTCHA_CODE_LENGTH"
+                    type="numeric"
+                  >
+                    <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+                    <div style="display: flex">
+                      <XhPinInputInput v-for="i in CAPTCHA_CODE_LENGTH" :key="i" :index="i - 1" />
+                    </div>
+                  </XhPinInputRoot>
                 </XhFieldControl>
                 <!-- 高度跟旁边 lg 档输入框同一个控件令牌，密度换档时两者一起缩放 -->
                 <div

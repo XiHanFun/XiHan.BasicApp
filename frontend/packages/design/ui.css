@@ -505,6 +505,21 @@
   font-weight: var(--xh-font-weight-semibold);
 }
 
+/* 认证页的验证码行：六格分格输入在左，「发送验证码」钮在右。放得下时同一行、钮靠右缘；
+   放不下（手机宽）时钮整颗换到下一行仍靠右，格子不参与收缩——格子只会横向收窄、高度不变，
+   一收就成扁格。间距取控件档位的行内间距令牌 */
+.auth-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--xh-control-gap-lg);
+}
+
+.auth-code-row > [data-scope='button'] {
+  flex: none;
+  margin-inline-start: auto;
+}
+
 /* 认证页的辅助文字按 §6.4 角色取语义排版令牌，与 14px 的控件文字成阶：
    tailwind 的 text-xs / text-sm 在 14px 根下是 10.5 / 12.25px，既非整数也不在字号阶梯上。
    行高一并取令牌，不再由工具类写死。

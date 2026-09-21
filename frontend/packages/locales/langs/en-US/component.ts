@@ -60,7 +60,6 @@ export default {
       msg_phone_updated: 'Phone number updated',
       err_operation_failed: 'Operation failed',
       nickname_placeholder: 'Your nickname',
-      verify_code_placeholder: 'Enter the 6-digit code',
       real_name_placeholder: 'Your real name',
       birthday_placeholder: 'Select birthday',
       country_placeholder: 'e.g. China',

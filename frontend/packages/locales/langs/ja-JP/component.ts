@@ -60,7 +60,6 @@ export default {
       msg_phone_updated: '電話番号を更新しました',
       err_operation_failed: '操作に失敗しました',
       nickname_placeholder: 'ニックネーム',
-      verify_code_placeholder: '6 桁の認証コードを入力',
       real_name_placeholder: '本名',
       birthday_placeholder: '生年月日を選択',
       country_placeholder: '例：中国',
