@@ -964,7 +964,7 @@ function onContextSelect(key: string) {
                           <div class="flex w-full items-center gap-2">
                             <XInput v-model:value="(item.value as DefinitionVariableMeta).name" size="sm" :placeholder="t('workflow.designer.variable_name')" />
                             <span class="xh-checkbox-row">
-                              <XhCheckbox v-model:checked="(item.value as DefinitionVariableMeta).required" size="sm" />
+                              <XhCheckbox v-model:checked="(item.value as DefinitionVariableMeta).required" />
                               <span class="xh-checkbox-row__label" @click="(item.value as DefinitionVariableMeta).required = !(item.value as DefinitionVariableMeta).required">{{ t('workflow.designer.variable_required') }}</span>
                             </span>
                           </div>
