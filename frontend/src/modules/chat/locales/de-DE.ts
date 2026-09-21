@@ -4,6 +4,7 @@
 export default {
   chat: {
     bell: 'Chat',
+    unread_label: '{n} ungelesene Chat-Nachrichten',
     island_new_message_fallback: 'Neue Nachricht',
     drawer: {
       title: 'Chat',
