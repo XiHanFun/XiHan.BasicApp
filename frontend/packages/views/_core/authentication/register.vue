@@ -248,7 +248,7 @@ const onAuthInvalid = useAuthFormInvalid()
       <!-- 复选框只是那个方框，没有标签插槽：文案是并排的一段，不能塞进它里面 -->
       <div class="mb-6">
         <span class="xh-checkbox-row">
-          <XhCheckbox v-model:checked="agreePolicy" size="sm" />
+          <XhCheckbox v-model:checked="agreePolicy" />
           <span class="xh-checkbox-row__label text-sm">
             {{ t('page.auth.agree_text') }}
             <a class="link-primary" href="#">{{ t('page.auth.privacy_policy') }}</a>

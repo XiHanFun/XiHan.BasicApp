@@ -98,7 +98,6 @@ function onSort(details: { from: number, to: number }) {
               <!-- 勾选框只有框本身，标签是并排的一段文字，点它也切换 -->
               <XhCheckbox
                 :checked="item.visible"
-                size="sm"
                 :aria-label="item.title"
                 @update:checked="(value: boolean) => emit('toggleVisible', item.key, value)"
               />

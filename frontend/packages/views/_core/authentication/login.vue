@@ -499,7 +499,7 @@ const onAuthInvalid = useAuthFormInvalid()
             </XhFieldRoot>
           </XhFormFieldGroup>
           <div class="flex justify-between items-center mb-5 text-sm">
-            <XhCheckbox v-model:checked="rememberMe" size="sm">
+            <XhCheckbox v-model:checked="rememberMe">
               {{ t('page.login.remember_me') }}
             </XhCheckbox>
             <span class="cursor-pointer link-primary" @click="goTo('/auth/forget-password')">
