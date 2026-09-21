@@ -58,6 +58,15 @@ export default {
     two_factor_method_totp: '인증 앱(Authenticator)',
     two_factor_method_email: '이메일 인증 코드',
     two_factor_method_phone: 'SMS 인증 코드',
+    // 登录页 code-input / method-select 两阶段的文案
+    two_factor_code_sent_email: '인증 코드를 이메일로 보냈어요. 받은 편지함을 확인하세요',
+    two_factor_code_sent_phone: '인증 코드를 휴대폰으로 보냈어요. 문자를 확인하세요',
+    two_factor_code_input_hint: '6자리 인증 코드를 입력하세요',
+    two_factor_resend: '다시 보내기',
+    two_factor_switch_method: '다른 방식 사용',
+    two_factor_select_title: '인증 방식 선택',
+    two_factor_select_subtitle: '이 계정은 2단계 인증이 켜져 있어요. 본인 확인에 사용할 방식을 선택하세요',
+    two_factor_continue: '계속',
     // 扫码登录
     qrcode_subtitle: '휴대폰으로 QR 코드를 스캔하여 빠르게 로그인',
     qrcode_prompt: '모바일 앱을 열고 QR 코드를 스캔하면 로그인돼요',

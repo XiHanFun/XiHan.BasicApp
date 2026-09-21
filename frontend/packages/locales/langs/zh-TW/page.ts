@@ -58,6 +58,15 @@ export default {
     two_factor_method_totp: '驗證器（Authenticator）',
     two_factor_method_email: '電子郵件驗證碼',
     two_factor_method_phone: '手機簡訊驗證碼',
+    // 登录页 code-input / method-select 两阶段的文案
+    two_factor_code_sent_email: '驗證碼已傳送至您的信箱，請查收',
+    two_factor_code_sent_phone: '驗證碼已傳送至您的手機，請查收',
+    two_factor_code_input_hint: '請輸入 6 位驗證碼',
+    two_factor_resend: '重新傳送',
+    two_factor_switch_method: '換個方式',
+    two_factor_select_title: '選擇驗證方式',
+    two_factor_select_subtitle: '您的帳號已啟用兩步驟驗證，請選擇一種方式進行身分驗證',
+    two_factor_continue: '繼續',
     // 扫码登录
     qrcode_subtitle: '使用手機掃描 QR Code 快速登入',
     qrcode_prompt: '開啟手機 APP，掃描 QR Code 後即可登入',

@@ -58,6 +58,15 @@ export default {
     two_factor_method_totp: '認証アプリ（Authenticator）',
     two_factor_method_email: 'メール認証コード',
     two_factor_method_phone: 'SMS 認証コード',
+    // 登录页 code-input / method-select 两阶段的文案
+    two_factor_code_sent_email: '認証コードをメールに送信しました。ご確認ください',
+    two_factor_code_sent_phone: '認証コードをスマートフォンに送信しました。ご確認ください',
+    two_factor_code_input_hint: '6桁の認証コードを入力してください',
+    two_factor_resend: '再送信',
+    two_factor_switch_method: '別の方法を使う',
+    two_factor_select_title: '認証方法を選択',
+    two_factor_select_subtitle: 'このアカウントは二段階認証が有効です。本人確認の方法を選択してください',
+    two_factor_continue: '続行',
     // 扫码登录
     qrcode_subtitle: 'スマートフォンでQRコードを読み取って素早くログイン',
     qrcode_prompt: 'モバイルアプリを開き、QRコードを読み取るとログインできます',

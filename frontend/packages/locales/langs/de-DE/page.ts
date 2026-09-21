@@ -59,6 +59,15 @@ export default {
     two_factor_method_totp: 'Authenticator-App',
     two_factor_method_email: 'E-Mail-Code',
     two_factor_method_phone: 'SMS-Code',
+    // 登录页 code-input / method-select 两阶段的文案
+    two_factor_code_sent_email: 'Ein Bestätigungscode wurde an Ihre E-Mail-Adresse gesendet. Bitte prüfen Sie Ihren Posteingang',
+    two_factor_code_sent_phone: 'Ein Bestätigungscode wurde an Ihr Telefon gesendet. Bitte prüfen Sie Ihre Nachrichten',
+    two_factor_code_input_hint: 'Bitte den 6-stelligen Code eingeben',
+    two_factor_resend: 'Erneut senden',
+    two_factor_switch_method: 'Andere Methode wählen',
+    two_factor_select_title: 'Verifizierungsmethode wählen',
+    two_factor_select_subtitle: 'Für Ihr Konto ist die Zwei-Faktor-Verifizierung aktiviert. Wählen Sie eine Methode zur Identitätsprüfung',
+    two_factor_continue: 'Weiter',
     // QR login
     qrcode_subtitle: 'Scannen Sie den QR-Code mit Ihrem Telefon, um sich anzumelden',
     qrcode_prompt: 'Öffnen Sie Ihre mobile App und scannen Sie den QR-Code, um sich anzumelden',

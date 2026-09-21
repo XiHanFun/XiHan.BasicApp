@@ -58,6 +58,15 @@ export default {
     two_factor_method_totp: '认证器（Authenticator）',
     two_factor_method_email: '邮箱验证码',
     two_factor_method_phone: '手机短信验证码',
+    // 登录页 code-input / method-select 两阶段的文案
+    two_factor_code_sent_email: '验证码已发送至您的邮箱，请查收',
+    two_factor_code_sent_phone: '验证码已发送至您的手机，请查收',
+    two_factor_code_input_hint: '请输入 6 位验证码',
+    two_factor_resend: '重新发送',
+    two_factor_switch_method: '换种方式',
+    two_factor_select_title: '选择验证方式',
+    two_factor_select_subtitle: '您的账号已开启两步验证，请选择一种方式进行身份验证',
+    two_factor_continue: '继续',
     // 扫码登录
     qrcode_subtitle: '使用手机扫描二维码快速登录',
     qrcode_prompt: '打开手机APP，扫描二维码后即可登录',

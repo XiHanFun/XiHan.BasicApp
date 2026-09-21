@@ -59,6 +59,15 @@ export default {
     two_factor_method_totp: 'Authenticator app',
     two_factor_method_email: 'Email code',
     two_factor_method_phone: 'SMS code',
+    // 登录页 code-input / method-select 两阶段的文案
+    two_factor_code_sent_email: 'A verification code has been sent to your email. Please check your inbox',
+    two_factor_code_sent_phone: 'A verification code has been sent to your phone. Please check your messages',
+    two_factor_code_input_hint: 'Enter the 6-digit code',
+    two_factor_resend: 'Resend',
+    two_factor_switch_method: 'Use another method',
+    two_factor_select_title: 'Choose a verification method',
+    two_factor_select_subtitle: 'Two-step verification is enabled on your account. Choose a method to verify your identity',
+    two_factor_continue: 'Continue',
     // QR login
     qrcode_subtitle: 'Scan the QR code with your phone to log in',
     qrcode_prompt: 'Open your mobile app and scan the QR code to log in',
