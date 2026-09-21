@@ -338,7 +338,6 @@ const onAuthInvalid = useAuthFormInvalid()
             v-model:value="twoFactorCode"
             :length="6"
             otp
-            size="lg"
             @value-complete="(details: { value: string[] }) => handleOtpComplete(details.value)"
           >
             <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
