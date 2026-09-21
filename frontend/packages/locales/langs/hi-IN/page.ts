@@ -58,6 +58,15 @@ export default {
     two_factor_method_totp: 'Authenticator ऐप',
     two_factor_method_email: 'ईमेल सत्यापन कोड',
     two_factor_method_phone: 'SMS सत्यापन कोड',
+    // 登录页 code-input / method-select 两阶段的文案
+    two_factor_code_sent_email: 'सत्यापन कोड आपके ईमेल पर भेज दिया गया है, कृपया इनबॉक्स देखें',
+    two_factor_code_sent_phone: 'सत्यापन कोड आपके फ़ोन पर भेज दिया गया है, कृपया संदेश देखें',
+    two_factor_code_input_hint: '6 अंकों का सत्यापन कोड दर्ज करें',
+    two_factor_resend: 'फिर से भेजें',
+    two_factor_switch_method: 'दूसरा तरीका चुनें',
+    two_factor_select_title: 'सत्यापन का तरीका चुनें',
+    two_factor_select_subtitle: 'आपके खाते पर दो-चरणीय सत्यापन चालू है, पहचान सत्यापित करने के लिए कोई एक तरीका चुनें',
+    two_factor_continue: 'जारी रखें',
     // 扫码登录
     qrcode_subtitle: 'तेज़ लॉगिन के लिए मोबाइल से QR कोड स्कैन करें',
     qrcode_prompt: 'मोबाइल ऐप खोलें, QR कोड स्कैन करते ही लॉगिन हो जाएगा',

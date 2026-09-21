@@ -322,10 +322,10 @@ const onAuthInvalid = useAuthFormInvalid()
               {{ t('page.auth.two_factor_subtitle') }}
             </template>
             <template v-else-if="selectedMethod === 'email'">
-              验证码已发送至您的邮箱，请查收
+              {{ t('page.auth.two_factor_code_sent_email') }}
             </template>
             <template v-else-if="selectedMethod === 'phone'">
-              验证码已发送至您的手机，请查收
+              {{ t('page.auth.two_factor_code_sent_phone') }}
             </template>
           </p>
         </div>
@@ -347,7 +347,7 @@ const onAuthInvalid = useAuthFormInvalid()
             class="mt-4 auth-helper"
             :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
           >
-            {{ selectedMethod === 'totp' ? t('page.auth.two_factor_hint') : '请输入 6 位验证码' }}
+            {{ selectedMethod === 'totp' ? t('page.auth.two_factor_hint') : t('page.auth.two_factor_code_input_hint') }}
           </p>
         </div>
 
@@ -373,7 +373,7 @@ const onAuthInvalid = useAuthFormInvalid()
             :loading="sendingCode"
             @click="handleResendCode"
           >
-            重新发送
+            {{ t('page.auth.two_factor_resend') }}
           </XhButton>
           <XhButton
             v-if="availableMethods.length > 1"
@@ -382,7 +382,7 @@ const onAuthInvalid = useAuthFormInvalid()
             size="lg"
             @click="handleBackToMethodSelect"
           >
-            换种方式
+            {{ t('page.auth.two_factor_switch_method') }}
           </XhButton>
         </div>
       </div>
@@ -398,14 +398,14 @@ const onAuthInvalid = useAuthFormInvalid()
               <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: 22px"><Icon icon="lucide:shield-check" /></span>
             </div>
             <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
-              选择验证方式
+              {{ t('page.auth.two_factor_select_title') }}
             </h1>
           </div>
           <p
             class="auth-body"
             :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
           >
-            您的账号已开启两步验证，请选择一种方式进行身份验证
+            {{ t('page.auth.two_factor_select_subtitle') }}
           </p>
         </div>
 
@@ -437,7 +437,7 @@ const onAuthInvalid = useAuthFormInvalid()
           class="auth-submit"
           @click="handleSelectMethod"
         >
-          继续
+          {{ t('page.auth.two_factor_continue') }}
         </XhButton>
       </div>
 
