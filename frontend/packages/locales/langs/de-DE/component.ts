@@ -60,7 +60,6 @@ export default {
       msg_phone_updated: 'Telefonnummer aktualisiert',
       err_operation_failed: 'Vorgang fehlgeschlagen',
       nickname_placeholder: 'Ihr Spitzname',
-      verify_code_placeholder: '6-stelligen Code eingeben',
       real_name_placeholder: 'Ihr echter Name',
       birthday_placeholder: 'Geburtstag auswählen',
       country_placeholder: 'z. B. Deutschland',

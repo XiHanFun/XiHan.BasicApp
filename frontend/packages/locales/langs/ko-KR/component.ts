@@ -60,7 +60,6 @@ export default {
       msg_phone_updated: '휴대폰 번호를 업데이트했어요',
       err_operation_failed: '작업에 실패했어요',
       nickname_placeholder: '닉네임',
-      verify_code_placeholder: '6자리 인증 코드 입력',
       real_name_placeholder: '실명',
       birthday_placeholder: '생일 선택',
       country_placeholder: '예: 중국',

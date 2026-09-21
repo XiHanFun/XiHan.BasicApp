@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
-import { XhButton, XhCardContent, XhCardHeader, XhCardRoot, XhCardTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCardContent, XhCardHeader, XhCardRoot, XhCardTitle, XhFlex, XhPinInputInput, XhPinInputRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
@@ -9,6 +9,7 @@ import { islandStart } from '~/composables/useDynamicIsland'
 import { Icon } from '~/iconify'
 import { useAppContext, useUserStore } from '~/stores'
 import CodeCountdown from '../shared/CodeCountdown.vue'
+import { OTP_CODE_LENGTH } from '../shared/pin-code'
 
 const props = defineProps<{ profile: UserProfile | null }>()
 const emit = defineEmits<{ saved: [] }>()
@@ -243,7 +244,9 @@ type ContactTarget = 'email' | 'phone'
 // 验证当前地址
 const verifyLoading = ref(false)
 const verifyTarget = ref<ContactTarget | null>(null)
-const verifyCode = ref('')
+/** 验证码的逐格值；接口要的是拼接后的串 */
+const verifyCode = ref<string[]>([])
+const verifyCodeStr = computed(() => verifyCode.value.join(''))
 /** 重发倒计时这一轮的时长，大于 0 即正在倒计时 */
 const verifyResendSeconds = ref(0)
 
@@ -253,7 +256,9 @@ const changeNewValue = ref('')
 const changePassword = ref('')
 const changeLoading = ref(false)
 const changeCodeSent = ref(false)
-const changeCode = ref('')
+/** 换绑验证码的逐格值；接口要的是拼接后的串 */
+const changeCode = ref<string[]>([])
+const changeCodeStr = computed(() => changeCode.value.join(''))
 /** 重发倒计时这一轮的时长，大于 0 即正在倒计时 */
 const changeResendSeconds = ref(0)
 
@@ -267,7 +272,7 @@ async function sendVerifyCode(type: ContactTarget) {
       : await apis.sendPhoneVerifyCodeApi()
     toast.success(type === 'email' ? t('component.profile.info.msg_code_sent_email') : t('component.profile.info.msg_code_sent_phone'))
     verifyTarget.value = type
-    verifyCode.value = ''
+    verifyCode.value = []
     // 先归零再赋值：这个入口在计时期间仍可点，值不变的话倒计时不会重新起跑
     verifyResendSeconds.value = 0
     await nextTick()
@@ -282,16 +287,16 @@ async function sendVerifyCode(type: ContactTarget) {
 }
 
 async function confirmVerify() {
-  if (verifyCode.value.length < 6) {
+  if (verifyCodeStr.value.length < OTP_CODE_LENGTH) {
     toast.warning(t('component.profile.info.warn_code_incomplete'))
     return
   }
   verifyLoading.value = true
   try {
     if (verifyTarget.value === 'email')
-      await apis.verifyEmailApi(verifyCode.value)
+      await apis.verifyEmailApi(verifyCodeStr.value)
     else
-      await apis.verifyPhoneApi(verifyCode.value)
+      await apis.verifyPhoneApi(verifyCodeStr.value)
     toast.success(t('component.profile.info.msg_verify_success'))
     cancelVerify()
     emit('saved')
@@ -306,7 +311,7 @@ async function confirmVerify() {
 
 function cancelVerify() {
   verifyTarget.value = null
-  verifyCode.value = ''
+  verifyCode.value = []
   verifyResendSeconds.value = 0
 }
 
@@ -317,7 +322,7 @@ function openChangeDialog(type: ContactTarget) {
   changeNewValue.value = ''
   changePassword.value = ''
   changeCodeSent.value = false
-  changeCode.value = ''
+  changeCode.value = []
   changeResendSeconds.value = 0
 }
 
@@ -343,7 +348,7 @@ async function sendChangeCode() {
         })
     toast.success(t('component.profile.info.msg_code_sent'))
     changeCodeSent.value = true
-    changeCode.value = ''
+    changeCode.value = []
     changeResendSeconds.value = Math.min(res.expiresInSeconds, 60)
   }
   catch (e: unknown) {
@@ -355,16 +360,16 @@ async function sendChangeCode() {
 }
 
 async function confirmChange() {
-  if (changeCode.value.length < 6) {
+  if (changeCodeStr.value.length < OTP_CODE_LENGTH) {
     toast.warning(t('component.profile.info.warn_code_incomplete'))
     return
   }
   changeLoading.value = true
   try {
     if (changeTarget.value === 'email')
-      await apis.confirmChangeEmailApi(changeCode.value)
+      await apis.confirmChangeEmailApi(changeCodeStr.value)
     else
-      await apis.confirmChangePhoneApi(changeCode.value)
+      await apis.confirmChangePhoneApi(changeCodeStr.value)
     toast.success(changeTarget.value === 'email' ? t('component.profile.info.msg_email_updated') : t('component.profile.info.msg_phone_updated'))
     cancelChange()
     emit('saved')
@@ -382,7 +387,7 @@ function cancelChange() {
   changeNewValue.value = ''
   changePassword.value = ''
   changeCodeSent.value = false
-  changeCode.value = ''
+  changeCode.value = []
   changeResendSeconds.value = 0
 }
 </script>
@@ -542,8 +547,14 @@ function cancelChange() {
                   </XhButton>
                 </div>
                 <div v-if="verifyTarget === 'email'" class="pf-inline-form">
-                  <XInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :max-length="6" class="pf-field" />
-                  <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
+                  <!-- 输满不自动提交：旁边还有重发与取消，交给「确认」钮 -->
+                  <XhPinInputRoot v-model:value="verifyCode" :length="OTP_CODE_LENGTH" type="numeric" otp>
+                    <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+                    <div style="display: flex">
+                      <XhPinInputInput v-for="i in OTP_CODE_LENGTH" :key="i" :index="i - 1" />
+                    </div>
+                  </XhPinInputRoot>
+                  <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCodeStr.length < OTP_CODE_LENGTH" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
                   <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" @click="sendVerifyCode('email')">
@@ -592,8 +603,14 @@ function cancelChange() {
                   </XhButton>
                 </div>
                 <div v-if="verifyTarget === 'phone'" class="pf-inline-form">
-                  <XInput v-model:value="verifyCode" :placeholder="t('component.profile.info.verify_code_placeholder')" :max-length="6" class="pf-field" />
-                  <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCode.length < 6" @click="confirmVerify">
+                  <!-- 输满不自动提交：旁边还有重发与取消，交给「确认」钮 -->
+                  <XhPinInputRoot v-model:value="verifyCode" :length="OTP_CODE_LENGTH" type="numeric" otp>
+                    <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+                    <div style="display: flex">
+                      <XhPinInputInput v-for="i in OTP_CODE_LENGTH" :key="i" :index="i - 1" />
+                    </div>
+                  </XhPinInputRoot>
+                  <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCodeStr.length < OTP_CODE_LENGTH" @click="confirmVerify">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
                   <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" @click="sendVerifyCode('phone')">
@@ -702,13 +719,15 @@ function cancelChange() {
                 <p class="pf-change-hint">
                   {{ t('component.profile.info.code_sent_to') }} <strong>{{ changeNewValue }}</strong>
                 </p>
-                <XInput
-                  v-model:value="changeCode"
-                  :placeholder="t('component.profile.info.verify_code_placeholder')"
-                  :max-length="6"
-                />
+                <!-- 输满不自动提交：换绑是敏感操作，交给「确认」钮 -->
+                <XhPinInputRoot v-model:value="changeCode" :length="OTP_CODE_LENGTH" type="numeric" otp>
+                  <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+                  <div style="display: flex">
+                    <XhPinInputInput v-for="i in OTP_CODE_LENGTH" :key="i" :index="i - 1" />
+                  </div>
+                </XhPinInputRoot>
                 <XhFlex gap="sm">
-                  <XhButton variant="subtle" tone="brand" :loading="changeLoading" :disabled="changeCode.length < 6" @click="confirmChange">
+                  <XhButton variant="subtle" tone="brand" :loading="changeLoading" :disabled="changeCodeStr.length < OTP_CODE_LENGTH" @click="confirmChange">
                     {{ t('common.actions.confirm') }}
                   </XhButton>
                   <XhButton variant="subtle" :disabled="changeResendSeconds > 0" @click="sendChangeCode">

@@ -60,7 +60,6 @@ export default {
       msg_phone_updated: '手機號碼已更新',
       err_operation_failed: '操作失敗',
       nickname_placeholder: '您的暱稱',
-      verify_code_placeholder: '請輸入 6 位數驗證碼',
       real_name_placeholder: '您的真實姓名',
       birthday_placeholder: '選擇生日',
       country_placeholder: '例如：中國',
