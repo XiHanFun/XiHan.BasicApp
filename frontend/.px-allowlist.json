@@ -132,7 +132,7 @@
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/design/ui.css": {
-    "cap": 26,
+    "cap": 20,
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/design/variables.css": {
@@ -384,7 +384,7 @@
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/styles/admin-page.css": {
-    "cap": 15,
+    "cap": 10,
     "reason": "页面外壳的排版刻度"
   },
   "src/views/approval/constraint/index.vue": {
