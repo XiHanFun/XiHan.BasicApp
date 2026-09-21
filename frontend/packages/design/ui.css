@@ -477,3 +477,23 @@
   font-size: var(--xh-control-font-lg);
   font-weight: var(--xh-font-weight-semibold);
 }
+
+/* 认证页的辅助文字按 §6.4 角色取语义排版令牌，与 14px 的控件文字成阶：
+   tailwind 的 text-xs / text-sm 在 14px 根下是 10.5 / 12.25px，既非整数也不在字号阶梯上。
+   行高一并取令牌，不再由工具类写死 */
+.auth-body {
+  font-size: var(--xh-text-body-size);
+  line-height: var(--xh-text-body-leading);
+}
+
+/* 说明 / helper：验证码提示、「还没有账号 / 已有账号」这类表单下的引导句 */
+.auth-helper {
+  font-size: var(--xh-text-secondary-size);
+  line-height: var(--xh-leading-normal);
+}
+
+/* 次级标注：分隔线中缝的「第三方登录」、密码强度读数 */
+.auth-caption {
+  font-size: var(--xh-text-caption-size);
+  line-height: var(--xh-leading-normal);
+}

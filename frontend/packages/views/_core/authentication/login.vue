@@ -336,7 +336,7 @@ const onAuthInvalid = useAuthFormInvalid()
             </div>
           </XhPinInputRoot>
           <p
-            class="mt-4 text-xs"
+            class="mt-4 auth-helper"
             :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
           >
             {{ selectedMethod === 'totp' ? t('page.auth.two_factor_hint') : '请输入 6 位验证码' }}
@@ -498,7 +498,7 @@ const onAuthInvalid = useAuthFormInvalid()
               </div>
             </XhFieldRoot>
           </XhFormFieldGroup>
-          <div class="flex justify-between items-center mb-5 text-sm">
+          <div class="flex justify-between items-center mb-5 auth-body">
             <XhCheckbox v-model:checked="rememberMe">
               {{ t('page.login.remember_me') }}
             </XhCheckbox>
@@ -513,7 +513,7 @@ const onAuthInvalid = useAuthFormInvalid()
         </XhFormRoot>
 
         <p
-          class="mt-6 text-sm text-center"
+          class="mt-6 auth-helper text-center"
           :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
         >
           {{ t('page.auth.no_account') }}
@@ -525,7 +525,7 @@ const onAuthInvalid = useAuthFormInvalid()
         <!-- 分隔线是纯线条、没有插槽，中缝那句文案要自己摆 -->
         <div v-if="oauthProviders.length > 0" class="flex gap-3 items-center my-6">
           <XhSeparator class="flex-1" :class="isDark ? '!border-white/10' : '!border-[hsl(var(--border))]'" />
-          <span class="text-xs" :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'">
+          <span class="auth-caption" :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'">
             {{ t('page.auth.third_party_login') }}
           </span>
           <XhSeparator class="flex-1" :class="isDark ? '!border-white/10' : '!border-[hsl(var(--border))]'" />
