@@ -76,6 +76,11 @@ public sealed class LoginRequestDto
     public string? TwoFactorMethod { get; set; }
 
     /// <summary>
+    /// 两步验证票据（首段通过图形验证码与密码后由服务端签发；后续阶段携带即免图形验证码）
+    /// </summary>
+    public string? TwoFactorTicket { get; set; }
+
+    /// <summary>
     /// 设备标识
     /// </summary>
     public string? DeviceId { get; set; }
@@ -105,6 +110,11 @@ public sealed class LoginResponseDto
     /// 验证码是否已发送
     /// </summary>
     public bool? CodeSent { get; set; }
+
+    /// <summary>
+    /// 两步验证票据（仅挑战响应携带；后续阶段回传即免图形验证码，登录完成后作废）
+    /// </summary>
+    public string? TwoFactorTicket { get; set; }
 
     /// <summary>
     /// 登录令牌

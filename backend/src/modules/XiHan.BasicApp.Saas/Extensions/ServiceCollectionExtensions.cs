@@ -188,6 +188,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IMessageDeliveryService, MessageDeliveryService>();
         services.AddScoped<ILoginThrottleService, LoginThrottleService>();
         services.AddScoped<ICaptchaService, CaptchaService>();
+        // 两步验证票据：首段通过图形验证码后签发，后续阶段凭票免图形验证码（图形码消费即销毁，无法重校验）
+        services.AddScoped<ITwoFactorTicketService, TwoFactorTicketService>();
         // 通知多渠道扇出：发布后按投递渠道扇出到 邮箱/短信（发件箱异步）与 机器人（UoW 提交后广播）
         services.AddScoped<INotificationFanoutService, NotificationFanoutService>();
         services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();

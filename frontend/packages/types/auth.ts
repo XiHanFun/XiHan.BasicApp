@@ -80,6 +80,8 @@ export interface LoginParams {
   twoFactorCode?: string
   /** 用户选择的双因素方式（totp/email/phone） */
   twoFactorMethod?: string
+  /** 两步验证票据（首段挑战响应签发；后续阶段携带即免图形验证码） */
+  twoFactorTicket?: string
   /** 设备唯一标识（设备指纹） */
   deviceId?: string
 }
@@ -136,6 +138,8 @@ export interface LoginResponse {
   twoFactorMethod?: string
   /** 验证码是否已发送（邮箱/手机方式） */
   codeSent?: boolean
+  /** 两步验证票据（仅挑战响应携带；后续阶段回传即免图形验证码，登录完成后作废） */
+  twoFactorTicket?: string
   token: LoginToken | null
 }
 

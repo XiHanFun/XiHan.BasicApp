@@ -163,8 +163,10 @@ curl -X POST http://127.0.0.1:9708/api/Auth/Login \
 | --- | --- | --- | --- |
 | `username` | `string` | ✅ | **邮箱**（全平台唯一登录标识）；平台账号也可用用户名 |
 | `password` | `string` | ✅ | 明文密码（走 HTTPS） |
+| `captchaId` / `captchaCode` | `string?` | 配置要求时 | 图形验证码（`LoginConfig.captchaEnabled` 为真时首段必填；一次性消费，读取即销毁） |
 | `twoFactorCode` | `string?` | — | 开启 2FA 时的验证码 |
 | `twoFactorMethod` | `string?` | — | `totp` / `email` / `phone` |
+| `twoFactorTicket` | `string?` | 2FA 后续阶段 | 首段挑战响应签发的两步验证票据；后续阶段带票即免图形验证码 |
 | `deviceId` | `string?` | — | 设备指纹，用于多端会话管理 |
 
 成功响应（`data` 是 `LoginResponseDto`）：
@@ -198,18 +200,19 @@ curl -X POST http://127.0.0.1:9708/api/Auth/Login \
     "availableTwoFactorMethods": ["totp", "email"],
     "twoFactorMethod": "totp",
     "codeSent": false,
+    "twoFactorTicket": "S2m4…（不透明随机串）",
     "token": null
   },
   "isSuccess": true
 }
 ```
 
-带上验证码重新请求同一端点即可完成登录：
+带上验证码与票据重新请求同一端点即可完成登录。两步验证是无状态三段式（凭据 → 选方式 / 下发码 → 提交码），每段都重新提交凭据；图形验证码只在首段消费，后续阶段改带 `twoFactorTicket`（10 分钟有效，可多次出示，登录完成后作废）。票据不存在 / 过期 / 不属于本次认证用户时返回「两步验证已过期，请重新登录。」，客户端应回到凭据阶段并刷新图形验证码：
 
 ```bash
 curl -X POST http://127.0.0.1:9708/api/Auth/Login \
   -H "Content-Type: application/json" \
-  -d '{ "username": "a@b.com", "password": "***", "twoFactorMethod": "totp", "twoFactorCode": "123456" }'
+  -d '{ "username": "a@b.com", "password": "***", "twoFactorMethod": "totp", "twoFactorCode": "123456", "twoFactorTicket": "S2m4…" }'
 ```
 
 ::: tip 免密码的两条路
