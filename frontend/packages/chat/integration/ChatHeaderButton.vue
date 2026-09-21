@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhNumberAnimation } from '@xihan-ui/vue'
+import { XhBadgeIndicator, XhBadgeRoot, XhNumberAnimation } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XTooltip from '~/components/common/XTooltip.vue'
@@ -27,37 +27,29 @@ const unread = computed(() => chatStore.totalUnread)
       class="xihan-icon-btn chat-header-btn mr-1"
       @click="chatStore.requestOpenChatDrawer()"
     >
-      <Icon icon="lucide:messages-square" width="16" height="16" />
-      <span v-if="unread > 0" class="chat-header-btn__badge">
-        <XhNumberAnimation :to="Math.min(unread, 99)" :duration="500" :precision="0" />
-        <span v-if="unread > 99">+</span>
-      </span>
+      <!-- 数字、99+、「零则收起」与贴角定位都归组件库算；小号角标与收藏、通知两枚同一套 -->
+      <XhBadgeRoot
+        size="sm"
+        tone="danger"
+        :count="unread"
+        :label="t('chat.unread_label', { n: unread })"
+      >
+        <Icon icon="lucide:messages-square" width="16" height="16" />
+        <!-- 数字仍走滚动动画；封顶那档（99+）交给角标自己的文字 -->
+        <XhBadgeIndicator v-slot="{ text }">
+          <XhNumberAnimation v-if="unread <= 99" :to="unread" :duration="500" :precision="0" />
+          <template v-else>
+            {{ text }}
+          </template>
+        </XhBadgeIndicator>
+      </XhBadgeRoot>
     </button>
   </XTooltip>
 </template>
 
 <style scoped>
-/* 皮肤走全局 .xihan-icon-btn，这里只留徽标需要的定位（14px 小圆 + 9px 字） */
+/* 皮肤走全局 .xihan-icon-btn；角标的定位与尺寸归组件库的 Badge，这里不再另画一套 */
 .chat-header-btn {
   position: relative;
-}
-
-.chat-header-btn__badge {
-  position: absolute;
-  top: -1px;
-  right: -1px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 14px;
-  height: 14px;
-  padding: 0 3px;
-  border-radius: 9999px;
-  background: var(--xh-color-danger-600);
-  color: #fff;
-  font-size: 9px;
-  font-weight: 600;
-  line-height: 14px;
-  text-align: center;
 }
 </style>

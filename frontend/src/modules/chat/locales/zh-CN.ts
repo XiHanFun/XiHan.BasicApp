@@ -4,6 +4,7 @@
 export default {
   chat: {
     bell: '在线聊天',
+    unread_label: '{n} 条未读聊天',
     island_new_message_fallback: '收到新消息',
     drawer: {
       title: '在线聊天',

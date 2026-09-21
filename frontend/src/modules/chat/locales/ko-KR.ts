@@ -4,6 +4,7 @@
 export default {
   chat: {
     bell: '온라인 채팅',
+    unread_label: '읽지 않은 채팅 {n}건',
     island_new_message_fallback: '새 메시지 도착',
     drawer: {
       title: '온라인 채팅',

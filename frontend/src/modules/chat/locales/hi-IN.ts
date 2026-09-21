@@ -4,6 +4,7 @@
 export default {
   chat: {
     bell: 'ऑनलाइन चैट',
+    unread_label: '{n} अपठित चैट संदेश',
     island_new_message_fallback: 'नया संदेश आया',
     drawer: {
       title: 'ऑनलाइन चैट',

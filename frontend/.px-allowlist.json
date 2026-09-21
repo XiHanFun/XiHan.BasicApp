@@ -35,10 +35,6 @@
     "cap": 3,
     "reason": "聊天面板几何：气泡、头像、输入区按固定像素排布"
   },
-  "packages/chat/integration/ChatHeaderButton.vue": {
-    "cap": 5,
-    "reason": "聊天面板几何：气泡、头像、输入区按固定像素排布"
-  },
   "packages/components/common/CodeEditor.vue": {
     "cap": 6,
     "reason": "站内自绘公共组件的排版刻度"
