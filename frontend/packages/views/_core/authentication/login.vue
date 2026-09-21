@@ -148,7 +148,14 @@ function buildLoginParams() {
   }
 }
 
+/**
+ * 三个阶段的提交都汇到这里：credentials 的表单提交、code-input 的验证码输满自动提交 / Enter / 「验证并登录」。
+ * 入口先同步看 loginLoading：XhButton 的 loading 拦截读的是渲染期状态，首个 click 到重渲染之间的
+ * 第二次 click 仍能穿过，自动提交与 Enter 更不经过按钮；store 一进 login 就同步置位，这里读到即在途。
+ */
 async function onSubmit() {
+  if (authStore.loginLoading)
+    return
   try {
     if (tfStage.value === 'credentials') {
       // 图形验证码：提交前校验非空，避免白白消耗一次登录节流计数
@@ -203,6 +210,9 @@ async function onSubmit() {
 
 /** 用户选好方式后，发起带 twoFactorMethod 的登录请求 */
 async function handleSelectMethod() {
+  // 「继续」钮的 loading 同样是渲染期才拦，在途时直接返回；sendingCode 在 await 之前同步置位
+  if (sendingCode.value || authStore.loginLoading)
+    return
   if (!selectedMethod.value) {
     toast.warning(t('page.auth.select_method_required'))
     return
@@ -237,6 +247,8 @@ async function handleSelectMethod() {
 
 /** 重新发送验证码 */
 async function handleResendCode() {
+  if (sendingCode.value || authStore.loginLoading)
+    return
   sendingCode.value = true
   try {
     const result = await authStore.login(buildLoginParams(), redirect.value)
@@ -265,11 +277,6 @@ function handleBackToMethodSelect() {
   tfStage.value = 'method-select'
   twoFactorCode.value = []
   codeSent.value = false
-}
-
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter')
-    onSubmit()
 }
 
 function goTo(path: string) {
@@ -445,12 +452,14 @@ const onAuthInvalid = useAuthFormInvalid()
           </p>
         </div>
 
+        <!-- Enter 只走原生隐式提交这一条：字段里按 Enter 触发表单提交，经规则校验后才到 @submit。
+             原先另挂的 keydown 直接调 onSubmit 绕过了校验（用户名为空也发请求），且它一置 loading
+             就把提交钮禁掉，浏览器随后的隐式提交被压下，Enter 发出的恰是那次没校验的请求 -->
         <XhFormRoot
           v-model:values="formData"
           :rules="rules"
           validate-on="blur"
           @invalid="onAuthInvalid"
-          @keydown="handleKeydown"
           @submit="onSubmit"
         >
           <XhFormFieldGroup name="username" class="!mb-6">
