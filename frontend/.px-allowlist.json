@@ -404,11 +404,11 @@
     "reason": "业务页面的排版刻度"
   },
   "src/views/identity/permission/index.vue": {
-    "cap": 4,
+    "cap": 1,
     "reason": "业务页面的排版刻度"
   },
   "src/views/identity/role/index.vue": {
-    "cap": 14,
+    "cap": 11,
     "reason": "业务页面的排版刻度"
   },
   "src/views/identity/user/index.vue": {
@@ -464,7 +464,7 @@
     "reason": "业务页面的排版刻度"
   },
   "src/views/tenant/list/index.vue": {
-    "cap": 11,
+    "cap": 10,
     "reason": "业务页面的排版刻度"
   },
   "src/views/workbench/dashboard/components/AnnouncementWidget.vue": {

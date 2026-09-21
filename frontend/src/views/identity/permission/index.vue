@@ -1077,23 +1077,4 @@ async function handleToggleStatus(row: PermissionListItemDto) {
 .xh-detail-empty {
   padding: 48px 0;
 }
-
-.xh-detail-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.xh-detail-table th,
-.xh-detail-table td {
-  padding: 9px 10px;
-  border: 1px solid hsl(var(--border));
-  text-align: left;
-  vertical-align: top;
-}
-
-.xh-detail-table th {
-  background: hsl(var(--muted));
-  font-weight: 500;
-}
 </style>
