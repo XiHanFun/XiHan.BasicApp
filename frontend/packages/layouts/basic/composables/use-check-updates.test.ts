@@ -20,10 +20,23 @@ vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
 vi.mock('~/stores', () => ({ useAppStore: () => appStore }))
 vi.mock('~/composables', () => ({ dialog: { confirm: (...args: unknown[]) => confirmSpy(...(args as [])) } }))
 
-/** 造一个只答 etag 的假首页：换掉返回值即等价于重新部署了一次 */
+/** 造一个带 etag 的假首页：换掉返回值即等价于重新部署了一次 */
 function stubFetch(tag: () => string | null) {
   const fetchMock = vi.fn(() => Promise.resolve({
+    ok: true,
     headers: { get: (name: string) => (name === 'etag' ? tag() : null) },
+    text: () => Promise.resolve('<html></html>'),
+  } as unknown as Response))
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
+
+/** 造一个不给校验头的假首页（CDN 压缩后常见）：版本只体现在正文里那批带哈希的资源名上 */
+function stubFetchWithoutValidator(assetHash: () => string) {
+  const fetchMock = vi.fn(() => Promise.resolve({
+    ok: true,
+    headers: { get: () => null },
+    text: () => Promise.resolve(`<html><body><script src="/assets/js/index-${assetHash()}.js"></script></body></html>`),
   } as unknown as Response))
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
@@ -94,6 +107,23 @@ describe('useCheckUpdates 轮询与提示', () => {
 
     expect(fetchMock.mock.calls.length).toBe(calls)
     expect(confirmSpy).not.toHaveBeenCalled()
+  })
+
+  it('服务端不给校验头时改比正文指纹：资源哈希变了照样弹提示', async () => {
+    vi.stubEnv('DEV', false)
+    vi.useFakeTimers()
+    let assetHash = 'AAAAAAAA'
+    stubFetchWithoutValidator(() => assetHash)
+    await mountChecker()
+
+    // 没换版本：正文一样，不该弹
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(confirmSpy).not.toHaveBeenCalled()
+
+    assetHash = 'BBBBBBBB'
+    await vi.advanceTimersByTimeAsync(30_000)
+
+    expect(confirmSpy).toHaveBeenCalledTimes(1)
   })
 
   it('开发环境不轮询：一次请求都不发', async () => {
