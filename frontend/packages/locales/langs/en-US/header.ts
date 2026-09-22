@@ -82,6 +82,8 @@ export default {
     refresh_page: 'Refresh page',
     nav_back: 'Back',
     nav_forward: 'Forward',
+    menu_scroll_prev: 'Previous menu items',
+    menu_scroll_next: 'Next menu items',
     sidebar_collapse: 'Collapse sidebar',
     sidebar_expand: 'Expand sidebar',
   },

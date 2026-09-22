@@ -297,7 +297,7 @@ const sidebarEnableState = computed(
           <!-- Logo in header (for header-nav / mixed-nav / mobile) -->
           <div
             v-if="shell.showHeaderLogo.value"
-            :style="{ minWidth: `${shell.isMobile.value ? 40 : shell.appStore.sidebarWidth}px` }"
+            :style="{ minWidth: `${shell.headerLogoMinWidth.value}px` }"
           >
             <div
               :class="{ dark: headerForceDark }"

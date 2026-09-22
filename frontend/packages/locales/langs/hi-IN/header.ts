@@ -82,6 +82,8 @@ export default {
     refresh_page: 'पेज ताज़ा करें',
     nav_back: 'पीछे',
     nav_forward: 'आगे',
+    menu_scroll_prev: 'पिछले मेनू आइटम',
+    menu_scroll_next: 'अगले मेनू आइटम',
     sidebar_collapse: 'साइडबार समेटें',
     sidebar_expand: 'साइडबार फैलाएँ',
   },

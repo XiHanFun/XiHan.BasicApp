@@ -82,6 +82,8 @@ export default {
     refresh_page: '刷新页面',
     nav_back: '后退',
     nav_forward: '前进',
+    menu_scroll_prev: '上一组菜单',
+    menu_scroll_next: '下一组菜单',
     sidebar_collapse: '折叠侧栏',
     sidebar_expand: '展开侧栏',
   },
