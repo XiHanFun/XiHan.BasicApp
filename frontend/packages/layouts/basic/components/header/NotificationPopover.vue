@@ -14,6 +14,7 @@ import {
   XhPopoverTrigger,
   XhSpinner,
   XhTabsContent,
+  XhTabsIndicator,
   XhTabsList,
   XhTabsRoot,
   XhTabsTrigger,
@@ -202,6 +203,7 @@ function handleItemClick(item: NotificationItem) {
                 <XhTabsTrigger value="mention">
                   {{ mentionTabLabel }}
                 </XhTabsTrigger>
+                <XhTabsIndicator />
               </XhTabsList>
               <XhTabsContent value="inbox">
                 <div class="notification-scroll">

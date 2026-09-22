@@ -14,7 +14,7 @@ import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhButton, XhCheckbox, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -1118,6 +1118,7 @@ async function confirmDelete() {
           <XhTabsTrigger value="3">
             {{ t('identity.user.tab_departments') }}
           </XhTabsTrigger>
+          <XhTabsIndicator />
         </XhTabsList>
         <XhTabsContent value="0">
           <!-- NForm 渲染真实 form 元素：密码输入必须在 form 内，否则浏览器告警 -->
@@ -1478,6 +1479,7 @@ async function confirmDelete() {
               <XhTabsTrigger value="perm">
                 {{ t('identity.user.grant_tab_perm') }}
               </XhTabsTrigger>
+              <XhTabsIndicator />
             </XhTabsList>
             <XhTabsContent value="role">
               <p class="grant-desc">
