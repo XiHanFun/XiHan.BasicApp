@@ -48,7 +48,7 @@ const { isMobile } = useIsMobile()
 <template>
   <div class="flex h-full min-w-0 shrink-0 items-center">
     <!-- 全局搜索 -->
-    <AppGlobalSearch v-if="props.appStore.searchEnabled" class="mr-1" />
+    <AppGlobalSearch v-if="props.appStore.searchEnabled" class="mr-1" :compact="props.searchCompact" />
 
     <!-- 语言切换（小屏隐藏） -->
     <LocaleSwitcher

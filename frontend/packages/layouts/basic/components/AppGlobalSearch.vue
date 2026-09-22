@@ -15,6 +15,11 @@ import { useAccessStore, useAppStore, useAuthStore, useFavoritesStore, useLayout
 
 defineOptions({ name: 'AppGlobalSearch', inheritAttrs: false })
 
+const props = withDefaults(defineProps<{
+  /** 收成图标钮：顶栏空间要先让给横向菜单时由外部打开，不再随断点自动展开 */
+  compact?: boolean
+}>(), { compact: false })
+
 const router = useRouter()
 const route = useRoute()
 const { t, te } = useI18n()
@@ -422,7 +427,8 @@ watch(
 <template>
   <!-- 触发按钮容器：$attrs 挂到此处（如外部传 class="mr-1"） -->
   <div v-bind="$attrs">
-    <div class="hidden sm:block">
+    <!-- 宽屏铺开完整的命令面板入口；收紧时（compact）只留图标钮，把宽度让给横向菜单 -->
+    <div v-if="!props.compact" class="hidden sm:block">
       <button type="button" class="search-trigger" @click="layoutBridgeStore.requestOpenGlobalSearch()">
         <span class="shrink-0 text-[hsl(var(--muted-foreground))]" style="display: inline-flex; font-size: 14px">
           <Icon icon="lucide:search" />
@@ -431,7 +437,7 @@ watch(
         <XhKbd v-if="showShortcut" class="search-kbd" :keys="[...GLOBAL_HOTKEYS.search]" />
       </button>
     </div>
-    <div class="sm:hidden">
+    <div :class="props.compact ? undefined : 'sm:hidden'">
       <button type="button" class="search-trigger-icon" @click="layoutBridgeStore.requestOpenGlobalSearch()">
         <Icon width="16" height="16" icon="lucide:search" />
       </button>

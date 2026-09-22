@@ -71,6 +71,42 @@ const showTopMenu = computed(
 )
 const showBreadcrumb = computed(() => !showTopMenu.value && appStore.breadcrumbEnabled)
 
+/**
+ * 顶栏空间先给横向菜单：菜单一行装不下就把命令面板收成图标钮，让出它那一截宽度。
+ * 展开与收起用同一把尺量，避免来回抖动——收起后要再展开，富余量必须够放回展开态与图标态的差值。
+ */
+const SEARCH_ICON_WIDTH = 32
+const SEARCH_RESTORE_SPARE = 8
+const searchCompact = ref(false)
+/** 展开态比图标态多占的宽度：收起前量一次记住（文案随语言变，不能写死） */
+const searchExpandedGain = ref(0)
+
+function onTopMenuFitChange(metrics: { content: number, available: number }) {
+  // 窄屏（<lg）横向菜单整条不显示，没有要让的对象，命令面板照常铺开
+  if (metrics.available <= 0) {
+    searchCompact.value = false
+    return
+  }
+  if (!searchCompact.value) {
+    const trigger = document.querySelector<HTMLElement>('header .search-trigger')
+    if (trigger) {
+      searchExpandedGain.value = Math.max(trigger.offsetWidth - SEARCH_ICON_WIDTH, 0)
+    }
+    searchCompact.value = metrics.content > metrics.available
+    return
+  }
+  if (metrics.available - metrics.content >= searchExpandedGain.value + SEARCH_RESTORE_SPARE) {
+    searchCompact.value = false
+  }
+}
+
+// 换到没有横向菜单的布局：命令面板恢复完整形态
+watch(showTopMenu, (value) => {
+  if (!value) {
+    searchCompact.value = false
+  }
+})
+
 const isSplitMode = computed(
   () => (appStore.navigationSplit && isMixedNavLayout.value) || isHeaderMixedLayout.value,
 )
@@ -470,12 +506,15 @@ watch(() => route.fullPath, () => {
   </div>
 
   <!-- Menu area -->
-  <div :class="`menu-align-${appStore.headerMenuAlign}`" class="flex flex-1 items-center min-w-0">
-    <div v-if="showTopMenu" class="hidden items-center min-w-0 xihan-top-menu lg:flex">
+  <div class="flex flex-1 items-center min-w-0">
+    <!-- 菜单铺满整条空档：排得下时按对齐方式摆，排不下时在里面横向滚动 -->
+    <div v-if="showTopMenu" class="hidden min-w-0 flex-1 items-center xihan-top-menu lg:flex">
       <HeaderTopMenu
         :options="topMenuOptions"
         :active-key="topMenuActive"
+        :align="appStore.headerMenuAlign"
         @select="handleTopMenuSelect"
+        @fit-change="onTopMenuFitChange"
       />
     </div>
   </div>
@@ -487,6 +526,7 @@ watch(() => route.fullPath, () => {
     :is-dark="isDark"
     :is-fullscreen="isFullscreen"
     :show-preferences-in-header="showPreferencesInHeader"
+    :search-compact="searchCompact"
     :user-options="userOptions"
     :notification-all-items="notificationStore.allItems"
     :notification-mentioned-items="notificationStore.mentionedItems"
@@ -508,17 +548,3 @@ watch(() => route.fullPath, () => {
   <!-- 模仿登录：由用户菜单打开，选中目标即以其身份重建会话 -->
   <ImpersonationDialog v-model:show="showImpersonationDialog" />
 </template>
-
-<style>
-.menu-align-start {
-  justify-content: flex-start;
-}
-
-.menu-align-center {
-  justify-content: center;
-}
-
-.menu-align-end {
-  justify-content: flex-end;
-}
-</style>
