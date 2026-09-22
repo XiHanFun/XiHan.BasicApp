@@ -601,7 +601,6 @@ watch(
   gap: 10px;
   padding: 0 14px;
   height: 52px;
-  border-bottom: 1px solid hsl(var(--border));
   flex-shrink: 0;
 }
 
@@ -725,7 +724,6 @@ watch(
   display: flex;
   gap: 16px;
   padding: 8px 14px;
-  border-top: 1px solid hsl(var(--border));
   font-size: 12px;
   color: hsl(var(--muted-foreground));
   flex-shrink: 0;
