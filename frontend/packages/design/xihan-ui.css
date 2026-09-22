@@ -130,6 +130,12 @@
 
     /* —— 层级：整族抬到本仓手写浮层（通知下拉那类）之上 —— */
     --xh-z-sticky: var(--z-sidebar);
+    /* 顶部加载条单独抬出 sticky 这一层：它固定贴在视口上沿，而那正是顶栏所在的位置，
+       顶栏的 z-index 从 200 起步（use-layout-shell-adapter 的 Z_INDEX_BASE），
+       条子留在 sticky（= --z-sidebar，100）就整条压在不透明的顶栏底下，一直没人看得见。
+       不能改 --xh-z-sticky 把整族一起抬走：表格粘性表头、affix、回到顶部与它同层，
+       抬上去就轮到页内的粘性元素盖住顶栏与侧栏。--z-loading 本就是留给这条带子的位置 */
+    --xh-loading-bar-layer: var(--z-loading);
     --xh-z-modal: 2200;
     --xh-z-popover: 2300;
     --xh-z-toast: 2400;
