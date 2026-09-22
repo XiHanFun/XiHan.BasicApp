@@ -424,11 +424,11 @@ watch(tracePreset, (preset) => {
 
     <XhCardRoot class="flex-1" style="height: 0">
       <XhCardContent style="height: 100%; display: flex; flex-direction: column; min-height: 0; padding: 0">
-        <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
+        <div class="xh-loading-stage trace-stage" :class="{ 'is-loading': loading }">
           <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
-          <div v-if="result" class="trace-panel">
+          <div v-if="result" class="trace-panel trace-scroll">
             <div class="trace-panel__header">
               <div class="trace-panel__titlerow">
                 <span class="trace-panel__title">{{ t('log.trace.page_name') }}</span>
@@ -540,7 +540,17 @@ watch(tracePreset, (preset) => {
   overflow: hidden;
 }
 
-/* 结果区内部滚动：页面已在视口内定高，故 flex-1 + min-height:0 得到确定高度，滚动只发生在时间线内部 */
+/* 加载罩层所在的这一层要吃掉卡片体的剩余高度，下面的结果面板才有确定高度可滚；
+   罩层是它的绝对定位子元素，留在这一层就始终盖住整块结果区，不随内容滚走 */
+.trace-stage {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 结果区内部滚动：上面那层已给出确定高度，故 flex-1 + min-height:0 得到可滚高度，
+   滚动只发生在时间线内部，页头的 sticky 也据此吸顶 */
 .trace-scroll {
   flex: 1;
   min-height: 0;
