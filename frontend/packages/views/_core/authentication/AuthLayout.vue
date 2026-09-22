@@ -122,8 +122,8 @@ const appName = __APP_NAME__
             >
               <!-- 登录四种入口下表单即当前标签的面板，故由切换器接住；其余页面它只透传内容 -->
               <AuthEntrySwitcher :enabled="showEntryTabs">
-                <!-- 这层裁掉切换过渡的 ±24px 平移；4px 内衬同时给控件聚焦环（外扩 ring-offset 2px + ring-width 2px）留出显示空间 -->
-                <div class="overflow-hidden p-1" :class="showEntryTabs ? 'min-h-[520px]' : ''">
+                <!-- 这层裁掉切换过渡的 ±24px 平移。不必再为聚焦环留内衬：组件库的环是 outline 配负 offset，画在控件盒内侧 -->
+                <div class="overflow-hidden" :class="showEntryTabs ? 'min-h-[520px]' : ''">
                   <router-view v-slot="{ Component }">
                     <transition name="auth-slide" mode="out-in">
                       <component :is="Component" />
