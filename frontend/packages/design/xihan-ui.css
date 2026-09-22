@@ -77,6 +77,10 @@
     --xh-material-elevated-fg-muted: hsl(var(--muted-foreground));
     --xh-material-soft-bg: hsl(var(--card));
 
+    /* 对话框标题与操作区之间不画横线：本应用的弹窗都不大，标题、正文、按钮靠间距就分得清，
+       两条线反而把一小块面切成三截。只收这一族的分隔线，其它浮层的材质线照旧（菜单分组、面板抬头要靠它） */
+    --xh-dialog-separator: transparent;
+
     /* —— 字 —— */
     --xh-fg-default: hsl(var(--foreground));
     --xh-fg-muted: hsl(var(--muted-foreground));
