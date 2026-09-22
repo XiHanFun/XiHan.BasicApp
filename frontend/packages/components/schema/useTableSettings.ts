@@ -37,8 +37,8 @@ export interface TableStyle {
   singleLine: boolean
 }
 
-/** 表格风格默认值（默认显示竖线：single-line=false） */
-const DEFAULT_STYLE: TableStyle = { striped: true, bordered: true, singleLine: false }
+/** 表格风格默认值（默认不打斑马纹、显示竖线：single-line=false） */
+const DEFAULT_STYLE: TableStyle = { striped: false, bordered: true, singleLine: false }
 
 /** 默认排序单条规则（列表打开时的初始排序；列头点击的临时排序会覆盖本次会话） */
 export interface TableDefaultSort {

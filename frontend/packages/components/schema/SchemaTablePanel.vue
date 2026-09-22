@@ -90,7 +90,7 @@ const props = withDefaults(defineProps<{
   checkedKeys: () => [],
   sorts: () => [],
   density: 'sm',
-  striped: true,
+  striped: false,
   bordered: true,
   singleLine: true,
   tree: false,
