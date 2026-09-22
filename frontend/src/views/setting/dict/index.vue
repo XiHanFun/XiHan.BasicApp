@@ -178,13 +178,7 @@ const dictColumns = computed<XDataTableColumn<DictListItemDto>[]>(() => [
     title: t('setting.dict.dict_name'),
     minWidth: 140,
     ellipsis: true,
-    render: (row: DictListItemDto) =>
-      h('div', { class: 'dict-name' }, [
-        h('span', { class: 'dict-name__text' }, row.dictName),
-        row.isBuiltIn
-          ? h(XhTagRoot, { variant: 'subtle', tone: 'warning' }, () => h(XhTagLabel, () => t('setting.dict.builtin')))
-          : null,
-      ]),
+    render: (row: DictListItemDto) => h('span', { class: 'dict-name__text' }, row.dictName),
   },
   {
     key: 'dictCode',
@@ -197,6 +191,15 @@ const dictColumns = computed<XDataTableColumn<DictListItemDto>[]>(() => [
     title: t('setting.dict.type'),
     minWidth: 110,
     ellipsis: true,
+  },
+  {
+    // 是否内置：独立一列，与参数配置页的布尔列同款（是 / 否 标签）
+    key: 'isBuiltIn',
+    title: t('setting.dict.builtin'),
+    width: 72,
+    align: 'center',
+    render: (row: DictListItemDto) =>
+      h(XhTagRoot, { variant: 'subtle', tone: row.isBuiltIn ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row.isBuiltIn ? t('common.statuses.yes') : t('common.statuses.no')))),
   },
   {
     key: 'status',
@@ -1199,13 +1202,6 @@ onMounted(fetchDictData)
 
 .pane :deep(.dict-row--active) .dict-name__text {
   color: hsl(var(--primary));
-}
-
-.dict-name {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
 }
 
 .dict-name__text {

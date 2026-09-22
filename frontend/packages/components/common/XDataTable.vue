@@ -31,7 +31,7 @@ export interface XDataTableColumn<Row> {
   render?: (row: Row, index: number) => VNodeChild
 }
 
-defineOptions({ name: 'XDataTable', inheritAttrs: false })
+defineOptions({ name: 'XDataTable' })
 
 const props = withDefaults(defineProps<{
   columns: ReadonlyArray<XDataTableColumn<T>>
@@ -119,75 +119,95 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
 </script>
 
 <template>
-  <XhTableRoot
-    v-bind="$attrs"
+  <!-- 单根包裹层：XhTableRoot 渲染的是 Fragment（表格根 + aria 播报区），Vue 只把父组件的 scoped 属性打到
+       单根子组件的根元素上，Fragment 根拿不到 data-v-*。没有这一层，调用方写在 class 上的 scoped 规则
+       （flex:1、--xh-table-max-h…）与本组件的 :deep() 都选不中表格根，表格只能吃皮肤缺省的 24rem 上限。
+       透传的 class / style 落在这层；--xh-table-max-h 是自定义属性，会继承进表格根 -->
+  <div
     class="x-data-table"
-    :columns="tableColumns"
-    :rows="tableRows"
-    :selection="checkedKeys"
-    :selection-mode="selectable ? 'multiple' : 'none'"
-    :loading="loading"
-    :size="size"
-    :sticky-header="stickyHeader"
     :style="maxHeight ? { '--xh-table-max-h': typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight } : undefined"
-    @update:selection="onSelectionChange"
   >
-    <XhTableHeader>
-      <XhTableRow>
-        <XhTableColumnHeader v-if="selectable" :value="SELECT_COL">
-          <XhTableSelectAllTrigger />
-        </XhTableColumnHeader>
-        <XhTableColumnHeader
-          v-for="column in columns"
-          :key="column.key"
-          :value="column.key"
-          :style="cellStyle(column)"
-        >
-          <!-- 列名放进 column-label：列头是 flex 行，裸文本缩不下去；这一格超宽出省略号 -->
-          <XhTableColumnLabel>{{ column.title }}</XhTableColumnLabel>
-        </XhTableColumnHeader>
-      </XhTableRow>
-    </XhTableHeader>
+    <XhTableRoot
+      :columns="tableColumns"
+      :rows="tableRows"
+      :selection="checkedKeys"
+      :selection-mode="selectable ? 'multiple' : 'none'"
+      :loading="loading"
+      :size="size"
+      :sticky-header="stickyHeader"
+      @update:selection="onSelectionChange"
+    >
+      <XhTableHeader>
+        <XhTableRow>
+          <XhTableColumnHeader v-if="selectable" :value="SELECT_COL">
+            <XhTableSelectAllTrigger />
+          </XhTableColumnHeader>
+          <XhTableColumnHeader
+            v-for="column in columns"
+            :key="column.key"
+            :value="column.key"
+            :style="cellStyle(column)"
+          >
+            <!-- 列名放进 column-label：列头是 flex 行，裸文本缩不下去；这一格超宽出省略号 -->
+            <XhTableColumnLabel>{{ column.title }}</XhTableColumnLabel>
+          </XhTableColumnHeader>
+        </XhTableRow>
+      </XhTableHeader>
 
-    <XhTableBody>
-      <XhTableRow
-        v-for="(item, rowIndex) in rows"
-        :key="item.key"
-        :value="item.key"
-        v-bind="rowProps?.(item.row, rowIndex)"
-      >
-        <XhTableCell v-if="selectable" :value="SELECT_COL">
-          <XhTableRowSelectTrigger />
-        </XhTableCell>
-        <XhTableCell
-          v-for="column in columns"
-          :key="column.key"
-          :value="column.key"
-          :style="cellStyle(column)"
+      <XhTableBody>
+        <XhTableRow
+          v-for="(item, rowIndex) in rows"
+          :key="item.key"
+          :value="item.key"
+          v-bind="rowProps?.(item.row, rowIndex)"
         >
-          <!-- 截断要落在单元格内部的行内块上：单元格自身是 flex 容器，text-overflow 在它上面不生效 -->
-          <span v-if="column.ellipsis" class="x-data-table__cell-text">
-            <VNodeRender :content="cellContent(column, item.row, rowIndex)" />
-          </span>
-          <VNodeRender v-else :content="cellContent(column, item.row, rowIndex)" />
-        </XhTableCell>
-      </XhTableRow>
-    </XhTableBody>
+          <XhTableCell v-if="selectable" :value="SELECT_COL">
+            <XhTableRowSelectTrigger />
+          </XhTableCell>
+          <XhTableCell
+            v-for="column in columns"
+            :key="column.key"
+            :value="column.key"
+            :style="cellStyle(column)"
+          >
+            <!-- 截断要落在单元格内部的行内块上：单元格自身是 flex 容器，text-overflow 在它上面不生效 -->
+            <span v-if="column.ellipsis" class="x-data-table__cell-text">
+              <VNodeRender :content="cellContent(column, item.row, rowIndex)" />
+            </span>
+            <VNodeRender v-else :content="cellContent(column, item.row, rowIndex)" />
+          </XhTableCell>
+        </XhTableRow>
+      </XhTableBody>
 
-    <XhTableLoading>
-      <slot name="loading">
-        {{ t('common.loading') }}
-      </slot>
-    </XhTableLoading>
-    <XhTableEmpty>
-      <slot name="empty">
-        {{ emptyText ?? t('common.empty') }}
-      </slot>
-    </XhTableEmpty>
-  </XhTableRoot>
+      <XhTableLoading>
+        <slot name="loading">
+          {{ t('common.loading') }}
+        </slot>
+      </XhTableLoading>
+      <XhTableEmpty>
+        <slot name="empty">
+          {{ emptyText ?? t('common.empty') }}
+        </slot>
+      </XhTableEmpty>
+    </XhTableRoot>
+  </div>
 </template>
 
 <style scoped>
+/* 包裹层是纵向 flex：表格根占满它的高度。调用方给包裹层 flex:1 / 定高时，表格就撑满该区域并在内部滚动；
+   没给（普通块级语境）时包裹层随内容高，表格照旧受 --xh-table-max-h（缺省 24rem）封顶。
+   表格撑满到多高仍由该令牌决定：要撑满容器就把它改成 100%（或经 max-height 传入） */
+.x-data-table {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.x-data-table :deep([data-scope='table'][data-part='root']) {
+  flex: 1;
+  min-block-size: 0;
+}
+
 /* 区段的下限从 max-content 换成 min-content：
    max-content 等于各列声明宽之和，容器再窄也不压缩、必出横向滚动；
    0 则让区段收到容器宽，而单元格压到各自下限后仍溢出行盒，行底色（斑马纹）就在中途断掉。

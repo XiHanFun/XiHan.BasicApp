@@ -58,7 +58,9 @@
     --xh-bg-brand: var(--xh-color-brand-600);
     --xh-bg-brand-hover: var(--xh-color-brand-700);
     --xh-bg-brand-active: var(--xh-color-brand-800);
-    --xh-bg-brand-subtle: hsl(var(--primary) / 12%);
+    /* 淡底必须是实色：表格选中行用它当底，冻结列的单元格靠 background: inherit 取行底，
+       半透明会让横向滚过的其它列从冻结列下面透出来。按 srgb 混入卡片底，与此前 12% 透明叠在卡片上的观感一致 */
+    --xh-bg-brand-subtle: color-mix(in srgb, hsl(var(--primary)) 12%, hsl(var(--card)));
     --xh-bg-overlay: hsl(var(--overlay));
 
     /* —— 浮层材质：组件库的弹出面（popover / menu / select / 日期面板…）读 frosted，

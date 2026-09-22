@@ -459,8 +459,8 @@ watch(() => route.fullPath, () => {
     <Icon icon="lucide:refresh-cw" class="size-4" />
   </XihanIconButton>
 
-  <!-- Breadcrumb -->
-  <div v-if="showBreadcrumb" class="hidden flex-center lg:block">
+  <!-- Breadcrumb：允许被压缩（min-w-0），顶栏挤压时由 HeaderNav 单行截断，不折成两行 -->
+  <div v-if="showBreadcrumb" class="hidden min-w-0 lg:block">
     <HeaderNav
       :app-store="appStore"
       :breadcrumbs="breadcrumbs"
