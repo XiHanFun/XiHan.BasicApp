@@ -432,6 +432,39 @@ const schema = computed<PageSchema>(() => ({
       visible: row => (row as unknown as TenantListItemDto).isolationMode === TenantIsolationMode.Database,
     },
     {
+      key: 'status-enable',
+      title: t('tenant.list.status_enable'),
+      scope: 'row',
+      type: 'success',
+      icon: 'lucide:play',
+      permission: 'tenant.list.status',
+      confirm: true,
+      confirmText: t('tenant.list.status_enable_confirm'),
+      visible: row => (row as unknown as TenantListItemDto).tenantStatus !== TenantStatus.Normal,
+    },
+    {
+      key: 'status-suspend',
+      title: t('tenant.list.status_suspend'),
+      scope: 'row',
+      type: 'warning',
+      icon: 'lucide:pause',
+      permission: 'tenant.list.status',
+      confirm: true,
+      confirmText: t('tenant.list.status_suspend_confirm'),
+      visible: row => (row as unknown as TenantListItemDto).tenantStatus !== TenantStatus.Suspended,
+    },
+    {
+      key: 'status-disable',
+      title: t('tenant.list.status_disable'),
+      scope: 'row',
+      type: 'error',
+      icon: 'lucide:power',
+      permission: 'tenant.list.status',
+      confirm: true,
+      confirmText: t('tenant.list.status_disable_confirm'),
+      visible: row => (row as unknown as TenantListItemDto).tenantStatus !== TenantStatus.Disabled,
+    },
+    {
       key: 'delete',
       title: t('tenant.list.delete'),
       scope: 'row',
@@ -440,8 +473,9 @@ const schema = computed<PageSchema>(() => ({
       permission: 'tenant.list.delete',
       confirm: true,
       confirmText: t('tenant.list.delete_confirm'),
-      // 后端要求先停用：正常状态下不给入口，避免点了才报错
-      visible: row => isTenantDeletable((row as unknown as TenantListItemDto).tenantStatus),
+      // 后端要求先停用或暂停。入口常显但置灰：整条消失会让人以为没有删除功能，
+      // 而上面几条启停就摆在同一个菜单里，置灰即指明了先做哪一步
+      disabled: row => !isTenantDeletable((row as unknown as TenantListItemDto).tenantStatus),
     },
   ],
 }))
@@ -502,11 +536,47 @@ function onAction(payload: SchemaActionPayload) {
         void handleInitDb(row)
       }
       break
+    case 'status-enable':
+      if (row) {
+        void handleStatusChange(row, TenantStatus.Normal)
+      }
+      break
+    case 'status-suspend':
+      if (row) {
+        void handleStatusChange(row, TenantStatus.Suspended)
+      }
+      break
+    case 'status-disable':
+      if (row) {
+        void handleStatusChange(row, TenantStatus.Disabled)
+      }
+      break
     case 'delete':
       if (row) {
         void handleDelete(row)
       }
       break
+  }
+}
+
+/**
+ * 行级启停
+ *
+ * 状态本来只能在编辑弹窗的下拉里改，而删除又要求先停用或暂停，
+ * 于是「停用后删除」这条最常走的路在列表上是断的。这里把三个目标状态直接摆到行操作里。
+ */
+async function handleStatusChange(row: TenantListItemDto, tenantStatus: TenantStatus) {
+  try {
+    await tenantManagementApi.updateStatus({
+      basicId: row.basicId,
+      reason: t('tenant.list.status_change_reason'),
+      tenantStatus,
+    })
+    toast.success(t('tenant.list.status_update_success'))
+    reloadTenant()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('tenant.list.status_update_failed'))
   }
 }
 
