@@ -20,24 +20,43 @@ vi.mock('vue-i18n', () => ({ useI18n: () => ({ t: (key: string) => key }) }))
 vi.mock('~/stores', () => ({ useAppStore: () => appStore }))
 vi.mock('~/composables', () => ({ dialog: { confirm: (...args: unknown[]) => confirmSpy(...(args as [])) } }))
 
+/** 没有发布清单的老部署：请求 version.json 返回 404，检查退到首页那条路 */
+const NO_MANIFEST = { ok: false, status: 404 } as unknown as Response
+
 /** 造一个带 etag 的假首页：换掉返回值即等价于重新部署了一次 */
 function stubFetch(tag: () => string | null) {
-  const fetchMock = vi.fn(() => Promise.resolve({
-    ok: true,
-    headers: { get: (name: string) => (name === 'etag' ? tag() : null) },
-    text: () => Promise.resolve('<html></html>'),
-  } as unknown as Response))
+  const fetchMock = vi.fn((url: string) => Promise.resolve(url.includes('version.json')
+    ? NO_MANIFEST
+    : {
+        ok: true,
+        headers: { get: (name: string) => (name === 'etag' ? tag() : null) },
+        text: () => Promise.resolve('<html></html>'),
+      } as unknown as Response))
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
 }
 
 /** 造一个不给校验头的假首页（CDN 压缩后常见）：版本只体现在正文里那批带哈希的资源名上 */
 function stubFetchWithoutValidator(assetHash: () => string) {
-  const fetchMock = vi.fn(() => Promise.resolve({
-    ok: true,
-    headers: { get: () => null },
-    text: () => Promise.resolve(`<html><body><script src="/assets/js/index-${assetHash()}.js"></script></body></html>`),
-  } as unknown as Response))
+  const fetchMock = vi.fn((url: string) => Promise.resolve(url.includes('version.json')
+    ? NO_MANIFEST
+    : {
+        ok: true,
+        headers: { get: () => null },
+        text: () => Promise.resolve(`<html><body><script src="/assets/js/index-${assetHash()}.js"></script></body></html>`),
+      } as unknown as Response))
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
+
+/** 造一份发布清单：构建标记换了就等价于线上发了新的一版 */
+function stubFetchWithManifest(stamp: () => string) {
+  const fetchMock = vi.fn((url: string) => Promise.resolve(url.includes('version.json')
+    ? {
+        ok: true,
+        json: () => Promise.resolve({ version: '9.9.9', buildStamp: stamp() }),
+      } as unknown as Response
+    : { ok: true, headers: { get: () => null }, text: () => Promise.resolve('<html></html>') } as unknown as Response))
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
 }
@@ -107,6 +126,48 @@ describe('useCheckUpdates 轮询与提示', () => {
 
     expect(fetchMock.mock.calls.length).toBe(calls)
     expect(confirmSpy).not.toHaveBeenCalled()
+  })
+
+  it('线上发布标记与当前产物不同就提示：页面是发版之后打开的也认得出来', async () => {
+    vi.stubEnv('DEV', false)
+    vi.useFakeTimers()
+    stubFetchWithManifest(() => '2026-09-22T14:00:00.000Z')
+
+    // 首轮就能判：不必先攒基线
+    await mountChecker()
+    await vi.advanceTimersByTimeAsync(30_000)
+
+    expect(confirmSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('线上跑的就是当前这一版时不提示', async () => {
+    vi.stubEnv('DEV', false)
+    vi.useFakeTimers()
+    stubFetchWithManifest(() => __APP_BUILD_STAMP__)
+
+    await mountChecker()
+    await vi.advanceTimersByTimeAsync(60_000)
+
+    expect(confirmSpy).not.toHaveBeenCalled()
+  })
+
+  it('按掉之后同一版不再追问，再发一版才重新提醒', async () => {
+    vi.stubEnv('DEV', false)
+    vi.useFakeTimers()
+    let stamp = '2026-09-22T14:00:00.000Z'
+    stubFetchWithManifest(() => stamp)
+    await mountChecker()
+
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(confirmSpy).toHaveBeenCalledTimes(1)
+
+    // 用户按了取消（桩里 confirm 恒 resolve(false)）：同一版再轮几次都不该再弹
+    await vi.advanceTimersByTimeAsync(90_000)
+    expect(confirmSpy).toHaveBeenCalledTimes(1)
+
+    stamp = '2026-09-22T15:00:00.000Z'
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(confirmSpy).toHaveBeenCalledTimes(2)
   })
 
   it('服务端不给校验头时改比正文指纹：资源哈希变了照样弹提示', async () => {
