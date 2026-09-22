@@ -211,8 +211,12 @@ export function useLayoutShellAdapter() {
   const headerWrapperStyle = computed((): CSSProperties => {
     const fixed = headerFixed.value
     const maximized = contentMaximized.value
+    // 收起（整页内容 / 内容最大化）时把外壳收成 0 高并裁掉溢出；正常展开时必须放开，
+    // 否则顶栏横向菜单的下拉面板（绝对定位在顶栏内，不走 portal）会被这层按外壳高度切掉
+    const collapsed = isFullContent.value || maximized
     return {
       height: isFullContent.value ? '0' : `${headerWrapperHeight.value}px`,
+      overflow: collapsed ? 'hidden' : 'visible',
       left: maximized ? '0' : (isMixedNav.value ? '0' : mainStyle.value.sidebarAndExtraWidth),
       position: fixed || maximized ? 'fixed' : 'static',
       top: maximized

@@ -282,10 +282,7 @@ const sidebarEnableState = computed(
     <!-- ==================== Main Content ==================== -->
     <div class="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in">
       <!-- Header + Tabbar wrapper -->
-      <div
-        :style="shell.headerWrapperStyle.value"
-        class="overflow-hidden"
-      >
+      <div :style="shell.headerWrapperStyle.value">
         <!-- Header -->
         <header
           v-if="shell.appStore.headerShow"
