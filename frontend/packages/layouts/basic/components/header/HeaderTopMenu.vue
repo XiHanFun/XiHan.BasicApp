@@ -31,13 +31,19 @@ import HeaderTopMenuPanel from './HeaderTopMenuPanel.vue'
  */
 defineOptions({ name: 'HeaderTopMenu' })
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   options: AppMenuOption[]
   /** 当前选中项 */
   activeKey?: string
-}>()
+  /** 入口排得下时的对齐方式（顶栏菜单对齐偏好） */
+  align?: 'start' | 'center' | 'end'
+}>(), { activeKey: undefined, align: 'start' })
 
-const emit = defineEmits<{ select: [key: string] }>()
+const emit = defineEmits<{
+  select: [key: string]
+  /** 入口一行装不装得下：顶栏据此决定是否把命令面板收成图标钮，先保菜单显示 */
+  fitChange: [metrics: { content: number, available: number }]
+}>()
 
 /** 面板与视口右缘至少留这么多间距，贴边的入口才不会把面板顶出屏幕 */
 const PANEL_EDGE_GAP = 8
@@ -58,6 +64,9 @@ const entries = computed<NavigationMenuNode[]>(() =>
   })),
 )
 
+/** 排得下时入口按偏好对齐；排不下时列表宽过滚动区，对齐自然失效、改为从头滚 */
+const listJustify = computed(() => (props.align === 'center' ? 'center' : props.align === 'end' ? 'flex-end' : 'flex-start'))
+
 /** 带子级的入口：面板统一铺在共享外壳里，顺序与入口一致 */
 const panelOptions = computed(() => props.options.filter(option => option.children?.length))
 
@@ -76,12 +85,26 @@ function scrollBehavior(): ScrollBehavior {
   return resolveMotionPreference() === 'reduce' ? 'instant' : 'smooth'
 }
 
+/**
+ * 入口一行摆开要多宽。不能用 scrollWidth：列表带 min-width:100%（排得下时铺满滚动区好让对齐生效），
+ * 装得下时 scrollWidth 恒等于可视宽，富余多少就看不出来了，顶栏那边也就判不出还能不能放回命令面板。
+ */
+function measureContentWidth(list: HTMLElement): number {
+  const items = [...list.children] as HTMLElement[]
+  const gap = Number.parseFloat(getComputedStyle(list).columnGap) || 0
+  const total = items.reduce((sum, item) => sum + item.getBoundingClientRect().width, 0)
+  return total + gap * Math.max(items.length - 1, 0)
+}
+
 function calcShowScrollBtn() {
   const vp = scrollViewportRef.value
-  if (!vp) {
+  const list = vp?.firstElementChild as HTMLElement | null
+  if (!vp || !list) {
     return
   }
-  showScrollBtn.value = vp.scrollWidth > vp.clientWidth + 1
+  const content = measureContentWidth(list)
+  showScrollBtn.value = content > vp.clientWidth + 1
+  emit('fitChange', { content, available: vp.clientWidth })
 }
 
 function updateScrollEdge() {
@@ -238,7 +261,7 @@ watch(() => props.activeKey, () => {
 
     <!-- 入口列表：一行排不下就横向滚动，滚动条藏起来交给箭头与滚轮 -->
     <div ref="scrollViewportRef" class="header-top-menu__viewport">
-      <XhNavigationMenuList class="header-top-menu__list">
+      <XhNavigationMenuList class="header-top-menu__list" :style="{ justifyContent: listJustify }">
         <XhNavigationMenuItem v-for="option in options" :key="option.key">
           <!-- 有子级：入口是浮层触发器，面板铺在下面的共享外壳里 -->
           <XhNavigationMenuTrigger v-if="option.children?.length" :value="option.key">
@@ -316,6 +339,7 @@ watch(() => props.activeKey, () => {
 
   /* 根是箭头 + 滚动区一行排开；它同时是共享面板外壳的定位参照系（皮肤已给 relative） */
   display: flex;
+  flex: 1;
   align-items: center;
   gap: var(--xh-space-1);
   min-width: 0;
@@ -340,10 +364,12 @@ watch(() => props.activeKey, () => {
   display: none;
 }
 
-/* 入口不折行、不被压扁：排不下就交给滚动 */
+/* 入口不折行、不被压扁：排不下就交给滚动。
+   min-width:100% 让排得下时列表仍铺满滚动区，对齐方式才有地方生效 */
 .header-top-menu__list {
   flex-wrap: nowrap;
   width: max-content;
+  min-width: 100%;
 }
 
 .header-top-menu__list :deep([data-scope='navigation-menu'][data-part='item']) {
