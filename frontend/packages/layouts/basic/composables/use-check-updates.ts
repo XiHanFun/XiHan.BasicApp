@@ -9,6 +9,14 @@ function isLocalHost(): boolean {
 }
 
 /**
+ * 只在正式部署的站点上比对：开发服务器每次改动都会换掉首页指纹，本机跑的产物也不会被别人重新部署，
+ * 两种情况下轮询只会白发请求甚至误报。挂载与偏好开关走同一把尺，免得两条路一个查一个不查。
+ */
+function canCheckUpdates(): boolean {
+  return !import.meta.env.DEV && !isLocalHost()
+}
+
+/**
  * 定时检查前端资源是否有更新（通过 HEAD 请求对比 etag / last-modified）。
  * 检测到变化时弹出通知提示用户刷新页面。
  * 页面不可见时暂停轮询，重新可见时立即检查一次再恢复定时器。
@@ -18,6 +26,8 @@ export function useCheckUpdates() {
   const { t } = useI18n()
 
   let timer: ReturnType<typeof setInterval> | null = null
+  /** 有一次比对还在路上：上一次取指纹没回来就又轮到下一次时，两次都会拿老基线比，提示要弹两遍 */
+  let checking = false
   const versionTag = ref<string | null>(null)
   const hasUpdate = ref(false)
 
@@ -37,16 +47,26 @@ export function useCheckUpdates() {
   }
 
   async function check() {
-    const tag = await getVersionTag()
-    if (!tag)
+    if (checking) {
       return
-
-    if (versionTag.value && tag !== versionTag.value && !hasUpdate.value) {
-      hasUpdate.value = true
-      showUpdateNotification()
     }
+    checking = true
+    try {
+      const tag = await getVersionTag()
+      if (!tag) {
+        return
+      }
 
-    versionTag.value = tag
+      if (versionTag.value && tag !== versionTag.value && !hasUpdate.value) {
+        hasUpdate.value = true
+        showUpdateNotification()
+      }
+
+      versionTag.value = tag
+    }
+    finally {
+      checking = false
+    }
   }
 
   function showUpdateNotification() {
@@ -70,7 +90,7 @@ export function useCheckUpdates() {
 
   function startTimer() {
     stopTimer()
-    if (!appStore.enableCheckUpdates)
+    if (!appStore.enableCheckUpdates || !canCheckUpdates())
       return
     const seconds = Math.max(10, Math.min(300, appStore.checkUpdatesInterval))
     timer = setInterval(check, seconds * 1000)
@@ -81,6 +101,21 @@ export function useCheckUpdates() {
       clearInterval(timer)
       timer = null
     }
+  }
+
+  /** 开始盯：先记下当前指纹当基线（没有基线就无从比对），再起定时器并接上可见性开关 */
+  async function startWatching() {
+    if (!canCheckUpdates()) {
+      return
+    }
+    versionTag.value ??= await getVersionTag()
+    startTimer()
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+  }
+
+  function stopWatching() {
+    stopTimer()
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
   }
 
   /** 页面可见性变化：隐藏时暂停轮询，恢复时立即检查一次再重启定时器 */
@@ -98,11 +133,10 @@ export function useCheckUpdates() {
     () => appStore.enableCheckUpdates,
     (enabled) => {
       if (enabled) {
-        check()
-        startTimer()
+        void startWatching()
       }
       else {
-        stopTimer()
+        stopWatching()
       }
     },
   )
@@ -116,19 +150,12 @@ export function useCheckUpdates() {
     },
   )
 
-  onMounted(async () => {
-    if (import.meta.env.DEV || isLocalHost())
+  onMounted(() => {
+    if (!appStore.enableCheckUpdates) {
       return
-    if (!appStore.enableCheckUpdates)
-      return
-
-    versionTag.value = await getVersionTag()
-    startTimer()
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    }
+    void startWatching()
   })
 
-  onBeforeUnmount(() => {
-    stopTimer()
-    document.removeEventListener('visibilitychange', handleVisibilityChange)
-  })
+  onBeforeUnmount(stopWatching)
 }
