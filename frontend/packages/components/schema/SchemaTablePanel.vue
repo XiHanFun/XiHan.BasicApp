@@ -18,7 +18,7 @@ import {
   XhTableSelectAllTrigger,
   XhTableSortTrigger,
 } from '@xihan-ui/vue'
-import { computed, ref } from 'vue'
+import { computed, mergeProps, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
@@ -76,6 +76,8 @@ const props = withDefaults(defineProps<{
   renderExpand?: (row: TRow) => VNodeChild
   /** 行是否可展开（默认全部可展开） */
   rowExpandable?: (row: TRow) => boolean
+  /** 逐行附加属性（class / style / 事件），主从页用它做整行点选与当前行高亮 */
+  rowProps?: (row: TRow, rowIndex: number) => Record<string, unknown>
 }>(), {
   loading: false,
   rowKey: 'basicId',
@@ -98,6 +100,7 @@ const props = withDefaults(defineProps<{
   peekFields: undefined,
   renderExpand: undefined,
   rowExpandable: undefined,
+  rowProps: undefined,
 })
 const emit = defineEmits<{
   'update:page': [value: number]
@@ -327,9 +330,11 @@ function onSelectionChange(next: TableSelection): void {
   emit('update:checkedKeys', keys)
 }
 
-// 悬停速览的行事件：未启用时不挂，省掉每行三个监听
-function rowPeekHandlers(row: TRow) {
-  return peekEnabled.value ? peek.rowProps(row) : {}
+// 行属性：悬停速览的事件（未启用时不挂，省掉每行三个监听）与页面附加属性合并，同名事件都保留
+function rowAttrs(row: TRow, rowIndex: number) {
+  const peekHandlers = peekEnabled.value ? peek.rowProps(row) : {}
+  const extra = props.rowProps?.(row, rowIndex)
+  return extra ? mergeProps(peekHandlers, extra) : peekHandlers
 }
 </script>
 
@@ -382,7 +387,7 @@ function rowPeekHandlers(row: TRow) {
 
       <XhTableBody>
         <template v-for="(item, rowIndex) in flatRows" :key="item.key">
-          <XhTableRow :value="item.key" v-bind="rowPeekHandlers(item.row)">
+          <XhTableRow :value="item.key" v-bind="rowAttrs(item.row, rowIndex)">
             <XhTableCell v-if="renderExpand" :value="EXPAND_COL" :style="prefixStyle(EXPAND_COL)">
               <XhTableExpandTrigger />
             </XhTableCell>

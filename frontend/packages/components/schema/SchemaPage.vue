@@ -31,6 +31,8 @@ defineOptions({ name: 'SchemaPage' })
 const props = defineProps<{
   /** 页面单一事实源 */
   schema: PageSchema<Row>
+  /** 逐行附加属性（class / style / 事件）：主从页用它做整行点选与当前行高亮 */
+  rowProps?: (row: Row, rowIndex: number) => Record<string, unknown>
 }>()
 
 const emit = defineEmits<{
@@ -571,6 +573,8 @@ defineExpose({
   remove,
   clearSelection,
   filters,
+  // 当前页数据：主从页据此同步「当前行」（选中项被过滤掉时改选首条）
+  rows,
   // 搜索方案接口（无内置 UI，供页面自定义方案入口调用）
   views: viewManager.views,
   activeViewCode: viewManager.activeCode,
@@ -657,6 +661,10 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
     <XhCardRoot class="xh-schema-card xh-schema-card--toolbar" variant="outline" style="overflow: visible">
       <XhCardContent>
         <SchemaActionPanel :actions="schema.actions ?? []" @action="onPageAction">
+          <!-- 页面自定义的前置标签（如主从页的当前对象名） -->
+          <template v-if="$slots['toolbar-leading']" #leading>
+            <slot name="toolbar-leading" />
+          </template>
           <template #toolbar>
             <!-- 页面自定义工具栏项 -->
             <slot name="toolbar" :reload="reload" />
@@ -777,6 +785,7 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
             :children-key="schema.tree?.childrenKey ?? 'children'"
             :default-expand-all="schema.tree?.defaultExpandAll ?? true"
             :remount-key="tableRemountKey"
+            :row-props="rowProps"
             :peek-fields="peekFields"
             :render-expand="renderExpand"
             @sort="changeSort"

@@ -71,6 +71,8 @@ const moreOptions = computed<MenuNode[]>(() =>
 
 <template>
   <div class="flex flex-wrap gap-2 items-center">
+    <!-- 前置插槽：页面级上下文标签（如主从页当前所属对象），排在操作按钮之前 -->
+    <slot name="leading" />
     <template v-for="action in primaryActions" :key="action.key">
       <!-- 小屏收成纯图标钮，文案退到提示里；宽屏照常出文字 -->
       <XIconButton
