@@ -25,7 +25,8 @@ const appStore = useAppStore()
 
       css=false：进场交给 WAAPI（见 page-motion.ts）。Vue 的类式过渡要在页面根上增删五次 class，
       而页面根是页内所有浮层的祖先，XiHan.UI 的 Portal 视觉环境桥盯着祖先链的 class，
-      改一次就把整张自定义属性表重读一遍——实测一次 class 变更 6 万次 getPropertyValue、约 200ms。
+      改一次就把整张自定义属性表重读一遍——实测一次 class 变更触发 66 次门户同步、12 万次
+      getPropertyValue；五次 class 变更让整次切页的主线程阻塞从 217ms 涨到 421ms。
 
       leave 当场收尾：本应用不播页面离场动画（新旧两页并存一帧会跳）。钩子要声明两个形参
       Vue 才认它接管收尾（hasExplicitCallback 看的是形参个数），同步调 done 即刻摘除旧页，
