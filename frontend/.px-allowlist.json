@@ -136,7 +136,7 @@
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/iconify/IconPicker.vue": {
-    "cap": 15,
+    "cap": 13,
     "reason": "图标选择器的网格单元尺寸"
   },
   "packages/layouts/basic/components/AppBrand.vue": {
@@ -320,7 +320,7 @@
     "reason": "代码生成器页面的排版刻度"
   },
   "src/modules/codegen/views/develop/code-gen/components/import-table-modal.vue": {
-    "cap": 8,
+    "cap": 6,
     "reason": "代码生成器页面的排版刻度"
   },
   "src/modules/codegen/views/develop/code-gen/components/preview-modal.vue": {
@@ -440,8 +440,8 @@
     "reason": "业务页面的排版刻度"
   },
   "src/views/setting/dict/index.vue": {
-    "cap": 25,
-    "reason": "业务页面的排版刻度"
+    "cap": 1,
+    "reason": "主从两栏的响应式断点"
   },
   "src/views/setting/job/index.vue": {
     "cap": 13,

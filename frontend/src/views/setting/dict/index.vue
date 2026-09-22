@@ -8,17 +8,17 @@ import type {
   DictItemUpdateDto,
   DictListItemDto,
   DictUpdateDto,
+  PageResult,
 } from '@/api'
-import type { XDataTableColumn } from '~/components'
-import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, h, onMounted, reactive, ref, useId } from 'vue'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import { XhCardContent, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { createPageRequest, dictManagementApi, EnableStatus } from '@/api'
+import { createPageRequest, dictManagementApi, EnableStatus, querySortsFromSchema } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPagination, XDataTable, XEditModal, XInput, XNumberInput, XPopconfirm, XSelect } from '~/components'
+import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
-import { getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformDictPage' })
 
@@ -53,313 +53,223 @@ interface DictItemFormModel {
 const { t } = useI18n()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
-const editFormId = useId()
-const itemModalFormId = useId()
-const statusEnumOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
+const dictFormId = useId()
+const itemFormId = useId()
+const statusOptions = useEnumOptions('EnableStatus', STATUS_OPTIONS)
 
+// SchemaSelectOption.value 仅支持 string | number；布尔搜索项用 1/0，page() 里转回 boolean
 const builtInOptions = computed(() => [
   { label: t('setting.dict.builtin'), value: 1 },
   { label: t('setting.dict.not_builtin'), value: 0 },
 ])
 
-// 行内操作按钮：先阻止冒泡（避免触发整行选中），再执行动作
-function stopAnd(action: () => void) {
-  return (e: MouseEvent) => {
-    e.stopPropagation()
-    action()
-  }
+function toBool(value: unknown): boolean | undefined {
+  return value === undefined || value === null || value === '' ? undefined : Boolean(Number(value))
 }
 
-// ── 右侧：字典项列表状态（从，随左侧选中刷新；声明前置供主表选中逻辑引用） ──
-const itemLoading = ref(false)
-const itemList = ref<DictItemListItemDto[]>([])
-const itemTotal = ref(0)
-const itemPage = ref(1)
-const itemPageSize = ref(20)
-const itemQueryParams = reactive({ keyword: '' })
-const checkedItemKeys = ref<Array<string | number>>([])
+function toKeyword(value: unknown): string | undefined {
+  return (value as string | undefined)?.trim() || undefined
+}
 
-// ── 左侧：字典列表（主表，选中驱动右侧字典项刷新） ───────────────
-const dictLoading = ref(false)
-const dictList = ref<DictListItemDto[]>([])
-const dictTotal = ref(0)
-const dictPage = ref(1)
-const dictPageSize = ref(20)
-const dictQueryParams = reactive({
-  keyword: '',
-  status: null as EnableStatus | null,
-  isBuiltIn: null as number | null,
-})
-
+// ══════════════════════════════════════════════════════════════════
+// 左栏：字典（主）
+// ══════════════════════════════════════════════════════════════════
+const dictPageRef = ref<{ reload: () => Promise<void>, rows: DictListItemDto[] } | null>(null)
+/** 当前选中的字典：右栏字典项的取数依据 */
 const currentDict = ref<DictListItemDto | null>(null)
-const checkedDictKeys = ref<Array<string | number>>([])
-
-async function fetchDictData() {
-  dictLoading.value = true
-  try {
-    const result = await dictManagementApi.page({
-      ...createPageRequest({ page: { pageIndex: dictPage.value, pageSize: dictPageSize.value } }),
-      isBuiltIn: dictQueryParams.isBuiltIn == null ? undefined : dictQueryParams.isBuiltIn === 1,
-      keyword: dictQueryParams.keyword?.trim() || undefined,
-      status: dictQueryParams.status ?? undefined,
-    })
-    dictList.value = result.items
-    dictTotal.value = result.page.totalCount
-    syncSelectionAfterDictLoad()
-  }
-  catch (error) {
-    toast.danger((error as Error)?.message || t('setting.dict.query_dict_failed'))
-    dictList.value = []
-    dictTotal.value = 0
-    currentDict.value = null
-    itemList.value = []
-    itemTotal.value = 0
-  }
-  finally {
-    dictLoading.value = false
-  }
-}
-
-// 列表刷新后维持选中：当前选中仍在则同步为最新数据，否则自动选中首条
-function syncSelectionAfterDictLoad() {
-  if (!dictList.value.length) {
-    currentDict.value = null
-    itemList.value = []
-    itemTotal.value = 0
-    return
-  }
-  const latest = currentDict.value
-    ? dictList.value.find(d => d.basicId === currentDict.value?.basicId)
-    : undefined
-  if (latest) {
-    currentDict.value = latest
-    return
-  }
-  const first = dictList.value[0]
-  if (first) {
-    selectDict(first)
-  }
-}
-
-function selectDict(row: DictListItemDto) {
-  if (currentDict.value?.basicId === row.basicId) {
-    return
-  }
-  currentDict.value = row
-  itemQueryParams.keyword = ''
-  itemPage.value = 1
-  checkedItemKeys.value = []
-  fetchItemData()
-}
-
-function handleDictSearch() {
-  dictPage.value = 1
-  fetchDictData()
-}
-
-function handleDictPageChange(page: number) {
-  dictPage.value = page
-  fetchDictData()
-}
-
-function handleDictPageSizeChange(pageSize: number) {
-  dictPageSize.value = pageSize
-  dictPage.value = 1
-  fetchDictData()
-}
 
 function reloadDict() {
-  fetchDictData()
+  void dictPageRef.value?.reload()
 }
 
-const dictColumns = computed<XDataTableColumn<DictListItemDto>[]>(() => [
-  {
-    key: 'dictName',
-    title: t('setting.dict.dict_name'),
-    minWidth: 140,
-    ellipsis: true,
-    render: (row: DictListItemDto) => h('span', { class: 'dict-name__text' }, row.dictName),
-  },
-  {
-    key: 'dictCode',
-    title: t('setting.dict.code'),
-    minWidth: 130,
-    ellipsis: true,
-  },
-  {
-    key: 'dictType',
-    title: t('setting.dict.type'),
-    minWidth: 110,
-    ellipsis: true,
-  },
-  {
-    // 是否内置：独立一列，与参数配置页的布尔列同款（是 / 否 标签）
-    key: 'isBuiltIn',
-    title: t('setting.dict.builtin'),
-    width: 72,
-    align: 'center',
-    render: (row: DictListItemDto) =>
-      h(XhTagRoot, { variant: 'subtle', tone: row.isBuiltIn ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row.isBuiltIn ? t('common.statuses.yes') : t('common.statuses.no')))),
-  },
-  {
-    key: 'status',
-    title: t('setting.dict.status'),
-    width: 72,
-    align: 'center',
-    render: (row: DictListItemDto) =>
-      h(XhTagRoot, { variant: 'subtle', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, row.status))),
-  },
-  {
-    key: 'actions',
-    title: t('setting.dict.actions'),
-    width: 132,
-    align: 'center',
-    render: (row: DictListItemDto) =>
-      h(XhFlex, { gap: 'xs', justify: 'center', wrap: false }, () => [
-        h(XhButton, { iconOnly: true, ariaLabel: t('common.actions.edit'), variant: 'ghost', size: 'sm', tone: 'brand', onClick: stopAnd(() => { void handleEdit(row) }) }, () => h(Icon, { icon: 'lucide:pencil' })),
-        h(XPopconfirm, { onConfirm: () => handleToggleStatus(row) }, {
-          trigger: () => h(XhButton, { iconOnly: true, ariaLabel: t('setting.dict.confirm_toggle_dict'), variant: 'ghost', size: 'sm', tone: 'warning', onClick: (e: MouseEvent) => e.stopPropagation() }, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })),
-          default: () => t('setting.dict.confirm_toggle_dict'),
-        }),
-        h(XPopconfirm, { onConfirm: () => handleDelete(row) }, {
-          trigger: () => h(XhButton, { iconOnly: true, ariaLabel: t('common.actions.delete'), variant: 'ghost', size: 'sm', tone: 'danger', onClick: (e: MouseEvent) => e.stopPropagation() }, () => h(Icon, { icon: 'lucide:trash-2' })),
-          default: () => t('setting.dict.confirm_delete_dict'),
-        }),
-      ]),
-  },
+// 左栏数据变化后同步当前项：仍在列表里就跟着刷新，否则改选首条（列表空了就回到未选）
+watch(() => dictPageRef.value?.rows, (rows) => {
+  if (!rows?.length) {
+    currentDict.value = null
+    return
+  }
+  const latest = currentDict.value ? rows.find(d => d.basicId === currentDict.value?.basicId) : undefined
+  currentDict.value = latest ?? rows[0]!
+})
+
+/** 内置字典由种子维护：后端 DeleteDictAsync 对内置字典直接抛错，列表不给删除入口 */
+function canDeleteDict(row: DictListItemDto) {
+  return !row.isBuiltIn
+}
+
+// ── 字段单一事实源（列 + searchable；仅搜索字段 visible:false；order 控顺序） ──
+const dictFields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('setting.dict.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('setting.dict.dict_search_placeholder'), width: 220, order: 0 },
+  { key: 'dictName', title: t('setting.dict.dict_name'), dataType: 'string', sortable: true, minWidth: 140, order: 1 },
+  { key: 'dictCode', title: t('setting.dict.dict_code'), dataType: 'string', sortable: true, minWidth: 140, order: 2 },
+  { key: 'dictType', title: t('setting.dict.dict_type'), dataType: 'string', sortable: true, minWidth: 100, order: 3 },
+  // boolean / enum + options 由框架自动渲染为徽标，无需自定义 render
+  { key: 'isBuiltIn', title: t('setting.dict.builtin'), dataType: 'boolean', sortable: true, searchable: true, options: builtInOptions.value, searchPlaceholder: t('setting.dict.builtin_placeholder'), width: 80, order: 4 },
+  { key: 'status', title: t('setting.dict.status'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, dictionaryCode: 'EnableStatus', options: statusOptions.value, searchPlaceholder: t('setting.dict.status_placeholder'), width: 90, order: 5 },
+  { key: 'sort', title: t('setting.dict.sort'), dataType: 'number', sortable: true, width: 80, order: 6 },
+  { key: 'createdTime', title: t('setting.dict.created_time'), dataType: 'datetime', sortable: true, visible: false, minWidth: 170, order: 7 },
 ])
 
-function dictRowProps(row: DictListItemDto) {
+const dictSchema = computed<PageSchema>(() => ({
+  pageCode: 'platform.dict',
+  pageName: t('setting.dict.page_name'),
+  batchRemovable: true,
+  removePermission: 'setting.dict.delete',
+  statusPermission: 'setting.dict.status',
+  rowKey: 'basicId',
+  fields: dictFields.value,
+  resource: {
+    page: params => dictManagementApi.page({
+      ...createPageRequest({
+        page: { pageIndex: params.page, pageSize: params.pageSize },
+        // 排序 + 状态多选等通用过滤统一走 conditions（多选经 filters In 下发，不再走 DTO 单值字段）
+        conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
+      }),
+      isBuiltIn: toBool(params.filters.isBuiltIn),
+      keyword: toKeyword(params.filters.keyword),
+    }) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    remove: id => dictManagementApi.delete(id),
+    updateStatus: (id, enabled) => dictManagementApi.updateStatus({
+      basicId: id,
+      status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled,
+      remark: enabled ? t('setting.dict.batch_enable_dict_remark') : t('setting.dict.batch_disable_dict_remark'),
+    }),
+  },
+  actions: [
+    { key: 'create', title: t('setting.dict.add_dict'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen' },
+    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_dict') },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_dict'), visible: row => canDeleteDict(row as unknown as DictListItemDto) },
+  ],
+}))
+
+/** 主表整行点选：切换当前字典（右栏随之重建）；勾选框自身的点击不算 */
+function dictRowProps(row: Record<string, unknown>) {
+  const dict = row as unknown as DictListItemDto
   return {
-    class: currentDict.value?.basicId === row.basicId ? 'dict-row--active' : '',
+    class: currentDict.value?.basicId === dict.basicId ? 'dict-row--active' : undefined,
     style: 'cursor: pointer;',
     onClick: (e: MouseEvent) => {
-      // 点击多选框列不触发整行选中（避免误切当前字典）
       if ((e.target as HTMLElement | null)?.closest('[data-scope="table"][data-part="row-select-trigger"], [data-scope="checkbox"]')) {
         return
       }
-      selectDict(row)
+      currentDict.value = dict
     },
   }
 }
 
-// ── 右侧：字典项列表（从表，随左侧选中刷新） ────────────────────
-async function fetchItemData() {
-  if (!currentDict.value) {
-    itemList.value = []
-    itemTotal.value = 0
-    return
-  }
-  itemLoading.value = true
-  try {
-    const result = await dictManagementApi.itemPage({
-      ...createPageRequest({
-        page: {
-          pageIndex: itemPage.value,
-          pageSize: itemPageSize.value,
-        },
-      }),
-      dictId: currentDict.value.basicId,
-      keyword: itemQueryParams.keyword?.trim() || undefined,
-    })
-    itemList.value = result.items
-    itemTotal.value = result.page.totalCount
-  }
-  catch (error) {
-    toast.danger((error as Error)?.message || t('setting.dict.query_item_failed'))
-    itemList.value = []
-    itemTotal.value = 0
-  }
-  finally {
-    itemLoading.value = false
+function onDictAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as DictListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleAdd()
+      break
+    case 'edit':
+      if (row) {
+        void handleEdit(row)
+      }
+      break
+    case 'toggle':
+      if (row) {
+        void handleToggleStatus(row)
+      }
+      break
+    case 'delete':
+      if (row) {
+        void handleDelete(row)
+      }
+      break
   }
 }
 
-const itemColumns = computed<XDataTableColumn<DictItemListItemDto>[]>(() => [
-  {
-    key: 'itemName',
-    title: t('setting.dict.item_name'),
-    minWidth: 130,
-    ellipsis: true,
-  },
-  {
-    key: 'itemCode',
-    title: t('setting.dict.code'),
-    minWidth: 130,
-    ellipsis: true,
-  },
-  {
-    key: 'itemValue',
-    title: t('setting.dict.item_value'),
-    minWidth: 100,
-    ellipsis: true,
-  },
-  {
-    key: 'isDefault',
-    title: t('setting.dict.default'),
-    width: 70,
-    render: (row: DictItemListItemDto) =>
-      h(XhTagRoot, { variant: 'subtle', tone: row.isDefault ? 'info' : 'neutral' }, () => h(XhTagLabel, () => (row.isDefault ? t('common.statuses.yes') : t('common.statuses.no')))),
-  },
-  {
-    key: 'status',
-    title: t('setting.dict.status'),
-    width: 80,
-    render: (row: DictItemListItemDto) =>
-      h(XhTagRoot, { variant: 'subtle', tone: row.status === EnableStatus.Enabled ? 'success' : 'danger' }, () => h(XhTagLabel, () => getOptionLabel(statusEnumOptions.value, row.status))),
-  },
-  {
-    key: 'sort',
-    title: t('setting.dict.sort'),
-    width: 70,
-  },
-  {
-    key: 'actions',
-    title: t('setting.dict.actions'),
-    width: 128,
-    render: (row: DictItemListItemDto) =>
-      h(XhFlex, { gap: 'sm' }, () => [
-        h(XhButton, { iconOnly: true, ariaLabel: t('common.actions.edit'), variant: 'ghost', size: 'sm', tone: 'brand', onClick: () => { void handleItemEdit(row) } }, () => h(Icon, { icon: 'lucide:pencil' })),
-        h(XPopconfirm, { onConfirm: () => handleItemToggleStatus(row) }, {
-          trigger: () => h(XhButton, { iconOnly: true, ariaLabel: t('setting.dict.confirm_toggle_item'), variant: 'ghost', size: 'sm', tone: 'warning' }, () => h(Icon, { icon: row.status === EnableStatus.Enabled ? 'lucide:ban' : 'lucide:circle-check' })),
-          default: () => t('setting.dict.confirm_toggle_item'),
-        }),
-        h(XPopconfirm, { onConfirm: () => handleItemDelete(row) }, {
-          trigger: () => h(XhButton, { iconOnly: true, ariaLabel: t('common.actions.delete'), variant: 'ghost', size: 'sm', tone: 'danger' }, () => h(Icon, { icon: 'lucide:trash-2' })),
-          default: () => t('setting.dict.confirm_delete_item'),
-        }),
-      ]),
-  },
+// ══════════════════════════════════════════════════════════════════
+// 右栏：字典项（从，随左栏选中重建）
+// ══════════════════════════════════════════════════════════════════
+const itemPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+
+function reloadItems() {
+  void itemPageRef.value?.reload()
+}
+
+const itemFields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('setting.dict.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('setting.dict.item_search_placeholder'), width: 220, order: 0 },
+  { key: 'itemName', title: t('setting.dict.item_name'), dataType: 'string', sortable: true, minWidth: 130, order: 1 },
+  { key: 'itemCode', title: t('setting.dict.code'), dataType: 'string', sortable: true, minWidth: 130, order: 2 },
+  { key: 'itemValue', title: t('setting.dict.item_value'), dataType: 'string', minWidth: 90, order: 3 },
+  { key: 'isDefault', title: t('setting.dict.default'), dataType: 'boolean', sortable: true, width: 80, order: 4 },
+  { key: 'status', title: t('setting.dict.status'), dataType: 'enum', sortable: true, searchable: true, searchMultiple: true, dictionaryCode: 'EnableStatus', options: statusOptions.value, searchPlaceholder: t('setting.dict.status_placeholder'), width: 90, order: 5 },
+  { key: 'sort', title: t('setting.dict.sort'), dataType: 'number', sortable: true, width: 80, order: 6 },
+  { key: 'createdTime', title: t('setting.dict.created_time'), dataType: 'datetime', sortable: true, visible: false, minWidth: 170, order: 7 },
 ])
 
-function handleItemSearch() {
-  itemPage.value = 1
-  fetchItemData()
+/**
+ * 字典项 Schema。取数依赖当前字典，故整个右栏按 currentDict 用 v-if + key 重建：
+ * 没选字典时不渲染（也就不会发请求），换字典时条件、排序与页码一并归零。
+ */
+const itemSchema = computed<PageSchema>(() => ({
+  pageCode: 'platform.dict.item',
+  pageName: t('setting.dict.items'),
+  batchRemovable: true,
+  removePermission: 'setting.dict.delete',
+  statusPermission: 'setting.dict.status',
+  rowKey: 'basicId',
+  fields: itemFields.value,
+  resource: {
+    page: params => dictManagementApi.itemPage({
+      ...createPageRequest({
+        page: { pageIndex: params.page, pageSize: params.pageSize },
+        conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
+      }),
+      dictId: currentDict.value!.basicId,
+      keyword: toKeyword(params.filters.keyword),
+    }) as unknown as Promise<PageResult<Record<string, unknown>>>,
+    remove: id => dictManagementApi.itemDelete(id),
+    updateStatus: (id, enabled) => dictManagementApi.itemUpdateStatus({
+      basicId: id,
+      status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled,
+      remark: enabled ? t('setting.dict.batch_enable_item_remark') : t('setting.dict.batch_disable_item_remark'),
+    }),
+  },
+  actions: [
+    { key: 'create', title: t('setting.dict.add_item'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen' },
+    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_item') },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_item') },
+  ],
+}))
+
+function onItemAction(payload: SchemaActionPayload) {
+  const row = payload.row as unknown as DictItemListItemDto | undefined
+  switch (payload.key) {
+    case 'create':
+      handleItemAdd()
+      break
+    case 'edit':
+      if (row) {
+        void handleItemEdit(row)
+      }
+      break
+    case 'toggle':
+      if (row) {
+        void handleItemToggleStatus(row)
+      }
+      break
+    case 'delete':
+      if (row) {
+        void handleItemDelete(row)
+      }
+      break
+  }
 }
 
-function handleItemPageChange(page: number) {
-  itemPage.value = page
-  fetchItemData()
-}
-
-function handleItemPageSizeChange(pageSize: number) {
-  itemPageSize.value = pageSize
-  itemPage.value = 1
-  fetchItemData()
-}
-
-// ── 字典 表单/弹窗 ──────────────────────────────────────────────
-const modalVisible = ref(false)
-const submitLoading = ref(false)
-const editingStatus = ref<EnableStatus | null>(null)
+// ══════════════════════════════════════════════════════════════════
+// 字典 表单与单条操作
+// ══════════════════════════════════════════════════════════════════
+const dictModalVisible = ref(false)
+const dictSubmitLoading = ref(false)
+const dictEditingStatus = ref<EnableStatus | null>(null)
 const dictForm = ref<DictFormModel>(createDefaultDictForm())
-const modalTitle = computed(() => (dictForm.value.basicId ? t('setting.dict.edit_dict_title') : t('setting.dict.add_dict_title')))
-
-const itemModalVisible = ref(false)
-const itemSubmitLoading = ref(false)
-const itemEditingStatus = ref<EnableStatus | null>(null)
-const itemForm = ref<DictItemFormModel>(createDefaultDictItemForm())
-const itemModalTitle = computed(() => (itemForm.value.basicId ? t('setting.dict.edit_item_title') : t('setting.dict.add_item_title')))
+const dictModalTitle = computed(() => (dictForm.value.basicId ? t('setting.dict.edit_dict_title') : t('setting.dict.add_dict_title')))
 
 function createDefaultDictForm(): DictFormModel {
   return {
@@ -372,28 +282,14 @@ function createDefaultDictForm(): DictFormModel {
   }
 }
 
-function createDefaultDictItemForm(): DictItemFormModel {
-  return {
-    dictId: '',
-    isDefault: false,
-    itemCode: '',
-    itemDescription: null,
-    itemName: '',
-    itemValue: null,
-    parentId: null,
-    sort: 100,
-    status: EnableStatus.Enabled,
-  }
-}
-
 function handleAdd() {
-  editingStatus.value = null
+  dictEditingStatus.value = null
   dictForm.value = createDefaultDictForm()
-  modalVisible.value = true
+  dictModalVisible.value = true
 }
 
 async function handleEdit(row: DictListItemDto) {
-  editingStatus.value = row.status
+  dictEditingStatus.value = row.status
   // 列表行不含备注，取详情回填；否则保存时会把备注覆盖为空
   let detail: DictDetailDto | null = null
   try {
@@ -412,7 +308,7 @@ async function handleEdit(row: DictListItemDto) {
     sort: detail?.sort ?? row.sort,
     status: detail?.status ?? row.status,
   }
-  modalVisible.value = true
+  dictModalVisible.value = true
 }
 
 function validateDictForm() {
@@ -420,12 +316,10 @@ function validateDictForm() {
     toast.warning(t('setting.dict.validate_dict_name'))
     return false
   }
-
   if (!dictForm.value.basicId && !dictForm.value.dictCode.trim()) {
     toast.warning(t('setting.dict.validate_dict_code'))
     return false
   }
-
   return true
 }
 
@@ -434,8 +328,7 @@ async function handleSubmit() {
     return
   }
 
-  submitLoading.value = true
-
+  dictSubmitLoading.value = true
   try {
     if (dictForm.value.basicId) {
       const updateInput: DictUpdateDto = {
@@ -446,9 +339,8 @@ async function handleSubmit() {
         remark: dictForm.value.remark,
         sort: dictForm.value.sort,
       }
-
       await dictManagementApi.update(updateInput)
-      if (editingStatus.value !== dictForm.value.status) {
+      if (dictEditingStatus.value !== dictForm.value.status) {
         await dictManagementApi.updateStatus({
           basicId: dictForm.value.basicId,
           remark: t('setting.dict.dict_status_update_remark'),
@@ -465,80 +357,74 @@ async function handleSubmit() {
         sort: dictForm.value.sort,
         status: dictForm.value.status,
       }
-
       await dictManagementApi.create(createInput)
     }
 
     toast.success(t('common.messages.save_success'))
-    modalVisible.value = false
+    dictModalVisible.value = false
     reloadDict()
   }
   catch (error) {
     toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
-    submitLoading.value = false
+    dictSubmitLoading.value = false
   }
 }
 
 async function handleDelete(row: DictListItemDto) {
-  await dictManagementApi.delete(row.basicId)
-  toast.success(t('common.messages.delete_success'))
-  reloadDict()
+  try {
+    await dictManagementApi.delete(row.basicId)
+    toast.success(t('common.messages.delete_success'))
+    // 删掉的正是当前选中项：右栏回到未选状态
+    if (currentDict.value?.basicId === row.basicId) {
+      currentDict.value = null
+    }
+    reloadDict()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
+  }
 }
 
 async function handleToggleStatus(row: DictListItemDto) {
-  await dictManagementApi.updateStatus({
-    basicId: row.basicId,
-    remark: row.status === EnableStatus.Enabled ? t('setting.dict.dict_disable_remark') : t('setting.dict.dict_enable_remark'),
-    status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
-  })
-  toast.success(t('common.messages.status_updated'))
-  reloadDict()
-}
-
-// ── 字典 批量操作 ───────────────────────────────────────────────
-async function handleBatchDeleteDict() {
-  const ids = [...checkedDictKeys.value]
-  if (!ids.length) {
-    return
-  }
   try {
-    await Promise.all(ids.map(id => dictManagementApi.delete(String(id))))
-    toast.success(t('setting.dict.batch_deleted_dict', { count: ids.length }))
-  }
-  catch (error) {
-    toast.danger((error as Error)?.message || t('common.messages.batch_delete_failed'))
-  }
-  finally {
-    checkedDictKeys.value = []
-    reloadDict()
-  }
-}
-
-async function handleBatchToggleDict(enable: boolean) {
-  const ids = [...checkedDictKeys.value]
-  if (!ids.length) {
-    return
-  }
-  try {
-    await Promise.all(ids.map(id => dictManagementApi.updateStatus({
-      basicId: String(id),
-      remark: enable ? t('setting.dict.batch_enable_dict_remark') : t('setting.dict.batch_disable_dict_remark'),
-      status: enable ? EnableStatus.Enabled : EnableStatus.Disabled,
-    })))
+    await dictManagementApi.updateStatus({
+      basicId: row.basicId,
+      remark: row.status === EnableStatus.Enabled ? t('setting.dict.dict_disable_remark') : t('setting.dict.dict_enable_remark'),
+      status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
+    })
     toast.success(t('common.messages.status_updated'))
+    reloadDict()
   }
   catch (error) {
-    toast.danger((error as Error)?.message || t('common.messages.batch_action_failed'))
-  }
-  finally {
-    checkedDictKeys.value = []
-    reloadDict()
+    toast.danger((error as Error)?.message || t('common.messages.status_failed'))
   }
 }
 
-// ── 字典项 表单/弹窗 ────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// 字典项 表单与单条操作
+// ══════════════════════════════════════════════════════════════════
+const itemModalVisible = ref(false)
+const itemSubmitLoading = ref(false)
+const itemEditingStatus = ref<EnableStatus | null>(null)
+const itemForm = ref<DictItemFormModel>(createDefaultDictItemForm())
+const itemModalTitle = computed(() => (itemForm.value.basicId ? t('setting.dict.edit_item_title') : t('setting.dict.add_item_title')))
+
+function createDefaultDictItemForm(): DictItemFormModel {
+  return {
+    dictId: '',
+    isDefault: false,
+    itemCode: '',
+    itemDescription: null,
+    itemName: '',
+    itemValue: null,
+    parentId: null,
+    sort: 100,
+    status: EnableStatus.Enabled,
+  }
+}
+
 function handleItemAdd() {
   if (!currentDict.value) {
     return
@@ -581,12 +467,10 @@ function validateDictItemForm() {
     toast.warning(t('setting.dict.validate_item_name'))
     return false
   }
-
   if (!itemForm.value.basicId && !itemForm.value.itemCode.trim()) {
     toast.warning(t('setting.dict.validate_item_code'))
     return false
   }
-
   return true
 }
 
@@ -596,7 +480,6 @@ async function handleItemSubmit() {
   }
 
   itemSubmitLoading.value = true
-
   try {
     if (itemForm.value.basicId) {
       const updateInput: DictItemUpdateDto = {
@@ -610,7 +493,6 @@ async function handleItemSubmit() {
         remark: itemForm.value.remark,
         sort: itemForm.value.sort,
       }
-
       await dictManagementApi.itemUpdate(updateInput)
       if (itemEditingStatus.value !== itemForm.value.status) {
         await dictManagementApi.itemUpdateStatus({
@@ -632,13 +514,12 @@ async function handleItemSubmit() {
         sort: itemForm.value.sort,
         status: itemForm.value.status,
       }
-
       await dictManagementApi.itemCreate(createInput)
     }
 
     toast.success(t('common.messages.save_success'))
     itemModalVisible.value = false
-    fetchItemData()
+    reloadItems()
   }
   catch (error) {
     toast.danger((error as Error)?.message || t('common.messages.save_failed'))
@@ -649,571 +530,306 @@ async function handleItemSubmit() {
 }
 
 async function handleItemDelete(row: DictItemListItemDto) {
-  await dictManagementApi.itemDelete(row.basicId)
-  toast.success(t('common.messages.delete_success'))
-  fetchItemData()
+  try {
+    await dictManagementApi.itemDelete(row.basicId)
+    toast.success(t('common.messages.delete_success'))
+    reloadItems()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('common.messages.delete_failed'))
+  }
 }
 
 async function handleItemToggleStatus(row: DictItemListItemDto) {
-  await dictManagementApi.itemUpdateStatus({
-    basicId: row.basicId,
-    remark: row.status === EnableStatus.Enabled ? t('setting.dict.item_disable_remark') : t('setting.dict.item_enable_remark'),
-    status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
-  })
-  toast.success(t('common.messages.status_updated'))
-  fetchItemData()
-}
-
-// ── 字典项 批量操作 ─────────────────────────────────────────────
-async function handleBatchDeleteItem() {
-  const ids = [...checkedItemKeys.value]
-  if (!ids.length) {
-    return
-  }
   try {
-    await Promise.all(ids.map(id => dictManagementApi.itemDelete(String(id))))
-    toast.success(t('setting.dict.batch_deleted_item', { count: ids.length }))
-  }
-  catch (error) {
-    toast.danger((error as Error)?.message || t('common.messages.batch_delete_failed'))
-  }
-  finally {
-    checkedItemKeys.value = []
-    fetchItemData()
-  }
-}
-
-async function handleBatchToggleItem(enable: boolean) {
-  const ids = [...checkedItemKeys.value]
-  if (!ids.length) {
-    return
-  }
-  try {
-    await Promise.all(ids.map(id => dictManagementApi.itemUpdateStatus({
-      basicId: String(id),
-      remark: enable ? t('setting.dict.batch_enable_item_remark') : t('setting.dict.batch_disable_item_remark'),
-      status: enable ? EnableStatus.Enabled : EnableStatus.Disabled,
-    })))
+    await dictManagementApi.itemUpdateStatus({
+      basicId: row.basicId,
+      remark: row.status === EnableStatus.Enabled ? t('setting.dict.item_disable_remark') : t('setting.dict.item_enable_remark'),
+      status: row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled,
+    })
     toast.success(t('common.messages.status_updated'))
+    reloadItems()
   }
   catch (error) {
-    toast.danger((error as Error)?.message || t('common.messages.batch_action_failed'))
-  }
-  finally {
-    checkedItemKeys.value = []
-    fetchItemData()
+    toast.danger((error as Error)?.message || t('common.messages.status_failed'))
   }
 }
-
-onMounted(fetchDictData)
 </script>
 
 <template>
+  <!-- 主从两栏：左字典、右字典项，各自是一整套 SchemaPage（搜索设置 / 列设置 / 批量操作全部照旧） -->
   <div class="dict-mgmt">
-    <!-- 左侧：字典列表（主） -->
-    <section class="pane pane--master">
-      <header class="pane__head">
-        <div class="pane__title-row">
-          <span class="pane__title">{{ t('setting.dict.dict_list') }}</span>
-          <span class="pane__count">{{ dictTotal }}</span>
-        </div>
-        <XhButton variant="subtle" size="sm" tone="brand" @click="handleAdd">
-          <span><Icon icon="lucide:plus" /></span>
-          {{ t('setting.dict.add_dict') }}
-        </XhButton>
-      </header>
-
-      <div class="pane__filters">
-        <XInput
-          v-model:value="dictQueryParams.keyword"
-          class="pane__kw"
-          clearable
-          :placeholder="t('setting.dict.dict_search_placeholder')"
-          size="sm"
-          @keyup.enter="handleDictSearch"
-          @clear="handleDictSearch"
-        />
-        <XSelect
-          v-model:value="dictQueryParams.status"
-          class="pane__filter-select"
-          clearable
-          :options="statusEnumOptions"
-          :placeholder="t('setting.dict.status_placeholder')"
-          size="sm"
-          @update:value="handleDictSearch"
-        />
-        <XSelect
-          v-model:value="dictQueryParams.isBuiltIn"
-          class="pane__filter-select"
-          clearable
-          :options="builtInOptions"
-          :placeholder="t('setting.dict.builtin_placeholder')"
-          size="sm"
-          @update:value="handleDictSearch"
-        />
-        <XhButton variant="subtle" class="pane__search" size="sm" tone="brand" @click="handleDictSearch">
-          {{ t('common.actions.search') }}
-        </XhButton>
-      </div>
-
-      <div class="pane__body">
-        <XDataTable
-          selectable
-          :checked-row-keys="checkedDictKeys.map(String)" class="pane__table"
-          :columns="dictColumns"
-          :data="dictList"
-          :loading="dictLoading"
-          :row-key="(row: DictListItemDto) => row.basicId"
-          :row-props="dictRowProps"
-          size="sm"
-          @update:checked-row-keys="(keys: string[]) => (checkedDictKeys = keys)"
-        />
-      </div>
-
-      <footer class="pane__foot">
-        <div class="pane__foot-left">
-          <template v-if="checkedDictKeys.length">
-            <span class="pane__sel">{{ t('setting.dict.selected', { count: checkedDictKeys.length }) }}</span>
-            <XhButton variant="subtle" size="sm" @click="handleBatchToggleDict(true)">
-              {{ t('common.actions.enable') }}
-            </XhButton>
-            <XhButton variant="subtle" size="sm" @click="handleBatchToggleDict(false)">
-              {{ t('common.actions.disable') }}
-            </XhButton>
-            <XhPopconfirmRoot @confirm="handleBatchDeleteDict">
-              <XhPopconfirmTrigger class="xh-linklike-trigger">
-                {{ t('common.actions.delete') }}
-              </XhPopconfirmTrigger>
-              <XhPopconfirmPositioner>
-                <XhPopconfirmContent>
-                  <XhPopconfirmDescription>{{ t('setting.dict.confirm_batch_delete_dict', { count: checkedDictKeys.length }) }}</XhPopconfirmDescription>
-                  <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
-                  <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
-                </XhPopconfirmContent>
-              </XhPopconfirmPositioner>
-            </XhPopconfirmRoot>
-          </template>
-        </div>
-        <SchemaPagination
-          v-model:page="dictPage"
-          v-model:page-size="dictPageSize"
-          :total="dictTotal"
-          @update:page="handleDictPageChange"
-          @update:page-size="handleDictPageSizeChange"
-        />
-      </footer>
-    </section>
-
-    <!-- 右侧：字典项列表（从，随左侧选中刷新） -->
-    <section class="pane pane--detail">
-      <header class="pane__head">
-        <div class="pane__title-row">
-          <span class="pane__title">{{ currentDict ? currentDict.dictName : t('setting.dict.no_dict_selected') }}</span>
-          <span v-if="currentDict" class="pane__count">{{ t('setting.dict.item_count', { count: itemTotal }) }}</span>
-        </div>
-        <XhButton variant="subtle" size="sm" tone="brand" :disabled="!currentDict" @click="handleItemAdd">
-          <span><Icon icon="lucide:plus" /></span>
-          {{ t('setting.dict.add_item') }}
-        </XhButton>
-      </header>
-
-      <div class="pane__filters">
-        <XInput
-          v-model:value="itemQueryParams.keyword"
-          class="pane__kw"
-          clearable
-          :disabled="!currentDict"
-          :placeholder="t('setting.dict.item_search_placeholder')"
-          size="sm"
-          @keyup.enter="handleItemSearch"
-          @clear="handleItemSearch"
-        />
-        <XhButton variant="subtle" class="pane__search" size="sm" tone="brand" :disabled="!currentDict" @click="handleItemSearch">
-          {{ t('common.actions.search') }}
-        </XhButton>
-      </div>
-
-      <div class="pane__body">
-        <XhEmptyStateRoot v-if="!currentDict" class="pane__empty">
-          <XhEmptyStateIndicator>
-            <Icon icon="lucide:list-tree" width="28" />
-          </XhEmptyStateIndicator>
-          <XhEmptyStateTitle>{{ t('setting.dict.select_dict_hint_title') }}</XhEmptyStateTitle>
-          <XhEmptyStateDescription>{{ t('setting.dict.select_dict_hint') }}</XhEmptyStateDescription>
-        </XhEmptyStateRoot>
-        <XDataTable
-          v-else
-          selectable
-          :checked-row-keys="checkedItemKeys.map(String)" class="pane__table"
-          :columns="itemColumns"
-          :data="itemList"
-          :loading="itemLoading"
-          :row-key="(row: DictItemListItemDto) => row.basicId"
-          size="sm"
-          @update:checked-row-keys="(keys: string[]) => (checkedItemKeys = keys)"
-        />
-      </div>
-
-      <footer v-if="currentDict" class="pane__foot">
-        <div class="pane__foot-left">
-          <template v-if="checkedItemKeys.length">
-            <span class="pane__sel">{{ t('setting.dict.selected', { count: checkedItemKeys.length }) }}</span>
-            <XhButton variant="subtle" size="sm" @click="handleBatchToggleItem(true)">
-              {{ t('common.actions.enable') }}
-            </XhButton>
-            <XhButton variant="subtle" size="sm" @click="handleBatchToggleItem(false)">
-              {{ t('common.actions.disable') }}
-            </XhButton>
-            <XhPopconfirmRoot @confirm="handleBatchDeleteItem">
-              <XhPopconfirmTrigger class="xh-linklike-trigger">
-                {{ t('common.actions.delete') }}
-              </XhPopconfirmTrigger>
-              <XhPopconfirmPositioner>
-                <XhPopconfirmContent>
-                  <XhPopconfirmDescription>{{ t('setting.dict.confirm_batch_delete_item', { count: checkedItemKeys.length }) }}</XhPopconfirmDescription>
-                  <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
-                  <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
-                </XhPopconfirmContent>
-              </XhPopconfirmPositioner>
-            </XhPopconfirmRoot>
-          </template>
-        </div>
-        <SchemaPagination
-          v-model:page="itemPage"
-          v-model:page-size="itemPageSize"
-          :total="itemTotal"
-          :page-sizes="[10, 20, 50, 100]" @update:page="handleItemPageChange"
-          @update:page-size="handleItemPageSizeChange"
-        />
-      </footer>
-    </section>
-
-    <!-- 字典 新增/编辑 -->
-    <XEditModal
-      v-model:show="modalVisible"
-      :title="modalTitle"
-      :loading="submitLoading"
-      :form-id="editFormId"
+    <SchemaPage
+      ref="dictPageRef"
+      class="dict-mgmt__pane"
+      :schema="dictSchema"
+      :row-props="dictRowProps"
+      @action="onDictAction"
     >
-      <XhFormRoot
-        :id="editFormId"
-        v-model:values="dictForm"
-        validate-on="blur"
-        class="xh-edit-form-grid"
-        @submit="handleSubmit"
-      >
-        <XhFormFieldGroup name="dictCode">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.dict_code') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput
-                v-model:value="dictForm.dictCode"
-                clearable
-                :disabled="Boolean(dictForm.basicId)"
-                :placeholder="t('setting.dict.dict_code_placeholder')"
-              />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="dictName">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.dict_name') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput v-model:value="dictForm.dictName" clearable :placeholder="t('setting.dict.dict_name_placeholder')" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="dictType">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.dict_type') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput v-model:value="dictForm.dictType" clearable :placeholder="t('setting.dict.dict_type_placeholder')" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="dictDescription" class="xh-span-2">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.description') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput
-                v-model:value="dictForm.dictDescription"
-                clearable
-                :placeholder="t('setting.dict.description_placeholder')"
-                :rows="3"
-                type="textarea"
-              />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="sort">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.sort') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XNumberInput v-model:value="dictForm.sort" :min="0" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!dictForm.basicId" name="status">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.status') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XSelect v-model:value="dictForm.status" :options="statusEnumOptions" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-      </XhFormRoot>
-    </XEditModal>
+      <template #toolbar-leading>
+        <span class="dict-mgmt__pane-title">{{ t('setting.dict.dict_list') }}</span>
+      </template>
 
-    <!-- 字典项 新增/编辑 -->
-    <XEditModal
-      v-model:show="itemModalVisible"
-      :title="itemModalTitle"
-      :loading="itemSubmitLoading"
-      :form-id="itemModalFormId"
-    >
-      <XhFormRoot
-        v-model:values="itemForm"
-        validate-on="blur"
-        class="xh-edit-form-grid"
-        @submit="handleItemSubmit"
+      <!-- 字典 新增/编辑 -->
+      <XEditModal
+        v-model:show="dictModalVisible"
+        :title="dictModalTitle"
+        :loading="dictSubmitLoading"
+        :form-id="dictFormId"
       >
-        <XhFormFieldGroup name="itemCode">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.item_code') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput
-                v-model:value="itemForm.itemCode"
-                clearable
-                :disabled="Boolean(itemForm.basicId)"
-                :placeholder="t('setting.dict.item_code_placeholder')"
-              />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="itemName">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.item_name_label') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput v-model:value="itemForm.itemName" clearable :placeholder="t('setting.dict.item_name_placeholder')" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="itemValue">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.item_value_label') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput v-model:value="itemForm.itemValue" clearable :placeholder="t('setting.dict.item_value_placeholder')" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="itemDescription" class="xh-span-2">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.description') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput
-                v-model:value="itemForm.itemDescription"
-                clearable
-                :placeholder="t('setting.dict.description_placeholder')"
-                :rows="2"
-                type="textarea"
-              />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="isDefault">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.is_default') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XhSwitch v-model:checked="itemForm.isDefault" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="sort">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.sort') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XNumberInput v-model:value="itemForm.sort" :min="0" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!itemForm.basicId" name="status">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.dict.status') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XSelect v-model:value="itemForm.status" :options="statusEnumOptions" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-      </XhFormRoot>
-    </XEditModal>
+        <XhFormRoot
+          :id="dictFormId"
+          v-model:values="dictForm"
+          validate-on="blur"
+          class="xh-edit-form-grid"
+          @submit="handleSubmit"
+        >
+          <XhFormFieldGroup name="dictCode">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.dict_code') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="dictForm.dictCode"
+                  clearable
+                  :disabled="Boolean(dictForm.basicId)"
+                  :placeholder="t('setting.dict.dict_code_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="dictName">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.dict_name') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="dictForm.dictName" clearable :placeholder="t('setting.dict.dict_name_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="dictType">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.dict_type') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="dictForm.dictType" clearable :placeholder="t('setting.dict.dict_type_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="dictDescription" class="xh-span-2">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.description') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="dictForm.dictDescription"
+                  clearable
+                  :placeholder="t('setting.dict.description_placeholder')"
+                  :rows="3"
+                  type="textarea"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="sort">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.sort') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XNumberInput v-model:value="dictForm.sort" :min="0" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup v-if="!dictForm.basicId" name="status">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.status') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect v-model:value="dictForm.status" :options="statusOptions" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+        </XhFormRoot>
+      </XEditModal>
+    </SchemaPage>
+
+    <!-- 右栏按当前字典重建：没选字典时不渲染（也就不发请求），换字典即重置条件与分页 -->
+    <SchemaPage
+      v-if="currentDict"
+      :key="currentDict.basicId"
+      ref="itemPageRef"
+      class="dict-mgmt__pane"
+      :schema="itemSchema"
+      @action="onItemAction"
+    >
+      <template #toolbar-leading>
+        <span class="dict-mgmt__pane-title">{{ currentDict.dictName }}</span>
+      </template>
+
+      <!-- 字典项 新增/编辑 -->
+      <XEditModal
+        v-model:show="itemModalVisible"
+        :title="itemModalTitle"
+        :loading="itemSubmitLoading"
+        :form-id="itemFormId"
+      >
+        <XhFormRoot
+          :id="itemFormId"
+          v-model:values="itemForm"
+          validate-on="blur"
+          class="xh-edit-form-grid"
+          @submit="handleItemSubmit"
+        >
+          <XhFormFieldGroup name="itemCode">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.item_code') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="itemForm.itemCode"
+                  clearable
+                  :disabled="Boolean(itemForm.basicId)"
+                  :placeholder="t('setting.dict.item_code_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="itemName">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.item_name_label') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="itemForm.itemName" clearable :placeholder="t('setting.dict.item_name_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="itemValue">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.item_value_label') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="itemForm.itemValue" clearable :placeholder="t('setting.dict.item_value_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="itemDescription" class="xh-span-2">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.description') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="itemForm.itemDescription"
+                  clearable
+                  :placeholder="t('setting.dict.description_placeholder')"
+                  :rows="2"
+                  type="textarea"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="isDefault">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.is_default') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="itemForm.isDefault" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="sort">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.sort') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XNumberInput v-model:value="itemForm.sort" :min="0" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup v-if="!itemForm.basicId" name="status">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('setting.dict.status') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect v-model:value="itemForm.status" :options="statusOptions" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+        </XhFormRoot>
+      </XEditModal>
+    </SchemaPage>
+
+    <!-- 未选字典：右栏占位，提示先在左侧选一个字典 -->
+    <div v-else class="dict-mgmt__pane dict-mgmt__pane--empty">
+      <XhCardRoot class="dict-mgmt__empty-card" variant="outline">
+        <XhCardContent>
+          <XhEmptyStateRoot>
+            <XhEmptyStateIndicator>
+              <Icon icon="lucide:list-tree" width="28" />
+            </XhEmptyStateIndicator>
+            <XhEmptyStateTitle>{{ t('setting.dict.select_dict_hint_title') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('setting.dict.select_dict_hint') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+        </XhCardContent>
+      </XhCardRoot>
+    </div>
   </div>
 </template>
 
 <style scoped>
+/* 两栏并排、各占一半；整页不滚，滚动只发生在两侧表格内部 */
 .dict-mgmt {
   display: flex;
-  gap: 12px;
   height: 100%;
-  padding: 12px;
-  box-sizing: border-box;
   overflow: hidden;
 }
 
-.pane {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  background: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-/* 左右等宽：两栏各占一半 */
-.pane--master,
-.pane--detail {
+/* 每栏是一整套 SchemaPage：它自带 p-3 内衬，两栏之间只把相邻侧收窄一档，不另加间距 */
+.dict-mgmt__pane {
   flex: 1 1 0;
   min-width: 0;
 }
 
-.pane__head {
-  display: flex;
+.dict-mgmt__pane:first-child {
+  padding-inline-end: var(--xh-space-1_5);
+}
+
+.dict-mgmt__pane:last-child {
+  padding-inline-start: var(--xh-space-1_5);
+}
+
+/* 工具条上的栏标题：与页面级操作按钮同排 */
+.dict-mgmt__pane-title {
   flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 52px;
-  padding: 8px 16px;
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-/* 标题区：单行，标题/计数同行排列 */
-.pane__title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.pane__title {
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--text-primary);
+  margin-inline-end: var(--xh-space-1);
+  font-size: var(--xh-font-size-md);
+  font-weight: var(--xh-font-weight-semibold);
+  color: var(--xh-fg-default);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* 字典编码：等宽小药丸，与名称区分但不抢眼 */
-/* 计数：轻量徽标 */
-.pane__count {
-  flex-shrink: 0;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-.pane__filters {
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-bottom: 1px solid hsl(var(--border));
-}
-
-/* 搜索条件：固定宽度，靠左排列 */
-.pane__kw {
-  width: 240px;
-}
-
-.pane__filter-select {
-  width: 110px;
-  flex-shrink: 0;
-}
-
-/* 查询按钮：推到筛选区最右侧 */
-.pane__search {
-  margin-left: auto;
-}
-
-.pane__body {
-  flex: 1;
-  min-height: 0;
+/* 未选字典时的右栏：与 SchemaPage 的卡片同款内衬 */
+.dict-mgmt__pane--empty {
   display: flex;
   flex-direction: column;
-  padding: 8px 14px;
+  padding: var(--xh-space-3);
 }
 
-/* 表格：占满 body 中段并在内部 tbody 滚动，不撑破容器；高度上限跟随 body 的高 */
-.pane__table {
+.dict-mgmt__empty-card {
+  --xh-card-p: var(--xh-surface-pad-md) var(--xh-surface-pad-lg);
+
   flex: 1;
-  min-height: 0;
-  --xh-table-max-h: 100%;
 }
 
-.pane__empty {
-  padding: 64px 0;
-}
-
-.pane__foot {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
-  border-top: 1px solid hsl(var(--border));
-}
-
-/* 批量操作条：选中行后在底部左侧出现 */
-.pane__foot-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.pane__sel {
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-/* 主表行：选中态用主色淡染（不使用侧边色条），名称转主色，选中一目了然 */
-.pane :deep(.dict-row--active > td) {
-  background-color: hsl(var(--primary) / 0.08);
-}
-
-.pane :deep(.dict-row--active) .dict-name__text {
-  color: hsl(var(--primary));
-}
-
-.dict-name__text {
-  font-weight: 500;
-  color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* 主表当前行：淡淡的品牌底 + 名称转品牌色，与勾选态（品牌淡底）拉开一档 */
+.dict-mgmt :deep(.dict-row--active) {
+  --xh-collection-bg-rest: color-mix(in srgb, hsl(var(--primary)) 6%, hsl(var(--card)));
+  --xh-collection-fg-rest: var(--xh-fg-brand);
 }
 
 @media (max-width: 1024px) {
-  /* 窄屏：上下堆叠，整页可滚动；每栏表格给定高度以便内部滚动 */
+  /* 窄屏：上下堆叠，整页可滚动；每栏给定高度以便表格内部滚动 */
   .dict-mgmt {
     flex-direction: column;
     height: auto;
@@ -1221,14 +837,14 @@ onMounted(fetchDictData)
     overflow: visible;
   }
 
-  .pane--master,
-  .pane--detail {
+  .dict-mgmt__pane {
     flex: none;
+    height: 70vh;
   }
 
-  .pane__body {
-    flex: none;
-    height: 56vh;
+  .dict-mgmt__pane:first-child,
+  .dict-mgmt__pane:last-child {
+    padding-inline: var(--xh-space-3);
   }
 }
 </style>
