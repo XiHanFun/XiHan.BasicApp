@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
-import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -10,7 +10,7 @@ import XNumberInput from '../common/XNumberInput.vue'
 
 defineOptions({ name: 'SchemaTableSettings' })
 
-defineProps<{
+const props = defineProps<{
   /** 列设置（来自 useTableSettings.columns） */
   columns: ColumnSetting[]
   /** 当前密度 */
@@ -52,6 +52,43 @@ const styleOptions = computed<Array<{ label: string, key: keyof TableStyle, inve
   // 存的是 single-line：true 表示「无竖线」，与按钮直觉相反，故反向显示：选中=有竖线
   { label: t('component.schema_table_settings.single_line'), key: 'singleLine', invert: true },
 ])
+
+/** 风格是一组可同时开的开关：选中集合按「显示语义」算（竖线那一项反向） */
+const styleValue = computed(() => styleOptions.value
+  .filter(opt => (opt.invert ? !props.tableStyle[opt.key] : props.tableStyle[opt.key]))
+  .map(opt => opt.key))
+
+function onDensityChange(value: string | string[] | null) {
+  // 密度单选且不许清空，这里只会收到一个值
+  if (typeof value === 'string')
+    emit('setDensity', value as TableDensity)
+}
+
+function onStyleChange(value: string | string[] | null) {
+  const next = new Set(Array.isArray(value) ? value : value == null ? [] : [value])
+  for (const opt of styleOptions.value) {
+    const shown = next.has(opt.key)
+    const current = opt.invert ? !props.tableStyle[opt.key] : props.tableStyle[opt.key]
+    if (shown !== current)
+      emit('setStyle', opt.key, opt.invert ? !shown : shown)
+  }
+}
+
+/** 功能两项也是开关：多选列 / 序号列 */
+const FEATURE_SELECTABLE = 'selectable'
+const FEATURE_INDEX = 'index'
+const featureValue = computed(() => [
+  ...(props.selectable ? [FEATURE_SELECTABLE] : []),
+  ...(props.showIndex ? [FEATURE_INDEX] : []),
+])
+
+function onFeatureChange(value: string | string[] | null) {
+  const next = new Set(Array.isArray(value) ? value : value == null ? [] : [value])
+  if (next.has(FEATURE_SELECTABLE) !== props.selectable)
+    emit('setSelectable', next.has(FEATURE_SELECTABLE))
+  if (next.has(FEATURE_INDEX) !== props.showIndex)
+    emit('setShowIndex', next.has(FEATURE_INDEX))
+}
 
 /** 排序图标（无 → 升 → 降，与「固定」同款单图标循环切换；优先级由列在列表中的顺序决定） */
 function sortIcon(sort?: 'asc' | 'desc'): string {
@@ -141,61 +178,55 @@ function onSort(details: { from: number, to: number }) {
 
           <XhSeparator class="my-1" />
 
-          <!-- 密度 -->
+          <!-- 密度：三档单选、不许清空 -->
           <div class="flex gap-2 items-center justify-between">
             <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.density_label') }}</span>
-            <div class="flex gap-1">
-              <XhButton
-                v-for="opt in densityOptions"
-                :key="opt.value"
-                size="sm"
-                class="xh-set-chip"
-                :variant="density === opt.value ? 'solid' : 'outline'"
-                @click="emit('setDensity', opt.value)"
-              >
+            <XhToggleGroupRoot
+              size="sm"
+              :value="density"
+              disallow-empty
+              :aria-label="t('component.schema_table_settings.density_label')"
+              @update:value="onDensityChange"
+            >
+              <XhToggleGroupItem v-for="opt in densityOptions" :key="opt.value" :value="opt.value">
                 {{ opt.label }}
-              </XhButton>
-            </div>
+              </XhToggleGroupItem>
+            </XhToggleGroupRoot>
           </div>
 
-          <!-- 表格风格 -->
+          <!-- 表格风格：三个可同时开的开关 -->
           <div class="flex gap-2 items-center justify-between">
             <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.style_label') }}</span>
-            <div class="flex gap-1">
-              <XhButton
-                v-for="opt in styleOptions"
-                :key="opt.key"
-                size="sm"
-                class="xh-set-chip"
-                :variant="(opt.invert ? !tableStyle[opt.key] : tableStyle[opt.key]) ? 'solid' : 'outline'"
-                @click="emit('setStyle', opt.key, !tableStyle[opt.key])"
-              >
+            <XhToggleGroupRoot
+              size="sm"
+              multiple
+              :value="styleValue"
+              :aria-label="t('component.schema_table_settings.style_label')"
+              @update:value="onStyleChange"
+            >
+              <XhToggleGroupItem v-for="opt in styleOptions" :key="opt.key" :value="opt.key">
                 {{ opt.label }}
-              </XhButton>
-            </div>
+              </XhToggleGroupItem>
+            </XhToggleGroupRoot>
           </div>
 
-          <!-- 功能 -->
+          <!-- 功能：多选列 / 序号列两个开关 -->
           <div class="flex gap-2 items-center justify-between">
             <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.feature_label') }}</span>
-            <div class="flex gap-1">
-              <XhButton
-                size="sm"
-                class="xh-set-chip"
-                :variant="selectable ? 'solid' : 'outline'"
-                @click="emit('setSelectable', !selectable)"
-              >
+            <XhToggleGroupRoot
+              size="sm"
+              multiple
+              :value="featureValue"
+              :aria-label="t('component.schema_table_settings.feature_label')"
+              @update:value="onFeatureChange"
+            >
+              <XhToggleGroupItem :value="FEATURE_SELECTABLE">
                 {{ t('component.schema_table_settings.multi_select') }}
-              </XhButton>
-              <XhButton
-                size="sm"
-                class="xh-set-chip"
-                :variant="showIndex ? 'solid' : 'outline'"
-                @click="emit('setShowIndex', !showIndex)"
-              >
+              </XhToggleGroupItem>
+              <XhToggleGroupItem :value="FEATURE_INDEX">
                 {{ t('component.schema_table_settings.index') }}
-              </XhButton>
-            </div>
+              </XhToggleGroupItem>
+            </XhToggleGroupRoot>
           </div>
 
           <XhSeparator class="my-1" />
