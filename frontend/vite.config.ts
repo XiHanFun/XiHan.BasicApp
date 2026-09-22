@@ -1,9 +1,10 @@
 import type { ComponentResolver } from 'unplugin-vue-components'
+import type { PluginOption } from 'vite'
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import process from 'node:process'
-import { fileURLToPath, URL } from 'node:url'
 
+import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
@@ -211,6 +212,28 @@ function createManualChunks(id: string) {
   return undefined
 }
 
+/**
+ * 本次构建的标记：同一份源码重复打包也会换新值。
+ * 发版检查据它判断「线上这一版是不是我正在跑的这一版」——只看资源哈希的话，
+ * 源码没动时两次发布的产物逐字节相同，发了也认不出来。
+ */
+const buildStamp = new Date().toISOString()
+
+/** 把版本与构建标记落成 version.json，随产物一起发出去 */
+function releaseManifest(): PluginOption {
+  return {
+    name: 'xihan:release-manifest',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'version.json',
+        source: `${JSON.stringify({ version: pkg.version, buildTime: pkg.lastBuildTime, buildStamp }, null, 2)}\n`,
+      })
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
   const apiPrefix = env.VITE_API_PREFIX || '/api'
@@ -219,6 +242,7 @@ export default defineConfig(({ mode }) => {
     define: {
       __APP_VERSION__: JSON.stringify(pkg.version),
       __APP_BUILD_TIME__: JSON.stringify(pkg.lastBuildTime),
+      __APP_BUILD_STAMP__: JSON.stringify(buildStamp),
       __APP_HOMEPAGE__: JSON.stringify(pkg.homepage),
       __APP_NAME__: JSON.stringify(pkg.name),
       __APP_AUTHOR_NAME__: JSON.stringify(pkg.author?.name ?? ''),
@@ -229,6 +253,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       // XiHan.UI 的启动横幅打在这个终端里，不占浏览器控制台
       xihanUiBanner(),
+      releaseManifest(),
       tailwindcss(),
       vue(),
       vueJsx(),

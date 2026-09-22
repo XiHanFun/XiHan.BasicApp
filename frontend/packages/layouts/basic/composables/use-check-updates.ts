@@ -39,7 +39,27 @@ function hashText(text: string): string {
 }
 
 /**
- * 定时检查前端资源是否有更新（对比首页指纹）。
+ * 线上那一版的发布标记。构建时随产物落一份 version.json，同一份源码重复打包也会换新值，
+ * 所以「发了一版」一定认得出来——只看资源哈希的话，源码没动时两次发布逐字节相同，发了也看不出来。
+ * 旧产物或别处托管没有这份清单，返回 null 交给首页指纹那条路兜。
+ */
+async function fetchDeployedStamp(): Promise<string | null> {
+  try {
+    const response = await fetch(`${import.meta.env.BASE_URL}version.json?_=${Date.now()}`, { cache: 'no-store' })
+    if (!response.ok) {
+      return null
+    }
+    const manifest = await response.json() as { buildStamp?: unknown }
+    return typeof manifest.buildStamp === 'string' ? manifest.buildStamp : null
+  }
+  catch {
+    return null
+  }
+}
+
+/**
+ * 定时检查前端资源是否有更新。
+ * 先比发布清单里的构建标记（与当前这份产物里打进来的那个比），没有清单再退到首页指纹。
  * 检测到变化时弹出通知提示用户刷新页面。
  * 页面不可见时暂停轮询，重新可见时立即检查一次再恢复定时器。
  */
@@ -52,6 +72,8 @@ export function useCheckUpdates() {
   let checking = false
   const versionTag = ref<string | null>(null)
   const hasUpdate = ref(false)
+  /** 被按掉的那一版：同一版不再每轮追着问，换了新版才重新提醒 */
+  const dismissedVersion = ref<string | null>(null)
 
   /**
    * 取首页指纹。校验头优先，但不能只靠它：CDN 压缩（zstd / br）后常把 etag 一并剥掉，
@@ -85,6 +107,17 @@ export function useCheckUpdates() {
     }
     checking = true
     try {
+      // 有发布清单就直接比「线上这一版」与「我正在跑的这一版」，不必先攒基线：
+      // 页面是在发版之后打开的也照样判得出来
+      const deployedStamp = await fetchDeployedStamp()
+      if (deployedStamp) {
+        if (deployedStamp !== __APP_BUILD_STAMP__ && deployedStamp !== dismissedVersion.value && !hasUpdate.value) {
+          hasUpdate.value = true
+          showUpdateNotification(deployedStamp)
+        }
+        return
+      }
+
       const tag = await getVersionTag()
       if (!tag) {
         return
@@ -92,7 +125,7 @@ export function useCheckUpdates() {
 
       if (versionTag.value && tag !== versionTag.value && !hasUpdate.value) {
         hasUpdate.value = true
-        showUpdateNotification()
+        showUpdateNotification(tag)
       }
 
       versionTag.value = tag
@@ -102,7 +135,7 @@ export function useCheckUpdates() {
     }
   }
 
-  function showUpdateNotification() {
+  function showUpdateNotification(version: string) {
     // 命令式 toast 挂不了操作钮，改用带确认的对话框：确认即刷新，取消即本轮不再提醒
     void dialog
       .confirm({
@@ -117,6 +150,7 @@ export function useCheckUpdates() {
       .then((confirmed) => {
         if (!confirmed) {
           hasUpdate.value = false
+          dismissedVersion.value = version
         }
       })
   }
