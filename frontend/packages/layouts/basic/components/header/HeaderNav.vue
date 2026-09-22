@@ -52,10 +52,12 @@ function isLast(isHome: boolean, index?: number): boolean {
   <!-- 分隔符在组件库里是独立部件，摆在两项之间；旧版靠每项的 #separator 插槽给，语义相同 -->
   <XhBreadcrumbRoot
     v-if="shouldShowBreadcrumb"
-    class="flex items-center"
+    class="flex min-w-0 items-center"
     :class="appStore.breadcrumbStyle === 'background' ? 'rounded-md bg-muted px-2 py-1' : ''"
   >
-    <XhBreadcrumbList class="flex items-center">
+    <!-- 顶栏只有一行：皮肤缺省 flex-wrap 会在顶栏挤压时把路径折成两行，这里改为不换行，
+         各项按比例压缩并在文字上出省略号（根与列表都要 min-w-0 才压得动） -->
+    <XhBreadcrumbList class="flex min-w-0 flex-nowrap items-center">
       <XhBreadcrumbItem v-if="appStore.breadcrumbShowHome">
         <XhBreadcrumbLink
           class="crumb-item"
@@ -72,7 +74,7 @@ function isLast(isHome: boolean, index?: number): boolean {
             height="14"
             class="crumb-icon"
           />
-          <span>Home</span>
+          <span class="crumb-label">Home</span>
         </XhBreadcrumbLink>
       </XhBreadcrumbItem>
       <XhBreadcrumbSeparator v-if="appStore.breadcrumbShowHome && !isLast(true)">
@@ -101,7 +103,7 @@ function isLast(isHome: boolean, index?: number): boolean {
                 height="14"
                 class="crumb-icon"
               />
-              <span>{{ item.title }}</span>
+              <span class="crumb-label">{{ item.title }}</span>
             </XhBreadcrumbLink>
           </XDropdown>
 
@@ -121,7 +123,7 @@ function isLast(isHome: boolean, index?: number): boolean {
               height="14"
               class="crumb-icon"
             />
-            <span>{{ item.title }}</span>
+            <span class="crumb-label">{{ item.title }}</span>
           </XhBreadcrumbLink>
         </XhBreadcrumbItem>
         <XhBreadcrumbSeparator v-if="!isLast(false, index)">
@@ -159,6 +161,14 @@ function isLast(isHome: boolean, index?: number): boolean {
 
 .crumb-icon {
   flex-shrink: 0;
+}
+
+/* 截断落在文字上：链接自身是 flex 容器，text-overflow 在它上面不生效 */
+.crumb-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .crumb-sep {
