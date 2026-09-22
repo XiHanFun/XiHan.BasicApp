@@ -158,3 +158,14 @@ export function disposeUiServices(): void {
   loadingBarInstance?.dispose()
   loadingBarInstance = null
 }
+
+/*
+ * 热更新时先把四个宿主拆掉。本模块的实例是模块级单例，而接受热更的是引用它的那些 SFC：
+ * 模块一换新，它们拿到的是一份全新的单例，旧那份的宿主应用还挂在门户根上没人管。
+ * 顶部进度条最容易看出来——两条并存，各走各的进度，屏幕上就是一段粗一段细。
+ */
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    disposeUiServices()
+  })
+}
