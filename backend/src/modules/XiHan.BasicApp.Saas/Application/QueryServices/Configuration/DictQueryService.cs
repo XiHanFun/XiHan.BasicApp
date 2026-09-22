@@ -10,6 +10,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -53,18 +54,25 @@ public sealed class DictQueryService
     private readonly IDistributedCache<SaasDictItemTreeCacheItem, string> _dictItemTreeCache;
 
     /// <summary>
+    /// 字段级安全服务（排序/过滤门控）
+    /// </summary>
+    private readonly IFieldSecurityService _fieldSecurity;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public DictQueryService(
         IDictRepository dictRepository,
         IDictItemRepository dictItemRepository,
         ICurrentTenant currentTenant,
-        IDistributedCache<SaasDictItemTreeCacheItem, string> dictItemTreeCache)
+        IDistributedCache<SaasDictItemTreeCacheItem, string> dictItemTreeCache,
+        IFieldSecurityService fieldSecurityService)
     {
         _dictRepository = dictRepository;
         _dictItemRepository = dictItemRepository;
         _currentTenant = currentTenant;
         _dictItemTreeCache = dictItemTreeCache;
+        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -81,6 +89,17 @@ public sealed class DictQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildDictPageRequest(input);
+
+        // 过滤：前端多选(In)等条件经 conditions.filters 下发，FLS 门控剔除不可读/已脱敏字段后由框架统一应用
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysDict", cancellationToken);
+
+        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysDict", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyDictSorts(request);
+        }
+
         var dicts = await _dictRepository.GetPagedAsync(request, cancellationToken);
         return dicts.Map(DictApplicationMapper.ToListItemDto);
     }
@@ -119,6 +138,15 @@ public sealed class DictQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildDictItemPageRequest(input);
+
+        // 过滤 / 排序与字典分页同款：前端 conditions 经 FLS 门控后带入，无有效排序回退默认排序
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysDictItem", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysDictItem", cancellationToken);
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            ApplyDictItemSorts(request);
+        }
+
         var dictItems = await _dictItemRepository.GetPagedAsync(request, cancellationToken);
         return dictItems.Map(DictApplicationMapper.ToItemListItemDto);
     }
@@ -231,7 +259,18 @@ public sealed class DictQueryService
             request.Conditions.AddFilter((SysDict dict) => dict.Status, input.Status.Value);
         }
 
-        ApplyDictSorts(request);
+        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetDictPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+
+        // 前端多选过滤原样带入（FLS 门控在调用方 GetDictPageAsync 处理）
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
+        }
+
         return request;
     }
 
@@ -256,7 +295,18 @@ public sealed class DictQueryService
             input.ItemCode,
             input.IsDefault,
             input.Status);
-        ApplyDictItemSorts(request);
+
+        // 前端选择的排序与多选过滤原样带入（FLS 门控与默认兜底在调用方 GetDictItemPageAsync 处理）
+        if (input.Conditions?.Sorts is { Count: > 0 } sorts)
+        {
+            _ = request.Conditions.AddSorts(sorts);
+        }
+
+        if (input.Conditions?.Filters is { Count: > 0 } filters)
+        {
+            _ = request.Conditions.AddFilters(filters);
+        }
+
         return request;
     }
 
@@ -334,7 +384,7 @@ public sealed class DictQueryService
     }
 
     /// <summary>
-    /// 应用系统字典排序
+    /// 应用系统字典默认排序（前端未指定有效排序时使用）
     /// </summary>
     private static void ApplyDictSorts(BasicAppPRDto request)
     {
