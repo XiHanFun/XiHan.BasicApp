@@ -82,6 +82,8 @@ export default {
     refresh_page: '重新整理頁面',
     nav_back: '後退',
     nav_forward: '前進',
+    menu_scroll_prev: '上一組選單',
+    menu_scroll_next: '下一組選單',
     sidebar_collapse: '收合側邊欄',
     sidebar_expand: '展開側邊欄',
   },

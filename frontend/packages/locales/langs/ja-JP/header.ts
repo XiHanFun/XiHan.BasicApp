@@ -82,6 +82,8 @@ export default {
     refresh_page: 'ページを更新',
     nav_back: '戻る',
     nav_forward: '進む',
+    menu_scroll_prev: '前のメニュー',
+    menu_scroll_next: '次のメニュー',
     sidebar_collapse: 'サイドバーを折りたたむ',
     sidebar_expand: 'サイドバーを展開',
   },

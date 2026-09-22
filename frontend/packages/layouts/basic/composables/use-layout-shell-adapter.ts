@@ -310,6 +310,17 @@ export function useLayoutShellAdapter() {
     )
   })
 
+  /**
+   * 顶栏 Logo 位要占多宽：有侧栏在下面时按侧栏宽预留，两者才对得齐；
+   * 纯顶部导航没有侧栏可对齐，占着这一截只会把横向菜单挤窄，改为按内容宽。
+   */
+  const headerLogoMinWidth = computed(() => {
+    if (isMobile.value) {
+      return 40
+    }
+    return showSider.value ? appStore.sidebarWidth : 0
+  })
+
   // --- Header auto-hide ---
   function handleAutoHideHeader() {
     if (!isHeaderAutoMode.value || isMixedNav.value || isFullContent.value) {
@@ -522,6 +533,7 @@ export function useLayoutShellAdapter() {
     headerZIndex,
     headerWrapperStyle,
     headerHasShadow,
+    headerLogoMinWidth,
     showHeaderToggleButton,
     showHeaderLogo,
 

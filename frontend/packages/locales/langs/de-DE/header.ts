@@ -82,6 +82,8 @@ export default {
     refresh_page: 'Seite aktualisieren',
     nav_back: 'Zurück',
     nav_forward: 'Vorwärts',
+    menu_scroll_prev: 'Vorherige Menüpunkte',
+    menu_scroll_next: 'Nächste Menüpunkte',
     sidebar_collapse: 'Seitenleiste einklappen',
     sidebar_expand: 'Seitenleiste ausklappen',
   },

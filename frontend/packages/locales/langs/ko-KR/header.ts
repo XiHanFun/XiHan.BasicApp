@@ -82,6 +82,8 @@ export default {
     refresh_page: '페이지 새로 고침',
     nav_back: '뒤로',
     nav_forward: '앞으로',
+    menu_scroll_prev: '이전 메뉴',
+    menu_scroll_next: '다음 메뉴',
     sidebar_collapse: '사이드바 접기',
     sidebar_expand: '사이드바 펼치기',
   },
