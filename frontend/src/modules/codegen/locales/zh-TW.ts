@@ -164,6 +164,8 @@ export default {
         data_source_primary: '本系統主資料庫',
         data_source_placeholder: '選擇資料來源',
         keyword_placeholder: '資料表名稱關鍵字',
+        form_data_source: '資料來源',
+        form_keyword: '資料表名稱關鍵字',
         form_database_type: '資料庫類型',
         form_select_tables: '選擇資料庫資料表（已選 {count} 張）',
         select_tables_placeholder: '可多選，一次匯入一批',

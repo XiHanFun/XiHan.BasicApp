@@ -164,6 +164,8 @@ export default {
         data_source_primary: '本システムのメイン DB',
         data_source_placeholder: 'データソースを選択',
         keyword_placeholder: 'テーブル名キーワード',
+        form_data_source: 'データソース',
+        form_keyword: 'テーブル名キーワード',
         form_database_type: 'データベース種別',
         form_select_tables: 'データベーステーブルを選択（{count} 件選択中）',
         select_tables_placeholder: '複数選択可、一度にまとめてインポートできます',

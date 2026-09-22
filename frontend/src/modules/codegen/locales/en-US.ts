@@ -164,6 +164,8 @@ export default {
         data_source_primary: 'Primary database',
         data_source_placeholder: 'Select data source',
         keyword_placeholder: 'Table name keyword',
+        form_data_source: 'Data Source',
+        form_keyword: 'Table Keyword',
         form_database_type: 'Database Type',
         form_select_tables: 'Select Tables ({count} selected)',
         select_tables_placeholder: 'Multi-select; imports a batch at once',
