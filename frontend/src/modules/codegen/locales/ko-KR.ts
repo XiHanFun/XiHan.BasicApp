@@ -164,6 +164,8 @@ export default {
         data_source_primary: '본 시스템 메인 DB',
         data_source_placeholder: '데이터 소스 선택',
         keyword_placeholder: '테이블명 키워드',
+        form_data_source: '데이터 소스',
+        form_keyword: '테이블명 키워드',
         form_database_type: '데이터베이스 유형',
         form_select_tables: '데이터베이스 테이블 선택({count}개 선택됨)',
         select_tables_placeholder: '여러 개 선택해 한 번에 가져올 수 있어요',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TabsNode } from '@xihan-ui/headless'
-import { XhButton, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhInputGroupRoot, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -379,8 +379,8 @@ function applyPreset(v: string): void {
 
 <template>
   <div class="cron-field">
-    <!-- 输入框与「生成」钮拼成一组：两者贴合，中缝不留描边 -->
-    <div class="cron-input-group">
+    <!-- 输入框与「构建」钮拼成组件库的输入组：同一行、两者贴合，描边与焦点环由组的外轮廓画，中缝不留描边 -->
+    <XhInputGroupRoot class="cron-input-group">
       <XInput
         v-model:value="rawText"
         :invalid="!isValid"
@@ -388,11 +388,11 @@ function applyPreset(v: string): void {
         @blur="applyRaw"
         @enter="applyRaw"
       />
-      <XhButton variant="outline" size="sm" tone="brand" @click="builderVisible = true">
+      <XhButton variant="subtle" size="sm" tone="brand" @click="builderVisible = true">
         <Icon icon="lucide:wand-2" />
         {{ t('component.cron.build') }}
       </XhButton>
-    </div>
+    </XhInputGroupRoot>
 
     <XEditModal
       v-model:show="builderVisible"
@@ -550,6 +550,20 @@ function applyPreset(v: string): void {
 <style scoped>
 .cron-field {
   width: 100%;
+}
+
+/* 输入组铺满字段格；组是 inline-flex，输入框占满余下的宽、钮不缩 */
+.cron-input-group {
+  inline-size: 100%;
+}
+
+.cron-input-group > :first-child {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.cron-input-group > :last-child {
+  flex: none;
 }
 
 .cron-editor {

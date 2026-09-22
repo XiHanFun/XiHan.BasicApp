@@ -164,6 +164,8 @@ export default {
         data_source_primary: 'Primäre Datenbank',
         data_source_placeholder: 'Bitte Datenquelle auswählen',
         keyword_placeholder: 'Stichwort für Tabellenname',
+        form_data_source: 'Datenquelle',
+        form_keyword: 'Tabellenname',
         form_database_type: 'Datenbanktyp',
         form_select_tables: 'Tabellen auswählen ({count} ausgewählt)',
         select_tables_placeholder: 'Mehrfachauswahl möglich; importiert einen ganzen Batch auf einmal',

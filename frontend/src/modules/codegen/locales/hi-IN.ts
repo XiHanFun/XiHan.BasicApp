@@ -164,6 +164,8 @@ export default {
         data_source_primary: 'इस सिस्टम का मुख्य डेटाबेस',
         data_source_placeholder: 'डेटा स्रोत चुनें',
         keyword_placeholder: 'तालिका नाम कीवर्ड',
+        form_data_source: 'डेटा स्रोत',
+        form_keyword: 'तालिका नाम कीवर्ड',
         form_database_type: 'डेटाबेस प्रकार',
         form_select_tables: 'डेटाबेस तालिकाएँ चुनें ({count} चुनी गईं)',
         select_tables_placeholder: 'एक साथ कई चुनें, एक बार में पूरा बैच आयात करें',

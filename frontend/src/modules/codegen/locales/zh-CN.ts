@@ -164,6 +164,8 @@ export default {
         data_source_primary: '本系统主库',
         data_source_placeholder: '选择数据源',
         keyword_placeholder: '表名关键字',
+        form_data_source: '数据源',
+        form_keyword: '表名关键字',
         form_database_type: '数据库类型',
         form_select_tables: '选择数据库表（已选 {count} 张）',
         select_tables_placeholder: '可多选，一次导入一批',
