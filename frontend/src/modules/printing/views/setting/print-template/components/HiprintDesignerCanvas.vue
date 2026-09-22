@@ -583,8 +583,8 @@ defineExpose({ clear, getJson, preview, redo, undo })
 }
 
 .canvas-stage:focus-visible {
-  outline: 2px solid rgba(32, 128, 240, 0.6);
-  outline-offset: -2px;
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
 }
 
 .canvas-error {

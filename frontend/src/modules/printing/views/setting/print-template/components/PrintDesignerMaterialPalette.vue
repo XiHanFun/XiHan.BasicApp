@@ -318,8 +318,8 @@ function getFieldIcon(kind: PrintFieldKind): string {
 }
 
 .data-source-summary:focus-visible {
-  outline: 2px solid rgba(32, 128, 240, 0.45);
-  outline-offset: -2px;
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
 }
 
 .data-source-icon {
@@ -408,8 +408,8 @@ function getFieldIcon(kind: PrintFieldKind): string {
 }
 
 .material-item:focus-visible {
-  outline: 2px solid rgba(32, 128, 240, 0.5);
-  outline-offset: 1px;
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
 }
 
 .material-item:active {

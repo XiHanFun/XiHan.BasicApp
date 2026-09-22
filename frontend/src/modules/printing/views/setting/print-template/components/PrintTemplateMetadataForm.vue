@@ -156,8 +156,8 @@ function switchTab(tab: 'advanced' | 'basic'): void {
 
 .settings-tab-button:focus-visible,
 .security-notice:focus-visible {
-  outline: 2px solid rgba(79, 124, 247, 0.5);
-  outline-offset: -2px;
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
 }
 
 .required-progress {
