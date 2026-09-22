@@ -57,7 +57,8 @@ export function useCheckUpdates() {
    * 取首页指纹。校验头优先，但不能只靠它：CDN 压缩（zstd / br）后常把 etag 一并剥掉，
    * 静态站又未必给 last-modified——两头都没有时，这个功能会静悄悄地一直不报更新。
    * 所以拿不到校验头就退到正文：首页里那串带哈希的资源引用每次打包都会换。
-   * 查询串是为了绕开 CDN 边缘的缓存副本，否则部署完还可能读到旧的那一份。
+   * 查询串是为了绕开按 URL 记缓存的那类 CDN 边缘副本；把查询串排除在缓存键外的（如 Workers 静态资产）
+   * 对它无感，那边靠发版本身换掉整套资产来保证新鲜。
    */
   async function getVersionTag(): Promise<string | null> {
     try {
