@@ -421,7 +421,7 @@ async function handleQuery() {
                     </XhFieldControl>
                     <XhFieldErrorText />
                   </XhFieldRoot>
-                  <XhButton variant="subtle" :loading="queryLoading" tone="brand" @click="handleQuery">
+                  <XhButton variant="subtle" size="sm" :loading="queryLoading" tone="brand" @click="handleQuery">
                     {{ t('develop.knowledge.query_submit') }}
                   </XhButton>
                 </XhFlex>

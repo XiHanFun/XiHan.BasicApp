@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Size } from '@xihan-ui/core'
 import {
   XhColorPickerAreaThumb,
   XhColorPickerContent,
@@ -27,10 +28,13 @@ withDefaults(defineProps<{
   swatches?: string[]
   /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
+  /** 与表单里的其它字段同一档：缺省 sm，与 XInput / XSelect 一致 */
+  size?: Size
 }>(), {
   value: undefined,
   swatches: undefined,
   disabled: undefined,
+  size: 'sm',
 })
 
 const emit = defineEmits<{
@@ -43,6 +47,7 @@ const emit = defineEmits<{
     :value="value ?? undefined"
     :swatches="swatches"
     :disabled="disabled"
+    :size="size"
     @update:value="(next: string) => emit('update:value', next)"
   >
     <!-- 视觉盒（边框/高度/内边距/聚焦环）在 Control 上，少这层触发钮就退回裸按钮 -->

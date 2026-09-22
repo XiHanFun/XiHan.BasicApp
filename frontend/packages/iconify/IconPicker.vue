@@ -107,7 +107,7 @@ function handleClear() {
 
 <template>
   <div class="icon-picker">
-    <XhButton v-bind="fieldControl" variant="ghost" full-width class="icon-picker-trigger" @click="openPicker">
+    <XhButton v-bind="fieldControl" variant="outline" size="sm" full-width class="icon-picker-trigger" @click="openPicker">
       <Icon v-if="currentIconId" :icon="currentIconId" width="20" />
       <span v-else class="icon-picker-placeholder">{{ placeholderText }}</span>
     </XhButton>
@@ -186,14 +186,14 @@ function handleClear() {
 </template>
 
 <style scoped>
+/* 触发钮是表单里的一枚字段：与 sm 档的输入框同高（钮的 size 给），内容靠起始端排 */
 .icon-picker-trigger {
   justify-content: flex-start;
-  min-height: 34px;
+  font-weight: var(--xh-font-weight-regular);
 }
 
 .icon-picker-placeholder {
-  color: hsl(var(--muted-foreground));
-  font-size: 14px;
+  color: var(--xh-fg-subtle);
 }
 
 .icon-picker-body {

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { Size } from '@xihan-ui/core'
 import type { CascaderNode } from '@xihan-ui/headless'
 import type { TreeSelectOption } from '~/types'
 import {
@@ -29,11 +30,14 @@ const props = withDefaults(defineProps<{
   /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
   clearable?: boolean
+  /** 与表单里的其它字段同一档：缺省 sm，与 XInput / XSelect 一致 */
+  size?: Size
 }>(), {
   options: () => [],
   placeholder: undefined,
   disabled: undefined,
   clearable: false,
+  size: 'sm',
 })
 
 // 字段挂来的 id 与 aria-* 转交给触发器，见 control-attrs.ts
@@ -86,6 +90,7 @@ function onValueChange(details: { value: readonly string[] | readonly (readonly 
     :collection="collection"
     :value="pathValue"
     :disabled="disabled"
+    :size="size"
     @value-change="onValueChange"
   >
     <!-- 视觉盒在 Control 上；清空钮是 Trigger 的兄弟，塞进去会变成按钮套按钮、且点它会冒泡把浮层打开 -->

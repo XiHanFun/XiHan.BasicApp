@@ -1292,7 +1292,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
           <XhSwitch v-model:checked="scopeIncludeChildren">
             {{ scopeIncludeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
           </XhSwitch>
-          <XhButton variant="subtle" :loading="scopeSubmitting" tone="brand" @click="addScope">
+          <XhButton variant="subtle" size="sm" :loading="scopeSubmitting" tone="brand" @click="addScope">
             {{ t('identity.role.scope_add') }}
           </XhButton>
         </div>

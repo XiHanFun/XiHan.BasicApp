@@ -352,7 +352,7 @@ async function submit(): Promise<void> {
         <XhFieldLabel>{{ t('setting.numbering.preview') }}</XhFieldLabel>
         <XhFieldControl>
           <XhFlex align="center">
-            <XhButton variant="subtle" :loading="previewLoading" @click="preview">
+            <XhButton variant="subtle" size="sm" :loading="previewLoading" @click="preview">
               {{ t('setting.numbering.preview_action') }}
             </XhButton>
             <XhTagRoot v-if="previewNumber" variant="subtle" tone="info" size="lg">

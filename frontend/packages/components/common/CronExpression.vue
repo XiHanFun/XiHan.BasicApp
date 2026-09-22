@@ -388,7 +388,7 @@ function applyPreset(v: string): void {
         @blur="applyRaw"
         @enter="applyRaw"
       />
-      <XhButton variant="outline" tone="brand" @click="builderVisible = true">
+      <XhButton variant="outline" size="sm" tone="brand" @click="builderVisible = true">
         <Icon icon="lucide:wand-2" />
         {{ t('component.cron.build') }}
       </XhButton>
