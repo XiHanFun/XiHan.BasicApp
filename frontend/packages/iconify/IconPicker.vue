@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/offline'
-import { useFieldControl, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { useFieldControl, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsNextTrigger, XhTabsPrevTrigger, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XInput from '../components/common/XInput.vue'
@@ -133,9 +133,10 @@ function handleClear() {
             </XhButton>
           </XhFlex>
 
-          <!-- 每个图标集一个页签，标签与面板都按图标集清单展开 -->
+          <!-- 每个图标集一个页签，标签与面板都按图标集清单展开；图标集多、弹窗窄，标签带放不下时靠两端翻页钮挪 -->
           <XhTabsRoot :value="activePrefix" variant="line" @update:value="handleTabChange">
             <XhTabsList>
+              <XhTabsPrevTrigger />
               <XhTabsTrigger
                 v-for="meta in ICON_SET_META"
                 :key="meta.prefix"
@@ -143,6 +144,8 @@ function handleClear() {
               >
                 {{ meta.name }}
               </XhTabsTrigger>
+              <XhTabsIndicator />
+              <XhTabsNextTrigger />
             </XhTabsList>
             <XhTabsContent
               v-for="meta in ICON_SET_META"

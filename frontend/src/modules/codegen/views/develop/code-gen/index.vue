@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import DatasourcePanel from './components/datasource-panel.vue'
@@ -31,6 +31,7 @@ const activeTab = ref<'table' | 'datasource' | 'template' | 'history'>('table')
         <XhTabsTrigger value="history">
           {{ t('develop.code_gen.tabs.history') }}
         </XhTabsTrigger>
+        <XhTabsIndicator />
       </XhTabsList>
       <XhTabsContent value="table">
         <TablePanel />

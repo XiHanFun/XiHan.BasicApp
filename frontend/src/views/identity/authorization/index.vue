@@ -7,7 +7,7 @@ import type {
   PermissionRequestListItemDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -507,6 +507,7 @@ async function submitDelegation() {
         <XhTabsTrigger value="delegation">
           {{ t('identity.authorization.tab_delegation') }}
         </XhTabsTrigger>
+        <XhTabsIndicator />
       </XhTabsList>
       <XhTabsContent value="request">
         <SchemaPage ref="requestPageRef" :schema="requestSchema" @action="onRequestAction" />

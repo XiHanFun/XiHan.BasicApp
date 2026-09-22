@@ -1,6 +1,6 @@
 <!-- 编辑器示例页面：集中演示 Markdown、JSON 与富文本组件的双向绑定能力。 -->
 <script lang="ts" setup>
-import { XhCardContent, XhCardHeader, XhCardRoot, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { XhCardContent, XhCardHeader, XhCardRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { ref } from 'vue'
 import { XJsonEditor, XMdEditor, XRichTextEditor } from '~/components'
 
@@ -62,6 +62,7 @@ const richContent = ref('<h2>富文本编辑器演示</h2><p>这是一段示例�
             <XhTabsTrigger value="richtext">
               富文本编辑器
             </XhTabsTrigger>
+            <XhTabsIndicator />
           </XhTabsList>
           <!-- Markdown 编辑器 -->
           <XhTabsContent value="markdown">

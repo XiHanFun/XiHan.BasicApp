@@ -8,7 +8,7 @@ import type {
   SmsListItemDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex, XhTabsContent, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EmailStatus, messageCenterApi, querySortsFromSchema, SmsStatus } from '@/api'
@@ -394,6 +394,7 @@ async function deleteSms(row: SmsListItemDto) {
         <XhTabsTrigger value="sms">
           {{ t('message.record.tab_sms') }}
         </XhTabsTrigger>
+        <XhTabsIndicator />
       </XhTabsList>
       <XhTabsContent value="email">
         <SchemaPage ref="emailPageRef" :schema="emailSchema" @action="onEmailAction" />

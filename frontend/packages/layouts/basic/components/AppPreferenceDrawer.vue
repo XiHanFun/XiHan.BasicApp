@@ -11,6 +11,7 @@ import {
   XhScrollAreaTrack,
   XhScrollAreaViewport,
   XhTabsContent,
+  XhTabsIndicator,
   XhTabsList,
   XhTabsRoot,
   XhTabsTrigger,
@@ -215,6 +216,7 @@ watch(visible, (open, was) => {
           <XhTabsTrigger value="general">
             {{ t('preference.drawer.tab.general') }}
           </XhTabsTrigger>
+          <XhTabsIndicator />
         </XhTabsList>
 
         <XhScrollAreaRoot class="preference-scrollbar">
