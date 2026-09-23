@@ -507,6 +507,11 @@ export default {
   md_editor: {
     placeholder: 'कृपया Markdown सामग्री दर्ज करें...',
   },
+  permission_transfer: {
+    source: 'उपलब्ध',
+    target: 'दी गई',
+    search: 'अनुमति नाम / कोड खोजें',
+  },
   schema_page: {
     actions_column: 'कार्रवाई',
     more: 'और',

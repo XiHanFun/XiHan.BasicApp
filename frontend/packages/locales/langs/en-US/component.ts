@@ -507,6 +507,11 @@ export default {
   md_editor: {
     placeholder: 'Enter Markdown content...',
   },
+  permission_transfer: {
+    source: 'Available',
+    target: 'Granted',
+    search: 'Search permission name / code',
+  },
   schema_page: {
     actions_column: 'Actions',
     more: 'More',

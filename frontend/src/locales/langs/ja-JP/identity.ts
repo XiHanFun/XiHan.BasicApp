@@ -233,6 +233,8 @@ export default {
     ph_remark: '備考を入力してください',
     ph_description: 'ロールの説明を入力してください',
     perm_drawer_title: '権限の割り当て · {name}',
+    perm_available: '付与可能な権限',
+    perm_granted: '付与済み',
     perm_search: '権限名 / コードを検索',
     perm_granted_count: '付与済み {count} 件',
     perm_no_match: '一致する権限はありません',

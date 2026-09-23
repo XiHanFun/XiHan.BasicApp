@@ -15,7 +15,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhButton, XhCheckbox, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -34,7 +34,7 @@ import {
   ValidityStatus,
 } from '@/api'
 import { DATA_SCOPE_OPTIONS, PERMISSION_ACTION_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal, XInput, XNumberInput, XPermissionGrantPanel, XSelect, XTree, XTreeSelect } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer, XSelect, XTree, XTreeSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -251,9 +251,8 @@ const permissionRole = ref<RoleListItemDto | null>(null)
 const permCatalog = ref<PermissionListItemDto[]>([])
 const permGrants = ref<RolePermissionListItemDto[]>([])
 const permLoading = ref(false)
-const permPanelRef = ref<{ reset: () => void } | null>(null)
-const permChecked = ref<Set<ApiId>>(new Set())
-const permDirty = ref(false)
+/** 已授予的权限主键，即穿梭框右侧那一栏 */
+const permChecked = ref<ApiId[]>([])
 
 /**
  * permissionId → 有效授权记录（收权时取记录主键）
@@ -281,7 +280,6 @@ async function loadPermCatalog() {
 async function openPermissionDrawer(row: RoleListItemDto) {
   permissionRole.value = row
   permissionVisible.value = true
-  permPanelRef.value?.reset()
   permLoading.value = true
   try {
     const [, grantsResult] = await Promise.all([loadPermCatalog(), rolePermissionApi.list(row.basicId)])
@@ -296,23 +294,25 @@ async function openPermissionDrawer(row: RoleListItemDto) {
   }
 }
 
-/** 本地勾选态：打开抽屉时由有效授权推导，之后只改本地，保存时一次性提交 */
+/** 本地授予态：打开抽屉时由有效授权推导，之后只改本地，保存时一次性提交 */
 function derivePermChecked() {
-  permChecked.value = new Set(permGrantByPermissionId.value.keys())
-  permDirty.value = false
+  permChecked.value = [...permGrantByPermissionId.value.keys()]
 }
 
-function togglePermission(permission: PermissionListItemDto, checked: boolean) {
-  const next = new Set(permChecked.value)
-  if (checked) {
-    next.add(permission.basicId)
-  }
-  else {
-    next.delete(permission.basicId)
-  }
-  permChecked.value = next
-  permDirty.value = true
+function onPermTransfer(next: (number | string)[]) {
+  permChecked.value = next as ApiId[]
 }
+
+/**
+ * 脏态按「当前授予集合 vs 有效授权集合」算，不用回写事件置位的标志位：
+ * 穿梭框挂载时会把规整后的值回写一次，标志位会被这一次空回写点亮，
+ * 抽屉一打开保存钮就是可点的。比出来的脏态没有这个问题，保存后也会自动归位。
+ */
+const permDirty = computed(() => {
+  const granted = permGrantByPermissionId.value
+  return permChecked.value.length !== granted.size
+    || permChecked.value.some(permId => !granted.has(permId))
+})
 
 async function savePermGrants() {
   const role = permissionRole.value
@@ -321,11 +321,11 @@ async function savePermGrants() {
   }
   const validGrants = permGrants.value.filter(grant => grant.status === ValidityStatus.Valid)
   const grantedPermIds = new Set(validGrants.map(grant => grant.permissionId))
-  const toGrant = [...permChecked.value].filter(permId => !grantedPermIds.has(permId))
-  const toRevoke = validGrants.filter(grant => !permChecked.value.has(grant.permissionId))
+  const checkedPermIds = new Set(permChecked.value)
+  const toGrant = permChecked.value.filter(permId => !grantedPermIds.has(permId))
+  const toRevoke = validGrants.filter(grant => !checkedPermIds.has(grant.permissionId))
   if (toGrant.length === 0 && toRevoke.length === 0) {
     toast.info(t('identity.role.perm_no_change'))
-    permDirty.value = false
     return
   }
   permLoading.value = true
@@ -1208,26 +1208,20 @@ async function handleToggleStatus(row: RoleListItemDto) {
     </XEditModal>
 
     <XhDrawerRoot v-model:open="permissionVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 760px">
+      <XhDrawerContent style="--xh-drawer-size: 980px">
         <XhDrawerTitle>{{ t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <XPermissionGrantPanel
-          ref="permPanelRef"
+        <XPermissionTransfer
           :items="permCatalog"
+          :value="permChecked"
           :loading="permLoading"
+          :disabled="permLoading"
+          :source-title="t('identity.role.perm_available')"
+          :target-title="t('identity.role.perm_granted')"
           :search-placeholder="t('identity.role.perm_search')"
-          :granted-count-label="t('identity.role.perm_granted_count', { count: permChecked.size })"
-          :empty-description="t('identity.role.perm_no_match')"
           :other-group-label="t('identity.role.perm_group_other')"
-        >
-          <template #action="{ item }">
-            <XhCheckbox
-              :checked="permChecked.has(item.basicId)"
-              :disabled="permLoading"
-              @update:checked="(checked: boolean) => togglePermission(item as PermissionListItemDto, checked)"
-            />
-          </template>
-        </XPermissionGrantPanel>
+          @update:value="onPermTransfer"
+        />
         <div class="xh-dialog-footer">
           <XhButton variant="subtle" @click="permissionVisible = false">
             {{ t('common.actions.cancel') }}

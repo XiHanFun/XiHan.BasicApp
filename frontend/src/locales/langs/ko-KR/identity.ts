@@ -233,6 +233,8 @@ export default {
     ph_remark: '비고를 입력하세요',
     ph_description: '역할 설명을 입력하세요',
     perm_drawer_title: '권한 할당 · {name}',
+    perm_available: '부여 가능한 권한',
+    perm_granted: '부여됨',
     perm_search: '권한 이름 / 코드 검색',
     perm_granted_count: '부여됨 {count}건',
     perm_no_match: '일치하는 권한이 없어요',
