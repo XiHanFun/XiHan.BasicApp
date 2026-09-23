@@ -233,6 +233,8 @@ export default {
     ph_remark: '請輸入備註',
     ph_description: '請輸入角色說明',
     perm_drawer_title: '權限分配 · {name}',
+    perm_available: '可授予權限',
+    perm_granted: '已授予',
     perm_search: '搜尋權限名稱 / 編碼',
     perm_granted_count: '已授權 {count} 項',
     perm_no_match: '沒有符合的權限',

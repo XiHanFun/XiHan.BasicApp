@@ -233,6 +233,8 @@ export default {
     ph_remark: 'Bitte Bemerkung eingeben',
     ph_description: 'Bitte Rollenbeschreibung eingeben',
     perm_drawer_title: 'Berechtigungen zuweisen · {name}',
+    perm_available: 'Verfügbare Berechtigungen',
+    perm_granted: 'Gewährt',
     perm_search: 'Berechtigungsname / -code suchen',
     perm_granted_count: '{count} gewährt',
     perm_no_match: 'Keine passenden Berechtigungen',

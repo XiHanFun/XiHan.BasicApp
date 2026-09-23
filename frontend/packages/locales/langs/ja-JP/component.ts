@@ -507,6 +507,11 @@ export default {
   md_editor: {
     placeholder: 'Markdown の内容を入力...',
   },
+  permission_transfer: {
+    source: '付与可能',
+    target: '付与済み',
+    search: '権限名 / コードを検索',
+  },
   schema_page: {
     actions_column: 'アクション',
     more: 'その他',

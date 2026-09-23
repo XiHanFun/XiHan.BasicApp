@@ -4,6 +4,7 @@ import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmp
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
+import { groupPermissions } from './permission-grant-panel'
 import XInput from './XInput.vue'
 
 defineOptions({ name: 'XPermissionGrantPanel' })
@@ -41,56 +42,8 @@ const filtered = computed(() => {
   )
 })
 
-/** 取权限码的资源段作为分组键：saas:{resource}:{action} → resource */
-function resourceKey(code: string): string {
-  const parts = (code ?? '').split(':')
-  return parts.length >= 3 ? parts[1]! : (parts[0] ?? '')
-}
-
-/** 一组权限名的公共前缀，作为功能块显示名 */
-function commonPrefix(names: string[]): string {
-  if (names.length === 0) {
-    return ''
-  }
-  let prefix = names[0]!
-  for (const name of names) {
-    let i = 0
-    while (i < prefix.length && i < name.length && prefix[i] === name[i]) {
-      i++
-    }
-    prefix = prefix.slice(0, i)
-    if (!prefix) {
-      break
-    }
-  }
-  return prefix
-}
-
-/** 按资源分组：组码优先用后端 groupCode，缺省回退资源段推导 */
-const groups = computed(() => {
-  const map = new Map<string, T[]>()
-  for (const item of filtered.value) {
-    const key = item.groupCode
-      || item.resourceName
-      || resourceKey(item.permissionCode)
-      || item.moduleCode
-      || (props.otherGroupLabel ?? 'other')
-    const list = map.get(key)
-    if (list) {
-      list.push(item)
-    }
-    else {
-      map.set(key, [item])
-    }
-  }
-  return [...map.entries()].map(([key, groupItems]) => ({
-    key,
-    name: groupItems[0]?.groupName
-      || commonPrefix(groupItems.map(groupItem => groupItem.permissionName))
-      || key,
-    items: groupItems,
-  }))
-})
+/** 分组口径与权限穿梭框共用一份，见 permission-grant-panel.ts */
+const groups = computed(() => groupPermissions(filtered.value, props.otherGroupLabel ?? 'other'))
 </script>
 
 <template>

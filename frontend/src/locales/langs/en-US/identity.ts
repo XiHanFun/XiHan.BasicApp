@@ -233,6 +233,8 @@ export default {
     ph_remark: 'Please enter remark',
     ph_description: 'Please enter role description',
     perm_drawer_title: 'Assign Permissions · {name}',
+    perm_available: 'Available permissions',
+    perm_granted: 'Granted',
     perm_search: 'Search permission name / code',
     perm_granted_count: '{count} granted',
     perm_no_match: 'No matching permissions',

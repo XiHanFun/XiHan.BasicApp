@@ -233,6 +233,8 @@ export default {
     ph_remark: '请输入备注',
     ph_description: '请输入角色描述',
     perm_drawer_title: '权限分配 · {name}',
+    perm_available: '可授予权限',
+    perm_granted: '已授予',
     perm_search: '搜索权限名称 / 编码',
     perm_granted_count: '已授权 {count} 项',
     perm_no_match: '无匹配权限',

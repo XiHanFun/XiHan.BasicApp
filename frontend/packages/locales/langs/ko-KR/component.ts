@@ -507,6 +507,11 @@ export default {
   md_editor: {
     placeholder: 'Markdown 내용을 입력하세요...',
   },
+  permission_transfer: {
+    source: '부여 가능',
+    target: '부여됨',
+    search: '권한 이름 / 코드 검색',
+  },
   schema_page: {
     actions_column: '작업',
     more: '더 보기',

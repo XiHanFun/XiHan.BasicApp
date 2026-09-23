@@ -507,6 +507,11 @@ export default {
   md_editor: {
     placeholder: 'Markdown-Inhalt eingeben...',
   },
+  permission_transfer: {
+    source: 'Verfügbar',
+    target: 'Gewährt',
+    search: 'Berechtigungsname / -code suchen',
+  },
   schema_page: {
     actions_column: 'Aktionen',
     more: 'Mehr',

@@ -507,6 +507,11 @@ export default {
   md_editor: {
     placeholder: '请输入 Markdown 内容...',
   },
+  permission_transfer: {
+    source: '可授予',
+    target: '已授予',
+    search: '搜索权限名称 / 编码',
+  },
   schema_page: {
     actions_column: '操作',
     more: '更多',

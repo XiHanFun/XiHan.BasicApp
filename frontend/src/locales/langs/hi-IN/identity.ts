@@ -233,6 +233,8 @@ export default {
     ph_remark: 'टिप्पणी दर्ज करें',
     ph_description: 'भूमिका का विवरण दर्ज करें',
     perm_drawer_title: 'अनुमति असाइन करें · {name}',
+    perm_available: 'उपलब्ध अनुमतियाँ',
+    perm_granted: 'दी गई',
     perm_search: 'अनुमति नाम / कोड खोजें',
     perm_granted_count: '{count} अनुमतियाँ दी गईं',
     perm_no_match: 'कोई मेल खाती अनुमति नहीं',
