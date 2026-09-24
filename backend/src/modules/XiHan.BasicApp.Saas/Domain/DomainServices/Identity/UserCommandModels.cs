@@ -71,15 +71,21 @@ public sealed record UserLockChangeCommand(long UserId, bool IsLocked, DateTimeO
 public sealed record UserLoginPolicyUpdateCommand(long UserId, bool AllowMultiLogin, int MaxLoginDevices, string? Remark);
 
 /// <summary>
-/// 用户角色授权命令
+/// 用户角色批量变更命令（一次性提交授予与撤销）
 /// </summary>
-public sealed record UserRoleGrantCommand(
+public sealed record UserRoleBatchUpdateCommand(
     long UserId,
-    long RoleId,
-    DateTimeOffset? EffectiveTime,
-    DateTimeOffset? ExpirationTime,
-    string? GrantReason,
-    string? Remark);
+    IReadOnlyList<long> GrantRoleIds,
+    IReadOnlyList<long> RevokeUserRoleIds);
+
+/// <summary>
+/// 用户角色批量变更结果（本次实际发生变化的角色，用于审计发事件）
+/// </summary>
+/// <param name="GrantedRoleIds">实际授予的角色ID</param>
+/// <param name="RevokedRoleIds">实际撤销的角色ID</param>
+public sealed record UserRoleBatchUpdateResult(
+    IReadOnlyList<long> GrantedRoleIds,
+    IReadOnlyList<long> RevokedRoleIds);
 
 /// <summary>
 /// 用户角色更新命令
@@ -95,18 +101,6 @@ public sealed record UserRoleUpdateCommand(
 /// 用户角色状态变更命令
 /// </summary>
 public sealed record UserRoleStatusChangeCommand(long BasicId, ValidityStatus Status, string? Remark);
-
-/// <summary>
-/// 用户直授权限授权命令
-/// </summary>
-public sealed record UserPermissionGrantCommand(
-    long UserId,
-    long PermissionId,
-    PermissionAction PermissionAction,
-    DateTimeOffset? EffectiveTime,
-    DateTimeOffset? ExpirationTime,
-    string? GrantReason,
-    string? Remark);
 
 /// <summary>
 /// 用户直授权限批量变更中的单条授予项

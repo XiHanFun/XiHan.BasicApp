@@ -57,29 +57,6 @@ public sealed class UserPermissionAppService
     #region 用户直授权限
 
     /// <summary>
-    /// 授予用户直授权限
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.UserPermission.Grant)]
-    public async Task<UserPermissionDetailDto> CreateUserPermissionAsync(UserPermissionGrantDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync([input.PermissionId], cancellationToken);
-        var result = await _userDomainService.CreateUserPermissionAsync(UserPermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-        await _authorizationChangeNotifier.NotifyAsync(
-            result.UserPermission.PermissionAction == PermissionAction.Deny ? PermissionChangeType.UserDenyPermission : PermissionChangeType.UserGrantPermission,
-            targetUserId: result.UserPermission.UserId,
-            targetRoleId: null,
-            permissionId: result.UserPermission.PermissionId,
-            reason: result.UserPermission.GrantReason,
-            cancellationToken: cancellationToken);
-        return UserPermissionApplicationMapper.ToDetailDto(result.UserPermission, result.Permission, result.TenantMember, result.Now);
-    }
-
-    /// <summary>
     /// 批量变更用户直授权限（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
     /// </summary>
     [UnitOfWork(true)]
@@ -118,28 +95,6 @@ public sealed class UserPermissionAppService
                     permissionId: permissionId,
                     cancellationToken: cancellationToken);
             }
-        }
-    }
-
-    /// <summary>
-    /// 撤销用户直授权限
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.UserPermission.Revoke)]
-    public async Task DeleteUserPermissionAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var userPermission = await _userPermissionRepository.GetByIdAsync(id, cancellationToken);
-        await _userDomainService.DeleteUserPermissionAsync(id, cancellationToken);
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-        if (userPermission is not null)
-        {
-            await _authorizationChangeNotifier.NotifyAsync(
-                PermissionChangeType.UserRevokePermission,
-                targetUserId: userPermission.UserId,
-                targetRoleId: null,
-                permissionId: userPermission.PermissionId,
-                cancellationToken: cancellationToken);
         }
     }
 

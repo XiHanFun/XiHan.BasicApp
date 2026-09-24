@@ -45,14 +45,6 @@ public interface IRoleAppService : IApplicationService
     #region RolePermission
 
     /// <summary>
-    /// 授予角色权限
-    /// </summary>
-    /// <param name="input">授权参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色权限详情</returns>
-    Task<RolePermissionDetailDto> CreateRolePermissionAsync(RolePermissionGrantDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 批量变更角色权限（一次性提交授予与撤销，单事务）
     /// </summary>
     /// <param name="input">批量变更参数</param>
@@ -74,13 +66,6 @@ public interface IRoleAppService : IApplicationService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>角色权限详情</returns>
     Task<RolePermissionDetailDto> UpdateRolePermissionStatusAsync(RolePermissionStatusUpdateDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 撤销角色权限
-    /// </summary>
-    /// <param name="id">角色权限绑定主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    Task DeleteRolePermissionAsync(long id, CancellationToken cancellationToken = default);
 
     #endregion RolePermission
 

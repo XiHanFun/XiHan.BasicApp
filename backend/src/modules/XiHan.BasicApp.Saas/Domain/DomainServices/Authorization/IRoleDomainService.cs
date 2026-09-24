@@ -29,11 +29,6 @@ public interface IRoleDomainService
     Task DeleteRoleAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 授予角色权限
-    /// </summary>
-    Task<RolePermissionCommandResult> CreateRolePermissionAsync(RolePermissionGrantCommand command, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 批量变更角色权限（批量撤销 + 批量授予，底层走 UpdateRange/AddRange 单次提交）
     /// </summary>
     /// <returns>本次实际发生变化的授予/撤销权限ID（供审计发事件）</returns>
@@ -48,11 +43,6 @@ public interface IRoleDomainService
     /// 更新角色权限状态
     /// </summary>
     Task<RolePermissionCommandResult> UpdateRolePermissionStatusAsync(RolePermissionStatusChangeCommand command, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 撤销角色权限
-    /// </summary>
-    Task DeleteRolePermissionAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 授予角色数据范围

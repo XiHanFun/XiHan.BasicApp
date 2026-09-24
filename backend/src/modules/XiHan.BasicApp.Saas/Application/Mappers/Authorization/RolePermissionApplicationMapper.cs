@@ -13,23 +13,6 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 public static class RolePermissionApplicationMapper
 {
     /// <summary>
-    /// 映射角色权限授权命令
-    /// </summary>
-    public static RolePermissionGrantCommand ToGrantCommand(RolePermissionGrantDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-
-        return new RolePermissionGrantCommand(
-            input.RoleId,
-            input.PermissionId,
-            input.PermissionAction,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    /// <summary>
     /// 映射角色权限列表项
     /// </summary>
     /// <param name="rolePermission">角色权限绑定</param>

@@ -151,58 +151,6 @@ public sealed class RoleDomainService
     }
 
     /// <summary>
-    /// 授予角色权限
-    /// </summary>
-    public async Task<RolePermissionCommandResult> CreateRolePermissionAsync(RolePermissionGrantCommand command, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        ValidateRolePermissionGrantCommand(command);
-
-        _ = await GetEnabledRoleForPermissionOrThrowAsync(command.RoleId, cancellationToken);
-        var permission = await GetEnabledPermissionOrThrowAsync(command.PermissionId, cancellationToken);
-
-        // 既有绑定（任意状态）：有效则拒绝重复；被软撤销（Invalid）则复活为有效，
-        // 避免"撤销→再次授予"因唯一绑定行残留而永久报『已绑定』。
-        var existing = await _rolePermissionRepository.GetFirstAsync(
-            rolePermission => rolePermission.RoleId == command.RoleId && rolePermission.PermissionId == command.PermissionId,
-            cancellationToken);
-        if (existing is not null)
-        {
-            if (existing.Status == ValidityStatus.Valid)
-            {
-                throw new InvalidOperationException("角色权限已绑定。");
-            }
-
-            existing.PermissionAction = command.PermissionAction;
-            existing.EffectiveTime = command.EffectiveTime;
-            existing.ExpirationTime = command.ExpirationTime;
-            existing.GrantReason = NormalizeNullable(command.GrantReason);
-            existing.Status = ValidityStatus.Valid;
-            existing.Remark = NormalizeNullable(command.Remark);
-
-            var reactivated = await _rolePermissionRepository.UpdateAsync(existing, cancellationToken);
-            return new RolePermissionCommandResult(reactivated, permission);
-        }
-
-        var rolePermission = new SysRolePermission
-        {
-            RoleId = command.RoleId,
-            PermissionId = command.PermissionId,
-            PermissionAction = command.PermissionAction,
-            EffectiveTime = command.EffectiveTime,
-            ExpirationTime = command.ExpirationTime,
-            GrantReason = NormalizeNullable(command.GrantReason),
-            Status = ValidityStatus.Valid,
-            Remark = NormalizeNullable(command.Remark)
-        };
-
-        var savedRolePermission = await _rolePermissionRepository.AddAsync(rolePermission, cancellationToken);
-        return new RolePermissionCommandResult(savedRolePermission, permission);
-    }
-
-    /// <summary>
     /// 批量变更角色权限（批量撤销 + 批量授予，底层走 UpdateRange/AddRange 单次提交）
     /// </summary>
     /// <returns>本次实际发生变化的授予/撤销权限ID（供审计发事件）</returns>
@@ -267,17 +215,25 @@ public sealed class RoleDomainService
                 }
             }
 
-            // 已存在的绑定（任意状态）：被软撤销（Invalid）的重新激活为有效，避免「撤销后无法再次授予」
+            // 已存在的绑定（任意状态）：此刻不生效的（已撤销或已过期）就地复用，避免「撤销后无法再次授予」。
+            // 复用即「从现在起生效的授予」：动作改回授予、时间窗清空——只改状态的话，过期行保存后仍不生效，
+            // 历史上的拒绝行也会被原样复活成拒绝
+            var now = DateTimeOffset.UtcNow;
             var existing = await _rolePermissionRepository.GetListAsync(
                 rolePermission => rolePermission.RoleId == command.RoleId && grantPermissionIds.Contains(rolePermission.PermissionId),
                 cancellationToken);
             var existingPermissionIds = existing.Select(rolePermission => rolePermission.PermissionId).ToHashSet();
 
-            var reactivating = existing.Where(rolePermission => rolePermission.Status != ValidityStatus.Valid).ToList();
+            var reactivating = existing
+                .Where(rolePermission => !IsEffective(rolePermission.Status, rolePermission.EffectiveTime, rolePermission.ExpirationTime, now))
+                .ToList();
             if (reactivating.Count > 0)
             {
                 foreach (var rolePermission in reactivating)
                 {
+                    rolePermission.PermissionAction = PermissionAction.Grant;
+                    rolePermission.EffectiveTime = null;
+                    rolePermission.ExpirationTime = null;
                     rolePermission.Status = ValidityStatus.Valid;
                 }
 
@@ -361,19 +317,6 @@ public sealed class RoleDomainService
 
         var savedRolePermission = await _rolePermissionRepository.UpdateAsync(rolePermission, cancellationToken);
         return new RolePermissionCommandResult(savedRolePermission, permission);
-    }
-
-    /// <summary>
-    /// 撤销角色权限
-    /// </summary>
-    public async Task DeleteRolePermissionAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var rolePermission = await GetRolePermissionOrThrowAsync(id, cancellationToken);
-        rolePermission.Status = ValidityStatus.Invalid;
-
-        _ = await _rolePermissionRepository.UpdateAsync(rolePermission, cancellationToken);
     }
 
     /// <summary>
@@ -653,22 +596,6 @@ public sealed class RoleDomainService
         }
     }
 
-    private static void ValidateRolePermissionGrantCommand(RolePermissionGrantCommand command)
-    {
-        if (command.RoleId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "角色主键必须大于 0。");
-        }
-
-        if (command.PermissionId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "权限主键必须大于 0。");
-        }
-
-        ValidateEnum(command.PermissionAction, nameof(command.PermissionAction));
-        ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
-    }
-
     private static void ValidateRolePermissionUpdateCommand(RolePermissionUpdateCommand command)
     {
         if (command.BasicId <= 0)
@@ -839,6 +766,16 @@ public sealed class RoleDomainService
         {
             throw new ArgumentOutOfRangeException(paramName, "枚举值无效。");
         }
+    }
+
+    /// <summary>
+    /// 授权记录此刻是否生效：状态有效且落在生效 / 失效时间之间（与仓储取有效授权同一口径）
+    /// </summary>
+    private static bool IsEffective(ValidityStatus status, DateTimeOffset? effectiveTime, DateTimeOffset? expirationTime, DateTimeOffset now)
+    {
+        return status == ValidityStatus.Valid
+            && (effectiveTime is null || effectiveTime <= now)
+            && (expirationTime is null || expirationTime > now);
     }
 
     private static string? NormalizeNullable(string? value)

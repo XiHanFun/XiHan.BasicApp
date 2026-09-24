@@ -13,8 +13,8 @@ import type { UserPermissionListItemDto } from '@/api/modules/authorization/user
 import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.types'
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
-import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhButton, XhCheckbox, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import type { GrantTransferGroup, ListFieldSchema, PageSchema, PermissionGrantItem, SchemaActionPayload, SchemaQueryParams } from '~/components'
+import { XhButton, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -24,6 +24,7 @@ import {
   permissionApi,
   querySortsFromSchema,
   roleApi,
+  RoleType,
   SessionStatus,
   StatisticsPeriod,
   TenantMemberInviteStatus,
@@ -32,12 +33,13 @@ import {
   UserGender,
   userManagementApi,
 } from '@/api'
-import { GENDER_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XNumberInput, XPermissionGrantPanel, XSelect } from '~/components'
+import { GENDER_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
+import { Icon, SchemaPage, XDatePicker, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { useAuthStore, useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
+import { applyPermissionTransfer, diffPermissionGrants, diffRoleGrants } from './direct-grant'
 import UserAvatarCell from './UserAvatarCell.vue'
 
 defineOptions({ name: 'SystemUserPage' })
@@ -485,7 +487,8 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('identity.user.action_create'), scope: 'page', type: 'primary', icon: 'tabler:plus' },
     { key: 'view', title: t('identity.user.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('identity.user.action_edit'), scope: 'row', icon: 'lucide:pencil' },
-    { key: 'grant', title: t('identity.user.action_grant'), scope: 'row', icon: 'lucide:key-round' },
+    { key: 'grantRole', title: t('identity.user.action_grant_role'), scope: 'row', icon: 'lucide:users-round' },
+    { key: 'grantPermission', title: t('identity.user.action_grant_perm'), scope: 'row', icon: 'lucide:key-round' },
     { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', icon: 'lucide:lock' },
     { key: 'resetPassword', title: t('identity.user.action_reset_password'), scope: 'row', icon: 'lucide:key-square' },
     {
@@ -527,9 +530,13 @@ function onAction(payload: SchemaActionPayload) {
       if (row)
         void openEdit(row.basicId)
       break
-    case 'grant':
+    case 'grantRole':
       if (row)
-        void openGrantDrawer(row)
+        void openRoleGrantDrawer(row)
+      break
+    case 'grantPermission':
+      if (row)
+        void openPermGrantDrawer(row)
       break
     case 'lock':
       if (row)
@@ -613,9 +620,10 @@ async function fillFormFromDetail(detail: UserManagementDetailDto) {
     multiLogin: sec?.allowMultiLogin ?? true,
     maxDev: sec?.maxLoginDevices ?? 0,
   }
-  existingRoles.value = detail.roles
+  // 详情里的 roles 连撤销过、已过期的历史行一并返回；比对基准要的是当前生效的那份
+  existingRoles.value = await userManagementApi.roles.list(u.basicId, true)
   existingDepts.value = detail.departments
-  selRoleIds.value = detail.roles.map(r => r.roleId)
+  selRoleIds.value = existingRoles.value.map(r => r.roleId)
   selDeptIds.value = detail.departments.map(d => d.departmentId)
 }
 
@@ -664,19 +672,20 @@ function togglePick(arr: ApiId[], id: ApiId) {
   else arr.push(id)
 }
 
+/**
+ * 表单里的角色勾选一次提交：与当前生效的角色比出差量，交后端单事务落地。
+ * 只在可选角色范围内比对——不在列表里的（如已停用）勾选区看不到，也就不该被顺手撤掉
+ */
 async function syncRoles(userId: ApiId) {
-  const current = existingRoles.value
-  const selected = new Set(selRoleIds.value)
-  for (const role of roleOptions.value) {
-    const bound = current.find(c => c.roleId === role.basicId)
-    const want = selected.has(role.basicId)
-    if (want && !bound) {
-      await userManagementApi.roles.grant({ userId, roleId: role.basicId })
-    }
-    else if (!want && bound) {
-      await userManagementApi.roles.revoke(bound.basicId)
-    }
+  const optionIds = new Set(roleOptions.value.map(role => role.basicId))
+  const { grantRoleIds, revokeUserRoleIds } = diffRoleGrants(
+    selRoleIds.value,
+    existingRoles.value.filter(item => optionIds.has(item.roleId)),
+  )
+  if (grantRoleIds.length === 0 && revokeUserRoleIds.length === 0) {
+    return
   }
+  await userManagementApi.roles.batchUpdate({ userId, grantRoleIds, revokeUserRoleIds })
 }
 
 async function syncDepartments(userId: ApiId) {
@@ -937,27 +946,140 @@ function resetOtp(row: UserListItemDto) {
   })
 }
 
-// ── 权限直授抽屉（角色直授 + 权限直授 Grant/Deny） ──────────────
-const grantVisible = ref(false)
-const grantUser = ref<UserListItemDto | null>(null)
-const grantTab = ref('role')
-const grantLoading = ref(false)
-const grantRoleList = ref<UserRoleListItemDto[]>([])
-const grantPermList = ref<UserPermissionListItemDto[]>([])
+// ── 角色直授抽屉（穿梭框，挪好后一次提交） ──────────────
+const roleGrantVisible = ref(false)
+const roleGrantUser = ref<UserListItemDto | null>(null)
+const roleGrantLoading = ref(false)
+/** 当前生效的角色直授（后端 onlyValid 口径，撤销过、已过期的不在其中） */
+const roleGrants = ref<UserRoleListItemDto[]>([])
+/** 右栏草稿：保存时与 roleGrants 比出授予与撤销的差量 */
+const roleDraft = ref<ApiId[]>([])
+const roleDirty = ref(false)
+
+const roleTypeOptions = useEnumOptions('RoleType', ROLE_TYPE_OPTIONS)
+
+/**
+ * 条目为可选角色全集，再补上已授予却不在可选列表里的（例如授予后角色被停用）：
+ * 否则右栏「已授角色」会漏掉它们，审阅时看不全
+ */
+const roleGrantItems = computed<RoleSelectItemDto[]>(() => {
+  const known = new Set(roleOptions.value.map(role => role.basicId))
+  const extra = roleGrants.value
+    .filter(grant => !known.has(grant.roleId))
+    .map(grant => ({
+      basicId: grant.roleId,
+      roleName: grant.roleName ?? String(grant.roleId),
+      roleCode: grant.roleCode ?? '',
+      roleType: grant.roleType ?? RoleType.Custom,
+      isGlobal: grant.isGlobalRole ?? false,
+    }))
+  return [...roleOptions.value, ...extra]
+})
+
+/** 按角色类型分段，段序跟随角色列表里各类型首次出现的顺序 */
+const roleGrantGroups = computed<GrantTransferGroup<RoleSelectItemDto>[]>(() => {
+  const byType = new Map<string, RoleSelectItemDto[]>()
+  for (const role of roleGrantItems.value) {
+    const items = byType.get(role.roleType) ?? []
+    items.push(role)
+    byType.set(role.roleType, items)
+  }
+  return [...byType].map(([type, items]) => ({
+    key: type,
+    name: getOptionLabel(roleTypeOptions.value, type, type),
+    items,
+  }))
+})
+
+async function openRoleGrantDrawer(row: UserListItemDto) {
+  roleGrantUser.value = row
+  roleGrantVisible.value = true
+  roleGrants.value = []
+  roleDraft.value = []
+  roleDirty.value = false
+  roleGrantLoading.value = true
+  try {
+    roleGrants.value = await userManagementApi.roles.list(row.basicId, true)
+    roleDraft.value = roleGrants.value.map(grant => grant.roleId)
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('identity.user.grant_load_failed'))
+  }
+  finally {
+    roleGrantLoading.value = false
+  }
+}
+
+function onRoleTransfer(next: ApiId[]) {
+  if (roleGrantLoading.value) {
+    return
+  }
+  roleDraft.value = next
+  roleDirty.value = true
+}
+
+async function saveRoleGrants() {
+  const user = roleGrantUser.value
+  if (!user || roleGrantLoading.value) {
+    return
+  }
+  const { grantRoleIds, revokeUserRoleIds } = diffRoleGrants(roleDraft.value, roleGrants.value)
+  if (grantRoleIds.length === 0 && revokeUserRoleIds.length === 0) {
+    toast.info(t('identity.user.grant_no_change'))
+    roleDirty.value = false
+    return
+  }
+  roleGrantLoading.value = true
+  try {
+    await userManagementApi.roles.batchUpdate({ userId: user.basicId, grantRoleIds, revokeUserRoleIds })
+    roleGrants.value = await userManagementApi.roles.list(user.basicId, true)
+    roleDraft.value = roleGrants.value.map(grant => grant.roleId)
+    roleDirty.value = false
+    toast.success(t('identity.user.grant_saved', { grant: grantRoleIds.length, revoke: revokeUserRoleIds.length }))
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
+  }
+  finally {
+    roleGrantLoading.value = false
+  }
+}
+
+// ── 权限直授抽屉（授予 / 拒绝各一个穿梭框，两页签一次提交） ──────────────
+const permGrantVisible = ref(false)
+const permGrantUser = ref<UserListItemDto | null>(null)
+const permGrantTab = ref<'grant' | 'deny'>('grant')
+const permGrantLoading = ref(false)
+/** 当前生效的权限直授（后端 onlyValid 口径） */
+const permGrants = ref<UserPermissionListItemDto[]>([])
 const permCatalog = ref<PermissionListItemDto[]>([])
-const permPanelRef = ref<{ reset: () => void } | null>(null)
-const grantBusyId = ref<ApiId | null>(null)
+/** 草稿：权限主键 → 直授动作；不在表里即未设置。授予与拒绝互斥，一个权限只落在一边 */
 const permActions = ref<Map<ApiId, PermissionAction>>(new Map())
 const permDirty = ref(false)
 
-/** roleId → 用户角色授权记录 */
-const grantRoleByRoleId = computed(() => {
-  const map = new Map<ApiId, UserRoleListItemDto>()
-  for (const item of grantRoleList.value) {
-    map.set(item.roleId, item)
-  }
-  return map
+/**
+ * 条目为权限目录，再补上已直授却不在目录里的（例如授予后权限被停用）：
+ * 否则右栏会漏掉它们，保存时却仍原样保留，界面与实际对不上
+ */
+const permGrantItems = computed<Array<PermissionGrantItem & { basicId: ApiId }>>(() => {
+  const known = new Set(permCatalog.value.map(permission => permission.basicId))
+  const extra = permGrants.value
+    .filter(grant => !known.has(grant.permissionId))
+    .map(grant => ({
+      basicId: grant.permissionId,
+      permissionCode: grant.permissionCode ?? '',
+      permissionName: grant.permissionName ?? String(grant.permissionId),
+      moduleCode: grant.moduleCode,
+    }))
+  return [...permCatalog.value, ...extra]
 })
+
+function permKeysOf(action: PermissionAction): ApiId[] {
+  return [...permActions.value].filter(([, value]) => value === action).map(([key]) => key)
+}
+
+const permGrantIds = computed(() => permKeysOf(PermissionAction.Grant))
+const permDenyIds = computed(() => permKeysOf(PermissionAction.Deny))
 
 async function loadPermCatalog() {
   if (permCatalog.value.length) {
@@ -966,115 +1088,66 @@ async function loadPermCatalog() {
   permCatalog.value = await permissionApi.catalog()
 }
 
-async function openGrantDrawer(row: UserListItemDto) {
-  grantUser.value = row
-  grantVisible.value = true
-  grantTab.value = 'role'
-  permPanelRef.value?.reset()
-  grantLoading.value = true
+function derivePermActions() {
+  permActions.value = new Map(permGrants.value.map(item => [item.permissionId, item.permissionAction] as const))
+  permDirty.value = false
+}
+
+async function openPermGrantDrawer(row: UserListItemDto) {
+  permGrantUser.value = row
+  permGrantVisible.value = true
+  permGrantTab.value = 'grant'
+  permGrants.value = []
+  derivePermActions()
+  permGrantLoading.value = true
   try {
-    const [roles, perms] = await Promise.all([
-      userManagementApi.roles.list(row.basicId),
-      // 撤销直授是把行置为失效而非删行，只取有效行，否则撤销后按钮仍显示为已授予
+    const [grants] = await Promise.all([
+      // 撤销直授是把行置为失效而非删行，只取有效行，否则撤销后仍显示为已直授
       userManagementApi.permissions.list(row.basicId, true),
+      loadPermCatalog(),
     ])
-    grantRoleList.value = roles
-    grantPermList.value = perms
+    permGrants.value = grants
     derivePermActions()
-    await loadPermCatalog()
   }
   catch (error) {
     toast.danger((error as Error)?.message || t('identity.user.grant_load_failed'))
   }
   finally {
-    grantLoading.value = false
+    permGrantLoading.value = false
   }
 }
 
-async function toggleGrantRole(role: RoleSelectItemDto, checked: boolean) {
-  if (!grantUser.value || grantBusyId.value != null) {
+function onPermTransfer(action: PermissionAction, next: ApiId[]) {
+  if (permGrantLoading.value) {
     return
   }
-  grantBusyId.value = role.basicId
-  try {
-    if (checked) {
-      await userManagementApi.roles.grant({ userId: grantUser.value.basicId, roleId: role.basicId })
-      toast.success(t('identity.user.grant_role_granted', { name: role.roleName }))
-    }
-    else {
-      const bound = grantRoleByRoleId.value.get(role.basicId)
-      if (bound) {
-        await userManagementApi.roles.revoke(bound.basicId)
-        toast.success(t('identity.user.grant_role_revoked', { name: role.roleName }))
-      }
-    }
-    grantRoleList.value = await userManagementApi.roles.list(grantUser.value.basicId)
-  }
-  catch (error) {
-    toast.danger((error as Error)?.message || t('common.messages.operation_failed'))
-  }
-  finally {
-    grantBusyId.value = null
-  }
-}
-
-/** 本地三态：打开抽屉时由有效直授推导，之后只改本地，保存时一次性提交 */
-function derivePermActions() {
-  const map = new Map<ApiId, PermissionAction>()
-  for (const item of grantPermList.value) {
-    map.set(item.permissionId, item.permissionAction)
-  }
-  permActions.value = map
-  permDirty.value = false
-}
-
-function setPermGrant(permission: PermissionListItemDto, action: PermissionAction) {
-  const next = new Map(permActions.value)
-  if (next.get(permission.basicId) === action) {
-    // 再次点击当前态 → 取消直授（回到未设置）
-    next.delete(permission.basicId)
-  }
-  else {
-    next.set(permission.basicId, action)
-  }
-  permActions.value = next
+  permActions.value = applyPermissionTransfer(permActions.value, action, next)
   permDirty.value = true
 }
 
 async function savePermGrants() {
-  const user = grantUser.value
-  if (!user || grantLoading.value) {
+  const user = permGrantUser.value
+  if (!user || permGrantLoading.value) {
     return
   }
-  const current = new Map(grantPermList.value.map(item => [item.permissionId, item] as const))
-  // 新增或改了动作的才下发；动作没变的不必重复提交
-  const grants = [...permActions.value.entries()]
-    .filter(([permissionId, action]) => current.get(permissionId)?.permissionAction !== action)
-    .map(([permissionId, permissionAction]) => ({ permissionId, permissionAction }))
-  const revokeIds = [...current.entries()]
-    .filter(([permissionId]) => !permActions.value.has(permissionId))
-    .map(([, item]) => item.basicId)
-  if (grants.length === 0 && revokeIds.length === 0) {
-    toast.info(t('identity.user.grant_perm_no_change'))
+  const { grants, revokeUserPermissionIds } = diffPermissionGrants(permActions.value, permGrants.value)
+  if (grants.length === 0 && revokeUserPermissionIds.length === 0) {
+    toast.info(t('identity.user.grant_no_change'))
     permDirty.value = false
     return
   }
-  grantLoading.value = true
+  permGrantLoading.value = true
   try {
-    await userManagementApi.permissions.batchUpdate({
-      userId: user.basicId,
-      grants,
-      revokeUserPermissionIds: revokeIds,
-    })
-    grantPermList.value = await userManagementApi.permissions.list(user.basicId, true)
+    await userManagementApi.permissions.batchUpdate({ userId: user.basicId, grants, revokeUserPermissionIds })
+    permGrants.value = await userManagementApi.permissions.list(user.basicId, true)
     derivePermActions()
-    toast.success(t('identity.user.grant_perm_saved', { grant: grants.length, revoke: revokeIds.length }))
+    toast.success(t('identity.user.grant_saved', { grant: grants.length, revoke: revokeUserPermissionIds.length }))
   }
-  catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('common.messages.save_failed'))
+  catch (error) {
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
-    grantLoading.value = false
+    permGrantLoading.value = false
   }
 }
 
@@ -1461,85 +1534,102 @@ async function confirmDelete() {
       </XhDialogContent>
     </XhDialogRoot>
 
-    <!-- 权限直授抽屉 -->
-    <XhDrawerRoot v-model:open="grantVisible" side="right">
+    <!-- 角色直授抽屉 -->
+    <XhDrawerRoot v-model:open="roleGrantVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 720px">
-        <XhDrawerTitle>{{ t('identity.user.grant_title', { name: grantUser?.userName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerTitle>{{ t('identity.user.grant_role_title', { name: roleGrantUser?.userName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage" :class="{ 'is-loading': grantLoading }">
-          <div class="xh-loading-stage__veil">
-            <XhSpinner />
-          </div>
-          <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
-          <XhTabsRoot v-model:value="grantTab" variant="line">
-            <XhTabsList>
-              <XhTabsTrigger value="role">
-                {{ t('identity.user.grant_tab_role') }}
-              </XhTabsTrigger>
-              <XhTabsTrigger value="perm">
-                {{ t('identity.user.grant_tab_perm') }}
-              </XhTabsTrigger>
-              <XhTabsIndicator />
-            </XhTabsList>
-            <XhTabsContent value="role">
-              <p class="grant-desc">
-                {{ t('identity.user.grant_role_desc') }}
-              </p>
-              <div class="grant-role-grid">
-                <label
-                  v-for="r in roleOptions"
-                  :key="r.basicId"
-                  class="grant-role-chip"
-                >
-                  <XhCheckbox
-                    :checked="grantRoleByRoleId.has(r.basicId)"
-                    :disabled="grantBusyId === r.basicId"
-                    @update:checked="(checked: boolean) => toggleGrantRole(r, checked)"
-                  />
-                  <span>{{ r.roleName }}</span>
-                </label>
-              </div>
-            </XhTabsContent>
-            <XhTabsContent value="perm">
-              <XPermissionGrantPanel
-                ref="permPanelRef"
-                :items="permCatalog"
-                :search-placeholder="t('identity.user.grant_perm_search')"
-                :granted-count-label="t('identity.user.grant_perm_granted_count', { count: permActions.size })"
-                :empty-description="t('identity.user.grant_perm_empty')"
-                :other-group-label="t('identity.user.grant_perm_group_other')"
-              >
-                <template #action="{ item }">
-                  <XhButton
-                    variant="subtle"
-                    :disabled="grantLoading"
-                    size="sm"
-                    :tone="permActions.get(item.basicId) === PermissionAction.Grant ? 'success' : 'neutral'"
-                    @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Grant)"
-                  >
-                    {{ t('identity.user.grant_perm_allow') }}
-                  </XhButton>
-                  <XhButton
-                    variant="subtle"
-                    :disabled="grantLoading"
-                    size="sm"
-                    :tone="permActions.get(item.basicId) === PermissionAction.Deny ? 'danger' : 'neutral'"
-                    @click="setPermGrant(item as PermissionListItemDto, PermissionAction.Deny)"
-                  >
-                    {{ t('identity.user.grant_perm_deny') }}
-                  </XhButton>
-                </template>
-              </XPermissionGrantPanel>
-            </XhTabsContent>
-          </XhTabsRoot>
-        </div>
-        <!-- 角色页签逐项即时生效，仅权限直授需要提交 -->
-        <div v-if="grantTab === 'perm'" class="xh-dialog-footer">
-          <XhButton variant="subtle" @click="grantVisible = false">
+        <p class="grant-tip">
+          {{ t('identity.user.grant_role_tip') }}
+        </p>
+        <XGrantTransfer
+          :items="roleGrantItems"
+          :value="roleDraft"
+          :groups="roleGrantGroups"
+          :get-label="role => role.roleName"
+          :get-description="role => role.roleCode"
+          :loading="roleGrantLoading"
+          :disabled="roleGrantLoading"
+          :source-title="t('identity.user.grant_role_source')"
+          :target-title="t('identity.user.grant_role_target')"
+          :search-placeholder="t('identity.user.grant_role_search')"
+          @update:value="onRoleTransfer"
+        />
+        <div class="xh-dialog-footer">
+          <XhButton variant="subtle" @click="roleGrantVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="grantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
-            {{ t('identity.user.grant_perm_save') }}
+          <XhButton variant="subtle" tone="brand" :loading="roleGrantLoading" :disabled="!roleDirty" style="margin-left: 8px" @click="saveRoleGrants">
+            {{ t('identity.user.grant_save') }}
+          </XhButton>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+
+    <!-- 权限直授抽屉：授予与拒绝各一个穿梭框，两者互斥 -->
+    <XhDrawerRoot v-model:open="permGrantVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 980px">
+        <XhDrawerTitle>{{ t('identity.user.grant_perm_title', { name: permGrantUser?.userName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <p class="grant-tip">
+          {{ t('identity.user.grant_perm_tip') }}
+        </p>
+        <XhTabsRoot v-model:value="permGrantTab" class="grant-tabs" variant="line">
+          <XhTabsList>
+            <XhTabsTrigger value="grant">
+              {{ t('identity.user.grant_perm_allow') }}
+            </XhTabsTrigger>
+            <XhTabsTrigger value="deny">
+              {{ t('identity.user.grant_perm_deny') }}
+            </XhTabsTrigger>
+            <XhTabsIndicator />
+          </XhTabsList>
+          <XhTabsContent value="grant">
+            <XPermissionTransfer
+              :items="permGrantItems"
+              :value="permGrantIds"
+              :loading="permGrantLoading"
+              :disabled="permGrantLoading"
+              :source-title="t('identity.user.grant_perm_allow_source')"
+              :target-title="t('identity.user.grant_perm_allow_target')"
+              :search-placeholder="t('identity.user.grant_perm_search')"
+              :other-group-label="t('identity.user.grant_perm_group_other')"
+              @update:value="next => onPermTransfer(PermissionAction.Grant, next)"
+            >
+              <!-- 左栏标出已在另一页签里的：挪过来会把它从拒绝改成授予 -->
+              <template #suffix="{ item, side }">
+                <XhTagRoot v-if="side === 'source' && permActions.get(item.basicId) === PermissionAction.Deny" variant="subtle" size="sm" tone="danger">
+                  <XhTagLabel>{{ t('identity.user.grant_perm_deny_target') }}</XhTagLabel>
+                </XhTagRoot>
+              </template>
+            </XPermissionTransfer>
+          </XhTabsContent>
+          <XhTabsContent value="deny">
+            <XPermissionTransfer
+              :items="permGrantItems"
+              :value="permDenyIds"
+              :loading="permGrantLoading"
+              :disabled="permGrantLoading"
+              :source-title="t('identity.user.grant_perm_deny_source')"
+              :target-title="t('identity.user.grant_perm_deny_target')"
+              :search-placeholder="t('identity.user.grant_perm_search')"
+              :other-group-label="t('identity.user.grant_perm_group_other')"
+              @update:value="next => onPermTransfer(PermissionAction.Deny, next)"
+            >
+              <template #suffix="{ item, side }">
+                <XhTagRoot v-if="side === 'source' && permActions.get(item.basicId) === PermissionAction.Grant" variant="subtle" size="sm" tone="success">
+                  <XhTagLabel>{{ t('identity.user.grant_perm_allow_target') }}</XhTagLabel>
+                </XhTagRoot>
+              </template>
+            </XPermissionTransfer>
+          </XhTabsContent>
+        </XhTabsRoot>
+        <div class="xh-dialog-footer">
+          <XhButton variant="subtle" @click="permGrantVisible = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton variant="subtle" tone="brand" :loading="permGrantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+            {{ t('identity.user.grant_save') }}
           </XhButton>
         </div>
       </XhDrawerContent>
@@ -1980,30 +2070,25 @@ async function confirmDelete() {
   color: var(--xh-color-danger-500);
 }
 
-/* 权限直授抽屉 */
-.grant-desc {
-  margin: 0 0 12px;
-  font-size: 12px;
-  color: hsl(var(--muted-foreground));
+/* 直授抽屉：说明一行，穿梭框吃满剩余高度 */
+.grant-tip {
+  margin: 0;
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-text-caption-size);
 }
 
-.grant-role-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 4px 12px;
-}
-
-.grant-role-chip {
+.grant-tabs {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
 }
 
-.grant-role-chip:hover {
-  background: rgb(0 0 0 / 0.03);
+/* 当前页签的面板接着往下撑，穿梭框才拿得到剩余高度 */
+.grant-tabs > [data-scope='tabs'][data-part='content'][data-state='active'] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
 }
 </style>

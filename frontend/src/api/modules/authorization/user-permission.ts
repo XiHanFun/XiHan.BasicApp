@@ -3,7 +3,6 @@ import type { ApiId } from '../../types'
 import type {
   UserPermissionBatchUpdateDto,
   UserPermissionDetailDto,
-  UserPermissionGrantDto,
   UserPermissionListItemDto,
   UserPermissionStatusUpdateDto,
   UserPermissionUpdateDto,
@@ -24,9 +23,6 @@ export const userPermissionApi = {
   batchUpdate(input: UserPermissionBatchUpdateDto) {
     return userPermissionCommandApi.post<void, UserPermissionBatchUpdateDto>('BatchUpdateUserPermissions', input)
   },
-  grant(input: UserPermissionGrantDto) {
-    return userPermissionCommandApi.post<UserPermissionDetailDto, UserPermissionGrantDto>('UserPermission', input)
-  },
   list(userId: ApiId, onlyValid = false) {
     const params: DynamicApiParams = {}
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
@@ -35,9 +31,6 @@ export const userPermissionApi = {
       'UserPermissions',
       { ...params, userId },
     )
-  },
-  revoke(id: ApiId) {
-    return userPermissionCommandApi.delete('UserPermission', { id })
   },
   update(input: UserPermissionUpdateDto) {
     return userPermissionCommandApi.put<UserPermissionDetailDto, UserPermissionUpdateDto>('UserPermission', input)
