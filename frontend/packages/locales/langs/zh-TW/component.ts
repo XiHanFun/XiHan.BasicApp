@@ -206,6 +206,7 @@ export default {
       err_save_failed: '儲存失敗',
       secret_alert_title: '請立即儲存 API Secret，此金鑰僅顯示一次',
       create_modal_title: '建立 API 憑證',
+      create_name_label: '憑證名稱',
       create_name_placeholder: '憑證名稱（選填，預設為「預設憑證」）',
       rotate_title: '輪替金鑰',
       rotate_content: '產生新金鑰後「{name}」的舊金鑰將立即失效，確定繼續？',

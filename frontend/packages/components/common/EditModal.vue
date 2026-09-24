@@ -72,7 +72,7 @@ function handleCancel() {
 
 <template>
   <!-- 新增/编辑弹窗统一外壳（以用户页为基准）：
-       表单内容配合全局 .xh-edit-form-grid 网格（两列/行距 10px/紧凑标签），跨整行字段加 .xh-span-2。
+       表单内容配合全局 .xh-edit-form-grid 网格（两列/紧凑行距/紧凑标签），跨整行字段加 .xh-span-2。
        点遮罩不关：编辑到一半误点外面就丢内容，只能由取消/保存/Esc 收场 -->
   <XhDialogRoot
     :open="show"
@@ -113,9 +113,20 @@ function handleCancel() {
 </template>
 
 <style scoped>
-/* 表单区超高时在弹窗内部滚动，标题与按钮行留在原地 */
+/* 面板的行内内衬钉在组件库这一个槽上：正文的滚动沟槽按同一个值借位，两处不会各走各的 */
+:global(.xh-edit-modal) {
+  --xh-dialog-px: var(--xh-surface-px-md);
+}
+
+/* 表单区超高时在弹窗内部滚动，标题与按钮行留在原地。
+   滚动口向两侧借走面板的内衬，再用同宽的内边距把表单推回原位：表单仍与标题、按钮行对齐，
+   滚动口两侧则各多出一段沟槽。粗指针下框内按钮（数字框加减、清除、密码显隐）的 44px 命中区
+   是往外扩的透明伪元素，贴着表单行尾的那颗会漫出几像素——没有这段沟槽，它就把滚动口撑出
+   一条滚不出任何内容的横向滚动条，漫出的那截命中区也被滚动口裁掉、点不到 */
 .xh-edit-modal__body {
   max-block-size: calc(100vh - 220px);
+  margin-inline: calc(-1 * var(--xh-dialog-px));
+  padding-inline: var(--xh-dialog-px);
   overflow: auto;
 }
 

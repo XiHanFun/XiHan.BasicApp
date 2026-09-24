@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ApiCredentialItem, ApiCredentialSecret } from '~/types'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -356,7 +356,15 @@ onMounted(() => {
         <div class="pf-create-form__tip">
           {{ t('component.profile.developer.create_form_tip') }}
         </div>
-        <XInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" :max-length="100" show-count @keydown.enter="handleCreateCredential" />
+        <div class="xh-edit-form-grid">
+          <XhFieldRoot class="xh-span-2">
+            <XhFieldLabel>{{ t('component.profile.developer.create_name_label') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" :max-length="100" show-count @keydown.enter="handleCreateCredential" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </div>
       </div>
     </XEditModal>
   </div>

@@ -206,6 +206,7 @@ export default {
       err_save_failed: '저장하지 못했어요',
       secret_alert_title: 'API Secret을 지금 바로 저장해 주세요. 이 키는 한 번만 표시돼요',
       create_modal_title: 'API 자격 증명 만들기',
+      create_name_label: '자격 증명 이름',
       create_name_placeholder: '자격 증명 이름(선택 사항, 기본값은 「기본 자격 증명」)',
       rotate_title: '키 교체',
       rotate_content: '새 키를 생성하면 「{name}」의 이전 키가 즉시 만료돼요. 계속할까요?',
