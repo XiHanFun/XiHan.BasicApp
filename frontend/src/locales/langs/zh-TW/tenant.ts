@@ -13,6 +13,7 @@ export default {
     init_admin_title: '初始化租戶管理員',
     init_admin_success: '租戶管理員已開通',
     init_admin_failed: '初始化管理員失敗',
+    create_admin_hint: '租戶建立後接著開通管理員；也可以稍後在列操作「初始化管理員」中開通。',
     database_admin_hint: '資料庫隔離租戶建立後先初始化資料庫，再初始化管理員。',
     isolation_mode_locked: '隔離模式建立後不能修改',
     delete: '刪除',

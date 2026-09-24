@@ -13,6 +13,7 @@ export default {
     init_admin_title: '테넌트 관리자 초기화',
     init_admin_success: '테넌트 관리자가 개설되었습니다',
     init_admin_failed: '관리자 초기화에 실패했습니다',
+    create_admin_hint: '테넌트를 생성한 후 이어서 관리자를 개설합니다. 나중에 행 작업의 「관리자 초기화」로 개설할 수도 있습니다.',
     database_admin_hint: '데이터베이스 격리 테넌트는 먼저 데이터베이스를 초기화한 후 관리자를 초기화합니다.',
     isolation_mode_locked: '격리 모드는 생성 후 변경할 수 없습니다',
     delete: '삭제',

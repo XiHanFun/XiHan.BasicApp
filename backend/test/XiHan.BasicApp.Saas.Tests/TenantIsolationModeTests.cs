@@ -11,7 +11,7 @@ using XiHan.Framework.Core.Exceptions;
 namespace XiHan.BasicApp.Saas.Tests;
 
 /// <summary>
-/// 隔离模式：创建时定下、之后不能改；Schema 隔离尚未实装
+/// 建租户：隔离模式创建时定下、之后不能改，Schema 隔离尚未实装；版本在创建时定下
 /// </summary>
 /// <remarks>
 /// 数据按创建时的模式落库（字段隔离在平台库、库隔离在独立库），改模式等于迁移数据，不是改一个字段。
@@ -46,6 +46,17 @@ public sealed class TenantIsolationModeTests
 
         Assert.Equal(TenantIsolationMode.Database, result.Tenant.IsolationMode);
         Assert.Equal(TenantConfigStatus.Pending, result.Tenant.ConfigStatus);
+    }
+
+    [Fact]
+    public async Task 创建_未指定版本_取默认版本()
+    {
+        var (service, tenants) = CreateService(defaultEditionId: 55);
+
+        var result = await service.CreateTenantAsync(CreateCommand(TenantIsolationMode.Field));
+
+        Assert.Equal(55, result.Tenant.EditionId);
+        tenants.Verify(repo => repo.AddAsync(It.Is<SysTenant>(tenant => tenant.EditionId == 55), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -87,7 +98,7 @@ public sealed class TenantIsolationModeTests
         isolationMode == TenantIsolationMode.Database ? TenantDatabaseType.PostgreSql : null,
         isolationMode == TenantIsolationMode.Database ? "Host=db;Database=t9" : null);
 
-    private static (TenantDomainService Service, Mock<ITenantRepository> Tenants) CreateService(SysTenant? existing = null)
+    private static (TenantDomainService Service, Mock<ITenantRepository> Tenants) CreateService(SysTenant? existing = null, long? defaultEditionId = null)
     {
         var tenants = new Mock<ITenantRepository>();
         _ = tenants
@@ -106,11 +117,20 @@ public sealed class TenantIsolationModeTests
         var protector = new Mock<ITenantConnectionSecretProtector>();
         _ = protector.Setup(value => value.Protect(It.IsAny<string>())).Returns((string? plaintext) => $"protected:{plaintext}");
 
+        var provision = new Mock<ITenantProvisionDomainService>();
+        _ = provision
+            .Setup(value => value.AssignDefaultEditionAsync(It.IsAny<SysTenant>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SysTenant tenant, CancellationToken _) =>
+            {
+                tenant.EditionId = defaultEditionId;
+                return defaultEditionId;
+            });
+
         var service = new TenantDomainService(
             tenants.Object,
             new Mock<ITenantUserRepository>().Object,
             new Mock<IUserRepository>().Object,
-            new Mock<ITenantProvisionDomainService>().Object,
+            provision.Object,
             new Mock<ITenantQuotaDomainService>().Object,
             new TestCurrentTenant(),
             protector.Object,

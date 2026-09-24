@@ -42,6 +42,8 @@ export interface TenantListItemDto extends BasicDto {
   usedStorageBytes: number
   /** 已占用席位数（不含平台管理员成员） */
   usedUserCount: number
+  /** 是否已开通管理员（已有所有者成员） */
+  hasOwner: boolean
   userLimit?: number | null
 }
 
@@ -72,16 +74,8 @@ export interface TenantOverQuotaDto {
   userLimit?: number | null
 }
 
+/** 租户创建：不含管理员，建好之后经 initializeTenantAdmin 开通（库隔离租户先初始化数据库） */
 export interface TenantCreateDto extends BasicCreateDto {
-  /**
-   * 租户管理员用户名（租户内唯一；开通后自动创建管理员 + Owner 角色 + 按版本授权）。
-   * 字段隔离租户必填；库隔离租户必须留空，初始化数据库之后经 initializeTenantAdmin 开通
-   */
-  adminUserName: string
-  /** 租户管理员邮箱（登录身份标识，全平台唯一；填写规则同 adminUserName） */
-  adminEmail: string
-  /** 租户管理员初始密码（须满足密码策略；填写规则同 adminUserName） */
-  adminPassword: string
   /** 数据库连接字符串（隔离模式为 Database 时必填；加密落库、绝不回显） */
   connectionString?: string | null
   /** 数据库类型（隔离模式为 Database 时必填） */
@@ -118,7 +112,7 @@ export interface TenantUpdateDto extends BasicUpdateDto {
   userLimit?: number | null
 }
 
-/** 库隔离租户初始化管理员（独立库初始化完成之后） */
+/** 初始化租户管理员（建租户之后；库隔离租户在独立库初始化完成之后） */
 export interface TenantAdminInitializeDto {
   adminEmail: string
   adminPassword: string

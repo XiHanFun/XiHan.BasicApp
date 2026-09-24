@@ -64,4 +64,15 @@ public interface ITenantUserRepository : ISaasRepository<SysTenantUser>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>租户主键到已占用席位数的映射；无成员的租户不在结果中</returns>
     Task<IReadOnlyDictionary<long, long>> CountActiveMembersByTenantIdsAsync(IReadOnlyCollection<long> tenantIds, DateTimeOffset now, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 这些租户里已有所有者（已开通管理员）的租户
+    /// </summary>
+    /// <remarks>
+    /// 所有者不能被撤销或改成别的成员类型，有所有者即管理员已开通。按 TenantId 精确匹配（显式跨租户读取），不依赖当前上下文。
+    /// </remarks>
+    /// <param name="tenantIds">租户主键集合</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已有所有者的租户主键</returns>
+    Task<IReadOnlySet<long>> GetTenantIdsWithOwnerAsync(IReadOnlyCollection<long> tenantIds, CancellationToken cancellationToken = default);
 }

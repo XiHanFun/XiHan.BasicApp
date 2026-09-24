@@ -36,7 +36,7 @@ export const tenantApi = {
     // 故 id 走 query（同 export Cancel 模式），route 为 /Tenant/InitializeDatabase?id=
     return tenantCommandApi.post<TenantDetailDto>('InitializeDatabase', undefined, { params: { id } })
   },
-  /** 库隔离租户初始化管理员：独立库初始化完成之后，开通管理员 + Owner 角色 + 按版本授权 */
+  /** 初始化租户管理员：开通管理员 + Owner 角色 + 按版本授权（库隔离租户先初始化数据库） */
   initializeTenantAdmin(input: TenantAdminInitializeDto) {
     return tenantCommandApi.post<TenantDetailDto, TenantAdminInitializeDto>('InitializeTenantAdmin', input)
   },

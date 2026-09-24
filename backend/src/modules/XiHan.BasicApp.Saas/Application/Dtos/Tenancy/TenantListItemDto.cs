@@ -92,6 +92,11 @@ public sealed class TenantListItemDto : BasicAppDto
     public long UsedUserCount { get; set; }
 
     /// <summary>
+    /// 是否已开通管理员（已有所有者成员）
+    /// </summary>
+    public bool HasOwner { get; set; }
+
+    /// <summary>
     /// 生效存储上限(MB)（租户未设值时回落到所属版本套餐，null 表示不限）
     /// </summary>
     public long? EffectiveStorageLimit { get; set; }

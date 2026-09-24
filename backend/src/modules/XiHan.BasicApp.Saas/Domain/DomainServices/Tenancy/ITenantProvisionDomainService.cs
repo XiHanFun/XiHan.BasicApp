@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public interface ITenantProvisionDomainService
 {
     /// <summary>
-    /// 一站式开通租户：确保版本、创建管理员账号、创建 Owner 角色并按版本白名单授权、绑定角色
+    /// 一站式开通租户管理员：创建管理员账号、创建 Owner 角色并按租户绑定的版本白名单授权、绑定角色
     /// </summary>
     /// <param name="tenant">已创建的租户实体</param>
     /// <param name="adminUserName">管理员用户名</param>
@@ -80,7 +80,7 @@ public interface ITenantProvisionDomainService
     Task<int> ReconcileEditionTenantsAuthorizationAsync(long editionId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 取待初始化管理员的库隔离租户：独立库已配置完成、还没有所有者
+    /// 取待初始化管理员的租户：可开通（库隔离租户的独立库已配置完成）、还没有所有者
     /// </summary>
     /// <param name="tenantId">租户主键</param>
     /// <param name="cancellationToken">取消令牌</param>
