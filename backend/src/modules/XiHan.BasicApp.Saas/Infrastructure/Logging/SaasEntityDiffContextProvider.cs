@@ -56,7 +56,9 @@ public class SaasEntityDiffContextProvider : IEntityAuditContextProvider
         var httpContext = _httpContextAccessor.HttpContext;
         var requestContext = _requestContextAccessor.Current;
         var requestId = ResolveRequestId(requestContext, httpContext);
-        var tenantId = requestContext?.TenantId ?? _currentTenant.Id ?? _currentUser.TenantId ?? 0;
+        // 差异日志记在数据变更发生的作用域：写入可能显式切到别的作用域（如租户请求里维护平台全局规则），
+        // 取环境作用域而非请求所属租户，与本条变更、以及日志行自身的落库作用域一致
+        var tenantId = _currentTenant.Id ?? 0;
 
         return new EntityDiffLogRecord
         {

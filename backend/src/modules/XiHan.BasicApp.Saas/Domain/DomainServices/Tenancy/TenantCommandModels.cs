@@ -52,7 +52,6 @@ public sealed record TenantStatusChangeCommand(long BasicId, TenantStatus Tenant
 /// <summary>
 /// 租户成员添加命令
 /// </summary>
-/// <param name="TenantId">所属租户主键</param>
 /// <param name="UserId">用户主键</param>
 /// <param name="MemberType">成员类型</param>
 /// <param name="EffectiveTime">生效时间</param>

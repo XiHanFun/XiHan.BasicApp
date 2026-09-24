@@ -3,12 +3,15 @@
 
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.Framework.Caching.Attributes;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.Caching;
 
 /// <summary>
 /// SaaS 已启用角色选择项缓存项。
 /// </summary>
+/// <remarks>逻辑键含租户维度（角色是租户数据，全局角色经读共享可见）：不再叠加框架的物理租户前缀，按模式整体失效才能覆盖所有租户。</remarks>
+[IgnoreMultiTenancy]
 [CacheName(SaasCacheNames.RoleSelect)]
 public sealed class SaasRoleSelectCacheItem
 {

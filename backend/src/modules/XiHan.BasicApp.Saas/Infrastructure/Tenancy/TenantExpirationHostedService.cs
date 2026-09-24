@@ -8,7 +8,6 @@ using System.Text.Json.Serialization;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
-using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.Tasks.BackgroundServices;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Tenancy;
@@ -20,7 +19,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Tenancy;
 /// 继承 <see cref="XiHanBackgroundServiceBase{T}"/>（<c>IBackgroundWorker : ISingletonDependency</c>）、类名以 <c>HostedService</c> 结尾，
 /// 由约定注册自动暴露为 <c>IHostedService</c> 托管，切勿再手动 <c>AddHostedService</c>（否则重复托管）。
 /// <para>
-/// 扫描是跨租户的：后台无租户上下文（平台态），全局租户过滤器本就放行全部，此处再显式 <c>ClearFilter&lt;IMultiTenantEntity&gt;</c> 表明意图（软删过滤仍生效）。
+/// 租户注册表是平台数据（<c>TenantId=0</c>）：后台无租户上下文即平台作用域，直接按平台口径读写，不需要也不应清租户过滤。
 /// 只把仍处 <see cref="TenantStatus.Normal"/> 且已过期的置 <see cref="TenantStatus.Expired"/>——置后不再匹配 Normal，是终止条件，天然幂等，多实例并发也安全。
 /// 停用后失效版本门控与授权快照缓存，避免过期租户凭旧快照继续被放行；<see cref="TenantStatus.Expired"/> 的租户在“租户是否可用”闸门（仅 Normal 可用）被拦下。
 /// </para>
@@ -55,7 +54,6 @@ public sealed class TenantExpirationHostedService : XiHanBackgroundServiceBase<T
         var now = DateTimeOffset.UtcNow;
 
         var hasOverdue = await db.Queryable<SysTenant>()
-            .ClearFilter<IMultiTenantEntity>()
             .Where(tenant => tenant.TenantStatus == TenantStatus.Normal
                 && tenant.ExpirationTime != null
                 && tenant.ExpirationTime < now)
@@ -78,9 +76,8 @@ public sealed class TenantExpirationHostedService : XiHanBackgroundServiceBase<T
         var invalidator = scope.ServiceProvider.GetRequiredService<ISaasCacheInvalidator>();
         var now = DateTimeOffset.UtcNow;
 
-        // 取整行实体（不做 DateTimeOffset 标量投影），跨租户
+        // 取整行实体（不做 DateTimeOffset 标量投影）
         var overdue = await db.Queryable<SysTenant>()
-            .ClearFilter<IMultiTenantEntity>()
             .Where(tenant => tenant.TenantStatus == TenantStatus.Normal
                 && tenant.ExpirationTime != null
                 && tenant.ExpirationTime < now)
@@ -96,7 +93,7 @@ public sealed class TenantExpirationHostedService : XiHanBackgroundServiceBase<T
             tenant.TenantStatus = TenantStatus.Expired;
         }
 
-        // 只更新状态列、按主键批量更新（幂等；全局过滤器不注入 Updateable，平台态下亦无租户约束）
+        // 只更新状态列、按主键批量更新（幂等；自动写过滤按平台作用域只命中 TenantId=0 的注册表行）
         await db.Updateable(overdue).UpdateColumns(tenant => new { tenant.TenantStatus }).ExecuteCommandAsync();
 
         // 版本门控 + 授权快照是鉴权热路径缓存，租户停用后须失效

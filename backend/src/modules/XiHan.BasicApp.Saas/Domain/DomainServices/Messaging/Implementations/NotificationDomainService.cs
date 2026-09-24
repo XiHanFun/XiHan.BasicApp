@@ -5,6 +5,7 @@ using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -32,6 +33,8 @@ public sealed class NotificationDomainService
 
     private readonly IUserNotificationPreferenceRepository _preferenceRepository;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -41,7 +44,8 @@ public sealed class NotificationDomainService
         IUserRepository userRepository,
         IUserRoleRepository userRoleRepository,
         IUserDepartmentRepository userDepartmentRepository,
-        IUserNotificationPreferenceRepository preferenceRepository)
+        IUserNotificationPreferenceRepository preferenceRepository,
+        ICurrentTenant currentTenant)
     {
         _notificationRepository = notificationRepository;
         _userNotificationRepository = userNotificationRepository;
@@ -49,6 +53,7 @@ public sealed class NotificationDomainService
         _userRoleRepository = userRoleRepository;
         _userDepartmentRepository = userDepartmentRepository;
         _preferenceRepository = preferenceRepository;
+        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -390,6 +395,13 @@ public sealed class NotificationDomainService
         {
             case NotificationTargetType.All:
                 {
+                    // 平台发布的「全员」是平台公告，面向全平台账号（只取主键，显式跨租户）；
+                    // 租户发布的「全员」按当前租户作用域
+                    if (_currentTenant.IsPlatformOperation())
+                    {
+                        return [.. (await _userRepository.GetEnabledIdsIgnoreTenantAsync(cancellationToken)).Distinct()];
+                    }
+
                     var users = await _userRepository.GetListAsync(user => user.Status == EnableStatus.Enabled, cancellationToken);
                     return users.Select(user => user.BasicId).Distinct().ToArray();
                 }
@@ -438,7 +450,8 @@ public sealed class NotificationDomainService
             return userIds;
         }
 
-        var preferences = await _preferenceRepository.GetListAsync(preference => userIds.Contains(preference.UserId), cancellationToken);
+        // 偏好是用户自有行（每人一行，带首次保存时的租户戳），按用户跨租户取
+        var preferences = await _preferenceRepository.GetListByUserIdsIgnoreTenantAsync(userIds, cancellationToken);
         var preferenceMap = preferences.ToDictionary(preference => preference.UserId);
         return userIds.Where(userId =>
         {

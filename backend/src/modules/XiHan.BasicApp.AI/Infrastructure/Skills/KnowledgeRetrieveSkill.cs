@@ -5,6 +5,7 @@ using System.ComponentModel;
 using Microsoft.Extensions.AI;
 using XiHan.Framework.AI.Abstractions.Rag;
 using XiHan.Framework.AI.Abstractions.Skills;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.AI.Infrastructure.Skills;
 
@@ -12,8 +13,8 @@ namespace XiHan.BasicApp.AI.Infrastructure.Skills;
 /// 知识检索技能（把 M3 的 <see cref="IKnowledgeRetriever"/> 暴露为对话工具 / MCP tool）
 /// </summary>
 /// <remarks>
-/// 只读、无副作用 → MCP 安全(无需批准)。经 MCP 暴露时无用户/租户上下文(应用管理的 key 为平台级凭据),
-/// 故检索不加租户过滤(知识库文档为平台级);topK 内部收敛到 1~20。
+/// 只读、无副作用 → MCP 安全(无需批准)。检索只在当前作用域内进行：对话里调用即当前租户的知识，
+/// 经 MCP 暴露时无租户上下文(应用管理的 key 为平台级凭据)即平台(0 号租户)的知识;topK 内部收敛到 1~20。
 /// </remarks>
 public sealed class KnowledgeRetrieveSkill : IAiSkill
 {
@@ -22,12 +23,15 @@ public sealed class KnowledgeRetrieveSkill : IAiSkill
 
     private readonly IKnowledgeRetriever _retriever;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public KnowledgeRetrieveSkill(IKnowledgeRetriever retriever)
+    public KnowledgeRetrieveSkill(IKnowledgeRetriever retriever, ICurrentTenant currentTenant)
     {
         _retriever = retriever;
+        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -57,7 +61,9 @@ public sealed class KnowledgeRetrieveSkill : IAiSkill
         CancellationToken cancellationToken = default)
     {
         var effectiveTopK = topK <= 0 ? DefaultTopK : Math.Min(topK, MaxTopK);
-        var chunks = await _retriever.RetrieveAsync(query, effectiveTopK, filter: null, provider: null, cancellationToken);
+        // 只检索当前作用域的知识（平台就是 0 号租户）
+        var filter = new RetrievalFilter { TenantId = _currentTenant.Id ?? 0 };
+        var chunks = await _retriever.RetrieveAsync(query, effectiveTopK, filter, provider: null, cancellationToken);
         return chunks
             .Select(c => new KnowledgeChunkResult(c.DocumentId, c.Title, c.Source, c.Text, c.Score))
             .ToList();

@@ -214,21 +214,23 @@ public sealed class SaasAppCacheKeyTests
     {
         var permissionKeys = new[]
         {
-            SaasCacheKeys.PermissionSelect(null, null, 50),
-            SaasCacheKeys.PermissionSelect("saas", null, 50),
-            SaasCacheKeys.PermissionSelect(null, 1, 50),
-            SaasCacheKeys.PermissionSelect(null, null, 100)
+            SaasCacheKeys.PermissionSelect(null, null, null, 50),
+            SaasCacheKeys.PermissionSelect(null, "saas", null, 50),
+            SaasCacheKeys.PermissionSelect(null, null, 1, 50),
+            SaasCacheKeys.PermissionSelect(null, null, null, 100),
+            SaasCacheKeys.PermissionSelect(8, null, null, 50)
         };
-        Assert.Equal(4, permissionKeys.Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(5, permissionKeys.Distinct(StringComparer.Ordinal).Count());
 
         var roleKeys = new[]
         {
-            SaasCacheKeys.RoleSelect(null, null, 50),
-            SaasCacheKeys.RoleSelect(1, null, 50),
-            SaasCacheKeys.RoleSelect(null, true, 50),
-            SaasCacheKeys.RoleSelect(null, null, 100)
+            SaasCacheKeys.RoleSelect(null, null, null, 50),
+            SaasCacheKeys.RoleSelect(null, 1, null, 50),
+            SaasCacheKeys.RoleSelect(null, null, true, 50),
+            SaasCacheKeys.RoleSelect(null, null, null, 100),
+            SaasCacheKeys.RoleSelect(8, null, null, 50)
         };
-        Assert.Equal(4, roleKeys.Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(5, roleKeys.Distinct(StringComparer.Ordinal).Count());
 
         var resourceKeys = new[]
         {
@@ -255,36 +257,58 @@ public sealed class SaasAppCacheKeyTests
     public void PermissionSelect_ModuleCode_ShouldTrimAndTreatBlankAsAll()
     {
         Assert.Equal(
-            SaasCacheKeys.PermissionSelect("saas", null, 20),
-            SaasCacheKeys.PermissionSelect("  saas  ", null, 20),
+            SaasCacheKeys.PermissionSelect(null, "saas", null, 20),
+            SaasCacheKeys.PermissionSelect(null, "  saas  ", null, 20),
             StringComparer.Ordinal);
 
         Assert.Equal(
-            SaasCacheKeys.PermissionSelect(null, null, 20),
-            SaasCacheKeys.PermissionSelect("   ", null, 20),
+            SaasCacheKeys.PermissionSelect(null, null, null, 20),
+            SaasCacheKeys.PermissionSelect(null, "   ", null, 20),
             StringComparer.Ordinal);
     }
 
     /// <summary>
-    /// 选择项键各自带独立前缀，跨类别不会撞键。
+    /// 选择项键各自带独立前缀，跨类别不会撞键；权限与角色的选择项按租户隔离（平台记为 platform）。
     /// </summary>
     [Fact]
     public void SelectKeys_ShouldCarryDistinctPrefixes()
     {
-        Assert.StartsWith("permission-select:", SaasCacheKeys.PermissionSelect(null, null, 1), StringComparison.Ordinal);
-        Assert.StartsWith("role-select:", SaasCacheKeys.RoleSelect(null, null, 1), StringComparison.Ordinal);
+        Assert.StartsWith("tenant:platform:permission-select:", SaasCacheKeys.PermissionSelect(null, null, null, 1), StringComparison.Ordinal);
+        Assert.StartsWith("tenant:platform:permission-select:", SaasCacheKeys.PermissionSelect(0, null, null, 1), StringComparison.Ordinal);
+        Assert.StartsWith("tenant:8:permission-select:", SaasCacheKeys.PermissionSelect(8, null, null, 1), StringComparison.Ordinal);
+        Assert.StartsWith("tenant:platform:role-select:", SaasCacheKeys.RoleSelect(null, null, null, 1), StringComparison.Ordinal);
+        Assert.StartsWith("tenant:8:role-select:", SaasCacheKeys.RoleSelect(8, null, null, 1), StringComparison.Ordinal);
         Assert.StartsWith("resource-select:", SaasCacheKeys.ResourceSelect(null, 1), StringComparison.Ordinal);
         Assert.StartsWith("operation-select:", SaasCacheKeys.OperationSelect(null, null, 1), StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// 平台级单键缓存（版本列表、权限目录）全平台共享固定键。
+    /// 版本列表是平台目录，全平台共享固定键；权限目录按租户隔离（租户可能有自有权限）。
     /// </summary>
     [Fact]
-    public void PlatformSingletonKeys_ShouldBeConstant()
+    public void CatalogKeys_ShouldMatchTheirScope()
     {
         Assert.Equal("editions:enabled", SaasCacheKeys.EnabledTenantEditions(), StringComparer.Ordinal);
-        Assert.Equal("permission-catalog", SaasCacheKeys.PermissionCatalog(), StringComparer.Ordinal);
+        Assert.Equal("tenant:platform:permission-catalog", SaasCacheKeys.PermissionCatalog(null), StringComparer.Ordinal);
+        Assert.Equal("tenant:platform:permission-catalog", SaasCacheKeys.PermissionCatalog(0), StringComparer.Ordinal);
+        Assert.Equal("tenant:8:permission-catalog", SaasCacheKeys.PermissionCatalog(8), StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 缓存项不叠加框架的物理租户前缀：租户维度要么在逻辑键里、要么内容本就全平台一份，
+    /// 否则按模式整体失效只会清掉当前租户那一份，别的租户吃陈旧缓存直到过期。
+    /// </summary>
+    [Fact]
+    public void CacheItems_ShouldIgnoreFrameworkTenantPrefix()
+    {
+        var cacheItemTypes = typeof(SaasCacheKeys).Assembly.GetTypes()
+            .Where(type => type.Namespace == typeof(SaasCacheKeys).Namespace && type.Name.EndsWith("CacheItem", StringComparison.Ordinal))
+            .ToList();
+
+        Assert.NotEmpty(cacheItemTypes);
+        Assert.All(cacheItemTypes, type => Assert.True(
+            type.IsDefined(typeof(XiHan.Framework.MultiTenancy.Abstractions.IgnoreMultiTenancyAttribute), inherit: false),
+            $"{type.Name} 缺少 [IgnoreMultiTenancy]"));
     }
 
     /// <summary>

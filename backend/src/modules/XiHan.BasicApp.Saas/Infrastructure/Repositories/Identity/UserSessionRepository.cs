@@ -87,6 +87,20 @@ public sealed class UserSessionRepository(ISqlSugarClientResolver clientResolver
     }
 
     /// <summary>
+    /// 跨租户判断指定原会话下是否挂着进行中的模仿会话
+    /// </summary>
+    public async Task<bool> HasActiveImpersonationIgnoreTenantAsync(string impersonatorSessionId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(impersonatorSessionId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 模仿会话行带目标租户戳，发起人的原会话可能在平台或别的租户
+        return await CreateNoTenantQueryable()
+            .Where(session => session.ImpersonatorSessionId == impersonatorSessionId && session.Status == SessionStatus.Active)
+            .AnyAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// 吊销用户所有会话（跨租户）
     /// </summary>
     /// <remarks>

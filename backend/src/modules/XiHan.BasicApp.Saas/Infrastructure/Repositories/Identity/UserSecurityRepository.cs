@@ -28,4 +28,23 @@ public sealed class UserSecurityRepository(ISqlSugarClientResolver clientResolve
             .Where(security => security.UserId == userId)
             .FirstAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 根据用户ID批量获取安全信息（跨租户）
+    /// </summary>
+    public async Task<IReadOnlyList<SysUserSecurity>> GetListByUserIdsIgnoreTenantAsync(IReadOnlyCollection<long> userIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(userIds);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (userIds.Count == 0)
+        {
+            return [];
+        }
+
+        var ids = userIds.Distinct().ToList();
+        return await CreateNoTenantQueryable()
+            .Where(security => ids.Contains(security.UserId))
+            .ToListAsync(cancellationToken);
+    }
 }

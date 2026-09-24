@@ -44,17 +44,10 @@ public sealed class ConfigRepository(ISqlSugarClientResolver clientResolver)
             return null;
         }
 
-        if (tenantId.HasValue)
-        {
-            var tenantConfig = configs.FirstOrDefault(config => config.TenantId == tenantId.Value);
-            if (tenantConfig is not null)
-            {
-                return tenantConfig;
-            }
-        }
-
-        return configs.FirstOrDefault(static config => config.TenantId == 0)
-            ?? configs.FirstOrDefault();
+        // 当前作用域的配置优先，平台（0 号租户）的全局配置兜底；不存在「任取一条」的口径
+        var scopeTenantId = tenantId ?? 0;
+        return configs.FirstOrDefault(config => config.TenantId == scopeTenantId)
+            ?? configs.FirstOrDefault(static config => config.TenantId == 0);
     }
 
     /// <summary>

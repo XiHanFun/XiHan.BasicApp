@@ -14,4 +14,9 @@ public interface IUserSecurityRepository : ISaasRepository<SysUserSecurity>
     /// 根据用户ID获取安全信息（跨租户；每个用户全局仅一行，行带的是归属租户戳）
     /// </summary>
     Task<SysUserSecurity?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据用户ID批量获取安全信息（跨租户；每个用户全局仅一行，行带的是归属租户戳）
+    /// </summary>
+    Task<IReadOnlyList<SysUserSecurity>> GetListByUserIdsIgnoreTenantAsync(IReadOnlyCollection<long> userIds, CancellationToken cancellationToken = default);
 }

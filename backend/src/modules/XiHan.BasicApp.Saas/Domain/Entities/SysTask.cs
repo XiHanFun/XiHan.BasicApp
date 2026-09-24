@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -17,6 +18,10 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 关联：
 /// - 反向：SysTaskLog.TaskId
+///
+/// 归属：
+/// - 平台数据（严格隔离，TenantId=0）：调度器按 TaskCode 全局登记任务，任务配置与执行日志都属于平台；
+///   需要逐租户处理的数据维护由任务内部逐租户切入完成
 ///
 /// 写入：
 /// - TaskCode 全局唯一（UX_TaCo）
@@ -48,7 +53,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TrTy", nameof(TriggerType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_NeRuTi", nameof(NextRunTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysTask : BasicAppAggregateRoot
+public partial class SysTask : BasicAppAggregateRoot, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 任务编码

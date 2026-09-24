@@ -165,7 +165,8 @@ public sealed class NotificationFanoutService
         string brand,
         CancellationToken cancellationToken)
     {
-        var users = await _userRepository.GetListAsync(user => userIds.Contains(user.BasicId), cancellationToken);
+        // 收件人账号可能归属别的租户（跨租户成员、平台公告），按主键跨租户取
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(userIds, cancellationToken);
         var targets = users.Where(user => !string.IsNullOrWhiteSpace(user.Email)).ToList();
         if (targets.Count == 0)
         {
@@ -243,7 +244,8 @@ public sealed class NotificationFanoutService
         string brand,
         CancellationToken cancellationToken)
     {
-        var users = await _userRepository.GetListAsync(user => userIds.Contains(user.BasicId), cancellationToken);
+        // 收件人账号可能归属别的租户（跨租户成员、平台公告），按主键跨租户取
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(userIds, cancellationToken);
         var phoneUsers = users.Where(user => !string.IsNullOrWhiteSpace(user.Phone)).ToList();
         if (phoneUsers.Count == 0)
         {
@@ -252,8 +254,7 @@ public sealed class NotificationFanoutService
 
         // 仅向已验证手机号投递（未验证号码不可信，fail-closed 跳过）
         var phoneUserIds = phoneUsers.Select(user => user.BasicId).ToArray();
-        var securities = await _userSecurityRepository.GetListAsync(
-            security => phoneUserIds.Contains(security.UserId), cancellationToken);
+        var securities = await _userSecurityRepository.GetListByUserIdsIgnoreTenantAsync(phoneUserIds, cancellationToken);
         var verifiedUserIds = securities
             .Where(security => security.PhoneVerified)
             .Select(security => security.UserId)

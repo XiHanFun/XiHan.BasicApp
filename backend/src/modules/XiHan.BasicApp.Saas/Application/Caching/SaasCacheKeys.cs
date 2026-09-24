@@ -118,27 +118,29 @@ public static class SaasCacheKeys
     /// <summary>
     /// 可选全局权限选择项缓存键（仅无关键字时缓存，按模块/类型/上限区分）。
     /// </summary>
+    /// <param name="tenantId">当前租户上下文（null/0 为平台）。</param>
     /// <param name="moduleCode">模块编码。</param>
     /// <param name="permissionType">权限类型枚举值。</param>
     /// <param name="limit">数量上限。</param>
     /// <returns>业务缓存键。</returns>
-    public static string PermissionSelect(string? moduleCode, int? permissionType, int limit)
+    public static string PermissionSelect(long? tenantId, string? moduleCode, int? permissionType, int limit)
     {
         var source = $"{(string.IsNullOrWhiteSpace(moduleCode) ? "all" : moduleCode.Trim())}|{(permissionType?.ToString() ?? "all")}|{limit}";
-        return $"permission-select:{Hash(source)}";
+        return $"tenant:{TenantSegment(tenantId)}:permission-select:{Hash(source)}";
     }
 
     /// <summary>
     /// 已启用角色选择项缓存键（仅无关键字时缓存，按类型/是否全局/上限区分）。
     /// </summary>
+    /// <param name="tenantId">当前租户上下文（null/0 为平台）。</param>
     /// <param name="roleType">角色类型枚举值。</param>
     /// <param name="isGlobal">是否全局。</param>
     /// <param name="limit">数量上限。</param>
     /// <returns>业务缓存键。</returns>
-    public static string RoleSelect(int? roleType, bool? isGlobal, int limit)
+    public static string RoleSelect(long? tenantId, int? roleType, bool? isGlobal, int limit)
     {
         var source = $"{(roleType?.ToString() ?? "all")}|{(isGlobal?.ToString() ?? "all")}|{limit}";
-        return $"role-select:{Hash(source)}";
+        return $"tenant:{TenantSegment(tenantId)}:role-select:{Hash(source)}";
     }
 
     /// <summary>
@@ -178,10 +180,11 @@ public static class SaasCacheKeys
     /// <summary>
     /// 权限全量目录缓存键（平台级，全平台共享单键）。
     /// </summary>
+    /// <param name="tenantId">当前租户上下文（null/0 为平台）。</param>
     /// <returns>业务缓存键。</returns>
-    public static string PermissionCatalog()
+    public static string PermissionCatalog(long? tenantId)
     {
-        return "permission-catalog";
+        return $"tenant:{TenantSegment(tenantId)}:permission-catalog";
     }
 
     /// <summary>
@@ -305,6 +308,14 @@ public static class SaasCacheKeys
     public static string SessionStatePattern(string userSessionId)
     {
         return $"session:{userSessionId}";
+    }
+
+    /// <summary>
+    /// 租户段：业务租户取其标识，平台（null/0，即 0 号租户）记为 platform
+    /// </summary>
+    private static string TenantSegment(long? tenantId)
+    {
+        return tenantId is > 0 ? tenantId.Value.ToString() : "platform";
     }
 
     /// <summary>

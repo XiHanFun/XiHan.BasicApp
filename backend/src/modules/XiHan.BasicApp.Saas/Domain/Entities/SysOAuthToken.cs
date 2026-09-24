@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -52,7 +53,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_IsRe", nameof(IsRevoked), OrderByType.Asc)]
 [SugarIndex("IX_{table}_AcToExTi", nameof(AccessTokenExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_PaTo", nameof(ParentTokenId), OrderByType.Asc)]
-public partial class SysOAuthToken : BasicAppCreationEntity
+public partial class SysOAuthToken : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 会话ID（关联 SysUserSession，用于多端控制与撤销）

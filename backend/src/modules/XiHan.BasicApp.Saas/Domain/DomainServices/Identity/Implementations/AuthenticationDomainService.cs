@@ -68,7 +68,8 @@ public sealed class AuthenticationDomainService
             throw new InvalidOperationException("用户标识无效。");
         }
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+        // 账号可能归属任意租户，按主键显式跨租户定位
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("认证用户不存在。");
         var security = await _userSecurityRepository.GetByUserIdAsync(userId, cancellationToken);
 
@@ -109,7 +110,7 @@ public sealed class AuthenticationDomainService
         cancellationToken.ThrowIfCancellationRequested();
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
 
-        var user = await _userRepository.GetByEmailAsync(email.Trim(), cancellationToken);
+        var user = await _userRepository.GetByEmailGloballyAsync(email.Trim(), cancellationToken);
         if (user is null)
         {
             return LoginAuthenticationResult.Failed(LoginResult.InvalidCredentials, "邮箱未注册或验证码错误。");

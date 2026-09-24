@@ -16,6 +16,7 @@ namespace XiHan.BasicApp.Workflow.Infrastructure.Stores;
 /// </summary>
 /// <remarks>
 /// 实体的 JSON 列是真源（完整模型快照），投影列仅供检索；两者同写同变。
+/// 例外是租户：所属租户以行上的 TenantId 为准（平台就是 0 号租户），还原模型时回填，不采信 JSON 里的值。
 /// 框架标识为雪花数值字符串，与实体 BasicId（long）双向转换。
 /// </remarks>
 public static class WorkflowStoreMapper
@@ -69,7 +70,9 @@ public static class WorkflowStoreMapper
     /// <returns>定义模型</returns>
     public static WorkflowDefinition ToModel(SysWorkflowDefinition entity)
     {
-        return WorkflowDefinitionJsonSerializer.Deserialize(entity.DefinitionJson);
+        var definition = WorkflowDefinitionJsonSerializer.Deserialize(entity.DefinitionJson);
+        definition.TenantId = entity.TenantId;
+        return definition;
     }
 
     #endregion 定义
@@ -112,8 +115,10 @@ public static class WorkflowStoreMapper
     /// <exception cref="WorkflowException">JSON 真源损坏时抛出</exception>
     public static WorkflowInstance ToModel(SysWorkflowInstance entity)
     {
-        return JsonSerializer.Deserialize<WorkflowInstance>(entity.InstanceJson, JsonOptions)
+        var instance = JsonSerializer.Deserialize<WorkflowInstance>(entity.InstanceJson, JsonOptions)
             ?? throw new WorkflowException($"实例 {entity.BasicId} 的 JSON 真源为空，无法还原");
+        instance.TenantId = entity.TenantId;
+        return instance;
     }
 
     #endregion 实例
@@ -148,8 +153,10 @@ public static class WorkflowStoreMapper
     /// <exception cref="WorkflowException">JSON 真源损坏时抛出</exception>
     public static WorkflowNodeInstance ToModel(SysWorkflowNodeInstance entity)
     {
-        return JsonSerializer.Deserialize<WorkflowNodeInstance>(entity.NodeInstanceJson, JsonOptions)
+        var nodeInstance = JsonSerializer.Deserialize<WorkflowNodeInstance>(entity.NodeInstanceJson, JsonOptions)
             ?? throw new WorkflowException($"节点实例 {entity.BasicId} 的 JSON 真源为空，无法还原");
+        nodeInstance.TenantId = entity.TenantId;
+        return nodeInstance;
     }
 
     #endregion 节点实例
@@ -185,8 +192,10 @@ public static class WorkflowStoreMapper
     /// <exception cref="WorkflowException">JSON 真源损坏时抛出</exception>
     public static WorkflowBookmark ToModel(SysWorkflowBookmark entity)
     {
-        return JsonSerializer.Deserialize<WorkflowBookmark>(entity.BookmarkJson, JsonOptions)
+        var bookmark = JsonSerializer.Deserialize<WorkflowBookmark>(entity.BookmarkJson, JsonOptions)
             ?? throw new WorkflowException($"书签 {entity.BasicId} 的 JSON 真源为空，无法还原");
+        bookmark.TenantId = entity.TenantId;
+        return bookmark;
     }
 
     #endregion 书签

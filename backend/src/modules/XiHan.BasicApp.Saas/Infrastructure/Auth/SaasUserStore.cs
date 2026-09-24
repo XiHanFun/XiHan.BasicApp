@@ -5,6 +5,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Authentication.Users;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Auth;
@@ -12,6 +13,11 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Auth;
 /// <summary>
 /// SaaS 用户存储实现，桥接框架 <see cref="IUserStore"/> 与领域实体 SysUser / SysUserSecurity
 /// </summary>
+/// <remarks>
+/// SysUser / SysUserSecurity 属于账号域：按 UserId 归属，<c>TenantId</c> 是账号的归属租户。
+/// 登录是身份层操作，横跨全部租户：定位账号显式清租户过滤，安全信息的读写切入账号归属租户执行
+/// （平台就是 0 号租户，写只能落在当前作用域）。
+/// </remarks>
 public sealed class SaasUserStore : IUserStore
 {
     private readonly ISqlSugarClientResolver _clientResolver;
@@ -47,11 +53,8 @@ public sealed class SaasUserStore : IUserStore
             return null;
         }
 
-        var db = _clientResolver.GetCurrentClient();
-        var security = await db.Queryable<SysUserSecurity>()
-            .Where(s => s.UserId == user.BasicId && !s.IsDeleted)
-            .FirstAsync(cancellationToken);
-
+        using var accountScope = EnterAccountScope(user);
+        var security = await FindSecurityAsync(user.BasicId, cancellationToken);
         return MapToUserInfo(user, security);
     }
 
@@ -70,21 +73,14 @@ public sealed class SaasUserStore : IUserStore
             return null;
         }
 
-        var db = _clientResolver.GetCurrentClient();
-
-        var user = await db.Queryable<SysUser>()
-            .Where(u => u.BasicId == id && !u.IsDeleted)
-            .FirstAsync(cancellationToken);
-
+        var user = await FindUserByIdAsync(id, cancellationToken);
         if (user is null)
         {
             return null;
         }
 
-        var security = await db.Queryable<SysUserSecurity>()
-            .Where(s => s.UserId == id && !s.IsDeleted)
-            .FirstAsync(cancellationToken);
-
+        using var accountScope = EnterAccountScope(user);
+        var security = await FindSecurityAsync(id, cancellationToken);
         return MapToUserInfo(user, security);
     }
 
@@ -102,12 +98,11 @@ public sealed class SaasUserStore : IUserStore
             throw new ArgumentException("用户信息或用户ID无效。", nameof(user));
         }
 
-        var db = _clientResolver.GetCurrentClient();
-
-        var sysUser = await db.Queryable<SysUser>()
-            .Where(u => u.BasicId == id && !u.IsDeleted)
-            .FirstAsync(cancellationToken)
+        var sysUser = await FindUserByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException($"用户 {id} 不存在。");
+
+        using var accountScope = EnterAccountScope(sysUser);
+        var db = _clientResolver.GetCurrentClient();
 
         // 映射 UserInfo 可修改字段回 SysUser
         if (user.LastLoginTime.HasValue)
@@ -122,9 +117,7 @@ public sealed class SaasUserStore : IUserStore
             .ExecuteCommandAsync(cancellationToken);
 
         // 映射 UserInfo 安全字段回 SysUserSecurity
-        var security = await db.Queryable<SysUserSecurity>()
-            .Where(s => s.UserId == id && !s.IsDeleted)
-            .FirstAsync(cancellationToken);
+        var security = await FindSecurityAsync(id, cancellationToken);
 
         if (security is not null)
         {
@@ -178,11 +171,12 @@ public sealed class SaasUserStore : IUserStore
             throw new ArgumentException("密码哈希不能为空。", nameof(passwordHash));
         }
 
-        var db = _clientResolver.GetCurrentClient();
+        var user = await FindUserByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException($"用户 {id} 不存在。");
 
-        var security = await db.Queryable<SysUserSecurity>()
-            .Where(s => s.UserId == id && !s.IsDeleted)
-            .FirstAsync(cancellationToken)
+        using var accountScope = EnterAccountScope(user);
+        var db = _clientResolver.GetCurrentClient();
+        var security = await FindSecurityAsync(id, cancellationToken)
             ?? throw new InvalidOperationException($"用户 {id} 的安全记录不存在。");
 
         security.Password = passwordHash;
@@ -210,15 +204,16 @@ public sealed class SaasUserStore : IUserStore
             return 0;
         }
 
-        var userId = await FindUserIdByLoginAsync(username.Trim(), cancellationToken);
-        if (userId == 0)
+        var user = await FindUserByLoginAsync(username.Trim(), cancellationToken);
+        if (user is null)
         {
             return 0;
         }
 
-        var db = _clientResolver.GetCurrentClient();
-        return await db.Queryable<SysUserSecurity>()
-            .Where(s => s.UserId == userId && !s.IsDeleted)
+        using var accountScope = EnterAccountScope(user);
+        return await _clientResolver.GetCurrentClient()
+            .Queryable<SysUserSecurity>()
+            .Where(s => s.UserId == user.BasicId && !s.IsDeleted)
             .Select(s => s.FailedLoginAttempts)
             .FirstAsync(cancellationToken);
     }
@@ -237,17 +232,15 @@ public sealed class SaasUserStore : IUserStore
             return;
         }
 
-        var userId = await FindUserIdByLoginAsync(username.Trim(), cancellationToken);
-        if (userId == 0)
+        var user = await FindUserByLoginAsync(username.Trim(), cancellationToken);
+        if (user is null)
         {
             return;
         }
 
+        using var accountScope = EnterAccountScope(user);
         var db = _clientResolver.GetCurrentClient();
-        var security = await db.Queryable<SysUserSecurity>()
-            .Where(s => s.UserId == userId && !s.IsDeleted)
-            .FirstAsync(cancellationToken);
-
+        var security = await FindSecurityAsync(user.BasicId, cancellationToken);
         if (security is null)
         {
             return;
@@ -275,14 +268,16 @@ public sealed class SaasUserStore : IUserStore
             return;
         }
 
-        var userId = await FindUserIdByLoginAsync(username.Trim(), cancellationToken);
-        if (userId == 0)
+        var user = await FindUserByLoginAsync(username.Trim(), cancellationToken);
+        if (user is null)
         {
             return;
         }
 
-        var db = _clientResolver.GetCurrentClient();
-        await db.Updateable<SysUserSecurity>()
+        using var accountScope = EnterAccountScope(user);
+        var userId = user.BasicId;
+        await _clientResolver.GetCurrentClient()
+            .Updateable<SysUserSecurity>()
             .SetColumns(s => s.FailedLoginAttempts == 0)
             .SetColumns(s => s.LastFailedLoginTime == null)
             .SetColumns(s => s.IsLocked == false)
@@ -307,17 +302,15 @@ public sealed class SaasUserStore : IUserStore
             return;
         }
 
-        var userId = await FindUserIdByLoginAsync(username.Trim(), cancellationToken);
-        if (userId == 0)
+        var user = await FindUserByLoginAsync(username.Trim(), cancellationToken);
+        if (user is null)
         {
             return;
         }
 
+        using var accountScope = EnterAccountScope(user);
         var db = _clientResolver.GetCurrentClient();
-        var security = await db.Queryable<SysUserSecurity>()
-            .Where(s => s.UserId == userId && !s.IsDeleted)
-            .FirstAsync(cancellationToken);
-
+        var security = await FindSecurityAsync(user.BasicId, cancellationToken);
         if (security is null)
         {
             return;
@@ -358,18 +351,16 @@ public sealed class SaasUserStore : IUserStore
             return null;
         }
 
-        var userId = await FindUserIdByLoginAsync(username.Trim(), cancellationToken);
-        if (userId == 0)
+        var user = await FindUserByLoginAsync(username.Trim(), cancellationToken);
+        if (user is null)
         {
             return null;
         }
 
-        var db = _clientResolver.GetCurrentClient();
+        using var accountScope = EnterAccountScope(user);
         // 取整行走实体属性绑定：DateTimeOffset? 列的标量投影会走 SqlSugar 值类型 ChangeType 路径，
         // DateTime→DateTimeOffset 直转抛 InvalidCastException（LockoutEndTime 非空时所有登录 500）
-        var security = await db.Queryable<SysUserSecurity>()
-            .Where(s => s.UserId == userId && !s.IsDeleted)
-            .FirstAsync(cancellationToken);
+        var security = await FindSecurityAsync(user.BasicId, cancellationToken);
 
         return security?.LockoutEndTime?.UtcDateTime;
     }
@@ -403,7 +394,7 @@ public sealed class SaasUserStore : IUserStore
     /// </summary>
     /// <remarks>
     /// 登录身份模型（先登录后选租户）：
-    /// - 无租户上下文（标准登录路径）：含 @ 视为邮箱，按全平台唯一邮箱定位（UX_Em）；
+    /// - 无租户上下文（标准登录路径）：含 @ 视为邮箱，按全平台唯一邮箱定位（UX_Em），账号可能归属任意租户，显式跨租户查找；
     ///   不含 @ 回退平台账号用户名定位（TenantId=0，如 superadmin），普通租户用户必须用邮箱登录。
     /// - 有租户上下文（租户内嵌登录等特殊场景）：沿用 租户内用户名 定位（UX_TeId_UsNa）。
     /// </remarks>
@@ -416,6 +407,7 @@ public sealed class SaasUserStore : IUserStore
         {
             return login.Contains('@')
                 ? await db.Queryable<SysUser>()
+                    .ClearTenantFilter()
                     .Where(u => u.Email == login && !u.IsDeleted)
                     .FirstAsync(cancellationToken)
                 : await db.Queryable<SysUser>()
@@ -429,11 +421,33 @@ public sealed class SaasUserStore : IUserStore
     }
 
     /// <summary>
-    /// 按登录标识定位用户主键，未找到返回 0。
+    /// 按主键定位账号（账号可能归属任意租户，显式跨租户查找）
     /// </summary>
-    private async Task<long> FindUserIdByLoginAsync(string login, CancellationToken cancellationToken)
+    private async Task<SysUser?> FindUserByIdAsync(long userId, CancellationToken cancellationToken)
     {
-        var user = await FindUserByLoginAsync(login, cancellationToken);
-        return user?.BasicId ?? 0;
+        return await _clientResolver.GetCurrentClient()
+            .Queryable<SysUser>()
+            .ClearTenantFilter()
+            .Where(u => u.BasicId == userId && !u.IsDeleted)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 在当前（账号归属租户）作用域内读取安全信息
+    /// </summary>
+    private async Task<SysUserSecurity?> FindSecurityAsync(long userId, CancellationToken cancellationToken)
+    {
+        return await _clientResolver.GetCurrentClient()
+            .Queryable<SysUserSecurity>()
+            .Where(s => s.UserId == userId && !s.IsDeleted)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 切入账号归属租户：账号行与安全信息行都打归属租户的戳，读写在该作用域内进行
+    /// </summary>
+    private IDisposable EnterAccountScope(SysUser user)
+    {
+        return _currentTenant.Change(user.TenantId);
     }
 }

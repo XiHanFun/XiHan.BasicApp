@@ -113,10 +113,11 @@ public sealed class WorkflowStoreMapperRoundTripTests
     }
 
     /// <summary>
-    /// 平台级定义（TenantId 为空）投影列必须落 0，而 JSON 真源保留 null——两侧口径不同且都要稳定。
+    /// 平台就是 0 号租户：未带租户的定义投影列落 0，还原的模型以列值为准同样是 0，
+    /// 模型与列不再出现「一边 null、一边 0」的两套口径（引擎里按租户比较时二者不相等）。
     /// </summary>
     [Fact]
-    public void DefinitionRoundTrip_NullTenant_ShouldProjectZeroAndKeepNullInJson()
+    public void DefinitionRoundTrip_NullTenant_ShouldRestorePlatformTenantFromColumn()
     {
         var definition = WorkflowTestHelper.CreateDefinition(tenantId: null);
 
@@ -124,7 +125,21 @@ public sealed class WorkflowStoreMapperRoundTripTests
         var restored = WorkflowStoreMapper.ToModel(entity);
 
         Assert.Equal(0L, entity.TenantId);
-        Assert.Null(restored.TenantId);
+        Assert.Equal(0L, restored.TenantId);
+    }
+
+    /// <summary>
+    /// 行上的租户是归属真源：JSON 快照里的租户与列不一致时，还原的模型以列值为准。
+    /// </summary>
+    [Fact]
+    public void DefinitionToModel_ShouldTakeTenantFromColumnNotJson()
+    {
+        var entity = WorkflowStoreMapper.ToEntity(WorkflowTestHelper.CreateDefinition(tenantId: 7));
+        entity.TenantId = 9;
+
+        var restored = WorkflowStoreMapper.ToModel(entity);
+
+        Assert.Equal(9L, restored.TenantId);
     }
 
     /// <summary>

@@ -20,7 +20,7 @@ BasicApp 默认走**字段级隔离（Field）**：所有业务实体继承自 `
 
 这是理解本系统隔离的关键，两层用**不同的空值语义**表达"全局/无租户"：
 
-- **框架层**：`ICurrentTenant.Id` 是 `long?`。`null`（或 `0`）表示**当前请求没有租户上下文**，即平台运维态（宿主态）。框架的租户查询过滤器在无上下文时关闭。
+- **框架层**：`ICurrentTenant.Id` 是 `long?`。`null` 与 `0` 同义，都表示**平台，也就是 0 号租户**。平台和任何一个租户一样只看、只写自己的数据：读只看 `TenantId=0` 的行，写只落 / 只改 `TenantId=0` 的行——不存在「没有租户上下文就看全部、写全部」的口径。
 - **BasicApp 应用层落库约定**（见 `BasicAppEntity` 注释）：平台级/全局记录统一落 **`TenantId=0`**（"平台租户"占位），**不得用 NULL**；业务租户 Id 从 1 开始分配，0 号租户由平台保留。
 
 二者衔接的规则：
@@ -28,9 +28,10 @@ BasicApp 默认走**字段级隔离（Field）**：所有业务实体继承自 `
 - 平台判定统一以 `currentTenant.IsPlatformOperation()` 为准，其实现就是 `Id is null or 0`（见 `CurrentTenantPlatformExtensions`）。
 - 查询"全局 + 私有"合并时用 `WHERE TenantId IN (0, {currentTenantId})`。授权快照构建即按此规则：绑定行按 `TenantId == 当前租户 || TenantId == 0` 生效，平台态（无上下文）则仅 `TenantId=0` 的全局绑定生效，防止多租户成员在平台态聚合出跨租户权限。
 - 如需 `IsGlobal` 语义，实体在 Expand 里以只读派生属性 `IsGlobal => TenantId == 0` 暴露，**不落库**（避免与 `TenantId` 漂移）。
-- 只有平台运维态才允许维护 `TenantId=0` 的全局模板（菜单/权限/角色/版本等）；租户态（`Id>0`）对全局模板一律拒绝写入，避免某租户改动波及所有租户。
+- 只有平台才允许维护 `TenantId=0` 的全局模板（菜单/权限/角色/版本等）；租户态（`Id>0`）对全局模板一律拒绝写入，避免某租户改动波及所有租户。平台同样不能直接改写租户的行。
+- 平台与租户各自独有的运行数据（会话、令牌、授权码、导出任务、邮件短信、导入记录、任务调度与各类日志）实现 `IStrictMultiTenantEntity`：租户态只看本租户行，不读共享平台行。
 
-> 服务层通过框架注入自动写入 `TenantId`，业务代码禁止直接操纵。需要临时切换上下文（如在新租户内开通、平台态全局定位账号）时用 `ICurrentTenant.Change(...)`，`using` 作用域结束自动恢复。
+> 服务层通过框架注入自动写入 `TenantId`，业务代码禁止直接操纵。跨租户只走显式通道：跨租户读取用仓储的 `...IgnoreTenantAsync`（内部 `CreateNoTenantQueryable()`）或查询上的 `.ClearTenantFilter()`；写某个租户的数据用 `ICurrentTenant.Change(tenantId)` 切入该租户，`using` 作用域结束自动恢复；按 `UserId` 归属的用户自有行用 `TenantWriteGuard.Suppress()`。后台逐租户维护用 `ITenantDataScopeRunner` 依次切入平台与每个数据可达的租户。
 
 ## 登录与落点：邮箱全局唯一，先登录后选租户
 
@@ -120,7 +121,7 @@ BasicApp 采用**先登录后选租户**：登录页不选择租户，统一在�
 
 ### 开通一站式：建管理员 + 角色 + 授权
 
-创建租户时若同时提供 `AdminUserName` + `AdminPassword`（此时 `AdminEmail` 必填且须为有效邮箱），`CreateTenantAsync` 会调 `ProvisionTenantAdminAsync` 一站式开通（`TenantProvisionDomainService`），全程在**平台态**（`ICurrentTenant.Change(null)`）内进行——账号注册表与租户授权绑定都落平台库，各实体显式置 `TenantId`，平台态插入保留该预置值（库隔离租户的独立库此时还没建，见下面的「库隔离租户的开通顺序」）：
+创建租户时若同时提供 `AdminUserName` + `AdminPassword`（此时 `AdminEmail` 必填且须为有效邮箱），`CreateTenantAsync` 会调 `ProvisionTenantAdminAsync` 一站式开通（`TenantProvisionDomainService`）。写入按数据归属分作用域：租户注册表与版本白名单是平台数据，在平台作用域读写；管理员账号、成员关系、Owner 角色与授权绑定是新租户的数据，切入该租户（`ICurrentTenant.Change(tenantId)`）写入，行的 `TenantId` 由作用域决定，不预置：
 
 1. **确保版本**：租户未指定则取默认版本并回写 `SysTenant.EditionId`；
 2. **建管理员**：创建 `SysUser`（校验邮箱全局唯一）+ `SysUserSecurity`（密码哈希）+ `SysTenantUser`（`MemberType=Owner`、`InviteStatus=Accepted`）；
@@ -129,15 +130,15 @@ BasicApp 采用**先登录后选租户**：登录页不选择租户，统一在�
 
 于是新租户开通即"能登录、有 Owner、拥有版本范围内的全部权限"，无需人工逐项授权。
 
-#### 库隔离租户的开通顺序
+#### 库隔离租户的开通
 
-`Database` 隔离的租户创建出来时 `ConfigStatus` 是 `Pending`，独立库要等 `InitializeDatabase` 才建（建库是 DDL，不能包在事务型工作单元里，所以是独立一步）。因此开通期**不能碰租户库**：上面四步全部在平台态执行，写的是平台库。
+`Database` 隔离的租户创建出来时 `ConfigStatus` 是 `Pending`，独立库要等 `InitializeDatabase` 才建（建库是 DDL，不能包在事务型工作单元里，所以是独立一步）。库隔离租户的账号与授权数据该落在平台库还是租户库（实体归置）尚未完成，开通时显式拒绝，不再像过去那样在平台作用域预置租户戳、把它的数据写进平台库。
 
 `InitializeDatabase` 建的是这个租户**一整套**布局：主库，加上它按约定自带的模块库。主连接下配了 `ModuleDataSourceConfigs` 的模块（如 `Erp`），租户也会有一个对应的库，库名由租户主库名派生成 `{租户库名}_{模块名}`——租户库叫 `qqq`，就还会建一个 `qqq_Erp`。主连接那条模块连接串留空（该模块不分库）时租户同样不分，模块表落它自己的主库。
 
 这条约定由框架实现（`XiHan:Data:SqlSugarCore:EnableTenantModuleDatabaseConvention`，默认开），应用侧不写代码、不加配置。含义是：**租户声明了库隔离，它的数据就都在它自己的库里**，不会有一部分悄悄落回公共模块库。要把某个租户的模块库指到别的机器上，在 `ISqlSugarTenantConnectionProvider` 里显式给出 `ModuleDataSourceConfigs` 即可，显式的优先。
 
-对应地，账号定位与授权绑定的读侧也都在平台态：登录统一在平台态按全局唯一邮箱定位账号（见上文「登录与落点」），`ExistsEmailGloballyAsync` / `ExistsUserNameInTenantAsync` 自身会切到平台态执行——租户上下文下连接会被解析到该租户独立库，"全平台判重"就会查错库。租户范围由入参显式落进 `WHERE`，不依赖当前上下文。
+账号定位是跨租户的身份层操作：登录在平台作用域按全局唯一邮箱显式跨租户定位账号（`GetByEmailGloballyAsync`），账号的安全信息在账号归属租户内读写（见上文「登录与落点」）；`ExistsEmailGloballyAsync` / `ExistsUserNameInTenantAsync` 自身切到平台作用域、显式跨租户执行，租户范围由入参显式落进 `WHERE`，不依赖当前上下文。
 
 ### 降级自动回收越权授权
 

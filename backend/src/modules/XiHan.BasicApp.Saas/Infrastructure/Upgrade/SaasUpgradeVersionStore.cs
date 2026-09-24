@@ -206,7 +206,8 @@ public sealed class SaasUpgradeVersionStore : IUpgradeVersionStore
         return new UpgradeVersionState
         {
             Id = entity.BasicId,
-            TenantId = _currentTenant.Id,
+            // 平台就是 0 号租户：与升级锁键同一口径
+            TenantId = _currentTenant.Id ?? 0,
             AppVersion = entity.AppVersion,
             DbVersion = string.IsNullOrWhiteSpace(entity.DbVersion) ? "0.0.0" : entity.DbVersion,
             MinSupportVersion = entity.MinSupportVersion,

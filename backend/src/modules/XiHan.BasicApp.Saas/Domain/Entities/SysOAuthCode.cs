@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -40,7 +41,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_ClId", nameof(ClientId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_UsId", nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
-public partial class SysOAuthCode : BasicAppCreationEntity
+public partial class SysOAuthCode : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 授权码

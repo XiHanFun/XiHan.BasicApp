@@ -56,7 +56,17 @@ public static class SaasPlatformPermissions
         SaasPermissionCodes.Cache.Clear,
         SaasPermissionCodes.Server.Read,
         SaasPermissionCodes.Numbering.GlobalManage,
-        SaasPermissionCodes.Impersonation.CrossTenant
+        SaasPermissionCodes.Impersonation.CrossTenant,
+        // 任务调度是平台运维能力：调度器按任务编码全局登记，任务与执行日志都是平台数据；
+        // 需要逐租户处理的数据维护由平台任务在任务内部逐租户切入完成
+        SaasPermissionCodes.Task.Read,
+        SaasPermissionCodes.Task.Create,
+        SaasPermissionCodes.Task.Update,
+        SaasPermissionCodes.Task.Status,
+        SaasPermissionCodes.Task.RunStatus,
+        SaasPermissionCodes.Task.Delete,
+        SaasPermissionCodes.Task.Export,
+        SaasPermissionCodes.TaskLog.Read
     };
 
     /// <summary>

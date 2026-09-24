@@ -124,13 +124,10 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
             throw new UserFriendlyException("目标用户已被禁用，无法模仿。");
         }
 
-        // 「是不是超管」必须是全局事实：租户上下文下的读过滤器会挡掉租户戳不同的授权行
-        using (_currentTenant.Change(null))
+        // 「是不是超管」是全局事实，由保护守卫跨租户判定
+        if (await _superAdminProtector.IsProtectedUserAsync(target.BasicId, cancellationToken))
         {
-            if (await _superAdminProtector.IsProtectedUserAsync(target.BasicId, cancellationToken))
-            {
-                throw new UserFriendlyException("不能模仿超级管理员。");
-            }
+            throw new UserFriendlyException("不能模仿超级管理员。");
         }
 
         var operatorSnapshot = await _authorizationSnapshotQueryService.BuildAsync(operatorUserId, now, cancellationToken);

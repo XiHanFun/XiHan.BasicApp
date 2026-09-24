@@ -20,12 +20,12 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     Task<SysUser?> GetByUserNameAsync(string userName, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 根据当前租户和邮箱获取用户
+    /// 按邮箱定位账号（全平台范围）
     /// </summary>
     /// <remarks>
-    /// 经 CreateQueryable 的全局租户过滤（AOP）按当前租户上下文隔离。邮箱列为非唯一索引（IX_Em），存在重复时取首条匹配。
+    /// 邮箱是登录身份标识、全平台唯一（UX_Em），账号可能归属任意租户，显式跨租户查找。
     /// </remarks>
-    Task<SysUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<SysUser?> GetByEmailGloballyAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 检查当前租户下用户名是否存在
@@ -76,4 +76,14 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户列表（集合为空时返回空列表）</returns>
     Task<List<SysUser>> GetListByIdsIgnoreTenantAsync(IReadOnlyCollection<long> userIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 跨租户获取全部启用账号的主键
+    /// </summary>
+    /// <remarks>
+    /// 平台公告「全员」投递专用：面向全平台账号，只取主键，不读取任何租户业务数据。
+    /// </remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>启用账号主键</returns>
+    Task<IReadOnlyList<long>> GetEnabledIdsIgnoreTenantAsync(CancellationToken cancellationToken = default);
 }

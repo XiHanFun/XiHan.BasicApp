@@ -31,11 +31,6 @@ public interface IOAuthTokenRepository : ISaasRepository<SysOAuthToken>
     Task<SysOAuthToken?> GetByRefreshTokenIgnoreTenantAsync(string refreshToken, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 吊销用户所有令牌
-    /// </summary>
-    Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// 跨租户吊销某用户在某客户端下的全部未撤销令牌（刷新令牌重放检测时吊销整个令牌族）
     /// </summary>
     Task<int> RevokeFamilyAsync(long userId, string clientId, DateTimeOffset now, CancellationToken cancellationToken = default);
@@ -44,4 +39,9 @@ public interface IOAuthTokenRepository : ISaasRepository<SysOAuthToken>
     /// 跨租户吊销指定会话的全部未撤销令牌（会话下线 / 令牌轮换时同步维护令牌台账）
     /// </summary>
     Task<int> RevokeBySessionIdsAsync(IReadOnlyCollection<long> sessionIds, DateTimeOffset now, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 跨租户判断客户端是否签发过令牌（令牌行带签发时的租户戳）
+    /// </summary>
+    Task<bool> AnyByClientIdIgnoreTenantAsync(string clientId, CancellationToken cancellationToken = default);
 }

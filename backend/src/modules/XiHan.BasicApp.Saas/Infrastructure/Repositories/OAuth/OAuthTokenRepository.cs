@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Domain.Repositories;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 
@@ -66,19 +67,6 @@ public sealed class OAuthTokenRepository(ISqlSugarClientResolver clientResolver)
     }
 
     /// <summary>
-    /// 吊销用户所有令牌
-    /// </summary>
-    public async Task<int> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return await DbClient.Updateable<SysOAuthToken>()
-            .SetColumns(t => t.IsRevoked == true)
-            .Where(t => t.UserId == userId && !t.IsRevoked)
-            .ExecuteCommandAsync(cancellationToken);
-    }
-
-    /// <summary>
     /// 跨租户吊销某用户在某客户端下的全部未撤销令牌（刷新令牌重放检测时吊销整个令牌族）
     /// </summary>
     public async Task<int> RevokeFamilyAsync(long userId, string clientId, DateTimeOffset now, CancellationToken cancellationToken = default)
@@ -86,11 +74,11 @@ public sealed class OAuthTokenRepository(ISqlSugarClientResolver clientResolver)
         ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 条件更新不受租户查询过滤影响；按 用户 × 客户端 吊销全部未撤销令牌（重放检测时吊销整个令牌族）
-        return await DbClient.Updateable<SysOAuthToken>()
-            .SetColumns(t => new SysOAuthToken { IsRevoked = true, RevokedTime = now })
+        // 令牌族可能跨租户（令牌行带签发时的租户戳）：显式跨租户取出后按主键吊销
+        var tokens = await CreateNoTenantQueryable()
             .Where(t => t.UserId == userId && t.ClientId == clientId && !t.IsRevoked)
-            .ExecuteCommandAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+        return await RevokeAllAsync(tokens, now, cancellationToken);
     }
 
     /// <summary>
@@ -106,11 +94,52 @@ public sealed class OAuthTokenRepository(ISqlSugarClientResolver clientResolver)
             return 0;
         }
 
-        // 条件更新不受租户查询过滤影响；令牌行带发起登录时租户戳，会话跨租户下线时须一并吊销
+        // 令牌行带发起登录时的租户戳，会话跨租户下线时须一并吊销：显式跨租户取出后按主键吊销
         var ids = sessionIds.ToList();
-        return await DbClient.Updateable<SysOAuthToken>()
-            .SetColumns(t => new SysOAuthToken { IsRevoked = true, RevokedTime = now })
+        var tokens = await CreateNoTenantQueryable()
             .Where(t => t.SessionId != null && ids.Contains(t.SessionId.Value) && !t.IsRevoked)
-            .ExecuteCommandAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+        return await RevokeAllAsync(tokens, now, cancellationToken);
+    }
+
+    /// <summary>
+    /// 跨租户判断客户端是否签发过令牌
+    /// </summary>
+    public async Task<bool> AnyByClientIdIgnoreTenantAsync(string clientId, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateNoTenantQueryable()
+            .Where(token => token.ClientId == clientId)
+            .AnyAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 批量置为已吊销
+    /// </summary>
+    /// <remarks>
+    /// 走对象式 Updateable：表达式式工厂会自动挂上全局租户过滤，把 UPDATE 收窄到当前作用域，
+    /// 别的租户戳的令牌就改不动了。令牌是用户自有行，按主键写并显式声明写边界豁免。
+    /// </remarks>
+    private async Task<int> RevokeAllAsync(List<SysOAuthToken> tokens, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (tokens.Count == 0)
+        {
+            return 0;
+        }
+
+        foreach (var token in tokens)
+        {
+            token.IsRevoked = true;
+            token.RevokedTime = now;
+        }
+
+        using (TenantWriteGuard.Suppress())
+        {
+            return await DbClient.Updateable(tokens)
+                .UpdateColumns(token => new { token.IsRevoked, token.RevokedTime })
+                .ExecuteCommandAsync(cancellationToken);
+        }
     }
 }

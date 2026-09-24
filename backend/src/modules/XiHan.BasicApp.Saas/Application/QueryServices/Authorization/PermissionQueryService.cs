@@ -21,6 +21,7 @@ using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -64,6 +65,8 @@ public sealed class PermissionQueryService
 
     private readonly IFieldSecurityService _fieldSecurity;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -74,8 +77,10 @@ public sealed class PermissionQueryService
         IDistributedCache<SaasPermissionSelectCacheItem, string> permissionSelectCache,
         IDistributedCache<SaasPermissionCatalogCacheItem, string> permissionCatalogCache,
         IFieldSecurityService fieldSecurityService,
-        ISuperAdminProtector superAdminProtector)
+        ISuperAdminProtector superAdminProtector,
+        ICurrentTenant currentTenant)
     {
+        _currentTenant = currentTenant;
         _permissionRepository = permissionRepository;
         _resourceRepository = resourceRepository;
         _operationRepository = operationRepository;
@@ -184,7 +189,7 @@ public sealed class PermissionQueryService
             return await QueryAvailableGlobalPermissionsAsync(input, cancellationToken);
         }
 
-        var cacheKey = SaasCacheKeys.PermissionSelect(input.ModuleCode, (int?)input.PermissionType, input.Limit);
+        var cacheKey = SaasCacheKeys.PermissionSelect(_currentTenant.Id, input.ModuleCode, (int?)input.PermissionType, input.Limit);
         var item = await _permissionSelectCache.GetOrAddAsync(
             cacheKey,
             async () => new SaasPermissionSelectCacheItem
@@ -215,7 +220,7 @@ public sealed class PermissionQueryService
         // 权限定义变动极少，目录整体缓存。
         // 失效由权限定义写路径触发——PermissionAppService 增删改启停调 InvalidatePermissionDefinitionAsync。
         var item = await _permissionCatalogCache.GetOrAddAsync(
-            SaasCacheKeys.PermissionCatalog(),
+            SaasCacheKeys.PermissionCatalog(_currentTenant.Id),
             async () => new SaasPermissionCatalogCacheItem
             {
                 Items = [.. await QueryPermissionCatalogAsync(cancellationToken)],
