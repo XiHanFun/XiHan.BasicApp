@@ -13,7 +13,7 @@ import type {
   TenantUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -1390,16 +1390,6 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhAlertRoot v-if="!tenantForm.basicId" tone="info" class="xh-span-2 mb-3">
-          <XhAlertIndicator>
-            <Icon :icon="isDatabaseIsolation ? 'lucide:database' : 'lucide:user-plus'" :size="16" />
-          </XhAlertIndicator>
-          <XhAlertContent>
-            <XhAlertDescription>
-              {{ isDatabaseIsolation ? t('tenant.list.database_admin_hint') : t('tenant.list.create_admin_hint') }}
-            </XhAlertDescription>
-          </XhAlertContent>
-        </XhAlertRoot>
         <template v-if="isDatabaseIsolation">
           <XhFormFieldGroup name="databaseType">
             <XhFieldRoot>
@@ -1528,6 +1518,9 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
+        <p v-if="!tenantForm.basicId" class="xh-span-2 xh-form-note">
+          {{ isDatabaseIsolation ? t('tenant.list.database_admin_hint') : t('tenant.list.create_admin_hint') }}
+        </p>
       </XhFormRoot>
     </XEditModal>
 
@@ -1677,6 +1670,13 @@ async function handleSubmit() {
 
 .xh-member-hint {
   font-size: var(--xh-text-caption-size);
+  color: hsl(var(--muted-foreground));
+}
+
+.xh-form-note {
+  margin: 0;
+  font-size: var(--xh-text-caption-size);
+  line-height: 1.5;
   color: hsl(var(--muted-foreground));
 }
 
