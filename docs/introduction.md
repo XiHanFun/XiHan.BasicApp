@@ -71,6 +71,19 @@ XiHan.BasicApp 采用**前后端分离**架构：
 - [配置参考](./configuration) —— `appsettings` 全量配置节
 - [功能清单](./features) · [常见问题](./faq) · [部署](./deployment) · [更新日志](./changelog)
 
+**给 AI 工具**
+
+文档站在构建期另外产出几份纯文本，与本站同源：
+
+| 地址 | 内容 |
+| --- | --- |
+| [`/llms.txt`](https://basicapp.docs.xihanfun.com/llms.txt) | 全站索引，每行一页 |
+| [`/llms-full.txt`](https://basicapp.docs.xihanfun.com/llms-full.txt) | 全站正文 |
+| [`/llms-backend.txt`](https://basicapp.docs.xihanfun.com/llms-backend.txt) | 后端手册全部章节 |
+| [`/llms-frontend.txt`](https://basicapp.docs.xihanfun.com/llms-frontend.txt) | 前端手册全部章节 |
+
+只需要一页时，把地址后缀改为 `.md`，如 `https://basicapp.docs.xihanfun.com/backend/permission.md`；每页正文右上角的「取本页 Markdown」指向的也是它。
+
 ## 技术栈速览
 
 | 端 | 关键技术 |

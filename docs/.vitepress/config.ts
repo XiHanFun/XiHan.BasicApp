@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 import { DefaultTheme, HeadConfig, defineConfig } from "vitepress";
+import { renderPageMarkdown, writeLlmsAssets } from "./gen-llms";
 const require = createRequire(import.meta.url);
 
 // 导航末项显示的版本号取自应用包 package.json，发版时只改那一处。
@@ -292,6 +293,51 @@ export default defineConfig({
   head: head,
   lastUpdated: true,
   cleanUrls: true,
+  // 机读资产（llms.txt、全站正文、分册与「取本页 Markdown」的单页 .md）在构建末尾落进产物目录
+  async buildEnd(siteConfig) {
+    await writeLlmsAssets(siteConfig.outDir, {
+      title: "曦寒基础应用",
+      summary:
+        "企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + ABAC 权限、代码生成与实时通信。",
+      sections: [
+        { dir: ".", label: "开始" },
+        { dir: "backend", label: "后端手册", bundle: "backend" },
+        { dir: "frontend", label: "前端手册", bundle: "frontend" },
+      ],
+    });
+  },
+  vite: {
+    plugins: [
+      {
+        // 开发服务器没有构建产物，链接指向 /__markdown/，这里按需生成同一份
+        name: "xihan-doc-page-markdown",
+        configureServer(server) {
+          server.middlewares.use(async (request, response, next) => {
+            const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
+            const prefix = "/__markdown/";
+            if (!pathname.startsWith(prefix)) {
+              next();
+              return;
+            }
+            try {
+              const markdown = await renderPageMarkdown(decodeURIComponent(pathname.slice(prefix.length)));
+              if (markdown === null) {
+                response.statusCode = 404;
+                response.end("Not Found");
+                return;
+              }
+              response.statusCode = 200;
+              response.setHeader("Content-Type", "text/markdown; charset=utf-8");
+              response.end(markdown);
+            }
+            catch (error) {
+              next(error);
+            }
+          });
+        },
+      },
+    ],
+  },
   themeConfig: {
     logo: logo,
     socialLinks: [

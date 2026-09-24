@@ -1,5 +1,6 @@
 import { h, watch } from "vue";
 import Theme from "vitepress/theme";
+import XhPageMarkdown from "./XhPageMarkdown.vue";
 import "./rainbow.css";
 import "./vars.css";
 import "./overrides.css";
@@ -9,7 +10,10 @@ let homePageStyle: HTMLStyleElement | undefined;
 export default {
   ...Theme,
   Layout: () => {
-    return h(Theme.Layout, null, {});
+    return h(Theme.Layout, null, {
+      // 每页正文上方一条取 Markdown 的直链，指向构建期落在同路径的 .md
+      "doc-before": () => h(XhPageMarkdown),
+    });
   },
   enhanceApp(ctx) {
     // 先执行默认主题的 enhanceApp，注册 Badge 等全局组件（否则 <Badge> 渲染为空）
