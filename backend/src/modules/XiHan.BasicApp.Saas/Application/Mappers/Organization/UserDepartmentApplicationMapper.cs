@@ -13,23 +13,6 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 public static class UserDepartmentApplicationMapper
 {
     /// <summary>
-    /// 映射用户部门归属分配命令
-    /// </summary>
-    public static UserDepartmentAssignCommand ToAssignCommand(UserDepartmentAssignDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        return new UserDepartmentAssignCommand(
-            input.UserId,
-            input.DepartmentId,
-            input.IsMain,
-            input.Remark,
-            input.PositionId,
-            input.JobNumber,
-            input.JobLevel,
-            input.JoinTime);
-    }
-
-    /// <summary>
     /// 映射用户部门归属列表项
     /// </summary>
     /// <param name="userDepartment">用户部门归属</param>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ScopeDraftItem } from './data-scope-draft'
 import type {
   ApiId,
   DepartmentTreeNodeDto,
@@ -39,6 +40,7 @@ import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 import { formatDate, getOptionLabel } from '~/utils'
+import { diffScopeDraft, upsertScopeDraft } from './data-scope-draft'
 
 defineOptions({ name: 'SystemRolePage' })
 
@@ -563,15 +565,20 @@ async function saveMenuGrants() {
   }
 }
 
-// ── 数据范围抽屉（按部门授予角色数据范围） ──────────────────────
+// ── 数据范围抽屉（按部门授予角色数据范围：先在草稿里增删，保存时一次提交） ──
 const scopeVisible = ref(false)
 const scopeRole = ref<RoleListItemDto | null>(null)
+/** 当前生效的范围，保存时与草稿比出差量 */
 const scopeGrants = ref<RoleDataScopeListItemDto[]>([])
+const scopeDraft = ref<ScopeDraftItem[]>([])
 const scopeDeptOptions = ref<TreeSelectOption[]>([])
+const scopeDeptNames = ref(new Map<ApiId, string>())
 const scopeSelectedDept = ref<ApiId | null>(null)
 const scopeIncludeChildren = ref(true)
 const scopeLoading = ref(false)
 const scopeSubmitting = ref(false)
+const scopeChanges = computed(() => diffScopeDraft(scopeDraft.value, scopeGrants.value))
+const scopeDirty = computed(() => scopeChanges.value.grants.length > 0 || scopeChanges.value.revokeRoleDataScopeIds.length > 0)
 
 function toDeptOptions(nodes: DepartmentTreeNodeDto[]): TreeSelectOption[] {
   return nodes.map(node => ({
@@ -581,19 +588,42 @@ function toDeptOptions(nodes: DepartmentTreeNodeDto[]): TreeSelectOption[] {
   }))
 }
 
+function collectDeptNames(nodes: DepartmentTreeNodeDto[], names = new Map<ApiId, string>()) {
+  for (const node of nodes) {
+    names.set(node.basicId, node.departmentName)
+    if (node.children?.length)
+      collectDeptNames(node.children, names)
+  }
+  return names
+}
+
+function scopeDeptName(departmentId: ApiId) {
+  return scopeDeptNames.value.get(departmentId)
+    ?? scopeGrants.value.find(grant => grant.departmentId === departmentId)?.departmentName
+    ?? String(departmentId)
+}
+
+function resetScopeDraft(grants: RoleDataScopeListItemDto[]) {
+  scopeGrants.value = grants
+  scopeDraft.value = grants.map(({ departmentId, includeChildren }) => ({ departmentId, includeChildren }))
+}
+
 async function openScopeDrawer(row: RoleListItemDto) {
   scopeRole.value = row
   scopeVisible.value = true
   scopeSelectedDept.value = null
   scopeIncludeChildren.value = true
+  resetScopeDraft([])
   scopeLoading.value = true
   try {
+    // 比对基准只取此刻生效的范围：撤销过、已过期的历史行不进草稿，再加回来即从现在起生效
     const [tree, grants] = await Promise.all([
-      departmentApi.tree({ limit: 1000 }),
-      roleDataScopeApi.list(row.basicId),
+      departmentApi.tree({ limit: 1000, onlyEnabled: true }),
+      roleDataScopeApi.list(row.basicId, true),
     ])
     scopeDeptOptions.value = toDeptOptions(tree)
-    scopeGrants.value = grants
+    scopeDeptNames.value = collectDeptNames(tree)
+    resetScopeDraft(grants)
   }
   catch (e: unknown) {
     toast.danger((e as Error)?.message || t('identity.role.scope_load_failed'))
@@ -603,41 +633,40 @@ async function openScopeDrawer(row: RoleListItemDto) {
   }
 }
 
-async function addScope() {
-  if (!scopeRole.value || scopeSelectedDept.value == null) {
+/** 放进草稿：已在草稿里的部门只改含下级 */
+function addScope() {
+  if (scopeSelectedDept.value == null) {
     toast.warning(t('identity.role.scope_select_dept_required'))
     return
   }
+  scopeDraft.value = upsertScopeDraft(scopeDraft.value, {
+    departmentId: scopeSelectedDept.value,
+    includeChildren: scopeIncludeChildren.value,
+  })
+  scopeSelectedDept.value = null
+}
+
+function removeScope(departmentId: ApiId) {
+  scopeDraft.value = scopeDraft.value.filter(item => item.departmentId !== departmentId)
+}
+
+async function saveScopes() {
+  const role = scopeRole.value
+  if (!role || !scopeDirty.value || scopeSubmitting.value) {
+    return
+  }
+  const { grants, revokeRoleDataScopeIds } = scopeChanges.value
   scopeSubmitting.value = true
   try {
-    await roleDataScopeApi.grant({
-      roleId: scopeRole.value.basicId,
-      departmentId: scopeSelectedDept.value,
-      includeChildren: scopeIncludeChildren.value,
-    })
-    toast.success(t('identity.role.scope_added'))
-    scopeSelectedDept.value = null
-    scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
+    await roleDataScopeApi.batchUpdate({ roleId: role.basicId, grants, revokeRoleDataScopeIds })
+    resetScopeDraft(await roleDataScopeApi.list(role.basicId, true))
+    toast.success(t('identity.role.scope_saved', { grant: grants.length, revoke: revokeRoleDataScopeIds.length }))
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('identity.role.scope_add_failed'))
+    toast.danger((e as Error)?.message || t('common.messages.save_failed'))
   }
   finally {
     scopeSubmitting.value = false
-  }
-}
-
-async function removeScope(grant: RoleDataScopeListItemDto) {
-  if (!scopeRole.value) {
-    return
-  }
-  try {
-    await roleDataScopeApi.revoke(grant.basicId)
-    toast.success(t('identity.role.scope_removed'))
-    scopeGrants.value = await roleDataScopeApi.list(scopeRole.value.basicId)
-  }
-  catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('identity.role.scope_remove_failed'))
   }
 }
 
@@ -1287,15 +1316,15 @@ async function handleToggleStatus(row: RoleListItemDto) {
           <XhSwitch v-model:checked="scopeIncludeChildren">
             {{ scopeIncludeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
           </XhSwitch>
-          <XhButton variant="subtle" size="sm" :loading="scopeSubmitting" tone="brand" @click="addScope">
+          <XhButton variant="subtle" size="sm" tone="brand" :disabled="scopeLoading" @click="addScope">
             {{ t('identity.role.scope_add') }}
           </XhButton>
         </div>
-        <div class="xh-loading-stage" :class="{ 'is-loading': scopeLoading }">
+        <div class="xh-loading-stage scope-stage" :class="{ 'is-loading': scopeLoading }">
           <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
-          <XhEmptyStateRoot v-if="scopeGrants.length === 0 && !scopeLoading" size="sm" class="perm-empty">
+          <XhEmptyStateRoot v-if="scopeDraft.length === 0 && !scopeLoading" size="sm" class="perm-empty">
             <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="28" height="28" />
             </XhEmptyStateIndicator>
@@ -1303,18 +1332,26 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhEmptyStateDescription>{{ t('identity.role.scope_empty') }}</XhEmptyStateDescription>
           </XhEmptyStateRoot>
           <div v-else class="scope-list">
-            <div v-for="grant in scopeGrants" :key="String(grant.basicId)" class="scope-row">
-              <span class="scope-dept">{{ grant.departmentName || grant.departmentId }}</span>
-              <XhTagRoot variant="subtle" size="sm" :tone="grant.includeChildren ? 'info' : 'neutral'">
+            <div v-for="item in scopeDraft" :key="String(item.departmentId)" class="scope-row">
+              <span class="scope-dept">{{ scopeDeptName(item.departmentId) }}</span>
+              <XhTagRoot variant="subtle" size="sm" :tone="item.includeChildren ? 'info' : 'neutral'">
                 <XhTagLabel>
-                  {{ grant.includeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
+                  {{ item.includeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
                 </XhTagLabel>
               </XhTagRoot>
-              <XhButton variant="ghost" size="sm" tone="danger" @click="removeScope(grant)">
+              <XhButton variant="ghost" size="sm" tone="danger" @click="removeScope(item.departmentId)">
                 {{ t('identity.role.scope_remove') }}
               </XhButton>
             </div>
           </div>
+        </div>
+        <div class="xh-dialog-footer">
+          <XhButton variant="subtle" @click="scopeVisible = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton variant="subtle" tone="brand" :loading="scopeSubmitting" :disabled="!scopeDirty" style="margin-left: 8px" @click="saveScopes">
+            {{ t('identity.role.scope_save') }}
+          </XhButton>
         </div>
       </XhDrawerContent>
     </XhDrawerRoot>
@@ -1341,6 +1378,13 @@ async function handleToggleStatus(row: RoleListItemDto) {
   align-items: center;
   gap: 12px;
   margin-bottom: 16px;
+}
+
+/* 列表区撑满抽屉剩余高度，保存/取消落在抽屉底部；部门多时在这里滚动 */
+.scope-stage {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
 }
 
 .scope-list {

@@ -45,9 +45,10 @@ public interface IRoleDomainService
     Task<RolePermissionCommandResult> UpdateRolePermissionStatusAsync(RolePermissionStatusChangeCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 授予角色数据范围
+    /// 批量变更角色数据范围（一次性提交授予与撤销）
     /// </summary>
-    Task<RoleDataScopeCommandResult> CreateRoleDataScopeAsync(RoleDataScopeGrantCommand command, CancellationToken cancellationToken = default);
+    /// <returns>本次实际发生变化的部门</returns>
+    Task<RoleDataScopeBatchUpdateResult> BatchUpdateRoleDataScopesAsync(RoleDataScopeBatchUpdateCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新角色数据范围
@@ -60,17 +61,8 @@ public interface IRoleDomainService
     Task<RoleDataScopeCommandResult> UpdateRoleDataScopeStatusAsync(RoleDataScopeStatusChangeCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 撤销角色数据范围
+    /// 批量变更角色的直接父角色（一次性提交新增与移除，先移除后新增）
     /// </summary>
-    Task DeleteRoleDataScopeAsync(long id, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 创建角色直接继承关系
-    /// </summary>
-    Task<RoleHierarchyCommandResult> CreateRoleHierarchyAsync(RoleHierarchyCreateCommand command, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 删除角色直接继承关系
-    /// </summary>
-    Task DeleteRoleHierarchyAsync(long id, CancellationToken cancellationToken = default);
+    /// <returns>本次实际发生变化的直接父角色</returns>
+    Task<RoleHierarchyBatchUpdateResult> BatchUpdateRoleParentsAsync(RoleHierarchyBatchUpdateCommand command, CancellationToken cancellationToken = default);
 }

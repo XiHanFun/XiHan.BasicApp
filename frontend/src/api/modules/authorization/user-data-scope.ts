@@ -1,8 +1,8 @@
 import type { DynamicApiParams } from '../../base'
 import type { ApiId } from '../../types'
 import type {
+  UserDataScopeBatchUpdateDto,
   UserDataScopeDetailDto,
-  UserDataScopeGrantDto,
   UserDataScopeListItemDto,
   UserDataScopeStatusUpdateDto,
   UserDataScopeUpdateDto,
@@ -13,14 +13,15 @@ const userDataScopeQueryApi = createDynamicApiClient('UserDataScopeQuery')
 const userDataScopeCommandApi = createDynamicApiClient('UserDataScope')
 
 export const userDataScopeApi = {
+  /** 一次性提交本次授予与撤销（单事务） */
+  batchUpdate(input: UserDataScopeBatchUpdateDto) {
+    return userDataScopeCommandApi.post<void, UserDataScopeBatchUpdateDto>('BatchUpdateUserDataScopes', input)
+  },
   detail(id: ApiId) {
     return userDataScopeQueryApi.get<UserDataScopeDetailDto | null>(
       'UserDataScopeDetail',
       { id },
     )
-  },
-  grant(input: UserDataScopeGrantDto) {
-    return userDataScopeCommandApi.post<UserDataScopeDetailDto, UserDataScopeGrantDto>('UserDataScope', input)
   },
   list(userId: ApiId, onlyValid = false) {
     const params: DynamicApiParams = {}
@@ -30,9 +31,6 @@ export const userDataScopeApi = {
       'UserDataScopes',
       { ...params, userId },
     )
-  },
-  revoke(id: ApiId) {
-    return userDataScopeCommandApi.delete('UserDataScope', { id })
   },
   update(input: UserDataScopeUpdateDto) {
     return userDataScopeCommandApi.put<UserDataScopeDetailDto, UserDataScopeUpdateDto>('UserDataScope', input)

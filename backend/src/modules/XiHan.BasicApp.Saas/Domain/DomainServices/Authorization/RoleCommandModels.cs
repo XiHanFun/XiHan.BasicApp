@@ -63,15 +63,26 @@ public sealed record RolePermissionUpdateCommand(
 public sealed record RolePermissionStatusChangeCommand(long BasicId, ValidityStatus Status, string? Remark);
 
 /// <summary>
-/// 角色数据范围授权命令
+/// 角色数据范围批量变更中的单条授予项
 /// </summary>
-public sealed record RoleDataScopeGrantCommand(
+public sealed record RoleDataScopeBatchGrantItem(long DepartmentId, bool IncludeChildren);
+
+/// <summary>
+/// 角色数据范围批量变更命令（一次性提交授予与撤销）
+/// </summary>
+public sealed record RoleDataScopeBatchUpdateCommand(
     long RoleId,
-    long DepartmentId,
-    bool IncludeChildren,
-    DateTimeOffset? EffectiveTime,
-    DateTimeOffset? ExpirationTime,
-    string? Remark);
+    IReadOnlyList<RoleDataScopeBatchGrantItem> Grants,
+    IReadOnlyList<long> RevokeRoleDataScopeIds);
+
+/// <summary>
+/// 角色数据范围批量变更结果（本次实际发生变化的部门）
+/// </summary>
+/// <param name="GrantedDepartmentIds">实际授予或改了含下级的部门ID</param>
+/// <param name="RevokedDepartmentIds">实际撤销的部门ID</param>
+public sealed record RoleDataScopeBatchUpdateResult(
+    IReadOnlyList<long> GrantedDepartmentIds,
+    IReadOnlyList<long> RevokedDepartmentIds);
 
 /// <summary>
 /// 角色数据范围更新命令
@@ -89,9 +100,21 @@ public sealed record RoleDataScopeUpdateCommand(
 public sealed record RoleDataScopeStatusChangeCommand(long BasicId, ValidityStatus Status, string? Remark);
 
 /// <summary>
-/// 角色继承创建命令
+/// 角色父角色批量变更命令（一次性提交新增与移除的直接父角色）
 /// </summary>
-public sealed record RoleHierarchyCreateCommand(long AncestorId, long DescendantId, string? Remark);
+public sealed record RoleHierarchyBatchUpdateCommand(
+    long RoleId,
+    IReadOnlyList<long> AddParentRoleIds,
+    IReadOnlyList<long> RemoveParentRoleIds);
+
+/// <summary>
+/// 角色父角色批量变更结果（本次实际发生变化的直接父角色）
+/// </summary>
+/// <param name="AddedParentRoleIds">实际新增的直接父角色ID</param>
+/// <param name="RemovedParentRoleIds">实际移除的直接父角色ID</param>
+public sealed record RoleHierarchyBatchUpdateResult(
+    IReadOnlyList<long> AddedParentRoleIds,
+    IReadOnlyList<long> RemovedParentRoleIds);
 
 /// <summary>
 /// 角色命令结果
@@ -116,8 +139,3 @@ public sealed record RolePermissionBatchUpdateResult(
 /// 角色数据范围命令结果
 /// </summary>
 public sealed record RoleDataScopeCommandResult(SysRoleDataScope DataScope, SysDepartment? Department);
-
-/// <summary>
-/// 角色继承命令结果
-/// </summary>
-public sealed record RoleHierarchyCommandResult(SysRoleHierarchy Hierarchy, SysRole Ancestor, SysRole Descendant);

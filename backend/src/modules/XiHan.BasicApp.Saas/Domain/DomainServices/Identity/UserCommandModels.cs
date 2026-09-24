@@ -143,13 +143,26 @@ public sealed record UserPermissionUpdateCommand(
 public sealed record UserPermissionStatusChangeCommand(long BasicId, ValidityStatus Status, string? Remark);
 
 /// <summary>
-/// 用户数据范围授权命令
+/// 用户数据范围批量变更中的单条授予项
 /// </summary>
-public sealed record UserDataScopeGrantCommand(
+public sealed record UserDataScopeBatchGrantItem(long DepartmentId, bool IncludeChildren);
+
+/// <summary>
+/// 用户数据范围批量变更命令（一次性提交授予与撤销）
+/// </summary>
+public sealed record UserDataScopeBatchUpdateCommand(
     long UserId,
-    long DepartmentId,
-    bool IncludeChildren,
-    string? Remark);
+    IReadOnlyList<UserDataScopeBatchGrantItem> Grants,
+    IReadOnlyList<long> RevokeUserDataScopeIds);
+
+/// <summary>
+/// 用户数据范围批量变更结果（本次实际发生变化的部门）
+/// </summary>
+/// <param name="GrantedDepartmentIds">实际授予或改了含下级的部门ID</param>
+/// <param name="RevokedDepartmentIds">实际撤销的部门ID</param>
+public sealed record UserDataScopeBatchUpdateResult(
+    IReadOnlyList<long> GrantedDepartmentIds,
+    IReadOnlyList<long> RevokedDepartmentIds);
 
 /// <summary>
 /// 用户数据范围更新命令
@@ -165,17 +178,33 @@ public sealed record UserDataScopeUpdateCommand(
 public sealed record UserDataScopeStatusChangeCommand(long BasicId, ValidityStatus Status, string? Remark);
 
 /// <summary>
-/// 用户部门归属分配命令
+/// 用户部门归属批量变更中的单条分配项
 /// </summary>
-public sealed record UserDepartmentAssignCommand(
-    long UserId,
+public sealed record UserDepartmentBatchAssignItem(
     long DepartmentId,
     bool IsMain,
-    string? Remark,
+    string? Remark = null,
     long? PositionId = null,
     string? JobNumber = null,
     string? JobLevel = null,
     DateTimeOffset? JoinTime = null);
+
+/// <summary>
+/// 用户部门归属批量变更命令（一次性提交分配与撤销）
+/// </summary>
+public sealed record UserDepartmentBatchUpdateCommand(
+    long UserId,
+    IReadOnlyList<UserDepartmentBatchAssignItem> Assigns,
+    IReadOnlyList<long> RevokeUserDepartmentIds);
+
+/// <summary>
+/// 用户部门归属批量变更结果（本次实际进出的部门）
+/// </summary>
+/// <param name="AssignedDepartmentIds">实际新分配或恢复的部门ID</param>
+/// <param name="RevokedDepartmentIds">实际撤销的部门ID</param>
+public sealed record UserDepartmentBatchUpdateResult(
+    IReadOnlyList<long> AssignedDepartmentIds,
+    IReadOnlyList<long> RevokedDepartmentIds);
 
 /// <summary>
 /// 用户部门归属更新命令

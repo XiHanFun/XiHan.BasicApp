@@ -12,12 +12,11 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 public interface IUserDataScopeAppService : IApplicationService
 {
     /// <summary>
-    /// 授予用户数据范围
+    /// 批量变更用户数据范围（一次性提交授予与撤销）
     /// </summary>
-    /// <param name="input">授权参数</param>
+    /// <param name="input">批量变更参数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户数据范围详情</returns>
-    Task<UserDataScopeDetailDto> CreateUserDataScopeAsync(UserDataScopeGrantDto input, CancellationToken cancellationToken = default);
+    Task BatchUpdateUserDataScopesAsync(UserDataScopeBatchUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新用户数据范围
@@ -34,11 +33,4 @@ public interface IUserDataScopeAppService : IApplicationService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户数据范围详情</returns>
     Task<UserDataScopeDetailDto> UpdateUserDataScopeStatusAsync(UserDataScopeStatusUpdateDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 撤销用户数据范围
-    /// </summary>
-    /// <param name="id">用户数据范围绑定主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    Task DeleteUserDataScopeAsync(long id, CancellationToken cancellationToken = default);
 }

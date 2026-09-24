@@ -23,12 +23,15 @@ export interface RoleDataScopeDetailDto extends RoleDataScopeListItemDto {
   createdId?: ApiId | null
 }
 
-export interface RoleDataScopeGrantDto {
+export interface RoleDataScopeBatchGrantItemDto {
   departmentId: ApiId
-  effectiveTime?: DateTimeString | null
-  expirationTime?: DateTimeString | null
   includeChildren: boolean
-  remark?: string | null
+}
+
+/** 批量变更角色数据范围（一次性提交授予与撤销）；已授予的部门再次下发即改其含下级 */
+export interface RoleDataScopeBatchUpdateDto {
+  grants: RoleDataScopeBatchGrantItemDto[]
+  revokeRoleDataScopeIds: ApiId[]
   roleId: ApiId
 }
 

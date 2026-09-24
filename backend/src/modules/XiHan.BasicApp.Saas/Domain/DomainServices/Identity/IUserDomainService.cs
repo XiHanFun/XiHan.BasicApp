@@ -85,9 +85,10 @@ public interface IUserDomainService
     Task<UserPermissionCommandResult> UpdateUserPermissionStatusAsync(UserPermissionStatusChangeCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 授予用户数据范围
+    /// 批量变更用户数据范围（一次性提交授予与撤销）
     /// </summary>
-    Task<UserDataScopeCommandResult> CreateUserDataScopeAsync(UserDataScopeGrantCommand command, CancellationToken cancellationToken = default);
+    /// <returns>本次实际发生变化的部门</returns>
+    Task<UserDataScopeBatchUpdateResult> BatchUpdateUserDataScopesAsync(UserDataScopeBatchUpdateCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新用户数据范围
@@ -100,14 +101,10 @@ public interface IUserDomainService
     Task<UserDataScopeCommandResult> UpdateUserDataScopeStatusAsync(UserDataScopeStatusChangeCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 撤销用户数据范围
+    /// 批量变更用户部门归属（一次性提交分配与撤销）
     /// </summary>
-    Task DeleteUserDataScopeAsync(long id, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 分配用户部门归属
-    /// </summary>
-    Task<UserDepartmentCommandResult> CreateUserDepartmentAsync(UserDepartmentAssignCommand command, CancellationToken cancellationToken = default);
+    /// <returns>本次实际进出的部门</returns>
+    Task<UserDepartmentBatchUpdateResult> BatchUpdateUserDepartmentsAsync(UserDepartmentBatchUpdateCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新用户部门归属
@@ -118,11 +115,6 @@ public interface IUserDomainService
     /// 更新用户部门归属状态
     /// </summary>
     Task<UserDepartmentCommandResult> UpdateUserDepartmentStatusAsync(UserDepartmentStatusChangeCommand command, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 撤销用户部门归属
-    /// </summary>
-    Task DeleteUserDepartmentAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 撤销用户会话

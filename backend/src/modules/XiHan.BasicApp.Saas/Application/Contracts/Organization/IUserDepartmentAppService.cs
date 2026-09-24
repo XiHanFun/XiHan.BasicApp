@@ -12,12 +12,11 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 public interface IUserDepartmentAppService : IApplicationService
 {
     /// <summary>
-    /// 分配用户部门归属
+    /// 批量变更用户部门归属（一次性提交分配与撤销）
     /// </summary>
-    /// <param name="input">分配参数</param>
+    /// <param name="input">批量变更参数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户部门归属详情</returns>
-    Task<UserDepartmentDetailDto> CreateUserDepartmentAsync(UserDepartmentAssignDto input, CancellationToken cancellationToken = default);
+    Task BatchUpdateUserDepartmentsAsync(UserDepartmentBatchUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新用户部门归属
@@ -34,11 +33,4 @@ public interface IUserDepartmentAppService : IApplicationService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户部门归属详情</returns>
     Task<UserDepartmentDetailDto> UpdateUserDepartmentStatusAsync(UserDepartmentStatusUpdateDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 撤销用户部门归属
-    /// </summary>
-    /// <param name="id">用户部门归属主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    Task DeleteUserDepartmentAsync(long id, CancellationToken cancellationToken = default);
 }

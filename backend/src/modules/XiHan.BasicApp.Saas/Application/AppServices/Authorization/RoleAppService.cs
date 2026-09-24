@@ -41,8 +41,6 @@ public sealed class RoleAppService
 
     private readonly IRoleDataScopeRepository _roleDataScopeRepository;
 
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
-
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -53,8 +51,7 @@ public sealed class RoleAppService
         IImpersonationPolicyService impersonationPolicyService,
         ISuperAdminProtector superAdminProtector,
         IRolePermissionRepository rolePermissionRepository,
-        IRoleDataScopeRepository roleDataScopeRepository,
-        IRoleHierarchyRepository roleHierarchyRepository)
+        IRoleDataScopeRepository roleDataScopeRepository)
     {
         _roleDomainService = roleDomainService;
         _cacheInvalidator = cacheInvalidator;
@@ -63,7 +60,6 @@ public sealed class RoleAppService
         _superAdminProtector = superAdminProtector;
         _rolePermissionRepository = rolePermissionRepository;
         _roleDataScopeRepository = roleDataScopeRepository;
-        _roleHierarchyRepository = roleHierarchyRepository;
     }
 
     /// <summary>
@@ -83,36 +79,48 @@ public sealed class RoleAppService
     }
 
     /// <summary>
-    /// 授予角色数据范围
+    /// 批量变更角色数据范围（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Grant)]
-    public async Task<RoleDataScopeDetailDto> CreateRoleDataScopeAsync(RoleDataScopeGrantDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Revoke)]
+    public async Task BatchUpdateRoleDataScopesAsync(RoleDataScopeBatchUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
-        var result = await _roleDomainService.CreateRoleDataScopeAsync(RoleDataScopeApplicationMapper.ToGrantCommand(input), cancellationToken);
+        _ = await _roleDomainService.BatchUpdateRoleDataScopesAsync(
+            new RoleDataScopeBatchUpdateCommand(
+                input.RoleId,
+                [.. input.Grants.Select(grant => new RoleDataScopeBatchGrantItem(grant.DepartmentId, grant.IncludeChildren))],
+                input.RevokeRoleDataScopeIds),
+            cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-        return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
     }
 
     /// <summary>
-    /// 创建角色直接继承关系
+    /// 批量变更角色的直接父角色（一次性提交新增与移除，单事务，仅在最后失效一次缓存）
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Create)]
-    public async Task<RoleHierarchyDetailDto> CreateRoleHierarchyAsync(RoleHierarchyCreateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Delete)]
+    public async Task BatchUpdateRoleParentsAsync(RoleHierarchyBatchUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        await _superAdminProtector.EnsureCanWriteRoleAsync(input.AncestorId, cancellationToken);
-        await _superAdminProtector.EnsureCanWriteRoleAsync(input.DescendantId, cancellationToken);
-        var result = await _roleDomainService.CreateRoleHierarchyAsync(RoleHierarchyApplicationMapper.ToCreateCommand(input), cancellationToken);
+        // 超管保护：继承方与本次涉及的每个父角色逐个过同一道闸
+        await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
+        foreach (var parentId in input.AddParentRoleIds.Concat(input.RemoveParentRoleIds).Where(id => id > 0).Distinct())
+        {
+            await _superAdminProtector.EnsureCanWriteRoleAsync(parentId, cancellationToken);
+        }
+
+        _ = await _roleDomainService.BatchUpdateRoleParentsAsync(
+            new RoleHierarchyBatchUpdateCommand(input.RoleId, input.AddParentRoleIds, input.RemoveParentRoleIds),
+            cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-        return RoleHierarchyApplicationMapper.ToDetailDto(result.Hierarchy, result.Ancestor, result.Descendant);
     }
 
     /// <summary>
@@ -167,41 +175,6 @@ public sealed class RoleAppService
         await _roleDomainService.DeleteRoleAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _cacheInvalidator.InvalidateRoleDefinitionAsync(cancellationToken);
-    }
-
-    /// <summary>
-    /// 撤销角色数据范围
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Revoke)]
-    public async Task DeleteRoleDataScopeAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var dataScope = await _roleDataScopeRepository.GetByIdAsync(id, cancellationToken);
-        if (dataScope is not null)
-        {
-            await _superAdminProtector.EnsureCanWriteRoleAsync(dataScope.RoleId, cancellationToken);
-        }
-        await _roleDomainService.DeleteRoleDataScopeAsync(id, cancellationToken);
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-    }
-
-    /// <summary>
-    /// 删除角色直接继承关系
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Delete)]
-    public async Task DeleteRoleHierarchyAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var hierarchy = await _roleHierarchyRepository.GetByIdAsync(id, cancellationToken);
-        if (hierarchy is not null)
-        {
-            await _superAdminProtector.EnsureCanWriteRoleAsync(hierarchy.AncestorId, cancellationToken);
-            await _superAdminProtector.EnsureCanWriteRoleAsync(hierarchy.DescendantId, cancellationToken);
-        }
-        await _roleDomainService.DeleteRoleHierarchyAsync(id, cancellationToken);
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>

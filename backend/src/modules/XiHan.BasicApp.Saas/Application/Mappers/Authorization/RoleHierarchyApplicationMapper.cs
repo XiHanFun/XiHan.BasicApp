@@ -13,15 +13,6 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 public static class RoleHierarchyApplicationMapper
 {
     /// <summary>
-    /// 映射角色继承创建命令
-    /// </summary>
-    public static RoleHierarchyCreateCommand ToCreateCommand(RoleHierarchyCreateDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        return new RoleHierarchyCreateCommand(input.AncestorId, input.DescendantId, input.Remark);
-    }
-
-    /// <summary>
     /// 映射角色继承列表项
     /// </summary>
     /// <param name="hierarchy">角色继承关系</param>

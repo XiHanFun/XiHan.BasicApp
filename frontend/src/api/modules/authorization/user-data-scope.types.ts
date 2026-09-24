@@ -2,11 +2,9 @@ import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString } from '../../type
 import type { DepartmentType } from '../organization'
 import type { EnableStatus, ValidityStatus } from '../shared'
 import type { TenantMemberInviteStatus, TenantMemberType } from '../tenant'
-import type { DataPermissionScope } from './role.types'
 
 export interface UserDataScopeListItemDto extends BasicDto {
   createdTime: DateTimeString
-  dataScope: DataPermissionScope
   departmentCode?: string | null
   departmentId: ApiId
   departmentName?: string | null
@@ -29,17 +27,19 @@ export interface UserDataScopeDetailDto extends UserDataScopeListItemDto {
   createdId?: ApiId | null
 }
 
-export interface UserDataScopeGrantDto {
-  dataScope: DataPermissionScope
-  departmentId?: ApiId | null
+export interface UserDataScopeBatchGrantItemDto {
+  departmentId: ApiId
   includeChildren: boolean
-  remark?: string | null
+}
+
+/** 批量变更用户数据范围（一次性提交授予与撤销）；已授予的部门再次下发即改其含下级 */
+export interface UserDataScopeBatchUpdateDto {
+  grants: UserDataScopeBatchGrantItemDto[]
+  revokeUserDataScopeIds: ApiId[]
   userId: ApiId
 }
 
 export interface UserDataScopeUpdateDto extends BasicUpdateDto {
-  dataScope: DataPermissionScope
-  departmentId?: ApiId | null
   includeChildren: boolean
   remark?: string | null
 }

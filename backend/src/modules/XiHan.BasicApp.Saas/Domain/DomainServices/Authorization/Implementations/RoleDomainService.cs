@@ -320,37 +320,114 @@ public sealed class RoleDomainService
     }
 
     /// <summary>
-    /// 授予角色数据范围
+    /// 批量变更角色数据范围（一次性提交授予与撤销）
     /// </summary>
-    public async Task<RoleDataScopeCommandResult> CreateRoleDataScopeAsync(RoleDataScopeGrantCommand command, CancellationToken cancellationToken = default)
+    /// <returns>本次实际发生变化的部门</returns>
+    public async Task<RoleDataScopeBatchUpdateResult> BatchUpdateRoleDataScopesAsync(RoleDataScopeBatchUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateRoleDataScopeGrantCommand(command);
-
-        _ = await GetCustomDataScopeRoleOrThrowAsync(command.RoleId, cancellationToken);
-        var department = await GetEnabledDepartmentOrThrowAsync(command.DepartmentId, cancellationToken);
-        if (await _roleDataScopeRepository.AnyAsync(
-            scope => scope.RoleId == command.RoleId && scope.DepartmentId == command.DepartmentId,
-            cancellationToken))
+        if (command.RoleId <= 0)
         {
-            throw new InvalidOperationException("角色数据范围已绑定。");
+            throw new ArgumentOutOfRangeException(nameof(command), "角色主键必须大于 0。");
         }
 
-        var dataScope = new SysRoleDataScope
+        // 同一部门重复下发时以最后一条为准
+        var grants = command.Grants
+            .Where(grant => grant.DepartmentId > 0)
+            .GroupBy(grant => grant.DepartmentId)
+            .ToDictionary(group => group.Key, group => group.Last().IncludeChildren);
+        var revokeIds = command.RevokeRoleDataScopeIds.Where(id => id > 0).Distinct().ToList();
+        if (grants.Count == 0 && revokeIds.Count == 0)
         {
-            RoleId = command.RoleId,
-            DepartmentId = command.DepartmentId,
-            IncludeChildren = command.IncludeChildren,
-            EffectiveTime = command.EffectiveTime,
-            ExpirationTime = command.ExpirationTime,
-            Status = ValidityStatus.Valid,
-            Remark = NormalizeNullable(command.Remark)
-        };
+            return new RoleDataScopeBatchUpdateResult([], []);
+        }
 
-        var savedDataScope = await _roleDataScopeRepository.AddAsync(dataScope, cancellationToken);
-        return new RoleDataScopeCommandResult(savedDataScope, department);
+        _ = await GetCustomDataScopeRoleOrThrowAsync(command.RoleId, cancellationToken);
+        foreach (var departmentId in grants.Keys)
+        {
+            _ = await GetEnabledDepartmentOrThrowAsync(departmentId, cancellationToken);
+        }
+
+        // 撤销只认本角色名下、仍为有效状态的记录；同一部门本次既撤又授时以授予为准（即改含下级）
+        var revoking = revokeIds.Count == 0
+            ? []
+            : (await _roleDataScopeRepository.GetListAsync(
+                scope => revokeIds.Contains(scope.BasicId)
+                    && scope.RoleId == command.RoleId
+                    && scope.Status == ValidityStatus.Valid,
+                cancellationToken))
+                .Where(scope => !grants.ContainsKey(scope.DepartmentId))
+                .ToList();
+
+        // 撤销只置无效不删行，同一 角色×部门 的历史行会留在库里，命中即就地复用
+        var departmentIds = grants.Keys.ToList();
+        var existingMap = departmentIds.Count == 0
+            ? []
+            : (await _roleDataScopeRepository.GetListAsync(
+                scope => scope.RoleId == command.RoleId && departmentIds.Contains(scope.DepartmentId),
+                cancellationToken)).ToDictionary(scope => scope.DepartmentId);
+
+        var now = DateTimeOffset.UtcNow;
+        var updating = new List<SysRoleDataScope>();
+        var adding = new List<SysRoleDataScope>();
+        var grantedDepartmentIds = new List<long>();
+        foreach (var (departmentId, includeChildren) in grants)
+        {
+            if (!existingMap.TryGetValue(departmentId, out var dataScope))
+            {
+                adding.Add(new SysRoleDataScope
+                {
+                    RoleId = command.RoleId,
+                    DepartmentId = departmentId,
+                    IncludeChildren = includeChildren,
+                    Status = ValidityStatus.Valid
+                });
+                grantedDepartmentIds.Add(departmentId);
+                continue;
+            }
+
+            var effective = IsEffective(dataScope.Status, dataScope.EffectiveTime, dataScope.ExpirationTime, now);
+            if (effective && dataScope.IncludeChildren == includeChildren)
+            {
+                continue;
+            }
+
+            // 此刻不生效的历史行按「从现在起生效」复用：只改状态不动时间窗，保存后仍不生效
+            if (!effective)
+            {
+                dataScope.EffectiveTime = null;
+                dataScope.ExpirationTime = null;
+            }
+
+            dataScope.IncludeChildren = includeChildren;
+            dataScope.Status = ValidityStatus.Valid;
+            updating.Add(dataScope);
+            grantedDepartmentIds.Add(departmentId);
+        }
+
+        if (revoking.Count > 0)
+        {
+            foreach (var dataScope in revoking)
+            {
+                dataScope.Status = ValidityStatus.Invalid;
+            }
+
+            _ = await _roleDataScopeRepository.UpdateRangeAsync(revoking, cancellationToken);
+        }
+
+        if (updating.Count > 0)
+        {
+            _ = await _roleDataScopeRepository.UpdateRangeAsync(updating, cancellationToken);
+        }
+
+        if (adding.Count > 0)
+        {
+            _ = await _roleDataScopeRepository.AddRangeAsync(adding, cancellationToken);
+        }
+
+        return new RoleDataScopeBatchUpdateResult(grantedDepartmentIds, [.. revoking.Select(dataScope => dataScope.DepartmentId)]);
     }
 
     /// <summary>
@@ -409,49 +486,99 @@ public sealed class RoleDomainService
     }
 
     /// <summary>
-    /// 撤销角色数据范围
+    /// 批量变更角色的直接父角色（一次性提交新增与移除，先移除后新增）
     /// </summary>
-    public async Task DeleteRoleDataScopeAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var dataScope = await GetRoleDataScopeOrThrowAsync(id, cancellationToken);
-        dataScope.Status = ValidityStatus.Invalid;
-
-        _ = await _roleDataScopeRepository.UpdateAsync(dataScope, cancellationToken);
-    }
-
-    /// <summary>
-    /// 创建角色直接继承关系
-    /// </summary>
-    public async Task<RoleHierarchyCommandResult> CreateRoleHierarchyAsync(RoleHierarchyCreateCommand command, CancellationToken cancellationToken = default)
+    /// <remarks>
+    /// 继承关系以闭包表存储，整表读出后在内存里先摘边、再加边，最后一次性删除与写入闭包行。
+    /// 先摘后加：本次一并移除的旧路径不会挡住新增，一并移除的多条父边也不会互为替代路径
+    /// </remarks>
+    /// <returns>本次实际发生变化的直接父角色</returns>
+    public async Task<RoleHierarchyBatchUpdateResult> BatchUpdateRoleParentsAsync(RoleHierarchyBatchUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateRoleHierarchyCreateCommand(command);
-
-        var ancestor = await GetRoleForHierarchyOrThrowAsync(command.AncestorId, cancellationToken);
-        var descendant = await GetRoleForHierarchyOrThrowAsync(command.DescendantId, cancellationToken);
-        EnsureDescendantCanBeMaintainedForHierarchy(descendant);
-
-        if (await _roleHierarchyRepository.AnyAsync(
-            hierarchy => hierarchy.AncestorId == command.AncestorId && hierarchy.DescendantId == command.DescendantId,
-            cancellationToken))
+        if (command.RoleId <= 0)
         {
-            throw new InvalidOperationException("角色继承关系已存在。");
+            throw new ArgumentOutOfRangeException(nameof(command), "角色主键必须大于 0。");
         }
 
-        if (await _roleHierarchyRepository.AnyAsync(
-            hierarchy => hierarchy.AncestorId == command.DescendantId && hierarchy.DescendantId == command.AncestorId,
-            cancellationToken))
+        var addParentIds = command.AddParentRoleIds.Where(id => id > 0).Distinct().ToList();
+        // 同一父角色本次既加又移时以新增为准
+        var removeParentIds = command.RemoveParentRoleIds
+            .Where(id => id > 0 && !addParentIds.Contains(id))
+            .ToHashSet();
+        if (addParentIds.Count == 0 && removeParentIds.Count == 0)
+        {
+            return new RoleHierarchyBatchUpdateResult([], []);
+        }
+
+        if (addParentIds.Contains(command.RoleId))
+        {
+            throw new InvalidOperationException("角色不能继承自己。");
+        }
+
+        var role = await GetRoleForHierarchyOrThrowAsync(command.RoleId, cancellationToken);
+        EnsureDescendantCanBeMaintainedForHierarchy(role);
+
+        var workingHierarchies = (await _roleHierarchyRepository.GetAllAsync(cancellationToken)).ToList();
+
+        // 移除只认本角色现有的直接父边
+        var removedParentIds = workingHierarchies
+            .Where(hierarchy => hierarchy.Depth == 1
+                && hierarchy.DescendantId == role.BasicId
+                && removeParentIds.Contains(hierarchy.AncestorId))
+            .Select(hierarchy => hierarchy.AncestorId)
+            .Distinct()
+            .ToList();
+        var deleting = removedParentIds.Count == 0
+            ? []
+            : RemoveDirectEdges([.. removedParentIds.Select(parentId => new HierarchyPair(parentId, role.BasicId))], workingHierarchies);
+
+        // 已是直接父角色的视为已达成
+        var adding = new List<SysRoleHierarchy>();
+        var addedParentIds = new List<long>();
+        foreach (var parentId in addParentIds)
+        {
+            if (workingHierarchies.Any(hierarchy => hierarchy.Depth == 1 && hierarchy.AncestorId == parentId && hierarchy.DescendantId == role.BasicId))
+            {
+                continue;
+            }
+
+            var parent = await GetRoleForHierarchyOrThrowAsync(parentId, cancellationToken);
+            AddDirectEdge(parent, role, workingHierarchies, adding);
+            addedParentIds.Add(parentId);
+        }
+
+        // 摘掉又被新路径补回的闭包行照删照加，深度与路径按新路径重算
+        if (deleting.Count > 0)
+        {
+            var deletingIds = deleting.Select(hierarchy => hierarchy.BasicId).ToList();
+            _ = await _roleHierarchyRepository.DeleteAsync(hierarchy => deletingIds.Contains(hierarchy.BasicId), cancellationToken);
+        }
+
+        if (adding.Count > 0)
+        {
+            _ = await _roleHierarchyRepository.AddRangeAsync(adding, cancellationToken);
+        }
+
+        return new RoleHierarchyBatchUpdateResult(addedParentIds, removedParentIds);
+    }
+
+    /// <summary>
+    /// 在工作集中加一条直接继承边并补齐闭包，新生成的闭包行追加到 addList
+    /// </summary>
+    private static void AddDirectEdge(SysRole ancestor, SysRole descendant, List<SysRoleHierarchy> workingHierarchies, List<SysRoleHierarchy> addList)
+    {
+        if (workingHierarchies.Any(hierarchy => hierarchy.AncestorId == ancestor.BasicId && hierarchy.DescendantId == descendant.BasicId))
+        {
+            throw new InvalidOperationException("角色已间接继承该父角色，无需再直接继承。");
+        }
+
+        if (workingHierarchies.Any(hierarchy => hierarchy.AncestorId == descendant.BasicId && hierarchy.DescendantId == ancestor.BasicId))
         {
             throw new InvalidOperationException("角色继承关系会形成环路。");
         }
-
-        var existingHierarchies = (await _roleHierarchyRepository.GetAllAsync(cancellationToken)).ToList();
-        var addList = new List<SysRoleHierarchy>();
-        var workingHierarchies = new List<SysRoleHierarchy>(existingHierarchies);
 
         EnsureSelfHierarchy(ancestor, workingHierarchies, addList);
         EnsureSelfHierarchy(descendant, workingHierarchies, addList);
@@ -471,94 +598,59 @@ public sealed class RoleDomainService
             foreach (var descendantClosure in descendantClosures)
             {
                 var pair = new HierarchyPair(ancestorClosure.AncestorId, descendantClosure.DescendantId);
-                if (existingPairs.Contains(pair))
+                if (!existingPairs.Add(pair))
                 {
                     continue;
                 }
 
-                var isDirectEdge = pair.AncestorId == ancestor.BasicId && pair.DescendantId == descendant.BasicId;
                 var hierarchy = new SysRoleHierarchy
                 {
                     AncestorId = pair.AncestorId,
                     DescendantId = pair.DescendantId,
                     Depth = ancestorClosure.Depth + 1 + descendantClosure.Depth,
-                    Path = BuildCombinedPath(ancestorClosure, descendantClosure),
-                    Remark = isDirectEdge ? NormalizeNullable(command.Remark) : null
+                    Path = BuildCombinedPath(ancestorClosure, descendantClosure)
                 };
 
                 addList.Add(hierarchy);
                 workingHierarchies.Add(hierarchy);
-                existingPairs.Add(pair);
             }
         }
-
-        if (addList.Count == 0)
-        {
-            throw new InvalidOperationException("未生成新的角色继承闭包记录。");
-        }
-
-        _ = await _roleHierarchyRepository.AddRangeAsync(addList, cancellationToken);
-
-        var directHierarchy = await _roleHierarchyRepository.GetFirstAsync(
-            hierarchy => hierarchy.AncestorId == ancestor.BasicId && hierarchy.DescendantId == descendant.BasicId && hierarchy.Depth == 1,
-            cancellationToken)
-            ?? throw new InvalidOperationException("角色直接继承关系创建失败。");
-
-        return new RoleHierarchyCommandResult(directHierarchy, ancestor, descendant);
     }
 
     /// <summary>
-    /// 删除角色直接继承关系
+    /// 从工作集中摘掉一组直接继承边，连带摘掉只经由它们可达的闭包行，返回被摘掉的行
     /// </summary>
-    public async Task DeleteRoleHierarchyAsync(long id, CancellationToken cancellationToken = default)
+    private static List<SysRoleHierarchy> RemoveDirectEdges(IReadOnlyCollection<HierarchyPair> directPairs, List<SysRoleHierarchy> workingHierarchies)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var directHierarchy = await GetDirectHierarchyOrThrowAsync(id, cancellationToken);
-        var descendant = await GetRoleForHierarchyOrThrowAsync(directHierarchy.DescendantId, cancellationToken);
-        EnsureDescendantCanBeMaintainedForHierarchy(descendant);
-
-        var existingHierarchies = (await _roleHierarchyRepository.GetAllAsync(cancellationToken)).ToList();
-        var remainingDirectEdges = existingHierarchies
-            .Where(hierarchy => hierarchy.Depth == 1 && hierarchy.BasicId != directHierarchy.BasicId)
-            .Where(hierarchy => hierarchy.AncestorId != directHierarchy.AncestorId || hierarchy.DescendantId != directHierarchy.DescendantId)
+        var remainingDirectEdges = workingHierarchies
+            .Where(hierarchy => hierarchy.Depth == 1 && !directPairs.Contains(new HierarchyPair(hierarchy.AncestorId, hierarchy.DescendantId)))
             .ToArray();
         var remainingPairs = BuildReachablePairs(remainingDirectEdges);
-        var directPair = new HierarchyPair(directHierarchy.AncestorId, directHierarchy.DescendantId);
-        if (remainingPairs.Contains(directPair))
+        if (directPairs.Any(remainingPairs.Contains))
         {
             throw new InvalidOperationException("该直接继承关系存在替代路径，需先清理替代路径后再删除。");
         }
 
-        var impactedAncestorIds = existingHierarchies
-            .Where(hierarchy => hierarchy.DescendantId == directHierarchy.AncestorId)
+        var impactedAncestorIds = workingHierarchies
+            .Where(hierarchy => directPairs.Any(pair => pair.AncestorId == hierarchy.DescendantId))
             .Select(hierarchy => hierarchy.AncestorId)
-            .Append(directHierarchy.AncestorId)
-            .Distinct()
+            .Concat(directPairs.Select(pair => pair.AncestorId))
             .ToHashSet();
-        var impactedDescendantIds = existingHierarchies
-            .Where(hierarchy => hierarchy.AncestorId == directHierarchy.DescendantId)
+        var impactedDescendantIds = workingHierarchies
+            .Where(hierarchy => directPairs.Any(pair => pair.DescendantId == hierarchy.AncestorId))
             .Select(hierarchy => hierarchy.DescendantId)
-            .Append(directHierarchy.DescendantId)
-            .Distinct()
+            .Concat(directPairs.Select(pair => pair.DescendantId))
             .ToHashSet();
-        var deletePairs = existingHierarchies
-            .Where(hierarchy => hierarchy.Depth > 0)
-            .Select(hierarchy => new HierarchyPair(hierarchy.AncestorId, hierarchy.DescendantId))
-            .Where(pair => impactedAncestorIds.Contains(pair.AncestorId))
-            .Where(pair => impactedDescendantIds.Contains(pair.DescendantId))
-            .Where(pair => !remainingPairs.Contains(pair))
-            .Distinct()
-            .ToArray();
+        var removing = workingHierarchies
+            .Where(hierarchy => hierarchy.Depth > 0
+                && impactedAncestorIds.Contains(hierarchy.AncestorId)
+                && impactedDescendantIds.Contains(hierarchy.DescendantId)
+                && !remainingPairs.Contains(new HierarchyPair(hierarchy.AncestorId, hierarchy.DescendantId)))
+            .ToList();
 
-        foreach (var pair in deletePairs)
-        {
-            var ancestorId = pair.AncestorId;
-            var descendantId = pair.DescendantId;
-            _ = await _roleHierarchyRepository.DeleteAsync(
-                hierarchy => hierarchy.AncestorId == ancestorId && hierarchy.DescendantId == descendantId,
-                cancellationToken);
-        }
+        var removingSet = new HashSet<SysRoleHierarchy>(removing, ReferenceEqualityComparer.Instance);
+        _ = workingHierarchies.RemoveAll(removingSet.Contains);
+        return removing;
     }
 
     private static void ValidateCreateCommand(RoleCreateCommand command)
@@ -607,21 +699,6 @@ public sealed class RoleDomainService
         ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
     }
 
-    private static void ValidateRoleDataScopeGrantCommand(RoleDataScopeGrantCommand command)
-    {
-        if (command.RoleId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "角色主键必须大于 0。");
-        }
-
-        if (command.DepartmentId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "部门主键必须大于 0。");
-        }
-
-        ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
-    }
-
     private static void ValidateRoleDataScopeUpdateCommand(RoleDataScopeUpdateCommand command)
     {
         if (command.BasicId <= 0)
@@ -630,24 +707,6 @@ public sealed class RoleDomainService
         }
 
         ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
-    }
-
-    private static void ValidateRoleHierarchyCreateCommand(RoleHierarchyCreateCommand command)
-    {
-        if (command.AncestorId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "祖先角色主键必须大于 0。");
-        }
-
-        if (command.DescendantId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "后代角色主键必须大于 0。");
-        }
-
-        if (command.AncestorId == command.DescendantId)
-        {
-            throw new InvalidOperationException("角色不能继承自己。");
-        }
     }
 
     private static void EnsureSelfHierarchy(SysRole role, List<SysRoleHierarchy> workingHierarchies, List<SysRoleHierarchy> addList)
@@ -931,24 +990,6 @@ public sealed class RoleDomainService
 
         return await _roleRepository.GetByIdAsync(roleId, cancellationToken)
             ?? throw new InvalidOperationException("角色不存在。");
-    }
-
-    private async Task<SysRoleHierarchy> GetDirectHierarchyOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "角色继承主键必须大于 0。");
-        }
-
-        var hierarchy = await _roleHierarchyRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("角色继承关系不存在。");
-
-        if (hierarchy.Depth != 1)
-        {
-            throw new InvalidOperationException("只能删除直接继承关系。");
-        }
-
-        return hierarchy;
     }
 
     private readonly record struct HierarchyPair(long AncestorId, long DescendantId);

@@ -26,8 +26,9 @@ export interface RoleHierarchyDetailDto extends RoleHierarchyListItemDto {
   createdId?: ApiId | null
 }
 
-export interface RoleHierarchyCreateDto {
-  ancestorId: ApiId
-  descendantId: ApiId
-  remark?: string | null
+/** 批量变更角色的直接父角色（一次性提交新增与移除） */
+export interface RoleHierarchyBatchUpdateDto {
+  addParentRoleIds: ApiId[]
+  removeParentRoleIds: ApiId[]
+  roleId: ApiId
 }

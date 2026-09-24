@@ -1,7 +1,7 @@
 import type { DynamicApiParams } from '../../base'
 import type { ApiId } from '../../types'
 import type {
-  UserDepartmentAssignDto,
+  UserDepartmentBatchUpdateDto,
   UserDepartmentListItemDto,
   UserDepartmentStatusUpdateDto,
   UserDepartmentUpdateDto,
@@ -17,8 +17,9 @@ const userDepartmentCommandApi = createDynamicApiClient('UserDepartment')
 
 /** 用户部门归属接口 */
 export const userDepartmentApi = {
-  assign(input: UserDepartmentAssignDto) {
-    return userDepartmentCommandApi.post<UserDepartmentListItemDto, UserDepartmentAssignDto>('UserDepartment', input)
+  /** 一次性提交本次分配与撤销（单事务），主部门由后端保持唯一 */
+  batchUpdate(input: UserDepartmentBatchUpdateDto) {
+    return userDepartmentCommandApi.post<void, UserDepartmentBatchUpdateDto>('BatchUpdateUserDepartments', input)
   },
   departmentUsers(departmentId: ApiId, includeChildren = true, onlyValid = true) {
     const params: DynamicApiParams = {}
@@ -36,9 +37,6 @@ export const userDepartmentApi = {
       'UserDepartments',
       { ...params, userId },
     )
-  },
-  revoke(id: ApiId) {
-    return userDepartmentCommandApi.delete('UserDepartment', { id })
   },
   update(input: UserDepartmentUpdateDto) {
     return userDepartmentCommandApi.put<UserDepartmentListItemDto, UserDepartmentUpdateDto>('UserDepartment', input)
