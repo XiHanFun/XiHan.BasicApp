@@ -39,6 +39,25 @@ export interface UserRoleBatchUpdateDto {
   userId: ApiId
 }
 
+/** 以角色为中心批量维护成员：加入按用户主键，移出按绑定主键 */
+export interface RoleMemberBatchUpdateDto {
+  grantUserIds: ApiId[]
+  revokeUserRoleIds: ApiId[]
+  roleId: ApiId
+}
+
+/** 角色在本租户此刻生效的成员 */
+export interface RoleMemberDto {
+  effectiveTime?: DateTimeString | null
+  expirationTime?: DateTimeString | null
+  isExternalMember: boolean
+  nickName?: string | null
+  realName?: string | null
+  userId: ApiId
+  userName: string
+  userRoleId: ApiId
+}
+
 export interface UserRoleUpdateDto extends BasicUpdateDto {
   effectiveTime?: DateTimeString | null
   expirationTime?: DateTimeString | null

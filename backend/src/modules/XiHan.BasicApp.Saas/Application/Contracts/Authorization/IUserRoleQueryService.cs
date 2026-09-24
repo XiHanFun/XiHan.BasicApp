@@ -21,6 +21,14 @@ public interface IUserRoleQueryService : IApplicationService
     Task<IReadOnlyList<UserRoleListItemDto>> GetUserRolesAsync(long userId, bool onlyValid = false, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取角色在本租户此刻生效的成员
+    /// </summary>
+    /// <param name="roleId">角色主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色成员</returns>
+    Task<IReadOnlyList<RoleMemberDto>> GetRoleMembersAsync(long roleId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取用户角色详情
     /// </summary>
     /// <param name="id">用户角色绑定主键</param>

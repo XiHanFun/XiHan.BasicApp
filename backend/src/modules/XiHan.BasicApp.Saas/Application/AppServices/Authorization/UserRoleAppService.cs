@@ -113,6 +113,61 @@ public sealed class UserRoleAppService
     }
 
     /// <summary>
+    /// 批量变更角色成员（以角色为中心，一次性提交加入与移出，单事务，仅在最后失效一次缓存）
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.UserRole.Grant)]
+    [PermissionAuthorize(SaasPermissionCodes.UserRole.Revoke)]
+    public async Task BatchUpdateRoleMembersAsync(RoleMemberBatchUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // 超管保护：非超管不得授予或撤销 super_admin 角色，也不得改超管用户的角色——
+        // 移出项按记录主键解析出成员，与加入项一起逐个过同一道闸
+        await _superAdminProtector.EnsureCanAssignRoleAsync(input.RoleId, cancellationToken);
+        var revokeIds = input.RevokeUserRoleIds.Where(id => id > 0).Distinct().ToList();
+        var revokingUserIds = revokeIds.Count == 0
+            ? []
+            : (await _userRoleRepository.GetListAsync(
+                userRole => revokeIds.Contains(userRole.BasicId) && userRole.RoleId == input.RoleId,
+                cancellationToken)).Select(userRole => userRole.UserId).ToList();
+        foreach (var userId in input.GrantUserIds.Concat(revokingUserIds).Distinct())
+        {
+            await _superAdminProtector.EnsureCanWriteUserAsync(userId, cancellationToken);
+        }
+
+        // 角色是与直授等价的授权通道：角色里含模仿权限时，加人走与直授同一道准入
+        if (input.GrantUserIds.Count > 0)
+        {
+            await _impersonationPolicyService.EnsureCanGrantRoleIdsAsync([input.RoleId], cancellationToken);
+        }
+
+        var result = await _userDomainService.BatchUpdateRoleMembersAsync(
+            new RoleMemberBatchUpdateCommand(input.RoleId, input.GrantUserIds, input.RevokeUserRoleIds),
+            cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+
+        // 逐条记录本次实际发生的角色变更（审计）
+        foreach (var (changeType, userIds) in new[]
+        {
+            (PermissionChangeType.UserRemoveRole, result.RevokedUserIds),
+            (PermissionChangeType.UserAssignRole, result.GrantedUserIds)
+        })
+        {
+            foreach (var userId in userIds)
+            {
+                await _authorizationChangeNotifier.NotifyAsync(
+                    changeType,
+                    targetUserId: userId,
+                    targetRoleId: input.RoleId,
+                    permissionId: null,
+                    cancellationToken: cancellationToken);
+            }
+        }
+    }
+
+    /// <summary>
     /// 更新用户角色
     /// </summary>
     [UnitOfWork(true)]

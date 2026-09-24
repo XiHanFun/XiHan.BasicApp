@@ -8,7 +8,7 @@
 import type { AxiosRequestConfig } from '~/request'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { permissionChangeLogApi } from './modules/audit'
-import { DataPermissionScope, roleDataScopeApi, roleHierarchyApi, userDataScopeApi } from './modules/authorization'
+import { DataPermissionScope, roleDataScopeApi, roleHierarchyApi, userDataScopeApi, userRoleApi } from './modules/authorization'
 import { cacheApi } from './modules/cache'
 import { dictApi } from './modules/configuration'
 import { exportTaskApi } from './modules/export'
@@ -250,6 +250,16 @@ describe('易写错的控制器归属', () => {
     await userDepartmentApi.batchUpdate({ userId: '1', assigns: [], revokeUserDepartmentIds: [] })
 
     expect(only()).toMatchObject({ method: 'POST', url: '/UserDepartment/BatchUpdateUserDepartments' })
+  })
+
+  it('角色成员的批量变更与成员列表落在用户角色的命令 / 查询控制器', async () => {
+    await userRoleApi.batchUpdateRoleMembers({ roleId: '1', grantUserIds: [], revokeUserRoleIds: [] })
+    await userRoleApi.roleMembers('1')
+
+    expect(calls.map(item => `${item.method} ${item.url}`)).toEqual([
+      'POST /UserRole/BatchUpdateRoleMembers',
+      'GET /UserRoleQuery/RoleMembers',
+    ])
   })
 
   it('数据范围设置与角色继承的批量变更分别落在各自的命令控制器', async () => {

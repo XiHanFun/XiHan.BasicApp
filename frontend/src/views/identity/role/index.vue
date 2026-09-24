@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DataScopeDraft } from '../components/data-scope'
+import type { RoleMemberCandidate } from './role-members'
 import type {
   ApiId,
   DepartmentTreeNodeDto,
@@ -10,8 +11,10 @@ import type {
   RoleDetailDto,
   RoleListItemDto,
   RoleManagementDetailDto,
+  RoleMemberDto,
   RolePermissionListItemDto,
   RoleUpdateDto,
+  UserSelectItemDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { TreeSelectOption } from '~/types'
@@ -32,10 +35,12 @@ import {
   roleManagementApi,
   rolePermissionApi,
   RoleType,
+  userApi,
+  userRoleApi,
   ValidityStatus,
 } from '@/api'
 import { DATA_SCOPE_OPTIONS, PERMISSION_ACTION_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer, XSelect, XTree } from '~/components'
+import { SchemaPage, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XTree } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -43,6 +48,7 @@ import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 import { isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from '../components/data-scope'
 import DataScopeEditor from '../components/DataScopeEditor.vue'
+import { diffRoleMembers, mergeMemberCandidates } from './role-members'
 
 defineOptions({ name: 'SystemRolePage' })
 
@@ -90,6 +96,11 @@ function toBool(v: unknown): boolean | undefined {
 
 const userStore = useUserStore()
 const isPlatformContext = computed(() => userStore.userInfo?.isPlatform ?? false)
+
+/** 系统角色只在平台分配；全局角色在租户里也可分配给本租户成员 */
+function canAssignMembers(row: RoleListItemDto) {
+  return isPlatformContext.value || row.roleType !== RoleType.System
+}
 
 /**
  * 全局角色(TenantId=0)与系统角色只在平台维护；租户里隐藏编辑/启停/删除入口，
@@ -205,6 +216,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('identity.role.action_edit'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
     { key: 'assignPermission', title: t('identity.role.action_assign_permission'), scope: 'row' },
     { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row' },
+    { key: 'members', title: t('identity.role.action_members'), scope: 'row', visible: row => canAssignMembers(row as unknown as RoleListItemDto) },
     { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
     { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
     { key: 'delete', title: t('identity.role.action_delete'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
@@ -251,6 +263,11 @@ function onAction(payload: SchemaActionPayload) {
     case 'assignDataScope':
       if (row) {
         void openScopeDrawer(row)
+      }
+      break
+    case 'members':
+      if (row) {
+        void openMembersDrawer(row)
       }
       break
   }
@@ -571,6 +588,74 @@ async function saveMenuGrants() {
   }
   finally {
     menuLoading.value = false
+  }
+}
+
+// ── 角色成员抽屉（穿梭框，挪好后一次提交加入与移出） ──────────────
+const membersVisible = ref(false)
+const membersRole = ref<RoleListItemDto | null>(null)
+/** 此刻生效的成员，保存时与草稿比出差量 */
+const members = ref<RoleMemberDto[]>([])
+/** 本租户的成员目录（候选人），保存后与新的成员列表重新合并 */
+const memberDirectory = ref<UserSelectItemDto[]>([])
+const memberCandidates = computed(() => mergeMemberCandidates(memberDirectory.value, members.value))
+const memberDraft = ref<ApiId[]>([])
+const membersLoading = ref(false)
+const membersSubmitting = ref(false)
+const memberChanges = computed(() => diffRoleMembers(memberDraft.value, members.value))
+const membersDirty = computed(() => memberChanges.value.grantUserIds.length > 0 || memberChanges.value.revokeUserRoleIds.length > 0)
+const memberGroups = computed(() => [{ key: 'members', name: '', items: memberCandidates.value }])
+
+function resetMembers(current: RoleMemberDto[]) {
+  members.value = current
+  memberDraft.value = current.map(member => member.userId)
+}
+
+async function openMembersDrawer(row: RoleListItemDto) {
+  membersRole.value = row
+  membersVisible.value = true
+  memberDirectory.value = []
+  resetMembers([])
+  membersLoading.value = true
+  try {
+    // 候选人就是本租户的成员目录（平台里是平台账号），含注册在别处的外部成员
+    const [current, candidates] = await Promise.all([
+      userRoleApi.roleMembers(row.basicId),
+      userApi.select({ limit: 500 }),
+    ])
+    memberDirectory.value = candidates
+    resetMembers(current)
+  }
+  catch (e: unknown) {
+    toast.danger((e as Error)?.message || t('identity.role.members_load_failed'))
+  }
+  finally {
+    membersLoading.value = false
+  }
+}
+
+function memberDescription(item: RoleMemberCandidate) {
+  return item.isExternalMember ? `@${item.userName} · ${t('identity.role.member_external')}` : `@${item.userName}`
+}
+
+async function saveMembers() {
+  const role = membersRole.value
+  if (!role || !membersDirty.value || membersSubmitting.value) {
+    return
+  }
+
+  const { grantUserIds, revokeUserRoleIds } = memberChanges.value
+  membersSubmitting.value = true
+  try {
+    await userRoleApi.batchUpdateRoleMembers({ roleId: role.basicId, grantUserIds, revokeUserRoleIds })
+    resetMembers(await userRoleApi.roleMembers(role.basicId))
+    toast.success(t('identity.role.members_saved', { grant: grantUserIds.length, revoke: revokeUserRoleIds.length }))
+  }
+  catch (e: unknown) {
+    toast.danger((e as Error)?.message || t('common.messages.save_failed'))
+  }
+  finally {
+    membersSubmitting.value = false
   }
 }
 
@@ -1283,6 +1368,37 @@ async function handleToggleStatus(row: RoleListItemDto) {
       </XhDrawerContent>
     </XhDrawerRoot>
 
+    <XhDrawerRoot v-model:open="membersVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 720px">
+        <XhDrawerTitle>{{ t('identity.role.members_title', { name: membersRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <p class="members-tip">
+          {{ t('identity.role.members_tip') }}
+        </p>
+        <XGrantTransfer
+          :items="memberCandidates"
+          :value="memberDraft"
+          :groups="memberGroups"
+          :get-label="item => item.displayName"
+          :get-description="memberDescription"
+          :loading="membersLoading"
+          :disabled="membersLoading || membersSubmitting"
+          :source-title="t('identity.role.members_source')"
+          :target-title="t('identity.role.members_target')"
+          :search-placeholder="t('identity.role.members_search')"
+          @update:value="value => (memberDraft = value)"
+        />
+        <div class="xh-dialog-footer">
+          <XhButton variant="subtle" @click="membersVisible = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton variant="subtle" tone="brand" :loading="membersSubmitting" :disabled="!membersDirty || membersLoading" style="margin-left: 8px" @click="saveMembers">
+            {{ t('identity.role.members_save') }}
+          </XhButton>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+
     <XhDrawerRoot v-model:open="scopeVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 640px">
         <XhDrawerTitle>{{ t('identity.data_scope.drawer_title', { name: scopeRole?.roleName ?? '' }) }}</XhDrawerTitle>
@@ -1318,6 +1434,13 @@ async function handleToggleStatus(row: RoleListItemDto) {
   margin: 14px 0 0;
   font-size: 12px;
   opacity: 0.6;
+}
+
+/* 角色成员抽屉 */
+.members-tip {
+  margin: 0;
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-text-caption-size);
 }
 
 /* 数据范围抽屉：编辑区撑满抽屉剩余高度，保存/取消落在抽屉底部；部门多时在这里滚动 */

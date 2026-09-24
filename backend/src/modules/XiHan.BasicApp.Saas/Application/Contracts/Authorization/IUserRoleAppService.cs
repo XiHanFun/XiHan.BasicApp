@@ -19,6 +19,13 @@ public interface IUserRoleAppService : IApplicationService
     Task BatchUpdateUserRolesAsync(UserRoleBatchUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 批量变更角色成员（以角色为中心，一次性提交加入与移出）
+    /// </summary>
+    /// <param name="input">批量变更参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task BatchUpdateRoleMembersAsync(RoleMemberBatchUpdateDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 更新用户角色
     /// </summary>
     /// <param name="input">更新参数</param>
