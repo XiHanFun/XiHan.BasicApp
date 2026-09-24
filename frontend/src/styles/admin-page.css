@@ -1,18 +1,24 @@
 /*
  * 新增/编辑弹窗统一表单网格（以用户页为基准，配合 XEditModal 使用）：
- * 两列等宽、行列间距 10px、紧凑标签；跨整行字段（备注/长文本等）加 .xh-span-2。
+ * 两列等宽、紧凑行距、紧凑标签；跨整行字段（备注/长文本等）加 .xh-span-2。
  * 加在 XhFormRoot 或普通 div 容器上均可。
  *
- * 标签字号与「标签↔控件」的间距走组件库的覆盖槽，两个值在这里一处给全网格内的字段。
+ * 标签字号与字段内的几段间距走组件库的覆盖槽，在这里一处给全网格内的字段。
  * 紧凑网格里标签刻意比 md 控件文字低一档，取说明 / helper 那档字号，层级靠字号差表达。
+ *
+ * 行距的主体是字段底下那一行错误文案占位：组件库给渲染了 error-text 的字段常驻留着这一行，
+ * 报错时文案顶进去、表单不重排。所以控件到它这一行只隔一小段（报错时文案贴着出错的控件），
+ * 行与行之间也只再补一小段；标签到控件另走 label-gap-block，保持原来的距离不动。
  */
 .xh-edit-form-grid {
   --xh-field-label-font-size: var(--xh-text-secondary-size);
-  --xh-field-gap: 8px;
+  --xh-field-label-gap-block: var(--xh-space-2);
+  --xh-field-gap: var(--xh-space-1);
 
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  row-gap: var(--xh-space-1);
+  column-gap: var(--xh-space-2_5);
 }
 
 .xh-edit-form-grid .xh-span-2 {

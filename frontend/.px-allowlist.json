@@ -376,7 +376,7 @@
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/styles/admin-page.css": {
-    "cap": 10,
+    "cap": 8,
     "reason": "页面外壳的排版刻度"
   },
   "src/views/approval/constraint/index.vue": {

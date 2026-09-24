@@ -72,7 +72,7 @@ function handleCancel() {
 
 <template>
   <!-- 新增/编辑弹窗统一外壳（以用户页为基准）：
-       表单内容配合全局 .xh-edit-form-grid 网格（两列/行距 10px/紧凑标签），跨整行字段加 .xh-span-2。
+       表单内容配合全局 .xh-edit-form-grid 网格（两列/紧凑行距/紧凑标签），跨整行字段加 .xh-span-2。
        点遮罩不关：编辑到一半误点外面就丢内容，只能由取消/保存/Esc 收场 -->
   <XhDialogRoot
     :open="show"
