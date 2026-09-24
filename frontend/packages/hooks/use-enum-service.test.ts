@@ -10,6 +10,10 @@ import type { AppEnumBatchQuery, AppEnumDefinition, AppEnumOption } from '~/type
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
+// 预热依赖图：~/stores 桶文件会牵出 router、i18n 等整张图，首次转换在满并行下要数秒。
+// 静态导入让这笔开销落在文件收集阶段，不计入任何用例的超时；用例里 vi.resetModules()
+// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的。
+import './useEnumService'
 
 type BatchFn = (query: AppEnumBatchQuery) => Promise<Record<string, AppEnumDefinition>>
 
