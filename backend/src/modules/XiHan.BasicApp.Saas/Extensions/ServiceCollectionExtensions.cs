@@ -269,7 +269,6 @@ public static class ServiceCollectionExtensions
         // 授权事件
         services.AddSaasLocalEventHandler<AuthorizationChangedEventHandler>();
         services.AddSaasLocalEventHandler<PermissionChangeLogEventHandler>();
-        services.AddSaasLocalEventHandler<DataScopeChangedEventHandler>();
         services.AddSaasLocalEventHandler<FieldLevelSecurityChangedEventHandler>();
 
         // 组织层级事件
