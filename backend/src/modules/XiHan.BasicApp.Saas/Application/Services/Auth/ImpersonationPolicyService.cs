@@ -23,11 +23,6 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 /// </remarks>
 public sealed class ImpersonationPolicyService : IImpersonationPolicyService
 {
-    /// <summary>
-    /// 超级管理员角色编码（与种子/授权快照约定一致）。
-    /// </summary>
-    private const string SuperAdminRoleCode = "super_admin";
-
     private readonly IAuthContextQueryService _authContextQueryService;
 
     private readonly IAuthorizationSnapshotQueryService _authorizationSnapshotQueryService;
@@ -132,7 +127,7 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
         }
 
         var operatorSnapshot = await _authorizationSnapshotQueryService.BuildAsync(operatorUserId, now, cancellationToken);
-        var operatorIsSuperAdmin = operatorSnapshot.Roles.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase);
+        var operatorIsSuperAdmin = operatorSnapshot.Roles.Contains(SaasRoleCodes.SuperAdmin, StringComparer.OrdinalIgnoreCase);
 
         var targetTenantId = await ResolveTargetTenantIdAsync(
             operatorTenantId,

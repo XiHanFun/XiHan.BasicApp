@@ -86,6 +86,13 @@ public sealed record TenantSupportMemberAddCommand(
     long? OperatorUserId);
 
 /// <summary>
+/// 所有权转移命令（平台把租户所有者身份转给该租户的另一名成员）
+/// </summary>
+/// <param name="TenantId">租户主键</param>
+/// <param name="MemberId">接任所有者的成员关系主键</param>
+public sealed record TenantOwnerTransferCommand(long TenantId, long MemberId);
+
+/// <summary>
 /// 租户成员更新命令
 /// </summary>
 public sealed record TenantMemberUpdateCommand(
@@ -116,3 +123,11 @@ public sealed record TenantCommandResult(SysTenant Tenant, DateTimeOffset Now);
 /// 租户成员命令结果
 /// </summary>
 public sealed record TenantMemberCommandResult(SysTenantUser Member, DateTimeOffset Now);
+
+/// <summary>
+/// 所有权转移结果
+/// </summary>
+/// <param name="PreviousOwner">卸任的所有者（已改为管理员）</param>
+/// <param name="NewOwner">接任的所有者</param>
+/// <param name="Now">操作时间</param>
+public sealed record TenantOwnerTransferResult(SysTenantUser PreviousOwner, SysTenantUser NewOwner, DateTimeOffset Now);

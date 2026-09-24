@@ -621,7 +621,7 @@ public sealed class ProfileDomainService
         var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(user.BasicId, DateTimeOffset.UtcNow, cancellationToken);
         if (memberships.Any(membership => membership.MemberType == TenantMemberType.Owner))
         {
-            throw new InvalidOperationException("当前账号仍是租户所有者，不能自助关闭；请先在对应租户移交所有权。");
+            throw new InvalidOperationException("当前账号仍是租户所有者，不能自助关闭；请先联系平台把所有权转给其他成员。");
         }
     }
 

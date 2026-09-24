@@ -29,6 +29,11 @@ public interface ITenantDomainService
     Task RemoveTenantSupportMemberAsync(long tenantId, long memberId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 所有权转移：把租户所有者身份转给该租户的另一名成员，原所有者改为管理员（仅平台上下文）
+    /// </summary>
+    Task<TenantOwnerTransferResult> TransferTenantOwnerAsync(TenantOwnerTransferCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 删除租户（软删，要求租户已停用）
     /// </summary>
     Task DeleteTenantAsync(long id, CancellationToken cancellationToken = default);

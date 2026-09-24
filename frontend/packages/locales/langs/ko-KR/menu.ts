@@ -14,6 +14,7 @@ export default {
   identity_online_user: '온라인 사용자',
   tenant_list: '테넌트 목록',
   tenant_edition: '에디션 및 요금제',
+  tenant_subscription: '내 구독',
   message: '메시지 센터',
   message_notification: '공지사항',
   message_record: '이메일 및 SMS',

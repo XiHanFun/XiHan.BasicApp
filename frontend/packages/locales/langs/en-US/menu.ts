@@ -14,6 +14,7 @@ export default {
   identity_online_user: 'Online Users',
   tenant_list: 'Tenants',
   tenant_edition: 'Editions & Plans',
+  tenant_subscription: 'My Subscription',
   message: 'Message Center',
   message_notification: 'Announcements',
   message_record: 'Email & SMS',

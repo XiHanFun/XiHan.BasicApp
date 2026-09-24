@@ -14,6 +14,7 @@ export default {
   identity_online_user: '線上使用者',
   tenant_list: '租戶列表',
   tenant_edition: '版本方案',
+  tenant_subscription: '我的訂閱',
   message: '訊息中心',
   message_notification: '公告事項',
   message_record: '郵件簡訊',

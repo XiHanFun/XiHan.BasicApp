@@ -19,6 +19,7 @@ using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Users;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
@@ -59,9 +60,14 @@ public sealed class TenantQueryService
     private readonly IAuthContextQueryService _authContextQueryService;
 
     /// <summary>
-    /// 超级管理员角色编码（与种子/授权快照/SwitchTenant 约定一致，运行时特判可进入任意租户）
+    /// 租户版本仓储（订阅里的版本名称与说明）
     /// </summary>
-    private const string SuperAdminRoleCode = "super_admin";
+    private readonly ITenantEditionRepository _tenantEditionRepository;
+
+    /// <summary>
+    /// 当前租户上下文
+    /// </summary>
+    private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
     /// 每 MB 字节数：套餐存储上限以 MB 表达，已用量以字节统计
@@ -77,7 +83,9 @@ public sealed class TenantQueryService
         ICurrentUser currentUser,
         IFieldSecurityService fieldSecurityService,
         ITenantQuotaDomainService tenantQuotaDomainService,
-        IAuthContextQueryService authContextQueryService)
+        IAuthContextQueryService authContextQueryService,
+        ITenantEditionRepository tenantEditionRepository,
+        ICurrentTenant currentTenant)
     {
         _tenantUserRepository = tenantUserRepository;
         _tenantRepository = tenantRepository;
@@ -85,6 +93,8 @@ public sealed class TenantQueryService
         _fieldSecurity = fieldSecurityService;
         _tenantQuotaDomainService = tenantQuotaDomainService;
         _authContextQueryService = authContextQueryService;
+        _tenantEditionRepository = tenantEditionRepository;
+        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -165,7 +175,7 @@ public sealed class TenantQueryService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 平台态可见全部租户，租户态自然收敛到自身，无需额外分支
+        // 租户查看是平台侧权限，只在平台执行：租户注册表全量
         var tenants = await _tenantRepository.GetAllAsync(cancellationToken);
         if (tenants.Count == 0)
         {
@@ -207,6 +217,54 @@ public sealed class TenantQueryService
         }
 
         return alerts;
+    }
+
+    /// <summary>
+    /// 获取当前租户的订阅：版本套餐、到期时间、席位与存储用量
+    /// </summary>
+    /// <remarks>
+    /// 租户侧只读接口：只看得到自己，租户注册表与版本是平台数据，这里按当前租户取出本租户那一行。
+    /// 用量与平台租户列表同一口径（<see cref="ITenantQuotaDomainService.GetQuotaSnapshotsAsync"/>）。
+    /// </remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>当前租户的订阅</returns>
+    [PermissionAuthorize(SaasPermissionCodes.TenantSubscription.Read)]
+    public async Task<TenantSubscriptionDto> GetMySubscriptionAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (_currentTenant.IsPlatformOperation())
+        {
+            throw new InvalidOperationException("订阅属于租户，平台没有订阅。");
+        }
+
+        var tenantId = _currentTenant.Id!.Value;
+        var tenant = await _tenantRepository.GetByIdAsync(tenantId, cancellationToken)
+            ?? throw new InvalidOperationException("当前租户不存在。");
+        var edition = tenant.EditionId is { } editionId
+            ? await _tenantEditionRepository.GetByIdAsync(editionId, cancellationToken)
+            : null;
+        var snapshots = await _tenantQuotaDomainService.GetQuotaSnapshotsAsync([tenantId], cancellationToken);
+        var snapshot = snapshots[tenantId];
+        var now = DateTimeOffset.UtcNow;
+
+        return new TenantSubscriptionDto
+        {
+            TenantId = tenant.BasicId,
+            TenantCode = tenant.TenantCode,
+            TenantName = tenant.TenantName,
+            TenantStatus = tenant.TenantStatus,
+            ExpirationTime = tenant.ExpirationTime,
+            IsExpired = tenant.ExpirationTime.HasValue && tenant.ExpirationTime.Value <= now,
+            EditionCode = edition?.EditionCode,
+            EditionName = edition?.EditionName,
+            EditionDescription = edition?.Description,
+            IsFreeEdition = edition?.IsFree ?? false,
+            EffectiveUserLimit = snapshot.UserLimit,
+            UsedUserCount = snapshot.UsedUserCount,
+            EffectiveStorageLimit = snapshot.StorageLimit,
+            UsedStorageBytes = snapshot.UsedStorageBytes
+        };
     }
 
     /// <summary>

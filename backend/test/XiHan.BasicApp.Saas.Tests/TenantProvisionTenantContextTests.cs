@@ -5,6 +5,7 @@ using Moq;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 
@@ -46,7 +47,7 @@ public sealed class TenantProvisionTenantContextTests
     private const long AmbientTenantId = 77;
 
     /// <summary>
-    /// 账号、安全信息、成员关系、角色、授权与角色绑定都在被开通租户的作用域内写入。
+    /// 账号、安全信息、成员关系、所有者角色与绑定都在被开通租户的作用域内写入。
     /// </summary>
     [Fact]
     public async Task ProvisionTenantAdmin_ShouldWriteTenantRowsInsideTargetTenant()
@@ -57,26 +58,28 @@ public sealed class TenantProvisionTenantContextTests
 
         var writes = fixture.Observations.Where(observation => observation.IsWrite).ToList();
         Assert.Equal(
-            ["User.Add", "UserSecurity.Add", "TenantUser.Add", "Role.Add", "RolePermission.AddRange", "UserRole.Add"],
+            ["User.Add", "UserSecurity.Add", "TenantUser.Add", "Role.Add", "UserRole.Add"],
             writes.Select(observation => observation.Operation));
         Assert.All(writes, observation => Assert.Equal(TenantId, observation.TenantId));
     }
 
     /// <summary>
-    /// 版本白名单是平台数据，在平台作用域读取（不借用被开通租户的读共享）。
+    /// 所有者角色是系统角色、全部数据范围、只一人持有；不写授权行，也就不读套餐白名单——
+    /// 权限由授权快照按套餐整体给出，套餐升级、新增权限码都即时反映。
     /// </summary>
     [Fact]
-    public async Task ProvisionTenantAdmin_ShouldReadEditionWhitelistInPlatformScope()
+    public async Task ProvisionTenantAdmin_OwnerRoleIsSystemRoleWithoutGrants()
     {
         var fixture = CreateFixture(ambientTenantId: AmbientTenantId);
 
         _ = await fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash");
 
-        var whitelistReads = fixture.Observations
-            .Where(observation => observation.Operation == "TenantEditionPermission.GetByEditionId")
-            .ToList();
-        Assert.NotEmpty(whitelistReads);
-        Assert.All(whitelistReads, observation => Assert.Null(observation.TenantId));
+        var role = Assert.Single(fixture.AddedRoles);
+        Assert.Equal(SaasRoleCodes.TenantOwner, role.RoleCode);
+        Assert.Equal(RoleType.System, role.RoleType);
+        Assert.Equal(DataPermissionScope.All, role.DataScope);
+        Assert.Equal(1, role.MaxMembers);
+        Assert.DoesNotContain(fixture.Observations, observation => observation.Operation is "RolePermission.AddRange" or "TenantEditionPermission.GetByEditionId");
     }
 
     /// <summary>
@@ -136,7 +139,7 @@ public sealed class TenantProvisionTenantContextTests
 
         var writes = fixture.Observations.Where(observation => observation.IsWrite).ToList();
         Assert.Equal(
-            ["User.Add", "UserSecurity.Add", "TenantUser.Add", "Role.Add", "RolePermission.AddRange", "UserRole.Add"],
+            ["User.Add", "UserSecurity.Add", "TenantUser.Add", "Role.Add", "UserRole.Add"],
             writes.Select(observation => observation.Operation));
         Assert.All(writes, observation => Assert.Equal(TenantId, observation.TenantId));
     }
@@ -222,7 +225,7 @@ public sealed class TenantProvisionTenantContextTests
     }
 
     /// <summary>
-    /// 开通管理员不改租户注册表：版本在建租户时已经定下，没有版本的租户按未启用门控处理，Owner 角色不授权。
+    /// 开通管理员不改租户注册表：版本在建租户时已经定下，没有版本的租户照样开通，门控按未绑定处理。
     /// </summary>
     [Fact]
     public async Task ProvisionTenantAdmin_WithoutEdition_ShouldNotTouchTenantRegistry()
@@ -352,12 +355,14 @@ public sealed class TenantProvisionTenantContextTests
                 return ownerExists;
             });
 
+        var addedRoles = new List<SysRole>();
         var roleRepository = new Mock<IRoleRepository>();
         _ = roleRepository
             .Setup(repo => repo.AddAsync(It.IsAny<SysRole>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((SysRole _, CancellationToken _) =>
+            .ReturnsAsync((SysRole role, CancellationToken _) =>
             {
                 RecordWrite("Role.Add");
+                addedRoles.Add(role);
                 var saved = new SysRole();
                 SaasTestHelper.SetBasicId(saved, 201);
                 return saved;
@@ -462,6 +467,7 @@ public sealed class TenantProvisionTenantContextTests
             currentTenant,
             userRepository,
             rolePermissionRepository,
+            addedRoles,
             observations,
             Record);
     }
@@ -480,6 +486,7 @@ public sealed class TenantProvisionTenantContextTests
         TestCurrentTenant CurrentTenant,
         Mock<IUserRepository> UserRepository,
         Mock<IRolePermissionRepository> RolePermissionRepository,
+        List<SysRole> AddedRoles,
         List<Observation> Observations,
         Action<string> Record);
 }

@@ -130,6 +130,8 @@ public sealed class TenantIsolationModeTests
             tenants.Object,
             new Mock<ITenantUserRepository>().Object,
             new Mock<IUserRepository>().Object,
+            new Mock<IRoleRepository>().Object,
+            new Mock<IUserRoleRepository>().Object,
             provision.Object,
             new Mock<ITenantQuotaDomainService>().Object,
             new TestCurrentTenant(),

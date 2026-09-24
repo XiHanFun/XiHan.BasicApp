@@ -14,6 +14,7 @@ export default {
   identity_online_user: 'Online-Benutzer',
   tenant_list: 'Mandanten',
   tenant_edition: 'Editionen & Tarife',
+  tenant_subscription: 'Mein Abonnement',
   message: 'Nachrichtenzentrale',
   message_notification: 'Ankündigungen',
   message_record: 'E-Mail & SMS',

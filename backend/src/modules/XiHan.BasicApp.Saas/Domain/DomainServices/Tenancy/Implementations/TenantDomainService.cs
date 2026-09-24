@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Localization.Abstractions;
@@ -22,6 +23,10 @@ public sealed class TenantDomainService
 
     private readonly IUserRepository _userRepository;
 
+    private readonly IRoleRepository _roleRepository;
+
+    private readonly IUserRoleRepository _userRoleRepository;
+
     private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
 
     private readonly ITenantQuotaDomainService _tenantQuotaDomainService;
@@ -39,6 +44,8 @@ public sealed class TenantDomainService
         ITenantRepository tenantRepository,
         ITenantUserRepository tenantUserRepository,
         IUserRepository userRepository,
+        IRoleRepository roleRepository,
+        IUserRoleRepository userRoleRepository,
         ITenantProvisionDomainService tenantProvisionDomainService,
         ITenantQuotaDomainService tenantQuotaDomainService,
         ICurrentTenant currentTenant,
@@ -48,6 +55,8 @@ public sealed class TenantDomainService
         _tenantRepository = tenantRepository;
         _tenantUserRepository = tenantUserRepository;
         _userRepository = userRepository;
+        _roleRepository = roleRepository;
+        _userRoleRepository = userRoleRepository;
         _tenantProvisionDomainService = tenantProvisionDomainService;
         _tenantQuotaDomainService = tenantQuotaDomainService;
         _currentTenant = currentTenant;
@@ -115,7 +124,7 @@ public sealed class TenantDomainService
         EnsureId(command.UserId, "用户主键必须大于 0。");
         ValidateEnum(command.MemberType, nameof(command.MemberType));
         ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
-        EnsurePlatformAdminNotAssigned(command.MemberType);
+        EnsureMemberTypeAssignable(command.MemberType);
 
         _ = await _userRepository.GetByIdIgnoreTenantAsync(command.UserId, cancellationToken)
             ?? throw new UserFriendlyException("用户不存在。");
@@ -163,7 +172,7 @@ public sealed class TenantDomainService
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        RequirePlatformContext();
+        RequirePlatformContext("支持人员的入驻与离场只能在平台执行。");
         EnsureId(command.UserId, "用户主键必须大于 0。");
         ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
 
@@ -208,7 +217,7 @@ public sealed class TenantDomainService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        RequirePlatformContext();
+        RequirePlatformContext("支持人员的入驻与离场只能在平台执行。");
         var tenant = await GetTenantOrThrowAsync(tenantId, cancellationToken);
 
         using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
@@ -223,6 +232,67 @@ public sealed class TenantDomainService
         member.RespondedTime ??= DateTimeOffset.UtcNow;
 
         _ = await _tenantUserRepository.UpdateAsync(member, cancellationToken);
+    }
+
+    /// <summary>
+    /// 所有权转移：把租户所有者身份转给该租户的另一名成员，原所有者改为管理员
+    /// </summary>
+    /// <remarks>
+    /// 平台侧操作，只在平台上下文执行；成员关系与所有者角色的绑定属于目标租户，切入该租户改写。
+    /// 所有者身份与所有者角色一起移交：接任者拿到角色，卸任者的这条绑定失效，其它角色原样保留。
+    /// 接任者须是已接受邀请、有效、在生效期内的非支持成员；所有者关系始终有效，接任时清掉原有的期限。
+    /// </remarks>
+    public async Task<TenantOwnerTransferResult> TransferTenantOwnerAsync(TenantOwnerTransferCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        RequirePlatformContext("所有权转移只能在平台执行。");
+        EnsureId(command.MemberId, "租户成员主键必须大于 0。");
+        var tenant = await GetTenantOrThrowAsync(command.TenantId, cancellationToken);
+
+        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
+        var now = DateTimeOffset.UtcNow;
+
+        var owners = await _tenantUserRepository.GetListAsync(member => member.MemberType == TenantMemberType.Owner, cancellationToken);
+        var previousOwner = owners.Count switch
+        {
+            0 => throw new UserFriendlyException("该租户还没有所有者，请先初始化管理员。"),
+            1 => owners[0],
+            _ => throw new InvalidOperationException("租户有多名所有者，数据不一致。")
+        };
+
+        var newOwner = await GetTenantMemberOrThrowAsync(command.MemberId, cancellationToken);
+        if (newOwner.BasicId == previousOwner.BasicId)
+        {
+            throw new UserFriendlyException("该成员已经是所有者。");
+        }
+
+        if (newOwner.MemberType == TenantMemberType.PlatformAdmin)
+        {
+            throw new UserFriendlyException("支持人员不能成为租户所有者。");
+        }
+
+        if (!IsInEffect(newOwner, now))
+        {
+            throw new UserFriendlyException("只有已接受邀请、有效且在生效期内的成员才能成为所有者。");
+        }
+
+        var ownerRole = (await _roleRepository.GetListAsync(
+                role => role.TenantId == tenant.BasicId && role.RoleCode == SaasRoleCodes.TenantOwner && role.RoleType == RoleType.System,
+                cancellationToken))
+            .SingleOrDefault()
+            ?? throw new InvalidOperationException("租户缺少所有者角色，数据不一致。");
+
+        previousOwner.MemberType = TenantMemberType.Admin;
+        newOwner.MemberType = TenantMemberType.Owner;
+        newOwner.EffectiveTime = null;
+        newOwner.ExpirationTime = null;
+        _ = await _tenantUserRepository.UpdateRangeAsync([previousOwner, newOwner], cancellationToken);
+
+        await MoveOwnerRoleBindingAsync(ownerRole, previousOwner.UserId, newOwner.UserId, cancellationToken);
+
+        return new TenantOwnerTransferResult(previousOwner, newOwner, now);
     }
 
     /// <summary>
@@ -255,7 +325,7 @@ public sealed class TenantDomainService
 
         _ = RequireTenantContext();
         var member = await GetTenantMemberOrThrowAsync(id, cancellationToken);
-        EnsureOwnerCanBeRevoked(member, TenantMemberInviteStatus.Revoked);
+        EnsureOwnerStaysAccepted(member, TenantMemberInviteStatus.Revoked);
 
         member.InviteStatus = TenantMemberInviteStatus.Revoked;
         member.Status = ValidityStatus.Invalid;
@@ -318,9 +388,18 @@ public sealed class TenantDomainService
         var member = await GetTenantMemberOrThrowAsync(command.BasicId, cancellationToken);
         EnsureNotSupportMember(member);
         EnsureOwnerCanBeChanged(member, command.MemberType);
-        EnsurePlatformAdminNotAssigned(command.MemberType);
+        if (command.MemberType != member.MemberType)
+        {
+            EnsureMemberTypeAssignable(command.MemberType);
+        }
 
         var now = DateTimeOffset.UtcNow;
+        if (member.MemberType == TenantMemberType.Owner
+            && (command.EffectiveTime > now || command.ExpirationTime is not null))
+        {
+            throw new InvalidOperationException("租户所有者的成员关系始终有效，不能设置生效期限。");
+        }
+
         var occupiedBefore = OccupiesSeat(member, now);
         member.MemberType = command.MemberType;
         member.EffectiveTime = command.EffectiveTime;
@@ -347,7 +426,7 @@ public sealed class TenantDomainService
         _ = RequireTenantContext();
         var member = await GetTenantMemberOrThrowAsync(command.BasicId, cancellationToken);
         EnsureNotSupportMember(member);
-        EnsureOwnerCanBeRevoked(member, command.InviteStatus);
+        EnsureOwnerStaysAccepted(member, command.InviteStatus);
 
         var now = DateTimeOffset.UtcNow;
         var occupiedBefore = OccupiesSeat(member, now);
@@ -515,15 +594,83 @@ public sealed class TenantDomainService
     {
         if (member.MemberType == TenantMemberType.Owner && newMemberType != TenantMemberType.Owner)
         {
-            throw new InvalidOperationException("租户所有者成员类型不能直接变更。");
+            throw new InvalidOperationException("租户所有者成员类型不能直接变更，请由平台转移所有权。");
         }
     }
 
-    private static void EnsureOwnerCanBeRevoked(SysTenantUser member, TenantMemberInviteStatus newInviteStatus)
+    /// <summary>
+    /// 所有者关系始终是已接受状态：撤销、过期、退回待接受或拒绝都会让租户失去所有者
+    /// </summary>
+    private static void EnsureOwnerStaysAccepted(SysTenantUser member, TenantMemberInviteStatus newInviteStatus)
     {
-        if (member.MemberType == TenantMemberType.Owner && newInviteStatus is TenantMemberInviteStatus.Revoked or TenantMemberInviteStatus.Expired)
+        if (member.MemberType == TenantMemberType.Owner && newInviteStatus != TenantMemberInviteStatus.Accepted)
         {
-            throw new InvalidOperationException("租户所有者成员关系不能直接撤销或过期。");
+            throw new InvalidOperationException("租户所有者的成员关系不能撤销、过期或改为未接受，请由平台转移所有权。");
+        }
+    }
+
+    /// <summary>
+    /// 成员类型能否由租户直接指派：所有者只由开通与所有权转移产生，支持人员只由平台入驻
+    /// </summary>
+    private static void EnsureMemberTypeAssignable(TenantMemberType memberType)
+    {
+        if (memberType is TenantMemberType.Owner or TenantMemberType.PlatformAdmin)
+        {
+            throw new InvalidOperationException("所有者只能由开通管理员或平台转移所有权产生，支持人员只能由平台入驻。");
+        }
+    }
+
+    /// <summary>
+    /// 成员关系此刻是否生效：已接受、有效、在生效期内
+    /// </summary>
+    private static bool IsInEffect(SysTenantUser member, DateTimeOffset now)
+    {
+        return member.InviteStatus == TenantMemberInviteStatus.Accepted
+            && member.Status == ValidityStatus.Valid
+            && (member.EffectiveTime is null || member.EffectiveTime <= now)
+            && (member.ExpirationTime is null || member.ExpirationTime > now);
+    }
+
+    /// <summary>
+    /// 所有者角色随所有者移交：卸任者的绑定失效，接任者复用历史绑定或新建，都从现在起生效
+    /// </summary>
+    private async Task MoveOwnerRoleBindingAsync(SysRole ownerRole, long previousUserId, long newUserId, CancellationToken cancellationToken)
+    {
+        var bindings = await _userRoleRepository.GetListAsync(
+            userRole => userRole.RoleId == ownerRole.BasicId && (userRole.UserId == previousUserId || userRole.UserId == newUserId),
+            cancellationToken);
+
+        var updating = new List<SysUserRole>();
+        foreach (var binding in bindings.Where(binding => binding.UserId == previousUserId && binding.Status == ValidityStatus.Valid))
+        {
+            binding.Status = ValidityStatus.Invalid;
+            binding.Remark = "所有权转移：卸任";
+            updating.Add(binding);
+        }
+
+        var incoming = bindings.FirstOrDefault(binding => binding.UserId == newUserId);
+        if (incoming is null)
+        {
+            _ = await _userRoleRepository.AddAsync(new SysUserRole
+            {
+                UserId = newUserId,
+                RoleId = ownerRole.BasicId,
+                Status = ValidityStatus.Valid,
+                GrantReason = "所有权转移"
+            }, cancellationToken);
+        }
+        else
+        {
+            incoming.Status = ValidityStatus.Valid;
+            incoming.EffectiveTime = null;
+            incoming.ExpirationTime = null;
+            incoming.GrantReason = "所有权转移";
+            updating.Add(incoming);
+        }
+
+        if (updating.Count > 0)
+        {
+            _ = await _userRoleRepository.UpdateRangeAsync(updating, cancellationToken);
         }
     }
 
@@ -580,14 +727,6 @@ public sealed class TenantDomainService
             ?? throw new InvalidOperationException("租户不存在。");
     }
 
-    private void EnsurePlatformAdminNotAssigned(TenantMemberType memberType)
-    {
-        if (memberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台管理员成员身份仅平台运维态可分配，请切换到平台运维后操作。");
-        }
-    }
-
     /// <summary>
     /// 取当前租户的成员关系（成员关系严格隔离，只取得到当前上下文的行）
     /// </summary>
@@ -599,24 +738,24 @@ public sealed class TenantDomainService
     }
 
     /// <summary>
-    /// 成员关系是租户自有数据，只在所属租户内维护；平台只做支持人员入驻与离场
+    /// 成员关系是租户自有数据，只在所属租户内维护；平台只做支持人员入驻与离场、所有权转移
     /// </summary>
     /// <returns>当前租户主键</returns>
     private long RequireTenantContext()
     {
         return _currentTenant.IsPlatformOperation()
-            ? throw new InvalidOperationException("租户成员只能在所属租户内维护，平台只负责支持人员的入驻与离场。")
+            ? throw new InvalidOperationException("租户成员只能在所属租户内维护，平台只负责支持人员的入驻与离场、所有权转移。")
             : _currentTenant.Id!.Value;
     }
 
     /// <summary>
-    /// 支持人员的入驻与离场是平台侧操作
+    /// 平台侧操作（支持人员入驻与离场、所有权转移）只在平台上下文执行
     /// </summary>
-    private void RequirePlatformContext()
+    private void RequirePlatformContext(string message)
     {
         if (!_currentTenant.IsPlatformOperation())
         {
-            throw new InvalidOperationException("支持人员的入驻与离场只能在平台执行。");
+            throw new InvalidOperationException(message);
         }
     }
 

@@ -77,6 +77,13 @@ export interface TenantSupportMemberAddDto {
   userId: ApiId
 }
 
+/** 所有权转移：把租户所有者身份转给该租户的另一名成员（平台） */
+export interface TenantOwnerTransferDto {
+  /** 接任所有者的成员关系主键 */
+  memberId: ApiId
+  tenantId: ApiId
+}
+
 export interface TenantMemberUpdateDto extends BasicDto {
   displayName?: string | null
   effectiveTime?: DateTimeString | null

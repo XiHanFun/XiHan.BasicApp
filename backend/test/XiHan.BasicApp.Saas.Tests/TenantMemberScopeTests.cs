@@ -2,15 +2,17 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Moq;
+using System.Linq.Expressions;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
 /// <summary>
-/// 成员关系只在所属租户内维护：租户接口作用于当前租户并校验席位；平台只做支持人员入驻与离场。
+/// 成员关系只在所属租户内维护：租户接口作用于当前租户并校验席位；平台只做支持人员入驻与离场、所有权转移。
 /// </summary>
 public sealed class TenantMemberScopeTests
 {
@@ -134,6 +136,65 @@ public sealed class TenantMemberScopeTests
         Assert.Equal(ValidityStatus.Invalid, member.Status);
     }
 
+    /// <summary>
+    /// 租户不能直接指派所有者：所有者只由开通与所有权转移产生
+    /// </summary>
+    [Fact]
+    public async Task AddMember_AsOwner_IsRejected()
+    {
+        var fixture = new Fixture(currentTenantId: TenantId);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.AddTenantMemberAsync(Command(userId: 10, memberType: TenantMemberType.Owner)));
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 租户不能把成员改成所有者（否则一个租户会有多名所有者）
+    /// </summary>
+    [Fact]
+    public async Task UpdateMember_PromoteToOwner_IsRejected()
+    {
+        var fixture = new Fixture(currentTenantId: TenantId);
+        fixture.AddMember(101, TenantId, TenantMemberType.Member);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.UpdateTenantMemberAsync(new TenantMemberUpdateCommand(101, TenantMemberType.Owner, null, null, null, null, null)));
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 所有者关系始终有效：不能给它设失效时间，否则到期后租户就没有所有者了
+    /// </summary>
+    [Fact]
+    public async Task UpdateMember_OwnerWithExpiration_IsRejected()
+    {
+        var fixture = new Fixture(currentTenantId: TenantId);
+        fixture.AddMember(100, TenantId, TenantMemberType.Owner);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.UpdateTenantMemberAsync(new TenantMemberUpdateCommand(
+                100, TenantMemberType.Owner, null, DateTimeOffset.UtcNow.AddDays(1), null, null, null)));
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 所有者关系不能退回待接受或拒绝（旧口径只拦了撤销和过期）
+    /// </summary>
+    [Theory]
+    [InlineData(TenantMemberInviteStatus.Pending)]
+    [InlineData(TenantMemberInviteStatus.Rejected)]
+    [InlineData(TenantMemberInviteStatus.Revoked)]
+    public async Task UpdateInviteStatus_Owner_StaysAccepted(TenantMemberInviteStatus inviteStatus)
+    {
+        var fixture = new Fixture(currentTenantId: TenantId);
+        fixture.AddMember(100, TenantId, TenantMemberType.Owner);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.UpdateTenantMemberInviteStatusAsync(new TenantMemberInviteStatusChangeCommand(100, inviteStatus, null)));
+        fixture.VerifyNothingWritten();
+    }
+
     #endregion
 
     #region 平台侧
@@ -189,6 +250,85 @@ public sealed class TenantMemberScopeTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.RemoveTenantSupportMemberAsync(TenantId, 100));
     }
 
+    /// <summary>
+    /// 所有权转移只在平台执行
+    /// </summary>
+    [Fact]
+    public async Task TransferOwner_InTenantContext_IsRejected()
+    {
+        var fixture = new Fixture(currentTenantId: TenantId);
+        fixture.AddMember(100, TenantId, TenantMemberType.Owner);
+        fixture.AddMember(101, TenantId, TenantMemberType.Member);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.TransferTenantOwnerAsync(new TenantOwnerTransferCommand(TenantId, 101)));
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 所有者身份与所有者角色一起移交：接任者成为所有者并拿到角色、期限清空；卸任者改为管理员，这条角色绑定失效。
+    /// 全部在目标租户作用域里写
+    /// </summary>
+    [Fact]
+    public async Task TransferOwner_MovesMembershipAndOwnerRole()
+    {
+        var fixture = new Fixture(currentTenantId: null);
+        var previous = fixture.AddMember(100, TenantId, TenantMemberType.Owner);
+        var next = fixture.AddMember(101, TenantId, TenantMemberType.Member);
+        next.ExpirationTime = DateTimeOffset.UtcNow.AddDays(30);
+        var previousBinding = fixture.AddOwnerRoleBinding(previous.UserId);
+
+        var result = await fixture.Service.TransferTenantOwnerAsync(new TenantOwnerTransferCommand(TenantId, 101));
+
+        Assert.Same(previous, result.PreviousOwner);
+        Assert.Same(next, result.NewOwner);
+        Assert.Equal(TenantMemberType.Admin, previous.MemberType);
+        Assert.Equal(TenantMemberType.Owner, next.MemberType);
+        Assert.Null(next.ExpirationTime);
+        Assert.Equal(ValidityStatus.Invalid, previousBinding.Status);
+        var incoming = Assert.Single(fixture.AddedUserRoles);
+        Assert.Equal(next.UserId, incoming.UserId);
+        Assert.Equal(Fixture.OwnerRoleId, incoming.RoleId);
+        Assert.Equal(ValidityStatus.Valid, incoming.Status);
+        Assert.Equal([TenantId], fixture.TenantIdsWhenRolesWritten.Distinct());
+        Assert.Null(fixture.CurrentTenant.Id);
+    }
+
+    /// <summary>
+    /// 支持人员、未接受邀请或已停用的成员不能接任所有者
+    /// </summary>
+    [Theory]
+    [InlineData(TenantMemberType.PlatformAdmin, TenantMemberInviteStatus.Accepted, ValidityStatus.Valid)]
+    [InlineData(TenantMemberType.Member, TenantMemberInviteStatus.Pending, ValidityStatus.Valid)]
+    [InlineData(TenantMemberType.Member, TenantMemberInviteStatus.Accepted, ValidityStatus.Invalid)]
+    public async Task TransferOwner_ToIneligibleMember_IsRejected(TenantMemberType memberType, TenantMemberInviteStatus inviteStatus, ValidityStatus status)
+    {
+        var fixture = new Fixture(currentTenantId: null);
+        fixture.AddMember(100, TenantId, TenantMemberType.Owner);
+        var candidate = fixture.AddMember(101, TenantId, memberType);
+        candidate.InviteStatus = inviteStatus;
+        candidate.Status = status;
+        fixture.AddOwnerRoleBinding(1100);
+
+        await Assert.ThrowsAnyAsync<Exception>(
+            () => fixture.Service.TransferTenantOwnerAsync(new TenantOwnerTransferCommand(TenantId, 101)));
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 还没有所有者的租户走初始化管理员，不走转移
+    /// </summary>
+    [Fact]
+    public async Task TransferOwner_WithoutOwner_IsRejected()
+    {
+        var fixture = new Fixture(currentTenantId: null);
+        fixture.AddMember(101, TenantId, TenantMemberType.Member);
+
+        await Assert.ThrowsAnyAsync<Exception>(
+            () => fixture.Service.TransferTenantOwnerAsync(new TenantOwnerTransferCommand(TenantId, 101)));
+        fixture.VerifyNothingWritten();
+    }
+
     #endregion
 
     private static TenantMemberAddCommand Command(long userId, bool requiresInvitation = false, TenantMemberType memberType = TenantMemberType.Member) =>
@@ -202,7 +342,11 @@ public sealed class TenantMemberScopeTests
     /// </summary>
     private sealed class Fixture
     {
+        public const long OwnerRoleId = 500;
+
         private readonly List<SysTenantUser> _members = [];
+
+        private readonly List<SysUserRole> _userRoles = [];
 
         public Fixture(long? currentTenantId)
         {
@@ -243,11 +387,48 @@ public sealed class TenantMemberScopeTests
             MemberRepository
                 .Setup(repo => repo.UpdateAsync(It.IsAny<SysTenantUser>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((SysTenantUser member, CancellationToken _) => member);
+            MemberRepository
+                .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<SysTenantUser, bool>>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Expression<Func<SysTenantUser, bool>> predicate, CancellationToken _) =>
+                    _members.Where(member => member.TenantId == (CurrentTenant.Id ?? 0)).Where(predicate.Compile()).ToList());
+            MemberRepository
+                .Setup(repo => repo.UpdateRangeAsync(It.IsAny<IEnumerable<SysTenantUser>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IEnumerable<SysTenantUser> members, CancellationToken _) => members.ToList());
+
+            // 本租户的所有者角色（系统角色）；角色与绑定都按当前作用域取
+            var ownerRole = SysRole.CreateTenantOwnerRole();
+            ownerRole.TenantId = TenantId;
+            SaasTestHelper.SetBasicId(ownerRole, OwnerRoleId);
+            RoleRepository
+                .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<SysRole, bool>>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Expression<Func<SysRole, bool>> predicate, CancellationToken _) =>
+                    new[] { ownerRole }.Where(role => role.TenantId == (CurrentTenant.Id ?? 0)).Where(predicate.Compile()).ToList());
+            UserRoleRepository
+                .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<SysUserRole, bool>>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Expression<Func<SysUserRole, bool>> predicate, CancellationToken _) =>
+                    _userRoles.Where(userRole => userRole.TenantId == (CurrentTenant.Id ?? 0)).Where(predicate.Compile()).ToList());
+            UserRoleRepository
+                .Setup(repo => repo.AddAsync(It.IsAny<SysUserRole>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((SysUserRole userRole, CancellationToken _) =>
+                {
+                    TenantIdsWhenRolesWritten.Add(CurrentTenant.Id);
+                    AddedUserRoles.Add(userRole);
+                    return userRole;
+                });
+            UserRoleRepository
+                .Setup(repo => repo.UpdateRangeAsync(It.IsAny<IEnumerable<SysUserRole>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IEnumerable<SysUserRole> userRoles, CancellationToken _) =>
+                {
+                    TenantIdsWhenRolesWritten.Add(CurrentTenant.Id);
+                    return userRoles.ToList();
+                });
 
             Service = new TenantDomainService(
                 tenantRepository.Object,
                 MemberRepository.Object,
                 userRepository.Object,
+                RoleRepository.Object,
+                UserRoleRepository.Object,
                 new Mock<ITenantProvisionDomainService>().Object,
                 Quota.Object,
                 CurrentTenant,
@@ -262,6 +443,14 @@ public sealed class TenantMemberScopeTests
         public Mock<ITenantUserRepository> MemberRepository { get; } = new();
 
         public Mock<ITenantQuotaDomainService> Quota { get; } = new();
+
+        public Mock<IRoleRepository> RoleRepository { get; } = new();
+
+        public Mock<IUserRoleRepository> UserRoleRepository { get; } = new();
+
+        public List<SysUserRole> AddedUserRoles { get; } = [];
+
+        public List<long?> TenantIdsWhenRolesWritten { get; } = [];
 
         public long? TenantIdWhenWritten { get; private set; }
 
@@ -280,10 +469,30 @@ public sealed class TenantMemberScopeTests
             return member;
         }
 
+        /// <summary>
+        /// 给用户挂上本租户所有者角色的有效绑定
+        /// </summary>
+        public SysUserRole AddOwnerRoleBinding(long userId)
+        {
+            var binding = new SysUserRole
+            {
+                TenantId = TenantId,
+                UserId = userId,
+                RoleId = OwnerRoleId,
+                Status = ValidityStatus.Valid
+            };
+            SaasTestHelper.SetBasicId(binding, 9000 + userId);
+            _userRoles.Add(binding);
+            return binding;
+        }
+
         public void VerifyNothingWritten()
         {
             MemberRepository.Verify(repo => repo.AddAsync(It.IsAny<SysTenantUser>(), It.IsAny<CancellationToken>()), Times.Never);
             MemberRepository.Verify(repo => repo.UpdateAsync(It.IsAny<SysTenantUser>(), It.IsAny<CancellationToken>()), Times.Never);
+            MemberRepository.Verify(repo => repo.UpdateRangeAsync(It.IsAny<IEnumerable<SysTenantUser>>(), It.IsAny<CancellationToken>()), Times.Never);
+            UserRoleRepository.Verify(repo => repo.AddAsync(It.IsAny<SysUserRole>(), It.IsAny<CancellationToken>()), Times.Never);
+            UserRoleRepository.Verify(repo => repo.UpdateRangeAsync(It.IsAny<IEnumerable<SysUserRole>>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

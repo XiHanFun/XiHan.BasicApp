@@ -120,6 +120,30 @@ export interface TenantAdminInitializeDto {
   tenantId: ApiId
 }
 
+/** 当前租户的订阅（租户自己看：版本套餐、到期时间、席位与存储用量） */
+export interface TenantSubscriptionDto {
+  editionCode?: string | null
+  editionDescription?: string | null
+  /** 版本名称（未绑定版本时为空） */
+  editionName?: string | null
+  /** 生效存储上限(MB)（租户未设值时取版本的，空表示不限） */
+  effectiveStorageLimit?: number | null
+  /** 生效席位上限（租户未设值时取版本的，空表示不限） */
+  effectiveUserLimit?: number | null
+  /** 到期时间（空表示长期有效） */
+  expirationTime?: DateTimeString | null
+  isExpired: boolean
+  isFreeEdition: boolean
+  tenantCode: string
+  tenantId: ApiId
+  tenantName: string
+  tenantStatus: TenantStatus
+  /** 已占用存储(字节) */
+  usedStorageBytes: number
+  /** 已占用席位数（不含支持人员） */
+  usedUserCount: number
+}
+
 export interface TenantStatusUpdateDto extends BasicDto {
   reason?: string | null
   tenantStatus: TenantStatus

@@ -418,6 +418,60 @@ public sealed class UserRoleBatchUpdateTests
 
     #endregion
 
+    #region 系统角色
+
+    /// <summary>
+    /// 系统角色（租户所有者）的绑定由系统维护：按用户批量撤销时整批拒绝。
+    /// </summary>
+    [Fact]
+    public async Task BatchUpdate_RevokeSystemRoleBinding_ShouldReject()
+    {
+        var fixture = new Fixture();
+        fixture.AddRole(40, roleType: RoleType.System);
+        var ownerBinding = fixture.AddRow(basicId: 100, roleId: 40);
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.BatchUpdateUserRolesAsync(new UserRoleBatchUpdateCommand(UserId, [], [100])));
+
+        Assert.Equal(ValidityStatus.Valid, ownerBinding.Status);
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 以角色为中心移出系统角色的成员同样拒绝。
+    /// </summary>
+    [Fact]
+    public async Task RoleMembers_RevokeFromSystemRole_ShouldReject()
+    {
+        var fixture = new Fixture();
+        fixture.AddRole(40, roleType: RoleType.System);
+        fixture.AddRow(basicId: 100, roleId: 40);
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.BatchUpdateRoleMembersAsync(new RoleMemberBatchUpdateCommand(40, [], [100])));
+
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 单条停用系统角色的绑定同样拒绝。
+    /// </summary>
+    [Fact]
+    public async Task UpdateStatus_DisableSystemRoleBinding_ShouldReject()
+    {
+        var fixture = new Fixture();
+        fixture.AddRole(40, roleType: RoleType.System);
+        var ownerBinding = fixture.AddRow(basicId: 100, roleId: 40);
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.UpdateUserRoleStatusAsync(new UserRoleStatusChangeCommand(100, ValidityStatus.Invalid, null)));
+
+        Assert.Equal(ValidityStatus.Valid, ownerBinding.Status);
+        fixture.UserRoleRepository.Verify(repo => repo.UpdateAsync(It.IsAny<SysUserRole>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    #endregion
+
     /// <summary>
     /// 批量变更的测试夹具：仓储按内存行集合回放查询，写入逐次记录。
     /// </summary>
@@ -547,14 +601,14 @@ public sealed class UserRoleBatchUpdateTests
         public Task<UserRoleBatchUpdateResult> GrantAsync(long roleId) =>
             Service.BatchUpdateUserRolesAsync(new UserRoleBatchUpdateCommand(UserId, [roleId], []));
 
-        public void AddRole(long id, EnableStatus status = EnableStatus.Enabled, int maxMembers = 0)
+        public void AddRole(long id, EnableStatus status = EnableStatus.Enabled, int maxMembers = 0, RoleType roleType = RoleType.Custom)
         {
             var role = new SysRole
             {
                 TenantId = 7,
                 RoleCode = $"ROLE-{id}",
                 RoleName = $"角色{id}",
-                RoleType = RoleType.Custom,
+                RoleType = roleType,
                 MaxMembers = maxMembers,
                 Status = status
             };

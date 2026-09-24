@@ -85,6 +85,14 @@ public interface ITenantAppService : IApplicationService
     Task RemoveTenantSupportMemberAsync(long tenantId, long memberId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 所有权转移：把租户所有者身份转给该租户的另一名成员，原所有者改为管理员（平台）
+    /// </summary>
+    /// <param name="input">转移参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>接任所有者的成员关系</returns>
+    Task<TenantMemberDetailDto> TransferTenantOwnerAsync(TenantOwnerTransferDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 邀请租户成员（落待接受邀请，被邀请人接受后生效）
     /// </summary>
     /// <param name="input">邀请参数</param>

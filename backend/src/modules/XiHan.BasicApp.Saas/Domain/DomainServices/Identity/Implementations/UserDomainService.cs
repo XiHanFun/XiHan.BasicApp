@@ -494,6 +494,14 @@ public sealed class UserDomainService
                 cancellationToken))
                 .Where(userRole => !grantRoleIdSet.Contains(userRole.RoleId))
                 .ToList();
+        if (revoking.Count > 0)
+        {
+            var revokingRoleIds = revoking.Select(userRole => userRole.RoleId).Distinct().ToList();
+            foreach (var revokingRole in await _roleRepository.GetListAsync(role => revokingRoleIds.Contains(role.BasicId), cancellationToken))
+            {
+                EnsureSystemRoleBindingKept(revokingRole);
+            }
+        }
 
         // 授予前逐个校验角色可分配，规则与单条读取共用 EnsureAssignableRole
         var roleMap = grantRoleIds.Count == 0
@@ -626,6 +634,11 @@ public sealed class UserDomainService
         if (grantUserIds.Count > 0)
         {
             EnsureAssignableRole(role);
+        }
+
+        if (revokeIds.Count > 0)
+        {
+            EnsureSystemRoleBindingKept(role);
         }
 
         foreach (var userId in grantUserIds)
@@ -781,6 +794,7 @@ public sealed class UserDomainService
         var role = command.Status == ValidityStatus.Valid
             ? await GetAssignableRoleOrThrowAsync(userRole.RoleId, cancellationToken)
             : await _roleRepository.GetByIdAsync(userRole.RoleId, cancellationToken);
+        EnsureSystemRoleBindingKept(role);
         var occupiedBefore = OccupiesSeat(userRole, now);
 
         userRole.Status = command.Status;
@@ -1034,6 +1048,11 @@ public sealed class UserDomainService
         }
 
         var membership = await GetAssignableTenantMemberOrThrowAsync(command.UserId, DateTimeOffset.UtcNow, "维护数据范围", cancellationToken);
+        if (membership.MemberType == TenantMemberType.Owner)
+        {
+            throw new InvalidOperationException("租户所有者看得到本租户的全部数据，不设数据范围。");
+        }
+
         foreach (var departmentId in departments.Keys)
         {
             _ = await GetEnabledDepartmentOrThrowAsync(departmentId, cancellationToken);
@@ -1870,7 +1889,7 @@ public sealed class UserDomainService
         var memberships = await _tenantUserRepository.GetAllByUserIdIgnoreTenantAsync(user.BasicId, cancellationToken);
         if (memberships.Any(IsActiveOwner))
         {
-            throw new InvalidOperationException("该账号是租户所有者，不能直接停用；请先转移所有权。");
+            throw new InvalidOperationException("该账号是租户所有者，不能直接停用；请先由平台转移所有权。");
         }
     }
 
@@ -1888,7 +1907,7 @@ public sealed class UserDomainService
         var memberships = await _tenantUserRepository.GetAllByUserIdIgnoreTenantAsync(user.BasicId, cancellationToken);
         if (memberships.Any(IsActiveOwner))
         {
-            throw new InvalidOperationException("该账号是租户所有者，不能直接删除；请先转移所有权。");
+            throw new InvalidOperationException("该账号是租户所有者，不能直接删除；请先由平台转移所有权。");
         }
 
         return memberships;
@@ -2144,6 +2163,18 @@ public sealed class UserDomainService
         if (role.RoleType == RoleType.System && !_currentTenant.IsPlatformOperation())
         {
             throw new InvalidOperationException("系统角色仅平台运维态可分配，请切换到平台运维后操作。");
+        }
+    }
+
+    /// <summary>
+    /// 系统角色（平台超管、租户所有者）的成员由系统流程维护：租户里不能撤销或停用它的绑定
+    /// </summary>
+    /// <remarks>租户所有者的角色随所有权转移移交，见 <c>TenantDomainService.TransferTenantOwnerAsync</c>。</remarks>
+    private void EnsureSystemRoleBindingKept(SysRole? role)
+    {
+        if (role?.RoleType == RoleType.System && !_currentTenant.IsPlatformOperation())
+        {
+            throw new InvalidOperationException("系统角色的成员由系统维护，租户里不能移出或停用。");
         }
     }
 

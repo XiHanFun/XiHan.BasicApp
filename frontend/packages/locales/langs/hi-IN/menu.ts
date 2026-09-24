@@ -14,6 +14,7 @@ export default {
   identity_online_user: 'ऑनलाइन उपयोगकर्ता',
   tenant_list: 'टेनेंट सूची',
   tenant_edition: 'संस्करण और प्लान',
+  tenant_subscription: 'मेरी सदस्यता',
   message: 'संदेश केंद्र',
   message_notification: 'घोषणाएँ',
   message_record: 'ईमेल और SMS',

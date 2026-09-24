@@ -279,6 +279,20 @@ public sealed class DataScopeSetTests
     }
 
     /// <summary>
+    /// 租户所有者看得到本租户全部数据：不设覆盖，免得被下级管理员收窄。
+    /// </summary>
+    [Fact]
+    public async Task Member_Owner_IsRejected()
+    {
+        var fixture = new MemberFixture(memberType: TenantMemberType.Owner);
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.SetAsync(DataPermissionScope.SelfOnly));
+
+        Assert.Null(fixture.Membership.DataScopeOverride);
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
     /// 未接受邀请的成员不能维护数据范围。
     /// </summary>
     [Fact]

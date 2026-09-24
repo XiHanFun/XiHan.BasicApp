@@ -85,7 +85,7 @@ public sealed class TenantAppService
     /// 校验租户管理员账号：用户名长度、邮箱格式、密码策略
     /// </summary>
     /// <remarks>
-    /// 用户名与邮箱的唯一性在 <see cref="ITenantProvisionDomainService.InitializeTenantAdminAsync"/> 内校验（平台态查账号注册表）。
+    /// 用户名与邮箱的唯一性在 <see cref="ITenantProvisionDomainService.ProvisionTenantAdminAsync"/> 内校验（平台态查账号注册表）。
     /// </remarks>
     private async Task ValidateTenantAdminAsync(string adminUserName, string adminEmail, string adminPassword, string? tenantCode, string? tenantName)
     {
@@ -173,7 +173,7 @@ public sealed class TenantAppService
     }
 
     /// <summary>
-    /// 初始化租户管理员：管理员 + Owner 角色 + 按版本白名单授权（库隔离租户要先初始化数据库）
+    /// 初始化租户管理员：管理员账号 + 所有者成员关系与所有者角色（库隔离租户要先初始化数据库）
     /// </summary>
     [UnitOfWork(true)]
     [HttpPost]
@@ -255,6 +255,28 @@ public sealed class TenantAppService
     {
         cancellationToken.ThrowIfCancellationRequested();
         await _tenantDomainService.RemoveTenantSupportMemberAsync(tenantId, memberId, cancellationToken);
+    }
+
+    /// <summary>
+    /// 所有权转移：把租户所有者身份转给该租户的另一名成员，原所有者改为管理员（平台）
+    /// </summary>
+    /// <returns>接任所有者的成员关系</returns>
+    [UnitOfWork(true)]
+    [HttpPost]
+    [PermissionAuthorize(SaasPermissionCodes.Tenant.TransferOwner)]
+    public async Task<TenantMemberDetailDto> TransferTenantOwnerAsync(TenantOwnerTransferDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _tenantDomainService.TransferTenantOwnerAsync(
+            TenantMemberApplicationMapper.ToOwnerTransferCommand(input),
+            cancellationToken);
+
+        // 所有者角色换了人：两人的授权快照都要重建（事务提交后生效）
+        await _cacheInvalidator.InvalidateAuthorizationAsync(result.PreviousOwner.UserId, cancellationToken);
+        await _cacheInvalidator.InvalidateAuthorizationAsync(result.NewOwner.UserId, cancellationToken);
+        return TenantMemberApplicationMapper.ToDetailDto(result.NewOwner, result.Now);
     }
 
     /// <summary>

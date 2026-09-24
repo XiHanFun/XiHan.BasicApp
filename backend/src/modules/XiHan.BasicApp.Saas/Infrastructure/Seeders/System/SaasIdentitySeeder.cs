@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -29,7 +30,6 @@ public sealed class SaasIdentitySeeder(
     private const long DefaultTenantId = 1;
     private const string DefaultTenantCode = "default";
     private const string SuperAdminUserName = "superadmin";
-    private const string SuperAdminRoleCode = "super_admin";
 
     /// <summary>
     /// 超管初始密码配置键（环境变量形式 Saas__Seed__SuperAdminPassword）
@@ -82,7 +82,7 @@ public sealed class SaasIdentitySeeder(
     {
         var changed = false;
         changed |= SetIfChanged(role.TenantId, 0, value => role.TenantId = value);
-        changed |= SetIfChanged(role.RoleCode, SuperAdminRoleCode, value => role.RoleCode = value);
+        changed |= SetIfChanged(role.RoleCode, SaasRoleCodes.SuperAdmin, value => role.RoleCode = value);
         changed |= SetIfChanged(role.RoleName, "超级管理员", value => role.RoleName = value);
         changed |= SetIfChanged(role.RoleDescription, "系统初始化超级管理员角色", value => role.RoleDescription = value);
         changed |= SetIfChanged(role.RoleType, RoleType.System, value => role.RoleType = value);
@@ -187,7 +187,7 @@ public sealed class SaasIdentitySeeder(
         using var platformScope = _currentTenant.Change(null);
         var client = DbClient;
         var existingRole = await client.Queryable<SysRole>()
-            .FirstAsync(role => role.TenantId == 0 && role.RoleCode == SuperAdminRoleCode);
+            .FirstAsync(role => role.TenantId == 0 && role.RoleCode == SaasRoleCodes.SuperAdmin);
         if (existingRole is not null)
         {
             if (ApplySuperAdminRole(existingRole))
@@ -200,7 +200,7 @@ public sealed class SaasIdentitySeeder(
 
         var role = new SysRole
         {
-            RoleCode = SuperAdminRoleCode
+            RoleCode = SaasRoleCodes.SuperAdmin
         };
         _ = ApplySuperAdminRole(role);
 
