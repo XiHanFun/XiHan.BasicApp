@@ -67,7 +67,7 @@ public sealed class SaasTelegramMessageAuditStore : ITelegramMessageAuditStore
 
             await using var scope = _scopeFactory.CreateAsyncScope();
             var clientResolver = scope.ServiceProvider.GetRequiredService<ISqlSugarClientResolver>();
-            var db = clientResolver.GetCurrentClient();
+            var db = clientResolver.GetClientForEntity<SysTelegramMessage>();
             _ = await db.Insertable(entity).SplitTable().ExecuteCommandAsync();
         }
         catch (Exception ex)

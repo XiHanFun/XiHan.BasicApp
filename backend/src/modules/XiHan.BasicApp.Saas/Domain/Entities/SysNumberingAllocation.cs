@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -19,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_Ru_ReTe_IdKe", nameof(TenantId), OrderByType.Asc, nameof(RuleId), OrderByType.Asc, nameof(RequestTenantId), OrderByType.Asc, nameof(IdempotencyKey), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_Ru_GeTi", nameof(RuleId), OrderByType.Asc, nameof(GeneratedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_ReTe_GeTi", nameof(RequestTenantId), OrderByType.Asc, nameof(GeneratedTime), OrderByType.Desc)]
+[PlatformDataSource]
 public partial class SysNumberingAllocation : BasicAppCreationEntity
 {
     /// <summary>

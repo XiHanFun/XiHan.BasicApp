@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Sample.Domain.Entities;
 
@@ -15,7 +16,7 @@ namespace XiHan.BasicApp.Sample.Domain.Entities;
 /// </remarks>
 [SugarTable(TableName = "Sample_Note", TableDescription = "示例便签表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
-public class SampleNote : BasicAppFullAuditedEntity
+public class SampleNote : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 便签标题

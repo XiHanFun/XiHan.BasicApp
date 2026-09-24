@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.AI.Domain.Enums;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.AI.Domain.Entities;
@@ -22,6 +23,7 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysKnowledgeDocument : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>

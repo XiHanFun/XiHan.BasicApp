@@ -42,17 +42,20 @@ public sealed class TenantCreateDto : BasicAppCDto
     public long? EditionId { get; set; }
 
     /// <summary>
-    /// 租户管理员用户名（必填，租户内唯一；开通后自动创建管理员 + Owner 角色 + 按版本授权）
+    /// 租户管理员用户名（租户内唯一；开通后自动创建管理员 + Owner 角色 + 按版本授权）
     /// </summary>
+    /// <remarks>
+    /// 字段隔离租户必填；库隔离租户必须留空——它在独立库初始化之后经 InitializeTenantAdmin 开通管理员。
+    /// </remarks>
     public string AdminUserName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 租户管理员邮箱（必填，登录身份标识，全平台唯一）
+    /// 租户管理员邮箱（登录身份标识，全平台唯一；填写规则同 <see cref="AdminUserName"/>）
     /// </summary>
     public string AdminEmail { get; set; } = string.Empty;
 
     /// <summary>
-    /// 租户管理员初始密码（必填，须满足密码策略）
+    /// 租户管理员初始密码（须满足密码策略；填写规则同 <see cref="AdminUserName"/>）
     /// </summary>
     public string AdminPassword { get; set; } = string.Empty;
 

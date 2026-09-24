@@ -50,7 +50,7 @@ public sealed class TenantExpirationHostedService : XiHanBackgroundServiceBase<T
     protected override async Task<IEnumerable<IBackgroundTaskItem>> FetchWorkItemsAsync(int maxCount, CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClientResolver>().GetCurrentClient();
+        var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClientResolver>().GetClientForEntity<SysTenant>();
         var now = DateTimeOffset.UtcNow;
 
         var hasOverdue = await db.Queryable<SysTenant>()
@@ -72,7 +72,7 @@ public sealed class TenantExpirationHostedService : XiHanBackgroundServiceBase<T
     protected override async Task ProcessItemAsync(IBackgroundTaskItem item, CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClientResolver>().GetCurrentClient();
+        var db = scope.ServiceProvider.GetRequiredService<ISqlSugarClientResolver>().GetClientForEntity<SysTenant>();
         var invalidator = scope.ServiceProvider.GetRequiredService<ISaasCacheInvalidator>();
         var now = DateTimeOffset.UtcNow;
 

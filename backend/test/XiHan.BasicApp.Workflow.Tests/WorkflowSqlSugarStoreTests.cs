@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Repositories;
 using XiHan.BasicApp.Workflow.Infrastructure.Stores;
@@ -528,6 +529,34 @@ public sealed class WorkflowSqlSugarStoreTests
     }
 
     /// <summary>
+    /// 到期书签在各租户自己的数据里：平台库（含字段隔离租户）与每个库隔离租户的库逐库取，按到期时间合并后截断。
+    /// </summary>
+    [Fact]
+    public async Task BookmarkStore_GetDueAsync_ShouldMergeAcrossDatabasesByDueTime()
+    {
+        var (store, repository, _, scopeRunner) = CreateBookmarkStore(databaseTenantIds: [21]);
+        var start = WorkflowTestHelper.DueTime;
+        repository
+            .SetupSequence(value => value.GetDueAsync(start, 2, It.IsAny<CancellationToken>()))
+            // 平台库
+            .ReturnsAsync(
+            [
+                WorkflowStoreMapper.ToEntity(WorkflowTestHelper.CreateBookmark(id: "1", kind: WorkflowBookmarkKinds.Timer, key: null, dueTime: start.AddMinutes(-3), tenantId: 11)),
+                WorkflowStoreMapper.ToEntity(WorkflowTestHelper.CreateBookmark(id: "2", kind: WorkflowBookmarkKinds.Timer, key: null, dueTime: start.AddMinutes(-1), tenantId: 12))
+            ])
+            // 租户 21 的独立库
+            .ReturnsAsync(
+            [
+                WorkflowStoreMapper.ToEntity(WorkflowTestHelper.CreateBookmark(id: "3", kind: WorkflowBookmarkKinds.Timer, key: null, dueTime: start.AddMinutes(-2), tenantId: 21))
+            ]);
+
+        var due = await store.GetDueAsync(start, 2);
+
+        Assert.Equal([null, 21], scopeRunner.Visited);
+        Assert.Equal(["1", "3"], due.Select(bookmark => bookmark.Id));
+    }
+
+    /// <summary>
     /// 种类 + 索引键检索必须原样下探（待办按受理人标识、信号按信号名共用这条路径）。
     /// </summary>
     [Fact]
@@ -640,9 +669,53 @@ public sealed class WorkflowSqlSugarStoreTests
     /// <returns>存储、仓储桩、作用域工厂。</returns>
     private static (SqlSugarWorkflowBookmarkStore Store, Mock<IWorkflowBookmarkRepository> Repository, CountingScopeFactory ScopeFactory) CreateBookmarkStore()
     {
+        var (store, repository, scopeFactory, _) = CreateBookmarkStore(databaseTenantIds: []);
+        return (store, repository, scopeFactory);
+    }
+
+    /// <summary>
+    /// 构造书签存储，附带逐库执行替身。
+    /// </summary>
+    /// <param name="databaseTenantIds">已建库的库隔离租户（平台库之后依次进入）。</param>
+    /// <returns>存储、仓储桩、作用域工厂、逐库执行替身。</returns>
+    private static (SqlSugarWorkflowBookmarkStore Store, Mock<IWorkflowBookmarkRepository> Repository, CountingScopeFactory ScopeFactory, PerDatabaseRunner ScopeRunner) CreateBookmarkStore(long[] databaseTenantIds)
+    {
         var repository = new Mock<IWorkflowBookmarkRepository>();
-        var scopeFactory = WorkflowTestHelper.CreateScopeFactory(
-            services => services.AddScoped(_ => repository.Object));
-        return (new SqlSugarWorkflowBookmarkStore(scopeFactory), repository, scopeFactory);
+        var scopeRunner = new PerDatabaseRunner(databaseTenantIds);
+        var scopeFactory = WorkflowTestHelper.CreateScopeFactory(services =>
+        {
+            services.AddScoped(_ => repository.Object);
+            services.AddScoped<ITenantDataScopeRunner>(_ => scopeRunner);
+        });
+        return (new SqlSugarWorkflowBookmarkStore(scopeFactory), repository, scopeFactory, scopeRunner);
+    }
+
+    /// <summary>
+    /// 逐库执行替身：先平台库，再依次进入给定的库隔离租户，记录进入顺序。
+    /// </summary>
+    private sealed class PerDatabaseRunner(long[] databaseTenantIds) : ITenantDataScopeRunner
+    {
+        public List<long?> Visited { get; } = [];
+
+        public Task RunAsync(Func<long?, Task> action, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
+
+        public async Task RunPerDatabaseAsync(Func<long?, Task> action, CancellationToken cancellationToken = default)
+        {
+            Visited.Add(null);
+            await action(null);
+            foreach (var tenantId in databaseTenantIds)
+            {
+                Visited.Add(tenantId);
+                await action(tenantId);
+            }
+        }
+
+        public Task<bool> AnyPerDatabaseAsync(Func<Task<bool>> probe, CancellationToken cancellationToken = default)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

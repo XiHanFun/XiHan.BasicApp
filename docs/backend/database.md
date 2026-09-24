@@ -111,6 +111,7 @@ ORM 是 SqlSugar，`DbType` 取它的枚举值：
 
 实体侧还能直接标注：`[TableInitialization(false)]` 表示这张表由自己维护（框架不建）、
 `[TableInitialization(Target = DbInitializationTarget.Platform)]` 表示只建在平台库、独立库租户不建。
+本应用的平台目录、账号与授权、读共享模板等实体标的是 `[PlatformDataSource]`：不只建表只在平台库，运行期读写也固定走平台库，见 [多租户：库隔离](./multi-tenancy#库隔离-平台库是目录库)。
 要整套自己实现就 `Replace` 掉 `IDbEntityTypeProvider` / `IDataSeederSelector`，
 细节见 [Framework 数据访问](https://framework.docs.xihanfun.com/packages/data#选择初始化范围)。
 

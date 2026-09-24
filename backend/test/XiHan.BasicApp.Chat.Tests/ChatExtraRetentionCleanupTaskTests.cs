@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Infrastructure.Tasks;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
@@ -128,6 +128,8 @@ public sealed class ChatExtraRetentionCleanupTaskTests
 
             var resolver = new Mock<ISqlSugarClientResolver>();
             resolver.Setup(value => value.GetCurrentClient()).Returns(client.Object);
+            // 保留期是平台配置，按实体取连接；消息与回应在各作用域自己的库里，走当前连接
+            resolver.Setup(value => value.GetClientForEntity<SysConfig>()).Returns(client.Object);
 
             CurrentTenant = new Mock<ICurrentTenant>();
 

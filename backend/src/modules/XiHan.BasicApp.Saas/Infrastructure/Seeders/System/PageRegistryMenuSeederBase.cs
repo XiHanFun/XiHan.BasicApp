@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
@@ -41,6 +42,7 @@ public sealed record MenuSeedDefinition(
 /// 已存在则逐字段比对更新，不存在则插入，不删除任何行。
 /// 平台菜单固定 TenantId=0，故整个过程切到平台上下文执行。
 /// </remarks>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public abstract class PageRegistryMenuSeederBase : DataSeederBase
 {
     /// <summary>

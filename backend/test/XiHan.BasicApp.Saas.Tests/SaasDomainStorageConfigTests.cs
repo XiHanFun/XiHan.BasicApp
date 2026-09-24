@@ -308,7 +308,7 @@ public sealed class SaasDomainStorageConfigTests
 
     /// <summary>
     /// 已被文件存储记录引用的配置禁止删除，避免历史文件失去可解析的存储配置。
-    /// 平台默认存储被未自配的租户用着，那些文件记录在各租户里，要跨租户查。
+    /// 平台默认存储被未自配的租户用着，那些文件记录在各租户自己的数据里，要逐库跨租户查。
     /// </summary>
     [Fact]
     public async Task DeleteStorageConfig_ReferencedByFileStorage_ShouldReject()
@@ -325,6 +325,35 @@ public sealed class SaasDomainStorageConfigTests
             () => context.Service.DeleteStorageConfigAsync(5));
 
         Assert.Equal("存储配置已被文件存储记录引用，禁止删除。", exception.Message, StringComparer.Ordinal);
+        context.ScopeRunner.Verify(
+            runner => runner.AnyPerDatabaseAsync(It.IsAny<Func<Task<bool>>>(), It.IsAny<CancellationToken>()),
+            Times.Once);
+        context.StorageConfigRepository.Verify(
+            repo => repo.DeleteAsync(It.IsAny<SysStorageConfig>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 引用只在某个库隔离租户的库里：逐库探查命中那个库同样拒绝删除。
+    /// </summary>
+    [Fact]
+    public async Task DeleteStorageConfig_ReferencedOnlyInIsolatedTenantDatabase_ShouldReject()
+    {
+        var context = new StorageConfigTestContext();
+        _ = context.SetupExistingConfig();
+        // 平台库里没有引用，第二个库（库隔离租户）里有
+        var answers = new Queue<bool>([false, true]);
+        _ = context.FileStorageRepository
+            .Setup(repo => repo.AnyIgnoreTenantAsync(
+                It.IsAny<Expression<Func<SysFileStorage, bool>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => answers.Dequeue());
+        _ = context.ScopeRunner
+            .Setup(runner => runner.AnyPerDatabaseAsync(It.IsAny<Func<Task<bool>>>(), It.IsAny<CancellationToken>()))
+            .Returns(async (Func<Task<bool>> probe, CancellationToken _) => await probe() || await probe());
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Service.DeleteStorageConfigAsync(5));
+
         context.StorageConfigRepository.Verify(
             repo => repo.DeleteAsync(It.IsAny<SysStorageConfig>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -484,6 +513,12 @@ public sealed class SaasDomainStorageConfigTests
             StorageConfigRepository = new Mock<IStorageConfigRepository>();
             FileStorageRepository = new Mock<IFileStorageRepository>();
             SecretProtector = new Mock<IStorageSecretProtector>();
+            ScopeRunner = new Mock<ITenantDataScopeRunner>();
+
+            // 单库：逐库探查只在平台库探一次
+            _ = ScopeRunner
+                .Setup(runner => runner.AnyPerDatabaseAsync(It.IsAny<Func<Task<bool>>>(), It.IsAny<CancellationToken>()))
+                .Returns((Func<Task<bool>> probe, CancellationToken _) => probe());
 
             _ = SecretProtector
                 .Setup(protector => protector.Protect(It.IsAny<string?>()))
@@ -519,8 +554,11 @@ public sealed class SaasDomainStorageConfigTests
             Service = new StorageConfigDomainService(
                 StorageConfigRepository.Object,
                 FileStorageRepository.Object,
-                SecretProtector.Object);
+                SecretProtector.Object,
+                ScopeRunner.Object);
         }
+
+        internal Mock<ITenantDataScopeRunner> ScopeRunner { get; }
 
         internal Expression<Func<SysStorageConfig, bool>>? CapturedClearDefaultPredicate { get; private set; }
 

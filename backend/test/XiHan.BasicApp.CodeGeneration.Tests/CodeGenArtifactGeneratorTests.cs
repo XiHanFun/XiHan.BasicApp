@@ -419,8 +419,12 @@ public sealed class CodeGenArtifactGeneratorTests
         var content = CodeGenerationTestHelper.BuildSeeders(CodeGenerationTestHelper.CreateContext())[0].Content;
 
         Assert.Contains("namespace XiHan.BasicApp.Catalog.Infrastructure.Seeders;", content, StringComparison.Ordinal);
-        Assert.Contains("public sealed class SysProductPermissionSeeder : DataSeederBase", content, StringComparison.Ordinal);
+        Assert.Contains("public sealed class SysProductPermissionSeeder : PlatformDataSeederBase", content, StringComparison.Ordinal);
         Assert.Contains("SysProductPermissionDefinitions.Items", content, StringComparison.Ordinal);
+        // 未声明作用侧的权限在任何上下文都不生效：新建时写入，已落库的同步
+        Assert.Contains("private const PermissionSide Side = PermissionSide.Both;", content, StringComparison.Ordinal);
+        Assert.Contains("Side = Side,", content, StringComparison.Ordinal);
+        Assert.Contains("await SyncPermissionSideAsync(codes, Side);", content, StringComparison.Ordinal);
         Assert.Contains("public override int Order => 200;", content, StringComparison.Ordinal);
         Assert.Contains("[Catalog]产品权限种子数据", content, StringComparison.Ordinal);
     }

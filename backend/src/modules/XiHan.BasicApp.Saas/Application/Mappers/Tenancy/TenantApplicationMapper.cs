@@ -50,7 +50,6 @@ public static class TenantApplicationMapper
             input.Logo,
             input.Domain,
             input.EditionId,
-            input.IsolationMode,
             input.ExpirationTime,
             input.UserLimit,
             input.StorageLimit,

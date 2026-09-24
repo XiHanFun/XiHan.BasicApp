@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -45,6 +46,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CoTy", nameof(ConfigType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoGr", nameof(ConfigGroup), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysConfig : BasicAppFullAuditedEntity
 {
     /// <summary>

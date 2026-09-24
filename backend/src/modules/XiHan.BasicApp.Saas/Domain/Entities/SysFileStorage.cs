@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -44,7 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_IsPr", nameof(IsPrimary), OrderByType.Desc)]
 [SugarIndex("IX_{table}_FiId_StTy", nameof(FileId), OrderByType.Asc, nameof(StorageType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_FiId", nameof(TenantId), OrderByType.Asc, nameof(FileId), OrderByType.Asc)]
-public partial class SysFileStorage : BasicAppFullAuditedEntity
+public partial class SysFileStorage : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     #region 关联信息
 

@@ -153,7 +153,7 @@ public sealed class SaasUpgradeTenantProvider : IUpgradeTenantProvider
     {
         // 整行取实体后在内存里投影：SqlSugar 物化结果时调用目标类型的无参构造函数，
         // BasicTenantInfo 只有带参构造函数，直接投影会取不到构造器而抛异常。
-        var tenants = _clientResolver.GetCurrentClient()
+        var tenants = _clientResolver.GetClientForEntity<SysTenant>()
             .Queryable<SysTenant>()
             .Where(tenant => !tenant.IsDeleted)
             .Where(tenant => tenant.IsolationMode == TenantIsolationMode.Database)

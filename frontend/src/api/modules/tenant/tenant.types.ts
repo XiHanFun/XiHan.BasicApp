@@ -73,11 +73,14 @@ export interface TenantOverQuotaDto {
 }
 
 export interface TenantCreateDto extends BasicCreateDto {
-  /** 租户管理员用户名（必填，租户内唯一；开通后自动创建管理员 + Owner 角色 + 按版本授权） */
+  /**
+   * 租户管理员用户名（租户内唯一；开通后自动创建管理员 + Owner 角色 + 按版本授权）。
+   * 字段隔离租户必填；库隔离租户必须留空，初始化数据库之后经 initializeTenantAdmin 开通
+   */
   adminUserName: string
-  /** 租户管理员邮箱（必填，登录身份标识，全平台唯一） */
+  /** 租户管理员邮箱（登录身份标识，全平台唯一；填写规则同 adminUserName） */
   adminEmail: string
-  /** 租户管理员初始密码（必填，须满足密码策略） */
+  /** 租户管理员初始密码（须满足密码策略；填写规则同 adminUserName） */
   adminPassword: string
   /** 数据库连接字符串（隔离模式为 Database 时必填；加密落库、绝不回显） */
   connectionString?: string | null
@@ -97,6 +100,7 @@ export interface TenantCreateDto extends BasicCreateDto {
   userLimit?: number | null
 }
 
+/** 租户更新：隔离模式创建后不能修改，不在更新契约里 */
 export interface TenantUpdateDto extends BasicUpdateDto {
   /** 数据库连接字符串（留空表示保持不变；填写则加密覆盖、绝不回显） */
   connectionString?: string | null
@@ -105,7 +109,6 @@ export interface TenantUpdateDto extends BasicUpdateDto {
   domain?: string | null
   editionId?: ApiId | null
   expirationTime?: DateTimeString | null
-  isolationMode: TenantIsolationMode
   logo?: string | null
   remark?: string | null
   sort: number
@@ -113,6 +116,14 @@ export interface TenantUpdateDto extends BasicUpdateDto {
   tenantName: string
   tenantShortName?: string | null
   userLimit?: number | null
+}
+
+/** 库隔离租户初始化管理员（独立库初始化完成之后） */
+export interface TenantAdminInitializeDto {
+  adminEmail: string
+  adminPassword: string
+  adminUserName: string
+  tenantId: ApiId
 }
 
 export interface TenantStatusUpdateDto extends BasicDto {

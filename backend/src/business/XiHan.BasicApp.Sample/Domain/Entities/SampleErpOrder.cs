@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.Framework.Data.SqlSugar.Routing;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Sample.Domain.Entities;
 
@@ -29,7 +30,7 @@ namespace XiHan.BasicApp.Sample.Domain.Entities;
 /// </remarks>
 [SugarTable(TableName = "Sample_Erp_Order", TableDescription = "示例 Erp 订单表")]
 [ModuleDataSource(SampleModuleDataSources.Erp)]
-public class SampleErpOrder : BasicAppFullAuditedEntity
+public class SampleErpOrder : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 订单号

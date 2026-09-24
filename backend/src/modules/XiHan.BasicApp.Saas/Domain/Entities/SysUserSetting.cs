@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -33,6 +34,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_UsId_Sc_SeKe", nameof(UserId), OrderByType.Asc, nameof(Scene), OrderByType.Asc, nameof(SettingKey), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+[PlatformDataSource]
 public partial class SysUserSetting : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>

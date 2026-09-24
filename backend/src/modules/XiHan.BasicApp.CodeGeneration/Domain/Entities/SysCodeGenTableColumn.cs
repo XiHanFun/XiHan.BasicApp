@@ -5,6 +5,7 @@ using SqlSugar;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 
@@ -41,6 +42,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TaId", nameof(TableId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoNa", nameof(ColumnName), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysCodeGenTableColumn : BasicAppFullAuditedEntity
 {
     /// <summary>

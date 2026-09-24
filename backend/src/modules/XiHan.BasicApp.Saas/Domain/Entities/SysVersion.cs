@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -36,7 +37,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_ApVe", nameof(AppVersion), OrderByType.Asc)]
 [SugarIndex("IX_{table}_DbVe", nameof(DbVersion), OrderByType.Asc)]
 [SugarIndex("IX_{table}_IsUp", nameof(IsUpgrading), OrderByType.Asc)]
-public partial class SysVersion : BasicAppCreationEntity
+public partial class SysVersion : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 应用版本

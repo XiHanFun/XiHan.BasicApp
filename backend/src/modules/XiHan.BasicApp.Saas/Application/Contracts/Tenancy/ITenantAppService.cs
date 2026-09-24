@@ -44,6 +44,14 @@ public interface ITenantAppService : IApplicationService
     Task<TenantDetailDto> InitializeDatabaseAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 初始化库隔离租户的管理员（独立库初始化完成之后）
+    /// </summary>
+    /// <param name="input">管理员参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户详情</returns>
+    Task<TenantDetailDto> InitializeTenantAdminAsync(TenantAdminInitializeDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 删除租户（软删，要求租户已停用或暂停）
     /// </summary>
     /// <param name="id">租户主键</param>

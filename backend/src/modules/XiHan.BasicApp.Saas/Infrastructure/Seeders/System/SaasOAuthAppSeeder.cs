@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Domain.Identity;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
@@ -19,6 +20,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 /// 本种子保证该客户端在 SysOAuthApp 中有对应注册记录（数据完整性）。
 /// 已存在不覆盖：回调地址、令牌有效期等允许运营调整，种子只负责首次落地。
 /// </remarks>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public sealed class SaasOAuthAppSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasOAuthAppSeeder> logger,

@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -30,6 +31,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_PeAc", nameof(PermissionAction), OrderByType.Asc)]
 [SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
+[PlatformDataSource]
 public partial class SysRolePermission : BasicAppCreationEntity
 {
     /// <summary>

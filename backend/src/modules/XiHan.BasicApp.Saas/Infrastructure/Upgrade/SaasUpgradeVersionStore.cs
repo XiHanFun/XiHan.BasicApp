@@ -60,6 +60,28 @@ public sealed class SaasUpgradeVersionStore : IUpgradeVersionStore
     }
 
     /// <summary>
+    /// 当前库还没有版本行时按给定版本登记一条（新建的库本就是最新结构），已有则不动。
+    /// </summary>
+    public async Task<bool> TryCreateBaselineAsync(string appVersion, string dbVersion, string minSupportVersion, CancellationToken cancellationToken = default)
+    {
+        var existing = await Db.Queryable<SysVersion>().FirstAsync(cancellationToken);
+        if (existing is not null)
+        {
+            return false;
+        }
+
+        _ = await Db.Insertable(new SysVersion
+        {
+            AppVersion = appVersion,
+            DbVersion = dbVersion,
+            MinSupportVersion = minSupportVersion,
+            IsUpgrading = false
+        }).ExecuteReturnEntityAsync();
+
+        return true;
+    }
+
+    /// <summary>
     /// 取当前库的版本行，没有则以「数据库版本 0.0.0」建一条，交由引擎把脚本逐版本推进上去。
     /// </summary>
     public async Task<UpgradeVersionState> GetOrCreateAsync(string currentAppVersion, string minSupportVersion, CancellationToken cancellationToken = default)

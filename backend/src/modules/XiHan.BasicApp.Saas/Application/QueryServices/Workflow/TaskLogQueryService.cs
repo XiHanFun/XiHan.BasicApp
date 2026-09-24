@@ -36,7 +36,7 @@ public sealed class TaskLogQueryService
         _clientResolver = clientResolver;
     }
 
-    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
+    private ISqlSugarClient DbClient => _clientResolver.GetClientForEntity<SysTaskLog>();
 
     /// <summary>
     /// 获取任务日志分页列表

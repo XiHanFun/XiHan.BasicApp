@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.Printing.Domain.Entities;
 
@@ -21,6 +22,7 @@ namespace XiHan.BasicApp.Printing.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_TeCo", nameof(TenantId), OrderByType.Asc, nameof(TemplateCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_St_So", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(Sort), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysPrintTemplate : BasicAppFullAuditedEntity
 {
     /// <summary>

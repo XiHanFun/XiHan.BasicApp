@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Initializers;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Upgrade.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 
@@ -15,7 +16,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 /// </summary>
 /// <remarks>
 /// 切到目标租户上下文后复用框架 <see cref="IDbInitializer"/>：运行时连接提供器将其解析到该租户独立库，
-/// 完成建库/建表/基线种子。DDL 不能在事务内执行，调用方（AppService）不得包裹事务型工作单元。
+/// 完成建库/建表。独立库只建租户数据的表（平台目录、账号与授权、读共享模板固定在平台库），本应用的种子只播平台库。
+/// 建好的库按当前实体建表、本就是最新结构，随即登记升级基线，之后的升级只跑更新的脚本。
+/// DDL 不能在事务内执行，调用方（AppService）不得包裹事务型工作单元。
 /// 配置状态（Configuring/Configured/Failed）写回平台库 SysTenant，在租户上下文切换之外进行。
 /// </remarks>
 public sealed class TenantDatabaseInitializer : ITenantDatabaseInitializer
@@ -23,6 +26,7 @@ public sealed class TenantDatabaseInitializer : ITenantDatabaseInitializer
     private readonly ITenantRepository _tenantRepository;
     private readonly ICurrentTenant _currentTenant;
     private readonly IDbInitializer _dbInitializer;
+    private readonly IUpgradeEngine _upgradeEngine;
     private readonly ITenantConnectionCacheInvalidator _connectionCacheInvalidator;
     private readonly ILogger<TenantDatabaseInitializer> _logger;
 
@@ -33,18 +37,20 @@ public sealed class TenantDatabaseInitializer : ITenantDatabaseInitializer
         ITenantRepository tenantRepository,
         ICurrentTenant currentTenant,
         IDbInitializer dbInitializer,
+        IUpgradeEngine upgradeEngine,
         ITenantConnectionCacheInvalidator connectionCacheInvalidator,
         ILogger<TenantDatabaseInitializer> logger)
     {
         _tenantRepository = tenantRepository;
         _currentTenant = currentTenant;
         _dbInitializer = dbInitializer;
+        _upgradeEngine = upgradeEngine;
         _connectionCacheInvalidator = connectionCacheInvalidator;
         _logger = logger;
     }
 
     /// <summary>
-    /// 为库隔离租户初始化独立数据库：建库 → 建表 → 基线种子（幂等）。
+    /// 为库隔离租户初始化独立数据库：建库 → 建表 → 登记升级基线（幂等）。
     /// </summary>
     /// <param name="tenantId">租户标识</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -84,6 +90,9 @@ public sealed class TenantDatabaseInitializer : ITenantDatabaseInitializer
             {
                 // 整套布局一起初始化：租户主库，加上该租户自带的模块库（Tenant_{id}_Erp 这类）
                 await _dbInitializer.InitializeCurrentLayoutAsync();
+
+                // 新库不从 0.0.0 补跑历史脚本（它们改的表多半不在租户库里）；已有版本记录的库（重跑初始化）保持不动
+                _ = await _upgradeEngine.BaselineAsync(cancellationToken);
             }
 
             tenant.MarkConfigStatus(TenantConfigStatus.Configured);

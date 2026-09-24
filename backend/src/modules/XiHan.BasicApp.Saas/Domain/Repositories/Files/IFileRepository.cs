@@ -16,13 +16,22 @@ public interface IFileRepository : ISaasRepository<SysFile>
     Task<SysFile?> GetByHashAsync(string fileHash, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 统计指定租户已占用的存储字节数
+    /// 统计当前作用域已占用的存储字节数
     /// </summary>
     /// <remarks>
     /// 口径：计入 Normal 与 Uploading 两种状态——上传中的文件已经预占空间，
-    /// 漏算会让并发上传绕过配额；软删文件由全局软删过滤器自动排除。
-    /// 按 TenantId 精确匹配而非依赖全局租户过滤器：后者放行 TenantId=0 的平台级数据，
-    /// 会把平台文件计进任意租户的用量。
+    /// 漏算会让并发上传绕过配额；软删文件由全局软删过滤器自动排除。文件严格隔离，只算本作用域的。
+    /// </remarks>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>已占用字节数</returns>
+    Task<long> SumUsedStorageAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 按租户分组统计当前库里这些租户已占用的存储字节数
+    /// </summary>
+    /// <remarks>
+    /// 口径同 <see cref="SumUsedStorageAsync"/>。只统计当前连接这个库里的行：字段隔离租户的文件与平台同在平台库，
+    /// 平台作用域下一次分组拿全；库隔离租户的文件在它自己的库里，要切入该租户用 <see cref="SumUsedStorageAsync"/>。
     /// </remarks>
     /// <param name="tenantIds">租户主键集合</param>
     /// <param name="cancellationToken">取消令牌</param>

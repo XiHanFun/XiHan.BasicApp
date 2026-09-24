@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -27,6 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CoSt", nameof(ConfigStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_EdId", nameof(EditionId), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysTenant : BasicAppAggregateRoot
 {
     /// <summary>

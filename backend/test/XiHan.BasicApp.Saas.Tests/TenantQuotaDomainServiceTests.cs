@@ -5,7 +5,6 @@ using Moq;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
@@ -203,6 +202,65 @@ public sealed class TenantQuotaDomainServiceTests
     }
 
     /// <summary>
+    /// 库隔离租户的文件在它自己的库里：切入该租户统计，不进平台库的跨租户分组。
+    /// </summary>
+    [Fact]
+    public async Task GetQuotaSnapshots_DatabaseTenant_ShouldSumInItsOwnScope()
+    {
+        var fixture = CreateFixture(
+            usedBytes: 2048,
+            isolationMode: TenantIsolationMode.Database,
+            currentTenantId: null);
+
+        var snapshots = await fixture.Service.GetQuotaSnapshotsAsync([TenantId]);
+
+        Assert.Equal(2048, snapshots[TenantId].UsedStorageBytes);
+        Assert.Equal([TenantId], fixture.StorageSumScopes);
+        fixture.FileRepository.Verify(
+            repo => repo.SumUsedStorageByTenantIdsAsync(
+                It.Is<IReadOnlyCollection<long>>(ids => ids.Contains(TenantId)), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 还没建库的库隔离租户没有文件，不去连它的库。
+    /// </summary>
+    [Fact]
+    public async Task GetQuotaSnapshots_PendingDatabaseTenant_ShouldNotTouchItsDatabase()
+    {
+        var fixture = CreateFixture(
+            usedBytes: 2048,
+            isolationMode: TenantIsolationMode.Database,
+            configStatus: TenantConfigStatus.Pending,
+            currentTenantId: null);
+
+        var snapshots = await fixture.Service.GetQuotaSnapshotsAsync([TenantId]);
+
+        Assert.Equal(0, snapshots[TenantId].UsedStorageBytes);
+        Assert.Empty(fixture.StorageSumScopes);
+    }
+
+    /// <summary>
+    /// 字段隔离租户的文件与平台同库：在平台作用域一次分组统计。
+    /// </summary>
+    [Fact]
+    public async Task GetQuotaSnapshots_FieldTenant_ShouldGroupInPlatformScope()
+    {
+        long? scopeAtGroupSum = -1;
+        var fixture = CreateFixture(usedBytes: 4096, currentTenantId: null);
+        _ = fixture.FileRepository
+            .Setup(repo => repo.SumUsedStorageByTenantIdsAsync(It.IsAny<IReadOnlyCollection<long>>(), It.IsAny<CancellationToken>()))
+            .Callback(() => scopeAtGroupSum = fixture.CurrentTenant.Id)
+            .ReturnsAsync((IReadOnlyDictionary<long, long>)new Dictionary<long, long> { [TenantId] = 4096 });
+
+        var snapshots = await fixture.Service.GetQuotaSnapshotsAsync([TenantId]);
+
+        Assert.Equal(4096, snapshots[TenantId].UsedStorageBytes);
+        Assert.Null(scopeAtGroupSum);
+        Assert.Empty(fixture.StorageSumScopes);
+    }
+
+    /// <summary>
     /// 构造被测服务及其依赖替身。
     /// </summary>
     private static QuotaFixture CreateFixture(
@@ -212,7 +270,9 @@ public sealed class TenantQuotaDomainServiceTests
         long? editionStorageLimit = null,
         long usedSeats = 0,
         long usedBytes = 0,
-        long? currentTenantId = TenantId)
+        long? currentTenantId = TenantId,
+        TenantIsolationMode isolationMode = TenantIsolationMode.Field,
+        TenantConfigStatus configStatus = TenantConfigStatus.Configured)
     {
         var tenant = new TestTenant(TenantId)
         {
@@ -220,7 +280,9 @@ public sealed class TenantQuotaDomainServiceTests
             TenantName = "测试租户",
             EditionId = EditionId,
             UserLimit = tenantUserLimit,
-            StorageLimit = tenantStorageLimit
+            StorageLimit = tenantStorageLimit,
+            IsolationMode = isolationMode,
+            ConfigStatus = configStatus
         };
 
         var edition = new TestEdition(EditionId)
@@ -253,23 +315,29 @@ public sealed class TenantQuotaDomainServiceTests
                 It.IsAny<IReadOnlyCollection<long>>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((IReadOnlyDictionary<long, long>)new Dictionary<long, long> { [TenantId] = usedSeats });
 
+        var currentTenant = new TestCurrentTenant(currentTenantId);
+        var storageSumScopes = new List<long?>();
+
         var fileRepository = new Mock<IFileRepository>();
         _ = fileRepository
             .Setup(repo => repo.SumUsedStorageByTenantIdsAsync(
                 It.IsAny<IReadOnlyCollection<long>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IReadOnlyDictionary<long, long>)new Dictionary<long, long> { [TenantId] = usedBytes });
-
-        var currentTenant = new Mock<ICurrentTenant>();
-        _ = currentTenant.SetupGet(context => context.Id).Returns(currentTenantId);
+            .ReturnsAsync((IReadOnlyCollection<long> ids, CancellationToken _) => ids.Contains(TenantId)
+                ? new Dictionary<long, long> { [TenantId] = usedBytes }
+                : new Dictionary<long, long>());
+        _ = fileRepository
+            .Setup(repo => repo.SumUsedStorageAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => storageSumScopes.Add(currentTenant.Id))
+            .ReturnsAsync(usedBytes);
 
         var service = new TenantQuotaDomainService(
             tenantRepository.Object,
             editionRepository.Object,
             tenantUserRepository.Object,
             fileRepository.Object,
-            currentTenant.Object);
+            currentTenant);
 
-        return new QuotaFixture(service, tenantRepository, tenantUserRepository, fileRepository);
+        return new QuotaFixture(service, tenantRepository, tenantUserRepository, fileRepository, currentTenant, storageSumScopes);
     }
 
     /// <summary>
@@ -301,5 +369,7 @@ public sealed class TenantQuotaDomainServiceTests
         TenantQuotaDomainService Service,
         Mock<ITenantRepository> TenantRepository,
         Mock<ITenantUserRepository> TenantUserRepository,
-        Mock<IFileRepository> FileRepository);
+        Mock<IFileRepository> FileRepository,
+        TestCurrentTenant CurrentTenant,
+        List<long?> StorageSumScopes);
 }

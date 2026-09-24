@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// 种子骨架二阶产物生成器（{Class}PermissionSeeder.cs + {Class}MenuSeeder.cs）
 /// </summary>
 /// <remarks>
-/// 产出可编译的种子骨架，镜像本仓库既有 Seeder 样板（DataSeederBase + 资源/权限/授权/菜单）。
+/// 产出可编译的种子骨架，镜像本仓库既有 Seeder 样板（PlatformDataSeederBase + 资源/权限/授权/菜单）。
 /// Order 为占位、需人工确认不冲突，故标 <see cref="ArtifactWriteMode.WriteOnce"/>（首次创建后永不覆盖）。
 /// 权限项来源为同批生成的 {Class}PermissionDefinitions，避免两处描述。
 /// </remarks>
@@ -69,8 +69,8 @@ using Microsoft.Extensions.Logging;
 using %NS%.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.Framework.Data.SqlSugar.Clients;
-using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace %NS%.Infrastructure.Seeders;
 
@@ -80,8 +80,10 @@ namespace %NS%.Infrastructure.Seeders;
 /// <remarks>
 /// 依赖平台操作字典（SysOperation：read/create/update/delete…）已由既有种子登记。
 /// 须置于 %CLASS%MenuSeeder 之前：菜单建立时需解析 %RESOURCE%:read。
+/// 资源、权限、角色授权是平台目录：在平台上下文播、只落平台库（见 PlatformDataSeederBase）。
+/// 作用侧默认两侧生效；只给业务租户用的功能改成 PermissionSide.Tenant。未声明作用侧的权限在任何上下文都不生效。
 /// </remarks>
-public sealed class %CLASS%PermissionSeeder : DataSeederBase
+public sealed class %CLASS%PermissionSeeder : PlatformDataSeederBase
 {
     /// <summary>构造函数</summary>
     public %CLASS%PermissionSeeder(ISqlSugarClientResolver clientResolver, ILogger<%CLASS%PermissionSeeder> logger, IServiceProvider serviceProvider)
@@ -95,13 +97,14 @@ public sealed class %CLASS%PermissionSeeder : DataSeederBase
     /// <summary>种子名称</summary>
     public override string Name => "[%MODULE%]%DISPLAY%权限种子数据";
 
+    /// <summary>权限作用侧</summary>
+    private const PermissionSide Side = PermissionSide.Both;
+
     /// <summary>种子实现</summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbClient;
-
         // 1) 资源（幂等）
-        var resource = await client.Queryable<SysResource>().FirstAsync(r => r.ResourceCode == %CLASS%PermissionDefinitions.Resource);
+        var resource = await DbClientFor<SysResource>().Queryable<SysResource>().FirstAsync(r => r.ResourceCode == %CLASS%PermissionDefinitions.Resource);
         if (resource is null)
         {
             await BulkInsertAsync(new List<SysResource>
@@ -118,13 +121,13 @@ public sealed class %CLASS%PermissionSeeder : DataSeederBase
                     Sort = 0
                 }
             });
-            resource = await client.Queryable<SysResource>().FirstAsync(r => r.ResourceCode == %CLASS%PermissionDefinitions.Resource);
+            resource = await DbClientFor<SysResource>().Queryable<SysResource>().FirstAsync(r => r.ResourceCode == %CLASS%PermissionDefinitions.Resource);
         }
 
         // 2) 权限（资源 × 操作）
-        var operationMap = (await client.Queryable<SysOperation>().ToListAsync()).ToDictionary(o => o.OperationCode, o => o);
+        var operationMap = (await DbClientFor<SysOperation>().Queryable<SysOperation>().ToListAsync()).ToDictionary(o => o.OperationCode, o => o);
         var codes = %CLASS%PermissionDefinitions.Items.Select(i => $"{resource.ResourceCode}:{i.Action}").ToList();
-        var existingCodes = (await client.Queryable<SysPermission>().Where(p => codes.Contains(p.PermissionCode)).ToListAsync())
+        var existingCodes = (await DbClientFor<SysPermission>().Queryable<SysPermission>().Where(p => codes.Contains(p.PermissionCode)).ToListAsync())
             .Select(p => p.PermissionCode).ToHashSet();
         var permissionAddList = new List<SysPermission>();
         foreach (var item in %CLASS%PermissionDefinitions.Items)
@@ -148,6 +151,7 @@ public sealed class %CLASS%PermissionSeeder : DataSeederBase
                 OperationId = operation.BasicId,
                 PermissionCode = permissionCode,
                 PermissionName = item.Name,
+                Side = Side,
                 PermissionDescription = item.Description,
                 IsRequireAudit = item.IsRequireAudit,
                 Tags = %CLASS%PermissionDefinitions.Resource,
@@ -161,8 +165,11 @@ public sealed class %CLASS%PermissionSeeder : DataSeederBase
             await BulkInsertAsync(permissionAddList);
         }
 
+        // 已落库的权限同步为声明的作用侧
+        await SyncPermissionSideAsync(codes, Side);
+
         // 3) 超管授权
-        var superRole = await client.Queryable<SysRole>().FirstAsync(r => r.RoleCode == "super_admin");
+        var superRole = await DbClientFor<SysRole>().Queryable<SysRole>().FirstAsync(r => r.TenantId == 0 && r.RoleCode == "super_admin");
         if (superRole is null)
         {
             Logger.LogWarning("super_admin 角色不存在，跳过 %RESOURCE% 超管授权");
@@ -170,9 +177,9 @@ public sealed class %CLASS%PermissionSeeder : DataSeederBase
         }
 
         var resourcePrefix = %CLASS%PermissionDefinitions.Resource + ":";
-        var permissions = await client.Queryable<SysPermission>().Where(p => p.PermissionCode.StartsWith(resourcePrefix)).ToListAsync();
+        var permissions = await DbClientFor<SysPermission>().Queryable<SysPermission>().Where(p => p.PermissionCode.StartsWith(resourcePrefix)).ToListAsync();
         var permissionIds = permissions.Select(p => p.BasicId).ToList();
-        var grantedIds = (await client.Queryable<SysRolePermission>()
+        var grantedIds = (await DbClientFor<SysRolePermission>().Queryable<SysRolePermission>()
                 .Where(rp => rp.RoleId == superRole.BasicId && permissionIds.Contains(rp.PermissionId)).ToListAsync())
             .Select(rp => rp.PermissionId).ToHashSet();
         var grantAddList = permissions.Where(p => !grantedIds.Contains(p.BasicId))
@@ -193,8 +200,8 @@ public sealed class %CLASS%PermissionSeeder : DataSeederBase
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 using XiHan.Framework.Data.SqlSugar.Clients;
-using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace %NS%.Infrastructure.Seeders;
 
@@ -212,7 +219,7 @@ namespace %NS%.Infrastructure.Seeders;
 /// 只注册本种子的话按钮一个都不会显示，须把 %CLASS%PageRegistry.snippet.txt 的
 /// ButtonDescriptor 条目粘进 PageRegistry.Buttons。
 /// </remarks>
-public sealed class %CLASS%MenuSeeder : DataSeederBase
+public sealed class %CLASS%MenuSeeder : PlatformDataSeederBase
 {
     /// <summary>构造函数</summary>
     public %CLASS%MenuSeeder(ISqlSugarClientResolver clientResolver, ILogger<%CLASS%MenuSeeder> logger, IServiceProvider serviceProvider)
@@ -229,16 +236,14 @@ public sealed class %CLASS%MenuSeeder : DataSeederBase
     /// <summary>种子实现</summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbClient;
-
-        var readPermission = await client.Queryable<SysPermission>().FirstAsync(p => p.PermissionCode == "%RESOURCE%:read");
+        var readPermission = await DbClientFor<SysPermission>().Queryable<SysPermission>().FirstAsync(p => p.PermissionCode == "%RESOURCE%:read");
         if (readPermission is null)
         {
             Logger.LogWarning("%RESOURCE%:read 权限不存在，跳过 %DISPLAY% 菜单种子");
             return;
         }
 
-        var exists = await client.Queryable<SysMenu>().AnyAsync(m => m.MenuCode == "%RESOURCE%");
+        var exists = await DbClientFor<SysMenu>().Queryable<SysMenu>().AnyAsync(m => m.MenuCode == "%RESOURCE%");
         if (exists)
         {
             Logger.LogInformation("%DISPLAY% 菜单已存在，跳过");

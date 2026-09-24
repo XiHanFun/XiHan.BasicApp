@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -31,6 +32,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_BoNa", nameof(TenantId), OrderByType.Asc, nameof(BotName), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_IsEn", nameof(TenantId), OrderByType.Asc, nameof(IsEnabled), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysTelegramBot : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>

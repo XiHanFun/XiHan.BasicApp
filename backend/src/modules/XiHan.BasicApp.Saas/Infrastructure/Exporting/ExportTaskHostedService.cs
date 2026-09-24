@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Saas.Application.Exporting;
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Tasks.BackgroundServices;

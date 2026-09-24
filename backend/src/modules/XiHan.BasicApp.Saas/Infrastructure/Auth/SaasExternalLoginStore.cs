@@ -49,7 +49,7 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
 
         var effectiveTenantId = tenantId ?? _currentTenant.Id ?? 0;
         using var tenantScope = _currentTenant.Change(effectiveTenantId);
-        var db = _clientResolver.GetCurrentClient();
+        var db = _clientResolver.GetClientForEntity<SysExternalLogin>();
 
         var userId = await db.Queryable<SysExternalLogin>()
             .Where(l => l.Provider == provider
@@ -77,7 +77,7 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
 
         var effectiveTenantId = tenantId ?? _currentTenant.Id ?? 0;
         using var tenantScope = _currentTenant.Change(effectiveTenantId);
-        var db = _clientResolver.GetCurrentClient();
+        var db = _clientResolver.GetClientForEntity<SysExternalLogin>();
 
         var record = new SysExternalLogin
         {
@@ -108,7 +108,7 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
             throw new ArgumentException("提供商名称不能为空。", nameof(provider));
         }
 
-        var db = _clientResolver.GetCurrentClient();
+        var db = _clientResolver.GetClientForEntity<SysExternalLogin>();
 
         // 绑定行带绑定时所在租户的戳：按用户跨租户取出，再按主键软删
         // （表达式式更新会被自动挂上当前作用域的租户过滤，别的租户戳的绑定就删不到）

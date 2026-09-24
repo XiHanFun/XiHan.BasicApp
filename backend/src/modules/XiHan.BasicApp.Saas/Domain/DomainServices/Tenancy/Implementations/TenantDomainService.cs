@@ -272,23 +272,20 @@ public sealed class TenantDomainService
         await EnsureDomainAvailableAsync(domain, tenant.BasicId, cancellationToken);
 
         var previousEditionId = tenant.EditionId;
-        var previousIsolationMode = tenant.IsolationMode;
 
         tenant.TenantName = command.TenantName.Trim();
         tenant.TenantShortName = NormalizeNullable(command.TenantShortName);
         tenant.Logo = NormalizeNullable(command.Logo);
         tenant.Domain = domain;
         tenant.EditionId = command.EditionId;
-        tenant.IsolationMode = command.IsolationMode;
         tenant.ExpirationTime = command.ExpirationTime;
         tenant.UserLimit = command.UserLimit;
         tenant.StorageLimit = command.StorageLimit;
         tenant.Sort = command.Sort;
         tenant.Remark = NormalizeNullable(command.Remark);
 
-        // 连接串留空表示保持不变；隔离/连接可能变更，更新后失效运行时连接缓存
+        // 连接串留空表示保持不变；连接可能变更，更新后失效运行时连接缓存
         ApplyConnectionSettings(tenant, command.DatabaseType, command.ConnectionString, requireConnectionString: false);
-        ApplyIsolationModeConfigStatus(tenant, previousIsolationMode);
 
         var updated = await _tenantRepository.UpdateAsync(tenant, cancellationToken);
         _connectionCacheInvalidator.Invalidate(tenant.BasicId);
@@ -434,25 +431,6 @@ public sealed class TenantDomainService
     }
 
     /// <summary>
-    /// 隔离模式变更时同步配置状态
-    /// </summary>
-    /// <remarks>
-    /// 切到库隔离要求重新初始化独立库，回落待配置；从库隔离切走则不再需要初始化，置为已配置。
-    /// 隔离模式没变时不动配置状态，避免覆盖 Failed / Disabled 等既有状态。
-    /// </remarks>
-    /// <param name="tenant">租户实体（IsolationMode 须已赋新值）</param>
-    /// <param name="previousIsolationMode">变更前的隔离模式</param>
-    private static void ApplyIsolationModeConfigStatus(SysTenant tenant, TenantIsolationMode previousIsolationMode)
-    {
-        if (tenant.IsolationMode == previousIsolationMode)
-        {
-            return;
-        }
-
-        tenant.MarkConfigStatus(ResolveInitialConfigStatus(tenant.IsolationMode));
-    }
-
-    /// <summary>
     /// 应用库隔离连接设置：库隔离校验数据库类型/连接串并加密落库；非库隔离清空相关字段
     /// </summary>
     /// <param name="tenant">租户实体（IsolationMode 须已赋值）</param>
@@ -489,10 +467,8 @@ public sealed class TenantDomainService
         }
     }
 
-    private static void ValidateCommonInput(TenantIsolationMode isolationMode, long? editionId, int? userLimit, long? storageLimit)
+    private static void ValidateCommonInput(long? editionId, int? userLimit, long? storageLimit)
     {
-        ValidateEnum(isolationMode, nameof(isolationMode));
-
         if (editionId is <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(editionId), "版本/套餐主键必须大于 0。");
@@ -513,14 +489,20 @@ public sealed class TenantDomainService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(command.TenantCode);
         ArgumentException.ThrowIfNullOrWhiteSpace(command.TenantName);
-        ValidateCommonInput(command.IsolationMode, command.EditionId, command.UserLimit, command.StorageLimit);
+        ValidateEnum(command.IsolationMode, nameof(command.IsolationMode));
+        if (command.IsolationMode == TenantIsolationMode.Schema)
+        {
+            throw new UserFriendlyException("暂不支持 Schema 隔离，请选择字段隔离或库隔离。");
+        }
+
+        ValidateCommonInput(command.EditionId, command.UserLimit, command.StorageLimit);
     }
 
     private static void ValidateUpdateCommand(TenantUpdateCommand command)
     {
         EnsureId(command.BasicId, "租户主键必须大于 0。");
         ArgumentException.ThrowIfNullOrWhiteSpace(command.TenantName);
-        ValidateCommonInput(command.IsolationMode, command.EditionId, command.UserLimit, command.StorageLimit);
+        ValidateCommonInput(command.EditionId, command.UserLimit, command.StorageLimit);
     }
 
     private static void EnsureOwnerCanBeChanged(SysTenantUser member, TenantMemberType newMemberType)

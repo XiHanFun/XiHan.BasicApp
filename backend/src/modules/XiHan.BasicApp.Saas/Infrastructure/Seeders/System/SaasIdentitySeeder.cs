@@ -9,12 +9,14 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Password;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 /// <summary>
 /// SaaS 基础身份种子数据
 /// </summary>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public sealed class SaasIdentitySeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasIdentitySeeder> logger,

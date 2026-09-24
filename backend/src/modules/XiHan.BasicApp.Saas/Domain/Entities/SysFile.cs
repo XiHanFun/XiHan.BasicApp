@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -54,7 +55,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_FiHa", nameof(TenantId), OrderByType.Asc, nameof(FileHash), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St_IsDe_FiSi", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, nameof(FileSize), OrderByType.Asc)]
-public partial class SysFile : BasicAppFullAuditedEntity
+public partial class SysFile : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     #region 基本信息
 

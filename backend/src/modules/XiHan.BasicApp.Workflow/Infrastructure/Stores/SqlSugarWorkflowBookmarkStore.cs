@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Repositories;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
 using XiHan.Framework.Workflow.Abstractions.Stores;
@@ -75,6 +77,7 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
     /// </summary>
     /// <remarks>
     /// 语义契约：过滤 <c>DueTime 非空 &amp;&amp; DueTime &lt;= now</c>；排序 <c>DueTime 升序</c>；最多返回 <paramref name="maxResultCount"/> 条。
+    /// 定时器跨租户轮询，书签在各租户自己的数据里：字段隔离的与平台同在平台库，库隔离的在各自的库里——逐库取再按到期时间合并。
     /// </remarks>
     /// <param name="now">当前时间</param>
     /// <param name="maxResultCount">最大返回条数</param>
@@ -84,8 +87,17 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
     {
         using var scope = _scopeFactory.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IWorkflowBookmarkRepository>();
-        var entities = await repository.GetDueAsync(now, maxResultCount, cancellationToken);
-        return [.. entities.Select(WorkflowStoreMapper.ToModel)];
+        var scopeRunner = scope.ServiceProvider.GetRequiredService<ITenantDataScopeRunner>();
+
+        var due = new List<SysWorkflowBookmark>();
+        await scopeRunner.RunPerDatabaseAsync(
+            async _ => due.AddRange(await repository.GetDueAsync(now, maxResultCount, cancellationToken)),
+            cancellationToken);
+
+        return [.. due
+            .OrderBy(bookmark => bookmark.DueTime)
+            .Take(maxResultCount)
+            .Select(WorkflowStoreMapper.ToModel)];
     }
 
     /// <summary>

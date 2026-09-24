@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -45,6 +46,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_DeId", nameof(DelegateeUserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_DeSt", nameof(TenantId), OrderByType.Asc, nameof(DelegationStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
+[PlatformDataSource]
 public partial class SysPermissionDelegation : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>

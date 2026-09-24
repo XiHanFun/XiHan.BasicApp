@@ -73,9 +73,11 @@ public sealed class StorageProviderResolver : IStorageProviderResolver
         using var scope = _scopeFactory.CreateScope();
         if (storage.StorageConfigId is { } configId)
         {
-            // 文件记着上传时用的配置：租户未自配时那是平台默认，按主键跨租户取；之后换了默认也不影响既有文件
+            // 文件记着上传时用的配置：要么是文件所在作用域自己的，要么是租户未自配时用的平台默认——
+            // 上传就是按这个顺序选的，取回也按这个顺序，平台的在平台库；之后换了默认也不影响既有文件
             var repository = scope.ServiceProvider.GetRequiredService<IStorageConfigRepository>();
-            var config = await repository.GetByIdIgnoreTenantAsync(configId, cancellationToken)
+            var currentTenant = scope.ServiceProvider.GetRequiredService<ICurrentTenant>();
+            var config = await currentTenant.CurrentThenPlatformAsync(() => repository.GetByIdAsync(configId, cancellationToken))
                 ?? throw new InvalidOperationException("文件所用的存储配置已不存在。");
             return GetOrBuild(config);
         }

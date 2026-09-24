@@ -8,17 +8,21 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace {{ Namespace }}.Domain.Entities;
 
 /// <summary>
 /// {{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}实体
 /// </summary>
+/// <remarks>
+/// 业务数据严格租户隔离：每个租户只看得见、只写得了自己的行，库隔离租户的数据落在它自己的库里。
+/// </remarks>
 [SugarTable("{{ TableName }}"{{ if TableComment }}, "{{ TableComment | cs_string }}"{{ end }})]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
-public partial class {{ ClassName }} : BasicAppFullAuditedEntity
+public partial class {{ ClassName }} : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
 {{~ for col in Columns ~}}
 {{~ if !col.IsBaseColumn && !col.IsPrimaryKey ~}}

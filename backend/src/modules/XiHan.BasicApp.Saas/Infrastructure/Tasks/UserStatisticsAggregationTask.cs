@@ -3,7 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.Framework.Data.SqlSugar.Clients;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Tasks;
@@ -120,8 +120,8 @@ public sealed class UserStatisticsAggregationTask
             .Select(log => new SysOperationLog { TenantId = log.TenantId, UserId = log.UserId, Result = log.Result, OperationTime = log.OperationTime })
             .ToListAsync();
 
-        // 会话：活跃区间与本月有交集的（含跨月在线的活跃会话）。会话仍是读共享实体，按本作用域精确取，不把平台行算进租户
-        var sessions = await client.Queryable<SysUserSession>()
+        // 会话：活跃区间与本月有交集的（含跨月在线的活跃会话）。会话在平台库（严格隔离），按实体取连接，只取本作用域的行
+        var sessions = await _clientResolver.GetClientForEntity<SysUserSession>().Queryable<SysUserSession>()
             .Where(session => session.TenantId == scopeTenantId && session.LastActivityTime >= monthStart && session.UserId > 0)
             .ToListAsync();
 
