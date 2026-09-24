@@ -12,6 +12,9 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.Specifications;
+using XiHan.Framework.Security.Extensions;
 
 namespace XiHan.BasicApp.Saas.Application.Exporting;
 
@@ -31,6 +34,8 @@ public sealed class ExportExecutor : IExportExecutor
     private readonly ILogger<ExportExecutor> _logger;
     private readonly IUserTaskProgressNotifier _notifier;
     private readonly IPermissionChecker _permissionChecker;
+    private readonly IAuthorizationSnapshotQueryService _authorizationSnapshot;
+    private readonly ITenantRepository _tenantRepository;
     private readonly IReadOnlyDictionary<string, IExportProvider> _providers;
     private readonly IExportTaskRepository _repository;
     private readonly IReadOnlyList<IExportWriter> _writers;
@@ -47,8 +52,12 @@ public sealed class ExportExecutor : IExportExecutor
         ICurrentPrincipalAccessor principalAccessor,
         IPermissionChecker permissionChecker,
         IUserTaskProgressNotifier notifier,
-        ILogger<ExportExecutor> logger)
+        ILogger<ExportExecutor> logger,
+        IAuthorizationSnapshotQueryService authorizationSnapshot,
+        ITenantRepository tenantRepository)
     {
+        _authorizationSnapshot = authorizationSnapshot;
+        _tenantRepository = tenantRepository;
         _providers = providers
             .GroupBy(provider => provider.BusinessType, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
@@ -73,13 +82,23 @@ public sealed class ExportExecutor : IExportExecutor
         var tenantId = task.TenantId;
         var islandTaskId = $"export:{task.BasicId}";
 
-        // 重建发起人上下文：租户 + 主体（claims 含 UserId/TenantId），使下游 QueryService 的
-        // 数据范围/字段脱敏按发起人生效
+        // 重建发起人上下文：租户 + 主体，与在线请求同一口径——会话声明（会话失效即拒绝）、
+        // 角色（与签发令牌同一来源，按执行时的授权）、模仿者声明（模仿态禁用的权限照样禁用）
         using var tenantScope = _currentTenant.Change(tenantId);
-        using var principalScope = _principalAccessor.Change(BuildPrincipal(userId, tenantId));
+        var now = DateTimeOffset.UtcNow;
 
         try
         {
+            var snapshot = await _authorizationSnapshot.BuildAsync(userId, now, cancellationToken);
+            using var principalScope = _principalAccessor.Change(BuildPrincipal(task, userId, tenantId, snapshot.Roles));
+
+            // 租户停用 / 到期 / 未就绪时在线请求进不来，后台导出也不再继续
+            if (tenantId > 0 && !await IsTenantAvailableAsync(tenantId, now, cancellationToken))
+            {
+                await FailAsync(task, userId, islandTaskId, "租户当前不可用，导出已取消", cancellationToken);
+                return;
+            }
+
             await _notifier.NotifyRunningAsync(userId, islandTaskId, $"正在导出 {task.TaskName}", "准备中…", 0, cancellationToken);
 
             if (!_providers.TryGetValue(task.BusinessType, out var provider))
@@ -199,12 +218,44 @@ public sealed class ExportExecutor : IExportExecutor
         };
     }
 
-    private static ClaimsPrincipal BuildPrincipal(long userId, long tenantId)
+    /// <summary>
+    /// 按发起时的身份重建主体：用户、租户、发起会话、角色、模仿者
+    /// </summary>
+    private static ClaimsPrincipal BuildPrincipal(SysExportTask task, long userId, long tenantId, IEnumerable<string> roles)
     {
         var identity = new ClaimsIdentity("ExportTask");
         identity.AddClaim(new Claim(XiHanClaimTypes.UserId, userId.ToString()));
         identity.AddClaim(new Claim(XiHanClaimTypes.TenantId, tenantId.ToString()));
+        if (!string.IsNullOrWhiteSpace(task.RequesterSessionId))
+        {
+            identity.AddClaim(new Claim(XiHanClaimTypes.SessionId, task.RequesterSessionId));
+        }
+
+        foreach (var role in roles.Where(role => !string.IsNullOrWhiteSpace(role)).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            identity.AddClaim(new Claim(XiHanClaimTypes.Role, role));
+        }
+
+        if (task.ImpersonatorUserId is { } impersonatorUserId)
+        {
+            identity.AddClaims(XiHanClaimsIdentityExtensions.BuildImpersonatorClaims(impersonatorUserId, impersonatorTenantId: task.ImpersonatorTenantId));
+        }
+
         return new ClaimsPrincipal(identity);
+    }
+
+    /// <summary>
+    /// 租户是否可用（租户注册表是平台数据，在平台读）
+    /// </summary>
+    private async Task<bool> IsTenantAvailableAsync(long tenantId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        SysTenant? tenant;
+        using (_currentTenant.Change(null))
+        {
+            tenant = await _tenantRepository.GetByIdAsync(tenantId, cancellationToken);
+        }
+
+        return tenant is not null && new AvailableTenantSpecification(now).IsSatisfiedBy(tenant);
     }
 
     private async Task FailAsync(SysExportTask task, long userId, string islandTaskId, string message, CancellationToken cancellationToken)

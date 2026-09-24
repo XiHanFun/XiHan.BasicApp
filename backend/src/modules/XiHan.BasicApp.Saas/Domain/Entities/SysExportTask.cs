@@ -124,4 +124,24 @@ public partial class SysExportTask : BasicAppFullAuditedEntity, IStrictMultiTena
     /// </summary>
     [SugarColumn(ColumnName = "Finished_Time", ColumnDescription = "完成时间", IsNullable = true)]
     public virtual DateTimeOffset? FinishedTime { get; set; }
+
+    /// <summary>
+    /// 发起会话标识（令牌里的会话声明；非会话型令牌为空）
+    /// </summary>
+    /// <remarks>后台执行时带回主体：会话已登出 / 被下线，导出随之失败，与在线请求同一口径。</remarks>
+    [SugarColumn(ColumnName = "Requester_Session_Id", ColumnDescription = "发起会话标识", Length = 100, IsNullable = true)]
+    public virtual string? RequesterSessionId { get; set; }
+
+    /// <summary>
+    /// 模仿者用户主键（模仿态发起时填充）
+    /// </summary>
+    /// <remarks>后台执行时带回主体：模仿态被禁用的权限在导出里同样禁用。</remarks>
+    [SugarColumn(ColumnName = "Impersonator_User_Id", ColumnDescription = "模仿者用户主键", IsNullable = true)]
+    public virtual long? ImpersonatorUserId { get; set; }
+
+    /// <summary>
+    /// 模仿者所在租户（模仿态发起时填充）
+    /// </summary>
+    [SugarColumn(ColumnName = "Impersonator_Tenant_Id", ColumnDescription = "模仿者所在租户", IsNullable = true)]
+    public virtual long? ImpersonatorTenantId { get; set; }
 }
