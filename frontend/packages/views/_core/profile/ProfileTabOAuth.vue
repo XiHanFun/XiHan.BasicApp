@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { MyOAuthAppItem, MyOAuthAppSecret } from '~/types'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -313,43 +313,61 @@ onMounted(() => {
       :loading="submitting"
       @save="handleSubmit"
     >
-      <div class="pf-oauth-form">
-        <div class="pf-oauth-field">
-          <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_name') }}</label>
-          <XInput v-model:value="form.appName" :placeholder="t('component.profile.oauth.field_name_ph')" :max-length="100" />
-        </div>
-        <div class="pf-oauth-field">
-          <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_type') }}</label>
-          <XSelect v-model:value="form.clientType" :options="clientTypeOptions" :disabled="editingId != null" />
-        </div>
-        <div class="pf-oauth-field">
-          <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_callback') }}</label>
-          <XInput
-            v-model:value="form.redirectUris"
-            type="textarea"
-            :placeholder="t('component.profile.oauth.field_callback_ph')"
-            :autosize="{ minRows: 2, maxRows: 4 }"
-            :max-length="2000"
-          />
-        </div>
-        <div class="pf-oauth-field">
-          <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_homepage') }}</label>
-          <XInput v-model:value="form.homepage" placeholder="https://example.com" :max-length="200" />
-        </div>
-        <div class="pf-oauth-field">
-          <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_desc') }}</label>
-          <XInput
-            v-model:value="form.appDescription"
-            type="textarea"
-            :placeholder="t('component.profile.oauth.field_desc_ph')"
-            :autosize="{ minRows: 2, maxRows: 3 }"
-            :max-length="500"
-          />
-        </div>
-        <div class="pf-oauth-field">
-          <label class="pf-oauth-field__label">{{ t('component.profile.oauth.field_logo') }}</label>
-          <XInput v-model:value="form.logo" placeholder="https://example.com/logo.png" :max-length="500" />
-        </div>
+      <div class="xh-edit-form-grid">
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('component.profile.oauth.field_name') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="form.appName" :placeholder="t('component.profile.oauth.field_name_ph')" :max-length="100" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('component.profile.oauth.field_type') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XSelect v-model:value="form.clientType" :options="clientTypeOptions" :disabled="editingId != null" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot class="xh-span-2">
+          <XhFieldLabel>{{ t('component.profile.oauth.field_callback') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput
+              v-model:value="form.redirectUris"
+              type="textarea"
+              :placeholder="t('component.profile.oauth.field_callback_ph')"
+              :autosize="{ minRows: 2, maxRows: 4 }"
+              :max-length="2000"
+            />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('component.profile.oauth.field_homepage') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="form.homepage" placeholder="https://example.com" :max-length="200" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot>
+          <XhFieldLabel>{{ t('component.profile.oauth.field_logo') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="form.logo" placeholder="https://example.com/logo.png" :max-length="500" />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
+        <XhFieldRoot class="xh-span-2">
+          <XhFieldLabel>{{ t('component.profile.oauth.field_desc') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput
+              v-model:value="form.appDescription"
+              type="textarea"
+              :placeholder="t('component.profile.oauth.field_desc_ph')"
+              :autosize="{ minRows: 2, maxRows: 3 }"
+              :max-length="500"
+            />
+          </XhFieldControl>
+          <XhFieldErrorText />
+        </XhFieldRoot>
       </div>
     </XEditModal>
   </div>
@@ -415,23 +433,5 @@ onMounted(() => {
 
 .pf-oauth__callback {
   word-break: break-all;
-}
-
-.pf-oauth-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.pf-oauth-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.pf-oauth-field__label {
-  font-size: 13px;
-  font-weight: 500;
-  opacity: 0.85;
 }
 </style>
