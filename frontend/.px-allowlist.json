@@ -380,7 +380,7 @@
     "reason": "页面外壳的排版刻度"
   },
   "src/views/approval/constraint/index.vue": {
-    "cap": 20,
+    "cap": 18,
     "reason": "业务页面的排版刻度"
   },
   "src/views/file/library/index.vue": {

@@ -206,6 +206,7 @@ export default {
       err_save_failed: 'Speichern fehlgeschlagen',
       secret_alert_title: 'Speichern Sie Ihr API-Secret jetzt, es wird nur einmal angezeigt',
       create_modal_title: 'API-Anmeldedaten erstellen',
+      create_name_label: 'Name der Anmeldedaten',
       create_name_placeholder: 'Name der Anmeldedaten (optional, Standard „Standardanmeldedaten“)',
       rotate_title: 'Secret rotieren',
       rotate_content: 'Nach dem Erzeugen eines neuen Secrets wird das alte Secret von „{name}“ sofort ungültig. Fortfahren?',

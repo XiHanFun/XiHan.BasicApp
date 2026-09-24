@@ -1030,8 +1030,14 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
             />
           </div>
 
-          <XInput v-model:value="uploadForm.tags" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.tags_placeholder')" />
-          <XInput v-model:value="uploadForm.remark" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
+          <div class="file-upload-field">
+            <span class="file-upload-field__label">{{ t('file.library.detail.tags') }}</span>
+            <XInput v-model:value="uploadForm.tags" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.tags_placeholder')" />
+          </div>
+          <div class="file-upload-field">
+            <span class="file-upload-field__label">{{ t('file.library.detail.remark') }}</span>
+            <XInput v-model:value="uploadForm.remark" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
+          </div>
         </XhFlex>
       </XhDialogContent>
     </XhDialogRoot>
@@ -1071,8 +1077,14 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
             />
           </div>
 
-          <XInput v-model:value="metadataForm.tags" clearable :placeholder="t('file.library.upload.tags_placeholder')" />
-          <XInput v-model:value="metadataForm.remark" clearable :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
+          <div class="file-upload-field">
+            <span class="file-upload-field__label">{{ t('file.library.detail.tags') }}</span>
+            <XInput v-model:value="metadataForm.tags" clearable :placeholder="t('file.library.upload.tags_placeholder')" />
+          </div>
+          <div class="file-upload-field">
+            <span class="file-upload-field__label">{{ t('file.library.detail.remark') }}</span>
+            <XInput v-model:value="metadataForm.remark" clearable :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
+          </div>
 
           <XhButton full-width variant="solid" tone="brand" :loading="metadataLoading" @click="handleSaveMetadata">
             <span><Icon icon="lucide:save" /></span>

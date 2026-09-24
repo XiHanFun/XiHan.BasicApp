@@ -206,6 +206,7 @@ export default {
       err_save_failed: 'Save failed',
       secret_alert_title: 'Save your API Secret now, it is shown only once',
       create_modal_title: 'Create API Credential',
+      create_name_label: 'Credential name',
       create_name_placeholder: 'Credential name (optional, defaults to "Default Credential")',
       rotate_title: 'Rotate Secret',
       rotate_content: 'After generating a new secret, the old secret of "{name}" will be invalidated immediately. Continue?',

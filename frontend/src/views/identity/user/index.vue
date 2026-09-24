@@ -1318,6 +1318,7 @@ async function confirmDelete() {
             @submit="saveUser"
           >
             <XhFieldRoot>
+              <XhFieldLabel>{{ t('identity.user.label_username') }}</XhFieldLabel>
               <XhFieldControl>
                 <XInput
                   v-model:value="userForm.userName"
@@ -1329,54 +1330,63 @@ async function confirmDelete() {
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
+              <XhFieldLabel>{{ t('identity.user.label_real_name') }}</XhFieldLabel>
               <XhFieldControl>
                 <XInput v-model:value="userForm.realName" :placeholder="t('identity.user.ph_real_name')" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
+              <XhFieldLabel>{{ t('identity.user.label_nickname') }}</XhFieldLabel>
               <XhFieldControl>
                 <XInput v-model:value="userForm.nickName" :placeholder="t('identity.user.ph_nickname')" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
+              <XhFieldLabel>{{ t('identity.user.label_email') }}</XhFieldLabel>
               <XhFieldControl>
                 <XInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" autocomplete="off" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
+              <XhFieldLabel>{{ t('identity.user.label_phone') }}</XhFieldLabel>
               <XhFieldControl>
                 <XInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" autocomplete="off" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
+              <XhFieldLabel>{{ t('identity.user.label_gender') }}</XhFieldLabel>
               <XhFieldControl>
                 <XSelect v-model:value="userForm.gender" :options="genderEnumOptions" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
+              <XhFieldLabel>{{ t('identity.user.label_birthday') }}</XhFieldLabel>
               <XhFieldControl>
                 <XDatePicker v-model:value="userForm.birthday" type="date" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
+              <XhFieldLabel>{{ t('identity.user.label_country') }}</XhFieldLabel>
               <XhFieldControl>
                 <XInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
+              <XhFieldLabel>{{ t('identity.user.label_status') }}</XhFieldLabel>
               <XhFieldControl>
                 <XSelect v-model:value="userForm.status" :options="statusEnumOptions" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot v-if="!userForm.basicId">
+              <XhFieldLabel>{{ t('identity.user.label_initial_password') }}</XhFieldLabel>
               <XhFieldControl>
                 <XInput
                   v-model:value="userForm.initialPassword"
