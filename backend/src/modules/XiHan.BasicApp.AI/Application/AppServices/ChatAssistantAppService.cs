@@ -3,6 +3,8 @@
 
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Chat.Domain.Permissions;
+using XiHan.Framework.Authorization.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -99,6 +101,7 @@ public sealed class ChatAssistantAppService : AiApplicationService, IChatAssista
     /// </summary>
     [UnitOfWork(true)]
     [HttpPost]
+    [PermissionAuthorize(ChatPermissionCodes.Send)]
     public async Task<ChatAssistantConversationDto> OpenConversationAsync(ChatAssistantOpenDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -133,6 +136,7 @@ public sealed class ChatAssistantAppService : AiApplicationService, IChatAssista
     /// 请求助手回复会话内最后一条用户消息（增量经 SignalR 推送，完成后落库）
     /// </summary>
     [HttpPost]
+    [PermissionAuthorize(ChatPermissionCodes.Send)]
     public async Task<ChatAssistantReplyResultDto> ReplyAsync(ChatAssistantReplyDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);

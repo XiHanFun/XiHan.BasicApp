@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Chat.Domain.Permissions;
 using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.AI.Application.Contracts;
 using XiHan.BasicApp.AI.Application.Dtos;
@@ -104,7 +105,7 @@ public sealed class AiAssistantQueryService : AiApplicationService, IAiAssistant
     /// <remarks>
     /// 聊天页人人可见，只按登录态门控：助手管理权限属后台配置，不能拿它挡住普通用户使用助手。
     /// </remarks>
-    [Authorize]
+    [PermissionAuthorize(ChatPermissionCodes.Read)]
     public async Task<IReadOnlyList<AiAssistantOptionDto>> GetAvailableAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();

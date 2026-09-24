@@ -37,9 +37,6 @@ public sealed class EndpointAuthorizationCoverageTests
     private static readonly IReadOnlySet<string> SelfServiceEndpoints =
         new HashSet<string>(StringComparer.Ordinal)
         {
-            // AiAssistantQueryService（1）：聊天页助手选项，助手管理权限属后台配置，不用于门控普通用户使用助手
-            "AiAssistantQueryService.GetAvailableAsync",
-
             // AuthAppService（8）：当前会话自助，只读写调用者自身的登录态
             "AuthAppService.CreateOAuthBindTicketAsync",
             "AuthAppService.GetPermissionsAsync",
@@ -50,10 +47,6 @@ public sealed class EndpointAuthorizationCoverageTests
             "AuthAppService.StopImpersonationAsync",
             "AuthAppService.SwitchTenantAsync",
             "AuthAppService.UnlockSessionAsync",
-
-            // ChatAssistantAppService（2）：当前用户与助手的会话，会话归属经 ChatDomainService 按 userId 解析
-            "ChatAssistantAppService.OpenConversationAsync",
-            "ChatAssistantAppService.ReplyAsync",
 
             // EnumMetadataAppService（2）：全站字典标签的单一事实源，任何登录用户都要能取，类级 Authorize 已门控
             "EnumMetadataAppService.GetAllEnumsAsync",

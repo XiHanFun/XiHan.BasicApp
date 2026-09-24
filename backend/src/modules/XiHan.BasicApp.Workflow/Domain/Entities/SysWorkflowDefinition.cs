@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 
 namespace XiHan.BasicApp.Workflow.Domain.Entities;
@@ -13,6 +14,8 @@ namespace XiHan.BasicApp.Workflow.Domain.Entities;
 /// <remarks>
 /// 真源为 <see cref="DefinitionJson"/>（框架定义模型的完整 JSON 快照，读取时反序列化还原）；
 /// 其余列是分页/检索用投影，与 JSON 同写同变，不单独修改。
+///
+/// 租户隔离：严格——工作流只属于它所在的租户，别的租户与平台都看不到；定时器跨租户取到期书签后逐租户切入执行。
 /// </remarks>
 [SugarTable(TableName = "Sys_Workflow_Definition", TableDescription = "系统工作流定义表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -23,7 +26,7 @@ namespace XiHan.BasicApp.Workflow.Domain.Entities;
 // 租户 B 建同名同版本流程会撞上租户 A 的行——而那一行被租户过滤掉、B 根本看不见，
 // 表现为「编码没被占用却建不出来」。同仓库 SysPrintTemplate 用的就是三段式。
 [SugarIndex("UX_{table}_TeId_Co_Ve", nameof(TenantId), OrderByType.Asc, nameof(Code), OrderByType.Asc, nameof(Version), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
-public partial class SysWorkflowDefinition : BasicAppFullAuditedEntity
+public partial class SysWorkflowDefinition : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 构造函数

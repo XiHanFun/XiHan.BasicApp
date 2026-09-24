@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.AI.Domain.Enums;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.AI.Domain.Entities;
 
@@ -13,13 +14,15 @@ namespace XiHan.BasicApp.AI.Domain.Entities;
 /// <remarks>
 /// 切片/向量落在向量库（Qdrant），按 DocumentId(=本实体主键字符串) 关联；本表保留原文 RawContent 以支持重建索引。
 /// Status 记录索引结果（Pending/Indexed/Failed）；ChunkCount 为已入库切片数，删除/重建据此清理向量。
+///
+/// 租户隔离：严格——知识库是平台私有数据，只在平台维护与检索；租户看不到平台文档，也动不了它的向量。
 /// </remarks>
 [SugarTable(TableName = "Sys_Knowledge_Document", TableDescription = "系统知识文档表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysKnowledgeDocument : BasicAppFullAuditedEntity
+public partial class SysKnowledgeDocument : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 文档标题
