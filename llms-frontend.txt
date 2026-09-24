@@ -1,0 +1,1492 @@
+# 曦寒基础应用 · 前端手册
+
+共 11 页。索引见 https://basicapp.docs.xihanfun.com/llms.txt
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/components
+
+# 常用组件
+
+除 [Schema 页面引擎](./schema-page) 之外的公共组件与全局挂件，按用途分组速查。组件源码在 `packages/components/`、`packages/layouts/` 与 `packages/iconify/`。
+
+## 编辑器
+
+| 组件 | 底层 | 用途 |
+| --- | --- | --- |
+| `RichTextEditor.vue` | Tiptap | 富文本。含 Link / Image / Highlight / TextAlign / Underline 等扩展 |
+| `MdEditor.vue` | md-editor-v3 | Markdown |
+| `JsonEditor.vue` | vue3-ts-jsoneditor | JSON 编辑与查看 |
+
+通知公告正文用 Markdown 编辑器（文件库的 Markdown 预览也复用它）；富文本与 JSON 编辑器目前只在编辑器演示页 `packages/views/_core/editor-demo/` 使用。三者都以 `defineAsyncComponent` 懒加载，不进主依赖图。
+
+## 表单增强
+
+| 组件 | 用途 |
+| --- | --- |
+| `CronExpression.vue` | Cron 表达式：输入框 + 可视化弹窗，不必手写表达式。[任务调度](../backend/scheduling)页在用 |
+| `XEditModal` + `xh-edit-form-grid` | **统一的新增/编辑弹窗外壳**：两列布局、10px 间距、11px 标签、无反馈占位，跨列用 `xh-span-2` |
+| `IconPicker` | 图标选择器，可按需懒加载图标集 |
+| `XLogoUpload`（`src/components/LogoUpload.vue`） / `XUserAvatar` | 图片上传与头像展示（内置 URL 解析与首字母兜底） |
+
+::: danger 新增/编辑弹窗一律用 `XEditModal`
+全仓已统一，**不要再手写 `NModal` 外壳**。统一外壳保证了弹窗尺寸、间距、标签宽度、按钮位置在所有页面一致，也让后续调整只改一处。
+:::
+
+## 消息中心 UI
+
+三个层次（`~/layouts/basic/` 与 `src/views/message/`）：
+
+| 层 | 组件 | 行为 |
+| --- | --- | --- |
+| **顶部横幅** | `NotificationBanner.vue` + `use-banner-notices.ts` | 数据由服务端按有效期、角色/部门定向过滤后下发；按严重度 + 优先级取前 3 条轮播（5s，悬停暂停）。关闭记忆按公告 id 存 localStorage（30 天清理），后台重发即新 id、自然重现 |
+| **强制阅读 + 登录弹窗** | `NotificationGate.vue` | 未读必读公告以遮罩拦截、逐条「我已阅读」（最高优先级）；清空后再逐条弹出普通登录后公告 |
+| **通知中心页** | `src/views/message/notification/` | 发布、定向、统计等运营闭环 |
+
+业务设计见 [后端手册 · 消息通知](../backend/messaging)。
+
+## 全局挂件
+
+挂在 `App.vue` 上、全应用生效：
+
+| 组件 | 说明 |
+| --- | --- |
+| `LockScreen.vue` | 锁屏遮罩。后端返回 **`423`** 时拉起——身份仍有效，解锁而非重新登录 |
+| `AppWatermark.vue` | 水印 |
+| `DynamicIsland.vue` | 灵动岛：全局操作反馈（进行中/成功/失败、进度环、岛内按钮、服务端任务进度） |
+
+全局搜索（`AppGlobalSearch.vue`）挂在布局顶栏工具条上，`Ctrl/Cmd + K` 唤起。
+
+## 文件与图片
+
+| 工具 | 说明 |
+| --- | --- |
+| `useAvatarUrl` | 头像 URL 解析（fileId → 预签名 URL，直链原样；空值/失败返回空串，由 `XUserAvatar` 首字母兜底） |
+| `toAbsoluteFileUrl` | 文件 URL 绝对化 |
+| `SchemaImportDialog` | CSV 导入对话框：模板下载 → 解析 → 预校验 → 逐行创建 |
+
+::: warning 本地存储的 URL 是根相对路径
+本地存储返回 `/uploads/...`。前后端同源没问题，**线上不同源时必须拼上 `VITE_API_BASE_URL` 的 origin**，否则浏览器拿前端域名去请求而 404。上面两个工具已处理，自己拼 URL 时别忘了。
+:::
+
+## 图编辑
+
+`packages/diagram` 基于 AntV X6 封装通用图编辑能力（工作流设计器在用）。应用侧只依赖本包导出的 `XDiagram` / `DiagramApi` / `DiagramData` / `registerVueShape`，不直接依赖 `@antv/x6`。
+
+## 布局
+
+`packages/layouts/` 提供整套布局外壳：侧边栏、顶栏、标签页、内容区、页脚。
+
+::: tip 整屏页用 `h-full` 或 `XPageShell`
+布局根是定高的、内容容器内部滚动（滚动源不是 `window`）。需要吸顶/吸底的整屏页直接用 `h-full` 或 `XPageShell` 即可，**不要再写 per-page 的 JS 定高 hack**。
+:::
+
+## 相关页面
+
+- [Schema 驱动页面](./schema-page)：列表页引擎
+- [布局与主题](./theme)：布局配置与主题定制
+- [实时通信](./realtime)：消息中心的推送通道
+- [字体图标](./icon)：图标用法与离线模式限制
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/development
+
+# 开发流程
+
+从零加一个前端页面的完整流程。**前端页面的事实源在后端**——菜单、路由、组件路径、权限码、i18n 键都在后端 `PageRegistry` 登记，前端只补落盘文件。所以流程是「后端先行、前端跟进」。
+
+## 五步
+
+```text
+① 后端 PageRegistry 登记页面与按钮（建菜单即绑权限）
+② 后端加分页/详情/写入接口（分页记得标 [HttpPost]）
+③ 前端加 API 模块（src/api/modules/{域}/）
+④ 前端加视图文件（src/views/{域}/{页}/index.vue）
+⑤ 补 i18n 文案（menu.ts + 模块文案）
+```
+
+前两步属于后端，见 [后端手册 · 二次开发](../backend/development)。下面只讲前端三步。
+
+## ③ API 模块
+
+按域建两个文件：
+
+```text
+src/api/modules/organization/
+├── position.ts          # API 定义
+└── position.types.ts    # DTO 类型
+```
+
+标准 CRUD 用资源工厂：
+
+```ts
+import { defineResource } from '../../factory'
+
+export const positionApi = defineResource<
+  PositionListItemDto, PositionDetailDto,
+  PositionCreateDto, PositionUpdateDto, PositionPageQueryDto
+>({
+  query: 'PositionQuery',
+  command: 'Position',
+})
+```
+
+有自定义动作时改用低层客户端逐个拼（`position.ts` 就是这种写法）：
+
+```ts
+// position.ts
+import { createDynamicApiClient, createReadApi } from '../../base'
+
+const positionQueryApi = createDynamicApiClient('PositionQuery')
+const positionCommandApi = createDynamicApiClient('Position')
+const positionReadApi = createReadApi<PositionListItemDto, PositionDetailDto, PositionPageQueryDto>(
+  'PositionQuery',
+  'Position',
+)
+
+export const positionApi = {
+  detail: (id: ApiId) => positionReadApi.detail(id),
+  page: (input: PositionPageQueryDto) => positionQueryApi.post('PositionPage', input),
+  updateStatus: (input: PositionStatusUpdateDto) => positionCommandApi.put('PositionStatus', input),
+}
+```
+
+别忘了在该域的 `index.ts` 里导出。动作名推导规则与分页协议见 [服务端交互](./request)。
+
+## ④ 视图文件
+
+**路径由后端 `PageDescriptor.Component` 决定**，约定是 `Path` 去前导斜杠 + `/index`：
+
+| 后端 `Path` | 后端 `Component` | 前端文件 |
+| --- | --- | --- |
+| `/identity/position` | `identity/position/index` | `src/views/identity/position/index.vue` |
+
+列表页直接照 [Schema 驱动页面](./schema-page) 的骨架写，三段：字段声明 → 查询构建 → 页面 Schema。
+
+::: warning `_core` 页面要额外登记
+不落在 `src/views` 的页面（个人中心、关于页等，源码在 `packages/views/_core/`），`Component` 写 `_core/xxx/index`，**必须同时在 `packages/router/dynamic.ts` 的 `coreComponentMap` 登记**，否则菜单有、点进去 404。
+:::
+
+## ⑤ i18n 文案
+
+两处：
+
+| 文件 | 键 | 说明 |
+| --- | --- | --- |
+| `packages/locales/langs/{zh-CN,en-US}/menu.ts` | `identity_position` | 菜单标题。键 = 后端 `I18nKey` 去掉 `menu.` 前缀 |
+| `src/locales/langs/{zh-CN,en-US}/{模块}.ts` | `identity.position.position_name` 等 | 页面内文案，约定 `模块.实体.字段或动作`。新增模块文件要在同级 `zh-CN.ts` / `en-US.ts` 里 import 并导出 |
+
+::: danger 裸 `@` 会白屏
+文案里出现裸 `@`（如 `联系 @admin`）会触发 vue-i18n 的 linked message 语法而抛错、整页白屏。必须转义成 `{'@'}`。见 [国际化](./i18n)。
+:::
+
+## 自检清单
+
+写完对照一遍，漏哪项就是哪种表现：
+
+| 项 | 漏了会怎样 |
+| --- | --- |
+| 后端 `PageRegistry` 登记 | 侧边栏没有这个菜单 |
+| 后端权限定义落库 | 菜单种子 fail-closed 跳过，菜单还是不出现 |
+| 后端分页方法标 `[HttpPost]` | 前端发的 body 后端收不到 |
+| 视图文件路径与 `Component` 一致 | 菜单有、点进去 404 |
+| `_core` 页面登记 `coreComponentMap` | 同上 |
+| `menu.ts` 文案 | 侧边栏显示 `menu.xxx` 原文 |
+| 字段 `permission` / `exportPermission` | 无权用户也看得到列/按钮（**服务端仍会拦，但体验差**） |
+
+## 质量门禁
+
+```bash
+pnpm type-check
+```
+
+```bash
+npx eslint src/views/identity/position/index.vue --fix
+```
+
+::: warning 别跑全仓 lint
+`pnpm run lint:fix` 展开是 `cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix`，会扫全仓并改动与你无关的文件。**只对本次改动的文件跑**；误跑了用 `git checkout HEAD -- <非本次任务的文件>` 还原。
+:::
+
+前端改动由开发者自行在浏览器验证，不走自动化预览。
+
+## 相关页面
+
+- [后端手册 · 二次开发](../backend/development)：后端纵切片的完整接线清单
+- [路由与菜单](./routing)：路由怎么从后端菜单生成
+- [Schema 驱动页面](./schema-page)：列表页开发手册
+- [目录结构与代码地图](../project-structure#前端)：我要改 X 去哪个文件
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/i18n
+
+# 国际化
+
+前端文案用 vue-i18n，**枚举标签的事实源在后端**，时间显示由请求头驱动。三块各有各的规则。
+
+## 语言包
+
+vue-i18n（`legacy: false`），中英双包按模块拆文件，分住两处：`packages/locales/` 只放 shell 自身的命名空间，业务命名空间在 `src/locales/`，启动时由 `registerLocaleMessages()` 合并进同一个 i18n 实例（`setupI18n()` 之后、`app.mount()` 之前调用）。
+
+```text
+packages/locales/langs/zh-CN/    # shell 命名空间
+├── common.ts        # 通用（按钮、字段、提示）
+├── component.ts     # 公共组件文案
+├── menu.ts          # 菜单标题
+├── header.ts        # 顶栏
+├── page.ts          # 页面壳
+└── …
+
+src/locales/langs/zh-CN/         # 业务命名空间
+├── identity.ts      # 身份权限模块
+├── log.ts           # 日志模块
+├── message.ts       # 消息模块
+└── …
+```
+
+键名约定 **`模块.实体.字段或动作`**：
+
+```ts
+// src/locales/langs/zh-CN/identity.ts
+export default {
+  user: {
+    page_name: '用户管理',
+    col_status: '状态',
+    action_reset_password: '重置密码',
+  },
+}
+// 使用：t('identity.user.col_status')
+```
+
+切换语言：`useLocale().setLocale('en-US')`。
+
+## 菜单文案的键怎么来
+
+后端 `PageDescriptor.I18nKey` 规则是 **`menu.{页面码中的 . 与 - 换成 _}`**：
+
+| 页面码 | 后端 `I18nKey` | `menu.ts` 里的键 |
+| --- | --- | --- |
+| `identity.position` | `menu.identity_position` | `identity_position` |
+| `log.permission-change` | `menu.log_permission_change` | `log_permission_change` |
+
+缺文案时侧边栏会**直接显示键名**（如 `menu.identity_position`）——看到这个就是漏了这一步。
+
+## Naive UI 内置文案
+
+日期选择器、分页「X / 页」这类组件内置文案随应用 locale 切换：`App.vue` 里 `useNaiveLocale()` 注入 `NConfigProvider` 的 `locale` / `date-locale`。
+
+加新语言时**别忘了这一处**，否则业务文案切了、组件文案还是中文。
+
+## 裸 `@` 会白屏
+
+::: danger
+语言包文案里出现**裸 `@`**（如 `联系 @admin`）会触发 vue-i18n 的 linked message 语法，抛 `Invalid linked format` 导致**整页白屏**。
+
+必须转义成 `{'@'}`：
+
+```ts
+// ❌ 白屏
+contact: '联系 @admin'
+// ✅
+contact: "联系 {'@'}admin"
+```
+
+邮箱、社交账号、装饰性符号都是高发区。新增文案前扫一遍。
+:::
+
+## 枚举标签：后端单一事实源
+
+枚举标签**不在前端语言包里维护**——事实源是后端枚举元数据（`Enums.{culture}.json` 全量），按请求头 `X-Language` 返回当前语言的标签。
+
+前端有三条取值路径：
+
+| 场景 | 用法 |
+| --- | --- |
+| **Schema 页字段** | 字段声明 `dictionaryCode`（枚举名或字典码），`useSchemaDictionaries` 批量拉取注入 `field.options`；单元格按值映射 label，搜索区自动渲染下拉 |
+| **非 Schema 的下拉/标签** | `useEnumOptions(enumName, fallback)`（`~/hooks`），返回随语言/数据响应式更新的 `computed` |
+| **静态兜底** | 元数据为空（未加载/未部署）时回退传入的 `fallback` 静态选项，**保证绝不出现空下拉** |
+
+### 切语言要响应式
+
+拉取由全局 `useEnumService` **并发去重**，切 locale 时整库重取一次。`useSchemaDictionaries` / `useEnumOptions` 只读响应式状态——**免刷新即随语言更新**，各下拉不各自监听 locale，避免重复请求。
+
+::: warning 两个易错点
+1. **`business.ts` 里的 `*_OPTIONS` 常量是写死中文的，仅作兜底**，不要当成事实源使用。
+2. **选项的 `value` 要用枚举成员名，不是整数**。后端实例数据经 `JsonStringEnumConverter` 序列化为成员名字符串（如 `"Enabled"`），只有用成员名才能与表格行数据匹配；整数值放在 `valueText` 备用。
+:::
+
+## 时区
+
+- 前端在请求拦截器里发 **`X-Timezone`** 头（用户已选时区优先，否则跟随浏览器 `Intl`）。
+- 后端**存储恒 UTC**，输出时按该头换算。
+- 用户可在偏好里选时区。
+
+「时间显示差几小时」的排查顺序：请求有没有带这个头 → 用户选的时区对不对 → 后端存的是不是 UTC。
+
+## 加一门新语言
+
+| 步骤 | 做什么 |
+| --- | --- |
+| 1 | `packages/locales/langs/` 与 `src/locales/langs/` 下各加一套语言目录，按模块补齐文案；插件模块在 `src/modules/<模块>/locales/<locale>.ts` 各补一份 |
+| 2 | 在 `packages/constants/app.ts` 的 `SUPPORTED_LOCALES`、`packages/locales/index.ts` 的 `messages` 与 `src/locales/index.ts` 里登记新语言，并在 `LocaleSwitcher.vue` 的 `LOCALES`、`LocaleFlag.vue` 的国旗、`packages/locales/xihan-ui.ts` 的 `xhTranslations` 各加一项 |
+| 3 | **后端**补一份 `Enums.{culture}.json` 与业务资源文件（`Localization/ApiResponse|Enums|Errors.{culture}.json`） |
+| 4 | **后端每个环境**的 `XiHan:Localization:SupportedCultures` 加上该文化——文化中间件只接受列表内的 `X-Language`，不在列内一律回退默认文化；`appsettings.Production.json` 不入库，要在服务器上单独改 |
+
+第 3、4 步最容易漏——前端切了语言，接口返回的 `message` 和枚举标签却没变，要么是后端资源没补，要么是生产环境的 `SupportedCultures` 没登记（de-DE 上线时就漏过一次）。
+
+## 相关页面
+
+- [布局与主题](./theme)：外观定制
+- [Schema 驱动页面](./schema-page#字段-schema-listfieldschema)：`dictionaryCode` 用法
+- [接口对接指南](../api-guide#json-序列化约定)：枚举与时间的序列化规则
+- [常见问题](../faq)：白屏排查
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/icon
+
+# 字体图标
+
+图标走 Iconify，**运行在离线模式**——这带来一条必须记住的限制。
+
+## 用法
+
+```vue
+<script setup lang="ts">
+import { Icon } from '~/iconify'
+</script>
+
+<template>
+  <Icon icon="lucide:eye" />
+  <Icon icon="lucide:trash-2" class="text-red-500" />
+</template>
+```
+
+`Icon` 不是全局组件，用前须从 `~/iconify`（或转出它的 `~/components`）导入。
+
+图标名格式是 `{集合}:{图标}`，可在 [Iconify 官网](https://icon-sets.iconify.design/) 搜索。
+
+菜单图标在**后端** `PageRegistry` 的 `PageDescriptor.Icon` 字段里写同样的格式：
+
+```csharp
+new("identity.position", "岗位管理", "menu.identity_position", MenuType.Menu,
+    "/identity/position", "IdentityPosition", "identity/position/index",
+    "identity", SaasPermissionCodes.Position.Read, "lucide:briefcase", 135),
+//                                                 ↑ 图标
+```
+
+## 离线模式的限制
+
+::: danger 只有预加载的图标集能直接渲染
+配置在 `~/iconify/offline.ts`。运行期直接渲染**只保证这四个已预加载集**：
+
+- **`lucide`** —— 主力图标集，优先用它
+- **`tabler`**
+- **`mdi`**
+- **`simple-icons`** —— 第三方品牌 logo（如 Gitee 用 `simple-icons:gitee`）
+
+未预加载的集（`carbon` / `ep` / `heroicons` 等）在页面里直接用会**渲染为空白**，且不报错——因为离线 `Icon` 对已挂载组件不会因后加载而重渲染。
+
+以仓库的 `PRELOAD_ICON_PACKAGES` 配置为准。
+:::
+
+品牌图标优先用 `simple-icons:*` 或 `tabler:brand-*`。
+
+## `IconPicker` 是例外
+
+图标选择器组件可以**按需懒加载** carbon / ep / heroicons 供用户挑选——那是「用户在弹窗里选图标」的场景，与「页面里直接渲染」不同，不受上面限制。
+
+但要注意：**用户选了未预加载集的图标存进菜单后，页面渲染时仍然会空白**。如果允许用户自选图标，要么把可选集限制在预加载的四个里，要么把用户可能选的集也加入预加载。
+
+## 为什么用离线模式
+
+在线模式下 Iconify 会在运行时向 CDN 请求图标数据。离线模式把图标数据打进产物，代价是体积和「只能用预加载集」，换来的是：
+
+- **内网/断网环境可用**——这是企业中后台的常见部署场景；
+- 不依赖第三方 CDN 可用性；
+- 首屏图标不闪烁。
+
+## 加一个图标集
+
+1. 确认对应的 `@iconify-json/{集合}` 依赖已安装；
+2. 在 `~/iconify/offline.ts` 的 `ICON_SET_META` 与 `PACKAGE_LOADERS` 里登记该集（carbon / ep / heroicons 已登记，可跳过）；
+3. 把该集加入同文件的 `PRELOAD_ICON_PACKAGES`；
+4. 重新构建。
+
+::: warning 加集会增大产物
+每个图标集都是完整数据包。只在确实需要时加，优先从已有四个集里找替代图标。
+:::
+
+## 排查
+
+| 现象 | 原因 |
+| --- | --- |
+| 图标位置空白 | 用了未预加载的图标集 |
+| 菜单图标空白 | 后端 `Icon` 字段写了未预加载集的图标名 |
+| 图标名写对了还是不显示 | 图标名拼错（大小写、连字符）；去 Iconify 官网核对 |
+| `IconPicker` 里能看到、放到页面就没了 | 正是上面那条限制——选择器懒加载，页面渲染不懒加载 |
+
+## 相关页面
+
+- [布局与主题](./theme)：外观定制
+- [路由与菜单](./routing)：菜单图标从哪来
+- [常用组件](./components)：`IconPicker` 等公共组件
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/introduction
+
+# 前端架构
+
+前端不是「一个 Vue 工程」，而是**分层的单仓库多包结构**。本页讲分层与依赖方向、启动引导链路、请求链路的完整时序，以及第三方依赖的归属规则。具体怎么写页面见 [开发流程](./development)。
+
+## 技术栈
+
+| 领域 | 选型 |
+| --- | --- |
+| 框架 | Vue 3.5（`<script setup>`） |
+| 语言 / 构建 | TypeScript · Vite |
+| UI 库 | Naive UI |
+| 状态 | Pinia（Setup Store + `$reset` 插件） |
+| 样式 | Tailwind CSS 4（CSS-first `@theme`，**preflight 关闭**） |
+| 路由 | vue-router（默认 hash 模式） |
+| 国际化 | vue-i18n（`legacy: false`） |
+| 实时 | `@microsoft/signalr` |
+| 图标 | Iconify（**离线模式**） |
+| 拖拽 | `@dnd-kit/vue` |
+
+> 版本号以仓库 `package.json` 为准。
+
+## 五层结构
+
+**依赖方向单向向下，`packages/` 绝不反向依赖 `src/`。**
+
+```text
+┌──────────────────────────────────────────────────────────────────┐
+│  ⑤ 业务视图层  src/views/**                                       │
+│     按域分目录：approval / develop / file / identity / log /      │
+│     message / oauth / openapi / setting / tenant / workbench /    │
+│     workflow                                                      │
+│     每个列表页 = 一份 PageSchema + 一个 <SchemaPage>              │
+├──────────────────────────────────────────────────────────────────┤
+│  ④ 应用装配层  src/main.ts · App.vue · app/context.ts · router/  │
+│     引导顺序、Provider 装配、把 api 实例 / 视图 glob / 静态路由    │
+│     注册进 app-context，安装路由守卫                              │
+├──────────────────────────────────────────────────────────────────┤
+│  ③ 接口契约层  src/api/**                                         │
+│     base（动态 API 客户端）· factory（资源工厂）· helpers（分页）  │
+│     modules/**（按域的 API 与 DTO 类型）                          │
+├──────────────────────────────────────────────────────────────────┤
+│  ② 可复用内核  packages/**                                        │
+│     components(schema/chat/common) · composables · hooks ·        │
+│     stores · layouts · router · locales · design · iconify ·      │
+│     diagram · plugins · views · types · utils · constants         │
+├──────────────────────────────────────────────────────────────────┤
+│  ① 传输底座  packages/request                                     │
+│     RequestClient：请求头注入 / 响应解包 / 401 刷新重放 /          │
+│     423 锁屏 / 可选签名加密                                        │
+└──────────────────────────────────────────────────────────────────┘
+                              ↕ HTTP + SignalR
+                        后端动态 API（无 Controller）
+```
+
+两个路径别名贯穿全项目：
+
+| 别名 | 指向 | 层 |
+| --- | --- | --- |
+| `@` | `src/` | ③④⑤ 应用侧 |
+| `~` | `packages/` | ①② 内核侧 |
+
+### 为什么 `src/` 薄、`packages/` 厚
+
+`packages/` 里的东西**与具体业务无关**：布局、Schema 表格引擎、请求客户端、主题、i18n、图标、状态管理骨架。`src/` 只做两件事：装配（把内核接起来）和业务视图。
+
+这样分的好处是内核可以被独立演进甚至复用，而业务视图始终只依赖稳定的契约。代价是**新人容易找错文件**——记住：找「怎么渲染表格 / 怎么发请求 / 怎么切主题」去 `packages/`，找「某个页面长什么样」去 `src/views/`。
+
+### 第三方依赖的归属规则
+
+- **底层功能依赖归属对应的 `packages/` 子包**（自包含）。
+- 根 `package.json` 只留应用层跨切面依赖（`vue` / `vue-router` / `pinia` / `@vueuse` 因 Vite AutoImport 全局导入不可下沉，加上 `naive-ui` / `vue-i18n`）。
+- **`src/` 里禁止直接 import 已下沉的第三方**，一律经 `~/` 转出。
+- 改完依赖归属须跑 `pnpm install` + `pnpm type-check`；死依赖当场删。
+
+## 启动引导链路
+
+`src/main.ts` 的顺序决定了「图标、语言、请求头、登出钩子、路由守卫」在挂载前如何就位：
+
+```ts
+await setupIconifyOffline()           // ① 预加载离线图标集（必须最先，否则首屏图标空白）
+invalidateCacheIfBuildTimeChanged()   // ② 构建时间变则清本地缓存
+// createApp → pinia → setupI18n      // ③ 应用实例 / 状态 / 国际化
+bindRouter(router)                    // ④ 请求层拿到 router（401 跳登录用）
+bindLogoutHook(() => { /* 重置 access / user store */ })
+registerApplicationContext(router)    // ⑤ 注册视图 glob、api 实例、静态路由到 app-context
+setupRouterGuard(router)              // ⑥ 安装 beforeEach 权限/路由守卫
+app.use(router).mount('#app')
+```
+
+第 ④⑤ 步是**依赖倒置的关键**：`packages/request` 不能反向依赖 `src/router` 与业务 store，所以由 `src/main.ts` 在启动时把 router 和登出回调「注入」给它。同理 `app/context.ts` 把 api 实例、视图 glob、静态路由注册进 `~/stores/app-context`，底层包据此工作而不必知道 `src/` 的存在。
+
+## 请求链路时序
+
+```text
+视图 (SchemaPage)
+  └─ resource.page(params)                       ← 页面自己写的适配器
+       └─ src/api/modules/**  positionApi.page()
+            └─ createDynamicApiClient('PositionQuery').post('PositionPage', body)
+                 │      URL = /{apiPrefix}/{控制器名}/{动作名}
+                 └─ packages/request  RequestClient.post()
+                      ├─ 请求拦截
+                      │    Authorization: Bearer <token>
+                      │    X-Timezone   （已选时区 / 浏览器 Intl）
+                      │    X-Language   （当前 locale）
+                      │    X-Request-Id （前端自生成，供本地请求日志面板）
+                      │    FormData 时删除 Content-Type 让浏览器带 boundary
+                      │    （可选）API 签名与请求体加密
+                      ▼
+                    后端动态 API
+                      ▲
+                      ├─ 响应拦截
+                      │    （可选）解密 → 记本地请求日志（含 traceId）
+                      │    423 → 触发锁屏遮罩钩子（必须先于 401 分支，且不刷新不登出）
+                      │    401 → 刷新令牌并重放原请求
+                      │           · 并发请求排队等同一次刷新
+                      │           · 刷新请求自带 _isRefresh 标记，不会再次触发刷新
+                      │           · 刷新失败 → 清 token + 调 logout 钩子 + 跳登录页
+                      └─ 解包 ApiResponse 信封
+                           isSuccess === true → 返回 data（可能是 null）
+                           否则 reject(new Error(message))
+                 ← 业务代码拿到的是**已解包的强类型 data**
+```
+
+两个要点：
+
+1. **业务代码永远看不到 `ApiResponse` 信封**。解包统一在 `RequestClient.request` 完成，失败时把可展示的中文提示抛成 `Error`，业务侧 `catch` 直接用 `error.message`。
+2. **判定成功用 `isSuccess`，不是「有没有 `data` 字段」**——服务端 `WhenWritingNull` 会把 `data: null` 整个省略。
+
+## 环境变量
+
+| 变量 | 开发默认 | 说明 |
+| --- | --- | --- |
+| `VITE_PORT` | `9800` | dev server 端口 |
+| `VITE_API_BASE_URL` | 空 | 协议+主机。**开发态留空**走同源 Vite 代理，天然无 CORS |
+| `VITE_API_PREFIX` | `/api` | 接口前缀 |
+| `VITE_DEV_PROXY_TARGET` | `http://localhost:9708` | 开发态代理目标（后端地址） |
+| `VITE_ROUTER_HISTORY` | `hash` | 路由模式 |
+| `VITE_HOME_PATH` | `/workbench/dashboard` | 首页兜底路径（后端菜单未派生出首页时用） |
+| `VITE_AUTH_ROUTE_MODE` | 动态 | 设为 `static` 则用前端静态路由 + 权限过滤 |
+| `VITE_APP_TITLE` / `SUBTITLE` / `LOGO` | — | 品牌兜底（登录后由 `/Auth/UserInfo` 的 `appTitle` / `appLogo` 覆盖） |
+| `VITE_API_SECURITY_*` | `ENABLED=false` | 前端侧接口签名/加密开关与密钥 |
+
+::: warning 改了后端端口
+要同步改 `frontend/.env.development` 的 `VITE_DEV_PROXY_TARGET`，否则 dev server 转发到旧端口。
+:::
+
+## 后端驱动的部分
+
+前端有相当一部分「事实源在后端」，这是理解整体架构的关键：
+
+| 东西 | 事实源 | 前端做什么 |
+| --- | --- | --- |
+| 菜单 / 路由 / 组件路径 | 后端 `PageRegistry` → `SysMenu` | 登录后拉 `/api/Auth/Permissions` 拿 `menus`，`mapMenuToRoutes` 转成路由并 `addRoute` |
+| 权限码 | 后端 `SaasPermissionDefinitions` | 拿到码集合，按页面/字段/操作三级过滤 |
+| 枚举标签 | 后端枚举元数据（`Enums.{culture}.json`） | 按 `X-Language` 拉取，切语言响应式重取 |
+| 字段脱敏规则 | 后端 `SysFieldLevelSecurity` | **脱敏在服务端完成**，前端只用规则控制只读/标识 |
+| 站点品牌 | 后端 `/Auth/UserInfo` 的 `appTitle` / `appLogo` | 登录后写入 app store，覆盖 `.env` 兜底 |
+
+因此**新增页面的主要工作在后端**（`PageRegistry` + 权限），前端只补视图组件、API 客户端与 i18n 文案。
+
+## 相关页面
+
+- [开发流程](./development)：新增一个页面的五步与自检清单
+- [Schema 驱动页面](../frontend/schema-page)：列表页开发手册
+- [路由与菜单](../frontend/routing)：动态路由生成与守卫
+- [权限与脱敏](../frontend/permission)：三级过滤与 FLS
+- [布局与主题](./theme)：布局、Tailwind v4、主题、偏好同步
+- [国际化](./i18n)：语言包与文案
+- [接口对接指南](../api-guide)：响应信封与请求协议
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/permission
+
+# 权限与脱敏（前端）
+
+前端在**页面 / 字段 / 操作**三个层级按权限码过滤，并在服务端脱敏的基础上做只读与标识提示。本页讲前端这一侧怎么写；判定规则本身（权限码、数据范围、ABAC、约束规则）见 [权限模型](../backend/permission)。
+
+## 前提：前端过滤是体验，不是安全边界
+
+::: danger 服务端才是安全边界
+前端隐藏按钮只是**不让用户看到无效入口**。真正的门控在服务端：`[PermissionAuthorize]` 特性 + 授权快照判定。
+
+绕过前端直接调接口一定会被后端拒绝——所以**不要因为前端已经隐藏了按钮就省掉后端的权限标注**。
+:::
+
+## 权限码
+
+以 `:` 分段，多数是 `module:resource:action`（如 `saas:user:read`、`saas:tenant-edition-permission:grant`），也有两段的 `module:action`（如 `workflow:execute`）。超管用**字面通配 `*`**（不是段级 `*:*:*`）。
+
+**真源在后端** `SaasPermissionDefinitions`（Saas 模块）与各模块自己的权限码类。前端只是消费者——写权限码字符串时去后端对一下，别凭记忆写。
+
+用户的权限码集合来自登录后的 `GET /api/Auth/Permissions`。
+
+::: tip 权限码不在 JWT 里
+Access Token 里没有具体权限码（超管例外，只放一个 `*` 作快路径）。这带来一个好性质：**管理员改了授权，用户不用重新登录就生效**——前端下次拉取权限或后端下次判定时就是新的。
+:::
+
+## 三级过滤
+
+### 一、页面级
+
+由路由守卫按 `meta.roles` / `meta.permissions` 校验，无权跳 403。数据来自后端 `PageDescriptor.PermissionCode`。
+
+`PermissionCode` 为空的页面是**纯展示菜单**，不做门控。
+
+### 二、字段级
+
+Schema 页里字段声明 `permission`，**无权时该列与该搜索项整个不渲染**（`selectors.ts` 的 `isFieldPermitted`）：
+
+```ts
+{ key: 'phone', title: t('identity.org.col_phone'), dataType: 'string',
+  permission: 'saas:department:read' }
+```
+
+注意这是「**不渲染**」而不是「渲染成空」——用户看不到这一列存在。
+
+### 三、操作级
+
+- Schema 页的 `actions[].permission`：无权时按钮不出现。
+- `PageSchema` 上的 `exportPermission` / `importPermission` / `removePermission`（批量删除）/ `statusPermission`（批量启停）：门控对应的内置按钮。其中只有 `exportPermission` 是**严格门控**（未声明就不显示导出），另外三个未声明时不做限制。
+
+::: warning `exportPermission` 未声明 = 不显示导出
+这是刻意的默认值选择：宁可漏显示，不可错显示。要导出按钮就必须声明权限码。
+:::
+
+### 页面里手写门控
+
+没有包裹式权限组件——页面按钮/区块级门控统一是「`usePermission()` 派生 computed + 模板 `v-if`」这一种写法：
+
+```ts
+const { hasPermission } = usePermission()
+const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:grant'))
+```
+
+```vue
+<NButton v-if="canGrant">分配权限</NButton>
+```
+
+`usePermission()`（`~/hooks/usePermission.ts`）提供：
+
+| 方法 | 说明 |
+| --- | --- |
+| `hasPermission(code \| code[])` | 是否有权限码（传数组时任一命中即通过） |
+| `hasRole(role \| role[])` | 是否有角色（传数组时任一命中即通过） |
+| `hasAnyPermission(codes[])` | 任一命中即通过 |
+
+::: tip 统一用这一种写法
+不要另造包裹组件或指令。全仓统一「computed + `v-if`」的好处是：审计权限点时一个 grep 就能找全，也不会出现「指令生效时机与渲染时机不一致」的坑。
+:::
+
+## 字段级脱敏（FLS）
+
+### 脱敏在服务端完成
+
+**后端返回的敏感字段已经是打码后的值**（如 `138****8000`），前端**不再二次打码**。
+
+前端侧的 `useFieldSecurity(resourceCode)`（`~/components/schema/useFieldSecurity.ts`）由页面自行调用：传入后端资源码，再调 `resolve()` 拉取当前用户在该资源上的有效字段规则（`GET /MyFieldSecurity/Mine?resourceCode=`）。它返回 `ruleFor` / `isReadable` / `isEditable` / `resolve`，用途只有两个：
+
+1. 表单按 `isEditable(fieldKey)` 置**只读**；
+2. 展示「不可见 / 已脱敏」的**标识**。
+
+规则形如：
+
+```ts
+{ fieldName, isReadable, isEditable, maskStrategy, maskPattern }
+```
+
+端点未就绪或无规则时**默认放行**（`isReadable` / `isEditable` 缺省 `true`）。
+
+::: warning `SchemaPage` 不会自动接线 FLS
+`useFieldSecurity` 是独立 hook，`SchemaPage` 不会自动调用它——`PageSchema.resourceCode` 只用于导入留痕。要按 FLS 置只读，得在页面里自己 `useFieldSecurity(...)` + `resolve()` 并把 `isEditable` 接到表单上。
+:::
+
+### FLS 也门控过滤与排序
+
+服务端读侧会经 `GuardFiltersAsync` / `GuardSortsAsync` 剔除**不可读或已脱敏**字段的过滤与排序条件，剔完没有有效排序时回退默认排序。
+
+所以「排序点了没反应」「按某字段搜索没效果」优先怀疑字段权限，而不是前端 bug。
+
+## 多租户
+
+数据按 `TenantId` 隔离，全局数据约定 `TenantId=0`。**前端不需要手动处理租户过滤**——它由后端在请求管道里完成，前端只按拿到的权限码集合渲染。
+
+前端要处理的只有两件事：
+
+| 事情 | 说明 |
+| --- | --- |
+| 租户切换 | 调 `POST /api/Auth/SwitchTenant`（`tenantId` 传 `null` 回平台态），**换发令牌但不产生新登录/新设备** |
+| 平台态判断 | `UserInfo.isPlatform`（当前是否平台运维态）、`canAccessPlatform`（能否进入） |
+
+切换后要重新拉取权限与菜单——租户不同，可用的功能也不同（受[租户版本门控](../backend/multi-tenancy)影响）。
+
+## 排查
+
+| 现象 | 原因 |
+| --- | --- |
+| 按钮不显示 | 权限码写错（去后端 `SaasPermissionDefinitions` 对）；或用户确实没这个权限 |
+| 导出按钮不显示 | `PageSchema.exportPermission` 没声明 |
+| 列不显示 | 字段 `permission` 无权；或 `visible: false` |
+| 表单该只读却可编辑 | 页面没调 `useFieldSecurity(...)` + `resolve()`，或没把 `isEditable` 接到表单字段上 |
+| 前端能点、后端 403 | 正常——前端过滤是体验层，以后端为准。检查该接口的 `[PermissionAuthorize]` 是否与前端用的码一致 |
+| 改了授权前端还是旧的 | 重新拉 `/api/Auth/Permissions`；后端侧检查是否调了 `InvalidateAuthorizationAsync` |
+
+## 相关页面
+
+- [权限模型](../backend/permission)：权限码、RBAC 继承、数据范围、ABAC、约束规则
+- [Schema 驱动页面](./schema-page)：字段与操作的权限声明位置
+- [路由与菜单](./routing)：页面级门控
+- [多租户与版本](../backend/multi-tenancy)：版本门控与租户切换
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/realtime
+
+# 实时通信
+
+前端用 SignalR 接后端两条 Hub：通知 `/hubs/notification` 与聊天 `/hubs/chat`。本页讲连接怎么管、载荷有什么坑、哪些功能依赖它。
+
+后端 Hub 侧见 [后端手册 · 即时通讯](../backend/realtime)。
+
+## `useSignalR`
+
+`~/composables/useSignalR.ts`，按 `hubPath` 维护**全局单例连接**——两条 Hub 各一条，互不干扰：
+
+```ts
+const { on, off, invoke, start, stop } = useSignalR('/hubs/notification')
+
+onMounted(() => {
+  on('ReceiveNotification', (payload) => { /* 处理推送 */ })
+})
+onUnmounted(() => {
+  off('ReceiveNotification')
+})
+```
+
+| API | 说明 |
+| --- | --- |
+| `on(method, handler)` / `off(method)` | 订阅 / 取消订阅服务端方法 |
+| `invoke(method, ...args)` | 调用服务端方法 |
+| `start()` / `stop()` | 手动启停 |
+| `destroy()` | 清空本 Hub 的全部订阅并停止连接 |
+| `destroyAllSignalRConnections()` | 登出时一把清（模块顶层导出，非 `useSignalR` 返回值） |
+
+## 连接策略
+
+| 环节 | 行为 |
+| --- | --- |
+| **认证** | 自动携带 JWT（`accessTokenFactory`）。浏览器 WebSocket 不能自定义头，SignalR 会把令牌放到查询串 `access_token` |
+| **无 token 时** | **不发起连接**——避免登录页与登出后打出 401 风暴 |
+| **传输回退** | WebSockets → SSE → LongPolling |
+| **自动重连** | 渐进式 1s / 2s / 5s / 10s / 30s |
+| **放弃重连** | token 被清除即停止（登出后不再重试） |
+| **negotiate 401** | 令牌过期时借统一入口刷新后重试一次；刷新失败内部已强制登出 |
+
+::: tip 为什么要全局单例
+同一条 Hub 被多个组件订阅时若各建各的连接，服务端会为一个用户维持 N 条连接，推送也会重复触发。`useSignalR` 按 `hubPath` 复用同一条连接，组件只管订阅与取消订阅。
+:::
+
+## 载荷需应用侧手动投影
+
+::: danger Hub 侧没有 JSON 管道的那套转换器
+`long → string`、枚举 → 成员名这些转换是 **MVC JSON 管道**的配置，**不作用于 SignalR**。
+
+后果：直接推送含 `long`（如雪花 ID）的对象，前端拿到的是会溢出精度的 Number。
+
+约定：
+- **服务端推送前手动投影**成前端契约（ID 转字符串、枚举转成员名）；
+- **Hub 方法参数用 `string` 接收 ID**，服务端再自行解析。
+:::
+
+## 依赖实时通信的功能
+
+| 功能 | Hub | 说明 |
+| --- | --- | --- |
+| 站内通知推送 | `/hubs/notification` | 新通知即时到达，无需轮询 |
+| 强制下线 | `/hubs/notification` | 管理员踢人、删除用户时 `ForceLogout` |
+| **用户偏好多端同步** | `/hubs/notification` | 其它设备保存列设置/搜索设置后推 `UserSettingChanged`，已打开的页面即时应用 |
+| 在线聊天 | `/hubs/chat` | 单聊 / 群聊 / 部门群 / AI 助手会话 |
+| 导出任务进度 | `/hubs/notification` | 长任务进度反馈 |
+
+## 排查
+
+| 现象 | 原因 |
+| --- | --- |
+| 连接一直 401 | 令牌无效：本地无 token 时 `start()` 直接返回不发请求，negotiate 401 只会刷新重试一次，仍失败即强制登出 |
+| 收到的 ID 精度不对 | 服务端推送前没投影，`long` 直接序列化成了 Number |
+| 登出后仍在重连 | 没调 `destroyAllSignalRConnections()` |
+| 收到重复推送 | 组件卸载时没 `off`，或绕过 `useSignalR` 自建了连接 |
+| 生产连不上但本地正常 | 反向代理没放行 WebSocket 升级（Nginx 要配 `Upgrade` / `Connection` 头） |
+
+## 相关页面
+
+- [后端手册 · 即时通讯](../backend/realtime)：Hub 定义、推送与在线状态
+- [后端手册 · 消息通知](../backend/messaging)：通知的产生与分发
+- [常用组件](./components)：消息中心 UI
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/request
+
+# 服务端交互
+
+前端调后端的全部约定：请求客户端怎么建、URL 怎么拼、分页协议长什么样、响应怎么解包、401/423 怎么处理。
+
+## 三层封装
+
+```text
+业务视图
+   └─ src/api/modules/**                  ← 按域的 API 与 DTO 类型（你写的）
+        └─ src/api/base.ts / factory.ts   ← 动态 API 客户端 / 资源工厂
+             └─ packages/request          ← RequestClient（axios 封装，拦截器 + 解包）
+```
+
+## 动态 API 客户端
+
+| 工具 | 说明 |
+| --- | --- |
+| `createDynamicApiClient(controllerName)` | 按控制器名建低层客户端，暴露 `get` / `post` / `put` / `delete`；URL 拼成 `{apiPrefix}/{控制器名}/{动作名}` |
+| `createReadApi(controller, resource)` | 标准读封装：`page` / `detail` |
+| `createCommandApi(controller, resource)` | 标准写封装：`create` / `update` |
+| `defineResource({ query, command, resource? })` | **资源工厂**，一次生成 `page`/`detail`/`create`/`update`/`remove`，并保留 `query`/`command` 客户端供扩展 |
+
+标准 CRUD 直接用资源工厂，不要手拼：
+
+```ts
+export const userApi = defineResource<
+  UserListItemDto, UserDetailDto, UserCreateDto, UserUpdateDto, UserPageRequest
+>({
+  query: 'UserQuery',
+  command: 'User',
+})
+```
+
+## 动作名 = 后端方法名剥离动词前缀
+
+后端是[动态 API](https://framework.docs.xihanfun.com/guide/dynamic-api)，路由由方法名推导，**前端用的已经是剥离后的动作名**：
+
+| 后端方法 | 动作名 | 实际请求 |
+| --- | --- | --- |
+| `GetPositionPageAsync` + `[HttpPost]` | `PositionPage` | `POST /api/PositionQuery/PositionPage` |
+| `GetPositionDetailAsync` | `PositionDetail` | `GET /api/PositionQuery/PositionDetail?id=…` |
+| `CreatePositionAsync` | `Position` | `POST /api/Position/Position` |
+| `UpdatePositionStatusAsync` | `PositionStatus` | `PUT /api/Position/PositionStatus` |
+| `SwitchTenantAsync`（无动词前缀） | `SwitchTenant` | `POST /api/Auth/SwitchTenant` |
+
+一个域的 API 模块典型写法：
+
+```ts
+const positionQueryApi = createDynamicApiClient('PositionQuery')
+const positionCommandApi = createDynamicApiClient('Position')
+
+export const positionApi = {
+  create: input => positionCommandApi.post('Position', input),
+  update: input => positionCommandApi.put('Position', input),
+  updateStatus: input => positionCommandApi.put('PositionStatus', input),
+  delete: id => positionCommandApi.delete('Position', { id }),   // id 走查询串
+  page: input => positionQueryApi.post('PositionPage', input),   // 分页 POST
+}
+```
+
+::: danger id 不要拼成路径段
+动态 API 的**路由段只由显式 `[FromRoute]` 参数产生**，普通参数一律落到查询串或请求体。写成 ``delete(`Position/${id}`)`` 会 404。
+:::
+
+## 分页统一走 POST
+
+分页方法一律 POST，**整个查询对象作为请求体**——GET 查询串装不下嵌套的过滤与排序数组。
+
+```ts
+// POST /api/{Controller}/{Resource}Page
+messageQueryApi.post<PageResult<EmailListItemDto>>('EmailPage', emailPageQueryDto)
+```
+
+请求体由 `createPageRequest` 组装，两段结构：
+
+| 段 | 内容 |
+| --- | --- |
+| `conditions` | `keyword`（`{ value, fields[] }`）/ `filters`（`QueryFilter[]`，含 Between、In）/ `sorts`（`QuerySort[]`，带 `priority`） |
+| `page` | `{ pageIndex, pageSize }`，默认 `1` / `20`，**`pageSize` 上限 `500`** |
+
+返回 `PageResult<TItem>`：`items` + `page`（`totalCount` / `totalPages` / `hasNext` 等）。
+
+辅助函数：
+
+| 函数 | 用途 |
+| --- | --- |
+| `createPageRequest({ page, conditions })` | 组装请求体 |
+| `querySortsFromSchema(sorts)` | Schema 页的多字段排序 → `conditions.sorts`（`priority` = 数组下标） |
+| `queryFilter(field, value, operator)` | 造一条过滤 |
+| `querySort(field, direction, priority)` | 造一条排序 |
+| `queryKeyword(value, fields)` | 造关键字条件 |
+| `compactRecord(obj)` | 去掉 `undefined` / `null` / 空串字段 |
+
+`QueryOperator` / `SortDirection` 的完整取值表见 [接口对接指南](../api-guide#分页与查询协议)。
+
+## RequestClient 做了什么
+
+`packages/request/index.ts`，axios 封装。
+
+### 请求拦截
+
+| 注入 | 值 |
+| --- | --- |
+| `Authorization` | `Bearer <token>`（本地有 token 时） |
+| `X-Timezone` | 用户已选时区，否则跟随浏览器 `Intl` |
+| `X-Language` | 当前 locale |
+| `X-Request-Id` | 前端自生成，供本地请求日志面板 |
+
+另外两件事：检测到 `FormData` 会**删掉 `Content-Type`**（让浏览器自己带 boundary）；启用接口签名时对请求做签名与可选加密。
+
+### 响应拦截
+
+按顺序：
+
+1. （可选）解密响应；
+2. 记本地请求日志（含后端 `traceId`）；
+3. 归一化错误消息（覆盖 axios 默认英文）；
+4. **`423` → 触发锁定遮罩钩子**——必须先于 401 分支，且不刷新不登出；
+5. **`401` → 刷新令牌并重放原请求**。
+
+### 401 自动刷新的三条保障
+
+```text
+· 并发请求排队等同一次刷新，不会打出 N 个刷新请求
+· 刷新请求自带 _isRefresh 标记，自身 401 时不会再次触发刷新（防死循环）
+· 刷新失败 → 清 token + 调 logout 钩子重置 store + 跳登录页
+```
+
+### 响应解包
+
+业务代码拿到的是**已解包的强类型 `data`**，看不到 `ApiResponse` 信封：
+
+```ts
+const page = await userApi.page(query)   // 直接就是 PageResult<UserListItemDto>
+```
+
+::: warning 判定成功用 `isSuccess`，不是「有没有 data」
+服务端 `WhenWritingNull` 会把 `data: null` 整个省略。`RequestClient` 因此以非空布尔的 `isSuccess` 作为主判据；失败时把 `message` 抛成 `Error`，业务侧 `catch` 到的 `error.message` 就是可直接展示的中文提示。
+:::
+
+### Flat 模式
+
+不想写 `try/catch` 时用 `requestFlat` / `getFlat` / `postFlat`，返回 `{ data, error }` 而不抛异常。
+
+## 环境变量
+
+| 变量 | 开发默认 | 说明 |
+| --- | --- | --- |
+| `VITE_API_BASE_URL` | 空 | 协议+主机。**开发态留空**走同源 Vite 代理，天然无 CORS |
+| `VITE_API_PREFIX` | `/api` | 接口前缀 |
+| `VITE_DEV_PROXY_TARGET` | `http://localhost:9708` | 开发态代理目标（后端地址） |
+| `VITE_API_SECURITY_*` | `ENABLED=false` | 接口签名/加密开关与密钥 |
+
+::: warning 改了后端端口
+要同步改 `frontend/.env.development` 的 `VITE_DEV_PROXY_TARGET`，否则 dev server 转发到旧端口。
+:::
+
+## 排查
+
+| 现象 | 原因 |
+| --- | --- |
+| 404 | 动作名写错（动词前缀没剥离）；或把 id 拼成了路径段 |
+| 分页参数后端收不到 | 后端方法漏标 `[HttpPost]` |
+| 一直 401 循环 | 刷新端点要同时带旧 `accessToken` 与 `refreshToken`；检查 `_isRefresh` 标记 |
+| 收到 423 却跳了登录页 | 423 分支必须先于 401 处理 |
+| 上传报 Content-Type 错误 | 手工设了 `Content-Type`，`FormData` 应让浏览器自己带 |
+| 跨域 | 开发态把 `VITE_API_BASE_URL` 填成了后端绝对地址 |
+
+## 相关页面
+
+- [接口对接指南](../api-guide)：响应信封、业务码全表、请求头、获取 token
+- [框架简介](./introduction#请求链路时序)：完整请求时序图
+- [Schema 驱动页面](./schema-page)：查询参数怎么从页面流到这里
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/routing
+
+# 路由与菜单
+
+前端路由**默认由后端菜单驱动**——后端 `PageRegistry` 是菜单、路由、组件路径、权限码、i18n 键的单一事实源，前端只负责把菜单数据转成 `RouteRecordRaw` 并落地视图文件。本页讲这条链路怎么走通，以及卡住时怎么查。
+
+## 两种模式
+
+| 模式 | 触发 | 行为 |
+| --- | --- | --- |
+| **动态模式（默认）** | — | 登录后拉 `/api/Auth/Permissions` 得到 `menus`，转成路由并 `addRoute` |
+| 静态模式 | `VITE_AUTH_ROUTE_MODE === 'static'` | 用前端静态路由 + `filterRoutesByPermission()` 按角色/权限过滤 |
+
+静态模式是兜底（后端不可用时的演示、纯前端调试），生产用动态模式。
+
+## 动态路由的生成链路
+
+```text
+后端 PageRegistry（PageDescriptor + ButtonDescriptor）
+   │  SaasMenuSeeder 播种（先查权限码，查不到就跳过并告警）
+   ▼
+SysMenu 表
+   │  GET /api/Auth/Permissions → { roles, permissions, menus }
+   ▼
+前端 mapMenuToRoutes()（packages/router/dynamic.ts）
+   │  MenuRoute[] → RouteRecordRaw[]
+   │  组件解析：后端 Component 路径 → 前端文件路径
+   ▼
+router.addRoute('RootLayout', ...)
+```
+
+## 组件怎么解析
+
+后端 `PageDescriptor.Component` 决定视图落点，前端有两条解析路径：
+
+### 一、常规页面：`src/views` 的 glob 匹配
+
+约定 **`Component` = `Path` 去掉前导斜杠 + `/index`**：
+
+| 后端 `Path` | 后端 `Component` | 前端文件 |
+| --- | --- | --- |
+| `/identity/position` | `identity/position/index` | `src/views/identity/position/index.vue` |
+| `/log/access` | `log/access/index` | `src/views/log/access/index.vue` |
+
+`src/app/context.ts` 里用 `import.meta.glob('/src/views/**/*.vue')` 把所有视图收集起来，运行时按路径匹配。后端 `Component` 可能是 PascalCase，解析时会做大小写归一。
+
+### 二、`_core` 页面：`coreComponentMap` 显式登记
+
+个人中心、关于页等**不落在 `src/views`** 的页面（源码在 `packages/views/_core/`），`Component` 写成 `_core/xxx/index`，由 `packages/router/dynamic.ts` 的 `coreComponentMap` 解析：
+
+```ts
+const coreComponentMap: Record<string, () => Promise<unknown>> = {
+  '_core/about/index': () => import('~/views/_core/about/index.vue'),
+  '_core/profile/index': () => import('~/views/_core/profile/index.vue'),
+}
+```
+
+::: danger 新增 `_core` 页面必须同时登记
+只放视图文件而不在 `coreComponentMap`（以及 `componentAliasMap`）登记，动态路由匹配不到组件，会**回退到 not-found**。表现是「菜单有、点进去 404」。
+:::
+
+## 路由守卫
+
+`setupRouterGuard(router)`（`packages/router/guard.ts`）在 `beforeEach` 里依次做：
+
+```text
+1. 无 token                    → 跳登录页
+2. 用户上下文失效              → 重新拉取用户信息 + 权限
+3. 路由未加载                  → 装载动态/静态路由 + 拉取用户偏好
+4. meta.roles / meta.permissions 校验  → 无权跳 403
+5. 维护标签栏（多标签页状态）
+```
+
+第 3 步是**只做一次**的：路由装载完成后打标记，后续导航不再重复请求。因此「登录后第一次跳转」比后续慢是正常的。
+
+## 静态公共页
+
+纯静态的公共页（登录页、错误页、`/control-center`、`/editor-demo` 等）**不登记在 `PageRegistry`**，由前端 `src/router/routes.ts` 持有（认证页与错误页定义在 `packages/router/routes/core.ts`，由 `routes.ts` 展开），经 `app/context.ts` 注册进 app-context。
+
+判断标准：需要权限控制、需要出现在侧边菜单里的 → 后端登记；纯展示、所有人可见的 → 前端静态路由。
+
+## 菜单文案
+
+`PageDescriptor.I18nKey` 的命名规则是 **`menu.{Code 中的 . 与 - 替换为 _}`**：
+
+| 页面码 | `I18nKey` | 前端语言包的键 |
+| --- | --- | --- |
+| `identity.position` | `menu.identity_position` | `identity_position` |
+| `log.permission-change` | `menu.log_permission_change` | `log_permission_change` |
+
+文案维护在 `packages/locales/langs/{zh-CN,en-US}/menu.ts`，键是去掉 `menu.` 前缀后的部分。缺文案时会回退显示键名——看到侧边栏出现 `menu.xxx` 字样就是漏了这一步。
+
+## 多标签页
+
+守卫维护标签栏状态。`PageDescriptor.IsAffix: true` 的页面是**固定标签**（如仪表盘），不可关闭。
+
+## 排查
+
+| 现象 | 查什么 |
+| --- | --- |
+| 菜单不显示 | 后端：权限码是否已落库（`SaasMenuSeeder` **查不到权限就跳过并告警**）；当前用户是否有该权限码 |
+| 菜单有、点进去 404 | 视图文件路径是否与 `Component` 约定一致；`_core` 页面是否登记了 `coreComponentMap` |
+| 侧边栏显示 `menu.xxx` | `menu.ts` 漏了对应文案 |
+| 刷新后路由丢失 | 路由是 `addRoute` 动态加的，刷新会重新走守卫装载——若一直 404，看第 2/3 步是否因接口失败中断 |
+| 无权页面还能进 | 检查 `PageDescriptor.PermissionCode` 是否为空（空 = 纯展示菜单，不做门控） |
+
+## 相关页面
+
+- [后端架构 · 菜单](../backend/introduction#菜单-后端单一事实源)：`PageRegistry` 的字段与种子机制
+- [权限与脱敏](./permission)：三级权限过滤
+- [Schema 驱动页面](./schema-page)：页面本身怎么写
+- [二次开发 · 加一个前端页面](../backend/development#配方-c-加一个前端页面)：端到端清单
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/schema-page
+
+# Schema 驱动页面
+
+BasicApp 的列表页几乎都不手写表格。**一份字段声明（`ListFieldSchema[]`）同时派生出搜索表单、表格列、导出字段、导入模板与详情展示**，整页交给 `<SchemaPage>` 渲染。本页是写这类页面的完整手册。
+
+组件源码在 `packages/components/schema/`。
+
+## 心智模型
+
+```text
+ListFieldSchema[]  ← 字段单一事实源（禁止重复定义）
+      │
+      ├──► 搜索表单（searchable / advancedSearch / searchRange / searchMultiple）
+      ├──► 表格列（visible / width / fixed / render / sortable）
+      ├──► 导出字段（exportable）
+      ├──► 导入模板（importable）
+      └──► 表单编辑（editable）
+
+PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权限码）
+      │
+      └──► <SchemaPage :schema @action>
+```
+
+**页面代码只做三件事**：声明字段、把归一化查询参数映射成后端 DTO、处理操作事件。表格、分页、列设置、偏好同步这些都不用管。
+
+## 内置能力
+
+`SchemaPage` 开箱提供：
+
+- **搜索**：常用搜索 + 高级搜索浮层；时间区间（→ `Between`）、枚举/标签多选（→ `In`）
+- **表格**：列设置（显隐/顺序/固定/列宽）、密度切换、斑马纹/边框风格、多选、序号列、行悬停速览、树形模式
+- **列宽拖拽**：拖表头右边框调宽，值写入列设置可保存
+- **多字段排序**：点多个列头累加，数组顺序即优先级
+- **导出**：本地 CSV，或提交到[导出中心](../backend/file#导出中心-file-export-center)异步导出
+- **导入**：模板下载、CSV 解析、预校验、批量创建对话框
+- **批量操作**：批量删除、批量启停、页面自定义批量动作
+- **个人视图/搜索方案**：保存当前筛选 + 排序为命名方案（经组件实例方法 `saveView` / `applyView` 暴露，无内置 UI 入口）
+- **偏好云端同步**：列设置与搜索设置按 `pageCode` 同步后端，多端一致
+
+## 字段 Schema：`ListFieldSchema`
+
+完整定义以 `~/components/schema/types.ts` 为准。
+
+| 属性 | 作用 |
+| --- | --- |
+| `key` | 字段键，对应行数据的属性名 |
+| `title` | 列标题（**建议传 i18n key 的翻译结果**） |
+| `dataType` | `string` / `enum` / `datetime` / `money` / `tag` / `json` / `image` 等，决定默认渲染器与搜索控件 |
+| `visible` | 是否作为表格列。**`false` = 仅搜索用，不出现在表格** |
+| `searchable` / `advancedSearch` | 进入常用搜索 / 高级搜索浮层 |
+| `searchRange` | 时间字段：渲染区间选择器 + 便捷预设，下发 `Between` |
+| `searchMultiple` | 枚举/标签字段：渲染多选下拉，下发 `In` |
+| `sortable` | 服务端排序（列头出现排序箭头） |
+| `exportable` / `importable` / `editable` | 参与导出 / 导入模板 / 表单编辑 |
+| **`permission`** | **字段级权限码**：无此权限时该列与该搜索项**整个不渲染** |
+| `dictionaryCode` | 枚举名或字典码，运行时异步拉取选项注入 `options` |
+| `options` | 静态选项（`dictionaryCode` 解析为空时兜底，**保证绝不出现空下拉**） |
+| `render` | 自定义单元格渲染（最高优先级，返回 `VNodeChild`） |
+| `treeColumn` | 树形模式下承载展开箭头的列（应有且仅有一个） |
+| `order` | 排序值，越小越靠前 |
+| `width` / `minWidth` / `fixed` | 列宽 / 最小列宽 / 固定方向 |
+
+## 页面 Schema：`PageSchema`
+
+| 属性 | 作用 |
+| --- | --- |
+| `pageCode` | 页面唯一码，**偏好与视图按此维度存储**（如 `log.access`） |
+| `pageName` | 页面名 |
+| `resourceCode` | 后端资源码，用于匹配字段脱敏（FLS）规则；**缺省则不拉取脱敏规则** |
+| `resource` | 数据资源适配器：`page` / `tree` / `remove` / `updateStatus` / `create` / `export` |
+| `fields` | 字段单一事实源 |
+| `actions` | 操作集合（`page` 工具栏 / `row` 行菜单 / `batch` 批量浮条） |
+| `rowKey` | 行主键，默认 `basicId` |
+| `exportPermission` | 导出按钮权限码。**精准门控：声明后仅有权用户可见；未声明则该页不显示导出** |
+| `importPermission` / `removePermission` / `statusPermission` | 导入 / 批量删除 / 批量启停的权限码 |
+| `batchRemovable` | 启用内置批量删除（依赖 `resource.remove`） |
+| `tree` | 存在即启用树形模式（走 `resource.tree`、不分页、按 `childrenKey` 展开） |
+| `scrollX` / `pageSize` | 表格横向滚动宽度 / 默认每页数量 |
+
+## 完整骨架
+
+以「访问日志」页（`src/views/log/access/index.vue`）为规范范例：
+
+```vue
+<script setup lang="ts">
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
+import { createPageRequest, logManagementApi, querySortsFromSchema } from '@/api'
+import { SchemaPage } from '~/components'
+
+const { t } = useI18n()
+
+// ① 字段单一事实源（列 + 常用搜索 + 高级搜索，全在这里声明一次）
+const fields = computed<ListFieldSchema[]>(() => [
+  // 仅搜索、不作为列
+  { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string',
+    visible: false, searchable: true, order: 0 },
+
+  // 枚举多选搜索 + 自定义标签渲染
+  {
+    key: 'accessResult', title: t('log.access.access_result'), dataType: 'enum',
+    searchable: true, searchMultiple: true, sortable: true,
+    options: accessResultOptions.value, order: 18,
+    render: row => h(NTag, { type: accessResultType(row.accessResult) }, () => /* label */),
+  },
+
+  // 时间区间搜索
+  { key: 'accessTime', title: t('log.access.access_time'), dataType: 'datetime',
+    sortable: true, searchable: true, searchRange: true, advancedSearch: true, order: 26 },
+])
+
+// ② 查询构建：归一化参数 → 后端分页 DTO（resource.page 与导出复用同一个函数）
+function buildAccessQuery(params: SchemaQueryParams) {
+  return {
+    ...createPageRequest({
+      page: { pageIndex: params.page, pageSize: params.pageSize },
+      conditions: {
+        sorts: querySortsFromSchema(params.sorts),      // 多字段排序
+        filters: params.conditionFilters ?? [],          // 区间/多选（框架已算好）
+      },
+    }),
+    keyword: (params.filters.keyword as string)?.trim() || undefined,
+    // …其余顶层查询字段
+  }
+}
+
+// ③ 页面 Schema
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'log.access',
+  pageName: t('log.access.page_name'),
+  exportPermission: 'saas:access-log:export',   // 权限码常量见后端 SaasPermissionCodes（登记在 SaasPermissionDefinitions）
+  rowKey: 'basicId',
+  scrollX: 2200,
+  fields: fields.value,
+  resource: {
+    page: params => logManagementApi.access.page(buildAccessQuery(params)),
+    export: { businessType: 'log.access', buildQuery: buildAccessQuery },
+  },
+  actions: [
+    { key: 'view', title: t('common.actions.view_detail'), scope: 'row', icon: 'lucide:eye' },
+  ],
+}))
+
+// 操作事件统一上抛，页面自己处理业务
+function onAction(payload: SchemaActionPayload) {
+  if (payload.key === 'view' && payload.row) { /* 打开详情抽屉 */ }
+}
+</script>
+
+<template>
+  <SchemaPage :schema="schema" @action="onAction">
+    <!-- 默认插槽：承载页面自有弹窗/抽屉 -->
+    <LogDetailDrawer v-model:show="detailVisible" :record="detailData" />
+  </SchemaPage>
+</template>
+```
+
+三条要点：
+
+1. **操作不在 Schema 里实现逻辑**，只声明 `key` / `scope` / `icon` / `permission`；点击时经 `@action` 上抛 `{ key, scope, row?, rows? }`，由页面处理。
+2. `resource.page` 收到框架**归一化**的 `SchemaQueryParams`（`page` / `pageSize` / `sorts` / `filters` / `conditionFilters`），映射成后端 DTO 的适配器**是页面自己写的**——框架只依赖归一化契约，不关心你的 DTO 长什么样。
+3. **导出复用同一个 `buildQuery`**，保证导出内容与当前筛选一致。
+
+### 插槽
+
+| 插槽 | 用途 |
+| --- | --- |
+| 默认 | 页面自有弹窗/抽屉 |
+| `#toolbar` | 追加工具栏项 |
+| `#expand` | 行展开内容（如任务调度展开触发器信息） |
+
+## 多字段排序
+
+排序**前端驱动、后端应用**：
+
+- 列头点击累加为 `sorts: SchemaSortRule[]`，**数组顺序即优先级**（下标 0 为主排序）。
+- `querySortsFromSchema(params.sorts)` 转成后端 `conditions.sorts`，每条带 `priority = 下标`。
+- 后端 `ApplySorts` 应用排序，并受 **FLS 门控**：只有「可读且未脱敏」的字段才允许作为排序键，其余被静默剔除；剔完没有有效排序时回退该接口的默认排序。
+- 列设置里可为每列设默认排序（单图标循环 无→升→降），优先级按列顺序。树表/子表不参与。
+
+::: warning 点了排序没反应
+先查该字段的字段级权限与脱敏规则——被 FLS 剔掉时后端不会报错，只是排序不生效。见 [权限与脱敏](./permission)。
+:::
+
+## 搜索：区间与多选
+
+`searchRange` / `searchMultiple` 字段的当前值由框架的 `queryFiltersFromSchema` 派生成后端通用过滤 `conditions.filters`：
+
+| 声明 | 下发的操作符 | 细节 |
+| --- | --- | --- |
+| `searchRange` | `Between`（`4000`） | 值为 ISO 字符串；`date` 粒度末值补到当天 `23:59:59.999` 以含整日 |
+| `searchMultiple` | `In`（`3000`） | 值走 `values` 数组 |
+
+这些统一放进 `params.conditionFilters`，页面适配器并入 `conditions.filters` 即可。其余普通搜索字段仍由页面的 `buildXxxQuery` 映射为 DTO 顶层字段。
+
+相关封装组件：`SchemaSearchField` / `SchemaSearchDateRange` / `SchemaSearchMultiSelect`。
+
+## 树形模式
+
+`PageSchema.tree` 存在即启用：走 `resource.tree`、**不分页**、按 `childrenKey` 展开。字段里要指定**有且仅有一个** `treeColumn`（承载展开箭头的列）。
+
+组织机构、菜单管理这类天然层级的页面用它。
+
+## 导入导出
+
+### 导出
+
+```ts
+resource: {
+  export: { businessType: 'log.access', buildQuery: buildAccessQuery },
+}
+```
+
+声明后走[导出中心](../backend/file#导出中心-file-export-center)的异步链路（提交任务 → 队列 → 后台生成 → 下载）；未声明则退化为本地 CSV。
+
+**按钮显隐由 `exportPermission` 精准门控**——未声明该字段的页面不显示导出按钮。
+
+### 导入
+
+`SchemaImportDialog` 内置：模板下载 → 选文件 → CSV 解析 → 预校验 → 批量创建。模板字段由 `importable: true` 的字段派生，**不需要单独维护模板文件**。
+
+## 偏好与视图
+
+| 能力 | 说明 |
+| --- | --- |
+| **列设置 / 搜索设置** | 按 `pageCode` 同步后端（`useUserSettingSync`），多端一致 |
+| **个人视图 / 搜索方案** | 保存当前筛选 + 排序 + 每页数量为命名方案（`useViewManager`）；无内置 UI，经模板 ref 调用 `saveView` / `applyView` |
+
+同步策略：**localStorage 仍是事实源**，后端加载成功则覆盖本地，保存失败静默忽略（尽力而为）。其它设备保存后经 SignalR `UserSettingChanged` 实时推送并应用到已打开的页面。
+
+::: tip `pageCode` 要稳定
+偏好、视图、列设置全按 `pageCode` 存储。**改了 `pageCode` 等于用户的所有个性化配置丢失**，页面上线后不要再动它。
+:::
+
+## 加一个列表页的清单
+
+| 步骤 | 做什么 |
+| --- | --- |
+| 1 | 后端 `PageRegistry` 登记页面与按钮（**建菜单即绑权限**） |
+| 2 | 后端加分页查询方法，**记得标 `[HttpPost]`** |
+| 3 | 前端 `src/api/modules/{域}/xxx.ts` 加 API（标准 CRUD 直接用 `defineResource`） |
+| 4 | 前端 `src/views/{域}/{页}/index.vue` 按上面的骨架写 |
+| 5 | `packages/locales/langs/{zh-CN,en-US}/` 补文案 |
+
+后端侧的完整接线见 [二次开发](../backend/development)。
+
+## 相关页面
+
+- [权限与脱敏](./permission)：字段级权限与 FLS 如何影响渲染
+- [路由与菜单](./routing)：页面怎么被路由到
+- [主题与国际化](./theme)：枚举标签、文案、时区
+- [接口对接指南](../api-guide#分页与查询协议)：`conditions` / `page` 的完整协议
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/frontend/theme
+
+# 布局与主题
+
+外观相关的一切：布局结构、Tailwind v4 的用法与陷阱、主题系统、偏好同步。
+
+## 布局
+
+`packages/layouts/` 提供整套外壳：侧边栏、顶栏、标签页（tabbar）、内容区、页脚。
+
+### 滚动模型
+
+::: warning 滚动源不是 `window`
+布局根是**定高**的（`h-full`），滚动发生在**内容容器内部**。这意味着：
+
+- 监听 `window` 的 scroll 事件拿不到滚动；
+- 需要吸顶/吸底的整屏页直接用 `h-full` 或 `XPageShell` 即可；
+- **不要写 per-page 的 JS 定高 hack**。
+
+回到顶部、路由切换重置滚动都已由布局适配器统一处理。
+:::
+
+## 样式：Tailwind CSS 4（CSS-first）
+
+用 `@tailwindcss/vite` + **CSS-first `@theme`**（入口 `src/styles/index.css`），**没有 JS config 文件**。
+
+三条关键约定：
+
+| 约定 | 说明 |
+| --- | --- |
+| **只引入 theme + utilities，不引入 preflight** | 基础重置由 Naive UI 与 `design/global.css` 的最小重置负责，避免与 Naive UI 打架 |
+| 颜色令牌用运行时 HSL CSS 变量 | `--color-primary: hsl(var(--primary))` 等，保证明暗与主题色能动态切换 |
+| 暗色走 class 策略 | `@custom-variant dark (&:where(.dark, .dark *))` |
+
+### 嵌套 `.dark` 的坑
+
+::: danger 深色侧栏里 `bg-*` / `text-*` 不变暗
+`@theme` 里声明的 `--color-*` **只在 `:root` 解析**。深色侧栏、深色子栏、深色顶栏这类**嵌套 `.dark`** 的容器里，Tailwind 的颜色工具类拿不到暗色值，表现是「局部深色区域里的元素还是亮色」。
+
+修法：在 `variables.css` 的 **`:root, .dark`** 块里**重新声明全部 `--color-*`**，让嵌套作用域也能解析到。
+:::
+
+## 主题系统
+
+`useTheme()`（`~/hooks/useTheme.ts`）管理外观：
+
+| 维度 | 可调 |
+| --- | --- |
+| 明暗 | 亮 / 暗 / 跟随系统 |
+| 主题色 | 任意品牌色 |
+| 形状 | 圆角 |
+| 排版 | 字号 |
+
+### Material You 动态取色
+
+**从单个品牌色派生整套和谐色阶**——辅色、容器色、前景色、聚焦环、带品牌色相的中性色，明暗自适应，以内联 CSS 变量写到根元素。
+
+所以**换主题色不需要改任何 CSS**：改一个色值，整套配色跟着重算。
+
+主色、明暗、圆角、字号变化都会同步到 CSS 变量，非 Naive 的自定义元素也能直接用这些变量。
+
+### 切换动画
+
+`startViewTransition` 从点击处圆形扩散——明暗切换时的视觉过渡。
+
+## 偏好同步
+
+UI 偏好走 `UserSettingAppService`，按**场景 + key** 存取：
+
+```text
+localStorage（事实源）
+   ↕
+后端 SysUserSetting（用户 × 场景 × 设置键）
+   ↕ SignalR UserSettingChanged
+其它设备已打开的页面即时应用
+```
+
+三条策略：
+
+1. **localStorage 是事实源**——后端加载成功则覆盖本地，保存失败静默忽略（尽力而为，不阻断交互）。
+2. **服务端不解释 value**，只作跨端状态载体。
+3. 其它设备保存后经 SignalR 广播实时应用。
+
+Schema 页的列设置、搜索设置、个人视图按 `pageCode` 走同一套机制，见 [Schema 驱动页面](./schema-page#偏好与视图)。
+
+::: tip `pageCode` 要稳定
+偏好按 `pageCode` 存储，**改了等于用户的所有个性化配置丢失**。页面上线后不要再动它。
+:::
+
+## 排查
+
+| 现象 | 原因 |
+| --- | --- |
+| 深色区域里的元素还是亮色 | 嵌套 `.dark` 令牌问题，见上面的 danger 块 |
+| 改了主题色但某些地方没变 | 那些地方写死了颜色值，没用 CSS 变量 |
+| 页面滚不动 / 吸顶失效 | 用了 `window` 滚动的假设；改用 `h-full` 或 `XPageShell` |
+| 样式被 Naive UI 覆盖 | preflight 是**故意关闭**的，别去打开——会破坏 Naive UI |
+| 偏好换台设备就没了 | 后端保存失败被静默忽略了，查接口是否可用 |
+
+## 相关页面
+
+- [国际化](./i18n)：文案与枚举标签
+- [字体图标](./icon)：图标用法与离线限制
+- [常用组件](./components)：布局相关组件
+- [框架简介](./introduction)：前端分层与启动引导

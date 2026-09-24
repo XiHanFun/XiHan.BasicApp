@@ -1,0 +1,71 @@
+# 曦寒基础应用
+
+> 企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + ABAC 权限、代码生成与实时通信。
+
+本文件由文档站构建期生成，内容与仓库文档同源。
+
+## 机读资产
+
+- [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt): 全部 50 页正文
+- [llms-backend.txt](https://basicapp.docs.xihanfun.com/llms-backend.txt): 26 页后端手册
+- [llms-frontend.txt](https://basicapp.docs.xihanfun.com/llms-frontend.txt): 11 页前端手册
+- 每页 Markdown：把站点地址后缀成 `.md`，如 https://basicapp.docs.xihanfun.com/backend/ai.md
+
+## 开始
+
+- [接口对接指南](https://basicapp.docs.xihanfun.com/api-guide): 本页是前后端分离对接的唯一参考：接口基址、统一响应信封、请求头、怎么拿到 token、分页与查询协议、动态 API 路由推导、错误处理、开放接口签名调用。
+- [更新日志 · XiHan.BasicApp](https://basicapp.docs.xihanfun.com/changelog): 本文件记录 XiHan.BasicApp 各版本的变更。
+- [配置参考](https://basicapp.docs.xihanfun.com/configuration): `appsettings` 的全量配置节说明。
+- [部署](https://basicapp.docs.xihanfun.com/deployment): 本篇介绍如何把 XiHan.BasicApp 发布到服务器。
+- [开发环境](https://basicapp.docs.xihanfun.com/dev-environment): 承接 系统概述 对整体架构的了解，本篇用 Docker 命令行 准备本地开发可用的 Redis 与关系型数据库，并给出与仓库 `appsettings.Development.json` 对齐的默认 PostgreSQL 组合。
+- [常见问题](https://basicapp.docs.xihanfun.com/faq): 按「现象 → 原因 → 解决」组织的高频故障速查表。
+- [功能清单](https://basicapp.docs.xihanfun.com/features): XiHan.BasicApp 内置了中后台系统所需的完整能力。
+- [快速开始](https://basicapp.docs.xihanfun.com/getting-started): 本篇带你在本地把 XiHan.BasicApp 的后端与前端跑起来。
+- [曦寒基础应用](https://basicapp.docs.xihanfun.com/): 基于 .NET 与 Vue 的超高颜值中后台内核
+- [XiHan.BasicApp 基础应用](https://basicapp.docs.xihanfun.com/introduction): 企业级中后台内核。
+- [系统概述](https://basicapp.docs.xihanfun.com/overview): XiHan.BasicApp 是一个企业级中后台内核：后端基于 .NET 10 与 XiHan.Framework，前端基于 Vue 3。
+- [目录结构与代码地图](https://basicapp.docs.xihanfun.com/project-structure): 这页解决一个具体问题：「我要改 X，该去哪个文件？」 上半部分是目录树，下半部分是按任务索引的代码地图。
+- [为什么选择曦寒](https://basicapp.docs.xihanfun.com/why): 完整能力清单在 功能清单，这一页不重复。
+
+## 后端手册
+
+- [AI 能力](https://basicapp.docs.xihanfun.com/backend/ai): BasicApp 的 AI 能力落在独立模块 `XiHan.BasicApp.AI` 里，与代码生成模块同构（独立工程、独立种子段、独立权限资源）。
+- [审批与约束规则](https://basicapp.docs.xihanfun.com/backend/approval): 菜单目录 `/approval` 下有两个页面，它们解决的是不同的问题，容易混淆：
+- [身份与认证](https://basicapp.docs.xihanfun.com/backend/authentication): XiHan.BasicApp 的身份体系围绕统一身份设计：一个自然人对应一个 `SysUser` 账号，用邮箱作为全平台唯一登录标识；同一账号可通过成员关系在多个租户里办事。
+- [缓存与异步](https://basicapp.docs.xihanfun.com/backend/caching): BasicApp 的热点读路径走 Redis 分布式缓存，写路径精准失效；耗时动作（发邮件短信、导出）不占请求线程，走队列 + 后台消费。
+- [代码生成](https://basicapp.docs.xihanfun.com/backend/code-generation): `XiHan.BasicApp.CodeGeneration` 是一等独立模块，做数据库优先（DbFirst）的全栈代码生成：扫描一张已有数据库表的结构 → 落成可编辑的表/列配置 → 用 Scriban 模板渲染出后端实体到前端页面的整套 CRUD 代码 → 预览、打 Zip 下载或受控落盘。
+- [数据模型](https://basicapp.docs.xihanfun.com/backend/data-model): 数据表清单，按业务域分组（`XiHan.BasicApp.Saas` 与 `XiHan.BasicApp.Workflow` 两个模块；代码生成、AI 模块的表不在此列）。
+- [数据权限](https://basicapp.docs.xihanfun.com/backend/data-permission): 权限码回答「能不能做这个操作」，数据权限回答「能对哪些行做」「能看到哪些字段」。
+- [数据库配置](https://basicapp.docs.xihanfun.com/backend/database): 连接怎么配、支持哪些库、读写分离怎么开、启动时的建库建表播种、分表怎么查，以及为什么加字段后部署会炸。
+- [二次开发](https://basicapp.docs.xihanfun.com/backend/development): 本页是 BasicApp 最重实操的一页：在既有代码库上扩展新功能时，究竟要新建/改哪些文件、在哪些点接线。
+- [实体基类](https://basicapp.docs.xihanfun.com/backend/entity): 新增实体前先读这页：基类怎么选、有哪些列是自动来的、多租户列是什么语义、软删与唯一索引怎么配合、命名和索引有哪些强制规范。
+- [文件与存储](https://basicapp.docs.xihanfun.com/backend/file): 文件能力分三块：文件库（元数据与多副本）、存储配置（后端在哪儿、怎么连）、导入导出中心（大批量数据的异步进出）。
+- [健康检查与可观测性](https://basicapp.docs.xihanfun.com/backend/health-observability): BasicApp 在 WebHost 层提供数据库、Redis 与 Qdrant 三项真实健康检查，并把 `/health` 匿名暴露；链路与指标则复用 XiHan.Framework.Observability 的 OpenTelemetry 装配。
+- [框架简介](https://basicapp.docs.xihanfun.com/backend/introduction): XiHan.BasicApp 后端是一套基于 XiHan.Framework 的多租户中后台内核。
+- [审计日志](https://basicapp.docs.xihanfun.com/backend/logging): XiHan.BasicApp 把"谁在什么时候、从哪里、对什么做了什么、结果如何"拆成六类互相独立的日志，各有专属实体、专属写入通道、专属查询接口与前端页面。
+- [消息中心 / 通知 / 实时聊天](https://basicapp.docs.xihanfun.com/backend/messaging): XiHan.BasicApp 的消息能力横跨三块：企业级消息中心（站内通知/公告）、多渠道消息投递（邮件/短信/机器人） 与 SignalR 实时（通知推送 + 在线聊天）。
+- [多租户与版本](https://basicapp.docs.xihanfun.com/backend/multi-tenancy): XiHan.BasicApp 是一套 企业级通用中后台内核：一份代码、一套部署，同时承载多个互不可见的租户（企业客户），并以版本（Edition）作为订阅售卖与功能门控的单元。
+- [开放能力](https://basicapp.docs.xihanfun.com/backend/open-api): BasicApp 对外开放有三条互不相同的路径，最容易混淆的是前两条方向正好相反：
+- [组织架构](https://basicapp.docs.xihanfun.com/backend/organization): 组织架构回答的是「这个人在公司里是谁」：属于哪个部门、担任什么岗位、能看到哪个范围的数据。
+- [权限模型](https://basicapp.docs.xihanfun.com/backend/permission): XiHan.BasicApp 的权限体系融合 RBAC（基于角色） 与 ABAC（基于属性），再叠加角色继承、数据范围、字段级脱敏、多租户版本门控。
+- [打印模板](https://basicapp.docs.xihanfun.com/backend/printing): 打印能力由独立模块 `modules/XiHan.BasicApp.Printing` 承载（后端）与 `frontend/src/modules/printing` + `@xihan/printing` 功能包承载（前端）：可视化设计打印模板、按编码解析、浏览器预览打印与本机静默直打。
+- [即时通讯](https://basicapp.docs.xihanfun.com/backend/realtime): 后端的 SignalR 侧：两条 Hub、怎么往前端推、在线状态怎么算，以及一条必须遵守的载荷约定。
+- [请求生命周期](https://basicapp.docs.xihanfun.com/backend/request-lifecycle): 一个请求从进入进程到返回 JSON，中间经过哪些环节、每个环节能改变什么、出问题该往哪一段看——这页把整条链路摊开。
+- [任务调度](https://basicapp.docs.xihanfun.com/backend/scheduling): 页面 `/setting/job`，实体 `SysTask` + `SysTaskLog`（按月分表）。
+- [系统设置](https://basicapp.docs.xihanfun.com/backend/settings): 「系统设置」这一组页面管的是运行期可调、不需要改代码重新部署的东西：菜单、字典、参数、业务编号、缓存、服务监控、版本。
+- [升级与迁移](https://basicapp.docs.xihanfun.com/backend/upgrade): BasicApp 已接入 XiHan.Framework.Upgrade 的版本状态、迁移台账、多租户分发、租约锁与维护模式扩展，并在 `WebHost/UpdateScripts` 保存前向 SQL 脚本。
+- [工作流](https://basicapp.docs.xihanfun.com/backend/workflow): `XiHan.BasicApp.Workflow` 是四个一等业务模块之一，坐落在框架 工作流引擎 之上，把「图执行引擎」变成一套可运营的审批/流程系统：定义能在管理端建、实例能在页面上看和干预、待办能办理和转办、状态落库不怕重启。
+
+## 前端手册
+
+- [常用组件](https://basicapp.docs.xihanfun.com/frontend/components): 除 Schema 页面引擎 之外的公共组件与全局挂件，按用途分组速查。
+- [开发流程](https://basicapp.docs.xihanfun.com/frontend/development): 从零加一个前端页面的完整流程。
+- [国际化](https://basicapp.docs.xihanfun.com/frontend/i18n): 前端文案用 vue-i18n，枚举标签的事实源在后端，时间显示由请求头驱动。
+- [字体图标](https://basicapp.docs.xihanfun.com/frontend/icon): 图标走 Iconify，运行在离线模式——这带来一条必须记住的限制。
+- [前端架构](https://basicapp.docs.xihanfun.com/frontend/introduction): 前端不是「一个 Vue 工程」，而是分层的单仓库多包结构。
+- [权限与脱敏（前端）](https://basicapp.docs.xihanfun.com/frontend/permission): 前端在页面 / 字段 / 操作三个层级按权限码过滤，并在服务端脱敏的基础上做只读与标识提示。
+- [实时通信](https://basicapp.docs.xihanfun.com/frontend/realtime): 前端用 SignalR 接后端两条 Hub：通知 `/hubs/notification` 与聊天 `/hubs/chat`。
+- [服务端交互](https://basicapp.docs.xihanfun.com/frontend/request): 前端调后端的全部约定：请求客户端怎么建、URL 怎么拼、分页协议长什么样、响应怎么解包、401/423 怎么处理。
+- [路由与菜单](https://basicapp.docs.xihanfun.com/frontend/routing): 前端路由默认由后端菜单驱动——后端 `PageRegistry` 是菜单、路由、组件路径、权限码、i18n 键的单一事实源，前端只负责把菜单数据转成 `RouteRecordRaw` 并落地视图文件。
+- [Schema 驱动页面](https://basicapp.docs.xihanfun.com/frontend/schema-page): BasicApp 的列表页几乎都不手写表格。
+- [布局与主题](https://basicapp.docs.xihanfun.com/frontend/theme): 外观相关的一切：布局结构、Tailwind v4 的用法与陷阱、主题系统、偏好同步。
