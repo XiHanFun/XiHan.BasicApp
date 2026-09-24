@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -27,6 +28,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 场景：
 /// - 多服务商切换（阿里云/腾讯云）
 /// - 租户自配签名与模板（TenantId=0 为平台全局配置）
+///
+/// 租户隔离：严格——配置带服务商密钥，租户只看自己的；租户未自配默认网关时，发送显式回退平台默认（见 SaasSmsConfigStore）。
 /// </remarks>
 [SugarTable(TableName = "Sys_Sms_Config", TableDescription = "系统短信网关配置表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -35,7 +38,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_TeId_CoCd", nameof(TenantId), OrderByType.Asc, nameof(ConfigCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_Prov", nameof(TenantId), OrderByType.Asc, nameof(Provider), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe_IsEn", nameof(TenantId), OrderByType.Asc, nameof(IsDefault), OrderByType.Desc, nameof(IsEnabled), OrderByType.Asc)]
-public partial class SysSmsConfig : BasicAppFullAuditedEntity
+public partial class SysSmsConfig : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 配置编码（租户内唯一标识）

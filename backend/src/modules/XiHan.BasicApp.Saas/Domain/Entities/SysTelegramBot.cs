@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -21,6 +22,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 场景：
 /// - 多个 Telegram 机器人并行运行（通知机器人/客服机器人等）
+///
+/// 租户隔离：严格——Telegram 机器人由平台托管（令牌、Webhook 路由、会话都是平台级的），只在平台维护与运行。
 /// </remarks>
 [SugarTable(TableName = "Sys_Telegram_Bot", TableDescription = "系统Telegram机器人表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -28,7 +31,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_BoNa", nameof(TenantId), OrderByType.Asc, nameof(BotName), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_IsEn", nameof(TenantId), OrderByType.Asc, nameof(IsEnabled), OrderByType.Asc)]
-public partial class SysTelegramBot : BasicAppFullAuditedEntity
+public partial class SysTelegramBot : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 机器人名称（租户内唯一；业务侧定位标识，同时作为 Webhook 路由段）

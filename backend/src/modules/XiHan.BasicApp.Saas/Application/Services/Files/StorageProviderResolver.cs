@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.ObjectStorage;
 using XiHan.Framework.ObjectStorage.Constants;
 using XiHan.Framework.ObjectStorage.Options;
@@ -50,44 +51,44 @@ public sealed class StorageProviderResolver : IStorageProviderResolver
     /// <summary>
     /// 为上传解析提供程序：优先用 DB 默认且启用的对象存储配置（运行时构建凭证），否则回退 appsettings
     /// </summary>
-    public async Task<IFileStorageProvider> RouteForUploadAsync(string? routeKey, string? providerName, CancellationToken cancellationToken = default)
+    public async Task<StorageRoute> RouteForUploadAsync(string? routeKey, string? providerName, CancellationToken cancellationToken = default)
     {
         using var scope = _scopeFactory.CreateScope();
         var config = await GetDbDrivenDefaultAsync(scope.ServiceProvider, cancellationToken);
         if (config is not null)
         {
-            return GetOrBuild(config);
+            return new StorageRoute(GetOrBuild(config), config.BasicId);
         }
 
-        return scope.ServiceProvider.GetRequiredService<IFileStorageRouter>().Route(routeKey, providerName);
+        return new StorageRoute(scope.ServiceProvider.GetRequiredService<IFileStorageRouter>().Route(routeKey, providerName), null);
     }
 
     /// <summary>
     /// 为既有文件（下载/删除/探测/预签名）解析提供程序：当其提供程序名与 DB 默认配置类型匹配时用 DB 凭证，否则回退 appsettings
     /// </summary>
-    public async Task<IFileStorageProvider> RouteForProviderAsync(string? providerName, CancellationToken cancellationToken = default)
+    public async Task<IFileStorageProvider> RouteForStorageAsync(SysFileStorage storage, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(storage);
+
         using var scope = _scopeFactory.CreateScope();
-        if (!string.IsNullOrWhiteSpace(providerName))
+        if (storage.StorageConfigId is { } configId)
         {
-            var config = await GetDbDrivenDefaultAsync(scope.ServiceProvider, cancellationToken);
-            if (config is not null
-                && string.Equals(ProviderNameForType(config.StorageType), providerName, StringComparison.OrdinalIgnoreCase))
-            {
-                return GetOrBuild(config);
-            }
+            // 文件记着上传时用的配置：租户未自配时那是平台默认，按主键跨租户取；之后换了默认也不影响既有文件
+            var repository = scope.ServiceProvider.GetRequiredService<IStorageConfigRepository>();
+            var config = await repository.GetByIdIgnoreTenantAsync(configId, cancellationToken)
+                ?? throw new InvalidOperationException("文件所用的存储配置已不存在。");
+            return GetOrBuild(config);
         }
 
-        return scope.ServiceProvider.GetRequiredService<IFileStorageRouter>().Route(providerName: providerName);
+        return scope.ServiceProvider.GetRequiredService<IFileStorageRouter>().Route(providerName: storage.StorageProvider);
     }
 
-    /// <summary>
-    /// 取"默认且启用、对象存储、凭证齐全"的配置；否则返回 null（交由 appsettings 兜底）
-    /// </summary>
     private static async Task<SysStorageConfig?> GetDbDrivenDefaultAsync(IServiceProvider provider, CancellationToken cancellationToken)
     {
         var repository = provider.GetRequiredService<IStorageConfigRepository>();
-        var config = await repository.GetDefaultAsync(cancellationToken);
+        var currentTenant = provider.GetRequiredService<ICurrentTenant>();
+        // 租户自配的默认存储优先；没有时用平台默认（文件会记下所用配置）
+        var config = await currentTenant.CurrentThenPlatformAsync(() => repository.GetDefaultAsync(cancellationToken));
         if (config is null || config.StorageType == StorageConfigType.Local || !HasCredentials(config))
         {
             return null;
@@ -147,17 +148,6 @@ public sealed class StorageProviderResolver : IStorageProviderResolver
         return !string.IsNullOrWhiteSpace(config.AccessKeyId)
             && !string.IsNullOrWhiteSpace(config.SecretAccessKey)
             && !string.IsNullOrWhiteSpace(config.BucketName);
-    }
-
-    private static string ProviderNameForType(StorageConfigType type)
-    {
-        return type switch
-        {
-            StorageConfigType.S3 => ObjectStorageProviderNames.Minio,
-            StorageConfigType.OSS => ObjectStorageProviderNames.AliyunOss,
-            StorageConfigType.COS => ObjectStorageProviderNames.TencentCos,
-            _ => ObjectStorageProviderNames.Local
-        };
     }
 
     private static string Fingerprint(SysStorageConfig config)

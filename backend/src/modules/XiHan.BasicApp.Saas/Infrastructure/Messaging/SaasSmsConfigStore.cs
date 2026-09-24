@@ -8,6 +8,7 @@ using XiHan.Framework.Bot.Sms.Abstractions;
 using XiHan.Framework.Bot.Sms.Options;
 using BotSmsProviderType = XiHan.Framework.Bot.Sms.Enums.SmsProviderType;
 using SaasSmsProviderType = XiHan.BasicApp.Saas.Domain.Entities.SmsProviderType;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 
@@ -48,7 +49,9 @@ public sealed class SaasSmsConfigStore : ISmsConfigStore
         await using (var scope = _scopeFactory.CreateAsyncScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<ISmsConfigRepository>();
-            config = await repository.GetDefaultAsync(cancellationToken);
+            var currentTenant = scope.ServiceProvider.GetRequiredService<ICurrentTenant>();
+            // 租户自配的默认短信网关优先；没有时由平台代发
+            config = await currentTenant.CurrentThenPlatformAsync(() => repository.GetDefaultAsync(cancellationToken));
         }
 
         if (config is null)

@@ -151,7 +151,11 @@ public sealed class StorageConfigDomainService
             throw new InvalidOperationException("默认存储配置不能删除，请先将其他配置设为默认。");
         }
 
-        if (await _fileStorageRepository.AnyAsync(storage => storage.StorageConfigId == id, cancellationToken))
+        // 平台默认存储被未自配的租户用着，那些文件记录落在各租户里，删除前看所有租户
+        var referenced = config.TenantId == 0
+            ? await _fileStorageRepository.AnyIgnoreTenantAsync(storage => storage.StorageConfigId == id, cancellationToken)
+            : await _fileStorageRepository.AnyAsync(storage => storage.StorageConfigId == id, cancellationToken);
+        if (referenced)
         {
             throw new InvalidOperationException("存储配置已被文件存储记录引用，禁止删除。");
         }

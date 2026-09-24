@@ -26,4 +26,33 @@ public static class CurrentTenantPlatformExtensions
         ArgumentNullException.ThrowIfNull(currentTenant);
         return currentTenant.Id is null or 0;
     }
+
+    /// <summary>
+    /// 先在当前上下文取；取不到且当前是业务租户时，切到平台（0 号租户）再取
+    /// </summary>
+    /// <remarks>
+    /// 平台为租户提供默认服务（发件、短信、对象存储）时用：租户只看得见自己的配置，
+    /// 回退平台是显式的一步，而不是靠读共享把平台的带密钥配置暴露给租户。
+    /// </remarks>
+    /// <typeparam name="T">结果类型</typeparam>
+    /// <param name="currentTenant">当前租户</param>
+    /// <param name="query">在当前上下文执行的查询</param>
+    /// <returns>当前上下文的结果，没有时为平台的结果</returns>
+    public static async Task<T?> CurrentThenPlatformAsync<T>(this ICurrentTenant currentTenant, Func<Task<T?>> query)
+        where T : class
+    {
+        ArgumentNullException.ThrowIfNull(currentTenant);
+        ArgumentNullException.ThrowIfNull(query);
+
+        var own = await query();
+        if (own is not null || currentTenant.IsPlatformOperation())
+        {
+            return own;
+        }
+
+        using (currentTenant.Change(null))
+        {
+            return await query();
+        }
+    }
 }

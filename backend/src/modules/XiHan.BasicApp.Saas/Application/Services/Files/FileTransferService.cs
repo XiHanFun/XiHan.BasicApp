@@ -57,7 +57,7 @@ public sealed class FileTransferService
 
         foreach (var storage in storages)
         {
-            var provider = await _storageProviderResolver.RouteForProviderAsync(storage.StorageProvider, cancellationToken);
+            var provider = await _storageProviderResolver.RouteForStorageAsync(storage, cancellationToken);
             await provider.DeleteAsync(storage.StoragePath, storage.BucketName, cancellationToken);
         }
     }
@@ -70,7 +70,7 @@ public sealed class FileTransferService
         ArgumentNullException.ThrowIfNull(storage);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var provider = await _storageProviderResolver.RouteForProviderAsync(storage.StorageProvider, cancellationToken);
+        var provider = await _storageProviderResolver.RouteForStorageAsync(storage, cancellationToken);
         return await provider.DownloadAsync(storage.StoragePath, cancellationToken);
     }
 
@@ -82,7 +82,7 @@ public sealed class FileTransferService
         ArgumentNullException.ThrowIfNull(storage);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var provider = await _storageProviderResolver.RouteForProviderAsync(storage.StorageProvider, cancellationToken);
+        var provider = await _storageProviderResolver.RouteForStorageAsync(storage, cancellationToken);
         return await provider.GeneratePresignedUrlAsync(storage.StoragePath, expiresIn ?? TimeSpan.FromMinutes(30), cancellationToken);
     }
 
@@ -94,7 +94,7 @@ public sealed class FileTransferService
         ArgumentNullException.ThrowIfNull(storage);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var provider = await _storageProviderResolver.RouteForProviderAsync(storage.StorageProvider, cancellationToken);
+        var provider = await _storageProviderResolver.RouteForStorageAsync(storage, cancellationToken);
         var exists = await provider.ExistsAsync(storage.StoragePath, storage.BucketName, cancellationToken);
         FileMetadata? metadata = null;
 
@@ -125,7 +125,8 @@ public sealed class FileTransferService
 
         var now = DateTimeOffset.UtcNow;
         var resolvedProviderName = _storageProviderResolver.ResolveProviderName(input.RouteKey, input.ProviderName);
-        var provider = await _storageProviderResolver.RouteForUploadAsync(input.RouteKey, resolvedProviderName, cancellationToken);
+        var route = await _storageProviderResolver.RouteForUploadAsync(input.RouteKey, resolvedProviderName, cancellationToken);
+        var provider = route.Provider;
         var storedFileName = _fileStorageDomainService.BuildStoredFileName(originalName, fileHash);
         var storagePath = _fileStorageDomainService.BuildStoragePath(storedFileName, input.Directory, now);
         var accessControl = _fileStorageDomainService.ResolveAccessControl(input.AccessLevel, input.AccessControl);
@@ -195,6 +196,7 @@ public sealed class FileTransferService
                 file.BasicId,
                 uploadResult.FileSize,
                 _fileStorageDomainService.ResolveStorageType(provider.ProviderName),
+                route.StorageConfigId,
                 provider.ProviderName,
                 input.BucketName,
                 uploadResult.Path ?? storagePath,

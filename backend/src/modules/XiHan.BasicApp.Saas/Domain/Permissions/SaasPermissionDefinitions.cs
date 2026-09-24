@@ -470,14 +470,15 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.BotConfig.Delete, "机器人配置删除", "删除当前租户机器人配置", true, 2375),
             new(SaasPermissionCodes.BotConfig.Export, "机器人配置导出", "导出当前数据范围内的机器人配置列表数据", false, 2770),
         ]),
-        new(SaasPermissionCodes.TelegramBot.Group, "Telegram机器人", PermissionSide.Both,
+        // 平台：Telegram 机器人由平台托管（令牌、Webhook 路由、会话都是平台级的），租户建了也不会被加载运行
+        new(SaasPermissionCodes.TelegramBot.Group, "Telegram机器人", PermissionSide.Platform,
         [
-            new(SaasPermissionCodes.TelegramBot.Read, "Telegram机器人查看", "查看当前租户 Telegram 机器人列表与详情", false, 2380),
-            new(SaasPermissionCodes.TelegramBot.Create, "Telegram机器人创建", "创建当前租户 Telegram 机器人", true, 2382),
-            new(SaasPermissionCodes.TelegramBot.Update, "Telegram机器人更新", "更新当前租户 Telegram 机器人", true, 2384),
-            new(SaasPermissionCodes.TelegramBot.Status, "Telegram机器人状态", "启用或停用当前租户 Telegram 机器人", true, 2386),
-            new(SaasPermissionCodes.TelegramBot.Delete, "Telegram机器人删除", "删除当前租户 Telegram 机器人", true, 2388),
-            new(SaasPermissionCodes.TelegramBot.Export, "Telegram机器人导出", "导出当前数据范围内的 Telegram 机器人列表数据", false, 2780),
+            new(SaasPermissionCodes.TelegramBot.Read, "Telegram机器人查看", "查看平台 Telegram 机器人列表与详情", false, 2380),
+            new(SaasPermissionCodes.TelegramBot.Create, "Telegram机器人创建", "创建平台 Telegram 机器人", true, 2382),
+            new(SaasPermissionCodes.TelegramBot.Update, "Telegram机器人更新", "更新平台 Telegram 机器人", true, 2384),
+            new(SaasPermissionCodes.TelegramBot.Status, "Telegram机器人状态", "启用或停用平台 Telegram 机器人", true, 2386),
+            new(SaasPermissionCodes.TelegramBot.Delete, "Telegram机器人删除", "删除平台 Telegram 机器人", true, 2388),
+            new(SaasPermissionCodes.TelegramBot.Export, "Telegram机器人导出", "导出平台 Telegram 机器人列表数据", false, 2780),
         ]),
         new(SaasPermissionCodes.Cache.Group, "缓存管理", PermissionSide.Platform,
         [
