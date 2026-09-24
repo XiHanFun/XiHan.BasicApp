@@ -206,6 +206,7 @@ export default {
       err_save_failed: 'सहेजना विफल रहा',
       secret_alert_title: 'API Secret अभी सहेज लें, यह कुंजी केवल एक बार दिखेगी',
       create_modal_title: 'API क्रेडेंशियल बनाएँ',
+      create_name_label: 'क्रेडेंशियल का नाम',
       create_name_placeholder: 'क्रेडेंशियल का नाम (वैकल्पिक, डिफ़ॉल्ट 「डिफ़ॉल्ट क्रेडेंशियल」)',
       rotate_title: 'कुंजी बदलें',
       rotate_content: 'नई कुंजी बनाने पर 「{name}」 की पुरानी कुंजी तुरंत अमान्य हो जाएगी, क्या जारी रखें?',

@@ -206,6 +206,7 @@ export default {
       err_save_failed: '保存失败',
       secret_alert_title: '请立即保存 API Secret，此密钥仅显示一次',
       create_modal_title: '创建 API 凭证',
+      create_name_label: '凭证名称',
       create_name_placeholder: '凭证名称（可选，默认「默认凭证」）',
       rotate_title: '滚动密钥',
       rotate_content: '生成新密钥后「{name}」的旧密钥将立即失效，确定继续？',

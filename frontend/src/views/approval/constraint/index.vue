@@ -953,37 +953,43 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
           <XhEmptyStateDescription>{{ t('approval.constraint.empty_no_items') }}</XhEmptyStateDescription>
         </XhEmptyStateRoot>
-        <div v-for="(item, index) in ruleForm.items" :key="index" class="rule-item-row">
-          <XNumberInput
-            v-model:value="item.constraintGroup"
-            :min="0"
-            :placeholder="t('approval.constraint.placeholder_group')"
-            style="width: 100px"
-          />
-          <XSelect
-            v-model:value="item.targetType"
-            :disabled="!isPrerequisite"
-            :options="targetTypeOptions"
-            style="width: 110px"
-            @update:value="() => onItemTargetTypeChange(item)"
-          />
-          <XSelect
-            v-model:value="item.targetId"
-            clearable
-            :options="targetOptions[item.targetType]"
-            :placeholder="t('approval.constraint.placeholder_target')"
-            style="flex: 1; min-width: 0"
-            @focus="() => loadTargetOptions(item.targetType)"
-          />
-          <XInput
-            v-model:value="item.remark"
-            clearable
-            :placeholder="t('approval.constraint.placeholder_item_remark')"
-            style="width: 160px"
-          />
-          <XhButton variant="ghost" size="sm" tone="danger" @click="removeItem(index)">
-            {{ t('approval.constraint.item_delete') }}
-          </XhButton>
+        <!-- 列名与各行同处一张网格（行本身不成盒），列宽由网格统一给，列名始终对得上控件 -->
+        <div v-else class="rule-items__scroll">
+          <div class="rule-items__grid">
+            <span class="rule-items__col">{{ t('approval.constraint.col_group') }}</span>
+            <span class="rule-items__col">{{ t('approval.constraint.col_target_type') }}</span>
+            <span class="rule-items__col">{{ t('approval.constraint.col_target_name') }}</span>
+            <span class="rule-items__col">{{ t('approval.constraint.col_remark') }}</span>
+            <span aria-hidden="true" />
+            <div v-for="(item, index) in ruleForm.items" :key="index" class="rule-item-row">
+              <XNumberInput
+                v-model:value="item.constraintGroup"
+                :min="0"
+                :placeholder="t('approval.constraint.placeholder_group')"
+              />
+              <XSelect
+                v-model:value="item.targetType"
+                :disabled="!isPrerequisite"
+                :options="targetTypeOptions"
+                @update:value="() => onItemTargetTypeChange(item)"
+              />
+              <XSelect
+                v-model:value="item.targetId"
+                clearable
+                :options="targetOptions[item.targetType]"
+                :placeholder="t('approval.constraint.placeholder_target')"
+                @focus="() => loadTargetOptions(item.targetType)"
+              />
+              <XInput
+                v-model:value="item.remark"
+                clearable
+                :placeholder="t('approval.constraint.placeholder_item_remark')"
+              />
+              <XhButton variant="ghost" size="sm" tone="danger" @click="removeItem(index)">
+                {{ t('approval.constraint.item_delete') }}
+              </XhButton>
+            </div>
+          </div>
         </div>
       </div>
     </XEditModal>
@@ -1033,10 +1039,11 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
   font-weight: 500;
 }
 
-/* 规则项动态行编辑 */
+/* 规则项动态行编辑：底部内衬交给下面的表格滚动口 */
 .rule-items {
   margin-top: 4px;
   padding: 12px;
+  padding-block-end: 0;
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
 }
@@ -1062,13 +1069,34 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
   white-space: nowrap;
 }
 
-.rule-item-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+/* 规则项表格：窄屏放不下各列的下限时，整张表在自己的框里横向滚，不把弹窗撑宽。
+   块轴末端的内衬放在滚动口里：粗指针下末行控件往外扩的 44px 命中区落在这段内衬里，
+   不会把滚动口撑出一条竖向滚动条 */
+.rule-items__scroll {
+  overflow-x: auto;
+  padding-block-end: var(--xh-space-3);
 }
 
-.rule-item-row + .rule-item-row {
-  margin-top: 8px;
+/* 列名与各行共用一张网格：各列先保住能用的下限，余量按比例分，目标列拿得最多 */
+.rule-items__grid {
+  display: grid;
+  grid-template-columns: minmax(9em, 1fr) minmax(7em, 1fr) minmax(10em, 2fr) minmax(8em, 1.5fr) auto;
+  gap: var(--xh-space-2);
+  align-items: center;
+}
+
+.rule-items__col {
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-text-secondary-size);
+}
+
+/* 行不成盒，行内控件直接落进网格的各列 */
+.rule-item-row {
+  display: contents;
+}
+
+.rule-items__grid :is([data-scope='number-field'], [data-scope='select'], [data-scope='text-field'])[data-part='root'] {
+  inline-size: 100%;
+  min-inline-size: 0;
 }
 </style>
