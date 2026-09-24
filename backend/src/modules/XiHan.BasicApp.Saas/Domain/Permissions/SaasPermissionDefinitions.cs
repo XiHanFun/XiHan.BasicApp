@@ -1,24 +1,28 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Saas.Domain.Entities;
+
 namespace XiHan.BasicApp.Saas.Domain.Permissions;
 
 /// <summary>
-/// SaaS 权限项（组内单条权限：码 + 显示名 + 描述 + 是否需审计 + 排序）
+/// SaaS 权限项（组内单条权限：码 + 显示名 + 描述 + 是否需审计 + 排序；作用侧缺省取所在分组）
 /// </summary>
 public sealed record SaasPermissionItem(
     string PermissionCode,
     string PermissionName,
     string PermissionDescription,
     bool IsRequireAudit,
-    int Sort);
+    int Sort,
+    PermissionSide? Side = null);
 
 /// <summary>
-/// SaaS 权限功能分组（组码 + 中文组名 + 该组下全部权限项）
+/// SaaS 权限功能分组（组码 + 中文组名 + 组内默认作用侧 + 该组下全部权限项）
 /// </summary>
 public sealed record SaasPermissionGroup(
     string GroupCode,
     string GroupName,
+    PermissionSide Side,
     IReadOnlyList<SaasPermissionItem> Permissions);
 
 /// <summary>
@@ -32,7 +36,8 @@ public sealed record SaasPermissionDefinition(
     string Tags,
     bool IsRequireAudit,
     int Priority,
-    int Sort);
+    int Sort,
+    PermissionSide Side);
 
 /// <summary>
 /// SaaS 权限单一事实源：分组与权限定义在一起
@@ -40,7 +45,8 @@ public sealed record SaasPermissionDefinition(
 /// <remarks>
 /// 唯一手写源是 <see cref="Groups"/>：每个资源块一个分组节点，组名与该组权限写在一起。
 /// 落库扁平表 <see cref="All"/>、组码→组名 <see cref="GroupNames"/> 均由 <see cref="Groups"/> 派生，
-/// 每条权限的 ModuleCode（恒为 saas）、Tags（[module, 组码](+export/import 段)）、Priority（恒等于 Sort）自动生成，无需手写。
+/// 每条权限的 ModuleCode（恒为 saas）、Tags（[module, 组码](+export/import 段)）、Priority（恒等于 Sort）自动生成，无需手写；
+/// 作用侧由分组声明，个别条目（目录的查看、编号全局管理、跨租户模仿等）在条目上覆盖。
 /// 新增资源时只在 <see cref="Groups"/> 增一个分组节点或在已有节点增一条权限项即可。
 /// </remarks>
 public static class SaasPermissionDefinitions
@@ -50,7 +56,7 @@ public static class SaasPermissionDefinitions
     /// </summary>
     public static IReadOnlyList<SaasPermissionGroup> Groups { get; } =
     [
-        new(SaasPermissionCodes.Tenant.Group, "租户",
+        new(SaasPermissionCodes.Tenant.Group, "租户", PermissionSide.Platform,
         [
             new(SaasPermissionCodes.Tenant.Read, "租户查看", "查看租户列表、详情与用量（平台）", false, 100),
             new(SaasPermissionCodes.Tenant.Create, "租户创建", "创建租户基础资料", true, 110),
@@ -61,9 +67,9 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Tenant.SupportMember, "支持人员入驻", "把平台账号以支持成员身份加入租户或移除", true, 150),
             new(SaasPermissionCodes.Tenant.Export, "租户导出", "导出当前数据范围内的租户列表数据", false, 2590),
         ]),
-        new(SaasPermissionCodes.TenantMember.Group, "租户成员",
+        new(SaasPermissionCodes.TenantMember.Group, "租户成员", PermissionSide.Tenant,
         [
-            new(SaasPermissionCodes.TenantMember.Read, "租户成员查看", "查看当前租户成员列表和详情", false, 135),
+            new(SaasPermissionCodes.TenantMember.Read, "租户成员查看", "查看当前租户成员列表和详情", false, 135, PermissionSide.Both),
             new(SaasPermissionCodes.TenantMember.Create, "租户成员添加", "把已有用户直接加入租户并立即生效", true, 141),
             new(SaasPermissionCodes.TenantMember.Invite, "租户成员邀请", "向已有用户发起待接受的租户成员邀请", true, 142),
             new(SaasPermissionCodes.TenantMember.Update, "租户成员更新", "更新当前租户成员资料和有效期", true, 136),
@@ -71,7 +77,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.TenantMember.InviteStatus, "租户成员邀请状态", "更新当前租户成员邀请生命周期状态", true, 138),
             new(SaasPermissionCodes.TenantMember.Revoke, "租户成员撤销", "撤销当前租户成员身份", true, 139),
         ]),
-        new(SaasPermissionCodes.TenantEdition.Group, "租户版本",
+        new(SaasPermissionCodes.TenantEdition.Group, "租户版本", PermissionSide.Platform,
         [
             new(SaasPermissionCodes.TenantEdition.Read, "租户版本查看", "查看租户版本套餐列表和详情", false, 140),
             new(SaasPermissionCodes.TenantEdition.Create, "租户版本创建", "创建租户版本套餐", true, 150),
@@ -80,48 +86,48 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.TenantEdition.Default, "租户版本默认", "设置默认租户版本", true, 180),
             new(SaasPermissionCodes.TenantEdition.Export, "版本套餐导出", "导出当前数据范围内的租户版本套餐列表数据", false, 2720),
         ]),
-        new(SaasPermissionCodes.TenantEditionPermission.Group, "租户版本权限",
+        new(SaasPermissionCodes.TenantEditionPermission.Group, "租户版本权限", PermissionSide.Platform,
         [
             new(SaasPermissionCodes.TenantEditionPermission.Read, "租户版本权限查看", "查看租户版本可用权限绑定", false, 190),
             new(SaasPermissionCodes.TenantEditionPermission.Grant, "租户版本权限授权", "授予租户版本可用权限", true, 200),
             new(SaasPermissionCodes.TenantEditionPermission.Update, "租户版本权限更新", "更新租户版本权限绑定状态", true, 210),
             new(SaasPermissionCodes.TenantEditionPermission.Revoke, "租户版本权限撤销", "撤销租户版本可用权限", true, 220),
         ]),
-        new(SaasPermissionCodes.Permission.Group, "权限定义",
+        new(SaasPermissionCodes.Permission.Group, "权限定义", PermissionSide.Platform,
         [
-            new(SaasPermissionCodes.Permission.Read, "权限定义查看", "查看权限定义列表、详情和全局权限选择项", false, 230),
+            new(SaasPermissionCodes.Permission.Read, "权限定义查看", "查看权限定义列表、详情和全局权限选择项", false, 230, PermissionSide.Both),
             new(SaasPermissionCodes.Permission.Create, "权限定义创建", "创建当前租户权限定义", true, 231),
             new(SaasPermissionCodes.Permission.Update, "权限定义更新", "更新当前租户权限定义基础资料", true, 232),
             new(SaasPermissionCodes.Permission.Status, "权限定义状态", "更新当前租户权限定义状态", true, 233),
             new(SaasPermissionCodes.Permission.Delete, "权限定义删除", "删除当前租户权限定义", true, 234),
             new(SaasPermissionCodes.Permission.Export, "权限定义导出", "导出当前数据范围内的权限定义列表数据", false, 2560),
         ]),
-        new(SaasPermissionCodes.Resource.Group, "资源定义",
+        new(SaasPermissionCodes.Resource.Group, "资源定义", PermissionSide.Platform,
         [
-            new(SaasPermissionCodes.Resource.Read, "资源定义查看", "查看资源定义列表、详情和全局资源选择项", false, 240),
+            new(SaasPermissionCodes.Resource.Read, "资源定义查看", "查看资源定义列表、详情和全局资源选择项", false, 240, PermissionSide.Both),
             new(SaasPermissionCodes.Resource.Create, "资源定义创建", "创建当前租户资源定义", true, 241),
             new(SaasPermissionCodes.Resource.Update, "资源定义更新", "更新当前租户资源定义", true, 242),
             new(SaasPermissionCodes.Resource.Status, "资源定义状态", "更新当前租户资源定义状态", true, 243),
             new(SaasPermissionCodes.Resource.Delete, "资源定义删除", "删除当前租户资源定义", true, 244),
         ]),
-        new(SaasPermissionCodes.Operation.Group, "操作定义",
+        new(SaasPermissionCodes.Operation.Group, "操作定义", PermissionSide.Platform,
         [
-            new(SaasPermissionCodes.Operation.Read, "操作定义查看", "查看操作定义列表、详情和全局操作选择项", false, 250),
+            new(SaasPermissionCodes.Operation.Read, "操作定义查看", "查看操作定义列表、详情和全局操作选择项", false, 250, PermissionSide.Both),
             new(SaasPermissionCodes.Operation.Create, "操作定义创建", "创建当前租户操作定义", true, 251),
             new(SaasPermissionCodes.Operation.Update, "操作定义更新", "更新当前租户操作定义", true, 252),
             new(SaasPermissionCodes.Operation.Status, "操作定义状态", "更新当前租户操作定义状态", true, 253),
             new(SaasPermissionCodes.Operation.Delete, "操作定义删除", "删除当前租户操作定义", true, 254),
         ]),
-        new(SaasPermissionCodes.Menu.Group, "菜单",
+        new(SaasPermissionCodes.Menu.Group, "菜单", PermissionSide.Platform,
         [
-            new(SaasPermissionCodes.Menu.Read, "菜单查看", "查看菜单列表、详情和树形结构", false, 255),
+            new(SaasPermissionCodes.Menu.Read, "菜单查看", "查看菜单列表、详情和树形结构", false, 255, PermissionSide.Both),
             new(SaasPermissionCodes.Menu.Create, "菜单创建", "创建当前租户菜单", true, 256),
             new(SaasPermissionCodes.Menu.Update, "菜单更新", "更新当前租户菜单", true, 257),
             new(SaasPermissionCodes.Menu.Status, "菜单状态", "更新当前租户菜单状态", true, 258),
             new(SaasPermissionCodes.Menu.Delete, "菜单删除", "删除当前租户菜单", true, 259),
             new(SaasPermissionCodes.Menu.Export, "菜单导出", "导出当前数据范围内的菜单列表数据", false, 2640),
         ]),
-        new(SaasPermissionCodes.Role.Group, "角色",
+        new(SaasPermissionCodes.Role.Group, "角色", PermissionSide.Both,
         [
             new(SaasPermissionCodes.Role.Read, "角色定义查看", "查看角色定义列表、详情和已启用角色选择项", false, 260),
             new(SaasPermissionCodes.Role.Create, "角色定义创建", "创建当前租户角色定义", true, 262),
@@ -130,13 +136,13 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Role.Delete, "角色定义删除", "删除当前租户未被引用的角色定义", true, 268),
             new(SaasPermissionCodes.Role.Export, "角色导出", "导出当前数据范围内的角色列表数据", false, 2540),
         ]),
-        new(SaasPermissionCodes.RoleHierarchy.Group, "角色继承",
+        new(SaasPermissionCodes.RoleHierarchy.Group, "角色继承", PermissionSide.Both,
         [
             new(SaasPermissionCodes.RoleHierarchy.Read, "角色继承查看", "查看角色继承祖先链、后代链和详情", false, 269),
             new(SaasPermissionCodes.RoleHierarchy.Create, "角色继承创建", "创建角色直接继承关系并补齐闭包记录", true, 270),
             new(SaasPermissionCodes.RoleHierarchy.Delete, "角色继承删除", "删除角色直接继承关系并清理派生闭包记录", true, 271),
         ]),
-        new(SaasPermissionCodes.RoleDataScope.Group, "角色数据范围",
+        new(SaasPermissionCodes.RoleDataScope.Group, "角色数据范围", PermissionSide.Tenant,
         [
             new(SaasPermissionCodes.RoleDataScope.Read, "角色数据范围查看", "查看角色自定义数据范围列表和详情", false, 272),
             new(SaasPermissionCodes.RoleDataScope.Grant, "角色数据范围授权", "授予角色自定义数据范围", true, 273),
@@ -144,7 +150,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.RoleDataScope.Status, "角色数据范围状态", "更新角色数据范围绑定状态", true, 275),
             new(SaasPermissionCodes.RoleDataScope.Revoke, "角色数据范围撤销", "撤销角色数据范围绑定", true, 276),
         ]),
-        new(SaasPermissionCodes.RolePermission.Group, "角色权限",
+        new(SaasPermissionCodes.RolePermission.Group, "角色权限", PermissionSide.Both,
         [
             new(SaasPermissionCodes.RolePermission.Read, "角色权限查看", "查看角色权限绑定列表和详情", false, 280),
             new(SaasPermissionCodes.RolePermission.Grant, "角色权限授权", "授予或拒绝角色权限", true, 290),
@@ -152,7 +158,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.RolePermission.Status, "角色权限状态", "更新角色权限绑定状态", true, 310),
             new(SaasPermissionCodes.RolePermission.Revoke, "角色权限撤销", "撤销角色权限绑定", true, 320),
         ]),
-        new(SaasPermissionCodes.UserRole.Group, "用户角色",
+        new(SaasPermissionCodes.UserRole.Group, "用户角色", PermissionSide.Both,
         [
             new(SaasPermissionCodes.UserRole.Read, "用户角色查看", "查看当前租户用户角色绑定列表和详情", false, 330),
             new(SaasPermissionCodes.UserRole.Grant, "用户角色授权", "授予当前租户成员角色", true, 340),
@@ -160,7 +166,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.UserRole.Status, "用户角色状态", "更新用户角色绑定状态", true, 360),
             new(SaasPermissionCodes.UserRole.Revoke, "用户角色撤销", "撤销用户角色绑定", true, 370),
         ]),
-        new(SaasPermissionCodes.UserPermission.Group, "用户直授权限",
+        new(SaasPermissionCodes.UserPermission.Group, "用户直授权限", PermissionSide.Both,
         [
             new(SaasPermissionCodes.UserPermission.Read, "用户直授权限查看", "查看当前租户用户直授权限列表和详情", false, 380),
             new(SaasPermissionCodes.UserPermission.Grant, "用户直授权限授权", "授予或拒绝当前租户成员直授权限", true, 390),
@@ -168,7 +174,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.UserPermission.Status, "用户直授权限状态", "更新用户直授权限绑定状态", true, 410),
             new(SaasPermissionCodes.UserPermission.Revoke, "用户直授权限撤销", "撤销用户直授权限绑定", true, 420),
         ]),
-        new(SaasPermissionCodes.UserDataScope.Group, "用户数据范围",
+        new(SaasPermissionCodes.UserDataScope.Group, "用户数据范围", PermissionSide.Tenant,
         [
             new(SaasPermissionCodes.UserDataScope.Read, "用户数据范围查看", "查看当前租户用户数据范围覆盖列表和详情", false, 430),
             new(SaasPermissionCodes.UserDataScope.Grant, "用户数据范围授权", "授予当前租户成员数据范围覆盖", true, 440),
@@ -176,7 +182,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.UserDataScope.Status, "用户数据范围状态", "更新用户数据范围绑定状态", true, 460),
             new(SaasPermissionCodes.UserDataScope.Revoke, "用户数据范围撤销", "撤销用户数据范围绑定", true, 470),
         ]),
-        new(SaasPermissionCodes.FieldLevelSecurity.Group, "字段级安全",
+        new(SaasPermissionCodes.FieldLevelSecurity.Group, "字段级安全", PermissionSide.Both,
         [
             new(SaasPermissionCodes.FieldLevelSecurity.Read, "字段级安全查看", "查看字段级安全策略列表和详情", false, 480),
             new(SaasPermissionCodes.FieldLevelSecurity.Create, "字段级安全创建", "创建字段级安全策略", true, 490),
@@ -185,7 +191,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.FieldLevelSecurity.Delete, "字段级安全删除", "删除字段级安全策略", true, 520),
             new(SaasPermissionCodes.FieldLevelSecurity.Export, "字段级安全导出", "导出当前数据范围内的字段级安全策略列表数据", false, 2570),
         ]),
-        new(SaasPermissionCodes.Department.Group, "部门",
+        new(SaasPermissionCodes.Department.Group, "部门", PermissionSide.Tenant,
         [
             new(SaasPermissionCodes.Department.Read, "部门查看", "查看部门列表、详情和组织树", false, 500),
             new(SaasPermissionCodes.Department.Create, "部门创建", "创建当前租户部门", true, 501),
@@ -194,7 +200,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Department.Delete, "部门删除", "删除当前租户部门", true, 504),
             new(SaasPermissionCodes.Department.Export, "部门导出", "导出当前数据范围内的部门列表数据", false, 2550),
         ]),
-        new(SaasPermissionCodes.Position.Group, "岗位",
+        new(SaasPermissionCodes.Position.Group, "岗位", PermissionSide.Tenant,
         [
             new(SaasPermissionCodes.Position.Read, "岗位查看", "查看岗位列表和详情", false, 505),
             new(SaasPermissionCodes.Position.Create, "岗位创建", "创建当前租户岗位", true, 506),
@@ -203,7 +209,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Position.Delete, "岗位删除", "删除当前租户岗位", true, 509),
             new(SaasPermissionCodes.Position.Export, "岗位导出", "导出当前数据范围内的岗位列表数据", false, 2555),
         ]),
-        new(SaasPermissionCodes.UserDepartment.Group, "用户部门",
+        new(SaasPermissionCodes.UserDepartment.Group, "用户部门", PermissionSide.Tenant,
         [
             new(SaasPermissionCodes.UserDepartment.Read, "用户部门归属查看", "查看用户部门归属和部门成员归属", false, 510),
             new(SaasPermissionCodes.UserDepartment.Grant, "用户部门归属分配", "为当前租户成员分配部门归属", true, 511),
@@ -211,7 +217,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.UserDepartment.Status, "用户部门归属状态", "更新当前租户成员部门归属状态", true, 513),
             new(SaasPermissionCodes.UserDepartment.Revoke, "用户部门归属撤销", "撤销当前租户成员部门归属", true, 514),
         ]),
-        new(SaasPermissionCodes.User.Group, "用户",
+        new(SaasPermissionCodes.User.Group, "用户", PermissionSide.Both,
         [
             new(SaasPermissionCodes.User.Read, "用户查看", "查看用户列表、详情和已启用用户选择项", false, 520),
             new(SaasPermissionCodes.User.Create, "用户创建", "创建当前租户用户并初始化安全资料和成员身份", true, 521),
@@ -220,7 +226,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.User.Delete, "用户删除", "删除当前租户用户并撤销当前租户成员身份", true, 524),
             new(SaasPermissionCodes.User.Export, "用户导出", "导出当前数据范围内的用户列表数据", false, 2460),
         ]),
-        new(SaasPermissionCodes.UserSecurity.Group, "用户安全",
+        new(SaasPermissionCodes.UserSecurity.Group, "用户安全", PermissionSide.Both,
         [
             new(SaasPermissionCodes.UserSecurity.Read, "用户安全查看", "查看当前租户用户安全状态", true, 525),
             new(SaasPermissionCodes.UserSecurity.ResetPassword, "用户密码重置", "重置当前租户用户密码", true, 526),
@@ -228,13 +234,13 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.UserSecurity.LoginPolicy, "用户登录策略", "更新当前租户用户多端登录策略", true, 528),
             new(SaasPermissionCodes.UserSecurity.ResetTwoFactor, "用户双因素重置", "重置当前租户用户双因素认证（OTP），清除绑定后用户可重新设置", true, 2450),
         ]),
-        new(SaasPermissionCodes.UserSession.Group, "用户会话",
+        new(SaasPermissionCodes.UserSession.Group, "用户会话", PermissionSide.Both,
         [
             new(SaasPermissionCodes.UserSession.Read, "用户会话查看", "查看当前租户用户会话摘要", true, 529),
             new(SaasPermissionCodes.UserSession.Revoke, "用户会话撤销", "撤销当前租户用户会话", true, 530),
             new(SaasPermissionCodes.UserSession.Export, "会话导出", "导出当前数据范围内的用户会话列表数据", false, 2690),
         ]),
-        new(SaasPermissionCodes.PermissionDelegation.Group, "权限委托",
+        new(SaasPermissionCodes.PermissionDelegation.Group, "权限委托", PermissionSide.Both,
         [
             new(SaasPermissionCodes.PermissionDelegation.Read, "权限委托查看", "查看当前租户权限委托列表和详情", false, 530),
             new(SaasPermissionCodes.PermissionDelegation.Create, "权限委托创建", "创建当前租户权限委托", true, 540),
@@ -242,23 +248,23 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.PermissionDelegation.Status, "权限委托状态", "更新当前租户权限委托状态", true, 560),
             new(SaasPermissionCodes.PermissionDelegation.Revoke, "权限委托撤销", "撤销当前租户权限委托", true, 570),
         ]),
-        new(SaasPermissionCodes.UserStatistics.Group, "用户统计",
+        new(SaasPermissionCodes.UserStatistics.Group, "用户统计", PermissionSide.Both,
         [
             new(SaasPermissionCodes.UserStatistics.Read, "用户统计查看", "查看当前租户用户行为统计", true, 531),
         ]),
-        new(SaasPermissionCodes.PasswordHistory.Group, "密码历史",
+        new(SaasPermissionCodes.PasswordHistory.Group, "密码历史", PermissionSide.Both,
         [
             new(SaasPermissionCodes.PasswordHistory.Read, "密码历史查看", "查看当前租户用户密码修改历史", true, 532),
         ]),
-        new(SaasPermissionCodes.ExternalLogin.Group, "第三方登录",
+        new(SaasPermissionCodes.ExternalLogin.Group, "第三方登录", PermissionSide.Both,
         [
             new(SaasPermissionCodes.ExternalLogin.Read, "第三方登录绑定查看", "查看当前租户用户第三方登录绑定摘要", true, 533),
         ]),
-        new(SaasPermissionCodes.SessionRole.Group, "会话角色",
+        new(SaasPermissionCodes.SessionRole.Group, "会话角色", PermissionSide.Both,
         [
             new(SaasPermissionCodes.SessionRole.Read, "会话角色查看", "查看当前租户用户会话激活角色", true, 534),
         ]),
-        new(SaasPermissionCodes.OAuthApp.Group, "OAuth 应用",
+        new(SaasPermissionCodes.OAuthApp.Group, "OAuth 应用", PermissionSide.Platform,
         [
             new(SaasPermissionCodes.OAuthApp.Read, "OAuth应用查看", "查看当前租户 OAuth 应用注册信息", true, 535),
             new(SaasPermissionCodes.OAuthApp.Create, "OAuth应用创建", "创建当前租户 OAuth 应用", true, 2001),
@@ -268,29 +274,29 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.OAuthApp.Secret, "OAuth应用密钥", "重置当前租户 OAuth 应用密钥", true, 2005),
             new(SaasPermissionCodes.OAuthApp.Export, "OAuth应用导出", "导出当前数据范围内的 OAuth 应用列表数据", false, 2630),
         ]),
-        new(SaasPermissionCodes.OAuthCode.Group, "OAuth 授权码",
+        new(SaasPermissionCodes.OAuthCode.Group, "OAuth 授权码", PermissionSide.Both,
         [
             new(SaasPermissionCodes.OAuthCode.Read, "OAuth授权码查看", "查看当前租户 OAuth 授权码审计状态", true, 536),
         ]),
-        new(SaasPermissionCodes.OAuthToken.Group, "OAuth Token",
+        new(SaasPermissionCodes.OAuthToken.Group, "OAuth Token", PermissionSide.Both,
         [
             new(SaasPermissionCodes.OAuthToken.Read, "OAuth Token查看", "查看当前租户 OAuth Token 生命周期状态", true, 537),
         ]),
-        new(SaasPermissionCodes.AccessLog.Group, "访问日志",
+        new(SaasPermissionCodes.AccessLog.Group, "访问日志", PermissionSide.Both,
         [
             new(SaasPermissionCodes.AccessLog.Read, "访问日志查看", "查看当前租户访问日志摘要", true, 538),
             new(SaasPermissionCodes.AccessLog.Export, "访问日志导出", "导出访问日志数据", false, 2480),
         ]),
-        new(SaasPermissionCodes.ApiLog.Group, "API 日志",
+        new(SaasPermissionCodes.ApiLog.Group, "API 日志", PermissionSide.Both,
         [
             new(SaasPermissionCodes.ApiLog.Read, "API日志查看", "查看当前租户 API 调用日志摘要", true, 539),
             new(SaasPermissionCodes.ApiLog.Export, "API日志导出", "导出开放接口日志数据", false, 2490),
         ]),
-        new(SaasPermissionCodes.LogTrace.Group, "日志链路追踪",
+        new(SaasPermissionCodes.LogTrace.Group, "日志链路追踪", PermissionSide.Both,
         [
             new(SaasPermissionCodes.LogTrace.Read, "日志链路追踪查看", "按维度跨多类日志综合追踪时间线", true, 540),
         ]),
-        new(SaasPermissionCodes.PermissionRequest.Group, "权限申请",
+        new(SaasPermissionCodes.PermissionRequest.Group, "权限申请", PermissionSide.Both,
         [
             new(SaasPermissionCodes.PermissionRequest.Read, "权限申请查看", "查看当前租户权限申请列表和详情", false, 580),
             new(SaasPermissionCodes.PermissionRequest.Create, "权限申请创建", "提交当前租户权限申请", true, 590),
@@ -299,7 +305,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.PermissionRequest.Withdraw, "权限申请撤回", "撤回当前租户权限申请", true, 620),
             new(SaasPermissionCodes.PermissionRequest.Export, "权限申请导出", "导出当前数据范围内的权限申请列表数据", false, 2580),
         ]),
-        new(SaasPermissionCodes.ConstraintRule.Group, "约束规则",
+        new(SaasPermissionCodes.ConstraintRule.Group, "约束规则", PermissionSide.Both,
         [
             new(SaasPermissionCodes.ConstraintRule.Read, "约束规则查看", "查看当前租户约束规则列表和详情", false, 630),
             new(SaasPermissionCodes.ConstraintRule.Create, "约束规则创建", "创建当前租户约束规则", true, 640),
@@ -308,7 +314,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.ConstraintRule.Delete, "约束规则删除", "删除当前租户约束规则", true, 670),
             new(SaasPermissionCodes.ConstraintRule.Export, "约束规则导出", "导出当前数据范围内的约束规则列表数据", false, 2740),
         ]),
-        new(SaasPermissionCodes.PermissionCondition.Group, "权限条件",
+        new(SaasPermissionCodes.PermissionCondition.Group, "权限条件", PermissionSide.Both,
         [
             new(SaasPermissionCodes.PermissionCondition.Read, "权限ABAC条件查看", "查看角色或用户授权绑定的ABAC条件", false, 680),
             new(SaasPermissionCodes.PermissionCondition.Create, "权限ABAC条件创建", "创建角色或用户授权绑定的ABAC条件", true, 690),
@@ -316,31 +322,31 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.PermissionCondition.Status, "权限ABAC条件状态", "更新权限ABAC条件状态", true, 710),
             new(SaasPermissionCodes.PermissionCondition.Delete, "权限ABAC条件删除", "删除权限ABAC条件", true, 720),
         ]),
-        new(SaasPermissionCodes.DiffLog.Group, "数据变更日志",
+        new(SaasPermissionCodes.DiffLog.Group, "数据变更日志", PermissionSide.Both,
         [
             new(SaasPermissionCodes.DiffLog.Read, "数据变更日志查看", "查看当前租户数据变更审计摘要", true, 800),
             new(SaasPermissionCodes.DiffLog.Export, "数据变更日志导出", "导出数据变更（差异）日志数据", false, 2520),
         ]),
-        new(SaasPermissionCodes.ExceptionLog.Group, "异常日志",
+        new(SaasPermissionCodes.ExceptionLog.Group, "异常日志", PermissionSide.Both,
         [
             new(SaasPermissionCodes.ExceptionLog.Read, "异常日志查看", "查看当前租户异常日志摘要", true, 810),
             new(SaasPermissionCodes.ExceptionLog.Export, "异常日志导出", "导出异常日志数据", false, 2510),
         ]),
-        new(SaasPermissionCodes.LoginLog.Group, "登录日志",
+        new(SaasPermissionCodes.LoginLog.Group, "登录日志", PermissionSide.Both,
         [
             new(SaasPermissionCodes.LoginLog.Read, "登录日志查看", "查看当前租户登录日志摘要", true, 820),
             new(SaasPermissionCodes.LoginLog.Export, "登录日志导出", "导出登录日志数据", false, 2500),
         ]),
-        new(SaasPermissionCodes.OperationLog.Group, "操作日志",
+        new(SaasPermissionCodes.OperationLog.Group, "操作日志", PermissionSide.Both,
         [
             new(SaasPermissionCodes.OperationLog.Read, "操作日志查看", "查看当前租户操作日志摘要", true, 830),
             new(SaasPermissionCodes.OperationLog.Export, "操作日志导出", "导出操作日志数据", false, 2470),
         ]),
-        new(SaasPermissionCodes.PermissionChangeLog.Group, "权限变更日志",
+        new(SaasPermissionCodes.PermissionChangeLog.Group, "权限变更日志", PermissionSide.Both,
         [
             new(SaasPermissionCodes.PermissionChangeLog.Read, "权限变更日志查看", "查看当前租户权限变更审计摘要", true, 840),
         ]),
-        new(SaasPermissionCodes.Task.Group, "系统任务",
+        new(SaasPermissionCodes.Task.Group, "系统任务", PermissionSide.Platform,
         [
             new(SaasPermissionCodes.Task.Read, "系统任务查看", "查看当前租户系统任务配置摘要", true, 845),
             new(SaasPermissionCodes.Task.Create, "系统任务创建", "创建当前租户系统任务配置", true, 2010),
@@ -350,11 +356,11 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Task.Delete, "系统任务删除", "删除当前租户系统任务配置", true, 2014),
             new(SaasPermissionCodes.Task.Export, "系统任务导出", "导出当前数据范围内的系统任务列表数据", false, 2670),
         ]),
-        new(SaasPermissionCodes.TaskLog.Group, "任务日志",
+        new(SaasPermissionCodes.TaskLog.Group, "任务日志", PermissionSide.Platform,
         [
             new(SaasPermissionCodes.TaskLog.Read, "任务日志查看", "查看当前租户任务执行日志摘要", true, 850),
         ]),
-        new(SaasPermissionCodes.Review.Group, "系统审查",
+        new(SaasPermissionCodes.Review.Group, "系统审查", PermissionSide.Tenant,
         [
             new(SaasPermissionCodes.Review.Read, "系统审查查看", "查看当前租户系统审查单摘要", true, 855),
             new(SaasPermissionCodes.Review.Create, "系统审查创建", "创建当前租户系统审查单", true, 2020),
@@ -365,11 +371,11 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Review.Delete, "系统审查删除", "删除当前租户系统审查单", true, 2025),
             new(SaasPermissionCodes.Review.Export, "系统审查导出", "导出当前数据范围内的系统审查列表数据", false, 2610),
         ]),
-        new(SaasPermissionCodes.ReviewLog.Group, "审查日志",
+        new(SaasPermissionCodes.ReviewLog.Group, "审查日志", PermissionSide.Tenant,
         [
             new(SaasPermissionCodes.ReviewLog.Read, "审查日志查看", "查看当前租户审查流转日志摘要", true, 860),
         ]),
-        new(SaasPermissionCodes.Config.Group, "系统配置",
+        new(SaasPermissionCodes.Config.Group, "系统配置", PermissionSide.Both,
         [
             new(SaasPermissionCodes.Config.Read, "系统配置查看", "查看当前租户系统配置元数据", true, 870),
             new(SaasPermissionCodes.Config.Create, "系统配置创建", "创建当前租户系统配置", true, 2030),
@@ -379,7 +385,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Config.Import, "系统配置导入", "批量导入系统配置数据", true, 2530),
             new(SaasPermissionCodes.Config.Export, "系统配置导出", "导出当前数据范围内的系统配置列表数据", false, 2660),
         ]),
-        new(SaasPermissionCodes.Numbering.Group, "业务编号",
+        new(SaasPermissionCodes.Numbering.Group, "业务编号", PermissionSide.Both,
         [
             new(SaasPermissionCodes.Numbering.Read, "业务编号查看", "查看当前作用域编号规则、详情和格式预览", false, 2790),
             new(SaasPermissionCodes.Numbering.Create, "业务编号创建", "创建当前作用域业务编号规则", true, 2791),
@@ -389,9 +395,9 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Numbering.Reset, "业务编号重置", "安全调整下一流水值并记录原因", true, 2795),
             new(SaasPermissionCodes.Numbering.Generate, "业务编号生成", "通过受权 API 或 DI 服务生成单号及批量编号", true, 2796),
             new(SaasPermissionCodes.Numbering.AllocationRead, "发号记录查看", "查看当前可访问规则的永久发号记录", true, 2797),
-            new(SaasPermissionCodes.Numbering.GlobalManage, "全局编号管理", "管理平台全局编号规则及租户开放状态", true, 2798),
+            new(SaasPermissionCodes.Numbering.GlobalManage, "全局编号管理", "管理平台全局编号规则及租户开放状态", true, 2798, PermissionSide.Platform),
         ]),
-        new(SaasPermissionCodes.Dict.Group, "系统字典",
+        new(SaasPermissionCodes.Dict.Group, "系统字典", PermissionSide.Both,
         [
             new(SaasPermissionCodes.Dict.Read, "系统字典查看", "查看当前租户系统字典和字典项", false, 880),
             new(SaasPermissionCodes.Dict.Create, "系统字典创建", "创建当前租户系统字典和字典项", true, 2040),
@@ -400,12 +406,12 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Dict.Delete, "系统字典删除", "删除当前租户系统字典和字典项", true, 2043),
             new(SaasPermissionCodes.Dict.Export, "系统字典导出", "导出当前数据范围内的系统字典列表数据", false, 2650),
         ]),
-        new(SaasPermissionCodes.Version.Group, "系统版本",
+        new(SaasPermissionCodes.Version.Group, "系统版本", PermissionSide.Platform,
         [
             new(SaasPermissionCodes.Version.Read, "系统版本查看", "查看当前租户系统版本和迁移历史", true, 890),
             new(SaasPermissionCodes.Version.Export, "版本导出", "导出当前数据范围内的系统版本列表数据", false, 2680),
         ]),
-        new(SaasPermissionCodes.File.Group, "系统文件",
+        new(SaasPermissionCodes.File.Group, "系统文件", PermissionSide.Both,
         [
             new(SaasPermissionCodes.File.Read, "系统文件查看", "查看当前租户文件元数据和存储副本摘要", true, 900),
             new(SaasPermissionCodes.File.Create, "系统文件创建", "创建当前租户文件元数据和存储副本", true, 2060),
@@ -414,7 +420,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.File.Delete, "系统文件删除", "删除当前租户文件元数据和存储副本", true, 2063),
             new(SaasPermissionCodes.File.Export, "系统文件导出", "导出当前数据范围内的系统文件列表数据", false, 2620),
         ]),
-        new(SaasPermissionCodes.Message.Group, "系统消息",
+        new(SaasPermissionCodes.Message.Group, "系统消息", PermissionSide.Both,
         [
             new(SaasPermissionCodes.Message.Read, "系统消息查看", "查看当前租户邮件和短信发送摘要", true, 910),
             new(SaasPermissionCodes.Message.Create, "系统消息创建", "创建当前租户通知、邮件或短信", true, 2070),
@@ -424,7 +430,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Message.Delete, "系统消息删除", "删除当前租户通知、邮件或短信", true, 2074),
             new(SaasPermissionCodes.Message.Export, "消息导出", "导出当前数据范围内的邮件短信列表数据", false, 2700),
         ]),
-        new(SaasPermissionCodes.Notification.Group, "系统通知",
+        new(SaasPermissionCodes.Notification.Group, "系统通知", PermissionSide.Both,
         [
             new(SaasPermissionCodes.Notification.Read, "系统通知查看", "查看当前租户系统通知/公告列表与详情", false, 2100),
             new(SaasPermissionCodes.Notification.Create, "系统通知创建", "创建当前租户系统通知/公告草稿", true, 2110),
@@ -433,7 +439,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Notification.Delete, "系统通知删除", "删除当前租户系统通知/公告", true, 2140),
             new(SaasPermissionCodes.Notification.Export, "通知导出", "导出当前数据范围内的系统通知列表数据", false, 2710),
         ]),
-        new(SaasPermissionCodes.StorageConfig.Group, "存储配置",
+        new(SaasPermissionCodes.StorageConfig.Group, "存储配置", PermissionSide.Both,
         [
             new(SaasPermissionCodes.StorageConfig.Read, "存储配置查看", "查看当前租户存储后端配置列表与详情", false, 2200),
             new(SaasPermissionCodes.StorageConfig.Create, "存储配置创建", "创建当前租户存储后端配置", true, 2210),
@@ -442,7 +448,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.StorageConfig.Delete, "存储配置删除", "删除当前租户存储后端配置", true, 2240),
             new(SaasPermissionCodes.StorageConfig.Export, "存储配置导出", "导出当前数据范围内的存储配置列表数据", false, 2730),
         ]),
-        new(SaasPermissionCodes.EmailConfig.Group, "邮件配置",
+        new(SaasPermissionCodes.EmailConfig.Group, "邮件配置", PermissionSide.Both,
         [
             new(SaasPermissionCodes.EmailConfig.Read, "邮件配置查看", "查看当前租户邮件网关配置列表与详情", false, 2250),
             new(SaasPermissionCodes.EmailConfig.Create, "邮件配置创建", "创建当前租户邮件网关配置", true, 2255),
@@ -451,7 +457,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.EmailConfig.Delete, "邮件配置删除", "删除当前租户邮件网关配置", true, 2270),
             new(SaasPermissionCodes.EmailConfig.Export, "邮件配置导出", "导出当前数据范围内的邮件网关配置列表数据", false, 2750),
         ]),
-        new(SaasPermissionCodes.SmsConfig.Group, "短信配置",
+        new(SaasPermissionCodes.SmsConfig.Group, "短信配置", PermissionSide.Both,
         [
             new(SaasPermissionCodes.SmsConfig.Read, "短信配置查看", "查看当前租户短信网关配置列表与详情", false, 2330),
             new(SaasPermissionCodes.SmsConfig.Create, "短信配置创建", "创建当前租户短信网关配置", true, 2335),
@@ -460,7 +466,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.SmsConfig.Delete, "短信配置删除", "删除当前租户短信网关配置", true, 2350),
             new(SaasPermissionCodes.SmsConfig.Export, "短信配置导出", "导出当前数据范围内的短信网关配置列表数据", false, 2760),
         ]),
-        new(SaasPermissionCodes.BotConfig.Group, "机器人配置",
+        new(SaasPermissionCodes.BotConfig.Group, "机器人配置", PermissionSide.Both,
         [
             new(SaasPermissionCodes.BotConfig.Read, "机器人配置查看", "查看当前租户机器人配置（钉钉/飞书/企微）列表与详情", false, 2355),
             new(SaasPermissionCodes.BotConfig.Create, "机器人配置创建", "创建当前租户机器人配置", true, 2360),
@@ -469,7 +475,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.BotConfig.Delete, "机器人配置删除", "删除当前租户机器人配置", true, 2375),
             new(SaasPermissionCodes.BotConfig.Export, "机器人配置导出", "导出当前数据范围内的机器人配置列表数据", false, 2770),
         ]),
-        new(SaasPermissionCodes.TelegramBot.Group, "Telegram机器人",
+        new(SaasPermissionCodes.TelegramBot.Group, "Telegram机器人", PermissionSide.Both,
         [
             new(SaasPermissionCodes.TelegramBot.Read, "Telegram机器人查看", "查看当前租户 Telegram 机器人列表与详情", false, 2380),
             new(SaasPermissionCodes.TelegramBot.Create, "Telegram机器人创建", "创建当前租户 Telegram 机器人", true, 2382),
@@ -478,16 +484,16 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.TelegramBot.Delete, "Telegram机器人删除", "删除当前租户 Telegram 机器人", true, 2388),
             new(SaasPermissionCodes.TelegramBot.Export, "Telegram机器人导出", "导出当前数据范围内的 Telegram 机器人列表数据", false, 2780),
         ]),
-        new(SaasPermissionCodes.Cache.Group, "缓存管理",
+        new(SaasPermissionCodes.Cache.Group, "缓存管理", PermissionSide.Platform,
         [
             new(SaasPermissionCodes.Cache.Read, "缓存查看", "查看分布式缓存键值与统计（平台运维，可读取鉴权快照等敏感缓存明文，须审计）", true, 2300),
             new(SaasPermissionCodes.Cache.Clear, "缓存清理", "按键或模式清理分布式缓存（平台运维）", true, 2310),
         ]),
-        new(SaasPermissionCodes.Server.Group, "服务监控",
+        new(SaasPermissionCodes.Server.Group, "服务监控", PermissionSide.Platform,
         [
             new(SaasPermissionCodes.Server.Read, "服务监控查看", "查看服务器与运行时监控指标（平台运维）", false, 2320),
         ]),
-        new(SaasPermissionCodes.MessageTemplate.Group, "消息模板",
+        new(SaasPermissionCodes.MessageTemplate.Group, "消息模板", PermissionSide.Both,
         [
             new(SaasPermissionCodes.MessageTemplate.Read, "消息模板查看", "查看当前租户消息模板列表与详情", false, 2400),
             new(SaasPermissionCodes.MessageTemplate.Create, "消息模板创建", "创建当前租户消息模板（可覆盖全局默认）", true, 2410),
@@ -496,10 +502,10 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.MessageTemplate.Delete, "消息模板删除", "删除当前租户消息模板", true, 2440),
             new(SaasPermissionCodes.MessageTemplate.Export, "消息模板导出", "导出当前数据范围内的消息模板列表数据", false, 2600),
         ]),
-        new(SaasPermissionCodes.Impersonation.Group, "模仿登录",
+        new(SaasPermissionCodes.Impersonation.Group, "模仿登录", PermissionSide.Both,
         [
             new(SaasPermissionCodes.Impersonation.Start, "发起模仿登录", "以指定用户身份登录系统，用于排查该用户遇到的问题", true, 2900),
-            new(SaasPermissionCodes.Impersonation.CrossTenant, "跨租户模仿登录", "模仿其它租户的用户，或在平台运维态发起模仿", true, 2910),
+            new(SaasPermissionCodes.Impersonation.CrossTenant, "跨租户模仿登录", "模仿其它租户的用户，或在平台运维态发起模仿", true, 2910, PermissionSide.Platform),
         ]),
     ];
 
@@ -515,7 +521,8 @@ public static class SaasPermissionDefinitions
             BuildTags(group.GroupCode, item.PermissionCode),
             item.IsRequireAudit,
             item.Sort,
-            item.Sort)))
+            item.Sort,
+            item.Side ?? group.Side)))
         .ToList();
 
     /// <summary>

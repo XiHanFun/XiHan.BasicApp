@@ -61,10 +61,18 @@ public class SaasTenantEditionSeeder(
         var bindingResult = await EnsureEditionPermissionsAsync(client, definitions, editionResult.Editions, permissions);
         var tenantUpdated = await EnsureDefaultTenantEditionAsync(client, editionResult.Editions);
 
+        if (bindingResult.RejectedCodes.Count > 0)
+        {
+            Logger.LogWarning(
+                "套餐定义里含平台侧权限，已剔除（请修正套餐定义）：{Codes}",
+                string.Join("、", bindingResult.RejectedCodes));
+        }
+
         if (editionResult.AddCount == 0
             && editionResult.UpdateCount == 0
             && bindingResult.AddCount == 0
             && bindingResult.UpdateCount == 0
+            && bindingResult.InvalidatedCount == 0
             && !tenantUpdated)
         {
             Logger.LogInformation("SaaS 租户版本数据已存在，跳过种子数据");
@@ -72,11 +80,12 @@ public class SaasTenantEditionSeeder(
         }
 
         Logger.LogInformation(
-            "成功初始化 SaaS 租户版本，版本新增 {EditionAddCount} 个，版本更新 {EditionUpdateCount} 个，权限新增 {PermissionAddCount} 个，权限更新 {PermissionUpdateCount} 个",
+            "成功初始化 SaaS 租户版本，版本新增 {EditionAddCount} 个，版本更新 {EditionUpdateCount} 个，权限新增 {PermissionAddCount} 个，权限更新 {PermissionUpdateCount} 个，平台侧绑定失效 {InvalidatedCount} 个",
             editionResult.AddCount,
             editionResult.UpdateCount,
             bindingResult.AddCount,
-            bindingResult.UpdateCount);
+            bindingResult.UpdateCount,
+            bindingResult.InvalidatedCount);
     }
 
     private static async Task<string> ResolveDefaultEditionCodeAsync(ISqlSugarClient client)
@@ -143,12 +152,20 @@ public class SaasTenantEditionSeeder(
             .ToListAsync();
         var bindingMap = existingBindings.ToDictionary(binding => (binding.EditionId, binding.PermissionId));
 
-        var permissionMap = permissions
+        // 套餐白名单只能含租户能生效的权限（租户侧与两侧）
+        var tenantEffective = permissions.Where(permission => permission.Side.IsTenantEffective()).ToList();
+        var permissionMap = tenantEffective
             .GroupBy(permission => permission.PermissionCode, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(
                 group => group.Key,
                 group => group.First(),
                 StringComparer.OrdinalIgnoreCase);
+
+        var platformSideCodes = permissions
+            .Where(permission => permission.Side == PermissionSide.Platform)
+            .Select(permission => permission.PermissionCode)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var rejectedCodes = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 
         var addList = new List<SysTenantEditionPermission>();
         var updateCount = 0;
@@ -159,11 +176,16 @@ public class SaasTenantEditionSeeder(
                 continue;
             }
 
-            var permissionCodes = ResolvePermissionCodes(definition, permissions);
+            var permissionCodes = ResolvePermissionCodes(definition, tenantEffective);
             foreach (var permissionCode in permissionCodes)
             {
                 if (!permissionMap.TryGetValue(permissionCode, out var permission))
                 {
+                    if (platformSideCodes.Contains(permissionCode))
+                    {
+                        _ = rejectedCodes.Add(permissionCode);
+                    }
+
                     continue;
                 }
 
@@ -187,7 +209,29 @@ public class SaasTenantEditionSeeder(
             await client.Insertable(addList).ExecuteReturnSnowflakeIdListAsync();
         }
 
-        return new BindingSeedResult(addList.Count, updateCount);
+        // 已存在的平台侧绑定（含后台手工维护的套餐）一律失效：平台侧权限进不了租户，留着只会误导。
+        // 只认明确声明为平台侧的；存量库里尚未声明（0）的自建权限由升级脚本按旧语义补成两侧，不在这里误伤
+        var platformSidePermissionIds = permissions
+            .Where(permission => permission.Side == PermissionSide.Platform)
+            .Select(permission => permission.BasicId)
+            .ToHashSet();
+        var staleBindings = existingBindings
+            .Where(binding => binding.Status == ValidityStatus.Valid && platformSidePermissionIds.Contains(binding.PermissionId))
+            .ToList();
+        foreach (var binding in staleBindings)
+        {
+            binding.Status = ValidityStatus.Invalid;
+            binding.Remark = "平台侧权限不能进入套餐白名单";
+        }
+
+        if (staleBindings.Count > 0)
+        {
+            _ = await client.Updateable(staleBindings)
+                .UpdateColumns(binding => new { binding.Status, binding.Remark })
+                .ExecuteCommandAsync();
+        }
+
+        return new BindingSeedResult(addList.Count, updateCount, staleBindings.Count, [.. rejectedCodes]);
     }
 
     private static async Task<bool> EnsureDefaultTenantEditionAsync(
@@ -277,9 +321,9 @@ public class SaasTenantEditionSeeder(
             return definition.PermissionCodes;
         }
 
+        // 企业版：全部租户能生效的权限（调用方已按作用侧筛过）
         return permissions
             .Select(permission => permission.PermissionCode)
-            .Where(code => !SaasPlatformPermissions.PlatformOnlyCodes.Contains(code))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
@@ -368,7 +412,6 @@ public class SaasTenantEditionSeeder(
                 SaasPermissionCodes.ConstraintRule.Update,
                 SaasPermissionCodes.ConstraintRule.Status,
                 SaasPermissionCodes.ConstraintRule.Delete,
-                SaasPermissionCodes.OAuthApp.Read,
                 SaasPermissionCodes.ApiLog.Read,
                 SaasPermissionCodes.DiffLog.Read,
                 SaasPermissionCodes.ExceptionLog.Read,
@@ -513,5 +556,5 @@ public class SaasTenantEditionSeeder(
         int AddCount,
         int UpdateCount);
 
-    private sealed record BindingSeedResult(int AddCount, int UpdateCount);
+    private sealed record BindingSeedResult(int AddCount, int UpdateCount, int InvalidatedCount, IReadOnlyList<string> RejectedCodes);
 }

@@ -286,7 +286,7 @@ public sealed class NumberingRuleAppService : SaasApplicationService, INumbering
             return;
         }
 
-        // 平台规则影响所有租户的共享序列，因此在普通命令权限之外再执行平台专属权限检查。
+        // 平台规则影响所有租户的共享序列，因此在普通命令权限之外再执行平台侧权限检查。
         var userId = _currentUser.UserId ?? throw new UserFriendlyException("当前用户未登录。");
         if (!await _permissionChecker.IsGrantedAsync(userId.ToString(), SaasPermissionCodes.Numbering.GlobalManage, cancellationToken))
         {

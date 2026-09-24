@@ -32,12 +32,4 @@ public static class ChatPermissionCodes
     [
         Read, Send, Manage, Audit
     ];
-
-    /// <summary>
-    /// 可授予租户的权限码（聊天无平台专属码，与全集一致）
-    /// </summary>
-    public static readonly IReadOnlyList<string> TenantGrantable =
-    [
-        Read, Send, Manage, Audit
-    ];
 }

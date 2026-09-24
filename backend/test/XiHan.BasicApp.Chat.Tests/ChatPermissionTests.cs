@@ -11,10 +11,10 @@ namespace XiHan.BasicApp.Chat.Tests;
 public sealed class ChatPermissionTests
 {
     /// <summary>
-    /// 权限清单必须完整覆盖四码，且全部可授予租户。
+    /// 权限清单必须完整覆盖四码（作用侧两侧，由权限种子声明）。
     /// </summary>
     [Fact]
-    public void Permissions_ShouldRegisterAllFourCodesAndKeepAllTenantGrantable()
+    public void Permissions_ShouldRegisterAllFourCodes()
     {
         string[] codes =
         [
@@ -26,7 +26,6 @@ public sealed class ChatPermissionTests
 
         Assert.All(codes, code => Assert.Contains(code, ChatPermissionCodes.All));
         Assert.Equal(codes.Length, ChatPermissionCodes.All.Count);
-        Assert.Equal(codes, ChatPermissionCodes.TenantGrantable);
         Assert.All(codes, code => Assert.StartsWith($"{ChatPermissionCodes.Module}:", code, StringComparison.Ordinal));
     }
 }

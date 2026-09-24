@@ -454,7 +454,7 @@ public sealed class ChatExtraStructureTests
     }
 
     /// <summary>
-    /// 权限码必须唯一、以模块编码打头、全小写，且全集与可授租户集一致（聊天无平台专属码）。
+    /// 权限码必须唯一、以模块编码打头、全小写。
     /// </summary>
     [Fact]
     public void PermissionCodes_ShouldBeUniqueLowerCaseAndModulePrefixed()
@@ -464,7 +464,6 @@ public sealed class ChatExtraStructureTests
         Assert.Equal(codes.Count, codes.Distinct(StringComparer.Ordinal).Count());
         Assert.All(codes, code => Assert.StartsWith(ChatPermissionCodes.Module + ":", code, StringComparison.Ordinal));
         Assert.All(codes, code => Assert.Equal(code.ToLowerInvariant(), code, StringComparer.Ordinal));
-        Assert.Equal(codes.ToArray(), ChatPermissionCodes.TenantGrantable.ToArray());
     }
 
     /// <summary>

@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -15,6 +16,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - Deny：最终拒绝该权限，即使用户的所有角色都 Grant 了此权限
 /// - Grant：最终授予该权限，即使用户的所有角色都未包含或 Deny 了此权限
 /// 适用场景：临时提权、特殊用户例外、紧急权限收回
+///
+/// 租户隔离：严格——授权绑定只在所属上下文（平台 / 某个租户）可见与生效，租户里看不到平台的绑定。
 /// </remarks>
 [SugarTable(TableName = "Sys_User_Permission", TableDescription = "系统用户权限关联表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -25,7 +28,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysUserPermission : BasicAppCreationEntity
+public partial class SysUserPermission : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户ID

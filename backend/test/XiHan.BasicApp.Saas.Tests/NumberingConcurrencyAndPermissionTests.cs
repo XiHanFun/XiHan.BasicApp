@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Numbering;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 
 namespace XiHan.BasicApp.Saas.Tests;
@@ -65,18 +66,22 @@ public sealed class NumberingConcurrencyAndPermissionTests
     }
 
     /// <summary>
-    /// 全局管理权限必须是平台专属，而租户仍可获得查看、生成和私有规则维护权限。
+    /// 全局管理权限是平台侧，而租户仍可获得查看、生成和私有规则维护权限。
     /// </summary>
     [Fact]
-    public void Permissions_ShouldKeepOnlyGlobalManagementPlatformExclusive()
+    public void Permissions_ShouldKeepOnlyGlobalManagementPlatformSide()
     {
         Assert.Contains(SaasPermissionCodes.Numbering.GlobalManage, SaasPermissionCodes.All);
-        Assert.Contains(SaasPermissionCodes.Numbering.GlobalManage, SaasPlatformPermissions.PlatformOnlyCodes);
-        Assert.False(SaasPlatformPermissions.IsTenantGrantable(SaasPermissionCodes.Numbering.GlobalManage));
+        Assert.Equal(PermissionSide.Platform, SideOf(SaasPermissionCodes.Numbering.GlobalManage));
 
-        Assert.True(SaasPlatformPermissions.IsTenantGrantable(SaasPermissionCodes.Numbering.Read));
-        Assert.True(SaasPlatformPermissions.IsTenantGrantable(SaasPermissionCodes.Numbering.Create));
-        Assert.True(SaasPlatformPermissions.IsTenantGrantable(SaasPermissionCodes.Numbering.Generate));
-        Assert.True(SaasPlatformPermissions.IsTenantGrantable(SaasPermissionCodes.Numbering.AllocationRead));
+        Assert.True(SideOf(SaasPermissionCodes.Numbering.Read).IsTenantEffective());
+        Assert.True(SideOf(SaasPermissionCodes.Numbering.Create).IsTenantEffective());
+        Assert.True(SideOf(SaasPermissionCodes.Numbering.Generate).IsTenantEffective());
+        Assert.True(SideOf(SaasPermissionCodes.Numbering.AllocationRead).IsTenantEffective());
+    }
+
+    private static PermissionSide SideOf(string code)
+    {
+        return SaasPermissionDefinitions.All.Single(definition => definition.PermissionCode == code).Side;
     }
 }

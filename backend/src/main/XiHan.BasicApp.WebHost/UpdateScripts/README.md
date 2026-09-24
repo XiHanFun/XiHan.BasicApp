@@ -1,6 +1,15 @@
 ﻿# 数据库升级脚本
 
-由 `UpgradeEngine` 在应用初始化阶段执行，执行台账记入 `sys_migration_history`。
+由 `UpgradeEngine` 执行，执行台账记入 `sys_migration_history`。
+
+## 执行时机
+
+数据库初始化分三段：**全部连接建库建表 → 升级脚本 → 播种**（`SaasSchemaUpgrader` 接在框架 `IDbSchemaUpgrader` 上）。
+
+- 建表只建缺失的表、**不改已存在的表**，存量表的新列、新索引只能由脚本补。
+- 脚本先于种子执行：种子按最新实体读写，存量表的新列要在种子之前补齐，否则种子一查就撞上不存在的列。
+- 新库上表已按最新实体建好、还没有任何数据，脚本应当整段空转；**不要在脚本里依赖种子数据**。
+- 关闭 `XiHan:Upgrade:EnableAutoCheckOnStartup` 时启动不执行脚本，须先手工升级再启动。
 
 ## 约定
 

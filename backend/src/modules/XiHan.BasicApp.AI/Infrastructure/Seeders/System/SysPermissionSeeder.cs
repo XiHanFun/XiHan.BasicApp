@@ -53,6 +53,7 @@ public class SysPermissionSeeder : PlatformDataSeederBase
             [AiPermissionCodes.Resource] = ["read", "create", "update", "delete", "execute"]
         };
         var permissionCodes = target.SelectMany(kv => kv.Value.Select(op => $"{kv.Key}:{op}")).ToList();
+        await SyncPermissionSideAsync(permissionCodes, PermissionSide.Platform);
         var existing = await client.Queryable<SysPermission>().Where(p => permissionCodes.Contains(p.PermissionCode)).ToListAsync();
         var existingCodes = existing.Select(x => x.PermissionCode).ToHashSet();
         var addList = new List<SysPermission>();
@@ -82,6 +83,7 @@ public class SysPermissionSeeder : PlatformDataSeederBase
                     PermissionDescription = $"对{resource.ResourceName}执行{operation.OperationName}操作",
                     IsRequireAudit = operation.IsRequireAudit,
                     Tags = "ai",
+                    Side = PermissionSide.Platform,
                     Status = EnableStatus.Enabled,
                     Sort = 910 + addList.Count
                 });

@@ -78,6 +78,11 @@ public sealed class PermissionDetailDto : BasicAppDto
     public bool IsRequireAudit { get; set; }
 
     /// <summary>
+    /// 作用侧（平台 / 租户 / 两侧）
+    /// </summary>
+    public PermissionSide Side { get; set; }
+
+    /// <summary>
     /// 是否全局权限
     /// </summary>
     public bool IsGlobal { get; set; }

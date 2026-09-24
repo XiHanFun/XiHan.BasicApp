@@ -2000,7 +2000,7 @@ public static class SaasPermissionCodes
     /// </summary>
     /// <remarks>
     /// <see cref="Start"/> 是发起模仿的门槛，可授予租户管理员；
-    /// <see cref="CrossTenant"/> 是跨租户 / 平台态发起模仿的升级权，登记为平台专属。
+    /// <see cref="CrossTenant"/> 是跨租户 / 平台态发起模仿的升级权，作用侧为平台。
     /// </remarks>
     public static class Impersonation
     {

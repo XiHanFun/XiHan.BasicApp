@@ -27,10 +27,10 @@ public sealed class PrintTemplateApplicationTests
     private const string TemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
 
     /// <summary>
-    /// 权限清单必须完整覆盖七码，且只有全局管理为平台专属、不进可授租户集合。
+    /// 权限清单必须完整覆盖七码（作用侧由权限种子声明，见种子契约测试）。
     /// </summary>
     [Fact]
-    public void Permissions_ShouldRegisterAllCodesAndKeepOnlyGlobalManagePlatformExclusive()
+    public void Permissions_ShouldRegisterAllCodes()
     {
         string[] codes =
         [
@@ -45,15 +45,6 @@ public sealed class PrintTemplateApplicationTests
 
         Assert.All(codes, code => Assert.Contains(code, PrintingPermissionCodes.All));
         Assert.Equal(codes.Length, PrintingPermissionCodes.All.Count);
-        Assert.DoesNotContain(PrintingPermissionCodes.GlobalManage, PrintingPermissionCodes.TenantGrantable);
-        Assert.Equal(
-            codes.Where(code => code != PrintingPermissionCodes.GlobalManage),
-            PrintingPermissionCodes.TenantGrantable);
-
-        // 模块登记进 Saas 平台专属清单后，版本白名单与租户授权对全局管理保持同一排除口径
-        SaasPlatformPermissions.ContributePlatformOnly(PrintingPermissionCodes.GlobalManage);
-        Assert.Contains(PrintingPermissionCodes.GlobalManage, SaasPlatformPermissions.PlatformOnlyCodes);
-        Assert.False(SaasPlatformPermissions.IsTenantGrantable(PrintingPermissionCodes.GlobalManage));
     }
 
     /// <summary>

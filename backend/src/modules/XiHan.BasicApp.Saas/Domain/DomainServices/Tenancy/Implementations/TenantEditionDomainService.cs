@@ -443,9 +443,9 @@ public sealed class TenantEditionDomainService
             throw new InvalidOperationException("租户版本只能绑定平台级全局权限。");
         }
 
-        if (SaasPlatformPermissions.PlatformOnlyCodes.Contains(permission.PermissionCode))
+        if (!permission.Side.IsTenantEffective())
         {
-            throw new InvalidOperationException($"平台专属权限「{permission.PermissionCode}」不能绑定到租户版本。");
+            throw new InvalidOperationException($"平台侧权限「{permission.PermissionCode}」不能绑定到租户版本。");
         }
 
         if (permission.Status != EnableStatus.Enabled)

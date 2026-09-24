@@ -11,65 +11,77 @@ using XiHan.Framework.Security.Users;
 namespace XiHan.BasicApp.Saas.Tests;
 
 /// <summary>
-/// 平台专属权限码只在平台上下文生效：持有者带通配权限进入租户也调不动平台接口。
+/// 作用侧不含当前上下文的权限码（随快照下发）先于通配判定拒绝：带通配权限也放不出来。
 /// </summary>
 public sealed class PlatformPermissionContextTests
 {
     private const long UserId = 1;
 
     /// <summary>
-    /// 租户上下文里通配权限不放行平台专属码
+    /// 通配权限不放行上下文拒绝码
     /// </summary>
     [Fact]
-    public async Task TenantContext_Wildcard_DeniesPlatformOnlyCode()
+    public async Task Wildcard_DeniesContextDeniedCode()
     {
-        var checker = CreateChecker(tenantId: 7, "*");
+        var checker = CreateChecker(TenantDenied, "*");
 
         Assert.False(await checker.IsGrantedAsync(UserId.ToString(), SaasPermissionCodes.Tenant.Create));
         Assert.False(await checker.IsGrantedAsync(UserId.ToString(), SaasPermissionCodes.Tenant.Read));
     }
 
     /// <summary>
-    /// 租户上下文里通配权限照常放行两侧都生效的码
+    /// 通配权限照常放行不在拒绝码里的权限
     /// </summary>
     [Fact]
-    public async Task TenantContext_Wildcard_GrantsSharedCode()
+    public async Task Wildcard_GrantsCodeOutsideContextDenied()
     {
-        var checker = CreateChecker(tenantId: 7, "*");
+        var checker = CreateChecker(TenantDenied, "*");
 
         Assert.True(await checker.IsGrantedAsync(UserId.ToString(), SaasPermissionCodes.User.Read));
     }
 
     /// <summary>
-    /// 平台上下文里平台专属码按快照判定
+    /// 不在拒绝码里的权限按快照判定
     /// </summary>
     [Fact]
-    public async Task PlatformContext_GrantsPlatformOnlyCode()
+    public async Task CodeOutsideContextDenied_FollowsSnapshot()
     {
-        var checker = CreateChecker(tenantId: null, SaasPermissionCodes.Tenant.Create);
+        var checker = CreateChecker([], SaasPermissionCodes.Tenant.Create);
 
         Assert.True(await checker.IsGrantedAsync(UserId.ToString(), SaasPermissionCodes.Tenant.Create));
     }
 
     /// <summary>
-    /// 任一即可：剔除平台专属码后仍按其余码判定
+    /// 任一即可：剔除拒绝码后仍按其余码判定
     /// </summary>
     [Fact]
-    public async Task TenantContext_IsAnyGranted_IgnoresPlatformOnlyCode()
+    public async Task IsAnyGranted_IgnoresContextDeniedCode()
     {
-        var checker = CreateChecker(tenantId: 7, SaasPermissionCodes.Tenant.Create, SaasPermissionCodes.User.Read);
+        var checker = CreateChecker(TenantDenied, SaasPermissionCodes.Tenant.Create, SaasPermissionCodes.User.Read);
 
         Assert.True(await checker.IsAnyGrantedAsync(UserId.ToString(), [SaasPermissionCodes.Tenant.Create, SaasPermissionCodes.User.Read]));
         Assert.False(await checker.IsAnyGrantedAsync(UserId.ToString(), [SaasPermissionCodes.Tenant.Create]));
     }
 
     /// <summary>
-    /// 下发给前端的权限清单在租户上下文里不含平台专属码
+    /// 全部通过：含一个拒绝码即不通过
     /// </summary>
     [Fact]
-    public async Task TenantContext_GrantedPermissions_ExcludesPlatformOnlyCodes()
+    public async Task IsAllGranted_FailsOnContextDeniedCode()
     {
-        var checker = CreateChecker(tenantId: 7, SaasPermissionCodes.Tenant.Read, SaasPermissionCodes.User.Read);
+        var checker = CreateChecker(TenantDenied, "*");
+
+        Assert.False(await checker.IsAllGrantedAsync(UserId.ToString(), [SaasPermissionCodes.User.Read, SaasPermissionCodes.Tenant.Create]));
+        Assert.True(await checker.IsAllGrantedAsync(UserId.ToString(), [SaasPermissionCodes.User.Read]));
+    }
+
+    /// <summary>
+    /// 下发给前端的权限清单不含拒绝码
+    /// </summary>
+    [Fact]
+    public async Task GrantedPermissions_ExcludesContextDeniedCodes()
+    {
+        var checker = CreateChecker(TenantDenied, SaasPermissionCodes.Tenant.Read, SaasPermissionCodes.User.Read);
 
         var granted = await checker.GetGrantedPermissionsAsync(UserId.ToString());
 
@@ -77,26 +89,32 @@ public sealed class PlatformPermissionContextTests
     }
 
     /// <summary>
-    /// 租户目录、租户导出、版本导出、支持人员入驻都属平台专属，不可授予租户
+    /// 租户目录、租户导出、版本导出、支持人员入驻、跨租户模仿都是平台侧，租户里不生效也不可授
     /// </summary>
     [Theory]
     [InlineData(SaasPermissionCodes.Tenant.Read)]
     [InlineData(SaasPermissionCodes.Tenant.Export)]
     [InlineData(SaasPermissionCodes.Tenant.SupportMember)]
     [InlineData(SaasPermissionCodes.TenantEdition.Export)]
-    public void TenantCatalogCodes_ArePlatformOnly(string code)
+    [InlineData(SaasPermissionCodes.Impersonation.CrossTenant)]
+    public void TenantCatalogCodes_ArePlatformSide(string code)
     {
-        Assert.Contains(code, SaasPlatformPermissions.PlatformOnlyCodes);
-        Assert.False(SaasPlatformPermissions.IsTenantGrantable(code));
-        Assert.False(SaasPlatformPermissions.IsEffectiveIn(code, isPlatformContext: false));
+        var side = SaasPermissionDefinitions.All.Single(definition => definition.PermissionCode == code).Side;
+
+        Assert.Equal(PermissionSide.Platform, side);
+        Assert.False(side.IsTenantEffective());
+        Assert.False(side.IsEffectiveIn(isPlatformContext: false));
+        Assert.True(side.IsEffectiveIn(isPlatformContext: true));
     }
 
-    private static SaasPermissionChecker CreateChecker(long? tenantId, params string[] permissions)
+    private static readonly string[] TenantDenied = [SaasPermissionCodes.Tenant.Create, SaasPermissionCodes.Tenant.Read];
+
+    private static SaasPermissionChecker CreateChecker(string[] contextDenied, params string[] permissions)
     {
         var snapshots = new Mock<IAuthorizationSnapshotQueryService>();
         snapshots
             .Setup(service => service.BuildAsync(It.IsAny<long>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthorizationSnapshot([], [.. permissions], []));
+            .ReturnsAsync(new AuthorizationSnapshot([], [.. permissions], [], new HashSet<string>(contextDenied, StringComparer.OrdinalIgnoreCase)));
 
         var sessions = new Mock<IUserSessionRepository>();
         sessions
@@ -106,6 +124,6 @@ public sealed class PlatformPermissionContextTests
         var currentUser = new Mock<ICurrentUser>();
         currentUser.Setup(user => user.UserId).Returns(UserId);
 
-        return new SaasPermissionChecker(snapshots.Object, sessions.Object, currentUser.Object, new TestCurrentTenant(tenantId));
+        return new SaasPermissionChecker(snapshots.Object, sessions.Object, currentUser.Object);
     }
 }

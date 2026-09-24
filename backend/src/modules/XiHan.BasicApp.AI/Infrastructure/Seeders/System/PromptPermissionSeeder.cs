@@ -53,6 +53,7 @@ public class PromptPermissionSeeder : PlatformDataSeederBase
             [AiPromptPermissionCodes.Resource] = ["read", "create", "update", "delete"]
         };
         var permissionCodes = target.SelectMany(kv => kv.Value.Select(op => $"{kv.Key}:{op}")).ToList();
+        await SyncPermissionSideAsync(permissionCodes, PermissionSide.Both);
         var existing = await client.Queryable<SysPermission>().Where(p => permissionCodes.Contains(p.PermissionCode)).ToListAsync();
         var existingCodes = existing.Select(x => x.PermissionCode).ToHashSet();
         var addList = new List<SysPermission>();
@@ -82,6 +83,7 @@ public class PromptPermissionSeeder : PlatformDataSeederBase
                     PermissionDescription = $"对{resource.ResourceName}执行{operation.OperationName}操作",
                     IsRequireAudit = operation.IsRequireAudit,
                     Tags = "ai_prompt",
+                    Side = PermissionSide.Both,
                     Status = EnableStatus.Enabled,
                     Sort = 930 + addList.Count
                 });

@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -37,6 +38,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 标准赋权：给用户分配角色
 /// - 临时提权：EffectiveFrom + EffectiveTo 限定时间窗口
 /// - 多角色叠加：同一用户可持有多角色，权限取并集
+///
+/// 租户隔离：严格——授权绑定只在所属上下文（平台 / 某个租户）可见与生效，租户里看不到平台的绑定。
 /// </remarks>
 [SugarTable(TableName = "Sys_User_Role", TableDescription = "系统用户角色关联表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -47,7 +50,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
-public partial class SysUserRole : BasicAppCreationEntity
+public partial class SysUserRole : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户ID

@@ -49,7 +49,7 @@ public interface IImpersonationPolicyService
     /// 判定当前用户能否授出指定权限，不能则抛出禁止异常。
     /// </summary>
     /// <remarks>
-    /// 平台专属权限码只允许超级管理员授出；模仿类权限码另需当前租户内的管理类成员身份。
+    /// 业务租户里只能授出作用侧含租户的权限；模仿类权限码另需当前租户内的管理类成员身份。
     /// </remarks>
     /// <param name="permissionIds">被授出的权限主键集合</param>
     /// <param name="cancellationToken">取消令牌</param>

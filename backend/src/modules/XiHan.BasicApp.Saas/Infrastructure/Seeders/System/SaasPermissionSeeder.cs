@@ -117,6 +117,7 @@ public sealed class SaasPermissionSeeder : DataSeederBase
         changed |= SetIfChanged(permission.PermissionDescription, definition.PermissionDescription, value => permission.PermissionDescription = value);
         changed |= SetIfChanged(permission.Tags, definition.Tags, value => permission.Tags = value);
         changed |= SetIfChanged(permission.IsRequireAudit, definition.IsRequireAudit, value => permission.IsRequireAudit = value);
+        changed |= SetIfChanged(permission.Side, definition.Side, value => permission.Side = value);
         changed |= SetIfChanged(permission.Priority, definition.Priority, value => permission.Priority = value);
         changed |= SetIfChanged(permission.Status, EnableStatus.Enabled, value => permission.Status = value);
         changed |= SetIfChanged(permission.Sort, definition.Sort, value => permission.Sort = value);

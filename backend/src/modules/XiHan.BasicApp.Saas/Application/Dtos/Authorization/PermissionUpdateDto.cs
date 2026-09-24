@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
@@ -29,6 +30,11 @@ public sealed class PermissionUpdateDto : BasicAppUDto
     /// 是否需要审计
     /// </summary>
     public bool IsRequireAudit { get; set; }
+
+    /// <summary>
+    /// 作用侧（平台 / 租户 / 两侧，必填）
+    /// </summary>
+    public PermissionSide Side { get; set; }
 
     /// <summary>
     /// 优先级

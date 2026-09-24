@@ -57,6 +57,11 @@ public sealed class PermissionCreateDto
     public bool IsRequireAudit { get; set; }
 
     /// <summary>
+    /// 作用侧（平台 / 租户 / 两侧，必填）
+    /// </summary>
+    public PermissionSide Side { get; set; }
+
+    /// <summary>
     /// 优先级
     /// </summary>
     public int Priority { get; set; }

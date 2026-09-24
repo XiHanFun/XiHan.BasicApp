@@ -28,6 +28,7 @@ import {
   PermissionAction,
   PermissionChangeType,
   PermissionRequestStatus,
+  PermissionSide,
   PermissionType,
   ResourceAccessLevel,
   ResourceType,
@@ -342,6 +343,12 @@ export const PERMISSION_TYPE_OPTIONS = [
   { label: '资源操作', value: PermissionType.ResourceBased },
   { label: '功能', value: PermissionType.Functional },
   { label: '数据范围', value: PermissionType.DataScope },
+]
+
+export const PERMISSION_SIDE_OPTIONS = [
+  { label: '平台', value: PermissionSide.Platform },
+  { label: '租户', value: PermissionSide.Tenant },
+  { label: '两侧', value: PermissionSide.Both },
 ]
 
 // ==================== 资源 ====================

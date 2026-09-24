@@ -39,7 +39,7 @@ public static class PrintingPermissionCodes
     /// <summary>按编码解析、预览或直接打印模板。</summary>
     public const string Use = "print-template:use";
 
-    /// <summary>管理平台全局模板及租户开放状态（平台专属）。</summary>
+    /// <summary>管理平台全局模板及租户开放状态（平台侧）。</summary>
     public const string GlobalManage = "print-template:global-manage";
 
     /// <summary>
@@ -48,13 +48,5 @@ public static class PrintingPermissionCodes
     public static readonly IReadOnlyList<string> All =
     [
         Read, Create, Update, Status, Delete, Use, GlobalManage
-    ];
-
-    /// <summary>
-    /// 可授予租户的权限码（平台专属除外）
-    /// </summary>
-    public static readonly IReadOnlyList<string> TenantGrantable =
-    [
-        Read, Create, Update, Status, Delete, Use
     ];
 }

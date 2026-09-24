@@ -27,6 +27,7 @@ import {
   menuApi,
   MenuType,
   permissionApi,
+  PermissionSide,
   querySortsFromSchema,
   roleDataScopeApi,
   roleManagementApi,
@@ -39,6 +40,7 @@ import { SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer, XSel
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
+import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 import { diffScopeDraft, upsertScopeDraft } from './data-scope-draft'
 
@@ -86,8 +88,15 @@ function toBool(v: unknown): boolean | undefined {
   return Number(v) === 1
 }
 
+const userStore = useUserStore()
+const isPlatformContext = computed(() => userStore.userInfo?.isPlatform ?? false)
+
+/**
+ * 全局角色(TenantId=0)与系统角色只在平台维护；租户里隐藏编辑/启停/删除入口，
+ * 避免点击后撞后端「平台全局角色或系统角色仅平台运维态可维护」错误。
+ */
 function canMaintainRole(row: RoleListItemDto) {
-  return !row.isGlobal && row.roleType !== RoleType.System
+  return isPlatformContext.value || (!row.isGlobal && row.roleType !== RoleType.System)
 }
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
@@ -1250,7 +1259,17 @@ async function handleToggleStatus(row: RoleListItemDto) {
           :search-placeholder="t('identity.role.perm_search')"
           :other-group-label="t('identity.role.perm_group_other')"
           @update:value="onPermTransfer"
-        />
+        >
+          <!-- 平台的授权目录含两侧权限：单侧的标出来，授给平台角色的租户侧权限在平台里不生效，反之亦然 -->
+          <template v-if="isPlatformContext" #suffix="{ item }">
+            <XhTagRoot v-if="item.side === PermissionSide.Platform" variant="subtle" size="sm" tone="info">
+              <XhTagLabel>{{ t('identity.role.perm_side_platform') }}</XhTagLabel>
+            </XhTagRoot>
+            <XhTagRoot v-else-if="item.side === PermissionSide.Tenant" variant="subtle" size="sm" tone="neutral">
+              <XhTagLabel>{{ t('identity.role.perm_side_tenant') }}</XhTagLabel>
+            </XhTagRoot>
+          </template>
+        </XPermissionTransfer>
         <div class="xh-dialog-footer">
           <XhButton variant="subtle" @click="permissionVisible = false">
             {{ t('common.actions.cancel') }}

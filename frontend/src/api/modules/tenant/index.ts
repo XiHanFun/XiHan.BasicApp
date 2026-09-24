@@ -1,4 +1,4 @@
-export { EnableStatus, PermissionType, ValidityStatus } from '../shared'
+export { EnableStatus, PermissionSide, PermissionType, ValidityStatus } from '../shared'
 export * from './tenant'
 export * from './tenant-edition'
 export * from './tenant-edition-permission'

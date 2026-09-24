@@ -3,6 +3,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -40,5 +41,32 @@ public abstract class PlatformDataSeederBase : DataSeederBase
         var currentTenant = ServiceProvider.GetRequiredService<ICurrentTenant>();
         using var platformScope = currentTenant.Change(null);
         await base.SeedAsync();
+    }
+
+    /// <summary>
+    /// 把权限目录里这些权限码的作用侧同步为定义值
+    /// </summary>
+    /// <remarks>
+    /// 只插入不更新的权限种子也要保证已落库的行与定义的作用侧一致：作用侧决定权限在哪个上下文生效、
+    /// 能否进入套餐白名单，旧库里未声明（0）或声明过时的行不能留着。
+    /// </remarks>
+    /// <param name="permissionCodes">权限码</param>
+    /// <param name="side">定义的作用侧</param>
+    protected async Task SyncPermissionSideAsync(IReadOnlyCollection<string> permissionCodes, PermissionSide side)
+    {
+        if (permissionCodes.Count == 0)
+        {
+            return;
+        }
+
+        var codes = permissionCodes.ToList();
+        var synced = await DbClient.Updateable<SysPermission>()
+            .SetColumns(permission => permission.Side == side)
+            .Where(permission => permission.TenantId == 0 && codes.Contains(permission.PermissionCode) && permission.Side != side)
+            .ExecuteCommandAsync();
+        if (synced > 0)
+        {
+            Logger.LogInformation("同步 {Count} 个权限的作用侧为 {Side}", synced, side);
+        }
     }
 }

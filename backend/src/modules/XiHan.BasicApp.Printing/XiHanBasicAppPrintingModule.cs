@@ -4,10 +4,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Printing.Domain.DataSources;
 using XiHan.Framework.Core.Application;
-using XiHan.BasicApp.Printing.Domain.Permissions;
 using XiHan.BasicApp.Printing.Extensions;
 using XiHan.BasicApp.Saas;
-using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Core.Modularity;
 
 namespace XiHan.BasicApp.Printing;
@@ -32,9 +30,6 @@ public class XiHanBasicAppPrintingModule : XiHanModule
     public override void ConfigureServices(ServiceConfigurationContext context)
     {
         var services = context.Services;
-
-        // 全局模板开放管理属平台专属：登记进 Saas 的平台专属权限清单（版本白名单与租户授权双向排除）
-        SaasPlatformPermissions.ContributePlatformOnly(PrintingPermissionCodes.GlobalManage);
 
         // 种子（权限 → 菜单 → 角色授权）+ 领域服务 + 解析器与缓存 + 数据源注册表（含内置示例）
         services.AddPrintingDataSeeders();

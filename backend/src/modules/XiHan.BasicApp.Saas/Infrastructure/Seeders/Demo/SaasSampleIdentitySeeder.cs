@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 /// <remarks>
 /// 在权限/菜单/组织种子之后运行（Order=35），为默认租户（TenantId=1）补齐一批演示角色与账号：
 /// - 角色权限走显式 <see cref="SysRolePermission"/> 绑定（超管才是运行时通配 *）；运行时再受租户版本(Enterprise)白名单门控。
-/// - 系统管理员授「全部权限减去平台专属」，与版本白名单口径一致，故授予的权限全部生效。
+/// - 系统管理员授 Saas 模块全部租户能生效的权限（作用侧含租户），与企业版白名单口径一致，故授予的权限全部生效。
 /// - 账号为默认租户成员（建 <see cref="SysTenantUser"/> 关系），登录后落租户工作台；admin/user/guest 供登录页快捷登录。
 /// 幂等：按唯一键存在则跳过/更新，不覆盖已存在账号的密码。
 /// </remarks>
@@ -33,13 +33,13 @@ public sealed class SaasSampleIdentitySeeder(
     private const string DefaultTenantCode = "default";
 
     /// <summary>
-    /// 演示角色集（系统管理员授「全部可授租户的权限」，见 <see cref="SaasPlatformPermissions.IsTenantGrantable"/>）。
+    /// 演示角色集（系统管理员授 Saas 模块全部租户能生效的权限；可选集合已按作用侧筛过）。
     /// </summary>
     private static readonly IReadOnlyList<RoleSeed> RoleSeeds =
     [
         new("tenant_admin", "系统管理员", "租户内最高权限：管理用户/角色/部门/业务/日志等（平台/开发专属除外）",
             DataPermissionScope.All, 10,
-            allCodes => allCodes.Where(SaasPlatformPermissions.IsTenantGrantable)),
+            allCodes => allCodes.Where(IsSaasCode)),
         new("normal_user", "普通用户", "普通成员：工作台 + 消息阅读",
             DataPermissionScope.SelfOnly, 20,
             _ =>
@@ -64,7 +64,6 @@ public sealed class SaasSampleIdentitySeeder(
                 SaasPermissionCodes.DiffLog.Read,
                 SaasPermissionCodes.PermissionChangeLog.Read,
                 SaasPermissionCodes.ReviewLog.Read,
-                SaasPermissionCodes.TaskLog.Read,
                 SaasPermissionCodes.Review.Read,
             ]),
         new("operator", "运营专员", "内容运营：消息/通知/模板/文件/审批",
@@ -153,7 +152,9 @@ public sealed class SaasSampleIdentitySeeder(
             var permissions = await platformClient.Queryable<SysPermission>()
                 .Where(permission => permission.TenantId == 0 && permission.Status == EnableStatus.Enabled)
                 .ToListAsync();
+            // 租户角色只能绑定租户能生效的权限（租户侧与两侧）：平台侧的码不进映射，手写清单写错了也落不了库
             permissionIdByCode = permissions
+                .Where(permission => permission.Side.IsTenantEffective())
                 .GroupBy(permission => permission.PermissionCode, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(group => group.Key, group => group.First().BasicId, StringComparer.OrdinalIgnoreCase);
         }
@@ -388,6 +389,14 @@ public sealed class SaasSampleIdentitySeeder(
             Remark = "系统初始化演示账号安全记录",
         };
         _ = await client.Insertable(security).ExecuteReturnEntityAsync();
+    }
+
+    /// <summary>
+    /// 是否为 Saas 模块自身的权限码：其它模块的租户默认授权由各模块自己的角色权限种子承载
+    /// </summary>
+    private static bool IsSaasCode(string code)
+    {
+        return code.StartsWith(SaasPermissionCodes.Module + ":", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

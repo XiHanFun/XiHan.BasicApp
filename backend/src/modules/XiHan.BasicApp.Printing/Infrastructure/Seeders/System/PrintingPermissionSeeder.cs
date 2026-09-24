@@ -20,17 +20,17 @@ namespace XiHan.BasicApp.Printing.Infrastructure.Seeders.System;
 public class PrintingPermissionSeeder : PlatformDataSeederBase
 {
     /// <summary>
-    /// 权限定义（码、名称、描述、是否审计、排序；Priority 恒等于 Sort）
+    /// 权限定义（码、名称、描述、是否审计、排序、作用侧；Priority 恒等于 Sort）
     /// </summary>
-    private static readonly (string Code, string Name, string Description, bool Audit, int Sort)[] Definitions =
+    private static readonly (string Code, string Name, string Description, bool Audit, int Sort, PermissionSide Side)[] Definitions =
     [
-        (PrintingPermissionCodes.Read, "打印模板查看", "查看当前作用域打印模板列表与详情", false, 2800),
-        (PrintingPermissionCodes.Create, "打印模板创建", "创建当前作用域打印模板", true, 2801),
-        (PrintingPermissionCodes.Update, "打印模板编辑", "编辑打印模板元数据和 hiprint 设计 JSON", true, 2802),
-        (PrintingPermissionCodes.Status, "打印模板启停", "启用或停用打印模板", true, 2803),
-        (PrintingPermissionCodes.Delete, "打印模板删除", "删除已经停用的打印模板", true, 2804),
-        (PrintingPermissionCodes.Use, "打印模板使用", "按编码解析模板并执行预览或直接打印", true, 2805),
-        (PrintingPermissionCodes.GlobalManage, "全局打印模板管理", "管理平台全局打印模板及租户开放状态", true, 2806)
+        (PrintingPermissionCodes.Read, "打印模板查看", "查看当前作用域打印模板列表与详情", false, 2800, PermissionSide.Both),
+        (PrintingPermissionCodes.Create, "打印模板创建", "创建当前作用域打印模板", true, 2801, PermissionSide.Both),
+        (PrintingPermissionCodes.Update, "打印模板编辑", "编辑打印模板元数据和 hiprint 设计 JSON", true, 2802, PermissionSide.Both),
+        (PrintingPermissionCodes.Status, "打印模板启停", "启用或停用打印模板", true, 2803, PermissionSide.Both),
+        (PrintingPermissionCodes.Delete, "打印模板删除", "删除已经停用的打印模板", true, 2804, PermissionSide.Both),
+        (PrintingPermissionCodes.Use, "打印模板使用", "按编码解析模板并执行预览或直接打印", true, 2805, PermissionSide.Both),
+        (PrintingPermissionCodes.GlobalManage, "全局打印模板管理", "管理平台全局打印模板及租户开放状态", true, 2806, PermissionSide.Platform)
     ];
 
     /// <summary>
@@ -58,6 +58,11 @@ public class PrintingPermissionSeeder : PlatformDataSeederBase
     {
         var client = DbClient;
         var codes = Definitions.Select(d => d.Code).ToList();
+        foreach (var sideGroup in Definitions.GroupBy(d => d.Side))
+        {
+            await SyncPermissionSideAsync([.. sideGroup.Select(d => d.Code)], sideGroup.Key);
+        }
+
         var existingCodes = (await client.Queryable<SysPermission>()
                 .Where(p => p.TenantId == 0 && codes.Contains(p.PermissionCode))
                 .ToListAsync())
@@ -75,6 +80,7 @@ public class PrintingPermissionSeeder : PlatformDataSeederBase
                 PermissionName = d.Name,
                 PermissionDescription = d.Description,
                 Tags = PrintingPermissionCodes.Module,
+                Side = d.Side,
                 IsRequireAudit = d.Audit,
                 Priority = d.Sort,
                 Status = EnableStatus.Enabled,
