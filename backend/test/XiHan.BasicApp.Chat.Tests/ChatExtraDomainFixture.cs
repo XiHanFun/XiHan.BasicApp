@@ -411,13 +411,14 @@ internal sealed class ChatExtraDomainFixture
     /// </summary>
     private void SetupUserRepository()
     {
+        // 账号严格隔离：聊天按主键跨租户取账号，归属由成员校验把关
         UserRepository
-            .Setup(value => value.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .Setup(value => value.GetByIdIgnoreTenantAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((long id, CancellationToken _) => Users.GetValueOrDefault(id));
         UserRepository
-            .Setup(value => value.GetListAsync(It.IsAny<Expression<Func<SysUser, bool>>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Expression<Func<SysUser, bool>> predicate, CancellationToken _) =>
-                Users.Values.Where(predicate.Compile()).ToList());
+            .Setup(value => value.GetListByIdsIgnoreTenantAsync(It.IsAny<IReadOnlyCollection<long>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<long> ids, CancellationToken _) =>
+                Users.Values.Where(user => ids.Contains(user.BasicId)).ToList());
     }
 
     /// <summary>

@@ -59,6 +59,18 @@ public sealed class TenantUserRepository(ISqlSugarClientResolver clientResolver)
     }
 
     /// <summary>
+    /// 账号在所有租户的成员关系（任意状态，跨租户读取）
+    /// </summary>
+    public async Task<IReadOnlyList<SysTenantUser>> GetAllByUserIdIgnoreTenantAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateNoTenantQueryable()
+            .Where(member => member.UserId == userId)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// 按关键字检索租户成员，返回命中成员的用户主键
     /// </summary>
     public async Task<IReadOnlyList<long>> SearchMemberUserIdsAsync(long tenantId, string keyword, CancellationToken cancellationToken = default)

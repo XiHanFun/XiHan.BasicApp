@@ -402,8 +402,8 @@ public sealed class NotificationDomainService
                         return [.. (await _userRepository.GetEnabledIdsIgnoreTenantAsync(cancellationToken)).Distinct()];
                     }
 
-                    var users = await _userRepository.GetListAsync(user => user.Status == EnableStatus.Enabled, cancellationToken);
-                    return users.Select(user => user.BasicId).Distinct().ToArray();
+                    // 租户的全员是本租户已接受的成员（含注册在别处的外部成员），不是注册在本租户的账号
+                    return [.. (await _userRepository.GetEnabledMemberAccountIdsAsync(_currentTenant.Id!.Value, cancellationToken)).Distinct()];
                 }
 
             case NotificationTargetType.Role:

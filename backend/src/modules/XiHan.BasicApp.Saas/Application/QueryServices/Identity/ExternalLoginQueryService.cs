@@ -102,7 +102,7 @@ public sealed class ExternalLoginQueryService
             return null;
         }
 
-        var user = await _userRepository.GetByIdAsync(externalLogin.UserId, cancellationToken);
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(externalLogin.UserId, cancellationToken);
         return ExternalLoginApplicationMapper.ToDetailDto(externalLogin, user);
     }
 
@@ -209,7 +209,7 @@ public sealed class ExternalLoginQueryService
             return new Dictionary<long, SysUser>();
         }
 
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(ids, cancellationToken);
         return users.ToDictionary(user => user.BasicId);
     }
 }

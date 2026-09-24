@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Password;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -17,17 +18,21 @@ public sealed class PasswordHistoryDomainService : IPasswordHistoryDomainService
     private readonly IPasswordHasher _passwordHasher;
     private readonly PasswordPolicyOptions _options;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public PasswordHistoryDomainService(
         IPasswordHistoryRepository passwordHistoryRepository,
         IPasswordHasher passwordHasher,
-        IOptions<PasswordPolicyOptions> options)
+        IOptions<PasswordPolicyOptions> options,
+        ICurrentTenant currentTenant)
     {
         _passwordHistoryRepository = passwordHistoryRepository ?? throw new ArgumentNullException(nameof(passwordHistoryRepository));
         _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
         _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+        _currentTenant = currentTenant ?? throw new ArgumentNullException(nameof(currentTenant));
     }
 
     /// <summary>
@@ -60,26 +65,31 @@ public sealed class PasswordHistoryDomainService : IPasswordHistoryDomainService
     /// <summary>
     /// 记录一条密码历史（密码变更成功后写入新密码哈希）
     /// </summary>
-    /// <param name="userId">用户标识</param>
+    /// <param name="user">账号</param>
     /// <param name="newPasswordHash">新密码哈希</param>
     /// <param name="changedTime">变更时间</param>
     /// <param name="cancellationToken">取消令牌</param>
-    public async Task RecordAsync(long userId, string newPasswordHash, DateTimeOffset changedTime, CancellationToken cancellationToken = default)
+    public async Task RecordAsync(SysUser user, string newPasswordHash, DateTimeOffset changedTime, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(user);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (userId <= 0 || string.IsNullOrEmpty(newPasswordHash))
+        if (user.BasicId <= 0 || string.IsNullOrEmpty(newPasswordHash))
         {
             return;
         }
 
         var entry = new SysPasswordHistory
         {
-            UserId = userId,
+            UserId = user.BasicId,
             PasswordHash = newPasswordHash,
             ChangedTime = changedTime
         };
 
-        _ = await _passwordHistoryRepository.AddAsync(entry, cancellationToken);
+        // 账号域数据写在注册地：外部成员在别的租户里改密码，历史也落回它的注册地
+        using (_currentTenant.Change(user.TenantId))
+        {
+            _ = await _passwordHistoryRepository.AddAsync(entry, cancellationToken);
+        }
     }
 }

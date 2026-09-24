@@ -1097,20 +1097,27 @@ public sealed class ChatDomainService : IChatDomainService
 
         if (tenantId is not { } scopeId || scopeId == 0)
         {
-            // 平台作用域：只允许平台归属用户（SysUser.TenantId = 0）
-            var users = await _userRepository.GetListAsync(user => ids.Contains(user.BasicId), cancellationToken);
+            // 平台作用域：只允许平台账号（注册地 = 0）；账号严格隔离，按主键跨租户取来比对注册地
+            var users = await _userRepository.GetListByIdsIgnoreTenantAsync(ids, cancellationToken);
             var outsider = users.FirstOrDefault(user => user.TenantId != 0);
             if (outsider is not null)
             {
                 throw new InvalidOperationException($"用户「{outsider.UserName}」属于租户，不能加入平台会话；请在该租户内发起聊天。");
             }
 
+            if (users.Count != ids.Count)
+            {
+                throw new InvalidOperationException("存在不存在的用户，不能加入会话。");
+            }
+
             return;
         }
 
-        // 租户作用域：只允许该租户的成员（含平台归属但已加入该租户的用户）
+        // 租户作用域：只允许该租户已接受的成员（含注册在别处的外部成员与入驻的平台人员）
         var members = await _tenantUserRepository.GetListAsync(
-            member => member.TenantId == scopeId && ids.Contains(member.UserId),
+            member => member.TenantId == scopeId
+                      && member.InviteStatus == TenantMemberInviteStatus.Accepted
+                      && ids.Contains(member.UserId),
             cancellationToken);
         var memberIds = members.Select(member => member.UserId).ToHashSet();
         var missing = ids.Where(id => !memberIds.Contains(id)).ToList();
@@ -1225,7 +1232,8 @@ public sealed class ChatDomainService : IChatDomainService
     private async Task<SysUser> GetUserOrThrowAsync(long userId, CancellationToken cancellationToken)
     {
         EnsureId(userId, "用户主键必须大于 0。");
-        return await _userRepository.GetByIdAsync(userId, cancellationToken)
+        // 发送人 / 操作人可能是注册在别处的成员，按主键跨租户取；是否属于当前作用域由成员校验把关
+        return await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException($"用户 {userId} 不存在。");
     }
 }

@@ -451,13 +451,13 @@ public sealed class ChatDomainServiceTests
         foreach (var user in users)
         {
             userRepository
-                .Setup(value => value.GetByIdAsync(user.BasicId, It.IsAny<CancellationToken>()))
+                .Setup(value => value.GetByIdIgnoreTenantAsync(user.BasicId, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(user);
         }
 
         userRepository
-            .Setup(value => value.GetListAsync(It.IsAny<Expression<Func<SysUser, bool>>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([.. users]);
+            .Setup(value => value.GetListByIdsIgnoreTenantAsync(It.IsAny<IReadOnlyCollection<long>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyCollection<long> ids, CancellationToken _) => [.. users.Where(user => ids.Contains(user.BasicId))]);
 
         var currentTenant = new Mock<ICurrentTenant>();
         currentTenant.SetupGet(value => value.Id).Returns((long?)null);

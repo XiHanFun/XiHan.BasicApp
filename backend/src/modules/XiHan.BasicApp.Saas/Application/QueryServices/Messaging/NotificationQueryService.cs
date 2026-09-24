@@ -228,7 +228,8 @@ public sealed class NotificationQueryService
         }
 
         var userIds = paged.Items.Select(item => item.UserId).Distinct().ToArray();
-        var users = await _userRepository.GetListAsync(user => SqlFunc.ContainsArray(userIds, user.BasicId), cancellationToken);
+        // 收件人可能是注册在别处的成员，按主键跨租户取来展示
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(userIds, cancellationToken);
         var userMap = users.ToDictionary(user => user.BasicId);
         var items = paged.Items.Select(item =>
         {

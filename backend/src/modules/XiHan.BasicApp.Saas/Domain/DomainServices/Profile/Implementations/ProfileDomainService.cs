@@ -95,7 +95,7 @@ public sealed class ProfileDomainService
         security.LastFailedLoginTime = null;
 
         var savedSecurity = await AsSelfWriteAsync(() => _userSecurityRepository.UpdateAsync(security, cancellationToken));
-        await _passwordHistoryDomainService.RecordAsync(user.BasicId, security.Password, now, cancellationToken);
+        await _passwordHistoryDomainService.RecordAsync(user, security.Password, now, cancellationToken);
         return new ProfileUserSecurityResult(user, savedSecurity);
     }
 

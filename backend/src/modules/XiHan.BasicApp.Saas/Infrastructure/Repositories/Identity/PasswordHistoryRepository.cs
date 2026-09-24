@@ -20,7 +20,8 @@ public sealed class PasswordHistoryRepository(ISqlSugarClientResolver clientReso
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await CreateQueryable()
+        // 账号域数据落在注册地，按用户跨租户读取：不论当前在哪个租户，比对的都是这个账号的全部历史
+        return await CreateNoTenantQueryable()
             .Where(history => history.UserId == userId)
             .OrderByDescending(history => history.ChangedTime)
             .Take(count)

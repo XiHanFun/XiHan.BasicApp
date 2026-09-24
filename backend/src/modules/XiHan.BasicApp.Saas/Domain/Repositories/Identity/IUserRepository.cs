@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.Framework.Domain.Shared.Paging.Dtos;
 
 namespace XiHan.BasicApp.Saas.Domain.Repositories;
 
@@ -28,7 +29,7 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     Task<SysUser?> GetByEmailGloballyAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 检查当前租户下用户名是否存在
+    /// 检查当前上下文注册的账号里用户名是否已被占用（租户里连带平台账号一起比对）
     /// </summary>
     Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default);
 
@@ -86,4 +87,30 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>启用账号主键</returns>
     Task<IReadOnlyList<long>> GetEnabledIdsIgnoreTenantAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 租户成员的账号分页：本租户已接受的成员（含注册在别处的外部成员），账号跨租户读取
+    /// </summary>
+    /// <param name="tenantId">租户主键</param>
+    /// <param name="request">分页请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>成员账号分页</returns>
+    Task<PageResultDtoBase<SysUser>> GetMemberAccountsPagedAsync(long tenantId, PageRequestDtoBase request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 租户成员的账号：不是该租户已接受的成员时返回 null
+    /// </summary>
+    /// <param name="tenantId">租户主键</param>
+    /// <param name="userId">用户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>成员账号</returns>
+    Task<SysUser?> GetMemberAccountAsync(long tenantId, long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 租户成员中启用账号的主键
+    /// </summary>
+    /// <param name="tenantId">租户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>启用账号主键</returns>
+    Task<IReadOnlyList<long>> GetEnabledMemberAccountIdsAsync(long tenantId, CancellationToken cancellationToken = default);
 }

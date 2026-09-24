@@ -599,7 +599,7 @@ public sealed class ChatExtraQueryServiceTests
             UserRepository = new Mock<IUserRepository>();
             SuperAdminProtector = new Mock<ISuperAdminProtector>();
             DepartmentRepository = new Mock<IDepartmentRepository>();
-            TenantUserRepository = new Mock<ITenantUserRepository>();
+            UserDirectory = new Mock<IUserDirectory>();
             CurrentTenant = new Mock<ICurrentTenant>();
             var currentUser = new Mock<ICurrentUser>();
             currentUser.SetupGet(value => value.UserId).Returns(currentUserId);
@@ -637,6 +637,10 @@ public sealed class ChatExtraQueryServiceTests
                 .Setup(value => value.GetListAsync(It.IsAny<Expression<Func<SysUser, bool>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Expression<Func<SysUser, bool>> predicate, CancellationToken _) =>
                     Users.Values.Where(predicate.Compile()).ToList());
+            UserRepository
+                .Setup(value => value.GetListByIdsIgnoreTenantAsync(It.IsAny<IReadOnlyCollection<long>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((IReadOnlyCollection<long> ids, CancellationToken _) =>
+                    Users.Values.Where(user => ids.Contains(user.BasicId)).ToList());
             DepartmentRepository
                 .Setup(value => value.GetListAsync(It.IsAny<Expression<Func<SysDepartment, bool>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Expression<Func<SysDepartment, bool>> predicate, CancellationToken _) =>
@@ -651,7 +655,7 @@ public sealed class ChatExtraQueryServiceTests
                 currentUser.Object,
                 SuperAdminProtector.Object,
                 DepartmentRepository.Object,
-                TenantUserRepository.Object,
+                UserDirectory.Object,
                 CurrentTenant.Object);
         }
 
@@ -679,8 +683,8 @@ public sealed class ChatExtraQueryServiceTests
         /// <summary>部门仓储替身。</summary>
         public Mock<IDepartmentRepository> DepartmentRepository { get; }
 
-        /// <summary>租户成员仓储替身。</summary>
-        public Mock<ITenantUserRepository> TenantUserRepository { get; }
+        /// <summary>当前上下文用户目录替身。</summary>
+        public Mock<IUserDirectory> UserDirectory { get; }
 
         /// <summary>当前租户上下文替身。</summary>
         public Mock<ICurrentTenant> CurrentTenant { get; }

@@ -171,11 +171,17 @@ public sealed class UserDomainService
         await EnsureEmailUniqueAsync(NormalizeNullable(command.Email), excludeUserId: null, cancellationToken);
         await EnsurePasswordMeetsPolicyAsync(command, cancellationToken);
 
+        // 平台里建的是平台账号：平台没有成员关系，也没有席位
+        var isPlatform = _currentTenant.IsPlatformOperation();
+
         // 席位配额放在轻量校验之后：用户名/邮箱冲突这类错误先短路，避免无谓的用量统计查询。
         // 此处不必排除 PlatformAdmin —— 本流程只能创建普通成员，Owner 与 PlatformAdmin
         // 在上面的 ValidateCreateCommand → EnsureMemberTypeCanBeCreated 已被拒；
         // 「平台管理员不占席位」由统计侧的 CountActiveMembersByTenantIdsAsync 保证。
-        await _tenantQuotaDomainService.EnsureSeatQuotaAsync(1, cancellationToken);
+        if (!isPlatform)
+        {
+            await _tenantQuotaDomainService.EnsureSeatQuotaAsync(1, cancellationToken);
+        }
 
         var now = DateTimeOffset.UtcNow;
         var user = new SysUser
@@ -195,8 +201,11 @@ public sealed class UserDomainService
         };
 
         var savedUser = await _userRepository.AddAsync(user, cancellationToken);
-        await CreateUserSecurityAsync(savedUser.BasicId, command.InitialPassword, now, command.Remark, cancellationToken);
-        await CreateTenantMembershipAsync(savedUser.BasicId, command, now, cancellationToken);
+        await CreateUserSecurityAsync(savedUser, command.InitialPassword, now, command.Remark, cancellationToken);
+        if (!isPlatform)
+        {
+            await CreateTenantMembershipAsync(savedUser.BasicId, command, now, cancellationToken);
+        }
 
         return new UserCommandResult(savedUser);
     }
@@ -291,14 +300,19 @@ public sealed class UserDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         var user = await GetUserOrThrowAsync(id, cancellationToken);
-        var membership = await EnsureUserCanBeDeletedAsync(user, cancellationToken);
+        var memberships = await EnsureUserCanBeDeletedAsync(user, cancellationToken);
 
-        if (membership is not null)
+        // 账号没了，它在每个租户里的成员关系都作废；逐租户切入写，不在当前上下文代写别的租户
+        var now = DateTimeOffset.UtcNow;
+        foreach (var membership in memberships.Where(item => item.InviteStatus != TenantMemberInviteStatus.Revoked || item.Status != ValidityStatus.Invalid))
         {
             membership.InviteStatus = TenantMemberInviteStatus.Revoked;
             membership.Status = ValidityStatus.Invalid;
-            membership.RespondedTime ??= DateTimeOffset.UtcNow;
-            _ = await _tenantUserRepository.UpdateAsync(membership, cancellationToken);
+            membership.RespondedTime ??= now;
+            using (_currentTenant.Change(membership.TenantId))
+            {
+                _ = await _tenantUserRepository.UpdateAsync(membership, cancellationToken);
+            }
         }
 
         await SoftDeleteUserSecurityAsync(user.BasicId, cancellationToken);
@@ -337,7 +351,7 @@ public sealed class UserDomainService
         security.Remark = NormalizeNullable(command.Remark);
 
         var savedSecurity = await _userSecurityRepository.UpdateAsync(security, cancellationToken);
-        await _passwordHistoryDomainService.RecordAsync(user.BasicId, security.Password, now, cancellationToken);
+        await _passwordHistoryDomainService.RecordAsync(user, security.Password, now, cancellationToken);
         return new UserSecurityCommandResult(savedSecurity, user, now);
     }
 
@@ -1248,7 +1262,8 @@ public sealed class UserDomainService
         ValidateRevokeCommand(command.BasicId, command.Reason, "会话主键必须大于 0。");
 
         var session = await GetSessionOrThrowAsync(command.BasicId, cancellationToken);
-        var user = await _userRepository.GetByIdAsync(session.UserId, cancellationToken);
+        // 会话在当前上下文；账号可能注册在别处（外部成员），按主键跨租户取来展示
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(session.UserId, cancellationToken);
         UserSessionRevokedDomainEvent? domainEvent = null;
         if (session.Status != SessionStatus.Revoked)
         {
@@ -1274,8 +1289,8 @@ public sealed class UserDomainService
 
         ValidateRevokeCommand(command.UserId, command.Reason, "用户主键必须大于 0。");
 
-        var user = await _userRepository.GetByIdAsync(command.UserId, cancellationToken)
-            ?? throw new InvalidOperationException("用户不存在。");
+        // 下线账号的全部会话是账号级操作：只对本上下文注册的账号
+        var user = await GetUserOrThrowAsync(command.UserId, cancellationToken);
         // 既取该用户自己的会话，也取由他发起的模仿会话（后者的 UserId 是被模仿者）；
         // 会话行带登录落点的租户戳，同一账号的会话散落在不同租户下，须跨租户取全
         var sessions = (await _userSessionRepository.GetNotRevokedByUserIgnoreTenantAsync(user.BasicId, cancellationToken)).ToList();
@@ -1679,12 +1694,12 @@ public sealed class UserDomainService
     /// <summary>
     /// 创建用户安全记录
     /// </summary>
-    private async Task CreateUserSecurityAsync(long userId, string password, DateTimeOffset now, string? remark, CancellationToken cancellationToken)
+    private async Task CreateUserSecurityAsync(SysUser user, string password, DateTimeOffset now, string? remark, CancellationToken cancellationToken)
     {
         var passwordHash = _passwordHasher.HashPassword(password);
         var userSecurity = new SysUserSecurity
         {
-            UserId = userId,
+            UserId = user.BasicId,
             Password = passwordHash,
             LastPasswordChangeTime = now,
             FailedLoginAttempts = 0,
@@ -1701,7 +1716,7 @@ public sealed class UserDomainService
         };
 
         _ = await _userSecurityRepository.AddAsync(userSecurity, cancellationToken);
-        await _passwordHistoryDomainService.RecordAsync(userId, passwordHash, now, cancellationToken);
+        await _passwordHistoryDomainService.RecordAsync(user, passwordHash, now, cancellationToken);
     }
 
     /// <summary>
@@ -1729,8 +1744,12 @@ public sealed class UserDomainService
     }
 
     /// <summary>
-    /// 获取用户，不存在时抛出异常
+    /// 获取当前上下文注册的账号（身份类操作的入口），不存在时抛出异常
     /// </summary>
+    /// <remarks>
+    /// 账号严格隔离：只取得到注册在当前上下文的账号。外部成员的身份由其注册地维护，
+    /// 在这里只能管理它在本租户的成员关系（角色、权限、部门、数据范围）。
+    /// </remarks>
     private async Task<SysUser> GetUserOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         if (id <= 0)
@@ -1738,8 +1757,18 @@ public sealed class UserDomainService
             throw new ArgumentOutOfRangeException(nameof(id), "用户主键必须大于 0。");
         }
 
-        return await _userRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("用户不存在。");
+        var user = await _userRepository.GetByIdAsync(id, cancellationToken);
+        if (user is not null)
+        {
+            return user;
+        }
+
+        if (_currentTenant.Id is > 0 && await _tenantUserRepository.GetMembershipAsync(_currentTenant.Id.Value, id, cancellationToken) is not null)
+        {
+            throw new InvalidOperationException("外部成员的账号由其注册地租户维护，这里只能管理其在本租户的成员关系。");
+        }
+
+        throw new InvalidOperationException("用户不存在。");
     }
 
     /// <summary>
@@ -1768,30 +1797,42 @@ public sealed class UserDomainService
             throw new InvalidOperationException("系统内置账号不能停用。");
         }
 
-        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
-        if (membership?.MemberType == TenantMemberType.Owner)
+        // 停用账号在所有租户都登录不了：它是任何一个租户的所有者都不能直接停用
+        var memberships = await _tenantUserRepository.GetAllByUserIdIgnoreTenantAsync(user.BasicId, cancellationToken);
+        if (memberships.Any(IsActiveOwner))
         {
-            throw new InvalidOperationException("租户所有者账号不能直接停用。");
+            throw new InvalidOperationException("该账号是租户所有者，不能直接停用；请先转移所有权。");
         }
     }
 
     /// <summary>
-    /// 校验用户能否删除
+    /// 校验用户能否删除，返回账号在所有租户的成员关系
     /// </summary>
-    private async Task<SysTenantUser?> EnsureUserCanBeDeletedAsync(SysUser user, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<SysTenantUser>> EnsureUserCanBeDeletedAsync(SysUser user, CancellationToken cancellationToken)
     {
         if (user.IsSystemAccount)
         {
             throw new InvalidOperationException("系统内置账号不能删除。");
         }
 
-        var membership = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
-        if (membership?.MemberType == TenantMemberType.Owner)
+        // 删除账号会让它在所有租户消失：它是任何一个租户的所有者都不能直接删除
+        var memberships = await _tenantUserRepository.GetAllByUserIdIgnoreTenantAsync(user.BasicId, cancellationToken);
+        if (memberships.Any(IsActiveOwner))
         {
-            throw new InvalidOperationException("租户所有者账号不能直接删除。");
+            throw new InvalidOperationException("该账号是租户所有者，不能直接删除；请先转移所有权。");
         }
 
-        return membership;
+        return memberships;
+    }
+
+    /// <summary>
+    /// 仍然有效的所有者成员关系
+    /// </summary>
+    private static bool IsActiveOwner(SysTenantUser membership)
+    {
+        return membership.MemberType == TenantMemberType.Owner
+               && membership.InviteStatus == TenantMemberInviteStatus.Accepted
+               && membership.Status == ValidityStatus.Valid;
     }
 
     /// <summary>
@@ -1863,8 +1904,7 @@ public sealed class UserDomainService
             throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
         }
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("用户不存在。");
+        var user = await GetUserOrThrowAsync(userId, cancellationToken);
         var security = await _userSecurityRepository.GetFirstAsync(item => item.UserId == user.BasicId, cancellationToken)
             ?? throw new InvalidOperationException("用户安全记录不存在。");
 

@@ -59,6 +59,8 @@ public sealed partial class ProfileAppService
 
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IAccountScope _accountScope;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -75,8 +77,10 @@ public sealed partial class ProfileAppService
         IClientInfoProvider clientInfoProvider,
         IHttpContextAccessor httpContextAccessor,
         IUserSessionRepository userSessionRepository,
-        ISaasCacheInvalidator cacheInvalidator)
+        ISaasCacheInvalidator cacheInvalidator,
+        IAccountScope accountScope)
     {
+        _accountScope = accountScope;
         _profileDomainService = profileDomainService;
         _profileQueryService = profileQueryService;
         _profileVerificationService = profileVerificationService;
@@ -111,20 +115,20 @@ public sealed partial class ProfileAppService
 
         var userId = GetCurrentUserIdOrThrow();
         var preference = await _notificationPreferenceRepository.GetByUserIdAsync(userId, cancellationToken);
-        if (preference is null)
-        {
-            // 惰性创建
-            preference = new SysUserNotificationPreference { UserId = userId };
-            ApplyPreference(preference, input);
-            await _notificationPreferenceRepository.AddAsync(preference, cancellationToken);
-        }
-        else
-        {
-            ApplyPreference(preference, input);
 
-            // 用户自有行：行带首次保存时所在租户的戳，在别的租户里改自己的偏好须豁免写路径租户边界
-            using (TenantWriteGuard.Suppress())
+        // 通知偏好是账号域数据，写在注册地租户：新建与更新都在注册地作用域里进行
+        using (await _accountScope.EnterAsync(userId, cancellationToken))
+        {
+            if (preference is null)
             {
+                // 惰性创建
+                preference = new SysUserNotificationPreference { UserId = userId };
+                ApplyPreference(preference, input);
+                await _notificationPreferenceRepository.AddAsync(preference, cancellationToken);
+            }
+            else
+            {
+                ApplyPreference(preference, input);
                 await _notificationPreferenceRepository.UpdateAsync(preference, cancellationToken);
             }
         }

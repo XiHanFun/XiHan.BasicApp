@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -23,12 +24,14 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 删除：
 /// - 硬删；可按保留策略清理超过 N 条的历史记录
+///
+/// 账号域：TenantId 固定为注册地租户（平台账号为 0），严格租户隔离；按用户主键跨租户读取，写入在注册地租户内进行。
 /// </remarks>
 [SugarTable(TableName = "Sys_Password_History", TableDescription = "密码历史表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
-public partial class SysPasswordHistory : BasicAppCreationEntity
+public partial class SysPasswordHistory : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户ID

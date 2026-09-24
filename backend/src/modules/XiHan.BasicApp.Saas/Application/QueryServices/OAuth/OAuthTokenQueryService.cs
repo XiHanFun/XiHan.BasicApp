@@ -138,7 +138,7 @@ public sealed class OAuthTokenQueryService
             ? await _userSessionRepository.GetByIdAsync(token.SessionId.Value, cancellationToken)
             : null;
         var userId = token.UserId ?? session?.UserId;
-        var user = userId.HasValue ? await _userRepository.GetByIdAsync(userId.Value, cancellationToken) : null;
+        var user = userId.HasValue ? await _userRepository.GetByIdIgnoreTenantAsync(userId.Value, cancellationToken) : null;
         return OAuthTokenApplicationMapper.ToDetailDto(token, app, session, user, DateTimeOffset.UtcNow);
     }
 
@@ -355,7 +355,7 @@ public sealed class OAuthTokenQueryService
             return new Dictionary<long, SysUser>();
         }
 
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(ids, cancellationToken);
         return users.ToDictionary(user => user.BasicId);
     }
 }

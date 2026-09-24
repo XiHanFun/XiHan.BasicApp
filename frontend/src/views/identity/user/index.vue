@@ -14,7 +14,7 @@ import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
 import type { GrantTransferGroup, ListFieldSchema, PageSchema, PermissionGrantItem, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhButton, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -75,6 +75,8 @@ interface UserFormState {
   isLocked: boolean
   multiLogin: boolean
   maxDev: number
+  /** 外部成员：身份类字段只读，保存只提交本租户的角色与部门 */
+  isExternal: boolean
 }
 
 /** 头像色板：跟随语义色，明暗主题均可用 */
@@ -105,6 +107,9 @@ const selDeptIds = ref<ApiId[]>([])
 const existingDepts = ref<UserDepartmentListItemDto[]>([])
 
 const userForm = ref<UserFormState>(createDefaultForm())
+
+/** 外部成员的账号由其注册地维护：资料、状态与安全设置只读 */
+const identityReadonly = computed(() => userForm.value.isExternal)
 
 const formTitle = computed(() =>
   userForm.value.basicId ? t('identity.user.form_edit_title', { name: userForm.value.userName }) : t('identity.user.form_create_title'),
@@ -153,6 +158,8 @@ const detUser = computed(() => {
       })
     }
   }
+  if (u.isExternalMember)
+    badges.push({ label: t('identity.user.badge.external_member'), cls: 'bdg-info', icon: 'tabler:building-community' })
   const inviteAccepted = d.tenantMembership?.inviteStatus === TenantMemberInviteStatus.Accepted
   if (d.tenantMembership && !inviteAccepted) {
     badges.push({ label: t('identity.user.badge.inactive'), cls: 'bdg-warn', icon: 'tabler:clock-pause' })
@@ -222,6 +229,7 @@ function createDefaultForm(): UserFormState {
     isLocked: false,
     multiLogin: true,
     maxDev: 0,
+    isExternal: false,
   }
 }
 
@@ -334,6 +342,9 @@ const fields = computed<ListFieldSchema[]>(() => [
         h('div', { class: 'tbl-cell-2l__primary tbl-cell-2l__primary--strong' }, [
           display,
           r.isSystemAccount ? h('span', { class: 'sys-tag' }, t('identity.user.tag_system')) : null,
+          r.isExternalMember
+            ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info', class: 'ml-1' }, () => h(XhTagLabel, () => t('identity.user.tag_external')))
+            : null,
         ]),
         h('div', { class: 'tbl-cell-2l__secondary' }, subLine),
       ])
@@ -490,14 +501,14 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('identity.user.action_edit'), scope: 'row', icon: 'lucide:pencil' },
     { key: 'grantRole', title: t('identity.user.action_grant_role'), scope: 'row', icon: 'lucide:users-round' },
     { key: 'grantPermission', title: t('identity.user.action_grant_perm'), scope: 'row', icon: 'lucide:key-round' },
-    { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', icon: 'lucide:lock' },
-    { key: 'resetPassword', title: t('identity.user.action_reset_password'), scope: 'row', icon: 'lucide:key-square' },
+    { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', icon: 'lucide:lock', visible: isHomeAccountRow },
+    { key: 'resetPassword', title: t('identity.user.action_reset_password'), scope: 'row', icon: 'lucide:key-square', visible: isHomeAccountRow },
     {
       key: 'resetOtp',
       title: t('identity.user.action_reset_otp'),
       scope: 'row',
       icon: 'lucide:shield-off',
-      visible: row => (row as unknown as UserListItemDto).twoFactorEnabled,
+      visible: row => isHomeAccountRow(row) && (row as unknown as UserListItemDto).twoFactorEnabled,
     },
     {
       key: 'impersonate',
@@ -506,16 +517,21 @@ const schema = computed<PageSchema>(() => ({
       icon: 'lucide:user-round-cog',
       visible: row => canImpersonate((row as unknown as UserListItemDto)),
     },
-    { key: 'logout', title: t('identity.user.action_logout'), scope: 'row', icon: 'lucide:log-out' },
+    { key: 'logout', title: t('identity.user.action_logout'), scope: 'row', icon: 'lucide:log-out', visible: isHomeAccountRow },
     {
       key: 'delete',
       title: t('identity.user.action_delete'),
       scope: 'row',
       icon: 'lucide:trash-2',
-      visible: row => !(row as unknown as UserListItemDto).isSystemAccount,
+      visible: row => isHomeAccountRow(row) && !(row as unknown as UserListItemDto).isSystemAccount,
     },
   ],
 }))
+
+/** 账号级操作（锁定、重置、下线、删除）只对本上下文注册的账号；外部成员由其注册地维护 */
+function isHomeAccountRow(row: Record<string, unknown>) {
+  return !(row as unknown as UserListItemDto).isExternalMember
+}
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as UserListItemDto | undefined
@@ -620,6 +636,7 @@ async function fillFormFromDetail(detail: UserManagementDetailDto) {
     isLocked: sec?.isLocked ?? false,
     multiLogin: sec?.allowMultiLogin ?? true,
     maxDev: sec?.maxLoginDevices ?? 0,
+    isExternal: u.isExternalMember,
   }
   // 详情里的 roles 连撤销过、已过期的历史行一并返回；比对基准要的是当前生效的那份
   existingRoles.value = await userManagementApi.roles.list(u.basicId, true)
@@ -724,6 +741,16 @@ async function saveUser() {
   }
   submitLoading.value = true
   try {
+    // 外部成员：账号资料、状态与安全设置由注册地维护，这里只提交本租户的角色与部门
+    if (form.isExternal && form.basicId) {
+      await syncRoles(form.basicId)
+      await syncDepartments(form.basicId)
+      toast.success(t('common.messages.save_success'))
+      closeModals()
+      reloadList()
+      return
+    }
+
     let userId = form.basicId
     if (userId) {
       const updateInput: UserUpdateDto = {
@@ -1180,6 +1207,16 @@ async function confirmDelete() {
       :form-id="editFormId"
       @cancel="closeModals"
     >
+      <XhAlertRoot v-if="identityReadonly" tone="info" class="mb-3">
+        <XhAlertIndicator>
+          <Icon icon="tabler:building-community" :size="16" />
+        </XhAlertIndicator>
+        <XhAlertContent>
+          <XhAlertDescription>
+            {{ t('identity.user.form_external_hint') }}
+          </XhAlertDescription>
+        </XhAlertContent>
+      </XhAlertRoot>
       <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
       <XhTabsRoot v-model:value="formTab" variant="line">
         <XhTabsList>
@@ -1218,49 +1255,49 @@ async function confirmDelete() {
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XInput v-model:value="userForm.realName" :placeholder="t('identity.user.ph_real_name')" />
+                <XInput v-model:value="userForm.realName" :placeholder="t('identity.user.ph_real_name')" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XInput v-model:value="userForm.nickName" :placeholder="t('identity.user.ph_nickname')" />
+                <XInput v-model:value="userForm.nickName" :placeholder="t('identity.user.ph_nickname')" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" autocomplete="off" />
+                <XInput v-model:value="userForm.email" :placeholder="t('identity.user.ph_email')" autocomplete="off" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" autocomplete="off" />
+                <XInput v-model:value="userForm.phone" :placeholder="t('identity.user.ph_phone')" autocomplete="off" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XSelect v-model:value="userForm.gender" :options="genderEnumOptions" />
+                <XSelect v-model:value="userForm.gender" :options="genderEnumOptions" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XDatePicker v-model:value="userForm.birthday" type="date" />
+                <XDatePicker v-model:value="userForm.birthday" type="date" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" />
+                <XInput v-model:value="userForm.country" :placeholder="t('identity.user.ph_country')" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
             <XhFieldRoot>
               <XhFieldControl>
-                <XSelect v-model:value="userForm.status" :options="statusEnumOptions" />
+                <XSelect v-model:value="userForm.status" :options="statusEnumOptions" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
@@ -1283,6 +1320,7 @@ async function confirmDelete() {
                   type="textarea"
                   :rows="2"
                   :placeholder="t('identity.user.ph_remark')"
+                  :disabled="identityReadonly"
                 />
               </XhFieldControl>
               <XhFieldErrorText />
@@ -1308,7 +1346,7 @@ async function confirmDelete() {
                     </div>
                   </div>
                 </div>
-                <XhSwitch v-model:checked="userForm.isLocked" />
+                <XhSwitch v-model:checked="userForm.isLocked" :disabled="identityReadonly" />
               </div>
             </div>
             <div class="sec-block">
@@ -1328,7 +1366,7 @@ async function confirmDelete() {
                     </div>
                   </div>
                 </div>
-                <XhSwitch v-model:checked="userForm.multiLogin" />
+                <XhSwitch v-model:checked="userForm.multiLogin" :disabled="identityReadonly" />
               </div>
               <div class="form-row">
                 <div class="form-row-main">
@@ -1349,6 +1387,7 @@ async function confirmDelete() {
                   class="max-dev-input"
                   size="sm"
                   :show-button="false"
+                  :disabled="identityReadonly"
                 />
               </div>
             </div>

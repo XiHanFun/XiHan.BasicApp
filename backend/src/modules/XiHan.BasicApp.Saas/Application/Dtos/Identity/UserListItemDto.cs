@@ -91,4 +91,9 @@ public sealed class UserListItemDto : BasicAppDto
     /// 修改时间
     /// </summary>
     public DateTimeOffset? ModifiedTime { get; set; }
+
+    /// <summary>
+    /// 是否外部成员：注册在别的租户、以成员身份加入本租户；身份类操作由其注册地维护，这里只管成员关系
+    /// </summary>
+    public bool IsExternalMember { get; set; }
 }

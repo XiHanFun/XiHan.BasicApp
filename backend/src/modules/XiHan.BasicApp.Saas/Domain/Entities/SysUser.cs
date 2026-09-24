@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -27,10 +28,12 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 创建时必须同步：(1) SysUserSecurity 一对一扩展 (2) 一条 SysTenantUser 记录（TenantId=SysUser.TenantId + MemberType=Owner/Member + InviteStatus=Accepted）；平台账号（TenantId=0）不建成员关系
 ///
 /// 查询：
-/// - 登录流程（先登录后选租户）：(1) 输入 Email + Password → WHERE Email=? 全局唯一定位（走 UX_Em）；
-///                                平台账号也可用 UserName 登录（WHERE TenantId=0 AND UserName=?）
-///                              (2) 登录成功后按成员关系决定落点：超管/平台→控制中心(平台态)；恰一个租户→直进；多个→控制中心选择
-///                              (3) 进入租户后可随时通过 SwitchTenant 切换租户 / 返回平台态
+/// - 登录流程：(1) 输入 Email + Password → WHERE Email=? 全局唯一定位（走 UX_Em）；
+///              平台账号也可用 UserName 登录（WHERE TenantId=0 AND UserName=?）
+///            (2) 平台账号落平台；租户账号落最近进入的可进入租户 → 注册地租户 → 第一个可进入的租户，一个都没有则拒绝登录
+///            (3) 登录后经 SwitchTenant 在可进入的租户间切换（平台只对平台账号开放）
+/// - 租户里「看得见哪些用户」由成员关系决定：本租户已接受的成员（含注册在别处的外部成员）；
+///   身份类操作（资料、密码、锁定、启停、删除）只对注册在本租户的账号开放
 /// - 鉴权决策：UserId + 当前会话 TenantId → 查 SysTenantUser 校验成员身份 → 再查 SysUserRole 加载角色
 /// - 手机查询走 IX_Ph（非唯一，仅作辅助找回/验证）
 /// - 按激活状态筛选：IX_TeId_St_IsAc
@@ -47,6 +50,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// - 登录认证入口（身份校验）
 /// - 用户资料维护
 /// - 统一身份：同一自然人可通过 SysTenantUser 在多个租户拥有成员身份
+///
+/// 账号域：TenantId 固定为注册地租户（平台账号为 0），严格租户隔离；按用户主键跨租户读取，写入在注册地租户内进行。
 /// </remarks>
 [SugarTable(TableName = "Sys_User", TableDescription = "系统用户表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -58,7 +63,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_Ph", nameof(Phone), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St_IsAc", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(IsActive), OrderByType.Asc)]
-public partial class SysUser : BasicAppAggregateRoot
+public partial class SysUser : BasicAppAggregateRoot, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户名

@@ -30,11 +30,6 @@ public sealed class UserQueryService
     : SaasApplicationService, IUserQueryService
 {
     /// <summary>
-    /// 用户仓储
-    /// </summary>
-    private readonly IUserRepository _userRepository;
-
-    /// <summary>
     /// 用户角色关联仓储
     /// </summary>
     private readonly IUserRoleRepository _userRoleRepository;
@@ -75,10 +70,14 @@ public sealed class UserQueryService
     private readonly ISuperAdminProtector _superAdminProtector;
 
     /// <summary>
+    /// 当前上下文的用户目录（平台账号 / 本租户成员）
+    /// </summary>
+    private readonly IUserDirectory _userDirectory;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserQueryService(
-        IUserRepository userRepository,
         IUserRoleRepository userRoleRepository,
         IRoleRepository roleRepository,
         IUserDepartmentRepository userDepartmentRepository,
@@ -86,9 +85,9 @@ public sealed class UserQueryService
         IUserSecurityRepository userSecurityRepository,
         IFieldSecurityService fieldSecurityService,
         IUserDataScopeFilterService userDataScopeFilter,
-        ISuperAdminProtector superAdminProtector)
+        ISuperAdminProtector superAdminProtector,
+        IUserDirectory userDirectory)
     {
-        _userRepository = userRepository;
         _userRoleRepository = userRoleRepository;
         _roleRepository = roleRepository;
         _userDepartmentRepository = userDepartmentRepository;
@@ -97,6 +96,7 @@ public sealed class UserQueryService
         _fieldSecurity = fieldSecurityService;
         _userDataScopeFilter = userDataScopeFilter;
         _superAdminProtector = superAdminProtector;
+        _userDirectory = userDirectory;
     }
 
     /// <summary>
@@ -141,7 +141,8 @@ public sealed class UserQueryService
             ApplyUserSorts(request);
         }
 
-        var users = await _userRepository.GetPagedAsync(request, cancellationToken);
+        // 看得见哪些用户由上下文决定：平台是平台账号，租户是本租户已接受的成员（含外部成员）
+        var users = await _userDirectory.GetPagedAsync(request, cancellationToken);
 
         if (users.Items.Count == 0)
         {
@@ -160,12 +161,14 @@ public sealed class UserQueryService
         var items = users.Items.Select(user =>
         {
             securityMap.TryGetValue(user.BasicId, out var security);
-            return UserApplicationMapper.ToListItemDto(
+            var item = UserApplicationMapper.ToListItemDto(
                 user,
                 roleNameMap.TryGetValue(user.BasicId, out var roleNames) ? roleNames : [],
                 departmentNameMap.TryGetValue(user.BasicId, out var departmentName) ? departmentName : null,
                 security.IsLocked,
                 security.TwoFactorEnabled);
+            item.IsExternalMember = !_userDirectory.IsHomeAccount(user);
+            return item;
         }).ToList();
 
         // 服务端字段脱敏：按当前用户在 SysUser 资源上的有效 FLS 规则就地脱敏
@@ -200,13 +203,14 @@ public sealed class UserQueryService
             return null;
         }
 
-        var user = await _userRepository.GetByIdAsync(id, cancellationToken);
+        var user = await _userDirectory.FindAsync(id, cancellationToken);
         if (user is null)
         {
             return null;
         }
 
         var detail = UserApplicationMapper.ToDetailDto(user);
+        detail.IsExternalMember = !_userDirectory.IsHomeAccount(user);
         // 服务端字段脱敏：详情同样按有效 FLS 规则就地脱敏
         await _fieldSecurity.ApplyAsync("SysUser", detail, cancellationToken);
         return detail;
@@ -236,7 +240,7 @@ public sealed class UserQueryService
             }
         }
 
-        var users = await _userRepository.GetPagedAsync(request, cancellationToken);
+        var users = await _userDirectory.GetPagedAsync(request, cancellationToken);
 
         return [.. users.Items.Select(UserApplicationMapper.ToSelectItemDto)];
     }
@@ -428,9 +432,8 @@ public sealed class UserQueryService
         List<long> userIds,
         CancellationToken cancellationToken)
     {
-        var securities = await _userSecurityRepository.GetListAsync(
-            security => userIds.Contains(security.UserId),
-            cancellationToken);
+        // 安全记录是账号域数据，落在账号注册地：外部成员的在别的租户，按用户跨租户取
+        var securities = await _userSecurityRepository.GetListByUserIdsIgnoreTenantAsync(userIds, cancellationToken);
         if (securities.Count == 0)
         {
             return new Dictionary<long, (bool IsLocked, bool TwoFactorEnabled)>();

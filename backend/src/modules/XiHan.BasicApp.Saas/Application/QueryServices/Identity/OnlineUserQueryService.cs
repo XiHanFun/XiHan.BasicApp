@@ -114,7 +114,7 @@ public sealed class OnlineUserQueryService
         }
 
         var userIds = sessionPage.Items.Select(session => session.UserId).Where(id => id > 0).Distinct().ToArray();
-        var users = await _userRepository.GetByIdsAsync(userIds, cancellationToken);
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(userIds, cancellationToken);
         var userMap = users.ToDictionary(user => user.BasicId);
 
         // 实时连接标注：按去重用户查询一次连接管理器（进程内/缓存查询，开销可忽略）

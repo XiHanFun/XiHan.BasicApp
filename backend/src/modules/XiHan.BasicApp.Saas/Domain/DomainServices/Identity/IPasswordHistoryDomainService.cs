@@ -1,6 +1,8 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Saas.Domain.Entities;
+
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
 /// <summary>
@@ -23,9 +25,10 @@ public interface IPasswordHistoryDomainService
     /// <summary>
     /// 记录一条密码历史（密码变更成功后写入新密码哈希）
     /// </summary>
-    /// <param name="userId">用户标识</param>
+    /// <remarks>密码历史是账号域数据，写在账号的注册地租户，不随当前所在上下文。</remarks>
+    /// <param name="user">账号</param>
     /// <param name="newPasswordHash">新密码哈希</param>
     /// <param name="changedTime">变更时间</param>
     /// <param name="cancellationToken">取消令牌</param>
-    Task RecordAsync(long userId, string newPasswordHash, DateTimeOffset changedTime, CancellationToken cancellationToken = default);
+    Task RecordAsync(SysUser user, string newPasswordHash, DateTimeOffset changedTime, CancellationToken cancellationToken = default);
 }

@@ -103,7 +103,7 @@ public sealed class UserStatisticsQueryService
         }
 
         var user = statistics.UserId > 0
-            ? await _userRepository.GetByIdAsync(statistics.UserId, cancellationToken)
+            ? await _userRepository.GetByIdIgnoreTenantAsync(statistics.UserId, cancellationToken)
             : null;
 
         return UserStatisticsApplicationMapper.ToDetailDto(statistics, user);
@@ -209,7 +209,7 @@ public sealed class UserStatisticsQueryService
             return new Dictionary<long, SysUser>();
         }
 
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(ids, cancellationToken);
         return users.ToDictionary(user => user.BasicId);
     }
 }

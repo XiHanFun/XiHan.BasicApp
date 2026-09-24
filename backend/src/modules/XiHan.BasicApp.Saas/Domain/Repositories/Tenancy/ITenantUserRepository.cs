@@ -30,6 +30,15 @@ public interface ITenantUserRepository : ISaasRepository<SysTenantUser>
     Task<SysTenantUser?> GetMembershipAsync(long tenantId, long userId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 账号在所有租户的成员关系（任意状态，跨租户读取）
+    /// </summary>
+    /// <remarks>账号级操作（删除、停用）要核对它在每个租户里的身份，并连带处理每一条成员关系。</remarks>
+    /// <param name="userId">用户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>成员关系</returns>
+    Task<IReadOnlyList<SysTenantUser>> GetAllByUserIdIgnoreTenantAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 按关键字检索租户成员，返回命中成员的用户主键
     /// </summary>
     /// <remarks>

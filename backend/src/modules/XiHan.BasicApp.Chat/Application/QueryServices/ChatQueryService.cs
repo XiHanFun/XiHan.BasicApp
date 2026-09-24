@@ -55,7 +55,7 @@ public sealed class ChatQueryService
 
     private readonly IDepartmentRepository _departmentRepository;
 
-    private readonly ITenantUserRepository _tenantUserRepository;
+    private readonly IUserDirectory _userDirectory;
 
     private readonly ICurrentTenant _currentTenant;
 
@@ -71,7 +71,7 @@ public sealed class ChatQueryService
         ICurrentUser currentUser,
         ISuperAdminProtector superAdminProtector,
         IDepartmentRepository departmentRepository,
-        ITenantUserRepository tenantUserRepository,
+        IUserDirectory userDirectory,
         ICurrentTenant currentTenant)
     {
         _conversationRepository = conversationRepository;
@@ -82,7 +82,7 @@ public sealed class ChatQueryService
         _currentUser = currentUser;
         _superAdminProtector = superAdminProtector;
         _departmentRepository = departmentRepository;
-        _tenantUserRepository = tenantUserRepository;
+        _userDirectory = userDirectory;
         _currentTenant = currentTenant;
     }
 
@@ -116,7 +116,7 @@ public sealed class ChatQueryService
             var peerMembers = allSingleMembers.Where(member => member.UserId != userId).ToList();
             var peerUserIds = peerMembers.Select(member => member.UserId).Distinct().ToList();
             var peerUsers = peerUserIds.Count > 0
-                ? await _userRepository.GetListAsync(user => peerUserIds.Contains(user.BasicId), cancellationToken)
+                ? await _userRepository.GetListByIdsIgnoreTenantAsync(peerUserIds, cancellationToken)
                 : [];
             var peerUserMap = peerUsers.ToDictionary(user => user.BasicId);
             foreach (var peerMember in peerMembers)
@@ -276,7 +276,7 @@ public sealed class ChatQueryService
         var members = await _memberRepository.GetByConversationIdAsync(conversationId, cancellationToken);
         var userIds = members.Select(member => member.UserId).Distinct().ToList();
         var users = userIds.Count > 0
-            ? await _userRepository.GetListAsync(user => userIds.Contains(user.BasicId), cancellationToken)
+            ? await _userRepository.GetListByIdsIgnoreTenantAsync(userIds, cancellationToken)
             : [];
         var userMap = users.ToDictionary(user => user.BasicId);
 
@@ -338,18 +338,6 @@ public sealed class ChatQueryService
         request.Conditions.AddFilter(nameof(SysUser.Status), EnableStatus.Enabled);
         request.Conditions.AddSort(nameof(SysUser.CreatedTime), SortDirection.Descending, 0);
 
-        // 作用域收窄：用户表读过滤是「读共享」口径（平台态放行全部租户），
-        // 而聊天严格隔离，选到跨作用域的人只会在写入期被拒——候选阶段就不该出现。
-        var scopedUserIds = await ResolveScopedUserIdsAsync(cancellationToken);
-        if (scopedUserIds.Count == 0)
-        {
-            return [];
-        }
-
-        // 必须走 AddFilterIn：AddFilter(field, value, In) 设的是 QueryFilter.Value，
-        // 而 In 分支读的是 Values，条件 IsValid 为假会被静默丢弃（过滤形同不存在）
-        request.Conditions.AddFilterIn((SysUser user) => user.BasicId, scopedUserIds.Cast<object>());
-
         // 超管隐藏：非超管用户的选择项中排除超管用户（超管自身不受限）
         if (!_superAdminProtector.IsCurrentUserSuperAdmin())
         {
@@ -360,7 +348,9 @@ public sealed class ChatQueryService
             }
         }
 
-        var users = await _userRepository.GetPagedAsync(request, cancellationToken);
+        // 候选人就是当前上下文的用户目录：平台是平台账号，租户是本租户已接受的成员（含外部成员）；
+        // 聊天严格隔离，选到目录外的人只会在写入期被拒
+        var users = await _userDirectory.GetPagedAsync(request, cancellationToken);
         return [.. users.Items.Select(UserApplicationMapper.ToSelectItemDto)];
     }
 
@@ -398,23 +388,6 @@ public sealed class ChatQueryService
 
         return [.. messages.Select(message =>
             ChatApplicationMapper.ToMessageItemDto(message, reactionMap.GetValueOrDefault(message.BasicId)))];
-    }
-
-    /// <summary>
-    /// 解析当前作用域内可参与聊天的用户集合
-    /// </summary>
-    private async Task<IReadOnlyList<long>> ResolveScopedUserIdsAsync(CancellationToken cancellationToken)
-    {
-        if (_currentTenant.Id is not { } scopeId || scopeId == 0)
-        {
-            // 平台作用域：仅平台归属用户
-            var platformUsers = await _userRepository.GetListAsync(user => user.TenantId == 0, cancellationToken);
-            return [.. platformUsers.Select(user => user.BasicId)];
-        }
-
-        // 租户作用域：该租户的成员（含平台归属但已加入该租户的用户）
-        var members = await _tenantUserRepository.GetListAsync(member => member.TenantId == scopeId, cancellationToken);
-        return [.. members.Select(member => member.UserId).Distinct()];
     }
 
     private async Task EnsureMemberAsync(long conversationId, CancellationToken cancellationToken)
