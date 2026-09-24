@@ -66,7 +66,6 @@ export interface ConfigCreateDto {
   dataType: ConfigDataType
   defaultValue?: string | null
   isEncrypted: boolean
-  isGlobal: boolean
   remark?: string | null
   sort: number
   status: EnableStatus
@@ -81,7 +80,6 @@ export interface ConfigUpdateDto extends BasicDto {
   dataType: ConfigDataType
   defaultValue?: string | null
   isEncrypted: boolean
-  isGlobal: boolean
   remark?: string | null
   sort: number
 }

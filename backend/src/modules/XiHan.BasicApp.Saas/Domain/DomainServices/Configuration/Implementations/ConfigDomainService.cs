@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -17,6 +18,8 @@ public sealed class ConfigDomainService
     : IConfigDomainService
 {
     private readonly IConfigRepository _configRepository;
+
+    private readonly ICurrentTenant _currentTenant;
     private readonly IConfigValueSecretProtector _configValueSecretProtector;
 
     /// <summary>
@@ -24,8 +27,10 @@ public sealed class ConfigDomainService
     /// </summary>
     public ConfigDomainService(
         IConfigRepository configRepository,
-        IConfigValueSecretProtector configValueSecretProtector)
+        IConfigValueSecretProtector configValueSecretProtector,
+        ICurrentTenant currentTenant)
     {
+        _currentTenant = currentTenant;
         _configRepository = configRepository;
         _configValueSecretProtector = configValueSecretProtector;
     }
@@ -41,7 +46,9 @@ public sealed class ConfigDomainService
         ValidateCreateConfigCommand(command);
         var configKey = Required(command.ConfigKey, 100, nameof(command.ConfigKey), "配置键不能超过 100 个字符。");
         EnsureCodeHasNoWhitespace(configKey, "配置键不能包含空白字符。");
-        if (await _configRepository.AnyAsync(config => config.ConfigKey == configKey, cancellationToken))
+        // 只在本上下文内判重：租户可以建与全局同键的配置来覆盖它，读取时租户优先
+        var scope = _currentTenant.Id ?? 0;
+        if (await _configRepository.AnyAsync(config => config.ConfigKey == configKey && config.TenantId == scope, cancellationToken))
         {
             throw new InvalidOperationException("配置键已存在。");
         }
@@ -65,13 +72,6 @@ public sealed class ConfigDomainService
             Sort = command.Sort,
             Remark = Optional(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。")
         };
-        // IsGlobal 已改为派生属性（= TenantId == 0）：全局配置须显式置 TenantId = 0（见 BasicAppEntity 约定）；
-        // 非全局配置的 TenantId 由 ITenantContext 在写入时自动注入。
-        if (command.IsGlobal)
-        {
-            config.TenantId = 0;
-        }
-
         return new ConfigCommandResult(await _configRepository.AddAsync(config, cancellationToken));
     }
 
@@ -239,10 +239,19 @@ public sealed class ConfigDomainService
         return normalized;
     }
 
+    /// <summary>
+    /// 获取本上下文可维护的配置：全局配置只在平台维护，租户看得见、改不了（可新建同键配置覆盖）
+    /// </summary>
     private async Task<SysConfig> GetConfigOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         EnsureId(id, "系统配置主键必须大于 0。");
-        return await _configRepository.GetByIdAsync(id, cancellationToken)
+        var config = await _configRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("系统配置不存在。");
+        if (config.TenantId != (_currentTenant.Id ?? 0))
+        {
+            throw new InvalidOperationException("全局配置只能在平台维护；租户可以新建同键配置覆盖它。");
+        }
+
+        return config;
     }
 }

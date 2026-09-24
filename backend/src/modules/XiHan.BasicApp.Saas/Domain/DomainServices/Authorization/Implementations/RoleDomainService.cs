@@ -140,7 +140,7 @@ public sealed class RoleDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         var role = await GetEditableRoleOrThrowAsync(id, cancellationToken);
-        await EnsureRoleNotReferencedAsync(role.BasicId, cancellationToken);
+        await EnsureRoleNotReferencedAsync(role, cancellationToken);
 
         if (!await _roleRepository.DeleteAsync(role, cancellationToken))
         {
@@ -795,11 +795,19 @@ public sealed class RoleDomainService
         return role;
     }
 
-    private async Task EnsureRoleNotReferencedAsync(long roleId, CancellationToken cancellationToken)
+    /// <summary>
+    /// 校验角色没有被引用：全局角色被各租户分配、继承，平台删除前要看所有租户，不能只看平台这一侧
+    /// </summary>
+    private async Task EnsureRoleNotReferencedAsync(SysRole role, CancellationToken cancellationToken)
     {
-        if (await _userRoleRepository.AnyAsync(userRole => userRole.RoleId == roleId, cancellationToken))
+        var roleId = role.BasicId;
+        var acrossTenants = role.IsGlobal;
+
+        if (acrossTenants
+                ? await _userRoleRepository.AnyIgnoreTenantAsync(userRole => userRole.RoleId == roleId, cancellationToken)
+                : await _userRoleRepository.AnyAsync(userRole => userRole.RoleId == roleId, cancellationToken))
         {
-            throw new InvalidOperationException("角色已分配给用户，不能删除。");
+            throw new InvalidOperationException(acrossTenants ? "全局角色已分配给租户成员，不能删除。" : "角色已分配给用户，不能删除。");
         }
 
         if (await _rolePermissionRepository.AnyAsync(rolePermission => rolePermission.RoleId == roleId, cancellationToken))
@@ -807,11 +815,15 @@ public sealed class RoleDomainService
             throw new InvalidOperationException("角色已绑定权限，不能删除。");
         }
 
-        if (await _roleHierarchyRepository.AnyAsync(
-            hierarchy => hierarchy.Depth > 0 && (hierarchy.AncestorId == roleId || hierarchy.DescendantId == roleId),
-            cancellationToken))
+        if (acrossTenants
+                ? await _roleHierarchyRepository.AnyIgnoreTenantAsync(
+                    hierarchy => hierarchy.Depth > 0 && (hierarchy.AncestorId == roleId || hierarchy.DescendantId == roleId),
+                    cancellationToken)
+                : await _roleHierarchyRepository.AnyAsync(
+                    hierarchy => hierarchy.Depth > 0 && (hierarchy.AncestorId == roleId || hierarchy.DescendantId == roleId),
+                    cancellationToken))
         {
-            throw new InvalidOperationException("角色存在继承关系，不能删除。");
+            throw new InvalidOperationException(acrossTenants ? "全局角色被租户角色继承，不能删除。" : "角色存在继承关系，不能删除。");
         }
 
         if (await _roleDataScopeRepository.AnyAsync(dataScope => dataScope.RoleId == roleId, cancellationToken))
@@ -835,6 +847,9 @@ public sealed class RoleDomainService
     {
         var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
             ?? throw new InvalidOperationException("角色不存在。");
+
+        // 全局角色是各租户共用的模板：租户不能往上叠加自己的授权，要改就新建租户角色
+        EnsureRoleCanBeMaintained(role);
 
         if (role.Status != EnableStatus.Enabled)
         {

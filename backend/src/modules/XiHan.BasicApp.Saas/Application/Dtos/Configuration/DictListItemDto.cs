@@ -37,6 +37,11 @@ public class DictListItemDto : BasicAppDto
     public bool IsBuiltIn { get; set; }
 
     /// <summary>
+    /// 是否全局字典（平台维护，租户只读；租户需要自己的选项就新建字典）
+    /// </summary>
+    public bool IsGlobal { get; set; }
+
+    /// <summary>
     /// 状态
     /// </summary>
     public EnableStatus Status { get; set; }

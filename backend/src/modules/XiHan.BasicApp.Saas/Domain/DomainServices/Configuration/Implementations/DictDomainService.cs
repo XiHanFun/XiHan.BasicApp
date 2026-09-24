@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Localization.Abstractions;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 
@@ -20,13 +21,17 @@ public sealed class DictDomainService
 
     private readonly IDictRepository _dictRepository;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public DictDomainService(
         IDictRepository dictRepository,
-        IDictItemRepository dictItemRepository)
+        IDictItemRepository dictItemRepository,
+        ICurrentTenant currentTenant)
     {
+        _currentTenant = currentTenant;
         _dictRepository = dictRepository;
         _dictItemRepository = dictItemRepository;
     }
@@ -42,7 +47,12 @@ public sealed class DictDomainService
         EnsureEnum(command.Status, nameof(command.Status));
         var dictCode = Required(command.DictCode, 100, nameof(command.DictCode), "字典编码不能超过 100 个字符。");
         EnsureCodeHasNoWhitespace(dictCode, "字典编码不能包含空白字符。");
-        if (await _dictRepository.AnyAsync(dict => dict.DictCode == dictCode, cancellationToken))
+        // 字典编码在「全局 + 本租户」里唯一（字典不可覆盖）：租户看得见全局编码，读共享即可；
+        // 平台建全局字典时要看所有租户——某个租户已用了这个编码，全局再建就会在那个租户里重名
+        var codeTaken = _currentTenant.IsPlatformOperation()
+            ? await _dictRepository.AnyIgnoreTenantAsync(dict => dict.DictCode == dictCode, cancellationToken)
+            : await _dictRepository.AnyAsync(dict => dict.DictCode == dictCode, cancellationToken);
+        if (codeTaken)
         {
             throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Configuration.Dict.CodeAlreadyExists"), "字典编码已存在。");
         }
@@ -121,7 +131,11 @@ public sealed class DictDomainService
             throw new InvalidOperationException("内置系统字典不能删除。");
         }
 
-        if (await _dictItemRepository.AnyAsync(item => item.DictId == dict.BasicId, cancellationToken))
+        // 全局字典的字典项可能落在租户里（历史数据），删除前看所有租户
+        var hasItems = dict.TenantId == 0
+            ? await _dictItemRepository.AnyIgnoreTenantAsync(item => item.DictId == dict.BasicId, cancellationToken)
+            : await _dictItemRepository.AnyAsync(item => item.DictId == dict.BasicId, cancellationToken);
+        if (hasItems)
         {
             throw new InvalidOperationException("系统字典存在字典项，不能直接删除。");
         }
@@ -377,18 +391,36 @@ public sealed class DictDomainService
         }
     }
 
+    /// <summary>
+    /// 获取本上下文可维护的字典项：字典项与所属字典同在一个上下文，全局字典的项只在平台维护
+    /// </summary>
     private async Task<SysDictItem> GetDictItemOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         EnsureId(id, "系统字典项主键必须大于 0。");
-        return await _dictItemRepository.GetByIdAsync(id, cancellationToken)
+        var dictItem = await _dictItemRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("系统字典项不存在。");
+        EnsureMaintainableInContext(dictItem.TenantId);
+        return dictItem;
     }
 
+    /// <summary>
+    /// 获取本上下文可维护的字典（字典项的写入也以它为准）：全局字典只在平台维护，租户需要自己的选项就新建字典
+    /// </summary>
     private async Task<SysDict> GetDictOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         EnsureId(id, "系统字典主键必须大于 0。");
-        return await _dictRepository.GetByIdAsync(id, cancellationToken)
+        var dict = await _dictRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("系统字典不存在。");
+        EnsureMaintainableInContext(dict.TenantId);
+        return dict;
+    }
+
+    private void EnsureMaintainableInContext(long rowTenantId)
+    {
+        if (rowTenantId != (_currentTenant.Id ?? 0))
+        {
+            throw new InvalidOperationException("全局字典只能在平台维护；租户需要自己的选项请新建字典。");
+        }
     }
 
     private async Task<SysDictItem?> ValidateParentAsync(long dictId, long? parentId, long? currentItemId, CancellationToken cancellationToken)

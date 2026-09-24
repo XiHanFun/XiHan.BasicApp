@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Linq.Expressions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
 using XiHan.Framework.Data.SqlSugar.Clients;
@@ -15,4 +16,16 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Repositories;
 /// <typeparam name="TEntity">实体类型</typeparam>
 public abstract class SaasRepository<TEntity>(ISqlSugarClientResolver clientResolver)
     : SqlSugarRepositoryBase<TEntity, long>(clientResolver), ISaasRepository<TEntity>, IScopedDependency
-    where TEntity : class, IEntityBase<long>, new();
+    where TEntity : class, IEntityBase<long>, new()
+{
+    /// <summary>
+    /// 跨租户判断是否存在满足条件的行
+    /// </summary>
+    public async Task<bool> AnyIgnoreTenantAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateNoTenantQueryable().Where(predicate).AnyAsync(cancellationToken);
+    }
+}

@@ -20,7 +20,6 @@ public static class ConfigApplicationMapper
         ArgumentNullException.ThrowIfNull(input);
 
         return new ConfigCreateCommand(
-            input.IsGlobal,
             input.ConfigName,
             input.ConfigGroup,
             input.ConfigKey,

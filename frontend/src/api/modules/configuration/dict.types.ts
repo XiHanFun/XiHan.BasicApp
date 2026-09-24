@@ -19,6 +19,8 @@ export interface DictListItemDto extends BasicDto {
   dictType: string
   hasNote: boolean
   isBuiltIn: boolean
+  /** 全局字典：平台维护，租户只读 */
+  isGlobal: boolean
   modifiedTime?: DateTimeString | null
   sort: number
   status: EnableStatus
