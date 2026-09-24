@@ -143,39 +143,15 @@ public sealed record UserPermissionUpdateCommand(
 public sealed record UserPermissionStatusChangeCommand(long BasicId, ValidityStatus Status, string? Remark);
 
 /// <summary>
-/// 用户数据范围批量变更中的单条授予项
+/// 成员数据范围设置命令：覆盖档位与自定义部门一次落地
 /// </summary>
-public sealed record UserDataScopeBatchGrantItem(long DepartmentId, bool IncludeChildren);
-
-/// <summary>
-/// 用户数据范围批量变更命令（一次性提交授予与撤销）
-/// </summary>
-public sealed record UserDataScopeBatchUpdateCommand(
+/// <param name="UserId">用户主键</param>
+/// <param name="DataScope">覆盖档位（null 表示跟随角色）</param>
+/// <param name="Departments">自定义部门（仅档位为 Custom 时提交，且至少一个）</param>
+public sealed record UserDataScopeSetCommand(
     long UserId,
-    IReadOnlyList<UserDataScopeBatchGrantItem> Grants,
-    IReadOnlyList<long> RevokeUserDataScopeIds);
-
-/// <summary>
-/// 用户数据范围批量变更结果（本次实际发生变化的部门）
-/// </summary>
-/// <param name="GrantedDepartmentIds">实际授予或改了含下级的部门ID</param>
-/// <param name="RevokedDepartmentIds">实际撤销的部门ID</param>
-public sealed record UserDataScopeBatchUpdateResult(
-    IReadOnlyList<long> GrantedDepartmentIds,
-    IReadOnlyList<long> RevokedDepartmentIds);
-
-/// <summary>
-/// 用户数据范围更新命令
-/// </summary>
-public sealed record UserDataScopeUpdateCommand(
-    long BasicId,
-    bool IncludeChildren,
-    string? Remark);
-
-/// <summary>
-/// 用户数据范围状态变更命令
-/// </summary>
-public sealed record UserDataScopeStatusChangeCommand(long BasicId, ValidityStatus Status, string? Remark);
+    DataPermissionScope? DataScope,
+    IReadOnlyList<DataScopeDepartmentItem> Departments);
 
 /// <summary>
 /// 用户部门归属批量变更中的单条分配项
@@ -252,11 +228,6 @@ public sealed record UserRoleCommandResult(SysUserRole UserRole, SysRole? Role, 
 /// 用户直授权限命令结果
 /// </summary>
 public sealed record UserPermissionCommandResult(SysUserPermission UserPermission, SysPermission? Permission, SysTenantUser? TenantMember, DateTimeOffset Now);
-
-/// <summary>
-/// 用户数据范围命令结果
-/// </summary>
-public sealed record UserDataScopeCommandResult(SysUserDataScope DataScope, SysDepartment? Department, SysTenantUser? TenantMember);
 
 /// <summary>
 /// 用户部门归属命令结果

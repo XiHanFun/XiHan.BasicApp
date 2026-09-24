@@ -6,6 +6,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.ValueObjects;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Users;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
@@ -13,11 +14,16 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// <summary>
 /// 用户数据范围过滤服务实现
 /// </summary>
+/// <remarks>
+/// 数据范围是租户侧概念：部门、成员关系都属于租户，平台不施加数据范围（平台的可见性由权限码与作用侧决定）。
+/// 租户里先看成员关系上的覆盖：有覆盖就只按覆盖（自定义时取成员自己的部门明细）；没有覆盖才按角色——
+/// 启用角色的档位取并集，自定义档位的角色再并入它的部门明细。
+/// </remarks>
 public sealed class UserDataScopeFilterService : IUserDataScopeFilterService
 {
-    private const string SuperAdminRoleCode = "super_admin";
-
     private readonly ICurrentUser _currentUser;
+
+    private readonly ICurrentTenant _currentTenant;
 
     private readonly IDataScopeDecisionDomainService _dataScopeDecision;
 
@@ -26,6 +32,8 @@ public sealed class UserDataScopeFilterService : IUserDataScopeFilterService
     private readonly IRoleDataScopeRepository _roleDataScopeRepository;
 
     private readonly IRoleRepository _roleRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     private readonly IUserDataScopeRepository _userDataScopeRepository;
 
@@ -42,18 +50,22 @@ public sealed class UserDataScopeFilterService : IUserDataScopeFilterService
         IRoleDataScopeRepository roleDataScopeRepository,
         IUserDataScopeRepository userDataScopeRepository,
         IUserDepartmentRepository userDepartmentRepository,
+        ITenantUserRepository tenantUserRepository,
         IDepartmentHierarchyDomainService departmentHierarchy,
         IDataScopeDecisionDomainService dataScopeDecision,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ICurrentTenant currentTenant)
     {
         _userRoleRepository = userRoleRepository;
         _roleRepository = roleRepository;
         _roleDataScopeRepository = roleDataScopeRepository;
         _userDataScopeRepository = userDataScopeRepository;
         _userDepartmentRepository = userDepartmentRepository;
+        _tenantUserRepository = tenantUserRepository;
         _departmentHierarchy = departmentHierarchy;
         _dataScopeDecision = dataScopeDecision;
         _currentUser = currentUser;
+        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -69,58 +81,15 @@ public sealed class UserDataScopeFilterService : IUserDataScopeFilterService
             return UserDataScopeFilter.Unlimited;
         }
 
-        var userRoles = await _userRoleRepository.GetValidByUserIdAsync(currentUserId, now, cancellationToken);
-        var roleIds = userRoles.Select(item => item.RoleId).Distinct().ToList();
-
-        var roles = roleIds.Count == 0
-            ? []
-            : await _roleRepository.GetEnabledByIdsAsync(roleIds, cancellationToken);
-        if (roles.Any(role => string.Equals(role.RoleCode, SuperAdminRoleCode, StringComparison.OrdinalIgnoreCase)))
+        if (_currentTenant.IsPlatformOperation())
         {
             return UserDataScopeFilter.Unlimited;
         }
 
-        // 角色级数据范围：每个角色贡献其 DataScope 语义；Custom 部门明细来自 RoleDataScope 行
-        var grants = new List<DataScopeGrantSnapshot>();
-        foreach (var role in roles)
-        {
-            grants.Add(new DataScopeGrantSnapshot(
-                role.BasicId,
-                AuthorizationGrantSource.Role,
-                role.DataScope,
-                [],
-                IncludeChildren: false,
-                EffectivePeriod.Always));
-        }
-
-        if (roleIds.Count > 0)
-        {
-            var roleDataScopeRows = await _roleDataScopeRepository.GetValidByRoleIdsAsync(roleIds, now, cancellationToken);
-            foreach (var row in roleDataScopeRows)
-            {
-                grants.Add(new DataScopeGrantSnapshot(
-                    row.BasicId,
-                    AuthorizationGrantSource.Role,
-                    DataPermissionScope.Custom,
-                    [row.DepartmentId],
-                    row.IncludeChildren,
-                    new EffectivePeriod(row.EffectiveTime, row.ExpirationTime),
-                    row.Status == ValidityStatus.Valid));
-            }
-        }
-
-        // 用户级数据范围（直授自定义部门）
-        var userDataScopeRows = await _userDataScopeRepository.GetValidByUserIdAsync(currentUserId, cancellationToken);
-        foreach (var row in userDataScopeRows)
-        {
-            grants.Add(new DataScopeGrantSnapshot(
-                row.BasicId,
-                AuthorizationGrantSource.User,
-                DataPermissionScope.Custom,
-                [row.DepartmentId],
-                row.IncludeChildren,
-                EffectivePeriod.Always));
-        }
+        var membership = await _tenantUserRepository.GetMembershipAsync(currentUserId, cancellationToken);
+        var grants = membership?.DataScopeOverride is { } overrideScope
+            ? await ResolveMemberGrantsAsync(membership, overrideScope, cancellationToken)
+            : await ResolveRoleGrantsAsync(currentUserId, now, cancellationToken);
 
         var userDepartments = await _userDepartmentRepository.GetValidByUserIdAsync(currentUserId, cancellationToken);
         var userDepartmentIds = userDepartments.Select(item => item.DepartmentId).ToList();
@@ -148,5 +117,72 @@ public sealed class UserDataScopeFilterService : IUserDataScopeFilterService
         }
 
         return new UserDataScopeFilter(false, accessibleUserIds);
+    }
+
+    /// <summary>
+    /// 成员覆盖：只按覆盖档位，自定义时取成员在本租户的部门明细
+    /// </summary>
+    private async Task<List<DataScopeGrantSnapshot>> ResolveMemberGrantsAsync(
+        SysTenantUser membership,
+        DataPermissionScope scope,
+        CancellationToken cancellationToken)
+    {
+        if (scope != DataPermissionScope.Custom)
+        {
+            return [new DataScopeGrantSnapshot(membership.BasicId, AuthorizationGrantSource.User, scope, [], IncludeChildren: false, EffectivePeriod.Always)];
+        }
+
+        var rows = await _userDataScopeRepository.GetValidByUserIdAsync(membership.UserId, cancellationToken);
+        return [.. rows.Select(row => new DataScopeGrantSnapshot(
+            row.BasicId,
+            AuthorizationGrantSource.User,
+            DataPermissionScope.Custom,
+            [row.DepartmentId],
+            row.IncludeChildren,
+            EffectivePeriod.Always))];
+    }
+
+    /// <summary>
+    /// 按角色：启用角色的档位取并集，自定义档位的角色并入它的部门明细
+    /// </summary>
+    private async Task<List<DataScopeGrantSnapshot>> ResolveRoleGrantsAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var userRoles = await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken);
+        var roleIds = userRoles.Select(item => item.RoleId).Distinct().ToList();
+        if (roleIds.Count == 0)
+        {
+            return [];
+        }
+
+        var roles = await _roleRepository.GetEnabledByIdsAsync(roleIds, cancellationToken);
+        var grants = roles
+            .Where(role => role.DataScope != DataPermissionScope.Custom)
+            .Select(role => new DataScopeGrantSnapshot(
+                role.BasicId,
+                AuthorizationGrantSource.Role,
+                role.DataScope,
+                [],
+                IncludeChildren: false,
+                EffectivePeriod.Always))
+            .ToList();
+
+        var customRoleIds = roles
+            .Where(role => role.DataScope == DataPermissionScope.Custom)
+            .Select(role => role.BasicId)
+            .ToList();
+        if (customRoleIds.Count > 0)
+        {
+            var rows = await _roleDataScopeRepository.GetValidByRoleIdsAsync(customRoleIds, now, cancellationToken);
+            grants.AddRange(rows.Select(row => new DataScopeGrantSnapshot(
+                row.BasicId,
+                AuthorizationGrantSource.Role,
+                DataPermissionScope.Custom,
+                [row.DepartmentId],
+                row.IncludeChildren,
+                new EffectivePeriod(row.EffectiveTime, row.ExpirationTime),
+                row.Status == ValidityStatus.Valid)));
+        }
+
+        return grants;
     }
 }

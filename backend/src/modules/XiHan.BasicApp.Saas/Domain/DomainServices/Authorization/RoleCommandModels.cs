@@ -14,7 +14,6 @@ public sealed record RoleCreateCommand(
     string RoleName,
     string? RoleDescription,
     RoleType RoleType,
-    DataPermissionScope DataScope,
     int MaxMembers,
     EnableStatus Status,
     int Sort,
@@ -28,7 +27,6 @@ public sealed record RoleUpdateCommand(
     string RoleName,
     string? RoleDescription,
     RoleType RoleType,
-    DataPermissionScope DataScope,
     int MaxMembers,
     int Sort,
     string? Remark);
@@ -63,41 +61,15 @@ public sealed record RolePermissionUpdateCommand(
 public sealed record RolePermissionStatusChangeCommand(long BasicId, ValidityStatus Status, string? Remark);
 
 /// <summary>
-/// 角色数据范围批量变更中的单条授予项
+/// 角色数据范围设置命令：档位与自定义部门一次落地
 /// </summary>
-public sealed record RoleDataScopeBatchGrantItem(long DepartmentId, bool IncludeChildren);
-
-/// <summary>
-/// 角色数据范围批量变更命令（一次性提交授予与撤销）
-/// </summary>
-public sealed record RoleDataScopeBatchUpdateCommand(
+/// <param name="RoleId">角色主键</param>
+/// <param name="DataScope">数据范围档位</param>
+/// <param name="Departments">自定义部门（仅档位为 Custom 时提交，且至少一个）</param>
+public sealed record RoleDataScopeSetCommand(
     long RoleId,
-    IReadOnlyList<RoleDataScopeBatchGrantItem> Grants,
-    IReadOnlyList<long> RevokeRoleDataScopeIds);
-
-/// <summary>
-/// 角色数据范围批量变更结果（本次实际发生变化的部门）
-/// </summary>
-/// <param name="GrantedDepartmentIds">实际授予或改了含下级的部门ID</param>
-/// <param name="RevokedDepartmentIds">实际撤销的部门ID</param>
-public sealed record RoleDataScopeBatchUpdateResult(
-    IReadOnlyList<long> GrantedDepartmentIds,
-    IReadOnlyList<long> RevokedDepartmentIds);
-
-/// <summary>
-/// 角色数据范围更新命令
-/// </summary>
-public sealed record RoleDataScopeUpdateCommand(
-    long BasicId,
-    bool IncludeChildren,
-    DateTimeOffset? EffectiveTime,
-    DateTimeOffset? ExpirationTime,
-    string? Remark);
-
-/// <summary>
-/// 角色数据范围状态变更命令
-/// </summary>
-public sealed record RoleDataScopeStatusChangeCommand(long BasicId, ValidityStatus Status, string? Remark);
+    DataPermissionScope DataScope,
+    IReadOnlyList<DataScopeDepartmentItem> Departments);
 
 /// <summary>
 /// 角色父角色批量变更命令（一次性提交新增与移除的直接父角色）
@@ -134,8 +106,3 @@ public sealed record RolePermissionCommandResult(SysRolePermission RolePermissio
 public sealed record RolePermissionBatchUpdateResult(
     IReadOnlyList<long> GrantedPermissionIds,
     IReadOnlyList<long> RevokedPermissionIds);
-
-/// <summary>
-/// 角色数据范围命令结果
-/// </summary>
-public sealed record RoleDataScopeCommandResult(SysRoleDataScope DataScope, SysDepartment? Department);

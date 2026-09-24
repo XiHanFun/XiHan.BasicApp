@@ -39,8 +39,6 @@ public sealed class RoleAppService
 
     private readonly IRolePermissionRepository _rolePermissionRepository;
 
-    private readonly IRoleDataScopeRepository _roleDataScopeRepository;
-
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -50,8 +48,7 @@ public sealed class RoleAppService
         IAuthorizationChangeNotifier authorizationChangeNotifier,
         IImpersonationPolicyService impersonationPolicyService,
         ISuperAdminProtector superAdminProtector,
-        IRolePermissionRepository rolePermissionRepository,
-        IRoleDataScopeRepository roleDataScopeRepository)
+        IRolePermissionRepository rolePermissionRepository)
     {
         _roleDomainService = roleDomainService;
         _cacheInvalidator = cacheInvalidator;
@@ -59,7 +56,6 @@ public sealed class RoleAppService
         _impersonationPolicyService = impersonationPolicyService;
         _superAdminProtector = superAdminProtector;
         _rolePermissionRepository = rolePermissionRepository;
-        _roleDataScopeRepository = roleDataScopeRepository;
     }
 
     /// <summary>
@@ -79,22 +75,21 @@ public sealed class RoleAppService
     }
 
     /// <summary>
-    /// 批量变更角色数据范围（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
+    /// 设置角色数据范围：档位与自定义部门一次提交（单事务，仅在最后失效一次缓存）
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Grant)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Revoke)]
-    public async Task BatchUpdateRoleDataScopesAsync(RoleDataScopeBatchUpdateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Update)]
+    public async Task SetRoleDataScopeAsync(RoleDataScopeSetDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
-        _ = await _roleDomainService.BatchUpdateRoleDataScopesAsync(
-            new RoleDataScopeBatchUpdateCommand(
+        _ = await _roleDomainService.SetRoleDataScopeAsync(
+            new RoleDataScopeSetCommand(
                 input.RoleId,
-                [.. input.Grants.Select(grant => new RoleDataScopeBatchGrantItem(grant.DepartmentId, grant.IncludeChildren))],
-                input.RevokeRoleDataScopeIds),
+                input.DataScope,
+                [.. input.Departments.Select(item => new DataScopeDepartmentItem(item.DepartmentId, item.IncludeChildren))]),
             cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
@@ -192,46 +187,6 @@ public sealed class RoleAppService
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
         await _cacheInvalidator.InvalidateRoleDefinitionAsync(cancellationToken);
         return RoleApplicationMapper.ToDetailDto(result.Role);
-    }
-
-    /// <summary>
-    /// 更新角色数据范围
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Update)]
-    public async Task<RoleDataScopeDetailDto> UpdateRoleDataScopeAsync(RoleDataScopeUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var dataScope = await _roleDataScopeRepository.GetByIdAsync(input.BasicId, cancellationToken);
-        if (dataScope is not null)
-        {
-            await _superAdminProtector.EnsureCanWriteRoleAsync(dataScope.RoleId, cancellationToken);
-        }
-        var result = await _roleDomainService.UpdateRoleDataScopeAsync(RoleDataScopeApplicationMapper.ToUpdateCommand(input), cancellationToken);
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-        return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
-    }
-
-    /// <summary>
-    /// 更新角色数据范围状态
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleDataScope.Status)]
-    public async Task<RoleDataScopeDetailDto> UpdateRoleDataScopeStatusAsync(RoleDataScopeStatusUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var dataScope = await _roleDataScopeRepository.GetByIdAsync(input.BasicId, cancellationToken);
-        if (dataScope is not null)
-        {
-            await _superAdminProtector.EnsureCanWriteRoleAsync(dataScope.RoleId, cancellationToken);
-        }
-        var result = await _roleDomainService.UpdateRoleDataScopeStatusAsync(RoleDataScopeApplicationMapper.ToStatusCommand(input), cancellationToken);
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-        return RoleDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department);
     }
 
     /// <summary>

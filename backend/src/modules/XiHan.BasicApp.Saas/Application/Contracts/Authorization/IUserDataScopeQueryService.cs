@@ -12,6 +12,14 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 public interface IUserDataScopeQueryService : IApplicationService
 {
     /// <summary>
+    /// 获取成员在本租户的数据范围设置（覆盖档位 + 当前生效的自定义部门）
+    /// </summary>
+    /// <param name="userId">用户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>数据范围设置</returns>
+    Task<UserDataScopeSettingDto> GetUserDataScopeSettingAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取用户数据范围列表
     /// </summary>
     /// <param name="userId">用户主键</param>

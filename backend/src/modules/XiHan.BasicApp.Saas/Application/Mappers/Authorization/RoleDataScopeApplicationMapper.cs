@@ -72,27 +72,4 @@ public static class RoleDataScopeApplicationMapper
         };
     }
 
-    /// <summary>
-    /// 映射角色数据范围状态变更命令
-    /// </summary>
-    public static RoleDataScopeStatusChangeCommand ToStatusCommand(RoleDataScopeStatusUpdateDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        return new RoleDataScopeStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    /// <summary>
-    /// 映射角色数据范围更新命令
-    /// </summary>
-    public static RoleDataScopeUpdateCommand ToUpdateCommand(RoleDataScopeUpdateDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-
-        return new RoleDataScopeUpdateCommand(
-            input.BasicId,
-            input.IncludeChildren,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.Remark);
-    }
 }

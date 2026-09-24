@@ -80,25 +80,4 @@ public static class UserDataScopeApplicationMapper
         };
     }
 
-    /// <summary>
-    /// 映射用户数据范围状态变更命令
-    /// </summary>
-    public static UserDataScopeStatusChangeCommand ToStatusCommand(UserDataScopeStatusUpdateDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        return new UserDataScopeStatusChangeCommand(input.BasicId, input.Status, input.Remark);
-    }
-
-    /// <summary>
-    /// 映射用户数据范围更新命令
-    /// </summary>
-    public static UserDataScopeUpdateCommand ToUpdateCommand(UserDataScopeUpdateDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-
-        return new UserDataScopeUpdateCommand(
-            input.BasicId,
-            input.IncludeChildren,
-            input.Remark);
-    }
 }

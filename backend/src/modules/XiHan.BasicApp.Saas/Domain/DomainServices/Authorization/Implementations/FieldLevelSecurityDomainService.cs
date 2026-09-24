@@ -391,11 +391,6 @@ public sealed class FieldLevelSecurityDomainService
             throw new InvalidOperationException("无效租户成员不能配置字段级安全策略。");
         }
 
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台管理员成员字段级安全仅平台运维态可维护，请切换到平台运维后操作。");
-        }
-
         if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
         {
             throw new InvalidOperationException("未生效租户成员不能配置字段级安全策略。");

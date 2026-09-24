@@ -27,11 +27,6 @@ public sealed class RoleUpdateDto : BasicAppDto
     public RoleType RoleType { get; set; } = RoleType.Custom;
 
     /// <summary>
-    /// 数据权限范围
-    /// </summary>
-    public DataPermissionScope DataScope { get; set; } = DataPermissionScope.SelfOnly;
-
-    /// <summary>
     /// 最大成员数
     /// </summary>
     public int MaxMembers { get; set; }

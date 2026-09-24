@@ -368,11 +368,6 @@ public sealed class PermissionDelegationDomainService
             throw new InvalidOperationException($"无效{subjectName}不能参与权限委托。");
         }
 
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台管理员成员权限委托仅平台运维态可维护，请切换到平台运维后操作。");
-        }
-
         if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
         {
             throw new InvalidOperationException($"未生效{subjectName}不能参与权限委托。");

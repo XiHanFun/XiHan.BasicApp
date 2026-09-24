@@ -45,52 +45,23 @@ public sealed class UserDataScopeAppService
     #region 用户数据范围
 
     /// <summary>
-    /// 批量变更用户数据范围（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
+    /// 设置成员在本租户的数据范围：覆盖档位与自定义部门一次提交（单事务，仅在最后失效一次缓存）
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.UserDataScope.Grant)]
-    [PermissionAuthorize(SaasPermissionCodes.UserDataScope.Revoke)]
-    public async Task BatchUpdateUserDataScopesAsync(UserDataScopeBatchUpdateDto input, CancellationToken cancellationToken = default)
+    [PermissionAuthorize(SaasPermissionCodes.UserDataScope.Update)]
+    public async Task SetUserDataScopeAsync(UserDataScopeSetDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
         await _superAdminProtector.EnsureCanWriteUserAsync(input.UserId, cancellationToken);
-        _ = await _userDomainService.BatchUpdateUserDataScopesAsync(
-            new UserDataScopeBatchUpdateCommand(
+        _ = await _userDomainService.SetUserDataScopeAsync(
+            new UserDataScopeSetCommand(
                 input.UserId,
-                [.. input.Grants.Select(grant => new UserDataScopeBatchGrantItem(grant.DepartmentId, grant.IncludeChildren))],
-                input.RevokeUserDataScopeIds),
+                input.DataScope,
+                [.. input.Departments.Select(item => new DataScopeDepartmentItem(item.DepartmentId, item.IncludeChildren))]),
             cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(input.UserId, cancellationToken);
-    }
-
-    /// <summary>
-    /// 更新用户数据范围
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.UserDataScope.Update)]
-    public async Task<UserDataScopeDetailDto> UpdateUserDataScopeAsync(UserDataScopeUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var result = await _userDomainService.UpdateUserDataScopeAsync(UserDataScopeApplicationMapper.ToUpdateCommand(input), cancellationToken);
-        return UserDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department, result.TenantMember);
-    }
-
-    /// <summary>
-    /// 更新用户数据范围状态
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.UserDataScope.Status)]
-    public async Task<UserDataScopeDetailDto> UpdateUserDataScopeStatusAsync(UserDataScopeStatusUpdateDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var result = await _userDomainService.UpdateUserDataScopeStatusAsync(UserDataScopeApplicationMapper.ToStatusCommand(input), cancellationToken);
-        return UserDataScopeApplicationMapper.ToDetailDto(result.DataScope, result.Department, result.TenantMember);
     }
 
     #endregion

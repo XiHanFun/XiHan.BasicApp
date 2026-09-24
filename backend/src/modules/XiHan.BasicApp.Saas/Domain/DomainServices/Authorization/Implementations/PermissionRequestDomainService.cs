@@ -510,11 +510,6 @@ public sealed class PermissionRequestDomainService
             throw new InvalidOperationException("无效租户成员不能提交权限申请。");
         }
 
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台管理员成员权限申请仅平台运维态可维护，请切换到平台运维后操作。");
-        }
-
         if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
         {
             throw new InvalidOperationException("未生效租户成员不能提交权限申请。");

@@ -224,31 +224,12 @@ public sealed class SaasDomainPermissionConditionTests
     }
 
     /// <summary>
-    /// 平台管理员成员的直授权限条件仅平台运维态可维护，租户态必须拒绝（跨租户越权防线）。
+    /// 支持成员（平台人员入驻）的直授条件由所在租户维护：平台看不到也写不了租户的授权数据。
     /// </summary>
     [Fact]
-    public async Task CreatePermissionCondition_PlatformAdminMemberInTenantContext_ShouldReject()
+    public async Task CreatePermissionCondition_SupportMemberInTenantContext_ShouldPass()
     {
         var context = new ConditionTestContext(currentTenantId: 7);
-        context.SetupUsableUserPermission();
-        context.TenantMember.MemberType = TenantMemberType.PlatformAdmin;
-
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => context.Service.CreatePermissionConditionAsync(BuildCreateCommand(rolePermissionId: null, userPermissionId: 20)));
-
-        Assert.Contains("仅平台运维态可维护", exception.Message, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// 平台运维态（当前租户为空或 0）下允许维护平台管理员成员的直授条件。
-    /// </summary>
-    /// <param name="currentTenantId">当前租户上下文标识。</param>
-    [Theory]
-    [InlineData(null)]
-    [InlineData(0L)]
-    public async Task CreatePermissionCondition_PlatformAdminMemberInPlatformContext_ShouldPass(long? currentTenantId)
-    {
-        var context = new ConditionTestContext(currentTenantId);
         context.SetupUsableUserPermission();
         context.SetupNoExistingConditions();
         context.TenantMember.MemberType = TenantMemberType.PlatformAdmin;

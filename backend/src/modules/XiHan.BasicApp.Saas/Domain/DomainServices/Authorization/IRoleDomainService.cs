@@ -45,20 +45,10 @@ public interface IRoleDomainService
     Task<RolePermissionCommandResult> UpdateRolePermissionStatusAsync(RolePermissionStatusChangeCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 批量变更角色数据范围（一次性提交授予与撤销）
+    /// 设置角色数据范围：档位与自定义部门一次落地
     /// </summary>
-    /// <returns>本次实际发生变化的部门</returns>
-    Task<RoleDataScopeBatchUpdateResult> BatchUpdateRoleDataScopesAsync(RoleDataScopeBatchUpdateCommand command, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 更新角色数据范围
-    /// </summary>
-    Task<RoleDataScopeCommandResult> UpdateRoleDataScopeAsync(RoleDataScopeUpdateCommand command, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 更新角色数据范围状态
-    /// </summary>
-    Task<RoleDataScopeCommandResult> UpdateRoleDataScopeStatusAsync(RoleDataScopeStatusChangeCommand command, CancellationToken cancellationToken = default);
+    /// <returns>档位是否改变、本次实际变化的部门</returns>
+    Task<DataScopeSetResult> SetRoleDataScopeAsync(RoleDataScopeSetCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 批量变更角色的直接父角色（一次性提交新增与移除，先移除后新增）

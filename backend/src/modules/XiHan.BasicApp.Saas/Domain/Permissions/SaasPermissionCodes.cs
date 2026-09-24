@@ -1636,24 +1636,9 @@ public static class SaasPermissionCodes
         public const string Read = "saas:role-data-scope:read";
 
         /// <summary>
-        /// 授予角色数据范围
-        /// </summary>
-        public const string Grant = "saas:role-data-scope:grant";
-
-        /// <summary>
-        /// 更新角色数据范围
+        /// 设置角色数据范围（档位与自定义部门一次落地）
         /// </summary>
         public const string Update = "saas:role-data-scope:update";
-
-        /// <summary>
-        /// 更新角色数据范围状态
-        /// </summary>
-        public const string Status = "saas:role-data-scope:status";
-
-        /// <summary>
-        /// 撤销角色数据范围
-        /// </summary>
-        public const string Revoke = "saas:role-data-scope:revoke";
     }
 
     /// <summary>
@@ -1780,24 +1765,9 @@ public static class SaasPermissionCodes
         public const string Read = "saas:user-data-scope:read";
 
         /// <summary>
-        /// 授予用户数据范围
-        /// </summary>
-        public const string Grant = "saas:user-data-scope:grant";
-
-        /// <summary>
-        /// 更新用户数据范围
+        /// 设置用户数据范围（档位与自定义部门一次落地）
         /// </summary>
         public const string Update = "saas:user-data-scope:update";
-
-        /// <summary>
-        /// 更新用户数据范围状态
-        /// </summary>
-        public const string Status = "saas:user-data-scope:status";
-
-        /// <summary>
-        /// 撤销用户数据范围
-        /// </summary>
-        public const string Revoke = "saas:user-data-scope:revoke";
     }
 
     /// <summary>

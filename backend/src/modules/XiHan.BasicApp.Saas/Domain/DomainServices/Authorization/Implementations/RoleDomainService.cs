@@ -77,7 +77,6 @@ public sealed class RoleDomainService
             RoleName = command.RoleName.Trim(),
             RoleDescription = NormalizeNullable(command.RoleDescription),
             RoleType = command.RoleType,
-            DataScope = command.DataScope,
             MaxMembers = command.MaxMembers,
             Status = command.Status,
             Sort = command.Sort,
@@ -102,7 +101,6 @@ public sealed class RoleDomainService
         role.RoleName = command.RoleName.Trim();
         role.RoleDescription = NormalizeNullable(command.RoleDescription);
         role.RoleType = command.RoleType;
-        role.DataScope = command.DataScope;
         role.MaxMembers = command.MaxMembers;
         role.Sort = command.Sort;
         role.Remark = NormalizeNullable(command.Remark);
@@ -320,66 +318,52 @@ public sealed class RoleDomainService
     }
 
     /// <summary>
-    /// 批量变更角色数据范围（一次性提交授予与撤销）
+    /// 设置角色数据范围：档位与自定义部门一次落地
     /// </summary>
-    /// <returns>本次实际发生变化的部门</returns>
-    public async Task<RoleDataScopeBatchUpdateResult> BatchUpdateRoleDataScopesAsync(RoleDataScopeBatchUpdateCommand command, CancellationToken cancellationToken = default)
+    /// <remarks>
+    /// 全局角色是各租户共用的模板，只在平台设档位；部门是租户自己的数据，全局角色不能用自定义档位。
+    /// 部门明细与目标比出差量：新部门授予；改了含下级或此刻不生效的历史行就地复用、从现在起生效；
+    /// 目标之外仍有效的撤销（只置无效不删行）。档位不是自定义时，已有的部门明细全部撤销。
+    /// </remarks>
+    /// <returns>档位是否改变、本次实际变化的部门</returns>
+    public async Task<DataScopeSetResult> SetRoleDataScopeAsync(RoleDataScopeSetCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (command.RoleId <= 0)
+        ValidateEnum(command.DataScope, nameof(command.DataScope));
+        var departments = DataScopeDepartments.Normalize(command.DataScope, command.Departments);
+
+        var role = await GetEditableRoleOrThrowAsync(command.RoleId, cancellationToken);
+        if (role.Status != EnableStatus.Enabled)
         {
-            throw new ArgumentOutOfRangeException(nameof(command), "角色主键必须大于 0。");
+            throw new InvalidOperationException("停用角色不能维护数据范围。");
         }
 
-        // 同一部门重复下发时以最后一条为准
-        var grants = command.Grants
-            .Where(grant => grant.DepartmentId > 0)
-            .GroupBy(grant => grant.DepartmentId)
-            .ToDictionary(group => group.Key, group => group.Last().IncludeChildren);
-        var revokeIds = command.RevokeRoleDataScopeIds.Where(id => id > 0).Distinct().ToList();
-        if (grants.Count == 0 && revokeIds.Count == 0)
+        if (role.IsGlobal && command.DataScope == DataPermissionScope.Custom)
         {
-            return new RoleDataScopeBatchUpdateResult([], []);
+            throw new InvalidOperationException("全局角色是各租户共用的模板，部门是租户自己的数据，不能设为自定义数据范围。");
         }
 
-        _ = await GetCustomDataScopeRoleOrThrowAsync(command.RoleId, cancellationToken);
-        foreach (var departmentId in grants.Keys)
+        foreach (var departmentId in departments.Keys)
         {
             _ = await GetEnabledDepartmentOrThrowAsync(departmentId, cancellationToken);
         }
 
-        // 撤销只认本角色名下、仍为有效状态的记录；同一部门本次既撤又授时以授予为准（即改含下级）
-        var revoking = revokeIds.Count == 0
-            ? []
-            : (await _roleDataScopeRepository.GetListAsync(
-                scope => revokeIds.Contains(scope.BasicId)
-                    && scope.RoleId == command.RoleId
-                    && scope.Status == ValidityStatus.Valid,
-                cancellationToken))
-                .Where(scope => !grants.ContainsKey(scope.DepartmentId))
-                .ToList();
-
-        // 撤销只置无效不删行，同一 角色×部门 的历史行会留在库里，命中即就地复用
-        var departmentIds = grants.Keys.ToList();
-        var existingMap = departmentIds.Count == 0
-            ? []
-            : (await _roleDataScopeRepository.GetListAsync(
-                scope => scope.RoleId == command.RoleId && departmentIds.Contains(scope.DepartmentId),
-                cancellationToken)).ToDictionary(scope => scope.DepartmentId);
-
+        // 同一 角色×部门 只有一行：撤销只置无效，历史行命中即就地复用
+        var rows = (await _roleDataScopeRepository.GetListAsync(scope => scope.RoleId == role.BasicId, cancellationToken))
+            .ToDictionary(scope => scope.DepartmentId);
         var now = DateTimeOffset.UtcNow;
         var updating = new List<SysRoleDataScope>();
         var adding = new List<SysRoleDataScope>();
         var grantedDepartmentIds = new List<long>();
-        foreach (var (departmentId, includeChildren) in grants)
+        foreach (var (departmentId, includeChildren) in departments)
         {
-            if (!existingMap.TryGetValue(departmentId, out var dataScope))
+            if (!rows.TryGetValue(departmentId, out var dataScope))
             {
                 adding.Add(new SysRoleDataScope
                 {
-                    RoleId = command.RoleId,
+                    RoleId = role.BasicId,
                     DepartmentId = departmentId,
                     IncludeChildren = includeChildren,
                     Status = ValidityStatus.Valid
@@ -407,19 +391,17 @@ public sealed class RoleDomainService
             grantedDepartmentIds.Add(departmentId);
         }
 
-        if (revoking.Count > 0)
+        var revoking = rows.Values
+            .Where(scope => scope.Status == ValidityStatus.Valid && !departments.ContainsKey(scope.DepartmentId))
+            .ToList();
+        foreach (var dataScope in revoking)
         {
-            foreach (var dataScope in revoking)
-            {
-                dataScope.Status = ValidityStatus.Invalid;
-            }
-
-            _ = await _roleDataScopeRepository.UpdateRangeAsync(revoking, cancellationToken);
+            dataScope.Status = ValidityStatus.Invalid;
         }
 
-        if (updating.Count > 0)
+        if (revoking.Count > 0 || updating.Count > 0)
         {
-            _ = await _roleDataScopeRepository.UpdateRangeAsync(updating, cancellationToken);
+            _ = await _roleDataScopeRepository.UpdateRangeAsync([.. revoking, .. updating], cancellationToken);
         }
 
         if (adding.Count > 0)
@@ -427,62 +409,14 @@ public sealed class RoleDomainService
             _ = await _roleDataScopeRepository.AddRangeAsync(adding, cancellationToken);
         }
 
-        return new RoleDataScopeBatchUpdateResult(grantedDepartmentIds, [.. revoking.Select(dataScope => dataScope.DepartmentId)]);
-    }
-
-    /// <summary>
-    /// 更新角色数据范围
-    /// </summary>
-    public async Task<RoleDataScopeCommandResult> UpdateRoleDataScopeAsync(RoleDataScopeUpdateCommand command, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        ValidateRoleDataScopeUpdateCommand(command);
-
-        var dataScope = await GetRoleDataScopeOrThrowAsync(command.BasicId, cancellationToken);
-        _ = await GetCustomDataScopeRoleOrThrowAsync(dataScope.RoleId, cancellationToken);
-        var department = await GetEnabledDepartmentOrThrowAsync(dataScope.DepartmentId, cancellationToken);
-
-        dataScope.IncludeChildren = command.IncludeChildren;
-        dataScope.EffectiveTime = command.EffectiveTime;
-        dataScope.ExpirationTime = command.ExpirationTime;
-        dataScope.Remark = NormalizeNullable(command.Remark);
-
-        var savedDataScope = await _roleDataScopeRepository.UpdateAsync(dataScope, cancellationToken);
-        return new RoleDataScopeCommandResult(savedDataScope, department);
-    }
-
-    /// <summary>
-    /// 更新角色数据范围状态
-    /// </summary>
-    public async Task<RoleDataScopeCommandResult> UpdateRoleDataScopeStatusAsync(RoleDataScopeStatusChangeCommand command, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (command.BasicId <= 0)
+        var scopeChanged = role.DataScope != command.DataScope;
+        if (scopeChanged)
         {
-            throw new ArgumentOutOfRangeException(nameof(command), "角色数据范围绑定主键必须大于 0。");
+            role.DataScope = command.DataScope;
+            _ = await _roleRepository.UpdateAsync(role, cancellationToken);
         }
 
-        ValidateEnum(command.Status, nameof(command.Status));
-
-        var dataScope = await GetRoleDataScopeOrThrowAsync(command.BasicId, cancellationToken);
-        var department = command.Status == ValidityStatus.Valid
-            ? await GetEnabledDepartmentOrThrowAsync(dataScope.DepartmentId, cancellationToken)
-            : await _departmentRepository.GetByIdAsync(dataScope.DepartmentId, cancellationToken);
-
-        if (command.Status == ValidityStatus.Valid)
-        {
-            _ = await GetCustomDataScopeRoleOrThrowAsync(dataScope.RoleId, cancellationToken);
-        }
-
-        dataScope.Status = command.Status;
-        dataScope.Remark = NormalizeNullable(command.Remark);
-
-        var savedDataScope = await _roleDataScopeRepository.UpdateAsync(dataScope, cancellationToken);
-        return new RoleDataScopeCommandResult(savedDataScope, department);
+        return new DataScopeSetResult(scopeChanged, grantedDepartmentIds, [.. revoking.Select(scope => scope.DepartmentId)]);
     }
 
     /// <summary>
@@ -657,7 +591,7 @@ public sealed class RoleDomainService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(command.RoleCode);
         ArgumentException.ThrowIfNullOrWhiteSpace(command.RoleName);
-        ValidateCommonCommand(command.RoleType, command.DataScope, command.MaxMembers);
+        ValidateCommonCommand(command.RoleType, command.MaxMembers);
         ValidateEnum(command.Status, nameof(command.Status));
     }
 
@@ -669,13 +603,12 @@ public sealed class RoleDomainService
         }
 
         ArgumentException.ThrowIfNullOrWhiteSpace(command.RoleName);
-        ValidateCommonCommand(command.RoleType, command.DataScope, command.MaxMembers);
+        ValidateCommonCommand(command.RoleType, command.MaxMembers);
     }
 
-    private static void ValidateCommonCommand(RoleType roleType, DataPermissionScope dataScope, int maxMembers)
+    private static void ValidateCommonCommand(RoleType roleType, int maxMembers)
     {
         ValidateEnum(roleType, nameof(roleType));
-        ValidateEnum(dataScope, nameof(dataScope));
 
         if (roleType == RoleType.System)
         {
@@ -696,16 +629,6 @@ public sealed class RoleDomainService
         }
 
         ValidateEnum(command.PermissionAction, nameof(command.PermissionAction));
-        ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
-    }
-
-    private static void ValidateRoleDataScopeUpdateCommand(RoleDataScopeUpdateCommand command)
-    {
-        if (command.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "角色数据范围绑定主键必须大于 0。");
-        }
-
         ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
     }
 
@@ -932,40 +855,6 @@ public sealed class RoleDomainService
         }
 
         return permission;
-    }
-
-    private async Task<SysRoleDataScope> GetRoleDataScopeOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "角色数据范围绑定主键必须大于 0。");
-        }
-
-        return await _roleDataScopeRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("角色数据范围绑定不存在。");
-    }
-
-    private async Task<SysRole> GetCustomDataScopeRoleOrThrowAsync(long roleId, CancellationToken cancellationToken)
-    {
-        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
-            ?? throw new InvalidOperationException("角色不存在。");
-
-        if (role.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用角色不能维护数据范围。");
-        }
-
-        if ((role.IsGlobal || role.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台全局角色或系统角色仅平台运维态可维护，请切换到平台运维后操作。");
-        }
-
-        if (role.DataScope != DataPermissionScope.Custom)
-        {
-            throw new InvalidOperationException("只有自定义数据权限范围角色才能维护数据范围。");
-        }
-
-        return role;
     }
 
     private async Task<SysDepartment> GetEnabledDepartmentOrThrowAsync(long departmentId, CancellationToken cancellationToken)

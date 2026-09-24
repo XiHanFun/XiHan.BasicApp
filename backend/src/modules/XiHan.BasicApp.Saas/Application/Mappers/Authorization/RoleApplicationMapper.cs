@@ -24,7 +24,6 @@ public static class RoleApplicationMapper
             input.RoleName,
             input.RoleDescription,
             input.RoleType,
-            input.DataScope,
             input.MaxMembers,
             input.Status,
             input.Sort,
@@ -128,7 +127,6 @@ public static class RoleApplicationMapper
             input.RoleName,
             input.RoleDescription,
             input.RoleType,
-            input.DataScope,
             input.MaxMembers,
             input.Sort,
             input.Remark);

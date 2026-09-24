@@ -48,7 +48,6 @@ export interface RoleDetailDto extends RoleListItemDto {
 }
 
 export interface RoleCreateDto {
-  dataScope: DataPermissionScope
   maxMembers: number
   remark?: string | null
   roleCode: string
@@ -60,7 +59,6 @@ export interface RoleCreateDto {
 }
 
 export interface RoleUpdateDto extends BasicDto {
-  dataScope: DataPermissionScope
   maxMembers: number
   remark?: string | null
   roleDescription?: string | null

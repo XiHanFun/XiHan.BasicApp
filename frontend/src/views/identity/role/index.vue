@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ScopeDraftItem } from './data-scope-draft'
+import type { DataScopeDraft } from '../components/data-scope'
 import type {
   ApiId,
   DepartmentTreeNodeDto,
@@ -7,7 +7,6 @@ import type {
   PageResult,
   PermissionListItemDto,
   RoleCreateDto,
-  RoleDataScopeListItemDto,
   RoleDetailDto,
   RoleListItemDto,
   RoleManagementDetailDto,
@@ -16,7 +15,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -36,13 +35,14 @@ import {
   ValidityStatus,
 } from '@/api'
 import { DATA_SCOPE_OPTIONS, PERMISSION_ACTION_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer, XSelect, XTree, XTreeSelect } from '~/components'
+import { SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer, XSelect, XTree } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
-import { diffScopeDraft, upsertScopeDraft } from './data-scope-draft'
+import { isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from '../components/data-scope'
+import DataScopeEditor from '../components/DataScopeEditor.vue'
 
 defineOptions({ name: 'SystemRolePage' })
 
@@ -205,7 +205,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('identity.role.action_edit'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
     { key: 'assignPermission', title: t('identity.role.action_assign_permission'), scope: 'row' },
     { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row' },
-    { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row' },
+    { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
     { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
     { key: 'delete', title: t('identity.role.action_delete'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
   ],
@@ -574,89 +574,54 @@ async function saveMenuGrants() {
   }
 }
 
-// ── 数据范围抽屉（按部门授予角色数据范围：先在草稿里增删，保存时一次提交） ──
+// ── 数据范围抽屉（档位与自定义部门一次保存） ──────────────────────
 const scopeVisible = ref(false)
 const scopeRole = ref<RoleListItemDto | null>(null)
-/** 当前生效的范围，保存时与草稿比出差量 */
-const scopeGrants = ref<RoleDataScopeListItemDto[]>([])
-const scopeDraft = ref<ScopeDraftItem[]>([])
-const scopeDeptOptions = ref<TreeSelectOption[]>([])
-const scopeDeptNames = ref(new Map<ApiId, string>())
-const scopeSelectedDept = ref<ApiId | null>(null)
-const scopeIncludeChildren = ref(true)
+const scopeTree = ref<DepartmentTreeNodeDto[]>([])
+const scopeDraft = ref<DataScopeDraft>({ dataScope: DataPermissionScope.SelfOnly, departments: [] })
+/** 打开时的现状，保存钮只在有改动时可用 */
+const scopeOriginal = ref<DataScopeDraft>({ dataScope: DataPermissionScope.SelfOnly, departments: [] })
 const scopeLoading = ref(false)
 const scopeSubmitting = ref(false)
-const scopeChanges = computed(() => diffScopeDraft(scopeDraft.value, scopeGrants.value))
-const scopeDirty = computed(() => scopeChanges.value.grants.length > 0 || scopeChanges.value.revokeRoleDataScopeIds.length > 0)
+/** 全局角色是各租户共用的模板：只设档位，部门是租户自己的数据 */
+const scopeAllowCustom = computed(() => !(scopeRole.value?.isGlobal ?? false))
+const scopeDirty = computed(() => isDataScopeDirty(scopeDraft.value, scopeOriginal.value))
 
-function toDeptOptions(nodes: DepartmentTreeNodeDto[]): TreeSelectOption[] {
-  return nodes.map(node => ({
-    value: node.basicId,
-    label: node.departmentName,
-    children: node.children?.length ? toDeptOptions(node.children) : undefined,
-  }))
-}
-
-function collectDeptNames(nodes: DepartmentTreeNodeDto[], names = new Map<ApiId, string>()) {
-  for (const node of nodes) {
-    names.set(node.basicId, node.departmentName)
-    if (node.children?.length)
-      collectDeptNames(node.children, names)
-  }
-  return names
-}
-
-function scopeDeptName(departmentId: ApiId) {
-  return scopeDeptNames.value.get(departmentId)
-    ?? scopeGrants.value.find(grant => grant.departmentId === departmentId)?.departmentName
-    ?? String(departmentId)
-}
-
-function resetScopeDraft(grants: RoleDataScopeListItemDto[]) {
-  scopeGrants.value = grants
-  scopeDraft.value = grants.map(({ departmentId, includeChildren }) => ({ departmentId, includeChildren }))
+function resetScopeDraft(draft: DataScopeDraft) {
+  scopeDraft.value = draft
+  scopeOriginal.value = draft
 }
 
 async function openScopeDrawer(row: RoleListItemDto) {
   scopeRole.value = row
   scopeVisible.value = true
-  scopeSelectedDept.value = null
-  scopeIncludeChildren.value = true
-  resetScopeDraft([])
+  scopeTree.value = []
+  resetScopeDraft({ dataScope: row.dataScope, departments: [] })
+  if (row.isGlobal) {
+    return
+  }
+
   scopeLoading.value = true
   try {
-    // 比对基准只取此刻生效的范围：撤销过、已过期的历史行不进草稿，再加回来即从现在起生效
+    // 比对基准只取此刻生效的部门：撤销过、已过期的历史行不进草稿，再选中即从现在起生效
     const [tree, grants] = await Promise.all([
       departmentApi.tree({ limit: 1000, onlyEnabled: true }),
       roleDataScopeApi.list(row.basicId, true),
     ])
-    scopeDeptOptions.value = toDeptOptions(tree)
-    scopeDeptNames.value = collectDeptNames(tree)
-    resetScopeDraft(grants)
+    scopeTree.value = tree
+    resetScopeDraft({
+      dataScope: row.dataScope,
+      departments: row.dataScope === DataPermissionScope.Custom
+        ? grants.map(({ departmentId, includeChildren }) => ({ departmentId, includeChildren }))
+        : [],
+    })
   }
   catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('identity.role.scope_load_failed'))
+    toast.danger((e as Error)?.message || t('identity.data_scope.load_failed'))
   }
   finally {
     scopeLoading.value = false
   }
-}
-
-/** 放进草稿：已在草稿里的部门只改含下级 */
-function addScope() {
-  if (scopeSelectedDept.value == null) {
-    toast.warning(t('identity.role.scope_select_dept_required'))
-    return
-  }
-  scopeDraft.value = upsertScopeDraft(scopeDraft.value, {
-    departmentId: scopeSelectedDept.value,
-    includeChildren: scopeIncludeChildren.value,
-  })
-  scopeSelectedDept.value = null
-}
-
-function removeScope(departmentId: ApiId) {
-  scopeDraft.value = scopeDraft.value.filter(item => item.departmentId !== departmentId)
 }
 
 async function saveScopes() {
@@ -664,12 +629,23 @@ async function saveScopes() {
   if (!role || !scopeDirty.value || scopeSubmitting.value) {
     return
   }
-  const { grants, revokeRoleDataScopeIds } = scopeChanges.value
+  if (!isDataScopeComplete(scopeDraft.value)) {
+    toast.warning(t('identity.data_scope.custom_required'))
+    return
+  }
+
+  // 角色的编辑器不提供「跟随角色」，档位恒有值
+  const { dataScope, departments } = toDataScopePayload(scopeDraft.value)
+  if (dataScope == null) {
+    return
+  }
+
   scopeSubmitting.value = true
   try {
-    await roleDataScopeApi.batchUpdate({ roleId: role.basicId, grants, revokeRoleDataScopeIds })
-    resetScopeDraft(await roleDataScopeApi.list(role.basicId, true))
-    toast.success(t('identity.role.scope_saved', { grant: grants.length, revoke: revokeRoleDataScopeIds.length }))
+    await roleDataScopeApi.set({ roleId: role.basicId, dataScope, departments })
+    toast.success(t('identity.data_scope.saved'))
+    scopeVisible.value = false
+    reloadRole()
   }
   catch (e: unknown) {
     toast.danger((e as Error)?.message || t('common.messages.save_failed'))
@@ -692,7 +668,6 @@ const modalTitle = computed(() => (roleForm.value.basicId ? t('identity.role.for
 
 function createDefaultRoleForm(): RoleFormModel {
   return {
-    dataScope: DataPermissionScope.SelfOnly,
     maxMembers: 0,
     remark: null,
     roleCode: '',
@@ -745,7 +720,6 @@ async function handleEdit(row: RoleListItemDto) {
   }
   roleForm.value = {
     basicId: row.basicId,
-    dataScope: detail?.dataScope ?? row.dataScope,
     maxMembers: detail?.maxMembers ?? row.maxMembers,
     remark: detail?.remark ?? null,
     roleCode: detail?.roleCode ?? row.roleCode,
@@ -802,7 +776,6 @@ async function handleSubmit() {
     if (roleForm.value.basicId) {
       const updateInput: RoleUpdateDto = {
         basicId: roleForm.value.basicId,
-        dataScope: roleForm.value.dataScope,
         maxMembers: roleForm.value.maxMembers,
         remark: roleForm.value.remark,
         roleDescription: roleForm.value.roleDescription,
@@ -822,7 +795,6 @@ async function handleSubmit() {
     }
     else {
       const createInput: RoleCreateDto = {
-        dataScope: roleForm.value.dataScope,
         maxMembers: roleForm.value.maxMembers,
         remark: roleForm.value.remark,
         roleCode: roleForm.value.roleCode.trim(),
@@ -1182,15 +1154,6 @@ async function handleToggleStatus(row: RoleListItemDto) {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup name="dataScope">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('identity.role.label_data_scope') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XSelect v-model:value="roleForm.dataScope" :options="dataScopeOptions" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
         <XhFormFieldGroup name="maxMembers">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_max_members') }}</XhFieldLabel>
@@ -1321,55 +1284,21 @@ async function handleToggleStatus(row: RoleListItemDto) {
     </XhDrawerRoot>
 
     <XhDrawerRoot v-model:open="scopeVisible" side="right">
-      <XhDrawerContent style="--xh-drawer-size: 560px">
-        <XhDrawerTitle>{{ t('identity.role.scope_drawer_title', { name: scopeRole?.roleName ?? '' }) }}</XhDrawerTitle>
+      <XhDrawerContent style="--xh-drawer-size: 640px">
+        <XhDrawerTitle>{{ t('identity.data_scope.drawer_title', { name: scopeRole?.roleName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <div class="scope-add">
-          <XTreeSelect
-            v-model:value="scopeSelectedDept"
-            clearable
-            :options="scopeDeptOptions"
-            :placeholder="t('identity.role.scope_select_dept')" style="flex: 1"
-          />
-          <!-- 开关旁的文字随状态切换：含下级 / 仅本级 -->
-          <XhSwitch v-model:checked="scopeIncludeChildren">
-            {{ scopeIncludeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
-          </XhSwitch>
-          <XhButton variant="subtle" size="sm" tone="brand" :disabled="scopeLoading" @click="addScope">
-            {{ t('identity.role.scope_add') }}
-          </XhButton>
-        </div>
         <div class="xh-loading-stage scope-stage" :class="{ 'is-loading': scopeLoading }">
           <div class="xh-loading-stage__veil">
             <XhSpinner />
           </div>
-          <XhEmptyStateRoot v-if="scopeDraft.length === 0 && !scopeLoading" size="sm" class="perm-empty">
-            <XhEmptyStateIndicator>
-              <Icon icon="lucide:inbox" width="28" height="28" />
-            </XhEmptyStateIndicator>
-            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-            <XhEmptyStateDescription>{{ t('identity.role.scope_empty') }}</XhEmptyStateDescription>
-          </XhEmptyStateRoot>
-          <div v-else class="scope-list">
-            <div v-for="item in scopeDraft" :key="String(item.departmentId)" class="scope-row">
-              <span class="scope-dept">{{ scopeDeptName(item.departmentId) }}</span>
-              <XhTagRoot variant="subtle" size="sm" :tone="item.includeChildren ? 'info' : 'neutral'">
-                <XhTagLabel>
-                  {{ item.includeChildren ? t('identity.role.scope_include_children') : t('identity.role.scope_only_self') }}
-                </XhTagLabel>
-              </XhTagRoot>
-              <XhButton variant="ghost" size="sm" tone="danger" @click="removeScope(item.departmentId)">
-                {{ t('identity.role.scope_remove') }}
-              </XhButton>
-            </div>
-          </div>
+          <DataScopeEditor v-model="scopeDraft" :department-tree="scopeTree" :allow-custom="scopeAllowCustom" />
         </div>
         <div class="xh-dialog-footer">
           <XhButton variant="subtle" @click="scopeVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="scopeSubmitting" :disabled="!scopeDirty" style="margin-left: 8px" @click="saveScopes">
-            {{ t('identity.role.scope_save') }}
+          <XhButton variant="subtle" tone="brand" :loading="scopeSubmitting" :disabled="!scopeDirty || scopeLoading" style="margin-left: 8px" @click="saveScopes">
+            {{ t('identity.data_scope.save') }}
           </XhButton>
         </div>
       </XhDrawerContent>
@@ -1391,42 +1320,11 @@ async function handleToggleStatus(row: RoleListItemDto) {
   opacity: 0.6;
 }
 
-/* 数据范围抽屉 */
-.scope-add {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-/* 列表区撑满抽屉剩余高度，保存/取消落在抽屉底部；部门多时在这里滚动 */
+/* 数据范围抽屉：编辑区撑满抽屉剩余高度，保存/取消落在抽屉底部；部门多时在这里滚动 */
 .scope-stage {
   flex: 1;
   min-block-size: 0;
   overflow-y: auto;
-}
-
-.scope-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.scope-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border: 1px solid hsl(var(--border));
-  border-radius: 8px;
-}
-
-.scope-dept {
-  flex: 1;
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* 菜单树撑满抽屉剩余高度：树自带 24rem 的最大高，不放开就是一块矮框加大片空白 */

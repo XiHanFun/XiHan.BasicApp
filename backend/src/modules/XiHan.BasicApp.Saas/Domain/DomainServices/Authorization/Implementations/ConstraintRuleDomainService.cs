@@ -448,11 +448,6 @@ public sealed class ConstraintRuleDomainService
             throw new InvalidOperationException("无效租户成员不能配置约束规则。");
         }
 
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台管理员成员约束规则仅平台运维态可维护，请切换到平台运维后操作。");
-        }
-
         if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)
         {
             throw new InvalidOperationException("未生效租户成员不能配置约束规则。");

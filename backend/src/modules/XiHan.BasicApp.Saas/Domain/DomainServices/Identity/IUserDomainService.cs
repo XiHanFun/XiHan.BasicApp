@@ -85,20 +85,10 @@ public interface IUserDomainService
     Task<UserPermissionCommandResult> UpdateUserPermissionStatusAsync(UserPermissionStatusChangeCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 批量变更用户数据范围（一次性提交授予与撤销）
+    /// 设置成员在本租户的数据范围：覆盖档位与自定义部门一次落地
     /// </summary>
-    /// <returns>本次实际发生变化的部门</returns>
-    Task<UserDataScopeBatchUpdateResult> BatchUpdateUserDataScopesAsync(UserDataScopeBatchUpdateCommand command, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 更新用户数据范围
-    /// </summary>
-    Task<UserDataScopeCommandResult> UpdateUserDataScopeAsync(UserDataScopeUpdateCommand command, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 更新用户数据范围状态
-    /// </summary>
-    Task<UserDataScopeCommandResult> UpdateUserDataScopeStatusAsync(UserDataScopeStatusChangeCommand command, CancellationToken cancellationToken = default);
+    /// <returns>档位是否改变、本次实际变化的部门</returns>
+    Task<DataScopeSetResult> SetUserDataScopeAsync(UserDataScopeSetCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 批量变更用户部门归属（一次性提交分配与撤销）

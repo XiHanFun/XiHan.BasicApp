@@ -480,7 +480,7 @@ public sealed class UserDomainService
         }
 
         var now = DateTimeOffset.UtcNow;
-        _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "分配角色", "平台管理员成员角色必须通过平台运维流程维护。", cancellationToken);
+        _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "分配角色", cancellationToken);
 
         // 撤销只认本用户名下、仍为有效状态的记录：别人的记录主键混进来不会被改动，已失效的也不重复记账。
         // 同一角色本次既撤又授时以授予为准，不撤销
@@ -596,7 +596,7 @@ public sealed class UserDomainService
 
         var now = DateTimeOffset.UtcNow;
         var userRole = await GetUserRoleOrThrowAsync(command.BasicId, cancellationToken);
-        var tenantMember = await GetAssignableTenantMemberOrThrowAsync(userRole.UserId, now, "分配角色", "平台管理员成员角色必须通过平台运维流程维护。", cancellationToken);
+        var tenantMember = await GetAssignableTenantMemberOrThrowAsync(userRole.UserId, now, "分配角色", cancellationToken);
         var role = await GetAssignableRoleOrThrowAsync(userRole.RoleId, cancellationToken);
 
         userRole.EffectiveTime = command.EffectiveTime;
@@ -629,7 +629,7 @@ public sealed class UserDomainService
         var now = DateTimeOffset.UtcNow;
         var userRole = await GetUserRoleOrThrowAsync(command.BasicId, cancellationToken);
         var tenantMember = command.Status == ValidityStatus.Valid
-            ? await GetAssignableTenantMemberOrThrowAsync(userRole.UserId, now, "分配角色", "平台管理员成员角色必须通过平台运维流程维护。", cancellationToken)
+            ? await GetAssignableTenantMemberOrThrowAsync(userRole.UserId, now, "分配角色", cancellationToken)
             : await _tenantUserRepository.GetMembershipAsync(userRole.UserId, cancellationToken);
         var role = command.Status == ValidityStatus.Valid
             ? await GetAssignableRoleOrThrowAsync(userRole.RoleId, cancellationToken)
@@ -679,7 +679,7 @@ public sealed class UserDomainService
         }
 
         var now = DateTimeOffset.UtcNow;
-        _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "维护直授权限", "平台管理员成员权限必须通过平台运维流程维护。", cancellationToken);
+        _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "维护直授权限", cancellationToken);
 
         var grantedPermissionIds = new List<long>();
         var deniedPermissionIds = new List<long>();
@@ -797,7 +797,7 @@ public sealed class UserDomainService
 
         var now = DateTimeOffset.UtcNow;
         var userPermission = await GetUserPermissionOrThrowAsync(command.BasicId, cancellationToken);
-        var tenantMember = await GetAssignableTenantMemberOrThrowAsync(userPermission.UserId, now, "维护直授权限", "平台管理员成员权限必须通过平台运维流程维护。", cancellationToken);
+        var tenantMember = await GetAssignableTenantMemberOrThrowAsync(userPermission.UserId, now, "维护直授权限", cancellationToken);
         var permission = await GetGrantablePermissionOrThrowAsync(userPermission.PermissionId, cancellationToken);
 
         userPermission.PermissionAction = command.PermissionAction;
@@ -831,7 +831,7 @@ public sealed class UserDomainService
         var now = DateTimeOffset.UtcNow;
         var userPermission = await GetUserPermissionOrThrowAsync(command.BasicId, cancellationToken);
         var tenantMember = command.Status == ValidityStatus.Valid
-            ? await GetAssignableTenantMemberOrThrowAsync(userPermission.UserId, now, "维护直授权限", "平台管理员成员权限必须通过平台运维流程维护。", cancellationToken)
+            ? await GetAssignableTenantMemberOrThrowAsync(userPermission.UserId, now, "维护直授权限", cancellationToken)
             : await _tenantUserRepository.GetMembershipAsync(userPermission.UserId, cancellationToken);
         var permission = command.Status == ValidityStatus.Valid
             ? await GetGrantablePermissionOrThrowAsync(userPermission.PermissionId, cancellationToken)
@@ -849,12 +849,17 @@ public sealed class UserDomainService
     #region 用户数据范围
 
     /// <summary>
-    /// 批量变更用户数据范围（一次性提交授予与撤销）
+    /// 设置成员在本租户的数据范围：覆盖档位与自定义部门一次落地
     /// </summary>
-    /// <param name="command">批量变更命令</param>
+    /// <remarks>
+    /// 覆盖挂在成员关系上，同一个人在不同租户各自设置；null 表示跟随角色。数据范围是租户侧概念，平台没有成员关系。
+    /// 部门明细与目标比出差量：新部门授予、改了含下级或已撤销的就地复用、目标之外仍有效的撤销（只置无效不删行）；
+    /// 档位不是自定义时，已有的部门明细全部撤销。
+    /// </remarks>
+    /// <param name="command">设置命令</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>本次实际发生变化的部门</returns>
-    public async Task<UserDataScopeBatchUpdateResult> BatchUpdateUserDataScopesAsync(UserDataScopeBatchUpdateCommand command, CancellationToken cancellationToken = default)
+    /// <returns>档位是否改变、本次实际变化的部门</returns>
+    public async Task<DataScopeSetResult> SetUserDataScopeAsync(UserDataScopeSetCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
@@ -864,50 +869,32 @@ public sealed class UserDomainService
             throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
         }
 
-        // 同一部门重复下发时以最后一条为准
-        var grants = command.Grants
-            .Where(grant => grant.DepartmentId > 0)
-            .GroupBy(grant => grant.DepartmentId)
-            .ToDictionary(group => group.Key, group => group.Last().IncludeChildren);
-        var revokeIds = command.RevokeUserDataScopeIds.Where(id => id > 0).Distinct().ToList();
-        if (grants.Count == 0 && revokeIds.Count == 0)
+        if (command.DataScope is { } scope)
         {
-            return new UserDataScopeBatchUpdateResult([], []);
+            ValidateEnum(scope, nameof(command.DataScope));
         }
 
-        var now = DateTimeOffset.UtcNow;
-        _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "维护数据范围", "平台管理员成员数据范围必须通过平台运维流程维护。", cancellationToken);
-        _ = await GetCustomDataScopeUserOrThrowAsync(command.UserId, cancellationToken);
-        foreach (var departmentId in grants.Keys)
+        var departments = DataScopeDepartments.Normalize(command.DataScope, command.Departments);
+        if (_currentTenant.IsPlatformOperation())
+        {
+            throw new InvalidOperationException("数据范围是租户侧设置：平台没有成员关系，也不施加数据范围。");
+        }
+
+        var membership = await GetAssignableTenantMemberOrThrowAsync(command.UserId, DateTimeOffset.UtcNow, "维护数据范围", cancellationToken);
+        foreach (var departmentId in departments.Keys)
         {
             _ = await GetEnabledDepartmentOrThrowAsync(departmentId, cancellationToken);
         }
 
-        // 撤销只认本用户名下、仍为有效状态的记录；同一部门本次既撤又授时以授予为准（即改含下级）
-        var revoking = revokeIds.Count == 0
-            ? []
-            : (await _userDataScopeRepository.GetListAsync(
-                scope => revokeIds.Contains(scope.BasicId)
-                    && scope.UserId == command.UserId
-                    && scope.Status == ValidityStatus.Valid,
-                cancellationToken))
-                .Where(scope => !grants.ContainsKey(scope.DepartmentId))
-                .ToList();
-
-        // 撤销只置无效不删行，同一 用户×部门 的历史行会留在库里，命中即就地复用
-        var departmentIds = grants.Keys.ToList();
-        var existingMap = departmentIds.Count == 0
-            ? []
-            : (await _userDataScopeRepository.GetListAsync(
-                scope => scope.UserId == command.UserId && departmentIds.Contains(scope.DepartmentId),
-                cancellationToken)).ToDictionary(scope => scope.DepartmentId);
-
+        // 同一 成员×部门 只有一行：撤销只置无效，历史行命中即就地复用
+        var rows = (await _userDataScopeRepository.GetListAsync(item => item.UserId == command.UserId, cancellationToken))
+            .ToDictionary(item => item.DepartmentId);
         var updating = new List<SysUserDataScope>();
         var adding = new List<SysUserDataScope>();
         var grantedDepartmentIds = new List<long>();
-        foreach (var (departmentId, includeChildren) in grants)
+        foreach (var (departmentId, includeChildren) in departments)
         {
-            if (!existingMap.TryGetValue(departmentId, out var dataScope))
+            if (!rows.TryGetValue(departmentId, out var dataScope))
             {
                 adding.Add(new SysUserDataScope
                 {
@@ -931,19 +918,17 @@ public sealed class UserDomainService
             grantedDepartmentIds.Add(departmentId);
         }
 
-        if (revoking.Count > 0)
+        var revoking = rows.Values
+            .Where(item => item.Status == ValidityStatus.Valid && !departments.ContainsKey(item.DepartmentId))
+            .ToList();
+        foreach (var dataScope in revoking)
         {
-            foreach (var dataScope in revoking)
-            {
-                dataScope.Status = ValidityStatus.Invalid;
-            }
-
-            _ = await _userDataScopeRepository.UpdateRangeAsync(revoking, cancellationToken);
+            dataScope.Status = ValidityStatus.Invalid;
         }
 
-        if (updating.Count > 0)
+        if (revoking.Count > 0 || updating.Count > 0)
         {
-            _ = await _userDataScopeRepository.UpdateRangeAsync(updating, cancellationToken);
+            _ = await _userDataScopeRepository.UpdateRangeAsync([.. revoking, .. updating], cancellationToken);
         }
 
         if (adding.Count > 0)
@@ -951,72 +936,14 @@ public sealed class UserDomainService
             _ = await _userDataScopeRepository.AddRangeAsync(adding, cancellationToken);
         }
 
-        return new UserDataScopeBatchUpdateResult(grantedDepartmentIds, [.. revoking.Select(dataScope => dataScope.DepartmentId)]);
-    }
-
-    /// <summary>
-    /// 更新用户数据范围
-    /// </summary>
-    /// <param name="command">更新参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户数据范围详情</returns>
-    public async Task<UserDataScopeCommandResult> UpdateUserDataScopeAsync(UserDataScopeUpdateCommand command, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        ValidateDataScopeUpdateCommand(command);
-
-        var now = DateTimeOffset.UtcNow;
-        var dataScope = await GetUserDataScopeOrThrowAsync(command.BasicId, cancellationToken);
-        var tenantMember = await GetAssignableTenantMemberOrThrowAsync(dataScope.UserId, now, "维护数据范围", "平台管理员成员数据范围必须通过平台运维流程维护。", cancellationToken);
-        _ = await GetCustomDataScopeUserOrThrowAsync(dataScope.UserId, cancellationToken);
-        var department = await GetEnabledDepartmentOrThrowAsync(dataScope.DepartmentId, cancellationToken);
-
-        dataScope.IncludeChildren = command.IncludeChildren;
-        dataScope.Remark = NormalizeNullable(command.Remark);
-
-        var savedDataScope = await _userDataScopeRepository.UpdateAsync(dataScope, cancellationToken);
-        return new UserDataScopeCommandResult(savedDataScope, department, tenantMember);
-    }
-
-    /// <summary>
-    /// 更新用户数据范围状态
-    /// </summary>
-    /// <param name="command">状态更新参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户数据范围详情</returns>
-    public async Task<UserDataScopeCommandResult> UpdateUserDataScopeStatusAsync(UserDataScopeStatusChangeCommand command, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (command.BasicId <= 0)
+        var scopeChanged = membership.DataScopeOverride != command.DataScope;
+        if (scopeChanged)
         {
-            throw new ArgumentOutOfRangeException(nameof(command), "用户数据范围绑定主键必须大于 0。");
+            membership.DataScopeOverride = command.DataScope;
+            _ = await _tenantUserRepository.UpdateAsync(membership, cancellationToken);
         }
 
-        ValidateEnum(command.Status, nameof(command.Status));
-
-        var now = DateTimeOffset.UtcNow;
-        var dataScope = await GetUserDataScopeOrThrowAsync(command.BasicId, cancellationToken);
-        var tenantMember = command.Status == ValidityStatus.Valid
-            ? await GetAssignableTenantMemberOrThrowAsync(dataScope.UserId, now, "维护数据范围", "平台管理员成员数据范围必须通过平台运维流程维护。", cancellationToken)
-            : await _tenantUserRepository.GetMembershipAsync(dataScope.UserId, cancellationToken);
-        var department = command.Status == ValidityStatus.Valid
-            ? await GetEnabledDepartmentOrThrowAsync(dataScope.DepartmentId, cancellationToken)
-            : await GetDepartmentOrDefaultAsync(dataScope.DepartmentId, cancellationToken);
-
-        if (command.Status == ValidityStatus.Valid)
-        {
-            _ = await GetCustomDataScopeUserOrThrowAsync(dataScope.UserId, cancellationToken);
-        }
-
-        dataScope.Status = command.Status;
-        dataScope.Remark = NormalizeNullable(command.Remark);
-
-        var savedDataScope = await _userDataScopeRepository.UpdateAsync(dataScope, cancellationToken);
-        return new UserDataScopeCommandResult(savedDataScope, department, tenantMember);
+        return new DataScopeSetResult(scopeChanged, grantedDepartmentIds, [.. revoking.Select(item => item.DepartmentId)]);
     }
 
     #endregion
@@ -1060,7 +987,7 @@ public sealed class UserDomainService
 
         if (assigns.Count > 0)
         {
-            _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, DateTimeOffset.UtcNow, "分配部门", "平台管理员成员部门归属必须通过平台运维流程维护。", cancellationToken);
+            _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, DateTimeOffset.UtcNow, "分配部门", cancellationToken);
             foreach (var assign in assigns)
             {
                 _ = await GetAssignableDepartmentOrThrowAsync(assign.DepartmentId, cancellationToken);
@@ -1177,7 +1104,7 @@ public sealed class UserDomainService
             throw new InvalidOperationException("无效用户部门归属不能更新。");
         }
 
-        _ = await GetAssignableTenantMemberOrThrowAsync(userDepartment.UserId, now, "分配部门", "平台管理员成员部门归属必须通过平台运维流程维护。", cancellationToken);
+        _ = await GetAssignableTenantMemberOrThrowAsync(userDepartment.UserId, now, "分配部门", cancellationToken);
         var department = await GetAssignableDepartmentOrThrowAsync(userDepartment.DepartmentId, cancellationToken);
         if (command.IsMain)
         {
@@ -1221,7 +1148,7 @@ public sealed class UserDomainService
 
         if (command.Status == ValidityStatus.Valid)
         {
-            _ = await GetAssignableTenantMemberOrThrowAsync(userDepartment.UserId, now, "分配部门", "平台管理员成员部门归属必须通过平台运维流程维护。", cancellationToken);
+            _ = await GetAssignableTenantMemberOrThrowAsync(userDepartment.UserId, now, "分配部门", cancellationToken);
             if (userDepartment.IsMain)
             {
                 await ClearOtherMainDepartmentsAsync(userDepartment.UserId, userDepartment.BasicId, cancellationToken);
@@ -1558,17 +1485,6 @@ public sealed class UserDomainService
 
         ValidateEnum(command.PermissionAction, nameof(command.PermissionAction));
         ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime, "用户直授权限");
-    }
-
-    /// <summary>
-    /// 校验用户数据范围更新参数
-    /// </summary>
-    private static void ValidateDataScopeUpdateCommand(UserDataScopeUpdateCommand command)
-    {
-        if (command.BasicId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "用户数据范围绑定主键必须大于 0。");
-        }
     }
 
     /// <summary>
@@ -2083,41 +1999,6 @@ public sealed class UserDomainService
     // ---- 用户数据范围辅助 ----
 
     /// <summary>
-    /// 获取用户数据范围绑定，不存在时抛出异常
-    /// </summary>
-    private async Task<SysUserDataScope> GetUserDataScopeOrThrowAsync(long id, CancellationToken cancellationToken)
-    {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "用户数据范围绑定主键必须大于 0。");
-        }
-
-        return await _userDataScopeRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("用户数据范围绑定不存在。");
-    }
-
-    /// <summary>
-    /// 获取数据权限范围覆盖为自定义的用户，不满足规则时抛出异常（与角色侧 GetCustomDataScopeRoleOrThrowAsync 对称）
-    /// </summary>
-    private async Task<SysUser> GetCustomDataScopeUserOrThrowAsync(long userId, CancellationToken cancellationToken)
-    {
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("用户不存在。");
-
-        if (user.Status != EnableStatus.Enabled)
-        {
-            throw new InvalidOperationException("停用用户不能维护数据范围。");
-        }
-
-        if (user.DataScopeOverride != DataPermissionScope.Custom)
-        {
-            throw new InvalidOperationException("只有数据权限范围覆盖为自定义（DataScopeOverride=Custom）的用户才能维护部门数据范围。");
-        }
-
-        return user;
-    }
-
-    /// <summary>
     /// 获取已启用部门，不满足规则时抛出异常
     /// </summary>
     private async Task<SysDepartment> GetEnabledDepartmentOrThrowAsync(long departmentId, CancellationToken cancellationToken)
@@ -2245,10 +2126,12 @@ public sealed class UserDomainService
     /// <param name="userId">用户主键</param>
     /// <param name="now">当前时间</param>
     /// <param name="operationContext">操作上下文描述（如"分配角色"）</param>
-    /// <param name="platformAdminMessage">平台管理员拦截消息</param>
     /// <param name="cancellationToken">取消令牌</param>
+    /// <remarks>
+    /// 支持成员（平台人员入驻）也由所在租户维护：平台看不到也写不了租户的授权数据，他们在租户里能做什么由这个租户决定。
+    /// </remarks>
     private async Task<SysTenantUser> GetAssignableTenantMemberOrThrowAsync(
-        long userId, DateTimeOffset now, string operationContext, string platformAdminMessage, CancellationToken cancellationToken)
+        long userId, DateTimeOffset now, string operationContext, CancellationToken cancellationToken)
     {
         var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
             ?? throw new InvalidOperationException("当前租户成员不存在。");
@@ -2261,11 +2144,6 @@ public sealed class UserDomainService
         if (tenantMember.Status != ValidityStatus.Valid)
         {
             throw new InvalidOperationException($"无效租户成员不能{operationContext}。");
-        }
-
-        if (tenantMember.MemberType == TenantMemberType.PlatformAdmin && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException(platformAdminMessage);
         }
 
         if (tenantMember.EffectiveTime.HasValue && tenantMember.EffectiveTime.Value > now)

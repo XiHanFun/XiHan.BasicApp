@@ -9,14 +9,14 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 用户自定义数据权限范围实体（用户级 Custom 数据范围的部门明细）
-/// 对齐角色模型：范围档位（All/Self/Dept/Custom 等）由 SysUser.DataScopeOverride 单值承载，
-/// 本表仅在 DataScopeOverride=Custom 时枚举用户可见的部门集合（纯部门明细，不再携带范围档位枚举）
+/// 成员自定义数据范围实体（成员级 Custom 数据范围的部门明细）
+/// 对齐角色模型：范围档位（All/Self/Dept/Custom 等）由成员关系 SysTenantUser.DataScopeOverride 单值承载，
+/// 本表仅在 DataScopeOverride=Custom 时枚举成员在本租户可见的部门集合（纯部门明细，不携带范围档位）
 /// </summary>
 /// <remarks>
 /// 职责边界：
-/// - 与 SysRoleDataScope 完全对称：SysRoleDataScope 服务 SysRole.DataScope=Custom；本表服务 SysUser.DataScopeOverride=Custom
-/// - 用户级覆盖优先级高于角色级：当 SysUser.DataScopeOverride 非空时，忽略角色的 DataScope
+/// - 与 SysRoleDataScope 完全对称：SysRoleDataScope 服务 SysRole.DataScope=Custom；本表服务 SysTenantUser.DataScopeOverride=Custom
+/// - 成员级覆盖取代角色级：成员关系的 DataScopeOverride 非空时，忽略该成员所有角色的数据范围
 ///
 /// 关联：
 /// - UserId → SysUser；DepartmentId → SysDepartment
@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 写入：
 /// - TenantId + UserId + DepartmentId 唯一（UX_TeId_UsId_DeId），避免重复配置
 /// - 同租户约束：UserId 与 DepartmentId 必须同 TenantId
-/// - 仅当 SysUser.DataScopeOverride=Custom 时写入本表；其它档位本表应无记录
+/// - 由「设置成员数据范围」一次落地档位与部门：档位不是 Custom 时本表不留有效记录
 /// - IncludeChildren=true 时服务层需配合 SysDepartmentHierarchy 展开所有后代部门
 ///
 /// 查询：
