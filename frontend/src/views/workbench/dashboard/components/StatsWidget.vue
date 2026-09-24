@@ -38,19 +38,20 @@ onMounted(async () => {
 
 <template>
   <WidgetCard icon="lucide:gauge" :title="t('workbench.widgets.stats.title')">
-    <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+    <!-- 按小组件自身宽度排布：极窄单列横排；中等两列、图标在上；宽到每格放得下横排时再横排，足够宽四列一行 -->
+    <div class="grid grid-cols-1 gap-2 @[14rem]:grid-cols-2 @2xl:grid-cols-4 @2xl:gap-3">
       <div
         v-for="stat in statCards"
         :key="stat.key"
-        class="flex items-center gap-3 rounded-xl border border-border/60 bg-background px-4 py-3"
+        class="flex min-w-0 items-center gap-3 rounded-xl border border-border/60 bg-background px-3 py-2.5 @[14rem]:flex-col @[14rem]:items-start @[14rem]:gap-2 @md:flex-row @md:items-center @md:gap-3"
       >
         <div
-          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
           :style="{ backgroundColor: `${stat.color}18` }"
         >
-          <Icon :icon="stat.icon" width="22" height="22" :style="{ color: stat.color }" />
+          <Icon :icon="stat.icon" width="20" height="20" :style="{ color: stat.color }" />
         </div>
-        <div class="flex min-w-0 flex-col gap-0.5">
+        <div class="flex min-w-0 max-w-full flex-col gap-0.5">
           <span class="text-xl font-bold leading-tight text-foreground tabular-nums">{{ stat.value }}</span>
           <span class="truncate text-xs text-muted-foreground">{{ stat.label }}</span>
         </div>

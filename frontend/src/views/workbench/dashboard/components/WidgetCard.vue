@@ -20,7 +20,8 @@ defineProps<{
         <slot name="extra" />
       </div>
     </header>
-    <div class="min-h-0 flex-1 overflow-auto p-4">
+    <!-- 内容区是 container：小组件宽度由用户按 12 栅格自定，内部布局按自身宽度（@ 容器查询）而非视口断点自适应 -->
+    <div class="@container min-h-0 flex-1 overflow-auto p-4">
       <slot />
     </div>
   </section>

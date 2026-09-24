@@ -40,7 +40,8 @@ const greeting = computed(() => {
 <template>
   <WidgetCard icon="lucide:clock" :title="t('workbench.widgets.clock.title')">
     <div class="flex h-full flex-col items-center justify-center gap-1 text-center">
-      <div class="font-mono text-4xl font-bold tabular-nums text-foreground">
+      <!-- 字号随小组件宽度流式缩放（cqi = 容器内宽 1%）：窄栅格下不再溢出出现横向滚动条 -->
+      <div class="font-mono text-[length:clamp(1.25rem,18cqi,2.25rem)] font-bold leading-tight tabular-nums text-foreground">
         {{ time }}
       </div>
       <div class="text-sm text-muted-foreground">
