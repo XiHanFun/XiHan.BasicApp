@@ -407,7 +407,6 @@ export default {
     },
     tenants: {
       err_load_failed: '테넌트 목록을 불러오지 못했어요',
-      msg_switched_to: '「{label}」(으)로 전환했어요',
       err_switch_failed: '전환하지 못했어요',
       section_title: '내 테넌트',
       section_desc: '현재 접근할 수 있는 테넌트 조직과 멤버 역할이에요',

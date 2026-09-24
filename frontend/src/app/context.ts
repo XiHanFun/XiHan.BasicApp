@@ -14,6 +14,7 @@ import type {
   ChangeUserNameParams,
   EmailLoginParams,
   ExternalLoginItem,
+  ImpersonationCandidateQuery,
   LoginConfig,
   LoginLogPage,
   LoginParams,
@@ -432,7 +433,8 @@ function createShellApis() {
 function createImpersonationApis() {
   return {
     impersonationApi: {
-      candidates: (keyword?: string) => impersonationApi.candidates(keyword),
+      tenants: () => impersonationApi.tenants(),
+      candidates: (input: ImpersonationCandidateQuery) => impersonationApi.candidates(input),
       start: (input: StartImpersonationParams) => impersonationApi.start(input),
       stop: () => impersonationApi.stop(),
     },

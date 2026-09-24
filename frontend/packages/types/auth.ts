@@ -13,9 +13,11 @@ export interface UserInfo {
   email?: string
   phone?: string
   tenantId?: null | string
-  /** 是否处于平台运维态（无租户上下文） */
+  /** 当前租户名称（平台为空） */
+  tenantName?: null | string
+  /** 是否处于平台（0 号租户，令牌不带租户） */
   isPlatform?: boolean
-  /** 是否可进入平台运维态（超管 / 平台管理员） */
+  /** 是否可进入平台（平台账号） */
   canAccessPlatform?: boolean
   roles: string[]
   permissions: string[]
@@ -39,6 +41,19 @@ export interface StartImpersonationParams {
   reason?: null | string
 }
 
+/** 模仿登录的候选查询 */
+export interface ImpersonationCandidateQuery {
+  keyword?: string
+  /** 给了取该租户的成员；不给取平台账号（仅平台可用） */
+  tenantId?: string
+}
+
+/** 平台发起模仿时可选的租户 */
+export interface ImpersonationTenantOption {
+  tenantId: string
+  tenantName: string
+}
+
 /** 模仿登录的候选目标 */
 export interface ImpersonationCandidate {
   basicId: string
@@ -48,9 +63,9 @@ export interface ImpersonationCandidate {
   avatar?: null | string
 }
 
-/** 切换租户 / 进入平台运维态参数（切换复用当前登录会话，无需设备标识） */
+/** 切换租户 / 进入平台参数（服务端在目标上下文续接当前会话，无需设备标识） */
 export interface SwitchTenantParams {
-  /** 目标租户标识；为空表示切换到平台运维态 */
+  /** 目标租户标识；为空表示进入平台 */
   tenantId?: null | string
 }
 

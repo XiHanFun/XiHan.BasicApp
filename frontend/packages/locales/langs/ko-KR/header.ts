@@ -1,4 +1,8 @@
 export default {
+  context: {
+    platform: '플랫폼',
+    switch: '현재: {name}, 클릭하여 전환',
+  },
   user: {
     profile: '내 정보',
     lock: '화면 잠금',
@@ -8,6 +12,8 @@ export default {
     entry: '대리 로그인',
     title: '다른 사용자로 로그인',
     hint: '해당 사용자가 겪는 문제를 확인할 때 사용해요. 이 기간의 작업은 감사에 기록되고 민감한 작업은 비활성화돼요.',
+    scope_label: '대리 로그인 범위',
+    scope_platform: '플랫폼 계정',
     search_placeholder: '사용자 이름 / 닉네임 / 성명 검색',
     reason_placeholder: '대리 로그인 사유(선택, 감사에 기록)',
     empty_title: '대리 로그인할 사용자가 없어요',

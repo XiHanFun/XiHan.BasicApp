@@ -108,16 +108,19 @@ export function setupRouterGuard(router: Router) {
     if (!accessStore.isRoutesLoaded && !WHITE_LIST.includes(to.path)) {
       try {
         if (!permissionInfo) {
-          permissionInfo = await ctx.apis.getPermissionsApi()
+          // 整页加载：本地留的用户信息可能属于切换前的上下文（平台 / 租户标识、租户名），与权限一起重取
+          const [userInfo, authPermission] = await Promise.all([
+            ctx.apis.getUserInfoApi(),
+            ctx.apis.getPermissionsApi(),
+          ])
+          permissionInfo = authPermission
           accessStore.setAccessCodes(permissionInfo.permissions)
           accessStore.setAccessButtons(permissionInfo.buttons ?? [])
-          if (userStore.userInfo) {
-            userStore.setUserInfo({
-              ...userStore.userInfo,
-              roles: permissionInfo.roles,
-              permissions: permissionInfo.permissions,
-            })
-          }
+          userStore.setUserInfo({
+            ...userInfo,
+            roles: permissionInfo.roles,
+            permissions: permissionInfo.permissions,
+          })
         }
 
         if (isStaticRouteMode()) {

@@ -7,15 +7,14 @@ import type { PrintTemplateDetailDto, PrintTemplateListItemDto } from '../../../
 import type PrintTemplateEditor from './components/PrintTemplateEditor.vue'
 import type { PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, h, onMounted, ref, watch } from 'vue'
+import { XhButton, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onBeforeRouteLeave } from 'vue-router'
 import {
   createPageRequest,
   EnableStatus,
   querySortsFromSchema,
-  tenantApi,
 } from '@/api'
 import { SchemaPage, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
@@ -27,7 +26,7 @@ import {
   previewPrintByCode,
   PrintTemplateVersionChangedError,
 } from '~/printing'
-import { useUserStore } from '~/stores'
+import { useAccessStore, useUserStore } from '~/stores'
 import { printTemplateApi } from '../../../api/print-template'
 import { PrintTemplateScope } from '../../../api/print-template.types'
 import SampleDataModal from './components/PrintSampleDataModal.vue'
@@ -37,6 +36,7 @@ defineOptions({ name: 'SettingPrintTemplatePage' })
 
 const { t } = useI18n()
 const userStore = useUserStore()
+const accessStore = useAccessStore()
 const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
 const editorRef = ref<InstanceType<typeof PrintTemplateEditor> | null>(null)
 const editorVisible = ref(false)
@@ -49,12 +49,12 @@ const samplePreviewContext = ref<{
   detail: PrintTemplateDetailDto
   scope: PrintTemplateScope
 } | null>(null)
-const isPlatform = ref(!userStore.userInfo?.tenantId)
-const contextResolved = ref(false)
+/** 当前是否在平台：取用户信息（守卫每次整页加载都会重取，切换上下文会整页重载） */
+const isPlatform = computed(() => userStore.userInfo?.isPlatform ?? false)
 const activeScope = ref<PrintTemplateScope>(isPlatform.value ? PrintTemplateScope.Global : PrintTemplateScope.Tenant)
 
 const canMaintain = computed(() => activeScope.value === PrintTemplateScope.Tenant
-  || (isPlatform.value && userStore.hasPermission('setting.print-template.global-manage')))
+  || (isPlatform.value && accessStore.hasCode('setting.print-template.global-manage')))
 const currentScopeLabel = computed(() => activeScope.value === PrintTemplateScope.Tenant
   ? t('setting.print_template.tenant_templates')
   : t('setting.print_template.available_global_templates'))
@@ -74,23 +74,7 @@ watch(samplePreviewVisible, (show) => {
   }
 })
 
-onMounted(() => void resolveCurrentContext())
-
 onBeforeRouteLeave(async () => !editorVisible.value || (await editorRef.value?.confirmDiscard()) !== false)
-
-/** 使用当前令牌的租户切换列表确定平台/租户事实状态。 */
-async function resolveCurrentContext(): Promise<void> {
-  try {
-    const tenants = await tenantApi.myAvailableTenants()
-    isPlatform.value = !tenants.some(tenant => tenant.isCurrent)
-  }
-  catch {
-    isPlatform.value = !userStore.userInfo?.tenantId
-  }
-  finally {
-    contextResolved.value = true
-  }
-}
 
 /** 在租户私有模板与开放的全局模板之间切换。 */
 function switchScope(): void {
@@ -370,8 +354,7 @@ function parseTemplateJson(value: string): Record<string, unknown> {
 
 <template>
   <div class="flex h-full min-h-0 flex-col gap-3">
-    <XhSpinner v-if="!contextResolved" class="flex-1 py-12" />
-    <SchemaPage v-else ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
+    <SchemaPage ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
       <template v-if="!isPlatform" #toolbar>
         <XTooltip :content="scopeSwitchLabel">
           <XhButton class="xh-icon-btn" variant="ghost" size="sm" :aria-label="scopeSwitchLabel" @click="switchScope">

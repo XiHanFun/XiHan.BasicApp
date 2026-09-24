@@ -407,7 +407,6 @@ export default {
     },
     tenants: {
       err_load_failed: 'टेनेंट सूची लोड नहीं हो सकी',
-      msg_switched_to: '「{label}」 पर स्विच कर दिया गया',
       err_switch_failed: 'स्विच करना विफल रहा',
       section_title: 'मेरे टेनेंट',
       section_desc: 'वे टेनेंट संगठन जिन तक आपकी पहुँच है और उनमें आपकी भूमिकाएँ',

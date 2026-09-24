@@ -51,11 +51,6 @@ public sealed partial class AuthAppService
     : SaasApplicationService, IAuthAppService
 {
     /// <summary>
-    /// 超级管理员角色编码（与种子/授权快照约定一致，运行时特判 *）
-    /// </summary>
-    private const string SuperAdminRoleCode = "super_admin";
-
-    /// <summary>
     /// 默认租户标识：自助注册 / 找回密码在缺省范围时落到该租户（与基础身份种子约定一致）
     /// </summary>
     private const long DefaultRegistrationTenantId = 1;
@@ -795,10 +790,14 @@ public sealed partial class AuthAppService
     }
 
     /// <summary>
-    /// 切换租户 / 进入平台运维态：复用当前登录会话，在目标上下文内重新签发访问令牌
+    /// 切换租户 / 进入平台：在目标上下文里续接会话并签发访问令牌
     /// </summary>
-    /// <remarks>不是一次新登录：不新建登录设备记录，也不触发登录通知</remarks>
-    /// <param name="input">切换参数（目标租户，空表示平台态）</param>
+    /// <remarks>
+    /// 进入租户须是该租户的有效成员且租户可进入（与登录落点、控制中心同一口径），超管也不例外；
+    /// 平台是 0 号租户，只对平台账号开放。会话属于它所在的上下文：旧会话吊销、目标上下文里新建续接会话，
+    /// 旧令牌随之失效。不是一次新登录，不触发登录通知。
+    /// </remarks>
+    /// <param name="input">切换参数（目标租户，空表示平台）</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>新的登录令牌</returns>
     [UnitOfWork(true)]
@@ -813,52 +812,34 @@ public sealed partial class AuthAppService
         var userId = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
         var now = DateTimeOffset.UtcNow;
 
-        // 归一目标租户：null 或 <=0 视为平台运维态（无租户上下文）
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("当前用户不存在。");
+
+        // 归一目标租户：null 或 <=0 表示平台（0 号租户，令牌不带租户）
         var targetTenantId = input.TenantId is > 0 ? input.TenantId : null;
-        var isSuperAdmin = _currentUser.IsInRole(SuperAdminRoleCode);
-
-        // 跨租户读取当前用户的有效成员关系（忽略租户过滤）
-        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(userId, now, cancellationToken);
-
         string? targetTenantName = null;
         if (targetTenantId is null)
         {
-            // 平台运维态：仅超管或拥有平台管理员成员身份可进入
-            var canEnterPlatform = isSuperAdmin || memberships.Any(member => member.MemberType == TenantMemberType.PlatformAdmin);
-            if (!canEnterPlatform)
+            // 平台只对平台账号开放：租户账号在平台里没有任何身份
+            if (user.TenantId != 0)
             {
-                throw new InvalidOperationException("当前账号无权进入平台运维态。");
+                throw new InvalidOperationException("只有平台账号可以进入平台。");
             }
         }
         else
         {
-            // 切换到具体租户：超管可进入任意租户；否则必须是该租户的有效成员
-            var isMember = memberships.Any(member => member.TenantId == targetTenantId.Value);
-            if (!isMember && !isSuperAdmin)
-            {
-                throw new InvalidOperationException("当前账号不是目标租户的有效成员，无法切换。");
-            }
-
-            var tenant = await _authContextQueryService.GetLoginTenantOrThrowAsync(targetTenantId, now, cancellationToken)
-                ?? throw new InvalidOperationException("目标租户不存在或不可用。");
-            targetTenantId = tenant.TenantId;
-            targetTenantName = tenant.TenantName;
+            var accessible = await _authContextQueryService.GetAccessibleTenantsAsync(userId, now, cancellationToken);
+            var target = accessible.FirstOrDefault(item => item.Tenant.BasicId == targetTenantId.Value)
+                ?? throw new InvalidOperationException(await DescribeInaccessibleTenantAsync(userId, targetTenantId.Value, now, cancellationToken));
+            targetTenantName = target.Tenant.TenantName;
         }
 
-        var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
-            ?? throw new InvalidOperationException("当前用户不存在。");
+        var currentSession = await GetCurrentSessionOrThrowAsync(cancellationToken);
 
-        // 切换租户是同一登录会话的上下文迁移，不是一次新登录：复用当前会话并轮换令牌。
-        // 不新建会话（否则设备列表每切一次多一台「设备」），不发布登录成功事件（否则每切一次误报「账号在新设备登录」）。
-        var session = await GetCurrentSessionOrThrowAsync(cancellationToken);
-        if (session.Status != SessionStatus.Active)
-        {
-            throw new InvalidOperationException("会话已失效，请重新登录。");
-        }
-
-        // 在目标上下文内重建授权快照并签发新令牌（平台态不带 TenantId claim）
+        // 在目标上下文内重建授权快照、续接会话并签发新令牌（平台不带 TenantId claim）
         using var tenantScope = _currentTenant.Change(targetTenantId, targetTenantName);
         var authSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
+        var sessionBusinessId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
 
         // 与登录同口径：token 不冻结具体权限，仅保留通配 * 作为超管快路径
@@ -867,16 +848,16 @@ public sealed partial class AuthAppService
             new AuthAccessTokenIssueCommand(
                 user,
                 targetTenantId,
-                session.UserSessionId,
+                sessionBusinessId,
                 accessTokenJti,
                 authSnapshot.Roles,
                 tokenPermissions,
-                session.DeviceId));
+                currentSession.DeviceId));
 
-        _ = await _loginSessionDomainService.SwitchTenantAsync(session, targetTenantId, accessTokenJti, tokenIssue.TokenResult, now, cancellationToken);
+        _ = await _loginSessionDomainService.SwitchTenantAsync(currentSession, sessionBusinessId, accessTokenJti, tokenIssue.TokenResult, now, cancellationToken);
 
-        // 会话行的租户戳/过期时间已变化，闸门缓存立即失效避免读到旧状态
-        await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
+        // 旧会话已吊销：闸门缓存立即失效，旧令牌下一次请求即被拒
+        await _cacheInvalidator.InvalidateSessionStateAsync(currentSession.UserSessionId, cancellationToken);
 
         // 认证审计：切换租户落登录日志（不触发登录通知）
         await PublishSecurityAuditAsync(
@@ -1702,31 +1683,46 @@ public sealed partial class AuthAppService
     }
 
     /// <summary>
-    /// 解析登录落点租户；返回 null 表示平台态（控制中心）。
+    /// 解析登录落点：平台账号落平台（返回 null）；租户账号落一个可进入的租户，一个都没有则拒绝登录
     /// </summary>
+    /// <remarks>
+    /// 租户账号依次取：最近进入过的可进入租户 → 归属租户 → 第一个可进入的租户。平台只对平台账号开放，
+    /// 租户账号不会落到平台上去。
+    /// </remarks>
     private async Task<LoginTenantContext?> ResolveLoginLandingAsync(SysUser user, DateTimeOffset now, CancellationToken cancellationToken)
     {
-        // 平台账号（TenantId=0，如超管）恒落平台态
         if (user.TenantId == 0)
         {
             return null;
         }
 
-        // 拥有超管角色（全局绑定）的账号同样恒落平台态（平台态快照仅含全局绑定，普通用户在此为空）
-        var platformSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
-        if (platformSnapshot.Roles.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase))
+        var accessible = await _authContextQueryService.GetAccessibleTenantsAsync(user.BasicId, now, cancellationToken);
+        if (accessible.Count == 0)
         {
-            return null;
+            var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(user.BasicId, now, cancellationToken);
+            throw new InvalidOperationException(memberships.Count == 0
+                ? "当前账号没有有效的租户成员关系，无法登录。"
+                : "当前账号所在的租户均不可进入（已停用、未完成初始化或已过期），无法登录。");
         }
 
-        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(user.BasicId, now, cancellationToken);
-        if (memberships.Count != 1)
+        var landing = LoginLandingPolicy.Choose(accessible, user.TenantId);
+        return new LoginTenantContext(landing.Tenant.BasicId, landing.Tenant.TenantName);
+    }
+
+    /// <summary>
+    /// 说明目标租户为何不可进入：不是有效成员，或租户本身不可进入（带具体原因）
+    /// </summary>
+    private async Task<string> DescribeInaccessibleTenantAsync(long userId, long tenantId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(userId, now, cancellationToken);
+        if (!memberships.Any(membership => membership.TenantId == tenantId))
         {
-            return null;
+            return "当前账号不是目标租户的有效成员，无法切换。";
         }
 
-        // 唯一租户也要确认可用（正常/已配置/未过期），不可用则落控制中心由前端展示原因
-        return await _authContextQueryService.FindAvailableLoginTenantAsync(memberships[0].TenantId, now, cancellationToken);
+        // 是成员但租户不可进入：取租户自身的不可用原因（不存在 / 未启用 / 未完成初始化 / 已过期）
+        _ = await _authContextQueryService.GetLoginTenantOrThrowAsync(tenantId, now, cancellationToken);
+        return "目标租户当前不可进入。";
     }
 
     /// <summary>

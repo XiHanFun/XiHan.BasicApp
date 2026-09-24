@@ -21,6 +21,12 @@ public interface IAuthContextQueryService
     Task<LoginTenantContext?> FindAvailableLoginTenantAsync(long tenantId, DateTimeOffset now, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 用户可进入的租户：有效成员关系 ∩ 可进入的租户，按最近进入时间倒序（没进入过的排后），再按租户排序
+    /// </summary>
+    /// <remarks>登录落点、切换租户、控制中心的可切换列表同一口径。</remarks>
+    Task<IReadOnlyList<AccessibleTenant>> GetAccessibleTenantsAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取当前用户信息
     /// </summary>
     Task<UserInfoDto> GetCurrentUserInfoAsync(

@@ -244,7 +244,7 @@ public sealed class SaasDomainSpecificationsTests
     }
 
     /// <summary>
-    /// 可用租户规约：仅正常状态可用，暂停、过期、停用租户一律排除。
+    /// 可进入的租户规约：仅正常状态可进入，暂停、过期、停用租户一律排除。
     /// </summary>
     /// <param name="tenantStatus">租户状态。</param>
     /// <param name="expected">期望是否满足规约。</param>
@@ -255,13 +255,13 @@ public sealed class SaasDomainSpecificationsTests
     [InlineData(TenantStatus.Disabled, false)]
     public void AvailableTenantSpecification_ShouldRequireNormalStatus(TenantStatus tenantStatus, bool expected)
     {
-        var tenant = new SysTenant { IsDeleted = false, TenantStatus = tenantStatus };
+        var tenant = new SysTenant { IsDeleted = false, TenantStatus = tenantStatus, ConfigStatus = TenantConfigStatus.Configured };
 
         Assert.Equal(expected, new AvailableTenantSpecification(Now).IsSatisfiedBy(tenant));
     }
 
     /// <summary>
-    /// 可用租户规约：到期时间等于当前时刻即视为已过期（右开区间），软删租户同样排除。
+    /// 可进入的租户规约：到期时间等于当前时刻即视为已过期（右开区间），软删租户同样排除。
     /// </summary>
     /// <param name="isDeleted">是否已软删。</param>
     /// <param name="expirationOffsetSeconds">到期时间相对当前时刻的秒偏移，null 表示不限。</param>
@@ -278,8 +278,24 @@ public sealed class SaasDomainSpecificationsTests
         {
             IsDeleted = isDeleted,
             TenantStatus = TenantStatus.Normal,
+            ConfigStatus = TenantConfigStatus.Configured,
             ExpirationTime = expirationOffsetSeconds.HasValue ? Now.AddSeconds(expirationOffsetSeconds.Value) : null
         };
+
+        Assert.Equal(expected, new AvailableTenantSpecification(Now).IsSatisfiedBy(tenant));
+    }
+
+    /// <summary>
+    /// 可进入的租户规约：未完成配置（如库隔离租户尚未初始化独立库）的租户不可进入。
+    /// </summary>
+    /// <param name="configStatus">配置状态。</param>
+    /// <param name="expected">期望是否满足规约。</param>
+    [Theory]
+    [InlineData(TenantConfigStatus.Configured, true)]
+    [InlineData(TenantConfigStatus.Pending, false)]
+    public void AvailableTenantSpecification_ShouldRequireConfigured(TenantConfigStatus configStatus, bool expected)
+    {
+        var tenant = new SysTenant { IsDeleted = false, TenantStatus = TenantStatus.Normal, ConfigStatus = configStatus };
 
         Assert.Equal(expected, new AvailableTenantSpecification(Now).IsSatisfiedBy(tenant));
     }

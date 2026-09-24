@@ -70,7 +70,21 @@ public sealed class TenantMemberQueryService
         // 成员关系属于租户：租户只看本租户；平台不带租户时看平台自己的（0 号），带租户时切入该租户查看
         var tenantId = ResolveMemberTenantId(input.TenantId);
         using var tenantScope = _currentTenant.Change(tenantId);
-        var request = BuildTenantMemberPageRequest(input, tenantId);
+        var request = BuildTenantMemberPageRequest(input);
+
+        // 关键字同时匹配成员显示名与账号信息（用户名 / 昵称 / 姓名 / 邮箱），先解析出命中的用户再按用户过滤
+        if (!string.IsNullOrWhiteSpace(input.Keyword))
+        {
+            var matchedUserIds = await _tenantUserRepository.SearchMemberUserIdsAsync(tenantId, input.Keyword, cancellationToken);
+            if (matchedUserIds.Count == 0)
+            {
+                return new PageResultDtoBase<TenantMemberListItemDto>(
+                    [],
+                    new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, 0));
+            }
+
+            request.Conditions.AddFilterIn((SysTenantUser member) => member.UserId, matchedUserIds.Cast<object>());
+        }
         var members = await _tenantUserRepository.GetPagedAsync(request, cancellationToken);
         var now = DateTimeOffset.UtcNow;
 
@@ -109,11 +123,9 @@ public sealed class TenantMemberQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 读共享口径下能读到 0 号行，按当前上下文精确比对
+        // 成员关系严格隔离：只取得到当前上下文的行
         var member = await _tenantUserRepository.GetByIdAsync(id, cancellationToken);
-        return member is null || member.TenantId != (_currentTenant.Id ?? 0)
-            ? null
-            : TenantMemberApplicationMapper.ToDetailDto(member, DateTimeOffset.UtcNow);
+        return member is null ? null : TenantMemberApplicationMapper.ToDetailDto(member, DateTimeOffset.UtcNow);
     }
 
     /// <summary>
@@ -138,27 +150,15 @@ public sealed class TenantMemberQueryService
     /// 构建租户成员分页请求
     /// </summary>
     /// <param name="input">查询条件</param>
-    /// <param name="tenantId">要查看的租户</param>
     /// <returns>租户成员分页请求</returns>
-    private static BasicAppPRDto BuildTenantMemberPageRequest(TenantMemberPageQueryDto input, long tenantId)
+    /// <remarks>成员关系严格隔离，查询在要查看的租户上下文里执行，不必再按租户过滤。</remarks>
+    private static BasicAppPRDto BuildTenantMemberPageRequest(TenantMemberPageQueryDto input)
     {
         var request = new BasicAppPRDto
         {
             Page = input.Page,
             Conditions = new QueryConditions()
         };
-
-        // 显式按租户精确过滤：租户上下文的读共享口径会一并放行 0 号行
-        request.Conditions.AddFilter((SysTenantUser member) => member.TenantId, tenantId);
-
-        if (!string.IsNullOrWhiteSpace(input.Keyword))
-        {
-            request.Conditions.SetKeyword<SysTenantUser>(
-                input.Keyword.Trim(),
-                member => member.DisplayName,
-                member => member.InviteRemark,
-                member => member.Remark);
-        }
 
         if (input.UserId.HasValue)
         {

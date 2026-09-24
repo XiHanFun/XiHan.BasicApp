@@ -10,8 +10,8 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { EnumOptionItem } from '~/hooks'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, h, onMounted, ref, useId, watch } from 'vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { computed, h, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -21,13 +21,12 @@ import {
   NumberingResetCycle,
   NumberingScope,
   querySortsFromSchema,
-  tenantApi,
 } from '@/api'
 import { SchemaPage, XEditModal, XInput, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useUserStore } from '~/stores'
+import { useAccessStore, useUserStore } from '~/stores'
 import NumberingAllocationDrawer from './components/NumberingAllocationDrawer.vue'
 import NumberingPreviewModal from './components/NumberingPreviewModal.vue'
 import NumberingRuleEditor from './components/NumberingRuleEditor.vue'
@@ -39,14 +38,15 @@ const { t } = useI18n()
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
 const userStore = useUserStore()
+const accessStore = useAccessStore()
 const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
-const isPlatform = ref(!userStore.userInfo?.tenantId)
-const contextResolved = ref(false)
+/** 当前是否在平台：取用户信息（守卫每次整页加载都会重取，切换上下文会整页重载） */
+const isPlatform = computed(() => userStore.userInfo?.isPlatform ?? false)
 const activeScope = ref<NumberingScope>(isPlatform.value ? NumberingScope.Global : NumberingScope.Tenant)
 const actionLoading = ref(false)
 
 const canMaintain = computed(() => activeScope.value === NumberingScope.Tenant
-  || (isPlatform.value && userStore.hasPermission('setting.numbering.global-manage')))
+  || (isPlatform.value && accessStore.hasCode('setting.numbering.global-manage')))
 
 /** 当前租户视图的作用域名称，用于让紧凑工具栏按钮仍具备明确的无障碍语义。 */
 const currentScopeLabel = computed(() => activeScope.value === NumberingScope.Tenant
@@ -86,30 +86,6 @@ function switchScope(): void {
     ? NumberingScope.Global
     : NumberingScope.Tenant
 }
-
-/**
- * 从租户切换列表解析当前运行上下文。
- *
- * 平台管理员切换租户后，历史 `isPlatform` 用户字段可能仍保留登录时状态；后端返回的
- * `TenantSwitcherDto.isCurrent` 按当前令牌实时计算，因此与控制中心共用它作为事实源。
- * 查询失败时回退到用户信息中的租户标识，权限校验仍由后端最终兜底。
- */
-async function resolveCurrentContext(): Promise<void> {
-  try {
-    const tenants = await tenantApi.myAvailableTenants()
-    isPlatform.value = !tenants.some(tenant => tenant.isCurrent)
-  }
-  catch {
-    isPlatform.value = !userStore.userInfo?.tenantId
-  }
-  finally {
-    contextResolved.value = true
-  }
-}
-
-onMounted(() => {
-  void resolveCurrentContext()
-})
 
 // 枚举标签一律取自后端枚举元数据，切语言时随之响应式刷新；这里只把选项列表转成按枚举值查找的映射。
 const dateFormatOptions = useEnumOptions('NumberingDateFormat', [
@@ -375,30 +351,27 @@ function remove(row: NumberingRuleListItemDto): void {
 
 <template>
   <div class="flex h-full min-h-0 flex-col gap-3">
-    <XhSpinner v-if="!contextResolved" class="flex-1 py-12" />
-    <template v-else>
-      <!--
-        SchemaPage 内部表格依赖确定高度；flex-1 + min-h-0 将剩余视口高度正确传递给表格滚动区。
-        activeScope 作为 key 会在切换时重建列表并自动加载一次，既重置上一作用域的筛选状态，也避免额外重复请求。
-      -->
-      <SchemaPage ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
-        <template v-if="!isPlatform" #toolbar>
-          <XTooltip :content="scopeSwitchLabel">
-            <XhButton
+    <!--
+      SchemaPage 内部表格依赖确定高度；flex-1 + min-h-0 将剩余视口高度正确传递给表格滚动区。
+      activeScope 作为 key 会在切换时重建列表并自动加载一次，既重置上一作用域的筛选状态，也避免额外重复请求。
+    -->
+    <SchemaPage ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
+      <template v-if="!isPlatform" #toolbar>
+        <XTooltip :content="scopeSwitchLabel">
+          <XhButton
 
-              data-circle
-              variant="ghost"
-              size="sm"
-              :aria-label="scopeSwitchLabel"
-              @click="switchScope"
-            >
-              <!-- 图标表示点击后进入的目标作用域，Tooltip 同时补充当前状态和完整动作语义。 -->
-              <span><Icon :icon="activeScope === NumberingScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
-            </XhButton>
-          </XTooltip>
-        </template>
-      </SchemaPage>
-    </template>
+            data-circle
+            variant="ghost"
+            size="sm"
+            :aria-label="scopeSwitchLabel"
+            @click="switchScope"
+          >
+            <!-- 图标表示点击后进入的目标作用域，Tooltip 同时补充当前状态和完整动作语义。 -->
+            <span><Icon :icon="activeScope === NumberingScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
+          </XhButton>
+        </XTooltip>
+      </template>
+    </SchemaPage>
 
     <NumberingRuleEditor
       v-model:show="editorVisible"

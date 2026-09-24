@@ -84,8 +84,9 @@ function permissionFixture(overrides: Partial<PermissionInfo> = {}): PermissionI
   return { roles: ['admin'], permissions: ['sys:view'], menus: [], ...overrides }
 }
 
+/** 整页加载时守卫会把用户信息与权限一起重取，用户信息接口默认给一份，用例只覆盖关心的那个 */
 function registerApis(apis: Partial<AppContextApis>): void {
-  registerAppContext({ apis: apis as AppContextApis })
+  registerAppContext({ apis: { getUserInfoApi: vi.fn(async () => userInfoFixture()), ...apis } as AppContextApis })
 }
 
 /** 已登录但动态路由未加载：守卫会走装载分支 */

@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.BasicApp.Saas.Domain.Specifications;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -13,24 +14,23 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class AuthContextQueryService
     : IAuthContextQueryService
 {
-    /// <summary>
-    /// 超级管理员角色编码（与种子/授权快照约定一致）
-    /// </summary>
-    private const string SuperAdminRoleCode = "super_admin";
-
     private readonly IUserRepository _userRepository;
 
     private readonly ITenantRepository _tenantRepository;
+
+    private readonly ITenantUserRepository _tenantUserRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public AuthContextQueryService(
         IUserRepository userRepository,
-        ITenantRepository tenantRepository)
+        ITenantRepository tenantRepository,
+        ITenantUserRepository tenantUserRepository)
     {
         _userRepository = userRepository;
         _tenantRepository = tenantRepository;
+        _tenantUserRepository = tenantUserRepository;
     }
 
     /// <summary>
@@ -78,15 +78,40 @@ public sealed class AuthContextQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var tenant = await _tenantRepository.GetByIdAsync(tenantId, cancellationToken);
-        if (tenant is null
-            || tenant.TenantStatus != TenantStatus.Normal
-            || tenant.ConfigStatus is not TenantConfigStatus.Configured
-            || (tenant.ExpirationTime.HasValue && tenant.ExpirationTime.Value <= now))
+        if (tenant is null || !new AvailableTenantSpecification(now).IsSatisfiedBy(tenant))
         {
             return null;
         }
 
         return new LoginTenantContext(tenant.BasicId, tenant.TenantName);
+    }
+
+    /// <summary>
+    /// 用户可进入的租户：有效成员关系 ∩ 可进入的租户，按最近进入时间倒序（没进入过的排后），再按租户排序
+    /// </summary>
+    public async Task<IReadOnlyList<AccessibleTenant>> GetAccessibleTenantsAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(userId, 0);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(userId, now, cancellationToken);
+        if (memberships.Count == 0)
+        {
+            return [];
+        }
+
+        var isAvailable = new AvailableTenantSpecification(now);
+        var tenants = (await _tenantRepository.GetByIdsAsync(memberships.Select(membership => membership.TenantId).Distinct(), cancellationToken))
+            .Where(isAvailable.IsSatisfiedBy)
+            .ToDictionary(tenant => tenant.BasicId);
+
+        return [.. memberships
+            .Where(membership => tenants.ContainsKey(membership.TenantId))
+            .Select(membership => new AccessibleTenant(membership, tenants[membership.TenantId]))
+            .OrderByDescending(item => item.Membership.LastActiveTime.HasValue)
+            .ThenByDescending(item => item.Membership.LastActiveTime)
+            .ThenBy(item => item.Tenant.Sort)
+            .ThenBy(item => item.Tenant.TenantName, StringComparer.Ordinal)];
     }
 
     /// <summary>
@@ -110,6 +135,9 @@ public sealed class AuthContextQueryService
             ?? throw new InvalidOperationException("当前用户不存在。");
 
         var roleList = roles.Where(role => !string.IsNullOrWhiteSpace(role)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var tenantName = tenantId is > 0
+            ? (await _tenantRepository.GetByIdAsync(tenantId.Value, cancellationToken))?.TenantName
+            : null;
 
         return new UserInfoDto
         {
@@ -120,8 +148,10 @@ public sealed class AuthContextQueryService
             Email = user.Email,
             Phone = user.Phone,
             TenantId = tenantId,
+            TenantName = tenantName,
             IsPlatform = !tenantId.HasValue,
-            CanAccessPlatform = roleList.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase),
+            // 平台是 0 号租户，只对平台账号开放
+            CanAccessPlatform = user.TenantId == 0,
             Roles = roleList
         };
     }

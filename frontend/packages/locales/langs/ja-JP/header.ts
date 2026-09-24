@@ -1,4 +1,8 @@
 export default {
+  context: {
+    platform: 'プラットフォーム',
+    switch: '現在：{name}（クリックで切り替え）',
+  },
   user: {
     profile: 'マイページ',
     lock: '画面ロック',
@@ -8,6 +12,8 @@ export default {
     entry: '代理ログイン',
     title: '他のユーザーとしてログイン',
     hint: 'そのユーザーが報告した問題を調査するための機能です。操作は監査に記録され、機微な操作は無効になります。',
+    scope_label: '代理ログインの範囲',
+    scope_platform: 'プラットフォームアカウント',
     search_placeholder: 'ユーザー名 / ニックネーム / 氏名 で検索',
     reason_placeholder: '代理ログインの理由（任意、監査に記録）',
     empty_title: '代理ログインできるユーザーがいません',

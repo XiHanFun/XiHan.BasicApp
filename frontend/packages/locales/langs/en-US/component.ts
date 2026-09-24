@@ -407,7 +407,6 @@ export default {
     },
     tenants: {
       err_load_failed: 'Failed to load tenant list',
-      msg_switched_to: 'Switched to "{label}"',
       err_switch_failed: 'Switch failed',
       section_title: 'My Tenants',
       section_desc: 'The tenant organizations you can currently access and your member roles',

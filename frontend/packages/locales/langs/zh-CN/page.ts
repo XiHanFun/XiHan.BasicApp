@@ -150,8 +150,6 @@ export default {
     platform_desc: '管理租户、用户、菜单、权限与系统设置',
     load_failed: '加载租户列表失败',
     switch_failed: '切换失败',
-    switched: '已切换到「{name}」',
-    switched_platform: '已进入平台管理',
     platform_group: '平台',
   },
   oauth: {

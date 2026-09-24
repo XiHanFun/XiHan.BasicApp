@@ -1,6 +1,8 @@
 import type {
   EmailLoginParams,
   ImpersonationCandidate,
+  ImpersonationCandidateQuery,
+  ImpersonationTenantOption,
   LoginParams,
   LoginResponse,
   LoginToken,
@@ -92,16 +94,8 @@ export const useAuthStore = defineStore('auth', () => {
     // showIsland:false — 同步过程由登录灵动岛统一覆盖，避免重复提示
     await hydratePreferencesFromBackend({ showIsland: false })
 
-    // 智能落点（先登录后选租户）：后端按成员关系决定登录态——
-    // 未进入租户（tenantId 为空：平台账号/超管/多租户成员待选择）→ 控制中心；
-    // 已直进唯一租户 → 正常首页/重定向。
-    // 控制中心路由由应用注册（shellRoutes）；未配置的应用没有租户切换概念，直接走正常首页
-    if (!userInfo.tenantId && ctx.shellRoutes.controlCenter) {
-      await router.replace(ctx.shellRoutes.controlCenter)
-      loginTask.success(i18n.global.t('island.auth.login_success'))
-      return
-    }
-
+    // 落点由后端决定：平台账号落平台，租户账号落最近进入的可进入租户；登录后总是在一个上下文里，
+    // 换上下文走页头的控制中心
     const homePath = accessStore.homePath || HOME_PATH
     if (redirect) {
       const target = decodeURIComponent(redirect)
@@ -186,27 +180,49 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   /**
-   * 身份切换后重建整个应用壳层：换令牌 → 清掉上一身份留在本地的标签页/偏好回写通道 → 整页重载。
-   * 走整页重载而不是热切换，是因为路由表、权限码、菜单、SignalR 连接全都绑在旧身份上。
+   * 换令牌后重建整个应用壳层：清掉上一上下文留在本地的用户信息、标签页与连接 → 整页重载。
+   * 走整页重载而不是热切换，是因为路由表、权限码、菜单、SignalR 连接全都绑在旧上下文上。
+   * 换了身份（模仿 / 结束模仿）还要清偏好回写通道：偏好属于人，上一身份的不能回写进新身份。
    */
-  function applySwitchedIdentity(token: LoginToken) {
+  function reloadWithToken(token: LoginToken, identityChanged: boolean) {
     accessStore.setAccessToken(token.accessToken)
     accessStore.setRefreshToken(token.refreshToken)
     userStore.$reset()
     tabbarStore.closeAll()
     sessionStorage.removeItem(TABS_LIST_KEY)
     localStorage.removeItem(TABS_LIST_KEY)
-    resetPreferenceBackendSync()
-    // 新身份的偏好由后端水合，本地这份属于上一身份：标记后让水合阶段不拿它当种子回写进新账号
-    markPreferenceIdentitySwitched()
+    if (identityChanged) {
+      resetPreferenceBackendSync()
+      // 新身份的偏好由后端水合，本地这份属于上一身份：标记后让水合阶段不拿它当种子回写进新账号
+      markPreferenceIdentitySwitched()
+    }
     clearLockState()
     void destroyAllSignalRConnections()
     window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
   }
 
-  /** 可模仿的候选用户 */
-  function impersonationCandidates(keyword?: string): Promise<ImpersonationCandidate[]> {
-    return useAppContext().apis.impersonationApi.candidates(keyword)
+  /** 身份切换（模仿 / 结束模仿）后重建应用 */
+  function applySwitchedIdentity(token: LoginToken) {
+    reloadWithToken(token, true)
+  }
+
+  /**
+   * 切换上下文：进入某个租户，或（平台账号）回到平台。服务端在目标上下文续接会话、签发新令牌，
+   * 旧令牌随即失效；本地按新上下文整页重建。
+   */
+  async function switchContext(tenantId: null | string) {
+    const token = await useAppContext().apis.tenantApi.switchTenant({ tenantId })
+    reloadWithToken(token, false)
+  }
+
+  /** 可模仿的候选用户：给了租户取该租户成员，不给取平台账号 */
+  function impersonationCandidates(input: ImpersonationCandidateQuery): Promise<ImpersonationCandidate[]> {
+    return useAppContext().apis.impersonationApi.candidates(input)
+  }
+
+  /** 平台可在其中发起模仿的租户 */
+  function impersonationTenants(): Promise<ImpersonationTenantOption[]> {
+    return useAppContext().apis.impersonationApi.tenants()
   }
 
   /** 发起模仿登录：以目标用户身份重建会话 */
@@ -315,8 +331,10 @@ export const useAuthStore = defineStore('auth', () => {
     loginLoading,
     impersonationLoading,
     impersonationCandidates,
+    impersonationTenants,
     startImpersonation,
     stopImpersonation,
+    switchContext,
     login,
     loginByPhoneCode,
     loginByEmailCode,

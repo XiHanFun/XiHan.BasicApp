@@ -1,4 +1,8 @@
 export default {
+  context: {
+    platform: '平台',
+    switch: '当前：{name}，点击切换',
+  },
   user: {
     profile: '个人中心',
     lock: '锁屏',
@@ -8,6 +12,8 @@ export default {
     entry: '模仿登录',
     title: '以他人身份登录',
     hint: '用于排查该用户遇到的问题。期间的操作会记入审计，敏感操作被禁用。',
+    scope_label: '模仿范围',
+    scope_platform: '平台账号',
     search_placeholder: '搜索用户名 / 昵称 / 姓名',
     reason_placeholder: '模仿事由（选填，落审计）',
     empty_title: '没有可模仿的用户',
