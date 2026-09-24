@@ -18,7 +18,7 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// 事件处理器的缓存失效编排测试。
 /// </summary>
 /// <remarks>
-/// 授权/数据范围/字段安全/组织层级四类变更事件的唯一职责就是"清对缓存"：
+/// 授权/字段安全/组织层级三类变更事件的唯一职责就是"清对缓存"：
 /// 清少了 = 变更不生效（改完权限用户还是老权限），清多了 = 无谓的缓存雪崩。
 /// 这里逐条锁定"哪种事件清哪几份缓存"以及"用户级变更必须走精准失效而不是全量"。
 /// 另外锁定所有处理器共有的一条约定：缓存失效失败只记日志、不能把事件处理整个炸掉。
@@ -113,38 +113,6 @@ public sealed class SaasAppEventHandlerCacheTests
 
         await handler.HandleEventAsync(new AuthorizationChangedDomainEvent(
             1, PermissionChangeType.UserGrantPermission, 42, null, null));
-    }
-
-    /// <summary>
-    /// 用户维度的数据范围变更按用户精准失效。
-    /// </summary>
-    /// <param name="targetType">事件里的目标类型文本。</param>
-    [Theory]
-    [InlineData("User")]
-    [InlineData("user")]
-    [InlineData("USER")]
-    public async Task DataScopeChanged_UserTarget_ShouldInvalidateThatUser(string targetType)
-    {
-        var handler = new DataScopeChangedEventHandler(_invalidator.Object, NullLogger<DataScopeChangedEventHandler>.Instance);
-
-        await handler.HandleEventAsync(new DataScopeChangedDomainEvent(1, targetType, 55, DataPermissionScope.SelfOnly));
-
-        _invalidator.Verify(target => target.InvalidateAuthorizationAsync(55, It.IsAny<CancellationToken>()), Times.Once);
-        _invalidator.Verify(target => target.InvalidateAuthorizationAsync(null, It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    /// <summary>
-    /// 角色维度的数据范围变更影响面不可枚举，走全量失效。
-    /// </summary>
-    [Fact]
-    public async Task DataScopeChanged_RoleTarget_ShouldInvalidateEverything()
-    {
-        var handler = new DataScopeChangedEventHandler(_invalidator.Object, NullLogger<DataScopeChangedEventHandler>.Instance);
-
-        await handler.HandleEventAsync(new DataScopeChangedDomainEvent(1, "Role", 55, DataPermissionScope.All));
-
-        _invalidator.Verify(target => target.InvalidateAuthorizationAsync(null, It.IsAny<CancellationToken>()), Times.Once);
-        _invalidator.Verify(target => target.InvalidateAuthorizationAsync(55, It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
