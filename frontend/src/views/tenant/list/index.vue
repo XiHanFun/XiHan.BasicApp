@@ -400,10 +400,10 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'create', title: t('tenant.list.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'create', title: t('tenant.list.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'tenant.list.create' },
     { key: 'quota-audit', title: t('tenant.list.quota_audit'), scope: 'page', icon: 'lucide:gauge' },
     { key: 'view', title: t('tenant.list.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('tenant.list.edit'), scope: 'row' },
+    { key: 'edit', title: t('tenant.list.edit'), scope: 'row', permission: 'tenant.list.update' },
     {
       key: 'initdb',
       title: t('tenant.list.init_db'),

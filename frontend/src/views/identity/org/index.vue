@@ -144,11 +144,11 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => orgManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: t('identity.org.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'addChild', title: t('identity.org.action_add_child'), scope: 'row' },
+    { key: 'create', title: t('identity.org.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.org.create' },
+    { key: 'addChild', title: t('identity.org.action_add_child'), scope: 'row', permission: 'identity.org.create' },
     { key: 'view', title: t('identity.org.action_view'), scope: 'row' },
-    { key: 'edit', title: t('identity.org.action_edit'), scope: 'row' },
-    { key: 'toggle', title: t('identity.org.action_toggle'), scope: 'row' },
+    { key: 'edit', title: t('identity.org.action_edit'), scope: 'row', permission: 'identity.org.update' },
+    { key: 'toggle', title: t('identity.org.action_toggle'), scope: 'row', permission: 'identity.org.status' },
   ],
 }))
 

@@ -104,9 +104,9 @@ const schema = computed<PageSchema>(() => ({
     remove: id => knowledgeApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('develop.knowledge.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'reindex', title: t('develop.knowledge.action_reindex'), scope: 'row', type: 'info', icon: 'lucide:refresh-cw' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'create', title: t('develop.knowledge.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'knowledge_base.create' },
+    { key: 'reindex', title: t('develop.knowledge.action_reindex'), scope: 'row', type: 'info', icon: 'lucide:refresh-cw', permission: 'knowledge_base.update' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'knowledge_base.delete' },
   ],
 }))
 

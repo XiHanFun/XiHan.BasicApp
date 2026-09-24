@@ -283,11 +283,11 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => permissionCenterApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('identity.permission.batch_enable_remark') : t('identity.permission.batch_disable_remark') }),
   },
   actions: [
-    { key: 'create', title: t('identity.permission.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'create', title: t('identity.permission.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.permission.create' },
     { key: 'view', title: t('identity.permission.action_view'), scope: 'row' },
-    { key: 'edit', title: t('identity.permission.action_edit'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
-    { key: 'toggle', title: t('identity.permission.action_toggle'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
-    { key: 'delete', title: t('identity.permission.action_delete'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto) },
+    { key: 'edit', title: t('identity.permission.action_edit'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.update' },
+    { key: 'toggle', title: t('identity.permission.action_toggle'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.status' },
+    { key: 'delete', title: t('identity.permission.action_delete'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.delete' },
   ],
 }))
 

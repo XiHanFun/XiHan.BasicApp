@@ -224,6 +224,12 @@ public static class PageRegistry
          new("identity.user.reset-password", "重置密码", "identity.user", SaasPermissionCodes.UserSecurity.ResetPassword, 5),
          new("identity.user.export", "导出", "identity.user", SaasPermissionCodes.User.Export, 6),
          new("identity.user.impersonate", "模仿登录", "identity.user", SaasPermissionCodes.Impersonation.Start, 7),
+         new("identity.user.grant-role", "分配角色", "identity.user", SaasPermissionCodes.UserRole.Grant, 8),
+         new("identity.user.grant-permission", "直授权限", "identity.user", SaasPermissionCodes.UserPermission.Grant, 9),
+         new("identity.user.data-scope", "数据范围", "identity.user", SaasPermissionCodes.UserDataScope.Update, 10),
+         new("identity.user.lock", "锁定解锁", "identity.user", SaasPermissionCodes.UserSecurity.Lock, 11),
+         new("identity.user.reset-two-factor", "重置双因素", "identity.user", SaasPermissionCodes.UserSecurity.ResetTwoFactor, 12),
+         new("identity.user.revoke-sessions", "强制下线", "identity.user", SaasPermissionCodes.UserSession.Revoke, 13),
 
         // [2.2] 角色管理
          new("identity.role.create", "新增", "identity.role", SaasPermissionCodes.Role.Create, 1),
@@ -231,6 +237,8 @@ public static class PageRegistry
          new("identity.role.delete", "删除", "identity.role", SaasPermissionCodes.Role.Delete, 3),
          new("identity.role.status", "启停", "identity.role", SaasPermissionCodes.Role.Status, 4),
          new("identity.role.grant-permission", "分配权限", "identity.role", SaasPermissionCodes.RolePermission.Grant, 5),
+         new("identity.role.members", "角色成员", "identity.role", SaasPermissionCodes.UserRole.Grant, 6),
+         new("identity.role.data-scope", "数据范围", "identity.role", SaasPermissionCodes.RoleDataScope.Update, 7),
          new("identity.role.export", "导出", "identity.role", SaasPermissionCodes.Role.Export, 9),
 
         // [2.3] 组织机构
@@ -265,6 +273,9 @@ public static class PageRegistry
          new("identity.authorization.create", "发起申请", "identity.authorization", SaasPermissionCodes.PermissionRequest.Create, 1),
          new("identity.authorization.audit", "审批", "identity.authorization", SaasPermissionCodes.PermissionRequest.Status, 2),
          new("identity.authorization.withdraw", "撤回", "identity.authorization", SaasPermissionCodes.PermissionRequest.Withdraw, 3),
+         new("identity.authorization.delegation-create", "发起委托", "identity.authorization", SaasPermissionCodes.PermissionDelegation.Create, 4),
+         new("identity.authorization.delegation-revoke", "撤销委托", "identity.authorization", SaasPermissionCodes.PermissionDelegation.Status, 5),
+         new("identity.authorization.delegation-delete", "删除委托", "identity.authorization", SaasPermissionCodes.PermissionDelegation.Revoke, 6),
          new("identity.authorization.export", "导出", "identity.authorization", SaasPermissionCodes.PermissionRequest.Export, 9),
 
         // [2.7] 在线用户（会话实时视图：活跃会话 + SignalR 连接标注，权限复用用户会话码）
@@ -303,6 +314,7 @@ public static class PageRegistry
 
         // [4.2] 邮件短信
          new("message.record.delete", "删除", "message.record", SaasPermissionCodes.Message.Delete, 1),
+         new("message.record.resend", "重发", "message.record", SaasPermissionCodes.Message.Status, 2),
          new("message.record.export", "导出", "message.record", SaasPermissionCodes.Message.Export, 9),
 
         // [4.3] 消息模板
@@ -344,6 +356,7 @@ public static class PageRegistry
          new("approval.review.audit", "审核", "approval.review", SaasPermissionCodes.Review.Audit, 1),
          new("approval.review.withdraw", "撤回", "approval.review", SaasPermissionCodes.Review.Withdraw, 2),
          new("approval.review.delete", "删除", "approval.review", SaasPermissionCodes.Review.Delete, 3),
+         new("approval.review.status", "启停", "approval.review", SaasPermissionCodes.Review.Status, 4),
          new("approval.review.export", "导出", "approval.review", SaasPermissionCodes.Review.Export, 9),
 
         // [5.2] 约束规则
@@ -358,6 +371,7 @@ public static class PageRegistry
          new("file.library.create", "上传", "file.library", SaasPermissionCodes.File.Create, 1),
          new("file.library.update", "编辑", "file.library", SaasPermissionCodes.File.Update, 2),
          new("file.library.delete", "删除", "file.library", SaasPermissionCodes.File.Delete, 3),
+         new("file.library.status", "归档恢复", "file.library", SaasPermissionCodes.File.Status, 4),
          new("file.library.export", "导出", "file.library", SaasPermissionCodes.File.Export, 9),
 
         // [6.2] 存储配置

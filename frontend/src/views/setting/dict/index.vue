@@ -144,10 +144,10 @@ const dictSchema = computed<PageSchema>(() => ({
     }),
   },
   actions: [
-    { key: 'create', title: t('setting.dict.add_dict'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: row => canMaintainDict(row as unknown as DictListItemDto) },
-    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_dict'), visible: row => canMaintainDict(row as unknown as DictListItemDto) },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_dict'), visible: row => canMaintainDict(row as unknown as DictListItemDto) && canDeleteDict(row as unknown as DictListItemDto) },
+    { key: 'create', title: t('setting.dict.add_dict'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.dict.create' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: row => canMaintainDict(row as unknown as DictListItemDto), permission: 'setting.dict.update' },
+    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_dict'), visible: row => canMaintainDict(row as unknown as DictListItemDto), permission: 'setting.dict.status' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_dict'), visible: row => canMaintainDict(row as unknown as DictListItemDto) && canDeleteDict(row as unknown as DictListItemDto), permission: 'setting.dict.delete' },
   ],
 }))
 
@@ -239,10 +239,10 @@ const itemSchema = computed<PageSchema>(() => ({
     }),
   },
   actions: [
-    { key: 'create', title: t('setting.dict.add_item'), scope: 'page', type: 'primary', icon: 'lucide:plus', visible: () => canMaintainDict(currentDict.value) },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: () => canMaintainDict(currentDict.value) },
-    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_item'), visible: () => canMaintainDict(currentDict.value) },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_item'), visible: () => canMaintainDict(currentDict.value) },
+    { key: 'create', title: t('setting.dict.add_item'), scope: 'page', type: 'primary', icon: 'lucide:plus', visible: () => canMaintainDict(currentDict.value), permission: 'setting.dict.create' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: () => canMaintainDict(currentDict.value), permission: 'setting.dict.update' },
+    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_item'), visible: () => canMaintainDict(currentDict.value), permission: 'setting.dict.status' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_item'), visible: () => canMaintainDict(currentDict.value), permission: 'setting.dict.delete' },
   ],
 }))
 

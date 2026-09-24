@@ -38,7 +38,17 @@ public static class PageRegistry
     ];
 
     /// <summary>
-    /// 页面内按钮（本模块暂无独立按钮级权限）
+    /// 页面内按钮（菜单种子据此生成按钮节点，前端按按钮码门控数据源、业务表、模板三个面板的动作）
     /// </summary>
-    public static IReadOnlyList<ButtonDescriptor> Buttons { get; } = [];
+    /// <remarks>
+    /// 预览、运行时预览与数据源连通性测试只要读权限，随页面可见；导入表与同步表结构同为导入权限，生成（含写盘）是执行权限。
+    /// </remarks>
+    public static IReadOnlyList<ButtonDescriptor> Buttons { get; } =
+    [
+        new("code_gen.create", "新增", "code_gen", CodeGenPermissionCodes.Create, 1),
+        new("code_gen.update", "编辑", "code_gen", CodeGenPermissionCodes.Update, 2),
+        new("code_gen.delete", "删除", "code_gen", CodeGenPermissionCodes.Delete, 3),
+        new("code_gen.import", "导入与同步", "code_gen", CodeGenPermissionCodes.Import, 4),
+        new("code_gen.execute", "生成代码", "code_gen", CodeGenPermissionCodes.Execute, 5),
+    ];
 }

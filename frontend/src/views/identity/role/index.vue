@@ -211,15 +211,15 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => roleManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('identity.role.batch_enable_remark') : t('identity.role.batch_disable_remark') }),
   },
   actions: [
-    { key: 'create', title: t('identity.role.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'create', title: t('identity.role.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.role.create' },
     { key: 'view', title: t('identity.role.action_view'), scope: 'row' },
-    { key: 'edit', title: t('identity.role.action_edit'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
-    { key: 'assignPermission', title: t('identity.role.action_assign_permission'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
-    { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
-    { key: 'members', title: t('identity.role.action_members'), scope: 'row', visible: row => canAssignMembers(row as unknown as RoleListItemDto) },
-    { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
-    { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
-    { key: 'delete', title: t('identity.role.action_delete'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto) },
+    { key: 'edit', title: t('identity.role.action_edit'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.update' },
+    { key: 'assignPermission', title: t('identity.role.action_assign_permission'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
+    { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
+    { key: 'members', title: t('identity.role.action_members'), scope: 'row', visible: row => canAssignMembers(row as unknown as RoleListItemDto), permission: 'identity.role.members' },
+    { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.data-scope' },
+    { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.status' },
+    { key: 'delete', title: t('identity.role.action_delete'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.delete' },
   ],
 }))
 

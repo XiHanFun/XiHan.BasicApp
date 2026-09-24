@@ -41,7 +41,28 @@ public static class PageRegistry
     ];
 
     /// <summary>
-    /// 页面内按钮（本模块暂无独立按钮级权限）
+    /// 页面内按钮（菜单种子据此生成按钮节点，前端按按钮码门控页面动作）
     /// </summary>
-    public static IReadOnlyList<ButtonDescriptor> Buttons { get; } = [];
+    /// <remarks>
+    /// 设为默认、启停与编辑是同一个更新权限，共用编辑按钮；提供商的连通性测试要执行权限，单列一个按钮。
+    /// </remarks>
+    public static IReadOnlyList<ButtonDescriptor> Buttons { get; } =
+    [
+        new("ai_assistant.create", "新增", "ai_assistant", AiAssistantPermissionCodes.Create, 1),
+        new("ai_assistant.update", "编辑", "ai_assistant", AiAssistantPermissionCodes.Update, 2),
+        new("ai_assistant.delete", "删除", "ai_assistant", AiAssistantPermissionCodes.Delete, 3),
+
+        new("ai_prompt.create", "新增", "ai_prompt", AiPromptPermissionCodes.Create, 1),
+        new("ai_prompt.update", "编辑", "ai_prompt", AiPromptPermissionCodes.Update, 2),
+        new("ai_prompt.delete", "删除", "ai_prompt", AiPromptPermissionCodes.Delete, 3),
+
+        new("knowledge_base.create", "新增", "knowledge_base", KnowledgePermissionCodes.Create, 1),
+        new("knowledge_base.update", "重建索引", "knowledge_base", KnowledgePermissionCodes.Update, 2),
+        new("knowledge_base.delete", "删除", "knowledge_base", KnowledgePermissionCodes.Delete, 3),
+
+        new("ai_provider.create", "新增", "ai_provider", AiPermissionCodes.Create, 1),
+        new("ai_provider.update", "编辑", "ai_provider", AiPermissionCodes.Update, 2),
+        new("ai_provider.delete", "删除", "ai_provider", AiPermissionCodes.Delete, 3),
+        new("ai_provider.test", "连通性测试", "ai_provider", AiPermissionCodes.Execute, 4),
+    ];
 }

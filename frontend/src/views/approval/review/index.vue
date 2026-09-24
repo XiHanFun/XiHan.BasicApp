@@ -173,10 +173,10 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'view', title: t('approval.review.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'approve', title: t('approval.review.action_approve'), scope: 'row', type: 'success', visible: row => canAuditRow(row as unknown as ReviewListItemDto) },
-    { key: 'reject', title: t('approval.review.action_reject'), scope: 'row', type: 'error', visible: row => canAuditRow(row as unknown as ReviewListItemDto) },
-    { key: 'toggle', title: t('approval.review.action_toggle'), scope: 'row' },
-    { key: 'delete', title: t('approval.review.action_delete'), scope: 'row', type: 'error' },
+    { key: 'approve', title: t('approval.review.action_approve'), scope: 'row', type: 'success', visible: row => canAuditRow(row as unknown as ReviewListItemDto), permission: 'approval.review.audit' },
+    { key: 'reject', title: t('approval.review.action_reject'), scope: 'row', type: 'error', visible: row => canAuditRow(row as unknown as ReviewListItemDto), permission: 'approval.review.audit' },
+    { key: 'toggle', title: t('approval.review.action_toggle'), scope: 'row', permission: 'approval.review.status' },
+    { key: 'delete', title: t('approval.review.action_delete'), scope: 'row', type: 'error', permission: 'approval.review.delete' },
   ],
 }))
 

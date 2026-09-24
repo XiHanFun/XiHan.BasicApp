@@ -7,6 +7,9 @@
  *
  * 两条断言配套才成立：① 前端不出现权限码；② 前端引用的按钮码在后端登记表里真实存在。
  * 只有第一条的话，把权限码换成一个拼错的按钮码同样能过，而那个按钮会永远不显示。
+ *
+ * 第三条管漏配：页面动作没写 permission 就对所有人可见，没权限的人点了才被后端拒绝。
+ * 除只读动作外都要声明按钮码；刻意不门控的（自助操作、只读入口）登记在豁免表里并写明理由。
  */
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
@@ -43,6 +46,80 @@ const ALLOWED_PERMISSION_CODE_FILES = new Set<string>([
   // 本文件自身带着用于匹配的正则与示例串
   'views/view-permission-hygiene.test.ts',
 ])
+
+/** 只读动作：能进页面就有读权限，不单独门控 */
+const READ_ONLY_ACTION_KEYS = new Set(['view', 'detail', 'preview', 'download', 'trace'])
+
+/**
+ * 刻意不门控的写动作（文件#动作键 → 理由）。新增前先确认后端接口确实不要权限码，
+ * 或者只要页面本身的读权限；动作删掉或改名后这里的条目会被判为失效。
+ */
+const UNGATED_ACTIONS: Record<string, string> = {
+  'views/tenant/list/index.vue#quota-audit': '只读：核对超配额租户，接口只要租户查看权限',
+  'views/file/library/index.vue#storages': '只读入口：打开存储副本列表，抽屉里的写操作各自按按钮码门控',
+  'views/file/export-center/index.vue#cancel': '自助：只作用于本人的导出任务，接口只要求登录',
+  'views/file/export-center/index.vue#delete': '自助：只作用于本人的导出任务，接口只要求登录',
+  'modules/codegen/views/develop/code-gen/components/datasource-panel.vue#test': '只读：连通性测试只要代码生成的读权限',
+  'modules/codegen/views/develop/code-gen/components/table-panel.vue#runtime': '只读：运行时预览只要代码生成的读权限',
+  'modules/workflow/views/workflow/todo/index.vue#approve': '自助：办理人办理自己的待办，后端按办理人校验',
+  'modules/workflow/views/workflow/todo/index.vue#reject': '自助：办理人办理自己的待办，后端按办理人校验',
+  'modules/workflow/views/workflow/todo/index.vue#transfer': '自助：办理人转办自己的待办，后端按办理人校验',
+  'modules/workflow/views/workflow/todo/index.vue#addSign': '自助：办理人给自己的待办加签，后端按办理人校验',
+}
+
+/** 动作对象：从 scope 出现处向外找包住它的对象字面量 */
+function enclosingObject(source: string, at: number): string | null {
+  let depth = 0
+  let start = -1
+  for (let i = at; i >= 0; i--) {
+    if (source[i] === '}') {
+      depth++
+    }
+    else if (source[i] === '{') {
+      if (depth === 0) {
+        start = i
+        break
+      }
+      depth--
+    }
+  }
+  if (start < 0) {
+    return null
+  }
+  depth = 0
+  for (let i = start; i < source.length; i++) {
+    if (source[i] === '{') {
+      depth++
+    }
+    else if (source[i] === '}') {
+      depth--
+      if (depth === 0) {
+        return source.slice(start, i + 1)
+      }
+    }
+  }
+  return null
+}
+
+/** 扫出页面 schema 里的全部动作：文件、动作键、是否声明了 permission */
+function listSchemaActions(): Array<{ file: string, key: string, gated: boolean }> {
+  const actions: Array<{ file: string, key: string, gated: boolean }> = []
+  for (const file of listSourceFiles(SRC_ROOT)) {
+    if (!file.endsWith('.vue')) {
+      continue
+    }
+    const rel = relative(SRC_ROOT, file).replaceAll('\\', '/')
+    const source = readFileSync(file, 'utf8')
+    for (const match of source.matchAll(/scope:\s*'(?:page|row|batch)'/g)) {
+      const action = enclosingObject(source, match.index)
+      const key = action ? /\bkey:\s*'([^']+)'/.exec(action)?.[1] : undefined
+      if (action && key) {
+        actions.push({ file: rel, key, gated: /\bpermission:/.test(action) })
+      }
+    }
+  }
+  return actions
+}
 
 function listSourceFiles(dir: string, acc: string[] = []): string[] {
   for (const entry of readdirSync(dir)) {
@@ -122,6 +199,28 @@ describe('视图层权限码卫生', () => {
     }
 
     expect(offenders, `以下按钮码在后端登记表里不存在（按钮将永不显示）：\n${offenders.join('\n')}`).toEqual([])
+  })
+
+  it('页面的写动作必须声明按钮码，否则没有权限的人也看得到', () => {
+    const actions = listSchemaActions()
+    expect(actions.length, '没扫到页面动作，检查 schema 的写法是否变了').toBeGreaterThan(200)
+
+    const offenders = actions
+      .filter(action => !action.gated
+        && !READ_ONLY_ACTION_KEYS.has(action.key)
+        && !(`${action.file}#${action.key}` in UNGATED_ACTIONS))
+      .map(action => `${action.file}#${action.key}`)
+
+    expect(offenders, `以下动作没有声明 permission（按钮码见后端 PageRegistry 的 Buttons；确实不需门控的登记到 UNGATED_ACTIONS 并写明理由）：\n${offenders.join('\n')}`).toEqual([])
+  })
+
+  it('豁免表里的动作必须还在且确实没门控，失效的条目要删掉', () => {
+    const ungated = new Set(listSchemaActions()
+      .filter(action => !action.gated)
+      .map(action => `${action.file}#${action.key}`))
+
+    const stale = Object.keys(UNGATED_ACTIONS).filter(entry => !ungated.has(entry))
+    expect(stale, `以下豁免条目已失效（动作不在了或已声明 permission）：\n${stale.join('\n')}`).toEqual([])
   })
 
   it('扫描确实覆盖到了视图文件，否则以上用例是空跑', () => {

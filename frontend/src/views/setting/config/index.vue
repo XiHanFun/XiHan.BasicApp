@@ -142,12 +142,12 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'create', title: t('setting.config.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'create', title: t('setting.config.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.config.create' },
     { key: 'view', title: t('setting.config.view'), scope: 'row' },
     // 内置配置本就是给运维调值的：后端只禁止删除，不限制改值与启停
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
-    { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', visible: row => canDeleteConfig(row as unknown as ConfigListItemDto) },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.update' },
+    { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.status' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', visible: row => canDeleteConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.delete' },
   ],
 }))
 

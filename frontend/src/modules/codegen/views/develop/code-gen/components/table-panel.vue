@@ -156,7 +156,7 @@ const schema = computed<PageSchema>(() => ({
     remove: id => codeGenTableApi.delete(id),
   },
   actions: [
-    { key: 'import', title: t('develop.code_gen.table.import'), scope: 'page', type: 'primary', icon: 'lucide:database' },
+    { key: 'import', title: t('develop.code_gen.table.import'), scope: 'page', type: 'primary', icon: 'lucide:database', permission: 'code_gen.import' },
     { key: 'preview', title: t('develop.code_gen.table.action_preview'), scope: 'row', icon: 'lucide:eye' },
     // 两个生成动作按表配置的生成方式二选一呈现，避免同时给出两个入口让人猜该点哪个
     {
@@ -166,6 +166,7 @@ const schema = computed<PageSchema>(() => ({
       type: 'primary',
       icon: 'lucide:download',
       visible: row => (row as unknown as CodeGenTableListItemDto).genType === GenType.Zip,
+      permission: 'code_gen.execute',
     },
     {
       key: 'generateToDisk',
@@ -177,12 +178,13 @@ const schema = computed<PageSchema>(() => ({
       confirm: true,
       confirmText: t('develop.code_gen.table.generate_to_disk_confirm'),
       visible: row => (row as unknown as CodeGenTableListItemDto).genType === GenType.CustomPath,
+      permission: 'code_gen.execute',
     },
-    { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2' },
-    { key: 'sync', title: t('develop.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
+    { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2', permission: 'code_gen.update' },
+    { key: 'sync', title: t('develop.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw', permission: 'code_gen.import' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'code_gen.update' },
     { key: 'runtime', title: t('develop.code_gen.table.action_runtime'), scope: 'row', icon: 'lucide:database' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'code_gen.delete' },
   ],
 }))
 

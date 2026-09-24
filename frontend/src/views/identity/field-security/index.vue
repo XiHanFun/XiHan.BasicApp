@@ -337,10 +337,10 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => fieldLevelSecurityApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('identity.field_security.batch_enable_remark') : t('identity.field_security.batch_disable_remark') }),
   },
   actions: [
-    { key: 'create', title: t('identity.field_security.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'edit', title: t('identity.field_security.action_edit'), scope: 'row' },
-    { key: 'toggle', title: t('identity.field_security.action_toggle'), scope: 'row' },
-    { key: 'delete', title: t('identity.field_security.action_delete'), scope: 'row' },
+    { key: 'create', title: t('identity.field_security.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.field-security.create' },
+    { key: 'edit', title: t('identity.field_security.action_edit'), scope: 'row', permission: 'identity.field-security.update' },
+    { key: 'toggle', title: t('identity.field_security.action_toggle'), scope: 'row', permission: 'identity.field-security.status' },
+    { key: 'delete', title: t('identity.field_security.action_delete'), scope: 'row', permission: 'identity.field-security.delete' },
   ],
 }))
 
