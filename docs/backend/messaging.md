@@ -245,7 +245,7 @@ Task Typing(string conversationId);             // 向组内其他连接广播 C
 
 独立权限码 `Chat.Audit`（`chat:audit`），由 `ChatAuditQueryService.GetChatMessagePageAsync` 承载：管理侧**跨会话**分页查询聊天消息（按会话/发送人/发送时间区间/关键字过滤，关键字匹配正文、发送人名、附件文件名），默认排除已撤回消息（`IncludeRecalled` 可选纳入），批量带出会话名称/类型免逐行 JOIN。菜单页 `/message/chat-audit`（`message.chat-audit`）独立于普通聊天入口，供管理员做内容合规审计，不占用 `Chat.Read`/`Chat.Send`/`Chat.Manage` 三档。
 
-**敏感词拦截**：发送/编辑文本前经 `IChatSensitiveWordGuard.EnsureAllowedAsync` 校验，命中即 fail-closed 抛业务异常拒绝。词库取自系统设置 `SysConfig` 键 `chat:sensitive-words`（全局 `TenantId=0`，换行/中英文逗号/分号分隔，空=关闭），进程内缓存 60 秒，`OrdinalIgnoreCase` 包含匹配。
+**敏感词拦截**：发送/编辑文本前经 `IChatSensitiveWordGuard.EnsureAllowedAsync` 校验，命中即 fail-closed 抛业务异常拒绝。词库是聊天策略参数 `chat.policy` 的 `sensitiveWords` 数组（空数组=关闭；租户有同键参数时用租户的），经配置值缓存读取、改参数即失效，`OrdinalIgnoreCase` 包含匹配。同一参数的 `retentionDays` 是聊天消息保留天数（缺省 365）。
 
 ---
 

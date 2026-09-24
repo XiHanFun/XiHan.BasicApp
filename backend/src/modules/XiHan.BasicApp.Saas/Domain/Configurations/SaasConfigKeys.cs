@@ -71,30 +71,24 @@ public static class SaasConfigKeys
     /// 认证配置。
     /// </summary>
     /// <remarks>
-    /// 仅保留运行期被强类型读取入口（<c>SaasConfigurationService.GetLoginConfigAsync</c>）实际消费的配置键；
-    /// 其余历史占位键（应用/租户/通知/密码策略/会话/审计/文件存储）均无任何代码消费者，已随种子一并移除。
+    /// 同一功能的设置合成一条 JSON 配置，结构见各设置类型；缺配置时按类型里的默认值运行。
     /// </remarks>
     public static class Auth
     {
         /// <summary>
-        /// 登录方式，JSON 字符串数组。
+        /// 登录设置（JSON，<see cref="SaasLoginSettings"/>）：登录页开放的方式与展示的第三方登录。
         /// </summary>
-        public const string LoginMethods = "saas.auth.login.methods";
+        public const string Login = "saas.auth.login";
 
         /// <summary>
-        /// OAuth 提供商，JSON 数组。
+        /// 密码设置（JSON，<see cref="SaasPasswordSettings"/>）：是否强制修改由他人设置的密码。
         /// </summary>
-        public const string OAuthProviders = "saas.auth.oauth.providers";
+        public const string Password = "saas.auth.password";
 
         /// <summary>
-        /// 模仿会话存活分钟数（由 <c>AuthAppService.StartImpersonationAsync</c> 强类型读取）。
+        /// 模仿登录设置（JSON，<see cref="SaasImpersonationSettings"/>）：会话存活时长与是否通知被模仿者。
         /// </summary>
-        public const string ImpersonationSessionMinutes = "saas.auth.impersonation.session-minutes";
-
-        /// <summary>
-        /// 发起模仿时是否向被模仿者投递安全通知（由 <c>AuthAppService.StartImpersonationAsync</c> 强类型读取）。
-        /// </summary>
-        public const string ImpersonationNotifyTarget = "saas.auth.impersonation.notify-target";
+        public const string Impersonation = "saas.auth.impersonation";
     }
 
     /// <summary>
@@ -103,60 +97,31 @@ public static class SaasConfigKeys
     public static class Bot
     {
         /// <summary>
-        /// Telegram 机器人平台全局设置（由 <c>SaasTelegramBotSettingsStore</c> 强类型读取）。
+        /// Telegram 机器人平台配置。
         /// </summary>
         public static class Telegram
         {
             /// <summary>
-            /// 是否启用 Telegram 机器人平台（总开关，布尔）。
+            /// 平台设置（JSON，由 <c>SaasTelegramBotSettingsStore</c> 读取）：总开关、Webhook 地址、刷新与缓存周期、网络。
             /// </summary>
-            public const string Enabled = "saas.bot.telegram.enabled";
+            public const string Settings = "saas.bot.telegram";
 
             /// <summary>
-            /// Webhook 基础地址（如 https://example.com）；空 = 长轮询（Polling）模式。
-            /// </summary>
-            public const string WebhookBaseUrl = "saas.bot.telegram.webhook-base-url";
-
-            /// <summary>
-            /// Webhook 路由前缀。
-            /// </summary>
-            public const string WebhookRoutePrefix = "saas.bot.telegram.webhook-route-prefix";
-
-            /// <summary>
-            /// Webhook 密钥令牌（Webhook 模式必填，fail-closed；读侧遮蔽）。
+            /// Webhook 密钥令牌（加密存储，单列一条：加密作用于整条配置值，不能和明文设置合在一起）。
             /// </summary>
             public const string WebhookSecretToken = "saas.bot.telegram.webhook-secret-token";
-
-            /// <summary>
-            /// 管理器刷新间隔秒数。
-            /// </summary>
-            public const string ManagerRefreshSeconds = "saas.bot.telegram.manager-refresh-seconds";
-
-            /// <summary>
-            /// 配置列表缓存秒数。
-            /// </summary>
-            public const string ConfigCacheSeconds = "saas.bot.telegram.config-cache-seconds";
-
-            /// <summary>
-            /// 是否启用兜底回复（平台级；与单机器人配置任一开启即生效）。
-            /// </summary>
-            public const string EnableFallbackReply = "saas.bot.telegram.enable-fallback-reply";
-
-            /// <summary>
-            /// 代理地址（如 http://127.0.0.1:7890 或 socks5://127.0.0.1:1080）；空 = 直连。
-            /// </summary>
-            public const string ProxyUrl = "saas.bot.telegram.proxy-url";
-
-            /// <summary>
-            /// 自建 Bot API Server 基础地址（如 https://tg-api.example.com）；空 = 官方 api.telegram.org。
-            /// </summary>
-            public const string BaseUrl = "saas.bot.telegram.base-url";
-
-            /// <summary>
-            /// 请求超时秒数。
-            /// </summary>
-            public const string TimeoutSeconds = "saas.bot.telegram.timeout-seconds";
         }
+    }
+
+    /// <summary>
+    /// 日志配置。
+    /// </summary>
+    public static class Log
+    {
+        /// <summary>
+        /// 日志保留天数（数字，由 <c>LogRetentionCleanupTask</c> 读取）。
+        /// </summary>
+        public const string RetentionDays = "saas.log.retention-days";
     }
 
     /// <summary>
@@ -173,5 +138,10 @@ public static class SaasConfigKeys
         /// 机器人配置分组。
         /// </summary>
         public const string Bot = "bot";
+
+        /// <summary>
+        /// 日志配置分组。
+        /// </summary>
+        public const string Log = "log";
     }
 }

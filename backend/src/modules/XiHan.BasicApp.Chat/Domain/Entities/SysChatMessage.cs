@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Chat.Domain.Entities;
 /// - 按发送人追溯：IX_SeUsId
 ///
 /// 删除：
-/// - 不支持业务删除；按保留期（配置 chat:retention-days）由清理任务物理删除
+/// - 不支持业务删除；按保留期（聊天策略 chat.policy 的 retentionDays）由清理任务物理删除
 /// - 不分月表：撤回/已读需按 id 更新，月分表不适用（仓库仅对 append-only 日志分月）
 ///
 /// 场景：

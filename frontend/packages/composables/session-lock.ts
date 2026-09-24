@@ -10,7 +10,7 @@ import { LOCK_REASON_KEY, LOCK_STATE_KEY } from '~/constants'
 export const SESSION_LOCK_REASON_SCREEN = 'ScreenLock'
 
 /**
- * 强制改密：默认密码登录成功即锁定会话（服务端仅放行改密/登出/刷新端点），
+ * 强制改密：密码由他人设置且开启强制改密时，登录成功即锁定会话（服务端仅放行改密/登出/刷新端点），
  * 修改密码成功自动解锁。与后端 SessionLockReasons.PasswordChangeRequired 对齐。
  */
 export const SESSION_LOCK_REASON_PASSWORD_CHANGE = 'PasswordChangeRequired'

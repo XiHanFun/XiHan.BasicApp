@@ -493,7 +493,7 @@ export default {
     password_mismatch: '兩次輸入不一致',
     lock_failed: '鎖定失敗',
     unlock_failed: '解鎖失敗',
-    change_password_hint: '偵測到使用預設密碼登入，請先修改密碼後再繼續使用',
+    change_password_hint: '密碼由管理員設定，請先修改密碼後再繼續使用',
     change_old_password_placeholder: '目前密碼',
     change_new_password_placeholder: '新密碼',
     change_password_btn: '修改密碼並解鎖',

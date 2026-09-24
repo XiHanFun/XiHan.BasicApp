@@ -48,7 +48,7 @@ export function useLockScreen() {
   const logoutLoading = ref(false)
   // 服务端强制锁屏必须有口令，因此锁屏态下永远需要输入密码
   const hasLockPwd = ref(true)
-  // 强制改密态（默认密码登录）：当前密码 / 新密码 / 确认密码
+  // 强制改密态：当前密码 / 新密码 / 确认密码
   const changePwdOld = ref('')
   const changePwdNew = ref('')
   const changePwdConfirm = ref('')

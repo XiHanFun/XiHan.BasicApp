@@ -53,7 +53,12 @@ public sealed record UserStatusChangeCommand(long BasicId, EnableStatus Status, 
 /// <summary>
 /// 用户密码重置命令
 /// </summary>
-public sealed record UserPasswordResetCommand(long UserId, string NewPassword, DateTimeOffset? PasswordExpirationTime, string? Remark);
+/// <param name="UserId">用户主键</param>
+/// <param name="NewPassword">新密码</param>
+/// <param name="PasswordExpirationTime">密码过期时间</param>
+/// <param name="Remark">备注</param>
+/// <param name="BySelf">是否本人重置（找回密码）；管理员重置为 false，此时标记需要本人改密</param>
+public sealed record UserPasswordResetCommand(long UserId, string NewPassword, DateTimeOffset? PasswordExpirationTime, string? Remark, bool BySelf);
 
 /// <summary>
 /// 用户双因素认证重置命令（清除 OTP 绑定）

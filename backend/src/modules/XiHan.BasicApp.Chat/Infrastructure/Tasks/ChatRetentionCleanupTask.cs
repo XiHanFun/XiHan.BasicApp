@@ -5,8 +5,7 @@ using Microsoft.Extensions.Logging;
 using SqlSugar;
 using XiHan.BasicApp.Chat.Domain.Configurations;
 using XiHan.BasicApp.Chat.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -19,18 +18,15 @@ namespace XiHan.BasicApp.Chat.Infrastructure.Tasks;
 /// <remarks>
 /// <para>由动态任务调度（SysTask：TaskClass=本类全名，TaskMethod=ExecuteAsync，建议 Cron 每日凌晨）触发。</para>
 /// <para>清理范围：过期消息 + 这些消息名下的全部表情回应（回应无独立保留期，随所属消息一同消失）。</para>
-/// <para>保留期天数：读取全局配置 <c>chat:retention-days</c>（TenantId=0），未配置时取 <see cref="DefaultRetentionDays"/> 天，配置非法直接失败；
+/// <para>保留期天数：平台聊天策略 <see cref="ChatConfigKeys.Policy"/> 的 retentionDays，未配置按 <see cref="ChatPolicySettings"/> 的默认值，配置非法直接失败；
 /// 聊天与审计日志留存合规口径不同，独立配置。</para>
 /// <para>聊天实体严格隔离：逐数据作用域（平台 + 每个数据可达的租户）切入清理，库隔离租户在它自己的库里清理。</para>
 /// </remarks>
 public sealed class ChatRetentionCleanupTask
 {
-    /// <summary>
-    /// 默认保留天数（未配置 chat:retention-days 时使用）
-    /// </summary>
-    private const int DefaultRetentionDays = 365;
-
     private readonly ISqlSugarClientResolver _clientResolver;
+
+    private readonly ISaasConfigurationService _configuration;
 
     private readonly ITenantDataScopeRunner _scopeRunner;
 
@@ -43,11 +39,13 @@ public sealed class ChatRetentionCleanupTask
     /// </summary>
     public ChatRetentionCleanupTask(
         ISqlSugarClientResolver clientResolver,
+        ISaasConfigurationService configuration,
         ITenantDataScopeRunner scopeRunner,
         ICurrentTenant currentTenant,
         ILogger<ChatRetentionCleanupTask> logger)
     {
         _clientResolver = clientResolver;
+        _configuration = configuration;
         _scopeRunner = scopeRunner;
         _currentTenant = currentTenant;
         _logger = logger;
@@ -62,7 +60,7 @@ public sealed class ChatRetentionCleanupTask
         int retentionDays;
         using (_currentTenant.Change(null))
         {
-            retentionDays = await ResolveRetentionDaysAsync(_clientResolver.GetClientForEntity<SysConfig>());
+            retentionDays = await ResolveRetentionDaysAsync();
         }
 
         var cutoff = DateTimeOffset.UtcNow.AddDays(-retentionDays);
@@ -116,24 +114,13 @@ public sealed class ChatRetentionCleanupTask
     }
 
     /// <summary>
-    /// 解析保留天数：未配置取默认值，配置非法直接失败（不静默回退，避免按错误的保留期删数据）
+    /// 解析保留天数：平台的聊天策略，未配置用默认值；不是正整数直接失败（不按错误的保留期删数据）
     /// </summary>
-    private static async Task<int> ResolveRetentionDaysAsync(ISqlSugarClient client)
+    private async Task<int> ResolveRetentionDaysAsync()
     {
-        var value = await client.Queryable<SysConfig>()
-            .Where(config => config.ConfigKey == ChatConfigKeys.RetentionDays
-                && config.TenantId == 0
-                && config.Status == EnableStatus.Enabled)
-            .Select(config => config.ConfigValue)
-            .FirstAsync();
-
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return DefaultRetentionDays;
-        }
-
-        return int.TryParse(value, out var days) && days > 0
-            ? days
-            : throw new InvalidOperationException($"聊天保留期配置 {ChatConfigKeys.RetentionDays} 的值「{value}」不是正整数。");
+        var policy = await _configuration.GetJsonAsync(ChatConfigKeys.Policy, new ChatPolicySettings());
+        return policy.RetentionDays > 0
+            ? policy.RetentionDays
+            : throw new InvalidOperationException($"聊天策略 {ChatConfigKeys.Policy} 的保留天数必须是正整数，当前为 {policy.RetentionDays}。");
     }
 }

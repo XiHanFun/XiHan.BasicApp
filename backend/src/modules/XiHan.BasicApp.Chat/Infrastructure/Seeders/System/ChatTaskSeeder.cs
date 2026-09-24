@@ -43,7 +43,7 @@ public sealed class ChatTaskSeeder : PlatformDataSeederBase
             TenantId = 0,
             TaskCode = "chat-retention-cleanup",
             TaskName = "聊天消息保留清理",
-            TaskDescription = "按保留期（全局配置 chat:retention-days，默认 365 天）跨租户物理删除过期聊天消息，防止消息表无限增长",
+            TaskDescription = "按保留期（聊天策略 chat.policy 的 retentionDays，默认 365 天）跨租户物理删除过期聊天消息，防止消息表无限增长",
             TaskGroup = "chat",
             TaskClass = typeof(ChatRetentionCleanupTask).FullName!,
             TaskMethod = nameof(ChatRetentionCleanupTask.ExecuteAsync),

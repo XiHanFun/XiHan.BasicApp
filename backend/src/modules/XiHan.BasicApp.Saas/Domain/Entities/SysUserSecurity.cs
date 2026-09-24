@@ -79,6 +79,16 @@ public partial class SysUserSecurity : BasicAppFullAuditedEntity, IStrictMultiTe
     public virtual DateTimeOffset? PasswordExpirationTime { get; set; }
 
     /// <summary>
+    /// 是否需要本人修改密码
+    /// </summary>
+    /// <remarks>
+    /// 密码由他人设置时为 true（管理员创建或重置、平台开通管理员、种子写入），本人改密或找回密码后清除。
+    /// 只在参数「密码设置」的 forceChange 开启时生效：登录后锁定到改密为止。
+    /// </remarks>
+    [SugarColumn(ColumnName = "Password_Change_Required", ColumnDescription = "是否需要本人改密")]
+    public virtual bool PasswordChangeRequired { get; set; }
+
+    /// <summary>
     /// 失败登录次数
     /// </summary>
     [SugarColumn(ColumnName = "Failed_Login_Attempts", ColumnDescription = "失败登录次数")]

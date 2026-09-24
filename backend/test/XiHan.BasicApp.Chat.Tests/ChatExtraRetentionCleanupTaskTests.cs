@@ -5,9 +5,12 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using SqlSugar;
 using System.Linq.Expressions;
+using XiHan.BasicApp.Chat.Domain.Configurations;
 using XiHan.BasicApp.Chat.Domain.Entities;
 using XiHan.BasicApp.Chat.Infrastructure.Tasks;
-using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Application.Caching;
+using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -82,15 +85,33 @@ public sealed class ChatExtraRetentionCleanupTaskTests
     }
 
     /// <summary>
-    /// 保留期配置非法时直接失败，不按默认值继续删数据
+    /// 聊天策略里配置的保留天数进入截止时间与摘要
     /// </summary>
     [Fact]
-    public async Task ExecuteAsync_WithInvalidRetentionConfig_ShouldThrowWithoutDeleting()
+    public async Task ExecuteAsync_ShouldUseConfiguredRetentionDays()
     {
-        var context = new CleanupContext(messageRows: 7, reactionRows: 3, retentionConfigValue: "abc");
+        var context = new CleanupContext(messageRows: 7, reactionRows: 3, policy: """{"retentionDays":30}""");
 
-        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Task.ExecuteAsync());
+        var summary = await context.Task.ExecuteAsync();
 
+        Assert.Contains("保留 30 天", summary, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 保留期配置非法时直接失败，不按默认值继续删数据
+    /// </summary>
+    [Theory]
+    [InlineData("abc")]
+    [InlineData("""{"retentionDays":"30"}""")]
+    [InlineData("""{"retentionDays":0}""")]
+    [InlineData("""{"retentionDays":-1}""")]
+    public async Task ExecuteAsync_WithInvalidRetentionConfig_ShouldThrowWithoutDeleting(string policy)
+    {
+        var context = new CleanupContext(messageRows: 7, reactionRows: 3, policy: policy);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Task.ExecuteAsync());
+
+        Assert.Contains(ChatConfigKeys.Policy, exception.Message, StringComparison.Ordinal);
         Assert.Empty(context.DeletedInOrder);
     }
 
@@ -105,31 +126,24 @@ public sealed class ChatExtraRetentionCleanupTaskTests
         /// <param name="messageRows">每个作用域消息删除链路返回的行数。</param>
         /// <param name="reactionRows">每个作用域回应删除链路返回的行数。</param>
         /// <param name="scopeTenantIds">逐作用域执行器依次切入的作用域（缺省只有平台）。</param>
-        /// <param name="retentionConfigValue">保留期配置值（缺省未配置）。</param>
-        public CleanupContext(int messageRows, int reactionRows, long?[]? scopeTenantIds = null, string? retentionConfigValue = null)
+        /// <param name="policy">聊天策略原文（缺省未配置）。</param>
+        public CleanupContext(int messageRows, int reactionRows, long?[]? scopeTenantIds = null, string? policy = null)
         {
             MessageDeleteable = CreateDeleteable<SysChatMessage>(messageRows, nameof(SysChatMessage));
             ReactionDeleteable = CreateDeleteable<SysChatMessageReaction>(reactionRows, nameof(SysChatMessageReaction));
 
-            var configValue = new Mock<ISugarQueryable<string>>();
-            configValue.Setup(value => value.FirstAsync()).ReturnsAsync(retentionConfigValue!);
-            var configQuery = new Mock<ISugarQueryable<SysConfig>>();
-            configQuery
-                .Setup(value => value.Where(It.IsAny<Expression<Func<SysConfig, bool>>>()))
-                .Returns(() => configQuery.Object);
-            configQuery
-                .Setup(value => value.Select(It.IsAny<Expression<Func<SysConfig, string>>>()))
-                .Returns(configValue.Object);
+            var configValueQuery = new Mock<ISaasConfigValueQueryService>();
+            configValueQuery
+                .Setup(value => value.GetValueItemAsync(ChatConfigKeys.Policy, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new SaasConfigValueCacheItem { ConfigKey = ChatConfigKeys.Policy, Value = policy, Exists = policy is not null });
 
             var client = new Mock<ISqlSugarClient>();
-            client.Setup(value => value.Queryable<SysConfig>()).Returns(configQuery.Object);
             client.Setup(value => value.Deleteable<SysChatMessage>()).Returns(MessageDeleteable.Object);
             client.Setup(value => value.Deleteable<SysChatMessageReaction>()).Returns(ReactionDeleteable.Object);
 
             var resolver = new Mock<ISqlSugarClientResolver>();
+            // 消息与回应在各作用域自己的库里，走当前连接
             resolver.Setup(value => value.GetCurrentClient()).Returns(client.Object);
-            // 保留期是平台配置，按实体取连接；消息与回应在各作用域自己的库里，走当前连接
-            resolver.Setup(value => value.GetClientForEntity<SysConfig>()).Returns(client.Object);
 
             CurrentTenant = new Mock<ICurrentTenant>();
 
@@ -147,6 +161,7 @@ public sealed class ChatExtraRetentionCleanupTaskTests
 
             Task = new ChatRetentionCleanupTask(
                 resolver.Object,
+                new SaasConfigurationService(configValueQuery.Object),
                 scopeRunner.Object,
                 CurrentTenant.Object,
                 new Mock<ILogger<ChatRetentionCleanupTask>>().Object);

@@ -493,7 +493,7 @@ export default {
     password_mismatch: '入力内容が一致しません',
     lock_failed: 'ロックに失敗しました',
     unlock_failed: 'ロック解除に失敗しました',
-    change_password_hint: '初期パスワードでのログインを検出しました。続行する前にパスワードを変更してください',
+    change_password_hint: 'パスワードは管理者が設定したものです。続行する前にパスワードを変更してください',
     change_old_password_placeholder: '現在のパスワード',
     change_new_password_placeholder: '新しいパスワード',
     change_password_btn: 'パスワードを変更してロック解除',

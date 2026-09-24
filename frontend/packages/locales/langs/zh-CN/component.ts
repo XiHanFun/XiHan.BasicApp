@@ -493,7 +493,7 @@ export default {
     password_mismatch: '两次输入不一致',
     lock_failed: '锁屏失败',
     unlock_failed: '解锁失败',
-    change_password_hint: '检测到默认密码登录，请先修改密码后再继续使用',
+    change_password_hint: '密码由管理员设置，请先修改密码后再继续使用',
     change_old_password_placeholder: '当前密码',
     change_new_password_placeholder: '新密码',
     change_password_btn: '修改密码并解锁',

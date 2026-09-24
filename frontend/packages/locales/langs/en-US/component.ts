@@ -493,7 +493,7 @@ export default {
     password_mismatch: 'The two passwords do not match',
     lock_failed: 'Failed to lock',
     unlock_failed: 'Failed to unlock',
-    change_password_hint: 'Default password login detected. Please change your password to continue.',
+    change_password_hint: 'Your password was set by an administrator. Please change it to continue.',
     change_old_password_placeholder: 'Current password',
     change_new_password_placeholder: 'New password',
     change_password_btn: 'Change Password & Unlock',

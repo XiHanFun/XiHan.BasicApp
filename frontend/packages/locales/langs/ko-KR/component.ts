@@ -493,7 +493,7 @@ export default {
     password_mismatch: '두 입력이 일치하지 않아요',
     lock_failed: '잠그지 못했어요',
     unlock_failed: '잠금을 해제하지 못했어요',
-    change_password_hint: '기본 비밀번호로 로그인한 것이 확인됐어요. 계속하려면 먼저 비밀번호를 변경해 주세요',
+    change_password_hint: '관리자가 설정한 비밀번호예요. 계속하려면 먼저 비밀번호를 변경해 주세요',
     change_old_password_placeholder: '현재 비밀번호',
     change_new_password_placeholder: '새 비밀번호',
     change_password_btn: '비밀번호 변경 후 잠금 해제',

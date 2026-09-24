@@ -493,7 +493,7 @@ export default {
     password_mismatch: 'Die beiden Passwörter stimmen nicht überein',
     lock_failed: 'Sperren fehlgeschlagen',
     unlock_failed: 'Entsperren fehlgeschlagen',
-    change_password_hint: 'Anmeldung mit Standardpasswort erkannt. Bitte ändern Sie Ihr Passwort, um fortzufahren.',
+    change_password_hint: 'Ihr Passwort wurde von einem Administrator festgelegt. Bitte ändern Sie es, um fortzufahren.',
     change_old_password_placeholder: 'Aktuelles Passwort',
     change_new_password_placeholder: 'Neues Passwort',
     change_password_btn: 'Passwort ändern & entsperren',
