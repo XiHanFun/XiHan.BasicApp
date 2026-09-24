@@ -308,6 +308,7 @@ public sealed class SaasDomainStorageConfigTests
 
     /// <summary>
     /// 已被文件存储记录引用的配置禁止删除，避免历史文件失去可解析的存储配置。
+    /// 平台默认存储被未自配的租户用着，那些文件记录在各租户里，要跨租户查。
     /// </summary>
     [Fact]
     public async Task DeleteStorageConfig_ReferencedByFileStorage_ShouldReject()
@@ -315,7 +316,7 @@ public sealed class SaasDomainStorageConfigTests
         var context = new StorageConfigTestContext();
         _ = context.SetupExistingConfig();
         _ = context.FileStorageRepository
-            .Setup(repo => repo.AnyAsync(
+            .Setup(repo => repo.AnyIgnoreTenantAsync(
                 It.IsAny<Expression<Func<SysFileStorage, bool>>>(),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
@@ -326,6 +327,28 @@ public sealed class SaasDomainStorageConfigTests
         Assert.Equal("存储配置已被文件存储记录引用，禁止删除。", exception.Message, StringComparer.Ordinal);
         context.StorageConfigRepository.Verify(
             repo => repo.DeleteAsync(It.IsAny<SysStorageConfig>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 租户自己的配置只查本租户的文件记录。
+    /// </summary>
+    [Fact]
+    public async Task DeleteStorageConfig_TenantConfigReferencedInTenant_ShouldReject()
+    {
+        var context = new StorageConfigTestContext();
+        var config = context.SetupExistingConfig();
+        config.TenantId = 7;
+        _ = context.FileStorageRepository
+            .Setup(repo => repo.AnyAsync(
+                It.IsAny<Expression<Func<SysFileStorage, bool>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Service.DeleteStorageConfigAsync(5));
+
+        context.FileStorageRepository.Verify(
+            repo => repo.AnyIgnoreTenantAsync(It.IsAny<Expression<Func<SysFileStorage, bool>>>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 

@@ -285,6 +285,7 @@ public sealed class FileDomainService
         {
             FileId = file.BasicId,
             StorageType = command.StorageType,
+            StorageConfigId = command.StorageConfigId,
             StorageProvider = Optional(command.StorageProvider, 50, nameof(command.StorageProvider), "存储提供商不能超过 50 个字符。"),
             BucketName = Optional(command.BucketName, 100, nameof(command.BucketName), "存储桶名称不能超过 100 个字符。"),
             StoragePath = Required(command.StoragePath, 500, nameof(command.StoragePath), "存储路径不能超过 500 个字符。"),

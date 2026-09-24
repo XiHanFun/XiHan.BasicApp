@@ -211,6 +211,8 @@ public static class ServiceCollectionExtensions
         // Telegram 机器人配置/平台设置存储：以数据库实现覆盖框架默认 Options 实现（框架模块 TryAdd 先注册，故须 Replace）
         services.Replace(ServiceDescriptor.Singleton<ITelegramBotConfigStore, SaasTelegramBotConfigStore>());
         services.Replace(ServiceDescriptor.Singleton<ITelegramBotSettingsStore, SaasTelegramBotSettingsStore>());
+        // Telegram 广播通道（机器人通知的一个提供者）：只在平台上下文生效，租户的通知不借平台的机器人
+        services.Replace(ServiceDescriptor.Singleton<ITelegramConfigStore, SaasTelegramConfigStore>());
         // Telegram 分布式三件套（多实例安全）：Update 幂等去重（Redis SET NX，未启用 Redis 回退进程内）/
         // 会话状态（分布式缓存）/ 出站审计（月分表落库，异常吞掉不阻断发送）——均覆盖框架默认实现，故须 Replace
         services.Replace(ServiceDescriptor.Singleton<ITelegramUpdateDeduplicator, SaasTelegramUpdateDeduplicator>());

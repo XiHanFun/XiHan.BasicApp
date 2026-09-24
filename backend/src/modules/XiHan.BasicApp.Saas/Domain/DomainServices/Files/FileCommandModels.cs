@@ -99,6 +99,7 @@ public sealed record FileUploadCompleteCommand(
     long FileId,
     long UploadedFileSize,
     FileStorageType StorageType,
+    long? StorageConfigId,
     string? StorageProvider,
     string? BucketName,
     string StoragePath,

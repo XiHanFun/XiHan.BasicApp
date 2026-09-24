@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Bot.Email.Abstractions;
 using XiHan.Framework.Bot.Email.Models;
 using XiHan.Framework.Bot.Email.Options;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
 
@@ -49,7 +50,9 @@ public sealed class SaasEmailConfigStore : IEmailConfigStore
         await using (var scope = _scopeFactory.CreateAsyncScope())
         {
             var repository = scope.ServiceProvider.GetRequiredService<IEmailConfigRepository>();
-            config = await repository.GetDefaultAsync(cancellationToken);
+            var currentTenant = scope.ServiceProvider.GetRequiredService<ICurrentTenant>();
+            // 租户自配的默认发件优先；没有时由平台代发
+            config = await currentTenant.CurrentThenPlatformAsync(() => repository.GetDefaultAsync(cancellationToken));
         }
 
         if (config is null)
