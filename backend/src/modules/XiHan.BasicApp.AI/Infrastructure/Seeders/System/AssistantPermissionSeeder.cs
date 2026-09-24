@@ -50,7 +50,8 @@ public class AssistantPermissionSeeder : PlatformDataSeederBase
         var operationMap = operations.ToDictionary(o => o.OperationCode, o => o);
         string[] operationCodes = ["read", "create", "update", "delete"];
         var permissionCodes = operationCodes.Select(op => $"ai_assistant:{op}").ToList();
-        await SyncPermissionSideAsync(permissionCodes, PermissionSide.Both);
+        // 平台：提示词、助手是平台下发的目录（租户可用不可改），知识库是平台私有数据
+        await SyncPermissionSideAsync(permissionCodes, PermissionSide.Platform);
         var existingCodes = (await client.Queryable<SysPermission>().Where(p => permissionCodes.Contains(p.PermissionCode)).ToListAsync())
             .Select(p => p.PermissionCode)
             .ToHashSet();
@@ -74,7 +75,7 @@ public class AssistantPermissionSeeder : PlatformDataSeederBase
                 PermissionDescription = $"对{resource.ResourceName}执行{operation.OperationName}操作",
                 IsRequireAudit = operation.IsRequireAudit,
                 Tags = "ai_assistant",
-                Side = PermissionSide.Both,
+                Side = PermissionSide.Platform,
                 Status = EnableStatus.Enabled,
                 Sort = 940 + addList.Count
             });

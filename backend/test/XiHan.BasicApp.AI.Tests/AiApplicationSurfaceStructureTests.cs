@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Reflection;
 using XiHan.BasicApp.AI.Application;
 using XiHan.BasicApp.AI.Domain.Permissions;
+using XiHan.BasicApp.Chat.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
@@ -25,16 +26,10 @@ public sealed class AiApplicationSurfaceStructureTests
     /// 显式放行的免权限端点（仅凭登录态即可调用），键为「类型名.方法名」。
     /// </summary>
     /// <remarks>
-    /// - 聊天助手两个端点面向普通登录用户，用助手不看管理侧权限，只看登录态与会话归属；
-    /// - 可用助手列表是聊天页的下拉数据源，同理不挂管理权限。
+    /// 目前没有放行项：聊天助手与可用助手列表按聊天权限门控（助手是聊天里的参与者，消耗平台的模型额度）。
     /// 新增任何一条都意味着放开一个免鉴权端点，必须在评审里单独说明。
     /// </remarks>
-    private static readonly string[] PermissionExemptEndpoints =
-    [
-        "ChatAssistantAppService.OpenConversationAsync",
-        "ChatAssistantAppService.ReplyAsync",
-        "AiAssistantQueryService.GetAvailableAsync"
-    ];
+    private static readonly string[] PermissionExemptEndpoints = [];
 
     /// <summary>
     /// 显式放行的免工作单元写端点，键为「类型名.方法名」。
@@ -327,7 +322,9 @@ public sealed class AiApplicationSurfaceStructureTests
             typeof(AiPermissionCodes),
             typeof(AiAssistantPermissionCodes),
             typeof(AiPromptPermissionCodes),
-            typeof(KnowledgePermissionCodes)
+            typeof(KnowledgePermissionCodes),
+            // AI 模块依赖聊天模块：助手对话与可用助手列表用聊天的权限码门控
+            typeof(ChatPermissionCodes)
         ];
 
         return [.. codeTypes

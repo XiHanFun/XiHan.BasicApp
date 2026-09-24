@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Workflow.Domain.Entities;
 
@@ -12,13 +13,15 @@ namespace XiHan.BasicApp.Workflow.Domain.Entities;
 /// <remarks>
 /// 引擎运行时行（硬删；主键 = 引擎书签标识）：真源为 <see cref="BookmarkJson"/>，
 /// 其余列是待办/信号/到期轮询检索用投影。
+///
+/// 租户隔离：严格——工作流只属于它所在的租户，别的租户与平台都看不到；定时器跨租户取到期书签后逐租户切入执行。
 /// </remarks>
 [SugarTable(TableName = "Sys_Workflow_Bookmark", TableDescription = "系统工作流书签表")]
 [SugarIndex("IX_{table}_InId", nameof(InstanceId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_NoIn", nameof(NodeInstanceId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_Ki_Ke", nameof(Kind), OrderByType.Asc, nameof(Key), OrderByType.Asc)]
 [SugarIndex("IX_{table}_DuTi", nameof(DueTime), OrderByType.Asc)]
-public partial class SysWorkflowBookmark : BasicAppEntity
+public partial class SysWorkflowBookmark : BasicAppEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 构造函数

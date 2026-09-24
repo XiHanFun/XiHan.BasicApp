@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
 
 namespace XiHan.BasicApp.Workflow.Domain.Entities;
@@ -13,11 +14,13 @@ namespace XiHan.BasicApp.Workflow.Domain.Entities;
 /// <remarks>
 /// 引擎运行时行（硬删；主键 = 引擎节点实例标识）：真源为 <see cref="NodeInstanceJson"/>，
 /// 其余列是执行历史检索用投影。
+///
+/// 租户隔离：严格——工作流只属于它所在的租户，别的租户与平台都看不到；定时器跨租户取到期书签后逐租户切入执行。
 /// </remarks>
 [SugarTable(TableName = "Sys_Workflow_Node_Instance", TableDescription = "系统工作流节点实例表")]
 [SugarIndex("IX_{table}_InId_StTi", nameof(InstanceId), OrderByType.Asc, nameof(StartTime), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId", nameof(TenantId), OrderByType.Asc)]
-public partial class SysWorkflowNodeInstance : BasicAppEntity
+public partial class SysWorkflowNodeInstance : BasicAppEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 构造函数
