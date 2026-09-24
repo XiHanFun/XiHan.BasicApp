@@ -28,4 +28,25 @@ public sealed class UserRoleRepository(ISqlSugarClientResolver clientResolver)
             .Where(role => role.ExpirationTime == null || role.ExpirationTime > now)
             .ToListAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 跨租户获取持有指定角色有效授权的用户主键
+    /// </summary>
+    public async Task<IReadOnlyList<long>> GetValidUserIdsByRoleIdsIgnoreTenantAsync(IReadOnlyCollection<long> roleIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(roleIds);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (roleIds.Count == 0)
+        {
+            return [];
+        }
+
+        var ids = roleIds.Distinct().ToList();
+        return await CreateNoTenantQueryable()
+            .Where(userRole => ids.Contains(userRole.RoleId) && userRole.Status == ValidityStatus.Valid)
+            .Select(userRole => userRole.UserId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+    }
 }

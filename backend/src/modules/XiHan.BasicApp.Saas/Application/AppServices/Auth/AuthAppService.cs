@@ -31,6 +31,7 @@ using XiHan.Framework.Bot.Email.Abstractions;
 using XiHan.Framework.Bot.Email.Options;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Domain.Entities.Abstracts;
+using XiHan.Framework.Domain.Repositories;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Localization.Abstractions;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -399,10 +400,11 @@ public sealed partial class AuthAppService
         // 频率限制（邮箱+IP）：对存在/不存在的邮箱一视同仁，既防刷又不泄露账号是否存在
         await EnsureNotRateLimitedAsync("pwd-reset", email, cancellationToken);
 
-        // 邮箱全平台唯一：平台态全局定位账号，无需调用方提供租户范围
+        // 邮箱全平台唯一：跨租户定位账号，无需调用方提供租户范围；
+        // 邮件配置、验证码缓存都是平台侧能力，在平台作用域进行
         using var platformScope = _currentTenant.Change(null);
 
-        var user = await _userRepository.GetByEmailAsync(email, cancellationToken);
+        var user = await _userRepository.GetByEmailGloballyAsync(email, cancellationToken);
         // 防用户枚举：邮箱不存在时同样返回受理，不暴露账号是否存在
         if (user is null)
         {
@@ -470,9 +472,11 @@ public sealed partial class AuthAppService
             throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Auth.InvalidOrExpiredResetLink"), "重置链接无效或已过期，请重新申请找回密码。");
         }
 
-        using var platformScope = _currentTenant.Change(null);
         var user = await _userRepository.GetByIdIgnoreTenantAsync(userId, cancellationToken)
             ?? throw new UserFriendlyException(new ResourceLocalizableString("Errors", "Auth.UserNotFound"), "用户不存在。");
+
+        // 账号与安全信息归属账号的归属租户：重置在该租户作用域内进行（密码策略也取归属租户的配置）
+        using var accountScope = _currentTenant.Change(user.TenantId, user.TenantId.ToString());
 
         try
         {
@@ -966,7 +970,7 @@ public sealed partial class AuthAppService
         session.LockPasswordHash = _passwordHasher.HashPassword(input.Password);
         session.UnlockFailedAttempts = 0;
 
-        await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        await UpdateOwnSessionAsync(session, cancellationToken);
         await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
     }
 
@@ -1016,7 +1020,7 @@ public sealed partial class AuthAppService
                 throw new InvalidOperationException("解锁失败次数过多，会话已失效，请重新登录。");
             }
 
-            await _userSessionRepository.UpdateAsync(session, cancellationToken);
+            await UpdateOwnSessionAsync(session, cancellationToken);
             await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
             throw new InvalidOperationException($"锁屏密码错误，还可尝试 {MaxUnlockAttempts - session.UnlockFailedAttempts} 次。");
         }
@@ -1027,7 +1031,7 @@ public sealed partial class AuthAppService
         session.LockPasswordHash = null;   // 会话级一次性口令：解锁即清除，不跨锁屏复用
         session.UnlockFailedAttempts = 0;
 
-        await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        await UpdateOwnSessionAsync(session, cancellationToken);
         await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
     }
 
@@ -1054,6 +1058,21 @@ public sealed partial class AuthAppService
     }
 
     /// <summary>
+    /// 回写当前用户自己的会话行
+    /// </summary>
+    /// <remarks>
+    /// 会话行带登录落点的租户戳，与当前请求的作用域不一定一致（例如切换过租户）；
+    /// 会话按 UserId/会话标识归属，是用户自有行，显式声明写边界豁免。
+    /// </remarks>
+    private async Task UpdateOwnSessionAsync(SysUserSession session, CancellationToken cancellationToken)
+    {
+        using (TenantWriteGuard.Suppress())
+        {
+            await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        }
+    }
+
+    /// <summary>
     /// 解锁失败超限：吊销会话并清掉锁屏态（否则会留下一个既锁屏又失效的僵尸会话）
     /// </summary>
     private async Task RevokeLockedSessionAsync(SysUserSession session, string reason, CancellationToken cancellationToken)
@@ -1066,7 +1085,7 @@ public sealed partial class AuthAppService
         session.LockReason = null;
         session.LockPasswordHash = null;
 
-        await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        await UpdateOwnSessionAsync(session, cancellationToken);
         await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
     }
 

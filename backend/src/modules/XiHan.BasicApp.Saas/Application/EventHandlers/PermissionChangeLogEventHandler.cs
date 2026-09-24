@@ -5,7 +5,7 @@ using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Data.SqlSugar.Clients;
-using XiHan.Framework.Domain.Entities.Abstracts;
+using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Uow.Attributes;
 using XiHan.Framework.Web.Core.Clients;
@@ -77,8 +77,8 @@ public sealed class PermissionChangeLogEventHandler
     /// 解析用户名称（账号名）。
     /// </summary>
     /// <remarks>
-    /// 清租户行过滤：审计名称是写入时快照，需跨租户/平台态解析（如平台超管给某租户用户直授权限，
-    /// 当前上下文不覆盖该租户，若带租户过滤会解析为空）。读取侧仍按日志 TenantId 隔离，不造成越权。
+    /// 清租户行过滤：审计名称是写入时快照，目标用户可能归属别的租户（如跨租户成员），
+    /// 带租户过滤会解析为空。只取名称写进本作用域的日志，读取侧仍按日志 TenantId 隔离，不造成越权。
     /// </remarks>
     private async Task<string?> ResolveUserNameAsync(long? userId)
     {
@@ -88,7 +88,7 @@ public sealed class PermissionChangeLogEventHandler
         }
 
         var name = await DbClient.Queryable<SysUser>()
-            .ClearFilter<IMultiTenantEntity>()
+            .ClearTenantFilter()
             .Where(user => user.BasicId == userId.Value)
             .Select(user => user.UserName)
             .FirstAsync();
@@ -106,7 +106,7 @@ public sealed class PermissionChangeLogEventHandler
         }
 
         var name = await DbClient.Queryable<SysRole>()
-            .ClearFilter<IMultiTenantEntity>()
+            .ClearTenantFilter()
             .Where(role => role.BasicId == roleId.Value)
             .Select(role => role.RoleName)
             .FirstAsync();
@@ -124,7 +124,7 @@ public sealed class PermissionChangeLogEventHandler
         }
 
         var name = await DbClient.Queryable<SysPermission>()
-            .ClearFilter<IMultiTenantEntity>()
+            .ClearTenantFilter()
             .Where(permission => permission.BasicId == permissionId.Value)
             .Select(permission => permission.PermissionName)
             .FirstAsync();

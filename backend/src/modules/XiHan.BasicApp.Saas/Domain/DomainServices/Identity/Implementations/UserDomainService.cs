@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authentication.Users;
+using XiHan.Framework.Domain.Repositories;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Password;
 
@@ -1275,11 +1276,9 @@ public sealed class UserDomainService
 
         var user = await _userRepository.GetByIdAsync(command.UserId, cancellationToken)
             ?? throw new InvalidOperationException("用户不存在。");
-        // 既取该用户自己的会话，也取由他发起的模仿会话（后者的 UserId 是被模仿者）
-        var sessions = await _userSessionRepository.GetListAsync(
-            session => (session.UserId == user.BasicId || session.ImpersonatorUserId == user.BasicId)
-                && session.Status != SessionStatus.Revoked,
-            cancellationToken);
+        // 既取该用户自己的会话，也取由他发起的模仿会话（后者的 UserId 是被模仿者）；
+        // 会话行带登录落点的租户戳，同一账号的会话散落在不同租户下，须跨租户取全
+        var sessions = (await _userSessionRepository.GetNotRevokedByUserIgnoreTenantAsync(user.BasicId, cancellationToken)).ToList();
 
         if (sessions.Count == 0)
         {
@@ -1293,7 +1292,12 @@ public sealed class UserDomainService
             RevokeSession(session, reason, now);
         }
 
-        _ = await _userSessionRepository.UpdateRangeAsync(sessions, cancellationToken);
+        // 会话是用户自有行，可能带别的租户戳，显式声明写边界豁免
+        using (TenantWriteGuard.Suppress())
+        {
+            _ = await _userSessionRepository.UpdateRangeAsync(sessions, cancellationToken);
+        }
+
         return new UserSessionsRevokeResult(
             sessions.Count,
             BuildUserSessionsRevokedEvent(user, sessions[0].TenantId, command.OperatorUserId, reason));

@@ -7,7 +7,9 @@ using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Saas.Application.Exporting;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 using XiHan.Framework.Caching.Distributed.Abstracts;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Tasks.BackgroundServices;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Exporting;
@@ -21,6 +23,11 @@ public sealed class ExportTaskMessage : IBackgroundTaskItem
     /// 导出任务主键（SysExportTask.BasicId）。
     /// </summary>
     public long ExportTaskId { get; init; }
+
+    /// <summary>
+    /// 导出任务所属租户（平台为 0）：后台在该作用域内领取与执行
+    /// </summary>
+    public long TenantId { get; init; }
 
     /// <summary>
     /// 任务创建时间
@@ -51,7 +58,8 @@ public sealed class ExportTaskMessage : IBackgroundTaskItem
 /// <remarks>
 /// 提交侧把 <see cref="ExportTaskMessage"/> 推入延迟队列；本服务（基于 <see cref="XiHanBackgroundServiceBase{T}"/>）
 /// 拉取后原子领取（<c>ClaimByIdAsync</c> Pending→Processing，去重 + 状态机）并交 <see cref="IExportExecutor"/> 执行。
-/// 启动时复位崩溃残留的 Processing→Pending 并重投所有 Pending（队列项随 Redis 持久，仅覆盖在途丢失/Redis 数据丢失）。
+/// 任务行带发起租户的戳，领取在消息携带的租户作用域内进行；启动时逐数据作用域复位崩溃残留的 Processing→Pending
+/// 并重投所有 Pending（队列项随 Redis 持久，仅覆盖在途丢失/Redis 数据丢失）。
 /// 导出占内存，并发上限设为 2。
 /// </remarks>
 public sealed class ExportTaskHostedService : XiHanBackgroundServiceBase<ExportTaskHostedService>
@@ -109,6 +117,9 @@ public sealed class ExportTaskHostedService : XiHanBackgroundServiceBase<ExportT
             using var scope = _scopeFactory.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<IExportTaskRepository>();
 
+            // 任务行带发起租户的戳：在该租户作用域内领取
+            using var tenantScope = scope.ServiceProvider.GetRequiredService<ICurrentTenant>().Change(message.TenantId);
+
             // 原子领取：仅 Pending 才置 Processing（去重 + 跳过已取消/已执行/重复投递）
             var task = await repository.ClaimByIdAsync(message.ExportTaskId, DateTimeOffset.UtcNow, cancellationToken);
             if (task is null)
@@ -141,7 +152,7 @@ public sealed class ExportTaskHostedService : XiHanBackgroundServiceBase<ExportT
     }
 
     /// <summary>
-    /// 启动恢复：复位崩溃残留的 Processing→Pending，并把所有 Pending 重投队列（ClaimByIdAsync 保证不重复执行）。
+    /// 启动恢复：逐数据作用域复位崩溃残留的 Processing→Pending，并把所有 Pending 重投队列（ClaimByIdAsync 保证不重复执行）。
     /// </summary>
     private async Task RecoverPendingAsync(CancellationToken cancellationToken)
     {
@@ -149,18 +160,28 @@ public sealed class ExportTaskHostedService : XiHanBackgroundServiceBase<ExportT
         {
             using var scope = _scopeFactory.CreateScope();
             var repository = scope.ServiceProvider.GetRequiredService<IExportTaskRepository>();
+            var runner = scope.ServiceProvider.GetRequiredService<ITenantDataScopeRunner>();
 
-            await repository.ResetOrphanedProcessingAsync(cancellationToken);
-
-            var ids = await repository.GetPendingIdsAsync(cancellationToken);
-            foreach (var id in ids)
+            var total = 0;
+            await runner.RunAsync(async scopeTenantId =>
             {
-                await _queue.EnqueueAsync(new ExportTaskMessage { ExportTaskId = id, CreatedAt = DateTimeOffset.UtcNow }, TimeSpan.Zero, cancellationToken);
-            }
+                await repository.ResetOrphanedProcessingAsync(cancellationToken);
 
-            if (ids.Count > 0)
+                var ids = await repository.GetPendingIdsAsync(cancellationToken);
+                foreach (var id in ids)
+                {
+                    await _queue.EnqueueAsync(
+                        new ExportTaskMessage { ExportTaskId = id, TenantId = scopeTenantId ?? 0, CreatedAt = DateTimeOffset.UtcNow },
+                        TimeSpan.Zero,
+                        cancellationToken);
+                }
+
+                total += ids.Count;
+            }, cancellationToken);
+
+            if (total > 0)
             {
-                Logger.LogInformation("导出启动恢复：重投 {Count} 个待执行任务", ids.Count);
+                Logger.LogInformation("导出启动恢复：重投 {Count} 个待执行任务", total);
             }
         }
         catch (Exception ex)

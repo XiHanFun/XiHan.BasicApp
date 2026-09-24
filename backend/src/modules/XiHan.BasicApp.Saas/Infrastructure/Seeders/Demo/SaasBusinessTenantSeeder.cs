@@ -327,13 +327,11 @@ public sealed class SaasBusinessTenantSeeder(
 
     private async Task SeedCrossTenantMembershipsAsync(IReadOnlyDictionary<string, long> tenantIdByCode)
     {
-        // 平台态：解析默认租户 ID + 源用户（默认租户内）UserName→UserId
+        // 平台态：解析默认租户 ID（租户注册表是平台数据）
         long defaultTenantId;
-        Dictionary<string, long> defaultUserIdByName;
         {
             using var platformScope = _currentTenant.Change(null);
-            var platformClient = DbClient;
-            var defaultTenant = await platformClient.Queryable<SysTenant>()
+            var defaultTenant = await DbClient.Queryable<SysTenant>()
                 .FirstAsync(tenant => tenant.TenantCode == DefaultTenantCode);
             if (defaultTenant is null)
             {
@@ -342,8 +340,14 @@ public sealed class SaasBusinessTenantSeeder(
             }
 
             defaultTenantId = defaultTenant.BasicId;
+        }
+
+        // 默认租户态：源用户归属默认租户，在该租户作用域内解析 UserName→UserId
+        Dictionary<string, long> defaultUserIdByName;
+        {
+            using var sourceTenantScope = _currentTenant.Change(defaultTenantId, defaultTenantId.ToString());
             var sourceNames = CrossTenantSeeds.Select(seed => seed.UserName).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-            var users = await platformClient.Queryable<SysUser>()
+            var users = await DbClient.Queryable<SysUser>()
                 .Where(user => user.TenantId == defaultTenantId && sourceNames.Contains(user.UserName))
                 .ToListAsync();
             defaultUserIdByName = users

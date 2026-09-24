@@ -100,7 +100,7 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         // EnqueueAsync 在 UoW 提交后才真正入队，保证后台拉到时状态行已可见
         if (result.Email.EmailStatus == EmailStatus.Pending)
         {
-            await _messageOutbox.EnqueueAsync(SaasMessageChannelNames.Email, result.Email.BasicId, cancellationToken);
+            await _messageOutbox.EnqueueAsync(SaasMessageChannelNames.Email, result.Email.BasicId, result.Email.TenantId, cancellationToken);
         }
 
         return MessageApplicationMapper.ToEmailDetailDto(result.Email);
@@ -165,7 +165,7 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         // EnqueueAsync 在 UoW 提交后才真正入队，保证后台拉到时状态行已可见
         if (result.Sms.SmsStatus == SmsStatus.Pending)
         {
-            await _messageOutbox.EnqueueAsync(SaasMessageChannelNames.Sms, result.Sms.BasicId, cancellationToken);
+            await _messageOutbox.EnqueueAsync(SaasMessageChannelNames.Sms, result.Sms.BasicId, result.Sms.TenantId, cancellationToken);
         }
 
         return MessageApplicationMapper.ToSmsDetailDto(result.Sms);

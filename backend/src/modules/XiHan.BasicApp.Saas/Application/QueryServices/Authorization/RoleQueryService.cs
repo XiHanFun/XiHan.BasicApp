@@ -21,6 +21,7 @@ using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -52,6 +53,8 @@ public sealed class RoleQueryService
     /// </summary>
     private readonly IFieldSecurityService _fieldSecurity;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -59,8 +62,10 @@ public sealed class RoleQueryService
         IRoleRepository roleRepository,
         IDistributedCache<SaasRoleSelectCacheItem, string> roleSelectCache,
         ISuperAdminProtector superAdminProtector,
-        IFieldSecurityService fieldSecurityService)
+        IFieldSecurityService fieldSecurityService,
+        ICurrentTenant currentTenant)
     {
+        _currentTenant = currentTenant;
         _roleRepository = roleRepository;
         _roleSelectCache = roleSelectCache;
         _superAdminProtector = superAdminProtector;
@@ -148,7 +153,7 @@ public sealed class RoleQueryService
             return await QueryEnabledRolesAsync(input, cancellationToken);
         }
 
-        var cacheKey = SaasCacheKeys.RoleSelect((int?)input.RoleType, input.IsGlobal, input.Limit);
+        var cacheKey = SaasCacheKeys.RoleSelect(_currentTenant.Id, (int?)input.RoleType, input.IsGlobal, input.Limit);
         var item = await _roleSelectCache.GetOrAddAsync(
             cacheKey,
             async () => new SaasRoleSelectCacheItem

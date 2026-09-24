@@ -28,4 +28,23 @@ public sealed class UserNotificationPreferenceRepository(ISqlSugarClientResolver
             .Where(preference => preference.UserId == userId)
             .FirstAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 根据用户ID批量获取通知偏好（跨租户）
+    /// </summary>
+    public async Task<IReadOnlyList<SysUserNotificationPreference>> GetListByUserIdsIgnoreTenantAsync(IReadOnlyCollection<long> userIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(userIds);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (userIds.Count == 0)
+        {
+            return [];
+        }
+
+        var ids = userIds.Distinct().ToList();
+        return await CreateNoTenantQueryable()
+            .Where(preference => ids.Contains(preference.UserId))
+            .ToListAsync(cancellationToken);
+    }
 }

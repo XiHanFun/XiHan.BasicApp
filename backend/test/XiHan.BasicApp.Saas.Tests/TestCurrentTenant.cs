@@ -12,9 +12,9 @@ namespace XiHan.BasicApp.Saas.Tests;
 public sealed class TestCurrentTenant(long? initialTenantId = null) : ICurrentTenant
 {
     /// <summary>
-    /// 当前是否处于租户上下文。
+    /// 当前是否处于业务租户（平台就是 0 号租户，不算）。
     /// </summary>
-    public bool IsAvailable => Id.HasValue;
+    public bool IsAvailable => Id is > 0;
 
     /// <summary>
     /// 当前租户主键，null 为平台态。

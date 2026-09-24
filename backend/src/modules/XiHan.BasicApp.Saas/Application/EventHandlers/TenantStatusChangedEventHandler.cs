@@ -6,6 +6,7 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.EventBus.Abstractions.Local;
 
 namespace XiHan.BasicApp.Saas.Application.EventHandlers;
@@ -63,8 +64,10 @@ public sealed class TenantStatusChangedEventHandler : ILocalEventHandler<TenantS
         var db = _clientResolver.GetCurrentClient();
 
         // 除本租户的会话外，还要带上本租户用户借身份进别的租户的模仿会话：
-        // 那些行的租户戳是目标租户，只有 ImpersonatorTenantId 才是本租户
+        // 那些行的租户戳是目标租户，只有 ImpersonatorTenantId 才是本租户。
+        // 事件处理器跑在事件所属作用域（租户注册表是平台数据，即平台作用域），租户范围显式落进 WHERE，跨租户查找
         var activeSessions = await db.Queryable<SysUserSession>()
+            .ClearTenantFilter()
             .Where(s => (s.TenantId == tenantId || s.ImpersonatorTenantId == tenantId)
                 && s.Status == SessionStatus.Active && !s.IsDeleted)
             .ToListAsync();
@@ -84,6 +87,7 @@ public sealed class TenantStatusChangedEventHandler : ILocalEventHandler<TenantS
             session.RevokedReason = reason ?? "Tenant status changed";
         }
 
+        // 对象式按主键更新：表达式式更新会被自动挂上当前作用域的租户过滤
         await db.Updateable(activeSessions)
             .UpdateColumns(s => new { s.Status, s.RevokedTime, s.RevokedReason })
             .ExecuteCommandAsync();

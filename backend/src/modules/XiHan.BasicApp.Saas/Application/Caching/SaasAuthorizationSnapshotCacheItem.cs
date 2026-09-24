@@ -2,12 +2,15 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.Framework.Caching.Attributes;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.Caching;
 
 /// <summary>
 /// SaaS 用户授权快照缓存项。
 /// </summary>
+/// <remarks>逻辑键已含 用户 × 租户 维度：不再叠加框架的物理租户前缀，按模式整体失效才能覆盖所有租户。</remarks>
+[IgnoreMultiTenancy]
 [CacheName(SaasCacheNames.AuthorizationSnapshot)]
 public sealed class SaasAuthorizationSnapshotCacheItem
 {

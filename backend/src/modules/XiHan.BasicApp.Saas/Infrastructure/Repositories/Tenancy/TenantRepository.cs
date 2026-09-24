@@ -65,8 +65,11 @@ public sealed class TenantRepository(
     }
 
     /// <summary>
-    /// 创建默认查询（租户/软删过滤器由全局 AOP 自动生效）
+    /// 创建默认查询：租户注册表是平台数据（TenantId=0），任何作用域都要读得到自己那一行，读取不走租户过滤（软删过滤照常生效）
     /// </summary>
+    /// <remarks>
+    /// 访问边界由权限控制：租户目录的查看与维护都是平台专属权限；写入仍受写边界约束，只能在平台作用域进行。
+    /// </remarks>
     protected override ISugarQueryable<SysTenant> CreateQueryable()
     {
         return CreateNoTenantQueryable();

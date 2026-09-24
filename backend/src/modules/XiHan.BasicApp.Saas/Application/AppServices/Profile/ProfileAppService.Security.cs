@@ -5,6 +5,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.Framework.Domain.Repositories;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Uow.Attributes;
 
@@ -74,7 +75,13 @@ public sealed partial class ProfileAppService
         session.IsLocked = false;
         session.LockReason = null;
         session.LockPasswordHash = null;
-        _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
+
+        // 自己的会话行可能带别的租户戳（登录落点），按用户自有行显式豁免写边界
+        using (TenantWriteGuard.Suppress())
+        {
+            _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
+        }
+
         await _cacheInvalidator.InvalidateSessionStateAsync(session.UserSessionId, cancellationToken);
     }
 

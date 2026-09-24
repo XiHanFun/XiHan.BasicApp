@@ -6,7 +6,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
@@ -15,14 +15,12 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// </summary>
 /// <remarks>
 /// <para>
-/// 这组测试守的是一条不变式：<b>开通全程不得进入被开通租户的上下文</b>。
-/// 租户上下文决定连接解析（<c>SqlSugarClientResolver</c> 经 <c>SaasTenantConnectionProvider</c> 按当前租户选库），
-/// 而库隔离租户的独立库在开通期还不存在——创建出来时 <c>ConfigStatus=Pending</c>，建库是 <c>InitializeDatabase</c>
-/// 的独立步骤。进了租户上下文，判重与写入就都打到那个还没建的库上。
+/// 平台就是 0 号租户，写只能落在当前作用域：开通时租户注册表与版本白名单是平台数据，在平台作用域读写；
+/// 管理员账号、成员关系、Owner 角色与授权绑定是被开通租户的数据，必须切入该租户写（行的 TenantId 由作用域决定）。
 /// </para>
 /// <para>
-/// 字段隔离部署下平台库与租户库本就是同一个库，这条不变式不改变其行为：落点由各实体显式置的
-/// <c>TenantId</c> 决定，平台态插入保留该预置值，所以第三条用例把「每行都带目标租户 Id」一并钉死。
+/// 库隔离租户的账号与授权数据归置尚未完成，开通时显式拒绝——不能像过去那样在平台作用域预置租户戳，
+/// 把它的数据写进平台库。
 /// </para>
 /// </remarks>
 public sealed class TenantProvisionTenantContextTests
@@ -43,30 +41,60 @@ public sealed class TenantProvisionTenantContextTests
     private const long WhitelistPermissionId = 9001;
 
     /// <summary>
-    /// 开通期每一次仓储调用都必须发生在平台态，而不是被开通租户的上下文里。
+    /// 调用方进入开通时所处的租户上下文
+    /// </summary>
+    private const long AmbientTenantId = 77;
+
+    /// <summary>
+    /// 账号、安全信息、成员关系、角色、授权与角色绑定都在被开通租户的作用域内写入。
     /// </summary>
     [Fact]
-    public async Task ProvisionTenantAdmin_ShouldRunEveryRepositoryCallInPlatformContext()
+    public async Task ProvisionTenantAdmin_ShouldWriteTenantRowsInsideTargetTenant()
     {
-        var fixture = CreateFixture(ambientTenantId: 77);
+        var fixture = CreateFixture(ambientTenantId: AmbientTenantId);
 
         _ = await fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash");
 
-        Assert.NotEmpty(fixture.Observations);
-        var inTenantContext = fixture.Observations
-            .Where(observation => observation.TenantId is not null)
-            .Select(observation => $"{observation.Operation}=>{observation.TenantId}")
+        var writes = fixture.Observations.Where(observation => observation.IsWrite).ToList();
+        Assert.Equal(
+            ["User.Add", "UserSecurity.Add", "TenantUser.Add", "Role.Add", "RolePermission.AddRange", "UserRole.Add"],
+            writes.Select(observation => observation.Operation));
+        Assert.All(writes, observation => Assert.Equal(TenantId, observation.TenantId));
+    }
+
+    /// <summary>
+    /// 版本白名单是平台数据，在平台作用域读取（不借用被开通租户的读共享）。
+    /// </summary>
+    [Fact]
+    public async Task ProvisionTenantAdmin_ShouldReadEditionWhitelistInPlatformScope()
+    {
+        var fixture = CreateFixture(ambientTenantId: AmbientTenantId);
+
+        _ = await fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash");
+
+        var whitelistReads = fixture.Observations
+            .Where(observation => observation.Operation == "TenantEditionPermission.GetByEditionId")
             .ToList();
-        Assert.Empty(inTenantContext);
+        Assert.NotEmpty(whitelistReads);
+        Assert.All(whitelistReads, observation => Assert.Null(observation.TenantId));
+    }
+
+    /// <summary>
+    /// 开通结束后还原调用方的租户上下文。
+    /// </summary>
+    [Fact]
+    public async Task ProvisionTenantAdmin_ShouldRestoreCallerTenantContext()
+    {
+        var fixture = CreateFixture(ambientTenantId: AmbientTenantId);
+
+        _ = await fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash");
+
+        Assert.Equal(AmbientTenantId, fixture.CurrentTenant.Id);
     }
 
     /// <summary>
     /// 用户名判重的租户范围必须由入参显式传入，不能靠当前上下文的全局过滤器。
     /// </summary>
-    /// <remarks>
-    /// 平台态下全局租户过滤器是放行全部的，若继续走按上下文过滤的 <c>ExistsUserNameAsync</c>，
-    /// 「租户内唯一」会被悄悄放大成「全平台唯一」——另一个租户已有同名管理员就建不出来了。
-    /// </remarks>
     [Fact]
     public async Task ProvisionTenantAdmin_ShouldScopeUserNameCheckToTargetTenant()
     {
@@ -83,26 +111,42 @@ public sealed class TenantProvisionTenantContextTests
     }
 
     /// <summary>
-    /// 平台态写入时落点全靠实体自带的 TenantId，因此开通写下的每一行都必须带目标租户 Id。
+    /// 库隔离租户的数据归置尚未完成：开通直接拒绝，不写任何行。
     /// </summary>
     [Fact]
-    public async Task ProvisionTenantAdmin_ShouldStampTargetTenantIdOnEveryWrittenRow()
+    public async Task ProvisionTenantAdmin_DatabaseIsolatedTenant_ShouldBeRejectedWithoutWriting()
     {
-        var fixture = CreateFixture();
+        var fixture = CreateFixture(isolationMode: TenantIsolationMode.Database);
 
-        _ = await fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash");
+        _ = await Assert.ThrowsAsync<UserFriendlyException>(
+            () => fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash"));
 
-        Assert.NotEmpty(fixture.WrittenTenantIds);
-        Assert.All(fixture.WrittenTenantIds, written => Assert.Equal(TenantId, written.TenantId));
+        Assert.DoesNotContain(fixture.Observations, observation => observation.IsWrite);
     }
 
     /// <summary>
-    /// 套餐回收读写的是同一批授权绑定行，落库位置必须与开通期一致（平台态），否则库隔离下回收永远命中 0 行。
+    /// 未指定版本的租户：取默认版本并在平台作用域持久化到租户注册表，随后按该版本白名单授权。
     /// </summary>
     [Fact]
-    public async Task ReconcileTenantAuthorization_ShouldRunInPlatformContext()
+    public async Task ProvisionTenantAdmin_WithoutEdition_ShouldPersistDefaultEditionInPlatformScope()
     {
-        var fixture = CreateFixture(ambientTenantId: 77);
+        var fixture = CreateFixture(ambientTenantId: AmbientTenantId, editionId: null);
+
+        _ = await fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash");
+
+        Assert.Equal(EditionId, fixture.Tenant.EditionId);
+        var tenantUpdate = Assert.Single(fixture.Observations, observation => observation.Operation == "Tenant.Update");
+        Assert.Null(tenantUpdate.TenantId);
+        Assert.Contains(fixture.Observations, observation => observation.Operation == "RolePermission.AddRange");
+    }
+
+    /// <summary>
+    /// 套餐回收：版本白名单在平台作用域读取，授权绑定在被开通租户的作用域内读取与回写。
+    /// </summary>
+    [Fact]
+    public async Task ReconcileTenantAuthorization_ShouldReadWhitelistInPlatformAndRecycleInsideTenant()
+    {
+        var fixture = CreateFixture(ambientTenantId: AmbientTenantId);
         var stale = new SysRolePermission
         {
             TenantId = TenantId,
@@ -122,36 +166,38 @@ public sealed class TenantProvisionTenantContextTests
         var recycled = await fixture.Service.ReconcileTenantAuthorizationWithEditionAsync(fixture.Tenant);
 
         Assert.Equal(1, recycled);
-        var inTenantContext = fixture.Observations
-            .Where(observation => observation.TenantId is not null)
-            .Select(observation => $"{observation.Operation}=>{observation.TenantId}")
-            .ToList();
-        Assert.Empty(inTenantContext);
+        Assert.Equal(ValidityStatus.Invalid, stale.Status);
+        Assert.Null(Assert.Single(fixture.Observations, observation => observation.Operation == "TenantEditionPermission.GetByEditionId").TenantId);
+        Assert.All(
+            fixture.Observations.Where(observation => observation.Operation is "RolePermission.GetList" or "RolePermission.UpdateRange" or "UserPermission.GetList"),
+            observation => Assert.Equal(TenantId, observation.TenantId));
+        Assert.Equal(AmbientTenantId, fixture.CurrentTenant.Id);
     }
 
     /// <summary>
-    /// 构造被测服务及其依赖替身，并在每个仓储调用点记录当时的租户上下文与写入行的 TenantId。
+    /// 构造被测服务及其依赖替身，并在每个仓储调用点记录当时的租户上下文。
     /// </summary>
     /// <param name="ambientTenantId">调用方进入本服务时所处的租户上下文</param>
-    private static ProvisionFixture CreateFixture(long? ambientTenantId = null)
+    /// <param name="isolationMode">被开通租户的隔离模式</param>
+    /// <param name="editionId">被开通租户绑定的版本（null 表示未指定，取默认版本）</param>
+    private static ProvisionFixture CreateFixture(
+        long? ambientTenantId = null,
+        TenantIsolationMode isolationMode = TenantIsolationMode.Field,
+        long? editionId = EditionId)
     {
         var currentTenant = new TestCurrentTenant(ambientTenantId);
-        var observations = new List<(string Operation, long? TenantId)>();
-        var writtenTenantIds = new List<(string Operation, long TenantId)>();
+        var observations = new List<Observation>();
 
-        void Record(string operation) => observations.Add((operation, currentTenant.Id));
-        void RecordWrite(string operation, long tenantId)
-        {
-            Record(operation);
-            writtenTenantIds.Add((operation, tenantId));
-        }
+        void Record(string operation) => observations.Add(new Observation(operation, currentTenant.Id, IsWrite: false));
+        void RecordWrite(string operation) => observations.Add(new Observation(operation, currentTenant.Id, IsWrite: true));
 
-        var tenant = new TestTenant(TenantId)
+        var tenant = new SysTenant
         {
-            TenantName = "库隔离租户",
-            EditionId = EditionId,
-            IsolationMode = TenantIsolationMode.Database
+            TenantName = "业务租户",
+            EditionId = editionId,
+            IsolationMode = isolationMode
         };
+        SaasTestHelper.SetBasicId(tenant, TenantId);
 
         var userRepository = new Mock<IUserRepository>();
         _ = userRepository
@@ -170,10 +216,12 @@ public sealed class TenantProvisionTenantContextTests
             });
         _ = userRepository
             .Setup(repo => repo.AddAsync(It.IsAny<SysUser>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((SysUser user, CancellationToken _) =>
+            .ReturnsAsync((SysUser _, CancellationToken _) =>
             {
-                RecordWrite("User.Add", user.TenantId);
-                return new TestUser(101);
+                RecordWrite("User.Add");
+                var saved = new SysUser();
+                SaasTestHelper.SetBasicId(saved, 101);
+                return saved;
             });
 
         var userSecurityRepository = new Mock<IUserSecurityRepository>();
@@ -181,7 +229,7 @@ public sealed class TenantProvisionTenantContextTests
             .Setup(repo => repo.AddAsync(It.IsAny<SysUserSecurity>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SysUserSecurity security, CancellationToken _) =>
             {
-                RecordWrite("UserSecurity.Add", security.TenantId);
+                RecordWrite("UserSecurity.Add");
                 return security;
             });
 
@@ -190,17 +238,19 @@ public sealed class TenantProvisionTenantContextTests
             .Setup(repo => repo.AddAsync(It.IsAny<SysTenantUser>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SysTenantUser member, CancellationToken _) =>
             {
-                RecordWrite("TenantUser.Add", member.TenantId);
+                RecordWrite("TenantUser.Add");
                 return member;
             });
 
         var roleRepository = new Mock<IRoleRepository>();
         _ = roleRepository
             .Setup(repo => repo.AddAsync(It.IsAny<SysRole>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((SysRole role, CancellationToken _) =>
+            .ReturnsAsync((SysRole _, CancellationToken _) =>
             {
-                RecordWrite("Role.Add", role.TenantId);
-                return new TestRole(201) { TenantId = role.TenantId };
+                RecordWrite("Role.Add");
+                var saved = new SysRole();
+                SaasTestHelper.SetBasicId(saved, 201);
+                return saved;
             });
 
         var rolePermissionRepository = new Mock<IRolePermissionRepository>();
@@ -208,13 +258,8 @@ public sealed class TenantProvisionTenantContextTests
             .Setup(repo => repo.AddRangeAsync(It.IsAny<IEnumerable<SysRolePermission>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((IEnumerable<SysRolePermission> grants, CancellationToken _) =>
             {
-                var rows = grants.ToList();
-                foreach (var grant in rows)
-                {
-                    RecordWrite("RolePermission.AddRange", grant.TenantId);
-                }
-
-                return rows;
+                RecordWrite("RolePermission.AddRange");
+                return grants.ToList();
             });
         _ = rolePermissionRepository
             .Setup(repo => repo.UpdateRangeAsync(It.IsAny<IEnumerable<SysRolePermission>>(), It.IsAny<CancellationToken>()))
@@ -229,7 +274,7 @@ public sealed class TenantProvisionTenantContextTests
             .Setup(repo => repo.AddAsync(It.IsAny<SysUserRole>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SysUserRole userRole, CancellationToken _) =>
             {
-                RecordWrite("UserRole.Add", userRole.TenantId);
+                RecordWrite("UserRole.Add");
                 return userRole;
             });
 
@@ -261,13 +306,33 @@ public sealed class TenantProvisionTenantContextTests
                 };
             });
 
+        var defaultEdition = new SysTenantEdition { IsDefault = true };
+        SaasTestHelper.SetBasicId(defaultEdition, EditionId);
+        var tenantEditionRepository = new Mock<ITenantEditionRepository>();
+        _ = tenantEditionRepository
+            .Setup(repo => repo.GetDefaultEditionAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                Record("TenantEdition.GetDefault");
+                return defaultEdition;
+            });
+
+        var tenantRepository = new Mock<ITenantRepository>();
+        _ = tenantRepository
+            .Setup(repo => repo.UpdateAsync(It.IsAny<SysTenant>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((SysTenant updated, CancellationToken _) =>
+            {
+                Record("Tenant.Update");
+                return updated;
+            });
+
         var service = new TenantProvisionDomainService(
             userRepository.Object,
             userSecurityRepository.Object,
             userRoleRepository.Object,
             tenantUserRepository.Object,
-            new Mock<ITenantEditionRepository>().Object,
-            new Mock<ITenantRepository>().Object,
+            tenantEditionRepository.Object,
+            tenantRepository.Object,
             roleRepository.Object,
             rolePermissionRepository.Object,
             userPermissionRepository.Object,
@@ -277,45 +342,17 @@ public sealed class TenantProvisionTenantContextTests
         return new ProvisionFixture(
             service,
             tenant,
+            currentTenant,
             userRepository,
             rolePermissionRepository,
             observations,
-            writtenTenantIds,
             Record);
     }
 
     /// <summary>
-    /// 租户测试替身：主键 setter 对外不可见，经派生类构造赋值。
+    /// 一次仓储调用及其发生时的租户上下文。
     /// </summary>
-    private sealed class TestTenant : SysTenant
-    {
-        public TestTenant(long basicId)
-        {
-            BasicId = basicId;
-        }
-    }
-
-    /// <summary>
-    /// 用户测试替身。
-    /// </summary>
-    private sealed class TestUser : SysUser
-    {
-        public TestUser(long basicId)
-        {
-            BasicId = basicId;
-        }
-    }
-
-    /// <summary>
-    /// 角色测试替身。
-    /// </summary>
-    private sealed class TestRole : SysRole
-    {
-        public TestRole(long basicId)
-        {
-            BasicId = basicId;
-        }
-    }
+    private sealed record Observation(string Operation, long? TenantId, bool IsWrite);
 
     /// <summary>
     /// 开通测试依赖集合。
@@ -323,9 +360,9 @@ public sealed class TenantProvisionTenantContextTests
     private sealed record ProvisionFixture(
         TenantProvisionDomainService Service,
         SysTenant Tenant,
+        TestCurrentTenant CurrentTenant,
         Mock<IUserRepository> UserRepository,
         Mock<IRolePermissionRepository> RolePermissionRepository,
-        List<(string Operation, long? TenantId)> Observations,
-        List<(string Operation, long TenantId)> WrittenTenantIds,
+        List<Observation> Observations,
         Action<string> Record);
 }

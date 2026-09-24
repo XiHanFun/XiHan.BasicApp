@@ -42,6 +42,16 @@ public interface IUserSessionRepository : ISaasRepository<SysUserSession>
     Task<IReadOnlyList<SysUserSession>> GetNotRevokedByUserIgnoreTenantAsync(long userId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 跨租户判断指定原会话下是否挂着进行中的模仿会话
+    /// </summary>
+    /// <remarks>
+    /// 模仿会话行带目标租户戳，发起人的原会话可能在平台或别的租户，必须跨租户查找。
+    /// </remarks>
+    /// <param name="impersonatorSessionId">发起人原会话业务标识</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task<bool> HasActiveImpersonationIgnoreTenantAsync(string impersonatorSessionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 吊销用户所有会话
     /// </summary>
     Task<IReadOnlyList<string>> RevokeByUserIdAsync(long userId, CancellationToken cancellationToken = default);

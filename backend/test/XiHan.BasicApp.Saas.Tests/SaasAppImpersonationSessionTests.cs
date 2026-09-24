@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Linq.Expressions;
 using System.Security.Claims;
 using Moq;
 using XiHan.BasicApp.Saas.Application.QueryServices;
@@ -234,15 +233,9 @@ public sealed class SaasAppImpersonationSessionTests
     public async Task RevokeImpersonationAsync_ShouldRevokeSessionAndTokens()
     {
         var impersonationSession = BuildImpersonationSession();
-        var token = new SysOAuthToken { SessionId = impersonationSession.BasicId, IsRevoked = false };
         _oauthTokenRepository
-            .Setup(repository => repository.GetListAsync(
-                It.IsAny<Expression<Func<SysOAuthToken, bool>>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync([token]);
-        _oauthTokenRepository
-            .Setup(repository => repository.UpdateRangeAsync(It.IsAny<IEnumerable<SysOAuthToken>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([token]);
+            .Setup(repository => repository.RevokeBySessionIdsAsync(It.IsAny<IReadOnlyCollection<long>>(), _now, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
         _userSessionRepository
             .Setup(repository => repository.UpdateAsync(It.IsAny<SysUserSession>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SysUserSession session, CancellationToken _) => session);
@@ -253,7 +246,12 @@ public sealed class SaasAppImpersonationSessionTests
         Assert.Equal(_now, revoked.RevokedTime);
         Assert.Equal("结束模仿登录", revoked.RevokedReason);
         Assert.Equal(_now, revoked.LogoutTime);
-        Assert.True(token.IsRevoked);
+        _oauthTokenRepository.Verify(
+            repository => repository.RevokeBySessionIdsAsync(
+                It.Is<IReadOnlyCollection<long>>(ids => ids.Count == 1 && ids.Contains(impersonationSession.BasicId)),
+                _now,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     /// <summary>

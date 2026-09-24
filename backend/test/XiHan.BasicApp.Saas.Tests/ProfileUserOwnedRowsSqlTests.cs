@@ -25,7 +25,6 @@ public sealed class ProfileUserOwnedRowsSqlTests : IDisposable
     private const long ActiveTenantId = 2;
     private const long UserId = 1001;
     private const long OtherUserId = 2002;
-    private const long PlatformTenantScopeSentinel = long.MinValue;
 
     private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"xihan-profile-owned-{Guid.NewGuid():N}.db");
     private readonly SqlSugarClient _client;
@@ -45,8 +44,7 @@ public sealed class ProfileUserOwnedRowsSqlTests : IDisposable
         });
         _client.QueryFilter.AddTableFilter<ISoftDelete>(entity => !entity.IsDeleted);
         _client.QueryFilter.AddTableFilter<IMultiTenantEntity>(
-            entity => ResolveTenantScopeId() == PlatformTenantScopeSentinel ||
-                      entity.TenantId == 0 ||
+            entity => entity.TenantId == 0 ||
                       entity.TenantId == ResolveTenantScopeId());
         _client.CodeFirst.InitTables<SysUserSession>();
         _client.CodeFirst.InitTables<SysUserSecurity>();
@@ -168,7 +166,7 @@ public sealed class ProfileUserOwnedRowsSqlTests : IDisposable
 
     private long ResolveTenantScopeId()
     {
-        return _currentTenant.Id ?? PlatformTenantScopeSentinel;
+        return _currentTenant.Id ?? 0;
     }
 
     private static SysUserSession Session(

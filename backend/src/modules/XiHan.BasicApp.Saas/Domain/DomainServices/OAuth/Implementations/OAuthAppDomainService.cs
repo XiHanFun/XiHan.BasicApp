@@ -98,12 +98,14 @@ public sealed class OAuthAppDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         var app = await GetOAuthAppOrThrowAsync(id, cancellationToken);
-        if (await _oauthCodeRepository.AnyAsync(code => code.ClientId == app.ClientId, cancellationToken))
+
+        // 授权码与令牌行带授权用户所属租户的戳，任何租户里还留有记录都不能删
+        if (await _oauthCodeRepository.AnyByClientIdIgnoreTenantAsync(app.ClientId, cancellationToken))
         {
             throw new InvalidOperationException("OAuth 应用存在授权码记录，不能删除。");
         }
 
-        if (await _oauthTokenRepository.AnyAsync(token => token.ClientId == app.ClientId, cancellationToken))
+        if (await _oauthTokenRepository.AnyByClientIdIgnoreTenantAsync(app.ClientId, cancellationToken))
         {
             throw new InvalidOperationException("OAuth 应用存在 Token 记录，不能删除。");
         }

@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Auth;
@@ -11,6 +12,10 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Auth;
 /// <summary>
 /// SaaS 第三方登录存储实现，桥接框架 <see cref="IExternalLoginStore"/> 与领域实体 SysExternalLogin
 /// </summary>
+/// <remarks>
+/// 绑定行属于绑定时所在的租户（平台就是 0 号租户）：按指定租户查找与写入时切入该租户作用域，
+/// 解绑按用户跨租户取出后按主键写（绑定是用户自有行）。
+/// </remarks>
 public sealed class SaasExternalLoginStore : IExternalLoginStore
 {
     private readonly ISqlSugarClientResolver _clientResolver;
@@ -42,8 +47,9 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
             return null;
         }
 
-        var db = _clientResolver.GetCurrentClient();
         var effectiveTenantId = tenantId ?? _currentTenant.Id ?? 0;
+        using var tenantScope = _currentTenant.Change(effectiveTenantId);
+        var db = _clientResolver.GetCurrentClient();
 
         var userId = await db.Queryable<SysExternalLogin>()
             .Where(l => l.Provider == provider
@@ -69,13 +75,13 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
 
         ArgumentNullException.ThrowIfNull(info);
 
-        var db = _clientResolver.GetCurrentClient();
         var effectiveTenantId = tenantId ?? _currentTenant.Id ?? 0;
+        using var tenantScope = _currentTenant.Change(effectiveTenantId);
+        var db = _clientResolver.GetCurrentClient();
 
         var record = new SysExternalLogin
         {
             UserId = userId,
-            TenantId = effectiveTenantId,
             Provider = info.Provider,
             ProviderKey = info.ProviderKey,
             ProviderDisplayName = info.DisplayName,
@@ -104,10 +110,24 @@ public sealed class SaasExternalLoginStore : IExternalLoginStore
 
         var db = _clientResolver.GetCurrentClient();
 
-        // 软删除：设置 IsDeleted = true
-        await db.Updateable<SysExternalLogin>()
-            .SetColumns(l => l.IsDeleted == true)
+        // 绑定行带绑定时所在租户的戳：按用户跨租户取出，再按主键软删
+        // （表达式式更新会被自动挂上当前作用域的租户过滤，别的租户戳的绑定就删不到）
+        var bindings = await db.Queryable<SysExternalLogin>()
+            .ClearTenantFilter()
             .Where(l => l.UserId == userId && l.Provider == provider && !l.IsDeleted)
+            .ToListAsync(cancellationToken);
+        if (bindings.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var binding in bindings)
+        {
+            binding.IsDeleted = true;
+        }
+
+        await db.Updateable(bindings)
+            .UpdateColumns(l => new { l.IsDeleted })
             .ExecuteCommandAsync(cancellationToken);
     }
 }

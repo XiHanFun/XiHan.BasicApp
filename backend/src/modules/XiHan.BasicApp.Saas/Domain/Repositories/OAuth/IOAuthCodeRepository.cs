@@ -26,7 +26,7 @@ public interface IOAuthCodeRepository : ISaasRepository<SysOAuthCode>
     Task<bool> TryConsumeAsync(long codeId, DateTimeOffset now, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 清理过期授权码
+    /// 跨租户判断客户端是否签发过授权码（授权码行带授权用户所属租户的戳）
     /// </summary>
-    Task<int> CleanExpiredAsync(DateTimeOffset now, CancellationToken cancellationToken = default);
+    Task<bool> AnyByClientIdIgnoreTenantAsync(string clientId, CancellationToken cancellationToken = default);
 }

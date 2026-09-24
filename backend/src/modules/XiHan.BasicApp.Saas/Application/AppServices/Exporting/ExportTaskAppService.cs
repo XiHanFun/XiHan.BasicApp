@@ -81,7 +81,7 @@ public sealed class ExportTaskAppService
 
         // 提交后入队（延迟 0）：后台导出服务拉取后立即领取执行（替换原 3s 轮询）。无环境 UoW 时直接入队。
         var taskId = entity.BasicId;
-        var message = new ExportTaskMessage { ExportTaskId = taskId, CreatedAt = DateTimeOffset.UtcNow };
+        var message = new ExportTaskMessage { ExportTaskId = taskId, TenantId = entity.TenantId, CreatedAt = DateTimeOffset.UtcNow };
         var uow = _unitOfWorkManager.Current;
         if (uow is not null)
         {

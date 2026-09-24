@@ -284,7 +284,7 @@ public sealed class AiKnowledgeQueryTests
     [Fact]
     public void KnowledgeRetrieveSkill_NameAndDescriptionShouldBeStable()
     {
-        var skill = new KnowledgeRetrieveSkill(new Mock<IKnowledgeRetriever>(MockBehavior.Strict).Object);
+        var skill = new KnowledgeRetrieveSkill(new Mock<IKnowledgeRetriever>(MockBehavior.Strict).Object, CreateCurrentTenant(null));
 
         Assert.Equal("knowledge_retrieve", skill.Name, StringComparer.Ordinal);
         Assert.Contains("知识库", skill.Description, StringComparison.Ordinal);
@@ -296,7 +296,7 @@ public sealed class AiKnowledgeQueryTests
     [Fact]
     public void KnowledgeRetrieveSkill_AsFunctionShouldCarrySkillNameAndDescription()
     {
-        var skill = new KnowledgeRetrieveSkill(new Mock<IKnowledgeRetriever>(MockBehavior.Strict).Object);
+        var skill = new KnowledgeRetrieveSkill(new Mock<IKnowledgeRetriever>(MockBehavior.Strict).Object, CreateCurrentTenant(null));
 
         var function = skill.AsFunction();
 
@@ -335,7 +335,7 @@ public sealed class AiKnowledgeQueryTests
             .Setup(item => item.RetrieveAsync(
                 It.IsAny<string>(), It.IsAny<int>(), It.IsAny<RetrievalFilter?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([CreateChunk()]);
-        var function = new KnowledgeRetrieveSkill(retriever.Object).AsFunction();
+        var function = new KnowledgeRetrieveSkill(retriever.Object, CreateCurrentTenant(null)).AsFunction();
 
         _ = await function.InvokeAsync(new AIFunctionArguments
         {
@@ -344,29 +344,48 @@ public sealed class AiKnowledgeQueryTests
         });
 
         retriever.Verify(
-            item => item.RetrieveAsync("部署流程", expectedTopK, null, null, It.IsAny<CancellationToken>()),
+            item => item.RetrieveAsync("部署流程", expectedTopK, It.IsAny<RetrievalFilter?>(), null, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
     /// <summary>
-    /// 技能经 MCP 暴露时没有租户上下文，故检索不带任何过滤条件（知识库文档为平台级）；
-    /// 这里锁的是"确实传了 null 过滤"而不是漏传了某个租户。
+    /// 检索技能只检索当前作用域的知识：对话里调用时是当前租户，经 MCP 暴露（无租户上下文）时是平台（0 号租户）。
+    /// 不存在「不带租户过滤」的检索——那会把所有租户的知识片段交给模型。
     /// </summary>
-    [Fact]
-    public async Task KnowledgeRetrieveSkill_ShouldRetrieveWithoutTenantFilter()
+    /// <param name="currentTenantId">当前租户上下文</param>
+    /// <param name="expectedTenantId">交给检索器的租户</param>
+    [Theory]
+    [InlineData(null, 0L)]
+    [InlineData(0L, 0L)]
+    [InlineData(42L, 42L)]
+    public async Task KnowledgeRetrieveSkill_ShouldRetrieveWithinCurrentScope(long? currentTenantId, long expectedTenantId)
     {
+        RetrievalFilter? captured = null;
         var retriever = new Mock<IKnowledgeRetriever>(MockBehavior.Strict);
         _ = retriever
             .Setup(item => item.RetrieveAsync(
                 It.IsAny<string>(), It.IsAny<int>(), It.IsAny<RetrievalFilter?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback((string _, int _, RetrievalFilter? filter, string? _, CancellationToken _) => captured = filter)
             .ReturnsAsync([]);
-        var function = new KnowledgeRetrieveSkill(retriever.Object).AsFunction();
+        var function = new KnowledgeRetrieveSkill(retriever.Object, CreateCurrentTenant(currentTenantId)).AsFunction();
 
         _ = await function.InvokeAsync(new AIFunctionArguments { ["query"] = "部署流程" });
 
-        retriever.Verify(
-            item => item.RetrieveAsync("部署流程", 5, null, null, It.IsAny<CancellationToken>()),
-            Times.Once);
+        Assert.NotNull(captured);
+        Assert.Equal(expectedTenantId, captured!.TenantId);
+        Assert.Null(captured.DocumentId);
+    }
+
+    /// <summary>
+    /// 构造当前租户上下文替身。
+    /// </summary>
+    /// <param name="tenantId">当前租户（平台为 null）</param>
+    /// <returns>当前租户上下文</returns>
+    private static ICurrentTenant CreateCurrentTenant(long? tenantId)
+    {
+        var currentTenant = new Mock<ICurrentTenant>();
+        _ = currentTenant.SetupGet(item => item.Id).Returns(tenantId);
+        return currentTenant.Object;
     }
 
     /// <summary>

@@ -3,12 +3,15 @@
 
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.Framework.Caching.Attributes;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.Caching;
 
 /// <summary>
 /// SaaS 权限全量目录缓存项。
 /// </summary>
+/// <remarks>逻辑键含租户维度（租户可能有自有权限）：不再叠加框架的物理租户前缀，按模式整体失效才能覆盖所有租户。</remarks>
+[IgnoreMultiTenancy]
 [CacheName(SaasCacheNames.PermissionCatalog)]
 public sealed class SaasPermissionCatalogCacheItem
 {

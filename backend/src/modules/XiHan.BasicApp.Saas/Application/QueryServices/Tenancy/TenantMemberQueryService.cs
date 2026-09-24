@@ -117,13 +117,10 @@ public sealed class TenantMemberQueryService
     }
 
     /// <summary>
-    /// 构建租户成员分页请求
-    /// </summary>
-    /// <param name="input">查询条件</param>
-    /// <returns>租户成员分页请求</returns>
-    /// <summary>
     /// 确定要查看哪个租户的成员
     /// </summary>
+    /// <param name="requestedTenantId">请求指定的租户（仅平台可指定）</param>
+    /// <returns>要查看的租户</returns>
     private long ResolveMemberTenantId(long? requestedTenantId)
     {
         if (_currentTenant.IsPlatformOperation())
@@ -137,6 +134,12 @@ public sealed class TenantMemberQueryService
             : throw new InvalidOperationException("只能查看本租户的成员。");
     }
 
+    /// <summary>
+    /// 构建租户成员分页请求
+    /// </summary>
+    /// <param name="input">查询条件</param>
+    /// <param name="tenantId">要查看的租户</param>
+    /// <returns>租户成员分页请求</returns>
     private static BasicAppPRDto BuildTenantMemberPageRequest(TenantMemberPageQueryDto input, long tenantId)
     {
         var request = new BasicAppPRDto

@@ -64,10 +64,7 @@ public sealed partial class AuthAppService
         }
 
         // 一条原会话同时只挂一条模仿会话：多挂的那些在「结束模仿」时吊销不到，会滞留到过期
-        var activeImpersonations = await _userSessionRepository.GetListAsync(
-            session => session.ImpersonatorSessionId == originSession.UserSessionId && session.Status == SessionStatus.Active,
-            cancellationToken);
-        if (activeImpersonations.Count > 0)
+        if (await _userSessionRepository.HasActiveImpersonationIgnoreTenantAsync(originSession.UserSessionId, cancellationToken))
         {
             throw new UserFriendlyException("当前已有进行中的模仿会话，请先结束。");
         }

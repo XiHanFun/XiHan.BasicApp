@@ -12,9 +12,9 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// 职责：编排租户开通全流程（创建租户 + 初始化管理员 + 分配默认角色）
 /// 不处理事务，由调用方（应用服务）开启 UnitOfWork
 /// <para>
-/// 全流程在平台态（<c>ICurrentTenant.Change(null)</c>）内写入：账号注册表与租户授权绑定都落平台库，
-/// 库隔离租户的独立库在开通期尚未建立（<c>ConfigStatus=Pending</c>，建库走 <c>InitializeDatabase</c>）。
-/// 各实体均显式置 <c>TenantId</c>，平台态插入保留该预置值。
+/// 平台就是 0 号租户，写只能落在当前作用域：租户注册表与版本是平台数据，在平台作用域写；
+/// 管理员账号、成员关系、Owner 角色与授权绑定是该租户的数据，切入该租户写（行的 <c>TenantId</c> 由作用域决定）。
+/// 库隔离租户的数据归置尚未完成，开通时显式拒绝，不把租户数据写进平台库。
 /// </para>
 /// </remarks>
 public interface ITenantProvisionDomainService

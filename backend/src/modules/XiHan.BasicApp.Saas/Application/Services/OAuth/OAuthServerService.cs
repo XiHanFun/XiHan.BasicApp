@@ -279,8 +279,14 @@ public sealed class OAuthServerService : IOAuthServerService
             return TokenError(400, "invalid_grant", "缺少 PKCE 校验信息。");
         }
 
-        // 原子消费授权码（防并发重放）：赢得竞态者方可继续
-        if (!await _oauthCodeRepository.TryConsumeAsync(code.BasicId, DateTimeOffset.UtcNow, cancellationToken))
+        // 原子消费授权码（防并发重放）：赢得竞态者方可继续。授权码行带用户所属租户戳，条件写在该租户作用域内执行
+        bool consumed;
+        using (_currentTenant.Change(code.TenantId, code.TenantId.ToString()))
+        {
+            consumed = await _oauthCodeRepository.TryConsumeAsync(code.BasicId, DateTimeOffset.UtcNow, cancellationToken);
+        }
+
+        if (!consumed)
         {
             _ = await _oauthTokenRepository.RevokeFamilyAsync(code.UserId, code.ClientId, DateTimeOffset.UtcNow, cancellationToken);
             return TokenError(400, "invalid_grant", "授权码已被使用。");
@@ -376,7 +382,10 @@ public sealed class OAuthServerService : IOAuthServerService
         stored.IsRevoked = true;
         stored.RevokedTime = DateTimeOffset.UtcNow;
         stored.ReplacedByToken = Truncate(response.RefreshToken, 200);
-        _ = await _oauthTokenRepository.UpdateAsync(stored, cancellationToken);
+        using (_currentTenant.Change(stored.TenantId, stored.TenantId.ToString()))
+        {
+            _ = await _oauthTokenRepository.UpdateAsync(stored, cancellationToken);
+        }
 
         return new OAuthTokenOutcome(true, 200, response, null, null);
     }
@@ -451,7 +460,13 @@ public sealed class OAuthServerService : IOAuthServerService
 
         stored.IsRevoked = true;
         stored.RevokedTime = DateTimeOffset.UtcNow;
-        _ = await _oauthTokenRepository.UpdateAsync(stored, cancellationToken);
+
+        // 令牌行带签发时的租户戳，在该租户作用域内回写
+        using (_currentTenant.Change(stored.TenantId, stored.TenantId.ToString()))
+        {
+            _ = await _oauthTokenRepository.UpdateAsync(stored, cancellationToken);
+        }
+
         _logger.LogInformation("OAuth: 令牌已撤销 clientId={ClientId} userId={UserId}", stored.ClientId, stored.UserId);
     }
 

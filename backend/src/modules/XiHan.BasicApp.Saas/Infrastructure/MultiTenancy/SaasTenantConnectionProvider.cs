@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SqlSugar;
 using System.Collections.Concurrent;
@@ -25,8 +24,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 ///   <item><see cref="TenantIsolationMode.Database"/>：解密连接串，返回 <c>Tenant_{id}</c> 连接描述符，框架据此运行时建连；</item>
 ///   <item><see cref="TenantIsolationMode.Schema"/>：抛异常（尚未实装，fail-closed，杜绝静默退化）。</item>
 /// </list>
-/// 读取租户元数据时切到平台上下文（<c>ICurrentTenant.Change(null)</c>）以走默认连接并避免递归；结果按租户缓存，
-/// 隔离配置变更须经 <see cref="ITenantConnectionCacheInvalidator"/> 失效。
+/// 读取租户元数据时切到平台作用域（<c>ICurrentTenant.Change(null)</c>）：租户注册表是平台数据（<c>TenantId=0</c>），
+/// 在平台作用域走默认连接且不会递归回本提供器；结果按租户缓存，隔离配置变更须经 <see cref="ITenantConnectionCacheInvalidator"/> 失效。
+/// 读取失败不回退默认连接：库隔离租户退回平台库会把它的数据写进平台库，失败原样抛出（fail-closed，不入缓存，下次请求重试）。
 /// <para>
 /// 本类只负责租户维度（这个租户有没有独立主库）。库隔离租户的模块库由框架按约定派生
 /// （<c>XiHan:Data:SqlSugarCore:EnableTenantModuleDatabaseConvention</c>）：库名从租户主库名派生为
@@ -38,7 +38,6 @@ public sealed class SaasTenantConnectionProvider : ISqlSugarTenantConnectionProv
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ITenantConnectionSecretProtector _secretProtector;
-    private readonly ILogger<SaasTenantConnectionProvider> _logger;
 
     // 与框架静态 ConfigId 解析共用同一前缀，避免运行时建连与预置连接命名分叉
     private readonly string _tenantConfigIdPrefix;
@@ -52,13 +51,11 @@ public sealed class SaasTenantConnectionProvider : ISqlSugarTenantConnectionProv
     public SaasTenantConnectionProvider(
         IServiceScopeFactory scopeFactory,
         ITenantConnectionSecretProtector secretProtector,
-        IOptions<XiHanSqlSugarCoreOptions> sqlSugarOptions,
-        ILogger<SaasTenantConnectionProvider> logger)
+        IOptions<XiHanSqlSugarCoreOptions> sqlSugarOptions)
     {
         _scopeFactory = scopeFactory;
         _secretProtector = secretProtector;
         _tenantConfigIdPrefix = sqlSugarOptions.Value.TenantConfigIdPrefix;
-        _logger = logger;
     }
 
     /// <summary>
@@ -91,24 +88,17 @@ public sealed class SaasTenantConnectionProvider : ISqlSugarTenantConnectionProv
     private SqlSugarTenantConnection? LoadDescriptor(long tenantId)
     {
         SysTenant? tenant;
-        try
+        using (var scope = _scopeFactory.CreateScope())
         {
-            using var scope = _scopeFactory.CreateScope();
             var serviceProvider = scope.ServiceProvider;
             var currentTenant = serviceProvider.GetRequiredService<ICurrentTenant>();
 
-            // 平台上下文读取租户元数据：走默认连接、无租户过滤、避免递归回本提供器
+            // 平台作用域读取租户元数据：走默认连接、避免递归回本提供器
             using (currentTenant.Change(null))
             {
                 var client = serviceProvider.GetRequiredService<ISqlSugarClientResolver>().GetCurrentClient();
                 tenant = client.Queryable<SysTenant>().Where(x => x.BasicId == tenantId).First();
             }
-        }
-        catch (Exception ex)
-        {
-            // 读取失败（如初始化期 SysTenant 表尚未建立）：回退默认连接，不阻断启动/请求
-            _logger.LogWarning(ex, "读取租户 {TenantId} 连接元数据失败，回退默认连接。", tenantId);
-            return null;
         }
 
         if (tenant is null)

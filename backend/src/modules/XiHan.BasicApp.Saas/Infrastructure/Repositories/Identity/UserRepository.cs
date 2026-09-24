@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -41,17 +42,22 @@ public sealed class UserRepository(
     }
 
     /// <summary>
-    /// 根据当前租户和邮箱获取用户
+    /// 按邮箱定位账号（全平台范围）
     /// </summary>
     /// <remarks>
-    /// 经 CreateQueryable 的全局租户过滤（AOP）按当前租户上下文隔离。邮箱列为非唯一索引（IX_Em），存在重复时取首条匹配。
+    /// 邮箱是登录身份标识、全平台唯一（UX_Em），账号可能归属任意租户，显式跨租户查找。
+    /// 平台态执行：账号注册表落在平台库，租户上下文下连接会被解析到该租户独立库（库隔离部署）。
     /// </remarks>
-    public async Task<SysUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
+    /// <param name="email">邮箱（调用方已 Trim）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<SysUser?> GetByEmailGloballyAsync(string email, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(email);
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await CreateQueryable()
+        using var platformScope = currentTenant.Change(null);
+
+        return await CreateNoTenantQueryable()
             .Where(user => user.Email == email)
             .FirstAsync(cancellationToken);
     }
@@ -167,6 +173,19 @@ public sealed class UserRepository(
         var ids = userIds.Distinct().ToList();
         return await CreateNoTenantQueryable()
             .Where(user => ids.Contains(user.BasicId))
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 跨租户获取全部启用账号的主键（平台公告「全员」投递专用）
+    /// </summary>
+    public async Task<IReadOnlyList<long>> GetEnabledIdsIgnoreTenantAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateNoTenantQueryable()
+            .Where(user => user.Status == EnableStatus.Enabled)
+            .Select(user => user.BasicId)
             .ToListAsync(cancellationToken);
     }
 }

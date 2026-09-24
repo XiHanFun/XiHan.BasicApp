@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -26,7 +27,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_St", nameof(Status), OrderByType.Asc)]
-public partial class SysExportTask : BasicAppFullAuditedEntity
+public partial class SysExportTask : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 业务类型（= 前端 pageCode，匹配 IExportProvider.BusinessType）

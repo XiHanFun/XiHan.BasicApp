@@ -51,13 +51,16 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
     }
 
     /// <summary>
-    /// 获取受保护角色 id 集合（RoleCode == <c>super_admin</c> 的角色）。
+    /// 获取受保护角色 id 集合（平台的 <c>super_admin</c> 角色）。
     /// </summary>
+    /// <remarks>
+    /// 超管是平台概念：受保护的是 TenantId=0 的 <c>super_admin</c> 系统角色，平台行经读共享在任何作用域都可见。
+    /// </remarks>
     public async Task<IReadOnlyCollection<long>> GetProtectedRoleIdsAsync(CancellationToken cancellationToken = default)
     {
-        // 写路径低频，直接查不缓存。RoleCode==super_admin 的角色（System 角色，TenantId=0）。
+        // 写路径低频，直接查不缓存
         var roles = await _roleRepository.GetListAsync(
-            role => role.RoleCode == SuperAdminRoleCode,
+            role => role.TenantId == 0 && role.RoleCode == SuperAdminRoleCode,
             cancellationToken);
 
         return roles.Select(role => role.BasicId).Distinct().ToList();
@@ -66,20 +69,13 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
     /// <summary>
     /// 获取受保护用户 id 集合（持有受保护角色、且授权有效的用户）。
     /// </summary>
+    /// <remarks>
+    /// 「是不是超管」是全局事实：授权行不论带哪个租户的戳都算，跨租户查找，与当前作用域无关。
+    /// </remarks>
     public async Task<IReadOnlyCollection<long>> GetProtectedUserIdsAsync(CancellationToken cancellationToken = default)
     {
         var roleIds = await GetProtectedRoleIdsAsync(cancellationToken);
-        if (roleIds.Count == 0)
-        {
-            return [];
-        }
-
-        // 持有受保护角色、且授权有效（Status=Valid）的用户。
-        var userRoles = await _userRoleRepository.GetListAsync(
-            userRole => roleIds.Contains(userRole.RoleId) && userRole.Status == ValidityStatus.Valid,
-            cancellationToken);
-
-        return userRoles.Select(userRole => userRole.UserId).Distinct().ToList();
+        return await _userRoleRepository.GetValidUserIdsByRoleIdsIgnoreTenantAsync(roleIds, cancellationToken);
     }
 
     /// <summary>

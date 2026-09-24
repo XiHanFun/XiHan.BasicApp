@@ -14,4 +14,9 @@ public interface IUserNotificationPreferenceRepository : ISaasRepository<SysUser
     /// 根据用户ID获取通知偏好信息（跨租户；每个用户全局仅一行，行带的是首次保存时的租户戳）
     /// </summary>
     Task<SysUserNotificationPreference?> GetByUserIdAsync(long userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 根据用户ID批量获取通知偏好（跨租户；每个用户全局仅一行，行带的是首次保存时的租户戳）
+    /// </summary>
+    Task<IReadOnlyList<SysUserNotificationPreference>> GetListByUserIdsIgnoreTenantAsync(IReadOnlyCollection<long> userIds, CancellationToken cancellationToken = default);
 }

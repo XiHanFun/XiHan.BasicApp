@@ -373,21 +373,10 @@ public sealed class LoginSessionDomainService
         using (TenantWriteGuard.Suppress())
         {
             _ = await _userSessionRepository.UpdateAsync(impersonationSession, cancellationToken);
-
-            var tokens = await _oauthTokenRepository.GetListAsync(
-                item => item.SessionId == impersonationSession.BasicId && !item.IsRevoked,
-                cancellationToken);
-            foreach (var token in tokens)
-            {
-                token.IsRevoked = true;
-                token.RevokedTime = now;
-            }
-
-            if (tokens.Count > 0)
-            {
-                _ = await _oauthTokenRepository.UpdateRangeAsync(tokens, cancellationToken);
-            }
         }
+
+        // 令牌台账跨租户吊销（令牌行带签发时的租户戳）
+        _ = await _oauthTokenRepository.RevokeBySessionIdsAsync([impersonationSession.BasicId], now, cancellationToken);
 
         return impersonationSession;
     }
@@ -418,11 +407,10 @@ public sealed class LoginSessionDomainService
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 会话业务标识全局唯一，会话行带登录落点的租户戳：跨租户定位后校验归属，不依赖当前作用域
         var normalizedSessionBusinessId = sessionBusinessId.Trim();
-        var session = await _userSessionRepository.GetFirstAsync(
-            item => item.UserId == userId && item.UserSessionId == normalizedSessionBusinessId,
-            cancellationToken);
-        if (session is null)
+        var session = await _userSessionRepository.GetByUserSessionIdAsync(normalizedSessionBusinessId, cancellationToken);
+        if (session is null || session.UserId != userId)
         {
             return null;
         }
@@ -437,19 +425,10 @@ public sealed class LoginSessionDomainService
         using (TenantWriteGuard.Suppress())
         {
             _ = await _userSessionRepository.UpdateAsync(session, cancellationToken);
-
-            var tokens = await _oauthTokenRepository.GetListAsync(item => item.SessionId == session.BasicId && !item.IsRevoked, cancellationToken);
-            foreach (var token in tokens)
-            {
-                token.IsRevoked = true;
-                token.RevokedTime = now;
-            }
-
-            if (tokens.Count > 0)
-            {
-                _ = await _oauthTokenRepository.UpdateRangeAsync(tokens, cancellationToken);
-            }
         }
+
+        // 令牌台账跨租户吊销（令牌行带签发时的租户戳）
+        _ = await _oauthTokenRepository.RevokeBySessionIdsAsync([session.BasicId], now, cancellationToken);
 
         return session;
     }

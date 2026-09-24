@@ -56,14 +56,15 @@ public sealed class OAuthCodeRepository(ISqlSugarClientResolver clientResolver)
     }
 
     /// <summary>
-    /// 清理过期授权码
+    /// 跨租户判断客户端是否签发过授权码
     /// </summary>
-    public async Task<int> CleanExpiredAsync(DateTimeOffset now, CancellationToken cancellationToken = default)
+    public async Task<bool> AnyByClientIdIgnoreTenantAsync(string clientId, CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientId);
         cancellationToken.ThrowIfCancellationRequested();
 
-        return await DbClient.Deleteable<SysOAuthCode>()
-            .Where(code => code.ExpirationTime < now)
-            .ExecuteCommandAsync(cancellationToken);
+        return await CreateNoTenantQueryable()
+            .Where(code => code.ClientId == clientId)
+            .AnyAsync(cancellationToken);
     }
 }

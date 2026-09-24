@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Domain.Repositories;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Web.RealTime.Attributes;
 using XiHan.Framework.Web.RealTime.Hubs;
@@ -84,7 +85,12 @@ public class BasicAppNotificationHub : XiHanHub
             }
 
             session.LastActivityTime = DateTimeOffset.UtcNow;
-            _ = await _userSessionRepository.UpdateAsync(session);
+
+            // 连接期的环境作用域不可靠，会话是用户自有行（带登录落点的租户戳），显式豁免写边界
+            using (TenantWriteGuard.Suppress())
+            {
+                _ = await _userSessionRepository.UpdateAsync(session);
+            }
         }
         catch (Exception ex)
         {

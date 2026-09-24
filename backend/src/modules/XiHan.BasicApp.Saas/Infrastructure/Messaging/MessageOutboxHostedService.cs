@@ -6,9 +6,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Saas.Domain.Messaging;
+using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Messaging.Models;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Tasks.BackgroundServices;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Messaging;
@@ -27,6 +29,11 @@ public sealed class MessageOutboxMessage : IBackgroundTaskItem
     /// 业务实体主键（SysEmail.BasicId / SysSms.BasicId）。
     /// </summary>
     public long EntityId { get; init; }
+
+    /// <summary>
+    /// 邮件/短信行所属租户（平台为 0）：后台在该作用域内领取与发送
+    /// </summary>
+    public long TenantId { get; init; }
 
     /// <summary>
     /// 任务创建时间
@@ -58,7 +65,7 @@ public sealed class MessageOutboxMessage : IBackgroundTaskItem
 /// 提交侧（<see cref="DbMessageOutbox"/>）落库后入队 <see cref="MessageOutboxMessage"/>；本服务（基于 <see cref="XiHanBackgroundServiceBase{T}"/>）
 /// 拉取后原子领取（<c>TryClaimForSendingAsync</c> Pending/可重试Failed→Sending，去重 + 按 MaxRetryCount 自限），经 <see cref="IMessageDispatcher"/>
 /// 走既有 Sender（EntityId 重放，加载行→发送→更新状态）。发送失败延迟重投。
-/// 启动时复位崩溃残留的 Sending→Pending 并重投所有待发送。
+/// 邮件/短信行带落库时的租户戳，领取与发送在消息携带的租户作用域内进行；启动时逐数据作用域复位崩溃残留的 Sending→Pending 并重投所有待发送。
 /// </remarks>
 public sealed class MessageOutboxHostedService : XiHanBackgroundServiceBase<MessageOutboxHostedService>
 {
@@ -117,6 +124,9 @@ public sealed class MessageOutboxHostedService : XiHanBackgroundServiceBase<Mess
             using var scope = _scopeFactory.CreateScope();
             var outbox = scope.ServiceProvider.GetRequiredService<DbMessageOutbox>();
 
+            // 邮件/短信行带落库时的租户戳：在该租户作用域内领取、加载与回写
+            using var tenantScope = scope.ServiceProvider.GetRequiredService<ICurrentTenant>().Change(message.TenantId);
+
             // 原子领取：仅 Pending / 可重试 Failed 才置 Sending（去重 + 按 MaxRetryCount 自限，超限直接丢弃该消息）
             if (!await outbox.TryClaimForSendingAsync(message.Channel, message.EntityId, cancellationToken))
             {
@@ -141,7 +151,7 @@ public sealed class MessageOutboxHostedService : XiHanBackgroundServiceBase<Mess
                     .Select(result => result.ErrorMessage)
                     .Where(msg => !string.IsNullOrWhiteSpace(msg)));
                 await _queue.EnqueueAsync(
-                    new MessageOutboxMessage { Channel = message.Channel, EntityId = message.EntityId, RetryCount = message.RetryCount + 1, CreatedAt = DateTimeOffset.UtcNow },
+                    new MessageOutboxMessage { Channel = message.Channel, EntityId = message.EntityId, TenantId = message.TenantId, RetryCount = message.RetryCount + 1, CreatedAt = DateTimeOffset.UtcNow },
                     RetryDelay,
                     cancellationToken);
                 Logger.LogWarning("发件箱发送失败，将延迟重投：{Channel}:{Id}，原因：{Error}", message.Channel, message.EntityId, error);
@@ -169,7 +179,7 @@ public sealed class MessageOutboxHostedService : XiHanBackgroundServiceBase<Mess
     }
 
     /// <summary>
-    /// 启动恢复：复位崩溃残留的 Sending→Pending，并把所有待发送重投队列（TryClaimForSendingAsync 保证不重复发送）。
+    /// 启动恢复：逐数据作用域复位崩溃残留的 Sending→Pending，并把所有待发送重投队列（TryClaimForSendingAsync 保证不重复发送）。
     /// </summary>
     private async Task RecoverPendingAsync(CancellationToken cancellationToken)
     {
@@ -177,16 +187,23 @@ public sealed class MessageOutboxHostedService : XiHanBackgroundServiceBase<Mess
         {
             using var scope = _scopeFactory.CreateScope();
             var outbox = scope.ServiceProvider.GetRequiredService<DbMessageOutbox>();
+            var runner = scope.ServiceProvider.GetRequiredService<ITenantDataScopeRunner>();
 
-            var pending = await outbox.ResetInFlightAndCollectPendingAsync(cancellationToken);
-            foreach (var message in pending)
+            var total = 0;
+            await runner.RunAsync(async scopeTenantId =>
             {
-                await _queue.EnqueueAsync(message, TimeSpan.Zero, cancellationToken);
-            }
+                var pending = await outbox.ResetInFlightAndCollectPendingAsync(scopeTenantId ?? 0, cancellationToken);
+                foreach (var message in pending)
+                {
+                    await _queue.EnqueueAsync(message, TimeSpan.Zero, cancellationToken);
+                }
 
-            if (pending.Count > 0)
+                total += pending.Count;
+            }, cancellationToken);
+
+            if (total > 0)
             {
-                Logger.LogInformation("发件箱启动恢复：重投 {Count} 条待发送", pending.Count);
+                Logger.LogInformation("发件箱启动恢复：重投 {Count} 条待发送", total);
             }
         }
         catch (Exception ex)
