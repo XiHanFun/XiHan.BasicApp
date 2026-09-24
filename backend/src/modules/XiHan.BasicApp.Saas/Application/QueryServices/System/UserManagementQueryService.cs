@@ -28,7 +28,7 @@ public sealed class UserManagementQueryService
 
     private const int MaxPasswordHistoryCount = 10;
 
-    private readonly IUserRepository _userRepository;
+    private readonly IUserDirectory _userDirectory;
 
     private readonly ITenantUserRepository _tenantUserRepository;
 
@@ -62,7 +62,7 @@ public sealed class UserManagementQueryService
     /// 构造函数
     /// </summary>
     public UserManagementQueryService(
-        IUserRepository userRepository,
+        IUserDirectory userDirectory,
         ITenantUserRepository tenantUserRepository,
         IUserDepartmentRepository userDepartmentRepository,
         IDepartmentRepository departmentRepository,
@@ -78,7 +78,7 @@ public sealed class UserManagementQueryService
         IPasswordHistoryRepository passwordHistoryRepository,
         ISuperAdminProtector superAdminProtector)
     {
-        _userRepository = userRepository;
+        _userDirectory = userDirectory;
         _tenantUserRepository = tenantUserRepository;
         _userDepartmentRepository = userDepartmentRepository;
         _departmentRepository = departmentRepository;
@@ -118,18 +118,21 @@ public sealed class UserManagementQueryService
             return null;
         }
 
-        var user = await _userRepository.GetByIdAsync(userId, cancellationToken);
+        // 看得见哪些用户由上下文决定；外部成员的账号域数据（安全、三方绑定、密码历史）在其注册地，这里读不到
+        var user = await _userDirectory.FindAsync(userId, cancellationToken);
         if (user is null)
         {
             return null;
         }
 
         var now = DateTimeOffset.UtcNow;
+        var userDetail = UserApplicationMapper.ToDetailDto(user);
+        userDetail.IsExternalMember = !_userDirectory.IsHomeAccount(user);
         var tenantMember = await _tenantUserRepository.GetMembershipAsync(user.BasicId, cancellationToken);
 
         return new UserManagementDetailDto
         {
-            User = UserApplicationMapper.ToDetailDto(user),
+            User = userDetail,
             TenantMembership = tenantMember is null ? null : TenantMemberApplicationMapper.ToListItemDto(tenantMember, now),
             Departments = await GetDepartmentsAsync(user.BasicId, cancellationToken),
             Roles = await GetRolesAsync(user.BasicId, tenantMember, now, cancellationToken),

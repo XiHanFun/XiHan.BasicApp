@@ -127,7 +127,7 @@ public sealed class DepartmentManagementQueryService
         }
 
         var userIds = userDepartments.Select(item => item.UserId).Distinct().ToArray();
-        var users = await _userRepository.GetByIdsAsync(userIds, cancellationToken);
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(userIds, cancellationToken);
         var userMap = users.ToDictionary(user => user.BasicId);
 
         var positionIds = userDepartments

@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Hubs;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Web.RealTime.Constants;
 using XiHan.Framework.Web.RealTime.Services;
@@ -141,9 +142,10 @@ public sealed class UserSessionRevokedEventHandler : ILocalEventHandler<UserSess
             var now = DateTimeOffset.UtcNow;
             var sessionId = eventData.SessionId?.ToString() ?? eventData.UserSessionId;
 
-            // 查询用户信息以获取用户名
+            // 查询用户信息以获取用户名：会话在事件租户里，账号可能注册在别处（外部成员），按主键跨租户取
             var user = await db.Queryable<SysUser>()
-                .Where(u => u.BasicId == eventData.UserId && u.TenantId == eventData.TenantId && !u.IsDeleted)
+                .ClearTenantFilter()
+                .Where(u => u.BasicId == eventData.UserId && !u.IsDeleted)
                 .Select(u => new { u.UserName })
                 .FirstAsync();
 

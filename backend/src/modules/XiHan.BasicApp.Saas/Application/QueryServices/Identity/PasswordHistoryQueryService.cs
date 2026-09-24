@@ -102,7 +102,7 @@ public sealed class PasswordHistoryQueryService
             return null;
         }
 
-        var user = await _userRepository.GetByIdAsync(history.UserId, cancellationToken);
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(history.UserId, cancellationToken);
         return PasswordHistoryApplicationMapper.ToDetailDto(history, user);
     }
 
@@ -183,7 +183,7 @@ public sealed class PasswordHistoryQueryService
             return new Dictionary<long, SysUser>();
         }
 
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(ids, cancellationToken);
         return users.ToDictionary(user => user.BasicId);
     }
 }

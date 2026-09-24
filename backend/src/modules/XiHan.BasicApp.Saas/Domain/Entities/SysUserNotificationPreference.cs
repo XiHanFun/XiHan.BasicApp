@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -34,13 +35,15 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 场景：
 /// - 个人中心"通知偏好"设置：渠道（站内信/邮箱/短信/推送/机器人）× 类型（公告/任务/审批/安全/营销）
 /// - 营销类可随时关闭（GDPR 合规）；安全告警建议始终开启
+///
+/// 账号域：TenantId 固定为注册地租户（平台账号为 0），严格租户隔离；按用户主键跨租户读取，写入在注册地租户内进行。
 /// </remarks>
 [SugarTable(TableName = "Sys_User_Notification_Preference", TableDescription = "系统用户通知偏好表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_UsId", nameof(UserId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
-public partial class SysUserNotificationPreference : BasicAppFullAuditedEntity
+public partial class SysUserNotificationPreference : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户ID

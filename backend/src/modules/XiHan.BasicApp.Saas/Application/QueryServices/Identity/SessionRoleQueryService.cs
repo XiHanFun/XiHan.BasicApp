@@ -129,7 +129,7 @@ public sealed class SessionRoleQueryService
 
         var session = await _userSessionRepository.GetByIdAsync(sessionRole.SessionId, cancellationToken);
         var role = await _roleRepository.GetByIdAsync(sessionRole.RoleId, cancellationToken);
-        var user = session is null ? null : await _userRepository.GetByIdAsync(session.UserId, cancellationToken);
+        var user = session is null ? null : await _userRepository.GetByIdIgnoreTenantAsync(session.UserId, cancellationToken);
         return SessionRoleApplicationMapper.ToDetailDto(sessionRole, session, role, user, DateTimeOffset.UtcNow);
     }
 
@@ -290,7 +290,7 @@ public sealed class SessionRoleQueryService
             return new Dictionary<long, SysUser>();
         }
 
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(ids, cancellationToken);
         return users.ToDictionary(user => user.BasicId);
     }
 }

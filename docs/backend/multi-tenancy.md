@@ -31,7 +31,7 @@ BasicApp 默认走**字段级隔离（Field）**：所有业务实体继承自 `
 - 只有平台才允许维护 `TenantId=0` 的全局模板（菜单/权限/角色/版本等）；租户态（`Id>0`）对全局模板一律拒绝写入，避免某租户改动波及所有租户。平台同样不能直接改写租户的行。
 - 平台与租户各自独有的运行数据（会话、令牌、授权码、导出任务、邮件短信、导入记录、任务调度与各类日志）实现 `IStrictMultiTenantEntity`：租户态只看本租户行，不读共享平台行。
 
-> 服务层通过框架注入自动写入 `TenantId`，业务代码禁止直接操纵。跨租户只走显式通道：跨租户读取用仓储的 `...IgnoreTenantAsync`（内部 `CreateNoTenantQueryable()`）或查询上的 `.ClearTenantFilter()`；写某个租户的数据用 `ICurrentTenant.Change(tenantId)` 切入该租户，`using` 作用域结束自动恢复；按 `UserId` 归属的用户自有行用 `TenantWriteGuard.Suppress()`。后台逐租户维护用 `ITenantDataScopeRunner` 依次切入平台与每个数据可达的租户。
+> 服务层通过框架注入自动写入 `TenantId`，业务代码禁止直接操纵。跨租户只走显式通道：跨租户读取用仓储的 `...IgnoreTenantAsync`（内部 `CreateNoTenantQueryable()`）或查询上的 `.ClearTenantFilter()`；写某个租户的数据用 `ICurrentTenant.Change(tenantId)` 切入该租户，`using` 作用域结束自动恢复；账号域数据写在账号注册地——新增经 `IAccountScope.EnterAsync(userId)` 切入注册地，个人中心更新自己已有的行可用 `TenantWriteGuard.Suppress()`（只放宽更新与删除，不放宽新增）。后台逐租户维护用 `ITenantDataScopeRunner` 依次切入平台与每个数据可达的租户。
 
 ## 登录与落点：邮箱全局唯一，先登录后选租户
 
@@ -80,6 +80,17 @@ BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统�
   - 注意：`MemberType` 表达"成员身份类型"而非"权限级别"，**服务层禁止用它直接鉴权**（如 `if MemberType==Admin`），必须走 RBAC 权限链；它只用于成员列表分类、邀请流程控制、`PlatformAdmin` 创建校验。
 - `InviteStatus`（`TenantMemberInviteStatus`）：`Pending → Accepted / Rejected / Revoked / Expired`。仅 `Accepted` 且 `Status=Valid` 且当前时间在生效/失效区间内的成员关系才可用于鉴权。
 - `EffectiveTime` / `ExpirationTime`：外部协作者/访客常用的时效控制。
+
+## 账号域：注册地租户戳 + 严格隔离
+
+账号是身份层数据，不是某个租户的业务数据。`SysUser`、`SysUserSecurity`、`SysUserSetting`、`SysUserNotificationPreference`、`SysUserApiCredential`、`SysExternalLogin`、`SysPasswordHistory` 实现 `IStrictMultiTenantEntity`，`TenantId` 固定为注册地（平台账号为 0）：
+
+- **按主键跨租户读**：账号、安全记录、个人设置等按用户主键走 `...IgnoreTenantAsync` / `CreateNoTenantQueryable()` 读取，展示别人的名字、取当前用户自己的资料都不依赖当前上下文。
+- **写在注册地**：外部成员在别的租户里改设置、建凭据、改密码，行照样落回注册地（`IAccountScope`、密码历史切入 `user.TenantId` 写入）。
+- **看得见谁由上下文决定**（`IUserDirectory`）：平台里是平台账号；租户里是本租户已接受的成员，含注册在别处的外部成员与入驻的平台人员。用户列表、详情、选择项、聊天候选人、"全员"通知都走同一个目录，列表项带 `IsExternalMember`。
+- **身份类操作只对本地账号**：资料、状态、锁定、密码、双因素、登录策略、下线全部会话、删除只对注册在当前上下文的账号开放；外部成员给出明确原因（"由其注册地租户维护"），在这里只能管理它在本租户的角色、权限、部门与数据范围。前端对外部成员隐藏账号级操作，编辑弹窗只提交角色与部门。
+- **平台建的是平台账号**：平台里建账号不写成员关系、不占席位；租户里建账号占一个席位并成为本租户已接受的成员。
+- **删除 / 停用是账号级操作**：账号是任何一个租户的有效所有者都不能直接删除或停用；删除时逐租户切入，作废它在每个租户的成员关系。
 
 ## 超级管理员：只在平台成立
 

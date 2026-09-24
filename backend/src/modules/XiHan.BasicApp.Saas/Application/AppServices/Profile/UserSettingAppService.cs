@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Hubs;
@@ -37,6 +38,8 @@ public sealed class UserSettingAppService
 
     private readonly IUserSettingRepository _repository;
 
+    private readonly IAccountScope _accountScope;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -45,8 +48,10 @@ public sealed class UserSettingAppService
         ICurrentUser currentUser,
         ISaasCacheInvalidator cacheInvalidator,
         IRealtimeNotificationService<BasicAppNotificationHub> realtimeNotificationService,
-        ILogger<UserSettingAppService> logger)
+        ILogger<UserSettingAppService> logger,
+        IAccountScope accountScope)
     {
+        _accountScope = accountScope;
         _repository = repository;
         _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
@@ -69,25 +74,24 @@ public sealed class UserSettingAppService
         var settingKey = input.SettingKey.Trim();
 
         var entity = await _repository.GetByUserSettingAsync(userId, input.Scene, settingKey, cancellationToken);
-        if (entity is null)
-        {
-            entity = new SysUserSetting
-            {
-                UserId = userId,
-                Scene = input.Scene,
-                SettingKey = settingKey,
-                SettingValue = input.SettingValue
-            };
-            _ = await _repository.AddAsync(entity, cancellationToken);
-        }
-        else
-        {
-            entity.SettingValue = input.SettingValue;
 
-            // 用户主体数据自有行写入：SysUserSetting 按 UserId 归属（唯一索引 UserId+Scene+SettingKey 不含租户），
-            // 平台归属用户（行 TenantId=0）在租户态保存自己的偏好是合法路径，须显式豁免写路径租户边界
-            using (TenantWriteGuard.Suppress())
+        // 个人设置是账号域数据，写在注册地租户：新建与更新都在注册地作用域里进行
+        using (await _accountScope.EnterAsync(userId, cancellationToken))
+        {
+            if (entity is null)
             {
+                entity = new SysUserSetting
+                {
+                    UserId = userId,
+                    Scene = input.Scene,
+                    SettingKey = settingKey,
+                    SettingValue = input.SettingValue
+                };
+                _ = await _repository.AddAsync(entity, cancellationToken);
+            }
+            else
+            {
+                entity.SettingValue = input.SettingValue;
                 _ = await _repository.UpdateAsync(entity, cancellationToken);
             }
         }

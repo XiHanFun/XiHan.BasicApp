@@ -114,7 +114,7 @@ public sealed class OAuthCodeQueryService
         }
 
         var app = await _oauthAppRepository.GetFirstAsync(item => item.ClientId == code.ClientId, cancellationToken);
-        var user = await _userRepository.GetByIdAsync(code.UserId, cancellationToken);
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(code.UserId, cancellationToken);
         return OAuthCodeApplicationMapper.ToDetailDto(code, app, user, DateTimeOffset.UtcNow);
     }
 
@@ -264,7 +264,7 @@ public sealed class OAuthCodeQueryService
             return new Dictionary<long, SysUser>();
         }
 
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(ids, cancellationToken);
         return users.ToDictionary(user => user.BasicId);
     }
 }

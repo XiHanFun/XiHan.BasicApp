@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -24,13 +25,15 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 场景：
 /// - 偏好设置（Preference）：主题/外观/布局/组件/快捷键，设置键固定（如 "global"）
 /// - 页面设置（Page）：列设置（显隐/顺序/固定/列宽）、密度、个人视图（筛选+排序+分页快照），设置键为 pageCode
+///
+/// 账号域：TenantId 固定为注册地租户（平台账号为 0），严格租户隔离；按用户主键跨租户读取，写入在注册地租户内进行。
 /// </remarks>
 [SugarTable(TableName = "Sys_User_Setting", TableDescription = "系统用户设置表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_UsId_Sc_SeKe", nameof(UserId), OrderByType.Asc, nameof(Scene), OrderByType.Asc, nameof(SettingKey), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
-public partial class SysUserSetting : BasicAppFullAuditedEntity
+public partial class SysUserSetting : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户ID

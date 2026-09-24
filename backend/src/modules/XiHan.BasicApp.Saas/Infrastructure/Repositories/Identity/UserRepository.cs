@@ -1,10 +1,13 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Extensions;
+using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Uow;
 
@@ -63,14 +66,18 @@ public sealed class UserRepository(
     }
 
     /// <summary>
-    /// 检查当前租户下用户名是否存在
+    /// 检查当前上下文注册的账号里用户名是否已被占用（租户里连带平台账号一起比对）
     /// </summary>
     public async Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userName);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var query = CreateQueryable().Where(user => user.UserName == userName);
+        // 账号严格隔离，与平台账号比对要显式跨租户
+        var scopeTenantId = currentTenant.Id ?? PlatformTenantId;
+        var query = CreateNoTenantQueryable()
+            .Where(user => user.TenantId == scopeTenantId || user.TenantId == PlatformTenantId)
+            .Where(user => user.UserName == userName);
         if (excludeUserId.HasValue)
         {
             query = query.Where(user => user.BasicId != excludeUserId.Value);
@@ -174,6 +181,58 @@ public sealed class UserRepository(
         return await CreateNoTenantQueryable()
             .Where(user => ids.Contains(user.BasicId))
             .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 租户成员的账号分页：本租户已接受的成员（含注册在别处的外部成员），账号跨租户读取
+    /// </summary>
+    public async Task<PageResultDtoBase<SysUser>> GetMemberAccountsPagedAsync(long tenantId, PageRequestDtoBase request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await QueryMemberAccounts(tenantId)
+            .ApplyPageRequest(request)
+            .ToPageResultAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// 租户成员的账号：不是该租户已接受的成员时返回 null
+    /// </summary>
+    public async Task<SysUser?> GetMemberAccountAsync(long tenantId, long userId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await QueryMemberAccounts(tenantId)
+            .Where(user => user.BasicId == userId)
+            .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 租户成员中启用账号的主键
+    /// </summary>
+    public async Task<IReadOnlyList<long>> GetEnabledMemberAccountIdsAsync(long tenantId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await QueryMemberAccounts(tenantId)
+            .Where(user => user.Status == EnableStatus.Enabled)
+            .Select(user => user.BasicId)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 某个租户已接受成员的账号：账号可能注册在别的租户，按成员关系跨租户取
+    /// </summary>
+    private ISugarQueryable<SysUser> QueryMemberAccounts(long tenantId)
+    {
+        return CreateNoTenantQueryable()
+            .Where(user => SqlFunc.Subqueryable<SysTenantUser>()
+                .Where(member => member.UserId == user.BasicId
+                                 && member.TenantId == tenantId
+                                 && member.InviteStatus == TenantMemberInviteStatus.Accepted
+                                 && member.IsDeleted == false)
+                .Any());
     }
 
     /// <summary>

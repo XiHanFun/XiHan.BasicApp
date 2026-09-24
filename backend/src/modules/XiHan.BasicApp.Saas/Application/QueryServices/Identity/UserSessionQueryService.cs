@@ -104,7 +104,7 @@ public sealed class UserSessionQueryService
             return null;
         }
 
-        var user = await _userRepository.GetByIdAsync(session.UserId, cancellationToken);
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(session.UserId, cancellationToken);
         return UserSessionApplicationMapper.ToDetailDto(session, user, DateTimeOffset.UtcNow);
     }
 
@@ -242,7 +242,7 @@ public sealed class UserSessionQueryService
             return new Dictionary<long, SysUser>();
         }
 
-        var users = await _userRepository.GetByIdsAsync(ids, cancellationToken);
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(ids, cancellationToken);
         return users.ToDictionary(user => user.BasicId);
     }
 }

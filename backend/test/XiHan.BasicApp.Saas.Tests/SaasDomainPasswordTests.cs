@@ -153,7 +153,7 @@ public sealed class SaasDomainPasswordTests
             .ReturnsAsync(new List<SysPasswordHistory> { new() { PasswordHash = "old-hash" } });
         var hasher = new Mock<IPasswordHasher>();
         _ = hasher.Setup(item => item.VerifyPassword("old-hash", "Abcdef1!")).Returns(true);
-        var service = new PasswordHistoryDomainService(repository.Object, hasher.Object, BuildOptions(3));
+        var service = new PasswordHistoryDomainService(repository.Object, hasher.Object, BuildOptions(3), new TestCurrentTenant());
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
             () => service.EnsureNotReusedAsync(7, "Abcdef1!"));
@@ -178,7 +178,7 @@ public sealed class SaasDomainPasswordTests
             });
         var hasher = new Mock<IPasswordHasher>();
         _ = hasher.Setup(item => item.VerifyPassword(It.IsAny<string>(), It.IsAny<string>())).Returns(false);
-        var service = new PasswordHistoryDomainService(repository.Object, hasher.Object, BuildOptions(5));
+        var service = new PasswordHistoryDomainService(repository.Object, hasher.Object, BuildOptions(5), new TestCurrentTenant());
 
         await service.EnsureNotReusedAsync(7, "Abcdef1!");
 
@@ -197,7 +197,7 @@ public sealed class SaasDomainPasswordTests
     {
         var repository = new Mock<IPasswordHistoryRepository>();
         var hasher = new Mock<IPasswordHasher>();
-        var service = new PasswordHistoryDomainService(repository.Object, hasher.Object, BuildOptions(historyCount));
+        var service = new PasswordHistoryDomainService(repository.Object, hasher.Object, BuildOptions(historyCount), new TestCurrentTenant());
 
         await service.EnsureNotReusedAsync(7, "Abcdef1!");
 
@@ -219,7 +219,7 @@ public sealed class SaasDomainPasswordTests
     {
         var repository = new Mock<IPasswordHistoryRepository>();
         var hasher = new Mock<IPasswordHasher>();
-        var service = new PasswordHistoryDomainService(repository.Object, hasher.Object, BuildOptions(5));
+        var service = new PasswordHistoryDomainService(repository.Object, hasher.Object, BuildOptions(5), new TestCurrentTenant());
 
         await service.EnsureNotReusedAsync(userId, password);
 
@@ -240,14 +240,35 @@ public sealed class SaasDomainPasswordTests
             .Setup(repo => repo.AddAsync(It.IsAny<SysPasswordHistory>(), It.IsAny<CancellationToken>()))
             .Callback<SysPasswordHistory, CancellationToken>((entity, _) => captured = entity)
             .ReturnsAsync((SysPasswordHistory entity, CancellationToken _) => entity);
-        var service = new PasswordHistoryDomainService(repository.Object, new Mock<IPasswordHasher>().Object, BuildOptions(5));
+        var service = new PasswordHistoryDomainService(repository.Object, new Mock<IPasswordHasher>().Object, BuildOptions(5), new TestCurrentTenant());
 
-        await service.RecordAsync(7, "new-hash", ChangedTime);
+        await service.RecordAsync(BuildUser(7), "new-hash", ChangedTime);
 
         Assert.NotNull(captured);
         Assert.Equal(7, captured!.UserId);
         Assert.Equal("new-hash", captured.PasswordHash, StringComparer.Ordinal);
         Assert.Equal(ChangedTime, captured.ChangedTime);
+    }
+
+    /// <summary>
+    /// 密码历史是账号域数据：无论在哪个上下文改密码，都写回账号的注册地租户，写完还原上下文。
+    /// </summary>
+    [Fact]
+    public async Task Record_ShouldWriteInAccountHomeTenant()
+    {
+        long? writeTenant = -1;
+        var currentTenant = new TestCurrentTenant(7);
+        var repository = new Mock<IPasswordHistoryRepository>();
+        _ = repository
+            .Setup(repo => repo.AddAsync(It.IsAny<SysPasswordHistory>(), It.IsAny<CancellationToken>()))
+            .Callback<SysPasswordHistory, CancellationToken>((_, _) => writeTenant = currentTenant.Id)
+            .ReturnsAsync((SysPasswordHistory entity, CancellationToken _) => entity);
+        var service = new PasswordHistoryDomainService(repository.Object, new Mock<IPasswordHasher>().Object, BuildOptions(5), currentTenant);
+
+        await service.RecordAsync(BuildUser(7, tenantId: 9), "new-hash", ChangedTime);
+
+        Assert.Equal(9, writeTenant);
+        Assert.Equal(7, currentTenant.Id);
     }
 
     /// <summary>
@@ -261,9 +282,9 @@ public sealed class SaasDomainPasswordTests
     public async Task Record_InvalidInput_ShouldNotPersist(long userId, string passwordHash)
     {
         var repository = new Mock<IPasswordHistoryRepository>();
-        var service = new PasswordHistoryDomainService(repository.Object, new Mock<IPasswordHasher>().Object, BuildOptions(5));
+        var service = new PasswordHistoryDomainService(repository.Object, new Mock<IPasswordHasher>().Object, BuildOptions(5), new TestCurrentTenant());
 
-        await service.RecordAsync(userId, passwordHash, ChangedTime);
+        await service.RecordAsync(BuildUser(userId), passwordHash, ChangedTime);
 
         repository.Verify(
             repo => repo.AddAsync(It.IsAny<SysPasswordHistory>(), It.IsAny<CancellationToken>()),
@@ -279,9 +300,10 @@ public sealed class SaasDomainPasswordTests
         var repository = new Mock<IPasswordHistoryRepository>().Object;
         var hasher = new Mock<IPasswordHasher>().Object;
 
-        _ = Assert.Throws<ArgumentNullException>(() => new PasswordHistoryDomainService(null!, hasher, BuildOptions(5)));
-        _ = Assert.Throws<ArgumentNullException>(() => new PasswordHistoryDomainService(repository, null!, BuildOptions(5)));
-        _ = Assert.Throws<ArgumentNullException>(() => new PasswordHistoryDomainService(repository, hasher, null!));
+        _ = Assert.Throws<ArgumentNullException>(() => new PasswordHistoryDomainService(null!, hasher, BuildOptions(5), new TestCurrentTenant()));
+        _ = Assert.Throws<ArgumentNullException>(() => new PasswordHistoryDomainService(repository, null!, BuildOptions(5), new TestCurrentTenant()));
+        _ = Assert.Throws<ArgumentNullException>(() => new PasswordHistoryDomainService(repository, hasher, null!, new TestCurrentTenant()));
+        _ = Assert.Throws<ArgumentNullException>(() => new PasswordHistoryDomainService(repository, hasher, BuildOptions(5), null!));
     }
 
     /// <summary>
@@ -291,20 +313,27 @@ public sealed class SaasDomainPasswordTests
     public async Task PasswordHistory_CancelledToken_ShouldThrowBeforeRepositoryCall()
     {
         var repository = new Mock<IPasswordHistoryRepository>();
-        var service = new PasswordHistoryDomainService(repository.Object, new Mock<IPasswordHasher>().Object, BuildOptions(5));
+        var service = new PasswordHistoryDomainService(repository.Object, new Mock<IPasswordHasher>().Object, BuildOptions(5), new TestCurrentTenant());
         using var cancellation = new CancellationTokenSource();
         await cancellation.CancelAsync();
 
         _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
             () => service.EnsureNotReusedAsync(7, "Abcdef1!", cancellation.Token));
         _ = await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => service.RecordAsync(7, "new-hash", ChangedTime, cancellation.Token));
+            () => service.RecordAsync(BuildUser(7), "new-hash", ChangedTime, cancellation.Token));
         repository.Verify(
             repo => repo.GetRecentByUserIdAsync(It.IsAny<long>(), It.IsAny<int>(), It.IsAny<CancellationToken>()),
             Times.Never);
         repository.Verify(
             repo => repo.AddAsync(It.IsAny<SysPasswordHistory>(), It.IsAny<CancellationToken>()),
             Times.Never);
+    }
+
+    private static SysUser BuildUser(long userId, long tenantId = 0)
+    {
+        var user = new SysUser { TenantId = tenantId };
+        SaasTestHelper.SetBasicId(user, userId);
+        return user;
     }
 
     private static IOptions<PasswordPolicyOptions> BuildOptions(int historyCount)

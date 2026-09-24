@@ -73,7 +73,11 @@ public sealed partial class ProfileAppService
             SecretCipher = _apiCredentialSecretProtector.Protect(secret)!,
             Status = EnableStatus.Enabled
         };
-        credential = await _userApiCredentialRepository.AddAsync(credential, cancellationToken);
+        // API 凭证是账号域数据，写在注册地租户
+        using (await _accountScope.EnterAsync(userId, cancellationToken))
+        {
+            credential = await _userApiCredentialRepository.AddAsync(credential, cancellationToken);
+        }
 
         await NotifyApiCredentialChangeAsync(userId, "API 凭证已创建", $"凭证「{name}」（{appKey}）已创建。如非本人操作，请立即删除该凭证并修改密码。", credential.BasicId, cancellationToken);
 
