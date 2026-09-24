@@ -1,8 +1,8 @@
 import type { DynamicApiParams } from '../../base'
 import type { ApiId } from '../../types'
 import type {
+  UserRoleBatchUpdateDto,
   UserRoleDetailDto,
-  UserRoleGrantDto,
   UserRoleListItemDto,
   UserRoleStatusUpdateDto,
   UserRoleUpdateDto,
@@ -16,17 +16,15 @@ export const userRoleApi = {
   detail(id: ApiId) {
     return userRoleQueryApi.get<UserRoleDetailDto | null>('UserRoleDetail', { id })
   },
-  grant(input: UserRoleGrantDto) {
-    return userRoleCommandApi.post<UserRoleDetailDto, UserRoleGrantDto>('UserRole', input)
+  /** 批量提交角色直授改动（授予/撤销一次性下发，后端单事务） */
+  batchUpdate(input: UserRoleBatchUpdateDto) {
+    return userRoleCommandApi.post<void, UserRoleBatchUpdateDto>('BatchUpdateUserRoles', input)
   },
   list(userId: ApiId, onlyValid = false) {
     const params: DynamicApiParams = {}
     appendDynamicApiParam(params, 'OnlyValid', onlyValid)
 
     return userRoleQueryApi.get<UserRoleListItemDto[]>('UserRoles', { ...params, userId })
-  },
-  revoke(id: ApiId) {
-    return userRoleCommandApi.delete('UserRole', { id })
   },
   update(input: UserRoleUpdateDto) {
     return userRoleCommandApi.put<UserRoleDetailDto, UserRoleUpdateDto>('UserRole', input)

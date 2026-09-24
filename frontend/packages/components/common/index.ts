@@ -11,6 +11,8 @@ export const XRichTextEditor = defineAsyncComponent(() => import('./RichTextEdit
 export { default as XContentEditorField } from './ContentEditorField.vue'
 export { indexDropdownOptions, toDropdownCollection } from './dropdown-collection'
 export { default as XEditModal } from './EditModal.vue'
+export type { GrantTransferGroup, GrantTransferItem, GrantTransferSide } from './grant-transfer'
+export { default as XGrantTransfer } from './GrantTransfer.vue'
 export { default as XJsonBlock } from './JsonBlock.vue'
 export { default as XPageShell } from './PageShell.vue'
 export type { PermissionGrantItem, PermissionGroup } from './permission-grant-panel'

@@ -3,7 +3,6 @@ import type { ApiId } from '../../types'
 import type {
   RolePermissionBatchUpdateDto,
   RolePermissionDetailDto,
-  RolePermissionGrantDto,
   RolePermissionListItemDto,
   RolePermissionStatusUpdateDto,
   RolePermissionUpdateDto,
@@ -20,9 +19,6 @@ export const rolePermissionApi = {
       { id },
     )
   },
-  grant(input: RolePermissionGrantDto) {
-    return rolePermissionCommandApi.post<RolePermissionDetailDto, RolePermissionGrantDto>('RolePermission', input)
-  },
   batchUpdate(input: RolePermissionBatchUpdateDto) {
     return rolePermissionCommandApi.post<void, RolePermissionBatchUpdateDto>('BatchUpdateRolePermissions', input)
   },
@@ -34,9 +30,6 @@ export const rolePermissionApi = {
       'RolePermissions',
       { ...params, roleId },
     )
-  },
-  revoke(id: ApiId) {
-    return rolePermissionCommandApi.delete('RolePermission', { id })
   },
   update(input: RolePermissionUpdateDto) {
     return rolePermissionCommandApi.put<RolePermissionDetailDto, RolePermissionUpdateDto>('RolePermission', input)

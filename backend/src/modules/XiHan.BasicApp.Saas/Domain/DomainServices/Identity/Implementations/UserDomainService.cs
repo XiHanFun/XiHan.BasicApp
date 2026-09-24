@@ -442,44 +442,128 @@ public sealed class UserDomainService
     #region 用户角色
 
     /// <summary>
-    /// 授予用户角色
+    /// 批量变更用户角色（一次性提交授予与撤销）
     /// </summary>
-    /// <param name="command">授权参数</param>
+    /// <param name="command">批量变更命令</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户角色详情</returns>
-    public async Task<UserRoleCommandResult> CreateUserRoleAsync(UserRoleGrantCommand command, CancellationToken cancellationToken = default)
+    /// <returns>本次实际发生变化的角色</returns>
+    public async Task<UserRoleBatchUpdateResult> BatchUpdateUserRolesAsync(UserRoleBatchUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateUserRoleGrantCommand(command);
-
-        var now = DateTimeOffset.UtcNow;
-        var tenantMember = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "分配角色", "平台管理员成员角色必须通过平台运维流程维护。", cancellationToken);
-        var role = await GetAssignableRoleOrThrowAsync(command.RoleId, cancellationToken);
-        if (await _userRoleRepository.AnyAsync(
-            userRole => userRole.UserId == command.UserId && userRole.RoleId == command.RoleId,
-            cancellationToken))
+        if (command.UserId <= 0)
         {
-            throw new InvalidOperationException("用户角色已绑定。");
+            throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
         }
 
-        // SSD 执法：以「现有有效角色 + 拟授予角色」为输入评估静态职责分离约束（含继承链展开）。
-        await EnsureNoSoDConflictAsync(command.UserId, command.RoleId, cancellationToken);
-
-        var userRole = new SysUserRole
+        var grantRoleIds = command.GrantRoleIds.Where(id => id > 0).Distinct().ToList();
+        var revokeIds = command.RevokeUserRoleIds.Where(id => id > 0).Distinct().ToList();
+        if (grantRoleIds.Count == 0 && revokeIds.Count == 0)
         {
-            UserId = command.UserId,
-            RoleId = command.RoleId,
-            EffectiveTime = command.EffectiveTime,
-            ExpirationTime = command.ExpirationTime,
-            GrantReason = NormalizeNullable(command.GrantReason),
-            Status = ValidityStatus.Valid,
-            Remark = NormalizeNullable(command.Remark)
-        };
+            return new UserRoleBatchUpdateResult([], []);
+        }
 
-        var savedUserRole = await _userRoleRepository.AddAsync(userRole, cancellationToken);
-        return new UserRoleCommandResult(savedUserRole, role, tenantMember, now);
+        var now = DateTimeOffset.UtcNow;
+        _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "分配角色", "平台管理员成员角色必须通过平台运维流程维护。", cancellationToken);
+
+        // 撤销只认本用户名下、仍为有效状态的记录：别人的记录主键混进来不会被改动，已失效的也不重复记账。
+        // 同一角色本次既撤又授时以授予为准，不撤销
+        var grantRoleIdSet = grantRoleIds.ToHashSet();
+        var revoking = revokeIds.Count == 0
+            ? []
+            : (await _userRoleRepository.GetListAsync(
+                userRole => revokeIds.Contains(userRole.BasicId)
+                    && userRole.UserId == command.UserId
+                    && userRole.Status == ValidityStatus.Valid,
+                cancellationToken))
+                .Where(userRole => !grantRoleIdSet.Contains(userRole.RoleId))
+                .ToList();
+
+        // 授予前逐个校验角色可分配，规则与单条读取共用 EnsureAssignableRole
+        if (grantRoleIds.Count > 0)
+        {
+            var roleMap = (await _roleRepository.GetListAsync(
+                role => grantRoleIds.Contains(role.BasicId), cancellationToken))
+                .ToDictionary(role => role.BasicId);
+            foreach (var roleId in grantRoleIds)
+            {
+                EnsureAssignableRole(roleMap.GetValueOrDefault(roleId));
+            }
+        }
+
+        // 撤销只置无效不删行（唯一索引按 租户×用户×角色），同一绑定的历史行会留在库里，命中即就地复用
+        var existingMap = grantRoleIds.Count == 0
+            ? []
+            : (await _userRoleRepository.GetListAsync(
+                userRole => userRole.UserId == command.UserId && grantRoleIds.Contains(userRole.RoleId),
+                cancellationToken)).ToDictionary(userRole => userRole.RoleId);
+
+        var updating = new List<SysUserRole>();
+        var adding = new List<SysUserRole>();
+        var grantedRoleIds = new List<long>();
+        foreach (var roleId in grantRoleIds)
+        {
+            if (!existingMap.TryGetValue(roleId, out var userRole))
+            {
+                adding.Add(new SysUserRole
+                {
+                    UserId = command.UserId,
+                    RoleId = roleId,
+                    Status = ValidityStatus.Valid
+                });
+                grantedRoleIds.Add(roleId);
+                continue;
+            }
+
+            // 已经生效的绑定原样保留，不算变更
+            if (IsEffective(userRole.Status, userRole.EffectiveTime, userRole.ExpirationTime, now))
+            {
+                continue;
+            }
+
+            // 复用的历史行多半是失效或已过期的：只改状态不动时间窗，保存后仍不生效，等于伪成功。
+            // 这里的授予语义是「从现在起生效」，所以把时间窗一并清空
+            userRole.Status = ValidityStatus.Valid;
+            userRole.EffectiveTime = null;
+            userRole.ExpirationTime = null;
+            updating.Add(userRole);
+            grantedRoleIds.Add(roleId);
+        }
+
+        // SSD 执法：以「现有有效角色 − 本次撤销 + 本次授予」这一最终角色集评估静态职责分离约束（含继承链展开）
+        if (grantedRoleIds.Count > 0)
+        {
+            var revokedRoleIds = revoking.Select(userRole => userRole.RoleId).ToHashSet();
+            var finalRoleIds = (await _userRoleRepository.GetValidByUserIdAsync(command.UserId, now, cancellationToken))
+                .Select(userRole => userRole.RoleId)
+                .Where(roleId => !revokedRoleIds.Contains(roleId))
+                .Concat(grantedRoleIds)
+                .Distinct();
+            await EnsureNoSoDConflictAsync(finalRoleIds, cancellationToken);
+        }
+
+        if (revoking.Count > 0)
+        {
+            foreach (var userRole in revoking)
+            {
+                userRole.Status = ValidityStatus.Invalid;
+            }
+
+            _ = await _userRoleRepository.UpdateRangeAsync(revoking, cancellationToken);
+        }
+
+        if (updating.Count > 0)
+        {
+            _ = await _userRoleRepository.UpdateRangeAsync(updating, cancellationToken);
+        }
+
+        if (adding.Count > 0)
+        {
+            _ = await _userRoleRepository.AddRangeAsync(adding, cancellationToken);
+        }
+
+        return new UserRoleBatchUpdateResult(grantedRoleIds, [.. revoking.Select(userRole => userRole.RoleId)]);
     }
 
     /// <summary>
@@ -543,21 +627,6 @@ public sealed class UserDomainService
         return new UserRoleCommandResult(savedUserRole, role, tenantMember, now);
     }
 
-    /// <summary>
-    /// 撤销用户角色
-    /// </summary>
-    /// <param name="id">用户角色绑定主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    public async Task DeleteUserRoleAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userRole = await GetUserRoleOrThrowAsync(id, cancellationToken);
-        userRole.Status = ValidityStatus.Invalid;
-
-        _ = await _userRoleRepository.UpdateAsync(userRole, cancellationToken);
-    }
-
     #endregion
 
     #region 用户直授权限
@@ -576,6 +645,11 @@ public sealed class UserDomainService
         if (command.UserId <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
+        }
+
+        foreach (var grant in command.Grants)
+        {
+            ValidateEnum(grant.PermissionAction, nameof(grant.PermissionAction));
         }
 
         // 同一权限重复下发时以最后一条为准
@@ -646,6 +720,14 @@ public sealed class UserDomainService
             {
                 if (existingMap.TryGetValue(permissionId, out var userPermission))
                 {
+                    // 复用的历史行若此刻不生效（已撤销或已过期），只改状态不动时间窗，保存后仍不生效，等于伪成功。
+                    // 授予语义是「从现在起生效」；此刻已生效的行只改动作，保留原配的时间窗
+                    if (!IsEffective(userPermission.Status, userPermission.EffectiveTime, userPermission.ExpirationTime, now))
+                    {
+                        userPermission.EffectiveTime = null;
+                        userPermission.ExpirationTime = null;
+                    }
+
                     userPermission.PermissionAction = action;
                     userPermission.Status = ValidityStatus.Valid;
                     updating.Add(userPermission);
@@ -683,57 +765,6 @@ public sealed class UserDomainService
         }
 
         return new UserPermissionBatchUpdateResult(grantedPermissionIds, deniedPermissionIds, revokedPermissionIds);
-    }
-
-    /// <summary>
-    /// 授予用户直授权限
-    /// </summary>
-    /// <param name="command">授权命令</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户直授权限详情</returns>
-    public async Task<UserPermissionCommandResult> CreateUserPermissionAsync(UserPermissionGrantCommand command, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        ValidateUserPermissionGrantCommand(command);
-
-        var now = DateTimeOffset.UtcNow;
-        var tenantMember = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "维护直授权限", "平台管理员成员权限必须通过平台运维流程维护。", cancellationToken);
-        var permission = await GetGrantablePermissionOrThrowAsync(command.PermissionId, cancellationToken);
-        // 撤销直授走的是逻辑失效（Status = Invalid）而非删行，因此同一 用户×权限 的历史行会留在库里。
-        // 此处按 upsert 处理：命中历史行就地改写并重新置为有效，避免「授予→拒绝」被自身的历史记录挡住，
-        // 也避免每次切换都堆积一行失效记录。
-        var existing = await _userPermissionRepository.GetFirstAsync(
-            userPermission => userPermission.UserId == command.UserId && userPermission.PermissionId == command.PermissionId,
-            cancellationToken);
-        if (existing is not null)
-        {
-            existing.PermissionAction = command.PermissionAction;
-            existing.EffectiveTime = command.EffectiveTime;
-            existing.ExpirationTime = command.ExpirationTime;
-            existing.GrantReason = NormalizeNullable(command.GrantReason);
-            existing.Remark = NormalizeNullable(command.Remark);
-            existing.Status = ValidityStatus.Valid;
-
-            var reactivated = await _userPermissionRepository.UpdateAsync(existing, cancellationToken);
-            return new UserPermissionCommandResult(reactivated, permission, tenantMember, now);
-        }
-
-        var userPermission = new SysUserPermission
-        {
-            UserId = command.UserId,
-            PermissionId = command.PermissionId,
-            PermissionAction = command.PermissionAction,
-            EffectiveTime = command.EffectiveTime,
-            ExpirationTime = command.ExpirationTime,
-            GrantReason = NormalizeNullable(command.GrantReason),
-            Status = ValidityStatus.Valid,
-            Remark = NormalizeNullable(command.Remark)
-        };
-
-        var savedUserPermission = await _userPermissionRepository.AddAsync(userPermission, cancellationToken);
-        return new UserPermissionCommandResult(savedUserPermission, permission, tenantMember, now);
     }
 
     /// <summary>
@@ -796,21 +827,6 @@ public sealed class UserDomainService
 
         var savedUserPermission = await _userPermissionRepository.UpdateAsync(userPermission, cancellationToken);
         return new UserPermissionCommandResult(savedUserPermission, permission, tenantMember, now);
-    }
-
-    /// <summary>
-    /// 撤销用户直授权限
-    /// </summary>
-    /// <param name="id">用户直授权限绑定主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    public async Task DeleteUserPermissionAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userPermission = await GetUserPermissionOrThrowAsync(id, cancellationToken);
-        userPermission.Status = ValidityStatus.Invalid;
-
-        _ = await _userPermissionRepository.UpdateAsync(userPermission, cancellationToken);
     }
 
     #endregion
@@ -1390,24 +1406,6 @@ public sealed class UserDomainService
     }
 
     /// <summary>
-    /// 校验用户角色授权参数
-    /// </summary>
-    private static void ValidateUserRoleGrantCommand(UserRoleGrantCommand command)
-    {
-        if (command.UserId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
-        }
-
-        if (command.RoleId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "角色主键必须大于 0。");
-        }
-
-        ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime, "用户角色");
-    }
-
-    /// <summary>
     /// 校验用户角色更新参数
     /// </summary>
     private static void ValidateUserRoleUpdateCommand(UserRoleUpdateCommand command)
@@ -1418,25 +1416,6 @@ public sealed class UserDomainService
         }
 
         ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime, "用户角色");
-    }
-
-    /// <summary>
-    /// 校验用户直授权限授权参数
-    /// </summary>
-    private static void ValidateUserPermissionGrantCommand(UserPermissionGrantCommand command)
-    {
-        if (command.UserId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
-        }
-
-        if (command.PermissionId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "权限主键必须大于 0。");
-        }
-
-        ValidateEnum(command.PermissionAction, nameof(command.PermissionAction));
-        ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime, "用户直授权限");
     }
 
     /// <summary>
@@ -1847,17 +1826,13 @@ public sealed class UserDomainService
     // ---- 用户角色辅助 ----
 
     /// <summary>
-    /// 静态职责分离（SSD）执法：评估「现有有效角色 + 拟授予角色」的约束违规。
+    /// 静态职责分离（SSD）执法：评估变更后最终有效角色集的约束违规。
     /// 拒绝/需审批类违规直接阻断授予；警告/记录日志类违规放行并留痕。
     /// </summary>
-    private async Task EnsureNoSoDConflictAsync(long userId, long roleId, CancellationToken cancellationToken)
+    private async Task EnsureNoSoDConflictAsync(IEnumerable<long> finalRoleIds, CancellationToken cancellationToken)
     {
-        var now = DateTimeOffset.UtcNow;
-        var existingRoleIds = (await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken))
-            .Select(userRole => userRole.RoleId);
-
         var result = await _constraintRuleEnforcementDomainService.EvaluateRoleAssignmentsAsync(
-            existingRoleIds.Append(roleId),
+            finalRoleIds,
             ConstraintType.SSD,
             cancellationToken);
 
@@ -1897,8 +1872,20 @@ public sealed class UserDomainService
     /// </summary>
     private async Task<SysRole> GetAssignableRoleOrThrowAsync(long roleId, CancellationToken cancellationToken)
     {
-        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
-            ?? throw new InvalidOperationException("角色不存在。");
+        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken);
+        EnsureAssignableRole(role);
+        return role!;
+    }
+
+    /// <summary>
+    /// 校验角色可分配给用户：存在、已启用，系统角色仅平台运维态可分配
+    /// </summary>
+    private void EnsureAssignableRole(SysRole? role)
+    {
+        if (role is null)
+        {
+            throw new InvalidOperationException("角色不存在。");
+        }
 
         if (role.Status != EnableStatus.Enabled)
         {
@@ -1909,8 +1896,16 @@ public sealed class UserDomainService
         {
             throw new InvalidOperationException("系统角色仅平台运维态可分配，请切换到平台运维后操作。");
         }
+    }
 
-        return role;
+    /// <summary>
+    /// 授权记录此刻是否生效：状态有效且落在生效 / 失效时间之间（与仓储 GetValidByUserIdAsync 同一口径）
+    /// </summary>
+    private static bool IsEffective(ValidityStatus status, DateTimeOffset? effectiveTime, DateTimeOffset? expirationTime, DateTimeOffset now)
+    {
+        return status == ValidityStatus.Valid
+            && (effectiveTime is null || effectiveTime <= now)
+            && (expirationTime is null || expirationTime > now);
     }
 
     // ---- 用户直授权限辅助 ----

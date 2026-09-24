@@ -13,23 +13,6 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 public static class UserPermissionApplicationMapper
 {
     /// <summary>
-    /// 映射用户直授权限授权命令
-    /// </summary>
-    public static UserPermissionGrantCommand ToGrantCommand(UserPermissionGrantDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-
-        return new UserPermissionGrantCommand(
-            input.UserId,
-            input.PermissionId,
-            input.PermissionAction,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    /// <summary>
     /// 映射用户直授权限列表项
     /// </summary>
     /// <param name="userPermission">用户直授权限绑定</param>

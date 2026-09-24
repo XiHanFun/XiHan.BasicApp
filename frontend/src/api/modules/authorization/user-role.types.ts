@@ -32,12 +32,10 @@ export interface UserRoleDetailDto extends UserRoleListItemDto {
   roleDescription?: string | null
 }
 
-export interface UserRoleGrantDto {
-  effectiveTime?: DateTimeString | null
-  expirationTime?: DateTimeString | null
-  grantReason?: string | null
-  remark?: string | null
-  roleId: ApiId
+/** 批量变更用户角色（一次性提交授予与撤销） */
+export interface UserRoleBatchUpdateDto {
+  grantRoleIds: ApiId[]
+  revokeUserRoleIds: ApiId[]
   userId: ApiId
 }
 

@@ -39,18 +39,6 @@ public sealed record RoleUpdateCommand(
 public sealed record RoleStatusChangeCommand(long BasicId, EnableStatus Status, string? Remark);
 
 /// <summary>
-/// 角色权限授权命令
-/// </summary>
-public sealed record RolePermissionGrantCommand(
-    long RoleId,
-    long PermissionId,
-    PermissionAction PermissionAction,
-    DateTimeOffset? EffectiveTime,
-    DateTimeOffset? ExpirationTime,
-    string? GrantReason,
-    string? Remark);
-
-/// <summary>
 /// 角色权限批量变更命令（一次性提交授予与撤销）
 /// </summary>
 public sealed record RolePermissionBatchUpdateCommand(

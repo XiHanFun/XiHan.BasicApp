@@ -12,12 +12,11 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 public interface IUserRoleAppService : IApplicationService
 {
     /// <summary>
-    /// 授予用户角色
+    /// 批量变更用户角色（一次性提交授予与撤销，单事务）
     /// </summary>
-    /// <param name="input">授权参数</param>
+    /// <param name="input">批量变更参数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户角色详情</returns>
-    Task<UserRoleDetailDto> CreateUserRoleAsync(UserRoleGrantDto input, CancellationToken cancellationToken = default);
+    Task BatchUpdateUserRolesAsync(UserRoleBatchUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新用户角色
@@ -34,11 +33,4 @@ public interface IUserRoleAppService : IApplicationService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户角色详情</returns>
     Task<UserRoleDetailDto> UpdateUserRoleStatusAsync(UserRoleStatusUpdateDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 撤销用户角色
-    /// </summary>
-    /// <param name="id">用户角色绑定主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    Task DeleteUserRoleAsync(long id, CancellationToken cancellationToken = default);
 }

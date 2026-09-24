@@ -13,22 +13,6 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 public static class UserRoleApplicationMapper
 {
     /// <summary>
-    /// 映射用户角色授权命令
-    /// </summary>
-    public static UserRoleGrantCommand ToGrantCommand(UserRoleGrantDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-
-        return new UserRoleGrantCommand(
-            input.UserId,
-            input.RoleId,
-            input.EffectiveTime,
-            input.ExpirationTime,
-            input.GrantReason,
-            input.Remark);
-    }
-
-    /// <summary>
     /// 映射用户角色列表项
     /// </summary>
     /// <param name="userRole">用户角色绑定</param>

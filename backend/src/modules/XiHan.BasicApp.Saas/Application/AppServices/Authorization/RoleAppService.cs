@@ -116,30 +116,6 @@ public sealed class RoleAppService
     }
 
     /// <summary>
-    /// 授予角色权限
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Grant)]
-    public async Task<RolePermissionDetailDto> CreateRolePermissionAsync(RolePermissionGrantDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
-        await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync([input.PermissionId], cancellationToken);
-        var result = await _roleDomainService.CreateRolePermissionAsync(RolePermissionApplicationMapper.ToGrantCommand(input), cancellationToken);
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-        await _authorizationChangeNotifier.NotifyAsync(
-            result.RolePermission.PermissionAction == PermissionAction.Deny ? PermissionChangeType.RoleDenyPermission : PermissionChangeType.RoleGrantPermission,
-            targetUserId: null,
-            targetRoleId: result.RolePermission.RoleId,
-            permissionId: result.RolePermission.PermissionId,
-            reason: result.RolePermission.GrantReason,
-            cancellationToken: cancellationToken);
-        return RolePermissionApplicationMapper.ToDetailDto(result.RolePermission, result.Permission);
-    }
-
-    /// <summary>
     /// 批量变更角色权限（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
     /// </summary>
     [UnitOfWork(true)]
@@ -226,32 +202,6 @@ public sealed class RoleAppService
         }
         await _roleDomainService.DeleteRoleHierarchyAsync(id, cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-    }
-
-    /// <summary>
-    /// 撤销角色权限
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Revoke)]
-    public async Task DeleteRolePermissionAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        var rolePermission = await _rolePermissionRepository.GetByIdAsync(id, cancellationToken);
-        if (rolePermission is not null)
-        {
-            await _superAdminProtector.EnsureCanWriteRoleAsync(rolePermission.RoleId, cancellationToken);
-        }
-        await _roleDomainService.DeleteRolePermissionAsync(id, cancellationToken);
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-        if (rolePermission is not null)
-        {
-            await _authorizationChangeNotifier.NotifyAsync(
-                PermissionChangeType.RoleRevokePermission,
-                targetUserId: null,
-                targetRoleId: rolePermission.RoleId,
-                permissionId: rolePermission.PermissionId,
-                cancellationToken: cancellationToken);
-        }
     }
 
     /// <summary>

@@ -36,16 +36,6 @@ export interface UserPermissionDetailDto extends UserPermissionListItemDto {
   tags?: string | null
 }
 
-export interface UserPermissionGrantDto {
-  effectiveTime?: DateTimeString | null
-  expirationTime?: DateTimeString | null
-  grantReason?: string | null
-  permissionAction: PermissionAction
-  permissionId: ApiId
-  remark?: string | null
-  userId: ApiId
-}
-
 export interface UserPermissionUpdateDto extends BasicUpdateDto {
   effectiveTime?: DateTimeString | null
   expirationTime?: DateTimeString | null

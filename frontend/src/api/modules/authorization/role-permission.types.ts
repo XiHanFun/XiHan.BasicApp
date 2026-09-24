@@ -34,16 +34,6 @@ export interface RolePermissionDetailDto extends RolePermissionListItemDto {
   tags?: string | null
 }
 
-export interface RolePermissionGrantDto {
-  effectiveTime?: DateTimeString | null
-  expirationTime?: DateTimeString | null
-  grantReason?: string | null
-  permissionAction: PermissionAction
-  permissionId: ApiId
-  remark?: string | null
-  roleId: ApiId
-}
-
 /** 批量变更角色权限（一次性提交授予与撤销） */
 export interface RolePermissionBatchUpdateDto {
   grantPermissionIds: ApiId[]
