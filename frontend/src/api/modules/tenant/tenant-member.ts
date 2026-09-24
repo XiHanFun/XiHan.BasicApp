@@ -8,6 +8,7 @@ import type {
   TenantMemberPageQueryDto,
   TenantMemberStatusUpdateDto,
   TenantMemberUpdateDto,
+  TenantSupportMemberAddDto,
 } from './tenant-member.types'
 import {
   createDynamicApiClient,
@@ -22,6 +23,7 @@ const tenantMemberReadApi = createReadApi<TenantMemberListItemDto, TenantMemberD
 )
 
 export const tenantMemberApi = {
+  /** 租户侧：把已有用户加入当前租户（后端取当前租户，不接受指定租户） */
   add(input: TenantMemberAddDto) {
     // POST /api/Tenant/TenantMember（Add 前缀被动态 API 剥离并推导为 POST）
     return tenantMemberCommandApi.post<TenantMemberDetailDto, TenantMemberAddDto>('TenantMember', input)
@@ -38,6 +40,14 @@ export const tenantMemberApi = {
   },
   revoke(id: ApiId) {
     return tenantMemberCommandApi.delete('TenantMember', { id })
+  },
+  /** 平台侧：支持人员入驻（把平台账号以支持成员身份加入指定租户） */
+  addSupport(input: TenantSupportMemberAddDto) {
+    return tenantMemberCommandApi.post<TenantMemberDetailDto, TenantSupportMemberAddDto>('TenantSupportMember', input)
+  },
+  /** 平台侧：支持人员移除 */
+  removeSupport(tenantId: ApiId, memberId: ApiId) {
+    return tenantMemberCommandApi.delete('TenantSupportMember', { tenantId, memberId })
   },
   update(input: TenantMemberUpdateDto) {
     return tenantMemberCommandApi.put<TenantMemberDetailDto, TenantMemberUpdateDto>('TenantMember', input)

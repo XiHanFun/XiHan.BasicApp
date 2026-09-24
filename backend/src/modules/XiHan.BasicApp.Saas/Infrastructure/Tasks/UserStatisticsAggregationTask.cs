@@ -3,8 +3,8 @@
 
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 using XiHan.Framework.Data.SqlSugar.Clients;
-using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Tasks;
 
@@ -21,13 +21,13 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Tasks;
 ///   最后活动时间由 SignalR 连接/断开心跳刷新；</item>
 ///   <item>按 (TenantId, UserId, StatisticsDate, Period) upsert，每租户另写 UserId=0 的全体汇总行。</item>
 /// </list>
-/// <para>平台态执行（关闭租户过滤）跨租户聚合，日志按月分表窗口扫描。</para>
+/// <para>日志与统计按上下文严格隔离，逐个作用域（平台与每个数据可达的租户）切入聚合，日志按月分表窗口扫描。</para>
 /// </remarks>
 public sealed class UserStatisticsAggregationTask
 {
     private readonly ISqlSugarClientResolver _clientResolver;
 
-    private readonly ICurrentTenant _currentTenant;
+    private readonly ITenantDataScopeRunner _scopeRunner;
 
     private readonly ILogger<UserStatisticsAggregationTask> _logger;
 
@@ -36,11 +36,11 @@ public sealed class UserStatisticsAggregationTask
     /// </summary>
     public UserStatisticsAggregationTask(
         ISqlSugarClientResolver clientResolver,
-        ICurrentTenant currentTenant,
+        ITenantDataScopeRunner scopeRunner,
         ILogger<UserStatisticsAggregationTask> logger)
     {
         _clientResolver = clientResolver;
-        _currentTenant = currentTenant;
+        _scopeRunner = scopeRunner;
         _logger = logger;
     }
 
@@ -50,14 +50,56 @@ public sealed class UserStatisticsAggregationTask
     /// <returns>聚合结果摘要</returns>
     public async Task<string> ExecuteAsync()
     {
-        using var platformScope = _currentTenant.Change(null);
-        var client = _clientResolver.GetCurrentClient();
-
         var now = DateTimeOffset.UtcNow;
         var today = DateOnly.FromDateTime(now.UtcDateTime.Date);
         var todayStart = new DateTimeOffset(today.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var weekStart = todayStart.AddDays(-(((int)todayStart.DayOfWeek + 6) % 7));
         var monthStart = new DateTimeOffset(new DateTime(today.Year, today.Month, 1, 0, 0, 0), TimeSpan.Zero);
+        var periods = new (StatisticsPeriod Period, DateTimeOffset Start)[]
+        {
+            (StatisticsPeriod.Today, todayStart),
+            (StatisticsPeriod.ThisWeek, weekStart),
+            (StatisticsPeriod.ThisMonth, monthStart)
+        };
+
+        var inserted = 0;
+        var updated = 0;
+        var failures = new List<string>();
+
+        // 日志与统计按上下文严格隔离，逐个作用域（平台与每个数据可达的租户）切入汇总
+        await _scopeRunner.RunAsync(async tenantId =>
+        {
+            try
+            {
+                var (scopeInserted, scopeUpdated) = await AggregateScopeAsync(tenantId ?? 0, today, monthStart, periods, now);
+                inserted += scopeInserted;
+                updated += scopeUpdated;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "汇总作用域 {TenantId} 的用户统计失败", tenantId?.ToString() ?? "平台");
+                failures.Add(tenantId?.ToString() ?? "平台");
+            }
+        });
+
+        var summary = failures.Count == 0
+            ? $"用户统计聚合完成：新增 {inserted} 行，更新 {updated} 行（{today} Today/ThisWeek/ThisMonth）"
+            : $"用户统计聚合部分失败：新增 {inserted} 行，更新 {updated} 行，失败作用域 {string.Join("，", failures)}";
+        _logger.LogInformation("{Summary}", summary);
+        return summary;
+    }
+
+    /// <summary>
+    /// 汇总当前作用域（已切入）的用户统计
+    /// </summary>
+    private async Task<(int Inserted, int Updated)> AggregateScopeAsync(
+        long scopeTenantId,
+        DateOnly today,
+        DateTimeOffset monthStart,
+        (StatisticsPeriod Period, DateTimeOffset Start)[] periods,
+        DateTimeOffset now)
+    {
+        var client = _clientResolver.GetCurrentClient();
 
         // 一次拉取本月窗口的最小列原始数据，三个周期在内存里按起点切分（本月窗口必然覆盖今日/本周）
         var logins = await client.Queryable<SysLoginLog>()
@@ -78,17 +120,10 @@ public sealed class UserStatisticsAggregationTask
             .Select(log => new SysOperationLog { TenantId = log.TenantId, UserId = log.UserId, Result = log.Result, OperationTime = log.OperationTime })
             .ToListAsync();
 
-        // 会话：活跃区间与本月有交集的（含跨月在线的活跃会话）
+        // 会话：活跃区间与本月有交集的（含跨月在线的活跃会话）。会话仍是读共享实体，按本作用域精确取，不把平台行算进租户
         var sessions = await client.Queryable<SysUserSession>()
-            .Where(session => session.LastActivityTime >= monthStart && session.UserId > 0)
+            .Where(session => session.TenantId == scopeTenantId && session.LastActivityTime >= monthStart && session.UserId > 0)
             .ToListAsync();
-
-        var periods = new (StatisticsPeriod Period, DateTimeOffset Start)[]
-        {
-            (StatisticsPeriod.Today, todayStart),
-            (StatisticsPeriod.ThisWeek, weekStart),
-            (StatisticsPeriod.ThisMonth, monthStart)
-        };
 
         // 读取今日全部快照一次，upsert 时按键匹配
         var existing = await client.Queryable<SysUserStatistics>()
@@ -135,9 +170,7 @@ public sealed class UserStatisticsAggregationTask
             _ = await client.Updateable(updates).ExecuteCommandAsync();
         }
 
-        var summary = $"用户统计聚合完成：新增 {inserts.Count} 行，更新 {updates.Count} 行（{today} Today/ThisWeek/ThisMonth）";
-        _logger.LogInformation("{Summary}", summary);
-        return summary;
+        return (inserts.Count, updates.Count);
     }
 
     /// <summary>

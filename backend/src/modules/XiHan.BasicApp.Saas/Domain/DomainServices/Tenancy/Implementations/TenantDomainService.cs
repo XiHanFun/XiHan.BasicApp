@@ -24,6 +24,8 @@ public sealed class TenantDomainService
 
     private readonly ITenantProvisionDomainService _tenantProvisionDomainService;
 
+    private readonly ITenantQuotaDomainService _tenantQuotaDomainService;
+
     private readonly ICurrentTenant _currentTenant;
 
     private readonly ITenantConnectionSecretProtector _connectionSecretProtector;
@@ -38,6 +40,7 @@ public sealed class TenantDomainService
         ITenantUserRepository tenantUserRepository,
         IUserRepository userRepository,
         ITenantProvisionDomainService tenantProvisionDomainService,
+        ITenantQuotaDomainService tenantQuotaDomainService,
         ICurrentTenant currentTenant,
         ITenantConnectionSecretProtector connectionSecretProtector,
         ITenantConnectionCacheInvalidator connectionCacheInvalidator)
@@ -46,6 +49,7 @@ public sealed class TenantDomainService
         _tenantUserRepository = tenantUserRepository;
         _userRepository = userRepository;
         _tenantProvisionDomainService = tenantProvisionDomainService;
+        _tenantQuotaDomainService = tenantQuotaDomainService;
         _currentTenant = currentTenant;
         _connectionSecretProtector = connectionSecretProtector;
         _connectionCacheInvalidator = connectionCacheInvalidator;
@@ -95,23 +99,22 @@ public sealed class TenantDomainService
     /// <summary>
     /// 添加租户成员（<c>RequiresInvitation</c> 为 true 时落待接受邀请，否则直接生效）
     /// </summary>
+    /// <remarks>成员关系是租户自有数据，只在所属租户内维护：成员加入当前租户，立即生效的要占用席位。</remarks>
     public async Task<TenantMemberCommandResult> AddTenantMemberAsync(TenantMemberAddCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        EnsureId(command.TenantId, "租户主键必须大于 0。");
+        var tenantId = RequireTenantContext();
         EnsureId(command.UserId, "用户主键必须大于 0。");
         ValidateEnum(command.MemberType, nameof(command.MemberType));
         ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
         EnsurePlatformAdminNotAssigned(command.MemberType);
 
-        var tenant = await GetTenantOrThrowAsync(command.TenantId, cancellationToken);
-
         _ = await _userRepository.GetByIdIgnoreTenantAsync(command.UserId, cancellationToken)
             ?? throw new UserFriendlyException("用户不存在。");
 
-        var existing = await _tenantUserRepository.GetMembershipAsync(command.TenantId, command.UserId, cancellationToken);
+        var existing = await _tenantUserRepository.GetMembershipAsync(tenantId, command.UserId, cancellationToken);
         if (existing is not null)
         {
             throw new UserFriendlyException("该用户已经是本租户成员。");
@@ -120,7 +123,7 @@ public sealed class TenantDomainService
         var now = DateTimeOffset.UtcNow;
         var member = new SysTenantUser
         {
-            TenantId = tenant.BasicId,
+            TenantId = tenantId,
             UserId = command.UserId,
             MemberType = command.MemberType,
             InviteStatus = command.RequiresInvitation
@@ -137,9 +140,83 @@ public sealed class TenantDomainService
             Status = ValidityStatus.Valid
         };
 
-        // 成员关系是租户自有数据，写入前切到目标租户上下文（与租户开通建 Owner 的路径一致）
-        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
+        if (OccupiesSeat(member, now))
+        {
+            await _tenantQuotaDomainService.EnsureSeatQuotaAsync(1, cancellationToken);
+        }
+
         return new TenantMemberCommandResult(await _tenantUserRepository.AddAsync(member, cancellationToken), now);
+    }
+
+    /// <summary>
+    /// 支持人员入驻：把平台账号以支持成员身份加入指定租户
+    /// </summary>
+    /// <remarks>平台侧操作，只在平台上下文执行；成员行属于目标租户，切入该租户写入。支持人员不占席位。</remarks>
+    public async Task<TenantMemberCommandResult> AddTenantSupportMemberAsync(TenantSupportMemberAddCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        RequirePlatformContext();
+        EnsureId(command.UserId, "用户主键必须大于 0。");
+        ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
+
+        var tenant = await GetTenantOrThrowAsync(command.TenantId, cancellationToken);
+        var user = await _userRepository.GetByIdIgnoreTenantAsync(command.UserId, cancellationToken)
+            ?? throw new UserFriendlyException("用户不存在。");
+        if (user.TenantId != 0)
+        {
+            throw new InvalidOperationException("只有平台账号才能作为支持人员入驻租户。");
+        }
+
+        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
+        var existing = await _tenantUserRepository.GetMembershipAsync(tenant.BasicId, command.UserId, cancellationToken);
+        if (existing is not null)
+        {
+            throw new UserFriendlyException("该账号已经是该租户的成员。");
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var member = new SysTenantUser
+        {
+            TenantId = tenant.BasicId,
+            UserId = command.UserId,
+            MemberType = TenantMemberType.PlatformAdmin,
+            InviteStatus = TenantMemberInviteStatus.Accepted,
+            InvitedBy = command.OperatorUserId,
+            InvitedTime = now,
+            RespondedTime = now,
+            EffectiveTime = command.EffectiveTime,
+            ExpirationTime = command.ExpirationTime,
+            Remark = NormalizeNullable(command.Remark),
+            Status = ValidityStatus.Valid
+        };
+
+        return new TenantMemberCommandResult(await _tenantUserRepository.AddAsync(member, cancellationToken), now);
+    }
+
+    /// <summary>
+    /// 支持人员离场：撤销平台账号在指定租户的支持成员身份
+    /// </summary>
+    public async Task RemoveTenantSupportMemberAsync(long tenantId, long memberId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        RequirePlatformContext();
+        var tenant = await GetTenantOrThrowAsync(tenantId, cancellationToken);
+
+        using var tenantScope = _currentTenant.Change(tenant.BasicId, tenant.TenantName);
+        var member = await GetTenantMemberOrThrowAsync(memberId, cancellationToken);
+        if (member.MemberType != TenantMemberType.PlatformAdmin)
+        {
+            throw new InvalidOperationException("平台只能移除支持人员，租户自己的成员由租户维护。");
+        }
+
+        member.InviteStatus = TenantMemberInviteStatus.Revoked;
+        member.Status = ValidityStatus.Invalid;
+        member.RespondedTime ??= DateTimeOffset.UtcNow;
+
+        _ = await _tenantUserRepository.UpdateAsync(member, cancellationToken);
     }
 
     /// <summary>
@@ -170,6 +247,7 @@ public sealed class TenantDomainService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        _ = RequireTenantContext();
         var member = await GetTenantMemberOrThrowAsync(id, cancellationToken);
         EnsureOwnerCanBeRevoked(member, TenantMemberInviteStatus.Revoked);
 
@@ -233,16 +311,21 @@ public sealed class TenantDomainService
         cancellationToken.ThrowIfCancellationRequested();
 
         ValidateMemberUpdateCommand(command);
+        _ = RequireTenantContext();
         var member = await GetTenantMemberOrThrowAsync(command.BasicId, cancellationToken);
+        EnsureNotSupportMember(member);
         EnsureOwnerCanBeChanged(member, command.MemberType);
         EnsurePlatformAdminNotAssigned(command.MemberType);
 
+        var now = DateTimeOffset.UtcNow;
+        var occupiedBefore = OccupiesSeat(member, now);
         member.MemberType = command.MemberType;
         member.EffectiveTime = command.EffectiveTime;
         member.ExpirationTime = command.ExpirationTime;
         member.DisplayName = NormalizeNullable(command.DisplayName);
         member.InviteRemark = NormalizeNullable(command.InviteRemark);
         member.Remark = NormalizeNullable(command.Remark);
+        await EnsureSeatWhenStartsOccupyingAsync(occupiedBefore, member, now, cancellationToken);
 
         return new TenantMemberCommandResult(await _tenantUserRepository.UpdateAsync(member, cancellationToken), DateTimeOffset.UtcNow);
     }
@@ -258,9 +341,13 @@ public sealed class TenantDomainService
         EnsureId(command.BasicId, "租户成员主键必须大于 0。");
         ValidateEnum(command.InviteStatus, nameof(command.InviteStatus));
 
+        _ = RequireTenantContext();
         var member = await GetTenantMemberOrThrowAsync(command.BasicId, cancellationToken);
+        EnsureNotSupportMember(member);
         EnsureOwnerCanBeRevoked(member, command.InviteStatus);
 
+        var now = DateTimeOffset.UtcNow;
+        var occupiedBefore = OccupiesSeat(member, now);
         member.InviteStatus = command.InviteStatus;
         member.InviteRemark = NormalizeNullable(command.InviteRemark);
 
@@ -274,6 +361,8 @@ public sealed class TenantDomainService
             member.Status = ValidityStatus.Invalid;
             member.RespondedTime ??= DateTimeOffset.UtcNow;
         }
+
+        await EnsureSeatWhenStartsOccupyingAsync(occupiedBefore, member, now, cancellationToken);
 
         return new TenantMemberCommandResult(await _tenantUserRepository.UpdateAsync(member, cancellationToken), DateTimeOffset.UtcNow);
     }
@@ -289,14 +378,19 @@ public sealed class TenantDomainService
         EnsureId(command.BasicId, "租户成员主键必须大于 0。");
         ValidateEnum(command.Status, nameof(command.Status));
 
+        _ = RequireTenantContext();
         var member = await GetTenantMemberOrThrowAsync(command.BasicId, cancellationToken);
+        EnsureNotSupportMember(member);
         if (member.MemberType == TenantMemberType.Owner && command.Status == ValidityStatus.Invalid)
         {
             throw new InvalidOperationException("租户所有者成员关系不能直接停用。");
         }
 
+        var now = DateTimeOffset.UtcNow;
+        var occupiedBefore = OccupiesSeat(member, now);
         member.Status = command.Status;
         member.Remark = NormalizeNullable(command.Remark);
+        await EnsureSeatWhenStartsOccupyingAsync(occupiedBefore, member, now, cancellationToken);
 
         return new TenantMemberCommandResult(await _tenantUserRepository.UpdateAsync(member, cancellationToken), DateTimeOffset.UtcNow);
     }
@@ -506,10 +600,71 @@ public sealed class TenantDomainService
         }
     }
 
+    /// <summary>
+    /// 取当前租户的成员关系（读共享口径下租户也能读到 0 号行，按租户精确比对）
+    /// </summary>
     private async Task<SysTenantUser> GetTenantMemberOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         EnsureId(id, "租户成员主键必须大于 0。");
-        return await _tenantUserRepository.GetByIdAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("租户成员不存在。");
+        var member = await _tenantUserRepository.GetByIdAsync(id, cancellationToken);
+        return member is not null && member.TenantId == _currentTenant.Id
+            ? member
+            : throw new InvalidOperationException("租户成员不存在。");
+    }
+
+    /// <summary>
+    /// 成员关系是租户自有数据，只在所属租户内维护；平台只做支持人员入驻与离场
+    /// </summary>
+    /// <returns>当前租户主键</returns>
+    private long RequireTenantContext()
+    {
+        return _currentTenant.IsPlatformOperation()
+            ? throw new InvalidOperationException("租户成员只能在所属租户内维护，平台只负责支持人员的入驻与离场。")
+            : _currentTenant.Id!.Value;
+    }
+
+    /// <summary>
+    /// 支持人员的入驻与离场是平台侧操作
+    /// </summary>
+    private void RequirePlatformContext()
+    {
+        if (!_currentTenant.IsPlatformOperation())
+        {
+            throw new InvalidOperationException("支持人员的入驻与离场只能在平台执行。");
+        }
+    }
+
+    /// <summary>
+    /// 支持人员由平台入驻与离场，租户不改其身份与有效期，只能移除其访问
+    /// </summary>
+    private static void EnsureNotSupportMember(SysTenantUser member)
+    {
+        if (member.MemberType == TenantMemberType.PlatformAdmin)
+        {
+            throw new InvalidOperationException("支持人员由平台入驻与离场，租户只能移除其访问。");
+        }
+    }
+
+    /// <summary>
+    /// 成员关系是否占用席位：已接受、有效、在生效期内；支持人员不占席位（与席位统计同口径）
+    /// </summary>
+    private static bool OccupiesSeat(SysTenantUser member, DateTimeOffset now)
+    {
+        return member.MemberType != TenantMemberType.PlatformAdmin
+            && member.InviteStatus == TenantMemberInviteStatus.Accepted
+            && member.Status == ValidityStatus.Valid
+            && (member.EffectiveTime is null || member.EffectiveTime <= now)
+            && (member.ExpirationTime is null || member.ExpirationTime > now);
+    }
+
+    /// <summary>
+    /// 变更让成员关系开始占用席位时校验席位额度
+    /// </summary>
+    private async Task EnsureSeatWhenStartsOccupyingAsync(bool occupiedBefore, SysTenantUser member, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (!occupiedBefore && OccupiesSeat(member, now))
+        {
+            await _tenantQuotaDomainService.EnsureSeatQuotaAsync(1, cancellationToken);
+        }
     }
 }

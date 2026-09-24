@@ -43,7 +43,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_ReUsId", nameof(ReviewUserId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ReRe", nameof(ReviewResult), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ReTi", nameof(ReviewTime), OrderByType.Desc)]
-public partial class SysReviewLog : BasicAppCreationEntity, ISplitTableEntity
+public partial class SysReviewLog : BasicAppCreationEntity, ISplitTableEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 审查ID

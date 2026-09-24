@@ -52,12 +52,13 @@ public static class SaasPermissionDefinitions
     [
         new(SaasPermissionCodes.Tenant.Group, "租户",
         [
-            new(SaasPermissionCodes.Tenant.Read, "租户查看", "查看当前用户可进入的租户列表", false, 100),
+            new(SaasPermissionCodes.Tenant.Read, "租户查看", "查看租户列表、详情与用量（平台）", false, 100),
             new(SaasPermissionCodes.Tenant.Create, "租户创建", "创建租户基础资料", true, 110),
             new(SaasPermissionCodes.Tenant.Update, "租户更新", "更新租户基础资料", true, 120),
             new(SaasPermissionCodes.Tenant.Status, "租户状态", "更新租户生命周期状态", true, 130),
             new(SaasPermissionCodes.Tenant.InitDb, "租户初始化数据库", "为库隔离租户创建独立数据库/表结构/基线种子", true, 135),
             new(SaasPermissionCodes.Tenant.Delete, "租户删除", "删除已停用的租户（软删，可恢复）", true, 140),
+            new(SaasPermissionCodes.Tenant.SupportMember, "支持人员入驻", "把平台账号以支持成员身份加入租户或移除", true, 150),
             new(SaasPermissionCodes.Tenant.Export, "租户导出", "导出当前数据范围内的租户列表数据", false, 2590),
         ]),
         new(SaasPermissionCodes.TenantMember.Group, "租户成员",

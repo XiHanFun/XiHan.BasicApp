@@ -2,9 +2,12 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authorization.Permissions;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
@@ -30,6 +33,8 @@ public sealed class SaasPermissionChecker : IPermissionChecker
 
     private readonly ICurrentUser _currentUser;
 
+    private readonly ICurrentTenant _currentTenant;
+
     // 请求级（Scoped 实例生命周期=单次请求）记忆化：一个请求内多次鉴权只构建/取一次快照、只校验一次会话
     private readonly Dictionary<long, AuthorizationSnapshot> _requestSnapshots = [];
 
@@ -41,11 +46,13 @@ public sealed class SaasPermissionChecker : IPermissionChecker
     public SaasPermissionChecker(
         IAuthorizationSnapshotQueryService authorizationSnapshotQueryService,
         IUserSessionRepository userSessionRepository,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        ICurrentTenant currentTenant)
     {
         _authorizationSnapshotQueryService = authorizationSnapshotQueryService;
         _userSessionRepository = userSessionRepository;
         _currentUser = currentUser;
+        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -62,7 +69,7 @@ public sealed class SaasPermissionChecker : IPermissionChecker
             return false;
         }
 
-        if (IsDeniedWhileImpersonating(permissionName))
+        if (IsDeniedInCurrentContext(permissionName))
         {
             return false;
         }
@@ -91,7 +98,7 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         }
 
         // 逐条过滤而不是整体拒绝：任一未被禁用的权限码仍应按快照判定
-        permissionNames = [.. permissionNames.Where(name => !IsDeniedWhileImpersonating(name))];
+        permissionNames = [.. permissionNames.Where(name => !IsDeniedInCurrentContext(name))];
         if (permissionNames.Count == 0)
         {
             return false;
@@ -120,7 +127,7 @@ public sealed class SaasPermissionChecker : IPermissionChecker
             return false;
         }
 
-        if (permissionNames.Exists(IsDeniedWhileImpersonating))
+        if (permissionNames.Exists(IsDeniedInCurrentContext))
         {
             return false;
         }
@@ -148,9 +155,7 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         }
 
         var snapshot = await BuildSnapshotAsync(id, cancellationToken);
-        return _currentUser.IsImpersonating()
-            ? [.. snapshot.Permissions.Where(permission => !IsDeniedWhileImpersonating(permission))]
-            : [.. snapshot.Permissions];
+        return [.. snapshot.Permissions.Where(permission => !IsDeniedInCurrentContext(permission))];
     }
 
     /// <summary>
@@ -167,11 +172,20 @@ public sealed class SaasPermissionChecker : IPermissionChecker
     /// <summary>
     /// 模仿态下是否拒绝该权限码（清单见 <see cref="ImpersonationDefaults.DeniedPermissionCodes"/>）。
     /// </summary>
-    private bool IsDeniedWhileImpersonating(string permissionName)
+    /// <summary>
+    /// 当前上下文里被禁用的权限码：模仿态禁用清单，以及租户上下文里的平台专属码。
+    /// 先于快照与通配判定——带通配权限进入租户也调不动平台接口
+    /// </summary>
+    private bool IsDeniedInCurrentContext(string permissionName)
     {
-        return !string.IsNullOrWhiteSpace(permissionName)
-            && _currentUser.IsImpersonating()
-            && ImpersonationDefaults.DeniedPermissionCodes.Contains(permissionName.Trim());
+        if (string.IsNullOrWhiteSpace(permissionName))
+        {
+            return false;
+        }
+
+        var code = permissionName.Trim();
+        return (_currentUser.IsImpersonating() && ImpersonationDefaults.DeniedPermissionCodes.Contains(code))
+            || !SaasPlatformPermissions.IsEffectiveIn(code, _currentTenant.IsPlatformOperation());
     }
 
     private static bool HasPermission(AuthorizationSnapshot snapshot, string permissionName)

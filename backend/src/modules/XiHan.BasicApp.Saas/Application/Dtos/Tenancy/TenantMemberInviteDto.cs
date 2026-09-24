@@ -15,11 +15,6 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public sealed class TenantMemberInviteDto
 {
     /// <summary>
-    /// 所属租户主键
-    /// </summary>
-    public long TenantId { get; set; }
-
-    /// <summary>
     /// 用户主键（平台上已存在的用户）
     /// </summary>
     public long UserId { get; set; }

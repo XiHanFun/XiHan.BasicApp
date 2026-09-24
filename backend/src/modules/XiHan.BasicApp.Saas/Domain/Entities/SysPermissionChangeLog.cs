@@ -38,7 +38,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_ChTy", nameof(ChangeType), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TeId_ChTi", nameof(TenantId), OrderByType.Asc, nameof(ChangeTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
-public partial class SysPermissionChangeLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
+public partial class SysPermissionChangeLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 操作人ID（执行授予/撤销动作的用户）

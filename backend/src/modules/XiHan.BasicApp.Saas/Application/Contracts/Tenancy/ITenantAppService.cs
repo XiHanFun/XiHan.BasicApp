@@ -61,6 +61,22 @@ public interface ITenantAppService : IApplicationService
     Task<TenantMemberDetailDto> AddTenantMemberAsync(TenantMemberAddDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 支持人员入驻：把平台账号以支持成员身份加入租户（平台）
+    /// </summary>
+    /// <param name="input">入驻参数</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户成员详情</returns>
+    Task<TenantMemberDetailDto> AddTenantSupportMemberAsync(TenantSupportMemberAddDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 支持人员离场：撤销平台账号在租户的支持成员身份（平台）
+    /// </summary>
+    /// <param name="tenantId">租户主键</param>
+    /// <param name="memberId">支持成员关系主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task RemoveTenantSupportMemberAsync(long tenantId, long memberId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 邀请租户成员（落待接受邀请，被邀请人接受后生效）
     /// </summary>
     /// <param name="input">邀请参数</param>

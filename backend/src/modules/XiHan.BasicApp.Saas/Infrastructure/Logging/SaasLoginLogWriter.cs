@@ -48,7 +48,10 @@ public class SaasLoginLogWriter : ILoginLogWriter
         ArgumentNullException.ThrowIfNull(record);
 
         var clientInfo = _clientInfoProvider.GetCurrent();
-        var tenantId = _currentTenant.Id ?? 0;
+        // 落在记录产生时的租户，而不是写入时的环境上下文（位于租户解析之前的中间件、排队异步写入时环境里都没有请求的租户）；
+        // 切入该租户再取连接，库隔离租户的日志进它自己的库
+        using var tenantScope = _currentTenant.Change(record.TenantId);
+        var tenantId = record.TenantId ?? 0;
 
         var entity = new SysLoginLog
         {

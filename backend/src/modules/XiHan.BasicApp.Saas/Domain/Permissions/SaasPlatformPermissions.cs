@@ -12,11 +12,18 @@ namespace XiHan.BasicApp.Saas.Domain.Permissions;
 /// - 租户管理员(tenant_admin)授权：仅 Saas 模块自身权限再减去平台专属（见 <see cref="IsTenantGrantable"/>）。
 /// 外部模块的平台专属码经 <see cref="ContributePlatformOnly"/> 在模块 ConfigureServices 阶段登记，
 /// 使版本白名单与租户授权对其保持同一排除口径。
+/// <para>
+/// 平台专属码只在平台上下文生效（<see cref="IsEffectiveIn"/>）：即便持有者带通配权限进入租户，也调不动平台接口、看不到平台菜单。
+/// </para>
 /// </remarks>
 public static class SaasPlatformPermissions
 {
     private static readonly HashSet<string> _platformOnlyCodes = new(StringComparer.OrdinalIgnoreCase)
     {
+        // 租户目录是平台数据：SysTenant 行都在 0 号且不走租户过滤，租户持有查看码就能读到全部租户
+        SaasPermissionCodes.Tenant.Read,
+        SaasPermissionCodes.Tenant.Export,
+        SaasPermissionCodes.Tenant.SupportMember,
         SaasPermissionCodes.Tenant.Create,
         SaasPermissionCodes.Tenant.Update,
         SaasPermissionCodes.Tenant.Status,
@@ -28,6 +35,7 @@ public static class SaasPlatformPermissions
         SaasPermissionCodes.TenantEdition.Update,
         SaasPermissionCodes.TenantEdition.Status,
         SaasPermissionCodes.TenantEdition.Default,
+        SaasPermissionCodes.TenantEdition.Export,
         SaasPermissionCodes.TenantEditionPermission.Read,
         SaasPermissionCodes.TenantEditionPermission.Grant,
         SaasPermissionCodes.TenantEditionPermission.Update,
@@ -69,6 +77,16 @@ public static class SaasPlatformPermissions
                 _ = _platformOnlyCodes.Add(code);
             }
         }
+    }
+
+    /// <summary>
+    /// 权限码在给定上下文是否生效：平台专属码只在平台上下文生效，其余两侧都生效
+    /// </summary>
+    /// <param name="code">权限码</param>
+    /// <param name="isPlatformContext">当前是否平台上下文</param>
+    public static bool IsEffectiveIn(string code, bool isPlatformContext)
+    {
+        return isPlatformContext || !PlatformOnlyCodes.Contains(code.Trim());
     }
 
     /// <summary>

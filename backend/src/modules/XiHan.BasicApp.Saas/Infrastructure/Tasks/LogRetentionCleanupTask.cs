@@ -6,6 +6,7 @@ using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -19,10 +20,10 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Tasks;
 /// <para>由动态任务调度（SysTask：TaskClass=本类全名，TaskMethod=ExecuteAsync，建议 Cron 每日凌晨）触发。</para>
 /// <para>口径：</para>
 /// <list type="bullet">
-///   <item>保留期天数：优先读取全局配置 <c>saas:log:retention-days</c>（TenantId=0），缺省/非法时回退 <see cref="DefaultRetentionDays"/> 天；</item>
+///   <item>保留期天数：读取平台配置 <c>saas:log:retention-days</c>（TenantId=0）；未配置时为 <see cref="DefaultRetentionDays"/> 天，配置非法直接报错；</item>
 ///   <item>覆盖：访问/操作/异常/登录/差异/开放接口/权限变更 共 7 类日志，统一按分表字段 CreatedTime 删除早于截止时间的行；</item>
-///   <item>平台态执行（关闭租户过滤）跨租户清理，删除走 SqlSugar SplitTable（仅命中实际存在的月表）；</item>
-///   <item>单类失败不影响其它类（逐类 try/catch），结果汇总返回。</item>
+///   <item>日志严格按上下文隔离，逐个作用域（平台与每个数据可达的租户）切入清理，库隔离租户在它自己的库里清理；删除走 SqlSugar SplitTable（仅命中实际存在的月表）；</item>
+///   <item>单个作用域、单类失败不影响其它（逐项 try/catch 并记错误日志），结果汇总返回。</item>
 /// </list>
 /// <para>说明：本任务只删行不 DROP 表；空月表保留对运行无影响，如需物理回收可另行 DROP。</para>
 /// </remarks>
@@ -40,6 +41,8 @@ public sealed class LogRetentionCleanupTask
 
     private readonly ISqlSugarClientResolver _clientResolver;
 
+    private readonly ITenantDataScopeRunner _scopeRunner;
+
     private readonly ICurrentTenant _currentTenant;
 
     private readonly ILogger<LogRetentionCleanupTask> _logger;
@@ -49,10 +52,12 @@ public sealed class LogRetentionCleanupTask
     /// </summary>
     public LogRetentionCleanupTask(
         ISqlSugarClientResolver clientResolver,
+        ITenantDataScopeRunner scopeRunner,
         ICurrentTenant currentTenant,
         ILogger<LogRetentionCleanupTask> logger)
     {
         _clientResolver = clientResolver;
+        _scopeRunner = scopeRunner;
         _currentTenant = currentTenant;
         _logger = logger;
     }
@@ -63,41 +68,47 @@ public sealed class LogRetentionCleanupTask
     /// <returns>清理结果摘要</returns>
     public async Task<string> ExecuteAsync()
     {
-        using var platformScope = _currentTenant.Change(null);
-        var client = _clientResolver.GetCurrentClient();
-
-        var retentionDays = await ResolveRetentionDaysAsync(client, RetentionConfigKey, DefaultRetentionDays);
-        var cutoff = DateTimeOffset.UtcNow.AddDays(-retentionDays);
-
-        var jobs = new (string Name, Func<Task<int>> Run)[]
+        int retentionDays;
+        using (_currentTenant.Change(null))
         {
-            ("访问", () => CleanupAsync<SysAccessLog>(client, cutoff)),
-            ("操作", () => CleanupAsync<SysOperationLog>(client, cutoff)),
-            ("异常", () => CleanupAsync<SysExceptionLog>(client, cutoff)),
-            ("登录", () => CleanupAsync<SysLoginLog>(client, cutoff)),
-            ("差异", () => CleanupAsync<SysDiffLog>(client, cutoff)),
-            ("开放接口", () => CleanupAsync<SysOpenApiLog>(client, cutoff)),
-            ("权限变更", () => CleanupAsync<SysPermissionChangeLog>(client, cutoff))
-        };
-
-        long total = 0;
-        var parts = new List<string>(jobs.Length);
-        foreach (var (name, run) in jobs)
-        {
-            try
-            {
-                var count = await run();
-                total += count;
-                parts.Add($"{name} {count}");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "清理 {Name} 日志失败", name);
-                parts.Add($"{name} 失败");
-            }
+            retentionDays = await ResolveRetentionDaysAsync(_clientResolver.GetCurrentClient());
         }
 
-        var summary = $"日志清理完成：日志保留 {retentionDays} 天（截止 {cutoff:yyyy-MM-dd}），共删除 {total} 行（{string.Join("，", parts)}）";
+        var cutoff = DateTimeOffset.UtcNow.AddDays(-retentionDays);
+        long total = 0;
+        var failures = new List<string>();
+
+        await _scopeRunner.RunAsync(async tenantId =>
+        {
+            var client = _clientResolver.GetCurrentClient();
+            var jobs = new (string Name, Func<Task<int>> Run)[]
+            {
+                ("访问", () => CleanupAsync<SysAccessLog>(client, cutoff)),
+                ("操作", () => CleanupAsync<SysOperationLog>(client, cutoff)),
+                ("异常", () => CleanupAsync<SysExceptionLog>(client, cutoff)),
+                ("登录", () => CleanupAsync<SysLoginLog>(client, cutoff)),
+                ("差异", () => CleanupAsync<SysDiffLog>(client, cutoff)),
+                ("开放接口", () => CleanupAsync<SysOpenApiLog>(client, cutoff)),
+                ("权限变更", () => CleanupAsync<SysPermissionChangeLog>(client, cutoff))
+            };
+
+            foreach (var (name, run) in jobs)
+            {
+                try
+                {
+                    total += await run();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "清理作用域 {TenantId} 的{Name}日志失败", tenantId?.ToString() ?? "平台", name);
+                    failures.Add($"{tenantId?.ToString() ?? "平台"}/{name}");
+                }
+            }
+        });
+
+        var summary = failures.Count == 0
+            ? $"日志清理完成：日志保留 {retentionDays} 天（截止 {cutoff:yyyy-MM-dd}），共删除 {total} 行"
+            : $"日志清理部分失败：日志保留 {retentionDays} 天（截止 {cutoff:yyyy-MM-dd}），共删除 {total} 行，失败 {string.Join("，", failures)}";
         _logger.LogInformation("{Summary}", summary);
         return summary;
     }
@@ -118,27 +129,22 @@ public sealed class LogRetentionCleanupTask
     /// <summary>
     /// 解析保留天数：全局配置优先，缺省/非法时回退默认值
     /// </summary>
-    private async Task<int> ResolveRetentionDaysAsync(ISqlSugarClient client, string configKey, int defaultDays)
+    private static async Task<int> ResolveRetentionDaysAsync(ISqlSugarClient client)
     {
-        try
-        {
-            var value = await client.Queryable<SysConfig>()
-                .Where(config => config.ConfigKey == configKey
-                    && config.TenantId == 0
-                    && config.Status == EnableStatus.Enabled)
-                .Select(config => config.ConfigValue)
-                .FirstAsync();
+        var value = await client.Queryable<SysConfig>()
+            .Where(config => config.ConfigKey == RetentionConfigKey
+                && config.TenantId == 0
+                && config.Status == EnableStatus.Enabled)
+            .Select(config => config.ConfigValue)
+            .FirstAsync();
 
-            if (int.TryParse(value, out var days) && days > 0)
-            {
-                return days;
-            }
-        }
-        catch (Exception ex)
+        if (string.IsNullOrWhiteSpace(value))
         {
-            _logger.LogWarning(ex, "读取保留期配置 {Key} 失败，回退默认 {Default} 天", configKey, defaultDays);
+            return DefaultRetentionDays;
         }
 
-        return defaultDays;
+        return int.TryParse(value, out var days) && days > 0
+            ? days
+            : throw new InvalidOperationException($"日志保留期配置 {RetentionConfigKey} 的值「{value}」不是正整数。");
     }
 }

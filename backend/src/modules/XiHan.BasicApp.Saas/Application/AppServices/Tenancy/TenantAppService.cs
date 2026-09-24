@@ -219,6 +219,33 @@ public sealed class TenantAppService
     }
 
     /// <summary>
+    /// 支持人员入驻：把平台账号以支持成员身份加入租户（平台）
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Tenant.SupportMember)]
+    public async Task<TenantMemberDetailDto> AddTenantSupportMemberAsync(TenantSupportMemberAddDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var result = await _tenantDomainService.AddTenantSupportMemberAsync(
+            TenantMemberApplicationMapper.ToSupportAddCommand(input, _currentUser.UserId),
+            cancellationToken);
+        return TenantMemberApplicationMapper.ToDetailDto(result.Member, result.Now);
+    }
+
+    /// <summary>
+    /// 支持人员离场：撤销平台账号在租户的支持成员身份（平台）
+    /// </summary>
+    [UnitOfWork(true)]
+    [PermissionAuthorize(SaasPermissionCodes.Tenant.SupportMember)]
+    public async Task RemoveTenantSupportMemberAsync(long tenantId, long memberId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _tenantDomainService.RemoveTenantSupportMemberAsync(tenantId, memberId, cancellationToken);
+    }
+
+    /// <summary>
     /// 邀请租户成员（落待接受邀请，被邀请人接受后生效）
     /// </summary>
     [UnitOfWork(true)]

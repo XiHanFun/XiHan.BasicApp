@@ -317,7 +317,8 @@ public sealed class SaasDomainPermissionCatalogContractTests
     /// <param name="expected">期望是否可授予租户。</param>
     [Theory]
     [InlineData("saas:user:read", true)]
-    [InlineData("saas:tenant:read", true)]
+    // 租户目录是平台数据：SysTenant 行都在 0 号且不走租户过滤，查看码归平台专属
+    [InlineData("saas:tenant:read", false)]
     [InlineData("saas:tenant:create", false)]
     [InlineData("saas:tenant:initdb", false)]
     [InlineData("saas:tenant-edition:read", false)]

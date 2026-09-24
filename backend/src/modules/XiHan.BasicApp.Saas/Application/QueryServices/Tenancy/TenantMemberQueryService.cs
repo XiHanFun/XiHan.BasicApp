@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -16,6 +17,7 @@ using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.QueryServices;
 
@@ -37,15 +39,19 @@ public sealed class TenantMemberQueryService
     /// </summary>
     private readonly IUserRepository _userRepository;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public TenantMemberQueryService(
         ITenantUserRepository tenantUserRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        ICurrentTenant currentTenant)
     {
         _tenantUserRepository = tenantUserRepository;
         _userRepository = userRepository;
+        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -61,7 +67,10 @@ public sealed class TenantMemberQueryService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var request = BuildTenantMemberPageRequest(input);
+        // 成员关系属于租户：租户只看本租户；平台不带租户时看平台自己的（0 号），带租户时切入该租户查看
+        var tenantId = ResolveMemberTenantId(input.TenantId);
+        using var tenantScope = _currentTenant.Change(tenantId);
+        var request = BuildTenantMemberPageRequest(input, tenantId);
         var members = await _tenantUserRepository.GetPagedAsync(request, cancellationToken);
         var now = DateTimeOffset.UtcNow;
 
@@ -100,8 +109,11 @@ public sealed class TenantMemberQueryService
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 读共享口径下能读到 0 号行，按当前上下文精确比对
         var member = await _tenantUserRepository.GetByIdAsync(id, cancellationToken);
-        return member is null ? null : TenantMemberApplicationMapper.ToDetailDto(member, DateTimeOffset.UtcNow);
+        return member is null || member.TenantId != (_currentTenant.Id ?? 0)
+            ? null
+            : TenantMemberApplicationMapper.ToDetailDto(member, DateTimeOffset.UtcNow);
     }
 
     /// <summary>
@@ -109,7 +121,23 @@ public sealed class TenantMemberQueryService
     /// </summary>
     /// <param name="input">查询条件</param>
     /// <returns>租户成员分页请求</returns>
-    private static BasicAppPRDto BuildTenantMemberPageRequest(TenantMemberPageQueryDto input)
+    /// <summary>
+    /// 确定要查看哪个租户的成员
+    /// </summary>
+    private long ResolveMemberTenantId(long? requestedTenantId)
+    {
+        if (_currentTenant.IsPlatformOperation())
+        {
+            return requestedTenantId ?? 0;
+        }
+
+        var currentTenantId = _currentTenant.Id!.Value;
+        return requestedTenantId is null || requestedTenantId == currentTenantId
+            ? currentTenantId
+            : throw new InvalidOperationException("只能查看本租户的成员。");
+    }
+
+    private static BasicAppPRDto BuildTenantMemberPageRequest(TenantMemberPageQueryDto input, long tenantId)
     {
         var request = new BasicAppPRDto
         {
@@ -117,12 +145,8 @@ public sealed class TenantMemberQueryService
             Conditions = new QueryConditions()
         };
 
-        // 必须显式按租户过滤：平台管理员没有租户上下文，全局租户过滤器在平台态放行全部，
-        // 少了这一刀，「租户详情 → 成员」会把所有租户的成员关系都捞出来。
-        if (input.TenantId.HasValue)
-        {
-            request.Conditions.AddFilter((SysTenantUser member) => member.TenantId, input.TenantId.Value);
-        }
+        // 显式按租户精确过滤：租户上下文的读共享口径会一并放行 0 号行
+        request.Conditions.AddFilter((SysTenantUser member) => member.TenantId, tenantId);
 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {

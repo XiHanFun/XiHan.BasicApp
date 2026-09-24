@@ -19,6 +19,16 @@ public interface ITenantDomainService
     Task<TenantMemberCommandResult> AddTenantMemberAsync(TenantMemberAddCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 支持人员入驻：把平台账号以支持成员身份加入指定租户（仅平台上下文）
+    /// </summary>
+    Task<TenantMemberCommandResult> AddTenantSupportMemberAsync(TenantSupportMemberAddCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 支持人员离场：撤销平台账号在指定租户的支持成员身份（仅平台上下文）
+    /// </summary>
+    Task RemoveTenantSupportMemberAsync(long tenantId, long memberId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 删除租户（软删，要求租户已停用）
     /// </summary>
     Task DeleteTenantAsync(long id, CancellationToken cancellationToken = default);

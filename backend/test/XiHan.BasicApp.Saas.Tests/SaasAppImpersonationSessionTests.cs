@@ -500,7 +500,8 @@ public sealed class SaasAppImpersonationSessionTests
             .Setup(repository => repository.GetByUserSessionIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SysUserSession?)null);
 
-        return new SaasPermissionChecker(snapshots.Object, sessions.Object, BuildCurrentUser(isImpersonating).Object);
+        // 模仿会话运行在目标租户里
+        return new SaasPermissionChecker(snapshots.Object, sessions.Object, BuildCurrentUser(isImpersonating).Object, new TestCurrentTenant(7));
     }
 
     private static Mock<ICurrentUser> BuildCurrentUser(bool isImpersonating)
