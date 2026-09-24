@@ -10,6 +10,7 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Printing.Infrastructure.Seeders.System;
 
@@ -21,6 +22,7 @@ namespace XiHan.BasicApp.Printing.Infrastructure.Seeders.System;
 /// 各租户的系统管理员（tenant_admin）授予作用侧含租户的打印权限（全局管理是平台侧，不授）——
 /// Saas 演示种子只授 Saas 模块自身权限，打印的租户默认可用性由本种子承载。
 /// </remarks>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public class PrintingRolePermissionSeeder : DataSeederBase
 {
     private readonly ICurrentTenant _currentTenant;
@@ -59,8 +61,7 @@ public class PrintingRolePermissionSeeder : DataSeederBase
         long superGranted;
         using (var platformScope = _currentTenant.Change(null))
         {
-            var client = DbClient;
-            var permissions = await client.Queryable<SysPermission>()
+            var permissions = await DbClientFor<SysPermission>().Queryable<SysPermission>()
                 .Where(p => p.TenantId == 0 && p.PermissionCode.StartsWith(PrintingPermissionCodes.Module + ":"))
                 .ToListAsync();
             if (permissions.Count == 0)
@@ -71,8 +72,8 @@ public class PrintingRolePermissionSeeder : DataSeederBase
 
             // 租户管理员只授租户能生效的权限（作用侧含租户），平台侧的留给平台超管
             tenantGrantableIds = [.. permissions.Where(p => p.Side.IsTenantEffective()).Select(p => p.BasicId)];
-            superGranted = await GrantAsync(client, 0, "super_admin", [.. permissions.Select(p => p.BasicId)]);
-            tenantIds = (await client.Queryable<SysTenant>().Select(t => t.BasicId).ToListAsync()).ToList();
+            superGranted = await GrantAsync(0, "super_admin", [.. permissions.Select(p => p.BasicId)]);
+            tenantIds = (await DbClientFor<SysTenant>().Queryable<SysTenant>().Select(t => t.BasicId).ToListAsync()).ToList();
         }
 
         // 各租户态：系统管理员授予租户能生效的权限（全局管理是平台侧，不在其中）
@@ -80,7 +81,7 @@ public class PrintingRolePermissionSeeder : DataSeederBase
         foreach (var tenantId in tenantIds)
         {
             using var tenantScope = _currentTenant.Change(tenantId, tenantId.ToString());
-            tenantGranted += await GrantAsync(DbClient, tenantId, "tenant_admin", tenantGrantableIds);
+            tenantGranted += await GrantAsync(tenantId, "tenant_admin", tenantGrantableIds);
         }
 
         Logger.LogInformation("打印角色权限：超级管理员新增 {SuperCount} 条，租户管理员新增 {TenantCount} 条", superGranted, tenantGranted);
@@ -89,21 +90,24 @@ public class PrintingRolePermissionSeeder : DataSeederBase
     /// <summary>
     /// 给指定作用域内的角色补齐缺失的权限绑定
     /// </summary>
-    private static async Task<long> GrantAsync(ISqlSugarClient client, long tenantId, string roleCode, IReadOnlyCollection<long> permissionIds)
+    /// <remarks>
+    /// 角色与角色授权固定在平台库：库隔离租户的也在那里，按实体取连接，不随当前租户切到它的独立库。
+    /// </remarks>
+    private async Task<long> GrantAsync(long tenantId, string roleCode, IReadOnlyCollection<long> permissionIds)
     {
         if (permissionIds.Count == 0)
         {
             return 0;
         }
 
-        var role = await client.Queryable<SysRole>()
+        var role = await DbClientFor<SysRole>().Queryable<SysRole>()
             .FirstAsync(r => r.TenantId == tenantId && r.RoleCode == roleCode);
         if (role is null)
         {
             return 0;
         }
 
-        var existingIds = (await client.Queryable<SysRolePermission>()
+        var existingIds = (await DbClientFor<SysRolePermission>().Queryable<SysRolePermission>()
                 .Where(rp => rp.TenantId == tenantId && rp.RoleId == role.BasicId)
                 .ToListAsync())
             .Select(rp => rp.PermissionId)
@@ -124,7 +128,7 @@ public class PrintingRolePermissionSeeder : DataSeederBase
 
         if (addList.Count > 0)
         {
-            _ = await client.Insertable(addList).ExecuteReturnSnowflakeIdListAsync();
+            _ = await DbClientFor<SysRolePermission>().Insertable(addList).ExecuteReturnSnowflakeIdListAsync();
         }
 
         return addList.Count;

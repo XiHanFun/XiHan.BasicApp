@@ -224,6 +224,13 @@ describe('非 CRUD 前缀的动作保留完整方法名', () => {
     })
   })
 
+  it('库隔离租户初始化管理员走 POST /Tenant/InitializeTenantAdmin，参数走 body', async () => {
+    const input = { adminEmail: 'owner@example.com', adminPassword: 'Owner@2026', adminUserName: 'owner', tenantId: '7' }
+    await tenantApi.initializeTenantAdmin(input)
+
+    expect(only()).toMatchObject({ method: 'POST', url: '/Tenant/InitializeTenantAdmin', body: input })
+  })
+
   it('机器人配置设为默认保留 SetDefaultBotConfig 全名', async () => {
     await botConfigApi.setDefault({ basicId: '1' } as never)
 

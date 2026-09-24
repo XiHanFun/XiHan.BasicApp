@@ -75,7 +75,7 @@ public sealed class ChatSensitiveWordGuardTests
         await guard.EnsureAllowedAsync("   ");
         await guard.EnsureAllowedAsync(null);
 
-        resolver.Verify(value => value.GetCurrentClient(), Times.Never);
+        resolver.Verify(value => value.GetClientForEntity<SysConfig>(), Times.Never);
     }
 
     /// <summary>
@@ -107,8 +107,9 @@ public sealed class ChatSensitiveWordGuardTests
             .Returns(configQueryable.Object);
 
         resolver = new Mock<ISqlSugarClientResolver>();
+        // 敏感词库是平台配置：按实体取连接（库隔离租户里当前连接是它的独立库）
         resolver
-            .Setup(value => value.GetCurrentClient())
+            .Setup(value => value.GetClientForEntity<SysConfig>())
             .Returns(client.Object);
 
         return new ChatSensitiveWordGuard(resolver.Object);

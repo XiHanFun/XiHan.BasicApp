@@ -18,17 +18,21 @@ public sealed class StorageConfigDomainService
 
     private readonly IStorageSecretProtector _secretProtector;
 
+    private readonly ITenantDataScopeRunner _scopeRunner;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public StorageConfigDomainService(
         IStorageConfigRepository storageConfigRepository,
         IFileStorageRepository fileStorageRepository,
-        IStorageSecretProtector secretProtector)
+        IStorageSecretProtector secretProtector,
+        ITenantDataScopeRunner scopeRunner)
     {
         _storageConfigRepository = storageConfigRepository;
         _fileStorageRepository = fileStorageRepository;
         _secretProtector = secretProtector;
+        _scopeRunner = scopeRunner;
     }
 
     /// <summary>
@@ -151,9 +155,12 @@ public sealed class StorageConfigDomainService
             throw new InvalidOperationException("默认存储配置不能删除，请先将其他配置设为默认。");
         }
 
-        // 平台默认存储被未自配的租户用着，那些文件记录落在各租户里，删除前看所有租户
+        // 平台默认存储被未自配的租户用着，那些文件记录落在各租户自己的数据里（字段隔离的在平台库、库隔离的在各自的库里），
+        // 删除前逐库看所有租户
         var referenced = config.TenantId == 0
-            ? await _fileStorageRepository.AnyIgnoreTenantAsync(storage => storage.StorageConfigId == id, cancellationToken)
+            ? await _scopeRunner.AnyPerDatabaseAsync(
+                () => _fileStorageRepository.AnyIgnoreTenantAsync(storage => storage.StorageConfigId == id, cancellationToken),
+                cancellationToken)
             : await _fileStorageRepository.AnyAsync(storage => storage.StorageConfigId == id, cancellationToken);
         if (referenced)
         {

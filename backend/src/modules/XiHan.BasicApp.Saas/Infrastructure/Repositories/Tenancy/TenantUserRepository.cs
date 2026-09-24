@@ -90,7 +90,7 @@ public sealed class TenantUserRepository(ISqlSugarClientResolver clientResolver)
 
         // 账号属于来源租户（外部成员不在本租户），跨租户按主键取
         var userIds = members.Select(member => member.UserId).Distinct().ToList();
-        var accounts = await DbClient.Queryable<SysUser>()
+        var accounts = await CreateQueryable<SysUser>()
             .ClearTenantFilter()
             .Where(user => userIds.Contains(user.BasicId))
             .Select(user => new { user.BasicId, user.UserName, user.NickName, user.RealName, user.Email })

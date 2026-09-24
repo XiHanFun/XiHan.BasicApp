@@ -82,7 +82,7 @@ public sealed class ChatSensitiveWordGuard : IChatSensitiveWordGuard, IScopedDep
             return cache.Words;
         }
 
-        var raw = await _clientResolver.GetCurrentClient()
+        var raw = await _clientResolver.GetClientForEntity<SysConfig>()
             .Queryable<SysConfig>()
             .Where(config => config.ConfigKey == ConfigKey && config.TenantId == 0 && config.Status == EnableStatus.Enabled)
             .Select(config => config.ConfigValue)

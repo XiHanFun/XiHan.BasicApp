@@ -3,8 +3,9 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Routing;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -63,6 +64,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_Ph", nameof(Phone), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St_IsAc", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc, nameof(IsActive), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysUser : BasicAppAggregateRoot, IStrictMultiTenantEntity
 {
     /// <summary>

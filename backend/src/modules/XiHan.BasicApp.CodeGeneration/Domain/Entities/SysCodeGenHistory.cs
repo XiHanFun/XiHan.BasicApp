@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 
@@ -43,6 +44,7 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Entities;
 [SugarIndex("IX_{table}_GeTi", nameof(GenTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_GeSt", nameof(GenStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_TaId", nameof(TenantId), OrderByType.Asc, nameof(TableId), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysCodeGenHistory : BasicAppFullAuditedEntity
 {
     /// <summary>

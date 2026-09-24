@@ -6,7 +6,7 @@ using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
-using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -71,7 +71,7 @@ public sealed class LogRetentionCleanupTask
         int retentionDays;
         using (_currentTenant.Change(null))
         {
-            retentionDays = await ResolveRetentionDaysAsync(_clientResolver.GetCurrentClient());
+            retentionDays = await ResolveRetentionDaysAsync(_clientResolver.GetClientForEntity<SysConfig>());
         }
 
         var cutoff = DateTimeOffset.UtcNow.AddDays(-retentionDays);

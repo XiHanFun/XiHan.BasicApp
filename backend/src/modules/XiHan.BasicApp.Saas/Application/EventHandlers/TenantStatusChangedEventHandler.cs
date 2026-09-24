@@ -61,7 +61,7 @@ public sealed class TenantStatusChangedEventHandler : ILocalEventHandler<TenantS
     /// </summary>
     private async Task RevokeAllTenantSessionsAsync(long tenantId, string? reason)
     {
-        var db = _clientResolver.GetCurrentClient();
+        var db = _clientResolver.GetClientForEntity<SysUserSession>();
 
         // 除本租户的会话外，还要带上本租户用户借身份进别的租户的模仿会话：
         // 那些行的租户戳是目标租户，只有 ImpersonatorTenantId 才是本租户。

@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -45,6 +46,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_BaNu", nameof(BatchNumber), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TeId_TaId", nameof(TenantId), OrderByType.Asc, nameof(TaskId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TeId_StTi", nameof(TenantId), OrderByType.Asc, nameof(StartTime), OrderByType.Desc)]
+[PlatformDataSource]
 public partial class SysTaskLog : BasicAppCreationEntity, ISplitTableEntity, IStrictMultiTenantEntity
 {
     /// <summary>

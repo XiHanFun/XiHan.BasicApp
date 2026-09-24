@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -46,7 +47,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_PaId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_LeId", nameof(LeaderId), OrderByType.Asc)]
-public partial class SysDepartment : BasicAppAggregateRoot
+public partial class SysDepartment : BasicAppAggregateRoot, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 父级部门ID

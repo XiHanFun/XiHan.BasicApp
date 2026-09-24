@@ -19,8 +19,8 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// 管理员账号、成员关系、Owner 角色与授权绑定是被开通租户的数据，必须切入该租户写（行的 TenantId 由作用域决定）。
 /// </para>
 /// <para>
-/// 库隔离租户的账号与授权数据归置尚未完成，开通时显式拒绝——不能像过去那样在平台作用域预置租户戳，
-/// 把它的数据写进平台库。
+/// 账号、成员关系、角色与授权固定在平台库，库隔离租户也一样；开通时连带写的租户数据（日志等）在租户自己的库里，
+/// 所以库隔离租户要等独立库配置完成才能开通管理员，Schema 隔离尚未实装一律拒绝。
 /// </para>
 /// </remarks>
 public sealed class TenantProvisionTenantContextTests
@@ -111,17 +111,101 @@ public sealed class TenantProvisionTenantContextTests
     }
 
     /// <summary>
-    /// 库隔离租户的数据归置尚未完成：开通直接拒绝，不写任何行。
+    /// 库隔离租户的独立库还没建好：开通管理员直接拒绝，不写任何行。
     /// </summary>
     [Fact]
-    public async Task ProvisionTenantAdmin_DatabaseIsolatedTenant_ShouldBeRejectedWithoutWriting()
+    public async Task ProvisionTenantAdmin_DatabaseTenantWithoutDatabase_ShouldBeRejectedWithoutWriting()
     {
-        var fixture = CreateFixture(isolationMode: TenantIsolationMode.Database);
+        var fixture = CreateFixture(isolationMode: TenantIsolationMode.Database, configStatus: TenantConfigStatus.Pending);
 
         _ = await Assert.ThrowsAsync<UserFriendlyException>(
             () => fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash"));
 
         Assert.DoesNotContain(fixture.Observations, observation => observation.IsWrite);
+    }
+
+    /// <summary>
+    /// 库隔离租户的独立库已配置完成：与字段隔离同一口径，全部在被开通租户的作用域内写入。
+    /// </summary>
+    [Fact]
+    public async Task ProvisionTenantAdmin_DatabaseTenantWithConfiguredDatabase_ShouldWriteInsideTargetTenant()
+    {
+        var fixture = CreateFixture(ambientTenantId: AmbientTenantId, isolationMode: TenantIsolationMode.Database);
+
+        _ = await fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash");
+
+        var writes = fixture.Observations.Where(observation => observation.IsWrite).ToList();
+        Assert.Equal(
+            ["User.Add", "UserSecurity.Add", "TenantUser.Add", "Role.Add", "RolePermission.AddRange", "UserRole.Add"],
+            writes.Select(observation => observation.Operation));
+        Assert.All(writes, observation => Assert.Equal(TenantId, observation.TenantId));
+    }
+
+    /// <summary>
+    /// Schema 隔离尚未实装：拒绝开通，不写任何行。
+    /// </summary>
+    [Fact]
+    public async Task ProvisionTenantAdmin_SchemaTenant_ShouldBeRejectedWithoutWriting()
+    {
+        var fixture = CreateFixture(isolationMode: TenantIsolationMode.Schema);
+
+        _ = await Assert.ThrowsAsync<UserFriendlyException>(
+            () => fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash"));
+
+        Assert.DoesNotContain(fixture.Observations, observation => observation.IsWrite);
+    }
+
+    /// <summary>
+    /// 独立库已配置、还没有所有者的库隔离租户可以初始化管理员；所有者检查在该租户作用域内进行。
+    /// </summary>
+    [Fact]
+    public async Task GetTenantAwaitingAdmin_ConfiguredDatabaseTenantWithoutOwner_ShouldReturnTenant()
+    {
+        var fixture = CreateFixture(ambientTenantId: AmbientTenantId, isolationMode: TenantIsolationMode.Database);
+
+        var tenant = await fixture.Service.GetTenantAwaitingAdminAsync(TenantId);
+
+        Assert.Same(fixture.Tenant, tenant);
+        Assert.Null(Assert.Single(fixture.Observations, observation => observation.Operation == "Tenant.GetById").TenantId);
+        Assert.Equal(TenantId, Assert.Single(fixture.Observations, observation => observation.Operation == "TenantUser.AnyOwner").TenantId);
+        Assert.Equal(AmbientTenantId, fixture.CurrentTenant.Id);
+    }
+
+    /// <summary>
+    /// 字段隔离租户创建时即开通管理员，不走单独初始化。
+    /// </summary>
+    [Fact]
+    public async Task GetTenantAwaitingAdmin_FieldTenant_ShouldReject()
+    {
+        var fixture = CreateFixture();
+
+        _ = await Assert.ThrowsAsync<UserFriendlyException>(() => fixture.Service.GetTenantAwaitingAdminAsync(TenantId));
+    }
+
+    /// <summary>
+    /// 独立库还没建好：先初始化数据库。
+    /// </summary>
+    [Fact]
+    public async Task GetTenantAwaitingAdmin_DatabaseNotConfigured_ShouldReject()
+    {
+        var fixture = CreateFixture(isolationMode: TenantIsolationMode.Database, configStatus: TenantConfigStatus.Failed);
+
+        var exception = await Assert.ThrowsAsync<UserFriendlyException>(() => fixture.Service.GetTenantAwaitingAdminAsync(TenantId));
+
+        Assert.Contains("初始化该租户的数据库", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 已有所有者：管理员已开通，不能重复初始化。
+    /// </summary>
+    [Fact]
+    public async Task GetTenantAwaitingAdmin_OwnerExists_ShouldReject()
+    {
+        var fixture = CreateFixture(isolationMode: TenantIsolationMode.Database, ownerExists: true);
+
+        var exception = await Assert.ThrowsAsync<UserFriendlyException>(() => fixture.Service.GetTenantAwaitingAdminAsync(TenantId));
+
+        Assert.Contains("已开通管理员", exception.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -180,10 +264,14 @@ public sealed class TenantProvisionTenantContextTests
     /// <param name="ambientTenantId">调用方进入本服务时所处的租户上下文</param>
     /// <param name="isolationMode">被开通租户的隔离模式</param>
     /// <param name="editionId">被开通租户绑定的版本（null 表示未指定，取默认版本）</param>
+    /// <param name="configStatus">被开通租户的配置状态</param>
+    /// <param name="ownerExists">被开通租户是否已有所有者</param>
     private static ProvisionFixture CreateFixture(
         long? ambientTenantId = null,
         TenantIsolationMode isolationMode = TenantIsolationMode.Field,
-        long? editionId = EditionId)
+        long? editionId = EditionId,
+        TenantConfigStatus configStatus = TenantConfigStatus.Configured,
+        bool ownerExists = false)
     {
         var currentTenant = new TestCurrentTenant(ambientTenantId);
         var observations = new List<Observation>();
@@ -195,7 +283,8 @@ public sealed class TenantProvisionTenantContextTests
         {
             TenantName = "业务租户",
             EditionId = editionId,
-            IsolationMode = isolationMode
+            IsolationMode = isolationMode,
+            ConfigStatus = configStatus
         };
         SaasTestHelper.SetBasicId(tenant, TenantId);
 
@@ -240,6 +329,15 @@ public sealed class TenantProvisionTenantContextTests
             {
                 RecordWrite("TenantUser.Add");
                 return member;
+            });
+        _ = tenantUserRepository
+            .Setup(repo => repo.AnyAsync(
+                It.IsAny<System.Linq.Expressions.Expression<Func<SysTenantUser, bool>>>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                Record("TenantUser.AnyOwner");
+                return ownerExists;
             });
 
         var roleRepository = new Mock<IRoleRepository>();
@@ -318,6 +416,13 @@ public sealed class TenantProvisionTenantContextTests
             });
 
         var tenantRepository = new Mock<ITenantRepository>();
+        _ = tenantRepository
+            .Setup(repo => repo.GetByIdAsync(TenantId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() =>
+            {
+                Record("Tenant.GetById");
+                return tenant;
+            });
         _ = tenantRepository
             .Setup(repo => repo.UpdateAsync(It.IsAny<SysTenant>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SysTenant updated, CancellationToken _) =>

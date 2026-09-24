@@ -10,12 +10,14 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 /// <summary>
 /// SaaS 系统字典种子数据
 /// </summary>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public sealed class SaasDictSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasDictSeeder> logger,

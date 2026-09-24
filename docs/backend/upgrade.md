@@ -108,6 +108,8 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 
 字段隔离租户与平台共库，不重复执行。每个独立库都有自己的 `SysVersion` 与 `SysMigrationHistory`，数据库版本可以独立追踪。
 
+独立库由 `InitializeDatabase` 按当前实体新建，建好即通过 `IUpgradeEngine.BaselineAsync` 登记为最新脚本版本，不补跑历史脚本。独立库里只有租户库实体的表，脚本改平台库表（`[PlatformDataSource]` 实体）的语句要先判表存在，见 `UpdateScripts/README.md`。
+
 ### 租约锁
 
 `SaasUpgradeLockProvider` 通过条件更新 `SysVersion.IsUpgrading` 抢占执行权，并用 `UpgradeStartTime + LockExpirySeconds` 回收崩溃节点遗留的锁。它不是 Redis 锁，也不是 PostgreSQL 会话级建议锁。

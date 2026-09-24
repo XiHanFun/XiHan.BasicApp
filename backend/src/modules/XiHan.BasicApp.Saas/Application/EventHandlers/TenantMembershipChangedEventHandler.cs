@@ -61,7 +61,7 @@ public sealed class TenantMembershipChangedEventHandler : ILocalEventHandler<Ten
     {
         try
         {
-            var db = _clientResolver.GetCurrentClient();
+            var db = _clientResolver.GetClientForEntity<SysUserRole>();
 
             // 查找该用户在此租户下的所有角色绑定
             var bindings = await db.Queryable<SysUserRole>()

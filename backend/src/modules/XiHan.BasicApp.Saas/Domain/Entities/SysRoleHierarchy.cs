@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -41,6 +42,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_DeId", nameof(DescendantId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_AnId", nameof(TenantId), OrderByType.Asc, nameof(AncestorId), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysRoleHierarchy : BasicAppCreationEntity
 {
     /// <summary>

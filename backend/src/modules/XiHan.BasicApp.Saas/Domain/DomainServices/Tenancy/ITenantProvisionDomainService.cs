@@ -78,4 +78,12 @@ public interface ITenantProvisionDomainService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>回收（置失效）的授权行数合计</returns>
     Task<int> ReconcileEditionTenantsAuthorizationAsync(long editionId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 取待初始化管理员的库隔离租户：独立库已配置完成、还没有所有者
+    /// </summary>
+    /// <param name="tenantId">租户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>租户实体</returns>
+    Task<SysTenant> GetTenantAwaitingAdminAsync(long tenantId, CancellationToken cancellationToken = default);
 }

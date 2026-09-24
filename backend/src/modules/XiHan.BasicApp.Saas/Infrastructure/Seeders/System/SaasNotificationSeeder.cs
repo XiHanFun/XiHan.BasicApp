@@ -6,6 +6,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
@@ -17,6 +18,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 /// 让新装系统的消息中心/登录欢迎弹窗一开始就有真实可读的内容，像一个正在运行的系统。
 /// 幂等：按标题判存在即跳过，不覆盖运营后续编辑（遵循通知「发布后不可编辑/删除」语义）。
 /// </remarks>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public sealed class SaasNotificationSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasNotificationSeeder> logger,

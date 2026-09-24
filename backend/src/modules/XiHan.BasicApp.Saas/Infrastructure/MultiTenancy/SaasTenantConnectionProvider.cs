@@ -93,10 +93,10 @@ public sealed class SaasTenantConnectionProvider : ISqlSugarTenantConnectionProv
             var serviceProvider = scope.ServiceProvider;
             var currentTenant = serviceProvider.GetRequiredService<ICurrentTenant>();
 
-            // 平台作用域读取租户元数据：走默认连接、避免递归回本提供器
+            // 租户目录固定在平台库，按实体解析不经过本提供器，不会递归；平台作用域读取租户元数据
             using (currentTenant.Change(null))
             {
-                var client = serviceProvider.GetRequiredService<ISqlSugarClientResolver>().GetCurrentClient();
+                var client = serviceProvider.GetRequiredService<ISqlSugarClientResolver>().GetClientForEntity<SysTenant>();
                 tenant = client.Queryable<SysTenant>().Where(x => x.BasicId == tenantId).First();
             }
         }

@@ -126,10 +126,7 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
     }
 
     /// <summary>
-    /// 获取已配置且启用的表配置（为空或非启用时抛友好异常）
-    /// </summary>
-    /// <summary>
-    /// 租户条件：有租户列的表，租户看本租户与平台模板行（0），平台只看平台自己的行；
+    /// 租户条件：有租户列的表是业务数据，与生成实体同口径严格隔离——每个上下文（平台即 0 号租户）只看自己的行；
     /// 没有租户列的表不归属任何租户，只在平台上下文开放
     /// </summary>
     private ISugarQueryable<object> ApplyTenancyFilter(
@@ -147,9 +144,7 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
         }
 
         var column = query.QueryBuilder.Builder.GetTranslationColumnName(tenantColumn);
-        return tenantId == 0
-            ? query.Where($"{column} = @platformTenantId", new { platformTenantId = 0L })
-            : query.Where($"{column} IN (@platformTenantId, @tenantId)", new { platformTenantId = 0L, tenantId });
+        return query.Where($"{column} = @tenantId", new { tenantId });
     }
 
     private static string? FindColumn(IReadOnlyList<SysCodeGenTableColumn> columns, params string[] names)
@@ -159,6 +154,9 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
             .FirstOrDefault(name => names.Contains(name, StringComparer.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// 获取已配置且启用的表配置（为空或非启用时抛友好异常）
+    /// </summary>
     private async Task<SysCodeGenTable> GetEnabledTableAsync(long tableId, CancellationToken ct)
     {
         if (tableId <= 0)

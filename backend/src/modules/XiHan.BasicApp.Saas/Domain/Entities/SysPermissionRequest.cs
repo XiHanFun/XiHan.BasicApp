@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -37,7 +38,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_ReUsId", nameof(TenantId), OrderByType.Asc, nameof(RequestUserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_ReSt", nameof(TenantId), OrderByType.Asc, nameof(RequestStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ReId", nameof(ReviewId), OrderByType.Asc)]
-public partial class SysPermissionRequest : BasicAppFullAuditedEntity
+public partial class SysPermissionRequest : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 申请人ID

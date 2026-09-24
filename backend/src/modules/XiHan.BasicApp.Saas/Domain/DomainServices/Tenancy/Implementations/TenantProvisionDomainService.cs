@@ -399,6 +399,50 @@ public sealed class TenantProvisionDomainService
     }
 
     /// <summary>
+    /// 取待初始化管理员的库隔离租户
+    /// </summary>
+    /// <remarks>
+    /// 库隔离租户创建时不开通管理员：先初始化独立库，再初始化管理员——开通过程中写成员、授权时会连带写日志等租户库数据，
+    /// 库得先在。只有独立库已配置完成、还没有所有者的库隔离租户可以初始化管理员。
+    /// </remarks>
+    public async Task<SysTenant> GetTenantAwaitingAdminAsync(long tenantId, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (tenantId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(tenantId), "租户主键必须大于 0。");
+        }
+
+        SysTenant tenant;
+        using (_currentTenant.Change(null))
+        {
+            tenant = await _tenantRepository.GetByIdAsync(tenantId, cancellationToken)
+                ?? throw new UserFriendlyException("租户不存在。");
+        }
+
+        if (tenant.IsolationMode != TenantIsolationMode.Database)
+        {
+            throw new UserFriendlyException("只有库隔离租户需要单独初始化管理员，其余租户创建时即已开通。");
+        }
+
+        if (tenant.ConfigStatus != TenantConfigStatus.Configured)
+        {
+            throw new UserFriendlyException("请先初始化该租户的数据库，再初始化管理员。");
+        }
+
+        using (EnterTenantScope(tenant))
+        {
+            if (await _tenantUserRepository.AnyAsync(member => member.MemberType == TenantMemberType.Owner, cancellationToken))
+            {
+                throw new UserFriendlyException("该租户已开通管理员。");
+            }
+        }
+
+        return tenant;
+    }
+
+    /// <summary>
     /// 切入目标租户作用域：该租户的数据只在该作用域内写
     /// </summary>
     private IDisposable EnterTenantScope(SysTenant tenant)
@@ -407,13 +451,27 @@ public sealed class TenantProvisionDomainService
     }
 
     /// <summary>
-    /// 校验租户可开通：库隔离租户的数据归置尚未完成，不能把它的数据写进平台库
+    /// 校验租户可开通
     /// </summary>
+    /// <remarks>
+    /// 账号、成员关系、角色与授权固定在平台库；开通时连带写的租户数据（日志等）在租户自己的库里，
+    /// 所以库隔离租户要等独立库配置完成。Schema 隔离尚未实装，一律拒绝。
+    /// </remarks>
     private static void EnsureProvisionable(SysTenant tenant)
     {
-        if (tenant.IsolationMode != TenantIsolationMode.Field)
+        switch (tenant.IsolationMode)
         {
-            throw new UserFriendlyException("暂不支持开通库隔离租户：其账号与授权数据的归置尚未完成，请使用字段隔离。");
+            case TenantIsolationMode.Field:
+                return;
+
+            case TenantIsolationMode.Database when tenant.ConfigStatus == TenantConfigStatus.Configured:
+                return;
+
+            case TenantIsolationMode.Database:
+                throw new UserFriendlyException("库隔离租户要先初始化数据库，再初始化管理员。");
+
+            default:
+                throw new UserFriendlyException("暂不支持 Schema 隔离，请选择字段隔离或库隔离。");
         }
     }
 }

@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -41,6 +42,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("UX_{table}_TeId_DiId_ItCo", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc, nameof(ItemCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_PaId", nameof(ParentId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_DiId", nameof(TenantId), OrderByType.Asc, nameof(DictId), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysDictItem : BasicAppFullAuditedEntity
 {
     /// <summary>

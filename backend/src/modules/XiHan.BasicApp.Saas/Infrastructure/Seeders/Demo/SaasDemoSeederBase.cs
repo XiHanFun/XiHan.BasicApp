@@ -19,8 +19,12 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
 /// - 框架选取规则：本基类声明的 <see cref="DemoSeedingGroup"/> 分组，可经
 ///   <c>XiHan:Data:SqlSugarCore:DataSeeding:ExcludedGroups</c> 排除。
 /// 切换仅需改配置 + 重启，无需改代码。
+/// <para>
+/// 演示租户固定字段隔离、与平台同库：切入演示租户后的当前连接就是平台库，平台库实体与租户数据在同一个连接上写。
+/// 只播平台库，租户独立库初始化不跑演示种子。
+/// </para>
 /// </remarks>
-[DataSeeding(Group = SaasDemoSeederBase.DemoSeedingGroup)]
+[DataSeeding(Group = SaasDemoSeederBase.DemoSeedingGroup, Target = DbInitializationTarget.Platform)]
 public abstract class SaasDemoSeederBase : DataSeederBase
 {
     /// <summary>

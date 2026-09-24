@@ -49,14 +49,14 @@ public sealed class DynamicRuntimeTenancySqlTests : IDisposable
     }
 
     /// <summary>
-    /// 租户看本租户与平台模板行，看不到别的租户与已删除行
+    /// 业务表严格隔离：租户只看本租户的行，看不到平台、别的租户与已删除行
     /// </summary>
     [Fact]
-    public async Task TenantContext_SeesOwnAndPlatformRows()
+    public async Task TenantContext_SeesOnlyOwnRows()
     {
         var result = await CreateService(tenantId: 7).GetPageAsync(new DynamicRuntimePageQueryDto { TableId = TenantTableId });
 
-        Assert.Equal(["平台模板", "租户7"], Titles(result));
+        Assert.Equal(["租户7"], Titles(result));
     }
 
     /// <summary>

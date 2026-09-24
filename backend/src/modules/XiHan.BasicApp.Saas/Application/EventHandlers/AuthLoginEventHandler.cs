@@ -234,7 +234,7 @@ public sealed class AuthLoginEventHandler
     {
         try
         {
-            var db = _clientResolver.GetCurrentClient();
+            var db = _clientResolver.GetClientForEntity<SysUserSession>();
 
             // 会话行带各自登录落点的租户戳，同一账号在别的租户/平台的会话也算「其它设备」，须跨租户查找
             var otherActiveCount = await db.Queryable<SysUserSession>()
@@ -280,7 +280,7 @@ public sealed class AuthLoginEventHandler
     {
         try
         {
-            var db = _clientResolver.GetCurrentClient();
+            var db = _clientResolver.GetClientForEntity<SysUserSession>();
             return await db.Queryable<SysUserSession>()
                 .Where(session => session.BasicId == sessionRecordId)
                 .FirstAsync();

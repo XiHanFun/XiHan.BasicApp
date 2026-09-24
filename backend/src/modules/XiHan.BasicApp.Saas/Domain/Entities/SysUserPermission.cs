@@ -3,8 +3,9 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
-using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Routing;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -28,6 +29,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_EfTi", nameof(EffectiveTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysUserPermission : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>

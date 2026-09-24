@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
@@ -18,6 +19,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 /// 落地系统自带的后台任务（如用户统计聚合）；模块启动时 TaskSchedulerSync 会把启用任务注册进调度器。
 /// 已存在不覆盖：Cron/启停等允许运营调整，种子只负责首次落地。
 /// </remarks>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public sealed class SaasTaskSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasTaskSeeder> logger,

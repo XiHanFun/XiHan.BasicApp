@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -54,7 +55,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_SuUsId", nameof(SubmitUserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CuReUsId", nameof(CurrentReviewUserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_ReSt", nameof(TenantId), OrderByType.Asc, nameof(ReviewStatus), OrderByType.Asc)]
-public partial class SysReview : BasicAppAggregateRoot
+public partial class SysReview : BasicAppAggregateRoot, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 审查编码

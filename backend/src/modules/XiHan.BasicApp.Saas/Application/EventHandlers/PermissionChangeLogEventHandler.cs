@@ -40,8 +40,6 @@ public sealed class PermissionChangeLogEventHandler
         _clientInfoProvider = clientInfoProvider;
     }
 
-    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
-
     /// <summary>
     /// 事件处理器通过实现此方法来处理事件
     /// </summary>
@@ -70,7 +68,7 @@ public sealed class PermissionChangeLogEventHandler
         };
         entity.Description = NormalizeText(BuildDescription(entity), 500);
 
-        await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
+        await _clientResolver.GetClientForEntity<SysPermissionChangeLog>().Insertable(entity).SplitTable().ExecuteCommandAsync();
     }
 
     /// <summary>
@@ -87,7 +85,7 @@ public sealed class PermissionChangeLogEventHandler
             return null;
         }
 
-        var name = await DbClient.Queryable<SysUser>()
+        var name = await _clientResolver.GetClientForEntity<SysUser>().Queryable<SysUser>()
             .ClearTenantFilter()
             .Where(user => user.BasicId == userId.Value)
             .Select(user => user.UserName)
@@ -105,7 +103,7 @@ public sealed class PermissionChangeLogEventHandler
             return null;
         }
 
-        var name = await DbClient.Queryable<SysRole>()
+        var name = await _clientResolver.GetClientForEntity<SysRole>().Queryable<SysRole>()
             .ClearTenantFilter()
             .Where(role => role.BasicId == roleId.Value)
             .Select(role => role.RoleName)
@@ -123,7 +121,7 @@ public sealed class PermissionChangeLogEventHandler
             return null;
         }
 
-        var name = await DbClient.Queryable<SysPermission>()
+        var name = await _clientResolver.GetClientForEntity<SysPermission>().Queryable<SysPermission>()
             .ClearTenantFilter()
             .Where(permission => permission.BasicId == permissionId.Value)
             .Select(permission => permission.PermissionName)

@@ -4,6 +4,7 @@
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Routing;
 using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -53,6 +54,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TrTy", nameof(TriggerType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_NeRuTi", nameof(NextRunTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysTask : BasicAppAggregateRoot, IStrictMultiTenantEntity
 {
     /// <summary>

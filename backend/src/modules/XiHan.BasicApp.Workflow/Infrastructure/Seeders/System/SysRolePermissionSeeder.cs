@@ -48,8 +48,7 @@ public class SysRolePermissionSeeder : PlatformDataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbClient;
-        var permissions = await client.Queryable<SysPermission>()
+        var permissions = await DbClientFor<SysPermission>().Queryable<SysPermission>()
             .Where(p => p.TenantId == 0 && p.PermissionCode.StartsWith("workflow:"))
             .ToListAsync();
         if (permissions.Count == 0)
@@ -62,14 +61,14 @@ public class SysRolePermissionSeeder : PlatformDataSeederBase
             .Where(p => p.Side.IsTenantEffective())
             .Select(p => p.BasicId)
             .ToList();
-        var tenantIds = await client.Queryable<SysTenant>().Select(t => t.BasicId).ToListAsync();
+        var tenantIds = await DbClientFor<SysTenant>().Queryable<SysTenant>().Select(t => t.BasicId).ToListAsync();
 
         var currentTenant = ServiceProvider.GetRequiredService<ICurrentTenant>();
         var grantedCount = 0;
         foreach (var tenantId in tenantIds)
         {
             using var tenantScope = currentTenant.Change(tenantId, tenantId.ToString());
-            grantedCount += await GrantTenantAdminAsync(DbClient, tenantId, tenantGrantableIds);
+            grantedCount += await GrantTenantAdminAsync(tenantId, tenantGrantableIds);
         }
 
         Logger.LogInformation("工作流权限授予各租户系统管理员：新增角色权限 {GrantCount} 条", grantedCount);
@@ -78,21 +77,24 @@ public class SysRolePermissionSeeder : PlatformDataSeederBase
     /// <summary>
     /// 给租户的系统管理员补齐缺失的工作流权限绑定
     /// </summary>
-    private static async Task<int> GrantTenantAdminAsync(ISqlSugarClient client, long tenantId, IReadOnlyCollection<long> permissionIds)
+    /// <remarks>
+    /// 角色与角色授权固定在平台库：库隔离租户的也在那里，按实体取连接，不随当前租户切到它的独立库。
+    /// </remarks>
+    private async Task<int> GrantTenantAdminAsync(long tenantId, IReadOnlyCollection<long> permissionIds)
     {
         if (permissionIds.Count == 0)
         {
             return 0;
         }
 
-        var role = await client.Queryable<SysRole>()
+        var role = await DbClientFor<SysRole>().Queryable<SysRole>()
             .FirstAsync(r => r.TenantId == tenantId && r.RoleCode == TenantAdminRoleCode);
         if (role is null)
         {
             return 0;
         }
 
-        var existingIds = (await client.Queryable<SysRolePermission>()
+        var existingIds = (await DbClientFor<SysRolePermission>().Queryable<SysRolePermission>()
                 .Where(rp => rp.TenantId == tenantId && rp.RoleId == role.BasicId)
                 .ToListAsync())
             .Select(rp => rp.PermissionId)
@@ -113,7 +115,7 @@ public class SysRolePermissionSeeder : PlatformDataSeederBase
 
         if (addList.Count > 0)
         {
-            _ = await client.Insertable(addList).ExecuteReturnSnowflakeIdListAsync();
+            _ = await DbClientFor<SysRolePermission>().Insertable(addList).ExecuteReturnSnowflakeIdListAsync();
         }
 
         return addList.Count;

@@ -102,7 +102,6 @@ public sealed class SaasUserStore : IUserStore
             ?? throw new InvalidOperationException($"用户 {id} 不存在。");
 
         using var accountScope = EnterAccountScope(sysUser);
-        var db = _clientResolver.GetCurrentClient();
 
         // 映射 UserInfo 可修改字段回 SysUser
         if (user.LastLoginTime.HasValue)
@@ -112,7 +111,7 @@ public sealed class SaasUserStore : IUserStore
 
         sysUser.Status = user.IsActive ? EnableStatus.Enabled : EnableStatus.Disabled;
 
-        await db.Updateable(sysUser)
+        await _clientResolver.GetClientForEntity<SysUser>().Updateable(sysUser)
             .UpdateColumns(u => new { u.LastLoginTime, u.Status })
             .ExecuteCommandAsync(cancellationToken);
 
@@ -136,7 +135,7 @@ public sealed class SaasUserStore : IUserStore
 
             // 安全状态变更（2FA 密钥、锁定）必须留痕：本类直连 DbClient、不走仓储，
             // 需显式挂 EnableDiffLogEvent 才会进数据变更日志（TwoFactorSecret 的值由 LogSanitizer 掩码）
-            await db.Updateable(security)
+            await _clientResolver.GetClientForEntity<SysUserSecurity>().Updateable(security)
                 .EnableDiffLogEvent(typeof(SysUserSecurity))
                 .UpdateColumns(s => new
                 {
@@ -175,7 +174,6 @@ public sealed class SaasUserStore : IUserStore
             ?? throw new InvalidOperationException($"用户 {id} 不存在。");
 
         using var accountScope = EnterAccountScope(user);
-        var db = _clientResolver.GetCurrentClient();
         var security = await FindSecurityAsync(id, cancellationToken)
             ?? throw new InvalidOperationException($"用户 {id} 的安全记录不存在。");
 
@@ -183,7 +181,7 @@ public sealed class SaasUserStore : IUserStore
         security.LastPasswordChangeTime = DateTimeOffset.UtcNow;
 
         // 改密码必须留痕（密码值本身由 LogSanitizer 掩成 ***，只留"改过"的事实与时间）
-        await db.Updateable(security)
+        await _clientResolver.GetClientForEntity<SysUserSecurity>().Updateable(security)
             .EnableDiffLogEvent(typeof(SysUserSecurity))
             .UpdateColumns(s => new { s.Password, s.LastPasswordChangeTime })
             .ExecuteCommandAsync(cancellationToken);
@@ -211,7 +209,7 @@ public sealed class SaasUserStore : IUserStore
         }
 
         using var accountScope = EnterAccountScope(user);
-        return await _clientResolver.GetCurrentClient()
+        return await _clientResolver.GetClientForEntity<SysUserSecurity>()
             .Queryable<SysUserSecurity>()
             .Where(s => s.UserId == user.BasicId && !s.IsDeleted)
             .Select(s => s.FailedLoginAttempts)
@@ -239,7 +237,6 @@ public sealed class SaasUserStore : IUserStore
         }
 
         using var accountScope = EnterAccountScope(user);
-        var db = _clientResolver.GetCurrentClient();
         var security = await FindSecurityAsync(user.BasicId, cancellationToken);
         if (security is null)
         {
@@ -249,7 +246,7 @@ public sealed class SaasUserStore : IUserStore
         security.FailedLoginAttempts++;
         security.LastFailedLoginTime = DateTimeOffset.UtcNow;
 
-        await db.Updateable(security)
+        await _clientResolver.GetClientForEntity<SysUserSecurity>().Updateable(security)
             .UpdateColumns(s => new { s.FailedLoginAttempts, s.LastFailedLoginTime })
             .ExecuteCommandAsync(cancellationToken);
     }
@@ -276,7 +273,7 @@ public sealed class SaasUserStore : IUserStore
 
         using var accountScope = EnterAccountScope(user);
         var userId = user.BasicId;
-        await _clientResolver.GetCurrentClient()
+        await _clientResolver.GetClientForEntity<SysUserSecurity>()
             .Updateable<SysUserSecurity>()
             .SetColumns(s => s.FailedLoginAttempts == 0)
             .SetColumns(s => s.LastFailedLoginTime == null)
@@ -309,7 +306,6 @@ public sealed class SaasUserStore : IUserStore
         }
 
         using var accountScope = EnterAccountScope(user);
-        var db = _clientResolver.GetCurrentClient();
         var security = await FindSecurityAsync(user.BasicId, cancellationToken);
         if (security is null)
         {
@@ -330,7 +326,7 @@ public sealed class SaasUserStore : IUserStore
         }
 
         // 账号锁定/解锁必须留痕（低频、安全敏感；失败计数那条刻意不挂——每次登录失败都写会变成噪音，SysLoginLog 已覆盖）
-        await db.Updateable(security)
+        await _clientResolver.GetClientForEntity<SysUserSecurity>().Updateable(security)
             .EnableDiffLogEvent(typeof(SysUserSecurity))
             .UpdateColumns(s => new { s.IsLocked, s.LockoutTime, s.LockoutEndTime })
             .ExecuteCommandAsync(cancellationToken);
@@ -400,7 +396,7 @@ public sealed class SaasUserStore : IUserStore
     /// </remarks>
     private async Task<SysUser?> FindUserByLoginAsync(string login, CancellationToken cancellationToken)
     {
-        var db = _clientResolver.GetCurrentClient();
+        var db = _clientResolver.GetClientForEntity<SysUser>();
         var tenantId = _currentTenant.Id;
 
         if (tenantId is null or 0)
@@ -425,7 +421,7 @@ public sealed class SaasUserStore : IUserStore
     /// </summary>
     private async Task<SysUser?> FindUserByIdAsync(long userId, CancellationToken cancellationToken)
     {
-        return await _clientResolver.GetCurrentClient()
+        return await _clientResolver.GetClientForEntity<SysUser>()
             .Queryable<SysUser>()
             .ClearTenantFilter()
             .Where(u => u.BasicId == userId && !u.IsDeleted)
@@ -437,7 +433,7 @@ public sealed class SaasUserStore : IUserStore
     /// </summary>
     private async Task<SysUserSecurity?> FindSecurityAsync(long userId, CancellationToken cancellationToken)
     {
-        return await _clientResolver.GetCurrentClient()
+        return await _clientResolver.GetClientForEntity<SysUserSecurity>()
             .Queryable<SysUserSecurity>()
             .Where(s => s.UserId == userId && !s.IsDeleted)
             .FirstAsync(cancellationToken);

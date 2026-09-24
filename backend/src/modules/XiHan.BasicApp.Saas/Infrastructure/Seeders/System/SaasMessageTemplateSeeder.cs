@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Domain.Messaging;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
@@ -17,6 +18,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 /// <remarks>
 /// 占位符语法须与默认模板引擎（DefaultTemplateEngine）一致：用 <c>{{key}}</c>（无空格）。变量名见各模板 Description。
 /// </remarks>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public sealed class SaasMessageTemplateSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasMessageTemplateSeeder> logger,

@@ -276,6 +276,7 @@ public static class PageRegistry
          new("tenant.list.initdb", "初始化数据库", "tenant.list", SaasPermissionCodes.Tenant.InitDb, 4),
          new("tenant.list.delete", "删除", "tenant.list", SaasPermissionCodes.Tenant.Delete, 5),
          new("tenant.list.support-member", "支持人员入驻", "tenant.list", SaasPermissionCodes.Tenant.SupportMember, 6),
+         new("tenant.list.init-admin", "初始化管理员", "tenant.list", SaasPermissionCodes.Tenant.Create, 7),
          new("tenant.list.export", "导出", "tenant.list", SaasPermissionCodes.Tenant.Export, 9),
 
         // [3.2] 版本套餐

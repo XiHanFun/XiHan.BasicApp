@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -37,6 +38,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_NoId_UsId", nameof(TenantId), OrderByType.Asc, nameof(NotificationId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_UsId_NoSt", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(NotificationStatus), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysUserNotification : BasicAppCreationEntity
 {
     /// <summary>

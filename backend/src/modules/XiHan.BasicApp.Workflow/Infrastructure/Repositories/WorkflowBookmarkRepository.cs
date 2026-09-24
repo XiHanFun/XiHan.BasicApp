@@ -51,7 +51,8 @@ public sealed class WorkflowBookmarkRepository(ISqlSugarClientResolver clientRes
     /// 获取到期的定时类书签（DueTime 非空且不晚于当前时间，按到期时间升序）
     /// </summary>
     /// <remarks>
-    /// 定时器是跨租户的轮询者：显式跨租户取到期书签，逐个切入书签所属租户恢复。
+    /// 定时器是跨租户的轮询者：显式跨租户取当前库里的到期书签，逐个切入书签所属租户恢复。
+    /// 库隔离租户的书签在它自己的库里，由调用方逐库取。
     /// </remarks>
     /// <param name="now">当前时间</param>
     /// <param name="maxResultCount">最大返回条数</param>

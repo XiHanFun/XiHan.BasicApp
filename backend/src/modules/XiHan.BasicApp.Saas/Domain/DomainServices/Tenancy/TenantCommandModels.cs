@@ -28,6 +28,9 @@ public sealed record TenantCreateCommand(
 /// <summary>
 /// 租户更新命令
 /// </summary>
+/// <remarks>
+/// 不含隔离模式：数据按创建时的模式落库（字段隔离在平台库、库隔离在独立库），改模式等于迁移数据，不是改一个字段。
+/// </remarks>
 public sealed record TenantUpdateCommand(
     long BasicId,
     string TenantName,
@@ -35,7 +38,6 @@ public sealed record TenantUpdateCommand(
     string? Logo,
     string? Domain,
     long? EditionId,
-    TenantIsolationMode IsolationMode,
     DateTimeOffset? ExpirationTime,
     int? UserLimit,
     long? StorageLimit,

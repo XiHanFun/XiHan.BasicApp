@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
@@ -23,6 +24,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 /// 表现为「菜单莫名其妙少了几个」。
 /// </para>
 /// </remarks>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public abstract class PlatformDataSeederBase : DataSeederBase
 {
     /// <summary>

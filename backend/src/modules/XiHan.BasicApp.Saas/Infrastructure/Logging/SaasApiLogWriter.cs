@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.Data.SqlSugar.Extensions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Auditing;
@@ -37,8 +38,6 @@ public class SaasApiLogWriter : IApiLogWriter
         _clientInfoProvider = clientInfoProvider;
         _httpContextAccessor = httpContextAccessor;
     }
-
-    private ISqlSugarClient DbClient => _clientResolver.GetCurrentClient();
 
     /// <summary>
     /// 写入接口日志
@@ -100,7 +99,7 @@ public class SaasApiLogWriter : IApiLogWriter
             ErrorMessage = SaasLogMappingHelper.TrimOrNull(record.ErrorMessage, 2000)
         };
 
-        await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
+        await _clientResolver.GetClientForEntity<SysOpenApiLog>().Insertable(entity).SplitTable().ExecuteCommandAsync();
     }
 
     /// <summary>
@@ -110,9 +109,9 @@ public class SaasApiLogWriter : IApiLogWriter
     {
         try
         {
-            return await DbClient.Queryable<SysUser>()
-                .ClearFilter()
-                .Where(user => user.BasicId == userId && !user.IsDeleted)
+            return await _clientResolver.GetClientForEntity<SysUser>().Queryable<SysUser>()
+                .ClearTenantFilter()
+                .Where(user => user.BasicId == userId)
                 .Select(user => user.UserName)
                 .FirstAsync(cancellationToken);
         }

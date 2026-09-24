@@ -3,6 +3,7 @@ import type {
   ApiId,
   DateTimeString,
   PageResult,
+  TenantAdminInitializeDto,
   TenantCreateDto,
   TenantDetailDto,
   TenantEditionListItemDto,
@@ -12,12 +13,13 @@ import type {
   TenantUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
   querySortsFromSchema,
+  TenantConfigStatus,
   tenantEditionApi,
   TenantIsolationMode,
   tenantManagementApi,
@@ -68,6 +70,7 @@ const { t } = useI18n()
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
 const supportMemberFormId = useId()
+const initAdminFormId = useId()
 
 const tenantStatusOptions = useEnumOptions('TenantStatus', TENANT_STATUS_OPTIONS)
 const configStatusOptions = useEnumOptions('TenantConfigStatus', TENANT_CONFIG_STATUS_OPTIONS)
@@ -124,6 +127,14 @@ const submitLoading = ref(false)
 const editingStatus = ref<TenantStatus | null>(null)
 const tenantForm = ref<TenantFormModel>(createDefaultForm())
 const modalTitle = computed(() => (tenantForm.value.basicId ? t('tenant.list.edit_title') : t('tenant.list.add_title')))
+/** 库隔离租户先初始化数据库、再初始化管理员：创建时不填管理员 */
+const isDatabaseIsolation = computed(() => tenantForm.value.isolationMode === TenantIsolationMode.Database)
+const showAdminFields = computed(() => !tenantForm.value.basicId && !isDatabaseIsolation.value)
+
+// ── 库隔离租户初始化管理员 ───────────────────────────────
+const initAdminVisible = ref(false)
+const initAdminLoading = ref(false)
+const initAdminForm = ref<TenantAdminInitializeDto>(createDefaultInitAdminForm(''))
 
 /** 表单当前生效版本：选中的版本；留空时为默认版本 */
 const selectedEdition = computed(() => {
@@ -402,6 +413,20 @@ const schema = computed<PageSchema>(() => ({
       visible: row => (row as unknown as TenantListItemDto).isolationMode === TenantIsolationMode.Database,
     },
     {
+      key: 'init-admin',
+      title: t('tenant.list.init_admin'),
+      scope: 'row',
+      icon: 'lucide:user-plus',
+      permission: 'tenant.list.init-admin',
+      // 库隔离租户建好库、还没有成员时开通管理员（后端按「没有所有者」精确校验）
+      visible: (row) => {
+        const tenant = row as unknown as TenantListItemDto
+        return tenant.isolationMode === TenantIsolationMode.Database
+          && tenant.configStatus === TenantConfigStatus.Configured
+          && tenant.usedUserCount === 0
+      },
+    },
+    {
       key: 'status-enable',
       title: t('tenant.list.status_enable'),
       scope: 'row',
@@ -506,6 +531,11 @@ function onAction(payload: SchemaActionPayload) {
         void handleInitDb(row)
       }
       break
+    case 'init-admin':
+      if (row) {
+        handleInitAdmin(row)
+      }
+      break
     case 'status-enable':
       if (row) {
         void handleStatusChange(row, TenantStatus.Normal)
@@ -569,6 +599,45 @@ async function handleInitDb(row: TenantListItemDto) {
   }
   catch (error) {
     toast.danger((error as Error)?.message || t('tenant.list.init_db_failed'))
+  }
+}
+
+function createDefaultInitAdminForm(tenantId: ApiId): TenantAdminInitializeDto {
+  return {
+    adminEmail: '',
+    adminPassword: '',
+    adminUserName: '',
+    tenantId,
+  }
+}
+
+function handleInitAdmin(row: TenantListItemDto) {
+  initAdminForm.value = createDefaultInitAdminForm(row.basicId)
+  initAdminVisible.value = true
+}
+
+async function handleSaveInitAdmin() {
+  if (!validateAdmin(initAdminForm.value)) {
+    return
+  }
+
+  initAdminLoading.value = true
+  try {
+    await tenantManagementApi.initializeTenantAdmin({
+      adminEmail: initAdminForm.value.adminEmail.trim(),
+      adminPassword: initAdminForm.value.adminPassword.trim(),
+      adminUserName: initAdminForm.value.adminUserName.trim(),
+      tenantId: initAdminForm.value.tenantId,
+    })
+    toast.success(t('tenant.list.init_admin_success'))
+    initAdminVisible.value = false
+    reloadTenant()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('tenant.list.init_admin_failed'))
+  }
+  finally {
+    initAdminLoading.value = false
   }
 }
 
@@ -846,17 +915,26 @@ function validateForm() {
     return false
   }
 
+  // 库隔离租户在初始化数据库之后再初始化管理员
+  if (isDatabaseIsolation.value) {
+    return true
+  }
+
   // 管理员是新建租户的必要组成：没有管理员的租户没有任何账号能登录
-  const adminUserName = tenantForm.value.adminUserName.trim()
+  return validateAdmin(tenantForm.value)
+}
+
+function validateAdmin(admin: Pick<TenantAdminInitializeDto, 'adminEmail' | 'adminPassword' | 'adminUserName'>) {
+  const adminUserName = admin.adminUserName.trim()
   if (adminUserName.length < ADMIN_USER_NAME_MIN_LENGTH || adminUserName.length > ADMIN_USER_NAME_MAX_LENGTH) {
     toast.warning(t('tenant.list.validate_admin_user_name', { max: ADMIN_USER_NAME_MAX_LENGTH, min: ADMIN_USER_NAME_MIN_LENGTH }))
     return false
   }
-  if (!EMAIL_PATTERN.test(tenantForm.value.adminEmail.trim())) {
+  if (!EMAIL_PATTERN.test(admin.adminEmail.trim())) {
     toast.warning(t('tenant.list.validate_admin_email'))
     return false
   }
-  if (tenantForm.value.adminPassword.trim().length < ADMIN_PASSWORD_MIN_LENGTH) {
+  if (admin.adminPassword.trim().length < ADMIN_PASSWORD_MIN_LENGTH) {
     toast.warning(t('tenant.list.validate_admin_password', { min: ADMIN_PASSWORD_MIN_LENGTH }))
     return false
   }
@@ -879,7 +957,6 @@ async function handleSubmit() {
         domain: normalizeNullable(tenantForm.value.domain),
         editionId: tenantForm.value.editionId ?? null,
         expirationTime: tenantForm.value.expirationTime,
-        isolationMode: tenantForm.value.isolationMode,
         logo: normalizeNullable(tenantForm.value.logo),
         remark: normalizeNullable(tenantForm.value.remark),
         sort: tenantForm.value.sort,
@@ -900,10 +977,12 @@ async function handleSubmit() {
       }
     }
     else {
+      // 库隔离租户的管理员在初始化数据库之后开通，创建时不带
+      const withAdmin = !isDatabaseIsolation.value
       const createInput: TenantCreateDto = {
-        adminEmail: tenantForm.value.adminEmail.trim(),
-        adminPassword: tenantForm.value.adminPassword.trim(),
-        adminUserName: tenantForm.value.adminUserName.trim(),
+        adminEmail: withAdmin ? tenantForm.value.adminEmail.trim() : '',
+        adminPassword: withAdmin ? tenantForm.value.adminPassword.trim() : '',
+        adminUserName: withAdmin ? tenantForm.value.adminUserName.trim() : '',
         connectionString: normalizeNullable(tenantForm.value.connectionString),
         databaseType: tenantForm.value.databaseType ?? null,
         domain: normalizeNullable(tenantForm.value.domain),
@@ -1315,12 +1394,29 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.isolation_mode') }}</XhFieldLabel>
             <XhFieldControl>
-              <XSelect v-model:value="tenantForm.isolationMode" :options="isolationModeOptions" />
+              <XSelect
+                v-model:value="tenantForm.isolationMode"
+                :disabled="Boolean(tenantForm.basicId)"
+                :options="isolationModeOptions"
+              />
             </XhFieldControl>
+            <XhFieldDescription v-if="tenantForm.basicId">
+              {{ t('tenant.list.isolation_mode_locked') }}
+            </XhFieldDescription>
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <template v-if="tenantForm.isolationMode === TenantIsolationMode.Database">
+        <template v-if="isDatabaseIsolation">
+          <XhAlertRoot v-if="!tenantForm.basicId" tone="info" class="xh-span-2">
+            <XhAlertIndicator>
+              <Icon icon="lucide:database" :size="16" />
+            </XhAlertIndicator>
+            <XhAlertContent>
+              <XhAlertDescription>
+                {{ t('tenant.list.database_admin_hint') }}
+              </XhAlertDescription>
+            </XhAlertContent>
+          </XhAlertRoot>
           <XhFormFieldGroup name="databaseType">
             <XhFieldRoot>
               <XhFieldLabel>{{ t('tenant.list.database_type') }}</XhFieldLabel>
@@ -1365,7 +1461,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!tenantForm.basicId" name="adminUserName">
+        <XhFormFieldGroup v-if="showAdminFields" name="adminUserName">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.admin_user_name') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1374,7 +1470,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!tenantForm.basicId" name="adminEmail">
+        <XhFormFieldGroup v-if="showAdminFields" name="adminEmail">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.admin_email') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1389,7 +1485,7 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="!tenantForm.basicId" name="adminPassword">
+        <XhFormFieldGroup v-if="showAdminFields" name="adminPassword">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.admin_password') }}</XhFieldLabel>
             <XhFieldControl>
@@ -1554,6 +1650,61 @@ async function handleSubmit() {
                 :placeholder="t('tenant.list.support_member_reason_placeholder')"
                 :rows="2"
                 type="textarea"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+      </XhFormRoot>
+    </XEditModal>
+
+    <XEditModal
+      v-model:show="initAdminVisible"
+      :title="t('tenant.list.init_admin_title')"
+      :loading="initAdminLoading"
+      :form-id="initAdminFormId"
+    >
+      <XhFormRoot
+        :id="initAdminFormId"
+        v-model:values="initAdminForm"
+        validate-on="blur"
+        class="xh-edit-form-grid"
+        @submit="handleSaveInitAdmin"
+      >
+        <XhFormFieldGroup name="adminUserName">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('tenant.list.admin_user_name') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput v-model:value="initAdminForm.adminUserName" clearable :placeholder="t('tenant.list.admin_user_name_placeholder')" autocomplete="off" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup name="adminEmail">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('tenant.list.admin_email') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="initAdminForm.adminEmail"
+                clearable
+                :placeholder="t('tenant.list.admin_email_placeholder')"
+                inputmode="email"
+                autocomplete="off"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup name="adminPassword" class="xh-span-2">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('tenant.list.admin_password') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XInput
+                v-model:value="initAdminForm.adminPassword"
+                clearable
+                :placeholder="t('tenant.list.admin_password_placeholder')"
+                type="password"
+                autocomplete="new-password"
               />
             </XhFieldControl>
             <XhFieldErrorText />

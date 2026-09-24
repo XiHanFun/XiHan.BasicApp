@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Data.SqlSugar.Routing;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -25,6 +26,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TaTy", nameof(TargetType), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoGr", nameof(ConstraintGroup), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_RuId", nameof(TenantId), OrderByType.Asc, nameof(ConstraintRuleId), OrderByType.Asc)]
+[PlatformDataSource]
 public partial class SysConstraintRuleItem : BasicAppCreationEntity
 {
     /// <summary>

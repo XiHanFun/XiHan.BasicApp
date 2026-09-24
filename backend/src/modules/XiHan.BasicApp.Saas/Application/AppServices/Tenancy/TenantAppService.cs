@@ -9,6 +9,7 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Users;
@@ -77,11 +78,24 @@ public sealed class TenantAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        // 管理员账号先于建租户校验：没有管理员的租户没有任何账号能登录，因此是创建租户的必要组成
         var adminUserName = input.AdminUserName?.Trim() ?? string.Empty;
         var adminEmail = input.AdminEmail?.Trim() ?? string.Empty;
         var adminPassword = input.AdminPassword?.Trim() ?? string.Empty;
-        await ValidateTenantAdminAsync(input, adminUserName, adminEmail, adminPassword);
+
+        // 库隔离租户的数据落在它自己的库里：先建租户（待初始化），初始化数据库之后再经 InitializeTenantAdmin 开通管理员
+        if (input.IsolationMode == TenantIsolationMode.Database)
+        {
+            if (adminUserName.Length > 0 || adminEmail.Length > 0 || adminPassword.Length > 0)
+            {
+                throw new UserFriendlyException("库隔离租户在初始化数据库之后再初始化管理员，创建时不填管理员账号。");
+            }
+
+            var pending = await _tenantDomainService.CreateTenantAsync(TenantApplicationMapper.ToCreateCommand(input), cancellationToken);
+            return TenantApplicationMapper.ToDetailDto(pending.Tenant, pending.Now);
+        }
+
+        // 管理员账号先于建租户校验：没有管理员的租户没有任何账号能登录，因此是创建租户的必要组成
+        await ValidateTenantAdminAsync(adminUserName, adminEmail, adminPassword, input.TenantCode, input.TenantName);
 
         var result = await _tenantDomainService.CreateTenantAsync(TenantApplicationMapper.ToCreateCommand(input), cancellationToken);
 
@@ -103,7 +117,7 @@ public sealed class TenantAppService
     /// <remarks>
     /// 用户名与邮箱的唯一性在 <see cref="ITenantProvisionDomainService.InitializeTenantAdminAsync"/> 内校验（平台态查账号注册表）。
     /// </remarks>
-    private async Task ValidateTenantAdminAsync(TenantCreateDto input, string adminUserName, string adminEmail, string adminPassword)
+    private async Task ValidateTenantAdminAsync(string adminUserName, string adminEmail, string adminPassword, string? tenantCode, string? tenantName)
     {
         if (string.IsNullOrWhiteSpace(adminUserName))
         {
@@ -126,9 +140,9 @@ public sealed class TenantAppService
         }
 
         // 密码黑名单：禁止用账号自身信息做密码
-        var blacklist = new List<string> { adminUserName, adminEmail, input.TenantCode, input.TenantName }
+        var blacklist = new List<string?> { adminUserName, adminEmail, tenantCode, tenantName }
             .Where(item => !string.IsNullOrWhiteSpace(item))
-            .Select(item => item.Trim())
+            .Select(item => item!.Trim())
             .ToList();
 
         var validation = await _authenticationService.ValidatePasswordStrengthAsync(adminPassword, blacklist);
@@ -185,6 +199,34 @@ public sealed class TenantAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var tenant = await _tenantDatabaseInitializer.InitializeAsync(id, cancellationToken);
+        return TenantApplicationMapper.ToDetailDto(tenant, DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    /// 初始化库隔离租户的管理员（独立库初始化完成之后：管理员 + Owner 角色 + 按版本白名单授权）
+    /// </summary>
+    [UnitOfWork(true)]
+    [HttpPost]
+    [PermissionAuthorize(SaasPermissionCodes.Tenant.Create)]
+    public async Task<TenantDetailDto> InitializeTenantAdminAsync(TenantAdminInitializeDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var tenant = await _tenantProvisionDomainService.GetTenantAwaitingAdminAsync(input.TenantId, cancellationToken);
+
+        var adminUserName = input.AdminUserName?.Trim() ?? string.Empty;
+        var adminEmail = input.AdminEmail?.Trim() ?? string.Empty;
+        var adminPassword = input.AdminPassword?.Trim() ?? string.Empty;
+        await ValidateTenantAdminAsync(adminUserName, adminEmail, adminPassword, tenant.TenantCode, tenant.TenantName);
+
+        _ = await _tenantProvisionDomainService.ProvisionTenantAdminAsync(
+            tenant,
+            adminUserName,
+            adminEmail,
+            _passwordHasher.HashPassword(adminPassword),
+            cancellationToken);
+
         return TenantApplicationMapper.ToDetailDto(tenant, DateTimeOffset.UtcNow);
     }
 

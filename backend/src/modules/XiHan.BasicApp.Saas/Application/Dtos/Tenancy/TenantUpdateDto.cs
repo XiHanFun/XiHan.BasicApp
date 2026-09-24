@@ -9,6 +9,9 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 /// <summary>
 /// 租户更新 DTO
 /// </summary>
+/// <remarks>
+/// 隔离模式创建后不能修改，不在更新契约里。
+/// </remarks>
 public sealed class TenantUpdateDto : BasicAppUDto
 {
     /// <summary>
@@ -35,11 +38,6 @@ public sealed class TenantUpdateDto : BasicAppUDto
     /// 版本/套餐主键
     /// </summary>
     public long? EditionId { get; set; }
-
-    /// <summary>
-    /// 隔离模式
-    /// </summary>
-    public TenantIsolationMode IsolationMode { get; set; } = TenantIsolationMode.Field;
 
     /// <summary>
     /// 数据库类型（隔离模式为 Database 时必填）

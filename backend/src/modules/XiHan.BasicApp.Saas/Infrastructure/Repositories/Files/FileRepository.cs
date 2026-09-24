@@ -28,7 +28,19 @@ public sealed class FileRepository(ISqlSugarClientResolver clientResolver)
     }
 
     /// <summary>
-    /// 统计指定租户已占用的存储字节数
+    /// 统计当前作用域已占用的存储字节数
+    /// </summary>
+    public async Task<long> SumUsedStorageAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(file => file.Status == FileStatus.Normal || file.Status == FileStatus.Uploading)
+            .SumAsync(file => file.FileSize);
+    }
+
+    /// <summary>
+    /// 按租户分组统计当前库里这些租户已占用的存储字节数
     /// </summary>
     public async Task<IReadOnlyDictionary<long, long>> SumUsedStorageByTenantIdsAsync(IReadOnlyCollection<long> tenantIds, CancellationToken cancellationToken = default)
     {
@@ -42,8 +54,7 @@ public sealed class FileRepository(ISqlSugarClientResolver clientResolver)
 
         var ids = tenantIds.Distinct().ToList();
 
-        // 清租户过滤后按 TenantId 精确匹配：读共享过滤器会放行 TenantId=0 的平台级文件，
-        // 依赖它会把平台文件计进每个租户的用量。软删过滤器保持生效，回收站文件不占配额。
+        // 跨租户分组：清租户过滤后按 TenantId 精确匹配。软删过滤器保持生效，回收站文件不占配额。
         var rows = await CreateNoTenantQueryable()
             .Where(file => ids.Contains(file.TenantId))
             .Where(file => file.Status == FileStatus.Normal || file.Status == FileStatus.Uploading)

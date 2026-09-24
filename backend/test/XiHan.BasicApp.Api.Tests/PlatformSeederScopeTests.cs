@@ -3,32 +3,41 @@
 
 using System.Reflection;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.Api.Tests;
 
 /// <summary>
-/// 平台级种子必须在平台租户上下文内播种。
+/// 平台级种子必须在平台租户上下文内播种，且只播平台库。
 /// </summary>
 /// <remarks>
 /// 起因：AI / CodeGeneration / Workflow 三个模块的权限链种子直接继承 DataSeederBase，
 /// 未切平台租户，写出的操作/资源/权限行落在了启动时的租户上下文下而非 TenantId = 0。
 /// 菜单种子按 TenantId = 0 解析权限，查不到即跳过，表现为干净库重建后少了 7 个菜单，
 /// 且只有一条 WRN 日志，其余一切正常。
+/// <para>
+/// 本应用的种子写的都是固定在平台库的实体（目录、角色与授权、配置字典、模板等）：租户独立库初始化只建表，
+/// 不播这些种子——在租户上下文里跑一遍只会把平台数据戳上租户号写进平台库。
+/// </para>
 /// </remarks>
 public sealed class PlatformSeederScopeTests
 {
     /// <summary>
-    /// 明确按租户维度播种、无需平台域的种子。列入即声明「这份数据属于当前租户」。
+    /// 全部业务模块程序集
     /// </summary>
-    private static readonly IReadOnlySet<string> TenantScopedSeeders = new HashSet<string>(StringComparer.Ordinal)
-    {
-        // 代码生成模板：随租户走还是随平台走尚未裁定，维持原行为，待确认后再归位
-        "SysCodeGenTemplateSeeder"
-    };
+    private static readonly Assembly[] AllModuleAssemblies =
+    [
+        typeof(BasicApp.Saas.XiHanBasicAppSaasModule).Assembly,
+        typeof(BasicApp.AI.XiHanBasicAppAIModule).Assembly,
+        typeof(BasicApp.Chat.XiHanBasicAppChatModule).Assembly,
+        typeof(BasicApp.CodeGeneration.XiHanBasicAppCodeGenerationModule).Assembly,
+        typeof(BasicApp.Printing.XiHanBasicAppPrintingModule).Assembly,
+        typeof(BasicApp.Workflow.XiHanBasicAppWorkflowModule).Assembly
+    ];
 
     /// <summary>
-    /// 各业务模块的种子必须继承平台域基类，或显式列入按租户播种的白名单。
+    /// AI / 代码生成 / 工作流的种子必须继承平台域基类（在平台租户上下文内播种）。
     /// </summary>
     [Fact]
     public void ModuleSeeders_ShouldSeedWithinPlatformTenantScope()
@@ -45,40 +54,33 @@ public sealed class PlatformSeederScopeTests
             .Where(type => type is { IsClass: true, IsAbstract: false } && typeof(IDataSeeder).IsAssignableFrom(type))
             .Where(type => !typeof(PlatformDataSeederBase).IsAssignableFrom(type))
             .Where(type => !typeof(PageRegistryMenuSeederBase).IsAssignableFrom(type))
-            .Where(type => !TenantScopedSeeders.Contains(type.Name))
             .Select(type => type.FullName ?? type.Name)
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToList();
 
         Assert.True(violations.Count == 0,
-            $"下列 {violations.Count} 个种子既不在平台租户上下文内播种，也不在按租户播种的白名单内，" +
+            $"下列 {violations.Count} 个种子不在平台租户上下文内播种，" +
             $"其写出的行会落到启动时的租户下，按 TenantId = 0 查找的消费方将静默查不到：" +
             $"{Environment.NewLine}{string.Join(Environment.NewLine, violations)}");
     }
 
     /// <summary>
-    /// 白名单不得残留失效条目：种子已删除或已改为平台域后必须同步移除。
+    /// 所有模块的种子只播平台库：租户独立库初始化不跑它们。
     /// </summary>
     [Fact]
-    public void TenantScopedAllowList_ShouldNotContainStaleEntries()
+    public void AllModuleSeeders_ShouldTargetPlatformDatabaseOnly()
     {
-        Assembly[] moduleAssemblies =
-        [
-            typeof(BasicApp.AI.XiHanBasicAppAIModule).Assembly,
-            typeof(BasicApp.CodeGeneration.XiHanBasicAppCodeGenerationModule).Assembly,
-            typeof(BasicApp.Workflow.XiHanBasicAppWorkflowModule).Assembly
-        ];
-
-        var live = moduleAssemblies
+        var violations = AllModuleAssemblies
             .SelectMany(assembly => assembly.GetTypes())
             .Where(type => type is { IsClass: true, IsAbstract: false } && typeof(IDataSeeder).IsAssignableFrom(type))
-            .Where(type => !typeof(PlatformDataSeederBase).IsAssignableFrom(type))
-            .Select(type => type.Name)
-            .ToHashSet(StringComparer.Ordinal);
+            .Where(type => type.GetCustomAttribute<DataSeedingAttribute>(inherit: true)?.Target != DbInitializationTarget.Platform)
+            .Select(type => type.FullName ?? type.Name)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToList();
 
-        var stale = TenantScopedSeeders.Where(name => !live.Contains(name)).ToList();
-
-        Assert.True(stale.Count == 0,
-            $"下列白名单条目已失效，请移除：{Environment.NewLine}{string.Join(Environment.NewLine, stale)}");
+        Assert.True(violations.Count == 0,
+            $"下列 {violations.Count} 个种子没有声明只播平台库（[DataSeeding(Target = DbInitializationTarget.Platform)]），" +
+            $"租户独立库初始化时会在租户上下文里再跑一遍：" +
+            $"{Environment.NewLine}{string.Join(Environment.NewLine, violations)}");
     }
 }

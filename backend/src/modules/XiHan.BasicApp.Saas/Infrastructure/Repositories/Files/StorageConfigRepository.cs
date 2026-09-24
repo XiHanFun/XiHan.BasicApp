@@ -37,16 +37,4 @@ public sealed class StorageConfigRepository(ISqlSugarClientResolver clientResolv
             .Where(config => config.IsDefault && config.IsEnabled)
             .FirstAsync(cancellationToken);
     }
-
-    /// <summary>
-    /// 按主键跨租户取存储配置
-    /// </summary>
-    public async Task<SysStorageConfig?> GetByIdIgnoreTenantAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        return await CreateNoTenantQueryable()
-            .Where(config => config.BasicId == id)
-            .FirstAsync(cancellationToken);
-    }
 }

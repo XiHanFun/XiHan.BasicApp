@@ -6,7 +6,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Data.SqlSugar.Clients;
-using XiHan.Framework.Data.SqlSugar.Seeders;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 
@@ -14,7 +14,10 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
 /// 代码生成内置模板种子数据
 /// 把 Templates/Backend/*.sbn 与 Templates/Frontend/*.sbn 作为嵌入资源种入 SysCodeGenTemplate(IsBuiltIn=true)
 /// </summary>
-public class SysCodeGenTemplateSeeder : DataSeederBase
+/// <remarks>
+/// 代码生成是平台专属功能，内置模板是平台数据：在平台作用域播、只落平台库。
+/// </remarks>
+public class SysCodeGenTemplateSeeder : PlatformDataSeederBase
 {
     /// <summary>
     /// 内置模板分组
@@ -113,7 +116,7 @@ public class SysCodeGenTemplateSeeder : DataSeederBase
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        var client = DbClient;
+        var client = DbClientFor<SysCodeGenTemplate>();
         var codes = BuiltInTemplates.Select(t => t.Code).ToList();
         var exists = await client.Queryable<SysCodeGenTemplate>().Where(t => codes.Contains(t.TemplateCode)).ToListAsync();
         var existsCodes = exists.Select(x => x.TemplateCode).ToHashSet();

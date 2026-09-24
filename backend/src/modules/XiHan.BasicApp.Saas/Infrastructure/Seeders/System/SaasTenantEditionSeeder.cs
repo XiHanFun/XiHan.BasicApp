@@ -9,12 +9,14 @@ using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 
 /// <summary>
 /// SaaS 租户版本和版本权限种子数据
 /// </summary>
+[DataSeeding(Target = DbInitializationTarget.Platform)]
 public class SaasTenantEditionSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasTenantEditionSeeder> logger,

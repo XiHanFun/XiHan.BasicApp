@@ -19,10 +19,4 @@ public interface IStorageConfigRepository : ISaasRepository<SysStorageConfig>
     /// 获取默认且启用的存储配置
     /// </summary>
     Task<SysStorageConfig?> GetDefaultAsync(CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 按主键跨租户取存储配置
-    /// </summary>
-    /// <remarks>文件记着上传时用的配置：租户未自配时用的是平台默认，读写这些文件要取得到平台那一行。</remarks>
-    Task<SysStorageConfig?> GetByIdIgnoreTenantAsync(long id, CancellationToken cancellationToken = default);
 }

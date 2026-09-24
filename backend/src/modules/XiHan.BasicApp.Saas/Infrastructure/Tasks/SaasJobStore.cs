@@ -130,7 +130,7 @@ public sealed class SaasJobStore : IJobStore
 
         using var scope = _scopeFactory.CreateScope();
         var clientResolver = scope.ServiceProvider.GetRequiredService<ISqlSugarClientResolver>();
-        var db = clientResolver.GetCurrentClient();
+        var db = clientResolver.GetClientForEntity<SysTaskLog>();
 
         var log = new SysTaskLog
         {
@@ -218,7 +218,7 @@ public sealed class SaasJobStore : IJobStore
 
         using var scope = _scopeFactory.CreateScope();
         var clientResolver = scope.ServiceProvider.GetRequiredService<ISqlSugarClientResolver>();
-        var db = clientResolver.GetCurrentClient();
+        var db = clientResolver.GetClientForEntity<SysTaskLog>();
 
         var logs = await db.Queryable<SysTaskLog>()
             .SplitTable()
@@ -285,7 +285,7 @@ public sealed class SaasJobStore : IJobStore
 
         using var scope = _scopeFactory.CreateScope();
         var clientResolver = scope.ServiceProvider.GetRequiredService<ISqlSugarClientResolver>();
-        var db = clientResolver.GetCurrentClient();
+        var db = clientResolver.GetClientForEntity<SysTaskLog>();
 
         // SqlSugar 分表删除：先跨分表查询待删除记录，再按记录逐一删除（分表删除不支持 Where 条件直接批删）
         var expiredLogs = await db.Queryable<SysTaskLog>()

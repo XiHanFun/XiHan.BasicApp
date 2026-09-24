@@ -101,8 +101,7 @@ public sealed class TenantQuotaDomainService
             return;
         }
 
-        var usedBytes = (await _fileRepository.SumUsedStorageByTenantIdsAsync(
-            [tenantId.Value], cancellationToken)).GetValueOrDefault(tenantId.Value);
+        var usedBytes = await _fileRepository.SumUsedStorageAsync(cancellationToken);
         if (usedBytes + incrementBytes > limitMegabytes * BytesPerMegabyte)
         {
             throw new InvalidOperationException(
@@ -142,10 +141,10 @@ public sealed class TenantQuotaDomainService
             : (await _tenantEditionRepository.GetByIdsAsync(editionIds, cancellationToken))
                 .ToDictionary(edition => edition.BasicId);
 
-        // 用量两次分组查询拿全，不按租户逐个统计
+        // 席位（成员关系在平台库）一次分组拿全；存储见 SumUsedStorageAsync
         var presentIds = tenants.Select(tenant => tenant.BasicId).ToList();
         var seatMap = await _tenantUserRepository.CountActiveMembersByTenantIdsAsync(presentIds, DateTimeOffset.UtcNow, cancellationToken);
-        var storageMap = await _fileRepository.SumUsedStorageByTenantIdsAsync(presentIds, cancellationToken);
+        var storageMap = await SumUsedStorageAsync(tenants, cancellationToken);
 
         return tenants.ToDictionary(
             tenant => tenant.BasicId,
@@ -162,6 +161,38 @@ public sealed class TenantQuotaDomainService
                     tenant.StorageLimit ?? edition?.StorageLimit,
                     storageMap.GetValueOrDefault(tenant.BasicId));
             });
+    }
+
+    /// <summary>
+    /// 统计这些租户已占用的存储
+    /// </summary>
+    /// <remarks>
+    /// 文件是租户自己的数据：字段隔离租户的与平台同在平台库，平台作用域下一次分组拿全；
+    /// 库隔离租户的在它自己的库里，逐个切入统计；还没建库的没有文件。
+    /// </remarks>
+    private async Task<Dictionary<long, long>> SumUsedStorageAsync(IReadOnlyList<SysTenant> tenants, CancellationToken cancellationToken)
+    {
+        var fieldIds = tenants
+            .Where(tenant => tenant.IsolationMode != TenantIsolationMode.Database)
+            .Select(tenant => tenant.BasicId)
+            .ToList();
+
+        Dictionary<long, long> usage;
+        using (_currentTenant.Change(null))
+        {
+            usage = new Dictionary<long, long>(await _fileRepository.SumUsedStorageByTenantIdsAsync(fieldIds, cancellationToken));
+        }
+
+        foreach (var tenant in tenants.Where(tenant => tenant.IsolationMode == TenantIsolationMode.Database
+            && tenant.ConfigStatus == TenantConfigStatus.Configured))
+        {
+            using (_currentTenant.Change(tenant.BasicId))
+            {
+                usage[tenant.BasicId] = await _fileRepository.SumUsedStorageAsync(cancellationToken);
+            }
+        }
+
+        return usage;
     }
 
     /// <summary>
