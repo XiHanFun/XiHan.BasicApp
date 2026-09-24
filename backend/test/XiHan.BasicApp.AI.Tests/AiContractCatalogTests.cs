@@ -334,13 +334,34 @@ public sealed class AiContractCatalogTests
     }
 
     /// <summary>
-    /// 本模块当前不登记任何按钮级权限：按钮表非 null 且为空，新增按钮时必须连带补权限种子。
+    /// 按钮登记：码按「页面码.动作」命名且不重复，挂在本模块的菜单页下，权限码是本模块声明（并由权限种子落库）的权限——
+    /// 菜单种子按权限码解析按钮，解析不到就跳过，前端对应的动作便永远不显示。
     /// </summary>
     [Fact]
-    public void PageRegistry_ButtonsShouldBeEmptyUntilButtonLevelPermissionsExist()
+    public void PageRegistry_ButtonsShouldHangUnderModulePagesWithDeclaredPermissions()
     {
-        Assert.NotNull(AiPageRegistry.Buttons);
-        Assert.Empty(AiPageRegistry.Buttons);
+        var pageCodes = AiPageRegistry.All
+            .Where(page => page.MenuType == MenuType.Menu)
+            .Select(page => page.Code)
+            .ToHashSet(StringComparer.Ordinal);
+        var declaredPermissionCodes = typeof(AiPermissionCodes).Assembly.GetTypes()
+            .Where(type => type.Namespace == typeof(AiPermissionCodes).Namespace && type.IsAbstract && type.IsSealed)
+            .SelectMany(type => type.GetFields(BindingFlags.Public | BindingFlags.Static))
+            .Where(field => field.IsLiteral && field.FieldType == typeof(string))
+            .Select(field => (string)field.GetRawConstantValue()!)
+            .Where(code => code.Contains(':', StringComparison.Ordinal))
+            .ToHashSet(StringComparer.Ordinal);
+
+        Assert.NotEmpty(AiPageRegistry.Buttons);
+        Assert.Equal(
+            AiPageRegistry.Buttons.Count,
+            AiPageRegistry.Buttons.Select(button => button.Code).Distinct(StringComparer.Ordinal).Count());
+        Assert.All(AiPageRegistry.Buttons, button =>
+        {
+            Assert.Contains(button.ParentCode, pageCodes);
+            Assert.StartsWith($"{button.ParentCode}.", button.Code, StringComparison.Ordinal);
+            Assert.Contains(button.PermissionCode, declaredPermissionCodes);
+        });
     }
 
     /// <summary>

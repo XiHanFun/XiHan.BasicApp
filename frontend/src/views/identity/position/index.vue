@@ -82,11 +82,11 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => positionApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: t('identity.position.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'create', title: t('identity.position.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.position.create' },
     { key: 'view', title: t('identity.position.view'), scope: 'row' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row' },
-    { key: 'toggle', title: t('identity.position.toggle'), scope: 'row' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', permission: 'identity.position.update' },
+    { key: 'toggle', title: t('identity.position.toggle'), scope: 'row', permission: 'identity.position.status' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', permission: 'identity.position.delete' },
   ],
 }))
 

@@ -166,10 +166,10 @@ const schema = computed<PageSchema>(() => ({
     remove: id => codeGenDataSourceApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('develop.code_gen.datasource.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'create', title: t('develop.code_gen.datasource.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'code_gen.create' },
     { key: 'test', title: t('develop.code_gen.datasource.action_test'), scope: 'row', type: 'info', icon: 'lucide:plug' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'code_gen.update' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'code_gen.delete' },
   ],
 }))
 

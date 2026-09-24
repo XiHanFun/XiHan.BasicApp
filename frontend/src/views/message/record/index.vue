@@ -165,8 +165,8 @@ const emailSchema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'detail', title: t('message.record.action_detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
-    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as EmailListItemDto).emailStatus) },
-    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as EmailListItemDto).emailStatus), permission: 'message.record.resend' },
+    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'message.record.delete' },
   ],
 }))
 
@@ -310,8 +310,8 @@ const smsSchema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'detail', title: t('message.record.action_detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
-    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as SmsListItemDto).smsStatus) },
-    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as SmsListItemDto).smsStatus), permission: 'message.record.resend' },
+    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'message.record.delete' },
   ],
 }))
 

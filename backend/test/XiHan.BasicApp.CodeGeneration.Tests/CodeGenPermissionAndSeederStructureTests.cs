@@ -325,16 +325,34 @@ public sealed class CodeGenPermissionAndSeederStructureTests
     }
 
     /// <summary>
-    /// 本模块暂无独立按钮级权限，按钮登记表必须保持为空。
+    /// 按钮登记：码按「页面码.动作」命名且不重复，挂在本模块的菜单页下，权限码取自 <see cref="CodeGenPermissionCodes"/>——
+    /// 菜单种子按权限码解析按钮，解析不到就跳过，前端对应的动作便永远不显示。
     /// </summary>
-    /// <remarks>
-    /// 一旦这里加了条目，就必须同步在 <see cref="CodeGenPermissionCodes"/> 与权限种子里补上对应权限码，
-    /// 否则菜单种子会因解析不到权限而静默跳过这些按钮。本用例是那次改动的提醒闸。
-    /// </remarks>
     [Fact]
-    public void PageRegistry_ButtonsShouldBeEmpty()
+    public void PageRegistry_ButtonsShouldHangUnderModulePagesWithDeclaredPermissions()
     {
-        Assert.Empty(PageRegistry.Buttons);
+        var pageCodes = PageRegistry.All
+            .Where(page => page.MenuType == MenuType.Menu)
+            .Select(page => page.Code)
+            .ToHashSet(StringComparer.Ordinal);
+        var declaredPermissionCodes = typeof(CodeGenPermissionCodes).Assembly.GetTypes()
+            .Where(type => type.Namespace == typeof(CodeGenPermissionCodes).Namespace && type.IsAbstract && type.IsSealed)
+            .SelectMany(type => type.GetFields(BindingFlags.Public | BindingFlags.Static))
+            .Where(field => field.IsLiteral && field.FieldType == typeof(string))
+            .Select(field => (string)field.GetRawConstantValue()!)
+            .Where(code => code.Contains(':', StringComparison.Ordinal))
+            .ToHashSet(StringComparer.Ordinal);
+
+        Assert.NotEmpty(PageRegistry.Buttons);
+        Assert.Equal(
+            PageRegistry.Buttons.Count,
+            PageRegistry.Buttons.Select(button => button.Code).Distinct(StringComparer.Ordinal).Count());
+        Assert.All(PageRegistry.Buttons, button =>
+        {
+            Assert.Contains(button.ParentCode, pageCodes);
+            Assert.StartsWith($"{button.ParentCode}.", button.Code, StringComparison.Ordinal);
+            Assert.Contains(button.PermissionCode, declaredPermissionCodes);
+        });
     }
 
     /// <summary>

@@ -359,12 +359,12 @@ const schema = computed<PageSchema>(() => ({
     },
   ],
   actions: [
-    { key: 'create', title: t('setting.menu.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'addChild', title: t('setting.menu.add_child'), scope: 'row', icon: 'lucide:plus', visible: row => (row as unknown as MenuListItemDto).menuType !== MenuType.Button },
+    { key: 'create', title: t('setting.menu.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.menu.create' },
+    { key: 'addChild', title: t('setting.menu.add_child'), scope: 'row', icon: 'lucide:plus', visible: row => (row as unknown as MenuListItemDto).menuType !== MenuType.Button, permission: 'setting.menu.create' },
     { key: 'view', title: t('setting.menu.view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: canMaintainMenu },
-    { key: 'toggle', title: t('setting.menu.toggle'), scope: 'row', icon: 'lucide:power', visible: canMaintainMenu },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.menu.confirm_delete'), visible: canMaintainMenu },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: canMaintainMenu, permission: 'setting.menu.update' },
+    { key: 'toggle', title: t('setting.menu.toggle'), scope: 'row', icon: 'lucide:power', visible: canMaintainMenu, permission: 'setting.menu.status' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.menu.confirm_delete'), visible: canMaintainMenu, permission: 'setting.menu.delete' },
   ],
 }))
 

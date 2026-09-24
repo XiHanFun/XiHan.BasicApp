@@ -141,10 +141,10 @@ const schema = computed<PageSchema>(() => ({
     remove: id => aiAssistantApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('develop.ai_assistant.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
-    { key: 'default', title: t('develop.ai_assistant.action_default'), scope: 'row', icon: 'lucide:star', disabled: row => (row as unknown as AiAssistantListItemDto).isDefault },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'create', title: t('develop.ai_assistant.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'ai_assistant.create' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'ai_assistant.update' },
+    { key: 'default', title: t('develop.ai_assistant.action_default'), scope: 'row', icon: 'lucide:star', disabled: row => (row as unknown as AiAssistantListItemDto).isDefault, permission: 'ai_assistant.update' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'ai_assistant.delete' },
   ],
 }))
 

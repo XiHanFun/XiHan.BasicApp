@@ -233,9 +233,9 @@ const requestSchema = computed<PageSchema>(() => ({
     remove: id => permissionRequestApi.delete(id),
   },
   actions: [
-    { key: 'approve', title: t('identity.authorization.req_action_approve'), scope: 'row', type: 'primary', visible: isPending },
-    { key: 'reject', title: t('identity.authorization.req_action_reject'), scope: 'row', visible: isPending },
-    { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row' },
+    { key: 'approve', title: t('identity.authorization.req_action_approve'), scope: 'row', type: 'primary', visible: isPending, permission: 'identity.authorization.audit' },
+    { key: 'reject', title: t('identity.authorization.req_action_reject'), scope: 'row', visible: isPending, permission: 'identity.authorization.audit' },
+    { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row', permission: 'identity.authorization.withdraw' },
   ],
 }))
 
@@ -370,9 +370,9 @@ const delegationSchema = computed<PageSchema>(() => ({
     remove: id => permissionDelegationApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('identity.authorization.del_action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'revoke', title: t('identity.authorization.del_action_revoke'), scope: 'row', visible: canRevoke },
-    { key: 'delete', title: t('identity.authorization.del_action_delete'), scope: 'row' },
+    { key: 'create', title: t('identity.authorization.del_action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.authorization.delegation-create' },
+    { key: 'revoke', title: t('identity.authorization.del_action_revoke'), scope: 'row', visible: canRevoke, permission: 'identity.authorization.delegation-revoke' },
+    { key: 'delete', title: t('identity.authorization.del_action_delete'), scope: 'row', permission: 'identity.authorization.delegation-delete' },
   ],
 }))
 

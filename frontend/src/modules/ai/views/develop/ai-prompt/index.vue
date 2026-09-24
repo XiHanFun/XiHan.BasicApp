@@ -110,9 +110,9 @@ const schema = computed<PageSchema>(() => ({
     remove: id => aiPromptApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('develop.ai_prompt.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'create', title: t('develop.ai_prompt.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'ai_prompt.create' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'ai_prompt.update' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'ai_prompt.delete' },
   ],
 }))
 

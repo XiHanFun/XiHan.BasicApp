@@ -149,11 +149,11 @@ const schema = computed<PageSchema>(() => ({
     remove: id => aiProviderApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('develop.ai_provider.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'test', title: t('develop.ai_provider.action_test'), scope: 'row', type: 'info', icon: 'lucide:plug' },
-    { key: 'default', title: t('develop.ai_provider.action_default'), scope: 'row', icon: 'lucide:star', disabled: row => (row as unknown as AiProviderListItemDto).isDefault },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2' },
+    { key: 'create', title: t('develop.ai_provider.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'ai_provider.create' },
+    { key: 'test', title: t('develop.ai_provider.action_test'), scope: 'row', type: 'info', icon: 'lucide:plug', permission: 'ai_provider.test' },
+    { key: 'default', title: t('develop.ai_provider.action_default'), scope: 'row', icon: 'lucide:star', disabled: row => (row as unknown as AiProviderListItemDto).isDefault, permission: 'ai_provider.update' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'ai_provider.update' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'ai_provider.delete' },
   ],
 }))
 

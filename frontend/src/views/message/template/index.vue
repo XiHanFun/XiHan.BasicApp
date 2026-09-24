@@ -172,11 +172,11 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => messageTemplateApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: t('message.template.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'create', title: t('message.template.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'message.template.create' },
     { key: 'view', title: t('message.template.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'edit', title: t('message.template.action_edit'), scope: 'row', icon: 'lucide:pen', visible: canMaintainTemplate },
-    { key: 'toggle', title: t('message.template.action_toggle'), scope: 'row', icon: 'lucide:power', visible: canMaintainTemplate },
-    { key: 'delete', title: t('message.template.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('message.template.confirm_delete'), visible: canMaintainTemplate },
+    { key: 'edit', title: t('message.template.action_edit'), scope: 'row', icon: 'lucide:pen', visible: canMaintainTemplate, permission: 'message.template.update' },
+    { key: 'toggle', title: t('message.template.action_toggle'), scope: 'row', icon: 'lucide:power', visible: canMaintainTemplate, permission: 'message.template.status' },
+    { key: 'delete', title: t('message.template.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('message.template.confirm_delete'), visible: canMaintainTemplate, permission: 'message.template.delete' },
   ],
 }))
 

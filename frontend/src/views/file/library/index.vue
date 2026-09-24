@@ -26,6 +26,7 @@ import {
 import { Icon, SchemaPage, XDataTable, XInput, XMdEditor, XNumberInput, XPopconfirm, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
+import { usePermission } from '~/hooks'
 import { downloadBlob, formatDate, formatFileSize, getOptionLabel, parseCsvRows } from '~/utils'
 
 defineOptions({ name: 'PlatformFilePage' })
@@ -356,16 +357,16 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'upload', title: t('file.library.actions.upload'), scope: 'page', type: 'primary', icon: 'lucide:upload' },
+    { key: 'upload', title: t('file.library.actions.upload'), scope: 'page', type: 'primary', icon: 'lucide:upload', permission: 'file.library.create' },
     { key: 'preview', title: t('file.library.actions.preview'), scope: 'row', visible: row => canPreview(row as unknown as FileListItemDto) },
     { key: 'download', title: t('file.library.actions.download'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal },
     { key: 'view', title: t('file.library.actions.view'), scope: 'row' },
-    { key: 'metadata', title: t('file.library.actions.metadata'), scope: 'row' },
+    { key: 'metadata', title: t('file.library.actions.metadata'), scope: 'row', permission: 'file.library.update' },
     { key: 'storages', title: t('file.library.actions.storages'), scope: 'row' },
     // 回收站语义：正常文件可「归档」（软删，可恢复）；非正常文件可「恢复」；任意状态可「彻底删除」（物理删，不可恢复）
-    { key: 'archive', title: t('file.library.actions.archive'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal },
-    { key: 'restore', title: t('file.library.actions.restore'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status !== FileStatus.Normal },
-    { key: 'destroy', title: t('file.library.actions.destroy'), scope: 'row', type: 'error' },
+    { key: 'archive', title: t('file.library.actions.archive'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal, permission: 'file.library.status' },
+    { key: 'restore', title: t('file.library.actions.restore'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status !== FileStatus.Normal, permission: 'file.library.status' },
+    { key: 'destroy', title: t('file.library.actions.destroy'), scope: 'row', type: 'error', permission: 'file.library.delete' },
   ],
 }))
 
@@ -901,6 +902,11 @@ async function handleToggleStorageStatus(storage: FileStorageListItemDto) {
   }
 }
 
+const { hasPermission } = usePermission()
+/** 存储副本的写操作：切换主存储是编辑，校验与启停副本是状态维护（与后端 File.Update / File.Status 对应的按钮码） */
+const canUpdateFile = computed(() => hasPermission('file.library.update'))
+const canMaintainStorage = computed(() => hasPermission('file.library.status'))
+
 const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() => [
   {
     key: 'storageType',
@@ -943,9 +949,9 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     render: row => h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
       // 图标钮的说明文字走原生 title：气泡触发器本身是按钮，按钮里再套按钮不合法
       h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', ariaLabel: t('file.library.storage_list.tooltip.detail'), title: t('file.library.storage_list.tooltip.detail'), onClick: () => viewStorageDetail(row.basicId) }, () => h(Icon, { icon: 'lucide:eye' })),
-      h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', tone: 'brand', disabled: row.isPrimary, ariaLabel: row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), title: row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), onClick: () => handleSwitchPrimary(row) }, () => h(Icon, { icon: 'lucide:star' })),
-      h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', tone: 'info', ariaLabel: t('file.library.storage_list.tooltip.verify'), title: t('file.library.storage_list.tooltip.verify'), onClick: () => handleVerifyStorage(row) }, () => h(Icon, { icon: 'lucide:shield-check' })),
-      h(XPopconfirm, { onConfirm: () => handleToggleStorageStatus(row) }, {
+      canUpdateFile.value && h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', tone: 'brand', disabled: row.isPrimary, ariaLabel: row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), title: row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), onClick: () => handleSwitchPrimary(row) }, () => h(Icon, { icon: 'lucide:star' })),
+      canMaintainStorage.value && h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', tone: 'info', ariaLabel: t('file.library.storage_list.tooltip.verify'), title: t('file.library.storage_list.tooltip.verify'), onClick: () => handleVerifyStorage(row) }, () => h(Icon, { icon: 'lucide:shield-check' })),
+      canMaintainStorage.value && h(XPopconfirm, { onConfirm: () => handleToggleStorageStatus(row) }, {
         trigger: () => h(XhButton, {
           iconOnly: true,
           size: 'sm',

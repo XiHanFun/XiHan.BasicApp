@@ -165,12 +165,12 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => appManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: t('openapi.app.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
+    { key: 'create', title: t('openapi.app.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'openapi.app.create' },
     { key: 'view', title: t('openapi.app.action_view'), scope: 'row' },
-    { key: 'edit', title: t('openapi.app.action_edit'), scope: 'row' },
-    { key: 'toggle', title: t('openapi.app.action_toggle'), scope: 'row' },
-    { key: 'secret', title: t('openapi.app.action_secret'), scope: 'row' },
-    { key: 'delete', title: t('openapi.app.action_delete'), scope: 'row' },
+    { key: 'edit', title: t('openapi.app.action_edit'), scope: 'row', permission: 'openapi.app.update' },
+    { key: 'toggle', title: t('openapi.app.action_toggle'), scope: 'row', permission: 'openapi.app.status' },
+    { key: 'secret', title: t('openapi.app.action_secret'), scope: 'row', permission: 'openapi.app.secret' },
+    { key: 'delete', title: t('openapi.app.action_delete'), scope: 'row', permission: 'openapi.app.delete' },
   ],
 }))
 
