@@ -2,6 +2,7 @@
 import type {
   ApiId,
   DateTimeString,
+  NumericString,
   PageResult,
   TenantAdminInitializeDto,
   TenantCreateDto,
@@ -144,7 +145,8 @@ const selectedEdition = computed(() => {
   return editions.value.find(e => e.isDefault) ?? null
 })
 
-function limitPlaceholder(value?: number | null) {
+/** 套餐上限只做展示：席位是 int，存储是 long（按字符串传输），原样拼进文案即可 */
+function limitPlaceholder(value?: number | NumericString | null) {
   if (!selectedEdition.value) {
     return undefined
   }
@@ -248,14 +250,19 @@ function renderQuotaUsage(used: number, limit: number | null | undefined, format
   return h('span', {}, text)
 }
 
-/** 席位用量文本（详情抽屉用） */
-function seatUsageText(used: number, limit?: number | null) {
-  return quotaUsageText(used, limit, value => String(value))
+/** 存储上限（MB，后端 long 按字符串传输）换算成字节；空表示不限 */
+function storageLimitBytes(limitMb?: NumericString | null) {
+  return limitMb == null ? null : Number(limitMb) * BYTES_PER_MB
+}
+
+/** 席位用量文本（详情抽屉用；已用席位是 long，按字符串传输） */
+function seatUsageText(used: NumericString, limit?: number | null) {
+  return quotaUsageText(Number(used), limit, value => String(value))
 }
 
 /** 存储用量文本（详情抽屉用；上限来自套餐、单位 MB） */
-function storageUsageText(usedBytes: number, limitMb?: number | null) {
-  return quotaUsageText(usedBytes, limitMb == null ? null : limitMb * BYTES_PER_MB, formatFileSize)
+function storageUsageText(usedBytes: NumericString, limitMb?: NumericString | null) {
+  return quotaUsageText(Number(usedBytes), storageLimitBytes(limitMb), formatFileSize)
 }
 
 // ── 字段单一事实源:列 + 常用搜索 + 高级搜索 ─────────────────────
@@ -345,7 +352,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 10,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return renderQuotaUsage(r.usedUserCount, r.effectiveUserLimit, value => String(value))
+      return renderQuotaUsage(Number(r.usedUserCount), r.effectiveUserLimit, value => String(value))
     },
   },
   {
@@ -357,11 +364,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 11,
     render: (row) => {
       const r = row as unknown as TenantListItemDto
-      return renderQuotaUsage(
-        r.usedStorageBytes,
-        r.effectiveStorageLimit == null ? null : r.effectiveStorageLimit * BYTES_PER_MB,
-        formatFileSize,
-      )
+      return renderQuotaUsage(Number(r.usedStorageBytes), storageLimitBytes(r.effectiveStorageLimit), formatFileSize)
     },
   },
   { key: 'sort', title: t('tenant.list.sort'), dataType: 'number', sortable: true, minWidth: 80, order: 12 },
@@ -639,6 +642,11 @@ async function handleSaveInitAdmin() {
   }
 }
 
+/** 回填表单：后端 long 按字符串传输，数字输入框要数字 */
+function toNullableNumber(value?: NumericString | null) {
+  return value == null ? null : Number(value)
+}
+
 function createDefaultForm(): TenantFormModel {
   return {
     connectionString: null,
@@ -707,7 +715,7 @@ async function handleEdit(row: TenantListItemDto) {
     logo: detail?.logo ?? row.logo ?? null,
     remark: detail?.remark ?? null,
     sort: detail?.sort ?? row.sort,
-    storageLimit: detail?.storageLimit ?? row.storageLimit ?? null,
+    storageLimit: toNullableNumber(detail?.storageLimit ?? row.storageLimit),
     tenantCode: detail?.tenantCode ?? row.tenantCode,
     tenantName: detail?.tenantName ?? row.tenantName,
     tenantShortName: detail?.tenantShortName ?? row.tenantShortName ?? null,
