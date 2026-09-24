@@ -21,10 +21,10 @@ public sealed class SaasDomainConfigKeyAndConstantTests
     /// <param name="input">调用方传入的原始配置键。</param>
     /// <param name="expected">期望规范化后的配置键。</param>
     [Theory]
-    [InlineData("saas.auth.login.methods", "saas.auth.login.methods")]
-    [InlineData("  saas.auth.login.methods  ", "saas.auth.login.methods")]
-    [InlineData("SAAS.AUTH.LOGIN.METHODS", "saas.auth.login.methods")]
-    [InlineData("Saas.Bot.Telegram.Webhook-Base-Url", "saas.bot.telegram.webhook-base-url")]
+    [InlineData("saas.auth.login", "saas.auth.login")]
+    [InlineData("  saas.auth.login  ", "saas.auth.login")]
+    [InlineData("SAAS.AUTH.LOGIN", "saas.auth.login")]
+    [InlineData("Saas.Bot.Telegram.Webhook-Secret-Token", "saas.bot.telegram.webhook-secret-token")]
     public void Normalize_ShouldTrimAndLowercase(string input, string expected)
     {
         Assert.Equal(expected, SaasConfigKeys.Normalize(input), StringComparer.Ordinal);
@@ -111,8 +111,8 @@ public sealed class SaasDomainConfigKeyAndConstantTests
     /// <param name="configKey">合法配置键。</param>
     [Theory]
     [InlineData("saas.auth")]
-    [InlineData("saas.auth.login.methods")]
-    [InlineData("saas.bot.telegram.webhook-base-url")]
+    [InlineData("saas.auth.login")]
+    [InlineData("saas.bot.telegram.webhook-secret-token")]
     [InlineData("saas.a1.b2c3")]
     public void Validate_WellFormedKey_ShouldPass(string configKey)
     {

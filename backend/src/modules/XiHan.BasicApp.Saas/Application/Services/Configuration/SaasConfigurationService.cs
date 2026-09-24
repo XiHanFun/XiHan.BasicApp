@@ -1,7 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using System.Globalization;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -16,7 +16,15 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 public sealed class SaasConfigurationService
     : ISaasConfigurationService
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    /// <summary>
+    /// 配置值的 JSON 约定：camelCase 属性名，数字不接受字符串形式，不可空的字段不接受 null；写出的中文不转义，参数页里可直接阅读和修改
+    /// </summary>
+    public static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict,
+        RespectNullableAnnotations = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
 
     private readonly ISaasConfigValueQueryService _configValueQueryService;
 
@@ -39,39 +47,9 @@ public sealed class SaasConfigurationService
     }
 
     /// <summary>
-    /// 获取布尔配置。
+    /// 按类型读取 JSON 配置。
     /// </summary>
-    public async Task<bool> GetBooleanAsync(string configKey, bool defaultValue = false, CancellationToken cancellationToken = default)
-    {
-        var value = await GetStringAsync(configKey, defaultValue.ToString(CultureInfo.InvariantCulture), cancellationToken);
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return defaultValue;
-        }
-
-        return value.Trim().ToLowerInvariant() switch
-        {
-            "1" or "true" or "yes" or "y" or "on" => true,
-            "0" or "false" or "no" or "n" or "off" => false,
-            _ => defaultValue
-        };
-    }
-
-    /// <summary>
-    /// 获取整型配置。
-    /// </summary>
-    public async Task<int> GetInt32Async(string configKey, int defaultValue = 0, CancellationToken cancellationToken = default)
-    {
-        var value = await GetStringAsync(configKey, defaultValue.ToString(CultureInfo.InvariantCulture), cancellationToken);
-        return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result)
-            ? result
-            : defaultValue;
-    }
-
-    /// <summary>
-    /// 获取字符串列表配置。
-    /// </summary>
-    public async Task<IReadOnlyList<string>> GetStringListAsync(string configKey, IReadOnlyList<string> defaultValue, CancellationToken cancellationToken = default)
+    public async Task<T> GetJsonAsync<T>(string configKey, T defaultValue, CancellationToken cancellationToken = default)
     {
         var value = await GetStringAsync(configKey, null, cancellationToken);
         if (string.IsNullOrWhiteSpace(value))
@@ -79,23 +57,15 @@ public sealed class SaasConfigurationService
             return defaultValue;
         }
 
-        var normalized = value.Trim();
-        if (normalized.StartsWith("[", StringComparison.Ordinal))
+        try
         {
-            var parsed = JsonSerializer.Deserialize<List<string>>(normalized, JsonOptions) ?? [];
-            return parsed
-                .Where(static item => !string.IsNullOrWhiteSpace(item))
-                .Select(static item => item.Trim())
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+            return JsonSerializer.Deserialize<T>(value, JsonOptions)
+                ?? throw new InvalidOperationException($"配置 {configKey} 的值是 null，不是合法的 {typeof(T).Name}。");
         }
-
-        var items = normalized
-            .Split([',', ';', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Where(static item => !string.IsNullOrWhiteSpace(item))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
-        return items.Count == 0 ? defaultValue : items;
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException($"配置 {configKey} 的值不是合法的 {typeof(T).Name}：{exception.Message}", exception);
+        }
     }
 
     /// <summary>
@@ -103,40 +73,29 @@ public sealed class SaasConfigurationService
     /// </summary>
     public async Task<LoginConfigDto> GetLoginConfigAsync(CancellationToken cancellationToken = default)
     {
-        // 登录模型为「先登录后选租户」，登录页不再提供租户选择（落点由后端按成员关系决定）
-        var loginMethods = await GetStringListAsync(SaasConfigKeys.Auth.LoginMethods, ["password"], cancellationToken);
-        var oauthProviders = await GetOAuthProvidersAsync(cancellationToken);
+        // 登录模型为「先登录后选租户」，登录页不提供租户选择（落点由后端按成员关系决定）
+        var settings = await GetJsonAsync(SaasConfigKeys.Auth.Login, new SaasLoginSettings(), cancellationToken);
+        var methods = settings.Methods
+            .Where(static method => !string.IsNullOrWhiteSpace(method))
+            .Select(static method => method.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        if (methods.Count == 0)
+        {
+            throw new InvalidOperationException($"配置 {SaasConfigKeys.Auth.Login} 至少要开放一种登录方式。");
+        }
 
         return new LoginConfigDto
         {
-            LoginMethods = loginMethods.Count == 0 ? ["password"] : [.. loginMethods],
-            OAuthProviders = oauthProviders
-        };
-    }
-
-    private async Task<List<OAuthProviderItemDto>> GetOAuthProvidersAsync(CancellationToken cancellationToken)
-    {
-        var value = await GetStringAsync(SaasConfigKeys.Auth.OAuthProviders, "[]", cancellationToken);
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return [];
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<List<OAuthProviderItemDto>>(value, JsonOptions)?
+            LoginMethods = methods,
+            OAuthProviders = [.. settings.OAuthProviders
                 .Where(static provider => !string.IsNullOrWhiteSpace(provider.Name))
                 .Select(static provider => new OAuthProviderItemDto
                 {
                     Name = provider.Name.Trim(),
                     DisplayName = string.IsNullOrWhiteSpace(provider.DisplayName) ? provider.Name.Trim() : provider.DisplayName.Trim()
-                })
-                .ToList() ?? [];
-        }
-        catch (JsonException exception)
-        {
-            throw new InvalidOperationException($"配置 {SaasConfigKeys.Auth.OAuthProviders} 必须是 OAuth 提供商 JSON 数组。", exception);
-        }
+                })]
+        };
     }
 
     private async Task<SaasConfigValueCacheItem> GetValueItemAsync(string configKey, CancellationToken cancellationToken)

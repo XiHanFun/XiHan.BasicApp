@@ -283,15 +283,20 @@ public sealed partial class AuthAppService
     }
 
     /// <summary>
-    /// 读取模仿会话存活时长配置，越界回落到上下限
+    /// 读取模仿登录设置
+    /// </summary>
+    private Task<SaasImpersonationSettings> GetImpersonationSettingsAsync(CancellationToken cancellationToken)
+    {
+        return _saasConfigurationService.GetJsonAsync(SaasConfigKeys.Auth.Impersonation, new SaasImpersonationSettings(), cancellationToken);
+    }
+
+    /// <summary>
+    /// 读取模仿会话存活时长配置，越界按上下限归一
     /// </summary>
     private async Task<TimeSpan> ResolveImpersonationLifetimeAsync(CancellationToken cancellationToken)
     {
-        var minutes = await _saasConfigurationService.GetInt32Async(
-            SaasConfigKeys.Auth.ImpersonationSessionMinutes,
-            ImpersonationDefaults.DefaultSessionMinutes,
-            cancellationToken);
-        return ImpersonationDefaults.NormalizeSessionLifetime(minutes);
+        var settings = await GetImpersonationSettingsAsync(cancellationToken);
+        return ImpersonationDefaults.NormalizeSessionLifetime(settings.SessionMinutes);
     }
 
     /// <summary>
@@ -304,11 +309,8 @@ public sealed partial class AuthAppService
         TimeSpan lifetime,
         CancellationToken cancellationToken)
     {
-        var notifyEnabled = await _saasConfigurationService.GetBooleanAsync(
-            SaasConfigKeys.Auth.ImpersonationNotifyTarget,
-            true,
-            cancellationToken);
-        if (!notifyEnabled)
+        var settings = await GetImpersonationSettingsAsync(cancellationToken);
+        if (!settings.NotifyTarget)
         {
             return;
         }

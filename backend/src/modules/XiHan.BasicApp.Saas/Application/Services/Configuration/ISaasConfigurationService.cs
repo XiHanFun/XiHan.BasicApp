@@ -6,32 +6,31 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 namespace XiHan.BasicApp.Saas.Application.Services;
 
 /// <summary>
-/// SaaS 运行时配置服务。
+/// SaaS 运行时配置服务
 /// </summary>
+/// <remarks>
+/// 读的是参数配置（SysConfig），租户里有同键配置时取租户的，否则取平台的。
+/// 同一功能的设置合成一条 JSON 配置，用 <see cref="GetJsonAsync{T}"/> 按类型读出。
+/// </remarks>
 public interface ISaasConfigurationService
 {
     /// <summary>
-    /// 获取字符串配置。
+    /// 获取字符串配置（未配置时返回默认值）
     /// </summary>
     Task<string?> GetStringAsync(string configKey, string? defaultValue = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取布尔配置。
+    /// 按类型读取 JSON 配置（数字、布尔、数组、对象都按 JSON 解析）
     /// </summary>
-    Task<bool> GetBooleanAsync(string configKey, bool defaultValue = false, CancellationToken cancellationToken = default);
+    /// <remarks>未配置或值为空时返回默认值；值不是合法的对应类型直接报错，不静默退回默认值。</remarks>
+    /// <typeparam name="T">设置类型</typeparam>
+    /// <param name="configKey">配置键</param>
+    /// <param name="defaultValue">未配置时的默认值</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task<T> GetJsonAsync<T>(string configKey, T defaultValue, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取整型配置。
-    /// </summary>
-    Task<int> GetInt32Async(string configKey, int defaultValue = 0, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 获取字符串列表配置。
-    /// </summary>
-    Task<IReadOnlyList<string>> GetStringListAsync(string configKey, IReadOnlyList<string> defaultValue, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 获取登录配置。
+    /// 获取登录配置
     /// </summary>
     Task<LoginConfigDto> GetLoginConfigAsync(CancellationToken cancellationToken = default);
 }

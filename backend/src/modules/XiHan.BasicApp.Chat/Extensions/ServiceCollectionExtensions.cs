@@ -27,7 +27,7 @@ public static class ServiceCollectionExtensions
         _ = services.AddDataSeeder<ChatMenuSeeder>();             // 401
         _ = services.AddDataSeeder<ChatRolePermissionSeeder>();   // 402
         _ = services.AddDataSeeder<ChatTaskSeeder>();             // 403
-        _ = services.AddDataSeeder<ChatConfigurationSeeder>();    // 404
+        _ = services.AddDataSeeder<ChatSettingSeeder>();    // 404
         return services;
     }
 

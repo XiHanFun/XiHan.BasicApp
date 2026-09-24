@@ -22,7 +22,7 @@ public static class SessionLockReasons
     public const string ScreenLock = "ScreenLock";
 
     /// <summary>
-    /// 强制改密：使用默认密码登录成功即锁定会话，客户端引导改密页；修改密码成功自动解锁
+    /// 强制改密：开启强制改密且密码由他人设置时，登录成功即锁定会话，客户端引导改密；修改密码成功自动解锁
     /// </summary>
     public const string PasswordChangeRequired = "PasswordChangeRequired";
 }

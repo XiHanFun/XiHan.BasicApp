@@ -345,6 +345,7 @@ public sealed class UserDomainService
         security.Password = _passwordHasher.HashPassword(command.NewPassword);
         security.LastPasswordChangeTime = now;
         security.PasswordExpirationTime = command.PasswordExpirationTime;
+        security.PasswordChangeRequired = !command.BySelf;
         security.FailedLoginAttempts = 0;
         security.LastFailedLoginTime = null;
         security.SecurityStamp = NewSecurityStamp();
@@ -1790,6 +1791,8 @@ public sealed class UserDomainService
             UserId = user.BasicId,
             Password = passwordHash,
             LastPasswordChangeTime = now,
+            // 初始密码由管理员设置
+            PasswordChangeRequired = true,
             FailedLoginAttempts = 0,
             IsLocked = false,
             TwoFactorEnabled = false,

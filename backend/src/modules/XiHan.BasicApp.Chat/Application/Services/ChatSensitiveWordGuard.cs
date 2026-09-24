@@ -1,10 +1,9 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Chat.Domain.Configurations;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.Framework.Core.DependencyInjection.ServiceLifetimes;
-using XiHan.Framework.Data.SqlSugar.Clients;
 
 namespace XiHan.BasicApp.Chat.Application.Services;
 
@@ -23,30 +22,19 @@ public interface IChatSensitiveWordGuard
 /// 聊天敏感词守卫实现
 /// </summary>
 /// <remarks>
-/// 词库来自 SysConfig 键 <c>chat:sensitive-words</c>（全局 TenantId=0，换行/中英文逗号/分号分隔，空=关闭），
-/// 经系统设置页维护；进程内缓存 60s（词库变更最迟一分钟生效），OrdinalIgnoreCase 包含匹配。
+/// 词库是聊天策略（<see cref="ChatConfigKeys.Policy"/>）里的敏感词数组，租户有同键配置时用租户的；
+/// 配置值查询自带缓存且在修改配置时失效。不区分大小写的包含匹配，命中即拒绝。
 /// </remarks>
 public sealed class ChatSensitiveWordGuard : IChatSensitiveWordGuard, IScopedDependency
 {
-    /// <summary>
-    /// 敏感词配置键（系统设置页维护）
-    /// </summary>
-    public const string ConfigKey = "chat:sensitive-words";
-
-    private const int CacheSeconds = 60;
-
-    private static readonly char[] Separators = ['\n', '\r', ',', '，', ';', '；', '、'];
-
-    private static volatile CachedWords? _cache;
-
-    private readonly ISqlSugarClientResolver _clientResolver;
+    private readonly ISaasConfigurationService _configuration;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ChatSensitiveWordGuard(ISqlSugarClientResolver clientResolver)
+    public ChatSensitiveWordGuard(ISaasConfigurationService configuration)
     {
-        _clientResolver = clientResolver;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -59,44 +47,13 @@ public sealed class ChatSensitiveWordGuard : IChatSensitiveWordGuard, IScopedDep
             return;
         }
 
-        var words = await GetWordsAsync(cancellationToken);
-        if (words.Count == 0)
+        var policy = await _configuration.GetJsonAsync(ChatConfigKeys.Policy, new ChatPolicySettings(), cancellationToken);
+        foreach (var word in policy.SensitiveWords.Where(static word => !string.IsNullOrWhiteSpace(word)))
         {
-            return;
-        }
-
-        foreach (var word in words)
-        {
-            if (content.Contains(word, StringComparison.OrdinalIgnoreCase))
+            if (content.Contains(word.Trim(), StringComparison.OrdinalIgnoreCase))
             {
                 throw new InvalidOperationException("消息包含敏感词，已被拦截。");
             }
         }
     }
-
-    private async Task<IReadOnlyList<string>> GetWordsAsync(CancellationToken cancellationToken)
-    {
-        var cache = _cache;
-        if (cache is not null && DateTimeOffset.UtcNow - cache.LoadedAt < TimeSpan.FromSeconds(CacheSeconds))
-        {
-            return cache.Words;
-        }
-
-        var raw = await _clientResolver.GetClientForEntity<SysConfig>()
-            .Queryable<SysConfig>()
-            .Where(config => config.ConfigKey == ConfigKey && config.TenantId == 0 && config.Status == EnableStatus.Enabled)
-            .Select(config => config.ConfigValue)
-            .FirstAsync(cancellationToken);
-
-        var words = string.IsNullOrWhiteSpace(raw)
-            ? []
-            : raw.Split(Separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-        _cache = new CachedWords(words, DateTimeOffset.UtcNow);
-        return words;
-    }
-
-    private sealed record CachedWords(IReadOnlyList<string> Words, DateTimeOffset LoadedAt);
 }

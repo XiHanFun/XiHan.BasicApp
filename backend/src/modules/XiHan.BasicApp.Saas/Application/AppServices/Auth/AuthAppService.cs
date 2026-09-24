@@ -17,6 +17,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Configurations;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Events;
@@ -476,7 +477,7 @@ public sealed partial class AuthAppService
         try
         {
             await _userDomainService.ResetUserPasswordAsync(
-                new UserPasswordResetCommand(user.BasicId, newPassword, PasswordExpirationTime: null, Remark: "找回密码-自助重置"),
+                new UserPasswordResetCommand(user.BasicId, newPassword, PasswordExpirationTime: null, Remark: "找回密码-自助重置", BySelf: true),
                 cancellationToken);
         }
         catch (InvalidOperationException ex)
@@ -632,9 +633,6 @@ public sealed partial class AuthAppService
             now,
             cancellationToken);
 
-        // 默认密码登录 → 会话创建即锁定（强制改密）；两条成功路径共用同一判定
-        var initialLockReason = ResolveInitialLockReason(password);
-
         // 票据只替代图形验证码、不替代密码：出示的票据必须属于本次密码认证出的用户，
         // 否则作废并视同过期（不区分错票与他人票，避免票据被当作用户枚举探针）
         if (twoFactorTicket is not null && ticketPayload is not null && authResult.User is not null && ticketPayload.UserId != authResult.User.BasicId)
@@ -661,8 +659,8 @@ public sealed partial class AuthAppService
             // 已提交验证码：按所选方式校验，未通过抛出（记录失败事件）；通过则继续往下签发令牌
             await VerifyTwoFactorCodeOrThrowAsync(twoFactorUser, security, availableMethods, input.TwoFactorMethod, input.TwoFactorCode, tenantId: null, now, login, cancellationToken);
 
-            await NotifyDefaultPasswordLoginIfNeededAsync(twoFactorUser, initialLockReason, cancellationToken);
-            var twoFactorToken = await IssueLoginTokenWithLandingAsync(twoFactorUser, security, login, input.DeviceId, now, initialLockReason, cancellationToken);
+            var twoFactorLockReason = await ResolveInitialLockReasonAsync(twoFactorUser, security, cancellationToken);
+            var twoFactorToken = await IssueLoginTokenWithLandingAsync(twoFactorUser, security, login, input.DeviceId, now, twoFactorLockReason, cancellationToken);
             await RevokeTwoFactorTicketAsync(twoFactorTicket, cancellationToken);
             return new LoginResponseDto
             {
@@ -690,7 +688,7 @@ public sealed partial class AuthAppService
         }
 
         var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
-        await NotifyDefaultPasswordLoginIfNeededAsync(user, initialLockReason, cancellationToken);
+        var initialLockReason = await ResolveInitialLockReasonAsync(user, authResult.Security, cancellationToken);
         var token = await IssueLoginTokenWithLandingAsync(user, authResult.Security, login, input.DeviceId, now, initialLockReason, cancellationToken);
         // 两步验证在中途被关闭时带票也会走到这里：登录已完成，票据同样作废
         await RevokeTwoFactorTicketAsync(twoFactorTicket, cancellationToken);
@@ -1336,33 +1334,30 @@ public sealed partial class AuthAppService
     /// 邮箱+IP 频率限制：同一邮箱+IP 在窗口期（60s）内只允许一次，防刷验证码/重置链接。超限抛友好异常。
     /// </summary>
     /// <summary>
-    /// 判定本次登录是否需要初始锁定（默认密码登录 → 强制改密锁）
+    /// 判定本次登录是否要先改密：参数「密码设置」的 forceChange 开启，且这个账号的密码由他人设置
     /// </summary>
-    private string? ResolveInitialLockReason(string password)
+    /// <remarks>要改密时会话创建即锁定（只放行改密、登出、刷新），并提醒用户去改密；提醒失败不影响锁定。</remarks>
+    private async Task<string?> ResolveInitialLockReasonAsync(SysUser user, SysUserSecurity? security, CancellationToken cancellationToken)
     {
-        return DefaultPasswordPolicy.IsDefaultPassword(password, _configuration[DefaultPasswordPolicy.SeedPasswordConfigKey])
-            ? SessionLockReasons.PasswordChangeRequired
-            : null;
-    }
-
-    /// <summary>
-    /// 默认密码登录时发送安全告警（尽力而为：通知失败不阻断登录主流程，会话锁才是硬约束）
-    /// </summary>
-    private async Task NotifyDefaultPasswordLoginIfNeededAsync(SysUser user, string? initialLockReason, CancellationToken cancellationToken)
-    {
-        if (initialLockReason != SessionLockReasons.PasswordChangeRequired)
+        if (security?.PasswordChangeRequired != true)
         {
-            return;
+            return null;
+        }
+
+        var settings = await _saasConfigurationService.GetJsonAsync(SaasConfigKeys.Auth.Password, new SaasPasswordSettings(), cancellationToken);
+        if (!settings.ForceChange)
+        {
+            return null;
         }
 
         try
         {
             await _userNotificationDispatchService.DispatchToUserAsync(
                 user.BasicId,
-                "检测到默认密码登录",
-                "您的账号正在使用系统默认密码，会话已被限制。请立即前往「个人中心 - 账号安全」修改密码，修改后即可正常使用。",
+                "请先修改密码",
+                "你的密码由管理员设置，按平台要求需要先修改密码才能继续使用。请前往「个人中心 - 账号安全」修改。",
                 NotificationType.Security,
-                businessType: "auth.default-password",
+                businessType: "auth.password-change-required",
                 businessId: user.BasicId,
                 link: "/workbench/profile",
                 icon: "lucide:shield-alert",
@@ -1370,8 +1365,10 @@ public sealed partial class AuthAppService
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "默认密码登录告警通知发送失败 UserId={UserId}", user.BasicId);
+            _logger.LogWarning(ex, "改密提醒发送失败 UserId={UserId}", user.BasicId);
         }
+
+        return SessionLockReasons.PasswordChangeRequired;
     }
 
     private async Task EnsureNotRateLimitedAsync(string scope, string email, CancellationToken cancellationToken)

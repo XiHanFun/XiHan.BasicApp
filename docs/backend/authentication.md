@@ -93,7 +93,7 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 
 ::: warning 两份清单必须对齐
 **能不能登**由 `XiHan:Authentication:OAuth:Providers` 决定（它注册出 AuthenticationScheme）；
-**登录页画几个按钮**由运行时配置 `saas.auth.oauth.providers`（存库）决定。
+**登录页画几个按钮**由参数 `saas.auth.login` 的 `oauthProviders`（存库）决定。
 两边的 `Name` / `name` 对不上就会点出一个不存在的方案，回跳 `error=challenge_failed`。
 :::
 

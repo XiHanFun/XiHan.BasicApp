@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 public static class ImpersonationDefaults
 {
     /// <summary>
-    /// 模仿会话默认存活分钟数（可由配置 <c>saas.auth.impersonation.session-minutes</c> 覆盖）。
+    /// 模仿会话默认存活分钟数（可由参数 <c>saas.auth.impersonation</c> 的 sessionMinutes 覆盖）。
     /// </summary>
     public const int DefaultSessionMinutes = 30;
 

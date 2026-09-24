@@ -90,6 +90,7 @@ public sealed class ProfileDomainService
         security.Password = _passwordHasher.HashPassword(command.NewPassword);
         security.LastPasswordChangeTime = now;
         security.PasswordExpirationTime = null;
+        security.PasswordChangeRequired = false;
         security.SecurityStamp = NewSecurityStamp();
         security.FailedLoginAttempts = 0;
         security.LastFailedLoginTime = null;

@@ -5,7 +5,9 @@
 -- 三、数据范围覆盖从账号挪到成员关系（见后文）。
 -- 四、数据范围权限码收口为「查看 / 设置」（见后文）。
 -- 五、导出任务记下发起会话与模仿者（见后文）。
--- 六、租户所有者角色改为系统角色（见文末）。
+-- 六、租户所有者角色改为系统角色（见后文）。
+-- 七、账号新增「需要本人改密」标记（见后文）。
+-- 八、参数配置按功能合并为一条 JSON（见文末）。
 --
 -- 只在 5.3.0 之前建的库上执行：新建的库（平台库与库隔离租户的独立库）按当前实体建表后直接登记为最新版本，不跑本脚本。
 -- 本脚本在建表之后、播种之前执行；建表只建缺失的表，存量表的新列、改名由本脚本补齐。
@@ -161,3 +163,226 @@ UPDATE sys_user_role AS ur
           AND tu.user_id = ur.user_id
           AND tu.member_type = 0
           AND tu.is_deleted = false);
+
+-- 七、账号新增「需要本人改密」标记。
+-- 密码由他人设置（管理员创建或重置、平台开通、种子写入）时置位，本人改密或找回密码后清除；
+-- 参数 saas.auth.password 的 forceChange 开启时，置位的账号登录后先锁定到改密为止（默认关闭）。
+-- 取代原先「用内置默认密码登录即锁定」的判定；存量账号无从知道密码由谁设置，一律按未置位处理。
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables
+                WHERE table_schema = current_schema() AND table_name = 'sys_user_security') THEN
+        ALTER TABLE sys_user_security ADD COLUMN IF NOT EXISTS password_change_required bool NULL;
+
+        UPDATE sys_user_security
+           SET password_change_required = false
+         WHERE password_change_required IS NULL;
+
+        ALTER TABLE sys_user_security ALTER COLUMN password_change_required SET NOT NULL;
+
+        COMMENT ON COLUMN sys_user_security.password_change_required IS '是否需要本人改密';
+    END IF;
+END
+$$;
+
+-- 八、参数配置按功能合并为一条 JSON。
+--   saas.auth.login.methods + saas.auth.oauth.providers          → saas.auth.login（methods / oauthProviders）
+--   saas.auth.impersonation.session-minutes + .notify-target     → saas.auth.impersonation（sessionMinutes / notifyTarget）
+--   saas.bot.telegram.* 共 9 项                                  → saas.bot.telegram（Webhook 密钥令牌加密存储，仍单列不动）
+--   chat:retention-days + chat:sensitive-words                   → chat.policy（retentionDays / sensitiveWords）
+--   saas:log:retention-days                                      → saas.log.retention-days
+-- 合并后读到的值与合并前一致：
+--   - 登录、模仿、Telegram 原先经配置服务读取，租户的行优先、平台的行兜底，按上下文（平台与每个有旧行的租户）逐个合并，
+--     每个字段取本上下文启用的行，没有再取平台启用的行；空白或解析不了的值原先按默认值处理，合并后不写这个字段，照样按默认值运行；
+--   - 聊天与日志原先只读平台的行，只合并平台的；租户的旧行原本不生效，直接删除（合并后租户的同键参数会生效，不能把它们带过去）。
+-- 合并结果写回本上下文的一条旧行（优先启用的行；改键、改值、改类型，启停不变），其余旧行删除；本上下文已有新键时只删旧行。
+-- 元数据与参数种子一致，平台的行随后由种子再对齐一次。
+
+-- 旧参数在某上下文的有效值：本上下文启用的行优先、平台启用的行兜底，去掉首尾空白，空白视为未配置。
+CREATE OR REPLACE FUNCTION pg_temp.xihan_old_config(p_tenant_id int8, p_key text) RETURNS text
+LANGUAGE plpgsql AS $f$
+DECLARE
+    v_value text;
+BEGIN
+    SELECT config_value INTO v_value
+      FROM sys_config
+     WHERE config_key = p_key AND is_deleted = false AND status = 1 AND tenant_id IN (p_tenant_id, 0)
+     ORDER BY (tenant_id = p_tenant_id) DESC, basic_id
+     LIMIT 1;
+    RETURN NULLIF(btrim(v_value, E' \t\r\n'), '');
+END
+$f$;
+
+-- 原布尔解析：1/true/yes/y/on 与 0/false/no/n/off，其余按默认值（返回 NULL，不写字段）。
+CREATE OR REPLACE FUNCTION pg_temp.xihan_old_bool(p_value text) RETURNS jsonb
+LANGUAGE sql IMMUTABLE AS $f$
+    SELECT CASE
+               WHEN lower(p_value) IN ('1', 'true', 'yes', 'y', 'on') THEN 'true'::jsonb
+               WHEN lower(p_value) IN ('0', 'false', 'no', 'n', 'off') THEN 'false'::jsonb
+           END
+$f$;
+
+-- 原整数解析：32 位整数，其余按默认值（返回 NULL，不写字段）。
+CREATE OR REPLACE FUNCTION pg_temp.xihan_old_int(p_value text) RETURNS jsonb
+LANGUAGE plpgsql AS $f$
+BEGIN
+    -- 先判格式再转换：同一个条件里的 AND 不保证求值顺序
+    IF p_value !~ '^[+-]?[0-9]{1,10}$' THEN
+        RETURN NULL;
+    END IF;
+    IF p_value::int8 NOT BETWEEN -2147483648 AND 2147483647 THEN
+        RETURN NULL;
+    END IF;
+    RETURN to_jsonb(p_value::int4);
+END
+$f$;
+
+-- 原分隔文本解析：按分隔符拆开、去空白、去空项，按首次出现的顺序大小写不敏感去重。
+CREATE OR REPLACE FUNCTION pg_temp.xihan_old_list(p_value text, p_separators text) RETURNS jsonb
+LANGUAGE sql IMMUTABLE AS $f$
+    SELECT COALESCE(jsonb_agg(item ORDER BY position), '[]'::jsonb)
+      FROM (SELECT DISTINCT ON (lower(item)) item, position
+              FROM (SELECT btrim(part, E' \t') AS item, position
+                      FROM regexp_split_to_table(p_value, p_separators) WITH ORDINALITY AS parts (part, position)) AS split
+             WHERE item <> ''
+             ORDER BY lower(item), position) AS items
+$f$;
+
+-- 把一个上下文的旧行合成新键：写回其中一条旧行，删除其余旧行。
+CREATE OR REPLACE FUNCTION pg_temp.xihan_merge_config(
+    p_tenant_id int8, p_old_keys text[], p_new_key text, p_value text,
+    p_name text, p_group text, p_data_type int4, p_default text, p_description text, p_sort int4) RETURNS void
+LANGUAGE plpgsql AS $f$
+DECLARE
+    v_keeper int8;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM sys_config WHERE tenant_id = p_tenant_id AND config_key = p_new_key AND is_deleted = false) THEN
+        SELECT basic_id INTO v_keeper
+          FROM sys_config
+         WHERE tenant_id = p_tenant_id AND config_key = ANY (p_old_keys) AND is_deleted = false
+         ORDER BY status DESC, basic_id
+         LIMIT 1;
+
+        IF v_keeper IS NOT NULL THEN
+            UPDATE sys_config
+               SET config_key = p_new_key,
+                   config_value = COALESCE(p_value, p_default),
+                   config_name = p_name,
+                   config_group = p_group,
+                   config_type = 5,
+                   data_type = p_data_type,
+                   default_value = p_default,
+                   config_description = p_description,
+                   is_encrypted = false,
+                   sort = p_sort
+             WHERE basic_id = v_keeper;
+        END IF;
+    END IF;
+
+    DELETE FROM sys_config WHERE tenant_id = p_tenant_id AND config_key = ANY (p_old_keys);
+END
+$f$;
+
+DO $$
+DECLARE
+    v_login_keys text[] := ARRAY['saas.auth.login.methods', 'saas.auth.oauth.providers'];
+    v_impersonation_keys text[] := ARRAY['saas.auth.impersonation.session-minutes', 'saas.auth.impersonation.notify-target'];
+    v_telegram_keys text[] := ARRAY[
+        'saas.bot.telegram.enabled', 'saas.bot.telegram.webhook-base-url', 'saas.bot.telegram.webhook-route-prefix',
+        'saas.bot.telegram.manager-refresh-seconds', 'saas.bot.telegram.config-cache-seconds', 'saas.bot.telegram.enable-fallback-reply',
+        'saas.bot.telegram.proxy-url', 'saas.bot.telegram.base-url', 'saas.bot.telegram.timeout-seconds'];
+    v_chat_keys text[] := ARRAY['chat:retention-days', 'chat:sensitive-words'];
+    v_log_keys text[] := ARRAY['saas:log:retention-days'];
+    v_tenant_id int8;
+    v_methods text;
+    v_value jsonb;
+    v_network jsonb;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.tables
+                    WHERE table_schema = current_schema() AND table_name = 'sys_config') THEN
+        RETURN;
+    END IF;
+
+    -- 登录设置：methods 原为 JSON 数组或逗号 / 分号 / 竖线分隔的文本；oauthProviders 原为 JSON 数组（写错原本就报错，这里同样报错）
+    FOR v_tenant_id IN SELECT DISTINCT tenant_id FROM sys_config WHERE config_key = ANY (v_login_keys) ORDER BY tenant_id LOOP
+        v_methods := pg_temp.xihan_old_config(v_tenant_id, 'saas.auth.login.methods');
+        v_value := jsonb_strip_nulls(jsonb_build_object(
+            'methods', CASE WHEN v_methods LIKE '[%' THEN v_methods::jsonb ELSE pg_temp.xihan_old_list(v_methods, '[,;|]+') END,
+            'oauthProviders', pg_temp.xihan_old_config(v_tenant_id, 'saas.auth.oauth.providers')::jsonb));
+        IF v_value -> 'methods' = '[]'::jsonb THEN
+            v_value := v_value - 'methods';
+        END IF;
+
+        PERFORM pg_temp.xihan_merge_config(
+            v_tenant_id, v_login_keys, 'saas.auth.login', NULLIF(v_value, '{}'::jsonb)::text,
+            '登录设置', 'auth', 3, '{"methods":["password"],"oauthProviders":[]}',
+            '登录页开放的登录方式（methods）与展示的第三方登录（oauthProviders，name 须与已注册的认证方案一致）', 10);
+    END LOOP;
+
+    -- 模仿登录设置
+    FOR v_tenant_id IN SELECT DISTINCT tenant_id FROM sys_config WHERE config_key = ANY (v_impersonation_keys) ORDER BY tenant_id LOOP
+        v_value := jsonb_strip_nulls(jsonb_build_object(
+            'sessionMinutes', pg_temp.xihan_old_int(pg_temp.xihan_old_config(v_tenant_id, 'saas.auth.impersonation.session-minutes')),
+            'notifyTarget', pg_temp.xihan_old_bool(pg_temp.xihan_old_config(v_tenant_id, 'saas.auth.impersonation.notify-target'))));
+
+        PERFORM pg_temp.xihan_merge_config(
+            v_tenant_id, v_impersonation_keys, 'saas.auth.impersonation', NULLIF(v_value, '{}'::jsonb)::text,
+            '模仿登录设置', 'auth', 3, '{"sessionMinutes":30,"notifyTarget":true}',
+            'sessionMinutes：模仿会话存活分钟数（按 1~480 归一）；notifyTarget：是否向被模仿者投递安全通知', 30);
+    END LOOP;
+
+    -- Telegram 机器人平台设置
+    FOR v_tenant_id IN SELECT DISTINCT tenant_id FROM sys_config WHERE config_key = ANY (v_telegram_keys) ORDER BY tenant_id LOOP
+        v_network := jsonb_strip_nulls(jsonb_build_object(
+            'proxyUrl', to_jsonb(pg_temp.xihan_old_config(v_tenant_id, 'saas.bot.telegram.proxy-url')),
+            'baseUrl', to_jsonb(pg_temp.xihan_old_config(v_tenant_id, 'saas.bot.telegram.base-url')),
+            'timeoutSeconds', pg_temp.xihan_old_int(pg_temp.xihan_old_config(v_tenant_id, 'saas.bot.telegram.timeout-seconds'))));
+        v_value := jsonb_strip_nulls(jsonb_build_object(
+            'enabled', pg_temp.xihan_old_bool(pg_temp.xihan_old_config(v_tenant_id, 'saas.bot.telegram.enabled')),
+            'webhookBaseUrl', to_jsonb(pg_temp.xihan_old_config(v_tenant_id, 'saas.bot.telegram.webhook-base-url')),
+            'webhookRoutePrefix', to_jsonb(pg_temp.xihan_old_config(v_tenant_id, 'saas.bot.telegram.webhook-route-prefix')),
+            'managerRefreshSeconds', pg_temp.xihan_old_int(pg_temp.xihan_old_config(v_tenant_id, 'saas.bot.telegram.manager-refresh-seconds')),
+            'configCacheSeconds', pg_temp.xihan_old_int(pg_temp.xihan_old_config(v_tenant_id, 'saas.bot.telegram.config-cache-seconds')),
+            'enableFallbackReply', pg_temp.xihan_old_bool(pg_temp.xihan_old_config(v_tenant_id, 'saas.bot.telegram.enable-fallback-reply')),
+            'network', NULLIF(v_network, '{}'::jsonb)));
+
+        PERFORM pg_temp.xihan_merge_config(
+            v_tenant_id, v_telegram_keys, 'saas.bot.telegram', NULLIF(v_value, '{}'::jsonb)::text,
+            'Telegram 机器人平台设置', 'bot', 3,
+            '{"enabled":false,"webhookBaseUrl":"","webhookRoutePrefix":"/api/telegram-bot/webhook","managerRefreshSeconds":5,"configCacheSeconds":5,"enableFallbackReply":false,"network":{"proxyUrl":"","baseUrl":"","timeoutSeconds":100}}',
+            'enabled 总开关；webhookBaseUrl 留空走长轮询；webhookRoutePrefix 接收路由前缀；managerRefreshSeconds / configCacheSeconds 刷新与缓存周期；enableFallbackReply 兜底回复；network 代理、自建 API 地址与超时',
+            100);
+    END LOOP;
+
+    -- 聊天策略：只合并平台的；保留天数原为整数（写错原本就让清理任务失败，这里同样报错），敏感词原为分隔文本
+    DELETE FROM sys_config WHERE tenant_id <> 0 AND config_key = ANY (v_chat_keys);
+    IF EXISTS (SELECT 1 FROM sys_config WHERE tenant_id = 0 AND config_key = ANY (v_chat_keys)) THEN
+        v_value := jsonb_strip_nulls(jsonb_build_object(
+            'retentionDays', to_jsonb(pg_temp.xihan_old_config(0, 'chat:retention-days')::int4),
+            'sensitiveWords', pg_temp.xihan_old_list(pg_temp.xihan_old_config(0, 'chat:sensitive-words'), '[\n\r,，;；、]+')));
+        IF v_value -> 'sensitiveWords' = '[]'::jsonb THEN
+            v_value := v_value - 'sensitiveWords';
+        END IF;
+
+        PERFORM pg_temp.xihan_merge_config(
+            0, v_chat_keys, 'chat.policy', NULLIF(v_value, '{}'::jsonb)::text,
+            '聊天策略', 'chat', 3, '{"retentionDays":365,"sensitiveWords":[]}',
+            'retentionDays：消息保留天数（清理任务物理删除更早的消息）；sensitiveWords：敏感词数组，空表示不拦截', 10);
+    END IF;
+
+    -- 日志保留天数：只改键（值原本就是整数文本）
+    DELETE FROM sys_config WHERE tenant_id <> 0 AND config_key = ANY (v_log_keys);
+    IF EXISTS (SELECT 1 FROM sys_config WHERE tenant_id = 0 AND config_key = ANY (v_log_keys)) THEN
+        PERFORM pg_temp.xihan_merge_config(
+            0, v_log_keys, 'saas.log.retention-days', pg_temp.xihan_old_config(0, 'saas:log:retention-days'),
+            '日志保留天数', 'log', 1, '180',
+            '访问、接口、异常、操作、差异、登录日志的保留天数，清理任务删除更早的记录', 200);
+    END IF;
+END
+$$;
+
+DROP FUNCTION pg_temp.xihan_merge_config(int8, text[], text, text, text, text, int4, text, text, int4);
+DROP FUNCTION pg_temp.xihan_old_list(text, text);
+DROP FUNCTION pg_temp.xihan_old_int(text);
+DROP FUNCTION pg_temp.xihan_old_bool(text);
+DROP FUNCTION pg_temp.xihan_old_config(int8, text);

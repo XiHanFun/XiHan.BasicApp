@@ -72,7 +72,8 @@ public static class UserSecurityApplicationMapper
     public static UserPasswordResetCommand ToPasswordResetCommand(UserPasswordResetDto input)
     {
         ArgumentNullException.ThrowIfNull(input);
-        return new UserPasswordResetCommand(input.UserId, input.NewPassword, input.PasswordExpirationTime, input.Remark);
+        // 管理员重置：密码由他人设置，标记需要本人改密
+        return new UserPasswordResetCommand(input.UserId, input.NewPassword, input.PasswordExpirationTime, input.Remark, BySelf: false);
     }
 
     /// <summary>

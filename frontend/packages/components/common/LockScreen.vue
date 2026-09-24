@@ -140,7 +140,7 @@ usePageScrollLock(() => lockMode.value !== 'off')
           </form>
         </template>
 
-        <!-- ③ 强制改密：默认密码登录被服务端锁定（仅放行改密/登出/刷新），改密成功自动解锁 -->
+        <!-- ③ 强制改密：密码由他人设置且开启强制改密时被服务端锁定（仅放行改密/登出/刷新），改密成功自动解锁 -->
         <template v-else-if="lockMode === 'password-change'">
           <div class="lock-screen-hint">
             {{ t('component.lock_screen.change_password_hint') }}

@@ -71,7 +71,7 @@ public sealed class SaasTaskSeeder(
             TenantId = 0,
             TaskCode = "log-retention-cleanup",
             TaskName = "日志保留清理",
-            TaskDescription = "按保留期（全局配置 saas:log:retention-days，默认 180 天）删除访问/操作/异常/登录/差异/开放接口/权限变更 7 类按月分表日志的过期行，防止分月表无限增长",
+            TaskDescription = "按保留期（参数 saas.log.retention-days，默认 180 天）删除访问/操作/异常/登录/差异/开放接口/权限变更 7 类按月分表日志的过期行，防止分月表无限增长",
             TaskGroup = "system",
             TaskClass = typeof(LogRetentionCleanupTask).FullName!,
             TaskMethod = nameof(LogRetentionCleanupTask.ExecuteAsync),

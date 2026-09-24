@@ -117,7 +117,9 @@ public sealed class TenantProvisionDomainService
         {
             UserId = adminUser.BasicId,
             Password = passwordHash,
-            LastPasswordChangeTime = DateTimeOffset.UtcNow
+            LastPasswordChangeTime = DateTimeOffset.UtcNow,
+            // 初始密码由平台设置
+            PasswordChangeRequired = true
         }, cancellationToken);
 
         await _tenantUserRepository.AddAsync(new SysTenantUser

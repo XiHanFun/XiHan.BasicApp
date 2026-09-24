@@ -493,7 +493,7 @@ export default {
     password_mismatch: 'दोनों प्रविष्टियाँ मेल नहीं खातीं',
     lock_failed: 'लॉक करना विफल रहा',
     unlock_failed: 'अनलॉक करना विफल रहा',
-    change_password_hint: 'डिफ़ॉल्ट पासवर्ड से लॉगिन का पता चला, कृपया आगे बढ़ने से पहले पासवर्ड बदलें',
+    change_password_hint: 'आपका पासवर्ड व्यवस्थापक ने सेट किया है, कृपया आगे बढ़ने से पहले पासवर्ड बदलें',
     change_old_password_placeholder: 'वर्तमान पासवर्ड',
     change_new_password_placeholder: 'नया पासवर्ड',
     change_password_btn: 'पासवर्ड बदलें और अनलॉक करें',

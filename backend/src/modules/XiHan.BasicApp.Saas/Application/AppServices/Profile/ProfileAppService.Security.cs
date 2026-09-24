@@ -55,7 +55,7 @@ public sealed partial class ProfileAppService
     }
 
     /// <summary>
-    /// 当前会话若处于强制改密锁定（默认密码登录），修改密码成功后解除锁定并立即失效会话状态缓存。
+    /// 当前会话若处于强制改密锁定（密码由他人设置且开启了强制改密），修改密码成功后解除锁定并立即失效会话状态缓存。
     /// 其它原因的锁定（锁屏等）不受影响。
     /// </summary>
     private async Task ReleasePasswordChangeLockIfNeededAsync(CancellationToken cancellationToken)

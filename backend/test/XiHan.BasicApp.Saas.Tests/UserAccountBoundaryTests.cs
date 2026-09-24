@@ -75,7 +75,7 @@ public sealed class UserAccountBoundaryTests
             () => fixture.Service.UpdateUserStatusAsync(new UserStatusChangeCommand(UserId, EnableStatus.Disabled, null)),
             () => fixture.Service.DeleteUserAsync(UserId),
             () => fixture.Service.UpdateUserLockAsync(new UserLockChangeCommand(UserId, true, null, null)),
-            () => fixture.Service.ResetUserPasswordAsync(new UserPasswordResetCommand(UserId, "Reset@Probe123", null, null))
+            () => fixture.Service.ResetUserPasswordAsync(new UserPasswordResetCommand(UserId, "Reset@Probe123", null, null, BySelf: false))
         };
 
         foreach (var operation in operations)
@@ -183,7 +183,7 @@ public sealed class UserAccountBoundaryTests
         };
     }
 
-    private static UserCreateCommand CreateCommand()
+    internal static UserCreateCommand CreateCommand()
     {
         return new UserCreateCommand(
             UserName: "boundary_probe",
@@ -209,7 +209,7 @@ public sealed class UserAccountBoundaryTests
     /// <summary>
     /// 被测服务与依赖替身
     /// </summary>
-    private sealed class Fixture
+    internal sealed class Fixture
     {
         public Fixture(long? tenantId)
         {
