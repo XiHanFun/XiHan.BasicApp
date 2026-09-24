@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.Framework.Core.Exceptions;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
@@ -53,6 +54,22 @@ public sealed class GlobalTemplateBoundaryTests
 
         Assert.Contains("租户成员", exception.Message, StringComparison.Ordinal);
         fixture.Roles.Verify(repo => repo.DeleteAsync(It.IsAny<SysRole>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    /// <summary>
+    /// 系统角色的编码保留给系统流程：手工建同码角色会被当成超管或所有者角色来理解
+    /// </summary>
+    [Theory]
+    [InlineData("super_admin")]
+    [InlineData("TENANT_OWNER")]
+    public async Task CreateRole_WithReservedCode_IsRejected(string roleCode)
+    {
+        var fixture = new RoleFixture(roleTenantId: 7, contextTenantId: 7);
+
+        _ = await Assert.ThrowsAsync<UserFriendlyException>(() => fixture.Service.CreateRoleAsync(
+            new RoleCreateCommand(roleCode, "角色", null, RoleType.Custom, 0, EnableStatus.Enabled, 0, null)));
+
+        fixture.Roles.Verify(repo => repo.AddAsync(It.IsAny<SysRole>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     #endregion

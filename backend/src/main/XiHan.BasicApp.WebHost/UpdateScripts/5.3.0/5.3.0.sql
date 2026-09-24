@@ -4,7 +4,8 @@
 -- 二、会话标识改为全局唯一（见后文）。
 -- 三、数据范围覆盖从账号挪到成员关系（见后文）。
 -- 四、数据范围权限码收口为「查看 / 设置」（见后文）。
--- 五、导出任务记下发起会话与模仿者（见文末）。
+-- 五、导出任务记下发起会话与模仿者（见后文）。
+-- 六、租户所有者角色改为系统角色（见文末）。
 --
 -- 只在 5.3.0 之前建的库上执行：新建的库（平台库与库隔离租户的独立库）按当前实体建表后直接登记为最新版本，不跑本脚本。
 -- 本脚本在建表之后、播种之前执行；建表只建缺失的表，存量表的新列、改名由本脚本补齐。
@@ -137,3 +138,26 @@ ALTER TABLE sys_export_task ADD COLUMN IF NOT EXISTS impersonator_tenant_id int8
 COMMENT ON COLUMN sys_export_task.requester_session_id IS '发起会话标识';
 COMMENT ON COLUMN sys_export_task.impersonator_user_id IS '模仿者用户主键';
 COMMENT ON COLUMN sys_export_task.impersonator_tenant_id IS '模仿者所在租户';
+
+-- 租户所有者角色改为系统角色：持有者在所属租户拿到租户生效的全部权限，再经套餐白名单收窄，不再靠授权行，
+-- 套餐升级、新增权限码都即时反映。开通时建的 tenant_owner 原是自定义角色、按当时的白名单写了授权行，升级后补不上；
+-- 这里改成系统角色（租户里不能再编辑、授予或移出，随所有权转移移交），删掉那些授权行，
+-- 并让它只留在所有者身上：不是所有者（成员类型 0）的人手里的这条绑定置为无效（0）。
+UPDATE sys_role
+   SET role_type = 0, max_members = 1
+ WHERE role_code = 'tenant_owner' AND tenant_id > 0 AND role_type <> 0;
+
+DELETE FROM sys_role_permission
+ WHERE role_id IN (SELECT basic_id FROM sys_role WHERE role_code = 'tenant_owner' AND tenant_id > 0);
+
+UPDATE sys_user_role AS ur
+   SET status = 0
+ WHERE ur.status <> 0
+   AND ur.role_id IN (SELECT basic_id FROM sys_role WHERE role_code = 'tenant_owner' AND tenant_id > 0)
+   AND NOT EXISTS (
+       SELECT 1
+         FROM sys_tenant_user AS tu
+        WHERE tu.tenant_id = ur.tenant_id
+          AND tu.user_id = ur.user_id
+          AND tu.member_type = 0
+          AND tu.is_deleted = false);

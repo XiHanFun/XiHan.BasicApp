@@ -185,6 +185,7 @@ function timestampModel(
 }
 const accessStore = useAccessStore()
 const canManageSupportMember = computed(() => accessStore.hasCode('tenant.list.support-member'))
+const canTransferOwner = computed(() => accessStore.hasCode('tenant.list.transfer-owner'))
 const supportMemberVisible = ref(false)
 const supportMemberLoading = ref(false)
 const supportMemberForm = ref<SupportMemberFormModel>(createDefaultSupportMemberForm())
@@ -851,6 +852,44 @@ function isRemovableSupportMember(item: TenantMemberListItemDto) {
   return item.memberType === TenantMemberType.PlatformAdmin && item.status === ValidityStatus.Valid
 }
 
+/**
+ * 能接任所有者的成员：租户已有所有者（还没有的走初始化管理员），成员已接受邀请、有效、在生效期内，
+ * 且不是支持人员、不是现任所有者（与后端校验同口径）
+ */
+function isOwnerCandidate(item: TenantMemberListItemDto) {
+  return currentDetail.value?.hasOwner === true
+    && item.memberType !== TenantMemberType.Owner
+    && item.memberType !== TenantMemberType.PlatformAdmin
+    && item.inviteStatus === TenantMemberInviteStatus.Accepted
+    && item.status === ValidityStatus.Valid
+    && !item.isExpired
+    && (item.effectiveTime == null || new Date(item.effectiveTime).getTime() <= Date.now())
+}
+
+function handleTransferOwner(item: TenantMemberListItemDto) {
+  const tenant = currentDetail.value
+  if (!tenant) {
+    return
+  }
+  void dialog.confirm({
+    badge: 'warning',
+    title: t('tenant.list.transfer_owner_title'),
+    content: t('tenant.list.transfer_owner_content', { name: resolveMemberName(item) ?? item.userId, tenant: tenant.tenantName }),
+    okText: t('tenant.list.transfer_owner'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        await tenantManagementApi.members.transferOwner({ tenantId: tenant.basicId, memberId: item.basicId })
+        toast.success(t('tenant.list.transfer_owner_success'))
+        await loadMembers()
+      }
+      catch (error) {
+        toast.danger((error as Error)?.message || t('tenant.list.transfer_owner_failed'))
+      }
+    },
+  })
+}
+
 function handleRemoveSupportMember(item: TenantMemberListItemDto) {
   const tenant = currentDetail.value
   if (!tenant) {
@@ -1215,6 +1254,14 @@ async function handleSubmit() {
                           </td>
                           <td>{{ formatNullableDate(item.createdTime) }}</td>
                           <td>
+                            <XhButton
+                              v-if="canTransferOwner && isOwnerCandidate(item)"
+                              variant="subtle"
+                              size="sm"
+                              @click="handleTransferOwner(item)"
+                            >
+                              {{ t('tenant.list.transfer_owner') }}
+                            </XhButton>
                             <XhButton
                               v-if="canManageSupportMember && isRemovableSupportMember(item)"
                               variant="subtle"

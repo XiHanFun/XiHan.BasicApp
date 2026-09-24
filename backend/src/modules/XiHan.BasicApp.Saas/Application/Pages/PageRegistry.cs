@@ -115,6 +115,8 @@ public static class PageRegistry
          new("tenant.list", "租户列表", "menu.tenant_list", MenuType.Menu, "/tenant/list", "TenantList", "tenant/list/index", "tenant", SaasPermissionCodes.Tenant.Read, "lucide:building", 210),
         // [3.2] 版本套餐
          new("tenant.edition", "版本套餐", "menu.tenant_edition", MenuType.Menu, "/tenant/edition", "TenantEdition", "tenant/edition/index", "tenant", SaasPermissionCodes.TenantEdition.Read, "lucide:package", 220),
+        // [3.3] 我的订阅（租户侧：本租户的版本、到期与用量；平台侧的租户列表、版本套餐在租户里不出现）
+         new("tenant.subscription", "我的订阅", "menu.tenant_subscription", MenuType.Menu, "/tenant/subscription", "TenantSubscription", "tenant/subscription/index", "tenant", SaasPermissionCodes.TenantSubscription.Read, "lucide:receipt-text", 230),
 
         // [4] 消息中心
          new("message", "消息中心", "menu.message", MenuType.Directory, "/message", "Message", null, null, null, "lucide:mail", 500, "/message/notification"),
@@ -277,6 +279,7 @@ public static class PageRegistry
          new("tenant.list.delete", "删除", "tenant.list", SaasPermissionCodes.Tenant.Delete, 5),
          new("tenant.list.support-member", "支持人员入驻", "tenant.list", SaasPermissionCodes.Tenant.SupportMember, 6),
          new("tenant.list.init-admin", "初始化管理员", "tenant.list", SaasPermissionCodes.Tenant.Create, 7),
+         new("tenant.list.transfer-owner", "所有权转移", "tenant.list", SaasPermissionCodes.Tenant.TransferOwner, 8),
          new("tenant.list.export", "导出", "tenant.list", SaasPermissionCodes.Tenant.Export, 9),
 
         // [3.2] 版本套餐

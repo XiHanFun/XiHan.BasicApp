@@ -194,16 +194,23 @@ public sealed class SaasSampleIdentitySeeder(
             .GroupBy(department => department.DepartmentCode, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.First().BasicId, StringComparer.OrdinalIgnoreCase);
 
+        var ownerRoleId = await EnsureOwnerRoleAsync(client, tenantId);
         var userCreated = 0;
         foreach (var userSeed in UserSeeds)
         {
             var (userId, created) = await EnsureUserAsync(client, tenantId, userSeed);
             userCreated += created ? 1 : 0;
             await EnsureUserSecurityAsync(client, tenantId, userId, userSeed.Password);
-            await EnsureMembershipAsync(client, tenantId, userId, userSeed.MemberType);
+            var memberType = await EnsureMembershipAsync(client, tenantId, userId, userSeed.MemberType);
             if (roleIdByCode.TryGetValue(userSeed.RoleCode, out var roleId))
             {
                 await EnsureUserRoleAsync(client, tenantId, userId, roleId);
+            }
+
+            // 按库里的成员类型挂所有者角色：所有权转移过的租户，种子不能把角色又挂回原所有者
+            if (memberType == TenantMemberType.Owner)
+            {
+                await EnsureUserRoleAsync(client, tenantId, userId, ownerRoleId);
             }
 
             if (departmentIdByCode.TryGetValue(userSeed.DepartmentCode, out var departmentId))
@@ -215,6 +222,24 @@ public sealed class SaasSampleIdentitySeeder(
         Logger.LogInformation(
             "演示身份种子已就绪（角色 {RoleCount} 个本次新增 {RoleCreated}，账号 {UserCount} 个本次新增 {UserCreated}）",
             RoleSeeds.Count, roleCreated, UserSeeds.Count, userCreated);
+    }
+
+    /// <summary>
+    /// 所有者角色：与真实开通同一定义（系统角色，权限由授权快照按套餐整体给出，不写授权行）
+    /// </summary>
+    private static async Task<long> EnsureOwnerRoleAsync(ISqlSugarClient client, long tenantId)
+    {
+        var existing = await client.Queryable<SysRole>()
+            .FirstAsync(role => role.TenantId == tenantId && role.RoleCode == SaasRoleCodes.TenantOwner);
+        if (existing is not null)
+        {
+            return existing.BasicId;
+        }
+
+        var role = SysRole.CreateTenantOwnerRole();
+        role.TenantId = tenantId;
+        var saved = await client.Insertable(role).ExecuteReturnEntityAsync();
+        return saved.BasicId;
     }
 
     private static async Task<(long RoleId, bool Created)> EnsureRoleAsync(ISqlSugarClient client, long tenantId, RoleSeed seed)
@@ -301,13 +326,16 @@ public sealed class SaasSampleIdentitySeeder(
         return (saved.BasicId, true);
     }
 
-    private static async Task EnsureMembershipAsync(ISqlSugarClient client, long tenantId, long userId, TenantMemberType memberType)
+    /// <summary>
+    /// 确保成员关系存在，返回库里的成员类型（已有的不改）
+    /// </summary>
+    private static async Task<TenantMemberType> EnsureMembershipAsync(ISqlSugarClient client, long tenantId, long userId, TenantMemberType memberType)
     {
         var exists = await client.Queryable<SysTenantUser>()
             .FirstAsync(member => member.TenantId == tenantId && member.UserId == userId);
         if (exists is not null)
         {
-            return;
+            return exists.MemberType;
         }
 
         var member = new SysTenantUser
@@ -321,6 +349,7 @@ public sealed class SaasSampleIdentitySeeder(
             Remark = "系统初始化演示成员关系",
         };
         _ = await client.Insertable(member).ExecuteReturnEntityAsync();
+        return memberType;
     }
 
     private static async Task EnsureUserRoleAsync(ISqlSugarClient client, long tenantId, long userId, long roleId)

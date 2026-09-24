@@ -309,6 +309,19 @@ describe('易写错的控制器归属', () => {
     ])
     expect(calls[1]?.config?.params).toEqual({ tenantId: '7', memberId: '9' })
   })
+
+  it('所有权转移挂在 Tenant 控制器下、方法名整体作路由，参数走 body', async () => {
+    const input = { tenantId: '7', memberId: '9' }
+    await tenantMemberApi.transferOwner(input)
+
+    expect(only()).toMatchObject({ method: 'POST', url: '/Tenant/TransferTenantOwner', body: input })
+  })
+
+  it('租户看自己的订阅走 TenantQuery 的只读 GET，不带租户参数', async () => {
+    await tenantApi.mySubscription()
+
+    expect(only()).toMatchObject({ method: 'GET', url: '/TenantQuery/MySubscription' })
+  })
 })
 
 describe('管理页聚合详情的查询参数名', () => {

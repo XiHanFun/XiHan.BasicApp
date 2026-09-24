@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Localization.Abstractions;
@@ -591,6 +592,15 @@ public sealed class RoleDomainService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(command.RoleCode);
         ArgumentException.ThrowIfNullOrWhiteSpace(command.RoleName);
+
+        // 系统角色的编码保留给系统流程，手工建的同码角色会与之混淆
+        var roleCode = command.RoleCode.Trim();
+        if (string.Equals(roleCode, SaasRoleCodes.SuperAdmin, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(roleCode, SaasRoleCodes.TenantOwner, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new UserFriendlyException("该角色编码为系统角色保留，请换一个编码。");
+        }
+
         ValidateCommonCommand(command.RoleType, command.MaxMembers);
         ValidateEnum(command.Status, nameof(command.Status));
     }

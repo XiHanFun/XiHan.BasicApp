@@ -32,6 +32,16 @@ public static class TenantMemberApplicationMapper
     }
 
     /// <summary>
+    /// 映射所有权转移命令
+    /// </summary>
+    public static TenantOwnerTransferCommand ToOwnerTransferCommand(TenantOwnerTransferDto input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantOwnerTransferCommand(input.TenantId, input.MemberId);
+    }
+
+    /// <summary>
     /// 映射支持人员入驻命令
     /// </summary>
     public static TenantSupportMemberAddCommand ToSupportAddCommand(TenantSupportMemberAddDto input, long? operatorUserId)

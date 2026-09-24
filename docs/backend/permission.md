@@ -52,7 +52,7 @@ module : resource : action
 
 用户通过**角色**获得权限码集合。角色是权限分配单元：
 
-- `SysRole`：承载一组权限，通过 `SysUserRole` 赋给用户。`RoleType` 分 `System`（平台预置，必须 `TenantId=0`）/ `Business` / `Custom`（租户自建，不可全局化）。平台基线只预置 `super_admin`（`TenantId=0` 的 `System` 角色）；租户开通时自动创建 Owner 角色 `tenant_owner` 并按版本白名单批量授权。
+- `SysRole`：承载一组权限，通过 `SysUserRole` 赋给用户。`RoleType` 分 `System` / `Business` / `Custom`（租户自建，不可全局化）。系统角色只有两个，都不写授权行、由授权快照按上下文整体给权限：平台的 `super_admin`（`TenantId=0`，平台里带 `*` 与平台生效的全部权限）和各租户开通时建的 `tenant_owner`（`TenantId=本租户`，租户生效的全部权限再经套餐收窄）。系统角色的定义与成员只由系统流程维护，租户里不能编辑、授予、撤销或停用，编码保留。
 - `SysRolePermission`：角色↔权限绑定，字段含 `PermissionAction`（`Grant`/`Deny`）、生效/失效时间（`EffectiveTime`/`ExpirationTime`）、`GrantReason`（关联审批单/工单，审计追溯）。
 - `SysUserRole`：用户↔角色绑定（用户"持有"角色）。
 
@@ -207,7 +207,7 @@ FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**�
 
 - `EditionId` + `PermissionId` 唯一，`PermissionId` 指向 `TenantId=0` 的全局权限（`IsGlobal=true`），且作用侧必须含租户（平台侧权限进不了租户）。
 - 租户可用权限集 = `SysTenant.EditionId` → 此表 → 可用 `PermissionId` 集；租户管理员分配角色/用户权限时须在此集合内选择。
-- 版本升级（如 Basic → Pro）增量写入新增权限；开通版本时一站式创建 Owner 角色并按白名单批量授权。
+- 版本升级（如 Basic → Pro）只改白名单与租户所绑版本；租户所有者的权限由授权快照按白名单整体给出，升级即时生效，其他角色的授权由租户按需授予。
 
 版本门控有**运行时**与**持久回收**两层，互为兜底：
 

@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 
@@ -25,6 +26,8 @@ public sealed class AuthorizationSnapshotSideTests
     private const long SuperAdminRoleId = 1;
     private const long TenantAdminRoleId = 2;
     private const long PlatformOpsRoleId = 3;
+    private const long TenantOwnerRoleId = 4;
+    private const long ImpostorOwnerRoleId = 5;
 
     private const long TenantCreateId = 101;
     private const long DepartmentReadId = 102;
@@ -50,7 +53,9 @@ public sealed class AuthorizationSnapshotSideTests
     [
         Role(SuperAdminRoleId, "super_admin", 0),
         Role(TenantAdminRoleId, "tenant_admin", TenantId),
-        Role(PlatformOpsRoleId, "platform_ops", 0)
+        Role(PlatformOpsRoleId, "platform_ops", 0),
+        Role(TenantOwnerRoleId, SaasRoleCodes.TenantOwner, TenantId, RoleType.System),
+        Role(ImpostorOwnerRoleId, SaasRoleCodes.TenantOwner, TenantId, RoleType.Custom)
     ];
 
     /// <summary>
@@ -153,6 +158,54 @@ public sealed class AuthorizationSnapshotSideTests
 
         Assert.Equal(["saas:user:read"], snapshot.Permissions);
         Assert.Equal([UserReadId], snapshot.PermissionIds);
+    }
+
+    /// <summary>
+    /// 租户所有者：持有本租户的所有者系统角色，不靠授权行就拿到租户生效的全部权限，再由套餐收窄；
+    /// 平台侧的码仍作为上下文拒绝码下发，也没有通配 *
+    /// </summary>
+    [Fact]
+    public async Task TenantOwner_GetsWholeEditionWithoutGrants()
+    {
+        BindRole(TenantOwnerRoleId, bindingTenantId: TenantId);
+        BindEdition(DepartmentReadId, UserReadId);
+
+        using var scope = _currentTenant.Change(TenantId);
+        var snapshot = await CreateService().BuildAsync(UserId, DateTimeOffset.UtcNow);
+
+        Assert.Equal(["saas:department:read", "saas:user:read"], snapshot.Permissions);
+        Assert.DoesNotContain("*", snapshot.Permissions);
+        Assert.Contains("saas:tenant:create", snapshot.ContextDeniedCodes);
+    }
+
+    /// <summary>
+    /// 所有者角色只在所属租户成立：带到平台什么也不给
+    /// </summary>
+    [Fact]
+    public async Task TenantOwnerBinding_DoesNotCarryIntoPlatform()
+    {
+        BindRole(TenantOwnerRoleId, bindingTenantId: TenantId);
+
+        using var scope = _currentTenant.Change(0);
+        var snapshot = await CreateService().BuildAsync(UserId, DateTimeOffset.UtcNow);
+
+        Assert.Empty(snapshot.Permissions);
+    }
+
+    /// <summary>
+    /// 同码的自定义角色不是所有者角色：只按它自己的授权行算
+    /// </summary>
+    [Fact]
+    public async Task CustomRoleWithOwnerCode_GetsOnlyItsGrants()
+    {
+        BindRole(ImpostorOwnerRoleId, bindingTenantId: TenantId);
+        GrantRole(ImpostorOwnerRoleId, UserReadId);
+        BindEdition(DepartmentReadId, UserReadId);
+
+        using var scope = _currentTenant.Change(TenantId);
+        var snapshot = await CreateService().BuildAsync(UserId, DateTimeOffset.UtcNow);
+
+        Assert.Equal(["saas:user:read"], snapshot.Permissions);
     }
 
     /// <summary>
@@ -343,12 +396,13 @@ public sealed class AuthorizationSnapshotSideTests
         return permission;
     }
 
-    private static SysRole Role(long id, string code, long tenantId)
+    private static SysRole Role(long id, string code, long tenantId, RoleType roleType = RoleType.Custom)
     {
         var role = new SysRole
         {
             RoleCode = code,
             RoleName = code,
+            RoleType = roleType,
             TenantId = tenantId,
             Status = EnableStatus.Enabled
         };

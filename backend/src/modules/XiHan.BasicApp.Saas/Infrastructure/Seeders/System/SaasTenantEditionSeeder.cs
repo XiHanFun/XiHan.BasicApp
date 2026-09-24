@@ -484,6 +484,7 @@ public class SaasTenantEditionSeeder(
     {
         return
         [
+            SaasPermissionCodes.TenantSubscription.Read,
             SaasPermissionCodes.TenantMember.Read,
             SaasPermissionCodes.TenantMember.Update,
             SaasPermissionCodes.TenantMember.Status,

@@ -40,6 +40,13 @@ public interface ITenantQueryService : IApplicationService
     Task<IReadOnlyList<TenantOverQuotaDto>> GetOverQuotaTenantsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 获取当前租户的订阅：版本套餐、到期时间、席位与存储用量（租户侧只读）
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>当前租户的订阅</returns>
+    Task<TenantSubscriptionDto> GetMySubscriptionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 获取当前用户可进入的租户列表
     /// </summary>
     /// <param name="cancellationToken">取消令牌</param>

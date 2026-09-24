@@ -14,6 +14,7 @@ export default {
   identity_online_user: 'オンラインユーザー',
   tenant_list: 'テナント一覧',
   tenant_edition: 'エディション・プラン',
+  tenant_subscription: 'マイサブスクリプション',
   message: 'メッセージセンター',
   message_notification: 'お知らせ',
   message_record: 'メール・SMS',

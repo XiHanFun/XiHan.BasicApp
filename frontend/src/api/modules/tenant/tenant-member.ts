@@ -8,6 +8,7 @@ import type {
   TenantMemberPageQueryDto,
   TenantMemberStatusUpdateDto,
   TenantMemberUpdateDto,
+  TenantOwnerTransferDto,
   TenantSupportMemberAddDto,
 } from './tenant-member.types'
 import {
@@ -48,6 +49,11 @@ export const tenantMemberApi = {
   /** 平台侧：支持人员移除 */
   removeSupport(tenantId: ApiId, memberId: ApiId) {
     return tenantMemberCommandApi.delete('TenantSupportMember', { tenantId, memberId })
+  },
+  /** 平台侧：所有权转移，原所有者改为管理员，所有者角色随之移交 */
+  transferOwner(input: TenantOwnerTransferDto) {
+    // Transfer 不在动态 API 的动词前缀表内：方法名整体作为路由
+    return tenantMemberCommandApi.post<TenantMemberDetailDto, TenantOwnerTransferDto>('TransferTenantOwner', input)
   },
   update(input: TenantMemberUpdateDto) {
     return tenantMemberCommandApi.put<TenantMemberDetailDto, TenantMemberUpdateDto>('TenantMember', input)

@@ -65,7 +65,12 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.Tenant.InitDb, "租户初始化数据库", "为库隔离租户创建独立数据库/表结构/基线种子", true, 135),
             new(SaasPermissionCodes.Tenant.Delete, "租户删除", "删除已停用的租户（软删，可恢复）", true, 140),
             new(SaasPermissionCodes.Tenant.SupportMember, "支持人员入驻", "把平台账号以支持成员身份加入租户或移除", true, 150),
+            new(SaasPermissionCodes.Tenant.TransferOwner, "所有权转移", "把租户所有者身份转给该租户的另一名成员", true, 155),
             new(SaasPermissionCodes.Tenant.Export, "租户导出", "导出当前数据范围内的租户列表数据", false, 2590),
+        ]),
+        new(SaasPermissionCodes.TenantSubscription.Group, "租户订阅", PermissionSide.Tenant,
+        [
+            new(SaasPermissionCodes.TenantSubscription.Read, "订阅查看", "查看本租户的版本套餐、到期时间与席位、存储用量", false, 134),
         ]),
         new(SaasPermissionCodes.TenantMember.Group, "租户成员", PermissionSide.Tenant,
         [

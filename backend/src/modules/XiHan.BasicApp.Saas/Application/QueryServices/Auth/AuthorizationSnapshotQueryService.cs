@@ -20,14 +20,14 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// <list type="bullet">
 ///   <item>授权绑定（用户角色 / 直授 / 委托）只在所属上下文生效：平台的绑定（含超管）不带进任何租户，租户的绑定也不带进平台；</item>
 ///   <item>作用侧来自权限目录（<c>SysPermission.Side</c>），不在当前上下文生效的权限码随快照下发，鉴权与菜单据此先行拒绝；</item>
-///   <item>超管的通配 * 只在平台成立，业务租户里一律经套餐门控。</item>
+///   <item>超管的通配 * 只在平台成立，业务租户里一律经套餐门控；</item>
+///   <item>租户所有者（持有本租户的 tenant_owner 系统角色）拿到租户生效的全部权限，再经套餐门控收窄到白名单——
+///   不靠授权行，套餐升降、新增权限码都即时反映。</item>
 /// </list>
 /// </remarks>
 public sealed class AuthorizationSnapshotQueryService
     : IAuthorizationSnapshotQueryService
 {
-    private const string SuperAdminRoleCode = "super_admin";
-
     private readonly IUserRoleRepository _userRoleRepository;
 
     private readonly IRoleRepository _roleRepository;
@@ -239,19 +239,25 @@ public sealed class AuthorizationSnapshotQueryService
             .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
             .ToList();
         // 超管只在平台成立：持有平台的 super_admin 绑定，拿到平台生效的全部权限与通配 *
-        var isSuperAdmin = isPlatformContext && roleCodes.Contains(SuperAdminRoleCode, StringComparer.OrdinalIgnoreCase);
+        var isSuperAdmin = isPlatformContext && roleCodes.Contains(SaasRoleCodes.SuperAdmin, StringComparer.OrdinalIgnoreCase);
+        // 租户所有者只在所属租户成立：持有本租户的 tenant_owner 系统角色，拿到租户生效的全部权限（随后经套餐门控收窄）
+        var isTenantOwner = !isPlatformContext && roles.Any(IsTenantOwnerRole);
 
-        if (isSuperAdmin)
+        if (isSuperAdmin || isTenantOwner)
         {
             var permissionIds = effectiveCatalog.Select(permission => permission.BasicId).ToHashSet();
-            var superAdminPermissionCodes = effectiveCatalog
+            var allPermissionCodes = effectiveCatalog
                 .Select(permission => permission.PermissionCode)
                 .Where(code => !string.IsNullOrWhiteSpace(code))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
                 .ToList();
-            superAdminPermissionCodes.Insert(0, "*");
-            return new AuthorizationSnapshot(roleCodes, superAdminPermissionCodes, permissionIds, contextDeniedCodes);
+            if (isSuperAdmin)
+            {
+                allPermissionCodes.Insert(0, "*");
+            }
+
+            return new AuthorizationSnapshot(roleCodes, allPermissionCodes, permissionIds, contextDeniedCodes);
         }
 
         // 角色权限（含角色继承展开：后代继承祖先 Grant，Deny 覆盖）
@@ -295,6 +301,16 @@ public sealed class AuthorizationSnapshotQueryService
             .ToList();
 
         return new AuthorizationSnapshot(roleCodes, permissionCodes, effectiveIds, contextDeniedCodes);
+    }
+
+    /// <summary>
+    /// 租户所有者角色：租户自己的系统角色、编码为 tenant_owner（系统角色租户里不能新建，同码的自定义角色不算）
+    /// </summary>
+    private static bool IsTenantOwnerRole(SysRole role)
+    {
+        return role.RoleType == RoleType.System
+            && !role.IsGlobal
+            && string.Equals(role.RoleCode, SaasRoleCodes.TenantOwner, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

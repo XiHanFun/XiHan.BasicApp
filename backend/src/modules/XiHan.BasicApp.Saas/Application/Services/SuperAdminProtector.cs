@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -15,11 +16,6 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 /// </summary>
 public sealed class SuperAdminProtector : ISuperAdminProtector
 {
-    /// <summary>
-    /// 超级管理员角色编码（与种子/授权快照约定一致）。
-    /// </summary>
-    private const string SuperAdminRoleCode = "super_admin";
-
     /// <summary>
     /// 禁止操作统一提示。
     /// </summary>
@@ -57,7 +53,7 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
     /// </remarks>
     public bool IsCurrentUserSuperAdmin()
     {
-        return _currentTenant.IsPlatformOperation() && _currentUser.IsInRole(SuperAdminRoleCode);
+        return _currentTenant.IsPlatformOperation() && _currentUser.IsInRole(SaasRoleCodes.SuperAdmin);
     }
 
     /// <summary>
@@ -70,7 +66,7 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
     {
         // 写路径低频，直接查不缓存
         var roles = await _roleRepository.GetListAsync(
-            role => role.TenantId == 0 && role.RoleCode == SuperAdminRoleCode,
+            role => role.TenantId == 0 && role.RoleCode == SaasRoleCodes.SuperAdmin,
             cancellationToken);
 
         return roles.Select(role => role.BasicId).Distinct().ToList();

@@ -3,6 +3,8 @@
 
 using SqlSugar;
 using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -90,6 +92,29 @@ public partial class SysRole : IValidatableObject
     public virtual List<SysSessionRole>? SessionRoles { get; set; }
 
     /// <summary>
+    /// 新建租户所有者角色：系统角色、全部数据范围、只由所有者一人持有
+    /// </summary>
+    /// <remarks>
+    /// 权限不靠授权行：授权快照让持有者拿到租户生效的全部权限，再经套餐门控收窄。
+    /// 开通管理员与演示种子共用这一个定义；行的租户由写入时的作用域（或种子显式赋值）决定。
+    /// </remarks>
+    public static SysRole CreateTenantOwnerRole()
+    {
+        return new SysRole
+        {
+            RoleCode = SaasRoleCodes.TenantOwner,
+            RoleName = "租户所有者",
+            RoleDescription = "拥有本租户套餐范围内的全部权限，随所有权转移",
+            RoleType = RoleType.System,
+            DataScope = DataPermissionScope.All,
+            MaxMembers = 1,
+            Status = EnableStatus.Enabled,
+            Sort = 1,
+            Remark = "租户开通时由系统建立"
+        };
+    }
+
+    /// <summary>
     /// 校验实体自身的业务规则
     /// </summary>
     /// <param name="validationContext">校验上下文</param>
@@ -106,21 +131,15 @@ public partial class SysRole : IValidatableObject
             yield return new ValidationResult("RoleName 不能为空。", [nameof(RoleName)]);
         }
 
-        if (RoleType == RoleType.System && !IsGlobal)
+        if (RoleType == RoleType.System && !IsGlobal
+            && !string.Equals(RoleCode, SaasRoleCodes.TenantOwner, StringComparison.OrdinalIgnoreCase))
         {
-            yield return new ValidationResult("系统内置角色必须为全局角色。", [nameof(RoleType), nameof(IsGlobal)]);
+            yield return new ValidationResult("租户里的系统角色只有所有者角色。", [nameof(RoleType), nameof(RoleCode)]);
         }
 
         if (RoleType == RoleType.Custom && IsGlobal)
         {
             yield return new ValidationResult("租户自定义角色不能标记为全局角色。", [nameof(RoleType), nameof(IsGlobal)]);
-        }
-
-        if (DataScope == DataPermissionScope.All
-            && !(IsGlobal && RoleType == RoleType.System))
-        {
-            yield return new ValidationResult("全部数据权限范围（DataScope=All）仅限平台超管角色（IsGlobal=true 且 RoleType=System）。",
-                [nameof(DataScope), nameof(IsGlobal), nameof(RoleType)]);
         }
 
         if (MaxMembers < 0)
