@@ -2,7 +2,8 @@
 -- 一、权限目录新增作用侧 side：平台 = 1、租户 = 2、两侧 = 3。
 -- 二、会话标识改为全局唯一（见后文）。
 -- 三、数据范围覆盖从账号挪到成员关系（见后文）。
--- 四、数据范围权限码收口为「查看 / 设置」（见文末）。
+-- 四、数据范围权限码收口为「查看 / 设置」（见后文）。
+-- 五、导出任务记下发起会话与模仿者（见文末）。
 --
 -- 建表只建缺失的表，存量库的 sys_permission 由本脚本补列；本脚本在建表之后、播种之前执行。
 -- 存量行按改造前的语义（平台专属清单以外的权限两侧都生效）先补成两侧，
@@ -89,3 +90,13 @@ DELETE FROM sys_permission
  WHERE permission_code IN (
        'saas:role-data-scope:grant', 'saas:role-data-scope:revoke', 'saas:role-data-scope:status',
        'saas:user-data-scope:grant', 'saas:user-data-scope:revoke', 'saas:user-data-scope:status');
+
+-- 导出任务记下发起会话与模仿者：后台执行按发起时的身份重建主体，会话失效即失败，模仿态禁用的权限照样禁用。
+-- 存量任务没有这些信息，按非会话型发起处理。
+ALTER TABLE sys_export_task ADD COLUMN IF NOT EXISTS requester_session_id varchar(100) NULL;
+ALTER TABLE sys_export_task ADD COLUMN IF NOT EXISTS impersonator_user_id int8 NULL;
+ALTER TABLE sys_export_task ADD COLUMN IF NOT EXISTS impersonator_tenant_id int8 NULL;
+
+COMMENT ON COLUMN sys_export_task.requester_session_id IS '发起会话标识';
+COMMENT ON COLUMN sys_export_task.impersonator_user_id IS '模仿者用户主键';
+COMMENT ON COLUMN sys_export_task.impersonator_tenant_id IS '模仿者所在租户';

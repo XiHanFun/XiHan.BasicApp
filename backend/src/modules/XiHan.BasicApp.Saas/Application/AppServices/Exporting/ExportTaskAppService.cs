@@ -12,6 +12,8 @@ using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Caching.Distributed.Abstracts;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow;
+using XiHan.Framework.Security.Claims;
+using XiHan.Framework.Security.Extensions;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -74,7 +76,11 @@ public sealed class ExportTaskAppService
             Status = ExportTaskStatus.Pending,
             Progress = 0,
             QuerySnapshot = string.IsNullOrWhiteSpace(input.QuerySnapshot) ? null : input.QuerySnapshot,
-            FieldsSnapshot = JsonSerializer.Serialize(input.Columns)
+            FieldsSnapshot = JsonSerializer.Serialize(input.Columns),
+            // 后台执行要按发起时的身份跑：会话失效即失败，模仿态的禁用照样生效
+            RequesterSessionId = _currentUser.FindClaimValue(XiHanClaimTypes.SessionId),
+            ImpersonatorUserId = _currentUser.FindImpersonatorUserId(),
+            ImpersonatorTenantId = _currentUser.FindImpersonatorTenantId()
         };
         // CreatedId（发起人）/ TenantId（发起租户）由审计 AOP 自动注入，后台据此重建上下文
         entity = await _repository.AddAsync(entity, cancellationToken);
