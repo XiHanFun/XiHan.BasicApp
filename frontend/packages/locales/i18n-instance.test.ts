@@ -10,6 +10,11 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_LOCALE, LOCALE_KEY, SUPPORTED_LOCALES } from '~/constants'
+// 预热依赖图：被测模块牵出七套语言包、vue-i18n 与 ~/utils 桶文件，首次转换在满并行下要数秒。
+// 静态导入让这笔开销落在文件收集阶段，不计入任何用例的超时；loadLocales() 里的 vi.resetModules()
+// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例仍按当时的存储与浏览器语言新建实例。
+// 这份静态实例只读不写本地存储，也从不被用例使用。
+import './index'
 
 type LocalesModule = typeof import('./index')
 

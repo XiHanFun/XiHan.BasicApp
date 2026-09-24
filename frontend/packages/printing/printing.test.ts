@@ -13,6 +13,11 @@ import type {
 } from './types'
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, it, vi } from 'vitest'
+// 预热依赖图：打印包经 printer-preference 引 ~/stores 桶文件，会牵出 pinia、~/locales、~/utils 等整张图，
+// 首次转换在满并行下超过 10 秒的钩子超时。静态导入让这笔开销落在文件收集阶段，不计入任何钩子或用例；
+// beforeEach 里的 vi.resetModules() 只清模块实例、保留转换结果，重新导入只剩求值开销。
+// 这份静态实例只用于预热、从不被使用：printing / pinia / stores 仍一律取自 resetModules 之后的同一次导入。
+import './index'
 
 /**
  * 被测模块的当前实例。

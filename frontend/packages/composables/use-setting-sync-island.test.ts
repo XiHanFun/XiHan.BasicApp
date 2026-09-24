@@ -6,6 +6,10 @@
  * 以及 dismiss 为静默收尾（不落历史、不弹结果）。
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
+// 预热依赖图：被测模块引 ~/locales，会牵出七套语言包、vue-i18n 与 ~/utils 桶文件，首次转换在满并行下要数秒。
+// 静态导入让这笔开销落在文件收集阶段，不计入任何用例的超时；loadModule() 里的 vi.resetModules()
+// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的。
+import './useSettingSyncIsland'
 
 /** 每个用例一份全新模块状态：灵动岛的 tasks / history 是模块级的 */
 async function loadModule() {
