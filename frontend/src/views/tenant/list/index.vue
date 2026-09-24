@@ -8,8 +8,6 @@ import type {
   TenantEditionListItemDto,
   TenantListItemDto,
   TenantMemberListItemDto,
-  TenantMemberStatusUpdateDto,
-  TenantMemberUpdateDto,
   TenantOverQuotaDto,
   TenantUpdateDto,
 } from '@/api'
@@ -32,8 +30,9 @@ import {
 import XLogoUpload from '@/components/LogoUpload.vue'
 import { MEMBER_INVITE_STATUS_OPTIONS, MEMBER_TYPE_OPTIONS, TENANT_CONFIG_STATUS_OPTIONS, TENANT_DATABASE_TYPE_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
 import { Icon, resolveStatusTagTone, SchemaPage, SchemaPagination, XDatePicker, XEditModal, XInput, XNumberInput, XSelect, XUserAvatar } from '~/components'
-import { toast } from '~/composables'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
+import { useAccessStore } from '~/stores'
 import { formatDate, formatFileSize, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformTenantPage' })
@@ -47,13 +46,10 @@ interface TenantFormModel extends Omit<TenantCreateDto, 'adminUserName' | 'admin
   tenantStatus?: TenantStatus
 }
 
-/** 成员添加/邀请表单 */
-interface TenantMemberFormModel {
-  displayName: string
+/** 支持人员入驻表单 */
+interface SupportMemberFormModel {
   effectiveTime: DateTimeString | null
   expirationTime: DateTimeString | null
-  inviteRemark: string
-  memberType: TenantMemberType
   remark: string
   userId: ApiId | null
 }
@@ -64,16 +60,14 @@ const ADMIN_USER_NAME_MAX_LENGTH = 50
 /** 前端最低密码长度；真正的密码策略以后端校验为准 */
 const ADMIN_PASSWORD_MIN_LENGTH = 8
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
-/** 成员选择器每次拉取的用户数 */
+/** 平台账号选择器每次拉取的用户数 */
 const MEMBER_USER_PAGE_SIZE = 20
 
 const { t } = useI18n()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
-const memberStatusFormId = useId()
-const memberEditFormId = useId()
-const memberAddFormId = useId()
+const supportMemberFormId = useId()
 
 const tenantStatusOptions = useEnumOptions('TenantStatus', TENANT_STATUS_OPTIONS)
 const configStatusOptions = useEnumOptions('TenantConfigStatus', TENANT_CONFIG_STATUS_OPTIONS)
@@ -160,10 +154,6 @@ const members = ref<TenantMemberListItemDto[]>([])
 const MEMBER_PAGE_SIZE = 10
 const memberPage = ref(1)
 const memberTotal = ref(0)
-const memberEditVisible = ref(false)
-const memberEditLoading = ref(false)
-const editingMember = ref<TenantMemberUpdateDto | null>(null)
-const editingMemberId = ref<ApiId | null>(null)
 
 /**
  * 日期选择收发的是毫秒时间戳，而这几个表单字段存的是后端的时间串：在此两向换算。
@@ -183,46 +173,26 @@ function timestampModel(
     },
   })
 }
-const memberAddVisible = ref(false)
-const memberAddLoading = ref(false)
-const memberAddMode = ref<'add' | 'invite'>('add')
-const memberAddForm = ref<TenantMemberFormModel>(createDefaultMemberForm())
+const accessStore = useAccessStore()
+const canManageSupportMember = computed(() => accessStore.hasCode('tenant.list.support-member'))
+const supportMemberVisible = ref(false)
+const supportMemberLoading = ref(false)
+const supportMemberForm = ref<SupportMemberFormModel>(createDefaultSupportMemberForm())
 
 const tenantExpirationTs = timestampModel(
   () => tenantForm.value.expirationTime,
   (value) => { tenantForm.value.expirationTime = value },
 )
-const memberAddEffectiveTs = timestampModel(
-  () => memberAddForm.value.effectiveTime,
-  (value) => { memberAddForm.value.effectiveTime = value },
+const supportMemberEffectiveTs = timestampModel(
+  () => supportMemberForm.value.effectiveTime,
+  (value) => { supportMemberForm.value.effectiveTime = value },
 )
-const memberAddExpirationTs = timestampModel(
-  () => memberAddForm.value.expirationTime,
-  (value) => { memberAddForm.value.expirationTime = value },
+const supportMemberExpirationTs = timestampModel(
+  () => supportMemberForm.value.expirationTime,
+  (value) => { supportMemberForm.value.expirationTime = value },
 )
-const editingMemberEffectiveTs = timestampModel(
-  () => editingMember.value?.effectiveTime,
-  (value) => {
-    if (editingMember.value) {
-      editingMember.value.effectiveTime = value
-    }
-  },
-)
-const editingMemberExpirationTs = timestampModel(
-  () => editingMember.value?.expirationTime,
-  (value) => {
-    if (editingMember.value) {
-      editingMember.value.expirationTime = value
-    }
-  },
-)
-
 const memberUserOptions = ref<{ label: string, value: string | number }[]>([])
 const memberUserLoading = ref(false)
-const memberStatusVisible = ref(false)
-const memberStatusLoading = ref(false)
-const editingMemberStatusId = ref<ApiId | null>(null)
-const editingMemberStatus = ref<ValidityStatus>(ValidityStatus.Valid)
 
 function getTenantStatusTagType(status: TenantStatus) {
   if (status === TenantStatus.Normal) {
@@ -729,8 +699,7 @@ async function loadMembers() {
       ...createPageRequest({
         page: { pageIndex: memberPage.value, pageSize: MEMBER_PAGE_SIZE },
       }),
-      // 必须按当前查看的租户过滤：平台管理员无租户上下文，后端全局租户过滤器在平台态放行全部，
-      // 不传这个就会把所有租户的成员关系都拉回来。
+      // 平台查看某个租户的成员：后端切入该租户只读
       tenantId: currentDetail.value.basicId,
     })
     members.value = result.items
@@ -752,86 +721,20 @@ function handleMemberPageChange(page: number) {
   void loadMembers()
 }
 
-function handleEditMember(row: TenantMemberListItemDto) {
-  editingMemberId.value = row.basicId
-  editingMember.value = {
-    basicId: row.basicId,
-    displayName: row.displayName ?? null,
-    effectiveTime: row.effectiveTime ?? null,
-    expirationTime: row.expirationTime ?? null,
-    inviteRemark: null,
-    memberType: row.memberType,
-    remark: null,
-  }
-  memberEditVisible.value = true
-}
-
-async function handleSaveMember() {
-  if (!editingMember.value || !editingMemberId.value) {
-    return
-  }
-  memberEditLoading.value = true
-  try {
-    await tenantManagementApi.members.update(editingMember.value)
-    toast.success(t('tenant.list.member_update_success'))
-    memberEditVisible.value = false
-    await loadMembers()
-  }
-  catch (error) {
-    toast.danger((error as Error)?.message || t('tenant.list.member_update_failed'))
-  }
-  finally {
-    memberEditLoading.value = false
-  }
-}
-
-function handleChangeMemberStatus(row: TenantMemberListItemDto) {
-  editingMemberStatusId.value = row.basicId
-  editingMemberStatus.value = row.status
-  memberStatusVisible.value = true
-}
-
-async function handleSaveMemberStatus() {
-  if (!editingMemberStatusId.value) {
-    return
-  }
-  memberStatusLoading.value = true
-  try {
-    const input: TenantMemberStatusUpdateDto = {
-      basicId: editingMemberStatusId.value,
-      status: editingMemberStatus.value,
-    }
-    await tenantManagementApi.members.updateStatus(input)
-    toast.success(t('tenant.list.member_status_update_success'))
-    memberStatusVisible.value = false
-    await loadMembers()
-  }
-  catch (error) {
-    toast.danger((error as Error)?.message || t('tenant.list.member_status_update_failed'))
-  }
-  finally {
-    memberStatusLoading.value = false
-  }
-}
-
-function createDefaultMemberForm(): TenantMemberFormModel {
+function createDefaultSupportMemberForm(): SupportMemberFormModel {
   return {
-    displayName: '',
     effectiveTime: null,
     expirationTime: null,
-    inviteRemark: '',
-    memberType: TenantMemberType.Member,
     remark: '',
     userId: null,
   }
 }
 
-/** 打开成员添加/邀请弹窗；两者共用同一张表单，只有邀请备注和落库后的邀请状态不同 */
-function handleAddMember(mode: 'add' | 'invite') {
-  memberAddMode.value = mode
-  memberAddForm.value = createDefaultMemberForm()
+/** 支持人员入驻：只能选平台账号，后端同样校验；支持人员不占席位 */
+function handleAddSupportMember() {
+  supportMemberForm.value = createDefaultSupportMemberForm()
   memberUserOptions.value = []
-  memberAddVisible.value = true
+  supportMemberVisible.value = true
   void searchMemberUsers('')
 }
 
@@ -852,50 +755,65 @@ async function searchMemberUsers(keyword: string) {
   }
 }
 
-async function handleSaveNewMember() {
+async function handleSaveSupportMember() {
   const tenant = currentDetail.value
   if (!tenant) {
     return
   }
-  if (!memberAddForm.value.userId) {
+  if (!supportMemberForm.value.userId) {
     toast.warning(t('tenant.list.validate_member_user'))
     return
   }
 
-  memberAddLoading.value = true
+  supportMemberLoading.value = true
   try {
-    const payload = {
-      displayName: normalizeNullable(memberAddForm.value.displayName),
-      effectiveTime: memberAddForm.value.effectiveTime,
-      expirationTime: memberAddForm.value.expirationTime,
-      memberType: memberAddForm.value.memberType,
-      remark: normalizeNullable(memberAddForm.value.remark),
+    await tenantManagementApi.members.addSupport({
+      effectiveTime: supportMemberForm.value.effectiveTime,
+      expirationTime: supportMemberForm.value.expirationTime,
+      remark: normalizeNullable(supportMemberForm.value.remark),
       tenantId: tenant.basicId,
-      userId: memberAddForm.value.userId,
-    }
-
-    if (memberAddMode.value === 'invite') {
-      await tenantManagementApi.members.invite({
-        ...payload,
-        inviteRemark: normalizeNullable(memberAddForm.value.inviteRemark),
-      })
-      toast.success(t('tenant.list.member_invite_success'))
-    }
-    else {
-      await tenantManagementApi.members.add(payload)
-      toast.success(t('tenant.list.member_add_success'))
-    }
-
-    memberAddVisible.value = false
+      userId: supportMemberForm.value.userId,
+    })
+    toast.success(t('tenant.list.support_member_add_success'))
+    supportMemberVisible.value = false
     memberPage.value = 1
     await loadMembers()
   }
   catch (error) {
-    toast.danger((error as Error)?.message || t('tenant.list.member_add_failed'))
+    toast.danger((error as Error)?.message || t('tenant.list.support_member_add_failed'))
   }
   finally {
-    memberAddLoading.value = false
+    supportMemberLoading.value = false
   }
+}
+
+/** 已生效或待生效的支持人员可以移除；已撤销的不再出操作 */
+function isRemovableSupportMember(item: TenantMemberListItemDto) {
+  return item.memberType === TenantMemberType.PlatformAdmin && item.status === ValidityStatus.Valid
+}
+
+function handleRemoveSupportMember(item: TenantMemberListItemDto) {
+  const tenant = currentDetail.value
+  if (!tenant) {
+    return
+  }
+  void dialog.confirm({
+    badge: 'warning',
+    title: t('tenant.list.support_member_remove_title'),
+    content: t('tenant.list.support_member_remove_content', { name: resolveMemberName(item) ?? item.userId }),
+    okText: t('tenant.list.support_member_remove'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        await tenantManagementApi.members.removeSupport(tenant.basicId, item.basicId)
+        toast.success(t('tenant.list.support_member_remove_success'))
+        await loadMembers()
+      }
+      catch (error) {
+        toast.danger((error as Error)?.message || t('tenant.list.support_member_remove_failed'))
+      }
+    },
+  })
 }
 
 function getInviteStatusTagType(status: TenantMemberInviteStatus) {
@@ -1163,12 +1081,10 @@ async function handleSubmit() {
                 </XhDescriptionsRoot>
               </XhTabsContent>
               <XhTabsContent value="members">
-                <XhFlex class="xh-member-toolbar" gap="sm">
-                  <XhButton variant="subtle" size="sm" tone="brand" @click="handleAddMember('add')">
-                    {{ t('tenant.list.member_add') }}
-                  </XhButton>
-                  <XhButton variant="subtle" size="sm" @click="handleAddMember('invite')">
-                    {{ t('tenant.list.member_invite') }}
+                <XhFlex class="xh-member-toolbar" gap="sm" align="center" justify="between">
+                  <span class="xh-member-hint">{{ t('tenant.list.member_readonly_hint') }}</span>
+                  <XhButton v-if="canManageSupportMember" variant="subtle" size="sm" tone="brand" @click="handleAddSupportMember">
+                    {{ t('tenant.list.support_member_add') }}
                   </XhButton>
                 </XhFlex>
                 <div class="xh-loading-stage" :class="{ 'is-loading': memberLoading }">
@@ -1236,14 +1152,15 @@ async function handleSubmit() {
                           </td>
                           <td>{{ formatNullableDate(item.createdTime) }}</td>
                           <td>
-                            <XhFlex gap="sm">
-                              <XhButton variant="subtle" size="sm" @click="handleEditMember(item)">
-                                {{ t('tenant.list.member_edit') }}
-                              </XhButton>
-                              <XhButton variant="subtle" size="sm" tone="warning" @click="handleChangeMemberStatus(item)">
-                                {{ t('tenant.list.member_change_status') }}
-                              </XhButton>
-                            </XhFlex>
+                            <XhButton
+                              v-if="canManageSupportMember && isRemovableSupportMember(item)"
+                              variant="subtle"
+                              size="sm"
+                              tone="danger"
+                              @click="handleRemoveSupportMember(item)"
+                            >
+                              {{ t('tenant.list.support_member_remove') }}
+                            </XhButton>
                           </td>
                         </tr>
                       </tbody>
@@ -1574,56 +1491,39 @@ async function handleSubmit() {
     </XEditModal>
 
     <XEditModal
-      v-model:show="memberAddVisible"
-      :title="memberAddMode === 'invite' ? t('tenant.list.member_invite_title') : t('tenant.list.member_add_title')"
-      :loading="memberAddLoading"
-      :form-id="memberAddFormId"
+      v-model:show="supportMemberVisible"
+      :title="t('tenant.list.support_member_add_title')"
+      :loading="supportMemberLoading"
+      :form-id="supportMemberFormId"
     >
       <XhFormRoot
-        v-model:values="memberAddForm"
+        :id="supportMemberFormId"
+        v-model:values="supportMemberForm"
         validate-on="blur"
         class="xh-edit-form-grid"
-        @submit="handleSaveNewMember"
+        @submit="handleSaveSupportMember"
       >
         <XhFormFieldGroup name="userId" class="xh-span-2">
           <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_user') }}</XhFieldLabel>
+            <XhFieldLabel>{{ t('tenant.list.support_member_user') }}</XhFieldLabel>
             <XhFieldControl>
               <XSelect
-                v-model:value="memberAddForm.userId"
+                v-model:value="supportMemberForm.userId"
                 clearable
                 :options="memberUserOptions"
-                :placeholder="t('tenant.list.member_user_placeholder')"
+                :placeholder="t('tenant.list.support_member_user_placeholder')"
                 @search="searchMemberUsers"
               />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-        <XhFormFieldGroup name="memberType">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_type') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XSelect v-model:value="memberAddForm.memberType" :options="memberTypeOptions" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="displayName">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_display_name') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput v-model:value="memberAddForm.displayName" clearable :placeholder="t('tenant.list.member_display_name_placeholder')" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
         <XhFormFieldGroup name="effectiveTime">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.member_effective_time') }}</XhFieldLabel>
             <XhFieldControl>
               <XDatePicker
-                v-model:value="memberAddEffectiveTs"
+                v-model:value="supportMemberEffectiveTs"
                 clearable
                 type="datetime"
               />
@@ -1636,24 +1536,9 @@ async function handleSubmit() {
             <XhFieldLabel>{{ t('tenant.list.member_expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
               <XDatePicker
-                v-model:value="memberAddExpirationTs"
+                v-model:value="supportMemberExpirationTs"
                 clearable
                 type="datetime"
-              />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup v-if="memberAddMode === 'invite'" name="inviteRemark" class="xh-span-2">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_invite_remark') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput
-                v-model:value="memberAddForm.inviteRemark"
-                clearable
-                :placeholder="t('tenant.list.member_invite_remark_placeholder')"
-                :rows="2"
-                type="textarea"
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1661,12 +1546,12 @@ async function handleSubmit() {
         </XhFormFieldGroup>
         <XhFormFieldGroup name="remark" class="xh-span-2">
           <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.remark') }}</XhFieldLabel>
+            <XhFieldLabel>{{ t('tenant.list.support_member_reason') }}</XhFieldLabel>
             <XhFieldControl>
               <XInput
-                v-model:value="memberAddForm.remark"
+                v-model:value="supportMemberForm.remark"
                 clearable
-                :placeholder="t('tenant.list.remark_placeholder')"
+                :placeholder="t('tenant.list.support_member_reason_placeholder')"
                 :rows="2"
                 type="textarea"
               />
@@ -1674,117 +1559,6 @@ async function handleSubmit() {
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
-      </XhFormRoot>
-    </XEditModal>
-
-    <XEditModal
-      v-model:show="memberEditVisible"
-      :title="t('tenant.list.member_edit_title')"
-      :loading="memberEditLoading"
-      :form-id="memberEditFormId"
-    >
-      <XhFormRoot
-        v-if="editingMember"
-        v-model:values="editingMember"
-        validate-on="blur"
-        class="xh-edit-form-grid"
-        @submit="handleSaveMember"
-      >
-        <XhFormFieldGroup name="displayName">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_display_name') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput v-model:value="editingMember.displayName" clearable :placeholder="t('tenant.list.member_display_name_placeholder')" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="memberType">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_type') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XSelect v-model:value="editingMember.memberType" :options="memberTypeOptions" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="effectiveTime">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_effective_time') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XDatePicker
-                v-model:value="editingMemberEffectiveTs"
-                clearable
-                type="datetime"
-              />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="expirationTime">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_expiration_time') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XDatePicker
-                v-model:value="editingMemberExpirationTs"
-                clearable
-                type="datetime"
-              />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="inviteRemark" class="xh-span-2">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_invite_remark') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput
-                v-model:value="editingMember.inviteRemark"
-                clearable
-                :placeholder="t('tenant.list.member_invite_remark_placeholder')"
-                :rows="2"
-                type="textarea"
-              />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="remark" class="xh-span-2">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('tenant.list.member_remark') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput
-                v-model:value="editingMember.remark"
-                clearable
-                :placeholder="t('tenant.list.member_remark_placeholder')"
-                :rows="2"
-                type="textarea"
-              />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-      </XhFormRoot>
-    </XEditModal>
-
-    <XEditModal
-      v-model:show="memberStatusVisible"
-      :title="t('tenant.list.member_status_title')"
-      :loading="memberStatusLoading"
-      :form-id="memberStatusFormId"
-    >
-      <XhFormRoot
-        validate-on="blur"
-        class="xh-edit-form-grid"
-        @submit="handleSaveMemberStatus"
-      >
-        <XhFieldRoot class="xh-span-2">
-          <XhFieldLabel>{{ t('tenant.list.member_status') }}</XhFieldLabel>
-          <XhFieldControl>
-            <XSelect v-model:value="editingMemberStatus" :options="validityStatusOptions" />
-          </XhFieldControl>
-          <XhFieldErrorText />
-        </XhFieldRoot>
       </XhFormRoot>
     </XEditModal>
   </SchemaPage>
@@ -1803,6 +1577,11 @@ async function handleSubmit() {
 
 .xh-member-toolbar {
   margin-bottom: 12px;
+}
+
+.xh-member-hint {
+  font-size: var(--xh-text-caption-size);
+  color: hsl(var(--muted-foreground));
 }
 
 .xh-quota-audit__hint {

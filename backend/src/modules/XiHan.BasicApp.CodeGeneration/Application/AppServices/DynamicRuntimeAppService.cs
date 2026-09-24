@@ -11,6 +11,7 @@ using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.CodeGeneration.Application.AppServices;
 
@@ -28,6 +29,7 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
     private readonly ICodeGenTableRepository _tableRepository;
     private readonly ICodeGenTableColumnRepository _columnRepository;
     private readonly ISqlSugarClientResolver _clientResolver;
+    private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
     /// 构造函数
@@ -35,11 +37,13 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
     public DynamicRuntimeAppService(
         ICodeGenTableRepository tableRepository,
         ICodeGenTableColumnRepository columnRepository,
-        ISqlSugarClientResolver clientResolver)
+        ISqlSugarClientResolver clientResolver,
+        ICurrentTenant currentTenant)
     {
         _tableRepository = tableRepository;
         _columnRepository = columnRepository;
         _clientResolver = clientResolver;
+        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -90,6 +94,7 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
 
         // 安全：表名只来自已配置且启用的 SysCodeGenTable 记录，绝不直接使用用户传入的表名字符串，故无 SQL 注入面。
         var table = await GetEnabledTableAsync(input.TableId, ct);
+        var columns = await _columnRepository.GetByTableIdAsync(table.BasicId, ct);
 
         var client = _clientResolver.GetCurrentClient();
         RefAsync<int> total = 0;
@@ -97,10 +102,18 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
         // 必须走「无实体查询 + DataTable」：把 Dictionary<string, object> 当实体交给 Queryable，
         // SqlSugar 会反射字典自身的成员并把 Comparer/Count/Keys 当成列查，PostgreSQL 直接报
         // 42703 column "comparer" does not exist。
-        var dataTable = await client.Queryable<object>()
+        // 原始表不经实体读过滤，租户与软删除条件按实体读过滤同口径显式补上
+        var query = client.Queryable<object>()
             .AS(table.TableName)
-            .Select("*")
-            .ToDataTablePageAsync(pageIndex, pageSize, total);
+            .Select("*");
+        query = ApplyTenancyFilter(query, columns, table.TableName);
+        var deletedColumn = FindColumn(columns, "isdeleted", "is_deleted");
+        if (deletedColumn is not null)
+        {
+            query = query.Where($"{query.QueryBuilder.Builder.GetTranslationColumnName(deletedColumn)} = @isDeleted", new { isDeleted = false });
+        }
+
+        var dataTable = await query.ToDataTablePageAsync(pageIndex, pageSize, total);
         var rows = client.Utilities.DataTableToDictionaryList(dataTable);
 
         return new DynamicRuntimePageResultDto
@@ -115,6 +128,37 @@ public sealed class DynamicRuntimeAppService : CodeGenerationApplicationService,
     /// <summary>
     /// 获取已配置且启用的表配置（为空或非启用时抛友好异常）
     /// </summary>
+    /// <summary>
+    /// 租户条件：有租户列的表，租户看本租户与平台模板行（0），平台只看平台自己的行；
+    /// 没有租户列的表不归属任何租户，只在平台上下文开放
+    /// </summary>
+    private ISugarQueryable<object> ApplyTenancyFilter(
+        ISugarQueryable<object> query,
+        IReadOnlyList<SysCodeGenTableColumn> columns,
+        string tableName)
+    {
+        var tenantId = _currentTenant.Id ?? 0;
+        var tenantColumn = FindColumn(columns, "tenantid", "tenant_id");
+        if (tenantColumn is null)
+        {
+            return tenantId == 0
+                ? query
+                : throw new InvalidOperationException($"表 {tableName} 没有租户列，不归属任何租户，只能在平台访问。");
+        }
+
+        var column = query.QueryBuilder.Builder.GetTranslationColumnName(tenantColumn);
+        return tenantId == 0
+            ? query.Where($"{column} = @platformTenantId", new { platformTenantId = 0L })
+            : query.Where($"{column} IN (@platformTenantId, @tenantId)", new { platformTenantId = 0L, tenantId });
+    }
+
+    private static string? FindColumn(IReadOnlyList<SysCodeGenTableColumn> columns, params string[] names)
+    {
+        return columns
+            .Select(column => column.ColumnName)
+            .FirstOrDefault(name => names.Contains(name, StringComparer.OrdinalIgnoreCase));
+    }
+
     private async Task<SysCodeGenTable> GetEnabledTableAsync(long tableId, CancellationToken ct)
     {
         if (tableId <= 0)

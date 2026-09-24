@@ -281,6 +281,17 @@ describe('易写错的控制器归属', () => {
       'GET /TenantMemberQuery/TenantMemberDetail',
     ])
   })
+
+  it('支持人员入驻与移除挂在 Tenant 控制器下，移除的两个主键走查询串——框架的 DELETE 不收请求体', async () => {
+    await tenantMemberApi.addSupport({ tenantId: '7', userId: '1' })
+    await tenantMemberApi.removeSupport('7', '9')
+
+    expect(calls.map(item => `${item.method} ${item.url}`)).toEqual([
+      'POST /Tenant/TenantSupportMember',
+      'DELETE /Tenant/TenantSupportMember',
+    ])
+    expect(calls[1]?.config?.params).toEqual({ tenantId: '7', memberId: '9' })
+  })
 })
 
 describe('管理页聚合详情的查询参数名', () => {

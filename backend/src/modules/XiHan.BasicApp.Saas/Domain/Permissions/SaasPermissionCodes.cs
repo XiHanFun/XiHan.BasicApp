@@ -69,6 +69,11 @@ public static class SaasPermissionCodes
         /// 导出租户
         /// </summary>
         public const string Export = "saas:tenant:export";
+
+        /// <summary>
+        /// 支持人员入驻（把平台账号以支持成员身份加入租户或移除）
+        /// </summary>
+        public const string SupportMember = "saas:tenant:support-member";
     }
 
     /// <summary>

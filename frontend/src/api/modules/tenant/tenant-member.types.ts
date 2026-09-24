@@ -9,7 +9,7 @@ export interface TenantMemberPageQueryDto extends PageRequest {
   keyword?: string | null
   memberType?: TenantMemberType | null
   status?: ValidityStatus | null
-  /** 所属租户；查"某租户的成员"时必传，否则平台态会返回所有租户的成员关系 */
+  /** 平台查看某个租户的成员时指定；租户侧只能看本租户，不传或传本租户 */
   tenantId?: ApiId | null
   userId?: ApiId | null
 }
@@ -47,14 +47,13 @@ export interface TenantMemberDetailDto extends TenantMemberListItemDto {
   remark?: string | null
 }
 
-/** 添加租户成员：把已有用户直接加入租户，邀请状态落「已接受」立即生效 */
+/** 添加租户成员：把已有用户直接加入当前租户，邀请状态落「已接受」立即生效 */
 export interface TenantMemberAddDto {
   displayName?: string | null
   effectiveTime?: DateTimeString | null
   expirationTime?: DateTimeString | null
   memberType: TenantMemberType
   remark?: string | null
-  tenantId: ApiId
   userId: ApiId
 }
 
@@ -65,6 +64,14 @@ export interface TenantMemberInviteDto {
   expirationTime?: DateTimeString | null
   inviteRemark?: string | null
   memberType: TenantMemberType
+  remark?: string | null
+  userId: ApiId
+}
+
+/** 支持人员入驻：平台把平台账号以支持成员身份加入指定租户（不占席位） */
+export interface TenantSupportMemberAddDto {
+  effectiveTime?: DateTimeString | null
+  expirationTime?: DateTimeString | null
   remark?: string | null
   tenantId: ApiId
   userId: ApiId

@@ -63,7 +63,6 @@ public sealed record TenantStatusChangeCommand(long BasicId, TenantStatus Tenant
 /// <param name="RequiresInvitation">是否走邀请流程（true 落待处理，false 直接生效）</param>
 /// <param name="OperatorUserId">操作人用户主键（邀请人）</param>
 public sealed record TenantMemberAddCommand(
-    long TenantId,
     long UserId,
     TenantMemberType MemberType,
     DateTimeOffset? EffectiveTime,
@@ -72,6 +71,17 @@ public sealed record TenantMemberAddCommand(
     string? InviteRemark,
     string? Remark,
     bool RequiresInvitation,
+    long? OperatorUserId);
+
+/// <summary>
+/// 支持人员入驻命令（平台把平台账号以支持成员身份加入指定租户）
+/// </summary>
+public sealed record TenantSupportMemberAddCommand(
+    long TenantId,
+    long UserId,
+    DateTimeOffset? EffectiveTime,
+    DateTimeOffset? ExpirationTime,
+    string? Remark,
     long? OperatorUserId);
 
 /// <summary>

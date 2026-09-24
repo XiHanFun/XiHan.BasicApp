@@ -10,6 +10,7 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Auditing;
 using XiHan.Framework.Auditing.Pipelines;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Application.EventHandlers;
 
@@ -30,6 +31,8 @@ public sealed class AuthLoginEventHandler
 
     private readonly ILogger<AuthLoginEventHandler> _logger;
 
+    private readonly ICurrentTenant _currentTenant;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -37,12 +40,14 @@ public sealed class AuthLoginEventHandler
         ILoginLogPipeline loginLogPipeline,
         IUserNotificationDispatchService notificationDispatchService,
         ISqlSugarClientResolver clientResolver,
-        ILogger<AuthLoginEventHandler> logger)
+        ILogger<AuthLoginEventHandler> logger,
+        ICurrentTenant currentTenant)
     {
         _loginLogPipeline = loginLogPipeline;
         _notificationDispatchService = notificationDispatchService;
         _clientResolver = clientResolver;
         _logger = logger;
+        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -300,6 +305,8 @@ public sealed class AuthLoginEventHandler
             {
                 TraceId = traceId,
                 UserId = userId,
+                // 事件总线执行处理器时已切入事件所属的租户（登录落点），在此定格
+                TenantId = _currentTenant.Id,
                 UserName = userName,
                 SessionId = sessionId,
                 LoginResult = (int)loginResult,

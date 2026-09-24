@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -37,7 +38,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_UsId_StDa_Pe", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc, nameof(StatisticsDate), OrderByType.Desc, nameof(Period), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_TeId_StDa", nameof(TenantId), OrderByType.Asc, nameof(StatisticsDate), OrderByType.Desc)]
-public partial class SysUserStatistics : BasicAppFullAuditedEntity
+public partial class SysUserStatistics : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户ID（0 表示全体用户汇总统计）

@@ -40,7 +40,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_BoNa", nameof(BotName), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_ChId", nameof(ChatId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_Su", nameof(Success), OrderByType.Asc)]
-public partial class SysTelegramMessage : BasicAppCreationEntity, ISplitTableEntity
+public partial class SysTelegramMessage : BasicAppCreationEntity, ISplitTableEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 机器人名称

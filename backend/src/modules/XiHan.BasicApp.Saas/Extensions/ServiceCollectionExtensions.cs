@@ -99,6 +99,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<SaasTenantConnectionProvider>();
         services.AddSingleton<ISqlSugarTenantConnectionProvider>(sp => sp.GetRequiredService<SaasTenantConnectionProvider>());
         services.AddSingleton<ITenantConnectionCacheInvalidator>(sp => sp.GetRequiredService<SaasTenantConnectionProvider>());
+        // 跨租户后台作业逐作用域（平台与每个数据可达的租户）切入执行，不靠「无租户上下文看全部」
+        services.AddScoped<ITenantDataScopeRunner, TenantDataScopeRunner>();
         services.AddScoped<IConfigDomainService, ConfigDomainService>();
         // 系统配置加密值保护器（Data Protection，独立 Purpose；IsEncrypted 行写侧加密/读侧解密）
         services.AddSingleton<IConfigValueSecretProtector, DataProtectionConfigValueSecretProtector>();

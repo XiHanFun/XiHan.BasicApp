@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -440,6 +441,11 @@ public sealed class TenantEditionDomainService
         if (!permission.IsGlobal)
         {
             throw new InvalidOperationException("租户版本只能绑定平台级全局权限。");
+        }
+
+        if (SaasPlatformPermissions.PlatformOnlyCodes.Contains(permission.PermissionCode))
+        {
+            throw new InvalidOperationException($"平台专属权限「{permission.PermissionCode}」不能绑定到租户版本。");
         }
 
         if (permission.Status != EnableStatus.Enabled)

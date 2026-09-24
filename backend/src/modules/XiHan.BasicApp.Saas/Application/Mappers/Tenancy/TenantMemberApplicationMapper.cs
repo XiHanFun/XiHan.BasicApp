@@ -20,7 +20,6 @@ public static class TenantMemberApplicationMapper
         ArgumentNullException.ThrowIfNull(input);
 
         return new TenantMemberAddCommand(
-            input.TenantId,
             input.UserId,
             input.MemberType,
             input.EffectiveTime,
@@ -33,6 +32,22 @@ public static class TenantMemberApplicationMapper
     }
 
     /// <summary>
+    /// 映射支持人员入驻命令
+    /// </summary>
+    public static TenantSupportMemberAddCommand ToSupportAddCommand(TenantSupportMemberAddDto input, long? operatorUserId)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        return new TenantSupportMemberAddCommand(
+            input.TenantId,
+            input.UserId,
+            input.EffectiveTime,
+            input.ExpirationTime,
+            input.Remark,
+            operatorUserId);
+    }
+
+    /// <summary>
     /// 映射租户成员邀请命令（待接受）
     /// </summary>
     public static TenantMemberAddCommand ToInviteCommand(TenantMemberInviteDto input, long? operatorUserId)
@@ -40,7 +55,6 @@ public static class TenantMemberApplicationMapper
         ArgumentNullException.ThrowIfNull(input);
 
         return new TenantMemberAddCommand(
-            input.TenantId,
             input.UserId,
             input.MemberType,
             input.EffectiveTime,

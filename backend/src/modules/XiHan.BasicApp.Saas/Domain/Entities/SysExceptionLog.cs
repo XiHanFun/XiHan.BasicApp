@@ -48,7 +48,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_StCo", nameof(StatusCode), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TeId_ExTi", nameof(TenantId), OrderByType.Asc, nameof(ExceptionTime), OrderByType.Desc)]
-public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
+public partial class SysExceptionLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户ID

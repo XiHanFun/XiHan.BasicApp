@@ -45,7 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{split_table}_TeId_AcTi", nameof(TenantId), OrderByType.Asc, nameof(AccessTime), OrderByType.Desc)]
 [SugarIndex("IX_{split_table}_UsSeId", nameof(UserSessionId), OrderByType.Asc)]
 [SugarIndex("IX_{split_table}_TrId", nameof(TraceId), OrderByType.Asc)]
-public partial class SysAccessLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity
+public partial class SysAccessLog : BasicAppCreationEntity, ISplitTableEntity, ITraceableEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户ID
