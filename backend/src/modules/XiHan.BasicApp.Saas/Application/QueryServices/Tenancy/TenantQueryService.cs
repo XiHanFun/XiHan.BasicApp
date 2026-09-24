@@ -142,6 +142,7 @@ public sealed class TenantQueryService
         }
 
         var detail = TenantApplicationMapper.ToDetailDto(tenant, DateTimeOffset.UtcNow);
+        detail.HasOwner = (await _tenantUserRepository.GetTenantIdsWithOwnerAsync([detail.BasicId], cancellationToken)).Contains(detail.BasicId);
         var snapshots = await _tenantQuotaDomainService.GetQuotaSnapshotsAsync([detail.BasicId], cancellationToken);
         if (snapshots.TryGetValue(detail.BasicId, out var snapshot))
         {
@@ -298,7 +299,7 @@ public sealed class TenantQueryService
     }
 
     /// <summary>
-    /// 批量填充租户配额用量
+    /// 批量填充租户配额用量与是否已开通管理员
     /// </summary>
     /// <remarks>
     /// 一次分组查询拿回本页全部租户的席位与存储用量，不按行逐个统计，避免 N+1。
@@ -310,11 +311,13 @@ public sealed class TenantQueryService
             return;
         }
 
-        var snapshots = await _tenantQuotaDomainService.GetQuotaSnapshotsAsync(
-            [.. items.Select(item => item.BasicId)], cancellationToken);
+        var tenantIds = items.Select(item => item.BasicId).ToList();
+        var snapshots = await _tenantQuotaDomainService.GetQuotaSnapshotsAsync(tenantIds, cancellationToken);
+        var withOwner = await _tenantUserRepository.GetTenantIdsWithOwnerAsync(tenantIds, cancellationToken);
 
         foreach (var item in items)
         {
+            item.HasOwner = withOwner.Contains(item.BasicId);
             if (!snapshots.TryGetValue(item.BasicId, out var snapshot))
             {
                 continue;

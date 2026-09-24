@@ -13,6 +13,7 @@ export default {
     init_admin_title: 'Initialize Tenant Admin',
     init_admin_success: 'Tenant admin provisioned',
     init_admin_failed: 'Failed to initialize the admin',
+    create_admin_hint: 'The admin is provisioned right after the tenant is created; you can also do it later with the row action "Initialize Admin".',
     database_admin_hint: 'For a database-isolated tenant, initialize its database first, then initialize the admin.',
     isolation_mode_locked: 'The isolation mode cannot be changed after creation',
     delete: 'Delete',

@@ -72,8 +72,11 @@ public sealed class TenantProvisionDomainService
     }
 
     /// <summary>
-    /// 一站式开通租户：确保版本、创建管理员账号、创建 Owner 角色并按版本白名单授权、绑定角色
+    /// 一站式开通租户管理员：创建管理员账号、创建 Owner 角色并按版本白名单授权、绑定角色
     /// </summary>
+    /// <remarks>
+    /// 版本在建租户时已经定下，这里按租户当前绑定的版本授权。
+    /// </remarks>
     /// <param name="tenant">已创建的租户实体</param>
     /// <param name="adminUserName">管理员用户名</param>
     /// <param name="adminEmail">管理员邮箱（登录身份标识，全平台唯一）</param>
@@ -90,24 +93,13 @@ public sealed class TenantProvisionDomainService
 
         EnsureProvisionable(tenant);
 
-        // 1) 确保版本：未指定则取默认版本并持久化（租户注册表是平台数据，在平台作用域写）
-        using (_currentTenant.Change(null))
-        {
-            if (!tenant.EditionId.HasValue && await AssignDefaultEditionAsync(tenant, cancellationToken) is not null)
-            {
-                _ = await _tenantRepository.UpdateAsync(tenant, cancellationToken);
-            }
-        }
-
-        var editionId = tenant.EditionId;
-
-        // 2) 创建管理员（用户/安全/成员）
+        // 1) 创建管理员（用户/安全/成员）
         var adminUser = await InitializeTenantAdminAsync(tenant, adminUserName, adminEmail, passwordHash, cancellationToken);
 
-        // 3) 创建 Owner 角色并按版本白名单授权
-        var ownerRoleId = await CreateOwnerRoleWithEditionPermissionsAsync(tenant, editionId, cancellationToken);
+        // 2) 创建 Owner 角色并按版本白名单授权
+        var ownerRoleId = await CreateOwnerRoleWithEditionPermissionsAsync(tenant, tenant.EditionId, cancellationToken);
 
-        // 4) 绑定管理员到 Owner 角色
+        // 3) 绑定管理员到 Owner 角色
         await AssignAdminRoleAsync(tenant, adminUser.BasicId, ownerRoleId, cancellationToken);
 
         return adminUser;
@@ -399,11 +391,11 @@ public sealed class TenantProvisionDomainService
     }
 
     /// <summary>
-    /// 取待初始化管理员的库隔离租户
+    /// 取待初始化管理员的租户
     /// </summary>
     /// <remarks>
-    /// 库隔离租户创建时不开通管理员：先初始化独立库，再初始化管理员——开通过程中写成员、授权时会连带写日志等租户库数据，
-    /// 库得先在。只有独立库已配置完成、还没有所有者的库隔离租户可以初始化管理员。
+    /// 任何隔离模式都是先建租户、再初始化管理员；库隔离租户在两步之间初始化独立库——开通过程中写成员、授权时
+    /// 会连带写日志等租户库数据，库得先在。租户可开通（见 <see cref="EnsureProvisionable"/>）且还没有所有者时才能初始化。
     /// </remarks>
     public async Task<SysTenant> GetTenantAwaitingAdminAsync(long tenantId, CancellationToken cancellationToken = default)
     {
@@ -421,15 +413,7 @@ public sealed class TenantProvisionDomainService
                 ?? throw new UserFriendlyException("租户不存在。");
         }
 
-        if (tenant.IsolationMode != TenantIsolationMode.Database)
-        {
-            throw new UserFriendlyException("只有库隔离租户需要单独初始化管理员，其余租户创建时即已开通。");
-        }
-
-        if (tenant.ConfigStatus != TenantConfigStatus.Configured)
-        {
-            throw new UserFriendlyException("请先初始化该租户的数据库，再初始化管理员。");
-        }
+        EnsureProvisionable(tenant);
 
         using (EnterTenantScope(tenant))
         {

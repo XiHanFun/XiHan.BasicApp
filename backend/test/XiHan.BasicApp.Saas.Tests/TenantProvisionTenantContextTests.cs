@@ -172,12 +172,25 @@ public sealed class TenantProvisionTenantContextTests
     }
 
     /// <summary>
-    /// 字段隔离租户创建时即开通管理员，不走单独初始化。
+    /// 字段隔离租户同样是建好之后再初始化管理员：没有所有者就可以初始化。
     /// </summary>
     [Fact]
-    public async Task GetTenantAwaitingAdmin_FieldTenant_ShouldReject()
+    public async Task GetTenantAwaitingAdmin_FieldTenantWithoutOwner_ShouldReturnTenant()
     {
         var fixture = CreateFixture();
+
+        var tenant = await fixture.Service.GetTenantAwaitingAdminAsync(TenantId);
+
+        Assert.Same(fixture.Tenant, tenant);
+    }
+
+    /// <summary>
+    /// Schema 隔离尚未实装：不能初始化管理员。
+    /// </summary>
+    [Fact]
+    public async Task GetTenantAwaitingAdmin_SchemaTenant_ShouldReject()
+    {
+        var fixture = CreateFixture(isolationMode: TenantIsolationMode.Schema);
 
         _ = await Assert.ThrowsAsync<UserFriendlyException>(() => fixture.Service.GetTenantAwaitingAdminAsync(TenantId));
     }
@@ -192,7 +205,7 @@ public sealed class TenantProvisionTenantContextTests
 
         var exception = await Assert.ThrowsAsync<UserFriendlyException>(() => fixture.Service.GetTenantAwaitingAdminAsync(TenantId));
 
-        Assert.Contains("初始化该租户的数据库", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("先初始化数据库", exception.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -209,19 +222,18 @@ public sealed class TenantProvisionTenantContextTests
     }
 
     /// <summary>
-    /// 未指定版本的租户：取默认版本并在平台作用域持久化到租户注册表，随后按该版本白名单授权。
+    /// 开通管理员不改租户注册表：版本在建租户时已经定下，没有版本的租户按未启用门控处理，Owner 角色不授权。
     /// </summary>
     [Fact]
-    public async Task ProvisionTenantAdmin_WithoutEdition_ShouldPersistDefaultEditionInPlatformScope()
+    public async Task ProvisionTenantAdmin_WithoutEdition_ShouldNotTouchTenantRegistry()
     {
         var fixture = CreateFixture(ambientTenantId: AmbientTenantId, editionId: null);
 
         _ = await fixture.Service.ProvisionTenantAdminAsync(fixture.Tenant, "owner", "owner@example.com", "hash");
 
-        Assert.Equal(EditionId, fixture.Tenant.EditionId);
-        var tenantUpdate = Assert.Single(fixture.Observations, observation => observation.Operation == "Tenant.Update");
-        Assert.Null(tenantUpdate.TenantId);
-        Assert.Contains(fixture.Observations, observation => observation.Operation == "RolePermission.AddRange");
+        Assert.Null(fixture.Tenant.EditionId);
+        Assert.DoesNotContain(fixture.Observations, observation => observation.Operation == "Tenant.Update");
+        Assert.DoesNotContain(fixture.Observations, observation => observation.Operation == "RolePermission.AddRange");
     }
 
     /// <summary>

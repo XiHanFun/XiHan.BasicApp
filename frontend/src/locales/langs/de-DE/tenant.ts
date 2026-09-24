@@ -13,6 +13,7 @@ export default {
     init_admin_title: 'Mandanten-Administrator initialisieren',
     init_admin_success: 'Mandanten-Administrator eingerichtet',
     init_admin_failed: 'Administrator konnte nicht initialisiert werden',
+    create_admin_hint: 'Der Administrator wird direkt nach dem Anlegen des Mandanten eingerichtet; alternativ später über die Zeilenaktion „Administrator initialisieren".',
     database_admin_hint: 'Bei datenbankisolierten Mandanten zuerst die Datenbank und danach den Administrator initialisieren.',
     isolation_mode_locked: 'Der Isolationsmodus kann nach dem Anlegen nicht geändert werden',
     delete: 'Löschen',

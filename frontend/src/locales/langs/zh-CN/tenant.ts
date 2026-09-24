@@ -13,6 +13,7 @@ export default {
     init_admin_title: '初始化租户管理员',
     init_admin_success: '租户管理员已开通',
     init_admin_failed: '初始化管理员失败',
+    create_admin_hint: '租户建好后接着开通管理员；也可以稍后在行操作「初始化管理员」中开通。',
     database_admin_hint: '库隔离租户创建后先初始化数据库，再初始化管理员。',
     isolation_mode_locked: '隔离模式创建后不能修改',
     delete: '删除',

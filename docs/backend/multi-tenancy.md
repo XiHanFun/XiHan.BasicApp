@@ -205,26 +205,23 @@ BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统�
 
 性能上，门控白名单走**独立的版本门控缓存**（`SaasEditionGateCacheItem`，缓存名 `SaasCacheNames.EditionGate` = `basicapp:saas:tenancy:edition-gate`，10 分钟 TTL），在 per-user 授权快照缓存**之外**按当前租户上下文叠加，避免切换租户后缓存串味，鉴权热路径不必每请求查库。版本白名单/租户换版的写路径会调 `InvalidateEditionGateAsync` 失效缓存（事务提交后生效）。
 
-### 开通一站式：建管理员 + 角色 + 授权
+### 开通：先建租户，再初始化管理员
 
-创建租户时若同时提供 `AdminUserName` + `AdminPassword`（此时 `AdminEmail` 必填且须为有效邮箱），`CreateTenantAsync` 会调 `ProvisionTenantAdminAsync` 一站式开通（`TenantProvisionDomainService`）。写入按数据归属分作用域：租户注册表与版本白名单是平台数据，在平台作用域读写；管理员账号、成员关系、Owner 角色与授权绑定是新租户的数据，切入该租户（`ICurrentTenant.Change(tenantId)`）写入，行的 `TenantId` 由作用域决定，不预置：
+任何隔离模式都分步开通，建租户不带管理员：
 
-1. **确保版本**：租户未指定则取默认版本并回写 `SysTenant.EditionId`；
-2. **建管理员**：创建 `SysUser`（校验邮箱全局唯一）+ `SysUserSecurity`（密码哈希）+ `SysTenantUser`（`MemberType=Owner`、`InviteStatus=Accepted`）；
-3. **建 Owner 角色并按白名单授权**：创建角色 `tenant_owner`（数据范围 `All`），把该版本白名单里的有效权限批量写成 `SysRolePermission`（`Grant`）；
-4. **绑定**：把管理员挂到 Owner 角色（`SysUserRole`）。
+1. **建租户**：`CreateTenant` 写租户注册表；版本未指定则取默认版本（没有默认版本时保持未绑定，门控按未启用处理）。字段隔离租户建好即 `Configured`，库隔离租户是 `Pending`；
+2. **初始化数据库（仅库隔离）**：`InitializeDatabase` 建库、建表、登记升级基线，成功后 `Configured`（建库是 DDL，不能包在事务型工作单元里，所以是独立一步，可重复执行）；
+3. **初始化管理员**：`InitializeTenantAdmin` 一站式开通（`TenantProvisionDomainService.ProvisionTenantAdminAsync`）。只有已配置、还没有所有者的租户可以调用；列表与详情的 `HasOwner` 标出是否已开通。
 
-于是新租户开通即"能登录、有 Owner、拥有版本范围内的全部权限"，无需人工逐项授权。
+一站式开通按数据归属分作用域：版本白名单是平台数据，在平台作用域读；管理员账号、成员关系、Owner 角色与授权绑定是新租户的数据，切入该租户（`ICurrentTenant.Change(tenantId)`）写入，行的 `TenantId` 由作用域决定，不预置：
 
-#### 库隔离租户的开通
+1. **建管理员**：创建 `SysUser`（校验邮箱全局唯一）+ `SysUserSecurity`（密码哈希）+ `SysTenantUser`（`MemberType=Owner`、`InviteStatus=Accepted`）；
+2. **建 Owner 角色并按白名单授权**：创建角色 `tenant_owner`（数据范围 `All`），把租户所绑版本白名单里的有效权限批量写成 `SysRolePermission`（`Grant`）；
+3. **绑定**：把管理员挂到 Owner 角色（`SysUserRole`）。
 
-`Database` 隔离的租户分三步开通：
+于是开通管理员后即"能登录、有 Owner、拥有版本范围内的全部权限"，无需人工逐项授权。管理页上字段隔离租户建好会接着弹出开通管理员；库隔离租户要先初始化数据库——开通时连带写的租户数据（日志等）在它自己的库里，库得先在，账号、成员关系、角色与授权本身在平台库。
 
-1. **建租户**：`CreateTenant` 不带管理员账号（带了直接拒绝），租户 `ConfigStatus = Pending`；
-2. **初始化数据库**：`InitializeDatabase` 建库、建表、登记升级基线，成功后 `Configured`（建库是 DDL，不能包在事务型工作单元里，所以是独立一步，可重复执行）；
-3. **初始化管理员**：`InitializeTenantAdmin` 走与字段隔离相同的一站式开通（管理员、Owner 角色、按版本授权、绑定）。只有独立库已配置完成、还没有所有者的库隔离租户可以调用。
-
-管理员放在建库之后，是因为开通时连带写的租户数据（日志等）在租户自己的库里，库得先在。账号、成员关系、角色与授权本身在平台库。
+#### 库隔离租户的库
 
 `InitializeDatabase` 建的是这个租户**一整套**布局：主库，加上它按约定自带的模块库。主连接下配了 `ModuleDataSourceConfigs` 的模块（如 `Erp`），租户也会有一个对应的库，库名由租户主库名派生成 `{租户库名}_{模块名}`——租户库叫 `qqq`，就还会建一个 `qqq_Erp`。主连接那条模块连接串留空（该模块不分库）时租户同样不分，模块表落它自己的主库。
 

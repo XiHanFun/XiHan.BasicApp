@@ -13,6 +13,7 @@ export default {
     init_admin_title: 'テナント管理者の初期化',
     init_admin_success: 'テナント管理者を開設しました',
     init_admin_failed: '管理者の初期化に失敗しました',
+    create_admin_hint: 'テナント作成後に続けて管理者を開設します。後から行操作「管理者を初期化」で開設することもできます。',
     database_admin_hint: 'データベース分離テナントは、先にデータベースを初期化してから管理者を初期化します。',
     isolation_mode_locked: '分離モードは作成後に変更できません',
     delete: '削除',

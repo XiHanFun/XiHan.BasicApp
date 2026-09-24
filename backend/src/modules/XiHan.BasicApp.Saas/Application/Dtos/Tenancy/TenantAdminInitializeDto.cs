@@ -4,7 +4,7 @@
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
 /// <summary>
-/// 库隔离租户初始化管理员 DTO
+/// 租户初始化管理员 DTO
 /// </summary>
 public sealed class TenantAdminInitializeDto
 {

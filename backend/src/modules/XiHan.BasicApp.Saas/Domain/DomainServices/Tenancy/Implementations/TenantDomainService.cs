@@ -93,6 +93,12 @@ public sealed class TenantDomainService
 
         ApplyConnectionSettings(tenant, command.DatabaseType, command.ConnectionString, requireConnectionString: true);
 
+        // 版本在建租户时定下：未指定则取默认版本（没有默认版本时保持未绑定，门控按未启用处理）
+        if (!tenant.EditionId.HasValue)
+        {
+            _ = await _tenantProvisionDomainService.AssignDefaultEditionAsync(tenant, cancellationToken);
+        }
+
         return new TenantCommandResult(await _tenantRepository.AddAsync(tenant, cancellationToken), DateTimeOffset.UtcNow);
     }
 

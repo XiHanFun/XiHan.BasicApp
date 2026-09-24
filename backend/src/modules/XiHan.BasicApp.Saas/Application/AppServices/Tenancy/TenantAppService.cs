@@ -9,7 +9,6 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Users;
@@ -69,7 +68,7 @@ public sealed class TenantAppService
     }
 
     /// <summary>
-    /// 创建租户
+    /// 创建租户（不带管理员：之后经 <see cref="InitializeTenantAdminAsync"/> 开通，库隔离租户先初始化数据库）
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.Tenant.Create)]
@@ -78,36 +77,7 @@ public sealed class TenantAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var adminUserName = input.AdminUserName?.Trim() ?? string.Empty;
-        var adminEmail = input.AdminEmail?.Trim() ?? string.Empty;
-        var adminPassword = input.AdminPassword?.Trim() ?? string.Empty;
-
-        // 库隔离租户的数据落在它自己的库里：先建租户（待初始化），初始化数据库之后再经 InitializeTenantAdmin 开通管理员
-        if (input.IsolationMode == TenantIsolationMode.Database)
-        {
-            if (adminUserName.Length > 0 || adminEmail.Length > 0 || adminPassword.Length > 0)
-            {
-                throw new UserFriendlyException("库隔离租户在初始化数据库之后再初始化管理员，创建时不填管理员账号。");
-            }
-
-            var pending = await _tenantDomainService.CreateTenantAsync(TenantApplicationMapper.ToCreateCommand(input), cancellationToken);
-            return TenantApplicationMapper.ToDetailDto(pending.Tenant, pending.Now);
-        }
-
-        // 管理员账号先于建租户校验：没有管理员的租户没有任何账号能登录，因此是创建租户的必要组成
-        await ValidateTenantAdminAsync(adminUserName, adminEmail, adminPassword, input.TenantCode, input.TenantName);
-
         var result = await _tenantDomainService.CreateTenantAsync(TenantApplicationMapper.ToCreateCommand(input), cancellationToken);
-
-        // 一站式开通：管理员 + Owner 角色 + 按版本白名单授权
-        var passwordHash = _passwordHasher.HashPassword(adminPassword);
-        _ = await _tenantProvisionDomainService.ProvisionTenantAdminAsync(
-            result.Tenant,
-            adminUserName,
-            adminEmail,
-            passwordHash,
-            cancellationToken);
-
         return TenantApplicationMapper.ToDetailDto(result.Tenant, result.Now);
     }
 
@@ -203,7 +173,7 @@ public sealed class TenantAppService
     }
 
     /// <summary>
-    /// 初始化库隔离租户的管理员（独立库初始化完成之后：管理员 + Owner 角色 + 按版本白名单授权）
+    /// 初始化租户管理员：管理员 + Owner 角色 + 按版本白名单授权（库隔离租户要先初始化数据库）
     /// </summary>
     [UnitOfWork(true)]
     [HttpPost]

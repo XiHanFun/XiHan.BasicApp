@@ -137,6 +137,29 @@ public sealed class TenantUserRepository(ISqlSugarClientResolver clientResolver)
     }
 
     /// <summary>
+    /// 这些租户里已有所有者（已开通管理员）的租户
+    /// </summary>
+    public async Task<IReadOnlySet<long>> GetTenantIdsWithOwnerAsync(IReadOnlyCollection<long> tenantIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(tenantIds);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (tenantIds.Count == 0)
+        {
+            return new HashSet<long>();
+        }
+
+        var ids = tenantIds.Distinct().ToList();
+        var owners = await CreateNoTenantQueryable()
+            .Where(member => ids.Contains(member.TenantId) && member.MemberType == TenantMemberType.Owner)
+            .Select(member => member.TenantId)
+            .Distinct()
+            .ToListAsync(cancellationToken);
+
+        return owners.ToHashSet();
+    }
+
+    /// <summary>
     /// 任一文本包含关键字（忽略大小写）
     /// </summary>
     private static bool Matches(string keyword, params string?[] values)

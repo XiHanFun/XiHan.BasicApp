@@ -78,6 +78,21 @@ public sealed class TenantMemberSearchSqlTests : IDisposable
     }
 
     /// <summary>
+    /// 已开通管理员 = 有所有者成员：显式跨租户按租户精确判断，不看当前上下文
+    /// </summary>
+    [Fact]
+    public async Task TenantIdsWithOwner_OnlyTenantsHavingOwnerMember()
+    {
+        var owner = Member(OtherTenantId, 11, displayName: null);
+        owner.MemberType = TenantMemberType.Owner;
+        Insert(owner, 24);
+
+        var withOwner = await _repository.GetTenantIdsWithOwnerAsync([TenantId, OtherTenantId]);
+
+        Assert.Equal([OtherTenantId], withOwner);
+    }
+
+    /// <summary>
     /// 释放连接并清理临时库文件
     /// </summary>
     public void Dispose()
