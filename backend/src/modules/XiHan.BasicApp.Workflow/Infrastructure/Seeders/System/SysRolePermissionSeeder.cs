@@ -1,10 +1,15 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SqlSugar;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Workflow.Infrastructure.Seeders.System;
 
@@ -12,11 +17,14 @@ namespace XiHan.BasicApp.Workflow.Infrastructure.Seeders.System;
 /// 系统角色权限种子数据
 /// </summary>
 /// <remarks>
-/// 默认仅授予超级管理员（显式留痕）；业务角色的 workflow:* 授权由各租户管理员在角色管理界面按需分配。
+/// 工作流是租户侧能力，平台超管用不到：默认授给各租户的系统管理员（tenant_admin），其余业务角色的
+/// workflow:* 授权由租户管理员在角色管理界面按需分配；之后开通的租户由所有者角色按套餐白名单获得。
 /// 待办办理不依赖 workflow:* 权限（登录即可，受理人归属服务端校验），普通审批人无需任何授权。
 /// </remarks>
 public class SysRolePermissionSeeder : PlatformDataSeederBase
 {
+    private const string TenantAdminRoleCode = "tenant_admin";
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -42,7 +50,7 @@ public class SysRolePermissionSeeder : PlatformDataSeederBase
     {
         var client = DbClient;
         var permissions = await client.Queryable<SysPermission>()
-            .Where(p => p.PermissionCode.StartsWith("workflow:"))
+            .Where(p => p.TenantId == 0 && p.PermissionCode.StartsWith("workflow:"))
             .ToListAsync();
         if (permissions.Count == 0)
         {
@@ -50,27 +58,64 @@ public class SysRolePermissionSeeder : PlatformDataSeederBase
             return;
         }
 
-        var superRole = await client.Queryable<SysRole>().FirstAsync(r => r.RoleCode == "super_admin");
+        var tenantGrantableIds = permissions
+            .Where(p => p.Side.IsTenantEffective())
+            .Select(p => p.BasicId)
+            .ToList();
+        var tenantIds = await client.Queryable<SysTenant>().Select(t => t.BasicId).ToListAsync();
+
+        var currentTenant = ServiceProvider.GetRequiredService<ICurrentTenant>();
         var grantedCount = 0;
-        if (superRole is not null)
+        foreach (var tenantId in tenantIds)
         {
-            var permissionIds = permissions.Select(p => p.BasicId).ToList();
-            var existsSet = (await client.Queryable<SysRolePermission>()
-                    .Where(rp => rp.RoleId == superRole.BasicId && permissionIds.Contains(rp.PermissionId))
-                    .ToListAsync())
-                .Select(rp => rp.PermissionId)
-                .ToHashSet();
-            var addList = permissions
-                .Where(p => !existsSet.Contains(p.BasicId))
-                .Select(p => new SysRolePermission { RoleId = superRole.BasicId, PermissionId = p.BasicId })
-                .ToList();
-            if (addList.Count > 0)
-            {
-                await BulkInsertAsync(addList);
-                grantedCount = addList.Count;
-            }
+            using var tenantScope = currentTenant.Change(tenantId, tenantId.ToString());
+            grantedCount += await GrantTenantAdminAsync(DbClient, tenantId, tenantGrantableIds);
         }
 
-        Logger.LogInformation("工作流权限默认仅授超级管理员：新增角色权限 {GrantCount} 条", grantedCount);
+        Logger.LogInformation("工作流权限授予各租户系统管理员：新增角色权限 {GrantCount} 条", grantedCount);
+    }
+
+    /// <summary>
+    /// 给租户的系统管理员补齐缺失的工作流权限绑定
+    /// </summary>
+    private static async Task<int> GrantTenantAdminAsync(ISqlSugarClient client, long tenantId, IReadOnlyCollection<long> permissionIds)
+    {
+        if (permissionIds.Count == 0)
+        {
+            return 0;
+        }
+
+        var role = await client.Queryable<SysRole>()
+            .FirstAsync(r => r.TenantId == tenantId && r.RoleCode == TenantAdminRoleCode);
+        if (role is null)
+        {
+            return 0;
+        }
+
+        var existingIds = (await client.Queryable<SysRolePermission>()
+                .Where(rp => rp.TenantId == tenantId && rp.RoleId == role.BasicId)
+                .ToListAsync())
+            .Select(rp => rp.PermissionId)
+            .ToHashSet();
+
+        var addList = permissionIds
+            .Where(id => !existingIds.Contains(id))
+            .Select(id => new SysRolePermission
+            {
+                TenantId = tenantId,
+                RoleId = role.BasicId,
+                PermissionId = id,
+                PermissionAction = PermissionAction.Grant,
+                Status = ValidityStatus.Valid,
+                GrantReason = "系统初始化工作流模块角色权限"
+            })
+            .ToList();
+
+        if (addList.Count > 0)
+        {
+            _ = await client.Insertable(addList).ExecuteReturnSnowflakeIdListAsync();
+        }
+
+        return addList.Count;
     }
 }

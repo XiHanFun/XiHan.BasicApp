@@ -1,9 +1,11 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Users;
 
 namespace XiHan.BasicApp.Saas.Application.Services;
@@ -25,6 +27,8 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
 
     private readonly ICurrentUser _currentUser;
 
+    private readonly ICurrentTenant _currentTenant;
+
     private readonly IRoleRepository _roleRepository;
 
     private readonly IUserRoleRepository _userRoleRepository;
@@ -34,20 +38,26 @@ public sealed class SuperAdminProtector : ISuperAdminProtector
     /// </summary>
     public SuperAdminProtector(
         ICurrentUser currentUser,
+        ICurrentTenant currentTenant,
         IRoleRepository roleRepository,
         IUserRoleRepository userRoleRepository)
     {
         _currentUser = currentUser;
+        _currentTenant = currentTenant;
         _roleRepository = roleRepository;
         _userRoleRepository = userRoleRepository;
     }
 
     /// <summary>
-    /// 当前用户是否为超级管理员（持有 <c>super_admin</c> 角色）。
+    /// 当前用户此刻是否以超级管理员身份操作（平台上下文且持有 <c>super_admin</c> 角色）。
     /// </summary>
+    /// <remarks>
+    /// 超管是平台概念，豁免只在平台成立：进了业务租户就只是那个租户的成员，按其在该租户的角色与套餐判定，
+    /// 与授权快照「超管通配只在平台」同一口径。
+    /// </remarks>
     public bool IsCurrentUserSuperAdmin()
     {
-        return _currentUser.IsInRole(SuperAdminRoleCode);
+        return _currentTenant.IsPlatformOperation() && _currentUser.IsInRole(SuperAdminRoleCode);
     }
 
     /// <summary>

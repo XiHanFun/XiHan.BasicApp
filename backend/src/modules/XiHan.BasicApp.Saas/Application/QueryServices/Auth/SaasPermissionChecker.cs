@@ -2,12 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Saas.Application.Services;
-using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authorization.Permissions;
-using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
@@ -22,6 +19,7 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// 导致请求期 <c>IsGrantedAsync</c> 失效、鉴权只能依赖登录时写入 JWT 的权限声明 —— 授权变更须重新登录才生效。
 /// 本实现改为读取按用户缓存、且在授权写路径失效的 <see cref="AuthorizationSnapshot"/>，使授权变更无需重新登录即可生效；
 /// 并在鉴权前校验「当前请求所属会话」是否仍有效（登出/强制下线/禁用→吊销会话 后即时拒绝）。
+/// 作用侧不含当前上下文的权限码（随快照下发）与模仿态禁用清单先于通配判定拒绝：平台超管的 * 也放不出租户侧权限。
 /// </remarks>
 public sealed class SaasPermissionChecker : IPermissionChecker
 {
@@ -32,8 +30,6 @@ public sealed class SaasPermissionChecker : IPermissionChecker
     private readonly IUserSessionRepository _userSessionRepository;
 
     private readonly ICurrentUser _currentUser;
-
-    private readonly ICurrentTenant _currentTenant;
 
     // 请求级（Scoped 实例生命周期=单次请求）记忆化：一个请求内多次鉴权只构建/取一次快照、只校验一次会话
     private readonly Dictionary<long, AuthorizationSnapshot> _requestSnapshots = [];
@@ -46,13 +42,11 @@ public sealed class SaasPermissionChecker : IPermissionChecker
     public SaasPermissionChecker(
         IAuthorizationSnapshotQueryService authorizationSnapshotQueryService,
         IUserSessionRepository userSessionRepository,
-        ICurrentUser currentUser,
-        ICurrentTenant currentTenant)
+        ICurrentUser currentUser)
     {
         _authorizationSnapshotQueryService = authorizationSnapshotQueryService;
         _userSessionRepository = userSessionRepository;
         _currentUser = currentUser;
-        _currentTenant = currentTenant;
     }
 
     /// <summary>
@@ -69,18 +63,13 @@ public sealed class SaasPermissionChecker : IPermissionChecker
             return false;
         }
 
-        if (IsDeniedInCurrentContext(permissionName))
-        {
-            return false;
-        }
-
         if (!await IsCurrentSessionValidAsync(cancellationToken))
         {
             return false;
         }
 
         var snapshot = await BuildSnapshotAsync(id, cancellationToken);
-        return HasPermission(snapshot, permissionName);
+        return !IsDeniedInCurrentContext(snapshot, permissionName) && HasPermission(snapshot, permissionName);
     }
 
     /// <summary>
@@ -97,20 +86,14 @@ public sealed class SaasPermissionChecker : IPermissionChecker
             return false;
         }
 
-        // 逐条过滤而不是整体拒绝：任一未被禁用的权限码仍应按快照判定
-        permissionNames = [.. permissionNames.Where(name => !IsDeniedInCurrentContext(name))];
-        if (permissionNames.Count == 0)
-        {
-            return false;
-        }
-
         if (!await IsCurrentSessionValidAsync(cancellationToken))
         {
             return false;
         }
 
+        // 逐条过滤而不是整体拒绝：任一未被禁用的权限码仍应按快照判定
         var snapshot = await BuildSnapshotAsync(id, cancellationToken);
-        return permissionNames.Any(name => HasPermission(snapshot, name));
+        return permissionNames.Any(name => !IsDeniedInCurrentContext(snapshot, name) && HasPermission(snapshot, name));
     }
 
     /// <summary>
@@ -127,18 +110,13 @@ public sealed class SaasPermissionChecker : IPermissionChecker
             return false;
         }
 
-        if (permissionNames.Exists(IsDeniedInCurrentContext))
-        {
-            return false;
-        }
-
         if (!await IsCurrentSessionValidAsync(cancellationToken))
         {
             return false;
         }
 
         var snapshot = await BuildSnapshotAsync(id, cancellationToken);
-        return permissionNames.All(name => HasPermission(snapshot, name));
+        return permissionNames.All(name => !IsDeniedInCurrentContext(snapshot, name) && HasPermission(snapshot, name));
     }
 
     /// <summary>
@@ -155,7 +133,7 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         }
 
         var snapshot = await BuildSnapshotAsync(id, cancellationToken);
-        return [.. snapshot.Permissions.Where(permission => !IsDeniedInCurrentContext(permission))];
+        return [.. snapshot.Permissions.Where(permission => !IsDeniedInCurrentContext(snapshot, permission))];
     }
 
     /// <summary>
@@ -170,13 +148,10 @@ public sealed class SaasPermissionChecker : IPermissionChecker
     }
 
     /// <summary>
-    /// 模仿态下是否拒绝该权限码（清单见 <see cref="ImpersonationDefaults.DeniedPermissionCodes"/>）。
+    /// 当前上下文里被禁用的权限码：作用侧不含当前上下文的权限（随快照下发），以及模仿态禁用清单
+    /// （见 <see cref="ImpersonationDefaults.DeniedPermissionCodes"/>）。先于通配判定。
     /// </summary>
-    /// <summary>
-    /// 当前上下文里被禁用的权限码：模仿态禁用清单，以及租户上下文里的平台专属码。
-    /// 先于快照与通配判定——带通配权限进入租户也调不动平台接口
-    /// </summary>
-    private bool IsDeniedInCurrentContext(string permissionName)
+    private bool IsDeniedInCurrentContext(AuthorizationSnapshot snapshot, string permissionName)
     {
         if (string.IsNullOrWhiteSpace(permissionName))
         {
@@ -184,8 +159,8 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         }
 
         var code = permissionName.Trim();
-        return (_currentUser.IsImpersonating() && ImpersonationDefaults.DeniedPermissionCodes.Contains(code))
-            || !SaasPlatformPermissions.IsEffectiveIn(code, _currentTenant.IsPlatformOperation());
+        return snapshot.ContextDeniedCodes.Contains(code)
+            || (_currentUser.IsImpersonating() && ImpersonationDefaults.DeniedPermissionCodes.Contains(code));
     }
 
     private static bool HasPermission(AuthorizationSnapshot snapshot, string permissionName)

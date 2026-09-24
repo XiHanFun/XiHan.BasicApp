@@ -491,15 +491,14 @@ public sealed class SaasAppImpersonationSessionTests
         var snapshots = new Mock<IAuthorizationSnapshotQueryService>();
         snapshots
             .Setup(service => service.BuildAsync(It.IsAny<long>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthorizationSnapshot([], permissions, []));
+            .ReturnsAsync(new AuthorizationSnapshot([], permissions, [], []));
 
         var sessions = new Mock<IUserSessionRepository>();
         sessions
             .Setup(repository => repository.GetByUserSessionIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SysUserSession?)null);
 
-        // 模仿会话运行在目标租户里
-        return new SaasPermissionChecker(snapshots.Object, sessions.Object, BuildCurrentUser(isImpersonating).Object, new TestCurrentTenant(7));
+        return new SaasPermissionChecker(snapshots.Object, sessions.Object, BuildCurrentUser(isImpersonating).Object);
     }
 
     private static Mock<ICurrentUser> BuildCurrentUser(bool isImpersonating)

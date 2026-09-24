@@ -22,7 +22,8 @@ public sealed record PermissionCreateCommand(
     int Priority,
     EnableStatus Status,
     int Sort,
-    string? Remark);
+    string? Remark,
+    PermissionSide Side);
 
 /// <summary>
 /// 权限定义更新命令
@@ -35,7 +36,8 @@ public sealed record PermissionUpdateCommand(
     bool IsRequireAudit,
     int Priority,
     int Sort,
-    string? Remark);
+    string? Remark,
+    PermissionSide Side);
 
 /// <summary>
 /// 权限定义状态命令

@@ -316,17 +316,57 @@ public sealed class SaasAppImpersonationPolicyTests
     }
 
     /// <summary>
-    /// 非超管不得授出平台专属权限码。
+    /// 业务租户里不得授出平台侧权限码。
     /// </summary>
     [Fact]
-    public async Task EnsureCanGrantPermissionIdsAsync_PlatformOnlyCode_ShouldThrow()
+    public async Task EnsureCanGrantPermissionIdsAsync_PlatformSideCodeInTenant_ShouldThrow()
     {
-        ArrangePermissionLookup(1, SaasPermissionCodes.Impersonation.CrossTenant);
+        ArrangePermissionLookup(1, SaasPermissionCodes.Impersonation.CrossTenant, PermissionSide.Platform);
+        _currentTenant.Setup(tenant => tenant.Id).Returns(TenantId);
 
         var exception = await Assert.ThrowsAsync<UserFriendlyException>(
             () => CreateService().EnsureCanGrantPermissionIdsAsync([1]));
 
-        Assert.Contains("平台专属", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("平台侧权限", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 超管豁免只在平台成立：进了业务租户照样不能授出平台侧权限码。
+    /// </summary>
+    [Fact]
+    public async Task EnsureCanGrantPermissionIdsAsync_SuperAdminInTenant_PlatformSideCode_ShouldThrow()
+    {
+        // 协议层面：超管判定已按上下文收口，租户上下文里 IsCurrentUserSuperAdmin 恒为 false
+        _superAdminProtector.Setup(protector => protector.IsCurrentUserSuperAdmin()).Returns(false);
+        ArrangePermissionLookup(1, SaasPermissionCodes.Tenant.Create, PermissionSide.Platform);
+        _currentTenant.Setup(tenant => tenant.Id).Returns(TenantId);
+
+        await Assert.ThrowsAsync<UserFriendlyException>(
+            () => CreateService().EnsureCanGrantPermissionIdsAsync([1]));
+    }
+
+    /// <summary>
+    /// 平台里可以授出平台侧权限码（平台角色要用）。
+    /// </summary>
+    [Fact]
+    public async Task EnsureCanGrantPermissionIdsAsync_PlatformSideCodeInPlatform_ShouldPass()
+    {
+        ArrangePermissionLookup(1, SaasPermissionCodes.Tenant.Create, PermissionSide.Platform);
+
+        await CreateService().EnsureCanGrantPermissionIdsAsync([1]);
+    }
+
+    /// <summary>
+    /// 分配角色不按作用侧拦：角色上的平台侧权限在租户里本就不生效
+    /// </summary>
+    [Fact]
+    public async Task EnsureCanGrantRoleIdsAsync_RoleCarryingPlatformSideCode_ShouldPass()
+    {
+        ArrangeRoleExpansion(roleId: 9, permissionId: 1);
+        ArrangePermissionLookup(1, SaasPermissionCodes.Tenant.Create, PermissionSide.Platform);
+        _currentTenant.Setup(tenant => tenant.Id).Returns(TenantId);
+
+        await CreateService().EnsureCanGrantRoleIdsAsync([9]);
     }
 
     /// <summary>
@@ -528,7 +568,7 @@ public sealed class SaasAppImpersonationPolicyTests
         var roles = isSuperAdmin ? new List<string> { "super_admin" } : ["tenant_admin"];
         _snapshots
             .Setup(service => service.BuildAsync(OperatorUserId, It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthorizationSnapshot(roles, [], []));
+            .ReturnsAsync(new AuthorizationSnapshot(roles, [], [], []));
     }
 
     private void ArrangeTenant(long tenantId = TenantId)
@@ -546,9 +586,9 @@ public sealed class SaasAppImpersonationPolicyTests
             .ReturnsAsync(BuildMembership(userId, memberType, tenantId));
     }
 
-    private void ArrangePermissionLookup(long permissionId, string permissionCode)
+    private void ArrangePermissionLookup(long permissionId, string permissionCode, PermissionSide side = PermissionSide.Both)
     {
-        var permission = new SysPermission { PermissionCode = permissionCode };
+        var permission = new SysPermission { PermissionCode = permissionCode, Side = side };
         SaasTestHelper.SetBasicId(permission, permissionId);
         _permissionRepository
             .Setup(repository => repository.GetListAsync(

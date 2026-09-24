@@ -17,6 +17,7 @@ import {
   createPageRequest,
   EnableStatus,
   permissionApi,
+  PermissionSide,
   querySortsFromSchema,
   tenantEditionApi,
   tenantEditionPermissionApi,
@@ -487,7 +488,8 @@ async function loadPermCatalog() {
     return
   }
   try {
-    permCatalog.value = await permissionApi.catalog()
+    // 平台侧权限进不了租户，套餐白名单里不列
+    permCatalog.value = (await permissionApi.catalog()).filter(permission => permission.side !== PermissionSide.Platform)
   }
   catch {
     permCatalog.value = []

@@ -512,8 +512,8 @@ public sealed partial class AuthAppService
         var now = DateTimeOffset.UtcNow;
         var snapshot = await _authorizationSnapshotQueryService.BuildAsync(userId, now, cancellationToken);
 
-        // 与鉴权入口同口径：模仿态禁用清单里的码、租户上下文里的平台专属码都不下发
-        var deniedPermissionCodes = BuildContextDeniedPermissionCodes();
+        // 与鉴权入口同口径：作用侧不含当前上下文的码、模仿态禁用清单里的码都不下发
+        var deniedPermissionCodes = BuildContextDeniedPermissionCodes(snapshot);
         if (deniedPermissionCodes is not null)
         {
             snapshot = snapshot with
@@ -541,19 +541,15 @@ public sealed partial class AuthAppService
     }
 
     /// <summary>
-    /// 当前上下文里被禁用的权限码（与 <c>SaasPermissionChecker</c> 同口径）；都不禁用时为 null
+    /// 当前上下文里被禁用的权限码（与 <c>SaasPermissionChecker</c> 同口径）：作用侧不含当前上下文的码（随快照下发）
+    /// 与模仿态禁用清单；都不禁用时为 null
     /// </summary>
-    private HashSet<string>? BuildContextDeniedPermissionCodes()
+    private HashSet<string>? BuildContextDeniedPermissionCodes(AuthorizationSnapshot snapshot)
     {
-        var denied = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var denied = new HashSet<string>(snapshot.ContextDeniedCodes, StringComparer.OrdinalIgnoreCase);
         if (_currentUser.IsImpersonating())
         {
             denied.UnionWith(ImpersonationDefaults.DeniedPermissionCodes);
-        }
-
-        if (!_currentTenant.IsPlatformOperation())
-        {
-            denied.UnionWith(SaasPlatformPermissions.PlatformOnlyCodes);
         }
 
         return denied.Count == 0 ? null : denied;

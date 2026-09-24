@@ -11,6 +11,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -61,8 +62,6 @@ public sealed class PermissionQueryService
     /// <summary>
     /// 字段级安全（排序门控）
     /// </summary>
-    private readonly ISuperAdminProtector _superAdminProtector;
-
     private readonly IFieldSecurityService _fieldSecurity;
 
     private readonly ICurrentTenant _currentTenant;
@@ -77,7 +76,6 @@ public sealed class PermissionQueryService
         IDistributedCache<SaasPermissionSelectCacheItem, string> permissionSelectCache,
         IDistributedCache<SaasPermissionCatalogCacheItem, string> permissionCatalogCache,
         IFieldSecurityService fieldSecurityService,
-        ISuperAdminProtector superAdminProtector,
         ICurrentTenant currentTenant)
     {
         _currentTenant = currentTenant;
@@ -87,7 +85,6 @@ public sealed class PermissionQueryService
         _permissionSelectCache = permissionSelectCache;
         _permissionCatalogCache = permissionCatalogCache;
         _fieldSecurity = fieldSecurityService;
-        _superAdminProtector = superAdminProtector;
     }
 
     /// <summary>
@@ -204,7 +201,7 @@ public sealed class PermissionQueryService
         var selectItems = item is null
             ? await QueryAvailableGlobalPermissionsAsync(input, cancellationToken)
             : item.Items;
-        return FilterPlatformOnly(selectItems, static permission => permission.PermissionCode);
+        return FilterGrantableInContext(selectItems, static permission => permission.Side);
     }
 
     /// <summary>
@@ -231,20 +228,21 @@ public sealed class PermissionQueryService
             token: cancellationToken);
 
         var catalogItems = item?.Items ?? await QueryPermissionCatalogAsync(cancellationToken);
-        return FilterPlatformOnly(catalogItems, static permission => permission.PermissionCode);
+        return FilterGrantableInContext(catalogItems, static permission => permission.Side);
     }
 
     /// <summary>
-    /// 非超管看不到平台专属权限码：授权界面勾不到，写路径也另有守卫拒绝。
+    /// 授权界面只列当前上下文可授的权限：业务租户里只列租户能生效的（租户侧与两侧），写路径另有同口径守卫；
+    /// 平台列全部——平台要给全局模板角色配租户侧权限，也要给平台角色配平台侧权限
     /// </summary>
-    private IReadOnlyList<TItem> FilterPlatformOnly<TItem>(IReadOnlyList<TItem> items, Func<TItem, string> codeSelector)
+    private IReadOnlyList<TItem> FilterGrantableInContext<TItem>(IReadOnlyList<TItem> items, Func<TItem, PermissionSide> sideSelector)
     {
-        if (items.Count == 0 || _superAdminProtector.IsCurrentUserSuperAdmin())
+        if (items.Count == 0 || _currentTenant.IsPlatformOperation())
         {
             return items;
         }
 
-        return [.. items.Where(item => !SaasPlatformPermissions.PlatformOnlyCodes.Contains(codeSelector(item)))];
+        return [.. items.Where(item => sideSelector(item).IsTenantEffective())];
     }
 
     private async Task<IReadOnlyList<PermissionListItemDto>> QueryPermissionCatalogAsync(CancellationToken cancellationToken)

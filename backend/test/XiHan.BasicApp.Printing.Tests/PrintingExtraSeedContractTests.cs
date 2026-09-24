@@ -150,17 +150,20 @@ public sealed class PrintingExtraSeedContractTests
     }
 
     /// <summary>
-    /// 可授租户清单必须是全量清单去掉平台专属项，两侧同时改动才不会出现"授不出去的权限"。
+    /// 作用侧：只有全局模板管理是平台侧，其余两侧都生效——租户管理员与企业版白名单按作用侧取到的正是它们。
     /// </summary>
     [Fact]
-    public void TenantGrantable_ShouldBeAllMinusPlatformOnly()
+    public void PermissionSeeder_OnlyGlobalManageShouldBePlatformSide()
     {
-        Assert.Equal(
-            PrintingPermissionCodes.All.Where(code => code != PrintingPermissionCodes.GlobalManage),
-            PrintingPermissionCodes.TenantGrantable);
+        var sideByCode = SeedDefinitions().ToDictionary(
+            definition => (string)definition[0]!,
+            definition => (PermissionSide)definition[5]!,
+            StringComparer.Ordinal);
+
+        Assert.Equal(PermissionSide.Platform, sideByCode[PrintingPermissionCodes.GlobalManage]);
         Assert.All(
-            PrintingPermissionCodes.TenantGrantable,
-            code => Assert.Contains(code, PrintingPermissionCodes.All));
+            PrintingPermissionCodes.All.Where(code => code != PrintingPermissionCodes.GlobalManage),
+            code => Assert.Equal(PermissionSide.Both, sideByCode[code]));
     }
 
     /// <summary>
@@ -224,7 +227,7 @@ public sealed class PrintingExtraSeedContractTests
     }
 
     /// <summary>
-    /// 读取权限种子里那份私有定义清单，元素按 (Code, Name, Description, Audit, Sort) 展开。
+    /// 读取权限种子里那份私有定义清单，元素按 (Code, Name, Description, Audit, Sort, Side) 展开。
     /// </summary>
     private static List<object?[]> SeedDefinitions()
     {

@@ -55,6 +55,7 @@ public class ChatPermissionSeeder : PlatformDataSeederBase
     {
         var client = DbClient;
         var codes = Definitions.Select(d => d.Code).ToList();
+        await SyncPermissionSideAsync(codes, PermissionSide.Both);
         var existingCodes = (await client.Queryable<SysPermission>()
                 .Where(p => p.TenantId == 0 && codes.Contains(p.PermissionCode))
                 .ToListAsync())
@@ -72,6 +73,7 @@ public class ChatPermissionSeeder : PlatformDataSeederBase
                 PermissionName = d.Name,
                 PermissionDescription = d.Description,
                 Tags = ChatPermissionCodes.Module,
+                Side = PermissionSide.Both,
                 IsRequireAudit = d.Audit,
                 Priority = d.Sort,
                 Status = EnableStatus.Enabled,

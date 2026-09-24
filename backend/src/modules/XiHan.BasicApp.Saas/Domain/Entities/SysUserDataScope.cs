@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.BasicApp.Saas.Domain.Enums;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
@@ -32,6 +33,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 删除：
 /// - 硬删；撤销用户级覆盖或删除部门时直接删除相关记录
+///
+/// 租户隔离：严格——授权绑定只在所属上下文（平台 / 某个租户）可见与生效，租户里看不到平台的绑定。
 /// </remarks>
 [SugarTable(TableName = "Sys_User_Data_Scope", TableDescription = "用户自定义数据权限范围表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -40,7 +43,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_UsId", nameof(TenantId), OrderByType.Asc, nameof(UserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_DeId", nameof(DepartmentId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_St", nameof(TenantId), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
-public partial class SysUserDataScope : BasicAppCreationEntity
+public partial class SysUserDataScope : BasicAppCreationEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 用户ID

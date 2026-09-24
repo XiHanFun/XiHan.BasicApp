@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Reflection;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 
 namespace XiHan.BasicApp.Saas.Tests;
@@ -286,58 +287,64 @@ public sealed class SaasDomainPermissionCatalogContractTests
     }
 
     /// <summary>
-    /// 平台专属权限码必须都是 Saas 模块自身的合法权限码，否则排除口径会落空。
+    /// 每个权限定义都声明了作用侧（平台 / 租户 / 两侧），没有未声明的 0
     /// </summary>
     [Fact]
-    public void PlatformOnlyCodes_ShouldAllBeDeclaredSaasCodes()
+    public void Definitions_ShouldAllDeclareSide()
     {
-        var declared = GetDeclaredCodes().Select(item => item.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var undeclared = SaasPermissionDefinitions.All
+            .Where(definition => !definition.Side.IsDeclared())
+            .Select(definition => definition.PermissionCode)
+            .ToList();
 
-        // 只校验内置的租户/版本/资源等平台码，外部模块可通过 ContributePlatformOnly 追加自己的码
-        var builtInSample = new[]
-        {
-            SaasPermissionCodes.Tenant.Create,
-            SaasPermissionCodes.Tenant.InitDb,
-            SaasPermissionCodes.TenantEdition.Default,
-            SaasPermissionCodes.Cache.Clear,
-            SaasPermissionCodes.Numbering.GlobalManage
-        };
-
-        Assert.All(builtInSample, code =>
-        {
-            Assert.Contains(code, declared);
-            Assert.Contains(code, SaasPlatformPermissions.PlatformOnlyCodes);
-        });
+        Assert.True(undeclared.Count == 0, $"以下权限没有声明作用侧：{string.Join("、", undeclared)}");
     }
 
     /// <summary>
-    /// 租户可授予判定：必须同时满足「Saas 模块前缀」与「非平台专属」，缺一即拒。
+    /// 作用侧契约：平台运维与目录维护归平台，组织与数据范围归租户，其余两侧都生效
     /// </summary>
-    /// <param name="code">待判定的权限码。</param>
-    /// <param name="expected">期望是否可授予租户。</param>
+    /// <param name="code">权限码</param>
+    /// <param name="expected">期望作用侧</param>
     [Theory]
-    [InlineData("saas:user:read", true)]
-    // 租户目录是平台数据：SysTenant 行都在 0 号且不走租户过滤，查看码归平台专属
-    [InlineData("saas:tenant:read", false)]
-    [InlineData("saas:tenant:create", false)]
-    [InlineData("saas:tenant:initdb", false)]
-    [InlineData("saas:tenant-edition:read", false)]
-    [InlineData("codegen:table:read", false)]
-    [InlineData("saasx:user:read", false)]
-    [InlineData("saas", false)]
-    public void IsTenantGrantable_ShouldRequireSaasPrefixAndNonPlatformCode(string code, bool expected)
+    // 租户目录是平台数据：SysTenant 行都在 0 号，租户持有查看码就能读到全部租户
+    [InlineData("saas:tenant:read", PermissionSide.Platform)]
+    [InlineData("saas:tenant:create", PermissionSide.Platform)]
+    [InlineData("saas:tenant:initdb", PermissionSide.Platform)]
+    [InlineData("saas:tenant-edition:read", PermissionSide.Platform)]
+    [InlineData("saas:cache:clear", PermissionSide.Platform)]
+    [InlineData("saas:task:read", PermissionSide.Platform)]
+    // 目录维护是平台的，查看两侧都要（授权界面要列出可授的权限、菜单）
+    [InlineData("saas:permission:create", PermissionSide.Platform)]
+    [InlineData("saas:permission:read", PermissionSide.Both)]
+    [InlineData("saas:menu:read", PermissionSide.Both)]
+    [InlineData("saas:department:read", PermissionSide.Tenant)]
+    [InlineData("saas:role-data-scope:grant", PermissionSide.Tenant)]
+    [InlineData("saas:tenant-member:read", PermissionSide.Both)]
+    [InlineData("saas:tenant-member:update", PermissionSide.Tenant)]
+    [InlineData("saas:user:read", PermissionSide.Both)]
+    [InlineData("saas:role:create", PermissionSide.Both)]
+    public void Definitions_ShouldDeclareExpectedSide(string code, PermissionSide expected)
     {
-        Assert.Equal(expected, SaasPlatformPermissions.IsTenantGrantable(code));
+        var definition = SaasPermissionDefinitions.All.Single(item => string.Equals(item.PermissionCode, code, StringComparison.OrdinalIgnoreCase));
+
+        Assert.Equal(expected, definition.Side);
     }
 
     /// <summary>
-    /// 前缀与平台专属集合判定均为忽略大小写，避免大小写写法差异绕过平台排除。
+    /// 作用侧判定：两侧在平台与租户都生效，单侧只在自己那侧生效；未声明的不在任何一侧生效
     /// </summary>
     [Fact]
-    public void IsTenantGrantable_ShouldBeCaseInsensitive()
+    public void Side_ShouldBeEffectiveOnlyInDeclaredContext()
     {
-        Assert.True(SaasPlatformPermissions.IsTenantGrantable("SAAS:USER:READ"));
-        Assert.False(SaasPlatformPermissions.IsTenantGrantable("SAAS:TENANT:CREATE"));
+        Assert.True(PermissionSide.Both.IsEffectiveIn(isPlatformContext: true));
+        Assert.True(PermissionSide.Both.IsEffectiveIn(isPlatformContext: false));
+        Assert.True(PermissionSide.Platform.IsEffectiveIn(isPlatformContext: true));
+        Assert.False(PermissionSide.Platform.IsEffectiveIn(isPlatformContext: false));
+        Assert.False(PermissionSide.Tenant.IsEffectiveIn(isPlatformContext: true));
+        Assert.True(PermissionSide.Tenant.IsEffectiveIn(isPlatformContext: false));
+        Assert.False(default(PermissionSide).IsEffectiveIn(isPlatformContext: true));
+        Assert.False(default(PermissionSide).IsTenantEffective());
+        Assert.False(default(PermissionSide).IsDeclared());
     }
 
     private static IEnumerable<FieldInfo> EnumerateCodeFields(Type nestedType)

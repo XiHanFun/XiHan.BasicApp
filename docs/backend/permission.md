@@ -14,7 +14,7 @@ module : resource : action
 ```
 
 - 例：`saas:user:read`（读取用户）、`saas:role:export`（导出角色）、`saas:permission:create`（创建权限定义）
-- 超级管理员在授权快照里持有**字面通配 `*`**，放行一切。注意：匹配是"命中 `*` 或精确等于该权限码"（大小写不敏感），**不支持** `resource:*:*` 之类的段级通配——通配仅有 `*` 这一个特例，见下文判定链
+- 超级管理员在**平台**的授权快照里持有**字面通配 `*`**；作用侧不含当前上下文的权限码先于通配拒绝，进了业务租户超管身份不成立（见 [多租户](./multi-tenancy)）。匹配是"命中 `*` 或精确等于该权限码"（大小写不敏感），**不支持** `resource:*:*` 之类的段级通配——通配仅有 `*` 这一个特例，见下文判定链
 
 > 冒号分三段是硬约定：`SaasPermissionDefinitions.ResolveGroupCode` 按 `saas:{resource}:{action}` 取中间段作为**分组码**（资源段），前端权限中心据此把权限归类展示。
 
@@ -23,6 +23,7 @@ module : resource : action
 - `SaasPermissionCodes` 按资源分嵌套静态类，每个动作一个 `const string`，如 `SaasPermissionCodes.User.Read = "saas:user:read"`。后端 `[PermissionAuthorize(SaasPermissionCodes.User.Read)]` 直接引用常量，杜绝魔法字符串。
 - `SaasPermissionDefinitions.Groups` 是**手写单一事实源**：每个资源块一个 `SaasPermissionGroup`（组码 + 中文组名 + 组内 `SaasPermissionItem` 列表）。落库扁平表 `All`、组码→组名 `GroupNames` 全由 `Groups` 派生，每条权限的 `ModuleCode`（恒为 `saas`）、`Tags`、`Priority`（恒等于 `Sort`）自动生成，无需手写。
 - 新增资源时只在 `Groups` 增一个分组节点、或在已有节点增一条权限项即可，种子据此落库。
+- 每个分组必须声明**作用侧**（`PermissionSide`：平台 / 租户 / 两侧），条目可单独覆盖；作用侧决定权限在哪个上下文生效、能否进入套餐白名单，详见 [多租户 · 权限作用侧](./multi-tenancy#权限作用侧平台-租户-两侧)。
 
 每条权限项携带一个关键标志 `IsRequireAudit`：为 `true` 时，该权限对应的操作应强制写差异日志（`SysDiffLog`），用于合规审计。写类动作（create/update/delete/grant/revoke）多为 `true`，读与导出多为 `false`。
 
@@ -41,6 +42,7 @@ module : resource : action
 | `PermissionType` | `ResourceBased`（绑定 `ResourceId`+`OperationId`）/ `Functional`（仅凭码）/ `DataScope` |
 | `ResourceId` / `OperationId` | 关联 `SysResource` / `SysOperation`（`ResourceBased` 时必填） |
 | `IsRequireAudit` | 该权限操作是否强制写 `SysDiffLog` |
+| `Side` | 作用侧（`Platform` / `Tenant` / `Both`，必填）：权限在平台还是业务租户里生效 |
 | `Priority` | 数字越大越高；**仅**用于同级别 Grant/Deny 排序，不参与 Grant vs Deny 跨级覆盖（Deny 始终优先） |
 | `Status` | `Enabled` / `Disabled` |
 
@@ -189,17 +191,17 @@ FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**�
 
 多租户下不同订阅版本开放不同权限。`SysTenantEditionPermission` 是 Plan-gating 核心：定义每个版本（`Edition`）向租户开放的**权限白名单**。
 
-- `EditionId` + `PermissionId` 唯一，`PermissionId` 通常指向 `TenantId=0` 的全局权限（`IsGlobal=true`），非全局权限不应被版本门控。
+- `EditionId` + `PermissionId` 唯一，`PermissionId` 指向 `TenantId=0` 的全局权限（`IsGlobal=true`），且作用侧必须含租户（平台侧权限进不了租户）。
 - 租户可用权限集 = `SysTenant.EditionId` → 此表 → 可用 `PermissionId` 集；租户管理员分配角色/用户权限时须在此集合内选择。
 - 版本升级（如 Basic → Pro）增量写入新增权限；开通版本时一站式创建 Owner 角色并按白名单批量授权。
 
 版本门控有**运行时**与**持久回收**两层，互为兜底：
 
-**运行时门控**：构建授权快照时，`ApplyEditionGatingAsync` 把用户有效权限集与当前版本白名单**求交**，超出白名单的权限即使 DB 里仍有绑定也不进入本次生效集。跳过门控的情形：超管通配 `*`、平台运维（无租户上下文）、无版本绑定、白名单为空。版本权限变更会失效版本门控缓存，下次判定即按新白名单收窄。
+**运行时门控**：构建授权快照时，`ApplyEditionGatingAsync` 把用户有效权限集与当前版本白名单**求交**，超出白名单的权限即使 DB 里仍有绑定也不进入本次生效集。只有平台（0 号租户）跳过门控；业务租户里无版本绑定或白名单为空时生效权限为空（失败即拒绝），门控缓存不可用时直接查库。版本权限变更会失效版本门控缓存，下次判定即按新白名单收窄。
 
 **降级自动回收越权授权**：租户版本变更时（`TenantDomainService` 检测到 `EditionId` 变化），调用 `TenantProvisionDomainService.ReconcileTenantAuthorizationWithEditionAsync`，按新版本白名单**回收超出范围的存量角色/用户直授权限行**。关键实现细节：
 
-- 白名单为**空视为门控未启用**（与运行时鉴权语义一致），不做回收，避免误清。
+- 白名单为空时运行时已一律拒绝，存量绑定保留不回收，白名单恢复后随之恢复。
 - 仅处理该租户**自有**绑定行（`TenantId=本租户`）；全局行（`TenantId=0`）属平台运维资产，不在回收范围。
 
 ## 判定链
@@ -214,8 +216,10 @@ FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**�
         · deny-overrides：用户 Deny > 用户 Grant > 角色 Deny > 角色 Grant
         · 角色权限经 SysRoleHierarchy 展开继承链（祖先 Grant，后代 Deny 覆盖）
         · 委托权限（SysPermissionDelegation）并入快照，再统一被用户 Deny 收窄
-        · 版本白名单求交（ApplyEditionGatingAsync）
-        · super_admin 角色 → 全部启用权限 + 字面 * 通配放行
+        · 只取当前上下文的绑定（平台的绑定不进租户，反之亦然）
+        · 作用侧：不在当前上下文生效的权限码先于通配拒绝
+        · 业务租户：版本白名单求交（ApplyEditionGatingAsync，失败即拒绝）
+        · 平台的 super_admin 角色 → 平台生效的全部权限 + 字面 * 通配放行
   → 授权(ABAC)：混合策略里编码在策略名中的 ABAC 策略码
         · 收集 subject./resource./environment. 属性 → 评估器按策略码判定
           （同租户/仅本人/比较式内建；时间窗/IP 依赖应用侧属性收集器）

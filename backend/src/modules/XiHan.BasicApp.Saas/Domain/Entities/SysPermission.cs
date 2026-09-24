@@ -101,6 +101,15 @@ public partial class SysPermission : BasicAppAggregateRoot
     public virtual string? Tags { get; set; }
 
     /// <summary>
+    /// 作用侧（平台 / 租户 / 两侧）：决定权限在哪个上下文生效、能否进入套餐白名单与租户授权
+    /// </summary>
+    /// <remarks>
+    /// 没有默认值：定义权限时必须声明作用侧，未声明的在领域校验里直接拒绝，不静默落成两侧把平台能力放给租户。
+    /// </remarks>
+    [SugarColumn(ColumnName = "Side", ColumnDescription = "作用侧")]
+    public virtual PermissionSide Side { get; set; }
+
+    /// <summary>
     /// 是否需要审计（操作此权限是否需要记录差异日志）
     /// </summary>
     [SugarColumn(ColumnName = "Is_Require_Audit", ColumnDescription = "是否需要审计")]

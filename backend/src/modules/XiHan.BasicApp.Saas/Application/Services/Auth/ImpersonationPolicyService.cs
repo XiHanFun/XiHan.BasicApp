@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -188,9 +189,18 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
     /// <summary>
     /// 判定当前用户能否授出指定权限，不能则抛出禁止异常。
     /// </summary>
+    /// <remarks>
+    /// 业务租户里只能授出租户能生效的权限（租户侧与两侧）：平台侧权限授给租户角色或成员既不会生效、也会误导授权结果。
+    /// 超管豁免只在平台成立，业务租户里谁来授都按这条判定。
+    /// </remarks>
     /// <param name="permissionIds">被授出的权限主键集合</param>
     /// <param name="cancellationToken">取消令牌</param>
-    public async Task EnsureCanGrantPermissionIdsAsync(IReadOnlyCollection<long> permissionIds, CancellationToken cancellationToken = default)
+    public Task EnsureCanGrantPermissionIdsAsync(IReadOnlyCollection<long> permissionIds, CancellationToken cancellationToken = default)
+    {
+        return EnsureCanGrantAsync(permissionIds, checkSide: true, cancellationToken);
+    }
+
+    private async Task EnsureCanGrantAsync(IReadOnlyCollection<long> permissionIds, bool checkSide, CancellationToken cancellationToken)
     {
         if (permissionIds is not { Count: > 0 })
         {
@@ -199,13 +209,14 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (_superAdminProtector.IsCurrentUserSuperAdmin())
+        var ids = permissionIds.Where(static id => id > 0).Distinct().ToList();
+        if (ids.Count == 0)
         {
             return;
         }
 
-        var ids = permissionIds.Where(static id => id > 0).Distinct().ToList();
-        if (ids.Count == 0)
+        // 超管只在平台成立，平台里什么侧的权限都可授
+        if (_superAdminProtector.IsCurrentUserSuperAdmin())
         {
             return;
         }
@@ -213,6 +224,19 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
         var permissions = await _permissionRepository.GetListAsync(
             permission => ids.Contains(permission.BasicId),
             cancellationToken);
+
+        if (checkSide && !_currentTenant.IsPlatformOperation())
+        {
+            var platformOnly = permissions
+                .Where(static permission => !permission.Side.IsTenantEffective())
+                .Select(static permission => permission.PermissionCode)
+                .ToList();
+            if (platformOnly.Count > 0)
+            {
+                throw new UserFriendlyException($"租户内不能授予平台侧权限：{string.Join("、", platformOnly)}。");
+            }
+        }
+
         var codes = permissions
             .Select(static permission => permission.PermissionCode)
             .Where(static code => !string.IsNullOrWhiteSpace(code))
@@ -222,12 +246,6 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
         if (codes.Count == 0)
         {
             return;
-        }
-
-        var platformOnly = codes.Where(SaasPlatformPermissions.PlatformOnlyCodes.Contains).ToList();
-        if (platformOnly.Count > 0)
-        {
-            throw new UserFriendlyException($"无权授予平台专属权限：{string.Join("、", platformOnly)}。");
         }
 
         var impersonationCodes = codes
@@ -255,6 +273,9 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
     /// <summary>
     /// 判定当前用户能否授出指定角色，不能则抛出禁止异常。
     /// </summary>
+    /// <remarks>
+    /// 分配角色不按作用侧拦：角色上的平台侧权限在租户里本就不生效（快照按作用侧裁掉），只校验模仿登录权限的授出规则。
+    /// </remarks>
     /// <param name="roleIds">被授出的角色主键集合</param>
     /// <param name="cancellationToken">取消令牌</param>
     public async Task EnsureCanGrantRoleIdsAsync(IReadOnlyCollection<long> roleIds, CancellationToken cancellationToken = default)
@@ -294,7 +315,7 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
             .Distinct()
             .ToList();
 
-        await EnsureCanGrantPermissionIdsAsync(permissionIds, cancellationToken);
+        await EnsureCanGrantAsync(permissionIds, checkSide: false, cancellationToken);
     }
 
     /// <summary>

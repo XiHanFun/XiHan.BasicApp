@@ -256,7 +256,7 @@ public sealed class SaasAppGrantedButtonCodeTests
 
     private static AuthorizationSnapshot Snapshot(List<string> permissions, HashSet<long> permissionIds)
     {
-        return new AuthorizationSnapshot([], permissions, permissionIds);
+        return new AuthorizationSnapshot([], permissions, permissionIds, []);
     }
 
     /// <summary>

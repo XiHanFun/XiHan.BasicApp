@@ -33,7 +33,8 @@ public static class PermissionApplicationMapper
             input.Priority,
             input.Status,
             input.Sort,
-            input.Remark);
+            input.Remark,
+            input.Side);
     }
 
     /// <summary>
@@ -75,6 +76,7 @@ public static class PermissionApplicationMapper
             GroupName = groupName,
             PermissionDescription = permission.PermissionDescription,
             IsRequireAudit = permission.IsRequireAudit,
+            Side = permission.Side,
             IsGlobal = permission.IsGlobal,
             Priority = permission.Priority,
             Status = permission.Status,
@@ -111,6 +113,7 @@ public static class PermissionApplicationMapper
             PermissionDescription = permission.PermissionDescription,
             Tags = permission.Tags,
             IsRequireAudit = permission.IsRequireAudit,
+            Side = permission.Side,
             IsGlobal = permission.IsGlobal,
             Priority = permission.Priority,
             Status = permission.Status,
@@ -142,6 +145,7 @@ public static class PermissionApplicationMapper
             PermissionCode = permission.PermissionCode,
             PermissionName = permission.PermissionName,
             IsRequireAudit = permission.IsRequireAudit,
+            Side = permission.Side,
             Priority = permission.Priority
         };
     }
@@ -170,6 +174,7 @@ public static class PermissionApplicationMapper
             input.IsRequireAudit,
             input.Priority,
             input.Sort,
-            input.Remark);
+            input.Remark,
+            input.Side);
     }
 }

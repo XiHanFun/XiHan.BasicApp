@@ -26,7 +26,7 @@
 
 ## 权限码
 
-前缀 `print-template:`（`Domain/Permissions/PrintingPermissionCodes.cs`）：`read` / `create` / `update` / `status` / `delete` / `use` 可授予租户（模块角色权限种子默认授 `tenant_admin`）；`global-manage` 为平台专属（管理全局模板与租户开放状态，经 `SaasPlatformPermissions.ContributePlatformOnly` 登记进统一排除口径）。
+前缀 `print-template:`（`Domain/Permissions/PrintingPermissionCodes.cs`）：`read` / `create` / `update` / `status` / `delete` / `use` 可授予租户（模块角色权限种子默认授 `tenant_admin`）；`global-manage` 作用侧为平台（管理全局模板与租户开放状态；由权限种子声明，只在平台生效、进不了套餐白名单）。
 
 ## 数据源目录
 

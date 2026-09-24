@@ -6,6 +6,7 @@ using SqlSugar;
 using XiHan.BasicApp.Chat.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -17,8 +18,8 @@ namespace XiHan.BasicApp.Chat.Infrastructure.Seeders.System;
 /// </summary>
 /// <remarks>
 /// 超级管理员显式授予全部聊天权限（运行时本就通配 *，此处留痕）；
-/// 各租户的系统管理员（tenant_admin）授予全部可授租户权限——聊天权限码不带 saas: 前缀、
-/// 不进 <c>IsTenantGrantable</c> 的默认授权面，租户默认可用性由本种子承载。
+/// 各租户的系统管理员（tenant_admin）授予作用侧含租户的聊天权限——Saas 演示种子只授 Saas 模块自身权限，
+/// 聊天的租户默认可用性由本种子承载。
 /// </remarks>
 public class ChatRolePermissionSeeder : DataSeederBase
 {
@@ -53,7 +54,7 @@ public class ChatRolePermissionSeeder : DataSeederBase
     protected override async Task SeedInternalAsync()
     {
         // 平台态：读取聊天权限与租户清单
-        Dictionary<string, long> permissionIdByCode;
+        List<long> tenantGrantableIds;
         List<long> tenantIds;
         long superGranted;
         using (var platformScope = _currentTenant.Change(null))
@@ -68,16 +69,13 @@ public class ChatRolePermissionSeeder : DataSeederBase
                 return;
             }
 
-            permissionIdByCode = permissions.ToDictionary(p => p.PermissionCode, p => p.BasicId, StringComparer.OrdinalIgnoreCase);
-            superGranted = await GrantAsync(client, 0, "super_admin", permissionIdByCode.Values.ToList());
+            // 租户管理员只授租户能生效的权限（作用侧含租户），平台侧的留给平台超管
+            tenantGrantableIds = [.. permissions.Where(p => p.Side.IsTenantEffective()).Select(p => p.BasicId)];
+            superGranted = await GrantAsync(client, 0, "super_admin", [.. permissions.Select(p => p.BasicId)]);
             tenantIds = (await client.Queryable<SysTenant>().Select(t => t.BasicId).ToListAsync()).ToList();
         }
 
         // 各租户态：系统管理员授予可授租户权限
-        var tenantGrantableIds = ChatPermissionCodes.TenantGrantable
-            .Select(code => permissionIdByCode.TryGetValue(code, out var id) ? id : 0)
-            .Where(id => id > 0)
-            .ToList();
         var tenantGranted = 0L;
         foreach (var tenantId in tenantIds)
         {

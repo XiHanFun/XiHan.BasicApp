@@ -12,9 +12,9 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
 /// </summary>
 /// <remarks>
 /// 与 <see cref="SaasTenantEditionSeeder"/>（Order 21）同一套幂等逻辑，在全部模块权限种子
-/// （代码生成 100+、AI 200+、工作流 300+、打印 500+ 等）之后再执行一遍：版本白名单按
-/// 「全部已启用权限减平台专属」重算，使外部模块权限在首次启动即进入企业版白名单，
-/// 而不是等第二次启动才自愈。
+/// （代码生成 100+、AI 200+、工作流 300+、打印 500+ 等）之后再执行一遍：企业版白名单按
+/// 「全部已启用、作用侧含租户的权限」重算，平台侧的旧绑定一律失效，使外部模块权限在首次启动
+/// 即进入企业版白名单，而不是等第二次启动才自愈。
 /// </remarks>
 public sealed class SaasTenantEditionReconcileSeeder(
     ISqlSugarClientResolver clientResolver,

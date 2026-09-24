@@ -36,6 +36,7 @@ using XiHan.Framework.Bot.Telegram.Abstractions;
 using XiHan.Framework.Bot.Telegram.Extensions.DependencyInjection;
 using XiHan.Framework.Bot.WeCom.Abstractions;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
+using XiHan.Framework.Data.SqlSugar.Initializers;
 using XiHan.Framework.Data.SqlSugar.Tenanting;
 using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Messaging.Abstractions;
@@ -77,6 +78,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUpgradeLockProvider, SaasUpgradeLockProvider>();
         services.AddScoped<IUpgradeTenantProvider, SaasUpgradeTenantProvider>();
         services.AddScoped<IUpgradeMigrationExecutor, SaasUpgradeMigrationExecutor>();
+        // 升级脚本先于种子执行：存量表的新列补齐后，种子才能按最新实体读写
+        services.AddScoped<IDbSchemaUpgrader, SaasSchemaUpgrader>();
 
         // 依赖仓储的领域服务（跟随仓储生命周期，注册为 Scoped）
         services.AddScoped<IAuthenticationDomainService, AuthenticationDomainService>();

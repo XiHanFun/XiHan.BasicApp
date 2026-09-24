@@ -3,6 +3,7 @@
 
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
+using XiHan.Framework.Domain.Entities.Abstracts;
 
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -32,6 +33,8 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 ///
 /// 删除：
 /// - 仅软删；撤销委托通过 DelegationStatus=Revoked
+///
+/// 租户隔离：严格——授权绑定只在所属上下文（平台 / 某个租户）可见与生效，租户里看不到平台的绑定。
 /// </remarks>
 [SugarTable(TableName = "Sys_Permission_Delegation", TableDescription = "权限委托表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
@@ -42,7 +45,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_DeId", nameof(DelegateeUserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_DeSt", nameof(TenantId), OrderByType.Asc, nameof(DelegationStatus), OrderByType.Asc)]
 [SugarIndex("IX_{table}_ExTi", nameof(ExpirationTime), OrderByType.Desc)]
-public partial class SysPermissionDelegation : BasicAppFullAuditedEntity
+public partial class SysPermissionDelegation : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
     /// 委托人ID

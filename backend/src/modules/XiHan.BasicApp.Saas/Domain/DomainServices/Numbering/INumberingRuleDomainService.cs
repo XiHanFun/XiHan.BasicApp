@@ -8,7 +8,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// </summary>
 /// <remarks>
 /// 规则归属完全取自当前租户上下文：平台上下文操作 <c>TenantId = 0</c> 的全局规则，租户上下文操作本租户私有规则。
-/// 权限和平台专属操作校验由上层应用服务负责，本接口专注于领域一致性并依赖调用方提供写事务。
+/// 权限和平台侧操作校验由上层应用服务负责，本接口专注于领域一致性并依赖调用方提供写事务。
 /// </remarks>
 public interface INumberingRuleDomainService
 {

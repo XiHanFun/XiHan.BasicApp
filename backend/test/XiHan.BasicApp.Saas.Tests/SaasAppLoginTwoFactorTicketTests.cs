@@ -432,7 +432,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
         var authorizationSnapshotQueryService = new Mock<IAuthorizationSnapshotQueryService>();
         authorizationSnapshotQueryService
             .Setup(service => service.BuildAsync(It.IsAny<long>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AuthorizationSnapshot([], [], []));
+            .ReturnsAsync(new AuthorizationSnapshot([], [], [], []));
 
         return new AuthAppService(
             _authenticationDomainService.Object,

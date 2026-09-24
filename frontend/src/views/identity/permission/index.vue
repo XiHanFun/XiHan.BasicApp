@@ -7,7 +7,9 @@ import type {
   PermissionCreateDto,
   PermissionDetailDto,
   PermissionListItemDto,
+  PermissionSide,
   PermissionUpdateDto,
+
   ResourceSelectItemDto,
 
   ValidityStatus,
@@ -24,10 +26,11 @@ import {
   PermissionType,
   querySortsFromSchema,
 } from '@/api'
-import { CONDITION_OPERATOR_OPTIONS, CONFIG_DATA_TYPE_OPTIONS, DELEGATION_STATUS_OPTIONS, FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, HTTP_METHOD_OPTIONS, OPERATION_CATEGORY_OPTIONS, OPERATION_TYPE_OPTIONS, PERMISSION_CHANGE_TYPE_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS, PERMISSION_TYPE_OPTIONS, RESOURCE_ACCESS_LEVEL_OPTIONS, RESOURCE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
+import { CONDITION_OPERATOR_OPTIONS, CONFIG_DATA_TYPE_OPTIONS, DELEGATION_STATUS_OPTIONS, FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, HTTP_METHOD_OPTIONS, OPERATION_CATEGORY_OPTIONS, OPERATION_TYPE_OPTIONS, PERMISSION_CHANGE_TYPE_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS, PERMISSION_SIDE_OPTIONS, PERMISSION_TYPE_OPTIONS, RESOURCE_ACCESS_LEVEL_OPTIONS, RESOURCE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
+import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemPermissionPage' })
@@ -37,8 +40,10 @@ const { t } = useI18n()
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
 
-interface PermissionFormModel extends PermissionCreateDto {
+/** 作用侧没有默认值：新建时必须明确选平台 / 租户 / 两侧，选错会把平台能力放进租户或反之 */
+interface PermissionFormModel extends Omit<PermissionCreateDto, 'side'> {
   basicId?: ApiId
+  side: PermissionSide | null
 }
 
 interface NumericSelectOption {
@@ -59,6 +64,7 @@ const operationOptions = ref<NumericSelectOption[]>([])
 const modalVisible = ref(false)
 
 const permissionTypeOptions = useEnumOptions('PermissionType', PERMISSION_TYPE_OPTIONS)
+const permissionSideOptions = useEnumOptions('PermissionSide', PERMISSION_SIDE_OPTIONS)
 const validityStatusOptions = useEnumOptions('ValidityStatus', VALIDITY_STATUS_OPTIONS)
 const resourceTypeOptions = useEnumOptions('ResourceType', RESOURCE_TYPE_OPTIONS)
 const resourceAccessLevelOptions = useEnumOptions('ResourceAccessLevel', RESOURCE_ACCESS_LEVEL_OPTIONS)
@@ -111,6 +117,7 @@ watch(
 
 function createDefaultForm(): PermissionFormModel {
   return {
+    side: null,
     isRequireAudit: false,
     moduleCode: null,
     operationId: null,
@@ -164,8 +171,14 @@ function formatValidityStatus(value?: ValidityStatus | null) {
   return getOptionLabel(validityStatusOptions.value, value)
 }
 
+const userStore = useUserStore()
+
+/**
+ * 全局权限(TenantId=0)是平台的目录，只在平台维护；非平台态隐藏编辑/启停/删除入口，
+ * 避免点击后撞后端「平台级全局权限仅平台运维态可维护」错误。
+ */
 function canMaintainPermission(row: PermissionListItemDto) {
-  return !row.isGlobal
+  return !row.isGlobal || (userStore.userInfo?.isPlatform ?? false)
 }
 
 // ── 字段单一事实源 ──────────────────────────────────────────────
@@ -187,8 +200,21 @@ const fields = computed<ListFieldSchema[]>(() => [
     minWidth: 110,
     order: 4,
   },
-  { key: 'resourceName', title: t('identity.permission.col_resource'), dataType: 'string', minWidth: 150, order: 5 },
-  { key: 'operationName', title: t('identity.permission.col_operation'), dataType: 'string', minWidth: 130, order: 6 },
+  {
+    key: 'side',
+    title: t('identity.permission.col_side'),
+    dataType: 'enum',
+    sortable: true,
+    searchable: true,
+    searchMultiple: true,
+    dictionaryCode: 'PermissionSide',
+    options: permissionSideOptions.value,
+    searchPlaceholder: t('identity.permission.side_placeholder'),
+    width: 90,
+    order: 5,
+  },
+  { key: 'resourceName', title: t('identity.permission.col_resource'), dataType: 'string', minWidth: 150, order: 6 },
+  { key: 'operationName', title: t('identity.permission.col_operation'), dataType: 'string', minWidth: 130, order: 7 },
   {
     key: 'isGlobal',
     title: t('identity.permission.col_is_global'),
@@ -197,7 +223,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: globalOptions.value,
     searchPlaceholder: t('identity.permission.is_global_placeholder'),
     width: 82,
-    order: 7,
+    order: 8,
   },
   {
     key: 'isRequireAudit',
@@ -207,10 +233,10 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: auditOptions.value,
     searchPlaceholder: t('identity.permission.is_audit_placeholder'),
     width: 82,
-    order: 8,
+    order: 9,
   },
-  { key: 'priority', title: t('identity.permission.col_priority'), dataType: 'number', sortable: true, width: 90, order: 9 },
-  { key: 'sort', title: t('identity.permission.col_sort'), dataType: 'number', sortable: true, width: 80, order: 10 },
+  { key: 'priority', title: t('identity.permission.col_priority'), dataType: 'number', sortable: true, width: 90, order: 10 },
+  { key: 'sort', title: t('identity.permission.col_sort'), dataType: 'number', sortable: true, width: 80, order: 11 },
   {
     key: 'status',
     title: t('identity.permission.col_status'),
@@ -222,9 +248,9 @@ const fields = computed<ListFieldSchema[]>(() => [
     options: STATUS_OPTIONS,
     searchPlaceholder: t('identity.permission.status_placeholder'),
     width: 90,
-    order: 11,
+    order: 12,
   },
-  { key: 'createdTime', title: t('identity.permission.col_create_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, minWidth: 170, order: 12 },
+  { key: 'createdTime', title: t('identity.permission.col_create_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, minWidth: 170, order: 13 },
 ])
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
@@ -243,7 +269,7 @@ const schema = computed<PageSchema>(() => ({
       return permissionCenterApi.page({
         ...createPageRequest({
           page: { pageIndex: params.page, pageSize: params.pageSize },
-          // 排序 + 区间(createdTime)/多选(permissionType、status) 统一走 conditions
+          // 排序 + 区间(createdTime)/多选(permissionType、side、status) 统一走 conditions
           conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
         }),
         isGlobal: toBool(isGlobal),
@@ -323,6 +349,7 @@ async function handleEdit(row: PermissionListItemDto) {
     priority: detail?.priority ?? row.priority,
     remark: detail?.remark ?? null,
     resourceId: detail?.resourceId ?? row.resourceId ?? null,
+    side: detail?.side ?? row.side,
     sort: detail?.sort ?? row.sort,
     status: detail?.status ?? row.status,
     tags: detail?.tags ?? null,
@@ -485,11 +512,17 @@ function validateForm() {
     return false
   }
 
+  if (!form.side) {
+    toast.warning(t('identity.permission.msg_side_required'))
+    return false
+  }
+
   return true
 }
 
 async function handleSubmit() {
-  if (!validateForm()) {
+  const side = permissionForm.value.side
+  if (!validateForm() || !side) {
     return
   }
 
@@ -508,6 +541,7 @@ async function handleSubmit() {
         permissionName: permissionForm.value.permissionName.trim(),
         priority: permissionForm.value.priority,
         remark: normalizeNullable(permissionForm.value.remark),
+        side,
         sort: permissionForm.value.sort,
         tags,
       }
@@ -526,6 +560,7 @@ async function handleSubmit() {
         priority: permissionForm.value.priority,
         remark: normalizeNullable(permissionForm.value.remark),
         resourceId: isResourceBasedForm.value ? permissionForm.value.resourceId : null,
+        side,
         sort: permissionForm.value.sort,
         status: permissionForm.value.status,
         tags,
@@ -630,6 +665,12 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                     <XhDescriptionsLabel>{{ t('identity.permission.label_permission_type') }}</XhDescriptionsLabel>
                     <XhDescriptionsValue>
                       {{ getOptionLabel(permissionTypeOptions, currentDetail.permission.permissionType) }}
+                    </XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('identity.permission.label_side') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>
+                      {{ getOptionLabel(permissionSideOptions, currentDetail.permission.side) }}
                     </XhDescriptionsValue>
                   </XhDescriptionsItem>
                   <XhDescriptionsItem>
@@ -989,6 +1030,19 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                 :placeholder="t('identity.permission.ph_operation')"
                 @focus="loadOperationOptions()"
                 @search="handleOperationSearch"
+              />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup name="side">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('identity.permission.label_form_side') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XSelect
+                v-model:value="permissionForm.side"
+                :options="permissionSideOptions"
+                :placeholder="t('identity.permission.side_placeholder')"
               />
             </XhFieldControl>
             <XhFieldErrorText />

@@ -1,5 +1,5 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
-import type { EnableStatus, PermissionType } from '../shared'
+import type { EnableStatus, PermissionSide, PermissionType } from '../shared'
 
 export interface PermissionPageQueryDto extends PageRequest {
   isGlobal?: boolean | null
@@ -33,6 +33,8 @@ export interface PermissionListItemDto extends BasicDto {
   resourceCode?: string | null
   resourceId?: ApiId | null
   resourceName?: string | null
+  /** 作用侧：平台 / 租户 / 两侧 */
+  side: PermissionSide
   sort: number
   status: EnableStatus
 }
@@ -57,6 +59,8 @@ export interface PermissionCreateDto {
   priority: number
   remark?: string | null
   resourceId?: ApiId | null
+  /** 作用侧（必填） */
+  side: PermissionSide
   sort: number
   status: EnableStatus
   tags?: string | null
@@ -68,6 +72,8 @@ export interface PermissionUpdateDto extends BasicUpdateDto {
   permissionName: string
   priority: number
   remark?: string | null
+  /** 作用侧（必填） */
+  side: PermissionSide
   sort: number
   tags?: string | null
 }
@@ -91,4 +97,6 @@ export interface PermissionSelectItemDto extends BasicDto {
   permissionName: string
   permissionType: PermissionType
   priority: number
+  /** 作用侧：平台 / 租户 / 两侧 */
+  side: PermissionSide
 }

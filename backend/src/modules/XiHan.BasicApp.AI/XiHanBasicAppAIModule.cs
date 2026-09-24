@@ -1,10 +1,8 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using XiHan.BasicApp.AI.Domain.Permissions;
 using XiHan.BasicApp.AI.Extensions;
 using XiHan.BasicApp.Saas;
-using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 
@@ -32,15 +30,6 @@ public class XiHanBasicAppAIModule : XiHanModule
     {
         var services = context.Services;
         var configuration = services.GetConfiguration();
-
-        // AI Provider 是平台提供给各租户使用的能力（含加密的 ApiKey）：配置管理属平台专属，
-        // 租户只在运行时读取平台配置，不能自建或覆盖——框架按 provider 名缓存客户端，以此为前提
-        SaasPlatformPermissions.ContributePlatformOnly(
-            AiPermissionCodes.Read,
-            AiPermissionCodes.Create,
-            AiPermissionCodes.Update,
-            AiPermissionCodes.Delete,
-            AiPermissionCodes.Execute);
 
         // AI Provider 配置管理：种子（操作 → 资源 → 权限 → 菜单 → 角色授权）+ 领域服务 + DB 配置源覆盖
         services.AddAIDataSeeders();

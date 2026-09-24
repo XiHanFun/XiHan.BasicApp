@@ -4,6 +4,7 @@
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
@@ -101,6 +102,7 @@ public sealed class PermissionCatalogDomainService
             PermissionDescription = NormalizeNullable(command.PermissionDescription),
             Tags = NormalizeTags(command.Tags),
             IsRequireAudit = command.IsRequireAudit,
+            Side = command.Side,
             Priority = command.Priority,
             Status = command.Status,
             Sort = command.Sort,
@@ -142,6 +144,7 @@ public sealed class PermissionCatalogDomainService
         permission.PermissionDescription = NormalizeNullable(command.PermissionDescription);
         permission.Tags = NormalizeTags(command.Tags);
         permission.IsRequireAudit = command.IsRequireAudit;
+        permission.Side = command.Side;
         permission.Priority = command.Priority;
         permission.Sort = command.Sort;
         permission.Remark = NormalizeNullable(command.Remark);
@@ -495,6 +498,18 @@ public sealed class PermissionCatalogDomainService
         ValidatePermissionTargetInput(command.PermissionType, command.ResourceId, command.OperationId);
         ValidateCommonInput(command.PermissionName, command.PermissionDescription, command.Tags, command.Remark);
         ValidateEnum(command.Status, nameof(command.Status));
+        ValidateSide(command.Side);
+    }
+
+    /// <summary>
+    /// 权限必须声明作用侧：未声明的不静默落成两侧，否则平台能力会被放进租户
+    /// </summary>
+    private static void ValidateSide(PermissionSide side)
+    {
+        if (!side.IsDeclared())
+        {
+            throw new InvalidOperationException("权限必须声明作用侧（平台 / 租户 / 两侧）。");
+        }
     }
 
     private static void ValidateEnum<TEnum>(TEnum value, string paramName)
@@ -679,6 +694,7 @@ public sealed class PermissionCatalogDomainService
         }
 
         ValidateCommonInput(command.PermissionName, command.PermissionDescription, command.Tags, command.Remark);
+        ValidateSide(command.Side);
     }
 
     private async Task EnsureOperationNotReferencedAsync(long operationId, CancellationToken cancellationToken)

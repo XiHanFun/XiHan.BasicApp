@@ -42,7 +42,7 @@ public sealed class SaasBusinessTenantSeeder(
     [
         new("tenant_admin", "系统管理员", "租户内最高权限：管理用户/角色/部门/业务/日志等（平台/开发专属除外）",
             DataPermissionScope.All, 10,
-            allCodes => allCodes.Where(SaasPlatformPermissions.IsTenantGrantable)),
+            allCodes => allCodes.Where(IsSaasCode)),
         new("normal_user", "普通用户", "普通成员：工作台 + 消息阅读",
             DataPermissionScope.SelfOnly, 20,
             _ =>
@@ -67,7 +67,6 @@ public sealed class SaasBusinessTenantSeeder(
                 SaasPermissionCodes.DiffLog.Read,
                 SaasPermissionCodes.PermissionChangeLog.Read,
                 SaasPermissionCodes.ReviewLog.Read,
-                SaasPermissionCodes.TaskLog.Read,
                 SaasPermissionCodes.Review.Read,
             ]),
         new("operator", "运营专员", "内容运营：消息/通知/模板/文件/审批",
@@ -197,7 +196,9 @@ public sealed class SaasBusinessTenantSeeder(
             var permissions = await platformClient.Queryable<SysPermission>()
                 .Where(permission => permission.TenantId == 0 && permission.Status == EnableStatus.Enabled)
                 .ToListAsync();
+            // 租户角色只能绑定租户能生效的权限（租户侧与两侧）：平台侧的码不进映射，手写清单写错了也落不了库
             permissionIdByCode = permissions
+                .Where(permission => permission.Side.IsTenantEffective())
                 .GroupBy(permission => permission.PermissionCode, StringComparer.OrdinalIgnoreCase)
                 .ToDictionary(group => group.Key, group => group.First().BasicId, StringComparer.OrdinalIgnoreCase);
 
@@ -698,6 +699,14 @@ public sealed class SaasBusinessTenantSeeder(
             Remark = "系统初始化业务租户账号安全记录",
         };
         _ = await client.Insertable(security).ExecuteReturnEntityAsync();
+    }
+
+    /// <summary>
+    /// 是否为 Saas 模块自身的权限码：其它模块的租户默认授权由各模块自己的角色权限种子承载
+    /// </summary>
+    private static bool IsSaasCode(string code)
+    {
+        return code.StartsWith(SaasPermissionCodes.Module + ":", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

@@ -35,6 +35,11 @@ public sealed class SaasAuthorizationSnapshotCacheItem
     public List<long> PermissionIds { get; set; } = [];
 
     /// <summary>
+    /// 当前上下文不生效的权限编码（作用侧不含该上下文）。
+    /// </summary>
+    public List<string> ContextDeniedCodes { get; set; } = [];
+
+    /// <summary>
     /// 缓存时间。
     /// </summary>
     public DateTimeOffset CachedAt { get; set; }
