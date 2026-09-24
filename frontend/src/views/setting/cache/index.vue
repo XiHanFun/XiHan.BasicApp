@@ -420,7 +420,7 @@ onMounted(loadKeys)
                     <XhEmptyStateDescription>{{ t('setting.cache.empty_keys') }}</XhEmptyStateDescription>
                   </XhEmptyStateRoot>
                 </div>
-                <!-- 管理档点目录名即勾整枝、展开归箭头；只读档没有勾选，点目录名照常展开 -->
+                <!-- 点行只管选中（管理档勾目录即连同整枝），展开一律交给箭头 -->
                 <XTree
                   v-else
                   v-model:expanded-keys="expandedKeys"
@@ -429,7 +429,6 @@ onMounted(loadKeys)
                   :multiple="canManage"
                   :cascade="canManage"
                   checked-strategy="child"
-                  :expand-on-click="!canManage"
                   :render-label="renderTreeLabel"
                   @update:selected-keys="handleSelect"
                 />

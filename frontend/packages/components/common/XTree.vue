@@ -5,18 +5,16 @@ import { XhTreeRoot, XhTreeTree } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import XTreeNodes from './XTreeNodes.vue'
 
-/** 层级列表：分支可展开，叶子可选。选中集合与展开集合都双向绑定 */
+/** 层级列表：点行只管选中，展开交给箭头与左右方向键。选中集合与展开集合都双向绑定 */
 defineOptions({ name: 'XTree' })
 
 const props = withDefaults(defineProps<{
   /** 节点除键与文本外可挂业务字段，渲染标签时原样拿得到 */
   data: ReadonlyArray<{ value: string | number, label?: string, children?: readonly unknown[] }>
-  /** 多选：带勾选指示、选中集合可多项；缺省单选 */
+  /** 多选：选中集合可多项，行尾对号逐项切换；缺省单选 */
   multiple?: boolean
   /** 逐节点自定义标签 */
   renderLabel?: (node: Record<string, unknown>) => VNodeChild
-  /** 点分支文字即展开，不必点把手 */
-  expandOnClick?: boolean
   /** 多选档的父子联动：勾目录连带整枝，子项勾一部分时目录呈半选 */
   cascade?: boolean
   /** 联动下回传哪些键：all 全部勾中节点、parent 只收最高整枝、child 只留叶，缺省 child */
@@ -24,7 +22,6 @@ const props = withDefaults(defineProps<{
 }>(), {
   multiple: false,
   renderLabel: undefined,
-  expandOnClick: true,
   cascade: false,
   checkedStrategy: undefined,
 })
@@ -55,14 +52,13 @@ const collection = computed(() => toNodes(props.data))
     :multiple="multiple"
     :selection="selectedKeys"
     :expanded-value="expandedKeys"
-    :expand-on-click="expandOnClick"
     :cascade="cascade"
     :checked-strategy="checkedStrategy"
     @update:selection="(value: string[]) => (selectedKeys = value)"
     @update:expanded-value="(value: string[]) => (expandedKeys = value)"
   >
     <XhTreeTree>
-      <XTreeNodes :nodes="collection" :checkable="multiple" :render-label="renderLabel" />
+      <XTreeNodes :nodes="collection" :render-label="renderLabel" />
     </XhTreeTree>
   </XhTreeRoot>
 </template>
