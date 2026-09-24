@@ -1,4 +1,4 @@
-import type { ApiId, BasicCreateDto, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
+import type { ApiId, BasicCreateDto, BasicDto, BasicUpdateDto, DateTimeString, NumericString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
 
 export interface TenantEditionPageQueryDto extends PageRequest {
@@ -20,7 +20,8 @@ export interface TenantEditionListItemDto extends BasicDto {
   price?: number | null
   sort: number
   status: EnableStatus
-  storageLimit?: number | null
+  /** 存储空间限制(MB)（后端 long，按字符串传输） */
+  storageLimit?: NumericString | null
   userLimit?: number | null
 }
 

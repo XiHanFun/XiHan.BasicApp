@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type {
   ApiId,
+  NumericString,
   PageResult,
   PermissionListItemDto,
   TenantEditionCreateDto,
@@ -307,6 +308,11 @@ function normalizeNullable(value?: string | null) {
   return normalized || null
 }
 
+/** 回填表单：存储上限是 long，按字符串传输，数字输入框要数字 */
+function toNullableNumber(value?: NumericString | null) {
+  return value == null ? null : Number(value)
+}
+
 function handleAdd() {
   editionForm.value = createDefaultForm()
   modalVisible.value = true
@@ -333,7 +339,7 @@ async function handleEdit(row: TenantEditionListItemDto) {
     remark: detail?.remark ?? null,
     sort: detail?.sort ?? row.sort,
     status: detail?.status ?? row.status,
-    storageLimit: detail?.storageLimit ?? row.storageLimit ?? null,
+    storageLimit: toNullableNumber(detail?.storageLimit ?? row.storageLimit),
     userLimit: detail?.userLimit ?? row.userLimit ?? null,
   }
   modalVisible.value = true

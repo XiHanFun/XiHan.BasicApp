@@ -1,4 +1,4 @@
-import type { ApiId, BasicCreateDto, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
+import type { ApiId, BasicCreateDto, BasicDto, BasicUpdateDto, DateTimeString, NumericString, PageRequest } from '../../types'
 import type {
   TenantConfigStatus,
   TenantDatabaseType,
@@ -23,8 +23,8 @@ export interface TenantListItemDto extends BasicDto {
   databaseType?: TenantDatabaseType | null
   domain?: string | null
   editionId?: ApiId | null
-  /** 生效存储上限(MB)：租户未设值时回落到所属版本套餐，null 表示不限 */
-  effectiveStorageLimit?: number | null
+  /** 生效存储上限(MB)：租户未设值时回落到所属版本套餐，null 表示不限（后端 long，按字符串传输） */
+  effectiveStorageLimit?: NumericString | null
   /** 生效用户数上限：租户未设值时回落到所属版本套餐，null 表示不限 */
   effectiveUserLimit?: number | null
   expirationTime?: DateTimeString | null
@@ -33,15 +33,16 @@ export interface TenantListItemDto extends BasicDto {
   logo?: string | null
   modifiedTime?: DateTimeString | null
   sort: number
-  storageLimit?: number | null
+  /** 存储空间限制(MB)（后端 long，按字符串传输） */
+  storageLimit?: NumericString | null
   tenantCode: string
   tenantName: string
   tenantShortName?: string | null
   tenantStatus: TenantStatus
-  /** 已占用存储空间(字节) */
-  usedStorageBytes: number
-  /** 已占用席位数（不含平台管理员成员） */
-  usedUserCount: number
+  /** 已占用存储空间(字节)（后端 long，按字符串传输） */
+  usedStorageBytes: NumericString
+  /** 已占用席位数（不含平台管理员成员；后端 long，按字符串传输） */
+  usedUserCount: NumericString
   /** 是否已开通管理员（已有所有者成员） */
   hasOwner: boolean
   userLimit?: number | null
@@ -59,17 +60,17 @@ export interface TenantDetailDto extends TenantListItemDto {
 export interface TenantOverQuotaDto {
   /** 席位是否已超出上限 */
   seatExceeded: boolean
-  /** 生效存储上限(MB) */
-  storageLimit?: number | null
+  /** 生效存储上限(MB)（后端 long，按字符串传输） */
+  storageLimit?: NumericString | null
   /** 存储是否已超出上限 */
   storageExceeded: boolean
   tenantCode: string
   tenantId: ApiId
   tenantName: string
-  /** 已占用存储空间(字节) */
-  usedStorageBytes: number
-  /** 已占用席位数 */
-  usedUserCount: number
+  /** 已占用存储空间(字节)（后端 long，按字符串传输） */
+  usedStorageBytes: NumericString
+  /** 已占用席位数（后端 long，按字符串传输） */
+  usedUserCount: NumericString
   /** 生效席位上限 */
   userLimit?: number | null
 }
@@ -126,8 +127,8 @@ export interface TenantSubscriptionDto {
   editionDescription?: string | null
   /** 版本名称（未绑定版本时为空） */
   editionName?: string | null
-  /** 生效存储上限(MB)（租户未设值时取版本的，空表示不限） */
-  effectiveStorageLimit?: number | null
+  /** 生效存储上限(MB)（租户未设值时取版本的，空表示不限；后端 long，按字符串传输） */
+  effectiveStorageLimit?: NumericString | null
   /** 生效席位上限（租户未设值时取版本的，空表示不限） */
   effectiveUserLimit?: number | null
   /** 到期时间（空表示长期有效） */
@@ -138,10 +139,10 @@ export interface TenantSubscriptionDto {
   tenantId: ApiId
   tenantName: string
   tenantStatus: TenantStatus
-  /** 已占用存储(字节) */
-  usedStorageBytes: number
-  /** 已占用席位数（不含支持人员） */
-  usedUserCount: number
+  /** 已占用存储(字节)（后端 long，按字符串传输） */
+  usedStorageBytes: NumericString
+  /** 已占用席位数（不含支持人员；后端 long，按字符串传输） */
+  usedUserCount: NumericString
 }
 
 export interface TenantStatusUpdateDto extends BasicDto {
