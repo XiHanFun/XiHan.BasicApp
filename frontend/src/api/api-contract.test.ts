@@ -88,8 +88,9 @@ function isDynamicApiClient(value: Record<string, unknown>) {
 function probe(facade: string, path: string, fn: (...args: unknown[]) => unknown) {
   const before = hoisted.calls.length
   const firstArg: unknown = isPageLike(path.split('.').at(-1) ?? '') ? PAGE_QUERY : 'probe-1'
+  let returned: unknown
   try {
-    void fn(firstArg, 'probe-2', 'probe-3')
+    returned = fn(firstArg, 'probe-2', 'probe-3')
   }
   catch (error) {
     failed.push(`${facade}.${path} → ${String(error)}`)
@@ -100,6 +101,14 @@ function probe(facade: string, path: string, fn: (...args: unknown[]) => unknown
   if (produced.length === 0) {
     silent.push(`${facade}.${path}`)
     return
+  }
+  // 记录器的 get/post/put 一律 resolve(null)，异步门面拿到这个替身响应后再做后处理（如
+  // impersonationApi.tenants 的 `result.items.map`）必然在 null 上拒绝。这是探针替身造成的，
+  // 不是契约缺陷：请求已在同步阶段记下，这里只接住它，免得漏成整轮测试的未处理拒绝。
+  // 只接已发出请求的调用——没发请求就拒绝的方法照旧落进 silent，错误也照旧冒出来。
+  // 不为此在门面里补 `?.` / `?? []`：那是只为替身存在的静默兜底。
+  if (returned instanceof Promise) {
+    returned.catch(() => {})
   }
   for (const call of produced) {
     endpoints.push({ ...call, facade, path })
