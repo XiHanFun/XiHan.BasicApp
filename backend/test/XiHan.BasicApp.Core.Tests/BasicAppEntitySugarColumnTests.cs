@@ -256,45 +256,40 @@ public sealed class BasicAppEntitySugarColumnTests
     }
 
     /// <summary>
-    /// 聚合根家族的主键与审计列目前**都没有**指定列名 —— 锁定这一实际形状。
+    /// 聚合根家族的主键与审计列与实体家族同名。
     /// </summary>
     /// <remarks>
-    /// 【缺陷锚点】框架 <c>SugarAggregateRoot</c> 只给 RowVersion 写了 ColumnName，其余列一律留空，
-    /// 而实体家族全部显式写了 snake_case。CodeFirst 因此为聚合根表建出 PascalCase 列
-    /// （PostgreSQL 未加引号标识符再折叠为小写：basicid / createdtime / isdeleted），
-    /// 与实体家族表的 basic_id / created_time / is_deleted 形成两套命名并存。
-    /// <para>
-    /// 本断言不表态"这样是对的"，它的作用是：谁要"顺手统一"列名，测试立刻变红，
-    /// 提醒这属于线上列改名，必须配套写重命名升级脚本。改动前请连同本注释一起评估。
-    /// </para>
+    /// 5.3.0 之前框架 <c>SugarAggregateRoot</c> 只给 RowVersion 写了 ColumnName，聚合根表建出
+    /// basicid / createdtime / isdeleted，与实体家族表的 basic_id / created_time / is_deleted 两套命名并存，
+    /// 手写升级脚本按一种写、撞上另一种。框架补齐列名后统一为一套，存量库由 5.3.0 升级脚本改名；
+    /// 以后再改列名同样是线上列改名，必须配套升级脚本。
     /// </remarks>
     /// <param name="propertyName">聚合根上的属性名。</param>
+    /// <param name="expectedColumnName">期望的列名。</param>
     [Theory]
-    [InlineData("BasicId")]
-    [InlineData("CreatedTime")]
-    [InlineData("CreatedId")]
-    [InlineData("CreatedBy")]
-    [InlineData("ModifiedTime")]
-    [InlineData("ModifiedId")]
-    [InlineData("ModifiedBy")]
-    [InlineData("IsDeleted")]
-    [InlineData("DeletedTime")]
-    [InlineData("DeletedId")]
-    [InlineData("DeletedBy")]
-    public void AggregateRootColumns_StillHaveNoExplicitColumnName(string propertyName)
+    [InlineData("BasicId", "Basic_Id")]
+    [InlineData("CreatedTime", "Created_Time")]
+    [InlineData("CreatedId", "Created_Id")]
+    [InlineData("CreatedBy", "Created_By")]
+    [InlineData("ModifiedTime", "Modified_Time")]
+    [InlineData("ModifiedId", "Modified_Id")]
+    [InlineData("ModifiedBy", "Modified_By")]
+    [InlineData("IsDeleted", "Is_Deleted")]
+    [InlineData("DeletedTime", "Deleted_Time")]
+    [InlineData("DeletedId", "Deleted_Id")]
+    [InlineData("DeletedBy", "Deleted_By")]
+    public void AggregateRootColumns_ShouldUseEntityFamilyNames(string propertyName, string expectedColumnName)
     {
         var column = CoreTestHelper.RequireSugarColumn(typeof(BasicAppAggregateRoot), propertyName);
 
-        Assert.True(
-            string.IsNullOrEmpty(column.ColumnName),
-            $"聚合根的 {propertyName} 补了 ColumnName：这是线上列改名，必须配套升级脚本后再更新本断言。");
+        Assert.Equal(expectedColumnName, column.ColumnName, StringComparer.Ordinal);
     }
 
     /// <summary>
-    /// 聚合根的审计列虽然没写列名，但更新语义标志必须与实体家族一致。
+    /// 聚合根的审计列更新语义标志必须与实体家族一致。
     /// </summary>
     /// <remarks>
-    /// 命名可以两套，更新语义不能两套：创建列忽略更新、修改与删除列参与更新，
+    /// 创建列忽略更新、修改与删除列参与更新，
     /// 这一条在聚合根表（SysUser / SysTenant / SysRole 等核心表）上同样是硬要求。
     /// </remarks>
     /// <param name="propertyName">聚合根上的属性名。</param>

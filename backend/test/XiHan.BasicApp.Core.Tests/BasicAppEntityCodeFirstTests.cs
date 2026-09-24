@@ -80,44 +80,27 @@ public sealed class BasicAppEntityCodeFirstTests : IDisposable
     }
 
     /// <summary>
-    /// 聚合根实体建表后列名是 PascalCase 而非 snake_case —— 锁定当前两套命名并存的实际差异。
+    /// 聚合根实体建表后的公共列与实体家族同名（snake_case）。
     /// </summary>
     /// <remarks>
-    /// 【缺陷锚点】框架 <c>SugarAggregateRoot</c> / <c>SugarMultiTenantAggregateRoot</c> 未给主键与审计列
-    /// 指定 ColumnName，只有 RowVersion 例外。于是聚合根表得到 BasicId / TenantId / CreatedTime，
-    /// 实体家族表得到 Basic_Id / Tenant_Id / Created_Time。今后针对聚合根表（SysUser、SysTenant、
-    /// SysRole 等）手写 SQL 时若照 snake_case 直觉写，会报列不存在。
-    /// <para>
-    /// 一旦有人统一了命名，本断言变红——这是提醒，不是阻拦：请配套写列重命名升级脚本再改断言。
-    /// </para>
+    /// 5.3.0 之前框架聚合根基类只给 RowVersion 写了 ColumnName，聚合根表得到 BasicId / TenantId / CreatedTime，
+    /// 实体家族表得到 Basic_Id / Tenant_Id / Created_Time，手写 SQL 按一种写就撞上另一种。
+    /// 框架补齐列名后统一为一套，存量库由 5.3.0 升级脚本改名；以后再改列名必须配套升级脚本。
     /// </remarks>
     [Fact]
-    public void AggregateRoot_ShouldStillCreatePascalCaseColumns()
+    public void AggregateRoot_ShouldCreateEntityFamilyColumns()
     {
         var columns = GetColumnNames(TestEntities.AggregateRootTableName);
 
-        Assert.Contains("BasicId", columns, StringComparer.OrdinalIgnoreCase);
-        Assert.Contains("TenantId", columns, StringComparer.OrdinalIgnoreCase);
-        Assert.Contains("CreatedTime", columns, StringComparer.OrdinalIgnoreCase);
-        Assert.Contains("IsDeleted", columns, StringComparer.OrdinalIgnoreCase);
-        Assert.DoesNotContain("Basic_Id", columns, StringComparer.OrdinalIgnoreCase);
-        Assert.DoesNotContain("Tenant_Id", columns, StringComparer.OrdinalIgnoreCase);
-        Assert.DoesNotContain("Created_Time", columns, StringComparer.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// 聚合根表的 Row_Version 仍是唯一一个显式命名的列。
-    /// </summary>
-    /// <remarks>
-    /// 与上一条配套：它证明"聚合根表列名 PascalCase"不是全局格式化器造成的，
-    /// 而确实来自逐列的 ColumnName 缺失。
-    /// </remarks>
-    [Fact]
-    public void AggregateRoot_RowVersionShouldRemainSnakeCase()
-    {
-        var columns = GetColumnNames(TestEntities.AggregateRootTableName);
-
+        Assert.Contains("Basic_Id", columns, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("Tenant_Id", columns, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("Created_Time", columns, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains("Is_Deleted", columns, StringComparer.OrdinalIgnoreCase);
         Assert.Contains("Row_Version", columns, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("BasicId", columns, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("TenantId", columns, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("CreatedTime", columns, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("IsDeleted", columns, StringComparer.OrdinalIgnoreCase);
     }
 
     /// <summary>
