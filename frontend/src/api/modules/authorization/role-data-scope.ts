@@ -1,8 +1,8 @@
 import type { DynamicApiParams } from '../../base'
 import type { ApiId } from '../../types'
 import type {
+  RoleDataScopeBatchUpdateDto,
   RoleDataScopeDetailDto,
-  RoleDataScopeGrantDto,
   RoleDataScopeListItemDto,
   RoleDataScopeStatusUpdateDto,
   RoleDataScopeUpdateDto,
@@ -13,14 +13,15 @@ const roleDataScopeQueryApi = createDynamicApiClient('RoleDataScopeQuery')
 const roleDataScopeCommandApi = createDynamicApiClient('Role')
 
 export const roleDataScopeApi = {
+  /** 一次性提交本次授予与撤销（单事务） */
+  batchUpdate(input: RoleDataScopeBatchUpdateDto) {
+    return roleDataScopeCommandApi.post<void, RoleDataScopeBatchUpdateDto>('BatchUpdateRoleDataScopes', input)
+  },
   detail(id: ApiId) {
     return roleDataScopeQueryApi.get<RoleDataScopeDetailDto | null>(
       'RoleDataScopeDetail',
       { id },
     )
-  },
-  grant(input: RoleDataScopeGrantDto) {
-    return roleDataScopeCommandApi.post<RoleDataScopeDetailDto, RoleDataScopeGrantDto>('RoleDataScope', input)
   },
   list(roleId: ApiId, onlyValid = false) {
     const params: DynamicApiParams = {}
@@ -30,9 +31,6 @@ export const roleDataScopeApi = {
       'RoleDataScopes',
       { ...params, roleId },
     )
-  },
-  revoke(id: ApiId) {
-    return roleDataScopeCommandApi.delete('RoleDataScope', { id })
   },
   update(input: RoleDataScopeUpdateDto) {
     return roleDataScopeCommandApi.put<RoleDataScopeDetailDto, RoleDataScopeUpdateDto>('RoleDataScope', input)

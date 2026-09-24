@@ -1,7 +1,7 @@
 import type { DynamicApiParams } from '../../base'
 import type { ApiId } from '../../types'
 import type {
-  RoleHierarchyCreateDto,
+  RoleHierarchyBatchUpdateDto,
   RoleHierarchyDetailDto,
   RoleHierarchyListItemDto,
 } from './role-hierarchy.types'
@@ -23,11 +23,9 @@ export const roleHierarchyApi = {
       { ...buildIncludeSelfParams(includeSelf), roleId },
     )
   },
-  create(input: RoleHierarchyCreateDto) {
-    return roleHierarchyCommandApi.post<RoleHierarchyDetailDto, RoleHierarchyCreateDto>('RoleHierarchy', input)
-  },
-  delete(id: ApiId) {
-    return roleHierarchyCommandApi.delete('RoleHierarchy', { id })
+  /** 一次性提交本角色直接父角色的新增与移除（单事务，先移除后新增） */
+  batchUpdateParents(input: RoleHierarchyBatchUpdateDto) {
+    return roleHierarchyCommandApi.post<void, RoleHierarchyBatchUpdateDto>('BatchUpdateRoleParents', input)
   },
   descendants(roleId: ApiId, includeSelf = true) {
     return roleHierarchyQueryApi.get<RoleHierarchyListItemDto[]>(

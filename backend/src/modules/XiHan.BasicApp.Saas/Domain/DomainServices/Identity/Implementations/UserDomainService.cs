@@ -834,40 +834,109 @@ public sealed class UserDomainService
     #region 用户数据范围
 
     /// <summary>
-    /// 授予用户数据范围
+    /// 批量变更用户数据范围（一次性提交授予与撤销）
     /// </summary>
-    /// <param name="command">授权参数</param>
+    /// <param name="command">批量变更命令</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户数据范围详情</returns>
-    public async Task<UserDataScopeCommandResult> CreateUserDataScopeAsync(UserDataScopeGrantCommand command, CancellationToken cancellationToken = default)
+    /// <returns>本次实际发生变化的部门</returns>
+    public async Task<UserDataScopeBatchUpdateResult> BatchUpdateUserDataScopesAsync(UserDataScopeBatchUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateDataScopeGrantCommand(command);
-
-        var now = DateTimeOffset.UtcNow;
-        var tenantMember = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "维护数据范围", "平台管理员成员数据范围必须通过平台运维流程维护。", cancellationToken);
-        _ = await GetCustomDataScopeUserOrThrowAsync(command.UserId, cancellationToken);
-        var department = await GetEnabledDepartmentOrThrowAsync(command.DepartmentId, cancellationToken);
-        if (await _userDataScopeRepository.AnyAsync(
-            scope => scope.UserId == command.UserId && scope.DepartmentId == command.DepartmentId,
-            cancellationToken))
+        if (command.UserId <= 0)
         {
-            throw new InvalidOperationException("用户数据范围已绑定。");
+            throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
         }
 
-        var dataScope = new SysUserDataScope
+        // 同一部门重复下发时以最后一条为准
+        var grants = command.Grants
+            .Where(grant => grant.DepartmentId > 0)
+            .GroupBy(grant => grant.DepartmentId)
+            .ToDictionary(group => group.Key, group => group.Last().IncludeChildren);
+        var revokeIds = command.RevokeUserDataScopeIds.Where(id => id > 0).Distinct().ToList();
+        if (grants.Count == 0 && revokeIds.Count == 0)
         {
-            UserId = command.UserId,
-            DepartmentId = command.DepartmentId,
-            IncludeChildren = command.IncludeChildren,
-            Status = ValidityStatus.Valid,
-            Remark = NormalizeNullable(command.Remark)
-        };
+            return new UserDataScopeBatchUpdateResult([], []);
+        }
 
-        var savedDataScope = await _userDataScopeRepository.AddAsync(dataScope, cancellationToken);
-        return new UserDataScopeCommandResult(savedDataScope, department, tenantMember);
+        var now = DateTimeOffset.UtcNow;
+        _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "维护数据范围", "平台管理员成员数据范围必须通过平台运维流程维护。", cancellationToken);
+        _ = await GetCustomDataScopeUserOrThrowAsync(command.UserId, cancellationToken);
+        foreach (var departmentId in grants.Keys)
+        {
+            _ = await GetEnabledDepartmentOrThrowAsync(departmentId, cancellationToken);
+        }
+
+        // 撤销只认本用户名下、仍为有效状态的记录；同一部门本次既撤又授时以授予为准（即改含下级）
+        var revoking = revokeIds.Count == 0
+            ? []
+            : (await _userDataScopeRepository.GetListAsync(
+                scope => revokeIds.Contains(scope.BasicId)
+                    && scope.UserId == command.UserId
+                    && scope.Status == ValidityStatus.Valid,
+                cancellationToken))
+                .Where(scope => !grants.ContainsKey(scope.DepartmentId))
+                .ToList();
+
+        // 撤销只置无效不删行，同一 用户×部门 的历史行会留在库里，命中即就地复用
+        var departmentIds = grants.Keys.ToList();
+        var existingMap = departmentIds.Count == 0
+            ? []
+            : (await _userDataScopeRepository.GetListAsync(
+                scope => scope.UserId == command.UserId && departmentIds.Contains(scope.DepartmentId),
+                cancellationToken)).ToDictionary(scope => scope.DepartmentId);
+
+        var updating = new List<SysUserDataScope>();
+        var adding = new List<SysUserDataScope>();
+        var grantedDepartmentIds = new List<long>();
+        foreach (var (departmentId, includeChildren) in grants)
+        {
+            if (!existingMap.TryGetValue(departmentId, out var dataScope))
+            {
+                adding.Add(new SysUserDataScope
+                {
+                    UserId = command.UserId,
+                    DepartmentId = departmentId,
+                    IncludeChildren = includeChildren,
+                    Status = ValidityStatus.Valid
+                });
+                grantedDepartmentIds.Add(departmentId);
+                continue;
+            }
+
+            if (dataScope.Status == ValidityStatus.Valid && dataScope.IncludeChildren == includeChildren)
+            {
+                continue;
+            }
+
+            dataScope.IncludeChildren = includeChildren;
+            dataScope.Status = ValidityStatus.Valid;
+            updating.Add(dataScope);
+            grantedDepartmentIds.Add(departmentId);
+        }
+
+        if (revoking.Count > 0)
+        {
+            foreach (var dataScope in revoking)
+            {
+                dataScope.Status = ValidityStatus.Invalid;
+            }
+
+            _ = await _userDataScopeRepository.UpdateRangeAsync(revoking, cancellationToken);
+        }
+
+        if (updating.Count > 0)
+        {
+            _ = await _userDataScopeRepository.UpdateRangeAsync(updating, cancellationToken);
+        }
+
+        if (adding.Count > 0)
+        {
+            _ = await _userDataScopeRepository.AddRangeAsync(adding, cancellationToken);
+        }
+
+        return new UserDataScopeBatchUpdateResult(grantedDepartmentIds, [.. revoking.Select(dataScope => dataScope.DepartmentId)]);
     }
 
     /// <summary>
@@ -935,85 +1004,142 @@ public sealed class UserDomainService
         return new UserDataScopeCommandResult(savedDataScope, department, tenantMember);
     }
 
-    /// <summary>
-    /// 撤销用户数据范围
-    /// </summary>
-    /// <param name="id">用户数据范围绑定主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    public async Task DeleteUserDataScopeAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var dataScope = await GetUserDataScopeOrThrowAsync(id, cancellationToken);
-        dataScope.Status = ValidityStatus.Invalid;
-
-        _ = await _userDataScopeRepository.UpdateAsync(dataScope, cancellationToken);
-    }
-
     #endregion
 
     #region 用户部门
 
     /// <summary>
-    /// 分配用户部门归属
+    /// 批量变更用户部门归属（一次性提交分配与撤销）
     /// </summary>
-    /// <param name="command">分配参数</param>
+    /// <remarks>
+    /// 主部门始终唯一：分配项至多一个标主部门，标了即取代原主部门；本次过后没有有效主部门时，
+    /// 依次取留下的有效归属中最早创建的、本次分配项中靠前的接任。
+    /// 已有效的归属再次下发只参与主部门调整，岗位、工号等字段走更新接口
+    /// </remarks>
+    /// <param name="command">批量变更命令</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>用户部门归属详情</returns>
-    public async Task<UserDepartmentCommandResult> CreateUserDepartmentAsync(UserDepartmentAssignCommand command, CancellationToken cancellationToken = default)
+    /// <returns>本次实际进出的部门</returns>
+    public async Task<UserDepartmentBatchUpdateResult> BatchUpdateUserDepartmentsAsync(UserDepartmentBatchUpdateCommand command, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(command);
         cancellationToken.ThrowIfCancellationRequested();
 
-        ValidateDepartmentAssignCommand(command);
+        ValidateDepartmentBatchUpdateCommand(command);
 
-        var now = DateTimeOffset.UtcNow;
-        _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, now, "分配部门", "平台管理员成员部门归属必须通过平台运维流程维护。", cancellationToken);
-        var department = await GetAssignableDepartmentOrThrowAsync(command.DepartmentId, cancellationToken);
-        var shouldBeMain = command.IsMain || !await HasValidDepartmentAsync(command.UserId, cancellationToken);
-
-        var userDepartment = await _userDepartmentRepository.GetFirstAsync(
-            relation => relation.UserId == command.UserId && relation.DepartmentId == command.DepartmentId,
-            cancellationToken);
-        if (userDepartment is not null && userDepartment.Status == ValidityStatus.Valid)
+        // 同一部门重复下发时以最后一条为准
+        var assigns = command.Assigns
+            .GroupBy(assign => assign.DepartmentId)
+            .Select(group => group.Last())
+            .ToList();
+        var revokeIds = command.RevokeUserDepartmentIds.Where(id => id > 0).ToHashSet();
+        if (assigns.Count == 0 && revokeIds.Count == 0)
         {
-            throw new InvalidOperationException("用户部门归属已存在。");
+            return new UserDepartmentBatchUpdateResult([], []);
         }
 
-        if (shouldBeMain)
+        var mainAssigns = assigns.Where(assign => assign.IsMain).ToList();
+        if (mainAssigns.Count > 1)
         {
-            await ClearOtherMainDepartmentsAsync(command.UserId, userDepartment?.BasicId, cancellationToken);
+            throw new InvalidOperationException("一次只能指定一个主部门。");
         }
 
-        if (userDepartment is null)
+        if (assigns.Count > 0)
         {
-            userDepartment = new SysUserDepartment
+            _ = await GetAssignableTenantMemberOrThrowAsync(command.UserId, DateTimeOffset.UtcNow, "分配部门", "平台管理员成员部门归属必须通过平台运维流程维护。", cancellationToken);
+            foreach (var assign in assigns)
             {
-                UserId = command.UserId,
-                DepartmentId = command.DepartmentId,
-                PositionId = NormalizePositionId(command.PositionId),
-                JobNumber = NormalizeNullable(command.JobNumber),
-                JobLevel = NormalizeNullable(command.JobLevel),
-                JoinTime = command.JoinTime,
-                IsMain = shouldBeMain,
-                Status = ValidityStatus.Valid,
-                Remark = NormalizeNullable(command.Remark)
-            };
-
-            var savedUserDepartment = await _userDepartmentRepository.AddAsync(userDepartment, cancellationToken);
-            return new UserDepartmentCommandResult(savedUserDepartment, department);
+                _ = await GetAssignableDepartmentOrThrowAsync(assign.DepartmentId, cancellationToken);
+            }
         }
 
-        userDepartment.PositionId = NormalizePositionId(command.PositionId);
-        userDepartment.JobNumber = NormalizeNullable(command.JobNumber);
-        userDepartment.JobLevel = NormalizeNullable(command.JobLevel);
-        userDepartment.JoinTime = command.JoinTime;
-        userDepartment.IsMain = shouldBeMain;
-        userDepartment.Status = ValidityStatus.Valid;
-        userDepartment.Remark = NormalizeNullable(command.Remark);
+        // 一个用户的部门归属不多，整批读出后在内存里定终态，主部门的唯一性才能一次算清
+        var relations = await _userDepartmentRepository.GetListAsync(
+            relation => relation.UserId == command.UserId,
+            relation => relation.CreatedTime,
+            cancellationToken);
+        var relationMap = relations.ToDictionary(relation => relation.DepartmentId);
+        var assignedDepartmentIds = assigns.Select(assign => assign.DepartmentId).ToHashSet();
+        var updating = new Dictionary<long, SysUserDepartment>();
 
-        var restoredUserDepartment = await _userDepartmentRepository.UpdateAsync(userDepartment, cancellationToken);
-        return new UserDepartmentCommandResult(restoredUserDepartment, department);
+        // 撤销只认本用户名下、仍为有效状态的记录；同一部门本次既撤又分配时以分配为准
+        var revoking = relations
+            .Where(relation => revokeIds.Contains(relation.BasicId)
+                && relation.Status == ValidityStatus.Valid
+                && !assignedDepartmentIds.Contains(relation.DepartmentId))
+            .ToList();
+        foreach (var relation in revoking)
+        {
+            relation.Status = ValidityStatus.Invalid;
+            updating[relation.BasicId] = relation;
+        }
+
+        // 留下的有效归属按创建先后排在前，本次新进的按下发顺序接在后，作为主部门的接任次序
+        var candidates = relations.Where(relation => relation.Status == ValidityStatus.Valid).ToList();
+        var currentMain = candidates.FirstOrDefault(relation => relation.IsMain);
+
+        // 撤销只置无效不删行，同一 用户×部门 的历史行会留在库里，命中即就地复用
+        var adding = new List<SysUserDepartment>();
+        var joinedDepartmentIds = new List<long>();
+        foreach (var assign in assigns)
+        {
+            if (!relationMap.TryGetValue(assign.DepartmentId, out var relation))
+            {
+                relation = new SysUserDepartment
+                {
+                    UserId = command.UserId,
+                    DepartmentId = assign.DepartmentId
+                };
+                adding.Add(relation);
+            }
+            else if (relation.Status == ValidityStatus.Valid)
+            {
+                continue;
+            }
+            else
+            {
+                updating[relation.BasicId] = relation;
+            }
+
+            relation.PositionId = NormalizePositionId(assign.PositionId);
+            relation.JobNumber = NormalizeNullable(assign.JobNumber);
+            relation.JobLevel = NormalizeNullable(assign.JobLevel);
+            relation.JoinTime = assign.JoinTime;
+            relation.Status = ValidityStatus.Valid;
+            relation.Remark = NormalizeNullable(assign.Remark);
+            candidates.Add(relation);
+            joinedDepartmentIds.Add(assign.DepartmentId);
+        }
+
+        // 指定的主部门优先，其次沿用现有主部门，都没有时按接任次序取第一个
+        var main = mainAssigns.Count == 1
+            ? candidates.First(relation => relation.DepartmentId == mainAssigns[0].DepartmentId)
+            : currentMain ?? candidates.FirstOrDefault();
+        foreach (var relation in relations)
+        {
+            var isMain = ReferenceEquals(relation, main);
+            if (relation.IsMain != isMain)
+            {
+                relation.IsMain = isMain;
+                updating[relation.BasicId] = relation;
+            }
+        }
+
+        foreach (var relation in adding)
+        {
+            relation.IsMain = ReferenceEquals(relation, main);
+        }
+
+        if (updating.Count > 0)
+        {
+            _ = await _userDepartmentRepository.UpdateRangeAsync([.. updating.Values], cancellationToken);
+        }
+
+        if (adding.Count > 0)
+        {
+            _ = await _userDepartmentRepository.AddRangeAsync(adding, cancellationToken);
+        }
+
+        return new UserDepartmentBatchUpdateResult(joinedDepartmentIds, [.. revoking.Select(relation => relation.DepartmentId)]);
     }
 
     /// <summary>
@@ -1101,23 +1227,6 @@ public sealed class UserDomainService
         }
 
         return new UserDepartmentCommandResult(savedUserDepartment, department);
-    }
-
-    /// <summary>
-    /// 撤销用户部门归属
-    /// </summary>
-    /// <param name="id">用户部门归属主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    public async Task DeleteUserDepartmentAsync(long id, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var userDepartment = await GetUserDepartmentOrThrowAsync(id, cancellationToken);
-        userDepartment.IsMain = false;
-        userDepartment.Status = ValidityStatus.Invalid;
-
-        var savedUserDepartment = await _userDepartmentRepository.UpdateAsync(userDepartment, cancellationToken);
-        await PromoteMainDepartmentIfNeededAsync(savedUserDepartment.UserId, savedUserDepartment.BasicId, cancellationToken);
     }
 
     #endregion
@@ -1433,22 +1542,6 @@ public sealed class UserDomainService
     }
 
     /// <summary>
-    /// 校验用户数据范围授权参数
-    /// </summary>
-    private static void ValidateDataScopeGrantCommand(UserDataScopeGrantCommand command)
-    {
-        if (command.UserId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
-        }
-
-        if (command.DepartmentId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "部门主键必须大于 0。");
-        }
-    }
-
-    /// <summary>
     /// 校验用户数据范围更新参数
     /// </summary>
     private static void ValidateDataScopeUpdateCommand(UserDataScopeUpdateCommand command)
@@ -1460,21 +1553,24 @@ public sealed class UserDomainService
     }
 
     /// <summary>
-    /// 校验用户部门分配参数
+    /// 校验用户部门批量变更参数
     /// </summary>
-    private static void ValidateDepartmentAssignCommand(UserDepartmentAssignCommand command)
+    private static void ValidateDepartmentBatchUpdateCommand(UserDepartmentBatchUpdateCommand command)
     {
         if (command.UserId <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(command), "用户主键必须大于 0。");
         }
 
-        if (command.DepartmentId <= 0)
+        foreach (var assign in command.Assigns)
         {
-            throw new ArgumentOutOfRangeException(nameof(command), "部门主键必须大于 0。");
-        }
+            if (assign.DepartmentId <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(command), "部门主键必须大于 0。");
+            }
 
-        ValidateOptionalLength(command.Remark, 500, nameof(command.Remark), "备注不能超过 500 个字符。");
+            ValidateOptionalLength(assign.Remark, 500, nameof(assign.Remark), "备注不能超过 500 个字符。");
+        }
     }
 
     /// <summary>
@@ -2033,16 +2129,6 @@ public sealed class UserDomainService
         }
 
         return department;
-    }
-
-    /// <summary>
-    /// 判断用户是否已有有效部门归属
-    /// </summary>
-    private async Task<bool> HasValidDepartmentAsync(long userId, CancellationToken cancellationToken)
-    {
-        return await _userDepartmentRepository.AnyAsync(
-            relation => relation.UserId == userId && relation.Status == ValidityStatus.Valid,
-            cancellationToken);
     }
 
     /// <summary>

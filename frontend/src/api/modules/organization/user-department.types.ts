@@ -21,15 +21,22 @@ export interface UserDepartmentListItemDto extends BasicDto {
   userId: ApiId
 }
 
-export interface UserDepartmentAssignDto {
-  userId: ApiId
+export interface UserDepartmentBatchAssignItemDto {
   departmentId: ApiId
+  /** 设为主部门（一次至多一项）；都不设时后端沿用原主部门，没有则由最早的归属接任 */
   isMain: boolean
   jobLevel?: string | null
   jobNumber?: string | null
   joinTime?: DateTimeString | null
   positionId?: ApiId | null
   remark?: string | null
+}
+
+/** 批量变更用户部门归属（一次性提交分配与撤销）；已有效的部门再次下发只参与主部门调整 */
+export interface UserDepartmentBatchUpdateDto {
+  assigns: UserDepartmentBatchAssignItemDto[]
+  revokeUserDepartmentIds: ApiId[]
+  userId: ApiId
 }
 
 export interface UserDepartmentUpdateDto extends BasicUpdateDto {

@@ -72,12 +72,11 @@ public interface IRoleAppService : IApplicationService
     #region RoleDataScope
 
     /// <summary>
-    /// 授予角色数据范围
+    /// 批量变更角色数据范围（一次性提交授予与撤销，单事务）
     /// </summary>
-    /// <param name="input">授权参数</param>
+    /// <param name="input">批量变更参数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色数据范围详情</returns>
-    Task<RoleDataScopeDetailDto> CreateRoleDataScopeAsync(RoleDataScopeGrantDto input, CancellationToken cancellationToken = default);
+    Task BatchUpdateRoleDataScopesAsync(RoleDataScopeBatchUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新角色数据范围
@@ -95,31 +94,16 @@ public interface IRoleAppService : IApplicationService
     /// <returns>角色数据范围详情</returns>
     Task<RoleDataScopeDetailDto> UpdateRoleDataScopeStatusAsync(RoleDataScopeStatusUpdateDto input, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// 撤销角色数据范围
-    /// </summary>
-    /// <param name="id">角色数据范围绑定主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    Task DeleteRoleDataScopeAsync(long id, CancellationToken cancellationToken = default);
-
     #endregion RoleDataScope
 
     #region RoleHierarchy
 
     /// <summary>
-    /// 创建角色直接继承关系
+    /// 批量变更角色的直接父角色（一次性提交新增与移除）
     /// </summary>
-    /// <param name="input">创建参数</param>
+    /// <param name="input">批量变更参数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色继承详情</returns>
-    Task<RoleHierarchyDetailDto> CreateRoleHierarchyAsync(RoleHierarchyCreateDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 删除角色直接继承关系
-    /// </summary>
-    /// <param name="id">角色继承主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    Task DeleteRoleHierarchyAsync(long id, CancellationToken cancellationToken = default);
+    Task BatchUpdateRoleParentsAsync(RoleHierarchyBatchUpdateDto input, CancellationToken cancellationToken = default);
 
     #endregion RoleHierarchy
 }

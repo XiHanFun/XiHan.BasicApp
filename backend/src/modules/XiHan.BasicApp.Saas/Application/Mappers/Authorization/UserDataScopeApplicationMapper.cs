@@ -13,20 +13,6 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 public static class UserDataScopeApplicationMapper
 {
     /// <summary>
-    /// 映射用户数据范围授权命令
-    /// </summary>
-    public static UserDataScopeGrantCommand ToGrantCommand(UserDataScopeGrantDto input)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-
-        return new UserDataScopeGrantCommand(
-            input.UserId,
-            input.DepartmentId,
-            input.IncludeChildren,
-            input.Remark);
-    }
-
-    /// <summary>
     /// 映射用户数据范围列表项
     /// </summary>
     /// <param name="scope">用户数据范围覆盖</param>

@@ -32,6 +32,7 @@ import {
   TwoFactorMethod,
   UserGender,
   userManagementApi,
+  ValidityStatus,
 } from '@/api'
 import { GENDER_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XDatePicker, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
@@ -622,9 +623,10 @@ async function fillFormFromDetail(detail: UserManagementDetailDto) {
   }
   // 详情里的 roles 连撤销过、已过期的历史行一并返回；比对基准要的是当前生效的那份
   existingRoles.value = await userManagementApi.roles.list(u.basicId, true)
-  existingDepts.value = detail.departments
+  // 部门归属同理：撤销过的行仍在详情里，只拿有效的做勾选与比对
+  existingDepts.value = detail.departments.filter(d => d.status === ValidityStatus.Valid)
   selRoleIds.value = existingRoles.value.map(r => r.roleId)
-  selDeptIds.value = detail.departments.map(d => d.departmentId)
+  selDeptIds.value = existingDepts.value.map(d => d.departmentId)
 }
 
 async function openEdit(id: ApiId) {
@@ -688,23 +690,24 @@ async function syncRoles(userId: ApiId) {
   await userManagementApi.roles.batchUpdate({ userId, grantRoleIds, revokeUserRoleIds })
 }
 
+/**
+ * 表单里的部门勾选一次提交：与现有归属比出差量，交后端单事务落地。
+ * 主部门由后端保持唯一——首个部门自动为主，撤掉主部门时由最早的归属接任。
+ * 只在可选部门范围内比对，不在列表里的归属勾选区看不到，也就不该被顺手撤掉
+ */
 async function syncDepartments(userId: ApiId) {
-  const current = existingDepts.value
+  const optionIds = new Set(deptFlatOptions.value.map(d => d.value))
+  const current = existingDepts.value.filter(d => optionIds.has(d.departmentId))
   const selected = new Set(selDeptIds.value)
-  for (const depId of deptFlatOptions.value.map(d => d.value)) {
-    const bound = current.find(c => c.departmentId === depId)
-    const want = selected.has(depId)
-    if (want && !bound) {
-      await userManagementApi.userDepartments.assign({
-        userId,
-        departmentId: depId,
-        isMain: selected.size === 1 || !current.some(c => c.isMain),
-      })
-    }
-    else if (!want && bound) {
-      await userManagementApi.userDepartments.revoke(bound.basicId)
-    }
+  const boundIds = new Set(current.map(d => d.departmentId))
+  const assigns = selDeptIds.value
+    .filter(id => optionIds.has(id) && !boundIds.has(id))
+    .map(departmentId => ({ departmentId, isMain: false }))
+  const revokeUserDepartmentIds = current.filter(d => !selected.has(d.departmentId)).map(d => d.basicId)
+  if (assigns.length === 0 && revokeUserDepartmentIds.length === 0) {
+    return
   }
+  await userManagementApi.userDepartments.batchUpdate({ userId, assigns, revokeUserDepartmentIds })
 }
 
 async function saveUser() {
@@ -1141,7 +1144,8 @@ async function savePermGrants() {
     await userManagementApi.permissions.batchUpdate({ userId: user.basicId, grants, revokeUserPermissionIds })
     permGrants.value = await userManagementApi.permissions.list(user.basicId, true)
     derivePermActions()
-    toast.success(t('identity.user.grant_saved', { grant: grants.length, revoke: revokeUserPermissionIds.length }))
+    const denied = grants.filter(item => item.permissionAction === PermissionAction.Deny).length
+    toast.success(t('identity.user.grant_perm_saved', { grant: grants.length - denied, deny: denied, revoke: revokeUserPermissionIds.length }))
   }
   catch (error) {
     toast.danger((error as Error)?.message || t('common.messages.save_failed'))
