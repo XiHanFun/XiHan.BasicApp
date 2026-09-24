@@ -10,7 +10,6 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// 参数配置创建命令
 /// </summary>
 public sealed record ConfigCreateCommand(
-    bool IsGlobal,
     string ConfigName,
     string? ConfigGroup,
     string ConfigKey,

@@ -19,6 +19,7 @@ import { STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
+import { useUserStore } from '~/stores'
 
 defineOptions({ name: 'PlatformDictPage' })
 
@@ -77,6 +78,13 @@ function toKeyword(value: unknown): string | undefined {
 const dictPageRef = ref<{ reload: () => Promise<void>, rows: DictListItemDto[] } | null>(null)
 /** 当前选中的字典：右栏字典项的取数依据 */
 const currentDict = ref<DictListItemDto | null>(null)
+
+const userStore = useUserStore()
+
+/** 全局字典只在平台维护，它的字典项也一样；租户需要自己的选项就新建字典 */
+function canMaintainDict(dict: DictListItemDto | null) {
+  return dict != null && ((userStore.userInfo?.isPlatform ?? false) || !dict.isGlobal)
+}
 
 function reloadDict() {
   void dictPageRef.value?.reload()
@@ -137,9 +145,9 @@ const dictSchema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('setting.dict.add_dict'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen' },
-    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_dict') },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_dict'), visible: row => canDeleteDict(row as unknown as DictListItemDto) },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: row => canMaintainDict(row as unknown as DictListItemDto) },
+    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_dict'), visible: row => canMaintainDict(row as unknown as DictListItemDto) },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_dict'), visible: row => canMaintainDict(row as unknown as DictListItemDto) && canDeleteDict(row as unknown as DictListItemDto) },
   ],
 }))
 
@@ -231,10 +239,10 @@ const itemSchema = computed<PageSchema>(() => ({
     }),
   },
   actions: [
-    { key: 'create', title: t('setting.dict.add_item'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen' },
-    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_item') },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_item') },
+    { key: 'create', title: t('setting.dict.add_item'), scope: 'page', type: 'primary', icon: 'lucide:plus', visible: () => canMaintainDict(currentDict.value) },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: () => canMaintainDict(currentDict.value) },
+    { key: 'toggle', title: t('setting.dict.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: t('setting.dict.confirm_toggle_item'), visible: () => canMaintainDict(currentDict.value) },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.dict.confirm_delete_item'), visible: () => canMaintainDict(currentDict.value) },
   ],
 }))
 

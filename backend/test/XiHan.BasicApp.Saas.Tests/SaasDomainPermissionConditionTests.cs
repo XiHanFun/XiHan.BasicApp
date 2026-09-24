@@ -224,6 +224,28 @@ public sealed class SaasDomainPermissionConditionTests
     }
 
     /// <summary>
+    /// 全局角色是各租户共用的模板：租户不能给它的授权配置 ABAC 条件；租户自己的角色可以。
+    /// </summary>
+    [Fact]
+    public async Task CreatePermissionCondition_GlobalRoleBindingInTenant_ShouldReject()
+    {
+        var global = new ConditionTestContext(currentTenantId: 7);
+        global.SetupUsableRolePermission();
+        global.SetupNoExistingConditions();
+        var own = new ConditionTestContext(currentTenantId: 7);
+        own.SetupUsableRolePermission();
+        own.SetupNoExistingConditions();
+        own.Role.TenantId = 7;
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => global.Service.CreatePermissionConditionAsync(BuildCreateCommand()));
+        var result = await own.Service.CreatePermissionConditionAsync(BuildCreateCommand());
+
+        Assert.Contains("全局角色", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(ConditionTestContext.SavedConditionId, result.ConditionId);
+    }
+
+    /// <summary>
     /// 支持成员（平台人员入驻）的直授条件由所在租户维护：平台看不到也写不了租户的授权数据。
     /// </summary>
     [Fact]

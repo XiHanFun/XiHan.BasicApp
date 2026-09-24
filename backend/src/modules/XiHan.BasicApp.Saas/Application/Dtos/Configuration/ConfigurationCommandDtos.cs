@@ -14,7 +14,6 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 /// </summary>
 public sealed class ConfigCreateDto
 {
-    public bool IsGlobal { get; set; }
     public string ConfigName { get; set; } = string.Empty;
     public string? ConfigGroup { get; set; }
     public string ConfigKey { get; set; } = string.Empty;

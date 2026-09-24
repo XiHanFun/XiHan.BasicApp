@@ -122,6 +122,7 @@ public static class DictApplicationMapper
             DictType = dict.DictType,
             DictDescription = dict.DictDescription,
             IsBuiltIn = dict.IsBuiltIn,
+            IsGlobal = dict.TenantId == 0,
             Status = dict.Status,
             Sort = dict.Sort,
             CreatedTime = dict.CreatedTime,

@@ -22,6 +22,7 @@ import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '@
 import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
+import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformConfigPage' })
@@ -38,7 +39,6 @@ interface ConfigFormModel {
   defaultValue?: string | null
   isBuiltIn: boolean
   isEncrypted: boolean
-  isGlobal: boolean
   remark?: string | null
   sort: number
   status: EnableStatus
@@ -65,8 +65,15 @@ function reloadConfig() {
 }
 
 /** 仅删除受内置限制：后端 DeleteConfigAsync 对内置配置直接抛错 */
+const userStore = useUserStore()
+
+/** 全局配置只在平台维护；租户看得见、改不了，需要不同的值就新建同键配置覆盖它 */
+function canMaintainConfig(row: ConfigListItemDto) {
+  return (userStore.userInfo?.isPlatform ?? false) || !row.isGlobal
+}
+
 function canDeleteConfig(row: ConfigListItemDto) {
-  return !row.isBuiltIn
+  return canMaintainConfig(row) && !row.isBuiltIn
 }
 
 // ── 字段单一事实源（列 + searchable/advancedSearch；仅搜索字段 visible:false；order 控顺序） ──
@@ -127,7 +134,6 @@ const schema = computed<PageSchema>(() => ({
         dataType: (record.dataType as ConfigDataType | undefined) ?? ConfigDataType.String,
         defaultValue: null,
         isEncrypted: false,
-        isGlobal: Boolean(record.isGlobal ?? false),
         remark: null,
         sort: typeof record.sort === 'number' ? record.sort : 100,
         status: (record.status as EnableStatus | undefined) ?? EnableStatus.Enabled,
@@ -139,8 +145,8 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('setting.config.add'), scope: 'page', type: 'primary', icon: 'lucide:plus' },
     { key: 'view', title: t('setting.config.view'), scope: 'row' },
     // 内置配置本就是给运维调值的：后端只禁止删除，不限制改值与启停
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row' },
-    { key: 'toggle', title: t('setting.job.toggle'), scope: 'row' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
+    { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto) },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', visible: row => canDeleteConfig(row as unknown as ConfigListItemDto) },
   ],
 }))
@@ -198,7 +204,6 @@ function createDefaultConfigForm(): ConfigFormModel {
     defaultValue: null,
     isBuiltIn: false,
     isEncrypted: false,
-    isGlobal: false,
     remark: null,
     sort: 100,
     status: EnableStatus.Enabled,
@@ -250,7 +255,6 @@ async function handleEdit(row: ConfigListItemDto) {
     defaultValue: detail?.defaultValue ?? null,
     isBuiltIn: row.isBuiltIn,
     isEncrypted: row.isEncrypted,
-    isGlobal: row.isGlobal,
     remark: detail?.remark ?? null,
     sort: row.sort,
     status: row.status,
@@ -329,7 +333,6 @@ async function handleSubmit() {
         dataType: configForm.value.dataType,
         defaultValue: configForm.value.defaultValue,
         isEncrypted: configForm.value.isEncrypted,
-        isGlobal: configForm.value.isGlobal,
         remark: configForm.value.remark,
         sort: configForm.value.sort,
       }
@@ -354,7 +357,6 @@ async function handleSubmit() {
         dataType: configForm.value.dataType,
         defaultValue: configForm.value.defaultValue,
         isEncrypted: configForm.value.isEncrypted,
-        isGlobal: configForm.value.isGlobal,
         remark: configForm.value.remark,
         sort: configForm.value.sort,
         status: configForm.value.status,
@@ -653,15 +655,6 @@ async function handleToggleStatus(row: ConfigListItemDto) {
                 :placeholder="t('setting.config.default_value_placeholder')"
                 type="textarea"
               />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="isGlobal">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('setting.config.is_global_field') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XhSwitch v-model:checked="configForm.isGlobal" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
