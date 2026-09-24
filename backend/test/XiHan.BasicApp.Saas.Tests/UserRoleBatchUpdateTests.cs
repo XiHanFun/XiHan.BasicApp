@@ -16,6 +16,7 @@ namespace XiHan.BasicApp.Saas.Tests;
 
 /// <summary>
 /// 用户角色批量变更：授予与撤销一次提交，SSD 按最终角色集执法，撤销只置失效、历史行就地复用。
+/// 以角色为中心维护成员、单条复活授权，与按用户批量同一口径（成员可授权、角色可分配、职责分离、成员上限）。
 /// </summary>
 public sealed class UserRoleBatchUpdateTests
 {
@@ -264,6 +265,159 @@ public sealed class UserRoleBatchUpdateTests
 
     #endregion
 
+    #region 以角色为中心
+
+    /// <summary>
+    /// 加入新成员新增有效绑定；移出只认本角色名下的有效记录；同一成员既移出又加入以加入为准。
+    /// </summary>
+    [Fact]
+    public async Task RoleMembers_GrantAndRevoke_ShouldApplyToThisRoleOnly()
+    {
+        var fixture = new Fixture();
+        var leaving = fixture.AddRow(basicId: 100, roleId: 10, userId: 2);
+        var staying = fixture.AddRow(basicId: 101, roleId: 10, userId: 3);
+        var otherRole = fixture.AddRow(basicId: 102, roleId: 11, userId: 2);
+
+        var result = await fixture.Service.BatchUpdateRoleMembersAsync(new RoleMemberBatchUpdateCommand(10, [UserId, 3], [100, 101, 102]));
+
+        var added = Assert.Single(fixture.Added);
+        Assert.Equal((UserId, 10L), (added.UserId, added.RoleId));
+        Assert.Equal(ValidityStatus.Invalid, leaving.Status);
+        Assert.Equal(ValidityStatus.Valid, staying.Status);
+        Assert.Equal(ValidityStatus.Valid, otherRole.Status);
+        Assert.Equal([UserId], result.GrantedUserIds);
+        Assert.Equal([2L], result.RevokedUserIds);
+    }
+
+    /// <summary>
+    /// 加入的成员按「现有有效角色 + 本角色」评估职责分离，违规即整体阻断。
+    /// </summary>
+    [Fact]
+    public async Task RoleMembers_SsdViolation_ShouldBlockWholeBatch()
+    {
+        var fixture = new Fixture();
+        fixture.AddRow(basicId: 100, roleId: 10);
+        fixture.SetupViolation(new ConstraintViolation(1, "SSD-01", "出纳与会计互斥", ConstraintType.SSD, 0, [10L, 20L], ViolationAction.Deny));
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.BatchUpdateRoleMembersAsync(new RoleMemberBatchUpdateCommand(20, [UserId], [])));
+
+        Assert.Contains("SSD-01", exception.Message, StringComparison.Ordinal);
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 不是本租户可授权成员的用户不能加入。
+    /// </summary>
+    [Fact]
+    public async Task RoleMembers_NonMember_ShouldReject()
+    {
+        var fixture = new Fixture();
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.BatchUpdateRoleMembersAsync(new RoleMemberBatchUpdateCommand(10, [99], [])));
+
+        Assert.Contains("租户成员不存在", exception.Message, StringComparison.Ordinal);
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 成员上限：加入后超过上限整体拒绝；同批移出的名额可以让出。
+    /// </summary>
+    [Fact]
+    public async Task RoleMembers_Capacity_ShouldCountLeavingSeats()
+    {
+        var fixture = new Fixture();
+        fixture.AddRole(30, maxMembers: 2);
+        fixture.AddRow(basicId: 100, roleId: 30, userId: 2);
+        fixture.AddRow(basicId: 101, roleId: 30, userId: 3);
+
+        var overflow = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.BatchUpdateRoleMembersAsync(new RoleMemberBatchUpdateCommand(30, [UserId], [])));
+        var swapped = await fixture.Service.BatchUpdateRoleMembersAsync(new RoleMemberBatchUpdateCommand(30, [UserId], [100]));
+
+        Assert.Contains("最多 2 个成员", overflow.Message, StringComparison.Ordinal);
+        Assert.Equal([UserId], swapped.GrantedUserIds);
+        Assert.Equal([2L], swapped.RevokedUserIds);
+    }
+
+    #endregion
+
+    #region 成员上限与单条复活
+
+    /// <summary>
+    /// 按用户批量授予同样受成员上限约束。
+    /// </summary>
+    [Fact]
+    public async Task BatchUpdate_RoleAtCapacity_ShouldReject()
+    {
+        var fixture = new Fixture();
+        fixture.AddRole(30, maxMembers: 1);
+        fixture.AddRow(basicId: 100, roleId: 30, userId: 2);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.GrantAsync(30));
+
+        Assert.Contains("最多 1 个成员", exception.Message, StringComparison.Ordinal);
+        fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 已过期的历史行不占名额；尚未生效的预约占名额。
+    /// </summary>
+    [Fact]
+    public async Task BatchUpdate_Capacity_ShouldIgnoreExpiredAndCountReserved()
+    {
+        var expired = new Fixture();
+        expired.AddRole(30, maxMembers: 1);
+        expired.AddRow(basicId: 100, roleId: 30, userId: 2, expirationTime: DateTimeOffset.UtcNow.AddDays(-1));
+        _ = await expired.GrantAsync(30);
+        Assert.Single(expired.Added);
+
+        var reserved = new Fixture();
+        reserved.AddRole(30, maxMembers: 1);
+        var future = reserved.AddRow(basicId: 100, roleId: 30, userId: 2);
+        future.EffectiveTime = DateTimeOffset.UtcNow.AddDays(1);
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => reserved.GrantAsync(30));
+    }
+
+    /// <summary>
+    /// 单条状态改回有效：与批量授予同样过职责分离与成员上限。
+    /// </summary>
+    [Fact]
+    public async Task UpdateStatus_Revive_ShouldEnforceSsdAndCapacity()
+    {
+        var fixture = new Fixture();
+        fixture.AddRole(30, maxMembers: 1);
+        fixture.AddRow(basicId: 100, roleId: 30, userId: 2);
+        var revoked = fixture.AddRow(basicId: 101, roleId: 30, status: ValidityStatus.Invalid);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.UpdateUserRoleStatusAsync(new UserRoleStatusChangeCommand(revoked.BasicId, ValidityStatus.Valid, null)));
+
+        Assert.Contains("最多 1 个成员", exception.Message, StringComparison.Ordinal);
+        fixture.UserRoleRepository.Verify(repo => repo.UpdateAsync(It.IsAny<SysUserRole>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    /// <summary>
+    /// 单条状态改回有效命中职责分离违规时阻断。
+    /// </summary>
+    [Fact]
+    public async Task UpdateStatus_ReviveIntoSsdConflict_ShouldBlock()
+    {
+        var fixture = new Fixture();
+        fixture.AddRow(basicId: 100, roleId: 10);
+        var revoked = fixture.AddRow(basicId: 101, roleId: 20, status: ValidityStatus.Invalid);
+        fixture.SetupViolation(new ConstraintViolation(1, "SSD-01", "出纳与会计互斥", ConstraintType.SSD, 0, [10L, 20L], ViolationAction.Deny));
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.UpdateUserRoleStatusAsync(new UserRoleStatusChangeCommand(revoked.BasicId, ValidityStatus.Valid, null)));
+
+        Assert.Contains("SSD-01", exception.Message, StringComparison.Ordinal);
+        fixture.UserRoleRepository.Verify(repo => repo.UpdateAsync(It.IsAny<SysUserRole>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    #endregion
+
     /// <summary>
     /// 批量变更的测试夹具：仓储按内存行集合回放查询，写入逐次记录。
     /// </summary>
@@ -276,10 +430,10 @@ public sealed class UserRoleBatchUpdateTests
         public Fixture()
         {
             TenantUserRepository
-                .Setup(repo => repo.GetMembershipAsync(UserId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new SysTenantUser
+                .Setup(repo => repo.GetMembershipAsync(It.IsIn(UserId, 2L, 3L), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((long userId, CancellationToken _) => new SysTenantUser
                 {
-                    UserId = UserId,
+                    UserId = userId,
                     MemberType = TenantMemberType.Member,
                     InviteStatus = TenantMemberInviteStatus.Accepted,
                     Status = ValidityStatus.Valid
@@ -293,6 +447,18 @@ public sealed class UserRoleBatchUpdateTests
                 .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<SysRole, bool>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Expression<Func<SysRole, bool>> predicate, CancellationToken _) =>
                     (IReadOnlyList<SysRole>)_roles.Where(predicate.Compile()).ToList());
+            RoleRepository
+                .Setup(repo => repo.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((long id, CancellationToken _) => _roles.Find(role => role.BasicId == id));
+            UserRoleRepository
+                .Setup(repo => repo.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((long id, CancellationToken _) => _rows.Find(row => row.BasicId == id));
+            UserRoleRepository
+                .Setup(repo => repo.CountOccupiedByRoleIdAsync(It.IsAny<long>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((long roleId, DateTimeOffset now, CancellationToken _) => _rows.Count(row =>
+                    row.RoleId == roleId
+                    && row.Status == ValidityStatus.Valid
+                    && (row.ExpirationTime is null || row.ExpirationTime > now)));
 
             UserRoleRepository
                 .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<SysUserRole, bool>>>(), It.IsAny<CancellationToken>()))
@@ -381,7 +547,7 @@ public sealed class UserRoleBatchUpdateTests
         public Task<UserRoleBatchUpdateResult> GrantAsync(long roleId) =>
             Service.BatchUpdateUserRolesAsync(new UserRoleBatchUpdateCommand(UserId, [roleId], []));
 
-        public void AddRole(long id, EnableStatus status = EnableStatus.Enabled)
+        public void AddRole(long id, EnableStatus status = EnableStatus.Enabled, int maxMembers = 0)
         {
             var role = new SysRole
             {
@@ -389,6 +555,7 @@ public sealed class UserRoleBatchUpdateTests
                 RoleCode = $"ROLE-{id}",
                 RoleName = $"角色{id}",
                 RoleType = RoleType.Custom,
+                MaxMembers = maxMembers,
                 Status = status
             };
             SaasTestHelper.SetBasicId(role, id);

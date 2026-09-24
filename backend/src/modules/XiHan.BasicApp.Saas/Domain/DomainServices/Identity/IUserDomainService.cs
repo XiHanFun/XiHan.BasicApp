@@ -57,6 +57,12 @@ public interface IUserDomainService
     Task<UserRoleBatchUpdateResult> BatchUpdateUserRolesAsync(UserRoleBatchUpdateCommand command, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 批量变更角色成员（以角色为中心，一次性提交加入与移出）
+    /// </summary>
+    /// <returns>本次实际加入与移出的成员</returns>
+    Task<RoleMemberBatchUpdateResult> BatchUpdateRoleMembersAsync(RoleMemberBatchUpdateCommand command, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 更新用户角色
     /// </summary>
     Task<UserRoleCommandResult> UpdateUserRoleAsync(UserRoleUpdateCommand command, CancellationToken cancellationToken = default);

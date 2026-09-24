@@ -30,6 +30,34 @@ public sealed class UserRoleRepository(ISqlSugarClientResolver clientResolver)
     }
 
     /// <summary>
+    /// 角色在当前上下文此刻生效的授权
+    /// </summary>
+    public async Task<IReadOnlyList<SysUserRole>> GetValidByRoleIdAsync(long roleId, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(userRole => userRole.RoleId == roleId)
+            .Where(userRole => userRole.Status == ValidityStatus.Valid)
+            .Where(userRole => userRole.EffectiveTime == null || userRole.EffectiveTime <= now)
+            .Where(userRole => userRole.ExpirationTime == null || userRole.ExpirationTime > now)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 角色在当前上下文占用的成员名额
+    /// </summary>
+    public async Task<int> CountOccupiedByRoleIdAsync(long roleId, DateTimeOffset now, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return await CreateQueryable()
+            .Where(userRole => userRole.RoleId == roleId && userRole.Status == ValidityStatus.Valid)
+            .Where(userRole => userRole.ExpirationTime == null || userRole.ExpirationTime > now)
+            .CountAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// 跨租户获取持有指定角色有效授权的用户主键
     /// </summary>
     public async Task<IReadOnlyList<long>> GetValidUserIdsByRoleIdsIgnoreTenantAsync(IReadOnlyCollection<long> roleIds, CancellationToken cancellationToken = default)

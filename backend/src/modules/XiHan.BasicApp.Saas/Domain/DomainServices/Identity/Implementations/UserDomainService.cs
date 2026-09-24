@@ -496,15 +496,14 @@ public sealed class UserDomainService
                 .ToList();
 
         // 授予前逐个校验角色可分配，规则与单条读取共用 EnsureAssignableRole
-        if (grantRoleIds.Count > 0)
-        {
-            var roleMap = (await _roleRepository.GetListAsync(
+        var roleMap = grantRoleIds.Count == 0
+            ? []
+            : (await _roleRepository.GetListAsync(
                 role => grantRoleIds.Contains(role.BasicId), cancellationToken))
                 .ToDictionary(role => role.BasicId);
-            foreach (var roleId in grantRoleIds)
-            {
-                EnsureAssignableRole(roleMap.GetValueOrDefault(roleId));
-            }
+        foreach (var roleId in grantRoleIds)
+        {
+            EnsureAssignableRole(roleMap.GetValueOrDefault(roleId));
         }
 
         // 撤销只置无效不删行（唯一索引按 租户×用户×角色），同一绑定的历史行会留在库里，命中即就地复用
@@ -517,6 +516,7 @@ public sealed class UserDomainService
         var updating = new List<SysUserRole>();
         var adding = new List<SysUserRole>();
         var grantedRoleIds = new List<long>();
+        var joiningRoleIds = new List<long>();
         foreach (var roleId in grantRoleIds)
         {
             if (!existingMap.TryGetValue(roleId, out var userRole))
@@ -528,6 +528,7 @@ public sealed class UserDomainService
                     Status = ValidityStatus.Valid
                 });
                 grantedRoleIds.Add(roleId);
+                joiningRoleIds.Add(roleId);
                 continue;
             }
 
@@ -535,6 +536,12 @@ public sealed class UserDomainService
             if (IsEffective(userRole.Status, userRole.EffectiveTime, userRole.ExpirationTime, now))
             {
                 continue;
+            }
+
+            // 尚未生效的预约已经占着名额，复用它不算新加入
+            if (!OccupiesSeat(userRole, now))
+            {
+                joiningRoleIds.Add(roleId);
             }
 
             // 复用的历史行多半是失效或已过期的：只改状态不动时间窗，保存后仍不生效，等于伪成功。
@@ -556,6 +563,11 @@ public sealed class UserDomainService
                 .Concat(grantedRoleIds)
                 .Distinct();
             await EnsureNoSoDConflictAsync(finalRoleIds, cancellationToken);
+        }
+
+        foreach (var roleId in joiningRoleIds)
+        {
+            await EnsureRoleCapacityAsync(roleMap[roleId], joining: 1, leaving: 0, now, cancellationToken);
         }
 
         if (revoking.Count > 0)
@@ -582,6 +594,135 @@ public sealed class UserDomainService
     }
 
     /// <summary>
+    /// 批量变更角色成员（以角色为中心，一次性提交加入与移出）
+    /// </summary>
+    /// <remarks>
+    /// 与按用户批量改角色同一套规则：成员须是本租户可授权的成员，角色须可分配，加入后不违反职责分离、不超角色成员上限。
+    /// 移出只置失效不删行，同一 用户×角色 的历史行命中即就地复用、从现在起生效；同一成员本次既移出又加入时以加入为准。
+    /// </remarks>
+    /// <param name="command">批量变更命令</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>本次实际加入与移出的成员</returns>
+    public async Task<RoleMemberBatchUpdateResult> BatchUpdateRoleMembersAsync(RoleMemberBatchUpdateCommand command, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(command);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (command.RoleId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(command), "角色主键必须大于 0。");
+        }
+
+        var grantUserIds = command.GrantUserIds.Where(id => id > 0).Distinct().ToList();
+        var revokeIds = command.RevokeUserRoleIds.Where(id => id > 0).Distinct().ToList();
+        if (grantUserIds.Count == 0 && revokeIds.Count == 0)
+        {
+            return new RoleMemberBatchUpdateResult([], []);
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var role = await _roleRepository.GetByIdAsync(command.RoleId, cancellationToken)
+            ?? throw new InvalidOperationException("角色不存在。");
+        if (grantUserIds.Count > 0)
+        {
+            EnsureAssignableRole(role);
+        }
+
+        foreach (var userId in grantUserIds)
+        {
+            _ = await GetAssignableTenantMemberOrThrowAsync(userId, now, "分配角色", cancellationToken);
+        }
+
+        var grantUserIdSet = grantUserIds.ToHashSet();
+        var revoking = revokeIds.Count == 0
+            ? []
+            : (await _userRoleRepository.GetListAsync(
+                userRole => revokeIds.Contains(userRole.BasicId)
+                    && userRole.RoleId == role.BasicId
+                    && userRole.Status == ValidityStatus.Valid,
+                cancellationToken))
+                .Where(userRole => !grantUserIdSet.Contains(userRole.UserId))
+                .ToList();
+
+        var existingMap = grantUserIds.Count == 0
+            ? []
+            : (await _userRoleRepository.GetListAsync(
+                userRole => userRole.RoleId == role.BasicId && grantUserIds.Contains(userRole.UserId),
+                cancellationToken)).ToDictionary(userRole => userRole.UserId);
+
+        var updating = new List<SysUserRole>();
+        var adding = new List<SysUserRole>();
+        var grantedUserIds = new List<long>();
+        var joining = 0;
+        foreach (var userId in grantUserIds)
+        {
+            if (!existingMap.TryGetValue(userId, out var userRole))
+            {
+                adding.Add(new SysUserRole
+                {
+                    UserId = userId,
+                    RoleId = role.BasicId,
+                    Status = ValidityStatus.Valid
+                });
+                grantedUserIds.Add(userId);
+                joining++;
+                continue;
+            }
+
+            if (IsEffective(userRole.Status, userRole.EffectiveTime, userRole.ExpirationTime, now))
+            {
+                continue;
+            }
+
+            if (!OccupiesSeat(userRole, now))
+            {
+                joining++;
+            }
+
+            // 授予语义是「从现在起生效」：复用的历史行一并清空时间窗
+            userRole.Status = ValidityStatus.Valid;
+            userRole.EffectiveTime = null;
+            userRole.ExpirationTime = null;
+            updating.Add(userRole);
+            grantedUserIds.Add(userId);
+        }
+
+        await EnsureRoleCapacityAsync(role, joining, revoking.Count(userRole => OccupiesSeat(userRole, now)), now, cancellationToken);
+
+        // SSD 执法：每个加入的成员以「现有有效角色 + 本角色」评估静态职责分离约束
+        foreach (var userId in grantedUserIds)
+        {
+            var finalRoleIds = (await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken))
+                .Select(userRole => userRole.RoleId)
+                .Append(role.BasicId)
+                .Distinct();
+            await EnsureNoSoDConflictAsync(finalRoleIds, cancellationToken);
+        }
+
+        if (revoking.Count > 0)
+        {
+            foreach (var userRole in revoking)
+            {
+                userRole.Status = ValidityStatus.Invalid;
+            }
+
+            _ = await _userRoleRepository.UpdateRangeAsync(revoking, cancellationToken);
+        }
+
+        if (updating.Count > 0)
+        {
+            _ = await _userRoleRepository.UpdateRangeAsync(updating, cancellationToken);
+        }
+
+        if (adding.Count > 0)
+        {
+            _ = await _userRoleRepository.AddRangeAsync(adding, cancellationToken);
+        }
+
+        return new RoleMemberBatchUpdateResult(grantedUserIds, [.. revoking.Select(userRole => userRole.UserId)]);
+    }
+
+    /// <summary>
     /// 更新用户角色
     /// </summary>
     /// <param name="command">更新参数</param>
@@ -598,11 +739,17 @@ public sealed class UserDomainService
         var userRole = await GetUserRoleOrThrowAsync(command.BasicId, cancellationToken);
         var tenantMember = await GetAssignableTenantMemberOrThrowAsync(userRole.UserId, now, "分配角色", cancellationToken);
         var role = await GetAssignableRoleOrThrowAsync(userRole.RoleId, cancellationToken);
+        var occupiedBefore = OccupiesSeat(userRole, now);
 
         userRole.EffectiveTime = command.EffectiveTime;
         userRole.ExpirationTime = command.ExpirationTime;
         userRole.GrantReason = NormalizeNullable(command.GrantReason);
         userRole.Remark = NormalizeNullable(command.Remark);
+
+        if (!occupiedBefore && OccupiesSeat(userRole, now))
+        {
+            await EnsureRoleBindingCanJoinAsync(userRole.UserId, role, now, cancellationToken);
+        }
 
         var savedUserRole = await _userRoleRepository.UpdateAsync(userRole, cancellationToken);
         return new UserRoleCommandResult(savedUserRole, role, tenantMember, now);
@@ -634,9 +781,15 @@ public sealed class UserDomainService
         var role = command.Status == ValidityStatus.Valid
             ? await GetAssignableRoleOrThrowAsync(userRole.RoleId, cancellationToken)
             : await _roleRepository.GetByIdAsync(userRole.RoleId, cancellationToken);
+        var occupiedBefore = OccupiesSeat(userRole, now);
 
         userRole.Status = command.Status;
         userRole.Remark = NormalizeNullable(command.Remark);
+
+        if (role is not null && !occupiedBefore && OccupiesSeat(userRole, now))
+        {
+            await EnsureRoleBindingCanJoinAsync(userRole.UserId, role, now, cancellationToken);
+        }
 
         var savedUserRole = await _userRoleRepository.UpdateAsync(userRole, cancellationToken);
         return new UserRoleCommandResult(savedUserRole, role, tenantMember, now);
@@ -1880,6 +2033,46 @@ public sealed class UserDomainService
     }
 
     // ---- 用户角色辅助 ----
+
+    /// <summary>
+    /// 授权是否占用角色成员名额：状态有效且未过期（尚未生效的预约同样占名额）
+    /// </summary>
+    private static bool OccupiesSeat(SysUserRole userRole, DateTimeOffset now)
+    {
+        return userRole.Status == ValidityStatus.Valid
+               && (userRole.ExpirationTime is null || userRole.ExpirationTime > now);
+    }
+
+    /// <summary>
+    /// 角色成员上限（MaxMembers，0 不限）：本次加入与移出之后不得超过上限
+    /// </summary>
+    private async Task EnsureRoleCapacityAsync(SysRole role, int joining, int leaving, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (role.MaxMembers <= 0 || joining <= leaving)
+        {
+            return;
+        }
+
+        var occupied = await _userRoleRepository.CountOccupiedByRoleIdAsync(role.BasicId, now, cancellationToken);
+        if (occupied - leaving + joining > role.MaxMembers)
+        {
+            throw new InvalidOperationException($"角色「{role.RoleName}」最多 {role.MaxMembers} 个成员，当前已有 {occupied} 个。");
+        }
+    }
+
+    /// <summary>
+    /// 单条授权重新占用名额前的校验：与批量授予同一口径（成员上限 + 职责分离）
+    /// </summary>
+    private async Task EnsureRoleBindingCanJoinAsync(long userId, SysRole role, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        await EnsureRoleCapacityAsync(role, joining: 1, leaving: 0, now, cancellationToken);
+
+        var finalRoleIds = (await _userRoleRepository.GetValidByUserIdAsync(userId, now, cancellationToken))
+            .Select(userRole => userRole.RoleId)
+            .Append(role.BasicId)
+            .Distinct();
+        await EnsureNoSoDConflictAsync(finalRoleIds, cancellationToken);
+    }
 
     /// <summary>
     /// 静态职责分离（SSD）执法：评估变更后最终有效角色集的约束违规。

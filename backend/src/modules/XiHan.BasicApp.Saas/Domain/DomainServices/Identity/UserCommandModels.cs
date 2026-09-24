@@ -88,6 +88,26 @@ public sealed record UserRoleBatchUpdateResult(
     IReadOnlyList<long> RevokedRoleIds);
 
 /// <summary>
+/// 角色成员批量变更命令（以角色为中心，一次性提交加入与移出）
+/// </summary>
+/// <param name="RoleId">角色主键</param>
+/// <param name="GrantUserIds">加入的成员（用户主键）</param>
+/// <param name="RevokeUserRoleIds">移出的授权记录（用户角色绑定主键）</param>
+public sealed record RoleMemberBatchUpdateCommand(
+    long RoleId,
+    IReadOnlyList<long> GrantUserIds,
+    IReadOnlyList<long> RevokeUserRoleIds);
+
+/// <summary>
+/// 角色成员批量变更结果（本次实际加入与移出的成员，用于审计发事件）
+/// </summary>
+/// <param name="GrantedUserIds">实际加入的成员</param>
+/// <param name="RevokedUserIds">实际移出的成员</param>
+public sealed record RoleMemberBatchUpdateResult(
+    IReadOnlyList<long> GrantedUserIds,
+    IReadOnlyList<long> RevokedUserIds);
+
+/// <summary>
 /// 用户角色更新命令
 /// </summary>
 public sealed record UserRoleUpdateCommand(

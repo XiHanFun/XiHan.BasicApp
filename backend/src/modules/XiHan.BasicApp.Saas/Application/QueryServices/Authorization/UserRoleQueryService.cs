@@ -43,18 +43,77 @@ public sealed class UserRoleQueryService
     private readonly ISuperAdminProtector _superAdminProtector;
 
     /// <summary>
+    /// 用户仓储（成员的账号可能注册在别处，按主键跨租户取名字）
+    /// </summary>
+    private readonly IUserRepository _userRepository;
+
+    /// <summary>
+    /// 当前上下文的用户目录（区分本地账号与外部成员）
+    /// </summary>
+    private readonly IUserDirectory _userDirectory;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public UserRoleQueryService(
         IUserRoleRepository userRoleRepository,
         IRoleRepository roleRepository,
         ITenantUserRepository tenantUserRepository,
-        ISuperAdminProtector superAdminProtector)
+        ISuperAdminProtector superAdminProtector,
+        IUserRepository userRepository,
+        IUserDirectory userDirectory)
     {
         _userRoleRepository = userRoleRepository;
         _roleRepository = roleRepository;
         _tenantUserRepository = tenantUserRepository;
         _superAdminProtector = superAdminProtector;
+        _userRepository = userRepository;
+        _userDirectory = userDirectory;
+    }
+
+    /// <summary>
+    /// 获取角色在本租户此刻生效的成员
+    /// </summary>
+    /// <param name="roleId">角色主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>角色成员</returns>
+    [PermissionAuthorize(SaasPermissionCodes.UserRole.Read)]
+    public async Task<IReadOnlyList<RoleMemberDto>> GetRoleMembersAsync(long roleId, CancellationToken cancellationToken = default)
+    {
+        if (roleId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(roleId), "角色主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var userRoles = await _userRoleRepository.GetValidByRoleIdAsync(roleId, DateTimeOffset.UtcNow, cancellationToken);
+        if (userRoles.Count == 0)
+        {
+            return [];
+        }
+
+        var users = (await _userRepository.GetListByIdsIgnoreTenantAsync([.. userRoles.Select(item => item.UserId).Distinct()], cancellationToken))
+            .ToDictionary(user => user.BasicId);
+
+        return [.. userRoles
+            .Select(item =>
+            {
+                var user = users.GetValueOrDefault(item.UserId);
+                return new RoleMemberDto
+                {
+                    UserRoleId = item.BasicId,
+                    UserId = item.UserId,
+                    UserName = user?.UserName ?? string.Empty,
+                    RealName = user?.RealName,
+                    NickName = user?.NickName,
+                    IsExternalMember = user is not null && !_userDirectory.IsHomeAccount(user),
+                    EffectiveTime = item.EffectiveTime,
+                    ExpirationTime = item.ExpirationTime
+                };
+            })
+            .OrderBy(item => item.UserName, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => item.UserId)];
     }
 
     /// <summary>
