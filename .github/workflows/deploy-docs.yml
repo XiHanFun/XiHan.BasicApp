@@ -47,6 +47,11 @@ jobs:
       - name: 构建文档
         run: pnpm run build
 
+      # 产物里有供「取本页 Markdown」直读的原始 .md，其中代码生成模板等处的双花括号不是 Liquid 模板。
+      # 缺少该标记时 GitHub Pages 会交给 Jekyll 处理：.md 被转成 HTML，双花括号还可能让构建失败。
+      - name: 验证 GitHub Pages 静态托管标记
+        run: test -f .vitepress/dist/.nojekyll
+
       - name: 部署文档
         uses: JamesIves/github-pages-deploy-action@v4
         with:
