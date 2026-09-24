@@ -491,7 +491,7 @@
 /* 带文字的顶栏钮（如上下文切换）：皮肤同图标钮，宽度随内容 */
 .xihan-icon-btn.xihan-icon-btn--labeled {
   inline-size: auto;
-  gap: var(--xh-space-1);
+  gap: var(--xh-space-2);
   padding-inline: var(--xh-space-2);
 }
 

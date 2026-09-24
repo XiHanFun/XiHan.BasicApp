@@ -142,8 +142,8 @@ const { isMobile } = useIsMobile()
       @click="emit('userAction', 'control-center')"
     >
       <Icon :icon="props.contextIsPlatform ? 'lucide:shield-check' : 'lucide:building-2'" width="16" height="16" class="shrink-0" />
-      <span class="hidden max-w-32 truncate text-sm md:block">{{ props.contextLabel }}</span>
-      <Icon icon="lucide:chevrons-up-down" width="12" height="12" class="shrink-0" />
+      <span class="hidden max-w-32 truncate text-sm text-foreground md:block">{{ props.contextLabel }}</span>
+      <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />
     </XihanIconButton>
 
     <!-- 用户菜单 -->
