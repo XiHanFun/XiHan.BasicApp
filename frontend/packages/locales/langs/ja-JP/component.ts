@@ -206,6 +206,7 @@ export default {
       err_save_failed: '保存に失敗しました',
       secret_alert_title: 'API Secret を今すぐ保存してください。このキーは一度しか表示されません',
       create_modal_title: 'API 認証情報の作成',
+      create_name_label: '認証情報の名前',
       create_name_placeholder: '認証情報の名前（任意、既定は「既定の認証情報」）',
       rotate_title: 'シークレットのローテーション',
       rotate_content: '新しいシークレットを生成すると「{name}」の古いシークレットは直ちに無効になります。続行しますか？',
