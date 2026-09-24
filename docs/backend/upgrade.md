@@ -108,7 +108,7 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 
 字段隔离租户与平台共库，不重复执行。每个独立库都有自己的 `SysVersion` 与 `SysMigrationHistory`，数据库版本可以独立追踪。
 
-独立库由 `InitializeDatabase` 按当前实体新建，建好即通过 `IUpgradeEngine.BaselineAsync` 登记为最新脚本版本，不补跑历史脚本。独立库里只有租户库实体的表，脚本改平台库表（`[PlatformDataSource]` 实体）的语句要先判表存在，见 `UpdateScripts/README.md`。
+新建的库不补跑历史脚本：本次启动从零建出全部实体表的平台库（`SaasSchemaUpgrader` 按 `DbSchemaUpgradeContext.IsFresh` 判定）与 `InitializeDatabase` 新建的独立库，建好即通过 `IUpgradeEngine.BaselineAsync` 登记为最新脚本版本。独立库里只有租户库实体的表，脚本改平台库表（`[PlatformDataSource]` 实体）的语句要先判表存在，见 `UpdateScripts/README.md`。
 
 ### 租约锁
 

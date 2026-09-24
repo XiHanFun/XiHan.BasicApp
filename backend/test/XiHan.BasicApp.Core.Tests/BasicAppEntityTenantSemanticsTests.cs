@@ -143,35 +143,13 @@ public sealed class BasicAppEntityTenantSemanticsTests
     [InlineData(typeof(BasicAppModificationEntity))]
     [InlineData(typeof(BasicAppDeletionEntity))]
     [InlineData(typeof(BasicAppFullAuditedEntity))]
+    [InlineData(typeof(BasicAppAggregateRoot))]
     public void TenantId_EntityFamilyShouldMapToSnakeCaseColumn(Type baseType)
     {
         var column = CoreTestHelper.RequireSugarColumn(baseType, "TenantId");
 
         Assert.Equal("Tenant_Id", column.ColumnName, StringComparer.Ordinal);
         Assert.True(column.IsOnlyIgnoreUpdate, "Tenant_Id 必须在 UPDATE 中被忽略，否则可跨租户改写归属。");
-    }
-
-    /// <summary>
-    /// 聚合根家族的 TenantId 目前**没有**指定列名 —— 锁定这一实际差异。
-    /// </summary>
-    /// <remarks>
-    /// 框架 <c>SugarMultiTenantAggregateRoot</c> 的 TenantId 只写了描述与 IsOnlyIgnoreUpdate，
-    /// 没有 ColumnName。于是 CodeFirst 会按属性名建列（PostgreSQL 下未加引号标识符折叠为小写 <c>tenantid</c>），
-    /// 与实体家族的 <c>tenant_id</c> 形成两套命名并存。
-    /// <para>
-    /// 这条断言的用途不是"认为这样是对的"，而是当有人顺手补上 ColumnName 时立刻变红，
-    /// 提醒必须同时给已上线的聚合根表出列重命名升级脚本，否则线上直接列不存在。
-    /// </para>
-    /// </remarks>
-    [Fact]
-    public void TenantId_AggregateRootFamilyStillHasNoExplicitColumnName()
-    {
-        var column = CoreTestHelper.RequireSugarColumn(typeof(BasicAppAggregateRoot), "TenantId");
-
-        Assert.True(
-            string.IsNullOrEmpty(column.ColumnName),
-            "聚合根 TenantId 补了 ColumnName：这是列改名，必须配套升级脚本后再更新本断言。");
-        Assert.True(column.IsOnlyIgnoreUpdate);
     }
 
     /// <summary>
