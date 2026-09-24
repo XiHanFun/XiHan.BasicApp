@@ -150,17 +150,6 @@ public partial class SysUser : BasicAppAggregateRoot, IStrictMultiTenantEntity
     public virtual bool IsSystemAccount { get; set; } = false;
 
     /// <summary>
-    /// 用户级数据权限范围覆盖（与 SysRole.DataScope 对称的用户级覆盖；null=不覆盖，按角色 DataScope 生效）
-    /// </summary>
-    /// <remarks>
-    /// - 非空时优先级高于角色 DataScope（如 CEO 角色是部门经理但需看全部数据，可置 All）
-    /// - 取值 Custom 时，须在 SysUserDataScope 中枚举可见部门集合
-    /// - 禁止依赖枚举数值大小做权限合并，必须按 DataPermissionScope 注释中的显式语义解释
-    /// </remarks>
-    [SugarColumn(ColumnName = "Data_Scope_Override", ColumnDescription = "数据权限范围覆盖", IsNullable = true)]
-    public virtual DataPermissionScope? DataScopeOverride { get; set; }
-
-    /// <summary>
     /// 备注
     /// </summary>
     [SugarColumn(ColumnName = "Remark", ColumnDescription = "备注", Length = 500, IsNullable = true)]

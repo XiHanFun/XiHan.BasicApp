@@ -8,7 +8,7 @@
 import type { AxiosRequestConfig } from '~/request'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { permissionChangeLogApi } from './modules/audit'
-import { roleDataScopeApi, roleHierarchyApi, userDataScopeApi } from './modules/authorization'
+import { DataPermissionScope, roleDataScopeApi, roleHierarchyApi, userDataScopeApi } from './modules/authorization'
 import { cacheApi } from './modules/cache'
 import { dictApi } from './modules/configuration'
 import { exportTaskApi } from './modules/export'
@@ -252,14 +252,14 @@ describe('易写错的控制器归属', () => {
     expect(only()).toMatchObject({ method: 'POST', url: '/UserDepartment/BatchUpdateUserDepartments' })
   })
 
-  it('数据范围与角色继承的批量变更分别落在各自的命令控制器', async () => {
-    await roleDataScopeApi.batchUpdate({ roleId: '1', grants: [], revokeRoleDataScopeIds: [] })
-    await userDataScopeApi.batchUpdate({ userId: '1', grants: [], revokeUserDataScopeIds: [] })
+  it('数据范围设置与角色继承的批量变更分别落在各自的命令控制器', async () => {
+    await roleDataScopeApi.set({ roleId: '1', dataScope: DataPermissionScope.All, departments: [] })
+    await userDataScopeApi.set({ userId: '1', dataScope: null, departments: [] })
     await roleHierarchyApi.batchUpdateParents({ roleId: '1', addParentRoleIds: [], removeParentRoleIds: [] })
 
     expect(calls.map(item => `${item.method} ${item.url}`)).toEqual([
-      'POST /Role/BatchUpdateRoleDataScopes',
-      'POST /UserDataScope/BatchUpdateUserDataScopes',
+      'POST /Role/SetRoleDataScope',
+      'POST /UserDataScope/SetUserDataScope',
       'POST /Role/BatchUpdateRoleParents',
     ])
   })

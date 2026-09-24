@@ -1,6 +1,7 @@
-import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString } from '../../types'
+import type { ApiId, BasicDto, DateTimeString } from '../../types'
 import type { DepartmentType } from '../organization'
 import type { EnableStatus, ValidityStatus } from '../shared'
+import type { DataPermissionScope } from './role.types'
 
 export interface RoleDataScopeListItemDto extends BasicDto {
   createdTime: DateTimeString
@@ -23,26 +24,16 @@ export interface RoleDataScopeDetailDto extends RoleDataScopeListItemDto {
   createdId?: ApiId | null
 }
 
-export interface RoleDataScopeBatchGrantItemDto {
+/** 自定义数据范围里的一个部门 */
+export interface DataScopeDepartmentDto {
   departmentId: ApiId
   includeChildren: boolean
 }
 
-/** 批量变更角色数据范围（一次性提交授予与撤销）；已授予的部门再次下发即改其含下级 */
-export interface RoleDataScopeBatchUpdateDto {
-  grants: RoleDataScopeBatchGrantItemDto[]
-  revokeRoleDataScopeIds: ApiId[]
+/** 设置角色数据范围：档位与自定义部门一次提交（全局角色不能自定义） */
+export interface RoleDataScopeSetDto {
+  dataScope: DataPermissionScope
+  /** 仅档位为 Custom 时提交，且至少一个 */
+  departments: DataScopeDepartmentDto[]
   roleId: ApiId
-}
-
-export interface RoleDataScopeUpdateDto extends BasicUpdateDto {
-  effectiveTime?: DateTimeString | null
-  expirationTime?: DateTimeString | null
-  includeChildren: boolean
-  remark?: string | null
-}
-
-export interface RoleDataScopeStatusUpdateDto extends BasicUpdateDto {
-  remark?: string | null
-  status: ValidityStatus
 }

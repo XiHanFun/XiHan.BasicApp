@@ -1,6 +1,8 @@
 ﻿-- 5.3.0
 -- 一、权限目录新增作用侧 side：平台 = 1、租户 = 2、两侧 = 3。
--- 二、会话标识改为全局唯一（见文末）。
+-- 二、会话标识改为全局唯一（见后文）。
+-- 三、数据范围覆盖从账号挪到成员关系（见后文）。
+-- 四、数据范围权限码收口为「查看 / 设置」（见文末）。
 --
 -- 建表只建缺失的表，存量库的 sys_permission 由本脚本补列；本脚本在建表之后、播种之前执行。
 -- 存量行按改造前的语义（平台专属清单以外的权限两侧都生效）先补成两侧，
@@ -26,3 +28,64 @@ COMMENT ON COLUMN sys_permission.side IS '作用侧';
 CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_session_usseid ON sys_user_session (user_session_id ASC, isdeleted ASC);
 
 DROP INDEX IF EXISTS ux_sys_user_session_teid_usseid;
+
+-- 数据范围覆盖从账号挪到成员关系：同一个人在不同租户各自设置，互不影响。
+-- 改造前覆盖挂在账号上、在账号加入的每个租户都生效，这里原样落到它的每一条成员关系，已有覆盖的成员关系不动；
+-- 随后删除账号上的列。新库上账号表本就没有这一列，整段空转。
+-- sys_user 的主键列没有显式列名，库里是 basicid。
+ALTER TABLE sys_tenant_user ADD COLUMN IF NOT EXISTS data_scope_override int4 NULL;
+
+COMMENT ON COLUMN sys_tenant_user.data_scope_override IS '数据范围覆盖';
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM information_schema.columns
+         WHERE table_schema = current_schema()
+           AND table_name = 'sys_user'
+           AND column_name = 'data_scope_override'
+    ) THEN
+        UPDATE sys_tenant_user tu
+           SET data_scope_override = u.data_scope_override
+          FROM sys_user u
+         WHERE tu.user_id = u.basicid
+           AND u.data_scope_override IS NOT NULL
+           AND tu.data_scope_override IS NULL;
+
+        ALTER TABLE sys_user DROP COLUMN data_scope_override;
+    END IF;
+END
+$$;
+
+-- 数据范围改为「档位 + 部门一次设置」，权限码只剩查看（read）与设置（update）；
+-- 授予、撤销、状态三组码没有接口了，存量库里连同所有引用一起删除（权限变更日志保留原样）。
+-- sys_permission 的主键列没有显式列名，库里是 basicid；先删引用、最后删权限行。新库上这些码从未播种，整段空转。
+DELETE FROM sys_role_permission WHERE permission_id IN (SELECT basicid FROM sys_permission WHERE permission_code IN (
+       'saas:role-data-scope:grant', 'saas:role-data-scope:revoke', 'saas:role-data-scope:status',
+       'saas:user-data-scope:grant', 'saas:user-data-scope:revoke', 'saas:user-data-scope:status'));
+
+DELETE FROM sys_user_permission WHERE permission_id IN (SELECT basicid FROM sys_permission WHERE permission_code IN (
+       'saas:role-data-scope:grant', 'saas:role-data-scope:revoke', 'saas:role-data-scope:status',
+       'saas:user-data-scope:grant', 'saas:user-data-scope:revoke', 'saas:user-data-scope:status'));
+
+DELETE FROM sys_tenant_edition_permission WHERE permission_id IN (SELECT basicid FROM sys_permission WHERE permission_code IN (
+       'saas:role-data-scope:grant', 'saas:role-data-scope:revoke', 'saas:role-data-scope:status',
+       'saas:user-data-scope:grant', 'saas:user-data-scope:revoke', 'saas:user-data-scope:status'));
+
+DELETE FROM sys_permission_delegation WHERE permission_id IN (SELECT basicid FROM sys_permission WHERE permission_code IN (
+       'saas:role-data-scope:grant', 'saas:role-data-scope:revoke', 'saas:role-data-scope:status',
+       'saas:user-data-scope:grant', 'saas:user-data-scope:revoke', 'saas:user-data-scope:status'));
+
+DELETE FROM sys_permission_request WHERE permission_id IN (SELECT basicid FROM sys_permission WHERE permission_code IN (
+       'saas:role-data-scope:grant', 'saas:role-data-scope:revoke', 'saas:role-data-scope:status',
+       'saas:user-data-scope:grant', 'saas:user-data-scope:revoke', 'saas:user-data-scope:status'));
+
+UPDATE sys_menu SET permission_id = NULL WHERE permission_id IN (SELECT basicid FROM sys_permission WHERE permission_code IN (
+       'saas:role-data-scope:grant', 'saas:role-data-scope:revoke', 'saas:role-data-scope:status',
+       'saas:user-data-scope:grant', 'saas:user-data-scope:revoke', 'saas:user-data-scope:status'));
+
+DELETE FROM sys_permission
+ WHERE permission_code IN (
+       'saas:role-data-scope:grant', 'saas:role-data-scope:revoke', 'saas:role-data-scope:status',
+       'saas:user-data-scope:grant', 'saas:user-data-scope:revoke', 'saas:user-data-scope:status');

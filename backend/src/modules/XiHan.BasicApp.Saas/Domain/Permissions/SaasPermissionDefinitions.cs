@@ -142,13 +142,11 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.RoleHierarchy.Create, "角色继承创建", "创建角色直接继承关系并补齐闭包记录", true, 270),
             new(SaasPermissionCodes.RoleHierarchy.Delete, "角色继承删除", "删除角色直接继承关系并清理派生闭包记录", true, 271),
         ]),
-        new(SaasPermissionCodes.RoleDataScope.Group, "角色数据范围", PermissionSide.Tenant,
+        // 两侧：平台设全局角色模板的档位（全局角色不能自定义部门），租户设本租户角色的档位与部门
+        new(SaasPermissionCodes.RoleDataScope.Group, "角色数据范围", PermissionSide.Both,
         [
-            new(SaasPermissionCodes.RoleDataScope.Read, "角色数据范围查看", "查看角色自定义数据范围列表和详情", false, 272),
-            new(SaasPermissionCodes.RoleDataScope.Grant, "角色数据范围授权", "授予角色自定义数据范围", true, 273),
-            new(SaasPermissionCodes.RoleDataScope.Update, "角色数据范围更新", "更新角色数据范围有效期和包含子部门设置", true, 274),
-            new(SaasPermissionCodes.RoleDataScope.Status, "角色数据范围状态", "更新角色数据范围绑定状态", true, 275),
-            new(SaasPermissionCodes.RoleDataScope.Revoke, "角色数据范围撤销", "撤销角色数据范围绑定", true, 276),
+            new(SaasPermissionCodes.RoleDataScope.Read, "角色数据范围查看", "查看角色数据范围档位与自定义部门", false, 272),
+            new(SaasPermissionCodes.RoleDataScope.Update, "角色数据范围设置", "设置角色数据范围档位与自定义部门", true, 273),
         ]),
         new(SaasPermissionCodes.RolePermission.Group, "角色权限", PermissionSide.Both,
         [
@@ -176,11 +174,8 @@ public static class SaasPermissionDefinitions
         ]),
         new(SaasPermissionCodes.UserDataScope.Group, "用户数据范围", PermissionSide.Tenant,
         [
-            new(SaasPermissionCodes.UserDataScope.Read, "用户数据范围查看", "查看当前租户用户数据范围覆盖列表和详情", false, 430),
-            new(SaasPermissionCodes.UserDataScope.Grant, "用户数据范围授权", "授予当前租户成员数据范围覆盖", true, 440),
-            new(SaasPermissionCodes.UserDataScope.Update, "用户数据范围更新", "更新用户数据范围覆盖模式和部门设置", true, 450),
-            new(SaasPermissionCodes.UserDataScope.Status, "用户数据范围状态", "更新用户数据范围绑定状态", true, 460),
-            new(SaasPermissionCodes.UserDataScope.Revoke, "用户数据范围撤销", "撤销用户数据范围绑定", true, 470),
+            new(SaasPermissionCodes.UserDataScope.Read, "成员数据范围查看", "查看当前租户成员的数据范围覆盖与自定义部门", false, 430),
+            new(SaasPermissionCodes.UserDataScope.Update, "成员数据范围设置", "设置当前租户成员的数据范围覆盖与自定义部门", true, 440),
         ]),
         new(SaasPermissionCodes.FieldLevelSecurity.Group, "字段级安全", PermissionSide.Both,
         [

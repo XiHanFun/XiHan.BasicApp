@@ -15,6 +15,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// <remarks>
 /// 职责边界：
 /// - 本表承载"谁能进入哪个租户"；"进入后有什么角色"由 SysUserRole 承载；"在租户内的哪些部门"由 SysUserDepartment 承载
+/// - 成员在本租户的数据范围覆盖（DataScopeOverride）也挂在本表：同一个人在不同租户各自设置，互不影响
 /// - 语义区分：
 ///     · SysUser.TenantId       = 用户的主账号归属租户（注册地）
 ///     · SysTenantUser.TenantId = 用户拥有成员身份的租户（含主租户 + 外部协作租户）
@@ -142,6 +143,18 @@ public partial class SysTenantUser : BasicAppFullAuditedEntity, IStrictMultiTena
     /// </summary>
     [SugarColumn(ColumnName = "Invite_Remark", ColumnDescription = "邀请备注", Length = 500, IsNullable = true)]
     public virtual string? InviteRemark { get; set; }
+
+    /// <summary>
+    /// 数据范围覆盖（null=按角色的数据范围生效）
+    /// </summary>
+    /// <remarks>
+    /// - 非空时取代该成员在本租户所有角色的数据范围（如 CEO 挂的是部门经理角色、但要看全部数据，可置 All）
+    /// - 取值 Custom 时，可见部门由 SysUserDataScope 枚举（本租户、本成员的行）
+    /// - 数据范围是租户侧概念：平台没有成员关系，也不施加数据范围
+    /// - 禁止依赖枚举数值大小做权限合并，必须按 DataPermissionScope 注释中的显式语义解释
+    /// </remarks>
+    [SugarColumn(ColumnName = "Data_Scope_Override", ColumnDescription = "数据范围覆盖", IsNullable = true)]
+    public virtual DataPermissionScope? DataScopeOverride { get; set; }
 
     /// <summary>
     /// 状态（Yes=有效 / No=暂停，暂停后不再生效但保留关系）

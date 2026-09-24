@@ -35,7 +35,7 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 - `Status`（启用/禁用）与 `IsActive`（是否激活，邮箱/手机验证）**正交**：未激活或被禁用都不可登录。
 - `IsSystemAccount=true` 的内置账号禁止改用户名、禁止软删。
 - 平台账号约定 `TenantId=0`（如超管），恒落平台运维态。
-- 用户级数据范围可用 `DataScopeOverride` 覆盖角色默认（细节见权限模型）。
+- 成员在某个租户的数据范围可用成员关系上的 `DataScopeOverride` 覆盖角色（按租户各自设置，细节见权限模型）。
 
 敏感安全字段刻意拆到一对一的 `SysUserSecurity`（`Password`/`TwoFactorSecret`/`SecurityStamp` 均 `[JsonIgnore]`，不出接口），避免污染用户主表、便于单独脱敏与访问控制。
 

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { DataScopeDraft } from '../components/data-scope'
 import type {
   ApiId,
   PageResult,
@@ -14,7 +15,7 @@ import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
 import type { GrantTransferGroup, ListFieldSchema, PageSchema, PermissionGrantItem, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -30,6 +31,7 @@ import {
   TenantMemberInviteStatus,
   TenantMemberType,
   TwoFactorMethod,
+  userDataScopeApi,
   UserGender,
   userManagementApi,
   ValidityStatus,
@@ -40,6 +42,8 @@ import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { useAuthStore, useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
+import { isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from '../components/data-scope'
+import DataScopeEditor from '../components/DataScopeEditor.vue'
 import { applyPermissionTransfer, diffPermissionGrants, diffRoleGrants } from './direct-grant'
 import UserAvatarCell from './UserAvatarCell.vue'
 
@@ -48,6 +52,8 @@ defineOptions({ name: 'SystemUserPage' })
 const { t } = useI18n()
 const authStore = useAuthStore()
 const userStore = useUserStore()
+/** 数据范围是租户侧设置：平台没有成员关系 */
+const isPlatformContext = computed(() => userStore.userInfo?.isPlatform ?? false)
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -501,6 +507,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('identity.user.action_edit'), scope: 'row', icon: 'lucide:pencil' },
     { key: 'grantRole', title: t('identity.user.action_grant_role'), scope: 'row', icon: 'lucide:users-round' },
     { key: 'grantPermission', title: t('identity.user.action_grant_perm'), scope: 'row', icon: 'lucide:key-round' },
+    { key: 'dataScope', title: t('identity.user.action_data_scope'), scope: 'row', icon: 'lucide:building-2', visible: () => !isPlatformContext.value },
     { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', icon: 'lucide:lock', visible: isHomeAccountRow },
     { key: 'resetPassword', title: t('identity.user.action_reset_password'), scope: 'row', icon: 'lucide:key-square', visible: isHomeAccountRow },
     {
@@ -554,6 +561,10 @@ function onAction(payload: SchemaActionPayload) {
     case 'grantPermission':
       if (row)
         void openPermGrantDrawer(row)
+      break
+    case 'dataScope':
+      if (row)
+        void openScopeDrawer(row)
       break
     case 'lock':
       if (row)
@@ -974,6 +985,70 @@ function resetOtp(row: UserListItemDto) {
       }
     },
   })
+}
+
+// ── 成员数据范围抽屉（覆盖档位与自定义部门一次保存） ──────────────
+const scopeVisible = ref(false)
+const scopeUser = ref<UserListItemDto | null>(null)
+const scopeTree = ref<DepartmentTreeNodeDto[]>([])
+const scopeDraft = ref<DataScopeDraft>({ dataScope: null, departments: [] })
+/** 打开时的现状，保存钮只在有改动时可用 */
+const scopeOriginal = ref<DataScopeDraft>({ dataScope: null, departments: [] })
+const scopeLoading = ref(false)
+const scopeSubmitting = ref(false)
+const scopeDirty = computed(() => isDataScopeDirty(scopeDraft.value, scopeOriginal.value))
+
+function resetScopeDraft(draft: DataScopeDraft) {
+  scopeDraft.value = draft
+  scopeOriginal.value = draft
+}
+
+async function openScopeDrawer(row: UserListItemDto) {
+  scopeUser.value = row
+  scopeVisible.value = true
+  scopeTree.value = []
+  resetScopeDraft({ dataScope: null, departments: [] })
+  scopeLoading.value = true
+  try {
+    const [tree, setting] = await Promise.all([
+      userManagementApi.departments.tree({ limit: 1000, onlyEnabled: true }),
+      userDataScopeApi.setting(row.basicId),
+    ])
+    scopeTree.value = tree
+    resetScopeDraft({
+      dataScope: setting.dataScope,
+      departments: setting.departments.map(({ departmentId, includeChildren }) => ({ departmentId, includeChildren })),
+    })
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('identity.data_scope.load_failed'))
+  }
+  finally {
+    scopeLoading.value = false
+  }
+}
+
+async function saveScopes() {
+  const user = scopeUser.value
+  if (!user || !scopeDirty.value || scopeSubmitting.value)
+    return
+  if (!isDataScopeComplete(scopeDraft.value)) {
+    toast.warning(t('identity.data_scope.custom_required'))
+    return
+  }
+
+  scopeSubmitting.value = true
+  try {
+    await userDataScopeApi.set({ userId: user.basicId, ...toDataScopePayload(scopeDraft.value) })
+    toast.success(t('identity.data_scope.saved'))
+    scopeVisible.value = false
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('common.messages.save_failed'))
+  }
+  finally {
+    scopeSubmitting.value = false
+  }
 }
 
 // ── 角色直授抽屉（穿梭框，挪好后一次提交） ──────────────
@@ -1577,6 +1652,38 @@ async function confirmDelete() {
       </XhDialogContent>
     </XhDialogRoot>
 
+    <!-- 成员数据范围抽屉 -->
+    <XhDrawerRoot v-model:open="scopeVisible" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 640px">
+        <XhDrawerTitle>{{ t('identity.data_scope.drawer_title', { name: scopeUser ? displayName(scopeUser) : '' }) }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage scope-stage" :class="{ 'is-loading': scopeLoading }">
+          <div class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhAlertRoot tone="info" class="mb-3">
+            <XhAlertIndicator>
+              <Icon icon="tabler:info-circle" :size="16" />
+            </XhAlertIndicator>
+            <XhAlertContent>
+              <XhAlertDescription>
+                {{ t('identity.data_scope.member_hint') }}
+              </XhAlertDescription>
+            </XhAlertContent>
+          </XhAlertRoot>
+          <DataScopeEditor v-model="scopeDraft" :department-tree="scopeTree" allow-inherit />
+        </div>
+        <div class="xh-dialog-footer">
+          <XhButton variant="subtle" @click="scopeVisible = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton variant="subtle" tone="brand" class="ml-2" :loading="scopeSubmitting" :disabled="!scopeDirty || scopeLoading" @click="saveScopes">
+            {{ t('identity.data_scope.save') }}
+          </XhButton>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+
     <!-- 角色直授抽屉 -->
     <XhDrawerRoot v-model:open="roleGrantVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 720px">
@@ -1681,6 +1788,13 @@ async function confirmDelete() {
 </template>
 
 <style scoped>
+/* 成员数据范围抽屉：编辑区撑满剩余高度，保存/取消落在底部；部门多时在这里滚动 */
+.scope-stage {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
 .tbl-cell-2l {
   min-width: 0;
   line-height: 1.4;

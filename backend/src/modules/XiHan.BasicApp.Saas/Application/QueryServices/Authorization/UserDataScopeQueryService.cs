@@ -58,6 +58,35 @@ public sealed class UserDataScopeQueryService
     }
 
     /// <summary>
+    /// 获取成员在本租户的数据范围设置（覆盖档位 + 当前生效的自定义部门）
+    /// </summary>
+    /// <param name="userId">用户主键</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>数据范围设置</returns>
+    [PermissionAuthorize(SaasPermissionCodes.UserDataScope.Read)]
+    public async Task<UserDataScopeSettingDto> GetUserDataScopeSettingAsync(long userId, CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(userId), "用户主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken)
+            ?? throw new InvalidOperationException("当前租户成员不存在。");
+
+        return new UserDataScopeSettingDto
+        {
+            UserId = userId,
+            DataScope = tenantMember.DataScopeOverride,
+            Departments = tenantMember.DataScopeOverride == DataPermissionScope.Custom
+                ? [.. await GetUserDataScopesAsync(userId, onlyValid: true, cancellationToken)]
+                : []
+        };
+    }
+
+    /// <summary>
     /// 获取用户数据范围列表
     /// </summary>
     /// <param name="userId">用户主键</param>

@@ -14,45 +14,51 @@ using XiHan.Framework.Security.Password;
 namespace XiHan.BasicApp.Saas.Tests;
 
 /// <summary>
-/// 角色与用户数据范围批量变更：授予与撤销一次提交，只对自定义范围的对象开放，撤销只置失效、历史行就地复用。
+/// 数据范围设置：档位与自定义部门一次落地。部门明细与目标比出差量——新部门授予、历史行就地复用、
+/// 目标之外的撤销（只置失效）；只有自定义档位带部门。角色的档位在角色上，成员的覆盖在成员关系上。
 /// </summary>
-public sealed class DataScopeBatchUpdateTests
+public sealed class DataScopeSetTests
 {
+    private const long TenantId = 7;
+
     private const long RoleId = 5;
 
     private const long UserId = 1;
 
-    #region 角色数据范围
+    #region 角色
 
     /// <summary>
-    /// 从未授予过的部门新增一行有效范围，含下级按授予项写入。
+    /// 切到自定义并选一个新部门：新增一行有效范围，档位随之改为自定义。
     /// </summary>
     [Fact]
-    public async Task RoleBatchUpdate_NewDepartment_ShouldAddValidScope()
+    public async Task Role_CustomWithNewDepartment_AddsRowAndChangesScope()
     {
-        var fixture = new RoleFixture();
+        var fixture = new RoleFixture(DataPermissionScope.SelfOnly);
 
-        var result = await fixture.GrantAsync(10, includeChildren: true);
+        var result = await fixture.SetAsync(DataPermissionScope.Custom, (10, true));
 
         var added = Assert.Single(fixture.Added);
         Assert.Equal(RoleId, added.RoleId);
         Assert.True(added.IncludeChildren);
         Assert.Equal(ValidityStatus.Valid, added.Status);
         Assert.Equal([10L], result.GrantedDepartmentIds);
+        Assert.True(result.ScopeChanged);
+        Assert.Equal(DataPermissionScope.Custom, fixture.Role.DataScope);
+        fixture.RoleRepository.Verify(repo => repo.UpdateAsync(fixture.Role, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
-    /// 已过期的历史行再授予：复用那一行并清掉时间窗，否则保存成功却不生效。
+    /// 已过期的历史行再选中：复用那一行并清掉时间窗，否则保存成功却不生效。
     /// </summary>
     [Fact]
-    public async Task RoleBatchUpdate_ExpiredScope_ShouldReactivateAndClearTimeWindow()
+    public async Task Role_ExpiredRow_IsReactivatedWithTimeWindowCleared()
     {
         var fixture = new RoleFixture();
         var row = fixture.AddRow(basicId: 100, departmentId: 10);
         row.EffectiveTime = DateTimeOffset.UtcNow.AddDays(-30);
         row.ExpirationTime = DateTimeOffset.UtcNow.AddDays(-1);
 
-        var result = await fixture.GrantAsync(10, includeChildren: false);
+        var result = await fixture.SetAsync(DataPermissionScope.Custom, (10, false));
 
         Assert.Empty(fixture.Added);
         Assert.Same(row, Assert.Single(fixture.Updated));
@@ -62,101 +68,149 @@ public sealed class DataScopeBatchUpdateTests
     }
 
     /// <summary>
-    /// 已生效且含下级一致：不写库、不算变更。
+    /// 与现状一致：不写库，档位也不动。
     /// </summary>
     [Fact]
-    public async Task RoleBatchUpdate_SameEffectiveScope_ShouldBeNoChange()
+    public async Task Role_SameState_WritesNothing()
     {
         var fixture = new RoleFixture();
         fixture.AddRow(basicId: 100, departmentId: 10, includeChildren: true);
 
-        var result = await fixture.GrantAsync(10, includeChildren: true);
+        var result = await fixture.SetAsync(DataPermissionScope.Custom, (10, true));
 
+        Assert.False(result.ScopeChanged);
         Assert.Empty(result.GrantedDepartmentIds);
+        Assert.Empty(result.RevokedDepartmentIds);
         fixture.VerifyNothingWritten();
     }
 
     /// <summary>
-    /// 已授予的部门再次下发即改含下级。
+    /// 已选的部门改含下级：就地更新那一行。
     /// </summary>
     [Fact]
-    public async Task RoleBatchUpdate_ChangeIncludeChildren_ShouldUpdateInPlace()
+    public async Task Role_ChangeIncludeChildren_UpdatesInPlace()
     {
         var fixture = new RoleFixture();
         var row = fixture.AddRow(basicId: 100, departmentId: 10, includeChildren: false);
 
-        _ = await fixture.GrantAsync(10, includeChildren: true);
+        _ = await fixture.SetAsync(DataPermissionScope.Custom, (10, true));
 
         Assert.True(row.IncludeChildren);
         Assert.Same(row, Assert.Single(fixture.Updated));
     }
 
     /// <summary>
-    /// 撤销只认本角色名下的有效记录；同一部门既撤又授时以授予为准。
+    /// 目标之外仍有效的部门撤销（只置失效）；别的角色的行不受影响。
     /// </summary>
     [Fact]
-    public async Task RoleBatchUpdate_Revoke_ShouldSkipForeignRowsAndLoseToGrant()
+    public async Task Role_DepartmentsLeftOut_AreRevoked()
     {
         var fixture = new RoleFixture();
-        var own = fixture.AddRow(basicId: 100, departmentId: 10);
+        var dropped = fixture.AddRow(basicId: 100, departmentId: 10);
         var kept = fixture.AddRow(basicId: 101, departmentId: 20);
         var others = fixture.AddRow(basicId: 200, departmentId: 10, roleId: 6);
 
-        var result = await fixture.Service.BatchUpdateRoleDataScopesAsync(new RoleDataScopeBatchUpdateCommand(
-            RoleId,
-            [new RoleDataScopeBatchGrantItem(20, IncludeChildren: false)],
-            [100, 101, 200]));
+        var result = await fixture.SetAsync(DataPermissionScope.Custom, (20, false));
 
-        Assert.Equal(ValidityStatus.Invalid, own.Status);
+        Assert.Equal(ValidityStatus.Invalid, dropped.Status);
         Assert.Equal(ValidityStatus.Valid, kept.Status);
         Assert.Equal(ValidityStatus.Valid, others.Status);
         Assert.Equal([10L], result.RevokedDepartmentIds);
     }
 
     /// <summary>
-    /// 非自定义数据权限范围的角色不能维护部门范围。
+    /// 从自定义切到其它档位：部门明细全部撤销，档位改写。
     /// </summary>
     [Fact]
-    public async Task RoleBatchUpdate_NonCustomRole_ShouldReject()
+    public async Task Role_SwitchAwayFromCustom_RevokesAllDepartments()
     {
-        var fixture = new RoleFixture(DataPermissionScope.DepartmentOnly);
+        var fixture = new RoleFixture();
+        var row = fixture.AddRow(basicId: 100, departmentId: 10);
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.GrantAsync(10, includeChildren: false));
+        var result = await fixture.SetAsync(DataPermissionScope.DepartmentAndChildren);
 
-        Assert.Contains("自定义", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(ValidityStatus.Invalid, row.Status);
+        Assert.True(result.ScopeChanged);
+        Assert.Equal(DataPermissionScope.DepartmentAndChildren, fixture.Role.DataScope);
+    }
+
+    /// <summary>
+    /// 自定义不带部门、非自定义带部门：都拒绝，且不写库。
+    /// </summary>
+    [Fact]
+    public async Task Role_DepartmentsMismatchScope_AreRejected()
+    {
+        var fixture = new RoleFixture();
+
+        var noDepartments = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.SetAsync(DataPermissionScope.Custom));
+        var strayDepartments = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.SetAsync(DataPermissionScope.All, (10, false)));
+
+        Assert.Contains("至少选择一个部门", noDepartments.Message, StringComparison.Ordinal);
+        Assert.Contains("只有自定义", strayDepartments.Message, StringComparison.Ordinal);
         fixture.VerifyNothingWritten();
+    }
+
+    /// <summary>
+    /// 全局角色在平台只能设档位：部门是租户自己的数据，不能自定义。
+    /// </summary>
+    [Fact]
+    public async Task Role_GlobalRoleInPlatform_CannotBeCustom()
+    {
+        var fixture = new RoleFixture(DataPermissionScope.SelfOnly, roleTenantId: 0, contextTenantId: null);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.SetAsync(DataPermissionScope.Custom, (10, false)));
+        var result = await fixture.SetAsync(DataPermissionScope.DepartmentAndChildren);
+
+        Assert.Contains("全局角色", exception.Message, StringComparison.Ordinal);
+        Assert.True(result.ScopeChanged);
+        Assert.Equal(DataPermissionScope.DepartmentAndChildren, fixture.Role.DataScope);
+    }
+
+    /// <summary>
+    /// 全局角色在租户里只读。
+    /// </summary>
+    [Fact]
+    public async Task Role_GlobalRoleInTenant_IsReadOnly()
+    {
+        var fixture = new RoleFixture(DataPermissionScope.SelfOnly, roleTenantId: 0);
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.SetAsync(DataPermissionScope.All));
+
+        fixture.RoleRepository.Verify(repo => repo.UpdateAsync(It.IsAny<SysRole>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     #endregion
 
-    #region 用户数据范围
+    #region 成员
 
     /// <summary>
-    /// 从未授予过的部门新增一行有效范围。
+    /// 成员设为自定义：写部门明细，覆盖挂在本租户的成员关系上。
     /// </summary>
     [Fact]
-    public async Task UserBatchUpdate_NewDepartment_ShouldAddValidScope()
+    public async Task Member_Custom_WritesRowsAndOverrideOnMembership()
     {
-        var fixture = new UserFixture();
+        var fixture = new MemberFixture();
 
-        var result = await fixture.GrantAsync(10, includeChildren: true);
+        var result = await fixture.SetAsync(DataPermissionScope.Custom, (10, true));
 
         var added = Assert.Single(fixture.Added);
         Assert.Equal(UserId, added.UserId);
         Assert.True(added.IncludeChildren);
-        Assert.Equal([10L], result.GrantedDepartmentIds);
+        Assert.True(result.ScopeChanged);
+        Assert.Equal(DataPermissionScope.Custom, fixture.Membership.DataScopeOverride);
+        fixture.TenantUserRepository.Verify(repo => repo.UpdateAsync(fixture.Membership, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>
-    /// 撤销过的部门再授予：复用那一行。
+    /// 撤销过的部门再选中：复用那一行。
     /// </summary>
     [Fact]
-    public async Task UserBatchUpdate_RevokedScope_ShouldReactivateExistingRow()
+    public async Task Member_RevokedRow_IsReactivated()
     {
-        var fixture = new UserFixture();
+        var fixture = new MemberFixture(DataPermissionScope.Custom);
         var row = fixture.AddRow(basicId: 100, departmentId: 10, status: ValidityStatus.Invalid);
 
-        _ = await fixture.GrantAsync(10, includeChildren: false);
+        _ = await fixture.SetAsync(DataPermissionScope.Custom, (10, false));
 
         Assert.Empty(fixture.Added);
         Assert.Same(row, Assert.Single(fixture.Updated));
@@ -164,51 +218,77 @@ public sealed class DataScopeBatchUpdateTests
     }
 
     /// <summary>
-    /// 撤销只置为失效，只认本用户名下的有效记录。
+    /// 改回跟随角色：清掉覆盖，部门明细全部撤销；别的成员的行不受影响。
     /// </summary>
     [Fact]
-    public async Task UserBatchUpdate_Revoke_ShouldInvalidateOnlyOwnValidRows()
+    public async Task Member_FollowRoles_ClearsOverrideAndRevokesRows()
     {
-        var fixture = new UserFixture();
+        var fixture = new MemberFixture(DataPermissionScope.Custom);
         var own = fixture.AddRow(basicId: 100, departmentId: 10);
         var others = fixture.AddRow(basicId: 200, departmentId: 10, userId: 2);
 
-        var result = await fixture.Service.BatchUpdateUserDataScopesAsync(new UserDataScopeBatchUpdateCommand(UserId, [], [100, 200]));
+        var result = await fixture.SetAsync(null);
 
+        Assert.Null(fixture.Membership.DataScopeOverride);
         Assert.Equal(ValidityStatus.Invalid, own.Status);
         Assert.Equal(ValidityStatus.Valid, others.Status);
         Assert.Equal([10L], result.RevokedDepartmentIds);
     }
 
     /// <summary>
-    /// 数据权限范围未覆盖为自定义的用户不能维护部门范围。
+    /// 与现状一致：不写库，成员关系也不动。
     /// </summary>
     [Fact]
-    public async Task UserBatchUpdate_NonCustomUser_ShouldReject()
+    public async Task Member_SameState_WritesNothing()
     {
-        var fixture = new UserFixture(dataScopeOverride: null);
+        var fixture = new MemberFixture(DataPermissionScope.All);
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.GrantAsync(10, includeChildren: false));
+        var result = await fixture.SetAsync(DataPermissionScope.All);
 
-        Assert.Contains("自定义", exception.Message, StringComparison.Ordinal);
+        Assert.False(result.ScopeChanged);
+        fixture.VerifyNothingWritten();
+        fixture.TenantUserRepository.Verify(repo => repo.UpdateAsync(It.IsAny<SysTenantUser>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    /// <summary>
+    /// 平台没有成员关系：成员数据范围是租户侧设置。
+    /// </summary>
+    [Fact]
+    public async Task Member_InPlatform_IsRejected()
+    {
+        var fixture = new MemberFixture(contextTenantId: null);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.SetAsync(DataPermissionScope.All));
+
+        Assert.Contains("租户侧", exception.Message, StringComparison.Ordinal);
         fixture.VerifyNothingWritten();
     }
 
     /// <summary>
-    /// 空提交直接返回，不查成员、不写库。
+    /// 支持成员（平台人员入驻）同样由所在租户维护。
     /// </summary>
     [Fact]
-    public async Task UserBatchUpdate_Empty_ShouldReturnWithoutTouchingRepositories()
+    public async Task Member_SupportMember_IsMaintainedByTenant()
     {
-        var fixture = new UserFixture();
+        var fixture = new MemberFixture(memberType: TenantMemberType.PlatformAdmin);
 
-        var result = await fixture.Service.BatchUpdateUserDataScopesAsync(new UserDataScopeBatchUpdateCommand(UserId, [new UserDataScopeBatchGrantItem(0, false)], [-1]));
+        var result = await fixture.SetAsync(DataPermissionScope.SelfOnly);
 
-        Assert.Empty(result.GrantedDepartmentIds);
-        fixture.TenantUserRepository.Verify(
-            repo => repo.GetMembershipAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()),
-            Times.Never);
-        fixture.VerifyNothingWritten();
+        Assert.True(result.ScopeChanged);
+        Assert.Equal(DataPermissionScope.SelfOnly, fixture.Membership.DataScopeOverride);
+    }
+
+    /// <summary>
+    /// 未接受邀请的成员不能维护数据范围。
+    /// </summary>
+    [Fact]
+    public async Task Member_PendingInvite_IsRejected()
+    {
+        var fixture = new MemberFixture(inviteStatus: TenantMemberInviteStatus.Pending);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.SetAsync(DataPermissionScope.All));
+
+        Assert.Contains("未接受邀请", exception.Message, StringComparison.Ordinal);
     }
 
     #endregion
@@ -217,13 +297,22 @@ public sealed class DataScopeBatchUpdateTests
     {
         var department = new SysDepartment
         {
-            TenantId = 7,
+            TenantId = TenantId,
             DepartmentCode = $"D-{id}",
             DepartmentName = $"部门{id}",
             Status = EnableStatus.Enabled
         };
         SaasTestHelper.SetBasicId(department, id);
         return department;
+    }
+
+    private static Mock<IDepartmentRepository> CreateDepartmentRepository()
+    {
+        var departmentRepository = new Mock<IDepartmentRepository>();
+        departmentRepository
+            .Setup(repo => repo.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((long id, CancellationToken _) => CreateDepartment(id));
+        return departmentRepository;
     }
 
     /// <summary>
@@ -233,28 +322,28 @@ public sealed class DataScopeBatchUpdateTests
     {
         private readonly List<SysRoleDataScope> _rows = [];
 
-        public RoleFixture(DataPermissionScope dataScope = DataPermissionScope.Custom)
+        public RoleFixture(
+            DataPermissionScope dataScope = DataPermissionScope.Custom,
+            long roleTenantId = TenantId,
+            long? contextTenantId = TenantId)
         {
-            var role = new SysRole
+            Role = new SysRole
             {
-                TenantId = 7,
+                TenantId = roleTenantId,
                 RoleCode = "ROLE",
                 RoleName = "角色",
                 RoleType = RoleType.Custom,
                 DataScope = dataScope,
                 Status = EnableStatus.Enabled
             };
-            SaasTestHelper.SetBasicId(role, RoleId);
+            SaasTestHelper.SetBasicId(Role, RoleId);
 
-            var roleRepository = new Mock<IRoleRepository>();
-            roleRepository
+            RoleRepository
                 .Setup(repo => repo.GetByIdAsync(RoleId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(role);
-            var departmentRepository = new Mock<IDepartmentRepository>();
-            departmentRepository
-                .Setup(repo => repo.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((long id, CancellationToken _) => CreateDepartment(id));
-
+                .ReturnsAsync(Role);
+            RoleRepository
+                .Setup(repo => repo.UpdateAsync(It.IsAny<SysRole>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((SysRole role, CancellationToken _) => role);
             DataScopeRepository
                 .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<SysRoleDataScope, bool>>>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((Expression<Func<SysRoleDataScope, bool>> predicate, CancellationToken _) =>
@@ -277,17 +366,21 @@ public sealed class DataScopeBatchUpdateTests
                 });
 
             Service = new RoleDomainService(
-                roleRepository.Object,
+                RoleRepository.Object,
                 new Mock<IUserRoleRepository>().Object,
                 new Mock<IRolePermissionRepository>().Object,
                 new Mock<IRoleHierarchyRepository>().Object,
                 DataScopeRepository.Object,
                 new Mock<IPermissionRepository>().Object,
-                departmentRepository.Object,
-                new TestCurrentTenant(7));
+                CreateDepartmentRepository().Object,
+                new TestCurrentTenant(contextTenantId));
         }
 
         public RoleDomainService Service { get; }
+
+        public SysRole Role { get; }
+
+        public Mock<IRoleRepository> RoleRepository { get; } = new();
 
         public Mock<IRoleDataScopeRepository> DataScopeRepository { get; } = new();
 
@@ -295,11 +388,11 @@ public sealed class DataScopeBatchUpdateTests
 
         public List<SysRoleDataScope> Added { get; } = [];
 
-        public Task<RoleDataScopeBatchUpdateResult> GrantAsync(long departmentId, bool includeChildren) =>
-            Service.BatchUpdateRoleDataScopesAsync(new RoleDataScopeBatchUpdateCommand(
+        public Task<DataScopeSetResult> SetAsync(DataPermissionScope scope, params (long DepartmentId, bool IncludeChildren)[] departments) =>
+            Service.SetRoleDataScopeAsync(new RoleDataScopeSetCommand(
                 RoleId,
-                [new RoleDataScopeBatchGrantItem(departmentId, includeChildren)],
-                []));
+                scope,
+                [.. departments.Select(item => new DataScopeDepartmentItem(item.DepartmentId, item.IncludeChildren))]));
 
         public SysRoleDataScope AddRow(
             long basicId,
@@ -328,44 +421,38 @@ public sealed class DataScopeBatchUpdateTests
             DataScopeRepository.Verify(
                 repo => repo.AddRangeAsync(It.IsAny<IEnumerable<SysRoleDataScope>>(), It.IsAny<CancellationToken>()),
                 Times.Never);
+            RoleRepository.Verify(repo => repo.UpdateAsync(It.IsAny<SysRole>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 
     /// <summary>
-    /// 用户数据范围夹具：仓储按内存行集合回放查询，写入逐次记录。
+    /// 成员数据范围夹具：仓储按内存行集合回放查询，写入逐次记录。
     /// </summary>
-    private sealed class UserFixture
+    private sealed class MemberFixture
     {
         private readonly List<SysUserDataScope> _rows = [];
 
-        public UserFixture(DataPermissionScope? dataScopeOverride = DataPermissionScope.Custom)
+        public MemberFixture(
+            DataPermissionScope? dataScopeOverride = null,
+            long? contextTenantId = TenantId,
+            TenantMemberType memberType = TenantMemberType.Member,
+            TenantMemberInviteStatus inviteStatus = TenantMemberInviteStatus.Accepted)
         {
-            TenantUserRepository
-                .Setup(repo => repo.GetMembershipAsync(UserId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new SysTenantUser
-                {
-                    UserId = UserId,
-                    MemberType = TenantMemberType.Member,
-                    InviteStatus = TenantMemberInviteStatus.Accepted,
-                    Status = ValidityStatus.Valid
-                });
-
-            var user = new SysUser
+            Membership = new SysTenantUser
             {
-                TenantId = 7,
-                UserName = "user",
-                Status = EnableStatus.Enabled,
+                TenantId = TenantId,
+                UserId = UserId,
+                MemberType = memberType,
+                InviteStatus = inviteStatus,
+                Status = ValidityStatus.Valid,
                 DataScopeOverride = dataScopeOverride
             };
-            SaasTestHelper.SetBasicId(user, UserId);
-            var userRepository = new Mock<IUserRepository>();
-            userRepository
-                .Setup(repo => repo.GetByIdAsync(UserId, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(user);
-            var departmentRepository = new Mock<IDepartmentRepository>();
-            departmentRepository
-                .Setup(repo => repo.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((long id, CancellationToken _) => CreateDepartment(id));
+            TenantUserRepository
+                .Setup(repo => repo.GetMembershipAsync(UserId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Membership);
+            TenantUserRepository
+                .Setup(repo => repo.UpdateAsync(It.IsAny<SysTenantUser>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((SysTenantUser member, CancellationToken _) => member);
 
             DataScopeRepository
                 .Setup(repo => repo.GetListAsync(It.IsAny<Expression<Func<SysUserDataScope, bool>>>(), It.IsAny<CancellationToken>()))
@@ -389,7 +476,7 @@ public sealed class DataScopeBatchUpdateTests
                 });
 
             Service = new UserDomainService(
-                userRepository.Object,
+                new Mock<IUserRepository>().Object,
                 new Mock<IUserSecurityRepository>().Object,
                 TenantUserRepository.Object,
                 new Mock<IPasswordHasher>().Object,
@@ -399,10 +486,10 @@ public sealed class DataScopeBatchUpdateTests
                 new Mock<IUserPermissionRepository>().Object,
                 new Mock<IPermissionRepository>().Object,
                 DataScopeRepository.Object,
-                departmentRepository.Object,
+                CreateDepartmentRepository().Object,
                 new Mock<IUserDepartmentRepository>().Object,
                 new Mock<IUserSessionRepository>().Object,
-                new TestCurrentTenant(7),
+                new TestCurrentTenant(contextTenantId),
                 new Mock<IPasswordHistoryDomainService>().Object,
                 new Mock<IConstraintRuleEnforcementDomainService>().Object,
                 new Mock<ITenantQuotaDomainService>().Object,
@@ -410,6 +497,8 @@ public sealed class DataScopeBatchUpdateTests
         }
 
         public UserDomainService Service { get; }
+
+        public SysTenantUser Membership { get; }
 
         public Mock<ITenantUserRepository> TenantUserRepository { get; } = new();
 
@@ -419,11 +508,11 @@ public sealed class DataScopeBatchUpdateTests
 
         public List<SysUserDataScope> Added { get; } = [];
 
-        public Task<UserDataScopeBatchUpdateResult> GrantAsync(long departmentId, bool includeChildren) =>
-            Service.BatchUpdateUserDataScopesAsync(new UserDataScopeBatchUpdateCommand(
+        public Task<DataScopeSetResult> SetAsync(DataPermissionScope? scope, params (long DepartmentId, bool IncludeChildren)[] departments) =>
+            Service.SetUserDataScopeAsync(new UserDataScopeSetCommand(
                 UserId,
-                [new UserDataScopeBatchGrantItem(departmentId, includeChildren)],
-                []));
+                scope,
+                [.. departments.Select(item => new DataScopeDepartmentItem(item.DepartmentId, item.IncludeChildren))]));
 
         public SysUserDataScope AddRow(
             long basicId,

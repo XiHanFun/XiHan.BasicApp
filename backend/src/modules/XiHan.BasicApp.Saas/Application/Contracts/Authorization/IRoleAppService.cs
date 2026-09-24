@@ -72,27 +72,11 @@ public interface IRoleAppService : IApplicationService
     #region RoleDataScope
 
     /// <summary>
-    /// 批量变更角色数据范围（一次性提交授予与撤销，单事务）
+    /// 设置角色数据范围：档位与自定义部门一次提交（单事务）
     /// </summary>
-    /// <param name="input">批量变更参数</param>
+    /// <param name="input">设置参数</param>
     /// <param name="cancellationToken">取消令牌</param>
-    Task BatchUpdateRoleDataScopesAsync(RoleDataScopeBatchUpdateDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 更新角色数据范围
-    /// </summary>
-    /// <param name="input">更新参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色数据范围详情</returns>
-    Task<RoleDataScopeDetailDto> UpdateRoleDataScopeAsync(RoleDataScopeUpdateDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 更新角色数据范围状态
-    /// </summary>
-    /// <param name="input">状态更新参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色数据范围详情</returns>
-    Task<RoleDataScopeDetailDto> UpdateRoleDataScopeStatusAsync(RoleDataScopeStatusUpdateDto input, CancellationToken cancellationToken = default);
+    Task SetRoleDataScopeAsync(RoleDataScopeSetDto input, CancellationToken cancellationToken = default);
 
     #endregion RoleDataScope
 
