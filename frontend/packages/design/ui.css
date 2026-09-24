@@ -488,6 +488,13 @@
   pointer-events: none;
 }
 
+/* 带文字的顶栏钮（如上下文切换）：皮肤同图标钮，宽度随内容 */
+.xihan-icon-btn.xihan-icon-btn--labeled {
+  inline-size: auto;
+  gap: var(--xh-space-1);
+  padding-inline: var(--xh-space-2);
+}
+
 /* 双类加权：在同文件里也稳压 :hover，不依赖书写顺序 */
 .xihan-icon-btn.xihan-icon-btn--active {
   background: var(--xh-bg-subtle-hover);

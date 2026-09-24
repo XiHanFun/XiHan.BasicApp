@@ -202,21 +202,13 @@ const contextLabel = computed(() => {
 })
 
 const userOptions = computed<AppDropdownOption[]>(() => [
-  // 个人中心 / 控制中心的路由由应用注册（appContext.shellRoutes）；未配置则不展示该项，
-  // 免得留一个点了没反应的死菜单
+  // 个人中心的路由由应用注册（appContext.shellRoutes）；未配置则不展示该项，免得留一个点了没反应的死菜单。
+  // 控制中心（切换租户 / 进入平台）不在这里：顶栏的上下文切换按钮就是它的入口
   ...(appContext.shellRoutes.profile
     ? [{
         label: t('header.user.profile'),
         key: 'profile',
         icon: () => h(Icon, { icon: 'lucide:user' }),
-      }]
-    : []),
-  ...(appContext.shellRoutes.controlCenter
-    ? [{
-        // 控制中心：切换租户 / 进入平台管理（独立公共页，不进标签栏）。标签复用 menu.control_center，与路由名、页面标题同源
-        label: t('menu.control_center'),
-        key: 'control-center',
-        icon: () => h(Icon, { icon: 'lucide:building-2' }),
       }]
     : []),
   // 能否发起模仿由服务端判定后随用户信息下发；模仿态下服务端恒返回 false，此时只出「退出模仿」

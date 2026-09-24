@@ -134,18 +134,17 @@ const { isMobile } = useIsMobile()
       @refresh="emit('notificationRefresh')"
     />
 
-    <!-- 当前上下文：平台或租户名，点击进控制中心切换 -->
-    <button
+    <!-- 当前上下文：平台或租户名，点击进控制中心切换。皮肤与其它顶栏图标钮同一套，只是带上文字 -->
+    <XihanIconButton
       v-if="props.contextLabel"
-      type="button"
-      class="user-btn ml-1 flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1"
-      :aria-label="t('header.context.switch', { name: props.contextLabel })"
-      :title="t('header.context.switch', { name: props.contextLabel })"
+      class="xihan-icon-btn--labeled mr-1"
+      :tooltip="t('header.context.switch', { name: props.contextLabel })"
       @click="emit('userAction', 'control-center')"
     >
-      <Icon :icon="props.contextIsPlatform ? 'lucide:shield-check' : 'lucide:building-2'" width="14" height="14" class="shrink-0 text-muted-foreground" />
-      <span class="hidden max-w-32 truncate text-sm text-foreground md:block">{{ props.contextLabel }}</span>
-    </button>
+      <Icon :icon="props.contextIsPlatform ? 'lucide:shield-check' : 'lucide:building-2'" width="16" height="16" class="shrink-0" />
+      <span class="hidden max-w-32 truncate text-sm md:block">{{ props.contextLabel }}</span>
+      <Icon icon="lucide:chevrons-up-down" width="12" height="12" class="shrink-0" />
+    </XihanIconButton>
 
     <!-- 用户菜单 -->
     <XDropdown :options="props.userOptions" @select="(key: string) => emit('userAction', key)">
