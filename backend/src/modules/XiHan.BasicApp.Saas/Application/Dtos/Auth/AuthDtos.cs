@@ -381,12 +381,17 @@ public sealed class UserInfoDto
     public long? TenantId { get; set; }
 
     /// <summary>
-    /// 是否处于平台运维态（无租户上下文）
+    /// 当前租户名称（平台为空）
+    /// </summary>
+    public string? TenantName { get; set; }
+
+    /// <summary>
+    /// 是否处于平台（0 号租户，令牌不带租户）
     /// </summary>
     public bool IsPlatform { get; set; }
 
     /// <summary>
-    /// 是否可进入平台运维态（超管 / 平台管理员）
+    /// 是否可进入平台（平台账号）
     /// </summary>
     public bool CanAccessPlatform { get; set; }
 

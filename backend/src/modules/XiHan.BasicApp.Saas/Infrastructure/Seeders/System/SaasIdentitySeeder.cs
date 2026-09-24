@@ -58,8 +58,8 @@ public sealed class SaasIdentitySeeder(
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
-        // 超管为平台账号（TenantId=0）：登录后落控制中心（平台态），可管理租户/用户/系统，
-        // 并可经 SwitchTenant 进入任意租户；不建立 SysTenantUser 成员关系。
+        // 超管为平台账号（TenantId=0）：登录落平台，管理租户/用户/系统；超管身份只在平台成立。
+        // 不建立 SysTenantUser 成员关系——要进某个租户，与其它账号一样须先成为该租户的成员。
         _ = await EnsureDefaultTenantAsync();
         var role = await EnsureSuperAdminRoleAsync();
         var user = await EnsureSuperAdminUserAsync();

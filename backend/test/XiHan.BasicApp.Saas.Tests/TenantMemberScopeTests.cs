@@ -87,7 +87,7 @@ public sealed class TenantMemberScopeTests
     }
 
     /// <summary>
-    /// 读共享口径下能读到别处的行，按当前租户精确比对：别的租户的成员视为不存在
+    /// 成员关系严格隔离：别的租户的成员在本租户里取不到，视为不存在
     /// </summary>
     [Fact]
     public async Task UpdateStatus_OnOtherTenantMember_IsNotFound()
@@ -230,7 +230,9 @@ public sealed class TenantMemberScopeTests
                     _members.FirstOrDefault(member => member.TenantId == tenantId && member.UserId == userId));
             MemberRepository
                 .Setup(repo => repo.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((long id, CancellationToken _) => _members.FirstOrDefault(member => member.BasicId == id));
+                // 与仓储的严格租户过滤同口径：只取得到当前上下文的行
+                .ReturnsAsync((long id, CancellationToken _) => _members.FirstOrDefault(member =>
+                    member.BasicId == id && member.TenantId == (CurrentTenant.Id ?? 0)));
             MemberRepository
                 .Setup(repo => repo.AddAsync(It.IsAny<SysTenantUser>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((SysTenantUser member, CancellationToken _) =>

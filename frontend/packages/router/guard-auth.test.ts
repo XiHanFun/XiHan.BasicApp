@@ -281,6 +281,24 @@ describe('用户上下文失效后的重新拉取', () => {
     expect(getUserInfoApi).toHaveBeenCalledTimes(1)
   })
 
+  it('整页加载后路由尚未装载时，本地留有用户信息也重新拉取——切换上下文后旧的平台 / 租户标识不能沿用', async () => {
+    useAccessStore().setAccessToken('token-abc')
+    useUserStore().setUserInfo(userInfoFixture({ userName: 'stale', isPlatform: true }))
+    const getUserInfoApi = vi.fn(async () => userInfoFixture({ userName: 'fresh', isPlatform: false }))
+    const getPermissionsApi = vi.fn(async () => permissionFixture({
+      menus: [{ path: HOME_PATH, name: 'Dashboard', meta: { title: 'menu.workspace' } }],
+    }))
+    registerApis({ getUserInfoApi, getPermissionsApi })
+
+    const router = createGuardedRouter()
+    await router.push(HOME_PATH)
+
+    expect(getUserInfoApi).toHaveBeenCalledTimes(1)
+    expect(getPermissionsApi).toHaveBeenCalledTimes(1)
+    expect(useUserStore().userInfo?.userName).toBe('fresh')
+    expect(useUserStore().userInfo?.isPlatform).toBe(false)
+  })
+
   it('已有完整用户信息且路由已加载时完全不再请求', async () => {
     signInWithLoadedRoutes()
     const getUserInfoApi = vi.fn(async () => userInfoFixture())

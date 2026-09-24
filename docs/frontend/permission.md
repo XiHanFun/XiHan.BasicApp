@@ -112,10 +112,10 @@ const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:gr
 
 | 事情 | 说明 |
 | --- | --- |
-| 租户切换 | 调 `POST /api/Auth/SwitchTenant`（`tenantId` 传 `null` 回平台态），**换发令牌但不产生新登录/新设备** |
-| 平台态判断 | `UserInfo.isPlatform`（当前是否平台运维态）、`canAccessPlatform`（能否进入） |
+| 切换上下文 | 走 `authStore.switchContext(tenantId)`（`null` 回平台，仅平台账号）：服务端在目标上下文续接会话、签发新令牌、旧令牌失效；前端清掉用户信息与标签页后整页重建，**不产生新登录/新设备** |
+| 上下文判断 | `UserInfo.isPlatform`（当前是否在平台）、`tenantName`（当前租户名）、`canAccessPlatform`（是否平台账号）；页头的上下文标识据此显示并进入控制中心 |
 
-切换后要重新拉取权限与菜单——租户不同，可用的功能也不同（受[租户版本门控](../backend/multi-tenancy)影响）。
+整页加载时路由守卫把用户信息与权限、菜单一起重取——租户不同，可用的功能也不同（受[租户版本门控](../backend/multi-tenancy)影响），本地缓存的用户信息不作为上下文依据。
 
 ## 排查
 

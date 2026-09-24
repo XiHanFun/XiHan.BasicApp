@@ -1,4 +1,8 @@
 export default {
+  context: {
+    platform: 'Plattform',
+    switch: 'Aktuell: {name}. Zum Wechseln klicken',
+  },
   user: {
     profile: 'Profil',
     lock: 'Bildschirm sperren',
@@ -8,6 +12,8 @@ export default {
     entry: 'Identität übernehmen',
     title: 'Als anderer Benutzer anmelden',
     hint: 'Zur Fehlersuche bei Problemen, die dieser Benutzer gemeldet hat. Aktionen werden protokolliert, sensible Vorgänge sind gesperrt.',
+    scope_label: 'Bereich des Identitätswechsels',
+    scope_platform: 'Plattformkonten',
     search_placeholder: 'Nach Benutzername, Spitzname oder Namen suchen',
     reason_placeholder: 'Grund (optional, wird im Audit-Protokoll erfasst)',
     empty_title: 'Kein Benutzer verfügbar',

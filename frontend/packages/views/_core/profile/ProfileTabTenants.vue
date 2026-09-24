@@ -8,14 +8,14 @@ import { toast } from '~/composables'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAccessStore, useAppContext } from '~/stores'
+import { useAppContext, useAuthStore } from '~/stores'
 import { TenantMemberType } from '~/types/enums'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ProfileTabTenants' })
 
 const { apis } = useAppContext()
-const accessStore = useAccessStore()
+const authStore = useAuthStore()
 const { t } = useI18n()
 
 // 成员类型走后端枚举元数据（本地化、切语言响应式重取），未加载/未部署时回退静态 MEMBER_TYPE_OPTIONS
@@ -43,19 +43,14 @@ async function loadTenants() {
   }
 }
 
-/** 切换租户：重签发令牌后重载应用以加载新上下文 */
-async function switchTo(tenantId: string, label: string) {
+/** 切换租户：服务端在目标租户续接会话，本地按新上下文整页重建 */
+async function switchTo(tenantId: string) {
   if (switching.value) {
     return
   }
   switching.value = true
   try {
-    const token = await apis.tenantApi.switchTenant({ tenantId })
-    accessStore.setAccessToken(token.accessToken)
-    accessStore.setRefreshToken(token.refreshToken)
-    toast.success(t('component.profile.tenants.msg_switched_to', { label }))
-    // 新上下文的权限/菜单需重新引导，直接重载以确保一致
-    window.location.reload()
+    await authStore.switchContext(tenantId)
   }
   catch (e: unknown) {
     toast.danger((e as Error)?.message || t('component.profile.tenants.err_switch_failed'))
@@ -157,7 +152,7 @@ onMounted(loadTenants)
                   size="sm"
                   variant="subtle"
                   :loading="switching"
-                  @click="switchTo(String(tenant.tenantId), tenant.tenantName)"
+                  @click="switchTo(String(tenant.tenantId))"
                 >
                   {{ t('component.profile.tenants.btn_switch') }}
                 </XhButton>

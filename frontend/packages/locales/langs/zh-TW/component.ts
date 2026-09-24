@@ -407,7 +407,6 @@ export default {
     },
     tenants: {
       err_load_failed: '載入租戶清單失敗',
-      msg_switched_to: '已切換至「{label}」',
       err_switch_failed: '切換失敗',
       section_title: '我的租戶',
       section_desc: '您目前可存取的租戶組織及其成員角色',

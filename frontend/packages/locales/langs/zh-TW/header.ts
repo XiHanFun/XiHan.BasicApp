@@ -1,4 +1,8 @@
 export default {
+  context: {
+    platform: '平台',
+    switch: '目前：{name}，點擊切換',
+  },
   user: {
     profile: '個人中心',
     lock: '鎖定螢幕',
@@ -8,6 +12,8 @@ export default {
     entry: '模仿登入',
     title: '以他人身分登入',
     hint: '用於排查該使用者遇到的問題。期間的操作會記入稽核，敏感操作已停用。',
+    scope_label: '模仿範圍',
+    scope_platform: '平台帳號',
     search_placeholder: '搜尋使用者名稱 / 暱稱 / 姓名',
     reason_placeholder: '模仿事由（選填，記入稽核）',
     empty_title: '沒有可模仿的使用者',

@@ -1,5 +1,6 @@
 ﻿-- 5.3.0
--- 权限目录新增作用侧 side：平台 = 1、租户 = 2、两侧 = 3。
+-- 一、权限目录新增作用侧 side：平台 = 1、租户 = 2、两侧 = 3。
+-- 二、会话标识改为全局唯一（见文末）。
 --
 -- 建表只建缺失的表，存量库的 sys_permission 由本脚本补列；本脚本在建表之后、播种之前执行。
 -- 存量行按改造前的语义（平台专属清单以外的权限两侧都生效）先补成两侧，
@@ -19,3 +20,9 @@ UPDATE sys_permission
 ALTER TABLE sys_permission ALTER COLUMN side SET NOT NULL;
 
 COMMENT ON COLUMN sys_permission.side IS '作用侧';
+
+-- 会话标识改为全局唯一：令牌里的会话声明跨租户定位会话行，切换租户换新会话（不再复用标识），
+-- 唯一索引去掉租户维度。存量标识均为随机 GUID，不会冲突。
+CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_user_session_usseid ON sys_user_session (user_session_id ASC, isdeleted ASC);
+
+DROP INDEX IF EXISTS ux_sys_user_session_teid_usseid;

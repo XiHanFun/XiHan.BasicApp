@@ -134,6 +134,19 @@ const { isMobile } = useIsMobile()
       @refresh="emit('notificationRefresh')"
     />
 
+    <!-- 当前上下文：平台或租户名，点击进控制中心切换 -->
+    <button
+      v-if="props.contextLabel"
+      type="button"
+      class="user-btn ml-1 flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-1"
+      :aria-label="t('header.context.switch', { name: props.contextLabel })"
+      :title="t('header.context.switch', { name: props.contextLabel })"
+      @click="emit('userAction', 'control-center')"
+    >
+      <Icon :icon="props.contextIsPlatform ? 'lucide:shield-check' : 'lucide:building-2'" width="14" height="14" class="shrink-0 text-muted-foreground" />
+      <span class="hidden max-w-32 truncate text-sm text-foreground md:block">{{ props.contextLabel }}</span>
+    </button>
+
     <!-- 用户菜单 -->
     <XDropdown :options="props.userOptions" @select="(key: string) => emit('userAction', key)">
       <button

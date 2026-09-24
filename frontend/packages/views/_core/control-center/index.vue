@@ -8,7 +8,7 @@ import { toast } from '~/composables'
 import { MEMBER_TYPE_OPTIONS } from '~/constants'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
-import { useAccessStore, useAppContext, useAppStore, useAuthStore, useUserStore } from '~/stores'
+import { useAppContext, useAppStore, useAuthStore, useUserStore } from '~/stores'
 import { TenantMemberType } from '~/types/enums'
 import { getOptionLabel } from '~/utils'
 
@@ -16,7 +16,6 @@ defineOptions({ name: 'ControlCenter' })
 
 const { t } = useI18n()
 const { apis } = useAppContext()
-const accessStore = useAccessStore()
 const appStore = useAppStore()
 const authStore = useAuthStore()
 const userStore = useUserStore()
@@ -32,15 +31,10 @@ const loaded = ref(false)
 const switching = ref(false)
 const tenants = ref<AppTenantSwitcherItem[]>([])
 
-/** 是否可进入平台管理（超管 / 平台管理员）——角色派生，稳定，仅用于是否展示平台分组 */
+/** 是否可进入平台（平台账号），决定是否展示平台分组 */
 const canAccessPlatform = computed(() => userStore.userInfo?.canAccessPlatform ?? false)
-/**
- * 当前上下文以租户列表的 isCurrent 为唯一事实源：后端按令牌 tenantid 实时计算，始终新鲜。
- * 不用 userInfo.isPlatform（整页重载后可能陈旧，会导致切换后前端当前态不同步）。
- */
-const hasCurrentTenant = computed(() => tenants.value.some(item => item.isCurrent))
-/** 平台管理是否为当前上下文：已加载且没有任何租户处于当前态 */
-const platformIsCurrent = computed(() => loaded.value && !hasCurrentTenant.value)
+/** 平台是否为当前上下文（用户信息每次整页加载都会重取，切换上下文会整页重载） */
+const platformIsCurrent = computed(() => userStore.userInfo?.isPlatform ?? false)
 const displayName = computed(() => userStore.nickname || userStore.username)
 const avatar = computed(() => userStore.avatar)
 const brandTitle = computed(() => appStore.brandTitle)
@@ -60,18 +54,14 @@ async function loadTenants() {
   }
 }
 
-/** 进入租户：重签发令牌后整页重载，让新上下文的权限/菜单重新引导（允许再次进入当前租户） */
+/** 进入租户：服务端在目标租户续接会话，本地按新上下文整页重建（允许再次进入当前租户以刷新） */
 async function enterTenant(tenant: AppTenantSwitcherItem) {
   if (switching.value) {
     return
   }
   switching.value = true
   try {
-    const token = await apis.tenantApi.switchTenant({ tenantId: String(tenant.tenantId) })
-    accessStore.setAccessToken(token.accessToken)
-    accessStore.setRefreshToken(token.refreshToken)
-    toast.success(t('page.control_center.switched', { name: tenant.tenantName }))
-    window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
+    await authStore.switchContext(String(tenant.tenantId))
   }
   catch (e: unknown) {
     toast.danger((e as Error)?.message || t('page.control_center.switch_failed'))
@@ -79,19 +69,14 @@ async function enterTenant(tenant: AppTenantSwitcherItem) {
   }
 }
 
-/** 进入平台管理：与进入租户同构——重签发平台态令牌（无 TenantId）后整页重载（允许在平台态再次进入以刷新） */
+/** 进入平台（仅平台账号）：与进入租户同构 */
 async function enterPlatform() {
   if (switching.value) {
     return
   }
   switching.value = true
   try {
-    // tenantId 传 null → 后端归一为平台运维态（无租户上下文）
-    const token = await apis.tenantApi.switchTenant({ tenantId: null })
-    accessStore.setAccessToken(token.accessToken)
-    accessStore.setRefreshToken(token.refreshToken)
-    toast.success(t('page.control_center.switched_platform'))
-    window.location.href = import.meta.env.VITE_ROUTER_HISTORY === 'history' ? '/' : './'
+    await authStore.switchContext(null)
   }
   catch (e: unknown) {
     toast.danger((e as Error)?.message || t('page.control_center.switch_failed'))

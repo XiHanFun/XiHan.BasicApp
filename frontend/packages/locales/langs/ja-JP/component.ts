@@ -407,7 +407,6 @@ export default {
     },
     tenants: {
       err_load_failed: 'テナント一覧の読み込みに失敗しました',
-      msg_switched_to: '「{label}」に切り替えました',
       err_switch_failed: '切り替えに失敗しました',
       section_title: 'マイテナント',
       section_desc: '現在アクセスできるテナント組織と、そのメンバーロールです',

@@ -8,8 +8,9 @@ using XiHan.Framework.Domain.Specifications;
 namespace XiHan.BasicApp.Saas.Domain.Specifications;
 
 /// <summary>
-/// 可用租户规约
+/// 可进入的租户规约：正常、已完成配置、未删除、未过期
 /// </summary>
+/// <remarks>登录落点、切换租户、控制中心的可切换列表同一口径。</remarks>
 public sealed class AvailableTenantSpecification(DateTimeOffset now) : Specification<SysTenant>
 {
     /// <summary>
@@ -20,6 +21,7 @@ public sealed class AvailableTenantSpecification(DateTimeOffset now) : Specifica
     {
         return tenant => !tenant.IsDeleted
                          && tenant.TenantStatus == TenantStatus.Normal
+                         && tenant.ConfigStatus == TenantConfigStatus.Configured
                          && (!tenant.ExpirationTime.HasValue || tenant.ExpirationTime.Value > now);
     }
 }

@@ -218,9 +218,9 @@ public sealed partial class AuthAppService
                 operatorTokenPermissions,
                 originSession.DeviceId));
 
-        _ = await _loginSessionDomainService.SwitchTenantAsync(
+        // 原会话就在发起模仿时的上下文里：原地重签令牌，不换会话
+        _ = await _loginSessionDomainService.ReissueAsync(
             originSession,
-            originTenantId,
             accessTokenJti,
             tokenIssue.TokenResult,
             now,

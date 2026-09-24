@@ -151,8 +151,6 @@ export default {
     platform_desc: 'Manage tenants, users, menus, permissions and system settings',
     load_failed: 'Failed to load tenant list',
     switch_failed: 'Switch failed',
-    switched: 'Switched to "{name}"',
-    switched_platform: 'Entered platform administration',
     platform_group: 'Platform',
   },
   oauth: {

@@ -150,8 +150,6 @@ export default {
     platform_desc: 'テナント・ユーザー・メニュー・権限・システム設定を管理します',
     load_failed: 'テナント一覧の読み込みに失敗しました',
     switch_failed: '切り替えに失敗しました',
-    switched: '「{name}」に切り替えました',
-    switched_platform: 'プラットフォーム管理に移動しました',
     platform_group: 'プラットフォーム',
   },
   oauth: {

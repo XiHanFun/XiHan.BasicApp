@@ -150,8 +150,6 @@ export default {
     platform_desc: '테넌트, 사용자, 메뉴, 권한 및 시스템 설정을 관리해요',
     load_failed: '테넌트 목록을 불러오지 못했어요',
     switch_failed: '전환하지 못했어요',
-    switched: '「{name}」(으)로 전환했어요',
-    switched_platform: '플랫폼 관리로 이동했어요',
     platform_group: '플랫폼',
   },
   oauth: {

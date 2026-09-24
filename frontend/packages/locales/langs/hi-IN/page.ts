@@ -150,8 +150,6 @@ export default {
     platform_desc: 'टेनेंट, उपयोगकर्ता, मेन्यू, अनुमति और सिस्टम सेटिंग प्रबंधित करें',
     load_failed: 'टेनेंट सूची लोड करने में विफल',
     switch_failed: 'स्विच करने में विफल',
-    switched: '"{name}" पर स्विच किया गया',
-    switched_platform: 'प्लेटफ़ॉर्म प्रबंधन में प्रवेश किया',
     platform_group: 'प्लेटफ़ॉर्म',
   },
   oauth: {

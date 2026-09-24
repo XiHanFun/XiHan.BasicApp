@@ -151,8 +151,6 @@ export default {
     platform_desc: 'Mandanten, Benutzer, Menüs, Berechtigungen und Systemeinstellungen verwalten',
     load_failed: 'Mandantenliste konnte nicht geladen werden',
     switch_failed: 'Wechsel fehlgeschlagen',
-    switched: 'Zu „{name}“ gewechselt',
-    switched_platform: 'Plattformverwaltung aufgerufen',
     platform_group: 'Plattform',
   },
   oauth: {

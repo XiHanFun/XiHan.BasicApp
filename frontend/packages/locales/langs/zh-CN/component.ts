@@ -407,7 +407,6 @@ export default {
     },
     tenants: {
       err_load_failed: '加载租户列表失败',
-      msg_switched_to: '已切换到「{label}」',
       err_switch_failed: '切换失败',
       section_title: '我的租户',
       section_desc: '您当前可访问的租户组织及其成员角色',

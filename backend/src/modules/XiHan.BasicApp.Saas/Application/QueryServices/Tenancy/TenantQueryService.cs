@@ -56,6 +56,8 @@ public sealed class TenantQueryService
     /// </summary>
     private readonly ITenantQuotaDomainService _tenantQuotaDomainService;
 
+    private readonly IAuthContextQueryService _authContextQueryService;
+
     /// <summary>
     /// 超级管理员角色编码（与种子/授权快照/SwitchTenant 约定一致，运行时特判可进入任意租户）
     /// </summary>
@@ -74,13 +76,15 @@ public sealed class TenantQueryService
         ITenantRepository tenantRepository,
         ICurrentUser currentUser,
         IFieldSecurityService fieldSecurityService,
-        ITenantQuotaDomainService tenantQuotaDomainService)
+        ITenantQuotaDomainService tenantQuotaDomainService,
+        IAuthContextQueryService authContextQueryService)
     {
         _tenantUserRepository = tenantUserRepository;
         _tenantRepository = tenantRepository;
         _currentUser = currentUser;
         _fieldSecurity = fieldSecurityService;
         _tenantQuotaDomainService = tenantQuotaDomainService;
+        _authContextQueryService = authContextQueryService;
     }
 
     /// <summary>
@@ -208,8 +212,8 @@ public sealed class TenantQueryService
     /// 获取当前用户可进入的租户列表
     /// </summary>
     /// <remarks>
-    /// 仅要求登录（不挂权限码）：数据自限定于当前用户自身的有效成员关系；
-    /// 登录后控制中心选租户阶段用户尚未进入任何租户、不持有任何权限码，挂权限码会直接阻断选择流程。
+    /// 仅要求登录（不挂权限码）：数据自限定于当前用户自身的有效成员关系。与登录落点、切换租户同一口径
+    /// （有效成员关系 ∩ 可进入的租户），超管也不例外——平台账号进租户同样要有成员关系。
     /// </remarks>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>当前用户可进入的租户列表</returns>
@@ -218,49 +222,8 @@ public sealed class TenantQueryService
         var userId = _currentUser.UserId
             ?? throw new UnauthorizedAccessException("当前用户未登录，无法获取可进入租户。");
 
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var now = DateTimeOffset.UtcNow;
-
-        // 超级管理员是平台账号、无 SysTenantUser 成员关系，但设计上可进入任意租户（SwitchTenant 同样对其放行）。
-        // 故此处不按成员关系、而是返回全部可用租户（正常态、未过期）作为可切换项，避免切换器对超管为空。
-        if (_currentUser.IsInRole(SuperAdminRoleCode))
-        {
-            // 仅以状态下推 SQL；可用规约含"可空过期时间 OR"判断，直接下推会触发 SqlSugar 表达式翻译异常
-            // （丢失 OR 运算符 + 把 DateTimeOffset 渲染成 PostgreSQL 不识别的 N'' 字面量），
-            // 故先拉取正常态租户，再在内存套用规约过滤过期（软删由全局过滤自动附加）。
-            var isAvailable = new AvailableTenantSpecification(now).ToExpression().Compile();
-            var normalTenants = await _tenantRepository.GetListAsync(
-                tenant => tenant.TenantStatus == TenantStatus.Normal,
-                cancellationToken);
-            return [.. normalTenants
-                .Where(isAvailable)
-                .OrderBy(tenant => tenant.Sort)
-                .ThenBy(tenant => tenant.TenantName)
-                .Select(tenant => TenantApplicationMapper.ToSwitcherDto(tenant, _currentUser.TenantId))];
-        }
-
-        var memberships = await _tenantUserRepository.GetActiveByUserIdAsync(userId, now, cancellationToken);
-        if (memberships.Count == 0)
-        {
-            return [];
-        }
-
-        var accessibleKeys = memberships
-            .Select(membership => membership.TenantId)
-            .Distinct()
-            .ToArray();
-
-        var tenants = await _tenantRepository.GetByIdsAsync(accessibleKeys, cancellationToken);
-        var tenantMap = tenants
-            .Where(tenant => tenant.TenantStatus == TenantStatus.Normal)
-            .ToDictionary(tenant => tenant.BasicId);
-
-        return [.. memberships
-            .Where(membership => tenantMap.ContainsKey(membership.TenantId))
-            .OrderBy(membership => tenantMap[membership.TenantId].Sort)
-            .ThenBy(membership => tenantMap[membership.TenantId].TenantName)
-            .Select(membership => TenantApplicationMapper.ToSwitcherDto(membership, tenantMap[membership.TenantId], _currentUser.TenantId))];
+        var accessible = await _authContextQueryService.GetAccessibleTenantsAsync(userId, DateTimeOffset.UtcNow, cancellationToken);
+        return [.. accessible.Select(item => TenantApplicationMapper.ToSwitcherDto(item.Membership, item.Tenant, _currentUser.TenantId))];
     }
 
     /// <summary>

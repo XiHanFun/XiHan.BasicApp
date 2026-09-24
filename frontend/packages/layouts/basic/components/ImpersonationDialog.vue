@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ImpersonationCandidate } from '~/types'
+import type { ImpersonationCandidate, ImpersonationTenantOption } from '~/types'
 import {
   XhButton,
   XhDialogCloseTrigger,
@@ -12,9 +12,9 @@ import {
   XhEmptyStateTitle,
   XhSpinner,
 } from '@xihan-ui/vue'
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XInput } from '~/components'
+import { XInput, XSelect } from '~/components'
 import { Icon } from '~/iconify'
 import { useAuthStore, useUserStore } from '~/stores'
 
@@ -26,8 +26,27 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 
+/** 平台范围的选项值：模仿平台账号 */
+const PLATFORM_SCOPE = 'platform'
+
 const keyword = ref('')
 const reason = ref('')
+/** 平台里发起时要先选范围：平台账号，或某个租户的成员；租户里固定为本租户 */
+const isPlatform = computed(() => userStore.userInfo?.isPlatform ?? false)
+const scope = ref<string>(PLATFORM_SCOPE)
+const tenants = ref<ImpersonationTenantOption[]>([])
+const tenantsLoading = ref(false)
+const scopeOptions = computed(() => [
+  { label: t('header.impersonation.scope_platform'), value: PLATFORM_SCOPE },
+  ...tenants.value.map(tenant => ({ label: tenant.tenantName, value: tenant.tenantId })),
+])
+/** 当前要检索的租户：平台里取选中的租户，租户里取本租户 */
+const targetTenantId = computed(() => {
+  if (!isPlatform.value) {
+    return userStore.userInfo?.tenantId ?? undefined
+  }
+  return scope.value === PLATFORM_SCOPE ? undefined : scope.value
+})
 const loading = ref(false)
 const candidates = ref<ImpersonationCandidate[]>([])
 const errorMessage = ref('')
@@ -46,7 +65,10 @@ async function loadCandidates() {
   loading.value = true
   errorMessage.value = ''
   try {
-    const items = await authStore.impersonationCandidates(keyword.value.trim() || undefined)
+    const items = await authStore.impersonationCandidates({
+      keyword: keyword.value.trim() || undefined,
+      tenantId: targetTenantId.value,
+    })
     if (seq !== requestSeq) {
       return
     }
@@ -82,12 +104,33 @@ async function start(candidate: ImpersonationCandidate) {
   try {
     await authStore.startImpersonation({
       targetUserId: candidate.basicId,
+      // 平台选了租户就进该租户；租户里不传，沿用当前租户
+      tenantId: isPlatform.value ? (targetTenantId.value ?? null) : undefined,
       reason: reason.value.trim() || null,
     })
   }
   catch (error) {
     errorMessage.value = (error as Error)?.message || t('header.impersonation.start_failed')
   }
+}
+
+async function loadTenants() {
+  tenantsLoading.value = true
+  try {
+    tenants.value = await authStore.impersonationTenants()
+  }
+  catch (error) {
+    tenants.value = []
+    errorMessage.value = (error as Error)?.message || t('header.impersonation.load_failed')
+  }
+  finally {
+    tenantsLoading.value = false
+  }
+}
+
+function onScopeChange(value: string | number | Array<string | number> | null) {
+  scope.value = value === null || Array.isArray(value) ? PLATFORM_SCOPE : String(value)
+  void loadCandidates()
 }
 
 watch(show, (open) => {
@@ -97,6 +140,10 @@ watch(show, (open) => {
   keyword.value = ''
   reason.value = ''
   errorMessage.value = ''
+  scope.value = PLATFORM_SCOPE
+  if (isPlatform.value) {
+    void loadTenants()
+  }
   // 上一行置空 keyword 会触发下面那个 watch 排一次防抖查，这里撤掉它，只留本次直查
   if (searchTimer) {
     clearTimeout(searchTimer)
@@ -126,6 +173,14 @@ onBeforeUnmount(() => {
           {{ t('header.impersonation.hint') }}
         </p>
 
+        <XSelect
+          v-if="isPlatform"
+          :value="scope"
+          :options="scopeOptions"
+          :loading="tenantsLoading"
+          :aria-label="t('header.impersonation.scope_label')"
+          @update:value="onScopeChange"
+        />
         <XInput
           v-model:value="keyword"
           clearable

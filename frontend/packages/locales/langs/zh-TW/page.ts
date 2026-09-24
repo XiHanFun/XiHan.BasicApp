@@ -150,8 +150,6 @@ export default {
     platform_desc: '管理租戶、使用者、選單、權限與系統設定',
     load_failed: '載入租戶清單失敗',
     switch_failed: '切換失敗',
-    switched: '已切換到「{name}」',
-    switched_platform: '已進入平台管理',
     platform_group: '平台',
   },
   oauth: {

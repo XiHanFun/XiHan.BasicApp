@@ -193,6 +193,14 @@ const shortcutKbdStyle = [
   'white-space:nowrap',
 ].join(';')
 
+/** 当前上下文的显示名：平台或租户名；应用没注册控制中心（没有租户切换概念）时不展示 */
+const contextLabel = computed(() => {
+  if (!appContext.shellRoutes.controlCenter || !userStore.userInfo) {
+    return null
+  }
+  return userStore.userInfo.isPlatform ? t('header.context.platform') : (userStore.userInfo.tenantName || null)
+})
+
 const userOptions = computed<AppDropdownOption[]>(() => [
   // 个人中心 / 控制中心的路由由应用注册（appContext.shellRoutes）；未配置则不展示该项，
   // 免得留一个点了没反应的死菜单
@@ -528,6 +536,8 @@ watch(() => route.fullPath, () => {
     :show-preferences-in-header="showPreferencesInHeader"
     :search-compact="searchCompact"
     :user-options="userOptions"
+    :context-label="contextLabel"
+    :context-is-platform="userStore.userInfo?.isPlatform ?? false"
     :notification-all-items="notificationStore.allItems"
     :notification-mentioned-items="notificationStore.mentionedItems"
     :notification-unread-all="notificationStore.unreadAll"

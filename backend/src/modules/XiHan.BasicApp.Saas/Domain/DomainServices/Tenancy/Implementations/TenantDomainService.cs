@@ -601,15 +601,13 @@ public sealed class TenantDomainService
     }
 
     /// <summary>
-    /// 取当前租户的成员关系（读共享口径下租户也能读到 0 号行，按租户精确比对）
+    /// 取当前租户的成员关系（成员关系严格隔离，只取得到当前上下文的行）
     /// </summary>
     private async Task<SysTenantUser> GetTenantMemberOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         EnsureId(id, "租户成员主键必须大于 0。");
-        var member = await _tenantUserRepository.GetByIdAsync(id, cancellationToken);
-        return member is not null && member.TenantId == _currentTenant.Id
-            ? member
-            : throw new InvalidOperationException("租户成员不存在。");
+        return await _tenantUserRepository.GetByIdAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("租户成员不存在。");
     }
 
     /// <summary>

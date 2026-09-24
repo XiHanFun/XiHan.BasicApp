@@ -407,7 +407,6 @@ export default {
     },
     tenants: {
       err_load_failed: 'Mandantenliste konnte nicht geladen werden',
-      msg_switched_to: 'Zu „{label}“ gewechselt',
       err_switch_failed: 'Wechsel fehlgeschlagen',
       section_title: 'Meine Mandanten',
       section_desc: 'Die Mandantenorganisationen, auf die Sie derzeit zugreifen können, und Ihre Mitgliedsrollen',

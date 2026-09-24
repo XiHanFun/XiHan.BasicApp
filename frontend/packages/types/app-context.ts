@@ -2,6 +2,8 @@ import type {
   CaptchaChallenge,
   EmailLoginParams,
   ImpersonationCandidate,
+  ImpersonationCandidateQuery,
+  ImpersonationTenantOption,
   LoginConfig,
   LoginParams,
   LoginResponse,
@@ -210,7 +212,9 @@ export interface AppContextApis {
   /** 租户切换（控制中心 / 个人中心「我的租户」）：tenantId 传 null → 退回平台运维态 */
   /** 模仿登录：以他人身份登录排查问题；start/stop 都返回一枚新令牌，前端换令牌后整页重载 */
   impersonationApi: {
-    candidates: (keyword?: string) => Promise<ImpersonationCandidate[]>
+    /** 平台可在其中发起模仿的租户 */
+    tenants: () => Promise<ImpersonationTenantOption[]>
+    candidates: (input: ImpersonationCandidateQuery) => Promise<ImpersonationCandidate[]>
     start: (input: StartImpersonationParams) => Promise<LoginToken>
     stop: () => Promise<LoginToken>
   }
