@@ -9,7 +9,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import { createHighlighter } from '@xihan-ui/code-highlight'
-import { XhButton, XhCodeViewCode, XhCodeViewPre, XhCodeViewRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFileUploadDropzone, XhFileUploadHiddenInput, XhFileUploadRoot, XhFlex, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCodeViewCode, XhCodeViewPre, XhCodeViewRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFileUploadDropzone, XhFileUploadHiddenInput, XhFileUploadRoot, XhFlex, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
@@ -968,10 +968,10 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     @action="onAction"
   >
     <XhDialogRoot v-model:open="uploadVisible">
-      <XhDialogContent style="--xh-dialog-max-w: 520px">
+      <XhDialogContent style="--xh-dialog-max-w: 520px; max-block-size: 100%">
         <XhDialogTitle>{{ t('file.library.upload.title') }}</XhDialogTitle>
         <XhDialogCloseTrigger />
-        <XhFlex orientation="vertical" gap="lg">
+        <XhFlex class="file-upload-body" orientation="vertical" gap="lg">
           <!-- 拖拽区：点击或拖入文件即上传（按当前默认存储配置保存） -->
           <XhFileUploadRoot
             :upload="handleUploadRequest"
@@ -991,52 +991,68 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
             </XhFileUploadDropzone>
           </XhFileUploadRoot>
 
-          <!-- 访问级别 -->
-          <div class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.upload.access_level') }}</span>
-            <XSelect
-              v-model:value="uploadForm.accessLevel"
-              :options="accessLevelOptions"
-              :disabled="uploadLoading"
-              :placeholder="t('file.library.upload.access_level_placeholder')"
-            />
-          </div>
-
-          <!-- 开关：覆盖 / 加密 / 临时 -->
-          <div class="file-upload-switches">
-            <div class="file-upload-switch">
-              <span>{{ t('file.library.upload.overwrite') }}</span>
-              <XhSwitch v-model:checked="uploadForm.overwrite" :disabled="uploadLoading" />
-            </div>
-            <div class="file-upload-switch">
-              <span>{{ t('file.library.upload.encrypt') }}</span>
-              <XhSwitch v-model:checked="uploadForm.isEncrypted" :disabled="uploadLoading" />
-            </div>
-            <div class="file-upload-switch">
-              <span>{{ t('file.library.upload.temporary') }}</span>
-              <XhSwitch v-model:checked="uploadForm.isTemporary" :disabled="uploadLoading" />
-            </div>
-          </div>
-
-          <!-- 保留天数：仅临时文件需要 -->
-          <div v-if="uploadForm.isTemporary" class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.upload.retention_days') }}</span>
-            <XNumberInput
-              v-model:value="uploadForm.retentionDays"
-              :min="1"
-              :disabled="uploadLoading"
-              :placeholder="t('file.library.upload.retention_placeholder')"
-              style="width: 100%"
-            />
-          </div>
-
-          <div class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.detail.tags') }}</span>
-            <XInput v-model:value="uploadForm.tags" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.tags_placeholder')" />
-          </div>
-          <div class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.detail.remark') }}</span>
-            <XInput v-model:value="uploadForm.remark" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
+          <!-- 上传参数：与新增/编辑弹窗同一套表单网格，字段名在上、控件在下 -->
+          <div class="xh-edit-form-grid">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.library.upload.access_level') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect
+                  v-model:value="uploadForm.accessLevel"
+                  :options="accessLevelOptions"
+                  :disabled="uploadLoading"
+                  :placeholder="t('file.library.upload.access_level_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.library.upload.overwrite') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="uploadForm.overwrite" :disabled="uploadLoading" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.library.upload.encrypt') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="uploadForm.isEncrypted" :disabled="uploadLoading" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.library.upload.temporary') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="uploadForm.isTemporary" :disabled="uploadLoading" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <!-- 保留天数：仅临时文件需要 -->
+            <XhFieldRoot v-if="uploadForm.isTemporary">
+              <XhFieldLabel>{{ t('file.library.upload.retention_days') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XNumberInput
+                  v-model:value="uploadForm.retentionDays"
+                  :min="1"
+                  :disabled="uploadLoading"
+                  :placeholder="t('file.library.upload.retention_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot class="xh-span-2">
+              <XhFieldLabel>{{ t('file.library.detail.tags') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="uploadForm.tags" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.tags_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot class="xh-span-2">
+              <XhFieldLabel>{{ t('file.library.detail.remark') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="uploadForm.remark" clearable :disabled="uploadLoading" :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
           </div>
         </XhFlex>
       </XhDialogContent>
@@ -1047,43 +1063,57 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
         <XhDrawerTitle>{{ t('file.library.metadata.title') }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <XhFlex orientation="vertical" gap="lg">
-          <div class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.upload.access_level') }}</span>
-            <XSelect
-              v-model:value="metadataForm.accessLevel"
-              :options="accessLevelOptions"
-              :placeholder="t('file.library.upload.access_level_placeholder')"
-            />
-          </div>
-
-          <div class="file-upload-switches">
-            <div class="file-upload-switch">
-              <span>{{ t('file.library.upload.encrypt') }}</span>
-              <XhSwitch v-model:checked="metadataForm.isEncrypted" />
-            </div>
-            <div class="file-upload-switch">
-              <span>{{ t('file.library.upload.temporary') }}</span>
-              <XhSwitch v-model:checked="metadataForm.isTemporary" />
-            </div>
-          </div>
-
-          <div v-if="metadataForm.isTemporary" class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.upload.retention_days') }}</span>
-            <XNumberInput
-              v-model:value="metadataForm.retentionDays"
-              :min="1"
-              :placeholder="t('file.library.upload.retention_placeholder')"
-              style="width: 100%"
-            />
-          </div>
-
-          <div class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.detail.tags') }}</span>
-            <XInput v-model:value="metadataForm.tags" clearable :placeholder="t('file.library.upload.tags_placeholder')" />
-          </div>
-          <div class="file-upload-field">
-            <span class="file-upload-field__label">{{ t('file.library.detail.remark') }}</span>
-            <XInput v-model:value="metadataForm.remark" clearable :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
+          <div class="xh-edit-form-grid">
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.library.upload.access_level') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XSelect
+                  v-model:value="metadataForm.accessLevel"
+                  :options="accessLevelOptions"
+                  :placeholder="t('file.library.upload.access_level_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.library.upload.encrypt') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="metadataForm.isEncrypted" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot>
+              <XhFieldLabel>{{ t('file.library.upload.temporary') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XhSwitch v-model:checked="metadataForm.isTemporary" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot v-if="metadataForm.isTemporary">
+              <XhFieldLabel>{{ t('file.library.upload.retention_days') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XNumberInput
+                  v-model:value="metadataForm.retentionDays"
+                  :min="1"
+                  :placeholder="t('file.library.upload.retention_placeholder')"
+                />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot class="xh-span-2">
+              <XhFieldLabel>{{ t('file.library.detail.tags') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="metadataForm.tags" clearable :placeholder="t('file.library.upload.tags_placeholder')" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
+            <XhFieldRoot class="xh-span-2">
+              <XhFieldLabel>{{ t('file.library.detail.remark') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XInput v-model:value="metadataForm.remark" clearable :placeholder="t('file.library.upload.remark_placeholder')" type="textarea" :rows="2" />
+              </XhFieldControl>
+              <XhFieldErrorText />
+            </XhFieldRoot>
           </div>
 
           <XhButton full-width variant="solid" tone="brand" :loading="metadataLoading" @click="handleSaveMetadata">
@@ -1500,18 +1530,15 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
   word-break: break-word;
 }
 
-.file-upload-switches {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-}
-
-.file-upload-switch {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 13px;
-  color: var(--xh-fg-default);
+/* 上传弹窗正文：手机上字段单列、视口又矮时在弹窗内部滚动，标题留在原地（面板封顶在视口高）。
+   与 XEditModal 正文同一做法：滚动口向两侧借走面板内衬、再用同宽内边距推回，
+   粗指针下框内按钮往外扩的 44px 命中区落在这段沟槽里，不撑出横向滚动条 */
+.file-upload-body {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  margin-inline: calc(-1 * var(--xh-surface-px-md));
+  padding-inline: var(--xh-surface-px-md);
+  overflow: auto;
 }
 
 .file-upload-dragger {
@@ -1531,17 +1558,6 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
 .file-upload-dragger__hint {
   font-size: 12px;
   color: var(--text-secondary, rgb(140 145 150));
-}
-
-.file-upload-field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.file-upload-field__label {
-  font-size: 13px;
-  color: var(--text-secondary, rgb(118 124 130));
 }
 
 .file-preview-body {

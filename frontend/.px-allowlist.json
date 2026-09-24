@@ -264,7 +264,7 @@
     "reason": "个人中心卡片与统计块的排版刻度"
   },
   "packages/views/_core/profile/ProfileTabOAuth.vue": {
-    "cap": 14,
+    "cap": 11,
     "reason": "个人中心卡片与统计块的排版刻度"
   },
   "packages/views/_core/profile/ProfileTabSecurity.vue": {
@@ -384,7 +384,7 @@
     "reason": "业务页面的排版刻度"
   },
   "src/views/file/library/index.vue": {
-    "cap": 18,
+    "cap": 13,
     "reason": "业务页面的排版刻度"
   },
   "src/views/identity/authorization/index.vue": {
