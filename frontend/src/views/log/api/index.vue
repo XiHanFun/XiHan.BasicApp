@@ -68,8 +68,8 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'userId', title: t('log.common.user_id'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 90, order: 10 },
   { key: 'userName', title: t('log.common.user_name'), dataType: 'string', advancedSearch: true, sortable: true, minWidth: 100, order: 11 },
   { key: 'sessionId', title: t('log.common.session_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 12 },
-  { key: 'requestId', title: t('log.common.request_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
-  { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 14 },
+  { key: 'traceId', title: t('log.common.trace_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 13 },
+  { key: 'requestId', title: t('log.common.request_id'), dataType: 'string', advancedSearch: true, minWidth: 160, order: 14 },
   { key: 'clientId', title: t('log.api.client_id'), dataType: 'string', advancedSearch: true, minWidth: 120, order: 15 },
   { key: 'appId', title: t('log.api.app_id'), dataType: 'string', advancedSearch: true, minWidth: 120, order: 16 },
   {

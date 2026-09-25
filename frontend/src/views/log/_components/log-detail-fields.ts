@@ -110,8 +110,8 @@ export function apiLogDetailFields(t: Translate): LogDetailField[] {
   return [
     { key: 'basicId', label: t('log.common.basic_id') },
     { key: 'sessionId', label: t('log.common.session_id') },
-    { key: 'requestId', label: t('log.common.request_id') },
     { key: 'traceId', label: t('log.common.trace_id') },
+    { key: 'requestId', label: t('log.common.request_id') },
     { key: 'userName', label: t('log.common.user_name') },
     { key: 'userId', label: t('log.common.user_id') },
     { key: 'clientId', label: t('log.api.client_id') },
@@ -200,8 +200,8 @@ export function exceptionLogDetailFields(t: Translate): LogDetailField[] {
   return [
     { key: 'basicId', label: t('log.common.basic_id') },
     { key: 'sessionId', label: t('log.common.session_id') },
-    { key: 'requestId', label: t('log.common.request_id') },
     { key: 'traceId', label: t('log.common.trace_id') },
+    { key: 'requestId', label: t('log.common.request_id') },
     { key: 'userName', label: t('log.common.user_name') },
     { key: 'userId', label: t('log.common.user_id') },
     { key: 'exceptionType', label: t('log.exception.exception_type') },
@@ -266,9 +266,9 @@ export function diffLogDetailFields(t: Translate): LogDetailField[] {
 
   return [
     { key: 'basicId', label: t('log.common.basic_id') },
-    { key: 'requestId', label: t('log.common.request_id') },
     { key: 'sessionId', label: t('log.common.session_id') },
     { key: 'traceId', label: t('log.common.trace_id') },
+    { key: 'requestId', label: t('log.common.request_id') },
     { key: 'userName', label: t('log.common.user_name') },
     { key: 'userId', label: t('log.common.user_id') },
     { key: 'auditType', label: t('log.diff.audit_type') },
