@@ -259,7 +259,7 @@ MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://fram
 5. **（可选）MCP**：需要对外暴露 MCP tools 时，`XiHan:AI:Mcp` 显式 `Enabled=true` 并配 `ApiKey`。
 6. **多实例**：共享 Data Protection 密钥环，否则各实例无法互相解密 provider 密钥。
 
-种子说明：AI provider、知识库与提示词库各占独立种子 Order 段（`200-204` / `205-208` / `209-212`，晚于 Saas 的 `10-37` 与代码生成的 `100-105`），操作字典复用 AI provider 段的 `SysOperationSeeder`（200），链内顺序均为「（操作字典 →）资源 → 权限 → 菜单 → 角色授权」，权限**仅授超管**（其余角色/租户按需在权限管理里下放）。
+种子说明：权限目录 `AiPermissionCatalogSeeder` 声明模型服务、提示词、助手、知识库四个资源的「资源 × 操作」权限，全部是平台侧；菜单由 `AiMenuSeeder` 按本模块 `PageRegistry` 播种。超管在平台天然拥有这些权限，其它平台角色按需在权限管理里授予。
 
 ---
 
@@ -438,7 +438,7 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 - `Status`（启用/禁用）与 `IsActive`（是否激活，邮箱/手机验证）**正交**：未激活或被禁用都不可登录。
 - `IsSystemAccount=true` 的内置账号禁止改用户名、禁止软删。
 - 平台账号约定 `TenantId=0`（如超管），恒落平台运维态。
-- 用户级数据范围可用 `DataScopeOverride` 覆盖角色默认（细节见权限模型）。
+- 成员在某个租户的数据范围可用成员关系上的 `DataScopeOverride` 覆盖角色（按租户各自设置，细节见权限模型）。
 
 敏感安全字段刻意拆到一对一的 `SysUserSecurity`（`Password`/`TwoFactorSecret`/`SecurityStamp` 均 `[JsonIgnore]`，不出接口），避免污染用户主表、便于单独脱敏与访问控制。
 
@@ -496,7 +496,7 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 
 ::: warning 两份清单必须对齐
 **能不能登**由 `XiHan:Authentication:OAuth:Providers` 决定（它注册出 AuthenticationScheme）；
-**登录页画几个按钮**由运行时配置 `saas.auth.oauth.providers`（存库）决定。
+**登录页画几个按钮**由参数 `saas.auth.login` 的 `oauthProviders`（存库）决定。
 两边的 `Name` / `name` 对不上就会点出一个不存在的方案，回跳 `error=challenge_failed`。
 :::
 
@@ -1227,7 +1227,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 
 ## 数据范围（行级）
 
-范围枚举是 `DataPermissionScope`：角色的档位写在 `SysRole.DataScope`；`SysUser.DataScopeOverride` 是用户级档位，取 `Custom` 时才能维护用户级部门明细。
+范围枚举是 `DataPermissionScope`：角色的档位写在 `SysRole.DataScope`；成员的覆盖写在成员关系 `SysTenantUser.DataScopeOverride`（null 表示跟随角色），同一个人在不同租户各自设置。
 
 | 范围 | 含义 | 依赖 |
 | --- | --- | --- |
@@ -1237,19 +1237,22 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 | `All` | 全部数据（仍受租户过滤器约束） | — |
 | `Custom` | 指定部门集合 | `Sys_Role_Data_Scope` / `Sys_User_Data_Scope` |
 
-解析入口是 `IUserDataScopeFilterService.ResolveAccessibleUsersAsync`，当前由用户列表查询（`UserQueryService`）调用；持有 `super_admin` 角色的用户不受数据范围限制。
+解析入口是 `IUserDataScopeFilterService.ResolveAccessibleUsersAsync`，当前由用户列表查询（`UserQueryService`）调用。数据范围是租户侧概念：平台没有部门与成员关系，不施加数据范围（超管只在平台成立，也就不需要单独豁免）。
 
 ### 合并规则
 
 ```text
-角色的数据范围        →  多角色取并集；任一角色为 All 即放行全部
-        +
-用户级自定义部门      →  Sys_User_Data_Scope 的部门按 Custom 并入同一并集
+成员有覆盖            →  只按覆盖；Custom 时取 Sys_User_Data_Scope 里本成员的部门
+        否则
+启用角色的数据范围    →  多角色取并集；任一角色为 All 即放行全部；
+                         Custom 角色并入 Sys_Role_Data_Scope 的部门
         ↓
 一个部门都没命中      →  退回仅本人
 ```
 
-用户级自定义部门要求 `SysUser.DataScopeOverride = Custom` 才能维护，用于「这个人比较特殊」的场景，不要拿它当常规手段——角色才是可维护的授权单位。
+成员覆盖用于「这个人比较特殊」的场景（如 CEO 挂的是部门经理角色、但要看全部），不要拿它当常规手段——角色才是可维护的授权单位。
+
+档位与部门一次设置：角色在角色页的「数据范围」、成员在用户页的「数据范围」，先选档位，自定义时在部门树里勾部门、逐项设「含下级」。被上级「含下级」覆盖的部门会给出提示。全局角色只在平台设档位、不能自定义；支持成员（平台人员入驻）同样由所在租户设置。
 
 ### 依赖组织架构
 
@@ -1326,15 +1329,15 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 除了行级与列级，还有一条容易忽略的边界：**读共享 ≠ 写共享**。
 
 ```text
-读：全局过滤器放行 TenantId IN (0, 当前租户)   ← 租户能读到平台全局数据
-写：禁止改写/删除非本租户行（含 TenantId=0 的全局行）
+读：全局过滤器放行 TenantId IN (0, 当前租户)   ← 租户能读到平台全局数据；平台只读 0
+写：只能改写/删除当前作用域的行               ← 租户不能改全局行，平台也不能改租户行
 ```
 
-实现方式：预读守卫校验取回行的 `TenantId`，条件写自动追加当前租户 `Where`。
+实现方式：预读守卫校验取回行的 `TenantId`，条件写自动追加当前作用域的 `Where`。
 
-维护全局 / 跨租户数据的**唯一合法入口是平台态**（无租户上下文，`ICurrentTenant.Change(null)`）。
+平台就是 0 号租户：全局数据在平台作用域维护，某个租户的数据切入该租户（`ICurrentTenant.Change(tenantId)`）维护；跨租户读取只能显式清过滤（`...IgnoreTenantAsync` / `.ClearTenantFilter()`）。
 
-**例外：用户自有行**。账号、安全记录、会话、三方绑定、通知偏好、个人设置、接口凭证这类行按 `UserId` 归属，`TenantId` 只是归属租户 / 产生时所在租户的戳；一个人可以同时是多个租户的成员，切进别的租户后这些行经全局过滤会整体不可见。个人中心的这些数据因此一律按 `UserId` 跨租户读（仓储上的 `...IgnoreTenantAsync` 与按用户唯一键的读法），活跃度与登录日志仍按当前租户切分；写则用 `TenantWriteGuard.Suppress()` 包裹——作用域内预读同样忽略租户过滤、跳过写边界校验，契约是只写当前用户自己的行。
+**账号域数据**。账号、安全记录、个人设置、通知偏好、接口凭证、三方绑定、密码历史是严格隔离的账号域数据，`TenantId` 固定为注册地（平台账号为 0）；一个人可以同时是多个租户的成员，切进别的租户后这些行经全局过滤不可见。个人中心的这些数据因此一律按 `UserId` 跨租户读（仓储上的 `...IgnoreTenantAsync` 与按用户唯一键的读法）；新增经 `IAccountScope` 切回注册地写，更新自己已有的行用 `TenantWriteGuard.Suppress()` 包裹（只放宽更新与删除，契约是只写当前用户自己的行）。会话与登录日志属于运行数据，按发生时所在的租户切分。
 
 ## 排查
 
@@ -1345,7 +1348,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 | 列变成 null / 空 | FLS `isReadable` 为假，服务端已把值置空 |
 | 列显示成 `***` | FLS 脱敏策略生效，服务端已打码 |
 | 排序 / 搜索不生效 | 该字段被 FLS 剔出条件 |
-| 改了数据范围不生效 | 该列表是否接了数据范围过滤；用户级自定义部门需 `SysUser.DataScopeOverride = Custom` |
+| 改了数据范围不生效 | 该列表是否接了数据范围过滤；成员是否有覆盖（有覆盖时角色的范围不再生效）；角色是否停用、档位是否为自定义 |
 | 表单该只读却可编辑 | 页面 `PageSchema.resourceCode` 没声明，或页面没调用 `useFieldSecurity`（后端写校验仍会拒绝） |
 
 ## 相关页面
@@ -1465,13 +1468,14 @@ ORM 是 SqlSugar，`DbType` 取它的枚举值：
   "ExcludedTables": [ "sys_diff_log" ]
 },
 "DataSeeding": {
-  // 演示种子都标了 Group = "Demo"，排掉即整体不播，与 Saas:Seed:EnableDemoData=false 等效
-  "ExcludedGroups": [ "Demo" ]
+  // 按种子名称 / 类名 / 全名排除；演示数据的开关是 Saas:Seed:EnableDemoData，不靠这里
+  "ExcludedSeeders": [ "[Chat]内建定时任务" ]
 }
 ```
 
 实体侧还能直接标注：`[TableInitialization(false)]` 表示这张表由自己维护（框架不建）、
 `[TableInitialization(Target = DbInitializationTarget.Platform)]` 表示只建在平台库、独立库租户不建。
+本应用的平台目录、账号与授权、读共享模板等实体标的是 `[PlatformDataSource]`：不只建表只在平台库，运行期读写也固定走平台库，见 [多租户：库隔离](./multi-tenancy#库隔离-平台库是目录库)。
 要整套自己实现就 `Replace` 掉 `IDbEntityTypeProvider` / `IDataSeederSelector`，
 细节见 [Framework 数据访问](https://framework.docs.xihanfun.com/packages/data#选择初始化范围)。
 
@@ -1500,14 +1504,14 @@ CodeFirst 负责首次建表；已有库的结构和数据变化由 Framework Up
 
 | 类别 | 开关 | 内容 |
 | --- | --- | --- |
-| **系统基线** | 始终播种 | 身份、权限、租户版本、配置、字典、菜单、消息模板、OAuth 应用、通知、存储配置、任务——应用可运行的最小骨架 |
-| **演示数据** | `Saas:Seed:EnableDemoData` | 示例组织、演示账号、演示业务租户 |
+| **基础数据** | 始终播种 | 超级管理员、操作字典、各模块的权限目录与菜单、套餐、参数、默认存储、消息模板、内建 OAuth 应用、内建定时任务、代码生成内置模板——系统运行所需，不建任何租户 |
+| **演示数据** | `Saas:Seed:EnableDemoData` | 覆盖各种情况的演示租户、组织、角色、账号，以及演示通知与字典 |
 
-`EnableDemoData` **缺省或非法值都视为启用**，显式 `false` 才整体跳过。演示种子同时归在框架选取分组 `Demo` 下，配 `DataSeeding:ExcludedGroups: ["Demo"]` 是等效开关。
+`EnableDemoData` 为 `true` 才写演示数据，**缺省或 `false` 都不写**，写错（不是布尔值）直接启动失败。各环境在自己的配置文件里写明：仓库的开发环境配置开启，生产环境在部署处的 `appsettings.Production.json`（不入库）里设置。
 
-超管初始密码用 `Saas:Seed:SuperAdminPassword`（环境变量 `Saas__Seed__SuperAdminPassword`）覆盖，**生产必改**。
+初始超级管理员 `superadmin` / `SuperAdmin@123`，密码由种子写入并标记为需要本人改密，**生产首次登录后立即修改**，并建议在参数「密码设置」里开启强制改密。
 
-种子的 `Order` 段与执行顺序见 [框架简介](./introduction#种子数据)。
+执行阶段、写入口径（哪些每次对齐、哪些只写一次）、演示租户与账号清单见 [框架简介：种子数据](./introduction#种子数据)。
 
 ## 分表查询
 
@@ -1676,7 +1680,7 @@ new(SaasPermissionCodes.Position.Group, "岗位",
 ]),
 ```
 
-落库扁平表 `All`、组码→组名 `GroupNames`、`ModuleCode`/`Tags`/`Priority` 全部**自动派生**，无需手写。`SaasPermissionSeeder`（`Order=20`）据此播种 `SysPermission`。
+扁平表 `All`、组码→组名 `GroupNames`、`ModuleCode` 与分组全部**自动派生**，无需手写。权限目录种子 `SaasPermissionCatalogSeeder` 据此播种 `SysPermission`（标签 `[模块, 分组]`、优先级取排序号，都由种子统一生成）。
 
 #### 3. 菜单 + 按钮 → `PageRegistry`（建菜单即绑权限）
 
@@ -1698,7 +1702,7 @@ new("identity.position.update", "编辑", "identity.position", SaasPermissionCod
 // …delete / status / export
 ```
 
-`SaasMenuSeeder`（`Order=25`）从 `PageRegistry.All + Buttons` 生成菜单；它先按权限码查 `SysPermission`，**查不到就跳过并告警（fail-closed）**——所以权限种子（`Order=20`）必须排在菜单种子（`Order=25`）之前，天然满足。父目录必须排在子项之前（种子依顺序解析 `ParentId`）。
+`SaasMenuSeeder` 从 `PageRegistry.All + Buttons` 生成菜单；它先按权限码查 `SysPermission`，**查不到直接报错**——权限目录阶段排在菜单阶段之前，天然满足。父目录必须排在子项之前（种子依顺序解析 `ParentId`，找不到父菜单同样报错）。
 
 `Component`（`identity/position/index`）= `Path` 去前导斜杠 + `/index`，与前端 `src/views` 目录一一对应。`_core` 页面例外（见配方 C）。
 
@@ -1825,31 +1829,30 @@ public static IServiceCollection AddAIConfigStore(this IServiceCollection servic
 }
 ```
 
-### 种子 `Order` 段：模块间互不交叠
+### 种子：阶段与模块号段
 
-每个模块占一段互不重叠的 `Order`，链内遵循「**操作 → 资源 → 权限 → 菜单 → 角色授权**」顺序（建即绑权限码）：
+种子按阶段排序（常量在 `SeedOrders`），同一阶段内按模块错开号段：
 
-| 模块 | `Order` 段 | 说明 |
-| --- | --- | --- |
-| Saas | 10–37 | 系统基线 10–29、演示 30–37 |
-| CodeGeneration | 100–105 | — |
-| AI | 200–217 | Provider 200–204、知识库 RAG 205–208、提示词库 209–212、AI 助手 213–216、菜单 217 |
-| Workflow | 300–304 | 操作 300 → 资源 301 → 权限 302 → 菜单 303 → 角色授权 304 |
+| 阶段 | `Order` | SaaS | 代码生成 | AI | 工作流 | 聊天 | 打印 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 平台身份 | 100 | 超级管理员 | — | — | — | — | — |
+| 操作字典 | 200 | 操作字典（各模块共用） | — | — | — | — | — |
+| 权限目录 | 300 | +0 | +10 | +20 | +30 | +40 | +50 |
+| 菜单 | 400 | +0 | +10 | +20 | +30 | +40 | +50 |
+| 套餐 | 500 | 四档套餐 | — | — | — | — | — |
+| 平台数据 | 600 | 参数、存储、模板、OAuth、任务 | 内置模板 +10 | — | — | 参数、任务 +40 | — |
+| 演示 | 900 | 演示租户与账号 | — | — | — | — | — |
 
-AI 的 `AddAIDataSeeders` 实链（`AddDataSeeder<T>()` 逐个登记）：
+一个模块通常只需两个种子：继承 `PermissionCatalogSeederBase` 的权限目录（声明资源与权限；资源型权限用 `PermissionSeed.Of(资源, 作用侧, 起始排序, 操作…)` 按「资源 × 操作」展开），和继承 `PageRegistryMenuSeederBase` 的菜单（直接取模块的 `PageRegistry`）。AI 的 `AddAIDataSeeders`：
 
 ```csharp
-services.AddDataSeeder<SysOperationSeeder>();       // 200 操作字典（权限派生前置）
-services.AddDataSeeder<SysResourceSeeder>();        // 201 资源（权限派生前置）
-services.AddDataSeeder<SysPermissionSeeder>();      // 202 资源 × 操作 → ai:* 权限
-services.AddDataSeeder<SysRolePermissionSeeder>();  // 204 仅授超管
+services.AddDataSeeder<AiPermissionCatalogSeeder>(); // SeedOrders.PermissionCatalog + 20：模型服务、提示词、助手、知识库四个资源
+services.AddDataSeeder<AiMenuSeeder>();              // SeedOrders.Menus + 20：本模块 PageRegistry
 ```
 
-`AddRAGDataSeeders`（205–208）、`AddPromptDataSeeders`（209–212）与 `AddAssistantDataSeeders`（213–216）各自复用 AI 段的 `SysOperationSeeder`（200），链内只补「资源 → 权限 → 角色授权」三步，不重复种操作字典。本模块全部菜单由末尾的 `AiMenuSeeder`（217，`PageRegistry` 驱动）一次播种。
+模块不写角色授权：超管在平台天然拥有全部权限，租户所有者按套餐拿权限，其它角色由运营授予。新模块取一个未用的偏移（如 +60），每个阶段都用它。
 
-> 新模块选一段未用的 `Order`（如 400–）；**操作/资源种子必须排在权限种子之前**（权限由「资源 × 操作」派生）。
-
-`XiHan.BasicApp.Workflow` 是最干净的一个独立模块样板：`ConfigureServices` 只有三行（`AddWorkflowStores` 用 `Replace` 把框架工作流的内存存储换成 SqlSugar 持久化、`AddWorkflowDataSeeders` 走完整的五步种子链、`AddWorkflowEventHandlers` 登记三个本地事件处理器），仓储与应用服务全部交给约定注册。要照着做一个新模块，读它比读 AI 模块更省力。
+`XiHan.BasicApp.Workflow` 是最干净的一个独立模块样板：`ConfigureServices` 只有三行（`AddWorkflowStores` 用 `Replace` 把框架工作流的内存存储换成 SqlSugar 持久化、`AddWorkflowDataSeeders` 登记权限目录与菜单两个种子、`AddWorkflowEventHandlers` 登记三个本地事件处理器），仓储与应用服务全部交给约定注册。要照着做一个新模块，读它比读 AI 模块更省力。
 
 ### 动态 API 动词/路由映射
 
@@ -1942,7 +1945,7 @@ export const positionApi = {
 
 - **领域服务必须手写 DI**。领域服务接口不带 `IScopedDependency`/`IDomainService` 标记，框架不自动注册；漏了 `AddScoped<I..DomainService, ..DomainService>()` → 运行期 DI 解析异常。仓储与应用/查询服务由约定自动注册，无需手写。
 
-- **种子链缺 `SysOperation` 会致 CodeGen 静默失效**。权限由「资源 × 操作」派生，操作字典种子（`SysOperationSeeder`）必须先于权限种子；干净库若缺此段，代码生成等依赖该链的功能会静默失效。独立模块的种子链务必保持「操作 → 资源 → 权限 → 菜单 → 角色授权」完整顺序。
+- **种子按阶段排，依赖缺了直接报错**。操作字典（SaaS 统一播）→ 权限目录 → 菜单 → 套餐；权限目录引用的操作不在字典里、菜单绑定的权限或父菜单不存在，种子都会报错拖垮启动，而不是静默跳过。新模块照 `SeedOrders` 的阶段与模块号段取 `Order`。
 
 - **分页方法必须显式补 `[HttpPost]`**。方法名以 `Get` 开头会被默认识别为 GET；新增分页方法漏标 `[HttpPost]` → 前端 body 收不到查询对象。
 
@@ -2035,7 +2038,7 @@ export const positionApi = {
 - `TenantId` 由租户上下文自动注入，**禁止业务代码直接操纵**。
 
 ::: danger 读写口径不对称
-**读共享、写不共享**——全局过滤器放行 `TenantId=0` 的行让租户能读到平台数据，但租户上下文里**禁止改写/删除**非本租户行（含全局行）。维护全局数据的唯一入口是平台态（`ICurrentTenant.Change(null)`）。
+**读共享、写不共享**——全局过滤器放行 `TenantId=0` 的行让租户能读到平台数据，但每个作用域只能改写/删除本作用域的行：租户态不能动全局行，平台（0 号租户，无租户上下文与 `Change(0)` 同义）也不能动租户行。全局数据在平台作用域维护，某个租户的数据切入该租户（`ICurrentTenant.Change(tenantId)`）维护。
 
 详见 [多租户 SaaS](./multi-tenancy)。
 :::
@@ -2544,8 +2547,8 @@ await app.RunAsync();
 每个模块的接线集中在自己的 `Extensions/ServiceCollectionExtensions.cs`，由 `Module.ConfigureServices` 调用。Saas 的十个扩展方法：
 
 ```csharp
-services.AddSaasDataSeeders();          // 系统基线种子
-services.AddSaasDemoDataSeeders();      // 演示种子（Saas:Seed:EnableDemoData 开关）
+services.AddSaasDataSeeders();          // 基础种子（始终播种）
+services.AddSaasDemoDataSeeders();      // 演示种子（Saas:Seed:EnableDemoData 为 true 才写）
 services.AddSaasDomainServices();       // 领域服务（必须手写）
 services.AddSaasApplicationServices();  // 需要手写的应用侧服务
 services.AddSaasEventHandlers();        // 本地事件处理器（必须登记）
@@ -2610,7 +2613,7 @@ services.Replace(ServiceDescriptor.Scoped<ISessionStateGate, SaasSessionStateGat
 | `PermissionCode` 直接引用 `SaasPermissionCodes.*` | **建菜单即绑权限**，不要事后回填 |
 | 纯静态公共页不登记 | `/about` 等由前端 `router/routes.ts` 持有 |
 
-`SaasMenuSeeder`（`Order=25`）从 `PageRegistry` 映射出菜单种子：先按权限码查 `SysPermission`，**查不到就跳过并告警（fail-closed）**。所以权限种子（`Order=20`）必须排在它前面，父目录必须排在子项前面。
+`SaasMenuSeeder` 从 `PageRegistry` 映射出菜单：先按权限码查 `SysPermission`，**查不到直接报错**，不留残缺的菜单树。所以权限目录排在菜单之前（见下文的执行阶段），父目录必须排在子项前面。
 
 **新增/修改菜单只改 `PageRegistry`**，种子随之生效。
 
@@ -2618,21 +2621,82 @@ services.Replace(ServiceDescriptor.Scoped<ISessionStateGate, SaasSessionStateGat
 
 分两类：
 
-- **系统基线**（`AddSaasDataSeeders` 等）：**始终播种**。身份、权限、租户版本、配置、字典、菜单、消息模板、OAuth 应用、通知、存储配置、任务——应用可运行的最小骨架。
-- **演示数据**（`AddSaasDemoDataSeeders`）：由 `Saas:Seed:EnableDemoData` 控制，**缺省或非法值都视为启用**，显式 `false` 才整体跳过。含示例组织、演示账号、演示业务租户。
+- **基础数据**（各模块的 `Add*DataSeeders`）：**始终播种**，只含系统运行所需——超级管理员、操作字典、各模块的权限目录与菜单、套餐、参数、默认存储、消息模板、内建 OAuth 应用、内建定时任务、代码生成内置模板。不建任何租户。
+- **演示数据**（`AddSaasDemoDataSeeders`）：只在 `Saas:Seed:EnableDemoData` 为 `true` 时写入，**缺省或 `false` 都不写**，写错（不是布尔值）直接启动失败。开发环境配置里开启、生产环境关闭。内容见 [演示数据](#演示数据)。
 
-### `Order` 段：模块间互不交叠
+### 执行阶段
 
-| 模块 | `Order` 段 |
+框架把所有模块的种子按 `Order` 统一排序。阶段常量在 `SeedOrders`，后一阶段只依赖前面写好的数据：
+
+| 阶段 | `Order` | 内容 |
+| --- | --- | --- |
+| 平台身份 | 100 | 超级管理员角色与账号 |
+| 操作字典 | 200 | `read` / `create` / `update` / `delete` / `export` / `import` / `execute`，资源型权限的动作都从这里取 |
+| 权限目录 | 300 | 各模块的资源与权限（`PermissionCatalogSeederBase`） |
+| 菜单 | 400 | 各模块的页面登记表（`PageRegistryMenuSeederBase`） |
+| 套餐 | 500 | 四档套餐与功能白名单，排在全部权限目录之后，企业版首次创建就拿到各模块的权限 |
+| 平台数据 | 600 | 参数、默认存储、消息模板、OAuth 应用、定时任务、代码生成内置模板 |
+| 演示 | 900 | 演示租户与账号、演示通知、演示字典 |
+
+同一阶段内按模块错开号段：SaaS +0、代码生成 +10、AI +20、工作流 +30、聊天 +40、打印 +50，模块内多个种子在自己的 10 个号里排。新模块取一个未用的偏移（如 +60），每个阶段都用这一个偏移。
+
+### 写入口径
+
+| 数据 | 口径 |
 | --- | --- |
-| Saas | 10–37（系统基线 10–29、演示 30–37） |
-| CodeGeneration | 100–105 |
-| AI | 200–217（Provider 200–204、RAG 205–208、提示词 209–212、助手 213–217） |
-| Workflow | 300–304 |
+| 操作、资源、权限、菜单、代码生成内置模板、参数的元数据 | 由代码定义：每次启动对齐名称、说明、作用侧、结构、排序；启停（参数还有值）归运营，只在新建时写 |
+| 套餐、存储、消息模板、OAuth 应用、定时任务 | 归运营：只在第一次创建，之后改过的不覆盖，删掉的不补回 |
+| 超级管理员 | 系统角色的定义每次对齐；账号资料与密码只在创建时写 |
+| 演示数据 | 只写库里还没有的租户、平台账号、全局角色；写过的不再覆盖或补回，拿它随便试 |
 
-链内顺序恒为「**操作 → 资源 → 权限 → 菜单 → 角色授权**」——权限由「资源 × 操作」派生，所以操作/资源种子必须排在权限种子之前。缺了 `SysOperationSeeder` 会让整条链**静默失效**。
+依赖缺了直接报错，不跳过：菜单绑定的权限或父菜单不存在、权限目录引用的操作不在字典里、套餐白名单里有不存在或平台侧的权限，都说明顺序或声明写错了。
 
-新模块选一段未用的 `Order`（如 400–）。
+权限只需声明，不写授权行：超管在平台天然拥有全部权限（授权快照给出），租户所有者拿到套餐范围内的全部权限；其它角色的授权由运营授予，演示角色按演示数据的声明授予。
+
+### 初始账号
+
+超级管理员 `superadmin` / `SuperAdmin@123`（平台账号，用户名登录）。密码由种子写入，账号标记为需要本人改密：参数「密码设置」（`saas.auth.password`）的 `forceChange` 开启后，首次登录就要求修改。生产环境首次登录后立即修改，并建议开启强制改密。
+
+### 演示数据
+
+每个演示租户、账号、成员的**备注就是它演示的情况**，在管理页里直接能看到；完整声明在 `SaasDemoScenario`（租户、组织、角色、账号、成员）、`SaasDemoNotificationSeeder`（草稿通知）、`SaasDemoDictSeeder`（平铺与树形字典）。
+
+平台账号用用户名登录，租户账号用邮箱登录，**密码都是 `Demo@123`**。每个租户的所有者是 `owner@<租户>.demo`（如 `owner@enterprise.demo`）。
+
+| 租户 | 套餐 | 演示的情况 |
+| --- | --- | --- |
+| `demo-enterprise` 示例企业 | 企业版 | 完整组织；全部成员类型与邀请状态、各档数据范围、角色继承与名额、授权时间窗、直授与禁止、账号与成员的各种状态 |
+| `demo-pro` 示例公司 | 专业版 | 正常；合作方账号同时是企业版的外部协作者；平台客服的支持窗口已结束 |
+| `demo-basic` 示例工作室 | 基础版 | 正常；顾问账号同时是企业版的顾问 |
+| `demo-free` 示例团队 | 免费版 | 正常；被邀请人（邀请待接受）、拒绝邀请的人 |
+| `demo-seats-full` 席位已满 | 免费版 | 席位上限覆盖为 2 且已占满 |
+| `demo-suspended` / `demo-expired` / `demo-disabled` | — | 暂停、过期、停用：成员登录后进不了 |
+| `demo-awaiting-admin` 待开通管理员 | 免费版 | 字段隔离租户还没有所有者 |
+| `demo-dedicated-db` 独立库·待初始化 | 免费版 | 库隔离租户，先初始化数据库再开通管理员 |
+
+平台账号：`operator`（平台运营）、`support`（平台客服，以支持人员入驻企业版与专业版）、`auditor`（持有全局审计角色）、`frozen`（已停用）。全局角色模板 `platform_operator`、`global_auditor` 平台与租户都能用，租户里只能分配。
+
+企业版租户的账号（`<名字>@enterprise.demo`）：
+
+| 账号 | 演示的情况 |
+| --- | --- |
+| `owner` | 所有者：套餐范围内的全部权限，所有权由平台转移 |
+| `admin` | 管理员成员，持有租户管理员角色 |
+| `manager` | 部门主管：继承普通员工，数据范围为本部门及下级，是研发中心负责人 |
+| `engineer` | 普通员工：只看本人数据 |
+| `hr` | 自定义数据范围：研发中心（含下级）与市场部 |
+| `auditor` | 持有全局审计角色模板 |
+| `lead` | 占满了成员上限为 1 的项目负责人角色 |
+| `scoped` | 成员级数据范围覆盖为本部门 |
+| `direct` | 直授成员查看、禁止聊天发送 |
+| `temp` | 一个角色昨天到期、另一个 7 天后才生效 |
+| `intern` | 访客，成员身份 30 天后到期 |
+| `left` | 成员身份已到期 |
+| `disabled` / `locked` | 账号已停用 / 已锁定 |
+| `removed` | 已移出本租户 |
+| `holder` | 只持有已停用的角色 |
+
+另有外来成员：`partner@pro.demo`（外部协作者）、`consultant@basic.demo`（顾问，90 天后到期）、`invitee@free.demo`（邀请待接受）、`decliner@free.demo`（已拒绝）、`member@basic.demo`（邀请已过期）、平台客服 `support`（支持人员，7 天窗口）。
 
 ## 框架引用：源码还是 NuGet
 
@@ -2706,7 +2770,7 @@ XiHan.BasicApp 把"谁在什么时候、从哪里、对什么做了什么、结�
 - **操作日志 vs 实体变更**：操作日志覆盖宽泛的业务动作；实体变更只记**数据库行**的字段级前后快照，是合规级的数据溯源。
 - **登录日志 vs 操作日志**：认证类动作（登录/登出/令牌刷新/改密/绑定 MFA）由登录日志专门承担，操作日志写入器会**主动跳过**这些动作（见下），不重复记账。
 
-所有六张表都是**只追加、永不更新**的审计数据，并且都是**按月分表**（`Sys_Xxx_Log_{year}{month}{day}`，`SplitType.Month`）。这带来一条硬约束：**查询与清理必须带时间范围**，否则框架会扫描全部月表。业务上不支持删除；清理已自动化——动态任务 `LogRetentionCleanupTask`（覆盖本页六类 + 下文的权限变更日志共 7 类分表日志）按 `CreatedTime` 逐行删除过期数据（只删行、不 `DROP` 表），保留天数读全局配置 `saas:log:retention-days`（默认 180 天，非法/缺省时回退默认值），不依赖人工 `TRUNCATE`/`DROP`。
+所有六张表都是**只追加、永不更新**的审计数据，并且都是**按月分表**（`Sys_Xxx_Log_{year}{month}{day}`，`SplitType.Month`）。这带来一条硬约束：**查询与清理必须带时间范围**，否则框架会扫描全部月表。业务上不支持删除；清理已自动化——动态任务 `LogRetentionCleanupTask`（覆盖本页六类 + 下文的权限变更日志共 7 类分表日志）按 `CreatedTime` 逐行删除过期数据（只删行、不 `DROP` 表），保留天数读平台参数 `saas.log.retention-days`（缺省 180 天；不是正整数时任务直接失败，不按错误的保留期删数据），不依赖人工 `TRUNCATE`/`DROP`。
 
 ## 逐类详解
 
@@ -3132,7 +3196,7 @@ Task Typing(string conversationId);             // 向组内其他连接广播 C
 
 独立权限码 `Chat.Audit`（`chat:audit`），由 `ChatAuditQueryService.GetChatMessagePageAsync` 承载：管理侧**跨会话**分页查询聊天消息（按会话/发送人/发送时间区间/关键字过滤，关键字匹配正文、发送人名、附件文件名），默认排除已撤回消息（`IncludeRecalled` 可选纳入），批量带出会话名称/类型免逐行 JOIN。菜单页 `/message/chat-audit`（`message.chat-audit`）独立于普通聊天入口，供管理员做内容合规审计，不占用 `Chat.Read`/`Chat.Send`/`Chat.Manage` 三档。
 
-**敏感词拦截**：发送/编辑文本前经 `IChatSensitiveWordGuard.EnsureAllowedAsync` 校验，命中即 fail-closed 抛业务异常拒绝。词库取自系统设置 `SysConfig` 键 `chat:sensitive-words`（全局 `TenantId=0`，换行/中英文逗号/分号分隔，空=关闭），进程内缓存 60 秒，`OrdinalIgnoreCase` 包含匹配。
+**敏感词拦截**：发送/编辑文本前经 `IChatSensitiveWordGuard.EnsureAllowedAsync` 校验，命中即 fail-closed 抛业务异常拒绝。词库是聊天策略参数 `chat.policy` 的 `sensitiveWords` 数组（空数组=关闭；租户有同键参数时用租户的），经配置值缓存读取、改参数即失效，`OrdinalIgnoreCase` 包含匹配。同一参数的 `retentionDays` 是聊天消息保留天数（缺省 365）。
 
 ---
 
@@ -3174,14 +3238,16 @@ BasicApp 默认走**字段级隔离（Field）**：所有业务实体继承自 `
 | 模式 | 含义 |
 | --- | --- |
 | `Field`（默认） | 同库同表，靠 `TenantId` 列区分租户数据 |
-| `Database` | 每租户独立数据库（`ConnectionString` 加密存储，需 `InitializeDatabase` 建库建表种子） |
-| `Schema` | 同库不同 Schema（尚未实装：`SaasTenantConnectionProvider` 解析到该模式直接抛异常 fail-closed，拒绝退化为行隔离） |
+| `Database` | 每租户独立数据库（`ConnectionString` 加密存储；先 `InitializeDatabase` 建库建表，再 `InitializeTenantAdmin` 开通管理员，见下文「库隔离：平台库是目录库」） |
+| `Schema` | 同库不同 Schema（尚未实装：创建时拒绝；`SaasTenantConnectionProvider` 解析到该模式直接抛异常 fail-closed，拒绝退化为行隔离） |
+
+隔离模式创建时定下、之后不能修改（不在更新契约里）：数据按创建时的模式落库，改模式等于迁移数据，不是改一个字段。
 
 ### 框架层 `long?`/null 与应用层 `TenantId=0` 的关系
 
 这是理解本系统隔离的关键，两层用**不同的空值语义**表达"全局/无租户"：
 
-- **框架层**：`ICurrentTenant.Id` 是 `long?`。`null`（或 `0`）表示**当前请求没有租户上下文**，即平台运维态（宿主态）。框架的租户查询过滤器在无上下文时关闭。
+- **框架层**：`ICurrentTenant.Id` 是 `long?`。`null` 与 `0` 同义，都表示**平台，也就是 0 号租户**。平台和任何一个租户一样只看、只写自己的数据：读只看 `TenantId=0` 的行，写只落 / 只改 `TenantId=0` 的行——不存在「没有租户上下文就看全部、写全部」的口径。
 - **BasicApp 应用层落库约定**（见 `BasicAppEntity` 注释）：平台级/全局记录统一落 **`TenantId=0`**（"平台租户"占位），**不得用 NULL**；业务租户 Id 从 1 开始分配，0 号租户由平台保留。
 
 二者衔接的规则：
@@ -3189,40 +3255,44 @@ BasicApp 默认走**字段级隔离（Field）**：所有业务实体继承自 `
 - 平台判定统一以 `currentTenant.IsPlatformOperation()` 为准，其实现就是 `Id is null or 0`（见 `CurrentTenantPlatformExtensions`）。
 - 查询"全局 + 私有"合并时用 `WHERE TenantId IN (0, {currentTenantId})`。授权快照构建即按此规则：绑定行按 `TenantId == 当前租户 || TenantId == 0` 生效，平台态（无上下文）则仅 `TenantId=0` 的全局绑定生效，防止多租户成员在平台态聚合出跨租户权限。
 - 如需 `IsGlobal` 语义，实体在 Expand 里以只读派生属性 `IsGlobal => TenantId == 0` 暴露，**不落库**（避免与 `TenantId` 漂移）。
-- 只有平台运维态才允许维护 `TenantId=0` 的全局模板（菜单/权限/角色/版本等）；租户态（`Id>0`）对全局模板一律拒绝写入，避免某租户改动波及所有租户。
+- 只有平台才允许维护 `TenantId=0` 的全局模板（菜单/权限/角色/版本等）；租户态（`Id>0`）对全局模板一律拒绝写入，避免某租户改动波及所有租户。平台同样不能直接改写租户的行。
+- 平台与租户各自独有的运行数据（会话、令牌、授权码、导出任务、邮件短信、导入记录、任务调度与各类日志）与租户业务数据（部门、岗位、部门归属、文件、审批、权限申请，以及代码生成器产出的业务实体）实现 `IStrictMultiTenantEntity`：租户态只看本租户行，不读共享平台行。
 
-> 服务层通过框架注入自动写入 `TenantId`，业务代码禁止直接操纵。需要临时切换上下文（如在新租户内开通、平台态全局定位账号）时用 `ICurrentTenant.Change(...)`，`using` 作用域结束自动恢复。
+> 服务层通过框架注入自动写入 `TenantId`，业务代码禁止直接操纵。跨租户只走显式通道：跨租户读取用仓储的 `...IgnoreTenantAsync`（内部 `CreateNoTenantQueryable()`）或查询上的 `.ClearTenantFilter()`；写某个租户的数据用 `ICurrentTenant.Change(tenantId)` 切入该租户，`using` 作用域结束自动恢复；账号域数据写在账号注册地——新增经 `IAccountScope.EnterAsync(userId)` 切入注册地，个人中心更新自己已有的行可用 `TenantWriteGuard.Suppress()`（只放宽更新与删除，不放宽新增）。后台逐租户维护用 `ITenantDataScopeRunner` 依次切入平台与每个数据可达的租户。
 
 ## 登录与落点：邮箱全局唯一，先登录后选租户
 
-BasicApp 采用**先登录后选租户**：登录页不选择租户，统一在平台态（`_currentTenant.Change(null)`）完成身份认证，成功后按用户的成员关系自动决定落点。
+BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统一在平台（`_currentTenant.Change(null)`）完成身份认证，成功后由服务端决定落点——登录后总是落在一个上下文里（平台，或一个租户）。
 
 - **邮箱是全平台唯一的登录身份标识**。注册、开通租户管理员、找回密码都强制校验邮箱且全局唯一（`ExistsEmailGloballyAsync`）。平台账号也可用用户名登录。
 - 支持密码登录、邮箱验证码登录、第三方（OAuth）登录，均在平台态定位用户后走统一落点逻辑（`IssueLoginTokenWithLandingAsync`）。
 
 ### 落点策略
 
-落点由 `ResolveLoginLandingAsync` 决定，返回 `null` 表示落**平台态（前端控制中心）**：
+平台是 0 号租户，只对**平台账号**（`SysUser.TenantId=0`）开放。落点由 `ResolveLoginLandingAsync` 决定：
 
-| 情形 | 落点 |
+| 账号 | 落点 |
 | --- | --- |
-| 平台账号（`TenantId=0`，如超管） | 平台态控制中心 |
-| 拥有超管角色（全局绑定） | 平台态控制中心 |
-| 恰好一个可用租户成员 | 直接进入该租户（免选择） |
-| 零个或多个可用租户 | 平台态控制中心（前端展示租户选择/原因） |
+| 平台账号 | 平台 |
+| 租户账号 | 最近进入过的可进入租户 → 归属租户 → 第一个可进入的租户（`LoginLandingPolicy`） |
+| 租户账号且一个可进入的租户都没有 | 拒绝登录，并说明是没有有效成员关系，还是所在租户均不可进入 |
 
-"唯一租户"也要确认可用（正常 / 已配置 / 未过期）才直接进入，不可用则落控制中心由前端展示原因。签发的令牌只在进入具体租户时带 `TenantId` claim，平台态不带。
+**可进入的租户**只有一个口径（`IAuthContextQueryService.GetAccessibleTenantsAsync`）：有效成员关系（已接受、有效、在生效期内）∩ 可进入的租户（`AvailableTenantSpecification`：正常、已完成初始化、未删除、未过期）。登录落点、切换租户、控制中心的可切换列表都用它。成员关系的最近进入时间（`LastActiveTime`）在登录与切换时回写，决定下次登录落点。
+
+签发的令牌只在进入租户时带 `TenantId` claim，平台不带。
 
 ### 随时切换租户
 
-登录后可通过 `SwitchTenantAsync`（`api/Auth`）在有权限的租户之间切换（类似 GitHub 切换 Org）：
+登录后通过页头的上下文标识进控制中心，经 `SwitchTenantAsync`（`api/Auth`）切换（类似 GitHub 切换 Org）：
 
-- 目标 `TenantId` 归一：`null` 或 `<=0` 视为平台运维态。
-- 切到具体租户：必须是该租户的**有效成员**（普通用户），或是**超管**（可进任意租户，见下）。
-- 进入平台运维态：仅超管，或拥有 `PlatformAdmin` 成员身份者。
-- 切换会在目标上下文内**重建授权快照并签发新令牌**——权限随落点租户实时重算，不沿用旧令牌里的声明。
+- 目标 `TenantId` 归一：`null` 或 `<=0` 表示平台。
+- 进入租户：必须在"可进入的租户"里，**超管也不例外**——平台账号要进某个租户，同样须先成为它的成员（如支持人员入驻）。
+- 进入平台：只有平台账号可以。
+- **切换即换会话**：会话属于它所在的上下文（`SysUserSession.TenantId` 只插入不更新）。切换时吊销当前会话、在目标上下文新建一条续接会话（沿用设备与登录时间，不是新登录、不发登录通知），旧访问令牌与刷新令牌经会话闸门随即失效；会话标识因此全局唯一（`UX_{table}_UsSeId`）。
+- 在目标上下文内**重建授权快照并签发新令牌**，权限随目标上下文实时重算。
+- 结束模仿登录回到发起人的原会话，只在原会话上重签令牌（原会话本就在发起时的上下文里）。
 
-可切换的租户列表由 `GetMyAvailableTenantsAsync` 提供：普通用户取自己的有效成员关系（`GetActiveByUserIdAsync`，跨租户读取、忽略租户过滤），超管无成员关系、直接返回全部可用租户（正常态、未过期）；前端用 `TenantSwitcherDto` 渲染切换器。
+前端切换后整页重建：清掉本地用户信息与标签页、断开 SignalR；路由守卫在整页加载时把用户信息与权限一起重取，平台 / 租户标识不会沿用切换前的旧值。可切换的租户列表由 `GetMyAvailableTenantsAsync` 提供，与切换同一口径；前端用 `TenantSwitcherDto` 渲染。
 
 ## 成员关系：`SysTenantUser`
 
@@ -3231,22 +3301,117 @@ BasicApp 采用**先登录后选租户**：登录页不选择租户，统一在�
 - `SysUser.TenantId` = 用户主账号的归属租户（注册地）
 - `SysTenantUser.TenantId` = 用户拥有成员身份的租户（含主租户 + 外部协作租户）
 
-所有租户访问（含主属）都统一走本表，鉴权路径一致。关键字段：
+所有租户访问（含主属）都统一走本表，鉴权路径一致。成员关系是**严格租户隔离**实体：租户里只看得到本租户的成员行，跨租户读取（如登录时取用户的全部成员关系）走显式通道。关键字段：
 
 - `MemberType`（`TenantMemberType`）：`Owner` / `Admin` / `Member` / `External` / `Guest` / `Consultant` / `PlatformAdmin`。
   - 注意：`MemberType` 表达"成员身份类型"而非"权限级别"，**服务层禁止用它直接鉴权**（如 `if MemberType==Admin`），必须走 RBAC 权限链；它只用于成员列表分类、邀请流程控制、`PlatformAdmin` 创建校验。
 - `InviteStatus`（`TenantMemberInviteStatus`）：`Pending → Accepted / Rejected / Revoked / Expired`。仅 `Accepted` 且 `Status=Valid` 且当前时间在生效/失效区间内的成员关系才可用于鉴权。
 - `EffectiveTime` / `ExpirationTime`：外部协作者/访客常用的时效控制。
+- **成员关系上的授权由所在租户维护**：角色、直授权限、部门、数据范围（成员覆盖 `DataScopeOverride` 挂在成员关系上）、ABAC 条件、字段级安全、约束、委托、申请都作用于「本租户的成员」；支持成员（`PlatformAdmin`，平台人员入驻）也一样——平台看不到也写不了租户的授权数据，他们在租户里能做什么由这个租户决定。
 
-## 超级管理员：平台态运维 + 代管租户
+## 账号域：注册地租户戳 + 严格隔离
 
-超级管理员（角色编码 `super_admin`，运行时特判通配 `*`）是平台运营方账号：
+账号是身份层数据，不是某个租户的业务数据。`SysUser`、`SysUserSecurity`、`SysUserSetting`、`SysUserNotificationPreference`、`SysUserApiCredential`、`SysExternalLogin`、`SysPasswordHistory` 实现 `IStrictMultiTenantEntity`，`TenantId` 固定为注册地（平台账号为 0）：
 
-- **恒落平台态**：无论有无租户成员关系，登录都落平台控制中心。
-- **权限通配**：授权快照里带 `*`，放行一切，且**不受版本门控**（见下）。
-- **可切入任意租户代为管理（impersonation）**：`SwitchTenantAsync` 里超管无需是目标租户成员即可进入。进入后在**目标租户上下文内重建授权快照**——即代管期间以目标租户的口径操作，行为可被审计追溯。
+- **按主键跨租户读**：账号、安全记录、个人设置等按用户主键走 `...IgnoreTenantAsync` / `CreateNoTenantQueryable()` 读取，展示别人的名字、取当前用户自己的资料都不依赖当前上下文。
+- **写在注册地**：外部成员在别的租户里改设置、建凭据、改密码，行照样落回注册地（`IAccountScope`、密码历史切入 `user.TenantId` 写入）。
+- **看得见谁由上下文决定**（`IUserDirectory`）：平台里是平台账号；租户里是本租户已接受的成员，含注册在别处的外部成员与入驻的平台人员。用户列表、详情、选择项、聊天候选人、"全员"通知都走同一个目录，列表项带 `IsExternalMember`。
+- **身份类操作只对本地账号**：资料、状态、锁定、密码、双因素、登录策略、下线全部会话、删除只对注册在当前上下文的账号开放；外部成员给出明确原因（"由其注册地租户维护"），在这里只能管理它在本租户的角色、权限、部门与数据范围。前端对外部成员隐藏账号级操作，编辑弹窗只提交角色与部门。
+- **平台建的是平台账号**：平台里建账号不写成员关系、不占席位；租户里建账号占一个席位并成为本租户已接受的成员。
+- **删除 / 停用是账号级操作**：账号是任何一个租户的有效所有者都不能直接删除或停用；删除时逐租户切入，作废它在每个租户的成员关系。
 
-除超管外，拥有 `PlatformAdmin` 成员身份的账号也可进入平台运维态（用于运维/客服/风控）。
+## 租户所有者：一名、始终有效、由平台移交
+
+每个租户有且只有一名所有者，是开通管理员时产生的那位（`MemberType=Owner`，持有本租户的 `tenant_owner` 系统角色）：
+
+- **权限随套餐**：`tenant_owner` 是租户里唯一的系统角色（`RoleType.System`、`TenantId=本租户`），不写授权行。授权快照让持有者拿到租户生效的全部权限，再经套餐门控收窄到白名单——套餐升降、新增权限码都即时反映，不用回头同步。它的数据范围是全部，所有者的成员关系上也不设覆盖。
+- **租户里改不动**：系统角色的定义与成员只由系统流程维护——租户里不能编辑、停用、删除它，不能把它授给别人，也不能撤销或停用所有者手里那条绑定；角色选择项里不出现；`super_admin`、`tenant_owner` 两个编码保留，手工建不了同码角色。
+- **所有者关系始终有效**：不能由租户指派（添加、邀请、改成员类型都不接受 `Owner`），不能撤销、停用、过期或退回未接受，也不能设生效期限；所有者账号不能被锁定、重置密码、停用或删除。
+- **所有权转移走平台**：`TransferTenantOwner`（权限 `saas:tenant:transfer-owner`，平台侧）把所有者身份转给该租户的另一名成员——接任者须是已接受、有效、在生效期内的非支持成员；接任者成为所有者、拿到 `tenant_owner` 绑定、期限清空，原所有者改为管理员、这条绑定失效，其它角色原样保留。两人的授权快照随即失效。管理页在租户详情的「成员」页签里对可接任的成员给出「设为所有者」。
+
+## 租户看自己的订阅
+
+租户注册表与版本是平台数据，租户看不到租户列表；看自己的订阅走专门的只读接口 `TenantQuery/MySubscription`（权限 `saas:tenant-subscription:read`，租户侧，免费版起都在白名单里）：版本名称与说明、租户状态、到期时间，以及席位、存储的生效上限与已用量——与平台租户列表同一口径（`ITenantQuotaDomainService.GetQuotaSnapshotsAsync`）。管理端页面是「租户管理 → 我的订阅」，平台上下文里不出现。
+
+## 超级管理员：只在平台成立
+
+超级管理员（平台上的 `super_admin` 角色）是平台运营方账号，超管身份只在平台（0 号租户）成立：
+
+- **平台里通配**：授权快照带 `*`，外加平台生效的全部权限；平台不受套餐门控。
+- **进了业务租户就只是那个租户的成员**：平台的超管绑定不带进任何租户，快照按目标租户里的角色、直授与委托重建，再经套餐门控；在租户里没有角色就没有权限。`ISuperAdminProtector.IsCurrentUserSuperAdmin` 同口径——业务租户里恒为 `false`，各处"超管豁免"只在平台生效。
+- 替租户排查问题走**模仿登录**（以目标租户成员身份操作、全程留痕），不靠超管身份直接改租户数据。平台里发起时先选范围：平台账号，或某个租户（再从该租户的成员里选人）；租户里只能选本租户成员。成员检索同时匹配成员显示名与账号的用户名 / 昵称 / 姓名 / 邮箱。
+
+## 权限作用侧：平台 / 租户 / 两侧
+
+权限目录的每条权限都声明**作用侧**（`SysPermission.Side`，`PermissionSide` 标志枚举）：
+
+| 作用侧 | 值 | 在哪生效 | 典型权限 |
+| --- | --- | --- | --- |
+| `Platform` | 1 | 只在平台 | 租户目录、套餐、权限/资源/菜单目录维护、缓存、服务器、任务调度、AI（模型提供方、提示词、助手、知识库）、代码生成、Telegram 机器人、全局编号/打印模板管理、跨租户模仿 |
+| `Tenant` | 2 | 只在业务租户 | 租户成员维护、部门、岗位、成员数据范围、审批、工作流 |
+| `Both` | 3 | 两侧都生效 | 用户、角色、授权、角色数据范围（平台只设全局角色模板的档位）、日志、配置、字典、消息等 |
+
+- **声明在代码里**：Saas 权限由 `SaasPermissionDefinitions` 的分组声明（条目可单独覆盖），其它模块由各自的权限种子声明；种子每次启动把作用侧同步到库里。后台新建权限必须选作用侧，未声明（0）的权限在任何上下文都不生效。
+- **生效 = 当前上下文的授权绑定 ∩ 作用侧 ∩ 套餐白名单（仅业务租户）**。作用侧不含当前上下文的权限码随授权快照下发（`ContextDeniedCodes`），鉴权、菜单与按钮先于通配判定拒绝它们——平台超管的 `*` 也放不出租户侧权限。
+- **授权绑定只在所属上下文生效**：`SysUserRole` / `SysUserPermission` / `SysPermissionDelegation` / `SysUserDepartment` / `SysUserDataScope` 是严格租户隔离实体，平台的绑定不进租户，租户的绑定也不进平台。
+- **授权界面按上下文列可授权限**：业务租户里只列、也只允许授出租户能生效的权限（租户侧与两侧），写路径同口径拒绝；平台列全部，授权穿梭框标出单侧权限。分配角色不按作用侧拦（角色上的平台侧权限在租户里本就不生效）。
+
+## 全局模板：平台下发，租户只读或覆盖
+
+`TenantId=0` 的模板行（全局角色、参数配置、字典等）读共享：租户看得见、改不了，改写与删除只在平台。按能否被租户覆盖分两种：
+
+| 类型 | 实体 | 租户能做什么 | 判重 |
+| --- | --- | --- | --- |
+| 可覆盖型 | 参数配置、消息模板、编号规则、打印模板 | 建同键的自己的行，读取时租户优先 | 只在本上下文内判重 |
+| 不可覆盖型 | 全局角色、字典 | 引用或分配；要改就新建自己的角色 / 字典 | 字典编码在「全局 + 本租户」里唯一 |
+
+- **全局角色**：可以分配给本租户成员、被本租户角色继承；但它的授权、授权条件、数据范围、继承关系、启停与删除只在平台维护，租户不能往上叠加自己的授权。
+- **字典**：字典项与所属字典同在一个上下文，全局字典的项只在平台维护；租户需要自己的选项就新建字典。平台建全局字典时要看所有租户，某个租户已用了这个编码就不能再建（否则会在那个租户里重名）。
+- **AI**：模型提供方、提示词、助手只在平台维护；提示词与助手是平台下发的目录，租户里可用不可改（运行时按编码读提示词、按聊天权限用助手）；知识库是平台私有数据，严格隔离。
+- **工作流**：租户侧功能，定义、实例、节点、书签严格隔离；定时器跨租户取到期书签后逐租户切入执行。
+- **平台删除全局行看所有租户**：全局角色被租户成员持有或被租户角色继承、全局字典还有字典项时不能删除——这些行平台自己看不见，要跨租户检查（`ISaasRepository.AnyIgnoreTenantAsync`）。
+
+## 带密钥的配置：严格隔离，平台服务显式回退
+
+存储、邮件、短信、机器人配置与 Telegram 机器人都带着密钥或凭证，实现 `IStrictMultiTenantEntity`：租户只看得见、只用得上自己的，平台的行对租户不可见。
+
+| 配置 | 租户未自配时 |
+| --- | --- |
+| 邮件、短信 | 由平台默认代发（`CurrentThenPlatformAsync` 显式切到平台取默认） |
+| 对象存储 | 上传用平台默认；文件记下所用的存储配置（`SysFileStorage.StorageConfigId`），之后下载、删除、预签名都按它取凭证，换默认不影响既有文件 |
+| 钉钉 / 飞书 / 企微机器人 | 不回退：租户的通知不能发进平台的群 |
+| Telegram | 机器人由平台托管，只在平台维护与运行；机器人通知广播里的 Telegram 通道也只在平台生效 |
+
+平台删除存储配置时跨租户检查文件记录：平台默认存储可能被未自配的租户用着。文件记录在各租户自己的数据里，库隔离租户的在它自己的库里，检查逐库进行（见下文）。
+
+## 库隔离：平台库是目录库
+
+库隔离（`Database`）租户有自己的独立库，但不是所有数据都搬过去。平台库是**目录库**，实体标 `[PlatformDataSource]`（框架 `XiHan.Framework.Data.SqlSugar.Routing`）后固定落在这里——不管当前租户是否独立库，读写都按实体解析到平台库，建表也只在平台库建；行级租户过滤照常生效：
+
+| 落点 | 实体 | 为什么 |
+| --- | --- | --- |
+| 平台库 | 租户目录与套餐、权限/资源/操作/菜单目录、OAuth 应用 | 平台目录，所有租户共用 |
+| 平台库 | 账号域、成员关系、会话、会话角色、OAuth 授权码与令牌 | 登录、令牌兑换、会话闸门在拿到租户之前就要定位；一个账号可以加入多个租户 |
+| 平台库 | 角色、角色授权/继承/数据范围、用户角色/直授/数据范围、权限委托、授权条件、约束规则、字段安全 | 全局角色是读共享模板；平台跨租户检查引用、按全局角色找受影响的账号 |
+| 平台库 | 参数配置、字典、消息模板、编号规则与分配、通知与收件箱 | 读共享（含租户自己的覆盖行）：租户要看得见平台的行 |
+| 平台库 | 任务调度、Telegram、AI 维护（模型提供方、提示词、助手、知识库）、代码生成、打印模板 | 平台专属或平台下发 |
+| 租户库 | 部门、岗位、部门归属、文件、审批、权限申请、各类日志、邮件短信、导出导入、带密钥的配置、用户统计、聊天、工作流、业务实体 | 租户自己的业务与运行数据，严格隔离 |
+| 每个库各一份 | 版本与迁移台账（`SysVersion` / `SysMigrationHistory`） | 记录的是这个库自己的结构版本 |
+
+两条规则由结构测试守着（`EntityPlacementTests`、`UniqueIndexTenantScopeTests`）：
+
+- **租户库里只有严格隔离的数据。** 读共享要让租户看见 `TenantId=0` 的平台行，平台行只在平台库；留在租户库的读共享实体在字段隔离与库隔离的租户里会看到不同的数据。
+- **全局唯一的实体在平台库。** 唯一约束只在一个库里成立，邮箱、会话标识、令牌 JTI、`client_id` 这类全局唯一的东西分散到各库就管不住重复。
+
+使用上的约定：
+
+- **访问实体按实体取连接。** 仓储本来就这样；绕过仓储直接用客户端时写 `ISqlSugarClientResolver.GetClientForEntity<T>()`（种子里是 `DbClientFor<T>()`），`GetCurrentClient()` 只用于当前租户主库上的租户库实体和库级操作（健康检查、升级脚本）。
+- **平台跨租户扫租户库里的数据要逐库走**：`ITenantDataScopeRunner.RunPerDatabaseAsync` / `AnyPerDatabaseAsync` 先在平台库（覆盖平台与全部字段隔离租户）清掉租户过滤查一次，再逐个切入已建库的库隔离租户查它自己的库。工作流到期书签、平台存储配置的引用检查、租户列表的存储用量都这样取。平台库里的实体（账号、会话、角色绑定）跨租户查一次即可。
+- **一个工作单元同时写平台库与独立库时不是原子的**：每个连接各开一个本地事务，框架不提供跨库分布式事务。例如在库隔离租户里新建成员，账号与成员关系写平台库，部门归属写它自己的库。
+- **种子只播平台库**（`[DataSeeding(Target = DbInitializationTarget.Platform)]`）：本应用的种子写的都是平台库实体，独立库初始化只建表。
+- **升级脚本在每个库上各跑一遍**，独立库建好即登记为最新版本；改平台库表的语句要先判表存在，见 `UpdateScripts/README.md`。
+
+5.2.0 及更早版本开出来的库隔离租户，数据按旧口径整套落在独立库里（角色、授权、会话等也在）。升级到本版本后这些数据要搬到平台库，没有自动迁移——跨库搬数据不是一段 SQL 能完成的，需要按上表人工迁移后再启用。
 
 ## 租户版本（Edition）：权限白名单 + 运行时门控
 
@@ -3258,47 +3423,49 @@ BasicApp 采用**先登录后选租户**：登录页不选择租户，统一在�
 | `SysTenantEditionPermission` | `Sys_Tenant_Edition_Permission` | 版本 → 权限**白名单**映射（`EditionId` × `PermissionId`，唯一） |
 | `SysTenant.EditionId` | `Sys_Tenant` | 某租户订阅了哪个版本（`null` 时取 `IsDefault=true` 的默认版本） |
 
-内置版本种子（`SaasTenantEditionSeeder`）：`free`（免费/默认，只读+基础成员）、`basic`（+组织/用户/角色管理）、`pro`（+高级权限/审计/安全）、`enterprise`（授予除平台专属权限（`SaasPlatformPermissions.PlatformOnlyCodes`）之外的全部全局权限、不限配额）。版本记录本身是平台级（`TenantId=0`），由平台运营维护。
+内置版本种子（`SaasEditionSeeder`）：`free`（免费/默认，只读+基础成员）、`basic`（+组织/用户/角色管理）、`pro`（+高级权限/审计/安全）、`enterprise`（租户能生效的全部权限、不限配额）。种子排在全部模块的权限目录之后，只在版本首次创建时连同白名单写入，之后由平台运营维护（改过的不覆盖、删掉的不补回）；后来新增的权限要进哪些版本，由运营授予或由对应版本的升级脚本写入。手写白名单里混进平台侧或不存在的权限码，种子直接报错。版本记录本身是平台级（`TenantId=0`）。
 
 关键约束（见 `SysTenantEdition` 与领域服务）：
 
 - `EditionCode` 全局唯一，如 `free`/`basic`/`pro`/`enterprise`。
 - 同一时刻仅一个 `IsDefault=true`；设默认时先清其它默认（`ClearDefaultEditionsAsync`），且默认版本必须处于启用状态、不能被直接取消或禁用。
-- 版本白名单只能绑定**平台级全局权限**（`permission.IsGlobal`，即 `TenantId=0`）且权限须启用——非全局权限不应被版本门控。
+- 版本白名单只能绑定**平台级全局权限**（`permission.IsGlobal`，即 `TenantId=0`），权限须启用，且作用侧必须含租户——平台侧权限进不了租户，绑到套餐上会被拒绝。
 
 ### 运行时门控：越白名单的权限被拒
 
 门控在 `AuthorizationSnapshotQueryService` 构建授权快照时叠加（`ApplyEditionGatingAsync`）——用户在某租户能生效的权限，被该租户所属版本的白名单**收窄取交集**：越出白名单的权限即便被授予，也不进入生效权限集，等同被拒。
 
-门控的**例外（不门控）**，任一命中即放行原快照：
+门控**失败即拒绝**：
 
-- 超管通配 `*`；
-- 平台运维态（无租户上下文）；
-- 租户未绑定版本（`EditionId` 为空）；
-- 版本未配置白名单（白名单为空）——避免把租户误锁死（fail-open 仅限"未启用门控"这一语义）。
+- 只有平台（0 号租户）不门控；业务租户一律门控，超管身份在租户里不成立，没有例外。
+- 租户未绑定版本、或版本白名单为空时，生效权限为空。
+- 门控缓存不可用时直接查库，不因缓存故障放行。
 
 性能上，门控白名单走**独立的版本门控缓存**（`SaasEditionGateCacheItem`，缓存名 `SaasCacheNames.EditionGate` = `basicapp:saas:tenancy:edition-gate`，10 分钟 TTL），在 per-user 授权快照缓存**之外**按当前租户上下文叠加，避免切换租户后缓存串味，鉴权热路径不必每请求查库。版本白名单/租户换版的写路径会调 `InvalidateEditionGateAsync` 失效缓存（事务提交后生效）。
 
-### 开通一站式：建管理员 + 角色 + 授权
+### 开通：先建租户，再初始化管理员
 
-创建租户时若同时提供 `AdminUserName` + `AdminPassword`（此时 `AdminEmail` 必填且须为有效邮箱），`CreateTenantAsync` 会调 `ProvisionTenantAdminAsync` 一站式开通（`TenantProvisionDomainService`），全程在**平台态**（`ICurrentTenant.Change(null)`）内进行——账号注册表与租户授权绑定都落平台库，各实体显式置 `TenantId`，平台态插入保留该预置值（库隔离租户的独立库此时还没建，见下面的「库隔离租户的开通顺序」）：
+任何隔离模式都分步开通，建租户不带管理员：
 
-1. **确保版本**：租户未指定则取默认版本并回写 `SysTenant.EditionId`；
-2. **建管理员**：创建 `SysUser`（校验邮箱全局唯一）+ `SysUserSecurity`（密码哈希）+ `SysTenantUser`（`MemberType=Owner`、`InviteStatus=Accepted`）；
-3. **建 Owner 角色并按白名单授权**：创建角色 `tenant_owner`（数据范围 `All`），把该版本白名单里的有效权限批量写成 `SysRolePermission`（`Grant`）；
-4. **绑定**：把管理员挂到 Owner 角色（`SysUserRole`）。
+1. **建租户**：`CreateTenant` 写租户注册表；版本未指定则取默认版本（没有默认版本时保持未绑定，门控按未启用处理）。字段隔离租户建好即 `Configured`，库隔离租户是 `Pending`；
+2. **初始化数据库（仅库隔离）**：`InitializeDatabase` 建库、建表、登记升级基线，成功后 `Configured`（建库是 DDL，不能包在事务型工作单元里，所以是独立一步，可重复执行）；
+3. **初始化管理员**：`InitializeTenantAdmin` 一站式开通（`TenantProvisionDomainService.ProvisionTenantAdminAsync`）。只有已配置、还没有所有者的租户可以调用；列表与详情的 `HasOwner` 标出是否已开通。
 
-于是新租户开通即"能登录、有 Owner、拥有版本范围内的全部权限"，无需人工逐项授权。
+开通写的都是新租户的数据，切入该租户（`ICurrentTenant.Change(tenantId)`）写入，行的 `TenantId` 由作用域决定，不预置：
 
-#### 库隔离租户的开通顺序
+1. **建管理员**：创建 `SysUser`（校验邮箱全局唯一）+ `SysUserSecurity`（密码哈希）+ `SysTenantUser`（`MemberType=Owner`、`InviteStatus=Accepted`）；
+2. **建所有者角色**：`SysRole.CreateTenantOwnerRole()`——系统角色 `tenant_owner`、数据范围 `All`、成员上限 1，不写授权行；
+3. **绑定**：把管理员挂到所有者角色（`SysUserRole`）。
 
-`Database` 隔离的租户创建出来时 `ConfigStatus` 是 `Pending`，独立库要等 `InitializeDatabase` 才建（建库是 DDL，不能包在事务型工作单元里，所以是独立一步）。因此开通期**不能碰租户库**：上面四步全部在平台态执行，写的是平台库。
+于是开通管理员后即"能登录、是所有者、拥有套餐范围内的全部权限"，无需人工逐项授权；之后换套餐也不用补授权（见「租户所有者」）。管理页上字段隔离租户建好会接着弹出开通管理员；库隔离租户要先初始化数据库——开通时连带写的租户数据（日志等）在它自己的库里，库得先在，账号、成员关系、角色与授权本身在平台库。
+
+#### 库隔离租户的库
 
 `InitializeDatabase` 建的是这个租户**一整套**布局：主库，加上它按约定自带的模块库。主连接下配了 `ModuleDataSourceConfigs` 的模块（如 `Erp`），租户也会有一个对应的库，库名由租户主库名派生成 `{租户库名}_{模块名}`——租户库叫 `qqq`，就还会建一个 `qqq_Erp`。主连接那条模块连接串留空（该模块不分库）时租户同样不分，模块表落它自己的主库。
 
 这条约定由框架实现（`XiHan:Data:SqlSugarCore:EnableTenantModuleDatabaseConvention`，默认开），应用侧不写代码、不加配置。含义是：**租户声明了库隔离，它的数据就都在它自己的库里**，不会有一部分悄悄落回公共模块库。要把某个租户的模块库指到别的机器上，在 `ISqlSugarTenantConnectionProvider` 里显式给出 `ModuleDataSourceConfigs` 即可，显式的优先。
 
-对应地，账号定位与授权绑定的读侧也都在平台态：登录统一在平台态按全局唯一邮箱定位账号（见上文「登录与落点」），`ExistsEmailGloballyAsync` / `ExistsUserNameInTenantAsync` 自身会切到平台态执行——租户上下文下连接会被解析到该租户独立库，"全平台判重"就会查错库。租户范围由入参显式落进 `WHERE`，不依赖当前上下文。
+账号定位是跨租户的身份层操作：登录在平台作用域按全局唯一邮箱显式跨租户定位账号（`GetByEmailGloballyAsync`），账号的安全信息在账号归属租户内读写（见上文「登录与落点」）；`ExistsEmailGloballyAsync` / `ExistsUserNameInTenantAsync` 自身切到平台作用域、显式跨租户执行，租户范围由入参显式落进 `WHERE`，不依赖当前上下文。
 
 ### 降级自动回收越权授权
 
@@ -3306,7 +3473,7 @@ BasicApp 采用**先登录后选租户**：登录页不选择租户，统一在�
 
 - 触发点：`RevokeTenantEditionPermissionAsync`（撤销）、`UpdateTenantEditionPermissionStatusAsync`（映射被置为非 `Valid`）。恢复为有效则无需回收。
 - 回收动作：把该租户下**超出白名单**的 `SysRolePermission` / `SysUserPermission` 存量行置为 `Invalid` 并记 `ExpirationTime` 与回收原因（"套餐变更回收：超出当前版本权限白名单"）。
-- 边界：只回收该租户**自有**绑定行（`TenantId=本租户`）；全局行（`TenantId=0`）属平台运维资产，不在回收范围。白名单为空视为"门控未启用"，不回收以防误清。
+- 边界：只回收该租户**自有**绑定行（`TenantId=本租户`）；全局行（`TenantId=0`）属平台运维资产，不在回收范围。白名单为空时运行时已一律拒绝，存量绑定保留不回收，白名单恢复后随之恢复。
 
 > 运行时门控（快照收窄）+ 降级回收（存量清理）是两道并行防线：前者保证越权权限当下不生效，后者把已落库的越权授权行物理失效，避免日后升级/门控放开后旧越权授权"复活"。
 
@@ -3328,9 +3495,9 @@ BasicApp 采用**先登录后选租户**：登录页不选择租户，统一在�
 
 版本门控是租户维度对权限的**再收窄**，叠在 RBAC/ABAC 判定链之上。完整判定链（认证 → 租户解析 → RBAC → ABAC → 数据范围 → 字段脱敏）与权限码/数据范围/FLS 细节见 [权限模型](./permission)。要点回顾：
 
-- 授权快照按 `(当前租户 OR 全局 TenantId=0)` 聚合绑定行，再被当前租户版本白名单取交集收窄。
-- 超管（`*`）与平台运维态不受版本门控。
-- 版本白名单只挂平台级全局权限。
+- 授权快照只取当前上下文的绑定行（严格租户隔离），按作用侧裁掉不在当前上下文生效的权限，业务租户里再与版本白名单取交集。
+- 只有平台不受版本门控；超管的 `*` 只在平台成立。
+- 版本白名单只挂平台级全局权限，且作用侧必须含租户。
 
 ## 下一步
 
@@ -3577,7 +3744,7 @@ module : resource : action
 ```
 
 - 例：`saas:user:read`（读取用户）、`saas:role:export`（导出角色）、`saas:permission:create`（创建权限定义）
-- 超级管理员在授权快照里持有**字面通配 `*`**，放行一切。注意：匹配是"命中 `*` 或精确等于该权限码"（大小写不敏感），**不支持** `resource:*:*` 之类的段级通配——通配仅有 `*` 这一个特例，见下文判定链
+- 超级管理员在**平台**的授权快照里持有**字面通配 `*`**；作用侧不含当前上下文的权限码先于通配拒绝，进了业务租户超管身份不成立（见 [多租户](./multi-tenancy)）。匹配是"命中 `*` 或精确等于该权限码"（大小写不敏感），**不支持** `resource:*:*` 之类的段级通配——通配仅有 `*` 这一个特例，见下文判定链
 
 > 冒号分三段是硬约定：`SaasPermissionDefinitions.ResolveGroupCode` 按 `saas:{resource}:{action}` 取中间段作为**分组码**（资源段），前端权限中心据此把权限归类展示。
 
@@ -3586,6 +3753,7 @@ module : resource : action
 - `SaasPermissionCodes` 按资源分嵌套静态类，每个动作一个 `const string`，如 `SaasPermissionCodes.User.Read = "saas:user:read"`。后端 `[PermissionAuthorize(SaasPermissionCodes.User.Read)]` 直接引用常量，杜绝魔法字符串。
 - `SaasPermissionDefinitions.Groups` 是**手写单一事实源**：每个资源块一个 `SaasPermissionGroup`（组码 + 中文组名 + 组内 `SaasPermissionItem` 列表）。落库扁平表 `All`、组码→组名 `GroupNames` 全由 `Groups` 派生，每条权限的 `ModuleCode`（恒为 `saas`）、`Tags`、`Priority`（恒等于 `Sort`）自动生成，无需手写。
 - 新增资源时只在 `Groups` 增一个分组节点、或在已有节点增一条权限项即可，种子据此落库。
+- 每个分组必须声明**作用侧**（`PermissionSide`：平台 / 租户 / 两侧），条目可单独覆盖；作用侧决定权限在哪个上下文生效、能否进入套餐白名单，详见 [多租户 · 权限作用侧](./multi-tenancy#权限作用侧平台-租户-两侧)。
 
 每条权限项携带一个关键标志 `IsRequireAudit`：为 `true` 时，该权限对应的操作应强制写差异日志（`SysDiffLog`），用于合规审计。写类动作（create/update/delete/grant/revoke）多为 `true`，读与导出多为 `false`。
 
@@ -3604,6 +3772,7 @@ module : resource : action
 | `PermissionType` | `ResourceBased`（绑定 `ResourceId`+`OperationId`）/ `Functional`（仅凭码）/ `DataScope` |
 | `ResourceId` / `OperationId` | 关联 `SysResource` / `SysOperation`（`ResourceBased` 时必填） |
 | `IsRequireAudit` | 该权限操作是否强制写 `SysDiffLog` |
+| `Side` | 作用侧（`Platform` / `Tenant` / `Both`，必填）：权限在平台还是业务租户里生效 |
 | `Priority` | 数字越大越高；**仅**用于同级别 Grant/Deny 排序，不参与 Grant vs Deny 跨级覆盖（Deny 始终优先） |
 | `Status` | `Enabled` / `Disabled` |
 
@@ -3613,9 +3782,19 @@ module : resource : action
 
 用户通过**角色**获得权限码集合。角色是权限分配单元：
 
-- `SysRole`：承载一组权限，通过 `SysUserRole` 赋给用户。`RoleType` 分 `System`（平台预置，必须 `TenantId=0`）/ `Business` / `Custom`（租户自建，不可全局化）。平台基线只预置 `super_admin`（`TenantId=0` 的 `System` 角色）；租户开通时自动创建 Owner 角色 `tenant_owner` 并按版本白名单批量授权。
+- `SysRole`：承载一组权限，通过 `SysUserRole` 赋给用户。`RoleType` 分 `System` / `Business` / `Custom`（租户自建，不可全局化）。系统角色只有两个，都不写授权行、由授权快照按上下文整体给权限：平台的 `super_admin`（`TenantId=0`，平台里带 `*` 与平台生效的全部权限）和各租户开通时建的 `tenant_owner`（`TenantId=本租户`，租户生效的全部权限再经套餐收窄）。系统角色的定义与成员只由系统流程维护，租户里不能编辑、授予、撤销或停用，编码保留。
 - `SysRolePermission`：角色↔权限绑定，字段含 `PermissionAction`（`Grant`/`Deny`）、生效/失效时间（`EffectiveTime`/`ExpirationTime`）、`GrantReason`（关联审批单/工单，审计追溯）。
 - `SysUserRole`：用户↔角色绑定（用户"持有"角色）。
+
+### 分配角色：两个入口，一套规则
+
+角色既可以在用户那边分（「角色直授」：一个用户、多个角色，`BatchUpdateUserRoles`），也可以在角色这边分（「角色成员」：一个角色、多个成员，`BatchUpdateRoleMembers`，候选人来自当前上下文的用户目录，租户里含外部成员）。两个入口、以及单条改状态 / 改有效期让一条绑定重新占名额的路径，走同一套规则：
+
+- 对象必须是本租户可授权的成员（已接受、有效、在有效期内）；支持成员也由所在租户分配。
+- 角色必须可分配：启用；系统角色只在平台分配；全局角色在租户里可以分配给本租户成员，但只能在平台编辑。
+- 加入后不违反静态职责分离（按「现有有效角色 + 新角色」展开继承链评估）。
+- 不超角色成员上限 `MaxMembers`（0 表示不限）：状态有效且未过期的绑定占名额，尚未生效的预约同样占，已过期的不占；同批移出的名额可以让出。
+- 撤销只置失效不删行，同一 用户×角色 的历史行再授予时就地复用、从现在起生效。
 
 ### 角色层级继承（闭包表）
 
@@ -3653,12 +3832,16 @@ module : resource : action
 
 > **重要**：该枚举**不承诺"数值越大范围越广"**（`Custom=99`）。多角色合并必须按显式语义处理：任一角色 `All` → 全部；`DepartmentOnly`/`DepartmentAndChildren` → 求部门归属并集；`Custom` → 与其它范围并集叠加；仅 `SelfOnly` 才只返回本人数据。禁止用数值大小做合并判断。
 
+成员还可以有自己的覆盖：成员关系 `SysTenantUser.DataScopeOverride`（null 表示跟随角色）。覆盖挂在成员关系上，同一个人在不同租户各自设置；有覆盖时**取代**该成员在本租户的全部角色，不与角色合并。
+
 自定义范围有两张对称的明细表，仅在档位为 `Custom` 时枚举可见部门：
 
 - `SysRoleDataScope`：服务 `SysRole.DataScope=Custom`。字段 `RoleId`+`DepartmentId`，`IncludeChildren=true` 时服务层配合 `SysDepartmentHierarchy` 展开所有后代部门（新增子部门自动纳入）。
-- `SysUserDataScope`：服务用户级覆盖 `SysUser.DataScopeOverride=Custom`，纯部门明细；写入前置条件是该用户 `DataScopeOverride=Custom`，否则拒绝。解析时用户级部门明细与角色级范围按**并集**叠加。
+- `SysUserDataScope`：服务成员覆盖 `SysTenantUser.DataScopeOverride=Custom`，本租户、本成员的部门明细。
 
-数据范围在**查询层**生效：任一角色为 `All` 则不限；否则解析出可见部门集（`IncludeChildren` 经 `SysDepartmentHierarchy` 展开后代），再取这些部门下的成员并入"本人"，收敛为可见用户主键集合追加到查询条件，与权限码组合决定"能对哪些行做这个动作"。无任何有效范围时只返回本人数据。
+档位与部门明细**一次设置、一次落地**：角色走 `SetRoleDataScopeAsync`，成员走 `SetUserDataScopeAsync`，权限码只有查看（`read`）与设置（`update`）。只有自定义档位带部门且至少一个；切到其它档位时已有的部门明细全部撤销（只置失效，历史行再选中时就地复用）。全局角色是各租户共用的模板，只在平台设档位、不能自定义部门（部门是租户自己的数据），在租户里只读。
+
+数据范围在**查询层**生效，是租户侧概念：平台没有部门与成员关系，不施加数据范围。租户里先看成员覆盖；没有覆盖才按启用角色——任一角色为 `All` 则不限，自定义档位的角色并入它的部门明细（非自定义档位角色残留的明细不生效）。解析出可见部门集（`IncludeChildren` 经 `SysDepartmentHierarchy` 展开后代）后，取这些部门下的成员并入"本人"，收敛为可见用户主键集合追加到查询条件，与权限码组合决定"能对哪些行做这个动作"。无任何有效范围时只返回本人数据。
 
 ## 字段级脱敏（FLS）
 
@@ -3695,7 +3878,7 @@ FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**�
 
 前端另有 `MyFieldSecurityAppService.GetMineAsync(resourceCode)` 下发"可读/可编辑/脱敏"信息，供表单据 `IsEditable` 置只读、展示脱敏标识——但**脱敏值本身已由服务端在响应里落地**，前端仅做体验优化。
 
-**导出一致脱敏**：后台导出走 `ExportExecutor`，它在后台线程先按任务发起人重建 `CurrentTenant` + `CurrentPrincipal`，再调用既有 QueryService，使**数据范围与字段脱敏原样生效**，并显式 `IPermissionChecker` 补齐进程内不触发 `[PermissionAuthorize]` 的缺口。因此导出与在线列表看到的脱敏结果一致。
+**导出与在线同一口径**：后台导出走 `ExportExecutor`，它在后台线程按任务发起人重建 `CurrentTenant` + `CurrentPrincipal`，再调用既有 QueryService，使**数据范围与字段脱敏原样生效**，并显式 `IPermissionChecker` 补齐进程内不触发 `[PermissionAuthorize]` 的缺口。重建的主体与在线请求同一口径：发起时记下的会话声明（会话已登出或被下线，导出随之失败）、与签发令牌同一来源的角色（超管判定等依赖角色的规则一致）、模仿者声明（模仿态禁用的权限在导出里同样禁用）；租户停用、到期或未就绪时导出直接失败。因此导出与在线列表看到的数据、脱敏结果一致。
 
 ## ABAC：属性驱动的约束
 
@@ -3752,17 +3935,17 @@ FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**�
 
 多租户下不同订阅版本开放不同权限。`SysTenantEditionPermission` 是 Plan-gating 核心：定义每个版本（`Edition`）向租户开放的**权限白名单**。
 
-- `EditionId` + `PermissionId` 唯一，`PermissionId` 通常指向 `TenantId=0` 的全局权限（`IsGlobal=true`），非全局权限不应被版本门控。
+- `EditionId` + `PermissionId` 唯一，`PermissionId` 指向 `TenantId=0` 的全局权限（`IsGlobal=true`），且作用侧必须含租户（平台侧权限进不了租户）。
 - 租户可用权限集 = `SysTenant.EditionId` → 此表 → 可用 `PermissionId` 集；租户管理员分配角色/用户权限时须在此集合内选择。
-- 版本升级（如 Basic → Pro）增量写入新增权限；开通版本时一站式创建 Owner 角色并按白名单批量授权。
+- 版本升级（如 Basic → Pro）只改白名单与租户所绑版本；租户所有者的权限由授权快照按白名单整体给出，升级即时生效，其他角色的授权由租户按需授予。
 
 版本门控有**运行时**与**持久回收**两层，互为兜底：
 
-**运行时门控**：构建授权快照时，`ApplyEditionGatingAsync` 把用户有效权限集与当前版本白名单**求交**，超出白名单的权限即使 DB 里仍有绑定也不进入本次生效集。跳过门控的情形：超管通配 `*`、平台运维（无租户上下文）、无版本绑定、白名单为空。版本权限变更会失效版本门控缓存，下次判定即按新白名单收窄。
+**运行时门控**：构建授权快照时，`ApplyEditionGatingAsync` 把用户有效权限集与当前版本白名单**求交**，超出白名单的权限即使 DB 里仍有绑定也不进入本次生效集。只有平台（0 号租户）跳过门控；业务租户里无版本绑定或白名单为空时生效权限为空（失败即拒绝），门控缓存不可用时直接查库。版本权限变更会失效版本门控缓存，下次判定即按新白名单收窄。
 
 **降级自动回收越权授权**：租户版本变更时（`TenantDomainService` 检测到 `EditionId` 变化），调用 `TenantProvisionDomainService.ReconcileTenantAuthorizationWithEditionAsync`，按新版本白名单**回收超出范围的存量角色/用户直授权限行**。关键实现细节：
 
-- 白名单为**空视为门控未启用**（与运行时鉴权语义一致），不做回收，避免误清。
+- 白名单为空时运行时已一律拒绝，存量绑定保留不回收，白名单恢复后随之恢复。
 - 仅处理该租户**自有**绑定行（`TenantId=本租户`）；全局行（`TenantId=0`）属平台运维资产，不在回收范围。
 
 ## 判定链
@@ -3777,8 +3960,10 @@ FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**�
         · deny-overrides：用户 Deny > 用户 Grant > 角色 Deny > 角色 Grant
         · 角色权限经 SysRoleHierarchy 展开继承链（祖先 Grant，后代 Deny 覆盖）
         · 委托权限（SysPermissionDelegation）并入快照，再统一被用户 Deny 收窄
-        · 版本白名单求交（ApplyEditionGatingAsync）
-        · super_admin 角色 → 全部启用权限 + 字面 * 通配放行
+        · 只取当前上下文的绑定（平台的绑定不进租户，反之亦然）
+        · 作用侧：不在当前上下文生效的权限码先于通配拒绝
+        · 业务租户：版本白名单求交（ApplyEditionGatingAsync，失败即拒绝）
+        · 平台的 super_admin 角色 → 平台生效的全部权限 + 字面 * 通配放行
   → 授权(ABAC)：混合策略里编码在策略名中的 ABAC 策略码
         · 收集 subject./resource./environment. 属性 → 评估器按策略码判定
           （同租户/仅本人/比较式内建；时间窗/IP 依赖应用侧属性收集器）
@@ -3830,7 +4015,7 @@ FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**�
 
 ## 权限码
 
-前缀 `print-template:`（`Domain/Permissions/PrintingPermissionCodes.cs`）：`read` / `create` / `update` / `status` / `delete` / `use` 可授予租户（模块角色权限种子默认授 `tenant_admin`）；`global-manage` 为平台专属（管理全局模板与租户开放状态，经 `SaasPlatformPermissions.ContributePlatformOnly` 登记进统一排除口径）。
+前缀 `print-template:`（`Domain/Permissions/PrintingPermissionCodes.cs`）：`read` / `create` / `update` / `status` / `delete` / `use` 两侧生效、可授予租户（租户角色与套餐白名单由运营授予；演示数据里的租户管理员角色取租户能生效的全部权限）；`global-manage` 作用侧为平台（管理全局模板与租户开放状态；由权限种子声明，只在平台生效、进不了套餐白名单）。
 
 ## 数据源目录
 
@@ -4277,7 +4462,7 @@ Saas 模块在 `OnPostApplicationInitialization`（**所有模块都就绪之后
 页面能看到并微调 `SysMenu` 表，但**它不是事实源**。
 
 ::: danger 菜单的事实源在后端代码里
-菜单、路由、组件路径、权限码、国际化键统一由 `Application/Pages/PageRegistry.cs` 登记，`SaasMenuSeeder`（`Order=25`）据此播种到 `SysMenu`。
+菜单、路由、组件路径、权限码、国际化键统一由 `Application/Pages/PageRegistry.cs` 登记，`SaasMenuSeeder` 据此播种到 `SysMenu`。
 
 **新增/修改菜单要改 `PageRegistry` 并重新播种**，在页面上手改会在下次播种时被覆盖或产生漂移。菜单管理页的定位是查看结构、调整排序与显隐，不是维护入口。
 :::
@@ -4326,6 +4511,22 @@ Saas 模块在 `OnPostApplicationInitialization`（**所有模块都就绪之后
 :::
 
 配置值走缓存（`basicapp:saas:config:value`），写侧调 `InvalidateConfigurationAsync(configKey?)`。
+
+### 内置参数
+
+同一功能的设置合成一条 JSON 参数，结构只在对应的设置类型里定义一处；键为小写点分的 `模块.领域.名称`。参数缺失时按设置类型的默认值运行，值写错（JSON 解析失败、字段类型不对）直接报错，不静默回退。
+
+| 键 | 类型 | 内容 |
+| --- | --- | --- |
+| `saas.auth.login` | JSON | `methods` 登录页开放的登录方式；`oauthProviders` 展示的第三方登录（`name` 须与已注册的认证方案一致） |
+| `saas.auth.password` | JSON | `forceChange` 强制改密，默认关闭：开启后，密码由他人设置（管理员创建或重置、平台开通、种子写入）的账号登录后先锁定到改密为止 |
+| `saas.auth.impersonation` | JSON | `sessionMinutes` 模仿会话分钟数（按 1~480 归一）；`notifyTarget` 是否通知被模仿者 |
+| `saas.bot.telegram` | JSON | Telegram 机器人平台设置：总开关、Webhook 地址与路由前缀、刷新与缓存周期、兜底回复、网络 |
+| `saas.bot.telegram.webhook-secret-token` | 加密文本 | Webhook 模式必填的密钥令牌，单列是为了加密存储 |
+| `saas.log.retention-days` | 数字 | 7 类分表日志的保留天数，缺省 180 |
+| `chat.policy` | JSON | `retentionDays` 聊天消息保留天数（缺省 365）；`sensitiveWords` 敏感词数组 |
+
+种子只补缺的参数、对齐名称与说明等元数据，配置值只在为空时写入初始值，运营改过的值与启停状态不动。
 
 ## 业务编号（`/setting/numbering`）
 
@@ -4465,7 +4666,7 @@ BasicApp 在 `AddSaasDomainServices()` 中注册四个数据库适配器，使�
 
 | 场景 | 机制 | 负责内容 |
 | --- | --- | --- |
-| 全新数据库 | SqlSugar CodeFirst + Seeder | 建库、建表、系统基线与演示数据 |
+| 全新数据库 | SqlSugar CodeFirst + Seeder | 建库、建表、基础数据（演示数据按开关） |
 | 存量数据库 | Upgrade + `UpdateScripts` | 增删列、索引变化、数据修复与版本推进 |
 
 `DbInitializer` 对已存在的表不会自动补列。实体结构变更如果只改 C#、不写前向 SQL，存量库会在查询时出现 `column does not exist` 一类错误。
@@ -4528,6 +4729,8 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 2. `IsolationMode=Database` 且 `ConfigStatus=Configured` 的租户独立库。
 
 字段隔离租户与平台共库，不重复执行。每个独立库都有自己的 `SysVersion` 与 `SysMigrationHistory`，数据库版本可以独立追踪。
+
+新建的库不补跑历史脚本：本次启动从零建出全部实体表的平台库（`SaasSchemaUpgrader` 按 `DbSchemaUpgradeContext.IsFresh` 判定）与 `InitializeDatabase` 新建的独立库，建好即通过 `IUpgradeEngine.BaselineAsync` 登记为最新脚本版本。独立库里只有租户库实体的表，脚本改平台库表（`[PlatformDataSource]` 实体）的语句要先判表存在，见 `UpdateScripts/README.md`。
 
 ### 租约锁
 

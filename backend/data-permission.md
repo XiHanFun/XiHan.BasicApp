@@ -24,7 +24,7 @@
 
 ## 数据范围（行级）
 
-范围枚举是 `DataPermissionScope`：角色的档位写在 `SysRole.DataScope`；`SysUser.DataScopeOverride` 是用户级档位，取 `Custom` 时才能维护用户级部门明细。
+范围枚举是 `DataPermissionScope`：角色的档位写在 `SysRole.DataScope`；成员的覆盖写在成员关系 `SysTenantUser.DataScopeOverride`（null 表示跟随角色），同一个人在不同租户各自设置。
 
 | 范围 | 含义 | 依赖 |
 | --- | --- | --- |
@@ -34,19 +34,22 @@
 | `All` | 全部数据（仍受租户过滤器约束） | — |
 | `Custom` | 指定部门集合 | `Sys_Role_Data_Scope` / `Sys_User_Data_Scope` |
 
-解析入口是 `IUserDataScopeFilterService.ResolveAccessibleUsersAsync`，当前由用户列表查询（`UserQueryService`）调用；持有 `super_admin` 角色的用户不受数据范围限制。
+解析入口是 `IUserDataScopeFilterService.ResolveAccessibleUsersAsync`，当前由用户列表查询（`UserQueryService`）调用。数据范围是租户侧概念：平台没有部门与成员关系，不施加数据范围（超管只在平台成立，也就不需要单独豁免）。
 
 ### 合并规则
 
 ```text
-角色的数据范围        →  多角色取并集；任一角色为 All 即放行全部
-        +
-用户级自定义部门      →  Sys_User_Data_Scope 的部门按 Custom 并入同一并集
+成员有覆盖            →  只按覆盖；Custom 时取 Sys_User_Data_Scope 里本成员的部门
+        否则
+启用角色的数据范围    →  多角色取并集；任一角色为 All 即放行全部；
+                         Custom 角色并入 Sys_Role_Data_Scope 的部门
         ↓
 一个部门都没命中      →  退回仅本人
 ```
 
-用户级自定义部门要求 `SysUser.DataScopeOverride = Custom` 才能维护，用于「这个人比较特殊」的场景，不要拿它当常规手段——角色才是可维护的授权单位。
+成员覆盖用于「这个人比较特殊」的场景（如 CEO 挂的是部门经理角色、但要看全部），不要拿它当常规手段——角色才是可维护的授权单位。
+
+档位与部门一次设置：角色在角色页的「数据范围」、成员在用户页的「数据范围」，先选档位，自定义时在部门树里勾部门、逐项设「含下级」。被上级「含下级」覆盖的部门会给出提示。全局角色只在平台设档位、不能自定义；支持成员（平台人员入驻）同样由所在租户设置。
 
 ### 依赖组织架构
 
@@ -123,15 +126,15 @@
 除了行级与列级，还有一条容易忽略的边界：**读共享 ≠ 写共享**。
 
 ```text
-读：全局过滤器放行 TenantId IN (0, 当前租户)   ← 租户能读到平台全局数据
-写：禁止改写/删除非本租户行（含 TenantId=0 的全局行）
+读：全局过滤器放行 TenantId IN (0, 当前租户)   ← 租户能读到平台全局数据；平台只读 0
+写：只能改写/删除当前作用域的行               ← 租户不能改全局行，平台也不能改租户行
 ```
 
-实现方式：预读守卫校验取回行的 `TenantId`，条件写自动追加当前租户 `Where`。
+实现方式：预读守卫校验取回行的 `TenantId`，条件写自动追加当前作用域的 `Where`。
 
-维护全局 / 跨租户数据的**唯一合法入口是平台态**（无租户上下文，`ICurrentTenant.Change(null)`）。
+平台就是 0 号租户：全局数据在平台作用域维护，某个租户的数据切入该租户（`ICurrentTenant.Change(tenantId)`）维护；跨租户读取只能显式清过滤（`...IgnoreTenantAsync` / `.ClearTenantFilter()`）。
 
-**例外：用户自有行**。账号、安全记录、会话、三方绑定、通知偏好、个人设置、接口凭证这类行按 `UserId` 归属，`TenantId` 只是归属租户 / 产生时所在租户的戳；一个人可以同时是多个租户的成员，切进别的租户后这些行经全局过滤会整体不可见。个人中心的这些数据因此一律按 `UserId` 跨租户读（仓储上的 `...IgnoreTenantAsync` 与按用户唯一键的读法），活跃度与登录日志仍按当前租户切分；写则用 `TenantWriteGuard.Suppress()` 包裹——作用域内预读同样忽略租户过滤、跳过写边界校验，契约是只写当前用户自己的行。
+**账号域数据**。账号、安全记录、个人设置、通知偏好、接口凭证、三方绑定、密码历史是严格隔离的账号域数据，`TenantId` 固定为注册地（平台账号为 0）；一个人可以同时是多个租户的成员，切进别的租户后这些行经全局过滤不可见。个人中心的这些数据因此一律按 `UserId` 跨租户读（仓储上的 `...IgnoreTenantAsync` 与按用户唯一键的读法）；新增经 `IAccountScope` 切回注册地写，更新自己已有的行用 `TenantWriteGuard.Suppress()` 包裹（只放宽更新与删除，契约是只写当前用户自己的行）。会话与登录日志属于运行数据，按发生时所在的租户切分。
 
 ## 排查
 
@@ -142,7 +145,7 @@
 | 列变成 null / 空 | FLS `isReadable` 为假，服务端已把值置空 |
 | 列显示成 `***` | FLS 脱敏策略生效，服务端已打码 |
 | 排序 / 搜索不生效 | 该字段被 FLS 剔出条件 |
-| 改了数据范围不生效 | 该列表是否接了数据范围过滤；用户级自定义部门需 `SysUser.DataScopeOverride = Custom` |
+| 改了数据范围不生效 | 该列表是否接了数据范围过滤；成员是否有覆盖（有覆盖时角色的范围不再生效）；角色是否停用、档位是否为自定义 |
 | 表单该只读却可编辑 | 页面 `PageSchema.resourceCode` 没声明，或页面没调用 `useFieldSecurity`（后端写校验仍会拒绝） |
 
 ## 相关页面

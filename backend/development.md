@@ -97,7 +97,7 @@ new(SaasPermissionCodes.Position.Group, "岗位",
 ]),
 ```
 
-落库扁平表 `All`、组码→组名 `GroupNames`、`ModuleCode`/`Tags`/`Priority` 全部**自动派生**，无需手写。`SaasPermissionSeeder`（`Order=20`）据此播种 `SysPermission`。
+扁平表 `All`、组码→组名 `GroupNames`、`ModuleCode` 与分组全部**自动派生**，无需手写。权限目录种子 `SaasPermissionCatalogSeeder` 据此播种 `SysPermission`（标签 `[模块, 分组]`、优先级取排序号，都由种子统一生成）。
 
 #### 3. 菜单 + 按钮 → `PageRegistry`（建菜单即绑权限）
 
@@ -119,7 +119,7 @@ new("identity.position.update", "编辑", "identity.position", SaasPermissionCod
 // …delete / status / export
 ```
 
-`SaasMenuSeeder`（`Order=25`）从 `PageRegistry.All + Buttons` 生成菜单；它先按权限码查 `SysPermission`，**查不到就跳过并告警（fail-closed）**——所以权限种子（`Order=20`）必须排在菜单种子（`Order=25`）之前，天然满足。父目录必须排在子项之前（种子依顺序解析 `ParentId`）。
+`SaasMenuSeeder` 从 `PageRegistry.All + Buttons` 生成菜单；它先按权限码查 `SysPermission`，**查不到直接报错**——权限目录阶段排在菜单阶段之前，天然满足。父目录必须排在子项之前（种子依顺序解析 `ParentId`，找不到父菜单同样报错）。
 
 `Component`（`identity/position/index`）= `Path` 去前导斜杠 + `/index`，与前端 `src/views` 目录一一对应。`_core` 页面例外（见配方 C）。
 
@@ -246,31 +246,30 @@ public static IServiceCollection AddAIConfigStore(this IServiceCollection servic
 }
 ```
 
-### 种子 `Order` 段：模块间互不交叠
+### 种子：阶段与模块号段
 
-每个模块占一段互不重叠的 `Order`，链内遵循「**操作 → 资源 → 权限 → 菜单 → 角色授权**」顺序（建即绑权限码）：
+种子按阶段排序（常量在 `SeedOrders`），同一阶段内按模块错开号段：
 
-| 模块 | `Order` 段 | 说明 |
-| --- | --- | --- |
-| Saas | 10–37 | 系统基线 10–29、演示 30–37 |
-| CodeGeneration | 100–105 | — |
-| AI | 200–217 | Provider 200–204、知识库 RAG 205–208、提示词库 209–212、AI 助手 213–216、菜单 217 |
-| Workflow | 300–304 | 操作 300 → 资源 301 → 权限 302 → 菜单 303 → 角色授权 304 |
+| 阶段 | `Order` | SaaS | 代码生成 | AI | 工作流 | 聊天 | 打印 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 平台身份 | 100 | 超级管理员 | — | — | — | — | — |
+| 操作字典 | 200 | 操作字典（各模块共用） | — | — | — | — | — |
+| 权限目录 | 300 | +0 | +10 | +20 | +30 | +40 | +50 |
+| 菜单 | 400 | +0 | +10 | +20 | +30 | +40 | +50 |
+| 套餐 | 500 | 四档套餐 | — | — | — | — | — |
+| 平台数据 | 600 | 参数、存储、模板、OAuth、任务 | 内置模板 +10 | — | — | 参数、任务 +40 | — |
+| 演示 | 900 | 演示租户与账号 | — | — | — | — | — |
 
-AI 的 `AddAIDataSeeders` 实链（`AddDataSeeder<T>()` 逐个登记）：
+一个模块通常只需两个种子：继承 `PermissionCatalogSeederBase` 的权限目录（声明资源与权限；资源型权限用 `PermissionSeed.Of(资源, 作用侧, 起始排序, 操作…)` 按「资源 × 操作」展开），和继承 `PageRegistryMenuSeederBase` 的菜单（直接取模块的 `PageRegistry`）。AI 的 `AddAIDataSeeders`：
 
 ```csharp
-services.AddDataSeeder<SysOperationSeeder>();       // 200 操作字典（权限派生前置）
-services.AddDataSeeder<SysResourceSeeder>();        // 201 资源（权限派生前置）
-services.AddDataSeeder<SysPermissionSeeder>();      // 202 资源 × 操作 → ai:* 权限
-services.AddDataSeeder<SysRolePermissionSeeder>();  // 204 仅授超管
+services.AddDataSeeder<AiPermissionCatalogSeeder>(); // SeedOrders.PermissionCatalog + 20：模型服务、提示词、助手、知识库四个资源
+services.AddDataSeeder<AiMenuSeeder>();              // SeedOrders.Menus + 20：本模块 PageRegistry
 ```
 
-`AddRAGDataSeeders`（205–208）、`AddPromptDataSeeders`（209–212）与 `AddAssistantDataSeeders`（213–216）各自复用 AI 段的 `SysOperationSeeder`（200），链内只补「资源 → 权限 → 角色授权」三步，不重复种操作字典。本模块全部菜单由末尾的 `AiMenuSeeder`（217，`PageRegistry` 驱动）一次播种。
+模块不写角色授权：超管在平台天然拥有全部权限，租户所有者按套餐拿权限，其它角色由运营授予。新模块取一个未用的偏移（如 +60），每个阶段都用它。
 
-> 新模块选一段未用的 `Order`（如 400–）；**操作/资源种子必须排在权限种子之前**（权限由「资源 × 操作」派生）。
-
-`XiHan.BasicApp.Workflow` 是最干净的一个独立模块样板：`ConfigureServices` 只有三行（`AddWorkflowStores` 用 `Replace` 把框架工作流的内存存储换成 SqlSugar 持久化、`AddWorkflowDataSeeders` 走完整的五步种子链、`AddWorkflowEventHandlers` 登记三个本地事件处理器），仓储与应用服务全部交给约定注册。要照着做一个新模块，读它比读 AI 模块更省力。
+`XiHan.BasicApp.Workflow` 是最干净的一个独立模块样板：`ConfigureServices` 只有三行（`AddWorkflowStores` 用 `Replace` 把框架工作流的内存存储换成 SqlSugar 持久化、`AddWorkflowDataSeeders` 登记权限目录与菜单两个种子、`AddWorkflowEventHandlers` 登记三个本地事件处理器），仓储与应用服务全部交给约定注册。要照着做一个新模块，读它比读 AI 模块更省力。
 
 ### 动态 API 动词/路由映射
 
@@ -363,7 +362,7 @@ export const positionApi = {
 
 - **领域服务必须手写 DI**。领域服务接口不带 `IScopedDependency`/`IDomainService` 标记，框架不自动注册；漏了 `AddScoped<I..DomainService, ..DomainService>()` → 运行期 DI 解析异常。仓储与应用/查询服务由约定自动注册，无需手写。
 
-- **种子链缺 `SysOperation` 会致 CodeGen 静默失效**。权限由「资源 × 操作」派生，操作字典种子（`SysOperationSeeder`）必须先于权限种子；干净库若缺此段，代码生成等依赖该链的功能会静默失效。独立模块的种子链务必保持「操作 → 资源 → 权限 → 菜单 → 角色授权」完整顺序。
+- **种子按阶段排，依赖缺了直接报错**。操作字典（SaaS 统一播）→ 权限目录 → 菜单 → 套餐；权限目录引用的操作不在字典里、菜单绑定的权限或父菜单不存在，种子都会报错拖垮启动，而不是静默跳过。新模块照 `SeedOrders` 的阶段与模块号段取 `Order`。
 
 - **分页方法必须显式补 `[HttpPost]`**。方法名以 `Get` 开头会被默认识别为 GET；新增分页方法漏标 `[HttpPost]` → 前端 body 收不到查询对象。
 

@@ -253,7 +253,7 @@ MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://fram
 5. **（可选）MCP**：需要对外暴露 MCP tools 时，`XiHan:AI:Mcp` 显式 `Enabled=true` 并配 `ApiKey`。
 6. **多实例**：共享 Data Protection 密钥环，否则各实例无法互相解密 provider 密钥。
 
-种子说明：AI provider、知识库与提示词库各占独立种子 Order 段（`200-204` / `205-208` / `209-212`，晚于 Saas 的 `10-37` 与代码生成的 `100-105`），操作字典复用 AI provider 段的 `SysOperationSeeder`（200），链内顺序均为「（操作字典 →）资源 → 权限 → 菜单 → 角色授权」，权限**仅授超管**（其余角色/租户按需在权限管理里下放）。
+种子说明：权限目录 `AiPermissionCatalogSeeder` 声明模型服务、提示词、助手、知识库四个资源的「资源 × 操作」权限，全部是平台侧；菜单由 `AiMenuSeeder` 按本模块 `PageRegistry` 播种。超管在平台天然拥有这些权限，其它平台角色按需在权限管理里授予。
 
 ---
 
