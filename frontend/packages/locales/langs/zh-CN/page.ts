@@ -3,7 +3,7 @@ export default {
     title: '账号登录',
     username: '账号',
     password: '密码',
-    username_placeholder: '请输入邮箱',
+    username_placeholder: '请输入用户名或邮箱',
     password_placeholder: '请输入密码',
     login_btn: '登录',
     remember_me: '记住我',

@@ -3,7 +3,7 @@ export default {
     title: 'アカウントログイン',
     username: 'アカウント',
     password: 'パスワード',
-    username_placeholder: 'メールアドレスを入力してください',
+    username_placeholder: 'ユーザー名またはメールアドレスを入力してください',
     password_placeholder: 'パスワードを入力してください',
     login_btn: 'ログイン',
     remember_me: 'ログイン状態を保持',

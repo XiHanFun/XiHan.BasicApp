@@ -3,7 +3,7 @@ export default {
     title: 'Account Login',
     username: 'Account',
     password: 'Password',
-    username_placeholder: 'Please enter email',
+    username_placeholder: 'Please enter username or email',
     password_placeholder: 'Please enter password',
     login_btn: 'Sign In',
     remember_me: 'Remember me',

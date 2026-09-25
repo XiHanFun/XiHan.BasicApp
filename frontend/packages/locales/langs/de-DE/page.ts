@@ -3,7 +3,7 @@ export default {
     title: 'Kontoanmeldung',
     username: 'Konto',
     password: 'Passwort',
-    username_placeholder: 'Bitte E-Mail eingeben',
+    username_placeholder: 'Bitte Benutzernamen oder E-Mail eingeben',
     password_placeholder: 'Bitte Passwort eingeben',
     login_btn: 'Anmelden',
     remember_me: 'Angemeldet bleiben',
