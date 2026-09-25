@@ -223,7 +223,7 @@ async function swapSplitPanes(): Promise<void> {
 
 const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
-const appHomepage = __APP_HOMEPAGE__
+const appRepository = __APP_REPOSITORY__
 const appName = __APP_NAME__
 
 const sidebarForceDark = computed(() => shell.appStore.sidebarDark && !isDark.value)
@@ -520,7 +520,7 @@ const sidebarEnableState = computed(
       >
         <!-- Left: Dev version info -->
         <div v-if="shell.appStore.footerShowDevInfo" class="footer-section-left" :class="{ 'text-center': shell.isMobile.value }">
-          <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>
+          <a :href="appRepository" target="_blank" class="hover:underline">{{ appName }}</a>
           v{{ appVersion }}({{ appBuildTime }})
           · Powered by
           <template v-for="(p, i) in FOUNDATION_PROJECTS" :key="p.name">

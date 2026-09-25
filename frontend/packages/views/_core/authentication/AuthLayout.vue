@@ -33,7 +33,7 @@ const showEntryTabs = computed(() =>
 
 const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
-const appHomepage = __APP_HOMEPAGE__
+const appRepository = __APP_REPOSITORY__
 const appName = __APP_NAME__
 </script>
 
@@ -143,7 +143,7 @@ const appName = __APP_NAME__
       class="auth-footer absolute bottom-0 left-0 flex w-full flex-col items-center justify-center gap-1 px-4 py-3 auth-caption text-[hsl(var(--muted-foreground))]"
     >
       <div v-if="appStore.footerShowDevInfo" class="leading-tight">
-        <a :href="appHomepage" target="_blank" class="hover:underline">{{ appName }}</a>
+        <a :href="appRepository" target="_blank" class="hover:underline">{{ appName }}</a>
         v{{ appVersion }}({{ appBuildTime }}) · Powered by
         <template v-for="(item, i) in FOUNDATION_PROJECTS" :key="item.name">
           <span v-if="i > 0"> &amp; </span>
