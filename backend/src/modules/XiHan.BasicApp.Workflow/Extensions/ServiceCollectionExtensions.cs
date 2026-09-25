@@ -4,7 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Workflow.Application.EventHandlers;
-using XiHan.BasicApp.Workflow.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Workflow.Infrastructure.Seeders;
 using XiHan.BasicApp.Workflow.Infrastructure.Stores;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.EventBus.Local;
@@ -37,17 +37,14 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 注册工作流种子数据（Order 300+ 独立段，链内顺序：操作 → 资源 → 权限 → 菜单 → 角色授权）
+    /// 注册工作流种子：权限目录、菜单
     /// </summary>
     /// <param name="services">服务集合</param>
     /// <returns>服务集合</returns>
     public static IServiceCollection AddWorkflowDataSeeders(this IServiceCollection services)
     {
-        services.AddDataSeeder<SysOperationSeeder>();       // Order = 300（操作字典，权限派生前置）
-        services.AddDataSeeder<SysResourceSeeder>();        // Order = 301（资源，权限派生前置）
-        services.AddDataSeeder<SysPermissionSeeder>();      // Order = 302（资源 × 操作 → workflow:* 权限）
-        services.AddDataSeeder<WorkflowMenuSeeder>();       // Order = 303（PageRegistry 驱动，建即绑 workflow:read）
-        services.AddDataSeeder<SysRolePermissionSeeder>();  // Order = 304（默认仅授超管）
+        services.AddDataSeeder<WorkflowPermissionCatalogSeeder>();
+        services.AddDataSeeder<WorkflowMenuSeeder>();
         return services;
     }
 

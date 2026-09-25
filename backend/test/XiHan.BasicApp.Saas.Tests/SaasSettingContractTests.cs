@@ -11,7 +11,7 @@ using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Configurations;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
-using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Data.SqlSugar.Clients;
 

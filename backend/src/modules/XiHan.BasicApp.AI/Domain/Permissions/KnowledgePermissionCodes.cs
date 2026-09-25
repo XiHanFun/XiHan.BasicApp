@@ -7,8 +7,8 @@ namespace XiHan.BasicApp.AI.Domain.Permissions;
 /// 知识库权限码常量
 /// </summary>
 /// <remarks>
-/// 与种子数据对齐：资源 <c>knowledge_base</c> + 操作 read/create/update/delete/execute。
-/// 三处（本常量、SysResourceSeeder 的 ResourceCode、SysPermissionSeeder 目标字典）必须一致。
+/// 权限目录 <c>AiPermissionCatalogSeeder</c> 按「资源 × 操作」声明：资源 <c>knowledge_base</c> + 操作 read/create/update/delete/execute，
+/// 声明出的码必须与这里一一对应。
 /// </remarks>
 public static class KnowledgePermissionCodes
 {

@@ -136,8 +136,8 @@ await app.RunAsync();
 每个模块的接线集中在自己的 `Extensions/ServiceCollectionExtensions.cs`，由 `Module.ConfigureServices` 调用。Saas 的十个扩展方法：
 
 ```csharp
-services.AddSaasDataSeeders();          // 系统基线种子
-services.AddSaasDemoDataSeeders();      // 演示种子（Saas:Seed:EnableDemoData 开关）
+services.AddSaasDataSeeders();          // 基础种子（始终播种）
+services.AddSaasDemoDataSeeders();      // 演示种子（Saas:Seed:EnableDemoData 为 true 才写）
 services.AddSaasDomainServices();       // 领域服务（必须手写）
 services.AddSaasApplicationServices();  // 需要手写的应用侧服务
 services.AddSaasEventHandlers();        // 本地事件处理器（必须登记）
@@ -202,7 +202,7 @@ services.Replace(ServiceDescriptor.Scoped<ISessionStateGate, SaasSessionStateGat
 | `PermissionCode` 直接引用 `SaasPermissionCodes.*` | **建菜单即绑权限**，不要事后回填 |
 | 纯静态公共页不登记 | `/about` 等由前端 `router/routes.ts` 持有 |
 
-`SaasMenuSeeder`（`Order=25`）从 `PageRegistry` 映射出菜单种子：先按权限码查 `SysPermission`，**查不到就跳过并告警（fail-closed）**。所以权限种子（`Order=20`）必须排在它前面，父目录必须排在子项前面。
+`SaasMenuSeeder` 从 `PageRegistry` 映射出菜单：先按权限码查 `SysPermission`，**查不到直接报错**，不留残缺的菜单树。所以权限目录排在菜单之前（见下文的执行阶段），父目录必须排在子项前面。
 
 **新增/修改菜单只改 `PageRegistry`**，种子随之生效。
 
@@ -210,21 +210,82 @@ services.Replace(ServiceDescriptor.Scoped<ISessionStateGate, SaasSessionStateGat
 
 分两类：
 
-- **系统基线**（`AddSaasDataSeeders` 等）：**始终播种**。身份、权限、租户版本、配置、字典、菜单、消息模板、OAuth 应用、通知、存储配置、任务——应用可运行的最小骨架。
-- **演示数据**（`AddSaasDemoDataSeeders`）：由 `Saas:Seed:EnableDemoData` 控制，**缺省或非法值都视为启用**，显式 `false` 才整体跳过。含示例组织、演示账号、演示业务租户。
+- **基础数据**（各模块的 `Add*DataSeeders`）：**始终播种**，只含系统运行所需——超级管理员、操作字典、各模块的权限目录与菜单、套餐、参数、默认存储、消息模板、内建 OAuth 应用、内建定时任务、代码生成内置模板。不建任何租户。
+- **演示数据**（`AddSaasDemoDataSeeders`）：只在 `Saas:Seed:EnableDemoData` 为 `true` 时写入，**缺省或 `false` 都不写**，写错（不是布尔值）直接启动失败。开发环境配置里开启、生产环境关闭。内容见 [演示数据](#演示数据)。
 
-### `Order` 段：模块间互不交叠
+### 执行阶段
 
-| 模块 | `Order` 段 |
+框架把所有模块的种子按 `Order` 统一排序。阶段常量在 `SeedOrders`，后一阶段只依赖前面写好的数据：
+
+| 阶段 | `Order` | 内容 |
+| --- | --- | --- |
+| 平台身份 | 100 | 超级管理员角色与账号 |
+| 操作字典 | 200 | `read` / `create` / `update` / `delete` / `export` / `import` / `execute`，资源型权限的动作都从这里取 |
+| 权限目录 | 300 | 各模块的资源与权限（`PermissionCatalogSeederBase`） |
+| 菜单 | 400 | 各模块的页面登记表（`PageRegistryMenuSeederBase`） |
+| 套餐 | 500 | 四档套餐与功能白名单，排在全部权限目录之后，企业版首次创建就拿到各模块的权限 |
+| 平台数据 | 600 | 参数、默认存储、消息模板、OAuth 应用、定时任务、代码生成内置模板 |
+| 演示 | 900 | 演示租户与账号、演示通知、演示字典 |
+
+同一阶段内按模块错开号段：SaaS +0、代码生成 +10、AI +20、工作流 +30、聊天 +40、打印 +50，模块内多个种子在自己的 10 个号里排。新模块取一个未用的偏移（如 +60），每个阶段都用这一个偏移。
+
+### 写入口径
+
+| 数据 | 口径 |
 | --- | --- |
-| Saas | 10–37（系统基线 10–29、演示 30–37） |
-| CodeGeneration | 100–105 |
-| AI | 200–217（Provider 200–204、RAG 205–208、提示词 209–212、助手 213–217） |
-| Workflow | 300–304 |
+| 操作、资源、权限、菜单、代码生成内置模板、参数的元数据 | 由代码定义：每次启动对齐名称、说明、作用侧、结构、排序；启停（参数还有值）归运营，只在新建时写 |
+| 套餐、存储、消息模板、OAuth 应用、定时任务 | 归运营：只在第一次创建，之后改过的不覆盖，删掉的不补回 |
+| 超级管理员 | 系统角色的定义每次对齐；账号资料与密码只在创建时写 |
+| 演示数据 | 只写库里还没有的租户、平台账号、全局角色；写过的不再覆盖或补回，拿它随便试 |
 
-链内顺序恒为「**操作 → 资源 → 权限 → 菜单 → 角色授权**」——权限由「资源 × 操作」派生，所以操作/资源种子必须排在权限种子之前。缺了 `SysOperationSeeder` 会让整条链**静默失效**。
+依赖缺了直接报错，不跳过：菜单绑定的权限或父菜单不存在、权限目录引用的操作不在字典里、套餐白名单里有不存在或平台侧的权限，都说明顺序或声明写错了。
 
-新模块选一段未用的 `Order`（如 400–）。
+权限只需声明，不写授权行：超管在平台天然拥有全部权限（授权快照给出），租户所有者拿到套餐范围内的全部权限；其它角色的授权由运营授予，演示角色按演示数据的声明授予。
+
+### 初始账号
+
+超级管理员 `superadmin` / `SuperAdmin@123`（平台账号，用户名登录）。密码由种子写入，账号标记为需要本人改密：参数「密码设置」（`saas.auth.password`）的 `forceChange` 开启后，首次登录就要求修改。生产环境首次登录后立即修改，并建议开启强制改密。
+
+### 演示数据
+
+每个演示租户、账号、成员的**备注就是它演示的情况**，在管理页里直接能看到；完整声明在 `SaasDemoScenario`（租户、组织、角色、账号、成员）、`SaasDemoNotificationSeeder`（草稿通知）、`SaasDemoDictSeeder`（平铺与树形字典）。
+
+平台账号用用户名登录，租户账号用邮箱登录，**密码都是 `Demo@123`**。每个租户的所有者是 `owner@<租户>.demo`（如 `owner@enterprise.demo`）。
+
+| 租户 | 套餐 | 演示的情况 |
+| --- | --- | --- |
+| `demo-enterprise` 示例企业 | 企业版 | 完整组织；全部成员类型与邀请状态、各档数据范围、角色继承与名额、授权时间窗、直授与禁止、账号与成员的各种状态 |
+| `demo-pro` 示例公司 | 专业版 | 正常；合作方账号同时是企业版的外部协作者；平台客服的支持窗口已结束 |
+| `demo-basic` 示例工作室 | 基础版 | 正常；顾问账号同时是企业版的顾问 |
+| `demo-free` 示例团队 | 免费版 | 正常；被邀请人（邀请待接受）、拒绝邀请的人 |
+| `demo-seats-full` 席位已满 | 免费版 | 席位上限覆盖为 2 且已占满 |
+| `demo-suspended` / `demo-expired` / `demo-disabled` | — | 暂停、过期、停用：成员登录后进不了 |
+| `demo-awaiting-admin` 待开通管理员 | 免费版 | 字段隔离租户还没有所有者 |
+| `demo-dedicated-db` 独立库·待初始化 | 免费版 | 库隔离租户，先初始化数据库再开通管理员 |
+
+平台账号：`operator`（平台运营）、`support`（平台客服，以支持人员入驻企业版与专业版）、`auditor`（持有全局审计角色）、`frozen`（已停用）。全局角色模板 `platform_operator`、`global_auditor` 平台与租户都能用，租户里只能分配。
+
+企业版租户的账号（`<名字>@enterprise.demo`）：
+
+| 账号 | 演示的情况 |
+| --- | --- |
+| `owner` | 所有者：套餐范围内的全部权限，所有权由平台转移 |
+| `admin` | 管理员成员，持有租户管理员角色 |
+| `manager` | 部门主管：继承普通员工，数据范围为本部门及下级，是研发中心负责人 |
+| `engineer` | 普通员工：只看本人数据 |
+| `hr` | 自定义数据范围：研发中心（含下级）与市场部 |
+| `auditor` | 持有全局审计角色模板 |
+| `lead` | 占满了成员上限为 1 的项目负责人角色 |
+| `scoped` | 成员级数据范围覆盖为本部门 |
+| `direct` | 直授成员查看、禁止聊天发送 |
+| `temp` | 一个角色昨天到期、另一个 7 天后才生效 |
+| `intern` | 访客，成员身份 30 天后到期 |
+| `left` | 成员身份已到期 |
+| `disabled` / `locked` | 账号已停用 / 已锁定 |
+| `removed` | 已移出本租户 |
+| `holder` | 只持有已停用的角色 |
+
+另有外来成员：`partner@pro.demo`（外部协作者）、`consultant@basic.demo`（顾问，90 天后到期）、`invitee@free.demo`（邀请待接受）、`decliner@free.demo`（已拒绝）、`member@basic.demo`（邀请已过期）、平台客服 `support`（支持人员，7 天窗口）。
 
 ## 框架引用：源码还是 NuGet
 

@@ -104,9 +104,9 @@ External dependencies:
 
 ## First Start
 
-`EnableDbInitialization`, `EnableTableInitialization` and `EnableDataSeeding` all default to **true**: point the app at an empty database it can reach and it will create the schema and seed it on startup. Seeds come in two kinds — the system baseline always runs, while demo data is controlled by `Saas:Seed:EnableDemoData` (only skipped when explicitly set to false).
+`EnableDbInitialization`, `EnableTableInitialization` and `EnableDataSeeding` all default to **true**: point the app at an empty database it can reach and it will create the schema and seed it on startup. Seeds come in two kinds — the baseline always runs, while demo data is written only when `Saas:Seed:EnableDemoData` is true (off when missing; the development configuration turns it on, production turns it off). See [Introduction: seed data](../docs/backend/introduction.md#种子数据) for the phases, write rules and demo accounts.
 
-Default super administrator: username `superadmin`, email `superadmin@xihan.fun`, role code `super_admin`, built-in default password `SuperAdmin@123`. Override it with the `Saas:Seed:SuperAdminPassword` setting (environment variable `Saas__Seed__SuperAdminPassword`); keeping the built-in default logs a warning on startup.
+Default super administrator: username `superadmin`, email `superadmin@xihan.fun`, role code `super_admin`, initial password `SuperAdmin@123` (written by the seed; the account is flagged as needing its own password change, which is enforced once forced password change is turned on in the "Password settings" parameter). Demo accounts all use `Demo@123`.
 
 ## Upgrade Scripts
 

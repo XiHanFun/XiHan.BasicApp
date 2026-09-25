@@ -104,9 +104,9 @@ dotnet test --solution backend/XiHan.BasicApp.slnx --configuration Release
 
 ## 首次启动
 
-`EnableDbInitialization` / `EnableTableInitialization` / `EnableDataSeeding` 三个开关默认 **true**：给一个能连上的空库，启动即自建库表并播种。种子分两类——系统基线始终执行，演示数据由 `Saas:Seed:EnableDemoData` 控制（显式设为 false 才跳过）。
+`EnableDbInitialization` / `EnableTableInitialization` / `EnableDataSeeding` 三个开关默认 **true**：给一个能连上的空库，启动即自建库表并播种。种子分两类——基础数据始终执行，演示数据只在 `Saas:Seed:EnableDemoData` 为 true 时写入（缺省不写；开发环境配置开启、生产环境关闭）。执行阶段、写入口径与演示账号见 [框架简介：种子数据](../docs/backend/introduction.md#种子数据)。
 
-默认超级管理员：账号 `superadmin`、邮箱 `superadmin@xihan.fun`、角色码 `super_admin`、内置默认密码 `SuperAdmin@123`。可用配置 `Saas:Seed:SuperAdminPassword`（环境变量 `Saas__Seed__SuperAdminPassword`）覆盖；沿用内置默认值时启动日志会打 warning。
+默认超级管理员：账号 `superadmin`、邮箱 `superadmin@xihan.fun`、角色码 `super_admin`、初始密码 `SuperAdmin@123`（写在种子里，账号标记为需要本人改密，参数「密码设置」开启强制改密后首次登录即要求修改）。演示账号的密码都是 `Demo@123`。
 
 ## 升级脚本
 

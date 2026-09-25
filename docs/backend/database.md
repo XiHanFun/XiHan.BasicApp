@@ -104,8 +104,8 @@ ORM 是 SqlSugar，`DbType` 取它的枚举值：
   "ExcludedTables": [ "sys_diff_log" ]
 },
 "DataSeeding": {
-  // 演示种子都标了 Group = "Demo"，排掉即整体不播，与 Saas:Seed:EnableDemoData=false 等效
-  "ExcludedGroups": [ "Demo" ]
+  // 按种子名称 / 类名 / 全名排除；演示数据的开关是 Saas:Seed:EnableDemoData，不靠这里
+  "ExcludedSeeders": [ "[Chat]内建定时任务" ]
 }
 ```
 
@@ -140,14 +140,14 @@ CodeFirst 负责首次建表；已有库的结构和数据变化由 Framework Up
 
 | 类别 | 开关 | 内容 |
 | --- | --- | --- |
-| **系统基线** | 始终播种 | 身份、权限、租户版本、配置、字典、菜单、消息模板、OAuth 应用、通知、存储配置、任务——应用可运行的最小骨架 |
-| **演示数据** | `Saas:Seed:EnableDemoData` | 示例组织、演示账号、演示业务租户 |
+| **基础数据** | 始终播种 | 超级管理员、操作字典、各模块的权限目录与菜单、套餐、参数、默认存储、消息模板、内建 OAuth 应用、内建定时任务、代码生成内置模板——系统运行所需，不建任何租户 |
+| **演示数据** | `Saas:Seed:EnableDemoData` | 覆盖各种情况的演示租户、组织、角色、账号，以及演示通知与字典 |
 
-`EnableDemoData` **缺省或非法值都视为启用**，显式 `false` 才整体跳过。演示种子同时归在框架选取分组 `Demo` 下，配 `DataSeeding:ExcludedGroups: ["Demo"]` 是等效开关。
+`EnableDemoData` 为 `true` 才写演示数据，**缺省或 `false` 都不写**，写错（不是布尔值）直接启动失败。仓库的开发环境配置开启、生产环境配置关闭。
 
-超管初始密码用 `Saas:Seed:SuperAdminPassword`（环境变量 `Saas__Seed__SuperAdminPassword`）覆盖，**生产必改**。
+初始超级管理员 `superadmin` / `SuperAdmin@123`，密码由种子写入并标记为需要本人改密，**生产首次登录后立即修改**，并建议在参数「密码设置」里开启强制改密。
 
-种子的 `Order` 段与执行顺序见 [框架简介](./introduction#种子数据)。
+执行阶段、写入口径（哪些每次对齐、哪些只写一次）、演示租户与账号清单见 [框架简介：种子数据](./introduction#种子数据)。
 
 ## 分表查询
 

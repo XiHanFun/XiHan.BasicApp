@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Workflow.Domain.Permissions;
 /// 工作流权限编码常量
 /// </summary>
 /// <remarks>
-/// 三处（本常量、SysResourceSeeder.ResourceCode、SysPermissionSeeder 目标字典）必须一致，否则鉴权 403。
+/// 权限目录 <c>WorkflowPermissionCatalogSeeder</c> 按「资源 × 操作」声明，声明出的码必须与这里一一对应，否则鉴权 403。
 /// 待办办理接口不设权限码（登录即可），受理人归属校验由任务服务在实例锁内执行。
 /// </remarks>
 public static class WorkflowPermissionCodes

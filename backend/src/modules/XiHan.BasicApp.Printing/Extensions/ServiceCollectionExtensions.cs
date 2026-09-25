@@ -8,7 +8,7 @@ using XiHan.BasicApp.Printing.Application.Contracts;
 using XiHan.BasicApp.Printing.Application.Services;
 using XiHan.BasicApp.Printing.Domain.DataSources;
 using XiHan.BasicApp.Printing.Domain.DomainServices;
-using XiHan.BasicApp.Printing.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Printing.Infrastructure.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
 namespace XiHan.BasicApp.Printing.Extensions;
@@ -19,15 +19,14 @@ namespace XiHan.BasicApp.Printing.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加打印模块种子数据（权限 → 菜单 → 角色授权）
+    /// 添加打印模块种子：权限目录、菜单
     /// </summary>
     /// <param name="services">服务集合</param>
     /// <returns>服务集合</returns>
     public static IServiceCollection AddPrintingDataSeeders(this IServiceCollection services)
     {
-        _ = services.AddDataSeeder<PrintingPermissionSeeder>();       // 500
-        _ = services.AddDataSeeder<PrintingMenuSeeder>();             // 501
-        _ = services.AddDataSeeder<PrintingRolePermissionSeeder>();   // 502
+        _ = services.AddDataSeeder<PrintingPermissionCatalogSeeder>();
+        _ = services.AddDataSeeder<PrintingMenuSeeder>();
         return services;
     }
 

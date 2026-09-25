@@ -19,8 +19,7 @@ using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
-using XiHan.BasicApp.Saas.Infrastructure.Seeders.Demo;
-using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
 using XiHan.Framework.Auditing;
 using XiHan.Framework.Auditing.Writers;
@@ -287,43 +286,41 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加 SaaS 系统基线种子数据提供者（身份/权限/版本/配置/字典/菜单/通知/存储/任务等，始终播种）
+    /// 添加 SaaS 基础种子：系统运行所需的数据，始终播种
     /// </summary>
+    /// <remarks>
+    /// 执行顺序见 <see cref="SeedOrders"/>：超级管理员 → 操作字典 → 权限目录 → 菜单 → 套餐 → 参数、存储、消息模板、OAuth 应用、定时任务。
+    /// </remarks>
     /// <param name="services">服务集合</param>
     /// <returns>服务集合</returns>
     public static IServiceCollection AddSaasDataSeeders(this IServiceCollection services)
     {
-        services.AddDataSeeder<SaasIdentitySeeder>();
-        services.AddDataSeeder<SaasPermissionSeeder>();
-        services.AddDataSeeder<SaasTenantEditionSeeder>();
-        services.AddDataSeeder<SaasSettingSeeder>();
-        services.AddDataSeeder<SaasDictSeeder>();
+        services.AddDataSeeder<SaasSuperAdminSeeder>();
+        services.AddDataSeeder<SaasOperationSeeder>();
+        services.AddDataSeeder<SaasPermissionCatalogSeeder>();
         services.AddDataSeeder<SaasMenuSeeder>();
+        services.AddDataSeeder<SaasEditionSeeder>();
+        services.AddDataSeeder<SaasSettingSeeder>();
+        services.AddDataSeeder<SaasStorageSeeder>();
         services.AddDataSeeder<SaasMessageTemplateSeeder>();
         services.AddDataSeeder<SaasOAuthAppSeeder>();
-        services.AddDataSeeder<SaasNotificationSeeder>();
-        services.AddDataSeeder<SaasStorageConfigSeeder>();
         services.AddDataSeeder<SaasTaskSeeder>();
-        // 版本白名单重算（Order 900）：在全部模块权限种子之后重跑版本权限绑定，模块权限首启即进白名单
-        services.AddDataSeeder<SaasTenantEditionReconcileSeeder>();
         return services;
     }
 
     /// <summary>
-    /// 添加 SaaS 演示种子数据提供者（示例组织/演示账号/演示业务租户）
+    /// 添加 SaaS 演示种子：示例租户、组织、角色、账号、通知与字典
     /// </summary>
     /// <remarks>
-    /// 与系统基线种子分离：这批数据由配置开关 <c>Saas:Seed:EnableDemoData</c> 控制是否真正播种
-    /// （缺省/true 播种，显式 false 整体跳过），切换仅需改配置 + 重启。执行顺序仍按各自 Order。
+    /// 只在配置 <c>Saas:Seed:EnableDemoData</c> 为 true 时写入（见 <see cref="DemoDataSeederBase"/>），缺省不写。
     /// </remarks>
     /// <param name="services">服务集合</param>
     /// <returns>服务集合</returns>
     public static IServiceCollection AddSaasDemoDataSeeders(this IServiceCollection services)
     {
-        services.AddDataSeeder<SaasOrganizationSeeder>();
-        services.AddDataSeeder<SaasSampleIdentitySeeder>();
-        // 必须在演示身份之后执行（Order=37 > 35）：跨租户成员依赖默认租户样例用户（zhangsan/lisi）。
-        services.AddDataSeeder<SaasBusinessTenantSeeder>();
+        services.AddDataSeeder<SaasDemoSeeder>();
+        services.AddDataSeeder<SaasDemoNotificationSeeder>();
+        services.AddDataSeeder<SaasDemoDictSeeder>();
         return services;
     }
 

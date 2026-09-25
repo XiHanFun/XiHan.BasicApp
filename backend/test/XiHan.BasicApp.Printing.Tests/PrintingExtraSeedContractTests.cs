@@ -2,12 +2,14 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using XiHan.BasicApp.Printing.Domain.Permissions;
-using XiHan.BasicApp.Printing.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Printing.Infrastructure.Seeders;
 using XiHan.BasicApp.Saas.Application.Pages;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using PrintingPageRegistry = XiHan.BasicApp.Printing.Application.Pages.PageRegistry;
 
 namespace XiHan.BasicApp.Printing.Tests;
@@ -16,40 +18,29 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// 打印模块权限码、页面登记表与种子器执行次序的契约测试。
 /// </summary>
 /// <remarks>
-/// 三个种子器之间有硬顺序：权限（500）→ 菜单（501）→ 角色授权（502）。
-/// 菜单建立时就要绑定 <c>print-template:read</c>，权限还没播种就会被静默跳过——
-/// 表现是"升级完成、菜单却没出来"，而且没有任何报错。角色授权同理，必须能拿到权限主键。
-/// 顺序值一旦被改动或与其它模块段位撞车，问题只会在全新环境的首次初始化时暴露，
-/// 所以把顺序、种子名与权限定义清单在这里钉死。
+/// 权限目录先于菜单：菜单建立时就要绑定 <c>print-template:read</c>，权限目录没落库时菜单种子直接报错。
+/// 两个种子各在自己的阶段、用打印模块的号段（+50），与其它模块错开。
+/// 权限的租户授权不由种子写：租户角色与套餐白名单由运营授予（演示数据里的角色按作用侧自动取到）。
 /// </remarks>
 public sealed class PrintingExtraSeedContractTests
 {
     /// <summary>
-    /// 三个种子器的顺序必须是"权限先于菜单、菜单先于角色授权"，且整体落在 500+ 独立段。
+    /// 权限目录在权限目录阶段、菜单在菜单阶段，都用打印模块的号段。
     /// </summary>
     [Fact]
-    public void Seeders_OrderShouldKeepPermissionBeforeMenuBeforeRoleGrant()
+    public void Seeders_ShouldRunInTheirPhases()
     {
-        var permission = OrderOf(typeof(PrintingPermissionSeeder));
-        var menu = OrderOf(typeof(PrintingMenuSeeder));
-        var rolePermission = OrderOf(typeof(PrintingRolePermissionSeeder));
-
-        Assert.Equal(500, permission);
-        Assert.Equal(501, menu);
-        Assert.Equal(502, rolePermission);
-        Assert.True(
-            permission < menu && menu < rolePermission,
-            $"种子顺序被打乱（权限 {permission}、菜单 {menu}、角色授权 {rolePermission}），菜单会因权限缺失被静默跳过。");
+        Assert.Equal(SeedOrders.PermissionCatalog + 50, OrderOf(typeof(PrintingPermissionCatalogSeeder)));
+        Assert.Equal(SeedOrders.Menus + 50, OrderOf(typeof(PrintingMenuSeeder)));
     }
 
     /// <summary>
-    /// 三个种子器的名称必须带 [Printing] 前缀，初始化日志才能区分是哪个模块的种子在跑。
+    /// 种子器的名称必须带 [Printing] 前缀，初始化日志才能区分是哪个模块的种子在跑。
     /// </summary>
     /// <param name="seederType">种子器类型。</param>
     [Theory]
-    [InlineData(typeof(PrintingPermissionSeeder))]
+    [InlineData(typeof(PrintingPermissionCatalogSeeder))]
     [InlineData(typeof(PrintingMenuSeeder))]
-    [InlineData(typeof(PrintingRolePermissionSeeder))]
     public void Seeders_NameShouldCarryModulePrefix(Type seederType)
     {
         var name = (string)RequireProperty(seederType, "Name").GetValue(UninitializedInstance(seederType))!;
@@ -58,14 +49,14 @@ public sealed class PrintingExtraSeedContractTests
     }
 
     /// <summary>
-    /// 权限种子播在平台租户域内，因此必须继承平台种子基类。
+    /// 权限种子走统一的权限目录基类（平台上下文、先查后写、元数据对齐）。
     /// </summary>
     [Fact]
-    public void PermissionSeeder_ShouldSeedInPlatformTenantDomain()
+    public void PermissionSeeder_ShouldUseTheCatalogBase()
     {
-        Assert.True(
-            typeof(PrintingPermissionSeeder).IsAssignableTo(typeof(PlatformDataSeederBase)),
-            "打印权限是 TenantId=0 的全局权限，权限种子必须继承 PlatformDataSeederBase。");
+        Assert.True(typeof(PrintingPermissionCatalogSeeder).IsAssignableTo(typeof(PermissionCatalogSeederBase)));
+        Assert.Equal(PrintingPermissionCodes.Module, Catalog().ModuleCode);
+        Assert.Empty(Catalog().Resources);
     }
 
     /// <summary>
@@ -81,7 +72,6 @@ public sealed class PrintingExtraSeedContractTests
             "打印菜单种子未继承 PageRegistryMenuSeederBase，页面登记表就不再是单一事实源。");
         Assert.Same(PrintingPageRegistry.All, RequireProperty(typeof(PrintingMenuSeeder), "Pages").GetValue(instance));
         Assert.Same(PrintingPageRegistry.Buttons, RequireProperty(typeof(PrintingMenuSeeder), "Buttons").GetValue(instance));
-        Assert.Equal("Printing", RequireProperty(typeof(PrintingMenuSeeder), "ModuleName").GetValue(instance));
     }
 
     /// <summary>
@@ -90,7 +80,7 @@ public sealed class PrintingExtraSeedContractTests
     [Fact]
     public void PermissionSeeder_DefinitionsShouldCoverExactlyAllPermissionCodes()
     {
-        var codes = SeedDefinitions().Select(definition => (string)definition[0]!).ToList();
+        var codes = Catalog().Permissions.Select(permission => permission.Code).ToList();
         var missing = PrintingPermissionCodes.All.Where(code => !codes.Contains(code, StringComparer.Ordinal)).ToList();
         var extra = codes.Where(code => !PrintingPermissionCodes.All.Contains(code, StringComparer.Ordinal)).ToList();
 
@@ -100,15 +90,15 @@ public sealed class PrintingExtraSeedContractTests
     }
 
     /// <summary>
-    /// 权限种子的排序值必须互不相同且落在打印模块自己的 2800 段，避免与其它模块权限混排。
+    /// 权限种子的排序值必须互不相同且落在打印模块自己的 3400 段，避免与其它模块权限混排。
     /// </summary>
     [Fact]
     public void PermissionSeeder_SortValuesShouldBeUniqueAndInModuleRange()
     {
-        var sorts = SeedDefinitions().Select(definition => (int)definition[4]!).ToList();
+        var sorts = Catalog().Permissions.Select(permission => permission.Sort).ToList();
 
         Assert.Equal(sorts.Count, sorts.Distinct().Count());
-        Assert.All(sorts, sort => Assert.InRange(sort, 2800, 2899));
+        Assert.All(sorts, sort => Assert.InRange(sort, 3400, 3499));
     }
 
     /// <summary>
@@ -117,10 +107,7 @@ public sealed class PrintingExtraSeedContractTests
     [Fact]
     public void PermissionSeeder_AuditFlagShouldBeOffOnlyForRead()
     {
-        var auditByCode = SeedDefinitions().ToDictionary(
-            definition => (string)definition[0]!,
-            definition => (bool)definition[3]!,
-            StringComparer.Ordinal);
+        var auditByCode = Catalog().Permissions.ToDictionary(permission => permission.Code, permission => permission.IsRequireAudit, StringComparer.Ordinal);
 
         Assert.False(auditByCode[PrintingPermissionCodes.Read]);
         var unaudited = auditByCode
@@ -155,10 +142,7 @@ public sealed class PrintingExtraSeedContractTests
     [Fact]
     public void PermissionSeeder_OnlyGlobalManageShouldBePlatformSide()
     {
-        var sideByCode = SeedDefinitions().ToDictionary(
-            definition => (string)definition[0]!,
-            definition => (PermissionSide)definition[5]!,
-            StringComparer.Ordinal);
+        var sideByCode = Catalog().Permissions.ToDictionary(permission => permission.Code, permission => permission.Side, StringComparer.Ordinal);
 
         Assert.Equal(PermissionSide.Platform, sideByCode[PrintingPermissionCodes.GlobalManage]);
         Assert.All(
@@ -227,23 +211,11 @@ public sealed class PrintingExtraSeedContractTests
     }
 
     /// <summary>
-    /// 读取权限种子里那份私有定义清单，元素按 (Code, Name, Description, Audit, Sort, Side) 展开。
+    /// 构造权限目录种子（只读它的声明，不触碰数据库）。
     /// </summary>
-    private static List<object?[]> SeedDefinitions()
+    private static PrintingPermissionCatalogSeeder Catalog()
     {
-        var field = typeof(PrintingPermissionSeeder)
-            .GetField("Definitions", BindingFlags.Static | BindingFlags.NonPublic)
-            ?? throw new InvalidOperationException("PrintingPermissionSeeder 未找到 Definitions 定义清单字段。");
-        var values = (System.Collections.IEnumerable)field.GetValue(null)!;
-
-        var definitions = new List<object?[]>();
-        foreach (var value in values)
-        {
-            var tuple = (ITuple)value;
-            definitions.Add([.. Enumerable.Range(0, tuple.Length).Select(index => tuple[index])]);
-        }
-
-        return definitions;
+        return new PrintingPermissionCatalogSeeder(Mock.Of<ISqlSugarClientResolver>(), NullLogger<PrintingPermissionCatalogSeeder>.Instance, Mock.Of<IServiceProvider>());
     }
 
     /// <summary>

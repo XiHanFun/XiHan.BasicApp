@@ -273,7 +273,9 @@ pnpm dev
 
 ### Default Account
 
-The initial super administrator is `superadmin` with the password `SuperAdmin@123`. Override it through `Saas:Seed:SuperAdminPassword` (environment variable `Saas__Seed__SuperAdminPassword`). Always override it in production, and change it right after the first sign-in.
+The initial super administrator is `superadmin` with the password `SuperAdmin@123` (written by the seed; the account is flagged as needing its own password change). In production, change it right after the first sign-in and consider turning on forced password change in the "Password settings" parameter.
+
+The development configuration turns on demo data (`Saas:Seed:EnableDemoData`): demo tenants and accounts covering every edition, tenant status, member type, data scope and account state, all with the password `Demo@123`. See [Introduction: seed data](docs/backend/introduction.md#演示数据) for the list.
 
 ## Ecosystem
 

@@ -273,7 +273,9 @@ pnpm dev
 
 ### 默认账号
 
-初始超级管理员账号为 `superadmin`，密码 `SuperAdmin@123`。可通过 `Saas:Seed:SuperAdminPassword`（环境变量 `Saas__Seed__SuperAdminPassword`）覆盖。生产环境请务必覆盖，并在首次登录后立即修改。
+初始超级管理员账号为 `superadmin`，密码 `SuperAdmin@123`（写在种子里，账号标记为需要本人改密）。生产环境首次登录后请立即修改，并建议在参数「密码设置」里开启强制改密。
+
+开发环境默认开启演示数据（`Saas:Seed:EnableDemoData`）：覆盖各种套餐、租户状态、成员类型、数据范围与账号状态的演示租户和账号，密码都是 `Demo@123`，清单见[框架简介：种子数据](docs/backend/introduction.md#演示数据)。
 
 ## 项目生态
 

@@ -7,7 +7,8 @@ namespace XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 /// 代码生成权限码常量
 /// </summary>
 /// <remarks>
-/// 与种子数据 <c>SysPermissionSeeder</c> 对齐：资源 <c>code_gen</c> + 操作 read/create/update/delete/export/import/execute。
+/// 权限目录 <c>CodeGenPermissionCatalogSeeder</c> 按「资源 × 操作」声明：资源 <c>code_gen</c> + 操作 read/create/update/delete/import/execute，
+/// 声明出的码必须与这里一一对应（有测试钉住）。
 /// </remarks>
 public static class CodeGenPermissionCodes
 {

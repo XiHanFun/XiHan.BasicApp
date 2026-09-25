@@ -176,60 +176,6 @@ public sealed class DepartmentDomainService
         await RebuildDepartmentHierarchyAsync(cancellationToken);
     }
 
-    private static IReadOnlyList<SysDepartmentHierarchy> BuildHierarchyRows(IReadOnlyList<SysDepartment> departments)
-    {
-        var departmentMap = departments.ToDictionary(department => department.BasicId);
-        var rows = new List<SysDepartmentHierarchy>();
-
-        foreach (var department in departments.OrderBy(department => department.ParentId ?? 0).ThenBy(department => department.Sort).ThenBy(department => department.DepartmentCode, StringComparer.Ordinal))
-        {
-            var chain = BuildAncestorChain(department, departmentMap);
-            for (var depth = 0; depth < chain.Count; depth++)
-            {
-                var ancestor = chain[depth];
-                var pathNodes = chain.Take(depth + 1).Reverse().ToArray();
-                rows.Add(new SysDepartmentHierarchy
-                {
-                    AncestorId = ancestor.BasicId,
-                    DescendantId = department.BasicId,
-                    Depth = depth,
-                    Path = string.Join("/", pathNodes.Select(node => node.BasicId)),
-                    PathName = string.Join("/", pathNodes.Select(node => node.DepartmentName))
-                });
-            }
-        }
-
-        return rows;
-    }
-
-    private static IReadOnlyList<SysDepartment> BuildAncestorChain(SysDepartment department, IReadOnlyDictionary<long, SysDepartment> departmentMap)
-    {
-        var chain = new List<SysDepartment>();
-        var visited = new HashSet<long>();
-        var cursor = department;
-
-        while (true)
-        {
-            if (!visited.Add(cursor.BasicId))
-            {
-                throw new InvalidOperationException("部门层级存在环路，不能重建闭包表。");
-            }
-
-            chain.Add(cursor);
-            if (!cursor.ParentId.HasValue)
-            {
-                return chain;
-            }
-
-            if (!departmentMap.TryGetValue(cursor.ParentId.Value, out var parent))
-            {
-                throw new InvalidOperationException("部门层级存在缺失父级，不能重建闭包表。");
-            }
-
-            cursor = parent;
-        }
-    }
-
     private static void ValidateCreateCommand(DepartmentCreateCommand command)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(command.DepartmentCode);
@@ -478,7 +424,7 @@ public sealed class DepartmentDomainService
             return;
         }
 
-        var rows = BuildHierarchyRows(departments);
+        var rows = SysDepartmentHierarchy.BuildClosure(departments);
         if (rows.Count > 0)
         {
             await _departmentHierarchyRepository.AddRangeAsync(rows, cancellationToken);

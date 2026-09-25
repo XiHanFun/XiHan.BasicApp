@@ -26,16 +26,15 @@ public sealed record SaasPermissionGroup(
     IReadOnlyList<SaasPermissionItem> Permissions);
 
 /// <summary>
-/// SaaS 权限种子定义项（落库扁平结构，由 <see cref="SaasPermissionDefinitions.Groups"/> 派生）
+/// SaaS 权限定义项（扁平结构，由 <see cref="SaasPermissionDefinitions.Groups"/> 派生）
 /// </summary>
 public sealed record SaasPermissionDefinition(
     string ModuleCode,
     string PermissionCode,
     string PermissionName,
     string PermissionDescription,
-    string Tags,
+    string GroupCode,
     bool IsRequireAudit,
-    int Priority,
     int Sort,
     PermissionSide Side);
 
@@ -44,8 +43,8 @@ public sealed record SaasPermissionDefinition(
 /// </summary>
 /// <remarks>
 /// 唯一手写源是 <see cref="Groups"/>：每个资源块一个分组节点，组名与该组权限写在一起。
-/// 落库扁平表 <see cref="All"/>、组码→组名 <see cref="GroupNames"/> 均由 <see cref="Groups"/> 派生，
-/// 每条权限的 ModuleCode（恒为 saas）、Tags（[module, 组码](+export/import 段)）、Priority（恒等于 Sort）自动生成，无需手写；
+/// 扁平表 <see cref="All"/>、组码→组名 <see cref="GroupNames"/> 均由 <see cref="Groups"/> 派生，
+/// 每条权限的 ModuleCode（恒为 saas）与分组自动带上，落库时的标签与优先级由权限目录种子统一生成；
 /// 作用侧由分组声明，个别条目（目录的查看、编号全局管理、跨租户模仿等）在条目上覆盖。
 /// 新增资源时只在 <see cref="Groups"/> 增一个分组节点或在已有节点增一条权限项即可。
 /// </remarks>
@@ -511,7 +510,7 @@ public static class SaasPermissionDefinitions
     ];
 
     /// <summary>
-    /// 全部权限定义（扁平，供种子使用；由 <see cref="Groups"/> 派生）
+    /// 全部权限定义（扁平，供权限目录种子使用；由 <see cref="Groups"/> 派生）
     /// </summary>
     public static IReadOnlyList<SaasPermissionDefinition> All { get; } = Groups
         .SelectMany(group => group.Permissions.Select(item => new SaasPermissionDefinition(
@@ -519,9 +518,8 @@ public static class SaasPermissionDefinitions
             item.PermissionCode,
             item.PermissionName,
             item.PermissionDescription,
-            BuildTags(group.GroupCode, item.PermissionCode),
+            group.GroupCode,
             item.IsRequireAudit,
-            item.Sort,
             item.Sort,
             item.Side ?? group.Side)))
         .ToList();
@@ -553,17 +551,5 @@ public static class SaasPermissionDefinitions
     {
         var groupCode = ResolveGroupCode(permissionCode);
         return GroupNames.TryGetValue(groupCode, out var name) ? name : groupCode;
-    }
-
-    /// <summary>
-    /// 生成权限标签：[module, 组码]，导出/导入动作追加动作段（与历史落库值一致）
-    /// </summary>
-    private static string BuildTags(string groupCode, string permissionCode)
-    {
-        var parts = permissionCode.Split(':', StringSplitOptions.RemoveEmptyEntries);
-        var action = parts.Length >= 3 ? parts[2] : string.Empty;
-        return action is "export" or "import"
-            ? $"[\"{SaasPermissionCodes.Module}\",\"{groupCode}\",\"{action}\"]"
-            : $"[\"{SaasPermissionCodes.Module}\",\"{groupCode}\"]";
     }
 }
