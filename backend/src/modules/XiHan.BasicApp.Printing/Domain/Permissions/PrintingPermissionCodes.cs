@@ -7,7 +7,7 @@ namespace XiHan.BasicApp.Printing.Domain.Permissions;
 /// 打印模板权限码常量
 /// </summary>
 /// <remarks>
-/// 常量、SysResourceSeeder.ResourceCode、SysPermissionSeeder 三处必须一致。
+/// 权限目录 <c>PrintingPermissionCatalogSeeder</c> 逐条声明这些功能权限，码与这里一一对应（有测试钉住）。
 /// </remarks>
 public static class PrintingPermissionCodes
 {

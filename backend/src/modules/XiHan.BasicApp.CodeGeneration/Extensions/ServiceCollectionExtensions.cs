@@ -6,7 +6,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 using XiHan.BasicApp.CodeGeneration.Infrastructure.Inference;
-using XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System;
+using XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 
 namespace XiHan.BasicApp.CodeGeneration.Extensions;
@@ -17,22 +17,15 @@ namespace XiHan.BasicApp.CodeGeneration.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 CodeGeneration 种子数据提供者
+    /// 添加代码生成种子：权限目录、菜单、内置模板
     /// </summary>
-    /// <remarks>
-    /// 代码生成种子独立使用 Order 100+ 段，整体晚于 Saas 全部种子执行，与 Saas 互不交叠、互不影响。
-    /// 链内顺序：操作字典 → 资源 → 权限(资源×操作) → 菜单 → 角色授权 → 模板。
-    /// </remarks>
     /// <param name="services">服务集合</param>
     /// <returns></returns>
     public static IServiceCollection AddCodeGenerationDataSeeders(this IServiceCollection services)
     {
-        services.AddDataSeeder<SysOperationSeeder>();        // Order = 100（操作字典，权限派生前置）
-        services.AddDataSeeder<SysResourceSeeder>();        // Order = 101（资源，权限派生前置）
-        services.AddDataSeeder<SysPermissionSeeder>();      // Order = 102（资源 × 操作 → code_gen:* 权限）
-        services.AddDataSeeder<CodeGenerationMenuSeeder>(); // Order = 103（PageRegistry 驱动，建即绑 code_gen:read）
-        services.AddDataSeeder<SysRolePermissionSeeder>();  // Order = 104
-        services.AddDataSeeder<SysCodeGenTemplateSeeder>(); // Order = 105
+        services.AddDataSeeder<CodeGenPermissionCatalogSeeder>();
+        services.AddDataSeeder<CodeGenerationMenuSeeder>();
+        services.AddDataSeeder<SysCodeGenTemplateSeeder>();
         return services;
     }
 

@@ -8,7 +8,7 @@ using XiHan.BasicApp.AI.Domain.DomainServices;
 using XiHan.BasicApp.AI.Domain.DomainServices.Implementations;
 using XiHan.BasicApp.AI.Infrastructure.Configuration;
 using XiHan.BasicApp.AI.Infrastructure.Security;
-using XiHan.BasicApp.AI.Infrastructure.Seeders.System;
+using XiHan.BasicApp.AI.Infrastructure.Seeders;
 using XiHan.BasicApp.AI.Infrastructure.Skills;
 using XiHan.Framework.AI.Abstractions.Configuration;
 using XiHan.Framework.AI.Abstractions.Prompts;
@@ -24,20 +24,14 @@ namespace XiHan.BasicApp.AI.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加 AI 模块种子数据提供者
+    /// 添加 AI 模块种子：权限目录（模型服务、提示词、助手、知识库）与菜单
     /// </summary>
-    /// <remarks>
-    /// AI 种子独立使用 Order 200+ 段，晚于 Saas（10-37）与代码生成（100-105），互不交叠。
-    /// 链内顺序：操作字典 → 资源 → 权限(资源×操作) → 菜单 → 角色授权。
-    /// </remarks>
     /// <param name="services">服务集合</param>
     /// <returns></returns>
     public static IServiceCollection AddAIDataSeeders(this IServiceCollection services)
     {
-        services.AddDataSeeder<SysOperationSeeder>();       // Order = 200（操作字典，权限派生前置）
-        services.AddDataSeeder<SysResourceSeeder>();       // Order = 201（资源，权限派生前置）
-        services.AddDataSeeder<SysPermissionSeeder>();     // Order = 202（资源 × 操作 → ai:* 权限）
-        services.AddDataSeeder<SysRolePermissionSeeder>(); // Order = 204（仅授超管）
+        services.AddDataSeeder<AiPermissionCatalogSeeder>();
+        services.AddDataSeeder<AiMenuSeeder>();
         return services;
     }
 
@@ -70,23 +64,6 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddAIConfigStore(this IServiceCollection services)
     {
         services.Replace(ServiceDescriptor.Singleton<IAiProviderConfigStore, SaasAiProviderConfigStore>());
-        return services;
-    }
-
-    /// <summary>
-    /// 添加知识库（RAG）种子数据提供者
-    /// </summary>
-    /// <remarks>
-    /// RAG 种子用 Order 205+ 段（AI provider 段 200-204 之后）；操作字典复用 AI 段的 <see cref="SysOperationSeeder"/>(200)。
-    /// 链内顺序：资源 → 权限(资源×操作) → 菜单 → 角色授权。
-    /// </remarks>
-    /// <param name="services">服务集合</param>
-    /// <returns></returns>
-    public static IServiceCollection AddRAGDataSeeders(this IServiceCollection services)
-    {
-        services.AddDataSeeder<KnowledgeResourceSeeder>();       // Order = 205
-        services.AddDataSeeder<KnowledgePermissionSeeder>();     // Order = 206
-        services.AddDataSeeder<KnowledgeRolePermissionSeeder>(); // Order = 208（仅授超管）
         return services;
     }
 
@@ -152,20 +129,6 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 添加提示词库（M5）种子数据提供者
-    /// </summary>
-    /// <remarks>提示词库段 Order 209-212（晚于知识库 205-208）；操作复用 AI 段 <see cref="SysOperationSeeder"/>(200)。</remarks>
-    /// <param name="services">服务集合</param>
-    /// <returns></returns>
-    public static IServiceCollection AddPromptDataSeeders(this IServiceCollection services)
-    {
-        services.AddDataSeeder<PromptResourceSeeder>();       // Order = 209
-        services.AddDataSeeder<PromptPermissionSeeder>();     // Order = 210
-        services.AddDataSeeder<PromptRolePermissionSeeder>(); // Order = 212（仅授超管）
-        return services;
-    }
-
-    /// <summary>
     /// 添加提示词库领域服务
     /// </summary>
     /// <param name="services">服务集合</param>
@@ -185,21 +148,6 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddPromptStore(this IServiceCollection services)
     {
         services.Replace(ServiceDescriptor.Singleton<IAiPromptStore, SaasAiPromptStore>());
-        return services;
-    }
-
-    /// <summary>
-    /// 添加 AI 助手种子数据提供者
-    /// </summary>
-    /// <remarks>助手段 Order 213-216（晚于提示词库 209-212）；操作复用 AI 段 <see cref="SysOperationSeeder"/>(200)。</remarks>
-    /// <param name="services">服务集合</param>
-    /// <returns></returns>
-    public static IServiceCollection AddAssistantDataSeeders(this IServiceCollection services)
-    {
-        services.AddDataSeeder<AssistantResourceSeeder>();       // Order = 213
-        services.AddDataSeeder<AssistantPermissionSeeder>();     // Order = 214
-        services.AddDataSeeder<AssistantRolePermissionSeeder>(); // Order = 216（仅授超管）
-        services.AddDataSeeder<AiMenuSeeder>();                  // Order = 217（PageRegistry 驱动，覆盖本模块全部菜单）
         return services;
     }
 

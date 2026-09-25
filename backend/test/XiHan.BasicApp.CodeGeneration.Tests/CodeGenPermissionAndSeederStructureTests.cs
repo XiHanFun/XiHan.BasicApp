@@ -3,70 +3,49 @@
 
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using XiHan.BasicApp.CodeGeneration.Application.Pages;
 using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
+using XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders;
+using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 
 namespace XiHan.BasicApp.CodeGeneration.Tests;
 
 /// <summary>
-/// 权限码常量、按钮映射、页面登记表与六个种子器的结构约束测试。
+/// 权限码常量、按钮映射、页面登记表与三个种子器（权限目录、菜单、内置模板）的结构约束测试。
 /// </summary>
 /// <remarks>
-/// 这一整条链上的错误全部是"启动时静默跳过"：操作字典没先播，权限就派生不出来；
-/// 权限没先播，菜单建立时解析不到 <c>code_gen:read</c> 就被跳过；父目录排在子项之后，
-/// 子项的 ParentId 解析不到就变成顶级菜单。结果都是"某个菜单莫名其妙没了"，没有任何报错。
-/// 本文件把链上的顺序、编码与归属固化成断言，并在失败消息里列出具体违规项。
+/// 操作字典由 SaaS 统一播，权限目录按「资源 × 操作」声明，菜单按权限码绑定可见性：
+/// 阶段错了或码对不上，种子会直接报错拖垮启动；父目录排在子项之后，子项的父菜单解析不到同样报错。
+/// 本文件把阶段、编码与归属固化成断言，在失败消息里列出具体违规项。
 /// </remarks>
 public sealed class CodeGenPermissionAndSeederStructureTests
 {
     /// <summary>
-    /// 种子器执行链（与 <c>AddCodeGenerationDataSeeders</c> 的登记顺序一一对应）。
+    /// 种子器与各自所在的阶段（与 <c>AddCodeGenerationDataSeeders</c> 的登记一一对应）。
     /// </summary>
-    private static readonly (string TypeName, int Order)[] SeederChain =
+    private static readonly (Type Type, int Order)[] Seeders =
     [
-        ("SysOperationSeeder", 100),
-        ("SysResourceSeeder", 101),
-        ("SysPermissionSeeder", 102),
-        ("CodeGenerationMenuSeeder", 103),
-        ("SysRolePermissionSeeder", 104),
-        ("SysCodeGenTemplateSeeder", 105)
+        (typeof(CodeGenPermissionCatalogSeeder), SeedOrders.PermissionCatalog + 10),
+        (typeof(CodeGenerationMenuSeeder), SeedOrders.Menus + 10),
+        (typeof(SysCodeGenTemplateSeeder), SeedOrders.PlatformData + 10)
     ];
-
-    /// <summary>
-    /// 种子器类型名（供 <c>[Theory]</c> 逐个校验）。
-    /// </summary>
-    public static TheoryData<string> SeederTypeNames
-    {
-        get
-        {
-            var data = new TheoryData<string>();
-            foreach (var (typeName, _) in SeederChain)
-            {
-                data.Add(typeName);
-            }
-
-            return data;
-        }
-    }
-
-    /// <summary>
-    /// 按类型名取本模块的种子器类型（种子器所在命名空间以 <c>System</c> 结尾，走反射避免 using 歧义）。
-    /// </summary>
-    /// <param name="typeName">类型名</param>
-    private static Type SeederType(string typeName)
-        => CodeGenerationTestHelper.ModuleAssembly.GetType(
-            "XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders.System." + typeName,
-            throwOnError: true)!;
 
     /// <summary>
     /// 不经构造函数取种子器实例，只为读取 Order / Name 这两个纯计算属性。
     /// </summary>
-    /// <remarks>种子器的构造依赖 SqlSugar 客户端解析器与服务提供者，测试里既不该也不需要造出来。</remarks>
-    /// <param name="typeName">类型名</param>
-    private static IDataSeeder SeederInstance(string typeName)
-        => (IDataSeeder)RuntimeHelpers.GetUninitializedObject(SeederType(typeName));
+    private static IDataSeeder SeederInstance(Type type)
+        => (IDataSeeder)RuntimeHelpers.GetUninitializedObject(type);
+
+    /// <summary>
+    /// 构造权限目录种子（只读它的声明）。
+    /// </summary>
+    private static CodeGenPermissionCatalogSeeder Catalog()
+        => new(Mock.Of<ISqlSugarClientResolver>(), NullLogger<CodeGenPermissionCatalogSeeder>.Instance, Mock.Of<IServiceProvider>());
 
     /// <summary>
     /// 权限码常量类的模块与资源编码必须一致，权限码的资源段由它派生。
@@ -110,19 +89,40 @@ public sealed class CodeGenPermissionAndSeederStructureTests
     }
 
     /// <summary>
-    /// 权限码用到的操作必须都在平台操作字典种子播下的操作集合内，否则种子会跳过该权限。
+    /// 权限码用到的操作必须都在平台操作字典内，否则权限目录种子直接报错。
     /// </summary>
     [Fact]
     public void PermissionCodes_ActionsShouldExistInSeededOperationDictionary()
     {
-        string[] seededOperations = ["read", "create", "update", "delete", "export", "import", "execute"];
+        var seededOperations = OperationSeeds.All.Select(operation => operation.Code).ToHashSet(StringComparer.Ordinal);
 
         var offenders = PermissionCodeConstants()
             .Select(item => item.Value[(item.Value.IndexOf(':', StringComparison.Ordinal) + 1)..])
-            .Where(action => !seededOperations.Contains(action, StringComparer.Ordinal))
+            .Where(action => !seededOperations.Contains(action))
             .ToList();
 
-        Assert.True(offenders.Count == 0, $"以下操作码不在操作字典种子内：{string.Join("、", offenders)}");
+        Assert.True(offenders.Count == 0, $"以下操作码不在操作字典内：{string.Join("、", offenders)}");
+    }
+
+    /// <summary>
+    /// 权限目录恰好声明常量表里的全部权限码，全部是平台侧、挂在代码生成资源上。
+    /// </summary>
+    [Fact]
+    public void PermissionCatalog_ShouldDeclareExactlyTheConstantCodesOnPlatformSide()
+    {
+        var catalog = Catalog();
+        var resource = Assert.Single(catalog.Resources);
+
+        Assert.Equal(CodeGenPermissionCodes.Resource, resource.Code);
+        Assert.Equal(CodeGenPermissionCodes.Module, catalog.ModuleCode);
+        Assert.Equal(
+            PermissionCodeConstants().Select(item => item.Value).Order(StringComparer.Ordinal),
+            catalog.Permissions.Select(permission => permission.Code).Order(StringComparer.Ordinal));
+        Assert.All(catalog.Permissions, permission =>
+        {
+            Assert.Equal(PermissionSide.Platform, permission.Side);
+            Assert.Same(resource, permission.Resource);
+        });
     }
 
     /// <summary>
@@ -356,79 +356,42 @@ public sealed class CodeGenPermissionAndSeederStructureTests
     }
 
     /// <summary>
-    /// 六个种子器的执行序必须与登记顺序一致：操作字典 → 资源 → 权限 → 菜单 → 角色授权 → 模板。
-    /// </summary>
-    /// <param name="typeName">种子器类型名</param>
-    [Theory]
-    [MemberData(nameof(SeederTypeNames))]
-    public void Seeder_OrderShouldMatchDocumentedChain(string typeName)
-    {
-        var expected = SeederChain.Single(item => string.Equals(item.TypeName, typeName, StringComparison.Ordinal)).Order;
-
-        Assert.Equal(expected, SeederInstance(typeName).Order);
-    }
-
-    /// <summary>
-    /// 种子器的执行序不得重复，重复会让链内顺序变成不确定。
+    /// 种子器各在自己的阶段、用代码生成的号段（+10）：权限目录 → 菜单 → 内置模板。
     /// </summary>
     [Fact]
-    public void Seeder_OrdersShouldBeUnique()
+    public void Seeders_ShouldRunInTheirPhases()
     {
-        var duplicates = SeederChain
-            .Select(item => SeederInstance(item.TypeName).Order)
-            .GroupBy(order => order)
-            .Where(group => group.Count() > 1)
-            .Select(group => group.Key.ToString(System.Globalization.CultureInfo.InvariantCulture))
-            .ToList();
-
-        Assert.True(duplicates.Count == 0, $"以下执行序被多个种子器占用：{string.Join("、", duplicates)}");
+        Assert.All(Seeders, item => Assert.Equal(item.Order, SeederInstance(item.Type).Order));
     }
 
     /// <summary>
-    /// 代码生成的种子统一落在 100+ 独立段，与 Saas 的种子段互不交叠。
+    /// 模块内的种子器正好是这三个：操作字典由 SaaS 统一播，角色授权由运营或演示数据负责。
     /// </summary>
-    /// <param name="typeName">种子器类型名</param>
-    [Theory]
-    [MemberData(nameof(SeederTypeNames))]
-    public void Seeder_OrderShouldStayInModuleReservedRange(string typeName)
+    [Fact]
+    public void Seeders_RosterShouldMatchRegisteredChain()
     {
-        var order = SeederInstance(typeName).Order;
+        var discovered = CodeGenerationTestHelper.ModuleAssembly
+            .GetTypes()
+            .Where(type => type is { IsClass: true, IsAbstract: false } && type.IsAssignableTo(typeof(IDataSeeder)))
+            .Select(type => type.Name)
+            .Order(StringComparer.Ordinal);
 
-        Assert.InRange(order, 100, 199);
+        Assert.Equal(Seeders.Select(item => item.Type.Name).Order(StringComparer.Ordinal), discovered);
     }
 
     /// <summary>
-    /// 种子名统一带模块前缀，启动日志里才分得清是谁在播。
+    /// 种子名统一带模块前缀，全部在平台上下文里播。
     /// </summary>
-    /// <param name="typeName">种子器类型名</param>
-    [Theory]
-    [MemberData(nameof(SeederTypeNames))]
-    public void Seeder_NameShouldCarryModulePrefix(string typeName)
+    [Fact]
+    public void Seeders_ShouldCarryModulePrefixAndSeedWithinPlatformScope()
     {
-        var name = SeederInstance(typeName).Name;
-
-        Assert.StartsWith("[CodeGeneration]", name, StringComparison.Ordinal);
-        Assert.True(name.Length > "[CodeGeneration]".Length, $"{typeName} 的种子名只有前缀，没有实际描述。");
-    }
-
-    /// <summary>
-    /// 平台级数据（操作字典/资源/权限/角色授权）必须由平台种子基类播下，整个过程在 TenantId = 0 上下文内。
-    /// </summary>
-    /// <remarks>
-    /// 不切平台上下文的后果是静默的：行照常写入但落到了别的租户下，
-    /// 按 TenantId = 0 查找的消费方（如菜单种子解析权限）会查不到并跳过。
-    /// </remarks>
-    /// <param name="typeName">种子器类型名</param>
-    [Theory]
-    [InlineData("SysOperationSeeder")]
-    [InlineData("SysResourceSeeder")]
-    [InlineData("SysPermissionSeeder")]
-    [InlineData("SysRolePermissionSeeder")]
-    public void PlatformSeeder_ShouldInheritPlatformDataSeederBase(string typeName)
-    {
-        Assert.True(
-            SeederType(typeName).IsAssignableTo(typeof(XiHan.BasicApp.Saas.Infrastructure.Seeders.System.PlatformDataSeederBase)),
-            $"{typeName} 未继承 PlatformDataSeederBase，平台数据可能被写到当前租户下。");
+        Assert.All(Seeders, item =>
+        {
+            var name = SeederInstance(item.Type).Name;
+            Assert.StartsWith("[CodeGeneration]", name, StringComparison.Ordinal);
+            Assert.True(name.Length > "[CodeGeneration]".Length, $"{item.Type.Name} 的种子名只有前缀，没有实际描述。");
+            Assert.True(item.Type.IsAssignableTo(typeof(PlatformDataSeederBase)), $"{item.Type.Name} 未继承 PlatformDataSeederBase。");
+        });
     }
 
     /// <summary>
@@ -437,10 +400,8 @@ public sealed class CodeGenPermissionAndSeederStructureTests
     [Fact]
     public void MenuSeeder_ShouldBeDrivenByModulePageRegistry()
     {
-        var seederType = SeederType("CodeGenerationMenuSeeder");
-        Assert.True(
-            seederType.IsAssignableTo(typeof(XiHan.BasicApp.Saas.Infrastructure.Seeders.System.PageRegistryMenuSeederBase)),
-            "CodeGenerationMenuSeeder 未继承 PageRegistryMenuSeederBase，页面登记表就不是单一事实源了。");
+        var seederType = typeof(CodeGenerationMenuSeeder);
+        Assert.True(seederType.IsAssignableTo(typeof(PageRegistryMenuSeederBase)));
 
         var instance = RuntimeHelpers.GetUninitializedObject(seederType);
         var pages = seederType.GetProperty("Pages", BindingFlags.NonPublic | BindingFlags.Instance)!.GetValue(instance);
@@ -448,33 +409,6 @@ public sealed class CodeGenPermissionAndSeederStructureTests
 
         Assert.Same(PageRegistry.All, pages);
         Assert.Same(PageRegistry.Buttons, buttons);
-    }
-
-    /// <summary>
-    /// 六个种子器都必须实现框架的种子接口，才会被 <c>AddDataSeeder</c> 收集执行。
-    /// </summary>
-    /// <param name="typeName">种子器类型名</param>
-    [Theory]
-    [MemberData(nameof(SeederTypeNames))]
-    public void Seeder_ShouldImplementDataSeederContract(string typeName)
-    {
-        var seederType = SeederType(typeName);
-
-        Assert.True(seederType.IsAssignableTo(typeof(IDataSeeder)), $"{typeName} 未实现 IDataSeeder。");
-        Assert.True(seederType.IsAssignableTo(typeof(DataSeederBase)), $"{typeName} 未继承 DataSeederBase。");
-        Assert.False(seederType.IsAbstract, $"{typeName} 是抽象类，无法被注册执行。");
-    }
-
-    /// <summary>
-    /// 权限种子必须排在菜单种子之前：菜单建立时要解析 <c>code_gen:read</c> 绑定可见性。
-    /// </summary>
-    [Fact]
-    public void Seeder_PermissionShouldRunBeforeMenu()
-    {
-        Assert.True(SeederInstance("SysPermissionSeeder").Order < SeederInstance("CodeGenerationMenuSeeder").Order);
-        Assert.True(SeederInstance("SysOperationSeeder").Order < SeederInstance("SysPermissionSeeder").Order);
-        Assert.True(SeederInstance("SysResourceSeeder").Order < SeederInstance("SysPermissionSeeder").Order);
-        Assert.True(SeederInstance("CodeGenerationMenuSeeder").Order < SeederInstance("SysRolePermissionSeeder").Order);
     }
 
     /// <summary>

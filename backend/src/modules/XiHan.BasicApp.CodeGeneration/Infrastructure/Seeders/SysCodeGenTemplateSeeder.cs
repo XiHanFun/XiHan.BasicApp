@@ -1,0 +1,238 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using Microsoft.Extensions.Logging;
+using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.CodeGeneration.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.Framework.Data.SqlSugar.Clients;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders;
+
+namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders;
+
+/// <summary>
+/// 代码生成内置模板种子数据
+/// 把 Templates/Backend/*.sbn 与 Templates/Frontend/*.sbn 作为嵌入资源种入 SysCodeGenTemplate(IsBuiltIn=true)
+/// </summary>
+/// <remarks>
+/// 代码生成是平台专属功能，内置模板是平台数据：在平台作用域播、只落平台库。
+/// 内置模板随程序版本走：已有的回刷内容与元数据，启停归运维不动；嵌入资源缺失是构建问题，直接报错。
+/// </remarks>
+public class SysCodeGenTemplateSeeder : PlatformDataSeederBase
+{
+    /// <summary>
+    /// 内置模板分组
+    /// </summary>
+    private const string BackendCrudGroup = "backend-crud";
+
+    /// <summary>
+    /// 前端内置模板分组
+    /// </summary>
+    private const string FrontendCrudGroup = "frontend-crud";
+
+    /// <summary>
+    /// 前端接口路径表达式（模块小写目录）
+    /// </summary>
+    private const string FrontendApiPath = "src/api/modules/{{ ModuleName | string.downcase }}";
+
+    /// <summary>
+    /// 前端页面路径表达式（模块小写目录 + 实体 kebab 目录）
+    /// </summary>
+    private const string FrontendPagePath = "src/views/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}";
+
+    /// <summary>
+    /// 内置模板定义（嵌入资源后缀 → 模板元信息）
+    /// 资源后缀按 ".Templates." + ResourceFile.Replace("/", ".") 与 GetManifestResourceNames() 匹配，
+    /// 同时兼容 Backend/ 与 Frontend/ 子目录，避免硬编码命名空间出错。
+    /// </summary>
+    /// <remarks>
+    /// 每个产物成对登记：自动模板（<see cref="ArtifactWriteMode.AlwaysOverwrite"/>，重新生成时覆盖）
+    /// 与手动模板（<see cref="ArtifactWriteMode.WriteOnce"/>，仅首次创建、此后永不触碰）。
+    /// 二者在语言层面拼接：L1 数据类经 partial 合并；L2 行为类经抽象基类与具体派生类继承；
+    /// L3 前端经 re-export / transform 组合。前端页面 index.vue 无自动侧，整体归手动所有。
+    /// </remarks>
+    private static readonly IReadOnlyList<BuiltInTemplate> BuiltInTemplates =
+    [
+        // L1 数据层：partial 拆分
+        new("backend.entity", "后端实体", BackendCrudGroup, "Backend/Entity.sbn", "{{ ClassName }}.Generated.cs", ".cs", "Domain/Entities"),
+        new("backend.entity.manual", "后端实体（自定义）", BackendCrudGroup, "Backend/Entity.Manual.sbn", "{{ ClassName }}.cs", ".cs", "Domain/Entities", ArtifactWriteMode.WriteOnce),
+        new("backend.dtos", "后端DTO", BackendCrudGroup, "Backend/Dtos.sbn", "{{ ClassName }}Dtos.Generated.cs", ".cs", "Application/Dtos"),
+        new("backend.dtos.manual", "后端DTO（自定义）", BackendCrudGroup, "Backend/Dtos.Manual.sbn", "{{ ClassName }}Dtos.cs", ".cs", "Application/Dtos", ArtifactWriteMode.WriteOnce),
+        new("backend.irepository", "后端仓储接口", BackendCrudGroup, "Backend/IRepository.sbn", "I{{ ClassName }}Repository.Generated.cs", ".cs", "Domain/Repositories"),
+        new("backend.irepository.manual", "后端仓储接口（自定义）", BackendCrudGroup, "Backend/IRepository.Manual.sbn", "I{{ ClassName }}Repository.cs", ".cs", "Domain/Repositories", ArtifactWriteMode.WriteOnce),
+        new("backend.repository", "后端仓储实现", BackendCrudGroup, "Backend/Repository.sbn", "{{ ClassName }}Repository.Generated.cs", ".cs", "Infrastructure/Repositories"),
+        new("backend.repository.manual", "后端仓储实现（自定义）", BackendCrudGroup, "Backend/Repository.Manual.sbn", "{{ ClassName }}Repository.cs", ".cs", "Infrastructure/Repositories", ArtifactWriteMode.WriteOnce),
+        new("backend.contracts", "后端应用契约", BackendCrudGroup, "Backend/Contracts.sbn", "I{{ ClassName }}Contracts.Generated.cs", ".cs", "Application/Contracts"),
+        new("backend.contracts.manual", "后端应用契约（自定义）", BackendCrudGroup, "Backend/Contracts.Manual.sbn", "I{{ ClassName }}Contracts.cs", ".cs", "Application/Contracts", ArtifactWriteMode.WriteOnce),
+        new("backend.mapper", "后端对象映射", BackendCrudGroup, "Backend/Mapper.sbn", "{{ ClassName }}ApplicationMapper.Generated.cs", ".cs", "Application/Mappers"),
+        new("backend.mapper.manual", "后端对象映射（自定义）", BackendCrudGroup, "Backend/Mapper.Manual.sbn", "{{ ClassName }}ApplicationMapper.cs", ".cs", "Application/Mappers", ArtifactWriteMode.WriteOnce),
+
+        // L2 行为层：Generation Gap（生成抽象基类 + 手写具体派生类）
+        new("backend.appservice", "后端应用服务基类", BackendCrudGroup, "Backend/AppService.sbn", "{{ ClassName }}AppServiceBase.Generated.cs", ".cs", "Application/AppServices"),
+        new("backend.appservice.manual", "后端应用服务", BackendCrudGroup, "Backend/AppService.Manual.sbn", "{{ ClassName }}AppService.cs", ".cs", "Application/AppServices", ArtifactWriteMode.WriteOnce),
+        new("backend.queryservice", "后端查询服务基类", BackendCrudGroup, "Backend/QueryService.sbn", "{{ ClassName }}QueryServiceBase.Generated.cs", ".cs", "Application/QueryServices"),
+        new("backend.queryservice.manual", "后端查询服务", BackendCrudGroup, "Backend/QueryService.Manual.sbn", "{{ ClassName }}QueryService.cs", ".cs", "Application/QueryServices", ArtifactWriteMode.WriteOnce),
+
+        // L3 前端层：生成 base + 手写 re-export / transform
+        new("frontend.types", "前端类型定义", FrontendCrudGroup, "Frontend/Types.sbn", "{{ ClassNameKebab }}.types.generated.ts", ".ts", FrontendApiPath),
+        new("frontend.types.manual", "前端类型定义（自定义）", FrontendCrudGroup, "Frontend/Types.Manual.sbn", "{{ ClassNameKebab }}.types.ts", ".ts", FrontendApiPath, ArtifactWriteMode.WriteOnce),
+        new("frontend.api", "前端接口请求", FrontendCrudGroup, "Frontend/Api.sbn", "{{ ClassNameKebab }}.generated.ts", ".ts", FrontendApiPath),
+        new("frontend.api.manual", "前端接口请求（自定义）", FrontendCrudGroup, "Frontend/Api.Manual.sbn", "{{ ClassNameKebab }}.ts", ".ts", FrontendApiPath, ArtifactWriteMode.WriteOnce),
+        // 页面与 schema 按模板类型分化：结构差异过大，不宜在同一模板内分支
+        new("frontend.schema", "前端页面Schema（单表）", FrontendCrudGroup, "Frontend/Schema.sbn", "{{ ClassNameKebab }}.schema.generated.ts", ".ts", FrontendPagePath, ArtifactWriteMode.AlwaysOverwrite, TemplateType.Single),
+        new("frontend.schema.manual", "前端页面Schema（单表·自定义）", FrontendCrudGroup, "Frontend/Schema.Manual.sbn", "{{ ClassNameKebab }}.schema.ts", ".ts", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Single),
+        new("frontend.page", "前端列表页面（单表）", FrontendCrudGroup, "Frontend/Page.sbn", "index.vue", ".vue", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Single),
+
+        // 主子表沿用单表的页面结构（明细区由模板内 HasDetailTables 分支渲染，与本表自身类型无关），
+        // 故复用同一批资源文件，仅按类型另行登记一份
+        new("frontend.schema.masterdetail", "前端页面Schema（主子表）", FrontendCrudGroup, "Frontend/Schema.sbn", "{{ ClassNameKebab }}.schema.generated.ts", ".ts", FrontendPagePath, ArtifactWriteMode.AlwaysOverwrite, TemplateType.MasterDetail),
+        new("frontend.schema.masterdetail.manual", "前端页面Schema（主子表·自定义）", FrontendCrudGroup, "Frontend/Schema.Manual.sbn", "{{ ClassNameKebab }}.schema.ts", ".ts", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.MasterDetail),
+        new("frontend.page.masterdetail", "前端列表页面（主子表）", FrontendCrudGroup, "Frontend/Page.sbn", "index.vue", ".vue", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.MasterDetail),
+
+        new("frontend.schema.tree", "前端页面Schema（树表）", FrontendCrudGroup, "Frontend/TreeSchema.sbn", "{{ ClassNameKebab }}.schema.generated.ts", ".ts", FrontendPagePath, ArtifactWriteMode.AlwaysOverwrite, TemplateType.Tree),
+        new("frontend.schema.tree.manual", "前端页面Schema（树表·自定义）", FrontendCrudGroup, "Frontend/TreeSchema.Manual.sbn", "{{ ClassNameKebab }}.schema.ts", ".ts", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Tree),
+        new("frontend.page.tree", "前端列表页面（树表）", FrontendCrudGroup, "Frontend/TreePage.sbn", "index.vue", ".vue", FrontendPagePath, ArtifactWriteMode.WriteOnce, TemplateType.Tree),
+    ];
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public SysCodeGenTemplateSeeder(ISqlSugarClientResolver clientResolver, ILogger<SysCodeGenTemplateSeeder> logger, IServiceProvider serviceProvider)
+        : base(clientResolver, logger, serviceProvider)
+    {
+    }
+
+    /// <summary>
+    /// 种子数据优先级
+    /// </summary>
+    public override int Order => SeedOrders.PlatformData + 10;
+
+    /// <summary>
+    /// 种子数据名称
+    /// </summary>
+    public override string Name => "[CodeGeneration]内置模板";
+
+    /// <summary>
+    /// 种子数据实现
+    /// </summary>
+    protected override async Task SeedInternalAsync()
+    {
+        var client = DbClientFor<SysCodeGenTemplate>();
+        var codes = BuiltInTemplates.Select(t => t.Code).ToList();
+        var exists = await client.Queryable<SysCodeGenTemplate>().Where(t => codes.Contains(t.TemplateCode)).ToListAsync();
+        var existsCodes = exists.Select(x => x.TemplateCode).ToHashSet();
+
+        var existsMap = exists.ToDictionary(x => x.TemplateCode, StringComparer.Ordinal);
+
+        var assembly = typeof(SysCodeGenTemplateSeeder).Assembly;
+        var resourceNames = assembly.GetManifestResourceNames();
+        var addList = new List<SysCodeGenTemplate>();
+        var updateList = new List<SysCodeGenTemplate>();
+        var sort = 1;
+
+        foreach (var template in BuiltInTemplates)
+        {
+            // 即使已存在也推进 Sort，保证插入项的排序与定义顺序一致
+            var currentSort = sort++;
+
+            // 资源名按 ".Templates." + ResourceFile（/ 转 .）后缀定位，兼容 Backend/ 与 Frontend/，避免硬编码命名空间
+            var suffix = $".Templates.{template.ResourceFile.Replace("/", ".")}";
+            var resourceName = resourceNames.FirstOrDefault(n => n.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+            if (resourceName is null)
+            {
+                throw new InvalidOperationException($"{Name}：模板 {template.Code} 的嵌入资源 {suffix} 不存在。");
+            }
+
+            string content;
+            await using (var stream = assembly.GetManifestResourceStream(resourceName)
+                ?? throw new InvalidOperationException($"{Name}：模板 {template.Code} 的嵌入资源 {resourceName} 读不出内容。"))
+            {
+                using var reader = new StreamReader(stream);
+                content = await reader.ReadToEndAsync();
+            }
+
+            // 已存在则回刷：内置模板是随程序版本走的只读资产，改了 .sbn 必须能落到已有库，
+            // 否则模板修复对老库永远不生效。启停状态属运维决定，不在回刷范围。
+            if (existsMap.TryGetValue(template.Code, out var existing))
+            {
+                var changed = existing.TemplateContent != content
+                    || existing.TemplateName != template.Name
+                    || existing.TemplateGroup != template.Group
+                    || existing.TemplateType != template.TemplateType
+                    || existing.FileExtension != template.FileExtension
+                    || existing.FileNameExpression != template.FileNameExpression
+                    || existing.FilePathExpression != template.FilePathExpression
+                    || existing.WriteMode != template.WriteMode
+                    || existing.Sort != currentSort
+                    || !existing.IsBuiltIn;
+                if (!changed)
+                {
+                    continue;
+                }
+
+                existing.TemplateName = template.Name;
+                existing.TemplateGroup = template.Group;
+                existing.TemplateType = template.TemplateType;
+                existing.TemplateEngine = TemplateEngine.Scriban;
+                existing.TemplateContent = content;
+                existing.FileExtension = template.FileExtension;
+                existing.FileNameExpression = template.FileNameExpression;
+                existing.FilePathExpression = template.FilePathExpression;
+                existing.WriteMode = template.WriteMode;
+                existing.IsBuiltIn = true;
+                existing.Sort = currentSort;
+                updateList.Add(existing);
+                continue;
+            }
+
+            addList.Add(new SysCodeGenTemplate
+            {
+                TemplateCode = template.Code,
+                TemplateName = template.Name,
+                TemplateGroup = template.Group,
+                TemplateType = template.TemplateType,
+                TemplateEngine = TemplateEngine.Scriban,
+                TemplateContent = content,
+                FileExtension = template.FileExtension,
+                FileNameExpression = template.FileNameExpression,
+                FilePathExpression = template.FilePathExpression,
+                WriteMode = template.WriteMode,
+                IsBuiltIn = true,
+                IsEnabled = true,
+                Sort = currentSort,
+                Status = EnableStatus.Enabled
+            });
+        }
+
+        if (updateList.Count > 0)
+        {
+            _ = await client.Updateable(updateList).ExecuteCommandAsync();
+        }
+
+        await BulkInsertAsync(addList);
+        Logger.LogInformation("{Seeder}：新增 {AddCount} 个、回刷 {UpdateCount} 个", Name, addList.Count, updateList.Count);
+    }
+
+    /// <summary>
+    /// 内置模板定义
+    /// </summary>
+    /// <param name="Code">模板编码</param>
+    /// <param name="Name">模板名称</param>
+    /// <param name="Group">模板分组</param>
+    /// <param name="ResourceFile">嵌入资源相对路径（如 Backend/Entity.sbn 或 Frontend/Types.sbn）</param>
+    /// <param name="FileNameExpression">生成文件名表达式</param>
+    /// <param name="FileExtension">文件扩展名（如 .cs / .ts / .vue）</param>
+    /// <param name="FilePathExpression">生成文件路径表达式（目录，可空）</param>
+    /// <param name="WriteMode">写入策略（自动文件总是覆盖；手动文件仅首次创建）</param>
+    /// <param name="TemplateType">模板类型；为空表示通用模板，适用于全部类型（单表/树表/主子表）</param>
+    private sealed record BuiltInTemplate(
+        string Code,
+        string Name,
+        string Group,
+        string ResourceFile,
+        string FileNameExpression,
+        string FileExtension,
+        string? FilePathExpression,
+        ArtifactWriteMode WriteMode = ArtifactWriteMode.AlwaysOverwrite,
+        TemplateType TemplateType = TemplateType.Universal);
+}

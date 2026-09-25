@@ -8,7 +8,7 @@ using XiHan.BasicApp.AI.Domain.DomainServices.Implementations;
 using XiHan.BasicApp.AI.Extensions;
 using XiHan.BasicApp.AI.Infrastructure.Configuration;
 using XiHan.BasicApp.AI.Infrastructure.Security;
-using XiHan.BasicApp.AI.Infrastructure.Seeders.System;
+using XiHan.BasicApp.AI.Infrastructure.Seeders;
 using XiHan.BasicApp.AI.Infrastructure.Skills;
 using XiHan.Framework.AI.Abstractions.Configuration;
 using XiHan.Framework.AI.Abstractions.Prompts;
@@ -113,7 +113,7 @@ public sealed class AiServiceRegistrationTests
     }
 
     /// <summary>
-    /// 四段种子器必须全部登记到 <see cref="IDataSeeder"/> 上，漏登记的种子器永远不会执行。
+    /// 权限目录与菜单两个种子器都必须登记到 <see cref="IDataSeeder"/> 上，漏登记的种子器永远不会执行。
     /// </summary>
     [Fact]
     public void AddDataSeeders_ShouldRegisterEverySeederInTheModule()
@@ -121,32 +121,13 @@ public sealed class AiServiceRegistrationTests
         var services = new ServiceCollection();
 
         _ = services.AddAIDataSeeders();
-        _ = services.AddRAGDataSeeders();
-        _ = services.AddPromptDataSeeders();
-        _ = services.AddAssistantDataSeeders();
 
         var registered = services
             .Where(item => item.ServiceType == typeof(IDataSeeder))
             .Select(item => item.ImplementationType!.Name)
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToList();
-        var expected = new[]
-        {
-            nameof(AiMenuSeeder),
-            nameof(AssistantPermissionSeeder),
-            nameof(AssistantResourceSeeder),
-            nameof(AssistantRolePermissionSeeder),
-            nameof(KnowledgePermissionSeeder),
-            nameof(KnowledgeResourceSeeder),
-            nameof(KnowledgeRolePermissionSeeder),
-            nameof(PromptPermissionSeeder),
-            nameof(PromptResourceSeeder),
-            nameof(PromptRolePermissionSeeder),
-            nameof(SysOperationSeeder),
-            nameof(SysPermissionSeeder),
-            nameof(SysResourceSeeder),
-            nameof(SysRolePermissionSeeder)
-        }.OrderBy(name => name, StringComparer.Ordinal).ToList();
+        List<string> expected = [nameof(AiMenuSeeder), nameof(AiPermissionCatalogSeeder)];
 
         Assert.Equal(expected, registered, StringComparer.Ordinal);
     }

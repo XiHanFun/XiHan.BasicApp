@@ -15,7 +15,7 @@
 ::: tip 部署前置
 - 准备好可连接的 **PostgreSQL** 与 **Redis**。
 - 全新数据库首次启动会自动建库、建表并执行数据种子（对应 `EnableDbInitialization` / `EnableTableInitialization` / `EnableDataSeeding`，默认均为 `true`）。存量数据库的变更应写入 `UpdateScripts/{version}.sql`，但当前 BasicApp 尚未接入升级执行入口，发布流程必须显式安排迁移步骤，不能假定应用启动会自动执行。
-- 系统基线种子始终执行；内置的演示数据（示例组织、演示账号等）由 `Saas:Seed:EnableDemoData` 控制，默认 `true`，生产环境如不需要可显式设为 `false` 跳过。
+- 基础数据种子始终执行；演示数据（演示租户、组织、账号等）只在 `Saas:Seed:EnableDemoData` 为 `true` 时写入，缺省即不写。仓库的生产环境配置已显式设为 `false`。
 - 生产环境 CORS 仅放行配置中的域名（`XiHan:Web:Api:Cors:AllowedOrigins` 与网关 `XiHan:Web:Gateway:AllowedOrigins`），部署到自己的域名时务必同步修改，否则前端会被跨域拦截。
 - 若用到 AI / 知识库能力，还需准备对应的向量库（如 Qdrant）与嵌入模型配置。
 :::
@@ -151,10 +151,10 @@ pnpm build
 ## 初始账号与安全
 
 - 初始超级管理员：账号 `superadmin`，密码 `SuperAdmin@123`
-- 通过 `Saas:Seed:SuperAdminPassword`（环境变量 `Saas__Seed__SuperAdminPassword`）覆盖初始密码
+- 初始密码写在种子里，不走配置；账号标记为需要本人改密，参数「密码设置」（`saas.auth.password`）的 `forceChange` 开启后首次登录即要求修改。
 
 ::: warning
-生产环境务必覆盖初始密码，并在首次登录后立即修改。数据库、Redis 等连接凭据请通过环境变量或密钥管理注入，不要写死在提交的配置文件里。
+生产环境首次登录后立即修改初始密码，并建议开启强制改密。数据库、Redis 等连接凭据请通过环境变量或密钥管理注入，不要写死在提交的配置文件里。
 :::
 
 ## 下一步

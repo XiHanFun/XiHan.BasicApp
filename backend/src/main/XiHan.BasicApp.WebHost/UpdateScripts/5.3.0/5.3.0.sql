@@ -7,7 +7,8 @@
 -- 五、导出任务记下发起会话与模仿者（见后文）。
 -- 六、租户所有者角色改为系统角色（见后文）。
 -- 七、账号新增「需要本人改密」标记（见后文）。
--- 八、参数配置按功能合并为一条 JSON（见文末）。
+-- 八、参数配置按功能合并为一条 JSON（见后文）。
+-- 九、超管角色不写授权行（见文末）。
 --
 -- 只在 5.3.0 之前建的库上执行：新建的库（平台库与库隔离租户的独立库）按当前实体建表后直接登记为最新版本，不跑本脚本。
 -- 本脚本在建表之后、播种之前执行；建表只建缺失的表，存量表的新列、改名由本脚本补齐。
@@ -386,3 +387,16 @@ DROP FUNCTION pg_temp.xihan_old_list(text, text);
 DROP FUNCTION pg_temp.xihan_old_int(text);
 DROP FUNCTION pg_temp.xihan_old_bool(text);
 DROP FUNCTION pg_temp.xihan_old_config(int8, text);
+
+-- 九、超管角色不写授权行。
+-- 超管在平台的全部权限由授权快照整体给出（super_admin → * 与平台生效的全部权限），
+-- 此前代码生成、AI、聊天、打印各模块的种子给它写的授权行不起作用，删除；权限种子不再写这类行。
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables
+                WHERE table_schema = current_schema() AND table_name = 'sys_role_permission') THEN
+        DELETE FROM sys_role_permission
+         WHERE role_id IN (SELECT basic_id FROM sys_role WHERE role_code = 'super_admin' AND tenant_id = 0);
+    END IF;
+END
+$$;

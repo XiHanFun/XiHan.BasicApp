@@ -4,7 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Chat.Application.EventHandlers;
 using XiHan.BasicApp.Chat.Domain.DomainServices;
-using XiHan.BasicApp.Chat.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Chat.Infrastructure.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Utils.Collections;
@@ -17,17 +17,16 @@ namespace XiHan.BasicApp.Chat.Extensions;
 public static class ServiceCollectionExtensions
 {
     /// <summary>
-    /// 添加聊天模块种子数据（权限 → 菜单 → 角色授权 → 任务 → 配置）
+    /// 添加聊天模块种子：权限目录、菜单、参数配置、内建定时任务
     /// </summary>
     /// <param name="services">服务集合</param>
     /// <returns>服务集合</returns>
     public static IServiceCollection AddChatDataSeeders(this IServiceCollection services)
     {
-        _ = services.AddDataSeeder<ChatPermissionSeeder>();       // 400
-        _ = services.AddDataSeeder<ChatMenuSeeder>();             // 401
-        _ = services.AddDataSeeder<ChatRolePermissionSeeder>();   // 402
-        _ = services.AddDataSeeder<ChatTaskSeeder>();             // 403
-        _ = services.AddDataSeeder<ChatSettingSeeder>();    // 404
+        _ = services.AddDataSeeder<ChatPermissionCatalogSeeder>();
+        _ = services.AddDataSeeder<ChatMenuSeeder>();
+        _ = services.AddDataSeeder<ChatSettingSeeder>();
+        _ = services.AddDataSeeder<ChatTaskSeeder>();
         return services;
     }
 

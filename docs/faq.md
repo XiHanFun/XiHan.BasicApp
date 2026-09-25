@@ -45,11 +45,11 @@
 | 账号 | `superadmin` |
 | 密码 | `SuperAdmin@123` |
 
-初始密码可用配置 `Saas:Seed:SuperAdminPassword`（环境变量写法 `Saas__Seed__SuperAdminPassword`）覆盖。**生产务必覆盖，并在首次登录后立即修改。**
+初始密码写在种子里，不走配置；账号标记为需要本人改密，参数「密码设置」（`saas.auth.password`）的 `forceChange` 开启后首次登录即要求修改。**生产首次登录后立即修改。**
 
-### 不想要演示数据
+### 演示数据怎么开关
 
-种子分两类：**系统基线**（身份/权限/菜单/字典等，始终播种，是应用能跑的最小骨架）与**演示数据**（示例组织、演示账号、演示业务租户）。把 `Saas:Seed:EnableDemoData` 显式设为 `false` 即整体跳过演示种子；**缺省或非法值都视为启用**。
+种子分两类：**基础数据**（超管、权限目录、菜单、套餐、参数等，始终播种，是系统运行所需）与**演示数据**（覆盖各种情况的演示租户、组织、角色、账号）。`Saas:Seed:EnableDemoData` 为 `true` 才写演示数据，**缺省或 `false` 都不写**；仓库的开发环境配置开启、生产环境关闭。演示账号密码都是 `Demo@123`，清单见 [框架简介：种子数据](./backend/introduction#演示数据)。
 
 ---
 
@@ -92,12 +92,12 @@
 
 ### 新加的菜单在前端不显示
 
-菜单种子是 **fail-closed** 的：`SaasMenuSeeder` 先按 `PermissionCode` 去查 `SysPermission`，**查不到就跳过该菜单并打 Warning**（日志里搜「依赖权限 ... 不存在，跳过初始化」）。所以：
+菜单种子是 **fail-closed** 的：`SaasMenuSeeder` 先按 `PermissionCode` 去查 `SysPermission`，**查不到直接报错、启动失败**（错误里写明缺的是哪个权限码）。所以：
 
 1. 权限码得先在 `SaasPermissionCodes` 里定义，并追加进 `All`；
-2. 权限**定义**要加进 `SaasPermissionDefinitions.Groups`（这才是落库的那份），权限种子 `Order=20` 必须排在菜单种子 `Order=25` 之前；
+2. 权限**定义**要加进 `SaasPermissionDefinitions.Groups`（这才是落库的那份），权限目录阶段天然排在菜单阶段之前；
 3. `PageRegistry` 里父目录要排在子项之前（种子按顺序解析 `ParentId`）；
-4. 新增独立模块时，种子链必须保持「**操作 → 资源 → 权限 → 菜单 → 角色授权**」完整顺序，缺了 `SysOperationSeeder` 会让整条链静默失效（权限由「资源 × 操作」派生）。
+4. 新增独立模块时，照 `SeedOrders` 的阶段与模块号段取 `Order`：权限目录继承 `PermissionCatalogSeederBase`，菜单继承 `PageRegistryMenuSeederBase`，资源型权限用的操作来自 SaaS 统一播的操作字典。
 
 改完重建库或重跑种子。详见 [二次开发 · 接线点检查清单](./backend/development#接线点检查清单)。
 

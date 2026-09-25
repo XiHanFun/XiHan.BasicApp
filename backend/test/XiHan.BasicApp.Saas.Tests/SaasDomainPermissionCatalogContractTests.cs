@@ -2,8 +2,12 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Reflection;
+using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders;
+using XiHan.Framework.Data.SqlSugar.Clients;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
@@ -136,32 +140,39 @@ public sealed class SaasDomainPermissionCatalogContractTests
     }
 
     /// <summary>
-    /// 扁平定义表由分组派生：模块码恒为 saas，优先级恒等于排序号，条数与分组内权限项总数一致。
+    /// 扁平定义表由分组派生：模块码恒为 saas、分组码取所在分组，条数与分组内权限项总数一致。
     /// </summary>
     [Fact]
-    public void SeedDefinitions_ShouldBeDerivedFromGroupsWithFixedModuleAndPriority()
+    public void SeedDefinitions_ShouldBeDerivedFromGroupsWithFixedModuleAndGroup()
     {
         var expectedCount = SaasPermissionDefinitions.Groups.Sum(group => group.Permissions.Count);
+        var groupByCode = SaasPermissionDefinitions.Groups
+            .SelectMany(group => group.Permissions.Select(item => (item.PermissionCode, group.GroupCode)))
+            .ToDictionary(item => item.PermissionCode, item => item.GroupCode, StringComparer.Ordinal);
 
         Assert.Equal(expectedCount, SaasPermissionDefinitions.All.Count);
         Assert.All(SaasPermissionDefinitions.All, definition =>
         {
             Assert.Equal(SaasPermissionCodes.Module, definition.ModuleCode, StringComparer.Ordinal);
-            Assert.Equal(definition.Sort, definition.Priority);
+            Assert.Equal(groupByCode[definition.PermissionCode], definition.GroupCode, StringComparer.Ordinal);
         });
     }
 
     /// <summary>
-    /// 标签由「模块 + 组码」生成，导出/导入动作追加动作段（与历史落库值一致）。
+    /// 落库标签由权限目录种子统一生成：[模块, 分组] 的 JSON 数组（权限页要求标签是 JSON 数组）。
     /// </summary>
     [Fact]
-    public void SeedDefinitions_Tags_ShouldAppendActionSegmentOnlyForExportAndImport()
+    public void CatalogSeeder_Tags_ShouldBeModuleAndGroupJsonArray()
     {
-        var tenantRead = FindDefinition(SaasPermissionCodes.Tenant.Read);
-        var tenantExport = FindDefinition(SaasPermissionCodes.Tenant.Export);
+        var seeder = new SaasPermissionCatalogSeeder(
+            Mock.Of<ISqlSugarClientResolver>(),
+            NullLogger<SaasPermissionCatalogSeeder>.Instance,
+            Mock.Of<IServiceProvider>());
+        var tenantExport = seeder.Permissions.Single(permission => permission.Code == SaasPermissionCodes.Tenant.Export);
 
-        Assert.Equal("[\"saas\",\"tenant\"]", tenantRead.Tags, StringComparer.Ordinal);
-        Assert.Equal("[\"saas\",\"tenant\",\"export\"]", tenantExport.Tags, StringComparer.Ordinal);
+        Assert.Equal("[\"saas\",\"tenant\"]", seeder.BuildTags(tenantExport), StringComparer.Ordinal);
+        Assert.Equal(SaasPermissionDefinitions.All.Count, seeder.Permissions.Count);
+        Assert.All(seeder.Permissions, permission => Assert.Null(permission.Resource));
     }
 
     /// <summary>
@@ -354,12 +365,6 @@ public sealed class SaasDomainPermissionCatalogContractTests
             .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
             .Where(field => field.IsLiteral && !field.IsInitOnly && field.FieldType == typeof(string))
             .Where(field => !string.Equals(field.Name, "Group", StringComparison.Ordinal));
-    }
-
-    private static SaasPermissionDefinition FindDefinition(string permissionCode)
-    {
-        return SaasPermissionDefinitions.All.Single(definition =>
-            string.Equals(definition.PermissionCode, permissionCode, StringComparison.Ordinal));
     }
 
     private static IReadOnlyList<(string Name, string Code)> GetDeclaredCodes()

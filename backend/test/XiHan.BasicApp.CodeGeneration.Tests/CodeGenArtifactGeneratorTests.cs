@@ -411,7 +411,7 @@ public sealed class CodeGenArtifactGeneratorTests
     }
 
     /// <summary>
-    /// 权限种子骨架必须落在 {命名空间}.Infrastructure.Seeders 并消费同批的权限定义类。
+    /// 权限种子骨架必须落在 {命名空间}.Infrastructure.Seeders，继承统一的权限目录基类并消费同批的权限定义类。
     /// </summary>
     [Fact]
     public void PermissionSeederSkeleton_ShouldConsumePermissionDefinitions()
@@ -419,52 +419,62 @@ public sealed class CodeGenArtifactGeneratorTests
         var content = CodeGenerationTestHelper.BuildSeeders(CodeGenerationTestHelper.CreateContext())[0].Content;
 
         Assert.Contains("namespace XiHan.BasicApp.Catalog.Infrastructure.Seeders;", content, StringComparison.Ordinal);
-        Assert.Contains("public sealed class SysProductPermissionSeeder : PlatformDataSeederBase", content, StringComparison.Ordinal);
+        Assert.Contains("public sealed class SysProductPermissionSeeder(", content, StringComparison.Ordinal);
+        Assert.Contains(": PermissionCatalogSeederBase(clientResolver, logger, serviceProvider)", content, StringComparison.Ordinal);
         Assert.Contains("SysProductPermissionDefinitions.Items", content, StringComparison.Ordinal);
-        // 未声明作用侧的权限在任何上下文都不生效：新建时写入，已落库的同步
-        Assert.Contains("private const PermissionSide Side = PermissionSide.Both;", content, StringComparison.Ordinal);
-        Assert.Contains("Side = Side,", content, StringComparison.Ordinal);
-        Assert.Contains("await SyncPermissionSideAsync(codes, Side);", content, StringComparison.Ordinal);
-        Assert.Contains("public override int Order => 200;", content, StringComparison.Ordinal);
-        Assert.Contains("[Catalog]产品权限种子数据", content, StringComparison.Ordinal);
+        // 未声明作用侧的权限在任何上下文都不生效：骨架默认两侧，由落地方按需收窄
+        Assert.Contains("PermissionSide.Both,", content, StringComparison.Ordinal);
+        Assert.Contains("OperationSeeds.All.Single(operation => operation.Code == item.Action)", content, StringComparison.Ordinal);
+        Assert.Contains("public override int Order => SeedOrders.PermissionCatalog + 90;", content, StringComparison.Ordinal);
+        Assert.Contains("[Catalog]产品权限目录", content, StringComparison.Ordinal);
+        // 超管在平台天然拥有全部权限，骨架不写角色授权
+        Assert.DoesNotContain("super_admin", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("SysRolePermission", content, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// 菜单种子骨架的 Order 必须大于权限种子，菜单建立时才解析得到 read 权限。
+    /// 菜单种子骨架继承页面登记基类，排在菜单阶段（权限目录之后），页面绑定 read 权限。
     /// </summary>
     [Fact]
     public void MenuSeederSkeleton_ShouldRunAfterPermissionSeeder()
     {
         var content = CodeGenerationTestHelper.BuildSeeders(CodeGenerationTestHelper.CreateContext())[1].Content;
 
-        Assert.Contains("public override int Order => 201;", content, StringComparison.Ordinal);
-        Assert.Contains("p.PermissionCode == \"sys_product:read\"", content, StringComparison.Ordinal);
+        Assert.Contains(": PageRegistryMenuSeederBase(clientResolver, logger, serviceProvider)", content, StringComparison.Ordinal);
+        Assert.Contains("public override int Order => SeedOrders.Menus + 90;", content, StringComparison.Ordinal);
+        Assert.Contains("SysProductPermissionCodes.Read", content, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// 菜单种子骨架写入的菜单规格必须与 README / PageRegistry 片段完全一致。
+    /// 菜单种子骨架登记的页面规格必须与 README / PageRegistry 片段完全一致。
     /// </summary>
     [Fact]
     public void MenuSeederSkeleton_ShouldWriteConsistentMenuSpecification()
     {
         var content = CodeGenerationTestHelper.BuildSeeders(CodeGenerationTestHelper.CreateContext())[1].Content;
 
-        Assert.Contains("MenuCode = \"sys_product\"", content, StringComparison.Ordinal);
-        Assert.Contains("Path = \"/catalog/sys-product\"", content, StringComparison.Ordinal);
-        Assert.Contains("Component = \"catalog/sys-product/index\"", content, StringComparison.Ordinal);
-        Assert.Contains("RouteName = \"CatalogSysProduct\"", content, StringComparison.Ordinal);
-        Assert.Contains("I18nKey = \"menu.sys_product\"", content, StringComparison.Ordinal);
+        Assert.Contains(
+            "new(\"catalog.sys-product\", \"产品\", \"menu.sys_product\", MenuType.Menu, \"/catalog/sys-product\", \"CatalogSysProduct\", \"catalog/sys-product/index\",",
+            content,
+            StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// 菜单种子骨架必须先按 MenuCode 判存在再插入，保证可重复执行（幂等）。
+    /// 菜单种子骨架的按钮行与 PageRegistry 片段一字不差：生成页面的写操作按钮靠这些按钮码门控，两边不能分叉。
     /// </summary>
     [Fact]
-    public void MenuSeederSkeleton_ShouldBeIdempotent()
+    public void MenuSeederSkeleton_ButtonsShouldMatchPageRegistrySnippet()
     {
-        var content = CodeGenerationTestHelper.BuildSeeders(CodeGenerationTestHelper.CreateContext())[1].Content;
+        var context = CodeGenerationTestHelper.CreateContext();
+        var seeder = CodeGenerationTestHelper.BuildSeeders(context)[1].Content;
+        var snippetButtons = CodeGenerationTestHelper.BuildPageRegistrySnippet(context).Content
+            .Split('\n')
+            .Select(line => line.Trim())
+            .Where(line => line.StartsWith("new(\"catalog.sys-product.", StringComparison.Ordinal))
+            .ToList();
 
-        Assert.Contains("AnyAsync(m => m.MenuCode == \"sys_product\")", content, StringComparison.Ordinal);
+        Assert.NotEmpty(snippetButtons);
+        Assert.All(snippetButtons, line => Assert.Contains(line, seeder, StringComparison.Ordinal));
     }
 
     /// <summary>

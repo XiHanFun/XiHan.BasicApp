@@ -31,26 +31,25 @@ public class XiHanBasicAppAIModule : XiHanModule
         var services = context.Services;
         var configuration = services.GetConfiguration();
 
-        // AI Provider 配置管理：种子（操作 → 资源 → 权限 → 菜单 → 角色授权）+ 领域服务 + DB 配置源覆盖
+        // 种子：权限目录（模型服务、提示词、助手、知识库）与菜单
         services.AddAIDataSeeders();
+
+        // AI Provider 配置管理：领域服务 + DB 配置源覆盖
         services.AddAIDomainServices();
         services.AddAIConfigStore();
 
-        // 知识库（RAG）：种子（资源 → 权限 → 菜单 → 角色授权）+ 领域服务 + 框架 RAG + Qdrant 向量库连接器
-        services.AddRAGDataSeeders();
+        // 知识库（RAG）：领域服务 + 框架 RAG + Qdrant 向量库连接器
         services.AddRAGDomainServices();
         services.AddRAG(configuration);
 
         // AI 技能（注册为 IAiSkill，框架技能注册表收纳 → 对话工具 / MCP tools）
         services.AddAISkills();
 
-        // 提示词库（M5）：种子（资源 → 权限 → 菜单 → 角色授权）+ 领域服务 + DB 提示词库覆盖
-        services.AddPromptDataSeeders();
+        // 提示词库（M5）：领域服务 + DB 提示词库覆盖
         services.AddPromptDomainServices();
         services.AddPromptStore();
 
-        // AI 助手：种子（资源 → 权限 → 菜单 → 角色授权）+ 领域服务
-        services.AddAssistantDataSeeders();
+        // AI 助手：领域服务
         services.AddAssistantDomainServices();
     }
 }

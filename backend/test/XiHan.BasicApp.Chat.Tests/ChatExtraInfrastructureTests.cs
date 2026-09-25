@@ -19,8 +19,9 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
-using XiHan.Framework.MultiTenancy.Abstractions;
-using ChatSeeders = XiHan.BasicApp.Chat.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Chat.Domain.Permissions;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders;
+using ChatSeeders = XiHan.BasicApp.Chat.Infrastructure.Seeders;
 
 namespace XiHan.BasicApp.Chat.Tests;
 
@@ -173,28 +174,41 @@ public sealed class ChatExtraInfrastructureTests
     }
 
     /// <summary>
-    /// 五个聊天种子器的执行序号必须互不相同且落在 400 段，权限先于菜单、菜单先于角色授权。
+    /// 聊天种子各在自己的阶段、用聊天模块的号段（+40）：权限目录先于菜单，参数与任务在平台数据阶段。
     /// </summary>
     /// <remarks>
-    /// 菜单建立时要按权限码解析可见性，权限缺失会让整棵子树被静默跳过；
-    /// 角色授权又依赖权限行已存在，顺序错了不会报错，只会「菜单莫名其妙少了几个」。
+    /// 菜单建立时要按权限码绑定可见性，权限目录必须先落库；各模块同一阶段错开号段，避免与其它模块同序。
     /// </remarks>
     [Fact]
-    public void ChatSeeders_ShouldDeclareDistinctOrdersInDependencySequence()
+    public void ChatSeeders_ShouldRunInTheirPhases()
     {
-        var seeders = CreateSeeders();
+        var orderByType = CreateSeeders().ToDictionary(seeder => seeder.GetType().Name, seeder => seeder.Order, StringComparer.Ordinal);
 
-        var orders = seeders.Select(seeder => seeder.Order).ToList();
-        Assert.Equal(orders.Count, orders.Distinct().Count());
-        Assert.All(orders, order => Assert.InRange(order, 400, 499));
+        Assert.Equal(SeedOrders.PermissionCatalog + 40, orderByType[nameof(ChatSeeders.ChatPermissionCatalogSeeder)]);
+        Assert.Equal(SeedOrders.Menus + 40, orderByType[nameof(ChatSeeders.ChatMenuSeeder)]);
+        Assert.Equal(SeedOrders.PlatformData + 40, orderByType[nameof(ChatSeeders.ChatSettingSeeder)]);
+        Assert.Equal(SeedOrders.PlatformData + 41, orderByType[nameof(ChatSeeders.ChatTaskSeeder)]);
+    }
 
-        var orderByType = seeders.ToDictionary(seeder => seeder.GetType().Name, seeder => seeder.Order, StringComparer.Ordinal);
-        Assert.True(
-            orderByType["ChatPermissionSeeder"] < orderByType["ChatMenuSeeder"],
-            "权限种子必须先于菜单种子执行，否则菜单绑不上权限会被跳过。");
-        Assert.True(
-            orderByType["ChatMenuSeeder"] < orderByType["ChatRolePermissionSeeder"],
-            "菜单种子必须先于角色权限种子执行。");
+    /// <summary>
+    /// 聊天权限目录：四个功能权限两侧生效，码与常量表一致。
+    /// </summary>
+    [Fact]
+    public void ChatPermissionCatalog_ShouldDeclareFourFunctionalPermissionsOnBothSides()
+    {
+        var catalog = new ChatSeeders.ChatPermissionCatalogSeeder(
+            new Mock<ISqlSugarClientResolver>().Object,
+            new Mock<ILogger<ChatSeeders.ChatPermissionCatalogSeeder>>().Object,
+            new Mock<IServiceProvider>().Object);
+
+        Assert.Equal(ChatPermissionCodes.All, catalog.Permissions.Select(permission => permission.Code));
+        Assert.Empty(catalog.Resources);
+        Assert.All(catalog.Permissions, permission =>
+        {
+            Assert.Equal(PermissionSide.Both, permission.Side);
+            Assert.Null(permission.Resource);
+        });
+        Assert.Equal(ChatPermissionCodes.Module, catalog.ModuleCode);
     }
 
     /// <summary>
@@ -348,13 +362,11 @@ public sealed class ChatExtraInfrastructureTests
     {
         var resolver = new Mock<ISqlSugarClientResolver>().Object;
         var serviceProvider = new Mock<IServiceProvider>().Object;
-        var currentTenant = new Mock<ICurrentTenant>().Object;
 
         return
         [
-            new ChatSeeders.ChatPermissionSeeder(resolver, new Mock<ILogger<ChatSeeders.ChatPermissionSeeder>>().Object, serviceProvider),
-            new ChatSeeders.ChatMenuSeeder(resolver, new Mock<ILogger<ChatSeeders.ChatMenuSeeder>>().Object, serviceProvider, currentTenant),
-            new ChatSeeders.ChatRolePermissionSeeder(resolver, new Mock<ILogger<ChatSeeders.ChatRolePermissionSeeder>>().Object, serviceProvider, currentTenant),
+            new ChatSeeders.ChatPermissionCatalogSeeder(resolver, new Mock<ILogger<ChatSeeders.ChatPermissionCatalogSeeder>>().Object, serviceProvider),
+            new ChatSeeders.ChatMenuSeeder(resolver, new Mock<ILogger<ChatSeeders.ChatMenuSeeder>>().Object, serviceProvider),
             new ChatSeeders.ChatTaskSeeder(resolver, new Mock<ILogger<ChatSeeders.ChatTaskSeeder>>().Object, serviceProvider),
             new ChatSeeders.ChatSettingSeeder(resolver, new Mock<ILogger<ChatSeeders.ChatSettingSeeder>>().Object, serviceProvider)
         ];

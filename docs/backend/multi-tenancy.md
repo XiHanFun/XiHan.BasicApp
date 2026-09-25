@@ -198,7 +198,7 @@ BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统�
 | `SysTenantEditionPermission` | `Sys_Tenant_Edition_Permission` | 版本 → 权限**白名单**映射（`EditionId` × `PermissionId`，唯一） |
 | `SysTenant.EditionId` | `Sys_Tenant` | 某租户订阅了哪个版本（`null` 时取 `IsDefault=true` 的默认版本） |
 
-内置版本种子（`SaasTenantEditionSeeder`）：`free`（免费/默认，只读+基础成员）、`basic`（+组织/用户/角色管理）、`pro`（+高级权限/审计/安全）、`enterprise`（全部作用侧含租户的权限、不限配额）。手写清单里混进平台侧权限会被剔除并告警；已存在的平台侧绑定（含后台手工维护的套餐）一律置为无效。版本记录本身是平台级（`TenantId=0`），由平台运营维护。
+内置版本种子（`SaasEditionSeeder`）：`free`（免费/默认，只读+基础成员）、`basic`（+组织/用户/角色管理）、`pro`（+高级权限/审计/安全）、`enterprise`（租户能生效的全部权限、不限配额）。种子排在全部模块的权限目录之后，只在版本首次创建时连同白名单写入，之后由平台运营维护（改过的不覆盖、删掉的不补回）；后来新增的权限要进哪些版本，由运营授予或由对应版本的升级脚本写入。手写白名单里混进平台侧或不存在的权限码，种子直接报错。版本记录本身是平台级（`TenantId=0`）。
 
 关键约束（见 `SysTenantEdition` 与领域服务）：
 

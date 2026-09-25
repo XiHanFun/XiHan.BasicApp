@@ -79,10 +79,12 @@ pnpm dev
 | 账号 | `superadmin` |
 | 密码 | `SuperAdmin@123` |
 
-可通过配置 `Saas:Seed:SuperAdminPassword`（环境变量 `Saas__Seed__SuperAdminPassword`）覆盖初始密码。
+初始密码写在种子里，不走配置；账号标记为需要本人改密，参数「密码设置」（`saas.auth.password`）的 `forceChange` 开启后首次登录即要求修改。
+
+开发环境默认开启演示数据：另有覆盖各种情况的演示租户与账号（密码都是 `Demo@123`），清单见 [框架简介：种子数据](./backend/introduction#演示数据)。
 
 ::: warning 安全提醒
-生产环境**务必**覆盖初始密码，并在首次登录后立即修改。
+生产环境首次登录后**立即**修改初始密码，并建议开启强制改密。
 :::
 
 ## 六、调通第一个接口

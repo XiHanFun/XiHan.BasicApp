@@ -2,22 +2,20 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using System.Reflection;
 using XiHan.BasicApp.Saas.Application.Pages;
 using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders;
 using XiHan.BasicApp.Workflow.Application.EventHandlers;
 using XiHan.BasicApp.Workflow.Domain.Permissions;
 using XiHan.BasicApp.Workflow.Extensions;
-using XiHan.BasicApp.Workflow.Infrastructure.Seeders.System;
+using XiHan.BasicApp.Workflow.Infrastructure.Seeders;
 using XiHan.BasicApp.Workflow.Infrastructure.Stores;
 using XiHan.Framework.Data.SqlSugar.Clients;
 using XiHan.Framework.Data.SqlSugar.Seeders;
 using XiHan.Framework.EventBus.Local;
-using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Stores;
 using SaasPageRegistry = XiHan.BasicApp.Saas.Application.Pages.PageRegistry;
 using WorkflowPageRegistry = XiHan.BasicApp.Workflow.Application.Pages.PageRegistry;
@@ -28,8 +26,8 @@ namespace XiHan.BasicApp.Workflow.Tests;
 /// 工作流权限常量、页面登记表、种子链与模块服务登记的一致性测试。
 /// </summary>
 /// <remarks>
-/// 权限码 / 资源码 / 操作码分散在三处（常量、资源种子、操作种子），任何一处漂移都不会报错，
-/// 只会在干净库上表现为"菜单少了几条、接口一律 403"，且日志里只有一条 WRN。
+/// 权限码常量、权限目录种子声明的「资源 × 操作」与平台操作字典必须一一对应，任何一处漂移都会让鉴权 403；
+/// 目录缺了操作或菜单缺了权限，种子会直接报错拖垮启动，这里提前变红。
 /// 页面登记表同理：父目录码引用的是 Saas 模块的工作台目录，对方改码后"我的待办"会静默消失。
 /// 本文件把这些跨文件、跨模块的隐式契约变成会红的断言。
 /// </remarks>
@@ -71,17 +69,34 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 权限码的操作后缀必须与操作种子内置的操作字典逐一对应，三处口径不一致会直接导致鉴权 403。
+    /// 权限目录：工作流资源 × 五个操作，码与常量一致、操作都在平台操作字典里、作用侧为租户。
     /// </summary>
     [Fact]
-    public void PermissionCodes_ShouldMatchOperationSeederActions()
+    public void PermissionCatalog_ShouldDeclareResourceTimesOperationsOnTenantSide()
     {
-        var seededOperationCodes = ReadBuiltInOperationCodes();
+        var catalog = CreatePermissionCatalogSeeder();
+        var resource = Assert.Single(catalog.Resources);
 
+        Assert.Equal(WorkflowPermissionCodes.Resource, resource.Code);
+        Assert.Equal(WorkflowPermissionCodes.Module, catalog.ModuleCode);
+        Assert.All(catalog.Permissions, permission =>
+        {
+            Assert.Same(resource, permission.Resource);
+            Assert.Contains(permission.Operation!, OperationSeeds.All);
+            Assert.Equal($"{resource.Code}:{permission.Operation!.Code}", permission.Code);
+            Assert.Equal(PermissionSide.Tenant, permission.Side);
+        });
         Assert.Equal(
             ExpectedOperationCodes.OrderBy(code => code, StringComparer.Ordinal).ToArray(),
-            seededOperationCodes.OrderBy(code => code, StringComparer.Ordinal).ToArray());
+            catalog.Permissions.Select(permission => permission.Operation!.Code).OrderBy(code => code, StringComparer.Ordinal).ToArray());
+    }
 
+    /// <summary>
+    /// 权限码常量的操作后缀必须与目录声明一致。
+    /// </summary>
+    [Fact]
+    public void PermissionCodes_ShouldMatchCatalogOperations()
+    {
         string[] permissionCodes =
         [
             WorkflowPermissionCodes.Read,
@@ -362,32 +377,17 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 五个种子的执行序号必须锁死：操作 → 资源 → 权限 → 菜单 → 角色授权，任何一步提前都会静默跳过。
+    /// 权限目录在权限目录阶段、菜单在菜单阶段，都用工作流的号段（+30）。
     /// </summary>
     [Fact]
-    public void Seeders_OrderShouldFollowDependencyChain()
+    public void Seeders_ShouldRunInTheirPhases()
     {
-        Assert.Equal(300, CreateOperationSeeder().Order);
-        Assert.Equal(301, CreateResourceSeeder().Order);
-        Assert.Equal(302, CreatePermissionSeeder().Order);
-        Assert.Equal(303, CreateMenuSeeder().Order);
-        Assert.Equal(304, CreateRolePermissionSeeder().Order);
+        Assert.Equal(SeedOrders.PermissionCatalog + 30, CreatePermissionCatalogSeeder().Order);
+        Assert.Equal(SeedOrders.Menus + 30, CreateMenuSeeder().Order);
     }
 
     /// <summary>
-    /// 五个种子的序号必须落在工作流独占的 300 段内且互不重复，避免与 Saas / 代码生成 / AI 段交叠。
-    /// </summary>
-    [Fact]
-    public void Seeders_OrdersShouldStayInWorkflowBandAndBeUnique()
-    {
-        var orders = CreateAllSeeders().Select(seeder => seeder.Order).ToList();
-
-        Assert.Equal(orders.Count, orders.Distinct().Count());
-        Assert.All(orders, order => Assert.InRange(order, 300, 399));
-    }
-
-    /// <summary>
-    /// 五个种子的名称必须以模块前缀开头，启动日志里才能一眼定位是哪个模块的种子在跑。
+    /// 种子的名称必须以模块前缀开头，启动日志里才能一眼定位是哪个模块的种子在跑。
     /// </summary>
     [Fact]
     public void Seeders_NamesShouldCarryModulePrefix()
@@ -401,16 +401,15 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 五个种子都必须在平台租户上下文内播种：落到启动时的租户下，按 TenantId = 0 查找的消费方会静默查不到。
+    /// 种子都必须在平台上下文内播种：落到启动时的租户下，按 TenantId = 0 查找的消费方会查不到。
     /// </summary>
     [Fact]
     public void Seeders_ShouldSeedWithinPlatformTenantScope()
     {
-        var violations = typeof(SysOperationSeeder).Assembly
+        var violations = typeof(WorkflowPermissionCatalogSeeder).Assembly
             .GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.IsAssignableTo(typeof(IDataSeeder)))
             .Where(type => !type.IsAssignableTo(typeof(PlatformDataSeederBase)))
-            .Where(type => !type.IsAssignableTo(typeof(PageRegistryMenuSeederBase)))
             .Select(type => type.FullName!)
             .ToList();
 
@@ -420,28 +419,19 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 模块内的种子类型必须正好是登记的五个，新增种子却漏登记服务时在这里变红。
+    /// 模块内的种子类型必须正好是权限目录与菜单两个；租户里的授权由运营或演示数据负责，模块不写角色授权。
     /// </summary>
     [Fact]
     public void Seeders_DiscoveredTypesShouldMatchRegisteredChain()
     {
-        var discovered = typeof(SysOperationSeeder).Assembly
+        var discovered = typeof(WorkflowPermissionCatalogSeeder).Assembly
             .GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.IsAssignableTo(typeof(IDataSeeder)))
             .Select(type => type.Name)
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToList();
 
-        Assert.Equal(
-            new[]
-            {
-                nameof(SysOperationSeeder),
-                nameof(SysPermissionSeeder),
-                nameof(SysResourceSeeder),
-                nameof(SysRolePermissionSeeder),
-                nameof(WorkflowMenuSeeder)
-            }.OrderBy(name => name, StringComparer.Ordinal).ToArray(),
-            discovered.ToArray());
+        Assert.Equal([nameof(WorkflowMenuSeeder), nameof(WorkflowPermissionCatalogSeeder)], discovered);
     }
 
     /// <summary>
@@ -461,7 +451,7 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 种子登记必须把五个种子全部登记成 <see cref="IDataSeeder"/>，漏一个则整条权限链在干净库上断掉。
+    /// 种子登记必须把两个种子都登记成 <see cref="IDataSeeder"/>，漏一个则权限或菜单在干净库上缺失。
     /// </summary>
     [Fact]
     public void AddWorkflowDataSeeders_ShouldRegisterEverySeeder()
@@ -476,16 +466,7 @@ public sealed class WorkflowPermissionAndSeedingTests
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToArray();
 
-        Assert.Equal(
-            new[]
-            {
-                nameof(SysOperationSeeder),
-                nameof(SysPermissionSeeder),
-                nameof(SysResourceSeeder),
-                nameof(SysRolePermissionSeeder),
-                nameof(WorkflowMenuSeeder)
-            }.OrderBy(name => name, StringComparer.Ordinal).ToArray(),
-            registered);
+        Assert.Equal([nameof(WorkflowMenuSeeder), nameof(WorkflowPermissionCatalogSeeder)], registered);
     }
 
     /// <summary>
@@ -538,115 +519,6 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 回归锚点：操作表存在同编码多行时，权限种子必须取一条继续播种并记 Warning，而不是整体抛异常。
-    /// </summary>
-    /// <remarks>
-    /// 操作表的唯一约束是 (TenantId, OperationCode, IsDeleted)，同编码跨租户并存是合法数据形态；
-    /// 原实现对全表结果直接 ToDictionary(o =&gt; o.OperationCode)，一旦命中重复键就以
-    /// 「An item with the same key has already been added」让整个播种失败，
-    /// 权限 → 菜单 → 角色授权整条链在干净库上一起断掉。
-    /// 收敛规则：优先取平台租户（TenantId = 0）那行——它才是操作种子播下的动作模板。
-    /// </remarks>
-    [Fact]
-    public void PermissionSeeder_DuplicateOperationCodes_ShouldPickPlatformRowAndWarn()
-    {
-        var logger = new RecordingLogger<SysPermissionSeeder>();
-        var seeder = CreatePermissionSeeder(logger);
-        List<SysOperation> operations =
-        [
-            CreateOperation(id: 200, tenantId: 5, code: "read"),
-            CreateOperation(id: 100, tenantId: 0, code: "read"),
-            CreateOperation(id: 300, tenantId: 0, code: "create")
-        ];
-
-        var map = InvokeBuildOperationMap(seeder, operations);
-
-        Assert.Equal(["create", "read"], map.Keys.OrderBy(key => key, StringComparer.Ordinal));
-        Assert.Equal(100, map["read"].BasicId);
-        Assert.Equal(300, map["create"].BasicId);
-        Assert.Contains(
-            logger.Entries,
-            entry => entry.Level == LogLevel.Warning && entry.Message.Contains("read", StringComparison.Ordinal));
-    }
-
-    /// <summary>
-    /// 同编码全部来自业务租户（平台行因操作种子按编码去重而从未插入）时，不得把字典清空，
-    /// 否则权限一条都播不出来；此时按主键取最早的一条兜底。
-    /// </summary>
-    [Fact]
-    public void PermissionSeeder_DuplicateOperationCodesWithoutPlatformRow_ShouldFallBackToLowestKey()
-    {
-        var seeder = CreatePermissionSeeder(new RecordingLogger<SysPermissionSeeder>());
-        List<SysOperation> operations =
-        [
-            CreateOperation(id: 900, tenantId: 8, code: "update"),
-            CreateOperation(id: 400, tenantId: 6, code: "update")
-        ];
-
-        var map = InvokeBuildOperationMap(seeder, operations);
-
-        var single = Assert.Single(map);
-        Assert.Equal("update", single.Key, StringComparer.Ordinal);
-        Assert.Equal(400, single.Value.BasicId);
-    }
-
-    /// <summary>
-    /// 反射调用权限种子的私有操作字典收敛方法（方法被改名即在此变红）。
-    /// </summary>
-    /// <param name="seeder">权限种子实例。</param>
-    /// <param name="operations">操作表记录。</param>
-    /// <returns>操作编码到操作的映射。</returns>
-    private static Dictionary<string, SysOperation> InvokeBuildOperationMap(SysPermissionSeeder seeder, List<SysOperation> operations)
-    {
-        var method = typeof(SysPermissionSeeder)
-            .GetMethod("BuildOperationMap", BindingFlags.NonPublic | BindingFlags.Instance);
-
-        Assert.True(method is not null, "SysPermissionSeeder.BuildOperationMap 不存在：操作字典的重复键收敛已丢失，同编码多行会让整次播种失败。");
-
-        return (Dictionary<string, SysOperation>)method!.Invoke(seeder, [operations])!;
-    }
-
-    /// <summary>
-    /// 构造一行操作记录。
-    /// </summary>
-    /// <param name="id">主键。</param>
-    /// <param name="tenantId">租户号（0 为平台）。</param>
-    /// <param name="code">操作编码。</param>
-    /// <returns>操作记录。</returns>
-    private static SysOperation CreateOperation(long id, long tenantId, string code)
-    {
-        var operation = new SysOperation
-        {
-            TenantId = tenantId,
-            OperationCode = code,
-            OperationName = code
-        };
-        WorkflowTestHelper.SetBasicId(operation, id);
-        return operation;
-    }
-
-    /// <summary>
-    /// 读取操作种子内置操作字典里的操作编码（私有静态字段，锁定"三处一致"这条跨文件约定）。
-    /// </summary>
-    /// <returns>操作编码集合。</returns>
-    private static List<string> ReadBuiltInOperationCodes()
-    {
-        var field = typeof(SysOperationSeeder)
-            .GetField("BuiltInOperations", BindingFlags.NonPublic | BindingFlags.Static);
-
-        Assert.True(field is not null, "SysOperationSeeder.BuiltInOperations 已改名，操作字典与权限码的一致性检查失效。");
-
-        var codes = new List<string>();
-        foreach (var operation in (System.Collections.IEnumerable)field!.GetValue(null)!)
-        {
-            var codeField = operation.GetType().GetField("Item1")!;
-            codes.Add((string)codeField.GetValue(operation)!);
-        }
-
-        return codes;
-    }
-
-    /// <summary>
     /// 断言某个存储接口在服务集合里只剩一条登记且指向 SqlSugar 实现。
     /// </summary>
     /// <typeparam name="TService">存储接口。</typeparam>
@@ -667,61 +539,18 @@ public sealed class WorkflowPermissionAndSeedingTests
     /// <returns>种子实例集合。</returns>
     private static List<IDataSeeder> CreateAllSeeders()
     {
-        return
-        [
-            CreateOperationSeeder(),
-            CreateResourceSeeder(),
-            CreatePermissionSeeder(),
-            CreateMenuSeeder(),
-            CreateRolePermissionSeeder()
-        ];
+        return [CreatePermissionCatalogSeeder(), CreateMenuSeeder()];
     }
 
     /// <summary>
-    /// 构造操作种子。
+    /// 构造权限目录种子。
     /// </summary>
-    /// <returns>操作种子。</returns>
-    private static SysOperationSeeder CreateOperationSeeder()
+    /// <returns>权限目录种子。</returns>
+    private static WorkflowPermissionCatalogSeeder CreatePermissionCatalogSeeder()
     {
-        return new SysOperationSeeder(
+        return new WorkflowPermissionCatalogSeeder(
             Mock.Of<ISqlSugarClientResolver>(),
-            new RecordingLogger<SysOperationSeeder>(),
-            Mock.Of<IServiceProvider>());
-    }
-
-    /// <summary>
-    /// 构造资源种子。
-    /// </summary>
-    /// <returns>资源种子。</returns>
-    private static SysResourceSeeder CreateResourceSeeder()
-    {
-        return new SysResourceSeeder(
-            Mock.Of<ISqlSugarClientResolver>(),
-            new RecordingLogger<SysResourceSeeder>(),
-            Mock.Of<IServiceProvider>());
-    }
-
-    /// <summary>
-    /// 构造权限种子。
-    /// </summary>
-    /// <returns>权限种子。</returns>
-    private static SysPermissionSeeder CreatePermissionSeeder(RecordingLogger<SysPermissionSeeder>? logger = null)
-    {
-        return new SysPermissionSeeder(
-            Mock.Of<ISqlSugarClientResolver>(),
-            logger ?? new RecordingLogger<SysPermissionSeeder>(),
-            Mock.Of<IServiceProvider>());
-    }
-
-    /// <summary>
-    /// 构造角色权限种子。
-    /// </summary>
-    /// <returns>角色权限种子。</returns>
-    private static SysRolePermissionSeeder CreateRolePermissionSeeder()
-    {
-        return new SysRolePermissionSeeder(
-            Mock.Of<ISqlSugarClientResolver>(),
-            new RecordingLogger<SysRolePermissionSeeder>(),
+            new RecordingLogger<WorkflowPermissionCatalogSeeder>(),
             Mock.Of<IServiceProvider>());
     }
 
@@ -734,8 +563,7 @@ public sealed class WorkflowPermissionAndSeedingTests
         return new WorkflowMenuSeeder(
             Mock.Of<ISqlSugarClientResolver>(),
             new RecordingLogger<WorkflowMenuSeeder>(),
-            Mock.Of<IServiceProvider>(),
-            Mock.Of<ICurrentTenant>());
+            Mock.Of<IServiceProvider>());
     }
 }
 

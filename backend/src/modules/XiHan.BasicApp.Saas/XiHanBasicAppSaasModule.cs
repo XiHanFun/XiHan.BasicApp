@@ -40,7 +40,7 @@ public class XiHanBasicAppSaasModule : XiHanModule
     {
         var services = context.Services;
 
-        // 注册 SaaS 模块种子数据（系统基线始终播种；演示数据由 Saas:Seed:EnableDemoData 控制）
+        // 注册 SaaS 模块种子数据（基础数据始终播种；演示数据只在 Saas:Seed:EnableDemoData 为 true 时写入）
         services.AddSaasDataSeeders();
         services.AddSaasDemoDataSeeders();
 

@@ -65,6 +65,24 @@ public sealed class WebHostConfigurationLayoutTests
     }
 
     /// <summary>
+    /// 演示数据开关在两个环境里都显式写明：开发环境开启（示例租户与账号），生产环境关闭（只播运行所需的基础数据）。
+    /// </summary>
+    /// <remarks>开关缺省按关闭处理；这里要求显式写出，免得换环境时靠缺省值猜。</remarks>
+    /// <param name="fileName">配置文件名。</param>
+    /// <param name="expected">期望的开关值。</param>
+    [Theory]
+    [InlineData("appsettings.Development.json", true)]
+    [InlineData("appsettings.Production.json", false)]
+    public void AppSettings_DemoDataSwitchShouldBeExplicitPerEnvironment(string fileName, bool expected)
+    {
+        using var document = ReadConfiguration(fileName);
+
+        var element = ResolvePath(document.RootElement, "Saas", "Seed", "EnableDemoData");
+        Assert.True(element is not null, $"{fileName} 缺少 Saas:Seed:EnableDemoData。");
+        Assert.Equal(expected ? JsonValueKind.True : JsonValueKind.False, element!.Value.ValueKind);
+    }
+
+    /// <summary>
     /// 雪花算法 WorkerId 必须存在且为整数：升级逻辑靠它判定主节点，键缺失就失去判定依据。
     /// </summary>
     /// <remarks>

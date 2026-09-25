@@ -6,7 +6,7 @@ namespace XiHan.BasicApp.AI.Domain.Permissions;
 /// <summary>
 /// AI 助手权限码常量
 /// </summary>
-/// <remarks>与种子对齐：资源 <c>ai_assistant</c> + 操作 read/create/update/delete。三处一致否则鉴权 403。</remarks>
+/// <remarks>权限目录 <c>AiPermissionCatalogSeeder</c> 声明资源 <c>ai_assistant</c> + 操作 read/create/update/delete，码与这里一一对应，否则鉴权 403。</remarks>
 public static class AiAssistantPermissionCodes
 {
     /// <summary>资源编码</summary>

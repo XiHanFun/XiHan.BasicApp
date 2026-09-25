@@ -9,7 +9,7 @@
 页面能看到并微调 `SysMenu` 表，但**它不是事实源**。
 
 ::: danger 菜单的事实源在后端代码里
-菜单、路由、组件路径、权限码、国际化键统一由 `Application/Pages/PageRegistry.cs` 登记，`SaasMenuSeeder`（`Order=25`）据此播种到 `SysMenu`。
+菜单、路由、组件路径、权限码、国际化键统一由 `Application/Pages/PageRegistry.cs` 登记，`SaasMenuSeeder` 据此播种到 `SysMenu`。
 
 **新增/修改菜单要改 `PageRegistry` 并重新播种**，在页面上手改会在下次播种时被覆盖或产生漂移。菜单管理页的定位是查看结构、调整排序与显隐，不是维护入口。
 :::

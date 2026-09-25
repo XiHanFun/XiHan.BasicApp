@@ -44,7 +44,7 @@ BasicApp 在 `AddSaasDomainServices()` 中注册四个数据库适配器，使�
 
 | 场景 | 机制 | 负责内容 |
 | --- | --- | --- |
-| 全新数据库 | SqlSugar CodeFirst + Seeder | 建库、建表、系统基线与演示数据 |
+| 全新数据库 | SqlSugar CodeFirst + Seeder | 建库、建表、基础数据（演示数据按开关） |
 | 存量数据库 | Upgrade + `UpdateScripts` | 增删列、索引变化、数据修复与版本推进 |
 
 `DbInitializer` 对已存在的表不会自动补列。实体结构变更如果只改 C#、不写前向 SQL，存量库会在查询时出现 `column does not exist` 一类错误。
