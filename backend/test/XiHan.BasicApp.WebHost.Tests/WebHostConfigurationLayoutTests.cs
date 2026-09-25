@@ -65,21 +65,21 @@ public sealed class WebHostConfigurationLayoutTests
     }
 
     /// <summary>
-    /// 演示数据开关在两个环境里都显式写明：开发环境开启（示例租户与账号），生产环境关闭（只播运行所需的基础数据）。
+    /// 演示数据开关由各环境的配置写明：开发环境开启（示例租户与账号）。
     /// </summary>
-    /// <remarks>开关缺省按关闭处理；这里要求显式写出，免得换环境时靠缺省值猜。</remarks>
-    /// <param name="fileName">配置文件名。</param>
-    /// <param name="expected">期望的开关值。</param>
-    [Theory]
-    [InlineData("appsettings.Development.json", true)]
-    [InlineData("appsettings.Production.json", false)]
-    public void AppSettings_DemoDataSwitchShouldBeExplicitPerEnvironment(string fileName, bool expected)
+    /// <remarks>
+    /// 开关缺省按关闭处理，基础配置不写。appsettings.Production.json 不入库（.gitignore），
+    /// 生产环境的取值在部署处的配置里写明，这里只断言入库的开发环境配置。
+    /// </remarks>
+    [Fact]
+    public void AppSettings_DevelopmentShouldEnableDemoData()
     {
+        const string fileName = "appsettings.Development.json";
         using var document = ReadConfiguration(fileName);
 
         var element = ResolvePath(document.RootElement, "Saas", "Seed", "EnableDemoData");
         Assert.True(element is not null, $"{fileName} 缺少 Saas:Seed:EnableDemoData。");
-        Assert.Equal(expected ? JsonValueKind.True : JsonValueKind.False, element!.Value.ValueKind);
+        Assert.Equal(JsonValueKind.True, element!.Value.ValueKind);
     }
 
     /// <summary>

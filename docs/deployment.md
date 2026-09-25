@@ -15,7 +15,7 @@
 ::: tip 部署前置
 - 准备好可连接的 **PostgreSQL** 与 **Redis**。
 - 全新数据库首次启动会自动建库、建表并执行数据种子（对应 `EnableDbInitialization` / `EnableTableInitialization` / `EnableDataSeeding`，默认均为 `true`）。存量数据库的变更应写入 `UpdateScripts/{version}.sql`，但当前 BasicApp 尚未接入升级执行入口，发布流程必须显式安排迁移步骤，不能假定应用启动会自动执行。
-- 基础数据种子始终执行；演示数据（演示租户、组织、账号等）只在 `Saas:Seed:EnableDemoData` 为 `true` 时写入，缺省即不写。仓库的生产环境配置已显式设为 `false`。
+- 基础数据种子始终执行；演示数据（演示租户、组织、账号等）只在 `Saas:Seed:EnableDemoData` 为 `true` 时写入，缺省即不写。生产环境在 `appsettings.Production.json` 里写明 `false`。
 - 生产环境 CORS 仅放行配置中的域名（`XiHan:Web:Api:Cors:AllowedOrigins` 与网关 `XiHan:Web:Gateway:AllowedOrigins`），部署到自己的域名时务必同步修改，否则前端会被跨域拦截。
 - 若用到 AI / 知识库能力，还需准备对应的向量库（如 Qdrant）与嵌入模型配置。
 :::
