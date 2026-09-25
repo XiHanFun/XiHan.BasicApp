@@ -2,8 +2,9 @@
 import type { FormRules } from '@xihan-ui/headless'
 import type { CaptchaChallenge, LoginConfig, LoginResponse } from '~/types'
 
+import { useElementSize } from '@vueuse/core'
 import { XhButton, XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { XInput } from '~/components'
@@ -119,11 +120,22 @@ const oauthProviderIcons: Record<string, string> = {
 
 const oauthProviders = computed(() => loginConfig.value.oAuthProviders ?? [])
 
-/** 一行放得下的渠道数；多出来的收进「更多」浮层，免得换行把卡片撑高 */
+/**
+ * 一行放得下的渠道数；多出来的收进「更多」浮层，免得换行把卡片撑高。
+ * 三颗带字钮加「更多」一行约 316 宽，手机窄栏（375 宽视口只剩 304）放不下时 flex 会把钮压到
+ * 比内容还窄、图标文字溢出钮外，这时按行宽退到两颗
+ */
 const OAUTH_INLINE_COUNT = 3
+const OAUTH_INLINE_COUNT_NARROW = 2
+const OAUTH_ROW_MIN_WIDTH = 320
 
-const inlineOauthProviders = computed(() => oauthProviders.value.slice(0, OAUTH_INLINE_COUNT))
-const moreOauthProviders = computed(() => oauthProviders.value.slice(OAUTH_INLINE_COUNT))
+const oauthRowRef = useTemplateRef('oauthRow')
+const { width: oauthRowWidth } = useElementSize(oauthRowRef)
+const oauthInlineCount = computed(() =>
+  oauthRowWidth.value >= OAUTH_ROW_MIN_WIDTH ? OAUTH_INLINE_COUNT : OAUTH_INLINE_COUNT_NARROW,
+)
+const inlineOauthProviders = computed(() => oauthProviders.value.slice(0, oauthInlineCount.value))
+const moreOauthProviders = computed(() => oauthProviders.value.slice(oauthInlineCount.value))
 const showMoreOauth = ref(false)
 
 function getOauthProviderIcon(name: string) {
@@ -611,13 +623,13 @@ const onAuthInvalid = useAuthFormInvalid()
           </span>
           <XhSeparator class="flex-1" :class="isDark ? '!border-white/10' : '!border-[hsl(var(--border))]'" />
         </div>
-        <!-- 第三方渠道跟表单其余控件同走 lg 档：高度与圆角都由库的控件令牌给，不再用工具类盖 -->
-        <div v-if="oauthProviders.length > 0" class="flex gap-3 justify-center items-center">
+        <!-- 第三方渠道是次要入口，比表单控件低一档走 md：图标与文字都收小，高度与圆角仍由库的控件令牌给 -->
+        <div v-if="oauthProviders.length > 0" ref="oauthRow" class="flex gap-3 justify-center items-center">
           <XhButton
             v-for="provider in inlineOauthProviders"
             :key="provider.name"
             variant="subtle"
-            size="lg"
+            size="md"
             @click="handleOAuthLogin(provider)"
           >
             <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
@@ -629,7 +641,7 @@ const onAuthInvalid = useAuthFormInvalid()
             <XhPopoverTrigger as-child>
               <XhButton
                 variant="subtle"
-                size="lg"
+                size="md"
                 icon-only
                 :aria-label="t('page.auth.third_party_more')"
               >
@@ -643,7 +655,7 @@ const onAuthInvalid = useAuthFormInvalid()
                     v-for="provider in moreOauthProviders"
                     :key="provider.name"
                     variant="subtle"
-                    size="lg"
+                    size="md"
                     class="!justify-start"
                     @click="handleOAuthLogin(provider)"
                   >

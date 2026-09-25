@@ -14,12 +14,15 @@ import AuthEntrySwitcher from './AuthEntrySwitcher.vue'
 
 const captured: { size: string } = { size: '' }
 
-/** 小屏开关：每个用例挂载前拨好，切换器只在挂载时读一次档位 */
-const viewport = vi.hoisted(() => ({ mobile: false }))
+/** 标签带拿到的宽度：jsdom 不排版，由这里拨好；缺省取宽屏与平板竖屏的表单栏宽 */
+const strip = vi.hoisted(() => ({ width: 460 }))
 
-vi.mock('~/composables', async () => {
-  const { computed } = await import('vue')
-  return { useIsMobile: () => ({ isMobile: computed(() => viewport.mobile) }) }
+vi.mock('@vueuse/core', async (importOriginal) => {
+  const { ref } = await import('vue')
+  return {
+    ...await importOriginal<typeof import('@vueuse/core')>(),
+    useElementSize: () => ({ width: ref(strip.width), height: ref(0), stop: () => {} }),
+  }
 })
 
 async function labelsFor(locale: string): Promise<string[]> {
@@ -33,7 +36,7 @@ async function labelsFor(locale: string): Promise<string[]> {
 
 afterEach(() => {
   i18n.global.locale.value = 'zh-CN'
-  viewport.mobile = false
+  strip.width = 460
 })
 
 describe('登录方式切换器文案', () => {
@@ -59,11 +62,17 @@ describe('登录方式切换器文案', () => {
     expect(await labelsFor('zh-TW')).toEqual(['帳號登入', '手機登入', '郵件登入', '掃碼登入'])
   })
 
-  it('宽屏用 md 档，小屏降到 sm 档，四条标签仍排在一行', async () => {
+  it('档位随标签带宽度走：放得下就用 lg，手机窄栏依次降到 md、sm，四条标签仍排在一行', async () => {
+    await labelsFor('zh-CN')
+    expect(captured.size).toBe('lg')
+
+    // 375 宽视口的表单栏
+    strip.width = 304
     await labelsFor('zh-CN')
     expect(captured.size).toBe('md')
 
-    viewport.mobile = true
+    // 360 宽视口的表单栏：日文四条 md 合计 294，再窄就得降档
+    strip.width = 289
     await labelsFor('zh-CN')
     expect(captured.size).toBe('sm')
   })

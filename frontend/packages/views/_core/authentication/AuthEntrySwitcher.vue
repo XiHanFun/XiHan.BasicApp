@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { TabsValueChangeDetails } from '@xihan-ui/headless'
+import { useElementSize } from '@vueuse/core'
 import { XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
-import { useIsMobile } from '~/composables'
 import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from '~/constants'
 
 /**
@@ -12,7 +12,6 @@ import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from
  * 表单由路由渲染，这里把它接进当前标签的面板里——只摆一条 tablist 而没有 tabpanel 是错的语义，
  * 触发器上的 aria-controls 会指向一个不存在的区域。
  * 标签用 page.auth.entry.* 短说法，不借页面标题键：登录卡片右栏固定宽，长标题会把扫码入口挤出容器。
- * 小屏上表单栏只剩三百来像素，标签降到 sm 档，四条仍在一行（各语言里最宽的一组按 14px 字量过）。
  */
 defineOptions({ name: 'AuthEntrySwitcher' })
 
@@ -21,10 +20,26 @@ const props = defineProps<{
   enabled?: boolean
 }>()
 
+/**
+ * 档位按标签带实际拿到的宽度选，不按视口是否小屏：表单栏在宽屏与平板竖屏上都是 460，
+ * 手机上随视口在 250–360 之间，按「是否小屏」一刀切会让 375–767 这一大段都挤在 sm。
+ * 放得下就取 lg，与下面 lg 档的表单控件同档，作为卡片的一级导航不被表单压过。
+ * 阈值按各语言里最宽的一组（日文）四条合计量出：lg 359、md 294，各留一两像素余量
+ */
+const LG_MIN_WIDTH = 360
+const MD_MIN_WIDTH = 296
+
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-const { isMobile } = useIsMobile()
+
+const rootRef = useTemplateRef('root')
+const { width } = useElementSize(computed(() => rootRef.value?.$el as HTMLElement | undefined))
+const entrySize = computed(() => {
+  if (width.value >= LG_MIN_WIDTH)
+    return 'lg'
+  return width.value >= MD_MIN_WIDTH ? 'md' : 'sm'
+})
 
 /** 标签值用短键而不是路由路径：它要进 id / aria-controls，短键读起来也干净 */
 const entryList = computed(() => [
@@ -48,13 +63,13 @@ function onEntryChange(details: TabsValueChangeDetails) {
 </script>
 
 <template>
-  <!-- 小屏的断点只认 useIsMobile 一处：档位跟它走，不另写媒体查询 -->
   <XhTabsRoot
     v-if="props.enabled"
+    ref="root"
     class="auth-entry-switcher"
     :value="activeEntry"
     variant="line"
-    :size="isMobile ? 'sm' : 'md'"
+    :size="entrySize"
     @value-change="onEntryChange"
   >
     <XhTabsList :aria-label="t('page.auth.login_method')">
