@@ -60,16 +60,7 @@ public class SaasOperationLogWriter : IOperationLogWriter
     {
         ArgumentNullException.ThrowIfNull(record);
 
-        // 操作日志只记录业务行为：查询类动作不记录；认证类动作由登录日志负责审计
-        var operationType = SaasLogMappingHelper.ResolveOperationTypeByAction(record.ActionName, record.Method);
-        if (operationType == OperationType.Query)
-        {
-            return;
-        }
-
-        if (string.Equals(record.ControllerName, "Auth", StringComparison.OrdinalIgnoreCase)
-            && !string.IsNullOrWhiteSpace(record.ActionName)
-            && AuthAuditActions.Contains(record.ActionName))
+        if (ResolveRecordedOperationType(record) is not { } operationType)
         {
             return;
         }
@@ -119,6 +110,34 @@ public class SaasOperationLogWriter : IOperationLogWriter
         };
 
         await DbClient.Insertable(entity).SplitTable().ExecuteCommandAsync();
+    }
+
+    /// <summary>
+    /// 解析记录应落的操作类型，返回 null 表示该记录不进操作日志
+    /// </summary>
+    /// <remarks>
+    /// 操作日志只记录业务行为：查询类动作（含查询服务的全部端点）不记录；认证类动作由登录日志负责审计
+    /// </remarks>
+    /// <param name="record">操作日志记录</param>
+    /// <returns>操作类型；null 表示不记录</returns>
+    public static OperationType? ResolveRecordedOperationType(OperationLogRecord record)
+    {
+        ArgumentNullException.ThrowIfNull(record);
+
+        var operationType = SaasLogMappingHelper.ResolveOperationType(record.ControllerName, record.ActionName, record.Method);
+        if (operationType == OperationType.Query)
+        {
+            return null;
+        }
+
+        if (string.Equals(record.ControllerName, "Auth", StringComparison.OrdinalIgnoreCase)
+            && !string.IsNullOrWhiteSpace(record.ActionName)
+            && AuthAuditActions.Contains(record.ActionName))
+        {
+            return null;
+        }
+
+        return operationType;
     }
 
     private static string BuildTitle(OperationLogRecord record)

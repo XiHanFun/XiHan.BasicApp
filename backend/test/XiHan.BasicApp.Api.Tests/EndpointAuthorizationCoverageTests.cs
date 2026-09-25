@@ -289,7 +289,8 @@ public sealed class EndpointAuthorizationCoverageTests
     /// 按框架的动态 API 生成规则枚举全部被暴露为 HTTP 端点的方法。
     /// 类型判据与方法判据直接调用框架的 <see cref="TypeHelper"/>，确保与运行期生成的控制器同集合。
     /// </summary>
-    private static IReadOnlyList<(Type Service, MethodInfo Method)> EnumerateExposedEndpoints()
+    /// <remarks>操作日志归类测试复用同一份端点集合，模块登记守卫对两边同时生效。</remarks>
+    internal static IReadOnlyList<(Type Service, MethodInfo Method)> EnumerateExposedEndpoints()
     {
         return ModuleAssemblies
             .SelectMany(assembly => assembly.GetTypes())

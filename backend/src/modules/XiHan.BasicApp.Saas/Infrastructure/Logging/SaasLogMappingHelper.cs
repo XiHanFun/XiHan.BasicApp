@@ -12,6 +12,11 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Logging;
 internal static class SaasLogMappingHelper
 {
     /// <summary>
+    /// 查询服务的动态 API 控制器名后缀：XxxQueryService 去掉服务后缀即 XxxQuery
+    /// </summary>
+    private const string QueryServiceControllerSuffix = "Query";
+
+    /// <summary>
     /// 字符串裁剪并转空
     /// </summary>
     public static string? TrimOrNull(string? value, int maxLength)
@@ -104,6 +109,30 @@ internal static class SaasLogMappingHelper
             "RESTORE" => OperationType.Restore,
             _ => OperationType.Other
         };
+    }
+
+    /// <summary>
+    /// 根据端点所属服务与 Action 名称映射操作类型：查询服务的端点一律归为查询，其余按 Action 名称语义识别
+    /// </summary>
+    /// <remarks>
+    /// 读写分属 AppService 与 QueryService，查询服务只承载读。带复杂条件的读（分页、"我的"列表、时间线）走 POST，
+    /// 动态 API 又已剥掉动作名的 Get 前缀，单看动作名和 HTTP 方法会把 ExportTaskQuery.Mine 判成新增、
+    /// ReviewQuery.ReviewPage 判成审核，因此先按服务角色判定。
+    /// </remarks>
+    public static OperationType ResolveOperationType(string? controllerName, string? actionName, string? httpMethod)
+    {
+        return IsQueryServiceController(controllerName)
+            ? OperationType.Query
+            : ResolveOperationTypeByAction(actionName, httpMethod);
+    }
+
+    /// <summary>
+    /// 控制器是否由查询服务（XxxQueryService）生成
+    /// </summary>
+    private static bool IsQueryServiceController(string? controllerName)
+    {
+        return !string.IsNullOrWhiteSpace(controllerName)
+            && controllerName.Trim().EndsWith(QueryServiceControllerSuffix, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
