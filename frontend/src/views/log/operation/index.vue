@@ -9,6 +9,7 @@ import { useRouter } from 'vue-router'
 import { createPageRequest, logManagementApi, OperationExecuteResult, OperationType, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
+import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 import { operationLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
@@ -37,19 +38,25 @@ function resultTagType(result: OperationExecuteResult) {
   }
 }
 
-const operationTypeOptions = computed(() => [
-  { label: t('log.operation.type_create'), value: OperationType.Create },
-  { label: t('log.operation.type_update'), value: OperationType.Update },
-  { label: t('log.operation.type_delete'), value: OperationType.Delete },
-  { label: t('log.operation.type_review'), value: OperationType.Review },
-  { label: t('log.operation.type_import'), value: OperationType.Import },
-  { label: t('log.operation.type_export'), value: OperationType.Export },
-  { label: t('log.operation.type_approve'), value: OperationType.Approve },
-  { label: t('log.operation.type_start_task'), value: OperationType.StartTask },
-  { label: t('log.operation.type_execute'), value: OperationType.Execute },
-  { label: t('log.operation.type_restore'), value: OperationType.Restore },
-  { label: t('log.operation.type_other'), value: OperationType.Other },
-])
+// 操作类型的筛选项与单元格标签都取后端枚举元数据（此前前端只抄了 11 个，登录/登出/查询显示成「-」），前端只管配色
+const operationTypeOptions = useEnumOptions('OperationType')
+
+/** 按操作的影响分色：写入绿、改动蓝、删除红、审核审批黄、发起执行品牌色，只读与其他中性 */
+function operationTypeTone(type: OperationType) {
+  switch (type) {
+    case OperationType.Create:
+    case OperationType.Restore: return 'success'
+    case OperationType.Update:
+    case OperationType.Import:
+    case OperationType.Export: return 'info'
+    case OperationType.Delete: return 'danger'
+    case OperationType.Review:
+    case OperationType.Approve: return 'warning'
+    case OperationType.StartTask:
+    case OperationType.Execute: return 'brand'
+    default: return 'neutral'
+  }
+}
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
@@ -70,7 +77,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.operation.operation_type_placeholder'),
     width: 90,
     order: 14,
-    render: row => getOptionLabel(operationTypeOptions.value, (row as unknown as OperationLogListItemDto).operationType),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: operationTypeTone((row as unknown as OperationLogListItemDto).operationType) }, () => h(XhTagLabel, () => getOptionLabel(operationTypeOptions.value, (row as unknown as OperationLogListItemDto).operationType))),
   },
   { key: 'module', title: t('log.operation.module'), dataType: 'string', sortable: true, advancedSearch: true, minWidth: 120, order: 15 },
   { key: 'function', title: t('log.operation.function'), dataType: 'string', sortable: true, advancedSearch: true, minWidth: 120, order: 16 },

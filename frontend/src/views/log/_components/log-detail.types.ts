@@ -6,6 +6,8 @@ export interface LogDetailOption {
 }
 
 export interface LogDetailField {
+  /** 后端枚举类型名：标签取后端枚举元数据，前端不另抄一份，后端加了成员也照样显示；与 options 二选一 */
+  enumName?: string
   falseText?: string
   key: string
   label: string

@@ -4,9 +4,7 @@ import {
   AuditOperationType,
   AuditRiskLevel,
   DeviceType,
-  LoginResult,
   OperationExecuteResult,
-  OperationType,
   PermissionChangeType,
   SignatureType,
 } from '@/api'
@@ -21,19 +19,6 @@ import {
 type Translate = (key: string) => string
 
 export function operationLogDetailFields(t: Translate): LogDetailField[] {
-  const operationTypeOptions: LogDetailOption[] = [
-    { label: t('log.operation.type_create'), value: OperationType.Create },
-    { label: t('log.operation.type_update'), value: OperationType.Update },
-    { label: t('log.operation.type_delete'), value: OperationType.Delete },
-    { label: t('log.operation.type_review'), value: OperationType.Review },
-    { label: t('log.operation.type_import'), value: OperationType.Import },
-    { label: t('log.operation.type_export'), value: OperationType.Export },
-    { label: t('log.operation.type_approve'), value: OperationType.Approve },
-    { label: t('log.operation.type_start_task'), value: OperationType.StartTask },
-    { label: t('log.operation.type_execute'), value: OperationType.Execute },
-    { label: t('log.operation.type_restore'), value: OperationType.Restore },
-    { label: t('log.operation.type_other'), value: OperationType.Other },
-  ]
   const resultOptions: LogDetailOption[] = [
     { label: t('log.operation.result_success'), value: OperationExecuteResult.Success },
     { label: t('log.operation.result_failed'), value: OperationExecuteResult.Failed },
@@ -46,7 +31,8 @@ export function operationLogDetailFields(t: Translate): LogDetailField[] {
     { key: 'traceId', label: t('log.common.trace_id') },
     { key: 'userName', label: t('log.common.user_name') },
     { key: 'userId', label: t('log.common.user_id') },
-    { key: 'operationType', label: t('log.operation.operation_type'), options: operationTypeOptions, type: 'enum' },
+    // 操作类型直接取后端枚举元数据（前端曾只抄了其中 11 个）
+    { key: 'operationType', label: t('log.operation.operation_type'), enumName: 'OperationType', type: 'enum' },
     { key: 'result', label: t('log.operation.result'), options: resultOptions, type: 'enum' },
     { key: 'module', label: t('log.operation.module') },
     { key: 'function', label: t('log.operation.function') },
@@ -166,24 +152,6 @@ export function apiLogDetailFields(t: Translate): LogDetailField[] {
 }
 
 export function loginLogDetailFields(t: Translate): LogDetailField[] {
-  const loginResultOptions: LogDetailOption[] = [
-    { label: t('log.login.result_success'), value: LoginResult.Success },
-    { label: t('log.login.result_invalid_credentials'), value: LoginResult.InvalidCredentials },
-    { label: t('log.login.result_account_locked'), value: LoginResult.AccountLocked },
-    { label: t('log.login.result_account_disabled'), value: LoginResult.AccountDisabled },
-    { label: t('log.login.result_requires_two_factor'), value: LoginResult.RequiresTwoFactor },
-    { label: t('log.login.result_two_factor_failed'), value: LoginResult.TwoFactorFailed },
-    { label: t('log.login.result_logout'), value: LoginResult.Logout },
-    { label: t('log.login.result_token_refreshed'), value: LoginResult.TokenRefreshed },
-    { label: t('log.login.result_password_changed'), value: LoginResult.PasswordChanged },
-    { label: t('log.login.result_password_reset'), value: LoginResult.PasswordReset },
-    { label: t('log.login.result_mfa_bound'), value: LoginResult.MfaBound },
-    { label: t('log.login.result_mfa_unbound'), value: LoginResult.MfaUnbound },
-    { label: t('log.login.result_tenant_switched'), value: LoginResult.TenantSwitched },
-    { label: t('log.login.result_session_revoked'), value: LoginResult.SessionRevoked },
-    { label: t('log.login.result_failed'), value: LoginResult.Failed },
-  ]
-
   return [
     { key: 'basicId', label: t('log.common.basic_id') },
     { key: 'sessionId', label: t('log.common.session_id') },
@@ -196,7 +164,8 @@ export function loginLogDetailFields(t: Translate): LogDetailField[] {
     { key: 'os', label: t('log.common.os') },
     { key: 'device', label: t('log.common.device') },
     { key: 'deviceId', label: t('log.common.device_id') },
-    { key: 'loginResult', label: t('log.login.login_result'), options: loginResultOptions, type: 'enum' },
+    // 登录结果随认证审计事件增长（模仿登录等），标签直接取后端枚举元数据
+    { key: 'loginResult', label: t('log.login.login_result'), enumName: 'LoginResult', type: 'enum' },
     { key: 'isRiskLogin', falseText: t('common.statuses.no'), label: t('log.login.is_risk_login'), trueText: t('common.statuses.yes'), type: 'boolean' },
     { key: 'loginTime', label: t('log.login.login_time'), type: 'date' },
     { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },

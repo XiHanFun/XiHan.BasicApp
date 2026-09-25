@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import type { LoginAuditResult, LoginLogItem } from '~/types'
 import { XhButton, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { SchemaPagination } from '~/components'
 import { toast } from '~/composables'
+import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
-import { formatDate } from '~/utils'
+import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ProfileTabLoginLogs' })
 
@@ -22,24 +23,12 @@ const total = ref(0)
 const page = ref(1)
 const loading = ref(false)
 
-/** 与后端 LoginResult 枚举（字符串序列化）一致，含认证审计事件 */
-const loginResultLabel = computed<Record<LoginAuditResult, string>>(() => ({
-  Success: t('component.profile.login_logs.result_success'),
-  InvalidCredentials: t('component.profile.login_logs.result_invalid_credentials'),
-  AccountLocked: t('component.profile.login_logs.result_account_locked'),
-  AccountDisabled: t('component.profile.login_logs.result_account_disabled'),
-  RequiresTwoFactor: t('component.profile.login_logs.result_requires_two_factor'),
-  TwoFactorFailed: t('component.profile.login_logs.result_two_factor_failed'),
-  Logout: t('component.profile.login_logs.result_logout'),
-  TokenRefreshed: t('component.profile.login_logs.result_token_refreshed'),
-  PasswordChanged: t('component.profile.login_logs.result_password_changed'),
-  PasswordReset: t('component.profile.login_logs.result_password_reset'),
-  MfaBound: t('component.profile.login_logs.result_mfa_bound'),
-  MfaUnbound: t('component.profile.login_logs.result_mfa_unbound'),
-  TenantSwitched: t('component.profile.login_logs.result_tenant_switched'),
-  SessionRevoked: t('component.profile.login_logs.result_session_revoked'),
-  Failed: t('component.profile.login_logs.result_failed'),
-}))
+/** 登录结果随认证审计事件增长（模仿登录等），标签取后端 LoginResult 枚举元数据，前端只管配色与图标 */
+const loginResultOptions = useEnumOptions('LoginResult')
+
+function resultLabel(result: LoginAuditResult) {
+  return getOptionLabel(loginResultOptions.value, result, t('component.profile.login_logs.result_unknown', { result }))
+}
 
 type TagType = 'neutral' | 'danger' | 'info' | 'success' | 'warning'
 
@@ -67,6 +56,8 @@ function resultIcon(result: LoginAuditResult) {
     return 'lucide:building-2'
   if (result === 'SessionRevoked')
     return 'lucide:shield-off'
+  if (result === 'ImpersonationStarted' || result === 'ImpersonationEnded')
+    return 'lucide:user-round-cog'
   if (result === 'PasswordChanged' || result === 'PasswordReset' || result === 'MfaBound' || result === 'MfaUnbound')
     return 'lucide:key-round'
   return 'lucide:shield-alert'
@@ -135,7 +126,7 @@ onMounted(() => loadLogs())
                 <div class="pf-list-title">
                   <XhTagRoot variant="subtle" :tone="resultTagType(log.loginResult)" size="sm">
                     <XhTagLabel>
-                      {{ loginResultLabel[log.loginResult] || t('component.profile.login_logs.result_unknown', { result: log.loginResult }) }}
+                      {{ resultLabel(log.loginResult) }}
                     </XhTagLabel>
                   </XhTagRoot>
                   <span v-if="log.message" class="pf-log-message">{{ log.message }}</span>

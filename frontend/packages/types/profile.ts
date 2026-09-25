@@ -68,6 +68,8 @@ export type LoginAuditResult
   = | 'AccountDisabled'
     | 'AccountLocked'
     | 'Failed'
+    | 'ImpersonationEnded'
+    | 'ImpersonationStarted'
     | 'InvalidCredentials'
     | 'Logout'
     | 'MfaBound'
