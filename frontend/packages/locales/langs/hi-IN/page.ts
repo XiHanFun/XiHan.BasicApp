@@ -3,7 +3,7 @@ export default {
     title: 'खाता लॉगिन',
     username: 'खाता',
     password: 'पासवर्ड',
-    username_placeholder: 'ईमेल दर्ज करें',
+    username_placeholder: 'उपयोगकर्ता नाम या ईमेल दर्ज करें',
     password_placeholder: 'पासवर्ड दर्ज करें',
     login_btn: 'लॉगिन',
     remember_me: 'मुझे याद रखें',

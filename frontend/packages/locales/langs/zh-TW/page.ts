@@ -3,7 +3,7 @@ export default {
     title: '帳號登入',
     username: '帳號',
     password: '密碼',
-    username_placeholder: '請輸入電子郵件',
+    username_placeholder: '請輸入使用者名稱或電子郵件',
     password_placeholder: '請輸入密碼',
     login_btn: '登入',
     remember_me: '記住我',

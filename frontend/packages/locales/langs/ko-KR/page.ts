@@ -3,7 +3,7 @@ export default {
     title: '계정 로그인',
     username: '계정',
     password: '비밀번호',
-    username_placeholder: '이메일을 입력하세요',
+    username_placeholder: '사용자 이름 또는 이메일을 입력하세요',
     password_placeholder: '비밀번호를 입력하세요',
     login_btn: '로그인',
     remember_me: '로그인 상태 유지',
