@@ -287,7 +287,7 @@ backend/src/main/XiHan.BasicApp.WebHost/
 
 | 键 | 说明 |
 | --- | --- |
-| `EnableDemoData` | 演示数据开关：`true` 才写演示租户与账号，**缺省或 `false` 都不写**，不是布尔值直接启动失败。开发环境配置开启、生产环境关闭 |
+| `EnableDemoData` | 演示数据开关：`true` 才写演示租户与账号，**缺省或 `false` 都不写**，不是布尔值直接启动失败。开发环境配置开启，生产环境在 `appsettings.Production.json` 里设置 |
 
 超管初始密码写在种子里（`superadmin` / `SuperAdmin@123`），不走配置；账号标记为需要本人改密，生产首次登录后立即修改，并建议在参数「密码设置」里开启强制改密。演示账号与各阶段种子见 [框架简介：种子数据](./backend/introduction#种子数据)。
 
