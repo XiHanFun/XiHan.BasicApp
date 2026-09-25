@@ -108,6 +108,7 @@ export default {
       send_key_enter: 'Enter 키로 메시지 전송',
       send_key_ctrl_enter: 'Ctrl + Enter 키로 메시지 전송',
       emoji: '이모지',
+      mention: '멤버 멘션',
       image: '이미지 보내기',
       file: '파일 보내기',
       voice: '음성 입력',

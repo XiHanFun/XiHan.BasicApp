@@ -4,7 +4,7 @@ import type {
   ChatMessageAttachment,
 } from '../types'
 import type { AppDropdownOption } from '~/types'
-import { XhButton, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhProgress } from '@xihan-ui/vue'
+import { XhButton, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhProgress, XhSpinner } from '@xihan-ui/vue'
 import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -64,6 +64,9 @@ const textInputRef = ref<{ el: HTMLInputElement | HTMLTextAreaElement | null, fo
 const showEmojiPicker = ref(false)
 const showMentionPicker = ref(false)
 const mentionMembers = ref<ChatMemberItem[]>([])
+const mentionLoading = ref(false)
+/** 打 @ 唤起成员列表时那个 @ 在正文里的位置；点工具条 @ 钮唤起时为 null，选中即插在光标处 */
+let mentionAtIndex: null | number = null
 /** 已插入的 @ 名单：显示名 → userId（发送时按「@名字仍在正文中」过滤） */
 const mentionDrafts = new Map<string, string>()
 
@@ -111,8 +114,20 @@ watch(() => props.conversationId, (id, oldId) => {
   pendingAttachments.value = pendingStash.get(id) ?? []
   draft.value = chatStore.getDraft(id)
   mentionDrafts.clear()
+  // 成员名单按会话取：不清会把上一个群的人列给这个群
+  mentionMembers.value = []
   showMentionPicker.value = false
 }, { immediate: true })
+
+// 成员列表打开（打 @ 或点 @ 钮）时才取名单；收起时忘掉这次的 @ 位置
+watch(showMentionPicker, (open) => {
+  if (open) {
+    void loadMentionMembers()
+  }
+  else {
+    mentionAtIndex = null
+  }
+})
 
 // 组件销毁：释放所有会话待发图片的本地预览 URL
 onBeforeUnmount(() => {
@@ -244,43 +259,53 @@ function detectMentionTrigger() {
   const textarea = textInputRef.value?.el
   const pos = textarea?.selectionStart ?? draft.value.length
   if (pos > 0 && draft.value[pos - 1] === '@') {
-    void loadMentionMembers()
+    mentionAtIndex = pos - 1
     showMentionPicker.value = true
   }
 }
 
 async function loadMentionMembers() {
-  if (mentionMembers.value.length) {
+  if (mentionMembers.value.length || mentionLoading.value) {
     return
   }
+  const conversationId = props.conversationId
+  mentionLoading.value = true
   try {
-    const members = await getChatApi().members(props.conversationId)
+    const members = await getChatApi().members(conversationId)
+    // 请求在途时切了会话：这份名单属于上一个会话，不能留给当前这个
+    if (conversationId !== props.conversationId) {
+      return
+    }
     const me = userStore.userInfo?.basicId
     mentionMembers.value = members.filter(member => member.userId !== me)
   }
   catch {
     mentionMembers.value = []
   }
+  finally {
+    mentionLoading.value = false
+  }
 }
 
+/**
+ * 插入「@名字 」：打 @ 唤起的替换从那个 @ 到光标这一段，点 @ 钮唤起的直接插在光标处。
+ * 先把焦点交给正文框再改正文：浮层看到焦点移到了外面，按「已交出」收起、不把焦点还给 @ 钮；
+ * 反过来先收浮层，它会把焦点还给触发器，正文框就接不着往下打字了。
+ */
 function insertMention(member: ChatMemberItem) {
   const textarea = textInputRef.value?.el
-  const pos = textarea?.selectionStart ?? draft.value.length
-  const before = draft.value.slice(0, pos)
-  const atIndex = before.lastIndexOf('@')
-  if (atIndex < 0) {
-    showMentionPicker.value = false
-    return
-  }
+  const caret = textarea?.selectionStart ?? draft.value.length
+  const start = mentionAtIndex !== null && mentionAtIndex < caret && draft.value[mentionAtIndex] === '@'
+    ? mentionAtIndex
+    : caret
   const name = member.userName || member.userId
-  draft.value = `${draft.value.slice(0, atIndex)}@${name} ${draft.value.slice(pos)}`
+  textarea?.focus()
+  draft.value = `${draft.value.slice(0, start)}@${name} ${draft.value.slice(caret)}`
   mentionDrafts.set(name, member.userId)
-  showMentionPicker.value = false
   chatStore.setDraft(props.conversationId, draft.value)
   void nextTick(() => {
-    textarea?.focus()
-    const caret = atIndex + name.length + 2
-    textarea?.setSelectionRange(caret, caret)
+    const next = start + name.length + 2
+    textarea?.setSelectionRange(next, next)
   })
 }
 
@@ -654,7 +679,7 @@ function handlePaste(event: ClipboardEvent) {
         <XhPopoverRoot v-model:open="showEmojiPicker" placement="top-start">
           <!-- as-child：触发器缺省渲染成 button，这里借用作者自己的按钮，好与同排另外三个图标钮同款 -->
           <XhPopoverTrigger as-child>
-            <button type="button" class="chat-composer-btn">
+            <button type="button" class="chat-composer-btn" :aria-label="t('chat.composer.emoji')">
               <Icon icon="lucide:smile" width="18" height="18" />
             </button>
           </XhPopoverTrigger>
@@ -662,6 +687,42 @@ function handlePaste(event: ClipboardEvent) {
             <!-- 表情面板自带完整卡片相，浮层这层只当容器：去掉内边距、放开高度上限 -->
             <XhPopoverContent class="chat-emoji-popover">
               <ChatEmojiPicker @select="insertEmoji" />
+            </XhPopoverContent>
+          </XhPopoverPositioner>
+        </XhPopoverRoot>
+        <!-- 群聊 @ 成员：列表挂在这颗钮上。点钮打开，正文里打 @ 也由内容驱动打开；
+             浮层触发器按组件库契约是一颗按钮，不能拿输入框的外层当锚点 -->
+        <XhPopoverRoot v-if="isGroupLike" v-model:open="showMentionPicker" placement="top-start">
+          <XhPopoverTrigger as-child>
+            <button
+              type="button"
+              class="chat-composer-btn"
+              :aria-label="t('chat.composer.mention')"
+              :disabled="isEditing"
+            >
+              <Icon icon="lucide:at-sign" width="18" height="18" />
+            </button>
+          </XhPopoverTrigger>
+          <XhPopoverPositioner>
+            <XhPopoverContent>
+              <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
+                <div v-if="mentionLoading" class="flex justify-center py-3">
+                  <XhSpinner size="sm" />
+                </div>
+                <div v-else-if="!mentionMembers.length" class="py-3 text-center text-xs text-muted-foreground">
+                  {{ t('chat.composer.mention_empty') }}
+                </div>
+                <button
+                  v-for="member in mentionMembers"
+                  :key="member.userId"
+                  type="button"
+                  class="chat-mention-item"
+                  @click="insertMention(member)"
+                >
+                  <XUserAvatar :name="member.userName" :size="24" />
+                  <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ member.userName }}</span>
+                </button>
+              </div>
             </XhPopoverContent>
           </XhPopoverPositioner>
         </XhPopoverRoot>
@@ -732,52 +793,19 @@ function handlePaste(event: ClipboardEvent) {
         </div>
       </div>
 
-      <!-- 大面积无边框输入区；群聊输入 @ 唤起成员选择 -->
-      <div class="relative px-2.5">
-        <!-- 浮层由输入内容驱动开合（打 @ 才弹），触发器只作锚点、不接管点击 -->
-        <XhPopoverRoot v-model:open="showMentionPicker" placement="top-start">
-          <!-- 触发器缺省渲染成 button，而这里只要一个锚点：套 button 会把 textarea 塞进按钮里
-               （非法嵌套，输入区会塌成一条）。用 as-child 把接线属性并到自己的 div 上 -->
-          <XhPopoverTrigger as-child>
-            <div class="chat-composer-anchor">
-              <!-- 触发器接线里带着 onClick TOGGLE，点输入框会顺着冒泡把 @ 面板翻开；
-                   这里把点击拦在锚点之前，开合仍只由输入内容驱动 -->
-              <div @click.stop>
-                <XInput
-                  ref="textInputRef"
-                  v-model:value="draft"
-                  type="textarea"
-                  :autosize="{ minRows: 3, maxRows: 7 }"
-                  :max-length="CHAT_MAX_CONTENT_LENGTH"
-                  :placeholder="placeholder"
-                  class="chat-composer-input"
-                  @input="handleInput"
-                  @keydown="handleKeydown"
-                  @paste="handlePaste"
-                />
-              </div>
-            </div>
-          </XhPopoverTrigger>
-          <XhPopoverPositioner>
-            <XhPopoverContent>
-              <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
-                <div v-if="!mentionMembers.length" class="py-3 text-center text-xs text-muted-foreground">
-                  {{ t('chat.composer.mention_empty') }}
-                </div>
-                <button
-                  v-for="member in mentionMembers"
-                  :key="member.userId"
-                  type="button"
-                  class="chat-mention-item"
-                  @click="insertMention(member)"
-                >
-                  <XUserAvatar :name="member.userName" :size="24" />
-                  <span class="min-w-0 flex-1 truncate text-left text-[13px]">{{ member.userName }}</span>
-                </button>
-              </div>
-            </XhPopoverContent>
-          </XhPopoverPositioner>
-        </XhPopoverRoot>
+      <!-- 正文框：组件库的多行文本字段，描边与聚焦环照常；群聊打 @ 唤起工具条上的成员列表 -->
+      <div class="px-2.5 pt-1">
+        <XInput
+          ref="textInputRef"
+          v-model:value="draft"
+          type="textarea"
+          :autosize="{ minRows: 5, maxRows: 10 }"
+          :max-length="CHAT_MAX_CONTENT_LENGTH"
+          :placeholder="placeholder"
+          @input="handleInput"
+          @keydown="handleKeydown"
+          @paste="handlePaste"
+        />
       </div>
 
       <!-- 底部：发送按钮 + 发送模式下拉（QQ 式分体按钮） -->
@@ -827,12 +855,6 @@ function handlePaste(event: ClipboardEvent) {
 
   /* 面板内部是自定义元素、自带方角背景，浮层不裁就会从圆角处顶出来 */
   overflow: hidden;
-}
-
-/* 浮层锚点：as-child 后它就是个普通 div，这里只保证它铺满一行 */
-.chat-composer-anchor {
-  display: block;
-  inline-size: 100%;
 }
 
 .chat-composer-btn {
@@ -946,14 +968,6 @@ function handlePaste(event: ClipboardEvent) {
 .chat-composer-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-/* 无边框输入区：去掉描边与聚焦描边，保持 QQ 式纯净输入面。
-   描边画在 control 部件上（Field Chrome），走文本框皮肤留的 control 边框槽 */
-.chat-composer-input :deep([data-scope='text-field'][data-part='control']) {
-  --xh-text-field-control-border: transparent;
-  --xh-text-field-control-border-hover: transparent;
-  --xh-text-field-control-border-focus: transparent;
 }
 
 .chat-composer-inline-btn {

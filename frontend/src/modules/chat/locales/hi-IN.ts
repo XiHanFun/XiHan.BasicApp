@@ -108,6 +108,7 @@ export default {
       send_key_enter: 'Enter कुंजी से संदेश भेजें',
       send_key_ctrl_enter: 'Ctrl + Enter कुंजी से संदेश भेजें',
       emoji: 'इमोजी',
+      mention: 'सदस्य का उल्लेख करें',
       image: 'छवि भेजें',
       file: 'फ़ाइल भेजें',
       voice: 'वॉइस इनपुट',
