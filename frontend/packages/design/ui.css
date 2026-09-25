@@ -522,9 +522,30 @@
   gap: var(--xh-control-gap-lg);
 }
 
-.auth-code-row > [data-scope='button'] {
+.auth-code-row > [data-scope='button'],
+.auth-code-row > .auth-captcha {
   flex: none;
   margin-inline-start: auto;
+}
+
+/* 账号登录的图形验证码：高度取 lg 档控件高、随 density 换档，宽度按服务端 SVG 画布
+   （CaptchaSvgRenderer 的 120×44）的比例随高度走，图片铺满不留边。定宽 120px 时框比画布扁，
+   图片等比缩进去后左右露出垫底色，暗色下成了两道灰边。圆角与旁边的格子同一个控件令牌 */
+.auth-captcha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  block-size: var(--xh-control-h-lg);
+  aspect-ratio: 120 / 44;
+  border-radius: var(--xh-shape-control);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.auth-captcha > img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
 }
 
 /* 认证页的辅助文字按 §6.4 角色取语义排版令牌，与 14px 的控件文字成阶：

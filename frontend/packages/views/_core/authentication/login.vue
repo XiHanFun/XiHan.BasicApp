@@ -545,8 +545,9 @@ const onAuthInvalid = useAuthFormInvalid()
               <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆。
                    服务端签发的是四位纯数字（CaptchaService 走框架一次性验证码，只出 0-9），格子按 numeric 准入、
                    弹数字键盘；不是一次性验证码，不开 otp，格子自带 autocomplete=off。
-                   格子取缺省档：正方格的缺省档与旁边 lg 档文本框、验证码图片同一个控件高度 -->
-              <div class="flex items-center gap-3">
+                   格子取缺省档：正方格的缺省档与旁边 lg 档文本框、验证码图片同一个控件高度。
+                   与手机/邮箱登录的验证码行同一套排布：格子在左，验证码图靠右缘 -->
+              <div class="auth-code-row">
                 <XhFieldControl>
                   <XhPinInputRoot
                     v-model:value="captchaCode"
@@ -559,9 +560,9 @@ const onAuthInvalid = useAuthFormInvalid()
                     </div>
                   </XhPinInputRoot>
                 </XhFieldControl>
-                <!-- 高度跟旁边 lg 档输入框同一个控件令牌，密度换档时两者一起缩放 -->
+                <!-- 尺寸与圆角见 .auth-captcha；底色只在图片未到时垫着 -->
                 <div
-                  class="flex justify-center items-center shrink-0 w-[120px] h-[var(--xh-control-h-lg)] rounded-lg overflow-hidden"
+                  class="auth-captcha"
                   :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--muted)/0.15)]'"
                   :title="t('page.login.captcha_refresh_title')"
                   @click="refreshCaptcha"
@@ -570,7 +571,7 @@ const onAuthInvalid = useAuthFormInvalid()
                     v-if="captcha?.image"
                     :src="captcha.image"
                     :alt="t('page.login.captcha_refresh_title')"
-                    class="w-full h-full cursor-pointer select-none"
+                    class="select-none"
                     draggable="false"
                   >
                   <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: 18px"><Icon icon="lucide:loader-2" /></span>
