@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { LogDetailField } from './log-detail.types'
 import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhSpinner } from '@xihan-ui/vue'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useEnumService } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 const props = withDefaults(
@@ -26,6 +27,16 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
+const enumService = useEnumService()
+
+// 声明了后端枚举名的字段：确保元数据已加载（整库取一次、并发去重），标签随后响应式刷新
+watch(() => props.fields, (fields) => {
+  for (const field of fields) {
+    if (field.enumName) {
+      void enumService.ensureEnum(field.enumName)
+    }
+  }
+}, { immediate: true })
 
 const visible = computed({
   get: () => props.show,
@@ -95,7 +106,9 @@ function formatValue(field: LogDetailField) {
     case 'duration':
       return `${value}ms`
     case 'enum':
-      return getOptionLabel(field.options ?? [], value as number | string)
+      return field.enumName
+        ? enumService.getLabel(field.enumName, value as number | string)
+        : getOptionLabel(field.options ?? [], value as number | string)
     default:
       return String(value)
   }
