@@ -107,6 +107,7 @@ export default {
       send_key_enter: 'Send with Enter',
       send_key_ctrl_enter: 'Send with Ctrl + Enter',
       emoji: 'Emoji',
+      mention: 'Mention a member',
       image: 'Send image',
       file: 'Send file',
       voice: 'Voice input',

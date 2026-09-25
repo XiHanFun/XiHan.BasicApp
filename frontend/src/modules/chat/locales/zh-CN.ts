@@ -108,6 +108,7 @@ export default {
       send_key_enter: '按 Enter 键发送消息',
       send_key_ctrl_enter: '按 Ctrl + Enter 键发送消息',
       emoji: '表情',
+      mention: '提及成员',
       image: '发送图片',
       file: '发送文件',
       voice: '语音输入',

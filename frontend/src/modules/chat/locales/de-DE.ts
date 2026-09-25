@@ -107,6 +107,7 @@ export default {
       send_key_enter: 'Mit Eingabetaste senden',
       send_key_ctrl_enter: 'Mit Strg + Eingabetaste senden',
       emoji: 'Emoji',
+      mention: 'Mitglied erwähnen',
       image: 'Bild senden',
       file: 'Datei senden',
       voice: 'Spracheingabe',

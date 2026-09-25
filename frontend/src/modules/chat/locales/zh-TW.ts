@@ -108,6 +108,7 @@ export default {
       send_key_enter: '按 Enter 鍵傳送訊息',
       send_key_ctrl_enter: '按 Ctrl + Enter 鍵傳送訊息',
       emoji: '表情符號',
+      mention: '提及成員',
       image: '傳送圖片',
       file: '傳送檔案',
       voice: '語音輸入',

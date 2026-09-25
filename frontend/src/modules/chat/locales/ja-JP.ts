@@ -108,6 +108,7 @@ export default {
       send_key_enter: 'Enter キーでメッセージを送信',
       send_key_ctrl_enter: 'Ctrl + Enter キーでメッセージを送信',
       emoji: '絵文字',
+      mention: 'メンバーをメンション',
       image: '画像を送信',
       file: 'ファイルを送信',
       voice: '音声入力',
