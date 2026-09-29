@@ -39,6 +39,8 @@ public sealed class UserRoleAppService
 
     private readonly IUserRoleRepository _userRoleRepository;
 
+    private readonly IOperationPermissionGuard _operationPermissionGuard;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -48,7 +50,8 @@ public sealed class UserRoleAppService
         IAuthorizationChangeNotifier authorizationChangeNotifier,
         IImpersonationPolicyService impersonationPolicyService,
         ISuperAdminProtector superAdminProtector,
-        IUserRoleRepository userRoleRepository)
+        IUserRoleRepository userRoleRepository,
+        IOperationPermissionGuard operationPermissionGuard)
     {
         _userDomainService = userDomainService;
         _cacheInvalidator = cacheInvalidator;
@@ -56,6 +59,7 @@ public sealed class UserRoleAppService
         _impersonationPolicyService = impersonationPolicyService;
         _superAdminProtector = superAdminProtector;
         _userRoleRepository = userRoleRepository;
+        _operationPermissionGuard = operationPermissionGuard;
     }
 
     #region 用户角色
@@ -63,18 +67,25 @@ public sealed class UserRoleAppService
     /// <summary>
     /// 批量变更用户角色（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
     /// </summary>
+    /// <remarks>
+    /// 入口与「分配角色」按钮同挂授予权限；本次含撤销项时再要撤销权限，只加不减的提交不需要撤销权限。
+    /// </remarks>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.UserRole.Grant)]
-    [PermissionAuthorize(SaasPermissionCodes.UserRole.Revoke)]
     public async Task BatchUpdateUserRolesAsync(UserRoleBatchUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        var revokeIds = input.RevokeUserRoleIds.Where(id => id > 0).Distinct().ToList();
+        if (revokeIds.Count > 0)
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.UserRole.Revoke, cancellationToken);
+        }
+
         // 超管保护：非超管不得改超管用户的角色，也不得授予或撤销 super_admin 角色——
         // 撤销项按记录主键解析出角色，与授予项一起逐个过同一道闸
         await _superAdminProtector.EnsureCanWriteUserAsync(input.UserId, cancellationToken);
-        var revokeIds = input.RevokeUserRoleIds.Where(id => id > 0).Distinct().ToList();
         var revokingRoleIds = revokeIds.Count == 0
             ? []
             : (await _userRoleRepository.GetListAsync(
@@ -115,18 +126,25 @@ public sealed class UserRoleAppService
     /// <summary>
     /// 批量变更角色成员（以角色为中心，一次性提交加入与移出，单事务，仅在最后失效一次缓存）
     /// </summary>
+    /// <remarks>
+    /// 入口与「角色成员」按钮同挂授予权限；本次含移出项时再要撤销权限，只加人的提交不需要撤销权限。
+    /// </remarks>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.UserRole.Grant)]
-    [PermissionAuthorize(SaasPermissionCodes.UserRole.Revoke)]
     public async Task BatchUpdateRoleMembersAsync(RoleMemberBatchUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        var revokeIds = input.RevokeUserRoleIds.Where(id => id > 0).Distinct().ToList();
+        if (revokeIds.Count > 0)
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.UserRole.Revoke, cancellationToken);
+        }
+
         // 超管保护：非超管不得授予或撤销 super_admin 角色，也不得改超管用户的角色——
         // 移出项按记录主键解析出成员，与加入项一起逐个过同一道闸
         await _superAdminProtector.EnsureCanAssignRoleAsync(input.RoleId, cancellationToken);
-        var revokeIds = input.RevokeUserRoleIds.Where(id => id > 0).Distinct().ToList();
         var revokingUserIds = revokeIds.Count == 0
             ? []
             : (await _userRoleRepository.GetListAsync(

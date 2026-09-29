@@ -26,7 +26,7 @@ import {
 import { CONSTRAINT_TYPE_OPTIONS, STATUS_OPTIONS, VIOLATION_ACTION_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XDatePicker, XEditModal, XInput, XJsonBlock, XNumberInput, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
-import { useEnumOptions } from '~/hooks'
+import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'ApprovalConstraintPage' })
@@ -61,6 +61,7 @@ interface ConstraintRuleFormModel {
 }
 
 const { t } = useI18n()
+const { hasPermission } = usePermission()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -874,7 +875,8 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_status') }}</XhFieldLabel>
             <XhFieldControl>
-              <XSelect v-model:value="ruleForm.status" :options="statusOptions" />
+              <!-- 新建时状态随创建提交；编辑时改状态走启停接口，没有启停按钮就不让改，免得规则存了一半再被拒 -->
+              <XSelect v-model:value="ruleForm.status" :options="statusOptions" :disabled="!!ruleForm.basicId && !hasPermission('approval.constraint.status')" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>

@@ -19,7 +19,7 @@ import {
 import { STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
-import { useEnumOptions } from '~/hooks'
+import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'IdentityPositionPage' })
@@ -34,6 +34,7 @@ interface PositionFormModel {
 }
 
 const { t } = useI18n()
+const { hasPermission } = usePermission()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -342,7 +343,7 @@ async function handleSubmit() {
               {{ t('common.actions.close') }}
             </XhButton>
             <XhButton
-              v-if="currentDetail"
+              v-if="currentDetail && hasPermission('identity.position.update')"
               variant="subtle"
               size="sm"
               tone="brand"

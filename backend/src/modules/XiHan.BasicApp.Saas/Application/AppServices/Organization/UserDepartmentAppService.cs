@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -32,6 +33,8 @@ public sealed class UserDepartmentAppService
 
     private readonly ILocalEventBus _localEventBus;
 
+    private readonly IOperationPermissionGuard _operationPermissionGuard;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,12 +42,14 @@ public sealed class UserDepartmentAppService
         IUserDomainService userDomainService,
         IPositionRepository positionRepository,
         IUserDepartmentRepository userDepartmentRepository,
-        ILocalEventBus localEventBus)
+        ILocalEventBus localEventBus,
+        IOperationPermissionGuard operationPermissionGuard)
     {
         _userDomainService = userDomainService;
         _positionRepository = positionRepository;
         _userDepartmentRepository = userDepartmentRepository;
         _localEventBus = localEventBus;
+        _operationPermissionGuard = operationPermissionGuard;
     }
 
     #region 用户部门
@@ -52,13 +57,20 @@ public sealed class UserDepartmentAppService
     /// <summary>
     /// 批量变更用户部门归属（一次性提交分配与撤销，单事务）
     /// </summary>
+    /// <remarks>
+    /// 入口与「分配部门」按钮同挂授予权限；本次含撤销项时再要撤销权限，只分配不撤销的提交不需要撤销权限。
+    /// </remarks>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.UserDepartment.Grant)]
-    [PermissionAuthorize(SaasPermissionCodes.UserDepartment.Revoke)]
     public async Task BatchUpdateUserDepartmentsAsync(UserDepartmentBatchUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (input.RevokeUserDepartmentIds.Any(id => id > 0))
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.UserDepartment.Revoke, cancellationToken);
+        }
 
         foreach (var positionId in input.Assigns.Select(assign => assign.PositionId).Distinct())
         {

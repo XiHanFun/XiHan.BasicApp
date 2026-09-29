@@ -39,6 +39,8 @@ public sealed class RoleAppService
 
     private readonly IRolePermissionRepository _rolePermissionRepository;
 
+    private readonly IOperationPermissionGuard _operationPermissionGuard;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -48,7 +50,8 @@ public sealed class RoleAppService
         IAuthorizationChangeNotifier authorizationChangeNotifier,
         IImpersonationPolicyService impersonationPolicyService,
         ISuperAdminProtector superAdminProtector,
-        IRolePermissionRepository rolePermissionRepository)
+        IRolePermissionRepository rolePermissionRepository,
+        IOperationPermissionGuard operationPermissionGuard)
     {
         _roleDomainService = roleDomainService;
         _cacheInvalidator = cacheInvalidator;
@@ -56,6 +59,7 @@ public sealed class RoleAppService
         _impersonationPolicyService = impersonationPolicyService;
         _superAdminProtector = superAdminProtector;
         _rolePermissionRepository = rolePermissionRepository;
+        _operationPermissionGuard = operationPermissionGuard;
     }
 
     /// <summary>
@@ -97,13 +101,25 @@ public sealed class RoleAppService
     /// <summary>
     /// 批量变更角色的直接父角色（一次性提交新增与移除，单事务，仅在最后失效一次缓存）
     /// </summary>
+    /// <remarks>
+    /// 入口只要查看继承关系；本次新增父角色要新增权限，移除父角色要删除权限，各按实际出现的操作校验。
+    /// </remarks>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Create)]
-    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Delete)]
+    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Read)]
     public async Task BatchUpdateRoleParentsAsync(RoleHierarchyBatchUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (input.AddParentRoleIds.Any(id => id > 0))
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.RoleHierarchy.Create, cancellationToken);
+        }
+
+        if (input.RemoveParentRoleIds.Any(id => id > 0))
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.RoleHierarchy.Delete, cancellationToken);
+        }
 
         // 超管保护：继承方与本次涉及的每个父角色逐个过同一道闸
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
@@ -121,13 +137,20 @@ public sealed class RoleAppService
     /// <summary>
     /// 批量变更角色权限（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
     /// </summary>
+    /// <remarks>
+    /// 入口与「分配权限」按钮同挂授予权限；本次含撤销项时再要撤销权限，只加不减的提交不需要撤销权限。
+    /// </remarks>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.RolePermission.Grant)]
-    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Revoke)]
     public async Task BatchUpdateRolePermissionsAsync(RolePermissionBatchUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (input.RevokeRolePermissionIds.Any(id => id > 0))
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.RolePermission.Revoke, cancellationToken);
+        }
 
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
         await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync(input.GrantPermissionIds, cancellationToken);

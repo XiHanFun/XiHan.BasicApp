@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DataScopeDraft } from '../components/data-scope'
+import type { UserFormSecurity } from './user-form-access'
 import type {
   ApiId,
   PageResult,
@@ -39,17 +40,19 @@ import {
 import { GENDER_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XDatePicker, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
-import { useEnumOptions } from '~/hooks'
+import { useEnumOptions, usePermission } from '~/hooks'
 import { useAuthStore, useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 import { isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from '../components/data-scope'
 import DataScopeEditor from '../components/DataScopeEditor.vue'
 import { applyPermissionTransfer, diffPermissionGrants, diffRoleGrants } from './direct-grant'
+import { canTogglePick, diffUserFormSecurity } from './user-form-access'
 import UserAvatarCell from './UserAvatarCell.vue'
 
 defineOptions({ name: 'SystemUserPage' })
 
 const { t } = useI18n()
+const { hasPermission } = usePermission()
 const authStore = useAuthStore()
 const userStore = useUserStore()
 /** 数据范围是租户侧设置：平台没有成员关系 */
@@ -113,9 +116,29 @@ const selDeptIds = ref<ApiId[]>([])
 const existingDepts = ref<UserDepartmentListItemDto[]>([])
 
 const userForm = ref<UserFormState>(createDefaultForm())
+/** 打开表单时的状态与安全设置，保存时据此只提交改过的项 */
+const originalSecurity = ref<UserFormSecurity>(pickSecurity(createDefaultForm()))
+
+function pickSecurity(form: UserFormState): UserFormSecurity {
+  return { status: form.status, isLocked: form.isLocked, multiLogin: form.multiLogin, maxDev: form.maxDev }
+}
 
 /** 外部成员的账号由其注册地维护：资料、状态与安全设置只读 */
 const identityReadonly = computed(() => userForm.value.isExternal)
+
+/**
+ * 表单各块分别走各自受门控的接口，按按钮码放开：没有那个按钮就不让改那一块，
+ * 否则资料先存进去、后面的接口再被拒，留下存了一半的用户。新建时状态随创建一起提交
+ */
+const formAccess = computed(() => ({
+  status: !userForm.value.basicId || hasPermission('identity.user.status'),
+  lock: hasPermission('identity.user.lock'),
+  loginPolicy: hasPermission('identity.user.login-policy'),
+  role: { grant: hasPermission('identity.user.grant-role'), revoke: hasPermission('identity.user.revoke-role') },
+  department: { grant: hasPermission('identity.user.assign-department'), revoke: hasPermission('identity.user.revoke-department') },
+}))
+const effectiveRoleIds = computed(() => new Set(existingRoles.value.map(role => role.roleId)))
+const effectiveDeptIds = computed(() => new Set(existingDepts.value.map(dept => dept.departmentId)))
 
 const formTitle = computed(() =>
   userForm.value.basicId ? t('identity.user.form_edit_title', { name: userForm.value.userName }) : t('identity.user.form_create_title'),
@@ -604,6 +627,7 @@ function closeModals() {
 
 function openCreate() {
   userForm.value = createDefaultForm()
+  originalSecurity.value = pickSecurity(userForm.value)
   selRoleIds.value = []
   selDeptIds.value = []
   existingRoles.value = []
@@ -652,6 +676,7 @@ async function fillFormFromDetail(detail: UserManagementDetailDto) {
     maxDev: sec?.maxLoginDevices ?? 0,
     isExternal: u.isExternalMember,
   }
+  originalSecurity.value = pickSecurity(userForm.value)
   // 详情里的 roles 连撤销过、已过期的历史行一并返回；比对基准要的是当前生效的那份
   existingRoles.value = await userManagementApi.roles.list(u.basicId, true)
   // 部门归属同理：撤销过的行仍在详情里，只拿有效的做勾选与比对
@@ -765,6 +790,8 @@ async function saveUser() {
       return
     }
 
+    // 状态、锁定、登录策略各走一个受门控的接口，只提交改过的
+    const changed = diffUserFormSecurity(pickSecurity(form), originalSecurity.value)
     let userId = form.basicId
     if (userId) {
       const updateInput: UserUpdateDto = {
@@ -780,7 +807,7 @@ async function saveUser() {
         remark: normalizeStr(form.remark),
       }
       await userManagementApi.update(updateInput)
-      if (form.status !== undefined) {
+      if (changed.status) {
         await userManagementApi.updateStatus({ basicId: userId, status: form.status })
       }
     }
@@ -809,16 +836,20 @@ async function saveUser() {
     }
 
     if (userId) {
-      await userManagementApi.security.updateLock({
-        userId,
-        isLocked: form.isLocked,
-        lockoutEndTime: null,
-      })
-      await userManagementApi.security.updateLoginPolicy({
-        userId,
-        allowMultiLogin: form.multiLogin,
-        maxLoginDevices: form.maxDev || 0,
-      })
+      if (changed.lock) {
+        await userManagementApi.security.updateLock({
+          userId,
+          isLocked: form.isLocked,
+          lockoutEndTime: null,
+        })
+      }
+      if (changed.loginPolicy) {
+        await userManagementApi.security.updateLoginPolicy({
+          userId,
+          allowMultiLogin: form.multiLogin,
+          maxLoginDevices: form.maxDev || 0,
+        })
+      }
       await syncRoles(userId)
       await syncDepartments(userId)
     }
@@ -1384,7 +1415,7 @@ async function confirmDelete() {
             <XhFieldRoot>
               <XhFieldLabel>{{ t('identity.user.label_status') }}</XhFieldLabel>
               <XhFieldControl>
-                <XSelect v-model:value="userForm.status" :options="statusEnumOptions" :disabled="identityReadonly" />
+                <XSelect v-model:value="userForm.status" :options="statusEnumOptions" :disabled="identityReadonly || !formAccess.status" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
@@ -1434,7 +1465,7 @@ async function confirmDelete() {
                     </div>
                   </div>
                 </div>
-                <XhSwitch v-model:checked="userForm.isLocked" :disabled="identityReadonly" />
+                <XhSwitch v-model:checked="userForm.isLocked" :disabled="identityReadonly || !formAccess.lock" />
               </div>
             </div>
             <div class="sec-block">
@@ -1454,7 +1485,7 @@ async function confirmDelete() {
                     </div>
                   </div>
                 </div>
-                <XhSwitch v-model:checked="userForm.multiLogin" :disabled="identityReadonly" />
+                <XhSwitch v-model:checked="userForm.multiLogin" :disabled="identityReadonly || !formAccess.loginPolicy" />
               </div>
               <div class="form-row">
                 <div class="form-row-main">
@@ -1475,7 +1506,7 @@ async function confirmDelete() {
                   class="max-dev-input"
                   size="sm"
                   :show-button="false"
-                  :disabled="identityReadonly"
+                  :disabled="identityReadonly || !formAccess.loginPolicy"
                 />
               </div>
             </div>
@@ -1497,6 +1528,7 @@ async function confirmDelete() {
                 :key="r.basicId"
                 type="button"
                 class="pick-chip" :class="[selRoleIds.includes(r.basicId) ? 'on' : '']"
+                :disabled="!canTogglePick(r.basicId, selRoleIds, effectiveRoleIds, formAccess.role)"
                 @click="togglePick(selRoleIds, r.basicId)"
               >
                 <Icon icon="tabler:user-check" :size="13" />
@@ -1521,6 +1553,7 @@ async function confirmDelete() {
                 :key="d.value"
                 type="button"
                 class="pick-chip" :class="[selDeptIds.includes(d.value) ? 'on' : '']"
+                :disabled="!canTogglePick(d.value, selDeptIds, effectiveDeptIds, formAccess.department)"
                 @click="togglePick(selDeptIds, d.value)"
               >
                 <Icon icon="tabler:building" :size="13" />
@@ -2003,6 +2036,12 @@ async function confirmDelete() {
   background: var(--xh-color-brand-600);
   border-color: var(--xh-color-brand-600);
   color: hsl(var(--primary-foreground));
+}
+
+/* 没有授予/撤销按钮的那一侧锁住：勾选保持可见，只是不能再切 */
+.pick-chip:disabled {
+  cursor: not-allowed;
+  opacity: var(--xh-state-disabled-opacity);
 }
 
 /* 数字框的控件自带 12rem 最小宽，只收外层会被它顶破、把弹窗撑出横向滚动条，

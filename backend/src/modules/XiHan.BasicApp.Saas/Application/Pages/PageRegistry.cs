@@ -230,6 +230,12 @@ public static class PageRegistry
          new("identity.user.lock", "锁定解锁", "identity.user", SaasPermissionCodes.UserSecurity.Lock, 11),
          new("identity.user.reset-two-factor", "重置双因素", "identity.user", SaasPermissionCodes.UserSecurity.ResetTwoFactor, 12),
          new("identity.user.revoke-sessions", "强制下线", "identity.user", SaasPermissionCodes.UserSession.Revoke, 13),
+         new("identity.user.assign-department", "分配部门", "identity.user", SaasPermissionCodes.UserDepartment.Grant, 14),
+         new("identity.user.login-policy", "登录策略", "identity.user", SaasPermissionCodes.UserSecurity.LoginPolicy, 15),
+         // 授予与撤销分挂按钮（同版本权限）：批量接口只在本次含撤销项时要撤销权限，菜单授权据此也能配出撤销能力
+         new("identity.user.revoke-role", "撤销角色", "identity.user", SaasPermissionCodes.UserRole.Revoke, 16),
+         new("identity.user.revoke-permission", "撤销直授", "identity.user", SaasPermissionCodes.UserPermission.Revoke, 17),
+         new("identity.user.revoke-department", "撤销部门", "identity.user", SaasPermissionCodes.UserDepartment.Revoke, 18),
 
         // [2.2] 角色管理
          new("identity.role.create", "新增", "identity.role", SaasPermissionCodes.Role.Create, 1),
@@ -240,6 +246,8 @@ public static class PageRegistry
          new("identity.role.members", "角色成员", "identity.role", SaasPermissionCodes.UserRole.Grant, 6),
          new("identity.role.data-scope", "数据范围", "identity.role", SaasPermissionCodes.RoleDataScope.Update, 7),
          new("identity.role.export", "导出", "identity.role", SaasPermissionCodes.Role.Export, 9),
+         new("identity.role.revoke-permission", "收回权限", "identity.role", SaasPermissionCodes.RolePermission.Revoke, 10),
+         new("identity.role.remove-members", "移出成员", "identity.role", SaasPermissionCodes.UserRole.Revoke, 11),
 
         // [2.3] 组织机构
          new("identity.org.create", "新增", "identity.org", SaasPermissionCodes.Department.Create, 1),
@@ -247,6 +255,7 @@ public static class PageRegistry
          new("identity.org.delete", "删除", "identity.org", SaasPermissionCodes.Department.Delete, 3),
          new("identity.org.status", "启停", "identity.org", SaasPermissionCodes.Department.Status, 4),
          new("identity.org.export", "导出", "identity.org", SaasPermissionCodes.Department.Export, 9),
+         new("identity.org.edit-membership", "编辑归属", "identity.org", SaasPermissionCodes.UserDepartment.Update, 10),
 
         // [2.3.1] 岗位管理
          new("identity.position.create", "新增", "identity.position", SaasPermissionCodes.Position.Create, 1),

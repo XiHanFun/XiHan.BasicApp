@@ -6,6 +6,7 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -29,17 +30,21 @@ public sealed class TenantEditionAppService
 
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IOperationPermissionGuard _operationPermissionGuard;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public TenantEditionAppService(
         ITenantEditionDomainService tenantEditionDomainService,
         ITenantProvisionDomainService tenantProvisionDomainService,
-        ISaasCacheInvalidator cacheInvalidator)
+        ISaasCacheInvalidator cacheInvalidator,
+        IOperationPermissionGuard operationPermissionGuard)
     {
         _tenantEditionDomainService = tenantEditionDomainService;
         _tenantProvisionDomainService = tenantProvisionDomainService;
         _cacheInvalidator = cacheInvalidator;
+        _operationPermissionGuard = operationPermissionGuard;
     }
 
     /// <summary>
@@ -139,14 +144,31 @@ public sealed class TenantEditionAppService
     /// <summary>
     /// 批量变更租户版本权限（一次性提交授予、撤销与启停，单事务，仅在最后失效一次缓存并回收一次越界授权）
     /// </summary>
+    /// <remarks>
+    /// 入口与「版本权限」抽屉同挂查看权限；抽屉里授予、撤销、启停各由对应按钮码放开，
+    /// 这里按本次实际出现的操作逐项校验授予、撤销、更新权限，与界面的放开口径一致。
+    /// </remarks>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Grant)]
-    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Revoke)]
-    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Update)]
+    [PermissionAuthorize(SaasPermissionCodes.TenantEditionPermission.Read)]
     public async Task BatchUpdateTenantEditionPermissionsAsync(TenantEditionPermissionBatchUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (input.GrantPermissionIds.Any(id => id > 0))
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.TenantEditionPermission.Grant, cancellationToken);
+        }
+
+        if (input.RevokeEditionPermissionIds.Any(id => id > 0))
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.TenantEditionPermission.Revoke, cancellationToken);
+        }
+
+        if (input.StatusChanges.Count > 0)
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.TenantEditionPermission.Update, cancellationToken);
+        }
 
         var result = await _tenantEditionDomainService.BatchUpdateTenantEditionPermissionsAsync(
             new TenantEditionPermissionBatchUpdateCommand(

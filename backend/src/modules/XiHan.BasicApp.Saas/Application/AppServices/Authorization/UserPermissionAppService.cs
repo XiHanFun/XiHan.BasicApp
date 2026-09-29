@@ -37,6 +37,8 @@ public sealed class UserPermissionAppService
 
     private readonly IUserPermissionRepository _userPermissionRepository;
 
+    private readonly IOperationPermissionGuard _operationPermissionGuard;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -45,13 +47,15 @@ public sealed class UserPermissionAppService
         ISaasCacheInvalidator cacheInvalidator,
         IAuthorizationChangeNotifier authorizationChangeNotifier,
         IImpersonationPolicyService impersonationPolicyService,
-        IUserPermissionRepository userPermissionRepository)
+        IUserPermissionRepository userPermissionRepository,
+        IOperationPermissionGuard operationPermissionGuard)
     {
         _userDomainService = userDomainService;
         _cacheInvalidator = cacheInvalidator;
         _authorizationChangeNotifier = authorizationChangeNotifier;
         _impersonationPolicyService = impersonationPolicyService;
         _userPermissionRepository = userPermissionRepository;
+        _operationPermissionGuard = operationPermissionGuard;
     }
 
     #region 用户直授权限
@@ -59,13 +63,20 @@ public sealed class UserPermissionAppService
     /// <summary>
     /// 批量变更用户直授权限（一次性提交授予与撤销，单事务，仅在最后失效一次缓存）
     /// </summary>
+    /// <remarks>
+    /// 入口与「直授权限」按钮同挂授予权限（授予与拒绝都是一条直授）；本次含撤销项时再要撤销权限。
+    /// </remarks>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.UserPermission.Grant)]
-    [PermissionAuthorize(SaasPermissionCodes.UserPermission.Revoke)]
     public async Task BatchUpdateUserPermissionsAsync(UserPermissionBatchUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        if (input.RevokeUserPermissionIds.Any(id => id > 0))
+        {
+            await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.UserPermission.Revoke, cancellationToken);
+        }
 
         await _impersonationPolicyService.EnsureCanGrantPermissionIdsAsync(
             [.. input.Grants.Select(static grant => grant.PermissionId)],
