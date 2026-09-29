@@ -10,6 +10,7 @@ import { AccessResult, createPageRequest, logManagementApi, querySortsFromSchema
 import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
+import { renderHttpMethod } from '../_components/http-method'
 import { accessLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
@@ -73,8 +74,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.access.method_placeholder'),
     width: 100,
     order: 17,
-    // 直接展示原始方法字符串：OPTIONS/HEAD 等不在搜索选项内，避免按枚举映射后显示为空
-    render: row => (row as unknown as AccessLogListItemDto).method || '-',
+    render: row => renderHttpMethod((row as unknown as AccessLogListItemDto).method),
   },
   {
     key: 'accessResult',
