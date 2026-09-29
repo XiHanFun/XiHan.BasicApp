@@ -16,7 +16,7 @@ import {
   EnableStatus,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XTooltip } from '~/components'
+import { SchemaPage, statusConfirmText, XTooltip } from '~/components'
 import { dialog, toast } from '~/composables'
 import { Icon } from '~/iconify'
 import {
@@ -153,7 +153,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'preview', title: t('setting.print_template.action_preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'setting.print-template.use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
     { key: 'direct', title: t('setting.print_template.action_direct'), scope: 'row', icon: 'lucide:printer', permission: 'setting.print-template.use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
     { key: 'edit', title: t('setting.print_template.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'setting.print-template.update', visible: () => canMaintain.value },
-    { key: 'toggle', title: t('setting.print_template.action_toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.print-template.status', visible: () => canMaintain.value },
+    { key: 'toggle', title: t('setting.print_template.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled, (row as unknown as PrintTemplateListItemDto).templateName), permission: 'setting.print-template.status', visible: () => canMaintain.value },
     { key: 'delete', title: t('setting.print_template.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'setting.print-template.delete', visible: () => canMaintain.value, disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Disabled },
   ],
 }))

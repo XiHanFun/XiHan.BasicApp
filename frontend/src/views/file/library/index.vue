@@ -23,7 +23,7 @@ import {
   querySortsFromSchema,
   ResourceAccessLevel,
 } from '@/api'
-import { Icon, SchemaPage, XDataTable, XInput, XMdEditor, XNumberInput, XPopconfirm, XSelect } from '~/components'
+import { actionConfirmText, Icon, SchemaPage, XDataTable, XInput, XMdEditor, XNumberInput, XPopconfirm, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { islandStart } from '~/composables/useDynamicIsland'
 import { usePermission } from '~/hooks'
@@ -364,7 +364,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'metadata', title: t('file.library.actions.metadata'), scope: 'row', permission: 'file.library.update' },
     { key: 'storages', title: t('file.library.actions.storages'), scope: 'row' },
     // 回收站语义：正常文件可「归档」（软删，可恢复）；非正常文件可「恢复」；任意状态可「彻底删除」（物理删，不可恢复）
-    { key: 'archive', title: t('file.library.actions.archive'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal, permission: 'file.library.status' },
+    { key: 'archive', title: t('file.library.actions.archive'), scope: 'row', confirm: true, confirmText: row => actionConfirmText(t, t('file.library.actions.archive'), (row as unknown as FileListItemDto).originalName || (row as unknown as FileListItemDto).fileName), visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal, permission: 'file.library.status' },
     { key: 'restore', title: t('file.library.actions.restore'), scope: 'row', visible: row => (row as unknown as FileListItemDto).status !== FileStatus.Normal, permission: 'file.library.status' },
     { key: 'destroy', title: t('file.library.actions.destroy'), scope: 'row', type: 'error', permission: 'file.library.delete' },
   ],

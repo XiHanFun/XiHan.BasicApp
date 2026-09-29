@@ -17,7 +17,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, Icon, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -86,8 +86,8 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('identity.position.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.position.create' },
     { key: 'view', title: t('identity.position.view'), scope: 'row' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', permission: 'identity.position.update' },
-    { key: 'toggle', title: t('identity.position.toggle'), scope: 'row', permission: 'identity.position.status' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', permission: 'identity.position.delete' },
+    { key: 'toggle', title: t('identity.position.toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PositionListItemDto).status === EnableStatus.Enabled, (row as unknown as PositionListItemDto).positionName), permission: 'identity.position.status' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as PositionListItemDto).positionName), permission: 'identity.position.delete' },
   ],
 }))
 

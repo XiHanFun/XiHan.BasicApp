@@ -866,21 +866,39 @@ async function saveUser() {
   }
 }
 
+/** 列表行不带锁定状态：先取详情，确认框才能说清这次是锁定还是解锁 */
 async function toggleLock(row: UserListItemDto) {
+  let locked: boolean
   try {
     const detail = await userManagementApi.detailView(row.basicId)
-    const locked = detail?.security?.isLocked ?? false
-    await userManagementApi.security.updateLock({
-      userId: row.basicId,
-      isLocked: !locked,
-      lockoutEndTime: null,
-    })
-    toast.success(locked ? t('identity.user.msg_account_unlocked') : t('identity.user.msg_account_locked'))
-    reloadList()
+    locked = detail?.security?.isLocked ?? false
   }
   catch (error) {
     toast.danger((error as Error)?.message || t('common.messages.operation_failed'))
+    return
   }
+  void dialog.confirm({
+    badge: 'warning',
+    tone: locked ? undefined : 'danger',
+    title: t('identity.user.action_lock'),
+    content: t(locked ? 'identity.user.confirm_unlock' : 'identity.user.confirm_lock', { name: displayName(row) }),
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        await userManagementApi.security.updateLock({
+          userId: row.basicId,
+          isLocked: !locked,
+          lockoutEndTime: null,
+        })
+        toast.success(locked ? t('identity.user.msg_account_unlocked') : t('identity.user.msg_account_locked'))
+        reloadList()
+      }
+      catch (error) {
+        toast.danger((error as Error)?.message || t('common.messages.operation_failed'))
+      }
+    },
+  })
 }
 
 function displayName(row: UserListItemDto): string {

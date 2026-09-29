@@ -63,6 +63,10 @@ export default {
     operation_failed: '작업에 실패했어요',
     batch_delete_failed: '일괄 삭제하지 못했어요',
     batch_action_failed: '일괄 작업에 실패했어요',
+    confirm_delete: '“{name}”을(를) 삭제할까요? 삭제하면 되돌릴 수 없어요.',
+    confirm_enable: '“{name}”을(를) 활성화할까요?',
+    confirm_disable: '“{name}”을(를) 비활성화할까요? 바로 적용돼요.',
+    confirm_action: '“{name}”에 “{action}”을(를) 실행할까요?',
   },
   // 性别（跨模块复用）
   gender: {

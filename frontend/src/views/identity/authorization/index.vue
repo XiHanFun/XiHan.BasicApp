@@ -21,7 +21,7 @@ import {
   userManagementApi,
 } from '@/api'
 import { DELEGATION_STATUS_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XDatePicker, XEditModal, XInput, XSegmented, XSelect } from '~/components'
+import { actionConfirmText, deleteConfirmText, SchemaPage, XDatePicker, XEditModal, XInput, XSegmented, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -211,6 +211,12 @@ const requestFields = computed<ListFieldSchema[]>(() => [
   { key: 'createdTime', title: t('identity.authorization.req_col_create_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
 ])
 
+/** 确认框里的申请名：申请人 · 申请的角色或权限 */
+function requestName(row: unknown) {
+  const request = row as PermissionRequestListItemDto
+  return [request.requestUserDisplayName, request.roleName || request.permissionName].filter(Boolean).join(' · ')
+}
+
 function isPending(row: unknown) {
   return (row as PermissionRequestListItemDto).requestStatus === PermissionRequestStatus.Pending
 }
@@ -233,9 +239,9 @@ const requestSchema = computed<PageSchema>(() => ({
     remove: id => permissionRequestApi.delete(id),
   },
   actions: [
-    { key: 'approve', title: t('identity.authorization.req_action_approve'), scope: 'row', type: 'primary', visible: isPending, permission: 'identity.authorization.audit' },
-    { key: 'reject', title: t('identity.authorization.req_action_reject'), scope: 'row', visible: isPending, permission: 'identity.authorization.audit' },
-    { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row', permission: 'identity.authorization.withdraw' },
+    { key: 'approve', title: t('identity.authorization.req_action_approve'), scope: 'row', type: 'primary', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.req_action_approve'), requestName(row)), visible: isPending, permission: 'identity.authorization.audit' },
+    { key: 'reject', title: t('identity.authorization.req_action_reject'), scope: 'row', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.req_action_reject'), requestName(row)), visible: isPending, permission: 'identity.authorization.audit' },
+    { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, requestName(row)), permission: 'identity.authorization.withdraw' },
   ],
 }))
 
@@ -348,6 +354,13 @@ const delegationFields = computed<ListFieldSchema[]>(() => [
   { key: 'createdTime', title: t('identity.authorization.del_col_create_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
 ])
 
+/** 确认框里的委托名：委托人 → 受托人 · 委托的角色或权限 */
+function delegationName(row: unknown) {
+  const delegation = row as PermissionDelegationListItemDto
+  const parties = [delegation.delegatorDisplayName, delegation.delegateeDisplayName].filter(Boolean).join(' → ')
+  return [parties, delegation.roleName || delegation.permissionName].filter(Boolean).join(' · ')
+}
+
 function canRevoke(row: unknown) {
   const status = (row as PermissionDelegationListItemDto).delegationStatus
   return status === DelegationStatus.Active || status === DelegationStatus.Pending
@@ -371,8 +384,8 @@ const delegationSchema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('identity.authorization.del_action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.authorization.delegation-create' },
-    { key: 'revoke', title: t('identity.authorization.del_action_revoke'), scope: 'row', visible: canRevoke, permission: 'identity.authorization.delegation-revoke' },
-    { key: 'delete', title: t('identity.authorization.del_action_delete'), scope: 'row', permission: 'identity.authorization.delegation-delete' },
+    { key: 'revoke', title: t('identity.authorization.del_action_revoke'), scope: 'row', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.del_action_revoke'), delegationName(row)), visible: canRevoke, permission: 'identity.authorization.delegation-revoke' },
+    { key: 'delete', title: t('identity.authorization.del_action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, delegationName(row)), permission: 'identity.authorization.delegation-delete' },
   ],
 }))
 

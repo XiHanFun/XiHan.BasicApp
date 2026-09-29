@@ -120,6 +120,8 @@ export default {
     msg_initial_password_required: '请设置初始密码',
     msg_account_unlocked: '账号已解锁',
     msg_account_locked: '账号已锁定',
+    confirm_lock: '确定锁定「{name}」？锁定后该账号立即无法登录。',
+    confirm_unlock: '确定解锁「{name}」？',
     logout_title: '强制下线',
     logout_content: '将撤销用户「{name}」的全部登录会话，其在线设备会立即被踢出。确认继续？',
     logout_confirm: '确认下线',

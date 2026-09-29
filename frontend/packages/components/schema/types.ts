@@ -114,10 +114,10 @@ export interface ActionSchema<TRow = Record<string, unknown>> {
   icon?: string
   /** 所需权限码；无权限时不渲染 */
   permission?: string
-  /** 是否需要二次确认 */
+  /** 是否需要二次确认；type 为 error 的确认钮转危险色 */
   confirm?: boolean
-  /** 确认提示文案（i18n key） */
-  confirmText?: string
+  /** 确认提示文案；行级操作可传函数按行生成，写明操作对象（如「确定删除「某角色」？」） */
+  confirmText?: string | ((row: TRow) => string)
   /** 行级操作可见性判定（如内置数据不可删） */
   visible?: (row: TRow) => boolean
   /** 行级操作禁用判定 */

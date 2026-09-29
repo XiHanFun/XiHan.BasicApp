@@ -12,7 +12,7 @@ import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { appManagementApi, createPageRequest, EnableStatus, OAuthAppType, querySortsFromSchema } from '@/api'
 import { OAUTH_APP_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, Icon, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -168,9 +168,9 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('openapi.app.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'openapi.app.create' },
     { key: 'view', title: t('openapi.app.action_view'), scope: 'row' },
     { key: 'edit', title: t('openapi.app.action_edit'), scope: 'row', permission: 'openapi.app.update' },
-    { key: 'toggle', title: t('openapi.app.action_toggle'), scope: 'row', permission: 'openapi.app.status' },
-    { key: 'secret', title: t('openapi.app.action_secret'), scope: 'row', permission: 'openapi.app.secret' },
-    { key: 'delete', title: t('openapi.app.action_delete'), scope: 'row', permission: 'openapi.app.delete' },
+    { key: 'toggle', title: t('openapi.app.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as OAuthAppListItemDto).status === EnableStatus.Enabled, (row as unknown as OAuthAppListItemDto).appName), permission: 'openapi.app.status' },
+    { key: 'secret', title: t('openapi.app.action_secret'), scope: 'row', type: 'error', confirm: true, confirmText: row => t('openapi.app.confirm_secret', { name: (row as unknown as OAuthAppListItemDto).appName }), permission: 'openapi.app.secret' },
+    { key: 'delete', title: t('openapi.app.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as OAuthAppListItemDto).appName), permission: 'openapi.app.delete' },
   ],
 }))
 

@@ -16,7 +16,7 @@ import {
   messageTemplateApi,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XContentEditorField, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { SchemaPage, statusConfirmText, XContentEditorField, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useUserStore } from '~/stores'
 import { getOptionLabel } from '~/utils'
@@ -175,7 +175,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('message.template.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'message.template.create' },
     { key: 'view', title: t('message.template.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('message.template.action_edit'), scope: 'row', icon: 'lucide:pen', visible: canMaintainTemplate, permission: 'message.template.update' },
-    { key: 'toggle', title: t('message.template.action_toggle'), scope: 'row', icon: 'lucide:power', visible: canMaintainTemplate, permission: 'message.template.status' },
+    { key: 'toggle', title: t('message.template.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as MessageTemplateListItemDto).status === EnableStatus.Enabled, (row as unknown as MessageTemplateListItemDto).templateName), visible: canMaintainTemplate, permission: 'message.template.status' },
     { key: 'delete', title: t('message.template.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('message.template.confirm_delete'), visible: canMaintainTemplate, permission: 'message.template.delete' },
   ],
 }))

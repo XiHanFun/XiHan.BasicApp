@@ -102,6 +102,7 @@ export default {
     msg_save_success: '保存成功',
     msg_save_failed: '保存失败',
     msg_secret_regenerated: '密钥已重新生成',
+    confirm_secret: '确定重置「{name}」的密钥？旧密钥立即失效，接入方需要换用新密钥。',
     msg_secret_regenerate_failed: '重新生成密钥失败',
     msg_secret_copied: '密钥已复制到剪贴板',
     msg_copy_failed: '复制失败',

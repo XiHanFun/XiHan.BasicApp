@@ -13,7 +13,7 @@ import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EmailStatus, messageCenterApi, querySortsFromSchema, SmsStatus } from '@/api'
 import { EMAIL_STATUS_OPTIONS, EMAIL_TYPE_OPTIONS, SMS_STATUS_OPTIONS, SMS_TYPE_OPTIONS } from '@/constants'
-import { SchemaPage } from '~/components'
+import { actionConfirmText, SchemaPage } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -165,7 +165,7 @@ const emailSchema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'detail', title: t('message.record.action_detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
-    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as EmailListItemDto).emailStatus), permission: 'message.record.resend' },
+    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', confirm: true, confirmText: row => actionConfirmText(t, t('message.record.action_resend'), (row as unknown as EmailListItemDto).subject), visible: row => canResend((row as unknown as EmailListItemDto).emailStatus), permission: 'message.record.resend' },
     { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'message.record.delete' },
   ],
 }))
@@ -310,7 +310,7 @@ const smsSchema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'detail', title: t('message.record.action_detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
-    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', visible: row => canResend((row as unknown as SmsListItemDto).smsStatus), permission: 'message.record.resend' },
+    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', confirm: true, confirmText: row => actionConfirmText(t, t('message.record.action_resend'), (row as unknown as SmsListItemDto).templateCode || String((row as unknown as SmsListItemDto).basicId)), visible: row => canResend((row as unknown as SmsListItemDto).smsStatus), permission: 'message.record.resend' },
     { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'message.record.delete' },
   ],
 }))

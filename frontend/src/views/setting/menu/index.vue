@@ -10,7 +10,7 @@ import {
   menuManagementApi,
   MenuType,
 } from '@/api'
-import { Icon, IconPicker, SchemaPage, XDataTable, XEditModal, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
+import { Icon, IconPicker, SchemaPage, statusConfirmText, XDataTable, XEditModal, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
 import { toast } from '~/composables'
 import { usePermission } from '~/hooks'
 import { useUserStore } from '~/stores'
@@ -365,7 +365,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'addChild', title: t('setting.menu.add_child'), scope: 'row', icon: 'lucide:plus', visible: row => (row as unknown as MenuListItemDto).menuType !== MenuType.Button, permission: 'setting.menu.create' },
     { key: 'view', title: t('setting.menu.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pen', visible: canMaintainMenu, permission: 'setting.menu.update' },
-    { key: 'toggle', title: t('setting.menu.toggle'), scope: 'row', icon: 'lucide:power', visible: canMaintainMenu, permission: 'setting.menu.status' },
+    { key: 'toggle', title: t('setting.menu.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as MenuListItemDto).status === EnableStatus.Enabled, (row as unknown as MenuListItemDto).menuName), visible: canMaintainMenu, permission: 'setting.menu.status' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: t('setting.menu.confirm_delete'), visible: canMaintainMenu, permission: 'setting.menu.delete' },
   ],
 }))

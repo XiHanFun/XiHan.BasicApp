@@ -17,7 +17,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { actionConfirmText, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { dialog, notification, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
@@ -151,7 +151,7 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'create', title: t('develop.ai_provider.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'ai_provider.create' },
     { key: 'test', title: t('develop.ai_provider.action_test'), scope: 'row', type: 'info', icon: 'lucide:plug', permission: 'ai_provider.test' },
-    { key: 'default', title: t('develop.ai_provider.action_default'), scope: 'row', icon: 'lucide:star', disabled: row => (row as unknown as AiProviderListItemDto).isDefault, permission: 'ai_provider.update' },
+    { key: 'default', title: t('develop.ai_provider.action_default'), scope: 'row', icon: 'lucide:star', confirm: true, confirmText: row => actionConfirmText(t, t('develop.ai_provider.action_default'), (row as unknown as AiProviderListItemDto).configName), disabled: row => (row as unknown as AiProviderListItemDto).isDefault, permission: 'ai_provider.update' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'ai_provider.update' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'ai_provider.delete' },
   ],

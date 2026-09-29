@@ -24,7 +24,7 @@ import {
   userManagementApi,
 } from '@/api'
 import { FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
@@ -202,6 +202,11 @@ async function loadResourceOptions(keyword = '') {
   }
 }
 
+/** 确认框里的规则名：资源 · 字段（缺资源名时用资源码） */
+function fieldSecurityName(row: FieldLevelSecurityListItemDto) {
+  return [row.resourceName || row.resourceCode, row.fieldName].filter(Boolean).join(' · ')
+}
+
 function ensureRowOptions(row: FieldLevelSecurityListItemDto) {
   if (row.targetId && (row.targetName || row.targetCode)) {
     targetOptions.value = mergeOptions(targetOptions.value, [
@@ -339,8 +344,8 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'create', title: t('identity.field_security.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.field-security.create' },
     { key: 'edit', title: t('identity.field_security.action_edit'), scope: 'row', permission: 'identity.field-security.update' },
-    { key: 'toggle', title: t('identity.field_security.action_toggle'), scope: 'row', permission: 'identity.field-security.status' },
-    { key: 'delete', title: t('identity.field_security.action_delete'), scope: 'row', permission: 'identity.field-security.delete' },
+    { key: 'toggle', title: t('identity.field_security.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as FieldLevelSecurityListItemDto).status === EnableStatus.Enabled, fieldSecurityName(row as unknown as FieldLevelSecurityListItemDto)), permission: 'identity.field-security.status' },
+    { key: 'delete', title: t('identity.field_security.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, fieldSecurityName(row as unknown as FieldLevelSecurityListItemDto)), permission: 'identity.field-security.delete' },
   ],
 }))
 

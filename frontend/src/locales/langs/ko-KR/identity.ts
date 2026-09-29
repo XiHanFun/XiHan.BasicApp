@@ -120,6 +120,8 @@ export default {
     msg_initial_password_required: '초기 비밀번호를 설정하세요',
     msg_account_unlocked: '계정 잠금을 해제했어요',
     msg_account_locked: '계정을 잠갔어요',
+    confirm_lock: '“{name}”을(를) 잠글까요? 잠그면 이 계정으로 바로 로그인할 수 없어요.',
+    confirm_unlock: '“{name}”의 잠금을 해제할까요?',
     logout_title: '강제 로그아웃',
     logout_content: '사용자 「{name}」의 모든 로그인 세션을 취소하고 온라인 기기를 즉시 로그아웃시켜요. 계속할까요?',
     logout_confirm: '로그아웃 확인',

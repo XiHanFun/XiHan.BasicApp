@@ -40,7 +40,7 @@ import {
   userRoleApi,
 } from '@/api'
 import { DATA_SCOPE_OPTIONS, PERMISSION_ACTION_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { SchemaPage, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XTree } from '~/components'
+import { deleteConfirmText, SchemaPage, statusConfirmText, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XTree } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions, usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
@@ -220,8 +220,8 @@ const schema = computed<PageSchema>(() => ({
     { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
     { key: 'members', title: t('identity.role.action_members'), scope: 'row', visible: row => canAssignMembers(row as unknown as RoleListItemDto), permission: 'identity.role.members' },
     { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.data-scope' },
-    { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.status' },
-    { key: 'delete', title: t('identity.role.action_delete'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.delete' },
+    { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as RoleListItemDto).status === EnableStatus.Enabled, (row as unknown as RoleListItemDto).roleName), visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.status' },
+    { key: 'delete', title: t('identity.role.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as RoleListItemDto).roleName), visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.delete' },
   ],
 }))
 

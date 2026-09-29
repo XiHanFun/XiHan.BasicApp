@@ -102,6 +102,7 @@ export default {
     msg_save_success: '저장했어요',
     msg_save_failed: '저장하지 못했어요',
     msg_secret_regenerated: '시크릿을 다시 발급했어요',
+    confirm_secret: '“{name}”의 시크릿을 재설정할까요? 기존 시크릿은 바로 무효가 되고 연동 측은 새 시크릿으로 바꿔야 해요.',
     msg_secret_regenerate_failed: '시크릿을 다시 발급하지 못했어요',
     msg_secret_copied: '시크릿을 클립보드에 복사했어요',
     msg_copy_failed: '복사하지 못했어요',
