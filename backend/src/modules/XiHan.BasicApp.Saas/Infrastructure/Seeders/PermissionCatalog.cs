@@ -82,9 +82,9 @@ public static class OperationSeeds
     public static readonly OperationSeed Revoke = new("revoke", "撤销", OperationTypeCode.Revoke, OperationCategory.Admin, HttpMethodType.POST, true, true, 100);
 
     /// <summary>
-    /// 审核
+    /// 审核 / 审计：同一个编码既用于审查单的审核处理（saas:review:audit），也用于聊天的合规审计（chat:audit）
     /// </summary>
-    public static readonly OperationSeed Audit = new("audit", "审核", OperationTypeCode.Approve, OperationCategory.Business, HttpMethodType.POST, true, false, 110);
+    public static readonly OperationSeed Audit = new("audit", "审核/审计", OperationTypeCode.Approve, OperationCategory.Business, HttpMethodType.POST, true, false, 110);
 
     /// <summary>
     /// 撤回
