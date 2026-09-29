@@ -11,7 +11,8 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// 权限目录分组显示名：只给真正的名字，解析不出时留空交给前端按权限名命名。
 /// </summary>
 /// <remarks>
-/// 回归锚点：聊天、打印只有功能权限、不挂资源，分组名曾回填成组码，授权面板的分组标题显示成 chat、print-template。
+/// 回归锚点：聊天、打印当时只有功能权限、不挂资源，分组名曾回填成组码，授权面板的分组标题显示成 chat、print-template。
+/// 种子里的权限现已全部挂上资源，但管理端仍可建不挂资源的功能权限，这条规则照样适用。
 /// </remarks>
 public sealed class PermissionGroupNameMappingTests
 {

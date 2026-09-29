@@ -8,14 +8,27 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Seeders;
 
 /// <summary>
-/// SaaS 权限目录：<see cref="SaasPermissionDefinitions"/> 声明的功能权限
+/// SaaS 权限目录：<see cref="SaasPermissionDefinitions"/> 声明的资源型权限
 /// </summary>
+/// <remarks>
+/// 权限码是「saas:分组:动作」：每个分组落成一个资源（资源编码即分组码），动作取操作字典里的同名操作。
+/// 名称、说明、审计与排序沿用权限定义本身，不随操作改写。
+/// </remarks>
 public sealed class SaasPermissionCatalogSeeder(
     ISqlSugarClientResolver clientResolver,
     ILogger<SaasPermissionCatalogSeeder> logger,
     IServiceProvider serviceProvider)
     : PermissionCatalogSeederBase(clientResolver, logger, serviceProvider)
 {
+    /// <summary>
+    /// 分组即资源：路径留空（一个分组横跨多个接口服务），排序随分组声明顺序
+    /// </summary>
+    private static readonly IReadOnlyList<ResourceSeed> GroupResources = [.. SaasPermissionDefinitions.Groups
+        .Select(static (group, index) => new ResourceSeed(group.GroupCode, group.GroupName, null, $"{group.GroupName}相关接口", index + 1))];
+
+    private static readonly Dictionary<string, ResourceSeed> ResourceByGroup = GroupResources
+        .ToDictionary(static resource => resource.Code, StringComparer.Ordinal);
+
     /// <summary>
     /// 种子数据优先级
     /// </summary>
@@ -32,6 +45,11 @@ public sealed class SaasPermissionCatalogSeeder(
     public override string ModuleCode => SaasPermissionCodes.Module;
 
     /// <summary>
+    /// 本模块的资源
+    /// </summary>
+    public override IReadOnlyList<ResourceSeed> Resources => GroupResources;
+
+    /// <summary>
     /// 本模块的权限
     /// </summary>
     public override IReadOnlyList<PermissionSeed> Permissions { get; } = [.. SaasPermissionDefinitions.All
@@ -42,5 +60,7 @@ public sealed class SaasPermissionCatalogSeeder(
             definition.GroupCode,
             definition.Side,
             definition.IsRequireAudit,
-            definition.Sort))];
+            definition.Sort,
+            ResourceByGroup[definition.GroupCode],
+            OperationSeeds.Get(definition.PermissionCode[(definition.PermissionCode.LastIndexOf(':') + 1)..])))];
 }

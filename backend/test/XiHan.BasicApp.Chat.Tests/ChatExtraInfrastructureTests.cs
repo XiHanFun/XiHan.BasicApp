@@ -191,10 +191,10 @@ public sealed class ChatExtraInfrastructureTests
     }
 
     /// <summary>
-    /// 聊天权限目录：四个功能权限两侧生效，码与常量表一致。
+    /// 聊天权限目录：聊天资源上的四个权限两侧生效，码与常量表一致，操作取码的末段。
     /// </summary>
     [Fact]
-    public void ChatPermissionCatalog_ShouldDeclareFourFunctionalPermissionsOnBothSides()
+    public void ChatPermissionCatalog_ShouldDeclareFourResourcePermissionsOnBothSides()
     {
         var catalog = new ChatSeeders.ChatPermissionCatalogSeeder(
             new Mock<ISqlSugarClientResolver>().Object,
@@ -202,11 +202,15 @@ public sealed class ChatExtraInfrastructureTests
             new Mock<IServiceProvider>().Object);
 
         Assert.Equal(ChatPermissionCodes.All, catalog.Permissions.Select(permission => permission.Code));
-        Assert.Empty(catalog.Resources);
+        var resource = Assert.Single(catalog.Resources);
+        Assert.Equal(ChatPermissionCodes.Resource, resource.Code);
         Assert.All(catalog.Permissions, permission =>
         {
             Assert.Equal(PermissionSide.Both, permission.Side);
-            Assert.Null(permission.Resource);
+            Assert.Same(resource, permission.Resource);
+            Assert.NotNull(permission.Operation);
+            Assert.Equal($"{resource.Code}:{permission.Operation.Code}", permission.Code);
+            Assert.Contains(permission.Operation, OperationSeeds.All);
         });
         Assert.Equal(ChatPermissionCodes.Module, catalog.ModuleCode);
     }

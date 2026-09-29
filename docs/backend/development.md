@@ -258,7 +258,7 @@ public static IServiceCollection AddAIConfigStore(this IServiceCollection servic
 | 平台数据 | 600 | 参数、存储、模板、OAuth、任务 | 内置模板 +10 | — | — | 参数、任务 +40 | — |
 | 演示 | 900 | 演示租户与账号 | — | — | — | — | — |
 
-一个模块通常只需两个种子：继承 `PermissionCatalogSeederBase` 的权限目录（声明资源与权限；资源型权限用 `PermissionSeed.Of(资源, 作用侧, 起始排序, 操作…)` 按「资源 × 操作」展开），和继承 `PageRegistryMenuSeederBase` 的菜单（直接取模块的 `PageRegistry`）。AI 的 `AddAIDataSeeders`：
+一个模块通常只需两个种子：继承 `PermissionCatalogSeederBase` 的权限目录（声明资源与权限；资源型权限用 `PermissionSeed.Of(资源, 作用侧, 起始排序, 操作…)` 按「资源 × 操作」展开，要保留自定义名称与说明时直接写 `new PermissionSeed(…, 资源, 操作)`；资源与操作须成对给出，操作先在 `OperationSeeds` 登记），和继承 `PageRegistryMenuSeederBase` 的菜单（直接取模块的 `PageRegistry`）。AI 的 `AddAIDataSeeders`：
 
 ```csharp
 services.AddDataSeeder<AiPermissionCatalogSeeder>(); // SeedOrders.PermissionCatalog + 20：模型服务、提示词、助手、知识库四个资源

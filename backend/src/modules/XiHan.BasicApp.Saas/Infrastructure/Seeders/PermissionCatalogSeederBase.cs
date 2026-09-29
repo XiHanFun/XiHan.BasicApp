@@ -48,6 +48,16 @@ public abstract class PermissionCatalogSeederBase(
     /// </summary>
     protected override async Task SeedInternalAsync()
     {
+        // 资源与操作成对出现：只给一个会落成类型是资源型、却缺另一半的权限，管理端的创建校验也不认这种形态
+        var halfBound = Permissions
+            .Where(static permission => permission.Resource is null != permission.Operation is null)
+            .Select(static permission => permission.Code)
+            .ToList();
+        if (halfBound.Count > 0)
+        {
+            throw new InvalidOperationException($"{Name}：{string.Join("、", halfBound)} 的资源与操作须同时声明或同时留空。");
+        }
+
         var resourceIds = await SeedResourcesAsync();
         var operationIds = await LoadOperationIdsAsync();
         await SeedPermissionsAsync(resourceIds, operationIds);

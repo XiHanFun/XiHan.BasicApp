@@ -39,7 +39,7 @@ module : resource : action
 | --- | --- |
 | `PermissionCode` | 权限码（`TenantId + PermissionCode` 租户内唯一），推荐三段式 |
 | `ModuleCode` | 模块段（如 `saas`），支持三段式权限码 |
-| `PermissionType` | `ResourceBased`（绑定 `ResourceId`+`OperationId`）/ `Functional`（仅凭码）/ `DataScope` |
+| `PermissionType` | `ResourceBased`（绑定 `ResourceId`+`OperationId`；种子里的权限全部是这一类）/ `Functional`（仅凭码，管理端自建时可用）/ `DataScope` |
 | `ResourceId` / `OperationId` | 关联 `SysResource` / `SysOperation`（`ResourceBased` 时必填） |
 | `IsRequireAudit` | 该权限操作是否强制写 `SysDiffLog` |
 | `Side` | 作用侧（`Platform` / `Tenant` / `Both`，必填）：权限在平台还是业务租户里生效 |

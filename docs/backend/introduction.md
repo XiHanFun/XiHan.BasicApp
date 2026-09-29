@@ -220,8 +220,8 @@ services.Replace(ServiceDescriptor.Scoped<ISessionStateGate, SaasSessionStateGat
 | 阶段 | `Order` | 内容 |
 | --- | --- | --- |
 | 平台身份 | 100 | 超级管理员角色与账号 |
-| 操作字典 | 200 | `read` / `create` / `update` / `delete` / `export` / `import` / `execute`，资源型权限的动作都从这里取 |
-| 权限目录 | 300 | 各模块的资源与权限（`PermissionCatalogSeederBase`） |
+| 操作字典 | 200 | `OperationSeeds.All`：`read` / `create` / `update` / `delete` / `export` / `import` / `execute` 七个通用动作，外加 `status`、`grant`、`revoke`、`publish`、`reset-password` 等各模块权限码里用到的动作，资源型权限的动作都从这里取 |
+| 权限目录 | 300 | 各模块的资源与权限（`PermissionCatalogSeederBase`）；种子里的权限全部是资源型：SaaS 每个权限分组一个资源、聊天与打印各一个资源，权限码末段即操作编码 |
 | 菜单 | 400 | 各模块的页面登记表（`PageRegistryMenuSeederBase`） |
 | 套餐 | 500 | 四档套餐与功能白名单，排在全部权限目录之后，企业版首次创建就拿到各模块的权限 |
 | 平台数据 | 600 | 参数、默认存储、消息模板、OAuth 应用、定时任务、代码生成内置模板 |
