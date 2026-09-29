@@ -10,7 +10,7 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 namespace XiHan.BasicApp.Chat.Infrastructure.Seeders;
 
 /// <summary>
-/// 聊天权限目录：查看、发送、会话管理、审计四个功能权限
+/// 聊天权限目录：聊天资源上的查看、发送、会话管理、审计四个权限
 /// </summary>
 /// <remarks>平台与租户都能聊天（两侧生效）。</remarks>
 public sealed class ChatPermissionCatalogSeeder(
@@ -19,6 +19,8 @@ public sealed class ChatPermissionCatalogSeeder(
     IServiceProvider serviceProvider)
     : PermissionCatalogSeederBase(clientResolver, logger, serviceProvider)
 {
+    private static readonly ResourceSeed Chat = new(ChatPermissionCodes.Resource, "聊天", null, "会话、消息与群成员相关接口", 400);
+
     /// <summary>
     /// 种子数据优先级
     /// </summary>
@@ -35,13 +37,18 @@ public sealed class ChatPermissionCatalogSeeder(
     public override string ModuleCode => ChatPermissionCodes.Module;
 
     /// <summary>
+    /// 本模块的资源
+    /// </summary>
+    public override IReadOnlyList<ResourceSeed> Resources { get; } = [Chat];
+
+    /// <summary>
     /// 本模块的权限
     /// </summary>
     public override IReadOnlyList<PermissionSeed> Permissions { get; } =
     [
-        new(ChatPermissionCodes.Read, "聊天查看", "查看当前用户的聊天会话列表与消息历史", ChatPermissionCodes.Module, PermissionSide.Both, true, 3300),
-        new(ChatPermissionCodes.Send, "聊天发送", "在所属会话内发送消息与撤回自己的消息", ChatPermissionCodes.Module, PermissionSide.Both, true, 3301),
-        new(ChatPermissionCodes.Manage, "聊天会话管理", "创建群聊、添加/移除群成员", ChatPermissionCodes.Module, PermissionSide.Both, true, 3302),
-        new(ChatPermissionCodes.Audit, "聊天审计", "管理侧跨会话查询聊天消息（合规审计）", ChatPermissionCodes.Module, PermissionSide.Both, false, 3303),
+        new(ChatPermissionCodes.Read, "聊天查看", "查看当前用户的聊天会话列表与消息历史", ChatPermissionCodes.Module, PermissionSide.Both, true, 3300, Chat, OperationSeeds.Read),
+        new(ChatPermissionCodes.Send, "聊天发送", "在所属会话内发送消息与撤回自己的消息", ChatPermissionCodes.Module, PermissionSide.Both, true, 3301, Chat, OperationSeeds.Send),
+        new(ChatPermissionCodes.Manage, "聊天会话管理", "创建群聊、添加/移除群成员", ChatPermissionCodes.Module, PermissionSide.Both, true, 3302, Chat, OperationSeeds.Manage),
+        new(ChatPermissionCodes.Audit, "聊天审计", "管理侧跨会话查询聊天消息（合规审计）", ChatPermissionCodes.Module, PermissionSide.Both, false, 3303, Chat, OperationSeeds.Audit),
     ];
 }

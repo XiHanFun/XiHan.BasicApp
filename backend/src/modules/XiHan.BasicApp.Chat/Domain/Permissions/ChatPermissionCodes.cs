@@ -13,6 +13,11 @@ public static class ChatPermissionCodes
     /// </summary>
     public const string Module = "chat";
 
+    /// <summary>
+    /// 资源编码
+    /// </summary>
+    public const string Resource = "chat";
+
     /// <summary>查看聊天（会话列表/消息历史）。</summary>
     public const string Read = "chat:read";
 

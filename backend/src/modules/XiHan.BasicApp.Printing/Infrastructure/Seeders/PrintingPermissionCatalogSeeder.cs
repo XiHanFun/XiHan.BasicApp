@@ -19,6 +19,8 @@ public sealed class PrintingPermissionCatalogSeeder(
     IServiceProvider serviceProvider)
     : PermissionCatalogSeederBase(clientResolver, logger, serviceProvider)
 {
+    private static readonly ResourceSeed PrintTemplate = new(PrintingPermissionCodes.Resource, "打印模板", null, "打印模板维护、全局模板与预览打印相关接口", 500);
+
     /// <summary>
     /// 种子数据优先级
     /// </summary>
@@ -35,16 +37,21 @@ public sealed class PrintingPermissionCatalogSeeder(
     public override string ModuleCode => PrintingPermissionCodes.Module;
 
     /// <summary>
+    /// 本模块的资源
+    /// </summary>
+    public override IReadOnlyList<ResourceSeed> Resources { get; } = [PrintTemplate];
+
+    /// <summary>
     /// 本模块的权限
     /// </summary>
     public override IReadOnlyList<PermissionSeed> Permissions { get; } =
     [
-        new(PrintingPermissionCodes.Read, "打印模板查看", "查看当前作用域打印模板列表与详情", PrintingPermissionCodes.Module, PermissionSide.Both, false, 3400),
-        new(PrintingPermissionCodes.Create, "打印模板创建", "创建当前作用域打印模板", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3401),
-        new(PrintingPermissionCodes.Update, "打印模板编辑", "编辑打印模板元数据和 hiprint 设计 JSON", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3402),
-        new(PrintingPermissionCodes.Status, "打印模板启停", "启用或停用打印模板", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3403),
-        new(PrintingPermissionCodes.Delete, "打印模板删除", "删除已经停用的打印模板", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3404),
-        new(PrintingPermissionCodes.Use, "打印模板使用", "按编码解析模板并执行预览或直接打印", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3405),
-        new(PrintingPermissionCodes.GlobalManage, "全局打印模板管理", "管理平台全局打印模板及租户开放状态", PrintingPermissionCodes.Module, PermissionSide.Platform, true, 3406),
+        new(PrintingPermissionCodes.Read, "打印模板查看", "查看当前作用域打印模板列表与详情", PrintingPermissionCodes.Module, PermissionSide.Both, false, 3400, PrintTemplate, OperationSeeds.Read),
+        new(PrintingPermissionCodes.Create, "打印模板创建", "创建当前作用域打印模板", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3401, PrintTemplate, OperationSeeds.Create),
+        new(PrintingPermissionCodes.Update, "打印模板编辑", "编辑打印模板元数据和 hiprint 设计 JSON", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3402, PrintTemplate, OperationSeeds.Update),
+        new(PrintingPermissionCodes.Status, "打印模板启停", "启用或停用打印模板", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3403, PrintTemplate, OperationSeeds.Status),
+        new(PrintingPermissionCodes.Delete, "打印模板删除", "删除已经停用的打印模板", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3404, PrintTemplate, OperationSeeds.Delete),
+        new(PrintingPermissionCodes.Use, "打印模板使用", "按编码解析模板并执行预览或直接打印", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3405, PrintTemplate, OperationSeeds.Use),
+        new(PrintingPermissionCodes.GlobalManage, "全局打印模板管理", "管理平台全局打印模板及租户开放状态", PrintingPermissionCodes.Module, PermissionSide.Platform, true, 3406, PrintTemplate, OperationSeeds.GlobalManage),
     ];
 }

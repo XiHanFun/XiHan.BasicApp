@@ -172,7 +172,46 @@ public sealed class SaasDomainPermissionCatalogContractTests
 
         Assert.Equal("[\"saas\",\"tenant\"]", seeder.BuildTags(tenantExport), StringComparer.Ordinal);
         Assert.Equal(SaasPermissionDefinitions.All.Count, seeder.Permissions.Count);
-        Assert.All(seeder.Permissions, permission => Assert.Null(permission.Resource));
+    }
+
+    /// <summary>
+    /// 每个分组落成一个资源（编码即组码、名称即组名），每条权限挂在所在分组的资源上，
+    /// 操作取权限码的末段且必须在操作字典里；资源 + 操作两两不重，管理端按这一对反查权限。
+    /// </summary>
+    [Fact]
+    public void CatalogSeeder_EveryPermission_ShouldBindGroupResourceAndDictionaryOperation()
+    {
+        var seeder = new SaasPermissionCatalogSeeder(
+            Mock.Of<ISqlSugarClientResolver>(),
+            NullLogger<SaasPermissionCatalogSeeder>.Instance,
+            Mock.Of<IServiceProvider>());
+
+        Assert.Equal(
+            SaasPermissionDefinitions.Groups.Select(group => (group.GroupCode, group.GroupName)),
+            seeder.Resources.Select(resource => (resource.Code, resource.Name)));
+        Assert.All(seeder.Permissions, permission =>
+        {
+            Assert.NotNull(permission.Resource);
+            Assert.NotNull(permission.Operation);
+            Assert.Equal(permission.Group, permission.Resource.Code, StringComparer.Ordinal);
+            Assert.Equal($"{SaasPermissionCodes.Module}:{permission.Resource.Code}:{permission.Operation.Code}", permission.Code, StringComparer.Ordinal);
+            Assert.Contains(permission.Operation, OperationSeeds.All);
+        });
+        Assert.Equal(
+            seeder.Permissions.Count,
+            seeder.Permissions.Select(permission => (permission.Resource!.Code, permission.Operation!.Code)).Distinct().Count());
+    }
+
+    /// <summary>
+    /// 操作字典的编码与排序都不能重复：编码是唯一索引，排序决定操作页与选择项的顺序。
+    /// </summary>
+    [Fact]
+    public void OperationSeeds_CodesAndSorts_ShouldBeUnique()
+    {
+        Assert.Equal(OperationSeeds.All.Count, OperationSeeds.All.Select(operation => operation.Code).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(OperationSeeds.All.Count, OperationSeeds.All.Select(operation => operation.Sort).Distinct().Count());
+        Assert.Same(OperationSeeds.Status, OperationSeeds.Get("status"));
+        Assert.Throws<InvalidOperationException>(() => OperationSeeds.Get("no-such-operation"));
     }
 
     /// <summary>

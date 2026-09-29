@@ -55,8 +55,19 @@ public sealed class PrintingExtraSeedContractTests
     public void PermissionSeeder_ShouldUseTheCatalogBase()
     {
         Assert.True(typeof(PrintingPermissionCatalogSeeder).IsAssignableTo(typeof(PermissionCatalogSeederBase)));
-        Assert.Equal(PrintingPermissionCodes.Module, Catalog().ModuleCode);
-        Assert.Empty(Catalog().Resources);
+        var catalog = Catalog();
+        Assert.Equal(PrintingPermissionCodes.Module, catalog.ModuleCode);
+
+        // 全部权限挂在打印模板资源上，操作取码的末段且来自操作字典
+        var resource = Assert.Single(catalog.Resources);
+        Assert.Equal(PrintingPermissionCodes.Resource, resource.Code);
+        Assert.All(catalog.Permissions, permission =>
+        {
+            Assert.Same(resource, permission.Resource);
+            Assert.NotNull(permission.Operation);
+            Assert.Equal($"{resource.Code}:{permission.Operation.Code}", permission.Code);
+            Assert.Contains(permission.Operation, OperationSeeds.All);
+        });
     }
 
     /// <summary>
