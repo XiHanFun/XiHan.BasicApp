@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Tone } from '@xihan-ui/core'
 import type { DataScopeDraft } from '../components/data-scope'
 import type { UserFormSecurity } from './user-form-access'
 import type {
@@ -158,40 +159,40 @@ const detUser = computed(() => {
   const sec = d.security
   const todayStat = d.statistics.find(s => s.period === StatisticsPeriod.Today) ?? d.statistics[0]
   const onlineSession = d.sessions.find(s => s.status === SessionStatus.Active)
-  const badges: { label: string, cls: string, icon: string }[] = []
+  const badges: { label: string, tone: Tone, icon: string }[] = []
   if (sec) {
     badges.push(
       sec.emailVerified
-        ? { label: t('identity.user.badge.email_verified'), cls: 'bdg-ok', icon: 'tabler:mail' }
-        : { label: t('identity.user.badge.email_unverified'), cls: 'bdg-gray', icon: 'tabler:mail' },
+        ? { label: t('identity.user.badge.email_verified'), tone: 'success', icon: 'tabler:mail' }
+        : { label: t('identity.user.badge.email_unverified'), tone: 'neutral', icon: 'tabler:mail' },
     )
     badges.push(
       sec.phoneVerified
-        ? { label: t('identity.user.badge.phone_verified'), cls: 'bdg-ok', icon: 'tabler:phone' }
-        : { label: t('identity.user.badge.phone_unverified'), cls: 'bdg-gray', icon: 'tabler:phone' },
+        ? { label: t('identity.user.badge.phone_verified'), tone: 'success', icon: 'tabler:phone' }
+        : { label: t('identity.user.badge.phone_unverified'), tone: 'neutral', icon: 'tabler:phone' },
     )
     if (sec.twoFactorEnabled) {
       badges.push({
         label: `2FA: ${formatTwoFa(sec.twoFactorMethod)}`,
-        cls: 'bdg-info',
+        tone: 'info',
         icon: 'tabler:shield-check',
       })
     }
     if (sec.isLocked)
-      badges.push({ label: t('identity.user.badge.account_locked'), cls: 'bdg-no', icon: 'tabler:lock' })
+      badges.push({ label: t('identity.user.badge.account_locked'), tone: 'danger', icon: 'tabler:lock' })
     if (sec.failedLoginAttempts > 0) {
       badges.push({
         label: t('identity.user.badge.failed_login', { count: sec.failedLoginAttempts }),
-        cls: 'bdg-warn',
+        tone: 'warning',
         icon: 'tabler:alert-triangle',
       })
     }
   }
   if (u.isExternalMember)
-    badges.push({ label: t('identity.user.badge.external_member'), cls: 'bdg-info', icon: 'tabler:building-community' })
+    badges.push({ label: t('identity.user.badge.external_member'), tone: 'info', icon: 'tabler:building-community' })
   const inviteAccepted = d.tenantMembership?.inviteStatus === TenantMemberInviteStatus.Accepted
   if (d.tenantMembership && !inviteAccepted) {
-    badges.push({ label: t('identity.user.badge.inactive'), cls: 'bdg-warn', icon: 'tabler:clock-pause' })
+    badges.push({ label: t('identity.user.badge.inactive'), tone: 'warning', icon: 'tabler:clock-pause' })
   }
   return {
     userName: u.userName,
@@ -370,9 +371,12 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h('div', { class: 'tbl-cell-2l' }, [
         h('div', { class: 'tbl-cell-2l__primary tbl-cell-2l__primary--strong' }, [
           display,
-          r.isSystemAccount ? h('span', { class: 'sys-tag' }, t('identity.user.tag_system')) : null,
+          // 名字旁的身份标记用空心，与右侧各列的实底状态标签分开层级
+          r.isSystemAccount
+            ? h(XhTagRoot, { variant: 'outline', size: 'sm', tone: 'warning', class: 'ml-1' }, () => h(XhTagLabel, () => t('identity.user.tag_system')))
+            : null,
           r.isExternalMember
-            ? h(XhTagRoot, { variant: 'subtle', size: 'sm', tone: 'info', class: 'ml-1' }, () => h(XhTagLabel, () => t('identity.user.tag_external')))
+            ? h(XhTagRoot, { variant: 'outline', size: 'sm', tone: 'info', class: 'ml-1' }, () => h(XhTagLabel, () => t('identity.user.tag_external')))
             : null,
         ]),
         h('div', { class: 'tbl-cell-2l__secondary' }, subLine),
@@ -1632,10 +1636,10 @@ async function confirmDelete() {
             </div>
           </div>
           <div class="det-badges">
-            <span v-for="badge in detUser.badges" :key="badge.label" class="bdg" :class="[badge.cls]">
+            <XhTagRoot v-for="badge in detUser.badges" :key="badge.label" variant="subtle" size="sm" :tone="badge.tone">
               <Icon :icon="badge.icon" :size="12" />
-              {{ badge.label }}
-            </span>
+              <XhTagLabel>{{ badge.label }}</XhTagLabel>
+            </XhTagRoot>
           </div>
           <div class="det-divider" />
           <div class="det-sec">
@@ -1669,7 +1673,9 @@ async function confirmDelete() {
                 {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
               </div>
             </div>
-            <span class="bdg bdg-ok">{{ t('identity.user.detail.online') }}</span>
+            <XhTagRoot variant="subtle" size="sm" tone="success">
+              <XhTagLabel>{{ t('identity.user.detail.online') }}</XhTagLabel>
+            </XhTagRoot>
           </div>
           <div v-else class="session-empty">
             {{ t('identity.user.detail.no_active_session') }}
@@ -1899,15 +1905,6 @@ async function confirmDelete() {
   font-weight: 500;
 }
 
-.sys-tag {
-  font-size: 9px;
-  padding: 1px 4px;
-  margin-left: 4px;
-  border-radius: 3px;
-  background: var(--xh-color-warning-600);
-  color: var(--xh-color-warning-500);
-}
-
 /* 图标语义色：勿加页面前缀，弹窗 Teleport 到 body 后不在该子树内 */
 .sec-block-hd :deep(svg),
 .det-sec-hd :deep(svg) {
@@ -1944,10 +1941,6 @@ async function confirmDelete() {
 
 .del-icon {
   color: var(--xh-color-warning-500);
-}
-
-.bdg :deep(svg) {
-  color: currentColor;
 }
 
 /* 弹窗内容卡 */
@@ -2133,42 +2126,6 @@ async function confirmDelete() {
   flex-wrap: wrap;
   gap: 5px;
   margin-bottom: 14px;
-}
-
-.bdg {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 7px;
-  border-radius: var(--xh-shape-control);
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.bdg-ok {
-  color: var(--xh-color-success-500);
-  background: var(--xh-color-success-600);
-}
-
-.bdg-no {
-  color: var(--xh-color-danger-500);
-  background: var(--xh-color-danger-600);
-}
-
-.bdg-warn {
-  color: var(--xh-color-warning-500);
-  background: var(--xh-color-warning-600);
-}
-
-.bdg-info {
-  color: var(--xh-color-info-500);
-  background: var(--xh-color-info-600);
-}
-
-.bdg-gray {
-  color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted));
-  border: 1px solid hsl(var(--border));
 }
 
 .det-divider {
