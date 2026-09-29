@@ -554,13 +554,17 @@ describe('@提及请求与抽屉版本', () => {
     expect(store.mentionRequest).toMatchObject({ conversationId: 'a', userId: 'u9', userName: '李四' })
   })
 
-  it('请求打开聊天抽屉时版本计数器单调递增', () => {
+  it('请求打开聊天浮动面板时版本计数器单调递增，并记下发起的元素', () => {
     const store = setup()
-    const before = store.chatDrawerVersion
+    const before = store.chatPanelVersion
+    const first = document.createElement('button')
+    const second = document.createElement('button')
 
-    store.requestOpenChatDrawer()
-    store.requestOpenChatDrawer()
+    store.requestOpenChatPanel(first)
+    store.requestOpenChatPanel(second)
 
-    expect(store.chatDrawerVersion).toBe(before + 2)
+    expect(store.chatPanelVersion).toBe(before + 2)
+    // 面板贴着最近一次发起的元素落位、关闭后把焦点还给它
+    expect(store.chatPanelOrigin).toBe(second)
   })
 })

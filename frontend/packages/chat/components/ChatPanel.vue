@@ -11,8 +11,8 @@ import ChatStartDialog from './ChatStartDialog.vue'
 defineOptions({ name: 'ChatPanel' })
 
 const props = withDefaults(defineProps<{
-  /** page：双栏（列表+消息流）；drawer：窄单栏（列表 ↔ 消息流切换） */
-  mode?: 'drawer' | 'page'
+  /** page：双栏（列表+消息流）；panel：浮动面板里的窄单栏（列表 ↔ 消息流切换） */
+  mode?: 'panel' | 'page'
 }>(), {
   mode: 'page',
 })
@@ -24,9 +24,9 @@ const startMode = ref<ChatStartMode>('single')
 const showStartDialog = ref(false)
 const showMembersDialog = ref(false)
 
-const isDrawerMode = computed(() => props.mode === 'drawer')
-// 窄单栏：抽屉模式恒定；page 模式在小屏（<768）自动收敛为列表 ↔ 消息流切换
-const singlePane = computed(() => isDrawerMode.value || isMobile.value)
+const isPanelMode = computed(() => props.mode === 'panel')
+// 窄单栏：浮动面板模式恒定；page 模式在小屏（<768）自动收敛为列表 ↔ 消息流切换
+const singlePane = computed(() => isPanelMode.value || isMobile.value)
 const singlePaneShowThread = computed(() => singlePane.value && Boolean(chatStore.activeConversationId))
 
 function handleSelect(conversationId: string) {

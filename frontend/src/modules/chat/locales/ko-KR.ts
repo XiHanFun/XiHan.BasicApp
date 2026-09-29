@@ -6,7 +6,7 @@ export default {
     bell: '온라인 채팅',
     unread_label: '읽지 않은 채팅 {n}건',
     island_new_message_fallback: '새 메시지 도착',
-    drawer: {
+    panel: {
       title: '온라인 채팅',
       open_page: '전체 페이지 열기',
     },

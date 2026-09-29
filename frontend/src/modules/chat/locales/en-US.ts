@@ -6,7 +6,7 @@ export default {
     bell: 'Chat',
     unread_label: '{n} unread chat messages',
     island_new_message_fallback: 'New message',
-    drawer: {
+    panel: {
       title: 'Chat',
       open_page: 'Open full page',
     },

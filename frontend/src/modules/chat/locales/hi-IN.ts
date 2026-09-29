@@ -6,7 +6,7 @@ export default {
     bell: 'ऑनलाइन चैट',
     unread_label: '{n} अपठित चैट संदेश',
     island_new_message_fallback: 'नया संदेश आया',
-    drawer: {
+    panel: {
       title: 'ऑनलाइन चैट',
       open_page: 'अलग पेज खोलें',
     },
