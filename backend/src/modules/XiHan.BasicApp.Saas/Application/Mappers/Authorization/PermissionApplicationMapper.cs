@@ -49,15 +49,13 @@ public static class PermissionApplicationMapper
         ArgumentNullException.ThrowIfNull(permission);
 
         var groupCode = SaasPermissionDefinitions.ResolveGroupCode(permission.PermissionCode);
-        var groupName = SaasPermissionDefinitions.ResolveGroupName(permission.PermissionCode);
 
-        // 其它模块（AI / 代码生成 / 工作流）的权限码不在 Saas 的定义表内，解析不出显示名时
-        // ResolveGroupName 原样返回组码，前端分组标题就会显示成 ai、code_gen 这样的原始串。
-        // 资源表里存的是中文名，此处以它兜底，无需让 Saas 反过来认识各业务模块的权限码。
-        if (string.Equals(groupName, groupCode, StringComparison.Ordinal) && !string.IsNullOrWhiteSpace(resource?.ResourceName))
-        {
-            groupName = resource.ResourceName;
-        }
+        // 显示名只取真正的名字：Saas 定义表里的组名，其次是资源表里的中文名（AI / 代码生成 / 工作流挂了资源）。
+        // 都没有时留空——聊天、打印这类只有功能权限、不挂资源的模块，把组码当名字就会显示成 chat、print-template；
+        // 留空后前端按组内权限名的公共前缀命名（聊天查看 / 聊天发送 → 聊天），不必让 Saas 反过来认识各模块的权限码。
+        var groupName = SaasPermissionDefinitions.GroupNames.TryGetValue(groupCode, out var definedName)
+            ? definedName
+            : resource?.ResourceName?.Trim() ?? string.Empty;
 
         return new PermissionListItemDto
         {
