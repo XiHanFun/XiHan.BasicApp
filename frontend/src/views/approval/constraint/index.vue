@@ -217,10 +217,10 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('approval.constraint.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'approval.constraint.create' },
-    { key: 'view', title: t('approval.constraint.action_view'), scope: 'row', permission: 'approval.constraint.read' },
-    { key: 'edit', title: t('approval.constraint.action_edit'), scope: 'row', permission: 'approval.constraint.update' },
-    { key: 'toggle', title: t('approval.constraint.action_toggle'), scope: 'row', permission: 'approval.constraint.status' },
-    { key: 'delete', title: t('approval.constraint.action_delete'), scope: 'row', type: 'error', permission: 'approval.constraint.delete' },
+    { key: 'view', title: t('approval.constraint.action_view'), scope: 'row', icon: 'lucide:eye', permission: 'approval.constraint.read' },
+    { key: 'edit', title: t('approval.constraint.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'approval.constraint.update' },
+    { key: 'toggle', title: t('approval.constraint.action_toggle'), scope: 'row', icon: 'lucide:power', permission: 'approval.constraint.status' },
+    { key: 'delete', title: t('approval.constraint.action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', permission: 'approval.constraint.delete' },
   ],
 }))
 

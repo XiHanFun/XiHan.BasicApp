@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { Tone } from '@xihan-ui/core'
 import type { MenuNode } from '@xihan-ui/headless'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaColumn } from './types'
 import type { ApiId } from '~/types/contracts'
@@ -12,6 +11,8 @@ import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore } from '~/stores'
 import XIconButton from '../common/XIconButton.vue'
+import { actionMenuPrefix } from './action-menu'
+import { actionButtonTone, actionMenuTone } from './action-tone'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaImportDialog from './SchemaImportDialog.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
@@ -250,31 +251,18 @@ function visibleRowActions(row: Row): ActionSchema<Row>[] {
   return rowActions.value.filter(a => !a.visible || a.visible(row))
 }
 
-/** 操作 Schema 的 type 到组件库 tone 轴的换算（Schema 里的词汇沿用页面既有声明，不改） */
-function toneOfActionType(type: ActionSchema<Row>['type']): Tone {
-  switch (type) {
-    case 'primary':
-      return 'brand'
-    case 'error':
-      return 'danger'
-    case 'info':
-    case 'success':
-    case 'warning':
-      return type
-    default:
-      return 'neutral'
-  }
-}
-
 function renderRowActions(row: Row) {
-  const collection: MenuNode[] = visibleRowActions(row).map(a => ({
+  const actions = visibleRowActions(row)
+  const collection: MenuNode[] = actions.map(a => ({
     value: a.key,
     label: a.title,
     disabled: a.disabled ? a.disabled(row) : false,
+    tone: actionMenuTone(a.type),
   }))
   if (collection.length === 0) {
     return h('span', { class: 'text-foreground/30' }, '-')
   }
+  const itemPrefix = actionMenuPrefix(actions)
   return h(
     XhMenuRoot,
     {
@@ -290,6 +278,7 @@ function renderRowActions(row: Row) {
         { variant: 'outline', size: 'sm' },
         () => [t('component.schema_page.more'), h(Icon, { icon: 'lucide:chevron-down' })],
       ),
+      ...(itemPrefix ? { 'item-prefix': itemPrefix } : {}),
     },
   )
 }
@@ -839,7 +828,7 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
                   :key="action.key"
                   size="sm"
                   variant="outline"
-                  :tone="toneOfActionType(action.type)"
+                  :tone="actionButtonTone(action.type)"
                   @click="onBatchAction(action.key)"
                 >
                   {{ action.title }}

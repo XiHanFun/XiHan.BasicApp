@@ -50,6 +50,8 @@ export interface AppDropdownOption {
   label?: string | (() => VNodeChild)
   icon?: () => VNodeChild
   disabled?: boolean
+  /** 条目自身动作的性质：删除等破坏性命令写 danger、停用类写 warning，不写与其余条目同档 */
+  tone?: 'danger' | 'warning'
   /** 本条之前画一条分隔线 */
   divider?: boolean
   /** 独立分隔条目：整条只是一根分隔线，没有文案与去处 */

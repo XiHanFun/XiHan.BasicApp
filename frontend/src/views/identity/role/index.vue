@@ -214,14 +214,14 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('identity.role.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.role.create' },
-    { key: 'view', title: t('identity.role.action_view'), scope: 'row' },
-    { key: 'edit', title: t('identity.role.action_edit'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.update' },
-    { key: 'assignPermission', title: t('identity.role.action_assign_permission'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
-    { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
-    { key: 'members', title: t('identity.role.action_members'), scope: 'row', visible: row => canAssignMembers(row as unknown as RoleListItemDto), permission: 'identity.role.members' },
-    { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.data-scope' },
-    { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as RoleListItemDto).status === EnableStatus.Enabled, (row as unknown as RoleListItemDto).roleName), visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.status' },
-    { key: 'delete', title: t('identity.role.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as RoleListItemDto).roleName), visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.delete' },
+    { key: 'view', title: t('identity.role.action_view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('identity.role.action_edit'), scope: 'row', icon: 'lucide:pencil', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.update' },
+    { key: 'assignPermission', title: t('identity.role.action_assign_permission'), scope: 'row', icon: 'lucide:key-round', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
+    { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row', icon: 'lucide:list-tree', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
+    { key: 'members', title: t('identity.role.action_members'), scope: 'row', icon: 'lucide:users', visible: row => canAssignMembers(row as unknown as RoleListItemDto), permission: 'identity.role.members' },
+    { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row', icon: 'lucide:building-2', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.data-scope' },
+    { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as RoleListItemDto).status === EnableStatus.Enabled, (row as unknown as RoleListItemDto).roleName), visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.status' },
+    { key: 'delete', title: t('identity.role.action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as RoleListItemDto).roleName), visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.delete' },
   ],
 }))
 

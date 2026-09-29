@@ -239,9 +239,9 @@ const requestSchema = computed<PageSchema>(() => ({
     remove: id => permissionRequestApi.delete(id),
   },
   actions: [
-    { key: 'approve', title: t('identity.authorization.req_action_approve'), scope: 'row', type: 'primary', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.req_action_approve'), requestName(row)), visible: isPending, permission: 'identity.authorization.audit' },
-    { key: 'reject', title: t('identity.authorization.req_action_reject'), scope: 'row', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.req_action_reject'), requestName(row)), visible: isPending, permission: 'identity.authorization.audit' },
-    { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, requestName(row)), permission: 'identity.authorization.withdraw' },
+    { key: 'approve', title: t('identity.authorization.req_action_approve'), scope: 'row', icon: 'lucide:check', type: 'primary', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.req_action_approve'), requestName(row)), visible: isPending, permission: 'identity.authorization.audit' },
+    { key: 'reject', title: t('identity.authorization.req_action_reject'), scope: 'row', icon: 'lucide:x', type: 'error', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.req_action_reject'), requestName(row)), visible: isPending, permission: 'identity.authorization.audit' },
+    { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, requestName(row)), permission: 'identity.authorization.withdraw' },
   ],
 }))
 
@@ -384,8 +384,8 @@ const delegationSchema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('identity.authorization.del_action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.authorization.delegation-create' },
-    { key: 'revoke', title: t('identity.authorization.del_action_revoke'), scope: 'row', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.del_action_revoke'), delegationName(row)), visible: canRevoke, permission: 'identity.authorization.delegation-revoke' },
-    { key: 'delete', title: t('identity.authorization.del_action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, delegationName(row)), permission: 'identity.authorization.delegation-delete' },
+    { key: 'revoke', title: t('identity.authorization.del_action_revoke'), scope: 'row', icon: 'lucide:undo-2', type: 'error', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.del_action_revoke'), delegationName(row)), visible: canRevoke, permission: 'identity.authorization.delegation-revoke' },
+    { key: 'delete', title: t('identity.authorization.del_action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, delegationName(row)), permission: 'identity.authorization.delegation-delete' },
   ],
 }))
 

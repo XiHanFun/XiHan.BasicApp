@@ -173,10 +173,10 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'view', title: t('approval.review.action_view'), scope: 'row', icon: 'lucide:eye' },
-    { key: 'approve', title: t('approval.review.action_approve'), scope: 'row', type: 'success', visible: row => canAuditRow(row as unknown as ReviewListItemDto), permission: 'approval.review.audit' },
-    { key: 'reject', title: t('approval.review.action_reject'), scope: 'row', type: 'error', visible: row => canAuditRow(row as unknown as ReviewListItemDto), permission: 'approval.review.audit' },
-    { key: 'toggle', title: t('approval.review.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as ReviewListItemDto).status === EnableStatus.Enabled, (row as unknown as ReviewListItemDto).reviewTitle), permission: 'approval.review.status' },
-    { key: 'delete', title: t('approval.review.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as ReviewListItemDto).reviewTitle), permission: 'approval.review.delete' },
+    { key: 'approve', title: t('approval.review.action_approve'), scope: 'row', icon: 'lucide:check', type: 'success', visible: row => canAuditRow(row as unknown as ReviewListItemDto), permission: 'approval.review.audit' },
+    { key: 'reject', title: t('approval.review.action_reject'), scope: 'row', icon: 'lucide:x', type: 'error', visible: row => canAuditRow(row as unknown as ReviewListItemDto), permission: 'approval.review.audit' },
+    { key: 'toggle', title: t('approval.review.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as ReviewListItemDto).status === EnableStatus.Enabled, (row as unknown as ReviewListItemDto).reviewTitle), permission: 'approval.review.status' },
+    { key: 'delete', title: t('approval.review.action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as ReviewListItemDto).reviewTitle), permission: 'approval.review.delete' },
   ],
 }))
 

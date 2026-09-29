@@ -170,7 +170,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'view', title: t('setting.numbering.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('setting.numbering.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'setting.numbering.update', visible: () => canMaintain.value },
     { key: 'toggle', title: t('setting.numbering.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled, (row as unknown as NumberingRuleListItemDto).ruleName), permission: 'setting.numbering.status', visible: () => canMaintain.value },
-    { key: 'reset', title: t('setting.numbering.action_reset'), scope: 'row', icon: 'lucide:rotate-ccw', permission: 'setting.numbering.reset', visible: () => canMaintain.value },
+    { key: 'reset', title: t('setting.numbering.action_reset'), scope: 'row', type: 'warning', icon: 'lucide:rotate-ccw', permission: 'setting.numbering.reset', visible: () => canMaintain.value },
     { key: 'allocations', title: t('setting.numbering.action_allocations'), scope: 'row', icon: 'lucide:history', permission: 'setting.numbering.allocations' },
     { key: 'delete', title: t('setting.numbering.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'setting.numbering.delete', visible: () => canMaintain.value, disabled: row => (row as unknown as NumberingRuleListItemDto).hasAllocated },
   ],

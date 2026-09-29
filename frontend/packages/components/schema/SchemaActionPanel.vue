@@ -1,5 +1,4 @@
 <script setup lang="ts" generic="TRow extends object">
-import type { Tone } from '@xihan-ui/core'
 import type { MenuNode } from '@xihan-ui/headless'
 import type { ActionSchema } from './types'
 import { XhButton, XhMenuRoot } from '@xihan-ui/vue'
@@ -8,7 +7,10 @@ import { useI18n } from 'vue-i18n'
 import { useIsMobile } from '~/composables'
 import { usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
+import { VNodeRender } from '../common/VNodeRender'
 import XIconButton from '../common/XIconButton.vue'
+import { actionMenuPrefix } from './action-menu'
+import { actionButtonTone, actionMenuTone } from './action-tone'
 
 defineOptions({ name: 'SchemaActionPanel' })
 
@@ -37,22 +39,6 @@ function isIconOnly(action: ActionSchema<TRow>): boolean {
   return isMobile.value && !!action.icon
 }
 
-/** 操作 Schema 的 type 到组件库 tone 轴的换算 */
-function toneOf(type: ActionSchema<TRow>['type']): Tone {
-  switch (type) {
-    case 'primary':
-      return 'brand'
-    case 'error':
-      return 'danger'
-    case 'info':
-    case 'success':
-    case 'warning':
-      return type
-    default:
-      return 'neutral'
-  }
-}
-
 /** 有权限的页面操作 */
 const permitted = computed(() =>
   props.actions.filter(a => a.scope === 'page' && (!a.permission || hasPermission(a.permission))),
@@ -65,8 +51,11 @@ const primaryActions = computed(() => permitted.value.slice(0, props.maxButtons)
 const moreActions = computed(() => permitted.value.slice(props.maxButtons))
 
 const moreOptions = computed<MenuNode[]>(() =>
-  moreActions.value.map(a => ({ value: a.key, label: a.title })),
+  moreActions.value.map(a => ({ value: a.key, label: a.title, tone: actionMenuTone(a.type) })),
 )
+
+/** 「更多」里的行首图标；没有一条声明图标时为空，不铺这一列 */
+const moreItemPrefix = computed(() => actionMenuPrefix(moreActions.value))
 </script>
 
 <template>
@@ -85,7 +74,7 @@ const moreOptions = computed<MenuNode[]>(() =>
         v-else
         size="sm"
         :variant="action.type && action.type !== 'default' ? 'solid' : 'outline'"
-        :tone="toneOf(action.type)"
+        :tone="actionButtonTone(action.type)"
         :aria-label="action.title"
         @click="emit('action', action.key)"
       >
@@ -106,6 +95,9 @@ const moreOptions = computed<MenuNode[]>(() =>
           <Icon :icon="isMobile ? 'lucide:ellipsis' : 'lucide:chevron-down'" />
           <span v-if="!isMobile">{{ t('component.schema_page.more') }}</span>
         </XhButton>
+      </template>
+      <template v-if="moreItemPrefix" #item-prefix="node">
+        <VNodeRender :content="moreItemPrefix!(node)" />
       </template>
     </XhMenuRoot>
 

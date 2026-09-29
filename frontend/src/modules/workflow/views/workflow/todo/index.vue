@@ -63,8 +63,8 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     { key: 'approve', title: t('workflow.todo.action_approve'), scope: 'row', type: 'success', icon: 'lucide:check' },
     { key: 'reject', title: t('workflow.todo.action_reject'), scope: 'row', type: 'error', icon: 'lucide:x' },
-    { key: 'transfer', title: t('workflow.todo.action_transfer'), scope: 'row' },
-    { key: 'addSign', title: t('workflow.todo.action_add_sign'), scope: 'row' },
+    { key: 'transfer', title: t('workflow.todo.action_transfer'), scope: 'row', icon: 'lucide:forward' },
+    { key: 'addSign', title: t('workflow.todo.action_add_sign'), scope: 'row', icon: 'lucide:user-plus' },
   ],
 }))
 

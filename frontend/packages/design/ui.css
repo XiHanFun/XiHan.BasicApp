@@ -411,6 +411,18 @@
   block-size: var(--xh-glyph-size-lg);
 }
 
+/* 菜单行首格里的 Iconify 图标（Schema 行操作、页面「更多」经 item-prefix 放入）：
+   行首格给 XhIcon 下发 --xh-icon-size，这里让 1em 的 svg 接上同一把尺。
+   行首格缺省取品牌色（给勾选标记的），放命令图标时改随条目字色：普通条目中性、危险条目随字转红 */
+[data-scope='menu'][data-part='item-indicator']:has(> svg) {
+  --xh-menu-item-indicator-fg: currentColor;
+}
+
+[data-scope='menu'][data-part='item-indicator'] > svg {
+  inline-size: var(--xh-icon-size);
+  block-size: var(--xh-icon-size);
+}
+
 /* 圆形图标钮：工具栏里一排透明底按钮（列设置/刷新/导出等），XIconButton 与借用它当触发器的菜单共用。
    盒尺寸取 sm 档控件方盒，随密度轴换档（紧凑 28px、宽松 32px），与同排的 sm 按钮齐高 */
 .xh-icon-btn {
