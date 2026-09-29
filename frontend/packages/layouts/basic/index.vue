@@ -688,7 +688,7 @@ const sidebarEnableState = computed(
 .split-secondary {
   transform-origin: center;
   transition:
-    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-sweep),
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-sweep),
     opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-sweep);
 }
 
@@ -728,11 +728,11 @@ const sidebarEnableState = computed(
 }
 
 .swap-icon__card.is-in {
-  animation: swap-card-in var(--xh-motion-duration-enter) var(--xh-motion-ease-settle) both;
+  animation: swap-card-in var(--xh-motion-duration-move) var(--xh-motion-ease-settle) both;
 }
 
 .swap-icon__card.is-out {
-  animation: swap-card-out var(--xh-motion-duration-enter) var(--xh-motion-ease-exit) both;
+  animation: swap-card-out var(--xh-motion-duration-move) var(--xh-motion-ease-exit) both;
 }
 
 @keyframes swap-card-in {

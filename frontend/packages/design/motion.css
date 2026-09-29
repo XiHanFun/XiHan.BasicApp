@@ -6,8 +6,11 @@
  * 时长与曲线由组件库定、本应用跟着走。
  *
  * 跟随带来两件事：
- * 1) 组件库令牌层在 prefers-reduced-motion 与 [data-motion='reduce'] 下把这几档
- *    时长压到 1ms，应用侧的过渡一并降级，不必各处再写一遍 @media。
+ * 1) 组件库令牌层在 prefers-reduced-motion 与 [data-motion='reduce'] 下去掉位移、
+ *    保留淡变：几何时长（move / expand / collapse / slide / nudge 等）压到 1ms，
+ *    enter / exit / micro 保留 120ms 供淡入淡出与换色。应用侧的过渡一并降级，
+ *    不必各处再写一遍 @media——前提是位移、缩放与尺寸变化挂在几何时长上，
+ *    不挂在 enter / exit / micro 上。
  * 2) 页面自绘的过渡与组件库内部的过渡同步——同一次展开里两边不会一个 200ms
  *    一个 320ms。
  *

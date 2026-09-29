@@ -115,7 +115,7 @@ watch(
 .row-peek-enter-active {
   transition:
     opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-settle);
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-settle);
 }
 
 .row-peek-leave-active {

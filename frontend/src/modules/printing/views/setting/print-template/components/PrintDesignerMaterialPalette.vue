@@ -362,7 +362,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
 .data-source-chevron {
   flex: none;
   color: #64748b;
-  transition: transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+  transition: transform var(--xh-motion-duration-expand) var(--xh-motion-ease-enter);
 }
 
 .data-source-chevron--expanded {
@@ -399,7 +399,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
   cursor: move;
   transition:
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    transform var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+    transform var(--xh-motion-duration-nudge) var(--xh-motion-ease-enter);
 }
 
 .material-item:hover,

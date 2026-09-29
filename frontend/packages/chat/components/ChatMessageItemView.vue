@@ -504,7 +504,7 @@ async function handleDownload(fileId: string) {
   inset: 0 auto 0 0;
   border-radius: 999px;
   background: hsl(var(--primary));
-  transition: width var(--xh-motion-duration-micro) var(--xh-motion-ease-continuous);
+  transition: width var(--xh-motion-duration-nudge) var(--xh-motion-ease-continuous);
 }
 
 .chat-voice__time {

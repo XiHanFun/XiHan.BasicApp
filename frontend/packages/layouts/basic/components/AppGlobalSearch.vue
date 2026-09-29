@@ -757,7 +757,7 @@ watch(
 }
 
 .cmdk-enter-active .cmdk-panel {
-  transition: transform var(--xh-motion-duration-enter) var(--xh-motion-ease-settle);
+  transition: transform var(--xh-motion-duration-move) var(--xh-motion-ease-settle);
 }
 
 .cmdk-enter-from .cmdk-panel {

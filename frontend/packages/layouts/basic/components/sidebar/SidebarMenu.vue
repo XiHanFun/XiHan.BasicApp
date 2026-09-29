@@ -104,7 +104,7 @@ const collection = computed(() => toCollection(props.menuOptions))
   flex: none;
   align-items: center;
   color: hsl(var(--foreground) / 72%);
-  transition: transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+  transition: transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter);
 }
 
 .sidebar-menu

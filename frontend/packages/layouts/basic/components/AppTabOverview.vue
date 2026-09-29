@@ -433,7 +433,7 @@ function onKeydown(e: KeyboardEvent): void {
   cursor: pointer;
   user-select: none;
   transition:
-    transform var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-nudge) var(--xh-motion-ease-enter),
     border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
     box-shadow var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
   animation: tab-ov-card-in var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong) both;

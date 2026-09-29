@@ -197,7 +197,7 @@ function switchTab(tab: 'advanced' | 'basic'): void {
 }
 
 .security-chevron {
-  transition: transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+  transition: transform var(--xh-motion-duration-expand) var(--xh-motion-ease-enter);
 }
 
 .security-chevron.expanded {
