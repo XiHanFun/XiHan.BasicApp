@@ -631,12 +631,12 @@ onMounted(loadKeys)
   min-block-size: 0;
 }
 
-.cache-tree-leaf {
+:deep(.cache-tree-leaf) {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 12px;
 }
 
-.cache-tree-group {
+:deep(.cache-tree-group) {
   display: inline-flex;
   gap: 4px;
   align-items: center;

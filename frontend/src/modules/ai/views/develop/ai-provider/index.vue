@@ -581,14 +581,14 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
-.ap-name {
+:deep(.ap-name) {
   display: flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
 }
 
-.ap-name__text {
+:deep(.ap-name__text) {
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;

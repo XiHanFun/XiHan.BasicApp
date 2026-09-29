@@ -353,7 +353,7 @@ async function loadPreview() {
   min-block-size: 0;
 }
 
-.gen__node-icon {
+:deep(.gen__node-icon) {
   font-size: 15px;
   color: var(--text-secondary);
 }
