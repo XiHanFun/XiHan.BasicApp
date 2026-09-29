@@ -65,9 +65,9 @@ public sealed class EmailConfigQueryService
         var request = BuildEmailConfigPageRequest(input);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysEmailConfig", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.EmailConfig.Group, cancellationToken);
         // 过滤：FLS 门控剔除不可读/已脱敏字段
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysEmailConfig", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.EmailConfig.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyEmailConfigSorts(request);

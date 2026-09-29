@@ -66,8 +66,8 @@ public sealed class OperationLogQueryService
         var predicate = BuildOperationLogPredicate(input);
 
         // 排序/过滤：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认按操作时间倒序
-        await _fieldSecurity.GuardSortsAsync(input.Conditions, "SysOperationLog", cancellationToken);
-        await _fieldSecurity.GuardFiltersAsync(input.Conditions, "SysOperationLog", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(input.Conditions, SaasPermissionCodes.OperationLog.Group, cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(input.Conditions, SaasPermissionCodes.OperationLog.Group, cancellationToken);
         var query = DbClient.Queryable<SysOperationLog>()
             .Where(predicate)
             .SplitTable();

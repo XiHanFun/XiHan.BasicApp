@@ -113,9 +113,9 @@ public sealed class TenantQueryService
         var request = BuildTenantPageRequest(input);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysTenant", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Tenant.Group, cancellationToken);
         // 过滤：FLS 门控剔除不可读/已脱敏字段（时间区间 Between / 枚举多选 In）
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysTenant", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Tenant.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyTenantSorts(request);

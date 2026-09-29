@@ -63,10 +63,10 @@ public sealed class ConfigQueryService
         var request = BuildConfigPageRequest(input);
 
         // 过滤：前端区间(Between)/多选(In)等条件经 conditions.filters 下发，FLS 门控剔除不可读/已脱敏字段后由框架统一应用
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysConfig", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Config.Group, cancellationToken);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysConfig", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Config.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyConfigSorts(request);

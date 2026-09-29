@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Security.Users;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
@@ -24,7 +25,7 @@ public sealed class FieldSecurityServiceTests
     {
         var fixture = CreateFixture(userId: null);
 
-        var rules = await fixture.Service.ResolveAsync("SysUser");
+        var rules = await fixture.Service.ResolveAsync(SaasPermissionCodes.User.Group);
 
         Assert.Empty(rules);
         fixture.ResourceRepository.Verify(
@@ -56,7 +57,7 @@ public sealed class FieldSecurityServiceTests
     {
         var fixture = CreateFixture(userId: 7);
 
-        var rules = await fixture.Service.ResolveAsync("SysUser");
+        var rules = await fixture.Service.ResolveAsync(SaasPermissionCodes.User.Group);
 
         Assert.Empty(rules);
     }
@@ -76,11 +77,62 @@ public sealed class FieldSecurityServiceTests
             Rule(FieldSecurityTargetType.User, 7, "Phone", isReadable: true, isEditable: true, FieldMaskStrategy.None)
         ]);
 
-        var rules = await fixture.Service.ResolveAsync("SysUser");
+        var rules = await fixture.Service.ResolveAsync(SaasPermissionCodes.User.Group);
 
         var phone = Assert.Single(rules);
         Assert.False(phone.Value.IsReadable);
         Assert.False(phone.Value.IsEditable);
+    }
+
+    /// <summary>
+    /// 列表脱敏按元素逐个改写：传 List 必须每一项都打上码。
+    /// </summary>
+    /// <remarks>
+    /// 回归锚点：集合版曾与单对象版同名，传 List 时单对象版以 T = List 胜出，只反射到 List 本身，
+    /// 用户列表的用户名规则建了也原样返回明文。
+    /// </remarks>
+    [Fact]
+    public async Task ApplyMany_WithList_ShouldMaskEveryItem()
+    {
+        var fixture = CreateFixture(userId: 7);
+        fixture.SetupResource(1);
+        fixture.SetupUserRoles(7, []);
+        fixture.SetupRules([Rule(FieldSecurityTargetType.User, 7, nameof(MaskTarget.UserName), maskStrategy: FieldMaskStrategy.FullMask)]);
+        var items = new List<MaskTarget> { new() { UserName = "owner" }, new() { UserName = "admin" } };
+
+        await fixture.Service.ApplyManyAsync(SaasPermissionCodes.User.Group, items);
+
+        Assert.Equal(["*****", "*****"], items.Select(item => item.UserName));
+    }
+
+    /// <summary>
+    /// 单对象版收到集合当场报错，不再静默放过明文。
+    /// </summary>
+    [Fact]
+    public async Task Apply_WithCollection_ShouldThrow()
+    {
+        var fixture = CreateFixture(userId: 7);
+        var items = new List<MaskTarget> { new() { UserName = "owner" } };
+
+        await Assert.ThrowsAsync<ArgumentException>(() => fixture.Service.ApplyAsync(SaasPermissionCodes.User.Group, items));
+        Assert.Equal("owner", items[0].UserName);
+    }
+
+    /// <summary>
+    /// 单个对象照常按规则脱敏。
+    /// </summary>
+    [Fact]
+    public async Task Apply_WithSingleItem_ShouldMaskIt()
+    {
+        var fixture = CreateFixture(userId: 7);
+        fixture.SetupResource(1);
+        fixture.SetupUserRoles(7, []);
+        fixture.SetupRules([Rule(FieldSecurityTargetType.User, 7, nameof(MaskTarget.UserName), maskStrategy: FieldMaskStrategy.FullMask)]);
+        var item = new MaskTarget { UserName = "owner" };
+
+        await fixture.Service.ApplyAsync(SaasPermissionCodes.User.Group, item);
+
+        Assert.Equal("*****", item.UserName);
     }
 
     /// <summary>
@@ -98,7 +150,7 @@ public sealed class FieldSecurityServiceTests
             Rule(FieldSecurityTargetType.User, 7, "Phone", maskStrategy: FieldMaskStrategy.PartialMask)
         ]);
 
-        var rules = await fixture.Service.ResolveAsync("SysUser");
+        var rules = await fixture.Service.ResolveAsync(SaasPermissionCodes.User.Group);
 
         var phone = Assert.Single(rules);
         Assert.Equal(FieldMaskStrategy.FullMask, phone.Value.MaskStrategy);
@@ -115,7 +167,7 @@ public sealed class FieldSecurityServiceTests
         fixture.SetupUserRoles(7, [11]);
         fixture.SetupRules([Rule(FieldSecurityTargetType.User, 99, "Phone", maskStrategy: FieldMaskStrategy.FullMask)]);
 
-        var rules = await fixture.Service.ResolveAsync("SysUser");
+        var rules = await fixture.Service.ResolveAsync(SaasPermissionCodes.User.Group);
 
         Assert.Empty(rules);
     }
@@ -135,7 +187,7 @@ public sealed class FieldSecurityServiceTests
             Rule(FieldSecurityTargetType.Department, 5, "Phone", maskStrategy: FieldMaskStrategy.FullMask)
         ]);
 
-        var rules = await fixture.Service.ResolveAsync("SysUser");
+        var rules = await fixture.Service.ResolveAsync(SaasPermissionCodes.User.Group);
 
         Assert.Empty(rules);
     }
@@ -155,7 +207,7 @@ public sealed class FieldSecurityServiceTests
             Rule(FieldSecurityTargetType.Role, 12, "Phone", maskStrategy: FieldMaskStrategy.PartialMask)
         ]);
 
-        var rules = await fixture.Service.ResolveAsync("SysUser");
+        var rules = await fixture.Service.ResolveAsync(SaasPermissionCodes.User.Group);
 
         var phone = Assert.Single(rules);
         Assert.Equal(FieldMaskStrategy.FullMask, phone.Value.MaskStrategy);
@@ -176,7 +228,7 @@ public sealed class FieldSecurityServiceTests
             Rule(FieldSecurityTargetType.Role, 11, "Email", maskStrategy: FieldMaskStrategy.PartialMask)
         ]);
 
-        var rules = await fixture.Service.ResolveAsync("SysUser");
+        var rules = await fixture.Service.ResolveAsync(SaasPermissionCodes.User.Group);
 
         Assert.Equal(2, rules.Count);
         Assert.True(rules.ContainsKey("Phone"));
@@ -205,6 +257,14 @@ public sealed class FieldSecurityServiceTests
             MaskStrategy = maskStrategy,
             Status = EnableStatus.Enabled
         };
+    }
+
+    /// <summary>
+    /// 脱敏测试用的返回对象：属性名与字段规则的字段名对应。
+    /// </summary>
+    private sealed class MaskTarget
+    {
+        public string? UserName { get; set; }
     }
 
     /// <summary>
@@ -243,13 +303,13 @@ public sealed class FieldSecurityServiceTests
             var resource = new SysResource
             {
                 TenantId = 7,
-                ResourceCode = "SysUser",
+                ResourceCode = SaasPermissionCodes.User.Group,
                 ResourceName = "用户",
                 Status = EnableStatus.Enabled
             };
             SaasTestHelper.SetBasicId(resource, resourceId);
             ResourceRepository
-                .Setup(repo => repo.GetByCodeAsync("SysUser", It.IsAny<CancellationToken>()))
+                .Setup(repo => repo.GetByCodeAsync(SaasPermissionCodes.User.Group, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(resource);
         }
 

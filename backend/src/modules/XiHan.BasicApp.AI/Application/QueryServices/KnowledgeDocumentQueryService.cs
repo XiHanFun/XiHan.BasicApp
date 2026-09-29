@@ -53,8 +53,8 @@ public sealed class KnowledgeDocumentQueryService : AiApplicationService, IKnowl
 
         var request = BuildPageRequest(input);
 
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysKnowledgeDocument", cancellationToken);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysKnowledgeDocument", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, KnowledgePermissionCodes.Resource, cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, KnowledgePermissionCodes.Resource, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyDocumentSorts(request);

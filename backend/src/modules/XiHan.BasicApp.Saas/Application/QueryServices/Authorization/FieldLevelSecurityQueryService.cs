@@ -100,9 +100,9 @@ public sealed class FieldLevelSecurityQueryService
         var request = BuildFieldLevelSecurityPageRequest(input);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysFieldLevelSecurity", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.FieldLevelSecurity.Group, cancellationToken);
         // 过滤：前端区间/多选下发的 conditions.filters 同样经 FLS 门控
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysFieldLevelSecurity", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.FieldLevelSecurity.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyFieldLevelSecuritySorts(request);

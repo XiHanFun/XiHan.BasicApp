@@ -7,6 +7,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.MultiTenancy.Abstractions;
+using XiHan.BasicApp.Saas.Domain.Permissions;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
@@ -268,7 +269,7 @@ public sealed class FieldLevelSecurityDomainServiceTests
         var resource = new SysResource
         {
             TenantId = 7,
-            ResourceCode = "SysUser",
+            ResourceCode = SaasPermissionCodes.User.Group,
             ResourceName = "用户",
             Status = status
         };

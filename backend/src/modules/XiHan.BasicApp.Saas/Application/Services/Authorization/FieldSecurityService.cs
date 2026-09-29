@@ -166,6 +166,12 @@ public sealed class FieldSecurityService : IFieldSecurityService
             return;
         }
 
+        // 集合走到这里会对集合本身反射、一个字段都打不上码，悄悄放过明文；当场报错比静默更安全
+        if (item is System.Collections.IEnumerable and not string)
+        {
+            throw new ArgumentException($"{nameof(ApplyAsync)} 只接受单个对象，集合请用 {nameof(ApplyManyAsync)}。", nameof(item));
+        }
+
         var rules = await ResolveAsync(resourceCode, cancellationToken);
         if (rules.Count == 0)
         {
@@ -176,9 +182,9 @@ public sealed class FieldSecurityService : IFieldSecurityService
     }
 
     /// <summary>
-    /// 对单个返回对象按有效规则就地脱敏。
+    /// 对返回对象集合按有效规则逐个就地脱敏。
     /// </summary>
-    public async Task ApplyAsync<T>(string resourceCode, IEnumerable<T> items, CancellationToken cancellationToken = default)
+    public async Task ApplyManyAsync<T>(string resourceCode, IEnumerable<T> items, CancellationToken cancellationToken = default)
         where T : class
     {
         var rules = await ResolveAsync(resourceCode, cancellationToken);

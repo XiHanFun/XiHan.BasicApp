@@ -72,14 +72,14 @@ public sealed class FileQueryService
         var request = BuildFilePageRequest(input);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段（防按受保护字段排序泄漏真实顺序）；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysFile", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.File.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyFileSorts(request);
         }
 
         // 过滤：前端区间(Between)/多选(In) 经 conditions.filters 下发，同样 FLS 门控剔除不可读/已脱敏字段
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysFile", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.File.Group, cancellationToken);
 
         var files = await _fileRepository.GetPagedAsync(request, cancellationToken);
         return files.Map(FileApplicationMapper.ToListItemDto);

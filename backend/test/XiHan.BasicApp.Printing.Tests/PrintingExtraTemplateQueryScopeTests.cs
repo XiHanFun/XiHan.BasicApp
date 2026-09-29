@@ -8,6 +8,7 @@ using XiHan.BasicApp.Printing.Application.Dtos;
 using XiHan.BasicApp.Printing.Application.QueryServices;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Domain.Enums;
+using XiHan.BasicApp.Printing.Domain.Permissions;
 using XiHan.BasicApp.Printing.Domain.Repositories;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -130,10 +131,10 @@ public sealed class PrintingExtraTemplateQueryScopeTests
         var conditions = RequireCapturedConditions(fixture);
         Assert.Equal(7L, LastFilterValue(conditions, nameof(SysPrintTemplate.TenantId)));
         fixture.FieldSecurity.Verify(
-            security => security.GuardFiltersAsync(It.IsAny<QueryConditions>(), nameof(SysPrintTemplate), It.IsAny<CancellationToken>()),
+            security => security.GuardFiltersAsync(It.IsAny<QueryConditions>(), PrintingPermissionCodes.Resource, It.IsAny<CancellationToken>()),
             Times.Once);
         fixture.FieldSecurity.Verify(
-            security => security.GuardSortsAsync(It.IsAny<QueryConditions>(), nameof(SysPrintTemplate), It.IsAny<CancellationToken>()),
+            security => security.GuardSortsAsync(It.IsAny<QueryConditions>(), PrintingPermissionCodes.Resource, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 

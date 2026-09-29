@@ -343,8 +343,8 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
         CancellationToken cancellationToken)
     {
         var request = BuildRulePageRequest(input);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, nameof(SysNumberingRule), cancellationToken);
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, nameof(SysNumberingRule), cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Numbering.Group, cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Numbering.Group, cancellationToken);
 
         // 内部强制过滤必须放在字段安全处理后，避免租户输入覆盖所属范围或全局开放状态。
         request.Conditions.AddFilter((SysNumberingRule rule) => rule.TenantId, scope.OwnerTenantId);
@@ -392,8 +392,8 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
         }
 
         var request = BuildAllocationPageRequest(input);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, nameof(SysNumberingAllocation), cancellationToken);
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, nameof(SysNumberingAllocation), cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Numbering.Group, cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Numbering.Group, cancellationToken);
         request.Conditions.AddFilter((SysNumberingAllocation allocation) => allocation.TenantId, scope.OwnerTenantId);
         request.Conditions.AddFilter((SysNumberingAllocation allocation) => allocation.RuleId, input.RuleId);
         if (scope.IsGlobal && scope.RequestTenantId > 0)

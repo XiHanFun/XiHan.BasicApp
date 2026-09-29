@@ -60,9 +60,9 @@ public sealed class CodeGenHistoryQueryService : CodeGenerationApplicationServic
         var request = BuildPageRequest(input);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysCodeGenHistory", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, CodeGenPermissionCodes.Resource, cancellationToken);
         // 过滤：前端下发的区间/多选过滤经 FLS 门控剔除不可读/已脱敏字段
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysCodeGenHistory", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, CodeGenPermissionCodes.Resource, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyHistorySorts(request);

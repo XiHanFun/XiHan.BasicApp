@@ -56,9 +56,9 @@ public sealed class AiAssistantQueryService : AiApplicationService, IAiAssistant
         var request = BuildPageRequest(input);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, nameof(SysAiAssistant), cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, AiAssistantPermissionCodes.Resource, cancellationToken);
         // 过滤：前端区间/多选下发，FLS 门控剔除不可读/已脱敏字段
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, nameof(SysAiAssistant), cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, AiAssistantPermissionCodes.Resource, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyAssistantSorts(request);
