@@ -404,7 +404,7 @@
     "reason": "业务页面的排版刻度"
   },
   "src/views/identity/user/index.vue": {
-    "cap": 66,
+    "cap": 56,
     "reason": "业务页面的排版刻度"
   },
   "src/views/log/_components/LogDetailDrawer.vue": {

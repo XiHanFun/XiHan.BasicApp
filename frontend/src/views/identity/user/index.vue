@@ -1867,42 +1867,31 @@ async function confirmDelete() {
   overflow-y: auto;
 }
 
-.tbl-cell-2l {
+:deep(.tbl-cell-2l) {
   min-width: 0;
   line-height: 1.4;
 }
 
-.tbl-cell-2l__primary,
-.tbl-cell-2l__secondary {
+:deep(.tbl-cell-2l__primary),
+:deep(.tbl-cell-2l__secondary) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.tbl-cell-2l__primary {
+:deep(.tbl-cell-2l__primary) {
   font-size: 12px;
   color: hsl(var(--foreground));
 }
 
-.tbl-cell-2l__primary--strong {
+:deep(.tbl-cell-2l__primary--strong) {
   font-size: 13px;
   font-weight: 600;
 }
 
-.tbl-cell-2l__secondary {
+:deep(.tbl-cell-2l__secondary) {
   font-size: 11px;
   color: hsl(var(--muted-foreground));
-}
-
-.tbl-av {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 500;
 }
 
 /* 图标语义色：勿加页面前缀，弹窗 Teleport 到 body 后不在该子树内 */

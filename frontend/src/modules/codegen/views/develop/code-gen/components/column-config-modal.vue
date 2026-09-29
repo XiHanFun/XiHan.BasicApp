@@ -320,7 +320,7 @@ async function handleSubmit() {
 </template>
 
 <style scoped>
-.col-name {
+:deep(.col-name) {
   display: flex;
   align-items: center;
   gap: 6px;
