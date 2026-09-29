@@ -305,10 +305,14 @@ function dispatchAction(key: string, payload: SchemaActionPayload<Row>) {
     return
   }
 
+  const content = typeof action.confirmText === 'function'
+    ? (payload.row ? action.confirmText(payload.row) : undefined)
+    : action.confirmText
   void dialog.confirm({
     title: action.title,
-    content: action.confirmText ?? t('component.schema_page.action_confirm'),
+    content: content ?? t('component.schema_page.action_confirm'),
     badge: 'warning',
+    tone: action.type === 'error' ? 'danger' : undefined,
     okText: t('component.schema_page.confirm'),
     cancelText: t('component.schema_page.cancel'),
     onOk: () => {

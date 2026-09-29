@@ -63,6 +63,10 @@ export default {
     operation_failed: 'Operation failed',
     batch_delete_failed: 'Batch delete failed',
     batch_action_failed: 'Batch operation failed',
+    confirm_delete: 'Delete "{name}"? This cannot be undone.',
+    confirm_enable: 'Enable "{name}"?',
+    confirm_disable: 'Disable "{name}"? This takes effect immediately.',
+    confirm_action: 'Run "{action}" on "{name}"?',
   },
   // Gender (reused across modules)
   gender: {

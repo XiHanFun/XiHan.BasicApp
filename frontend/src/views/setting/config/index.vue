@@ -19,7 +19,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { CONFIG_DATA_TYPE_OPTIONS, CONFIG_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, Icon, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { useUserStore } from '~/stores'
@@ -146,8 +146,8 @@ const schema = computed<PageSchema>(() => ({
     { key: 'view', title: t('setting.config.view'), scope: 'row' },
     // 内置配置本就是给运维调值的：后端只禁止删除，不限制改值与启停
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.update' },
-    { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.status' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', visible: row => canDeleteConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.delete' },
+    { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as ConfigListItemDto).status === EnableStatus.Enabled, (row as unknown as ConfigListItemDto).configName), visible: row => canMaintainConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.status' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as ConfigListItemDto).configName), visible: row => canDeleteConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.delete' },
   ],
 }))
 

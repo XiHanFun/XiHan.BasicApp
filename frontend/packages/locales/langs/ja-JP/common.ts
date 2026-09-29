@@ -63,6 +63,10 @@ export default {
     operation_failed: '操作に失敗しました',
     batch_delete_failed: '一括削除に失敗しました',
     batch_action_failed: '一括操作に失敗しました',
+    confirm_delete: '「{name}」を削除しますか？削除すると元に戻せません。',
+    confirm_enable: '「{name}」を有効にしますか？',
+    confirm_disable: '「{name}」を無効にしますか？すぐに反映されます。',
+    confirm_action: '「{name}」に対して「{action}」を実行しますか？',
   },
   // 性别（跨模块复用）
   gender: {

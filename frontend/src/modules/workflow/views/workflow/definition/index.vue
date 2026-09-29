@@ -15,7 +15,7 @@ import {
   createPageRequest,
   querySortsFromSchema,
 } from '@/api'
-import { SchemaPage, XEditModal, XInput, XJsonBlock, XNumberInput } from '~/components'
+import { actionConfirmText, deleteConfirmText, SchemaPage, statusConfirmText, XEditModal, XInput, XJsonBlock, XNumberInput } from '~/components'
 import { toast } from '~/composables'
 import { formatDate } from '~/utils'
 import {
@@ -96,6 +96,12 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'createdTime', title: t('workflow.definition.created_time'), dataType: 'datetime', sortable: true, searchable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 16 },
 ])
 
+/** 确认框里的流程名：名称 + 版本，发布、停用、归档都按版本走 */
+function definitionName(row: unknown) {
+  const definition = row as WorkflowDefinitionListItemDto
+  return `${definition.name} v${definition.version}`
+}
+
 const schema = computed<PageSchema>(() => ({
   pageCode: 'workflow.definition',
   pageName: t('workflow.definition.page_name'),
@@ -119,12 +125,12 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('workflow.definition.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'workflow_definition.create' },
     { key: 'view', title: t('workflow.definition.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('workflow.definition.action_edit'), scope: 'row', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
-    { key: 'publish', title: t('workflow.definition.action_publish'), scope: 'row', type: 'success', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
+    { key: 'publish', title: t('workflow.definition.action_publish'), scope: 'row', type: 'success', confirm: true, confirmText: row => actionConfirmText(t, t('workflow.definition.action_publish'), definitionName(row)), permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
     { key: 'start', title: t('workflow.definition.action_start'), scope: 'row', type: 'primary', permission: 'workflow_definition.execute', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Published },
     { key: 'newVersion', title: t('workflow.definition.action_new_version'), scope: 'row', permission: 'workflow_definition.create', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status !== WorkflowDefinitionStatus.Draft },
-    { key: 'disable', title: t('workflow.definition.action_disable'), scope: 'row', type: 'warning', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Published },
-    { key: 'archive', title: t('workflow.definition.action_archive'), scope: 'row', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Disabled },
-    { key: 'delete', title: t('workflow.definition.action_delete'), scope: 'row', type: 'error', permission: 'workflow_definition.delete', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
+    { key: 'disable', title: t('workflow.definition.action_disable'), scope: 'row', type: 'warning', confirm: true, confirmText: row => statusConfirmText(t, true, definitionName(row)), permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Published },
+    { key: 'archive', title: t('workflow.definition.action_archive'), scope: 'row', confirm: true, confirmText: row => actionConfirmText(t, t('workflow.definition.action_archive'), definitionName(row)), permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Disabled },
+    { key: 'delete', title: t('workflow.definition.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, definitionName(row)), permission: 'workflow_definition.delete', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
   ],
 }))
 

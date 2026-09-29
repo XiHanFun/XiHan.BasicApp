@@ -120,6 +120,8 @@ export default {
     msg_initial_password_required: 'Please set an initial password',
     msg_account_unlocked: 'Account unlocked',
     msg_account_locked: 'Account locked',
+    confirm_lock: 'Lock "{name}"? The account can no longer sign in until it is unlocked.',
+    confirm_unlock: 'Unlock "{name}"?',
     logout_title: 'Force Logout',
     logout_content: 'This will revoke all login sessions of user "{name}" and immediately kick out their online devices. Continue?',
     logout_confirm: 'Confirm Logout',

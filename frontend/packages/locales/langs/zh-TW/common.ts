@@ -63,6 +63,10 @@ export default {
     operation_failed: '操作失敗',
     batch_delete_failed: '批次刪除失敗',
     batch_action_failed: '批次操作失敗',
+    confirm_delete: '確定刪除「{name}」？刪除後無法復原。',
+    confirm_enable: '確定啟用「{name}」？',
+    confirm_disable: '確定停用「{name}」？停用後立即生效。',
+    confirm_action: '確定對「{name}」執行「{action}」？',
   },
   // 性别（跨模块复用）
   gender: {

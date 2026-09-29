@@ -120,6 +120,8 @@ export default {
     msg_initial_password_required: 'प्रारंभिक पासवर्ड सेट करें',
     msg_account_unlocked: 'खाता अनलॉक कर दिया गया',
     msg_account_locked: 'खाता लॉक कर दिया गया',
+    confirm_lock: '"{name}" लॉक करें? लॉक होते ही यह खाता साइन इन नहीं कर पाएगा।',
+    confirm_unlock: '"{name}" अनलॉक करें?',
     logout_title: 'जबरन लॉगआउट',
     logout_content: 'उपयोगकर्ता «{name}» के सभी लॉगिन सत्र रद्द कर दिए जाएँगे और उनके ऑनलाइन डिवाइस तुरंत लॉगआउट हो जाएँगे। जारी रखें?',
     logout_confirm: 'लॉगआउट की पुष्टि करें',

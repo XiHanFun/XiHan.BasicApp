@@ -7,7 +7,7 @@ import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus, querySortsFromSchema } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XInput, XJsonBlock } from '~/components'
+import { deleteConfirmText, Icon, SchemaPage, statusConfirmText, XInput, XJsonBlock } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -175,8 +175,8 @@ const schema = computed<PageSchema>(() => ({
     { key: 'view', title: t('approval.review.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'approve', title: t('approval.review.action_approve'), scope: 'row', type: 'success', visible: row => canAuditRow(row as unknown as ReviewListItemDto), permission: 'approval.review.audit' },
     { key: 'reject', title: t('approval.review.action_reject'), scope: 'row', type: 'error', visible: row => canAuditRow(row as unknown as ReviewListItemDto), permission: 'approval.review.audit' },
-    { key: 'toggle', title: t('approval.review.action_toggle'), scope: 'row', permission: 'approval.review.status' },
-    { key: 'delete', title: t('approval.review.action_delete'), scope: 'row', type: 'error', permission: 'approval.review.delete' },
+    { key: 'toggle', title: t('approval.review.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as ReviewListItemDto).status === EnableStatus.Enabled, (row as unknown as ReviewListItemDto).reviewTitle), permission: 'approval.review.status' },
+    { key: 'delete', title: t('approval.review.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as ReviewListItemDto).reviewTitle), permission: 'approval.review.delete' },
   ],
 }))
 

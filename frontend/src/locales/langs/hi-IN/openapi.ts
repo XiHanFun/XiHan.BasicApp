@@ -102,6 +102,7 @@ export default {
     msg_save_success: 'सफलतापूर्वक सहेजा गया',
     msg_save_failed: 'सहेजने में विफल',
     msg_secret_regenerated: 'सीक्रेट फिर से बना दिया गया',
+    confirm_secret: '"{name}" का सीक्रेट रीसेट करें? पुराना सीक्रेट तुरंत अमान्य हो जाएगा और इंटीग्रेशन को नया सीक्रेट अपनाना होगा।',
     msg_secret_regenerate_failed: 'सीक्रेट फिर से बनाने में विफल',
     msg_secret_copied: 'सीक्रेट क्लिपबोर्ड पर कॉपी हो गया',
     msg_copy_failed: 'कॉपी करने में विफल',

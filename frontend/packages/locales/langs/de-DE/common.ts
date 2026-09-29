@@ -63,6 +63,10 @@ export default {
     operation_failed: 'Vorgang fehlgeschlagen',
     batch_delete_failed: 'Massenlöschung fehlgeschlagen',
     batch_action_failed: 'Massenvorgang fehlgeschlagen',
+    confirm_delete: '„{name}“ löschen? Das lässt sich nicht rückgängig machen.',
+    confirm_enable: '„{name}“ aktivieren?',
+    confirm_disable: '„{name}“ deaktivieren? Die Änderung wirkt sofort.',
+    confirm_action: '„{action}“ für „{name}“ ausführen?',
   },
   // Gender (reused across modules)
   gender: {

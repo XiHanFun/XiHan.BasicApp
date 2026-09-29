@@ -23,7 +23,7 @@ import {
   ValidityStatus,
 } from '@/api'
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XCascader, XDataTable, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { Icon, SchemaPage, statusConfirmText, XCascader, XDataTable, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
@@ -149,7 +149,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'addChild', title: t('identity.org.action_add_child'), scope: 'row', permission: 'identity.org.create' },
     { key: 'view', title: t('identity.org.action_view'), scope: 'row' },
     { key: 'edit', title: t('identity.org.action_edit'), scope: 'row', permission: 'identity.org.update' },
-    { key: 'toggle', title: t('identity.org.action_toggle'), scope: 'row', permission: 'identity.org.status' },
+    { key: 'toggle', title: t('identity.org.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as DepartmentListItemDto).status === EnableStatus.Enabled, (row as unknown as DepartmentListItemDto).departmentName), permission: 'identity.org.status' },
   ],
 }))
 

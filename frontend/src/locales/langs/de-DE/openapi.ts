@@ -102,6 +102,7 @@ export default {
     msg_save_success: 'Erfolgreich gespeichert',
     msg_save_failed: 'Speichern fehlgeschlagen',
     msg_secret_regenerated: 'Secret neu generiert',
+    confirm_secret: 'Secret von „{name}“ zurücksetzen? Das alte Secret wird sofort ungültig, Integrationen müssen auf das neue umstellen.',
     msg_secret_regenerate_failed: 'Secret konnte nicht neu generiert werden',
     msg_secret_copied: 'Secret in die Zwischenablage kopiert',
     msg_copy_failed: 'Kopieren fehlgeschlagen',

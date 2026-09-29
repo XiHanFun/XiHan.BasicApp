@@ -1,3 +1,4 @@
+export { actionConfirmText, deleteConfirmText, statusConfirmText } from './confirm-text'
 export { formatFieldText, renderFieldCell } from './renderer'
 export { default as SchemaActionPanel } from './SchemaActionPanel.vue'
 export { default as SchemaImportDialog } from './SchemaImportDialog.vue'

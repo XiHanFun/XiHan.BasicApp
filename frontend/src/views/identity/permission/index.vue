@@ -27,7 +27,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { CONDITION_OPERATOR_OPTIONS, CONFIG_DATA_TYPE_OPTIONS, DELEGATION_STATUS_OPTIONS, FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, HTTP_METHOD_OPTIONS, OPERATION_CATEGORY_OPTIONS, OPERATION_TYPE_OPTIONS, PERMISSION_CHANGE_TYPE_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS, PERMISSION_SIDE_OPTIONS, PERMISSION_TYPE_OPTIONS, RESOURCE_ACCESS_LEVEL_OPTIONS, RESOURCE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, Icon, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { useUserStore } from '~/stores'
@@ -286,8 +286,8 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('identity.permission.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.permission.create' },
     { key: 'view', title: t('identity.permission.action_view'), scope: 'row' },
     { key: 'edit', title: t('identity.permission.action_edit'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.update' },
-    { key: 'toggle', title: t('identity.permission.action_toggle'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.status' },
-    { key: 'delete', title: t('identity.permission.action_delete'), scope: 'row', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.delete' },
+    { key: 'toggle', title: t('identity.permission.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PermissionListItemDto).status === EnableStatus.Enabled, (row as unknown as PermissionListItemDto).permissionName), visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.status' },
+    { key: 'delete', title: t('identity.permission.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as PermissionListItemDto).permissionName), visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.delete' },
   ],
 }))
 

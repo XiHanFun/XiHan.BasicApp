@@ -120,6 +120,8 @@ export default {
     msg_initial_password_required: 'Bitte ein Anfangspasswort festlegen',
     msg_account_unlocked: 'Konto entsperrt',
     msg_account_locked: 'Konto gesperrt',
+    confirm_lock: '„{name}“ sperren? Das Konto kann sich danach nicht mehr anmelden.',
+    confirm_unlock: '„{name}“ entsperren?',
     logout_title: 'Zwangsabmeldung',
     logout_content: 'Dadurch werden alle Anmeldesitzungen des Benutzers „{name}“ widerrufen und seine Online-Geräte sofort hinausgeworfen. Fortfahren?',
     logout_confirm: 'Abmeldung bestätigen',

@@ -102,6 +102,7 @@ export default {
     msg_save_success: '保存しました',
     msg_save_failed: '保存に失敗しました',
     msg_secret_regenerated: 'シークレットを再生成しました',
+    confirm_secret: '「{name}」のシークレットをリセットしますか？古いシークレットはすぐに無効になり、連携先は新しいシークレットに切り替える必要があります。',
     msg_secret_regenerate_failed: 'シークレットの再生成に失敗しました',
     msg_secret_copied: 'シークレットをクリップボードにコピーしました',
     msg_copy_failed: 'コピーに失敗しました',

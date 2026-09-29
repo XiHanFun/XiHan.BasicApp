@@ -15,9 +15,9 @@ import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XDataTable, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { actionConfirmText, deleteConfirmText, Icon, SchemaPage, statusConfirmText, XDataTable, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import CronExpression from '~/components/common/CronExpression.vue'
-import { toast } from '~/composables'
+import { dialog, toast } from '~/composables'
 import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
@@ -230,7 +230,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.job.update' },
     { key: 'trigger', title: t('setting.job.trigger_immediate'), scope: 'row', icon: 'lucide:play', disabled: row => triggerDisabled(row as unknown as TaskListItemDto), permission: 'setting.job.run' },
     { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', icon: 'lucide:power', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running, permission: 'setting.job.status' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running, permission: 'setting.job.delete' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as TaskListItemDto).taskName), disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running, permission: 'setting.job.delete' },
   ],
 }))
 
@@ -393,7 +393,7 @@ async function handleLogDetail(row: TaskLogListItemDto) {
 }
 
 // ── 行操作：立即执行 / 启停 / 删除 ──────────────────────────────
-async function handleTrigger(row: TaskListItemDto) {
+function handleTrigger(row: TaskListItemDto) {
   if (row.status !== EnableStatus.Enabled) {
     toast.warning(t('setting.job.disabled_cannot_trigger'))
     return
@@ -402,34 +402,54 @@ async function handleTrigger(row: TaskListItemDto) {
     toast.warning(t('setting.job.running_cannot_trigger'))
     return
   }
-  try {
-    // 经调度器真正触发一次执行（旧实现仅改写运行状态字段，不会执行任务）
-    await jobManagementApi.run(row.basicId)
-    toast.success(t('setting.job.triggered'))
-    reloadJob()
-  }
-  catch (e) {
-    toast.danger((e as Error)?.message || t('setting.job.trigger_failed'))
-  }
+  // 行内动作与详情抽屉都走这里，确认放在处理函数里才两处都覆盖
+  void dialog.confirm({
+    badge: 'warning',
+    title: t('setting.job.trigger_immediate'),
+    content: actionConfirmText(t, t('setting.job.trigger_immediate'), row.taskName),
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        // 经调度器真正触发一次执行（旧实现仅改写运行状态字段，不会执行任务）
+        await jobManagementApi.run(row.basicId)
+        toast.success(t('setting.job.triggered'))
+        reloadJob()
+      }
+      catch (e) {
+        toast.danger((e as Error)?.message || t('setting.job.trigger_failed'))
+      }
+    },
+  })
 }
 
-async function handleToggleStatus(row: TaskListItemDto) {
+function handleToggleStatus(row: TaskListItemDto) {
   if (row.runTaskStatus === RunTaskStatus.Running) {
     toast.warning(t('setting.job.running_cannot_toggle'))
     return
   }
-  const newStatus = row.status === EnableStatus.Enabled ? EnableStatus.Disabled : EnableStatus.Enabled
-  try {
-    await jobManagementApi.updateStatus({
-      basicId: row.basicId,
-      status: newStatus,
-    })
-    toast.success(newStatus === EnableStatus.Enabled ? t('setting.job.task_enabled') : t('setting.job.task_disabled'))
-    reloadJob()
-  }
-  catch (error) {
-    toast.danger((error as Error)?.message || t('setting.job.toggle_failed'))
-  }
+  const enabled = row.status === EnableStatus.Enabled
+  const newStatus = enabled ? EnableStatus.Disabled : EnableStatus.Enabled
+  void dialog.confirm({
+    badge: 'warning',
+    title: t('setting.job.toggle'),
+    content: statusConfirmText(t, enabled, row.taskName),
+    okText: t('common.actions.confirm'),
+    cancelText: t('common.actions.cancel'),
+    onOk: async () => {
+      try {
+        await jobManagementApi.updateStatus({
+          basicId: row.basicId,
+          status: newStatus,
+        })
+        toast.success(newStatus === EnableStatus.Enabled ? t('setting.job.task_enabled') : t('setting.job.task_disabled'))
+        reloadJob()
+      }
+      catch (error) {
+        toast.danger((error as Error)?.message || t('setting.job.toggle_failed'))
+      }
+    },
+  })
 }
 
 async function handleDelete(row: TaskListItemDto) {

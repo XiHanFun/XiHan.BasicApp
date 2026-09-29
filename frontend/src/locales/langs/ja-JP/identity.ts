@@ -120,6 +120,8 @@ export default {
     msg_initial_password_required: '初期パスワードを設定してください',
     msg_account_unlocked: 'アカウントのロックを解除しました',
     msg_account_locked: 'アカウントをロックしました',
+    confirm_lock: '「{name}」をロックしますか？ロック中はこのアカウントでサインインできません。',
+    confirm_unlock: '「{name}」のロックを解除しますか？',
     logout_title: '強制ログアウト',
     logout_content: 'ユーザー「{name}」の全ログインセッションを失効させ、オンライン端末を直ちに切断します。続行しますか？',
     logout_confirm: 'ログアウトを確認',

@@ -102,6 +102,7 @@ export default {
     msg_save_success: 'Saved successfully',
     msg_save_failed: 'Save failed',
     msg_secret_regenerated: 'Secret regenerated',
+    confirm_secret: 'Reset the secret of "{name}"? The old secret stops working immediately and integrations must switch to the new one.',
     msg_secret_regenerate_failed: 'Failed to regenerate secret',
     msg_secret_copied: 'Secret copied to clipboard',
     msg_copy_failed: 'Copy failed',

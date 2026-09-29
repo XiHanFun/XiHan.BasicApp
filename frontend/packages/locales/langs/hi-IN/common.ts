@@ -63,6 +63,10 @@ export default {
     operation_failed: 'कार्रवाई विफल रही',
     batch_delete_failed: 'बैच हटाना विफल रहा',
     batch_action_failed: 'बैच कार्रवाई विफल रही',
+    confirm_delete: '"{name}" हटाएँ? हटाने के बाद इसे वापस नहीं लाया जा सकता।',
+    confirm_enable: '"{name}" सक्षम करें?',
+    confirm_disable: '"{name}" अक्षम करें? यह तुरंत लागू होगा।',
+    confirm_action: '"{name}" पर "{action}" चलाएँ?',
   },
   // 性别（跨模块复用）
   gender: {

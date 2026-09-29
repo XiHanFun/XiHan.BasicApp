@@ -120,6 +120,8 @@ export default {
     msg_initial_password_required: '請設定初始密碼',
     msg_account_unlocked: '已解除帳號鎖定',
     msg_account_locked: '已鎖定帳號',
+    confirm_lock: '確定鎖定「{name}」？鎖定後該帳號立即無法登入。',
+    confirm_unlock: '確定解鎖「{name}」？',
     logout_title: '強制下線',
     logout_content: '將撤銷使用者「{name}」的全部登入工作階段，其線上裝置會立即被踢出。確認繼續？',
     logout_confirm: '確認下線',
