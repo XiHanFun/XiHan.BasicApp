@@ -1,5 +1,20 @@
 import type { XhTranslationOverrides } from '@xihan-ui/vue'
 
+/** 浮动面板改尺把手的方位（n / e / s / w 与四个角），从文案函数的入参取，免得为一个类型再依赖 headless */
+type FloatingPanelEdge = Parameters<NonNullable<NonNullable<XhTranslationOverrides['floating-panel']>['resizeTrigger']>>[0]
+
+/** 浮动面板八个改尺把手的方位说法：读屏里八个把手完全相同，只能靠它区分 */
+const FLOATING_PANEL_EDGES: Record<FloatingPanelEdge, string> = {
+  n: '上边',
+  e: '右边',
+  s: '下边',
+  w: '左边',
+  ne: '右上角',
+  nw: '左上角',
+  se: '右下角',
+  sw: '左下角',
+}
+
 /**
  * XiHan.UI 组件内建文案的中文覆盖。
  *
@@ -77,6 +92,13 @@ const zhCN: XhTranslationOverrides = {
     clearTrigger: '清空已选文件',
   },
   'float-button': { trigger: '悬浮操作' },
+  'floating-panel': {
+    dragTrigger: '移动面板',
+    resizeTrigger: edge => `调整${FLOATING_PANEL_EDGES[edge]}`,
+    resizeValueText: ({ width, height }) => `宽 ${Math.round(width)}，高 ${Math.round(height)}`,
+    windowStateTrigger: state => ({ default: '还原面板', minimized: '收拢面板', maximized: '铺满面板' })[state],
+    close: '关闭',
+  },
   'heatmap': {
     gridLabel: '活动热力图',
     // 日期形态每格是当天计数；矩阵形态每格是作者给的值，不替它加量词

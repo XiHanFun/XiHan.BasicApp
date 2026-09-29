@@ -6,7 +6,7 @@ export default {
     bell: 'チャット',
     unread_label: '未読チャット {n} 件',
     island_new_message_fallback: '新しいメッセージ',
-    drawer: {
+    panel: {
       title: 'チャット',
       open_page: '独立ページを開く',
     },

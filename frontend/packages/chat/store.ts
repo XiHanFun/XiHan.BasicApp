@@ -13,7 +13,7 @@ import type {
   ChatTypingPushPayload,
 } from './types'
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
 import { useSignalR } from '~/composables/useSignalR'
 import { useUserStore } from '~/stores'
 import { LocalStorage } from '~/utils'
@@ -106,15 +106,21 @@ export const useChatStore = defineStore('chat', () => {
   /** 助手回复流：conversationId → 本轮增量（落库推送到达后清空，换成正式消息） */
   const assistantStreams = ref<Record<string, ChatAssistantStream>>({})
 
-  /** 聊天抽屉打开请求（版本计数器：顶栏按钮递增、抽屉组件 watch 响应） */
-  const chatDrawerVersion = ref(0)
+  /** 聊天浮动面板打开请求（版本计数器：顶栏按钮递增、面板组件 watch 响应） */
+  const chatPanelVersion = ref(0)
+  /**
+   * 发起本次打开请求的元素（顶栏聊天按钮）：面板首次贴着它落位，关闭后焦点送回它。
+   * 显式传入而不取 document.activeElement——Safari 点按钮不给焦点，页面自动聚焦的输入框也会被误当锚点
+   */
+  const chatPanelOrigin = shallowRef<HTMLElement | null>(null)
 
   const markReadTimers = new Map<string, ReturnType<typeof setTimeout>>()
   const typingClearTimers = new Map<string, ReturnType<typeof setTimeout>>()
   const typingSentAt = new Map<string, number>()
 
-  function requestOpenChatDrawer() {
-    chatDrawerVersion.value += 1
+  function requestOpenChatPanel(origin: HTMLElement) {
+    chatPanelOrigin.value = origin
+    chatPanelVersion.value += 1
   }
 
   function api() {
@@ -878,8 +884,9 @@ export const useChatStore = defineStore('chat', () => {
     requestMention,
     detachedConversations,
     highlightMessageId,
-    chatDrawerVersion,
-    requestOpenChatDrawer,
+    chatPanelVersion,
+    chatPanelOrigin,
+    requestOpenChatPanel,
     totalUnread,
     activeConversation,
     activeMessages,

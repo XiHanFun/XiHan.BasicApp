@@ -6,7 +6,7 @@ export default {
     bell: '線上聊天',
     unread_label: '{n} 則未讀聊天',
     island_new_message_fallback: '收到新訊息',
-    drawer: {
+    panel: {
       title: '線上聊天',
       open_page: '開啟獨立頁面',
     },
