@@ -311,7 +311,7 @@
   border-radius: var(--xh-shape-control);
   background: linear-gradient(90deg, var(--xh-bg-subtle) 25%, var(--xh-bg-subtle-hover) 37%, var(--xh-bg-subtle) 63%);
   background-size: 400% 100%;
-  animation: xh-app-skeleton-shimmer var(--xh-shimmer-duration) var(--xh-motion-ease-loop) infinite;
+  animation: xh-app-skeleton-shimmer var(--xh-motion-loop-shimmer) var(--xh-motion-ease-loop) infinite;
 }
 
 .xh-skeleton-bone--circle {
