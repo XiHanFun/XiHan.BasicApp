@@ -808,19 +808,29 @@ public sealed class RoleDomainService
     /// <summary>
     /// 校验角色没有被引用：全局角色被各租户分配、继承，平台删除前要看所有租户，不能只看平台这一侧
     /// </summary>
+    /// <remarks>
+    /// 分配、授权、数据范围的撤销是把行置为失效而不删行，失效行是历史记录，只有有效行才算引用；
+    /// 连失效行一起算，角色只要有过成员或授权就再也删不掉。继承闭包无状态、变更即硬删，按行判断。
+    /// </remarks>
     private async Task EnsureRoleNotReferencedAsync(SysRole role, CancellationToken cancellationToken)
     {
         var roleId = role.BasicId;
         var acrossTenants = role.IsGlobal;
 
         if (acrossTenants
-                ? await _userRoleRepository.AnyIgnoreTenantAsync(userRole => userRole.RoleId == roleId, cancellationToken)
-                : await _userRoleRepository.AnyAsync(userRole => userRole.RoleId == roleId, cancellationToken))
+                ? await _userRoleRepository.AnyIgnoreTenantAsync(
+                    userRole => userRole.RoleId == roleId && userRole.Status == ValidityStatus.Valid,
+                    cancellationToken)
+                : await _userRoleRepository.AnyAsync(
+                    userRole => userRole.RoleId == roleId && userRole.Status == ValidityStatus.Valid,
+                    cancellationToken))
         {
             throw new InvalidOperationException(acrossTenants ? "全局角色已分配给租户成员，不能删除。" : "角色已分配给用户，不能删除。");
         }
 
-        if (await _rolePermissionRepository.AnyAsync(rolePermission => rolePermission.RoleId == roleId, cancellationToken))
+        if (await _rolePermissionRepository.AnyAsync(
+                rolePermission => rolePermission.RoleId == roleId && rolePermission.Status == ValidityStatus.Valid,
+                cancellationToken))
         {
             throw new InvalidOperationException("角色已绑定权限，不能删除。");
         }
@@ -836,7 +846,9 @@ public sealed class RoleDomainService
             throw new InvalidOperationException(acrossTenants ? "全局角色被租户角色继承，不能删除。" : "角色存在继承关系，不能删除。");
         }
 
-        if (await _roleDataScopeRepository.AnyAsync(dataScope => dataScope.RoleId == roleId, cancellationToken))
+        if (await _roleDataScopeRepository.AnyAsync(
+                dataScope => dataScope.RoleId == roleId && dataScope.Status == ValidityStatus.Valid,
+                cancellationToken))
         {
             throw new InvalidOperationException("角色已配置数据范围，不能删除。");
         }
