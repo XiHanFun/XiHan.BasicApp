@@ -904,7 +904,7 @@ function handlePaste(event: ClipboardEvent) {
     0 0 0 10px hsl(var(--primary) / 10%),
     0 8px 24px hsl(var(--primary) / 35%);
   transition:
-    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter),
     box-shadow var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
   /* 按住说话期间不要触发文本选中与长按菜单 */
   user-select: none;

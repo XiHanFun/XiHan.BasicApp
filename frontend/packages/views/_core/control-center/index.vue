@@ -384,7 +384,7 @@ onMounted(loadTenants)
   transition:
     border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
     background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    transform var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+    transform var(--xh-motion-duration-nudge) var(--xh-motion-ease-enter);
 }
 
 .cc-tenant:hover:not(:disabled) {

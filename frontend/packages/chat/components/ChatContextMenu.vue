@@ -144,7 +144,7 @@ function handleReact(emoji: string) {
   cursor: pointer;
   transition:
     background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    transform var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+    transform var(--xh-motion-duration-nudge) var(--xh-motion-ease-enter);
 }
 
 .chat-ctx-react-btn:hover {
@@ -191,7 +191,7 @@ function handleReact(emoji: string) {
 .chat-ctx-fade-enter-active {
   transition:
     opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter);
 }
 
 .chat-ctx-fade-leave-active {

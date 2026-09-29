@@ -198,9 +198,9 @@ const fabStyle = computed(() => ({ left: `${left.value}px`, top: `${top.value}px
   user-select: none;
   /* 松手后水平滑向吸附边的过渡（拖动中禁用，见 is-dragging） */
   transition:
-    left var(--xh-motion-duration-enter) var(--xh-motion-ease-enter-strong),
+    left var(--xh-motion-duration-move) var(--xh-motion-ease-enter-strong),
     box-shadow var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter);
 }
 
 .xh-preference-fab:hover {

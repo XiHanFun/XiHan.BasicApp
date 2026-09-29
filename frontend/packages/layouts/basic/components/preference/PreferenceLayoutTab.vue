@@ -630,7 +630,10 @@ watch(() => appStore.sidebarCollapsed, (val) => {
   width: 100%;
   overflow: hidden;
   text-align: center;
-  transition: all var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+  transition:
+    border-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    box-shadow var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter);
 }
 
 .layout-preset-card:hover {

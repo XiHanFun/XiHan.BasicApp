@@ -120,9 +120,9 @@ function onDetail(item: AppUserInboxDisplayItem): void {
 .banner-slide-enter-active,
 .banner-slide-leave-active {
   transition:
-    max-height var(--xh-motion-duration-enter) var(--xh-motion-ease-slide),
+    max-height var(--xh-motion-duration-expand) var(--xh-motion-ease-slide),
     opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-slide);
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-slide);
   max-height: 48px;
 }
 
@@ -233,7 +233,7 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   cursor: pointer;
   transition:
     opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
-    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-enter);
 }
 
 .notif-banner__dot.is-active {
