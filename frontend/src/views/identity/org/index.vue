@@ -25,12 +25,13 @@ import {
 import { DEPARTMENT_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XCascader, XDataTable, XDatePicker, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
-import { useEnumOptions } from '~/hooks'
+import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'SystemOrgPage' })
 
 const { t } = useI18n()
+const { hasPermission } = usePermission()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -286,12 +287,15 @@ const memberColumns = computed<XDataTableColumn<DepartmentManagementMemberDto>[]
     width: 72,
     render: row => h(XhTagRoot, { variant: 'subtle', tone: row.status === ValidityStatus.Valid ? 'success' : 'neutral' }, () => h(XhTagLabel, () => (row.status === ValidityStatus.Valid ? t('identity.org.member_valid') : t('identity.org.member_invalid')))),
   },
-  {
-    title: t('identity.org.detail_table_actions'),
-    key: 'actions',
-    width: 90,
-    render: row => h(XhButton, { size: 'sm', variant: 'ghost', tone: 'brand', onClick: () => openEditMembership(row) }, () => t('identity.org.action_edit_membership')),
-  },
+  // 编辑归属要用户部门更新权限，与部门本身的增删改不是一回事，单独按按钮码放出
+  ...(hasPermission('identity.org.edit-membership')
+    ? [{
+        title: t('identity.org.detail_table_actions'),
+        key: 'actions',
+        width: 90,
+        render: (row: DepartmentManagementMemberDto) => h(XhButton, { size: 'sm', variant: 'ghost', tone: 'brand', onClick: () => openEditMembership(row) }, () => t('identity.org.action_edit_membership')),
+      }]
+    : []),
 ])
 
 function handleAdd(parentId?: ApiId) {
@@ -679,7 +683,7 @@ onMounted(() => {
               {{ t('common.actions.close') }}
             </XhButton>
             <XhButton
-              v-if="detDept"
+              v-if="detDept && hasPermission('identity.org.update')"
               variant="subtle"
               size="sm"
               tone="brand"

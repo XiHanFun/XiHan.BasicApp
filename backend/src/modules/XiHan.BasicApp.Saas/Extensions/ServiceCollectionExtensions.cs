@@ -233,6 +233,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IProfileVerificationService, ProfileVerificationService>();
         services.AddScoped<IFieldSecurityService, FieldSecurityService>();
         services.AddScoped<ISuperAdminProtector, SuperAdminProtector>();
+        services.AddScoped<IOperationPermissionGuard, OperationPermissionGuard>();
         services.AddScoped<IUserDirectory, UserDirectory>();
         services.AddScoped<IAccountScope, AccountScope>();
         services.AddScoped<ICacheManagementService, CacheManagementService>();

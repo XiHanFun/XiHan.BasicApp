@@ -18,7 +18,7 @@ import { STATUS_OPTIONS } from '@/constants'
 import { Icon, SchemaPage, XDataTable, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import CronExpression from '~/components/common/CronExpression.vue'
 import { toast } from '~/composables'
-import { useEnumOptions } from '~/hooks'
+import { useEnumOptions, usePermission } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformJobPage' })
@@ -47,6 +47,7 @@ interface JobFormModel {
 }
 
 const { t } = useI18n()
+const { hasPermission } = usePermission()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -842,11 +843,13 @@ async function handleSubmit() {
         </div>
         <div v-if="detailData" class="xh-dialog-footer">
           <XhFlex justify="end" gap="md">
-            <XhButton variant="subtle" @click="handleLogs(detailData); detailVisible = false">
+            <!-- 与行内动作同一套按钮码：详情里的入口不能绕过门控 -->
+            <XhButton v-if="hasPermission('setting.job.logs')" variant="subtle" @click="handleLogs(detailData); detailVisible = false">
               <span><Icon icon="lucide:history" /></span>
               {{ t('setting.job.logs') }}
             </XhButton>
             <XhButton
+              v-if="hasPermission('setting.job.run')"
               variant="subtle"
               tone="brand"
               :disabled="triggerDisabled(detailData)"
@@ -856,6 +859,7 @@ async function handleSubmit() {
               {{ t('setting.job.trigger_immediate') }}
             </XhButton>
             <XhButton
+              v-if="hasPermission('setting.job.status')"
               variant="subtle"
               :tone="detailData.status === EnableStatus.Enabled ? 'warning' : 'success'"
               :disabled="detailData.runTaskStatus === RunTaskStatus.Running"

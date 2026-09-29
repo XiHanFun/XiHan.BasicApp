@@ -15,6 +15,7 @@ import type {
   RolePermissionListItemDto,
   RoleUpdateDto,
   UserSelectItemDto,
+  ValidityStatus,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { TreeSelectOption } from '~/types'
@@ -37,17 +38,17 @@ import {
   RoleType,
   userApi,
   userRoleApi,
-  ValidityStatus,
 } from '@/api'
 import { DATA_SCOPE_OPTIONS, PERMISSION_ACTION_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
 import { SchemaPage, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XTree } from '~/components'
 import { toast } from '~/composables'
-import { useEnumOptions } from '~/hooks'
+import { useEnumOptions, usePermission } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 import { isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from '../components/data-scope'
 import DataScopeEditor from '../components/DataScopeEditor.vue'
+import { diffMenuGrants, mergeGrantedIntoCatalog, validRoleGrants } from './role-grants'
 import { diffRoleMembers, mergeMemberCandidates } from './role-members'
 
 defineOptions({ name: 'SystemRolePage' })
@@ -96,6 +97,7 @@ function toBool(v: unknown): boolean | undefined {
 
 const userStore = useUserStore()
 const isPlatformContext = computed(() => userStore.userInfo?.isPlatform ?? false)
+const { hasPermission } = usePermission()
 
 /** 系统角色只在平台分配；全局角色在租户里也可分配给本租户成员 */
 function canAssignMembers(row: RoleListItemDto) {
@@ -281,21 +283,15 @@ const permGrants = ref<RolePermissionListItemDto[]>([])
 const permLoading = ref(false)
 /** 已授予的权限主键，即穿梭框右侧那一栏 */
 const permChecked = ref<ApiId[]>([])
+/** 条目为权限目录并上目录外的已授权限，否则一动穿梭框它们就被当成收回 */
+const permItems = computed(() => mergeGrantedIntoCatalog(permCatalog.value, permGrants.value))
 
 /**
  * permissionId → 有效授权记录（收权时取记录主键）
  * 仅纳入 Status===Valid：撤销是软删除（Status=Invalid），列表接口默认返回含软删除的全集，
  * 若不过滤则收回后复选框仍判定为已授权而自动重新勾上，表现为「收回不生效」。
  */
-const permGrantByPermissionId = computed(() => {
-  const map = new Map<ApiId, RolePermissionListItemDto>()
-  for (const grant of permGrants.value) {
-    if (grant.status === ValidityStatus.Valid) {
-      map.set(grant.permissionId, grant)
-    }
-  }
-  return map
-})
+const permGrantByPermissionId = computed(() => new Map(validRoleGrants(permGrants.value).map(grant => [grant.permissionId, grant] as const)))
 
 /** 权限目录一次取全 */
 async function loadPermCatalog() {
@@ -347,7 +343,7 @@ async function savePermGrants() {
   if (!role || permLoading.value) {
     return
   }
-  const validGrants = permGrants.value.filter(grant => grant.status === ValidityStatus.Valid)
+  const validGrants = validRoleGrants(permGrants.value)
   const grantedPermIds = new Set(validGrants.map(grant => grant.permissionId))
   const checkedPermIds = new Set(permChecked.value)
   const toGrant = permChecked.value.filter(permId => !grantedPermIds.has(permId))
@@ -434,11 +430,7 @@ const menuPermIdById = computed(() => {
 /** 已授权权限对应的菜单节点设为勾选；目录在其所有可授权后代均已授权时一并勾选 */
 function deriveMenuChecked() {
   // 仅「有效」的授权才算已勾选（撤销为软删除 Status=Invalid，需排除，否则撤销后仍显示勾选）
-  const granted = new Set(
-    menuGrants.value
-      .filter(grant => grant.status === ValidityStatus.Valid)
-      .map(grant => grant.permissionId),
-  )
+  const granted = new Set(validRoleGrants(menuGrants.value).map(grant => grant.permissionId))
   const checked: ApiId[] = []
   function visit(node: MenuNode): { hasGrantable: boolean, allGranted: boolean } {
     let hasGrantable = false
@@ -547,25 +539,14 @@ function onMenuCheck(keys: Array<string | number>) {
   menuDirty.value = true
 }
 
-/** 统一保存：按当前勾选计算目标权限集，与已授权对比，批量授权新增、收回移除 */
+/** 统一保存：按当前勾选计算目标权限集，只在菜单覆盖到的权限里与已授权对比，批量授权新增、收回移除 */
 async function saveMenuGrants() {
   const role = menuRole.value
   if (!role || menuLoading.value) {
     return
   }
-  const checkedSet = new Set(menuCheckedKeys.value.map(String))
-  const targetPermIds = new Set<ApiId>()
-  for (const [menuId, permId] of menuPermIdById.value) {
-    if (checkedSet.has(String(menuId))) {
-      targetPermIds.add(permId)
-    }
-  }
-  // 仅基于「有效」授权计算差异：已生效的才算已授权，撤销也只撤有效项
-  const validGrants = menuGrants.value.filter(grant => grant.status === ValidityStatus.Valid)
-  const grantedPermIds = new Set(validGrants.map(grant => grant.permissionId))
-  const toGrant = [...targetPermIds].filter(permId => !grantedPermIds.has(permId))
-  const toRevoke = validGrants.filter(grant => !targetPermIds.has(grant.permissionId))
-  if (toGrant.length === 0 && toRevoke.length === 0) {
+  const { grantPermissionIds, revokeRolePermissionIds } = diffMenuGrants(menuCheckedKeys.value, menuPermIdById.value, menuGrants.value)
+  if (grantPermissionIds.length === 0 && revokeRolePermissionIds.length === 0) {
     toast.info(t('identity.role.menu_no_change'))
     menuDirty.value = false
     return
@@ -573,15 +554,11 @@ async function saveMenuGrants() {
   menuLoading.value = true
   try {
     // 一次性提交本次授权改动（单请求、后端单事务）
-    await rolePermissionApi.batchUpdate({
-      roleId: role.basicId,
-      grantPermissionIds: toGrant,
-      revokeRolePermissionIds: toRevoke.map(grant => grant.basicId),
-    })
+    await rolePermissionApi.batchUpdate({ roleId: role.basicId, grantPermissionIds, revokeRolePermissionIds })
     menuGrants.value = await rolePermissionApi.list(role.basicId)
     deriveMenuChecked()
     menuDirty.value = false
-    toast.success(t('identity.role.menu_saved', { grant: toGrant.length, revoke: toRevoke.length }))
+    toast.success(t('identity.role.menu_saved', { grant: grantPermissionIds.length, revoke: revokeRolePermissionIds.length }))
   }
   catch (e: unknown) {
     toast.danger((e as Error)?.message || t('common.messages.save_failed'))
@@ -849,6 +826,9 @@ function validateRoleForm() {
 
   return true
 }
+
+/** 新建时状态随创建一起提交；编辑时改状态走启停接口，没有启停按钮就不让改，免得资料存了一半再被拒 */
+const canEditFormStatus = computed(() => !roleForm.value.basicId || hasPermission('identity.role.status'))
 
 async function handleSubmit() {
   if (!validateRoleForm()) {
@@ -1261,7 +1241,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.role.label_status') }}</XhFieldLabel>
             <XhFieldControl>
-              <XSelect v-model:value="roleForm.status" :options="statusOptions" />
+              <XSelect v-model:value="roleForm.status" :options="statusOptions" :disabled="!canEditFormStatus" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -1298,7 +1278,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
         <XhDrawerTitle>{{ t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
         <XPermissionTransfer
-          :items="permCatalog"
+          :items="permItems"
           :value="permChecked"
           :loading="permLoading"
           :disabled="permLoading"

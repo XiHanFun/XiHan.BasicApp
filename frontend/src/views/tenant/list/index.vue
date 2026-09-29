@@ -34,7 +34,7 @@ import XLogoUpload from '@/components/LogoUpload.vue'
 import { MEMBER_INVITE_STATUS_OPTIONS, MEMBER_TYPE_OPTIONS, TENANT_CONFIG_STATUS_OPTIONS, TENANT_DATABASE_TYPE_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
 import { Icon, resolveStatusTagTone, SchemaPage, SchemaPagination, XDatePicker, XEditModal, XInput, XNumberInput, XSelect, XUserAvatar } from '~/components'
 import { dialog, toast } from '~/composables'
-import { useEnumOptions } from '~/hooks'
+import { useEnumOptions, usePermission } from '~/hooks'
 import { useAccessStore } from '~/stores'
 import { formatDate, formatFileSize, getOptionLabel } from '~/utils'
 
@@ -63,6 +63,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
 const MEMBER_USER_PAGE_SIZE = 20
 
 const { t } = useI18n()
+const { hasPermission } = usePermission()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -1531,7 +1532,8 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.tenant_status') }}</XhFieldLabel>
             <XhFieldControl>
-              <XSelect v-model:value="tenantForm.tenantStatus" :options="tenantStatusOptions" />
+              <!-- 改状态走启停接口：没有启停按钮就不让改，免得资料存了一半再被拒 -->
+              <XSelect v-model:value="tenantForm.tenantStatus" :options="tenantStatusOptions" :disabled="!hasPermission('tenant.list.status')" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>

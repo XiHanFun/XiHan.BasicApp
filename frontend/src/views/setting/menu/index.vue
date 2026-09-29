@@ -12,12 +12,14 @@ import {
 } from '@/api'
 import { Icon, IconPicker, SchemaPage, XDataTable, XEditModal, XInput, XNumberInput, XSelect, XTreeSelect } from '~/components'
 import { toast } from '~/composables'
+import { usePermission } from '~/hooks'
 import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 
 defineOptions({ name: 'PlatformMenuPage' })
 
 const { t } = useI18n()
+const { hasPermission } = usePermission()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -823,8 +825,9 @@ onMounted(() => {
             <XhButton variant="subtle" size="sm" @click="detailVisible = false">
               {{ t('common.actions.close') }}
             </XhButton>
+            <!-- 与行内「编辑」同一口径：要编辑按钮，全局菜单只在平台维护 -->
             <XhButton
-              v-if="currentDetail"
+              v-if="currentDetail && canMaintainMenu(currentDetail) && hasPermission('setting.menu.update')"
               variant="subtle"
               size="sm"
               tone="brand"
