@@ -11,6 +11,7 @@ import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
+import { renderHttpMethod } from '../_components/http-method'
 import { operationLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
@@ -83,7 +84,7 @@ const fields = computed<ListFieldSchema[]>(() => [
   { key: 'function', title: t('log.operation.function'), dataType: 'string', sortable: true, advancedSearch: true, minWidth: 120, order: 16 },
   { key: 'title', title: t('log.operation.title'), dataType: 'string', sortable: true, advancedSearch: true, minWidth: 160, order: 17 },
   { key: 'description', title: t('log.operation.description'), dataType: 'string', minWidth: 220, order: 18 },
-  { key: 'method', title: t('log.common.method'), dataType: 'string', sortable: true, advancedSearch: true, width: 90, order: 19 },
+  { key: 'method', title: t('log.common.method'), dataType: 'string', sortable: true, advancedSearch: true, width: 90, order: 19, render: row => renderHttpMethod((row as unknown as OperationLogListItemDto).method) },
   { key: 'requestUrl', title: t('log.operation.request_url'), dataType: 'string', minWidth: 240, order: 20 },
   { key: 'executionTime', title: t('log.common.execution_time'), dataType: 'number', sortable: true, width: 110, order: 21, render: row => `${(row as unknown as OperationLogListItemDto).executionTime}ms` },
   { key: 'operationIp', title: t('log.operation.operation_ip'), dataType: 'string', searchable: true, searchPlaceholder: t('log.operation.operation_ip_placeholder'), minWidth: 130, order: 22 },

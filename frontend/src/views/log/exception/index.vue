@@ -10,6 +10,7 @@ import { createPageRequest, DeviceType, logManagementApi, querySortsFromSchema }
 import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
+import { renderHttpMethod } from '../_components/http-method'
 import { exceptionLogDetailFields } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
@@ -87,7 +88,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     render: row => h(XhTagRoot, { variant: 'subtle', tone: severityType((row as unknown as ExceptionLogListItemDto).severityLevel) }, () => h(XhTagLabel, () => getOptionLabel(severityOptions.value, (row as unknown as ExceptionLogListItemDto).severityLevel))),
   },
   { key: 'requestPath', title: t('log.exception.request_path'), dataType: 'string', advancedSearch: true, minWidth: 200, order: 20 },
-  { key: 'requestMethod', title: t('log.exception.request_method'), dataType: 'string', advancedSearch: true, sortable: true, width: 90, order: 21 },
+  { key: 'requestMethod', title: t('log.exception.request_method'), dataType: 'string', advancedSearch: true, sortable: true, width: 90, order: 21, render: row => renderHttpMethod((row as unknown as ExceptionLogListItemDto).requestMethod) },
   { key: 'controllerName', title: t('log.common.controller_name'), dataType: 'string', minWidth: 140, order: 22 },
   { key: 'actionName', title: t('log.common.action_name'), dataType: 'string', minWidth: 140, order: 23 },
   { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, sortable: true, width: 100, order: 24 },
