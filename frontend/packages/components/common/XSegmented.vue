@@ -1,5 +1,5 @@
 <script lang="ts" setup generic="V extends string">
-import { XhSegmentedRoot } from '@xihan-ui/vue'
+import { XhRadioGroupRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useControlAttrs } from './control-attrs'
 
@@ -39,11 +39,12 @@ function onValueChange(details: { value: string | null }) {
 </script>
 
 <template>
-  <!-- 条目由 collection 代铺，滑动指示器与连体皮肤归组件库 -->
-  <XhSegmentedRoot
+  <!-- 单选组的 segmented 形态：条目由 collection 代铺，滑块与连体皮肤归组件库 -->
+  <XhRadioGroupRoot
     v-bind="controlAttrs"
     :class="attrs.class"
     :style="attrs.style"
+    variant="segmented"
     :collection="collection"
     :value="String(value)"
     :disabled="disabled"

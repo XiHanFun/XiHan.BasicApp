@@ -1,5 +1,5 @@
-import type { AlertOptions, ConfirmOptions, DialogService, LoadingBarService, NotificationMessageOptions, NotificationService, ToastMessageOptions, ToastService } from '@xihan-ui/vue'
-import { createDialogService, createLoadingBarService, createNotificationService, createToastService } from '@xihan-ui/vue'
+import type { AlertOptions, ConfirmOptions, DialogService, LoadingBarService, NotificationMessageOptions, NotificationService } from '@xihan-ui/vue'
+import { createDialogService, createLoadingBarService, createNotificationService } from '@xihan-ui/vue'
 import { $t } from '~/locales'
 import { xhConfigValue, xhTranslationsOfCurrentLocale } from './xh-config'
 
@@ -14,18 +14,23 @@ import { xhConfigValue, xhTranslationsOfCurrentLocale } from './xh-config'
  * 服务实例懒建：createXxxService 需要 document，模块被 node 侧的测试引到时不能当场炸。
  */
 
-let toastInstance: ToastService | null = null
+let toastInstance: NotificationService | null = null
 let notificationInstance: NotificationService | null = null
 let dialogInstance: DialogService | null = null
 let loadingBarInstance: LoadingBarService | null = null
 
-function toastService(): ToastService {
-  // 顶部居中：与旧版轻提示的落位一致。落位是整个服务的口径，不逐条各去一处
-  toastInstance ??= createToastService({
+/**
+ * 轻提示服务：通知服务取 toast 预设，一行操作结果、同位叠成一摞。
+ * 预设缺省落底部居中、最多 3 条；这里写回顶部居中、5 条，与旧版轻提示的落位一致。
+ * 落位是整个服务的口径，不逐条各去一处。
+ */
+function toastService(): NotificationService {
+  toastInstance ??= createNotificationService({
+    preset: 'toast',
     placement: 'top',
     max: 5,
     config: xhConfigValue,
-    toastTranslations: () => xhTranslationsOfCurrentLocale().toast ?? {},
+    translations: () => xhTranslationsOfCurrentLocale().notification ?? {},
   })
   return toastInstance
 }
@@ -75,24 +80,24 @@ function loadingBarService(): LoadingBarService {
  * 失败语气叫 danger，与 XiHan.UI 的 tone 轴同名。
  */
 export const toast = {
-  create: (options?: Parameters<ToastService['create']>[0]) => toastService().create(options),
-  update: (id: string, options: Parameters<ToastService['update']>[1]) => toastService().update(id, options),
+  create: (options?: Parameters<NotificationService['create']>[0]) => toastService().create(options),
+  update: (id: string, options: Parameters<NotificationService['update']>[1]) => toastService().update(id, options),
   dismiss: (id: string) => toastService().dismiss(id),
   dismissAll: () => toastService().dismissAll(),
-  info: (msg: string, options?: ToastMessageOptions) => toastService().info(msg, options),
-  success: (msg: string, options?: ToastMessageOptions) => toastService().success(msg, options),
-  warning: (msg: string, options?: ToastMessageOptions) => toastService().warning(msg, options),
-  danger: (msg: string, options?: ToastMessageOptions) => toastService().danger(msg, options),
+  info: (msg: string, options?: NotificationMessageOptions) => toastService().info(msg, options),
+  success: (msg: string, options?: NotificationMessageOptions) => toastService().success(msg, options),
+  warning: (msg: string, options?: NotificationMessageOptions) => toastService().warning(msg, options),
+  danger: (msg: string, options?: NotificationMessageOptions) => toastService().danger(msg, options),
   /**
    * 返回带收尾方法的句柄：等待期的提示要么改写成结果、要么撤掉，
    * 拿着 id 再调一次服务不如把两个动作挂在句柄上顺手。
    */
-  loading: (msg: string, options?: ToastMessageOptions) => {
+  loading: (msg: string, options?: NotificationMessageOptions) => {
     const id = toastService().loading(msg, options)
     return {
       id,
       destroy: () => toastService().dismiss(id),
-      update: (patch: Parameters<ToastService['update']>[1]) => toastService().update(id, patch),
+      update: (patch: Parameters<NotificationService['update']>[1]) => toastService().update(id, patch),
     }
   },
 }

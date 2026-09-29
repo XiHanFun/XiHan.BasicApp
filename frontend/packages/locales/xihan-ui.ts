@@ -123,7 +123,8 @@ const zhCN: XhTranslationOverrides = {
   // menu 的 content 刻意不写：它缺省为空，浮层改由 aria-labelledby 指向触发器取名；这里一写就把触发器的名字盖掉
   'mention': { content: '提及候选', input: '输入以提及' },
   'navigation-menu': { root: '主导航' },
-  'notification': { region: '通知' },
+  // 通知卡片与轻提示是同一组件的两种预设，堆叠区读屏名与关闭钮共用这一桶
+  'notification': { region: '通知', close: '关闭' },
   'pagination': {
     root: '分页',
     prevTrigger: '上一页',
@@ -205,7 +206,6 @@ const zhCN: XhTranslationOverrides = {
     resume: '继续',
     reset: '重置',
   },
-  'toast': { close: '关闭' },
   'tour': { close: '结束引导', progress: (step, count) => `第 ${step} 步，共 ${count} 步` },
   // 节点换位的读屏播报。item 不覆盖：组件库拿它把节点 id 换成节点名，这里写了会盖回 id；
   // 树的机器每次都传容器（根层传 null），走的是带容器的三句，扁平的 moved / dropped / canceled 永远不触发，不写
