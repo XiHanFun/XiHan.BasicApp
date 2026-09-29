@@ -343,9 +343,9 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('identity.field_security.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.field-security.create' },
-    { key: 'edit', title: t('identity.field_security.action_edit'), scope: 'row', permission: 'identity.field-security.update' },
-    { key: 'toggle', title: t('identity.field_security.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as FieldLevelSecurityListItemDto).status === EnableStatus.Enabled, fieldSecurityName(row as unknown as FieldLevelSecurityListItemDto)), permission: 'identity.field-security.status' },
-    { key: 'delete', title: t('identity.field_security.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, fieldSecurityName(row as unknown as FieldLevelSecurityListItemDto)), permission: 'identity.field-security.delete' },
+    { key: 'edit', title: t('identity.field_security.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'identity.field-security.update' },
+    { key: 'toggle', title: t('identity.field_security.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as FieldLevelSecurityListItemDto).status === EnableStatus.Enabled, fieldSecurityName(row as unknown as FieldLevelSecurityListItemDto)), permission: 'identity.field-security.status' },
+    { key: 'delete', title: t('identity.field_security.action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, fieldSecurityName(row as unknown as FieldLevelSecurityListItemDto)), permission: 'identity.field-security.delete' },
   ],
 }))
 

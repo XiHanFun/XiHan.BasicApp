@@ -84,10 +84,10 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('identity.position.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.position.create' },
-    { key: 'view', title: t('identity.position.view'), scope: 'row' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', permission: 'identity.position.update' },
-    { key: 'toggle', title: t('identity.position.toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PositionListItemDto).status === EnableStatus.Enabled, (row as unknown as PositionListItemDto).positionName), permission: 'identity.position.status' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as PositionListItemDto).positionName), permission: 'identity.position.delete' },
+    { key: 'view', title: t('identity.position.view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'identity.position.update' },
+    { key: 'toggle', title: t('identity.position.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PositionListItemDto).status === EnableStatus.Enabled, (row as unknown as PositionListItemDto).positionName), permission: 'identity.position.status' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as PositionListItemDto).positionName), permission: 'identity.position.delete' },
   ],
 }))
 

@@ -2,6 +2,7 @@
 import type { ActivityTypeMeta } from './catalog'
 import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, DesignerNodeData, ValidationIssue } from './transform'
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
+import type { AppDropdownOption } from '~/types'
 import { useDebounceFn } from '@vueuse/core'
 import { XhButton, XhCheckbox, XhContextMenuRoot, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, toRaw, watch } from 'vue'
@@ -493,13 +494,13 @@ function onArrange(key: string) {
 }
 
 // ── 右键上下文菜单 ─────────────────────────────────────────────
-const contextMenuOptions = computed(() => {
+const contextMenuOptions = computed<AppDropdownOption[]>(() => {
   if (contextMenu.targetType === 'edge') {
-    return [{ key: 'delete-edge', label: t('workflow.designer.ctx_delete_edge'), icon: renderIcon('lucide:trash-2') }]
+    return [{ key: 'delete-edge', label: t('workflow.designer.ctx_delete_edge'), icon: renderIcon('lucide:trash-2'), tone: 'danger' }]
   }
   return [
     { key: 'duplicate', label: t('workflow.designer.ctx_duplicate'), icon: renderIcon('lucide:copy') },
-    { key: 'delete', label: t('workflow.designer.ctx_delete'), icon: renderIcon('lucide:trash-2') },
+    { key: 'delete', label: t('workflow.designer.ctx_delete'), icon: renderIcon('lucide:trash-2'), tone: 'danger' },
   ]
 })
 

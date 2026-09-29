@@ -166,11 +166,11 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('openapi.app.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'openapi.app.create' },
-    { key: 'view', title: t('openapi.app.action_view'), scope: 'row' },
-    { key: 'edit', title: t('openapi.app.action_edit'), scope: 'row', permission: 'openapi.app.update' },
-    { key: 'toggle', title: t('openapi.app.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as OAuthAppListItemDto).status === EnableStatus.Enabled, (row as unknown as OAuthAppListItemDto).appName), permission: 'openapi.app.status' },
-    { key: 'secret', title: t('openapi.app.action_secret'), scope: 'row', type: 'error', confirm: true, confirmText: row => t('openapi.app.confirm_secret', { name: (row as unknown as OAuthAppListItemDto).appName }), permission: 'openapi.app.secret' },
-    { key: 'delete', title: t('openapi.app.action_delete'), scope: 'row', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as OAuthAppListItemDto).appName), permission: 'openapi.app.delete' },
+    { key: 'view', title: t('openapi.app.action_view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('openapi.app.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'openapi.app.update' },
+    { key: 'toggle', title: t('openapi.app.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as OAuthAppListItemDto).status === EnableStatus.Enabled, (row as unknown as OAuthAppListItemDto).appName), permission: 'openapi.app.status' },
+    { key: 'secret', title: t('openapi.app.action_secret'), scope: 'row', icon: 'lucide:key-square', type: 'error', confirm: true, confirmText: row => t('openapi.app.confirm_secret', { name: (row as unknown as OAuthAppListItemDto).appName }), permission: 'openapi.app.secret' },
+    { key: 'delete', title: t('openapi.app.action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as OAuthAppListItemDto).appName), permission: 'openapi.app.delete' },
   ],
 }))
 

@@ -146,10 +146,10 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('identity.org.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.org.create' },
-    { key: 'addChild', title: t('identity.org.action_add_child'), scope: 'row', permission: 'identity.org.create' },
-    { key: 'view', title: t('identity.org.action_view'), scope: 'row' },
-    { key: 'edit', title: t('identity.org.action_edit'), scope: 'row', permission: 'identity.org.update' },
-    { key: 'toggle', title: t('identity.org.action_toggle'), scope: 'row', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as DepartmentListItemDto).status === EnableStatus.Enabled, (row as unknown as DepartmentListItemDto).departmentName), permission: 'identity.org.status' },
+    { key: 'addChild', title: t('identity.org.action_add_child'), scope: 'row', icon: 'lucide:plus', permission: 'identity.org.create' },
+    { key: 'view', title: t('identity.org.action_view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('identity.org.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'identity.org.update' },
+    { key: 'toggle', title: t('identity.org.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as DepartmentListItemDto).status === EnableStatus.Enabled, (row as unknown as DepartmentListItemDto).departmentName), permission: 'identity.org.status' },
   ],
 }))
 
