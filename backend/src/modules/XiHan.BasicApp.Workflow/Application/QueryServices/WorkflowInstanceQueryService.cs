@@ -63,8 +63,8 @@ public sealed class WorkflowInstanceQueryService : WorkflowApplicationService, I
 
         var request = BuildPageRequest(input);
 
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysWorkflowInstance", cancellationToken);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysWorkflowInstance", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, WorkflowPermissionCodes.Resource, cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, WorkflowPermissionCodes.Resource, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             request.Conditions.AddSort((SysWorkflowInstance instance) => instance.CreationTime, SortDirection.Descending, 0);

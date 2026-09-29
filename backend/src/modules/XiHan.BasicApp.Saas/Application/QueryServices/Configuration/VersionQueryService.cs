@@ -72,7 +72,7 @@ public sealed class VersionQueryService
         var request = BuildVersionPageRequest(input);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysVersion", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Version.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyVersionSorts(request);

@@ -74,7 +74,7 @@
 
 ## 字段级安全（列级）
 
-`SysFieldLevelSecurity` 按「资源 × 字段 × 主体」定义规则：
+`SysFieldLevelSecurity` 按「资源 × 字段 × 主体」定义规则。资源就是权限目录里的资源（编码如 `user`、`role`、`code_gen`，与该接口读权限的资源段一致），建规则时在资源下拉里选它即可；查询服务解析规则时引用同一个权限码常量（`SaasPermissionCodes.User.Group`、`CodeGenPermissionCodes.Resource` 等），不写实体名。一个资源下有多类对象时（代码生成的数据源、表、模板、历史，工作流的定义与实例，字典与字典项，邮件与短信），同名字段受同一条规则约束。
 
 | 字段 | 说明 |
 | --- | --- |
@@ -93,7 +93,7 @@
 这条设计的意义：绕过前端直接调接口也拿不到明文。前端打码是纸糊的。
 :::
 
-脱敏由 `IFieldSecurityService.ApplyAsync` 在查询服务返回前就地改写 DTO（当前接入的资源是 `SysUser`）。
+脱敏由 `IFieldSecurityService.ApplyAsync` 在查询服务返回前就地改写 DTO（当前接入读脱敏的是用户资源 `user`，用户更新走写校验）。
 
 ### 过滤与排序也受门控
 

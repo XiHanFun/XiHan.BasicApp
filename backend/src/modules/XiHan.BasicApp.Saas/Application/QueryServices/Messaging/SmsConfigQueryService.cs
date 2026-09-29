@@ -67,9 +67,9 @@ public sealed class SmsConfigQueryService
         var request = BuildSmsConfigPageRequest(input);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysSmsConfig", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.SmsConfig.Group, cancellationToken);
         // 过滤：FLS 门控剔除不可读/已脱敏字段（枚举多选 In）
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysSmsConfig", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.SmsConfig.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplySmsConfigSorts(request);

@@ -135,7 +135,7 @@ public sealed class UserAppService
         var current = await _userRepository.GetByIdAsync(input.BasicId, cancellationToken);
         if (current is not null)
         {
-            await _fieldSecurity.EnsureUpdatableAsync("SysUser", input, current, cancellationToken);
+            await _fieldSecurity.EnsureUpdatableAsync(SaasPermissionCodes.User.Group, input, current, cancellationToken);
         }
 
         var result = await _userDomainService.UpdateUserAsync(UserApplicationMapper.ToUpdateCommand(input), cancellationToken);

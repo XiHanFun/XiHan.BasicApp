@@ -15,6 +15,7 @@ using XiHan.Framework.Workflow.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
 using XiHan.Framework.Workflow.Abstractions.Stores;
+using XiHan.BasicApp.Workflow.Domain.Permissions;
 
 namespace XiHan.BasicApp.Workflow.Tests;
 
@@ -152,10 +153,10 @@ public sealed class WorkflowQueryServiceTests
         _ = await service.GetPageAsync(new WorkflowDefinitionPageQueryDto());
 
         fieldSecurity.Verify(
-            value => value.GuardSortsAsync(It.IsAny<QueryConditions>(), "SysWorkflowDefinition", It.IsAny<CancellationToken>()),
+            value => value.GuardSortsAsync(It.IsAny<QueryConditions>(), WorkflowPermissionCodes.Resource, It.IsAny<CancellationToken>()),
             Times.Once);
         fieldSecurity.Verify(
-            value => value.GuardFiltersAsync(It.IsAny<QueryConditions>(), "SysWorkflowDefinition", It.IsAny<CancellationToken>()),
+            value => value.GuardFiltersAsync(It.IsAny<QueryConditions>(), WorkflowPermissionCodes.Resource, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -310,10 +311,10 @@ public sealed class WorkflowQueryServiceTests
         _ = await service.GetPageAsync(new WorkflowInstancePageQueryDto());
 
         fieldSecurity.Verify(
-            value => value.GuardSortsAsync(It.IsAny<QueryConditions>(), "SysWorkflowInstance", It.IsAny<CancellationToken>()),
+            value => value.GuardSortsAsync(It.IsAny<QueryConditions>(), WorkflowPermissionCodes.Resource, It.IsAny<CancellationToken>()),
             Times.Once);
         fieldSecurity.Verify(
-            value => value.GuardFiltersAsync(It.IsAny<QueryConditions>(), "SysWorkflowInstance", It.IsAny<CancellationToken>()),
+            value => value.GuardFiltersAsync(It.IsAny<QueryConditions>(), WorkflowPermissionCodes.Resource, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 

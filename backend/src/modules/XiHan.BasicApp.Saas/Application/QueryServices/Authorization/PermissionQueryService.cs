@@ -103,9 +103,9 @@ public sealed class PermissionQueryService
         var request = BuildPermissionPageRequest(input);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysPermission", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Permission.Group, cancellationToken);
         // 过滤：前端区间/多选下发 conditions.filters，FLS 门控剔除不可读/已脱敏字段后应用
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysPermission", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Permission.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyPermissionSorts(request);

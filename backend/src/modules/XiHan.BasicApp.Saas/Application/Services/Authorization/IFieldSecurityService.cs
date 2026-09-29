@@ -49,14 +49,18 @@ public interface IFieldSecurityService
     Task<IReadOnlyDictionary<string, EffectiveFieldRule>> ResolveAsync(string resourceCode, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 对单个返回对象按有效规则就地脱敏。
+    /// 对单个返回对象按有效规则就地脱敏。传入集合会直接报错，集合请用 <see cref="ApplyManyAsync{T}"/>。
     /// </summary>
     Task ApplyAsync<T>(string resourceCode, T? item, CancellationToken cancellationToken = default) where T : class;
 
     /// <summary>
-    /// 对返回对象集合按有效规则就地脱敏。
+    /// 对返回对象集合按有效规则逐个就地脱敏。
     /// </summary>
-    Task ApplyAsync<T>(string resourceCode, IEnumerable<T> items, CancellationToken cancellationToken = default) where T : class;
+    /// <remarks>
+    /// 不与单对象版同名：两个泛型重载同名时，传 List&lt;TDto&gt; 会让单对象版以 T = List&lt;TDto&gt; 胜出，
+    /// 反射对象变成 List 本身，一个字段都打不上码。
+    /// </remarks>
+    Task ApplyManyAsync<T>(string resourceCode, IEnumerable<T> items, CancellationToken cancellationToken = default) where T : class;
 
     /// <summary>
     /// 排序字段 FLS 门控：就地剔除当前用户在该资源上「不可读或已脱敏」的排序字段。

@@ -62,9 +62,9 @@ public sealed class ReviewQueryService
 
         var request = BuildReviewPageRequest(input);
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysReview", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Review.Group, cancellationToken);
         // 过滤：FLS 门控剔除不可读/已脱敏字段（时间区间 Between / 枚举多选 In）
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysReview", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Review.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyReviewSorts(request);

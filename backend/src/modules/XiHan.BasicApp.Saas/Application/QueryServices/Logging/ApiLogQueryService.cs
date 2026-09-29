@@ -64,8 +64,8 @@ public sealed class ApiLogQueryService
         var predicate = BuildApiLogPredicate(input);
 
         // 排序/过滤：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认按请求时间倒序
-        await _fieldSecurity.GuardSortsAsync(input.Conditions, "SysOpenApiLog", cancellationToken);
-        await _fieldSecurity.GuardFiltersAsync(input.Conditions, "SysOpenApiLog", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(input.Conditions, SaasPermissionCodes.ApiLog.Group, cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(input.Conditions, SaasPermissionCodes.ApiLog.Group, cancellationToken);
 
         RefAsync<int> totalCount = 0;
         var query = DbClient.Queryable<SysOpenApiLog>()

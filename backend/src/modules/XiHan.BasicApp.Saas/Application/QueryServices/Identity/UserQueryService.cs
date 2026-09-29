@@ -132,10 +132,10 @@ public sealed class UserQueryService
         }
 
         // 过滤：前端区间(Between)/多选(In)等条件经 conditions.filters 下发，FLS 门控剔除不可读/已脱敏字段后由框架统一应用
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysUser", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.User.Group, cancellationToken);
 
         // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段（防按受保护字段排序泄漏真实顺序）；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysUser", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.User.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyUserSorts(request);
@@ -171,8 +171,8 @@ public sealed class UserQueryService
             return item;
         }).ToList();
 
-        // 服务端字段脱敏：按当前用户在 SysUser 资源上的有效 FLS 规则就地脱敏
-        await _fieldSecurity.ApplyAsync("SysUser", items, cancellationToken);
+        // 服务端字段脱敏：按当前用户在用户资源上的有效 FLS 规则逐个就地脱敏
+        await _fieldSecurity.ApplyManyAsync(SaasPermissionCodes.User.Group, items, cancellationToken);
 
         return new PageResultDtoBase<UserListItemDto>(items, users.Page)
         {
@@ -212,7 +212,7 @@ public sealed class UserQueryService
         var detail = UserApplicationMapper.ToDetailDto(user);
         detail.IsExternalMember = !_userDirectory.IsHomeAccount(user);
         // 服务端字段脱敏：详情同样按有效 FLS 规则就地脱敏
-        await _fieldSecurity.ApplyAsync("SysUser", detail, cancellationToken);
+        await _fieldSecurity.ApplyAsync(SaasPermissionCodes.User.Group, detail, cancellationToken);
         return detail;
     }
 

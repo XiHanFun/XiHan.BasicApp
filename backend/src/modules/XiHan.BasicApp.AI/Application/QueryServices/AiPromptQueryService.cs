@@ -53,8 +53,8 @@ public sealed class AiPromptQueryService : AiApplicationService, IAiPromptQueryS
 
         var request = BuildPageRequest(input);
 
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysAiPrompt", cancellationToken);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysAiPrompt", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, AiPromptPermissionCodes.Resource, cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, AiPromptPermissionCodes.Resource, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyPromptSorts(request);

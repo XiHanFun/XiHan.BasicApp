@@ -164,8 +164,8 @@ public sealed class PrintTemplateQueryService : PrintingApplicationService, IPri
         CancellationToken cancellationToken)
     {
         var request = BuildPageRequest(input);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, nameof(SysPrintTemplate), cancellationToken);
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, nameof(SysPrintTemplate), cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, PrintingPermissionCodes.Resource, cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, PrintingPermissionCodes.Resource, cancellationToken);
 
         // 内部约束在字段安全处理后追加，前端无法通过自定义 filters 覆盖租户边界。
         request.Conditions.AddFilter((SysPrintTemplate template) => template.TenantId, scope.OwnerTenantId);

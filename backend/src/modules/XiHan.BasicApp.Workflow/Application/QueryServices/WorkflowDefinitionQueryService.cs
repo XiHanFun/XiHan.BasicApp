@@ -53,8 +53,8 @@ public sealed class WorkflowDefinitionQueryService : WorkflowApplicationService,
 
         var request = BuildPageRequest(input);
 
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysWorkflowDefinition", cancellationToken);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysWorkflowDefinition", cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, WorkflowPermissionCodes.Resource, cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, WorkflowPermissionCodes.Resource, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             request.Conditions.AddSort((SysWorkflowDefinition definition) => definition.Code, SortDirection.Ascending, 0);

@@ -97,8 +97,8 @@ public sealed class OnlineUserQueryService
             _ = request.Conditions.AddFilters(filters);
         }
 
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, "SysUserSession", cancellationToken);
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, "SysUserSession", cancellationToken);
+        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.UserSession.Group, cancellationToken);
+        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.UserSession.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             request.Conditions.AddSort((SysUserSession session) => session.LastActivityTime, SortDirection.Descending);
