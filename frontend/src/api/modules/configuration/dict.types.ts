@@ -74,6 +74,15 @@ export interface DictItemTreeQueryDto {
   onlyEnabled: boolean
 }
 
+/** 字典选项（业务表单下拉；值为字典项编码，树形字典按深度优先展平） */
+export interface DictOptionDto {
+  disabled: boolean
+  isDefault: boolean
+  label: string
+  parentValue?: string | null
+  value: string
+}
+
 export interface DictItemTreeNodeDto extends BasicDto {
   children: DictItemTreeNodeDto[]
   dictId: ApiId

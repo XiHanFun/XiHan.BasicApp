@@ -173,6 +173,10 @@ export interface AppContextApis {
     save: (input: { scene: number, settingKey: string, settingValue?: null | string, clientId?: string, origin?: null | string }) => Promise<{ scene: number, settingKey: string, settingValue?: null | string }>
   }
   /** 时区目录（顶栏 / 个人中心 / 编号规则共用；后端已筛掉服务端无法解析的时区） */
+  /** 系统字典选项（业务表单下拉；只按登录态门控，值为字典项编码，树形字典按深度优先展平） */
+  dictApi: {
+    options: (dictCode: string) => Promise<Array<{ value: string, label: string, parentValue?: null | string, isDefault: boolean, disabled: boolean }>>
+  }
   timeZoneApi: {
     options: () => Promise<Array<{ id: string, displayName: string, baseUtcOffsetMinutes: number, supportsDaylightSavingTime: boolean }>>
   }

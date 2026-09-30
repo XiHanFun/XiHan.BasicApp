@@ -12,6 +12,7 @@ import type {
   DictItemTreeQueryDto,
   DictItemUpdateDto,
   DictListItemDto,
+  DictOptionDto,
   DictPageQueryDto,
   DictStatusUpdateDto,
   DictUpdateDto,
@@ -63,6 +64,10 @@ export const dictApi = {
   },
   itemUpdateStatus(input: DictItemStatusUpdateDto) {
     return dictCommandApi.put<DictItemDetailDto, DictItemStatusUpdateDto>('DictItemStatus', input)
+  },
+  /** 按字典编码取下拉选项：只按登录态门控，业务页面的使用者不需要字典管理权限 */
+  options(dictCode: string) {
+    return dictQueryApi.get<DictOptionDto[]>('DictOptions', { dictCode })
   },
   page(input: DictPageQueryDto) {
     return dictQueryApi.post<PageResult<DictListItemDto>>('DictPage', input)

@@ -40,6 +40,7 @@ import type {
   VerificationCodeResult,
 } from '~/types'
 import { ResourceAccessLevel } from '@/api/modules/authorization'
+import { dictApi } from '@/api/modules/configuration'
 import { fileApi } from '@/api/modules/files'
 import { impersonationApi } from '@/api/modules/identity'
 import { enumMetadataApi } from '@/api/modules/metadata/enum-metadata'
@@ -360,6 +361,11 @@ function createShellApis() {
       },
       save(input: { scene: number, settingKey: string, settingValue?: null | string, clientId?: string, origin?: null | string }) {
         return requestClient.post<{ scene: number, settingKey: string, settingValue?: null | string }>('/UserSetting/Save', input)
+      },
+    },
+    dictApi: {
+      options(dictCode: string) {
+        return dictApi.options(dictCode)
       },
     },
     timeZoneApi: {
