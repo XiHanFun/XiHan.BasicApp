@@ -3,6 +3,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
@@ -21,9 +22,16 @@ public abstract class QueryServiceExportProviderBase<TQueryDto, TRowDto> : IExpo
     where TQueryDto : BasicAppPRDto, new()
 {
     /// <summary>
-    /// 查询快照反序列化选项（Web 默认：camelCase + 大小写不敏感）
+    /// 查询快照反序列化选项（Web 默认：camelCase + 大小写不敏感 + 数字可读字符串）
     /// </summary>
-    protected static readonly JsonSerializerOptions QueryJsonOptions = new(JsonSerializerDefaults.Web);
+    /// <remarks>
+    /// 快照是页面查询入参原样序列化的结果，与线上报文同形：枚举按成员名传（全局 JsonStringEnumConverter）。
+    /// 这里不认成员名，带枚举筛选的快照就整体反序列化失败，落回空查询，导出范围悄悄变成全量。
+    /// </remarks>
+    protected static readonly JsonSerializerOptions QueryJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter() }
+    };
 
     /// <summary>
     /// 业务类型（= 前端 pageCode）
