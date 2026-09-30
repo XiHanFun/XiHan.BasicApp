@@ -1,6 +1,6 @@
 /**
  * 通用偏好切片（app/preferences）单元测试。
- * 职责边界：语言、时区、五个后端同步开关（默认开启、设备本地维度）、Widget 显隐、
+ * 职责边界：语言、时区、五个后端同步开关（默认开启、设备本地维度）、Widget 显隐与位置（含旧版开关迁移）、
  * 快捷键、页脚版权等偏好的默认值、本地还原与落地；以及
  * 「locale ref 是 vue-i18n 的唯一入口」这条回归锚点。
  */
@@ -11,9 +11,19 @@ import {
   APP_TIMEZONE_KEY,
   CHECK_UPDATES_INTERVAL_KEY,
   DEFAULT_LOCALE,
+  LEGACY_SEARCH_ENABLED_KEY,
+  LEGACY_WIDGET_FULLSCREEN_KEY,
+  LEGACY_WIDGET_LANGUAGE_TOGGLE_KEY,
+  LEGACY_WIDGET_THEME_TOGGLE_KEY,
+  LEGACY_WIDGET_TIMEZONE_KEY,
   LOCALE_KEY,
   PREFERENCE_SYNC_KEY,
+  WIDGET_FULLSCREEN_PLACEMENT_KEY,
+  WIDGET_LANGUAGE_PLACEMENT_KEY,
   WIDGET_PREFERENCE_POSITION_KEY,
+  WIDGET_SEARCH_PLACEMENT_KEY,
+  WIDGET_THEME_PLACEMENT_KEY,
+  WIDGET_TIMEZONE_PLACEMENT_KEY,
 } from '~/constants'
 import { i18n } from '~/locales'
 import { useAppStore } from '../app'
@@ -26,6 +36,57 @@ function freshStore(): ReturnType<typeof useAppStore> {
 beforeEach(() => {
   setActivePinia(createPinia())
   i18n.global.locale.value = DEFAULT_LOCALE as typeof i18n.global.locale.value
+})
+
+describe('旧版工具开关迁移为位置', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('旧版关掉的工具迁成隐藏，开着的迁成自动；迁移后旧键删除、新键落地', () => {
+    localStorage.setItem(LEGACY_SEARCH_ENABLED_KEY, 'false')
+    localStorage.setItem(LEGACY_WIDGET_THEME_TOGGLE_KEY, 'true')
+    localStorage.setItem(LEGACY_WIDGET_LANGUAGE_TOGGLE_KEY, 'false')
+    localStorage.setItem(LEGACY_WIDGET_FULLSCREEN_KEY, 'false')
+
+    const store = freshStore()
+
+    expect(store.widgetSearchPlacement).toBe('hidden')
+    expect(store.widgetThemePlacement).toBe('auto')
+    expect(store.widgetLanguagePlacement).toBe('hidden')
+    expect(store.widgetTimezonePlacement).toBe('auto')
+    expect(store.widgetFullscreenPlacement).toBe('hidden')
+    for (const key of [
+      LEGACY_SEARCH_ENABLED_KEY,
+      LEGACY_WIDGET_THEME_TOGGLE_KEY,
+      LEGACY_WIDGET_LANGUAGE_TOGGLE_KEY,
+      LEGACY_WIDGET_TIMEZONE_KEY,
+      LEGACY_WIDGET_FULLSCREEN_KEY,
+    ]) {
+      expect(localStorage.getItem(key)).toBeNull()
+    }
+    expect(localStorage.getItem(WIDGET_SEARCH_PLACEMENT_KEY)).toBe(JSON.stringify('hidden'))
+    expect(localStorage.getItem(WIDGET_TIMEZONE_PLACEMENT_KEY)).toBe(JSON.stringify('auto'))
+  })
+
+  it('已有新位置时以新位置为准，不被旧开关覆盖', () => {
+    localStorage.setItem(WIDGET_LANGUAGE_PLACEMENT_KEY, JSON.stringify('floating'))
+    localStorage.setItem(LEGACY_WIDGET_LANGUAGE_TOGGLE_KEY, 'false')
+
+    const store = freshStore()
+
+    expect(store.widgetLanguagePlacement).toBe('floating')
+  })
+
+  it('新键里存的不是合法位置时按旧开关重新迁移', () => {
+    localStorage.setItem(WIDGET_FULLSCREEN_PLACEMENT_KEY, JSON.stringify('corner'))
+    localStorage.setItem(LEGACY_WIDGET_FULLSCREEN_KEY, 'false')
+
+    const store = freshStore()
+
+    expect(store.widgetFullscreenPlacement).toBe('hidden')
+    expect(localStorage.getItem(WIDGET_FULLSCREEN_PLACEMENT_KEY)).toBe(JSON.stringify('hidden'))
+  })
 })
 
 describe('默认值', () => {
@@ -46,23 +107,23 @@ describe('默认值', () => {
     expect(store.widgetsSyncEnabled).toBe(true)
   })
 
-  it('搜索、动态标题、行悬停速览、更新检查默认开启，检查间隔 30', () => {
+  it('动态标题、行悬停速览、更新检查默认开启，检查间隔 30', () => {
     const store = freshStore()
 
-    expect(store.searchEnabled).toBe(true)
     expect(store.dynamicTitle).toBe(true)
     expect(store.tableRowPeek).toBe(true)
     expect(store.enableCheckUpdates).toBe(true)
     expect(store.checkUpdatesInterval).toBe(30)
   })
 
-  it('全部 Widget 默认显示，偏好入口位置默认 auto', () => {
+  it('全部 Widget 默认显示，五个工具与偏好入口的位置默认 auto', () => {
     const store = freshStore()
 
-    expect(store.widgetThemeToggle).toBe(true)
-    expect(store.widgetLanguageToggle).toBe(true)
-    expect(store.widgetTimezone).toBe(true)
-    expect(store.widgetFullscreen).toBe(true)
+    expect(store.widgetSearchPlacement).toBe('auto')
+    expect(store.widgetThemePlacement).toBe('auto')
+    expect(store.widgetLanguagePlacement).toBe('auto')
+    expect(store.widgetTimezonePlacement).toBe('auto')
+    expect(store.widgetFullscreenPlacement).toBe('auto')
     expect(store.widgetNotification).toBe(true)
     expect(store.widgetLockScreen).toBe(true)
     expect(store.widgetSidebarToggle).toBe(true)
@@ -221,10 +282,6 @@ describe('setter 落地', () => {
   it('各个 Widget 显隐逐项可关', () => {
     const store = freshStore()
 
-    store.setWidgetThemeToggle(false)
-    store.setWidgetLanguageToggle(false)
-    store.setWidgetTimezone(false)
-    store.setWidgetFullscreen(false)
     store.setWidgetNotification(false)
     store.setWidgetLockScreen(false)
     store.setWidgetSidebarToggle(false)
@@ -234,10 +291,6 @@ describe('setter 落地', () => {
     store.setNotifySound(false)
 
     expect([
-      store.widgetThemeToggle,
-      store.widgetLanguageToggle,
-      store.widgetTimezone,
-      store.widgetFullscreen,
       store.widgetNotification,
       store.widgetLockScreen,
       store.widgetSidebarToggle,
@@ -245,7 +298,25 @@ describe('setter 落地', () => {
       store.widgetFavorites,
       store.widgetDynamicIsland,
       store.notifySound,
-    ]).toEqual(Array.from<boolean>({ length: 11 }).fill(false))
+    ]).toEqual(Array.from<boolean>({ length: 7 }).fill(false))
+  })
+
+  it('五个工具的位置逐项可设，含隐藏', () => {
+    const store = freshStore()
+
+    store.setWidgetSearchPlacement('floating')
+    store.setWidgetThemePlacement('hidden')
+    store.setWidgetLanguagePlacement('header')
+    store.setWidgetTimezonePlacement('hidden')
+    store.setWidgetFullscreenPlacement('floating')
+
+    expect(store.widgetSearchPlacement).toBe('floating')
+    expect(store.widgetThemePlacement).toBe('hidden')
+    expect(store.widgetLanguagePlacement).toBe('header')
+    expect(store.widgetTimezonePlacement).toBe('hidden')
+    expect(store.widgetFullscreenPlacement).toBe('floating')
+    expect(localStorage.getItem(WIDGET_SEARCH_PLACEMENT_KEY)).toBe(JSON.stringify('floating'))
+    expect(localStorage.getItem(WIDGET_THEME_PLACEMENT_KEY)).toBe(JSON.stringify('hidden'))
   })
 
   it('偏好入口位置可切到固定角落', () => {
@@ -293,15 +364,13 @@ describe('setter 落地', () => {
     expect(store.shortcutTabOverview).toBe(true)
   })
 
-  it('搜索、动态标题、行悬停速览、更新检查可关闭', () => {
+  it('动态标题、行悬停速览、更新检查可关闭', () => {
     const store = freshStore()
 
-    store.setSearchEnabled(false)
     store.setDynamicTitle(false)
     store.setTableRowPeek(false)
     store.setEnableCheckUpdates(false)
 
-    expect(store.searchEnabled).toBe(false)
     expect(store.dynamicTitle).toBe(false)
     expect(store.tableRowPeek).toBe(false)
     expect(store.enableCheckUpdates).toBe(false)

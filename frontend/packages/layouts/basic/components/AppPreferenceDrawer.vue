@@ -26,9 +26,7 @@ import {
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppStore, useAuthStore, useLayoutBridgeStore } from '~/stores'
-import { usePreferenceEntry } from '../composables'
 import PreferenceAppearanceTab from './preference/PreferenceAppearanceTab.vue'
-import PreferenceFab from './preference/PreferenceFab.vue'
 import PreferenceGeneralTab from './preference/PreferenceGeneralTab.vue'
 import PreferenceLayoutTab from './preference/PreferenceLayoutTab.vue'
 import PreferenceShortcutTab from './preference/PreferenceShortcutTab.vue'
@@ -41,8 +39,6 @@ const layoutBridgeStore = useLayoutBridgeStore()
 const { t } = useI18n()
 const visible = ref(false)
 const activeTab = ref('appearance')
-// 偏好设置入口：头部按钮与悬浮 FAB 互斥，统一由 usePreferenceEntry 判定（auto 模式窄屏走 FAB）
-const { showFab: showFloatingFab } = usePreferenceEntry()
 const { animateThemeTransition } = useTheme()
 
 const themeMode = computed(() => appStore.themeMode)
@@ -125,10 +121,6 @@ function openDrawer() {
   visible.value = true
 }
 
-function handleFabClick() {
-  layoutBridgeStore.requestOpenPreferenceDrawer()
-}
-
 function handleOpenPreferenceDrawer() {
   layoutBridgeStore.requestOpenPreferenceDrawer()
 }
@@ -179,8 +171,6 @@ watch(visible, (open, was) => {
 </script>
 
 <template>
-  <PreferenceFab :show="showFloatingFab" @click="handleFabClick" />
-
   <XhDrawerRoot v-model:open="visible" side="right">
     <XhDrawerContent class="preference-drawer-content">
       <div class="drawer-header">

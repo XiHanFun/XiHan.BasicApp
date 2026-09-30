@@ -50,11 +50,11 @@ describe('三个 slice 都被合进门面', () => {
 
     store.setTheme('dark')
     store.setSidebarCollapsed(true)
-    store.setSearchEnabled(false)
+    store.setWidgetSearchPlacement('hidden')
 
     expect(store.themeMode).toBe('dark')
     expect(store.sidebarCollapsed).toBe(true)
-    expect(store.searchEnabled).toBe(false)
+    expect(store.widgetSearchPlacement).toBe('hidden')
   })
 
   it('派生 getter（isDark）经门面透出', () => {
@@ -71,7 +71,7 @@ describe('resetPreferences 覆盖三个 slice', () => {
     const store = freshStore()
     store.setThemeColor('#010203')
     store.setLayoutMode('top')
-    store.setSearchEnabled(false)
+    store.setWidgetSearchPlacement('hidden')
     await nextTick()
 
     store.resetPreferences()
@@ -79,7 +79,7 @@ describe('resetPreferences 覆盖三个 slice', () => {
 
     expect(store.themeColor).toBe(DEFAULT_THEME_COLOR)
     expect(store.layoutMode).toBe(DEFAULT_LAYOUT_MODE)
-    expect(store.searchEnabled).toBe(true)
+    expect(store.widgetSearchPlacement).toBe('auto')
   })
 
   it('还原后的默认值经 watch 落地 localStorage', async () => {

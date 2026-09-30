@@ -85,6 +85,7 @@ export default {
     fullscreen_enter: '全屏',
     fullscreen_exit: '退出全屏',
     preferences: '偏好设置',
+    float_tools: '快捷工具',
     refresh_page: '刷新页面',
     nav_back: '后退',
     nav_forward: '前进',

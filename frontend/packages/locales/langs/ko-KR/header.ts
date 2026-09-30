@@ -85,6 +85,7 @@ export default {
     fullscreen_enter: '전체 화면',
     fullscreen_exit: '전체 화면 종료',
     preferences: '환경 설정',
+    float_tools: '빠른 도구',
     refresh_page: '페이지 새로 고침',
     nav_back: '뒤로',
     nav_forward: '앞으로',

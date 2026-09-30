@@ -89,7 +89,7 @@ function onAlignChange(align: LoginFormAlign) {
 
     <!-- 语言 -->
     <LocaleSwitcher
-      v-if="appStore.widgetLanguageToggle"
+      v-if="appStore.widgetLanguagePlacement !== 'hidden'"
       variant="dropdown"
       apply
       placement="bottom-end"
@@ -101,7 +101,7 @@ function onAlignChange(align: LoginFormAlign) {
 
     <!-- 主题 -->
     <XhButton
-      v-if="appStore.widgetThemeToggle"
+      v-if="appStore.widgetThemePlacement !== 'hidden'"
       variant="ghost"
       data-circle
       size="sm"

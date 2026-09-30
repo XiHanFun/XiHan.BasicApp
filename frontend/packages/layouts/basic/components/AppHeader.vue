@@ -1,15 +1,16 @@
 <script lang="ts" setup>
+import type { ComponentPublicInstance } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
 import type { AppDropdownOption, AppMenuOption } from '~/types'
 
 import { computed, h, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { toast } from '~/composables'
+import { toast, useIsMobile } from '~/composables'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext, useAppStore, useAuthStore, useLayoutBridgeStore, useNotificationStore, useUserStore } from '~/stores'
 import { NotificationStatus } from '~/types/enums'
-import { useEffectiveLayoutMode, useLayoutMenuDomain, usePreferenceEntry } from '../composables'
+import { useEffectiveLayoutMode, useHeaderSqueeze, useLayoutMenuDomain, useWidgetPlacement } from '../composables'
 import HeaderNav from './header/HeaderNav.vue'
 import HeaderToolbar from './header/HeaderToolbar.vue'
 import HeaderTopMenu from './header/HeaderTopMenu.vue'
@@ -31,6 +32,8 @@ const layoutBridgeStore = useLayoutBridgeStore()
 const notificationStore = useNotificationStore()
 const appContext = useAppContext()
 const { t, te } = useI18n()
+// 小屏（<768）不放后退 / 前进：手机浏览器与系统手势自带，省下的位置留给右上角的账号入口
+const { isMobile } = useIsMobile()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const showImpersonationDialog = ref(false)
 const {
@@ -45,8 +48,18 @@ const {
   openExternalIfMatch,
 } = useLayoutMenuDomain()
 
-// 偏好设置入口可见性：头部按钮与悬浮 FAB 互斥（auto 模式窄屏走 FAB，头部按钮隐藏）
-const { showHeaderButton: showPreferencesInHeader } = usePreferenceEntry()
+// 偏好设置入口与顶栏工具一样按位置落到顶栏或悬浮组，二者互斥
+const widgetPlacement = useWidgetPlacement()
+const showPreferencesInHeader = computed(() => widgetPlacement.preference.value === 'header')
+
+// 顶栏挤不下时先把命令面板收成图标钮，再把「自动」的工具从左往右依次让到悬浮组，面包屑最后才截断：
+// 量的是右侧工具区所在的这一行
+const toolbarRef = ref<ComponentPublicInstance | null>(null)
+const breadcrumbRef = ref<HTMLElement | null>(null)
+const menuAreaRef = ref<HTMLElement | null>(null)
+const toolbarEl = computed(() => toolbarRef.value?.$el as HTMLElement | undefined)
+const headerRowEl = computed(() => toolbarEl.value?.parentElement)
+useHeaderSqueeze(headerRowEl, toolbarEl, breadcrumbRef, menuAreaRef)
 
 const hasBack = ref(false)
 const hasForward = ref(false)
@@ -465,8 +478,8 @@ watch(() => route.fullPath, () => {
 </script>
 
 <template>
-  <!-- Back / Forward buttons -->
-  <template v-if="appStore.breadcrumbNavButtons">
+  <!-- Back / Forward buttons（小屏隐藏） -->
+  <template v-if="appStore.breadcrumbNavButtons && !isMobile">
     <XihanIconButton
       class="my-0 rounded-md"
       :tooltip="t('header.toolbar.nav_back')"
@@ -495,8 +508,9 @@ watch(() => route.fullPath, () => {
     <Icon icon="lucide:refresh-cw" class="size-4" />
   </XihanIconButton>
 
-  <!-- Breadcrumb：允许被压缩（min-w-0），顶栏挤压时由 HeaderNav 单行截断，不折成两行 -->
-  <div v-if="showBreadcrumb" class="hidden min-w-0 lg:block">
+  <!-- Breadcrumb：允许被压缩（min-w-0），但顶栏挤压时排在最后让：命令面板收成图标、「自动」的工具让到悬浮组之后，
+       才由 HeaderNav 单行截断，不折成两行 -->
+  <div v-if="showBreadcrumb" ref="breadcrumbRef" class="hidden min-w-0 lg:block">
     <HeaderNav
       :app-store="appStore"
       :breadcrumbs="breadcrumbs"
@@ -505,8 +519,8 @@ watch(() => route.fullPath, () => {
     />
   </div>
 
-  <!-- Menu area -->
-  <div class="flex flex-1 items-center min-w-0">
+  <!-- Menu area：弹性区，放得下时多出来的宽度都在它身上，顶栏挤压按它量空档 -->
+  <div ref="menuAreaRef" class="flex flex-1 items-center min-w-0">
     <!-- 菜单铺满整条空档：排得下时按对齐方式摆，排不下时在里面横向滚动 -->
     <div v-if="showTopMenu" class="hidden min-w-0 flex-1 items-center xihan-top-menu lg:flex">
       <HeaderTopMenu
@@ -521,12 +535,13 @@ watch(() => route.fullPath, () => {
 
   <!-- Right toolbar widgets -->
   <HeaderToolbar
+    ref="toolbarRef"
     :app-store="appStore"
     :user-store="userStore"
     :is-dark="isDark"
     :is-fullscreen="isFullscreen"
     :show-preferences-in-header="showPreferencesInHeader"
-    :search-compact="searchCompact"
+    :search-compact="searchCompact || widgetPlacement.searchSqueezed.value"
     :user-options="userOptions"
     :context-label="contextLabel"
     :context-is-platform="userStore.userInfo?.isPlatform ?? false"

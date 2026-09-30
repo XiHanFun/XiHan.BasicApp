@@ -85,6 +85,7 @@ export default {
     fullscreen_enter: 'Vollbild',
     fullscreen_exit: 'Vollbild verlassen',
     preferences: 'Einstellungen',
+    float_tools: 'Schnellwerkzeuge',
     refresh_page: 'Seite aktualisieren',
     nav_back: 'Zurück',
     nav_forward: 'Vorwärts',

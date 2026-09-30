@@ -140,7 +140,7 @@
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
   },
   "packages/layouts/basic/components/AppGlobalSearch.vue": {
-    "cap": 42,
+    "cap": 36,
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
   },
   "packages/layouts/basic/components/AppPreferenceDrawer.vue": {
@@ -183,6 +183,10 @@
     "cap": 5,
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
   },
+  "packages/layouts/basic/components/header/HeaderSearchTrigger.vue": {
+    "cap": 6,
+    "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
+  },
   "packages/layouts/basic/components/header/HeaderTopMenu.vue": {
     "cap": 5,
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
@@ -201,10 +205,6 @@
   },
   "packages/layouts/basic/components/preference/PreferenceAppearanceTab.vue": {
     "cap": 29,
-    "reason": "偏好面板的预览缩略图：小图里的方块按绝对像素摆，跟随密度会糊"
-  },
-  "packages/layouts/basic/components/preference/PreferenceFab.vue": {
-    "cap": 6,
     "reason": "偏好面板的预览缩略图：小图里的方块按绝对像素摆，跟随密度会糊"
   },
   "packages/layouts/basic/components/preference/PreferenceLayoutTab.vue": {

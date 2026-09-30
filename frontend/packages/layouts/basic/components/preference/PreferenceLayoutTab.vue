@@ -39,10 +39,17 @@ const tabbarStyleOptions = computed(() => [
   { label: t('preference.layout.tabbar.style_brisk'), value: 'brisk' },
 ])
 
+/** 偏好设置入口的位置：入口不能没有，故不给「隐藏」 */
 const preferencePositionOptions = computed(() => [
-  { label: t('preference.layout.widget.preference_position_auto'), value: 'auto' },
-  { label: t('preference.layout.widget.preference_position_header'), value: 'header' },
-  { label: t('preference.layout.widget.preference_position_floating'), value: 'floating' },
+  { label: t('preference.layout.widget.placement_auto'), value: 'auto' },
+  { label: t('preference.layout.widget.placement_header'), value: 'header' },
+  { label: t('preference.layout.widget.placement_floating'), value: 'floating' },
+])
+
+/** 顶栏工具的位置：与偏好设置入口同一套，另可隐藏 */
+const widgetPlacementOptions = computed(() => [
+  ...preferencePositionOptions.value,
+  { label: t('preference.layout.widget.placement_hidden'), value: 'hidden' },
 ])
 
 const layout = computed(() => appStore.layoutMode)
@@ -472,23 +479,48 @@ watch(() => appStore.sidebarCollapsed, (val) => {
       </div>
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.global_search') }}</span>
-        <XhSwitch v-model:checked="appStore.searchEnabled" />
+        <XSelect
+          v-model:value="appStore.widgetSearchPlacement"
+          :options="widgetPlacementOptions"
+          size="sm"
+          style="width: 110px"
+        />
       </div>
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.language_toggle') }}</span>
-        <XhSwitch v-model:checked="appStore.widgetLanguageToggle" />
+        <XSelect
+          v-model:value="appStore.widgetLanguagePlacement"
+          :options="widgetPlacementOptions"
+          size="sm"
+          style="width: 110px"
+        />
       </div>
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.timezone_toggle') }}</span>
-        <XhSwitch v-model:checked="appStore.widgetTimezone" />
+        <XSelect
+          v-model:value="appStore.widgetTimezonePlacement"
+          :options="widgetPlacementOptions"
+          size="sm"
+          style="width: 110px"
+        />
       </div>
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.theme_toggle') }}</span>
-        <XhSwitch v-model:checked="appStore.widgetThemeToggle" />
+        <XSelect
+          v-model:value="appStore.widgetThemePlacement"
+          :options="widgetPlacementOptions"
+          size="sm"
+          style="width: 110px"
+        />
       </div>
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.fullscreen') }}</span>
-        <XhSwitch v-model:checked="appStore.widgetFullscreen" />
+        <XSelect
+          v-model:value="appStore.widgetFullscreenPlacement"
+          :options="widgetPlacementOptions"
+          size="sm"
+          style="width: 110px"
+        />
       </div>
       <div class="pref-row">
         <span>{{ t('preference.layout.widget.preference_position') }}</span>

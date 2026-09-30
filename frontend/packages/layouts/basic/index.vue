@@ -19,6 +19,8 @@ import { useRefresh, useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useShellExtensions, useSplitViewStore, useTabbarStore } from '~/stores'
 import AppFavorites from './components/AppFavorites.vue'
+import AppFloatToolbar from './components/AppFloatToolbar.vue'
+import AppGlobalSearch from './components/AppGlobalSearch.vue'
 import AppHeader from './components/AppHeader.vue'
 import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
 import AppSidebar from './components/AppSidebar.vue'
@@ -560,6 +562,8 @@ const sidebarEnableState = computed(
 
     <!-- ==================== Extra ==================== -->
     <AppPreferenceDrawer />
+    <AppGlobalSearch />
+    <AppFloatToolbar />
     <!-- 壳层扩展浮层（可选模块注册的抽屉/全局对话框） -->
     <component :is="overlay" v-for="(overlay, index) in shellOverlays" :key="index" />
     <AppTabOverview />

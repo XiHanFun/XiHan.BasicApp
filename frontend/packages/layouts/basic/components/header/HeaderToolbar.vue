@@ -7,11 +7,11 @@ import { useI18n } from 'vue-i18n'
 import { XDropdown, XUserAvatar } from '~/components'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
-import { useIsMobile } from '~/composables'
 import { Icon } from '~/iconify'
 import { useShellExtensions } from '~/stores'
-import AppGlobalSearch from '../AppGlobalSearch.vue'
+import { useWidgetPlacement } from '../../composables'
 import XihanIconButton from '../XihanIconButton.vue'
+import HeaderSearchTrigger from './HeaderSearchTrigger.vue'
 import NotificationPopover from './NotificationPopover.vue'
 
 defineOptions({ name: 'HeaderToolbar' })
@@ -41,18 +41,19 @@ const emit = defineEmits<{
 const shellHeaderItems = computed(() => useShellExtensions().flatMap(extension => extension.headerToolbarItems ?? []))
 
 const { t } = useI18n()
-// 小屏（<768）：隐藏次要工具（语言/时区/全屏）与用户名文字，避免头部溢出裁切头像菜单
-const { isMobile } = useIsMobile()
+// 命令面板、语言、时区、主题、全屏按各自的位置落到顶栏或悬浮组（AppFloatToolbar），只有落到顶栏的在这里画。
+// 小屏（< 768）顶栏放不下，除隐藏的以外一律回落悬浮组，右上角的账号入口不被挤掉；用户名文字另由断点收起
+const placement = useWidgetPlacement()
 </script>
 
 <template>
   <div class="flex h-full min-w-0 shrink-0 items-center">
-    <!-- 全局搜索 -->
-    <AppGlobalSearch v-if="props.appStore.searchEnabled" class="mr-1" :compact="props.searchCompact" />
+    <!-- 命令面板入口（面板本身由布局层常驻） -->
+    <HeaderSearchTrigger v-if="placement.search.value === 'header'" class="mr-1" :compact="props.searchCompact" />
 
-    <!-- 语言切换（小屏隐藏） -->
+    <!-- 语言切换 -->
     <LocaleSwitcher
-      v-if="props.appStore.widgetLanguageToggle && !isMobile"
+      v-if="placement.language.value === 'header'"
       variant="dropdown"
       apply
     >
@@ -61,9 +62,9 @@ const { isMobile } = useIsMobile()
       </XihanIconButton>
     </LocaleSwitcher>
 
-    <!-- 时区切换（小屏隐藏） -->
+    <!-- 时区切换 -->
     <TimezoneSwitcher
-      v-if="props.appStore.widgetTimezone && !isMobile"
+      v-if="placement.timezone.value === 'header'"
       variant="dropdown"
       apply
     >
@@ -74,7 +75,7 @@ const { isMobile } = useIsMobile()
 
     <!-- 主题切换 -->
     <XihanIconButton
-      v-if="props.appStore.widgetThemeToggle"
+      v-if="placement.theme.value === 'header'"
       class="mr-1"
       :tooltip="props.isDark ? t('header.toolbar.theme_to_light') : t('header.toolbar.theme_to_dark')"
       @mousedown.prevent
@@ -87,9 +88,9 @@ const { isMobile } = useIsMobile()
       />
     </XihanIconButton>
 
-    <!-- 全屏（小屏隐藏） -->
+    <!-- 全屏 -->
     <XihanIconButton
-      v-if="props.appStore.widgetFullscreen && !isMobile"
+      v-if="placement.fullscreen.value === 'header'"
       class="mr-1"
       :tooltip="props.isFullscreen ? t('header.toolbar.fullscreen_exit') : t('header.toolbar.fullscreen_enter')"
       @click="emit('fullscreenToggle')"

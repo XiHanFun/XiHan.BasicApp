@@ -45,3 +45,12 @@ export interface TreeSelectOption {
   disabled?: boolean
   children?: TreeSelectOption[]
 }
+
+/**
+ * 顶栏工具的位置：auto 宽屏放顶栏、窄屏 / 内容最大化 / 顶栏隐藏 / 全屏内容布局时悬浮；
+ * header 固定顶栏（顶栏放不下或不显示时仍回落悬浮）；floating 固定悬浮；hidden 不显示
+ */
+export type WidgetPlacement = 'auto' | 'header' | 'floating' | 'hidden'
+
+/** 偏好设置入口的位置：入口不能没有，故没有 hidden */
+export type PreferenceEntryPlacement = Exclude<WidgetPlacement, 'hidden'>
