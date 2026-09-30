@@ -85,6 +85,7 @@ export default {
     fullscreen_enter: '全螢幕',
     fullscreen_exit: '結束全螢幕',
     preferences: '偏好設定',
+    float_tools: '快捷工具',
     refresh_page: '重新整理頁面',
     nav_back: '後退',
     nav_forward: '前進',

@@ -85,6 +85,7 @@ export default {
     fullscreen_enter: 'फ़ुल स्क्रीन',
     fullscreen_exit: 'फ़ुल स्क्रीन बंद करें',
     preferences: 'प्राथमिकताएँ',
+    float_tools: 'त्वरित टूल',
     refresh_page: 'पेज ताज़ा करें',
     nav_back: 'पीछे',
     nav_forward: 'आगे',

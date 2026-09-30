@@ -85,6 +85,7 @@ export default {
     fullscreen_enter: '全画面',
     fullscreen_exit: '全画面を終了',
     preferences: '環境設定',
+    float_tools: 'クイックツール',
     refresh_page: 'ページを更新',
     nav_back: '戻る',
     nav_forward: '進む',

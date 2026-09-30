@@ -1,3 +1,4 @@
+import type { PreferenceEntryPlacement, WidgetPlacement } from '~/types'
 import { ref, watch } from 'vue'
 import {
   APP_TIMEZONE_KEY,
@@ -15,10 +16,14 @@ import {
   FOOTER_ENABLE_KEY,
   FOOTER_FIXED_KEY,
   FOOTER_SHOW_DEV_INFO_KEY,
+  LEGACY_SEARCH_ENABLED_KEY,
+  LEGACY_WIDGET_FULLSCREEN_KEY,
+  LEGACY_WIDGET_LANGUAGE_TOGGLE_KEY,
+  LEGACY_WIDGET_THEME_TOGGLE_KEY,
+  LEGACY_WIDGET_TIMEZONE_KEY,
   LOCALE_KEY,
   NOTIFY_SOUND_KEY,
   PREFERENCE_SYNC_KEY,
-  SEARCH_ENABLED_KEY,
   SEARCH_SYNC_KEY,
   SHORTCUT_ENABLE_KEY,
   SHORTCUT_LOCK_KEY,
@@ -29,25 +34,43 @@ import {
   TABLE_SYNC_KEY,
   WIDGET_DYNAMIC_ISLAND_KEY,
   WIDGET_FAVORITES_KEY,
-  WIDGET_FULLSCREEN_KEY,
-  WIDGET_LANGUAGE_TOGGLE_KEY,
+  WIDGET_FULLSCREEN_PLACEMENT_KEY,
+  WIDGET_LANGUAGE_PLACEMENT_KEY,
   WIDGET_LOCKSCREEN_KEY,
   WIDGET_NOTIFICATION_KEY,
   WIDGET_PREFERENCE_POSITION_KEY,
   WIDGET_REFRESH_KEY,
+  WIDGET_SEARCH_PLACEMENT_KEY,
   WIDGET_SIDEBAR_TOGGLE_KEY,
-  WIDGET_THEME_TOGGLE_KEY,
-  WIDGET_TIMEZONE_KEY,
+  WIDGET_THEME_PLACEMENT_KEY,
+  WIDGET_TIMEZONE_PLACEMENT_KEY,
   WIDGETS_SYNC_KEY,
 } from '~/constants'
 import { i18n } from '~/locales'
 import { LocalStorage, resolveBrowserLocale, resolveInitialLocale } from '~/utils'
 import { bindPersist, save } from '../helpers'
 
+const WIDGET_PLACEMENTS: readonly WidgetPlacement[] = ['auto', 'header', 'floating', 'hidden']
+
+/**
+ * 读一个顶栏工具的位置：已存的位置优先；没有时从旧版显示开关迁移（开或没设过 → 自动，关 → 隐藏），
+ * 迁移结果当场写入新键、删掉旧键，旧键不再进偏好快照
+ */
+function readWidgetPlacement(key: string, legacyKey: string): WidgetPlacement {
+  const stored = LocalStorage.get<string>(key)
+  if (stored && (WIDGET_PLACEMENTS as readonly string[]).includes(stored)) {
+    return stored as WidgetPlacement
+  }
+  const legacy = LocalStorage.get<boolean>(legacyKey)
+  const migrated: WidgetPlacement = legacy === false ? 'hidden' : 'auto'
+  LocalStorage.remove(legacyKey)
+  LocalStorage.set(key, migrated)
+  return migrated
+}
+
 /** 通用偏好、Widget、快捷键、页脚版权相关状态 */
 export function createPreferencesSlice() {
   const locale = ref<string>(resolveInitialLocale())
-  const searchEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_ENABLED_KEY) ?? true)
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
   // 各类后端同步开关：默认开启（保存时上行后端并实时推送多端），关闭后仅本地存储
   const preferenceSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PREFERENCE_SYNC_KEY) ?? true)
@@ -63,12 +86,12 @@ export function createPreferencesSlice() {
   const checkUpdatesInterval = ref<number>(LocalStorage.get<number>(CHECK_UPDATES_INTERVAL_KEY) ?? 30)
 
   // ---- Widget ----
-  const widgetThemeToggle = ref<boolean>(LocalStorage.get<boolean>(WIDGET_THEME_TOGGLE_KEY) ?? true)
-  const widgetLanguageToggle = ref<boolean>(
-    LocalStorage.get<boolean>(WIDGET_LANGUAGE_TOGGLE_KEY) ?? true,
-  )
-  const widgetTimezone = ref<boolean>(LocalStorage.get<boolean>(WIDGET_TIMEZONE_KEY) ?? true)
-  const widgetFullscreen = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FULLSCREEN_KEY) ?? true)
+  // 命令面板、语言、时区、主题、全屏五个工具的位置：自动 / 顶栏 / 悬浮 / 隐藏
+  const widgetSearchPlacement = ref<WidgetPlacement>(readWidgetPlacement(WIDGET_SEARCH_PLACEMENT_KEY, LEGACY_SEARCH_ENABLED_KEY))
+  const widgetThemePlacement = ref<WidgetPlacement>(readWidgetPlacement(WIDGET_THEME_PLACEMENT_KEY, LEGACY_WIDGET_THEME_TOGGLE_KEY))
+  const widgetLanguagePlacement = ref<WidgetPlacement>(readWidgetPlacement(WIDGET_LANGUAGE_PLACEMENT_KEY, LEGACY_WIDGET_LANGUAGE_TOGGLE_KEY))
+  const widgetTimezonePlacement = ref<WidgetPlacement>(readWidgetPlacement(WIDGET_TIMEZONE_PLACEMENT_KEY, LEGACY_WIDGET_TIMEZONE_KEY))
+  const widgetFullscreenPlacement = ref<WidgetPlacement>(readWidgetPlacement(WIDGET_FULLSCREEN_PLACEMENT_KEY, LEGACY_WIDGET_FULLSCREEN_KEY))
   const widgetNotification = ref<boolean>(
     LocalStorage.get<boolean>(WIDGET_NOTIFICATION_KEY) ?? true,
   )
@@ -80,8 +103,8 @@ export function createPreferencesSlice() {
   const widgetFavorites = ref<boolean>(LocalStorage.get<boolean>(WIDGET_FAVORITES_KEY) ?? true)
   const widgetDynamicIsland = ref<boolean>(LocalStorage.get<boolean>(WIDGET_DYNAMIC_ISLAND_KEY) ?? true)
   const notifySound = ref<boolean>(LocalStorage.get<boolean>(NOTIFY_SOUND_KEY) ?? true)
-  const widgetPreferencePosition = ref<string>(
-    LocalStorage.get<string>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
+  const widgetPreferencePosition = ref<PreferenceEntryPlacement>(
+    LocalStorage.get<PreferenceEntryPlacement>(WIDGET_PREFERENCE_POSITION_KEY) ?? 'auto',
   )
 
   // ---- 页脚与版权 ----
@@ -111,7 +134,6 @@ export function createPreferencesSlice() {
   // 否则「重置偏好」会把浏览器是德语等非中文的用户强行拉回 zh-CN
   bindPersist(LOCALE_KEY, locale, resolveBrowserLocale() ?? DEFAULT_LOCALE)
 
-  bindPersist(SEARCH_ENABLED_KEY, searchEnabled, true)
   bindPersist(DYNAMIC_TITLE_KEY, dynamicTitle, true)
   bindPersist(PREFERENCE_SYNC_KEY, preferenceSyncEnabled, true)
   bindPersist(FAVORITES_SYNC_KEY, favoritesSyncEnabled, true)
@@ -122,10 +144,11 @@ export function createPreferencesSlice() {
   bindPersist(APP_TIMEZONE_KEY, appTimezone, 'Asia/Shanghai')
   bindPersist(CHECK_UPDATES_KEY, enableCheckUpdates, true)
   bindPersist(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, 30)
-  bindPersist(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, true)
-  bindPersist(WIDGET_LANGUAGE_TOGGLE_KEY, widgetLanguageToggle, true)
-  bindPersist(WIDGET_TIMEZONE_KEY, widgetTimezone, true)
-  bindPersist(WIDGET_FULLSCREEN_KEY, widgetFullscreen, true)
+  bindPersist(WIDGET_SEARCH_PLACEMENT_KEY, widgetSearchPlacement, 'auto')
+  bindPersist(WIDGET_THEME_PLACEMENT_KEY, widgetThemePlacement, 'auto')
+  bindPersist(WIDGET_LANGUAGE_PLACEMENT_KEY, widgetLanguagePlacement, 'auto')
+  bindPersist(WIDGET_TIMEZONE_PLACEMENT_KEY, widgetTimezonePlacement, 'auto')
+  bindPersist(WIDGET_FULLSCREEN_PLACEMENT_KEY, widgetFullscreenPlacement, 'auto')
   bindPersist(WIDGET_NOTIFICATION_KEY, widgetNotification, true)
   bindPersist(WIDGET_LOCKSCREEN_KEY, widgetLockScreen, true)
   bindPersist(WIDGET_SIDEBAR_TOGGLE_KEY, widgetSidebarToggle, true)
@@ -163,9 +186,6 @@ export function createPreferencesSlice() {
   function setLocale(lang: string) {
     save(LOCALE_KEY, locale, lang)
   }
-  function setSearchEnabled(v: boolean) {
-    save(SEARCH_ENABLED_KEY, searchEnabled, v)
-  }
   function setDynamicTitle(v: boolean) {
     save(DYNAMIC_TITLE_KEY, dynamicTitle, v)
   }
@@ -196,17 +216,20 @@ export function createPreferencesSlice() {
   function setCheckUpdatesInterval(v: number) {
     save(CHECK_UPDATES_INTERVAL_KEY, checkUpdatesInterval, v)
   }
-  function setWidgetThemeToggle(v: boolean) {
-    save(WIDGET_THEME_TOGGLE_KEY, widgetThemeToggle, v)
+  function setWidgetSearchPlacement(v: WidgetPlacement) {
+    save(WIDGET_SEARCH_PLACEMENT_KEY, widgetSearchPlacement, v)
   }
-  function setWidgetLanguageToggle(v: boolean) {
-    save(WIDGET_LANGUAGE_TOGGLE_KEY, widgetLanguageToggle, v)
+  function setWidgetThemePlacement(v: WidgetPlacement) {
+    save(WIDGET_THEME_PLACEMENT_KEY, widgetThemePlacement, v)
   }
-  function setWidgetTimezone(v: boolean) {
-    save(WIDGET_TIMEZONE_KEY, widgetTimezone, v)
+  function setWidgetLanguagePlacement(v: WidgetPlacement) {
+    save(WIDGET_LANGUAGE_PLACEMENT_KEY, widgetLanguagePlacement, v)
   }
-  function setWidgetFullscreen(v: boolean) {
-    save(WIDGET_FULLSCREEN_KEY, widgetFullscreen, v)
+  function setWidgetTimezonePlacement(v: WidgetPlacement) {
+    save(WIDGET_TIMEZONE_PLACEMENT_KEY, widgetTimezonePlacement, v)
+  }
+  function setWidgetFullscreenPlacement(v: WidgetPlacement) {
+    save(WIDGET_FULLSCREEN_PLACEMENT_KEY, widgetFullscreenPlacement, v)
   }
   function setWidgetNotification(v: boolean) {
     save(WIDGET_NOTIFICATION_KEY, widgetNotification, v)
@@ -229,7 +252,7 @@ export function createPreferencesSlice() {
   function setNotifySound(v: boolean) {
     save(NOTIFY_SOUND_KEY, notifySound, v)
   }
-  function setWidgetPreferencePosition(v: string) {
+  function setWidgetPreferencePosition(v: PreferenceEntryPlacement) {
     save(WIDGET_PREFERENCE_POSITION_KEY, widgetPreferencePosition, v)
   }
   function setFooterEnable(v: boolean) {
@@ -277,7 +300,6 @@ export function createPreferencesSlice() {
 
   return {
     locale,
-    searchEnabled,
     dynamicTitle,
     preferenceSyncEnabled,
     favoritesSyncEnabled,
@@ -288,10 +310,11 @@ export function createPreferencesSlice() {
     appTimezone,
     enableCheckUpdates,
     checkUpdatesInterval,
-    widgetThemeToggle,
-    widgetLanguageToggle,
-    widgetTimezone,
-    widgetFullscreen,
+    widgetSearchPlacement,
+    widgetThemePlacement,
+    widgetLanguagePlacement,
+    widgetTimezonePlacement,
+    widgetFullscreenPlacement,
     widgetNotification,
     widgetLockScreen,
     widgetSidebarToggle,
@@ -315,7 +338,6 @@ export function createPreferencesSlice() {
     shortcutLock,
     shortcutTabOverview,
     setLocale,
-    setSearchEnabled,
     setDynamicTitle,
     setPreferenceSyncEnabled,
     setFavoritesSyncEnabled,
@@ -326,10 +348,11 @@ export function createPreferencesSlice() {
     setAppTimezone,
     setEnableCheckUpdates,
     setCheckUpdatesInterval,
-    setWidgetThemeToggle,
-    setWidgetLanguageToggle,
-    setWidgetTimezone,
-    setWidgetFullscreen,
+    setWidgetSearchPlacement,
+    setWidgetThemePlacement,
+    setWidgetLanguagePlacement,
+    setWidgetTimezonePlacement,
+    setWidgetFullscreenPlacement,
     setWidgetNotification,
     setWidgetLockScreen,
     setWidgetSidebarToggle,
