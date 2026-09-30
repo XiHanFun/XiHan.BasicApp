@@ -145,7 +145,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'develop.codegen.datasource',
+  pageCode: 'code_gen.datasource',
   pageName: t('develop.code_gen.tabs.datasource'),
   rowKey: 'basicId',
   batchRemovable: true,

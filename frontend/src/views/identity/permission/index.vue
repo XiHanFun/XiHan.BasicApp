@@ -253,7 +253,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'system.permission',
+  pageCode: 'identity.permission',
   exportPermission: 'identity.permission.export',
   pageName: t('identity.permission.page_name'),
   batchRemovable: true,

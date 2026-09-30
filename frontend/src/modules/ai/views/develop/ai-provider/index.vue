@@ -129,7 +129,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'develop.ai.provider',
+  pageCode: 'ai_provider',
   pageName: t('develop.ai_provider.page_name'),
   rowKey: 'basicId',
   batchRemovable: true,

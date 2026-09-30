@@ -299,7 +299,7 @@ export default {
     child_path: '路径',
     no_children: '暂无子菜单',
     menu_name_input_placeholder: '请输入菜单名称',
-    menu_code_input_placeholder: '如: system.user',
+    menu_code_input_placeholder: '如: identity.user',
     parent_menu: '上级菜单',
     parent_menu_placeholder: '选择上级菜单（可留空，留空为顶级）',
     path_input_placeholder: '如: /system/user',

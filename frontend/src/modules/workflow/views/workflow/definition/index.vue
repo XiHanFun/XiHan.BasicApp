@@ -103,7 +103,7 @@ function definitionName(row: unknown) {
 }
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'workflow.definition',
+  pageCode: 'workflow_definition',
   pageName: t('workflow.definition.page_name'),
   rowKey: 'basicId',
   fields: fields.value,

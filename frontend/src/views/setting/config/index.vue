@@ -98,7 +98,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 // ── 资源适配器：归一化查询参数 → 后端 API（仅放后端支持的搜索字段） ──
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'platform.config',
+  pageCode: 'setting.config',
   exportPermission: 'setting.config.export',
   importPermission: 'setting.config.import',
   pageName: t('setting.config.page_name'),

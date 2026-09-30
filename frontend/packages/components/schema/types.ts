@@ -213,7 +213,7 @@ export interface SchemaResource<TRow> {
   create?: (record: Record<string, unknown>) => Promise<unknown>
   /**
    * 导出中心提交（可选）—— 存在时 SchemaPage 导出按钮提供「提交到导出中心」异步入口。
-   * businessType 须匹配后端 IExportProvider.BusinessType（即导出按钮所属的后端页面码，不一定等于本页 pageCode）；buildQuery 复用页面适配器的查询构建，
+   * businessType 须匹配后端 IExportProvider.BusinessType（即导出按钮所属的后端页面码，与本页 pageCode 一致）；buildQuery 复用页面适配器的查询构建，
    * 返回资源自身分页查询 DTO（含分页/过滤），随快照交后端 Provider 反序列化（枚举须为数值以兼容 JSON 反序列化）。
    */
   export?: {

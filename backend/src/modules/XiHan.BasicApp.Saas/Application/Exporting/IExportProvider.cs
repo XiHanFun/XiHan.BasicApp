@@ -16,8 +16,7 @@ public interface IExportProvider
     /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
     /// <remarks>
-    /// 前端在页面的 <c>resource.export.businessType</c> 里填同一个值。它不一定等于页面 schema 的 pageCode：
-    /// 那是列设置、搜索设置与导入历史的存储键，个别页面沿用旧码（如用户页的 system.user）。
+    /// 前端页面 schema 的 pageCode 与 <c>resource.export.businessType</c> 都取同一个值。
     /// </remarks>
     string BusinessType { get; }
 
