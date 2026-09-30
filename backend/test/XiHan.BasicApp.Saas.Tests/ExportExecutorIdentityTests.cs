@@ -82,7 +82,7 @@ public sealed class ExportExecutorIdentityTests
         public Fixture(TenantStatus tenantStatus = TenantStatus.Normal)
         {
             var provider = new Mock<IExportProvider>();
-            _ = provider.SetupGet(item => item.BusinessType).Returns("system.user");
+            _ = provider.SetupGet(item => item.BusinessType).Returns("identity.user");
             _ = provider.SetupGet(item => item.RequiredPermission).Returns("identity.user.export");
 
             var snapshot = new Mock<IAuthorizationSnapshotQueryService>();
@@ -133,7 +133,7 @@ public sealed class ExportExecutorIdentityTests
             var task = new SysExportTask
             {
                 TenantId = TenantId,
-                BusinessType = "system.user",
+                BusinessType = "identity.user",
                 TaskName = "用户导出",
                 FieldsSnapshot = "[]",
                 RequesterSessionId = sessionId,

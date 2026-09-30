@@ -195,7 +195,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'system.role',
+  pageCode: 'identity.role',
   exportPermission: 'identity.role.export',
   pageName: t('identity.role.page_name'),
   batchRemovable: true,

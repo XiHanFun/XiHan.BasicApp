@@ -13,13 +13,19 @@ namespace XiHan.BasicApp.Saas.Application.Exporting;
 public interface IExportProvider
 {
     /// <summary>
-    /// 业务类型（= 前端 pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
+    /// <remarks>
+    /// 前端页面 schema 的 pageCode 与 <c>resource.export.businessType</c> 都取同一个值。
+    /// </remarks>
     string BusinessType { get; }
 
     /// <summary>
-    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// 导出所需权限码（与页面导出按钮绑定的权限一致，不是资源的读权限）
     /// </summary>
+    /// <remarks>
+    /// 提交导出任务时按它拦截；后台执行时执行器按发起人再校验一次，覆盖提交后被收回权限的情况。
+    /// </remarks>
     string RequiredPermission { get; }
 
     /// <summary>

@@ -85,7 +85,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'develop.ai.knowledge',
+  pageCode: 'knowledge_base',
   pageName: t('develop.knowledge.tabs.documents'),
   rowKey: 'basicId',
   batchRemovable: true,

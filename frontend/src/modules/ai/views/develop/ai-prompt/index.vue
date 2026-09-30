@@ -91,7 +91,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'develop.ai.prompt',
+  pageCode: 'ai_prompt',
   pageName: t('develop.ai_prompt.page_name'),
   rowKey: 'basicId',
   batchRemovable: true,

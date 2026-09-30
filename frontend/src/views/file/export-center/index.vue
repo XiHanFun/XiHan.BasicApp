@@ -73,7 +73,7 @@ const businessTypeOptions = computed(() => [
   { label: t('file.export_center.business_type.exception_log'), value: 'log.exception' },
   { label: t('file.export_center.business_type.diff_log'), value: 'log.diff' },
   { label: t('file.export_center.business_type.operation_log'), value: 'log.operation' },
-  { label: t('file.export_center.business_type.user'), value: 'system.user' },
+  { label: t('file.export_center.business_type.user'), value: 'identity.user' },
 ])
 
 /** 过滤值清洗：空串/空白按未填处理 */

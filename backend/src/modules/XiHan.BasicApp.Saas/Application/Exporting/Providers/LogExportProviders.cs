@@ -15,14 +15,14 @@ public sealed class AccessLogExportProvider(IAccessLogQueryService service)
     : QueryServiceExportProviderBase<AccessLogPageQueryDto, AccessLogListItemDto>
 {
     /// <summary>
-    /// 业务类型（= 前端 pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
     public override string BusinessType => "log.access";
 
     /// <summary>
-    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// 导出所需权限码（与页面导出按钮 log.access.export 绑定的权限一致；提交与执行都按它校验）
     /// </summary>
-    public override string RequiredPermission => SaasPermissionCodes.AccessLog.Read;
+    public override string RequiredPermission => SaasPermissionCodes.AccessLog.Export;
 
     /// <summary>
     /// 调用对应 QueryService 的分页方法（子类实现）
@@ -40,14 +40,14 @@ public sealed class ApiLogExportProvider(IApiLogQueryService service)
     : QueryServiceExportProviderBase<ApiLogPageQueryDto, ApiLogListItemDto>
 {
     /// <summary>
-    /// 业务类型（= 前端 pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
     public override string BusinessType => "log.api";
 
     /// <summary>
-    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// 导出所需权限码（与页面导出按钮 log.api.export 绑定的权限一致；提交与执行都按它校验）
     /// </summary>
-    public override string RequiredPermission => SaasPermissionCodes.ApiLog.Read;
+    public override string RequiredPermission => SaasPermissionCodes.ApiLog.Export;
 
     /// <summary>
     /// 调用对应 QueryService 的分页方法（子类实现）
@@ -65,14 +65,14 @@ public sealed class LoginLogExportProvider(ILoginLogQueryService service)
     : QueryServiceExportProviderBase<LoginLogPageQueryDto, LoginLogListItemDto>
 {
     /// <summary>
-    /// 业务类型（= 前端 pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
     public override string BusinessType => "log.login";
 
     /// <summary>
-    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// 导出所需权限码（与页面导出按钮 log.login.export 绑定的权限一致；提交与执行都按它校验）
     /// </summary>
-    public override string RequiredPermission => SaasPermissionCodes.LoginLog.Read;
+    public override string RequiredPermission => SaasPermissionCodes.LoginLog.Export;
 
     /// <summary>
     /// 调用对应 QueryService 的分页方法（子类实现）
@@ -90,14 +90,14 @@ public sealed class ExceptionLogExportProvider(IExceptionLogQueryService service
     : QueryServiceExportProviderBase<ExceptionLogPageQueryDto, ExceptionLogListItemDto>
 {
     /// <summary>
-    /// 业务类型（= 前端 pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
     public override string BusinessType => "log.exception";
 
     /// <summary>
-    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// 导出所需权限码（与页面导出按钮 log.exception.export 绑定的权限一致；提交与执行都按它校验）
     /// </summary>
-    public override string RequiredPermission => SaasPermissionCodes.ExceptionLog.Read;
+    public override string RequiredPermission => SaasPermissionCodes.ExceptionLog.Export;
 
     /// <summary>
     /// 调用对应 QueryService 的分页方法（子类实现）
@@ -115,14 +115,14 @@ public sealed class DiffLogExportProvider(IDiffLogQueryService service)
     : QueryServiceExportProviderBase<DiffLogPageQueryDto, DiffLogListItemDto>
 {
     /// <summary>
-    /// 业务类型（= 前端 pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
     public override string BusinessType => "log.diff";
 
     /// <summary>
-    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// 导出所需权限码（与页面导出按钮 log.diff.export 绑定的权限一致；提交与执行都按它校验）
     /// </summary>
-    public override string RequiredPermission => SaasPermissionCodes.DiffLog.Read;
+    public override string RequiredPermission => SaasPermissionCodes.DiffLog.Export;
 
     /// <summary>
     /// 调用对应 QueryService 的分页方法（子类实现）

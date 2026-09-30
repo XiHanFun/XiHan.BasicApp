@@ -299,7 +299,7 @@ export default {
     child_path: 'Pfad',
     no_children: 'Keine Untermenüs',
     menu_name_input_placeholder: 'Bitte Menünamen eingeben',
-    menu_code_input_placeholder: 'z. B. system.user',
+    menu_code_input_placeholder: 'z. B. identity.user',
     parent_menu: 'Übergeordnetes Menü',
     parent_menu_placeholder: 'Übergeordnetes Menü auswählen (leer lassen für oberste Ebene)',
     path_input_placeholder: 'z. B. /system/user',

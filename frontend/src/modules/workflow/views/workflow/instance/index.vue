@@ -122,7 +122,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'workflow.instance',
+  pageCode: 'workflow_instance',
   pageName: t('workflow.instance.page_name'),
   rowKey: 'basicId',
   fields: fields.value,
