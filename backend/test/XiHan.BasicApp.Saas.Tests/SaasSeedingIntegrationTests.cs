@@ -162,8 +162,8 @@ public sealed class SaasSeedingIntegrationTests : IDisposable
         var permissions = await _db.Queryable<SysPermission>().ToListAsync();
         Assert.Equal(permissions.Count(permission => permission.Side.IsTenantEffective()), adminPermissionIds.Count);
 
-        // 角色继承、自定义数据范围、闭包表
-        Assert.Equal(3, await _db.Queryable<SysRoleHierarchy>().CountAsync(row => row.TenantId == enterprise.BasicId));
+        // 角色继承（只存直接继承边）、自定义数据范围、部门闭包表
+        Assert.Equal(1, await _db.Queryable<SysRoleHierarchy>().CountAsync(row => row.TenantId == enterprise.BasicId));
         Assert.Equal(2, await _db.Queryable<SysRoleDataScope>().CountAsync(row => row.TenantId == enterprise.BasicId));
         Assert.True(await _db.Queryable<SysDepartmentHierarchy>().CountAsync(row => row.TenantId == enterprise.BasicId) > declared.Departments.Count);
 

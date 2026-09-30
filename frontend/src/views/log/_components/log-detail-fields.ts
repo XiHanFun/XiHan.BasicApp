@@ -307,6 +307,8 @@ export function permissionChangeLogDetailFields(t: Translate): LogDetailField[] 
     { label: t('log.permission_change.type_role_deny'), value: PermissionChangeType.RoleDenyPermission },
     { label: t('log.permission_change.type_user_delegate_grant'), value: PermissionChangeType.UserDelegateGrant },
     { label: t('log.permission_change.type_user_delegate_revoke'), value: PermissionChangeType.UserDelegateRevoke },
+    { label: t('log.permission_change.type_role_add_parent'), value: PermissionChangeType.RoleAddParent },
+    { label: t('log.permission_change.type_role_remove_parent'), value: PermissionChangeType.RoleRemoveParent },
   ]
 
   return [

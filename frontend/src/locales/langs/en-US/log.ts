@@ -225,6 +225,8 @@ export default {
     type_role_deny: 'Role Deny',
     type_user_delegate_grant: 'Received Delegated Grant',
     type_user_delegate_revoke: 'Delegated Grant Revoked',
+    type_role_add_parent: 'Role parent added',
+    type_role_remove_parent: 'Role parent removed',
     operator_user_id: 'Operator ID',
     operator_user_name: 'Operator',
     target_user_id: 'Target User ID',

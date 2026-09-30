@@ -35,4 +35,19 @@ public interface IUserRoleRepository : ISaasRepository<SysUserRole>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>去重后的用户主键</returns>
     Task<IReadOnlyList<long>> GetValidUserIdsByRoleIdsIgnoreTenantAsync(IReadOnlyCollection<long> roleIds, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// 一组角色在当前上下文此刻生效的授权（读共享口径，调用方按作用域再筛）
+    /// </summary>
+    Task<IReadOnlyList<SysUserRole>> GetValidByRoleIdsAsync(IReadOnlyCollection<long> roleIds, DateTimeOffset now, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 一组用户在当前上下文此刻生效的授权（读共享口径，调用方按作用域再筛）
+    /// </summary>
+    Task<IReadOnlyList<SysUserRole>> GetValidByUserIdsAsync(IReadOnlyCollection<long> userIds, DateTimeOffset now, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 跨租户获取此刻有成员持有指定角色的租户（不含平台）
+    /// </summary>
+    /// <remarks>全局角色在各租户里分配，平台调整它的继承后据此找出要复核的租户。</remarks>
+    Task<IReadOnlyList<long>> GetValidTenantIdsByRoleIdsIgnoreTenantAsync(IReadOnlyCollection<long> roleIds, DateTimeOffset now, CancellationToken cancellationToken = default);
 }

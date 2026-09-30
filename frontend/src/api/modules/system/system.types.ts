@@ -9,7 +9,8 @@ import type {
   PermissionRequestListItemDto,
   ResourceDetailDto,
   RoleDataScopeListItemDto,
-  RoleHierarchyListItemDto,
+  RoleInheritanceItemDto,
+  RoleInheritedPermissionDto,
   RolePermissionListItemDto,
   UserDataScopeListItemDto,
   UserPermissionListItemDto,
@@ -154,11 +155,12 @@ export interface DepartmentManagementDetailDto {
 }
 
 export interface RoleManagementDetailDto {
-  ancestors: RoleHierarchyListItemDto[]
+  ancestors: RoleInheritanceItemDto[]
   dataScopes: RoleDataScopeListItemDto[]
-  descendants: RoleHierarchyListItemDto[]
+  descendants: RoleInheritanceItemDto[]
   generatedTime: DateTimeString
   grantedUsers: RoleManagementGrantedUserDto[]
+  inheritedPermissions: RoleInheritedPermissionDto[]
   permissions: RolePermissionListItemDto[]
   role: RoleDetailDto
 }

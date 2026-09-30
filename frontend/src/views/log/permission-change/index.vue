@@ -34,6 +34,8 @@ const changeTypeOptions = computed(() => [
   { label: t('log.permission_change.type_role_deny'), value: PermissionChangeType.RoleDenyPermission },
   { label: t('log.permission_change.type_user_delegate_grant'), value: PermissionChangeType.UserDelegateGrant },
   { label: t('log.permission_change.type_user_delegate_revoke'), value: PermissionChangeType.UserDelegateRevoke },
+  { label: t('log.permission_change.type_role_add_parent'), value: PermissionChangeType.RoleAddParent },
+  { label: t('log.permission_change.type_role_remove_parent'), value: PermissionChangeType.RoleRemoveParent },
 ])
 
 /** 变更类型 → 标签类型：授权绿、撤权橙、拒绝红 */
@@ -45,6 +47,7 @@ function changeTypeTagType(type: PermissionChangeType) {
     case PermissionChangeType.RoleRevokePermission:
     case PermissionChangeType.UserRevokePermission:
     case PermissionChangeType.UserRemoveRole:
+    case PermissionChangeType.RoleRemoveParent:
       return 'warning'
     default:
       return 'success'

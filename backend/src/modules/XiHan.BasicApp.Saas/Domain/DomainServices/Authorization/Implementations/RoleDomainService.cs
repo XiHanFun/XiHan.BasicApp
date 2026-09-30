@@ -424,174 +424,6 @@ public sealed class RoleDomainService
         return new DataScopeSetResult(scopeChanged, grantedDepartmentIds, [.. revoking.Select(scope => scope.DepartmentId)]);
     }
 
-    /// <summary>
-    /// 批量变更角色的直接父角色（一次性提交新增与移除，先移除后新增）
-    /// </summary>
-    /// <remarks>
-    /// 继承关系以闭包表存储，整表读出后在内存里先摘边、再加边，最后一次性删除与写入闭包行。
-    /// 先摘后加：本次一并移除的旧路径不会挡住新增，一并移除的多条父边也不会互为替代路径
-    /// </remarks>
-    /// <returns>本次实际发生变化的直接父角色</returns>
-    public async Task<RoleHierarchyBatchUpdateResult> BatchUpdateRoleParentsAsync(RoleHierarchyBatchUpdateCommand command, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (command.RoleId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(command), "角色主键必须大于 0。");
-        }
-
-        var addParentIds = command.AddParentRoleIds.Where(id => id > 0).Distinct().ToList();
-        // 同一父角色本次既加又移时以新增为准
-        var removeParentIds = command.RemoveParentRoleIds
-            .Where(id => id > 0 && !addParentIds.Contains(id))
-            .ToHashSet();
-        if (addParentIds.Count == 0 && removeParentIds.Count == 0)
-        {
-            return new RoleHierarchyBatchUpdateResult([], []);
-        }
-
-        if (addParentIds.Contains(command.RoleId))
-        {
-            throw new InvalidOperationException("角色不能继承自己。");
-        }
-
-        var role = await GetRoleForHierarchyOrThrowAsync(command.RoleId, cancellationToken);
-        EnsureDescendantCanBeMaintainedForHierarchy(role);
-
-        var workingHierarchies = (await _roleHierarchyRepository.GetAllAsync(cancellationToken)).ToList();
-
-        // 移除只认本角色现有的直接父边
-        var removedParentIds = workingHierarchies
-            .Where(hierarchy => hierarchy.Depth == 1
-                && hierarchy.DescendantId == role.BasicId
-                && removeParentIds.Contains(hierarchy.AncestorId))
-            .Select(hierarchy => hierarchy.AncestorId)
-            .Distinct()
-            .ToList();
-        var deleting = removedParentIds.Count == 0
-            ? []
-            : RemoveDirectEdges([.. removedParentIds.Select(parentId => new HierarchyPair(parentId, role.BasicId))], workingHierarchies);
-
-        // 已是直接父角色的视为已达成
-        var adding = new List<SysRoleHierarchy>();
-        var addedParentIds = new List<long>();
-        foreach (var parentId in addParentIds)
-        {
-            if (workingHierarchies.Any(hierarchy => hierarchy.Depth == 1 && hierarchy.AncestorId == parentId && hierarchy.DescendantId == role.BasicId))
-            {
-                continue;
-            }
-
-            var parent = await GetRoleForHierarchyOrThrowAsync(parentId, cancellationToken);
-            AddDirectEdge(parent, role, workingHierarchies, adding);
-            addedParentIds.Add(parentId);
-        }
-
-        // 摘掉又被新路径补回的闭包行照删照加，深度与路径按新路径重算
-        if (deleting.Count > 0)
-        {
-            var deletingIds = deleting.Select(hierarchy => hierarchy.BasicId).ToList();
-            _ = await _roleHierarchyRepository.DeleteAsync(hierarchy => deletingIds.Contains(hierarchy.BasicId), cancellationToken);
-        }
-
-        if (adding.Count > 0)
-        {
-            _ = await _roleHierarchyRepository.AddRangeAsync(adding, cancellationToken);
-        }
-
-        return new RoleHierarchyBatchUpdateResult(addedParentIds, removedParentIds);
-    }
-
-    /// <summary>
-    /// 在工作集中加一条直接继承边并补齐闭包，新生成的闭包行追加到 addList
-    /// </summary>
-    private static void AddDirectEdge(SysRole ancestor, SysRole descendant, List<SysRoleHierarchy> workingHierarchies, List<SysRoleHierarchy> addList)
-    {
-        if (workingHierarchies.Any(hierarchy => hierarchy.AncestorId == ancestor.BasicId && hierarchy.DescendantId == descendant.BasicId))
-        {
-            throw new InvalidOperationException("角色已间接继承该父角色，无需再直接继承。");
-        }
-
-        if (workingHierarchies.Any(hierarchy => hierarchy.AncestorId == descendant.BasicId && hierarchy.DescendantId == ancestor.BasicId))
-        {
-            throw new InvalidOperationException("角色继承关系会形成环路。");
-        }
-
-        EnsureSelfHierarchy(ancestor, workingHierarchies, addList);
-        EnsureSelfHierarchy(descendant, workingHierarchies, addList);
-
-        var ancestorClosures = workingHierarchies
-            .Where(hierarchy => hierarchy.DescendantId == ancestor.BasicId)
-            .ToArray();
-        var descendantClosures = workingHierarchies
-            .Where(hierarchy => hierarchy.AncestorId == descendant.BasicId)
-            .ToArray();
-        var existingPairs = workingHierarchies
-            .Select(hierarchy => new HierarchyPair(hierarchy.AncestorId, hierarchy.DescendantId))
-            .ToHashSet();
-
-        foreach (var ancestorClosure in ancestorClosures)
-        {
-            foreach (var descendantClosure in descendantClosures)
-            {
-                var pair = new HierarchyPair(ancestorClosure.AncestorId, descendantClosure.DescendantId);
-                if (!existingPairs.Add(pair))
-                {
-                    continue;
-                }
-
-                var hierarchy = new SysRoleHierarchy
-                {
-                    AncestorId = pair.AncestorId,
-                    DescendantId = pair.DescendantId,
-                    Depth = ancestorClosure.Depth + 1 + descendantClosure.Depth,
-                    Path = BuildCombinedPath(ancestorClosure, descendantClosure)
-                };
-
-                addList.Add(hierarchy);
-                workingHierarchies.Add(hierarchy);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 从工作集中摘掉一组直接继承边，连带摘掉只经由它们可达的闭包行，返回被摘掉的行
-    /// </summary>
-    private static List<SysRoleHierarchy> RemoveDirectEdges(IReadOnlyCollection<HierarchyPair> directPairs, List<SysRoleHierarchy> workingHierarchies)
-    {
-        var remainingDirectEdges = workingHierarchies
-            .Where(hierarchy => hierarchy.Depth == 1 && !directPairs.Contains(new HierarchyPair(hierarchy.AncestorId, hierarchy.DescendantId)))
-            .ToArray();
-        var remainingPairs = BuildReachablePairs(remainingDirectEdges);
-        if (directPairs.Any(remainingPairs.Contains))
-        {
-            throw new InvalidOperationException("该直接继承关系存在替代路径，需先清理替代路径后再删除。");
-        }
-
-        var impactedAncestorIds = workingHierarchies
-            .Where(hierarchy => directPairs.Any(pair => pair.AncestorId == hierarchy.DescendantId))
-            .Select(hierarchy => hierarchy.AncestorId)
-            .Concat(directPairs.Select(pair => pair.AncestorId))
-            .ToHashSet();
-        var impactedDescendantIds = workingHierarchies
-            .Where(hierarchy => directPairs.Any(pair => pair.DescendantId == hierarchy.AncestorId))
-            .Select(hierarchy => hierarchy.DescendantId)
-            .Concat(directPairs.Select(pair => pair.DescendantId))
-            .ToHashSet();
-        var removing = workingHierarchies
-            .Where(hierarchy => hierarchy.Depth > 0
-                && impactedAncestorIds.Contains(hierarchy.AncestorId)
-                && impactedDescendantIds.Contains(hierarchy.DescendantId)
-                && !remainingPairs.Contains(new HierarchyPair(hierarchy.AncestorId, hierarchy.DescendantId)))
-            .ToList();
-
-        var removingSet = new HashSet<SysRoleHierarchy>(removing, ReferenceEqualityComparer.Instance);
-        _ = workingHierarchies.RemoveAll(removingSet.Contains);
-        return removing;
-    }
-
     private static void ValidateCreateCommand(RoleCreateCommand command)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(command.RoleCode);
@@ -646,107 +478,6 @@ public sealed class RoleDomainService
         ValidateEffectivePeriod(command.EffectiveTime, command.ExpirationTime);
     }
 
-    private static void EnsureSelfHierarchy(SysRole role, List<SysRoleHierarchy> workingHierarchies, List<SysRoleHierarchy> addList)
-    {
-        if (workingHierarchies.Any(hierarchy => hierarchy.AncestorId == role.BasicId && hierarchy.DescendantId == role.BasicId))
-        {
-            return;
-        }
-
-        var hierarchy = new SysRoleHierarchy
-        {
-            AncestorId = role.BasicId,
-            DescendantId = role.BasicId,
-            Depth = 0,
-            Path = role.BasicId.ToString()
-        };
-
-        workingHierarchies.Add(hierarchy);
-        if (!role.IsGlobal && role.RoleType != RoleType.System)
-        {
-            addList.Add(hierarchy);
-        }
-    }
-
-    private static string BuildCombinedPath(SysRoleHierarchy ancestorClosure, SysRoleHierarchy descendantClosure)
-    {
-        var pathIds = new List<long>(BuildPathIds(ancestorClosure));
-        pathIds.AddRange(BuildPathIds(descendantClosure));
-        return string.Join("/", pathIds);
-    }
-
-    private static IReadOnlyList<long> BuildPathIds(SysRoleHierarchy hierarchy)
-    {
-        if (!string.IsNullOrWhiteSpace(hierarchy.Path))
-        {
-            var ids = hierarchy.Path
-                .Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .Select(value => long.TryParse(value, out var id) ? id : 0)
-                .Where(id => id > 0)
-                .ToArray();
-
-            if (ids.Length > 0 && ids[0] == hierarchy.AncestorId && ids[^1] == hierarchy.DescendantId)
-            {
-                return ids;
-            }
-        }
-
-        return hierarchy.AncestorId == hierarchy.DescendantId
-            ? [hierarchy.AncestorId]
-            : [hierarchy.AncestorId, hierarchy.DescendantId];
-    }
-
-    private static HashSet<HierarchyPair> BuildReachablePairs(IEnumerable<SysRoleHierarchy> directEdges)
-    {
-        var edges = directEdges.ToArray();
-        var adjacency = edges
-            .GroupBy(edge => edge.AncestorId)
-            .ToDictionary(group => group.Key, group => group.Select(edge => edge.DescendantId).Distinct().ToArray());
-        var nodes = edges
-            .SelectMany(edge => new[] { edge.AncestorId, edge.DescendantId })
-            .Distinct()
-            .ToArray();
-        var pairs = new HashSet<HierarchyPair>();
-
-        foreach (var startNode in nodes)
-        {
-            pairs.Add(new HierarchyPair(startNode, startNode));
-
-            var visited = new HashSet<long> { startNode };
-            var queue = new Queue<long>();
-            if (adjacency.TryGetValue(startNode, out var children))
-            {
-                foreach (var child in children)
-                {
-                    queue.Enqueue(child);
-                }
-            }
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-                if (!visited.Add(current))
-                {
-                    continue;
-                }
-
-                pairs.Add(new HierarchyPair(startNode, current));
-
-                if (!adjacency.TryGetValue(current, out var nextChildren))
-                {
-                    continue;
-                }
-
-                foreach (var child in nextChildren)
-                {
-                    queue.Enqueue(child);
-                }
-            }
-        }
-
-        return pairs;
-    }
-
     private static void ValidateEffectivePeriod(DateTimeOffset? effectiveTime, DateTimeOffset? expirationTime)
     {
         if (effectiveTime.HasValue && expirationTime.HasValue && expirationTime.Value <= effectiveTime.Value)
@@ -787,14 +518,6 @@ public sealed class RoleDomainService
         }
     }
 
-    private void EnsureDescendantCanBeMaintainedForHierarchy(SysRole descendant)
-    {
-        if ((descendant.IsGlobal || descendant.RoleType == RoleType.System) && !_currentTenant.IsPlatformOperation())
-        {
-            throw new InvalidOperationException("平台全局角色或系统角色仅平台运维态可维护继承关系，请切换到平台运维后操作。");
-        }
-    }
-
     private async Task<SysRole> GetEditableRoleOrThrowAsync(long id, CancellationToken cancellationToken)
     {
         if (id <= 0)
@@ -814,7 +537,7 @@ public sealed class RoleDomainService
     /// </summary>
     /// <remarks>
     /// 分配、授权、数据范围的撤销是把行置为失效而不删行，失效行是历史记录，只有有效行才算引用；
-    /// 连失效行一起算，角色只要有过成员或授权就再也删不掉。继承闭包无状态、变更即硬删，按行判断。
+    /// 连失效行一起算，角色只要有过成员或授权就再也删不掉。继承边无状态、解除即硬删，按行判断。
     /// </remarks>
     private async Task EnsureRoleNotReferencedAsync(SysRole role, CancellationToken cancellationToken)
     {
@@ -841,10 +564,10 @@ public sealed class RoleDomainService
 
         if (acrossTenants
                 ? await _roleHierarchyRepository.AnyIgnoreTenantAsync(
-                    hierarchy => hierarchy.Depth > 0 && (hierarchy.AncestorId == roleId || hierarchy.DescendantId == roleId),
+                    hierarchy => hierarchy.AncestorId == roleId || hierarchy.DescendantId == roleId,
                     cancellationToken)
                 : await _roleHierarchyRepository.AnyAsync(
-                    hierarchy => hierarchy.Depth > 0 && (hierarchy.AncestorId == roleId || hierarchy.DescendantId == roleId),
+                    hierarchy => hierarchy.AncestorId == roleId || hierarchy.DescendantId == roleId,
                     cancellationToken))
         {
             throw new InvalidOperationException(acrossTenants ? "全局角色被租户角色继承，不能删除。" : "角色存在继承关系，不能删除。");
@@ -918,17 +641,4 @@ public sealed class RoleDomainService
 
         return department;
     }
-
-    private async Task<SysRole> GetRoleForHierarchyOrThrowAsync(long roleId, CancellationToken cancellationToken)
-    {
-        if (roleId <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(roleId), "角色主键必须大于 0。");
-        }
-
-        return await _roleRepository.GetByIdAsync(roleId, cancellationToken)
-            ?? throw new InvalidOperationException("角色不存在。");
-    }
-
-    private readonly record struct HierarchyPair(long AncestorId, long DescendantId);
 }

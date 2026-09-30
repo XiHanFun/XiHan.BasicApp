@@ -142,9 +142,9 @@ public static class SaasPermissionDefinitions
         ]),
         new(SaasPermissionCodes.RoleHierarchy.Group, "角色继承", PermissionSide.Both,
         [
-            new(SaasPermissionCodes.RoleHierarchy.Read, "角色继承查看", "查看角色继承祖先链、后代链和详情", false, 269),
-            new(SaasPermissionCodes.RoleHierarchy.Create, "角色继承创建", "创建角色直接继承关系并补齐闭包记录", true, 270),
-            new(SaasPermissionCodes.RoleHierarchy.Delete, "角色继承删除", "删除角色直接继承关系并清理派生闭包记录", true, 271),
+            new(SaasPermissionCodes.RoleHierarchy.Read, "角色继承查看", "查看角色的上级链与下级链", false, 269),
+            new(SaasPermissionCodes.RoleHierarchy.Create, "角色继承创建", "为角色新增直接上级", true, 270),
+            new(SaasPermissionCodes.RoleHierarchy.Delete, "角色继承删除", "解除角色的直接上级", true, 271),
         ]),
         // 两侧：平台设全局角色模板的档位（全局角色不能自定义部门），租户设本租户角色的档位与部门
         new(SaasPermissionCodes.RoleDataScope.Group, "角色数据范围", PermissionSide.Both,

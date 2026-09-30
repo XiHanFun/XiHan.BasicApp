@@ -27,6 +27,7 @@ public sealed class AuthorizationChangedDomainEvent : SaasDomainEventBase
     /// <param name="permissionId">权限ID（权限级变更时填写；分配/移除角色时为空）</param>
     /// <param name="operatorUserId">操作人ID</param>
     /// <param name="reason">变更原因</param>
+    /// <param name="relatedRoleId">关联角色ID（角色新增 / 解除上级时为上级角色）</param>
     public AuthorizationChangedDomainEvent(
         long tenantId,
         PermissionChangeType changeType,
@@ -34,13 +35,15 @@ public sealed class AuthorizationChangedDomainEvent : SaasDomainEventBase
         long? targetRoleId,
         long? permissionId,
         long? operatorUserId = null,
-        string? reason = null)
+        string? reason = null,
+        long? relatedRoleId = null)
         : base(tenantId, operatorUserId, reason)
     {
         ChangeType = changeType;
         TargetUserId = targetUserId;
         TargetRoleId = targetRoleId;
         PermissionId = permissionId;
+        RelatedRoleId = relatedRoleId;
     }
 
     /// <summary>
@@ -62,4 +65,9 @@ public sealed class AuthorizationChangedDomainEvent : SaasDomainEventBase
     /// 权限ID（权限级变更时填写）
     /// </summary>
     public long? PermissionId { get; }
+
+    /// <summary>
+    /// 关联角色ID（角色新增 / 解除上级时为上级角色）
+    /// </summary>
+    public long? RelatedRoleId { get; }
 }

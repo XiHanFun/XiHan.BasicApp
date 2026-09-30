@@ -454,19 +454,15 @@ public sealed class SaasAppImpersonationPolicyTests
     }
 
     /// <summary>
-    /// 继承链上的祖先角色带来的模仿权限同样被拦住。
+    /// 继承链上的上级角色带来的模仿权限同样被拦住。
     /// </summary>
     [Fact]
     public async Task EnsureCanGrantRoleIdsAsync_AncestorRoleCarryingImpersonation_ShouldThrow()
     {
         _roleHierarchyRepository
-            .Setup(repository => repository.GetAncestorIdsAsync(
-                It.IsAny<IEnumerable<long>>(), true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([9, 10]);
-        _rolePermissionRepository
-            .Setup(repository => repository.GetValidByRoleIdsAsync(
-                It.IsAny<IEnumerable<long>>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([new SysRolePermission { RoleId = 10, PermissionId = 2 }]);
+            .Setup(repository => repository.GetEdgesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync([new SysRoleHierarchy { AncestorId = 10, DescendantId = 9 }]);
+        ArrangeRolePermissions(new SysRolePermission { RoleId = 10, PermissionId = 2 });
         ArrangePermissionLookup(2, SaasPermissionCodes.Impersonation.Start);
         _currentUser.Setup(user => user.UserId).Returns(OperatorUserId);
         _currentTenant.Setup(tenant => tenant.Id).Returns(TenantId);
@@ -524,18 +520,25 @@ public sealed class SaasAppImpersonationPolicyTests
     }
 
     /// <summary>
-    /// 把角色展开成「角色自身 + 祖先角色」的权限集合。
+    /// 角色没有任何继承关系，自身带着一条权限：展开结果必须仍含角色自身。
     /// </summary>
     private void ArrangeRoleExpansion(long roleId, long permissionId)
     {
         _roleHierarchyRepository
-            .Setup(repository => repository.GetAncestorIdsAsync(
-                It.IsAny<IEnumerable<long>>(), true, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([roleId]);
+            .Setup(repository => repository.GetEdgesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        ArrangeRolePermissions(new SysRolePermission { RoleId = roleId, PermissionId = permissionId });
+    }
+
+    /// <summary>
+    /// 角色权限仓储按请求的角色返回绑定：展开漏掉的角色，它的权限就查不到。
+    /// </summary>
+    private void ArrangeRolePermissions(params SysRolePermission[] bindings)
+    {
         _rolePermissionRepository
             .Setup(repository => repository.GetValidByRoleIdsAsync(
                 It.IsAny<IEnumerable<long>>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([new SysRolePermission { RoleId = roleId, PermissionId = permissionId }]);
+            .ReturnsAsync((IEnumerable<long> ids, DateTimeOffset _, CancellationToken _) => [.. bindings.Where(binding => ids.Contains(binding.RoleId))]);
     }
 
     private ImpersonationPolicyService CreateService()

@@ -275,6 +275,8 @@
     "PermissionChangeType.RoleDenyPermission": "角色權限拒絕",
     "PermissionChangeType.UserDelegateGrant": "使用者取得委派授權",
     "PermissionChangeType.UserDelegateRevoke": "使用者委派授權收回",
+    "PermissionChangeType.RoleAddParent": "角色新增上級",
+    "PermissionChangeType.RoleRemoveParent": "角色解除上級",
     "ConditionOperator.Equals": "等於",
     "ConditionOperator.NotEquals": "不等於",
     "ConditionOperator.GreaterThan": "大於",

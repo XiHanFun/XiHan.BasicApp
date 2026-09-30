@@ -72,7 +72,7 @@ public sealed record RoleDataScopeSetCommand(
     IReadOnlyList<DataScopeDepartmentItem> Departments);
 
 /// <summary>
-/// 角色父角色批量变更命令（一次性提交新增与移除的直接父角色）
+/// 角色直接上级批量变更命令（一次提交新增与解除）
 /// </summary>
 public sealed record RoleHierarchyBatchUpdateCommand(
     long RoleId,
@@ -80,10 +80,10 @@ public sealed record RoleHierarchyBatchUpdateCommand(
     IReadOnlyList<long> RemoveParentRoleIds);
 
 /// <summary>
-/// 角色父角色批量变更结果（本次实际发生变化的直接父角色）
+/// 角色直接上级批量变更结果（本次实际发生变化的直接上级）
 /// </summary>
-/// <param name="AddedParentRoleIds">实际新增的直接父角色ID</param>
-/// <param name="RemovedParentRoleIds">实际移除的直接父角色ID</param>
+/// <param name="AddedParentRoleIds">实际新增的直接上级ID</param>
+/// <param name="RemovedParentRoleIds">实际解除的直接上级ID</param>
 public sealed record RoleHierarchyBatchUpdateResult(
     IReadOnlyList<long> AddedParentRoleIds,
     IReadOnlyList<long> RemovedParentRoleIds);

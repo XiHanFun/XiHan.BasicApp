@@ -8,82 +8,45 @@ using XiHan.Framework.Data.SqlSugar.Routing;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 系统角色层级关系实体
-/// 使用闭包表模式存储角色之间的所有继承关系（包括直接和传递继承）
+/// 系统角色继承边实体：一行即一条「下级角色直接继承上级角色」
 /// </summary>
 /// <remarks>
-/// 闭包表核心不变式：若 (A→B) 和 (B→C) 均存在，则 (A→C) 也必须存在。
-/// 不设 Status/IsDeleted——单条记录停用会破坏传递闭包一致性，变更时应整体重建受影响路径。
-/// 设计对齐 SysDepartmentHierarchy（BasicAppCreationEntity，硬删，无 Status）。
+/// 只存直接继承边，间接继承、深度与路径都由 RoleInheritanceGraph 从边推出。
+/// 角色继承图很小、也没有 SQL 联表依赖展开结果，存派生的闭包只会带来一致性问题：
+/// 平台调整全局角色的继承时，各租户里继承了它的角色随读取即时生效，不需要跨租户重建。
 ///
-/// 闭包表优点：
-/// 1. 查询所有子角色：O(1) 单次查询
-/// 2. 查询继承链：O(1) 单次查询
-/// 3. 避免递归查询的性能问题
+/// 作用范围：
+/// - 租户角色可继承本租户角色与平台全局角色，边存本租户；全局角色只继承全局角色，边存平台，仅平台维护
+/// - 系统角色（super_admin / tenant_owner）不参与继承：它们的权限由授权快照按上下文整体给出
 ///
-/// DAG 多路径说明：
-/// 当存在多条路径（如 A→B→C 深度2 和 A→D→E→C 深度3）时，(A,C) 记录的 Depth 取最短路径深度，
-/// Path 记录最短路径。服务层维护闭包时需在增删边后 diff 式重算受影响记录。
-/// 如实际场景以单继承为主，可考虑收紧为树结构（对每个后代限制 Depth=1 祖先唯一）。
+/// 继承语义（详见 docs/backend/permission.md）：
+/// - 有效继承链 = 角色自身 + 经启用角色可达的全部上级；停用角色不贡献权限，也切断经由它的继承
+/// - 角色级 Deny 只作用于本链：链上 Grant 并集减去链上 Deny 并集，不影响用户持有的其他独立角色
+/// - 数据范围、字段安全规则、成员上限不继承
+/// - 职责分离按结构展开继承链判定（不看启停），变更继承时复核受影响角色与成员
 ///
-/// 继承语义：
-/// - 权限继承：后代自动获得祖先的所有 Grant 权限，可通过 SysRolePermission.Deny 覆盖
-/// - DataScope 不继承：每个角色独立定义自己的 DataScope
-/// - SSD/DSD 传递：约束检查时须展开继承链（详见 SysConstraintRuleItem 注释）
-/// - 服务层必须在写入时做环路检测（禁止 A→B→A 循环继承）
-///
-/// 删除：
-/// - 硬删；变更继承关系时删除旧闭包记录并按新结构重建
+/// 不设 Status/IsDeleted：解除继承即硬删这条边。
 /// </remarks>
-[SugarTable(TableName = "Sys_Role_Hierarchy", TableDescription = "系统角色层级关系表")]
+[SugarTable(TableName = "Sys_Role_Hierarchy", TableDescription = "系统角色继承关系表")]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("UX_{table}_TeId_AnId_DeId", nameof(TenantId), OrderByType.Asc, nameof(AncestorId), OrderByType.Asc, nameof(DescendantId), OrderByType.Asc, true)]
 [SugarIndex("IX_{table}_DeId", nameof(DescendantId), OrderByType.Asc)]
-[SugarIndex("IX_{table}_AnId_De", nameof(AncestorId), OrderByType.Asc, nameof(Depth), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_AnId", nameof(TenantId), OrderByType.Asc, nameof(AncestorId), OrderByType.Asc)]
 [PlatformDataSource]
 public partial class SysRoleHierarchy : BasicAppCreationEntity
 {
     /// <summary>
-    /// 祖先角色ID（被继承的角色）
+    /// 上级角色ID（被继承的角色）
     /// </summary>
-    /// <remarks>
-    /// 包含所有被继承的角色，包括自己（Depth=0）
-    /// </remarks>
-    [SugarColumn(ColumnName = "Ancestor_Id", ColumnDescription = "祖先角色ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Ancestor_Id", ColumnDescription = "上级角色ID", IsNullable = false)]
     public virtual long AncestorId { get; set; }
 
     /// <summary>
-    /// 后代角色ID（继承者角色）
+    /// 下级角色ID（继承者角色）
     /// </summary>
-    /// <remarks>
-    /// 包含所有继承者角色，包括自己（Depth=0）
-    /// </remarks>
-    [SugarColumn(ColumnName = "Descendant_Id", ColumnDescription = "后代角色ID", IsNullable = false)]
+    [SugarColumn(ColumnName = "Descendant_Id", ColumnDescription = "下级角色ID", IsNullable = false)]
     public virtual long DescendantId { get; set; }
-
-    /// <summary>
-    /// 继承深度
-    /// </summary>
-    /// <remarks>
-    /// - 0: 自己（自关联记录）
-    /// - 1: 直接继承
-    /// - n: n级间接继承
-    /// </remarks>
-    [SugarColumn(ColumnName = "Depth", ColumnDescription = "继承深度")]
-    public virtual int Depth { get; set; } = 0;
-
-    /// <summary>
-    /// 继承路径（从祖先到后代的完整路径）
-    /// </summary>
-    /// <remarks>
-    /// 格式：祖先ID/...中间ID.../后代ID
-    /// 例如：1/3/5 表示角色5继承自角色3，角色3继承自角色1
-    /// 用于快速显示角色继承链和权限追溯
-    /// </remarks>
-    [SugarColumn(ColumnName = "Path", ColumnDescription = "继承路径", Length = 1000, IsNullable = true)]
-    public virtual string? Path { get; set; }
 
     /// <summary>
     /// 备注

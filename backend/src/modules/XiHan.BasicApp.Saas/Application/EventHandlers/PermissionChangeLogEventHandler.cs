@@ -66,7 +66,7 @@ public sealed class PermissionChangeLogEventHandler
             ChangeTime = now,
             CreatedTime = now
         };
-        entity.Description = NormalizeText(BuildDescription(entity), 500);
+        entity.Description = NormalizeText(BuildDescription(entity, await ResolveRoleNameAsync(eventData.RelatedRoleId), eventData.RelatedRoleId), 500);
 
         await _clientResolver.GetClientForEntity<SysPermissionChangeLog>().Insertable(entity).SplitTable().ExecuteCommandAsync();
     }
@@ -132,7 +132,8 @@ public sealed class PermissionChangeLogEventHandler
     /// <summary>
     /// 构建人类可读摘要（优先名称，回退 ID）。
     /// </summary>
-    private static string BuildDescription(SysPermissionChangeLog log)
+    /// <remarks>角色新增 / 解除上级时，上级角色不单独落列，写进摘要。</remarks>
+    private static string BuildDescription(SysPermissionChangeLog log, string? relatedRoleName, long? relatedRoleId)
     {
         var parts = new List<string>();
         if (log.TargetUserId is > 0)
@@ -148,6 +149,11 @@ public sealed class PermissionChangeLogEventHandler
         if (log.PermissionId is > 0)
         {
             parts.Add($"权限「{log.PermissionName ?? log.PermissionId.ToString()}」");
+        }
+
+        if (relatedRoleId is > 0)
+        {
+            parts.Add($"上级角色「{relatedRoleName ?? relatedRoleId.ToString()}」");
         }
 
         return parts.Count > 0 ? string.Join(" · ", parts) : log.ChangeType.ToString();

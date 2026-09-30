@@ -49,10 +49,4 @@ public interface IRoleDomainService
     /// </summary>
     /// <returns>档位是否改变、本次实际变化的部门</returns>
     Task<DataScopeSetResult> SetRoleDataScopeAsync(RoleDataScopeSetCommand command, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 批量变更角色的直接父角色（一次性提交新增与移除，先移除后新增）
-    /// </summary>
-    /// <returns>本次实际发生变化的直接父角色</returns>
-    Task<RoleHierarchyBatchUpdateResult> BatchUpdateRoleParentsAsync(RoleHierarchyBatchUpdateCommand command, CancellationToken cancellationToken = default);
 }

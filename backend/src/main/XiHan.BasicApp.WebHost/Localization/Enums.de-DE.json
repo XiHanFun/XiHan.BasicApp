@@ -275,6 +275,8 @@
     "PermissionChangeType.RoleDenyPermission": "Rolle: Berechtigung verweigert",
     "PermissionChangeType.UserDelegateGrant": "Benutzer: Delegierte Berechtigung erhalten",
     "PermissionChangeType.UserDelegateRevoke": "Benutzer: Delegierte Berechtigung entzogen",
+    "PermissionChangeType.RoleAddParent": "Rolle: Übergeordnete Rolle hinzugefügt",
+    "PermissionChangeType.RoleRemoveParent": "Rolle: Übergeordnete Rolle entfernt",
     "ConditionOperator.Equals": "Gleich",
     "ConditionOperator.NotEquals": "Ungleich",
     "ConditionOperator.GreaterThan": "Größer als",

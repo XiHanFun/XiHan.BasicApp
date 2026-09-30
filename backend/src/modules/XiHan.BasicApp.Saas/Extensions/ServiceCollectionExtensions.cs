@@ -227,6 +227,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IFileTransferService, FileTransferService>();
         services.AddScoped<IAuthTokenIssueService, AuthTokenIssueService>();
         services.AddScoped<IImpersonationPolicyService, ImpersonationPolicyService>();
+        // 角色继承读取：继承链与继承来的权限，角色继承查询与角色详情聚合共用
+        services.AddScoped<IRoleInheritanceReader, RoleInheritanceReader>();
         // OAuth2 授权服务端协议服务：普通 Scoped（非 [DynamicApi]/不被代理），供同意页 AppService 与匿名 /connect/token 端点直接调用
         services.AddScoped<IOAuthServerService, OAuthServerService>();
         // OpenAPI 安全客户端存储：以数据库凭证（SysUserApiCredential）实现覆盖框架默认配置源实现

@@ -29,6 +29,8 @@ public sealed class RoleAppService
 {
     private readonly IRoleDomainService _roleDomainService;
 
+    private readonly IRoleHierarchyDomainService _roleHierarchyDomainService;
+
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
     private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
@@ -48,6 +50,7 @@ public sealed class RoleAppService
     /// </summary>
     public RoleAppService(
         IRoleDomainService roleDomainService,
+        IRoleHierarchyDomainService roleHierarchyDomainService,
         ISaasCacheInvalidator cacheInvalidator,
         IAuthorizationChangeNotifier authorizationChangeNotifier,
         IImpersonationPolicyService impersonationPolicyService,
@@ -57,6 +60,7 @@ public sealed class RoleAppService
         IFieldSecurityService fieldSecurity)
     {
         _roleDomainService = roleDomainService;
+        _roleHierarchyDomainService = roleHierarchyDomainService;
         _cacheInvalidator = cacheInvalidator;
         _authorizationChangeNotifier = authorizationChangeNotifier;
         _impersonationPolicyService = impersonationPolicyService;
@@ -106,10 +110,11 @@ public sealed class RoleAppService
     }
 
     /// <summary>
-    /// 批量变更角色的直接父角色（一次性提交新增与移除，单事务，仅在最后失效一次缓存）
+    /// 批量变更角色的直接上级（一次提交新增与解除，单事务）
     /// </summary>
     /// <remarks>
-    /// 入口只要查看继承关系；本次新增父角色要新增权限，移除父角色要删除权限，各按实际出现的操作校验。
+    /// 入口只要查看继承关系；本次新增上级要新增权限，解除上级要删除权限，各按实际出现的操作校验。
+    /// 新增上级等同把上级继承链的权限授给本角色，与分配角色走同一道模仿登录授出校验。
     /// </remarks>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Read)]
@@ -118,27 +123,62 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (input.AddParentRoleIds.Any(id => id > 0))
+        var addParentRoleIds = input.AddParentRoleIds.Where(id => id > 0).Distinct().ToList();
+        var removeParentRoleIds = input.RemoveParentRoleIds.Where(id => id > 0).Distinct().ToList();
+        if (addParentRoleIds.Count > 0)
         {
             await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.RoleHierarchy.Create, cancellationToken);
         }
 
-        if (input.RemoveParentRoleIds.Any(id => id > 0))
+        if (removeParentRoleIds.Count > 0)
         {
             await _operationPermissionGuard.EnsureGrantedAsync(SaasPermissionCodes.RoleHierarchy.Delete, cancellationToken);
         }
 
-        // 超管保护：继承方与本次涉及的每个父角色逐个过同一道闸
+        // 超管保护：继承方与本次涉及的每个上级逐个过同一道闸
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.RoleId, cancellationToken);
-        foreach (var parentId in input.AddParentRoleIds.Concat(input.RemoveParentRoleIds).Where(id => id > 0).Distinct())
+        foreach (var parentId in addParentRoleIds.Concat(removeParentRoleIds).Distinct())
         {
             await _superAdminProtector.EnsureCanWriteRoleAsync(parentId, cancellationToken);
         }
 
-        _ = await _roleDomainService.BatchUpdateRoleParentsAsync(
-            new RoleHierarchyBatchUpdateCommand(input.RoleId, input.AddParentRoleIds, input.RemoveParentRoleIds),
+        await _impersonationPolicyService.EnsureCanGrantRoleIdsAsync(addParentRoleIds, cancellationToken);
+
+        var result = await _roleHierarchyDomainService.UpdateParentsAsync(
+            new RoleHierarchyBatchUpdateCommand(input.RoleId, addParentRoleIds, removeParentRoleIds),
             cancellationToken);
+
+        if (result.AddedParentRoleIds.Count == 0 && result.RemovedParentRoleIds.Count == 0)
+        {
+            return;
+        }
+
+        // 继承链变了，持有本角色及其下级的成员权限随之变化，菜单也跟着权限走
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
+        await _cacheInvalidator.InvalidateNavigationAsync(cancellationToken);
+
+        // 逐条记录本次实际发生的继承变更（审计）
+        foreach (var parentId in result.RemovedParentRoleIds)
+        {
+            await _authorizationChangeNotifier.NotifyAsync(
+                PermissionChangeType.RoleRemoveParent,
+                targetUserId: null,
+                targetRoleId: input.RoleId,
+                permissionId: null,
+                relatedRoleId: parentId,
+                cancellationToken: cancellationToken);
+        }
+
+        foreach (var parentId in result.AddedParentRoleIds)
+        {
+            await _authorizationChangeNotifier.NotifyAsync(
+                PermissionChangeType.RoleAddParent,
+                targetUserId: null,
+                targetRoleId: input.RoleId,
+                permissionId: null,
+                relatedRoleId: parentId,
+                cancellationToken: cancellationToken);
+        }
     }
 
     /// <summary>

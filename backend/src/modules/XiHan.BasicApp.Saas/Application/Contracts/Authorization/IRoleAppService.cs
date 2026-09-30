@@ -83,7 +83,7 @@ public interface IRoleAppService : IApplicationService
     #region RoleHierarchy
 
     /// <summary>
-    /// 批量变更角色的直接父角色（一次性提交新增与移除）
+    /// 批量变更角色的直接上级（一次提交新增与解除）
     /// </summary>
     /// <param name="input">批量变更参数</param>
     /// <param name="cancellationToken">取消令牌</param>

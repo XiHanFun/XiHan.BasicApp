@@ -225,6 +225,8 @@ export default {
     type_role_deny: 'Rolle verweigert',
     type_user_delegate_grant: 'Delegierte Berechtigung erhalten',
     type_user_delegate_revoke: 'Delegierte Berechtigung entzogen',
+    type_role_add_parent: 'Übergeordnete Rolle hinzugefügt',
+    type_role_remove_parent: 'Übergeordnete Rolle entfernt',
     operator_user_id: 'Bearbeiter-ID',
     operator_user_name: 'Bearbeiter',
     target_user_id: 'Ziel-Benutzer-ID',

@@ -225,6 +225,8 @@ export default {
     type_role_deny: '角色拒絕授權',
     type_user_delegate_grant: '取得委派授權',
     type_user_delegate_revoke: '委派授權收回',
+    type_role_add_parent: '角色新增上級',
+    type_role_remove_parent: '角色解除上級',
     operator_user_id: '操作者主鍵',
     operator_user_name: '操作者',
     target_user_id: '目標使用者主鍵',

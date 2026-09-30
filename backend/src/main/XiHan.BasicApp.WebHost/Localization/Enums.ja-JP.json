@@ -275,6 +275,8 @@
     "PermissionChangeType.RoleDenyPermission": "ロール権限の拒否",
     "PermissionChangeType.UserDelegateGrant": "ユーザーが委任付与を取得",
     "PermissionChangeType.UserDelegateRevoke": "ユーザーの委任付与を回収",
+    "PermissionChangeType.RoleAddParent": "ロールに上位ロールを追加",
+    "PermissionChangeType.RoleRemoveParent": "ロールの上位ロールを解除",
     "ConditionOperator.Equals": "等しい",
     "ConditionOperator.NotEquals": "等しくない",
     "ConditionOperator.GreaterThan": "より大きい",

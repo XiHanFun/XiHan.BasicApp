@@ -14,31 +14,34 @@ public sealed class RoleHierarchyRepository(ISqlSugarClientResolver clientResolv
     : SaasRepository<SysRoleHierarchy>(clientResolver), IRoleHierarchyRepository
 {
     /// <summary>
-    /// 获取角色继承链中的祖先角色ID
+    /// 当前上下文可见的全部直接继承边
     /// </summary>
-    public async Task<IReadOnlyList<long>> GetAncestorIdsAsync(IEnumerable<long> roleIds, bool includeSelf, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<SysRoleHierarchy>> GetEdgesAsync(CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(roleIds);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        var roleIdArray = roleIds.Distinct().ToArray();
-        if (roleIdArray.Length == 0)
+        return await CreateQueryable().ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// 跨租户获取有角色直接继承了给定角色的租户
+    /// </summary>
+    public async Task<IReadOnlyList<long>> GetTenantIdsInheritingAsync(IReadOnlyCollection<long> parentRoleIds, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(parentRoleIds);
+
+        var parentIds = parentRoleIds.Where(id => id > 0).Distinct().ToArray();
+        if (parentIds.Length == 0)
         {
             return [];
         }
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        var query = CreateQueryable().Where(hierarchy => roleIdArray.Contains(hierarchy.DescendantId));
-        if (!includeSelf)
-        {
-            query = query.Where(hierarchy => hierarchy.Depth > 0);
-        }
-
-        var ids = await query
-            .OrderBy(hierarchy => hierarchy.Depth)
-            .Select(hierarchy => hierarchy.AncestorId)
+        return await CreateNoTenantQueryable()
+            .Where(hierarchy => hierarchy.TenantId != 0 && parentIds.Contains(hierarchy.AncestorId))
+            .Select(hierarchy => hierarchy.TenantId)
+            .Distinct()
             .ToListAsync(cancellationToken);
-
-        return ids.Distinct().ToArray();
     }
 }
