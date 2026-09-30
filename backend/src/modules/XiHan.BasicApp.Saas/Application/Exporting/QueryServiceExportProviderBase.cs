@@ -26,7 +26,7 @@ public abstract class QueryServiceExportProviderBase<TQueryDto, TRowDto> : IExpo
     /// </summary>
     /// <remarks>
     /// 快照是页面查询入参原样序列化的结果，与线上报文同形：枚举按成员名传（全局 JsonStringEnumConverter）。
-    /// 这里不认成员名，带枚举筛选的快照就整体反序列化失败，落回空查询，导出范围悄悄变成全量。
+    /// 这里不认成员名，带枚举筛选的快照就整体反序列化失败，导出任务会以「查询条件无法解析」失败。
     /// </remarks>
     protected static readonly JsonSerializerOptions QueryJsonOptions = new(JsonSerializerDefaults.Web)
     {
