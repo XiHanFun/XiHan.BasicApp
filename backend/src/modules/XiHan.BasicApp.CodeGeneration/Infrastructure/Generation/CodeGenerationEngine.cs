@@ -302,7 +302,7 @@ public sealed partial class CodeGenerationEngine(
         var pageCode = MenuPermissionArtifactShared.PageCode(context);
         if (!PageCodeRegex().IsMatch(pageCode))
         {
-            return (context, $"表 {table.TableName} 推导出的页面码 {pageCode} 不合规：模块名须为 [a-z][a-z0-9_-]*，请在表配置里改成英文模块名。");
+            return (null, $"表 {table.TableName} 推导出的页面码 {pageCode} 不合规：模块名须为 [a-z][a-z0-9_-]*，请在表配置里改成英文模块名。");
         }
 
         if (table.TemplateType == TemplateType.Tree)

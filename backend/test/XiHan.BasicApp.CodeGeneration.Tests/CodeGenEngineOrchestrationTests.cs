@@ -562,6 +562,24 @@ public sealed class CodeGenEngineOrchestrationTests
     }
 
     /// <summary>
+    /// 模块名不合规（中文、空格）推导出的页面码过不了前端权限码门禁，按钮码会被静默跳过检查，
+    /// 必须在建模时失败，不能照常产出。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_InvalidModuleNameShouldFailOnPageCode()
+    {
+        var table = Table();
+        table.ModuleName = "产品 目录";
+        GivenTable(table);
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.False(result.Success);
+        Assert.Contains("页面码", result.Message!, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 树表未配置父级列必须失败，并指明缺的是哪一项。
     /// </summary>
     [Fact]

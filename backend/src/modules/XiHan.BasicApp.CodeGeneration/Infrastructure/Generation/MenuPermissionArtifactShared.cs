@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Text;
 using System.Text.RegularExpressions;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 
@@ -20,6 +21,25 @@ internal static class MenuPermissionArtifactShared
 
     /// <summary>二阶产物统一模板编码（用于产物溯源标识）</summary>
     public const string TemplateCode = "_menu_permission";
+
+    /// <summary>C# 产物的标准版权文件头（缺了会被仓内分析器 XHFH001 报警）</summary>
+    public static readonly IReadOnlyList<string> CSharpFileHeaderLines =
+    [
+        "// Copyright (c) 2021-Present XiHanFun and contributors.",
+        "// Licensed under the MIT License. See LICENSE in the project root for license information."
+    ];
+
+    /// <summary>
+    /// 写入 C# 产物文件头（逐行 AppendLine，换行与正文一致）
+    /// </summary>
+    /// <param name="sb">产物内容</param>
+    public static void AppendCSharpFileHeader(StringBuilder sb)
+    {
+        foreach (var line in CSharpFileHeaderLines)
+        {
+            sb.AppendLine(line);
+        }
+    }
 
     /// <summary>
     /// 动作元数据（对齐平台操作字典 SysOperation：标题 / 是否审计 / 是否危险）

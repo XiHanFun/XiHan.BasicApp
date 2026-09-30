@@ -138,14 +138,40 @@ function listSourceFiles(dir: string, acc: string[] = []): string[] {
   return acc
 }
 
-/** 扫出后端六个模块页面登记表里登记的全部按钮码 */
+/**
+ * 后端按钮登记所在的文件：各模块的页面登记表 PageRegistry.cs，以及直接在菜单种子里登记页面与按钮的
+ * 各个 XxxMenuSeeder.cs（PageRegistryMenuSeederBase 两种写法都支持，代码生成器产出的就是后一种）
+ */
+function listButtonRegistries(module: string): string[] {
+  const files: string[] = []
+  const registry = join(BACKEND_MODULES_ROOT, module, 'Application', 'Pages', 'PageRegistry.cs')
+  if (existsSync(registry)) {
+    files.push(registry)
+  }
+  const seeders = join(BACKEND_MODULES_ROOT, module, 'Infrastructure', 'Seeders')
+  if (existsSync(seeders)) {
+    files.push(...listFiles(seeders).filter(file => file.endsWith('MenuSeeder.cs')))
+  }
+  return files
+}
+
+function listFiles(dir: string, acc: string[] = []): string[] {
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry)
+    if (statSync(full).isDirectory()) {
+      listFiles(full, acc)
+    }
+    else {
+      acc.push(full)
+    }
+  }
+  return acc
+}
+
+/** 扫出后端各模块登记的全部按钮码 */
 function readRegisteredButtonCodes(): Set<string> {
   const codes = new Set<string>()
-  for (const module of readdirSync(BACKEND_MODULES_ROOT)) {
-    const registry = join(BACKEND_MODULES_ROOT, module, 'Application', 'Pages', 'PageRegistry.cs')
-    if (!existsSync(registry)) {
-      continue
-    }
+  for (const registry of readdirSync(BACKEND_MODULES_ROOT).flatMap(listButtonRegistries)) {
     const source = readFileSync(registry, 'utf8')
     const buttonsAt = source.indexOf('ButtonDescriptor> Buttons')
     if (buttonsAt === -1) {

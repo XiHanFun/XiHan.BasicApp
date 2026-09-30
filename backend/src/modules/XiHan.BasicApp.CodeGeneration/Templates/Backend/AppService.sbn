@@ -20,6 +20,12 @@ using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
 
 namespace {{ Namespace }}.Application.AppServices;
+{{~ # 表名文案：只进普通字符串字面量，不进插值串（注释里的花括号会被当成插值） ~}}
+{{~ entity_label = ClassName ~}}
+{{~ if TableComment ~}}
+{{~ entity_label = TableComment ~}}
+{{~ end ~}}
+{{~ is_tree = TemplateType == "Tree" ~}}
 
 /// <summary>
 /// {{ TableComment | xml_doc }}命令应用服务（生成基类）
@@ -60,6 +66,10 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+{{~ if is_tree && TreeParentColumn.InCreate ~}}
+
+        await EnsureValidParentAsync(input.{{ TreeParentColumn.CSharpProperty }}, null, cancellationToken);
+{{~ end ~}}
 
         var entity = {{ ClassName }}ApplicationMapper.ToEntity(input);
         entity = await _repository.AddAsync(entity, cancellationToken);
@@ -82,7 +92,10 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
         cancellationToken.ThrowIfCancellationRequested();
 
         var entity = await _repository.GetByIdAsync(input.BasicId, cancellationToken)
-            ?? throw new ArgumentException($"未找到主键为 {input.BasicId} 的记录。", nameof(input));
+            ?? throw new InvalidOperationException("{{ entity_label | cs_string }}不存在。");
+{{~ if is_tree && TreeParentColumn.InUpdate ~}}
+        await EnsureValidParentAsync(input.{{ TreeParentColumn.CSharpProperty }}, entity.BasicId, cancellationToken);
+{{~ end ~}}
         {{ ClassName }}ApplicationMapper.ApplyUpdate(entity, input);
         entity = await _repository.UpdateAsync(entity, cancellationToken);
         return {{ ClassName }}ApplicationMapper.ToDetailDto(entity);
@@ -105,7 +118,68 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
         }
 
         cancellationToken.ThrowIfCancellationRequested();
-        _ = await _repository.DeleteByIdAsync(id, cancellationToken);
+{{~ if is_tree ~}}
+
+        // 删了父节点，子节点的父级就指向一条不存在的记录，在树上会整枝挪成根节点
+        if (await _repository.AnyAsync(entity => entity.{{ TreeParentColumn.CSharpProperty }} == id, cancellationToken))
+        {
+            throw new InvalidOperationException("{{ entity_label | cs_string }}存在子节点，不能直接删除。");
+        }
+{{~ end ~}}
+
+        if (!await _repository.DeleteByIdAsync(id, cancellationToken))
+        {
+            throw new InvalidOperationException("{{ entity_label | cs_string }}不存在。");
+        }
+    }
+{{~ end ~}}
+{{~ if is_tree && ((CanCreate && TreeParentColumn.InCreate) || (CanUpdate && TreeParentColumn.InUpdate)) ~}}
+
+    /// <summary>
+    /// 校验父级：父级须存在，且不能是自身或自身的下级
+    /// </summary>
+    /// <remarks>
+    /// 挂到自己的下级下面会让这一枝与树断开成环，树接口再也取不到它们。
+    /// 父级为空或 0 表示根节点。取全量在内存里沿父链上溯：树表数据量小，且避开递归查询的方言差异。
+    /// </remarks>
+    /// <param name="parentId">父级主键</param>
+    /// <param name="currentId">当前节点主键；新增时为 null</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    protected virtual async Task EnsureValidParentAsync(long? parentId, long? currentId, CancellationToken cancellationToken)
+    {
+        if (parentId is not { } targetId || targetId <= 0)
+        {
+            return;
+        }
+
+        if (targetId == currentId)
+        {
+            throw new InvalidOperationException("{{ entity_label | cs_string }}不能选择自身作为父级。");
+        }
+
+        var parents = (await _repository.GetAllAsync(cancellationToken))
+            .ToDictionary(entity => entity.BasicId, entity => (long?)entity.{{ TreeParentColumn.CSharpProperty }});
+        if (!parents.ContainsKey(targetId))
+        {
+            throw new InvalidOperationException("父级{{ entity_label | cs_string }}不存在。");
+        }
+
+        if (currentId is null)
+        {
+            return;
+        }
+
+        var visited = new HashSet<long>();
+        long? cursor = targetId;
+        while (cursor is { } node && node > 0 && visited.Add(node))
+        {
+            if (node == currentId)
+            {
+                throw new InvalidOperationException("{{ entity_label | cs_string }}不能挂到自己的下级下面。");
+            }
+
+            cursor = parents.GetValueOrDefault(node);
+        }
     }
 {{~ end ~}}
 }
