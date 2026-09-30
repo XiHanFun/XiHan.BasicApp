@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// </summary>
 /// <remarks>
 /// 快照是页面查询入参原样序列化的结果，与线上报文同形：枚举按成员名传、long 按字符串传。
-/// 反序列化失败时基类落回空查询——不会报错，只会让导出范围悄悄变成全量，所以这里把报文形态逐项钉住。
+/// 反序列化失败时导出任务会以「查询条件无法解析」失败，所以这里把报文形态逐项钉住，正常报文都要能还原。
 /// </remarks>
 public sealed class SaasAppExportQuerySnapshotTests
 {
