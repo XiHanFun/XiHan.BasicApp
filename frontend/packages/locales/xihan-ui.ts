@@ -16,6 +16,21 @@ const FLOATING_PANEL_EDGES: Record<FloatingPanelEdge, string> = {
 }
 
 /**
+ * 各图表共有的文案：空态、加载与提示框里的「其他」上屏，其余给读屏（角色说明、图例、数据表、数据标记的可及名）
+ */
+const CHART_ZH = {
+  chartRoleDescription: '图表',
+  seriesRoleDescription: '系列',
+  legendLabel: '图例',
+  missingValue: '无值',
+  emptyText: '暂无数据',
+  loadingText: '加载中…',
+  otherLabel: '其他',
+  tableCaption: '数据表',
+  datumLabel: details => `${details.formatted.key ?? String(details.key)}，${details.seriesName} ${details.formatted.value ?? ''}`,
+} satisfies NonNullable<XhTranslationOverrides['cartesian-chart']>
+
+/**
  * XiHan.UI 组件内建文案的中文覆盖。
  *
  * 这些文案大多只给读屏器（aria-label），少数会出现在界面上（级联/下拉的空态）。
@@ -36,6 +51,40 @@ const zhCN: XhTranslationOverrides = {
     indicatorGroup: '轮播指示器',
     indicator: page => `第 ${page} 张`,
     item: (index, count) => `第 ${index} 张，共 ${count} 张`,
+  },
+  'cartesian-chart': {
+    ...CHART_ZH,
+    keyLabel: '类目',
+    seriesLabel: '系列',
+    valueLabel: '数值',
+    sizeLabel: '大小',
+    colorLabel: '颜色',
+    zoomLabel: '缩放',
+    zoomStartLabel: '窗口起点',
+    zoomEndLabel: '窗口终点',
+    referenceLabel: '参考',
+    averageLabel: '平均',
+    ohlcLabel: ({ open, high, low, close }) => `开 ${open}，高 ${high}，低 ${low}，收 ${close}`,
+    ohlcColumns: { open: '开盘', high: '最高', low: '最低', close: '收盘' },
+    boxLabel: ({ min, q1, median, q3, max }) => `最小 ${min}，下四分位 ${q1}，中位数 ${median}，上四分位 ${q3}，最大 ${max}`,
+    boxColumns: { min: '最小', q1: '下四分位', median: '中位数', q3: '上四分位', max: '最大', outliers: '离群点' },
+    aggregatedCaption: ({ caption, rows, ranges }) => `${caption}（${rows} 行合并为 ${ranges} 个区间）`,
+    annotationSummary: items => items.map(item => `${item.label}${item.series ? `（${item.series}）` : ''}：${item.value}。`).join(''),
+    summary: (model) => {
+      if (!model.range || model.series.every(series => series.count === 0)) {
+        return '没有数据。'
+      }
+      const { first, last, count } = model.range
+      const extremes = model.series.flatMap(({ name, min, max }) => {
+        if (!min || !max) {
+          return []
+        }
+        return min.key === max.key && min.value === max.value
+          ? [`${name}：${max.key} 为 ${max.value}。`]
+          : [`${name}：最低 ${min.value}（${min.key}），最高 ${max.value}（${max.key}）。`]
+      })
+      return [`${model.seriesCount} 个系列，${count} 个数据点，从 ${first} 到 ${last}。`, ...extremes].join('')
+    },
   },
   'cascader': {
     empty: '暂无数据',
@@ -168,6 +217,24 @@ const zhCN: XhTranslationOverrides = {
   'pin-input': { input: (index, length) => `第 ${index} 位，共 ${length} 位` },
   'popover': { close: '关闭' },
   'prompt-input': { send: '发送', stop: '停止', input: '输入消息' },
+  'sankey-chart': {
+    ...CHART_ZH,
+    datumLabel: details => `${details.seriesName}，${details.formatted.value ?? ''}`,
+    sourceLabel: '来源',
+    targetLabel: '去向',
+    valueLabel: '流量',
+    inflowLabel: '来自',
+    outflowLabel: '流向',
+    summary: (model) => {
+      if (model.linkCount === 0) {
+        return '没有数据。'
+      }
+      const head = `${model.nodeCount} 个节点，${model.linkCount} 条流带，合计 ${model.total}。`
+      return model.largest
+        ? `${head}最大的一条：${model.largest.source} 到 ${model.largest.target}，${model.largest.value}。`
+        : head
+    },
+  },
   // overflowTag 不写：折叠标签显示的 +N 与语言无关
   'select': { clearTrigger: '清空', deleteItem: label => `移除 ${label}`, content: '选项列表' },
   'side-nav': { root: '侧边导航' },

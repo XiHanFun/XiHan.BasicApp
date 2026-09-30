@@ -3,7 +3,7 @@ import type { LogDetailField } from '../_components/log-detail.types.ts'
 import type { TracePreset } from '../_components/trace-nav'
 import type { TraceTimelineItemDto, TraceTimelineResultDto } from '@/api'
 import type { ListFieldSchema } from '~/components'
-import { XhCardContent, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
+import { XhButton, XhCardContent, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { logManagementApi, TraceDimension, TraceLogType } from '@/api'
@@ -22,6 +22,7 @@ import {
 } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { tracePreset } from '../_components/trace-nav'
+import TraceAnalysisDialog from './components/TraceAnalysisDialog.vue'
 
 defineOptions({ name: 'LogTracePage' })
 
@@ -59,6 +60,9 @@ const filters = reactive<Record<string, unknown>>({
 const loading = ref(false)
 const hasQueried = ref(false)
 const result = ref<TraceTimelineResultDto | null>(null)
+
+// 链路分析弹窗
+const analysisVisible = ref(false)
 
 // 详情抽屉
 const detailVisible = ref(false)
@@ -431,16 +435,30 @@ watch(tracePreset, (preset) => {
           <div v-if="result" class="trace-panel trace-scroll">
             <div class="trace-panel__header">
               <div class="trace-panel__titlerow">
-                <span class="trace-panel__title">{{ t('log.trace.page_name') }}</span>
-                <span class="trace-panel__count">{{ t('log.trace.summary_total', { total: result.totalCount }) }}</span>
+                <span class="trace-panel__heading">
+                  <span class="trace-panel__title">{{ t('log.trace.page_name') }}</span>
+                  <span class="trace-panel__count">{{ t('log.trace.summary_total', { total: result.totalCount }) }}</span>
+                </span>
                 <span class="trace-panel__grow" />
-                <span
-                  v-for="(count, type) in result.typeCounts"
-                  :key="type"
-                  class="trace-chip"
-                  :class="{ 'is-error': String(type).toLowerCase() === 'exception' }"
-                >
-                  {{ logTypeLabel(type) }}<i>·</i><b>{{ count }}</b>
+                <span class="trace-panel__tools">
+                  <XhButton
+                    size="sm"
+                    variant="subtle"
+                    tone="brand"
+                    :disabled="items.length === 0"
+                    @click="analysisVisible = true"
+                  >
+                    <Icon icon="lucide:chart-network" width="14" height="14" />
+                    {{ t('log.trace.analysis_action') }}
+                  </XhButton>
+                  <span
+                    v-for="(count, type) in result.typeCounts"
+                    :key="type"
+                    class="trace-chip"
+                    :class="{ 'is-error': String(type).toLowerCase() === 'exception' }"
+                  >
+                    {{ logTypeLabel(type) }}<i>·</i><b>{{ count }}</b>
+                  </span>
                 </span>
               </div>
               <div v-if="result.truncated" class="trace-panel__warn">
@@ -519,6 +537,14 @@ watch(tracePreset, (preset) => {
       </XhCardContent>
     </XhCardRoot>
 
+    <TraceAnalysisDialog
+      v-model:show="analysisVisible"
+      :items="items"
+      :truncated="result?.truncated ?? false"
+      :log-type-label="logTypeLabel"
+      :result-label="statusLabel"
+    />
+
     <LogDetailDrawer
       v-model:show="detailVisible"
       :fields="detailFields"
@@ -589,11 +615,25 @@ watch(tracePreset, (preset) => {
   border-bottom: 1px solid var(--xh-border-subtle);
 }
 
+/* 标题行两组各自对齐：标题与条数按文字基线，按钮与类型统计按中线（按钮比统计标签高） */
 .trace-panel__titlerow {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 8px 10px;
+}
+
+.trace-panel__heading {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--xh-space-2);
+}
+
+.trace-panel__tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--xh-space-2);
 }
 
 .trace-panel__title {
