@@ -27,6 +27,8 @@ internal static class PageDescriptorArtifactGenerator
 
         var resource = Shared.Resource(context);
         var display = Shared.Display(context);
+        // 片段是要粘进 C# 的：显示名进字面量按 C# 字符串转义
+        var displayLiteral = TemplateTextEscaper.CSharpString(display);
         var codes = $"{context.ClassName}PermissionCodes";
         var pageCode = Shared.PageCode(context);
         var path = $"/{Shared.ModuleLower(context)}/{Shared.Kebab(context)}";
@@ -36,7 +38,7 @@ internal static class PageDescriptorArtifactGenerator
             : "null（顶级菜单；如需挂父目录，改成父页面码字符串）";
 
         var sb = new StringBuilder();
-        sb.AppendLine($"// {display} PageRegistry 片段");
+        sb.AppendLine($"// {displayLiteral} PageRegistry 片段");
         sb.AppendLine($"// 与 {context.ClassName}MenuSeeder 二选一：它已登记同样的页面行与按钮行。");
         sb.AppendLine($"// 改走应用级 PageRegistry 时把下面的条目粘进去，并删掉 {context.ClassName}MenuSeeder，不要两边都登记。");
         sb.AppendLine($"// 生成页面的写操作按钮用按钮码 {pageCode}.{{create|update|delete}} 门控，按钮行不能漏。");
@@ -49,7 +51,7 @@ internal static class PageDescriptorArtifactGenerator
         sb.AppendLine("//");
         sb.AppendLine("// —— PageRegistry.All ——");
         sb.AppendLine($"// 参数顺序：Code, Title, I18nKey, MenuType, Path, RouteName, Component, ParentCode, PermissionCode, Icon, Sort");
-        sb.AppendLine($"new(\"{pageCode}\", \"{display}\", \"menu.{resource}\", MenuType.Menu, \"{path}\", \"{Shared.RouteName(context)}\",");
+        sb.AppendLine($"new(\"{pageCode}\", \"{displayLiteral}\", I18nKey: null, MenuType.Menu, \"{path}\", \"{Shared.RouteName(context)}\",");
         sb.AppendLine($"    \"{Shared.Component(context)}\", /* ParentCode: */ null, {codes}.Read, \"lucide:table\", /* Sort: */ 999),");
         sb.AppendLine($"// 备注：ParentCode 当前 {parentNote}");
         sb.AppendLine();

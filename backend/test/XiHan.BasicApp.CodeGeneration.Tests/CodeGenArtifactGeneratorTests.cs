@@ -183,11 +183,13 @@ public sealed class CodeGenArtifactGeneratorTests
     {
         var content = MenuPermissionArtifactGenerator.Build(CodeGenerationTestHelper.CreateContext(), [])[1].Content;
 
-        Assert.Contains("MenuCode=`sys_product`", content, StringComparison.Ordinal);
+        Assert.Contains("MenuCode=`catalog.sys-product`", content, StringComparison.Ordinal);
         Assert.Contains("Path=`/catalog/sys-product`", content, StringComparison.Ordinal);
         Assert.Contains("Component=`catalog/sys-product/index`", content, StringComparison.Ordinal);
         Assert.Contains("RouteName=`CatalogSysProduct`", content, StringComparison.Ordinal);
-        Assert.Contains("I18nKey=`menu.sys_product`", content, StringComparison.Ordinal);
+        // 生成物不带语言包，I18nKey 留空菜单才显示业务名称；多语言时的键按页面码推导
+        Assert.Contains("I18nKey 留空", content, StringComparison.Ordinal);
+        Assert.Contains("`menu.catalog_sys_product`", content, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -301,7 +303,7 @@ public sealed class CodeGenArtifactGeneratorTests
         var content = CodeGenerationTestHelper.BuildPageRegistrySnippet(CodeGenerationTestHelper.CreateContext()).Content;
 
         Assert.Contains(
-            "new(\"catalog.sys-product\", \"产品\", \"menu.sys_product\", MenuType.Menu, \"/catalog/sys-product\", \"CatalogSysProduct\",",
+            "new(\"catalog.sys-product\", \"产品\", I18nKey: null, MenuType.Menu, \"/catalog/sys-product\", \"CatalogSysProduct\",",
             content,
             StringComparison.Ordinal);
         Assert.Contains("\"catalog/sys-product/index\"", content, StringComparison.Ordinal);
@@ -454,7 +456,7 @@ public sealed class CodeGenArtifactGeneratorTests
         var content = CodeGenerationTestHelper.BuildSeeders(CodeGenerationTestHelper.CreateContext())[1].Content;
 
         Assert.Contains(
-            "new(\"catalog.sys-product\", \"产品\", \"menu.sys_product\", MenuType.Menu, \"/catalog/sys-product\", \"CatalogSysProduct\", \"catalog/sys-product/index\",",
+            "new(\"catalog.sys-product\", \"产品\", I18nKey: null, MenuType.Menu, \"/catalog/sys-product\", \"CatalogSysProduct\", \"catalog/sys-product/index\",",
             content,
             StringComparison.Ordinal);
     }
@@ -492,5 +494,60 @@ public sealed class CodeGenArtifactGeneratorTests
         Assert.Contains("namespace SysProductGenerated.Domain.Permissions;", codes, StringComparison.Ordinal);
         Assert.Contains("namespace SysProductGenerated.Domain.Permissions;", definitions, StringComparison.Ordinal);
         Assert.Contains("namespace SysProductGenerated.Infrastructure.Seeders;", seeder, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 菜单种子骨架用到的 <c>MenuType</c> 在 <c>XiHan.BasicApp.Saas.Domain.Entities</c> 下，
+    /// 导错命名空间会让复制过去的种子编译不过。
+    /// </summary>
+    [Fact]
+    public void MenuSeederSkeleton_ShouldImportTheNamespaceThatDeclaresMenuType()
+    {
+        var content = CodeGenerationTestHelper.BuildSeeders(CodeGenerationTestHelper.CreateContext())[1].Content;
+
+        Assert.Contains("using XiHan.BasicApp.Saas.Domain.Entities;", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("using XiHan.BasicApp.Saas.Domain.Enums;", content, StringComparison.Ordinal);
+        Assert.Contains("MenuType.Menu", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 四份 C# 产物都以仓内标准版权文件头开篇，并入源码后才不会触发 XHFH001。
+    /// </summary>
+    [Fact]
+    public void CSharpArtifacts_ShouldStartWithStandardFileHeader()
+    {
+        var context = CodeGenerationTestHelper.CreateContext();
+        string[] contents =
+        [
+            MenuPermissionArtifactGenerator.Build(context, [])[0].Content,
+            CodeGenerationTestHelper.BuildPermissionDefinitions(context).Content,
+            .. CodeGenerationTestHelper.BuildSeeders(context).Select(artifact => artifact.Content)
+        ];
+
+        Assert.All(contents, content =>
+        {
+            Assert.StartsWith("// Copyright (c) 2021-Present XiHanFun and contributors.", content, StringComparison.Ordinal);
+            Assert.Contains("// Licensed under the MIT License. See LICENSE in the project root for license information.", content, StringComparison.Ordinal);
+        });
+    }
+
+    /// <summary>
+    /// 业务名称是自由文本：进字符串字面量按 C# 转义、进文档注释按 XML 转义，
+    /// 否则引号与尖括号会让权限定义、种子骨架与 PageRegistry 片段编译不过。
+    /// </summary>
+    [Fact]
+    public void Artifacts_ShouldEscapeFreeTextDisplayName()
+    {
+        var context = CodeGenerationTestHelper.CreateContext(businessName: "产\"品<A>\\");
+
+        var definitions = CodeGenerationTestHelper.BuildPermissionDefinitions(context).Content;
+        var seeders = CodeGenerationTestHelper.BuildSeeders(context);
+        var snippet = CodeGenerationTestHelper.BuildPageRegistrySnippet(context).Content;
+
+        Assert.Contains("public const string ResourceName = \"产\\\"品<A>\\\\\";", definitions, StringComparison.Ordinal);
+        Assert.Contains("/// 产\"品&lt;A&gt;\\ 权限定义", definitions, StringComparison.Ordinal);
+        Assert.Contains("\"[Catalog]产\\\"品<A>\\\\菜单\"", seeders[1].Content, StringComparison.Ordinal);
+        Assert.Contains("/// 产\"品&lt;A&gt;\\ 菜单（生成骨架）", seeders[1].Content, StringComparison.Ordinal);
+        Assert.Contains("new(\"catalog.sys-product\", \"产\\\"品<A>\\\\\", I18nKey: null,", snippet, StringComparison.Ordinal);
     }
 }

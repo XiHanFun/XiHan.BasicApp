@@ -51,13 +51,19 @@ internal static class SeederArtifactGenerator
     /// <summary>
     /// 占位替换（原始字符串模板含大量 C# 花括号/内插，用 %TOKEN% 占位避免转义）
     /// </summary>
+    /// <remarks>
+    /// 显示名是业务名称的自由文本：进字符串字面量的 %DISPLAY% 按 C# 字符串转义，
+    /// 进文档注释的 %DISPLAY_DOC% 按 XML 转义，否则引号、反斜杠、尖括号都会让种子编译不过。
+    /// </remarks>
     private static string Fill(string template, CodeGenerationContext context)
     {
+        var display = Shared.Display(context);
         return template
             .Replace("%NS%", Shared.ResolveNamespace(context))
             .Replace("%CLASS%", context.ClassName)
             .Replace("%MODULE%", Shared.ModuleSegment(context))
-            .Replace("%DISPLAY%", Shared.Display(context))
+            .Replace("%DISPLAY_DOC%", TemplateTextEscaper.XmlDoc(display))
+            .Replace("%DISPLAY%", TemplateTextEscaper.CSharpString(display))
             .Replace("%RESOURCE%", Shared.Resource(context))
             .Replace("%PAGECODE%", $"{Shared.ModuleLower(context)}.{Shared.Kebab(context)}")
             .Replace("%PATH%", $"/{Shared.ModuleLower(context)}/{Shared.Kebab(context)}")
@@ -90,6 +96,9 @@ internal static class SeederArtifactGenerator
     }
 
     private const string PermissionSeederTemplate = """
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 // 本文件为代码生成器产出的种子骨架：仅首次创建、重新生成不覆盖，可自由编辑。
 using Microsoft.Extensions.Logging;
 using %NS%.Domain.Permissions;
@@ -100,7 +109,7 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 namespace %NS%.Infrastructure.Seeders;
 
 /// <summary>
-/// %DISPLAY% 权限目录（生成骨架）：资源与「资源 × 已启用操作」的权限
+/// %DISPLAY_DOC% 权限目录（生成骨架）：资源与「资源 × 已启用操作」的权限
 /// </summary>
 /// <remarks>
 /// 操作来自平台操作字典（OperationSeeds），资源、权限是平台目录：在平台上下文播、只落平台库。
@@ -150,18 +159,21 @@ public sealed class %CLASS%PermissionSeeder(
 """;
 
     private const string MenuSeederTemplate = """
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 // 本文件为代码生成器产出的种子骨架：仅首次创建、重新生成不覆盖，可自由编辑。
 using Microsoft.Extensions.Logging;
 using %NS%.Domain.Permissions;
 using XiHan.BasicApp.Saas.Application.Pages;
-using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders;
 using XiHan.Framework.Data.SqlSugar.Clients;
 
 namespace %NS%.Infrastructure.Seeders;
 
 /// <summary>
-/// %DISPLAY% 菜单（生成骨架）：页面行与写操作按钮行
+/// %DISPLAY_DOC% 菜单（生成骨架）：页面行与写操作按钮行
 /// </summary>
 /// <remarks>
 /// 页面绑定 %RESOURCE%:read 控制可见；生成页面的写操作按钮用按钮码 %PAGECODE%.{create|update|delete…} 门控，
@@ -184,7 +196,7 @@ public sealed class %CLASS%MenuSeeder(
     /// <summary>页面</summary>
     protected override IReadOnlyList<PageDescriptor> Pages { get; } =
     [
-        new("%PAGECODE%", "%DISPLAY%", "menu.%RESOURCE%", MenuType.Menu, "%PATH%", "%ROUTE%", "%COMPONENT%",
+        new("%PAGECODE%", "%DISPLAY%", I18nKey: null, MenuType.Menu, "%PATH%", "%ROUTE%", "%COMPONENT%",
             ParentCode: null, %CLASS%PermissionCodes.Read, "lucide:table", 999),
     ];
 

@@ -24,6 +24,28 @@ public static class CSharpTypeFacts
     };
 
     /// <summary>
+    /// 已收录的整数类型名（含关键字别名与 BCL 名）
+    /// </summary>
+    private static readonly IReadOnlySet<string> IntegerTypeNames = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "byte", "sbyte", "short", "ushort", "int", "uint", "long", "ulong", "nint", "nuint",
+        "Byte", "SByte", "Int16", "UInt16", "Int32", "UInt32", "Int64", "UInt64"
+    };
+
+    /// <summary>
+    /// 是否为整数类型
+    /// </summary>
+    /// <param name="csharpType">C# 类型名，可带可空标注</param>
+    /// <returns>已收录的整数类型返回 true</returns>
+    /// <remarks>
+    /// 数字输入框收得进小数，而整数属性反序列化遇到 1.5 会整单报 400，表单要据此在提交前拦下。
+    /// </remarks>
+    public static bool IsInteger(string? csharpType)
+    {
+        return IntegerTypeNames.Contains(StripNullable(csharpType));
+    }
+
+    /// <summary>
     /// 是否为值类型
     /// </summary>
     /// <param name="csharpType">C# 类型名，可带可空标注（如 <c>long</c>、<c>long?</c>）</param>

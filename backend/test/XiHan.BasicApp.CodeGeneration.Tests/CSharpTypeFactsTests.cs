@@ -41,6 +41,30 @@ public sealed class CSharpTypeFactsTests
     }
 
     /// <summary>
+    /// 整数判定只认整数类型（含可空与 BCL 名）：表单据此在提交前拦下小数，免得整单 400。
+    /// </summary>
+    /// <param name="csharpType">C# 类型名</param>
+    /// <param name="expected">是否整数</param>
+    [Theory]
+    [InlineData("int", true)]
+    [InlineData("int?", true)]
+    [InlineData("long", true)]
+    [InlineData("short", true)]
+    [InlineData("byte", true)]
+    [InlineData("Int32", true)]
+    [InlineData("UInt64", true)]
+    [InlineData("decimal", false)]
+    [InlineData("double", false)]
+    [InlineData("float", false)]
+    [InlineData("string", false)]
+    [InlineData("bool", false)]
+    [InlineData(null, false)]
+    public void IsInteger_ShouldOnlyAcceptIntegerTypes(string? csharpType, bool expected)
+    {
+        Assert.Equal(expected, CSharpTypeFacts.IsInteger(csharpType));
+    }
+
+    /// <summary>
     /// 未收录的类型（引用类型、集合、枚举短名、自定义类）一律按引用类型处理，
     /// 否则模板会对可空引用类型误取 <c>.Value</c> 而编译不过。
     /// </summary>

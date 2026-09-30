@@ -6,6 +6,7 @@
 {{~ # 判据要与下面五个消费点一样带业务列守卫：主键、租户、审计 ID 在库里都是 bigint， ~}}
 {{~ # 不加守卫就会给「基类列是 bigint、业务列没有 long」的表引进一个用不上的类型，撞 noUnusedLocals。 ~}}
 {{~ # InDetail 恰好等于「是业务列」，且是五个消费点的并集。 ~}}
+{{~ # 字段可空性只跟列本身可不可空走，与 C# DTO 一致；「必填」只是表单校验，不改报文契约 ~}}
 {{~ has_numeric_string = false ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InDetail && col.IsLongColumn ~}}
@@ -27,7 +28,7 @@ export interface {{ ClassName }}ListItemDto extends BasicDto {
   createdTime: DateTimeString
 {{~ for col in Columns ~}}
 {{~ if col.InList ~}}
-{{~ if col.IsNullable || !col.IsRequired ~}}
+{{~ if col.IsNullable ~}}
   {{ col.TsProperty }}?: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }} | null
 {{~ else ~}}
   {{ col.TsProperty }}: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }}
@@ -40,7 +41,7 @@ export interface {{ ClassName }}ListItemDto extends BasicDto {
 export interface {{ ClassName }}DetailDto extends {{ ClassName }}ListItemDto {
 {{~ for col in Columns ~}}
 {{~ if col.InDetail && !col.InList ~}}
-{{~ if col.IsNullable || !col.IsRequired ~}}
+{{~ if col.IsNullable ~}}
   {{ col.TsProperty }}?: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }} | null
 {{~ else ~}}
   {{ col.TsProperty }}: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }}
@@ -63,7 +64,7 @@ export interface {{ ClassName }}TreeNodeDto extends {{ ClassName }}ListItemDto {
 export interface {{ ClassName }}CreateDto {
 {{~ for col in Columns ~}}
 {{~ if col.InCreate ~}}
-{{~ if col.IsNullable || !col.IsRequired ~}}
+{{~ if col.IsNullable ~}}
   {{ col.TsProperty }}?: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }} | null
 {{~ else ~}}
   {{ col.TsProperty }}: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }}
@@ -75,7 +76,7 @@ export interface {{ ClassName }}CreateDto {
 export interface {{ ClassName }}UpdateDto extends BasicDto {
 {{~ for col in Columns ~}}
 {{~ if col.InUpdate ~}}
-{{~ if col.IsNullable || !col.IsRequired ~}}
+{{~ if col.IsNullable ~}}
   {{ col.TsProperty }}?: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }} | null
 {{~ else ~}}
   {{ col.TsProperty }}: {{ if col.IsLongColumn }}NumericString{{ else }}{{ col.TsType }}{{ end }}

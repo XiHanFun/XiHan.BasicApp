@@ -208,6 +208,7 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
         var isLongColumn = column.CSharpType.TrimEnd('?') == "long";
         var tsType = isLongColumn ? "string" : column.TsType;
         var controlKind = ResolveControlKind(column, tsType);
+        var form = ResolveFormFacts(column, controlKind, tsType, isLongColumn);
 
         return new Dictionary<string, object?>
         {
@@ -225,6 +226,11 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["InDetail"] = isBusinessColumn,
             ["ColumnName"] = column.ColumnName,
             ["ColumnComment"] = column.ColumnComment,
+            // 界面文案（列标题、表单标签、校验提示）：DbFirst 导入的表常没有列注释，
+            // 直接用注释会渲出没有名字的字段，缺注释时按属性名推导
+            ["Label"] = string.IsNullOrWhiteSpace(column.ColumnComment)
+                ? NamingConventions.HumanizeIdentifier(column.CSharpProperty)
+                : column.ColumnComment.Trim(),
             ["DbType"] = column.DbType,
             ["CSharpType"] = column.CSharpType,
             // 限定类型名：枚举类型不在生成目标命名空间内，直插短名编译不过。
@@ -254,6 +260,16 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
                 "date" => "number",
                 _ => tsType
             },
+            // 表单取值的五件套，与 ControlKind 同理收在这里，两份页面模板与两份 schema 模板共用。
+            // 表达式里的 $s / $v 是占位符，模板按所在位置替换成 src.xxx / form.value.xxx
+            ["IsFormRequired"] = form.IsRequired,
+            ["FormRequiredVerb"] = form.RequiredVerb,
+            ["FormEmptyCheck"] = form.EmptyCheck,
+            ["FormDefault"] = form.Default,
+            ["FormFromSource"] = form.FromSource,
+            ["FormToWire"] = form.ToWire,
+            // 数字输入框收得进小数，整数属性遇到 1.5 会整单 400，提交前按整数校验
+            ["IsIntegerNumber"] = controlKind == "number" && CSharpTypeFacts.IsInteger(column.CSharpType),
             ["IsLongColumn"] = isLongColumn,
             ["IsPrimaryKey"] = column.IsPrimaryKey,
             ["IsIdentity"] = column.IsIdentity,
@@ -327,6 +343,83 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
 
         return column.HtmlType == HtmlType.Textarea ? "textarea" : "text";
     }
+
+    /// <summary>
+    /// 解析该列在表单里的取值口径
+    /// </summary>
+    /// <remarks>
+    /// 报文的可空性跟 C# DTO 走（即列本身可不可空），「必填」只管表单校验，二者不能混用：
+    /// 非空列若只因没勾必填就在报文里发 null，值类型会整单 400、非空字符串会在落库时撞 NOT NULL。
+    /// 所以非空列留空时报文要有一个能落库的值——文本给空串、数字给 0、开关恒有值；
+    /// 下拉、日期、时间、二进制与 long 标识没有说得通的缺省值，非空时一律按必填校验。
+    /// 可空的文本类控件清空后是空串，按 null 发：long、时间、日期时间的空串后端解析不了。
+    /// </remarks>
+    private static FormFacts ResolveFormFacts(ColumnSchema column, string controlKind, string tsType, bool isLongColumn)
+    {
+        var hasFallback = controlKind is "switch" or "number"
+            || (controlKind is "text" or "textarea" && !isLongColumn);
+        var isRequired = controlKind != "switch" && (column.IsRequired || (!column.IsNullable && !hasFallback));
+
+        var enumDefault = column.EnumDefaultMember is null ? null : $"'{column.EnumDefaultMember}'";
+        var zero = controlKind switch
+        {
+            "switch" => "false",
+            "number" => "0",
+            _ when enumDefault is not null => enumDefault,
+            _ when tsType == "number" => "0",
+            _ => "''"
+        };
+
+        var defaultValue = controlKind switch
+        {
+            // 日期不预填：非空时交给必填校验强制选一次
+            "date" => "null",
+            "switch" => "false",
+            _ when column.IsNullable => "null",
+            _ when enumDefault is not null => enumDefault,
+            // 下拉没有说得通的缺省项，留空让必填校验逼用户选
+            "select" => "null",
+            _ => zero
+        };
+
+        var fromSource = controlKind switch
+        {
+            // 后端按 yyyy-MM-dd HH:mm:ss 下发，空格分隔在部分浏览器里解析不出，换成 T 按本地时间解析
+            "date" => "$s ? new Date(String($s).replace(' ', 'T')).getTime() : null",
+            "switch" => "$s ?? false",
+            _ => "$s ?? null"
+        };
+
+        var toWire = controlKind switch
+        {
+            "date" => column.IsNullable ? "$v == null ? null : toDateOnly($v)" : "toDateOnly($v)",
+            "switch" => "$v",
+            _ when column.IsNullable => controlKind is "number" or "select" ? "$v ?? null" : "$v || null",
+            _ => $"$v ?? {zero}"
+        };
+
+        string? emptyCheck = !isRequired ? null : controlKind switch
+        {
+            "date" => "$v == null || Number.isNaN($v)",
+            "number" => "$v == null",
+            "select" => tsType == "number" ? "$v == null" : "!$v",
+            _ => "!$v?.trim()"
+        };
+
+        var verb = controlKind is "date" or "select" ? "请选择" : "请输入";
+        return new FormFacts(isRequired, verb, emptyCheck, defaultValue, fromSource, toWire);
+    }
+
+    /// <summary>
+    /// 列在表单里的取值口径（表达式中的 $s / $v 为占位符）
+    /// </summary>
+    /// <param name="IsRequired">表单是否按必填校验</param>
+    /// <param name="RequiredVerb">必填提示的动词（请输入 / 请选择）</param>
+    /// <param name="EmptyCheck">判空表达式（$v 为表单值）；不必填时为 null</param>
+    /// <param name="Default">新增时的默认值字面量</param>
+    /// <param name="FromSource">编辑回填表达式（$s 为详情值）</param>
+    /// <param name="ToWire">提交取值表达式（$v 为表单值）</param>
+    private sealed record FormFacts(bool IsRequired, string RequiredVerb, string? EmptyCheck, string Default, string FromSource, string ToWire);
 
     /// <summary>
     /// PascalCase → camelCase（转换实现见 <see cref="NamingConventions"/>，与引擎共用）

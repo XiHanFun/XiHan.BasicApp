@@ -51,21 +51,22 @@
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
-{{~ # 提交前校验的三类列（都没有就不产出校验函数，避免未被引用）： ~}}
-{{~ # 一是必填文本输入框——下拉不算，它清空后是 null，.trim() 会直接抛； ~}}
-{{~ # 二是 long 列，前端按字符串承载，填进非数字后端会静默解析成 0； ~}}
-{{~ # 三是时间列，脚手架用文本框承载，格式不对后端同样会静默落成默认值。 ~}}
-{{~ has_required_text = false ~}}
-{{~ has_required_date = false ~}}
+{{~ # 提交前校验覆盖三类列（都没有就不产出校验函数，避免未被引用）： ~}}
+{{~ # 一是必填列——判空表达式由渲染器按控件给出（FormEmptyCheck），非空且没有缺省值的列也按必填； ~}}
+{{~ # 二是整数列——数字框收得进小数，整数属性遇到小数会整单 400； ~}}
+{{~ # 三是 long 与时间/日期时间列——前端用文本框承载，格式不对后端会静默落成 0 或默认值。 ~}}
+{{~ # 父级不在其列：不选即作为根节点，永不必填 ~}}
+{{~ has_required = false ~}}
+{{~ has_integer_number = false ~}}
 {{~ for col in Columns ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && (col.ControlKind == "text" || col.ControlKind == "textarea" || col.ControlKind == "time" || col.ControlKind == "datetime" || col.ControlKind == "binary") ~}}
-{{~ has_required_text = true ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.FormEmptyCheck ~}}
+{{~ has_required = true ~}}
 {{~ end ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && col.ControlKind == "date" ~}}
-{{~ has_required_date = true ~}}
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsIntegerNumber ~}}
+{{~ has_integer_number = true ~}}
 {{~ end ~}}
 {{~ end ~}}
-{{~ has_validation = has_required_text || has_required_date || has_long_input || has_time_input || has_datetime_input ~}}
+{{~ has_validation = has_required || has_integer_number || has_long_input || has_time_input || has_datetime_input ~}}
 {{~ # 操作裁剪标志（EnabledActions 门控；读取基线 tree/detail 始终生成） ~}}
 {{~ # 一列都不进表单时不产弹窗与增改按钮：空表单没有意义，且会留下未被引用的 import ~}}
 {{~ can_create = CanCreate && has_form_field ~}}
@@ -195,13 +196,13 @@ function onAction(payload: SchemaActionPayload) {
 {{~ # 布尔列排除在外：它渲染成开关，不消费选项 ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" && col.DictSelectorType == "ConstSelector" ~}}
-/** {{ col.ColumnComment | block_comment }}常量选项 */
-const {{ col.TsProperty }}ConstOptions = {{ col.ConstValues | select_options col.ColumnComment col.TsType }}
+/** {{ col.Label | block_comment }}常量选项 */
+const {{ col.TsProperty }}ConstOptions = {{ col.ConstValues | select_options col.Label col.TsType }}
 {{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" && col.EnumTypeShortName ~}}
-/** {{ col.ColumnComment | block_comment }}枚举选项（后端枚举元数据按 X-Language 返回标签） */
+/** {{ col.Label | block_comment }}枚举选项（后端枚举元数据按 X-Language 返回标签） */
 const {{ col.TsProperty }}Options = useEnumOptions('{{ col.EnumTypeShortName }}')
 {{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" ~}}
-/** {{ col.ColumnComment | block_comment }}选项来源未接通（{{ if col.DictSelectorType == "DictSelector" }}字典 {{ col.DictCode | block_comment }}{{ else }}枚举 {{ col.EnumTypeName | block_comment }}{{ end }}），需业务层提供 */
+/** {{ col.Label | block_comment }}选项来源未接通（{{ if col.DictSelectorType == "DictSelector" }}字典 {{ col.DictCode | block_comment }}{{ else }}枚举 {{ col.EnumTypeName | block_comment }}{{ end }}），需业务层提供 */
 const {{ col.TsProperty }}Options = [{ label: '选项来源未接通', value: -1, disabled: true }]
 {{~ end ~}}
 {{~ end ~}}
@@ -242,19 +243,19 @@ async function handleEdit(row: {{ ClassName }}ListItemDto) {
     detail = await {{ ClassNameCamel }}Api.detail(row.basicId)
   }
   catch (error) {
-    toast.error((error as Error)?.message || '加载详情失败')
+    toast.danger((error as Error)?.message || '加载详情失败')
   }
   const src = (detail ?? row) as {{ ClassName }}DetailDto
   form.value = {
     basicId: row.basicId,
+{{~ # 回填表达式取渲染器的 FormFromSource（与表单模型同源）；$s 换成详情里的同名字段。 ~}}
+{{~ # 非空父级以 0 表示根节点，回填成「未选」，下拉里才不会出现一个找不到的 0 ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InForm ~}}
-{{~ if col.ControlKind == "date" ~}}
-    {{ col.TsProperty }}: src.{{ col.TsProperty }} ? new Date(src.{{ col.TsProperty }}).getTime() : null,
-{{~ else if col.IsNullable || !col.IsRequired ~}}
-    {{ col.TsProperty }}: src.{{ col.TsProperty }} ?? null,
+{{~ if col.ColumnName == TreeParentColumn.ColumnName && !col.IsNullable ~}}
+    {{ col.TsProperty }}: src.{{ col.TsProperty }} && src.{{ col.TsProperty }} !== '0' ? src.{{ col.TsProperty }} : null,
 {{~ else ~}}
-    {{ col.TsProperty }}: src.{{ col.TsProperty }},
+    {{ col.TsProperty }}: {{ col.FormFromSource | string.replace "$s" ("src." + col.TsProperty) }},
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -271,7 +272,7 @@ async function handleDelete(row: {{ ClassName }}ListItemDto) {
     reloadList()
   }
   catch (error) {
-    toast.error((error as Error)?.message || '删除失败')
+    toast.danger((error as Error)?.message || '删除失败')
   }
 }
 {{~ end ~}}
@@ -321,33 +322,34 @@ function validateForm() {
 {{~ else if col.InUpdate && !col.InCreate ~}}
 {{~ side_guard = "form.value.basicId && " ~}}
 {{~ end ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && (col.ControlKind == "text" || col.ControlKind == "textarea" || col.ControlKind == "time" || col.ControlKind == "datetime" || col.ControlKind == "binary") ~}}
-  if ({{ side_guard }}!form.value.{{ col.TsProperty }}?.trim()) {
-    toast.warning('请输入{{ col.ColumnComment | ts_string }}')
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.FormEmptyCheck ~}}
+{{~ empty_check = col.FormEmptyCheck | string.replace "$v" ("form.value." + col.TsProperty) ~}}
+  if ({{ if side_guard == "" }}{{ empty_check }}{{ else }}{{ side_guard }}({{ empty_check }}){{ end }}) {
+    toast.warning('{{ col.FormRequiredVerb }}{{ col.Label | ts_string }}')
     return false
   }
 {{~ end ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsRequired && !col.IsNullable && col.ControlKind == "date" ~}}
-  if ({{ side_guard }}(form.value.{{ col.TsProperty }} == null || Number.isNaN(form.value.{{ col.TsProperty }}))) {
-    toast.warning('请选择{{ col.ColumnComment | ts_string }}')
+{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsIntegerNumber ~}}
+  if ({{ side_guard }}form.value.{{ col.TsProperty }} != null && !Number.isInteger(form.value.{{ col.TsProperty }})) {
+    toast.warning('{{ col.Label | ts_string }}只能填整数')
     return false
   }
 {{~ end ~}}
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsLongColumn && (col.ControlKind == "text" || col.ControlKind == "textarea") ~}}
   if ({{ side_guard }}form.value.{{ col.TsProperty }} && !INTEGER_PATTERN.test(String(form.value.{{ col.TsProperty }}))) {
-    toast.warning('{{ col.ColumnComment | ts_string }}只能填整数')
+    toast.warning('{{ col.Label | ts_string }}只能填整数')
     return false
   }
 {{~ end ~}}
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "time" ~}}
   if ({{ side_guard }}form.value.{{ col.TsProperty }} && !TIME_PATTERN.test(String(form.value.{{ col.TsProperty }}))) {
-    toast.warning('{{ col.ColumnComment | ts_string }}格式应为 HH:mm 或 HH:mm:ss')
+    toast.warning('{{ col.Label | ts_string }}格式应为 HH:mm 或 HH:mm:ss')
     return false
   }
 {{~ end ~}}
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "datetime" ~}}
   if ({{ side_guard }}form.value.{{ col.TsProperty }} && !DATE_TIME_PATTERN.test(String(form.value.{{ col.TsProperty }}))) {
-    toast.warning('{{ col.ColumnComment | ts_string }}格式应为 YYYY-MM-DD HH:mm:ss')
+    toast.warning('{{ col.Label | ts_string }}格式应为 YYYY-MM-DD HH:mm:ss')
     return false
   }
 {{~ end ~}}
@@ -380,7 +382,7 @@ async function handleSubmit() {
         basicId: form.value.basicId,
 {{~ for col in Columns ~}}
 {{~ if col.InUpdate ~}}
-        {{ col.TsProperty }}: {{ if col.ControlKind == "date" }}{{ if col.IsNullable || !col.IsRequired }}form.value.{{ col.TsProperty }} == null ? null : toDateOnly(form.value.{{ col.TsProperty }}){{ else }}toDateOnly(form.value.{{ col.TsProperty }}){{ end }}{{ else }}form.value.{{ col.TsProperty }}{{ end }},
+        {{ col.TsProperty }}: {{ if col.ColumnName == TreeParentColumn.ColumnName }}form.value.{{ col.TsProperty }} || {{ if col.IsNullable }}null{{ else }}'0'{{ end }}{{ else }}{{ col.FormToWire | string.replace "$v" ("form.value." + col.TsProperty) }}{{ end }},
 {{~ end ~}}
 {{~ end ~}}
       }
@@ -390,7 +392,7 @@ async function handleSubmit() {
       const createInput: {{ ClassName }}CreateDto = {
 {{~ for col in Columns ~}}
 {{~ if col.InCreate ~}}
-        {{ col.TsProperty }}: {{ if col.ControlKind == "date" }}{{ if col.IsNullable || !col.IsRequired }}form.value.{{ col.TsProperty }} == null ? null : toDateOnly(form.value.{{ col.TsProperty }}){{ else }}toDateOnly(form.value.{{ col.TsProperty }}){{ end }}{{ else }}form.value.{{ col.TsProperty }}{{ end }},
+        {{ col.TsProperty }}: {{ if col.ColumnName == TreeParentColumn.ColumnName }}form.value.{{ col.TsProperty }} || {{ if col.IsNullable }}null{{ else }}'0'{{ end }}{{ else }}{{ col.FormToWire | string.replace "$v" ("form.value." + col.TsProperty) }}{{ end }},
 {{~ end ~}}
 {{~ end ~}}
       }
@@ -401,7 +403,7 @@ async function handleSubmit() {
       basicId: editingId,
 {{~ for col in Columns ~}}
 {{~ if col.InUpdate ~}}
-      {{ col.TsProperty }}: {{ if col.ControlKind == "date" }}{{ if col.IsNullable || !col.IsRequired }}form.value.{{ col.TsProperty }} == null ? null : toDateOnly(form.value.{{ col.TsProperty }}){{ else }}toDateOnly(form.value.{{ col.TsProperty }}){{ end }}{{ else }}form.value.{{ col.TsProperty }}{{ end }},
+      {{ col.TsProperty }}: {{ if col.ColumnName == TreeParentColumn.ColumnName }}form.value.{{ col.TsProperty }} || {{ if col.IsNullable }}null{{ else }}'0'{{ end }}{{ else }}{{ col.FormToWire | string.replace "$v" ("form.value." + col.TsProperty) }}{{ end }},
 {{~ end ~}}
 {{~ end ~}}
     }
@@ -410,7 +412,7 @@ async function handleSubmit() {
     const createInput: {{ ClassName }}CreateDto = {
 {{~ for col in Columns ~}}
 {{~ if col.InCreate ~}}
-      {{ col.TsProperty }}: {{ if col.ControlKind == "date" }}{{ if col.IsNullable || !col.IsRequired }}form.value.{{ col.TsProperty }} == null ? null : toDateOnly(form.value.{{ col.TsProperty }}){{ else }}toDateOnly(form.value.{{ col.TsProperty }}){{ end }}{{ else }}form.value.{{ col.TsProperty }}{{ end }},
+      {{ col.TsProperty }}: {{ if col.ColumnName == TreeParentColumn.ColumnName }}form.value.{{ col.TsProperty }} || {{ if col.IsNullable }}null{{ else }}'0'{{ end }}{{ else }}{{ col.FormToWire | string.replace "$v" ("form.value." + col.TsProperty) }}{{ end }},
 {{~ end ~}}
 {{~ end ~}}
     }
@@ -421,7 +423,7 @@ async function handleSubmit() {
     reloadList()
   }
   catch (error) {
-    toast.error((error as Error)?.message || '保存失败')
+    toast.danger((error as Error)?.message || '保存失败')
   }
   finally {
     submitLoading.value = false
@@ -450,34 +452,34 @@ async function handleSubmit() {
 {{~ if col.InForm ~}}
 {{~ # 控件按 col.ControlKind 分派，与表单模型、回填、提交同源；父列除外，它恒是树形下拉 ~}}
 {{~ # 只勾了单侧新增/编辑的列按状态显隐，否则新增弹窗里会出现一个提交时必被丢弃的字段 ~}}
-        <XhFormFieldGroup{{ if col.InCreate && !col.InUpdate }} v-if="!form.basicId"{{ else if col.InUpdate && !col.InCreate }} v-if="form.basicId"{{ end }} value="{{ col.TsProperty }}"{{ if col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "textarea" }} class="xh-span-2"{{ end }}>
+        <XhFormFieldGroup{{ if col.InCreate && !col.InUpdate }} v-if="!form.basicId"{{ else if col.InUpdate && !col.InCreate }} v-if="form.basicId"{{ end }} name="{{ col.TsProperty }}"{{ if col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "textarea" }} class="xh-span-2"{{ end }}>
           <XhFieldRoot>
-            <XhFieldLabel>{{ col.ColumnComment | html_text }}</XhFieldLabel>
+            <XhFieldLabel>{{ col.Label | html_text }}</XhFieldLabel>
             <XhFieldControl>
 {{~ if col.ColumnName == TreeParentColumn.ColumnName ~}}
               <XTreeSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="parentOptions" placeholder="不选则作为根节点" />
 {{~ else if col.ControlKind == "switch" ~}}
               <XhSwitch :checked="form.{{ col.TsProperty }} ?? false" @update:checked="(next: boolean) => form.{{ col.TsProperty }} = next" />
 {{~ else if col.ControlKind == "select" && col.DictSelectorType == "ConstSelector" ~}}
-              <XSelect v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="{{ col.TsProperty }}ConstOptions" placeholder="请选择{{ col.ColumnComment | html_attr }}" />
+              <XSelect v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="{{ col.TsProperty }}ConstOptions" placeholder="请选择{{ col.Label | html_attr }}" />
 {{~ else if col.ControlKind == "select" ~}}
-              <XSelect v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="({{ col.TsProperty }}Options as SelectOption[])" placeholder="请选择{{ col.ColumnComment | html_attr }}" />
+              <XSelect v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="({{ col.TsProperty }}Options as SelectOption[])" placeholder="请选择{{ col.Label | html_attr }}" />
 {{~ else if col.ControlKind == "date" ~}}
-              <XDatePicker v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请选择{{ col.ColumnComment | html_attr }}" />
+              <XDatePicker v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请选择{{ col.Label | html_attr }}" />
 {{~ else if col.ControlKind == "datetime" ~}}
               <!-- 日期时间：组件库没有带时分秒的选择器包装，脚手架用文本框 + 提交前格式校验 -->
               <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="YYYY-MM-DD HH:mm:ss" />
 {{~ else if col.ControlKind == "time" ~}}
               <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="HH:mm:ss" />
 {{~ else if col.ControlKind == "number" ~}}
-              <XNumberInput v-model:value="form.{{ col.TsProperty }}" :min="0" />
+              <XNumberInput v-model:value="form.{{ col.TsProperty }}" />
 {{~ else if col.ControlKind == "binary" ~}}
               <!-- 二进制列：脚手架用文本框承载 Base64，接真实上传请替换成上传组件 -->
-              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="{{ col.ColumnComment | html_attr }}（Base64 内容）" />
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="{{ col.Label | html_attr }}（Base64 内容）" />
 {{~ else if col.ControlKind == "textarea" ~}}
-              <XInput v-model:value="form.{{ col.TsProperty }}" clearable :rows="3" type="textarea" placeholder="请输入{{ col.ColumnComment | html_attr }}" />
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable :rows="3" type="textarea" placeholder="请输入{{ col.Label | html_attr }}" />
 {{~ else ~}}
-              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请输入{{ col.ColumnComment | html_attr }}" />
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请输入{{ col.Label | html_attr }}" />
 {{~ end ~}}
             </XhFieldControl>
             <XhFieldErrorText />

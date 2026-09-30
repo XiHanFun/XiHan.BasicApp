@@ -508,4 +508,107 @@ public sealed class ScribanTemplateRendererTests
         Assert.NotEmpty(validation.Errors);
         Assert.All(validation.Errors, error => Assert.False(string.IsNullOrWhiteSpace(error)));
     }
+
+    /// <summary>
+    /// 表单取值口径：报文可空性跟列本身走，「必填」只管校验。
+    /// 非空列留空时文本发空串、数字发 0；下拉、日期、时间、long 没有说得通的缺省值，非空即按必填；
+    /// 可空的文本类控件清空后是空串，按 null 发。
+    /// </summary>
+    /// <param name="csharpType">C# 类型</param>
+    /// <param name="tsType">TS 类型</param>
+    /// <param name="htmlType">表单控件配置</param>
+    /// <param name="isNullable">列是否可空</param>
+    /// <param name="isRequired">列配置是否勾了必填</param>
+    /// <param name="expected">IsFormRequired|FormDefault|FormToWire|FormEmptyCheck</param>
+    [Theory]
+    [InlineData("string", "string", HtmlType.Input, false, false, "false|''|$v ?? ''|")]
+    [InlineData("string", "string", HtmlType.Input, false, true, "true|''|$v ?? ''|!$v?.trim()")]
+    [InlineData("string?", "string", HtmlType.Textarea, true, false, "false|null|$v || null|")]
+    [InlineData("string?", "string", HtmlType.Input, true, true, "true|null|$v || null|!$v?.trim()")]
+    [InlineData("int", "number", HtmlType.InputNumber, false, false, "false|0|$v ?? 0|")]
+    [InlineData("int", "number", HtmlType.InputNumber, false, true, "true|0|$v ?? 0|$v == null")]
+    [InlineData("decimal?", "number", HtmlType.InputNumber, true, false, "false|null|$v ?? null|")]
+    [InlineData("long", "string", HtmlType.Input, false, false, "true|''|$v ?? ''|!$v?.trim()")]
+    [InlineData("long?", "string", HtmlType.Input, true, false, "false|null|$v || null|")]
+    [InlineData("bool", "boolean", HtmlType.Switch, false, true, "false|false|$v|")]
+    [InlineData("DateTimeOffset", "string", HtmlType.DatePicker, false, false, "true|null|toDateOnly($v)|$v == null || Number.isNaN($v)")]
+    [InlineData("DateTimeOffset?", "string", HtmlType.DatePicker, true, false, "false|null|$v == null ? null : toDateOnly($v)|")]
+    [InlineData("DateTimeOffset", "string", HtmlType.DateTimePicker, false, false, "true|''|$v ?? ''|!$v?.trim()")]
+    [InlineData("TimeSpan?", "string", HtmlType.TimePicker, true, false, "false|null|$v || null|")]
+    public async Task RenderAsync_FormFactsShouldFollowNullabilityThenRequired(
+        string csharpType, string tsType, HtmlType htmlType, bool isNullable, bool isRequired, string expected)
+    {
+        var column = CodeGenerationTestHelper.CreateColumn("Amount", csharpType, tsType, htmlType: htmlType);
+        column.IsNullable = isNullable;
+        column.IsRequired = isRequired;
+        var context = CodeGenerationTestHelper.CreateContext(columns: [column]);
+
+        var result = await _renderer.RenderAsync(
+            "{{ for col in Columns }}{{ col.IsFormRequired }}|{{ col.FormDefault }}|{{ col.FormToWire }}|{{ col.FormEmptyCheck }}{{ end }}",
+            context);
+
+        Assert.Equal(expected, result, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 下拉没有说得通的缺省项：非空即必填、不预填；枚举例外，预填首个成员并以它作兜底。
+    /// 判空按值类型取：数字选项判 null，字符串与枚举选项判假值。
+    /// </summary>
+    [Fact]
+    public async Task RenderAsync_SelectFormFactsShouldRequireAChoiceWhenColumnIsNotNull()
+    {
+        var level = CodeGenerationTestHelper.CreateColumn("Level", "int", "number", htmlType: HtmlType.Select);
+        level.DictSelectorType = DictSelectorType.ConstSelector;
+        level.ConstValues = """[{"label":"低","value":1}]""";
+        var status = CodeGenerationTestHelper.CreateColumn("Status", "EnableStatus", "string", htmlType: HtmlType.Select);
+        status.DictSelectorType = DictSelectorType.EnumSelector;
+        status.EnumTypeShortName = "EnableStatus";
+        status.EnumNamespace = "XiHan.BasicApp.Saas.Domain.Enums";
+        status.EnumDefaultMember = "Disabled";
+        var context = CodeGenerationTestHelper.CreateContext(columns: [level, status]);
+
+        var result = await _renderer.RenderAsync(
+            "{{ for col in Columns }}{{ col.IsFormRequired }}|{{ col.FormDefault }}|{{ col.FormToWire }}|{{ col.FormEmptyCheck }}|{{ col.FormRequiredVerb }};{{ end }}",
+            context);
+
+        Assert.Equal(
+            "true|null|$v ?? 0|$v == null|请选择;true|'Disabled'|$v ?? 'Disabled'|!$v|请选择;",
+            result,
+            StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 数字框收得进小数：整数列要在提交前校验，小数列不校验。
+    /// </summary>
+    [Fact]
+    public async Task RenderAsync_IntegerNumberFlagShouldOnlyMarkIntegerColumns()
+    {
+        var context = CodeGenerationTestHelper.CreateContext(columns:
+        [
+            CodeGenerationTestHelper.CreateColumn("Stock", "int", "number", htmlType: HtmlType.InputNumber),
+            CodeGenerationTestHelper.CreateColumn("Price", "decimal", "number", htmlType: HtmlType.InputNumber),
+            CodeGenerationTestHelper.CreateColumn("OwnerId", "long", "string")
+        ]);
+
+        var result = await _renderer.RenderAsync("{{ for col in Columns }}{{ col.IsIntegerNumber }};{{ end }}", context);
+
+        Assert.Equal("true;false;false;", result, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 界面文案优先取列注释（去首尾空白），DbFirst 导入的表缺注释时按属性名推导，字段不会没有名字。
+    /// </summary>
+    [Fact]
+    public async Task RenderAsync_LabelShouldFallBackToHumanizedPropertyName()
+    {
+        var withComment = CodeGenerationTestHelper.CreateColumn("ProductName");
+        withComment.ColumnComment = "  产品名称 ";
+        var withoutComment = CodeGenerationTestHelper.CreateColumn("ProductCode");
+        withoutComment.ColumnComment = null;
+        var context = CodeGenerationTestHelper.CreateContext(columns: [withComment, withoutComment]);
+
+        var result = await _renderer.RenderAsync("{{ for col in Columns }}{{ col.Label }};{{ end }}", context);
+
+        Assert.Equal("产品名称;Product Code;", result, StringComparer.Ordinal);
+    }
 }
