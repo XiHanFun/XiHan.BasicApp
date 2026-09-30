@@ -73,7 +73,7 @@ XiHan.BasicApp 的消息能力横跨三块：**企业级消息中心（站内通
 
 ### 发布 → 展开 → 门控 → 推送
 
-发布走 `NotificationAppService.PublishNotificationAsync`（`[UnitOfWork(true)]` + 权限码 `SaasPermissionCodes.Message.Publish`），一个事务内完成：
+发布走 `NotificationAppService.PublishNotificationAsync`（`[UnitOfWork(true)]` + 权限码 `SaasPermissionCodes.Notification.Publish`；通知公告的菜单、查询与维护统一走 `saas:notification:*`，邮件短信记录走 `saas:message:*`），一个事务内完成：
 
 1. **展开**：`NotificationDomainService` 按 `TargetType` 解析收件人（All/Role/Department/User），批量 `INSERT` `SysUserNotification` 行。
 2. **偏好门控**：站内信落行前经 `FilterByPreferenceAsync` 过滤（见下节）；**强制阅读 / 紧急通知一律送达，不受门控**。
@@ -84,7 +84,7 @@ XiHan.BasicApp 的消息能力横跨三块：**企业级消息中心（站内通
 
 - **发 N 读 M / 已确认 K**：发布结果返回 `RecipientCount`；管理侧另有专用统计接口 `NotificationQueryService.GetNotificationReadStatsAsync`，一次性给出 `RecipientCount`/`ReadCount`/`UnreadCount`/`ConfirmCount`（按 `ConfirmTime` 非空统计）+ `NeedConfirm`，供详情页展示阅读进度。
 - **未读人员**：`GetNotificationUnreadUserPageAsync` 按通知 ID 分页查询未读用户（`NotificationStatus=Unread`），带出 `UserName`/`RealName`/`ReceivedTime`，可经通用导出机制导 CSV。
-- **催办**：`RemindAsync(id)` 查出该通知未读用户（`NotificationStatus=Unread`），对**在线未读者**重新实时推送 `ReceiveNotification`——**不改库**，仅即时再提醒（同样受权限码 `Message.Publish` 门控）。
+- **催办**：`RemindAsync(id)` 查出该通知未读用户（`NotificationStatus=Unread`），对**在线未读者**重新实时推送 `ReceiveNotification`——**不改库**，仅即时再提醒（同样受权限码 `Notification.Publish` 门控）。
 
 ### 用户侧：收件箱 API（UserInboxAppService）
 

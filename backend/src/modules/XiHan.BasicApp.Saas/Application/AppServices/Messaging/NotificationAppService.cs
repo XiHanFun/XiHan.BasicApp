@@ -81,7 +81,7 @@ public sealed class NotificationAppService
     /// 创建系统通知
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Message.Create)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Create)]
     public async Task<NotificationDetailDto> CreateNotificationAsync(NotificationCreateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -120,7 +120,7 @@ public sealed class NotificationAppService
     /// 删除系统通知
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Message.Delete)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Delete)]
     public async Task DeleteNotificationAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -135,7 +135,7 @@ public sealed class NotificationAppService
     /// ② 给发布者经 TaskProgress 推送任务进度（灵动岛呈现）。推送失败均不影响发布结果。
     /// </remarks>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Message.Publish)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Publish)]
     public async Task<NotificationPublishResultDto> PublishNotificationAsync(NotificationPublishDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -175,7 +175,7 @@ public sealed class NotificationAppService
     /// 更新系统通知
     /// </summary>
     [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.Message.Update)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Update)]
     public async Task<NotificationDetailDto> UpdateNotificationAsync(NotificationUpdateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -191,7 +191,7 @@ public sealed class NotificationAppService
     /// <summary>
     /// 催办：对未读人员重新实时推送（不改库；在线者即时再提醒）
     /// </summary>
-    [PermissionAuthorize(SaasPermissionCodes.Message.Publish)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Publish)]
     public async Task<NotificationPublishResultDto> RemindAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
