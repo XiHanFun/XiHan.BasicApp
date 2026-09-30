@@ -16,6 +16,8 @@ import {
 } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useIsMobile } from '~/composables'
+import SchemaPagination from '../schema/SchemaPagination.vue'
 import { VNodeRender } from './VNodeRender'
 
 /** 次级表格的列定义：抽屉、弹窗、面板里那些不走 Schema 的表格用它 */
@@ -31,6 +33,22 @@ export interface XDataTableColumn<Row> {
   render?: (row: Row, index: number) => VNodeChild
 }
 
+/**
+ * 次级表格的分页：给了就在表格下方出与列表页同一副底栏（左侧条数与页码、右侧分页）。
+ * 不给 onUpdatePageSize 时不出条数选择器——换了条数却没人接，选了也不生效
+ */
+export interface XDataTablePagination {
+  page: number
+  pageSize: number
+  itemCount: number
+  /** 可选条数，缺省同列表页 */
+  pageSizes?: number[]
+  onUpdatePage?: (page: number) => void
+  onUpdatePageSize?: (pageSize: number) => void
+  /** 紧凑档：抽屉这类窄容器里用，少显几个页码；窄屏下自动开启 */
+  compact?: boolean
+}
+
 defineOptions({ name: 'XDataTable' })
 
 const props = withDefaults(defineProps<{
@@ -41,11 +59,16 @@ const props = withDefaults(defineProps<{
   loading?: boolean
   /** 勾选列；给了才出选择列 */
   selectable?: boolean
+  /** 尺寸档，缺省与列表页表格同为 md */
   size?: 'sm' | 'md' | 'lg'
   /** 表格最大高度；不给则用皮肤缺省的 24rem */
   maxHeight?: number | string
   /** 表头吸顶 */
   stickyHeader?: boolean
+  /** 列间分隔线，缺省开启：与列表页表格（SchemaTablePanel 缺省的非单行模式）同一副样式 */
+  ruled?: boolean
+  /** 分页底栏；不给则不出底栏 */
+  pagination?: XDataTablePagination
   emptyText?: string
   /** 逐行附加属性（如整行点击） */
   rowProps?: (row: T, index: number) => Record<string, unknown>
@@ -53,9 +76,11 @@ const props = withDefaults(defineProps<{
   rowKey: 'basicId',
   loading: false,
   selectable: false,
-  size: 'sm',
+  size: 'md',
   maxHeight: undefined,
   stickyHeader: true,
+  ruled: true,
+  pagination: undefined,
   emptyText: undefined,
   rowProps: undefined,
 })
@@ -63,6 +88,13 @@ const props = withDefaults(defineProps<{
 const checkedKeys = defineModel<string[]>('checkedRowKeys', { default: () => [] })
 
 const { t } = useI18n()
+const { isMobile } = useIsMobile()
+
+const pageCount = computed(() =>
+  props.pagination ? Math.max(1, Math.ceil(props.pagination.itemCount / props.pagination.pageSize)) : 1)
+/** 调用方不接条数变更时只留当前条数一档，分页组件就不出条数选择器 */
+const pageSizes = computed(() =>
+  props.pagination?.onUpdatePageSize ? props.pagination.pageSizes : [props.pagination?.pageSize ?? 20])
 
 function keyOf(row: T): string {
   return typeof props.rowKey === 'function' ? props.rowKey(row) : String((row as Record<string, unknown>)[props.rowKey])
@@ -135,6 +167,7 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
       :loading="loading"
       :size="size"
       :sticky-header="stickyHeader"
+      :ruled="ruled"
       @update:selection="onSelectionChange"
     >
       <XhTableHeader>
@@ -190,6 +223,23 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
         </slot>
       </XhTableEmpty>
     </XhTableRoot>
+
+    <!-- 底栏与列表页同一副：左侧条数与页码，右侧分页；窄屏换紧凑档 -->
+    <div v-if="pagination" class="x-data-table__footer">
+      <div class="x-data-table__count">
+        {{ t('component.schema_table.total_prefix') }} <strong>{{ pagination.itemCount }}</strong> {{ t('component.schema_table.total_suffix') }}{{ t('component.schema_table.page_sep') }} <strong>{{ pagination.page }}</strong> {{ t('component.schema_table.page_of', { pageCount }) }}
+      </div>
+      <SchemaPagination
+        class="x-data-table__pagination"
+        :total="pagination.itemCount"
+        :page="pagination.page"
+        :page-size="pagination.pageSize"
+        :page-sizes="pageSizes"
+        :compact="isMobile || pagination.compact"
+        @update:page="(value: number) => pagination?.onUpdatePage?.(value)"
+        @update:page-size="(value: number) => pagination?.onUpdatePageSize?.(value)"
+      />
+    </div>
   </div>
 </template>
 
@@ -215,6 +265,31 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
 .x-data-table :deep([data-scope='table'][data-part='header']),
 .x-data-table :deep([data-scope='table'][data-part='body']) {
   min-inline-size: min-content;
+}
+
+/* 底栏固定在表格下方，不随表体滚动；与列表页底栏同一副间距与字号 */
+.x-data-table__footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: var(--xh-space-2) var(--xh-space-3);
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--xh-space-2);
+}
+
+.x-data-table__count {
+  font-size: var(--xh-text-secondary-size);
+  color: var(--xh-fg-default);
+  white-space: nowrap;
+}
+
+.x-data-table__count strong {
+  font-weight: var(--xh-font-weight-semibold);
+}
+
+.x-data-table__pagination {
+  max-width: 100%;
 }
 
 .x-data-table__cell-text {

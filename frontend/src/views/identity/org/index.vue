@@ -638,7 +638,6 @@ onMounted(() => {
                 v-if="managementDetail.childDepartments?.length"
                 :columns="childDeptColumns"
                 :data="managementDetail.childDepartments"
-                size="sm"
                 :row-key="(row: DepartmentListItemDto) => row.basicId"
               />
               <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
@@ -656,7 +655,6 @@ onMounted(() => {
                 v-if="managementDetail.members?.length"
                 :columns="memberColumns"
                 :data="managementDetail.members"
-                size="sm"
                 :row-key="(row: DepartmentManagementMemberDto) => row.basicId"
               />
               <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">

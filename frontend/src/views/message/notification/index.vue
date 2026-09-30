@@ -25,7 +25,7 @@ import {
   querySortsFromSchema,
   roleApi,
 } from '@/api'
-import { IconPicker, NotificationContent, SchemaPage, SchemaPagination, XContentEditorField, XDataTable, XDatePicker, XEditModal, XInput, XMdEditor, XSelect, XTagsInput } from '~/components'
+import { IconPicker, NotificationContent, SchemaPage, XContentEditorField, XDataTable, XDatePicker, XEditModal, XInput, XMdEditor, XSelect, XTagsInput } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { downloadBlob, formatDate, getOptionLabel } from '~/utils'
@@ -1125,16 +1125,14 @@ async function handleSubmit() {
             :data="unreadUsers"
             :loading="statsLoading"
             :row-key="(row: NotificationUnreadUserDto) => String(row.userId)"
-            size="sm"
+            :pagination="{
+              page: unreadPage,
+              pageSize: STATS_PAGE_SIZE,
+              itemCount: unreadTotal,
+              onUpdatePage: handleUnreadPageChange,
+              compact: true,
+            }"
           />
-          <div class="stats__pager">
-            <SchemaPagination
-              :page="unreadPage"
-              :total="unreadTotal"
-              :page-size="STATS_PAGE_SIZE" compact
-              @update:page="handleUnreadPageChange"
-            />
-          </div>
         </div>
       </XhDrawerContent>
     </XhDrawerRoot>
@@ -1186,10 +1184,5 @@ async function handleSubmit() {
 .stats__section-title {
   font-size: 14px;
   font-weight: 600;
-}
-
-.stats__pager {
-  display: flex;
-  justify-content: flex-end;
 }
 </style>

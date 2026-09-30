@@ -806,7 +806,6 @@ onMounted(() => {
                 v-if="childMenus.length"
                 :columns="childMenuColumns"
                 :data="childMenus"
-                size="sm"
                 :row-key="(row: MenuTreeNodeDto) => row.basicId"
               />
               <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">

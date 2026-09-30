@@ -927,6 +927,7 @@ async function handleSubmit() {
           <XDataTable
             class="xh-task-log-table"
             :columns="taskLogColumns"
+            max-height="100%"
             :data="logItems"
             :loading="logLoading"
             :pagination="{
@@ -936,7 +937,6 @@ async function handleSubmit() {
               onUpdatePage: (p: number) => loadTaskLogs(p) }"
             :row-key="(row: TaskLogListItemDto) => row.basicId"
             :row-props="taskLogRowProps"
-            size="sm"
           />
         </div>
       </XhDrawerContent>

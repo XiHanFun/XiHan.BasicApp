@@ -232,7 +232,8 @@ function handleClose(): void {
         <XhTableRoot
           v-if="errorItems.length > 0"
           class="xh-import-errors"
-          size="sm"
+          ruled
+          size="md"
           sticky-header
           :columns="errorColumns"
           :rows="errorRowDefs"
