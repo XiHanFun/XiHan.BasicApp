@@ -177,6 +177,10 @@ public sealed class ExportExecutor : IExportExecutor
         }
     }
 
+    /// <summary>
+    /// 反序列化导出列快照（解析不了直接抛出，任务失败原因写明「导出列无法解析」，不混同为「导出列为空」）
+    /// </summary>
+    /// <exception cref="InvalidOperationException">快照不是导出列定义</exception>
     private static List<ExportColumnDto> DeserializeColumns(string fieldsSnapshot)
     {
         if (string.IsNullOrWhiteSpace(fieldsSnapshot))
@@ -184,14 +188,18 @@ public sealed class ExportExecutor : IExportExecutor
             return [];
         }
 
+        List<ExportColumnDto>? columns;
         try
         {
-            return JsonSerializer.Deserialize<List<ExportColumnDto>>(fieldsSnapshot) ?? [];
+            columns = JsonSerializer.Deserialize<List<ExportColumnDto>>(fieldsSnapshot);
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            return [];
+            var position = string.IsNullOrEmpty(ex.Path) ? string.Empty : $"（{ex.Path}）";
+            throw new InvalidOperationException($"导出列无法解析{position}，导出已终止。", ex);
         }
+
+        return columns ?? throw new InvalidOperationException("导出列无法解析（快照为 null），导出已终止。");
     }
 
     private static string BuildFileName(SysExportTask task, ExportFormat format)

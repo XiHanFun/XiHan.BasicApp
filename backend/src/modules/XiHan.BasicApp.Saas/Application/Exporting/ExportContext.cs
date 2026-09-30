@@ -23,7 +23,7 @@ public sealed class ExportContext
     public required IFieldSecurityService FieldSecurity { get; init; }
 
     /// <summary>
-    /// 业务类型（= pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
     public required string BusinessType { get; init; }
 
