@@ -51,4 +51,12 @@ public interface IDictQueryService : IApplicationService
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统字典项树</returns>
     Task<IReadOnlyList<DictItemTreeNodeDto>> GetDictItemTreeAsync(DictItemTreeQueryDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 按字典编码获取下拉选项
+    /// </summary>
+    /// <param name="dictCode">字典编码</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>字典选项（字典停用时为空）</returns>
+    Task<IReadOnlyList<DictOptionDto>> GetDictOptionsAsync(string dictCode, CancellationToken cancellationToken = default);
 }

@@ -13,6 +13,9 @@ public interface IDictRepository : ISaasRepository<SysDict>
     /// <summary>
     /// 根据字典编码获取
     /// </summary>
+    /// <remarks>
+    /// 租户同时看得到平台全局字典与本租户字典；编码撞上时取本租户的（更具体的那份）。
+    /// </remarks>
     Task<SysDict?> GetByCodeAsync(string dictCode, CancellationToken cancellationToken = default);
 
     /// <summary>

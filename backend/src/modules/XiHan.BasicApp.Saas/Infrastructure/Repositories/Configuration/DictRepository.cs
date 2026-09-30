@@ -21,8 +21,10 @@ public sealed class DictRepository(ISqlSugarClientResolver clientResolver)
         ArgumentException.ThrowIfNullOrWhiteSpace(dictCode);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 平台全局字典 TenantId 为 0，本租户的排在前面
         return await CreateQueryable()
             .Where(dict => dict.DictCode == dictCode)
+            .OrderByDescending(dict => dict.TenantId)
             .FirstAsync(cancellationToken);
     }
 

@@ -48,6 +48,10 @@ public sealed class EndpointAuthorizationCoverageTests
             "AuthAppService.SwitchTenantAsync",
             "AuthAppService.UnlockSessionAsync",
 
+            // DictQueryService（1）：字典是业务表单下拉的选项来源，使用者不一定持有字典管理权限，类级 Authorize 已门控；
+            // 只暴露下拉用得到的码、名、层级、默认与停用标记，不含项值、说明与扩展元数据，停用字典不暴露任何项
+            "DictQueryService.GetDictOptionsAsync",
+
             // EnumMetadataAppService（2）：全站字典标签的单一事实源，任何登录用户都要能取，类级 Authorize 已门控
             "EnumMetadataAppService.GetAllEnumsAsync",
             "EnumMetadataAppService.GetEnumAsync",
