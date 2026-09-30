@@ -1199,11 +1199,6 @@ public static class SaasPermissionCodes
         public const string Status = "saas:message:status";
 
         /// <summary>
-        /// 发布系统通知
-        /// </summary>
-        public const string Publish = "saas:message:publish";
-
-        /// <summary>
         /// 删除系统消息
         /// </summary>
         public const string Delete = "saas:message:delete";

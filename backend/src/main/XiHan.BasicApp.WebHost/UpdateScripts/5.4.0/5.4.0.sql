@@ -1,5 +1,6 @@
 -- 5.4.0
 -- 一、字段级安全改为「实体 + 字段」：规则不再挂权限资源，读取方式的参数改为明确的列，删去从未生效的写法（见后文）。
+-- 二、通知公告改用自己的权限码 saas:notification:*，删除只为通知存在过的 saas:message:publish（见后文）。
 --
 -- 只在 5.4.0 之前建的库上执行：新建的库按当前实体建表后直接登记为最新版本，不跑本脚本。
 -- 本脚本在建表之后、播种之前执行；建表只建缺失的表，存量表的列与索引由本脚本调整。
@@ -135,3 +136,21 @@ BEGIN
     END IF;
 END
 $$;
+
+-- 二、通知公告改用 saas:notification:*。
+-- 通知的接口与菜单此前要求的是 saas:message:*，saas:message:publish 只为通知发布而设；
+-- 现在通知只认 saas:notification:*，这个码没有接口了，存量库里连同所有引用一起删除（权限变更日志保留原样）。
+-- 先删引用、最后删权限行。版本与演示角色已授予 saas:notification:*；自建角色若靠 saas:message:* 维护通知，需补授通知权限。
+DELETE FROM sys_role_permission WHERE permission_id IN (SELECT basic_id FROM sys_permission WHERE permission_code = 'saas:message:publish');
+
+DELETE FROM sys_user_permission WHERE permission_id IN (SELECT basic_id FROM sys_permission WHERE permission_code = 'saas:message:publish');
+
+DELETE FROM sys_tenant_edition_permission WHERE permission_id IN (SELECT basic_id FROM sys_permission WHERE permission_code = 'saas:message:publish');
+
+DELETE FROM sys_permission_delegation WHERE permission_id IN (SELECT basic_id FROM sys_permission WHERE permission_code = 'saas:message:publish');
+
+DELETE FROM sys_permission_request WHERE permission_id IN (SELECT basic_id FROM sys_permission WHERE permission_code = 'saas:message:publish');
+
+UPDATE sys_menu SET permission_id = NULL WHERE permission_id IN (SELECT basic_id FROM sys_permission WHERE permission_code = 'saas:message:publish');
+
+DELETE FROM sys_permission WHERE permission_code = 'saas:message:publish';

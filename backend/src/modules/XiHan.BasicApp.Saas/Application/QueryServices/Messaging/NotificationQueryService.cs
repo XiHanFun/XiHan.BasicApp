@@ -70,7 +70,7 @@ public sealed class NotificationQueryService
     /// <param name="input">查询条件</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统通知分页列表</returns>
-    [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<NotificationListItemDto>> GetNotificationPageAsync(NotificationPageQueryDto input, CancellationToken cancellationToken = default)
     {
@@ -96,7 +96,7 @@ public sealed class NotificationQueryService
     /// <param name="id">系统通知主键</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>系统通知详情</returns>
-    [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Read)]
     public async Task<NotificationDetailDto?> GetNotificationDetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
@@ -116,7 +116,7 @@ public sealed class NotificationQueryService
     /// <param name="input">查询条件</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户通知分页列表</returns>
-    [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<UserNotificationListItemDto>> GetUserNotificationPageAsync(UserNotificationPageQueryDto input, CancellationToken cancellationToken = default)
     {
@@ -145,7 +145,7 @@ public sealed class NotificationQueryService
     /// <param name="id">用户通知主键</param>
     /// <param name="cancellationToken">取消令牌</param>
     /// <returns>用户通知详情</returns>
-    [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Read)]
     public async Task<UserNotificationDetailDto?> GetUserNotificationDetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
@@ -168,7 +168,7 @@ public sealed class NotificationQueryService
     /// <summary>
     /// 获取通知阅读统计（发 N / 已读 M / 已确认 K）
     /// </summary>
-    [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Read)]
     public async Task<NotificationReadStatsDto> GetNotificationReadStatsAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
@@ -198,7 +198,7 @@ public sealed class NotificationQueryService
     /// <summary>
     /// 获取通知未读人员分页（前端可经导出机制导 CSV）
     /// </summary>
-    [PermissionAuthorize(SaasPermissionCodes.Message.Read)]
+    [PermissionAuthorize(SaasPermissionCodes.Notification.Read)]
     [HttpPost]
     public async Task<PageResultDtoBase<NotificationUnreadUserDto>> GetNotificationUnreadUserPageAsync(NotificationUnreadUserPageQueryDto input, CancellationToken cancellationToken = default)
     {

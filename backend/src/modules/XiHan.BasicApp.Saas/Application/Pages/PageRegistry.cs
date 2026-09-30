@@ -121,7 +121,7 @@ public static class PageRegistry
         // [4] 消息中心
          new("message", "消息中心", "menu.message", MenuType.Directory, "/message", "Message", null, null, null, "lucide:mail", 500, "/message/notification"),
         // [4.1] 通知公告
-         new("message.notification", "通知公告", "menu.message_notification", MenuType.Menu, "/message/notification", "MessageNotification", "message/notification/index", "message", SaasPermissionCodes.Message.Read, "lucide:bell", 310),
+         new("message.notification", "通知公告", "menu.message_notification", MenuType.Menu, "/message/notification", "MessageNotification", "message/notification/index", "message", SaasPermissionCodes.Notification.Read, "lucide:bell", 310),
         // [4.2] 邮件短信
          new("message.record", "邮件短信", "menu.message_record", MenuType.Menu, "/message/record", "MessageRecord", "message/record/index", "message", SaasPermissionCodes.Message.Read, "lucide:send", 320),
         // [4.3] 消息模板
@@ -313,12 +313,12 @@ public static class PageRegistry
          new("tenant.edition.permission-revoke", "版本权限撤销", "tenant.edition", SaasPermissionCodes.TenantEditionPermission.Revoke, 8),
          new("tenant.edition.export", "导出", "tenant.edition", SaasPermissionCodes.TenantEdition.Export, 9),
 
-        // [4.1] 通知公告（端点要求的是 saas:message:*，见 NotificationAppService / NotificationQueryService）
-         new("message.notification.read", "查看", "message.notification", SaasPermissionCodes.Message.Read, 0),
-         new("message.notification.create", "新增", "message.notification", SaasPermissionCodes.Message.Create, 1),
-         new("message.notification.update", "编辑", "message.notification", SaasPermissionCodes.Message.Update, 2),
-         new("message.notification.publish", "发布", "message.notification", SaasPermissionCodes.Message.Publish, 3),
-         new("message.notification.delete", "删除", "message.notification", SaasPermissionCodes.Message.Delete, 4),
+        // [4.1] 通知公告
+         new("message.notification.read", "查看", "message.notification", SaasPermissionCodes.Notification.Read, 0),
+         new("message.notification.create", "新增", "message.notification", SaasPermissionCodes.Notification.Create, 1),
+         new("message.notification.update", "编辑", "message.notification", SaasPermissionCodes.Notification.Update, 2),
+         new("message.notification.publish", "发布", "message.notification", SaasPermissionCodes.Notification.Publish, 3),
+         new("message.notification.delete", "删除", "message.notification", SaasPermissionCodes.Notification.Delete, 4),
          new("message.notification.export", "导出", "message.notification", SaasPermissionCodes.Notification.Export, 9),
 
         // [4.2] 邮件短信
