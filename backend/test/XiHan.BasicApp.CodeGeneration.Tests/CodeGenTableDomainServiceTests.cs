@@ -59,6 +59,7 @@ public sealed class CodeGenTableDomainServiceTests
     /// <param name="status">状态</param>
     /// <param name="moduleName">模块名</param>
     /// <param name="remark">备注</param>
+    /// <param name="enabledActions">包含操作</param>
     private static CodeGenTableUpdateCommand UpdateCommand(
         long basicId = 1,
         string tableName = "sys_product",
@@ -69,7 +70,8 @@ public sealed class CodeGenTableDomainServiceTests
         DatabaseType databaseType = DatabaseType.MySql,
         EnableStatus status = EnableStatus.Enabled,
         string? moduleName = "Catalog",
-        string? remark = null)
+        string? remark = null,
+        string? enabledActions = "create,update")
     {
         return new CodeGenTableUpdateCommand(
             basicId,
@@ -84,7 +86,7 @@ public sealed class CodeGenTableDomainServiceTests
             templateType,
             genType,
             generationScope,
-            "create,update",
+            enabledActions,
             null,
             null,
             "BasicId",
@@ -206,6 +208,40 @@ public sealed class CodeGenTableDomainServiceTests
         var result = await _service.UpdateTableAsync(UpdateCommand(templateType: templateType));
 
         Assert.Equal(templateType, result.Table.TemplateType);
+    }
+
+    /// <summary>
+    /// 只勾导入不勾新增必须在保存时拒绝：导入逐行调新增接口，存下来只会在生成时再失败一次。
+    /// </summary>
+    [Theory]
+    [InlineData("import")]
+    [InlineData("update, IMPORT")]
+    public async Task UpdateTableAsync_ImportWithoutCreateShouldBeRejected(string enabledActions)
+    {
+        GivenExisting(Existing());
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.UpdateTableAsync(UpdateCommand(enabledActions: enabledActions)));
+
+        Assert.Contains("导入", exception.Message, StringComparison.Ordinal);
+        _tableRepository.Verify(repository => repository.UpdateAsync(It.IsAny<SysCodeGenTable>(), It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    /// <summary>
+    /// 导入与新增同勾、或留空（全开）都能保存。
+    /// </summary>
+    /// <param name="enabledActions">包含操作</param>
+    [Theory]
+    [InlineData("create,import")]
+    [InlineData("create,update,delete,export,import")]
+    [InlineData(null)]
+    public async Task UpdateTableAsync_ImportWithCreateShouldBeAccepted(string? enabledActions)
+    {
+        GivenExisting(Existing());
+
+        var result = await _service.UpdateTableAsync(UpdateCommand(enabledActions: enabledActions));
+
+        Assert.Equal(enabledActions, result.Table.EnabledActions);
     }
 
     /// <summary>

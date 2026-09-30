@@ -15,7 +15,11 @@
 {{~ has_switch = false ~}}
 {{~ has_select = false ~}}
 {{~ has_enum_select = false ~}}
+{{~ has_dict_select = false ~}}
 {{~ has_dynamic_select = false ~}}
+{{~ has_upload = false ~}}
+{{~ has_relation_select = false ~}}
+{{~ has_relation_tree = false ~}}
 {{~ has_date_picker = false ~}}
 {{~ has_time_input = false ~}}
 {{~ has_datetime_input = false ~}}
@@ -33,8 +37,18 @@
 {{~ if col.EnumTypeShortName ~}}
 {{~ has_enum_select = true ~}}
 {{~ end ~}}
+{{~ if col.DictSelectorType == "DictSelector" ~}}
+{{~ has_dict_select = true ~}}
+{{~ end ~}}
+{{~ if col.Relation ~}}
+{{~ has_relation_select = true ~}}
+{{~ end ~}}
+{{~ else if col.ControlKind == "treeselect" ~}}
+{{~ has_relation_tree = true ~}}
 {{~ else if col.ControlKind == "date" ~}}
 {{~ has_date_picker = true ~}}
+{{~ else if col.ControlKind == "image" || col.ControlKind == "file" ~}}
+{{~ has_upload = true ~}}
 {{~ else if col.ControlKind == "number" ~}}
 {{~ has_number = true ~}}
 {{~ else ~}}
@@ -71,6 +85,8 @@
 {{~ # 一列都不进表单时不产弹窗与增改按钮：空表单没有意义，且会留下未被引用的 import ~}}
 {{~ can_create = CanCreate && has_form_field ~}}
 {{~ can_update = CanUpdate && has_form_field ~}}
+{{~ # 导入逐行调新增接口（引擎保证勾了导入就一定勾了新增），与 schema 里的导入字段同一判据 ~}}
+{{~ can_import = CanImport && can_create ~}}
 {{~ has_modal = can_create || can_update ~}}
 {{~ has_row_action = can_update || CanDelete ~}}
 {{~ has_actions = can_create || can_update || CanDelete ~}}
@@ -118,14 +134,30 @@ import { computed, ref, useId } from 'vue'
 import { ref } from 'vue'
 {{~ end ~}}
 import { {{ ClassNameCamel }}Api } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
-import { SchemaPage{{ if has_modal && has_date_picker }}, XDatePicker{{ end }}{{ if has_modal }}, XEditModal{{ end }}{{ if has_modal && has_text_input }}, XInput{{ end }}{{ if has_modal && has_number }}, XNumberInput{{ end }}{{ if has_modal && has_select }}, XSelect{{ end }}{{ if has_modal && parent_in_form }}, XTreeSelect{{ end }} } from '~/components'
+{{~ if has_modal && has_upload ~}}
+import XFileRefUpload from '@/components/FileRefUpload.vue'
+{{~ end ~}}
+import { SchemaPage{{ if has_modal && has_date_picker }}, XDatePicker{{ end }}{{ if has_modal }}, XEditModal{{ end }}{{ if has_modal && has_text_input }}, XInput{{ end }}{{ if has_modal && has_number }}, XNumberInput{{ end }}{{ if has_modal && has_select }}, XSelect{{ end }}{{ if has_modal && (parent_in_form || has_relation_tree) }}, XTreeSelect{{ end }} } from '~/components'
+{{~ composable_imports = [] ~}}
 {{~ if has_actions ~}}
-import { toast } from '~/composables'
+{{~ composable_imports = composable_imports | array.add "toast" ~}}
+{{~ end ~}}
+{{~ if has_modal && (has_relation_select || has_relation_tree) ~}}
+{{~ composable_imports = composable_imports | array.add "useAsyncOptions" ~}}
+{{~ end ~}}
+{{~ if has_modal && has_dict_select ~}}
+{{~ composable_imports = composable_imports | array.add "useDictOptions" ~}}
+{{~ end ~}}
+{{~ if (composable_imports | array.size) > 0 ~}}
+import { {{ composable_imports | array.join ", " }} } from '~/composables'
 {{~ end ~}}
 {{~ if has_modal && has_enum_select ~}}
 import { useEnumOptions } from '~/hooks'
 {{~ end ~}}
-import { {{ if has_actions }}actions, {{ end }}{{ if has_modal }}createDefaultForm, {{ end }}fields, pageMeta } from './{{ ClassNameKebab }}.schema'
+{{~ if has_modal && has_relation_tree ~}}
+import { relationOptionsToTree } from '~/utils'
+{{~ end ~}}
+import { {{ if has_actions }}actions, {{ end }}{{ if CanExport }}buildPageQuery, {{ end }}{{ if has_modal }}createDefaultForm, {{ end }}fields, pageMeta{{ if can_import }}, toCreateInputFromImport{{ end }} } from './{{ ClassNameKebab }}.schema'
 
 defineOptions({ name: '{{ ClassName }}Page' })
 {{~ if has_modal ~}}
@@ -159,6 +191,14 @@ const schema: PageSchema = {
     },
 {{~ if CanDelete ~}}
     remove: id => {{ ClassNameCamel }}Api.delete(id),
+{{~ end ~}}
+{{~ if can_import ~}}
+    // 导入：逐行调新增接口，记录到入参的换算在 schema 里随表结构更新；导入完成后框架会重取整棵树
+    create: record => {{ ClassNameCamel }}Api.create(toCreateInputFromImport(record)),
+{{~ end ~}}
+{{~ if CanExport ~}}
+    // 导出中心：业务类型即页面码，后端生成的 {{ ClassName }}ExportProvider 按分页接口拉全量
+    export: { businessType: pageMeta.pageCode, buildQuery: buildPageQuery },
 {{~ end ~}}
   },
 }
@@ -201,8 +241,19 @@ const {{ col.TsProperty }}ConstOptions = {{ col.ConstValues | select_options col
 {{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" && col.EnumTypeShortName ~}}
 /** {{ col.Label | block_comment }}枚举选项（后端枚举元数据按 X-Language 返回标签） */
 const {{ col.TsProperty }}Options = useEnumOptions('{{ col.EnumTypeShortName }}')
+{{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" && col.Relation ~}}
+/** {{ col.Label | block_comment }}选项（关联{{ col.Relation.Label | block_comment }}，选中值为其主键） */
+const {{ col.TsProperty }}Options = useAsyncOptions({{ ClassNameCamel }}Api.{{ col.Relation.OptionsMethodCamel }})
+{{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "treeselect" ~}}
+/** {{ col.Label | block_comment }}树形选项（关联{{ col.Relation.Label | block_comment }}，按上级组树，选中值为其主键） */
+const {{ col.TsProperty }}Relation = useAsyncOptions({{ ClassNameCamel }}Api.{{ col.Relation.OptionsMethodCamel }})
+const {{ col.TsProperty }}TreeOptions = computed(() => relationOptionsToTree({{ col.TsProperty }}Relation.value))
+{{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" && col.DictSelectorType == "DictSelector" ~}}
+/** {{ col.Label | block_comment }}字典选项（字典 {{ col.DictCode | block_comment }}，选中值为字典项编码；停用项只回显不能选） */
+const {{ col.TsProperty }}Options = useDictOptions('{{ col.DictCode | ts_string }}')
 {{~ else if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "select" ~}}
-/** {{ col.Label | block_comment }}选项来源未接通（{{ if col.DictSelectorType == "DictSelector" }}字典 {{ col.DictCode | block_comment }}{{ else }}枚举 {{ col.EnumTypeName | block_comment }}{{ end }}），需业务层提供 */
+{{~ # 只剩枚举解析不出来这一种：引擎已告警，这里产出禁用占位项，重新同步表结构后即接通 ~}}
+/** {{ col.Label | block_comment }}选项来源未接通（枚举 {{ col.EnumTypeName | block_comment }} 未解析，对表执行重新同步后重新生成） */
 const {{ col.TsProperty }}Options = [{ label: '选项来源未接通', value: -1, disabled: true }]
 {{~ end ~}}
 {{~ end ~}}
@@ -471,6 +522,11 @@ async function handleSubmit() {
               <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="YYYY-MM-DD HH:mm:ss" />
 {{~ else if col.ControlKind == "time" ~}}
               <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="HH:mm:ss" />
+{{~ else if col.ControlKind == "treeselect" ~}}
+              <XTreeSelect v-model:value="form.{{ col.TsProperty }}" clearable :options="{{ col.TsProperty }}TreeOptions" placeholder="请选择{{ col.Label | html_attr }}" />
+{{~ else if col.ControlKind == "image" || col.ControlKind == "file" ~}}
+              <!-- 上传到文件中心，字段只存文件主键；使用者需要文件的上传与查看权限 -->
+              <XFileRefUpload v-model:value="form.{{ col.TsProperty }}" kind="{{ col.ControlKind }}" />
 {{~ else if col.ControlKind == "number" ~}}
               <XNumberInput v-model:value="form.{{ col.TsProperty }}" />
 {{~ else if col.ControlKind == "binary" ~}}

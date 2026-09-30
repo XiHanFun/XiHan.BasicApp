@@ -206,28 +206,6 @@ public sealed partial class CodeGenerationEngine(
         => templateGroup?.Contains("frontend", StringComparison.OrdinalIgnoreCase) == true;
 
     /// <summary>
-    /// 可裁剪的写操作全集（读取基线 list/detail 始终生成，不在此列）
-    /// </summary>
-    private static readonly string[] CrudActions = ["create", "update", "delete"];
-
-    /// <summary>
-    /// 归一化包含操作：null/空（未配置或全选）→ 全开；非空则按规范集合过滤
-    /// </summary>
-    private static IReadOnlyList<string> NormalizeEnabledActions(string? raw)
-    {
-        if (string.IsNullOrWhiteSpace(raw))
-        {
-            return CrudActions;
-        }
-
-        var selected = raw
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(action => action.ToLowerInvariant())
-            .ToHashSet();
-        return [.. CrudActions.Where(selected.Contains)];
-    }
-
-    /// <summary>
     /// 查已存在的权限码（生成前的全局唯一性预检；仅用于 README 顶部醒目告警）
     /// </summary>
     /// <remarks>
@@ -281,7 +259,7 @@ public sealed partial class CodeGenerationEngine(
             FunctionName = table.FunctionName,
             Author = table.Author,
             TemplateType = table.TemplateType,
-            EnabledActions = NormalizeEnabledActions(table.EnabledActions),
+            EnabledActions = CodeGenActions.Normalize(table.EnabledActions),
             Columns = columnSchemas,
             PrimaryKey = columnSchemas.FirstOrDefault(column => column.IsPrimaryKey)
                 ?? columnSchemas.FirstOrDefault(column => column.ColumnName == table.PrimaryKeyColumn),
@@ -303,6 +281,25 @@ public sealed partial class CodeGenerationEngine(
         if (!PageCodeRegex().IsMatch(pageCode))
         {
             return (null, $"表 {table.TableName} 推导出的页面码 {pageCode} 不合规：模块名须为 [a-z][a-z0-9_-]*，请在表配置里改成英文模块名。");
+        }
+
+        // 存量配置可能早于保存侧校验写入，生成前再判一次，不产出调不通的导入按钮
+        var actionConflict = CodeGenActions.FindConflict(context.EnabledActions);
+        if (actionConflict is not null)
+        {
+            return (null, $"表 {table.TableName} 的{actionConflict}");
+        }
+
+        var dictError = ValidateDictSelectors(table, columnSchemas);
+        if (dictError is not null)
+        {
+            return (null, dictError);
+        }
+
+        var relationError = await ResolveRelationsAsync(table, columnSchemas, cancellationToken);
+        if (relationError is not null)
+        {
+            return (null, relationError);
         }
 
         if (table.TemplateType == TemplateType.Tree)
@@ -496,7 +493,9 @@ public sealed partial class CodeGenerationEngine(
             DictSelectorType = column.DictSelectorType,
             DictCode = column.DictCode,
             EnumTypeName = column.EnumTypeName,
-            ConstValues = column.ConstValues
+            ConstValues = column.ConstValues,
+            RelationTableId = column.RelationTableId,
+            RelationLabelColumn = column.RelationLabelColumn
         };
 
         // 列配置未填类型时，按 DB 类型回退映射（导入流程会预填，此处为兜底）
@@ -528,14 +527,6 @@ public sealed partial class CodeGenerationEngine(
     /// </remarks>
     private void ResolveEnumFacts(SysCodeGenTable table, SysCodeGenTableColumn column, ColumnSchema schema)
     {
-        if (schema.DictSelectorType == DictSelectorType.DictSelector)
-        {
-            _logger.LogWarning(
-                "表 {Table} 的列 {Column} 配置为字典选择器（字典码 {DictCode}），前端尚无字典选项通道，生成的下拉将是禁用占位项。",
-                table.TableName, column.ColumnName, schema.DictCode);
-            return;
-        }
-
         if (schema.DictSelectorType != DictSelectorType.EnumSelector)
         {
             return;
@@ -554,6 +545,146 @@ public sealed partial class CodeGenerationEngine(
         _logger.LogWarning(
             "表 {Table} 的列 {Column} 配置为枚举选择器，但类型 {EnumType} 未解析、或 C# 类型仍为 {CSharpType}；本次生成的下拉不接选项来源，请对该表执行重新同步。",
             table.TableName, column.ColumnName, schema.EnumTypeName, schema.CSharpType);
+    }
+
+    /// <summary>
+    /// 校验字典选择器列
+    /// </summary>
+    /// <remarks>
+    /// 字典下拉按字典编码取选项，选中值是字典项编码（文本）。没填字典编码会产出一个取不到选项的下拉，
+    /// 非文本列（含 long 标识）装不下字典项编码、提交必被后端拒，两者都在生成期挡下。
+    /// 基类托管列与主键不进任何产物，不校验。
+    /// </remarks>
+    private static string? ValidateDictSelectors(SysCodeGenTable table, IReadOnlyList<ColumnSchema> columns)
+    {
+        foreach (var column in columns)
+        {
+            if (column.DictSelectorType != DictSelectorType.DictSelector
+                || column.IsPrimaryKey
+                || GeneratedColumnNames.IsBaseColumn(column.ColumnName))
+            {
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(column.DictCode))
+            {
+                return $"表 {table.TableName} 的列 {column.ColumnName} 选了字典选择器但没填字典编码，请在列配置里选择字典。";
+            }
+
+            if (column.CSharpType.TrimEnd('?') != "string")
+            {
+                return $"表 {table.TableName} 的列 {column.ColumnName} 选了字典选择器，但 C# 类型是 {column.CSharpType}：字典项按编码（文本）存储，列须为 string。";
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 解析关联选择器列的目标（fail-closed）
+    /// </summary>
+    /// <remarks>
+    /// 本列存被关联记录的主键，须为 long；显示列须为目标表的文本列；关联树要求目标是配好父级列的树表，
+    /// 显示列缺省取其名称列。任何一项对不上都在生成期挡下，不产出编译不过或下拉取不到数的代码。
+    /// 目标可以是本表（自关联，如「上级负责人」指向同一张人员表）。
+    /// </remarks>
+    private async Task<string?> ResolveRelationsAsync(
+        SysCodeGenTable table,
+        IReadOnlyList<ColumnSchema> columnSchemas,
+        CancellationToken cancellationToken)
+    {
+        foreach (var column in columnSchemas)
+        {
+            if (column.DictSelectorType is not (DictSelectorType.TableSelector or DictSelectorType.TreeSelector)
+                || column.IsPrimaryKey
+                || GeneratedColumnNames.IsBaseColumn(column.ColumnName))
+            {
+                continue;
+            }
+
+            var where = $"表 {table.TableName} 的列 {column.ColumnName}";
+            if (column.CSharpType.TrimEnd('?') != "long")
+            {
+                return $"{where} 选了关联选择器，但 C# 类型是 {column.CSharpType}：关联按被关联记录的主键存储，列须为 long。";
+            }
+
+            if (column.RelationTableId is not > 0)
+            {
+                return $"{where} 选了关联选择器但没选关联的表，请在列配置里选择。";
+            }
+
+            var target = column.RelationTableId == table.BasicId
+                ? table
+                : await _tableRepository.GetByIdAsync(column.RelationTableId.Value, cancellationToken);
+            if (target is null)
+            {
+                return $"{where} 关联的表配置（{column.RelationTableId}）不存在，请在列配置里重新选择。";
+            }
+
+            var targetColumns = target.BasicId == table.BasicId
+                ? columnSchemas
+                : [.. (await _columnRepository.GetByTableIdAsync(target.BasicId, cancellationToken)).Select(targetColumn => MapColumn(target, targetColumn))];
+
+            var isTree = column.DictSelectorType == DictSelectorType.TreeSelector;
+            string? parentProperty = null;
+            if (isTree)
+            {
+                if (target.TemplateType != TemplateType.Tree || string.IsNullOrWhiteSpace(target.TreeParentColumn))
+                {
+                    return $"{where} 选了关联树，但关联的表 {target.TableName} 不是树表：它的表配置须为树表模板并选好父级列。";
+                }
+
+                var parent = FindColumn(targetColumns, target.TreeParentColumn);
+                if (parent is null || parent.CSharpType.TrimEnd('?') != "long")
+                {
+                    return $"{where} 关联的树表 {target.TableName} 的父级列 {target.TreeParentColumn} 不在列配置中或不是 long 列。";
+                }
+
+                parentProperty = parent.CSharpProperty;
+            }
+
+            var labelColumn = string.IsNullOrWhiteSpace(column.RelationLabelColumn)
+                ? isTree ? target.TreeNameColumn : null
+                : column.RelationLabelColumn;
+            if (string.IsNullOrWhiteSpace(labelColumn))
+            {
+                return $"{where} 选了关联表但没选显示列，请在列配置里选择。";
+            }
+
+            var label = FindColumn(targetColumns, labelColumn);
+            if (label is null)
+            {
+                return $"{where} 的显示列 {labelColumn} 不在关联的表 {target.TableName} 的列配置中。";
+            }
+
+            if (label.CSharpType.TrimEnd('?') != "string")
+            {
+                return $"{where} 的显示列 {labelColumn} 是 {label.CSharpType}：下拉按文本显示，显示列须为 string。";
+            }
+
+            var targetNamespace = MenuPermissionArtifactShared.ResolveNamespace(new CodeGenerationContext
+            {
+                ClassName = target.ClassName,
+                Namespace = target.Namespace,
+                ModuleName = target.ModuleName
+            });
+            column.Relation = new RelationTarget
+            {
+                TableId = target.BasicId,
+                TableName = target.TableName,
+                TableComment = target.TableComment,
+                ClassName = target.ClassName,
+                EntityTypeQualified = $"{targetNamespace}.Domain.Entities.{target.ClassName}",
+                LabelProperty = label.CSharpProperty,
+                ParentProperty = parentProperty,
+                IsTree = isTree
+            };
+        }
+
+        return null;
+
+        static ColumnSchema? FindColumn(IEnumerable<ColumnSchema> candidates, string? columnName)
+            => candidates.FirstOrDefault(candidate => string.Equals(candidate.ColumnName, columnName, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

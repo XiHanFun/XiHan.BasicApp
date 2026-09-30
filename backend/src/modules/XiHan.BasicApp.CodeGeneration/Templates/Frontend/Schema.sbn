@@ -1,17 +1,47 @@
 {{~ # 一列都不进表单就没有可编辑内容，页面不产弹窗，这里也不产增改按钮（与 index.vue 的裁剪同源） ~}}
 {{~ has_form_field = false ~}}
+{{~ has_import_date = false ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InForm ~}}
 {{~ has_form_field = true ~}}
 {{~ end ~}}
+{{~ if col.IsImportable && (col.ControlKind == "date" || col.ControlKind == "datetime") ~}}
+{{~ has_import_date = true ~}}
+{{~ end ~}}
 {{~ end ~}}
 {{~ can_create = CanCreate && has_form_field ~}}
 {{~ can_update = CanUpdate && has_form_field ~}}
+{{~ # 导入逐行调新增接口，列集合即新增表单的列（引擎保证勾了导入就一定勾了新增） ~}}
+{{~ can_import = CanImport && can_create ~}}
+{{~ # 关联列只要进了字段（列表、搜索或导入），字段就要引接口取选项 ~}}
+{{~ has_relation_field = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.Relation && (col.InList || col.IsScalarQuery || col.IsRangeQuery || (can_import && col.IsImportable)) ~}}
+{{~ has_relation_field = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ # 标量搜索取值转换需求（按列类型裁剪辅助函数，避免生成未被引用的函数） ~}}
+{{~ has_scalar_number = false ~}}
+{{~ has_scalar_boolean = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.IsScalarQuery ~}}
+{{~ if col.TsType == "number" ~}}
+{{~ has_scalar_number = true ~}}
+{{~ else if col.TsType == "boolean" ~}}
+{{~ has_scalar_boolean = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
 /**
  * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手工编辑。
  * 列定义/表单默认值的微调请写在 {{ ClassNameKebab }}.schema.ts（在那里对下列 base* 做 transform）。
  */
-import type { ListFieldSchema, PageSchema } from '~/components'
+import type { {{ if can_create }}{{ ClassName }}CreateDto, {{ end }}{{ ClassName }}PageQueryDto } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}.types'
+import type { ListFieldSchema, PageSchema, SchemaQueryParams } from '~/components'
+import { createPageRequest, querySortsFromSchema } from '@/api'
+{{~ if has_relation_field ~}}
+import { {{ ClassNameCamel }}Api } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
+{{~ end ~}}
 
 /**
  * {{ TableComment | block_comment }}表单模型
@@ -34,19 +64,30 @@ export interface {{ ClassName }}FormModel {
 
 /**
  * 页面元信息
+ *
+ * 导出、导入按钮由这里的按钮码门控：取消勾选后重新生成，按钮随之消失，页面不必改。
  */
 export const basePageMeta = {
   pageCode: '{{ PageCode }}',
   pageName: '{{ TableComment | ts_string }}',
+{{~ if CanExport ~}}
+  exportPermission: '{{ PageCode }}.export',
+{{~ end ~}}
+{{~ if can_import ~}}
+  importPermission: '{{ PageCode }}.import',
+{{~ end ~}}
   batchRemovable: {{ CanDelete }},
 {{~ if CanDelete ~}}
   removePermission: '{{ PageCode }}.delete',
 {{~ end ~}}
   rowKey: 'basicId',
-} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'batchRemovable' | 'removePermission' | 'rowKey'>
+} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'exportPermission' | 'importPermission' | 'batchRemovable' | 'removePermission' | 'rowKey'>
 
 /**
  * 列定义
+ *
+ * 不进列表但要参与搜索或导入的列以 visible: false 声明：表格与列设置里都不出现，
+ * 搜索区照常渲染它的搜索框，导入模板照常带上它这一列。
  */
 {{~ # 关键词框仅在确有列折进关键词查询时产出，否则是个恒不生效的输入框 ~}}
 {{~ has_keyword = false ~}}
@@ -60,8 +101,9 @@ export const baseFields: ListFieldSchema[] = [
   { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment | ts_string }}', width: 250, order: 0 },
 {{~ end ~}}
 {{~ for col in Columns ~}}
-{{~ if col.InList ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.Label | ts_string }}', dataType: '{{ if col.ControlKind == "datetime" }}datetime{{ else if col.ControlKind == "date" }}date{{ else if col.EnumTypeShortName }}enum{{ else if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.EnumTypeShortName }} dictionaryCode: '{{ col.EnumTypeShortName }}',{{ end }}{{ if !col.IsBinary }} sortable: true,{{ end }}{{ if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }}{{ if col.IsScalarQuery || col.IsRangeQuery }} searchable: true,{{ end }}{{ if col.IsRangeQuery }} searchRange: true,{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+{{~ importable = can_import && col.IsImportable ~}}
+{{~ if col.InList || col.IsScalarQuery || col.IsRangeQuery || importable ~}}
+  { key: '{{ col.TsProperty }}', title: '{{ col.Label | ts_string }}', dataType: '{{ col.FieldDataType }}',{{ if col.Relation }} optionsLoader: {{ ClassNameCamel }}Api.{{ col.Relation.OptionsMethodCamel }},{{ else if col.EnumTypeShortName }} dictionaryCode: '{{ col.EnumTypeShortName }}',{{ else if col.ControlKind == "select" && col.DictSelectorType == "DictSelector" }} dictCode: '{{ col.DictCode | ts_string }}',{{ else if col.ControlKind == "select" && col.DictSelectorType == "ConstSelector" }} options: {{ col.ConstValues | select_options col.Label col.TsType }},{{ else if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }}{{ if !col.InList }} visible: false,{{ else if !col.IsBinary && !col.Relation && col.ControlKind != "image" && col.ControlKind != "file" }} sortable: true,{{ end }}{{ if col.IsScalarQuery || col.IsRangeQuery }} searchable: true,{{ end }}{{ if col.IsRangeQuery }} searchRange: true,{{ end }}{{ if importable }} importable: true,{{ if col.IsFormRequired }} required: true,{{ end }}{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
 {{~ end ~}}
 {{~ end ~}}
   { key: 'createdTime', title: '创建时间', dataType: 'datetime', sortable: true, searchable: true, searchRange: true, minWidth: 170, order: 99 },
@@ -116,3 +158,95 @@ export function createDefaultFormModel(): {{ ClassName }}FormModel {
 {{~ end ~}}
   }
 }
+
+/** 搜索框取值转文本：空串不参与过滤 */
+function toQueryText(value: unknown) {
+  return typeof value === 'string' ? value.trim() || undefined : undefined
+}
+{{~ if has_scalar_number ~}}
+
+/** 搜索框取值转数字：空串与非法值不参与过滤（搜索控件给的是字符串，直传会被后端严格数字解析拒绝） */
+function toQueryNumber(value: unknown) {
+  if (value === undefined || value === null || value === '') {
+    return undefined
+  }
+  const parsed = Number(value)
+  return Number.isNaN(parsed) ? undefined : parsed
+}
+{{~ end ~}}
+{{~ if has_scalar_boolean ~}}
+
+/** 搜索下拉取值转布尔：选项以 1/0 承载（schema 选项类型不接受布尔值） */
+function toQueryBoolean(value: unknown) {
+  if (value === undefined || value === null || value === '') {
+    return undefined
+  }
+  return value === true || value === 1 || value === '1'
+}
+{{~ end ~}}
+
+/**
+ * 列表查询参数 → 分页查询入参
+ *
+ * 列表取数与导出中心共用一份：导出任务带着同一组筛选与排序，由服务端翻页拉全量。
+ * 与上面的搜索字段一同随表结构更新，改了查询列重新生成即可，页面不必改。
+ */
+export function buildPageQuery(params: SchemaQueryParams): {{ ClassName }}PageQueryDto {
+  // 不解构：列名可能就叫 keyword / params，解构成同名局部量是重复声明
+  const filters = params.filters
+  return {
+    ...createPageRequest({
+      page: { pageIndex: params.page, pageSize: params.pageSize },
+      // 排序与区间/多选过滤统一走 conditions，由后端 ApplySorts / 通用过滤应用
+      conditions: { sorts: querySortsFromSchema(params.sorts), filters: params.conditionFilters ?? [] },
+    }),
+    keyword: toQueryText(filters.keyword),
+{{~ for col in Columns ~}}
+{{~ if col.IsScalarQuery ~}}
+    {{ col.TsProperty }}: {{ if col.TsType == "number" }}toQueryNumber(filters.{{ col.TsProperty }}){{ else if col.TsType == "boolean" }}toQueryBoolean(filters.{{ col.TsProperty }}){{ else }}toQueryText(filters.{{ col.TsProperty }}){{ end }},
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+{{~ if can_create ~}}
+{{~ if has_import_date ~}}
+
+/** 认得的日期写法：2026-09-30、2026/9/30、2026.9.30，可带 8:30 或 08:30:00 */
+const IMPORT_DATE_PATTERN = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+
+/**
+ * 导入的日期单元格归一成后端认的本地时间文本（yyyy-MM-dd 或 yyyy-MM-dd HH:mm:ss）。
+ *
+ * 表格软件另存的 CSV 常写成 2026/9/30，原样发给后端解析不了；纯 yyyy-MM-dd 交给 Date
+ * 又会被当成 UTC 零点，西半球会退一天。所以认得的写法按字面取年月日时分秒，
+ * 其余写法已过导入的日期校验，交给 Date 按本地时间解析。
+ */
+function toImportDateText(value: unknown, withTime: boolean) {
+  const text = String(value).trim()
+  const matched = IMPORT_DATE_PATTERN.exec(text)
+  const date = matched
+    ? new Date(Number(matched[1]), Number(matched[2]) - 1, Number(matched[3]), Number(matched[4] ?? 0), Number(matched[5] ?? 0), Number(matched[6] ?? 0))
+    : new Date(text)
+  const pad = (part: number) => String(part).padStart(2, '0')
+  const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  return withTime ? `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}` : day
+}
+{{~ end ~}}
+
+/**
+ * 导入记录 → 新增入参（导入逐行调用新增接口）
+ *
+ * 记录里只有表格填了值的列，值已按字段类型换算好（下拉按选项文本反查成值）；
+ * 必填列没填过不了导入校验，其余没填的列与新增表单留空同口径补齐。
+ * 未勾选导入时页面不接它；之后勾选导入，页面 resource 补一行 create 即可。
+ */
+export function toCreateInputFromImport(record: Record<string, unknown>): {{ ClassName }}CreateDto {
+  return {
+{{~ for col in Columns ~}}
+{{~ if col.InCreate ~}}
+    {{ col.TsProperty }}: {{ col.ImportFromRecord | string.replace "$r" ("record." + col.TsProperty) | string.replace "$t" (ClassName + "CreateDto['" + col.TsProperty + "']") }},
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+{{~ end ~}}

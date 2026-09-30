@@ -81,11 +81,11 @@ interface TableFormModel {
 }
 
 /**
- * 全部可裁剪写操作（列表/详情为读取基线，不在此列）。
+ * 全部可裁剪操作（列表/详情为读取基线，不在此列），与后端 CodeGenActions.All 同集。
  * 必须声明在 form 之前：form 的初值由 createDefaultForm() 求得，而它引用本常量，
  * 声明晚于调用点会落进暂时性死区，setup 直接抛 ReferenceError、整个弹窗渲染不出来。
  */
-const ALL_ACTIONS = ['create', 'update', 'delete']
+const ALL_ACTIONS = ['create', 'update', 'delete', 'export', 'import']
 
 const loading = ref(false)
 const submitLoading = ref(false)
@@ -269,6 +269,12 @@ function validateForm() {
       toast.warning(t('develop.code_gen.table_edit.validate_master_foreign_key'))
       return false
     }
+  }
+  // 与后端同一条规则：导入逐行走新增接口，只勾导入会产出一个调不通的导入按钮
+  const actions = form.value.enabledActions
+  if (actions.includes('import') && !actions.includes('create')) {
+    toast.warning(t('develop.code_gen.table_edit.validate_import_requires_create'))
+    return false
   }
   return true
 }

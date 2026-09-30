@@ -41,7 +41,7 @@ internal static class PageDescriptorArtifactGenerator
         sb.AppendLine($"// {displayLiteral} PageRegistry 片段");
         sb.AppendLine($"// 与 {context.ClassName}MenuSeeder 二选一：它已登记同样的页面行与按钮行。");
         sb.AppendLine($"// 改走应用级 PageRegistry 时把下面的条目粘进去，并删掉 {context.ClassName}MenuSeeder，不要两边都登记。");
-        sb.AppendLine($"// 生成页面的写操作按钮用按钮码 {pageCode}.{{create|update|delete}} 门控，按钮行不能漏。");
+        sb.AppendLine($"// 生成页面的操作按钮用按钮码 {pageCode}.{{create|update|delete|export|import}} 门控，按钮行不能漏。");
         sb.AppendLine("//");
         sb.AppendLine("// 用法：");
         sb.AppendLine($"//   1) 确保已引用生成的权限码常量类 {codes}（using 到其命名空间）。");

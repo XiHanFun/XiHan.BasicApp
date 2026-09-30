@@ -103,6 +103,8 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
         nameof(SysCodeGenTableColumn.DictCode),
         nameof(SysCodeGenTableColumn.EnumTypeName),
         nameof(SysCodeGenTableColumn.ConstValues),
+        nameof(SysCodeGenTableColumn.RelationTableId),
+        nameof(SysCodeGenTableColumn.RelationLabelColumn),
         nameof(SysCodeGenTableColumn.Sort)
     ];
 
@@ -134,8 +136,8 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
     }
 
     /// <summary>
-    /// 字典三分互斥落库：按 DictSelectorType 校验并只保留生效字段，其余清空。
-    /// 关联不入生成代码（仅作表单选项来源），故此处只校验值合法性，不做跨表/外键处理。
+    /// 选项来源互斥落库：按 DictSelectorType 校验并只保留生效的那组字段，其余清空。
+    /// 这里只校验值是否填了；关联的表配置是否存在、显示列与列类型是否对得上由生成期校验。
     /// </summary>
     private static void ApplyDictSelector(SysCodeGenTableColumn column, CodeGenTableColumnUpdateCommand command)
     {
@@ -145,6 +147,7 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
             column.DictCode = null;
             column.EnumTypeName = null;
             column.ConstValues = null;
+            ClearRelation(column);
             return;
         }
 
@@ -160,6 +163,7 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
                     ?? throw new InvalidOperationException("系统字典选择器必须填写字典码。");
                 column.EnumTypeName = null;
                 column.ConstValues = null;
+                ClearRelation(column);
                 break;
 
             case DictSelectorType.EnumSelector:
@@ -167,6 +171,7 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
                     ?? throw new InvalidOperationException("枚举选择器必须填写枚举类型全名。");
                 column.DictCode = null;
                 column.ConstValues = null;
+                ClearRelation(column);
                 break;
 
             case DictSelectorType.ConstSelector:
@@ -174,6 +179,24 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
                     ?? throw new InvalidOperationException("常量选择器必须填写常量项 JSON。");
                 column.DictCode = null;
                 column.EnumTypeName = null;
+                ClearRelation(column);
+                break;
+
+            case DictSelectorType.TableSelector:
+            case DictSelectorType.TreeSelector:
+                column.RelationTableId = command.RelationTableId is > 0
+                    ? command.RelationTableId
+                    : throw new InvalidOperationException("关联选择器必须选择关联的表。");
+                column.RelationLabelColumn = NormalizeNullable(command.RelationLabelColumn, 100, "关联显示列最长 100 个字符。");
+                // 关联树缺省取目标树表的名称列；普通关联表没有这样的缺省，必须选显示列
+                if (selectorType == DictSelectorType.TableSelector && column.RelationLabelColumn is null)
+                {
+                    throw new InvalidOperationException("关联表选择器必须选择显示列。");
+                }
+
+                column.DictCode = null;
+                column.EnumTypeName = null;
+                column.ConstValues = null;
                 break;
 
             default:
@@ -181,6 +204,15 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
         }
 
         column.DictSelectorType = selectorType;
+    }
+
+    /// <summary>
+    /// 清空关联配置
+    /// </summary>
+    private static void ClearRelation(SysCodeGenTableColumn column)
+    {
+        column.RelationTableId = null;
+        column.RelationLabelColumn = null;
     }
 
     /// <summary>

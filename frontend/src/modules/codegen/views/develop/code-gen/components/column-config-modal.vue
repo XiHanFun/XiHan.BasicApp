@@ -2,6 +2,7 @@
 import type {
   CodeGenTableColumnListItemDto,
   CodeGenTableColumnUpdateDto,
+  CodeGenTableListItemDto,
   HtmlType,
   QueryType,
 } from '../../../../api'
@@ -10,16 +11,19 @@ import type {
 } from '@/api'
 import type { XDataTableColumn } from '~/components'
 import { XhCheckbox, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, h, ref, watch } from 'vue'
+import { computed, h, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { createPageRequest, dictApi } from '@/api'
 import { XDataTable, XEditModal, XInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import {
+  codeGenTableApi,
   codeGenTableColumnApi,
   DICT_SELECTOR_TYPE_OPTIONS,
   DictSelectorType,
   HTML_TYPE_OPTIONS,
   QUERY_TYPE_OPTIONS,
+  TemplateType,
 } from '../../../../api'
 
 defineOptions({ name: 'CodeGenColumnConfigModal' })
@@ -45,9 +49,89 @@ watch(
   (visible) => {
     if (visible && props.tableId) {
       void loadColumns()
+      void loadDicts()
+      void loadTables()
     }
   },
 )
+
+/** 字典选择器的候选字典（字典管理里的字典；按编码存，下拉显示「名称（编码）」） */
+const dictOptions = ref<{ label: string, value: string }[]>([])
+
+async function loadDicts() {
+  try {
+    // 分页上限即 500：字典是配置型数据，一页取完
+    const result = await dictApi.page({ ...createPageRequest({ page: { pageIndex: 1, pageSize: 500 } }) })
+    dictOptions.value = result.items.map(dict => ({ label: `${dict.dictName}（${dict.dictCode}）`, value: dict.dictCode }))
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('develop.code_gen.column.load_dicts_failed'))
+    dictOptions.value = []
+  }
+}
+
+/** 关联选择器的候选表（全部表配置，一次取全） */
+const tables = ref<CodeGenTableListItemDto[]>([])
+
+async function loadTables() {
+  try {
+    tables.value = await codeGenTableApi.options()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('develop.code_gen.column.load_tables_failed'))
+    tables.value = []
+  }
+}
+
+/** 关联的表可选项：关联树只能选树表；已选的表不在列表里时也列出来并标明 */
+function relationTableOptionsFor(row: CodeGenTableColumnListItemDto) {
+  const candidates = tables.value
+    .filter(table => row.dictSelectorType !== DictSelectorType.TreeSelector || table.templateType === TemplateType.Tree)
+    .map(table => ({ label: table.tableComment ? `${table.tableComment}（${table.tableName}）` : table.tableName, value: table.basicId }))
+  const current = row.relationTableId
+  if (!current || candidates.some(option => option.value === current)) {
+    return candidates
+  }
+  return [{ label: t('develop.code_gen.column.relation_table_not_found', { id: current }), value: current }, ...candidates]
+}
+
+/** 关联表的列（显示列候选），按表缓存 */
+const relationColumns = reactive(new Map<ApiId, CodeGenTableColumnListItemDto[]>())
+
+async function ensureRelationColumns(tableId: ApiId | null | undefined) {
+  if (!tableId || relationColumns.has(tableId)) {
+    return
+  }
+  relationColumns.set(tableId, [])
+  try {
+    relationColumns.set(tableId, await codeGenTableColumnApi.getByTable(tableId))
+  }
+  catch (error) {
+    relationColumns.delete(tableId)
+    toast.danger((error as Error)?.message || t('develop.code_gen.column.load_failed'))
+  }
+}
+
+/** 显示列可选项：关联表的文本业务列；已选的列不在其中时也列出来 */
+function relationLabelOptionsFor(row: CodeGenTableColumnListItemDto) {
+  const candidates = (row.relationTableId ? relationColumns.get(row.relationTableId) ?? [] : [])
+    .filter(column => !column.isBaseColumn && column.cSharpType?.replace('?', '') === 'string')
+    .map(column => ({ label: column.columnComment ? `${column.columnComment}（${column.columnName}）` : column.columnName, value: column.columnName }))
+  const current = row.relationLabelColumn
+  if (!current || candidates.some(option => option.value === current)) {
+    return candidates
+  }
+  return [{ label: current, value: current }, ...candidates]
+}
+
+/** 本列可选的字典：已填的编码不在列表里（字典被删或编码写错）时也列出来并标明，免得下拉显示成空 */
+function dictOptionsFor(row: CodeGenTableColumnListItemDto) {
+  const current = row.dictCode?.trim()
+  if (!current || dictOptions.value.some(option => option.value === current)) {
+    return dictOptions.value
+  }
+  return [{ label: t('develop.code_gen.column.dict_not_found', { code: current }), value: current }, ...dictOptions.value]
+}
 
 async function loadColumns() {
   if (!props.tableId) {
@@ -56,6 +140,10 @@ async function loadColumns() {
   loading.value = true
   try {
     rows.value = await codeGenTableColumnApi.getByTable(props.tableId)
+    // 已配了关联的列，把关联表的列先取回来，显示列下拉才有候选
+    for (const row of rows.value) {
+      void ensureRelationColumns(row.relationTableId)
+    }
   }
   catch (error) {
     toast.danger((error as Error)?.message || t('develop.code_gen.column.load_failed'))
@@ -90,14 +178,15 @@ function renderCheckbox(row: CodeGenTableColumnListItemDto, field: BooleanColumn
 /** 字典取值列：按 dictSelectorType 渲染字典码 / 枚举全名 / 常量 JSON（互斥，仅生效项可编辑） */
 function renderDictValue(row: CodeGenTableColumnListItemDto) {
   if (row.dictSelectorType === DictSelectorType.DictSelector) {
-    return h(XInput, {
+    return h(XSelect, {
       'size': 'sm',
       'disabled': isLocked(row),
-      'value': row.dictCode ?? '',
+      'value': row.dictCode || null,
+      'options': dictOptionsFor(row),
+      'clearable': true,
       'placeholder': t('develop.code_gen.column.col_dict_code_placeholder'),
       'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
-        const value = raw as string
-        row.dictCode = value
+        row.dictCode = (raw as string | null) ?? null
       },
     })
   }
@@ -112,6 +201,36 @@ function renderDictValue(row: CodeGenTableColumnListItemDto) {
         row.enumTypeName = value
       },
     })
+  }
+  if (row.dictSelectorType === DictSelectorType.TableSelector || row.dictSelectorType === DictSelectorType.TreeSelector) {
+    const isTree = row.dictSelectorType === DictSelectorType.TreeSelector
+    return h('div', { class: 'relation-cell' }, [
+      h(XSelect, {
+        'size': 'sm',
+        'disabled': isLocked(row),
+        'value': row.relationTableId ?? null,
+        'options': relationTableOptionsFor(row),
+        'clearable': true,
+        'placeholder': t('develop.code_gen.column.relation_table_placeholder'),
+        'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+          row.relationTableId = raw == null ? null : String(raw)
+          // 换了关联的表，原显示列不再成立
+          row.relationLabelColumn = null
+          void ensureRelationColumns(row.relationTableId)
+        },
+      }),
+      h(XSelect, {
+        'size': 'sm',
+        'disabled': isLocked(row) || !row.relationTableId,
+        'value': row.relationLabelColumn || null,
+        'options': relationLabelOptionsFor(row),
+        'clearable': true,
+        'placeholder': t(isTree ? 'develop.code_gen.column.relation_label_tree_placeholder' : 'develop.code_gen.column.relation_label_placeholder'),
+        'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
+          row.relationLabelColumn = (raw as string | null) ?? null
+        },
+      }),
+    ])
   }
   if (row.dictSelectorType === DictSelectorType.ConstSelector) {
     return h(XInput, {
@@ -240,18 +359,20 @@ const columns = computed<XDataTableColumn<CodeGenTableColumnListItemDto>[]>(() =
         'placeholder': t('develop.code_gen.column.col_dict_selector_placeholder'),
         'onUpdate:value': (raw: string | number | (string | number)[] | null) => {
           const value = raw as DictSelectorType | null
-          // 切换选择器类型时清空其它取值，保持三分互斥
+          // 切换选项来源时清空其它取值，保持互斥
           row.dictSelectorType = value
           row.dictCode = null
           row.enumTypeName = null
           row.constValues = null
+          row.relationTableId = null
+          row.relationLabelColumn = null
         },
       }),
   },
   {
     key: 'dictValue',
     title: t('develop.code_gen.column.col_dict_value'),
-    width: 200,
+    width: 320,
     render: (row: CodeGenTableColumnListItemDto) => renderDictValue(row),
   },
 ])
@@ -279,6 +400,8 @@ async function handleSubmit() {
       dictCode: row.dictCode,
       enumTypeName: row.enumTypeName,
       constValues: row.constValues,
+      relationTableId: row.relationTableId ?? null,
+      relationLabelColumn: row.relationLabelColumn ?? null,
       defaultValue: null,
       regexPattern: null,
       validationMessage: null,
@@ -314,12 +437,23 @@ async function handleSubmit() {
       :loading="loading"
       max-height="60vh"
       :row-key="(row: CodeGenTableColumnListItemDto) => row.basicId"
-      size="sm"
     />
   </XEditModal>
 </template>
 
 <style scoped>
+/* 关联表与显示列两个下拉并排；列 render 的 h() 不带页面 scope，样式要穿透 */
+:deep(.relation-cell) {
+  display: flex;
+  gap: var(--xh-space-1);
+  min-width: 0;
+}
+
+:deep(.relation-cell > *) {
+  flex: 1;
+  min-width: 0;
+}
+
 :deep(.col-name) {
   display: flex;
   align-items: center;

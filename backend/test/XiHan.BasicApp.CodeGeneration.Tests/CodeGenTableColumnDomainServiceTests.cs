@@ -63,6 +63,8 @@ public sealed class CodeGenTableColumnDomainServiceTests
     /// <param name="dictCode">字典码</param>
     /// <param name="enumTypeName">枚举类型全名</param>
     /// <param name="constValues">常量项 JSON</param>
+    /// <param name="relationTableId">关联的表配置主键</param>
+    /// <param name="relationLabelColumn">关联显示列</param>
     /// <param name="defaultValue">默认值</param>
     /// <param name="regexPattern">正则</param>
     /// <param name="validationMessage">验证提示</param>
@@ -84,6 +86,8 @@ public sealed class CodeGenTableColumnDomainServiceTests
         string? dictCode = null,
         string? enumTypeName = null,
         string? constValues = null,
+        long? relationTableId = null,
+        string? relationLabelColumn = null,
         string? defaultValue = null,
         string? regexPattern = null,
         string? validationMessage = null,
@@ -106,6 +110,8 @@ public sealed class CodeGenTableColumnDomainServiceTests
             dictCode,
             enumTypeName,
             constValues,
+            relationTableId,
+            relationLabelColumn,
             defaultValue,
             regexPattern,
             validationMessage,
@@ -468,6 +474,85 @@ public sealed class CodeGenTableColumnDomainServiceTests
         Assert.Equal(DictSelectorType.DictSelector, result.Column.DictSelectorType);
         Assert.Equal("sys_status", result.Column.DictCode, StringComparer.Ordinal);
         Assert.Null(result.Column.ConstValues);
+    }
+
+    /// <summary>
+    /// 关联表：保留关联的表与显示列，残留的字典码等一并清空。
+    /// </summary>
+    [Fact]
+    public async Task UpdateColumnAsync_TableSelectorShouldKeepRelationAndClearOthers()
+    {
+        GivenColumns(ExistingColumn());
+
+        var result = await _service.UpdateColumnAsync(Command(
+            dictSelectorType: DictSelectorType.TableSelector,
+            relationTableId: 2,
+            relationLabelColumn: " category_name ",
+            dictCode: "sys_status"));
+
+        Assert.Equal(DictSelectorType.TableSelector, result.Column.DictSelectorType);
+        Assert.Equal(2, result.Column.RelationTableId);
+        Assert.Equal("category_name", result.Column.RelationLabelColumn, StringComparer.Ordinal);
+        Assert.Null(result.Column.DictCode);
+    }
+
+    /// <summary>
+    /// 关联树的显示列可留空（生成时取目标树表的名称列）。
+    /// </summary>
+    [Fact]
+    public async Task UpdateColumnAsync_TreeSelectorLabelShouldBeOptional()
+    {
+        GivenColumns(ExistingColumn());
+
+        var result = await _service.UpdateColumnAsync(Command(dictSelectorType: DictSelectorType.TreeSelector, relationTableId: 2));
+
+        Assert.Equal(2, result.Column.RelationTableId);
+        Assert.Null(result.Column.RelationLabelColumn);
+    }
+
+    /// <summary>
+    /// 关联选择器缺关联的表、关联表缺显示列，保存时即拒绝。
+    /// </summary>
+    /// <param name="selector">关联表 / 关联树</param>
+    /// <param name="relationTableId">关联的表配置主键</param>
+    /// <param name="labelColumn">显示列</param>
+    /// <param name="expected">错误信息片段</param>
+    [Theory]
+    [InlineData(DictSelectorType.TableSelector, null, "category_name", "必须选择关联的表")]
+    [InlineData(DictSelectorType.TableSelector, 0L, "category_name", "必须选择关联的表")]
+    [InlineData(DictSelectorType.TableSelector, 2L, "  ", "必须选择显示列")]
+    [InlineData(DictSelectorType.TreeSelector, null, null, "必须选择关联的表")]
+    public async Task UpdateColumnAsync_IncompleteRelationShouldThrow(DictSelectorType selector, long? relationTableId, string? labelColumn, string expected)
+    {
+        GivenColumns(ExistingColumn());
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.UpdateColumnAsync(Command(
+            dictSelectorType: selector,
+            relationTableId: relationTableId,
+            relationLabelColumn: labelColumn)));
+
+        Assert.Contains(expected, exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 从关联切到别的选项来源（或清空）时，关联配置一并清掉。
+    /// </summary>
+    /// <param name="selector">切到的选项来源；null 表示不再是选项列</param>
+    [Theory]
+    [InlineData(DictSelectorType.DictSelector)]
+    [InlineData(null)]
+    public async Task UpdateColumnAsync_LeavingRelationShouldClearIt(DictSelectorType? selector)
+    {
+        var column = ExistingColumn();
+        column.DictSelectorType = DictSelectorType.TableSelector;
+        column.RelationTableId = 2;
+        column.RelationLabelColumn = "category_name";
+        GivenColumns(column);
+
+        var result = await _service.UpdateColumnAsync(Command(dictSelectorType: selector, dictCode: "sys_status", relationTableId: 2, relationLabelColumn: "category_name"));
+
+        Assert.Null(result.Column.RelationTableId);
+        Assert.Null(result.Column.RelationLabelColumn);
     }
 
     /// <summary>

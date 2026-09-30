@@ -2,6 +2,7 @@
 -- 一、字段级安全改为「实体 + 字段」：规则不再挂权限资源，读取方式的参数改为明确的列，删去从未生效的写法（见后文）。
 -- 二、通知公告改用自己的权限码 saas:notification:*，删除只为通知存在过的 saas:message:publish（见后文）。
 -- 三、角色继承只存直接继承边，间接继承按直接边即时推出；系统角色不参与继承（见后文）。
+-- 四、代码生成列配置新增「关联表 / 关联树」选项来源所需的两列（见后文）。
 --
 -- 只在 5.4.0 之前建的库上执行：新建的库按当前实体建表后直接登记为最新版本，不跑本脚本。
 -- 本脚本在建表之后、播种之前执行；建表只建缺失的表，存量表的列与索引由本脚本调整。
@@ -187,6 +188,18 @@ BEGIN
          USING sys_role r
          WHERE r.role_type = 0
            AND (h.ancestor_id = r.basic_id OR h.descendant_id = r.basic_id);
+    END IF;
+END
+$$;
+
+-- 四、代码生成列配置的关联选项来源。
+-- 选项来源新增关联表（3）与关联树（4），指向另一张表配置并记显示列；存量列不涉及这两种来源，只补列。
+-- sys_codegen_tablecolumn 只在平台库建表（[PlatformDataSource]），独立库上整段跳过。
+DO $$
+BEGIN
+    IF to_regclass('sys_codegen_tablecolumn') IS NOT NULL THEN
+        ALTER TABLE sys_codegen_tablecolumn ADD COLUMN IF NOT EXISTS relation_table_id int8 NULL;
+        ALTER TABLE sys_codegen_tablecolumn ADD COLUMN IF NOT EXISTS relation_label_column varchar(100) NULL;
     END IF;
 END
 $$;

@@ -33,6 +33,10 @@ export interface CodeGenTableColumnListItemDto extends BasicDto {
   dictCode?: string | null
   enumTypeName?: string | null
   constValues?: string | null
+  /** 关联的表配置主键（关联表 / 关联树时生效） */
+  relationTableId?: ApiId | null
+  /** 关联显示列（目标表列名；关联树留空取其名称列） */
+  relationLabelColumn?: string | null
   sort: number
   status: EnableStatus
 }
@@ -56,6 +60,10 @@ export interface CodeGenTableColumnUpdateDto extends BasicDto {
   dictCode?: string | null
   enumTypeName?: string | null
   constValues?: string | null
+  /** 关联的表配置主键（关联表 / 关联树时生效） */
+  relationTableId?: ApiId | null
+  /** 关联显示列（目标表列名；关联树留空取其名称列） */
+  relationLabelColumn?: string | null
   defaultValue?: string | null
   regexPattern?: string | null
   validationMessage?: string | null

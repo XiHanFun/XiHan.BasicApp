@@ -180,6 +180,23 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
     }
 
 {{~ end ~}}
+{{~ for col in RelationColumns ~}}
+    /// <summary>
+    /// 获取{{ col.Label | xml_doc }}的选项（关联{{ col.Relation.Label | xml_doc }}）
+    /// </summary>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>选项（值为{{ col.Relation.Label | xml_doc }}主键{{ if col.Relation.IsTree }}，带上级主键供组树{{ end }}）</returns>
+    /// <remarks>
+    /// 表单下拉、列表显示名、搜索下拉与导入反查共用这一个接口，与本表列表同一个查看权限。
+    /// </remarks>
+    [PermissionAuthorize({{ ClassName }}PermissionCodes.Read)]
+    [HttpGet]
+    public virtual Task<IReadOnlyList<RelationOptionDto>> Get{{ ClassName }}{{ col.Relation.OptionsMethod }}Async(CancellationToken cancellationToken = default)
+    {
+        return _repository.Get{{ col.Relation.OptionsMethod }}Async(cancellationToken);
+    }
+
+{{~ end ~}}
     /// <summary>
     /// 构建{{ TableComment | xml_doc }}分页请求
     /// </summary>

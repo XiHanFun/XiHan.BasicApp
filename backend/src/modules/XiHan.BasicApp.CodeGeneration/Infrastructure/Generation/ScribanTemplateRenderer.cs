@@ -139,11 +139,14 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["Author"] = context.Author,
             // 枚举以名称字符串透出，便于模板按名比较（如 {{ if TemplateType == "Tree" }}）
             ["TemplateType"] = context.TemplateType.ToString(),
-            // 包含操作：透出列表（供 array.contains）+ 三个便捷布尔（模板首选，避免重复判定）
+            // 包含操作：透出列表（供 array.contains）+ 逐项便捷布尔（模板首选，避免重复判定）。
+            // 导入必带新增由引擎 fail-closed 保证，模板里 CanImport 为真时新增接口一定在
             ["EnabledActions"] = context.EnabledActions.ToList(),
-            ["CanCreate"] = context.EnabledActions.Contains("create"),
-            ["CanUpdate"] = context.EnabledActions.Contains("update"),
-            ["CanDelete"] = context.EnabledActions.Contains("delete"),
+            ["CanCreate"] = context.EnabledActions.Contains(CodeGenActions.Create),
+            ["CanUpdate"] = context.EnabledActions.Contains(CodeGenActions.Update),
+            ["CanDelete"] = context.EnabledActions.Contains(CodeGenActions.Delete),
+            ["CanExport"] = context.EnabledActions.Contains(CodeGenActions.Export),
+            ["CanImport"] = context.EnabledActions.Contains(CodeGenActions.Import),
             ["PrimaryKey"] = context.PrimaryKey is null ? null : BuildColumn(context.PrimaryKey),
             ["Columns"] = context.Columns.Select(BuildColumn).ToList(),
             // 树表结构列（TemplateType == "Tree" 时非空，由引擎 fail-closed 保证）
@@ -153,6 +156,9 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["MasterTable"] = context.MasterTable is null ? null : BuildRelatedTable(context.MasterTable),
             ["DetailTables"] = context.DetailTables.Select(BuildRelatedTable).ToList(),
             ["HasDetailTables"] = context.DetailTables.Count > 0,
+            // 关联选择器列：后端出选项接口，前端出下拉/树形下拉；模板据此决定是否引入关联选项 DTO
+            ["HasRelations"] = context.Columns.Any(column => column.Relation is not null && IsBusinessColumn(column)),
+            ["RelationColumns"] = context.Columns.Where(column => column.Relation is not null && IsBusinessColumn(column)).Select(BuildColumn).ToList(),
             ["Options"] = context.Options
         };
     }
@@ -187,8 +193,7 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
     /// </summary>
     private static IDictionary<string, object?> BuildColumn(ColumnSchema column)
     {
-        // 业务列 = 非基类托管、非主键；基类列与主键由基类承载，不进任何产物的属性列表
-        var isBusinessColumn = !GeneratedColumnNames.IsBaseColumn(column.ColumnName) && !column.IsPrimaryKey;
+        var isBusinessColumn = IsBusinessColumn(column);
 
         // 查询归类：二进制列不参与查询；日期区间走 conditions.filters，其余等值走 DTO 顶层字段。
         // 八个模板共用同一判据，避免各写一份长条件导致取数侧与展现侧漂移。
@@ -270,6 +275,12 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["FormToWire"] = form.ToWire,
             // 数字输入框收得进小数，整数属性遇到 1.5 会整单 400，提交前按整数校验
             ["IsIntegerNumber"] = controlKind == "number" && CSharpTypeFacts.IsInteger(column.CSharpType),
+            // 列表字段的 dataType：表格渲染、搜索控件、导入换算都按它走，三份 schema 字段段共用这一个判据
+            ["FieldDataType"] = ResolveFieldDataType(column, controlKind, tsType),
+            // 导入：CSV 逐行调新增接口，列集合与新增表单一致；二进制列没法在表格里填，不进导入
+            ["IsImportable"] = isBusinessColumn && column.IsInsert && controlKind != "binary",
+            // 导入记录 → 新增入参的取值表达式（$r 为记录里的同名值，$t 为新增入参里该字段的类型）
+            ["ImportFromRecord"] = form.ImportFromRecord,
             ["IsLongColumn"] = isLongColumn,
             ["IsPrimaryKey"] = column.IsPrimaryKey,
             ["IsIdentity"] = column.IsIdentity,
@@ -289,9 +300,30 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["EnumTypeShortName"] = column.EnumTypeShortName,
             ["EnumNamespace"] = column.EnumNamespace,
             ["EnumDefaultMember"] = column.EnumDefaultMember,
-            ["ConstValues"] = column.ConstValues
+            ["ConstValues"] = column.ConstValues,
+            // 关联目标（关联表 / 关联树选择器列非空）：选项接口按本列属性名命名，
+            // 后端 Get{类名}{属性}OptionsAsync、前端 api.{属性 camel}Options()
+            ["Relation"] = column.Relation is null || !isBusinessColumn ? null : new Dictionary<string, object?>
+            {
+                ["ClassName"] = column.Relation.ClassName,
+                ["EntityTypeQualified"] = column.Relation.EntityTypeQualified,
+                ["TableName"] = column.Relation.TableName,
+                ["TableComment"] = column.Relation.TableComment,
+                ["Label"] = string.IsNullOrWhiteSpace(column.Relation.TableComment) ? column.Relation.ClassName : column.Relation.TableComment.Trim(),
+                ["LabelProperty"] = column.Relation.LabelProperty,
+                ["ParentProperty"] = column.Relation.ParentProperty,
+                ["IsTree"] = column.Relation.IsTree,
+                ["OptionsMethod"] = $"{column.CSharpProperty}Options",
+                ["OptionsMethodCamel"] = $"{Camelize(column.CSharpProperty)}Options"
+            }
         };
     }
+
+    /// <summary>
+    /// 业务列 = 非基类托管、非主键（基类列与主键由基类承载，不进任何产物的属性列表）
+    /// </summary>
+    private static bool IsBusinessColumn(ColumnSchema column)
+        => !GeneratedColumnNames.IsBaseColumn(column.ColumnName) && !column.IsPrimaryKey;
 
     /// <summary>
     /// 解析该列在表单里用哪种控件
@@ -303,7 +335,7 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
     /// </remarks>
     /// <param name="column">列结构</param>
     /// <param name="tsType">归一化后的 TS 类型</param>
-    /// <returns>控件种类：binary/switch/date/datetime/time/select/number/textarea/text</returns>
+    /// <returns>控件种类：binary/switch/date/datetime/time/image/file/treeselect/select/number/textarea/text</returns>
     private static string ResolveControlKind(ColumnSchema column, string tsType)
     {
         if (CSharpTypeFacts.IsBinary(column.CSharpType))
@@ -331,6 +363,19 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             return "time";
         }
 
+        // 上传控件存文件中心的文件主键，列得装得下字符串（文本列或 long 标识）；
+        // 二进制列存的是文件内容本身，已在最前面判成 binary
+        if (tsType == "string" && column.HtmlType is HtmlType.ImageUpload or HtmlType.FileUpload)
+        {
+            return column.HtmlType == HtmlType.ImageUpload ? "image" : "file";
+        }
+
+        // 关联树：外键指向树表，按树形下拉选节点（列已由引擎校验为 long）
+        if (column.DictSelectorType == DictSelectorType.TreeSelector)
+        {
+            return "treeselect";
+        }
+
         if (column.DictSelectorType is not null)
         {
             return "select";
@@ -356,8 +401,9 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
     /// </remarks>
     private static FormFacts ResolveFormFacts(ColumnSchema column, string controlKind, string tsType, bool isLongColumn)
     {
+        // 上传控件没传文件时是空串，与文本同理：非空文本列留空发空串，long 标识列没有说得通的缺省值
         var hasFallback = controlKind is "switch" or "number"
-            || (controlKind is "text" or "textarea" && !isLongColumn);
+            || (controlKind is "text" or "textarea" or "image" or "file" && !isLongColumn);
         var isRequired = controlKind != "switch" && (column.IsRequired || (!column.IsNullable && !hasFallback));
 
         var enumDefault = column.EnumDefaultMember is null ? null : $"'{column.EnumDefaultMember}'";
@@ -378,7 +424,7 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             _ when column.IsNullable => "null",
             _ when enumDefault is not null => enumDefault,
             // 下拉没有说得通的缺省项，留空让必填校验逼用户选
-            "select" => "null",
+            "select" or "treeselect" => "null",
             _ => zero
         };
 
@@ -394,7 +440,7 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
         {
             "date" => column.IsNullable ? "$v == null ? null : toDateOnly($v)" : "toDateOnly($v)",
             "switch" => "$v",
-            _ when column.IsNullable => controlKind is "number" or "select" ? "$v ?? null" : "$v || null",
+            _ when column.IsNullable => controlKind is "number" or "select" or "treeselect" ? "$v ?? null" : "$v || null",
             _ => $"$v ?? {zero}"
         };
 
@@ -402,16 +448,70 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
         {
             "date" => "$v == null || Number.isNaN($v)",
             "number" => "$v == null",
-            "select" => tsType == "number" ? "$v == null" : "!$v",
+            "select" or "treeselect" => tsType == "number" ? "$v == null" : "!$v",
             _ => "!$v?.trim()"
         };
 
-        var verb = controlKind is "date" or "select" ? "请选择" : "请输入";
-        return new FormFacts(isRequired, verb, emptyCheck, defaultValue, fromSource, toWire);
+        var verb = controlKind switch
+        {
+            "date" or "select" or "treeselect" => "请选择",
+            "image" or "file" => "请上传",
+            _ => "请输入"
+        };
+        return new FormFacts(isRequired, verb, emptyCheck, defaultValue, fromSource, toWire, ResolveImportFromRecord(column, controlKind, isRequired, zero));
     }
 
     /// <summary>
-    /// 列在表单里的取值口径（表达式中的 $s / $v 为占位符）
+    /// 解析导入记录到新增入参的取值表达式
+    /// </summary>
+    /// <remarks>
+    /// 导入按字段类型把单元格换算好后交给页面（数字、布尔、下拉的值已是报文形态），只有两件事要在这里补：
+    /// 一是没填的列——必填列没填过不了导入校验，其余列与新增表单留空同口径（可空发 null、非空发缺省值）；
+    /// 二是日期——单元格是原文，表格软件另存的 CSV 常写成 2026/9/30，要归一成后端认的本地时间文本。
+    /// </remarks>
+    private static string ResolveImportFromRecord(ColumnSchema column, string controlKind, bool isRequired, string zero)
+    {
+        if (controlKind is "date" or "datetime")
+        {
+            var convert = $"toImportDateText($r, {(controlKind == "datetime" ? "true" : "false")})";
+            // 日期列没有缺省值，非空时一定按必填校验，不必填就一定可空
+            return isRequired ? convert : $"$r == null ? null : {convert}";
+        }
+
+        if (isRequired)
+        {
+            return "$r as $t";
+        }
+
+        return column.IsNullable ? "($r as $t | undefined) ?? null" : $"($r as $t | undefined) ?? {zero}";
+    }
+
+    /// <summary>
+    /// 解析列表字段的 dataType
+    /// </summary>
+    /// <remarks>
+    /// 已接通选项来源的下拉（枚举元数据、系统字典、常量候选项）按 enum：表格显示选项文本、搜索渲下拉、导入按文本反查值；
+    /// 未解析出的枚举仍按原类型承载。上传列按 image / file：表格出缩略图或打开入口。
+    /// </remarks>
+    private static string ResolveFieldDataType(ColumnSchema column, string controlKind, string tsType)
+    {
+        return controlKind switch
+        {
+            "datetime" => "datetime",
+            "date" => "date",
+            "image" => "image",
+            "file" => "file",
+            "select" when column.EnumTypeShortName is not null
+                || column.DictSelectorType is DictSelectorType.ConstSelector or DictSelectorType.DictSelector or DictSelectorType.TableSelector => "enum",
+            "treeselect" => "enum",
+            _ when tsType == "number" => "number",
+            _ when tsType == "boolean" => "boolean",
+            _ => "string"
+        };
+    }
+
+    /// <summary>
+    /// 列在表单里的取值口径（表达式中的 $s / $v / $r / $t 为占位符）
     /// </summary>
     /// <param name="IsRequired">表单是否按必填校验</param>
     /// <param name="RequiredVerb">必填提示的动词（请输入 / 请选择）</param>
@@ -419,7 +519,8 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
     /// <param name="Default">新增时的默认值字面量</param>
     /// <param name="FromSource">编辑回填表达式（$s 为详情值）</param>
     /// <param name="ToWire">提交取值表达式（$v 为表单值）</param>
-    private sealed record FormFacts(bool IsRequired, string RequiredVerb, string? EmptyCheck, string Default, string FromSource, string ToWire);
+    /// <param name="ImportFromRecord">导入取值表达式（$r 为导入记录值，$t 为新增入参字段类型）</param>
+    private sealed record FormFacts(bool IsRequired, string RequiredVerb, string? EmptyCheck, string Default, string FromSource, string ToWire, string ImportFromRecord);
 
     /// <summary>
     /// PascalCase → camelCase（转换实现见 <see cref="NamingConventions"/>，与引擎共用）

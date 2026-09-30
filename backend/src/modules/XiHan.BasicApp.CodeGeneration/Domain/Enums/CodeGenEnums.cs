@@ -324,7 +324,19 @@ public enum DictSelectorType
     /// 常量数组（内联 ConstValues JSON）
     /// </summary>
     [Description("常量数组")]
-    ConstSelector = 2
+    ConstSelector = 2,
+
+    /// <summary>
+    /// 关联表下拉（外键：RelationTableId 指向另一张表配置，RelationLabelColumn 为显示列，值为其主键）
+    /// </summary>
+    [Description("关联表")]
+    TableSelector = 3,
+
+    /// <summary>
+    /// 关联树选择（外键指向另一张树表配置，按其父级列组树；显示列缺省取其树名称列）
+    /// </summary>
+    [Description("关联树")]
+    TreeSelector = 4
 }
 
 /// <summary>

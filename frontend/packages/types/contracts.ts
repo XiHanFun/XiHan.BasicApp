@@ -98,6 +98,16 @@ export interface BasicDto {
   basicId: ApiId
 }
 
+/**
+ * 关联记录选项（代码生成的外键下拉与树形选择的选项来源）。
+ * 值是被关联记录的主键；树形关联平铺返回，靠 parentValue 还原层级（上级不在结果里的节点即为根）。
+ */
+export interface RelationOptionDto {
+  label: string
+  parentValue?: ApiId | null
+  value: ApiId
+}
+
 export interface BasicCreateDto {
   createdBy?: string | null
   createdId?: ApiId | null

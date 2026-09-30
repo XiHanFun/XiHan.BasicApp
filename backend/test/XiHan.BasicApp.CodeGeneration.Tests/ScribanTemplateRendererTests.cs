@@ -195,22 +195,23 @@ public sealed class ScribanTemplateRendererTests
     }
 
     /// <summary>
-    /// 已启用操作同时透出列表与三个便捷布尔，三者内容必须一致（模板两种写法结果不能打架）。
+    /// 已启用操作同时透出列表与逐项便捷布尔，二者内容必须一致（模板两种写法结果不能打架）。
     /// </summary>
     /// <param name="actionsJoined">已启用操作（逗号分隔；空串表示空集）</param>
     /// <param name="expected">期望渲染结果</param>
     [Theory]
-    [InlineData("create,update,delete", "create,update,delete|true|true|true")]
-    [InlineData("create", "create|true|false|false")]
-    [InlineData("update,delete", "update,delete|false|true|true")]
-    [InlineData("", "|false|false|false")]
+    [InlineData("create,update,delete,export,import", "create,update,delete,export,import|true|true|true|true|true")]
+    [InlineData("create", "create|true|false|false|false|false")]
+    [InlineData("update,delete", "update,delete|false|true|true|false|false")]
+    [InlineData("export", "export|false|false|false|true|false")]
+    [InlineData("", "|false|false|false|false|false")]
     public async Task RenderAsync_EnabledActionsListAndBooleansShouldAgree(string actionsJoined, string expected)
     {
         string[] actions = actionsJoined.Length == 0 ? [] : actionsJoined.Split(',');
         var context = CodeGenerationTestHelper.CreateContext(enabledActions: actions);
 
         var result = await _renderer.RenderAsync(
-            "{{ EnabledActions | array.join \",\" }}|{{ CanCreate }}|{{ CanUpdate }}|{{ CanDelete }}",
+            "{{ EnabledActions | array.join \",\" }}|{{ CanCreate }}|{{ CanUpdate }}|{{ CanDelete }}|{{ CanExport }}|{{ CanImport }}",
             context);
 
         Assert.Equal(expected, result, StringComparer.Ordinal);
@@ -535,6 +536,10 @@ public sealed class ScribanTemplateRendererTests
     [InlineData("DateTimeOffset?", "string", HtmlType.DatePicker, true, false, "false|null|$v == null ? null : toDateOnly($v)|")]
     [InlineData("DateTimeOffset", "string", HtmlType.DateTimePicker, false, false, "true|''|$v ?? ''|!$v?.trim()")]
     [InlineData("TimeSpan?", "string", HtmlType.TimePicker, true, false, "false|null|$v || null|")]
+    // 上传与文本同理：非空文本列没传文件发空串，long 标识列没有缺省值即必填
+    [InlineData("string", "string", HtmlType.ImageUpload, false, false, "false|''|$v ?? ''|")]
+    [InlineData("string?", "string", HtmlType.FileUpload, true, false, "false|null|$v || null|")]
+    [InlineData("long", "string", HtmlType.FileUpload, false, false, "true|''|$v ?? ''|!$v?.trim()")]
     public async Task RenderAsync_FormFactsShouldFollowNullabilityThenRequired(
         string csharpType, string tsType, HtmlType htmlType, bool isNullable, bool isRequired, string expected)
     {
@@ -546,6 +551,49 @@ public sealed class ScribanTemplateRendererTests
         var result = await _renderer.RenderAsync(
             "{{ for col in Columns }}{{ col.IsFormRequired }}|{{ col.FormDefault }}|{{ col.FormToWire }}|{{ col.FormEmptyCheck }}{{ end }}",
             context);
+
+        Assert.Equal(expected, result, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 上传控件的必填提示是「请上传」。
+    /// </summary>
+    [Fact]
+    public async Task RenderAsync_UploadRequiredVerbShouldAskForUpload()
+    {
+        var column = CodeGenerationTestHelper.CreateColumn("Avatar", "string", "string", htmlType: HtmlType.ImageUpload);
+        column.IsRequired = true;
+        var context = CodeGenerationTestHelper.CreateContext(columns: [column]);
+
+        var result = await _renderer.RenderAsync("{{ for col in Columns }}{{ col.FormRequiredVerb }}{{ end }}", context);
+
+        Assert.Equal("请上传", result, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 列表字段 dataType：接通了选项来源的下拉（枚举、系统字典、常量）按 enum，上传列按 image / file，
+    /// 未解析出的枚举仍按原类型。
+    /// </summary>
+    /// <param name="csharpType">C# 类型</param>
+    /// <param name="tsType">TS 类型</param>
+    /// <param name="htmlType">表单控件配置</param>
+    /// <param name="dictSelector">选项来源</param>
+    /// <param name="expected">期望的 dataType</param>
+    [Theory]
+    [InlineData("string", "string", HtmlType.Select, DictSelectorType.DictSelector, "enum")]
+    [InlineData("int", "number", HtmlType.Select, DictSelectorType.ConstSelector, "enum")]
+    [InlineData("int", "number", HtmlType.Select, DictSelectorType.EnumSelector, "number")]
+    [InlineData("string", "string", HtmlType.ImageUpload, null, "image")]
+    [InlineData("string", "string", HtmlType.FileUpload, null, "file")]
+    [InlineData("string", "string", HtmlType.Input, null, "string")]
+    public async Task RenderAsync_FieldDataTypeShouldFollowControlAndOptionSource(
+        string csharpType, string tsType, HtmlType htmlType, DictSelectorType? dictSelector, string expected)
+    {
+        var column = CodeGenerationTestHelper.CreateColumn("Level", csharpType, tsType, htmlType: htmlType);
+        column.DictSelectorType = dictSelector;
+        var context = CodeGenerationTestHelper.CreateContext(columns: [column]);
+
+        var result = await _renderer.RenderAsync("{{ for col in Columns }}{{ col.FieldDataType }}{{ end }}", context);
 
         Assert.Equal(expected, result, StringComparer.Ordinal);
     }

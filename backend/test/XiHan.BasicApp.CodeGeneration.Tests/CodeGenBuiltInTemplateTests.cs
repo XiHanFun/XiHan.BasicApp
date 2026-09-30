@@ -142,6 +142,264 @@ public sealed partial class CodeGenBuiltInTemplateTests
     }
 
     /// <summary>
+    /// 勾了导出、导入：页面元信息带两个按钮码，新增列进导入模板（必填随表单），
+    /// 不进列表的新增列以隐藏字段进导入，常量下拉带选项供导入按文本反查。
+    /// </summary>
+    [Fact]
+    public async Task Schema_ImportAndExportShouldFollowEnabledActions()
+    {
+        var context = ImportContext();
+
+        var content = await RenderAsync("Frontend/Schema.sbn", context);
+
+        Assert.Contains("  exportPermission: 'catalog.sys-product.export',\n", content, StringComparison.Ordinal);
+        Assert.Contains("  importPermission: 'catalog.sys-product.import',\n", content, StringComparison.Ordinal);
+        Assert.Matches(@"key: 'productName', [^\n]* importable: true, required: true, minWidth", content);
+        Assert.Matches(@"key: 'remark', [^\n]* importable: true, minWidth", content);
+        Assert.Matches(@"key: 'level', title: '级别', dataType: 'enum', options: \[[^\n]* importable: true, required: true, minWidth", content);
+        Assert.Matches(@"key: 'internalNote', [^\n]* visible: false, importable: true, minWidth", content);
+    }
+
+    /// <summary>
+    /// 导入记录换算成新增入参：必填列原样取、没填的列按表单留空同口径补齐、日期归一成本地时间文本。
+    /// </summary>
+    [Fact]
+    public async Task Schema_ImportRecordShouldMapToCreateInput()
+    {
+        var content = await RenderAsync("Frontend/Schema.sbn", ImportContext());
+
+        Assert.Contains("export function toCreateInputFromImport(record: Record<string, unknown>): SysProductCreateDto {", content, StringComparison.Ordinal);
+        Assert.Contains("    productName: record.productName as SysProductCreateDto['productName'],\n", content, StringComparison.Ordinal);
+        Assert.Contains("    stock: (record.stock as SysProductCreateDto['stock'] | undefined) ?? 0,\n", content, StringComparison.Ordinal);
+        Assert.Contains("    remark: (record.remark as SysProductCreateDto['remark'] | undefined) ?? null,\n", content, StringComparison.Ordinal);
+        Assert.Contains("    publishDate: toImportDateText(record.publishDate, false),\n", content, StringComparison.Ordinal);
+        Assert.Contains("    endTime: record.endTime == null ? null : toImportDateText(record.endTime, true),\n", content, StringComparison.Ordinal);
+        Assert.Contains("function toImportDateText(value: unknown, withTime: boolean) {", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 没勾导出、导入：不声明两个按钮码、不标导入字段，但查询入参与导入换算照常产出，之后勾选时页面只需补一行。
+    /// </summary>
+    [Fact]
+    public async Task Schema_WithoutImportAndExportShouldNotDeclareButtons()
+    {
+        var context = ImportContext();
+        context.EnabledActions = [CodeGenActions.Create, CodeGenActions.Update, CodeGenActions.Delete];
+
+        var content = await RenderAsync("Frontend/Schema.sbn", context);
+
+        Assert.DoesNotContain("exportPermission: ", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("importPermission: ", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("importable", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("key: 'internalNote'", content, StringComparison.Ordinal);
+        Assert.Contains("export function buildPageQuery(params: SchemaQueryParams): SysProductPageQueryDto {", content, StringComparison.Ordinal);
+        Assert.Contains("export function toCreateInputFromImport(", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 页面：列表取数与导出中心共用 schema 里的查询入参，导入逐行走新增接口。
+    /// </summary>
+    [Fact]
+    public async Task Page_ShouldWireImportAndExportResource()
+    {
+        var content = await RenderAsync("Frontend/Page.sbn", ImportContext());
+
+        Assert.Contains("    page: params => sysProductApi.page(buildPageQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,\n", content, StringComparison.Ordinal);
+        Assert.Contains("    create: record => sysProductApi.create(toCreateInputFromImport(record)),\n", content, StringComparison.Ordinal);
+        Assert.Contains("    export: { businessType: pageMeta.pageCode, buildQuery: buildPageQuery },\n", content, StringComparison.Ordinal);
+        Assert.Contains("import { actions, buildPageQuery, createDefaultForm, fields, pageMeta, toCreateInputFromImport } from './sys-product.schema'", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("createPageRequest", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 页面：没勾导出、导入时 resource 不接这两项。
+    /// </summary>
+    [Fact]
+    public async Task Page_WithoutImportAndExportShouldNotWireThem()
+    {
+        var content = await RenderAsync("Frontend/Page.sbn", SingleContext());
+
+        Assert.DoesNotContain("create: record", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("export: {", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("toCreateInputFromImport", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 手动 schema 把查询入参与导入换算转出，页面只从手动 schema 导入。
+    /// </summary>
+    [Fact]
+    public async Task ManualSchema_ShouldReExportQueryAndImportMapping()
+    {
+        var content = await RenderAsync("Frontend/Schema.Manual.sbn", ImportContext());
+
+        Assert.Contains("export { buildPageQuery, toCreateInputFromImport } from './sys-product.schema.generated'\n", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 勾了导出才产出导出 Provider：业务类型即页面码、校验导出权限、复用查询服务的分页。
+    /// </summary>
+    [Fact]
+    public async Task ExportProvider_ShouldBindPageCodeAndExportPermission()
+    {
+        var content = await RenderAsync("Backend/ExportProvider.sbn", ImportContext());
+
+        Assert.Contains("[ExposeServices(typeof(IExportProvider))]", content, StringComparison.Ordinal);
+        Assert.Contains("public sealed class SysProductExportProvider", content, StringComparison.Ordinal);
+        Assert.Contains("QueryServiceExportProviderBase<SysProductPageQueryDto, SysProductListItemDto>, IScopedDependency", content, StringComparison.Ordinal);
+        Assert.Contains("public override string BusinessType => \"catalog.sys-product\";", content, StringComparison.Ordinal);
+        Assert.Contains("public override string RequiredPermission => SysProductPermissionCodes.Export;", content, StringComparison.Ordinal);
+        Assert.Contains("return _queryService.GetSysProductPageAsync(query, cancellationToken);", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 没勾导出时文件照常覆盖但不含类：取消导出后旧 Provider 不会留着引用已不存在的导出权限码。
+    /// </summary>
+    [Fact]
+    public async Task ExportProvider_WithoutExportShouldRenderNoClass()
+    {
+        var content = await RenderAsync("Backend/ExportProvider.sbn", SingleContext());
+
+        Assert.DoesNotContain("class ", content, StringComparison.Ordinal);
+        Assert.Contains("没有勾选「导出」", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 树表导入：父级不按必填导入，留空即根节点（非空父级发 '0'）。
+    /// </summary>
+    [Fact]
+    public async Task TreeSchema_ImportBlankParentShouldBeRoot()
+    {
+        var context = TreeContext(nullableParent: false);
+        context.EnabledActions = CodeGenActions.All;
+
+        var content = await RenderAsync("Frontend/TreeSchema.sbn", context);
+
+        Assert.Contains("    parentId: (record.parentId as SysCategoryCreateDto['parentId'] | undefined) || '0',\n", content, StringComparison.Ordinal);
+        Assert.Matches(@"key: 'parentId', [^\n]* visible: false, importable: true, minWidth", content);
+        Assert.Matches(@"key: 'categoryName', [^\n]* treeColumn: true, importable: true, required: true, minWidth", content);
+        Assert.Contains("export function buildPageQuery(params: SchemaQueryParams): SysCategoryPageQueryDto {", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 字典下拉接系统字典选项通道，上传列出文件引用上传控件；不再有「选项来源未接通」的占位项。
+    /// </summary>
+    [Fact]
+    public async Task Page_DictSelectAndUploadShouldBeWired()
+    {
+        var content = await RenderAsync("Frontend/Page.sbn", DictUploadContext());
+
+        Assert.Contains("const customerLevelOptions = useDictOptions('demo_customer_level')\n", content, StringComparison.Ordinal);
+        Assert.Contains("import { toast, useDictOptions } from '~/composables'\n", content, StringComparison.Ordinal);
+        Assert.Contains("import XFileRefUpload from '@/components/FileRefUpload.vue'\n", content, StringComparison.Ordinal);
+        Assert.Contains("<XFileRefUpload v-model:value=\"form.avatar\" kind=\"image\" />", content, StringComparison.Ordinal);
+        Assert.Contains("<XFileRefUpload v-model:value=\"form.attachment\" kind=\"file\" />", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("选项来源未接通", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 列表字段：字典列声明 dictCode（显示名称、搜索下拉、导入按名称反查），上传列按 image / file 渲染。
+    /// </summary>
+    [Fact]
+    public async Task Schema_DictAndUploadFieldsShouldDeclareTheirSource()
+    {
+        var content = await RenderAsync("Frontend/Schema.sbn", DictUploadContext());
+
+        Assert.Contains("{ key: 'customerLevel', title: '客户等级', dataType: 'enum', dictCode: 'demo_customer_level',", content, StringComparison.Ordinal);
+        Assert.Contains("{ key: 'avatar', title: '头像', dataType: 'image',", content, StringComparison.Ordinal);
+        Assert.Contains("{ key: 'attachment', title: '附件', dataType: 'file',", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 树表页面同样接通字典与上传。
+    /// </summary>
+    [Fact]
+    public async Task TreePage_DictSelectAndUploadShouldBeWired()
+    {
+        var context = TreeContext(nullableParent: true);
+        context.Columns = [.. context.Columns, .. DictUploadColumns()];
+
+        var content = await RenderAsync("Frontend/TreePage.sbn", context);
+
+        Assert.Contains("const customerLevelOptions = useDictOptions('demo_customer_level')\n", content, StringComparison.Ordinal);
+        Assert.Contains("import XFileRefUpload from '@/components/FileRefUpload.vue'\n", content, StringComparison.Ordinal);
+        Assert.Contains("<XFileRefUpload v-model:value=\"form.avatar\" kind=\"image\" />", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 仓储按关联实体查「主键 + 显示列（+ 上级）」，走跨实体查询入口，租户与软删过滤照常生效。
+    /// </summary>
+    [Fact]
+    public async Task Repository_RelationOptionsShouldQueryTargetEntity()
+    {
+        var context = RelationContext();
+
+        var repository = await RenderAsync("Backend/Repository.sbn", context);
+        var contract = await RenderAsync("Backend/IRepository.sbn", context);
+
+        Assert.Contains("using XiHan.BasicApp.Core.Dtos;\n", repository, StringComparison.Ordinal);
+        Assert.Contains("CreateQueryable<XiHan.BasicApp.Catalog.Domain.Entities.SysCategory>()", repository, StringComparison.Ordinal);
+        Assert.Contains(".Select(target => new { target.BasicId, target.CategoryName })", repository, StringComparison.Ordinal);
+        Assert.Contains("CreateQueryable<XiHan.BasicApp.Saas.Domain.Entities.SysDepartment>()", repository, StringComparison.Ordinal);
+        Assert.Contains(".Select(target => new { target.BasicId, target.DepartmentName, target.ParentId })", repository, StringComparison.Ordinal);
+        Assert.Contains("ParentValue = row.ParentId", repository, StringComparison.Ordinal);
+        Assert.Contains("Task<IReadOnlyList<RelationOptionDto>> GetCategoryIdOptionsAsync(CancellationToken cancellationToken = default);", contract, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 查询服务按本表的查看权限暴露选项接口，契约同步声明。
+    /// </summary>
+    [Fact]
+    public async Task QueryService_RelationOptionsShouldUseReadPermission()
+    {
+        var context = RelationContext();
+
+        var service = await RenderAsync("Backend/QueryService.sbn", context);
+        var contracts = await RenderAsync("Backend/Contracts.sbn", context);
+
+        Assert.Matches(@"\[PermissionAuthorize\(SysProductPermissionCodes\.Read\)\]\n\s+\[HttpGet\]\n\s+public virtual Task<IReadOnlyList<RelationOptionDto>> GetSysProductCategoryIdOptionsAsync\(", service);
+        Assert.Contains("return _repository.GetDepartmentIdOptionsAsync(cancellationToken);", service, StringComparison.Ordinal);
+        Assert.Contains("Task<IReadOnlyList<RelationOptionDto>> GetSysProductDepartmentIdOptionsAsync(CancellationToken cancellationToken = default);", contracts, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 没有关联列时仓储保持空壳，不引入用不上的 using。
+    /// </summary>
+    [Fact]
+    public async Task Repository_WithoutRelationsShouldStayEmpty()
+    {
+        var repository = await RenderAsync("Backend/Repository.sbn", SingleContext());
+
+        Assert.DoesNotContain("XiHan.BasicApp.Core.Dtos", repository, StringComparison.Ordinal);
+        Assert.Contains("ISysProductRepository\n{\n}", repository, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 前端：接口出选项方法，列表字段按选项显示名称（不可排序），表单出下拉与树形下拉。
+    /// </summary>
+    [Fact]
+    public async Task Frontend_RelationShouldWireOptionsIntoFieldsAndForm()
+    {
+        var context = RelationContext();
+
+        var api = await RenderAsync("Frontend/Api.sbn", context);
+        var schema = await RenderAsync("Frontend/Schema.sbn", context);
+        var page = await RenderAsync("Frontend/Page.sbn", context);
+
+        Assert.Contains("import type { ApiId, RelationOptionDto } from '../../types'", api, StringComparison.Ordinal);
+        Assert.Contains("return sysProductQueryApi.get<RelationOptionDto[]>('SysProductCategoryIdOptions')", api, StringComparison.Ordinal);
+
+        Assert.Contains("import { sysProductApi } from '@/api/modules/catalog/sys-product'\n", schema, StringComparison.Ordinal);
+        Assert.Contains("{ key: 'categoryId', title: '所属分类', dataType: 'enum', optionsLoader: sysProductApi.categoryIdOptions, searchable: true,", schema, StringComparison.Ordinal);
+
+        Assert.Contains("const categoryIdOptions = useAsyncOptions(sysProductApi.categoryIdOptions)\n", page, StringComparison.Ordinal);
+        Assert.Contains("const departmentIdTreeOptions = computed(() => relationOptionsToTree(departmentIdRelation.value))\n", page, StringComparison.Ordinal);
+        Assert.Contains("<XTreeSelect v-model:value=\"form.departmentId\" clearable :options=\"departmentIdTreeOptions\"", page, StringComparison.Ordinal);
+        Assert.Contains("import { toast, useAsyncOptions } from '~/composables'\n", page, StringComparison.Ordinal);
+        Assert.Contains("import { relationOptionsToTree } from '~/utils'\n", page, StringComparison.Ordinal);
+        Assert.Contains(", XSelect, XTreeSelect } from '~/components'", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 从程序集嵌入资源读取内置模板
     /// </summary>
     private static string LoadTemplate(string resourceFile)
@@ -181,6 +439,77 @@ public sealed partial class CodeGenBuiltInTemplateTests
             level,
             stock
         ]);
+    }
+
+    /// <summary>
+    /// 全开操作的单表：在基础列之外补一个不进列表的新增列、一个必填日期与一个可空日期时间
+    /// </summary>
+    private static CodeGenerationContext ImportContext()
+    {
+        var context = SingleContext();
+        var internalNote = Column("InternalNote", "string?", "string", isNullable: true);
+        internalNote.IsList = false;
+        var publishDate = Column("PublishDate", "DateTimeOffset", "string", HtmlType.DatePicker, isRequired: true);
+        var endTime = Column("EndTime", "DateTimeOffset?", "string", HtmlType.DateTimePicker, isNullable: true);
+        context.Columns = [.. context.Columns, internalNote, publishDate, endTime];
+        context.EnabledActions = CodeGenActions.All;
+        return context;
+    }
+
+    /// <summary>
+    /// 单表：主键 + 字典下拉 + 图片与附件上传
+    /// </summary>
+    private static CodeGenerationContext DictUploadContext()
+        => CodeGenerationTestHelper.CreateContext(columns: [Column("BasicId", "long", "string"), .. DictUploadColumns()]);
+
+    private static ColumnSchema[] DictUploadColumns()
+    {
+        var level = Column("CustomerLevel", "string?", "string", HtmlType.Select, isNullable: true);
+        level.ColumnComment = "客户等级";
+        level.DictSelectorType = DictSelectorType.DictSelector;
+        level.DictCode = "demo_customer_level";
+        var avatar = Column("Avatar", "string?", "string", HtmlType.ImageUpload, isNullable: true);
+        avatar.ColumnComment = "头像";
+        var attachment = Column("Attachment", "string?", "string", HtmlType.FileUpload, isNullable: true);
+        attachment.ColumnComment = "附件";
+        return [level, avatar, attachment];
+    }
+
+    /// <summary>
+    /// 全开操作的单表：一个必填、参与查询的关联表列（产品分类），一个可空的关联树列（系统部门）
+    /// </summary>
+    private static CodeGenerationContext RelationContext()
+    {
+        var category = Column("CategoryId", "long", "string", HtmlType.Select, isRequired: true);
+        category.ColumnComment = "所属分类";
+        category.IsQuery = true;
+        category.DictSelectorType = DictSelectorType.TableSelector;
+        category.Relation = new RelationTarget
+        {
+            TableId = 2,
+            TableName = "sys_category",
+            TableComment = "产品分类",
+            ClassName = "SysCategory",
+            EntityTypeQualified = "XiHan.BasicApp.Catalog.Domain.Entities.SysCategory",
+            LabelProperty = "CategoryName"
+        };
+        var department = Column("DepartmentId", "long?", "string", HtmlType.TreeSelect, isNullable: true);
+        department.ColumnComment = "所属部门";
+        department.DictSelectorType = DictSelectorType.TreeSelector;
+        department.Relation = new RelationTarget
+        {
+            TableId = 3,
+            TableName = "Sys_Department",
+            TableComment = "部门",
+            ClassName = "SysDepartment",
+            EntityTypeQualified = "XiHan.BasicApp.Saas.Domain.Entities.SysDepartment",
+            LabelProperty = "DepartmentName",
+            ParentProperty = "ParentId",
+            IsTree = true
+        };
+        var context = CodeGenerationTestHelper.CreateContext(columns: [Column("BasicId", "long", "string"), category, department]);
+        context.EnabledActions = CodeGenActions.All;
+        return context;
     }
 
     private static CodeGenerationContext TreeContext(bool nullableParent)

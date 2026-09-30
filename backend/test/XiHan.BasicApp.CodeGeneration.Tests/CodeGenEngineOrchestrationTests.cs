@@ -150,7 +150,10 @@ public sealed class CodeGenEngineOrchestrationTests
         bool isPrimaryKey = false,
         bool isNullable = false,
         DictSelectorType? dictSelectorType = null,
-        string? enumTypeName = null)
+        string? enumTypeName = null,
+        string? dictCode = null,
+        long? relationTableId = null,
+        string? relationLabelColumn = null)
     {
         return new SysCodeGenTableColumn
         {
@@ -163,7 +166,10 @@ public sealed class CodeGenEngineOrchestrationTests
             IsPrimaryKey = isPrimaryKey,
             IsNullable = isNullable,
             DictSelectorType = dictSelectorType,
-            EnumTypeName = enumTypeName
+            EnumTypeName = enumTypeName,
+            DictCode = dictCode,
+            RelationTableId = relationTableId,
+            RelationLabelColumn = relationLabelColumn
         };
     }
 
@@ -522,17 +528,18 @@ public sealed class CodeGenEngineOrchestrationTests
     }
 
     /// <summary>
-    /// 包含操作未配置时归一化为写操作全集，二阶产物随之给出全部权限码。
+    /// 包含操作未配置时归一化为可裁剪操作全集（含导出、导入），二阶产物随之给出全部权限码。
     /// </summary>
     /// <param name="enabledActions">表配置的包含操作</param>
-    /// <param name="expectedActions">期望生效的写操作</param>
+    /// <param name="expectedActions">期望生效的操作</param>
     [Theory]
-    [InlineData(null, "create,update,delete")]
-    [InlineData("", "create,update,delete")]
-    [InlineData("   ", "create,update,delete")]
+    [InlineData(null, "create,update,delete,export,import")]
+    [InlineData("", "create,update,delete,export,import")]
+    [InlineData("   ", "create,update,delete,export,import")]
     [InlineData("create", "create")]
     [InlineData("delete,create", "create,delete")]
     [InlineData("CREATE, Update ", "create,update")]
+    [InlineData("import,export,create", "create,export,import")]
     [InlineData("approve", "")]
     public async Task PreviewAsync_EnabledActionsShouldBeNormalizedIntoContext(string? enabledActions, string expectedActions)
     {
@@ -543,6 +550,23 @@ public sealed class CodeGenEngineOrchestrationTests
 
         var expected = expectedActions.Split(',', StringSplitOptions.RemoveEmptyEntries);
         Assert.Equal(expected, _renderer.LastContext!.EnabledActions);
+    }
+
+    /// <summary>
+    /// 只勾导入不勾新增时生成失败：导入逐行调新增接口，否则会产出指向不存在接口的导入按钮。
+    /// 存量配置可能早于保存侧校验写入，生成侧必须再拦一次。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_ImportWithoutCreateShouldFail()
+    {
+        GivenTable(Table(enabledActions: "update,import"));
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.False(result.Success);
+        Assert.Contains("导入", result.Message, StringComparison.Ordinal);
+        Assert.Contains("新增", result.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -863,19 +887,131 @@ public sealed class CodeGenEngineOrchestrationTests
     }
 
     /// <summary>
-    /// 字典选择器列当前没有选项通道，只告警不阻断，也不会被当成枚举列处理。
+    /// 字典选择器列带上字典编码进上下文，不会被当成枚举列处理。
     /// </summary>
     [Fact]
-    public async Task PreviewAsync_DictSelectorColumnShouldNotBlockGeneration()
+    public async Task PreviewAsync_DictSelectorColumnShouldCarryDictCode()
     {
         GivenTable(Table());
-        GivenColumns(TableId, Column("status", dictSelectorType: DictSelectorType.DictSelector));
+        GivenColumns(TableId, Column("level", dictSelectorType: DictSelectorType.DictSelector, dictCode: "demo_customer_level"));
         GivenTemplates(Template());
 
         var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
 
         Assert.True(result.Success);
+        Assert.Equal("demo_customer_level", _renderer.LastContext!.Columns[0].DictCode);
         Assert.Null(_renderer.LastContext!.Columns[0].EnumTypeShortName);
+    }
+
+    /// <summary>
+    /// 字典选择器没填字典编码、或列不是文本（字典项按编码存）时生成失败，并指明是哪一列。
+    /// </summary>
+    /// <param name="csharpType">列的 C# 类型</param>
+    /// <param name="dictCode">字典编码</param>
+    /// <param name="expected">错误信息里应出现的片段</param>
+    [Theory]
+    [InlineData("string", null, "没填字典编码")]
+    [InlineData("string", "  ", "没填字典编码")]
+    [InlineData("int", "demo_customer_level", "列须为 string")]
+    [InlineData("long?", "demo_customer_level", "列须为 string")]
+    public async Task PreviewAsync_InvalidDictSelectorShouldFail(string csharpType, string? dictCode, string expected)
+    {
+        GivenTable(Table());
+        GivenColumns(TableId, Column("level", csharpType: csharpType, dictSelectorType: DictSelectorType.DictSelector, dictCode: dictCode));
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.False(result.Success);
+        Assert.Contains("level", result.Message!, StringComparison.Ordinal);
+        Assert.Contains(expected, result.Message!, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 关联的目标表（产品分类，主键 2）：树表时以 parent_id 为父级、category_name 为名称列。
+    /// </summary>
+    private void GivenCategoryTable(bool isTree)
+    {
+        var category = Table(
+            id: 2,
+            templateType: isTree ? TemplateType.Tree : TemplateType.Single,
+            treeParentColumn: isTree ? "parent_id" : null,
+            treeNameColumn: isTree ? "category_name" : null);
+        category.TableName = "sys_category";
+        category.TableComment = "产品分类";
+        category.ClassName = "SysCategory";
+        GivenTable(category);
+        GivenColumns(2, Column("category_name"), Column("parent_id", csharpType: "long?"), Column("sort", csharpType: "int"));
+    }
+
+    /// <summary>
+    /// 关联表：解析出目标实体的限定类型名与显示列，本表按它生成选项接口。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_TableRelationShouldResolveTarget()
+    {
+        GivenTable(Table());
+        GivenCategoryTable(isTree: false);
+        GivenColumns(TableId, Column("category_id", csharpType: "long", dictSelectorType: DictSelectorType.TableSelector, relationTableId: 2, relationLabelColumn: "category_name"));
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        var relation = _renderer.LastContext!.Columns[0].Relation!;
+        Assert.Equal("XiHan.BasicApp.Catalog.Domain.Entities.SysCategory", relation.EntityTypeQualified);
+        Assert.Equal("category_name", relation.LabelProperty);
+        Assert.False(relation.IsTree);
+        Assert.Null(relation.ParentProperty);
+    }
+
+    /// <summary>
+    /// 关联树：目标须为树表，显示列缺省取其名称列，父级取其父级列。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_TreeRelationShouldDefaultLabelToTreeName()
+    {
+        GivenTable(Table());
+        GivenCategoryTable(isTree: true);
+        GivenColumns(TableId, Column("category_id", csharpType: "long?", dictSelectorType: DictSelectorType.TreeSelector, relationTableId: 2));
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        var relation = _renderer.LastContext!.Columns[0].Relation!;
+        Assert.True(relation.IsTree);
+        Assert.Equal("category_name", relation.LabelProperty);
+        Assert.Equal("parent_id", relation.ParentProperty);
+    }
+
+    /// <summary>
+    /// 关联配置对不上时生成失败，并指明哪一列、错在哪。
+    /// </summary>
+    /// <param name="csharpType">本列 C# 类型</param>
+    /// <param name="selector">关联表 / 关联树</param>
+    /// <param name="relationTableId">关联的表配置主键</param>
+    /// <param name="labelColumn">显示列</param>
+    /// <param name="expected">错误信息里应出现的片段</param>
+    [Theory]
+    [InlineData("string", DictSelectorType.TableSelector, 2L, "category_name", "列须为 long")]
+    [InlineData("long", DictSelectorType.TableSelector, 99L, "category_name", "不存在")]
+    [InlineData("long", DictSelectorType.TableSelector, 2L, null, "没选显示列")]
+    [InlineData("long", DictSelectorType.TableSelector, 2L, "no_such", "不在关联的表")]
+    [InlineData("long", DictSelectorType.TableSelector, 2L, "sort", "显示列须为 string")]
+    [InlineData("long", DictSelectorType.TreeSelector, 2L, "category_name", "不是树表")]
+    public async Task PreviewAsync_InvalidRelationShouldFail(string csharpType, DictSelectorType selector, long relationTableId, string? labelColumn, string expected)
+    {
+        GivenTable(Table());
+        GivenCategoryTable(isTree: false);
+        GivenColumns(TableId, Column("category_id", csharpType: csharpType, dictSelectorType: selector, relationTableId: relationTableId, relationLabelColumn: labelColumn));
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.False(result.Success);
+        Assert.Contains("category_id", result.Message!, StringComparison.Ordinal);
+        Assert.Contains(expected, result.Message!, StringComparison.Ordinal);
     }
 
     /// <summary>

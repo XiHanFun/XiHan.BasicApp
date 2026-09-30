@@ -49,6 +49,14 @@ public sealed class ControlKindTests
     [InlineData("int", "number", HtmlType.Select, DictSelectorType.ConstSelector, "select")]
     // 二进制优先于一切：byte[] 渲成别的都没有意义
     [InlineData("byte[]", "string", HtmlType.Textarea, DictSelectorType.ConstSelector, "binary")]
+    // 上传：文本列与 long 标识列存文件主键；装不下文件主键的数字列仍按数字框
+    [InlineData("string", "string", HtmlType.ImageUpload, null, "image")]
+    [InlineData("string?", "string", HtmlType.FileUpload, null, "file")]
+    [InlineData("long", "number", HtmlType.FileUpload, null, "file")]
+    [InlineData("int", "number", HtmlType.ImageUpload, null, "number")]
+    [InlineData("byte[]", "string", HtmlType.ImageUpload, null, "binary")]
+    // 上传是显式选的控件，优先于选项来源
+    [InlineData("string", "string", HtmlType.ImageUpload, DictSelectorType.DictSelector, "image")]
     public async Task ControlKind_ShouldResolveByTypeFirst(
         string csharpType,
         string tsType,
