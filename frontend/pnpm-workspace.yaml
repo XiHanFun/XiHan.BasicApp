@@ -106,7 +106,7 @@ catalog:
   pinyin-pro: ^3.28.1
   prettier: ^3.9.9
   tailwindcss: ^4.3.3
-  turbo: ^2.11.3
+  turbo: ^2.11.5
   typescript: ^6.0.3
   unplugin-auto-import: ^21.1.0
   unplugin-vue-components: ^32.1.0
