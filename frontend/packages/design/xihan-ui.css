@@ -12,6 +12,7 @@
  * 2) 同一份映射在 :root 与 .dark 上各写一遍。--x 在嵌套 .dark 容器（深色侧栏、
  *    深色顶栏）里会重解析，但 --xh-* 若只在 :root 声明就只解析一次，
  *    嵌套区里的组件会拿到浅色值。与 variables.css 里 --color-* 的处理同因同法。
+ *    语义映射另写到 [data-theme] 上：浮层的 Portal 壳带 data-theme，库在那里重声明整套语义令牌。
  * ========================================================================== */
 
 @layer xihan.overrides {
@@ -31,7 +32,16 @@
     --xh-color-brand-800: color-mix(in oklab, hsl(var(--primary)) 66%, black);
     --xh-color-brand-900: color-mix(in oklab, hsl(var(--primary)) 50%, black);
     --xh-color-brand-950: color-mix(in oklab, hsl(var(--primary)) 34%, black);
+  }
 
+  /* 以下语义映射还要写到每个 [data-theme] 作用域上：组件库的浮层（对话框、抽屉、弹出面…）
+     经 Portal 挂进一个带 data-theme 的壳，tokens.css 又在 :where([data-theme]) 上把整套语义令牌
+     按库缺省重声明一遍——只写 :root 的话，壳里的正文、描边、淡底全退回库的裸 oklch，
+     弹窗里的表格、文字与列表页对不上。品牌色阶不在此列：库不在壳上重声明它，
+     壳会继承 useTheme 写在根上的派生色阶，这里要是也写一份就把它盖回首帧兜底值了 */
+  :root,
+  .dark,
+  [data-theme] {
     /* —— 功能色：与应用的 success / warning / info / destructive 对齐 —— */
     --xh-color-success-500: hsl(var(--success));
     --xh-color-success-600: color-mix(in oklab, hsl(var(--success)) 88%, black);
@@ -153,7 +163,8 @@
      相对颜色语法高于浏览器地板，包 @supports；够不着的引擎退回上面那份。 */
   @supports (color: oklch(from red l c h)) {
     :root,
-    .dark {
+    .dark,
+    [data-theme] {
       --xh-color-success-600: oklch(from hsl(var(--success)) 0.53 c h);
       --xh-color-danger-600: oklch(from hsl(var(--destructive)) 0.53 c h);
       --xh-color-warning-600: oklch(from hsl(var(--warning)) 0.56 c h);

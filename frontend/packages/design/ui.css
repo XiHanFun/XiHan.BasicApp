@@ -389,6 +389,28 @@
   background: var(--xh-bg-subtle);
 }
 
+/* 紧凑密度下的中档表格回到迁移前的行距：每行都带一颗 sm 档的「更多」钮，库给的 md 竖衬（6px）
+   把行撑到 41px；这里把竖衬收到 sm 档那格（4px），再给单元格一个「刚好容下一颗 sm 控件」的下限，
+   纯文字行、chip 行与按钮行统一到 36px（加行间线 37px），不再随内容忽高忽低。
+   列标题没有控件，反向放宽到 8px 竖衬（32px + 底线 33px），标题行才压得住表体。
+   列表页的表格（.xh-table-panel）与弹窗、抽屉里的次级表格（.x-data-table）共用这一把尺，两处才长得一样；
+   宽松档与用户自选的 small / large 表格密度不碰，仍由组件库按 density 轴换档 */
+[data-density='compact']
+  :is(.xh-table-panel, .x-data-table)
+  [data-scope='table'][data-part='root'][data-size='md']
+  [data-scope='table'][data-part='cell'] {
+  --xh-table-cell-py: var(--xh-space-1);
+
+  min-block-size: calc(var(--xh-control-h-sm) + 2 * var(--xh-space-1));
+}
+
+[data-density='compact']
+  :is(.xh-table-panel, .x-data-table)
+  [data-scope='table'][data-part='root'][data-size='md']
+  [data-scope='table'][data-part='column-header'] {
+  --xh-table-cell-py: var(--xh-space-2);
+}
+
 /* @iconify/vue 的 svg 只认 1em，跟着字号走就只有 12px，在 28px 的图标钮里显得太小。
    组件库的图标随控件尺寸档走（xs / sm 16、md 20、lg 24），XhIcon 自己会读家族下发的槽；
    这里按 Action Control 的档位属性给直接塞进按钮 / 触发器的 Iconify 图标接上同一把尺，

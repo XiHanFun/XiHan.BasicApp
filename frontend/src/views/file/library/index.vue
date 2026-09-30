@@ -1450,7 +1450,6 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
             :data="storageRows"
             :loading="storageListLoading"
             :row-key="(row: FileStorageListItemDto) => row.basicId"
-            size="sm"
           />
         </XhFlex>
       </XhDrawerContent>
@@ -1500,7 +1499,6 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
             :columns="csvColumns"
             :data="csvData"
             max-height="66vh"
-            size="sm"
             class="file-preview-csv"
           />
           <div v-else-if="!previewUrl" class="text-gray-400">
