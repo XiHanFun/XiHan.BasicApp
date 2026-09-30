@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 /// 约束规则执法领域服务
 /// </summary>
 /// <remarks>
-/// 职责：在角色写入路径（用户角色授予 = SSD、会话角色激活 = DSD）执行约束规则评估。
+/// 职责：在角色写入路径（用户角色授予、角色继承变更 = SSD，会话角色激活 = DSD）执行约束规则评估。
 /// 与 <see cref="IConstraintRuleDomainService"/>（规则配置 CRUD）互补：本服务只读规则并判定违规。
 /// </remarks>
 public interface IConstraintRuleEnforcementDomainService
@@ -23,6 +23,18 @@ public interface IConstraintRuleEnforcementDomainService
     /// <returns>违规评估结果；无违规时返回 <see cref="ConstraintEnforcementResult.Pass"/></returns>
     Task<ConstraintEnforcementResult> EvaluateRoleAssignmentsAsync(
         IEnumerable<long> roleIds,
+        ConstraintType constraintType,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 一次评估多组角色集合（规则与继承链只读一次）
+    /// </summary>
+    /// <param name="roleSets">待评估的角色集合，各组独立判定，无需预先展开继承链</param>
+    /// <param name="constraintType">约束类型</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>与入参一一对应的评估结果</returns>
+    Task<IReadOnlyList<ConstraintEnforcementResult>> EvaluateRoleSetsAsync(
+        IReadOnlyList<IReadOnlyCollection<long>> roleSets,
         ConstraintType constraintType,
         CancellationToken cancellationToken = default);
 }

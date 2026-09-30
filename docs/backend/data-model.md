@@ -34,7 +34,7 @@
 
 | 表 | 实体 | 说明 |
 | --- | --- | --- |
-| `Sys_Role` / `Sys_Role_Hierarchy` | `SysRole` / `SysRoleHierarchy` | 角色与层级继承（闭包） |
+| `Sys_Role` / `Sys_Role_Hierarchy` | `SysRole` / `SysRoleHierarchy` | 角色与继承（只存直接继承边） |
 | `Sys_Permission` | `SysPermission` | 权限点 |
 | `Sys_Operation` / `Sys_Resource` | `SysOperation` / `SysResource` | 操作字典与资源，**权限由「资源 × 操作」派生** |
 | `Sys_Role_Permission` / `Sys_User_Permission` | — | 角色授权 / 用户直授 |

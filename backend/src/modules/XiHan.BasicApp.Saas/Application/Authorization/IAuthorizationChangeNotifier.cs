@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Saas.Application.Authorization;
 /// 授权变更通知器
 /// </summary>
 /// <remarks>
-/// 授权写路径（角色权限、用户直授、用户角色的授予/撤销）在业务操作后调用，
+/// 授权写路径（角色权限、角色继承、用户直授、用户角色的授予/撤销）在业务操作后调用，
 /// 统一以当前租户/操作人上下文发布 <c>AuthorizationChangedDomainEvent</c>，
 /// 驱动缓存失效与权限变更审计落库。
 /// </remarks>
@@ -23,6 +23,7 @@ public interface IAuthorizationChangeNotifier
     /// <param name="targetRoleId">目标角色ID（角色级变更、或用户分配/移除角色时填写）</param>
     /// <param name="permissionId">权限ID（权限级变更时填写）</param>
     /// <param name="reason">变更原因</param>
+    /// <param name="relatedRoleId">关联角色ID（角色新增 / 解除上级时为上级角色）</param>
     /// <param name="cancellationToken">取消令牌</param>
     Task NotifyAsync(
         PermissionChangeType changeType,
@@ -30,5 +31,6 @@ public interface IAuthorizationChangeNotifier
         long? targetRoleId,
         long? permissionId,
         string? reason = null,
+        long? relatedRoleId = null,
         CancellationToken cancellationToken = default);
 }

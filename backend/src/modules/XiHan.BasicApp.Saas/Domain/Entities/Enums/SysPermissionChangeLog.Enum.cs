@@ -68,5 +68,17 @@ public enum PermissionChangeType
     /// 用户委托授权收回（作为被委托人）
     /// </summary>
     [Description("用户委托授权收回")]
-    UserDelegateRevoke = 9
+    UserDelegateRevoke = 9,
+
+    /// <summary>
+    /// 角色新增上级（目标角色继承了上级角色）
+    /// </summary>
+    [Description("角色新增上级")]
+    RoleAddParent = 10,
+
+    /// <summary>
+    /// 角色解除上级
+    /// </summary>
+    [Description("角色解除上级")]
+    RoleRemoveParent = 11
 }

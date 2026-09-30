@@ -41,6 +41,7 @@ public sealed class AuthorizationChangeNotifier : IAuthorizationChangeNotifier
     /// <param name="targetRoleId">目标角色ID（角色级变更、或用户分配/移除角色时填写）</param>
     /// <param name="permissionId">权限ID（权限级变更时填写）</param>
     /// <param name="reason">变更原因</param>
+    /// <param name="relatedRoleId">关联角色ID（角色新增 / 解除上级时为上级角色）</param>
     /// <param name="cancellationToken">取消令牌</param>
     public Task NotifyAsync(
         PermissionChangeType changeType,
@@ -48,6 +49,7 @@ public sealed class AuthorizationChangeNotifier : IAuthorizationChangeNotifier
         long? targetRoleId,
         long? permissionId,
         string? reason = null,
+        long? relatedRoleId = null,
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -59,7 +61,8 @@ public sealed class AuthorizationChangeNotifier : IAuthorizationChangeNotifier
             targetRoleId,
             permissionId,
             _currentUser.UserId,
-            reason);
+            reason,
+            relatedRoleId);
 
         return _localEventBus.PublishAsync(domainEvent);
     }

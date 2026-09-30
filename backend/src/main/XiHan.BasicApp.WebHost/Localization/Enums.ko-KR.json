@@ -275,6 +275,8 @@
     "PermissionChangeType.RoleDenyPermission": "역할 권한 거부",
     "PermissionChangeType.UserDelegateGrant": "사용자 위임 권한 획득",
     "PermissionChangeType.UserDelegateRevoke": "사용자 위임 권한 회수",
+    "PermissionChangeType.RoleAddParent": "역할 상위 역할 추가",
+    "PermissionChangeType.RoleRemoveParent": "역할 상위 역할 해제",
     "ConditionOperator.Equals": "같음",
     "ConditionOperator.NotEquals": "같지 않음",
     "ConditionOperator.GreaterThan": "초과",

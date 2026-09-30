@@ -1,6 +1,6 @@
-import type { ApiId, PermissionListItemDto, RolePermissionListItemDto } from '@/api'
+import type { ApiId, PermissionListItemDto, RoleInheritedPermissionDto, RolePermissionListItemDto } from '@/api'
 import type { PermissionGrantItem } from '~/components/common/permission-grant-panel'
-import { ValidityStatus } from '@/api'
+import { PermissionAction, ValidityStatus } from '@/api'
 
 /** 权限穿梭框条目：目录项，或已授予却不在目录里的授权 */
 export type RolePermissionItem = PermissionGrantItem & Partial<Pick<PermissionListItemDto, 'side'>> & { basicId: ApiId }
@@ -55,4 +55,29 @@ export function diffMenuGrants(
       .filter(grant => managed.has(grant.permissionId) && !target.has(grant.permissionId))
       .map(grant => grant.basicId),
   }
+}
+
+/** 本角色从上级继承的一条权限：哪些上级授予、哪些上级拒绝 */
+export interface InheritedPermissionSources {
+  grantedBy: string[]
+  deniedBy: string[]
+}
+
+/**
+ * 继承来的绑定按权限汇总，键为权限主键的字符串形式。
+ * 链上任一上级拒绝，本角色就拿不到该权限，即使本角色自己授予了它
+ */
+export function summarizeInheritedPermissions(items: readonly RoleInheritedPermissionDto[]) {
+  const summary = new Map<string, InheritedPermissionSources>()
+  for (const item of items) {
+    const key = String(item.permissionId)
+    const entry = summary.get(key) ?? { grantedBy: [], deniedBy: [] }
+    const source = item.sourceRoleName || item.sourceRoleCode || String(item.sourceRoleId)
+    const sources = item.permissionAction === PermissionAction.Deny ? entry.deniedBy : entry.grantedBy
+    if (!sources.includes(source)) {
+      sources.push(source)
+    }
+    summary.set(key, entry)
+  }
+  return summary
 }

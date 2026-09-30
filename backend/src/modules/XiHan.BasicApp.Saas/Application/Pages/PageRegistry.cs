@@ -248,6 +248,9 @@ public static class PageRegistry
          new("identity.role.export", "导出", "identity.role", SaasPermissionCodes.Role.Export, 9),
          new("identity.role.revoke-permission", "收回权限", "identity.role", SaasPermissionCodes.RolePermission.Revoke, 10),
          new("identity.role.remove-members", "移出成员", "identity.role", SaasPermissionCodes.UserRole.Revoke, 11),
+         // 上级角色：设置入口挂新增上级，解除上级另挂按钮（批量接口只在本次含解除时要删除权限）
+         new("identity.role.parents", "设置上级", "identity.role", SaasPermissionCodes.RoleHierarchy.Create, 12),
+         new("identity.role.remove-parents", "解除上级", "identity.role", SaasPermissionCodes.RoleHierarchy.Delete, 13),
 
         // [2.3] 组织机构
          new("identity.org.create", "新增", "identity.org", SaasPermissionCodes.Department.Create, 1),

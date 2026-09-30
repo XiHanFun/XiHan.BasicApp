@@ -4,9 +4,7 @@
 using Microsoft.AspNetCore.Authorization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
-using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
-using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Application.Attributes;
@@ -22,19 +20,10 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 public sealed class RoleHierarchyQueryService
     : SaasApplicationService, IRoleHierarchyQueryService
 {
-    /// <summary>
-    /// 角色仓储
-    /// </summary>
     private readonly IRoleRepository _roleRepository;
 
-    /// <summary>
-    /// 角色层级仓储
-    /// </summary>
-    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
+    private readonly IRoleInheritanceReader _roleInheritanceReader;
 
-    /// <summary>
-    /// 超级管理员保护守卫
-    /// </summary>
     private readonly ISuperAdminProtector _superAdminProtector;
 
     /// <summary>
@@ -42,82 +31,61 @@ public sealed class RoleHierarchyQueryService
     /// </summary>
     public RoleHierarchyQueryService(
         IRoleRepository roleRepository,
-        IRoleHierarchyRepository roleHierarchyRepository,
+        IRoleInheritanceReader roleInheritanceReader,
         ISuperAdminProtector superAdminProtector)
     {
         _roleRepository = roleRepository;
-        _roleHierarchyRepository = roleHierarchyRepository;
+        _roleInheritanceReader = roleInheritanceReader;
         _superAdminProtector = superAdminProtector;
     }
 
     /// <summary>
-    /// 获取角色祖先链
+    /// 获取角色的全部上级（不含自身）
     /// </summary>
     /// <param name="roleId">角色主键</param>
-    /// <param name="includeSelf">是否包含自己</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色祖先链</returns>
+    /// <returns>上级链，按继承深度排列</returns>
     [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Read)]
-    public Task<IReadOnlyList<RoleHierarchyListItemDto>> GetRoleAncestorsAsync(long roleId, bool includeSelf = true, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<RoleInheritanceItemDto>> GetRoleAncestorsAsync(long roleId, CancellationToken cancellationToken = default)
     {
-        return GetRoleHierarchyListAsync(roleId, includeSelf, isAncestorQuery: true, cancellationToken);
+        return await CanReadRoleAsync(roleId, cancellationToken)
+            ? await _roleInheritanceReader.GetAncestorsAsync(roleId, cancellationToken)
+            : [];
     }
 
     /// <summary>
-    /// 获取角色后代链
+    /// 获取角色的全部下级（不含自身）
     /// </summary>
     /// <param name="roleId">角色主键</param>
-    /// <param name="includeSelf">是否包含自己</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色后代链</returns>
+    /// <returns>下级链，按继承深度排列</returns>
     [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Read)]
-    public Task<IReadOnlyList<RoleHierarchyListItemDto>> GetRoleDescendantsAsync(long roleId, bool includeSelf = true, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<RoleInheritanceItemDto>> GetRoleDescendantsAsync(long roleId, CancellationToken cancellationToken = default)
     {
-        return GetRoleHierarchyListAsync(roleId, includeSelf, isAncestorQuery: false, cancellationToken);
+        return await CanReadRoleAsync(roleId, cancellationToken)
+            ? await _roleInheritanceReader.GetDescendantsAsync(roleId, cancellationToken)
+            : [];
     }
 
     /// <summary>
-    /// 获取角色继承详情
+    /// 获取角色从生效的上级继承来的权限绑定
     /// </summary>
-    /// <param name="id">角色继承主键</param>
+    /// <remarks>内容是上级角色的权限绑定，与读取角色权限同一道权限。</remarks>
+    /// <param name="roleId">角色主键</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色继承详情</returns>
-    [PermissionAuthorize(SaasPermissionCodes.RoleHierarchy.Read)]
-    public async Task<RoleHierarchyDetailDto?> GetRoleHierarchyDetailAsync(long id, CancellationToken cancellationToken = default)
+    /// <returns>继承来的权限绑定，同一权限来自多个上级时逐条列出</returns>
+    [PermissionAuthorize(SaasPermissionCodes.RolePermission.Read)]
+    public async Task<IReadOnlyList<RoleInheritedPermissionDto>> GetRoleInheritedPermissionsAsync(long roleId, CancellationToken cancellationToken = default)
     {
-        if (id <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(id), "角色继承主键必须大于 0。");
-        }
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var hierarchy = await _roleHierarchyRepository.GetByIdAsync(id, cancellationToken);
-        if (hierarchy is null)
-        {
-            return null;
-        }
-
-        var roleMap = await BuildRoleMapAsync([hierarchy.AncestorId, hierarchy.DescendantId], cancellationToken);
-        return RoleHierarchyApplicationMapper.ToDetailDto(
-            hierarchy,
-            roleMap.GetValueOrDefault(hierarchy.AncestorId),
-            roleMap.GetValueOrDefault(hierarchy.DescendantId));
+        return await CanReadRoleAsync(roleId, cancellationToken)
+            ? await _roleInheritanceReader.GetInheritedPermissionsAsync(roleId, cancellationToken)
+            : [];
     }
 
     /// <summary>
-    /// 获取角色继承列表
+    /// 角色存在且对当前用户可见：非超管读取超管角色按不存在处理
     /// </summary>
-    /// <param name="roleId">角色主键</param>
-    /// <param name="includeSelf">是否包含自己</param>
-    /// <param name="isAncestorQuery">是否查询祖先链</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色继承列表</returns>
-    private async Task<IReadOnlyList<RoleHierarchyListItemDto>> GetRoleHierarchyListAsync(
-        long roleId,
-        bool includeSelf,
-        bool isAncestorQuery,
-        CancellationToken cancellationToken)
+    private async Task<bool> CanReadRoleAsync(long roleId, CancellationToken cancellationToken)
     {
         if (roleId <= 0)
         {
@@ -128,60 +96,11 @@ public sealed class RoleHierarchyQueryService
 
         if (!_superAdminProtector.IsCurrentUserSuperAdmin() && await _superAdminProtector.IsProtectedRoleAsync(roleId, cancellationToken))
         {
-            return [];
+            return false;
         }
 
         _ = await _roleRepository.GetByIdAsync(roleId, cancellationToken)
             ?? throw new InvalidOperationException("角色不存在。");
-
-        var hierarchies = isAncestorQuery
-            ? await _roleHierarchyRepository.GetListAsync(
-                hierarchy => hierarchy.DescendantId == roleId && (includeSelf || hierarchy.Depth > 0),
-                hierarchy => hierarchy.Depth,
-                cancellationToken)
-            : await _roleHierarchyRepository.GetListAsync(
-                hierarchy => hierarchy.AncestorId == roleId && (includeSelf || hierarchy.Depth > 0),
-                hierarchy => hierarchy.Depth,
-                cancellationToken);
-
-        if (hierarchies.Count == 0)
-        {
-            return [];
-        }
-
-        var roleMap = await BuildRoleMapAsync(
-            hierarchies.SelectMany(hierarchy => new[] { hierarchy.AncestorId, hierarchy.DescendantId }),
-            cancellationToken);
-
-        return [.. hierarchies
-            .Select(hierarchy => RoleHierarchyApplicationMapper.ToListItemDto(
-                hierarchy,
-                roleMap.GetValueOrDefault(hierarchy.AncestorId),
-                roleMap.GetValueOrDefault(hierarchy.DescendantId)))
-            .OrderBy(item => item.Depth)
-            .ThenBy(item => isAncestorQuery ? item.AncestorRoleCode : item.DescendantRoleCode)
-            .ThenBy(item => isAncestorQuery ? item.AncestorId : item.DescendantId)];
-    }
-
-    /// <summary>
-    /// 构建角色映射
-    /// </summary>
-    /// <param name="roleIds">角色主键集合</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色映射</returns>
-    private async Task<IReadOnlyDictionary<long, SysRole>> BuildRoleMapAsync(IEnumerable<long> roleIds, CancellationToken cancellationToken)
-    {
-        var ids = roleIds
-            .Where(roleId => roleId > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysRole>();
-        }
-
-        var roles = await _roleRepository.GetByIdsAsync(ids, cancellationToken);
-        return roles.ToDictionary(role => role.BasicId);
+        return true;
     }
 }

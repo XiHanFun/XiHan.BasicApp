@@ -1,6 +1,7 @@
 -- 5.4.0
 -- 一、字段级安全改为「实体 + 字段」：规则不再挂权限资源，读取方式的参数改为明确的列，删去从未生效的写法（见后文）。
 -- 二、通知公告改用自己的权限码 saas:notification:*，删除只为通知存在过的 saas:message:publish（见后文）。
+-- 三、角色继承只存直接继承边，间接继承按直接边即时推出；系统角色不参与继承（见后文）。
 --
 -- 只在 5.4.0 之前建的库上执行：新建的库按当前实体建表后直接登记为最新版本，不跑本脚本。
 -- 本脚本在建表之后、播种之前执行；建表只建缺失的表，存量表的列与索引由本脚本调整。
@@ -154,3 +155,38 @@ DELETE FROM sys_permission_request WHERE permission_id IN (SELECT basic_id FROM 
 UPDATE sys_menu SET permission_id = NULL WHERE permission_id IN (SELECT basic_id FROM sys_permission WHERE permission_code = 'saas:message:publish');
 
 DELETE FROM sys_permission WHERE permission_code = 'saas:message:publish';
+
+-- 三、角色继承只存直接继承边。
+-- sys_role_hierarchy 此前是闭包表：自身行（depth = 0）、直接继承（depth = 1）与间接继承（depth > 1）都存。
+-- 旧的维护方式下 depth = 1 的行恰好就是全部直接继承边，只留这些行即可，间接继承与深度、路径改为读取时从边推出；
+-- 删去 depth、path 两列，带 depth 的索引随列一并删除。
+-- 系统角色（super_admin / tenant_owner，role_type = 0）的权限由系统按上下文整体给出，不再参与继承，涉及它们的边一并删除。
+-- sys_role_hierarchy 与 sys_role 只在平台库建表（[PlatformDataSource]），独立库上整段跳过；depth 列还在说明本段没跑过。
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM information_schema.columns
+         WHERE table_schema = current_schema()
+           AND table_name = 'sys_role_hierarchy'
+           AND column_name = 'depth'
+    ) THEN
+        DELETE FROM sys_role_hierarchy WHERE depth <> 1;
+
+        ALTER TABLE sys_role_hierarchy DROP COLUMN depth;
+        ALTER TABLE sys_role_hierarchy DROP COLUMN IF EXISTS path;
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+          FROM information_schema.tables
+         WHERE table_schema = current_schema()
+           AND table_name = 'sys_role_hierarchy'
+    ) THEN
+        DELETE FROM sys_role_hierarchy h
+         USING sys_role r
+         WHERE r.role_type = 0
+           AND (h.ancestor_id = r.basic_id OR h.descendant_id = r.basic_id);
+    END IF;
+END
+$$;

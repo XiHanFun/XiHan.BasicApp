@@ -16,19 +16,24 @@ public sealed class RoleManagementDetailDto
     public RoleDetailDto Role { get; set; } = new();
 
     /// <summary>
-    /// 角色祖先链
+    /// 角色的全部上级（不含自身）
     /// </summary>
-    public List<RoleHierarchyListItemDto> Ancestors { get; set; } = [];
+    public List<RoleInheritanceItemDto> Ancestors { get; set; } = [];
 
     /// <summary>
-    /// 角色后代链
+    /// 角色的全部下级（不含自身）
     /// </summary>
-    public List<RoleHierarchyListItemDto> Descendants { get; set; } = [];
+    public List<RoleInheritanceItemDto> Descendants { get; set; } = [];
 
     /// <summary>
     /// 角色权限授权
     /// </summary>
     public List<RolePermissionListItemDto> Permissions { get; set; } = [];
+
+    /// <summary>
+    /// 从生效的上级继承来的权限绑定
+    /// </summary>
+    public List<RoleInheritedPermissionDto> InheritedPermissions { get; set; } = [];
 
     /// <summary>
     /// 角色数据范围

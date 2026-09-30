@@ -138,7 +138,7 @@ public sealed class SaasAppAuthorizationChangeNotifierTests
         cts.Cancel();
 
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            BuildNotifier().NotifyAsync(PermissionChangeType.UserGrantPermission, 1, null, null, null, cts.Token));
+            BuildNotifier().NotifyAsync(PermissionChangeType.UserGrantPermission, 1, null, null, null, cancellationToken: cts.Token));
 
         _eventBus.Verify(
             bus => bus.PublishAsync(It.IsAny<AuthorizationChangedDomainEvent>(), It.IsAny<bool>()),

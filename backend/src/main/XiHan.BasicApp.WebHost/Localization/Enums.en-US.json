@@ -275,6 +275,8 @@
     "PermissionChangeType.RoleDenyPermission": "Role Permission Denied",
     "PermissionChangeType.UserDelegateGrant": "User Received Delegated Grant",
     "PermissionChangeType.UserDelegateRevoke": "User Delegated Grant Revoked",
+    "PermissionChangeType.RoleAddParent": "Role Parent Added",
+    "PermissionChangeType.RoleRemoveParent": "Role Parent Removed",
     "ConditionOperator.Equals": "Equals",
     "ConditionOperator.NotEquals": "Not Equals",
     "ConditionOperator.GreaterThan": "Greater Than",

@@ -100,7 +100,7 @@ public sealed class ConstraintRuleEnforcementDomainServiceTests
             {
                 [1] = [CreateItem(1, 101, 0), CreateItem(1, 102, 0)]
             },
-            hierarchyExpansion: ids => ids.Concat([101L]).ToList());
+            edges: [(101, 103)]);
 
         // 用户持有角色 103（其继承链包含 101），同时持有 102
         var result = await fixture.Service.EvaluateRoleAssignmentsAsync([103, 102], ConstraintType.SSD);
@@ -237,29 +237,46 @@ public sealed class ConstraintRuleEnforcementDomainServiceTests
     }
 
     /// <summary>
-    /// 非正角色主键过滤后再评估。
+    /// 非正角色主键过滤后再评估：指向 0 的脏规则项不会被当成持有。
     /// </summary>
     [Fact]
     public async Task Evaluate_ShouldFilterNonPositiveRoleIds()
     {
         var rule = CreateRule(1, "SSD-01");
-        List<IEnumerable<long>>? capturedInputs = [];
+        var fixture = CreateFixture(
+            activeRules: [rule],
+            itemsByRuleId: new Dictionary<long, IReadOnlyList<SysConstraintRuleItem>>
+            {
+                [1] = [CreateItem(1, 0, 0), CreateItem(1, 101, 0), CreateItem(1, 102, 0)]
+            });
+
+        var result = await fixture.Service.EvaluateRoleAssignmentsAsync([0, -1, 101, 102], ConstraintType.SSD);
+
+        var violation = Assert.Single(result.Violations);
+        Assert.Equal([101L, 102L], violation.MatchedTargetIds);
+    }
+
+    /// <summary>
+    /// 多组一次评估：规则只读一次，结果与入参一一对应，空组直接通过。
+    /// </summary>
+    [Fact]
+    public async Task EvaluateRoleSets_ShouldReadRulesOnceAndKeepOrder()
+    {
+        var rule = CreateRule(1, "SSD-01");
         var fixture = CreateFixture(
             activeRules: [rule],
             itemsByRuleId: new Dictionary<long, IReadOnlyList<SysConstraintRuleItem>>
             {
                 [1] = [CreateItem(1, 101, 0), CreateItem(1, 102, 0)]
             },
-            hierarchyExpansion: ids =>
-            {
-                capturedInputs.Add(ids.ToList());
-                return ids.ToList();
-            });
+            edges: [(101, 103)]);
 
-        var result = await fixture.Service.EvaluateRoleAssignmentsAsync([0, -1, 101, 102], ConstraintType.SSD);
+        var results = await fixture.Service.EvaluateRoleSetsAsync([[103, 102], [], [101], [103]], ConstraintType.SSD);
 
-        Assert.True(result.HasViolations);
-        Assert.Equal([101L, 102L], Assert.Single(capturedInputs));
+        Assert.Equal([true, false, false, false], results.Select(result => result.HasViolations));
+        fixture.RuleRepository.Verify(
+            repo => repo.GetActiveRulesAsync(It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     /// <summary>
@@ -324,7 +341,7 @@ public sealed class ConstraintRuleEnforcementDomainServiceTests
     private static EnforcementFixture CreateFixture(
         IReadOnlyList<SysConstraintRule> activeRules,
         IReadOnlyDictionary<long, IReadOnlyList<SysConstraintRuleItem>> itemsByRuleId,
-        Func<IEnumerable<long>, IReadOnlyList<long>>? hierarchyExpansion = null)
+        (long ParentId, long ChildId)[]? edges = null)
     {
         var ruleRepository = new Mock<IConstraintRuleRepository>();
         ruleRepository
@@ -337,11 +354,10 @@ public sealed class ConstraintRuleEnforcementDomainServiceTests
             .ReturnsAsync((long ruleId, CancellationToken _) =>
                 itemsByRuleId.TryGetValue(ruleId, out var items) ? items : []);
 
-        var hierarchy = new Mock<IRoleHierarchyDomainService>();
+        var hierarchy = new Mock<IRoleHierarchyRepository>();
         hierarchy
-            .Setup(service => service.ExpandRoleHierarchyAsync(It.IsAny<IEnumerable<long>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IEnumerable<long> ids, CancellationToken _) =>
-                hierarchyExpansion is null ? ids.ToList() : hierarchyExpansion(ids));
+            .Setup(repo => repo.GetEdgesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync([.. (edges ?? []).Select(edge => new SysRoleHierarchy { AncestorId = edge.ParentId, DescendantId = edge.ChildId })]);
 
         var service = new ConstraintRuleEnforcementDomainService(
             ruleRepository.Object,

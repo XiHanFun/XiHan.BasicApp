@@ -225,6 +225,8 @@ export default {
     type_role_deny: 'ロール拒否設定',
     type_user_delegate_grant: '委任権限の付与',
     type_user_delegate_revoke: '委任権限の回収',
+    type_role_add_parent: '上位ロール追加',
+    type_role_remove_parent: '上位ロール解除',
     operator_user_id: '操作者 ID',
     operator_user_name: '操作者',
     target_user_id: '対象ユーザー ID',

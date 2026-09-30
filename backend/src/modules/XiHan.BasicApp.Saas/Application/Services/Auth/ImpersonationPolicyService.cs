@@ -293,12 +293,10 @@ public sealed class ImpersonationPolicyService : IImpersonationPolicyService
             return;
         }
 
-        // 角色自身与继承链上的祖先角色都会把权限带给被授予者，一并展开
-        var expandedRoleIds = await _roleHierarchyRepository.GetAncestorIdsAsync(ids, includeSelf: true, cancellationToken);
-        if (expandedRoleIds.Count == 0)
-        {
-            return;
-        }
+        // 角色自身与继承链上的上级都会把权限带给被授予者，一并展开；
+        // 停用的上级随时可能重新启用，按结构展开、不看启停
+        var graph = RoleInheritanceGraph.FromEdges(await _roleHierarchyRepository.GetEdgesAsync(cancellationToken));
+        var expandedRoleIds = ids.SelectMany(id => graph.AncestorsOf(id).Keys.Append(id)).Distinct().ToList();
 
         var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(
             expandedRoleIds,

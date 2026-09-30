@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DataScopeDraft } from '../components/data-scope'
+import type { InheritedPermissionSources } from './role-grants'
 import type { RoleMemberCandidate } from './role-members'
 import type {
   ApiId,
@@ -33,6 +34,7 @@ import {
   PermissionSide,
   querySortsFromSchema,
   roleDataScopeApi,
+  roleHierarchyApi,
   roleManagementApi,
   rolePermissionApi,
   RoleType,
@@ -48,7 +50,8 @@ import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 import { isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from '../components/data-scope'
 import DataScopeEditor from '../components/DataScopeEditor.vue'
-import { diffMenuGrants, mergeGrantedIntoCatalog, validRoleGrants } from './role-grants'
+import RoleParentsDialog from './components/RoleParentsDialog.vue'
+import { diffMenuGrants, mergeGrantedIntoCatalog, summarizeInheritedPermissions, validRoleGrants } from './role-grants'
 import { diffRoleMembers, mergeMemberCandidates } from './role-members'
 
 defineOptions({ name: 'SystemRolePage' })
@@ -110,6 +113,11 @@ function canAssignMembers(row: RoleListItemDto) {
  */
 function canMaintainRole(row: RoleListItemDto) {
   return isPlatformContext.value || (!row.isGlobal && row.roleType !== RoleType.System)
+}
+
+/** 系统角色的权限由系统按上下文整体给出，不参与继承 */
+function canSetParents(row: RoleListItemDto) {
+  return canMaintainRole(row) && row.roleType !== RoleType.System
 }
 
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
@@ -218,6 +226,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('identity.role.action_edit'), scope: 'row', icon: 'lucide:pencil', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.update' },
     { key: 'assignPermission', title: t('identity.role.action_assign_permission'), scope: 'row', icon: 'lucide:key-round', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
     { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row', icon: 'lucide:list-tree', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
+    { key: 'parents', title: t('identity.role.action_parents'), scope: 'row', icon: 'lucide:git-fork', visible: row => canSetParents(row as unknown as RoleListItemDto), permission: 'identity.role.parents' },
     { key: 'members', title: t('identity.role.action_members'), scope: 'row', icon: 'lucide:users', visible: row => canAssignMembers(row as unknown as RoleListItemDto), permission: 'identity.role.members' },
     { key: 'assignDataScope', title: t('identity.role.action_assign_data_scope'), scope: 'row', icon: 'lucide:building-2', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.data-scope' },
     { key: 'toggle', title: t('identity.role.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as RoleListItemDto).status === EnableStatus.Enabled, (row as unknown as RoleListItemDto).roleName), visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.status' },
@@ -272,7 +281,21 @@ function onAction(payload: SchemaActionPayload) {
         void openMembersDrawer(row)
       }
       break
+    case 'parents':
+      if (row) {
+        openParentsDialog(row)
+      }
+      break
   }
+}
+
+// ── 设置上级角色 ────────────────────────────────────────────────
+const parentsVisible = ref(false)
+const parentsRole = ref<RoleListItemDto | null>(null)
+
+function openParentsDialog(row: RoleListItemDto) {
+  parentsRole.value = row
+  parentsVisible.value = true
 }
 
 // ── 权限分配抽屉 ────────────────────────────────────────────────
@@ -280,6 +303,8 @@ const permissionVisible = ref(false)
 const permissionRole = ref<RoleListItemDto | null>(null)
 const permCatalog = ref<PermissionListItemDto[]>([])
 const permGrants = ref<RolePermissionListItemDto[]>([])
+/** 从上级继承来的权限（键为权限主键字符串）：已继承的不必再授予，被上级拒绝的授予了也不生效 */
+const permInherited = ref(new Map<string, InheritedPermissionSources>())
 const permLoading = ref(false)
 /** 已授予的权限主键，即穿梭框右侧那一栏 */
 const permChecked = ref<ApiId[]>([])
@@ -305,9 +330,15 @@ async function openPermissionDrawer(row: RoleListItemDto) {
   permissionRole.value = row
   permissionVisible.value = true
   permLoading.value = true
+  permInherited.value = new Map()
   try {
-    const [, grantsResult] = await Promise.all([loadPermCatalog(), rolePermissionApi.list(row.basicId)])
+    const [, grantsResult, inheritedResult] = await Promise.all([
+      loadPermCatalog(),
+      rolePermissionApi.list(row.basicId),
+      roleHierarchyApi.inheritedPermissions(row.basicId),
+    ])
     permGrants.value = grantsResult
+    permInherited.value = summarizeInheritedPermissions(inheritedResult)
     derivePermChecked()
   }
   catch (e: unknown) {
@@ -756,6 +787,11 @@ function formatBoolean(value?: boolean | null) {
   return value ? t('common.statuses.yes') : t('common.statuses.no')
 }
 
+/** 继承方式：1 级为直接继承，更深为经其他上级的间接继承 */
+function formatInheritMode(depth: number) {
+  return depth <= 1 ? t('identity.role.inherit_direct') : t('identity.role.inherit_indirect', { depth })
+}
+
 function formatStatus(value?: EnableStatus | null) {
   return getOptionLabel(statusOptions.value, value)
 }
@@ -933,6 +969,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
                 <XhTabsTrigger value="permissions">
                   {{ t('identity.role.tab_permissions', { count: currentDetail.permissions.length }) }}
                 </XhTabsTrigger>
+                <XhTabsTrigger value="inheritedPermissions">
+                  {{ t('identity.role.tab_inherited_permissions', { count: currentDetail.inheritedPermissions.length }) }}
+                </XhTabsTrigger>
                 <XhTabsTrigger value="dataScopes">
                   {{ t('identity.role.tab_data_scopes', { count: currentDetail.dataScopes.length }) }}
                 </XhTabsTrigger>
@@ -1052,6 +1091,35 @@ async function handleToggleStatus(row: RoleListItemDto) {
                   <XhEmptyStateDescription>{{ t('identity.role.empty_permissions') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
               </XhTabsContent>
+              <XhTabsContent value="inheritedPermissions">
+                <table v-if="currentDetail.inheritedPermissions.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>{{ t('identity.role.th_permission') }}</th>
+                      <th>{{ t('identity.role.th_code') }}</th>
+                      <th>{{ t('identity.role.th_action') }}</th>
+                      <th>{{ t('identity.role.th_source_role') }}</th>
+                      <th>{{ t('identity.role.th_inherit_mode') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in currentDetail.inheritedPermissions" :key="`${item.permissionId}-${item.sourceRoleId}-${item.permissionAction}`">
+                      <td>{{ formatNullable(item.permissionName) }}</td>
+                      <td>{{ formatNullable(item.permissionCode) }}</td>
+                      <td>{{ getOptionLabel(permissionActionOptions, item.permissionAction) }}</td>
+                      <td>{{ formatNullable(item.sourceRoleName) }}</td>
+                      <td>{{ formatInheritMode(item.depth) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <XhEmptyStateRoot v-else style="padding: 40px 0">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.role.empty_inherited_permissions') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
               <XhTabsContent value="dataScopes">
                 <table v-if="currentDetail.dataScopes.length" class="xh-detail-table">
                   <thead>
@@ -1087,18 +1155,27 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     <tr>
                       <th>{{ t('identity.role.th_parent_role') }}</th>
                       <th>{{ t('identity.role.th_code') }}</th>
-                      <th>{{ t('identity.role.th_depth') }}</th>
+                      <th>{{ t('identity.role.th_inherit_mode') }}</th>
                       <th>{{ t('identity.role.th_status') }}</th>
+                      <th>{{ t('identity.role.th_effective') }}</th>
                       <th>{{ t('identity.role.th_path') }}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="item in currentDetail.ancestors" :key="item.basicId">
-                      <td>{{ formatNullable(item.ancestorRoleName) }}</td>
-                      <td>{{ formatNullable(item.ancestorRoleCode) }}</td>
-                      <td>{{ item.depth }}</td>
-                      <td>{{ formatStatus(item.ancestorStatus) }}</td>
-                      <td>{{ formatNullable(item.path) }}</td>
+                    <tr v-for="item in currentDetail.ancestors" :key="item.roleId">
+                      <td>{{ item.roleName }}</td>
+                      <td>{{ item.roleCode }}</td>
+                      <td>{{ formatInheritMode(item.depth) }}</td>
+                      <td>{{ formatStatus(item.status) }}</td>
+                      <td>
+                        <XhTagRoot v-if="item.isEffective" variant="subtle" size="sm" tone="success">
+                          <XhTagLabel>{{ t('identity.role.effective_yes') }}</XhTagLabel>
+                        </XhTagRoot>
+                        <XhTagRoot v-else variant="subtle" size="sm" tone="neutral" :title="t('identity.role.effective_no_hint')">
+                          <XhTagLabel>{{ t('identity.role.effective_no') }}</XhTagLabel>
+                        </XhTagRoot>
+                      </td>
+                      <td>{{ item.pathRoleNames.join(' → ') }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1116,18 +1193,27 @@ async function handleToggleStatus(row: RoleListItemDto) {
                     <tr>
                       <th>{{ t('identity.role.th_child_role') }}</th>
                       <th>{{ t('identity.role.th_code') }}</th>
-                      <th>{{ t('identity.role.th_depth') }}</th>
+                      <th>{{ t('identity.role.th_inherit_mode') }}</th>
                       <th>{{ t('identity.role.th_status') }}</th>
+                      <th>{{ t('identity.role.th_effective') }}</th>
                       <th>{{ t('identity.role.th_path') }}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="item in currentDetail.descendants" :key="item.basicId">
-                      <td>{{ formatNullable(item.descendantRoleName) }}</td>
-                      <td>{{ formatNullable(item.descendantRoleCode) }}</td>
-                      <td>{{ item.depth }}</td>
-                      <td>{{ formatStatus(item.descendantStatus) }}</td>
-                      <td>{{ formatNullable(item.path) }}</td>
+                    <tr v-for="item in currentDetail.descendants" :key="item.roleId">
+                      <td>{{ item.roleName }}</td>
+                      <td>{{ item.roleCode }}</td>
+                      <td>{{ formatInheritMode(item.depth) }}</td>
+                      <td>{{ formatStatus(item.status) }}</td>
+                      <td>
+                        <XhTagRoot v-if="item.isEffective" variant="subtle" size="sm" tone="success">
+                          <XhTagLabel>{{ t('identity.role.effective_yes') }}</XhTagLabel>
+                        </XhTagRoot>
+                        <XhTagRoot v-else variant="subtle" size="sm" tone="neutral" :title="t('identity.role.effective_no_hint')">
+                          <XhTagLabel>{{ t('identity.role.effective_no') }}</XhTagLabel>
+                        </XhTagRoot>
+                      </td>
+                      <td>{{ item.pathRoleNames.join(' → ') }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1277,6 +1363,9 @@ async function handleToggleStatus(row: RoleListItemDto) {
       <XhDrawerContent style="--xh-drawer-size: 980px">
         <XhDrawerTitle>{{ t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
+        <p v-if="permInherited.size > 0" class="drawer-tip">
+          {{ t('identity.role.perm_inherit_tip') }}
+        </p>
         <XPermissionTransfer
           :items="permItems"
           :value="permChecked"
@@ -1288,14 +1377,35 @@ async function handleToggleStatus(row: RoleListItemDto) {
           :other-group-label="t('identity.role.perm_group_other')"
           @update:value="onPermTransfer"
         >
-          <!-- 平台的授权目录含两侧权限：单侧的标出来，授给平台角色的租户侧权限在平台里不生效，反之亦然 -->
-          <template v-if="isPlatformContext" #suffix="{ item }">
-            <XhTagRoot v-if="item.side === PermissionSide.Platform" variant="subtle" size="sm" tone="info">
-              <XhTagLabel>{{ t('identity.role.perm_side_platform') }}</XhTagLabel>
+          <template #suffix="{ item }">
+            <!-- 上级拒绝的，本角色授予了也不生效；已继承的，不必再授予 -->
+            <XhTagRoot
+              v-if="permInherited.get(String(item.basicId))?.deniedBy.length"
+              variant="subtle"
+              size="sm"
+              tone="danger"
+              :title="t('identity.role.perm_denied_by', { names: permInherited.get(String(item.basicId))?.deniedBy.join('、') })"
+            >
+              <XhTagLabel>{{ t('identity.role.perm_inherited_denied') }}</XhTagLabel>
             </XhTagRoot>
-            <XhTagRoot v-else-if="item.side === PermissionSide.Tenant" variant="subtle" size="sm" tone="neutral">
-              <XhTagLabel>{{ t('identity.role.perm_side_tenant') }}</XhTagLabel>
+            <XhTagRoot
+              v-else-if="permInherited.get(String(item.basicId))?.grantedBy.length"
+              variant="subtle"
+              size="sm"
+              tone="success"
+              :title="t('identity.role.perm_granted_by', { names: permInherited.get(String(item.basicId))?.grantedBy.join('、') })"
+            >
+              <XhTagLabel>{{ t('identity.role.perm_inherited') }}</XhTagLabel>
             </XhTagRoot>
+            <!-- 平台的授权目录含两侧权限：单侧的标出来，授给平台角色的租户侧权限在平台里不生效，反之亦然 -->
+            <template v-if="isPlatformContext">
+              <XhTagRoot v-if="item.side === PermissionSide.Platform" variant="subtle" size="sm" tone="info">
+                <XhTagLabel>{{ t('identity.role.perm_side_platform') }}</XhTagLabel>
+              </XhTagRoot>
+              <XhTagRoot v-else-if="item.side === PermissionSide.Tenant" variant="subtle" size="sm" tone="neutral">
+                <XhTagLabel>{{ t('identity.role.perm_side_tenant') }}</XhTagLabel>
+              </XhTagRoot>
+            </template>
           </template>
         </XPermissionTransfer>
         <div class="xh-dialog-footer">
@@ -1352,7 +1462,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
       <XhDrawerContent style="--xh-drawer-size: 720px">
         <XhDrawerTitle>{{ t('identity.role.members_title', { name: membersRole?.roleName ?? '' }) }}</XhDrawerTitle>
         <XhDrawerCloseTrigger />
-        <p class="members-tip">
+        <p class="drawer-tip">
           {{ t('identity.role.members_tip') }}
         </p>
         <XGrantTransfer
@@ -1399,6 +1509,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
         </div>
       </XhDrawerContent>
     </XhDrawerRoot>
+
+    <RoleParentsDialog v-model:show="parentsVisible" :role="parentsRole" />
   </SchemaPage>
 </template>
 
@@ -1416,8 +1528,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
   opacity: 0.6;
 }
 
-/* 角色成员抽屉 */
-.members-tip {
+/* 抽屉顶部的说明（角色成员、权限分配里的继承提示） */
+.drawer-tip {
   margin: 0;
   color: var(--xh-fg-muted);
   font-size: var(--xh-text-caption-size);

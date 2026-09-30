@@ -3,9 +3,11 @@
 
 using System.Linq.Expressions;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.QueryServices;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
@@ -15,7 +17,8 @@ using XiHan.Framework.Caching.Distributed.Abstracts;
 namespace XiHan.BasicApp.Saas.Tests;
 
 /// <summary>
-/// 授权快照：生效权限 = 当前上下文的绑定 ∩ 作用侧 ∩ 套餐白名单（仅业务租户）。
+/// 授权快照：生效权限 = 当前上下文的绑定 ∩ 作用侧 ∩ 套餐白名单（仅业务租户）；
+/// 角色按各自的有效继承链结算，角色级 Deny 只作用于本链，停用角色切断经由它的继承。
 /// </summary>
 public sealed class AuthorizationSnapshotSideTests
 {
@@ -28,6 +31,9 @@ public sealed class AuthorizationSnapshotSideTests
     private const long PlatformOpsRoleId = 3;
     private const long TenantOwnerRoleId = 4;
     private const long ImpostorOwnerRoleId = 5;
+    private const long ClerkRoleId = 6;
+    private const long BaseRoleId = 7;
+    private const long MiddleRoleId = 8;
 
     private const long TenantCreateId = 101;
     private const long DepartmentReadId = 102;
@@ -37,6 +43,7 @@ public sealed class AuthorizationSnapshotSideTests
     private readonly TestCurrentTenant _currentTenant = new();
     private readonly List<SysUserRole> _userRoles = [];
     private readonly List<SysRolePermission> _rolePermissions = [];
+    private readonly List<SysRoleHierarchy> _edges = [];
     private readonly List<SysTenantEditionPermission> _editionPermissions = [];
     private readonly SysTenant _tenant = new() { TenantCode = "acme", TenantName = "Acme" };
     private bool _editionGateCacheUnavailable;
@@ -55,7 +62,10 @@ public sealed class AuthorizationSnapshotSideTests
         Role(TenantAdminRoleId, "tenant_admin", TenantId),
         Role(PlatformOpsRoleId, "platform_ops", 0),
         Role(TenantOwnerRoleId, SaasRoleCodes.TenantOwner, TenantId, RoleType.System),
-        Role(ImpostorOwnerRoleId, SaasRoleCodes.TenantOwner, TenantId, RoleType.Custom)
+        Role(ImpostorOwnerRoleId, SaasRoleCodes.TenantOwner, TenantId, RoleType.Custom),
+        Role(ClerkRoleId, "clerk", 0),
+        Role(BaseRoleId, "base", 0),
+        Role(MiddleRoleId, "middle", 0)
     ];
 
     /// <summary>
@@ -257,6 +267,77 @@ public sealed class AuthorizationSnapshotSideTests
         Assert.Equal(["saas:department:read"], snapshot.Permissions);
     }
 
+    /// <summary>
+    /// 下级角色拿到上级角色的授权，与自身授权合并
+    /// </summary>
+    [Fact]
+    public async Task InheritedRole_GetsParentGrants()
+    {
+        Inherit(BaseRoleId, ClerkRoleId);
+        GrantRole(BaseRoleId, UserReadId);
+        GrantRole(ClerkRoleId, NotificationReadId);
+        BindRole(ClerkRoleId, bindingTenantId: 0);
+
+        var snapshot = await CreateService().BuildAsync(UserId, DateTimeOffset.UtcNow);
+
+        Assert.Equal(["saas:notification:read", "saas:user:read"], snapshot.Permissions);
+    }
+
+    /// <summary>
+    /// 角色级 Deny 只作用于本链：经下级拿不到被它拒绝的上级授权，但用户直接持有上级时照样经上级拿到
+    /// </summary>
+    [Fact]
+    public async Task RoleDeny_OnlyAffectsItsOwnChain()
+    {
+        Inherit(BaseRoleId, ClerkRoleId);
+        GrantRole(BaseRoleId, UserReadId, NotificationReadId);
+        DenyRole(ClerkRoleId, UserReadId);
+        BindRole(ClerkRoleId, bindingTenantId: 0);
+
+        var viaClerk = await CreateService().BuildAsync(UserId, DateTimeOffset.UtcNow);
+        Assert.Equal(["saas:notification:read"], viaClerk.Permissions);
+
+        BindRole(BaseRoleId, bindingTenantId: 0);
+        var viaBoth = await CreateService().BuildAsync(UserId, DateTimeOffset.UtcNow);
+        Assert.Equal(["saas:notification:read", "saas:user:read"], viaBoth.Permissions);
+    }
+
+    /// <summary>
+    /// 上级的 Deny 同样作用于整条链：下级自己授予也拿不到
+    /// </summary>
+    [Fact]
+    public async Task ParentDeny_OverridesChildGrant()
+    {
+        Inherit(BaseRoleId, ClerkRoleId);
+        DenyRole(BaseRoleId, UserReadId);
+        GrantRole(ClerkRoleId, UserReadId, NotificationReadId);
+        BindRole(ClerkRoleId, bindingTenantId: 0);
+
+        var snapshot = await CreateService().BuildAsync(UserId, DateTimeOffset.UtcNow);
+
+        Assert.Equal(["saas:notification:read"], snapshot.Permissions);
+    }
+
+    /// <summary>
+    /// 停用的中间角色切断经由它的继承：它自己的授权和它上面的授权都传不下来
+    /// </summary>
+    [Fact]
+    public async Task DisabledMiddleRole_CutsInheritance()
+    {
+        Inherit(BaseRoleId, MiddleRoleId);
+        Inherit(MiddleRoleId, ClerkRoleId);
+        GrantRole(BaseRoleId, UserReadId);
+        GrantRole(MiddleRoleId, NotificationReadId);
+        BindRole(ClerkRoleId, bindingTenantId: 0);
+
+        var enabled = await CreateService().BuildAsync(UserId, DateTimeOffset.UtcNow);
+        Assert.Equal(["saas:notification:read", "saas:user:read"], enabled.Permissions);
+
+        DisableRole(MiddleRoleId);
+        var disabled = await CreateService().BuildAsync(UserId, DateTimeOffset.UtcNow);
+        Assert.Empty(disabled.Permissions);
+    }
+
     private void BindRole(long roleId, long bindingTenantId)
     {
         _userRoles.Add(new SysUserRole { UserId = UserId, RoleId = roleId, TenantId = bindingTenantId, Status = ValidityStatus.Valid });
@@ -264,16 +345,36 @@ public sealed class AuthorizationSnapshotSideTests
 
     private void GrantRole(long roleId, params long[] permissionIds)
     {
+        BindRolePermissions(roleId, PermissionAction.Grant, permissionIds);
+    }
+
+    private void DenyRole(long roleId, params long[] permissionIds)
+    {
+        BindRolePermissions(roleId, PermissionAction.Deny, permissionIds);
+    }
+
+    private void BindRolePermissions(long roleId, PermissionAction action, long[] permissionIds)
+    {
         foreach (var permissionId in permissionIds)
         {
             _rolePermissions.Add(new SysRolePermission
             {
                 RoleId = roleId,
                 PermissionId = permissionId,
-                PermissionAction = PermissionAction.Grant,
+                PermissionAction = action,
                 Status = ValidityStatus.Valid
             });
         }
+    }
+
+    private void Inherit(long parentRoleId, long childRoleId)
+    {
+        _edges.Add(new SysRoleHierarchy { AncestorId = parentRoleId, DescendantId = childRoleId });
+    }
+
+    private void DisableRole(long roleId)
+    {
+        _roles.Single(role => role.BasicId == roleId).Status = EnableStatus.Disabled;
     }
 
     private void BindEdition(params long[] permissionIds)
@@ -297,7 +398,7 @@ public sealed class AuthorizationSnapshotSideTests
         var roleRepository = new Mock<IRoleRepository>();
         roleRepository
             .Setup(repository => repository.GetEnabledByIdsAsync(It.IsAny<IEnumerable<long>>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((IEnumerable<long> ids, CancellationToken _) => [.. _roles.Where(role => ids.Contains(role.BasicId))]);
+            .ReturnsAsync((IEnumerable<long> ids, CancellationToken _) => [.. _roles.Where(role => ids.Contains(role.BasicId) && role.Status == EnableStatus.Enabled)]);
 
         var rolePermissionRepository = new Mock<IRolePermissionRepository>();
         rolePermissionRepository
@@ -306,8 +407,15 @@ public sealed class AuthorizationSnapshotSideTests
 
         var roleHierarchyRepository = new Mock<IRoleHierarchyRepository>();
         roleHierarchyRepository
-            .Setup(repository => repository.GetAncestorIdsAsync(It.IsAny<IEnumerable<long>>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync([]);
+            .Setup(repository => repository.GetEdgesAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => [.. _edges]);
+        var roleHierarchyDomainService = new RoleHierarchyDomainService(
+            roleHierarchyRepository.Object,
+            roleRepository.Object,
+            Mock.Of<IUserRoleRepository>(),
+            Mock.Of<IConstraintRuleEnforcementDomainService>(),
+            _currentTenant,
+            NullLogger<RoleHierarchyDomainService>.Instance);
 
         var userPermissionRepository = new Mock<IUserPermissionRepository>();
         userPermissionRepository
@@ -367,7 +475,7 @@ public sealed class AuthorizationSnapshotSideTests
             userRoleRepository.Object,
             roleRepository.Object,
             rolePermissionRepository.Object,
-            roleHierarchyRepository.Object,
+            roleHierarchyDomainService,
             userPermissionRepository.Object,
             permissionRepository.Object,
             delegationRepository.Object,

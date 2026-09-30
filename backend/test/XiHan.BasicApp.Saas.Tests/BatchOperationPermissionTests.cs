@@ -9,6 +9,7 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -138,6 +139,7 @@ public sealed class BatchOperationPermissionTests
             .ReturnsAsync(new RolePermissionBatchUpdateResult([], []));
         var service = new RoleAppService(
             domain.Object,
+            Mock.Of<IRoleHierarchyDomainService>(),
             Mock.Of<ISaasCacheInvalidator>(),
             Mock.Of<IAuthorizationChangeNotifier>(),
             Mock.Of<IImpersonationPolicyService>(),
@@ -156,6 +158,65 @@ public sealed class BatchOperationPermissionTests
         _guard.Verify(
             item => item.EnsureGrantedAsync(SaasPermissionCodes.RolePermission.Revoke, It.IsAny<CancellationToken>()),
             expectRevokeCheck ? Times.Once() : Times.Never());
+    }
+
+    /// <summary>
+    /// 角色上级：新增校验新增权限并过模仿登录授出校验，解除校验删除权限；实际变化逐条留审计并失效导航。
+    /// </summary>
+    /// <param name="addIds">新增的上级。</param>
+    /// <param name="removeIds">解除的上级。</param>
+    [Theory]
+    [InlineData(new long[] { 20 }, new long[0])]
+    [InlineData(new long[0], new long[] { 30 })]
+    [InlineData(new long[] { 20 }, new long[] { 30 })]
+    public async Task RoleParents_ShouldCheckOnlyTheOperationsPresent(long[] addIds, long[] removeIds)
+    {
+        var hierarchy = new Mock<IRoleHierarchyDomainService>();
+        hierarchy
+            .Setup(item => item.UpdateParentsAsync(It.IsAny<RoleHierarchyBatchUpdateCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((RoleHierarchyBatchUpdateCommand command, CancellationToken _) =>
+                new RoleHierarchyBatchUpdateResult(command.AddParentRoleIds, command.RemoveParentRoleIds));
+        var impersonation = new Mock<IImpersonationPolicyService>();
+        var notifier = new Mock<IAuthorizationChangeNotifier>();
+        var cache = new Mock<ISaasCacheInvalidator>();
+        var service = new RoleAppService(
+            Mock.Of<IRoleDomainService>(),
+            hierarchy.Object,
+            cache.Object,
+            notifier.Object,
+            impersonation.Object,
+            Mock.Of<ISuperAdminProtector>(),
+            Mock.Of<IRolePermissionRepository>(),
+            _guard.Object,
+            Mock.Of<IFieldSecurityService>());
+
+        await service.BatchUpdateRoleParentsAsync(new RoleHierarchyBatchUpdateDto
+        {
+            RoleId = 10,
+            AddParentRoleIds = [.. addIds],
+            RemoveParentRoleIds = [.. removeIds]
+        });
+
+        _guard.Verify(
+            item => item.EnsureGrantedAsync(SaasPermissionCodes.RoleHierarchy.Create, It.IsAny<CancellationToken>()),
+            addIds.Length > 0 ? Times.Once() : Times.Never());
+        _guard.Verify(
+            item => item.EnsureGrantedAsync(SaasPermissionCodes.RoleHierarchy.Delete, It.IsAny<CancellationToken>()),
+            removeIds.Length > 0 ? Times.Once() : Times.Never());
+        impersonation.Verify(
+            item => item.EnsureCanGrantRoleIdsAsync(It.Is<IReadOnlyCollection<long>>(ids => ids.SequenceEqual(addIds)), It.IsAny<CancellationToken>()),
+            Times.Once);
+        foreach (var parentId in addIds)
+        {
+            notifier.Verify(item => item.NotifyAsync(PermissionChangeType.RoleAddParent, null, 10, null, null, parentId, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        foreach (var parentId in removeIds)
+        {
+            notifier.Verify(item => item.NotifyAsync(PermissionChangeType.RoleRemoveParent, null, 10, null, null, parentId, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        cache.Verify(item => item.InvalidateNavigationAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     /// <summary>

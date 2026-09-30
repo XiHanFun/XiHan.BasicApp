@@ -275,6 +275,8 @@
     "PermissionChangeType.RoleDenyPermission": "भूमिका अनुमति अस्वीकृत",
     "PermissionChangeType.UserDelegateGrant": "उपयोगकर्ता को प्रत्यायोजित अनुमति मिली",
     "PermissionChangeType.UserDelegateRevoke": "उपयोगकर्ता की प्रत्यायोजित अनुमति वापस",
+    "PermissionChangeType.RoleAddParent": "भूमिका में मूल भूमिका जोड़ी गई",
+    "PermissionChangeType.RoleRemoveParent": "भूमिका से मूल भूमिका हटाई गई",
     "ConditionOperator.Equals": "बराबर",
     "ConditionOperator.NotEquals": "बराबर नहीं",
     "ConditionOperator.GreaterThan": "से बड़ा",

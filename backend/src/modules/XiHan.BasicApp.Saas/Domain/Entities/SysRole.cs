@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 关联：
-/// - 反向：SysUserRole（用户赋角色）、SysRolePermission（角色持权限）、SysRoleHierarchy（闭包表继承）、SysRoleDataScope（自定义数据范围）
+/// - 反向：SysUserRole（用户赋角色）、SysRolePermission（角色持权限）、SysRoleHierarchy（直接继承边）、SysRoleDataScope（自定义数据范围）
 ///
 /// 写入：
 /// - TenantId + RoleCode 租户内唯一（UX_TeId_RoCo）

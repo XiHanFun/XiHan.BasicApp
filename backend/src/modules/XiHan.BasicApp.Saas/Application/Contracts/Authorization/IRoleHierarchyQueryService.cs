@@ -12,28 +12,26 @@ namespace XiHan.BasicApp.Saas.Application.Contracts;
 public interface IRoleHierarchyQueryService : IApplicationService
 {
     /// <summary>
-    /// 获取角色祖先链
+    /// 获取角色的全部上级（不含自身）
     /// </summary>
     /// <param name="roleId">角色主键</param>
-    /// <param name="includeSelf">是否包含自己</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色祖先链</returns>
-    Task<IReadOnlyList<RoleHierarchyListItemDto>> GetRoleAncestorsAsync(long roleId, bool includeSelf = true, CancellationToken cancellationToken = default);
+    /// <returns>上级链，按继承深度排列</returns>
+    Task<IReadOnlyList<RoleInheritanceItemDto>> GetRoleAncestorsAsync(long roleId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取角色后代链
+    /// 获取角色的全部下级（不含自身）
     /// </summary>
     /// <param name="roleId">角色主键</param>
-    /// <param name="includeSelf">是否包含自己</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色后代链</returns>
-    Task<IReadOnlyList<RoleHierarchyListItemDto>> GetRoleDescendantsAsync(long roleId, bool includeSelf = true, CancellationToken cancellationToken = default);
+    /// <returns>下级链，按继承深度排列</returns>
+    Task<IReadOnlyList<RoleInheritanceItemDto>> GetRoleDescendantsAsync(long roleId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取角色继承详情
+    /// 获取角色从生效的上级继承来的权限绑定
     /// </summary>
-    /// <param name="id">角色继承主键</param>
+    /// <param name="roleId">角色主键</param>
     /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>角色继承详情</returns>
-    Task<RoleHierarchyDetailDto?> GetRoleHierarchyDetailAsync(long id, CancellationToken cancellationToken = default);
+    /// <returns>继承来的权限绑定，同一权限来自多个上级时逐条列出</returns>
+    Task<IReadOnlyList<RoleInheritedPermissionDto>> GetRoleInheritedPermissionsAsync(long roleId, CancellationToken cancellationToken = default);
 }

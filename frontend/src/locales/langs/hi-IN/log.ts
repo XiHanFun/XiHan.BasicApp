@@ -225,6 +225,8 @@ export default {
     type_role_deny: 'भूमिका के लिए अनुमति अस्वीकृत',
     type_user_delegate_grant: 'प्रत्यायोजित अनुमति प्राप्त',
     type_user_delegate_revoke: 'प्रत्यायोजित अनुमति वापस ली',
+    type_role_add_parent: 'मूल भूमिका जोड़ी गई',
+    type_role_remove_parent: 'मूल भूमिका हटाई गई',
     operator_user_id: 'ऑपरेटर ID',
     operator_user_name: 'ऑपरेटर',
     target_user_id: 'लक्ष्य उपयोगकर्ता ID',

@@ -339,15 +339,13 @@ public sealed class SaasDemoSeeder(
     }
 
     /// <summary>
-    /// 角色继承：后代拿到祖先的授权；闭包含两个角色的自身行与这条直接继承边
+    /// 角色继承：下级拿到上级的授权；表里只存这条直接继承边
     /// </summary>
     private async Task InsertRoleInheritanceAsync(long tenantId, long ancestorId, long descendantId)
     {
         await BulkInsertAsync(
         [
-            new SysRoleHierarchy { TenantId = tenantId, AncestorId = ancestorId, DescendantId = ancestorId, Depth = 0, Path = $"{ancestorId}" },
-            new SysRoleHierarchy { TenantId = tenantId, AncestorId = descendantId, DescendantId = descendantId, Depth = 0, Path = $"{descendantId}" },
-            new SysRoleHierarchy { TenantId = tenantId, AncestorId = ancestorId, DescendantId = descendantId, Depth = 1, Path = $"{ancestorId}/{descendantId}" }
+            new SysRoleHierarchy { TenantId = tenantId, AncestorId = ancestorId, DescendantId = descendantId }
         ]);
     }
 

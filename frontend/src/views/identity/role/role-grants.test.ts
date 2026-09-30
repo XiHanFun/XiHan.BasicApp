@@ -1,7 +1,7 @@
-import type { PermissionListItemDto, RolePermissionListItemDto } from '@/api'
+import type { PermissionListItemDto, RoleInheritedPermissionDto, RolePermissionListItemDto } from '@/api'
 import { describe, expect, it } from 'vitest'
-import { ValidityStatus } from '@/api'
-import { diffMenuGrants, mergeGrantedIntoCatalog } from './role-grants'
+import { PermissionAction, ValidityStatus } from '@/api'
+import { diffMenuGrants, mergeGrantedIntoCatalog, summarizeInheritedPermissions } from './role-grants'
 
 function grant(basicId: string, permissionId: string, status = ValidityStatus.Valid): RolePermissionListItemDto {
   return { basicId, permissionId, status, permissionCode: `saas:${permissionId}:read`, permissionName: permissionId.toUpperCase() } as RolePermissionListItemDto
@@ -50,5 +50,25 @@ describe('mergeGrantedIntoCatalog', () => {
 
     expect(items.map(item => item.basicId)).toEqual(['p1', 'p8'])
     expect(items[1]).toMatchObject({ basicId: 'p8', permissionName: 'P8' })
+  })
+})
+
+describe('summarizeInheritedPermissions', () => {
+  function inherited(permissionId: string, action: PermissionAction, sourceRoleName: string): RoleInheritedPermissionDto {
+    return { permissionId, permissionAction: action, sourceRoleId: sourceRoleName, sourceRoleName, depth: 1 } as RoleInheritedPermissionDto
+  }
+
+  it('按权限汇总授予与拒绝的上级，同一上级不重复', () => {
+    const summary = summarizeInheritedPermissions([
+      inherited('p1', PermissionAction.Grant, '销售'),
+      inherited('p1', PermissionAction.Grant, '员工'),
+      inherited('p1', PermissionAction.Grant, '销售'),
+      inherited('p2', PermissionAction.Grant, '员工'),
+      inherited('p2', PermissionAction.Deny, '销售'),
+    ])
+
+    expect(summary.get('p1')).toEqual({ grantedBy: ['销售', '员工'], deniedBy: [] })
+    expect(summary.get('p2')).toEqual({ grantedBy: ['员工'], deniedBy: ['销售'] })
+    expect(summary.has('p3')).toBe(false)
   })
 })

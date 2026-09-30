@@ -23,7 +23,7 @@ public sealed class ConstraintRuleEnforcementDomainService
 
     private readonly IConstraintRuleItemRepository _constraintRuleItemRepository;
 
-    private readonly IRoleHierarchyDomainService _roleHierarchyDomainService;
+    private readonly IRoleHierarchyRepository _roleHierarchyRepository;
 
     /// <summary>
     /// 构造函数
@@ -31,11 +31,11 @@ public sealed class ConstraintRuleEnforcementDomainService
     public ConstraintRuleEnforcementDomainService(
         IConstraintRuleRepository constraintRuleRepository,
         IConstraintRuleItemRepository constraintRuleItemRepository,
-        IRoleHierarchyDomainService roleHierarchyDomainService)
+        IRoleHierarchyRepository roleHierarchyRepository)
     {
         _constraintRuleRepository = constraintRuleRepository;
         _constraintRuleItemRepository = constraintRuleItemRepository;
-        _roleHierarchyDomainService = roleHierarchyDomainService;
+        _roleHierarchyRepository = roleHierarchyRepository;
     }
 
     /// <summary>
@@ -47,12 +47,29 @@ public sealed class ConstraintRuleEnforcementDomainService
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(roleIds);
+
+        var results = await EvaluateRoleSetsAsync([[.. roleIds]], constraintType, cancellationToken);
+        return results[0];
+    }
+
+    /// <summary>
+    /// 一次评估多组角色集合（规则与继承链只读一次）
+    /// </summary>
+    public async Task<IReadOnlyList<ConstraintEnforcementResult>> EvaluateRoleSetsAsync(
+        IReadOnlyList<IReadOnlyCollection<long>> roleSets,
+        ConstraintType constraintType,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(roleSets);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var roleIdList = roleIds.Where(id => id > 0).Distinct().ToList();
-        if (roleIdList.Count == 0)
+        var normalizedSets = roleSets
+            .Select(set => set.Where(id => id > 0).Distinct().ToList())
+            .ToList();
+        var results = Enumerable.Repeat(ConstraintEnforcementResult.Pass, normalizedSets.Count).ToArray();
+        if (normalizedSets.All(set => set.Count == 0))
         {
-            return ConstraintEnforcementResult.Pass;
+            return results;
         }
 
         var activeRules = await _constraintRuleRepository.GetActiveRulesAsync(DateTimeOffset.UtcNow, cancellationToken);
@@ -62,43 +79,68 @@ public sealed class ConstraintRuleEnforcementDomainService
             .ToList();
         if (applicableRules.Count == 0)
         {
-            return ConstraintEnforcementResult.Pass;
+            return results;
         }
 
-        // 约束目标判定必须展开角色继承链（含自身），使"继承互斥角色的后代角色"等效命中。
-        var effectiveRoleIds = new HashSet<long>(
-            await _roleHierarchyDomainService.ExpandRoleHierarchyAsync(roleIdList, cancellationToken));
-
-        var violations = new List<ConstraintViolation>();
+        var ruleGroups = new List<(SysConstraintRule Rule, int MaxAllowed, IReadOnlyList<IGrouping<int, SysConstraintRuleItem>> Groups)>();
         foreach (var rule in applicableRules)
         {
             var items = await _constraintRuleItemRepository.GetByRuleIdAsync(rule.BasicId, cancellationToken);
-            var maxAllowed = ResolveMaxAllowed(rule.Parameters);
+            ruleGroups.Add((
+                rule,
+                ResolveMaxAllowed(rule.Parameters),
+                [.. items.Where(item => item.TargetType == ConstraintTargetType.Role).GroupBy(item => item.ConstraintGroup)]));
+        }
 
-            foreach (var group in items
-                         .Where(item => item.TargetType == ConstraintTargetType.Role)
-                         .GroupBy(item => item.ConstraintGroup))
+        // 约束目标判定必须展开角色继承链（含自身），使"继承互斥角色的后代角色"等效命中；
+        // 静态约束不看角色启停：停用角色随时可能重新启用，按结构判定
+        var graph = RoleInheritanceGraph.FromEdges(await _roleHierarchyRepository.GetEdgesAsync(cancellationToken));
+
+        for (var index = 0; index < normalizedSets.Count; index++)
+        {
+            var set = normalizedSets[index];
+            if (set.Count == 0)
             {
-                var matched = group
-                    .Where(item => effectiveRoleIds.Contains(item.TargetId))
-                    .Select(item => item.TargetId)
-                    .Distinct()
-                    .ToList();
-                if (matched.Count > maxAllowed)
+                continue;
+            }
+
+            var effectiveRoleIds = new HashSet<long>(set);
+            foreach (var roleId in set)
+            {
+                effectiveRoleIds.UnionWith(graph.AncestorsOf(roleId).Keys);
+            }
+
+            var violations = new List<ConstraintViolation>();
+            foreach (var (rule, maxAllowed, groups) in ruleGroups)
+            {
+                foreach (var group in groups)
                 {
-                    violations.Add(new ConstraintViolation(
-                        rule.BasicId,
-                        rule.RuleCode,
-                        rule.RuleName,
-                        rule.ConstraintType,
-                        group.Key,
-                        matched,
-                        rule.ViolationAction));
+                    var matched = group
+                        .Where(item => effectiveRoleIds.Contains(item.TargetId))
+                        .Select(item => item.TargetId)
+                        .Distinct()
+                        .ToList();
+                    if (matched.Count > maxAllowed)
+                    {
+                        violations.Add(new ConstraintViolation(
+                            rule.BasicId,
+                            rule.RuleCode,
+                            rule.RuleName,
+                            rule.ConstraintType,
+                            group.Key,
+                            matched,
+                            rule.ViolationAction));
+                    }
                 }
+            }
+
+            if (violations.Count > 0)
+            {
+                results[index] = new ConstraintEnforcementResult(violations);
             }
         }
 
-        return new ConstraintEnforcementResult(violations);
+        return results;
     }
 
     /// <summary>
