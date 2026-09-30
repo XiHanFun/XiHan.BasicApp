@@ -176,6 +176,7 @@ public sealed class GlobalTemplateBoundaryTests
                 new Mock<IRoleDataScopeRepository>().Object,
                 permissions.Object,
                 new Mock<IDepartmentRepository>().Object,
+                new Mock<IFieldLevelSecurityRepository>().Object,
                 new TestCurrentTenant(contextTenantId));
         }
 

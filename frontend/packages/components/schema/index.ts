@@ -35,9 +35,6 @@ export type {
   ViewSchema,
 } from './types'
 
-export { useFieldSecurity } from './useFieldSecurity'
-export type { FieldSecurityRule, UseFieldSecurity } from './useFieldSecurity'
-
 export { useSchemaDictionaries } from './useSchemaDictionaries'
 export type { UseSchemaDictionaries } from './useSchemaDictionaries'
 

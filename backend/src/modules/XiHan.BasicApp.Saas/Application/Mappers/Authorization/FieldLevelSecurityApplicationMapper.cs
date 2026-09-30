@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 public static class FieldLevelSecurityApplicationMapper
 {
     /// <summary>
-    /// 映射字段级安全创建命令
+    /// 映射创建命令
     /// </summary>
     public static FieldLevelSecurityCreateCommand ToCreateCommand(FieldLevelSecurityCreateDto input)
     {
@@ -22,20 +22,19 @@ public static class FieldLevelSecurityApplicationMapper
         return new FieldLevelSecurityCreateCommand(
             input.TargetType,
             input.TargetId,
-            input.ResourceId,
+            input.EntityName,
             input.FieldName,
-            input.IsReadable,
-            input.IsEditable,
             input.MaskStrategy,
-            input.MaskPattern,
-            input.Priority,
-            input.Description,
+            input.MaskKeepHead,
+            input.MaskKeepTail,
+            input.MaskReplacement,
+            input.IsEditable,
             input.Status,
             input.Remark);
     }
 
     /// <summary>
-    /// 映射字段级安全更新命令
+    /// 映射更新命令
     /// </summary>
     public static FieldLevelSecurityUpdateCommand ToUpdateCommand(FieldLevelSecurityUpdateDto input)
     {
@@ -45,19 +44,18 @@ public static class FieldLevelSecurityApplicationMapper
             input.BasicId,
             input.TargetType,
             input.TargetId,
-            input.ResourceId,
+            input.EntityName,
             input.FieldName,
-            input.IsReadable,
-            input.IsEditable,
             input.MaskStrategy,
-            input.MaskPattern,
-            input.Priority,
-            input.Description,
+            input.MaskKeepHead,
+            input.MaskKeepTail,
+            input.MaskReplacement,
+            input.IsEditable,
             input.Remark);
     }
 
     /// <summary>
-    /// 映射字段级安全状态命令
+    /// 映射状态命令
     /// </summary>
     public static FieldLevelSecurityStatusChangeCommand ToStatusCommand(FieldLevelSecurityStatusUpdateDto input)
     {
@@ -67,86 +65,91 @@ public static class FieldLevelSecurityApplicationMapper
     }
 
     /// <summary>
-    /// 映射字段级安全列表项
+    /// 映射列表项
     /// </summary>
-    /// <param name="policy">字段级安全策略</param>
-    /// <param name="resource">资源定义</param>
-    /// <param name="targetCode">目标编码</param>
-    /// <param name="targetName">目标名称</param>
-    /// <returns>字段级安全列表项 DTO</returns>
     public static FieldLevelSecurityListItemDto ToListItemDto(
         SysFieldLevelSecurity policy,
-        SysResource? resource,
+        IFieldSecurityEntityCatalog catalog,
         string? targetCode,
         string? targetName)
     {
-        ArgumentNullException.ThrowIfNull(policy);
+        return Fill(new FieldLevelSecurityListItemDto(), policy, catalog, targetCode, targetName);
+    }
 
-        return new FieldLevelSecurityListItemDto
+    /// <summary>
+    /// 映射详情
+    /// </summary>
+    public static FieldLevelSecurityDetailDto ToDetailDto(
+        SysFieldLevelSecurity policy,
+        IFieldSecurityEntityCatalog catalog,
+        string? targetCode,
+        string? targetName)
+    {
+        var detail = Fill(new FieldLevelSecurityDetailDto(), policy, catalog, targetCode, targetName);
+        detail.CreatedId = policy.CreatedId;
+        detail.CreatedBy = policy.CreatedBy;
+        detail.ModifiedId = policy.ModifiedId;
+        detail.ModifiedBy = policy.ModifiedBy;
+        return detail;
+    }
+
+    /// <summary>
+    /// 映射可配置实体
+    /// </summary>
+    public static FieldSecurityEntityDto ToEntityDto(FieldSecurityEntityDescriptor descriptor)
+    {
+        ArgumentNullException.ThrowIfNull(descriptor);
+
+        return new FieldSecurityEntityDto
         {
-            BasicId = policy.BasicId,
-            TargetType = policy.TargetType,
-            TargetId = policy.TargetId,
-            TargetCode = targetCode,
-            TargetName = targetName,
-            ResourceId = policy.ResourceId,
-            ResourceCode = resource?.ResourceCode,
-            ResourceName = resource?.ResourceName,
-            ResourceType = resource?.ResourceType,
-            FieldName = policy.FieldName,
-            IsReadable = policy.IsReadable,
-            IsEditable = policy.IsEditable,
-            MaskStrategy = policy.MaskStrategy,
-            Priority = policy.Priority,
-            Description = policy.Description,
-            Status = policy.Status,
-            CreatedTime = policy.CreatedTime,
-            ModifiedTime = policy.ModifiedTime
+            EntityName = descriptor.EntityName,
+            DisplayName = descriptor.DisplayName,
+            Fields =
+            [
+                .. descriptor.Fields.Select(field => new FieldSecurityFieldDto
+                {
+                    FieldName = field.FieldName,
+                    DisplayName = field.DisplayName,
+                    IsText = field.IsText
+                })
+            ]
         };
     }
 
     /// <summary>
-    /// 映射字段级安全详情
+    /// 填充列表与详情共有字段；实体或字段已随版本移除时显示名为空，页面据此提示规则失效
     /// </summary>
-    /// <param name="policy">字段级安全策略</param>
-    /// <param name="resource">资源定义</param>
-    /// <param name="targetCode">目标编码</param>
-    /// <param name="targetName">目标名称</param>
-    /// <returns>字段级安全详情 DTO</returns>
-    public static FieldLevelSecurityDetailDto ToDetailDto(
+    private static TDto Fill<TDto>(
+        TDto dto,
         SysFieldLevelSecurity policy,
-        SysResource? resource,
+        IFieldSecurityEntityCatalog catalog,
         string? targetCode,
         string? targetName)
+        where TDto : FieldLevelSecurityListItemDto
     {
         ArgumentNullException.ThrowIfNull(policy);
+        ArgumentNullException.ThrowIfNull(catalog);
 
-        return new FieldLevelSecurityDetailDto
-        {
-            BasicId = policy.BasicId,
-            TargetType = policy.TargetType,
-            TargetId = policy.TargetId,
-            TargetCode = targetCode,
-            TargetName = targetName,
-            ResourceId = policy.ResourceId,
-            ResourceCode = resource?.ResourceCode,
-            ResourceName = resource?.ResourceName,
-            ResourceType = resource?.ResourceType,
-            FieldName = policy.FieldName,
-            IsReadable = policy.IsReadable,
-            IsEditable = policy.IsEditable,
-            MaskStrategy = policy.MaskStrategy,
-            MaskPattern = policy.MaskPattern,
-            Priority = policy.Priority,
-            Description = policy.Description,
-            Status = policy.Status,
-            Remark = policy.Remark,
-            CreatedTime = policy.CreatedTime,
-            CreatedId = policy.CreatedId,
-            CreatedBy = policy.CreatedBy,
-            ModifiedTime = policy.ModifiedTime,
-            ModifiedId = policy.ModifiedId,
-            ModifiedBy = policy.ModifiedBy
-        };
+        var entity = catalog.Find(policy.EntityName);
+        dto.BasicId = policy.BasicId;
+        dto.TargetType = policy.TargetType;
+        dto.TargetId = policy.TargetId;
+        dto.TargetCode = targetCode;
+        dto.TargetName = targetName;
+        dto.EntityName = policy.EntityName;
+        dto.EntityDisplayName = entity?.DisplayName;
+        dto.FieldName = policy.FieldName;
+        dto.FieldDisplayName = entity?.FindField(policy.FieldName)?.DisplayName;
+        dto.MaskStrategy = policy.MaskStrategy;
+        dto.MaskKeepHead = policy.MaskKeepHead;
+        dto.MaskKeepTail = policy.MaskKeepTail;
+        dto.MaskReplacement = policy.MaskReplacement;
+        dto.IsEditable = policy.IsEditable;
+        dto.IsGlobal = policy.IsGlobal;
+        dto.Status = policy.Status;
+        dto.Remark = policy.Remark;
+        dto.CreatedTime = policy.CreatedTime;
+        dto.ModifiedTime = policy.ModifiedTime;
+        return dto;
     }
 }

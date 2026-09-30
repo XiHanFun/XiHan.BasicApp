@@ -6,82 +6,71 @@ using System.ComponentModel;
 namespace XiHan.BasicApp.Saas.Domain.Entities;
 
 /// <summary>
-/// 字段脱敏策略枚举
-/// 当 IsReadable=false 时生效，控制字段返回形式
+/// 字段读取方式（脱敏策略）
 /// </summary>
+/// <remarks>
+/// 严格程度按泄露的信息量从多到少：部分脱敏（泄露片段）&lt; 哈希（泄露是否相等）&lt; 全部星号（泄露长度）
+/// &lt; 固定文本（只泄露有没有值）&lt; 隐藏（什么都不泄露）。多条规则命中同一字段时取最严的一种。
+/// 除明文与隐藏外，其余方式只对文本字段有效。
+/// </remarks>
 public enum FieldMaskStrategy
 {
     /// <summary>
-    /// 不脱敏（IsReadable=true 时使用，原值返回）
+    /// 明文：原值返回（配合只读使用）
     /// </summary>
     [Description("不脱敏")]
     None = 0,
 
     /// <summary>
-    /// 完全隐藏：字段返回 null 或从响应中移除
+    /// 隐藏：返回空值
     /// </summary>
     [Description("完全隐藏")]
     Hidden = 1,
 
     /// <summary>
-    /// 全部星号：如 123456 → ******
+    /// 全部星号：按原长度替换为 *
     /// </summary>
     [Description("全部星号")]
     FullMask = 2,
 
     /// <summary>
-    /// 部分脱敏：保留首尾字符，中间星号（如手机号 138****1234）
-    /// 具体规则由 MaskPattern 字段描述
+    /// 部分脱敏：保留前几位、后几位，中间替换为 *
     /// </summary>
     [Description("部分脱敏")]
     PartialMask = 3,
 
     /// <summary>
-    /// 哈希：返回字段值的 Hash（如 SHA256），不可逆
+    /// 哈希：返回 SHA-256 前 16 位十六进制，可比较是否相同但看不到原值
     /// </summary>
     [Description("哈希")]
     Hash = 4,
 
     /// <summary>
-    /// 固定替换：返回固定占位符（如 [已脱敏]）
-    /// 占位符由 MaskPattern 字段指定
+    /// 固定文本：有值时一律显示规则里的固定文本
     /// </summary>
     [Description("固定替换")]
-    Redact = 5,
-
-    /// <summary>
-    /// 自定义：由 MaskPattern 字段描述规则，应用层按自定义逻辑处理
-    /// </summary>
-    [Description("自定义")]
-    Custom = 99
+    Redact = 5
 }
 
 /// <summary>
-/// 字段级安全目标类型枚举
-/// 定义 FLS 策略绑定的主体类型
+/// 字段级安全规则的目标类型
 /// </summary>
 public enum FieldSecurityTargetType
 {
     /// <summary>
-    /// 角色：策略应用于该角色下的所有用户
+    /// 角色：当前用户生效的角色
     /// </summary>
     [Description("角色")]
     Role = 0,
 
     /// <summary>
-    /// 用户：策略直接应用于指定用户（优先级高于角色）
+    /// 用户：指定用户本人
     /// </summary>
     [Description("用户")]
     User = 1,
 
     /// <summary>
-    /// 权限：策略随权限一起生效（用户拥有该权限时受限）
-    /// </summary>
-    [Description("权限")]
-    Permission = 2,
-
-    /// <summary>
-    /// 部门：策略应用于该部门下的所有用户（适用于"某部门可见/不可见某字段"场景）
+    /// 部门：部门及其下级部门的有效成员
     /// </summary>
     [Description("部门")]
     Department = 3

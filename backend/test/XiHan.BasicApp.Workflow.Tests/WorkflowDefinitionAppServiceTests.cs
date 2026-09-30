@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Moq;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Workflow.Application.AppServices;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.Framework.Core.Exceptions;
@@ -359,6 +360,6 @@ public sealed class WorkflowDefinitionAppServiceTests
     private static (WorkflowDefinitionAppService Service, Mock<IWorkflowDefinitionManager> Manager) CreateService()
     {
         var manager = new Mock<IWorkflowDefinitionManager>();
-        return (new WorkflowDefinitionAppService(manager.Object), manager);
+        return (new WorkflowDefinitionAppService(manager.Object, Mock.Of<IFieldSecurityService>()), manager);
     }
 }

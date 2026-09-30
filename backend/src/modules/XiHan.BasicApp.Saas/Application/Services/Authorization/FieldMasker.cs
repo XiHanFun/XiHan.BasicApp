@@ -8,26 +8,23 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 namespace XiHan.BasicApp.Saas.Application.Services;
 
 /// <summary>
-/// 字段脱敏器：按 <see cref="FieldMaskStrategy"/> + MaskPattern 生成脱敏值。
-/// MaskPattern 约定：部分脱敏用 "keep:N,M"（保留首 N 尾 M）；固定替换/自定义用作占位符文本。
+/// 文本字段脱敏
 /// </summary>
 public static class FieldMasker
 {
     /// <summary>
-    /// 计算脱敏后的值。可读且不脱敏返回原值；不可读未指定策略默认隐藏(null)。
+    /// 按有效规则处理一个文本值；空值原样返回（隐藏除外，一律返回空）
     /// </summary>
-    public static string? Mask(string? raw, bool isReadable, FieldMaskStrategy strategy, string? pattern)
+    public static string? Mask(string? raw, EffectiveFieldRule rule)
     {
-        if (isReadable && strategy == FieldMaskStrategy.None)
+        ArgumentNullException.ThrowIfNull(rule);
+
+        if (rule.MaskStrategy == FieldMaskStrategy.None)
         {
             return raw;
         }
 
-        var effective = !isReadable && strategy == FieldMaskStrategy.None
-            ? FieldMaskStrategy.Hidden
-            : strategy;
-
-        if (effective == FieldMaskStrategy.Hidden)
+        if (rule.MaskStrategy == FieldMaskStrategy.Hidden)
         {
             return null;
         }
@@ -37,49 +34,32 @@ public static class FieldMasker
             return raw;
         }
 
-        return effective switch
+        return rule.MaskStrategy switch
         {
             FieldMaskStrategy.FullMask => new string('*', raw.Length),
-            FieldMaskStrategy.PartialMask => PartialMask(raw, pattern),
+            FieldMaskStrategy.PartialMask => PartialMask(raw, rule.MaskKeepHead ?? 0, rule.MaskKeepTail ?? 0),
             FieldMaskStrategy.Hash => Hash(raw),
-            FieldMaskStrategy.Redact => string.IsNullOrWhiteSpace(pattern) ? "[已脱敏]" : pattern,
-            FieldMaskStrategy.Custom => string.IsNullOrWhiteSpace(pattern) ? new string('*', raw.Length) : pattern,
-            _ => raw,
+            FieldMaskStrategy.Redact => rule.MaskReplacement ?? throw new InvalidOperationException($"字段「{rule.FieldName}」的固定文本规则缺少文字。"),
+            _ => throw new InvalidOperationException($"字段「{rule.FieldName}」的读取方式 {rule.MaskStrategy} 无效。")
         };
     }
 
-    private static string PartialMask(string raw, string? pattern)
+    /// <summary>
+    /// 保留前 keepHead 位、后 keepTail 位，其余替换为 *；保留位数不小于原长时整体打码，避免原样漏出
+    /// </summary>
+    private static string PartialMask(string raw, int keepHead, int keepTail)
     {
-        var keepStart = 0;
-        var keepEnd = 0;
-        if (!string.IsNullOrWhiteSpace(pattern) && pattern.StartsWith("keep:", StringComparison.OrdinalIgnoreCase))
-        {
-            var segments = pattern["keep:".Length..].Split(',', StringSplitOptions.TrimEntries);
-            if (segments.Length > 0)
-            {
-                _ = int.TryParse(segments[0], out keepStart);
-            }
-            if (segments.Length > 1)
-            {
-                _ = int.TryParse(segments[1], out keepEnd);
-            }
-        }
-        else
-        {
-            keepEnd = Math.Min(4, raw.Length);
-        }
-
-        keepStart = Math.Max(0, keepStart);
-        keepEnd = Math.Max(0, keepEnd);
-        if (keepStart + keepEnd >= raw.Length)
+        if (keepHead + keepTail >= raw.Length)
         {
             return new string('*', raw.Length);
         }
 
-        var middle = new string('*', raw.Length - keepStart - keepEnd);
-        return raw[..keepStart] + middle + raw[(raw.Length - keepEnd)..];
+        return string.Concat(raw.AsSpan(0, keepHead), new string('*', raw.Length - keepHead - keepTail), raw.AsSpan(raw.Length - keepTail));
     }
 
+    /// <summary>
+    /// SHA-256 前 16 位小写十六进制：相同原值得到相同结果，可用于比对
+    /// </summary>
     private static string Hash(string raw)
     {
         var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(raw));

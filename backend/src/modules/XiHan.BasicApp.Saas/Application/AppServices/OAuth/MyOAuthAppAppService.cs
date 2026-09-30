@@ -47,17 +47,21 @@ public sealed class MyOAuthAppAppService
 
     private readonly ICurrentUser _currentUser;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public MyOAuthAppAppService(
         IOAuthAppDomainService oauthAppDomainService,
         IOAuthAppRepository oauthAppRepository,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IFieldSecurityService fieldSecurity)
     {
         _oauthAppDomainService = oauthAppDomainService;
         _oauthAppRepository = oauthAppRepository;
         _currentUser = currentUser;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -77,6 +81,9 @@ public sealed class MyOAuthAppAppService
     [UnitOfWork(true)]
     public async Task<MyOAuthAppSecretDto> CreateMyOAuthAppAsync(MyOAuthAppCreateDto input, CancellationToken cancellationToken = default)
     {
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysOAuthApp), input, cancellationToken);
+
         _currentUser.EnsureNotImpersonating("创建 OAuth 应用");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
@@ -137,6 +144,9 @@ public sealed class MyOAuthAppAppService
     [UnitOfWork(true)]
     public async Task<MyOAuthAppItemDto> UpdateMyOAuthAppAsync(MyOAuthAppUpdateDto input, CancellationToken cancellationToken = default)
     {
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysOAuthApp), input.BasicId, input, cancellationToken);
+
         _currentUser.EnsureNotImpersonating("更新 OAuth 应用");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
@@ -211,6 +221,9 @@ public sealed class MyOAuthAppAppService
     [UnitOfWork(true)]
     public async Task<MyOAuthAppItemDto> UpdateMyOAuthAppStatusAsync(MyOAuthAppStatusDto input, CancellationToken cancellationToken = default)
     {
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysOAuthApp), input.BasicId, input, cancellationToken);
+
         _currentUser.EnsureNotImpersonating("启停 OAuth 应用");
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();

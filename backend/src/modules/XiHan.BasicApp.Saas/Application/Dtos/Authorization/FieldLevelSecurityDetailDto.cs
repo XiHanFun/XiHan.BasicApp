@@ -1,109 +1,15 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using XiHan.BasicApp.Core.Dtos;
-using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Enums;
-
 namespace XiHan.BasicApp.Saas.Application.Dtos;
 
 /// <summary>
 /// 字段级安全详情 DTO
 /// </summary>
-public sealed class FieldLevelSecurityDetailDto : BasicAppDto
+public sealed class FieldLevelSecurityDetailDto : FieldLevelSecurityListItemDto
 {
     /// <summary>
-    /// 目标类型
-    /// </summary>
-    public FieldSecurityTargetType TargetType { get; set; }
-
-    /// <summary>
-    /// 目标主键
-    /// </summary>
-    public long TargetId { get; set; }
-
-    /// <summary>
-    /// 目标编码
-    /// </summary>
-    public string? TargetCode { get; set; }
-
-    /// <summary>
-    /// 目标名称
-    /// </summary>
-    public string? TargetName { get; set; }
-
-    /// <summary>
-    /// 资源主键
-    /// </summary>
-    public long ResourceId { get; set; }
-
-    /// <summary>
-    /// 资源编码
-    /// </summary>
-    public string? ResourceCode { get; set; }
-
-    /// <summary>
-    /// 资源名称
-    /// </summary>
-    public string? ResourceName { get; set; }
-
-    /// <summary>
-    /// 资源类型
-    /// </summary>
-    public ResourceType? ResourceType { get; set; }
-
-    /// <summary>
-    /// 字段名
-    /// </summary>
-    public string FieldName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 是否可读
-    /// </summary>
-    public bool IsReadable { get; set; }
-
-    /// <summary>
-    /// 是否可编辑
-    /// </summary>
-    public bool IsEditable { get; set; }
-
-    /// <summary>
-    /// 脱敏策略
-    /// </summary>
-    public FieldMaskStrategy MaskStrategy { get; set; }
-
-    /// <summary>
-    /// 脱敏模式
-    /// </summary>
-    public string? MaskPattern { get; set; }
-
-    /// <summary>
-    /// 优先级
-    /// </summary>
-    public int Priority { get; set; }
-
-    /// <summary>
-    /// 策略描述
-    /// </summary>
-    public string? Description { get; set; }
-
-    /// <summary>
-    /// 状态
-    /// </summary>
-    public EnableStatus Status { get; set; }
-
-    /// <summary>
-    /// 备注
-    /// </summary>
-    public string? Remark { get; set; }
-
-    /// <summary>
-    /// 创建时间
-    /// </summary>
-    public DateTimeOffset CreatedTime { get; set; }
-
-    /// <summary>
-    /// 创建人主键
+    /// 创建人ID
     /// </summary>
     public long? CreatedId { get; set; }
 
@@ -113,12 +19,7 @@ public sealed class FieldLevelSecurityDetailDto : BasicAppDto
     public string? CreatedBy { get; set; }
 
     /// <summary>
-    /// 修改时间
-    /// </summary>
-    public DateTimeOffset? ModifiedTime { get; set; }
-
-    /// <summary>
-    /// 修改人主键
+    /// 修改人ID
     /// </summary>
     public long? ModifiedId { get; set; }
 

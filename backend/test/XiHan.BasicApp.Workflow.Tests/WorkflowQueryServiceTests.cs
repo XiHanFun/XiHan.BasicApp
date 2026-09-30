@@ -15,7 +15,6 @@ using XiHan.Framework.Workflow.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
 using XiHan.Framework.Workflow.Abstractions.Stores;
-using XiHan.BasicApp.Workflow.Domain.Permissions;
 
 namespace XiHan.BasicApp.Workflow.Tests;
 
@@ -142,10 +141,10 @@ public sealed class WorkflowQueryServiceTests
     }
 
     /// <summary>
-    /// 排序与过滤都必须按定义实体名过一遍字段级安全门控，且发生在落库之前。
+    /// 查询条件按流程定义实体过字段安全门控。
     /// </summary>
     [Fact]
-    public async Task DefinitionQuery_GetPageAsync_ShouldGuardSortsAndFiltersByEntityName()
+    public async Task DefinitionQuery_GetPageAsync_ShouldGuardByDefinitionEntity()
     {
         var (service, repository, fieldSecurity) = CreateDefinitionQueryService();
         _ = SetupDefinitionPage(repository);
@@ -153,10 +152,7 @@ public sealed class WorkflowQueryServiceTests
         _ = await service.GetPageAsync(new WorkflowDefinitionPageQueryDto());
 
         fieldSecurity.Verify(
-            value => value.GuardSortsAsync(It.IsAny<QueryConditions>(), WorkflowPermissionCodes.Resource, It.IsAny<CancellationToken>()),
-            Times.Once);
-        fieldSecurity.Verify(
-            value => value.GuardFiltersAsync(It.IsAny<QueryConditions>(), WorkflowPermissionCodes.Resource, It.IsAny<CancellationToken>()),
+            value => value.GuardQueryAsync(It.IsAny<QueryConditions>(), typeof(SysWorkflowDefinition), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -303,7 +299,7 @@ public sealed class WorkflowQueryServiceTests
     /// 实例排序与过滤必须按实例实体名过字段级安全门控。
     /// </summary>
     [Fact]
-    public async Task InstanceQuery_GetPageAsync_ShouldGuardSortsAndFiltersByEntityName()
+    public async Task InstanceQuery_GetPageAsync_ShouldGuardByInstanceEntity()
     {
         var (service, repository, _, _, fieldSecurity) = CreateInstanceQueryService();
         _ = SetupInstancePage(repository);
@@ -311,10 +307,7 @@ public sealed class WorkflowQueryServiceTests
         _ = await service.GetPageAsync(new WorkflowInstancePageQueryDto());
 
         fieldSecurity.Verify(
-            value => value.GuardSortsAsync(It.IsAny<QueryConditions>(), WorkflowPermissionCodes.Resource, It.IsAny<CancellationToken>()),
-            Times.Once);
-        fieldSecurity.Verify(
-            value => value.GuardFiltersAsync(It.IsAny<QueryConditions>(), WorkflowPermissionCodes.Resource, It.IsAny<CancellationToken>()),
+            value => value.GuardQueryAsync(It.IsAny<QueryConditions>(), typeof(SysWorkflowInstance), It.IsAny<CancellationToken>()),
             Times.Once);
     }
 

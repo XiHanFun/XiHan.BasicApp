@@ -10,6 +10,8 @@ using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Utils.Collections;
 using XiHan.Framework.Workflow.Abstractions.Stores;
+using XiHan.BasicApp.Workflow.Domain.Entities;
+using XiHan.BasicApp.Saas.Extensions;
 
 namespace XiHan.BasicApp.Workflow.Extensions;
 
@@ -70,5 +72,17 @@ public static class ServiceCollectionExtensions
         services.AddTransient<THandler>();
         services.Configure<XiHanLocalEventBusOptions>(options => options.Handlers.AddIfNotContains(typeof(THandler)));
         return services;
+    }
+
+    /// <summary>
+    /// 登记工作流模块可配置字段安全的实体
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddWorkflowFieldSecurityEntities(this IServiceCollection services)
+    {
+        return services.AddFieldSecurityEntities(entities => entities
+            .Add<SysWorkflowDefinition>()
+            .Add<SysWorkflowInstance>());
     }
 }

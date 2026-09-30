@@ -15,6 +15,8 @@ using XiHan.Framework.AI.Abstractions.Prompts;
 using XiHan.Framework.AI.Abstractions.Skills;
 using XiHan.Framework.AI.Extensions.DependencyInjection;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
+using XiHan.BasicApp.AI.Domain.Entities;
+using XiHan.BasicApp.Saas.Extensions;
 
 namespace XiHan.BasicApp.AI.Extensions;
 
@@ -161,5 +163,19 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAiAssistantDomainService, AiAssistantDomainService>();
         return services;
+    }
+
+    /// <summary>
+    /// 登记AI模块可配置字段安全的实体
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddAIFieldSecurityEntities(this IServiceCollection services)
+    {
+        return services.AddFieldSecurityEntities(entities => entities
+            .Add<SysAiProvider>()
+            .Add<SysAiAssistant>()
+            .Add<SysAiPrompt>()
+            .Add<SysKnowledgeDocument>());
     }
 }

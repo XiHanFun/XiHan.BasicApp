@@ -5,10 +5,12 @@ using XiHan.BasicApp.CodeGeneration.Application.Contracts;
 using XiHan.BasicApp.CodeGeneration.Application.Dtos;
 using XiHan.BasicApp.CodeGeneration.Application.Mappers;
 using XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
+using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.CodeGeneration.Application.AppServices;
 
@@ -20,12 +22,15 @@ public sealed class CodeGenDataSourceAppService : CodeGenerationApplicationServi
 {
     private readonly ICodeGenDataSourceDomainService _dataSourceDomainService;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public CodeGenDataSourceAppService(ICodeGenDataSourceDomainService dataSourceDomainService)
+    public CodeGenDataSourceAppService(ICodeGenDataSourceDomainService dataSourceDomainService, IFieldSecurityService fieldSecurity)
     {
         _dataSourceDomainService = dataSourceDomainService;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -37,6 +42,9 @@ public sealed class CodeGenDataSourceAppService : CodeGenerationApplicationServi
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysCodeGenDataSource), input, cancellationToken);
 
         var result = await _dataSourceDomainService.CreateDataSourceAsync(
             CodeGenDataSourceApplicationMapper.ToCreateCommand(input), cancellationToken);
@@ -53,6 +61,9 @@ public sealed class CodeGenDataSourceAppService : CodeGenerationApplicationServi
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysCodeGenDataSource), input.BasicId, input, cancellationToken);
+
         var result = await _dataSourceDomainService.UpdateDataSourceAsync(
             CodeGenDataSourceApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return CodeGenDataSourceApplicationMapper.ToDetailDto(result.DataSource);
@@ -67,6 +78,9 @@ public sealed class CodeGenDataSourceAppService : CodeGenerationApplicationServi
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysCodeGenDataSource), input.BasicId, input, cancellationToken);
 
         var result = await _dataSourceDomainService.UpdateDataSourceStatusAsync(
             CodeGenDataSourceApplicationMapper.ToStatusCommand(input), cancellationToken);

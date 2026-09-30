@@ -1,52 +1,172 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Linq.Expressions;
+using Microsoft.Extensions.Options;
 using Moq;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.MultiTenancy.Abstractions;
-using XiHan.BasicApp.Saas.Domain.Permissions;
 
 namespace XiHan.BasicApp.Saas.Tests;
 
 /// <summary>
-/// 字段级安全领域服务测试：FLS 策略写入的读写语义不变量与目标可用性校验。
+/// 字段级安全领域服务测试：规则写入时的实体/字段校验、读取方式与参数的一致性、目标可用性与平台规则归属。
 /// </summary>
 public sealed class FieldLevelSecurityDomainServiceTests
 {
     /// <summary>
-    /// 不可读字段不能设置为可编辑。
+    /// 合法规则写入并规范化：参数只随对应读取方式保留。
     /// </summary>
     [Fact]
-    public async Task Create_UnreadableButEditable_ShouldThrow()
+    public async Task Create_WithValidInput_ShouldPersistNormalizedPolicy()
     {
-        var fixture = CreateFixture();
-        var command = CreateCommand(isReadable: false, isEditable: true);
+        var fixture = new Fixture();
+        var command = CreateCommand(maskStrategy: FieldMaskStrategy.PartialMask, keepHead: 3, keepTail: 4, replacement: "忽略");
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => fixture.Service.CreateAsync(command));
+        var result = await fixture.Service.CreateAsync(command);
 
-        Assert.Contains("不可读字段不能设置为可编辑", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(nameof(SysUser), result.Policy.EntityName);
+        Assert.Equal(nameof(SysUser.Phone), result.Policy.FieldName);
+        Assert.Equal(3, result.Policy.MaskKeepHead);
+        Assert.Equal(4, result.Policy.MaskKeepTail);
+        Assert.Null(result.Policy.MaskReplacement);
+        Assert.False(result.Policy.IsEditable);
+        Assert.Equal("ROLE-10", result.TargetCode);
     }
 
     /// <summary>
-    /// 不可读字段必须指定脱敏策略。
+    /// 实体不在目录里（未登记或拼错）直接拒绝。
     /// </summary>
     [Fact]
-    public async Task Create_UnreadableWithoutMaskStrategy_ShouldThrow()
+    public async Task Create_WithUnknownEntity_ShouldThrow()
     {
-        var fixture = CreateFixture();
-        var command = CreateCommand(
-            isReadable: false,
-            isEditable: false,
-            maskStrategy: FieldMaskStrategy.None);
+        var fixture = new Fixture();
 
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => fixture.Service.CreateAsync(command));
+            () => fixture.Service.CreateAsync(CreateCommand(entityName: "SysRole")));
 
-        Assert.Contains("不可读字段必须指定脱敏策略", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("不支持字段安全", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 字段不在实体里直接拒绝（字段名区分大小写）。
+    /// </summary>
+    [Theory]
+    [InlineData("phone")]
+    [InlineData("Salary")]
+    [InlineData("TenantId")]
+    public async Task Create_WithUnknownField_ShouldThrow(string fieldName)
+    {
+        var fixture = new Fixture();
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.CreateAsync(CreateCommand(fieldName: fieldName)));
+
+        Assert.Contains("没有字段", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 非文本字段只能明文只读或隐藏。
+    /// </summary>
+    [Fact]
+    public async Task Create_TextStrategyOnNonTextField_ShouldThrow()
+    {
+        var fixture = new Fixture();
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.CreateAsync(CreateCommand(fieldName: nameof(SysUser.Birthday), maskStrategy: FieldMaskStrategy.FullMask)));
+
+        Assert.Contains("不是文本字段", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 非文本字段可以隐藏。
+    /// </summary>
+    [Fact]
+    public async Task Create_HiddenOnNonTextField_ShouldPass()
+    {
+        var fixture = new Fixture();
+
+        var result = await fixture.Service.CreateAsync(CreateCommand(fieldName: nameof(SysUser.Birthday), maskStrategy: FieldMaskStrategy.Hidden));
+
+        Assert.Equal(FieldMaskStrategy.Hidden, result.Policy.MaskStrategy);
+    }
+
+    /// <summary>
+    /// 明文且可编辑的规则什么都没限制。
+    /// </summary>
+    [Fact]
+    public async Task Create_PlainAndEditable_ShouldThrow()
+    {
+        var fixture = new Fixture();
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.CreateAsync(CreateCommand(maskStrategy: FieldMaskStrategy.None, isEditable: true)));
+
+        Assert.Contains("什么都没限制", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 脱敏且可编辑是合法的「只写」规则（如只能换新密钥、看不到旧的）。
+    /// </summary>
+    [Fact]
+    public async Task Create_MaskedAndEditable_ShouldBeAcceptedAsWriteOnly()
+    {
+        var fixture = new Fixture();
+
+        var result = await fixture.Service.CreateAsync(CreateCommand(maskStrategy: FieldMaskStrategy.Hidden, isEditable: true));
+
+        Assert.True(result.Policy.IsEditable);
+        Assert.Equal(FieldMaskStrategy.Hidden, result.Policy.MaskStrategy);
+    }
+
+    /// <summary>
+    /// 部分脱敏必须给出保留位数，且在范围内、不能两端都不保留。
+    /// </summary>
+    [Theory]
+    [InlineData(null, 4)]
+    [InlineData(3, null)]
+    [InlineData(-1, 4)]
+    [InlineData(3, 33)]
+    [InlineData(0, 0)]
+    public async Task Create_PartialMaskWithInvalidKeep_ShouldThrow(int? keepHead, int? keepTail)
+    {
+        var fixture = new Fixture();
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.CreateAsync(CreateCommand(maskStrategy: FieldMaskStrategy.PartialMask, keepHead: keepHead, keepTail: keepTail)));
+    }
+
+    /// <summary>
+    /// 固定文本方式必须填写文字，且不超长。
+    /// </summary>
+    [Theory]
+    [InlineData(null)]
+    [InlineData("   ")]
+    public async Task Create_RedactWithoutReplacement_ShouldThrow(string? replacement)
+    {
+        var fixture = new Fixture();
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.CreateAsync(CreateCommand(maskStrategy: FieldMaskStrategy.Redact, replacement: replacement)));
+    }
+
+    /// <summary>
+    /// 固定文本去掉首尾空白后保存，保留位数清空。
+    /// </summary>
+    [Fact]
+    public async Task Create_Redact_ShouldTrimReplacementAndDropKeep()
+    {
+        var fixture = new Fixture();
+
+        var result = await fixture.Service.CreateAsync(CreateCommand(maskStrategy: FieldMaskStrategy.Redact, keepHead: 3, keepTail: 4, replacement: "  [保密]  "));
+
+        Assert.Equal("[保密]", result.Policy.MaskReplacement);
+        Assert.Null(result.Policy.MaskKeepHead);
+        Assert.Null(result.Policy.MaskKeepTail);
     }
 
     /// <summary>
@@ -55,231 +175,183 @@ public sealed class FieldLevelSecurityDomainServiceTests
     [Fact]
     public async Task Create_WithInvalidTargetId_ShouldThrow()
     {
-        var fixture = CreateFixture();
-        var command = CreateCommand(targetId: 0);
+        var fixture = new Fixture();
 
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => fixture.Service.CreateAsync(command));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => fixture.Service.CreateAsync(CreateCommand(targetId: 0)));
     }
 
     /// <summary>
-    /// 资源主键必须大于 0。
+    /// 已删除的「权限」目标类型不再接受。
     /// </summary>
     [Fact]
-    public async Task Create_WithInvalidResourceId_ShouldThrow()
+    public async Task Create_WithRemovedTargetType_ShouldThrow()
     {
-        var fixture = CreateFixture();
-        var command = CreateCommand(resourceId: 0);
+        var fixture = new Fixture();
 
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => fixture.Service.CreateAsync(command));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => fixture.Service.CreateAsync(CreateCommand() with { TargetType = (FieldSecurityTargetType)2 }));
     }
 
     /// <summary>
-    /// 优先级不能为负数。
-    /// </summary>
-    [Fact]
-    public async Task Create_WithNegativePriority_ShouldThrow()
-    {
-        var fixture = CreateFixture();
-        var command = CreateCommand(priority: -1);
-
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => fixture.Service.CreateAsync(command));
-    }
-
-    /// <summary>
-    /// 停用资源不能配置字段级安全策略。
-    /// </summary>
-    [Fact]
-    public async Task Create_WithDisabledResource_ShouldThrow()
-    {
-        var fixture = CreateFixture();
-        fixture.ResourceRepository
-            .Setup(repo => repo.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateResource(1, EnableStatus.Disabled));
-
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => fixture.Service.CreateAsync(CreateCommand()));
-
-        Assert.Contains("停用资源不能配置字段级安全策略", exception.Message, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// 停用角色不能配置字段级安全策略。
+    /// 停用角色不能配置规则。
     /// </summary>
     [Fact]
     public async Task Create_WithDisabledRole_ShouldThrow()
     {
-        var fixture = CreateFixture();
-        fixture.ResourceRepository
-            .Setup(repo => repo.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateResource(1));
-        fixture.RoleRepository
-            .Setup(repo => repo.GetByIdAsync(10, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(CreateRole(10, EnableStatus.Disabled));
+        var fixture = new Fixture();
+        fixture.Roles.Setup(repo => repo.GetByIdAsync(10, It.IsAny<CancellationToken>())).ReturnsAsync(CreateRole(10, EnableStatus.Disabled));
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => fixture.Service.CreateAsync(CreateCommand()));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.CreateAsync(CreateCommand()));
 
-        Assert.Contains("停用角色不能配置字段级安全策略", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("停用角色", exception.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// 同目标+资源+字段的策略已存在时必须拒绝。
+    /// 部门目标：停用部门不能配置规则。
+    /// </summary>
+    [Fact]
+    public async Task Create_WithDisabledDepartment_ShouldThrow()
+    {
+        var fixture = new Fixture();
+        var department = new SysDepartment { DepartmentCode = "D20", DepartmentName = "部门", Status = EnableStatus.Disabled };
+        SaasTestHelper.SetBasicId(department, 20);
+        fixture.Departments.Setup(repo => repo.GetByIdAsync(20, It.IsAny<CancellationToken>())).ReturnsAsync(department);
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.CreateAsync(CreateCommand() with { TargetType = FieldSecurityTargetType.Department, TargetId = 20 }));
+
+        Assert.Contains("停用部门", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 同一目标同一字段只能有一条规则。
     /// </summary>
     [Fact]
     public async Task Create_WithDuplicatePolicy_ShouldThrow()
     {
-        var fixture = CreateFixture();
-        fixture.SetupValidResourceAndRole();
-        fixture.FieldLevelSecurityRepository
-            .Setup(repo => repo.AnyAsync(
-                It.IsAny<System.Linq.Expressions.Expression<Func<SysFieldLevelSecurity, bool>>>(),
-                It.IsAny<CancellationToken>()))
+        var fixture = new Fixture();
+        fixture.Policies
+            .Setup(repo => repo.AnyAsync(It.IsAny<Expression<Func<SysFieldLevelSecurity, bool>>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.CreateAsync(CreateCommand()));
+
+        Assert.Contains("已有规则", exception.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 租户上下文不能改平台规则（平台规则对所有租户生效）。
+    /// </summary>
+    [Fact]
+    public async Task Update_PlatformPolicyFromTenant_ShouldThrow()
+    {
+        var fixture = new Fixture();
+        fixture.SetupExisting(CreatePolicy(tenantId: 0));
+
         var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => fixture.Service.CreateAsync(CreateCommand()));
+            () => fixture.Service.UpdateAsync(new FieldLevelSecurityUpdateCommand(
+                300, FieldSecurityTargetType.Role, 10, nameof(SysUser), nameof(SysUser.Phone), FieldMaskStrategy.Hidden, null, null, null, false, null)));
 
-        Assert.Contains("字段级安全策略已存在", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("只能在平台维护", exception.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// 不脱敏策略应清空脱敏模式（即使调用方传入了模式）。
+    /// 租户上下文不能删平台规则。
     /// </summary>
     [Fact]
-    public async Task Create_WithNoneStrategy_ShouldNormalizeMaskPatternToNull()
+    public async Task Delete_PlatformPolicyFromTenant_ShouldThrow()
     {
-        var fixture = CreateFixture();
-        fixture.SetupValidResourceAndRole();
-        var command = CreateCommand(maskStrategy: FieldMaskStrategy.None, maskPattern: "ignored");
+        var fixture = new Fixture();
+        fixture.SetupExisting(CreatePolicy(tenantId: 0));
 
-        var result = await fixture.Service.CreateAsync(command);
-
-        Assert.Null(result.Policy.MaskPattern);
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.DeleteAsync(300));
     }
 
     /// <summary>
-    /// 合法策略创建成功：字段映射、目标摘要与持久化正确。
-    /// </summary>
-    [Fact]
-    public async Task Create_WithValidInput_ShouldPersistPolicy()
-    {
-        var fixture = CreateFixture();
-        fixture.SetupValidResourceAndRole();
-        var command = CreateCommand();
-
-        var result = await fixture.Service.CreateAsync(command);
-
-        Assert.Equal(300, result.Policy.BasicId);
-        Assert.Equal("Phone", result.Policy.FieldName);
-        Assert.Equal(FieldSecurityTargetType.Role, result.Policy.TargetType);
-        Assert.Equal(10, result.Policy.TargetId);
-        Assert.Equal(1, result.Policy.ResourceId);
-        Assert.Equal("keep:3,4", result.Policy.MaskPattern);
-        Assert.Equal(FieldMaskStrategy.PartialMask, result.Policy.MaskStrategy);
-        Assert.NotNull(result.Resource);
-        Assert.Equal("ROLE-10", result.TargetCode);
-        fixture.FieldLevelSecurityRepository.Verify(
-            repo => repo.AddAsync(It.IsAny<SysFieldLevelSecurity>(), It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    /// <summary>
-    /// 更新命令主键必须大于 0。
-    /// </summary>
-    [Fact]
-    public async Task Update_WithInvalidBasicId_ShouldThrow()
-    {
-        var fixture = CreateFixture();
-        var command = CreateUpdateCommand(basicId: 0);
-
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-            () => fixture.Service.UpdateAsync(command));
-    }
-
-    /// <summary>
-    /// 删除不存在的策略必须拒绝。
+    /// 删除不存在的规则报错。
     /// </summary>
     [Fact]
     public async Task Delete_WhenPolicyMissing_ShouldThrow()
     {
-        var fixture = CreateFixture();
+        var fixture = new Fixture();
 
-        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-            () => fixture.Service.DeleteAsync(404));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.DeleteAsync(999));
 
-        Assert.Contains("字段级安全策略不存在", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("不存在", exception.Message, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// 构造字段级安全创建命令。
+    /// 启用前按当前代码重新校验：字段已随版本移除的规则不能再启用。
     /// </summary>
+    [Fact]
+    public async Task EnableStatus_WhenFieldNoLongerExists_ShouldThrow()
+    {
+        var fixture = new Fixture();
+        var policy = CreatePolicy(tenantId: 7);
+        policy.FieldName = "Salary";
+        policy.Status = EnableStatus.Disabled;
+        fixture.SetupExisting(policy);
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Service.UpdateStatusAsync(new FieldLevelSecurityStatusChangeCommand(300, EnableStatus.Enabled, null)));
+    }
+
+    /// <summary>
+    /// 停用不校验定义，失效的规则也能停用。
+    /// </summary>
+    [Fact]
+    public async Task DisableStatus_WhenFieldNoLongerExists_ShouldPass()
+    {
+        var fixture = new Fixture();
+        var policy = CreatePolicy(tenantId: 7);
+        policy.FieldName = "Salary";
+        fixture.SetupExisting(policy);
+
+        var result = await fixture.Service.UpdateStatusAsync(new FieldLevelSecurityStatusChangeCommand(300, EnableStatus.Disabled, null));
+
+        Assert.Equal(EnableStatus.Disabled, result.Policy.Status);
+    }
+
     private static FieldLevelSecurityCreateCommand CreateCommand(
-        FieldSecurityTargetType targetType = FieldSecurityTargetType.Role,
-        long targetId = 10,
-        long resourceId = 1,
-        bool isReadable = true,
-        bool isEditable = true,
-        FieldMaskStrategy maskStrategy = FieldMaskStrategy.PartialMask,
-        string? maskPattern = "keep:3,4",
-        int priority = 0)
+        string entityName = nameof(SysUser),
+        string fieldName = nameof(SysUser.Phone),
+        FieldMaskStrategy maskStrategy = FieldMaskStrategy.Hidden,
+        int? keepHead = null,
+        int? keepTail = null,
+        string? replacement = null,
+        bool isEditable = false,
+        long targetId = 10)
     {
         return new FieldLevelSecurityCreateCommand(
-            targetType,
+            FieldSecurityTargetType.Role,
             targetId,
-            resourceId,
-            "Phone",
-            isReadable,
-            isEditable,
+            entityName,
+            fieldName,
             maskStrategy,
-            maskPattern,
-            priority,
-            null,
+            keepHead,
+            keepTail,
+            replacement,
+            isEditable,
             EnableStatus.Enabled,
             null);
     }
 
-    /// <summary>
-    /// 构造字段级安全更新命令。
-    /// </summary>
-    private static FieldLevelSecurityUpdateCommand CreateUpdateCommand(long basicId)
+    private static SysFieldLevelSecurity CreatePolicy(long tenantId)
     {
-        return new FieldLevelSecurityUpdateCommand(
-            basicId,
-            FieldSecurityTargetType.Role,
-            10,
-            1,
-            "Phone",
-            true,
-            true,
-            FieldMaskStrategy.PartialMask,
-            "keep:3,4",
-            0,
-            null,
-            null);
-    }
-
-    /// <summary>
-    /// 构造启用/停用资源。
-    /// </summary>
-    private static SysResource CreateResource(long id, EnableStatus status = EnableStatus.Enabled)
-    {
-        var resource = new SysResource
+        var policy = new SysFieldLevelSecurity
         {
-            TenantId = 7,
-            ResourceCode = SaasPermissionCodes.User.Group,
-            ResourceName = "用户",
-            Status = status
+            TenantId = tenantId,
+            TargetType = FieldSecurityTargetType.Role,
+            TargetId = 10,
+            EntityName = nameof(SysUser),
+            FieldName = nameof(SysUser.Phone),
+            MaskStrategy = FieldMaskStrategy.Hidden,
+            Status = EnableStatus.Enabled
         };
-        SaasTestHelper.SetBasicId(resource, id);
-        return resource;
+        SaasTestHelper.SetBasicId(policy, 300);
+        return policy;
     }
 
-    /// <summary>
-    /// 构造启用/停用角色。
-    /// </summary>
     private static SysRole CreateRole(long id, EnableStatus status = EnableStatus.Enabled)
     {
         var role = new SysRole
@@ -294,63 +366,51 @@ public sealed class FieldLevelSecurityDomainServiceTests
     }
 
     /// <summary>
-    /// 创建带仓储模拟的字段级安全测试夹具。
+    /// 领域服务测试夹具：租户 7 上下文，目录只登记 SysUser，角色 10 可用
     /// </summary>
-    private static FieldSecurityFixture CreateFixture()
+    private sealed class Fixture
     {
-        var fieldLevelSecurityRepository = new Mock<IFieldLevelSecurityRepository>();
-        fieldLevelSecurityRepository
-            .Setup(repo => repo.AnyAsync(
-                It.IsAny<System.Linq.Expressions.Expression<Func<SysFieldLevelSecurity, bool>>>(),
-                It.IsAny<CancellationToken>()))
-            .ReturnsAsync(false);
-        fieldLevelSecurityRepository
-            .Setup(repo => repo.AddAsync(It.IsAny<SysFieldLevelSecurity>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((SysFieldLevelSecurity entity, CancellationToken _) =>
-            {
-                SaasTestHelper.SetBasicId(entity, 300);
-                return entity;
-            });
-
-        var resourceRepository = new Mock<IResourceRepository>();
-        var roleRepository = new Mock<IRoleRepository>();
-        var permissionRepository = new Mock<IPermissionRepository>();
-        var departmentRepository = new Mock<IDepartmentRepository>();
-        var tenantUserRepository = new Mock<ITenantUserRepository>();
-        var currentTenant = new Mock<ICurrentTenant>();
-        currentTenant.SetupGet(tenant => tenant.Id).Returns((long?)7);
-
-        var service = new FieldLevelSecurityDomainService(
-            fieldLevelSecurityRepository.Object,
-            resourceRepository.Object,
-            roleRepository.Object,
-            permissionRepository.Object,
-            departmentRepository.Object,
-            tenantUserRepository.Object,
-            currentTenant.Object);
-        return new FieldSecurityFixture(service, fieldLevelSecurityRepository, resourceRepository, roleRepository);
-    }
-
-    /// <summary>
-    /// 字段级安全测试依赖集合。
-    /// </summary>
-    private sealed record FieldSecurityFixture(
-        FieldLevelSecurityDomainService Service,
-        Mock<IFieldLevelSecurityRepository> FieldLevelSecurityRepository,
-        Mock<IResourceRepository> ResourceRepository,
-        Mock<IRoleRepository> RoleRepository)
-    {
-        /// <summary>
-        /// 预设有效资源与有效角色目标。
-        /// </summary>
-        public void SetupValidResourceAndRole()
+        public Fixture()
         {
-            ResourceRepository
-                .Setup(repo => repo.GetByIdAsync(1, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(CreateResource(1));
-            RoleRepository
-                .Setup(repo => repo.GetByIdAsync(10, It.IsAny<CancellationToken>()))
-                .ReturnsAsync(CreateRole(10));
+            Policies
+                .Setup(repo => repo.AnyAsync(It.IsAny<Expression<Func<SysFieldLevelSecurity, bool>>>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
+            Policies
+                .Setup(repo => repo.AddAsync(It.IsAny<SysFieldLevelSecurity>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((SysFieldLevelSecurity entity, CancellationToken _) =>
+                {
+                    SaasTestHelper.SetBasicId(entity, 300);
+                    return entity;
+                });
+            Policies
+                .Setup(repo => repo.UpdateAsync(It.IsAny<SysFieldLevelSecurity>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((SysFieldLevelSecurity entity, CancellationToken _) => entity);
+            Roles.Setup(repo => repo.GetByIdAsync(10, It.IsAny<CancellationToken>())).ReturnsAsync(CreateRole(10));
+
+            var currentTenant = new Mock<ICurrentTenant>();
+            currentTenant.SetupGet(tenant => tenant.Id).Returns(7L);
+
+            Service = new FieldLevelSecurityDomainService(
+                Policies.Object,
+                new FieldSecurityEntityCatalog(Options.Create(new FieldSecurityEntityOptions().Add<SysUser>())),
+                Roles.Object,
+                Departments.Object,
+                new Mock<ITenantUserRepository>().Object,
+                new Mock<IUserRepository>().Object,
+                currentTenant.Object);
+        }
+
+        public FieldLevelSecurityDomainService Service { get; }
+
+        public Mock<IFieldLevelSecurityRepository> Policies { get; } = new();
+
+        public Mock<IRoleRepository> Roles { get; } = new();
+
+        public Mock<IDepartmentRepository> Departments { get; } = new();
+
+        public void SetupExisting(SysFieldLevelSecurity policy)
+        {
+            Policies.Setup(repo => repo.GetByIdAsync(policy.BasicId, It.IsAny<CancellationToken>())).ReturnsAsync(policy);
         }
     }
 }

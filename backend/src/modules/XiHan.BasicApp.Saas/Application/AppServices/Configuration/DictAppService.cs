@@ -7,10 +7,12 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -26,13 +28,16 @@ public sealed class DictAppService
 
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public DictAppService(IDictDomainService dictDomainService, ISaasCacheInvalidator cacheInvalidator)
+    public DictAppService(IDictDomainService dictDomainService, ISaasCacheInvalidator cacheInvalidator, IFieldSecurityService fieldSecurity)
     {
         _dictDomainService = dictDomainService;
         _cacheInvalidator = cacheInvalidator;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -44,6 +49,9 @@ public sealed class DictAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysDict), input, cancellationToken);
 
         var result = await _dictDomainService.CreateDictAsync(DictApplicationMapper.ToCreateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
@@ -59,6 +67,9 @@ public sealed class DictAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysDictItem), input, cancellationToken);
 
         var result = await _dictDomainService.CreateDictItemAsync(DictApplicationMapper.ToItemCreateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
@@ -99,6 +110,9 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysDict), input.BasicId, input, cancellationToken);
+
         var result = await _dictDomainService.UpdateDictAsync(DictApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
         return DictApplicationMapper.ToDetailDto(result.Dict);
@@ -113,6 +127,9 @@ public sealed class DictAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysDictItem), input.BasicId, input, cancellationToken);
 
         var result = await _dictDomainService.UpdateDictItemAsync(DictApplicationMapper.ToItemUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
@@ -129,6 +146,9 @@ public sealed class DictAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysDictItem), input.BasicId, input, cancellationToken);
+
         var result = await _dictDomainService.UpdateDictItemStatusAsync(DictApplicationMapper.ToItemStatusCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);
         return DictApplicationMapper.ToItemDetailDto(result.DictItem);
@@ -143,6 +163,9 @@ public sealed class DictAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysDict), input.BasicId, input, cancellationToken);
 
         var result = await _dictDomainService.UpdateDictStatusAsync(DictApplicationMapper.ToStatusCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateDictionaryAsync(cancellationToken);

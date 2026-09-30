@@ -6,11 +6,13 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -25,15 +27,19 @@ public sealed class ReviewAppService
     private readonly ICurrentUser _currentUser;
     private readonly IReviewDomainService _reviewDomainService;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public ReviewAppService(
         IReviewDomainService reviewDomainService,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IFieldSecurityService fieldSecurity)
     {
         _reviewDomainService = reviewDomainService;
         _currentUser = currentUser;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -62,6 +68,9 @@ public sealed class ReviewAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysReview), input, cancellationToken);
+
         var result = await _reviewDomainService.CreateReviewAsync(
             ReviewApplicationMapper.ToCreateCommand(input, _currentUser.UserId),
             cancellationToken);
@@ -89,6 +98,9 @@ public sealed class ReviewAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysReview), input.BasicId, input, cancellationToken);
+
         var result = await _reviewDomainService.UpdateReviewAsync(ReviewApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return ReviewApplicationMapper.ToDetailDto(result.Review);
     }
@@ -102,6 +114,9 @@ public sealed class ReviewAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysReview), input.BasicId, input, cancellationToken);
 
         var result = await _reviewDomainService.UpdateReviewStatusAsync(ReviewApplicationMapper.ToStatusCommand(input), cancellationToken);
         return ReviewApplicationMapper.ToDetailDto(result.Review);

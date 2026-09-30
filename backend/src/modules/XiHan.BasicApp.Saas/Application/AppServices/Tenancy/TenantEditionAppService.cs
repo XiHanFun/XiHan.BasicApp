@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
@@ -32,6 +33,8 @@ public sealed class TenantEditionAppService
 
     private readonly IOperationPermissionGuard _operationPermissionGuard;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -39,12 +42,14 @@ public sealed class TenantEditionAppService
         ITenantEditionDomainService tenantEditionDomainService,
         ITenantProvisionDomainService tenantProvisionDomainService,
         ISaasCacheInvalidator cacheInvalidator,
-        IOperationPermissionGuard operationPermissionGuard)
+        IOperationPermissionGuard operationPermissionGuard,
+        IFieldSecurityService fieldSecurity)
     {
         _tenantEditionDomainService = tenantEditionDomainService;
         _tenantProvisionDomainService = tenantProvisionDomainService;
         _cacheInvalidator = cacheInvalidator;
         _operationPermissionGuard = operationPermissionGuard;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -56,6 +61,9 @@ public sealed class TenantEditionAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysTenantEdition), input, cancellationToken);
 
         var result = await _tenantEditionDomainService.CreateTenantEditionAsync(TenantEditionApplicationMapper.ToCreateCommand(input), cancellationToken);
 
@@ -74,6 +82,9 @@ public sealed class TenantEditionAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysTenantEdition), input.BasicId, input, cancellationToken);
 
         var result = await _tenantEditionDomainService.UpdateDefaultTenantEditionAsync(
             TenantEditionApplicationMapper.ToDefaultCommand(input),
@@ -95,6 +106,9 @@ public sealed class TenantEditionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysTenantEdition), input.BasicId, input, cancellationToken);
+
         var result = await _tenantEditionDomainService.UpdateTenantEditionAsync(TenantEditionApplicationMapper.ToUpdateCommand(input), cancellationToken);
 
         // 版本变更影响已启用版本列表缓存，统一失效
@@ -112,6 +126,9 @@ public sealed class TenantEditionAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysTenantEdition), input.BasicId, input, cancellationToken);
 
         var result = await _tenantEditionDomainService.UpdateTenantEditionStatusAsync(
             TenantEditionApplicationMapper.ToStatusCommand(input),

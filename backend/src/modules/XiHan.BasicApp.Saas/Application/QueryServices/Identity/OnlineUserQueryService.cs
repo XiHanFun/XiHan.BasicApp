@@ -97,8 +97,8 @@ public sealed class OnlineUserQueryService
             _ = request.Conditions.AddFilters(filters);
         }
 
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.UserSession.Group, cancellationToken);
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.UserSession.Group, cancellationToken);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysUserSession), cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             request.Conditions.AddSort((SysUserSession session) => session.LastActivityTime, SortDirection.Descending);

@@ -18,8 +18,6 @@ public sealed class PermissionCatalogDomainService
 {
     private readonly ICurrentTenant _currentTenant;
 
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
-
     private readonly IMenuRepository _menuRepository;
 
     private readonly IOperationRepository _operationRepository;
@@ -51,7 +49,6 @@ public sealed class PermissionCatalogDomainService
         IMenuRepository menuRepository,
         IPermissionDelegationRepository permissionDelegationRepository,
         IPermissionRequestRepository permissionRequestRepository,
-        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
         ICurrentTenant currentTenant)
     {
         _permissionRepository = permissionRepository;
@@ -63,7 +60,6 @@ public sealed class PermissionCatalogDomainService
         _menuRepository = menuRepository;
         _permissionDelegationRepository = permissionDelegationRepository;
         _permissionRequestRepository = permissionRequestRepository;
-        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
         _currentTenant = currentTenant;
     }
 
@@ -736,11 +732,6 @@ public sealed class PermissionCatalogDomainService
         {
             throw new InvalidOperationException("权限已被权限申请引用，不能删除。");
         }
-
-        if (await _fieldLevelSecurityRepository.AnyAsync(policy => policy.TargetType == FieldSecurityTargetType.Permission && policy.TargetId == permissionId, cancellationToken))
-        {
-            throw new InvalidOperationException("权限已被字段级安全策略引用，不能删除。");
-        }
     }
 
     private async Task EnsureResourceNotReferencedAsync(long resourceId, CancellationToken cancellationToken)
@@ -748,11 +739,6 @@ public sealed class PermissionCatalogDomainService
         if (await _permissionRepository.AnyAsync(permission => permission.ResourceId == resourceId, cancellationToken))
         {
             throw new InvalidOperationException("资源已被权限定义引用，不能删除。");
-        }
-
-        if (await _fieldLevelSecurityRepository.AnyAsync(policy => policy.ResourceId == resourceId, cancellationToken))
-        {
-            throw new InvalidOperationException("资源已被字段级安全策略引用，不能删除。");
         }
     }
 

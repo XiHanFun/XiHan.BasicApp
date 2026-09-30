@@ -5,6 +5,7 @@ using System.Globalization;
 using XiHan.BasicApp.Workflow.Application.Contracts;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.BasicApp.Workflow.Application.Mappers;
+using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
@@ -12,6 +13,7 @@ using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Exceptions;
 using XiHan.Framework.Workflow.Builders;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Workflow.Application.AppServices;
 
@@ -27,12 +29,15 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
 {
     private readonly IWorkflowDefinitionManager _definitionManager;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public WorkflowDefinitionAppService(IWorkflowDefinitionManager definitionManager)
+    public WorkflowDefinitionAppService(IWorkflowDefinitionManager definitionManager, IFieldSecurityService fieldSecurity)
     {
         _definitionManager = definitionManager;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -42,6 +47,9 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
     public async Task<WorkflowDefinitionDetailDto> CreateAsync(WorkflowDefinitionCreateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysWorkflowDefinition), input, cancellationToken);
 
         var definition = ParseDefinition(input.DefinitionJson);
         var created = await TranslateAsync(() => _definitionManager.CreateAsync(definition, cancellationToken));
@@ -55,6 +63,10 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
     public async Task<WorkflowDefinitionDetailDto> UpdateDraftAsync(WorkflowDefinitionUpdateDraftDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysWorkflowDefinition), input.BasicId, input, cancellationToken);
+
         RequirePositiveKey(input.BasicId, nameof(input));
 
         var definition = ParseDefinition(input.DefinitionJson);

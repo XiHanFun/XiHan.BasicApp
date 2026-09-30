@@ -25,6 +25,7 @@ public sealed class RoleDeleteReferenceTests
     private readonly List<SysUserRole> _userRoles = [];
     private readonly List<SysRolePermission> _rolePermissions = [];
     private readonly List<SysRoleDataScope> _dataScopes = [];
+    private readonly List<SysFieldLevelSecurity> _fieldSecurities = [];
     private readonly Mock<IRoleRepository> _roles = new();
 
     /// <summary>
@@ -51,6 +52,7 @@ public sealed class RoleDeleteReferenceTests
     [InlineData("user", "已分配给用户")]
     [InlineData("permission", "已绑定权限")]
     [InlineData("dataScope", "已配置数据范围")]
+    [InlineData("fieldSecurity", "已配置字段安全规则")]
     public async Task DeleteRole_WithValidBinding_IsRejected(string binding, string expectedMessage)
     {
         switch (binding)
@@ -60,6 +62,9 @@ public sealed class RoleDeleteReferenceTests
                 break;
             case "permission":
                 _rolePermissions.Add(new SysRolePermission { TenantId = TenantId, RoleId = RoleId, PermissionId = 100, Status = ValidityStatus.Valid });
+                break;
+            case "fieldSecurity":
+                _fieldSecurities.Add(new SysFieldLevelSecurity { TenantId = TenantId, TargetType = FieldSecurityTargetType.Role, TargetId = RoleId, EntityName = nameof(SysUser), FieldName = nameof(SysUser.Phone), MaskStrategy = FieldMaskStrategy.Hidden });
                 break;
             default:
                 _dataScopes.Add(new SysRoleDataScope { TenantId = TenantId, RoleId = RoleId, DepartmentId = 9, Status = ValidityStatus.Valid });
@@ -92,6 +97,11 @@ public sealed class RoleDeleteReferenceTests
             .Setup(repo => repo.AnyAsync(It.IsAny<Expression<Func<SysRoleDataScope, bool>>>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((Expression<Func<SysRoleDataScope, bool>> predicate, CancellationToken _) => _dataScopes.Any(predicate.Compile()));
 
+        var fieldSecurities = new Mock<IFieldLevelSecurityRepository>();
+        _ = fieldSecurities
+            .Setup(repo => repo.AnyAsync(It.IsAny<Expression<Func<SysFieldLevelSecurity, bool>>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Expression<Func<SysFieldLevelSecurity, bool>> predicate, CancellationToken _) => _fieldSecurities.Any(predicate.Compile()));
+
         return new RoleDomainService(
             _roles.Object,
             userRoles.Object,
@@ -100,6 +110,7 @@ public sealed class RoleDeleteReferenceTests
             dataScopes.Object,
             new Mock<IPermissionRepository>().Object,
             new Mock<IDepartmentRepository>().Object,
+            fieldSecurities.Object,
             new TestCurrentTenant(TenantId));
     }
 }

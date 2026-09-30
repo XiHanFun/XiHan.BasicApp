@@ -7,10 +7,12 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -26,13 +28,16 @@ public sealed class ConfigAppService
 
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ConfigAppService(IConfigDomainService configDomainService, ISaasCacheInvalidator cacheInvalidator)
+    public ConfigAppService(IConfigDomainService configDomainService, ISaasCacheInvalidator cacheInvalidator, IFieldSecurityService fieldSecurity)
     {
         _configDomainService = configDomainService;
         _cacheInvalidator = cacheInvalidator;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -44,6 +49,9 @@ public sealed class ConfigAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysConfig), input, cancellationToken);
 
         var result = await _configDomainService.CreateConfigAsync(ConfigApplicationMapper.ToCreateCommand(input), cancellationToken);
 
@@ -77,6 +85,9 @@ public sealed class ConfigAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysConfig), input.BasicId, input, cancellationToken);
+
         var result = await _configDomainService.UpdateConfigAsync(ConfigApplicationMapper.ToUpdateCommand(input), cancellationToken);
 
         // 配置变更影响运行时配置值缓存，统一全失效
@@ -94,6 +105,9 @@ public sealed class ConfigAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysConfig), input.BasicId, input, cancellationToken);
 
         var result = await _configDomainService.UpdateConfigStatusAsync(ConfigApplicationMapper.ToStatusCommand(input), cancellationToken);
 

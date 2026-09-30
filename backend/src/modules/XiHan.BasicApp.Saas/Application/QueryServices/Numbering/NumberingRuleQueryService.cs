@@ -111,9 +111,7 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
         ArgumentNullException.ThrowIfNull(input);
         // 先把模糊的 Auto 作用域解析为明确数据库和所属租户，后续查询不再自行猜测作用域。
         var scope = ResolveQueryScope(input.Scope);
-        return await ExecuteInScopeAsync(
-            scope,
-            () => QueryRulePageCoreAsync(input, scope, availableGlobalOnly: scope.IsGlobal && scope.RequestTenantId > 0, cancellationToken));
+        return await QueryRulePageAsync(input, scope, availableGlobalOnly: scope.IsGlobal && scope.RequestTenantId > 0, cancellationToken);
     }
 
     /// <summary>
@@ -133,9 +131,7 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
     {
         ArgumentNullException.ThrowIfNull(input);
         var scope = new NumberingQueryScope(0, true, _currentTenant.Id ?? 0);
-        return await ExecuteInScopeAsync(
-            scope,
-            () => QueryRulePageCoreAsync(input, scope, availableGlobalOnly: true, cancellationToken));
+        return await QueryRulePageAsync(input, scope, availableGlobalOnly: true, cancellationToken);
     }
 
     /// <summary>
@@ -201,7 +197,10 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
         }
 
         var scope = ResolveQueryScope(input.Scope);
-        return await ExecuteInScopeAsync(scope, () => QueryAllocationPageCoreAsync(input, scope, cancellationToken));
+        var request = BuildAllocationPageRequest(input);
+        // 字段安全门控按请求方判定，放在切到平台上下文之前
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysNumberingAllocation), cancellationToken);
+        return await ExecuteInScopeAsync(scope, () => QueryAllocationPageCoreAsync(input, request, scope, cancellationToken));
     }
 
     /// <summary>
@@ -328,24 +327,35 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
     }
 
     /// <summary>
-    /// 在已选数据库内执行规则分页，并在字段安全校验后追加不可被前端覆盖的作用域约束。
+    /// 规则分页：字段安全门控在请求方上下文里做，读全局规则时只有查询本身切到平台上下文。
     /// </summary>
-    /// <param name="input">原始规则分页 DTO。</param>
-    /// <param name="scope">已经解析的规则所属租户、数据库位置和原请求租户。</param>
-    /// <param name="availableGlobalOnly">是否强制仅返回已启用且允许租户使用的全局规则。</param>
-    /// <param name="cancellationToken">用于取消字段安全校验和数据库查询的取消令牌。</param>
-    /// <returns>映射为列表 DTO 的规则分页结果。</returns>
-    /// <exception cref="OperationCanceledException">查询被 <paramref name="cancellationToken"/> 取消。</exception>
-    private async Task<PageResultDtoBase<NumberingRuleListItemDto>> QueryRulePageCoreAsync(
+    /// <remarks>字段规则按当前用户在所属租户的角色与部门判定；放进平台上下文会查到平台侧的角色与规则。</remarks>
+    private async Task<PageResultDtoBase<NumberingRuleListItemDto>> QueryRulePageAsync(
         NumberingRulePageQueryDto input,
         NumberingQueryScope scope,
         bool availableGlobalOnly,
         CancellationToken cancellationToken)
     {
         var request = BuildRulePageRequest(input);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Numbering.Group, cancellationToken);
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Numbering.Group, cancellationToken);
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysNumberingRule), cancellationToken);
+        return await ExecuteInScopeAsync(scope, () => QueryRulePageCoreAsync(request, scope, availableGlobalOnly, cancellationToken));
+    }
 
+    /// <summary>
+    /// 在已选数据库内执行规则分页，并在字段安全校验后追加不可被前端覆盖的作用域约束。
+    /// </summary>
+    /// <param name="request">已经过字段安全门控的规则分页请求。</param>
+    /// <param name="scope">已经解析的规则所属租户、数据库位置和原请求租户。</param>
+    /// <param name="availableGlobalOnly">是否强制仅返回已启用且允许租户使用的全局规则。</param>
+    /// <param name="cancellationToken">用于取消数据库查询的取消令牌。</param>
+    /// <returns>映射为列表 DTO 的规则分页结果。</returns>
+    /// <exception cref="OperationCanceledException">查询被 <paramref name="cancellationToken"/> 取消。</exception>
+    private async Task<PageResultDtoBase<NumberingRuleListItemDto>> QueryRulePageCoreAsync(
+        BasicAppPRDto request,
+        NumberingQueryScope scope,
+        bool availableGlobalOnly,
+        CancellationToken cancellationToken)
+    {
         // 内部强制过滤必须放在字段安全处理后，避免租户输入覆盖所属范围或全局开放状态。
         request.Conditions.AddFilter((SysNumberingRule rule) => rule.TenantId, scope.OwnerTenantId);
         if (availableGlobalOnly)
@@ -374,6 +384,7 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
     /// 在已选数据库内执行发号记录分页，并校验租户只能查看自己的全局规则调用记录。
     /// </summary>
     /// <param name="input">包含规则主键的发号记录分页 DTO。</param>
+    /// <param name="request">已经过字段安全门控的发号记录分页请求。</param>
     /// <param name="scope">已经解析的规则所属租户、数据库位置和原请求租户。</param>
     /// <param name="cancellationToken">用于取消规则查询、字段安全校验和分页查询的取消令牌。</param>
     /// <returns>映射为审计列表 DTO 的永久分配记录分页结果。</returns>
@@ -381,6 +392,7 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
     /// <exception cref="OperationCanceledException">查询被 <paramref name="cancellationToken"/> 取消。</exception>
     private async Task<PageResultDtoBase<NumberingAllocationListItemDto>> QueryAllocationPageCoreAsync(
         NumberingAllocationPageQueryDto input,
+        BasicAppPRDto request,
         NumberingQueryScope scope,
         CancellationToken cancellationToken)
     {
@@ -391,9 +403,6 @@ public sealed class NumberingRuleQueryService : SaasApplicationService, INumberi
             throw new UserFriendlyException("该全局编号规则未向当前租户开放。");
         }
 
-        var request = BuildAllocationPageRequest(input);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Numbering.Group, cancellationToken);
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Numbering.Group, cancellationToken);
         request.Conditions.AddFilter((SysNumberingAllocation allocation) => allocation.TenantId, scope.OwnerTenantId);
         request.Conditions.AddFilter((SysNumberingAllocation allocation) => allocation.RuleId, input.RuleId);
         if (scope.IsGlobal && scope.RequestTenantId > 0)

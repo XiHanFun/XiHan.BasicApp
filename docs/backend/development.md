@@ -146,7 +146,7 @@ public async Task<PageResultDtoBase<PositionListItemDto>> GetPositionPageAsync(
     PositionPageQueryDto input, CancellationToken cancellationToken = default) { … }
 ```
 
-读侧还应经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 做 FLS 门控（剔除不可读/已脱敏字段），无有效排序时回退默认排序。
+实体要支持字段安全时，在模块服务注册里登记（`AddFieldSecurityEntities(e => e.Add<SysXxx>())`），并落地两处：查询构建完条件后 `GuardQueryAsync(request.Conditions, typeof(SysXxx), ct)`（强制约束放在其后），应用服务新建与修改前 `EnsureCreatableAsync` / `EnsureUpdatableAsync`。读脱敏不用接线——响应过滤器按映射器认出 DTO 统一打码，所以 DTO 要经 `XxxApplicationMapper` 从实体生成，改名的属性加 `[FieldSecuritySource]`。缺任一处 `FieldSecurityEntityWiringTests` 会失败，详见 [数据权限](./data-permission#字段级安全列级)。
 
 #### 6. 前端页面
 

@@ -455,13 +455,11 @@ export const FIELD_MASK_STRATEGY_OPTIONS = [
   { label: '部分脱敏', value: FieldMaskStrategy.PartialMask },
   { label: '哈希', value: FieldMaskStrategy.Hash },
   { label: '固定替换', value: FieldMaskStrategy.Redact },
-  { label: '自定义', value: FieldMaskStrategy.Custom },
 ]
 
 export const FIELD_SECURITY_TARGET_TYPE_OPTIONS = [
   { label: '角色', value: FieldSecurityTargetType.Role },
   { label: '用户', value: FieldSecurityTargetType.User },
-  { label: '权限', value: FieldSecurityTargetType.Permission },
   { label: '部门', value: FieldSecurityTargetType.Department },
 ]
 

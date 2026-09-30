@@ -70,9 +70,6 @@ public sealed class EndpointAuthorizationCoverageTests
             // ImportHistoryQueryService（1）：导入历史归属当前用户
             "ImportHistoryQueryService.GetMineAsync",
 
-            // MyFieldSecurityAppService（1）：下发当前主体的字段权限，边界在 IFieldSecurityService.ResolveAsync 内按调用者解析
-            "MyFieldSecurityAppService.GetMineAsync",
-
             // MyOAuthAppAppService（6）：自有 OAuth 应用，写路径经 GetOwnedOrThrowAsync 校验 CreatedId 为本人
             "MyOAuthAppAppService.CreateMyOAuthAppAsync",
             "MyOAuthAppAppService.DeleteMyOAuthAppAsync",

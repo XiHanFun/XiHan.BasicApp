@@ -7,10 +7,12 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -26,15 +28,19 @@ public sealed class MessageTemplateAppService
 
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public MessageTemplateAppService(
         IMessageTemplateDomainService messageTemplateDomainService,
-        ISaasCacheInvalidator cacheInvalidator)
+        ISaasCacheInvalidator cacheInvalidator,
+        IFieldSecurityService fieldSecurity)
     {
         _messageTemplateDomainService = messageTemplateDomainService;
         _cacheInvalidator = cacheInvalidator;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -46,6 +52,9 @@ public sealed class MessageTemplateAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysMessageTemplate), input, cancellationToken);
 
         var result = await _messageTemplateDomainService.CreateAsync(MessageTemplateApplicationMapper.ToCreateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateMessageTemplateAsync(cancellationToken);
@@ -62,6 +71,9 @@ public sealed class MessageTemplateAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysMessageTemplate), input.BasicId, input, cancellationToken);
+
         var result = await _messageTemplateDomainService.UpdateAsync(MessageTemplateApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateMessageTemplateAsync(cancellationToken);
         return MessageTemplateApplicationMapper.ToDetailDto(result.Template);
@@ -76,6 +88,9 @@ public sealed class MessageTemplateAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysMessageTemplate), input.BasicId, input, cancellationToken);
 
         var result = await _messageTemplateDomainService.UpdateStatusAsync(MessageTemplateApplicationMapper.ToStatusCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateMessageTemplateAsync(cancellationToken);

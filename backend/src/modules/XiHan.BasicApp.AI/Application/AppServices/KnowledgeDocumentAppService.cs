@@ -6,9 +6,11 @@ using XiHan.BasicApp.AI.Application.Contracts;
 using XiHan.BasicApp.AI.Application.Dtos;
 using XiHan.BasicApp.AI.Application.Mappers;
 using XiHan.BasicApp.AI.Domain.DomainServices;
+using XiHan.BasicApp.AI.Domain.Entities;
 using XiHan.BasicApp.AI.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.AI.Application.AppServices;
 
@@ -21,12 +23,15 @@ public sealed class KnowledgeDocumentAppService : AiApplicationService, IKnowled
 {
     private readonly IKnowledgeDocumentDomainService _documentDomainService;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public KnowledgeDocumentAppService(IKnowledgeDocumentDomainService documentDomainService)
+    public KnowledgeDocumentAppService(IKnowledgeDocumentDomainService documentDomainService, IFieldSecurityService fieldSecurity)
     {
         _documentDomainService = documentDomainService;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -38,6 +43,9 @@ public sealed class KnowledgeDocumentAppService : AiApplicationService, IKnowled
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysKnowledgeDocument), input, cancellationToken);
 
         var result = await _documentDomainService.IngestAsync(KnowledgeApplicationMapper.ToIngestCommand(input), cancellationToken);
         return KnowledgeApplicationMapper.ToDetailDto(result.Document);

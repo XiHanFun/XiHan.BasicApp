@@ -133,7 +133,7 @@ public async Task<PositionDetailDto> CreatePositionAsync(PositionCreateDto input
 
 ### 读侧
 
-`*QueryService` 直接投影，多数带分布式缓存。读路径还会经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 做字段级门控——只有「可读且未脱敏」的字段允许参与过滤与排序。
+`*QueryService` 直接投影，多数带分布式缓存。读路径还会经 `IFieldSecurityService.GuardQueryAsync` 做字段级门控——只有能看明文的字段允许参与排序、过滤与关键字搜索；接口返回前由 `FieldSecurityResponseFilter` 统一按实体打码（排在响应缓存外层）。
 
 ## 收尾顺序（最容易踩的时序）
 

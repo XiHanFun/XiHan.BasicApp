@@ -116,20 +116,6 @@ public sealed class SaasAppEventHandlerCacheTests
     }
 
     /// <summary>
-    /// 字段级安全策略影响所有相关用户的数据视图，只能整体失效授权缓存。
-    /// </summary>
-    [Fact]
-    public async Task FieldLevelSecurityChanged_ShouldAlwaysInvalidateAllAuthorization()
-    {
-        var handler = new FieldLevelSecurityChangedEventHandler(_invalidator.Object, NullLogger<FieldLevelSecurityChangedEventHandler>.Instance);
-
-        await handler.HandleEventAsync(new FieldLevelSecurityChangedDomainEvent(
-            1, 10, FieldSecurityTargetType.Role, 20, 30, "Phone", isReadable: true, isEditable: false, FieldMaskStrategy.PartialMask));
-
-        _invalidator.Verify(target => target.InvalidateAuthorizationAsync(null, It.IsAny<CancellationToken>()), Times.Once);
-    }
-
-    /// <summary>
     /// 组织层级变更影响菜单树，必须失效导航缓存。
     /// </summary>
     [Fact]

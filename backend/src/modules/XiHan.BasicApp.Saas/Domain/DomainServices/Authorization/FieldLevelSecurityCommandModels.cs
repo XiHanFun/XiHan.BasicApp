@@ -12,14 +12,13 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed record FieldLevelSecurityCreateCommand(
     FieldSecurityTargetType TargetType,
     long TargetId,
-    long ResourceId,
+    string EntityName,
     string FieldName,
-    bool IsReadable,
-    bool IsEditable,
     FieldMaskStrategy MaskStrategy,
-    string? MaskPattern,
-    int Priority,
-    string? Description,
+    int? MaskKeepHead,
+    int? MaskKeepTail,
+    string? MaskReplacement,
+    bool IsEditable,
     EnableStatus Status,
     string? Remark);
 
@@ -30,14 +29,13 @@ public sealed record FieldLevelSecurityUpdateCommand(
     long BasicId,
     FieldSecurityTargetType TargetType,
     long TargetId,
-    long ResourceId,
+    string EntityName,
     string FieldName,
-    bool IsReadable,
-    bool IsEditable,
     FieldMaskStrategy MaskStrategy,
-    string? MaskPattern,
-    int Priority,
-    string? Description,
+    int? MaskKeepHead,
+    int? MaskKeepTail,
+    string? MaskReplacement,
+    bool IsEditable,
     string? Remark);
 
 /// <summary>
@@ -50,6 +48,5 @@ public sealed record FieldLevelSecurityStatusChangeCommand(long BasicId, EnableS
 /// </summary>
 public sealed record FieldLevelSecurityCommandResult(
     SysFieldLevelSecurity Policy,
-    SysResource? Resource,
     string? TargetCode,
     string? TargetName);

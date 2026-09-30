@@ -112,10 +112,8 @@ public sealed class TenantQueryService
 
         var request = BuildTenantPageRequest(input);
 
-        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Tenant.Group, cancellationToken);
-        // 过滤：FLS 门控剔除不可读/已脱敏字段（时间区间 Between / 枚举多选 In）
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Tenant.Group, cancellationToken);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysTenant), cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyTenantSorts(request);

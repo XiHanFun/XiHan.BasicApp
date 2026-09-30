@@ -31,6 +31,7 @@ public class XiHanBasicAppWorkflowModule : XiHanModule
 
         // 仓储与应用服务由框架约定扫描自动注册；此处登记存储替换、种子与事件处理器
         services.AddWorkflowStores();
+        services.AddWorkflowFieldSecurityEntities();
         services.AddWorkflowDataSeeders();
         services.AddWorkflowEventHandlers();
     }

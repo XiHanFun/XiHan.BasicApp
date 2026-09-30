@@ -42,7 +42,7 @@
 | `Sys_Permission_Condition` | `SysPermissionCondition` | ABAC 属性条件 |
 | `Sys_Permission_Delegation` | `SysPermissionDelegation` | 权限委托 |
 | `Sys_Permission_Request` | `SysPermissionRequest` | 权限申请 |
-| `Sys_Field_Level_Security` | `SysFieldLevelSecurity` | 字段级安全（可读 / 可编辑 / 脱敏策略） |
+| `Sys_Field_Level_Security` | `SysFieldLevelSecurity` | 字段级安全（实体 × 字段 × 目标：读取方式 / 可编辑） |
 | `Sys_Constraint_Rule` / `Sys_Constraint_Rule_Item` | — | 约束规则引擎（SSD / DSD / 互斥 / 基数…） |
 | `Sys_Session_Role` | `SysSessionRole` | 会话角色映射 |
 

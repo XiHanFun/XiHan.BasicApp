@@ -31,6 +31,8 @@ public sealed class RoleDomainService
 
     private readonly IDepartmentRepository _departmentRepository;
 
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+
     private readonly ICurrentTenant _currentTenant;
 
     /// <summary>
@@ -44,6 +46,7 @@ public sealed class RoleDomainService
         IRoleDataScopeRepository roleDataScopeRepository,
         IPermissionRepository permissionRepository,
         IDepartmentRepository departmentRepository,
+        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
         ICurrentTenant currentTenant)
     {
         _roleRepository = roleRepository;
@@ -53,6 +56,7 @@ public sealed class RoleDomainService
         _roleDataScopeRepository = roleDataScopeRepository;
         _permissionRepository = permissionRepository;
         _departmentRepository = departmentRepository;
+        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
         _currentTenant = currentTenant;
     }
 
@@ -851,6 +855,14 @@ public sealed class RoleDomainService
                 cancellationToken))
         {
             throw new InvalidOperationException("角色已配置数据范围，不能删除。");
+        }
+
+        // 字段安全规则按角色生效，角色删了规则就成了孤儿；与部门一致，先删规则再删角色
+        if (await _fieldLevelSecurityRepository.AnyAsync(
+                rule => rule.TargetType == FieldSecurityTargetType.Role && rule.TargetId == roleId,
+                cancellationToken))
+        {
+            throw new InvalidOperationException("角色已配置字段安全规则，不能删除。");
         }
     }
 

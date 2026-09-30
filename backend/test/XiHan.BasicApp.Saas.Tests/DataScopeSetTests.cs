@@ -387,6 +387,7 @@ public sealed class DataScopeSetTests
                 DataScopeRepository.Object,
                 new Mock<IPermissionRepository>().Object,
                 CreateDepartmentRepository().Object,
+                new Mock<IFieldLevelSecurityRepository>().Object,
                 new TestCurrentTenant(contextTenantId));
         }
 

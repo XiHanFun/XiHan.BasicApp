@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
@@ -17,6 +18,7 @@ using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -56,6 +58,8 @@ public sealed class NumberingRuleAppService : SaasApplicationService, INumbering
     /// </summary>
     private readonly ILogger<NumberingRuleAppService> _logger;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 初始化业务编号规则命令服务。
     /// </summary>
@@ -64,18 +68,21 @@ public sealed class NumberingRuleAppService : SaasApplicationService, INumbering
     /// <param name="currentUser">当前用户。</param>
     /// <param name="permissionChecker">权限检查器。</param>
     /// <param name="logger">结构化日志记录器。</param>
+    /// <param name="fieldSecurity">字段安全服务。</param>
     public NumberingRuleAppService(
         INumberingRuleDomainService domainService,
         ICurrentTenant currentTenant,
         ICurrentUser currentUser,
         IPermissionChecker permissionChecker,
-        ILogger<NumberingRuleAppService> logger)
+        ILogger<NumberingRuleAppService> logger,
+        IFieldSecurityService fieldSecurity)
     {
         _domainService = domainService;
         _currentTenant = currentTenant;
         _currentUser = currentUser;
         _permissionChecker = permissionChecker;
         _logger = logger;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -95,6 +102,10 @@ public sealed class NumberingRuleAppService : SaasApplicationService, INumbering
     public async Task<NumberingRuleDetailDto> CreateNumberingRuleAsync(NumberingRuleCreateDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysNumberingRule), input, cancellationToken);
+
         // 在调用领域服务前固定可写边界，避免平台/租户仅凭 DTO 中的 Scope 跨范围写入规则。
         await EnsureWritableScopeAsync(input.Scope, cancellationToken);
         try
@@ -127,6 +138,10 @@ public sealed class NumberingRuleAppService : SaasApplicationService, INumbering
     {
         ArgumentNullException.ThrowIfNull(input);
         await EnsureWritableScopeAsync(input.Scope, cancellationToken);
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysNumberingRule), input.BasicId, input, cancellationToken);
+
         try
         {
             var result = await _domainService.UpdateAsync(NumberingApplicationMapper.ToUpdateCommand(input), cancellationToken);
@@ -156,6 +171,10 @@ public sealed class NumberingRuleAppService : SaasApplicationService, INumbering
     {
         ArgumentNullException.ThrowIfNull(input);
         await EnsureWritableScopeAsync(input.Scope, cancellationToken);
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysNumberingRule), input.BasicId, input, cancellationToken);
+
         try
         {
             var result = await _domainService.UpdateStatusAsync(

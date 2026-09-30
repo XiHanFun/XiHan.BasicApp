@@ -10,6 +10,8 @@ using XiHan.BasicApp.Printing.Domain.DataSources;
 using XiHan.BasicApp.Printing.Domain.DomainServices;
 using XiHan.BasicApp.Printing.Infrastructure.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
+using XiHan.BasicApp.Printing.Domain.Entities;
+using XiHan.BasicApp.Saas.Extensions;
 
 namespace XiHan.BasicApp.Printing.Extensions;
 
@@ -84,5 +86,16 @@ public static class ServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(definition);
         services.AddSingleton(new PrintDataSourceRegistration(definition));
         return services;
+    }
+
+    /// <summary>
+    /// 登记打印模块可配置字段安全的实体
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddPrintingFieldSecurityEntities(this IServiceCollection services)
+    {
+        return services.AddFieldSecurityEntities(entities => entities
+            .Add<SysPrintTemplate>());
     }
 }

@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 public sealed class FieldLevelSecurityPageQueryDto : BasicAppPRDto
 {
     /// <summary>
-    /// 关键字（字段名、策略描述、脱敏模式、备注）
+    /// 关键字（字段名、备注）
     /// </summary>
     public string? Keyword { get; set; }
 
@@ -23,17 +23,17 @@ public sealed class FieldLevelSecurityPageQueryDto : BasicAppPRDto
     public FieldSecurityTargetType? TargetType { get; set; }
 
     /// <summary>
-    /// 目标主键
+    /// 目标ID
     /// </summary>
     public long? TargetId { get; set; }
 
     /// <summary>
-    /// 资源主键
+    /// 实体名
     /// </summary>
-    public long? ResourceId { get; set; }
+    public string? EntityName { get; set; }
 
     /// <summary>
-    /// 脱敏策略
+    /// 读取方式
     /// </summary>
     public FieldMaskStrategy? MaskStrategy { get; set; }
 

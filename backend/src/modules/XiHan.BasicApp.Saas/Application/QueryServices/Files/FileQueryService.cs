@@ -71,15 +71,12 @@ public sealed class FileQueryService
 
         var request = BuildFilePageRequest(input);
 
-        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段（防按受保护字段排序泄漏真实顺序）；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.File.Group, cancellationToken);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysFile), cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyFileSorts(request);
         }
-
-        // 过滤：前端区间(Between)/多选(In) 经 conditions.filters 下发，同样 FLS 门控剔除不可读/已脱敏字段
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.File.Group, cancellationToken);
 
         var files = await _fileRepository.GetPagedAsync(request, cancellationToken);
         return files.Map(FileApplicationMapper.ToListItemDto);
@@ -119,6 +116,8 @@ public sealed class FileQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildFileStoragePageRequest(input);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysFileStorage), cancellationToken);
         var storages = await _fileStorageRepository.GetPagedAsync(request, cancellationToken);
         return storages.Map(FileApplicationMapper.ToStorageListItemDto);
     }

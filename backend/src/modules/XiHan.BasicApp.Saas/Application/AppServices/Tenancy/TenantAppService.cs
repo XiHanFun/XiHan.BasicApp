@@ -9,6 +9,7 @@ using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authentication.Users;
@@ -17,6 +18,7 @@ using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -46,6 +48,8 @@ public sealed class TenantAppService
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthenticationService _authenticationService;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -56,7 +60,8 @@ public sealed class TenantAppService
         IPasswordHasher passwordHasher,
         IAuthenticationService authenticationService,
         ICurrentUser currentUser,
-        ISaasCacheInvalidator cacheInvalidator)
+        ISaasCacheInvalidator cacheInvalidator,
+        IFieldSecurityService fieldSecurity)
     {
         _tenantDomainService = tenantDomainService;
         _tenantProvisionDomainService = tenantProvisionDomainService;
@@ -65,6 +70,7 @@ public sealed class TenantAppService
         _authenticationService = authenticationService;
         _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -76,6 +82,9 @@ public sealed class TenantAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysTenant), input, cancellationToken);
 
         var result = await _tenantDomainService.CreateTenantAsync(TenantApplicationMapper.ToCreateCommand(input), cancellationToken);
         return TenantApplicationMapper.ToDetailDto(result.Tenant, result.Now);
@@ -133,6 +142,9 @@ public sealed class TenantAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysTenant), input.BasicId, input, cancellationToken);
+
         var result = await _tenantDomainService.UpdateTenantAsync(TenantApplicationMapper.ToUpdateCommand(input), cancellationToken);
         // 租户可能更换版本：失效版本门控缓存（事务提交后生效）
         await _cacheInvalidator.InvalidateEditionGateAsync(cancellationToken);
@@ -148,6 +160,9 @@ public sealed class TenantAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysTenant), input.BasicId, input, cancellationToken);
 
         var result = await _tenantDomainService.UpdateTenantStatusAsync(
             TenantApplicationMapper.ToStatusCommand(input, _currentUser.UserId),

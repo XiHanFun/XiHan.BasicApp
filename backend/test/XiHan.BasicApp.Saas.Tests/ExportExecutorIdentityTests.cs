@@ -116,7 +116,8 @@ public sealed class ExportExecutorIdentityTests
                 new Mock<IUserTaskProgressNotifier>().Object,
                 NullLogger<ExportExecutor>.Instance,
                 snapshot.Object,
-                tenants.Object);
+                tenants.Object,
+                new Mock<IFieldSecurityService>().Object);
         }
 
         public ExportExecutor Executor { get; }

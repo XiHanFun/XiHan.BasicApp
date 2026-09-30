@@ -25,7 +25,6 @@ public sealed class PermissionCenterQueryService
 {
     private const int MaxDelegationCount = 50;
     private const int MaxRequestCount = 50;
-    private const int MaxFieldSecurityCount = 100;
     private const int MaxChangeLogCount = 20;
     private readonly ISqlSugarClientResolver _clientResolver;
 
@@ -45,11 +44,7 @@ public sealed class PermissionCenterQueryService
 
     private readonly IPermissionRequestRepository _permissionRequestRepository;
 
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
-
     private readonly IRoleRepository _roleRepository;
-
-    private readonly IDepartmentRepository _departmentRepository;
 
     private readonly ITenantUserRepository _tenantUserRepository;
 
@@ -67,9 +62,7 @@ public sealed class PermissionCenterQueryService
         IPermissionConditionRepository permissionConditionRepository,
         IPermissionDelegationRepository permissionDelegationRepository,
         IPermissionRequestRepository permissionRequestRepository,
-        IFieldLevelSecurityRepository fieldLevelSecurityRepository,
         IRoleRepository roleRepository,
-        IDepartmentRepository departmentRepository,
         ITenantUserRepository tenantUserRepository,
         IReviewRepository reviewRepository,
         ISqlSugarClientResolver clientResolver)
@@ -82,9 +75,7 @@ public sealed class PermissionCenterQueryService
         _permissionConditionRepository = permissionConditionRepository;
         _permissionDelegationRepository = permissionDelegationRepository;
         _permissionRequestRepository = permissionRequestRepository;
-        _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
         _roleRepository = roleRepository;
-        _departmentRepository = departmentRepository;
         _tenantUserRepository = tenantUserRepository;
         _reviewRepository = reviewRepository;
         _clientResolver = clientResolver;
@@ -130,34 +121,8 @@ public sealed class PermissionCenterQueryService
             Conditions = await GetConditionsAsync(permission, cancellationToken),
             Delegations = await GetDelegationsAsync(permission, now, cancellationToken),
             Requests = await GetRequestsAsync(permission, now, cancellationToken),
-            FieldSecurities = await GetFieldSecuritiesAsync(permission, cancellationToken),
             ChangeLogs = await GetChangeLogsAsync(permission.BasicId, cancellationToken),
             GeneratedTime = now
-        };
-    }
-
-    private static (string? Code, string? Name) ResolveFieldSecurityTarget(
-        SysFieldLevelSecurity policy,
-        IReadOnlyDictionary<long, SysRole> roleMap,
-        IReadOnlyDictionary<long, SysPermission> permissionMap,
-        IReadOnlyDictionary<long, SysDepartment> departmentMap,
-        IReadOnlyDictionary<long, SysTenantUser> tenantMemberMap)
-    {
-        return policy.TargetType switch
-        {
-            FieldSecurityTargetType.Role => roleMap.TryGetValue(policy.TargetId, out var role)
-                ? (role.RoleCode, role.RoleName)
-                : (null, null),
-            FieldSecurityTargetType.Permission => permissionMap.TryGetValue(policy.TargetId, out var permission)
-                ? (permission.PermissionCode, permission.PermissionName)
-                : (null, null),
-            FieldSecurityTargetType.Department => departmentMap.TryGetValue(policy.TargetId, out var department)
-                ? (department.DepartmentCode, department.DepartmentName)
-                : (null, null),
-            FieldSecurityTargetType.User => tenantMemberMap.TryGetValue(policy.TargetId, out var tenantMember)
-                ? (null, tenantMember.DisplayName)
-                : (null, null),
-            _ => (null, null)
         };
     }
 
@@ -323,70 +288,6 @@ public sealed class PermissionCenterQueryService
             .Take(MaxRequestCount)];
     }
 
-    private async Task<List<FieldLevelSecurityListItemDto>> GetFieldSecuritiesAsync(SysPermission permission, CancellationToken cancellationToken)
-    {
-        IReadOnlyList<SysFieldLevelSecurity> policies;
-        if (permission.ResourceId.HasValue)
-        {
-            var resourceId = permission.ResourceId.Value;
-            policies = await _fieldLevelSecurityRepository.GetListAsync(
-                item => (item.TargetType == FieldSecurityTargetType.Permission && item.TargetId == permission.BasicId)
-                    || item.ResourceId == resourceId,
-                item => item.CreatedTime,
-                cancellationToken);
-        }
-        else
-        {
-            policies = await _fieldLevelSecurityRepository.GetListAsync(
-                item => item.TargetType == FieldSecurityTargetType.Permission && item.TargetId == permission.BasicId,
-                item => item.CreatedTime,
-                cancellationToken);
-        }
-
-        if (policies.Count == 0)
-        {
-            return [];
-        }
-
-        var resourceMap = await BuildResourceMapAsync(policies.Select(item => item.ResourceId), cancellationToken);
-        var roleMap = await BuildRoleMapAsync(
-            policies
-                .Where(item => item.TargetType == FieldSecurityTargetType.Role)
-                .Select(item => item.TargetId),
-            cancellationToken);
-        var permissionMap = await BuildPermissionMapAsync(
-            policies
-                .Where(item => item.TargetType == FieldSecurityTargetType.Permission)
-                .Select(item => item.TargetId),
-            cancellationToken);
-        var departmentMap = await BuildDepartmentMapAsync(
-            policies
-                .Where(item => item.TargetType == FieldSecurityTargetType.Department)
-                .Select(item => item.TargetId),
-            cancellationToken);
-        var tenantMemberMap = await BuildTenantMemberMapAsync(
-            policies
-                .Where(item => item.TargetType == FieldSecurityTargetType.User)
-                .Select(item => item.TargetId),
-            cancellationToken);
-
-        return [.. policies
-            .Select(item =>
-            {
-                var (targetCode, targetName) = ResolveFieldSecurityTarget(item, roleMap, permissionMap, departmentMap, tenantMemberMap);
-                return FieldLevelSecurityApplicationMapper.ToListItemDto(
-                    item,
-                    resourceMap.GetValueOrDefault(item.ResourceId),
-                    targetCode,
-                    targetName);
-            })
-            .OrderByDescending(item => item.Priority)
-            .ThenBy(item => item.ResourceCode)
-            .ThenBy(item => item.FieldName)
-            .ThenBy(item => item.BasicId)
-            .Take(MaxFieldSecurityCount)];
-    }
-
     private async Task<List<PermissionChangeLogListItemDto>> GetChangeLogsAsync(long permissionId, CancellationToken cancellationToken)
     {
         var logs = await DbClient.Queryable<SysPermissionChangeLog>()
@@ -397,38 +298,6 @@ public sealed class PermissionCenterQueryService
             .ToListAsync(cancellationToken);
 
         return [.. logs.Select(PermissionChangeLogApplicationMapper.ToListItemDto)];
-    }
-
-    private async Task<IReadOnlyDictionary<long, SysPermission>> BuildPermissionMapAsync(IEnumerable<long> permissionIds, CancellationToken cancellationToken)
-    {
-        var ids = permissionIds
-            .Where(id => id > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysPermission>();
-        }
-
-        var permissions = await _permissionRepository.GetByIdsAsync(ids, cancellationToken);
-        return permissions.ToDictionary(item => item.BasicId);
-    }
-
-    private async Task<IReadOnlyDictionary<long, SysResource>> BuildResourceMapAsync(IEnumerable<long> resourceIds, CancellationToken cancellationToken)
-    {
-        var ids = resourceIds
-            .Where(id => id > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysResource>();
-        }
-
-        var resources = await _resourceRepository.GetByIdsAsync(ids, cancellationToken);
-        return resources.ToDictionary(item => item.BasicId);
     }
 
     private async Task<IReadOnlyDictionary<long, SysRole>> BuildRoleMapAsync(IEnumerable<long> roleIds, CancellationToken cancellationToken)
@@ -445,22 +314,6 @@ public sealed class PermissionCenterQueryService
 
         var roles = await _roleRepository.GetByIdsAsync(ids, cancellationToken);
         return roles.ToDictionary(item => item.BasicId);
-    }
-
-    private async Task<IReadOnlyDictionary<long, SysDepartment>> BuildDepartmentMapAsync(IEnumerable<long> departmentIds, CancellationToken cancellationToken)
-    {
-        var ids = departmentIds
-            .Where(id => id > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysDepartment>();
-        }
-
-        var departments = await _departmentRepository.GetByIdsAsync(ids, cancellationToken);
-        return departments.ToDictionary(item => item.BasicId);
     }
 
     private async Task<IReadOnlyDictionary<long, SysTenantUser>> BuildTenantMemberMapAsync(IEnumerable<long> userIds, CancellationToken cancellationToken)

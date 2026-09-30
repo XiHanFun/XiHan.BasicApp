@@ -143,7 +143,8 @@ public sealed class BatchOperationPermissionTests
             Mock.Of<IImpersonationPolicyService>(),
             Mock.Of<ISuperAdminProtector>(),
             Mock.Of<IRolePermissionRepository>(),
-            _guard.Object);
+            _guard.Object,
+            Mock.Of<IFieldSecurityService>());
 
         await service.BatchUpdateRolePermissionsAsync(new RolePermissionBatchUpdateDto
         {
@@ -171,7 +172,8 @@ public sealed class BatchOperationPermissionTests
             domain.Object,
             Mock.Of<ITenantProvisionDomainService>(),
             Mock.Of<ISaasCacheInvalidator>(),
-            _guard.Object);
+            _guard.Object,
+            Mock.Of<IFieldSecurityService>());
 
         await service.BatchUpdateTenantEditionPermissionsAsync(new TenantEditionPermissionBatchUpdateDto
         {

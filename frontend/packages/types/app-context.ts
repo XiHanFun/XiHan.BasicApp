@@ -176,10 +176,6 @@ export interface AppContextApis {
   timeZoneApi: {
     options: () => Promise<Array<{ id: string, displayName: string, baseUtcOffsetMinutes: number, supportsDaylightSavingTime: boolean }>>
   }
-  /** 字段权限（按资源下发当前用户的有效 FLS 规则：可读/可编辑/脱敏策略） */
-  fieldSecurityApi: {
-    getMine: (resourceCode: string) => Promise<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>
-  }
   /** 导入历史（Schema 页面导入留痕：执行完毕上报 + 当前用户最近导入记录） */
   importHistoryApi: {
     create: (input: { pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string }) => Promise<unknown>

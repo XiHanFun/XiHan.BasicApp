@@ -11,6 +11,7 @@ using XiHan.BasicApp.Printing.Domain.DomainServices;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Domain.Enums;
 using XiHan.BasicApp.Printing.Domain.Permissions;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Core.Exceptions;
@@ -442,7 +443,8 @@ public sealed class PrintingExtraAppServiceScopeTests
             currentTenant.Object,
             currentUser.Object,
             permissionChecker.Object,
-            NullLogger<PrintTemplateAppService>.Instance);
+            NullLogger<PrintTemplateAppService>.Instance,
+            Mock.Of<IFieldSecurityService>());
         return new AppServiceFixture(service, domainService, cacheInvalidator, permissionChecker);
     }
 

@@ -1,14 +1,14 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
-using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -23,65 +23,43 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// <summary>
 /// 字段级安全查询应用服务
 /// </summary>
+/// <remarks>
+/// 规则列表本身不参与字段安全：配置页要看到规则的全部内容才能维护。
+/// </remarks>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "字段级安全")]
 public sealed class FieldLevelSecurityQueryService
     : SaasApplicationService, IFieldLevelSecurityQueryService
 {
-    /// <summary>
-    /// 字段级安全仓储
-    /// </summary>
-    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+    private readonly IFieldSecurityEntityCatalog _catalog;
 
-    /// <summary>
-    /// 资源仓储
-    /// </summary>
-    private readonly IResourceRepository _resourceRepository;
-
-    /// <summary>
-    /// 角色仓储
-    /// </summary>
-    private readonly IRoleRepository _roleRepository;
-
-    /// <summary>
-    /// 权限仓储
-    /// </summary>
-    private readonly IPermissionRepository _permissionRepository;
-
-    /// <summary>
-    /// 部门仓储
-    /// </summary>
     private readonly IDepartmentRepository _departmentRepository;
 
-    /// <summary>
-    /// 租户成员仓储
-    /// </summary>
+    private readonly IFieldLevelSecurityRepository _fieldLevelSecurityRepository;
+
+    private readonly IRoleRepository _roleRepository;
+
     private readonly ITenantUserRepository _tenantUserRepository;
 
-    /// <summary>
-    /// 字段级安全（排序门控）
-    /// </summary>
-    private readonly IFieldSecurityService _fieldSecurity;
+    private readonly IUserRepository _userRepository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
     public FieldLevelSecurityQueryService(
         IFieldLevelSecurityRepository fieldLevelSecurityRepository,
-        IResourceRepository resourceRepository,
+        IFieldSecurityEntityCatalog catalog,
         IRoleRepository roleRepository,
-        IPermissionRepository permissionRepository,
         IDepartmentRepository departmentRepository,
         ITenantUserRepository tenantUserRepository,
-        IFieldSecurityService fieldSecurityService)
+        IUserRepository userRepository)
     {
         _fieldLevelSecurityRepository = fieldLevelSecurityRepository;
-        _resourceRepository = resourceRepository;
+        _catalog = catalog;
         _roleRepository = roleRepository;
-        _permissionRepository = permissionRepository;
         _departmentRepository = departmentRepository;
         _tenantUserRepository = tenantUserRepository;
-        _fieldSecurity = fieldSecurityService;
+        _userRepository = userRepository;
     }
 
     /// <summary>
@@ -97,57 +75,21 @@ public sealed class FieldLevelSecurityQueryService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var request = BuildFieldLevelSecurityPageRequest(input);
-
-        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.FieldLevelSecurity.Group, cancellationToken);
-        // 过滤：前端区间/多选下发的 conditions.filters 同样经 FLS 门控
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.FieldLevelSecurity.Group, cancellationToken);
-        if (request.Conditions.Sorts.Count == 0)
-        {
-            ApplyFieldLevelSecuritySorts(request);
-        }
-
+        var request = BuildPageRequest(input);
         var policies = await _fieldLevelSecurityRepository.GetPagedAsync(request, cancellationToken);
         if (policies.Items.Count == 0)
         {
             return new PageResultDtoBase<FieldLevelSecurityListItemDto>([], policies.Page);
         }
 
-        var resourceMap = await BuildResourceMapAsync(policies.Items.Select(policy => policy.ResourceId), cancellationToken);
-        var roleMap = await BuildRoleMapAsync(
-            policies.Items
-                .Where(policy => policy.TargetType == FieldSecurityTargetType.Role)
-                .Select(policy => policy.TargetId),
-            cancellationToken);
-        var permissionMap = await BuildPermissionMapAsync(
-            policies.Items
-                .Where(policy => policy.TargetType == FieldSecurityTargetType.Permission)
-                .Select(policy => policy.TargetId),
-            cancellationToken);
-        var departmentMap = await BuildDepartmentMapAsync(
-            policies.Items
-                .Where(policy => policy.TargetType == FieldSecurityTargetType.Department)
-                .Select(policy => policy.TargetId),
-            cancellationToken);
-        var tenantMemberMap = await BuildTenantMemberMapAsync(
-            policies.Items
-                .Where(policy => policy.TargetType == FieldSecurityTargetType.User)
-                .Select(policy => policy.TargetId),
-            cancellationToken);
-
+        var targets = await LoadTargetsAsync(policies.Items, cancellationToken);
         var items = policies.Items
             .Select(policy =>
             {
-                var (targetCode, targetName) = ResolveTargetSummary(policy, roleMap, permissionMap, departmentMap, tenantMemberMap);
-                return FieldLevelSecurityApplicationMapper.ToListItemDto(
-                    policy,
-                    resourceMap.GetValueOrDefault(policy.ResourceId),
-                    targetCode,
-                    targetName);
+                var (targetCode, targetName) = targets.Resolve(policy);
+                return FieldLevelSecurityApplicationMapper.ToListItemDto(policy, _catalog, targetCode, targetName);
             })
             .ToList();
-
         return new PageResultDtoBase<FieldLevelSecurityListItemDto>(items, policies.Page);
     }
 
@@ -173,18 +115,27 @@ public sealed class FieldLevelSecurityQueryService
             return null;
         }
 
-        var resource = await _resourceRepository.GetByIdAsync(policy.ResourceId, cancellationToken);
-        var (targetCode, targetName) = await ResolveTargetSummaryAsync(policy, cancellationToken);
-
-        return FieldLevelSecurityApplicationMapper.ToDetailDto(policy, resource, targetCode, targetName);
+        var (targetCode, targetName) = (await LoadTargetsAsync([policy], cancellationToken)).Resolve(policy);
+        return FieldLevelSecurityApplicationMapper.ToDetailDto(policy, _catalog, targetCode, targetName);
     }
 
     /// <summary>
-    /// 构建字段级安全分页请求
+    /// 获取可配置字段安全的实体与字段（配置页的实体、字段下拉）
     /// </summary>
-    /// <param name="input">查询条件</param>
-    /// <returns>字段级安全分页请求</returns>
-    private static BasicAppPRDto BuildFieldLevelSecurityPageRequest(FieldLevelSecurityPageQueryDto input)
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>实体与字段，按实体显示名排序</returns>
+    [PermissionAuthorize(SaasPermissionCodes.FieldLevelSecurity.Read)]
+    public Task<IReadOnlyList<FieldSecurityEntityDto>> GetFieldSecurityEntitiesAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        IReadOnlyList<FieldSecurityEntityDto> entities = [.. _catalog.GetEntities().Select(FieldLevelSecurityApplicationMapper.ToEntityDto)];
+        return Task.FromResult(entities);
+    }
+
+    /// <summary>
+    /// 构建分页请求：显式条件 + 前端通用排序与过滤；无排序时按实体、字段、目标稳定排序
+    /// </summary>
+    private static BasicAppPRDto BuildPageRequest(FieldLevelSecurityPageQueryDto input)
     {
         var request = new BasicAppPRDto
         {
@@ -196,238 +147,111 @@ public sealed class FieldLevelSecurityQueryService
         {
             request.Conditions.SetKeyword<SysFieldLevelSecurity>(
                 input.Keyword.Trim(),
-                fls => fls.FieldName,
-                fls => fls.Description,
-                fls => fls.MaskPattern,
-                fls => fls.Remark);
+                policy => policy.FieldName,
+                policy => policy.Remark);
         }
 
         if (input.TargetType.HasValue)
         {
-            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.TargetType, input.TargetType.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity policy) => policy.TargetType, input.TargetType.Value);
         }
 
         if (input.TargetId.HasValue)
         {
-            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.TargetId, input.TargetId.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity policy) => policy.TargetId, input.TargetId.Value);
         }
 
-        if (input.ResourceId.HasValue)
+        if (!string.IsNullOrWhiteSpace(input.EntityName))
         {
-            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.ResourceId, input.ResourceId.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity policy) => policy.EntityName, input.EntityName.Trim());
         }
 
         if (input.MaskStrategy.HasValue)
         {
-            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.MaskStrategy, input.MaskStrategy.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity policy) => policy.MaskStrategy, input.MaskStrategy.Value);
         }
 
         if (input.Status.HasValue)
         {
-            request.Conditions.AddFilter((SysFieldLevelSecurity fls) => fls.Status, input.Status.Value);
+            request.Conditions.AddFilter((SysFieldLevelSecurity policy) => policy.Status, input.Status.Value);
         }
 
-        // 前端选择的排序原样带入（FLS 门控与默认兜底在调用方 GetFieldLevelSecurityPageAsync 处理）
         if (input.Conditions?.Sorts is { Count: > 0 } sorts)
         {
             _ = request.Conditions.AddSorts(sorts);
         }
 
-        // 前端区间/多选下发的通用过滤原样带入（FLS 门控在调用方处理）
         if (input.Conditions?.Filters is { Count: > 0 } filters)
         {
             _ = request.Conditions.AddFilters(filters);
+        }
+
+        if (request.Conditions.Sorts.Count == 0)
+        {
+            request.Conditions.AddSort((SysFieldLevelSecurity policy) => policy.EntityName, SortDirection.Ascending, 0);
+            request.Conditions.AddSort((SysFieldLevelSecurity policy) => policy.FieldName, SortDirection.Ascending, 1);
+            request.Conditions.AddSort((SysFieldLevelSecurity policy) => policy.TargetType, SortDirection.Ascending, 2);
+            request.Conditions.AddSort((SysFieldLevelSecurity policy) => policy.BasicId, SortDirection.Ascending, 3);
         }
 
         return request;
     }
 
     /// <summary>
-    /// 应用默认排序（无前端排序时的兜底）
+    /// 批量加载规则目标（角色/部门/成员）的编码与名称
     /// </summary>
-    /// <param name="request">字段级安全分页请求</param>
-    private static void ApplyFieldLevelSecuritySorts(BasicAppPRDto request)
+    private async Task<TargetLookup> LoadTargetsAsync(IEnumerable<SysFieldLevelSecurity> policies, CancellationToken cancellationToken)
     {
-        request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.ResourceId, SortDirection.Ascending, 0);
-        request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.TargetType, SortDirection.Ascending, 1);
-        request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.Priority, SortDirection.Descending, 2);
-        request.Conditions.AddSort((SysFieldLevelSecurity fls) => fls.FieldName, SortDirection.Ascending, 3);
+        long[] IdsOf(FieldSecurityTargetType type) =>
+            [.. policies.Where(policy => policy.TargetType == type).Select(policy => policy.TargetId).Where(id => id > 0).Distinct()];
+
+        var roleIds = IdsOf(FieldSecurityTargetType.Role);
+        var departmentIds = IdsOf(FieldSecurityTargetType.Department);
+        var userIds = IdsOf(FieldSecurityTargetType.User);
+
+        var roles = roleIds.Length == 0 ? [] : await _roleRepository.GetByIdsAsync(roleIds, cancellationToken);
+        var departments = departmentIds.Length == 0 ? [] : await _departmentRepository.GetByIdsAsync(departmentIds, cancellationToken);
+        var members = userIds.Length == 0
+            ? []
+            : await _tenantUserRepository.GetListAsync(member => userIds.Contains(member.UserId), cancellationToken);
+        // 账号是账号域数据，成员可能注册在别处，按主键跨租户取
+        var users = userIds.Length == 0 ? [] : await _userRepository.GetListByIdsIgnoreTenantAsync(userIds, cancellationToken);
+
+        return new TargetLookup(
+            roles.ToDictionary(role => role.BasicId),
+            departments.ToDictionary(department => department.BasicId),
+            members.GroupBy(member => member.UserId).ToDictionary(group => group.Key, group => group.First()),
+            users.ToDictionary(user => user.BasicId));
     }
 
     /// <summary>
-    /// 解析目标摘要
+    /// 目标摘要查找表
     /// </summary>
-    private static (string? Code, string? Name) ResolveTargetSummary(
-        SysFieldLevelSecurity policy,
-        IReadOnlyDictionary<long, SysRole> roleMap,
-        IReadOnlyDictionary<long, SysPermission> permissionMap,
-        IReadOnlyDictionary<long, SysDepartment> departmentMap,
-        IReadOnlyDictionary<long, SysTenantUser> tenantMemberMap)
+    private sealed record TargetLookup(
+        IReadOnlyDictionary<long, SysRole> Roles,
+        IReadOnlyDictionary<long, SysDepartment> Departments,
+        IReadOnlyDictionary<long, SysTenantUser> Members,
+        IReadOnlyDictionary<long, SysUser> Users)
     {
-        return policy.TargetType switch
+        public (string? Code, string? Name) Resolve(SysFieldLevelSecurity policy) => policy.TargetType switch
         {
-            FieldSecurityTargetType.Role => roleMap.TryGetValue(policy.TargetId, out var role)
-                ? (role.RoleCode, role.RoleName)
-                : (null, null),
-            FieldSecurityTargetType.Permission => permissionMap.TryGetValue(policy.TargetId, out var permission)
-                ? (permission.PermissionCode, permission.PermissionName)
-                : (null, null),
-            FieldSecurityTargetType.Department => departmentMap.TryGetValue(policy.TargetId, out var department)
-                ? (department.DepartmentCode, department.DepartmentName)
-                : (null, null),
-            FieldSecurityTargetType.User => tenantMemberMap.TryGetValue(policy.TargetId, out var tenantMember)
-                ? (null, tenantMember.DisplayName)
-                : (null, null),
+            FieldSecurityTargetType.Role => Roles.TryGetValue(policy.TargetId, out var role) ? (role.RoleCode, role.RoleName) : (null, null),
+            FieldSecurityTargetType.Department => Departments.TryGetValue(policy.TargetId, out var department) ? (department.DepartmentCode, department.DepartmentName) : (null, null),
+            FieldSecurityTargetType.User => ResolveUser(policy.TargetId),
             _ => (null, null)
         };
-    }
 
-    /// <summary>
-    /// 解析目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> ResolveTargetSummaryAsync(SysFieldLevelSecurity policy, CancellationToken cancellationToken)
-    {
-        return policy.TargetType switch
+        /// <summary>
+        /// 用户目标：成员名片优先，没填时取账号的姓名、昵称、用户名；编码为用户名
+        /// </summary>
+        private (string? Code, string? Name) ResolveUser(long userId)
         {
-            FieldSecurityTargetType.Role => await ResolveRoleTargetSummaryAsync(policy.TargetId, cancellationToken),
-            FieldSecurityTargetType.Permission => await ResolvePermissionTargetSummaryAsync(policy.TargetId, cancellationToken),
-            FieldSecurityTargetType.Department => await ResolveDepartmentTargetSummaryAsync(policy.TargetId, cancellationToken),
-            FieldSecurityTargetType.User => await ResolveTenantMemberTargetSummaryAsync(policy.TargetId, cancellationToken),
-            _ => (null, null)
-        };
-    }
-
-    /// <summary>
-    /// 解析角色目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> ResolveRoleTargetSummaryAsync(long roleId, CancellationToken cancellationToken)
-    {
-        var role = await _roleRepository.GetByIdAsync(roleId, cancellationToken);
-        return role is null ? (null, null) : (role.RoleCode, role.RoleName);
-    }
-
-    /// <summary>
-    /// 解析权限目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> ResolvePermissionTargetSummaryAsync(long permissionId, CancellationToken cancellationToken)
-    {
-        var permission = await _permissionRepository.GetByIdAsync(permissionId, cancellationToken);
-        return permission is null ? (null, null) : (permission.PermissionCode, permission.PermissionName);
-    }
-
-    /// <summary>
-    /// 解析部门目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> ResolveDepartmentTargetSummaryAsync(long departmentId, CancellationToken cancellationToken)
-    {
-        var department = await _departmentRepository.GetByIdAsync(departmentId, cancellationToken);
-        return department is null ? (null, null) : (department.DepartmentCode, department.DepartmentName);
-    }
-
-    /// <summary>
-    /// 解析租户成员目标摘要
-    /// </summary>
-    private async Task<(string? Code, string? Name)> ResolveTenantMemberTargetSummaryAsync(long userId, CancellationToken cancellationToken)
-    {
-        var tenantMember = await _tenantUserRepository.GetMembershipAsync(userId, cancellationToken);
-        return tenantMember is null ? (null, null) : (null, tenantMember.DisplayName);
-    }
-
-    /// <summary>
-    /// 构建资源映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysResource>> BuildResourceMapAsync(IEnumerable<long> resourceIds, CancellationToken cancellationToken)
-    {
-        var ids = resourceIds
-            .Where(resourceId => resourceId > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysResource>();
+            var user = Users.GetValueOrDefault(userId);
+            var memberName = Members.GetValueOrDefault(userId)?.DisplayName;
+            var name = !string.IsNullOrWhiteSpace(memberName)
+                ? memberName
+                : user is null ? null : user.RealName ?? user.NickName ?? user.UserName;
+            return (user?.UserName, name);
         }
-
-        var resources = await _resourceRepository.GetByIdsAsync(ids, cancellationToken);
-        return resources.ToDictionary(resource => resource.BasicId);
-    }
-
-    /// <summary>
-    /// 构建角色映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysRole>> BuildRoleMapAsync(IEnumerable<long> roleIds, CancellationToken cancellationToken)
-    {
-        var ids = roleIds
-            .Where(roleId => roleId > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysRole>();
-        }
-
-        var roles = await _roleRepository.GetByIdsAsync(ids, cancellationToken);
-        return roles.ToDictionary(role => role.BasicId);
-    }
-
-    /// <summary>
-    /// 构建权限映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysPermission>> BuildPermissionMapAsync(IEnumerable<long> permissionIds, CancellationToken cancellationToken)
-    {
-        var ids = permissionIds
-            .Where(permissionId => permissionId > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysPermission>();
-        }
-
-        var permissions = await _permissionRepository.GetByIdsAsync(ids, cancellationToken);
-        return permissions.ToDictionary(permission => permission.BasicId);
-    }
-
-    /// <summary>
-    /// 构建部门映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysDepartment>> BuildDepartmentMapAsync(IEnumerable<long> departmentIds, CancellationToken cancellationToken)
-    {
-        var ids = departmentIds
-            .Where(departmentId => departmentId > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysDepartment>();
-        }
-
-        var departments = await _departmentRepository.GetByIdsAsync(ids, cancellationToken);
-        return departments.ToDictionary(department => department.BasicId);
-    }
-
-    /// <summary>
-    /// 构建租户成员映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysTenantUser>> BuildTenantMemberMapAsync(IEnumerable<long> userIds, CancellationToken cancellationToken)
-    {
-        var ids = userIds
-            .Where(userId => userId > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysTenantUser>();
-        }
-
-        var tenantMembers = await _tenantUserRepository.GetListAsync(
-            tenantMember => ids.Contains(tenantMember.UserId),
-            tenantMember => tenantMember.CreatedTime,
-            cancellationToken);
-        return tenantMembers.ToDictionary(tenantMember => tenantMember.UserId);
     }
 }

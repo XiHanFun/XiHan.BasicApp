@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Saas.Application.Authorization;
@@ -11,13 +12,16 @@ using XiHan.BasicApp.Saas.Application.Exporting;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Numbering;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Auth;
 using XiHan.BasicApp.Saas.Infrastructure.Exporting;
 using XiHan.BasicApp.Saas.Infrastructure.Upgrade;
 using XiHan.BasicApp.Saas.Infrastructure.Logging;
 using XiHan.BasicApp.Saas.Infrastructure.Messaging;
 using XiHan.BasicApp.Saas.Infrastructure.MultiTenancy;
+using XiHan.BasicApp.Saas.Infrastructure.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
 using XiHan.BasicApp.Saas.Infrastructure.Seeders;
 using XiHan.BasicApp.Saas.Infrastructure.Tasks;
@@ -90,6 +94,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IConstraintRuleDomainService, ConstraintRuleDomainService>();
         services.AddScoped<IConstraintRuleEnforcementDomainService, ConstraintRuleEnforcementDomainService>();
         services.AddScoped<IFieldLevelSecurityDomainService, FieldLevelSecurityDomainService>();
+        services.AddSingleton<IFieldSecurityEntityCatalog, FieldSecurityEntityCatalog>();
         services.AddScoped<IFileDomainService, FileDomainService>();
         services.AddScoped<IStorageConfigDomainService, StorageConfigDomainService>();
         services.AddSingleton<IStorageSecretProtector, DataProtectionStorageSecretProtector>();
@@ -232,6 +237,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IVerificationThrottleService, VerificationThrottleService>();
         services.AddScoped<IProfileVerificationService, ProfileVerificationService>();
         services.AddScoped<IFieldSecurityService, FieldSecurityService>();
+        services.AddScoped<IFieldSecurityEntityReader, FieldSecurityEntityReader>();
+        services.AddSingleton<IFieldSecurityDtoCatalog, FieldSecurityDtoCatalog>();
+        // 字段安全的输出边界：所有接口的响应统一打码，排在响应缓存外层（见过滤器说明）
+        services.AddScoped<FieldSecurityResponseFilter>();
+        services.Configure<MvcOptions>(options => options.Filters.AddService<FieldSecurityResponseFilter>(FieldSecurityResponseFilter.FilterOrder));
         services.AddScoped<ISuperAdminProtector, SuperAdminProtector>();
         services.AddScoped<IOperationPermissionGuard, OperationPermissionGuard>();
         services.AddScoped<IUserDirectory, UserDirectory>();
@@ -245,6 +255,66 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.AddScoped<INumberGenerator, NumberGenerator>();
         return services;
+    }
+
+    /// <summary>
+    /// 登记可配置字段安全的实体（各模块登记自己的实体）
+    /// </summary>
+    /// <remarks>
+    /// 登记即承诺：该实体的查询服务返回前要打码并门控查询条件，应用服务新建、修改前要做写校验，否则配出的规则不生效（有测试钉住）。
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <param name="configure">登记动作</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddFieldSecurityEntities(this IServiceCollection services, Action<FieldSecurityEntityOptions> configure)
+    {
+        ArgumentNullException.ThrowIfNull(configure);
+        services.Configure(configure);
+        return services;
+    }
+
+    /// <summary>
+    /// 登记 SaaS 模块可配置字段安全的实体
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasFieldSecurityEntities(this IServiceCollection services)
+    {
+        return services.AddFieldSecurityEntities(entities => entities
+            .Add<SysUser>()
+            .Add<SysUserSession>()
+            .Add<SysRole>()
+            .Add<SysPermission>()
+            .Add<SysConstraintRule>()
+            .Add<SysPosition>()
+            .Add<SysTenant>()
+            .Add<SysTenantEdition>()
+            .Add<SysOAuthApp>()
+            .Add<SysConfig>()
+            .Add<SysDict>()
+            .Add<SysDictItem>()
+            .Add<SysVersion>()
+            .Add<SysMigrationHistory>()
+            .Add<SysFile>()
+            .Add<SysFileStorage>()
+            .Add<SysStorageConfig>()
+            .Add<SysNumberingRule>()
+            .Add<SysNumberingAllocation>()
+            .Add<SysReview>()
+            .Add<SysNotification>()
+            .Add<SysMessageTemplate>()
+            .Add<SysEmail>()
+            .Add<SysSms>()
+            .Add<SysEmailConfig>()
+            .Add<SysSmsConfig>()
+            .Add<SysBotConfig>()
+            .Add<SysTelegramBot>()
+            .Add<SysAccessLog>()
+            .Add<SysOpenApiLog>()
+            .Add<SysOperationLog>()
+            .Add<SysLoginLog>()
+            .Add<SysExceptionLog>()
+            .Add<SysDiffLog>());
     }
 
     /// <summary>
@@ -278,7 +348,6 @@ public static class ServiceCollectionExtensions
         // 授权事件
         services.AddSaasLocalEventHandler<AuthorizationChangedEventHandler>();
         services.AddSaasLocalEventHandler<PermissionChangeLogEventHandler>();
-        services.AddSaasLocalEventHandler<FieldLevelSecurityChangedEventHandler>();
 
         // 组织层级事件
         services.AddSaasLocalEventHandler<HierarchyChangedEventHandler>();

@@ -6,6 +6,7 @@ import type {
   FieldLevelSecurityPageQueryDto,
   FieldLevelSecurityStatusUpdateDto,
   FieldLevelSecurityUpdateDto,
+  FieldSecurityEntityDto,
 } from './field-level-security.types'
 import {
   createCommandApi,
@@ -35,6 +36,10 @@ export const fieldLevelSecurityApi = {
   },
   detail(id: ApiId) {
     return fieldLevelSecurityReadApi.detail(id)
+  },
+  /** 可配置字段安全的实体与字段（配置页的实体、字段下拉） */
+  entities() {
+    return fieldLevelSecurityQueryApi.get<FieldSecurityEntityDto[]>('FieldSecurityEntities')
   },
   page(input: FieldLevelSecurityPageQueryDto) {
     return fieldLevelSecurityQueryApi.post<PageResult<FieldLevelSecurityListItemDto>>(

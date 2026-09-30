@@ -11,7 +11,9 @@ namespace XiHan.BasicApp.Saas.Domain.Repositories;
 public interface IFieldLevelSecurityRepository : ISaasRepository<SysFieldLevelSecurity>
 {
     /// <summary>
-    /// 根据资源和角色获取字段级安全规则
+    /// 取某实体上已启用的规则：当前租户的规则加上平台规则（平台规则对所有租户生效）
     /// </summary>
-    Task<IReadOnlyList<SysFieldLevelSecurity>> GetByResourceAndRoleAsync(long resourceId, long roleId, CancellationToken cancellationToken = default);
+    /// <param name="entityName">实体名</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    Task<IReadOnlyList<SysFieldLevelSecurity>> GetEnabledByEntityAsync(string entityName, CancellationToken cancellationToken = default);
 }

@@ -17,49 +17,44 @@ public sealed class FieldLevelSecurityCreateDto
     public FieldSecurityTargetType TargetType { get; set; } = FieldSecurityTargetType.Role;
 
     /// <summary>
-    /// 目标主键
+    /// 目标ID（角色/用户/部门）
     /// </summary>
     public long TargetId { get; set; }
 
     /// <summary>
-    /// 资源主键
+    /// 实体名（取自字段安全实体目录）
     /// </summary>
-    public long ResourceId { get; set; }
+    public string EntityName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 字段名
+    /// 字段名（取自该实体的字段列表）
     /// </summary>
     public string FieldName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 是否可读
-    /// </summary>
-    public bool IsReadable { get; set; } = true;
-
-    /// <summary>
-    /// 是否可编辑
-    /// </summary>
-    public bool IsEditable { get; set; } = true;
-
-    /// <summary>
-    /// 脱敏策略
+    /// 读取方式
     /// </summary>
     public FieldMaskStrategy MaskStrategy { get; set; } = FieldMaskStrategy.None;
 
     /// <summary>
-    /// 脱敏模式
+    /// 部分脱敏保留前几位（仅部分脱敏）
     /// </summary>
-    public string? MaskPattern { get; set; }
+    public int? MaskKeepHead { get; set; }
 
     /// <summary>
-    /// 优先级
+    /// 部分脱敏保留后几位（仅部分脱敏）
     /// </summary>
-    public int Priority { get; set; }
+    public int? MaskKeepTail { get; set; }
 
     /// <summary>
-    /// 策略描述
+    /// 固定文本（仅固定文本方式）
     /// </summary>
-    public string? Description { get; set; }
+    public string? MaskReplacement { get; set; }
+
+    /// <summary>
+    /// 是否可编辑（仅明文可设为可编辑）
+    /// </summary>
+    public bool IsEditable { get; set; }
 
     /// <summary>
     /// 状态

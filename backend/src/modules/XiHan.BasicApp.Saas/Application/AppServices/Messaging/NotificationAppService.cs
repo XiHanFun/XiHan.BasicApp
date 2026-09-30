@@ -48,6 +48,8 @@ public sealed class NotificationAppService
 
     private readonly ILogger<NotificationAppService> _logger;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -60,7 +62,8 @@ public sealed class NotificationAppService
         ICurrentUser currentUser,
         INotificationRepository notificationRepository,
         IUserNotificationRepository userNotificationRepository,
-        ILogger<NotificationAppService> logger)
+        ILogger<NotificationAppService> logger,
+        IFieldSecurityService fieldSecurity)
     {
         _notificationDomainService = notificationDomainService;
         _notificationFanoutService = notificationFanoutService;
@@ -71,6 +74,7 @@ public sealed class NotificationAppService
         _notificationRepository = notificationRepository;
         _userNotificationRepository = userNotificationRepository;
         _logger = logger;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -82,6 +86,9 @@ public sealed class NotificationAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysNotification), input, cancellationToken);
 
         // 渲染前置：提供模板编码时按 站内通知 渠道渲染（租户模板优先回退全局），
         // 标题取模板 Subject、内容取模板 Content；模板缺失/停用/损坏回退调用方传入值
@@ -173,6 +180,9 @@ public sealed class NotificationAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysNotification), input.BasicId, input, cancellationToken);
 
         var result = await _notificationDomainService.UpdateNotificationAsync(NotificationApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return NotificationApplicationMapper.ToDetailDto(result.Notification);

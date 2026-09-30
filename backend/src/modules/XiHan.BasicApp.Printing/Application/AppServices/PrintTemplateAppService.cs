@@ -8,6 +8,7 @@ using XiHan.BasicApp.Printing.Application.Contracts;
 using XiHan.BasicApp.Printing.Application.Dtos;
 using XiHan.BasicApp.Printing.Application.Mappers;
 using XiHan.BasicApp.Printing.Domain.DomainServices;
+using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Printing.Domain.Enums;
 using XiHan.BasicApp.Printing.Domain.Permissions;
@@ -18,6 +19,7 @@ using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Printing.Application.AppServices;
 
@@ -35,6 +37,8 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
     private readonly IPermissionChecker _permissionChecker;
     private readonly ILogger<PrintTemplateAppService> _logger;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 初始化打印模板命令服务。
     /// </summary>
@@ -44,13 +48,15 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
     /// <param name="currentUser">当前用户上下文。</param>
     /// <param name="permissionChecker">平台全局管理权限检查器。</param>
     /// <param name="logger">结构化日志记录器。</param>
+    /// <param name="fieldSecurity">字段安全服务。</param>
     public PrintTemplateAppService(
         IPrintTemplateDomainService domainService,
         IPrintingCacheInvalidator cacheInvalidator,
         ICurrentTenant currentTenant,
         ICurrentUser currentUser,
         IPermissionChecker permissionChecker,
-        ILogger<PrintTemplateAppService> logger)
+        ILogger<PrintTemplateAppService> logger,
+        IFieldSecurityService fieldSecurity)
     {
         _domainService = domainService;
         _cacheInvalidator = cacheInvalidator;
@@ -58,6 +64,7 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
         _currentUser = currentUser;
         _permissionChecker = permissionChecker;
         _logger = logger;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -75,6 +82,10 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
     {
         ArgumentNullException.ThrowIfNull(input);
         await EnsureWritableScopeAsync(input.Scope, cancellationToken);
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysPrintTemplate), input, cancellationToken);
+
         try
         {
             var result = await _domainService.CreateAsync(
@@ -106,6 +117,10 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
     {
         ArgumentNullException.ThrowIfNull(input);
         await EnsureWritableScopeAsync(input.Scope, cancellationToken);
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysPrintTemplate), input.BasicId, input, cancellationToken);
+
         try
         {
             var result = await _domainService.UpdateAsync(
@@ -136,6 +151,10 @@ public sealed class PrintTemplateAppService : PrintingApplicationService, IPrint
     {
         ArgumentNullException.ThrowIfNull(input);
         await EnsureWritableScopeAsync(input.Scope, cancellationToken);
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysPrintTemplate), input.BasicId, input, cancellationToken);
+
         try
         {
             var result = await _domainService.UpdateStatusAsync(

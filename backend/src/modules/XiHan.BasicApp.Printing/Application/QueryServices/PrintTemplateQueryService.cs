@@ -71,9 +71,7 @@ public sealed class PrintTemplateQueryService : PrintingApplicationService, IPri
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
         var scope = ResolveQueryScope(input.Scope);
-        return await ExecuteInScopeAsync(
-            scope,
-            () => QueryPageCoreAsync(input, scope, availableGlobalOnly: scope.IsGlobal && scope.RequestTenantId > 0, cancellationToken));
+        return await QueryPageAsync(input, scope, availableGlobalOnly: scope.IsGlobal && scope.RequestTenantId > 0, cancellationToken);
     }
 
     /// <summary>
@@ -91,9 +89,7 @@ public sealed class PrintTemplateQueryService : PrintingApplicationService, IPri
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
         var scope = new PrintTemplateQueryScope(0, true, _currentTenant.Id ?? 0);
-        return await ExecuteInScopeAsync(
-            scope,
-            () => QueryPageCoreAsync(input, scope, availableGlobalOnly: true, cancellationToken));
+        return await QueryPageAsync(input, scope, availableGlobalOnly: true, cancellationToken);
     }
 
     /// <summary>
@@ -155,18 +151,35 @@ public sealed class PrintTemplateQueryService : PrintingApplicationService, IPri
     }
 
     /// <summary>
-    /// 执行分页查询，并在客户端字段安全检查后追加不可覆盖的租户与开放状态约束。
+    /// 分页查询：字段安全门控在请求方上下文里做，读全局模板时只有查询本身切到平台上下文。
     /// </summary>
-    private async Task<PageResultDtoBase<PrintTemplateListItemDto>> QueryPageCoreAsync(
+    /// <remarks>
+    /// 字段规则按当前用户在所属租户的角色判定；若放进平台上下文，查到的是平台侧的角色与规则，租户配置的规则就失效了。
+    /// </remarks>
+    private async Task<PageResultDtoBase<PrintTemplateListItemDto>> QueryPageAsync(
         PrintTemplatePageQueryDto input,
         PrintTemplateQueryScope scope,
         bool availableGlobalOnly,
         CancellationToken cancellationToken)
     {
         var request = BuildPageRequest(input);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, PrintingPermissionCodes.Resource, cancellationToken);
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, PrintingPermissionCodes.Resource, cancellationToken);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysPrintTemplate), cancellationToken);
 
+        return await ExecuteInScopeAsync(
+            scope,
+            () => QueryPageCoreAsync(request, scope, availableGlobalOnly, cancellationToken));
+    }
+
+    /// <summary>
+    /// 执行分页查询，并在客户端字段安全检查后追加不可覆盖的租户与开放状态约束。
+    /// </summary>
+    private async Task<PageResultDtoBase<PrintTemplateListItemDto>> QueryPageCoreAsync(
+        BasicAppPRDto request,
+        PrintTemplateQueryScope scope,
+        bool availableGlobalOnly,
+        CancellationToken cancellationToken)
+    {
         // 内部约束在字段安全处理后追加，前端无法通过自定义 filters 覆盖租户边界。
         request.Conditions.AddFilter((SysPrintTemplate template) => template.TenantId, scope.OwnerTenantId);
         if (availableGlobalOnly)

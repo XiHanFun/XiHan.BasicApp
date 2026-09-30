@@ -159,7 +159,7 @@ services.AddScoped<IEntityAuditContextProvider, SaasEntityDiffContextProvider>()
 
 - **分页走 POST**：`GetXxxLogPageAsync` 显式标 `[HttpPost]`，前端把整个查询对象（含 `conditions`/`filters`/`sorts`）作 body 下发。
 - **权限门控**：每个方法用 `[PermissionAuthorize(SaasPermissionCodes.XxxLog.Read)]` 校验查看权限。
-- **字段级安全（FLS）**：排序与过滤在下推前经 `IFieldSecurityService.GuardSortsAsync` / `GuardFiltersAsync` 门控，剔除**不可读或已脱敏**的字段——保证用户不能借排序/过滤旁路脱敏策略。前端选择的多字段排序优先，无有效排序时回退默认按时间倒序（访问日志按 `AccessTime`、操作日志按 `OperationTime`、实体变更按 `AuditTime` 等）。
+- **字段级安全（FLS）**：排序、过滤与关键字在下推前经 `IFieldSecurityService.GuardQueryAsync` 门控，剔除**读受保护**（非明文）的字段——保证用户不能借排序/过滤旁路脱敏策略；响应按日志实体打码（`SysAccessLog`、`SysOpenApiLog` 等各自登记，列表 DTO 的 `SessionId` 声明了来源 `UserSessionId`，链路时间线按每条的日志类型打码）。前端选择的多字段排序优先，无有效排序时回退默认按时间倒序（访问日志按 `AccessTime`、操作日志按 `OperationTime`、实体变更按 `AuditTime` 等）。
 - **分表查询**：查询链路都带 `.SplitTable()`，配合时间区间条件命中对应月表。
 
 查询支持的过滤维度按日志类型定制，共性包括：时间区间（`Between`）、`UserId`/`UserName`、`TraceId`（跨日志串联同一请求）、关键字模糊、执行耗时区间；再叠加各自特有维度（访问结果、操作类型、异常严重级别、登录结果、实体类型/风险等级等）。

@@ -1,11 +1,11 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
 import type { EnableStatus } from '../shared'
-import type { FieldMaskStrategy, FieldSecurityTargetType, ResourceType } from './resource.types'
+import type { FieldMaskStrategy, FieldSecurityTargetType } from './resource.types'
 
 export interface FieldLevelSecurityPageQueryDto extends PageRequest {
+  entityName?: string | null
   keyword?: string | null
   maskStrategy?: FieldMaskStrategy | null
-  resourceId?: ApiId | null
   status?: EnableStatus | null
   targetId?: ApiId | null
   targetType?: FieldSecurityTargetType | null
@@ -13,17 +13,21 @@ export interface FieldLevelSecurityPageQueryDto extends PageRequest {
 
 export interface FieldLevelSecurityListItemDto extends BasicDto {
   createdTime: DateTimeString
-  description?: string | null
+  /** 实体已不再支持字段安全时为空 */
+  entityDisplayName?: string | null
+  entityName: string
+  /** 字段已不存在时为空 */
+  fieldDisplayName?: string | null
   fieldName: string
   isEditable: boolean
-  isReadable: boolean
+  /** 平台规则：对所有租户生效，只能在平台维护 */
+  isGlobal: boolean
+  maskKeepHead?: number | null
+  maskKeepTail?: number | null
+  maskReplacement?: string | null
   maskStrategy: FieldMaskStrategy
   modifiedTime?: DateTimeString | null
-  priority: number
-  resourceCode?: string | null
-  resourceId: ApiId
-  resourceName?: string | null
-  resourceType?: ResourceType | null
+  remark?: string | null
   status: EnableStatus
   targetCode?: string | null
   targetId: ApiId
@@ -34,37 +38,33 @@ export interface FieldLevelSecurityListItemDto extends BasicDto {
 export interface FieldLevelSecurityDetailDto extends FieldLevelSecurityListItemDto {
   createdBy?: string | null
   createdId?: ApiId | null
-  maskPattern?: string | null
   modifiedBy?: string | null
   modifiedId?: ApiId | null
-  remark?: string | null
 }
 
 export interface FieldLevelSecurityCreateDto {
-  description?: string | null
+  entityName: string
   fieldName: string
   isEditable: boolean
-  isReadable: boolean
-  maskPattern?: string | null
+  maskKeepHead?: number | null
+  maskKeepTail?: number | null
+  maskReplacement?: string | null
   maskStrategy: FieldMaskStrategy
-  priority: number
   remark?: string | null
-  resourceId: ApiId
   status: EnableStatus
   targetId: ApiId
   targetType: FieldSecurityTargetType
 }
 
 export interface FieldLevelSecurityUpdateDto extends BasicUpdateDto {
-  description?: string | null
+  entityName: string
   fieldName: string
   isEditable: boolean
-  isReadable: boolean
-  maskPattern?: string | null
+  maskKeepHead?: number | null
+  maskKeepTail?: number | null
+  maskReplacement?: string | null
   maskStrategy: FieldMaskStrategy
-  priority: number
   remark?: string | null
-  resourceId: ApiId
   targetId: ApiId
   targetType: FieldSecurityTargetType
 }
@@ -72,4 +72,19 @@ export interface FieldLevelSecurityUpdateDto extends BasicUpdateDto {
 export interface FieldLevelSecurityStatusUpdateDto extends BasicUpdateDto {
   remark?: string | null
   status: EnableStatus
+}
+
+/** 可配置字段安全的字段 */
+export interface FieldSecurityFieldDto {
+  displayName: string
+  fieldName: string
+  /** 非文本字段只能明文只读或隐藏 */
+  isText: boolean
+}
+
+/** 可配置字段安全的实体 */
+export interface FieldSecurityEntityDto {
+  displayName: string
+  entityName: string
+  fields: FieldSecurityFieldDto[]
 }
