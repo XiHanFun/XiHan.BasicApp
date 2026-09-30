@@ -44,7 +44,7 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 | --- | --- |
 | `key` | 字段键，对应行数据的属性名 |
 | `title` | 列标题（**建议传 i18n key 的翻译结果**） |
-| `dataType` | `string` / `enum` / `datetime` / `money` / `tag` / `json` / `image` 等，决定默认渲染器与搜索控件 |
+| `dataType` | `string` / `enum` / `datetime` / `money` / `tag` / `json` / `image` / `file` 等，决定默认渲染器与搜索控件；`image` / `file` 的值是文件主键（兼容直链），单元格分别出缩略图与打开入口 |
 | `visible` | 是否作为表格列。**`false` = 仅搜索用，不出现在表格** |
 | `searchable` / `advancedSearch` | 进入常用搜索 / 高级搜索浮层 |
 | `searchRange` | 时间字段：渲染区间选择器 + 便捷预设，下发 `Between` |
@@ -52,8 +52,10 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 | `sortable` | 服务端排序（列头出现排序箭头） |
 | `exportable` / `importable` / `editable` | 参与导出 / 导入模板 / 表单编辑 |
 | **`permission`** | **字段级权限码**：无此权限时该列与该搜索项**整个不渲染** |
-| `dictionaryCode` | 枚举名或字典码，运行时异步拉取选项注入 `options` |
-| `options` | 静态选项（`dictionaryCode` 解析为空时兜底，**保证绝不出现空下拉**） |
+| `dictionaryCode` | 后端枚举类型名，运行时经枚举元数据拉取本地化选项注入 `options` |
+| `dictCode` | 系统字典编码（字典管理里的字典），运行时经字典选项接口拉取注入 `options`，选项值为字典项编码；与 `dictionaryCode` 二选一 |
+| `optionsLoader` | 异步选项加载器（如代码生成的外键选项接口），挂载时调用并注入 `options`；与页面表单下拉在途时共用一次请求 |
+| `options` | 静态选项（`dictionaryCode` / `dictCode` / `optionsLoader` 解析为空时兜底，**保证绝不出现空下拉**） |
 | `render` | 自定义单元格渲染（最高优先级，返回 `VNodeChild`） |
 | `treeColumn` | 树形模式下承载展开箭头的列（应有且仅有一个） |
 | `order` | 排序值，越小越靠前 |

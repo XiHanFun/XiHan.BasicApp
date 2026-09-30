@@ -440,6 +440,26 @@ export default {
     failed: '上传失败',
     too_large: '图片大小不能超过 {size}MB',
   },
+  file_ref_upload: {
+    preview: '查看图片',
+    select: '上传',
+    change: '更换',
+    remove: '移除',
+    open: '打开',
+    hint_image: '支持常见图片格式，大小不超过 {size}MB',
+    hint_file: '大小不超过 {size}MB',
+    success: '上传成功',
+    failed: '上传失败',
+    too_large: '文件大小不能超过 {size}MB',
+    unavailable: '文件不可用（已删除或无查看权限）',
+    open_failed: '打开文件失败',
+  },
+  async_options: {
+    load_failed: '选项加载失败：{reason}',
+  },
+  dict_options: {
+    load_failed: '字典「{code}」的选项加载失败：{reason}',
+  },
   rich_text_editor: {
     placeholder: '请输入内容...',
     bold: '粗体',
@@ -542,6 +562,9 @@ export default {
     page_of: '/ {pageCount} 页',
     empty: '暂无数据',
     loading: '加载中…',
+    image_preview: '查看图片',
+    file_open: '打开',
+    file_open_failed: '打开文件失败',
   },
   pagination: {
     per_page: '{size} 条/页',

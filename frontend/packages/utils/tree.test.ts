@@ -6,7 +6,7 @@
  * 空字符串 parentId。其中若干条用例锁定的是源码**当前**行为（含缺陷），已在标题中标注。
  */
 import { describe, expect, it, vi } from 'vitest'
-import { filterTree, findTreeNode, getParentIds, listToTree, treeToList } from './tree'
+import { filterTree, findTreeNode, getParentIds, listToTree, relationOptionsToTree, treeToList } from './tree'
 
 interface FlatNode {
   basicId: string
@@ -386,5 +386,23 @@ describe('getParentIds', () => {
     ]
 
     expect(getParentIds(cyclic, 'a')).toEqual(['c', 'b'])
+  })
+})
+
+describe('relationOptionsToTree', () => {
+  it('按上级编码组树；上级为空、为 0 或不在选项里的节点作为根，不丢数据', () => {
+    const tree = relationOptionsToTree([
+      { label: '华东', value: '1', parentValue: null },
+      { label: '上海', value: '11', parentValue: '1' },
+      { label: '华北', value: '2', parentValue: '0' },
+      { label: '北京', value: '21', parentValue: '2' },
+      { label: '孤儿', value: '9', parentValue: '404' },
+    ])
+
+    expect(tree).toEqual([
+      { label: '华东', value: '1', children: [{ label: '上海', value: '11' }] },
+      { label: '华北', value: '2', children: [{ label: '北京', value: '21' }] },
+      { label: '孤儿', value: '9' },
+    ])
   })
 })
