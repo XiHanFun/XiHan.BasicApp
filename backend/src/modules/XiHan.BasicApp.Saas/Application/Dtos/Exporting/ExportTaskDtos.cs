@@ -49,7 +49,7 @@ public sealed class ExportColumnDto
 public sealed class ExportTaskSubmitDto
 {
     /// <summary>
-    /// 业务类型（= 前端 pageCode，匹配后端 IExportProvider.BusinessType）
+    /// 业务类型（= 导出按钮所属页面码，匹配后端 IExportProvider.BusinessType）
     /// </summary>
     public string BusinessType { get; set; } = string.Empty;
 

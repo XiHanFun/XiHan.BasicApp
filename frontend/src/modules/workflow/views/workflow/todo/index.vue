@@ -44,7 +44,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'workflow.todo',
+  pageCode: 'workflow_todo',
   pageName: t('workflow.todo.page_name'),
   rowKey: 'taskId',
   fields: fields.value,

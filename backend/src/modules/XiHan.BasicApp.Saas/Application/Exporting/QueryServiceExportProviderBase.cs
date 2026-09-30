@@ -34,12 +34,12 @@ public abstract class QueryServiceExportProviderBase<TQueryDto, TRowDto> : IExpo
     };
 
     /// <summary>
-    /// 业务类型（= 前端 pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
     public abstract string BusinessType { get; }
 
     /// <summary>
-    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// 导出所需权限码（与页面导出按钮绑定的权限一致；提交时拦截，执行器进程内再校验一次）
     /// </summary>
     public abstract string RequiredPermission { get; }
 
@@ -110,8 +110,12 @@ public abstract class QueryServiceExportProviderBase<TQueryDto, TRowDto> : IExpo
     }
 
     /// <summary>
-    /// 反序列化查询快照为资源查询 DTO（缺省返回空查询）
+    /// 反序列化查询快照为资源查询 DTO（未带快照即不加筛选；快照解析不了直接抛出，任务按失败收口）
     /// </summary>
+    /// <remarks>
+    /// 解析失败不能落回空查询：空查询等于不加任何筛选，导出范围会悄悄从「当前筛选结果」变成全量。
+    /// </remarks>
+    /// <exception cref="InvalidOperationException">快照不是该资源的查询条件</exception>
     protected virtual TQueryDto Deserialize(string? snapshot)
     {
         if (string.IsNullOrWhiteSpace(snapshot))
@@ -119,14 +123,18 @@ public abstract class QueryServiceExportProviderBase<TQueryDto, TRowDto> : IExpo
             return new TQueryDto();
         }
 
+        TQueryDto? query;
         try
         {
-            return JsonSerializer.Deserialize<TQueryDto>(snapshot, QueryJsonOptions) ?? new TQueryDto();
+            query = JsonSerializer.Deserialize<TQueryDto>(snapshot, QueryJsonOptions);
         }
-        catch (JsonException)
+        catch (JsonException ex)
         {
-            return new TQueryDto();
+            var position = string.IsNullOrEmpty(ex.Path) ? string.Empty : $"（{ex.Path}）";
+            throw new InvalidOperationException($"查询条件无法解析{position}，导出已终止。", ex);
         }
+
+        return query ?? throw new InvalidOperationException("查询条件无法解析（快照为 null），导出已终止。");
     }
 
     /// <summary>

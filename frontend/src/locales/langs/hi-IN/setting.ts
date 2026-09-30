@@ -299,7 +299,7 @@ export default {
     child_path: 'पथ',
     no_children: 'कोई उप-मेन्यू नहीं',
     menu_name_input_placeholder: 'कृपया मेन्यू नाम दर्ज करें',
-    menu_code_input_placeholder: 'जैसे: system.user',
+    menu_code_input_placeholder: 'जैसे: identity.user',
     parent_menu: 'मूल मेन्यू',
     parent_menu_placeholder: 'मूल मेन्यू चुनें (खाली छोड़ा जा सकता है, खाली रहने पर शीर्ष स्तर)',
     path_input_placeholder: 'जैसे: /system/user',

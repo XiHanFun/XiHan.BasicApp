@@ -123,7 +123,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 // DepartmentTreeQueryDto 仅支持 keyword/limit/onlyEnabled；类型/状态仅作为列展示。
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'system.org',
+  pageCode: 'identity.org',
   exportPermission: 'identity.org.export',
   pageName: t('identity.org.page_name'),
   batchRemovable: true,

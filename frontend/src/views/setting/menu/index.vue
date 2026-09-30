@@ -212,7 +212,7 @@ function buildTree(items: MenuListItemDto[]): MenuTreeItem[] {
 }
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'platform.menu',
+  pageCode: 'setting.menu',
   exportPermission: 'setting.menu.export',
   pageName: t('setting.menu.page_name'),
   batchRemovable: true,

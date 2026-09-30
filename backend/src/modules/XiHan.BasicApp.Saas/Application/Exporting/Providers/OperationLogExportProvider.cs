@@ -24,14 +24,14 @@ public sealed class OperationLogExportProvider : QueryServiceExportProviderBase<
     }
 
     /// <summary>
-    /// 业务类型（= 前端 pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
     public override string BusinessType => "log.operation";
 
     /// <summary>
-    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// 导出所需权限码（与页面导出按钮 log.operation.export 绑定的权限一致；提交与执行都按它校验）
     /// </summary>
-    public override string RequiredPermission => SaasPermissionCodes.OperationLog.Read;
+    public override string RequiredPermission => SaasPermissionCodes.OperationLog.Export;
 
     /// <summary>
     /// 调用对应 QueryService 的分页方法（子类实现）

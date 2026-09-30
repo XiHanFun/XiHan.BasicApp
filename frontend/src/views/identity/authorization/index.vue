@@ -222,7 +222,7 @@ function isPending(row: unknown) {
 }
 
 const requestSchema = computed<PageSchema>(() => ({
-  pageCode: 'system.authorization.request',
+  pageCode: 'identity.authorization.request',
   exportPermission: 'identity.authorization.export',
   pageName: t('identity.authorization.req_page_name'),
   rowKey: 'basicId',
@@ -367,7 +367,7 @@ function canRevoke(row: unknown) {
 }
 
 const delegationSchema = computed<PageSchema>(() => ({
-  pageCode: 'system.authorization.delegation',
+  pageCode: 'identity.authorization.delegation',
   pageName: t('identity.authorization.del_page_name'),
   rowKey: 'basicId',
   fields: delegationFields.value,

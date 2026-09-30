@@ -91,7 +91,7 @@ ExportTaskHostedService 拉取 → 执行导出 → 写文件 → 回写 FileId/
 
 | 字段 | 说明 |
 | --- | --- |
-| `BusinessType` | 业务类型（如 `log.access`），决定用哪个导出 Provider |
+| `BusinessType` | 业务类型，取导出按钮所属的页面码（`PageRegistry`，如 `log.access`、`identity.user`），决定用哪个导出 Provider |
 | `Scope` | 导出范围（当前搜索结果 / 全量等） |
 | `Format` | 导出格式（CSV 等） |
 | `Status` / `Progress` / `TotalCount` / `ProcessedCount` | 进度反馈 |
@@ -104,6 +104,8 @@ ExportTaskHostedService 拉取 → 执行导出 → 写文件 → 回写 FileId/
 导出是异步的——用户提交后可能立刻改了搜索条件、调了列设置甚至关掉页面。存快照保证**导出的内容与点击那一刻看到的一致**，而不是与执行那一刻的界面状态一致。
 
 这也意味着：修复导出内容的 bug 要看快照里存了什么，而不是看现在页面上是什么。
+
+查询快照解析不了时任务直接失败，原因写「查询条件无法解析」，不会落回空查询——空查询等于不加筛选，导出范围会悄悄变成全量。
 :::
 
 前端 Schema 页只要在 `PageSchema.resource.export` 里声明 `{ businessType, buildQuery }`，导出按钮就会走这条异步链路；未声明时退化为本地 CSV 导出。**导出按钮的显隐由 `exportPermission` 精准门控**，未声明该字段则该页不显示导出。

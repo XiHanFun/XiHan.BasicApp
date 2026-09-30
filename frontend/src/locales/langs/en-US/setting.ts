@@ -299,7 +299,7 @@ export default {
     child_path: 'Path',
     no_children: 'No submenus',
     menu_name_input_placeholder: 'Please enter menu name',
-    menu_code_input_placeholder: 'e.g. system.user',
+    menu_code_input_placeholder: 'e.g. identity.user',
     parent_menu: 'Parent Menu',
     parent_menu_placeholder: 'Select parent menu (leave empty for top level)',
     path_input_placeholder: 'e.g. /system/user',

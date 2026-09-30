@@ -119,7 +119,7 @@ const dictFields = computed<ListFieldSchema[]>(() => [
 ])
 
 const dictSchema = computed<PageSchema>(() => ({
-  pageCode: 'platform.dict',
+  pageCode: 'setting.dict',
   pageName: t('setting.dict.page_name'),
   batchRemovable: true,
   removePermission: 'setting.dict.delete',
@@ -215,7 +215,7 @@ const itemFields = computed<ListFieldSchema[]>(() => [
  * 没选字典时不渲染（也就不会发请求），换字典时条件、排序与页码一并归零。
  */
 const itemSchema = computed<PageSchema>(() => ({
-  pageCode: 'platform.dict.item',
+  pageCode: 'setting.dict.item',
   pageName: t('setting.dict.items'),
   batchRemovable: true,
   removePermission: 'setting.dict.delete',

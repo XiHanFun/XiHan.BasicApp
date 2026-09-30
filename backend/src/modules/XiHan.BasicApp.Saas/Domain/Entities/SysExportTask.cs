@@ -30,7 +30,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 public partial class SysExportTask : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
-    /// 业务类型（= 前端 pageCode，匹配 IExportProvider.BusinessType）
+    /// 业务类型（= 导出按钮所属页面码，匹配 IExportProvider.BusinessType）
     /// </summary>
     [SugarColumn(ColumnName = "Business_Type", ColumnDescription = "业务类型", Length = 100, IsNullable = false)]
     public virtual string BusinessType { get; set; } = string.Empty;

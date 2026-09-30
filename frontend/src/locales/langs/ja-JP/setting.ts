@@ -299,7 +299,7 @@ export default {
     child_path: 'パス',
     no_children: 'サブメニューがありません',
     menu_name_input_placeholder: 'メニュー名を入力してください',
-    menu_code_input_placeholder: '例：system.user',
+    menu_code_input_placeholder: '例：identity.user',
     parent_menu: '親メニュー',
     parent_menu_placeholder: '親メニューを選択（空欄の場合は最上位）',
     path_input_placeholder: '例：/system/user',
