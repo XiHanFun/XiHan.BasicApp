@@ -514,7 +514,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'system.user',
+  pageCode: 'identity.user',
   exportPermission: 'identity.user.export',
   pageName: t('identity.user.page_name'),
   batchRemovable: true,

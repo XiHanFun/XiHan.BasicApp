@@ -299,7 +299,7 @@ export default {
     child_path: '路徑',
     no_children: '暫無子選單',
     menu_name_input_placeholder: '請輸入選單名稱',
-    menu_code_input_placeholder: '例如：system.user',
+    menu_code_input_placeholder: '例如：identity.user',
     parent_menu: '上層選單',
     parent_menu_placeholder: '選擇上層選單（可留空，留空為頂層）',
     path_input_placeholder: '例如：/system/user',

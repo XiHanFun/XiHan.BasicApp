@@ -299,7 +299,7 @@ export default {
     child_path: '경로',
     no_children: '하위 메뉴가 없어요',
     menu_name_input_placeholder: '메뉴 이름을 입력하세요',
-    menu_code_input_placeholder: '예: system.user',
+    menu_code_input_placeholder: '예: identity.user',
     parent_menu: '상위 메뉴',
     parent_menu_placeholder: '상위 메뉴 선택(비워 두면 최상위)',
     path_input_placeholder: '예: /system/user',

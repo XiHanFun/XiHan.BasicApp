@@ -149,7 +149,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'platform.approval',
+  pageCode: 'approval.review',
   exportPermission: 'approval.review.export',
   pageName: t('approval.review.page_name'),
   batchRemovable: true,

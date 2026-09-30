@@ -63,7 +63,7 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 
 | 属性 | 作用 |
 | --- | --- |
-| `pageCode` | 页面唯一码，**偏好与视图按此维度存储**（如 `log.access`） |
+| `pageCode` | 页面唯一码，取该页面在后端页面登记表（各模块 `PageRegistry`）里的页面码，一页有多张表时用「页面码.子表」（如 `log.access`、`message.record.email`）；**偏好、视图与导入历史按此维度存储**，`src/views/view-page-code.test.ts` 校验对应关系 |
 | `pageName` | 页面名 |
 | `resourceCode` | 后端资源码，用于匹配字段脱敏（FLS）规则；**缺省则不拉取脱敏规则** |
 | `resource` | 数据资源适配器：`page` / `tree` / `remove` / `updateStatus` / `create` / `export` |
@@ -227,7 +227,7 @@ resource: {
 同步策略：**localStorage 仍是事实源**，后端加载成功则覆盖本地，保存失败静默忽略（尽力而为）。其它设备保存后经 SignalR `UserSettingChanged` 实时推送并应用到已打开的页面。
 
 ::: tip `pageCode` 要稳定
-偏好、视图、列设置全按 `pageCode` 存储。**改了 `pageCode` 等于用户的所有个性化配置丢失**，页面上线后不要再动它。
+偏好、视图、列设置与导入历史全按 `pageCode` 存储。**只改 `pageCode` 等于用户的所有个性化配置丢失**，页面上线后不要再动它；确需改名时，随升级脚本把 `sys_user_setting`（`scene = 1`）与 `sys_import_history` 里的旧码改成新码（参考 `UpdateScripts/5.4.0/5.4.0-page-codes.sql`）。
 :::
 
 ## 加一个列表页的清单

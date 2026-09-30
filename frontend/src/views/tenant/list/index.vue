@@ -381,7 +381,7 @@ function toStr(v: unknown): string | undefined {
 }
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'platform.tenant',
+  pageCode: 'tenant.list',
   exportPermission: 'tenant.list.export',
   pageName: t('tenant.list.page_name'),
   rowKey: 'basicId',

@@ -138,7 +138,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 
 // ── 资源适配器：归一化查询参数 → 后端 API ──────────────────────
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'platform.app',
+  pageCode: 'openapi.app',
   exportPermission: 'openapi.app.export',
   pageName: t('openapi.app.page_name'),
   batchRemovable: true,

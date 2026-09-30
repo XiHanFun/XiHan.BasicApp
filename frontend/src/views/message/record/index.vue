@@ -139,7 +139,7 @@ const emailFields = computed<ListFieldSchema[]>(() => [
 ])
 
 const emailSchema = computed<PageSchema>(() => ({
-  pageCode: 'message.email',
+  pageCode: 'message.record.email',
   exportPermission: 'message.record.export',
   pageName: t('message.record.email_page_name'),
   rowKey: 'basicId',
@@ -283,7 +283,7 @@ const smsFields = computed<ListFieldSchema[]>(() => [
 ])
 
 const smsSchema = computed<PageSchema>(() => ({
-  pageCode: 'message.sms',
+  pageCode: 'message.record.sms',
   exportPermission: 'message.record.export',
   pageName: t('message.record.sms_page_name'),
   rowKey: 'basicId',

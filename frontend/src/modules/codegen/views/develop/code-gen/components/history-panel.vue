@@ -153,7 +153,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'develop.codegen.history',
+  pageCode: 'code_gen.history',
   pageName: t('develop.code_gen.tabs.history'),
   rowKey: 'basicId',
   fields: fields.value,

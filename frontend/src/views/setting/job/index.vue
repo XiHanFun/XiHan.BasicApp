@@ -198,7 +198,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'platform.job',
+  pageCode: 'setting.job',
   exportPermission: 'setting.job.export',
   pageName: t('setting.job.page_name'),
   batchRemovable: true,
