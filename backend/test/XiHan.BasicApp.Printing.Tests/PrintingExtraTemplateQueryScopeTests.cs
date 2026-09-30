@@ -8,7 +8,6 @@ using XiHan.BasicApp.Printing.Application.Dtos;
 using XiHan.BasicApp.Printing.Application.QueryServices;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Domain.Enums;
-using XiHan.BasicApp.Printing.Domain.Permissions;
 using XiHan.BasicApp.Printing.Domain.Repositories;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -131,11 +130,35 @@ public sealed class PrintingExtraTemplateQueryScopeTests
         var conditions = RequireCapturedConditions(fixture);
         Assert.Equal(7L, LastFilterValue(conditions, nameof(SysPrintTemplate.TenantId)));
         fixture.FieldSecurity.Verify(
-            security => security.GuardFiltersAsync(It.IsAny<QueryConditions>(), PrintingPermissionCodes.Resource, It.IsAny<CancellationToken>()),
+            security => security.GuardQueryAsync(It.IsAny<QueryConditions>(), typeof(SysPrintTemplate), It.IsAny<CancellationToken>()),
             Times.Once);
-        fixture.FieldSecurity.Verify(
-            security => security.GuardSortsAsync(It.IsAny<QueryConditions>(), PrintingPermissionCodes.Resource, It.IsAny<CancellationToken>()),
-            Times.Once);
+    }
+
+    /// <summary>
+    /// 租户读全局模板：字段规则按请求方判定，门控不能落进平台上下文（否则查到的是平台侧的角色与规则）。
+    /// </summary>
+    [Fact]
+    public async Task GetPrintTemplatePageAsync_TenantReadingGlobal_ShouldApplyFieldSecurityInRequesterContext()
+    {
+        var fixture = CreateFixture(tenantId: 7, pageItems: [CreateTemplate(0, allowTenantUse: true, EnableStatus.Enabled)]);
+        var inPlatformScope = false;
+        fixture.CurrentTenant
+            .Setup(value => value.Change(It.IsAny<long?>(), It.IsAny<string?>()))
+            .Returns(() =>
+            {
+                inPlatformScope = true;
+                return new ScopeExit(() => inPlatformScope = false);
+            });
+        var fieldSecurityScopes = new List<bool>();
+        fixture.FieldSecurity
+            .Setup(value => value.GuardQueryAsync(It.IsAny<QueryConditions>(), typeof(SysPrintTemplate), It.IsAny<CancellationToken>()))
+            .Callback(() => fieldSecurityScopes.Add(inPlatformScope))
+            .Returns(Task.CompletedTask);
+
+        _ = await fixture.Service.GetPrintTemplatePageAsync(new PrintTemplatePageQueryDto { Scope = PrintTemplateScope.Global });
+
+        fixture.CurrentTenant.Verify(tenant => tenant.Change(null, It.IsAny<string?>()), Times.Once);
+        Assert.Equal([false], fieldSecurityScopes);
     }
 
     /// <summary>
@@ -466,12 +489,6 @@ public sealed class PrintingExtraTemplateQueryScopeTests
             .ReturnsAsync((ResolvedPrintTemplateDto?)null);
 
         var fieldSecurity = new Mock<IFieldSecurityService>();
-        fieldSecurity
-            .Setup(value => value.GuardFiltersAsync(It.IsAny<QueryConditions>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
-        fieldSecurity
-            .Setup(value => value.GuardSortsAsync(It.IsAny<QueryConditions>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .Returns(Task.CompletedTask);
 
         var currentTenant = new Mock<ICurrentTenant>();
         currentTenant.SetupGet(value => value.Id).Returns(tenantId);
@@ -526,4 +543,12 @@ public sealed class PrintingExtraTemplateQueryScopeTests
         Mock<IFieldSecurityService> FieldSecurity,
         Mock<ICurrentTenant> CurrentTenant,
         List<PageRequestDtoBase> CapturedRequests);
+
+    /// <summary>
+    /// 作用域退出时执行回调，用来模拟租户切换的 using 块。
+    /// </summary>
+    private sealed class ScopeExit(Action onDispose) : IDisposable
+    {
+        public void Dispose() => onDispose();
+    }
 }

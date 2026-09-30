@@ -32,5 +32,6 @@ public class XiHanBasicAppCodeGenerationModule : XiHanModule
 
         // 注册代码生成领域服务（未携带 DI 标记接口，需显式登记）
         services.AddCodeGenerationDomainServices();
+        services.AddCodeGenerationFieldSecurityEntities();
     }
 }

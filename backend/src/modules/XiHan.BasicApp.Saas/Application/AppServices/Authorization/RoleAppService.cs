@@ -41,6 +41,8 @@ public sealed class RoleAppService
 
     private readonly IOperationPermissionGuard _operationPermissionGuard;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -51,7 +53,8 @@ public sealed class RoleAppService
         IImpersonationPolicyService impersonationPolicyService,
         ISuperAdminProtector superAdminProtector,
         IRolePermissionRepository rolePermissionRepository,
-        IOperationPermissionGuard operationPermissionGuard)
+        IOperationPermissionGuard operationPermissionGuard,
+        IFieldSecurityService fieldSecurity)
     {
         _roleDomainService = roleDomainService;
         _cacheInvalidator = cacheInvalidator;
@@ -60,6 +63,7 @@ public sealed class RoleAppService
         _superAdminProtector = superAdminProtector;
         _rolePermissionRepository = rolePermissionRepository;
         _operationPermissionGuard = operationPermissionGuard;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -71,6 +75,9 @@ public sealed class RoleAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysRole), input, cancellationToken);
 
         var result = await _roleDomainService.CreateRoleAsync(RoleApplicationMapper.ToCreateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
@@ -205,6 +212,9 @@ public sealed class RoleAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysRole), input.BasicId, input, cancellationToken);
+
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.BasicId, cancellationToken);
         var result = await _roleDomainService.UpdateRoleAsync(RoleApplicationMapper.ToUpdateCommand(input), cancellationToken);
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
@@ -283,6 +293,9 @@ public sealed class RoleAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysRole), input.BasicId, input, cancellationToken);
 
         await _superAdminProtector.EnsureCanWriteRoleAsync(input.BasicId, cancellationToken);
         var result = await _roleDomainService.UpdateRoleStatusAsync(RoleApplicationMapper.ToStatusCommand(input), cancellationToken);

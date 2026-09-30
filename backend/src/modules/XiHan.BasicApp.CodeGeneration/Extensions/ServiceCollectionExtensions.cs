@@ -8,6 +8,8 @@ using XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 using XiHan.BasicApp.CodeGeneration.Infrastructure.Inference;
 using XiHan.BasicApp.CodeGeneration.Infrastructure.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
+using XiHan.BasicApp.CodeGeneration.Domain.Entities;
+using XiHan.BasicApp.Saas.Extensions;
 
 namespace XiHan.BasicApp.CodeGeneration.Extensions;
 
@@ -79,5 +81,19 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICodeGenTemplateDomainService, CodeGenTemplateDomainService>();
 
         return services;
+    }
+
+    /// <summary>
+    /// 登记代码生成模块可配置字段安全的实体
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddCodeGenerationFieldSecurityEntities(this IServiceCollection services)
+    {
+        return services.AddFieldSecurityEntities(entities => entities
+            .Add<SysCodeGenDataSource>()
+            .Add<SysCodeGenTable>()
+            .Add<SysCodeGenTemplate>()
+            .Add<SysCodeGenHistory>());
     }
 }

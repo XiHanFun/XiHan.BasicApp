@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Saas.Application.Exporting;
 /// 基类负责翻页循环、首页回填总数、列投影、范围（单页/全量）与安全上限。
 /// </summary>
 /// <typeparam name="TQueryDto">资源自身分页查询 DTO（含 Page 分页元数据）</typeparam>
-/// <typeparam name="TRowDto">资源列表行 DTO（已脱敏/已映射）</typeparam>
+/// <typeparam name="TRowDto">资源列表行 DTO（写出前由基类按发起人打码）</typeparam>
 public abstract class QueryServiceExportProviderBase<TQueryDto, TRowDto> : IExportProvider
     where TQueryDto : BasicAppPRDto, new()
 {
@@ -63,6 +63,8 @@ public abstract class QueryServiceExportProviderBase<TQueryDto, TRowDto> : IExpo
             query.Page.PageIndex = pageIndex;
             query.Page.PageSize = pageSize;
             var page = await QueryPageAsync(query, cancellationToken);
+            // 进程内直调不经过 HTTP 响应过滤器，写出前按发起人打码，导出与在线列表同一口径
+            await context.FieldSecurity.MaskAsync(page, cancellationToken);
 
             if (first)
             {

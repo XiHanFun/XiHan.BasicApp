@@ -36,6 +36,7 @@ public class XiHanBasicAppAIModule : XiHanModule
 
         // AI Provider 配置管理：领域服务 + DB 配置源覆盖
         services.AddAIDomainServices();
+        services.AddAIFieldSecurityEntities();
         services.AddAIConfigStore();
 
         // 知识库（RAG）：领域服务 + 框架 RAG + Qdrant 向量库连接器

@@ -51,18 +51,15 @@ public sealed class ExportTaskQueryService
 
     private readonly ICurrentUser _currentUser;
 
-    private readonly IFieldSecurityService _fieldSecurity;
-
     private readonly IExportTaskRepository _repository;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ExportTaskQueryService(IExportTaskRepository repository, ICurrentUser currentUser, IFieldSecurityService fieldSecurityService)
+    public ExportTaskQueryService(IExportTaskRepository repository, ICurrentUser currentUser)
     {
         _repository = repository;
         _currentUser = currentUser;
-        _fieldSecurity = fieldSecurityService;
     }
 
     /// <summary>
@@ -81,12 +78,9 @@ public sealed class ExportTaskQueryService
 
         var request = BuildPageRequest(input);
 
-        // 白名单收窄：只放行导出中心列表在用的列，其余排序 / 过滤项剔除
+        // 白名单收窄：只放行导出中心列表在用的列，其余排序 / 过滤项剔除。
+        // 列表只含本人发起的任务，不参与字段安全
         KeepAllowedFieldsOnly(request.Conditions);
-
-        // FLS 门控：再剔除当前用户不可读或已脱敏的字段
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, nameof(SysExportTask), cancellationToken);
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, nameof(SysExportTask), cancellationToken);
 
         // 无有效排序时回退默认排序（GetPagedAsync 不带默认排序，缺排序会让翻页在库侧无序返回，出现重复行与漏行）
         if (request.Conditions.Sorts.Count == 0)

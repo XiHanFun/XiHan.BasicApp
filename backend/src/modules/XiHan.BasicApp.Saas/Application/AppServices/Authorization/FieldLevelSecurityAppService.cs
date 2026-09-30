@@ -21,18 +21,21 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 public sealed class FieldLevelSecurityAppService
     : SaasApplicationService, IFieldLevelSecurityAppService
 {
+    private readonly IFieldSecurityEntityCatalog _catalog;
+
     private readonly IFieldLevelSecurityDomainService _fieldLevelSecurityDomainService;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public FieldLevelSecurityAppService(IFieldLevelSecurityDomainService fieldLevelSecurityDomainService)
+    public FieldLevelSecurityAppService(IFieldLevelSecurityDomainService fieldLevelSecurityDomainService, IFieldSecurityEntityCatalog catalog)
     {
         _fieldLevelSecurityDomainService = fieldLevelSecurityDomainService;
+        _catalog = catalog;
     }
 
     /// <summary>
-    /// 创建字段级安全策略
+    /// 创建字段级安全规则
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.FieldLevelSecurity.Create)]
@@ -42,11 +45,11 @@ public sealed class FieldLevelSecurityAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _fieldLevelSecurityDomainService.CreateAsync(FieldLevelSecurityApplicationMapper.ToCreateCommand(input), cancellationToken);
-        return FieldLevelSecurityApplicationMapper.ToDetailDto(result.Policy, result.Resource, result.TargetCode, result.TargetName);
+        return FieldLevelSecurityApplicationMapper.ToDetailDto(result.Policy, _catalog, result.TargetCode, result.TargetName);
     }
 
     /// <summary>
-    /// 删除字段级安全策略
+    /// 删除字段级安全规则
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.FieldLevelSecurity.Delete)]
@@ -57,7 +60,7 @@ public sealed class FieldLevelSecurityAppService
     }
 
     /// <summary>
-    /// 更新字段级安全策略
+    /// 更新字段级安全规则
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.FieldLevelSecurity.Update)]
@@ -67,11 +70,11 @@ public sealed class FieldLevelSecurityAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _fieldLevelSecurityDomainService.UpdateAsync(FieldLevelSecurityApplicationMapper.ToUpdateCommand(input), cancellationToken);
-        return FieldLevelSecurityApplicationMapper.ToDetailDto(result.Policy, result.Resource, result.TargetCode, result.TargetName);
+        return FieldLevelSecurityApplicationMapper.ToDetailDto(result.Policy, _catalog, result.TargetCode, result.TargetName);
     }
 
     /// <summary>
-    /// 更新字段级安全策略状态
+    /// 更新字段级安全规则状态
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.FieldLevelSecurity.Status)]
@@ -81,6 +84,6 @@ public sealed class FieldLevelSecurityAppService
         cancellationToken.ThrowIfCancellationRequested();
 
         var result = await _fieldLevelSecurityDomainService.UpdateStatusAsync(FieldLevelSecurityApplicationMapper.ToStatusCommand(input), cancellationToken);
-        return FieldLevelSecurityApplicationMapper.ToDetailDto(result.Policy, result.Resource, result.TargetCode, result.TargetName);
+        return FieldLevelSecurityApplicationMapper.ToDetailDto(result.Policy, _catalog, result.TargetCode, result.TargetName);
     }
 }

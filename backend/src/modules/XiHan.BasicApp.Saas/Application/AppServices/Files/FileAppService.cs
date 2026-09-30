@@ -37,6 +37,8 @@ public sealed class FileAppService
 
     private readonly ILocalEventBus _localEventBus;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -45,13 +47,15 @@ public sealed class FileAppService
         IFileRecordQueryService fileRecordQueryService,
         IFileTransferService fileTransferService,
         ILocalEventBus localEventBus,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IFieldSecurityService fieldSecurity)
     {
         _fileDomainService = fileDomainService;
         _fileRecordQueryService = fileRecordQueryService;
         _fileTransferService = fileTransferService;
         _localEventBus = localEventBus;
         _currentUser = currentUser;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -178,6 +182,9 @@ public sealed class FileAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysFile), input.BasicId, input, cancellationToken);
+
         var result = await _fileDomainService.UpdateFileMetadataAsync(FileApplicationMapper.ToMetadataUpdateCommand(input), cancellationToken);
         return FileApplicationMapper.ToDetailDto(result.File);
     }
@@ -191,6 +198,9 @@ public sealed class FileAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysFile), input.BasicId, input, cancellationToken);
 
         var result = await _fileDomainService.UpdateFileStatusAsync(
             FileApplicationMapper.ToStatusCommand(input),
@@ -207,6 +217,9 @@ public sealed class FileAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysFileStorage), input.BasicId, input, cancellationToken);
 
         var result = await _fileDomainService.UpdateFileStorageStatusAsync(
             FileApplicationMapper.ToStorageStatusCommand(input),

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Exporting;
@@ -11,10 +12,16 @@ namespace XiHan.BasicApp.Saas.Application.Exporting;
 /// </summary>
 /// <remarks>
 /// UserId/TenantId 为任务发起人/发起租户；执行器已据此重建 CurrentUser/CurrentTenant 上下文，
-/// Provider 内调用既有 QueryService 时权限/数据范围/字段脱敏将原样生效。
+/// Provider 内调用既有 QueryService 时权限与数据范围原样生效；字段脱敏在 HTTP 管道里由响应过滤器统一做，
+/// 进程内直调不经过它，导出基类每取一页就用 <see cref="FieldSecurity"/> 按发起人打码。
 /// </remarks>
 public sealed class ExportContext
 {
+    /// <summary>
+    /// 按发起人判定的字段安全（读出的每页数据先打码再写出）
+    /// </summary>
+    public required IFieldSecurityService FieldSecurity { get; init; }
+
     /// <summary>
     /// 业务类型（= pageCode）
     /// </summary>

@@ -1,0 +1,137 @@
+-- 5.4.0
+-- 一、字段级安全改为「实体 + 字段」：规则不再挂权限资源，读取方式的参数改为明确的列，删去从未生效的写法（见后文）。
+--
+-- 只在 5.4.0 之前建的库上执行：新建的库按当前实体建表后直接登记为最新版本，不跑本脚本。
+-- 本脚本在建表之后、播种之前执行；建表只建缺失的表，存量表的列与索引由本脚本调整。
+--
+-- 标识符一律小写不加引号：SqlSugar 建表未加引号，PostgreSQL 折叠为小写。
+--
+-- 幂等：每一段都先判断再改，跑过一次后整段空转。
+
+-- 一、字段级安全改为「实体 + 字段」。
+-- sys_field_level_security 只在平台库建表（[PlatformDataSource]），独立库上整段跳过。
+-- 旧表以 resource_id 为判断依据：列还在说明本段没跑过。
+--
+-- 迁移规则：
+-- 1. 权限资源 → 实体：一个资源只对应一个实体的直接换成实体名。
+--    多个实体共用的资源（字典、版本、文件、消息、编号、代码生成、工作流）与其他资源上的规则、
+--    以及目标为「权限」的规则无法确定落到哪个实体，删除。字段安全在 5.4.0 之前只对用户列表与详情生效，
+--    这些规则从未起过作用；需要的请在字段安全页按实体重新配置。
+-- 2. 读取方式：is_readable 与「隐藏」重复，并入读取方式；「自定义」与「固定文本」重复，改为固定文本（没写文字的改为全部星号）。
+--    部分脱敏的 mask_pattern（keep:前,后）拆成两列，没写的按旧行为保留后 4 位；前后都不保留的改为全部星号。
+-- 3. 明文且可编辑的规则什么都没限制，删除；脱敏且可编辑的保留，新语义为「只写」（看不到原值、可填新值，交回脱敏值视为没改）。
+-- 4. 优先级从未参与判定，删除；说明并入备注（备注为空时）。
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1
+          FROM information_schema.columns
+         WHERE table_schema = current_schema()
+           AND table_name = 'sys_field_level_security'
+           AND column_name = 'resource_id'
+    ) THEN
+        ALTER TABLE sys_field_level_security ADD COLUMN IF NOT EXISTS entity_name varchar(100) NULL;
+        ALTER TABLE sys_field_level_security ADD COLUMN IF NOT EXISTS mask_keep_head int4 NULL;
+        ALTER TABLE sys_field_level_security ADD COLUMN IF NOT EXISTS mask_keep_tail int4 NULL;
+        ALTER TABLE sys_field_level_security ADD COLUMN IF NOT EXISTS mask_replacement varchar(100) NULL;
+
+        -- 目标为「权限」的规则从未生效，删除
+        DELETE FROM sys_field_level_security WHERE target_type = 2;
+
+        -- 资源 → 实体（仅一个资源对应一个实体的）
+        UPDATE sys_field_level_security f
+           SET entity_name = m.entity_name
+          FROM sys_resource r
+          JOIN (VALUES
+                ('user', 'SysUser'), ('user-session', 'SysUserSession'), ('role', 'SysRole'),
+                ('permission', 'SysPermission'), ('constraint-rule', 'SysConstraintRule'), ('position', 'SysPosition'),
+                ('tenant', 'SysTenant'), ('tenant-edition', 'SysTenantEdition'), ('oauth-app', 'SysOAuthApp'),
+                ('config', 'SysConfig'), ('storage-config', 'SysStorageConfig'), ('review', 'SysReview'),
+                ('notification', 'SysNotification'), ('message-template', 'SysMessageTemplate'),
+                ('email-config', 'SysEmailConfig'), ('sms-config', 'SysSmsConfig'), ('bot-config', 'SysBotConfig'),
+                ('telegram-bot', 'SysTelegramBot'), ('access-log', 'SysAccessLog'), ('api-log', 'SysOpenApiLog'),
+                ('operation-log', 'SysOperationLog'), ('login-log', 'SysLoginLog'), ('exception-log', 'SysExceptionLog'),
+                ('diff-log', 'SysDiffLog'), ('ai', 'SysAiProvider'), ('ai_assistant', 'SysAiAssistant'),
+                ('ai_prompt', 'SysAiPrompt'), ('knowledge_base', 'SysKnowledgeDocument'), ('print-template', 'SysPrintTemplate')
+               ) AS m (resource_code, entity_name)
+            ON m.resource_code = r.resource_code
+         WHERE f.resource_id = r.basic_id
+           AND f.entity_name IS NULL;
+
+        -- 落不到唯一实体的规则删除（见上文说明）
+        DELETE FROM sys_field_level_security WHERE entity_name IS NULL;
+
+        -- 不可读并入「隐藏」
+        UPDATE sys_field_level_security
+           SET mask_strategy = 1
+         WHERE is_readable = false
+           AND mask_strategy = 0;
+
+        -- 「自定义」改为固定文本；没写文字的改为全部星号
+        UPDATE sys_field_level_security
+           SET mask_strategy = CASE WHEN NULLIF(btrim(mask_pattern), '') IS NULL THEN 2 ELSE 5 END
+         WHERE mask_strategy = 99;
+
+        -- 部分脱敏：keep:前,后 拆列；没写的按旧行为保留后 4 位
+        UPDATE sys_field_level_security
+           SET mask_keep_head = LEAST(COALESCE(substring(mask_pattern FROM '^\s*[kK][eE][eE][pP]:\s*(\d{1,4})')::int4, 0), 32),
+               mask_keep_tail = LEAST(COALESCE(substring(mask_pattern FROM '^\s*[kK][eE][eE][pP]:\s*\d*\s*,\s*(\d{1,4})')::int4, 0), 32)
+         WHERE mask_strategy = 3
+           AND mask_pattern ~* '^\s*keep:';
+
+        UPDATE sys_field_level_security
+           SET mask_keep_head = 0,
+               mask_keep_tail = 4
+         WHERE mask_strategy = 3
+           AND mask_keep_head IS NULL;
+
+        -- 前后都不保留等同于全部星号
+        UPDATE sys_field_level_security
+           SET mask_strategy = 2,
+               mask_keep_head = NULL,
+               mask_keep_tail = NULL
+         WHERE mask_strategy = 3
+           AND mask_keep_head = 0
+           AND mask_keep_tail = 0;
+
+        -- 固定文本：沿用原文字，没写的用旧默认值
+        UPDATE sys_field_level_security
+           SET mask_replacement = left(COALESCE(NULLIF(btrim(mask_pattern), ''), '[已脱敏]'), 100)
+         WHERE mask_strategy = 5
+           AND mask_replacement IS NULL;
+
+        -- 明文且可编辑：什么都没限制
+        DELETE FROM sys_field_level_security
+         WHERE mask_strategy = 0
+           AND is_editable = true;
+
+        -- 说明并入备注
+        UPDATE sys_field_level_security
+           SET remark = left(description, 500)
+         WHERE remark IS NULL
+           AND NULLIF(btrim(description), '') IS NOT NULL;
+
+        -- 删列：含 resource_id 的旧索引随列一并删除
+        ALTER TABLE sys_field_level_security DROP COLUMN resource_id;
+        ALTER TABLE sys_field_level_security DROP COLUMN IF EXISTS is_readable;
+        ALTER TABLE sys_field_level_security DROP COLUMN IF EXISTS mask_pattern;
+        ALTER TABLE sys_field_level_security DROP COLUMN IF EXISTS priority;
+        ALTER TABLE sys_field_level_security DROP COLUMN IF EXISTS description;
+
+        ALTER TABLE sys_field_level_security ALTER COLUMN entity_name SET NOT NULL;
+    END IF;
+
+    -- 新索引（与实体上的 SugarIndex 同名）
+    IF EXISTS (
+        SELECT 1
+          FROM information_schema.tables
+         WHERE table_schema = current_schema()
+           AND table_name = 'sys_field_level_security'
+    ) THEN
+        CREATE UNIQUE INDEX IF NOT EXISTS ux_sys_field_level_security_teid_taty_taid_enna_fina
+            ON sys_field_level_security (tenant_id, target_type, target_id, entity_name, field_name, is_deleted);
+        CREATE INDEX IF NOT EXISTS ix_sys_field_level_security_enna_st
+            ON sys_field_level_security (entity_name, status);
+    END IF;
+END
+$$;

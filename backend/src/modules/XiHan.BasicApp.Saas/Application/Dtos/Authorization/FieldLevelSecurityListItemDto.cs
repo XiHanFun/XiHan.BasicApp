@@ -10,7 +10,7 @@ namespace XiHan.BasicApp.Saas.Application.Dtos;
 /// <summary>
 /// 字段级安全列表项 DTO
 /// </summary>
-public sealed class FieldLevelSecurityListItemDto : BasicAppDto
+public class FieldLevelSecurityListItemDto : BasicAppDto
 {
     /// <summary>
     /// 目标类型
@@ -18,12 +18,12 @@ public sealed class FieldLevelSecurityListItemDto : BasicAppDto
     public FieldSecurityTargetType TargetType { get; set; }
 
     /// <summary>
-    /// 目标主键
+    /// 目标ID
     /// </summary>
     public long TargetId { get; set; }
 
     /// <summary>
-    /// 目标编码
+    /// 目标编码（角色/部门编码）
     /// </summary>
     public string? TargetCode { get; set; }
 
@@ -33,24 +33,14 @@ public sealed class FieldLevelSecurityListItemDto : BasicAppDto
     public string? TargetName { get; set; }
 
     /// <summary>
-    /// 资源主键
+    /// 实体名
     /// </summary>
-    public long ResourceId { get; set; }
+    public string EntityName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 资源编码
+    /// 实体显示名（实体已不再支持字段安全时为空）
     /// </summary>
-    public string? ResourceCode { get; set; }
-
-    /// <summary>
-    /// 资源名称
-    /// </summary>
-    public string? ResourceName { get; set; }
-
-    /// <summary>
-    /// 资源类型
-    /// </summary>
-    public ResourceType? ResourceType { get; set; }
+    public string? EntityDisplayName { get; set; }
 
     /// <summary>
     /// 字段名
@@ -58,9 +48,29 @@ public sealed class FieldLevelSecurityListItemDto : BasicAppDto
     public string FieldName { get; set; } = string.Empty;
 
     /// <summary>
-    /// 是否可读
+    /// 字段显示名（字段已不存在时为空）
     /// </summary>
-    public bool IsReadable { get; set; }
+    public string? FieldDisplayName { get; set; }
+
+    /// <summary>
+    /// 读取方式
+    /// </summary>
+    public FieldMaskStrategy MaskStrategy { get; set; }
+
+    /// <summary>
+    /// 部分脱敏保留前几位
+    /// </summary>
+    public int? MaskKeepHead { get; set; }
+
+    /// <summary>
+    /// 部分脱敏保留后几位
+    /// </summary>
+    public int? MaskKeepTail { get; set; }
+
+    /// <summary>
+    /// 固定文本
+    /// </summary>
+    public string? MaskReplacement { get; set; }
 
     /// <summary>
     /// 是否可编辑
@@ -68,24 +78,19 @@ public sealed class FieldLevelSecurityListItemDto : BasicAppDto
     public bool IsEditable { get; set; }
 
     /// <summary>
-    /// 脱敏策略
+    /// 是否平台规则（对所有租户生效，只能在平台维护）
     /// </summary>
-    public FieldMaskStrategy MaskStrategy { get; set; }
-
-    /// <summary>
-    /// 优先级
-    /// </summary>
-    public int Priority { get; set; }
-
-    /// <summary>
-    /// 策略描述
-    /// </summary>
-    public string? Description { get; set; }
+    public bool IsGlobal { get; set; }
 
     /// <summary>
     /// 状态
     /// </summary>
     public EnableStatus Status { get; set; }
+
+    /// <summary>
+    /// 备注
+    /// </summary>
+    public string? Remark { get; set; }
 
     /// <summary>
     /// 创建时间

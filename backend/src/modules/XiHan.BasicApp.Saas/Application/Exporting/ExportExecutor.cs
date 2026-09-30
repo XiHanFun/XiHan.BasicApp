@@ -39,6 +39,7 @@ public sealed class ExportExecutor : IExportExecutor
     private readonly IReadOnlyDictionary<string, IExportProvider> _providers;
     private readonly IExportTaskRepository _repository;
     private readonly IReadOnlyList<IExportWriter> _writers;
+    private readonly IFieldSecurityService _fieldSecurity;
 
     /// <summary>
     /// 构造函数
@@ -54,10 +55,12 @@ public sealed class ExportExecutor : IExportExecutor
         IUserTaskProgressNotifier notifier,
         ILogger<ExportExecutor> logger,
         IAuthorizationSnapshotQueryService authorizationSnapshot,
-        ITenantRepository tenantRepository)
+        ITenantRepository tenantRepository,
+        IFieldSecurityService fieldSecurity)
     {
         _authorizationSnapshot = authorizationSnapshot;
         _tenantRepository = tenantRepository;
+        _fieldSecurity = fieldSecurity;
         _providers = providers
             .GroupBy(provider => provider.BusinessType, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
@@ -130,6 +133,7 @@ public sealed class ExportExecutor : IExportExecutor
 
             var context = new ExportContext
             {
+                FieldSecurity = _fieldSecurity,
                 BusinessType = task.BusinessType,
                 Scope = task.Scope,
                 QuerySnapshot = task.QuerySnapshot,

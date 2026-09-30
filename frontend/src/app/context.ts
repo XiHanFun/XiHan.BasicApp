@@ -370,15 +370,6 @@ function createShellApis() {
         )
       },
     },
-    fieldSecurityApi: {
-      getMine(resourceCode: string) {
-        return getWithFallback<Array<{ fieldName: string, isReadable: boolean, isEditable: boolean, maskStrategy: number, maskPattern?: null | string }>>(
-          '/MyFieldSecurity/Mine',
-          [],
-          { params: { resourceCode } },
-        )
-      },
-    },
     importHistoryApi: {
       create(input: { pageCode: string, resourceCode?: null | string, fileName: string, totalCount: number, successCount: number, failCount: number, errorSummary?: null | string }) {
         return requestClient.post<unknown>('/ImportHistory/Create', input)

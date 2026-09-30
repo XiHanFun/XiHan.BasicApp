@@ -71,8 +71,8 @@ public sealed class VersionQueryService
 
         var request = BuildVersionPageRequest(input);
 
-        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Version.Group, cancellationToken);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysVersion), cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyVersionSorts(request);
@@ -116,6 +116,8 @@ public sealed class VersionQueryService
         cancellationToken.ThrowIfCancellationRequested();
 
         var request = BuildMigrationHistoryPageRequest(input);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysMigrationHistory), cancellationToken);
         var migrationHistories = await _migrationHistoryRepository.GetPagedAsync(request, cancellationToken);
         return migrationHistories.Map(VersionApplicationMapper.ToMigrationHistoryListItemDto);
     }

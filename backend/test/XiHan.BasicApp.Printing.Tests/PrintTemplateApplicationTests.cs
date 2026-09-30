@@ -11,6 +11,7 @@ using XiHan.BasicApp.Printing.Domain.DomainServices;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Domain.Enums;
 using XiHan.BasicApp.Printing.Domain.Permissions;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Authorization.Permissions;
@@ -70,7 +71,8 @@ public sealed class PrintTemplateApplicationTests
             currentTenant.Object,
             currentUser.Object,
             Mock.Of<IPermissionChecker>(),
-            NullLogger<PrintTemplateAppService>.Instance);
+            NullLogger<PrintTemplateAppService>.Instance,
+            Mock.Of<IFieldSecurityService>());
 
         var result = await service.CreatePrintTemplateAsync(new PrintTemplateCreateDto
         {

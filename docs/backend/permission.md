@@ -139,14 +139,14 @@ module : resource : action
 
 ### 服务端落地：读脱敏 + 写校验 + 排序/过滤门控
 
-FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**：
+FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规则，由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**。实体一律以类型传入（`typeof(SysUser)`），必须在实体目录里登记过：
 
-- `ResolveAsync(resourceCode)`：解析当前用户在某资源上的有效规则（合并 deny-overrides），得到 `EffectiveFieldRule` 字典。
-- `ApplyAsync(resourceCode, item/items)`：对返回 DTO/集合**反射就地脱敏**。列表、详情、导出都调用它。
-- `EnsureEditableAsync` / `EnsureUpdatableAsync`：写路径校验——命中不可编辑字段被实际修改则抛异常。
-- `GuardSortsAsync` / `GuardFiltersAsync`：**推断攻击防护**——就地剔除当前用户"不可读或已脱敏"字段的排序键与过滤条件。否则用户可按受保护字段排序/过滤，从结果顺序反推被脱敏的真实值。字段名大小写不敏感匹配，无显式规则默认放行。
+- `ResolveAsync(entityType)`：解析当前用户在该实体上的有效规则（同字段取最严读取方式、任一只读即只读），同一请求内缓存。
+- `GuardQueryAsync(conditions, entityType)`：**推断攻击防护**——剔除读受保护字段上的排序、过滤与关键字搜索字段，否则可从结果顺序或命中反推原值。
+- `MaskAsync(response)`：沿响应对象图找出登记实体的 DTO **反射就地脱敏**。HTTP 接口由 `FieldSecurityResponseFilter` 统一调用，导出由导出基类调用。
+- `EnsureCreatableAsync` / `EnsureUpdatableAsync`：写路径校验——只读字段不能填写、不能修改；表单交回的脱敏值视为没改并还原原值。
 
-前端另有 `MyFieldSecurityAppService.GetMineAsync(resourceCode)` 下发"可读/可编辑/脱敏"信息，供表单据 `IsEditable` 置只读、展示脱敏标识——但**脱敏值本身已由服务端在响应里落地**，前端仅做体验优化。
+规则模型、读取方式、只写语义与接线要求见 [数据权限 · 字段级安全](./data-permission#字段级安全列级)。
 
 **导出与在线同一口径**：后台导出走 `ExportExecutor`，它在后台线程按任务发起人重建 `CurrentTenant` + `CurrentPrincipal`，再调用既有 QueryService，使**数据范围与字段脱敏原样生效**，并显式 `IPermissionChecker` 补齐进程内不触发 `[PermissionAuthorize]` 的缺口。重建的主体与在线请求同一口径：发起时记下的会话声明（会话已登出或被下线，导出随之失败）、与签发令牌同一来源的角色（超管判定等依赖角色的规则一致）、模仿者声明（模仿态禁用的权限在导出里同样禁用）；租户停用、到期或未就绪时导出直接失败。因此导出与在线列表看到的数据、脱敏结果一致。
 

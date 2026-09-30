@@ -87,16 +87,16 @@ public sealed class RoleQueryService
 
         var request = BuildRolePageRequest(input);
 
-        // 超管隐藏：非超管用户在列表中排除 super_admin 角色（超管自身不受限）
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysRole), cancellationToken);
+
+        // 超管隐藏：非超管用户在列表中排除 super_admin 角色（超管自身不受限）。
+        // 强制约束放在字段安全门控之后，编码字段即便受保护也不会被剔除。
         if (!_superAdminProtector.IsCurrentUserSuperAdmin())
         {
             request.Conditions.AddFilter((SysRole role) => role.RoleCode, SaasRoleCodes.SuperAdmin, QueryOperator.NotEqual);
         }
 
-        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Role.Group, cancellationToken);
-        // 过滤：前端下发的区间/多选过滤同样经 FLS 门控（剔除不可读/已脱敏字段）
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Role.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyRoleSorts(request);

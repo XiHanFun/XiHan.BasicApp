@@ -5,11 +5,13 @@ using XiHan.BasicApp.CodeGeneration.Application.Contracts;
 using XiHan.BasicApp.CodeGeneration.Application.Dtos;
 using XiHan.BasicApp.CodeGeneration.Application.Mappers;
 using XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
+using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.CodeGeneration.Application.AppServices;
 
@@ -23,15 +25,19 @@ public sealed class CodeGenTemplateAppService : CodeGenerationApplicationService
 
     private readonly ITemplateRendererResolver _rendererResolver;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public CodeGenTemplateAppService(
         ICodeGenTemplateDomainService templateDomainService,
-        ITemplateRendererResolver rendererResolver)
+        ITemplateRendererResolver rendererResolver,
+        IFieldSecurityService fieldSecurity)
     {
         _templateDomainService = templateDomainService;
         _rendererResolver = rendererResolver;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -43,6 +49,9 @@ public sealed class CodeGenTemplateAppService : CodeGenerationApplicationService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysCodeGenTemplate), input, cancellationToken);
 
         var result = await _templateDomainService.CreateTemplateAsync(CodeGenTemplateApplicationMapper.ToCreateCommand(input), cancellationToken);
         return CodeGenTemplateApplicationMapper.ToDetailDto(result.Template);
@@ -58,6 +67,9 @@ public sealed class CodeGenTemplateAppService : CodeGenerationApplicationService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysCodeGenTemplate), input.BasicId, input, cancellationToken);
+
         var result = await _templateDomainService.UpdateTemplateAsync(CodeGenTemplateApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return CodeGenTemplateApplicationMapper.ToDetailDto(result.Template);
     }
@@ -71,6 +83,9 @@ public sealed class CodeGenTemplateAppService : CodeGenerationApplicationService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysCodeGenTemplate), input.BasicId, input, cancellationToken);
 
         var result = await _templateDomainService.UpdateTemplateStatusAsync(CodeGenTemplateApplicationMapper.ToStatusCommand(input), cancellationToken);
         return CodeGenTemplateApplicationMapper.ToDetailDto(result.Template);

@@ -5,10 +5,12 @@ using XiHan.BasicApp.AI.Application.Contracts;
 using XiHan.BasicApp.AI.Application.Dtos;
 using XiHan.BasicApp.AI.Application.Mappers;
 using XiHan.BasicApp.AI.Domain.DomainServices;
+using XiHan.BasicApp.AI.Domain.Entities;
 using XiHan.BasicApp.AI.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.AI.Application.AppServices;
 
@@ -20,12 +22,15 @@ public sealed class AiPromptAppService : AiApplicationService, IAiPromptAppServi
 {
     private readonly IAiPromptDomainService _promptDomainService;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public AiPromptAppService(IAiPromptDomainService promptDomainService)
+    public AiPromptAppService(IAiPromptDomainService promptDomainService, IFieldSecurityService fieldSecurity)
     {
         _promptDomainService = promptDomainService;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -37,6 +42,9 @@ public sealed class AiPromptAppService : AiApplicationService, IAiPromptAppServi
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysAiPrompt), input, cancellationToken);
 
         var result = await _promptDomainService.CreatePromptAsync(AiPromptApplicationMapper.ToCreateCommand(input), cancellationToken);
         return AiPromptApplicationMapper.ToDetailDto(result.Prompt);
@@ -52,6 +60,9 @@ public sealed class AiPromptAppService : AiApplicationService, IAiPromptAppServi
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysAiPrompt), input.BasicId, input, cancellationToken);
+
         var result = await _promptDomainService.UpdatePromptAsync(AiPromptApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return AiPromptApplicationMapper.ToDetailDto(result.Prompt);
     }
@@ -65,6 +76,9 @@ public sealed class AiPromptAppService : AiApplicationService, IAiPromptAppServi
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysAiPrompt), input.BasicId, input, cancellationToken);
 
         var result = await _promptDomainService.UpdatePromptStatusAsync(AiPromptApplicationMapper.ToStatusCommand(input), cancellationToken);
         return AiPromptApplicationMapper.ToDetailDto(result.Prompt);

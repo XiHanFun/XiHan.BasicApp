@@ -25,14 +25,12 @@ export enum FieldMaskStrategy {
   PartialMask = 'PartialMask',
   Hash = 'Hash',
   Redact = 'Redact',
-  Custom = 'Custom',
 }
 
 /** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum FieldSecurityTargetType {
   Role = 'Role',
   User = 'User',
-  Permission = 'Permission',
   Department = 'Department',
 }
 

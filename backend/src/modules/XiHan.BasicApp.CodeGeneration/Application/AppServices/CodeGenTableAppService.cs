@@ -5,10 +5,12 @@ using XiHan.BasicApp.CodeGeneration.Application.Contracts;
 using XiHan.BasicApp.CodeGeneration.Application.Dtos;
 using XiHan.BasicApp.CodeGeneration.Application.Mappers;
 using XiHan.BasicApp.CodeGeneration.Domain.DomainServices;
+using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.CodeGeneration.Application.AppServices;
 
@@ -21,12 +23,15 @@ public sealed class CodeGenTableAppService : CodeGenerationApplicationService, I
 {
     private readonly ICodeGenTableDomainService _tableDomainService;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public CodeGenTableAppService(ICodeGenTableDomainService tableDomainService)
+    public CodeGenTableAppService(ICodeGenTableDomainService tableDomainService, IFieldSecurityService fieldSecurity)
     {
         _tableDomainService = tableDomainService;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -38,6 +43,9 @@ public sealed class CodeGenTableAppService : CodeGenerationApplicationService, I
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysCodeGenTable), input.BasicId, input, cancellationToken);
 
         var result = await _tableDomainService.UpdateTableAsync(CodeGenTableApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return CodeGenTableApplicationMapper.ToDetailDto(result.Table);
@@ -52,6 +60,9 @@ public sealed class CodeGenTableAppService : CodeGenerationApplicationService, I
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysCodeGenTable), input.BasicId, input, cancellationToken);
 
         var result = await _tableDomainService.UpdateTableStatusAsync(CodeGenTableApplicationMapper.ToStatusCommand(input), cancellationToken);
         return CodeGenTableApplicationMapper.ToDetailDto(result.Table);

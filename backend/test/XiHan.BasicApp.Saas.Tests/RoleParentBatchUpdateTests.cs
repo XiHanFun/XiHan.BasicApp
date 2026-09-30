@@ -228,6 +228,7 @@ public sealed class RoleParentBatchUpdateTests
                 new Mock<IRoleDataScopeRepository>().Object,
                 new Mock<IPermissionRepository>().Object,
                 new Mock<IDepartmentRepository>().Object,
+                new Mock<IFieldLevelSecurityRepository>().Object,
                 new TestCurrentTenant(7));
         }
 

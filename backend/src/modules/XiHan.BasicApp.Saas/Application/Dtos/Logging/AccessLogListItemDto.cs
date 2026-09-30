@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Core.Dtos;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
 namespace XiHan.BasicApp.Saas.Application.Dtos;
@@ -24,6 +25,7 @@ public class AccessLogListItemDto : BasicAppDto
     /// <summary>
     /// 会话标识
     /// </summary>
+    [FieldSecuritySource(nameof(SysAccessLog.UserSessionId))]
     public string? SessionId { get; set; }
 
     /// <summary>

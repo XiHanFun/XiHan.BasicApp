@@ -39,11 +39,6 @@ public sealed class PermissionCenterDetailDto
     public List<PermissionRequestListItemDto> Requests { get; set; } = [];
 
     /// <summary>
-    /// 字段级安全策略
-    /// </summary>
-    public List<FieldLevelSecurityListItemDto> FieldSecurities { get; set; } = [];
-
-    /// <summary>
     /// 权限变更历史
     /// </summary>
     public List<PermissionChangeLogListItemDto> ChangeLogs { get; set; } = [];

@@ -49,6 +49,7 @@ public class XiHanBasicAppSaasModule : XiHanModule
 
         // 注册 SaaS 应用层内部服务
         services.AddSaasApplicationServices();
+        services.AddSaasFieldSecurityEntities();
 
         // 修正 .NET 配置对 List<T> 的「追加而非替换」语义：框架 XiHanOpenApiSecurityOptions 的默认
         // ProtectedPathPrefixes=["/api"] 不会被 appsettings 的值替换，而是被追加，导致最终为 ["/api", 配置值...]，

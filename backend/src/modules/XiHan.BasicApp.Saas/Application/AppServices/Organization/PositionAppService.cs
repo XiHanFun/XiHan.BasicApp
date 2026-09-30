@@ -7,10 +7,12 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -25,13 +27,16 @@ public sealed class PositionAppService
     private readonly IPositionDomainService _positionDomainService;
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public PositionAppService(IPositionDomainService positionDomainService, ISaasCacheInvalidator cacheInvalidator)
+    public PositionAppService(IPositionDomainService positionDomainService, ISaasCacheInvalidator cacheInvalidator, IFieldSecurityService fieldSecurity)
     {
         _positionDomainService = positionDomainService;
         _cacheInvalidator = cacheInvalidator;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -43,6 +48,9 @@ public sealed class PositionAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysPosition), input, cancellationToken);
 
         var result = await _positionDomainService.CreatePositionAsync(PositionApplicationMapper.ToCreateCommand(input), cancellationToken);
 
@@ -76,6 +84,9 @@ public sealed class PositionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysPosition), input.BasicId, input, cancellationToken);
+
         var result = await _positionDomainService.UpdatePositionAsync(PositionApplicationMapper.ToUpdateCommand(input), cancellationToken);
 
         // 岗位变更影响岗位选择项缓存，统一失效
@@ -93,6 +104,9 @@ public sealed class PositionAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysPosition), input.BasicId, input, cancellationToken);
 
         var result = await _positionDomainService.UpdatePositionStatusAsync(PositionApplicationMapper.ToStatusCommand(input), cancellationToken);
 

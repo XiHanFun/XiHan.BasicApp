@@ -120,7 +120,7 @@
 
 ### 列表少了几列 / 排序点了没反应
 
-**字段级安全（FLS）在服务端门控**：读侧经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 过滤，**只有「可读且未脱敏」的字段**才允许参与过滤与排序，其余被静默剔除；剔完没有有效排序时回退默认排序。前端 Schema 页也会按字段 `permission` 直接不渲染该列。所以是权限问题，不是 bug。
+**字段级安全（FLS）在服务端门控**：读侧经 `IFieldSecurityService.GuardQueryAsync` 门控，**只有能看明文的字段**才允许参与排序、过滤与关键字搜索，其余被静默剔除；剔完没有有效排序时回退默认排序。前端 Schema 页也会按字段 `permission` 直接不渲染该列。所以是权限问题，不是 bug。
 
 ---
 

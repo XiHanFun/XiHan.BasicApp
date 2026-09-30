@@ -6,10 +6,12 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -23,12 +25,15 @@ public sealed class SmsConfigAppService
 {
     private readonly ISmsConfigDomainService _smsConfigDomainService;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public SmsConfigAppService(ISmsConfigDomainService smsConfigDomainService)
+    public SmsConfigAppService(ISmsConfigDomainService smsConfigDomainService, IFieldSecurityService fieldSecurity)
     {
         _smsConfigDomainService = smsConfigDomainService;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -40,6 +45,9 @@ public sealed class SmsConfigAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysSmsConfig), input, cancellationToken);
 
         var result = await _smsConfigDomainService.CreateSmsConfigAsync(
             SmsConfigApplicationMapper.ToCreateCommand(input),
@@ -58,6 +66,9 @@ public sealed class SmsConfigAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysSmsConfig), input.BasicId, input, cancellationToken);
+
         var result = await _smsConfigDomainService.UpdateSmsConfigAsync(
             SmsConfigApplicationMapper.ToUpdateCommand(input),
             cancellationToken);
@@ -74,6 +85,9 @@ public sealed class SmsConfigAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysSmsConfig), input.BasicId, input, cancellationToken);
 
         var result = await _smsConfigDomainService.UpdateSmsConfigStatusAsync(
             SmsConfigApplicationMapper.ToStatusCommand(input),

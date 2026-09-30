@@ -6,10 +6,12 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -23,12 +25,15 @@ public sealed class OAuthAppAppService
 {
     private readonly IOAuthAppDomainService _oauthAppDomainService;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public OAuthAppAppService(IOAuthAppDomainService oauthAppDomainService)
+    public OAuthAppAppService(IOAuthAppDomainService oauthAppDomainService, IFieldSecurityService fieldSecurity)
     {
         _oauthAppDomainService = oauthAppDomainService;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -40,6 +45,9 @@ public sealed class OAuthAppAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysOAuthApp), input, cancellationToken);
 
         var result = await _oauthAppDomainService.CreateOAuthAppAsync(OAuthAppApplicationMapper.ToCreateCommand(input), cancellationToken);
         return OAuthAppApplicationMapper.ToSecretDto(result.App, result.PlaintextSecret ?? string.Empty);
@@ -79,6 +87,9 @@ public sealed class OAuthAppAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysOAuthApp), input.BasicId, input, cancellationToken);
+
         var result = await _oauthAppDomainService.UpdateOAuthAppAsync(OAuthAppApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return OAuthAppApplicationMapper.ToDetailDto(result.App);
     }
@@ -92,6 +103,9 @@ public sealed class OAuthAppAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysOAuthApp), input.BasicId, input, cancellationToken);
 
         var result = await _oauthAppDomainService.UpdateOAuthAppStatusAsync(
             OAuthAppApplicationMapper.ToStatusCommand(input),

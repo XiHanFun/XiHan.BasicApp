@@ -5,10 +5,12 @@ using XiHan.BasicApp.AI.Application.Contracts;
 using XiHan.BasicApp.AI.Application.Dtos;
 using XiHan.BasicApp.AI.Application.Mappers;
 using XiHan.BasicApp.AI.Domain.DomainServices;
+using XiHan.BasicApp.AI.Domain.Entities;
 using XiHan.BasicApp.AI.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.AI.Application.AppServices;
 
@@ -20,12 +22,15 @@ public sealed class AiAssistantAppService : AiApplicationService, IAiAssistantAp
 {
     private readonly IAiAssistantDomainService _assistantDomainService;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public AiAssistantAppService(IAiAssistantDomainService assistantDomainService)
+    public AiAssistantAppService(IAiAssistantDomainService assistantDomainService, IFieldSecurityService fieldSecurity)
     {
         _assistantDomainService = assistantDomainService;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -37,6 +42,9 @@ public sealed class AiAssistantAppService : AiApplicationService, IAiAssistantAp
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysAiAssistant), input, cancellationToken);
 
         var result = await _assistantDomainService.CreateAssistantAsync(AiAssistantApplicationMapper.ToCreateCommand(input), cancellationToken);
         return AiAssistantApplicationMapper.ToDetailDto(result.Assistant);
@@ -52,6 +60,9 @@ public sealed class AiAssistantAppService : AiApplicationService, IAiAssistantAp
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysAiAssistant), input.BasicId, input, cancellationToken);
+
         var result = await _assistantDomainService.UpdateAssistantAsync(AiAssistantApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return AiAssistantApplicationMapper.ToDetailDto(result.Assistant);
     }
@@ -65,6 +76,9 @@ public sealed class AiAssistantAppService : AiApplicationService, IAiAssistantAp
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysAiAssistant), input.BasicId, input, cancellationToken);
 
         var result = await _assistantDomainService.UpdateAssistantStatusAsync(AiAssistantApplicationMapper.ToStatusCommand(input), cancellationToken);
         return AiAssistantApplicationMapper.ToDetailDto(result.Assistant);

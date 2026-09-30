@@ -7,10 +7,12 @@ using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Uow.Attributes;
+using XiHan.BasicApp.Saas.Application.Services;
 
 namespace XiHan.BasicApp.Saas.Application.AppServices;
 
@@ -37,17 +39,21 @@ public sealed class PermissionAppService
     /// </summary>
     private readonly ISaasCacheInvalidator _cacheInvalidator;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public PermissionAppService(
         IPermissionCatalogDomainService permissionCatalogDomainService,
         IPermissionQueryService permissionQueryService,
-        ISaasCacheInvalidator cacheInvalidator)
+        ISaasCacheInvalidator cacheInvalidator,
+        IFieldSecurityService fieldSecurity)
     {
         _permissionCatalogDomainService = permissionCatalogDomainService;
         _permissionQueryService = permissionQueryService;
         _cacheInvalidator = cacheInvalidator;
+        _fieldSecurity = fieldSecurity;
     }
 
     /// <summary>
@@ -62,6 +68,9 @@ public sealed class PermissionAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysPermission), input, cancellationToken);
 
         var result = await _permissionCatalogDomainService.CreatePermissionAsync(PermissionApplicationMapper.ToCreateCommand(input), cancellationToken);
 
@@ -106,6 +115,9 @@ public sealed class PermissionAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysPermission), input.BasicId, input, cancellationToken);
+
         var result = await _permissionCatalogDomainService.UpdatePermissionAsync(PermissionApplicationMapper.ToUpdateCommand(input), cancellationToken);
 
         // 权限更新影响授权快照与菜单可见性，统一全失效
@@ -129,6 +141,9 @@ public sealed class PermissionAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysPermission), input.BasicId, input, cancellationToken);
 
         var result = await _permissionCatalogDomainService.UpdatePermissionStatusAsync(PermissionApplicationMapper.ToStatusCommand(input), cancellationToken);
 

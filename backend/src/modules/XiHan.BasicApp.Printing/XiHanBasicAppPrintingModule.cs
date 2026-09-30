@@ -35,6 +35,7 @@ public class XiHanBasicAppPrintingModule : XiHanModule
         services.AddPrintingDataSeeders();
         services.AddPrintingDomainServices();
         services.AddPrintingApplicationServices();
+        services.AddPrintingFieldSecurityEntities();
         services.AddPrintingDataSources();
     }
 

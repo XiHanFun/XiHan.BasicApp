@@ -53,10 +53,8 @@ public sealed class AiProviderQueryService : AiApplicationService, IAiProviderQu
 
         var request = BuildPageRequest(input);
 
-        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, AiPermissionCodes.Resource, cancellationToken);
-        // 过滤：前端区间/多选下发，FLS 门控剔除不可读/已脱敏字段
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, AiPermissionCodes.Resource, cancellationToken);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysAiProvider), cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyProviderSorts(request);

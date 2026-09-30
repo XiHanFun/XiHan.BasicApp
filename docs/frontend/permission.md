@@ -79,30 +79,18 @@ const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:gr
 
 ### 脱敏在服务端完成
 
-**后端返回的敏感字段已经是打码后的值**（如 `138****8000`），前端**不再二次打码**。
+**后端返回的敏感字段已经是打码后的值**（如 `138****5678`），前端**不再二次打码**，页面也不需要为字段安全写任何代码：
 
-前端侧的 `useFieldSecurity(resourceCode)`（`~/components/schema/useFieldSecurity.ts`）由页面自行调用：传入后端资源码，再调 `resolve()` 拉取当前用户在该资源上的有效字段规则（`GET /MyFieldSecurity/Mine?resourceCode=`）。它返回 `ruleFor` / `isReadable` / `isEditable` / `resolve`，用途只有两个：
+- 读：列表、详情、导出拿到的就是打码后的值；
+- 写：表单把拿到的脱敏值或空值原样交回，后端视为没改并还原原值——**不会用 `138****5678` 覆盖真实号码**；改动了只读字段，后端返回「字段「…」当前用户无修改权限」。
 
-1. 表单按 `isEditable(fieldKey)` 置**只读**；
-2. 展示「不可见 / 已脱敏」的**标识**。
+规则在「字段安全」页按实体、字段下拉配置，模型见 [数据权限 · 字段级安全](../backend/data-permission#字段级安全列级)。
 
-规则形如：
+### 字段安全也门控查询条件
 
-```ts
-{ fieldName, isReadable, isEditable, maskStrategy, maskPattern }
-```
+服务端会剔除**读受保护**字段上的排序、过滤与关键字搜索字段，剔完没有有效排序时回退默认排序。
 
-端点未就绪或无规则时**默认放行**（`isReadable` / `isEditable` 缺省 `true`）。
-
-::: warning `SchemaPage` 不会自动接线 FLS
-`useFieldSecurity` 是独立 hook，`SchemaPage` 不会自动调用它——`PageSchema.resourceCode` 只用于导入留痕。要按 FLS 置只读，得在页面里自己 `useFieldSecurity(...)` + `resolve()` 并把 `isEditable` 接到表单上。
-:::
-
-### FLS 也门控过滤与排序
-
-服务端读侧会经 `GuardFiltersAsync` / `GuardSortsAsync` 剔除**不可读或已脱敏**字段的过滤与排序条件，剔完没有有效排序时回退默认排序。
-
-所以「排序点了没反应」「按某字段搜索没效果」优先怀疑字段权限，而不是前端 bug。
+所以「排序点了没反应」「按某字段搜索没效果」优先怀疑字段安全，而不是前端 bug。
 
 ## 多租户
 
@@ -124,7 +112,7 @@ const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:gr
 | 按钮不显示 | 权限码写错（去后端 `SaasPermissionDefinitions` 对）；或用户确实没这个权限 |
 | 导出按钮不显示 | `PageSchema.exportPermission` 没声明 |
 | 列不显示 | 字段 `permission` 无权；或 `visible: false` |
-| 表单该只读却可编辑 | 页面没调 `useFieldSecurity(...)` + `resolve()`，或没把 `isEditable` 接到表单字段上 |
+| 保存时报「无修改权限」 | 字段安全规则让该字段对当前用户只读，而表单改了它的值 |
 | 前端能点、后端 403 | 正常——前端过滤是体验层，以后端为准。检查该接口的 `[PermissionAuthorize]` 是否与前端用的码一致 |
 | 改了授权前端还是旧的 | 重新拉 `/api/Auth/Permissions`；后端侧检查是否调了 `InvalidateAuthorizationAsync` |
 

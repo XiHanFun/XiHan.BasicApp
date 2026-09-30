@@ -26,7 +26,7 @@ import {
   PermissionType,
   querySortsFromSchema,
 } from '@/api'
-import { CONDITION_OPERATOR_OPTIONS, CONFIG_DATA_TYPE_OPTIONS, DELEGATION_STATUS_OPTIONS, FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, HTTP_METHOD_OPTIONS, OPERATION_CATEGORY_OPTIONS, OPERATION_TYPE_OPTIONS, PERMISSION_CHANGE_TYPE_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS, PERMISSION_SIDE_OPTIONS, PERMISSION_TYPE_OPTIONS, RESOURCE_ACCESS_LEVEL_OPTIONS, RESOURCE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
+import { CONDITION_OPERATOR_OPTIONS, CONFIG_DATA_TYPE_OPTIONS, DELEGATION_STATUS_OPTIONS, HTTP_METHOD_OPTIONS, OPERATION_CATEGORY_OPTIONS, OPERATION_TYPE_OPTIONS, PERMISSION_CHANGE_TYPE_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS, PERMISSION_SIDE_OPTIONS, PERMISSION_TYPE_OPTIONS, RESOURCE_ACCESS_LEVEL_OPTIONS, RESOURCE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
 import { deleteConfirmText, Icon, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
@@ -82,8 +82,6 @@ const conditionOperatorOptions = useEnumOptions('ConditionOperator', CONDITION_O
 const configDataTypeOptions = useEnumOptions('ConfigDataType', CONFIG_DATA_TYPE_OPTIONS)
 const delegationStatusOptions = useEnumOptions('DelegationStatus', DELEGATION_STATUS_OPTIONS)
 const requestStatusOptions = useEnumOptions('PermissionRequestStatus', PERMISSION_REQUEST_STATUS_OPTIONS)
-const fieldMaskStrategyOptions = useEnumOptions('FieldMaskStrategy', FIELD_MASK_STRATEGY_OPTIONS)
-const fieldSecurityTargetTypeOptions = useEnumOptions('FieldSecurityTargetType', FIELD_SECURITY_TARGET_TYPE_OPTIONS)
 const changeTypeOptions = useEnumOptions('PermissionChangeType', PERMISSION_CHANGE_TYPE_OPTIONS)
 
 const globalOptions = computed(() => [
@@ -633,9 +631,6 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                 <XhTabsTrigger value="requests">
                   {{ t('identity.permission.tab_requests', { count: currentDetail.requests.length }) }}
                 </XhTabsTrigger>
-                <XhTabsTrigger value="fieldSecurities">
-                  {{ t('identity.permission.tab_field_securities', { count: currentDetail.fieldSecurities.length }) }}
-                </XhTabsTrigger>
                 <XhTabsTrigger value="changeLogs">
                   {{ t('identity.permission.tab_change_logs', { count: currentDetail.changeLogs.length }) }}
                 </XhTabsTrigger>
@@ -868,37 +863,6 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                   <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
                   <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
                   <XhEmptyStateDescription>{{ t('identity.permission.empty_requests') }}</XhEmptyStateDescription>
-                </XhEmptyStateRoot>
-              </XhTabsContent>
-              <XhTabsContent value="fieldSecurities">
-                <table v-if="currentDetail.fieldSecurities.length" class="xh-detail-table">
-                  <thead>
-                    <tr>
-                      <th>{{ t('identity.permission.th_field') }}</th>
-                      <th>{{ t('identity.permission.th_resource') }}</th>
-                      <th>{{ t('identity.permission.th_target') }}</th>
-                      <th>{{ t('identity.permission.th_readable') }}</th>
-                      <th>{{ t('identity.permission.th_editable') }}</th>
-                      <th>{{ t('identity.permission.th_mask') }}</th>
-                      <th>{{ t('identity.permission.th_status') }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="item in currentDetail.fieldSecurities" :key="item.basicId">
-                      <td>{{ item.fieldName }}</td>
-                      <td>{{ formatNullable(item.resourceName || item.resourceCode) }}</td>
-                      <td>{{ getOptionLabel(fieldSecurityTargetTypeOptions, item.targetType) }} / {{ formatNullable(item.targetName || item.targetCode) }}</td>
-                      <td>{{ formatBoolean(item.isReadable) }}</td>
-                      <td>{{ formatBoolean(item.isEditable) }}</td>
-                      <td>{{ getOptionLabel(fieldMaskStrategyOptions, item.maskStrategy) }}</td>
-                      <td>{{ formatStatus(item.status) }}</td>
-                    </tr>
-                  </tbody>
-                </table>
-                <XhEmptyStateRoot v-else style="padding: 40px 0">
-                  <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
-                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
-                  <XhEmptyStateDescription>{{ t('identity.permission.empty_field_securities') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
               </XhTabsContent>
               <XhTabsContent value="changeLogs">

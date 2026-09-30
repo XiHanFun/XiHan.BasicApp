@@ -90,11 +90,9 @@ public sealed class DictQueryService
 
         var request = BuildDictPageRequest(input);
 
-        // 过滤：前端多选(In)等条件经 conditions.filters 下发，FLS 门控剔除不可读/已脱敏字段后由框架统一应用
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Dict.Group, cancellationToken);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysDict), cancellationToken);
 
-        // 排序：前端选择优先，FLS 门控剔除不可读/已脱敏字段；无有效排序回退默认排序
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Dict.Group, cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyDictSorts(request);
@@ -139,9 +137,8 @@ public sealed class DictQueryService
 
         var request = BuildDictItemPageRequest(input);
 
-        // 过滤 / 排序与字典分页同款：前端 conditions 经 FLS 门控后带入，无有效排序回退默认排序
-        await _fieldSecurity.GuardFiltersAsync(request.Conditions, SaasPermissionCodes.Dict.Group, cancellationToken);
-        await _fieldSecurity.GuardSortsAsync(request.Conditions, SaasPermissionCodes.Dict.Group, cancellationToken);
+        // 字段安全：剔除读受保护字段上的排序、过滤与关键字搜索（防按结果反推原值）
+        await _fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysDictItem), cancellationToken);
         if (request.Conditions.Sorts.Count == 0)
         {
             ApplyDictItemSorts(request);

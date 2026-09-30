@@ -8,6 +8,7 @@ using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
+using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -80,6 +81,9 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysUser), input, cancellationToken);
+
         var result = await _userDomainService.CreateUserAsync(
             UserApplicationMapper.ToCreateCommand(input, _currentUser.UserId),
             cancellationToken);
@@ -128,15 +132,11 @@ public sealed class UserAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysUser), input.BasicId, input, cancellationToken);
+
         // 超管保护：非超管不得修改超管用户
         await _superAdminProtector.EnsureCanWriteUserAsync(input.BasicId, cancellationToken);
-
-        // 写校验：FLS 不可编辑字段不得被修改（防绕过前端只读直接调 API）
-        var current = await _userRepository.GetByIdAsync(input.BasicId, cancellationToken);
-        if (current is not null)
-        {
-            await _fieldSecurity.EnsureUpdatableAsync(SaasPermissionCodes.User.Group, input, current, cancellationToken);
-        }
 
         var result = await _userDomainService.UpdateUserAsync(UserApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return UserApplicationMapper.ToDetailDto(result.User);
@@ -151,6 +151,9 @@ public sealed class UserAppService
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysUser), input.BasicId, input, cancellationToken);
 
         // 超管保护：非超管不得启停超管用户
         await _superAdminProtector.EnsureCanWriteUserAsync(input.BasicId, cancellationToken);

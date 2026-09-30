@@ -30,17 +30,21 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
 
     private readonly DbMessageOutbox _messageOutbox;
 
+    private readonly IFieldSecurityService _fieldSecurity;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public MessageAppService(
         IMessageDomainService messageDomainService,
         IMessageDeliveryService messageDeliveryService,
-        DbMessageOutbox messageOutbox)
+        DbMessageOutbox messageOutbox,
+        IFieldSecurityService fieldSecurity)
     {
         _messageDomainService = messageDomainService;
         _messageDeliveryService = messageDeliveryService;
         _messageOutbox = messageOutbox;
+        _fieldSecurity = fieldSecurity;
     }
 
     #region 系统邮件
@@ -54,6 +58,9 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysEmail), input, cancellationToken);
 
         var result = await _messageDeliveryService.CreateEmailAsync(MessageApplicationMapper.ToCreateCommand(input), cancellationToken);
         return MessageApplicationMapper.ToEmailDetailDto(result.Email);
@@ -80,6 +87,9 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysEmail), input.BasicId, input, cancellationToken);
+
         var result = await _messageDomainService.UpdateEmailAsync(MessageApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return MessageApplicationMapper.ToEmailDetailDto(result.Email);
     }
@@ -93,6 +103,9 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysEmail), input.BasicId, input, cancellationToken);
 
         var result = await _messageDomainService.UpdateEmailStatusAsync(MessageApplicationMapper.ToStatusCommand(input), cancellationToken);
 
@@ -120,6 +133,9 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能填写
+        await _fieldSecurity.EnsureCreatableAsync(typeof(SysSms), input, cancellationToken);
+
         var result = await _messageDeliveryService.CreateSmsAsync(MessageApplicationMapper.ToCreateCommand(input), cancellationToken);
         return MessageApplicationMapper.ToSmsDetailDto(result.Sms);
     }
@@ -145,6 +161,9 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysSms), input.BasicId, input, cancellationToken);
+
         var result = await _messageDomainService.UpdateSmsAsync(MessageApplicationMapper.ToUpdateCommand(input), cancellationToken);
         return MessageApplicationMapper.ToSmsDetailDto(result.Sms);
     }
@@ -158,6 +177,9 @@ public sealed class MessageAppService : SaasApplicationService, IMessageAppServi
     {
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
+
+        // 字段安全：只读字段不能改，表单交回的脱敏值还原为原值
+        await _fieldSecurity.EnsureUpdatableAsync(typeof(SysSms), input.BasicId, input, cancellationToken);
 
         var result = await _messageDomainService.UpdateSmsStatusAsync(MessageApplicationMapper.ToStatusCommand(input), cancellationToken);
 
