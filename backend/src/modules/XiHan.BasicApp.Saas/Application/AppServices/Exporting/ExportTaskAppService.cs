@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using System.Text.Json;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Exporting;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Saas.Infrastructure.Exporting;
@@ -34,20 +36,36 @@ public sealed class ExportTaskAppService
 
     private readonly IUnitOfWorkManager _unitOfWorkManager;
 
+    private readonly IReadOnlyList<IExportProvider> _providers;
+
+    private readonly IOperationPermissionGuard _operationPermissionGuard;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public ExportTaskAppService(IExportTaskRepository repository, ICurrentUser currentUser, IRedisDelayQueue<ExportTaskMessage> exportTaskQueue, IUnitOfWorkManager unitOfWorkManager)
+    public ExportTaskAppService(
+        IExportTaskRepository repository,
+        ICurrentUser currentUser,
+        IRedisDelayQueue<ExportTaskMessage> exportTaskQueue,
+        IUnitOfWorkManager unitOfWorkManager,
+        IEnumerable<IExportProvider> providers,
+        IOperationPermissionGuard operationPermissionGuard)
     {
         _repository = repository;
         _currentUser = currentUser;
         _exportTaskQueue = exportTaskQueue;
         _unitOfWorkManager = unitOfWorkManager;
+        _providers = [.. providers];
+        _operationPermissionGuard = operationPermissionGuard;
     }
 
     /// <summary>
     /// 提交导出任务（落 Pending，由后台 worker 异步执行）
     /// </summary>
+    /// <remarks>
+    /// 提交时就按业务类型对应 Provider 的导出权限拦截：接口对所有登录用户开放，
+    /// 只有读权限的人直调也提交不进来，不必等后台执行时才失败。
+    /// </remarks>
     public async Task<ExportTaskDto> SubmitAsync(ExportTaskSubmitDto input, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(input);
@@ -63,6 +81,11 @@ public sealed class ExportTaskAppService
         _ = _currentUser.UserId ?? throw new InvalidOperationException("当前用户未登录。");
 
         var businessType = input.BusinessType.Trim();
+        // 与执行器同一分发口径：业务类型不区分大小写，重复登记取先注册的
+        var provider = _providers.FirstOrDefault(item => string.Equals(item.BusinessType, businessType, StringComparison.OrdinalIgnoreCase))
+            ?? throw new ArgumentException($"该资源未接入导出（{businessType}）。", nameof(input));
+        await _operationPermissionGuard.EnsureGrantedAsync(provider.RequiredPermission, cancellationToken);
+
         var taskName = string.IsNullOrWhiteSpace(input.TaskName)
             ? $"{businessType}_{DateTimeOffset.UtcNow:yyyyMMddHHmmss}"
             : input.TaskName.Trim();

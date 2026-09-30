@@ -9,7 +9,7 @@ using XiHan.Framework.Domain.Shared.Paging.Dtos;
 namespace XiHan.BasicApp.Saas.Application.Exporting;
 
 /// <summary>
-/// 用户导出 Provider（业务类型 system.user，复用 IUserQueryService 的分页 + 数据范围 + 字段脱敏）
+/// 用户导出 Provider（业务类型 identity.user，复用 IUserQueryService 的分页 + 数据范围 + 字段脱敏）
 /// </summary>
 public sealed class UserExportProvider : QueryServiceExportProviderBase<UserPageQueryDto, UserListItemDto>
 {
@@ -24,14 +24,14 @@ public sealed class UserExportProvider : QueryServiceExportProviderBase<UserPage
     }
 
     /// <summary>
-    /// 业务类型（= 前端 pageCode）
+    /// 业务类型（= 导出按钮所属页面码，见 PageRegistry）
     /// </summary>
-    public override string BusinessType => "system.user";
+    public override string BusinessType => "identity.user";
 
     /// <summary>
-    /// 导出所需权限码（执行器进程内显式校验，补 [PermissionAuthorize] 不触发的缺口）
+    /// 导出所需权限码（与页面导出按钮 identity.user.export 绑定的权限一致；提交与执行都按它校验）
     /// </summary>
-    public override string RequiredPermission => SaasPermissionCodes.User.Read;
+    public override string RequiredPermission => SaasPermissionCodes.User.Export;
 
     /// <summary>
     /// 调用对应 QueryService 的分页方法（子类实现）

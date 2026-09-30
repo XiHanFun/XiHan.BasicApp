@@ -526,7 +526,7 @@ const schema = computed<PageSchema>(() => ({
     page: params => userManagementApi.page(buildUserQuery(params)) as unknown as Promise<PageResult<Record<string, unknown>>>,
     remove: id => userManagementApi.delete(id),
     updateStatus: (id, enabled) => userManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
-    export: { businessType: 'system.user', buildQuery: buildUserQuery },
+    export: { businessType: 'identity.user', buildQuery: buildUserQuery },
   },
   actions: [
     { key: 'create', title: t('identity.user.action_create'), scope: 'page', type: 'primary', icon: 'tabler:plus', permission: 'identity.user.create' },
