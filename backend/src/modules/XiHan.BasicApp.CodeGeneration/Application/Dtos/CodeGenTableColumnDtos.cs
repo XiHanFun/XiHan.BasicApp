@@ -47,6 +47,8 @@ public class CodeGenTableColumnListItemDto : BasicAppDto
     public string? DictCode { get; set; }
     public string? EnumTypeName { get; set; }
     public string? ConstValues { get; set; }
+    public long? RelationTableId { get; set; }
+    public string? RelationLabelColumn { get; set; }
     public int Sort { get; set; }
     public EnableStatus Status { get; set; }
 }
@@ -71,6 +73,8 @@ public sealed class CodeGenTableColumnUpdateDto : BasicAppUDto
     public string? DictCode { get; set; }
     public string? EnumTypeName { get; set; }
     public string? ConstValues { get; set; }
+    public long? RelationTableId { get; set; }
+    public string? RelationLabelColumn { get; set; }
     public string? DefaultValue { get; set; }
     public string? RegexPattern { get; set; }
     public string? ValidationMessage { get; set; }

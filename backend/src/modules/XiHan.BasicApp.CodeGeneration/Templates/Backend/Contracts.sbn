@@ -7,6 +7,9 @@
 #nullable enable
 
 using {{ Namespace }}.Application.Dtos;
+{{~ if HasRelations ~}}
+using XiHan.BasicApp.Core.Dtos;
+{{~ end ~}}
 using XiHan.Framework.Application.Contracts.Services;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 
@@ -52,5 +55,10 @@ public partial interface I{{ ClassName }}QueryService : IApplicationService
 
     /// <summary>按主表（{{ MasterTable.TableComment | xml_doc }}）主键查询本表明细</summary>
     Task<IReadOnlyList<{{ ClassName }}ListItemDto>> Get{{ ClassName }}ByMasterAsync(long masterId, CancellationToken cancellationToken = default);
+{{~ end ~}}
+{{~ for col in RelationColumns ~}}
+
+    /// <summary>查询{{ col.Label | xml_doc }}的选项（关联{{ col.Relation.Label | xml_doc }}）</summary>
+    Task<IReadOnlyList<RelationOptionDto>> Get{{ ClassName }}{{ col.Relation.OptionsMethod }}Async(CancellationToken cancellationToken = default);
 {{~ end ~}}
 }

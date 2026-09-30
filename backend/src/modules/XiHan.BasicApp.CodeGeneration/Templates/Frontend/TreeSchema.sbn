@@ -1,17 +1,35 @@
 {{~ # 一列都不进表单就没有可编辑内容，页面不产弹窗，这里也不产增改按钮（与 index.vue 的裁剪同源） ~}}
 {{~ has_form_field = false ~}}
+{{~ has_import_date = false ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InForm ~}}
 {{~ has_form_field = true ~}}
 {{~ end ~}}
+{{~ if col.IsImportable && col.ColumnName != TreeParentColumn.ColumnName && (col.ControlKind == "date" || col.ControlKind == "datetime") ~}}
+{{~ has_import_date = true ~}}
+{{~ end ~}}
 {{~ end ~}}
 {{~ can_create = CanCreate && has_form_field ~}}
 {{~ can_update = CanUpdate && has_form_field ~}}
+{{~ # 导入逐行调新增接口，列集合即新增表单的列（引擎保证勾了导入就一定勾了新增） ~}}
+{{~ can_import = CanImport && can_create ~}}
+{{~ # 关联列只要进了字段（列表、搜索或导入），字段就要引接口取选项 ~}}
+{{~ has_relation_field = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.Relation && (col.InList || (can_import && col.IsImportable)) && col.ColumnName != TreeParentColumn.ColumnName ~}}
+{{~ has_relation_field = true ~}}
+{{~ end ~}}
+{{~ end ~}}
 /**
  * 本文件由代码生成器产出，重新生成时整体覆盖，请勿手工编辑。
  * 列定义/表单默认值的微调请写在 {{ ClassNameKebab }}.schema.ts（在那里对下列 base* 做 transform）。
  */
-import type { ListFieldSchema, PageSchema } from '~/components'
+import type { {{ if can_create }}{{ ClassName }}CreateDto, {{ end }}{{ ClassName }}PageQueryDto } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}.types'
+import type { ListFieldSchema, PageSchema, SchemaQueryParams } from '~/components'
+import { createPageRequest } from '@/api'
+{{~ if has_relation_field ~}}
+import { {{ ClassNameCamel }}Api } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}'
+{{~ end ~}}
 
 /**
  * {{ TableComment | block_comment }}表单模型
@@ -34,10 +52,18 @@ export interface {{ ClassName }}FormModel {
 
 /**
  * 页面元信息（树形模式：走 resource.tree 取数、不分页、按 children 展开）
+ *
+ * 导出、导入按钮由这里的按钮码门控：取消勾选后重新生成，按钮随之消失，页面不必改。
  */
 export const basePageMeta = {
   pageCode: '{{ PageCode }}',
   pageName: '{{ TableComment | ts_string }}',
+{{~ if CanExport ~}}
+  exportPermission: '{{ PageCode }}.export',
+{{~ end ~}}
+{{~ if can_import ~}}
+  importPermission: '{{ PageCode }}.import',
+{{~ end ~}}
   batchRemovable: {{ CanDelete }},
 {{~ if CanDelete ~}}
   removePermission: '{{ PageCode }}.delete',
@@ -48,23 +74,34 @@ export const basePageMeta = {
     // 生成的 tree() 不收查询参数、页面也没有搜索框与「展开全部」，收起来就只能逐级点开
     defaultExpandAll: true,
   },
-} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'batchRemovable' | 'removePermission' | 'rowKey' | 'tree'>
+} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'exportPermission' | 'importPermission' | 'batchRemovable' | 'removePermission' | 'rowKey' | 'tree'>
 
 /**
  * 列定义（{{ TreeNameColumn.TsProperty }} 承载展开箭头）
+ *
+ * 不进列表但要参与导入的列以 visible: false 声明：表格与列设置里都不出现，导入模板照常带上它这一列。
  */
 {{~ # 生成的树接口 Get{Class}TreeAsync 不带查询参数（按关键字裁剪会截断父链导致节点丢失）， ~}}
 {{~ # 取数也不分页，故本文件不产出 searchable/sortable——产了也是恒不生效的控件。 ~}}
 {{~ # 需要搜索请改用分页接口，或在 .schema.ts 里给 baseFields 补 searchable 并同步扩展 tree() 的入参。 ~}}
+{{~ # 父级列不按必填导入：留空即作为根节点，与表单同口径 ~}}
 export const baseFields: ListFieldSchema[] = [
 {{~ for col in Columns ~}}
-{{~ if col.InList ~}}
+{{~ importable = can_import && col.IsImportable ~}}
+{{~ import_props = "" ~}}
+{{~ if importable ~}}
+{{~ import_props = " importable: true," ~}}
+{{~ if col.IsFormRequired && col.ColumnName != TreeParentColumn.ColumnName ~}}
+{{~ import_props = import_props + " required: true," ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ if col.InList || importable ~}}
 {{~ if col.ColumnName == TreeNameColumn.ColumnName ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.Label | ts_string }}', dataType: 'string', treeColumn: true, minWidth: 220, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.Label | ts_string }}', dataType: 'string',{{ if col.InList }} treeColumn: true,{{ else }} visible: false,{{ end }}{{ import_props }} minWidth: 220, order: {{ for.index + 1 }} },
 {{~ else if col.ColumnName == TreeParentColumn.ColumnName ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.Label | ts_string }}', dataType: '{{ if col.TsType == "number" }}number{{ else }}string{{ end }}', visible: false, minWidth: 140, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.Label | ts_string }}', dataType: '{{ if col.TsType == "number" }}number{{ else }}string{{ end }}', visible: false,{{ import_props }} minWidth: 140, order: {{ for.index + 1 }} },
 {{~ else ~}}
-  { key: '{{ col.TsProperty }}', title: '{{ col.Label | ts_string }}', dataType: '{{ if col.ControlKind == "datetime" }}datetime{{ else if col.ControlKind == "date" }}date{{ else if col.EnumTypeShortName }}enum{{ else if col.TsType == "number" }}number{{ else if col.TsType == "boolean" }}boolean{{ else }}string{{ end }}',{{ if col.EnumTypeShortName }} dictionaryCode: '{{ col.EnumTypeShortName }}',{{ end }}{{ if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }} minWidth: 140, order: {{ for.index + 1 }} },
+  { key: '{{ col.TsProperty }}', title: '{{ col.Label | ts_string }}', dataType: '{{ col.FieldDataType }}',{{ if col.Relation }} optionsLoader: {{ ClassNameCamel }}Api.{{ col.Relation.OptionsMethodCamel }},{{ else if col.EnumTypeShortName }} dictionaryCode: '{{ col.EnumTypeShortName }}',{{ else if col.ControlKind == "select" && col.DictSelectorType == "DictSelector" }} dictCode: '{{ col.DictCode | ts_string }}',{{ else if col.ControlKind == "select" && col.DictSelectorType == "ConstSelector" }} options: {{ col.ConstValues | select_options col.Label col.TsType }},{{ else if col.TsType == "boolean" }} options: [{ label: '是', value: 1 }, { label: '否', value: 0 }],{{ end }}{{ if !col.InList }} visible: false,{{ end }}{{ import_props }} minWidth: 140, order: {{ for.index + 1 }} },
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
@@ -115,3 +152,60 @@ export const treeMeta = {
   parentKey: '{{ TreeParentColumn.TsProperty }}',
   labelKey: '{{ TreeNameColumn.TsProperty }}',
 } as const
+
+/**
+ * 导出查询入参
+ *
+ * 树形页面走 tree() 一次取全量、不分页；导出中心仍按分页接口在服务端翻页拉全量。
+ * 页面没有搜索与排序，这里只带分页（导出「当前页」按表格的每页条数截取）。
+ */
+export function buildPageQuery(params: SchemaQueryParams): {{ ClassName }}PageQueryDto {
+  return createPageRequest({ page: { pageIndex: params.page, pageSize: params.pageSize } })
+}
+{{~ if can_create ~}}
+{{~ if has_import_date ~}}
+
+/** 认得的日期写法：2026-09-30、2026/9/30、2026.9.30，可带 8:30 或 08:30:00 */
+const IMPORT_DATE_PATTERN = /^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+
+/**
+ * 导入的日期单元格归一成后端认的本地时间文本（yyyy-MM-dd 或 yyyy-MM-dd HH:mm:ss）。
+ *
+ * 表格软件另存的 CSV 常写成 2026/9/30，原样发给后端解析不了；纯 yyyy-MM-dd 交给 Date
+ * 又会被当成 UTC 零点，西半球会退一天。所以认得的写法按字面取年月日时分秒，
+ * 其余写法已过导入的日期校验，交给 Date 按本地时间解析。
+ */
+function toImportDateText(value: unknown, withTime: boolean) {
+  const text = String(value).trim()
+  const matched = IMPORT_DATE_PATTERN.exec(text)
+  const date = matched
+    ? new Date(Number(matched[1]), Number(matched[2]) - 1, Number(matched[3]), Number(matched[4] ?? 0), Number(matched[5] ?? 0), Number(matched[6] ?? 0))
+    : new Date(text)
+  const pad = (part: number) => String(part).padStart(2, '0')
+  const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  return withTime ? `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}` : day
+}
+{{~ end ~}}
+
+/**
+ * 导入记录 → 新增入参（导入逐行调用新增接口）
+ *
+ * 记录里只有表格填了值的列，值已按字段类型换算好（下拉按选项文本反查成值）；
+ * 必填列没填过不了导入校验，其余没填的列与新增表单留空同口径补齐，父级留空即作为根节点。
+ * 同一批导入并发创建，父级只能填库里已有节点的主键，不能引用同一文件里的新行。
+ * 未勾选导入时页面不接它；之后勾选导入，页面 resource 补一行 create 即可。
+ */
+export function toCreateInputFromImport(record: Record<string, unknown>): {{ ClassName }}CreateDto {
+  return {
+{{~ for col in Columns ~}}
+{{~ if col.InCreate ~}}
+{{~ if col.ColumnName == TreeParentColumn.ColumnName ~}}
+    {{ col.TsProperty }}: (record.{{ col.TsProperty }} as {{ ClassName }}CreateDto['{{ col.TsProperty }}'] | undefined) || {{ if col.IsNullable }}null{{ else }}'0'{{ end }},
+{{~ else ~}}
+    {{ col.TsProperty }}: {{ col.ImportFromRecord | string.replace "$r" ("record." + col.TsProperty) | string.replace "$t" (ClassName + "CreateDto['" + col.TsProperty + "']") }},
+{{~ end ~}}
+{{~ end ~}}
+{{~ end ~}}
+  }
+}
+{{~ end ~}}

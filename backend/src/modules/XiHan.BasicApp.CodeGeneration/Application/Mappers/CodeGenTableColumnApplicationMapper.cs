@@ -36,6 +36,8 @@ public static class CodeGenTableColumnApplicationMapper
             input.DictCode,
             input.EnumTypeName,
             input.ConstValues,
+            input.RelationTableId,
+            input.RelationLabelColumn,
             input.DefaultValue,
             input.RegexPattern,
             input.ValidationMessage,
@@ -91,6 +93,8 @@ public static class CodeGenTableColumnApplicationMapper
             DictCode = column.DictCode,
             EnumTypeName = column.EnumTypeName,
             ConstValues = column.ConstValues,
+            RelationTableId = column.RelationTableId,
+            RelationLabelColumn = column.RelationLabelColumn,
             Sort = column.Sort,
             Status = column.Status
         };

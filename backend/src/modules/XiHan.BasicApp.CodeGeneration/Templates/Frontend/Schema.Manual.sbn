@@ -1,3 +1,11 @@
+{{~ # 与 .schema.generated.ts 同一判据：一列都不进表单时不产新增，也就没有导入换算可转出 ~}}
+{{~ has_form_field = false ~}}
+{{~ for col in Columns ~}}
+{{~ if col.InForm ~}}
+{{~ has_form_field = true ~}}
+{{~ end ~}}
+{{~ end ~}}
+{{~ can_create = CanCreate && has_form_field ~}}
 /**
  * {{ TableComment | block_comment }}页面 schema（自定义部分）
  *
@@ -21,7 +29,5 @@ export const fields = baseFields
 export const actions = baseActions
 
 export const createDefaultForm = createDefaultFormModel
-{{~ if HasDetailTables ~}}
 
-export { detailTableColumns } from './{{ ClassNameKebab }}.schema.generated'
-{{~ end ~}}
+export { buildPageQuery{{ if HasDetailTables }}, detailTableColumns{{ end }}{{ if can_create }}, toCreateInputFromImport{{ end }} } from './{{ ClassNameKebab }}.schema.generated'

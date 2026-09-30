@@ -7,6 +7,9 @@
 #nullable enable
 
 using {{ Namespace }}.Domain.Entities;
+{{~ if HasRelations ~}}
+using XiHan.BasicApp.Core.Dtos;
+{{~ end ~}}
 using XiHan.BasicApp.Saas.Domain.Repositories;
 
 namespace {{ Namespace }}.Domain.Repositories;
@@ -16,4 +19,13 @@ namespace {{ Namespace }}.Domain.Repositories;
 /// </summary>
 public partial interface I{{ ClassName }}Repository : ISaasRepository<{{ ClassName }}>
 {
+{{~ for col in RelationColumns ~}}
+{{~ if !for.first ~}}
+
+{{~ end ~}}
+    /// <summary>
+    /// 查询{{ col.Label | xml_doc }}的选项（关联{{ col.Relation.Label | xml_doc }}：值为主键，显示 {{ col.Relation.LabelProperty }}{{ if col.Relation.IsTree }}，带上级主键供组树{{ end }}）
+    /// </summary>
+    Task<IReadOnlyList<RelationOptionDto>> Get{{ col.Relation.OptionsMethod }}Async(CancellationToken cancellationToken = default);
+{{~ end ~}}
 }

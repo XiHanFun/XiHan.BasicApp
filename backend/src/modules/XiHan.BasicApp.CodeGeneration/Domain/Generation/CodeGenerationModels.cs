@@ -97,6 +97,49 @@ public sealed class ColumnSchema
 
     /// <summary>常量项 JSON（ConstSelector 时生效）</summary>
     public string? ConstValues { get; set; }
+
+    /// <summary>关联的表配置主键（TableSelector / TreeSelector 时生效）</summary>
+    public long? RelationTableId { get; set; }
+
+    /// <summary>关联显示列（目标表的列名；关联树为空时取目标树表的名称列）</summary>
+    public string? RelationLabelColumn { get; set; }
+
+    /// <summary>解析后的关联目标（引擎按表配置解析，关联选择器列非空）</summary>
+    public RelationTarget? Relation { get; set; }
+}
+
+/// <summary>
+/// 关联选择器的目标（外键指向的另一张表）
+/// </summary>
+/// <remarks>
+/// 按「不焊外键」约定，产物里没有导航属性也没有 JOIN：本表生成一个选项接口，
+/// 仓储按目标实体查「主键 + 显示列（+ 父级列）」，前端据此出下拉、树形下拉与列表显示名。
+/// </remarks>
+public sealed class RelationTarget
+{
+    /// <summary>目标表配置主键</summary>
+    public long TableId { get; set; }
+
+    /// <summary>目标表名</summary>
+    public string TableName { get; set; } = string.Empty;
+
+    /// <summary>目标表注释</summary>
+    public string? TableComment { get; set; }
+
+    /// <summary>目标实体类名</summary>
+    public string ClassName { get; set; } = string.Empty;
+
+    /// <summary>目标实体限定类型名（{命名空间}.Domain.Entities.{类名}）</summary>
+    public string EntityTypeQualified { get; set; } = string.Empty;
+
+    /// <summary>显示列属性名（文本列）</summary>
+    public string LabelProperty { get; set; } = string.Empty;
+
+    /// <summary>父级列属性名（关联树时非空，long 标识）</summary>
+    public string? ParentProperty { get; set; }
+
+    /// <summary>是否关联树</summary>
+    public bool IsTree { get; set; }
 }
 
 /// <summary>

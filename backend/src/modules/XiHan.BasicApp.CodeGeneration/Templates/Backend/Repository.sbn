@@ -8,6 +8,9 @@
 
 using {{ Namespace }}.Domain.Entities;
 using {{ Namespace }}.Domain.Repositories;
+{{~ if HasRelations ~}}
+using XiHan.BasicApp.Core.Dtos;
+{{~ end ~}}
 using XiHan.BasicApp.Saas.Infrastructure.Repositories;
 using XiHan.Framework.Data.SqlSugar.Clients;
 
@@ -19,4 +22,31 @@ namespace {{ Namespace }}.Infrastructure.Repositories;
 public partial class {{ ClassName }}Repository(ISqlSugarClientResolver clientResolver)
     : SaasRepository<{{ ClassName }}>(clientResolver), I{{ ClassName }}Repository
 {
+{{~ for col in RelationColumns ~}}
+{{~ if !for.first ~}}
+
+{{~ end ~}}
+    /// <summary>
+    /// 查询{{ col.Label | xml_doc }}的选项（关联{{ col.Relation.Label | xml_doc }}：值为主键，显示 {{ col.Relation.LabelProperty }}{{ if col.Relation.IsTree }}，带上级主键供组树{{ end }}）
+    /// </summary>
+    /// <remarks>
+    /// 按关联实体自己的数据源查询，租户与软删过滤照常生效；只取主键与显示列{{ if col.Relation.IsTree }}、上级主键{{ end }}，按显示列排序。
+    /// 选项一次全量返回，适合分类、部门这类参考数据；关联到大表时请在手动仓储里改成按条件检索。
+    /// </remarks>
+    public virtual async Task<IReadOnlyList<RelationOptionDto>> Get{{ col.Relation.OptionsMethod }}Async(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var rows = await CreateQueryable<{{ col.Relation.EntityTypeQualified }}>()
+            .OrderBy(target => target.{{ col.Relation.LabelProperty }})
+            .Select(target => new { target.BasicId, target.{{ col.Relation.LabelProperty }}{{ if col.Relation.IsTree }}, target.{{ col.Relation.ParentProperty }}{{ end }} })
+            .ToListAsync(cancellationToken);
+        return [.. rows.Select(row => new RelationOptionDto
+        {
+            Value = row.BasicId,
+            Label = row.{{ col.Relation.LabelProperty }} ?? string.Empty{{ if col.Relation.IsTree }},
+            ParentValue = row.{{ col.Relation.ParentProperty }}{{ end }}
+        })];
+    }
+{{~ end ~}}
 }

@@ -46,6 +46,12 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
 
         var tableName = Required(command.TableName, 200, nameof(command.TableName), "数据库表名不能为空。", "数据库表名长度不能超过 200 个字符。");
         var className = Required(command.ClassName, 200, nameof(command.ClassName), "实体类名称不能为空。", "实体类名称长度不能超过 200 个字符。");
+        var enabledActions = Optional(command.EnabledActions, 200, nameof(command.EnabledActions), "包含操作长度不能超过 200 个字符。");
+        var actionConflict = CodeGenActions.FindConflict(CodeGenActions.Normalize(enabledActions));
+        if (actionConflict is not null)
+        {
+            throw new InvalidOperationException(actionConflict);
+        }
 
         // 表名唯一（排除自身）
         if (await _tableRepository.ExistsTableNameAsync(tableName, command.BasicId, cancellationToken))
@@ -69,7 +75,7 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         table.TemplateType = command.TemplateType;
         table.GenType = command.GenType;
         table.GenerationScope = command.GenerationScope;
-        table.EnabledActions = Optional(command.EnabledActions, 200, nameof(command.EnabledActions), "包含操作长度不能超过 200 个字符。");
+        table.EnabledActions = enabledActions;
         table.GenPath = Optional(command.GenPath, 500, nameof(command.GenPath), "生成路径长度不能超过 500 个字符。");
         table.ParentMenuId = command.ParentMenuId;
         table.PrimaryKeyColumn = Optional(command.PrimaryKeyColumn, 100, nameof(command.PrimaryKeyColumn), "主键列名长度不能超过 100 个字符。");

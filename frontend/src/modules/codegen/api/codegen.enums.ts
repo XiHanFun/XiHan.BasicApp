@@ -81,6 +81,10 @@ export enum DictSelectorType {
   DictSelector = 'DictSelector',
   EnumSelector = 'EnumSelector',
   ConstSelector = 'ConstSelector',
+  /** 关联表：外键指向另一张表配置，值为其主键 */
+  TableSelector = 'TableSelector',
+  /** 关联树：外键指向另一张树表配置，按上级组树 */
+  TreeSelector = 'TreeSelector',
 }
 
 /** 生成范围（裁剪前端/后端产物） */
@@ -170,6 +174,8 @@ export const DICT_SELECTOR_TYPE_OPTIONS = [
   { label: '系统字典', value: DictSelectorType.DictSelector },
   { label: '枚举类型', value: DictSelectorType.EnumSelector },
   { label: '常量数组', value: DictSelectorType.ConstSelector },
+  { label: '关联表', value: DictSelectorType.TableSelector },
+  { label: '关联树', value: DictSelectorType.TreeSelector },
 ]
 
 /** 生成产物写入策略（生成器拥有 vs 开发者拥有） */
@@ -194,11 +200,13 @@ export const GENERATION_SCOPE_OPTIONS = [
 ]
 
 /**
- * 包含操作选项（写操作裁剪；列表/详情为读取基线，始终生成）。
- * value 为后端解析的操作键；不选或全选均等价于全开。
+ * 包含操作选项（可裁剪操作；列表/详情为读取基线，始终生成）。
+ * value 为后端解析的操作键；不选或全选均等价于全开。导入逐行调用新增接口，勾导入须同时勾新增。
  */
 export const ENABLED_ACTION_OPTIONS = [
   { label: '新增', value: 'create' },
   { label: '编辑', value: 'update' },
   { label: '删除', value: 'delete' },
+  { label: '导出', value: 'export' },
+  { label: '导入', value: 'import' },
 ]

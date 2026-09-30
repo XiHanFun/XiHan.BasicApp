@@ -72,6 +72,8 @@ public class SysCodeGenTemplateSeeder : PlatformDataSeederBase
         new("backend.appservice.manual", "后端应用服务", BackendCrudGroup, "Backend/AppService.Manual.sbn", "{{ ClassName }}AppService.cs", ".cs", "Application/AppServices", ArtifactWriteMode.WriteOnce),
         new("backend.queryservice", "后端查询服务基类", BackendCrudGroup, "Backend/QueryService.sbn", "{{ ClassName }}QueryServiceBase.Generated.cs", ".cs", "Application/QueryServices"),
         new("backend.queryservice.manual", "后端查询服务", BackendCrudGroup, "Backend/QueryService.Manual.sbn", "{{ ClassName }}QueryService.cs", ".cs", "Application/QueryServices", ArtifactWriteMode.WriteOnce),
+        // 导出中心接线：未勾选导出时只留一行说明并照常覆盖，取消导出不会留下引用失效权限码的旧 Provider
+        new("backend.exportprovider", "后端导出Provider", BackendCrudGroup, "Backend/ExportProvider.sbn", "{{ ClassName }}ExportProvider.Generated.cs", ".cs", "Application/Exporting"),
 
         // L3 前端层：生成 base + 手写 re-export / transform
         new("frontend.types", "前端类型定义", FrontendCrudGroup, "Frontend/Types.sbn", "{{ ClassNameKebab }}.types.generated.ts", ".ts", FrontendApiPath),

@@ -26,6 +26,8 @@ public sealed record CodeGenTableColumnUpdateCommand(
     string? DictCode,
     string? EnumTypeName,
     string? ConstValues,
+    long? RelationTableId,
+    string? RelationLabelColumn,
     string? DefaultValue,
     string? RegexPattern,
     string? ValidationMessage,

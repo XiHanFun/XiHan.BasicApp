@@ -55,7 +55,7 @@ internal static class MenuPermissionArtifactShared
     };
 
     /// <summary>
-    /// 生效动作集：读取基线 read 恒在，追加已启用写操作（引擎已归一化 EnabledActions 为 create/update/delete 子集）
+    /// 生效动作集：读取基线 read 恒在，追加已启用操作（引擎已按 CodeGenActions.All 归一化 EnabledActions）
     /// </summary>
     public static IReadOnlyList<string> EffectiveActions(CodeGenerationContext context)
     {

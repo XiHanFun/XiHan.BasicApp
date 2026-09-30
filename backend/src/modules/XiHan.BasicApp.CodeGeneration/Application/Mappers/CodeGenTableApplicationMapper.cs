@@ -176,6 +176,8 @@ public static class CodeGenTableApplicationMapper
             DictCode = column.DictCode,
             EnumTypeName = column.EnumTypeName,
             ConstValues = column.ConstValues,
+            RelationTableId = column.RelationTableId,
+            RelationLabelColumn = column.RelationLabelColumn,
             Sort = column.Sort,
             Status = column.Status
         };
