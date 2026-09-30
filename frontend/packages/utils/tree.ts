@@ -1,3 +1,5 @@
+import type { TreeSelectOption } from '~/types'
+
 /**
  * 将平铺数据转换为树形结构
  *
@@ -58,6 +60,22 @@ export function listToTree<T extends { basicId: string, parentId?: string, child
   }
 
   return tree
+}
+
+/**
+ * 平铺的关联选项（value + parentValue）转成树形下拉选项。
+ *
+ * 口径同 listToTree：上级不在选项里的节点（上级为空、为 0，或上级被删）作为根挂出，不丢数据。
+ */
+export function relationOptionsToTree(
+  options: ReadonlyArray<{ label: string, value: string, parentValue?: null | string }>,
+): TreeSelectOption[] {
+  interface Node { basicId: string, parentId?: string, label: string, children?: Node[] }
+  const nodes: Node[] = options.map(option => ({ basicId: option.value, parentId: option.parentValue ?? undefined, label: option.label }))
+  const toOption = (node: Node): TreeSelectOption => (node.children?.length
+    ? { label: node.label, value: node.basicId, children: node.children.map(toOption) }
+    : { label: node.label, value: node.basicId })
+  return listToTree(nodes).map(toOption)
 }
 
 /**

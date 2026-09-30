@@ -440,6 +440,26 @@ export default {
     failed: 'アップロードに失敗しました',
     too_large: '画像サイズは {size}MB を超えられません',
   },
+  file_ref_upload: {
+    preview: '画像を表示',
+    select: 'アップロード',
+    change: '差し替え',
+    remove: '削除',
+    open: '開く',
+    hint_image: '一般的な画像形式に対応、{size}MB 以内',
+    hint_file: '{size}MB 以内',
+    success: 'アップロードしました',
+    failed: 'アップロードに失敗しました',
+    too_large: 'ファイルサイズは {size}MB を超えられません',
+    unavailable: 'ファイルを利用できません（削除済みまたは閲覧権限なし）',
+    open_failed: 'ファイルを開けませんでした',
+  },
+  async_options: {
+    load_failed: '選択肢を読み込めませんでした：{reason}',
+  },
+  dict_options: {
+    load_failed: '辞書「{code}」の選択肢を読み込めませんでした：{reason}',
+  },
   rich_text_editor: {
     placeholder: '内容を入力...',
     bold: '太字',
@@ -542,6 +562,9 @@ export default {
     page_of: '/ {pageCount} ページ',
     empty: 'データがありません',
     loading: '読み込み中…',
+    image_preview: '画像を表示',
+    file_open: '開く',
+    file_open_failed: 'ファイルを開けませんでした',
   },
   pagination: {
     per_page: '{size} 件/ページ',

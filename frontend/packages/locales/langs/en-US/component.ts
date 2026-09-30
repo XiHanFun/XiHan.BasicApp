@@ -440,6 +440,26 @@ export default {
     failed: 'Upload failed',
     too_large: 'Image must not exceed {size}MB',
   },
+  file_ref_upload: {
+    preview: 'View image',
+    select: 'Upload',
+    change: 'Replace',
+    remove: 'Remove',
+    open: 'Open',
+    hint_image: 'Common image formats, up to {size}MB',
+    hint_file: 'Up to {size}MB',
+    success: 'Uploaded',
+    failed: 'Upload failed',
+    too_large: 'File must not exceed {size}MB',
+    unavailable: 'File unavailable (deleted or no permission to view)',
+    open_failed: 'Failed to open the file',
+  },
+  async_options: {
+    load_failed: 'Failed to load options: {reason}',
+  },
+  dict_options: {
+    load_failed: 'Failed to load options of dictionary "{code}": {reason}',
+  },
   rich_text_editor: {
     placeholder: 'Enter content...',
     bold: 'Bold',
@@ -543,6 +563,9 @@ export default {
     page_of: '/ {pageCount}',
     empty: 'No data',
     loading: 'Loading…',
+    image_preview: 'View image',
+    file_open: 'Open',
+    file_open_failed: 'Failed to open the file',
   },
   pagination: {
     per_page: '{size} / page',

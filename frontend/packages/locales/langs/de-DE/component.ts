@@ -440,6 +440,26 @@ export default {
     failed: 'Upload fehlgeschlagen',
     too_large: 'Das Bild darf {size}MB nicht überschreiten',
   },
+  file_ref_upload: {
+    preview: 'Bild anzeigen',
+    select: 'Hochladen',
+    change: 'Ersetzen',
+    remove: 'Entfernen',
+    open: 'Öffnen',
+    hint_image: 'Gängige Bildformate, höchstens {size}MB',
+    hint_file: 'Höchstens {size}MB',
+    success: 'Hochgeladen',
+    failed: 'Hochladen fehlgeschlagen',
+    too_large: 'Die Datei darf höchstens {size}MB groß sein',
+    unavailable: 'Datei nicht verfügbar (gelöscht oder keine Leseberechtigung)',
+    open_failed: 'Datei konnte nicht geöffnet werden',
+  },
+  async_options: {
+    load_failed: 'Optionen konnten nicht geladen werden: {reason}',
+  },
+  dict_options: {
+    load_failed: 'Optionen des Wörterbuchs „{code}" konnten nicht geladen werden: {reason}',
+  },
   rich_text_editor: {
     placeholder: 'Inhalt eingeben...',
     bold: 'Fett',
@@ -543,6 +563,9 @@ export default {
     page_of: '/ {pageCount}',
     empty: 'Keine Daten',
     loading: 'Wird geladen…',
+    image_preview: 'Bild anzeigen',
+    file_open: 'Öffnen',
+    file_open_failed: 'Datei konnte nicht geöffnet werden',
   },
   pagination: {
     per_page: '{size} / Seite',

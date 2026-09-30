@@ -440,6 +440,26 @@ export default {
     failed: '上傳失敗',
     too_large: '圖片大小不能超過 {size}MB',
   },
+  file_ref_upload: {
+    preview: '檢視圖片',
+    select: '上傳',
+    change: '更換',
+    remove: '移除',
+    open: '開啟',
+    hint_image: '支援常見圖片格式，大小不超過 {size}MB',
+    hint_file: '大小不超過 {size}MB',
+    success: '上傳成功',
+    failed: '上傳失敗',
+    too_large: '檔案大小不能超過 {size}MB',
+    unavailable: '檔案無法使用（已刪除或無檢視權限）',
+    open_failed: '開啟檔案失敗',
+  },
+  async_options: {
+    load_failed: '選項載入失敗：{reason}',
+  },
+  dict_options: {
+    load_failed: '字典「{code}」的選項載入失敗：{reason}',
+  },
   rich_text_editor: {
     placeholder: '請輸入內容...',
     bold: '粗體',
@@ -542,6 +562,9 @@ export default {
     page_of: '/ {pageCount} 頁',
     empty: '暫無資料',
     loading: '載入中…',
+    image_preview: '檢視圖片',
+    file_open: '開啟',
+    file_open_failed: '開啟檔案失敗',
   },
   pagination: {
     per_page: '每頁 {size} 筆',

@@ -57,19 +57,18 @@ const table = useSchemaTable<Row>(props.schema)
 const { loading, rows, total, page, pageSize, filters, sorts, search, reset, changePage, changePageSize, changeSort, remove } = table
 
 /**
- * 字典/枚举异步取值：按字段 dictionaryCode 拉取元数据并注入 field.options，
- * 使单元格按值映射 label、搜索区自动渲染为下拉。静态 options 优先。
+ * 字典/枚举异步取值：按字段 dictionaryCode（枚举）或 dictCode（系统字典）拉取选项并注入 field.options，
+ * 使单元格按值映射 label、搜索区自动渲染为下拉。解析结果优先，为空时回退字段静态 options。
  */
 const dictionaries = useSchemaDictionaries(() => props.schema.fields)
 const resolvedFields = computed<ListFieldSchema[]>(() =>
   props.schema.fields.map((field) => {
-    // 字典/枚举选项注入（字段脱敏已由服务端在响应里落地，前端不再二次打码）
-    // dictionaryCode 解析结果优先（本地化选项）；为空时回退字段静态 options 兜底
-    if (!field.dictionaryCode) {
+    // 字段脱敏已由服务端在响应里落地，前端不再二次打码
+    if (!field.dictionaryCode && !field.dictCode && !field.optionsLoader) {
       return field
     }
-    const options = dictionaries.optionsMap.value[field.dictionaryCode]
-    return options?.length ? { ...field, options } : field
+    const options = dictionaries.optionsFor(field)
+    return options && options !== field.options ? { ...field, options } : field
   }),
 )
 const resolvedSchema = computed<PageSchema<Row>>(() => ({ ...props.schema, fields: resolvedFields.value }))

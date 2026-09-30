@@ -25,6 +25,7 @@ export type SchemaFieldDataType
     | 'tag'
     | 'json'
     | 'image'
+    | 'file'
     | 'avatar'
     | 'email'
     | 'phone'
@@ -67,8 +68,15 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   required?: boolean
   /** 字段级权限码；当前用户无此权限时该字段隐藏 */
   permission?: string
-  /** 字典码（enum/tag 异步取值，S2 接入；S1 优先使用 options） */
+  /** 后端枚举类型名（经枚举元数据取本地化选项；与 dictCode 二选一） */
   dictionaryCode?: string
+  /** 系统字典编码（字典管理里维护的字典，选项值为字典项编码；与 dictionaryCode 二选一） */
+  dictCode?: string
+  /**
+   * 异步选项加载器（如外键的关联记录选项）：SchemaPage 挂载时调用，结果注入 options。
+   * 同一加载器与页面表单下拉并发调用时只发一次请求（按函数引用去重）。
+   */
+  optionsLoader?: () => Promise<ReadonlyArray<SchemaSelectOption>>
   /** 即时下拉/标签选项（优先于 dictionaryCode；常引用 business 常量） */
   options?: ReadonlyArray<SchemaSelectOption>
   /** 自定义格式化器标识（由 useFieldFormat 解析，如 maskPhone/maskEmail） */
@@ -214,7 +222,7 @@ export interface SchemaResource<TRow> {
   /**
    * 导出中心提交（可选）—— 存在时 SchemaPage 导出按钮提供「提交到导出中心」异步入口。
    * businessType 须匹配后端 IExportProvider.BusinessType；buildQuery 复用页面适配器的查询构建，
-   * 返回资源自身分页查询 DTO（含分页/过滤），随快照交后端 Provider 反序列化（枚举须为数值以兼容 JSON 反序列化）。
+   * 返回资源自身分页查询 DTO（含分页/过滤），随快照交后端 Provider 反序列化（与线上报文同形，枚举按成员名或数值均可）。
    */
   export?: {
     businessType: string

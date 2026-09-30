@@ -440,6 +440,26 @@ export default {
     failed: 'अपलोड विफल',
     too_large: 'छवि का आकार {size}MB से अधिक नहीं हो सकता',
   },
+  file_ref_upload: {
+    preview: 'छवि देखें',
+    select: 'अपलोड करें',
+    change: 'बदलें',
+    remove: 'हटाएँ',
+    open: 'खोलें',
+    hint_image: 'सामान्य छवि प्रारूप, अधिकतम {size}MB',
+    hint_file: 'अधिकतम {size}MB',
+    success: 'अपलोड हो गया',
+    failed: 'अपलोड विफल',
+    too_large: 'फ़ाइल {size}MB से बड़ी नहीं हो सकती',
+    unavailable: 'फ़ाइल उपलब्ध नहीं (हटाई गई या देखने की अनुमति नहीं)',
+    open_failed: 'फ़ाइल खोली नहीं जा सकी',
+  },
+  async_options: {
+    load_failed: 'विकल्प लोड नहीं हो सके: {reason}',
+  },
+  dict_options: {
+    load_failed: 'शब्दकोश "{code}" के विकल्प लोड नहीं हो सके: {reason}',
+  },
   rich_text_editor: {
     placeholder: 'कृपया सामग्री दर्ज करें...',
     bold: 'बोल्ड',
@@ -542,6 +562,9 @@ export default {
     page_of: '/ {pageCount} पृष्ठ',
     empty: 'कोई डेटा नहीं',
     loading: 'लोड हो रहा है…',
+    image_preview: 'छवि देखें',
+    file_open: 'खोलें',
+    file_open_failed: 'फ़ाइल खोली नहीं जा सकी',
   },
   pagination: {
     per_page: '{size} प्रति पृष्ठ',
