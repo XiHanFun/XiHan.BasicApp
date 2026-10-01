@@ -578,6 +578,39 @@ public sealed partial class CodeGenBuiltInTemplateTests
     }
 
     /// <summary>
+    /// 沿用已有实体时，仓储、映射与查询服务按实体所在命名空间引用它；否则引用生成实体的位置。
+    /// </summary>
+    /// <param name="template">模板</param>
+    [Theory]
+    [InlineData("Backend/IRepository.sbn")]
+    [InlineData("Backend/Repository.sbn")]
+    [InlineData("Backend/Mapper.sbn")]
+    [InlineData("Backend/QueryService.sbn")]
+    public async Task Backend_EntityReferenceShouldFollowExistingEntityNamespace(string template)
+    {
+        var generated = await RenderAsync(template, SingleContext());
+        var existing = SingleContext();
+        existing.ExistingEntityNamespace = "XiHan.BasicApp.Sample.Domain.Entities";
+        var reused = await RenderAsync(template, existing);
+
+        Assert.Contains("using XiHan.BasicApp.Catalog.Domain.Entities;\n", generated, StringComparison.Ordinal);
+        Assert.Contains("using XiHan.BasicApp.Sample.Domain.Entities;\n", reused, StringComparison.Ordinal);
+        Assert.DoesNotContain("using XiHan.BasicApp.Catalog.Domain.Entities;", reused, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 生成的实体带生成器标记：下次生成据此认出它是生成器自己的，照常覆盖，而不是当成手写实体沿用。
+    /// </summary>
+    [Fact]
+    public async Task Entity_ShouldCarryGeneratedCodeMarker()
+    {
+        var entity = await RenderAsync("Backend/Entity.sbn", SingleContext());
+
+        Assert.Contains("using System.CodeDom.Compiler;\n", entity, StringComparison.Ordinal);
+        Assert.Contains("[GeneratedCode(\"XiHan.CodeGen\", \"1.0\")]\n[SugarTable(\"sys_product\"", entity, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 从程序集嵌入资源读取内置模板
     /// </summary>
     private static string LoadTemplate(string resourceFile)

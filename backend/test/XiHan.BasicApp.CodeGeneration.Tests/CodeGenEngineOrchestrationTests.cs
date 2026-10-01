@@ -35,6 +35,7 @@ public sealed class CodeGenEngineOrchestrationTests
     private readonly Mock<ICodeGenTemplateRepository> _templateRepository = new();
     private readonly Mock<ITemplateRendererResolver> _rendererResolver = new();
     private readonly Mock<IEnumTypeCatalog> _enumTypeCatalog = new();
+    private readonly Mock<IEntityMetadataCatalog> _entityCatalog = new();
     private readonly Mock<IGeneratedArtifactPackager> _packager = new();
     private readonly Mock<IGeneratedArtifactWriter> _artifactWriter = new();
     private readonly Mock<IPermissionRepository> _permissionRepository = new();
@@ -75,6 +76,7 @@ public sealed class CodeGenEngineOrchestrationTests
             _rendererResolver.Object,
             new DefaultTypeMappingProvider(),
             _enumTypeCatalog.Object,
+            _entityCatalog.Object,
             _packager.Object,
             _artifactWriter.Object,
             _permissionRepository.Object,
@@ -1042,6 +1044,112 @@ public sealed class CodeGenEngineOrchestrationTests
 
         Assert.False(result.Success);
         Assert.Contains("做不了唯一校验", result.Message!, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 让实体目录认得某张表对应的实体类型。
+    /// </summary>
+    /// <param name="tableName">表名</param>
+    /// <param name="entityType">实体类型</param>
+    private void GivenEntity(string tableName, Type entityType)
+    {
+        _entityCatalog.Setup(catalog => catalog.TryGetEntityType(tableName, out entityType)).Returns(true);
+    }
+
+    /// <summary>
+    /// 实体模板、实体手动模板与 DTO 模板各一份。
+    /// </summary>
+    private void GivenEntityAndDtoTemplates()
+    {
+        GivenTemplates(
+            Template(),
+            Template(code: "backend.entity.manual", name: "后端实体（自定义）", writeMode: ArtifactWriteMode.WriteOnce),
+            Template(code: "backend.dtos", name: "后端DTO"));
+    }
+
+    /// <summary>
+    /// 表由手写实体建出（实体建表的常规路径）：沿用那个实体，不生成实体与实体手动文件，其余照常，
+    /// 生成的代码按实体所在命名空间引用它。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_HandWrittenEntityShouldBeReusedInsteadOfGenerated()
+    {
+        GivenEntity("sys_product", typeof(Fixtures.HandWritten.SysProduct));
+        GivenTable(Table());
+        GivenEntityAndDtoTemplates();
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        var codes = result.Artifacts.Select(artifact => artifact.TemplateCode).ToList();
+        Assert.Contains("backend.dtos", codes);
+        Assert.DoesNotContain("backend.entity", codes);
+        Assert.DoesNotContain("backend.entity.manual", codes);
+        Assert.Equal("XiHan.BasicApp.CodeGeneration.Tests.Fixtures.HandWritten", _renderer.LastContext!.ExistingEntityNamespace);
+    }
+
+    /// <summary>
+    /// 生成器产出的实体（带生成器标记）不算已有实体：照常重新生成，外部库的表（没有实体）同样照常生成。
+    /// </summary>
+    /// <param name="generated">true：目录里是生成的实体；false：目录里没有实体</param>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task PreviewAsync_GeneratedOrMissingEntityShouldStillBeGenerated(bool generated)
+    {
+        if (generated)
+        {
+            GivenEntity("sys_product", typeof(Fixtures.Generated.SysProduct));
+        }
+
+        GivenTable(Table());
+        GivenEntityAndDtoTemplates();
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        var codes = result.Artifacts.Select(artifact => artifact.TemplateCode).ToList();
+        Assert.Contains("backend.entity", codes);
+        Assert.Contains("backend.entity.manual", codes);
+        Assert.Null(_renderer.LastContext!.ExistingEntityNamespace);
+    }
+
+    /// <summary>
+    /// 沿用已有实体时类名须与实体一致，否则生成的代码引用不到它，直接失败并给出正确类名。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_HandWrittenEntityWithDifferentClassNameShouldFail()
+    {
+        GivenEntity("sys_product", typeof(Fixtures.HandWritten.SysProduct));
+        var table = Table();
+        table.ClassName = "Product";
+        GivenTable(table);
+        GivenEntityAndDtoTemplates();
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.False(result.Success);
+        Assert.Contains("请把类名改成 SysProduct", result.Message!, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 关联目标表已有实体时，用它的真实类型（不按目标表配置的命名空间拼）。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_RelationToExistingEntityShouldUseItsRealType()
+    {
+        GivenEntity("sys_category", typeof(Fixtures.HandWritten.SysCategory));
+        GivenTable(Table());
+        GivenCategoryTable(isTree: false);
+        GivenColumns(TableId, Column("category_id", csharpType: "long", dictSelectorType: DictSelectorType.TableSelector, relationTableId: 2, relationLabelColumn: "category_name"));
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(
+            "XiHan.BasicApp.CodeGeneration.Tests.Fixtures.HandWritten.SysCategory",
+            _renderer.LastContext!.Columns[0].Relation!.EntityTypeQualified);
     }
 
     /// <summary>

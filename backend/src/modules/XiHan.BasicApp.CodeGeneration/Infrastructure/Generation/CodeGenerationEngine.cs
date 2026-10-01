@@ -1,7 +1,9 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.CodeDom.Compiler;
 using System.Diagnostics;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
@@ -27,6 +29,7 @@ public sealed partial class CodeGenerationEngine(
     ITemplateRendererResolver rendererResolver,
     ITypeMappingProvider typeMappingProvider,
     IEnumTypeCatalog enumTypeCatalog,
+    IEntityMetadataCatalog entityCatalog,
     IGeneratedArtifactPackager packager,
     IGeneratedArtifactWriter artifactWriter,
     IPermissionRepository permissionRepository,
@@ -38,6 +41,7 @@ public sealed partial class CodeGenerationEngine(
     private readonly ITemplateRendererResolver _rendererResolver = rendererResolver;
     private readonly ITypeMappingProvider _typeMappingProvider = typeMappingProvider;
     private readonly IEnumTypeCatalog _enumTypeCatalog = enumTypeCatalog;
+    private readonly IEntityMetadataCatalog _entityCatalog = entityCatalog;
     private readonly IGeneratedArtifactPackager _packager = packager;
     private readonly IGeneratedArtifactWriter _artifactWriter = artifactWriter;
     private readonly IPermissionRepository _permissionRepository = permissionRepository;
@@ -130,6 +134,12 @@ public sealed partial class CodeGenerationEngine(
 
         // 生成范围裁剪：按模板分组前缀（backend-* / frontend-*）过滤
         templates = FilterByScope(templates, table.GenerationScope);
+
+        // 表由手写实体建出：沿用那个实体，不再生成实体（否则与它重复定义）
+        if (context.ExistingEntityNamespace is not null)
+        {
+            templates = [.. templates.Where(template => template.TemplateCode is not (EntityTemplateCode or EntityManualTemplateCode))];
+        }
 
         if (templates.Count == 0)
         {
@@ -280,6 +290,18 @@ public sealed partial class CodeGenerationEngine(
                 ["ParentMenuId"] = table.ParentMenuId?.ToString()
             }
         };
+
+        // 表已有手写实体（实体建表的常规路径）：沿用它，类名须一致，生成的代码按它的命名空间引用
+        var existingEntity = FindHandWrittenEntity(table.TableName);
+        if (existingEntity is not null)
+        {
+            if (!string.Equals(existingEntity.Name, table.ClassName, StringComparison.Ordinal))
+            {
+                return (null, $"表 {table.TableName} 已有实体 {existingEntity.FullName}，表配置的类名却是 {table.ClassName}：生成的代码沿用这个实体，请把类名改成 {existingEntity.Name}。");
+            }
+
+            context.ExistingEntityNamespace = existingEntity.Namespace;
+        }
 
         // 页面码是表级推导，在这里一次校验：模块名是自由输入，填中文或带空格照样能两端一致地产出，
         // 但前端权限码卫生门禁的码形正则匹配不上，整页按钮码会被静默跳过检查。
@@ -604,6 +626,38 @@ public sealed partial class CodeGenerationEngine(
     }
 
     /// <summary>
+    /// 实体模板编码（自动文件 / 手动文件）：表已有手写实体时不生成
+    /// </summary>
+    private const string EntityTemplateCode = "backend.entity";
+
+    private const string EntityManualTemplateCode = "backend.entity.manual";
+
+    /// <summary>
+    /// 生成器给生成的实体打的工具名（<see cref="GeneratedCodeAttribute"/>），据此区分生成的与手写的
+    /// </summary>
+    private const string GeneratedCodeTool = "XiHan.CodeGen";
+
+    /// <summary>
+    /// 找表对应的手写实体
+    /// </summary>
+    /// <remarks>
+    /// 本仓库的表一般由实体自动建出，导入后实体已在代码里，生成时沿用它。
+    /// 生成器产出的实体带 <see cref="GeneratedCodeAttribute"/>（工具名 XiHan.CodeGen），那是生成器自己的，照常重新生成；
+    /// 外部库的表没有实体，同样照常生成。
+    /// </remarks>
+    private Type? FindHandWrittenEntity(string tableName)
+    {
+        if (!_entityCatalog.TryGetEntityType(tableName, out var entityType))
+        {
+            return null;
+        }
+
+        var generated = entityType.GetCustomAttributes<GeneratedCodeAttribute>(inherit: false)
+            .Any(attribute => attribute.Tool == GeneratedCodeTool);
+        return generated ? null : entityType;
+    }
+
+    /// <summary>
     /// 状态列的枚举短名（平台统一的启用/停用枚举）
     /// </summary>
     private const string StatusEnumName = "EnableStatus";
@@ -757,7 +811,10 @@ public sealed partial class CodeGenerationEngine(
                 TableName = target.TableName,
                 TableComment = target.TableComment,
                 ClassName = target.ClassName,
-                EntityTypeQualified = $"{targetNamespace}.Domain.Entities.{target.ClassName}",
+                // 目标表已有实体时用它的真实类型（实体建表的常规路径），否则按目标表配置推导生成后的位置
+                EntityTypeQualified = _entityCatalog.TryGetEntityType(target.TableName, out var targetEntity)
+                    ? targetEntity.FullName!
+                    : $"{targetNamespace}.Domain.Entities.{target.ClassName}",
                 LabelProperty = label.CSharpProperty,
                 ParentProperty = parentProperty,
                 IsTree = isTree

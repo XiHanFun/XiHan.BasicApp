@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using {{ Namespace }}.Application.Contracts;
 using {{ Namespace }}.Application.Dtos;
 using {{ Namespace }}.Application.Mappers;
-using {{ Namespace }}.Domain.Entities;
+using {{ EntityNamespace }};
 using {{ Namespace }}.Domain.Permissions;
 using {{ Namespace }}.Domain.Repositories;
 using XiHan.BasicApp.Core.Dtos;
