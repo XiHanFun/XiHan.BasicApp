@@ -64,6 +64,13 @@
     --xh-bg-subtle-hover: hsl(var(--accent));
     --xh-bg-subtle-active: hsl(var(--heavy));
     --xh-bg-muted: hsl(var(--muted));
+    /* 不透明的那一族（3.0 起表格表头 / 行悬停 / 斑马纹、头像底等改读它）：库里是前景按比例混进卡片底，
+       不接就绕开了应用的 muted / accent / heavy，表格与手写的 .xh-plain-table、动态取色下的品牌色调对不上。
+       应用这几色本身就是实色，直接接 */
+    --xh-bg-subtle-opaque: hsl(var(--muted));
+    --xh-bg-subtle-hover-opaque: hsl(var(--accent));
+    --xh-bg-subtle-active-opaque: hsl(var(--heavy));
+    --xh-bg-muted-opaque: hsl(var(--muted));
     /* 实心底走色阶而不是用户挑的原色：原色的明度由用户定，浅一点白字就压不住 */
     --xh-bg-brand: var(--xh-color-brand-600);
     --xh-bg-brand-hover: var(--xh-color-brand-700);
@@ -105,6 +112,7 @@
 
     /* —— 线与聚焦环 —— */
     --xh-border-default: hsl(var(--border));
+    --xh-border-default-opaque: hsl(var(--border));
     --xh-border-subtle: hsl(var(--border) / 60%);
     --xh-border-strong: hsl(var(--heavy));
     --xh-border-control: hsl(var(--input));
@@ -137,6 +145,9 @@
     /* —— 形状：跟随偏好设置里的圆角滑块（useTheme 写 --radius / --radius-card）—— */
     --xh-shape-control: var(--radius);
     --xh-shape-surface: var(--radius-card, var(--radius));
+    /* 内嵌件（3.0 起菜单 / 下拉 / 树 / 穿梭框的行，复选框的方框，标签……）读 inset，不接就钉死在 4px、
+       不随滑块走。取控件圆角的一半、不低于库缺省：滑块最小时与库一致，调大时跟着变圆，且始终比外层控件小一档 */
+    --xh-shape-inset: max(var(--xh-radius-sm), calc(var(--radius) / 2));
 
     /* —— 层级：整族抬到本仓手写浮层（通知下拉那类）之上 —— */
     --xh-z-sticky: var(--z-sidebar);
