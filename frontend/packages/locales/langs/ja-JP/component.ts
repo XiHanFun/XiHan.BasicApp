@@ -613,6 +613,8 @@ export default {
     err_empty_file: 'ファイルが空か、説明行のみです',
     err_no_columns: 'テンプレートの列を認識できません。「テンプレートをダウンロード」で生成したヘッダーを使用してください',
     err_missing_columns: '必須列が不足しています：{columns}',
+    err_reject_type: '「{name}」は CSV ファイルではありません。.csv ファイルを選択してください',
+    err_reject_count: '「{name}」は追加されませんでした：一度にインポートできるファイルは 1 つだけです',
     column_join: '、',
     error_reason_join: '；',
     template_filename_suffix: '-インポートテンプレート',
@@ -655,6 +657,7 @@ export default {
     modal_title: 'アイコンを選択',
     search_placeholder: 'アイコン名を検索...',
     empty: 'アイコンが見つかりません',
+    clear: 'クリア',
   },
   search_settings: {
     title: '検索設定',

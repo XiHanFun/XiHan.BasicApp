@@ -14,8 +14,10 @@ import {
   XhNavigationMenuViewport,
 } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { VNodeRender } from '~/components'
 import { Icon } from '~/iconify'
+import { useMenuExternalLinks } from '../sidebar/menu-links'
 import HeaderTopMenuPanel from './HeaderTopMenuPanel.vue'
 
 /**
@@ -50,19 +52,35 @@ const PANEL_EDGE_GAP = 8
 /** 点一次箭头滚过的距离：一屏减去这一段，留出重叠便于对照 */
 const SCROLL_OVERLAP = 120
 
+const router = useRouter()
+const externalLinkOf = useMenuExternalLinks()
+
+/**
+ * 无子级入口的真实地址：外链菜单就是外链本身，站内取路由解析出的地址。
+ * 有了真地址，中键、Ctrl+点击与「在新标签页打开」才落得到对的页面
+ */
+function entryHref(key: string): string {
+  return externalLinkOf(key) ?? router.resolve(key).href
+}
+
 /**
  * collection 仍要给：它是入口身份、禁用与键盘序列的事实源。
- * 无子级的入口给 href 占位，点它由 click 拦下走路由，不让浏览器整页跳走。
+ * 无子级的入口带上真实地址，与标记里那枚链接同一个 href。
  */
 const entries = computed<NavigationMenuNode[]>(() =>
   props.options.map<NavigationMenuNode>(option => ({
     value: option.key,
     label: typeof option.label === 'string' ? option.label : option.key,
     ...(option.disabled ? { disabled: true } : {}),
-    ...(option.children?.length ? {} : { href: '#' }),
+    ...(option.children?.length ? {} : { href: entryHref(option.key) }),
     ...(option.key === props.activeKey ? { current: true } : {}),
   })),
 )
+
+/** 当前页落在哪个入口之下（入口本身或它的子树）：滚动定位认它，标记打在入口的 li 上 */
+function holdsActive(option: AppMenuOption): boolean {
+  return option.key === props.activeKey || (option.children ?? []).some(holdsActive)
+}
 
 /** 排得下时入口按偏好对齐；排不下时列表宽过滚动区，对齐自然失效、改为从头滚 */
 const listJustify = computed(() => (props.align === 'center' ? 'center' : props.align === 'end' ? 'flex-end' : 'flex-start'))
@@ -70,9 +88,18 @@ const listJustify = computed(() => (props.align === 'center' ? 'center' : props.
 /** 带子级的入口：面板统一铺在共享外壳里，顺序与入口一致 */
 const panelOptions = computed(() => props.options.filter(option => option.children?.length))
 
-function onLinkClick(event: MouseEvent, key: string): void {
+/**
+ * 普通左键点无子级入口：拦下整页跳转，交给上层走路由（外链、分栏模式的首个子页都由上层判断）。
+ * 拦在滚动区而不是链接本身：作者在链接上 preventDefault 会让组件库跳过它自己的 click（收起已展开的面板），
+ * 冒泡到这里时那一步已经做完。带修饰键或非主键的点击原样交给浏览器，按链接的真实地址开新标签
+ */
+function onEntryClick(event: MouseEvent): void {
+  const link = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[data-top-menu-key]')
+  if (!link || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+    return
+  }
   event.preventDefault()
-  emit('select', key)
+  emit('select', link.dataset.topMenuKey!)
 }
 
 // ── 横向滚动（与标签栏同款：箭头 + 滚轮，滚动条本身藏起来） ──────────
@@ -139,7 +166,7 @@ async function scrollToActive() {
   if (vp.clientWidth >= vp.scrollWidth) {
     return
   }
-  const active = vp.querySelector<HTMLElement>(`[data-value="${CSS.escape(props.activeKey)}"]`)
+  const active = vp.querySelector<HTMLElement>('[data-top-menu-active]')
   active?.scrollIntoView({ behavior: scrollBehavior(), inline: 'nearest', block: 'nearest' })
 }
 
@@ -260,9 +287,13 @@ watch(() => props.activeKey, () => {
     </XhButton>
 
     <!-- 入口列表：一行排不下就横向滚动，滚动条藏起来交给箭头与滚轮 -->
-    <div ref="scrollViewportRef" class="header-top-menu__viewport">
+    <div ref="scrollViewportRef" class="header-top-menu__viewport" @click="onEntryClick">
       <XhNavigationMenuList class="header-top-menu__list" :style="{ justifyContent: listJustify }">
-        <XhNavigationMenuItem v-for="option in options" :key="option.key">
+        <XhNavigationMenuItem
+          v-for="option in options"
+          :key="option.key"
+          :data-top-menu-active="holdsActive(option) || undefined"
+        >
           <!-- 有子级：入口是浮层触发器，面板铺在下面的共享外壳里 -->
           <XhNavigationMenuTrigger v-if="option.children?.length" :value="option.key">
             <span class="header-top-menu__entry">
@@ -271,17 +302,18 @@ watch(() => props.activeKey, () => {
               <Icon icon="lucide:chevron-down" class="header-top-menu__arrow" />
             </span>
           </XhNavigationMenuTrigger>
-          <!-- 无子级：入口即去处 -->
-          <XhNavigationMenuLink
-            v-else
-            href="#"
-            :current="option.key === activeKey"
-            @click="(event: MouseEvent) => onLinkClick(event, option.key)"
-          >
-            <span class="header-top-menu__entry">
-              <VNodeRender v-if="typeof option.label === 'function'" :content="option.label()" />
-              <template v-else>{{ option.label }}</template>
-            </span>
+          <!-- 无子级：入口即去处。as-child 借一枚带真实地址的 <a>，普通左键由滚动区的 click 交给上层走路由 -->
+          <XhNavigationMenuLink v-else as-child :current="option.key === activeKey">
+            <a
+              :href="entryHref(option.key)"
+              :rel="externalLinkOf(option.key) ? 'noopener noreferrer' : undefined"
+              :data-top-menu-key="option.key"
+            >
+              <span class="header-top-menu__entry">
+                <VNodeRender v-if="typeof option.label === 'function'" :content="option.label()" />
+                <template v-else>{{ option.label }}</template>
+              </span>
+            </a>
           </XhNavigationMenuLink>
         </XhNavigationMenuItem>
       </XhNavigationMenuList>

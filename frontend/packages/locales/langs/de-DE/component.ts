@@ -614,6 +614,8 @@ export default {
     err_empty_file: 'Datei ist leer oder enthält nur Beschreibungszeilen',
     err_no_columns: 'Keine Vorlagenspalten erkannt, bitte die über „Vorlage herunterladen“ erzeugten Kopfzeilen verwenden',
     err_missing_columns: 'Fehlende Pflichtspalten: {columns}',
+    err_reject_type: '„{name}“ ist keine CSV-Datei. Bitte wählen Sie eine .csv-Datei.',
+    err_reject_count: '„{name}“ wurde nicht übernommen: Es kann nur eine Datei auf einmal importiert werden.',
     column_join: ', ',
     error_reason_join: '; ',
     template_filename_suffix: '-import-vorlage',
@@ -657,6 +659,7 @@ export default {
     modal_title: 'Symbol auswählen',
     search_placeholder: 'Symbolname suchen...',
     empty: 'Keine Symbole gefunden',
+    clear: 'Entfernen',
   },
   search_settings: {
     title: 'Sucheinstellungen',

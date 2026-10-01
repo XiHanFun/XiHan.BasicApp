@@ -260,10 +260,13 @@ function handleMiddleClose(path: string) {
 
 // ---- 标签入场 / 离场动画（JS hooks + 内联 transition，绕开 scoped CSS 跨组件边界问题） ----
 // 流程：@before-enter 设初始态 → @enter 强制 reflow + 设 transition 动到终态
-// 时长与曲线取组件库的语义令牌；下面两个毫秒数只用作兜底定时器的上限，
-// 减弱动效下令牌降到 1ms，定时器提前于它触发即可
+// 时长与曲线取组件库的语义令牌：入场整段走 slide（减弱动效下 1ms，直接出现）；
+// 离场是「列表移除」，淡出走 exit（减弱动效下仍保留 120ms），位移量取幅度令牌 distance-lg——
+// 减弱动效下它归零，只剩淡出。不能把位移挂在 enter / exit 时长上：这两支在减弱动效下不降到 1ms，标签照样滑。
+// 下面两个毫秒数只用作兜底定时器的上限
 const TAB_ENTER = 'var(--xh-motion-duration-slide) var(--xh-motion-ease-enter-strong)'
-const TAB_LEAVE = 'var(--xh-motion-duration-enter) var(--xh-motion-ease-exit)'
+const TAB_LEAVE = 'var(--xh-motion-duration-exit) var(--xh-motion-ease-exit)'
+const TAB_SHIFT = 'translateX(calc(-1 * var(--xh-motion-distance-lg)))'
 const TAB_ENTER_DURATION = 320
 const TAB_LEAVE_DURATION = 200
 
@@ -275,8 +278,28 @@ function clearTabTransition(el: HTMLElement) {
   setTabStyle(el, { transition: '', opacity: '', transform: '' })
 }
 
+/**
+ * 等这枚标签自己的淡变走完再收尾，超时兜底只收一次。
+ * 子元素的过渡结束事件也会冒泡上来，只认本元素的 opacity：减弱动效下位移 1ms 就结束，淡变还在走
+ */
+function afterOwnFade(el: HTMLElement, timeoutMs: number, finish: () => void) {
+  const listening = new AbortController()
+  const timer = setTimeout(settle, timeoutMs)
+  el.addEventListener('transitionend', (event) => {
+    if (event.target === el && event.propertyName === 'opacity') {
+      settle()
+    }
+  }, { signal: listening.signal })
+
+  function settle() {
+    clearTimeout(timer)
+    listening.abort()
+    finish()
+  }
+}
+
 function onTabBeforeEnter(el: Element) {
-  setTabStyle(el as HTMLElement, { opacity: '0', transform: 'translateX(-18px)' })
+  setTabStyle(el as HTMLElement, { opacity: '0', transform: TAB_SHIFT })
 }
 
 function onTabEnter(el: Element, done: () => void) {
@@ -291,11 +314,7 @@ function onTabEnter(el: Element, done: () => void) {
     clearTabTransition(htmlEl)
     done()
   }
-  const timer = setTimeout(cleanup, TAB_ENTER_DURATION + 40)
-  htmlEl.addEventListener('transitionend', () => {
-    clearTimeout(timer)
-    cleanup()
-  }, { once: true })
+  afterOwnFade(htmlEl, TAB_ENTER_DURATION + 40, cleanup)
 }
 
 function onTabBeforeLeave(el: Element) {
@@ -308,13 +327,9 @@ function onTabLeave(el: Element, done: () => void) {
   setTabStyle(htmlEl, {
     transition: `opacity ${TAB_LEAVE}, transform ${TAB_LEAVE}`,
     opacity: '0',
-    transform: 'translateX(-18px)',
+    transform: TAB_SHIFT,
   })
-  const timer = setTimeout(done, TAB_LEAVE_DURATION + 40)
-  htmlEl.addEventListener('transitionend', () => {
-    clearTimeout(timer)
-    done()
-  }, { once: true })
+  afterOwnFade(htmlEl, TAB_LEAVE_DURATION + 40, done)
 }
 
 function onTabEnterCancelled(el: Element) {
@@ -522,7 +537,6 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
               :show-icon="appStore.tabbarShowIcon"
               :middle-close-enabled="appStore.tabbarMiddleClickClose"
               :style-type="appStore.tabbarStyle"
-              data-tab-item="true"
               @jump="handleJump"
               @contextmenu="openContextMenu"
               @close="handleClose"

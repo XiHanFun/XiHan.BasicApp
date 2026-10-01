@@ -613,6 +613,8 @@ export default {
     err_empty_file: '파일이 비어 있거나 설명 행만 있어요',
     err_no_columns: '템플릿 열을 인식하지 못했어요. 「템플릿 다운로드」로 생성한 헤더를 사용해 주세요',
     err_missing_columns: '필수 열이 없어요: {columns}',
+    err_reject_type: '「{name}」은(는) CSV 파일이 아니에요. .csv 파일을 선택해 주세요',
+    err_reject_count: '「{name}」은(는) 추가되지 않았어요: 한 번에 파일 하나만 가져올 수 있어요',
     column_join: ', ',
     error_reason_join: '; ',
     template_filename_suffix: '-가져오기-템플릿',
@@ -655,6 +657,7 @@ export default {
     modal_title: '아이콘 선택',
     search_placeholder: '아이콘 이름 검색...',
     empty: '아이콘을 찾을 수 없어요',
+    clear: '지우기',
   },
   search_settings: {
     title: '검색 설정',

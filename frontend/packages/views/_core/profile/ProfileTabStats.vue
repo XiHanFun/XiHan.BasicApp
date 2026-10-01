@@ -102,8 +102,10 @@ const heatmapData = computed<HeatmapPoint[]>(() =>
 )
 
 /**
- * 五档的下界，升序。用分位而不是固定阈值，稀疏数据也能拉开层次。
+ * 五档的下界，严格升序。用分位而不是固定阈值，稀疏数据也能拉开层次。
  * 首档钉在 1：只要当天有操作就得着色，否则会和「这天没干活」画成同一格。
+ * 分位常会重合（如几乎每天都是 1 次）：组件库遇到重复下界会剔掉一档并报 chart.invalid-range，
+ * 故逐档至少比上一档大 1，档数始终是五档。
  */
 const heatThresholds = computed(() => {
   const positives = [...countByDate.value.values()].filter(v => v > 0).sort((a, b) => a - b)
@@ -111,7 +113,11 @@ const heatThresholds = computed(() => {
     return [1, 2, 3, 4]
   }
   const at = (ratio: number) => positives[Math.min(positives.length - 1, Math.floor(positives.length * ratio))] ?? 1
-  return [1, at(0.25) + 1, at(0.5) + 1, at(0.75) + 1]
+  const bounds = [1, at(0.25) + 1, at(0.5) + 1, at(0.75) + 1]
+  for (let i = 1; i < bounds.length; i++) {
+    bounds[i] = Math.max(bounds[i]!, bounds[i - 1]! + 1)
+  }
+  return bounds
 })
 
 /**

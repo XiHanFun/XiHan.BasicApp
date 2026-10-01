@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SideNavNode } from '@xihan-ui/headless'
 import type { SidebarMenuPropsContract } from '../../contracts'
+import type { MenuLinkResolver } from './menu-links'
 import type { AppMenuOption } from '~/types'
 import { XhSideNavList, XhSideNavRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
@@ -8,7 +9,10 @@ import SidebarMenuNodes from './SidebarMenuNodes.vue'
 
 defineOptions({ name: 'SidebarMenu' })
 
-const props = defineProps<SidebarMenuPropsContract>()
+const props = defineProps<SidebarMenuPropsContract & {
+  /** 叶子的去处：跳转由链接本身完成，menuUpdate 只报选中意图，不再负责导航 */
+  linkOf: MenuLinkResolver
+}>()
 
 const emit = defineEmits<{ menuUpdate: [key: string] }>()
 
@@ -48,7 +52,7 @@ const collection = computed(() => toCollection(props.menuOptions))
       @update:value="(key: string | null) => key && emit('menuUpdate', key)"
     >
       <XhSideNavList>
-        <SidebarMenuNodes :nodes="props.menuOptions" />
+        <SidebarMenuNodes :nodes="props.menuOptions" :link-of="props.linkOf" />
       </XhSideNavList>
     </XhSideNavRoot>
   </div>
@@ -157,7 +161,18 @@ const collection = computed(() => toCollection(props.menuOptions))
   margin-inline: 6px;
 }
 
-.sidebar-menu--collapsed-icon :deep(.sidebar-menu__label),
+/* 标签不能 display:none：它是图标栏里链接与分支钮唯一的可及名。
+   裁法与皮肤折叠落定后的那条相同，只是折叠过程中也不占位，图标从头到尾都居中 */
+.sidebar-menu--collapsed-icon :deep(.sidebar-menu__label) {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .sidebar-menu--collapsed-icon :deep(.sidebar-menu__arrow) {
   display: none;
 }
@@ -180,9 +195,16 @@ const collection = computed(() => toCollection(props.menuOptions))
   font-size: 20px;
 }
 
+/* 皮肤在折叠态把行文字裁成读屏专用（absolute + 1px + clip-path inset(50%)，过程中还淡到 opacity 0），
+   带标题的图标栏要它照常露出来，这几项逐一撤回 */
 .sidebar-menu--collapsed-titled :deep(.sidebar-menu__label) {
+  position: static;
   flex: none;
   inline-size: 100%;
+  block-size: auto;
+  margin: 0;
+  clip-path: none;
+  opacity: 1;
   text-align: center;
   font-size: 11px;
   font-weight: 400;

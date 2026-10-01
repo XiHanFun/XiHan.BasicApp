@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TableColumnDef } from '@xihan-ui/headless'
+import type { FileUploadFileRejectDetails, TableColumnDef } from '@xihan-ui/headless'
 import type { ListFieldSchema } from './types'
 import type { ImportSummary } from './useSchemaImport'
 import {
@@ -63,6 +63,9 @@ const importer = useSchemaImport({
 })
 const { phase, rows, fileErrors, validRows, errorRows, progress, summary } = importer
 
+/** 选择时被组件拒收的文件（类型不对、一次拖了多份）：与文件级错误并排列出 */
+const rejectErrors = ref<string[]>([])
+
 /** 最近导入记录（当前用户 × 当前页面，端点未就绪时静默为空） */
 type RecentImport = Awaited<ReturnType<typeof importHistoryApi.recent>>[number]
 const recentImports = ref<RecentImport[]>([])
@@ -80,6 +83,7 @@ async function loadRecent(): Promise<void> {
 watch(show, (value) => {
   if (value) {
     importer.reset()
+    rejectErrors.value = []
     void loadRecent()
   }
 })
@@ -104,13 +108,31 @@ function reportHistory(result: ImportSummary): void {
     .catch(() => undefined)
 }
 
+/**
+ * 已选文件受控为空：组件只当选择器用，每次选中的文件交给导入器解析后不留在组件里。
+ * 否则选过一份之后 maxFiles=1 已满，重选的文件会被当成「数量超限」拒收
+ */
+const NO_FILES: File[] = []
+
 /** 选择文件即解析校验；不给 upload 回调即不会发起任何真实上传 */
-function onFilesChange(files: File[]): void {
-  const file = files[0]
+function onFileAccept(details: { files: File[] }): void {
+  const file = details.files[0]
   if (file) {
+    rejectErrors.value = []
     void importer.loadFile(file)
   }
 }
+
+function onFileReject(details: FileUploadFileRejectDetails): void {
+  rejectErrors.value = details.files.map(({ file, reasons }) =>
+    reasons.includes('too-many-files')
+      ? t('component.schema_import.err_reject_count', { name: file.name })
+      : t('component.schema_import.err_reject_type', { name: file.name }),
+  )
+}
+
+/** 选择被拒的理由在前，已载入文件的问题在后 */
+const fileProblems = computed(() => [...rejectErrors.value, ...fileErrors.value])
 
 /** 校验/创建错误平铺为表格行 */
 const errorItems = computed(() =>
@@ -188,7 +210,9 @@ function handleClose(): void {
           v-if="phase === 'idle' || phase === 'ready'"
           accept=".csv,text/csv"
           :max-files="1"
-          @update:files="onFilesChange"
+          :files="NO_FILES"
+          @file-accept="onFileAccept"
+          @file-reject="onFileReject"
         >
           <XhFileUploadDropzone>
             <div class="xh-import-dragger">
@@ -199,13 +223,22 @@ function handleClose(): void {
           <XhFileUploadHiddenInput />
         </XhFileUploadRoot>
 
-        <!-- 文件级错误 -->
-        <XhAlertRoot v-for="error in fileErrors" :key="error" tone="danger">
+        <!-- 文件级错误：一条警示装下全部，多条时列成清单（每条一个 role=alert 会让读屏连播好几遍） -->
+        <XhAlertRoot v-if="fileProblems.length > 0" tone="danger">
           <XhAlertIndicator>
             <Icon icon="lucide:circle-alert" width="16" height="16" />
           </XhAlertIndicator>
           <XhAlertContent>
-            <XhAlertDescription>{{ error }}</XhAlertDescription>
+            <XhAlertDescription>
+              <template v-if="fileProblems.length === 1">
+                {{ fileProblems[0] }}
+              </template>
+              <ul v-else class="xh-import-problems">
+                <li v-for="problem in fileProblems" :key="problem">
+                  {{ problem }}
+                </li>
+              </ul>
+            </XhAlertDescription>
           </XhAlertContent>
         </XhAlertRoot>
 
@@ -228,37 +261,38 @@ function handleClose(): void {
           </XhTagRoot>
         </div>
 
-        <!-- 错误明细 -->
-        <XhTableRoot
-          v-if="errorItems.length > 0"
-          class="xh-import-errors"
-          ruled
-          size="md"
-          sticky-header
-          :columns="errorColumns"
-          :rows="errorRowDefs"
-        >
-          <XhTableHeader>
-            <XhTableRow>
-              <XhTableColumnHeader v-for="col in errorColumns" :key="col.id" :value="col.id">
-                <XhTableColumnLabel>{{ col.label }}</XhTableColumnLabel>
-              </XhTableColumnHeader>
-            </XhTableRow>
-          </XhTableHeader>
-          <XhTableBody>
-            <XhTableRow v-for="item in errorItems" :key="item.key" :value="item.key">
-              <XhTableCell value="row">
-                {{ item.row }}
-              </XhTableCell>
-              <XhTableCell value="field">
-                {{ item.field }}
-              </XhTableCell>
-              <XhTableCell value="message" :title="item.message">
-                {{ item.message }}
-              </XhTableCell>
-            </XhTableRow>
-          </XhTableBody>
-        </XhTableRoot>
+        <!-- 错误明细：限高的类名放在外层 div 上。表格根渲染成片段，带不上本组件的 scoped 标记，
+             类名写在它身上样式永远命中不了；限高槽是继承的自定义属性，外层给即可 -->
+        <div v-if="errorItems.length > 0" class="xh-import-errors">
+          <XhTableRoot
+            ruled
+            size="md"
+            sticky-header
+            :columns="errorColumns"
+            :rows="errorRowDefs"
+          >
+            <XhTableHeader>
+              <XhTableRow>
+                <XhTableColumnHeader v-for="col in errorColumns" :key="col.id" :value="col.id">
+                  <XhTableColumnLabel>{{ col.label }}</XhTableColumnLabel>
+                </XhTableColumnHeader>
+              </XhTableRow>
+            </XhTableHeader>
+            <XhTableBody>
+              <XhTableRow v-for="item in errorItems" :key="item.key" :value="item.key">
+                <XhTableCell value="row">
+                  {{ item.row }}
+                </XhTableCell>
+                <XhTableCell value="field">
+                  {{ item.field }}
+                </XhTableCell>
+                <XhTableCell value="message" :title="item.message">
+                  {{ item.message }}
+                </XhTableCell>
+              </XhTableRow>
+            </XhTableBody>
+          </XhTableRoot>
+        </div>
 
         <!-- 导入进度 -->
         <XhProgress v-if="phase === 'importing'" :value="importPercent" />
@@ -346,9 +380,15 @@ function handleClose(): void {
   flex-wrap: wrap;
 }
 
-/* 错误明细表：限高，超出内部滚动 */
+/* 错误明细表：限高，超出内部滚动（槽由表格根继承） */
 .xh-import-errors {
-  --xh-table-max-h: 220px;
+  --xh-table-max-h: var(--xh-viewport-h-md);
+}
+
+.xh-import-problems {
+  margin: 0;
+  padding-inline-start: var(--xh-space-4);
+  list-style: disc;
 }
 
 .xh-import-dragger__icon {
