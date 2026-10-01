@@ -57,14 +57,17 @@ internal static class MenuPermissionArtifactShared
     };
 
     /// <summary>
-    /// 生效动作集：读取基线 read 恒在，追加已启用操作（引擎已按 CodeGenActions.All 归一化 EnabledActions）
+    /// 生效动作集（权限码的操作段）：读取基线 read 恒在，追加已启用操作
     /// </summary>
+    /// <remarks>
+    /// 打印不是权限动作：打印按钮跟列表的读取权限走（取模板另需打印模板的使用权限），不派生独立权限码。
+    /// </remarks>
     public static IReadOnlyList<string> EffectiveActions(CodeGenerationContext context)
     {
         var actions = new List<string> { "read" };
         foreach (var action in context.EnabledActions)
         {
-            if (!actions.Contains(action))
+            if (action != CodeGenActions.Print && !actions.Contains(action))
             {
                 actions.Add(action);
             }
@@ -77,12 +80,14 @@ internal static class MenuPermissionArtifactShared
     /// 要登记的页面按钮
     /// </summary>
     /// <remarks>
-    /// 写操作按钮随其动作启用；查询与详情走列表页读取权限，没有独立按钮。
+    /// 写操作按钮随其动作启用；打印按钮随「打印」启用，挂读取权限；查询与详情走列表页读取权限，没有独立按钮。
     /// </remarks>
     public static IEnumerable<CodeGenButtonPermission> EnabledButtons(CodeGenerationContext context)
     {
         var effective = EffectiveActions(context);
-        return ButtonPermissionMappings.Buttons.Where(button => button.Action != "read" && effective.Contains(button.Action));
+        return ButtonPermissionMappings.Buttons.Where(button => button.Key == CodeGenActions.Print
+            ? context.EnabledActions.Contains(CodeGenActions.Print)
+            : button.Action != "read" && effective.Contains(button.Action));
     }
 
     /// <summary>

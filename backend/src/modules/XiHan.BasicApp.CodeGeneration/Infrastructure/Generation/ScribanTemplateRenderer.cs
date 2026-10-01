@@ -1,6 +1,9 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using Scriban;
 using Scriban.Runtime;
@@ -147,9 +150,12 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["CanDelete"] = context.EnabledActions.Contains(CodeGenActions.Delete),
             ["CanExport"] = context.EnabledActions.Contains(CodeGenActions.Export),
             ["CanImport"] = context.EnabledActions.Contains(CodeGenActions.Import),
-            // 状态切换要有状态列（引擎 fail-closed 解析，勾了就一定有）
+            // 状态切换要有状态列（引擎 fail-closed 解析，勾了就一定有）；打印跟读取权限走
             ["CanStatus"] = context.EnabledActions.Contains(CodeGenActions.Status) && context.StatusColumn is not null,
+            ["CanPrint"] = context.EnabledActions.Contains(CodeGenActions.Print),
             ["StatusColumn"] = context.StatusColumn is null ? null : BuildColumn(context.StatusColumn),
+            // 打印数据源的样例数据（设计器预览与样例表单初值）
+            ["PrintSampleJson"] = BuildPrintSampleJson(context),
             ["PrimaryKey"] = context.PrimaryKey is null ? null : BuildColumn(context.PrimaryKey),
             ["Columns"] = context.Columns.Select(BuildColumn).ToList(),
             // 树表结构列（TemplateType == "Tree" 时非空，由引擎 fail-closed 保证）
@@ -322,6 +328,66 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
                 ["OptionsMethodCamel"] = $"{Camelize(column.CSharpProperty)}Options"
             }
         };
+    }
+
+    /// <summary>
+    /// 打印样例数据的写出选项（中文原样输出，样例在设计器里可读）
+    /// </summary>
+    /// <remarks>
+    /// 用 <see cref="Utf8JsonWriter"/> 逐项写出而不走 <see cref="JsonSerializer"/>：
+    /// 宿主关掉反射序列化（裁剪/AOT、文件式程序）时反射序列化直接抛错，生成器不该依赖宿主的这项开关。
+    /// </remarks>
+    private static readonly JsonWriterOptions PrintSampleJsonOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    /// <summary>
+    /// 打印数据源的样例数据
+    /// </summary>
+    /// <remarks>
+    /// 打印时选项列、日期、布尔已换成显示文本，样例按显示文本给：选项列给「示例xx」、布尔给「是」、
+    /// 日期给本地格式；图片给站内图标，数字给 1。键与详情 DTO 的前端属性名一致。
+    /// </remarks>
+    private static string BuildPrintSampleJson(CodeGenerationContext context)
+    {
+        using var buffer = new MemoryStream();
+        using (var writer = new Utf8JsonWriter(buffer, PrintSampleJsonOptions))
+        {
+            writer.WriteStartObject();
+            foreach (var column in context.Columns.Where(column => IsBusinessColumn(column) && !CSharpTypeFacts.IsBinary(column.CSharpType)))
+            {
+                var facts = BuildColumn(column);
+                var key = (string)facts["TsProperty"]!;
+                switch ((string)facts["FieldDataType"]!)
+                {
+                    case "number":
+                        writer.WriteNumber(key, 1);
+                        break;
+                    case "boolean":
+                        writer.WriteString(key, "是");
+                        break;
+                    case "date":
+                        writer.WriteString(key, "2026-01-01");
+                        break;
+                    case "datetime":
+                        writer.WriteString(key, "2026-01-01 08:00:00");
+                        break;
+                    case "image":
+                        writer.WriteString(key, "/favicon.png");
+                        break;
+                    default:
+                        writer.WriteString(key, "示例" + (string)facts["Label"]!);
+                        break;
+                }
+            }
+
+            // 创建时间是基类列，不在业务列里，单独补上（与数据源字段表末尾那项对应）
+            writer.WriteString("createdTime", "2026-01-01 08:00:00");
+            writer.WriteEndObject();
+        }
+
+        return Encoding.UTF8.GetString(buffer.ToArray());
     }
 
     /// <summary>

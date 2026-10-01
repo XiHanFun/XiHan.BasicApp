@@ -528,7 +528,7 @@ public sealed class CodeGenEngineOrchestrationTests
     }
 
     /// <summary>
-    /// 包含操作未配置时归一化为缺省集（增删改与导出、导入；状态切换须显式勾选），二阶产物随之给出对应权限码。
+    /// 包含操作未配置时归一化为缺省集（增删改与导出、导入；状态切换与打印须显式勾选），二阶产物随之给出对应权限码。
     /// </summary>
     /// <param name="enabledActions">表配置的包含操作</param>
     /// <param name="expectedActions">期望生效的操作</param>
@@ -540,6 +540,7 @@ public sealed class CodeGenEngineOrchestrationTests
     [InlineData("delete,create", "create,delete")]
     [InlineData("CREATE, Update ", "create,update")]
     [InlineData("import,export,create", "create,export,import")]
+    [InlineData("print,create", "create,print")]
     [InlineData("approve", "")]
     public async Task PreviewAsync_EnabledActionsShouldBeNormalizedIntoContext(string? enabledActions, string expectedActions)
     {
@@ -1015,7 +1016,7 @@ public sealed class CodeGenEngineOrchestrationTests
     [Fact]
     public async Task PreviewAsync_WithoutStatusActionShouldNotRequireStatusColumn()
     {
-        GivenTable(Table(enabledActions: "create"));
+        GivenTable(Table(enabledActions: "create,print"));
         GivenColumns(TableId, Column("name"));
         GivenTemplates(Template());
 

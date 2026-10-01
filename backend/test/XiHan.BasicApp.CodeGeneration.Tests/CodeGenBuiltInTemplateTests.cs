@@ -452,22 +452,78 @@ public sealed partial class CodeGenBuiltInTemplateTests
     }
 
     /// <summary>
-    /// 没勾状态切换时：命令服务不出状态接口，页面不接启停。
+    /// 打印：后端出打印数据源（编码即页面码，图片列标图片素材），前端按页面码预览，选项列换显示名称、图片换可访问地址。
     /// </summary>
     [Fact]
-    public async Task StatusShouldStayOffUntilEnabled()
+    public async Task PrintShouldRegisterDataSourceAndPreviewByPageCode()
+    {
+        var context = AllActionsContext();
+
+        var dataSource = await RenderAsync("Backend/PrintDataSource.sbn", context);
+        var schema = await RenderAsync("Frontend/Schema.sbn", context);
+        var page = await RenderAsync("Frontend/Page.sbn", context);
+
+        Assert.Contains("public static class SysProductPrintDataSource", dataSource, StringComparison.Ordinal);
+        Assert.Contains("namespace XiHan.BasicApp.Catalog.Application.Printing;", dataSource, StringComparison.Ordinal);
+        Assert.Contains("        \"catalog.sys-product\",\n", dataSource, StringComparison.Ordinal);
+        Assert.Contains("new(\"productCode\", \"产品编码\"),", dataSource, StringComparison.Ordinal);
+        Assert.Contains("new(\"cover\", \"封面\", \"image\"),", dataSource, StringComparison.Ordinal);
+        Assert.Contains("new(\"createdTime\", \"创建时间\", InputType: \"datetime\")", dataSource, StringComparison.Ordinal);
+        Assert.Contains("\"productCode\":\"示例产品编码\"", dataSource, StringComparison.Ordinal);
+        Assert.Contains("\"cover\":\"/favicon.png\"", dataSource, StringComparison.Ordinal);
+
+        Assert.Contains("{ key: 'print', title: '打印', scope: 'row', icon: 'lucide:printer', permission: 'catalog.sys-product.print' },", schema, StringComparison.Ordinal);
+        Assert.Contains("const data: Record<string, unknown> = { ...source, ...schemaPageRef.value?.formatRow(source) }", page, StringComparison.Ordinal);
+        Assert.Contains("data.cover = await resolveAvatarUrl(source.cover as null | string)", page, StringComparison.Ordinal);
+        Assert.Contains("await previewPrintByCode(pageMeta.pageCode, data)", page, StringComparison.Ordinal);
+        Assert.Contains("import { previewPrintByCode } from '~/printing'\n", page, StringComparison.Ordinal);
+        Assert.Contains("resolveAvatarUrl", page, StringComparison.Ordinal);
+        Assert.Contains("const schemaPageRef = ref<SchemaPageInstance | null>(null)", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 没勾打印与状态切换时：打印数据源文件只留说明，页面不接打印与启停。
+    /// </summary>
+    [Fact]
+    public async Task StatusAndPrintShouldStayOffUntilEnabled()
     {
         var context = AllActionsContext();
         context.EnabledActions = CodeGenActions.Defaults;
         context.StatusColumn = null;
 
+        var dataSource = await RenderAsync("Backend/PrintDataSource.sbn", context);
         var service = await RenderAsync("Backend/AppService.sbn", context);
         var schema = await RenderAsync("Frontend/Schema.sbn", context);
         var page = await RenderAsync("Frontend/Page.sbn", context);
 
+        Assert.DoesNotContain("class ", dataSource, StringComparison.Ordinal);
+        Assert.Contains("没有勾选「打印」", dataSource, StringComparison.Ordinal);
         Assert.DoesNotContain("UpdateSysProductStatusAsync", service, StringComparison.Ordinal);
         Assert.DoesNotContain("statusPermission: '", schema, StringComparison.Ordinal);
+        Assert.DoesNotContain("'lucide:printer'", schema, StringComparison.Ordinal);
+        Assert.DoesNotContain("previewPrintByCode", page, StringComparison.Ordinal);
         Assert.DoesNotContain("handleToggleStatus", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("resolveAvatarUrl", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 只开打印：有行内打印与页面实例，但没有保存、删除、启停，不声明用不到的刷新函数（过不了 lint）。
+    /// </summary>
+    /// <param name="template">页面模板</param>
+    [Theory]
+    [InlineData("Frontend/Page.sbn")]
+    [InlineData("Frontend/TreePage.sbn")]
+    public async Task Page_PrintOnlyShouldNotDeclareUnusedReload(string template)
+    {
+        var context = template == "Frontend/TreePage.sbn" ? TreeContext(nullableParent: true) : AllActionsContext();
+        context.EnabledActions = [CodeGenActions.Print];
+        context.StatusColumn = null;
+
+        var page = await RenderAsync(template, context);
+
+        Assert.Contains("void handlePrint(row)", page, StringComparison.Ordinal);
+        Assert.Contains("const schemaPageRef = ref<SchemaPageInstance | null>(null)", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("reloadList", page, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -584,7 +640,7 @@ public sealed partial class CodeGenBuiltInTemplateTests
     }
 
     /// <summary>
-    /// 全部操作的单表：唯一的产品编码、EnableStatus 状态列（状态切换用）、图片列
+    /// 全部操作的单表：唯一的产品编码、EnableStatus 状态列（状态切换用）、图片列（打印时换可访问地址）
     /// </summary>
     private static CodeGenerationContext AllActionsContext()
     {

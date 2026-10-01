@@ -28,6 +28,7 @@ export type {
   SchemaActionScope,
   SchemaColumn,
   SchemaFieldDataType,
+  SchemaPageInstance,
   SchemaQueryParams,
   SchemaResource,
   SchemaSelectOption,

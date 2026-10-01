@@ -128,6 +128,9 @@ export const baseActions: NonNullable<PageSchema['actions']> = [
 {{~ if CanStatus ~}}
   { key: 'toggle', title: '启用/停用', scope: 'row', icon: 'lucide:power', permission: '{{ PageCode }}.status', confirm: true, confirmText: row => (row.{{ StatusColumn.TsProperty }} === 'Enabled' ? '确定停用该{{ TableComment | ts_string }}吗？' : '确定启用该{{ TableComment | ts_string }}吗？') },
 {{~ end ~}}
+{{~ if CanPrint ~}}
+  { key: 'print', title: '打印', scope: 'row', icon: 'lucide:printer', permission: '{{ PageCode }}.print' },
+{{~ end ~}}
 {{~ if CanDelete ~}}
   { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: '{{ PageCode }}.delete', confirm: true, confirmText: '确定删除该{{ TableComment | ts_string }}吗？删除后不可恢复。' },
 {{~ end ~}}

@@ -82,11 +82,11 @@ interface TableFormModel {
 
 /**
  * 全部可裁剪操作（列表/详情为读取基线，不在此列），与后端 CodeGenActions.All 同集；
- * 缺省集同 CodeGenActions.Defaults（状态切换须显式勾选）。
+ * 缺省集同 CodeGenActions.Defaults（状态切换与打印须显式勾选）。
  * 必须声明在 form 之前：form 的初值由 createDefaultForm() 求得，而它引用本常量，
  * 声明晚于调用点会落进暂时性死区，setup 直接抛 ReferenceError、整个弹窗渲染不出来。
  */
-const ALL_ACTIONS = ['create', 'update', 'delete', 'export', 'import', 'status']
+const ALL_ACTIONS = ['create', 'update', 'delete', 'export', 'import', 'status', 'print']
 const DEFAULT_ACTIONS = ['create', 'update', 'delete', 'export', 'import']
 
 const loading = ref(false)

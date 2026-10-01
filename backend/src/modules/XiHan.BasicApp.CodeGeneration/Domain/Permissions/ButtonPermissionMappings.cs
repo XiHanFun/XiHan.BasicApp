@@ -21,7 +21,7 @@ public sealed record CodeGenButtonPermission(string Key, string Title, string Ac
 public static class ButtonPermissionMappings
 {
     /// <summary>
-    /// 标准按钮集（查询/详情/新增/编辑/删除/导出/导入/状态）
+    /// 标准按钮集（查询/详情/新增/编辑/删除/导出/导入/状态/打印；打印跟读取权限走）
     /// </summary>
     public static readonly IReadOnlyList<CodeGenButtonPermission> Buttons =
     [
@@ -32,7 +32,8 @@ public static class ButtonPermissionMappings
         new("delete", "删除", "delete"),
         new("export", "导出", "export"),
         new("import", "导入", "import"),
-        new("status", "状态", "status")
+        new("status", "状态", "status"),
+        new("print", "打印", "read")
     ];
 
     /// <summary>

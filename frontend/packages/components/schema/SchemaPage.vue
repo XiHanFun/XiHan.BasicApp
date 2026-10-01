@@ -13,6 +13,7 @@ import { useAppContext, useAppStore } from '~/stores'
 import XIconButton from '../common/XIconButton.vue'
 import { actionMenuPrefix } from './action-menu'
 import { actionButtonTone, actionMenuTone } from './action-tone'
+import { formatFieldText } from './renderer'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaImportDialog from './SchemaImportDialog.vue'
 import SchemaSearchPanel from './SchemaSearchPanel.vue'
@@ -560,8 +561,22 @@ onMounted(async () => {
   firstLoaded.value = true
 })
 
+/**
+ * 按字段把一行格式化成显示文本：选项列（枚举、字典、异步选项）取名称、日期按格式、布尔为是/否，空值为空串。
+ * 供打印这类要「显示值」而非原始值的场景用；隐藏字段（只供搜索或导入）同样格式化。
+ */
+function formatRow(row: object): Record<string, string> {
+  const result: Record<string, string> = {}
+  for (const field of resolvedFields.value) {
+    const raw = (row as Record<string, unknown>)[field.key]
+    result[field.key] = raw == null || raw === '' ? '' : formatFieldText(field, row as Row)
+  }
+  return result
+}
+
 defineExpose({
   reload,
+  formatRow,
   remove,
   clearSelection,
   filters,
