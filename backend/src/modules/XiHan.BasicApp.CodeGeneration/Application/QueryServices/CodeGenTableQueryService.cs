@@ -129,30 +129,31 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
     }
 
     /// <summary>
-    /// 获取可选的父菜单
+    /// 获取父菜单候选
     /// </summary>
     /// <remarks>
-    /// 生成的页面只能挂在平台目录下；目录须有菜单码，生成的菜单登记按菜单码找父级。
-    /// 带上级主键供前端组树，与代码生成同一个查看权限，不要求菜单管理权限。
+    /// 返回平台菜单树（目录与菜单，不含按钮），和菜单管理页的上级菜单同一棵树，带上级主键供前端组树。
+    /// 只有目录可选：页面挂在菜单下会被当成父路由；目录还须有菜单码，生成的菜单登记按菜单码找父级。
+    /// 与代码生成同一个查看权限，不要求菜单管理权限。
     /// </remarks>
     [PermissionAuthorize(CodeGenPermissionCodes.Read)]
-    public async Task<IReadOnlyList<RelationOptionDto>> GetParentMenuOptionsAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CodeGenParentMenuOptionDto>> GetParentMenuOptionsAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var directories = await _menuRepository.GetListAsync(
-            menu => menu.TenantId == 0 && menu.MenuType == MenuType.Directory,
+        var menus = await _menuRepository.GetListAsync(
+            menu => menu.TenantId == 0 && menu.MenuType != MenuType.Button,
             cancellationToken);
 
-        return [.. directories
-            .Where(menu => !string.IsNullOrWhiteSpace(menu.MenuCode))
+        return [.. menus
             .OrderBy(menu => menu.Sort)
             .ThenBy(menu => menu.MenuName, StringComparer.Ordinal)
-            .Select(menu => new RelationOptionDto
+            .Select(menu => new CodeGenParentMenuOptionDto
             {
                 Value = menu.BasicId,
                 Label = menu.MenuName,
-                ParentValue = menu.ParentId
+                ParentValue = menu.ParentId,
+                Selectable = menu.MenuType == MenuType.Directory && !string.IsNullOrWhiteSpace(menu.MenuCode)
             })];
     }
 

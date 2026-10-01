@@ -105,3 +105,15 @@ export interface CodeGenTableStatusUpdateDto extends BasicDto {
   status: EnableStatus
   remark?: string | null
 }
+
+/**
+ * 父菜单候选（平台菜单树的一个节点，后端 CodeGenParentMenuOptionDto）。
+ * 目录和菜单都列出来表明位置，只有目录可选（selectable）。
+ */
+export interface CodeGenParentMenuOptionDto {
+  value: ApiId
+  label: string
+  parentValue?: ApiId | null
+  /** 是否可选：目录且有菜单码 */
+  selectable: boolean
+}

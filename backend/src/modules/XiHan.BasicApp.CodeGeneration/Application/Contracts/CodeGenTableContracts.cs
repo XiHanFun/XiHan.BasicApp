@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.CodeGeneration.Application.Dtos;
-using XiHan.BasicApp.Core.Dtos;
 using XiHan.Framework.Application.Contracts.Services;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 
@@ -52,7 +51,7 @@ public interface ICodeGenTableQueryService : IApplicationService
     Task<CodeGenTableDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 获取可选的父菜单（平台目录，带上级供组树）
+    /// 获取父菜单候选（平台菜单树：目录可选，菜单只表明位置）
     /// </summary>
-    Task<IReadOnlyList<RelationOptionDto>> GetParentMenuOptionsAsync(CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<CodeGenParentMenuOptionDto>> GetParentMenuOptionsAsync(CancellationToken cancellationToken = default);
 }

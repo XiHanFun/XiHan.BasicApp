@@ -66,15 +66,19 @@ export function listToTree<T extends { basicId: string, parentId?: string, child
  * 平铺的关联选项（value + parentValue）转成树形下拉选项。
  *
  * 口径同 listToTree：上级不在选项里的节点（上级为空、为 0，或上级被删）作为根挂出，不丢数据。
+ * 带 disabled 的节点照常展示层级、但不可选（如父菜单候选里只表明位置的菜单）。
  */
 export function relationOptionsToTree(
-  options: ReadonlyArray<{ label: string, value: string, parentValue?: null | string }>,
+  options: ReadonlyArray<{ label: string, value: string, parentValue?: null | string, disabled?: boolean }>,
 ): TreeSelectOption[] {
-  interface Node { basicId: string, parentId?: string, label: string, children?: Node[] }
-  const nodes: Node[] = options.map(option => ({ basicId: option.value, parentId: option.parentValue ?? undefined, label: option.label }))
-  const toOption = (node: Node): TreeSelectOption => (node.children?.length
-    ? { label: node.label, value: node.basicId, children: node.children.map(toOption) }
-    : { label: node.label, value: node.basicId })
+  interface Node { basicId: string, parentId?: string, label: string, disabled?: boolean, children?: Node[] }
+  const nodes: Node[] = options.map(option => ({ basicId: option.value, parentId: option.parentValue ?? undefined, label: option.label, disabled: option.disabled }))
+  const toOption = (node: Node): TreeSelectOption => ({
+    label: node.label,
+    value: node.basicId,
+    ...(node.disabled ? { disabled: true } : {}),
+    ...(node.children?.length ? { children: node.children.map(toOption) } : {}),
+  })
   return listToTree(nodes).map(toOption)
 }
 

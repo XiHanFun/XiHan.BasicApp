@@ -405,4 +405,17 @@ describe('relationOptionsToTree', () => {
       { label: '孤儿', value: '9' },
     ])
   })
+
+  it('不可选的节点照常展示层级、带 disabled，可选的节点不带该键', () => {
+    const tree = relationOptionsToTree([
+      { label: '开发中心', value: '1', parentValue: null },
+      { label: '代码生成', value: '2', parentValue: '1', disabled: true },
+      { label: '工作台', value: '3', parentValue: null, disabled: false },
+    ])
+
+    expect(tree).toEqual([
+      { label: '开发中心', value: '1', children: [{ label: '代码生成', value: '2', disabled: true }] },
+      { label: '工作台', value: '3' },
+    ])
+  })
 })
