@@ -202,6 +202,7 @@ export default {
     default_tag: 'Standard',
     // Form label / placeholder
     edition_code_placeholder: 'z. B. pro',
+    edition_code_random: 'Zufälligen Code erzeugen',
     edition_name_placeholder: 'Editionsnamen eingeben',
     price_placeholder: 'Leer lassen für keinen Preis',
     billing_period_form: 'Abrechnungszyklus (Monate)',
