@@ -1,11 +1,12 @@
 import type {
+  CodeGenParentMenuOptionDto,
   CodeGenTableDetailDto,
   CodeGenTableListItemDto,
   CodeGenTablePageQueryDto,
   CodeGenTableStatusUpdateDto,
   CodeGenTableUpdateDto,
 } from './table.types'
-import type { ApiId, PageResult, RelationOptionDto } from '@/api/types'
+import type { ApiId, PageResult } from '@/api/types'
 import { createDynamicApiClient } from '@/api/base'
 
 const command = createDynamicApiClient('CodeGenTable')
@@ -36,8 +37,8 @@ export const codeGenTableApi = {
   detail(id: ApiId) {
     return query.get<CodeGenTableDetailDto | null>('Detail', { id })
   },
-  /** 可选的父菜单：平台目录，带上级供组树 */
+  /** 父菜单候选：平台菜单树（目录可选，菜单只表明位置），带上级供组树 */
   parentMenuOptions() {
-    return query.get<RelationOptionDto[]>('ParentMenuOptions')
+    return query.get<CodeGenParentMenuOptionDto[]>('ParentMenuOptions')
   },
 }

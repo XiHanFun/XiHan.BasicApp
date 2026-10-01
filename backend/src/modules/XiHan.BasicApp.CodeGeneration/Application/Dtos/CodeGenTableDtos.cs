@@ -114,3 +114,33 @@ public sealed class CodeGenTableDetailDto : CodeGenTableListItemDto
     public string? ModifiedBy { get; set; }
     public IReadOnlyList<CodeGenTableColumnListItemDto> Columns { get; set; } = [];
 }
+
+/// <summary>
+/// 父菜单候选（平台菜单树的一个节点）
+/// </summary>
+/// <remarks>
+/// 平铺返回，靠 ParentValue 还原层级。目录和菜单都列出来表明位置，只有目录可选：
+/// 页面挂在菜单下会被当成父路由（跳到第一个子页），它自己的页面也渲染不出子页。
+/// </remarks>
+public sealed class CodeGenParentMenuOptionDto
+{
+    /// <summary>
+    /// 菜单主键
+    /// </summary>
+    public long Value { get; set; }
+
+    /// <summary>
+    /// 菜单名称
+    /// </summary>
+    public string Label { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 上级菜单主键（顶级为 null）
+    /// </summary>
+    public long? ParentValue { get; set; }
+
+    /// <summary>
+    /// 是否可选：目录且有菜单码（生成的菜单登记按菜单码挂靠）
+    /// </summary>
+    public bool Selectable { get; set; }
+}

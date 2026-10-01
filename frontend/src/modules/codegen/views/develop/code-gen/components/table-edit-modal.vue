@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type {
+  CodeGenParentMenuOptionDto,
   CodeGenTableUpdateDto,
   DatabaseType,
   EnableStatus,
@@ -9,7 +10,6 @@ import type {
 } from '../../../../api'
 import type {
   ApiId,
-  RelationOptionDto,
 } from '@/api'
 import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
@@ -99,9 +99,14 @@ const form = ref<TableFormModel>(createDefaultForm())
 const columnOptions = ref<{ label: string, value: string }[]>([])
 /** 其他表（供主子表的主表选择） */
 const tableOptions = ref<{ label: string, value: ApiId }[]>([])
-/** 可选的父菜单（平台目录），弹窗首次打开时拉取 */
-const parentMenuOptions = ref<RelationOptionDto[]>([])
-const parentMenuTree = computed(() => relationOptionsToTree(parentMenuOptions.value))
+/** 父菜单候选（平台菜单树），弹窗首次打开时拉取；只有目录可选，菜单只表明位置 */
+const parentMenuOptions = ref<CodeGenParentMenuOptionDto[]>([])
+const parentMenuTree = computed(() => relationOptionsToTree(parentMenuOptions.value.map(option => ({
+  label: option.label,
+  value: option.value,
+  parentValue: option.parentValue,
+  disabled: !option.selectable,
+}))))
 
 const isTreeTemplate = computed(() => form.value.templateType === TemplateTypeEnum.Tree)
 const isMasterDetailTemplate = computed(() => form.value.templateType === TemplateTypeEnum.MasterDetail)
