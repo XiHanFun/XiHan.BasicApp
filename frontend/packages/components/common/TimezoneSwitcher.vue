@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { Placement, Size } from '@xihan-ui/core'
 import type { MenuNode } from '@xihan-ui/headless'
-import { XhComboboxRoot, XhMenuRoot } from '@xihan-ui/vue'
-import { computed, onMounted, ref } from 'vue'
+import { XhMenuRoot } from '@xihan-ui/vue'
+import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast, useTimezoneOptions } from '~/composables'
 import { useAppStore } from '~/stores'
+import XCombobox from './XCombobox.vue'
 
 /**
  * 时区切换组件（统一封装：选项 + 切换逻辑）。
- * - variant=select：行内可搜索下拉（个人中心）。四百多条目录必须能筛，故用 combobox 而非 select。
+ * - variant=select：行内可搜索下拉（个人中心）。四百多条目录必须能筛，故用 combobox 而非 select；
+ *   输入框文字、本地筛选、空态与加载态都交给 XCombobox。
  * - variant=dropdown：触发器 + 菜单（顶栏），触发器经默认插槽传入。
  * 选项取自 useTimezoneOptions 的共享目录（顶栏 / 个人中心 / 编号规则同一份），不在此另行硬编码。
  * - apply=true：即时切换并同步应用时区（appStore.appTimezone，随请求头 X-Timezone 上行）并提示；否则受控，仅 emit（如个人中心的资料字段）。
@@ -29,10 +31,13 @@ const props = withDefaults(defineProps<{
   selectWidth?: number | string
   /** 菜单弹出位置 */
   placement?: Placement
+  /** 禁用（仅 select 形态）；不写时随外层 Field / Form 走 */
+  disabled?: boolean
 }>(), {
   variant: 'select',
   apply: false,
   size: 'md',
+  disabled: undefined,
 })
 
 const emit = defineEmits<{
@@ -59,17 +64,6 @@ const dropdownOptions = computed<MenuNode[]>(() =>
   commonOptions.value.map(zone => ({ value: zone.value, label: zone.label })),
 )
 
-/** 筛选串由本组件持有：combobox 只负责显示，筛哪些条目归调用方 */
-const query = ref('')
-const filteredOptions = computed(() => {
-  const keyword = query.value.trim().toLowerCase()
-  return keyword === ''
-    ? selectOptions.value
-    : selectOptions.value.filter(zone => zone.label.toLowerCase().includes(keyword))
-})
-
-const selected = computed(() => (current.value ? [current.value] : []))
-
 const selectStyle = computed(() =>
   props.selectWidth == null
     ? undefined
@@ -86,19 +80,28 @@ function choose(timezone: string) {
   }
   emit('change', timezone)
 }
+
+/** 单选不带清空钮，收上来的恒是字符串；选回当前那条不算切换 */
+function onSelect(next: unknown) {
+  if (typeof next === 'string' && next !== '' && next !== current.value) {
+    choose(next)
+  }
+}
 </script>
 
 <template>
-  <XhComboboxRoot
+  <!-- 读屏名放进视觉隐藏的 label 部件：页面上紧挨着的那行「时区」文字并没有关联到输入框 -->
+  <XCombobox
     v-if="variant === 'select'"
-    v-model:input-value="query"
-    :collection="filteredOptions"
-    :value="selected"
-    :disabled="loading"
+    :options="selectOptions"
+    :value="current || null"
+    :loading="loading"
+    :disabled="disabled"
     :size="size"
     :style="selectStyle"
-    open-on-click
-    @update:value="(v: string[]) => v[0] && choose(v[0])"
+    :placeholder="t('header.timezone.search')"
+    :aria-label="t('preference.general.timezone')"
+    @update:value="onSelect"
   />
   <XhMenuRoot
     v-else

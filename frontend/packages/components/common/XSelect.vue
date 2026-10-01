@@ -1,26 +1,27 @@
 <script setup lang="ts">
 import type { Size } from '@xihan-ui/core'
 import {
-  XhEmptyStateIndicator,
-  XhEmptyStateRoot,
-  XhEmptyStateTitle,
   XhSelectClearTrigger,
   XhSelectContent,
   XhSelectControl,
+  XhSelectEmpty,
   XhSelectIndicator,
   XhSelectItem,
   XhSelectItemIndicator,
   XhSelectItemText,
+  XhSelectLabel,
   XhSelectList,
+  XhSelectLoading,
+  XhSelectOverflowTag,
   XhSelectPositioner,
   XhSelectRoot,
+  XhSelectTag,
+  XhSelectTagList,
   XhSelectTrigger,
   XhSelectValueText,
-  XhSpinner,
 } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon } from '~/iconify'
 import { useControlAttrs } from './control-attrs'
 
 /**
@@ -31,7 +32,8 @@ import { useControlAttrs } from './control-attrs'
  *    大量是数字（枚举）。这里按 String(value) 建映射，收上来再还原成原类型。
  * 2. 清除钮。它是一个要自己摆的部件，不是 prop。
  *
- * 其余能力（collection 铺开条目、placeholder、多选标签折叠）都由组件库给。
+ * 其余能力（collection 铺开条目、placeholder、多选标签折叠、加载与空态的收放）都由组件库给。
+ * 只能从已知清单里挑；要打字筛选或远程检索的用 XCombobox。
  */
 defineOptions({ name: 'XSelect', inheritAttrs: false })
 
@@ -42,11 +44,13 @@ const props = withDefaults(defineProps<{
   value?: string | number | Array<string | number> | null
   multiple?: boolean
   clearable?: boolean
-  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
+  /** 三态不写时随外层 Field / Form 走；写了以本处为准 */
   disabled?: boolean
+  readOnly?: boolean
+  invalid?: boolean
   placeholder?: string
   size?: Size
-  /** 多选标签超出几个后折叠 */
+  /** 多选标签超出几个后折叠成 +N */
   maxTagCount?: number
   /** 选项正在取回 */
   loading?: boolean
@@ -56,6 +60,8 @@ const props = withDefaults(defineProps<{
   multiple: false,
   clearable: false,
   disabled: undefined,
+  readOnly: undefined,
+  invalid: undefined,
   placeholder: undefined,
   size: 'sm',
   maxTagCount: undefined,
@@ -69,6 +75,20 @@ const emit = defineEmits<{
 // 字段挂来的 id 与 aria-* 转交给触发器，见 control-attrs.ts
 const { t } = useI18n()
 const { attrs, controlAttrs } = useControlAttrs()
+
+/**
+ * 触发器的名字由 aria-labelledby（label 部件 + 值文本）给出，写在它身上的 aria-label 会被盖掉。
+ * 调用方给了 aria-label 就改放进一个视觉隐藏的 label 部件，名字才念得出来。
+ */
+const ariaLabel = computed(() => {
+  const label = attrs['aria-label']
+  return typeof label === 'string' && label !== '' ? label : undefined
+})
+const triggerAttrs = computed(() => {
+  const rest = { ...controlAttrs.value }
+  delete rest['aria-label']
+  return rest
+})
 
 const collection = computed(() => props.options.map(option => ({
   value: String(option.value),
@@ -98,51 +118,51 @@ function onValueChange(next: string[]): void {
 
 <template>
   <XhSelectRoot
+    v-slot="{ tags }"
     :class="attrs.class"
     :style="attrs.style"
     :collection="collection"
     :value="selected"
     :multiple="multiple"
     :disabled="disabled"
+    :read-only="readOnly"
+    :invalid="invalid"
+    :loading="loading"
     :placeholder="placeholder"
     :size="size"
     :max-tag-count="maxTagCount"
     @update:value="onValueChange"
   >
+    <XhSelectLabel v-if="ariaLabel" class="sr-only">
+      {{ ariaLabel }}
+    </XhSelectLabel>
     <XhSelectControl>
-      <XhSelectTrigger v-bind="controlAttrs">
+      <XhSelectTrigger v-bind="triggerAttrs">
+        <!-- 多选时标签行与值文本同写：有选中时标签露面、值文本让位，但仍留在 DOM 里供触发器取名 -->
         <XhSelectValueText />
+        <XhSelectTagList v-if="multiple">
+          <XhSelectTag v-for="tag in tags" :key="tag.value" :value="tag.value">
+            {{ tag.label }}
+          </XhSelectTag>
+          <XhSelectOverflowTag />
+        </XhSelectTagList>
         <XhSelectIndicator />
       </XhSelectTrigger>
       <XhSelectClearTrigger v-if="clearable" />
     </XhSelectControl>
     <XhSelectPositioner>
       <XhSelectContent>
-        <div v-if="loading" class="x-select__spin">
-          <XhSpinner size="sm" />
-        </div>
-        <XhEmptyStateRoot v-else-if="!collection.length" size="sm">
-          <XhEmptyStateIndicator>
-            <Icon icon="lucide:inbox" width="24" height="24" />
-          </XhEmptyStateIndicator>
-          <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-        </XhEmptyStateRoot>
-        <XhSelectList v-else>
+        <!-- 列表恒在：它是触发器 aria-controls 指向的 listbox，后台刷新时也保留上一帧 -->
+        <XhSelectList>
           <XhSelectItem v-for="node in collection" :key="node.value" :value="node.value">
             <XhSelectItemText>{{ node.label }}</XhSelectItemText>
             <XhSelectItemIndicator />
           </XhSelectItem>
         </XhSelectList>
+        <!-- 在途与空态是 list 的兄弟，何时露面由组件库按 loading 与条数收放 -->
+        <XhSelectLoading>{{ t('common.loading') }}</XhSelectLoading>
+        <XhSelectEmpty>{{ t('common.no_data') }}</XhSelectEmpty>
       </XhSelectContent>
     </XhSelectPositioner>
   </XhSelectRoot>
 </template>
-
-<style scoped>
-.x-select__spin {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-block: var(--xh-space-4);
-}
-</style>

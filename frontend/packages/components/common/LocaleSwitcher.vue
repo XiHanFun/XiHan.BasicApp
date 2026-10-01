@@ -9,10 +9,12 @@ import {
   XhSelectItem,
   XhSelectItemIndicator,
   XhSelectItemText,
+  XhSelectLabel,
   XhSelectList,
   XhSelectPositioner,
   XhSelectRoot,
   XhSelectTrigger,
+  XhSelectValueText,
 } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -100,13 +102,19 @@ function choose(key: string) {
     :style="selectStyle"
     @update:value="(v: string[]) => v[0] && choose(v[0])"
   >
+    <!-- 触发器的名字取自 label 部件 + 值文本；页面上紧挨着的那行「语言」文字并没有关联到它，这里给一份视觉隐藏的 -->
+    <XhSelectLabel class="sr-only">
+      {{ t('preference.general.language') }}
+    </XhSelectLabel>
     <XhSelectControl>
       <XhSelectTrigger>
-        <!-- 选中态自绘：旗 + 文案；不用 ValueText，它只出纯文本 -->
-        <span class="locale-item">
-          <LocaleFlag :locale="current" :size="16" />
-          <span>{{ options.find(o => o.value === current)?.label }}</span>
-        </span>
+        <!-- 选中态自绘：旗 + 文案，填进值文本部件，触发器 aria-labelledby 才指得到它 -->
+        <XhSelectValueText>
+          <span class="locale-item">
+            <LocaleFlag :locale="current" :size="16" />
+            <span>{{ options.find(o => o.value === current)?.label }}</span>
+          </span>
+        </XhSelectValueText>
         <XhSelectIndicator />
       </XhSelectTrigger>
     </XhSelectControl>
