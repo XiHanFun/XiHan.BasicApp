@@ -157,6 +157,8 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'import', title: t('develop.code_gen.table.import'), scope: 'page', type: 'primary', icon: 'lucide:database', permission: 'code_gen.import' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'code_gen.update' },
+    { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2', permission: 'code_gen.update' },
     { key: 'preview', title: t('develop.code_gen.table.action_preview'), scope: 'row', icon: 'lucide:eye' },
     // 两个生成动作按表配置的生成方式二选一呈现，避免同时给出两个入口让人猜该点哪个
     {
@@ -180,9 +182,7 @@ const schema = computed<PageSchema>(() => ({
       visible: row => (row as unknown as CodeGenTableListItemDto).genType === GenType.Project,
       permission: 'code_gen.execute',
     },
-    { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2', permission: 'code_gen.update' },
     { key: 'sync', title: t('develop.code_gen.table.action_sync'), scope: 'row', icon: 'lucide:refresh-cw', permission: 'code_gen.import' },
-    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'code_gen.update' },
     { key: 'runtime', title: t('develop.code_gen.table.action_runtime'), scope: 'row', icon: 'lucide:database' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'code_gen.delete' },
   ],
