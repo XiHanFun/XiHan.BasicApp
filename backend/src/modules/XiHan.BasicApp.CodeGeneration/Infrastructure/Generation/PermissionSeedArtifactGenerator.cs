@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// 权限定义二阶产物生成器（{Class}PermissionDefinitions.cs：资源 × 操作的单一事实源）
 /// </summary>
 /// <remarks>
-/// 产出一份自包含的声明式定义（不依赖 Saas 类型），由生成的 {Class}PermissionSeeder 消费，
+/// 产出一份自包含的声明式定义（不依赖 Saas 类型），由生成的 {Class}PermissionCatalog 消费，
 /// 使"资源 + 操作 + 权限项"在种子与常量之间只有一处描述。纯推导 → 总是覆盖。
 /// </remarks>
 internal static class PermissionSeedArtifactGenerator
@@ -40,7 +40,7 @@ internal static class PermissionSeedArtifactGenerator
         sb.AppendLine($"namespace {ns}.Domain.Permissions;");
         sb.AppendLine();
         sb.AppendLine("/// <summary>");
-        sb.AppendLine($"/// {displayDoc} 权限定义（资源 × 已启用操作的单一事实源，供 {context.ClassName}PermissionSeeder 消费）");
+        sb.AppendLine($"/// {displayDoc} 权限定义（资源 × 已启用操作的单一事实源，供 {context.ClassName}PermissionCatalog 消费）");
         sb.AppendLine("/// </summary>");
         sb.AppendLine($"public static class {className}");
         sb.AppendLine("{");

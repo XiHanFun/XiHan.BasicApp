@@ -150,8 +150,8 @@ function listSourceFiles(dir: string, acc: string[] = []): string[] {
 }
 
 /**
- * 后端按钮登记所在的文件：各模块的页面登记表 PageRegistry.cs，以及直接在菜单种子里登记页面与按钮的
- * 各个 XxxMenuSeeder.cs（PageRegistryMenuSeederBase 两种写法都支持，代码生成器产出的就是后一种）
+ * 后端按钮登记所在的文件：各模块的页面登记表 PageRegistry.cs、直接在菜单种子里登记页面与按钮的 XxxMenuSeeder.cs，
+ * 以及业务模块交给汇总种子的菜单登记 XxxMenuPages.cs（代码生成器产出的就是这种）
  */
 function listButtonRegistries(project: string): string[] {
   const files: string[] = []
@@ -161,7 +161,7 @@ function listButtonRegistries(project: string): string[] {
   }
   const seeders = join(project, 'Infrastructure', 'Seeders')
   if (existsSync(seeders)) {
-    files.push(...listFiles(seeders).filter(file => file.endsWith('MenuSeeder.cs')))
+    files.push(...listFiles(seeders).filter(file => file.endsWith('MenuSeeder.cs') || file.endsWith('MenuPages.cs')))
   }
   return files
 }

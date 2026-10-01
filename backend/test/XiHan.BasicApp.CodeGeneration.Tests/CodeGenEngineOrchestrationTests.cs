@@ -301,8 +301,8 @@ public sealed class CodeGenEngineOrchestrationTests
                 "README.md",
                 "SysProductPermissionDefinitions.cs",
                 "SysProductPageRegistry.snippet.txt",
-                "SysProductPermissionSeeder.cs",
-                "SysProductMenuSeeder.cs"
+                "SysProductPermissionCatalog.cs",
+                "SysProductMenuPages.cs"
             ],
             secondOrder);
     }

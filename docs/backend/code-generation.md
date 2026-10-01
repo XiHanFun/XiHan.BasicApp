@@ -71,9 +71,9 @@
 
 - <code v-pre>Domain/Permissions/{{ClassName}}PermissionCodes.cs</code>——权限码常量类（资源段取表名，`{资源}:{操作}` 两段式）。
 - <code v-pre>Domain/Permissions/{{ClassName}}PermissionDefinitions.cs</code>——权限定义片段。
-- <code v-pre>Infrastructure/Seeders/{{ClassName}}PermissionSeeder.cs</code> 与 <code v-pre>Infrastructure/Seeders/{{ClassName}}MenuSeeder.cs</code>——种子骨架（仅首次创建）。
-- <code v-pre>_GeneratedMenuPermission/{{ClassName}}PageRegistry.snippet.txt</code>——`PageDescriptor` / `ButtonDescriptor` 粘贴片段。
-- `_GeneratedMenuPermission/README.md`——落地说明：权限码表、按钮→权限码映射、`SysMenu` 菜单规格，以及并入源码后的 Seeder / 升级脚本接线清单。
+- <code v-pre>Infrastructure/Seeders/{{ClassName}}PermissionCatalog.cs</code> 与 <code v-pre>Infrastructure/Seeders/{{ClassName}}MenuPages.cs</code>——权限目录登记与菜单登记（总是覆盖，随包含操作推导）。它们实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 并按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段最后统一写入：不需要 `AddDataSeeder`，也没有种子顺序号。
+- <code v-pre>_GeneratedMenuPermission/{{ClassName}}PageRegistry.snippet.txt</code>——`PageDescriptor` / `ButtonDescriptor` 粘贴片段（并进模块自己的页面登记表时用，与菜单登记二选一）。
+- `_GeneratedMenuPermission/README.md`——落地说明：权限码表、按钮→权限码映射、`SysMenu` 菜单规格与生效步骤（重启后端即由启动播种写入）。
 
 ::: tip 从旧版本升级
 前端模板此前产出的是 naive-ui 页面，现已整体迁到 XiHan.UI。已生成过代码的工程重新生成时：
@@ -273,7 +273,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 - **加一种数据库方言**：扩展 `ITypeMappingProvider` 的映射；扫描能力依赖框架 `IDatabaseMetadataProvider`。
 - **加/改模板**：新增 `SysCodeGenTemplate`（自定义编码、Scriban 正文、文件名/路径表达式），或改动非内置模板；用模板变量表与 `IsBaseColumn` 约定编写。
 - **换渲染引擎**：实现 `ITemplateRenderer`（`Engine` 返回对应 `TemplateEngine`）并注册，`TemplateRendererResolver` 后注册覆盖先注册。
-- **生成后并入源码**：按 `_GeneratedMenuPermission/README.md` 的步骤确认权限码常量与种子落位（资源→权限→菜单→授权，Order 用 200+ 段）并注册种子；全新库由种子初始化，存量库还要补对应版本的前向升级脚本。
+- **生成后并入源码**：按 `_GeneratedMenuPermission/README.md` 确认权限码常量与两个登记类落位，重启后端即由汇总种子写入权限与菜单（不需要登记种子）；旧版本生成的 `XxxPermissionSeeder` / `XxxMenuSeeder` 及其 `AddDataSeeder` 登记要删掉。
 
 ## 下一步
 

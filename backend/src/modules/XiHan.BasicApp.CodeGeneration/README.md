@@ -26,14 +26,14 @@
 | --- | --- | --- |
 | 后端 | 实体、DTO、仓储接口与实现、应用契约、映射器、`XxxAppServiceBase`、`XxxQueryServiceBase`、`XxxExportProvider`、`XxxPrintDataSource`（未勾导出/打印时只留说明） | 各自的 partial 与 `XxxAppService` / `XxxQueryService` |
 | 前端 | `*.types.generated.ts`、`*.generated.ts`、`*.schema.generated.ts` | `*.types.ts`、`*.ts`、`*.schema.ts`、`index.vue` |
-| 接线 | `XxxPermissionCodes`、`XxxPermissionDefinitions` | `XxxPermissionSeeder`、`XxxMenuSeeder`（另附 PageRegistry 片段，二选一） |
+| 接线 | `XxxPermissionCodes`、`XxxPermissionDefinitions`、`XxxPermissionCatalog`、`XxxMenuPages` | 无（另附 PageRegistry 片段，供并进模块自己的页面登记表时用） |
 
-接线产物相对后端模块项目根：权限码常量与权限定义在 `Domain/Permissions/`，两个种子骨架在 `Infrastructure/Seeders/`，说明与 PageRegistry 片段在 `_GeneratedMenuPermission/`。README 说明如何并入：确认文件落位、确认种子 Order 并注册、重建库后由既有种子链生效。生成的菜单不带 I18nKey，直接显示业务名称；要多语言时改成 `menu.{页面码中 . 与 - 换成 _}` 并在前端各语言 `menu.ts` 补键。
+接线产物相对后端模块项目根：权限码常量与权限定义在 `Domain/Permissions/`，权限目录登记 `XxxPermissionCatalog` 与菜单登记 `XxxMenuPages` 在 `Infrastructure/Seeders/`，说明与 PageRegistry 片段在 `_GeneratedMenuPermission/`。两个登记类按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段最后（+90）统一写入：不需要 `AddDataSeeder`、没有种子顺序号，重启后端即生效。生成的菜单不带 I18nKey，直接显示业务名称；要多语言时改成 `menu.{页面码中 . 与 - 换成 _}` 并在前端各语言 `menu.ts` 补键。
 
 ## 生成代码的约定
 - 报文可空性跟列本身走，与 C# DTO 一致；「必填」只管表单校验。非空列留空时文本发空串、数字发 0；下拉、日期、时间、long 标识没有说得通的缺省值，非空即按必填校验。
 - 树表写接口挡住自环、挂到自己的下级与删除带子节点的父级；更新、删除找不到记录时报错，不静默成功。
-- 页面按钮用按钮码 `{页面码}.{create|update|delete|export|import|status|print}` 门控，按钮码由菜单种子的按钮行下发；前端权限码卫生测试同时扫描 `PageRegistry.cs` 与 `*MenuSeeder.cs`。
+- 页面按钮用按钮码 `{页面码}.{create|update|delete|export|import|status|print}` 门控，按钮码由菜单登记的按钮行下发；前端权限码卫生测试同时扫描 `PageRegistry.cs`、`*MenuSeeder.cs` 与 `*MenuPages.cs`。
 - 列表查询入参（`buildPageQuery`）与导入换算（`toCreateInputFromImport`）生成在 `*.schema.generated.ts`，随表结构更新；列表取数与导出中心共用同一份查询入参。导出、导入按钮码写在生成的页面元信息里，取消勾选后重新生成按钮即消失；首次生成后再勾选，只需在 `index.vue` 的 resource 里补 `create` / `export` 一行；状态切换与打印的处理函数在 `index.vue` 里，首次生成后再勾选须对照预览把 `resource.updateStatus`、`onAction` 分支与处理函数并进去。
 - 模块名须能推导出合规页面码（`[a-z][a-z0-9_-]*`），否则生成直接失败，避免产出过不了前端门禁的页面码。
 - 生成页面的文案为中文字面量，接多语言时换成 `t()` 并补语言包。
