@@ -7,7 +7,7 @@
 #nullable enable
 
 using {{ Namespace }}.Application.Dtos;
-using {{ Namespace }}.Domain.Entities;
+using {{ EntityNamespace }};
 
 namespace {{ Namespace }}.Application.Mappers;
 

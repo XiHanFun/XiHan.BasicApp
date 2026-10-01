@@ -6,6 +6,7 @@
 
 #nullable enable
 
+using System.CodeDom.Compiler;
 using SqlSugar;
 using XiHan.BasicApp.Core.Entities;
 using XiHan.Framework.Domain.Entities.Abstracts;
@@ -18,6 +19,7 @@ namespace {{ Namespace }}.Domain.Entities;
 /// <remarks>
 /// 业务数据严格租户隔离：每个租户只看得见、只写得了自己的行，库隔离租户的数据落在它自己的库里。
 /// </remarks>
+[GeneratedCode("XiHan.CodeGen", "1.0")]
 [SugarTable("{{ TableName }}"{{ if TableComment }}, "{{ TableComment | cs_string }}"{{ end }})]
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]

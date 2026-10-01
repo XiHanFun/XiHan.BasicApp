@@ -127,6 +127,9 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["ClassNameKebab"] = Kebabize(context.ClassName),
             // 命名空间为空时回退到模块段：DbFirst 导入的表未配置命名空间，直插会渲染出 using .Domain.Entities;
             ["Namespace"] = MenuPermissionArtifactShared.ResolveNamespace(context),
+            // 实体所在命名空间：沿用已有实体时取它的命名空间，否则是生成实体的位置
+            ["EntityNamespace"] = context.ExistingEntityNamespace ?? $"{MenuPermissionArtifactShared.ResolveNamespace(context)}.Domain.Entities",
+            ["HasExistingEntity"] = context.ExistingEntityNamespace is not null,
             // 模块名为空时回退到类名：页面码、落盘路径、菜单组件路径都由它推导，
             // 裸值为 null 会产出 pageCode '.sys-product' 与 src/views//sys-product
             ["ModuleName"] = MenuPermissionArtifactShared.ModuleSegment(context),

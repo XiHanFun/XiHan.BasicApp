@@ -255,6 +255,14 @@ public sealed class CodeGenerationContext
     /// </summary>
     public ColumnSchema? StatusColumn { get; set; }
 
+    /// <summary>
+    /// 已有实体的命名空间（表由手写实体建出时非空：沿用这个实体，不再生成实体）
+    /// </summary>
+    /// <remarks>
+    /// 本仓库的表一般由实体自动建出，导入这类表生成时实体已在代码里；只有外部库的表才需要生成实体。
+    /// </remarks>
+    public string? ExistingEntityNamespace { get; set; }
+
     /// <summary>主键列</summary>
     public ColumnSchema? PrimaryKey { get; set; }
 

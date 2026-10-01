@@ -156,7 +156,7 @@ public sealed partial class ProjectArtifactWriter(IOptions<CodeGenerationOptions
             var generated = plans.FirstOrDefault(plan => plan.Artifact.TemplateCode == generatedCode);
             if (generated.Artifact is not null && !File.Exists(generated.FullPath))
             {
-                return $"项目里已有 {relative}，但不是代码生成器产出的（没有对应的 {generated.Relative}）：生成到项目会与它重复定义而编译不过。请改表配置的类名，或先移走这个手写文件再生成。";
+                return $"项目里已有 {relative}，但不是代码生成器产出的（没有对应的 {generated.Relative}）：生成到项目会与它重复定义而编译不过。请先移走这个手写文件（自定义代码可在生成后写进同名的手动文件），再生成。";
             }
         }
 
