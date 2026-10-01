@@ -246,8 +246,8 @@ function declaredWidthOf(column: SchemaColumn<TRow>): number {
  * 没写 minWidth 的列（如操作列）以自己的声明宽为下限，不写就会跌到皮肤的全局兜底值。
  *
  * 「不吃余量」也写在这里：表头格与表体格由同一个函数出样式，两侧必然一致。
- * 组件库只给表头格发列号（data-value），按列号写的 CSS 选择器只命中表头，
- * 表体那一半静默落空，同一列在两个区段就会分到不同的余量、列边界跟着错开。
+ * 下限随列定义逐列变化，写成内联变量比按列号（data-value）逐列生成选择器直接；
+ * 两侧若分到不同的余量，同一列在表头与表体的边界就会错开。
  */
 function minWidthStyle(column: SchemaColumn<TRow>): Record<string, string> {
   return {

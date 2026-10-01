@@ -90,7 +90,7 @@ watch(() => props.value, (value) => {
   draft.value = rangeToDraft(value, props.showTime)
 })
 
-/** 两组时间列的小标题与列名：随应用语言取，不依赖组件库只覆盖 zh-CN 的那份文案 */
+/** 两组时间列的小标题与列名：按应用的七种语言取。组件库内置的是英文，全局覆盖（locales/xihan-ui.ts）只有中英两份 */
 const timeTranslations = computed(() => ({
   startTime: t('component.date_picker.start_time'),
   endTime: t('component.date_picker.end_time'),

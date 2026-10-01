@@ -14,6 +14,9 @@
   --xh-field-label-font-size: var(--xh-text-secondary-size);
   --xh-field-label-gap-block: var(--xh-space-2);
   --xh-field-gap: var(--xh-space-1);
+  /* 网格内的控件一律撑满所在格：字段族控件的根宽缺省取 --xh-control-w（16rem），
+     在网格上改一次，经继承覆盖全部种类，新加的控件也不会漏 */
+  --xh-control-w: 100%;
 
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -23,18 +26,6 @@
 
 .xh-edit-form-grid .xh-span-2 {
   grid-column: span 2;
-}
-
-/* 网格内的控件一律撑满所在格：这几族的根是 inline-flex，容器不是竖排 flex 时不会自己铺开 */
-.xh-edit-form-grid [data-scope='cascader'][data-part='root'],
-.xh-edit-form-grid [data-scope='combobox'][data-part='root'],
-.xh-edit-form-grid [data-scope='date-picker'][data-part='root'],
-.xh-edit-form-grid [data-scope='number-field'][data-part='root'],
-.xh-edit-form-grid [data-scope='select'][data-part='root'],
-.xh-edit-form-grid [data-scope='tags-input'][data-part='root'],
-.xh-edit-form-grid [data-scope='text-field'][data-part='root'],
-.xh-edit-form-grid [data-scope='tree-select'][data-part='root'] {
-  width: 100%;
 }
 
 /* 小屏单列 */
