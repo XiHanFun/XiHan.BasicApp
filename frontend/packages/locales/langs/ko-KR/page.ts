@@ -88,6 +88,7 @@ export default {
     agree_text: '다음 내용에 동의해요:',
     privacy_policy: '개인정보 처리방침',
     terms_of_service: '서비스 이용약관',
+    legal_load_failed: '불러오지 못했어요. 잠시 후 다시 시도해 주세요',
     and: '및',
     register_btn: '지금 가입',
     register_success: '가입이 완료됐어요',

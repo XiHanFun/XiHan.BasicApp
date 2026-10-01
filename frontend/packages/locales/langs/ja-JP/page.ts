@@ -88,6 +88,7 @@ export default {
     agree_text: '以下の内容に同意します：',
     privacy_policy: 'プライバシーポリシー',
     terms_of_service: '利用規約',
+    legal_load_failed: '読み込みに失敗しました。しばらくしてからもう一度お試しください',
     and: 'および',
     register_btn: '今すぐ登録',
     register_success: '登録が完了しました',

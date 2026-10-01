@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { FormRules } from '@xihan-ui/headless'
-import { XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
+import type { LegalDocumentKind } from './legal'
 
+import { XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -11,6 +12,7 @@ import { LOGIN_PATH } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import { useAppContext } from '~/stores'
+import LegalDocumentDialog from './LegalDocumentDialog.vue'
 import { useAuthFormInvalid } from './use-auth-form-invalid'
 
 defineOptions({ name: 'RegisterPage' })
@@ -23,6 +25,15 @@ const loading = ref(false)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const agreePolicy = ref(false)
+
+/** 正在查看的法律文书；弹窗关掉后保留上一份，关闭动画里标题不会跳成另一份 */
+const legalKind = ref<LegalDocumentKind>('privacy-policy')
+const legalOpen = ref(false)
+
+function openLegal(kind: LegalDocumentKind) {
+  legalKind.value = kind
+  legalOpen.value = true
+}
 
 const formData = ref({
   username: '',
@@ -131,10 +142,6 @@ async function onSubmit() {
   }
 }
 
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter')
-    onSubmit()
-}
 const onAuthInvalid = useAuthFormInvalid()
 </script>
 
@@ -157,7 +164,6 @@ const onAuthInvalid = useAuthFormInvalid()
       :rules="rules"
       validate-on="blur"
       @invalid="onAuthInvalid"
-      @keydown="handleKeydown"
       @submit="onSubmit"
     >
       <XhFormFieldGroup name="username" class="!mb-6">
@@ -251,12 +257,18 @@ const onAuthInvalid = useAuthFormInvalid()
           <XhCheckbox v-model:checked="agreePolicy" />
           <span class="xh-checkbox-row__label auth-body">
             {{ t('page.auth.agree_text') }}
-            <a class="link-primary" href="#">{{ t('page.auth.privacy_policy') }}</a>
+            <!-- 打开弹窗而不是跳页：原先的 href="#" 在哈希路由下会把人带回首页 -->
+            <button type="button" class="link-primary legal-link" @click="openLegal('privacy-policy')">
+              {{ t('page.auth.privacy_policy') }}
+            </button>
             {{ t('page.auth.and') }}
-            <a class="link-primary" href="#">{{ t('page.auth.terms_of_service') }}</a>
+            <button type="button" class="link-primary legal-link" @click="openLegal('terms-of-service')">
+              {{ t('page.auth.terms_of_service') }}
+            </button>
           </span>
         </span>
       </div>
+      <LegalDocumentDialog v-model:open="legalOpen" :kind="legalKind" />
 
       <XhFormSubmitTrigger class="auth-submit" :disabled="loading">
         {{ t('page.auth.register_btn') }}
@@ -282,5 +294,20 @@ const onAuthInvalid = useAuthFormInvalid()
 
 .link-primary:hover {
   text-decoration: underline;
+}
+
+/* 文书入口是按钮（打开弹窗），外观仍是行内链接 */
+.legal-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}
+
+.legal-link:focus-visible {
+  border-radius: var(--xh-radius-sm);
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-width);
 }
 </style>

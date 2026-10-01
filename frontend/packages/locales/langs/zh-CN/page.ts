@@ -88,6 +88,7 @@ export default {
     agree_text: '我已阅读并同意',
     privacy_policy: '隐私政策',
     terms_of_service: '服务条款',
+    legal_load_failed: '加载失败，请稍后重试',
     and: '和',
     register_btn: '立即注册',
     register_success: '注册成功',

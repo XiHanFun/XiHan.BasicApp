@@ -89,6 +89,7 @@ export default {
     agree_text: 'Ich stimme den folgenden Bedingungen zu:',
     privacy_policy: 'Datenschutzrichtlinie',
     terms_of_service: 'Nutzungsbedingungen',
+    legal_load_failed: 'Laden fehlgeschlagen. Bitte versuchen Sie es später erneut.',
     and: 'und',
     register_btn: 'Registrieren',
     register_success: 'Registrierung erfolgreich',
