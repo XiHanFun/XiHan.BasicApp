@@ -23,18 +23,20 @@
 {{~ if col.ControlKind == "switch" ~}}
 {{~ has_switch = true ~}}
 {{~ else if col.ControlKind == "select" ~}}
+{{~ # 关联表的候选随目标表增长，用可输入筛选的 XCombobox；其余下拉选项有限，仍用 XSelect ~}}
+{{~ if col.Relation ~}}
+{{~ has_relation_select = true ~}}
+{{~ else ~}}
 {{~ has_select = true ~}}
 {{~ if col.DictSelectorType != "ConstSelector" ~}}
 {{~ has_dynamic_select = true ~}}
+{{~ end ~}}
 {{~ end ~}}
 {{~ if col.EnumTypeShortName ~}}
 {{~ has_enum_select = true ~}}
 {{~ end ~}}
 {{~ if col.DictSelectorType == "DictSelector" ~}}
 {{~ has_dict_select = true ~}}
-{{~ end ~}}
-{{~ if col.Relation ~}}
-{{~ has_relation_select = true ~}}
 {{~ end ~}}
 {{~ else if col.ControlKind == "treeselect" ~}}
 {{~ has_relation_tree = true ~}}
@@ -159,7 +161,7 @@ import { {{ detail.ClassNameCamel }}Api } from '@/api/modules/{{ api_path }}'
 {{~ if has_modal && has_upload ~}}
 import XFileRefUpload from '@/components/FileRefUpload.vue'
 {{~ end ~}}
-import { SchemaPage{{ if HasDetailTables }}, XDataTable{{ end }}{{ if has_modal && has_date_picker }}, XDatePicker{{ end }}{{ if has_modal }}, XEditModal{{ end }}{{ if has_modal && has_text_input }}, XInput{{ end }}{{ if has_modal && has_number }}, XNumberInput{{ end }}{{ if has_modal && has_select }}, XSelect{{ end }}{{ if has_modal && has_relation_tree }}, XTreeSelect{{ end }} } from '~/components'
+import { SchemaPage{{ if has_modal && has_relation_select }}, XCombobox{{ end }}{{ if HasDetailTables }}, XDataTable{{ end }}{{ if has_modal && has_date_picker }}, XDatePicker{{ end }}{{ if has_modal }}, XEditModal{{ end }}{{ if has_modal && has_text_input }}, XInput{{ end }}{{ if has_modal && has_number }}, XNumberInput{{ end }}{{ if has_modal && has_select }}, XSelect{{ end }}{{ if has_modal && has_relation_tree }}, XTreeSelect{{ end }} } from '~/components'
 {{~ composable_imports = [] ~}}
 {{~ if has_print_image ~}}
 {{~ composable_imports = composable_imports | array.add "resolveAvatarUrl" ~}}
@@ -633,6 +635,8 @@ async function handleSubmit() {
               <XhSwitch :checked="form.{{ col.TsProperty }} ?? false" @update:checked="(next: boolean) => form.{{ col.TsProperty }} = next" />
 {{~ else if col.ControlKind == "select" && col.DictSelectorType == "ConstSelector" ~}}
               <XSelect v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="{{ col.TsProperty }}ConstOptions" placeholder="请选择{{ col.Label | html_attr }}" />
+{{~ else if col.ControlKind == "select" && col.Relation ~}}
+              <XCombobox v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="{{ col.TsProperty }}Options" placeholder="搜索并选择{{ col.Label | html_attr }}" />
 {{~ else if col.ControlKind == "select" ~}}
               <XSelect v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="({{ col.TsProperty }}Options as SelectOption[])" placeholder="请选择{{ col.Label | html_attr }}" />
 {{~ else if col.ControlKind == "date" ~}}
