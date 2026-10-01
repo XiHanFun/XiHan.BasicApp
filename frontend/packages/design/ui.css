@@ -302,6 +302,15 @@
   white-space: pre-line;
 }
 
+/* 卡片正文兜底限高：组件库不限描述长度，长文会把卡片撑到整屏高。超出的在卡片里滚动，
+   多行结果照样读得全。主动推送的通知本就只给一句摘要（utils/notification-text），这条只防漏网 */
+[data-scope='notification'][data-part='item-description'][data-preset='card'],
+[data-scope='notification'][data-part='item'][data-preset='card'] [data-part='item-description'] {
+  max-block-size: 40vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 /* 手写表格的共享皮肤：结构由页面自己写 thead/tbody，这里只给行线与紧排；
    单元格文字与组件库 Table 的 md 档同一支令牌 */
 .xh-plain-table {

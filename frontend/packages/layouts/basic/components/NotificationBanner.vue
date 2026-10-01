@@ -3,7 +3,7 @@ import type { AppUserInboxDisplayItem } from '~/types'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { Icon } from '~/iconify'
-import { NotificationContentFormat } from '~/types/enums'
+import { notificationSummary } from '~/utils'
 import { resolveBannerTone, useBannerNotices } from '../composables/use-banner-notices'
 
 defineOptions({ name: 'NotificationBanner' })
@@ -29,13 +29,9 @@ function resolveIcon(item: AppUserInboxDisplayItem): string {
   return icon.includes(':') ? icon : `lucide:${icon}`
 }
 
-/** 内容首行（横幅只展示一句话摘要；Markdown/HTML 去噪不强求，详情走跳转） */
+/** 横幅只展示一句话摘要（去掉 Markdown / HTML 记号），详情走跳转 */
 function contentFirstLine(item: AppUserInboxDisplayItem): string {
-  const raw = item.content ?? ''
-  if (item.contentFormat === NotificationContentFormat.Html) {
-    return raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().split('\n')[0] ?? ''
-  }
-  return raw.replace(/\r/g, '').split('\n').find(line => line.trim().length > 0)?.trim() ?? ''
+  return notificationSummary(item.content, item.contentFormat, 80)
 }
 
 /** 详情跳转：外链新窗口、内链路由 */
