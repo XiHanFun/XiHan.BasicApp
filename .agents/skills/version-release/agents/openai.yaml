@@ -1,6 +1,6 @@
 interface:
   display_name: "XiHan.BasicApp 版本发布"
-  short_description: "同步三处版本、验证全栈并准备 BasicApp 发布"
+  short_description: "同步三处版本、验证全栈，打标签并创建 GitHub Release"
   default_prompt: "使用 $xihan-basicapp-version-release 准备并验证一次应用版本发布。"
 
 policy:
