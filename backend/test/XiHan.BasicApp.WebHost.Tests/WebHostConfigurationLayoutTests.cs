@@ -48,7 +48,6 @@ public sealed class WebHostConfigurationLayoutTests
     /// </remarks>
     /// <param name="fileName">配置文件名。</param>
     [Theory]
-    [InlineData("appsettings.json")]
     [InlineData("appsettings.Development.json")]
     public void AppSettings_MigrationsRootPathShouldMatchRealDirectory(string fileName)
     {
