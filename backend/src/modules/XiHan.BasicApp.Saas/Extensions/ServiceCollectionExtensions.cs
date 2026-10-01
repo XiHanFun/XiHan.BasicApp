@@ -371,6 +371,9 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasOperationSeeder>();
         services.AddDataSeeder<SaasPermissionCatalogSeeder>();
         services.AddDataSeeder<SaasMenuSeeder>();
+        // 业务模块（含代码生成产物）的权限目录与菜单登记：在两个阶段最后统一写入
+        services.AddDataSeeder<ContributedPermissionCatalogSeeder>();
+        services.AddDataSeeder<ContributedMenuSeeder>();
         services.AddDataSeeder<SaasEditionSeeder>();
         services.AddDataSeeder<SaasSettingSeeder>();
         services.AddDataSeeder<SaasStorageSeeder>();

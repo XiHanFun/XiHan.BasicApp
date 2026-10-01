@@ -97,7 +97,7 @@
 1. 权限码得先在 `SaasPermissionCodes` 里定义，并追加进 `All`；
 2. 权限**定义**要加进 `SaasPermissionDefinitions.Groups`（这才是落库的那份），权限目录阶段天然排在菜单阶段之前；
 3. `PageRegistry` 里父目录要排在子项之前（种子按顺序解析 `ParentId`）；
-4. 新增独立模块时，照 `SeedOrders` 的阶段与模块号段取 `Order`：权限目录继承 `PermissionCatalogSeederBase`，菜单继承 `PageRegistryMenuSeederBase`，资源型权限用的操作来自 SaaS 统一播的操作字典。
+4. 新增独立的平台模块时，照 `SeedOrders` 的阶段与模块号段取 `Order`：权限目录继承 `PermissionCatalogSeederBase`，菜单继承 `PageRegistryMenuSeederBase`，资源型权限用的操作来自 SaaS 统一播的操作字典；业务模块不写种子，实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 交给 SaaS 的汇总种子（代码生成产出的就是这两个登记类）。
 
 改完重建库或重跑种子。详见 [二次开发 · 接线点检查清单](./backend/development#接线点检查清单)。
 

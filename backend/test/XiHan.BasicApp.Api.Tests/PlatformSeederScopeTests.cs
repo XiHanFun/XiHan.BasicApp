@@ -50,6 +50,15 @@ public sealed class PlatformSeederScopeTests
     };
 
     /// <summary>
+    /// 业务模块登记的汇总种子：属 SaaS 程序集，但在各阶段的业务号段（排在全部平台模块之后）
+    /// </summary>
+    private static readonly Dictionary<Type, int> BusinessBandSeeders = new()
+    {
+        [typeof(BasicApp.Saas.Infrastructure.Seeders.ContributedPermissionCatalogSeeder)] = SeedOrders.BusinessBand,
+        [typeof(BasicApp.Saas.Infrastructure.Seeders.ContributedMenuSeeder)] = SeedOrders.BusinessBand,
+    };
+
+    /// <summary>
     /// 全部模块的种子都继承平台种子基类（在平台上下文内播种）。
     /// </summary>
     [Fact]
@@ -84,13 +93,14 @@ public sealed class PlatformSeederScopeTests
 
     /// <summary>
     /// 基础种子落在所属模块的号段里（阶段内的偏移 = 模块偏移 ~ 模块偏移 + 9），一眼能看出是哪个模块在哪个阶段；演示种子另成一段。
+    /// 业务模块登记的汇总种子在业务号段（+90），排在全部平台模块之后。
     /// </summary>
     [Fact]
     public void ModuleSeeders_ShouldStayInTheirModuleBand()
     {
         var violations = SeederTypes()
             .Where(type => OrderOf(type) < SeedOrders.Demo)
-            .Where(type => OrderOf(type) % 100 / 10 * 10 != ModuleOffsets[type.Assembly])
+            .Where(type => OrderOf(type) % 100 / 10 * 10 != BusinessBandSeeders.GetValueOrDefault(type, ModuleOffsets[type.Assembly]))
             .Select(type => $"{type.Name}(Order={OrderOf(type)})")
             .ToList();
 

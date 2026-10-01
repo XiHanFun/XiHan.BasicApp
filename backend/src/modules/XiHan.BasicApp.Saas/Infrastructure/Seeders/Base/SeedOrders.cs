@@ -9,6 +9,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Seeders;
 /// <remarks>
 /// 框架把所有模块的种子按 Order 统一排序执行。同一阶段内按模块错开：
 /// SaaS +0、代码生成 +10、AI +20、工作流 +30、聊天 +40、打印 +50；模块内再有多个种子时在自己的 10 个号里排。
+/// 业务模块（含代码生成产物）不各自占号，登记由 SaaS 的汇总种子在各阶段最后（+<see cref="BusinessBand"/>）统一写入。
 /// </remarks>
 public static class SeedOrders
 {
@@ -46,4 +47,13 @@ public static class SeedOrders
     /// 演示数据：开关开启时才写（依赖以上全部）
     /// </summary>
     public const int Demo = 900;
+
+    /// <summary>
+    /// 业务模块登记在各阶段内的偏移：排在全部平台模块之后，菜单才能挂到平台模块的目录下
+    /// </summary>
+    /// <remarks>
+    /// 业务模块（含代码生成产物）登记权限目录与菜单页，由 <see cref="ContributedPermissionCatalogSeeder"/> 与
+    /// <see cref="ContributedMenuSeeder"/> 在权限目录、菜单两个阶段的这一位置统一写入，不各自占号、不需要登记种子。
+    /// </remarks>
+    public const int BusinessBand = 90;
 }

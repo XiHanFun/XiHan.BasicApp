@@ -192,6 +192,53 @@ public sealed class SaasSeedingIntegrationTests : IDisposable
     }
 
     /// <summary>
+    /// 业务模块的登记由汇总种子在权限目录、菜单两个阶段最后写入：权限带上登记的模块编码，
+    /// 页面挂到平台模块的目录下，按钮挂到页面下；再跑一遍一行都不多。
+    /// </summary>
+    [Fact]
+    public async Task Contributions_ShouldBeSeededAfterPlatformCatalogAndMenus()
+    {
+        var parentCode = PageRegistry.All.First(page => page.MenuType == MenuType.Directory).Code;
+        var catalogs = new IPermissionCatalogContribution[] { new SampleCatalog() };
+        var pages = new IMenuPageContribution[] { new SamplePages(parentCode) };
+
+        await SeedAsync(demo: false, catalogs, pages);
+        var first = await CountAllAsync();
+        await SeedAsync(demo: false, catalogs, pages);
+
+        var permission = await _db.Queryable<SysPermission>().SingleAsync(row => row.PermissionCode == "sample_note:read");
+        Assert.Equal("sample", permission.ModuleCode);
+        Assert.Equal(PermissionType.ResourceBased, permission.PermissionType);
+        var parent = await _db.Queryable<SysMenu>().SingleAsync(row => row.MenuCode == parentCode);
+        var page = await _db.Queryable<SysMenu>().SingleAsync(row => row.MenuCode == "sample.sample-note");
+        Assert.Equal(parent.BasicId, page.ParentId);
+        Assert.Equal(permission.BasicId, page.PermissionId);
+        var button = await _db.Queryable<SysMenu>().SingleAsync(row => row.MenuCode == "sample.sample-note.create");
+        Assert.Equal(page.BasicId, button.ParentId);
+        Assert.Equal(MenuType.Button, button.MenuType);
+        Assert.Equal(first, await CountAllAsync());
+    }
+
+    /// <summary>
+    /// 两处登记了同一个权限码或菜单码直接报错：谁覆盖谁取决于执行顺序，不能静默。
+    /// </summary>
+    /// <param name="duplicatePermission">true：权限码重复；false：菜单码重复</param>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Contributions_WithDuplicatedCodesShouldFail(bool duplicatePermission)
+    {
+        var parentCode = PageRegistry.All.First(page => page.MenuType == MenuType.Directory).Code;
+        IPermissionCatalogContribution[] catalogs = duplicatePermission ? [new SampleCatalog(), new SampleCatalog("[Sample]另一份")] : [new SampleCatalog()];
+        IMenuPageContribution[] pages = duplicatePermission ? [new SamplePages(parentCode)] : [new SamplePages(parentCode), new SamplePages(parentCode, "[Sample]另一份")];
+
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => SeedAsync(demo: false, catalogs, pages));
+
+        Assert.Contains("被多处登记", error.Message, StringComparison.Ordinal);
+        Assert.Contains("另一份", error.Message, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 种子每次启动都跑：再跑一遍一行都不多。
     /// </summary>
     [Fact]
@@ -271,7 +318,7 @@ public sealed class SaasSeedingIntegrationTests : IDisposable
         _keepAlive.Dispose();
     }
 
-    private async Task SeedAsync(bool demo)
+    private async Task SeedAsync(bool demo, IPermissionCatalogContribution[]? catalogs = null, IMenuPageContribution[]? pages = null)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?> { [DemoDataSeederBase.EnableDemoDataKey] = demo ? "true" : "false" })
@@ -296,6 +343,8 @@ public sealed class SaasSeedingIntegrationTests : IDisposable
             new SaasOperationSeeder(resolver.Object, NullLogger<SaasOperationSeeder>.Instance, services),
             new SaasPermissionCatalogSeeder(resolver.Object, NullLogger<SaasPermissionCatalogSeeder>.Instance, services),
             new SaasMenuSeeder(resolver.Object, NullLogger<SaasMenuSeeder>.Instance, services),
+            new ContributedPermissionCatalogSeeder(resolver.Object, NullLogger<ContributedPermissionCatalogSeeder>.Instance, services, catalogs ?? []),
+            new ContributedMenuSeeder(resolver.Object, NullLogger<ContributedMenuSeeder>.Instance, services, pages ?? []),
             new SaasEditionSeeder(resolver.Object, NullLogger<SaasEditionSeeder>.Instance, services),
             new SaasSettingSeeder(resolver.Object, NullLogger<SaasSettingSeeder>.Instance, services),
             new SaasStorageSeeder(resolver.Object, NullLogger<SaasStorageSeeder>.Instance, services),
@@ -312,6 +361,45 @@ public sealed class SaasSeedingIntegrationTests : IDisposable
             await seeder.SeedAsync();
             Assert.Null(_tenant.Id);
         }
+    }
+
+    /// <summary>
+    /// 示例业务模块的权限目录登记（与代码生成产出的形态相同）
+    /// </summary>
+    private sealed class SampleCatalog(string name = "[Sample]示例便签权限目录") : IPermissionCatalogContribution
+    {
+        private static readonly ResourceSeed Resource = new("sample_note", "示例便签", "/api/sample/sample-note", "示例便签接口", 0);
+
+        public string Name => name;
+
+        public string ModuleCode => "sample";
+
+        public IReadOnlyList<ResourceSeed> Resources { get; } = [Resource];
+
+        public IReadOnlyList<PermissionSeed> Permissions { get; } =
+        [
+            PermissionSeed.Of(Resource, OperationSeeds.Read, PermissionSide.Both, 9000),
+            PermissionSeed.Of(Resource, OperationSeeds.Create, PermissionSide.Both, 9001),
+        ];
+    }
+
+    /// <summary>
+    /// 示例业务模块的菜单登记：页面挂到平台目录下
+    /// </summary>
+    private sealed class SamplePages(string parentCode, string name = "[Sample]示例便签菜单") : IMenuPageContribution
+    {
+        public string Name => name;
+
+        public IReadOnlyList<PageDescriptor> Pages { get; } =
+        [
+            new("sample.sample-note", "示例便签", I18nKey: null, MenuType.Menu, "/sample/sample-note", "SampleSampleNote", "sample/sample-note/index",
+                parentCode, "sample_note:read", "lucide:table", 999),
+        ];
+
+        public IReadOnlyList<ButtonDescriptor> Buttons { get; } =
+        [
+            new("sample.sample-note.create", "新增", "sample.sample-note", "sample_note:create", 1),
+        ];
     }
 
     private async Task<Dictionary<string, int>> CountAllAsync()

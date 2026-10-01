@@ -227,9 +227,9 @@ services.Replace(ServiceDescriptor.Scoped<ISessionStateGate, SaasSessionStateGat
 | 平台数据 | 600 | 参数、默认存储、消息模板、OAuth 应用、定时任务、代码生成内置模板 |
 | 演示 | 900 | 演示租户与账号、演示通知、演示字典 |
 
-同一阶段内按模块错开号段：SaaS +0、代码生成 +10、AI +20、工作流 +30、聊天 +40、打印 +50，模块内多个种子在自己的 10 个号里排。新模块取一个未用的偏移（如 +60），每个阶段都用这一个偏移。
+同一阶段内按模块错开号段：SaaS +0、代码生成 +10、AI +20、工作流 +30、聊天 +40、打印 +50，模块内多个种子在自己的 10 个号里排。新的平台模块取一个未用的偏移（如 +60），每个阶段都用这一个偏移。业务模块（含代码生成产物）不占号：实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段的 +90 统一写入。
 
-SaaS 的 `Infrastructure/Seeders` 按文件夹分组（只做分组，命名空间仍是 `XiHan.BasicApp.Saas.Infrastructure.Seeders`）：`Base/` 放各模块共用的基类与公共件（`PermissionCatalogSeederBase`、`PageRegistryMenuSeederBase`、`PlatformDataSeederBase`、`SettingSeederBase`、`TaskSeederBase`、操作字典 `PermissionCatalog`、`SeedOrders`、`SeedValues`），`Catalog/` 放操作字典、权限目录与菜单，`Platform/` 放超管、套餐、参数、存储、消息模板、OAuth 应用与定时任务，`Demo/` 放演示租户、通知、字典及其基类与场景数据。
+SaaS 的 `Infrastructure/Seeders` 按文件夹分组（只做分组，命名空间仍是 `XiHan.BasicApp.Saas.Infrastructure.Seeders`）：`Base/` 放各模块共用的基类与公共件（`PermissionCatalogWriterBase`、`PermissionCatalogSeederBase`、`PageRegistryMenuSeederBase`、业务模块登记接口 `SeedContributions`、`PlatformDataSeederBase`、`SettingSeederBase`、`TaskSeederBase`、操作字典 `PermissionCatalog`、`SeedOrders`、`SeedValues`），`Catalog/` 放操作字典、权限目录与菜单（含业务模块登记的两个汇总种子），`Platform/` 放超管、套餐、参数、存储、消息模板、OAuth 应用与定时任务，`Demo/` 放演示租户、通知、字典及其基类与场景数据。
 
 ### 写入口径
 
