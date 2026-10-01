@@ -28,8 +28,8 @@ public sealed class WebHostModuleDependencyTests
     /// <remarks>
     /// 依赖集合刻意走框架真实 API <see cref="XiHanModuleHelper.FindDependedModuleTypes"/> 解析，
     /// 而不是裸读特性，保证测试口径与运行期模块加载器完全一致。
-    /// 这里只查「核心模块一个都不能少」，不锁总数：src/business 下的示例业务模块可整体删除，
-    /// 增删它不该把这条回归锚点弄红。
+    /// 这里只查「核心模块一个都不能少」，不锁总数：src/business 下的业务模块按需增删，
+    /// 增删它们不该把这条回归锚点弄红。
     /// </remarks>
     [Fact]
     public void DependsOn_ShouldCoverAllCoreBusinessModules()
