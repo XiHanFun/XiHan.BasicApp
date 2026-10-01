@@ -62,6 +62,7 @@ export default {
       assistant_thinking: 'Generating…',
       assistant_dismiss: 'Dismiss',
       voice_unplayed: 'Unplayed',
+      view_image: 'View image',
       recalled: 'Message recalled',
       recall: 'Recall',
       recall_failed: 'Failed to recall message',

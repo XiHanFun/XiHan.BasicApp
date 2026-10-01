@@ -63,6 +63,7 @@ export default {
       assistant_thinking: '생성 중…',
       assistant_dismiss: '확인했어요',
       voice_unplayed: '미재생',
+      view_image: '이미지 보기',
       recalled: '전송이 취소된 메시지',
       recall: '전송 취소',
       recall_failed: '전송 취소 실패',

@@ -61,7 +61,9 @@ watch(
     @update:open="(open: boolean) => !open && emit('close')"
     @select="(details: { value: string }) => emit('select', details.value)"
   >
-    <XhContextMenuTrigger>
+    <!-- tabindex=-1 让占位触发区退出 Tab 序列（作者属性压过部件的 0），否则是一个看不见、没名字的停靠点；
+         键盘入口在真实标签上：聚焦标签按菜单键或 Shift+F10 触发原生 contextmenu，另有工具栏的当前标签菜单钮 -->
+    <XhContextMenuTrigger tabindex="-1">
       <!-- 触发插槽的占位：菜单钉在 openAt 交进去的坐标上，不靠它定位 -->
       <span class="tabbar-context-anchor" aria-hidden="true" />
     </XhContextMenuTrigger>

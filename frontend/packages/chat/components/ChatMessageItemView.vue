@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '../store'
-import { XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, XhImageViewerFlipHorizontalTrigger, XhImageViewerFlipVerticalTrigger, XhImageViewerImage, XhImageViewerNextTrigger, XhImageViewerPrevTrigger, XhImageViewerRoot, XhImageViewerRotateLeftTrigger, XhImageViewerRotateRightTrigger, XhImageViewerToolbar, XhImageViewerViewport, XhImageViewerZoomInTrigger, XhImageViewerZoomOutTrigger } from '@xihan-ui/vue'
+import { XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, XhImageViewerFlipHorizontalTrigger, XhImageViewerFlipVerticalTrigger, XhImageViewerImage, XhImageViewerNextTrigger, XhImageViewerPrevTrigger, XhImageViewerResetTrigger, XhImageViewerRoot, XhImageViewerRotateLeftTrigger, XhImageViewerRotateRightTrigger, XhImageViewerToolbar, XhImageViewerViewport, XhImageViewerZoomInTrigger, XhImageViewerZoomOutTrigger } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -275,7 +275,9 @@ async function handleDownload(fileId: string) {
 
         <!-- 图片（相册：点击预览可左右切换） -->
         <template v-if="isImage">
-          <XhImageViewerRoot v-model:index="viewerIndex" :collection="viewerItems">
+          <!-- 相册各图是普通按钮，经插槽的 setOpen 打开同一个浮层：一个浮层只能有一个 XhImageViewerTrigger，
+               每张各挂一个会撞 id；受控下标先指到点的那张再打开 -->
+          <XhImageViewerRoot v-slot="{ setOpen }" v-model:index="viewerIndex" :collection="viewerItems">
             <div :class="imageGridClass">
               <ChatMessageImage
                 v-for="(att, index) in attachments"
@@ -283,11 +285,12 @@ async function handleDownload(fileId: string) {
                 :url="imageUrls[index] ?? ''"
                 :alt="att.fileName"
                 :thumb="attachments.length > 1"
-                @select="selectImage(imageUrls[index] ?? '')"
+                @select="selectImage(imageUrls[index] ?? ''); setOpen(true)"
               />
             </div>
             <!-- 计数、翻页、工具条、关闭各自钉在浮层的一条边上，都是 content 的直接子件；
-                 工具条只放变换钮（留空即用组件库的图标）。单图时不出计数与翻页 -->
+                 工具条只放变换钮（留空即用组件库的图标；归零钮库里兜底是「1:1」文字，补一枚图标，
+                 可及名仍取组件库文案）。单图时不出计数与翻页 -->
             <XhImageViewerContent>
               <XhImageViewerViewport>
                 <XhImageViewerImage />
@@ -304,6 +307,9 @@ async function handleDownload(fileId: string) {
                 <XhImageViewerRotateRightTrigger />
                 <XhImageViewerFlipHorizontalTrigger />
                 <XhImageViewerFlipVerticalTrigger />
+                <XhImageViewerResetTrigger>
+                  <Icon icon="lucide:undo-2" />
+                </XhImageViewerResetTrigger>
               </XhImageViewerToolbar>
               <XhImageViewerCloseTrigger />
             </XhImageViewerContent>

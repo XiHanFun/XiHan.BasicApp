@@ -155,6 +155,7 @@ export default {
       flow_variables: 'Startvariablen',
       variable_name: 'Name',
       variable_required: 'Erforderlich',
+      variable_add: 'Variable hinzufügen',
       flow_tip: 'Klicken Sie auf einen Knoten/eine Kante, um dessen/deren Eigenschaften zu bearbeiten; ziehen Sie Elemente aus der Palette oder klicken Sie darauf, um Knoten hinzuzufügen; beim Veröffentlichen wird eine vollständige Strukturvalidierung durchgeführt.',
       json_placeholder: 'Workflow-Definitions-JSON',
       json_prop_placeholder: 'JSON-Objekt, z. B. {\'{\'}"key": "value"{\'}\'}',

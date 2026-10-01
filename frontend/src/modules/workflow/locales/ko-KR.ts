@@ -155,6 +155,7 @@ export default {
       flow_variables: '시작 변수 선언',
       variable_name: '변수 이름',
       variable_required: '필수',
+      variable_add: '변수 추가',
       flow_tip: '노드나 연결선을 클릭해 속성을 편집하고, 왼쪽 패널에서 끌어다 놓거나 클릭해 노드를 추가하세요. 게시할 때 서버에서 전체 구조를 검증해요.',
       json_placeholder: '워크플로 정의 JSON',
       json_prop_placeholder: 'JSON 객체, 예: {\'{\'}"key": "value"{\'}\'}',
