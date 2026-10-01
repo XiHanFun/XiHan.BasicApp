@@ -267,7 +267,7 @@ services.AddDataSeeder<AiMenuSeeder>();              // SeedOrders.Menus + 20：
 
 模块不写角色授权：超管在平台天然拥有全部权限，租户所有者按套餐拿权限，其它角色由运营授予。新的平台模块取一个未用的偏移（如 +60），每个阶段都用它。
 
-业务模块（如 `XiHan.BasicApp.Sample`、代码生成「生成到项目」的产物）不占号、不写种子：实现 `IPermissionCatalogContribution`（资源与权限）与 `IMenuPageContribution`（页面与按钮），标 `[ExposeServices(...)]` 并实现 `ITransientDependency` 按约定注册，由 SaaS 的 `ContributedPermissionCatalogSeeder`、`ContributedMenuSeeder` 在权限目录、菜单两个阶段的 +90（`SeedOrders.BusinessBand`）统一写入。排在全部平台模块之后，页面可以挂到平台模块的目录下；不同登记里出现同一个资源码、权限码或菜单码直接报错。
+业务模块（如代码生成「生成到项目」写进 `backend/src/business` 的产物）不占号、不写种子：实现 `IPermissionCatalogContribution`（资源与权限）与 `IMenuPageContribution`（页面与按钮），标 `[ExposeServices(...)]` 并实现 `ITransientDependency` 按约定注册，由 SaaS 的 `ContributedPermissionCatalogSeeder`、`ContributedMenuSeeder` 在权限目录、菜单两个阶段的 +90（`SeedOrders.BusinessBand`）统一写入。排在全部平台模块之后，页面可以挂到平台模块的目录下；不同登记里出现同一个资源码、权限码或菜单码直接报错。
 
 `XiHan.BasicApp.Workflow` 是最干净的一个独立模块样板：`ConfigureServices` 只有三行（`AddWorkflowStores` 用 `Replace` 把框架工作流的内存存储换成 SqlSugar 持久化、`AddWorkflowDataSeeders` 登记权限目录与菜单两个种子、`AddWorkflowEventHandlers` 登记三个本地事件处理器），仓储与应用服务全部交给约定注册。要照着做一个新模块，读它比读 AI 模块更省力。
 
