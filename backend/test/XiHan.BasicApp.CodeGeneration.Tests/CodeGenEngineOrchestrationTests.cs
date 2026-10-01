@@ -39,6 +39,7 @@ public sealed class CodeGenEngineOrchestrationTests
     private readonly Mock<IGeneratedArtifactPackager> _packager = new();
     private readonly Mock<IGeneratedArtifactWriter> _artifactWriter = new();
     private readonly Mock<IPermissionRepository> _permissionRepository = new();
+    private readonly Mock<IMenuRepository> _menuRepository = new();
     private readonly RecordingRenderer _renderer = new();
 
     /// <summary>
@@ -80,6 +81,7 @@ public sealed class CodeGenEngineOrchestrationTests
             _packager.Object,
             _artifactWriter.Object,
             _permissionRepository.Object,
+            _menuRepository.Object,
             NullLogger<CodeGenerationEngine>.Instance);
     }
 
@@ -1047,6 +1049,87 @@ public sealed class CodeGenEngineOrchestrationTests
     }
 
     /// <summary>
+    /// 挂上一个菜单（父菜单候选）。
+    /// </summary>
+    private void GivenMenu(long id, string code, MenuType menuType = MenuType.Directory, long tenantId = 0, string name = "开发中心")
+    {
+        var menu = CodeGenerationTestHelper.WithId(new SysMenu { MenuCode = code, MenuName = name, MenuType = menuType, TenantId = tenantId }, id);
+        _menuRepository.Setup(repository => repository.GetByIdAsync(id, It.IsAny<CancellationToken>())).ReturnsAsync(menu);
+    }
+
+    /// <summary>
+    /// 表配置选了父菜单：生成时解析成它的菜单码（主键各库不同，菜单登记按菜单码挂靠）。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_ParentMenuShouldResolveToItsMenuCode()
+    {
+        GivenMenu(801, "develop");
+        var table = Table();
+        table.ParentMenuId = 801;
+        GivenTable(table);
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal("develop", _renderer.LastContext!.ParentMenuCode);
+        var menuPages = result.Artifacts.Single(artifact => artifact.FileName == "SysProductMenuPages.cs").Content;
+        Assert.Contains("ParentCode: \"develop\",", menuPages, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 没选父菜单即顶级菜单。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_WithoutParentMenuShouldBeTopLevel()
+    {
+        GivenTable(Table());
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Null(_renderer.LastContext!.ParentMenuCode);
+        Assert.Contains("ParentCode: null,", result.Artifacts.Single(artifact => artifact.FileName == "SysProductMenuPages.cs").Content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 父菜单不存在、是租户菜单、不是目录或没有菜单码时生成失败，不猜挂到哪。
+    /// </summary>
+    /// <param name="scenario">missing / tenant / page / nocode</param>
+    /// <param name="expected">错误信息片段</param>
+    [Theory]
+    [InlineData("missing", "不存在或不是平台菜单")]
+    [InlineData("tenant", "不存在或不是平台菜单")]
+    [InlineData("page", "不是目录")]
+    [InlineData("nocode", "没有菜单码")]
+    public async Task PreviewAsync_UnusableParentMenuShouldFail(string scenario, string expected)
+    {
+        switch (scenario)
+        {
+            case "tenant":
+                GivenMenu(801, "develop", tenantId: 7);
+                break;
+            case "page":
+                GivenMenu(801, "develop.page", MenuType.Menu);
+                break;
+            case "nocode":
+                GivenMenu(801, "");
+                break;
+        }
+
+        var table = Table();
+        table.ParentMenuId = 801;
+        GivenTable(table);
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.False(result.Success);
+        Assert.Contains(expected, result.Message!, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 让实体目录认得某张表对应的实体类型。
     /// </summary>
     /// <param name="tableName">表名</param>
@@ -1240,13 +1323,12 @@ public sealed class CodeGenEngineOrchestrationTests
     }
 
     /// <summary>
-    /// 上下文的扩展选项必须带上结构字段，供模板与二阶产物读取。
+    /// 上下文的扩展选项必须带上结构字段，供模板与二阶产物读取（父菜单另行解析成菜单码，见父菜单用例）。
     /// </summary>
     [Fact]
     public async Task PreviewAsync_ContextOptionsShouldCarryStructuralConfiguration()
     {
         var table = Table(primaryKeyColumn: "Basic_Id", masterTableId: 2, masterForeignKey: "order_id");
-        table.ParentMenuId = 801;
         GivenTable(table);
         GivenTemplates(Template());
 
@@ -1256,7 +1338,7 @@ public sealed class CodeGenEngineOrchestrationTests
         Assert.Equal("Basic_Id", options["PrimaryKeyColumn"]);
         Assert.Equal("2", options["MasterTableId"]);
         Assert.Equal("order_id", options["MasterForeignKey"]);
-        Assert.Equal("801", options["ParentMenuId"]);
+        Assert.False(options.ContainsKey("ParentMenuId"));
     }
 
     /// <summary>

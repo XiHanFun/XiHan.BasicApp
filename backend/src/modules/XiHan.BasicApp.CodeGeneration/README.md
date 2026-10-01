@@ -28,7 +28,7 @@
 | 前端 | `*.types.generated.ts`、`*.generated.ts`、`*.schema.generated.ts` | `*.types.ts`、`*.ts`、`*.schema.ts`、`index.vue` |
 | 接线 | `XxxPermissionCodes`、`XxxPermissionDefinitions`、`XxxPermissionCatalog`、`XxxMenuPages` | 无（另附 PageRegistry 片段，供并进模块自己的页面登记表时用） |
 
-接线产物相对后端模块项目根：权限码常量与权限定义在 `Domain/Permissions/`，权限目录登记 `XxxPermissionCatalog` 与菜单登记 `XxxMenuPages` 在 `Infrastructure/Seeders/`，说明与 PageRegistry 片段在 `_GeneratedMenuPermission/`。两个登记类按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段最后（+90）统一写入：不需要 `AddDataSeeder`、没有种子顺序号，重启后端即生效。生成的菜单不带 I18nKey，直接显示业务名称；要多语言时改成 `menu.{页面码中 . 与 - 换成 _}` 并在前端各语言 `menu.ts` 补键。
+接线产物相对后端模块项目根：权限码常量与权限定义在 `Domain/Permissions/`，权限目录登记 `XxxPermissionCatalog` 与菜单登记 `XxxMenuPages` 在 `Infrastructure/Seeders/`，说明与 PageRegistry 片段在 `_GeneratedMenuPermission/`。两个登记类按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段最后（+90）统一写入：不需要 `AddDataSeeder`、没有种子顺序号，重启后端即生效。页面挂在表配置所选的「父菜单」（平台目录，按菜单码挂靠）下，未选即顶级菜单。生成的菜单不带 I18nKey，直接显示业务名称；要多语言时改成 `menu.{页面码中 . 与 - 换成 _}` 并在前端各语言 `menu.ts` 补键。
 
 ## 生成代码的约定
 - 报文可空性跟列本身走，与 C# DTO 一致；「必填」只管表单校验。非空列留空时文本发空串、数字发 0；下拉、日期、时间、long 标识没有说得通的缺省值，非空即按必填校验。

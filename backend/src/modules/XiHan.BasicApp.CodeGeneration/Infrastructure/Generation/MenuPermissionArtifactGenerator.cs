@@ -120,7 +120,7 @@ public static class MenuPermissionArtifactGenerator
         sb.AppendLine($"| `{context.ClassName}PermissionCodes.cs` | `{Shared.PermissionsFolder}/` | 总是覆盖（纯推导） |");
         sb.AppendLine($"| `{context.ClassName}PermissionDefinitions.cs` | `{Shared.PermissionsFolder}/` | 总是覆盖（纯推导） |");
         sb.AppendLine($"| `{context.ClassName}PermissionCatalog.cs` | `{Shared.SeedersFolder}/`（权限目录登记：资源与权限） | 总是覆盖（随包含操作推导） |");
-        sb.AppendLine($"| `{context.ClassName}MenuPages.cs` | `{Shared.SeedersFolder}/`（菜单登记：页面与按钮） | 总是覆盖（随包含操作推导） |");
+        sb.AppendLine($"| `{context.ClassName}MenuPages.cs` | `{Shared.SeedersFolder}/`（菜单登记：页面与按钮） | 总是覆盖（随包含操作、父菜单推导） |");
         sb.AppendLine($"| `{context.ClassName}PageRegistry.snippet.txt` | `{Shared.OutputFolder}/`（并进模块自己的 `PageRegistry` 时粘贴，与 MenuPages 二选一） | 参考片段 |");
         sb.AppendLine();
         sb.AppendLine("## 3. 落地步骤（4 步）");
@@ -131,7 +131,7 @@ public static class MenuPermissionArtifactGenerator
         sb.AppendLine("2. **不用登记种子**：两个登记类按约定注册，由平台的汇总种子在权限目录、菜单两个阶段最后统一写入，");
         sb.AppendLine("   不需要 `AddDataSeeder<>`，也没有自己的种子顺序号。旧版本生成的 `" + context.ClassName + "PermissionSeeder` / `" + context.ClassName + "MenuSeeder` 及其登记要删掉，否则会重复写入。");
         var buttons = Shared.EnabledButtons(context).ToList();
-        sb.AppendLine("3. **页面与按钮**：`" + context.ClassName + "MenuPages` 已登记页面行与已启用操作的按钮行。");
+        sb.AppendLine("3. **页面与按钮**：`" + context.ClassName + "MenuPages` 已登记页面行与已启用操作的按钮行，" + (context.ParentMenuCode is null ? "页面是顶级菜单（表配置里选「父菜单」可挂到平台目录下）。" : "页面挂在目录 `" + context.ParentMenuCode + "` 下。"));
         if (buttons.Count > 0)
         {
             sb.AppendLine("   生成页面的" + string.Join("/", buttons.Select(button => button.Title)) + "按钮用按钮码 `" + Shared.PageCode(context) + ".{"
@@ -155,7 +155,7 @@ public static class MenuPermissionArtifactGenerator
         sb.AppendLine("   排序、启停、显隐在菜单管理页调整，重启不会冲掉。超管在平台天然拥有全部权限；租户要用，由运营把权限授给套餐与角色。");
         sb.AppendLine();
         sb.AppendLine("> 菜单规格：MenuCode=`" + Shared.PageCode(context) + "`、Path=`/" + Shared.ModuleLower(context) + "/" + kebab + "`、Component=`" + Shared.Component(context) + "`、RouteName=`" + Shared.RouteName(context) + "`、I18nKey 留空（菜单名直接显示业务名称；要多语言时改成 `menu." + Shared.ModuleLower(context) + "_" + kebab.Replace('-', '_') + "` 并在前端各语言 menu.ts 补键）、绑定 `" + resource + ":read` 可见性。");
-        sb.AppendLine($"> ParentId：{(context.Options.TryGetValue("ParentMenuId", out var pid) && pid is not null ? $"表配置 ParentMenuId=`{pid}`" : "未设置 → 顶级菜单（设置表配置 ParentMenuId 可挂父菜单）")}。");
+        sb.AppendLine($"> 父菜单：{(context.ParentMenuCode is null ? "未选 → 顶级菜单（在表配置里选「父菜单」可挂到平台目录下）" : $"`{context.ParentMenuCode}`（表配置所选目录的菜单码）")}。");
         sb.AppendLine();
         sb.AppendLine("> **勿改 `.Generated.cs`**：生成产物分自动文件（`.Generated.cs`/`.generated.ts`，总是覆盖）与手动文件（首次创建、永不覆盖）。自定义代码写在手动文件里。");
 

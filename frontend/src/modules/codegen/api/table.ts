@@ -5,7 +5,7 @@ import type {
   CodeGenTableStatusUpdateDto,
   CodeGenTableUpdateDto,
 } from './table.types'
-import type { ApiId, PageResult } from '@/api/types'
+import type { ApiId, PageResult, RelationOptionDto } from '@/api/types'
 import { createDynamicApiClient } from '@/api/base'
 
 const command = createDynamicApiClient('CodeGenTable')
@@ -35,5 +35,9 @@ export const codeGenTableApi = {
   },
   detail(id: ApiId) {
     return query.get<CodeGenTableDetailDto | null>('Detail', { id })
+  },
+  /** 可选的父菜单：平台目录，带上级供组树 */
+  parentMenuOptions() {
+    return query.get<RelationOptionDto[]>('ParentMenuOptions')
   },
 }
