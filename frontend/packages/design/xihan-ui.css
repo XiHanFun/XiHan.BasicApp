@@ -141,6 +141,14 @@
     --xh-font-size-xl: 1.285714286rem;
     --xh-font-size-2xl: 1.571428571rem;
     --xh-font-size-3xl: 2rem;
+    /* 同一个 14px 根，按 rem 定的视口高度档也缩了一截，而它们框住的内容（日历格、时间项）走 px 控件高与上面补回的字号。
+       日历时间列的上限 14rem 只剩 196px，比 224px 的日历网格矮出一格、列底空一块；日期浮层上限 20rem 只剩 280px，
+       日历加时间列再加确认行放不下、确认钮被挤出。这两处的上限按 16/14 补回，公式与库一致 */
+    --xh-overlay-calendar-column-h: min(
+      calc(var(--xh-viewport-h-md) * 8 / 7),
+      calc(var(--xh-control-h-sm) * 7 + var(--xh-space-7))
+    );
+    --xh-date-picker-max-h: calc(var(--xh-viewport-h-lg) * 8 / 7);
 
     /* —— 形状：跟随偏好设置里的圆角滑块（useTheme 写 --radius / --radius-card）—— */
     --xh-shape-control: var(--radius);
