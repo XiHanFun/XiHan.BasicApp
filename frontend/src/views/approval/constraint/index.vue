@@ -894,7 +894,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_effective_time') }}</XhFieldLabel>
             <XhFieldControl>
-              <XDatePicker v-model:value="ruleForm.effectiveTime" clearable type="datetime" />
+              <XDatePicker v-model:value="ruleForm.effectiveTime" clearable show-time />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -903,7 +903,7 @@ function confirmDelete(row: ConstraintRuleListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('approval.constraint.label_expiration_time') }}</XhFieldLabel>
             <XhFieldControl>
-              <XDatePicker v-model:value="ruleForm.expirationTime" clearable type="datetime" />
+              <XDatePicker v-model:value="ruleForm.expirationTime" clearable show-time />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>

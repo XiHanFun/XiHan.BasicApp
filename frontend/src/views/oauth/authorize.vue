@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { OAuthAuthorizeRequestDto, OAuthConsentPreviewDto } from '@/api'
-import { XhAvatarFallback, XhAvatarImage, XhAvatarRoot, XhButton, XhSpinner } from '@xihan-ui/vue'
+import { XhAvatarFallback, XhAvatarImage, XhAvatarRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhSpinner } from '@xihan-ui/vue'
 
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -235,7 +235,9 @@ onMounted(async () => {
             :loading="submitting"
             @click="approve"
           >
-            {{ submitting ? t('page.oauth.approving') : t('page.oauth.approve') }}
+            <!-- 在途由钮中的加载环表达，标签保持不变，钮宽不跳 -->
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('page.oauth.approve') }}</XhButtonLabel>
           </XhButton>
         </div>
 

@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhComboboxRoot, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -23,7 +23,7 @@ import {
   userManagementApi,
 } from '@/api'
 import { FIELD_MASK_STRATEGY_OPTIONS, FIELD_SECURITY_TARGET_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { deleteConfirmText, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, SchemaPage, statusConfirmText, XCombobox, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { useUserStore } from '~/stores'
@@ -84,20 +84,9 @@ const entityFilterOptions = computed(() => entities.value.map(entity => ({ label
 const currentEntity = computed(() => entities.value.find(entity => entity.entityName === flsForm.value.entityName))
 const currentField = computed(() => currentEntity.value?.fields.find(field => field.fieldName === flsForm.value.fieldName))
 
-function filterOptions(options: ComboOption[], query: string) {
-  const keyword = query.trim().toLowerCase()
-  return keyword === ''
-    ? options
-    : options.filter(option => option.label.toLowerCase().includes(keyword) || option.description?.toLowerCase().includes(keyword))
-}
-
-const entityQuery = ref('')
+// 实体与字段目录一次取全，由组合框按文字与副文本在本地筛
 const entityOptions = computed<ComboOption[]>(() => entities.value.map(entity => ({ value: entity.entityName, label: entity.displayName, description: entity.entityName })))
-const filteredEntityOptions = computed(() => filterOptions(entityOptions.value, entityQuery.value))
-
-const fieldQuery = ref('')
 const fieldOptions = computed<ComboOption[]>(() => (currentEntity.value?.fields ?? []).map(field => ({ value: field.fieldName, label: field.displayName, description: field.fieldName })))
-const filteredFieldOptions = computed(() => filterOptions(fieldOptions.value, fieldQuery.value))
 
 /** 非文本字段只能明文只读或隐藏 */
 const formMaskStrategyOptions = computed(() => {
@@ -108,11 +97,9 @@ const formMaskStrategyOptions = computed(() => {
   }))
 })
 
-// ── 授权目标：按类型远程检索 ─────────────────────────────────────
-const targetQuery = ref('')
+// ── 授权目标：按类型远程检索（防抖与输入框文字由组合框管） ─────────────
 const targetOptions = ref<ComboOption[]>([])
 const targetLoading = ref(false)
-let targetSearchTimer: ReturnType<typeof setTimeout> | undefined
 let targetRequestSeq = 0
 
 function flattenDepartments(
@@ -170,10 +157,9 @@ async function loadTargetOptions(keyword: string) {
   }
 }
 
-function onTargetQueryChange(query: string) {
-  targetQuery.value = query
-  clearTimeout(targetSearchTimer)
-  targetSearchTimer = setTimeout(() => void loadTargetOptions(query), 300)
+/** 候选值一律是字符串；清空时回到 0（未选） */
+function onTargetChange(value: unknown) {
+  flsForm.value.targetId = (typeof value === 'string' && value !== '' ? value : 0) as unknown as ApiId
 }
 
 const targetPlaceholder = computed(() => {
@@ -200,22 +186,22 @@ function onTargetTypeChange(value: unknown) {
   }
   flsForm.value.targetType = next
   flsForm.value.targetId = 0 as unknown as ApiId
-  targetQuery.value = ''
   targetOptions.value = []
   void loadTargetOptions('')
 }
 
-function onEntityChange(entityName: string) {
+function onEntityChange(value: unknown) {
+  const entityName = typeof value === 'string' ? value : ''
   if (entityName === flsForm.value.entityName) {
     return
   }
   flsForm.value.entityName = entityName
   flsForm.value.fieldName = ''
-  fieldQuery.value = ''
 }
 
 /** 选中非文本字段时，只保留仍然适用的读取方式 */
-function onFieldChange(fieldName: string) {
+function onFieldChange(value: unknown) {
+  const fieldName = typeof value === 'string' ? value : ''
   flsForm.value.fieldName = fieldName
   const field = currentEntity.value?.fields.find(item => item.fieldName === fieldName)
   if (field && !field.isText && flsForm.value.maskStrategy !== FieldMaskStrategy.None && flsForm.value.maskStrategy !== FieldMaskStrategy.Hidden) {
@@ -455,9 +441,6 @@ function onAction(payload: SchemaActionPayload) {
 
 function handleAdd() {
   flsForm.value = createDefaultForm()
-  entityQuery.value = ''
-  fieldQuery.value = ''
-  targetQuery.value = ''
   targetOptions.value = []
   modalVisible.value = true
   void loadTargetOptions('')
@@ -478,10 +461,7 @@ function handleEdit(row: FieldLevelSecurityListItemDto) {
     targetId: row.targetId,
     targetType: row.targetType,
   }
-  // 受控输入框显示的是查询串，回填为当前选中项的文字
-  entityQuery.value = row.entityDisplayName ?? row.entityName
-  fieldQuery.value = row.fieldDisplayName ?? row.fieldName
-  targetQuery.value = row.targetName || row.targetCode || ''
+  // 先放入当前目标一条：远程候选还没回来时输入框也念得出它的名字
   targetOptions.value = [{ value: String(row.targetId), label: row.targetName || row.targetCode || String(row.targetId), description: row.targetCode ?? undefined }]
   modalVisible.value = true
 }
@@ -606,17 +586,15 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_target') }}</XhFieldLabel>
             <XhFieldControl>
-              <XhComboboxRoot
+              <XCombobox
                 class="fls-combobox"
-                :collection="targetOptions"
-                :value="flsForm.targetId ? String(flsForm.targetId) : ''"
-                :input-value="targetQuery"
+                remote
+                :options="targetOptions"
+                :value="flsForm.targetId || null"
                 :loading="targetLoading"
                 :placeholder="targetPlaceholder"
-                size="sm"
-                open-on-click
-                @update:input-value="onTargetQueryChange"
-                @update:value="(v: string[]) => { flsForm.targetId = (v[0] ?? 0) as unknown as ApiId }"
+                @search="loadTargetOptions"
+                @update:value="onTargetChange"
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -626,16 +604,13 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_entity') }}</XhFieldLabel>
             <XhFieldControl>
-              <XhComboboxRoot
-                v-model:input-value="entityQuery"
+              <XCombobox
                 class="fls-combobox"
-                :collection="filteredEntityOptions"
-                :value="flsForm.entityName"
+                :options="entityOptions"
+                :value="flsForm.entityName || null"
                 :loading="entityLoading"
                 :placeholder="t('identity.field_security.ph_entity')"
-                size="sm"
-                open-on-click
-                @update:value="(v: string[]) => onEntityChange(v[0] ?? '')"
+                @update:value="onEntityChange"
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -645,16 +620,13 @@ async function handleToggleStatus(row: FieldLevelSecurityListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.field_security.label_field') }}</XhFieldLabel>
             <XhFieldControl>
-              <XhComboboxRoot
-                v-model:input-value="fieldQuery"
+              <XCombobox
                 class="fls-combobox"
-                :collection="filteredFieldOptions"
-                :value="flsForm.fieldName"
+                :options="fieldOptions"
+                :value="flsForm.fieldName || null"
                 :disabled="!currentEntity"
                 :placeholder="t('identity.field_security.ph_field')"
-                size="sm"
-                open-on-click
-                @update:value="(v: string[]) => onFieldChange(v[0] ?? '')"
+                @update:value="onFieldChange"
               />
             </XhFieldControl>
             <XhFieldErrorText />

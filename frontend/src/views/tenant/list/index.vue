@@ -32,7 +32,7 @@ import {
 } from '@/api'
 import XLogoUpload from '@/components/LogoUpload.vue'
 import { MEMBER_INVITE_STATUS_OPTIONS, MEMBER_TYPE_OPTIONS, TENANT_CONFIG_STATUS_OPTIONS, TENANT_DATABASE_TYPE_OPTIONS, TENANT_ISOLATION_MODE_OPTIONS, TENANT_STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { Icon, resolveStatusTagTone, SchemaPage, SchemaPagination, XDatePicker, XEditModal, XInput, XNumberInput, XSelect, XUserAvatar } from '~/components'
+import { Icon, resolveStatusTagTone, SchemaPage, SchemaPagination, XCombobox, XDatePicker, XEditModal, XInput, XNumberInput, XSelect, XUserAvatar } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions, usePermission } from '~/hooks'
 import { useAccessStore } from '~/stores'
@@ -1498,7 +1498,6 @@ async function handleSubmit() {
               <XNumberInput
                 v-model:value="tenantForm.userLimit"
                 :min="0"
-                clearable
                 :placeholder="userLimitPlaceholder"
               />
             </XhFieldControl>
@@ -1512,7 +1511,6 @@ async function handleSubmit() {
               <XNumberInput
                 v-model:value="tenantForm.storageLimit"
                 :min="0"
-                clearable
                 :placeholder="storageLimitPlaceholder"
               />
             </XhFieldControl>
@@ -1545,7 +1543,7 @@ async function handleSubmit() {
               <XDatePicker
                 v-model:value="tenantExpirationTs"
                 clearable
-                type="datetime"
+                show-time
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1598,9 +1596,11 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('tenant.list.support_member_user') }}</XhFieldLabel>
             <XhFieldControl>
-              <XSelect
+              <XCombobox
                 v-model:value="supportMemberForm.userId"
+                remote
                 clearable
+                :loading="memberUserLoading"
                 :options="memberUserOptions"
                 :placeholder="t('tenant.list.support_member_user_placeholder')"
                 @search="searchMemberUsers"
@@ -1616,7 +1616,7 @@ async function handleSubmit() {
               <XDatePicker
                 v-model:value="supportMemberEffectiveTs"
                 clearable
-                type="datetime"
+                show-time
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1629,7 +1629,7 @@ async function handleSubmit() {
               <XDatePicker
                 v-model:value="supportMemberExpirationTs"
                 clearable
-                type="datetime"
+                show-time
               />
             </XhFieldControl>
             <XhFieldErrorText />
@@ -1683,7 +1683,7 @@ async function handleSubmit() {
                 v-model:value="initAdminForm.adminEmail"
                 clearable
                 :placeholder="t('tenant.list.admin_email_placeholder')"
-                inputmode="email"
+                type="email"
                 autocomplete="off"
               />
             </XhFieldControl>

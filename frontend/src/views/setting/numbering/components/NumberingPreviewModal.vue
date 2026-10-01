@@ -8,7 +8,7 @@ import type {
   NumberingRuleListItemDto,
 } from '@/api'
 import type { XDataTableColumn } from '~/components'
-import { XhButton, XhCardContent, XhCardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCardContent, XhCardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot } from '@xihan-ui/vue'
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -288,7 +288,8 @@ async function executePreview(): Promise<void> {
               </XhFormRoot>
 
               <XhButton full-width variant="solid" tone="brand" :loading="loading" :disabled="!rule" @click="executePreview">
-                {{ t('setting.numbering.preview_execute') }}
+                <XhButtonIndicator />
+                <XhButtonLabel>{{ t('setting.numbering.preview_execute') }}</XhButtonLabel>
               </XhButton>
             </XhFlex>
           </XhCardContent>

@@ -56,7 +56,7 @@ function clearDone() {
       </XhButton>
     </template>
     <div class="flex h-full flex-col gap-2">
-      <XInput v-model:value="draft" size="sm" clearable :placeholder="t('workbench.widgets.todo_placeholder')" @keyup.enter="add" />
+      <XInput v-model:value="draft" size="sm" clearable :placeholder="t('workbench.widgets.todo_placeholder')" @enter="add" />
       <div v-if="!todos.length" class="flex flex-1 items-center justify-center text-sm text-muted-foreground">
         {{ t('workbench.widgets.todo_empty') }}
       </div>
@@ -66,9 +66,15 @@ function clearDone() {
           :key="item.id"
           class="group flex items-center gap-2 rounded px-1 py-1 transition-colors hover:bg-muted"
         >
-          <XhCheckbox v-model:checked="item.done" />
+          <!-- 文字要截断与划线，不放进复选框的标签插槽，读屏名直接给 -->
+          <XhCheckbox v-model:checked="item.done" :aria-label="item.text" />
           <span class="min-w-0 flex-1 truncate text-sm" :class="item.done ? 'text-muted-foreground line-through' : 'text-foreground'">{{ item.text }}</span>
-          <button type="button" class="shrink-0 opacity-0 transition-opacity group-hover:opacity-100" @click="remove(item.id)">
+          <button
+            type="button"
+            class="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+            :aria-label="t('common.actions.delete')"
+            @click="remove(item.id)"
+          >
             <Icon icon="lucide:x" width="14" class="text-muted-foreground hover:text-[hsl(var(--destructive))]" />
           </button>
         </div>

@@ -9,7 +9,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import { createHighlighter } from '@xihan-ui/code-highlight'
-import { XhButton, XhCodeViewCode, XhCodeViewPre, XhCodeViewRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFileUploadDropzone, XhFileUploadHiddenInput, XhFileUploadRoot, XhFlex, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix, XhCodeViewCode, XhCodeViewPre, XhCodeViewRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFileUploadDropzone, XhFileUploadHiddenInput, XhFileUploadRoot, XhFlex, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, watch } from 'vue'
 
 import { useI18n } from 'vue-i18n'
@@ -948,19 +948,22 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
     fixed: 'right',
     render: row => h('div', { style: 'display:flex;align-items:center;gap:2px;' }, [
       // 图标钮的说明文字走原生 title：气泡触发器本身是按钮，按钮里再套按钮不合法
-      h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', ariaLabel: t('file.library.storage_list.tooltip.detail'), title: t('file.library.storage_list.tooltip.detail'), onClick: () => viewStorageDetail(row.basicId) }, () => h(Icon, { icon: 'lucide:eye' })),
-      canUpdateFile.value && h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', tone: 'brand', disabled: row.isPrimary, ariaLabel: row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), title: row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), onClick: () => handleSwitchPrimary(row) }, () => h(Icon, { icon: 'lucide:star' })),
-      canMaintainStorage.value && h(XhButton, { iconOnly: true, size: 'sm', variant: 'ghost', tone: 'info', ariaLabel: t('file.library.storage_list.tooltip.verify'), title: t('file.library.storage_list.tooltip.verify'), onClick: () => handleVerifyStorage(row) }, () => h(Icon, { icon: 'lucide:shield-check' })),
-      canMaintainStorage.value && h(XPopconfirm, { onConfirm: () => handleToggleStorageStatus(row) }, {
+      h(XhButton, { 'iconOnly': true, 'size': 'sm', 'variant': 'ghost', 'aria-label': t('file.library.storage_list.tooltip.detail'), 'title': t('file.library.storage_list.tooltip.detail'), 'onClick': () => viewStorageDetail(row.basicId) }, () => h(Icon, { icon: 'lucide:eye' })),
+      canUpdateFile.value && h(XhButton, { 'iconOnly': true, 'size': 'sm', 'variant': 'ghost', 'tone': 'brand', 'disabled': row.isPrimary, 'aria-label': row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), 'title': row.isPrimary ? t('file.library.storage_list.tooltip.is_primary') : t('file.library.storage_list.tooltip.set_primary'), 'onClick': () => handleSwitchPrimary(row) }, () => h(Icon, { icon: 'lucide:star' })),
+      canMaintainStorage.value && h(XhButton, { 'iconOnly': true, 'size': 'sm', 'variant': 'ghost', 'tone': 'info', 'aria-label': t('file.library.storage_list.tooltip.verify'), 'title': t('file.library.storage_list.tooltip.verify'), 'onClick': () => handleVerifyStorage(row) }, () => h(Icon, { icon: 'lucide:shield-check' })),
+      // 确认文案走 description 属性：浮层没有标题时以它为名
+      canMaintainStorage.value && h(XPopconfirm, {
+        description: t('file.library.storage_list.confirm_toggle', { action: row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable') }),
+        onConfirm: () => handleToggleStorageStatus(row),
+      }, {
         trigger: () => h(XhButton, {
-          iconOnly: true,
-          size: 'sm',
-          variant: 'ghost',
-          tone: row.status === FileStorageStatus.Normal ? 'warning' : 'success',
-          ariaLabel: row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable'),
-          title: row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable'),
+          'iconOnly': true,
+          'size': 'sm',
+          'variant': 'ghost',
+          'tone': row.status === FileStorageStatus.Normal ? 'warning' : 'success',
+          'aria-label': row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable'),
+          'title': row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable'),
         }, () => h(Icon, { icon: row.status === FileStorageStatus.Normal ? 'lucide:ban' : 'lucide:circle-check' })),
-        default: () => t('file.library.storage_list.confirm_toggle', { action: row.status === FileStorageStatus.Normal ? t('file.library.storage_list.tooltip.disable') : t('file.library.storage_list.tooltip.enable') }),
       }),
     ]),
   },
@@ -1123,8 +1126,9 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
           </div>
 
           <XhButton full-width variant="solid" tone="brand" :loading="metadataLoading" @click="handleSaveMetadata">
-            <span><Icon icon="lucide:save" /></span>
-            {{ t('file.library.metadata.save') }}
+            <XhButtonIndicator />
+            <XhButtonPrefix><Icon icon="lucide:save" /></XhButtonPrefix>
+            <XhButtonLabel>{{ t('file.library.metadata.save') }}</XhButtonLabel>
           </XhButton>
         </XhFlex>
       </XhDrawerContent>
@@ -1441,8 +1445,9 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
           <div class="flex items-center justify-between">
             <span class="text-sm text-foreground/60">{{ t('file.library.storage_list.total', { count: storageRows.length }) }}</span>
             <XhButton variant="subtle" size="sm" :loading="storageListLoading" @click="loadStorageRows">
-              <span><Icon icon="lucide:refresh-cw" /></span>
-              {{ t('common.actions.refresh') }}
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:refresh-cw" /></XhButtonPrefix>
+              <XhButtonLabel>{{ t('common.actions.refresh') }}</XhButtonLabel>
             </XhButton>
           </div>
           <XDataTable

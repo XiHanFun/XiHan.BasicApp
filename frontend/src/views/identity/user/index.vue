@@ -17,7 +17,7 @@ import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
 import type { GrantTransferGroup, ListFieldSchema, PageSchema, PermissionGrantItem, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -61,6 +61,10 @@ const isPlatformContext = computed(() => userStore.userInfo?.isPlatform ?? false
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
+// 安全页签的控件与文字分列排布，控件的读屏名经 aria-labelledby 指回旁边那行文字
+const lockLabelId = useId()
+const multiLoginLabelId = useId()
+const maxDevicesLabelId = useId()
 
 const GENDER_TAG_TYPE: Record<UserGender, 'neutral' | 'info' | 'warning'> = {
   [UserGender.Unknown]: 'neutral',
@@ -1342,7 +1346,7 @@ async function confirmDelete() {
     >
       <XhAlertRoot v-if="identityReadonly" tone="info" class="mb-3">
         <XhAlertIndicator>
-          <Icon icon="tabler:building-community" :size="16" />
+          <Icon icon="tabler:building-community" width="16" height="16" />
         </XhAlertIndicator>
         <XhAlertContent>
           <XhAlertDescription>
@@ -1425,7 +1429,7 @@ async function confirmDelete() {
             <XhFieldRoot>
               <XhFieldLabel>{{ t('identity.user.label_birthday') }}</XhFieldLabel>
               <XhFieldControl>
-                <XDatePicker v-model:value="userForm.birthday" type="date" :disabled="identityReadonly" />
+                <XDatePicker v-model:value="userForm.birthday" :max="Date.now()" :disabled="identityReadonly" />
               </XhFieldControl>
               <XhFieldErrorText />
             </XhFieldRoot>
@@ -1474,14 +1478,14 @@ async function confirmDelete() {
           <div class="sec-panel">
             <div class="sec-block">
               <div class="sec-block-hd">
-                <Icon icon="tabler:shield-lock" :size="14" />
+                <Icon icon="tabler:shield-lock" width="14" height="14" />
                 <span>{{ t('identity.user.sec_account_security') }}</span>
               </div>
               <div class="form-row">
                 <div class="form-row-main">
-                  <Icon icon="tabler:lock" :size="15" class="form-row-ico warn" />
+                  <Icon icon="tabler:lock" width="15" height="15" class="form-row-ico warn" />
                   <div>
-                    <div class="lbl">
+                    <div :id="lockLabelId" class="lbl">
                       {{ t('identity.user.sec_account_lock') }}
                     </div>
                     <div class="sub">
@@ -1489,19 +1493,19 @@ async function confirmDelete() {
                     </div>
                   </div>
                 </div>
-                <XhSwitch v-model:checked="userForm.isLocked" :disabled="identityReadonly || !formAccess.lock" />
+                <XhSwitch v-model:checked="userForm.isLocked" :aria-labelledby="lockLabelId" :disabled="identityReadonly || !formAccess.lock" />
               </div>
             </div>
             <div class="sec-block">
               <div class="sec-block-hd">
-                <Icon icon="tabler:devices" :size="14" />
+                <Icon icon="tabler:devices" width="14" height="14" />
                 <span>{{ t('identity.user.sec_login_session') }}</span>
               </div>
               <div class="form-row">
                 <div class="form-row-main">
-                  <Icon icon="tabler:login" :size="15" class="form-row-ico ok" />
+                  <Icon icon="tabler:login" width="15" height="15" class="form-row-ico ok" />
                   <div>
-                    <div class="lbl">
+                    <div :id="multiLoginLabelId" class="lbl">
                       {{ t('identity.user.sec_allow_multi_login') }}
                     </div>
                     <div class="sub">
@@ -1509,13 +1513,13 @@ async function confirmDelete() {
                     </div>
                   </div>
                 </div>
-                <XhSwitch v-model:checked="userForm.multiLogin" :disabled="identityReadonly || !formAccess.loginPolicy" />
+                <XhSwitch v-model:checked="userForm.multiLogin" :aria-labelledby="multiLoginLabelId" :disabled="identityReadonly || !formAccess.loginPolicy" />
               </div>
               <div class="form-row">
                 <div class="form-row-main">
-                  <Icon icon="tabler:device-mobile" :size="15" class="form-row-ico" />
+                  <Icon icon="tabler:device-mobile" width="15" height="15" class="form-row-ico" />
                   <div>
-                    <div class="lbl">
+                    <div :id="maxDevicesLabelId" class="lbl">
                       {{ t('identity.user.sec_max_devices') }}
                     </div>
                     <div class="sub">
@@ -1527,6 +1531,7 @@ async function confirmDelete() {
                   v-model:value="userForm.maxDev"
                   :min="0"
                   :max="99"
+                  :aria-labelledby="maxDevicesLabelId"
                   class="max-dev-input"
                   size="sm"
                   :show-button="false"
@@ -1555,7 +1560,7 @@ async function confirmDelete() {
                 :disabled="!canTogglePick(r.basicId, selRoleIds, effectiveRoleIds, formAccess.role)"
                 @click="togglePick(selRoleIds, r.basicId)"
               >
-                <Icon icon="tabler:user-check" :size="13" />
+                <Icon icon="tabler:user-check" width="13" height="13" />
                 {{ r.roleName }}
               </button>
             </div>
@@ -1580,7 +1585,7 @@ async function confirmDelete() {
                 :disabled="!canTogglePick(d.value, selDeptIds, effectiveDeptIds, formAccess.department)"
                 @click="togglePick(selDeptIds, d.value)"
               >
-                <Icon icon="tabler:building" :size="13" />
+                <Icon icon="tabler:building" width="13" height="13" />
                 {{ d.label.trim() }}
               </button>
             </div>
@@ -1592,8 +1597,12 @@ async function confirmDelete() {
     <!-- 详情 -->
     <XhDialogRoot v-model:open="showDetModal" :close-on-interact-outside="false">
       <XhDialogContent style="--xh-dialog-max-w: 640px">
-        <XhDialogTitle v-if="detUser">
-          <div class="det-hd-user">
+        <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
+        <XhDialogTitle>
+          <template v-if="!detUser">
+            {{ t('common.loading') }}
+          </template>
+          <div v-else class="det-hd-user">
             <div class="av-lg" :style="{ background: detUser.avatar.bg, color: detUser.avatar.fg }">
               {{ detUser.initials }}
             </div>
@@ -1637,21 +1646,21 @@ async function confirmDelete() {
           </div>
           <div class="det-badges">
             <XhTagRoot v-for="badge in detUser.badges" :key="badge.label" variant="subtle" size="sm" :tone="badge.tone">
-              <Icon :icon="badge.icon" :size="12" />
+              <Icon :icon="badge.icon" width="12" height="12" />
               <XhTagLabel>{{ badge.label }}</XhTagLabel>
             </XhTagRoot>
           </div>
           <div class="det-divider" />
           <div class="det-sec">
             <div class="det-sec-hd">
-              <Icon icon="tabler:chart-bar" :size="14" />
+              <Icon icon="tabler:chart-bar" width="14" height="14" />
               <span>{{ t('identity.user.detail.stats_today') }}</span>
             </div>
             <div class="det-stat-grid">
               <div v-for="m in detUser.metrics" :key="m.label" class="det-stat-card" :class="[m.cls]">
                 <div class="det-stat-top">
                   <span class="det-stat-lbl">{{ m.label }}</span>
-                  <Icon :icon="m.icon" :size="13" />
+                  <Icon :icon="m.icon" width="13" height="13" />
                 </div>
                 <div class="det-stat-val">
                   {{ m.value }}
@@ -1660,11 +1669,11 @@ async function confirmDelete() {
             </div>
           </div>
           <div class="det-sec-hd">
-            <Icon icon="tabler:device-desktop" :size="14" />
+            <Icon icon="tabler:device-desktop" width="14" height="14" />
             <span>{{ t('identity.user.detail.login_session') }}</span>
           </div>
           <div v-if="detUser.online" class="s-row">
-            <Icon icon="tabler:device-desktop" :size="18" class="session-ico" />
+            <Icon icon="tabler:device-desktop" width="18" height="18" class="session-ico" />
             <div class="flex-1 min-w-0">
               <div class="session-title">
                 {{ detUser.sessionLabel }}
@@ -1698,7 +1707,7 @@ async function confirmDelete() {
         <XhDialogTitle>{{ t('identity.user.del_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger />
         <div class="del-body">
-          <Icon icon="tabler:alert-triangle" :size="26" class="del-icon" />
+          <Icon icon="tabler:alert-triangle" width="26" height="26" class="del-icon" />
           <div>
             <p class="del-title">
               {{ t('identity.user.del_confirm_prefix') }}
@@ -1735,7 +1744,7 @@ async function confirmDelete() {
           </div>
           <XhAlertRoot tone="info" class="mb-3">
             <XhAlertIndicator>
-              <Icon icon="tabler:info-circle" :size="16" />
+              <Icon icon="tabler:info-circle" width="16" height="16" />
             </XhAlertIndicator>
             <XhAlertContent>
               <XhAlertDescription>
@@ -1750,7 +1759,8 @@ async function confirmDelete() {
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton variant="subtle" tone="brand" class="ml-2" :loading="scopeSubmitting" :disabled="!scopeDirty || scopeLoading" @click="saveScopes">
-            {{ t('identity.data_scope.save') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('identity.data_scope.save') }}</XhButtonLabel>
           </XhButton>
         </div>
       </XhDrawerContent>
@@ -1782,7 +1792,8 @@ async function confirmDelete() {
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton variant="subtle" tone="brand" :loading="roleGrantLoading" :disabled="!roleDirty" style="margin-left: 8px" @click="saveRoleGrants">
-            {{ t('identity.user.grant_save') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('identity.user.grant_save') }}</XhButtonLabel>
           </XhButton>
         </div>
       </XhDrawerContent>
@@ -1851,7 +1862,8 @@ async function confirmDelete() {
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton variant="subtle" tone="brand" :loading="permGrantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
-            {{ t('identity.user.grant_save') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('identity.user.grant_save') }}</XhButtonLabel>
           </XhButton>
         </div>
       </XhDrawerContent>

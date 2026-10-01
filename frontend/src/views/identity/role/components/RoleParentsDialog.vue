@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { RoleParentOption } from '../role-parents'
 import type { RoleListItemDto } from '@/api'
-import { XhComboboxRoot, XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhSpinner } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldDescription, XhFieldLabel, XhFieldRoot, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { roleApi, roleHierarchyApi } from '@/api'
-import { XEditModal } from '~/components'
+import { XCombobox, XEditModal } from '~/components'
 import { toast } from '~/composables'
 import { buildRoleParentOptions, diffRoleParents, directParentIds } from '../role-parents'
 
@@ -35,22 +35,19 @@ const saving = ref(false)
 const options = ref<RoleParentOption[]>([])
 const currentParents = ref<string[]>([])
 const selected = ref<string[]>([])
-const query = ref('')
 
 const title = computed(() => t('identity.role.parents_title', { name: props.role?.roleName ?? '' }))
-const filteredOptions = computed(() => {
-  const keyword = query.value.trim().toLowerCase()
-  return keyword === ''
-    ? options.value
-    : options.value.filter(option => option.label.toLowerCase().includes(keyword) || option.description?.toLowerCase().includes(keyword))
-})
+
+/** 候选值都是字符串，多选收上来的是数组 */
+function onSelect(value: unknown) {
+  selected.value = Array.isArray(value) ? value.map(String) : []
+}
 
 async function load(role: RoleListItemDto) {
   loading.value = true
   options.value = []
   currentParents.value = []
   selected.value = []
-  query.value = ''
   try {
     const [candidates, ancestors, descendants] = await Promise.all([
       roleApi.enabledList({ limit: CANDIDATE_LIMIT }),
@@ -133,17 +130,14 @@ async function save() {
       <XhFieldRoot>
         <XhFieldLabel>{{ t('identity.role.label_parents') }}</XhFieldLabel>
         <XhFieldControl>
-          <XhComboboxRoot
-            v-model:input-value="query"
+          <XCombobox
             class="role-parents__picker"
-            :collection="filteredOptions"
+            :options="options"
             :value="selected"
             :loading="loading"
             :placeholder="t('identity.role.ph_parents')"
             multiple
-            size="sm"
-            open-on-click
-            @update:value="(value: string[]) => { selected = value }"
+            @update:value="onSelect"
           />
         </XhFieldControl>
         <XhFieldDescription>{{ t('identity.role.hint_parents') }}</XhFieldDescription>

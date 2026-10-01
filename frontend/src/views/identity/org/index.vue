@@ -530,10 +530,14 @@ onMounted(() => {
   >
     <XhDialogRoot v-model:open="detailVisible">
       <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
-        <XhDialogTitle v-if="detDept">
-          <div class="det-hd-entity">
+        <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
+        <XhDialogTitle>
+          <template v-if="!detDept">
+            {{ t('common.loading') }}
+          </template>
+          <div v-else class="det-hd-entity">
             <div class="det-hd-ico">
-              <Icon icon="tabler:building" :size="22" />
+              <Icon icon="tabler:building" width="22" height="22" />
             </div>
             <div class="min-w-0">
               <div class="det-hd-name">
@@ -850,7 +854,7 @@ onMounted(() => {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.org.label_join_time') }}</XhFieldLabel>
             <XhFieldControl>
-              <XDatePicker v-model:value="membershipForm.joinTime" type="date" clearable />
+              <XDatePicker v-model:value="membershipForm.joinTime" clearable />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { cacheApi } from '@/api'
@@ -391,15 +391,16 @@ onMounted(loadKeys)
               size="sm"
               :placeholder="t('setting.cache.key_pattern_placeholder')"
               clearable
-              @keydown.enter="handleSearch"
+              @enter="handleSearch"
             >
               <template #prefix>
                 <Icon width="14" height="14" icon="lucide:search" />
               </template>
             </XInput>
             <XTooltip :content="t('setting.cache.search_by_pattern')">
-              <XhButton variant="subtle" size="sm" tone="brand" :loading="loadingKeys" @click="handleSearch">
-                <span><Icon icon="lucide:search" /></span>
+              <XhButton icon-only variant="subtle" size="sm" tone="brand" :aria-label="t('setting.cache.search_by_pattern')" :loading="loadingKeys" @click="handleSearch">
+                <XhButtonIndicator />
+                <XhButtonPrefix><Icon icon="lucide:search" /></XhButtonPrefix>
               </XhButton>
             </XTooltip>
           </div>
@@ -426,6 +427,7 @@ onMounted(loadKeys)
                   v-model:expanded-keys="expandedKeys"
                   :selected-keys="selectedKeys"
                   :data="treeData"
+                  :aria-label="t('setting.cache.cache_keys')"
                   :multiple="canManage"
                   :cascade="canManage"
                   checked-strategy="child"
@@ -468,14 +470,14 @@ onMounted(loadKeys)
                   {{ sizeText }}
                 </XhTagLabel>
               </XhTagRoot>
-              <XSegmented v-if="!editing" v-model:value="format" :options="[{ value: 'text', label: 'Text' }, { value: 'json', label: 'Json' }]" size="sm" />
+              <XSegmented v-if="!editing" v-model:value="format" :options="[{ value: 'text', label: 'Text' }, { value: 'json', label: 'Json' }]" size="sm" :aria-label="t('setting.cache.cache_content')" />
               <XTooltip :content="t('common.actions.copy')">
-                <XhButton size="sm" variant="ghost" @click="handleCopy">
+                <XhButton icon-only size="sm" variant="ghost" :aria-label="t('common.actions.copy')" @click="handleCopy">
                   <span><Icon icon="lucide:copy" /></span>
                 </XhButton>
               </XTooltip>
               <XTooltip :content="t('common.actions.refresh')">
-                <XhButton size="sm" variant="ghost" @click="reloadValue">
+                <XhButton icon-only size="sm" variant="ghost" :aria-label="t('common.actions.refresh')" @click="reloadValue">
                   <span><Icon icon="lucide:refresh-cw" /></span>
                 </XhButton>
               </XTooltip>
@@ -484,7 +486,7 @@ onMounted(loadKeys)
                 {{ t('setting.cache.edit') }}
               </XhButton>
               <XTooltip :content="t('setting.cache.delete_this_key')">
-                <XhButton v-if="canManage" size="sm" variant="ghost" tone="danger" @click="handleDeleteCurrent">
+                <XhButton v-if="canManage" icon-only size="sm" variant="ghost" tone="danger" :aria-label="t('setting.cache.delete_this_key')" @click="handleDeleteCurrent">
                   <span><Icon icon="lucide:trash-2" /></span>
                 </XhButton>
               </XTooltip>
@@ -535,7 +537,8 @@ onMounted(loadKeys)
                         {{ t('common.actions.cancel') }}
                       </XhButton>
                       <XhButton variant="subtle" size="sm" tone="brand" :loading="saving" @click="handleSave">
-                        {{ t('common.actions.save') }}
+                        <XhButtonIndicator />
+                        <XhButtonLabel>{{ t('common.actions.save') }}</XhButtonLabel>
                       </XhButton>
                     </div>
                   </template>

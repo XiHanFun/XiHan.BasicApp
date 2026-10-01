@@ -2,7 +2,7 @@
 import type { Tone } from '@xihan-ui/core'
 import type { PageResult, ReviewDetailDto, ReviewListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSeparator, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFlex, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSeparator, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { approvalManagementApi, AuditResult, AuditStatus, createPageRequest, EnableStatus, querySortsFromSchema } from '@/api'
@@ -494,16 +494,19 @@ function onAction(payload: SchemaActionPayload) {
           </div>
           <XhFlex justify="start" gap="sm">
             <XhButton variant="subtle" tone="success" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Pass)">
-              <span><Icon icon="lucide:check" /></span>
-              {{ t('approval.review.btn_pass') }}
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:check" /></XhButtonPrefix>
+              <XhButtonLabel>{{ t('approval.review.btn_pass') }}</XhButtonLabel>
             </XhButton>
             <XhButton variant="subtle" tone="danger" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Reject)">
-              <span><Icon icon="lucide:x" /></span>
-              {{ t('approval.review.btn_reject') }}
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:x" /></XhButtonPrefix>
+              <XhButtonLabel>{{ t('approval.review.btn_reject') }}</XhButtonLabel>
             </XhButton>
             <XhButton variant="subtle" tone="warning" :disabled="!canAudit()" :loading="actionLoading" @click="openApproveDialog(AuditResult.Return)">
-              <span><Icon icon="lucide:corner-down-left" /></span>
-              {{ t('approval.review.btn_return') }}
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:corner-down-left" /></XhButtonPrefix>
+              <XhButtonLabel>{{ t('approval.review.btn_return') }}</XhButtonLabel>
             </XhButton>
             <XhPopconfirmRoot @confirm="handleWithdraw">
               <XhPopconfirmTrigger
@@ -515,7 +518,7 @@ function onAction(payload: SchemaActionPayload) {
                 {{ t('approval.review.btn_withdraw') }}
               </XhPopconfirmTrigger>
               <XhPopconfirmPositioner>
-                <XhPopconfirmContent>
+                <XhPopconfirmContent :aria-label="t('approval.review.btn_withdraw')">
                   <XhPopconfirmDescription>{{ t('approval.review.withdraw_confirm') }}</XhPopconfirmDescription>
                   <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
                   <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
@@ -545,8 +548,9 @@ function onAction(payload: SchemaActionPayload) {
             :loading="actionLoading"
             @click="handleAudit"
           >
-            <span><Icon :icon="auditResult === AuditResult.Pass ? 'lucide:check' : auditResult === AuditResult.Reject ? 'lucide:x' : 'lucide:corner-down-left'" /></span>
-            {{ auditResult === AuditResult.Pass ? t('approval.review.confirm_pass') : auditResult === AuditResult.Reject ? t('approval.review.confirm_reject') : t('approval.review.confirm_return') }}
+            <XhButtonIndicator />
+            <XhButtonPrefix><Icon :icon="auditResult === AuditResult.Pass ? 'lucide:check' : auditResult === AuditResult.Reject ? 'lucide:x' : 'lucide:corner-down-left'" /></XhButtonPrefix>
+            <XhButtonLabel>{{ auditResult === AuditResult.Pass ? t('approval.review.confirm_pass') : auditResult === AuditResult.Reject ? t('approval.review.confirm_reject') : t('approval.review.confirm_return') }}</XhButtonLabel>
           </XhButton>
         </XhFlex>
       </XhDrawerContent>

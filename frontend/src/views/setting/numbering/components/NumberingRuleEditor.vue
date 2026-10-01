@@ -9,7 +9,7 @@ import type {
   NumberingRuleUpdateDto,
   NumberingScope,
 } from '@/api'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -19,7 +19,8 @@ import {
   NumberingResetCycle,
 } from '@/api'
 import { XEditModal, XInput, XNumberInput, XSelect, XTooltip } from '~/components'
-import { toast, useTimezoneOptions } from '~/composables'
+import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
+import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { Icon } from '~/iconify'
 
@@ -59,7 +60,6 @@ const editFormId = useId()
 const submitLoading = ref(false)
 const previewLoading = ref(false)
 const previewNumber = ref('')
-const { loading: timeZoneLoading, ensureLoaded, withCurrent } = useTimezoneOptions()
 const form = ref<RuleFormModel>(createDefaultForm())
 
 const title = computed(() => props.detail ? t('setting.numbering.edit_title') : t('setting.numbering.add_title'))
@@ -75,10 +75,7 @@ const resetCycleOptions = useEnumOptions('NumberingResetCycle', [
   { label: 'Daily', value: NumberingResetCycle.Daily },
 ])
 
-// 时区目录与顶栏 / 个人中心共用同一来源，此处不再单独维护
-const timeZoneOptions = computed(() =>
-  withCurrent(form.value.timeZoneId).map(zone => ({ label: zone.label, value: zone.value })))
-
+// 时区目录与顶栏 / 个人中心共用同一来源（TimezoneSwitcher 自取），此处不再单独维护
 watch(
   () => [props.show, props.detail] as const,
   ([show]) => {
@@ -86,7 +83,6 @@ watch(
       return
     form.value = props.detail ? toForm(props.detail) : createDefaultForm()
     previewNumber.value = ''
-    void ensureLoaded()
   },
   { immediate: true },
 )
@@ -293,13 +289,8 @@ async function submit(): Promise<void> {
       <XhFieldRoot>
         <XhFieldLabel>{{ t('setting.numbering.time_zone') }}</XhFieldLabel>
         <XhFieldControl>
-          <XSelect
-            v-model:value="form.timeZoneId"
-            :disabled="formatFrozen"
-            :loading="timeZoneLoading"
-            :options="timeZoneOptions"
-            filterable
-          />
+          <!-- 四百多条目录须可检索；只收非空串，表单值始终是字符串 -->
+          <TimezoneSwitcher v-model:value="form.timeZoneId" size="sm" :disabled="formatFrozen" />
         </XhFieldControl>
         <XhFieldErrorText />
       </XhFieldRoot>
@@ -309,7 +300,6 @@ async function submit(): Promise<void> {
             <span>{{ t('setting.numbering.allow_tenant_use') }}</span>
             <XTooltip :content="t('setting.numbering.allow_tenant_use_tip')">
               <button
-
                 type="button"
                 class="inline-flex size-4 cursor-help items-center justify-center rounded-full border border-current text-[11px] leading-none text-gray-400"
                 :aria-label="t('setting.numbering.allow_tenant_use_tip')"
@@ -350,18 +340,18 @@ async function submit(): Promise<void> {
       </XhFieldRoot>
       <XhFieldRoot class="xh-span-2">
         <XhFieldLabel>{{ t('setting.numbering.preview') }}</XhFieldLabel>
-        <XhFieldControl>
-          <XhFlex align="center">
-            <XhButton variant="subtle" size="sm" :loading="previewLoading" @click="preview">
-              {{ t('setting.numbering.preview_action') }}
-            </XhButton>
-            <XhTagRoot v-if="previewNumber" variant="subtle" tone="info" size="lg">
-              <XhTagLabel>
-                {{ previewNumber }}
-              </XhTagLabel>
-            </XhTagRoot>
-          </XhFlex>
-        </XhFieldControl>
+        <!-- 按钮加结果标签不是一枚控件，不套 XhFieldControl -->
+        <XhFlex align="center">
+          <XhButton variant="subtle" size="sm" :loading="previewLoading" @click="preview">
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('setting.numbering.preview_action') }}</XhButtonLabel>
+          </XhButton>
+          <XhTagRoot v-if="previewNumber" variant="subtle" tone="info" size="lg">
+            <XhTagLabel>
+              {{ previewNumber }}
+            </XhTagLabel>
+          </XhTagRoot>
+        </XhFlex>
         <XhFieldErrorText />
       </XhFieldRoot>
     </XhFormRoot>

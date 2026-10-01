@@ -27,7 +27,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { CONDITION_OPERATOR_OPTIONS, CONFIG_DATA_TYPE_OPTIONS, DELEGATION_STATUS_OPTIONS, HTTP_METHOD_OPTIONS, OPERATION_CATEGORY_OPTIONS, OPERATION_TYPE_OPTIONS, PERMISSION_CHANGE_TYPE_OPTIONS, PERMISSION_REQUEST_STATUS_OPTIONS, PERMISSION_SIDE_OPTIONS, PERMISSION_TYPE_OPTIONS, RESOURCE_ACCESS_LEVEL_OPTIONS, RESOURCE_TYPE_OPTIONS, STATUS_OPTIONS, VALIDITY_STATUS_OPTIONS } from '@/constants'
-import { deleteConfirmText, Icon, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { deleteConfirmText, Icon, SchemaPage, statusConfirmText, XCombobox, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { useUserStore } from '~/stores'
@@ -969,10 +969,11 @@ async function handleToggleStatus(row: PermissionListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_resource') }}</XhFieldLabel>
             <XhFieldControl>
-              <XSelect
+              <XCombobox
                 v-model:value="permissionForm.resourceId"
                 :disabled="Boolean(permissionForm.basicId)"
                 :options="resourceOptions"
+                :loading="resourceLoading"
                 clearable
                 :placeholder="t('identity.permission.ph_resource')"
                 @focus="loadResourceOptions()"
@@ -986,10 +987,11 @@ async function handleToggleStatus(row: PermissionListItemDto) {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('identity.permission.label_form_operation') }}</XhFieldLabel>
             <XhFieldControl>
-              <XSelect
+              <XCombobox
                 v-model:value="permissionForm.operationId"
                 :disabled="Boolean(permissionForm.basicId)"
                 :options="operationOptions"
+                :loading="operationLoading"
                 clearable
                 :placeholder="t('identity.permission.ph_operation')"
                 @focus="loadOperationOptions()"

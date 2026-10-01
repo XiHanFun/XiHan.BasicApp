@@ -372,7 +372,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
                 {{ spanLabel(item.span) }}
               </XhPopoverTrigger>
               <XhPopoverPositioner>
-                <XhPopoverContent>
+                <XhPopoverContent :aria-label="t('workbench.widgets.span')">
                   <div class="grid grid-cols-6 gap-1">
                     <button
                       v-for="s in SIZE_OPTIONS"
@@ -388,7 +388,12 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
                 </XhPopoverContent>
               </XhPopoverPositioner>
             </XhPopoverRoot>
-            <button type="button" class="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-[hsl(var(--destructive))]" @click="removeWidget(item.key)">
+            <button
+              type="button"
+              class="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-[hsl(var(--destructive))]"
+              :aria-label="t('workbench.widgets.remove')"
+              @click="removeWidget(item.key)"
+            >
               <Icon icon="lucide:x" width="15" />
             </button>
           </div>
@@ -423,7 +428,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
                 {{ t(widget.descKey) }}
               </div>
             </div>
-            <XhButton size="sm" tone="brand" variant="subtle" @click="addWidget(widget.key)">
+            <XhButton icon-only size="sm" tone="brand" variant="subtle" :aria-label="t('workbench.widgets.add')" @click="addWidget(widget.key)">
               <Icon icon="lucide:plus" />
             </XhButton>
           </div>

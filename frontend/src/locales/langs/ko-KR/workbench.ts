@@ -6,6 +6,7 @@ export default {
     drag_toolbar: '드래그해서 툴바 위치를 위아래로 조정하세요',
     reset: '기본값으로 되돌리기',
     add: '위젯 추가',
+    remove: '위젯 제거',
     add_panel_title: '추가할 수 있는 위젯',
     span: '너비',
     drag: '드래그해서 순서 변경',

@@ -6,6 +6,7 @@ export default {
     drag_toolbar: 'ドラッグでツールバーの位置を上下に調整できます',
     reset: 'デフォルトに戻す',
     add: 'ウィジェットを追加',
+    remove: 'ウィジェットを削除',
     add_panel_title: '追加できるウィジェット',
     span: '幅',
     drag: 'ドラッグで並べ替え',
