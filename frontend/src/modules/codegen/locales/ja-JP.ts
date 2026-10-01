@@ -240,6 +240,7 @@ export default {
         col_csharp_type: 'C# 型',
         col_csharp_property: 'プロパティ名',
         col_required: '必須',
+        col_unique: '一意',
         col_list: '一覧',
         col_insert: '新規作成',
         col_edit: '編集',

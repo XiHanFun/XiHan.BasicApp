@@ -53,6 +53,9 @@ public sealed class ColumnSchema
     /// <summary>是否必填（表单）</summary>
     public bool IsRequired { get; set; }
 
+    /// <summary>是否唯一（租户内唯一索引 + 新增更新查重）</summary>
+    public bool IsUnique { get; set; }
+
     /// <summary>是否进入列表</summary>
     public bool IsList { get; set; } = true;
 

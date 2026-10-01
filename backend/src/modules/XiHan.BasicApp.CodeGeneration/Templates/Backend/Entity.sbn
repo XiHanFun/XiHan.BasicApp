@@ -22,6 +22,12 @@ namespace {{ Namespace }}.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(CreatedTime), OrderByType.Desc)]
 [SugarIndex("IX_{table}_CrId", nameof(CreatedId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
+{{~ # 唯一列：租户内唯一，带上 IsDeleted 保持删除后可重新创建 ~}}
+{{~ for col in Columns ~}}
+{{~ if col.IsUnique ~}}
+[SugarIndex("UX_{table}_TeId_{{ col.CSharpProperty }}_IsDe", nameof(TenantId), OrderByType.Asc, nameof({{ col.CSharpProperty }}), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]
+{{~ end ~}}
+{{~ end ~}}
 public partial class {{ ClassName }} : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
 {{~ for col in Columns ~}}

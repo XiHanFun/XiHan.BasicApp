@@ -240,6 +240,7 @@ export default {
         col_csharp_type: 'C#-Typ',
         col_csharp_property: 'Eigenschaft',
         col_required: 'Erforderlich',
+        col_unique: 'Eindeutig',
         col_list: 'Liste',
         col_insert: 'Einfügen',
         col_edit: 'Bearbeiten',

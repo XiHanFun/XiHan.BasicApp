@@ -37,6 +37,7 @@ public class CodeGenTableColumnListItemDto : BasicAppDto
 
     public bool IsNullable { get; set; }
     public bool IsRequired { get; set; }
+    public bool IsUnique { get; set; }
     public bool IsList { get; set; }
     public bool IsInsert { get; set; }
     public bool IsEdit { get; set; }
@@ -63,6 +64,7 @@ public sealed class CodeGenTableColumnUpdateDto : BasicAppUDto
     public string? CSharpProperty { get; set; }
     public string? TsType { get; set; }
     public bool IsRequired { get; set; }
+    public bool IsUnique { get; set; }
     public bool IsList { get; set; }
     public bool IsInsert { get; set; }
     public bool IsEdit { get; set; }

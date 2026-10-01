@@ -16,6 +16,7 @@ public sealed record CodeGenTableColumnUpdateCommand(
     string? CSharpProperty,
     string? TsType,
     bool IsRequired,
+    bool IsUnique,
     bool IsList,
     bool IsInsert,
     bool IsEdit,

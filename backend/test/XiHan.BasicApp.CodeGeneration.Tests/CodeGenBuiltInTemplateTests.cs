@@ -400,6 +400,27 @@ public sealed partial class CodeGenBuiltInTemplateTests
     }
 
     /// <summary>
+    /// 唯一列：实体出租户内唯一索引（带 IsDeleted），新增与更新前查重，更新时排除自身。
+    /// </summary>
+    [Fact]
+    public async Task Backend_UniqueColumnShouldGetIndexAndDuplicateCheck()
+    {
+        var context = AllActionsContext();
+
+        var entity = await RenderAsync("Backend/Entity.sbn", context);
+        var service = await RenderAsync("Backend/AppService.sbn", context);
+
+        Assert.Contains("[SugarIndex(\"UX_{table}_TeId_ProductCode_IsDe\", nameof(TenantId), OrderByType.Asc, nameof(ProductCode), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc, true)]", entity, StringComparison.Ordinal);
+        Assert.DoesNotContain("UX_{table}_TeId_Cover_IsDe", entity, StringComparison.Ordinal);
+        Assert.Contains("await EnsureProductCodeUniqueAsync(input.ProductCode, null, cancellationToken);", service, StringComparison.Ordinal);
+        Assert.Contains("await EnsureProductCodeUniqueAsync(input.ProductCode, entity.BasicId, cancellationToken);", service, StringComparison.Ordinal);
+        Assert.Contains("protected virtual async Task EnsureProductCodeUniqueAsync(string value, long? currentId, CancellationToken cancellationToken)", service, StringComparison.Ordinal);
+        Assert.Contains("if (string.IsNullOrWhiteSpace(value))", service, StringComparison.Ordinal);
+        Assert.Contains("entity => entity.ProductCode == value && entity.BasicId != id", service, StringComparison.Ordinal);
+        Assert.Contains("throw new InvalidOperationException(\"产品编码「\" + value + \"」已存在。\");", service, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 从程序集嵌入资源读取内置模板
     /// </summary>
     private static string LoadTemplate(string resourceFile)
@@ -508,6 +529,21 @@ public sealed partial class CodeGenBuiltInTemplateTests
             IsTree = true
         };
         var context = CodeGenerationTestHelper.CreateContext(columns: [Column("BasicId", "long", "string"), category, department]);
+        context.EnabledActions = CodeGenActions.All;
+        return context;
+    }
+
+    /// <summary>
+    /// 全部操作的单表：唯一的产品编码、图片列
+    /// </summary>
+    private static CodeGenerationContext AllActionsContext()
+    {
+        var code = Column("ProductCode", "string", "string", isRequired: true);
+        code.ColumnComment = "产品编码";
+        code.IsUnique = true;
+        var cover = Column("Cover", "string?", "string", HtmlType.ImageUpload, isNullable: true);
+        cover.ColumnComment = "封面";
+        var context = CodeGenerationTestHelper.CreateContext(columns: [Column("BasicId", "long", "string"), code, cover]);
         context.EnabledActions = CodeGenActions.All;
         return context;
     }

@@ -286,6 +286,8 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["IsIdentity"] = column.IsIdentity,
             ["IsNullable"] = column.IsNullable,
             ["IsRequired"] = column.IsRequired,
+            // 唯一：实体出租户内唯一索引，新增与更新时查重（二进制与布尔列由引擎拦下）
+            ["IsUnique"] = isBusinessColumn && column.IsUnique,
             // 基类托管列（主键/审计/软删/租户）：模板生成业务属性时应跳过
             ["IsBaseColumn"] = GeneratedColumnNames.IsBaseColumn(column.ColumnName),
             ["Length"] = column.Length,

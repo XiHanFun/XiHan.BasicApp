@@ -240,6 +240,7 @@ export default {
         col_csharp_type: 'C# प्रकार',
         col_csharp_property: 'प्रॉपर्टी नाम',
         col_required: 'अनिवार्य',
+        col_unique: 'अद्वितीय',
         col_list: 'सूची',
         col_insert: 'नया जोड़ें',
         col_edit: 'संपादित करें',

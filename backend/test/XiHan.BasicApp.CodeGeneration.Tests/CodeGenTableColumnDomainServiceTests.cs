@@ -53,6 +53,7 @@ public sealed class CodeGenTableColumnDomainServiceTests
     /// <param name="csharpProperty">C# 属性名</param>
     /// <param name="tsType">TypeScript 类型</param>
     /// <param name="isRequired">是否必填</param>
+    /// <param name="isUnique">是否唯一</param>
     /// <param name="isList">是否列表显示</param>
     /// <param name="isInsert">是否新增字段</param>
     /// <param name="isEdit">是否编辑字段</param>
@@ -76,6 +77,7 @@ public sealed class CodeGenTableColumnDomainServiceTests
         string? csharpProperty = null,
         string? tsType = null,
         bool isRequired = false,
+        bool isUnique = false,
         bool isList = true,
         bool isInsert = true,
         bool isEdit = true,
@@ -100,6 +102,7 @@ public sealed class CodeGenTableColumnDomainServiceTests
             csharpProperty,
             tsType,
             isRequired,
+            isUnique,
             isList,
             isInsert,
             isEdit,
@@ -663,6 +666,20 @@ public sealed class CodeGenTableColumnDomainServiceTests
         Assert.Contains(nameof(SysCodeGenTableColumn.HtmlType), recorded);
         Assert.Contains(nameof(SysCodeGenTableColumn.IsQuery), recorded);
         Assert.Contains(nameof(SysCodeGenTableColumn.Sort), recorded);
+    }
+
+    /// <summary>
+    /// 唯一标记写回列配置，并记为人工修改：同步表结构时不得被冲掉。
+    /// </summary>
+    [Fact]
+    public async Task UpdateColumnAsync_UniqueShouldBeSavedAndRecorded()
+    {
+        GivenColumns(ExistingColumn());
+
+        var result = await _service.UpdateColumnAsync(Command(isUnique: true));
+
+        Assert.True(result.Column.IsUnique);
+        Assert.Contains(nameof(SysCodeGenTableColumn.IsUnique), UserModifiedFieldSet.Parse(result.Column.UserModifiedFields));
     }
 
     /// <summary>
