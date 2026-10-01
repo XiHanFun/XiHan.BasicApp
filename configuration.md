@@ -295,13 +295,17 @@ backend/src/main/XiHan.BasicApp.WebHost/
 
 ## `CodeGeneration`
 
-| 键 | 默认 | 说明 |
-| --- | --- | --- |
-| `EnableCustomPathDisk` | `false` | 是否允许生成到自定义磁盘路径 |
-| `AllowedRootPaths[]` | `[]` | 允许写入的根路径白名单 |
+只在 `appsettings.Development.json` 里配置，`appsettings.json` 与生产配置都不放：不配置即不能生成到项目，只能生成并下载。
 
-::: warning 生产不要开 `EnableCustomPathDisk`
-开启后代码生成器可以往服务器磁盘写文件，`AllowedRootPaths` 是唯一的边界。生产环境保持关闭，用 Zip 下载。
+| 键 | 默认 | 开发环境配置 | 说明 |
+| --- | --- | --- | --- |
+| `EnableGenerateToProject` | `false` | `true` | 是否允许「生成到项目」 |
+| `BackendRootPath` | — | `../..` | 后端源码根（相对 WebHost 项目目录），在其下分组目录里找与命名空间同名的项目 |
+| `FrontendRootPath` | — | `../../../../frontend` | 前端工程根（相对 WebHost 项目目录），须含 `package.json` |
+| `TablePrefixes` | `Sys_,Saas_` | `Sys_,Saas_` | 由表名推导类名时去掉的前缀 |
+
+::: warning 生产不要开 `EnableGenerateToProject`
+开启后代码生成器会往服务器上的源码目录写文件。位置虽由配置推导、不接受任意路径，生产环境也没有源码可写，保持关闭，用生成并下载。
 :::
 
 ## 数据库里的配置

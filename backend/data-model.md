@@ -36,7 +36,7 @@
 
 | 表 | 实体 | 说明 |
 | --- | --- | --- |
-| `Sys_Role` / `Sys_Role_Hierarchy` | `SysRole` / `SysRoleHierarchy` | 角色与层级继承（闭包） |
+| `Sys_Role` / `Sys_Role_Hierarchy` | `SysRole` / `SysRoleHierarchy` | 角色与继承（只存直接继承边） |
 | `Sys_Permission` | `SysPermission` | 权限点 |
 | `Sys_Operation` / `Sys_Resource` | `SysOperation` / `SysResource` | 操作字典与资源，**权限由「资源 × 操作」派生** |
 | `Sys_Role_Permission` / `Sys_User_Permission` | — | 角色授权 / 用户直授 |
@@ -44,7 +44,7 @@
 | `Sys_Permission_Condition` | `SysPermissionCondition` | ABAC 属性条件 |
 | `Sys_Permission_Delegation` | `SysPermissionDelegation` | 权限委托 |
 | `Sys_Permission_Request` | `SysPermissionRequest` | 权限申请 |
-| `Sys_Field_Level_Security` | `SysFieldLevelSecurity` | 字段级安全（可读 / 可编辑 / 脱敏策略） |
+| `Sys_Field_Level_Security` | `SysFieldLevelSecurity` | 字段级安全（实体 × 字段 × 目标：读取方式 / 可编辑） |
 | `Sys_Constraint_Rule` / `Sys_Constraint_Rule_Item` | — | 约束规则引擎（SSD / DSD / 互斥 / 基数…） |
 | `Sys_Session_Role` | `SysSessionRole` | 会话角色映射 |
 

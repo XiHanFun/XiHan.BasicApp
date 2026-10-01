@@ -36,6 +36,7 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 - **导入**：模板下载、CSV 解析、预校验、批量创建对话框
 - **批量操作**：批量删除、批量启停、页面自定义批量动作
 - **个人视图/搜索方案**：保存当前筛选 + 排序为命名方案（经组件实例方法 `saveView` / `applyView` 暴露，无内置 UI 入口）
+- **行显示文本**：实例方法 `formatRow(row)` 按字段的解析结果把一行换成显示文本（选项列出名称、日期与布尔按显示格式，空值为空串），供打印等要「所见即所得」数据的场景使用；页面用 `ref<SchemaPageInstance | null>` 取实例
 - **偏好云端同步**：列设置与搜索设置按 `pageCode` 同步后端，多端一致
 
 ## 字段 Schema：`ListFieldSchema`
@@ -46,7 +47,7 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 | --- | --- |
 | `key` | 字段键，对应行数据的属性名 |
 | `title` | 列标题（**建议传 i18n key 的翻译结果**） |
-| `dataType` | `string` / `enum` / `datetime` / `money` / `tag` / `json` / `image` 等，决定默认渲染器与搜索控件 |
+| `dataType` | `string` / `enum` / `datetime` / `money` / `tag` / `json` / `image` / `file` 等，决定默认渲染器与搜索控件；`image` / `file` 的值是文件主键（兼容直链），单元格分别出缩略图与打开入口 |
 | `visible` | 是否作为表格列。**`false` = 仅搜索用，不出现在表格** |
 | `searchable` / `advancedSearch` | 进入常用搜索 / 高级搜索浮层 |
 | `searchRange` | 时间字段：渲染区间选择器 + 便捷预设，下发 `Between` |
@@ -54,8 +55,10 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 | `sortable` | 服务端排序（列头出现排序箭头） |
 | `exportable` / `importable` / `editable` | 参与导出 / 导入模板 / 表单编辑 |
 | **`permission`** | **字段级权限码**：无此权限时该列与该搜索项**整个不渲染** |
-| `dictionaryCode` | 枚举名或字典码，运行时异步拉取选项注入 `options` |
-| `options` | 静态选项（`dictionaryCode` 解析为空时兜底，**保证绝不出现空下拉**） |
+| `dictionaryCode` | 后端枚举类型名，运行时经枚举元数据拉取本地化选项注入 `options` |
+| `dictCode` | 系统字典编码（字典管理里的字典），运行时经字典选项接口拉取注入 `options`，选项值为字典项编码；与 `dictionaryCode` 二选一 |
+| `optionsLoader` | 异步选项加载器（如代码生成的外键选项接口），挂载时调用并注入 `options`；与页面表单下拉在途时共用一次请求 |
+| `options` | 静态选项（`dictionaryCode` / `dictCode` / `optionsLoader` 解析为空时兜底，**保证绝不出现空下拉**） |
 | `render` | 自定义单元格渲染（最高优先级，返回 `VNodeChild`） |
 | `treeColumn` | 树形模式下承载展开箭头的列（应有且仅有一个） |
 | `order` | 排序值，越小越靠前 |
@@ -65,7 +68,7 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 
 | 属性 | 作用 |
 | --- | --- |
-| `pageCode` | 页面唯一码，**偏好与视图按此维度存储**（如 `log.access`） |
+| `pageCode` | 页面唯一码，取该页面在后端页面登记表（各模块 `PageRegistry`）里的页面码，一页有多张表时用「页面码.子表」（如 `log.access`、`message.record.email`）；**偏好、视图与导入历史按此维度存储**，`src/views/view-page-code.test.ts` 校验对应关系 |
 | `pageName` | 页面名 |
 | `resourceCode` | 后端资源码，用于匹配字段脱敏（FLS）规则；**缺省则不拉取脱敏规则** |
 | `resource` | 数据资源适配器：`page` / `tree` / `remove` / `updateStatus` / `create` / `export` |
@@ -229,7 +232,7 @@ resource: {
 同步策略：**localStorage 仍是事实源**，后端加载成功则覆盖本地，保存失败静默忽略（尽力而为）。其它设备保存后经 SignalR `UserSettingChanged` 实时推送并应用到已打开的页面。
 
 ::: tip `pageCode` 要稳定
-偏好、视图、列设置全按 `pageCode` 存储。**改了 `pageCode` 等于用户的所有个性化配置丢失**，页面上线后不要再动它。
+偏好、视图、列设置与导入历史全按 `pageCode` 存储。**只改 `pageCode` 等于用户的所有个性化配置丢失**，页面上线后不要再动它；确需改名时，随升级脚本把 `sys_user_setting`（`scene = 1`）与 `sys_import_history` 里的旧码改成新码（参考 `UpdateScripts/5.4.0/5.4.0-page-codes.sql`）。
 :::
 
 ## 加一个列表页的清单

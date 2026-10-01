@@ -84,7 +84,7 @@ localStorage（事实源）
 Schema 页的列设置、搜索设置、个人视图按 `pageCode` 走同一套机制，见 [Schema 驱动页面](./schema-page#偏好与视图)。
 
 ::: tip `pageCode` 要稳定
-偏好按 `pageCode` 存储，**改了等于用户的所有个性化配置丢失**。页面上线后不要再动它。
+偏好按 `pageCode` 存储，**只改它等于用户的所有个性化配置丢失**。页面上线后不要再动它；确需改名见 [Schema 驱动页面](./schema-page#偏好与视图)。
 :::
 
 ## 排查

@@ -98,7 +98,7 @@
 1. 权限码得先在 `SaasPermissionCodes` 里定义，并追加进 `All`；
 2. 权限**定义**要加进 `SaasPermissionDefinitions.Groups`（这才是落库的那份），权限目录阶段天然排在菜单阶段之前；
 3. `PageRegistry` 里父目录要排在子项之前（种子按顺序解析 `ParentId`）；
-4. 新增独立模块时，照 `SeedOrders` 的阶段与模块号段取 `Order`：权限目录继承 `PermissionCatalogSeederBase`，菜单继承 `PageRegistryMenuSeederBase`，资源型权限用的操作来自 SaaS 统一播的操作字典。
+4. 新增独立的平台模块时，照 `SeedOrders` 的阶段与模块号段取 `Order`：权限目录继承 `PermissionCatalogSeederBase`，菜单继承 `PageRegistryMenuSeederBase`，资源型权限用的操作来自 SaaS 统一播的操作字典；业务模块不写种子，实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 交给 SaaS 的汇总种子（代码生成产出的就是这两个登记类）。
 
 改完重建库或重跑种子。详见 [二次开发 · 接线点检查清单](./backend/development#接线点检查清单)。
 
@@ -121,7 +121,7 @@
 
 ### 列表少了几列 / 排序点了没反应
 
-**字段级安全（FLS）在服务端门控**：读侧经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 过滤，**只有「可读且未脱敏」的字段**才允许参与过滤与排序，其余被静默剔除；剔完没有有效排序时回退默认排序。前端 Schema 页也会按字段 `permission` 直接不渲染该列。所以是权限问题，不是 bug。
+**字段级安全（FLS）在服务端门控**：读侧经 `IFieldSecurityService.GuardQueryAsync` 门控，**只有能看明文的字段**才允许参与排序、过滤与关键字搜索，其余被静默剔除；剔完没有有效排序时回退默认排序。前端 Schema 页也会按字段 `permission` 直接不渲染该列。所以是权限问题，不是 bug。
 
 ---
 

@@ -41,7 +41,7 @@ module : resource : action
 | --- | --- |
 | `PermissionCode` | 权限码（`TenantId + PermissionCode` 租户内唯一），推荐三段式 |
 | `ModuleCode` | 模块段（如 `saas`），支持三段式权限码 |
-| `PermissionType` | `ResourceBased`（绑定 `ResourceId`+`OperationId`）/ `Functional`（仅凭码）/ `DataScope` |
+| `PermissionType` | `ResourceBased`（绑定 `ResourceId`+`OperationId`；种子里的权限全部是这一类）/ `Functional`（仅凭码，管理端自建时可用）/ `DataScope` |
 | `ResourceId` / `OperationId` | 关联 `SysResource` / `SysOperation`（`ResourceBased` 时必填） |
 | `IsRequireAudit` | 该权限操作是否强制写 `SysDiffLog` |
 | `Side` | 作用侧（`Platform` / `Tenant` / `Both`，必填）：权限在平台还是业务租户里生效 |
@@ -68,14 +68,26 @@ module : resource : action
 - 不超角色成员上限 `MaxMembers`（0 表示不限）：状态有效且未过期的绑定占名额，尚未生效的预约同样占，已过期的不占；同批移出的名额可以让出。
 - 撤销只置失效不删行，同一 用户×角色 的历史行再授予时就地复用、从现在起生效。
 
-### 角色层级继承（闭包表）
+### 角色继承
 
-角色支持层级继承，用**闭包表** `SysRoleHierarchy` 存储所有继承关系（含直接与传递）：
+下级角色继承上级角色的授权，用于「销售主管 = 销售 + 审批」这类叠加。`SysRoleHierarchy` 只存**直接继承边**（上级 `AncestorId` → 下级 `DescendantId`），间接继承、继承深度（最短路径长度）与路径都由 `RoleInheritanceGraph` 从边即时推出。角色继承图很小、也没有 SQL 联表依赖展开结果，不存派生的闭包就不会出现闭包与边不一致。
 
-- 每条记录是 `(AncestorId, DescendantId, Depth, Path)`；`Depth=0` 是自关联，`Depth=1` 直接继承，`Depth=n` 为 n 级间接继承，`Path` 形如 `1/3/5`。
-- 核心不变式：若 `A→B` 且 `B→C` 存在，则 `A→C` 也必须存在。表**不设** `Status`/`IsDeleted`——单条停用会破坏传递闭包一致性，变更时整体重建受影响路径，硬删。
-- 继承语义：后代自动获得祖先的所有 **Grant** 权限，可被后代自己的 `SysRolePermission.Deny` 覆盖；**`DataScope` 不继承**（每个角色独立定义数据范围）；SSD/DSD 约束检查须展开继承链。
-- 写入时服务层做**环路检测**（禁止 `A→B→A`）：新增 `A→B` 前先查 B 的祖先集是否已含 A。
+**生效口径**（授权快照、委托角色、角色详情里的「继承的权限」同一口径）：
+
+- 有效继承链 = 角色自身 + 经**启用**角色可达的全部上级。停用角色不贡献权限，也切断经由它的继承——停用一个中间角色即可暂停整条分支。
+- 每个角色单独结算自己的链：链上 Grant 并集减去链上 Deny 并集。上级的 Deny 对下级同样生效（下级自己授予也拿不到），下级的 Deny 可以收窄继承来的授权。
+- 用户持有的多个角色之间取并集：一个角色的 Deny 不影响另一个独立角色，见下一节。
+- **不继承**：数据范围（每个角色独立定义）、字段安全规则（挂在直接持有的角色上）、成员上限。
+
+**维护规则**（`BatchUpdateRoleParents` 一次提交新增与解除，先解除后新增）：
+
+- 入口要「角色继承查看」，本次含新增要「角色继承创建」，含解除要「角色继承删除」；新增上级等同把上级链的权限授给本角色，与分配角色走同一道模仿登录授出校验。
+- 新增上级：不能是自己或自己的下级（成环），不能是已经间接继承的角色，必须已启用；已是直接上级视为已达成。解除上级不受其他路径限制，解除后若仍经别的上级可达，照样间接继承。
+- 系统角色（`super_admin` / `tenant_owner`）不参与继承：它们的权限由授权快照按上下文整体给出，继承它们得不到任何权限。
+- 作用范围：租户角色可继承本租户角色与平台全局角色，边存本租户；全局角色只继承全局角色，边存平台、仅平台维护。平台调整全局角色的继承随读取即时作用到各租户，不需要逐租户重建。
+- 写入后按新关系复核静态职责分离：本角色及其下级各自的继承链、持有它们的成员的全部角色；拒绝 / 需审批类违规回滚整次变更，警告 / 记录日志类放行留痕。平台调整全局角色时，继承了它或持有它的租户逐个切入复核。
+- 每条实际新增 / 解除记一条权限变更日志（「角色新增上级」「角色解除上级」），并失效授权快照与菜单缓存。
+- 角色存在继承关系时不能删除，先解除。
 
 ### 用户直授与合并优先级
 
@@ -141,16 +153,16 @@ module : resource : action
 
 ### 服务端落地：读脱敏 + 写校验 + 排序/过滤门控
 
-FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**：
+FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规则，由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**。实体一律以类型传入（`typeof(SysUser)`），必须在实体目录里登记过：
 
-- `ResolveAsync(resourceCode)`：解析当前用户在某资源上的有效规则（合并 deny-overrides），得到 `EffectiveFieldRule` 字典。
-- `ApplyAsync(resourceCode, item/items)`：对返回 DTO/集合**反射就地脱敏**。列表、详情、导出都调用它。
-- `EnsureEditableAsync` / `EnsureUpdatableAsync`：写路径校验——命中不可编辑字段被实际修改则抛异常。
-- `GuardSortsAsync` / `GuardFiltersAsync`：**推断攻击防护**——就地剔除当前用户"不可读或已脱敏"字段的排序键与过滤条件。否则用户可按受保护字段排序/过滤，从结果顺序反推被脱敏的真实值。字段名大小写不敏感匹配，无显式规则默认放行。
+- `ResolveAsync(entityType)`：解析当前用户在该实体上的有效规则（同字段取最严读取方式、任一只读即只读），同一请求内缓存。
+- `GuardQueryAsync(conditions, entityType)`：**推断攻击防护**——剔除读受保护字段上的排序、过滤与关键字搜索字段，否则可从结果顺序或命中反推原值。
+- `MaskAsync(response)`：沿响应对象图找出登记实体的 DTO **反射就地脱敏**。HTTP 接口由 `FieldSecurityResponseFilter` 统一调用，导出由导出基类调用。
+- `EnsureCreatableAsync` / `EnsureUpdatableAsync`：写路径校验——只读字段不能填写、不能修改；表单交回的脱敏值视为没改并还原原值。
 
-前端另有 `MyFieldSecurityAppService.GetMineAsync(resourceCode)` 下发"可读/可编辑/脱敏"信息，供表单据 `IsEditable` 置只读、展示脱敏标识——但**脱敏值本身已由服务端在响应里落地**，前端仅做体验优化。
+规则模型、读取方式、只写语义与接线要求见 [数据权限 · 字段级安全](./data-permission#字段级安全列级)。
 
-**导出与在线同一口径**：后台导出走 `ExportExecutor`，它在后台线程按任务发起人重建 `CurrentTenant` + `CurrentPrincipal`，再调用既有 QueryService，使**数据范围与字段脱敏原样生效**，并显式 `IPermissionChecker` 补齐进程内不触发 `[PermissionAuthorize]` 的缺口。重建的主体与在线请求同一口径：发起时记下的会话声明（会话已登出或被下线，导出随之失败）、与签发令牌同一来源的角色（超管判定等依赖角色的规则一致）、模仿者声明（模仿态禁用的权限在导出里同样禁用）；租户停用、到期或未就绪时导出直接失败。因此导出与在线列表看到的数据、脱敏结果一致。
+**导出与在线同一口径**：后台导出走 `ExportExecutor`，它在后台线程按任务发起人重建 `CurrentTenant` + `CurrentPrincipal`，再调用既有 QueryService，使**数据范围与字段脱敏原样生效**，并显式 `IPermissionChecker` 补齐进程内不触发 `[PermissionAuthorize]` 的缺口。导出校验的是 Provider 的 `RequiredPermission`，即页面导出按钮绑定的 `saas:xxx:export`，不是资源的读权限；提交任务时 `ExportTaskAppService.SubmitAsync` 就按它拦截（只有读权限的人直调提交接口也进不来），执行时再校验一次，覆盖提交后被收回权限的情况。重建的主体与在线请求同一口径：发起时记下的会话声明（会话已登出或被下线，导出随之失败）、与签发令牌同一来源的角色（超管判定等依赖角色的规则一致）、模仿者声明（模仿态禁用的权限在导出里同样禁用）；租户停用、到期或未就绪时导出直接失败。因此导出与在线列表看到的数据、脱敏结果一致。
 
 ## ABAC：属性驱动的约束
 
@@ -230,7 +242,7 @@ FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**�
   → 租户解析：落到哪个租户上下文（字段级隔离，全局数据 TenantId=0）
   → 授权(RBAC)：IPermissionChecker 实时校验权限码（查授权快照）
         · deny-overrides：用户 Deny > 用户 Grant > 角色 Deny > 角色 Grant
-        · 角色权限经 SysRoleHierarchy 展开继承链（祖先 Grant，后代 Deny 覆盖）
+        · 角色权限按各自的有效继承链结算（经启用角色可达的上级；链上 Grant 减链上 Deny）
         · 委托权限（SysPermissionDelegation）并入快照，再统一被用户 Deny 收窄
         · 只取当前上下文的绑定（平台的绑定不进租户，反之亦然）
         · 作用侧：不在当前上下文生效的权限码先于通配拒绝

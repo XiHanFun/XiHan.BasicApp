@@ -148,7 +148,7 @@ public async Task<PageResultDtoBase<PositionListItemDto>> GetPositionPageAsync(
     PositionPageQueryDto input, CancellationToken cancellationToken = default) { … }
 ```
 
-读侧还应经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 做 FLS 门控（剔除不可读/已脱敏字段），无有效排序时回退默认排序。
+实体要支持字段安全时，在模块服务注册里登记（`AddFieldSecurityEntities(e => e.Add<SysXxx>())`），并落地两处：查询构建完条件后 `GuardQueryAsync(request.Conditions, typeof(SysXxx), ct)`（强制约束放在其后），应用服务新建与修改前 `EnsureCreatableAsync` / `EnsureUpdatableAsync`。读脱敏不用接线——响应过滤器按映射器认出 DTO 统一打码，所以 DTO 要经 `XxxApplicationMapper` 从实体生成，改名的属性加 `[FieldSecuritySource]`。缺任一处 `FieldSecurityEntityWiringTests` 会失败，详见 [数据权限](./data-permission#字段级安全列级)。
 
 #### 6. 前端页面
 
@@ -260,14 +260,16 @@ public static IServiceCollection AddAIConfigStore(this IServiceCollection servic
 | 平台数据 | 600 | 参数、存储、模板、OAuth、任务 | 内置模板 +10 | — | — | 参数、任务 +40 | — |
 | 演示 | 900 | 演示租户与账号 | — | — | — | — | — |
 
-一个模块通常只需两个种子：继承 `PermissionCatalogSeederBase` 的权限目录（声明资源与权限；资源型权限用 `PermissionSeed.Of(资源, 作用侧, 起始排序, 操作…)` 按「资源 × 操作」展开），和继承 `PageRegistryMenuSeederBase` 的菜单（直接取模块的 `PageRegistry`）。AI 的 `AddAIDataSeeders`：
+一个模块通常只需两个种子：继承 `PermissionCatalogSeederBase` 的权限目录（声明资源与权限；资源型权限用 `PermissionSeed.Of(资源, 作用侧, 起始排序, 操作…)` 按「资源 × 操作」展开，要保留自定义名称与说明时直接写 `new PermissionSeed(…, 资源, 操作)`；资源与操作须成对给出，操作先在 `OperationSeeds` 登记），和继承 `PageRegistryMenuSeederBase` 的菜单（直接取模块的 `PageRegistry`）。AI 的 `AddAIDataSeeders`：
 
 ```csharp
 services.AddDataSeeder<AiPermissionCatalogSeeder>(); // SeedOrders.PermissionCatalog + 20：模型服务、提示词、助手、知识库四个资源
 services.AddDataSeeder<AiMenuSeeder>();              // SeedOrders.Menus + 20：本模块 PageRegistry
 ```
 
-模块不写角色授权：超管在平台天然拥有全部权限，租户所有者按套餐拿权限，其它角色由运营授予。新模块取一个未用的偏移（如 +60），每个阶段都用它。
+模块不写角色授权：超管在平台天然拥有全部权限，租户所有者按套餐拿权限，其它角色由运营授予。新的平台模块取一个未用的偏移（如 +60），每个阶段都用它。
+
+业务模块（如代码生成「生成到项目」写进 `backend/src/business` 的产物）不占号、不写种子：实现 `IPermissionCatalogContribution`（资源与权限）与 `IMenuPageContribution`（页面与按钮），标 `[ExposeServices(...)]` 并实现 `ITransientDependency` 按约定注册，由 SaaS 的 `ContributedPermissionCatalogSeeder`、`ContributedMenuSeeder` 在权限目录、菜单两个阶段的 +90（`SeedOrders.BusinessBand`）统一写入。排在全部平台模块之后，页面可以挂到平台模块的目录下；不同登记里出现同一个资源码、权限码或菜单码直接报错。
 
 `XiHan.BasicApp.Workflow` 是最干净的一个独立模块样板：`ConfigureServices` 只有三行（`AddWorkflowStores` 用 `Replace` 把框架工作流的内存存储换成 SqlSugar 持久化、`AddWorkflowDataSeeders` 登记权限目录与菜单两个种子、`AddWorkflowEventHandlers` 登记三个本地事件处理器），仓储与应用服务全部交给约定注册。要照着做一个新模块，读它比读 AI 模块更省力。
 

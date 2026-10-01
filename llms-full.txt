@@ -359,7 +359,7 @@ curl -X POST http://127.0.0.1:9708/api/UserQuery/UserPage \
 ```
 
 ::: warning 排序/过滤受字段级安全门控
-读侧会经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 过滤：**只有当前用户「可读且未脱敏」的字段**才允许参与过滤与排序，其余被静默剔除；剔完没有有效排序时回退到该接口的默认排序。所以「排序没生效」优先查字段权限，见 [权限模型](./backend/permission)。
+读侧会经 `IFieldSecurityService.GuardQueryAsync` 门控：**只有当前用户能看明文的字段**才允许参与排序、过滤与关键字搜索，其余被静默剔除；剔完没有有效排序时回退到该接口的默认排序。所以「排序没生效」优先查字段安全，见 [数据权限](./backend/data-permission#字段级安全列级)。
 :::
 
 ## 动态 API 路由推导规则
@@ -484,6 +484,50 @@ Hub 侧**没有** `long → string` 与枚举的自动转换器（那是 MVC JSO
 # 更新日志 · XiHan.BasicApp
 
 本文件记录 XiHan.BasicApp 各版本的变更。每条标注 **新增 / 修复 / 优化 / 调整 / 升级 / 移除** 类别。只收录使用者可感知的变更，仓库自身的配置、CI 与测试工程不列入。升级前请留意「调整」类中的破坏性变更。
+
+## v5.4.0 (2026-10-01)
+
+::: warning 升级须知
+本次重做字段安全与角色继承，含破坏性变更，前端依赖升至 XiHan.UI 3.0.0，前后端须配套发布。**升级前请备份数据库。**
+
+- **数据库**：随附 `UpdateScripts/5.4.0` 的 `5.4.0.sql` 与 `5.4.0-page-codes.sql`，启动时在建表之后、播种之前按文件名顺序自动执行，可重复执行；新建的库直接登记为最新版本，不跑本次脚本
+- **字段安全**：规则改挂「实体 + 字段」。脚本把只对应一个实体的资源换成实体；多个实体共用资源上的规则与目标为「权限」的规则无法确定实体，直接删除（5.4.0 之前字段安全只对用户列表与详情生效，这些规则从未起作用），需要的请在字段安全页按实体重新配置。「可读」开关、优先级、「自定义」方式与「我的字段规则」接口删除
+- **角色继承**：只存直接继承边，系统角色不再参与继承；每个角色按自己的继承链结算授予与拒绝，一个角色的拒绝不再影响用户持有的其他角色，要绝对拒绝请用用户直授拒绝；停用角色不贡献权限，也切断经由它的继承。`RoleAncestors` / `RoleDescendants` 去掉 `includeSelf`、改返回继承链，`RoleHierarchyDetail` 删除
+- **通知权限码**：通知公告改用 `saas:notification:*`，脚本删除 `saas:message:publish` 及其全部引用；自建角色若靠 `saas:message:*` 维护通知，需补授 `saas:notification:*`
+- **页面码**：前端页面的 `pageCode` 统一为后端页面登记表里的页面码，一页多表用「页面码.子表」；脚本迁移列设置、搜索设置、个人视图、导入历史与导出任务，用户导出的业务类型由 `system.user` 改为 `identity.user`。二次开发的页面与 `IExportProvider.BusinessType` 需按新口径修改
+- **代码生成配置**：改为 `CodeGeneration:EnableGenerateToProject`、`BackendRootPath`、`FrontendRootPath`、`TablePrefixes`，只放 `appsettings.Development.json`，其他环境只能生成并下载；`EnableCustomPathDisk`、`AllowedRootPaths` 与表配置的生成路径删除（脚本删 `gen_path` 列），生成类型 `CustomPath` 改名 `Project`
+- **业务模块**：权限目录与菜单改由 `IPermissionCatalogContribution`、`IMenuPageContribution` 登记，SaaS 统一写入，业务模块不再自写种子；同一编码多处登记时启动即报错
+- **前端**：XiHan.UI 升至 3.0.0（轻提示并入通知、分段并入单选组、令牌 `--xh-shimmer-duration` 改名 `--xh-motion-loop-shimmer`）；turbo 下限提至 2.11.5，已有 `node_modules` 须重新 `pnpm install`；聊天抽屉改为浮动面板，`AppChatDrawer`、`requestOpenChatDrawer`、文案桶 `chat.drawer` 分别改名为 `AppChatPanel`、`requestOpenChatPanel`、`chat.panel`
+- **示例模块**：`XiHan.BasicApp.Sample` 删除，已建出的 `Sample_Note` 表与 Erp 模块库里的 `Sample_Erp_Order` 表不会自动清理，确认无用后可手动删除
+:::
+
+- **新增** 代码生成的包含操作新增导入导出、状态切换与打印：导入逐行走新增接口，导出复用查询服务分页；按启用状态列生成启停接口与行内、批量启停；打印生成数据源与行内打印按钮。未配置时缺省为增删改与导入导出
+- **新增** 代码生成列配置支持字典下拉、图片 / 文件上传、关联表与关联树（按主键存，列表显示名称，不建外键）与唯一字段（租户内唯一索引，新增与编辑前查重）
+- **新增** 代码生成表配置可选父菜单（平台目录树，只有带菜单码的目录可选）；表由手写实体建出时沿用该实体，不再重复生成；生成的权限与菜单重启即生效
+- **新增** 字典选项接口：按字典编码取下拉选项，登录即可用，本租户的字典优先于平台全局；列表字段支持系统字典与异步选项，新增只存文件主键的上传控件
+- **新增** 角色列表「设置上级」；角色详情显示继承的权限与继承方式；分配权限抽屉标出已继承与被上级拒绝的权限
+- **新增** 字段安全的实体与字段改为下拉选择；脱敏且可编辑即「只写」；平台规则对所有租户生效；部门规则对下级部门成员同样生效
+- **新增** 日志链路追踪的「链路分析」：流向桑基图与时间分布堆叠柱
+- **新增** 顶栏工具（命令面板、语言、时区、主题、全屏、偏好设置）可设为自动 / 顶栏 / 悬浮 / 隐藏，悬浮的收进可拖动的悬浮组，顶栏挤压时逐个让出
+- **新增** 在线聊天改为浮动面板：可拖动、改尺寸、收拢或铺满，边聊边看页面
+- **修复** 字段安全此前只对用户列表与详情生效，列表还一个字段都没打码：改为在响应输出处统一打码，覆盖列表、详情、选项与写接口回传；新建、修改与改状态校验只读字段，表单交回的脱敏值不再覆盖原值；查询剔除受保护字段上的排序、过滤与关键字搜索
+- **修复** 没设过继承的角色跳过职责分离与模仿登录授出校验；有替代路径的直接上级无法解除
+- **修复** 通知公告的接口与菜单要求 `saas:message:*`，与权限目录里的通知分组对不上
+- **修复** 批量授权改按本次实际操作鉴权，菜单授权不再收回未挂菜单的权限；补齐撤销、分配部门、登录策略、编辑归属等按钮码，不再看得到按钮却保存到一半被拒
+- **修复** 已撤销的历史成员、授权与数据范围让角色永远删不掉
+- **修复** 带枚举筛选的导出悄悄变成全量；导出改按页面导出按钮绑定的权限码校验，提交时即拦截；查询快照解析失败时任务明确失败并写明原因
+- **修复** 代码生成产物非空列留空时整单 400 或落库报错；树表可把父级挂到自身或下级、可删除带子节点的父级；生成到项目遇到同名手写类时写出重复定义
+- **修复** 删除、启停、撤销、重置密钥、重发、立即执行等危险操作缺少二次确认
+- **修复** 用户详情的状态徽标深字压深底看不清；表格单元格与树标签里自定义的样式从未生效
+- **修复** 减弱动效下位移、缩放与尺寸过渡重新动起来
+- **修复** 登录页验证码图在暗色下露出灰边；账号框提示改为「请输入用户名或邮箱」
+- **调整** 种子权限全部挂上资源与操作，权限管理页的「资源」「操作」两列不再显示「-」，聊天、打印等模块不再显示组码；操作字典补齐 28 个动作，启动即对齐已有行
+- **调整** 下拉菜单的危险操作按语气着色并配命令图标；日志列表的请求方法列改用标签
+- **调整** 弹窗与抽屉里的次级表格与列表页同一样式，带同款分页底栏
+- **调整** 页脚应用名链接到 GitHub 仓库；登录方式标签按可用宽度取尺寸
+- **升级** XiHan.UI 3.0.0
+- **移除** 示例业务模块 `XiHan.BasicApp.Sample`
+- **升级** 发布 v5.4.0
 
 ## v5.3.1 (2026-09-26)
 
@@ -1361,13 +1405,17 @@ backend/src/main/XiHan.BasicApp.WebHost/
 
 ## `CodeGeneration`
 
-| 键 | 默认 | 说明 |
-| --- | --- | --- |
-| `EnableCustomPathDisk` | `false` | 是否允许生成到自定义磁盘路径 |
-| `AllowedRootPaths[]` | `[]` | 允许写入的根路径白名单 |
+只在 `appsettings.Development.json` 里配置，`appsettings.json` 与生产配置都不放：不配置即不能生成到项目，只能生成并下载。
 
-::: warning 生产不要开 `EnableCustomPathDisk`
-开启后代码生成器可以往服务器磁盘写文件，`AllowedRootPaths` 是唯一的边界。生产环境保持关闭，用 Zip 下载。
+| 键 | 默认 | 开发环境配置 | 说明 |
+| --- | --- | --- | --- |
+| `EnableGenerateToProject` | `false` | `true` | 是否允许「生成到项目」 |
+| `BackendRootPath` | — | `../..` | 后端源码根（相对 WebHost 项目目录），在其下分组目录里找与命名空间同名的项目 |
+| `FrontendRootPath` | — | `../../../../frontend` | 前端工程根（相对 WebHost 项目目录），须含 `package.json` |
+| `TablePrefixes` | `Sys_,Saas_` | `Sys_,Saas_` | 由表名推导类名时去掉的前缀 |
+
+::: warning 生产不要开 `EnableGenerateToProject`
+开启后代码生成器会往服务器上的源码目录写文件。位置虽由配置推导、不接受任意路径，生产环境也没有源码可写，保持关闭，用生成并下载。
 :::
 
 ## 数据库里的配置
@@ -1931,7 +1979,7 @@ docker volume ls          # 查看数据卷
 1. 权限码得先在 `SaasPermissionCodes` 里定义，并追加进 `All`；
 2. 权限**定义**要加进 `SaasPermissionDefinitions.Groups`（这才是落库的那份），权限目录阶段天然排在菜单阶段之前；
 3. `PageRegistry` 里父目录要排在子项之前（种子按顺序解析 `ParentId`）；
-4. 新增独立模块时，照 `SeedOrders` 的阶段与模块号段取 `Order`：权限目录继承 `PermissionCatalogSeederBase`，菜单继承 `PageRegistryMenuSeederBase`，资源型权限用的操作来自 SaaS 统一播的操作字典。
+4. 新增独立的平台模块时，照 `SeedOrders` 的阶段与模块号段取 `Order`：权限目录继承 `PermissionCatalogSeederBase`，菜单继承 `PageRegistryMenuSeederBase`，资源型权限用的操作来自 SaaS 统一播的操作字典；业务模块不写种子，实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 交给 SaaS 的汇总种子（代码生成产出的就是这两个登记类）。
 
 改完重建库或重跑种子。详见 [二次开发 · 接线点检查清单](./backend/development#接线点检查清单)。
 
@@ -1954,7 +2002,7 @@ docker volume ls          # 查看数据卷
 
 ### 列表少了几列 / 排序点了没反应
 
-**字段级安全（FLS）在服务端门控**：读侧经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 过滤，**只有「可读且未脱敏」的字段**才允许参与过滤与排序，其余被静默剔除；剔完没有有效排序时回退默认排序。前端 Schema 页也会按字段 `permission` 直接不渲染该列。所以是权限问题，不是 bug。
+**字段级安全（FLS）在服务端门控**：读侧经 `IFieldSecurityService.GuardQueryAsync` 门控，**只有能看明文的字段**才允许参与排序、过滤与关键字搜索，其余被静默剔除；剔完没有有效排序时回退默认排序。前端 Schema 页也会按字段 `permission` 直接不渲染该列。所以是权限问题，不是 bug。
 
 ---
 
@@ -2130,7 +2178,7 @@ XiHan.BasicApp 内置了中后台系统所需的完整能力。以下按领域�
 ## 权限（RBAC + ABAC）
 
 - 权限码 `module:resource:action`（如 `saas:user:read`），超级管理员用字面通配 `*`
-- 角色层级继承（闭包表）、数据范围（本人 / 部门 / 租户，独立于权限码的维度）、字段级脱敏
+- 角色继承（停用角色切断继承、Deny 只作用于本链）、数据范围（本人 / 部门 / 租户，独立于权限码的维度）、字段级脱敏
 - ABAC 属性条件（挂在角色权限 / 用户直授权限上，同组 AND、组间 OR）：时间窗、IP、资源状态、数值阈值等 `subject.` / `resource.` / `environment.` 命名空间表达式
 - **约束规则引擎**：静态 / 动态职责分离（SSD / DSD）、互斥、基数、先决条件、时间、位置（IP）、自定义共 8 类，违规可拒绝 / 警告 / 仅记录 / 转审批
 - 权限委托（委托人 → 被委托人 → 权限或角色范围 → 生效 / 到期时间窗，可随时撤销）
@@ -3791,7 +3839,7 @@ BasicApp 的写路径大量使用本地事件解耦（如授权变更 → 写权
 | 模板渲染器 | `ITemplateRenderer` / `ScribanTemplateRenderer` | 用**原生 Scriban** 渲染模板（见下文约定） |
 | 渲染器解析器 | `ITemplateRendererResolver` | 按 `TemplateEngine` 选渲染器；当前仅 Scriban |
 | 打包器 | `IGeneratedArtifactPackager` / `ZipArtifactPackager` | 产物清单 → Zip 字节流 |
-| 落盘写入器 | `IGeneratedArtifactWriter` / `FileSystemArtifactWriter` | 受控落盘（默认禁用 + 白名单 + 路径穿越拒绝） |
+| 生成到项目 | `IGeneratedArtifactWriter` / `ProjectArtifactWriter` | 写进本仓库的后端模块项目与前端工程（位置由配置推导，默认关闭，路径越界拒绝） |
 
 四张配置实体（均 `BasicAppFullAuditedEntity`，软删、多租户、审计俱全）：
 
@@ -3843,13 +3891,13 @@ BasicApp 的写路径大量使用本地事件解耦（如授权变更 → 写权
 
 前端产物落到 `src/api/modules/<module>/` 与 `src/views/<module>/<class-kebab>/`（路径表达式里 `ModuleName` 会 `string.downcase`）。生成的页面与手写页面同构：`SchemaPage` 驱动列表与搜索，`XEditModal` + `XhFormRoot` 承载表单弹窗，控件取 `~/components` 的 `XInput` / `XSelect` / `XNumberInput` / `XTreeSelect`，提示走 `~/composables` 的 `toast`，枚举下拉走 `useEnumOptions`。文案为中文字面量，接 i18n 需自行替换。
 
-除模板产物外，引擎每次还追加**二阶产物**（目录 `_GeneratedMenuPermission/`）：
+除模板产物外，引擎每次还追加**二阶产物**（后端接线，路径相对后端模块项目根）：
 
-- `{{ClassName}}PermissionCodes.cs`——权限码常量类（资源段取表名，`{资源}:{操作}` 两段式）。
-- `{{ClassName}}PermissionDefinitions.cs`——权限定义片段。
-- `{{ClassName}}PageRegistry.snippet.txt`——`PageDescriptor` / `ButtonDescriptor` 粘贴片段。
-- `{{ClassName}}PermissionSeeder.cs` 与 `{{ClassName}}MenuSeeder.cs`——种子骨架。
-- `README.md`——落地说明：权限码表、按钮→权限码映射、`SysMenu` 菜单规格，以及并入源码后的 Seeder / 升级脚本接线清单。
+- `Domain/Permissions/{{ClassName}}PermissionCodes.cs`——权限码常量类（资源段取表名，`{资源}:{操作}` 两段式）。
+- `Domain/Permissions/{{ClassName}}PermissionDefinitions.cs`——权限定义片段。
+- `Infrastructure/Seeders/{{ClassName}}PermissionCatalog.cs` 与 `Infrastructure/Seeders/{{ClassName}}MenuPages.cs`——权限目录登记与菜单登记（总是覆盖，随包含操作、父菜单推导）。它们实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 并按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段最后统一写入：不需要 `AddDataSeeder`，也没有种子顺序号。页面挂在表配置所选的「父菜单」下（只能选平台目录，按菜单码挂靠），未选即顶级菜单。
+- `_GeneratedMenuPermission/{{ClassName}}PageRegistry.snippet.txt`——`PageDescriptor` / `ButtonDescriptor` 粘贴片段（并进模块自己的页面登记表时用，与菜单登记二选一）。
+- `_GeneratedMenuPermission/README.md`——落地说明：权限码表、按钮→权限码映射、`SysMenu` 菜单规格与生效步骤（重启后端即由启动播种写入）。
 
 ::: tip 从旧版本升级
 前端模板此前产出的是 naive-ui 页面，现已整体迁到 XiHan.UI。已生成过代码的工程重新生成时：
@@ -3999,20 +4047,39 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 
 | `GenType` | 行为 |
 | --- | --- |
-| `Preview` | 只返回产物清单（含文件内容），不打包不落盘 |
-| `Zip` | 打成 Zip，包体以 **Base64** 随 `CodeGenResultDto.PackageBase64` 返回，前端触发下载 |
-| `CustomPath` | **受控落盘**到 `SysCodeGenTable.GenPath` |
+| `Zip` | 生成并下载：打成 Zip，包体以 **Base64** 随 `CodeGenResultDto.PackageBase64` 返回，前端触发下载 |
+| `Project` | 生成到项目：后端产物写进与表配置**命名空间**同名的模块项目，前端产物写进前端工程 |
 
-### 落盘的安全策略（fail-closed）
+预览走独立入口（`PreviewAsync`），只返回产物清单（含文件内容），不打包不落盘。
 
-`CustomPath` 落盘由 `FileSystemArtifactWriter` 把关，绑定配置节 `CodeGeneration`（`CodeGenerationOptions`），**默认禁用**，任一条件不满足即拒绝：
+### 生成到项目的位置
 
-- `EnableCustomPathDisk=false`（默认）→ 拒绝。
-- `AllowedRootPaths` 为空 → 拒绝。
-- 目标路径不在白名单根目录内 → 拒绝。
+写入位置不由表配置随意指定，而是按宿主内容根（WebHost 项目目录）推导本仓库的目录：
+
+- **后端**：在 `BackendRootPath`（缺省配置 `../..`，即 `backend/src`）下的分组目录里找 `<命名空间>/<命名空间>.csproj`，如命名空间 `XiHan.BasicApp.Sample` 写进 `backend/src/business/XiHan.BasicApp.Sample/`。模板的路径表达式（`Domain/Entities`、`Application/Dtos`…）与接线产物都相对这个项目目录。
+- **前端**：写进 `FrontendRootPath`（缺省配置 `../../../../frontend`）指向的前端工程，模板路径 `src/api/modules/<module>/`、`src/views/<module>/<class-kebab>/` 相对它。
+- 产物按模板分组归属：`backend-*` 进后端项目，`frontend-*` 进前端工程；生成范围只选后端时不碰前端配置。
+
+由 `ProjectArtifactWriter` 写入，绑定配置节 `CodeGeneration`（`CodeGenerationOptions`），**默认关闭**，任一条件不满足即整体拒绝、一个文件都不写：
+
+- `EnableGenerateToProject` 未开启（缺省）→ 拒绝。配置只放在 `appsettings.Development.json`，其他环境只能生成并下载。
+- 命名空间为空、不是以点分隔的标识符，或在源码根下找不到 / 找到多个同名项目 → 拒绝，不替你新建项目。
+- 前端工程目录下没有 `package.json` → 拒绝。
+- 模板分组既不是后端也不是前端 → 拒绝（不知道写进哪个项目）。
 - 产物相对路径是绝对路径 / 带盘符 / 拼接后越界（`..` 逃逸）→ 拒绝。
 
-即"默认禁用 + 白名单根目录 + 路径穿越二次校验"，符合本仓 fail-closed 约定。生产要落盘须显式开启并配置白名单。
+全部产物定好位置才动磁盘；手动文件已存在时跳过，生成历史记下写入的项目目录。
+
+### 沿用已有实体
+
+本仓库的表一般由实体自动建出：先写实体，启动时框架按实体建表，再把表导入代码生成。这种表在代码里已经有实体，生成时沿用它：
+
+- 引擎经实体元数据目录按表名找到实体类型；它没有生成器标记（`[GeneratedCode("XiHan.CodeGen", …)]`）即视为手写实体，不再生成 `backend.entity` 与 `backend.entity.manual`。
+- 仓储、映射、查询服务等按实体所在命名空间引用它（模板变量 `EntityNamespace`）；表配置的类名须与实体类名一致，否则生成直接失败并给出正确类名。
+- 关联目标表已有实体时，选项查询直接用它的真实类型。
+- 外部库的表没有实体，照常生成实体；生成的实体带生成器标记，下次照常覆盖。
+- 唯一列的索引由实体负责：沿用已有实体时要自己在实体上加 `SugarIndex`。
+- 生成到项目时，若项目里已有手写的同名文件（如手写仓储）而没有对应的自动文件，整体拒绝、一个文件都不写：先移走它，自定义代码写进生成后的手动文件。
 
 ## 零代码运行时（只读）
 
@@ -4030,7 +4097,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 - **加一种数据库方言**：扩展 `ITypeMappingProvider` 的映射；扫描能力依赖框架 `IDatabaseMetadataProvider`。
 - **加/改模板**：新增 `SysCodeGenTemplate`（自定义编码、Scriban 正文、文件名/路径表达式），或改动非内置模板；用模板变量表与 `IsBaseColumn` 约定编写。
 - **换渲染引擎**：实现 `ITemplateRenderer`（`Engine` 返回对应 `TemplateEngine`）并注册，`TemplateRendererResolver` 后注册覆盖先注册。
-- **生成后并入源码**：按 `_GeneratedMenuPermission/README.md` 的步骤把权限码常量、种子（资源→权限→菜单→授权，Order 用 200+ 段）并入模块；全新库由种子初始化，存量库还要补对应版本的前向升级脚本。
+- **生成后并入源码**：按 `_GeneratedMenuPermission/README.md` 确认权限码常量与两个登记类落位，重启后端即由汇总种子写入权限与菜单（不需要登记种子）；旧版本生成的 `XxxPermissionSeeder` / `XxxMenuSeeder` 及其 `AddDataSeeder` 登记要删掉。
 
 ## 下一步
 
@@ -4079,7 +4146,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 
 | 表 | 实体 | 说明 |
 | --- | --- | --- |
-| `Sys_Role` / `Sys_Role_Hierarchy` | `SysRole` / `SysRoleHierarchy` | 角色与层级继承（闭包） |
+| `Sys_Role` / `Sys_Role_Hierarchy` | `SysRole` / `SysRoleHierarchy` | 角色与继承（只存直接继承边） |
 | `Sys_Permission` | `SysPermission` | 权限点 |
 | `Sys_Operation` / `Sys_Resource` | `SysOperation` / `SysResource` | 操作字典与资源，**权限由「资源 × 操作」派生** |
 | `Sys_Role_Permission` / `Sys_User_Permission` | — | 角色授权 / 用户直授 |
@@ -4087,7 +4154,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 | `Sys_Permission_Condition` | `SysPermissionCondition` | ABAC 属性条件 |
 | `Sys_Permission_Delegation` | `SysPermissionDelegation` | 权限委托 |
 | `Sys_Permission_Request` | `SysPermissionRequest` | 权限申请 |
-| `Sys_Field_Level_Security` | `SysFieldLevelSecurity` | 字段级安全（可读 / 可编辑 / 脱敏策略） |
+| `Sys_Field_Level_Security` | `SysFieldLevelSecurity` | 字段级安全（实体 × 字段 × 目标：读取方式 / 可编辑） |
 | `Sys_Constraint_Rule` / `Sys_Constraint_Rule_Item` | — | 约束规则引擎（SSD / DSD / 互斥 / 基数…） |
 | `Sys_Session_Role` | `SysSessionRole` | 会话角色映射 |
 
@@ -4276,50 +4343,73 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 
 ## 字段级安全（列级）
 
-`SysFieldLevelSecurity` 按「资源 × 字段 × 主体」定义规则：
+`SysFieldLevelSecurity` 按「**实体 × 字段 × 目标**」定义规则：限制某个角色 / 用户 / 部门对某个实体某个字段的读取方式与修改能力。规则**只收紧、不放宽**——没有规则就是明文可改。
 
 | 字段 | 说明 |
 | --- | --- |
-| `fieldName` | 字段名（对应实体 / DTO 的属性名） |
-| `isReadable` | 能否读取。不可读 → **值被服务端置空或按脱敏策略改写**，属性本身仍在响应里 |
-| `isEditable` | 能否编辑。不可编辑 → 后端写校验直接拒绝（`EnsureEditableAsync` / `EnsureUpdatableAsync` 抛异常），前端表单置只读 |
-| `maskStrategy` / `maskPattern` | 脱敏策略与掩码格式（部分脱敏用 `keep:N,M`，固定替换 / 自定义时 `maskPattern` 即占位符文本） |
+| `targetType` / `targetId` | 目标：角色（当前用户生效且启用的角色）、用户（本人）、部门（该部门**及其下级部门**的有效成员；停用部门跳过但继续向上找） |
+| `entityName` | 实体类名，如 `SysUser`；只能从实体目录里选 |
+| `fieldName` | 实体属性名，如 `Phone`（区分大小写）；只能从该实体的字段里选 |
+| `maskStrategy` | 读取方式：明文、部分脱敏、哈希、全部星号、固定文本、隐藏 |
+| `maskKeepHead` / `maskKeepTail` | 部分脱敏保留前几位、后几位（仅部分脱敏，0–32，不能都为 0） |
+| `maskReplacement` | 固定文本方式显示的文字（仅固定文本） |
+| `isEditable` | 能否修改。明文规则必须只读（否则什么都没限制）；脱敏且可编辑为「只写」：看不到原值，但能填新值覆盖（如更换密钥） |
 
-同一字段命中多条规则时按 deny-overrides 合并：任一条不可读即不可读、任一条不可编辑即不可编辑，脱敏取最严的一条。
+::: tip 实体目录
+可配置的实体由各模块在服务注册里登记（`AddSaasFieldSecurityEntities`、`AddAIFieldSecurityEntities` 等，底层是 `FieldSecurityEntityOptions.Add<TEntity>()`）。实体显示名取表说明（`SugarTable.TableDescription`），字段显示名取列说明；主键、租户、并发版本、软删除等框架列不在字段列表里。配置页经 `FieldLevelSecurityQuery/FieldSecurityEntities` 取目录，实体与字段都是下拉选择，不手输。
+
+**登记即承诺**：该实体的查询服务要门控查询条件，应用服务新建、修改（含状态）前要做写校验，响应里要能认出它的 DTO。`FieldSecurityEntityWiringTests` 从各模块的登记方法取登记表，核对这几处都已落地（门控与写校验扫源码，DTO 看映射器），缺一处就失败；代码里按未登记的实体调用字段安全，运行时直接报错。
+:::
+
+非文本字段只能「明文只读」或「隐藏」（隐藏后返回类型默认值）。同一字段命中多条规则时取**最严**的读取方式，严格程度按泄露的信息量排：
+
+```text
+明文 < 部分脱敏（泄露片段）< 哈希（泄露是否相等）< 全部星号（泄露长度）< 固定文本（只泄露有没有值）< 隐藏
+```
+
+部分脱敏多条时保留位数取最少；任一命中规则只读即只读。
+
+**平台规则**（`TenantId = 0`）对所有租户生效，只能在平台维护；租户看得见、改不了（列表里标「平台」）。全局角色与系统角色的规则同样只能在平台维护。
 
 ### 脱敏在服务端完成
 
 ::: danger 后端返回的就是打码后的值
-如 `138****8000`。**前端不做二次打码**——前端拉取规则只用于两件事：表单置只读、展示「不可见 / 已脱敏」标识。
-
-这条设计的意义：绕过前端直接调接口也拿不到明文。前端打码是纸糊的。
+如 `138****5678`。**前端不做二次打码**，绕过前端直接调接口也拿不到明文。
 :::
 
-脱敏由 `IFieldSecurityService.ApplyAsync` 在查询服务返回前就地改写 DTO（当前接入的资源是 `SysUser`）。
+打码在**输出边界**统一做，不逐个接口接线：`FieldSecurityResponseFilter` 在每个接口返回前沿响应的对象图（集合、分页、聚合详情里嵌套的 DTO、字典的值）找出属于登记实体的 DTO，按该实体的规则就地打码。列表、详情、下拉选项、聚合详情（如用户编辑表单取的 `UserManagementDetail`）、新建与修改后回传的详情都经过这一道口子，新接口不会因为漏接而漏出明文。
 
-### 过滤与排序也受门控
+- **DTO 属于哪个实体**：由应用层映射器认定——`public static XxxDto ToXxx(SysEntity entity, …)` 即认定 `XxxDto` 属于 `SysEntity`（`IFieldSecurityDtoCatalog`）。所以 DTO 必须经映射器从实体生成；一个 DTO 由两个登记实体映射出来时启动即报错。
+- **改名的属性**：DTO 属性与实体字段不同名时（如 `UserSessionId` → `SessionId`），在 DTO 属性上加 `[FieldSecuritySource(nameof(SysAccessLog.UserSessionId))]`，否则按名字打不到码；测试扫描映射器，未声明的改名直接失败。
+- **多来源 DTO**：由多个实体映射出来的 DTO（如链路时间线 `TraceTimelineItemDto`）实现 `IFieldSecurityMultiSourceDto`，按每条自己的来源实体与字段对应打码。
+- **与响应缓存**：过滤器排在框架缓存过滤器**外层**，缓存里存原值，每次命中按当次用户打码；`HybridCache` 对可变类型每次命中给新实例，就地打码不污染缓存。
+- **进程内直调**不经过 HTTP 过滤器：导出任务按发起人身份调用查询服务，导出基类每取一页先 `MaskAsync` 再写出，导出文件与在线列表同一口径。进程内的业务逻辑直调查询服务拿到的是原值（需要真实值做计算）。
 
-读侧会经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 处理：
+读全局数据要切到平台上下文的查询（打印模板、编号规则），查询门控放在切换**之外**：字段规则按请求方在所属租户的角色、部门判定；打码在响应过滤器里做，本就在请求方上下文。
 
-```text
-前端下发的 filters / sorts
-        ↓
-剔除「不可读或已脱敏」字段的条件
-        ↓
-剔完没有有效排序 → 回退该接口的默认排序
-```
+### 查询条件也受门控
 
-::: warning 「排序点了没反应」优先查字段权限
-被 FLS 剔掉时后端**不会报错**，只是安静地不生效。同理「按某字段搜索没效果」也可能是这个原因，而不是前端 bug。
+构建完查询条件后调用 `_fieldSecurity.GuardQueryAsync(request.Conditions, typeof(SysUser), ct)`，剔除**读受保护字段**（非明文）上的排序、过滤与关键字搜索字段——否则可按结果顺序或筛选命中反推原值。字段名大小写不敏感（前端列键多为 camelCase）。
+
+::: warning 强制约束放在门控之后
+数据范围、超管隐藏、租户边界这类服务端强制条件，一律在 `GuardQueryAsync` **之后**追加；否则有人把相关字段设成受保护，强制条件会被一起剔掉。
 :::
 
-### 页面怎么接
-
-前端 `PageSchema` 声明 `resourceCode`，页面调用 `useFieldSecurity(resourceCode)` 拉取当前用户的有效规则，再按 `isEditable` / `isReadable` 决定表单只读与「不可见 / 已脱敏」标识。
-
-::: warning `resourceCode` 缺省则不拉规则
-`useFieldSecurity` 在 `resourceCode` 为空时直接跳过请求，页面拿不到任何规则。需要 FLS 的页面记得写上。
+::: warning 「排序点了没反应」优先查字段安全
+被剔掉时后端**不会报错**，只是安静地不生效。「按某字段搜索没效果」也可能是这个原因。
 :::
+
+### 写校验
+
+应用服务新建前调用 `EnsureCreatableAsync(typeof(X), input, ct)`，修改与改状态前调用 `EnsureUpdatableAsync(typeof(X), input.BasicId, input, ct)`：
+
+- 新建：只读字段不能填写（与入参类型默认值相同视为没填，空串与 null 同义）
+- 修改：只读字段改了值即拒绝；表单把拿到的**脱敏值或空值原样交回**视为没改，并**还原成库里的原值**——整体保存不会让 `138****5678` 覆盖真实号码
+- 只写字段：交回脱敏值视为没改，填了新值照常保存
+
+没有只读或脱敏规则时不读库，零开销。同一请求内按「用户 + 实体」缓存解析结果，门控与打码共用一次查询。
+
+个人中心改本人资料不经过字段安全（本人资料的读取也不打码）。
 
 ## 写路径的租户边界
 
@@ -4342,11 +4432,12 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 | --- | --- |
 | 有权限但列表为空 | 用户部门归属对不对 → 角色数据范围设成了什么 → 闭包表是否完整 |
 | 某些行改不动 | 是否跨租户写（读得到不等于写得动） |
-| 列变成 null / 空 | FLS `isReadable` 为假，服务端已把值置空 |
-| 列显示成 `***` | FLS 脱敏策略生效，服务端已打码 |
-| 排序 / 搜索不生效 | 该字段被 FLS 剔出条件 |
+| 列变成 null / 空 | 字段安全规则为「隐藏」，服务端已把值置空 |
+| 列显示成 `***` | 字段安全的脱敏方式生效，服务端已打码 |
+| 排序 / 搜索不生效 | 该字段读受保护，被剔出查询条件 |
 | 改了数据范围不生效 | 该列表是否接了数据范围过滤；成员是否有覆盖（有覆盖时角色的范围不再生效）；角色是否停用、档位是否为自定义 |
-| 表单该只读却可编辑 | 页面 `PageSchema.resourceCode` 没声明，或页面没调用 `useFieldSecurity`（后端写校验仍会拒绝） |
+| 配了规则不生效 | 实体、字段在规则列表里标「已失效」（代码已移除）；规则是否启用；目标是否命中（角色或部门停用、成员关系失效） |
+| 保存时报「无修改权限」 | 当前用户对该字段只读，改动了它的值 |
 
 ## 相关页面
 
@@ -4728,7 +4819,7 @@ public async Task<PageResultDtoBase<PositionListItemDto>> GetPositionPageAsync(
     PositionPageQueryDto input, CancellationToken cancellationToken = default) { … }
 ```
 
-读侧还应经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 做 FLS 门控（剔除不可读/已脱敏字段），无有效排序时回退默认排序。
+实体要支持字段安全时，在模块服务注册里登记（`AddFieldSecurityEntities(e => e.Add<SysXxx>())`），并落地两处：查询构建完条件后 `GuardQueryAsync(request.Conditions, typeof(SysXxx), ct)`（强制约束放在其后），应用服务新建与修改前 `EnsureCreatableAsync` / `EnsureUpdatableAsync`。读脱敏不用接线——响应过滤器按映射器认出 DTO 统一打码，所以 DTO 要经 `XxxApplicationMapper` 从实体生成，改名的属性加 `[FieldSecuritySource]`。缺任一处 `FieldSecurityEntityWiringTests` 会失败，详见 [数据权限](./data-permission#字段级安全列级)。
 
 #### 6. 前端页面
 
@@ -4840,14 +4931,16 @@ public static IServiceCollection AddAIConfigStore(this IServiceCollection servic
 | 平台数据 | 600 | 参数、存储、模板、OAuth、任务 | 内置模板 +10 | — | — | 参数、任务 +40 | — |
 | 演示 | 900 | 演示租户与账号 | — | — | — | — | — |
 
-一个模块通常只需两个种子：继承 `PermissionCatalogSeederBase` 的权限目录（声明资源与权限；资源型权限用 `PermissionSeed.Of(资源, 作用侧, 起始排序, 操作…)` 按「资源 × 操作」展开），和继承 `PageRegistryMenuSeederBase` 的菜单（直接取模块的 `PageRegistry`）。AI 的 `AddAIDataSeeders`：
+一个模块通常只需两个种子：继承 `PermissionCatalogSeederBase` 的权限目录（声明资源与权限；资源型权限用 `PermissionSeed.Of(资源, 作用侧, 起始排序, 操作…)` 按「资源 × 操作」展开，要保留自定义名称与说明时直接写 `new PermissionSeed(…, 资源, 操作)`；资源与操作须成对给出，操作先在 `OperationSeeds` 登记），和继承 `PageRegistryMenuSeederBase` 的菜单（直接取模块的 `PageRegistry`）。AI 的 `AddAIDataSeeders`：
 
 ```csharp
 services.AddDataSeeder<AiPermissionCatalogSeeder>(); // SeedOrders.PermissionCatalog + 20：模型服务、提示词、助手、知识库四个资源
 services.AddDataSeeder<AiMenuSeeder>();              // SeedOrders.Menus + 20：本模块 PageRegistry
 ```
 
-模块不写角色授权：超管在平台天然拥有全部权限，租户所有者按套餐拿权限，其它角色由运营授予。新模块取一个未用的偏移（如 +60），每个阶段都用它。
+模块不写角色授权：超管在平台天然拥有全部权限，租户所有者按套餐拿权限，其它角色由运营授予。新的平台模块取一个未用的偏移（如 +60），每个阶段都用它。
+
+业务模块（如代码生成「生成到项目」写进 `backend/src/business` 的产物）不占号、不写种子：实现 `IPermissionCatalogContribution`（资源与权限）与 `IMenuPageContribution`（页面与按钮），标 `[ExposeServices(...)]` 并实现 `ITransientDependency` 按约定注册，由 SaaS 的 `ContributedPermissionCatalogSeeder`、`ContributedMenuSeeder` 在权限目录、菜单两个阶段的 +90（`SeedOrders.BusinessBand`）统一写入。排在全部平台模块之后，页面可以挂到平台模块的目录下；不同登记里出现同一个资源码、权限码或菜单码直接报错。
 
 `XiHan.BasicApp.Workflow` 是最干净的一个独立模块样板：`ConfigureServices` 只有三行（`AddWorkflowStores` 用 `Replace` 把框架工作流的内存存储换成 SqlSugar 持久化、`AddWorkflowDataSeeders` 登记权限目录与菜单两个种子、`AddWorkflowEventHandlers` 登记三个本地事件处理器），仓储与应用服务全部交给约定注册。要照着做一个新模块，读它比读 AI 模块更省力。
 
@@ -5209,7 +5302,7 @@ ExportTaskHostedService 拉取 → 执行导出 → 写文件 → 回写 FileId/
 
 | 字段 | 说明 |
 | --- | --- |
-| `BusinessType` | 业务类型（如 `log.access`），决定用哪个导出 Provider |
+| `BusinessType` | 业务类型，取导出按钮所属的页面码（`PageRegistry`，如 `log.access`、`identity.user`），决定用哪个导出 Provider |
 | `Scope` | 导出范围（当前搜索结果 / 全量等） |
 | `Format` | 导出格式（CSV 等） |
 | `Status` / `Progress` / `TotalCount` / `ProcessedCount` | 进度反馈 |
@@ -5222,6 +5315,8 @@ ExportTaskHostedService 拉取 → 执行导出 → 写文件 → 回写 FileId/
 导出是异步的——用户提交后可能立刻改了搜索条件、调了列设置甚至关掉页面。存快照保证**导出的内容与点击那一刻看到的一致**，而不是与执行那一刻的界面状态一致。
 
 这也意味着：修复导出内容的 bug 要看快照里存了什么，而不是看现在页面上是什么。
+
+查询快照解析不了时任务直接失败，原因写「查询条件无法解析」，不会落回空查询——空查询等于不加筛选，导出范围会悄悄变成全量。
 :::
 
 前端 Schema 页只要在 `PageSchema.resource.export` 里声明 `{ businessType, buildQuery }`，导出按钮就会走这条异步链路；未声明时退化为本地 CSV 导出。**导出按钮的显隐由 `exportPermission` 精准门控**，未声明该字段则该页不显示导出。
@@ -5628,14 +5723,16 @@ services.Replace(ServiceDescriptor.Scoped<ISessionStateGate, SaasSessionStateGat
 | 阶段 | `Order` | 内容 |
 | --- | --- | --- |
 | 平台身份 | 100 | 超级管理员角色与账号 |
-| 操作字典 | 200 | `read` / `create` / `update` / `delete` / `export` / `import` / `execute`，资源型权限的动作都从这里取 |
-| 权限目录 | 300 | 各模块的资源与权限（`PermissionCatalogSeederBase`） |
+| 操作字典 | 200 | `OperationSeeds.All`：`read` / `create` / `update` / `delete` / `export` / `import` / `execute` 七个通用动作，外加 `status`、`grant`、`revoke`、`publish`、`reset-password` 等各模块权限码里用到的动作，资源型权限的动作都从这里取 |
+| 权限目录 | 300 | 各模块的资源与权限（`PermissionCatalogSeederBase`）；种子里的权限全部是资源型：SaaS 每个权限分组一个资源、聊天与打印各一个资源，权限码末段即操作编码 |
 | 菜单 | 400 | 各模块的页面登记表（`PageRegistryMenuSeederBase`） |
 | 套餐 | 500 | 四档套餐与功能白名单，排在全部权限目录之后，企业版首次创建就拿到各模块的权限 |
 | 平台数据 | 600 | 参数、默认存储、消息模板、OAuth 应用、定时任务、代码生成内置模板 |
 | 演示 | 900 | 演示租户与账号、演示通知、演示字典 |
 
-同一阶段内按模块错开号段：SaaS +0、代码生成 +10、AI +20、工作流 +30、聊天 +40、打印 +50，模块内多个种子在自己的 10 个号里排。新模块取一个未用的偏移（如 +60），每个阶段都用这一个偏移。
+同一阶段内按模块错开号段：SaaS +0、代码生成 +10、AI +20、工作流 +30、聊天 +40、打印 +50，模块内多个种子在自己的 10 个号里排。新的平台模块取一个未用的偏移（如 +60），每个阶段都用这一个偏移。业务模块（含代码生成产物）不占号：实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段的 +90 统一写入。
+
+SaaS 的 `Infrastructure/Seeders` 按文件夹分组（只做分组，命名空间仍是 `XiHan.BasicApp.Saas.Infrastructure.Seeders`）：`Base/` 放各模块共用的基类与公共件（`PermissionCatalogWriterBase`、`PermissionCatalogSeederBase`、`PageRegistryMenuSeederBase`、业务模块登记接口 `SeedContributions`、`PlatformDataSeederBase`、`SettingSeederBase`、`TaskSeederBase`、操作字典 `PermissionCatalog`、`SeedOrders`、`SeedValues`），`Catalog/` 放操作字典、权限目录与菜单（含业务模块登记的两个汇总种子），`Platform/` 放超管、套餐、参数、存储、消息模板、OAuth 应用与定时任务，`Demo/` 放演示租户、通知、字典及其基类与场景数据。
 
 ### 写入口径
 
@@ -5902,7 +5999,7 @@ services.AddScoped<IEntityAuditContextProvider, SaasEntityDiffContextProvider>()
 
 - **分页走 POST**：`GetXxxLogPageAsync` 显式标 `[HttpPost]`，前端把整个查询对象（含 `conditions`/`filters`/`sorts`）作 body 下发。
 - **权限门控**：每个方法用 `[PermissionAuthorize(SaasPermissionCodes.XxxLog.Read)]` 校验查看权限。
-- **字段级安全（FLS）**：排序与过滤在下推前经 `IFieldSecurityService.GuardSortsAsync` / `GuardFiltersAsync` 门控，剔除**不可读或已脱敏**的字段——保证用户不能借排序/过滤旁路脱敏策略。前端选择的多字段排序优先，无有效排序时回退默认按时间倒序（访问日志按 `AccessTime`、操作日志按 `OperationTime`、实体变更按 `AuditTime` 等）。
+- **字段级安全（FLS）**：排序、过滤与关键字在下推前经 `IFieldSecurityService.GuardQueryAsync` 门控，剔除**读受保护**（非明文）的字段——保证用户不能借排序/过滤旁路脱敏策略；响应按日志实体打码（`SysAccessLog`、`SysOpenApiLog` 等各自登记，列表 DTO 的 `SessionId` 声明了来源 `UserSessionId`，链路时间线按每条的日志类型打码）。前端选择的多字段排序优先，无有效排序时回退默认按时间倒序（访问日志按 `AccessTime`、操作日志按 `OperationTime`、实体变更按 `AuditTime` 等）。
 - **分表查询**：查询链路都带 `.SplitTable()`，配合时间区间条件命中对应月表。
 
 查询支持的过滤维度按日志类型定制，共性包括：时间区间（`Between`）、`UserId`/`UserName`、`TraceId`（跨日志串联同一请求）、关键字模糊、执行耗时区间；再叠加各自特有维度（访问结果、操作类型、异常严重级别、登录结果、实体类型/风险等级等）。
@@ -6021,7 +6118,7 @@ XiHan.BasicApp 的消息能力横跨三块：**企业级消息中心（站内通
 
 ### 发布 → 展开 → 门控 → 推送
 
-发布走 `NotificationAppService.PublishNotificationAsync`（`[UnitOfWork(true)]` + 权限码 `SaasPermissionCodes.Message.Publish`），一个事务内完成：
+发布走 `NotificationAppService.PublishNotificationAsync`（`[UnitOfWork(true)]` + 权限码 `SaasPermissionCodes.Notification.Publish`；通知公告的菜单、查询与维护统一走 `saas:notification:*`，邮件短信记录走 `saas:message:*`），一个事务内完成：
 
 1. **展开**：`NotificationDomainService` 按 `TargetType` 解析收件人（All/Role/Department/User），批量 `INSERT` `SysUserNotification` 行。
 2. **偏好门控**：站内信落行前经 `FilterByPreferenceAsync` 过滤（见下节）；**强制阅读 / 紧急通知一律送达，不受门控**。
@@ -6032,7 +6129,7 @@ XiHan.BasicApp 的消息能力横跨三块：**企业级消息中心（站内通
 
 - **发 N 读 M / 已确认 K**：发布结果返回 `RecipientCount`；管理侧另有专用统计接口 `NotificationQueryService.GetNotificationReadStatsAsync`，一次性给出 `RecipientCount`/`ReadCount`/`UnreadCount`/`ConfirmCount`（按 `ConfirmTime` 非空统计）+ `NeedConfirm`，供详情页展示阅读进度。
 - **未读人员**：`GetNotificationUnreadUserPageAsync` 按通知 ID 分页查询未读用户（`NotificationStatus=Unread`），带出 `UserName`/`RealName`/`ReceivedTime`，可经通用导出机制导 CSV。
-- **催办**：`RemindAsync(id)` 查出该通知未读用户（`NotificationStatus=Unread`），对**在线未读者**重新实时推送 `ReceiveNotification`——**不改库**，仅即时再提醒（同样受权限码 `Message.Publish` 门控）。
+- **催办**：`RemindAsync(id)` 查出该通知未读用户（`NotificationStatus=Unread`），对**在线未读者**重新实时推送 `ReceiveNotification`——**不改库**，仅即时再提醒（同样受权限码 `Notification.Publish` 门控）。
 
 ### 用户侧：收件箱 API（UserInboxAppService）
 
@@ -6766,7 +6863,7 @@ module : resource : action
 | --- | --- |
 | `PermissionCode` | 权限码（`TenantId + PermissionCode` 租户内唯一），推荐三段式 |
 | `ModuleCode` | 模块段（如 `saas`），支持三段式权限码 |
-| `PermissionType` | `ResourceBased`（绑定 `ResourceId`+`OperationId`）/ `Functional`（仅凭码）/ `DataScope` |
+| `PermissionType` | `ResourceBased`（绑定 `ResourceId`+`OperationId`；种子里的权限全部是这一类）/ `Functional`（仅凭码，管理端自建时可用）/ `DataScope` |
 | `ResourceId` / `OperationId` | 关联 `SysResource` / `SysOperation`（`ResourceBased` 时必填） |
 | `IsRequireAudit` | 该权限操作是否强制写 `SysDiffLog` |
 | `Side` | 作用侧（`Platform` / `Tenant` / `Both`，必填）：权限在平台还是业务租户里生效 |
@@ -6793,14 +6890,26 @@ module : resource : action
 - 不超角色成员上限 `MaxMembers`（0 表示不限）：状态有效且未过期的绑定占名额，尚未生效的预约同样占，已过期的不占；同批移出的名额可以让出。
 - 撤销只置失效不删行，同一 用户×角色 的历史行再授予时就地复用、从现在起生效。
 
-### 角色层级继承（闭包表）
+### 角色继承
 
-角色支持层级继承，用**闭包表** `SysRoleHierarchy` 存储所有继承关系（含直接与传递）：
+下级角色继承上级角色的授权，用于「销售主管 = 销售 + 审批」这类叠加。`SysRoleHierarchy` 只存**直接继承边**（上级 `AncestorId` → 下级 `DescendantId`），间接继承、继承深度（最短路径长度）与路径都由 `RoleInheritanceGraph` 从边即时推出。角色继承图很小、也没有 SQL 联表依赖展开结果，不存派生的闭包就不会出现闭包与边不一致。
 
-- 每条记录是 `(AncestorId, DescendantId, Depth, Path)`；`Depth=0` 是自关联，`Depth=1` 直接继承，`Depth=n` 为 n 级间接继承，`Path` 形如 `1/3/5`。
-- 核心不变式：若 `A→B` 且 `B→C` 存在，则 `A→C` 也必须存在。表**不设** `Status`/`IsDeleted`——单条停用会破坏传递闭包一致性，变更时整体重建受影响路径，硬删。
-- 继承语义：后代自动获得祖先的所有 **Grant** 权限，可被后代自己的 `SysRolePermission.Deny` 覆盖；**`DataScope` 不继承**（每个角色独立定义数据范围）；SSD/DSD 约束检查须展开继承链。
-- 写入时服务层做**环路检测**（禁止 `A→B→A`）：新增 `A→B` 前先查 B 的祖先集是否已含 A。
+**生效口径**（授权快照、委托角色、角色详情里的「继承的权限」同一口径）：
+
+- 有效继承链 = 角色自身 + 经**启用**角色可达的全部上级。停用角色不贡献权限，也切断经由它的继承——停用一个中间角色即可暂停整条分支。
+- 每个角色单独结算自己的链：链上 Grant 并集减去链上 Deny 并集。上级的 Deny 对下级同样生效（下级自己授予也拿不到），下级的 Deny 可以收窄继承来的授权。
+- 用户持有的多个角色之间取并集：一个角色的 Deny 不影响另一个独立角色，见下一节。
+- **不继承**：数据范围（每个角色独立定义）、字段安全规则（挂在直接持有的角色上）、成员上限。
+
+**维护规则**（`BatchUpdateRoleParents` 一次提交新增与解除，先解除后新增）：
+
+- 入口要「角色继承查看」，本次含新增要「角色继承创建」，含解除要「角色继承删除」；新增上级等同把上级链的权限授给本角色，与分配角色走同一道模仿登录授出校验。
+- 新增上级：不能是自己或自己的下级（成环），不能是已经间接继承的角色，必须已启用；已是直接上级视为已达成。解除上级不受其他路径限制，解除后若仍经别的上级可达，照样间接继承。
+- 系统角色（`super_admin` / `tenant_owner`）不参与继承：它们的权限由授权快照按上下文整体给出，继承它们得不到任何权限。
+- 作用范围：租户角色可继承本租户角色与平台全局角色，边存本租户；全局角色只继承全局角色，边存平台、仅平台维护。平台调整全局角色的继承随读取即时作用到各租户，不需要逐租户重建。
+- 写入后按新关系复核静态职责分离：本角色及其下级各自的继承链、持有它们的成员的全部角色；拒绝 / 需审批类违规回滚整次变更，警告 / 记录日志类放行留痕。平台调整全局角色时，继承了它或持有它的租户逐个切入复核。
+- 每条实际新增 / 解除记一条权限变更日志（「角色新增上级」「角色解除上级」），并失效授权快照与菜单缓存。
+- 角色存在继承关系时不能删除，先解除。
 
 ### 用户直授与合并优先级
 
@@ -6866,16 +6975,16 @@ module : resource : action
 
 ### 服务端落地：读脱敏 + 写校验 + 排序/过滤门控
 
-FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**：
+FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规则，由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**。实体一律以类型传入（`typeof(SysUser)`），必须在实体目录里登记过：
 
-- `ResolveAsync(resourceCode)`：解析当前用户在某资源上的有效规则（合并 deny-overrides），得到 `EffectiveFieldRule` 字典。
-- `ApplyAsync(resourceCode, item/items)`：对返回 DTO/集合**反射就地脱敏**。列表、详情、导出都调用它。
-- `EnsureEditableAsync` / `EnsureUpdatableAsync`：写路径校验——命中不可编辑字段被实际修改则抛异常。
-- `GuardSortsAsync` / `GuardFiltersAsync`：**推断攻击防护**——就地剔除当前用户"不可读或已脱敏"字段的排序键与过滤条件。否则用户可按受保护字段排序/过滤，从结果顺序反推被脱敏的真实值。字段名大小写不敏感匹配，无显式规则默认放行。
+- `ResolveAsync(entityType)`：解析当前用户在该实体上的有效规则（同字段取最严读取方式、任一只读即只读），同一请求内缓存。
+- `GuardQueryAsync(conditions, entityType)`：**推断攻击防护**——剔除读受保护字段上的排序、过滤与关键字搜索字段，否则可从结果顺序或命中反推原值。
+- `MaskAsync(response)`：沿响应对象图找出登记实体的 DTO **反射就地脱敏**。HTTP 接口由 `FieldSecurityResponseFilter` 统一调用，导出由导出基类调用。
+- `EnsureCreatableAsync` / `EnsureUpdatableAsync`：写路径校验——只读字段不能填写、不能修改；表单交回的脱敏值视为没改并还原原值。
 
-前端另有 `MyFieldSecurityAppService.GetMineAsync(resourceCode)` 下发"可读/可编辑/脱敏"信息，供表单据 `IsEditable` 置只读、展示脱敏标识——但**脱敏值本身已由服务端在响应里落地**，前端仅做体验优化。
+规则模型、读取方式、只写语义与接线要求见 [数据权限 · 字段级安全](./data-permission#字段级安全列级)。
 
-**导出与在线同一口径**：后台导出走 `ExportExecutor`，它在后台线程按任务发起人重建 `CurrentTenant` + `CurrentPrincipal`，再调用既有 QueryService，使**数据范围与字段脱敏原样生效**，并显式 `IPermissionChecker` 补齐进程内不触发 `[PermissionAuthorize]` 的缺口。重建的主体与在线请求同一口径：发起时记下的会话声明（会话已登出或被下线，导出随之失败）、与签发令牌同一来源的角色（超管判定等依赖角色的规则一致）、模仿者声明（模仿态禁用的权限在导出里同样禁用）；租户停用、到期或未就绪时导出直接失败。因此导出与在线列表看到的数据、脱敏结果一致。
+**导出与在线同一口径**：后台导出走 `ExportExecutor`，它在后台线程按任务发起人重建 `CurrentTenant` + `CurrentPrincipal`，再调用既有 QueryService，使**数据范围与字段脱敏原样生效**，并显式 `IPermissionChecker` 补齐进程内不触发 `[PermissionAuthorize]` 的缺口。导出校验的是 Provider 的 `RequiredPermission`，即页面导出按钮绑定的 `saas:xxx:export`，不是资源的读权限；提交任务时 `ExportTaskAppService.SubmitAsync` 就按它拦截（只有读权限的人直调提交接口也进不来），执行时再校验一次，覆盖提交后被收回权限的情况。重建的主体与在线请求同一口径：发起时记下的会话声明（会话已登出或被下线，导出随之失败）、与签发令牌同一来源的角色（超管判定等依赖角色的规则一致）、模仿者声明（模仿态禁用的权限在导出里同样禁用）；租户停用、到期或未就绪时导出直接失败。因此导出与在线列表看到的数据、脱敏结果一致。
 
 ## ABAC：属性驱动的约束
 
@@ -6955,7 +7064,7 @@ FLS 由 `IFieldSecurityService` 在服务端强制落地，**不依赖前端**�
   → 租户解析：落到哪个租户上下文（字段级隔离，全局数据 TenantId=0）
   → 授权(RBAC)：IPermissionChecker 实时校验权限码（查授权快照）
         · deny-overrides：用户 Deny > 用户 Grant > 角色 Deny > 角色 Grant
-        · 角色权限经 SysRoleHierarchy 展开继承链（祖先 Grant，后代 Deny 覆盖）
+        · 角色权限按各自的有效继承链结算（经启用角色可达的上级；链上 Grant 减链上 Deny）
         · 委托权限（SysPermissionDelegation）并入快照，再统一被用户 Deny 收窄
         · 只取当前上下文的绑定（平台的绑定不进租户，反之亦然）
         · 作用侧：不在当前上下文生效的权限码先于通配拒绝
@@ -7298,7 +7407,7 @@ public async Task<PositionDetailDto> CreatePositionAsync(PositionCreateDto input
 
 ### 读侧
 
-`*QueryService` 直接投影，多数带分布式缓存。读路径还会经 `IFieldSecurityService.GuardFiltersAsync` / `GuardSortsAsync` 做字段级门控——只有「可读且未脱敏」的字段允许参与过滤与排序。
+`*QueryService` 直接投影，多数带分布式缓存。读路径还会经 `IFieldSecurityService.GuardQueryAsync` 做字段级门控——只有能看明文的字段允许参与排序、过滤与关键字搜索；接口返回前由 `FieldSecurityResponseFilter` 统一按实体打码（排在响应缓存外层）。
 
 ## 收尾顺序（最容易踩的时序）
 
@@ -8647,30 +8756,18 @@ const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:gr
 
 ### 脱敏在服务端完成
 
-**后端返回的敏感字段已经是打码后的值**（如 `138****8000`），前端**不再二次打码**。
+**后端返回的敏感字段已经是打码后的值**（如 `138****5678`），前端**不再二次打码**，页面也不需要为字段安全写任何代码：
 
-前端侧的 `useFieldSecurity(resourceCode)`（`~/components/schema/useFieldSecurity.ts`）由页面自行调用：传入后端资源码，再调 `resolve()` 拉取当前用户在该资源上的有效字段规则（`GET /MyFieldSecurity/Mine?resourceCode=`）。它返回 `ruleFor` / `isReadable` / `isEditable` / `resolve`，用途只有两个：
+- 读：列表、详情、导出拿到的就是打码后的值；
+- 写：表单把拿到的脱敏值或空值原样交回，后端视为没改并还原原值——**不会用 `138****5678` 覆盖真实号码**；改动了只读字段，后端返回「字段「…」当前用户无修改权限」。
 
-1. 表单按 `isEditable(fieldKey)` 置**只读**；
-2. 展示「不可见 / 已脱敏」的**标识**。
+规则在「字段安全」页按实体、字段下拉配置，模型见 [数据权限 · 字段级安全](../backend/data-permission#字段级安全列级)。
 
-规则形如：
+### 字段安全也门控查询条件
 
-```ts
-{ fieldName, isReadable, isEditable, maskStrategy, maskPattern }
-```
+服务端会剔除**读受保护**字段上的排序、过滤与关键字搜索字段，剔完没有有效排序时回退默认排序。
 
-端点未就绪或无规则时**默认放行**（`isReadable` / `isEditable` 缺省 `true`）。
-
-::: warning `SchemaPage` 不会自动接线 FLS
-`useFieldSecurity` 是独立 hook，`SchemaPage` 不会自动调用它——`PageSchema.resourceCode` 只用于导入留痕。要按 FLS 置只读，得在页面里自己 `useFieldSecurity(...)` + `resolve()` 并把 `isEditable` 接到表单上。
-:::
-
-### FLS 也门控过滤与排序
-
-服务端读侧会经 `GuardFiltersAsync` / `GuardSortsAsync` 剔除**不可读或已脱敏**字段的过滤与排序条件，剔完没有有效排序时回退默认排序。
-
-所以「排序点了没反应」「按某字段搜索没效果」优先怀疑字段权限，而不是前端 bug。
+所以「排序点了没反应」「按某字段搜索没效果」优先怀疑字段安全，而不是前端 bug。
 
 ## 多租户
 
@@ -8692,7 +8789,7 @@ const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:gr
 | 按钮不显示 | 权限码写错（去后端 `SaasPermissionDefinitions` 对）；或用户确实没这个权限 |
 | 导出按钮不显示 | `PageSchema.exportPermission` 没声明 |
 | 列不显示 | 字段 `permission` 无权；或 `visible: false` |
-| 表单该只读却可编辑 | 页面没调 `useFieldSecurity(...)` + `resolve()`，或没把 `isEditable` 接到表单字段上 |
+| 保存时报「无修改权限」 | 字段安全规则让该字段对当前用户只读，而表单改了它的值 |
 | 前端能点、后端 403 | 正常——前端过滤是体验层，以后端为准。检查该接口的 `[PermissionAuthorize]` 是否与前端用的码一致 |
 | 改了授权前端还是旧的 | 重新拉 `/api/Auth/Permissions`；后端侧检查是否调了 `InvalidateAuthorizationAsync` |
 
@@ -9122,6 +9219,7 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 - **导入**：模板下载、CSV 解析、预校验、批量创建对话框
 - **批量操作**：批量删除、批量启停、页面自定义批量动作
 - **个人视图/搜索方案**：保存当前筛选 + 排序为命名方案（经组件实例方法 `saveView` / `applyView` 暴露，无内置 UI 入口）
+- **行显示文本**：实例方法 `formatRow(row)` 按字段的解析结果把一行换成显示文本（选项列出名称、日期与布尔按显示格式，空值为空串），供打印等要「所见即所得」数据的场景使用；页面用 `ref<SchemaPageInstance | null>` 取实例
 - **偏好云端同步**：列设置与搜索设置按 `pageCode` 同步后端，多端一致
 
 ## 字段 Schema：`ListFieldSchema`
@@ -9132,7 +9230,7 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 | --- | --- |
 | `key` | 字段键，对应行数据的属性名 |
 | `title` | 列标题（**建议传 i18n key 的翻译结果**） |
-| `dataType` | `string` / `enum` / `datetime` / `money` / `tag` / `json` / `image` 等，决定默认渲染器与搜索控件 |
+| `dataType` | `string` / `enum` / `datetime` / `money` / `tag` / `json` / `image` / `file` 等，决定默认渲染器与搜索控件；`image` / `file` 的值是文件主键（兼容直链），单元格分别出缩略图与打开入口 |
 | `visible` | 是否作为表格列。**`false` = 仅搜索用，不出现在表格** |
 | `searchable` / `advancedSearch` | 进入常用搜索 / 高级搜索浮层 |
 | `searchRange` | 时间字段：渲染区间选择器 + 便捷预设，下发 `Between` |
@@ -9140,8 +9238,10 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 | `sortable` | 服务端排序（列头出现排序箭头） |
 | `exportable` / `importable` / `editable` | 参与导出 / 导入模板 / 表单编辑 |
 | **`permission`** | **字段级权限码**：无此权限时该列与该搜索项**整个不渲染** |
-| `dictionaryCode` | 枚举名或字典码，运行时异步拉取选项注入 `options` |
-| `options` | 静态选项（`dictionaryCode` 解析为空时兜底，**保证绝不出现空下拉**） |
+| `dictionaryCode` | 后端枚举类型名，运行时经枚举元数据拉取本地化选项注入 `options` |
+| `dictCode` | 系统字典编码（字典管理里的字典），运行时经字典选项接口拉取注入 `options`，选项值为字典项编码；与 `dictionaryCode` 二选一 |
+| `optionsLoader` | 异步选项加载器（如代码生成的外键选项接口），挂载时调用并注入 `options`；与页面表单下拉在途时共用一次请求 |
+| `options` | 静态选项（`dictionaryCode` / `dictCode` / `optionsLoader` 解析为空时兜底，**保证绝不出现空下拉**） |
 | `render` | 自定义单元格渲染（最高优先级，返回 `VNodeChild`） |
 | `treeColumn` | 树形模式下承载展开箭头的列（应有且仅有一个） |
 | `order` | 排序值，越小越靠前 |
@@ -9151,7 +9251,7 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 
 | 属性 | 作用 |
 | --- | --- |
-| `pageCode` | 页面唯一码，**偏好与视图按此维度存储**（如 `log.access`） |
+| `pageCode` | 页面唯一码，取该页面在后端页面登记表（各模块 `PageRegistry`）里的页面码，一页有多张表时用「页面码.子表」（如 `log.access`、`message.record.email`）；**偏好、视图与导入历史按此维度存储**，`src/views/view-page-code.test.ts` 校验对应关系 |
 | `pageName` | 页面名 |
 | `resourceCode` | 后端资源码，用于匹配字段脱敏（FLS）规则；**缺省则不拉取脱敏规则** |
 | `resource` | 数据资源适配器：`page` / `tree` / `remove` / `updateStatus` / `create` / `export` |
@@ -9315,7 +9415,7 @@ resource: {
 同步策略：**localStorage 仍是事实源**，后端加载成功则覆盖本地，保存失败静默忽略（尽力而为）。其它设备保存后经 SignalR `UserSettingChanged` 实时推送并应用到已打开的页面。
 
 ::: tip `pageCode` 要稳定
-偏好、视图、列设置全按 `pageCode` 存储。**改了 `pageCode` 等于用户的所有个性化配置丢失**，页面上线后不要再动它。
+偏好、视图、列设置与导入历史全按 `pageCode` 存储。**只改 `pageCode` 等于用户的所有个性化配置丢失**，页面上线后不要再动它；确需改名时，随升级脚本把 `sys_user_setting`（`scene = 1`）与 `sys_import_history` 里的旧码改成新码（参考 `UpdateScripts/5.4.0/5.4.0-page-codes.sql`）。
 :::
 
 ## 加一个列表页的清单
@@ -9425,7 +9525,7 @@ localStorage（事实源）
 Schema 页的列设置、搜索设置、个人视图按 `pageCode` 走同一套机制，见 [Schema 驱动页面](./schema-page#偏好与视图)。
 
 ::: tip `pageCode` 要稳定
-偏好按 `pageCode` 存储，**改了等于用户的所有个性化配置丢失**。页面上线后不要再动它。
+偏好按 `pageCode` 存储，**只改它等于用户的所有个性化配置丢失**。页面上线后不要再动它；确需改名见 [Schema 驱动页面](./schema-page#偏好与视图)。
 :::
 
 ## 排查
