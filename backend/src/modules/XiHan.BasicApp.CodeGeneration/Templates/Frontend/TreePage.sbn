@@ -21,8 +21,9 @@
 {{~ has_relation_select = false ~}}
 {{~ has_relation_tree = false ~}}
 {{~ has_date_picker = false ~}}
+{{~ has_date_only = false ~}}
+{{~ has_date_time = false ~}}
 {{~ has_time_input = false ~}}
-{{~ has_datetime_input = false ~}}
 {{~ has_long_input = false ~}}
 {{~ # 控件由渲染器的 col.ControlKind 单点决定；父列除外，它恒是树形下拉。 ~}}
 {{~ for col in Columns ~}}
@@ -47,6 +48,10 @@
 {{~ has_relation_tree = true ~}}
 {{~ else if col.ControlKind == "date" ~}}
 {{~ has_date_picker = true ~}}
+{{~ has_date_only = true ~}}
+{{~ else if col.ControlKind == "datetime" ~}}
+{{~ has_date_picker = true ~}}
+{{~ has_date_time = true ~}}
 {{~ else if col.ControlKind == "image" || col.ControlKind == "file" ~}}
 {{~ has_upload = true ~}}
 {{~ else if col.ControlKind == "number" ~}}
@@ -56,31 +61,24 @@
 {{~ if col.ControlKind == "time" ~}}
 {{~ has_time_input = true ~}}
 {{~ end ~}}
-{{~ if col.ControlKind == "datetime" ~}}
-{{~ has_datetime_input = true ~}}
-{{~ end ~}}
 {{~ if col.IsLongColumn ~}}
 {{~ has_long_input = true ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
 {{~ end ~}}
-{{~ # 提交前校验覆盖三类列（都没有就不产出校验函数，避免未被引用）： ~}}
+{{~ # 提交前校验覆盖两类列（都没有就不产出校验函数，避免未被引用）： ~}}
 {{~ # 一是必填列——判空表达式由渲染器按控件给出（FormEmptyCheck），非空且没有缺省值的列也按必填； ~}}
-{{~ # 二是整数列——数字框收得进小数，整数属性遇到小数会整单 400； ~}}
-{{~ # 三是 long 与时间/日期时间列——前端用文本框承载，格式不对后端会静默落成 0 或默认值。 ~}}
+{{~ # 二是 long 与时间列——前端用文本框承载，格式不对后端会静默落成 0 或默认值。 ~}}
+{{~ # 整数列不必再校验：数字框按 col.NumberPrecision 收值，整数列是 0 位小数。 ~}}
 {{~ # 父级不在其列：不选即作为根节点，永不必填 ~}}
 {{~ has_required = false ~}}
-{{~ has_integer_number = false ~}}
 {{~ for col in Columns ~}}
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.FormEmptyCheck ~}}
 {{~ has_required = true ~}}
 {{~ end ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsIntegerNumber ~}}
-{{~ has_integer_number = true ~}}
 {{~ end ~}}
-{{~ end ~}}
-{{~ has_validation = has_required || has_integer_number || has_long_input || has_time_input || has_datetime_input ~}}
+{{~ has_validation = has_required || has_long_input || has_time_input ~}}
 {{~ # 操作裁剪标志（EnabledActions 门控；读取基线 tree/detail 始终生成） ~}}
 {{~ # 一列都不进表单时不产弹窗与增改按钮：空表单没有意义，且会留下未被引用的 import ~}}
 {{~ can_create = CanCreate && has_form_field ~}}
@@ -400,7 +398,7 @@ async function handlePrint(row: {{ ClassName }}ListItemDto) {
 }
 {{~ end ~}}
 {{~ if has_modal ~}}
-{{~ if has_date_picker ~}}
+{{~ if has_date_only ~}}
 
 /**
  * 纯日期列按本地年月日发送。
@@ -418,6 +416,22 @@ function toDateOnly(value: number | null | undefined) {
   return `${date.getFullYear()}-${month}-${day}`
 }
 {{~ end ~}}
+{{~ if has_date_time ~}}
+
+/**
+ * 日期时间列按本地时间文本发送（yyyy-MM-dd HH:mm:ss），与后端下发、导入的口径一致。
+ *
+ * 带时刻的日期控件给出本地时刻的时间戳；同样不走 toISOString，免得换算成 UTC 后差出时区。
+ */
+function toDateTime(value: number | null | undefined) {
+  if (value == null || Number.isNaN(value)) {
+    return ''
+  }
+  const date = new Date(value)
+  const pad = (part: number) => String(part).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}
+{{~ end ~}}
 {{~ if has_validation ~}}
 {{~ if has_long_input ~}}
 
@@ -428,11 +442,6 @@ const INTEGER_PATTERN = /^-?\d+$/
 
 /** 时间列脚手架用文本框承载，提交前按 HH:mm(:ss) 校验，避免后端解析失败静默落成默认值 */
 const TIME_PATTERN = /^\d{1,2}:\d{2}(?::\d{2})?$/
-{{~ end ~}}
-{{~ if has_datetime_input ~}}
-
-/** 日期时间列同理：组件库没有带时分秒的选择器包装，脚手架用文本框 + 格式校验兜住 */
-const DATE_TIME_PATTERN = /^\d{4}-\d{2}-\d{2}(?:[ T]\d{1,2}:\d{2}(?::\d{2})?)?$/
 {{~ end ~}}
 
 {{~ # 只勾单侧新增/编辑的列在另一侧被 v-if 藏起来，校验也得跟着分侧 ~}}
@@ -452,12 +461,6 @@ function validateForm() {
     return false
   }
 {{~ end ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsIntegerNumber ~}}
-  if ({{ side_guard }}form.value.{{ col.TsProperty }} != null && !Number.isInteger(form.value.{{ col.TsProperty }})) {
-    toast.warning('{{ col.Label | ts_string }}只能填整数')
-    return false
-  }
-{{~ end ~}}
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.IsLongColumn && (col.ControlKind == "text" || col.ControlKind == "textarea") ~}}
   if ({{ side_guard }}form.value.{{ col.TsProperty }} && !INTEGER_PATTERN.test(String(form.value.{{ col.TsProperty }}))) {
     toast.warning('{{ col.Label | ts_string }}只能填整数')
@@ -467,12 +470,6 @@ function validateForm() {
 {{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "time" ~}}
   if ({{ side_guard }}form.value.{{ col.TsProperty }} && !TIME_PATTERN.test(String(form.value.{{ col.TsProperty }}))) {
     toast.warning('{{ col.Label | ts_string }}格式应为 HH:mm 或 HH:mm:ss')
-    return false
-  }
-{{~ end ~}}
-{{~ if col.InForm && col.ColumnName != TreeParentColumn.ColumnName && col.ControlKind == "datetime" ~}}
-  if ({{ side_guard }}form.value.{{ col.TsProperty }} && !DATE_TIME_PATTERN.test(String(form.value.{{ col.TsProperty }}))) {
-    toast.warning('{{ col.Label | ts_string }}格式应为 YYYY-MM-DD HH:mm:ss')
     return false
   }
 {{~ end ~}}
@@ -588,10 +585,9 @@ async function handleSubmit() {
 {{~ else if col.ControlKind == "select" ~}}
               <XSelect v-model:value="form.{{ col.TsProperty }}"{{ if col.IsNullable || !col.IsRequired }} clearable{{ end }} :options="({{ col.TsProperty }}Options as SelectOption[])" placeholder="请选择{{ col.Label | html_attr }}" />
 {{~ else if col.ControlKind == "date" ~}}
-              <XDatePicker v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请选择{{ col.Label | html_attr }}" />
+              <XDatePicker v-model:value="form.{{ col.TsProperty }}" clearable />
 {{~ else if col.ControlKind == "datetime" ~}}
-              <!-- 日期时间：组件库没有带时分秒的选择器包装，脚手架用文本框 + 提交前格式校验 -->
-              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="YYYY-MM-DD HH:mm:ss" />
+              <XDatePicker v-model:value="form.{{ col.TsProperty }}" clearable show-time />
 {{~ else if col.ControlKind == "time" ~}}
               <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="HH:mm:ss" />
 {{~ else if col.ControlKind == "treeselect" ~}}
@@ -600,14 +596,14 @@ async function handleSubmit() {
               <!-- 上传到文件中心，字段只存文件主键；使用者需要文件的上传与查看权限 -->
               <XFileRefUpload v-model:value="form.{{ col.TsProperty }}" kind="{{ col.ControlKind }}" />
 {{~ else if col.ControlKind == "number" ~}}
-              <XNumberInput v-model:value="form.{{ col.TsProperty }}" />
+              <XNumberInput v-model:value="form.{{ col.TsProperty }}"{{ if col.NumberPrecision != null }} :precision="{{ col.NumberPrecision }}"{{ end }} placeholder="请输入{{ col.Label | html_attr }}" />
 {{~ else if col.ControlKind == "binary" ~}}
               <!-- 二进制列：脚手架用文本框承载 Base64，接真实上传请替换成上传组件 -->
               <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="{{ col.Label | html_attr }}（Base64 内容）" />
 {{~ else if col.ControlKind == "textarea" ~}}
-              <XInput v-model:value="form.{{ col.TsProperty }}" clearable :rows="3" type="textarea" placeholder="请输入{{ col.Label | html_attr }}" />
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable :rows="3" type="textarea"{{ if col.InputMaxLength }} :max-length="{{ col.InputMaxLength }}" show-count{{ end }} placeholder="请输入{{ col.Label | html_attr }}" />
 {{~ else ~}}
-              <XInput v-model:value="form.{{ col.TsProperty }}" clearable placeholder="请输入{{ col.Label | html_attr }}" />
+              <XInput v-model:value="form.{{ col.TsProperty }}" clearable{{ if col.InputMaxLength }} :max-length="{{ col.InputMaxLength }}"{{ end }} placeholder="请输入{{ col.Label | html_attr }}" />
 {{~ end ~}}
             </XhFieldControl>
             <XhFieldErrorText />

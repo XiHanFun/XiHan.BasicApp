@@ -74,7 +74,7 @@ public sealed class ControlKindTests
     }
 
     /// <summary>
-    /// 表单模型类型随控件走：开关恒 boolean、纯日期按时间戳承载，其余同归一化后的 TS 类型。
+    /// 表单模型类型随控件走：开关恒 boolean、日期与日期时间按时间戳承载，其余同归一化后的 TS 类型。
     /// </summary>
     /// <param name="csharpType">C# 类型</param>
     /// <param name="tsType">列配置里存的 TS 类型</param>
@@ -83,7 +83,7 @@ public sealed class ControlKindTests
     [Theory]
     [InlineData("bool", "boolean", HtmlType.Switch, "boolean")]
     [InlineData("DateTimeOffset", "string", HtmlType.DatePicker, "number")]
-    [InlineData("DateTimeOffset", "string", HtmlType.DateTimePicker, "string")]
+    [InlineData("DateTimeOffset", "string", HtmlType.DateTimePicker, "number")]
     [InlineData("int", "number", HtmlType.InputNumber, "number")]
     [InlineData("string", "string", HtmlType.Input, "string")]
     public async Task FormTsType_ShouldFollowControlKind(string csharpType, string tsType, HtmlType htmlType, string expected)

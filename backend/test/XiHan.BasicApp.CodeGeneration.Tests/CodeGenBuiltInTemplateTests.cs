@@ -69,7 +69,7 @@ public sealed partial class CodeGenBuiltInTemplateTests
     }
 
     /// <summary>
-    /// 单表页面：非空列留空发缺省值、可空文本清空发 null、必填下拉判 null、整数列拦小数。
+    /// 单表页面：非空列留空发缺省值、可空文本清空发 null、必填下拉判 null、整数列的数字框按 0 位小数收值。
     /// </summary>
     [Fact]
     public async Task Page_ShouldSubmitWireValuesThatTheBackendAccepts()
@@ -80,9 +80,85 @@ public sealed partial class CodeGenBuiltInTemplateTests
         Assert.Contains("remark: form.value.remark || null,", content, StringComparison.Ordinal);
         Assert.Contains("if (form.value.level == null) {", content, StringComparison.Ordinal);
         Assert.Contains("toast.warning('请选择级别')", content, StringComparison.Ordinal);
-        Assert.Contains("if (form.value.stock != null && !Number.isInteger(form.value.stock)) {", content, StringComparison.Ordinal);
-        Assert.Contains("toast.warning('库存只能填整数')", content, StringComparison.Ordinal);
+        Assert.Contains("<XNumberInput v-model:value=\"form.stock\" :precision=\"0\" placeholder=\"请输入库存\" />", content, StringComparison.Ordinal);
+        // 数字框已按 0 位小数收值，不再产出提交前的整数校验
+        Assert.DoesNotContain("Number.isInteger", content, StringComparison.Ordinal);
         Assert.DoesNotContain(":min=\"0\"", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 日期与日期时间列都用日期选择器（后者带时刻），按时间戳承载，提交时换成本地日期 / 本地日期时间文本；
+    /// 不再产出日期时间的文本框与格式校验，日期选择器也不收占位文字。
+    /// </summary>
+    [Fact]
+    public async Task Page_DateAndDateTimeColumnsShouldUsePickers()
+    {
+        var content = await RenderAsync("Frontend/Page.sbn", ImportContext());
+
+        Assert.Contains("<XDatePicker v-model:value=\"form.publishDate\" clearable />", content, StringComparison.Ordinal);
+        Assert.Contains("<XDatePicker v-model:value=\"form.endTime\" clearable show-time />", content, StringComparison.Ordinal);
+        Assert.Contains("endTime: src.endTime ? new Date(String(src.endTime).replace(' ', 'T')).getTime() : null,", content, StringComparison.Ordinal);
+        Assert.Contains("publishDate: toDateOnly(form.value.publishDate),", content, StringComparison.Ordinal);
+        Assert.Contains("endTime: form.value.endTime == null ? null : toDateTime(form.value.endTime),", content, StringComparison.Ordinal);
+        Assert.Contains("function toDateOnly(value: number | null | undefined) {", content, StringComparison.Ordinal);
+        Assert.Contains("function toDateTime(value: number | null | undefined) {", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("DATE_TIME_PATTERN", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("YYYY-MM-DD HH:mm:ss", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("<XDatePicker v-model:value=\"form.publishDate\" clearable placeholder", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 只有日期时间列时不产出用不上的 toDateOnly，反之亦然（未被引用的函数过不了 lint）。
+    /// </summary>
+    [Fact]
+    public async Task Page_DateHelpersShouldFollowTheirColumns()
+    {
+        var context = SingleContext();
+        context.Columns = [.. context.Columns, Column("EndTime", "DateTimeOffset?", "string", HtmlType.DateTimePicker, isNullable: true)];
+
+        var content = await RenderAsync("Frontend/Page.sbn", context);
+
+        Assert.Contains("function toDateTime(", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("function toDateOnly(", content, StringComparison.Ordinal);
+        Assert.Contains(", XDatePicker,", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 文本框带上列定义的字数上限（DTO 不校验长度，超长要到落库才报错），文本域还显示字数。
+    /// </summary>
+    [Fact]
+    public async Task Page_TextInputsShouldCarryColumnLength()
+    {
+        var context = SingleContext();
+        context.Columns.Single(column => column.CSharpProperty == "ProductName").Length = 64;
+        context.Columns.Single(column => column.CSharpProperty == "Remark").Length = 500;
+
+        var content = await RenderAsync("Frontend/Page.sbn", context);
+
+        Assert.Contains("<XInput v-model:value=\"form.productName\" clearable :max-length=\"64\" placeholder=\"请输入ProductName 注释\" />", content, StringComparison.Ordinal);
+        Assert.Contains("<XInput v-model:value=\"form.remark\" clearable :rows=\"3\" type=\"textarea\" :max-length=\"500\" show-count placeholder=\"请输入Remark 注释\" />", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 树表页面与单表页面同口径：日期时间列用带时刻的日期选择器，数字框按列类型给小数位。
+    /// </summary>
+    [Fact]
+    public async Task TreePage_ControlsShouldMatchPage()
+    {
+        var context = TreeContext(nullableParent: true);
+        var sort = Column("Sort", "int", "number", HtmlType.InputNumber);
+        sort.ColumnComment = "排序";
+        context.Columns = [.. context.Columns, sort, Column("EndTime", "DateTimeOffset?", "string", HtmlType.DateTimePicker, isNullable: true)];
+
+        var content = await RenderAsync("Frontend/TreePage.sbn", context);
+
+        Assert.Contains("<XDatePicker v-model:value=\"form.endTime\" clearable show-time />", content, StringComparison.Ordinal);
+        Assert.Contains("endTime: form.value.endTime == null ? null : toDateTime(form.value.endTime),", content, StringComparison.Ordinal);
+        Assert.Contains("function toDateTime(value: number | null | undefined) {", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("function toDateOnly(", content, StringComparison.Ordinal);
+        Assert.Contains("<XNumberInput v-model:value=\"form.sort\" :precision=\"0\" placeholder=\"请输入排序\" />", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("Number.isInteger", content, StringComparison.Ordinal);
+        Assert.DoesNotContain("DATE_TIME_PATTERN", content, StringComparison.Ordinal);
     }
 
     /// <summary>

@@ -272,11 +272,11 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             // 标志段、渲染段、回填、提交、表单模型、默认值分散在六份模板里，
             // 任何一处次序不同都会渲出「控件是下拉、模型是时间戳」这类自相矛盾的代码。
             ["ControlKind"] = controlKind,
-            // 表单模型里该列的 TS 类型（开关恒 boolean、日期按时间戳承载，其余同 TsType）
+            // 表单模型里该列的 TS 类型（开关恒 boolean、日期与日期时间按时间戳承载，其余同 TsType）
             ["FormTsType"] = controlKind switch
             {
                 "switch" => "boolean",
-                "date" => "number",
+                "date" or "datetime" => "number",
                 _ => tsType
             },
             // 表单取值的五件套，与 ControlKind 同理收在这里，两份页面模板与两份 schema 模板共用。
@@ -287,8 +287,11 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["FormDefault"] = form.Default,
             ["FormFromSource"] = form.FromSource,
             ["FormToWire"] = form.ToWire,
-            // 数字输入框收得进小数，整数属性遇到 1.5 会整单 400，提交前按整数校验
-            ["IsIntegerNumber"] = controlKind == "number" && CSharpTypeFacts.IsInteger(column.CSharpType),
+            // 数字框的小数位（XNumberInput precision）：整数列 0 位，否则 1.5 会让整单 400；
+            // decimal 列按列定义的小数位；其余不限
+            ["NumberPrecision"] = ResolveNumberPrecision(column, controlKind),
+            // 文本框的字数上限（XInput max-length）：DTO 不校验长度，超长要到落库才报错
+            ["InputMaxLength"] = ResolveInputMaxLength(column, controlKind, tsType, isLongColumn),
             // 列表字段的 dataType：表格渲染、搜索控件、导入换算都按它走，三份 schema 字段段共用这一个判据
             ["FieldDataType"] = ResolveFieldDataType(column, controlKind, tsType),
             // 导入：CSV 逐行调新增接口，列集合与新增表单一致；二进制列没法在表格里填，不进导入
@@ -473,7 +476,8 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
     /// 非空列若只因没勾必填就在报文里发 null，值类型会整单 400、非空字符串会在落库时撞 NOT NULL。
     /// 所以非空列留空时报文要有一个能落库的值——文本给空串、数字给 0、开关恒有值；
     /// 下拉、日期、时间、二进制与 long 标识没有说得通的缺省值，非空时一律按必填校验。
-    /// 可空的文本类控件清空后是空串，按 null 发：long、时间、日期时间的空串后端解析不了。
+    /// 可空的文本类控件清空后是空串，按 null 发：long 与时间的空串后端解析不了。
+    /// 日期与日期时间都用日期选择器、按时间戳承载，提交时分别换成本地日期与本地日期时间文本。
     /// </remarks>
     private static FormFacts ResolveFormFacts(ColumnSchema column, string controlKind, string tsType, bool isLongColumn)
     {
@@ -494,8 +498,8 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
 
         var defaultValue = controlKind switch
         {
-            // 日期不预填：非空时交给必填校验强制选一次
-            "date" => "null",
+            // 日期与日期时间不预填：非空时交给必填校验强制选一次
+            "date" or "datetime" => "null",
             "switch" => "false",
             _ when column.IsNullable => "null",
             _ when enumDefault is not null => enumDefault,
@@ -507,7 +511,7 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
         var fromSource = controlKind switch
         {
             // 后端按 yyyy-MM-dd HH:mm:ss 下发，空格分隔在部分浏览器里解析不出，换成 T 按本地时间解析
-            "date" => "$s ? new Date(String($s).replace(' ', 'T')).getTime() : null",
+            "date" or "datetime" => "$s ? new Date(String($s).replace(' ', 'T')).getTime() : null",
             "switch" => "$s ?? false",
             _ => "$s ?? null"
         };
@@ -515,6 +519,7 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
         var toWire = controlKind switch
         {
             "date" => column.IsNullable ? "$v == null ? null : toDateOnly($v)" : "toDateOnly($v)",
+            "datetime" => column.IsNullable ? "$v == null ? null : toDateTime($v)" : "toDateTime($v)",
             "switch" => "$v",
             _ when column.IsNullable => controlKind is "number" or "select" or "treeselect" ? "$v ?? null" : "$v || null",
             _ => $"$v ?? {zero}"
@@ -522,7 +527,7 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
 
         string? emptyCheck = !isRequired ? null : controlKind switch
         {
-            "date" => "$v == null || Number.isNaN($v)",
+            "date" or "datetime" => "$v == null || Number.isNaN($v)",
             "number" => "$v == null",
             "select" or "treeselect" => tsType == "number" ? "$v == null" : "!$v",
             _ => "!$v?.trim()"
@@ -530,7 +535,7 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
 
         var verb = controlKind switch
         {
-            "date" or "select" or "treeselect" => "请选择",
+            "date" or "datetime" or "select" or "treeselect" => "请选择",
             "image" or "file" => "请上传",
             _ => "请输入"
         };
@@ -560,6 +565,51 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
         }
 
         return column.IsNullable ? "($r as $t | undefined) ?? null" : $"($r as $t | undefined) ?? {zero}";
+    }
+
+    /// <summary>
+    /// 数字框小数位的上限（与 XNumberInput 的 precision 校验同口径，超出时组件直接报错）
+    /// </summary>
+    private const int MaxNumberPrecision = 20;
+
+    /// <summary>
+    /// 解析数字框的小数位数
+    /// </summary>
+    /// <returns>整数列 0；decimal 列取列定义的小数位（超过组件上限时不限）；其余返回 null 表示不限</returns>
+    private static int? ResolveNumberPrecision(ColumnSchema column, string controlKind)
+    {
+        if (controlKind != "number")
+        {
+            return null;
+        }
+
+        if (CSharpTypeFacts.IsInteger(column.CSharpType))
+        {
+            return 0;
+        }
+
+        return CSharpTypeFacts.IsDecimal(column.CSharpType) && column.DecimalDigits is > 0 and <= MaxNumberPrecision
+            ? column.DecimalDigits
+            : null;
+    }
+
+    /// <summary>
+    /// 文本框字数上限的有效范围：text / clob 等不限长类型由库元数据报成 2^31-1 一类的哨兵值，不当真
+    /// </summary>
+    private const int MaxInputLengthHint = 65535;
+
+    /// <summary>
+    /// 解析文本框的字数上限
+    /// </summary>
+    /// <returns>字符串列的定义长度；long 标识、不限长或未定义长度时返回 null</returns>
+    private static int? ResolveInputMaxLength(ColumnSchema column, string controlKind, string tsType, bool isLongColumn)
+    {
+        if (controlKind is not ("text" or "textarea") || tsType != "string" || isLongColumn)
+        {
+            return null;
+        }
+
+        return column.Length is > 0 and <= MaxInputLengthHint ? column.Length : null;
     }
 
     /// <summary>
