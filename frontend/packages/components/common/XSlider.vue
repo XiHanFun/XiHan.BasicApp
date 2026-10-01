@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhSliderControl, XhSliderRange, XhSliderRoot, XhSliderThumb, XhSliderTrack } from '@xihan-ui/vue'
+import { XhSliderControl, XhSliderLabel, XhSliderRange, XhSliderRoot, XhSliderThumb, XhSliderTrack, XhSliderValueText } from '@xihan-ui/vue'
 import { computed } from 'vue'
 
 /**
@@ -16,12 +16,18 @@ const props = withDefaults(defineProps<{
   step?: number
   /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
+  /** 拖动时在拇指上方冒出当前值的气泡，松手收起 */
+  showValue?: boolean
+  /** 没有可见标签时的可及名：拇指的名字由 label 部件给，这里放进视觉隐藏的 label */
+  ariaLabel?: string
 }>(), {
   value: 0,
   min: 0,
   max: 100,
   step: 1,
   disabled: undefined,
+  showValue: false,
+  ariaLabel: undefined,
 })
 
 const emit = defineEmits<{
@@ -40,11 +46,16 @@ const values = computed(() => [props.value ?? props.min])
     :disabled="disabled"
     @update:value="(next: number[]) => next[0] !== undefined && emit('update:value', next[0])"
   >
+    <XhSliderLabel v-if="ariaLabel" class="sr-only">
+      {{ ariaLabel }}
+    </XhSliderLabel>
     <XhSliderControl>
       <XhSliderTrack>
         <XhSliderRange />
       </XhSliderTrack>
-      <XhSliderThumb :index="0" />
+      <XhSliderThumb :index="0">
+        <XhSliderValueText v-if="showValue" />
+      </XhSliderThumb>
     </XhSliderControl>
   </XhSliderRoot>
 </template>

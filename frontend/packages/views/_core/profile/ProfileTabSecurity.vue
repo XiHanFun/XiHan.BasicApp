@@ -2,7 +2,7 @@
 import type { FormRules } from '@xihan-ui/headless'
 
 import type { UserProfile } from '~/types'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhMatrixCode, XhPinInputInput, XhPinInputRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhMatrixCode, XhPinInputInput, XhPinInputRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XInput, XTooltip } from '~/components'
@@ -33,15 +33,17 @@ const pwdForm = ref({
   newPassword: '',
   confirmPassword: '',
 })
+// 校验时机由表单的 validate-on 统一定；确认密码挂 deps，先填它、再改新密码时跟着重验
 const pwdRules = computed<FormRules>(() => ({
-  oldPassword: [{ required: true, message: t('component.profile.security.rule_old_password_required'), trigger: 'blur' }],
+  oldPassword: [{ required: true, message: t('component.profile.security.rule_old_password_required') }],
   newPassword: [
-    { required: true, message: t('component.profile.security.rule_new_password_required'), trigger: 'blur' },
-    { min: 6, max: 32, message: t('component.profile.security.rule_password_length'), trigger: 'blur' },
+    { required: true, message: t('component.profile.security.rule_new_password_required') },
+    { min: 6, max: 32, message: t('component.profile.security.rule_password_length') },
   ],
   confirmPassword: [
-    { required: true, message: t('component.profile.security.rule_confirm_password_required'), trigger: 'blur' },
+    { required: true, message: t('component.profile.security.rule_confirm_password_required') },
     {
+      deps: ['newPassword'],
       validator: (value, values) =>
         value === values.newPassword ? null : t('component.profile.security.rule_password_mismatch'),
     },
@@ -462,7 +464,8 @@ function handleDeleteAccount() {
               </XhFieldRoot>
             </XhFormFieldGroup>
             <XhButton variant="subtle" class="pf-pwd__submit" type="submit" tone="brand" :loading="pwdSaving">
-              {{ t('component.profile.security.btn_update_password') }}
+              <XhButtonIndicator />
+              <XhButtonLabel>{{ t('component.profile.security.btn_update_password') }}</XhButtonLabel>
             </XhButton>
           </XhFormRoot>
         </div>
@@ -509,6 +512,7 @@ function handleDeleteAccount() {
           <div class="pf-setting-row__control">
             <XhSwitch
               :checked="hasTotpEnabled"
+              :aria-label="t('component.profile.security.totp_method')"
               :loading="tfLoading && (tfTotpSettingUp || tfDisableTarget === TF_TOTP)"
               @update:checked="(v: boolean) => v ? startTotpSetup() : startDisable(TF_TOTP)"
             />
@@ -534,7 +538,7 @@ function handleDeleteAccount() {
                 <div class="pf-secret-row">
                   <code class="pf-secret">{{ tfTotpSetup.sharedKey }}</code>
                   <XTooltip :content="t('component.profile.security.copy_key')">
-                    <XhButton size="sm" variant="ghost" @click="copyToClipboard(tfTotpSetup.sharedKey).then(() => toast.success(t('component.profile.security.msg_copied')))">
+                    <XhButton size="sm" variant="ghost" icon-only :aria-label="t('component.profile.security.copy_key')" @click="copyToClipboard(tfTotpSetup.sharedKey).then(() => toast.success(t('component.profile.security.msg_copied')))">
                       <span><Icon icon="lucide:copy" /></span>
                     </XhButton>
                   </XTooltip>
@@ -553,7 +557,8 @@ function handleDeleteAccount() {
                     </div>
                   </XhPinInputRoot>
                   <XhButton variant="subtle" tone="brand" size="sm" :loading="tfLoading" @click="confirmEnableTotp">
-                    {{ t('component.profile.security.btn_enable') }}
+                    <XhButtonIndicator />
+                    <XhButtonLabel>{{ t('component.profile.security.btn_enable') }}</XhButtonLabel>
                   </XhButton>
                   <XhButton size="sm" variant="ghost" @click="cancelTotpSetup">
                     {{ t('common.actions.cancel') }}
@@ -589,7 +594,8 @@ function handleDeleteAccount() {
                   </div>
                 </XhPinInputRoot>
                 <XhButton variant="subtle" tone="danger" size="sm" :loading="tfLoading" @click="confirmDisable">
-                  {{ t('component.profile.security.btn_disable') }}
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('component.profile.security.btn_disable') }}</XhButtonLabel>
                 </XhButton>
                 <XhButton size="sm" variant="ghost" @click="cancelDisable">
                   {{ t('common.actions.cancel') }}
@@ -623,6 +629,7 @@ function handleDeleteAccount() {
           <div class="pf-setting-row__control">
             <XhSwitch
               :checked="hasEmailEnabled"
+              :aria-label="t('component.profile.security.email_method')"
               :disabled="!profile?.emailVerified && !hasEmailEnabled"
               :loading="tfLoading && (tfEmailSettingUp || tfDisableTarget === TF_EMAIL)"
               @update:checked="(v: boolean) => v ? startEmailSetup() : startDisable(TF_EMAIL)"
@@ -648,7 +655,8 @@ function handleDeleteAccount() {
                   </div>
                 </XhPinInputRoot>
                 <XhButton variant="subtle" tone="brand" size="sm" :loading="tfLoading" @click="confirmEnableEmail">
-                  {{ t('component.profile.security.btn_enable') }}
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('component.profile.security.btn_enable') }}</XhButtonLabel>
                 </XhButton>
                 <XhButton
                   size="sm" variant="ghost"
@@ -693,7 +701,8 @@ function handleDeleteAccount() {
                   </div>
                 </XhPinInputRoot>
                 <XhButton variant="subtle" tone="danger" size="sm" :loading="tfLoading" @click="confirmDisable">
-                  {{ t('component.profile.security.btn_disable') }}
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('component.profile.security.btn_disable') }}</XhButtonLabel>
                 </XhButton>
                 <XhButton
                   size="sm" variant="ghost"
@@ -737,6 +746,7 @@ function handleDeleteAccount() {
           <div class="pf-setting-row__control">
             <XhSwitch
               :checked="hasPhoneEnabled"
+              :aria-label="t('component.profile.security.sms_method')"
               :disabled="!profile?.phoneVerified && !hasPhoneEnabled"
               :loading="tfLoading && (tfPhoneSettingUp || tfDisableTarget === TF_PHONE)"
               @update:checked="(v: boolean) => v ? startPhoneSetup() : startDisable(TF_PHONE)"
@@ -762,7 +772,8 @@ function handleDeleteAccount() {
                   </div>
                 </XhPinInputRoot>
                 <XhButton variant="subtle" tone="brand" size="sm" :loading="tfLoading" @click="confirmEnablePhone">
-                  {{ t('component.profile.security.btn_enable') }}
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('component.profile.security.btn_enable') }}</XhButtonLabel>
                 </XhButton>
                 <XhButton
                   size="sm" variant="ghost"
@@ -807,7 +818,8 @@ function handleDeleteAccount() {
                   </div>
                 </XhPinInputRoot>
                 <XhButton variant="subtle" tone="danger" size="sm" :loading="tfLoading" @click="confirmDisable">
-                  {{ t('component.profile.security.btn_disable') }}
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('component.profile.security.btn_disable') }}</XhButtonLabel>
                 </XhButton>
                 <XhButton
                   size="sm" variant="ghost"

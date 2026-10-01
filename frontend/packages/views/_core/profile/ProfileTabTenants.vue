@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { AppTenantSwitcherItem } from '~/types'
-import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
@@ -86,7 +86,7 @@ onMounted(loadTenants)
           </div>
         </div>
         <div class="pf-section__extra">
-          <XhButton size="sm" variant="ghost" @click="loadTenants">
+          <XhButton size="sm" variant="ghost" icon-only :aria-label="t('common.actions.refresh')" @click="loadTenants">
             <Icon icon="lucide:refresh-cw" />
           </XhButton>
         </div>
@@ -154,7 +154,8 @@ onMounted(loadTenants)
                   :loading="switching"
                   @click="switchTo(String(tenant.tenantId))"
                 >
-                  {{ t('component.profile.tenants.btn_switch') }}
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('component.profile.tenants.btn_switch') }}</XhButtonLabel>
                 </XhButton>
               </div>
             </div>

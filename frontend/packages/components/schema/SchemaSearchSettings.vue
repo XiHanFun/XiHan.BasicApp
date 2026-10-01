@@ -6,6 +6,7 @@ import {
   XhPopoverContent,
   XhPopoverPositioner,
   XhPopoverRoot,
+  XhPopoverTitle,
   XhPopoverTrigger,
   XhSeparator,
   XhSwitch,
@@ -54,7 +55,10 @@ function onSort(details: { from: number, to: number }) {
         <div class="flex flex-col gap-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-base font-semibold text-foreground">{{ t('component.search_settings.title') }}</span>
+              <!-- 标题部件给浮层起名（content 的 aria-labelledby 指向它） -->
+              <XhPopoverTitle class="text-base font-semibold text-foreground">
+                {{ t('component.search_settings.title') }}
+              </XhPopoverTitle>
               <SyncStatusBadge :synced="appStore.searchSyncEnabled" />
             </div>
             <div class="flex gap-2">
@@ -115,6 +119,7 @@ function onSort(details: { from: number, to: number }) {
                     :checked="item.pinned"
                     :disabled="!item.visible"
                     size="sm"
+                    :aria-label="`${item.title} · ${t('component.search_settings.tip_pinned')}`"
                     @update:checked="(value: boolean) => emit('togglePin', item.key, value)"
                   />
                 </span>

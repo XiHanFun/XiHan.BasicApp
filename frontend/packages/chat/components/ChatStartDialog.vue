@@ -3,7 +3,7 @@ import type {
   ChatDepartmentPickerNode,
 } from '../types'
 import type { SelectOption, TreeSelectOption } from '~/types'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XInput from '~/components/common/XInput.vue'
@@ -236,7 +236,8 @@ async function handleConfirm() {
             {{ t('chat.start.cancel') }}
           </XhButton>
           <XhButton variant="subtle" size="sm" tone="brand" :loading="submitting" @click="handleConfirm">
-            {{ t('chat.start.confirm') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('chat.start.confirm') }}</XhButtonLabel>
           </XhButton>
         </div>
       </div>

@@ -91,7 +91,13 @@ const moreItemPrefix = computed(() => actionMenuPrefix(moreActions.value))
       @select="(details: { value: string }) => emit('action', details.value)"
     >
       <template #trigger>
-        <XhButton size="sm" variant="outline">
+        <!-- 窄屏只剩省略号图标：转成图标钮并补名字 -->
+        <XhButton
+          size="sm"
+          variant="outline"
+          :icon-only="isMobile"
+          :aria-label="isMobile ? t('component.schema_page.more') : undefined"
+        >
           <Icon :icon="isMobile ? 'lucide:ellipsis' : 'lucide:chevron-down'" />
           <span v-if="!isMobile">{{ t('component.schema_page.more') }}</span>
         </XhButton>

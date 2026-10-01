@@ -17,6 +17,9 @@ const userStore = useUserStore()
 // 无查看权限直接不渲染（会话预取与实时链路也在集成层被同一权限关闭）
 const visible = computed(() => userStore.hasPermission(CHAT_PERMISSIONS.read))
 const unread = computed(() => chatStore.totalUnread)
+/** 图标钮的名字：气泡只是描述，未读数随名字一起念，零则只念钮名 */
+const buttonLabel = computed(() =>
+  unread.value > 0 ? `${t('chat.bell')} ${t('chat.unread_label', { n: unread.value })}` : t('chat.bell'))
 </script>
 
 <template>
@@ -25,6 +28,7 @@ const unread = computed(() => chatStore.totalUnread)
       v-if="visible"
       type="button"
       class="xihan-icon-btn chat-header-btn mr-1"
+      :aria-label="buttonLabel"
       @click="(event: MouseEvent) => chatStore.requestOpenChatPanel(event.currentTarget as HTMLElement)"
     >
       <!-- 数字、99+、「零则收起」与贴角定位都归组件库算；与通知铃铛同一写法。

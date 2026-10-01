@@ -4,7 +4,7 @@ import type {
   ChatMessageItem,
 } from '../types'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
-import { useMessageFeed, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { useMessageFeed, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -570,7 +570,7 @@ onBeforeUnmount(() => {
   <div v-else class="flex h-full min-h-0 flex-col">
     <!-- 会话头（固定高度：单聊无副行时与群聊保持一致） -->
     <div class="flex h-[56px] shrink-0 items-center gap-2 border-b border-border px-3">
-      <button v-if="props.showBack" type="button" class="chat-thread-btn" @click="emit('back')">
+      <button v-if="props.showBack" type="button" class="chat-thread-btn" :aria-label="t('header.toolbar.nav_back')" @click="emit('back')">
         <Icon icon="lucide:arrow-left" width="16" height="16" />
       </button>
       <XUserAvatar :avatar="conversation.avatar" :name="conversation.displayName" :size="32" />
@@ -587,10 +587,10 @@ onBeforeUnmount(() => {
           {{ t('chat.members.count', { n: conversation.memberCount }) }}
         </div>
       </div>
-      <button type="button" class="chat-thread-btn" :title="t('chat.thread.search')" @click="toggleSearch">
+      <button type="button" class="chat-thread-btn" :title="t('chat.thread.search')" :aria-label="t('chat.thread.search')" @click="toggleSearch">
         <Icon icon="lucide:search" width="16" height="16" />
       </button>
-      <button v-if="isGroupLike" type="button" class="chat-thread-btn" @click="emit('members')">
+      <button v-if="isGroupLike" type="button" class="chat-thread-btn" :aria-label="t('chat.members.section_members', { n: conversation.memberCount })" @click="emit('members')">
         <Icon icon="lucide:users" width="16" height="16" />
       </button>
     </div>
@@ -602,7 +602,8 @@ onBeforeUnmount(() => {
         size="sm"
         clearable
         :placeholder="t('chat.thread.search_placeholder')"
-        @keydown.enter="runSearch(false)"
+        :aria-label="t('chat.thread.search')"
+        @enter="runSearch(false)"
         @clear="searchResults = []"
       >
         <template #prefix>
@@ -650,10 +651,11 @@ onBeforeUnmount(() => {
         <XhPopoverPositioner>
           <XhPopoverContent>
             <div class="max-h-64 overflow-y-auto">
-              <div class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
+              <!-- 标题部件给浮层起名（content 的 aria-labelledby 指向它） -->
+              <XhPopoverTitle class="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
                 <Icon icon="lucide:megaphone" width="13" height="13" class="text-amber-500" />
                 {{ t('chat.members.announcement_title') }}
-              </div>
+              </XhPopoverTitle>
               <div class="text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
                 {{ conversation.announcement }}
               </div>
@@ -675,7 +677,7 @@ onBeforeUnmount(() => {
           <Icon icon="lucide:chevron-down" width="12" height="12" />
         </XhPopoverTrigger>
         <XhPopoverPositioner>
-          <XhPopoverContent>
+          <XhPopoverContent :aria-label="t('chat.thread.pinned_count', { n: pinnedList.length })">
             <div class="flex max-h-64 flex-col gap-1 overflow-y-auto">
               <div
                 v-for="pinnedItem in pinnedList"

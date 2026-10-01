@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
-import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -163,7 +163,10 @@ function onSort(details: { from: number, to: number }) {
         <div class="flex flex-col gap-2">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-base font-semibold text-foreground">{{ t('component.schema_table_settings.title') }}</span>
+              <!-- 标题部件给浮层起名（content 的 aria-labelledby 指向它） -->
+              <XhPopoverTitle class="text-base font-semibold text-foreground">
+                {{ t('component.schema_table_settings.title') }}
+              </XhPopoverTitle>
               <SyncStatusBadge :synced="appStore.tableSyncEnabled" />
             </div>
             <div class="flex gap-2">
@@ -280,6 +283,7 @@ function onSort(details: { from: number, to: number }) {
                   :min="60"
                   :max="800"
                   :placeholder="t('component.schema_table_settings.auto')"
+                  :aria-label="`${col.title} · ${t('component.schema_table_settings.column_width')}`"
                   @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; emit('setWidth', col.key, value ?? undefined) }"
                 />
               </span>
@@ -289,7 +293,9 @@ function onSort(details: { from: number, to: number }) {
                   size="sm"
                   class="xh-set-chip"
                   variant="ghost"
+                  icon-only
                   :tone="col.sort ? 'brand' : 'neutral'"
+                  :aria-label="`${col.title} · ${t('component.schema_table_settings.sort')}: ${sortLabel(col.sort)}`"
                   :title="t('component.schema_table_settings.sort_tip', { label: sortLabel(col.sort) })"
                   @click="emit('cycleSort', col.key)"
                 >
@@ -302,7 +308,9 @@ function onSort(details: { from: number, to: number }) {
                   size="sm"
                   class="xh-set-chip"
                   variant="ghost"
+                  icon-only
                   :tone="col.fixed ? 'brand' : 'neutral'"
+                  :aria-label="`${col.title} · ${t('component.schema_table_settings.fixed')}: ${fixedLabel(col.fixed)}`"
                   :title="t('component.schema_table_settings.fixed_tip', { label: fixedLabel(col.fixed) })"
                   @click="emit('setFixed', col.key, nextFixed(col.fixed))"
                 >

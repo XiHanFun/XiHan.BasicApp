@@ -103,7 +103,7 @@ onMounted(() => loadLogs())
           </div>
         </div>
         <div class="pf-section__extra">
-          <XhButton size="sm" variant="ghost" @click="loadLogs(page)">
+          <XhButton size="sm" variant="ghost" icon-only :aria-label="t('common.actions.refresh')" @click="loadLogs(page)">
             <Icon icon="lucide:refresh-cw" />
           </XhButton>
         </div>

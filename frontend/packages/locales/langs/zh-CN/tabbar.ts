@@ -34,4 +34,7 @@ export default {
   close_right: '关闭右侧标签页',
   close_others: '关闭其他标签页',
   close_all: '关闭全部标签页',
+  scroll_prev: '上一组标签页',
+  scroll_next: '下一组标签页',
+  more: '当前标签页操作',
 }

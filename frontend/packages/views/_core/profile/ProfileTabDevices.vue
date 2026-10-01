@@ -96,7 +96,7 @@ onMounted(loadSessions)
         </div>
         <div class="pf-section__extra">
           <XhFlex gap="sm">
-            <XhButton size="sm" variant="ghost" @click="loadSessions">
+            <XhButton size="sm" variant="ghost" icon-only :aria-label="t('common.actions.refresh')" @click="loadSessions">
               <span><Icon icon="lucide:refresh-cw" /></span>
             </XhButton>
             <XhButton variant="subtle" size="sm" @click="handleRevokeOthers">

@@ -34,4 +34,7 @@ export default {
   close_right: '오른쪽 탭 닫기',
   close_others: '다른 탭 닫기',
   close_all: '모든 탭 닫기',
+  scroll_prev: '이전 탭',
+  scroll_next: '다음 탭',
+  more: '현재 탭 작업',
 }

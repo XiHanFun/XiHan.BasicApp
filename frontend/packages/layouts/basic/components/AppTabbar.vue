@@ -490,7 +490,9 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       v-show="showScrollBtn"
       variant="ghost"
       size="sm"
+      icon-only
       :disabled="scrollAtLeft"
+      :aria-label="t('tabbar.scroll_prev')"
       @click="scrollDirection('left')"
     >
       <Icon icon="lucide:chevrons-left" width="14" />
@@ -555,7 +557,9 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       v-show="showScrollBtn"
       variant="ghost"
       size="sm"
+      icon-only
       :disabled="scrollAtRight"
+      :aria-label="t('tabbar.scroll_next')"
       @click="scrollDirection('right')"
     >
       <Icon icon="lucide:chevrons-right" width="14" />
@@ -574,6 +578,8 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       v-if="tabbarPreferences.tabbarShowMore.value"
       variant="ghost"
       size="sm"
+      icon-only
+      :aria-label="t('tabbar.more')"
       @click="openActiveTabMenu"
     >
       <Icon icon="lucide:layout-grid" width="14" />
@@ -583,6 +589,8 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       v-if="tabbarPreferences.tabbarShowOverview.value"
       variant="ghost"
       size="sm"
+      icon-only
+      :aria-label="t('tabbar.overview')"
       :title="`${t('tabbar.overview')} (${tabOverviewShortcut})`"
       @click="layoutBridgeStore.requestOpenTabOverview()"
     >
@@ -596,6 +604,8 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       v-if="appStore.widgetRefresh"
       variant="ghost"
       size="sm"
+      icon-only
+      :aria-label="t('tabbar.reload')"
       @click="refreshCurrentTab"
     >
       <Icon icon="lucide:rotate-cw" width="14" />
@@ -605,6 +615,8 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       v-if="tabbarPreferences.tabbarShowMaximize.value"
       variant="ghost"
       size="sm"
+      icon-only
+      :aria-label="isContentMaximized ? t('tabbar.unmaximize') : t('tabbar.maximize')"
       @click="toggleMaximize"
     >
       <Icon

@@ -249,16 +249,18 @@ watch(visible, (open, was) => {
           <XhButton
             variant="subtle"
             tone="brand"
+            icon-only
             class="footer-round"
             :title="t('preference.drawer.copy')"
+            :aria-label="t('preference.drawer.copy')"
             @click="copyPreferences"
           >
             <Icon icon="lucide:copy" width="16" />
           </XhButton>
-          <XhButton variant="outline" class="footer-round" :title="t('preference.drawer.reset')" @click="resetPreferences">
+          <XhButton variant="outline" icon-only class="footer-round" :title="t('preference.drawer.reset')" :aria-label="t('preference.drawer.reset')" @click="resetPreferences">
             <Icon icon="lucide:rotate-ccw" width="16" />
           </XhButton>
-          <XhButton variant="outline" class="footer-round" :title="t('preference.drawer.clear_cache')" @click="clearAndLogout">
+          <XhButton variant="outline" icon-only class="footer-round" :title="t('preference.drawer.clear_cache')" :aria-label="t('preference.drawer.clear_cache')" @click="clearAndLogout">
             <Icon icon="lucide:trash-2" width="16" />
           </XhButton>
         </div>

@@ -34,4 +34,7 @@ export default {
   close_right: '右側のタブを閉じる',
   close_others: '他のタブを閉じる',
   close_all: 'すべてのタブを閉じる',
+  scroll_prev: '前のタブ',
+  scroll_next: '次のタブ',
+  more: '現在のタブの操作',
 }

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { MyOAuthAppItem, MyOAuthAppSecret } from '~/types'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhInputGroupRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, reactive, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -213,21 +213,21 @@ onMounted(() => {
             <XhAlertDescription>
               <div class="pf-secret-row">
                 <span class="pf-secret-label">Client ID</span>
-                <div class="xh-input-group">
-                  <XInput :value="newSecret.clientId" readonly size="sm" />
-                  <XhButton variant="subtle" size="sm" @click="copyText(newSecret.clientId)">
+                <XhInputGroupRoot class="pf-secret-group">
+                  <XInput :value="newSecret.clientId" read-only size="sm" aria-label="Client ID" />
+                  <XhButton variant="subtle" size="sm" icon-only :aria-label="t('common.actions.copy')" @click="copyText(newSecret.clientId)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
-                </div>
+                </XhInputGroupRoot>
               </div>
               <div v-if="newSecret.clientType === 'Confidential' && newSecret.clientSecret" class="pf-secret-row">
                 <span class="pf-secret-label">Secret</span>
-                <div class="xh-input-group">
-                  <XInput :value="newSecret.clientSecret" readonly size="sm" type="password" />
-                  <XhButton variant="subtle" size="sm" @click="copyText(newSecret.clientSecret)">
+                <XhInputGroupRoot class="pf-secret-group">
+                  <XInput :value="newSecret.clientSecret" read-only size="sm" type="password" aria-label="Secret" />
+                  <XhButton variant="subtle" size="sm" icon-only :aria-label="t('common.actions.copy')" @click="copyText(newSecret.clientSecret)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
-                </div>
+                </XhInputGroupRoot>
               </div>
               <div v-else class="pf-secret-public-hint">
                 {{ t('component.profile.oauth.secret_alert_public') }}
@@ -265,7 +265,7 @@ onMounted(() => {
                 </div>
                 <div class="pf-credential__key">
                   <code>{{ app.clientId }}</code>
-                  <XhButton size="sm" variant="ghost" @click="copyText(app.clientId)">
+                  <XhButton size="sm" variant="ghost" icon-only :aria-label="t('common.actions.copy')" @click="copyText(app.clientId)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
                 </div>
@@ -279,22 +279,23 @@ onMounted(() => {
               <div class="pf-credential__actions">
                 <XhSwitch
                   :title="t('component.profile.oauth.tooltip_toggle')"
+                  :aria-label="t('component.profile.oauth.tooltip_toggle')"
                   size="sm"
                   :checked="app.status === 'Enabled'"
                   @update:checked="(v: boolean) => handleToggleStatus(app, v)"
                 />
                 <XTooltip :content="t('component.profile.oauth.tooltip_edit')">
-                  <XhButton size="sm" variant="ghost" @click="openEdit(app)">
+                  <XhButton size="sm" variant="ghost" icon-only :aria-label="t('component.profile.oauth.tooltip_edit')" @click="openEdit(app)">
                     <span><Icon icon="lucide:pencil" /></span>
                   </XhButton>
                 </XTooltip>
                 <XTooltip :content="t('component.profile.oauth.tooltip_regenerate')">
-                  <XhButton size="sm" variant="ghost" @click="handleRegenerate(app)">
+                  <XhButton size="sm" variant="ghost" icon-only :aria-label="t('component.profile.oauth.tooltip_regenerate')" @click="handleRegenerate(app)">
                     <span><Icon icon="lucide:rotate-ccw" /></span>
                   </XhButton>
                 </XTooltip>
                 <XTooltip :content="t('component.profile.oauth.tooltip_delete')">
-                  <XhButton size="sm" variant="ghost" tone="danger" @click="handleDelete(app)">
+                  <XhButton size="sm" variant="ghost" tone="danger" icon-only :aria-label="t('component.profile.oauth.tooltip_delete')" @click="handleDelete(app)">
                     <span><Icon icon="lucide:trash-2" /></span>
                   </XhButton>
                 </XTooltip>

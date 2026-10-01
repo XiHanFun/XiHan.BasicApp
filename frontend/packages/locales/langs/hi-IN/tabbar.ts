@@ -34,4 +34,7 @@ export default {
   close_right: 'दाईं ओर के टैब बंद करें',
   close_others: 'अन्य टैब बंद करें',
   close_all: 'सभी टैब बंद करें',
+  scroll_prev: 'पिछले टैब',
+  scroll_next: 'अगले टैब',
+  more: 'वर्तमान टैब की क्रियाएँ',
 }
