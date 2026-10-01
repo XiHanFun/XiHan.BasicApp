@@ -684,6 +684,10 @@ export default {
     prev_month: 'Previous month',
     next_month: 'Next month',
     next_year: 'Next year',
+    start_time: 'Start time',
+    end_time: 'End time',
+    hour: 'Hour',
+    minute: 'Minute',
   },
   search_date_range: {
     start: 'Start',

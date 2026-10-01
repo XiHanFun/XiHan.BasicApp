@@ -43,9 +43,9 @@ export function segmentLiteralBefore(type: DateSegmentType): string {
   return '-'
 }
 
-/** 区间受控值 → 交给组件库的两端草稿；无值是空数组 */
-export function rangeToDraft(value: readonly [number, number] | null | undefined): string[] {
-  return value == null ? [] : value.map(ts => timestampToIso(ts, false))
+/** 区间受控值 → 交给组件库的两端草稿；无值是空数组。withTime 为真时两端带上时:分 */
+export function rangeToDraft(value: readonly [number, number] | null | undefined, withTime = false): string[] {
+  return value == null ? [] : value.map(ts => timestampToIso(ts, withTime))
 }
 
 /**

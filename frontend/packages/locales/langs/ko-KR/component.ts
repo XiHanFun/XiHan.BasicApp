@@ -682,6 +682,10 @@ export default {
     prev_month: '이전 달',
     next_month: '다음 달',
     next_year: '다음 해',
+    start_time: '시작 시간',
+    end_time: '종료 시간',
+    hour: '시',
+    minute: '분',
   },
   search_date_range: {
     start: '시작 시간',

@@ -682,6 +682,10 @@ export default {
     prev_month: 'पिछला माह',
     next_month: 'अगला माह',
     next_year: 'अगला वर्ष',
+    start_time: 'प्रारंभ समय',
+    end_time: 'समाप्ति समय',
+    hour: 'घंटा',
+    minute: 'मिनट',
   },
   search_date_range: {
     start: 'आरंभ समय',

@@ -8,15 +8,16 @@ import XDateRangePicker from '../common/XDateRangePicker.vue'
  * 搜索区间日期组件（封装：双端日期 + 便捷预设区间）。
  * - 值为 [startTs, endTs]（毫秒时间戳）或 null，受控 v-model:value。
  * - 快捷区间交给组件库的一等部件，摆在日历浮层里。
- * - 起止两端按整日取：起点当日 00:00:00、终点当日 23:59:59.999，datetime 字段同此口径
- *   （查询侧 queryFiltersFromSchema 也是按整日补齐的）。
+ * - date 字段两端按整日取：起点当日 00:00、终点当日 23:59:59.999（查询侧 queryFiltersFromSchema 同此口径）。
+ * - datetime 字段带上时刻（日志查询要精确到分）：只点日期时两端补 00:00 与 23:59，
+ *   终点含这一分钟、补到 59.999 秒；查询侧对 datetime 原样使用端点。
  */
 defineOptions({ name: 'SchemaSearchDateRange' })
 
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   /** 区间值 [开始, 结束]（毫秒时间戳） */
   value?: [number, number] | null
-  /** 日期粒度。两档都按整日取端点，此处只作调用方语义标注 */
+  /** 日期粒度：datetime 带时刻，date 只到日 */
   type?: 'date' | 'datetime'
 }>(), {
   value: null,
@@ -29,8 +30,20 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-function endOfDay(date: Date): number {
-  date.setHours(23, 59, 59, 999)
+const withTime = computed(() => props.type === 'datetime')
+
+/** 只点日期时两端补的时刻：整日起止 */
+const DEFAULT_TIME: [string, string] = ['00:00', '23:59']
+
+/** 终点含到哪：带时刻时含这一分钟，只到日时含这一整天 */
+function inclusiveEnd(timestamp: number): number {
+  const date = new Date(timestamp)
+  if (withTime.value) {
+    date.setSeconds(59, 999)
+  }
+  else {
+    date.setHours(23, 59, 59, 999)
+  }
   return date.getTime()
 }
 
@@ -48,15 +61,15 @@ const presets = computed(() => [
 ])
 
 /**
- * 日历给的是整日零点的两端；终点补到当日 23:59:59.999，
- * 否则「选到今天」会把今天整天排除在外。
+ * 选择器给的终点落在那一刻的开头（只到日时是零点、带时刻时是整分）；补成含到这一天 / 这一分钟，
+ * 否则「选到今天」会把今天整天排除在外，「选到 18:00」会漏掉 18:00 那一分钟里的记录。
  */
 function onRangeChange(next: [number, number] | null): void {
   if (next == null) {
     emit('update:value', null)
     return
   }
-  emit('update:value', [next[0], endOfDay(new Date(next[1]))])
+  emit('update:value', [next[0], inclusiveEnd(next[1])])
 }
 </script>
 
@@ -67,6 +80,8 @@ function onRangeChange(next: [number, number] | null): void {
     class="w-full"
     :value="value ?? null"
     :presets="presets"
+    :show-time="withTime"
+    :default-time="withTime ? DEFAULT_TIME : undefined"
     @update:value="onRangeChange"
   />
 </template>
