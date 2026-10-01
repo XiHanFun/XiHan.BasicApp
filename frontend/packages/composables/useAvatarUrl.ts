@@ -70,6 +70,20 @@ export async function resolveAvatarUrl(avatar: null | string | undefined): Promi
 }
 
 /**
+ * 能同步得出的 URL：空值为 ''，直链与已缓存的预签名地址直接给出；还要异步换取的返回 null。
+ * 同步给出可以避免无谓的闪烁与请求。
+ */
+function peekAvatarUrl(trimmed: string): null | string {
+  if (!trimmed) {
+    return ''
+  }
+  if (isDirectUrl(trimmed)) {
+    return toAbsoluteFileUrl(trimmed)
+  }
+  return presignedCache.get(trimmed) ?? null
+}
+
+/**
  * 响应式头像 URL。传入 avatar 原始值（ref / getter / 普通值），
  * 内部解析为可显示 URL；解析中或失败时为 ''（组件用 fallback-src 兜底）。
  */
@@ -77,20 +91,10 @@ export function useAvatarUrl(source: MaybeRefOrGetter<null | string | undefined>
   const url = ref('')
 
   watchEffect(() => {
-    const raw = toValue(source)
-    // 直链可同步解析，避免无谓的闪烁与请求
-    const trimmed = (raw ?? '').trim()
-    if (!trimmed) {
-      url.value = ''
-      return
-    }
-    if (isDirectUrl(trimmed)) {
-      url.value = toAbsoluteFileUrl(trimmed)
-      return
-    }
-    const cached = presignedCache.get(trimmed)
-    if (cached) {
-      url.value = cached
+    const trimmed = (toValue(source) ?? '').trim()
+    const known = peekAvatarUrl(trimmed)
+    if (known !== null) {
+      url.value = known
       return
     }
     // 需要异步换取：先清空，换到后再赋值（避免把上一个头像的 URL 错绑到新 fileId）
@@ -104,4 +108,33 @@ export function useAvatarUrl(source: MaybeRefOrGetter<null | string | undefined>
   })
 
   return url
+}
+
+/**
+ * 一组文件引用（fileId 或直链）的响应式可显示 URL，与入参逐项对应；某项解析中或失败时为 ''。
+ * 与 useAvatarUrl 共用预签名缓存与并发去重，适合相册这类要一次拿到全部地址的场景。
+ */
+export function useAvatarUrls(source: MaybeRefOrGetter<readonly (null | string | undefined)[]>): Ref<string[]> {
+  const urls = ref<string[]>([])
+
+  watchEffect(() => {
+    const trimmed = toValue(source).map(raw => (raw ?? '').trim())
+    const key = trimmed.join('\n')
+    const known = trimmed.map(raw => peekAvatarUrl(raw))
+    urls.value = known.map(url => url ?? '')
+    trimmed.forEach((raw, index) => {
+      // 这里只看本地的 known，不读 urls：读了会被收集成依赖，异步回填又把本段重跑一遍
+      if (known[index] !== null) {
+        return
+      }
+      void resolveAvatarUrl(raw).then((resolved) => {
+        // 解析期间入参可能已变化，仅当仍是同一组时才回填，免得把旧图的地址填进新相册
+        if (toValue(source).map(item => (item ?? '').trim()).join('\n') === key) {
+          urls.value[index] = resolved
+        }
+      })
+    })
+  })
+
+  return urls
 }

@@ -248,3 +248,55 @@ describe('useAvatarUrl 响应式版本', () => {
     expect(url.value).toBe('')
   })
 })
+
+describe('useAvatarUrls 列表版本（聊天相册）', () => {
+  it('与入参逐项对应：直链同步给出，fileId 换到后按位回填', async () => {
+    const pending = new Map<string, (url: string) => void>()
+    const api = vi.fn<PresignedFn>(id => new Promise((resolve) => {
+      pending.set(id, resolve)
+    }))
+    const { useAvatarUrls } = await bootstrap(api)
+
+    const urls = useAvatarUrls(['https://cdn/a.png', 'file-b', null])
+    expect(urls.value).toEqual(['https://cdn/a.png', '', ''])
+
+    pending.get('file-b')?.('https://cdn/b.png')
+    await flush()
+
+    expect(urls.value).toEqual(['https://cdn/a.png', 'https://cdn/b.png', ''])
+    expect(api).toHaveBeenCalledTimes(1)
+  })
+
+  it('入参换成另一组后，旧组晚到的结果被丢弃', async () => {
+    const pending = new Map<string, (url: string) => void>()
+    const api = vi.fn<PresignedFn>(id => new Promise((resolve) => {
+      pending.set(id, resolve)
+    }))
+    const { useAvatarUrls } = await bootstrap(api)
+
+    const source = ref(['file-old'])
+    const urls = useAvatarUrls(source)
+
+    source.value = ['file-new']
+    await nextTick()
+
+    pending.get('file-old')?.('https://cdn/old.png')
+    await flush()
+    expect(urls.value).toEqual([''])
+
+    pending.get('file-new')?.('https://cdn/new.png')
+    await flush()
+    expect(urls.value).toEqual(['https://cdn/new.png'])
+  })
+
+  it('与单个版本共用缓存：已换到的地址同步给出，不再请求', async () => {
+    const api = vi.fn<PresignedFn>(async (id: string) => `https://cdn/${id}.png`)
+    const { resolveAvatarUrl, useAvatarUrls } = await bootstrap(api)
+    await resolveAvatarUrl('file-1')
+
+    const urls = useAvatarUrls(['file-1'])
+
+    expect(urls.value).toEqual(['https://cdn/file-1.png'])
+    expect(api).toHaveBeenCalledTimes(1)
+  })
+})
