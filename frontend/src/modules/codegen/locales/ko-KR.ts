@@ -208,7 +208,7 @@ export default {
         form_gen_type: '생성 방식',
         form_generation_scope: '생성 범위',
         form_enabled_actions: '포함할 작업',
-        form_enabled_actions_placeholder: '선택 안 함 또는 전체 선택＝모두 활성화',
+        form_enabled_actions_placeholder: '선택하지 않으면 추가·수정·삭제와 가져오기·내보내기',
         form_database_type: '데이터베이스 유형',
         form_gen_path: '생성 경로',
         form_gen_path_placeholder: '사용자 지정 경로로 생성할 때 사용',

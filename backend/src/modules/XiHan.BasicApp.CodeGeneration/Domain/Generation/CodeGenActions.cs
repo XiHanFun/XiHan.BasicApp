@@ -27,13 +27,24 @@ public static class CodeGenActions
     /// <summary>导入（CSV 逐行调用新增接口）</summary>
     public const string Import = "import";
 
+    /// <summary>状态切换（按表里的 EnableStatus 状态列启用/停用）</summary>
+    public const string Status = "status";
+
     /// <summary>
     /// 可裁剪操作全集（顺序即权限码、按钮在产物里的呈现顺序）
     /// </summary>
-    public static readonly IReadOnlyList<string> All = [Create, Update, Delete, Export, Import];
+    public static readonly IReadOnlyList<string> All = [Create, Update, Delete, Export, Import, Status];
 
     /// <summary>
-    /// 归一化包含操作：null/空（未配置或全选）→ 全开；非空则按规范集合过滤，未知操作忽略
+    /// 未配置包含操作时的缺省集
+    /// </summary>
+    /// <remarks>
+    /// 状态切换要求表里有状态列，不能默认开启，须在表配置里显式勾选。
+    /// </remarks>
+    public static readonly IReadOnlyList<string> Defaults = [Create, Update, Delete, Export, Import];
+
+    /// <summary>
+    /// 归一化包含操作：null/空（未配置）→ 缺省集；非空则按规范集合过滤，未知操作忽略
     /// </summary>
     /// <param name="raw">表配置里逗号分隔的操作串</param>
     /// <returns>按 <see cref="All"/> 顺序排列的操作集合</returns>
@@ -41,7 +52,7 @@ public static class CodeGenActions
     {
         if (string.IsNullOrWhiteSpace(raw))
         {
-            return All;
+            return Defaults;
         }
 
         var selected = raw

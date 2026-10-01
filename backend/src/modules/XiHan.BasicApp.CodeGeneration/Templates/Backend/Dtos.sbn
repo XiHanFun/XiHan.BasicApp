@@ -82,6 +82,16 @@ public sealed partial class {{ ClassName }}DetailDto : BasicAppDto
     public long? ModifiedId { get; set; }
     public string? ModifiedBy { get; set; }
 }
+{{~ if CanStatus ~}}
+
+/// <summary>
+/// {{ TableComment | xml_doc }}状态更新 DTO（启用 / 停用）
+/// </summary>
+public sealed partial class {{ ClassName }}StatusUpdateDto : BasicAppDto
+{
+    public {{ StatusColumn.CSharpTypeQualified | string.replace "?" "" }} {{ StatusColumn.CSharpProperty }} { get; set; }
+}
+{{~ end ~}}
 {{~ if TemplateType == "Tree" ~}}
 
 /// <summary>

@@ -250,6 +250,11 @@ public sealed class CodeGenerationContext
     /// </remarks>
     public IReadOnlyList<string> EnabledActions { get; set; } = [];
 
+    /// <summary>
+    /// 状态列（勾了状态切换时非空：表里的 EnableStatus 业务列，由引擎 fail-closed 解析）
+    /// </summary>
+    public ColumnSchema? StatusColumn { get; set; }
+
     /// <summary>主键列</summary>
     public ColumnSchema? PrimaryKey { get; set; }
 

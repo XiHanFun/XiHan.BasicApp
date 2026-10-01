@@ -32,7 +32,6 @@ internal static class PageDescriptorArtifactGenerator
         var codes = $"{context.ClassName}PermissionCodes";
         var pageCode = Shared.PageCode(context);
         var path = $"/{Shared.ModuleLower(context)}/{Shared.Kebab(context)}";
-        var effective = Shared.EffectiveActions(context);
         var parentNote = context.Options.TryGetValue("ParentMenuId", out var pid) && pid is not null
             ? $"父页面码（表配置 ParentMenuId={pid}，请换成对应父页面的 Code 字符串）"
             : "null（顶级菜单；如需挂父目录，改成父页面码字符串）";
@@ -59,14 +58,8 @@ internal static class PageDescriptorArtifactGenerator
         sb.AppendLine("// 参数顺序：Code, Title, ParentCode, PermissionCode, Sort");
 
         var sort = 1;
-        foreach (var button in ButtonPermissionMappings.Buttons)
+        foreach (var button in Shared.EnabledButtons(context))
         {
-            // 仅取写操作按钮（新增/编辑/删除…），且该动作已启用；查询/详情走列表页读取权限，无独立按钮
-            if (button.Action == "read" || !effective.Contains(button.Action))
-            {
-                continue;
-            }
-
             sb.AppendLine($"new(\"{pageCode}.{button.Key}\", \"{button.Title}\", \"{pageCode}\", {codes}.{Shared.Pascalize(button.Action)}, {sort}),");
             sort++;
         }

@@ -201,7 +201,8 @@ export const GENERATION_SCOPE_OPTIONS = [
 
 /**
  * 包含操作选项（可裁剪操作；列表/详情为读取基线，始终生成）。
- * value 为后端解析的操作键；不选或全选均等价于全开。导入逐行调用新增接口，勾导入须同时勾新增。
+ * value 为后端解析的操作键；不选等价于缺省集（增删改与导入导出）。导入逐行调用新增接口，勾导入须同时勾新增；
+ * 状态切换要求表里有 EnableStatus 状态列，须显式勾选。
  */
 export const ENABLED_ACTION_OPTIONS = [
   { label: '新增', value: 'create' },
@@ -209,4 +210,5 @@ export const ENABLED_ACTION_OPTIONS = [
   { label: '删除', value: 'delete' },
   { label: '导出', value: 'export' },
   { label: '导入', value: 'import' },
+  { label: '状态切换', value: 'status' },
 ]

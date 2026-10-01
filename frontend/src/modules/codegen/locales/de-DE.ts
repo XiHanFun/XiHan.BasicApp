@@ -208,7 +208,7 @@ export default {
         form_gen_type: 'Generierungsmodus',
         form_generation_scope: 'Generierungsumfang',
         form_enabled_actions: 'Aktivierte Aktionen',
-        form_enabled_actions_placeholder: 'Keine oder alle = alles aktiviert',
+        form_enabled_actions_placeholder: 'Keine = CRUD, Import und Export',
         form_database_type: 'Datenbanktyp',
         form_gen_path: 'Generierungspfad',
         form_gen_path_placeholder: 'Wird bei der Generierung in einen benutzerdefinierten Pfad verwendet',

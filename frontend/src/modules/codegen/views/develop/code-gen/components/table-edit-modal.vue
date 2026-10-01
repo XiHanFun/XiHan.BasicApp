@@ -81,11 +81,13 @@ interface TableFormModel {
 }
 
 /**
- * 全部可裁剪操作（列表/详情为读取基线，不在此列），与后端 CodeGenActions.All 同集。
+ * 全部可裁剪操作（列表/详情为读取基线，不在此列），与后端 CodeGenActions.All 同集；
+ * 缺省集同 CodeGenActions.Defaults（状态切换须显式勾选）。
  * 必须声明在 form 之前：form 的初值由 createDefaultForm() 求得，而它引用本常量，
  * 声明晚于调用点会落进暂时性死区，setup 直接抛 ReferenceError、整个弹窗渲染不出来。
  */
-const ALL_ACTIONS = ['create', 'update', 'delete', 'export', 'import']
+const ALL_ACTIONS = ['create', 'update', 'delete', 'export', 'import', 'status']
+const DEFAULT_ACTIONS = ['create', 'update', 'delete', 'export', 'import']
 
 const loading = ref(false)
 const submitLoading = ref(false)
@@ -100,13 +102,18 @@ const tableOptions = ref<{ label: string, value: ApiId }[]>([])
 const isTreeTemplate = computed(() => form.value.templateType === TemplateTypeEnum.Tree)
 const isMasterDetailTemplate = computed(() => form.value.templateType === TemplateTypeEnum.MasterDetail)
 
-/** 后端逗号分隔串 → 多选数组；null/空视为全开（全部勾选） */
+/** 后端逗号分隔串 → 多选数组；null/空视为缺省集 */
 function parseEnabledActions(raw?: string | null): string[] {
   if (!raw) {
-    return [...ALL_ACTIONS]
+    return [...DEFAULT_ACTIONS]
   }
   const selected = raw.split(',').map(item => item.trim()).filter(Boolean)
   return ALL_ACTIONS.filter(action => selected.includes(action))
+}
+
+/** 勾选恰为缺省集（或一个都没勾）：提交空串，与未配置同义 */
+function isDefaultActions(actions: string[]) {
+  return actions.length === 0 || (actions.length === DEFAULT_ACTIONS.length && DEFAULT_ACTIONS.every(action => actions.includes(action)))
 }
 
 function createDefaultForm(): TableFormModel {
@@ -298,8 +305,8 @@ async function handleSubmit() {
       templateType: form.value.templateType,
       genType: form.value.genType,
       generationScope: form.value.generationScope,
-      // 全部/空数组都提交为空串，后端归一化为全开
-      enabledActions: form.value.enabledActions.length === ALL_ACTIONS.length ? '' : form.value.enabledActions.join(','),
+      // 恰为缺省集（或全不选）时提交空串，后端归一化为缺省集；其余按勾选提交
+      enabledActions: isDefaultActions(form.value.enabledActions) ? '' : form.value.enabledActions.join(','),
       genPath: form.value.genPath,
       parentMenuId: form.value.parentMenuId,
       primaryKeyColumn: form.value.primaryKeyColumn,

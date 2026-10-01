@@ -68,13 +68,16 @@ export const basePageMeta = {
 {{~ if CanDelete ~}}
   removePermission: '{{ PageCode }}.delete',
 {{~ end ~}}
+{{~ if CanStatus ~}}
+  statusPermission: '{{ PageCode }}.status',
+{{~ end ~}}
   rowKey: 'basicId',
   tree: {
     childrenKey: 'children',
     // 生成的 tree() 不收查询参数、页面也没有搜索框与「展开全部」，收起来就只能逐级点开
     defaultExpandAll: true,
   },
-} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'exportPermission' | 'importPermission' | 'batchRemovable' | 'removePermission' | 'rowKey' | 'tree'>
+} satisfies Pick<PageSchema, 'pageCode' | 'pageName' | 'exportPermission' | 'importPermission' | 'batchRemovable' | 'removePermission' | 'statusPermission' | 'rowKey' | 'tree'>
 
 /**
  * 列定义（{{ TreeNameColumn.TsProperty }} 承载展开箭头）
@@ -121,6 +124,9 @@ export const baseActions: NonNullable<PageSchema['actions']> = [
 {{~ end ~}}
 {{~ if can_update ~}}
   { key: 'edit', title: '编辑', scope: 'row', permission: '{{ PageCode }}.update' },
+{{~ end ~}}
+{{~ if CanStatus ~}}
+  { key: 'toggle', title: '启用/停用', scope: 'row', icon: 'lucide:power', permission: '{{ PageCode }}.status', confirm: true, confirmText: row => (row.{{ StatusColumn.TsProperty }} === 'Enabled' ? '确定停用该{{ TableComment | ts_string }}吗？' : '确定启用该{{ TableComment | ts_string }}吗？') },
 {{~ end ~}}
 {{~ if CanDelete ~}}
   { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: '{{ PageCode }}.delete', confirm: true, confirmText: '确定删除该{{ TableComment | ts_string }}吗？删除后不可恢复。' },

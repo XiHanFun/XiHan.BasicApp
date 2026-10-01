@@ -208,7 +208,7 @@ export default {
         form_gen_type: 'जनरेशन मोड',
         form_generation_scope: 'जनरेशन दायरा',
         form_enabled_actions: 'शामिल कार्रवाइयाँ',
-        form_enabled_actions_placeholder: 'कुछ न चुनें या सब चुनें ＝ सभी चालू',
+        form_enabled_actions_placeholder: 'कुछ न चुनें = CRUD, आयात और निर्यात',
         form_database_type: 'डेटाबेस प्रकार',
         form_gen_path: 'जनरेशन पथ',
         form_gen_path_placeholder: 'कस्टम पथ पर जनरेट करते समय उपयोग होता है',

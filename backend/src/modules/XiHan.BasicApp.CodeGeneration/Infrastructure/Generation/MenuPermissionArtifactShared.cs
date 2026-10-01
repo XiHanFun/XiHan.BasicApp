@@ -4,6 +4,7 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
+using XiHan.BasicApp.CodeGeneration.Domain.Permissions;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 
@@ -51,7 +52,8 @@ internal static class MenuPermissionArtifactShared
         ["update"] = new("更新", true, false),
         ["delete"] = new("删除", true, true),
         ["export"] = new("导出", false, false),
-        ["import"] = new("导入", true, false)
+        ["import"] = new("导入", true, false),
+        ["status"] = new("状态", true, false)
     };
 
     /// <summary>
@@ -69,6 +71,18 @@ internal static class MenuPermissionArtifactShared
         }
 
         return actions;
+    }
+
+    /// <summary>
+    /// 要登记的页面按钮
+    /// </summary>
+    /// <remarks>
+    /// 写操作按钮随其动作启用；查询与详情走列表页读取权限，没有独立按钮。
+    /// </remarks>
+    public static IEnumerable<CodeGenButtonPermission> EnabledButtons(CodeGenerationContext context)
+    {
+        var effective = EffectiveActions(context);
+        return ButtonPermissionMappings.Buttons.Where(button => button.Action != "read" && effective.Contains(button.Action));
     }
 
     /// <summary>

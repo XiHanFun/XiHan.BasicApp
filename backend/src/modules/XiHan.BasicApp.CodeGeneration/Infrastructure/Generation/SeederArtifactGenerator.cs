@@ -73,21 +73,15 @@ internal static class SeederArtifactGenerator
     }
 
     /// <summary>
-    /// 写操作按钮行（已启用的新增/编辑/删除/导入/导出）；查询与详情走列表页的读取权限，没有独立按钮
+    /// 按钮行（已启用的写操作）；查询与详情走列表页的读取权限，没有独立按钮
     /// </summary>
     private static string BuildButtons(CodeGenerationContext context)
     {
         var pageCode = Shared.PageCode(context);
-        var effective = Shared.EffectiveActions(context);
         var sb = new StringBuilder();
         var sort = 1;
-        foreach (var button in ButtonPermissionMappings.Buttons)
+        foreach (var button in Shared.EnabledButtons(context))
         {
-            if (button.Action == "read" || !effective.Contains(button.Action))
-            {
-                continue;
-            }
-
             sb.AppendLine($"        new(\"{pageCode}.{button.Key}\", \"{button.Title}\", \"{pageCode}\", {context.ClassName}PermissionCodes.{Shared.Pascalize(button.Action)}, {sort}),");
             sort++;
         }

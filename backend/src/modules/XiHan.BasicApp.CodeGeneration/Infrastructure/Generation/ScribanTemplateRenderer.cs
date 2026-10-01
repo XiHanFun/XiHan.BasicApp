@@ -147,6 +147,9 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
             ["CanDelete"] = context.EnabledActions.Contains(CodeGenActions.Delete),
             ["CanExport"] = context.EnabledActions.Contains(CodeGenActions.Export),
             ["CanImport"] = context.EnabledActions.Contains(CodeGenActions.Import),
+            // 状态切换要有状态列（引擎 fail-closed 解析，勾了就一定有）
+            ["CanStatus"] = context.EnabledActions.Contains(CodeGenActions.Status) && context.StatusColumn is not null,
+            ["StatusColumn"] = context.StatusColumn is null ? null : BuildColumn(context.StatusColumn),
             ["PrimaryKey"] = context.PrimaryKey is null ? null : BuildColumn(context.PrimaryKey),
             ["Columns"] = context.Columns.Select(BuildColumn).ToList(),
             // 树表结构列（TemplateType == "Tree" 时非空，由引擎 fail-closed 保证）

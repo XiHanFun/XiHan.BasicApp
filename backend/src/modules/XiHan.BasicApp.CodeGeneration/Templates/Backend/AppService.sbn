@@ -149,6 +149,33 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
         }
     }
 {{~ end ~}}
+{{~ if CanStatus ~}}
+
+    /// <summary>
+    /// 启用或停用{{ if TableComment }}{{ TableComment | xml_doc }}{{ else }}{{ ClassName }}{{ end }}
+    /// </summary>
+    /// <param name="input">状态更新入参</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>更新后的详情</returns>
+    [UnitOfWork(true)]
+    [PermissionAuthorize({{ ClassName }}PermissionCodes.Status)]
+    public virtual async Task<{{ ClassName }}DetailDto> Update{{ ClassName }}StatusAsync({{ ClassName }}StatusUpdateDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        if (!Enum.IsDefined(input.{{ StatusColumn.CSharpProperty }}))
+        {
+            throw new ArgumentOutOfRangeException(nameof(input), "状态值无效。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var entity = await _repository.GetByIdAsync(input.BasicId, cancellationToken)
+            ?? throw new InvalidOperationException("{{ entity_label | cs_string }}不存在。");
+        entity.{{ StatusColumn.CSharpProperty }} = input.{{ StatusColumn.CSharpProperty }};
+        entity = await _repository.UpdateAsync(entity, cancellationToken);
+        return {{ ClassName }}ApplicationMapper.ToDetailDto(entity);
+    }
+{{~ end ~}}
 {{~ for col in unique_columns ~}}
 
     /// <summary>
