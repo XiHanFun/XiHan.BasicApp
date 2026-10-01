@@ -11,6 +11,8 @@ using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.Repositories;
+using MenuType = XiHan.BasicApp.Saas.Domain.Entities.MenuType;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
@@ -31,17 +33,21 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
 
     private readonly IFieldSecurityService _fieldSecurity;
 
+    private readonly IMenuRepository _menuRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public CodeGenTableQueryService(
         ICodeGenTableRepository tableRepository,
         ICodeGenTableColumnRepository columnRepository,
-        IFieldSecurityService fieldSecurityService)
+        IFieldSecurityService fieldSecurityService,
+        IMenuRepository menuRepository)
     {
         _tableRepository = tableRepository;
         _columnRepository = columnRepository;
         _fieldSecurity = fieldSecurityService;
+        _menuRepository = menuRepository;
     }
 
     /// <summary>
@@ -120,6 +126,34 @@ public sealed class CodeGenTableQueryService : CodeGenerationApplicationService,
 
         var columns = await _columnRepository.GetByTableIdAsync(table.BasicId, cancellationToken);
         return CodeGenTableApplicationMapper.ToDetailDto(table, columns);
+    }
+
+    /// <summary>
+    /// 获取可选的父菜单
+    /// </summary>
+    /// <remarks>
+    /// 生成的页面只能挂在平台目录下；目录须有菜单码，生成的菜单登记按菜单码找父级。
+    /// 带上级主键供前端组树，与代码生成同一个查看权限，不要求菜单管理权限。
+    /// </remarks>
+    [PermissionAuthorize(CodeGenPermissionCodes.Read)]
+    public async Task<IReadOnlyList<RelationOptionDto>> GetParentMenuOptionsAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var directories = await _menuRepository.GetListAsync(
+            menu => menu.TenantId == 0 && menu.MenuType == MenuType.Directory,
+            cancellationToken);
+
+        return [.. directories
+            .Where(menu => !string.IsNullOrWhiteSpace(menu.MenuCode))
+            .OrderBy(menu => menu.Sort)
+            .ThenBy(menu => menu.MenuName, StringComparer.Ordinal)
+            .Select(menu => new RelationOptionDto
+            {
+                Value = menu.BasicId,
+                Label = menu.MenuName,
+                ParentValue = menu.ParentId
+            })];
     }
 
     /// <summary>

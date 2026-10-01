@@ -11,6 +11,7 @@ using XiHan.BasicApp.CodeGeneration.Domain.Enums;
 using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Domain.Repositories;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using MenuType = XiHan.BasicApp.Saas.Domain.Entities.MenuType;
 
 namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 
@@ -33,6 +34,7 @@ public sealed partial class CodeGenerationEngine(
     IGeneratedArtifactPackager packager,
     IGeneratedArtifactWriter artifactWriter,
     IPermissionRepository permissionRepository,
+    IMenuRepository menuRepository,
     ILogger<CodeGenerationEngine> logger) : ICodeGenerationEngine
 {
     private readonly ICodeGenTableRepository _tableRepository = tableRepository;
@@ -45,6 +47,7 @@ public sealed partial class CodeGenerationEngine(
     private readonly IGeneratedArtifactPackager _packager = packager;
     private readonly IGeneratedArtifactWriter _artifactWriter = artifactWriter;
     private readonly IPermissionRepository _permissionRepository = permissionRepository;
+    private readonly IMenuRepository _menuRepository = menuRepository;
     private readonly ILogger<CodeGenerationEngine> _logger = logger;
 
     /// <summary>
@@ -286,8 +289,7 @@ public sealed partial class CodeGenerationEngine(
                 ["TreeParentColumn"] = table.TreeParentColumn,
                 ["TreeNameColumn"] = table.TreeNameColumn,
                 ["MasterTableId"] = table.MasterTableId?.ToString(),
-                ["MasterForeignKey"] = table.MasterForeignKey,
-                ["ParentMenuId"] = table.ParentMenuId?.ToString()
+                ["MasterForeignKey"] = table.MasterForeignKey
             }
         };
 
@@ -301,6 +303,12 @@ public sealed partial class CodeGenerationEngine(
             }
 
             context.ExistingEntityNamespace = existingEntity.Namespace;
+        }
+
+        var parentMenuError = await ResolveParentMenuAsync(table, context, cancellationToken);
+        if (parentMenuError is not null)
+        {
+            return (null, parentMenuError);
         }
 
         // 页面码是表级推导，在这里一次校验：模块名是自由输入，填中文或带空格照样能两端一致地产出，
@@ -636,6 +644,40 @@ public sealed partial class CodeGenerationEngine(
     /// 生成器给生成的实体打的工具名（<see cref="GeneratedCodeAttribute"/>），据此区分生成的与手写的
     /// </summary>
     private const string GeneratedCodeTool = "XiHan.CodeGen";
+
+    /// <summary>
+    /// 解析父菜单（fail-closed）：表配置存菜单主键，生成的菜单登记按菜单码挂靠
+    /// </summary>
+    /// <remarks>
+    /// 只能挂在平台目录下：页面挂在页面或按钮下没有意义，租户菜单不进平台种子。目录须有菜单码，菜单登记靠它找父级。
+    /// 选的若是在菜单管理里手建的目录，它只存在于当前库；新建的库里没有它，汇总菜单种子会因找不到父菜单报错。
+    /// </remarks>
+    private async Task<string?> ResolveParentMenuAsync(SysCodeGenTable table, CodeGenerationContext context, CancellationToken cancellationToken)
+    {
+        if (table.ParentMenuId is not { } parentMenuId)
+        {
+            return null;
+        }
+
+        var parent = await _menuRepository.GetByIdAsync(parentMenuId, cancellationToken);
+        if (parent is null || parent.TenantId != 0)
+        {
+            return $"表 {table.TableName} 配置的父菜单（{parentMenuId}）不存在或不是平台菜单：请在表配置里重新选择父菜单。";
+        }
+
+        if (parent.MenuType != MenuType.Directory)
+        {
+            return $"表 {table.TableName} 配置的父菜单「{parent.MenuName}」不是目录：页面只能挂在目录下，请重新选择。";
+        }
+
+        if (string.IsNullOrWhiteSpace(parent.MenuCode))
+        {
+            return $"表 {table.TableName} 配置的父菜单「{parent.MenuName}」没有菜单码：菜单登记按菜单码找父级，请先在菜单管理里给它填菜单码。";
+        }
+
+        context.ParentMenuCode = parent.MenuCode;
+        return null;
+    }
 
     /// <summary>
     /// 找表对应的手写实体

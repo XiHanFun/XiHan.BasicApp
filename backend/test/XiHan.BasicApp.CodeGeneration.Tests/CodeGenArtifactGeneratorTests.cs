@@ -275,14 +275,15 @@ public sealed class CodeGenArtifactGeneratorTests
     /// 配置了父菜单时 README 必须把 ParentMenuId 带出来。
     /// </summary>
     [Fact]
-    public void Readme_WithParentMenuShouldEchoParentMenuId()
+    public void Readme_WithParentMenuShouldEchoParentMenuCode()
     {
         var context = CodeGenerationTestHelper.CreateContext();
-        context.Options["ParentMenuId"] = "801";
+        context.ParentMenuCode = "develop";
 
         var content = MenuPermissionArtifactGenerator.Build(context, [])[1].Content;
 
-        Assert.Contains("ParentMenuId=`801`", content, StringComparison.Ordinal);
+        Assert.Contains("> 父菜单：`develop`", content, StringComparison.Ordinal);
+        Assert.Contains("页面挂在目录 `develop` 下", content, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -437,19 +438,21 @@ public sealed class CodeGenArtifactGeneratorTests
     }
 
     /// <summary>
-    /// 未配置父菜单时片段注明顶级菜单，配置后必须回显 ParentMenuId。
+    /// 未选父菜单时片段注明顶级菜单，选了就写出父菜单码。
     /// </summary>
     [Fact]
-    public void PageRegistrySnippet_ParentCodeNoteShouldFollowParentMenuId()
+    public void PageRegistrySnippet_ParentCodeShouldFollowParentMenuCode()
     {
         var withoutParent = CodeGenerationTestHelper.BuildPageRegistrySnippet(CodeGenerationTestHelper.CreateContext()).Content;
 
         var context = CodeGenerationTestHelper.CreateContext();
-        context.Options["ParentMenuId"] = "801";
+        context.ParentMenuCode = "develop";
         var withParent = CodeGenerationTestHelper.BuildPageRegistrySnippet(context).Content;
 
         Assert.Contains("顶级菜单", withoutParent, StringComparison.Ordinal);
-        Assert.Contains("ParentMenuId=801", withParent, StringComparison.Ordinal);
+        Assert.Contains("/* ParentCode: */ null,", withoutParent, StringComparison.Ordinal);
+        Assert.Contains("/* ParentCode: */ \"develop\",", withParent, StringComparison.Ordinal);
+        Assert.Contains("表配置所选目录的菜单码 develop", withParent, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -534,6 +537,22 @@ public sealed class CodeGenArtifactGeneratorTests
         Assert.Contains("SysProductPermissionCodes.Read", content, StringComparison.Ordinal);
         Assert.DoesNotContain("Order", content, StringComparison.Ordinal);
         Assert.DoesNotContain("SeederBase", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 选了父菜单时页面挂到它的菜单码下，并按 C# 字符串转义。
+    /// </summary>
+    [Fact]
+    public void MenuPages_ShouldUseParentMenuCode()
+    {
+        var context = CodeGenerationTestHelper.CreateContext();
+        context.ParentMenuCode = "develop";
+
+        var content = CodeGenerationTestHelper.BuildSeeders(context)[1].Content;
+        var snippet = CodeGenerationTestHelper.BuildPageRegistrySnippet(context).Content;
+
+        Assert.Contains("ParentCode: \"develop\", SysProductPermissionCodes.Read,", content, StringComparison.Ordinal);
+        Assert.Contains("/* ParentCode: */ \"develop\",", snippet, StringComparison.Ordinal);
     }
 
     /// <summary>

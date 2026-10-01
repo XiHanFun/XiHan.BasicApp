@@ -32,9 +32,10 @@ internal static class PageDescriptorArtifactGenerator
         var codes = $"{context.ClassName}PermissionCodes";
         var pageCode = Shared.PageCode(context);
         var path = $"/{Shared.ModuleLower(context)}/{Shared.Kebab(context)}";
-        var parentNote = context.Options.TryGetValue("ParentMenuId", out var pid) && pid is not null
-            ? $"父页面码（表配置 ParentMenuId={pid}，请换成对应父页面的 Code 字符串）"
-            : "null（顶级菜单；如需挂父目录，改成父页面码字符串）";
+        var parentLiteral = context.ParentMenuCode is null ? "null" : $"\"{TemplateTextEscaper.CSharpString(context.ParentMenuCode)}\"";
+        var parentNote = context.ParentMenuCode is null
+            ? "null（顶级菜单；如需挂父目录，改成父页面码字符串）"
+            : $"表配置所选目录的菜单码 {context.ParentMenuCode}";
 
         var sb = new StringBuilder();
         sb.AppendLine($"// {displayLiteral} PageRegistry 片段");
@@ -51,7 +52,7 @@ internal static class PageDescriptorArtifactGenerator
         sb.AppendLine("// —— PageRegistry.All ——");
         sb.AppendLine($"// 参数顺序：Code, Title, I18nKey, MenuType, Path, RouteName, Component, ParentCode, PermissionCode, Icon, Sort");
         sb.AppendLine($"new(\"{pageCode}\", \"{displayLiteral}\", I18nKey: null, MenuType.Menu, \"{path}\", \"{Shared.RouteName(context)}\",");
-        sb.AppendLine($"    \"{Shared.Component(context)}\", /* ParentCode: */ null, {codes}.Read, \"lucide:table\", /* Sort: */ 999),");
+        sb.AppendLine($"    \"{Shared.Component(context)}\", /* ParentCode: */ {parentLiteral}, {codes}.Read, \"lucide:table\", /* Sort: */ 999),");
         sb.AppendLine($"// 备注：ParentCode 当前 {parentNote}");
         sb.AppendLine();
         sb.AppendLine("// —— PageRegistry.Buttons ——");

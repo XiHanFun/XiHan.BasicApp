@@ -9,14 +9,16 @@ import type {
 } from '../../../../api'
 import type {
   ApiId,
+  RelationOptionDto,
 } from '@/api'
 import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { STATUS_OPTIONS } from '@/constants'
-import { XEditModal, XInput, XSelect } from '~/components'
+import { XEditModal, XInput, XSelect, XTreeSelect } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
+import { relationOptionsToTree } from '~/utils'
 import {
   codeGenTableApi,
   DATABASE_TYPE_OPTIONS,
@@ -97,6 +99,9 @@ const form = ref<TableFormModel>(createDefaultForm())
 const columnOptions = ref<{ label: string, value: string }[]>([])
 /** 其他表（供主子表的主表选择） */
 const tableOptions = ref<{ label: string, value: ApiId }[]>([])
+/** 可选的父菜单（平台目录），弹窗首次打开时拉取 */
+const parentMenuOptions = ref<RelationOptionDto[]>([])
+const parentMenuTree = computed(() => relationOptionsToTree(parentMenuOptions.value))
 
 const isTreeTemplate = computed(() => form.value.templateType === TemplateTypeEnum.Tree)
 const isMasterDetailTemplate = computed(() => form.value.templateType === TemplateTypeEnum.MasterDetail)
@@ -156,8 +161,22 @@ watch(
     if (props.tableId) {
       void loadDetail()
     }
+    void ensureParentMenuOptions()
   },
 )
+
+/** 拉取可选的父菜单；失败时提示，不用空列表冒充「没有可选目录」 */
+async function ensureParentMenuOptions() {
+  if (parentMenuOptions.value.length > 0) {
+    return
+  }
+  try {
+    parentMenuOptions.value = await codeGenTableApi.parentMenuOptions()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('develop.code_gen.table_edit.load_parent_menu_failed'))
+  }
+}
 
 async function loadDetail() {
   if (!props.tableId) {
@@ -467,6 +486,20 @@ async function handleSubmit() {
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_database_type') }}</XhFieldLabel>
             <XhFieldControl>
               <XSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
+            </XhFieldControl>
+            <XhFieldErrorText />
+          </XhFieldRoot>
+        </XhFormFieldGroup>
+        <XhFormFieldGroup name="parentMenuId">
+          <XhFieldRoot>
+            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_parent_menu') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XTreeSelect
+                v-model:value="form.parentMenuId"
+                clearable
+                :options="parentMenuTree"
+                :placeholder="t('develop.code_gen.table_edit.form_parent_menu_placeholder')"
+              />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>

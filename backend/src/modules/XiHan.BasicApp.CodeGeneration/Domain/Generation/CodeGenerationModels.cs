@@ -263,6 +263,14 @@ public sealed class CodeGenerationContext
     /// </remarks>
     public string? ExistingEntityNamespace { get; set; }
 
+    /// <summary>
+    /// 父菜单码（表配置选了父菜单时非空：生成的菜单登记挂到这个目录下；未选即顶级菜单）
+    /// </summary>
+    /// <remarks>
+    /// 表配置存的是菜单主键，主键各库不同，菜单登记按菜单码挂靠，由引擎在生成时解析。
+    /// </remarks>
+    public string? ParentMenuCode { get; set; }
+
     /// <summary>主键列</summary>
     public ColumnSchema? PrimaryKey { get; set; }
 

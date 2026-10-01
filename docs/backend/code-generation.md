@@ -71,7 +71,7 @@
 
 - <code v-pre>Domain/Permissions/{{ClassName}}PermissionCodes.cs</code>——权限码常量类（资源段取表名，`{资源}:{操作}` 两段式）。
 - <code v-pre>Domain/Permissions/{{ClassName}}PermissionDefinitions.cs</code>——权限定义片段。
-- <code v-pre>Infrastructure/Seeders/{{ClassName}}PermissionCatalog.cs</code> 与 <code v-pre>Infrastructure/Seeders/{{ClassName}}MenuPages.cs</code>——权限目录登记与菜单登记（总是覆盖，随包含操作推导）。它们实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 并按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段最后统一写入：不需要 `AddDataSeeder`，也没有种子顺序号。
+- <code v-pre>Infrastructure/Seeders/{{ClassName}}PermissionCatalog.cs</code> 与 <code v-pre>Infrastructure/Seeders/{{ClassName}}MenuPages.cs</code>——权限目录登记与菜单登记（总是覆盖，随包含操作、父菜单推导）。它们实现 `IPermissionCatalogContribution` / `IMenuPageContribution` 并按约定注册，由 SaaS 的汇总种子在权限目录、菜单两个阶段最后统一写入：不需要 `AddDataSeeder`，也没有种子顺序号。页面挂在表配置所选的「父菜单」下（只能选平台目录，按菜单码挂靠），未选即顶级菜单。
 - <code v-pre>_GeneratedMenuPermission/{{ClassName}}PageRegistry.snippet.txt</code>——`PageDescriptor` / `ButtonDescriptor` 粘贴片段（并进模块自己的页面登记表时用，与菜单登记二选一）。
 - `_GeneratedMenuPermission/README.md`——落地说明：权限码表、按钮→权限码映射、`SysMenu` 菜单规格与生效步骤（重启后端即由启动播种写入）。
 
