@@ -65,6 +65,6 @@ internal static class PageDescriptorArtifactGenerator
         }
 
         var fileName = $"{context.ClassName}PageRegistry.snippet.txt";
-        return new GeneratedArtifact($"{Shared.OutputFolder}/{fileName}", fileName, sb.ToString(), Shared.TemplateCode);
+        return new GeneratedArtifact($"{Shared.OutputFolder}/{fileName}", fileName, sb.ToString(), Shared.TemplateCode, Side: ArtifactSide.Backend);
     }
 }

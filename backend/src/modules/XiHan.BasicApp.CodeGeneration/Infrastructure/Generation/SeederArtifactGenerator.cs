@@ -38,14 +38,14 @@ internal static class SeederArtifactGenerator
     {
         var content = Fill(PermissionSeederTemplate, context);
         var fileName = $"{context.ClassName}PermissionSeeder.cs";
-        return new GeneratedArtifact($"{Shared.OutputFolder}/{fileName}", fileName, content, Shared.TemplateCode, ArtifactWriteMode.WriteOnce);
+        return new GeneratedArtifact($"{Shared.SeedersFolder}/{fileName}", fileName, content, Shared.TemplateCode, ArtifactWriteMode.WriteOnce, ArtifactSide.Backend);
     }
 
     private static GeneratedArtifact BuildMenuSeeder(CodeGenerationContext context)
     {
         var content = Fill(MenuSeederTemplate, context);
         var fileName = $"{context.ClassName}MenuSeeder.cs";
-        return new GeneratedArtifact($"{Shared.OutputFolder}/{fileName}", fileName, content, Shared.TemplateCode, ArtifactWriteMode.WriteOnce);
+        return new GeneratedArtifact($"{Shared.SeedersFolder}/{fileName}", fileName, content, Shared.TemplateCode, ArtifactWriteMode.WriteOnce, ArtifactSide.Backend);
     }
 
     /// <summary>

@@ -243,10 +243,10 @@ public enum GenType
     Zip = 0,
 
     /// <summary>
-    /// 生成到项目（按表配置的生成路径落盘）
+    /// 生成到项目（后端写进与命名空间同名的模块项目，前端写进前端工程；只在开发环境开启）
     /// </summary>
     [Description("生成到项目")]
-    CustomPath = 1
+    Project = 1
 }
 
 /// <summary>

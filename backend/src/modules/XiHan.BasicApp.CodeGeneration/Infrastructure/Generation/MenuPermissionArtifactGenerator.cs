@@ -66,7 +66,7 @@ public static class MenuPermissionArtifactGenerator
         sb.AppendLine("}");
 
         var fileName = $"{className}.cs";
-        return new GeneratedArtifact($"{Shared.OutputFolder}/{fileName}", fileName, sb.ToString(), Shared.TemplateCode);
+        return new GeneratedArtifact($"{Shared.PermissionsFolder}/{fileName}", fileName, sb.ToString(), Shared.TemplateCode, Side: ArtifactSide.Backend);
     }
 
     /// <summary>
@@ -97,7 +97,8 @@ public static class MenuPermissionArtifactGenerator
             sb.AppendLine();
         }
 
-        sb.AppendLine("> 本目录产物为「待并入源码」的代码片段，不是运行时写库。并入后**重建数据库**，经既有 Seeder 链生效（符合 XiHan 单一事实源约定）。");
+        sb.AppendLine("> 接线产物是「待并入源码」的代码，不是运行时写库。路径都相对后端模块项目根：生成到项目时已直接落位，下载压缩包时按同样的相对位置放进模块。");
+        sb.AppendLine("> 并入后**重建数据库**，经既有 Seeder 链生效（符合 XiHan 单一事实源约定）。");
         sb.AppendLine();
         sb.AppendLine("## 1. 权限码");
         sb.AppendLine();
@@ -112,21 +113,21 @@ public static class MenuPermissionArtifactGenerator
         }
 
         sb.AppendLine();
-        sb.AppendLine("## 2. 产物清单（本目录）");
+        sb.AppendLine("## 2. 产物清单");
         sb.AppendLine();
-        sb.AppendLine("| 文件 | 目标位置 | 写入策略 |");
+        sb.AppendLine($"| 文件 | 位置（`{ns}` 项目内） | 写入策略 |");
         sb.AppendLine("| --- | --- | --- |");
-        sb.AppendLine($"| `{context.ClassName}PermissionCodes.cs` | `{ns}/Domain/Permissions/` | 总是覆盖（纯推导） |");
-        sb.AppendLine($"| `{context.ClassName}PermissionDefinitions.cs` | `{ns}/Domain/Permissions/` | 总是覆盖（纯推导） |");
-        sb.AppendLine($"| `{context.ClassName}PermissionSeeder.cs` | `{ns}/Infrastructure/Seeders/`（资源与权限） | 仅首次创建（Order 需人工确认） |");
-        sb.AppendLine($"| `{context.ClassName}MenuSeeder.cs` | `{ns}/Infrastructure/Seeders/`（页面与写操作按钮） | 仅首次创建（Order 需人工确认） |");
-        sb.AppendLine($"| `{context.ClassName}PageRegistry.snippet.txt` | 改走应用级 `PageRegistry` 时粘贴（与 MenuSeeder 二选一） | 参考片段 |");
+        sb.AppendLine($"| `{context.ClassName}PermissionCodes.cs` | `{Shared.PermissionsFolder}/` | 总是覆盖（纯推导） |");
+        sb.AppendLine($"| `{context.ClassName}PermissionDefinitions.cs` | `{Shared.PermissionsFolder}/` | 总是覆盖（纯推导） |");
+        sb.AppendLine($"| `{context.ClassName}PermissionSeeder.cs` | `{Shared.SeedersFolder}/`（资源与权限） | 仅首次创建（Order 需人工确认） |");
+        sb.AppendLine($"| `{context.ClassName}MenuSeeder.cs` | `{Shared.SeedersFolder}/`（页面与写操作按钮） | 仅首次创建（Order 需人工确认） |");
+        sb.AppendLine($"| `{context.ClassName}PageRegistry.snippet.txt` | `{Shared.OutputFolder}/`（改走应用级 `PageRegistry` 时粘贴，与 MenuSeeder 二选一） | 参考片段 |");
         sb.AppendLine();
         sb.AppendLine("## 3. 落地步骤（4 步）");
         sb.AppendLine();
-        sb.AppendLine("1. **复制文件**：按上表把权限码常量类、权限定义类、两个种子骨架复制到目标模块对应目录。");
+        sb.AppendLine("1. **确认文件**：权限码常量类、权限定义类与两个种子骨架按上表落在模块里（生成到项目时已写好，下载压缩包时照表放置）。");
         sb.AppendLine("   生成的 AppService/QueryService 已逐方法标注 `[PermissionAuthorize(" + context.ClassName + "PermissionCodes.Xxx)]`，");
-        sb.AppendLine("   引用的就是本目录的权限码常量类——不复制该文件，后端编译不过。");
+        sb.AppendLine("   引用的就是 `" + Shared.PermissionsFolder + "/` 下的权限码常量类——缺了它后端编译不过。");
         sb.AppendLine("2. **确认 Order 与注册**：种子骨架的 `Order` 是占位（`SeedOrders.PermissionCatalog + 90`、`SeedOrders.Menus + 90`），");
         sb.AppendLine("   换成本模块的号段、确认不冲突；在模块 `ServiceCollectionExtensions` 里 `AddDataSeeder<>` 注册两个种子。");
         var buttons = Shared.EnabledButtons(context).ToList();
@@ -157,6 +158,6 @@ public static class MenuPermissionArtifactGenerator
         sb.AppendLine();
         sb.AppendLine("> **勿改 `.Generated.cs`**：生成产物分自动文件（`.Generated.cs`/`.generated.ts`，总是覆盖）与手动文件（首次创建、永不覆盖）。自定义代码写在手动文件里。");
 
-        return new GeneratedArtifact($"{Shared.OutputFolder}/README.md", "README.md", sb.ToString(), Shared.TemplateCode);
+        return new GeneratedArtifact($"{Shared.OutputFolder}/README.md", "README.md", sb.ToString(), Shared.TemplateCode, Side: ArtifactSide.Backend);
     }
 }

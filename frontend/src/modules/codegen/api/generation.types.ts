@@ -113,10 +113,12 @@ export interface CodeGenResultDto {
   durationMilliseconds: NumericString
   /** 产物清单（预览 / 文件树展示用） */
   artifacts: CodeGenArtifactDto[]
-  /** 实际写入文件数（GenType.CustomPath 时填充） */
+  /** 实际写入文件数（GenType.Project 时填充） */
   writtenCount: number
-  /** 被跳过的手动文件相对路径（GenType.CustomPath 时填充；目标已存在，未覆盖） */
+  /** 被跳过的手动文件相对路径（GenType.Project 时填充；目标已存在，未覆盖） */
   skippedPaths: string[]
+  /** 写入的项目目录（GenType.Project 时填充：后端项目目录、前端工程目录） */
+  targetRoots: string[]
   /** Zip 包体（Base64）；GenType.Zip 时填充 */
   packageBase64?: string | null
 }

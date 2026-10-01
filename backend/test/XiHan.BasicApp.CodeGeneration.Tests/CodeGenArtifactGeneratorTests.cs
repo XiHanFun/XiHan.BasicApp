@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.CodeGeneration.Domain.Enums;
+using XiHan.BasicApp.CodeGeneration.Domain.Generation;
 using XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 
 namespace XiHan.BasicApp.CodeGeneration.Tests;
@@ -31,7 +32,7 @@ public sealed class CodeGenArtifactGeneratorTests
         Assert.Equal(2, artifacts.Count);
         Assert.Equal("SysProductPermissionCodes.cs", artifacts[0].FileName, StringComparer.Ordinal);
         Assert.Equal(
-            CodeGenerationTestHelper.OutputFolder + "/SysProductPermissionCodes.cs",
+            "Domain/Permissions/SysProductPermissionCodes.cs",
             artifacts[0].RelativePath,
             StringComparer.Ordinal);
         Assert.Equal("README.md", artifacts[1].FileName, StringComparer.Ordinal);
@@ -294,7 +295,7 @@ public sealed class CodeGenArtifactGeneratorTests
 
         Assert.Equal("SysProductPermissionDefinitions.cs", artifact.FileName, StringComparer.Ordinal);
         Assert.Equal(
-            CodeGenerationTestHelper.OutputFolder + "/SysProductPermissionDefinitions.cs",
+            "Domain/Permissions/SysProductPermissionDefinitions.cs",
             artifact.RelativePath,
             StringComparer.Ordinal);
         Assert.Equal(CodeGenerationTestHelper.ArtifactTemplateCode, artifact.TemplateCode, StringComparer.Ordinal);
@@ -461,6 +462,10 @@ public sealed class CodeGenArtifactGeneratorTests
         Assert.Equal(2, artifacts.Count);
         Assert.Equal("SysProductPermissionSeeder.cs", artifacts[0].FileName, StringComparer.Ordinal);
         Assert.Equal("SysProductMenuSeeder.cs", artifacts[1].FileName, StringComparer.Ordinal);
+        // 直接放在模块的种子目录：生成到项目时落位即可编译，不用再从中转目录复制
+        Assert.Equal("Infrastructure/Seeders/SysProductPermissionSeeder.cs", artifacts[0].RelativePath, StringComparer.Ordinal);
+        Assert.Equal("Infrastructure/Seeders/SysProductMenuSeeder.cs", artifacts[1].RelativePath, StringComparer.Ordinal);
+        Assert.All(artifacts, artifact => Assert.Equal(ArtifactSide.Backend, artifact.Side));
         Assert.All(artifacts, artifact => Assert.Equal(ArtifactWriteMode.WriteOnce, artifact.WriteMode));
         Assert.All(artifacts, artifact => Assert.Equal(
             CodeGenerationTestHelper.ArtifactTemplateCode,

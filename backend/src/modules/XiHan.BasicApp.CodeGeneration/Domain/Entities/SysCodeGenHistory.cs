@@ -102,9 +102,9 @@ public partial class SysCodeGenHistory : BasicAppFullAuditedEntity
     public virtual long TotalSize { get; set; } = 0;
 
     /// <summary>
-    /// 生成路径
+    /// 写入位置（生成到项目时写入的后端项目目录与前端工程目录，以「；」分隔；生成并下载时为空）
     /// </summary>
-    [SugarColumn(ColumnName = "Gen_Path", ColumnDescription = "生成路径", Length = 500, IsNullable = true)]
+    [SugarColumn(ColumnName = "Gen_Path", ColumnDescription = "写入位置", Length = 500, IsNullable = true)]
     public virtual string? GenPath { get; set; }
 
     /// <summary>

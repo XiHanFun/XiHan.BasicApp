@@ -88,7 +88,6 @@ public sealed class CodeGenEngineOrchestrationTests
     /// <param name="templateType">模板类型</param>
     /// <param name="scope">生成范围</param>
     /// <param name="enabledActions">包含操作</param>
-    /// <param name="genPath">生成路径</param>
     /// <param name="treeParentColumn">树表父级列</param>
     /// <param name="treeNameColumn">树表显示名列</param>
     /// <param name="masterTableId">主表主键</param>
@@ -99,7 +98,6 @@ public sealed class CodeGenEngineOrchestrationTests
         TemplateType templateType = TemplateType.Single,
         GenerationScope scope = GenerationScope.All,
         string? enabledActions = null,
-        string? genPath = null,
         string? treeParentColumn = null,
         string? treeNameColumn = null,
         long? masterTableId = null,
@@ -120,7 +118,6 @@ public sealed class CodeGenEngineOrchestrationTests
                 TemplateType = templateType,
                 GenerationScope = scope,
                 EnabledActions = enabledActions,
-                GenPath = genPath,
                 TreeParentColumn = treeParentColumn,
                 TreeNameColumn = treeNameColumn,
                 MasterTableId = masterTableId,
@@ -1208,7 +1205,7 @@ public sealed class CodeGenEngineOrchestrationTests
             packager => packager.PackAsync(It.IsAny<IEnumerable<GeneratedArtifact>>(), It.IsAny<CancellationToken>()),
             Times.Never);
         _artifactWriter.Verify(
-            writer => writer.WriteAsync(It.IsAny<IReadOnlyList<GeneratedArtifact>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()),
+            writer => writer.WriteToProjectAsync(It.IsAny<IReadOnlyList<GeneratedArtifact>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -1231,48 +1228,72 @@ public sealed class CodeGenEngineOrchestrationTests
     }
 
     /// <summary>
-    /// 落盘方式生成时按表配置的生成路径写入，并回填写入数与跳过清单。
+    /// 生成到项目时按表配置的命名空间找后端项目写入，并回填写入数、跳过清单与写入位置。
     /// </summary>
     [Fact]
-    public async Task GenerateAsync_CustomPathShouldWriteToConfiguredGenPath()
+    public async Task GenerateAsync_ProjectShouldWriteIntoNamespaceProject()
     {
-        GivenTable(Table(genPath: "D:/out"));
+        GivenTable(Table());
         GivenTemplates(Template());
         _artifactWriter
-            .Setup(writer => writer.WriteAsync(It.IsAny<IReadOnlyList<GeneratedArtifact>>(), "D:/out", It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GeneratedArtifactWriteResult.Ok(5, 1, ["Domain/Entities/SysProduct.cs"]));
+            .Setup(writer => writer.WriteToProjectAsync(It.IsAny<IReadOnlyList<GeneratedArtifact>>(), "XiHan.BasicApp.Catalog", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GeneratedArtifactWriteResult.Ok(5, 1, ["Domain/Entities/SysProduct.cs"], ["E:/repo/backend/src/modules/XiHan.BasicApp.Catalog"]));
 
         var result = await CreateEngine().GenerateAsync(new GenerationRequest
         {
             TableId = TableId,
-            GenType = GenType.CustomPath
+            GenType = GenType.Project
         });
 
-        Assert.True(result.Success);
+        Assert.True(result.Success, result.Message);
         Assert.Equal(5, result.WrittenCount);
         Assert.Equal(["Domain/Entities/SysProduct.cs"], result.SkippedPaths);
+        Assert.Equal(["E:/repo/backend/src/modules/XiHan.BasicApp.Catalog"], result.TargetRoots);
     }
 
     /// <summary>
-    /// 落盘被安全策略拒绝时整次生成返回失败，并原样带出拒绝原因。
+    /// 写入被拒时整次生成返回失败，并原样带出拒绝原因。
     /// </summary>
     [Fact]
-    public async Task GenerateAsync_CustomPathWriteFailureShouldFailWholeGeneration()
+    public async Task GenerateAsync_ProjectWriteFailureShouldFailWholeGeneration()
     {
-        GivenTable(Table(genPath: "D:/out"));
+        GivenTable(Table());
         GivenTemplates(Template());
         _artifactWriter
-            .Setup(writer => writer.WriteAsync(It.IsAny<IReadOnlyList<GeneratedArtifact>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(GeneratedArtifactWriteResult.Fail("生成路径不在白名单内：D:/out"));
+            .Setup(writer => writer.WriteToProjectAsync(It.IsAny<IReadOnlyList<GeneratedArtifact>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(GeneratedArtifactWriteResult.Fail("找不到后端项目 XiHan.BasicApp.Catalog"));
 
         var result = await CreateEngine().GenerateAsync(new GenerationRequest
         {
             TableId = TableId,
-            GenType = GenType.CustomPath
+            GenType = GenType.Project
         });
 
         Assert.False(result.Success);
-        Assert.Contains("不在白名单内", result.Message!, StringComparison.Ordinal);
+        Assert.Contains("找不到后端项目", result.Message!, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 产物按模板分组标明归属：后端模板与接线产物归后端，前端模板归前端，分组不明的不标。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_ArtifactsShouldCarrySideFromTemplateGroup()
+    {
+        GivenTable(Table(enabledActions: "create"));
+        GivenTemplates(
+            Template(),
+            Template(code: "frontend.api", name: "前端接口", group: "frontend-crud", fileExtension: ".ts"),
+            Template(code: "misc.notes", name: "备注", group: "misc", fileExtension: ".md"));
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(ArtifactSide.Backend, result.Artifacts.Single(artifact => artifact.TemplateCode == "backend.entity").Side);
+        Assert.Equal(ArtifactSide.Frontend, result.Artifacts.Single(artifact => artifact.TemplateCode == "frontend.api").Side);
+        Assert.Null(result.Artifacts.Single(artifact => artifact.TemplateCode == "misc.notes").Side);
+        Assert.All(
+            result.Artifacts.Where(artifact => artifact.TemplateCode is not ("backend.entity" or "frontend.api" or "misc.notes")),
+            artifact => Assert.Equal(ArtifactSide.Backend, artifact.Side));
     }
 
     /// <summary>

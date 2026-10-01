@@ -15,7 +15,7 @@
 - 状态切换：要求表里有 `EnableStatus` 类型、勾了「列表」的状态列（多列时取名为 Status 的那列），否则生成直接失败。后端出 `Update{类名}StatusAsync`（独立的状态权限码 `{资源}:status`），前端出行内「启用/停用」与多选批量启停，按钮码 `{页面码}.status`。
 - 打印：行内「打印」按钮跟查看权限走（按钮码 `{页面码}.print`），取详情后把选项列换成显示名称、图片换成可访问地址，按页面码取打印模板预览。后端产出 `XxxPrintDataSource`（编码即页面码，字段为详情里的业务列与创建时间，附示例数据），须手工在模块里 `services.RegisterPrintDataSource(XxxPrintDataSource.Definition)` 登记（模块须依赖打印模块），再到「打印模板」页新建同编码的模板。使用者另需打印模板的使用权限 `print-template:use`。
 - 导入：列表页 CSV 导入，模板列即新增表单的列（不进列表的新增列以隐藏字段进导入），必填随表单；下拉按选项文本反查值，日期接受 `2026/9/30` 等常见写法并按本地时间归一。
-- 生成方式：预览、Zip 打包、落盘到白名单目录（默认禁用，见「配置」）。
+- 生成方式：预览、生成并下载（Zip）、生成到项目（后端写进与命名空间同名的模块项目，前端写进前端工程，只在开发环境开启，见「配置」）。
 - 内置模板随程序版本走：`SysCodeGenTemplateSeeder` 把 `Templates/**/*.sbn` 嵌入资源种进平台库，启动时回刷内容；改了模板需重启后端才会落到库里。
 
 ## 产物与写入策略
@@ -27,7 +27,7 @@
 | 前端 | `*.types.generated.ts`、`*.generated.ts`、`*.schema.generated.ts` | `*.types.ts`、`*.ts`、`*.schema.ts`、`index.vue` |
 | 接线 | `XxxPermissionCodes`、`XxxPermissionDefinitions` | `XxxPermissionSeeder`、`XxxMenuSeeder`（另附 PageRegistry 片段，二选一） |
 
-接线产物落在 `_GeneratedMenuPermission/`，附 README 说明如何并入源码：复制到目标模块、确认种子 Order 并注册、重建库后由既有种子链生效。生成的菜单不带 I18nKey，直接显示业务名称；要多语言时改成 `menu.{页面码中 . 与 - 换成 _}` 并在前端各语言 `menu.ts` 补键。
+接线产物相对后端模块项目根：权限码常量与权限定义在 `Domain/Permissions/`，两个种子骨架在 `Infrastructure/Seeders/`，说明与 PageRegistry 片段在 `_GeneratedMenuPermission/`。README 说明如何并入：确认文件落位、确认种子 Order 并注册、重建库后由既有种子链生效。生成的菜单不带 I18nKey，直接显示业务名称；要多语言时改成 `menu.{页面码中 . 与 - 换成 _}` 并在前端各语言 `menu.ts` 补键。
 
 ## 生成代码的约定
 - 报文可空性跟列本身走，与 C# DTO 一致；「必填」只管表单校验。非空列留空时文本发空串、数字发 0；下拉、日期、时间、long 标识没有说得通的缺省值，非空即按必填校验。
@@ -48,10 +48,13 @@
 - `Templates/Backend`、`Templates/Frontend`：内置 Scriban 模板（嵌入资源）
 
 ## 配置
-配置节 `CodeGeneration`：
-- `EnableCustomPathDisk`：是否允许落盘到自定义路径，缺省 `false`
-- `AllowedRootPaths`：允许落盘的根目录白名单（路径穿越 fail-closed）
+配置节 `CodeGeneration`，只在 `appsettings.Development.json` 里配置（其他环境不配置即只能生成并下载）：
+- `EnableGenerateToProject`：是否允许生成到项目，缺省 `false`
+- `BackendRootPath`：后端源码根（相对宿主内容根，开发配置 `../..`），在其下分组目录里找 `<命名空间>/<命名空间>.csproj`
+- `FrontendRootPath`：前端工程根（相对宿主内容根，开发配置 `../../../../frontend`），须含 `package.json`
 - `TablePrefixes`：推导类名时去掉的表名前缀，缺省 `Sys_,Saas_`
+
+找不到或找到多个同名项目、产物路径越界时整体拒绝，一个文件都不写；手动文件已存在时跳过。
 
 ## 依赖关系
 - `XiHanBasicAppSaasModule`（多租户、仓储基类、权限、菜单与种子基类）

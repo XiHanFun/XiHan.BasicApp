@@ -347,7 +347,7 @@ public sealed class CodeGenTemplateDomainServiceTests
     /// </summary>
     /// <remarks>
     /// 回归锚点（原用例锁定的是"未定义值原样落库"的缺陷行为）：
-    /// 下游 ZipArtifactPackager / FileSystemArtifactWriter 都按 <c>== WriteOnce</c> 判定，
+    /// 下游 ZipArtifactPackager / ProjectArtifactWriter 都按 <c>== WriteOnce</c> 判定，
     /// 脏值会被静默当成"总是覆盖"，从而覆盖开发者手写的文件。
     /// 校验口径与同方法内的模板类型/引擎/状态一致。
     /// </remarks>

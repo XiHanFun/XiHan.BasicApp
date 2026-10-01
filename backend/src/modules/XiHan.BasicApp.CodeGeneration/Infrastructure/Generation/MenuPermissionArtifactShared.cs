@@ -20,6 +20,16 @@ internal static class MenuPermissionArtifactShared
     /// <summary>二阶产物统一输出目录</summary>
     public const string OutputFolder = "_GeneratedMenuPermission";
 
+    /// <summary>
+    /// 权限码常量与权限定义的位置（相对后端模块项目根）
+    /// </summary>
+    public const string PermissionsFolder = "Domain/Permissions";
+
+    /// <summary>
+    /// 种子骨架的位置（相对后端模块项目根）
+    /// </summary>
+    public const string SeedersFolder = "Infrastructure/Seeders";
+
     /// <summary>二阶产物统一模板编码（用于产物溯源标识）</summary>
     public const string TemplateCode = "_menu_permission";
 

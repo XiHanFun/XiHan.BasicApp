@@ -4,6 +4,7 @@
 -- 三、角色继承只存直接继承边，间接继承按直接边即时推出；系统角色不参与继承（见后文）。
 -- 四、代码生成列配置新增「关联表 / 关联树」选项来源所需的两列（见后文）。
 -- 五、代码生成列配置新增「唯一」开关（见后文）。
+-- 六、代码生成表配置删去「生成路径」：生成到项目改按命名空间与前端工程目录推导位置（见后文）。
 --
 -- 只在 5.4.0 之前建的库上执行：新建的库按当前实体建表后直接登记为最新版本，不跑本脚本。
 -- 本脚本在建表之后、播种之前执行；建表只建缺失的表，存量表的列与索引由本脚本调整。
@@ -211,6 +212,17 @@ DO $$
 BEGIN
     IF to_regclass('sys_codegen_tablecolumn') IS NOT NULL THEN
         ALTER TABLE sys_codegen_tablecolumn ADD COLUMN IF NOT EXISTS is_unique bool NOT NULL DEFAULT false;
+    END IF;
+END
+$$;
+
+-- 六、代码生成表配置的「生成路径」。
+-- 生成到项目不再按表配置的任意路径落盘，改由开发环境配置推导后端项目与前端工程的位置，这一列不再使用。
+-- sys_codegen_table 只在平台库建表，独立库上整段跳过。
+DO $$
+BEGIN
+    IF to_regclass('sys_codegen_table') IS NOT NULL THEN
+        ALTER TABLE sys_codegen_table DROP COLUMN IF EXISTS gen_path;
     END IF;
 END
 $$;
