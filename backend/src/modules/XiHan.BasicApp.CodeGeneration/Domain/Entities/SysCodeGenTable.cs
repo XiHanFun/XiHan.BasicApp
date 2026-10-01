@@ -128,12 +128,6 @@ public partial class SysCodeGenTable : BasicAppFullAuditedEntity
     public virtual string? EnabledActions { get; set; }
 
     /// <summary>
-    /// 生成路径
-    /// </summary>
-    [SugarColumn(ColumnName = "Gen_Path", ColumnDescription = "生成路径", Length = 500, IsNullable = true)]
-    public virtual string? GenPath { get; set; }
-
-    /// <summary>
     /// 父菜单ID
     /// </summary>
     [SugarColumn(ColumnName = "Parent_Menu_Id", ColumnDescription = "父菜单ID", IsNullable = true)]

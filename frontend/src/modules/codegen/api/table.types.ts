@@ -45,9 +45,8 @@ export interface CodeGenTableDetailDto extends CodeGenTableListItemDto {
   author?: string | null
   /** 生成范围（全部/仅后端/仅前端） */
   generationScope: GenerationScope
-  /** 包含操作（逗号分隔的 create/update/delete 子集；null/空=全开） */
+  /** 包含操作（逗号分隔的操作子集；null/空=缺省集） */
   enabledActions?: string | null
-  genPath?: string | null
   parentMenuId?: ApiId | null
   primaryKeyColumn?: string | null
   treeParentColumn?: string | null
@@ -83,9 +82,8 @@ export interface CodeGenTableUpdateDto extends BasicDto {
   genType: GenType
   /** 生成范围（全部/仅后端/仅前端） */
   generationScope: GenerationScope
-  /** 包含操作（逗号分隔的 create/update/delete 子集；null/空=全开） */
+  /** 包含操作（逗号分隔的操作子集；null/空=缺省集） */
   enabledActions?: string | null
-  genPath?: string | null
   parentMenuId?: ApiId | null
   primaryKeyColumn?: string | null
   treeParentColumn?: string | null

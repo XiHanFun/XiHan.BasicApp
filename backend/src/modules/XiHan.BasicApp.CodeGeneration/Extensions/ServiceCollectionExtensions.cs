@@ -46,11 +46,11 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ITemplateRenderer, ScribanTemplateRenderer>();
         services.AddTransient<ITemplateRendererResolver, TemplateRendererResolver>();
 
-        // 落盘选项 + 类型映射 + 产物打包 + 受控落盘写入器
+        // 生成选项 + 类型映射 + 产物打包 + 生成到项目的写入器
         services.AddOptions<CodeGenerationOptions>().BindConfiguration(CodeGenerationOptions.SectionName);
         services.AddTransient<ITypeMappingProvider, DefaultTypeMappingProvider>();
         services.AddTransient<IGeneratedArtifactPackager, ZipArtifactPackager>();
-        services.AddTransient<IGeneratedArtifactWriter, FileSystemArtifactWriter>();
+        services.AddTransient<IGeneratedArtifactWriter, ProjectArtifactWriter>();
 
         // 实体元数据目录（反射一次、进程内缓存）+ 表配置推断引擎
         services.AddSingleton<IEntityMetadataCatalog, EntityMetadataCatalog>();

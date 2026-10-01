@@ -24,7 +24,8 @@ export enum GenStatus {
 /** 生成代码方式（预览走独立入口、不消费本枚举） */
 export enum GenType {
   Zip = 'Zip',
-  CustomPath = 'CustomPath',
+  /** 生成到项目：后端写进与命名空间同名的模块项目，前端写进前端工程（只在开发环境开启） */
+  Project = 'Project',
 }
 
 /** 模板引擎类型（Razor 已移除：需运行时编译能力、框架不支持） */
@@ -117,7 +118,7 @@ export const GEN_STATUS_OPTIONS = [
 /** 生成方式选项（与行操作一一对应：配哪种，「更多」里就只出哪种） */
 export const GEN_TYPE_OPTIONS = [
   { label: '生成并下载', value: GenType.Zip },
-  { label: '生成到项目', value: GenType.CustomPath },
+  { label: '生成到项目', value: GenType.Project },
 ]
 
 /** 模板引擎选项 */

@@ -74,21 +74,22 @@ public sealed partial class CodeGenerationEngine(
                 result.Package = await _packager.PackAsync(result.Artifacts, cancellationToken);
                 break;
 
-            case GenType.CustomPath:
-                // 受控落盘：默认禁用 + 白名单根目录 + 路径穿越校验（fail-closed），审计经生成历史留痕
+            case GenType.Project:
+                // 生成到项目：后端写进与命名空间同名的模块项目，前端写进前端工程（位置由配置推导，默认关闭），审计经生成历史留痕
                 var table = await _tableRepository.GetByIdAsync(request.TableId, cancellationToken);
-                var writeResult = await _artifactWriter.WriteAsync(result.Artifacts, table?.GenPath, cancellationToken);
+                var writeResult = await _artifactWriter.WriteToProjectAsync(result.Artifacts, table?.Namespace, cancellationToken);
                 if (!writeResult.Success)
                 {
-                    return GenerationResult.Fail(writeResult.Message ?? "自定义路径落盘失败。");
+                    return GenerationResult.Fail(writeResult.Message ?? "生成到项目失败。");
                 }
 
                 result.WrittenCount = writeResult.WrittenCount;
                 result.SkippedPaths = writeResult.SkippedPaths;
+                result.TargetRoots = writeResult.TargetRoots;
 
                 _logger.LogInformation(
-                    "代码生成落盘完成：TableId={TableId}，路径={Path}，写入={Written}，跳过={Skipped}（手动文件已存在）",
-                    request.TableId, table?.GenPath, writeResult.WrittenCount, writeResult.SkippedCount);
+                    "代码生成到项目完成：TableId={TableId}，位置={Roots}，写入={Written}，跳过={Skipped}（手动文件已存在）",
+                    request.TableId, string.Join("；", writeResult.TargetRoots), writeResult.WrittenCount, writeResult.SkippedCount);
                 break;
 
             default:
@@ -162,7 +163,7 @@ public sealed partial class CodeGenerationEngine(
                 return GenerationResult.Fail($"模板 {template.TemplateCode}（{template.TemplateName}）渲染失败：{ex.Message}");
             }
 
-            artifacts.Add(new GeneratedArtifact(relativePath, fileName, content, template.TemplateCode, template.WriteMode));
+            artifacts.Add(new GeneratedArtifact(relativePath, fileName, content, template.TemplateCode, template.WriteMode, SideOf(template.TemplateGroup)));
         }
 
         // 二阶产物：菜单/权限接线代码（待并入源码 → 重建库经既有 Seeder 链生效，非运行时写库）。
@@ -192,6 +193,12 @@ public sealed partial class CodeGenerationEngine(
             _ => templates
         };
     }
+
+    /// <summary>
+    /// 模板产物的归属：生成到项目时据此决定写进后端项目还是前端工程
+    /// </summary>
+    private static ArtifactSide? SideOf(string? templateGroup)
+        => IsBackend(templateGroup) ? ArtifactSide.Backend : IsFrontend(templateGroup) ? ArtifactSide.Frontend : null;
 
     /// <summary>
     /// 模板分组是否属后端

@@ -38,6 +38,7 @@ export interface CodeGenHistoryListItemDto extends BasicDto {
  * `generatedFiles`/`usedTemplates`/`tableSnapshot` 后端为 JSON 字符串原样透传。
  */
 export interface CodeGenHistoryDetailDto extends CodeGenHistoryListItemDto {
+  /** 写入位置：生成到项目时写入的后端项目目录与前端工程目录（以「；」分隔） */
   genPath?: string | null
   downloadPath?: string | null
   generatedFiles?: string | null

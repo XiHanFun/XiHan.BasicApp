@@ -15,7 +15,7 @@
 | 模板渲染器 | `ITemplateRenderer` / `ScribanTemplateRenderer` | 用**原生 Scriban** 渲染模板（见下文约定） |
 | 渲染器解析器 | `ITemplateRendererResolver` | 按 `TemplateEngine` 选渲染器；当前仅 Scriban |
 | 打包器 | `IGeneratedArtifactPackager` / `ZipArtifactPackager` | 产物清单 → Zip 字节流 |
-| 落盘写入器 | `IGeneratedArtifactWriter` / `FileSystemArtifactWriter` | 受控落盘（默认禁用 + 白名单 + 路径穿越拒绝） |
+| 生成到项目 | `IGeneratedArtifactWriter` / `ProjectArtifactWriter` | 写进本仓库的后端模块项目与前端工程（位置由配置推导，默认关闭，路径越界拒绝） |
 
 四张配置实体（均 `BasicAppFullAuditedEntity`，软删、多租户、审计俱全）：
 
@@ -67,13 +67,13 @@
 
 前端产物落到 `src/api/modules/<module>/` 与 `src/views/<module>/<class-kebab>/`（路径表达式里 `ModuleName` 会 `string.downcase`）。生成的页面与手写页面同构：`SchemaPage` 驱动列表与搜索，`XEditModal` + `XhFormRoot` 承载表单弹窗，控件取 `~/components` 的 `XInput` / `XSelect` / `XNumberInput` / `XTreeSelect`，提示走 `~/composables` 的 `toast`，枚举下拉走 `useEnumOptions`。文案为中文字面量，接 i18n 需自行替换。
 
-除模板产物外，引擎每次还追加**二阶产物**（目录 `_GeneratedMenuPermission/`）：
+除模板产物外，引擎每次还追加**二阶产物**（后端接线，路径相对后端模块项目根）：
 
-- <code v-pre>{{ClassName}}PermissionCodes.cs</code>——权限码常量类（资源段取表名，`{资源}:{操作}` 两段式）。
-- <code v-pre>{{ClassName}}PermissionDefinitions.cs</code>——权限定义片段。
-- <code v-pre>{{ClassName}}PageRegistry.snippet.txt</code>——`PageDescriptor` / `ButtonDescriptor` 粘贴片段。
-- <code v-pre>{{ClassName}}PermissionSeeder.cs</code> 与 <code v-pre>{{ClassName}}MenuSeeder.cs</code>——种子骨架。
-- `README.md`——落地说明：权限码表、按钮→权限码映射、`SysMenu` 菜单规格，以及并入源码后的 Seeder / 升级脚本接线清单。
+- <code v-pre>Domain/Permissions/{{ClassName}}PermissionCodes.cs</code>——权限码常量类（资源段取表名，`{资源}:{操作}` 两段式）。
+- <code v-pre>Domain/Permissions/{{ClassName}}PermissionDefinitions.cs</code>——权限定义片段。
+- <code v-pre>Infrastructure/Seeders/{{ClassName}}PermissionSeeder.cs</code> 与 <code v-pre>Infrastructure/Seeders/{{ClassName}}MenuSeeder.cs</code>——种子骨架（仅首次创建）。
+- <code v-pre>_GeneratedMenuPermission/{{ClassName}}PageRegistry.snippet.txt</code>——`PageDescriptor` / `ButtonDescriptor` 粘贴片段。
+- `_GeneratedMenuPermission/README.md`——落地说明：权限码表、按钮→权限码映射、`SysMenu` 菜单规格，以及并入源码后的 Seeder / 升级脚本接线清单。
 
 ::: tip 从旧版本升级
 前端模板此前产出的是 naive-ui 页面，现已整体迁到 XiHan.UI。已生成过代码的工程重新生成时：
@@ -223,20 +223,28 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 
 | `GenType` | 行为 |
 | --- | --- |
-| `Preview` | 只返回产物清单（含文件内容），不打包不落盘 |
-| `Zip` | 打成 Zip，包体以 **Base64** 随 `CodeGenResultDto.PackageBase64` 返回，前端触发下载 |
-| `CustomPath` | **受控落盘**到 `SysCodeGenTable.GenPath` |
+| `Zip` | 生成并下载：打成 Zip，包体以 **Base64** 随 `CodeGenResultDto.PackageBase64` 返回，前端触发下载 |
+| `Project` | 生成到项目：后端产物写进与表配置**命名空间**同名的模块项目，前端产物写进前端工程 |
 
-### 落盘的安全策略（fail-closed）
+预览走独立入口（`PreviewAsync`），只返回产物清单（含文件内容），不打包不落盘。
 
-`CustomPath` 落盘由 `FileSystemArtifactWriter` 把关，绑定配置节 `CodeGeneration`（`CodeGenerationOptions`），**默认禁用**，任一条件不满足即拒绝：
+### 生成到项目的位置
 
-- `EnableCustomPathDisk=false`（默认）→ 拒绝。
-- `AllowedRootPaths` 为空 → 拒绝。
-- 目标路径不在白名单根目录内 → 拒绝。
+写入位置不由表配置随意指定，而是按宿主内容根（WebHost 项目目录）推导本仓库的目录：
+
+- **后端**：在 `BackendRootPath`（缺省配置 `../..`，即 `backend/src`）下的分组目录里找 `<命名空间>/<命名空间>.csproj`，如命名空间 `XiHan.BasicApp.Sample` 写进 `backend/src/business/XiHan.BasicApp.Sample/`。模板的路径表达式（`Domain/Entities`、`Application/Dtos`…）与接线产物都相对这个项目目录。
+- **前端**：写进 `FrontendRootPath`（缺省配置 `../../../../frontend`）指向的前端工程，模板路径 `src/api/modules/<module>/`、`src/views/<module>/<class-kebab>/` 相对它。
+- 产物按模板分组归属：`backend-*` 进后端项目，`frontend-*` 进前端工程；生成范围只选后端时不碰前端配置。
+
+由 `ProjectArtifactWriter` 写入，绑定配置节 `CodeGeneration`（`CodeGenerationOptions`），**默认关闭**，任一条件不满足即整体拒绝、一个文件都不写：
+
+- `EnableGenerateToProject` 未开启（缺省）→ 拒绝。配置只放在 `appsettings.Development.json`，其他环境只能生成并下载。
+- 命名空间为空、不是以点分隔的标识符，或在源码根下找不到 / 找到多个同名项目 → 拒绝，不替你新建项目。
+- 前端工程目录下没有 `package.json` → 拒绝。
+- 模板分组既不是后端也不是前端 → 拒绝（不知道写进哪个项目）。
 - 产物相对路径是绝对路径 / 带盘符 / 拼接后越界（`..` 逃逸）→ 拒绝。
 
-即"默认禁用 + 白名单根目录 + 路径穿越二次校验"，符合本仓 fail-closed 约定。生产要落盘须显式开启并配置白名单。
+全部产物定好位置才动磁盘；手动文件已存在时跳过，生成历史记下写入的项目目录。
 
 ## 零代码运行时（只读）
 
@@ -254,7 +262,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 - **加一种数据库方言**：扩展 `ITypeMappingProvider` 的映射；扫描能力依赖框架 `IDatabaseMetadataProvider`。
 - **加/改模板**：新增 `SysCodeGenTemplate`（自定义编码、Scriban 正文、文件名/路径表达式），或改动非内置模板；用模板变量表与 `IsBaseColumn` 约定编写。
 - **换渲染引擎**：实现 `ITemplateRenderer`（`Engine` 返回对应 `TemplateEngine`）并注册，`TemplateRendererResolver` 后注册覆盖先注册。
-- **生成后并入源码**：按 `_GeneratedMenuPermission/README.md` 的步骤把权限码常量、种子（资源→权限→菜单→授权，Order 用 200+ 段）并入模块；全新库由种子初始化，存量库还要补对应版本的前向升级脚本。
+- **生成后并入源码**：按 `_GeneratedMenuPermission/README.md` 的步骤确认权限码常量与种子落位（资源→权限→菜单→授权，Order 用 200+ 段）并注册种子；全新库由种子初始化，存量库还要补对应版本的前向升级脚本。
 
 ## 下一步
 

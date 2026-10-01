@@ -25,16 +25,17 @@ public sealed class CodeGenerationOptionsTests
     }
 
     /// <summary>
-    /// 默认必须是最保守的一档：不启用自定义路径落盘、白名单为空，
-    /// 生产环境不显式开启就永远落不了盘。
+    /// 默认必须是最保守的一档：不能生成到项目、也没有项目根目录，
+    /// 只在开发环境配置开启，其他环境不配置就永远落不了盘。
     /// </summary>
     [Fact]
-    public void Defaults_ShouldDisableCustomPathDiskAndKeepAllowListEmpty()
+    public void Defaults_ShouldDisableGenerateToProjectWithoutRoots()
     {
         var options = new CodeGenerationOptions();
 
-        Assert.False(options.EnableCustomPathDisk);
-        Assert.Empty(options.AllowedRootPaths);
+        Assert.False(options.EnableGenerateToProject);
+        Assert.Null(options.BackendRootPath);
+        Assert.Null(options.FrontendRootPath);
     }
 
     /// <summary>

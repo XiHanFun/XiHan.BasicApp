@@ -458,8 +458,8 @@ public sealed class CodeGenerationAppService(
             Duration = result.DurationMilliseconds,
             FileCount = result.Artifacts.Count,
             TotalSize = totalSize,
-            // 落盘方式才有目标目录；Zip 是即时下载、服务端不留文件
-            GenPath = input.GenType == GenType.CustomPath ? table?.GenPath : null,
+            // 生成到项目才有写入位置；Zip 是即时下载、服务端不留文件
+            GenPath = result.TargetRoots.Count > 0 ? string.Join("；", result.TargetRoots) : null,
             UsedTemplates = SerializeOrNull(result.Artifacts
                 .Select(artifact => artifact.TemplateCode)
                 .Where(code => !string.IsNullOrWhiteSpace(code))
@@ -529,6 +529,7 @@ public sealed class CodeGenerationAppService(
         })],
         WrittenCount = result.WrittenCount,
         SkippedPaths = result.SkippedPaths,
+        TargetRoots = result.TargetRoots,
         PackageBase64 = result.Package is null ? null : Convert.ToBase64String(result.Package)
     };
 

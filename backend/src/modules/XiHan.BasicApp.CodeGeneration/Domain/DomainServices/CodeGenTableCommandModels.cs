@@ -24,7 +24,6 @@ public sealed record CodeGenTableUpdateCommand(
     GenType GenType,
     GenerationScope GenerationScope,
     string? EnabledActions,
-    string? GenPath,
     long? ParentMenuId,
     string? PrimaryKeyColumn,
     string? TreeParentColumn,

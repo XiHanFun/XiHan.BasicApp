@@ -177,7 +177,7 @@ const schema = computed<PageSchema>(() => ({
       // 直接写服务端代码目录，且手动文件已存在时会被跳过，属不可撤销操作
       confirm: true,
       confirmText: t('develop.code_gen.table.generate_to_disk_confirm'),
-      visible: row => (row as unknown as CodeGenTableListItemDto).genType === GenType.CustomPath,
+      visible: row => (row as unknown as CodeGenTableListItemDto).genType === GenType.Project,
       permission: 'code_gen.execute',
     },
     { key: 'columns', title: t('develop.code_gen.table.action_columns'), scope: 'row', icon: 'lucide:table-2', permission: 'code_gen.update' },
@@ -285,7 +285,7 @@ async function handleGenerate(row: CodeGenTableListItemDto) {
   }
 }
 
-/** 生成到现有代码结构：按表配置的生成路径落盘（后端受白名单与开关门控） */
+/** 生成到项目：后端写进与命名空间同名的模块项目，前端写进前端工程（只在开发环境开启） */
 async function handleGenerateToDisk(row: CodeGenTableListItemDto) {
   if (generating.value) {
     return
@@ -294,7 +294,7 @@ async function handleGenerateToDisk(row: CodeGenTableListItemDto) {
   try {
     const result = await codeGenerationApi.generate({
       tableId: row.basicId,
-      genType: GenType.CustomPath,
+      genType: GenType.Project,
     })
     if (!result.success) {
       toast.danger(result.message || t('develop.code_gen.generate.write_failed'))
@@ -303,6 +303,7 @@ async function handleGenerateToDisk(row: CodeGenTableListItemDto) {
     toast.success(t('develop.code_gen.generate.write_success', {
       written: result.writtenCount,
       skipped: result.skippedPaths?.length ?? 0,
+      location: result.targetRoots.join('、'),
     }))
     reload()
   }

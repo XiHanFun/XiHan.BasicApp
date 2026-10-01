@@ -79,6 +79,6 @@ internal static class PermissionSeedArtifactGenerator
         sb.AppendLine($"public sealed record {itemClass}(string Action, string Name, string Description, bool IsRequireAudit);");
 
         var fileName = $"{className}.cs";
-        return new GeneratedArtifact($"{Shared.OutputFolder}/{fileName}", fileName, sb.ToString(), Shared.TemplateCode);
+        return new GeneratedArtifact($"{Shared.PermissionsFolder}/{fileName}", fileName, sb.ToString(), Shared.TemplateCode, Side: ArtifactSide.Backend);
     }
 }

@@ -66,7 +66,6 @@ interface TableFormModel {
   generationScope: GenerationScope
   // 包含操作以字符串数组建模（多选控件）；提交时 join 为逗号分隔串，空/全等价全开
   enabledActions: string[]
-  genPath?: string | null
   // 上级菜单：M1 仅随详情回传（不写死 null），M3 接入菜单树选择控件
   parentMenuId?: ApiId | null
   primaryKeyColumn?: string | null
@@ -131,7 +130,6 @@ function createDefaultForm(): TableFormModel {
     genType: GenTypeEnum.Zip,
     generationScope: GenerationScopeEnum.All,
     enabledActions: [...ALL_ACTIONS],
-    genPath: null,
     parentMenuId: null,
     primaryKeyColumn: null,
     treeParentColumn: null,
@@ -193,7 +191,6 @@ async function loadDetail() {
       genType: detail.genType,
       generationScope: detail.generationScope ?? GenerationScopeEnum.All,
       enabledActions: parseEnabledActions(detail.enabledActions),
-      genPath: detail.genPath ?? null,
       parentMenuId: detail.parentMenuId ?? null,
       primaryKeyColumn: detail.primaryKeyColumn ?? null,
       treeParentColumn: detail.treeParentColumn ?? null,
@@ -307,7 +304,6 @@ async function handleSubmit() {
       generationScope: form.value.generationScope,
       // 恰为缺省集（或全不选）时提交空串，后端归一化为缺省集；其余按勾选提交
       enabledActions: isDefaultActions(form.value.enabledActions) ? '' : form.value.enabledActions.join(','),
-      genPath: form.value.genPath,
       parentMenuId: form.value.parentMenuId,
       primaryKeyColumn: form.value.primaryKeyColumn,
       treeParentColumn: isTreeTemplate.value ? form.value.treeParentColumn : null,
@@ -383,7 +379,7 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_namespace') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="form.namespace" clearable />
+              <XInput v-model:value="form.namespace" clearable :placeholder="t('develop.code_gen.table_edit.form_namespace_placeholder')" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -471,15 +467,6 @@ async function handleSubmit() {
             <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_database_type') }}</XhFieldLabel>
             <XhFieldControl>
               <XSelect v-model:value="form.databaseType" :options="DATABASE_TYPE_OPTIONS" />
-            </XhFieldControl>
-            <XhFieldErrorText />
-          </XhFieldRoot>
-        </XhFormFieldGroup>
-        <XhFormFieldGroup name="genPath">
-          <XhFieldRoot>
-            <XhFieldLabel>{{ t('develop.code_gen.table_edit.form_gen_path') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XInput v-model:value="form.genPath" clearable :placeholder="t('develop.code_gen.table_edit.form_gen_path_placeholder')" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>

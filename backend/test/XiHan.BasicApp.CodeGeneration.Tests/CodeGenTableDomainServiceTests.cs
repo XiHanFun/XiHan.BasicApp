@@ -88,7 +88,6 @@ public sealed class CodeGenTableDomainServiceTests
             generationScope,
             enabledActions,
             null,
-            null,
             "BasicId",
             null,
             null,

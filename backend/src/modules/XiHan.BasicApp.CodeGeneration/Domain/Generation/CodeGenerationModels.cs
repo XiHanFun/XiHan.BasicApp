@@ -285,12 +285,26 @@ public sealed class CodeGenerationContext
 /// <param name="Content">文件内容</param>
 /// <param name="TemplateCode">来源模板编码</param>
 /// <param name="WriteMode">写入策略（自动文件总是覆盖；手动文件仅首次创建）</param>
+/// <param name="Side">归属（后端产物相对后端项目根、前端产物相对前端工程根；为空表示模板分组未标明归属，不能生成到项目）</param>
 public sealed record GeneratedArtifact(
     string RelativePath,
     string FileName,
     string Content,
     string? TemplateCode,
-    ArtifactWriteMode WriteMode = ArtifactWriteMode.AlwaysOverwrite);
+    ArtifactWriteMode WriteMode = ArtifactWriteMode.AlwaysOverwrite,
+    ArtifactSide? Side = null);
+
+/// <summary>
+/// 产物归属
+/// </summary>
+public enum ArtifactSide
+{
+    /// <summary>后端（相对后端模块项目根）</summary>
+    Backend,
+
+    /// <summary>前端（相对前端工程根）</summary>
+    Frontend
+}
 
 /// <summary>
 /// 生成请求
@@ -324,11 +338,14 @@ public sealed class GenerationResult
     /// <summary>打包字节流（GenType.Zip 时填充）</summary>
     public byte[]? Package { get; set; }
 
-    /// <summary>实际写入文件数（GenType.CustomPath 时填充）</summary>
+    /// <summary>实际写入文件数（GenType.Project 时填充）</summary>
     public int WrittenCount { get; set; }
 
-    /// <summary>被跳过的手动文件相对路径（GenType.CustomPath 时填充；目标已存在，未覆盖）</summary>
+    /// <summary>被跳过的手动文件相对路径（GenType.Project 时填充；目标已存在，未覆盖）</summary>
     public IReadOnlyList<string> SkippedPaths { get; set; } = [];
+
+    /// <summary>写入的项目目录（GenType.Project 时填充：后端项目目录、前端工程目录）</summary>
+    public IReadOnlyList<string> TargetRoots { get; set; } = [];
 
     /// <summary>耗时（毫秒）</summary>
     public long DurationMilliseconds { get; set; }

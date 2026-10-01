@@ -76,7 +76,6 @@ public sealed class CodeGenTableDomainService : ICodeGenTableDomainService
         table.GenType = command.GenType;
         table.GenerationScope = command.GenerationScope;
         table.EnabledActions = enabledActions;
-        table.GenPath = Optional(command.GenPath, 500, nameof(command.GenPath), "生成路径长度不能超过 500 个字符。");
         table.ParentMenuId = command.ParentMenuId;
         table.PrimaryKeyColumn = Optional(command.PrimaryKeyColumn, 100, nameof(command.PrimaryKeyColumn), "主键列名长度不能超过 100 个字符。");
         table.TreeParentColumn = Optional(command.TreeParentColumn, 100, nameof(command.TreeParentColumn), "树表父级字段长度不能超过 100 个字符。");
