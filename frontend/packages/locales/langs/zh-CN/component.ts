@@ -682,6 +682,10 @@ export default {
     prev_month: '上个月',
     next_month: '下个月',
     next_year: '下一年',
+    start_time: '开始时间',
+    end_time: '结束时间',
+    hour: '时',
+    minute: '分',
   },
   search_date_range: {
     start: '开始时间',

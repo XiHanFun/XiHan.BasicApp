@@ -81,6 +81,14 @@ describe('区间草稿', () => {
     expect(resolveRangeChange([])).toBeNull()
     expect(resolveRangeChange(['', ''])).toBeNull()
   })
+
+  it('带时间的区间：草稿两端带上时:分，回传的时刻原样保留', () => {
+    const from = new Date(2026, 8, 1, 8, 30).getTime()
+    const to = new Date(2026, 8, 30, 18, 5).getTime()
+
+    expect(rangeToDraft([from, to], true)).toEqual(['2026-09-01T08:30', '2026-09-30T18:05'])
+    expect(resolveRangeChange(['2026-09-01T08:30', '2026-09-30T18:05'])).toEqual([from, to])
+  })
 })
 
 describe('段位组接线', () => {
