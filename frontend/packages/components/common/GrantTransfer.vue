@@ -20,6 +20,7 @@ import {
   XhTransferToTargetTrigger,
 } from '@xihan-ui/vue'
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 /**
  * 授权穿梭框：二元授予（有 / 无）的授权分配用它，左边可授、右边已授。
@@ -60,6 +61,17 @@ defineSlots<{
   /** 行尾一格：只放徽标、计数这类非交互内容 */
   suffix?: (props: { item: T, side: GrantTransferSide }) => unknown
 }>()
+
+const { t } = useI18n()
+
+/**
+ * 中间两颗箭头钮只有图标，读屏名是它们唯一的说明。带上目标栏的标题：
+ * 同一页两个穿梭框（直授的允许 / 拒绝）靠它区分，窄屏改上下排后也不会说反方向
+ */
+const translations = computed(() => ({
+  toTarget: t('component.grant_transfer.to_target', { title: props.targetTitle }),
+  toSource: t('component.grant_transfer.to_source', { title: props.sourceTitle }),
+}))
 
 /**
  * 穿梭框的值域是字符串，条目主键未必是串（T['basicId']）。
@@ -119,6 +131,7 @@ const sides: { side: GrantTransferSide, panel: typeof XhTransferSourcePanel }[] 
     :collection="collection"
     :loading="loading"
     :disabled="disabled"
+    :translations="translations"
     searchable
   >
     <template v-for="{ side, panel } in sides" :key="side">

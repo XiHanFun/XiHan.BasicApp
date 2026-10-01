@@ -512,6 +512,10 @@ export default {
   md_editor: {
     placeholder: 'Markdown 내용을 입력하세요...',
   },
+  grant_transfer: {
+    to_target: '선택한 항목을 「{title}」(으)로 이동',
+    to_source: '선택한 항목을 「{title}」(으)로 되돌리기',
+  },
   permission_transfer: {
     source: '부여 가능',
     target: '부여됨',

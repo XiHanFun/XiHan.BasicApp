@@ -512,6 +512,10 @@ export default {
   md_editor: {
     placeholder: 'कृपया Markdown सामग्री दर्ज करें...',
   },
+  grant_transfer: {
+    to_target: 'चयनित को "{title}" में ले जाएँ',
+    to_source: 'चयनित को वापस "{title}" में ले जाएँ',
+  },
   permission_transfer: {
     source: 'उपलब्ध',
     target: 'दी गई',
