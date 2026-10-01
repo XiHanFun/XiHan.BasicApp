@@ -2,11 +2,9 @@
 
 仓库里最小的一个业务模块，用来回答「在 XiHan.BasicApp 上加一块自己的业务，要写哪些东西」。
 
-答案是三样：**一个模块类 + 若干实体 + 若干仓储**。表由框架在启动时按实体自动建，
-仓储继承 `SaasRepository<T>` 即自动注册进容器，都不需要手写登记。
-
-两个实体演示两种写法：`SampleErpOrder` 实体与仓储都手写；`SampleNote` 只手写实体，
-表建出来后在「代码生成」里导入 `Sample_Note`、生成到项目，仓储、服务与页面由代码生成补齐（沿用这个实体，不再生成实体）。
+答案是两样：**一个模块类 + 若干实体**。表由框架在启动时按实体自动建；
+建好后在「代码生成」里导入表（`Sample_Note`、`Sample_Erp_Order`）、生成到项目，仓储、服务与页面由代码生成补齐，
+沿用手写的实体、不再生成实体。生成的仓储继承 `SaasRepository<T>`，自动注册进容器，不需要手写登记。
 
 ## 文件
 
@@ -16,7 +14,6 @@
 | `Domain/Entities/SampleNote.cs` | 普通业务实体，未声明模块数据源 |
 | `Domain/Entities/SampleErpOrder.cs` | 标了 `[ModuleDataSource("Erp")]` 的实体 |
 | `Domain/Entities/SampleModuleDataSources.cs` | 模块数据源名常量 |
-| `Infrastructure/Repositories/SampleErpOrderRepository.cs` | 手写仓储：继承 `SaasRepository<T>` 即自动注册 |
 
 ## 顺带演示：模块分库 × 租户分库
 
@@ -39,7 +36,7 @@
 模块库的连接标识由主连接派生（`{主连接}_{模块名}`），所以模块名不占用顶层 `ConfigId` 命名空间，
 跟租户连接标识撞不上；同一个模块在不同布局下自然是不同的库。
 
-仓储这层不需要知道落哪个库：落哪个库由实体上的特性和当前租户决定，`SampleErpOrderRepository` 与普通仓储的写法**完全一样**。
+仓储这层不需要知道落哪个库：落哪个库由实体上的特性和当前租户决定，两个实体的仓储写法**完全一样**，代码生成也不用为模块库做任何特殊处理。
 
 启动时模块会把实际解析结果打进日志，配置是否生效一眼可见：
 
