@@ -212,10 +212,9 @@
 }
 
 /* 命令式取值弹窗（prompt）的正文：字段竖排，撑到弹窗的取值宽度。
-   文本与密码字段缺省按控件宽（--xh-control-w）定宽，这里把两档的宽改成占满这一列 */
+   字段族控件缺省按控件宽（--xh-control-w）定宽，这里改一次让全部种类占满这一列 */
 .x-prompt__fields {
-  --xh-text-field-control-w: 100%;
-  --xh-password-input-control-w: 100%;
+  --xh-control-w: 100%;
 
   display: flex;
   flex-direction: column;

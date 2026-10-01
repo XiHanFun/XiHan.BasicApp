@@ -134,6 +134,10 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
 
 /* 单个搜索项：上下布局（标题在上、控件在下），常用/高级统一宽度 */
 .xh-search__item {
+  /* 控件一律撑满所在搜索项：字段族控件的根宽缺省取 --xh-control-w（16rem），
+     在项上改一次，经继承覆盖全部种类；小屏项占满整行时控件跟着铺开，与文本框同宽 */
+  --xh-control-w: 100%;
+
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -145,20 +149,6 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   inline-size: calc(var(--xh-search-item-w) * 2 + var(--xh-search-gap-x));
   /* 窄屏一行放不下两项时收到整行宽，不越出卡片 */
   max-inline-size: 100%;
-}
-
-/* 控件一律撑满所在搜索项：项宽即列宽，下拉一族的根缺省按控件宽定宽，
-   小屏项占满整行时不跟着铺开，就和文本框宽窄不一 */
-.xh-search__item :deep([data-scope='cascader'][data-part='root']),
-.xh-search__item :deep([data-scope='combobox'][data-part='root']),
-.xh-search__item :deep([data-scope='date-picker'][data-part='root']),
-.xh-search__item :deep([data-scope='date-range-picker'][data-part='root']),
-.xh-search__item :deep([data-scope='number-field'][data-part='root']),
-.xh-search__item :deep([data-scope='select'][data-part='root']),
-.xh-search__item :deep([data-scope='tags-input'][data-part='root']),
-.xh-search__item :deep([data-scope='text-field'][data-part='root']),
-.xh-search__item :deep([data-scope='tree-select'][data-part='root']) {
-  inline-size: 100%;
 }
 
 /* 搜索标题：小字号、常规字重、紧靠控件 */
