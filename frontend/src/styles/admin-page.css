@@ -27,6 +27,7 @@
 
 /* 网格内的控件一律撑满所在格：这几族的根是 inline-flex，容器不是竖排 flex 时不会自己铺开 */
 .xh-edit-form-grid [data-scope='cascader'][data-part='root'],
+.xh-edit-form-grid [data-scope='combobox'][data-part='root'],
 .xh-edit-form-grid [data-scope='date-picker'][data-part='root'],
 .xh-edit-form-grid [data-scope='number-field'][data-part='root'],
 .xh-edit-form-grid [data-scope='select'][data-part='root'],
