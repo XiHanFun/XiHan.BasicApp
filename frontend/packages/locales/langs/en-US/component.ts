@@ -512,6 +512,10 @@ export default {
   md_editor: {
     placeholder: 'Enter Markdown content...',
   },
+  grant_transfer: {
+    to_target: 'Move selected to "{title}"',
+    to_source: 'Move selected back to "{title}"',
+  },
   permission_transfer: {
     source: 'Available',
     target: 'Granted',

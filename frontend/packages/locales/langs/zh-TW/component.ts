@@ -512,6 +512,10 @@ export default {
   md_editor: {
     placeholder: '請輸入 Markdown 內容...',
   },
+  grant_transfer: {
+    to_target: '將選取項目移到「{title}」',
+    to_source: '將選取項目移回「{title}」',
+  },
   permission_transfer: {
     source: '可授予',
     target: '已授予',

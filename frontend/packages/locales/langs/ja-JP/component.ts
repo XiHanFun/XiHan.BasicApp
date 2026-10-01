@@ -512,6 +512,10 @@ export default {
   md_editor: {
     placeholder: 'Markdown の内容を入力...',
   },
+  grant_transfer: {
+    to_target: '選択した項目を「{title}」へ移動',
+    to_source: '選択した項目を「{title}」へ戻す',
+  },
   permission_transfer: {
     source: '付与可能',
     target: '付与済み',

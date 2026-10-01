@@ -512,6 +512,10 @@ export default {
   md_editor: {
     placeholder: 'Markdown-Inhalt eingeben...',
   },
+  grant_transfer: {
+    to_target: 'Auswahl nach „{title}“ verschieben',
+    to_source: 'Auswahl zurück nach „{title}“ verschieben',
+  },
   permission_transfer: {
     source: 'Verfügbar',
     target: 'Gewährt',
