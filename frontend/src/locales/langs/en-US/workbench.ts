@@ -6,6 +6,7 @@ export default {
     drag_toolbar: 'Drag to move the toolbar up/down',
     reset: 'Reset',
     add: 'Add widget',
+    remove: 'Remove widget',
     add_panel_title: 'Available widgets',
     span: 'Width',
     drag: 'Drag to reorder',

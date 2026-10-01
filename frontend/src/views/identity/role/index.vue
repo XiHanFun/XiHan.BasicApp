@@ -20,7 +20,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -1413,7 +1413,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton variant="subtle" tone="brand" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
-            {{ t('identity.role.perm_save') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('identity.role.perm_save') }}</XhButtonLabel>
           </XhButton>
         </div>
       </XhDrawerContent>
@@ -1437,6 +1438,7 @@ async function handleToggleStatus(row: RoleListItemDto) {
           <XTree
             v-else
             :data="menuTreeOptions"
+            :aria-label="t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' })"
             multiple
             cascade
             checked-strategy="all"
@@ -1452,7 +1454,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton variant="subtle" tone="brand" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
-            {{ t('identity.role.menu_save') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('identity.role.menu_save') }}</XhButtonLabel>
           </XhButton>
         </div>
       </XhDrawerContent>
@@ -1483,7 +1486,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton variant="subtle" tone="brand" :loading="membersSubmitting" :disabled="!membersDirty || membersLoading" style="margin-left: 8px" @click="saveMembers">
-            {{ t('identity.role.members_save') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('identity.role.members_save') }}</XhButtonLabel>
           </XhButton>
         </div>
       </XhDrawerContent>
@@ -1504,7 +1508,8 @@ async function handleToggleStatus(row: RoleListItemDto) {
             {{ t('common.actions.cancel') }}
           </XhButton>
           <XhButton variant="subtle" tone="brand" :loading="scopeSubmitting" :disabled="!scopeDirty || scopeLoading" style="margin-left: 8px" @click="saveScopes">
-            {{ t('identity.data_scope.save') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('identity.data_scope.save') }}</XhButtonLabel>
           </XhButton>
         </div>
       </XhDrawerContent>

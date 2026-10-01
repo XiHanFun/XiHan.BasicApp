@@ -10,7 +10,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhButton, XhCheckboxGroupIndicator, XhCheckboxGroupItem, XhCheckboxGroupItemText, XhCheckboxGroupRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCheckboxGroupIndicator, XhCheckboxGroupItem, XhCheckboxGroupItemText, XhCheckboxGroupRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldDescription, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -780,31 +780,27 @@ async function handleSubmit() {
         <XhFormFieldGroup name="deliveryChannels" class="xh-span-2">
           <XhFieldRoot>
             <XhFieldLabel>{{ t('message.notification.form_delivery_channels') }}</XhFieldLabel>
-            <div>
-              <XhFieldControl>
-                <XhCheckboxGroupRoot
-                  orientation="horizontal"
-                  style="--xh-checkbox-group-gap: 12px"
-                  :value="notificationForm.deliveryChannels.map(String)"
-                  @update:value="(value: string[]) => (notificationForm.deliveryChannels = value as unknown as MessageChannel[])"
+            <XhFieldControl>
+              <XhCheckboxGroupRoot
+                orientation="horizontal"
+                style="--xh-checkbox-group-gap: 12px"
+                :value="notificationForm.deliveryChannels.map(String)"
+                @update:value="(value: string[]) => (notificationForm.deliveryChannels = value as unknown as MessageChannel[])"
+              >
+                <XhCheckboxGroupItem
+                  v-for="option in deliveryChannelOptions"
+                  :key="option.value"
+                  :value="String(option.value)"
+                  :disabled="option.disabled"
                 >
-                  <XhCheckboxGroupItem
-                    v-for="option in deliveryChannelOptions"
-                    :key="option.value"
-                    :value="String(option.value)"
-                    :disabled="option.disabled"
-                  >
-                    <XhCheckboxGroupIndicator />
-                    <XhCheckboxGroupItemText>
-                      {{ option.label }}
-                    </XhCheckboxGroupItemText>
-                  </XhCheckboxGroupItem>
-                </XhCheckboxGroupRoot>
-              </XhFieldControl>
-              <p class="channel-hint">
-                {{ t('message.notification.form_delivery_channels_hint') }}
-              </p>
-            </div>
+                  <XhCheckboxGroupIndicator />
+                  <XhCheckboxGroupItemText>
+                    {{ option.label }}
+                  </XhCheckboxGroupItemText>
+                </XhCheckboxGroupItem>
+              </XhCheckboxGroupRoot>
+            </XhFieldControl>
+            <XhFieldDescription>{{ t('message.notification.form_delivery_channels_hint') }}</XhFieldDescription>
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
@@ -859,7 +855,7 @@ async function handleSubmit() {
             <XhFieldControl>
               <XDatePicker
                 v-model:value="notificationForm.startTime"
-                type="datetime"
+                show-time
                 clearable
               />
             </XhFieldControl>
@@ -872,11 +868,11 @@ async function handleSubmit() {
             <XhFieldControl>
               <XDatePicker
                 v-model:value="notificationForm.expirationTime"
-                type="datetime"
+                show-time
                 clearable
-                :placeholder="t('message.notification.form_expiration_placeholder')"
               />
             </XhFieldControl>
+            <XhFieldDescription>{{ t('message.notification.form_expiration_placeholder') }}</XhFieldDescription>
             <XhFieldErrorText />
           </XhFieldRoot>
         </XhFormFieldGroup>
@@ -1096,7 +1092,14 @@ async function handleSubmit() {
           </div>
           <div class="stats__rate">
             <span class="stats__rate-label">{{ t('message.notification.stats_read_rate') }}</span>
-            <XhProgress variant="line" :value="readRate" :stroke-width="12" />
+            <!-- 线形的厚度走令牌，stroke-width 只管环形 -->
+            <XhProgress
+              variant="line"
+              semantics="meter"
+              :value="readRate"
+              :aria-label="t('message.notification.stats_read_rate')"
+              style="--xh-progress-thickness: var(--xh-space-3)"
+            />
           </div>
           <!-- 操作区 -->
           <div class="stats__ops">
@@ -1105,7 +1108,7 @@ async function handleSubmit() {
                 {{ t('message.notification.stats_remind') }}
               </XhPopconfirmTrigger>
               <XhPopconfirmPositioner>
-                <XhPopconfirmContent>
+                <XhPopconfirmContent :aria-label="t('message.notification.stats_remind')">
                   <XhPopconfirmDescription>{{ t('message.notification.stats_remind_confirm', { count: readStats.unreadCount }) }}</XhPopconfirmDescription>
                   <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
                   <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
@@ -1113,7 +1116,8 @@ async function handleSubmit() {
               </XhPopconfirmPositioner>
             </XhPopconfirmRoot>
             <XhButton variant="subtle" size="sm" :loading="exportLoading" @click="exportUnread">
-              {{ t('message.notification.stats_export') }}
+              <XhButtonIndicator />
+              <XhButtonLabel>{{ t('message.notification.stats_export') }}</XhButtonLabel>
             </XhButton>
           </div>
           <!-- 未读人员区 -->
@@ -1144,12 +1148,6 @@ async function handleSubmit() {
   margin: 0 0 8px;
   font-size: 12px;
   color: hsl(var(--warning, 38 92% 50%));
-}
-
-.channel-hint {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: var(--text-color-3, #999);
 }
 
 .stats {

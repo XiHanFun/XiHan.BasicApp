@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DataScopeDraft } from './data-scope'
 import type { ApiId, DepartmentTreeNodeDto } from '@/api'
-import { XhButton, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch } from '@xihan-ui/vue'
+import { XhButton, XhRadioGroupItem, XhRadioGroupItemDescription, XhRadioGroupItemText, XhRadioGroupLabel, XhRadioGroupRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { DataPermissionScope } from '@/api'
@@ -138,25 +138,23 @@ function remove(departmentId: ApiId) {
 
 <template>
   <div class="data-scope-editor">
+    <!-- 逐项手写条目时 label 属性不渲染，组名要写成 label 部件 -->
     <XhRadioGroupRoot
       :value="selectedLevel"
       :disabled="readonly"
-      :label="t('identity.data_scope.level_label')"
       orientation="vertical"
       class="data-scope-levels"
       @update:value="onLevelChange"
     >
+      <XhRadioGroupLabel>{{ t('identity.data_scope.level_label') }}</XhRadioGroupLabel>
       <XhRadioGroupItem
         v-for="level in levels"
         :key="level.value"
         :value="level.value"
         :disabled="level.disabled"
-        class="data-scope-level"
       >
-        <XhRadioGroupItemText>
-          <span class="data-scope-level__label">{{ level.label }}</span>
-          <span class="data-scope-level__hint">{{ level.hint }}</span>
-        </XhRadioGroupItemText>
+        <XhRadioGroupItemText>{{ level.label }}</XhRadioGroupItemText>
+        <XhRadioGroupItemDescription>{{ level.hint }}</XhRadioGroupItemDescription>
       </XhRadioGroupItem>
     </XhRadioGroupRoot>
 
@@ -169,6 +167,7 @@ function remove(departmentId: ApiId) {
           v-else
           v-model:expanded-keys="expandedKeys"
           :data="treeOptions"
+          :aria-label="t('identity.data_scope.custom_section')"
           multiple
           :selected-keys="pickedKeys"
           @update:selected-keys="onPick"
@@ -225,22 +224,6 @@ function remove(departmentId: ApiId) {
   display: flex;
   flex-direction: column;
   gap: var(--xh-space-2);
-}
-
-.data-scope-level :deep([data-part='item-text']) {
-  display: flex;
-  flex-direction: column;
-  gap: var(--xh-space-1);
-}
-
-.data-scope-level__label {
-  color: var(--xh-fg-default);
-  font-size: var(--xh-text-body-size);
-}
-
-.data-scope-level__hint {
-  color: var(--xh-fg-muted);
-  font-size: var(--xh-text-caption-size);
 }
 
 /* 树与已选并排，窄屏自动叠成上下两块 */

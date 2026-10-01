@@ -6,6 +6,7 @@ export default {
     drag_toolbar: 'Ziehen, um die Symbolleiste nach oben/unten zu verschieben',
     reset: 'Zurücksetzen',
     add: 'Widget hinzufügen',
+    remove: 'Widget entfernen',
     add_panel_title: 'Verfügbare Widgets',
     span: 'Breite',
     drag: 'Zum Neuordnen ziehen',

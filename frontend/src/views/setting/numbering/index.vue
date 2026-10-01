@@ -359,8 +359,7 @@ function remove(row: NumberingRuleListItemDto): void {
       <template v-if="!isPlatform" #toolbar>
         <XTooltip :content="scopeSwitchLabel">
           <XhButton
-
-            data-circle
+            icon-only
             variant="ghost"
             size="sm"
             :aria-label="scopeSwitchLabel"

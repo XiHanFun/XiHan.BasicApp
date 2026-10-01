@@ -6,6 +6,7 @@ export default {
     drag_toolbar: '拖动可上下调整工具栏位置',
     reset: '恢复默认',
     add: '添加小组件',
+    remove: '移除小组件',
     add_panel_title: '可添加的小组件',
     span: '宽度',
     drag: '拖拽排序',

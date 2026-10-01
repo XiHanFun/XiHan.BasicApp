@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Tone } from '@xihan-ui/core'
 import type { UserInboxItemDto } from '@/api'
-import { XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhButtonPrefix, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -248,11 +248,13 @@ onMounted(loadNotifications)
           tone="brand"
           @click="handleMarkAllRead"
         >
-          <span><Icon icon="lucide:check-check" /></span>
-          {{ t('workbench.inbox.mark_all_read') }}
+          <XhButtonIndicator />
+          <XhButtonPrefix><Icon icon="lucide:check-check" /></XhButtonPrefix>
+          <XhButtonLabel>{{ t('workbench.inbox.mark_all_read') }}</XhButtonLabel>
         </XhButton>
-        <XhButton variant="subtle" class="xh-icon-btn" :aria-label="t('workbench.inbox.refresh')" :loading="loading" size="sm" @click="loadNotifications">
-          <span><Icon icon="lucide:refresh-cw" /></span>
+        <XhButton icon-only variant="subtle" class="xh-icon-btn" :aria-label="t('workbench.inbox.refresh')" :loading="loading" size="sm" @click="loadNotifications">
+          <XhButtonIndicator />
+          <XhButtonPrefix><Icon icon="lucide:refresh-cw" /></XhButtonPrefix>
         </XhButton>
       </div>
     </div>
@@ -331,7 +333,7 @@ onMounted(loadNotifications)
           <XhButton
             v-if="item.notificationStatus === NotificationStatus.Unread"
             :aria-label="t('workbench.inbox.mark_read')"
-            data-circle
+            icon-only
             variant="ghost"
             size="sm"
             tone="brand"
@@ -342,7 +344,7 @@ onMounted(loadNotifications)
           <XhButton
             v-if="item.needConfirm && !item.confirmTime"
             :aria-label="t('workbench.inbox.confirm')"
-            data-circle
+            icon-only
             variant="ghost"
             size="sm"
             tone="warning"
@@ -353,7 +355,7 @@ onMounted(loadNotifications)
           <XhButton
             v-if="item.link"
             :aria-label="t('workbench.inbox.open_link')"
-            data-circle
+            icon-only
             variant="ghost"
             size="sm"
             @click="handleOpenLink(item)"

@@ -613,7 +613,7 @@ async function submitDelegation() {
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_effective_time') }}</XhFieldLabel>
                   <XhFieldControl>
-                    <XDatePicker v-model:value="delegationForm.effectiveTime" clearable type="datetime" />
+                    <XDatePicker v-model:value="delegationForm.effectiveTime" clearable show-time />
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>
@@ -622,7 +622,7 @@ async function submitDelegation() {
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('identity.authorization.label_expiration_time') }}</XhFieldLabel>
                   <XhFieldControl>
-                    <XDatePicker v-model:value="delegationForm.expirationTime" clearable type="datetime" />
+                    <XDatePicker v-model:value="delegationForm.expirationTime" clearable show-time />
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>

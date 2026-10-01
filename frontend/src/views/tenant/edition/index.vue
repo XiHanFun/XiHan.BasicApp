@@ -11,7 +11,7 @@ import type {
   TenantEditionUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -607,7 +607,6 @@ async function savePermChanges() {
                 :disabled="editionForm.isFree"
                 :min="0"
                 :precision="2"
-                clearable
                 :placeholder="t('tenant.edition.price_placeholder')"
               />
             </XhFieldControl>
@@ -622,7 +621,6 @@ async function savePermChanges() {
                 v-model:value="editionForm.billingPeriodMonths"
                 :min="1"
                 :precision="0"
-                clearable
                 :placeholder="t('tenant.edition.billing_period_placeholder')"
               />
             </XhFieldControl>
@@ -637,7 +635,6 @@ async function savePermChanges() {
                 v-model:value="editionForm.userLimit"
                 :min="0"
                 :precision="0"
-                clearable
                 :placeholder="t('tenant.edition.user_limit_placeholder')"
               />
             </XhFieldControl>
@@ -652,7 +649,6 @@ async function savePermChanges() {
                 v-model:value="editionForm.storageLimit"
                 :min="0"
                 :precision="0"
-                clearable
                 :placeholder="t('tenant.edition.storage_limit_placeholder')"
               />
             </XhFieldControl>
@@ -759,7 +755,8 @@ async function savePermChanges() {
             {{ t('tenant.edition.cancel') }}
           </XhButton>
           <XhButton variant="subtle" tone="brand" :loading="permLoading" :disabled="!permDirty" @click="savePermChanges">
-            {{ t('tenant.edition.perm_save') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('tenant.edition.perm_save') }}</XhButtonLabel>
           </XhButton>
         </div>
       </XhDrawerContent>

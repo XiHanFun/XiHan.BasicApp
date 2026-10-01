@@ -915,7 +915,7 @@ async function handleSubmit() {
             size="sm"
             style="width: 180px"
             @clear="loadTaskLogs(1)"
-            @keyup.enter="loadTaskLogs(1)"
+            @enter="loadTaskLogs(1)"
           />
           <XhButton variant="subtle" size="sm" @click="loadTaskLogs(1)">
             <span><Icon icon="lucide:refresh-cw" /></span>
@@ -1140,7 +1140,7 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('setting.job.interval_label') }}</XhFieldLabel>
             <XhFieldControl>
-              <XNumberInput v-model:value="jobForm.intervalSeconds" :min="0" clearable />
+              <XNumberInput v-model:value="jobForm.intervalSeconds" :min="0" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>

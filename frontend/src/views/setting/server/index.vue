@@ -8,8 +8,8 @@ import type {
   SysNetworkInfo,
   SysRuntimeInfo,
 } from '@/api'
-import { XhButton, XhCardContent, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { XhButton, XhButtonIndicator, XhButtonPrefix, XhCardContent, XhCardHeader, XhCardRoot, XhGridItem, XhGridRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { computed, onMounted, onUnmounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { serverManagementApi } from '@/api'
 import { toast } from '~/composables'
@@ -18,6 +18,9 @@ import { Icon } from '~/iconify'
 defineOptions({ name: 'PlatformServerPage' })
 
 const { t } = useI18n()
+// 两只环形仪表的读屏名取各自卡片标题
+const cpuTitleId = useId()
+const memTitleId = useId()
 const loading = ref(false)
 const initialized = ref(false)
 let timer: ReturnType<typeof setInterval> | null = null
@@ -317,13 +320,16 @@ onUnmounted(() => {
               <XhTagLabel>{{ t('setting.server.running_normal') }}</XhTagLabel>
             </XhTagRoot>
             <XhButton
+              icon-only
               size="sm"
               variant="ghost"
+              :aria-label="t('common.actions.refresh')"
               :loading="loading"
               class="sv-refresh-btn"
               @click="fetchData"
             >
-              <Icon icon="lucide:refresh-cw" width="14" />
+              <XhButtonIndicator />
+              <XhButtonPrefix><Icon icon="lucide:refresh-cw" width="14" /></XhButtonPrefix>
             </XhButton>
           </div>
         </div>
@@ -354,7 +360,7 @@ onUnmounted(() => {
             <XhCardHeader>
               <div class="sv-card-header">
                 <Icon icon="lucide:cpu" width="16" />
-                <span>{{ t('setting.server.cpu_info') }}</span>
+                <span :id="cpuTitleId">{{ t('setting.server.cpu_info') }}</span>
               </div>
             </XhCardHeader>
             <XhCardContent>
@@ -362,6 +368,8 @@ onUnmounted(() => {
                 <div class="sv-gauge">
                   <XhProgress
                     variant="circle"
+                    semantics="meter"
+                    :aria-labelledby="cpuTitleId"
                     :value="cpuPct"
                     :stroke-width="8"
                     :style="{
@@ -399,7 +407,7 @@ onUnmounted(() => {
             <XhCardHeader>
               <div class="sv-card-header">
                 <Icon icon="lucide:memory-stick" width="16" />
-                <span>{{ t('setting.server.memory_info') }}</span>
+                <span :id="memTitleId">{{ t('setting.server.memory_info') }}</span>
               </div>
             </XhCardHeader>
             <XhCardContent>
@@ -407,6 +415,8 @@ onUnmounted(() => {
                 <div class="sv-gauge">
                   <XhProgress
                     variant="circle"
+                    semantics="meter"
+                    :aria-labelledby="memTitleId"
                     :value="memPct"
                     :stroke-width="8"
                     :style="{
@@ -476,8 +486,9 @@ onUnmounted(() => {
                 </div>
                 <XhProgress
                   variant="line"
+                  semantics="meter"
+                  :aria-label="disk.diskName"
                   :value="usagePct(disk.usedSpace, disk.totalSpace)"
-                  :stroke-width="6"
                   :style="{
                     '--xh-progress-range': usageColor(usagePct(disk.usedSpace, disk.totalSpace)),
                     '--xh-progress-track': 'var(--border-color)',
