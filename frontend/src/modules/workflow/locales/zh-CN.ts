@@ -155,6 +155,7 @@ export default {
       flow_variables: '启动变量声明',
       variable_name: '变量名',
       variable_required: '必填',
+      variable_add: '添加变量',
       flow_tip: '点击节点/连线编辑属性；从左侧面板拖入或点击添加节点；发布时后端执行完整结构校验。',
       json_placeholder: '流程定义 JSON',
       json_prop_placeholder: 'JSON 对象，如 {\'{\'}"key": "value"{\'}\'}',

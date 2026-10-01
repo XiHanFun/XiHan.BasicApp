@@ -62,6 +62,7 @@ export default {
       assistant_thinking: 'Wird generiert…',
       assistant_dismiss: 'Verwerfen',
       voice_unplayed: 'Nicht abgespielt',
+      view_image: 'Bild ansehen',
       recalled: 'Nachricht zurückgerufen',
       recall: 'Zurückrufen',
       recall_failed: 'Zurückrufen der Nachricht fehlgeschlagen',

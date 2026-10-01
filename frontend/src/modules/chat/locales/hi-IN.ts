@@ -63,6 +63,7 @@ export default {
       assistant_thinking: 'तैयार किया जा रहा है…',
       assistant_dismiss: 'समझ गया',
       voice_unplayed: 'नहीं सुना',
+      view_image: 'चित्र देखें',
       recalled: 'संदेश वापस लिया गया',
       recall: 'वापस लें',
       recall_failed: 'वापस लेना विफल',

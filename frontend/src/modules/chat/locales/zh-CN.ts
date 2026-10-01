@@ -63,6 +63,7 @@ export default {
       assistant_thinking: '正在生成…',
       assistant_dismiss: '知道了',
       voice_unplayed: '未听',
+      view_image: '查看图片',
       recalled: '消息已撤回',
       recall: '撤回',
       recall_failed: '撤回失败',

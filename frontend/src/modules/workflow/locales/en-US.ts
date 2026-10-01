@@ -155,6 +155,7 @@ export default {
       flow_variables: 'Start Variables',
       variable_name: 'Name',
       variable_required: 'Required',
+      variable_add: 'Add variable',
       flow_tip: 'Click a node/edge to edit its properties; drag or click palette items to add nodes; full structural validation runs on publish.',
       json_placeholder: 'Workflow definition JSON',
       json_prop_placeholder: 'JSON object, e.g. {\'{\'}"key": "value"{\'}\'}',

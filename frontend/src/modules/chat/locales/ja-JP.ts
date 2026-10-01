@@ -63,6 +63,7 @@ export default {
       assistant_thinking: '生成中…',
       assistant_dismiss: '閉じる',
       voice_unplayed: '未再生',
+      view_image: '画像を表示',
       recalled: 'メッセージを取り消しました',
       recall: '取り消し',
       recall_failed: '取り消しに失敗しました',

@@ -155,6 +155,7 @@ export default {
       flow_variables: 'प्रारंभिक वेरिएबल की घोषणा',
       variable_name: 'वेरिएबल का नाम',
       variable_required: 'आवश्यक',
+      variable_add: 'चर जोड़ें',
       flow_tip: 'गुण संपादित करने के लिए नोड/कनेक्शन पर क्लिक करें; बाएँ पैनल से खींचकर या क्लिक करके नोड जोड़ें; प्रकाशित करते समय सर्वर पूरी संरचना की जाँच करता है।',
       json_placeholder: 'वर्कफ़्लो परिभाषा JSON',
       json_prop_placeholder: 'JSON ऑब्जेक्ट, जैसे {\'{\'}"key": "value"{\'}\'}',

@@ -4,7 +4,7 @@ import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, Designer
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
 import type { AppDropdownOption } from '~/types'
 import { useDebounceFn } from '@vueuse/core'
-import { XhButton, XhCheckbox, XhContextMenuRoot, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhCheckbox, XhContextMenuContent, XhContextMenuItem, XhContextMenuItemText, XhContextMenuPositioner, XhContextMenuRoot, XhContextMenuSeparator, XhContextMenuTrigger, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFieldsetLegend, XhFieldsetRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, indexDropdownOptions, toDropdownCollection, VNodeRender, XDropdown, XInput, XNumberInput, XSegmented, XSelect, XTagsInput } from '~/components'
@@ -691,20 +691,18 @@ function onContextSelect(key: string) {
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>
+                <!-- 可选结果点一下填进条件：是动作就用按钮，标签没有按钮语义、键盘也够不着 -->
                 <div v-if="outcomeHints.length > 0" class="mb-2">
                   <XhFlex gap="xs">
-                    <XhTagRoot
+                    <XhButton
                       v-for="outcome in outcomeHints"
                       :key="outcome"
                       variant="subtle"
                       size="sm"
-                      class="cursor-pointer"
                       @click="applyOutcomeHint(outcome)"
                     >
-                      <XhTagLabel>
-                        {{ outcome }}
-                      </XhTagLabel>
-                    </XhTagRoot>
+                      {{ outcome }}
+                    </XhButton>
                   </XhFlex>
                 </div>
                 <XhFieldRoot>
@@ -767,7 +765,8 @@ function onContextSelect(key: string) {
 
                 <!-- 活动属性（类型驱动） -->
                 <template v-for="descriptor in selectedMeta?.props ?? []" :key="descriptor.key">
-                  <XhFieldRoot>
+                  <!-- JSON 类属性的解析错误挂在字段上：invalid 让控件转无效态，错误文案经 error-text 接入描述链 -->
+                  <XhFieldRoot :invalid="descriptor.input === 'json' && Boolean(jsonErrors[descriptor.key])">
                     <XhFieldLabel>{{ t(`workflow.designer.prop.${descriptor.labelKey}`) }}</XhFieldLabel>
                     <XhFieldControl>
                       <XInput
@@ -808,22 +807,18 @@ function onContextSelect(key: string) {
                         :value="(nodeProp<string[]>(descriptor.key)) ?? []"
                         @update:value="(value: string[]) => setNodeProp(descriptor.key, value.length > 0 ? value : null)"
                       />
-                      <div v-else-if="descriptor.input === 'json'" class="w-full">
-                        <XInput
-                          v-model:value="jsonBuffers[descriptor.key]"
-                          type="textarea"
-                          :autosize="{ minRows: 3, maxRows: 8 }"
-                          class="font-mono"
-                          :invalid="Boolean(jsonErrors[descriptor.key])"
-                          :placeholder="t('workflow.designer.json_prop_placeholder')"
-                          @blur="applyJsonBuffer(descriptor.key)"
-                        />
-                        <div v-if="jsonErrors[descriptor.key]" class="mt-1 text-xs text-red-500">
-                          {{ t('workflow.designer.err_prop_json') }}
-                        </div>
-                      </div>
+                      <!-- control 只包真控件：包一层 div 会让 div 拿到 control 的 id 与字段外壳，内外两层描边 -->
+                      <XInput
+                        v-else-if="descriptor.input === 'json'"
+                        v-model:value="jsonBuffers[descriptor.key]"
+                        type="textarea"
+                        :autosize="{ minRows: 3, maxRows: 8 }"
+                        class="font-mono"
+                        :placeholder="t('workflow.designer.json_prop_placeholder')"
+                        @blur="applyJsonBuffer(descriptor.key)"
+                      />
                     </XhFieldControl>
-                    <XhFieldErrorText />
+                    <XhFieldErrorText>{{ jsonErrors[descriptor.key] ? t('workflow.designer.err_prop_json') : '' }}</XhFieldErrorText>
                   </XhFieldRoot>
                 </template>
 
@@ -947,38 +942,43 @@ function onContextSelect(key: string) {
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>
-                <XhFieldRoot>
-                  <XhFieldLabel>{{ t('workflow.designer.flow_variables') }}</XhFieldLabel>
-                  <XhFieldControl>
-                    <XhFieldArrayRoot
-                      v-slot="{ items }"
-                      v-model:value="meta.variables"
-                      :create-item="() => ({ name: '', required: false, defaultValue: null, description: null })"
+                <!-- 变量是一组行、每行两个控件，用字段集命名整组，不套单个 Field：
+                     Field 只给唯一控件接线，套在整组外会让每行的输入框都领到同一个 id。
+                     行内控件没有可见标签，输入框给 aria-label，复选框把文字写进自己的插槽。
+                     新增钮只摆一颗、放在行外：它的 id 是整组唯一的，而且没有变量时也要能加第一行 -->
+                <XhFieldsetRoot>
+                  <XhFieldsetLegend>{{ t('workflow.designer.flow_variables') }}</XhFieldsetLegend>
+                  <XhFieldArrayRoot
+                    v-slot="{ items }"
+                    v-model:value="meta.variables"
+                    :create-item="() => ({ name: '', required: false, defaultValue: null, description: null })"
+                  >
+                    <!-- items 是每行的投影（index / key / value…），行数据在 item.value 上 -->
+                    <XhFieldArrayItem
+                      v-for="item in items"
+                      :key="item.key"
+                      :index="item.index"
                     >
-                      <!-- items 是每行的投影（index / key / value…），行数据在 item.value 上 -->
-                      <XhFieldArrayItem
-                        v-for="item in items"
-                        :key="item.key"
-                        :index="item.index"
-                      >
-                        <XhFieldArrayItemContent>
-                          <div class="flex w-full items-center gap-2">
-                            <XInput v-model:value="(item.value as DefinitionVariableMeta).name" size="sm" :placeholder="t('workflow.designer.variable_name')" />
-                            <span class="xh-checkbox-row">
-                              <XhCheckbox v-model:checked="(item.value as DefinitionVariableMeta).required" />
-                              <span class="xh-checkbox-row__label" @click="(item.value as DefinitionVariableMeta).required = !(item.value as DefinitionVariableMeta).required">{{ t('workflow.designer.variable_required') }}</span>
-                            </span>
-                          </div>
-                        </XhFieldArrayItemContent>
-                        <XhFieldArrayItemAction>
-                          <XhFieldArrayItemDeleteTrigger>−</XhFieldArrayItemDeleteTrigger>
-                          <XhFieldArrayAddTrigger>＋</XhFieldArrayAddTrigger>
-                        </XhFieldArrayItemAction>
-                      </XhFieldArrayItem>
-                    </XhFieldArrayRoot>
-                  </XhFieldControl>
-                  <XhFieldErrorText />
-                </XhFieldRoot>
+                      <XhFieldArrayItemContent>
+                        <div class="flex w-full items-center gap-2">
+                          <XInput
+                            v-model:value="(item.value as DefinitionVariableMeta).name"
+                            size="sm"
+                            :aria-label="t('workflow.designer.variable_name')"
+                            :placeholder="t('workflow.designer.variable_name')"
+                          />
+                          <XhCheckbox v-model:checked="(item.value as DefinitionVariableMeta).required">
+                            {{ t('workflow.designer.variable_required') }}
+                          </XhCheckbox>
+                        </div>
+                      </XhFieldArrayItemContent>
+                      <XhFieldArrayItemAction>
+                        <XhFieldArrayItemDeleteTrigger>−</XhFieldArrayItemDeleteTrigger>
+                      </XhFieldArrayItemAction>
+                    </XhFieldArrayItem>
+                    <XhFieldArrayAddTrigger>＋ {{ t('workflow.designer.variable_add') }}</XhFieldArrayAddTrigger>
+                  </XhFieldArrayRoot>
+                </XhFieldsetRoot>
               </XhFormRoot>
               <div class="text-xs text-gray-400">
                 {{ t('workflow.designer.flow_tip') }}
@@ -1006,7 +1006,9 @@ function onContextSelect(key: string) {
     </div>
   </div>
 
-  <!-- 右键上下文菜单 -->
+  <!-- 右键上下文菜单：自己摆部件而不用 #trigger 插槽——代铺路径包触发区时不收作者属性，
+       tabindex=-1 只能写在自己摆的触发区上（作者属性压过部件的 0），否则占位是一个看不见、没名字的 Tab 停靠点。
+       菜单里的命令另有键盘入口：选中后 Del 删除、Ctrl+C / Ctrl+V 复制，属性面板底部也有删除钮 -->
   <XhContextMenuRoot
     ref="contextMenuRef"
     :collection="contextCollection"
@@ -1014,20 +1016,24 @@ function onContextSelect(key: string) {
     @update:open="(open: boolean) => !open && (contextMenu.show = false)"
     @select="(details: { value: string }) => onContextSelect(details.value)"
   >
-    <template #trigger>
+    <XhContextMenuTrigger tabindex="-1">
       <!-- 触发插槽的占位：菜单钉在 openAt 交进去的坐标上，不靠它定位 -->
       <span
         aria-hidden="true"
         :style="{ position: 'fixed', inset: '0 auto auto 0', inlineSize: '0', blockSize: '0', pointerEvents: 'none' }"
       />
-    </template>
-    <template #item="node">
-      <span class="inline-flex gap-2 items-center min-w-0">
-        <span v-if="contextByKey.get(node.value)?.icon" class="inline-flex flex-none items-center opacity-80" aria-hidden="true">
-          <VNodeRender :content="contextByKey.get(node.value)!.icon!()" />
-        </span>
-        {{ node.label }}
-      </span>
-    </template>
+    </XhContextMenuTrigger>
+    <XhContextMenuPositioner>
+      <XhContextMenuContent>
+        <template v-for="(node, index) in contextCollection" :key="node.value">
+          <XhContextMenuSeparator v-if="index > 0 && node.separatorBefore" />
+          <!-- 文字、禁用与语气由 collection 给，条目只声明 value；图标是条目的兄弟节点，排布交给条目皮肤 -->
+          <XhContextMenuItem :value="node.value">
+            <VNodeRender v-if="contextByKey.get(node.value)?.icon" :content="contextByKey.get(node.value)!.icon!()" />
+            <XhContextMenuItemText>{{ node.label }}</XhContextMenuItemText>
+          </XhContextMenuItem>
+        </template>
+      </XhContextMenuContent>
+    </XhContextMenuPositioner>
   </XhContextMenuRoot>
 </template>

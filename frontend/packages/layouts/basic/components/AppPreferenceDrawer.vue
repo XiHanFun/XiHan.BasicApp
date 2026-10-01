@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   XhButton,
+  XhDrawerCloseTrigger,
   XhDrawerContent,
   XhDrawerRoot,
   XhDrawerTitle,
@@ -180,14 +181,8 @@ watch(visible, (open, was) => {
           </XhDrawerTitle>
           <SyncStatusBadge :synced="appStore.preferenceSyncEnabled" />
         </div>
-        <button
-          tabindex="-1"
-          class="close-btn"
-          :aria-label="t('common.actions.close')"
-          @click="visible = false"
-        >
-          <Icon icon="lucide:x" width="16" height="16" />
-        </button>
+        <!-- 关闭钮用组件库部件：键盘可达，可及名取全局文案，悬停、按压与聚焦环随家族配方 -->
+        <XhDrawerCloseTrigger class="drawer-close" />
       </div>
 
       <!-- 面板内容各不相同，标签与面板手摆而不喂 collection。
@@ -340,36 +335,16 @@ watch(visible, (open, was) => {
   width: 100%;
 }
 
+/* 皮肤给角落关闭钮让出的标题右内衬：关闭钮在头部行内，撤掉免得把同步徽标推远 */
 .drawer-title {
+  padding-inline-end: 0;
   font-size: 16px;
   font-weight: 600;
   color: hsl(var(--foreground));
 }
 
-/* 自定义关闭按钮 */
-.close-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  transition:
-    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
-  outline: none;
-}
-
-.close-btn:hover {
-  background: hsl(var(--accent));
-  color: hsl(var(--foreground));
-}
-
-.close-btn:active {
-  background: hsl(var(--accent) / 0.7);
+/* 关闭钮留在头部行尾、与标题同行居中，不走皮肤的角落绝对定位 */
+.drawer-close {
+  position: static;
 }
 </style>

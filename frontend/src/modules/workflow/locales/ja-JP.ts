@@ -155,6 +155,7 @@ export default {
       flow_variables: '開始変数の宣言',
       variable_name: '変数名',
       variable_required: '必須',
+      variable_add: '変数を追加',
       flow_tip: 'ノードや接続線をクリックしてプロパティを編集します。左のパレットからドラッグまたはクリックしてノードを追加できます。公開時にサーバー側で完全な構造チェックを実行します。',
       json_placeholder: 'ワークフロー定義 JSON',
       json_prop_placeholder: 'JSON オブジェクト。例: {\'{\'}"key": "value"{\'}\'}',

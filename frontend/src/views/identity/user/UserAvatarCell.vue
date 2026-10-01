@@ -24,8 +24,10 @@ const initials = computed(() => (props.name ? props.name.substring(0, 2) : '?'))
 </script>
 
 <template>
-  <!-- 有图显示图片，无图/换取中/加载失败都落到首字母文字头像 -->
+  <!-- 有图显示图片，无图/换取中/加载失败都落到首字母文字头像；src / alt 是根部件的属性，写在 image 部件上状态机拿不到地址 -->
   <XhAvatarRoot
+    :src="avatarUrl || undefined"
+    :alt="name"
     :style="{
       '--xh-avatar-size': `${size ?? 32}px`,
       '--xh-avatar-bg': bg,
@@ -34,7 +36,7 @@ const initials = computed(() => (props.name ? props.name.substring(0, 2) : '?'))
       '--xh-avatar-font-weight': '600',
     }"
   >
-    <XhAvatarImage v-if="avatarUrl" :src="avatarUrl" :alt="name" />
+    <XhAvatarImage />
     <XhAvatarFallback>{{ initials }}</XhAvatarFallback>
   </XhAvatarRoot>
 </template>

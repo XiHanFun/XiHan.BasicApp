@@ -155,6 +155,7 @@ export default {
       flow_variables: '啟動變數宣告',
       variable_name: '變數名稱',
       variable_required: '必填欄位',
+      variable_add: '新增變數',
       flow_tip: '點選節點/連線即可編輯屬性；從左側面板拖曳或點選以新增節點；發布時後端會執行完整結構驗證。',
       json_placeholder: '流程定義 JSON',
       json_prop_placeholder: 'JSON 物件，例如 {\'{\'}"key": "value"{\'}\'}',
