@@ -7,6 +7,7 @@ import {
   XhPasswordInputInput,
   XhPasswordInputRoot,
   XhPasswordInputVisibilityTrigger,
+  XhTextFieldControl,
   XhTextFieldInput,
   XhTextFieldRoot,
 } from '@xihan-ui/vue'
@@ -57,6 +58,7 @@ function renderField(field: PromptField, value: Record<string, string>): VNodeCh
     value[field.key] = next
   }
 
+  // 描边、底色与聚焦环画在 control 部件上（Field Chrome），input 本身是透明的，两档都要套 control
   if (field.type === 'password') {
     return h(XhPasswordInputRoot, {
       'key': field.key,
@@ -64,13 +66,12 @@ function renderField(field: PromptField, value: Record<string, string>): VNodeCh
       'placeholder': field.placeholder,
       'readOnly': field.readOnly,
       'onUpdate:value': onUpdate,
-    }, () => [
-      h(XhPasswordInputControl, null, () => [
-        h(XhPasswordInputInput, { 'aria-label': ariaLabel }),
-        h(XhPasswordInputVisibilityTrigger),
-      ]),
+    }, () => h(XhPasswordInputControl, null, () => [
+      h(XhPasswordInputInput, { 'aria-label': ariaLabel }),
+      // 大写锁定提示是盒里的一格，排在显隐钮前
       h(XhPasswordInputCapsLockIndicator),
-    ])
+      h(XhPasswordInputVisibilityTrigger),
+    ]))
   }
 
   return h(XhTextFieldRoot, {
@@ -79,7 +80,7 @@ function renderField(field: PromptField, value: Record<string, string>): VNodeCh
     'placeholder': field.placeholder,
     'readOnly': field.readOnly,
     'onUpdate:value': onUpdate,
-  }, () => h(XhTextFieldInput, { 'type': 'text', 'aria-label': ariaLabel }))
+  }, () => h(XhTextFieldControl, null, () => h(XhTextFieldInput, { 'aria-label': ariaLabel })))
 }
 
 function renderBody(options: PromptOptions, value: Record<string, string>): VNodeChild {
