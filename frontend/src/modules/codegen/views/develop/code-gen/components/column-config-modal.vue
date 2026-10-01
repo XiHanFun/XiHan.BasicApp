@@ -154,7 +154,7 @@ async function loadColumns() {
   }
 }
 
-type BooleanColumnField = 'isRequired' | 'isList' | 'isInsert' | 'isEdit' | 'isQuery'
+type BooleanColumnField = 'isRequired' | 'isUnique' | 'isList' | 'isInsert' | 'isEdit' | 'isQuery'
 
 /**
  * 基类托管列（主键/租户/审计/软删）的生成配置一律不可编辑。
@@ -309,6 +309,7 @@ const columns = computed<XDataTableColumn<CodeGenTableColumnListItemDto>[]>(() =
       }),
   },
   { key: 'isRequired', title: t('develop.code_gen.column.col_required'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isRequired') },
+  { key: 'isUnique', title: t('develop.code_gen.column.col_unique'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isUnique') },
   { key: 'isList', title: t('develop.code_gen.column.col_list'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isList') },
   { key: 'isInsert', title: t('develop.code_gen.column.col_insert'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isInsert') },
   { key: 'isEdit', title: t('develop.code_gen.column.col_edit'), width: 60, align: 'center', render: (row: CodeGenTableColumnListItemDto) => renderCheckbox(row, 'isEdit') },
@@ -390,6 +391,7 @@ async function handleSubmit() {
       cSharpProperty: row.cSharpProperty,
       tsType: row.tsType,
       isRequired: row.isRequired,
+      isUnique: row.isUnique,
       isList: row.isList,
       isInsert: row.isInsert,
       isEdit: row.isEdit,

@@ -23,6 +23,8 @@ export interface CodeGenTableColumnListItemDto extends BasicDto {
   isIdentity: boolean
   isNullable: boolean
   isRequired: boolean
+  /** 唯一：生成租户内唯一索引，新增与更新时查重 */
+  isUnique: boolean
   isList: boolean
   isInsert: boolean
   isEdit: boolean
@@ -50,6 +52,8 @@ export interface CodeGenTableColumnUpdateDto extends BasicDto {
   cSharpProperty?: string | null
   tsType?: string | null
   isRequired: boolean
+  /** 唯一：生成租户内唯一索引，新增与更新时查重 */
+  isUnique: boolean
   isList: boolean
   isInsert: boolean
   isEdit: boolean

@@ -166,6 +166,7 @@ public static class CodeGenTableApplicationMapper
             IsIdentity = column.IsIdentity,
             IsNullable = column.IsNullable,
             IsRequired = column.IsRequired,
+            IsUnique = column.IsUnique,
             IsList = column.IsList,
             IsInsert = column.IsInsert,
             IsEdit = column.IsEdit,

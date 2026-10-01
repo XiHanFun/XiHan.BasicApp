@@ -928,6 +928,27 @@ public sealed class CodeGenEngineOrchestrationTests
     }
 
     /// <summary>
+    /// 布尔与二进制列勾了唯一时生成失败：它们做不了唯一校验。
+    /// </summary>
+    /// <param name="csharpType">列的 C# 类型</param>
+    [Theory]
+    [InlineData("bool")]
+    [InlineData("byte[]")]
+    public async Task PreviewAsync_UniqueOnUnsupportedTypeShouldFail(string csharpType)
+    {
+        var column = Column("flag", csharpType: csharpType);
+        column.IsUnique = true;
+        GivenTable(Table());
+        GivenColumns(TableId, column);
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.False(result.Success);
+        Assert.Contains("做不了唯一校验", result.Message!, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 关联的目标表（产品分类，主键 2）：树表时以 parent_id 为父级、category_name 为名称列。
     /// </summary>
     private void GivenCategoryTable(bool isTree)

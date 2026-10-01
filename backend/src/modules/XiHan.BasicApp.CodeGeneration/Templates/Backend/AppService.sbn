@@ -26,6 +26,12 @@ namespace {{ Namespace }}.Application.AppServices;
 {{~ entity_label = TableComment ~}}
 {{~ end ~}}
 {{~ is_tree = TemplateType == "Tree" ~}}
+{{~ unique_columns = [] ~}}
+{{~ for col in Columns ~}}
+{{~ if col.IsUnique && ((CanCreate && col.InCreate) || (CanUpdate && col.InUpdate)) ~}}
+{{~ unique_columns = unique_columns | array.add col ~}}
+{{~ end ~}}
+{{~ end ~}}
 
 /// <summary>
 /// {{ TableComment | xml_doc }}命令应用服务（生成基类）
@@ -70,6 +76,11 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
 
         await EnsureValidParentAsync(input.{{ TreeParentColumn.CSharpProperty }}, null, cancellationToken);
 {{~ end ~}}
+{{~ for col in unique_columns ~}}
+{{~ if col.InCreate ~}}
+        await Ensure{{ col.CSharpProperty }}UniqueAsync(input.{{ col.CSharpProperty }}, null, cancellationToken);
+{{~ end ~}}
+{{~ end ~}}
 
         var entity = {{ ClassName }}ApplicationMapper.ToEntity(input);
         entity = await _repository.AddAsync(entity, cancellationToken);
@@ -95,6 +106,11 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
             ?? throw new InvalidOperationException("{{ entity_label | cs_string }}不存在。");
 {{~ if is_tree && TreeParentColumn.InUpdate ~}}
         await EnsureValidParentAsync(input.{{ TreeParentColumn.CSharpProperty }}, entity.BasicId, cancellationToken);
+{{~ end ~}}
+{{~ for col in unique_columns ~}}
+{{~ if col.InUpdate ~}}
+        await Ensure{{ col.CSharpProperty }}UniqueAsync(input.{{ col.CSharpProperty }}, entity.BasicId, cancellationToken);
+{{~ end ~}}
 {{~ end ~}}
         {{ ClassName }}ApplicationMapper.ApplyUpdate(entity, input);
         entity = await _repository.UpdateAsync(entity, cancellationToken);
@@ -130,6 +146,38 @@ public abstract class {{ ClassName }}AppServiceBase : ApplicationServiceBase, I{
         if (!await _repository.DeleteByIdAsync(id, cancellationToken))
         {
             throw new InvalidOperationException("{{ entity_label | cs_string }}不存在。");
+        }
+    }
+{{~ end ~}}
+{{~ for col in unique_columns ~}}
+
+    /// <summary>
+    /// 校验{{ col.Label | xml_doc }}唯一（租户内不重复，软删的记录不算）
+    /// </summary>
+    /// <param name="value">待校验的值{{ if col.IsNullable || col.CSharpType == "string" }}；为空时不校验{{ end }}</param>
+    /// <param name="currentId">当前记录主键；新增时为 null</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    protected virtual async Task Ensure{{ col.CSharpProperty }}UniqueAsync({{ col.CSharpTypeQualified }} value, long? currentId, CancellationToken cancellationToken)
+    {
+{{~ if col.CSharpType | string.starts_with "string" ~}}
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return;
+        }
+
+{{~ else if col.IsNullable ~}}
+        if (value is null)
+        {
+            return;
+        }
+
+{{~ end ~}}
+        var exists = currentId is { } id
+            ? await _repository.AnyAsync(entity => entity.{{ col.CSharpProperty }} == value && entity.BasicId != id, cancellationToken)
+            : await _repository.AnyAsync(entity => entity.{{ col.CSharpProperty }} == value, cancellationToken);
+        if (exists)
+        {
+            throw new InvalidOperationException("{{ col.Label | cs_string }}「" + value + "」已存在。");
         }
     }
 {{~ end ~}}

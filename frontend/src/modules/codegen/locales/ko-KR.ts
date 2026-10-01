@@ -240,6 +240,7 @@ export default {
         col_csharp_type: 'C# 타입',
         col_csharp_property: '속성명',
         col_required: '필수',
+        col_unique: '고유',
         col_list: '목록',
         col_insert: '추가',
         col_edit: '편집',

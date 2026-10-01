@@ -302,6 +302,12 @@ public sealed partial class CodeGenerationEngine(
             return (null, relationError);
         }
 
+        var uniqueError = ValidateUniqueColumns(table, columnSchemas);
+        if (uniqueError is not null)
+        {
+            return (null, uniqueError);
+        }
+
         if (table.TemplateType == TemplateType.Tree)
         {
             var error = ResolveTreeColumns(table, columnSchemas, context);
@@ -482,6 +488,7 @@ public sealed partial class CodeGenerationEngine(
             IsIdentity = column.IsIdentity,
             IsNullable = column.IsNullable,
             IsRequired = column.IsRequired,
+            IsUnique = column.IsUnique,
             IsList = column.IsList,
             IsInsert = column.IsInsert,
             IsEdit = column.IsEdit,
@@ -574,6 +581,28 @@ public sealed partial class CodeGenerationEngine(
             if (column.CSharpType.TrimEnd('?') != "string")
             {
                 return $"表 {table.TableName} 的列 {column.ColumnName} 选了字典选择器，但 C# 类型是 {column.CSharpType}：字典项按编码（文本）存储，列须为 string。";
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 校验唯一列：二进制与布尔列做不了唯一校验
+    /// </summary>
+    private static string? ValidateUniqueColumns(SysCodeGenTable table, IReadOnlyList<ColumnSchema> columnSchemas)
+    {
+        foreach (var column in columnSchemas)
+        {
+            if (!column.IsUnique || column.IsPrimaryKey || GeneratedColumnNames.IsBaseColumn(column.ColumnName))
+            {
+                continue;
+            }
+
+            var type = column.CSharpType.TrimEnd('?');
+            if (CSharpTypeFacts.IsBinary(column.CSharpType) || type is "bool" or "Boolean")
+            {
+                return $"表 {table.TableName} 的列 {column.ColumnName} 勾了唯一，但 {column.CSharpType} 类型做不了唯一校验，请取消。";
             }
         }
 

@@ -240,6 +240,7 @@ export default {
         col_csharp_type: 'C# 类型',
         col_csharp_property: '属性名',
         col_required: '必填',
+        col_unique: '唯一',
         col_list: '列表',
         col_insert: '新增',
         col_edit: '编辑',

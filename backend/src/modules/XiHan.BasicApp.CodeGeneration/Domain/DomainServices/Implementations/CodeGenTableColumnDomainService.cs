@@ -93,6 +93,7 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
         nameof(SysCodeGenTableColumn.CSharpProperty),
         nameof(SysCodeGenTableColumn.TsType),
         nameof(SysCodeGenTableColumn.IsRequired),
+        nameof(SysCodeGenTableColumn.IsUnique),
         nameof(SysCodeGenTableColumn.IsList),
         nameof(SysCodeGenTableColumn.IsInsert),
         nameof(SysCodeGenTableColumn.IsEdit),
@@ -121,6 +122,7 @@ public sealed class CodeGenTableColumnDomainService : ICodeGenTableColumnDomainS
         column.CSharpProperty = NormalizeNullable(command.CSharpProperty, 200, "C# 属性名最长 200 个字符。");
         column.TsType = NormalizeNullable(command.TsType, 100, "TypeScript 类型最长 100 个字符。");
         column.IsRequired = command.IsRequired;
+        column.IsUnique = command.IsUnique;
         column.IsList = command.IsList;
         column.IsInsert = command.IsInsert;
         column.IsEdit = command.IsEdit;

@@ -240,6 +240,7 @@ export default {
         col_csharp_type: 'C# 型別',
         col_csharp_property: '屬性名稱',
         col_required: '必填欄位',
+        col_unique: '唯一',
         col_list: '清單顯示',
         col_insert: '新增表單',
         col_edit: '編輯表單',

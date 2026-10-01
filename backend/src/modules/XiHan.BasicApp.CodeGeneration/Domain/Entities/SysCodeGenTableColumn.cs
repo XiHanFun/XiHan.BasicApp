@@ -124,6 +124,12 @@ public partial class SysCodeGenTableColumn : BasicAppFullAuditedEntity
     public virtual bool IsRequired { get; set; } = false;
 
     /// <summary>
+    /// 是否唯一（生成租户内唯一索引，新增与更新时查重）
+    /// </summary>
+    [SugarColumn(ColumnName = "Is_Unique", ColumnDescription = "是否唯一")]
+    public virtual bool IsUnique { get; set; } = false;
+
+    /// <summary>
     /// 是否列表显示
     /// </summary>
     [SugarColumn(ColumnName = "Is_List", ColumnDescription = "是否列表显示")]
