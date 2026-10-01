@@ -119,6 +119,8 @@ public sealed partial class ScribanTemplateRenderer : ITemplateRenderer
         {
             ["TableName"] = context.TableName,
             ["TableComment"] = context.TableComment,
+            // 界面与提示文案里的业务对象名，与菜单名同一口径（业务名优先，其次表注释，最后类名）
+            ["DisplayName"] = MenuPermissionArtifactShared.Display(context),
             ["ClassName"] = context.ClassName,
             // 前端文件名/标识用：类名的 camelCase 与 kebab-case
             ["ClassNameCamel"] = Camelize(context.ClassName),

@@ -382,7 +382,7 @@ const {{ col.TsProperty }}Options = [{ label: '选项来源未接通', value: -1
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const form = ref<{{ ClassName }}FormModel>(createDefaultForm())
-const modalTitle = computed(() => (form.value.basicId ? '编辑{{ TableComment | ts_string }}' : '新增{{ TableComment | ts_string }}'))
+const modalTitle = computed(() => (form.value.basicId ? '编辑{{ DisplayName | ts_string }}' : '新增{{ DisplayName | ts_string }}'))
 {{~ end ~}}
 {{~ if can_create ~}}
 

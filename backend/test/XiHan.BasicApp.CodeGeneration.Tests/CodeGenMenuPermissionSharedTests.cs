@@ -16,30 +16,37 @@ namespace XiHan.BasicApp.CodeGeneration.Tests;
 public sealed class CodeGenMenuPermissionSharedTests
 {
     /// <summary>
-    /// 权限码的资源段取表名（snake，全局唯一），不做任何大小写或前缀加工。
+    /// 权限码的资源段取表名转小写（全局唯一，不加前缀）。
     /// </summary>
+    /// <remarks>
+    /// 平台全部权限码都是小写（saas:user:read、ai_assistant:read）；从库里导入的表名常带大写（Sample_Note），
+    /// 原样拿来会产出 Sample_Note:read 这种与其余权限码口径不一的码。
+    /// </remarks>
     [Fact]
-    public void Resource_ShouldBeRawTableName()
+    public void Resource_ShouldBeLowercasedTableName()
     {
-        var context = CodeGenerationTestHelper.CreateContext(tableName: "Sys_Product");
+        var context = CodeGenerationTestHelper.CreateContext(tableName: "Sample_Note");
 
-        Assert.Equal("Sys_Product", CodeGenerationTestHelper.InvokeShared<string>("Resource", context), StringComparer.Ordinal);
+        Assert.Equal("sample_note", CodeGenerationTestHelper.InvokeShared<string>("Resource", context), StringComparer.Ordinal);
     }
 
     /// <summary>
-    /// 展示名优先取业务名，业务名空白时回退实体类名。
+    /// 展示名优先取业务名，其次表注释，都空白时回退实体类名。
     /// </summary>
     /// <param name="businessName">业务名</param>
+    /// <param name="tableComment">表注释</param>
     /// <param name="expected">期望展示名</param>
     [Theory]
-    [InlineData("产品", "产品")]
-    [InlineData("  产品  ", "产品")]
-    [InlineData(null, "SysProduct")]
-    [InlineData("", "SysProduct")]
-    [InlineData("   ", "SysProduct")]
-    public void Display_ShouldPreferBusinessNameThenClassName(string? businessName, string expected)
+    [InlineData("产品", "产品表", "产品")]
+    [InlineData("  产品  ", "产品表", "产品")]
+    [InlineData(null, "产品表", "产品表")]
+    [InlineData("", "  产品表  ", "产品表")]
+    [InlineData("   ", null, "SysProduct")]
+    [InlineData(null, "", "SysProduct")]
+    public void Display_ShouldPreferBusinessNameThenTableCommentThenClassName(string? businessName, string? tableComment, string expected)
     {
         var context = CodeGenerationTestHelper.CreateContext(businessName: businessName);
+        context.TableComment = tableComment;
 
         Assert.Equal(expected, CodeGenerationTestHelper.InvokeShared<string>("Display", context), StringComparer.Ordinal);
     }

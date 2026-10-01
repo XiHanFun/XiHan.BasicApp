@@ -40,13 +40,13 @@ public sealed partial class CodeGenBuiltInTemplateTests
 
     /// <summary>
     /// 单表 AppService 不产树校验；更新与删除找不到记录时如实报错，不静默成功。
-    /// 表注释只进普通字符串字面量：注释里的花括号进插值串会被当成插值而编译不过。
+    /// 业务名只进普通字符串字面量：名字里的花括号进插值串会被当成插值而编译不过。
     /// </summary>
     [Fact]
     public async Task SingleAppService_ShouldReportMissingRecordWithoutInterpolatingComment()
     {
         var context = SingleContext();
-        context.TableComment = "产品{表}";
+        context.BusinessName = "产品{表}";
 
         var content = await RenderAsync("Backend/AppService.sbn", context);
 
@@ -527,6 +527,57 @@ public sealed partial class CodeGenBuiltInTemplateTests
     }
 
     /// <summary>
+    /// 界面与提示文案用业务名（与菜单名一致），不用带「表」字的表注释。
+    /// </summary>
+    [Fact]
+    public async Task UserFacingTextShouldUseBusinessNameNotTableComment()
+    {
+        var context = SingleContext();
+        context.TableComment = "示例便签表";
+        context.BusinessName = "示例便签";
+        var name = context.Columns.Single(column => column.CSharpProperty == "ProductName");
+        name.IsQuery = true;
+        name.QueryType = QueryType.Like;
+
+        var service = await RenderAsync("Backend/AppService.sbn", context);
+        var query = await RenderAsync("Backend/QueryService.sbn", context);
+        var schema = await RenderAsync("Frontend/Schema.sbn", context);
+        var page = await RenderAsync("Frontend/Page.sbn", context);
+
+        Assert.Contains("throw new InvalidOperationException(\"示例便签不存在。\");", service, StringComparison.Ordinal);
+        Assert.Contains("\"示例便签主键必须大于 0。\"", query, StringComparison.Ordinal);
+        Assert.Contains("  pageName: '示例便签',\n", schema, StringComparison.Ordinal);
+        Assert.Contains("title: '新增示例便签'", schema, StringComparison.Ordinal);
+        Assert.Contains("confirmText: '确定删除该示例便签吗？删除后不可恢复。'", schema, StringComparison.Ordinal);
+        Assert.Contains("searchPlaceholder: '搜索示例便签'", schema, StringComparison.Ordinal);
+        Assert.Contains("'编辑示例便签' : '新增示例便签'", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("示例便签表不存在", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("'新增示例便签表'", schema, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 多个关键词列逐个接在 Trim() 后面，逗号与右括号不落到行首。
+    /// </summary>
+    [Fact]
+    public async Task QueryService_KeywordColumnsShouldFollowTrimOnTheirOwnLines()
+    {
+        var context = SingleContext();
+        var name = context.Columns.Single(column => column.CSharpProperty == "ProductName");
+        name.IsQuery = true;
+        name.QueryType = QueryType.Like;
+        var remark = context.Columns.Single(column => column.CSharpProperty == "Remark");
+        remark.IsQuery = true;
+        remark.QueryType = QueryType.Like;
+
+        var query = await RenderAsync("Backend/QueryService.sbn", context);
+
+        Assert.Contains(
+            "            request.Conditions.SetKeyword<SysProduct>(\n                input.Keyword.Trim(),\n                entity => entity.ProductName,\n                entity => entity.Remark);\n",
+            query,
+            StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 从程序集嵌入资源读取内置模板
     /// </summary>
     private static string LoadTemplate(string resourceFile)
@@ -671,7 +722,8 @@ public sealed partial class CodeGenBuiltInTemplateTests
             className: "SysCategory",
             templateType: TemplateType.Tree,
             columns: [Column("BasicId", "long", "string"), parent, name]);
-        context.TableComment = "产品分类";
+        context.TableComment = "产品分类表";
+        context.BusinessName = "产品分类";
         context.TreeParentColumn = parent;
         context.TreeNameColumn = name;
         return context;

@@ -77,9 +77,59 @@ public sealed class CodeGenProjectArtifactWriterTests : IDisposable
         string relativePath,
         ArtifactSide? side = ArtifactSide.Backend,
         string? content = "content",
-        ArtifactWriteMode writeMode = ArtifactWriteMode.AlwaysOverwrite)
+        ArtifactWriteMode writeMode = ArtifactWriteMode.AlwaysOverwrite,
+        string templateCode = "tpl")
     {
-        return new GeneratedArtifact(relativePath, Path.GetFileName(relativePath), content!, "tpl", writeMode, side);
+        return new GeneratedArtifact(relativePath, Path.GetFileName(relativePath), content!, templateCode, writeMode, side);
+    }
+
+    /// <summary>
+    /// 一对实体产物：自动文件（backend.entity）与手动文件（backend.entity.manual）。
+    /// </summary>
+    private static GeneratedArtifact[] EntityPair() =>
+    [
+        Artifact("Domain/Entities/Note.Generated.cs", content: "generated", templateCode: "backend.entity"),
+        Artifact("Domain/Entities/Note.cs", content: "manual", writeMode: ArtifactWriteMode.WriteOnce, templateCode: "backend.entity.manual")
+    ];
+
+    /// <summary>
+    /// 项目里已有同名的手写类（只有手动文件、没有自动文件）时整体拒绝：跳过它再写出自动文件会重复定义而编译不过。
+    /// </summary>
+    [Fact]
+    public async Task WriteToProjectAsync_ForeignManualFileShouldFailWithoutWritingAnything()
+    {
+        var layout = NewRepository();
+        var handWritten = Path.Combine(layout.Project, "Domain", "Entities", "Note.cs");
+        Directory.CreateDirectory(Path.GetDirectoryName(handWritten)!);
+        await File.WriteAllTextAsync(handWritten, "public class Note { }");
+
+        var result = await CreateWriter(layout).WriteToProjectAsync([Artifact("A.cs"), .. EntityPair()], Project);
+
+        Assert.False(result.Success);
+        Assert.Contains("Domain/Entities/Note.cs", result.Message!, StringComparison.Ordinal);
+        Assert.Contains("不是代码生成器产出的", result.Message!, StringComparison.Ordinal);
+        Assert.False(File.Exists(Path.Combine(layout.Project, "Domain", "Entities", "Note.Generated.cs")));
+        Assert.False(File.Exists(Path.Combine(layout.Project, "A.cs")));
+        Assert.Equal("public class Note { }", await File.ReadAllTextAsync(handWritten));
+    }
+
+    /// <summary>
+    /// 重新生成：手动文件与自动文件都在，照常覆盖自动文件、跳过手动文件。
+    /// </summary>
+    [Fact]
+    public async Task WriteToProjectAsync_RegenerationWithBothFilesShouldOverwriteGeneratedAndKeepManual()
+    {
+        var layout = NewRepository();
+        var writer = CreateWriter(layout);
+        await writer.WriteToProjectAsync(EntityPair(), Project);
+        var manual = Path.Combine(layout.Project, "Domain", "Entities", "Note.cs");
+        await File.WriteAllTextAsync(manual, "edited");
+
+        var result = await writer.WriteToProjectAsync(EntityPair(), Project);
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(["Domain/Entities/Note.cs"], result.SkippedPaths);
+        Assert.Equal("edited", await File.ReadAllTextAsync(manual));
     }
 
     /// <summary>

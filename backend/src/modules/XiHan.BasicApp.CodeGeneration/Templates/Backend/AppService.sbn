@@ -21,10 +21,7 @@ using XiHan.Framework.Uow.Attributes;
 
 namespace {{ Namespace }}.Application.AppServices;
 {{~ # 表名文案：只进普通字符串字面量，不进插值串（注释里的花括号会被当成插值） ~}}
-{{~ entity_label = ClassName ~}}
-{{~ if TableComment ~}}
-{{~ entity_label = TableComment ~}}
-{{~ end ~}}
+{{~ entity_label = DisplayName ~}}
 {{~ is_tree = TemplateType == "Tree" ~}}
 {{~ unique_columns = [] ~}}
 {{~ for col in Columns ~}}

@@ -8,14 +8,14 @@
 #nullable enable
 
 using System.CodeDom.Compiler;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using {{ Namespace }}.Application.Contracts;
 using {{ Namespace }}.Application.Dtos;
 using {{ Namespace }}.Application.Mappers;
 using {{ Namespace }}.Domain.Entities;
 using {{ Namespace }}.Domain.Permissions;
 using {{ Namespace }}.Domain.Repositories;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.Framework.Application.Attributes;
@@ -101,7 +101,7 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
     {
         if (id <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(id), "{{ TableComment | cs_string }}主键必须大于 0。");
+            throw new ArgumentOutOfRangeException(nameof(id), "{{ DisplayName | cs_string }}主键必须大于 0。");
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -221,12 +221,8 @@ public abstract class {{ ClassName }}QueryServiceBase : ApplicationServiceBase, 
         if (!string.IsNullOrWhiteSpace(input.Keyword))
         {
             request.Conditions.SetKeyword<{{ ClassName }}>(
-                input.Keyword.Trim()
-{{~ for col in Columns ~}}
-{{~ if col.IsKeywordQuery ~}},
-                entity => entity.{{ col.CSharpProperty }}
-{{~ end ~}}
-{{~ end ~}});
+                input.Keyword.Trim(){{ for col in Columns }}{{ if col.IsKeywordQuery }},
+                entity => entity.{{ col.CSharpProperty }}{{ end }}{{ end }});
         }
 {{~ end ~}}
 {{~ for col in Columns ~}}

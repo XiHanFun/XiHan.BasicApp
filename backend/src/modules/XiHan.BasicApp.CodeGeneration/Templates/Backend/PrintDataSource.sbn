@@ -28,7 +28,7 @@ public static class {{ ClassName }}PrintDataSource
     /// </summary>
     public static PrintDataSourceDefinition Definition { get; } = new(
         "{{ PageCode }}",
-        "{{ if TableComment }}{{ TableComment | cs_string }}{{ else }}{{ ClassName }}{{ end }}",
+        "{{ DisplayName | cs_string }}",
         [
 {{~ for col in Columns ~}}
 {{~ if col.InDetail && !col.IsBinary ~}}
