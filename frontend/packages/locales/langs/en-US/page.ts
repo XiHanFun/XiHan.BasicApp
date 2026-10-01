@@ -89,6 +89,7 @@ export default {
     agree_text: 'I agree to the',
     privacy_policy: 'Privacy Policy',
     terms_of_service: 'Terms of Service',
+    legal_load_failed: 'Failed to load. Please try again later.',
     and: 'and',
     register_btn: 'Register',
     register_success: 'Registration successful',

@@ -88,6 +88,7 @@ export default {
     agree_text: 'मैंने पढ़ लिया है और सहमत हूँ:',
     privacy_policy: 'गोपनीयता नीति',
     terms_of_service: 'सेवा की शर्तें',
+    legal_load_failed: 'लोड नहीं हो सका। कृपया बाद में पुनः प्रयास करें।',
     and: 'और',
     register_btn: 'अभी रजिस्टर करें',
     register_success: 'रजिस्ट्रेशन सफल',
