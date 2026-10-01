@@ -613,6 +613,8 @@ export default {
     err_empty_file: '文件为空或仅包含说明行',
     err_no_columns: '未识别到任何模板列，请使用「下载模板」生成的表头',
     err_missing_columns: '缺少必填列：{columns}',
+    err_reject_type: '「{name}」不是 CSV 文件，请选择 .csv 文件',
+    err_reject_count: '「{name}」未选入：一次只能导入一个文件',
     column_join: '、',
     error_reason_join: '；',
     template_filename_suffix: '-导入模板',
@@ -655,6 +657,7 @@ export default {
     modal_title: '选择图标',
     search_placeholder: '搜索图标名称...',
     empty: '未找到图标',
+    clear: '清除',
   },
   search_settings: {
     title: '搜索设置',

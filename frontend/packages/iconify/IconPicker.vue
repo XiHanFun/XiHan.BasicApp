@@ -129,12 +129,13 @@ function handleClear() {
               </template>
             </XInput>
             <XhButton v-if="currentIconId" size="sm" variant="ghost" @click="handleClear">
-              清除
+              {{ t('component.icon_picker.clear') }}
             </XhButton>
           </XhFlex>
 
-          <!-- 每个图标集一个页签，标签与面板都按图标集清单展开；图标集多、弹窗窄，标签带放不下时靠两端翻页钮挪 -->
-          <XhTabsRoot :value="activePrefix" variant="line" @update:value="handleTabChange">
+          <!-- 每个图标集一个页签，标签与面板都按图标集清单展开；图标集多、弹窗窄，标签带放不下时靠两端翻页钮挪。
+               一个图标集上千个图标：面板内容只在选中时渲染、选走即卸，否则每个面板都铺一整份网格 -->
+          <XhTabsRoot :value="activePrefix" variant="line" lazy-mount unmount-on-exit @update:value="handleTabChange">
             <XhTabsList>
               <XhTabsPrevTrigger />
               <XhTabsTrigger
@@ -164,19 +165,25 @@ function handleClear() {
                   <XhEmptyStateDescription>{{ t('component.icon_picker.empty') }}</XhEmptyStateDescription>
                 </XhEmptyStateRoot>
                 <XhGridRoot v-else cols="6" gap="sm">
+                  <!-- 网格格子只管排布，可点的是格子里的原生按钮：键盘能停靠、Enter / Space 能选 -->
                   <XhGridItem
                     v-for="name in displayIcons"
                     :key="name"
                     class="icon-picker-item"
                     :class="{ 'is-selected': currentIconId === `${meta.prefix}:${name}` }"
-                    @click="handleSelect(name)"
                   >
-                    <div class="icon-picker-cell">
-                      <div class="icon-picker-icon">
+                    <button
+                      type="button"
+                      class="icon-picker-cell"
+                      :aria-label="`${meta.prefix}:${name}`"
+                      :aria-pressed="currentIconId === `${meta.prefix}:${name}`"
+                      @click="handleSelect(name)"
+                    >
+                      <span class="icon-picker-icon" aria-hidden="true">
                         <Icon :icon="`${meta.prefix}:${name}`" width="22" height="22" />
-                      </div>
+                      </span>
                       <span class="icon-picker-name">{{ meta.prefix }}:{{ name }}</span>
-                    </div>
+                    </button>
                   </XhGridItem>
                 </XhGridRoot>
               </div>
@@ -215,18 +222,31 @@ function handleClear() {
 
 .icon-picker-item {
   border-radius: 6px;
-  cursor: pointer;
   transition: background var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
 }
 
+/* 格子里的按钮铺满整格，去掉原生按钮的底与边，悬停 / 选中的面仍画在格子上 */
 .icon-picker-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 4px;
+  inline-size: 100%;
   padding: 6px 4px;
   min-height: 52px;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* 键盘焦点环与组件库同一条：环宽、内收偏移与颜色都取令牌 */
+.icon-picker-cell:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
 }
 
 .icon-picker-icon {

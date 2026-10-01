@@ -228,7 +228,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
     <div class="pointer-events-none sticky top-2 z-40 -mb-4 -mr-4 flex h-0 items-start justify-end overflow-x-clip sm:-mb-5 sm:-mr-5">
       <div
         class="flex justify-end"
-        :style="{ transform: `translateY(${toolbarOffsetY}px)`, transition: draggingToolbar ? 'none' : 'transform var(--xh-motion-duration-micro) var(--xh-motion-ease-enter)' }"
+        :style="{ transform: `translateY(${toolbarOffsetY}px)`, transition: draggingToolbar ? 'none' : 'transform var(--xh-motion-duration-nudge) var(--xh-motion-ease-enter)' }"
       >
         <!-- 折叠态：右侧半隐藏按钮，悬停滑出 -->
         <Transition
@@ -241,19 +241,19 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
             v-if="!panelOpen"
             type="button"
             :title="t('workbench.widgets.customize')"
-            class="group pointer-events-auto mt-2 flex h-9 translate-x-[40%] items-center gap-1.5 rounded-l-xl border border-r-0 border-border/60 bg-background/55 pl-3 pr-2 text-muted-foreground shadow-sm backdrop-blur-md transition-all duration-[var(--xh-motion-duration-enter)] hover:translate-x-0 hover:bg-background/90 hover:text-foreground"
+            class="board-fab group pointer-events-auto mt-2 flex h-9 translate-x-[40%] items-center gap-1.5 rounded-l-xl border border-r-0 border-border/60 bg-background/55 pl-3 pr-2 text-muted-foreground shadow-sm backdrop-blur-md hover:translate-x-0 hover:bg-background/90 hover:text-foreground"
             @click="panelOpen = true"
           >
             <Icon icon="lucide:settings-2" width="16" />
             <Icon icon="lucide:chevron-left" width="14" class="opacity-50 transition-opacity group-hover:opacity-90" />
           </button>
         </Transition>
-        <!-- 展开态：半透明毛玻璃悬浮操作栏 -->
+        <!-- 展开态：半透明毛玻璃悬浮操作栏。进出场的位移量取幅度令牌：减弱动效下归零，只剩淡变 -->
         <Transition
           enter-active-class="transition duration-[var(--xh-motion-duration-enter)] ease-[var(--xh-motion-ease-enter)]"
-          enter-from-class="translate-x-4 opacity-0"
+          enter-from-class="translate-x-[var(--xh-motion-distance-lg)] opacity-0"
           leave-active-class="transition duration-[var(--xh-motion-duration-exit)] ease-[var(--xh-motion-ease-exit)]"
-          leave-to-class="translate-x-4 opacity-0"
+          leave-to-class="translate-x-[var(--xh-motion-distance-lg)] opacity-0"
         >
           <div
             v-if="panelOpen"
@@ -434,6 +434,15 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
 </template>
 
 <style scoped>
+/* 折叠态的半隐藏按钮：悬停滑出是几何变化，位移走 move（减弱动效下 1ms，直接到位）；
+   换面换字是状态变化，仍按 enter 淡变。enter 在减弱动效下不降档，不能拿来驱动位移 */
+.board-fab {
+  transition:
+    translate var(--xh-motion-duration-move) var(--xh-motion-ease-enter),
+    background-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+}
+
 /* 小屏（<md）忽略用户设定的小组件宽度，一律整行铺满；md 及以上按 12 栅格自定义宽度 */
 .widget-cell {
   grid-column: 1 / -1;

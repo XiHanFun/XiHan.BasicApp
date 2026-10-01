@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { CSSProperties } from 'vue'
 import type { LayoutRouteRecord } from '../contracts'
+import type { MenuLinkTarget } from './sidebar/menu-links'
 import type { AppMenuOption } from '~/types'
 
 import { useHoverIntent } from '@xihan-ui/vue/behavior'
@@ -11,6 +12,7 @@ import { Icon } from '~/iconify'
 import { useAccessStore, useAppStore } from '~/stores'
 import { useEffectiveLayoutMode, useLayoutMenuDomain } from '../composables'
 import { renderSidebarBadgeLabel } from './MenuBadge.vue'
+import { useMenuExternalLinks } from './sidebar/menu-links'
 import SidebarBrand from './sidebar/SidebarBrand.vue'
 import SidebarCollapseButton from './sidebar/SidebarCollapseButton.vue'
 import SidebarFixedButton from './sidebar/SidebarFixedButton.vue'
@@ -55,7 +57,7 @@ const emit = defineEmits<{
 }>()
 
 interface Props {
-  mode?: 'full' | 'header-logo' | 'extra-menu'
+  mode?: 'full' | 'header-logo'
   collapse?: boolean
   expandOnHovering?: boolean
   extraVisible?: boolean
@@ -95,8 +97,8 @@ const {
   resolveFirstNavigablePath,
   buildMenuOptionsFromRoutes,
   findMatchedRoutePath,
-  openExternalIfMatch,
 } = useLayoutMenuDomain()
+const externalLinkOf = useMenuExternalLinks()
 
 const appTitle = computed(
   () => appStore.brandTitle || import.meta.env.VITE_APP_TITLE || 'XiHan Admin',
@@ -329,34 +331,40 @@ const extraContentStyle = computed((): CSSProperties => {
   return { height: `calc(100% - ${titleH + 42}px)` }
 })
 
+// --- Links ---
+// 菜单条目渲染成真链接，点击、Enter、中键与 Ctrl+点击的跳转都由链接本身完成；这里只算去处
+function menuLinkOf(key: string): MenuLinkTarget {
+  const href = externalLinkOf(key)
+  if (href)
+    return { href }
+  return { to: key.startsWith('/') ? key : { name: key } }
+}
+
+/** 双列主列的条目是一级目录，去处是它下面第一个可达的页面 */
+function primaryLinkOf(routes: LayoutRouteRecord[], key: string, parentPath = ''): MenuLinkTarget {
+  const href = externalLinkOf(key)
+  if (href)
+    return { href }
+  const target = routes.find(item => resolveFullPath(item.path, parentPath) === key)
+  return { to: (target && resolveFirstNavigablePath(target, parentPath)) || key }
+}
+
+function sideMixedPrimaryLinkOf(key: string): MenuLinkTarget {
+  return primaryLinkOf(sideMixedPrimaryRoutes.value, key)
+}
+
+function headerMixPrimaryLinkOf(key: string): MenuLinkTarget {
+  return primaryLinkOf(headerMixPrimaryRoutes.value, key, headerMixParentPath.value)
+}
+
 // --- Actions ---
-function handleMenuUpdate(key: string) {
-  if (!key)
-    return
-  if (openExternalIfMatch(key))
-    return
-  if (key.startsWith('/')) {
-    if (key !== route.path)
-      router.push(key)
-    return
-  }
-  if (String(route.name ?? '') !== key)
-    router.push({ name: key })
-}
-
-function jumpToFirstVisibleChild(target: LayoutRouteRecord, parentPath = '') {
-  const targetPath = resolveFirstNavigablePath(target, parentPath)
-  if (targetPath && targetPath !== route.path)
-    router.push(targetPath)
-}
-
+// 主列点选只决定副栏开合：有可见下级才展开；跳转已由链接完成
 function handleSideMixedPrimaryUpdate(key: string) {
   const target = sideMixedPrimaryRoutes.value.find(item => resolveFullPath(item.path) === key)
   if (target) {
     const hasChildren
       = (target.children?.filter(child => !toLayoutMeta(child).hidden) ?? []).length > 0
     emit('update:extraVisible', hasChildren)
-    jumpToFirstVisibleChild(target)
   }
 }
 
@@ -368,7 +376,6 @@ function handleHeaderMixPrimaryUpdate(key: string) {
     const hasChildren
       = (target.children?.filter(child => !toLayoutMeta(child).hidden) ?? []).length > 0
     emit('update:extraVisible', hasChildren)
-    jumpToFirstVisibleChild(target, headerMixParentPath.value)
   }
 }
 
@@ -423,18 +430,16 @@ const asideRef = ref<HTMLElement | null>(null)
 // 触摸设备没有真正的悬停：轻点也会走 pointerenter/pointerleave，交给悬停意图会一抬指就收起
 const hoverCapable = typeof window !== 'undefined' && (window.matchMedia?.('(hover: hover)').matches ?? true)
 
-// 折叠侧栏的悬停展开：指针在侧栏停够 100ms 才报展开意图，扫过不展开；展开后的面板就是这个 aside 自己，没有独立浮层元素
-onMounted(() => {
-  if (!hoverCapable)
-    return
-  useHoverIntent({
-    getTriggerEl: () => asideRef.value,
-    getContentEl: () => null,
-    openDelay: 100,
-    closeDelay: 0,
-    onOpenIntent: () => emit('sidebarMouseEnter'),
-    onCloseIntent: handleAsideMouseLeave,
-  })
+// 折叠侧栏的悬停展开：指针在侧栏停够 100ms 才报展开意图，扫过不展开；展开后的面板就是这个 aside 自己，没有独立浮层元素。
+// 必须在 setup 顶层调用：它自己挂 onMounted 等模板 ref 就位，放进 onMounted 回调里那一层永远不会执行。
+// 触摸设备交给下面的 mouseenter / mouseleave，这里取不到触发元素即不跟踪
+useHoverIntent({
+  getTriggerEl: () => (hoverCapable ? asideRef.value : null),
+  getContentEl: () => null,
+  openDelay: 100,
+  closeDelay: 0,
+  onOpenIntent: () => emit('sidebarMouseEnter'),
+  onCloseIntent: handleAsideMouseLeave,
 })
 
 // 悬停意图接管的设备上这两条不再重复触发
@@ -485,20 +490,6 @@ watch(
       :app-logo="appLogo"
       :sidebar-collapsed-show-title="false"
       @click="handleBrandClick"
-    />
-  </template>
-
-  <!-- Extra menu mode: renders extra panel menu content -->
-  <template v-else-if="mode === 'extra-menu'">
-    <SidebarMenu
-      :active-key="activeKey"
-      :collapsed="extraCollapse"
-      :sidebar-theme="extraMenuTheme"
-      :menu-options="isSideMixedLayout ? sideMixedSecondaryOptions : headerMixSecondaryOptions"
-      :navigation-style="appStore.navigationStyle"
-      :accordion="appStore.navigationAccordion"
-      :no-top-padding="true"
-      @menu-update="handleMenuUpdate"
     />
   </template>
 
@@ -553,8 +544,8 @@ watch(
               :collapsed="true"
               :collapsed-width="sidebarWidth"
               :sidebar-collapsed-show-title="appStore.sidebarCollapsedShowTitle"
-              :sidebar-theme="sidebarTheme"
               :menu-options="sideMixedPrimaryOptions"
+              :link-of="sideMixedPrimaryLinkOf"
               :navigation-style="appStore.navigationStyle"
               :accordion="true"
               :no-top-padding="true"
@@ -585,8 +576,8 @@ watch(
               :collapsed="true"
               :collapsed-width="sidebarWidth"
               :sidebar-collapsed-show-title="appStore.sidebarCollapsedShowTitle"
-              :sidebar-theme="sidebarTheme"
               :menu-options="headerMixPrimaryOptions"
+              :link-of="headerMixPrimaryLinkOf"
               :navigation-style="appStore.navigationStyle"
               :accordion="true"
               :no-top-padding="true"
@@ -620,12 +611,11 @@ watch(
               :collapsed="effectiveCollapsed"
               :collapsed-width="sidebarCollapseWidth"
               :sidebar-collapsed-show-title="appStore.sidebarCollapsedShowTitle"
-              :sidebar-theme="sidebarTheme"
               :no-top-padding="isMixedNav"
               :menu-options="menuOptions"
+              :link-of="menuLinkOf"
               :navigation-style="appStore.navigationStyle"
               :accordion="appStore.navigationAccordion"
-              @menu-update="handleMenuUpdate"
             />
           </div>
 
@@ -673,14 +663,13 @@ watch(
             <SidebarMenu
               :active-key="activeKey"
               :collapsed="extraCollapse"
-              :sidebar-theme="extraMenuTheme"
               :menu-options="
                 isSideMixedLayout ? sideMixedSecondaryOptions : headerMixSecondaryOptions
               "
+              :link-of="menuLinkOf"
               :navigation-style="appStore.navigationStyle"
               :accordion="appStore.navigationAccordion"
               :no-top-padding="true"
-              @menu-update="handleMenuUpdate"
             />
           </div>
         </div>

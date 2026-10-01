@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NotificationListItemDto } from '@/api'
-import { XhCarouselIndicator, XhCarouselIndicatorGroup, XhCarouselItem, XhCarouselList, XhCarouselNextTrigger, XhCarouselPrevTrigger, XhCarouselRoot, XhCarouselViewport, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
+import { XhCarouselAutoplayTrigger, XhCarouselIndicator, XhCarouselIndicatorGroup, XhCarouselItem, XhCarouselList, XhCarouselNextTrigger, XhCarouselPrevTrigger, XhCarouselRoot, XhCarouselViewport, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -72,9 +72,11 @@ onMounted(async () => {
 </script>
 
 <template>
+  <!-- 张数由作者声明（组件库不数 DOM）：不给就是 0 张，指示点、翻页与自动播放全都不动 -->
   <XhCarouselRoot
     v-if="announcements.length"
-    v-slot="{ page, totalPages, setPage }"
+    v-slot="{ totalPages }"
+    :slide-count="announcements.length"
     :autoplay="5000"
     loop
     class="announce-carousel"
@@ -109,6 +111,10 @@ onMounted(async () => {
     </XhCarouselViewport>
 
     <div class="carousel-arrows">
+      <!-- 开了自动播放就必须给播放开关：它是唯一能停住自动翻页、且不会被悬停焦点重新拉起的入口 -->
+      <XhCarouselAutoplayTrigger v-slot="{ stopped }" class="carousel-arrow">
+        <Icon width="16" height="16" :icon="stopped ? 'lucide:play' : 'lucide:pause'" />
+      </XhCarouselAutoplayTrigger>
       <XhCarouselPrevTrigger class="carousel-arrow">
         <Icon width="18" height="18" icon="lucide:arrow-left" />
       </XhCarouselPrevTrigger>
@@ -117,14 +123,13 @@ onMounted(async () => {
       </XhCarouselNextTrigger>
     </div>
 
+    <!-- 点指示点翻页由组件自己接线；当前页按 data-current 画 -->
     <XhCarouselIndicatorGroup class="carousel-dots">
       <XhCarouselIndicator
         v-for="index of totalPages"
         :key="index"
         :index="index - 1"
         class="carousel-dot"
-        :class="{ 'is-active': page === index - 1 }"
-        @click="setPage(index - 1)"
       />
     </XhCarouselIndicatorGroup>
   </XhCarouselRoot>
@@ -246,29 +251,34 @@ onMounted(async () => {
   z-index: 2;
 }
 
+/* 组件库把翻页 / 播放钮各自钉在轨道两端（absolute + 居中位移、48px 浮钮档），
+   这里收回右下角一组里顺排；换面与按压缩放的过渡沿用 Action Control 家族那一套，不另写 */
 .carousel-arrow {
+  position: static;
+  translate: none;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
+  min-inline-size: 0;
   height: 32px;
   color: hsl(var(--foreground));
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
   border-radius: 8px;
   cursor: pointer;
-  transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .carousel-arrow:hover {
   background: hsl(var(--accent));
 }
 
-/* 自定义控制点：左下角 */
+/* 自定义控制点：左下角（组件库缺省是下沿居中，那条 -50% 位移一并撤掉） */
 .carousel-dots {
   position: absolute;
   left: 24px;
   bottom: 22px;
+  translate: none;
   display: flex;
   gap: 6px;
   margin: 0;
@@ -288,7 +298,7 @@ onMounted(async () => {
     background var(--xh-motion-duration-slide) var(--xh-motion-ease-enter);
 }
 
-.carousel-dot.is-active {
+.carousel-dot[data-current] {
   width: 28px;
   background: hsl(var(--primary));
 }

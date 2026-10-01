@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {
+  XhPaginationContent,
   XhPaginationEllipsisTrigger,
   XhPaginationItem,
   XhPaginationNextTrigger,
+  XhPaginationPositioner,
   XhPaginationPrevTrigger,
   XhPaginationRoot,
   XhSelectRoot,
@@ -55,8 +57,10 @@ function onSizeChange(value: string[]): void {
 
 <template>
   <div class="schema-pagination">
+    <!-- 省略位是可展开的按钮（aria-haspopup）：按序列里自带的 side 渲染，展开后被折叠的页码列在浮层里，
+         浮层定位层与内容必须给，否则按钮宣称有弹出却什么也打不开 -->
     <XhPaginationRoot
-      v-slot="{ pages }"
+      v-slot="{ pageItems }"
       :count="total"
       :page="page"
       :page-size="pageSize"
@@ -67,17 +71,23 @@ function onSizeChange(value: string[]): void {
       <XhPaginationPrevTrigger>
         <Icon icon="lucide:chevron-left" width="14" height="14" />
       </XhPaginationPrevTrigger>
-      <template v-for="(item, index) in pages" :key="`${item}-${index}`">
-        <XhPaginationItem v-if="item !== 'ellipsis'" :value="item">
-          {{ item }}
+      <template v-for="(item, index) in pageItems" :key="`${item.type}-${index}`">
+        <XhPaginationEllipsisTrigger v-if="item.type === 'ellipsis'" :side="item.side" />
+        <XhPaginationItem v-else :value="item.value">
+          {{ item.value }}
         </XhPaginationItem>
-        <XhPaginationEllipsisTrigger v-else :side="index < pages.length / 2 ? 'start' : 'end'">
-          …
-        </XhPaginationEllipsisTrigger>
       </template>
       <XhPaginationNextTrigger>
         <Icon icon="lucide:chevron-right" width="14" height="14" />
       </XhPaginationNextTrigger>
+
+      <XhPaginationPositioner>
+        <XhPaginationContent v-slot="{ pages }">
+          <XhPaginationItem v-for="folded in pages" :key="folded" :value="folded">
+            {{ folded }}
+          </XhPaginationItem>
+        </XhPaginationContent>
+      </XhPaginationPositioner>
     </XhPaginationRoot>
 
     <XhSelectRoot

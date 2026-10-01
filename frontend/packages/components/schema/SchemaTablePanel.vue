@@ -366,7 +366,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
             <XhTableSelectAllTrigger />
           </XhTableColumnHeader>
           <XhTableColumnHeader v-if="showIndex" :value="INDEX_COL" :style="prefixStyle(INDEX_COL)">
-            {{ t('component.schema_table.index') }}
+            <XhTableColumnLabel>{{ t('component.schema_table.index') }}</XhTableColumnLabel>
           </XhTableColumnHeader>
           <XhTableColumnHeader
             v-for="column in columns"
@@ -425,8 +425,11 @@ function rowAttrs(row: TRow, rowIndex: number) {
             </XhTableCell>
           </XhTableRow>
 
+          <!-- 详情行的内容也要装在单元格里：从首列（展开列）起跨满全部列，读屏才把它当作一行里的一格 -->
           <XhTableExpandedRow v-if="renderExpand" :value="item.key">
-            <VNodeRender :content="renderExpand(item.row)" />
+            <XhTableCell :value="EXPAND_COL" :colspan="tableColumns.length">
+              <VNodeRender :content="renderExpand(item.row)" />
+            </XhTableCell>
           </XhTableExpandedRow>
         </template>
       </XhTableBody>

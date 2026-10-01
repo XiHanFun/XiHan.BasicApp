@@ -613,6 +613,8 @@ export default {
     err_empty_file: '檔案為空或僅包含說明列',
     err_no_columns: '未識別到任何範本欄位，請使用「下載範本」產生的表頭',
     err_missing_columns: '缺少必填欄位：{columns}',
+    err_reject_type: '「{name}」不是 CSV 檔案，請選擇 .csv 檔案',
+    err_reject_count: '「{name}」未選入：一次只能匯入一個檔案',
     column_join: '、',
     error_reason_join: '；',
     template_filename_suffix: '-匯入範本',
@@ -655,6 +657,7 @@ export default {
     modal_title: '選擇圖示',
     search_placeholder: '搜尋圖示名稱...',
     empty: '找不到圖示',
+    clear: '清除',
   },
   search_settings: {
     title: '搜尋設定',

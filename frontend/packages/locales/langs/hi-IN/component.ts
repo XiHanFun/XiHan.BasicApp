@@ -613,6 +613,8 @@ export default {
     err_empty_file: 'फ़ाइल खाली है या उसमें केवल विवरण पंक्तियाँ हैं',
     err_no_columns: 'कोई टेम्पलेट कॉलम नहीं पहचाना गया, कृपया 「टेम्पलेट डाउनलोड करें」 से बने हेडर का उपयोग करें',
     err_missing_columns: 'अनिवार्य कॉलम गायब हैं: {columns}',
+    err_reject_type: '「{name}」 CSV फ़ाइल नहीं है, कृपया .csv फ़ाइल चुनें',
+    err_reject_count: '「{name}」 नहीं जोड़ी गई: एक बार में केवल एक फ़ाइल आयात की जा सकती है',
     column_join: ', ',
     error_reason_join: '; ',
     template_filename_suffix: '-आयात-टेम्पलेट',
@@ -655,6 +657,7 @@ export default {
     modal_title: 'आइकन चुनें',
     search_placeholder: 'आइकन का नाम खोजें...',
     empty: 'कोई आइकन नहीं मिला',
+    clear: 'साफ़ करें',
   },
   search_settings: {
     title: 'खोज सेटिंग',
