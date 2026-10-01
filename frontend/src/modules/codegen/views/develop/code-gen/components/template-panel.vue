@@ -10,7 +10,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -558,8 +558,9 @@ async function handleSubmit() {
                 <!-- 校验的是正在编辑的草稿，而非已回写表单的值 -->
                 <template #footer-extra="{ value }">
                   <XhButton variant="subtle" size="sm" :loading="validating" @click="handleValidate(value)">
+                    <XhButtonIndicator />
                     <span><Icon icon="lucide:check-check" /></span>
-                    {{ t('develop.code_gen.template.validate_syntax') }}
+                    <XhButtonLabel>{{ t('develop.code_gen.template.validate_syntax') }}</XhButtonLabel>
                   </XhButton>
                 </template>
               </XContentEditorField>

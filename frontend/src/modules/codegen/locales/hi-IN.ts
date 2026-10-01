@@ -187,6 +187,7 @@ export default {
         side_backend: 'बैकएंड',
         side_frontend: 'फ्रंटएंड',
         side_empty: 'इस दायरे में कोई आउटपुट नहीं है',
+        file_tree: 'आउटपुट फ़ाइलें',
       },
       generate: {
         generate_failed: 'जनरेशन विफल',

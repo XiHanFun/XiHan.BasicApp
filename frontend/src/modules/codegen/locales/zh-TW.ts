@@ -187,6 +187,7 @@ export default {
         side_backend: '後端檔案',
         side_frontend: '前端檔案',
         side_empty: '目前範圍沒有產出物',
+        file_tree: '產出物檔案',
       },
       generate: {
         generate_failed: '產生失敗',

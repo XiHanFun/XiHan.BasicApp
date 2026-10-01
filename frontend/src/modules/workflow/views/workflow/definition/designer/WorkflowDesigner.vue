@@ -4,7 +4,7 @@ import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, Designer
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
 import type { AppDropdownOption } from '~/types'
 import { useDebounceFn } from '@vueuse/core'
-import { XhButton, XhCheckbox, XhContextMenuContent, XhContextMenuItem, XhContextMenuItemText, XhContextMenuPositioner, XhContextMenuRoot, XhContextMenuSeparator, XhContextMenuTrigger, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFieldsetLegend, XhFieldsetRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhContextMenuContent, XhContextMenuItem, XhContextMenuItemText, XhContextMenuPositioner, XhContextMenuRoot, XhContextMenuSeparator, XhContextMenuTrigger, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFieldsetLegend, XhFieldsetRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, toRaw, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, indexDropdownOptions, toDropdownCollection, VNodeRender, XDropdown, XInput, XNumberInput, XSegmented, XSelect, XTagsInput } from '~/components'
@@ -568,14 +568,14 @@ function onContextSelect(key: string) {
       <!-- 撤销/重做/缩放/导出 -->
       <template v-for="(btn, i) in toolButtons" :key="i">
         <XhSeparator v-if="btn.divider" orientation="vertical" class="!mx-0.5" />
-        <XhButton v-else :title="btn.tip" size="sm" variant="ghost" @click="btn.run">
+        <XhButton v-else :title="btn.tip" :aria-label="btn.tip" size="sm" variant="ghost" icon-only @click="btn.run">
           <Icon :icon="btn.icon!" />
         </XhButton>
       </template>
 
       <!-- 对齐/分布（作用于多选节点） -->
       <XDropdown :options="arrangeOptions" @select="onArrange">
-        <XhButton :title="t('workflow.designer.tb_arrange')" size="sm" variant="ghost">
+        <XhButton :title="t('workflow.designer.tb_arrange')" :aria-label="t('workflow.designer.tb_arrange')" size="sm" variant="ghost" icon-only>
           <Icon icon="lucide:align-horizontal-distribute-center" />
         </XhButton>
       </XDropdown>
@@ -600,8 +600,9 @@ function onContextSelect(key: string) {
         {{ t('workflow.designer.btn_layout') }}
       </XhButton>
       <XhButton variant="subtle" size="sm" tone="brand" :loading="saving" @click="handleSave">
+        <XhButtonIndicator />
         <Icon icon="lucide:save" />
-        {{ t('workflow.designer.btn_save') }}
+        <XhButtonLabel>{{ t('workflow.designer.btn_save') }}</XhButtonLabel>
       </XhButton>
     </div>
 
@@ -645,7 +646,7 @@ function onContextSelect(key: string) {
                   <span v-if="errorCount" class="text-red-500">· {{ errorCount }} {{ t('workflow.designer.validate_errors') }}</span>
                   <span v-if="warningCount" class="text-amber-500">· {{ warningCount }} {{ t('workflow.designer.validate_warnings') }}</span>
                 </span>
-                <XhButton variant="subtle" size="sm" @click="showIssues = false">
+                <XhButton variant="subtle" size="sm" icon-only :aria-label="t('common.actions.close')" @click="showIssues = false">
                   <Icon icon="lucide:x" />
                 </XhButton>
               </div>

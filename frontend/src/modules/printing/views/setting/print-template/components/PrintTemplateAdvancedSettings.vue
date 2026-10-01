@@ -5,6 +5,7 @@
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
 import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSwitch } from '@xihan-ui/vue'
+import { useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { EnableStatus } from '@/api'
 import { XInput, XNumberInput } from '~/components'
@@ -18,6 +19,8 @@ defineProps<{
 
 const model = defineModel<PrintTemplateFormModel>({ required: true })
 const { t } = useI18n()
+/** 开关行的文字在开关左侧另起一列，不进开关的默认插槽；开关经 aria-labelledby 取它作名字 */
+const switchIdPrefix = useId()
 </script>
 
 <template>
@@ -42,21 +45,27 @@ const { t } = useI18n()
       <div class="switch-settings">
         <div v-if="!editing" class="switch-setting-row">
           <div>
-            <strong>{{ t('setting.print_template.initial_status') }}</strong>
-            <span>{{ t('setting.print_template.initial_status_help') }}</span>
+            <strong :id="`${switchIdPrefix}-status`">{{ t('setting.print_template.initial_status') }}</strong>
+            <span :id="`${switchIdPrefix}-status-help`">{{ t('setting.print_template.initial_status_help') }}</span>
           </div>
           <XhSwitch
             :checked="model.status === EnableStatus.Enabled"
+            :aria-labelledby="`${switchIdPrefix}-status`"
+            :aria-describedby="`${switchIdPrefix}-status-help`"
             @update:checked="model.status = $event ? EnableStatus.Enabled : EnableStatus.Disabled"
           />
         </div>
 
         <div v-if="globalMode" class="switch-setting-row">
           <div>
-            <strong>{{ t('setting.print_template.allow_tenant_use') }}</strong>
-            <span>{{ t('setting.print_template.allow_tenant_use_help') }}</span>
+            <strong :id="`${switchIdPrefix}-tenant`">{{ t('setting.print_template.allow_tenant_use') }}</strong>
+            <span :id="`${switchIdPrefix}-tenant-help`">{{ t('setting.print_template.allow_tenant_use_help') }}</span>
           </div>
-          <XhSwitch v-model:checked="model.allowTenantUse" />
+          <XhSwitch
+            v-model:checked="model.allowTenantUse"
+            :aria-labelledby="`${switchIdPrefix}-tenant`"
+            :aria-describedby="`${switchIdPrefix}-tenant-help`"
+          />
         </div>
       </div>
 

@@ -187,6 +187,7 @@ export default {
         side_backend: 'Backend',
         side_frontend: 'Frontend',
         side_empty: 'No artifacts in this scope',
+        file_tree: 'Artifact files',
       },
       generate: {
         generate_failed: 'Generation failed',

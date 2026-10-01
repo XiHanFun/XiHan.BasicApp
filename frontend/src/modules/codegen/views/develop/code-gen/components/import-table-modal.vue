@@ -6,7 +6,8 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import { XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhInputGroupRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { isComposingEvent } from '@xihan-ui/core'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhInputGroupRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, XEditModal, XInput, XSelect } from '~/components'
@@ -104,6 +105,15 @@ async function loadTables() {
   }
 }
 
+/**
+ * 关键字是筛选条件：回车只查表（由输入框的 enter 事件接），不让它隐式提交外层的导入表单。
+ * 输入法组合中的回车是在候选框里选词，原样放行。
+ */
+function blockImplicitSubmit(event: KeyboardEvent) {
+  if (!isComposingEvent(event))
+    event.preventDefault()
+}
+
 function onDataSourceChange() {
   selectedTables.value = []
   void loadTables()
@@ -176,18 +186,22 @@ async function handleImport() {
       </XhFieldRoot>
       <XhFieldRoot>
         <XhFieldLabel>{{ t('develop.code_gen.import.form_keyword') }}</XhFieldLabel>
-        <XhFieldControl>
-          <!-- 查询钮贴在关键字输入框末端：组件库的输入组，描边与焦点环由组的外轮廓画 -->
+        <!-- 查询钮贴在关键字输入框末端：组件库的输入组，描边与焦点环由组的外轮廓画。
+             字段的接线不能合并到输入组那层 div 上（label 的 for 落空），关掉 asChild 手工交给输入框 -->
+        <XhFieldControl v-slot="wiring" :as-child="false">
           <XhInputGroupRoot class="import-keyword-group">
             <XInput
+              v-bind="wiring"
               v-model:value="queryKeyword"
               clearable
               :placeholder="t('develop.code_gen.import.keyword_placeholder')"
-              @keyup.enter="loadTables"
+              @enter="loadTables"
+              @keydown.enter="blockImplicitSubmit"
             />
             <XhButton variant="subtle" size="sm" :loading="tableLoading" tone="brand" @click="loadTables">
+              <XhButtonIndicator />
               <span><Icon icon="lucide:search" /></span>
-              {{ t('common.actions.search') }}
+              <XhButtonLabel>{{ t('common.actions.search') }}</XhButtonLabel>
             </XhButton>
           </XhInputGroupRoot>
         </XhFieldControl>

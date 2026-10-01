@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
 import type { PrintTemplateFormModel } from './models'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerDescription, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerDescription, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XSelect } from '~/components'
@@ -179,16 +179,19 @@ defineExpose({ confirmDiscard })
           <template #template-actions>
             <div class="toolbar-primary-actions">
               <XhButton variant="subtle" data-testid="print-template-save" tone="brand" :loading="saveLoading" :disabled="!designerReady" @click="handleSave">
+                <XhButtonIndicator />
                 <span><Icon icon="tabler:device-floppy" /></span>
-                {{ t('common.actions.save') }}
+                <XhButtonLabel>{{ t('common.actions.save') }}</XhButtonLabel>
               </XhButton>
               <XhButton variant="subtle" :loading="previewLoading" :disabled="!designerReady" @click="openSamplePreview">
+                <XhButtonIndicator />
                 <span><Icon icon="tabler:eye" /></span>
-                {{ t('setting.print_template.sample_preview') }}
+                <XhButtonLabel>{{ t('setting.print_template.sample_preview') }}</XhButtonLabel>
               </XhButton>
               <XhButton variant="subtle" tone="success" :loading="directLoading" :disabled="!designerReady || (currentDetail !== null && !canDirectPrint)" @click="directPrint">
+                <XhButtonIndicator />
                 <span><Icon icon="tabler:printer" /></span>
-                {{ t('setting.print_template.direct_print') }}
+                <XhButtonLabel>{{ t('setting.print_template.direct_print') }}</XhButtonLabel>
               </XhButton>
 
               <span class="action-divider" aria-hidden="true" />
@@ -222,7 +225,16 @@ defineExpose({ confirmDiscard })
                 class="printer-select"
                 @update:value="(value: string | number | (string | number)[] | null) => updatePrinterPreference(value as string | null)"
               />
-              <XhButton class="xh-icon-btn" variant="ghost" :loading="printerLoading" :title="t('setting.print_template.refresh_printers')" @click="loadPrinters(true)">
+              <XhButton
+                class="xh-icon-btn"
+                variant="ghost"
+                icon-only
+                :loading="printerLoading"
+                :title="t('setting.print_template.refresh_printers')"
+                :aria-label="t('setting.print_template.refresh_printers')"
+                @click="loadPrinters(true)"
+              >
+                <XhButtonIndicator />
                 <span><Icon icon="tabler:refresh" /></span>
               </XhButton>
             </XhFlex>
@@ -273,7 +285,8 @@ defineExpose({ confirmDiscard })
               class="template-settings-submit"
               @click="saveMetadata"
             >
-              {{ t('setting.print_template.save_and_return') }}
+              <XhButtonIndicator />
+              <XhButtonLabel>{{ t('setting.print_template.save_and_return') }}</XhButtonLabel>
               <span v-if="metadataDraftDirty && !saveLoading" class="metadata-dirty-dot" aria-hidden="true" />
             </XhButton>
           </XhDrawerFooter>

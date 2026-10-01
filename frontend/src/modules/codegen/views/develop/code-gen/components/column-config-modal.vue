@@ -156,6 +156,16 @@ async function loadColumns() {
 
 type BooleanColumnField = 'isRequired' | 'isUnique' | 'isList' | 'isInsert' | 'isEdit' | 'isQuery'
 
+/** 勾选列的表头文案键：单元格里的复选框没有可见文字，可及名取「表头 · 列名」 */
+const BOOLEAN_COLUMN_TITLE_KEYS: Record<BooleanColumnField, string> = {
+  isRequired: 'develop.code_gen.column.col_required',
+  isUnique: 'develop.code_gen.column.col_unique',
+  isList: 'develop.code_gen.column.col_list',
+  isInsert: 'develop.code_gen.column.col_insert',
+  isEdit: 'develop.code_gen.column.col_edit',
+  isQuery: 'develop.code_gen.column.col_query',
+}
+
 /**
  * 基类托管列（主键/租户/审计/软删）的生成配置一律不可编辑。
  * 全部模板渲染时都跳过这些列，改了也不会进入任何产物，放开编辑只会让人以为配置生效了。
@@ -169,6 +179,7 @@ function renderCheckbox(row: CodeGenTableColumnListItemDto, field: BooleanColumn
   return h(XhCheckbox, {
     'checked': row[field],
     'disabled': isLocked(row),
+    'aria-label': `${t(BOOLEAN_COLUMN_TITLE_KEYS[field])} · ${row.columnName}`,
     'onUpdate:checked': (value: boolean) => {
       row[field] = value
     },

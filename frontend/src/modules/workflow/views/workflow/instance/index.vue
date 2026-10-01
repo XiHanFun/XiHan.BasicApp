@@ -417,11 +417,12 @@ function onAction(payload: SchemaActionPayload) {
             </XhDescriptionsItem>
           </XhDescriptionsRoot>
 
-          <!-- 运行轨迹（只读图 + 节点状态着色） -->
+          <!-- 运行轨迹（只读图 + 节点状态着色）。
+               分节文字放进分隔线的默认插槽；separator 的子节点对读屏是展示性的，名字另由 aria-label 给 -->
           <template v-if="detailDefinitionJson">
-            <div class="flex items-center gap-3 my-3">
-              <XhSeparator class="flex-1" /><span class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('workflow.instance.graph_label') }}</span><XhSeparator class="flex-1" />
-            </div>
+            <XhSeparator class="my-3" :aria-label="t('workflow.instance.graph_label')">
+              {{ t('workflow.instance.graph_label') }}
+            </XhSeparator>
             <div class="h-[380px] overflow-hidden rounded border border-gray-200 dark:border-gray-700">
               <WorkflowGraphView :definition-json="detailDefinitionJson" :statuses="nodeStatuses" />
             </div>
@@ -433,14 +434,14 @@ function onAction(payload: SchemaActionPayload) {
             </div>
           </template>
 
-          <div class="flex items-center gap-3 my-3">
-            <XhSeparator class="flex-1" /><span class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('workflow.instance.variables_label') }}</span><XhSeparator class="flex-1" />
-          </div>
+          <XhSeparator class="my-3" :aria-label="t('workflow.instance.variables_label')">
+            {{ t('workflow.instance.variables_label') }}
+          </XhSeparator>
           <XJsonBlock :raw="detailData.variablesJson" :default-expanded-depth="2" max-height="12rem" />
 
-          <div class="flex items-center gap-3 my-3">
-            <XhSeparator class="flex-1" /><span class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('workflow.instance.history_label') }}</span><XhSeparator class="flex-1" />
-          </div>
+          <XhSeparator class="my-3" :aria-label="t('workflow.instance.history_label')">
+            {{ t('workflow.instance.history_label') }}
+          </XhSeparator>
           <table class="xh-plain-table">
             <thead>
               <tr>
@@ -471,9 +472,9 @@ function onAction(payload: SchemaActionPayload) {
           </table>
 
           <template v-if="detailData.pendingBookmarks.length > 0">
-            <div class="flex items-center gap-3 my-3">
-              <XhSeparator class="flex-1" /><span class="text-xs text-[hsl(var(--muted-foreground))]">{{ t('workflow.instance.bookmarks_label') }}</span><XhSeparator class="flex-1" />
-            </div>
+            <XhSeparator class="my-3" :aria-label="t('workflow.instance.bookmarks_label')">
+              {{ t('workflow.instance.bookmarks_label') }}
+            </XhSeparator>
             <XhFlex orientation="vertical" gap="xs">
               <div v-for="bookmark in detailData.pendingBookmarks" :key="bookmark.id" class="text-xs text-gray-500">
                 <XhTagRoot variant="subtle" size="sm">

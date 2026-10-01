@@ -4,8 +4,9 @@
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleFormSchema } from '~/printing'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue'
+import { createReusableTemplate } from '@vueuse/core'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFieldsetLegend, XhFieldsetRoot, XhFlex, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { computed, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import {
@@ -53,6 +54,12 @@ const isCollection = ref(false)
 const activeRecordId = ref('')
 const dataSourceName = ref('')
 let initializationVersion = 0
+const recordsHeadingId = useId()
+/**
+ * 字段表单只写一份：多条记录时摆进当前记录的标签面板（只有标签带没有面板，触发器的 aria-controls 会落空），
+ * 单条记录时直接摆。
+ */
+const [DefineRecordFields, ReuseRecordFields] = createReusableTemplate()
 
 const currentRecord = computed(() => records.value.find(record => record.id === activeRecordId.value)
   ?? records.value[0]
@@ -266,47 +273,98 @@ function clearSession(): void {
                 :loading="loading"
                 @click="resetDefaultSample"
               >
+                <XhButtonIndicator />
                 <span><Icon icon="tabler:restore" /></span>
-                {{ t('setting.print_template.sample_reset_default') }}
+                <XhButtonLabel>{{ t('setting.print_template.sample_reset_default') }}</XhButtonLabel>
               </XhButton>
             </div>
 
-            <XhAlertRoot v-for="field in unregisteredFields" :key="field.key" tone="warning">
+            <!-- 警示档带 role=alert：每个字段各摆一条会叠成一串连续播报，收进一条里逐项列出 -->
+            <XhAlertRoot v-if="unregisteredFields.length > 0" tone="warning">
               <XhAlertIndicator>
                 <Icon icon="lucide:triangle-alert" width="16" height="16" />
               </XhAlertIndicator>
               <XhAlertContent>
                 <XhAlertDescription>
-                  {{ t('setting.print_template.sample_unregistered_field', { field: field.key, source: dataSourceCode }) }}
+                  <ul class="sample-unregistered-list">
+                    <li v-for="field in unregisteredFields" :key="field.key">
+                      {{ t('setting.print_template.sample_unregistered_field', { field: field.key, source: dataSourceCode }) }}
+                    </li>
+                  </ul>
                 </XhAlertDescription>
               </XhAlertContent>
             </XhAlertRoot>
 
-            <section v-if="isCollection" class="sample-records">
-              <div class="sample-records-heading">
-                <span>{{ t('setting.print_template.sample_records', { count: records.length }) }}</span>
-                <XhFlex gap="sm">
-                  <XhButton size="sm" variant="subtle" @click="addRecord">
-                    <span><Icon icon="tabler:plus" /></span>
-                    {{ t('setting.print_template.sample_add_record') }}
-                  </XhButton>
-                  <XhButton size="sm" variant="subtle" @click="duplicateRecord">
-                    <span><Icon icon="tabler:copy" /></span>
-                    {{ t('setting.print_template.sample_duplicate_record') }}
-                  </XhButton>
-                  <XhButton size="sm" variant="subtle" tone="danger" :disabled="records.length <= 1" @click="deleteRecord">
-                    <span><Icon icon="tabler:trash" /></span>
-                    {{ t('setting.print_template.sample_delete_record') }}
-                  </XhButton>
-                </XhFlex>
-              </div>
-              <XhTabsRoot
-                v-model:value="activeRecordId"
-                variant="card"
+            <DefineRecordFields>
+              <XhEmptyStateRoot
+                v-if="schema.fields.length === 0"
                 size="sm"
-                class="sample-record-tabs"
+                class="sample-fields-empty"
               >
-                <XhTabsList>
+                <XhEmptyStateIndicator>
+                  <Icon icon="lucide:inbox" width="28" height="28" />
+                </XhEmptyStateIndicator>
+                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                <XhEmptyStateDescription>{{ t('setting.print_template.sample_no_bound_fields') }}</XhEmptyStateDescription>
+              </XhEmptyStateRoot>
+              <XhFormRoot
+                v-else-if="currentRecord"
+                validate-on="blur"
+                class="sample-fields-grid"
+              >
+                <template v-for="field in schema.fields" :key="field.key">
+                  <!-- 明细表是一组单元格控件，不是一个控件：字段接线落在表格外壳上 label 的 for 接不住，
+                       改用字段集，组名由 legend 给，单元格各自按列名起名 -->
+                  <XhFieldsetRoot v-if="field.kind === 'table'" class="sample-field--table">
+                    <XhFieldsetLegend>{{ field.label }}</XhFieldsetLegend>
+                    <TableEditor
+                      :field="field"
+                      :value="getPrintSampleValue(currentRecord.data, field.key)"
+                      class="w-full"
+                      @update:value="updateField(field, $event)"
+                    />
+                  </XhFieldsetRoot>
+                  <XhFieldRoot v-else>
+                    <XhFieldLabel>{{ field.label }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <ValueEditor
+                        :field="field"
+                        :value="getPrintSampleValue(currentRecord.data, field.key)"
+                        class="w-full"
+                        @update:value="updateField(field, $event)"
+                      />
+                    </XhFieldControl>
+                  </XhFieldRoot>
+                </template>
+              </XhFormRoot>
+            </DefineRecordFields>
+
+            <XhTabsRoot
+              v-if="isCollection"
+              v-model:value="activeRecordId"
+              variant="card"
+              size="sm"
+              class="sample-record-tabs"
+            >
+              <section class="sample-records">
+                <div class="sample-records-heading">
+                  <span :id="recordsHeadingId">{{ t('setting.print_template.sample_records', { count: records.length }) }}</span>
+                  <XhFlex gap="sm">
+                    <XhButton size="sm" variant="subtle" @click="addRecord">
+                      <span><Icon icon="tabler:plus" /></span>
+                      {{ t('setting.print_template.sample_add_record') }}
+                    </XhButton>
+                    <XhButton size="sm" variant="subtle" @click="duplicateRecord">
+                      <span><Icon icon="tabler:copy" /></span>
+                      {{ t('setting.print_template.sample_duplicate_record') }}
+                    </XhButton>
+                    <XhButton size="sm" variant="subtle" tone="danger" :disabled="records.length <= 1" @click="deleteRecord">
+                      <span><Icon icon="tabler:trash" /></span>
+                      {{ t('setting.print_template.sample_delete_record') }}
+                    </XhButton>
+                  </XhFlex>
+                </div>
+                <XhTabsList :aria-labelledby="recordsHeadingId">
                   <XhTabsTrigger
                     v-for="(record, index) in records"
                     :key="record.id"
@@ -316,49 +374,13 @@ function clearSession(): void {
                   </XhTabsTrigger>
                   <XhTabsIndicator />
                 </XhTabsList>
-              </XhTabsRoot>
-            </section>
-
-            <XhEmptyStateRoot
-              v-if="schema.fields.length === 0"
-              size="sm"
-              class="sample-fields-empty"
-            >
-              <XhEmptyStateIndicator>
-                <Icon icon="lucide:inbox" width="28" height="28" />
-              </XhEmptyStateIndicator>
-              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-              <XhEmptyStateDescription>{{ t('setting.print_template.sample_no_bound_fields') }}</XhEmptyStateDescription>
-            </XhEmptyStateRoot>
-            <XhFormRoot
-              v-else-if="currentRecord"
-              validate-on="blur"
-              class="sample-fields-grid"
-            >
-              <XhFieldRoot
-                v-for="field in schema.fields"
-                :key="field.key"
-                :class="{ 'sample-field--table': field.kind === 'table' }"
-              >
-                <XhFieldLabel>{{ field.label }}</XhFieldLabel>
-                <XhFieldControl>
-                  <TableEditor
-                    v-if="field.kind === 'table'"
-                    :field="field"
-                    :value="getPrintSampleValue(currentRecord.data, field.key)"
-                    class="w-full"
-                    @update:value="updateField(field, $event)"
-                  />
-                  <ValueEditor
-                    v-else
-                    :field="field"
-                    :value="getPrintSampleValue(currentRecord.data, field.key)"
-                    class="w-full"
-                    @update:value="updateField(field, $event)"
-                  />
-                </XhFieldControl>
-              </XhFieldRoot>
-            </XhFormRoot>
+              </section>
+              <!-- 面板只摆当前这一份：各条记录共用同一张表单，值跟着选中走 -->
+              <XhTabsContent :value="activeRecordId" class="sample-record-panel">
+                <ReuseRecordFields />
+              </XhTabsContent>
+            </XhTabsRoot>
+            <ReuseRecordFields v-else />
           </template>
         </div>
       </div>
@@ -380,8 +402,9 @@ function clearSession(): void {
               :disabled="!canPreview"
               @click="submitPreview"
             >
+              <XhButtonIndicator />
               <span><Icon icon="tabler:eye" /></span>
-              {{ t('setting.print_template.sample_open_preview') }}
+              <XhButtonLabel>{{ t('setting.print_template.sample_open_preview') }}</XhButtonLabel>
             </XhButton>
           </XhFlex>
         </XhFlex>
@@ -432,6 +455,26 @@ function clearSession(): void {
   margin-bottom: 10px;
   color: #475569;
   font-size: 12px;
+}
+
+/* 标签页根只为把标签带与面板接上线，不另起一层盒：记录区与面板仍按正文的列间距排 */
+.sample-record-tabs {
+  display: contents;
+}
+
+.sample-record-panel {
+  --xh-tabs-content-py: 0;
+}
+
+.sample-unregistered-list {
+  margin: 0;
+  padding-inline-start: var(--xh-space-4);
+  list-style: disc;
+}
+
+.sample-unregistered-list:has(> li:only-child) {
+  padding-inline-start: 0;
+  list-style: none;
 }
 
 .sample-fields-grid {

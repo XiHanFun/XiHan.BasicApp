@@ -187,6 +187,7 @@ export default {
         side_backend: 'バックエンド',
         side_frontend: 'フロントエンド',
         side_empty: '現在の範囲に成果物がありません',
+        file_tree: '成果物ファイル',
       },
       generate: {
         generate_failed: '生成に失敗しました',

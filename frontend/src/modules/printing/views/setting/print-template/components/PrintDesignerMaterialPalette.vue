@@ -121,13 +121,13 @@ function getFieldIcon(kind: PrintFieldKind): string {
     <div class="palette-heading">
       <h2>{{ t('setting.print_template.palette_title') }}</h2>
       <div class="history-actions">
-        <XhButton class="xh-icon-btn" variant="ghost" size="sm" :title="t('setting.print_template.undo')" @click="emit('undo')">
+        <XhButton class="xh-icon-btn" variant="ghost" size="sm" icon-only :title="t('setting.print_template.undo')" :aria-label="t('setting.print_template.undo')" @click="emit('undo')">
           <span><Icon icon="tabler:arrow-back-up" /></span>
         </XhButton>
-        <XhButton class="xh-icon-btn" variant="ghost" size="sm" :title="t('setting.print_template.redo')" @click="emit('redo')">
+        <XhButton class="xh-icon-btn" variant="ghost" size="sm" icon-only :title="t('setting.print_template.redo')" :aria-label="t('setting.print_template.redo')" @click="emit('redo')">
           <span><Icon icon="tabler:arrow-forward-up" /></span>
         </XhButton>
-        <XhButton class="xh-icon-btn" variant="ghost" size="sm" tone="warning" :title="t('setting.print_template.clear')" @click="emit('clear')">
+        <XhButton class="xh-icon-btn" variant="ghost" size="sm" tone="warning" icon-only :title="t('setting.print_template.clear')" :aria-label="t('setting.print_template.clear')" @click="emit('clear')">
           <span><Icon icon="tabler:trash" /></span>
         </XhButton>
       </div>

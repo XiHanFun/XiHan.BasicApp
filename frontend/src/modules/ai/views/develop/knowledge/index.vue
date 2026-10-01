@@ -8,7 +8,8 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhCardContent, XhCardHeader, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { isComposingEvent } from '@xihan-ui/core'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCardContent, XhCardHeader, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -297,6 +298,14 @@ async function handleQuery() {
     queryLoading.value = false
   }
 }
+
+/** 问题框里回车即检索、Shift+Enter 换行；输入法组合中的回车是在候选框里选词，不拦 */
+function onQueryKeydown(event: KeyboardEvent) {
+  if (isComposingEvent(event))
+    return
+  event.preventDefault()
+  void handleQuery()
+}
 </script>
 
 <template>
@@ -395,7 +404,7 @@ async function handleQuery() {
                       :placeholder="t('develop.knowledge.query_placeholder')"
                       :rows="3"
                       type="textarea"
-                      @keydown.enter.exact.prevent="handleQuery"
+                      @keydown.enter.exact="onQueryKeydown"
                     />
                   </XhFieldControl>
                   <XhFieldErrorText />
@@ -423,7 +432,8 @@ async function handleQuery() {
                     <XhFieldErrorText />
                   </XhFieldRoot>
                   <XhButton variant="subtle" size="sm" :loading="queryLoading" tone="brand" @click="handleQuery">
-                    {{ t('develop.knowledge.query_submit') }}
+                    <XhButtonIndicator />
+                    <XhButtonLabel>{{ t('develop.knowledge.query_submit') }}</XhButtonLabel>
                   </XhButton>
                 </XhFlex>
               </XhFormRoot>
