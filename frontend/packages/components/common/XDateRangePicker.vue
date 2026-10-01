@@ -22,27 +22,32 @@ import {
   XhDateRangePickerRoot,
   XhDateRangePickerSegment,
   XhDateRangePickerSegmentGroup,
+  XhDateRangePickerTrigger,
   XhDateRangePickerWeekDay,
   XhDateRangePickerWeekRow,
 } from '@xihan-ui/vue'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import { useControlAttrs } from './control-attrs'
+import { rangeToDraft, resolveRangeChange, segmentLiteralBefore } from './date-picker-value'
+import { endSegmentGroupWiring, segmentGroupWiring } from './date-picker-wiring'
 
 /**
  * 日期区间选择。单日选择是另一件组件，见 XDatePicker。
  *
  * 组件库把区间选择从 DatePicker 拆成了独立的 DateRangePicker：两组段位各认领一端，
- * 值恒为 [起, 止] 两个 ISO 日期串（`YYYY-MM-DD`）。本应用上下游一律用时间戳（毫秒），
- * 换算在这里做；只落下一端时不上抛，调用方拿到的区间要么两端齐备、要么为空。
+ * 值按位存放为 [起, 止] 两个 ISO 日期串（`YYYY-MM-DD`），只填了一端时空缺的那端是空串。
+ * 本应用上下游一律用时间戳（毫秒），换算在这里做（见 date-picker-value.ts）。
+ *
+ * 只落下一端时不上抛，调用方拿到的区间要么两端齐备、要么为空；那一半留在本地草稿里
+ * 交回组件库——受控值若只认两端齐备，段位里先敲完的那一端会被受控值抹回去，区间永远填不齐。
  */
 defineOptions({ name: 'XDateRangePicker', inheritAttrs: false })
 
 const props = withDefaults(defineProps<{
   /** [起, 止] 时间戳（毫秒） */
   value?: [number, number] | null
-  placeholder?: string
   clearable?: boolean
   /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
   disabled?: boolean
@@ -51,7 +56,6 @@ const props = withDefaults(defineProps<{
   presets?: Array<{ label: string, value: string }>
 }>(), {
   value: null,
-  placeholder: undefined,
   clearable: true,
   disabled: undefined,
   size: 'sm',
@@ -62,46 +66,28 @@ const emit = defineEmits<{
   'update:value': [value: [number, number] | null]
 }>()
 
-// 字段挂来的 id 与 aria-* 转交给输入区，见 control-attrs.ts
+// 字段挂来的 id 与 aria-* 转交给两组段位，见 control-attrs.ts 与 date-picker-wiring.ts
 const { attrs, controlAttrs } = useControlAttrs()
+// 两组段位自带「开始日期」「结束日期」的名字：名字链接在字段标签后面，两样都读
+const startGroupAttrs = computed(() => segmentGroupWiring(controlAttrs.value, true))
+const endGroupAttrs = computed(() => endSegmentGroupWiring(controlAttrs.value))
 
 const { locale, t } = useI18n()
 
-/** 时间戳 → 本地日历日的 ISO 串。用本地分量拼，避免 toISOString 的 UTC 偏移把日期挪一天 */
-function toIso(timestamp: number): string {
-  const date = new Date(timestamp)
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${date.getFullYear()}-${month}-${day}`
-}
+/** 交给组件库的受控值：两端齐备时跟着 props，填到一半时是本地草稿 */
+const draft = ref<string[]>(rangeToDraft(props.value))
 
-/** ISO 日历日 → 当日零点的时间戳（本地时区）；空串按无值处理 */
-function toTimestamp(iso: string): number | null {
-  if (!iso) {
-    return null
-  }
-  const [year, month, day] = iso.split('-').map(Number)
-  if (!year || !month || !day) {
-    return null
-  }
-  return new Date(year, month - 1, day).getTime()
-}
-
-/** 组件库的受控值按位存放：两端齐备是 [起, 止]，全空是空数组 */
-const isoValue = computed<string[]>(() => (props.value == null ? [] : props.value.map(toIso)))
+// 上游改了值（含表单重置）就以上游为准，丢掉手里那一半
+watch(() => props.value, (value) => {
+  draft.value = rangeToDraft(value)
+})
 
 function onValueChange(next: string[]): void {
-  if (next.length === 0) {
-    emit('update:value', null)
-    return
+  draft.value = [...next]
+  const resolved = resolveRangeChange(next)
+  if (resolved !== undefined) {
+    emit('update:value', resolved)
   }
-  // 只落下起点或只落下终点时不上抛：调用方拿到的区间要么两端齐备、要么为空
-  const start = toTimestamp(next[0] ?? '')
-  const end = toTimestamp(next[1] ?? '')
-  if (start == null || end == null) {
-    return
-  }
-  emit('update:value', [start, end])
 }
 </script>
 
@@ -110,31 +96,33 @@ function onValueChange(next: string[]): void {
     v-slot="{ panels, weeks, weekDays, segments, endSegments }"
     :class="attrs.class"
     :style="attrs.style"
-    :value="isoValue"
+    :value="draft"
     :locale="locale"
     :disabled="disabled"
     :size="size"
     :presets="presets"
     @update:value="onValueChange"
   >
-    <XhDateRangePickerControl v-bind="controlAttrs" :aria-label="placeholder">
+    <XhDateRangePickerControl>
       <!-- 两组段位：组号定这组认领哪一端，0 起点、1 终点 -->
-      <XhDateRangePickerSegmentGroup :index="0">
+      <XhDateRangePickerSegmentGroup :index="0" v-bind="startGroupAttrs">
         <template v-for="(seg, i) in segments" :key="seg.type">
-          <span v-if="i > 0">-</span>
+          <span v-if="i > 0">{{ segmentLiteralBefore(seg.type) }}</span>
           <!-- 段位不写内容：显示什么由组件按当前值填 -->
           <XhDateRangePickerSegment :index="i" />
         </template>
       </XhDateRangePickerSegmentGroup>
       <XhDateRangePickerRangeSeparator />
-      <XhDateRangePickerSegmentGroup :index="1">
+      <XhDateRangePickerSegmentGroup :index="1" v-bind="endGroupAttrs">
         <template v-for="(seg, i) in endSegments" :key="seg.type">
-          <span v-if="i > 0">-</span>
+          <span v-if="i > 0">{{ segmentLiteralBefore(seg.type) }}</span>
           <XhDateRangePickerSegment :index="i" />
         </template>
       </XhDateRangePickerSegmentGroup>
-      <!-- 不写内容：字形由组件库出；无值时它自己收起 -->
+      <!-- 两颗都不写内容：字形由组件库出。有值时清空钮原位接替日历钮，无值时只露日历钮 -->
       <XhDateRangePickerClearTrigger v-if="clearable" />
+      <!-- 在字段里时组件库把字段标签接成它的名字；不在字段里时读这条 -->
+      <XhDateRangePickerTrigger :aria-label="t('component.date_picker.label')" />
     </XhDateRangePickerControl>
     <XhDateRangePickerPositioner>
       <XhDateRangePickerContent>
