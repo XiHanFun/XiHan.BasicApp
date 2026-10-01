@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="T extends GrantTransferItem">
 import type { GrantTransferGroup, GrantTransferItem, GrantTransferSide } from './grant-transfer'
 import {
+  XhTransferEmpty,
   XhTransferGroup,
   XhTransferGroupLabel,
   XhTransferItem,
@@ -9,6 +10,7 @@ import {
   XhTransferItemSuffix,
   XhTransferItemText,
   XhTransferList,
+  XhTransferLoading,
   XhTransferPanelCount,
   XhTransferPanelHeader,
   XhTransferPanelTitle,
@@ -135,7 +137,7 @@ const sides: { side: GrantTransferSide, panel: typeof XhTransferSourcePanel }[] 
     searchable
   >
     <template v-for="{ side, panel } in sides" :key="side">
-      <component :is="panel" v-slot="{ items: visible }">
+      <component :is="panel" v-slot="{ items: visible, query }">
         <XhTransferPanelHeader>
           <XhTransferPanelTitle>{{ side === 'source' ? sourceTitle : targetTitle }}</XhTransferPanelTitle>
           <XhTransferPanelCount />
@@ -160,6 +162,9 @@ const sides: { side: GrantTransferSide, panel: typeof XhTransferSourcePanel }[] 
             </XhTransferGroup>
           </template>
         </XhTransferList>
+        <!-- 穿梭框不自动铺结构，在途与空态得自己摆，否则加载中与无条目时两栏都是一片空白；何时露面由组件库收放 -->
+        <XhTransferLoading>{{ t('common.loading') }}</XhTransferLoading>
+        <XhTransferEmpty>{{ query.trim() === '' ? t('common.no_data') : t('common.no_result') }}</XhTransferEmpty>
       </component>
       <template v-if="side === 'source'">
         <XhTransferToTargetTrigger />

@@ -43,6 +43,7 @@ export default {
   },
   timezone: {
     switch_success: 'समय क्षेत्र बदला गया: {timezone}',
+    search: 'समय क्षेत्र खोजें',
   },
   notification: {
     bell: 'सूचनाएँ',

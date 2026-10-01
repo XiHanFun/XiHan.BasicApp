@@ -43,6 +43,7 @@ export default {
   },
   timezone: {
     switch_success: 'Zeitzone gewechselt: {timezone}',
+    search: 'Zeitzonen suchen',
   },
   notification: {
     bell: 'Benachrichtigungen',

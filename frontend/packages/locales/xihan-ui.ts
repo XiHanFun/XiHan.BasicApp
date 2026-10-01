@@ -108,7 +108,8 @@ const zhCN: XhTranslationOverrides = {
     swatchGroup: '预设色卡',
     eyeDropperTrigger: '取色器',
   },
-  'combobox': { trigger: '显示候选', clearTrigger: '清空' },
+  // 多选标签的删除钮与 select 同一说法；overflowTag 不写：+N 与语言无关
+  'combobox': { trigger: '显示候选', clearTrigger: '清空', deleteItem: label => `移除 ${label}` },
   'context-menu': { content: '右键菜单' },
   'date-picker': {
     presets: '快捷选项',
