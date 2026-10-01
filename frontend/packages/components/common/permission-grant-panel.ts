@@ -1,4 +1,4 @@
-/** 权限授权面板条目最小契约：权限目录项与各类已授予项都满足 */
+/** 权限授予条目最小契约：权限目录项与各类已授予项都满足 */
 export interface PermissionGrantItem {
   basicId: number | string
   permissionCode: string
@@ -44,7 +44,7 @@ function commonPrefix(names: string[]): string {
 /**
  * 按资源分组：组码优先用后端 groupCode，缺省回退资源段推导。
  *
- * 勾选面板与权限穿梭框共用这一份口径——各推一遍的话，同一批权限在两个界面里会分出
+ * 角色、用户直授与版本权限的穿梭框共用这一份口径——各推一遍的话，同一批权限在几个界面里会分出
  * 不同的段，换用另一个界面时看起来像数据变了。
  */
 export function groupPermissions<T extends PermissionGrantItem>(

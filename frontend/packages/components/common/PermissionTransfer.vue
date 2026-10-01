@@ -43,7 +43,7 @@ defineSlots<{
 
 const { t } = useI18n()
 
-/** 段的顺序由全集决定，两侧共用；与勾选面板同一份分组口径 */
+/** 段的顺序由全集决定，两侧共用；分组口径见 permission-grant-panel.ts */
 const groups = computed(() => groupPermissions(props.items, props.otherGroupLabel ?? 'other'))
 </script>
 

@@ -67,10 +67,6 @@
     "cap": 32,
     "reason": "站内自绘公共组件的排版刻度"
   },
-  "packages/components/common/PermissionGrantPanel.vue": {
-    "cap": 17,
-    "reason": "站内自绘公共组件的排版刻度"
-  },
   "packages/components/common/RichTextEditor.vue": {
     "cap": 9,
     "reason": "站内自绘公共组件的排版刻度"
