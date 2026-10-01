@@ -190,7 +190,7 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
-      <XhFormFieldGroup name="password" class="!mb-3">
+      <XhFormFieldGroup name="password" class="!mb-6">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput
@@ -212,24 +212,7 @@ const onAuthInvalid = useAuthFormInvalid()
         </XhFieldRoot>
       </XhFormFieldGroup>
 
-      <!-- Password strength -->
-      <div v-if="formData.password" class="flex gap-2 items-center mb-6">
-        <div class="flex flex-1 gap-1">
-          <div
-            v-for="i in 4"
-            :key="i"
-            class="flex-1 h-1 rounded-full transition-colors"
-            :style="{
-              backgroundColor:
-                i <= passwordStrength ? strengthColor : isDark ? '#374151' : '#e5e7eb',
-            }"
-          />
-        </div>
-        <span class="auth-caption" :style="{ color: strengthColor }">{{ strengthLabel }}</span>
-      </div>
-      <div v-else class="mb-3" />
-
-      <XhFormFieldGroup name="confirmPassword" class="!mb-6">
+      <XhFormFieldGroup name="confirmPassword" :class="formData.password ? '!mb-3' : '!mb-6'">
         <XhFieldRoot>
           <XhFieldControl>
             <XInput
@@ -250,6 +233,22 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFieldControl>
         </XhFieldRoot>
       </XhFormFieldGroup>
+
+      <!-- 密码强度放在两个密码框之后：输密码与确认密码紧挨着，中间不插一条强度条 -->
+      <div v-if="formData.password" class="flex gap-2 items-center mb-6">
+        <div class="flex flex-1 gap-1">
+          <div
+            v-for="i in 4"
+            :key="i"
+            class="flex-1 h-1 rounded-full transition-colors"
+            :style="{
+              backgroundColor:
+                i <= passwordStrength ? strengthColor : isDark ? '#374151' : '#e5e7eb',
+            }"
+          />
+        </div>
+        <span class="auth-caption" :style="{ color: strengthColor }">{{ strengthLabel }}</span>
+      </div>
 
       <!-- 复选框只是那个方框，没有标签插槽：文案是并排的一段，不能塞进它里面 -->
       <div class="mb-6">
