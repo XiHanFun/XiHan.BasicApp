@@ -98,7 +98,7 @@ public static class MenuPermissionArtifactGenerator
         }
 
         sb.AppendLine("> 接线产物是「待并入源码」的代码，不是运行时写库。路径都相对后端模块项目根：生成到项目时已直接落位，下载压缩包时按同样的相对位置放进模块。");
-        sb.AppendLine("> 并入后**重建数据库**，经既有 Seeder 链生效（符合 XiHan 单一事实源约定）。");
+        sb.AppendLine("> 权限与菜单以登记类声明，由平台的汇总种子在启动播种时写入平台库（符合 XiHan 单一事实源约定），不是运行时写库。");
         sb.AppendLine();
         sb.AppendLine("## 1. 权限码");
         sb.AppendLine();
@@ -119,19 +119,19 @@ public static class MenuPermissionArtifactGenerator
         sb.AppendLine("| --- | --- | --- |");
         sb.AppendLine($"| `{context.ClassName}PermissionCodes.cs` | `{Shared.PermissionsFolder}/` | 总是覆盖（纯推导） |");
         sb.AppendLine($"| `{context.ClassName}PermissionDefinitions.cs` | `{Shared.PermissionsFolder}/` | 总是覆盖（纯推导） |");
-        sb.AppendLine($"| `{context.ClassName}PermissionSeeder.cs` | `{Shared.SeedersFolder}/`（资源与权限） | 仅首次创建（Order 需人工确认） |");
-        sb.AppendLine($"| `{context.ClassName}MenuSeeder.cs` | `{Shared.SeedersFolder}/`（页面与写操作按钮） | 仅首次创建（Order 需人工确认） |");
-        sb.AppendLine($"| `{context.ClassName}PageRegistry.snippet.txt` | `{Shared.OutputFolder}/`（改走应用级 `PageRegistry` 时粘贴，与 MenuSeeder 二选一） | 参考片段 |");
+        sb.AppendLine($"| `{context.ClassName}PermissionCatalog.cs` | `{Shared.SeedersFolder}/`（权限目录登记：资源与权限） | 总是覆盖（随包含操作推导） |");
+        sb.AppendLine($"| `{context.ClassName}MenuPages.cs` | `{Shared.SeedersFolder}/`（菜单登记：页面与按钮） | 总是覆盖（随包含操作推导） |");
+        sb.AppendLine($"| `{context.ClassName}PageRegistry.snippet.txt` | `{Shared.OutputFolder}/`（并进模块自己的 `PageRegistry` 时粘贴，与 MenuPages 二选一） | 参考片段 |");
         sb.AppendLine();
         sb.AppendLine("## 3. 落地步骤（4 步）");
         sb.AppendLine();
-        sb.AppendLine("1. **确认文件**：权限码常量类、权限定义类与两个种子骨架按上表落在模块里（生成到项目时已写好，下载压缩包时照表放置）。");
+        sb.AppendLine("1. **确认文件**：权限码常量类、权限定义类与两个登记类按上表落在模块里（生成到项目时已写好，下载压缩包时照表放置）。");
         sb.AppendLine("   生成的 AppService/QueryService 已逐方法标注 `[PermissionAuthorize(" + context.ClassName + "PermissionCodes.Xxx)]`，");
         sb.AppendLine("   引用的就是 `" + Shared.PermissionsFolder + "/` 下的权限码常量类——缺了它后端编译不过。");
-        sb.AppendLine("2. **确认 Order 与注册**：种子骨架的 `Order` 是占位（`SeedOrders.PermissionCatalog + 90`、`SeedOrders.Menus + 90`），");
-        sb.AppendLine("   换成本模块的号段、确认不冲突；在模块 `ServiceCollectionExtensions` 里 `AddDataSeeder<>` 注册两个种子。");
+        sb.AppendLine("2. **不用登记种子**：两个登记类按约定注册，由平台的汇总种子在权限目录、菜单两个阶段最后统一写入，");
+        sb.AppendLine("   不需要 `AddDataSeeder<>`，也没有自己的种子顺序号。旧版本生成的 `" + context.ClassName + "PermissionSeeder` / `" + context.ClassName + "MenuSeeder` 及其登记要删掉，否则会重复写入。");
         var buttons = Shared.EnabledButtons(context).ToList();
-        sb.AppendLine("3. **页面与按钮**：`" + context.ClassName + "MenuSeeder` 已登记页面行与已启用操作的按钮行。");
+        sb.AppendLine("3. **页面与按钮**：`" + context.ClassName + "MenuPages` 已登记页面行与已启用操作的按钮行。");
         if (buttons.Count > 0)
         {
             sb.AppendLine("   生成页面的" + string.Join("/", buttons.Select(button => button.Title)) + "按钮用按钮码 `" + Shared.PageCode(context) + ".{"
@@ -150,8 +150,9 @@ public static class MenuPermissionArtifactGenerator
             sb.AppendLine("   再到「打印模板」页新建编码为 `" + Shared.PageCode(context) + "` 的模板、数据源选它。");
         }
 
-        sb.AppendLine("   若改走应用级 `PageRegistry`，把 `" + context.ClassName + "PageRegistry.snippet.txt` 的条目粘进去并删掉 MenuSeeder，不要两边都登记。");
-        sb.AppendLine("4. **重建数据库**：权限、菜单、按钮即到位。超管在平台天然拥有全部权限；租户要用，由运营把权限授给套餐与角色。");
+        sb.AppendLine("   若要并进模块自己的 `PageRegistry`，把 `" + context.ClassName + "PageRegistry.snippet.txt` 的条目粘进去并删掉 `" + context.ClassName + "MenuPages`，不要两边都登记。");
+        sb.AppendLine("4. **重启后端**：启动播种（开发环境默认开启）按权限码、菜单码对齐，权限、菜单、按钮即到位，不需要重建数据库。");
+        sb.AppendLine("   排序、启停、显隐在菜单管理页调整，重启不会冲掉。超管在平台天然拥有全部权限；租户要用，由运营把权限授给套餐与角色。");
         sb.AppendLine();
         sb.AppendLine("> 菜单规格：MenuCode=`" + Shared.PageCode(context) + "`、Path=`/" + Shared.ModuleLower(context) + "/" + kebab + "`、Component=`" + Shared.Component(context) + "`、RouteName=`" + Shared.RouteName(context) + "`、I18nKey 留空（菜单名直接显示业务名称；要多语言时改成 `menu." + Shared.ModuleLower(context) + "_" + kebab.Replace('-', '_') + "` 并在前端各语言 menu.ts 补键）、绑定 `" + resource + ":read` 可见性。");
         sb.AppendLine($"> ParentId：{(context.Options.TryGetValue("ParentMenuId", out var pid) && pid is not null ? $"表配置 ParentMenuId=`{pid}`" : "未设置 → 顶级菜单（设置表配置 ParentMenuId 可挂父菜单）")}。");

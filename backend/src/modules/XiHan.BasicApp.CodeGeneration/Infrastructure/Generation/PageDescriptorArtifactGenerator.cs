@@ -12,8 +12,8 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// PageRegistry 片段二阶产物生成器（{Class}PageRegistry.snippet.txt）
 /// </summary>
 /// <remarks>
-/// 生成的 MenuSeeder 已登记页面与按钮；若目标应用改走应用级 <c>PageRegistry</c> 单一事实源，
-/// 把片段里的 <c>PageDescriptor</c> / <c>ButtonDescriptor</c> 条目粘贴进 PageRegistry.All / .Buttons，并删掉 MenuSeeder。
+/// 生成的 MenuPages 已登记页面与按钮（由平台汇总种子写入）；要并进模块自己的 <c>PageRegistry</c> 时，
+/// 把片段里的 <c>PageDescriptor</c> / <c>ButtonDescriptor</c> 条目粘贴进 PageRegistry.All / .Buttons，并删掉 MenuPages。
 /// 输出为参考片段（非独立编译文件），纯推导 → 总是覆盖。
 /// </remarks>
 internal static class PageDescriptorArtifactGenerator
@@ -38,8 +38,8 @@ internal static class PageDescriptorArtifactGenerator
 
         var sb = new StringBuilder();
         sb.AppendLine($"// {displayLiteral} PageRegistry 片段");
-        sb.AppendLine($"// 与 {context.ClassName}MenuSeeder 二选一：它已登记同样的页面行与按钮行。");
-        sb.AppendLine($"// 改走应用级 PageRegistry 时把下面的条目粘进去，并删掉 {context.ClassName}MenuSeeder，不要两边都登记。");
+        sb.AppendLine($"// 与 {context.ClassName}MenuPages 二选一：它已登记同样的页面行与按钮行，由平台汇总种子写入。");
+        sb.AppendLine($"// 要并进模块自己的 PageRegistry 时把下面的条目粘进去，并删掉 {context.ClassName}MenuPages，不要两边都登记。");
         sb.AppendLine($"// 生成页面的操作按钮用按钮码 {pageCode}.{{create|update|delete|export|import}} 门控，按钮行不能漏。");
         sb.AppendLine("//");
         sb.AppendLine("// 用法：");
