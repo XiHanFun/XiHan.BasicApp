@@ -8,6 +8,7 @@ import { applyRemotePageSetting } from '~/components'
 import { applyServerTaskProgress, dialog, islandStatus, notification, playNotificationSound, useSignalR } from '~/composables'
 import { FAVORITES_SETTING_KEY, PREFERENCE_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { applyRemotePreferenceSnapshot, useAccessStore, useAuthStore, useFavoritesStore } from '~/stores'
+import { notificationSummary } from '~/utils'
 
 const SIGNALR_RECONNECT_INTERVAL_MS = 15000
 // 断开提示宽限期：持续断开超过此时长仍未恢复才弹横幅，避免自动重连期间的瞬断噪音（频繁显示）
@@ -94,12 +95,12 @@ export function useSignalRIntegration() {
     }
     const tone = toneMap[payload?.type ?? 'Info'] ?? 'info'
 
-    // 弹条只出纯文本：命令式通知的 title/description 都是 string，承不了富文本组件。
-    // 完整正文（markdown/html）仍在消息中心里按原格式渲染。
+    // 卡片只出一句纯文本摘要：命令式通知的 description 是 string，承不了富文本；
+    // 整篇公告原样塞进来会露出 Markdown 记号、把卡片撑到整屏高。完整正文在消息中心按原格式渲染。
     notification.create({
       tone,
       title: payload?.title || t('page.signalr.new_notification'),
-      description: payload?.content ?? '',
+      description: notificationSummary(payload?.content, payload?.contentFormat),
       placement: 'bottom-end',
       duration: 5000,
       closable: false,
