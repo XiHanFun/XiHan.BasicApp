@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import { XhImageImage, XhImageRoot, XhImageViewerTrigger, XhSpinner } from '@xihan-ui/vue'
-import { computed } from 'vue'
-import { useAvatarUrl } from '~/composables'
 
 defineOptions({ name: 'ChatMessageImage' })
 
-const props = defineProps<{
-  fileId: string
+defineProps<{
+  /** 可显示的图片地址；还在换取预签名地址时为空 */
+  url: string
   alt?: null | string
   /** 相册多图时用方形缩略图；单图用自适应大图 */
   thumb?: boolean
 }>()
 
-// fileId → 预签名 URL（内存缓存 + 并发去重，复用头像解析链路）
-const url = useAvatarUrl(computed(() => props.fileId || null))
+/** 点了这张：看片浮层从这张开始看。图片列表由消息统一交给 XhImageViewerRoot */
+const emit = defineEmits<{ select: [] }>()
 </script>
 
 <template>
-  <XhImageViewerTrigger v-if="url" :value="url">
+  <XhImageViewerTrigger v-if="url" @click="emit('select')">
     <XhImageRoot>
       <XhImageImage
         :src="url"
