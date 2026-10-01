@@ -52,6 +52,8 @@ export interface ListFieldSchema<TRow = Record<string, unknown>> {
   searchRange?: boolean
   /** 搜索时支持多选（enum/tag 字段：渲染多选下拉；下发 conditions.filters In） */
   searchMultiple?: boolean
+  /** 搜索下拉可输入筛选（单选的 enum/tag 字段，选项多时用，如关联表：渲染可搜索下拉，在已取回的选项里筛） */
+  searchFilterable?: boolean
   /** 是否可排序（服务端排序） */
   sortable?: boolean
   /** 是否可作为筛选条件 */

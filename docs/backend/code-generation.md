@@ -97,6 +97,7 @@
 - 日期时间列（`datetime` / `timestamp` / `datetimeoffset`）用带时刻的 `XDatePicker show-time`，精确到分，按本地时间文本（`yyyy-MM-dd HH:mm:ss`）提交，与后端下发、导入的口径一致。
 - 数字列用 `XNumberInput`：整数列 `:precision="0"`，输入的小数直接回舍，不会因 1.5 让整单 400；`decimal` 列按列定义的小数位；浮点列不限。
 - 文本列带上列定义的长度 `:max-length`，文本域同时显示字数；DTO 不校验长度，超长原本要到落库才报错。
+- 关联表列的候选随目标表增长：表单用可输入筛选的 `XCombobox`，搜索区的字段标 `searchFilterable` 同样可输入筛选，都在取回的全量选项里本地筛；字典、枚举、常量下拉仍是 `XSelect`，关联树仍是树形下拉。已生成的页面重新生成后搜索区随 `schema.generated.ts` 自动换上，表单在 `index.vue` 里，想要可自行把该列的 `XSelect` 换成 `XCombobox`。
 - 时间列（`time`）没有对应的选择器，仍是文本框 + `HH:mm(:ss)` 校验；二进制列用文本框承载 Base64，接真实上传需自行替换成上传组件。
 
 ::: warning 5.4.2 及更早版本生成的页面

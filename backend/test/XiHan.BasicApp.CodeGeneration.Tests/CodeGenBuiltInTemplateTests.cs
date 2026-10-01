@@ -450,7 +450,8 @@ public sealed partial class CodeGenBuiltInTemplateTests
     }
 
     /// <summary>
-    /// 前端：接口出选项方法，列表字段按选项显示名称（不可排序），表单出下拉与树形下拉。
+    /// 前端：接口出选项方法，列表字段按选项显示名称（不可排序）；关联表的候选随目标表增长，
+    /// 表单与搜索区都出可输入筛选的下拉，关联树出树形下拉。
     /// </summary>
     [Fact]
     public async Task Frontend_RelationShouldWireOptionsIntoFieldsAndForm()
@@ -465,14 +466,52 @@ public sealed partial class CodeGenBuiltInTemplateTests
         Assert.Contains("return sysProductQueryApi.get<RelationOptionDto[]>('SysProductCategoryIdOptions')", api, StringComparison.Ordinal);
 
         Assert.Contains("import { sysProductApi } from '@/api/modules/catalog/sys-product'\n", schema, StringComparison.Ordinal);
-        Assert.Contains("{ key: 'categoryId', title: '所属分类', dataType: 'enum', optionsLoader: sysProductApi.categoryIdOptions, searchable: true,", schema, StringComparison.Ordinal);
+        Assert.Contains("{ key: 'categoryId', title: '所属分类', dataType: 'enum', optionsLoader: sysProductApi.categoryIdOptions, searchable: true, searchFilterable: true,", schema, StringComparison.Ordinal);
 
         Assert.Contains("const categoryIdOptions = useAsyncOptions(sysProductApi.categoryIdOptions)\n", page, StringComparison.Ordinal);
+        Assert.Contains("<XCombobox v-model:value=\"form.categoryId\" :options=\"categoryIdOptions\" placeholder=\"搜索并选择所属分类\" />", page, StringComparison.Ordinal);
         Assert.Contains("const departmentIdTreeOptions = computed(() => relationOptionsToTree(departmentIdRelation.value))\n", page, StringComparison.Ordinal);
         Assert.Contains("<XTreeSelect v-model:value=\"form.departmentId\" clearable :options=\"departmentIdTreeOptions\"", page, StringComparison.Ordinal);
         Assert.Contains("import { toast, useAsyncOptions } from '~/composables'\n", page, StringComparison.Ordinal);
         Assert.Contains("import { relationOptionsToTree } from '~/utils'\n", page, StringComparison.Ordinal);
+        Assert.Contains("import { SchemaPage, XCombobox, ", page, StringComparison.Ordinal);
+        Assert.Contains(", XTreeSelect } from '~/components'", page, StringComparison.Ordinal);
+        // 只有关联表下拉时不引入用不上的 XSelect 与 SelectOption（未被引用过不了 lint）
+        Assert.DoesNotContain("XSelect", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("SelectOption", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 关联表下拉与其他下拉并存时两种控件各自引入：字典、枚举、常量下拉仍用 XSelect。
+    /// </summary>
+    [Fact]
+    public async Task Page_RelationComboboxShouldCoexistWithPlainSelects()
+    {
+        var context = RelationContext();
+        context.Columns = [.. context.Columns, .. DictUploadColumns()];
+
+        var page = await RenderAsync("Frontend/Page.sbn", context);
+
+        Assert.Contains("import { SchemaPage, XCombobox, ", page, StringComparison.Ordinal);
         Assert.Contains(", XSelect, XTreeSelect } from '~/components'", page, StringComparison.Ordinal);
+        Assert.Contains("import type { SelectOption } from '~/types'", page, StringComparison.Ordinal);
+        Assert.Contains("<XSelect v-model:value=\"form.customerLevel\" clearable :options=\"(customerLevelOptions as SelectOption[])\"", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 树表页面的关联表下拉同样用可输入筛选的 XCombobox。
+    /// </summary>
+    [Fact]
+    public async Task TreePage_RelationShouldUseCombobox()
+    {
+        var context = TreeContext(nullableParent: true);
+        context.Columns = [.. context.Columns, .. RelationContext().Columns.Where(column => column.CSharpProperty == "CategoryId")];
+
+        var page = await RenderAsync("Frontend/TreePage.sbn", context);
+
+        Assert.Contains("<XCombobox v-model:value=\"form.categoryId\" :options=\"categoryIdOptions\" placeholder=\"搜索并选择所属分类\" />", page, StringComparison.Ordinal);
+        Assert.Contains("import { SchemaPage, XCombobox, ", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("XSelect", page, StringComparison.Ordinal);
     }
 
     /// <summary>

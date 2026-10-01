@@ -1,6 +1,7 @@
 <script setup lang="ts" generic="TRow extends object">
 import type { ListFieldSchema } from './types'
 import { computed } from 'vue'
+import XCombobox from '../common/XCombobox.vue'
 import XDatePicker from '../common/XDatePicker.vue'
 import XInput from '../common/XInput.vue'
 import XSelect from '../common/XSelect.vue'
@@ -10,7 +11,7 @@ import SchemaSearchMultiSelect from './SchemaSearchMultiSelect.vue'
 /**
  * 搜索控件分发器：按字段 schema 选择渲染控件，统一绑定到 model[field.key]。
  * 区间(searchRange) → SchemaSearchDateRange；多选(searchMultiple) → SchemaSearchMultiSelect；
- * 枚举/标签/布尔(有 options) → 单选下拉；date/datetime → 日期选择；其余 → 文本输入。
+ * 枚举/标签/布尔(有 options) → 单选下拉，标了 searchFilterable 的换可搜索下拉；date/datetime → 日期选择；其余 → 文本输入。
  */
 defineOptions({ name: 'SchemaSearchField' })
 
@@ -41,6 +42,14 @@ const isDate = computed(() => props.field.dataType === 'date' || props.field.dat
   <SchemaSearchMultiSelect
     v-else-if="isMulti"
     v-model:value="(model[field.key] as Array<string | number> | null)"
+    :options="options"
+    :placeholder="placeholder"
+  />
+  <XCombobox
+    v-else-if="isSelect && field.searchFilterable"
+    v-model:value="(model[field.key] as string | number | null)"
+    clearable
+    size="sm"
     :options="options"
     :placeholder="placeholder"
   />
