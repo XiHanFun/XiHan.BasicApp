@@ -5,6 +5,9 @@
 答案是三样：**一个模块类 + 若干实体 + 若干仓储**。表由框架在启动时按实体自动建，
 仓储继承 `SaasRepository<T>` 即自动注册进容器，都不需要手写登记。
 
+两个实体演示两种写法：`SampleErpOrder` 实体与仓储都手写；`SampleNote` 只手写实体，
+表建出来后在「代码生成」里导入 `Sample_Note`、生成到项目，仓储、服务与页面由代码生成补齐（沿用这个实体，不再生成实体）。
+
 ## 文件
 
 | 文件 | 作用 |
@@ -13,7 +16,7 @@
 | `Domain/Entities/SampleNote.cs` | 普通业务实体，未声明模块数据源 |
 | `Domain/Entities/SampleErpOrder.cs` | 标了 `[ModuleDataSource("Erp")]` 的实体 |
 | `Domain/Entities/SampleModuleDataSources.cs` | 模块数据源名常量 |
-| `Infrastructure/Repositories/*.cs` | 两个仓储，写法完全一样 |
+| `Infrastructure/Repositories/SampleErpOrderRepository.cs` | 手写仓储：继承 `SaasRepository<T>` 即自动注册 |
 
 ## 顺带演示：模块分库 × 租户分库
 
@@ -36,7 +39,7 @@
 模块库的连接标识由主连接派生（`{主连接}_{模块名}`），所以模块名不占用顶层 `ConfigId` 命名空间，
 跟租户连接标识撞不上；同一个模块在不同布局下自然是不同的库。
 
-注意两个仓储的写法**完全一样**——落哪个库由实体上的特性和当前租户决定，仓储这层不需要知道。
+仓储这层不需要知道落哪个库：落哪个库由实体上的特性和当前租户决定，`SampleErpOrderRepository` 与普通仓储的写法**完全一样**。
 
 启动时模块会把实际解析结果打进日志，配置是否生效一眼可见：
 
