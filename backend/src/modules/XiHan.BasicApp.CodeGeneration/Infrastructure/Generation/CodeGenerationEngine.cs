@@ -308,6 +308,15 @@ public sealed partial class CodeGenerationEngine(
             return (null, uniqueError);
         }
 
+        if (context.EnabledActions.Contains(CodeGenActions.Status))
+        {
+            var statusError = ResolveStatusColumn(table, columnSchemas, context);
+            if (statusError is not null)
+            {
+                return (null, statusError);
+            }
+        }
+
         if (table.TemplateType == TemplateType.Tree)
         {
             var error = ResolveTreeColumns(table, columnSchemas, context);
@@ -585,6 +594,44 @@ public sealed partial class CodeGenerationEngine(
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// 状态列的枚举短名（平台统一的启用/停用枚举）
+    /// </summary>
+    private const string StatusEnumName = "EnableStatus";
+
+    /// <summary>
+    /// 解析状态切换用的状态列（fail-closed）
+    /// </summary>
+    /// <remarks>
+    /// 取表里已解析成 EnableStatus 枚举的业务列：有名为 Status 的就用它，否则须恰好一列。
+    /// 找不到或有多列又没有名为 Status 的，都不猜，直接报错。
+    /// </remarks>
+    private static string? ResolveStatusColumn(SysCodeGenTable table, IReadOnlyList<ColumnSchema> columnSchemas, CodeGenerationContext context)
+    {
+        var candidates = columnSchemas
+            .Where(column => column.EnumTypeShortName == StatusEnumName
+                && !column.IsPrimaryKey
+                && !GeneratedColumnNames.IsBaseColumn(column.ColumnName))
+            .ToList();
+        var status = candidates.FirstOrDefault(column => column.CSharpProperty == "Status")
+            ?? (candidates.Count == 1 ? candidates[0] : null);
+        if (status is not null)
+        {
+            // 行内启停按列表行上的状态值决定是启用还是停用，状态列必须进列表
+            if (!status.IsList)
+            {
+                return $"表 {table.TableName} 的状态列 {status.ColumnName} 没有勾选「列表」：行内启用/停用要按列表里的状态值切换，请在列配置里勾选。";
+            }
+
+            context.StatusColumn = status;
+            return null;
+        }
+
+        return candidates.Count == 0
+            ? $"表 {table.TableName} 勾选了状态切换，但没有 {StatusEnumName} 类型的状态列：请把状态列的选项来源设为枚举 {StatusEnumName} 并重新同步表结构。"
+            : $"表 {table.TableName} 有多个 {StatusEnumName} 列（{string.Join("、", candidates.Select(column => column.ColumnName))}），无法确定状态切换用哪一列：把状态列的属性名定为 Status。";
     }
 
     /// <summary>

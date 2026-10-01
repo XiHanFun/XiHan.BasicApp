@@ -104,6 +104,39 @@ public sealed class CodeGenArtifactGeneratorTests
     }
 
     /// <summary>
+    /// 状态切换派生独立权限码。
+    /// </summary>
+    [Fact]
+    public void PermissionCodes_StatusShouldDeriveCode()
+    {
+        var context = CodeGenerationTestHelper.CreateContext(enabledActions: ["status"]);
+
+        var codes = MenuPermissionArtifactGenerator.Build(context, [])[0].Content;
+        var definitions = CodeGenerationTestHelper.BuildPermissionDefinitions(context).Content;
+
+        Assert.Contains("public const string Status = \"sys_product:status\";", codes, StringComparison.Ordinal);
+        Assert.Contains("new(\"status\",", definitions, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 状态按钮随包含操作登记，挂状态权限。
+    /// </summary>
+    [Fact]
+    public void Buttons_StatusShouldBeRegisteredWithStatusPermission()
+    {
+        var context = CodeGenerationTestHelper.CreateContext(enabledActions: ["create", "status"]);
+
+        var snippet = CodeGenerationTestHelper.BuildPageRegistrySnippet(context).Content;
+        var menuSeeder = CodeGenerationTestHelper.BuildSeeders(context).Single(artifact => artifact.FileName.EndsWith("MenuSeeder.cs", StringComparison.Ordinal)).Content;
+
+        foreach (var content in new[] { snippet, menuSeeder })
+        {
+            Assert.Contains("\"catalog.sys-product.status\", \"状态\", \"catalog.sys-product\", SysProductPermissionCodes.Status,", content, StringComparison.Ordinal);
+            Assert.DoesNotContain("catalog.sys-product.query", content, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>
     /// 一个写操作都没启用时，读取基线常量仍必须存在——否则生成的查询接口引用不到权限码。
     /// </summary>
     [Fact]
@@ -190,6 +223,22 @@ public sealed class CodeGenArtifactGeneratorTests
         // 生成物不带语言包，I18nKey 留空菜单才显示业务名称；多语言时的键按页面码推导
         Assert.Contains("I18nKey 留空", content, StringComparison.Ordinal);
         Assert.Contains("`menu.catalog_sys_product`", content, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// README 的按钮码只列实际启用的按钮。
+    /// </summary>
+    [Fact]
+    public void Readme_ShouldListEnabledButtons()
+    {
+        var context = CodeGenerationTestHelper.CreateContext(enabledActions: ["create", "status"]);
+
+        var content = MenuPermissionArtifactGenerator.Build(context, [])[1].Content;
+
+        Assert.Contains("新增/状态按钮用按钮码 `catalog.sys-product.{create|status}` 门控", content, StringComparison.Ordinal);
+
+        var defaults = MenuPermissionArtifactGenerator.Build(CodeGenerationTestHelper.CreateContext(), [])[1].Content;
+        Assert.Contains("新增/编辑/删除按钮用按钮码 `catalog.sys-product.{create|update|delete}` 门控", defaults, StringComparison.Ordinal);
     }
 
     /// <summary>

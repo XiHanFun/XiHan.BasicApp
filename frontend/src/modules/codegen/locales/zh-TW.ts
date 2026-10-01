@@ -208,7 +208,7 @@ export default {
         form_gen_type: '產生方式',
         form_generation_scope: '產生範圍',
         form_enabled_actions: '包含的操作',
-        form_enabled_actions_placeholder: '不選或全選＝全部開啟',
+        form_enabled_actions_placeholder: '不選即增刪改與匯入匯出',
         form_database_type: '資料庫類型',
         form_gen_path: '產生路徑',
         form_gen_path_placeholder: '產生到自訂路徑時使用',

@@ -34,6 +34,11 @@ public partial interface I{{ ClassName }}AppService : IApplicationService
     /// <summary>删除{{ TableComment | xml_doc }}</summary>
     Task Delete{{ ClassName }}Async(long id, CancellationToken cancellationToken = default);
 {{~ end ~}}
+{{~ if CanStatus ~}}
+
+    /// <summary>启用或停用{{ TableComment | xml_doc }}</summary>
+    Task<{{ ClassName }}DetailDto> Update{{ ClassName }}StatusAsync({{ ClassName }}StatusUpdateDto input, CancellationToken cancellationToken = default);
+{{~ end ~}}
 }
 
 /// <summary>

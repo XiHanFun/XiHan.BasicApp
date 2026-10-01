@@ -88,8 +88,8 @@
 {{~ # 导入逐行调新增接口（引擎保证勾了导入就一定勾了新增），与 schema 里的导入字段同一判据 ~}}
 {{~ can_import = CanImport && can_create ~}}
 {{~ has_modal = can_create || can_update ~}}
-{{~ has_row_action = can_update || CanDelete ~}}
-{{~ has_actions = can_create || can_update || CanDelete ~}}
+{{~ has_row_action = can_update || CanDelete || CanStatus ~}}
+{{~ has_actions = can_create || can_update || CanDelete || CanStatus ~}}
 <!--
   {{ TableComment | html_comment }}管理页（树形）
 
@@ -192,6 +192,10 @@ const schema: PageSchema = {
 {{~ if CanDelete ~}}
     remove: id => {{ ClassNameCamel }}Api.delete(id),
 {{~ end ~}}
+{{~ if CanStatus ~}}
+    // 批量启用/停用：框架按行调用
+    updateStatus: (id, enabled) => {{ ClassNameCamel }}Api.updateStatus({ basicId: id, {{ StatusColumn.TsProperty }}: enabled ? 'Enabled' : 'Disabled' }),
+{{~ end ~}}
 {{~ if can_import ~}}
     // 导入：逐行调新增接口，记录到入参的换算在 schema 里随表结构更新；导入完成后框架会重取整棵树
     create: record => {{ ClassNameCamel }}Api.create(toCreateInputFromImport(record)),
@@ -225,6 +229,13 @@ function onAction(payload: SchemaActionPayload) {
     case 'delete':
       if (row) {
         void handleDelete(row)
+      }
+      break
+{{~ end ~}}
+{{~ if CanStatus ~}}
+    case 'toggle':
+      if (row) {
+        void handleToggleStatus(row)
       }
       break
 {{~ end ~}}
@@ -324,6 +335,20 @@ async function handleDelete(row: {{ ClassName }}ListItemDto) {
   }
   catch (error) {
     toast.danger((error as Error)?.message || '删除失败')
+  }
+}
+{{~ end ~}}
+{{~ if CanStatus ~}}
+
+async function handleToggleStatus(row: {{ ClassName }}ListItemDto) {
+  const enable = row.{{ StatusColumn.TsProperty }} !== 'Enabled'
+  try {
+    await {{ ClassNameCamel }}Api.updateStatus({ basicId: row.basicId, {{ StatusColumn.TsProperty }}: enable ? 'Enabled' : 'Disabled' })
+    toast.success(enable ? '已启用' : '已停用')
+    reloadList()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || (enable ? '启用失败' : '停用失败'))
   }
 }
 {{~ end ~}}

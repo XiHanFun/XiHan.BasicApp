@@ -528,7 +528,7 @@ public sealed class CodeGenEngineOrchestrationTests
     }
 
     /// <summary>
-    /// 包含操作未配置时归一化为可裁剪操作全集（含导出、导入），二阶产物随之给出全部权限码。
+    /// 包含操作未配置时归一化为缺省集（增删改与导出、导入；状态切换须显式勾选），二阶产物随之给出对应权限码。
     /// </summary>
     /// <param name="enabledActions">表配置的包含操作</param>
     /// <param name="expectedActions">期望生效的操作</param>
@@ -925,6 +925,104 @@ public sealed class CodeGenEngineOrchestrationTests
         Assert.False(result.Success);
         Assert.Contains("level", result.Message!, StringComparison.Ordinal);
         Assert.Contains(expected, result.Message!, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 让枚举目录认得 EnableStatus。
+    /// </summary>
+    private void GivenEnableStatusEnum()
+    {
+        var facts = new EnumTypeFacts("EnableStatus", "XiHan.BasicApp.Saas.Domain.Enums", "Disabled");
+        _enumTypeCatalog.Setup(catalog => catalog.TryResolve("EnableStatus", out facts)).Returns(true);
+    }
+
+    /// <summary>
+    /// 构造一列 EnableStatus 枚举列。
+    /// </summary>
+    private static SysCodeGenTableColumn EnableStatusColumn(string name, bool isList = true)
+    {
+        var column = Column(name, csharpType: "EnableStatus", dictSelectorType: DictSelectorType.EnumSelector, enumTypeName: "EnableStatus");
+        column.IsList = isList;
+        return column;
+    }
+
+    /// <summary>
+    /// 状态切换：有多列 EnableStatus 时取名为 Status 的那列。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_StatusActionShouldPreferColumnNamedStatus()
+    {
+        GivenEnableStatusEnum();
+        GivenTable(Table(enabledActions: "create,update,status"));
+        GivenColumns(TableId, EnableStatusColumn("AuditStatus"), EnableStatusColumn("Status"));
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal(["create", "update", "status"], _renderer.LastContext!.EnabledActions);
+        Assert.Equal("Status", _renderer.LastContext.StatusColumn!.ColumnName, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 状态切换：只有一列 EnableStatus 时不论叫什么都用它；没勾状态切换时不找状态列。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_StatusActionShouldUseTheOnlyEnableStatusColumn()
+    {
+        GivenEnableStatusEnum();
+        GivenTable(Table(enabledActions: "status"));
+        GivenColumns(TableId, EnableStatusColumn("State"));
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Equal("State", _renderer.LastContext!.StatusColumn!.ColumnName, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 状态切换找不到、确定不了或状态列不进列表时生成失败，不猜。
+    /// </summary>
+    /// <param name="scenario">none：没有 EnableStatus 列；many：多列且都不叫 Status；hidden：状态列没进列表</param>
+    /// <param name="expected">错误信息片段</param>
+    [Theory]
+    [InlineData("none", "没有 EnableStatus 类型的状态列")]
+    [InlineData("many", "有多个 EnableStatus 列")]
+    [InlineData("hidden", "没有勾选「列表」")]
+    public async Task PreviewAsync_StatusActionWithoutUsableColumnShouldFail(string scenario, string expected)
+    {
+        GivenEnableStatusEnum();
+        GivenTable(Table(enabledActions: "create,status"));
+        var columns = scenario switch
+        {
+            "none" => new[] { Column("name") },
+            "many" => [EnableStatusColumn("State"), EnableStatusColumn("AuditState")],
+            _ => [EnableStatusColumn("Status", isList: false)]
+        };
+        GivenColumns(TableId, columns);
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.False(result.Success);
+        Assert.Contains(expected, result.Message!, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 没勾状态切换时即使没有状态列也照常生成。
+    /// </summary>
+    [Fact]
+    public async Task PreviewAsync_WithoutStatusActionShouldNotRequireStatusColumn()
+    {
+        GivenTable(Table(enabledActions: "create"));
+        GivenColumns(TableId, Column("name"));
+        GivenTemplates(Template());
+
+        var result = await CreateEngine().PreviewAsync(new GenerationRequest { TableId = TableId });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Null(_renderer.LastContext!.StatusColumn);
     }
 
     /// <summary>

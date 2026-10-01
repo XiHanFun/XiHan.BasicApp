@@ -208,7 +208,7 @@ export default {
         form_gen_type: '生成モード',
         form_generation_scope: '生成範囲',
         form_enabled_actions: '含める操作',
-        form_enabled_actions_placeholder: '未選択または全選択＝すべて有効',
+        form_enabled_actions_placeholder: '未選択は追加・編集・削除とインポート・エクスポート',
         form_database_type: 'データベース種別',
         form_gen_path: '生成パス',
         form_gen_path_placeholder: 'カスタムパスへ生成する場合に使用',

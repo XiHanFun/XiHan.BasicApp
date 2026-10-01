@@ -270,7 +270,7 @@ public sealed partial class CodeGenBuiltInTemplateTests
     public async Task TreeSchema_ImportBlankParentShouldBeRoot()
     {
         var context = TreeContext(nullableParent: false);
-        context.EnabledActions = CodeGenActions.All;
+        context.EnabledActions = CodeGenActions.Defaults;
 
         var content = await RenderAsync("Frontend/TreeSchema.sbn", context);
 
@@ -421,6 +421,56 @@ public sealed partial class CodeGenBuiltInTemplateTests
     }
 
     /// <summary>
+    /// 状态切换：DTO、契约与命令服务按状态列生成，要状态权限；前端出按钮码、行内启停、批量启停与接口方法。
+    /// </summary>
+    [Fact]
+    public async Task StatusToggleShouldBeWiredAcrossLayers()
+    {
+        var context = AllActionsContext();
+
+        var dtos = await RenderAsync("Backend/Dtos.sbn", context);
+        var service = await RenderAsync("Backend/AppService.sbn", context);
+        var contracts = await RenderAsync("Backend/Contracts.sbn", context);
+        var api = await RenderAsync("Frontend/Api.sbn", context);
+        var types = await RenderAsync("Frontend/Types.sbn", context);
+        var schema = await RenderAsync("Frontend/Schema.sbn", context);
+        var page = await RenderAsync("Frontend/Page.sbn", context);
+
+        Assert.Contains("public sealed partial class SysProductStatusUpdateDto : BasicAppDto", dtos, StringComparison.Ordinal);
+        Assert.Contains("public XiHan.BasicApp.Saas.Domain.Enums.EnableStatus Status { get; set; }", dtos, StringComparison.Ordinal);
+        Assert.Matches(@"\[PermissionAuthorize\(SysProductPermissionCodes\.Status\)\]\n\s+public virtual async Task<SysProductDetailDto> UpdateSysProductStatusAsync\(SysProductStatusUpdateDto input", service);
+        Assert.Contains("if (!Enum.IsDefined(input.Status))", service, StringComparison.Ordinal);
+        Assert.Contains("entity.Status = input.Status;", service, StringComparison.Ordinal);
+        Assert.Contains("Task<SysProductDetailDto> UpdateSysProductStatusAsync(SysProductStatusUpdateDto input", contracts, StringComparison.Ordinal);
+        Assert.Contains("return sysProductCommandApi.put<SysProductDetailDto, SysProductStatusUpdateDto>('SysProductStatus', input)", api, StringComparison.Ordinal);
+        Assert.Contains("export interface SysProductStatusUpdateDto extends BasicDto {\n  status: string\n}", types, StringComparison.Ordinal);
+        Assert.Contains("  statusPermission: 'catalog.sys-product.status',\n", schema, StringComparison.Ordinal);
+        Assert.Contains("{ key: 'toggle', title: '启用/停用', scope: 'row', icon: 'lucide:power', permission: 'catalog.sys-product.status', confirm: true,", schema, StringComparison.Ordinal);
+        Assert.Contains("updateStatus: (id, enabled) => sysProductApi.updateStatus({ basicId: id, status: enabled ? 'Enabled' : 'Disabled' }),", page, StringComparison.Ordinal);
+        Assert.Contains("const enable = row.status !== 'Enabled'", page, StringComparison.Ordinal);
+        Assert.Contains("    case 'toggle':\n", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// 没勾状态切换时：命令服务不出状态接口，页面不接启停。
+    /// </summary>
+    [Fact]
+    public async Task StatusShouldStayOffUntilEnabled()
+    {
+        var context = AllActionsContext();
+        context.EnabledActions = CodeGenActions.Defaults;
+        context.StatusColumn = null;
+
+        var service = await RenderAsync("Backend/AppService.sbn", context);
+        var schema = await RenderAsync("Frontend/Schema.sbn", context);
+        var page = await RenderAsync("Frontend/Page.sbn", context);
+
+        Assert.DoesNotContain("UpdateSysProductStatusAsync", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("statusPermission: '", schema, StringComparison.Ordinal);
+        Assert.DoesNotContain("handleToggleStatus", page, StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 从程序集嵌入资源读取内置模板
     /// </summary>
     private static string LoadTemplate(string resourceFile)
@@ -473,7 +523,7 @@ public sealed partial class CodeGenBuiltInTemplateTests
         var publishDate = Column("PublishDate", "DateTimeOffset", "string", HtmlType.DatePicker, isRequired: true);
         var endTime = Column("EndTime", "DateTimeOffset?", "string", HtmlType.DateTimePicker, isNullable: true);
         context.Columns = [.. context.Columns, internalNote, publishDate, endTime];
-        context.EnabledActions = CodeGenActions.All;
+        context.EnabledActions = CodeGenActions.Defaults;
         return context;
     }
 
@@ -529,22 +579,30 @@ public sealed partial class CodeGenBuiltInTemplateTests
             IsTree = true
         };
         var context = CodeGenerationTestHelper.CreateContext(columns: [Column("BasicId", "long", "string"), category, department]);
-        context.EnabledActions = CodeGenActions.All;
+        context.EnabledActions = CodeGenActions.Defaults;
         return context;
     }
 
     /// <summary>
-    /// 全部操作的单表：唯一的产品编码、图片列
+    /// 全部操作的单表：唯一的产品编码、EnableStatus 状态列（状态切换用）、图片列
     /// </summary>
     private static CodeGenerationContext AllActionsContext()
     {
         var code = Column("ProductCode", "string", "string", isRequired: true);
         code.ColumnComment = "产品编码";
         code.IsUnique = true;
+        var status = Column("Status", "EnableStatus", "string", HtmlType.Select, isRequired: true);
+        status.ColumnComment = "状态";
+        status.DictSelectorType = DictSelectorType.EnumSelector;
+        status.EnumTypeName = "EnableStatus";
+        status.EnumTypeShortName = "EnableStatus";
+        status.EnumNamespace = "XiHan.BasicApp.Saas.Domain.Enums";
+        status.EnumDefaultMember = "Disabled";
         var cover = Column("Cover", "string?", "string", HtmlType.ImageUpload, isNullable: true);
         cover.ColumnComment = "封面";
-        var context = CodeGenerationTestHelper.CreateContext(columns: [Column("BasicId", "long", "string"), code, cover]);
+        var context = CodeGenerationTestHelper.CreateContext(columns: [Column("BasicId", "long", "string"), code, status, cover]);
         context.EnabledActions = CodeGenActions.All;
+        context.StatusColumn = status;
         return context;
     }
 

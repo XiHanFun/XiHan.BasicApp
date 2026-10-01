@@ -129,8 +129,14 @@ public static class MenuPermissionArtifactGenerator
         sb.AppendLine("   引用的就是本目录的权限码常量类——不复制该文件，后端编译不过。");
         sb.AppendLine("2. **确认 Order 与注册**：种子骨架的 `Order` 是占位（`SeedOrders.PermissionCatalog + 90`、`SeedOrders.Menus + 90`），");
         sb.AppendLine("   换成本模块的号段、确认不冲突；在模块 `ServiceCollectionExtensions` 里 `AddDataSeeder<>` 注册两个种子。");
-        sb.AppendLine("3. **页面与按钮**：`" + context.ClassName + "MenuSeeder` 已登记页面行与已启用操作的按钮行。生成页面的新增/编辑/删除/导出/导入按钮");
-        sb.AppendLine("   用按钮码 `" + Shared.ModuleLower(context) + "." + kebab + ".{create|update|delete|export|import}` 门控，按钮码只由菜单的按钮行下发。");
+        var buttons = Shared.EnabledButtons(context).ToList();
+        sb.AppendLine("3. **页面与按钮**：`" + context.ClassName + "MenuSeeder` 已登记页面行与已启用操作的按钮行。");
+        if (buttons.Count > 0)
+        {
+            sb.AppendLine("   生成页面的" + string.Join("/", buttons.Select(button => button.Title)) + "按钮用按钮码 `" + Shared.PageCode(context) + ".{"
+                + string.Join("|", buttons.Select(button => button.Key)) + "}` 门控，按钮码只由菜单的按钮行下发。");
+        }
+
         if (actions.Contains(CodeGenActions.Export))
         {
             sb.AppendLine("   导出中心接单的 `" + context.ClassName + "ExportProvider` 随后端产物生成，带 `IScopedDependency` 由框架约定注册，不必登记。");

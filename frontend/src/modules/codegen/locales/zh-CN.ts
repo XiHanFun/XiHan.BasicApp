@@ -208,7 +208,7 @@ export default {
         form_gen_type: '生成方式',
         form_generation_scope: '生成范围',
         form_enabled_actions: '包含操作',
-        form_enabled_actions_placeholder: '不选或全选＝全开',
+        form_enabled_actions_placeholder: '不选即增删改与导入导出',
         form_database_type: '数据库类型',
         form_gen_path: '生成路径',
         form_gen_path_placeholder: '自定义路径生成时使用',
