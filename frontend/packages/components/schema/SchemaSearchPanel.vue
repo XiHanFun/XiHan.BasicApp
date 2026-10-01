@@ -42,7 +42,7 @@ function toggleExpand() {
   expanded.value = !expanded.value
 }
 
-/** 区间字段需要更宽的输入位（双端日期/时间），其余沿用标准宽度 */
+/** 区间字段（双端日期/时间）占两个标准搜索项的宽度，其余沿用标准宽度 */
 function isWide(field: ListFieldSchema<TRow>): boolean {
   return !!field.searchRange
 }
@@ -115,6 +115,12 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
 <style scoped>
 /* 搜索区作为高级浮层的定位上下文（外层卡片提供容器与内边距） */
 .xh-search {
+  /* 标准搜索项宽与项间横距：区间字段的宽由这两者推出，改一处整排一起对齐。
+     标准宽至少够一个控件的最小宽：控件的下限随字号走，写死像素时字号一调大，
+     控件就撑出条目盒、相邻两列糊在一起 */
+  --xh-search-item-w: max(180px, var(--xh-control-min-w));
+  --xh-search-gap-x: 12px;
+
   position: relative;
 }
 
@@ -122,7 +128,7 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
 .xh-search__bar {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 12px;
+  gap: 10px var(--xh-search-gap-x);
   align-items: flex-end;
 }
 
@@ -131,14 +137,14 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  /* 至少够一个控件的最小宽：控件的下限随字号走，写死像素时字号一调大，
-     控件就撑出条目盒、相邻两列糊在一起 */
-  inline-size: max(180px, var(--xh-control-min-w));
+  inline-size: var(--xh-search-item-w);
 }
 
-/* 区间字段：双端日期/时间需要更宽的输入位 */
+/* 区间字段：占两个标准项加一道间距，与上下行的列边对齐；带时刻的两端也放得下 */
 .xh-search__item--wide {
-  width: 300px;
+  inline-size: calc(var(--xh-search-item-w) * 2 + var(--xh-search-gap-x));
+  /* 窄屏一行放不下两项时收到整行宽，不越出卡片 */
+  max-inline-size: 100%;
 }
 
 /* 搜索标题：小字号、常规字重、紧靠控件 */
@@ -168,7 +174,7 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   z-index: var(--z-page-overlay);
   display: flex;
   flex-wrap: wrap;
-  gap: 10px 12px;
+  gap: 10px var(--xh-search-gap-x);
   margin-top: 12px;
   padding: 14px 16px;
   border: 1px solid var(--xh-border-default);
