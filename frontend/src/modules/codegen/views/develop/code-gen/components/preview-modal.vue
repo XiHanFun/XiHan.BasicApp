@@ -270,6 +270,7 @@ async function loadPreview() {
             </XhEmptyStateRoot>
             <XTree
               v-else
+              :aria-label="t('develop.code_gen.preview.file_tree')"
               :data="artifactTree"
               :render-label="renderNodeLabel"
               :expanded-keys="expandedKeys"

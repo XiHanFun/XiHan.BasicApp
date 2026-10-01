@@ -357,7 +357,7 @@ function parseTemplateJson(value: string): Record<string, unknown> {
     <SchemaPage ref="schemaPageRef" :key="activeScope" class="min-h-0 flex-1" :schema="schema" @action="onAction">
       <template v-if="!isPlatform" #toolbar>
         <XTooltip :content="scopeSwitchLabel">
-          <XhButton class="xh-icon-btn" variant="ghost" size="sm" :aria-label="scopeSwitchLabel" @click="switchScope">
+          <XhButton class="xh-icon-btn" variant="ghost" size="sm" icon-only :aria-label="scopeSwitchLabel" @click="switchScope">
             <span><Icon :icon="activeScope === PrintTemplateScope.Tenant ? 'lucide:globe-2' : 'lucide:building-2'" /></span>
           </XhButton>
         </XTooltip>

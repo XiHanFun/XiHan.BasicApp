@@ -9,7 +9,7 @@ import type {
   PrintPaperType,
 } from './models'
 import type { PrintElementAlignAction, PrintElementSpacingDirection } from '~/printing'
-import { XhButton, XhCollapsibleContent, XhCollapsibleRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCollapsibleContent, XhCollapsibleRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XNumberInput } from '~/components'
@@ -87,6 +87,26 @@ function isValidPaperSize(value: number | null): value is number {
     && value <= MAX_PAPER_SIZE_MM
 }
 
+/** 面板模式切换组：单选且不许清空，只会收到一个值。 */
+function onModeChange(value: string | string[] | null): void {
+  if (value === 'single' || value === 'multi')
+    emit('modeChange', value)
+}
+
+/*
+ * 纸张段走点按而不走 value-change：点当前已选的那段也要响应——预设重新套用一次，自定义重新打开尺寸对话框。
+ * 段是 aria-disabled 而非原生禁用，整组禁用时点击照样派发，在这里拦下。
+ */
+function selectPaperPreset(preset: PrintPaperPreset): void {
+  if (!props.disabled)
+    emit('paperPresetChange', preset)
+}
+
+function selectCustomPaper(): void {
+  if (!props.disabled)
+    openCustomPaperModal()
+}
+
 /** 打开自定义纸张对话框，并带入当前活动面板尺寸。 */
 function openCustomPaperModal(): void {
   customPaperWidth.value = props.paperWidth
@@ -155,30 +175,26 @@ function toggleAlignmentTools(): void {
         <div class="control-section canvas-settings-section">
           <span class="control-section-label">{{ t('setting.print_template.canvas_settings') }}</span>
           <div class="canvas-settings-controls">
-            <XhButtonGroup class="mode-group" role="tablist" :aria-label="t('setting.print_template.panel_mode')">
-              <XhButton
-                :tone="designMode === 'single' ? 'brand' : 'neutral'"
-                :variant="designMode === 'single' ? 'subtle' : 'ghost'"
-                :disabled="disabled"
-                role="tab"
-                :aria-selected="designMode === 'single'"
-                @click="emit('modeChange', 'single')"
-              >
+            <!-- 单选切换组：选中态由 radiogroup / aria-checked 报出，不只靠按钮配色。
+                 受控：选中只跟着画布回报的 designMode 走，多面板时切单面板被画布拒绝就停在原处 -->
+            <XhToggleGroupRoot
+              class="mode-group"
+              variant="ghost"
+              :value="designMode"
+              disallow-empty
+              :disabled="disabled"
+              :aria-label="t('setting.print_template.panel_mode')"
+              @update:value="onModeChange"
+            >
+              <XhToggleGroupItem value="single">
                 <span><Icon icon="tabler:file" /></span>
                 {{ t('setting.print_template.single_panel') }}
-              </XhButton>
-              <XhButton
-                :tone="designMode === 'multi' ? 'brand' : 'neutral'"
-                :variant="designMode === 'multi' ? 'subtle' : 'ghost'"
-                :disabled="disabled"
-                role="tab"
-                :aria-selected="designMode === 'multi'"
-                @click="emit('modeChange', 'multi')"
-              >
+              </XhToggleGroupItem>
+              <XhToggleGroupItem value="multi">
                 <span><Icon icon="tabler:files" /></span>
                 {{ t('setting.print_template.multi_panel') }}
-              </XhButton>
-            </XhButtonGroup>
+              </XhToggleGroupItem>
+            </XhToggleGroupRoot>
             <XhButton
               class="alignment-toggle-button"
               :tone="alignmentToolsVisible ? 'brand' : 'neutral'"
@@ -208,32 +224,37 @@ function toggleAlignmentTools(): void {
 
     <div class="control-secondary-row">
       <div class="control-secondary-scroll">
-        <XhButtonGroup class="paper-group" :aria-label="t('setting.print_template.paper_size')">
-          <XhButton
+        <!-- 受控单选：选中只跟着画布回报的 paperType 走；自定义要等对话框确认后才落位 -->
+        <XhToggleGroupRoot
+          class="paper-group"
+          variant="subtle"
+          :value="paperType"
+          disallow-empty
+          :disabled="disabled"
+          :aria-label="t('setting.print_template.paper_size')"
+        >
+          <XhToggleGroupItem
             v-for="preset in PRINT_PAPER_PRESETS"
             :key="preset"
-            variant="subtle"
-            :tone="paperType === preset ? 'brand' : 'neutral'"
-            :disabled="disabled"
-            @click="emit('paperPresetChange', preset)"
+            :value="preset"
+            @click="selectPaperPreset(preset)"
           >
             {{ preset }}
-          </XhButton>
-          <XhButton
-            variant="subtle"
+          </XhToggleGroupItem>
+          <XhToggleGroupItem
+            value="CUSTOM"
             class="custom-paper-button"
-            :tone="paperType === 'CUSTOM' ? 'brand' : 'neutral'"
-            :disabled="disabled"
-            @click="openCustomPaperModal"
+            @click="selectCustomPaper"
           >
             {{ t('setting.print_template.custom_paper') }}
-          </XhButton>
-        </XhButtonGroup>
+          </XhToggleGroupItem>
+        </XhToggleGroupRoot>
 
         <div class="canvas-view-tools">
           <XhButtonGroup class="zoom-group" :aria-label="t('setting.print_template.canvas_zoom')">
             <XhButton
               variant="subtle"
+              icon-only
               :disabled="disabled || normalizedZoomPercent <= MIN_ZOOM_PERCENT"
               :title="t('setting.print_template.zoom_out')"
               :aria-label="t('setting.print_template.zoom_out')"
@@ -252,6 +273,7 @@ function toggleAlignmentTools(): void {
             </XhButton>
             <XhButton
               variant="subtle"
+              icon-only
               :disabled="disabled || normalizedZoomPercent >= MAX_ZOOM_PERCENT"
               :title="t('setting.print_template.zoom_in')"
               :aria-label="t('setting.print_template.zoom_in')"
@@ -324,6 +346,7 @@ function toggleAlignmentTools(): void {
                 :key="command.action"
                 tone="brand"
                 variant="outline"
+                icon-only
                 :disabled="disabled"
                 :title="t(command.labelKey)"
                 :aria-label="t(command.labelKey)"
@@ -341,31 +364,40 @@ function toggleAlignmentTools(): void {
       <XhDialogContent class="custom-paper-modal" style="--xh-dialog-max-w: 420px">
         <XhDialogTitle>{{ t('setting.print_template.custom_paper') }}</XhDialogTitle>
         <XhDialogCloseTrigger />
+        <!-- 原生 label 包住数字框时，标签点中的是排在输入框前面的减号钮；改由字段把标签接到输入框上 -->
         <div class="paper-size-fields">
-          <label class="paper-size-field">
-            <span>{{ t('setting.print_template.paper_width') }}</span>
-            <XNumberInput
-              v-model:value="customPaperWidth"
-              :min="MIN_PAPER_SIZE_MM"
-              :max="MAX_PAPER_SIZE_MM"
-              :precision="1"
-              :disabled="customPaperSubmitting"
-            >
-              <template #suffix>mm</template>
-            </XNumberInput>
-          </label>
-          <label class="paper-size-field">
-            <span>{{ t('setting.print_template.paper_height') }}</span>
-            <XNumberInput
-              v-model:value="customPaperHeight"
-              :min="MIN_PAPER_SIZE_MM"
-              :max="MAX_PAPER_SIZE_MM"
-              :precision="1"
-              :disabled="customPaperSubmitting"
-            >
-              <template #suffix>mm</template>
-            </XNumberInput>
-          </label>
+          <XhFieldRoot class="paper-size-field">
+            <XhFieldLabel>{{ t('setting.print_template.paper_width') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput
+                v-model:value="customPaperWidth"
+                :min="MIN_PAPER_SIZE_MM"
+                :max="MAX_PAPER_SIZE_MM"
+                :precision="1"
+                :disabled="customPaperSubmitting"
+              >
+                <template #suffix>
+                  mm
+                </template>
+              </XNumberInput>
+            </XhFieldControl>
+          </XhFieldRoot>
+          <XhFieldRoot class="paper-size-field">
+            <XhFieldLabel>{{ t('setting.print_template.paper_height') }}</XhFieldLabel>
+            <XhFieldControl>
+              <XNumberInput
+                v-model:value="customPaperHeight"
+                :min="MIN_PAPER_SIZE_MM"
+                :max="MAX_PAPER_SIZE_MM"
+                :precision="1"
+                :disabled="customPaperSubmitting"
+              >
+                <template #suffix>
+                  mm
+                </template>
+              </XNumberInput>
+            </XhFieldControl>
+          </XhFieldRoot>
         </div>
         <div class="xh-dialog-footer">
           <div class="modal-actions">
@@ -379,7 +411,8 @@ function toggleAlignmentTools(): void {
               :disabled="!canSubmitCustomPaper"
               @click="submitCustomPaper"
             >
-              {{ t('setting.print_template.apply_paper') }}
+              <XhButtonIndicator />
+              <XhButtonLabel>{{ t('setting.print_template.apply_paper') }}</XhButtonLabel>
             </XhButton>
           </div>
         </div>
@@ -399,6 +432,8 @@ function toggleAlignmentTools(): void {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  /* 工具栏各组按钮的统一高度 */
+  --print-toolbar-control-h: 38px;
 }
 
 .control-primary-row,
@@ -504,17 +539,22 @@ function toggleAlignmentTools(): void {
 
 .alignment-command-group :deep([data-scope='button'][data-part='root']) {
   width: 52px;
-  min-height: 38px;
+  min-height: var(--print-toolbar-control-h);
 }
 
-.mode-group :deep([data-scope='button'][data-part='root']),
-.paper-group :deep([data-scope='button'][data-part='root']),
+.mode-group :deep([data-scope='toggle-group'][data-part='item']),
+.paper-group :deep([data-scope='toggle-group'][data-part='item']),
 .zoom-group :deep([data-scope='button'][data-part='root']),
 .canvas-command-group :deep([data-scope='button'][data-part='root']) {
-  min-height: 38px;
+  min-height: var(--print-toolbar-control-h);
 }
 
-.mode-group :deep([data-scope='button'][data-part='root']) {
+/* 仅图标的缩放钮按方钮定尺：边长跟着这一排的高度走，不被 min-height 拉成竖条 */
+.zoom-group :deep([data-scope='button'][data-part='root'][data-icon-only]) {
+  --xh-button-h: var(--print-toolbar-control-h);
+}
+
+.mode-group :deep([data-scope='toggle-group'][data-part='item']) {
   min-width: 108px;
 }
 
@@ -522,7 +562,7 @@ function toggleAlignmentTools(): void {
   flex: none;
 }
 
-.paper-group :deep([data-scope='button'][data-part='root']) {
+.paper-group :deep([data-scope='toggle-group'][data-part='item']) {
   min-width: 52px;
 }
 

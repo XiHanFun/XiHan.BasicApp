@@ -187,6 +187,7 @@ export default {
         side_backend: 'Backend',
         side_frontend: 'Frontend',
         side_empty: 'Keine Artefakte in diesem Bereich',
+        file_tree: 'Artefaktdateien',
       },
       generate: {
         generate_failed: 'Generierung fehlgeschlagen',

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { FileUploadRequest } from '@xihan-ui/vue'
-import { useFieldControl, XhButton, XhFileUploadHiddenInput, XhFileUploadRoot, XhFileUploadTrigger } from '@xihan-ui/vue'
+import { useFieldControl, XhButton, XhButtonIndicator, XhButtonLabel, XhFileUploadHiddenInput, XhFileUploadRoot, XhFileUploadTrigger } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { fileApi, ResourceAccessLevel } from '@/api'
@@ -97,8 +97,9 @@ function clear() {
         <XhFileUploadHiddenInput />
         <XhFileUploadTrigger as-child>
           <XhButton v-bind="fieldControl" size="sm" variant="outline" :loading="uploading" :disabled="disabled">
+            <XhButtonIndicator />
             <Icon icon="lucide:upload" />
-            {{ previewUrl ? t('component.logo_upload.change') : t('component.logo_upload.select') }}
+            <XhButtonLabel>{{ previewUrl ? t('component.logo_upload.change') : t('component.logo_upload.select') }}</XhButtonLabel>
           </XhButton>
         </XhFileUploadTrigger>
       </XhFileUploadRoot>

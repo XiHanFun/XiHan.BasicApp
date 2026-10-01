@@ -1,6 +1,7 @@
 <!--
   模拟打印数据单值编辑器。
   职责：根据注册字段类型或当前样例值选择输入控件，并保持打印数据的字符串、数值和布尔类型。
+  开关与日期没有占位文字可作名字：字段里由字段标签起名（aria-labelledby 优先），明细表单元格里靠 aria-label 取列名。
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleInputType } from '~/printing'
@@ -70,6 +71,7 @@ function updateDate(value: null | number | [number, number]): void {
   <XhSwitch
     v-if="inputType === 'boolean'"
     :checked="booleanValue"
+    :aria-label="field.label"
     @update:checked="emit('update:value', $event)"
   />
   <XNumberInput
@@ -77,14 +79,13 @@ function updateDate(value: null | number | [number, number]): void {
     :value="numberValue"
     :placeholder="placeholder"
     class="w-full"
-    clearable
     @update:value="emit('update:value', $event)"
   />
   <XDatePicker
     v-else-if="inputType === 'date' || inputType === 'datetime'"
     :value="dateValue"
-    :type="inputType === 'datetime' ? 'datetime' : 'date'"
-    :placeholder="placeholder"
+    :show-time="inputType === 'datetime'"
+    :aria-label="field.label"
     class="w-full"
     clearable
     @update:value="updateDate"

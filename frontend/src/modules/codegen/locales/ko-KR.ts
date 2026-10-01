@@ -187,6 +187,7 @@ export default {
         side_backend: '백엔드',
         side_frontend: '프런트엔드',
         side_empty: '현재 범위에 산출물이 없어요',
+        file_tree: '산출물 파일',
       },
       generate: {
         generate_failed: '생성 실패',
