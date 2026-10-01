@@ -35,7 +35,7 @@ export const permissionApi = {
       toPermissionSelectParams(input),
     )
   },
-  /** 权限全量目录，供勾选面板一次取全 */
+  /** 权限全量目录，供授权穿梭框一次取全 */
   catalog() {
     return permissionQueryApi.get<PermissionListItemDto[]>('PermissionCatalog')
   },
