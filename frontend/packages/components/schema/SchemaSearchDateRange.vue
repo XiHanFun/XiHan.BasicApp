@@ -18,8 +18,6 @@ withDefaults(defineProps<{
   value?: [number, number] | null
   /** 日期粒度。两档都按整日取端点，此处只作调用方语义标注 */
   type?: 'date' | 'datetime'
-  /** 占位（用于开始/结束输入框） */
-  placeholder?: string
 }>(), {
   value: null,
   type: 'datetime',
@@ -69,7 +67,6 @@ function onRangeChange(next: [number, number] | null): void {
     class="w-full"
     :value="value ?? null"
     :presets="presets"
-    :placeholder="placeholder ?? t('component.search_date_range.start')"
     @update:value="onRangeChange"
   />
 </template>

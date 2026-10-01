@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
-import { XhButton, XhCardContent, XhCardHeader, XhCardRoot, XhCardTitle, XhFlex, XhPinInputInput, XhPinInputRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFlex, XhPinInputInput, XhPinInputRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
@@ -438,7 +438,8 @@ function cancelChange() {
               :loading="avatarUploading"
               @click="triggerAvatarUpload"
             >
-              {{ t('component.profile.info.btn_upload') }}
+              <XhButtonIndicator />
+              <XhButtonLabel>{{ t('component.profile.info.btn_upload') }}</XhButtonLabel>
             </XhButton>
             <XhButton
               variant="ghost"
@@ -446,7 +447,8 @@ function cancelChange() {
               :disabled="!currentAvatar"
               @click="handleAvatarRemove"
             >
-              {{ t('component.profile.info.btn_remove') }}
+              <XhButtonIndicator />
+              <XhButtonLabel>{{ t('component.profile.info.btn_remove') }}</XhButtonLabel>
             </XhButton>
           </div>
         </div>
@@ -486,7 +488,8 @@ function cancelChange() {
                     :loading="usernameChangeLoading"
                     @click="handleChangeUserName"
                   >
-                    {{ t('component.profile.info.btn_modify') }}
+                    <XhButtonIndicator />
+                    <XhButtonLabel>{{ t('component.profile.info.btn_modify') }}</XhButtonLabel>
                   </XhButton>
                 </div>
               </div>
@@ -502,7 +505,7 @@ function cancelChange() {
                   </div>
                 </div>
                 <div class="pf-setting-row__control">
-                  <XInput v-model:value="profileForm.nickName" :placeholder="t('component.profile.info.nickname_placeholder')" class="pf-field" />
+                  <XInput v-model:value="profileForm.nickName" :placeholder="t('component.profile.info.nickname_placeholder')" class="pf-field" :aria-label="t('component.profile.info.field_display_name')" />
                 </div>
               </div>
             </div>
@@ -543,7 +546,8 @@ function cancelChange() {
                     :loading="verifyLoading && verifyTarget === 'email'"
                     @click="sendVerifyCode('email')"
                   >
-                    {{ t('component.profile.info.btn_verify') }}
+                    <XhButtonIndicator />
+                    <XhButtonLabel>{{ t('component.profile.info.btn_verify') }}</XhButtonLabel>
                   </XhButton>
                 </div>
                 <div v-if="verifyTarget === 'email'" class="pf-inline-form">
@@ -555,7 +559,8 @@ function cancelChange() {
                     </div>
                   </XhPinInputRoot>
                   <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCodeStr.length < OTP_CODE_LENGTH" @click="confirmVerify">
-                    {{ t('common.actions.confirm') }}
+                    <XhButtonIndicator />
+                    <XhButtonLabel>{{ t('common.actions.confirm') }}</XhButtonLabel>
                   </XhButton>
                   <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" @click="sendVerifyCode('email')">
                     <CodeCountdown v-if="verifyResendSeconds > 0" :seconds="verifyResendSeconds" @finish="verifyResendSeconds = 0" />
@@ -599,7 +604,8 @@ function cancelChange() {
                     :loading="verifyLoading && verifyTarget === 'phone'"
                     @click="sendVerifyCode('phone')"
                   >
-                    {{ t('component.profile.info.btn_verify') }}
+                    <XhButtonIndicator />
+                    <XhButtonLabel>{{ t('component.profile.info.btn_verify') }}</XhButtonLabel>
                   </XhButton>
                 </div>
                 <div v-if="verifyTarget === 'phone'" class="pf-inline-form">
@@ -611,7 +617,8 @@ function cancelChange() {
                     </div>
                   </XhPinInputRoot>
                   <XhButton variant="subtle" tone="brand" :loading="verifyLoading" :disabled="verifyCodeStr.length < OTP_CODE_LENGTH" @click="confirmVerify">
-                    {{ t('common.actions.confirm') }}
+                    <XhButtonIndicator />
+                    <XhButtonLabel>{{ t('common.actions.confirm') }}</XhButtonLabel>
                   </XhButton>
                   <XhButton variant="subtle" :disabled="verifyResendSeconds > 0" @click="sendVerifyCode('phone')">
                     <CodeCountdown v-if="verifyResendSeconds > 0" :seconds="verifyResendSeconds" @finish="verifyResendSeconds = 0" />
@@ -644,26 +651,25 @@ function cancelChange() {
         <div class="pf-field-grid">
           <div class="pf-field-card">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_real_name') }}</span>
-            <XInput v-model:value="profileForm.realName" :placeholder="t('component.profile.info.real_name_placeholder')" :max-length="50" />
+            <XInput v-model:value="profileForm.realName" :placeholder="t('component.profile.info.real_name_placeholder')" :max-length="50" :aria-label="t('component.profile.info.field_real_name')" />
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_birthday') }}</span>
             <XDatePicker
               v-model:value="profileForm.birthday"
-              type="date"
-              :placeholder="t('component.profile.info.birthday_placeholder')"
+              :aria-label="t('component.profile.info.field_birthday')"
               clearable
-              :is-date-disabled="(ts: number) => ts > Date.now()"
+              :max="Date.now()"
               style="width: 100%"
             />
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_gender') }}</span>
-            <XSelect v-model:value="profileForm.gender" :options="genderOptions" />
+            <XSelect v-model:value="profileForm.gender" :options="genderOptions" :aria-label="t('component.profile.info.field_gender')" />
           </div>
           <div class="pf-field-card">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_country') }}</span>
-            <XInput v-model:value="profileForm.country" :placeholder="t('component.profile.info.country_placeholder')" />
+            <XInput v-model:value="profileForm.country" :placeholder="t('component.profile.info.country_placeholder')" :aria-label="t('component.profile.info.field_country')" />
           </div>
           <div class="pf-field-card pf-field-card--block">
             <span class="pf-field-card__label">{{ t('component.profile.info.field_bio') }}</span>
@@ -674,6 +680,7 @@ function cancelChange() {
               :autosize="{ minRows: 3, maxRows: 6 }"
               :max-length="200"
               show-count
+              :aria-label="t('component.profile.info.field_bio')"
             />
           </div>
         </div>
@@ -683,98 +690,80 @@ function cancelChange() {
           {{ t('common.actions.cancel') }}
         </XhButton>
         <XhButton variant="subtle" tone="brand" :loading="profileSaving" @click="saveProfile">
+          <XhButtonIndicator />
           <span><Icon icon="lucide:save" /></span>
-          {{ t('component.profile.info.btn_save_changes') }}
+          <XhButtonLabel>{{ t('component.profile.info.btn_save_changes') }}</XhButtonLabel>
         </XhButton>
       </div>
     </section>
 
-    <!-- 换绑对话框（邮箱/手机共用） -->
-    <Teleport to="body">
-      <div v-if="changeTarget" class="pf-change-overlay" @click.self="cancelChange">
-        <XhCardRoot class="pf-change-dialog" variant="outline">
-          <XhCardHeader class="pf-change-dialog__head">
-            <XhCardTitle>{{ changeTarget === 'email' ? t('component.profile.info.change_email_title') : t('component.profile.info.change_phone_title') }}</XhCardTitle>
-            <button type="button" class="pf-change-dialog__close" :aria-label="t('common.actions.close')" @click="cancelChange">
-              <Icon icon="lucide:x" width="16" height="16" />
-            </button>
-          </XhCardHeader>
-          <XhCardContent>
-            <div class="pf-change-body">
-              <template v-if="!changeCodeSent">
-                <XInput
-                  v-model:value="changeNewValue"
-                  :placeholder="changeTarget === 'email' ? t('component.profile.info.new_email_placeholder') : t('component.profile.info.new_phone_placeholder')"
-                />
-                <XInput
-                  v-model:value="changePassword"
-                  type="password"
-                  :placeholder="t('component.profile.info.current_password_placeholder')"
-                />
-                <XhButton variant="solid" tone="brand" full-width :loading="changeLoading" @click="sendChangeCode">
-                  {{ t('component.profile.info.send_code') }}
-                </XhButton>
-              </template>
-              <template v-else>
-                <p class="pf-change-hint">
-                  {{ t('component.profile.info.code_sent_to') }} <strong>{{ changeNewValue }}</strong>
-                </p>
-                <!-- 输满不自动提交：换绑是敏感操作，交给「确认」钮 -->
-                <XhPinInputRoot v-model:value="changeCode" :length="OTP_CODE_LENGTH" type="numeric" otp>
-                  <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
-                  <div style="display: flex">
-                    <XhPinInputInput v-for="i in OTP_CODE_LENGTH" :key="i" :index="i - 1" />
-                  </div>
-                </XhPinInputRoot>
-                <XhFlex gap="sm">
-                  <XhButton variant="subtle" tone="brand" :loading="changeLoading" :disabled="changeCodeStr.length < OTP_CODE_LENGTH" @click="confirmChange">
-                    {{ t('common.actions.confirm') }}
-                  </XhButton>
-                  <XhButton variant="subtle" :disabled="changeResendSeconds > 0" @click="sendChangeCode">
-                    <CodeCountdown
-                      v-if="changeResendSeconds > 0"
-                      v-slot="{ seconds }"
-                      :seconds="changeResendSeconds"
-                      @finish="changeResendSeconds = 0"
-                    >
-                      {{ t('component.profile.info.resend_after', { seconds }) }}
-                    </CodeCountdown>
-                    <template v-else>
-                      {{ t('component.profile.info.resend_now') }}
-                    </template>
-                  </XhButton>
-                </XhFlex>
-              </template>
-            </div>
-          </XhCardContent>
-        </XhCardRoot>
-      </div>
-    </Teleport>
+    <!-- 换绑对话框（邮箱/手机共用）：模态对话框管焦点圈定、Escape 与遮罩点击，关闭一律走 cancelChange 清掉草稿 -->
+    <XhDialogRoot
+      :open="changeTarget !== null"
+      size="sm"
+      @update:open="(open: boolean) => !open && cancelChange()"
+    >
+      <XhDialogContent>
+        <XhDialogTitle>{{ changeTarget === 'email' ? t('component.profile.info.change_email_title') : t('component.profile.info.change_phone_title') }}</XhDialogTitle>
+        <XhDialogCloseTrigger />
+        <div class="pf-change-body">
+          <template v-if="!changeCodeSent">
+            <XInput
+              v-model:value="changeNewValue"
+              :placeholder="changeTarget === 'email' ? t('component.profile.info.new_email_placeholder') : t('component.profile.info.new_phone_placeholder')"
+              :aria-label="changeTarget === 'email' ? t('component.profile.info.new_email_placeholder') : t('component.profile.info.new_phone_placeholder')"
+            />
+            <XInput
+              v-model:value="changePassword"
+              type="password"
+              :placeholder="t('component.profile.info.current_password_placeholder')"
+              :aria-label="t('component.profile.info.current_password_placeholder')"
+            />
+            <XhButton variant="solid" tone="brand" full-width :loading="changeLoading" @click="sendChangeCode">
+              <XhButtonIndicator />
+              <XhButtonLabel>{{ t('component.profile.info.send_code') }}</XhButtonLabel>
+            </XhButton>
+          </template>
+          <template v-else>
+            <p class="pf-change-hint">
+              {{ t('component.profile.info.code_sent_to') }} <strong>{{ changeNewValue }}</strong>
+            </p>
+            <!-- 输满不自动提交：换绑是敏感操作，交给「确认」钮 -->
+            <XhPinInputRoot v-model:value="changeCode" :length="OTP_CODE_LENGTH" type="numeric" otp>
+              <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+              <div style="display: flex">
+                <XhPinInputInput v-for="i in OTP_CODE_LENGTH" :key="i" :index="i - 1" />
+              </div>
+            </XhPinInputRoot>
+            <XhFlex gap="sm">
+              <XhButton variant="subtle" tone="brand" :loading="changeLoading" :disabled="changeCodeStr.length < OTP_CODE_LENGTH" @click="confirmChange">
+                <XhButtonIndicator />
+                <XhButtonLabel>{{ t('common.actions.confirm') }}</XhButtonLabel>
+              </XhButton>
+              <XhButton variant="subtle" :disabled="changeResendSeconds > 0" @click="sendChangeCode">
+                <CodeCountdown
+                  v-if="changeResendSeconds > 0"
+                  v-slot="{ seconds }"
+                  :seconds="changeResendSeconds"
+                  @finish="changeResendSeconds = 0"
+                >
+                  {{ t('component.profile.info.resend_after', { seconds }) }}
+                </CodeCountdown>
+                <template v-else>
+                  {{ t('component.profile.info.resend_now') }}
+                </template>
+              </XhButton>
+            </XhFlex>
+          </template>
+        </div>
+      </XhDialogContent>
+    </XhDialogRoot>
   </div>
 </template>
 
 <style src="./profile-shared.css" />
 
 <style scoped>
-/* 换绑对话框的标题行：标题左、关闭钮右 */
-.pf-change-dialog__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.pf-change-dialog__close {
-  border: 0;
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-}
-
-.pf-change-dialog__close:hover {
-  color: var(--xh-fg-default);
-}
-
 .pf-avatar-section {
   display: flex;
   align-items: center;
@@ -785,23 +774,6 @@ function cancelChange() {
 
 .pf-avatar-info {
   min-width: 0;
-}
-
-.pf-change-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgb(0 0 0 / 0.35);
-}
-
-.pf-change-dialog {
-  width: 380px;
-  max-width: 90vw;
-  /* Card 没有抬升档，浮在遮罩上的对话面自己取 sheet 层阴影 */
-  box-shadow: var(--xh-elevation-sheet);
 }
 
 .pf-change-body {

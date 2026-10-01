@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TabsNode } from '@xihan-ui/headless'
-import { XhButton, XhInputGroupRoot, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { useFieldControl, XhButton, XhInputGroupRoot, XhRadioGroupItem, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch, XhTabsRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { computed, nextTick, onBeforeUnmount, reactive, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 import XEditModal from './EditModal.vue'
@@ -35,6 +35,10 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{ 'update:value': [string] }>()
 
 const { t } = useI18n()
+
+// 外层字段写了 :as-child="false"（根是 div，标签的 for 指不到），接线由这里落到真正的输入框上
+const fieldControl = useFieldControl()
+const secondsLabelId = useId()
 
 type FieldKey = 'second' | 'minute' | 'hour' | 'day' | 'month' | 'week'
 type FieldMode = 'every' | 'interval' | 'range' | 'specific' | 'unspecified'
@@ -382,6 +386,7 @@ function applyPreset(v: string): void {
     <!-- 输入框与「构建」钮拼成组件库的输入组：同一行、两者贴合，描边与焦点环由组的外轮廓画，中缝不留描边 -->
     <XhInputGroupRoot class="cron-input-group">
       <XInput
+        v-bind="fieldControl"
         v-model:value="rawText"
         :invalid="!isValid"
         :placeholder="placeholder ?? '* * * * * ?'"
@@ -420,8 +425,8 @@ function applyPreset(v: string): void {
             </button>
           </div>
           <label class="cron-seconds">
-            <span>{{ t('component.cron.with_seconds') }}</span>
-            <XhSwitch v-model:checked="hasSeconds" size="sm" />
+            <span :id="secondsLabelId">{{ t('component.cron.with_seconds') }}</span>
+            <XhSwitch v-model:checked="hasSeconds" size="sm" :aria-labelledby="secondsLabelId" />
           </label>
         </div>
 
@@ -433,6 +438,8 @@ function applyPreset(v: string): void {
           size="sm"
         >
           <template #panel="node">
+            <!-- 单选组根接管冒泡上来的方向键（移焦并改选）；行内的数字框与下拉都在它的子树里，
+                 各自 @keydown.stop 把按键留在自己身上，否则按 ↑ 会切走模式、←/→ 挪不动光标 -->
             <XhRadioGroupRoot
               v-if="defOf(node.value as FieldKey)"
               v-model:value="fields[node.value as FieldKey].mode"
@@ -449,7 +456,7 @@ function applyPreset(v: string): void {
                 <XhRadioGroupItem value="interval">
                   <XhRadioGroupItemText>{{ t('component.cron.mode_interval') }}</XhRadioGroupItemText>
                 </XhRadioGroupItem>
-                <span class="cron-inline" :class="{ 'is-disabled': fields[node.value as FieldKey].mode !== 'interval' }">
+                <span class="cron-inline" :class="{ 'is-disabled': fields[node.value as FieldKey].mode !== 'interval' }" @keydown.stop>
                   {{ t('component.cron.from') }}
                   <XNumberInput
                     v-model:value="fields[node.value as FieldKey].start"
@@ -477,7 +484,7 @@ function applyPreset(v: string): void {
                 <XhRadioGroupItem value="range">
                   <XhRadioGroupItemText>{{ t('component.cron.mode_range') }}</XhRadioGroupItemText>
                 </XhRadioGroupItem>
-                <span class="cron-inline" :class="{ 'is-disabled': fields[node.value as FieldKey].mode !== 'range' }">
+                <span class="cron-inline" :class="{ 'is-disabled': fields[node.value as FieldKey].mode !== 'range' }" @keydown.stop>
                   {{ t('component.cron.from') }}
                   <XNumberInput
                     v-model:value="fields[node.value as FieldKey].from"
@@ -513,6 +520,7 @@ function applyPreset(v: string): void {
                   :max-tag-count="6"
                   :placeholder="t('component.cron.specific_placeholder', { unit: defOf(node.value as FieldKey).label })"
                   :disabled="fields[node.value as FieldKey].mode !== 'specific'"
+                  @keydown.stop
                 />
               </div>
               <div v-if="defOf(node.value as FieldKey).unspecified" class="cron-mode-row">

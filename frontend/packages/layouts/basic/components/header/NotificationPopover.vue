@@ -11,6 +11,7 @@ import {
   XhPopoverContent,
   XhPopoverPositioner,
   XhPopoverRoot,
+  XhPopoverTitle,
   XhPopoverTrigger,
   XhSpinner,
   XhTabsContent,
@@ -60,6 +61,12 @@ const notificationTypeOptions = useEnumOptions('NotificationType', NOTIFICATION_
 
 const showPopover = ref(false)
 const activeTab = ref('inbox')
+
+/** 铃铛的名字：零则只念钮名，有未读时把未读数接在后面 */
+const bellLabel = computed(() =>
+  props.unreadCount > 0
+    ? `${t('header.notification.bell')} ${t('header.notification.unread_label', { n: props.unreadCount })}`
+    : t('header.notification.bell'))
 
 function getTypeTag(type: NotificationType): Tone {
   switch (type) {
@@ -143,7 +150,8 @@ function handleItemClick(item: NotificationItem) {
       <!-- 铃铛：气泡属性合到浮层触发器那颗按钮上，不再多套一层 -->
       <XhTooltipRoot>
         <XhTooltipTrigger as-child>
-          <XhPopoverTrigger class="xihan-icon-btn notification-btn mr-1">
+          <!-- 气泡只是描述，图标钮的名字自己给；未读数随名字一起念 -->
+          <XhPopoverTrigger class="xihan-icon-btn notification-btn mr-1" :aria-label="bellLabel">
             <!-- 数字、99+、「零则收起」与贴角定位都归组件库算 -->
             <XhBadge
               size="sm"
@@ -166,10 +174,13 @@ function handleItemClick(item: NotificationItem) {
       <XhPopoverPositioner>
         <XhPopoverContent class="notification-panel">
           <div class="notification-panel-header">
-            <span class="notification-panel-title">{{ t('header.notification.title') }}</span>
+            <!-- 标题部件给浮层起名（content 的 aria-labelledby 指向它） -->
+            <XhPopoverTitle class="notification-panel-title">
+              {{ t('header.notification.title') }}
+            </XhPopoverTitle>
             <div class="notification-panel-actions">
               <XhTooltipRoot>
-                <XhTooltipTrigger class="notification-header-btn" @click="emit('refresh')">
+                <XhTooltipTrigger class="notification-header-btn" :aria-label="t('header.notification.refresh')" @click="emit('refresh')">
                   <Icon icon="lucide:refresh-cw" width="14" height="14" />
                 </XhTooltipTrigger>
                 <XhTooltipPositioner>

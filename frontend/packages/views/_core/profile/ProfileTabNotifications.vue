@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { NotificationPreference } from '~/types'
-import { XhButton, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { toast } from '~/composables'
@@ -112,7 +112,7 @@ onMounted(loadPreference)
                   {{ ch.desc }}
                 </div>
               </div>
-              <XhSwitch v-model:checked="pref[ch.key]" />
+              <XhSwitch v-model:checked="pref[ch.key]" :aria-label="ch.label" />
             </div>
           </div>
         </div>
@@ -148,7 +148,7 @@ onMounted(loadPreference)
                   {{ item.desc }}
                 </div>
               </div>
-              <XhSwitch v-model:checked="pref[item.key]" />
+              <XhSwitch v-model:checked="pref[item.key]" :aria-label="item.label" />
             </div>
           </div>
         </div>
@@ -157,8 +157,9 @@ onMounted(loadPreference)
             {{ t('common.actions.reset') }}
           </XhButton>
           <XhButton variant="subtle" tone="brand" :loading="saving" @click="savePreference">
+            <XhButtonIndicator />
             <Icon icon="lucide:save" width="16" />
-            {{ t('component.profile.notifications.btn_save_preference') }}
+            <XhButtonLabel>{{ t('component.profile.notifications.btn_save_preference') }}</XhButtonLabel>
           </XhButton>
         </div>
       </section>

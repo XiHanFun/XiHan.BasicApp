@@ -32,7 +32,7 @@ const { t } = useI18n()
           <span>{{ t('preference.general.dynamic_title') }}</span>
           <PrefTip :content="t('preference.general.dynamic_title_tip')" />
         </div>
-        <XhSwitch v-model:checked="appStore.dynamicTitle" />
+        <XhSwitch v-model:checked="appStore.dynamicTitle" :aria-label="t('preference.general.dynamic_title')" />
       </div>
     </section>
 
@@ -46,35 +46,35 @@ const { t } = useI18n()
           <span>{{ t('preference.general.preference_sync') }}</span>
           <PrefTip :content="t('preference.general.preference_sync_tip')" />
         </div>
-        <XhSwitch v-model:checked="appStore.preferenceSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.preferenceSyncEnabled" :aria-label="t('preference.general.preference_sync')" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.widgets_sync') }}</span>
           <PrefTip :content="t('preference.general.widgets_sync_tip')" />
         </div>
-        <XhSwitch v-model:checked="appStore.widgetsSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.widgetsSyncEnabled" :aria-label="t('preference.general.widgets_sync')" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.favorites_sync') }}</span>
           <PrefTip :content="t('preference.general.favorites_sync_tip')" />
         </div>
-        <XhSwitch v-model:checked="appStore.favoritesSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.favoritesSyncEnabled" :aria-label="t('preference.general.favorites_sync')" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.search_sync') }}</span>
           <PrefTip :content="t('preference.general.search_sync_tip')" />
         </div>
-        <XhSwitch v-model:checked="appStore.searchSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.searchSyncEnabled" :aria-label="t('preference.general.search_sync')" />
       </div>
       <div class="pref-row">
         <div class="flex gap-1 items-center">
           <span>{{ t('preference.general.table_sync') }}</span>
           <PrefTip :content="t('preference.general.table_sync_tip')" />
         </div>
-        <XhSwitch v-model:checked="appStore.tableSyncEnabled" />
+        <XhSwitch v-model:checked="appStore.tableSyncEnabled" :aria-label="t('preference.general.table_sync')" />
       </div>
     </section>
 
@@ -88,7 +88,7 @@ const { t } = useI18n()
           <span>{{ t('preference.general.check_updates') }}</span>
           <PrefTip :content="t('preference.general.check_updates_tip')" />
         </div>
-        <XhSwitch v-model:checked="appStore.enableCheckUpdates" />
+        <XhSwitch v-model:checked="appStore.enableCheckUpdates" :aria-label="t('preference.general.check_updates')" />
       </div>
       <div v-if="appStore.enableCheckUpdates" class="pref-row">
         <span>{{ t('preference.general.check_updates_interval') }}</span>
@@ -101,6 +101,7 @@ const { t } = useI18n()
             size="sm"
             class="pref-num pref-num--center"
             style="width: 90px"
+            :aria-label="t('preference.general.check_updates_interval')"
           />
           <span class="unit-label">{{ t('preference.general.check_updates_interval_unit') }}</span>
         </div>

@@ -37,7 +37,6 @@ const isDate = computed(() => props.field.dataType === 'date' || props.field.dat
     v-if="isRange"
     v-model:value="(model[field.key] as [number, number] | null)"
     :type="field.dataType === 'datetime' ? 'datetime' : 'date'"
-    :placeholder="placeholder"
   />
   <SchemaSearchMultiSelect
     v-else-if="isMulti"
@@ -59,7 +58,6 @@ const isDate = computed(() => props.field.dataType === 'date' || props.field.dat
     clearable
     size="sm"
     class="w-full"
-    :placeholder="placeholder"
   />
   <XInput
     v-else

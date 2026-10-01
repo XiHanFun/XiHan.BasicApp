@@ -3,6 +3,7 @@ import type { FormRules } from '@xihan-ui/headless'
 import {
   XhButton,
   XhFieldControl,
+  XhFieldLabel,
   XhFieldRoot,
   XhFormFieldGroup,
   XhFormRoot,
@@ -26,7 +27,6 @@ const { isDark } = useTheme()
 const { t } = useI18n()
 const authStore = useAuthStore()
 const { apis } = useAppContext()
-const loading = ref(false)
 /** 重发倒计时这一轮的时长，大于 0 即正在倒计时 */
 const resendSeconds = ref(0)
 
@@ -88,9 +88,11 @@ function handleSendCode() {
   })()
 }
 
-/** 校验通过表单才发 submit；被拦下走 invalid，错误文案由字段自己显 */
+/**
+ * 校验通过表单才发 submit；被拦下走 invalid，错误文案由字段自己显。
+ * 返回的 Promise 交给表单：落定前提交钮自己报在途、再按不重复提交，失败在这里接住
+ */
 async function onSubmit() {
-  loading.value = true
   try {
     await authStore.loginByEmailCode({
       email: formData.value.email,
@@ -102,9 +104,6 @@ async function onSubmit() {
     if (error?.message) {
       toast.danger(error.message)
     }
-  }
-  finally {
-    loading.value = false
   }
 }
 
@@ -130,8 +129,12 @@ const onAuthInvalid = useAuthFormInvalid()
       @invalid="onAuthInvalid"
       @submit="onSubmit"
     >
+      <!-- 字段靠占位文案表意，标签只留给读屏 -->
       <XhFormFieldGroup v-slot="{ value, setValue }" name="email" class="!mb-6">
         <XhFieldRoot>
+          <XhFieldLabel class="sr-only">
+            {{ t('page.auth.email_placeholder') }}
+          </XhFieldLabel>
           <XhFieldControl>
             <XInput
               size="lg"
@@ -145,6 +148,9 @@ const onAuthInvalid = useAuthFormInvalid()
 
       <XhFormFieldGroup v-slot="{ setValue }" name="code" class="!mb-6">
         <XhFieldRoot>
+          <XhFieldLabel class="sr-only">
+            {{ t('page.auth.code_required') }}
+          </XhFieldLabel>
           <!-- 布局层留在控件外面：六格与发码钮同一行，放不下时钮换到下一行靠右。
                格子取缺省档：正方格的缺省档与 lg 档文本框、发码钮同一个控件高度，lg 档格子会高出一截 -->
           <div class="auth-code-row">
@@ -179,7 +185,7 @@ const onAuthInvalid = useAuthFormInvalid()
         </XhFieldRoot>
       </XhFormFieldGroup>
 
-      <XhFormSubmitTrigger class="auth-submit" :disabled="loading">
+      <XhFormSubmitTrigger class="auth-submit">
         {{ t('page.login.login_btn') }}
       </XhFormSubmitTrigger>
     </XhFormRoot>

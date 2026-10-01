@@ -3,7 +3,7 @@ import type { FormRules } from '@xihan-ui/headless'
 import type { CaptchaChallenge, LoginConfig, LoginResponse } from '~/types'
 
 import { useElementSize } from '@vueuse/core'
-import { XhButton, XhCheckbox, XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
 import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -426,7 +426,8 @@ const onAuthInvalid = useAuthFormInvalid()
           class="auth-submit !mt-4"
           @click="onSubmit"
         >
-          {{ t('page.auth.two_factor_verify') }}
+          <XhButtonIndicator />
+          <XhButtonLabel>{{ t('page.auth.two_factor_verify') }}</XhButtonLabel>
         </XhButton>
 
         <div class="flex gap-2 mt-3">
@@ -438,7 +439,8 @@ const onAuthInvalid = useAuthFormInvalid()
             :loading="sendingCode"
             @click="handleResendCode"
           >
-            {{ t('page.auth.two_factor_resend') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('page.auth.two_factor_resend') }}</XhButtonLabel>
           </XhButton>
           <XhButton
             v-if="availableMethods.length > 1"
@@ -502,7 +504,8 @@ const onAuthInvalid = useAuthFormInvalid()
           class="auth-submit"
           @click="handleSelectMethod"
         >
-          {{ t('page.auth.two_factor_continue') }}
+          <XhButtonIndicator />
+          <XhButtonLabel>{{ t('page.auth.two_factor_continue') }}</XhButtonLabel>
         </XhButton>
       </div>
 
@@ -527,8 +530,12 @@ const onAuthInvalid = useAuthFormInvalid()
           @invalid="onAuthInvalid"
           @submit="onSubmit"
         >
+          <!-- 字段靠占位文案表意，标签只留给读屏 -->
           <XhFormFieldGroup name="username" class="!mb-6">
             <XhFieldRoot>
+              <XhFieldLabel class="sr-only">
+                {{ t('page.login.username') }}
+              </XhFieldLabel>
               <XhFieldControl>
                 <XInput
                   v-model:value="formData.username"
@@ -541,6 +548,9 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFormFieldGroup>
           <XhFormFieldGroup name="password" class="!mb-6">
             <XhFieldRoot>
+              <XhFieldLabel class="sr-only">
+                {{ t('page.login.password') }}
+              </XhFieldLabel>
               <XhFieldControl>
                 <XInput
                   v-model:value="formData.password"
@@ -554,6 +564,9 @@ const onAuthInvalid = useAuthFormInvalid()
           </XhFormFieldGroup>
           <XhFormFieldGroup v-if="loginConfig.captchaEnabled" name="captchaCode" class="!mb-6">
             <XhFieldRoot>
+              <XhFieldLabel class="sr-only">
+                {{ t('page.login.captcha_required') }}
+              </XhFieldLabel>
               <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆。
                    服务端签发的是四位纯数字（CaptchaService 走框架一次性验证码，只出 0-9），格子按 numeric 准入、
                    弹数字键盘；不是一次性验证码，不开 otp，格子自带 autocomplete=off。
@@ -600,7 +613,8 @@ const onAuthInvalid = useAuthFormInvalid()
             </span>
           </div>
 
-          <XhFormSubmitTrigger class="auth-submit" :disabled="authStore.loginLoading">
+          <!-- 在途由表单自己报：onSubmit 返回的 Promise 落定前提交钮带 data-loading、再按不重复提交 -->
+          <XhFormSubmitTrigger class="auth-submit">
             {{ t('page.login.login_btn') }}
           </XhFormSubmitTrigger>
         </XhFormRoot>
@@ -615,14 +629,18 @@ const onAuthInvalid = useAuthFormInvalid()
           </span>
         </p>
 
-        <!-- 分隔线是纯线条、没有插槽，中缝那句文案要自己摆 -->
-        <div v-if="oauthProviders.length > 0" class="flex gap-3 items-center my-6">
-          <XhSeparator class="flex-1" :class="isDark ? '!border-white/10' : '!border-[hsl(var(--border))]'" />
+        <!-- 带字分隔线：文案走默认插槽，库在两侧各画一段线；线由 background 画，颜色经 --xh-separator-color 给。
+             separator 角色的子节点对读屏是展示性的，名字另用 aria-label 给出 -->
+        <XhSeparator
+          v-if="oauthProviders.length > 0"
+          class="my-6"
+          :style="{ '--xh-separator-color': isDark ? 'rgb(255 255 255 / 10%)' : 'hsl(var(--border))' }"
+          :aria-label="t('page.auth.third_party_login')"
+        >
           <span class="auth-caption" :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'">
             {{ t('page.auth.third_party_login') }}
           </span>
-          <XhSeparator class="flex-1" :class="isDark ? '!border-white/10' : '!border-[hsl(var(--border))]'" />
-        </div>
+        </XhSeparator>
         <!-- 第三方渠道是次要入口，比表单控件低一档走 md：图标与文字都收小，高度与圆角仍由库的控件令牌给 -->
         <div v-if="oauthProviders.length > 0" ref="oauthRow" class="flex gap-3 justify-center items-center">
           <XhButton

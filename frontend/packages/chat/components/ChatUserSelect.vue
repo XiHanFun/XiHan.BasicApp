@@ -5,7 +5,7 @@ import type {
 import type { SelectOption } from '~/types'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import XSelect from '~/components/common/XSelect.vue'
+import XCombobox from '~/components/common/XCombobox.vue'
 import { getChatApi } from '../api-contract'
 
 defineOptions({ name: 'ChatUserSelect' })
@@ -62,15 +62,15 @@ async function handleSearch(keyword: string) {
 </script>
 
 <template>
-  <XSelect
+  <XCombobox
     v-model:value="model"
     :multiple="props.multiple"
-    filterable
     remote
     clearable
     :loading="loading"
     :options="options"
     :placeholder="props.placeholder ?? t('chat.start.user_placeholder')"
+    :aria-label="props.placeholder ?? t('chat.start.user_placeholder')"
     @search="handleSearch"
     @focus="() => handleSearch('')"
   />

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Tone } from '@xihan-ui/core'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -81,7 +81,8 @@ function handleCancel() {
     @update:open="(value: boolean) => emit('update:show', value)"
   >
     <XhDialogContent class="xh-edit-modal" :style="modalStyle">
-      <XhDialogTitle v-if="title">
+      <!-- 标题恒在：它是对话框的名字（content 的 aria-labelledby 指向它） -->
+      <XhDialogTitle>
         {{ title }}
       </XhDialogTitle>
       <XhDialogCloseTrigger />
@@ -105,7 +106,8 @@ function handleCancel() {
           :disabled="saveDisabled"
           @click="formId ? undefined : emit('save')"
         >
-          {{ saveText ?? t('common.actions.save') }}
+          <XhButtonIndicator />
+          <XhButtonLabel>{{ saveText ?? t('common.actions.save') }}</XhButtonLabel>
         </XhButton>
       </div>
     </XhDialogContent>

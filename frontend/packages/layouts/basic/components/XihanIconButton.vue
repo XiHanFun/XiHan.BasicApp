@@ -5,9 +5,11 @@ defineOptions({ name: 'XihanIconButton', inheritAttrs: false })
 withDefaults(defineProps<{
   tooltip?: string
   active?: boolean
+  disabled?: boolean
 }>(), {
   tooltip: '',
   active: false,
+  disabled: false,
 })
 </script>
 
@@ -17,6 +19,7 @@ withDefaults(defineProps<{
     type="button"
     class="xihan-icon-btn"
     :class="{ 'xihan-icon-btn--active': active }"
+    :disabled="disabled"
     :title="tooltip || undefined"
     :aria-label="tooltip || undefined"
   >

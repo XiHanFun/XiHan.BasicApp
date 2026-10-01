@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
+import { XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
@@ -110,7 +110,10 @@ onBeforeUnmount(() => {
           <!-- 头部（与表格设置/搜索设置统一样式） -->
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <span class="text-base font-semibold text-foreground">{{ t('header.favorites.title') }}</span>
+              <!-- 标题部件给浮层起名（content 的 aria-labelledby 指向它） -->
+              <XhPopoverTitle class="text-base font-semibold text-foreground">
+                {{ t('header.favorites.title') }}
+              </XhPopoverTitle>
               <SyncStatusBadge :synced="appStore.favoritesSyncEnabled" />
             </div>
           </div>

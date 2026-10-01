@@ -452,7 +452,7 @@ const sidebarEnableState = computed(
                 <div class="split-tools" @pointerdown="forwardSplitDrag">
                   <span class="split-tools__label">{{ t('tabbar.split_left_label') }}</span>
                   <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('left', key)">
-                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_left')" @pointerdown.stop>
+                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_left')" :aria-label="t('tabbar.split_switch_left')" @pointerdown.stop>
                       <Icon icon="lucide:replace" width="16" height="16" />
                     </button>
                   </XDropdown>
@@ -477,7 +477,7 @@ const sidebarEnableState = computed(
 
                   <span class="split-tools__label">{{ t('tabbar.split_right_label') }}</span>
                   <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('right', key)">
-                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_right')" @pointerdown.stop>
+                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_right')" :aria-label="t('tabbar.split_switch_right')" @pointerdown.stop>
                       <Icon icon="lucide:replace" width="16" height="16" />
                     </button>
                   </XDropdown>

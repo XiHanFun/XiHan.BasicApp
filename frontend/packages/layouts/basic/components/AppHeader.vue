@@ -515,7 +515,6 @@ watch(() => route.fullPath, () => {
       :app-store="appStore"
       :breadcrumbs="breadcrumbs"
       @breadcrumb-select="handleBreadcrumbSelect"
-      @home-click="router.push('/')"
     />
   </div>
 

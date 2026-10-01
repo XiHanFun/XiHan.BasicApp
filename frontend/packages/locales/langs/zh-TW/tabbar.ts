@@ -34,4 +34,7 @@ export default {
   close_right: '關閉右側分頁',
   close_others: '關閉其他分頁',
   close_all: '關閉全部分頁',
+  scroll_prev: '上一組分頁',
+  scroll_next: '下一組分頁',
+  more: '目前分頁操作',
 }

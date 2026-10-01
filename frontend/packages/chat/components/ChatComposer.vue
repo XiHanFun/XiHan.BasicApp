@@ -4,8 +4,8 @@ import type {
   ChatMessageAttachment,
 } from '../types'
 import type { AppDropdownOption } from '~/types'
-import { XhButton, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhProgress, XhSpinner } from '@xihan-ui/vue'
-import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, watch } from 'vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhProgress, XhSpinner } from '@xihan-ui/vue'
+import { computed, defineAsyncComponent, h, nextTick, onBeforeUnmount, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
 import XDropdown from '~/components/common/XDropdown.vue'
@@ -57,6 +57,8 @@ const userStore = useUserStore()
 const draft = ref('')
 const sending = ref(false)
 const uploadingPercent = ref<null | number>(null)
+/** 进度条旁那句「上传中 N%」兼作进度条的名字 */
+const uploadingLabelId = useId()
 const imageInputRef = ref<HTMLInputElement>()
 const fileInputRef = ref<HTMLInputElement>()
 /** XInput 暴露底层元素与聚焦，插入 @ / 换行时按光标位置改写正文 */
@@ -617,6 +619,7 @@ function handlePaste(event: ClipboardEvent) {
         type="button"
         class="chat-voice-orb"
         :class="{ 'is-recording': voice.recording.value }"
+        :aria-label="t('chat.composer.voice')"
         :disabled="sending"
         @pointerdown.prevent="startTalking"
         @pointerup.prevent="stopTalking"
@@ -645,7 +648,7 @@ function handlePaste(event: ClipboardEvent) {
       <div v-if="isEditing" class="mx-2.5 mt-2 flex items-center gap-2 rounded bg-primary/8 px-2 py-1">
         <Icon icon="lucide:pencil" width="12" height="12" class="shrink-0 text-primary" />
         <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">{{ t('chat.composer.editing') }}</span>
-        <button type="button" class="chat-composer-inline-btn" @click="cancelEdit">
+        <button type="button" class="chat-composer-inline-btn" :aria-label="t('common.actions.cancel')" @click="cancelEdit">
           <Icon icon="lucide:x" width="12" height="12" />
         </button>
       </div>
@@ -656,7 +659,7 @@ function handlePaste(event: ClipboardEvent) {
         <span class="min-w-0 flex-1 truncate text-xs text-muted-foreground">
           {{ t('chat.composer.reply_to', { name: replyTarget.senderUserName ?? '' }) }}：{{ messageBodyLabel(replyTarget) }}
         </span>
-        <button type="button" class="chat-composer-inline-btn" @click="cancelReply">
+        <button type="button" class="chat-composer-inline-btn" :aria-label="t('common.actions.cancel')" @click="cancelReply">
           <Icon icon="lucide:x" width="12" height="12" />
         </button>
       </div>
@@ -668,8 +671,9 @@ function handlePaste(event: ClipboardEvent) {
           variant="line"
           size="sm"
           class="flex-1"
+          :aria-labelledby="uploadingLabelId"
         />
-        <span class="shrink-0 text-[11px] text-muted-foreground">
+        <span :id="uploadingLabelId" class="shrink-0 text-[11px] text-muted-foreground">
           {{ t('chat.composer.uploading', { percent: uploadingPercent }) }}
         </span>
       </div>
@@ -685,7 +689,7 @@ function handlePaste(event: ClipboardEvent) {
           </XhPopoverTrigger>
           <XhPopoverPositioner>
             <!-- 表情面板自带完整卡片相，浮层这层只当容器：去掉内边距、放开高度上限 -->
-            <XhPopoverContent class="chat-emoji-popover">
+            <XhPopoverContent class="chat-emoji-popover" :aria-label="t('chat.composer.emoji')">
               <ChatEmojiPicker @select="insertEmoji" />
             </XhPopoverContent>
           </XhPopoverPositioner>
@@ -704,7 +708,7 @@ function handlePaste(event: ClipboardEvent) {
             </button>
           </XhPopoverTrigger>
           <XhPopoverPositioner>
-            <XhPopoverContent>
+            <XhPopoverContent :aria-label="t('chat.composer.mention')">
               <div class="flex max-h-52 w-52 flex-col overflow-y-auto">
                 <div v-if="mentionLoading" class="flex justify-center py-3">
                   <XhSpinner size="sm" />
@@ -728,9 +732,9 @@ function handlePaste(event: ClipboardEvent) {
         </XhPopoverRoot>
         <XTooltip :content="t('chat.composer.image')">
           <button
-
             type="button"
             class="chat-composer-btn"
+            :aria-label="t('chat.composer.image')"
             :disabled="uploadingPercent != null || isEditing"
             @click="imageInputRef?.click()"
           >
@@ -739,9 +743,9 @@ function handlePaste(event: ClipboardEvent) {
         </XTooltip>
         <XTooltip :content="t('chat.composer.file')">
           <button
-
             type="button"
             class="chat-composer-btn"
+            :aria-label="t('chat.composer.file')"
             :disabled="uploadingPercent != null || isEditing"
             @click="fileInputRef?.click()"
           >
@@ -753,6 +757,7 @@ function handlePaste(event: ClipboardEvent) {
             v-if="voice.supported.value"
             type="button"
             class="chat-composer-btn"
+            :aria-label="t('chat.composer.voice')"
             :disabled="uploadingPercent != null || isEditing || sending"
             @click="enterVoiceMode"
           >
@@ -787,7 +792,7 @@ function handlePaste(event: ClipboardEvent) {
             <Icon icon="lucide:file" width="14" height="14" class="shrink-0 text-muted-foreground" />
             <span class="max-w-40 truncate text-xs">{{ attachment.file.name }}</span>
           </template>
-          <button type="button" class="chat-attach-remove" @click="removeAttachment(attachment.id)">
+          <button type="button" class="chat-attach-remove" :aria-label="t('chat.thread.remove')" @click="removeAttachment(attachment.id)">
             <Icon icon="lucide:x" width="10" height="10" />
           </button>
         </div>
@@ -820,10 +825,19 @@ function handlePaste(event: ClipboardEvent) {
             class="chat-send-main"
             @click="handleSendText"
           >
-            {{ isEditing ? t('chat.composer.save_edit') : t('chat.composer.send') }}
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ isEditing ? t('chat.composer.save_edit') : t('chat.composer.send') }}</XhButtonLabel>
           </XhButton>
+          <!-- 发送方式菜单钮只有箭头：名字取当前的发送方式，读屏念出的是它控制的那件事 -->
           <XDropdown :options="sendKeyOptions" placement="top-end" @select="handleSendKeySelect">
-            <XhButton variant="subtle" tone="brand" size="sm" class="chat-send-arrow">
+            <XhButton
+              variant="subtle"
+              tone="brand"
+              size="sm"
+              icon-only
+              class="chat-send-arrow"
+              :aria-label="sendKey === 'enter' ? t('chat.composer.send_key_enter') : t('chat.composer.send_key_ctrl_enter')"
+            >
               <Icon icon="lucide:chevron-up" width="14" height="14" />
             </XhButton>
           </XDropdown>

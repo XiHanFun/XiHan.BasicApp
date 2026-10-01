@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { FormRules } from '@xihan-ui/headless'
-import { XhFieldControl, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
+import { XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger } from '@xihan-ui/vue'
 
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -18,7 +18,6 @@ const { isDark } = useTheme()
 const { t } = useI18n()
 const router = useRouter()
 const { apis } = useAppContext()
-const loading = ref(false)
 
 const formData = ref({
   email: '',
@@ -31,9 +30,10 @@ const rules = computed<FormRules>(() => ({
   ],
 }))
 
+// 返回的 Promise 交给表单：落定前提交钮报在途、再按不重复提交；
+// 表单只把拒绝转成 submit-error，失败要在这里自己接住提示
 async function onSubmit() {
   try {
-    loading.value = true
     const result = await apis.requestPasswordResetApi(formData.value.email)
     if (result.debugResetUrl) {
       // 开发环境（未配 SMTP）回显重置链接，便于本地联调
@@ -43,8 +43,10 @@ async function onSubmit() {
       toast.success(t('page.auth.reset_link_sent'))
     }
   }
-  finally {
-    loading.value = false
+  catch (e: unknown) {
+    const msg = (e as Error)?.message
+    if (msg)
+      toast.danger(msg)
   }
 }
 
@@ -74,6 +76,10 @@ const onAuthInvalid = useAuthFormInvalid()
     >
       <XhFormFieldGroup name="email" class="!mb-6">
         <XhFieldRoot>
+          <!-- 占位只是示例地址，名字给读屏 -->
+          <XhFieldLabel class="sr-only">
+            {{ t('page.auth.email_placeholder') }}
+          </XhFieldLabel>
           <XhFieldControl>
             <XInput
               v-model:value="formData.email"
@@ -85,7 +91,7 @@ const onAuthInvalid = useAuthFormInvalid()
         </XhFieldRoot>
       </XhFormFieldGroup>
 
-      <XhFormSubmitTrigger class="auth-submit" :disabled="loading">
+      <XhFormSubmitTrigger class="auth-submit">
         {{ t('page.auth.send_reset_link') }}
       </XhFormSubmitTrigger>
     </XhFormRoot>

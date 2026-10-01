@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ApiCredentialItem, ApiCredentialSecret } from '~/types'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhAlertTitle, XhButton, XhButtonIndicator, XhButtonLabel, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhInputGroupRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput, XSelect, XTooltip } from '~/components'
@@ -211,21 +211,21 @@ onMounted(() => {
             <XhAlertDescription>
               <div class="pf-secret-row">
                 <span class="pf-secret-label">AppKey</span>
-                <div class="xh-input-group">
-                  <XInput :value="newSecret.appKey" readonly size="sm" />
-                  <XhButton variant="subtle" size="sm" @click="copyText(newSecret.appKey)">
+                <XhInputGroupRoot class="pf-secret-group">
+                  <XInput :value="newSecret.appKey" read-only size="sm" aria-label="AppKey" />
+                  <XhButton variant="subtle" size="sm" icon-only :aria-label="t('common.actions.copy')" @click="copyText(newSecret.appKey)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
-                </div>
+                </XhInputGroupRoot>
               </div>
               <div class="pf-secret-row">
                 <span class="pf-secret-label">Secret</span>
-                <div class="xh-input-group">
-                  <XInput :value="newSecret.appSecret" readonly size="sm" type="password" />
-                  <XhButton variant="subtle" size="sm" @click="copyText(newSecret.appSecret)">
+                <XhInputGroupRoot class="pf-secret-group">
+                  <XInput :value="newSecret.appSecret" read-only size="sm" type="password" aria-label="Secret" />
+                  <XhButton variant="subtle" size="sm" icon-only :aria-label="t('common.actions.copy')" @click="copyText(newSecret.appSecret)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
-                </div>
+                </XhInputGroupRoot>
               </div>
             </XhAlertDescription>
           </XhAlertContent>
@@ -255,7 +255,7 @@ onMounted(() => {
                 </div>
                 <div class="pf-credential__key">
                   <code>{{ cred.appKey }}</code>
-                  <XhButton size="sm" variant="ghost" @click="copyText(cred.appKey)">
+                  <XhButton size="sm" variant="ghost" icon-only :aria-label="t('common.actions.copy')" @click="copyText(cred.appKey)">
                     <span><Icon icon="lucide:copy" /></span>
                   </XhButton>
                 </div>
@@ -272,17 +272,18 @@ onMounted(() => {
               <div class="pf-credential__actions">
                 <XhSwitch
                   :title="t('component.profile.developer.tooltip_toggle_status')"
+                  :aria-label="t('component.profile.developer.tooltip_toggle_status')"
                   size="sm"
                   :checked="cred.status === 'Enabled'"
                   @update:checked="(v: boolean) => handleToggleStatus(cred, v)"
                 />
                 <XTooltip :content="t('component.profile.developer.tooltip_rotate')">
-                  <XhButton size="sm" variant="ghost" @click="handleRotateSecret(cred)">
+                  <XhButton size="sm" variant="ghost" icon-only :aria-label="t('component.profile.developer.tooltip_rotate')" @click="handleRotateSecret(cred)">
                     <span><Icon icon="lucide:rotate-ccw" /></span>
                   </XhButton>
                 </XTooltip>
                 <XTooltip :content="t('component.profile.developer.tooltip_delete')">
-                  <XhButton size="sm" variant="ghost" tone="danger" @click="handleDeleteCredential(cred)">
+                  <XhButton size="sm" variant="ghost" tone="danger" icon-only :aria-label="t('component.profile.developer.tooltip_delete')" @click="handleDeleteCredential(cred)">
                     <span><Icon icon="lucide:trash-2" /></span>
                   </XhButton>
                 </XTooltip>
@@ -317,7 +318,7 @@ onMounted(() => {
               </div>
             </div>
             <div class="pf-setting-row__control">
-              <XSelect v-model:value="signAlgorithm" :options="signAlgorithmOptions" class="pf-field" size="sm" />
+              <XSelect v-model:value="signAlgorithm" :options="signAlgorithmOptions" class="pf-field" size="sm" :aria-label="t('component.profile.developer.field_sign_algorithm')" />
             </div>
           </div>
           <div class="pf-setting-row pf-setting-row--block">
@@ -334,13 +335,15 @@ onMounted(() => {
               type="textarea"
               placeholder="192.168.1.1&#10;10.0.0.0/24"
               :autosize="{ minRows: 3, maxRows: 6 }"
+              :aria-label="t('component.profile.developer.field_ip_whitelist')"
             />
           </div>
         </div>
       </div>
       <div class="pf-section__actions">
         <XhButton variant="subtle" tone="brand" size="sm" :loading="settingsSaving" @click="handleSaveOpenApiSettings">
-          {{ t('component.profile.developer.btn_save_settings') }}
+          <XhButtonIndicator />
+          <XhButtonLabel>{{ t('component.profile.developer.btn_save_settings') }}</XhButtonLabel>
         </XhButton>
       </div>
     </section>
@@ -360,7 +363,7 @@ onMounted(() => {
           <XhFieldRoot class="xh-span-2">
             <XhFieldLabel>{{ t('component.profile.developer.create_name_label') }}</XhFieldLabel>
             <XhFieldControl>
-              <XInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" :max-length="100" show-count @keydown.enter="handleCreateCredential" />
+              <XInput v-model:value="createName" :placeholder="t('component.profile.developer.create_name_placeholder')" :max-length="100" show-count @enter="handleCreateCredential" />
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>

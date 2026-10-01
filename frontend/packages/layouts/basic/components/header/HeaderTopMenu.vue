@@ -279,6 +279,7 @@ watch(() => props.activeKey, () => {
       class="header-top-menu__arrow-btn"
       variant="ghost"
       size="sm"
+      icon-only
       :disabled="scrollAtStart"
       :aria-label="$t('header.toolbar.menu_scroll_prev')"
       @click="scrollDirection('start')"
@@ -324,6 +325,7 @@ watch(() => props.activeKey, () => {
       class="header-top-menu__arrow-btn"
       variant="ghost"
       size="sm"
+      icon-only
       :disabled="scrollAtEnd"
       :aria-label="$t('header.toolbar.menu_scroll_next')"
       @click="scrollDirection('end')"

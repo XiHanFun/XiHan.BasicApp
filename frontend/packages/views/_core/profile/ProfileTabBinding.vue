@@ -124,7 +124,7 @@ onMounted(() => {
           </div>
         </div>
         <div class="pf-section__extra">
-          <XhButton size="sm" variant="ghost" @click="loadData">
+          <XhButton size="sm" variant="ghost" icon-only :aria-label="t('common.actions.refresh')" @click="loadData">
             <Icon icon="lucide:refresh-cw" />
           </XhButton>
         </div>

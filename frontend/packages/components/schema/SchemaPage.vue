@@ -2,7 +2,7 @@
 import type { MenuNode } from '@xihan-ui/headless'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaColumn } from './types'
 import type { ApiId } from '~/types/contracts'
-import { XhButton, XhCardContent, XhCardRoot, XhMenuRoot, XhSkeletonItem, XhSkeletonRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCardContent, XhCardRoot, XhMenuRoot, XhSkeletonItem, XhSkeletonRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { dialog, toast } from '~/composables'
@@ -815,7 +815,8 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
                   :loading="batchStatusUpdating"
                   @click="handleBatchStatus(true)"
                 >
-                  {{ t('component.schema_page.batch_enable') }}
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('component.schema_page.batch_enable') }}</XhButtonLabel>
                 </XhButton>
                 <XhButton
                   v-if="canBatchStatus"
@@ -825,7 +826,8 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
                   :loading="batchStatusUpdating"
                   @click="handleBatchStatus(false)"
                 >
-                  {{ t('component.schema_page.batch_disable') }}
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('component.schema_page.batch_disable') }}</XhButtonLabel>
                 </XhButton>
                 <XhButton
                   v-if="canBatchRemove"
@@ -835,7 +837,8 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
                   :loading="batchRemoving"
                   @click="handleBatchRemove"
                 >
-                  {{ t('component.schema_page.batch_delete') }}
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('component.schema_page.batch_delete') }}</XhButtonLabel>
                 </XhButton>
                 <XhButton
                   v-for="action in batchActions"

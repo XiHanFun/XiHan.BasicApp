@@ -129,7 +129,10 @@ function onValueChange(next: string[]): void {
       <XhDatePickerTrigger :aria-label="t('component.date_picker.label')" />
     </XhDatePickerControl>
     <XhDatePickerPositioner>
-      <XhDatePickerContent>
+      <!-- 上限缺省是 viewport-h-lg（rem 档，14px 根下只有 280px），日历加时间列再加确认行放不下、
+           确认钮被挤出可视区。带时间时把上限放宽，高度仍由皮肤里的可用空间那一项兜住。
+           浮层传送到 body 下，带不上 scoped 标记，只能写在行内 -->
+      <XhDatePickerContent :style="showTime ? { '--xh-date-picker-max-h': 'calc(var(--xh-viewport-h-lg) * 2)' } : undefined">
         <!-- 作者自己的包裹块：快捷选项、日历与时间列并排，放不下就折行；确认行另起一行 -->
         <div class="x-date-picker__panes">
           <!-- 不写默认插槽就按 presets 数据自动铺 -->

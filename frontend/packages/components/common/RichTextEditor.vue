@@ -10,7 +10,7 @@ import { TextStyle } from '@tiptap/extension-text-style'
 import Underline from '@tiptap/extension-underline'
 import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
-import { XhButton, XhButtonGroup, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
+import { XhButton, XhButtonGroup, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator, XhToggle } from '@xihan-ui/vue'
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
@@ -119,76 +119,99 @@ const headingLevels = [1, 2, 3, 4] as const
   <div class="rounded border border-gray-200 x-rte dark:border-gray-600">
     <!-- 工具栏 -->
     <div v-if="editor && !props.disabled" class="flex flex-wrap gap-1 items-center px-2 py-1.5 bg-gray-50 border-b border-gray-200 dark:border-gray-600 dark:bg-gray-800">
+      <!-- 格式钮是切换按钮：当前是否生效由 aria-pressed 报给读屏，按下态由切换按钮的皮肤画，不只靠颜色；
+           按钮组表达不了已选中项，成组的切换按钮放进普通的行内容器 -->
       <!-- 标题 -->
-      <XhButtonGroup size="sm">
-        <XhButton
+      <div class="x-rte-group">
+        <XhToggle
           v-for="level in headingLevels"
           :key="level"
-          :tone="isActive('heading', { level }) ? 'brand' : 'neutral'"
+          size="sm"
           variant="ghost"
+          :pressed="isActive('heading', { level })"
           @click="editor!.chain().focus().toggleHeading({ level }).run()"
         >
           H{{ level }}
-        </XhButton>
-      </XhButtonGroup>
+        </XhToggle>
+      </div>
 
       <XhSeparator orientation="vertical" decorative />
 
       <!-- 基本格式 -->
-      <XhButtonGroup size="sm">
-        <XhButton
-          :tone="isActive('bold') ? 'brand' : 'neutral'"
+      <div class="x-rte-group">
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive('bold')"
+          :aria-label="t('component.rich_text_editor.bold')"
           :title="t('component.rich_text_editor.bold')"
           @click="editor!.chain().focus().toggleBold().run()"
         >
           <Icon icon="lucide:bold" :width="16" />
-        </XhButton>
-        <XhButton
-          :tone="isActive('italic') ? 'brand' : 'neutral'"
+        </XhToggle>
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive('italic')"
+          :aria-label="t('component.rich_text_editor.italic')"
           :title="t('component.rich_text_editor.italic')"
           @click="editor!.chain().focus().toggleItalic().run()"
         >
           <Icon icon="lucide:italic" :width="16" />
-        </XhButton>
-        <XhButton
-          :tone="isActive('underline') ? 'brand' : 'neutral'"
+        </XhToggle>
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive('underline')"
+          :aria-label="t('component.rich_text_editor.underline')"
           :title="t('component.rich_text_editor.underline')"
           @click="editor!.chain().focus().toggleUnderline().run()"
         >
           <Icon icon="lucide:underline" :width="16" />
-        </XhButton>
-        <XhButton
-          :tone="isActive('strike') ? 'brand' : 'neutral'"
+        </XhToggle>
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive('strike')"
+          :aria-label="t('component.rich_text_editor.strikethrough')"
           :title="t('component.rich_text_editor.strikethrough')"
           @click="editor!.chain().focus().toggleStrike().run()"
         >
           <Icon icon="lucide:strikethrough" :width="16" />
-        </XhButton>
-      </XhButtonGroup>
+        </XhToggle>
+      </div>
 
       <XhSeparator orientation="vertical" decorative />
 
       <!-- 文本颜色 -->
       <XhPopoverRoot placement="bottom">
-        <XhPopoverTrigger class="x-rte-pop-trigger" :title="t('component.rich_text_editor.text_color')">
+        <XhPopoverTrigger
+          class="x-rte-pop-trigger"
+          :title="t('component.rich_text_editor.text_color')"
+          :aria-label="t('component.rich_text_editor.text_color')"
+        >
           <div class="flex flex-col items-center">
             <Icon icon="lucide:baseline" :width="16" />
             <div class="-mt-0.5 w-3.5 h-0.5 rounded-sm" :style="{ background: textColor }" />
           </div>
         </XhPopoverTrigger>
         <XhPopoverPositioner>
-          <XhPopoverContent>
+          <XhPopoverContent :aria-label="t('component.rich_text_editor.text_color')">
             <div class="grid grid-cols-5 gap-1 p-1">
               <button
                 v-for="c in TEXT_COLORS"
                 :key="c"
+                type="button"
                 class="w-6 h-6 rounded border border-gray-300 transition-transform cursor-pointer hover:scale-110"
                 :class="{ 'ring-2 ring-blue-500 ring-offset-1': textColor === c }"
                 :style="{ background: c }"
+                :title="c"
+                :aria-label="c"
+                :aria-pressed="textColor === c"
                 @click="applyTextColor(c)"
               />
             </div>
@@ -198,22 +221,29 @@ const headingLevels = [1, 2, 3, 4] as const
 
       <!-- 高亮色 -->
       <XhPopoverRoot placement="bottom">
-        <XhPopoverTrigger class="x-rte-pop-trigger" :title="t('component.rich_text_editor.highlight')">
+        <XhPopoverTrigger
+          class="x-rte-pop-trigger"
+          :title="t('component.rich_text_editor.highlight')"
+          :aria-label="t('component.rich_text_editor.highlight')"
+        >
           <div class="flex flex-col items-center">
             <Icon icon="lucide:highlighter" :width="16" />
             <div class="-mt-0.5 w-3.5 h-0.5 rounded-sm" :style="{ background: highlightColor === 'transparent' ? '#e5e7eb' : highlightColor }" />
           </div>
         </XhPopoverTrigger>
         <XhPopoverPositioner>
-          <XhPopoverContent>
+          <XhPopoverContent :aria-label="t('component.rich_text_editor.highlight')">
             <div class="grid grid-cols-5 gap-1 p-1">
               <button
                 v-for="c in HIGHLIGHT_COLORS"
                 :key="c"
+                type="button"
                 class="w-6 h-6 rounded border border-gray-300 transition-transform cursor-pointer hover:scale-110"
                 :class="{ 'ring-2 ring-blue-500 ring-offset-1': highlightColor === c }"
                 :style="{ background: c === 'transparent' ? 'repeating-conic-gradient(#d1d5db 0% 25%, transparent 0% 50%) 50%/8px 8px' : c }"
                 :title="c === 'transparent' ? t('component.rich_text_editor.clear_highlight') : c"
+                :aria-label="c === 'transparent' ? t('component.rich_text_editor.clear_highlight') : c"
+                :aria-pressed="highlightColor === c"
                 @click="applyHighlight(c)"
               />
             </div>
@@ -224,95 +254,131 @@ const headingLevels = [1, 2, 3, 4] as const
       <XhSeparator orientation="vertical" decorative />
 
       <!-- 对齐 -->
-      <XhButtonGroup size="sm">
-        <XhButton
-          :tone="isActive({ textAlign: 'left' }) ? 'brand' : 'neutral'"
+      <div class="x-rte-group">
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive({ textAlign: 'left' })"
+          :aria-label="t('component.rich_text_editor.align_left')"
           :title="t('component.rich_text_editor.align_left')"
           @click="editor!.chain().focus().setTextAlign('left').run()"
         >
           <Icon icon="lucide:align-left" :width="16" />
-        </XhButton>
-        <XhButton
-          :tone="isActive({ textAlign: 'center' }) ? 'brand' : 'neutral'"
+        </XhToggle>
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive({ textAlign: 'center' })"
+          :aria-label="t('component.rich_text_editor.align_center')"
           :title="t('component.rich_text_editor.align_center')"
           @click="editor!.chain().focus().setTextAlign('center').run()"
         >
           <Icon icon="lucide:align-center" :width="16" />
-        </XhButton>
-        <XhButton
-          :tone="isActive({ textAlign: 'right' }) ? 'brand' : 'neutral'"
+        </XhToggle>
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive({ textAlign: 'right' })"
+          :aria-label="t('component.rich_text_editor.align_right')"
           :title="t('component.rich_text_editor.align_right')"
           @click="editor!.chain().focus().setTextAlign('right').run()"
         >
           <Icon icon="lucide:align-right" :width="16" />
-        </XhButton>
-      </XhButtonGroup>
+        </XhToggle>
+      </div>
 
       <XhSeparator orientation="vertical" decorative />
 
       <!-- 列表 -->
-      <XhButtonGroup size="sm">
-        <XhButton
-          :tone="isActive('bulletList') ? 'brand' : 'neutral'"
+      <div class="x-rte-group">
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive('bulletList')"
+          :aria-label="t('component.rich_text_editor.bullet_list')"
           :title="t('component.rich_text_editor.bullet_list')"
           @click="editor!.chain().focus().toggleBulletList().run()"
         >
           <Icon icon="lucide:list" :width="16" />
-        </XhButton>
-        <XhButton
-          :tone="isActive('orderedList') ? 'brand' : 'neutral'"
+        </XhToggle>
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive('orderedList')"
+          :aria-label="t('component.rich_text_editor.ordered_list')"
           :title="t('component.rich_text_editor.ordered_list')"
           @click="editor!.chain().focus().toggleOrderedList().run()"
         >
           <Icon icon="lucide:list-ordered" :width="16" />
-        </XhButton>
-      </XhButtonGroup>
+        </XhToggle>
+      </div>
 
       <XhSeparator orientation="vertical" decorative />
 
-      <!-- 引用 / 代码 / 分隔线 -->
-      <XhButtonGroup size="sm">
-        <XhButton
-          :tone="isActive('blockquote') ? 'brand' : 'neutral'"
+      <!-- 引用 / 代码 / 分隔线（插入分隔线是一次性操作，用普通按钮） -->
+      <div class="x-rte-group">
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive('blockquote')"
+          :aria-label="t('component.rich_text_editor.blockquote')"
           :title="t('component.rich_text_editor.blockquote')"
           @click="editor!.chain().focus().toggleBlockquote().run()"
         >
           <Icon icon="lucide:quote" :width="16" />
-        </XhButton>
-        <XhButton
-          :tone="isActive('codeBlock') ? 'brand' : 'neutral'"
+        </XhToggle>
+        <XhToggle
+          size="sm"
           variant="ghost"
+          icon-only
+          :pressed="isActive('codeBlock')"
+          :aria-label="t('component.rich_text_editor.code_block')"
           :title="t('component.rich_text_editor.code_block')"
           @click="editor!.chain().focus().toggleCodeBlock().run()"
         >
           <Icon icon="lucide:code" :width="16" />
-        </XhButton>
+        </XhToggle>
         <XhButton
+          size="sm"
           variant="ghost"
+          tone="neutral"
+          icon-only
+          :aria-label="t('component.rich_text_editor.horizontal_rule')"
           :title="t('component.rich_text_editor.horizontal_rule')"
           @click="editor!.chain().focus().setHorizontalRule().run()"
         >
           <Icon icon="lucide:minus" :width="16" />
         </XhButton>
-      </XhButtonGroup>
+      </div>
 
       <XhSeparator orientation="vertical" decorative />
 
       <!-- 链接 -->
       <XhPopoverRoot placement="bottom">
-        <XhPopoverTrigger class="x-rte-pop-trigger" :class="{ 'x-rte-pop-trigger--on': isActive('link') }" :title="t('component.rich_text_editor.link')">
+        <XhPopoverTrigger
+          class="x-rte-pop-trigger"
+          :class="{ 'x-rte-pop-trigger--on': isActive('link') }"
+          :title="t('component.rich_text_editor.link')"
+          :aria-label="t('component.rich_text_editor.link')"
+        >
           <Icon icon="lucide:link" :width="16" />
         </XhPopoverTrigger>
         <XhPopoverPositioner>
-          <XhPopoverContent>
+          <XhPopoverContent :aria-label="t('component.rich_text_editor.link')">
             <div class="flex gap-2 items-center">
-              <XInput v-model:value="linkUrl" placeholder="https://" size="sm" style="inline-size: 200px" />
+              <XInput
+                v-model:value="linkUrl"
+                placeholder="https://"
+                size="sm"
+                style="inline-size: 200px"
+                :aria-label="t('component.rich_text_editor.link')"
+              />
               <XhButton size="sm" variant="solid" @click="setLink">
                 {{ t('common.actions.confirm') }}
               </XhButton>
@@ -323,13 +389,23 @@ const headingLevels = [1, 2, 3, 4] as const
 
       <!-- 图片 -->
       <XhPopoverRoot placement="bottom">
-        <XhPopoverTrigger class="x-rte-pop-trigger" :title="t('component.rich_text_editor.image')">
+        <XhPopoverTrigger
+          class="x-rte-pop-trigger"
+          :title="t('component.rich_text_editor.image')"
+          :aria-label="t('component.rich_text_editor.image')"
+        >
           <Icon icon="lucide:image" :width="16" />
         </XhPopoverTrigger>
         <XhPopoverPositioner>
-          <XhPopoverContent>
+          <XhPopoverContent :aria-label="t('component.rich_text_editor.image')">
             <div class="flex gap-2 items-center">
-              <XInput v-model:value="imageUrl" :placeholder="t('component.rich_text_editor.image_url_placeholder')" size="sm" style="inline-size: 200px" />
+              <XInput
+                v-model:value="imageUrl"
+                :placeholder="t('component.rich_text_editor.image_url_placeholder')"
+                size="sm"
+                style="inline-size: 200px"
+                :aria-label="t('component.rich_text_editor.image_url_placeholder')"
+              />
               <XhButton size="sm" variant="solid" @click="addImage">
                 {{ t('common.actions.confirm') }}
               </XhButton>
@@ -341,18 +417,20 @@ const headingLevels = [1, 2, 3, 4] as const
       <XhSeparator orientation="vertical" decorative />
 
       <!-- 撤销 / 重做 -->
-      <XhButtonGroup size="sm">
+      <XhButtonGroup size="sm" variant="ghost">
         <XhButton
-          variant="ghost"
+          icon-only
           :disabled="!editor!.can().undo()"
+          :aria-label="t('component.rich_text_editor.undo')"
           :title="t('component.rich_text_editor.undo')"
           @click="editor!.chain().focus().undo().run()"
         >
           <Icon icon="lucide:undo-2" :width="16" />
         </XhButton>
         <XhButton
-          variant="ghost"
+          icon-only
           :disabled="!editor!.can().redo()"
+          :aria-label="t('component.rich_text_editor.redo')"
           :title="t('component.rich_text_editor.redo')"
           @click="editor!.chain().focus().redo().run()"
         >
@@ -367,6 +445,13 @@ const headingLevels = [1, 2, 3, 4] as const
 </template>
 
 <style scoped>
+/* 一组切换按钮：同一件事的几枚紧挨着，组与组之间由竖分隔线隔开 */
+.x-rte-group {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--xh-space-0_5);
+}
+
 /* 浮层触发器：与工具栏其它图标钮同款；激活态套品牌淡底 */
 .x-rte-pop-trigger {
   display: inline-flex;

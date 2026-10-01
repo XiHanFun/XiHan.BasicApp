@@ -34,4 +34,7 @@ export default {
   close_right: 'Rechte Tabs schließen',
   close_others: 'Andere Tabs schließen',
   close_all: 'Alle Tabs schließen',
+  scroll_prev: 'Vorherige Tabs',
+  scroll_next: 'Nächste Tabs',
+  more: 'Aktionen für aktuellen Tab',
 }

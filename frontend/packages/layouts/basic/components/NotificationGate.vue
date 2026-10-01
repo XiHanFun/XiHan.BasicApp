@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { AppUserInboxDisplayItem } from '~/types'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NotificationContent } from '~/components'
@@ -91,7 +91,8 @@ onMounted(async () => {
           :loading="markingId === currentMandatory.basicId"
           @click="onMandatoryRead(currentMandatory)"
         >
-          {{ t('header.notification.gate.mandatory_read') }}
+          <XhButtonIndicator />
+          <XhButtonLabel>{{ t('header.notification.gate.mandatory_read') }}</XhButtonLabel>
         </XhButton>
       </div>
     </XhDialogContent>

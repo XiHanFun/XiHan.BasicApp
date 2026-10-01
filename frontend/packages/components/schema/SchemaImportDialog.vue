@@ -8,6 +8,8 @@ import {
   XhAlertIndicator,
   XhAlertRoot,
   XhButton,
+  XhButtonIndicator,
+  XhButtonLabel,
   XhDialogCloseTrigger,
   XhDialogContent,
   XhDialogRoot,
@@ -295,7 +297,7 @@ function handleClose(): void {
         </div>
 
         <!-- 导入进度 -->
-        <XhProgress v-if="phase === 'importing'" :value="importPercent" />
+        <XhProgress v-if="phase === 'importing'" :value="importPercent" :aria-label="t('component.schema_import.title')" />
 
         <!-- 完成汇总 -->
         <XhAlertRoot
@@ -358,7 +360,8 @@ function handleClose(): void {
           :loading="phase === 'importing'"
           @click="handleRun"
         >
-          {{ t('component.schema_import.start_import') }}
+          <XhButtonIndicator />
+          <XhButtonLabel>{{ t('component.schema_import.start_import') }}</XhButtonLabel>
         </XhButton>
       </div>
     </XhDialogContent>

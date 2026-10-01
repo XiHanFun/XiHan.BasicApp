@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { AppTenantSwitcherItem } from '~/types'
-import { XhButton, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XUserAvatar } from '~/components'
@@ -135,8 +135,9 @@ onMounted(loadTenants)
               <span>{{ t('page.control_center.title') }}</span>
             </div>
             <XhButton size="sm" variant="ghost" :loading="loading" @click="loadTenants">
+              <XhButtonIndicator />
               <Icon icon="lucide:refresh-cw" />
-              {{ t('page.control_center.refresh') }}
+              <XhButtonLabel>{{ t('page.control_center.refresh') }}</XhButtonLabel>
             </XhButton>
           </div>
           <div class="xh-loading-stage" :class="{ 'is-loading': loading }">

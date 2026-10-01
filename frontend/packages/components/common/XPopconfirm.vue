@@ -6,6 +6,7 @@ import {
   XhPopconfirmDescription,
   XhPopconfirmPositioner,
   XhPopconfirmRoot,
+  XhPopconfirmTitle,
   XhPopconfirmTrigger,
 } from '@xihan-ui/vue'
 import { useI18n } from 'vue-i18n'
@@ -14,11 +15,14 @@ import { useI18n } from 'vue-i18n'
 defineOptions({ name: 'XPopconfirm' })
 
 withDefaults(defineProps<{
+  /** 标题：直接问这个操作，同时是浮层（非模态 dialog）的名字 */
+  title?: string
   /** 确认文案；也可以用 default 插槽给 */
   description?: string
   okText?: string
   cancelText?: string
 }>(), {
+  title: undefined,
   description: undefined,
   okText: undefined,
   cancelText: undefined,
@@ -35,7 +39,11 @@ const { t } = useI18n()
       <slot name="trigger" />
     </XhPopconfirmTrigger>
     <XhPopconfirmPositioner>
-      <XhPopconfirmContent>
+      <!-- 浮层的名字取自 title 部件；没给标题时退回描述文案，再退回「确认」 -->
+      <XhPopconfirmContent :aria-label="title ? undefined : (description || t('common.actions.confirm'))">
+        <XhPopconfirmTitle v-if="title">
+          {{ title }}
+        </XhPopconfirmTitle>
         <XhPopconfirmDescription>
           <slot>{{ description }}</slot>
         </XhPopconfirmDescription>

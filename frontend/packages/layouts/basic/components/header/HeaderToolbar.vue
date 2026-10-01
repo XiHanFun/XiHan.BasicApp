@@ -149,9 +149,11 @@ const placement = useWidgetPlacement()
 
     <!-- 用户菜单 -->
     <XDropdown :options="props.userOptions" @select="(key: string) => emit('userAction', key)">
+      <!-- 窄屏只剩头像，名字收进 aria-label：菜单触发钮任何宽度下都有名字 -->
       <button
         type="button"
         class="user-btn ml-1 flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1"
+        :aria-label="props.userStore.nickname || props.userStore.username"
       >
         <XUserAvatar
           :size="28"

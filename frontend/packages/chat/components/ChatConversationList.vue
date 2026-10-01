@@ -116,19 +116,20 @@ function handleItemAction(key: string) {
         size="sm"
         clearable
         :placeholder="t('chat.list.search_placeholder')"
+        :aria-label="t('chat.list.search_placeholder')"
       >
         <template #prefix>
           <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
         </template>
       </XInput>
       <XTooltip :content="t('chat.list.refresh')">
-        <button type="button" class="chat-icon-btn" @click="handleRefresh">
+        <button type="button" class="chat-icon-btn" :aria-label="t('chat.list.refresh')" @click="handleRefresh">
           <Icon icon="lucide:refresh-cw" width="15" height="15" />
         </button>
       </XTooltip>
       <!-- 下拉与气泡叠在同一颗按钮上：菜单触发器借用它，说明文字走原生 title -->
       <XDropdown :options="startOptions" @select="handleStartSelect">
-        <button type="button" class="chat-icon-btn" :title="t('chat.start.button')">
+        <button type="button" class="chat-icon-btn" :title="t('chat.start.button')" :aria-label="t('chat.start.button')">
           <Icon icon="lucide:message-square-plus" width="15" height="15" />
         </button>
       </XDropdown>

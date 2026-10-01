@@ -211,51 +211,12 @@
   background: hsl(var(--card) / 70%);
 }
 
-/* 贴合成一组的输入与按钮：中缝不留描边，只在两端留圆角。
-   输入框的圆角画在 control 部件上（Field Chrome），走它的 radius 槽 */
-.xh-input-group {
-  display: flex;
-  align-items: stretch;
-  min-width: 0;
-}
-
-.xh-input-group > * {
-  --xh-text-field-control-radius: 0;
-  --xh-button-radius: 0;
-  /* 输入段要能缩到比控件的缺省最小宽（12rem）还窄：窄屏上整行只剩两百多像素，
-     动作钮是定宽的，剩下多少全给输入；不放开这两条，整行会从容器右缘凸出去 */
-  --xh-field-control-min-inline-size: 0;
-
-  min-inline-size: 0;
-  margin-inline-end: calc(-1 * var(--xh-stroke-thin));
-}
-
-.xh-input-group > *:last-child {
-  margin-inline-end: 0;
-}
-
-/* 动作钮不参与收缩：文案不能被挤成两行或省略号 */
-.xh-input-group > [data-scope='button'] {
-  flex: none;
-}
-
-.xh-input-group > *:first-child {
-  --xh-text-field-control-radius: var(--radius) 0 0 var(--radius);
-  --xh-button-radius: var(--radius) 0 0 var(--radius);
-}
-
-.xh-input-group > *:last-child {
-  --xh-text-field-control-radius: 0 var(--radius) var(--radius) 0;
-  --xh-button-radius: 0 var(--radius) var(--radius) 0;
-}
-
-.xh-input-group > *:only-child {
-  --xh-text-field-control-radius: var(--radius);
-  --xh-button-radius: var(--radius);
-}
-
-/* 命令式取值弹窗（prompt）的正文：字段竖排，撑到弹窗的取值宽度 */
+/* 命令式取值弹窗（prompt）的正文：字段竖排，撑到弹窗的取值宽度。
+   文本与密码字段缺省按控件宽（--xh-control-w）定宽，这里把两档的宽改成占满这一列 */
 .x-prompt__fields {
+  --xh-text-field-control-w: 100%;
+  --xh-password-input-control-w: 100%;
+
   display: flex;
   flex-direction: column;
   gap: 12px;

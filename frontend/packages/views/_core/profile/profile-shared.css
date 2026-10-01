@@ -428,6 +428,25 @@
   width: 100%;
 }
 
+/* 一次性密钥行：只读输入框与复制钮拼成组件库的输入组，组占满标签之外的整行；
+   输入段可以缩到比控件缺省最小宽还窄（窄屏上整行只剩两百多像素），复制钮定宽不缩 */
+.pf-secret-group {
+  --xh-text-field-control-min-w: 0;
+  --xh-password-input-control-min-w: 0;
+
+  flex: 1 1 0;
+  min-inline-size: 0;
+}
+
+.pf-secret-group > :first-child {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.pf-secret-group > :last-child {
+  flex: none;
+}
+
 /* 紧凑空状态（替代大面积留白的 NEmpty） */
 .pf-empty {
   display: flex;
