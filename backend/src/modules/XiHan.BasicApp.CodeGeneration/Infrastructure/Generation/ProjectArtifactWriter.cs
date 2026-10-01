@@ -22,6 +22,11 @@ namespace XiHan.BasicApp.CodeGeneration.Infrastructure.Generation;
 /// </remarks>
 public sealed partial class ProjectArtifactWriter(IOptions<CodeGenerationOptions> options, IHostEnvironment environment) : IGeneratedArtifactWriter
 {
+    /// <summary>
+    /// 手动文件模板编码的后缀（与自动文件模板编码成对：X / X.manual）
+    /// </summary>
+    private const string ManualTemplateSuffix = ".manual";
+
     private readonly CodeGenerationOptions _options = options.Value;
     private readonly IHostEnvironment _environment = environment;
 
@@ -95,6 +100,12 @@ public sealed partial class ProjectArtifactWriter(IOptions<CodeGenerationOptions
             plans.Add((artifact, relative, fullPath));
         }
 
+        var foreign = FindForeignManualFile(plans);
+        if (foreign is not null)
+        {
+            return GeneratedArtifactWriteResult.Fail(foreign);
+        }
+
         var written = 0;
         var skipped = new List<string>();
         foreach (var (artifact, relative, fullPath) in plans)
@@ -120,6 +131,36 @@ public sealed partial class ProjectArtifactWriter(IOptions<CodeGenerationOptions
 
         IReadOnlyList<string> roots = [.. new[] { backendRoot, frontendRoot }.OfType<string>()];
         return GeneratedArtifactWriteResult.Ok(written, skipped.Count, skipped, roots);
+    }
+
+    /// <summary>
+    /// 找出不是生成器产出的同名手动文件
+    /// </summary>
+    /// <remarks>
+    /// 手动文件（模板编码 X.manual）只在首次生成时创建，之后与自动文件（模板编码 X）成对存在。
+    /// 手动文件已在、自动文件却没有，说明它是项目里原有的手写代码（如同名的实体、仓储）：
+    /// 照常跳过手动文件、写出自动文件，会与它重复定义而编译不过，所以整体拒绝。
+    /// </remarks>
+    private static string? FindForeignManualFile(IReadOnlyList<(GeneratedArtifact Artifact, string Relative, string FullPath)> plans)
+    {
+        foreach (var (artifact, relative, fullPath) in plans)
+        {
+            if (artifact.WriteMode != ArtifactWriteMode.WriteOnce
+                || artifact.TemplateCode?.EndsWith(ManualTemplateSuffix, StringComparison.Ordinal) != true
+                || !File.Exists(fullPath))
+            {
+                continue;
+            }
+
+            var generatedCode = artifact.TemplateCode[..^ManualTemplateSuffix.Length];
+            var generated = plans.FirstOrDefault(plan => plan.Artifact.TemplateCode == generatedCode);
+            if (generated.Artifact is not null && !File.Exists(generated.FullPath))
+            {
+                return $"项目里已有 {relative}，但不是代码生成器产出的（没有对应的 {generated.Relative}）：生成到项目会与它重复定义而编译不过。请改表配置的类名，或先移走这个手写文件再生成。";
+            }
+        }
+
+        return null;
     }
 
     /// <summary>

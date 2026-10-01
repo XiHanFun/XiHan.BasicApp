@@ -295,7 +295,7 @@ const {{ col.TsProperty }}Options = [{ label: '选项来源未接通', value: -1
 const modalVisible = ref(false)
 const submitLoading = ref(false)
 const form = ref<{{ ClassName }}FormModel>(createDefaultForm())
-const modalTitle = computed(() => (form.value.basicId ? '编辑{{ TableComment | ts_string }}' : '新增{{ TableComment | ts_string }}'))
+const modalTitle = computed(() => (form.value.basicId ? '编辑{{ DisplayName | ts_string }}' : '新增{{ DisplayName | ts_string }}'))
 {{~ if parent_in_form ~}}
 
 /** 编辑时排除自身：整枝过滤掉，其后代也随之不出现，避免把节点挂到自己的子树下形成环 */

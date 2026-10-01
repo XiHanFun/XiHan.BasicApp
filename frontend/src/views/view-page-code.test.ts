@@ -11,7 +11,18 @@ import { join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const SRC_ROOT = join(process.cwd(), 'src')
-const BACKEND_MODULES_ROOT = resolve(process.cwd(), '..', 'backend', 'src', 'modules')
+/**
+ * 后端放项目的分组目录：平台模块在 modules，业务模块在 business（代码生成「生成到项目」也写进这里）
+ */
+const BACKEND_PROJECT_ROOTS = ['modules', 'business'].map(group => resolve(process.cwd(), '..', 'backend', 'src', group))
+
+/** 后端全部项目目录 */
+function listBackendProjects(): string[] {
+  return BACKEND_PROJECT_ROOTS
+    .filter(root => existsSync(root))
+    .flatMap(root => readdirSync(root).map(name => join(root, name)))
+    .filter(project => statSync(project).isDirectory())
+}
 
 /** 后端菜单页登记：new("页面码", "标题", "i18n 键"|null, MenuType.Menu, "路径", "路由名", "组件路径", ... */
 const MENU_DESCRIPTOR = /new\("([a-z][\w.-]*)",\s*"[^"]*",\s*(?:"[^"]*"|null),\s*MenuType\.Menu,\s*"[^"]*",\s*"[^"]*",\s*"([^"]+)"/g
@@ -41,8 +52,8 @@ function toViewDirectory(component: string) {
 /** 扫出后端各模块登记的菜单页：视图目录 → 页面码 */
 function readRegisteredPages(): Map<string, string> {
   const pages = new Map<string, string>()
-  for (const module of readdirSync(BACKEND_MODULES_ROOT)) {
-    const registry = join(BACKEND_MODULES_ROOT, module, 'Application', 'Pages', 'PageRegistry.cs')
+  for (const project of listBackendProjects()) {
+    const registry = join(project, 'Application', 'Pages', 'PageRegistry.cs')
     if (!existsSync(registry)) {
       continue
     }

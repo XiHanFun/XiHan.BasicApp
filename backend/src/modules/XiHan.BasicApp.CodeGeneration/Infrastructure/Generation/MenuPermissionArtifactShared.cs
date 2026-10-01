@@ -109,13 +109,18 @@ internal static class MenuPermissionArtifactShared
     /// <summary>
     /// 资源编码（权限码资源段）= 表名（snake，全局唯一）
     /// </summary>
-    public static string Resource(CodeGenerationContext context) => context.TableName;
+    public static string Resource(CodeGenerationContext context) => context.TableName.ToLowerInvariant();
 
     /// <summary>
-    /// 展示名（业务名优先，回退类名）
+    /// 展示名（业务名优先，其次表注释，最后类名）
     /// </summary>
+    /// <remarks>
+    /// 菜单、权限名与页面上的文案（页面名、按钮、确认语、提示）共用这一个名字，避免菜单叫「示例便签」、页面却叫「示例便签表」。
+    /// </remarks>
     public static string Display(CodeGenerationContext context)
-        => string.IsNullOrWhiteSpace(context.BusinessName) ? context.ClassName : context.BusinessName!.Trim();
+        => !string.IsNullOrWhiteSpace(context.BusinessName) ? context.BusinessName!.Trim()
+            : !string.IsNullOrWhiteSpace(context.TableComment) ? context.TableComment!.Trim()
+            : context.ClassName;
 
     /// <summary>
     /// 命名空间（表配置命名空间优先，回退模块段/类名）

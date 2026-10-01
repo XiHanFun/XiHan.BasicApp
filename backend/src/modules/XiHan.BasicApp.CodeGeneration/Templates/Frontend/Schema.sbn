@@ -69,7 +69,7 @@ export interface {{ ClassName }}FormModel {
  */
 export const basePageMeta = {
   pageCode: '{{ PageCode }}',
-  pageName: '{{ TableComment | ts_string }}',
+  pageName: '{{ DisplayName | ts_string }}',
 {{~ if CanExport ~}}
   exportPermission: '{{ PageCode }}.export',
 {{~ end ~}}
@@ -101,7 +101,7 @@ export const basePageMeta = {
 {{~ end ~}}
 export const baseFields: ListFieldSchema[] = [
 {{~ if has_keyword ~}}
-  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ TableComment | ts_string }}', width: 250, order: 0 },
+  { key: 'keyword', title: '关键词', dataType: 'string', visible: false, searchable: true, searchPlaceholder: '搜索{{ DisplayName | ts_string }}', width: 250, order: 0 },
 {{~ end ~}}
 {{~ for col in Columns ~}}
 {{~ importable = can_import && col.IsImportable ~}}
@@ -121,19 +121,19 @@ export const baseFields: ListFieldSchema[] = [
  */
 export const baseActions: NonNullable<PageSchema['actions']> = [
 {{~ if can_create ~}}
-  { key: 'create', title: '新增{{ TableComment | ts_string }}', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: '{{ PageCode }}.create' },
+  { key: 'create', title: '新增{{ DisplayName | ts_string }}', scope: 'page', type: 'primary', icon: 'lucide:plus', permission: '{{ PageCode }}.create' },
 {{~ end ~}}
 {{~ if can_update ~}}
   { key: 'edit', title: '编辑', scope: 'row', permission: '{{ PageCode }}.update' },
 {{~ end ~}}
 {{~ if CanStatus ~}}
-  { key: 'toggle', title: '启用/停用', scope: 'row', icon: 'lucide:power', permission: '{{ PageCode }}.status', confirm: true, confirmText: row => (row.{{ StatusColumn.TsProperty }} === 'Enabled' ? '确定停用该{{ TableComment | ts_string }}吗？' : '确定启用该{{ TableComment | ts_string }}吗？') },
+  { key: 'toggle', title: '启用/停用', scope: 'row', icon: 'lucide:power', permission: '{{ PageCode }}.status', confirm: true, confirmText: row => (row.{{ StatusColumn.TsProperty }} === 'Enabled' ? '确定停用该{{ DisplayName | ts_string }}吗？' : '确定启用该{{ DisplayName | ts_string }}吗？') },
 {{~ end ~}}
 {{~ if CanPrint ~}}
   { key: 'print', title: '打印', scope: 'row', icon: 'lucide:printer', permission: '{{ PageCode }}.print' },
 {{~ end ~}}
 {{~ if CanDelete ~}}
-  { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: '{{ PageCode }}.delete', confirm: true, confirmText: '确定删除该{{ TableComment | ts_string }}吗？删除后不可恢复。' },
+  { key: 'delete', title: '删除', scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: '{{ PageCode }}.delete', confirm: true, confirmText: '确定删除该{{ DisplayName | ts_string }}吗？删除后不可恢复。' },
 {{~ end ~}}
 ]
 

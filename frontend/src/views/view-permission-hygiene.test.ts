@@ -16,7 +16,18 @@ import { join, relative, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const SRC_ROOT = join(process.cwd(), 'src')
-const BACKEND_MODULES_ROOT = resolve(process.cwd(), '..', 'backend', 'src', 'modules')
+/**
+ * 后端放项目的分组目录：平台模块在 modules，业务模块在 business（代码生成「生成到项目」也写进这里）
+ */
+const BACKEND_PROJECT_ROOTS = ['modules', 'business'].map(group => resolve(process.cwd(), '..', 'backend', 'src', group))
+
+/** 后端全部项目目录 */
+function listBackendProjects(): string[] {
+  return BACKEND_PROJECT_ROOTS
+    .filter(root => existsSync(root))
+    .flatMap(root => readdirSync(root).map(name => join(root, name)))
+    .filter(project => statSync(project).isDirectory())
+}
 
 /**
  * 后端各模块的权限码前缀（与各模块 PermissionCodes 的 Module 常量一致）。
@@ -142,13 +153,13 @@ function listSourceFiles(dir: string, acc: string[] = []): string[] {
  * 后端按钮登记所在的文件：各模块的页面登记表 PageRegistry.cs，以及直接在菜单种子里登记页面与按钮的
  * 各个 XxxMenuSeeder.cs（PageRegistryMenuSeederBase 两种写法都支持，代码生成器产出的就是后一种）
  */
-function listButtonRegistries(module: string): string[] {
+function listButtonRegistries(project: string): string[] {
   const files: string[] = []
-  const registry = join(BACKEND_MODULES_ROOT, module, 'Application', 'Pages', 'PageRegistry.cs')
+  const registry = join(project, 'Application', 'Pages', 'PageRegistry.cs')
   if (existsSync(registry)) {
     files.push(registry)
   }
-  const seeders = join(BACKEND_MODULES_ROOT, module, 'Infrastructure', 'Seeders')
+  const seeders = join(project, 'Infrastructure', 'Seeders')
   if (existsSync(seeders)) {
     files.push(...listFiles(seeders).filter(file => file.endsWith('MenuSeeder.cs')))
   }
@@ -171,7 +182,7 @@ function listFiles(dir: string, acc: string[] = []): string[] {
 /** 扫出后端各模块登记的全部按钮码 */
 function readRegisteredButtonCodes(): Set<string> {
   const codes = new Set<string>()
-  for (const registry of readdirSync(BACKEND_MODULES_ROOT).flatMap(listButtonRegistries)) {
+  for (const registry of listBackendProjects().flatMap(listButtonRegistries)) {
     const source = readFileSync(registry, 'utf8')
     const buttonsAt = source.indexOf('ButtonDescriptor> Buttons')
     if (buttonsAt === -1) {
