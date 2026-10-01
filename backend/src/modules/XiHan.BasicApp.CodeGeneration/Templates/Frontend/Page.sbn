@@ -79,8 +79,17 @@
 {{~ # 导入逐行调新增接口（引擎保证勾了导入就一定勾了新增），与 schema 里的导入字段同一判据 ~}}
 {{~ can_import = CanImport && can_create ~}}
 {{~ has_modal = can_create || can_update ~}}
-{{~ has_row_action = can_update || CanDelete || CanStatus ~}}
-{{~ has_actions = can_create || can_update || CanDelete || CanStatus ~}}
+{{~ has_row_action = can_update || CanDelete || CanStatus || CanPrint ~}}
+{{~ has_actions = can_create || can_update || CanDelete || CanStatus || CanPrint ~}}
+{{~ # 保存、删除、启停后刷新列表；只开打印时不需要 ~}}
+{{~ has_reload = has_modal || CanDelete || CanStatus ~}}
+{{~ # 打印时图片列要换成可访问地址（字段存的是文件主键） ~}}
+{{~ has_print_image = false ~}}
+{{~ for col in Columns ~}}
+{{~ if CanPrint && col.InDetail && col.ControlKind == "image" ~}}
+{{~ has_print_image = true ~}}
+{{~ end ~}}
+{{~ end ~}}
 {{~ need_message = has_actions || HasDetailTables ~}}
 {{~ # 子表按 kebab 排序：页面里明细区的呈现顺序稳定，不随表配置的返回顺序漂移 ~}}
 {{~ detail_tables = DetailTables | array.sort "ClassNameKebab" ~}}
@@ -126,7 +135,7 @@ import type {
 {{~ end ~}}
 } from '@/api/modules/{{ ModuleName | string.downcase }}/{{ ClassNameKebab }}.types'
 {{~ end ~}}
-import type { PageSchema{{ if has_actions }}, SchemaActionPayload{{ end }} } from '~/components'
+import type { PageSchema{{ if has_actions }}, SchemaActionPayload, SchemaPageInstance{{ end }} } from '~/components'
 {{~ if has_modal && has_dynamic_select ~}}
 import type { SelectOption } from '~/types'
 {{~ end ~}}
@@ -154,6 +163,9 @@ import XFileRefUpload from '@/components/FileRefUpload.vue'
 {{~ end ~}}
 import { SchemaPage{{ if HasDetailTables }}, XDataTable{{ end }}{{ if has_modal && has_date_picker }}, XDatePicker{{ end }}{{ if has_modal }}, XEditModal{{ end }}{{ if has_modal && has_text_input }}, XInput{{ end }}{{ if has_modal && has_number }}, XNumberInput{{ end }}{{ if has_modal && has_select }}, XSelect{{ end }}{{ if has_modal && has_relation_tree }}, XTreeSelect{{ end }} } from '~/components'
 {{~ composable_imports = [] ~}}
+{{~ if has_print_image ~}}
+{{~ composable_imports = composable_imports | array.add "resolveAvatarUrl" ~}}
+{{~ end ~}}
 {{~ if need_message ~}}
 {{~ composable_imports = composable_imports | array.add "toast" ~}}
 {{~ end ~}}
@@ -169,6 +181,9 @@ import { {{ composable_imports | array.join ", " }} } from '~/composables'
 {{~ if has_modal && has_enum_select ~}}
 import { useEnumOptions } from '~/hooks'
 {{~ end ~}}
+{{~ if CanPrint ~}}
+import { previewPrintByCode } from '~/printing'
+{{~ end ~}}
 {{~ if has_modal && has_relation_tree ~}}
 import { relationOptionsToTree } from '~/utils'
 {{~ end ~}}
@@ -182,7 +197,9 @@ const editFormId = useId()
 {{~ end ~}}
 {{~ if has_actions ~}}
 
-const schemaPageRef = ref<{ reload: () => Promise<void> } | null>(null)
+const schemaPageRef = ref<SchemaPageInstance | null>(null)
+{{~ end ~}}
+{{~ if has_reload ~}}
 
 function reloadList() {
   void schemaPageRef.value?.reload()
@@ -326,6 +343,13 @@ function onAction(payload: SchemaActionPayload) {
       }
       break
 {{~ end ~}}
+{{~ if CanPrint ~}}
+    case 'print':
+      if (row) {
+        void handlePrint(row)
+      }
+      break
+{{~ end ~}}
   }
 }
 {{~ end ~}}
@@ -415,6 +439,29 @@ async function handleToggleStatus(row: {{ ClassName }}ListItemDto) {
   }
   catch (error) {
     toast.danger((error as Error)?.message || (enable ? '启用失败' : '停用失败'))
+  }
+}
+{{~ end ~}}
+{{~ if CanPrint ~}}
+
+/**
+ * 打印：取详情，选项列换成显示名称{{ if has_print_image }}、图片换成可访问地址{{ end }}，按页面码取打印模板预览。
+ * 模板在「打印模板」页新建，编码同为页面码、数据源选本页。
+ */
+async function handlePrint(row: {{ ClassName }}ListItemDto) {
+  try {
+    const detail = await {{ ClassNameCamel }}Api.detail(row.basicId)
+    const source = (detail ?? row) as unknown as Record<string, unknown>
+    const data: Record<string, unknown> = { ...source, ...schemaPageRef.value?.formatRow(source) }
+{{~ for col in Columns ~}}
+{{~ if col.InDetail && col.ControlKind == "image" ~}}
+    data.{{ col.TsProperty }} = await resolveAvatarUrl(source.{{ col.TsProperty }} as null | string)
+{{~ end ~}}
+{{~ end ~}}
+    await previewPrintByCode(pageMeta.pageCode, data)
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || '打印失败')
   }
 }
 {{~ end ~}}

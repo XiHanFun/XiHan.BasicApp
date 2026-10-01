@@ -182,13 +182,13 @@ public sealed class CodeGenPermissionAndSeederStructureTests
     }
 
     /// <summary>
-    /// 标准按钮集必须覆盖八个基础动作，生成的页面按钮才配得齐。
+    /// 标准按钮集必须覆盖九个基础动作，生成的页面按钮才配得齐。
     /// </summary>
     [Fact]
     public void ButtonPermissionMappings_ShouldCoverAllStandardButtons()
     {
         Assert.Equal(
-            ["query", "detail", "create", "update", "delete", "export", "import", "status"],
+            ["query", "detail", "create", "update", "delete", "export", "import", "status", "print"],
             ButtonPermissionMappings.Buttons.Select(button => button.Key));
     }
 

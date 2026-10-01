@@ -142,6 +142,13 @@ public static class MenuPermissionArtifactGenerator
             sb.AppendLine("   导出中心接单的 `" + context.ClassName + "ExportProvider` 随后端产物生成，带 `IScopedDependency` 由框架约定注册，不必登记。");
         }
 
+        if (context.EnabledActions.Contains(CodeGenActions.Print))
+        {
+            sb.AppendLine("   打印按钮跟查看权限走，另需打印模板的使用权限 `print-template:use`。打印数据源 `" + context.ClassName + "PrintDataSource` 随后端产物生成，");
+            sb.AppendLine("   须在模块 `ConfigureServices` 里 `services.RegisterPrintDataSource(" + context.ClassName + "PrintDataSource.Definition)` 登记（模块须依赖打印模块），");
+            sb.AppendLine("   再到「打印模板」页新建编码为 `" + Shared.PageCode(context) + "` 的模板、数据源选它。");
+        }
+
         sb.AppendLine("   若改走应用级 `PageRegistry`，把 `" + context.ClassName + "PageRegistry.snippet.txt` 的条目粘进去并删掉 MenuSeeder，不要两边都登记。");
         sb.AppendLine("4. **重建数据库**：权限、菜单、按钮即到位。超管在平台天然拥有全部权限；租户要用，由运营把权限授给套餐与角色。");
         sb.AppendLine();

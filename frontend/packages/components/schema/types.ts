@@ -231,6 +231,16 @@ export interface SchemaResource<TRow> {
 }
 
 /**
+ * SchemaPage 组件实例上页面常用的方法（经模板 ref 取得）。
+ */
+export interface SchemaPageInstance {
+  /** 按当前查询条件重新取数 */
+  reload: () => Promise<void>
+  /** 按字段把一行格式化成显示文本（选项列取名称、日期按格式、布尔为是/否，空值为空串） */
+  formatRow: (row: object) => Record<string, string>
+}
+
+/**
  * 页面 Schema —— 整页单一事实源。
  */
 export interface PageSchema<TRow = Record<string, unknown>> {

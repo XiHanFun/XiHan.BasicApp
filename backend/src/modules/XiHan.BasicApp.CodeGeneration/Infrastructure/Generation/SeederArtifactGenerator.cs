@@ -73,7 +73,7 @@ internal static class SeederArtifactGenerator
     }
 
     /// <summary>
-    /// 按钮行（已启用的写操作）；查询与详情走列表页的读取权限，没有独立按钮
+    /// 按钮行（已启用的写操作与打印）；查询与详情走列表页的读取权限，没有独立按钮
     /// </summary>
     private static string BuildButtons(CodeGenerationContext context)
     {

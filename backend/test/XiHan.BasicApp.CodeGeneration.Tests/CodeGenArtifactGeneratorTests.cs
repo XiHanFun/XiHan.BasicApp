@@ -104,27 +104,29 @@ public sealed class CodeGenArtifactGeneratorTests
     }
 
     /// <summary>
-    /// 状态切换派生独立权限码。
+    /// 状态切换派生独立权限码；打印不是权限动作，跟读取权限走，不出权限码。
     /// </summary>
     [Fact]
-    public void PermissionCodes_StatusShouldDeriveCode()
+    public void PermissionCodes_StatusShouldDeriveCodeButPrintShouldNot()
     {
-        var context = CodeGenerationTestHelper.CreateContext(enabledActions: ["status"]);
+        var context = CodeGenerationTestHelper.CreateContext(enabledActions: ["status", "print"]);
 
         var codes = MenuPermissionArtifactGenerator.Build(context, [])[0].Content;
         var definitions = CodeGenerationTestHelper.BuildPermissionDefinitions(context).Content;
 
         Assert.Contains("public const string Status = \"sys_product:status\";", codes, StringComparison.Ordinal);
+        Assert.DoesNotContain("Print", codes, StringComparison.Ordinal);
         Assert.Contains("new(\"status\",", definitions, StringComparison.Ordinal);
+        Assert.DoesNotContain("new(\"print\",", definitions, StringComparison.Ordinal);
     }
 
     /// <summary>
-    /// 状态按钮随包含操作登记，挂状态权限。
+    /// 状态与打印按钮随包含操作登记：状态按钮挂状态权限，打印按钮挂读取权限。
     /// </summary>
     [Fact]
-    public void Buttons_StatusShouldBeRegisteredWithStatusPermission()
+    public void Buttons_StatusAndPrintShouldBeRegisteredWithTheirPermissions()
     {
-        var context = CodeGenerationTestHelper.CreateContext(enabledActions: ["create", "status"]);
+        var context = CodeGenerationTestHelper.CreateContext(enabledActions: ["create", "status", "print"]);
 
         var snippet = CodeGenerationTestHelper.BuildPageRegistrySnippet(context).Content;
         var menuSeeder = CodeGenerationTestHelper.BuildSeeders(context).Single(artifact => artifact.FileName.EndsWith("MenuSeeder.cs", StringComparison.Ordinal)).Content;
@@ -132,8 +134,20 @@ public sealed class CodeGenArtifactGeneratorTests
         foreach (var content in new[] { snippet, menuSeeder })
         {
             Assert.Contains("\"catalog.sys-product.status\", \"状态\", \"catalog.sys-product\", SysProductPermissionCodes.Status,", content, StringComparison.Ordinal);
+            Assert.Contains("\"catalog.sys-product.print\", \"打印\", \"catalog.sys-product\", SysProductPermissionCodes.Read,", content, StringComparison.Ordinal);
             Assert.DoesNotContain("catalog.sys-product.query", content, StringComparison.Ordinal);
         }
+    }
+
+    /// <summary>
+    /// 没勾打印时不登记打印按钮。
+    /// </summary>
+    [Fact]
+    public void Buttons_PrintShouldNotBeRegisteredWhenNotEnabled()
+    {
+        var snippet = CodeGenerationTestHelper.BuildPageRegistrySnippet(CodeGenerationTestHelper.CreateContext()).Content;
+
+        Assert.DoesNotContain("catalog.sys-product.print", snippet, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -226,19 +240,23 @@ public sealed class CodeGenArtifactGeneratorTests
     }
 
     /// <summary>
-    /// README 的按钮码只列实际启用的按钮。
+    /// README 的按钮码只列实际启用的按钮；勾了打印时写明打印数据源的登记与模板编码。
     /// </summary>
     [Fact]
-    public void Readme_ShouldListEnabledButtons()
+    public void Readme_ShouldListEnabledButtonsAndPrintWiring()
     {
-        var context = CodeGenerationTestHelper.CreateContext(enabledActions: ["create", "status"]);
+        var context = CodeGenerationTestHelper.CreateContext(enabledActions: ["create", "status", "print"]);
 
         var content = MenuPermissionArtifactGenerator.Build(context, [])[1].Content;
 
-        Assert.Contains("新增/状态按钮用按钮码 `catalog.sys-product.{create|status}` 门控", content, StringComparison.Ordinal);
+        Assert.Contains("新增/状态/打印按钮用按钮码 `catalog.sys-product.{create|status|print}` 门控", content, StringComparison.Ordinal);
+        Assert.Contains("services.RegisterPrintDataSource(SysProductPrintDataSource.Definition)", content, StringComparison.Ordinal);
+        Assert.Contains("新建编码为 `catalog.sys-product` 的模板", content, StringComparison.Ordinal);
+        Assert.Contains("`print-template:use`", content, StringComparison.Ordinal);
 
-        var defaults = MenuPermissionArtifactGenerator.Build(CodeGenerationTestHelper.CreateContext(), [])[1].Content;
-        Assert.Contains("新增/编辑/删除按钮用按钮码 `catalog.sys-product.{create|update|delete}` 门控", defaults, StringComparison.Ordinal);
+        var withoutPrint = MenuPermissionArtifactGenerator.Build(CodeGenerationTestHelper.CreateContext(), [])[1].Content;
+        Assert.Contains("新增/编辑/删除按钮用按钮码 `catalog.sys-product.{create|update|delete}` 门控", withoutPrint, StringComparison.Ordinal);
+        Assert.DoesNotContain("RegisterPrintDataSource", withoutPrint, StringComparison.Ordinal);
     }
 
     /// <summary>

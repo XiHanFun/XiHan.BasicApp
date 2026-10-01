@@ -30,16 +30,19 @@ public static class CodeGenActions
     /// <summary>状态切换（按表里的 EnableStatus 状态列启用/停用）</summary>
     public const string Status = "status";
 
+    /// <summary>打印（按页面码取打印模板，打印详情）</summary>
+    public const string Print = "print";
+
     /// <summary>
     /// 可裁剪操作全集（顺序即权限码、按钮在产物里的呈现顺序）
     /// </summary>
-    public static readonly IReadOnlyList<string> All = [Create, Update, Delete, Export, Import, Status];
+    public static readonly IReadOnlyList<string> All = [Create, Update, Delete, Export, Import, Status, Print];
 
     /// <summary>
     /// 未配置包含操作时的缺省集
     /// </summary>
     /// <remarks>
-    /// 状态切换要求表里有状态列，不能默认开启，须在表配置里显式勾选。
+    /// 状态切换要求表里有状态列，打印要求目标模块接入打印模块，二者不能默认开启，须在表配置里显式勾选。
     /// </remarks>
     public static readonly IReadOnlyList<string> Defaults = [Create, Update, Delete, Export, Import];
 
