@@ -63,10 +63,6 @@ async function onSubmit() {
   }
 }
 
-function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Enter')
-    onSubmit()
-}
 const onAuthInvalid = useAuthFormInvalid()
 </script>
 
@@ -89,7 +85,6 @@ const onAuthInvalid = useAuthFormInvalid()
       :rules="rules"
       validate-on="blur"
       @invalid="onAuthInvalid"
-      @keydown="handleKeydown"
       @submit="onSubmit"
     >
       <XhFormFieldGroup name="newPassword" class="!mb-4">
