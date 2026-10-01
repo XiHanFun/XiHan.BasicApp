@@ -534,7 +534,9 @@ public sealed class ScribanTemplateRendererTests
     [InlineData("bool", "boolean", HtmlType.Switch, false, true, "false|false|$v|")]
     [InlineData("DateTimeOffset", "string", HtmlType.DatePicker, false, false, "true|null|toDateOnly($v)|$v == null || Number.isNaN($v)")]
     [InlineData("DateTimeOffset?", "string", HtmlType.DatePicker, true, false, "false|null|$v == null ? null : toDateOnly($v)|")]
-    [InlineData("DateTimeOffset", "string", HtmlType.DateTimePicker, false, false, "true|''|$v ?? ''|!$v?.trim()")]
+    // 日期时间与日期同口径：按时间戳承载、不预填，提交时换成本地日期时间文本
+    [InlineData("DateTimeOffset", "string", HtmlType.DateTimePicker, false, false, "true|null|toDateTime($v)|$v == null || Number.isNaN($v)")]
+    [InlineData("DateTimeOffset?", "string", HtmlType.DateTimePicker, true, false, "false|null|$v == null ? null : toDateTime($v)|")]
     [InlineData("TimeSpan?", "string", HtmlType.TimePicker, true, false, "false|null|$v || null|")]
     // 上传与文本同理：非空文本列没传文件发空串，long 标识列没有缺省值即必填
     [InlineData("string", "string", HtmlType.ImageUpload, false, false, "false|''|$v ?? ''|")]
@@ -626,21 +628,63 @@ public sealed class ScribanTemplateRendererTests
     }
 
     /// <summary>
-    /// 数字框收得进小数：整数列要在提交前校验，小数列不校验。
+    /// 数字框的小数位：整数列 0 位（否则 1.5 会让整单 400），decimal 按列定义的小数位，
+    /// 浮点列与未定义小数位的 decimal 不限；超出组件上限 20 位的不限；long 标识不是数字框。
     /// </summary>
     [Fact]
-    public async Task RenderAsync_IntegerNumberFlagShouldOnlyMarkIntegerColumns()
+    public async Task RenderAsync_NumberPrecisionShouldFollowColumnType()
     {
+        var price = CodeGenerationTestHelper.CreateColumn("Price", "decimal", "number", htmlType: HtmlType.InputNumber);
+        price.DecimalDigits = 2;
+        var ratio = CodeGenerationTestHelper.CreateColumn("Ratio", "double", "number", htmlType: HtmlType.InputNumber);
+        ratio.DecimalDigits = 0;
+        var huge = CodeGenerationTestHelper.CreateColumn("Huge", "decimal?", "number", htmlType: HtmlType.InputNumber);
+        huge.DecimalDigits = 28;
         var context = CodeGenerationTestHelper.CreateContext(columns:
         [
             CodeGenerationTestHelper.CreateColumn("Stock", "int", "number", htmlType: HtmlType.InputNumber),
-            CodeGenerationTestHelper.CreateColumn("Price", "decimal", "number", htmlType: HtmlType.InputNumber),
+            price,
+            ratio,
+            CodeGenerationTestHelper.CreateColumn("Amount", "decimal", "number", htmlType: HtmlType.InputNumber),
+            huge,
             CodeGenerationTestHelper.CreateColumn("OwnerId", "long", "string")
         ]);
 
-        var result = await _renderer.RenderAsync("{{ for col in Columns }}{{ col.IsIntegerNumber }};{{ end }}", context);
+        var result = await _renderer.RenderAsync("{{ for col in Columns }}{{ col.NumberPrecision }};{{ end }}", context);
 
-        Assert.Equal("true;false;false;", result, StringComparer.Ordinal);
+        Assert.Equal("0;2;;;;;", result, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 文本框字数上限取字符串列的定义长度；long 标识、非文本控件、未定义长度与不限长的哨兵值都不限。
+    /// </summary>
+    [Fact]
+    public async Task RenderAsync_InputMaxLengthShouldOnlyApplyToSizedTextColumns()
+    {
+        var name = CodeGenerationTestHelper.CreateColumn("Name");
+        name.Length = 64;
+        var remark = CodeGenerationTestHelper.CreateColumn("Remark", "string?", htmlType: HtmlType.Textarea);
+        remark.Length = 500;
+        var content = CodeGenerationTestHelper.CreateColumn("Content", htmlType: HtmlType.Textarea);
+        content.Length = int.MaxValue;
+        var ownerId = CodeGenerationTestHelper.CreateColumn("OwnerId", "long", "string");
+        ownerId.Length = 20;
+        var level = CodeGenerationTestHelper.CreateColumn("Level", htmlType: HtmlType.Select);
+        level.Length = 16;
+        level.DictSelectorType = DictSelectorType.ConstSelector;
+        var context = CodeGenerationTestHelper.CreateContext(columns:
+        [
+            name,
+            remark,
+            content,
+            ownerId,
+            level,
+            CodeGenerationTestHelper.CreateColumn("Code")
+        ]);
+
+        var result = await _renderer.RenderAsync("{{ for col in Columns }}{{ col.InputMaxLength }};{{ end }}", context);
+
+        Assert.Equal("64;500;;;;;", result, StringComparer.Ordinal);
     }
 
     /// <summary>

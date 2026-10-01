@@ -38,11 +38,24 @@ public static class CSharpTypeFacts
     /// <param name="csharpType">C# 类型名，可带可空标注</param>
     /// <returns>已收录的整数类型返回 true</returns>
     /// <remarks>
-    /// 数字输入框收得进小数，而整数属性反序列化遇到 1.5 会整单报 400，表单要据此在提交前拦下。
+    /// 整数属性反序列化遇到 1.5 会整单报 400，表单的数字框据此按 0 位小数收值。
     /// </remarks>
     public static bool IsInteger(string? csharpType)
     {
         return IntegerTypeNames.Contains(StripNullable(csharpType));
+    }
+
+    /// <summary>
+    /// 是否为 decimal
+    /// </summary>
+    /// <param name="csharpType">C# 类型名，可带可空标注</param>
+    /// <returns>类型为 <c>decimal</c> / <c>Decimal</c> 时返回 true</returns>
+    /// <remarks>
+    /// 只有 decimal 的小数位是列定义给死的；浮点列的刻度由库元数据报成 0 或空，不能当成定点位数。
+    /// </remarks>
+    public static bool IsDecimal(string? csharpType)
+    {
+        return StripNullable(csharpType) is "decimal" or "Decimal";
     }
 
     /// <summary>

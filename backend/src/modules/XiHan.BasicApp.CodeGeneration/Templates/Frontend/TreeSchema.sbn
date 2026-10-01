@@ -36,7 +36,7 @@ import { {{ ClassNameCamel }}Api } from '@/api/modules/{{ ModuleName | string.do
  */
 export interface {{ ClassName }}FormModel {
   basicId?: string
-{{~ # 字段类型取 FormTsType（渲染器按 ControlKind 算好的）：开关恒 boolean、纯日期列按时间戳承载。 ~}}
+{{~ # 字段类型取 FormTsType（渲染器按 ControlKind 算好的）：开关恒 boolean、日期与日期时间列按时间戳承载。 ~}}
 {{~ # 除开关外一律可空：输入框、数字框、下拉、日期都能被清空，编辑态的模型得装得下空值； ~}}
 {{~ # 报文要不要空由提交时的 FormToWire 决定，与这里无关。 ~}}
 {{~ for col in Columns ~}}
