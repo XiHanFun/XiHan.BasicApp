@@ -202,6 +202,7 @@ export default {
     default_tag: 'デフォルト',
     // 表单 label / placeholder
     edition_code_placeholder: '例: pro',
+    edition_code_random: 'ランダムコードを生成',
     edition_name_placeholder: 'エディション名を入力',
     price_placeholder: '空欄の場合は価格未設定',
     billing_period_form: '課金サイクル(月)',

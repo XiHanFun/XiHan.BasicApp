@@ -202,6 +202,7 @@ export default {
     default_tag: 'डिफ़ॉल्ट',
     // 表单 label / placeholder
     edition_code_placeholder: 'जैसे: pro',
+    edition_code_random: 'यादृच्छिक कोड जनरेट करें',
     edition_name_placeholder: 'संस्करण नाम दर्ज करें',
     price_placeholder: 'खाली छोड़ने पर कीमत तय नहीं मानी जाएगी',
     billing_period_form: 'बिलिंग चक्र (माह)',
