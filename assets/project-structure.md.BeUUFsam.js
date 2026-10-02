@@ -1,5 +1,5 @@
-import{_ as n,o as a,c as e,a3 as t}from"./chunks/framework.C6R8kWFE.js";const g=JSON.parse('{"title":"目录结构与代码地图","description":"","frontmatter":{},"headers":[],"relativePath":"project-structure.md","filePath":"project-structure.md","lastUpdated":1786258579000}'),p={name:"project-structure.md"};function o(c,s,d,i,l,r){return a(),e("div",null,[...s[0]||(s[0]=[t(`<h1 id="目录结构与代码地图" tabindex="-1">目录结构与代码地图 <a class="header-anchor" href="#目录结构与代码地图" aria-label="Permalink to &quot;目录结构与代码地图&quot;">​</a></h1><p>这页解决一个具体问题：<strong>「我要改 X，该去哪个文件？」</strong> 上半部分是目录树，下半部分是按任务索引的代码地图。</p><h2 id="仓库全貌" tabindex="-1">仓库全貌 <a class="header-anchor" href="#仓库全貌" aria-label="Permalink to &quot;仓库全貌&quot;">​</a></h2><div class="language-text vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">text</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>XiHan.BasicApp/</span></span>
-<span class="line"><span>├── backend/                          # 后端（.NET 10）</span></span>
+import{_ as n,o as a,c as e,a3 as t}from"./chunks/framework.C6R8kWFE.js";const g=JSON.parse('{"title":"目录结构与代码地图","description":"","frontmatter":{},"headers":[],"relativePath":"project-structure.md","filePath":"project-structure.md","lastUpdated":1790916118000}'),p={name:"project-structure.md"};function o(c,s,d,i,l,r){return a(),e("div",null,[...s[0]||(s[0]=[t(`<h1 id="目录结构与代码地图" tabindex="-1">目录结构与代码地图 <a class="header-anchor" href="#目录结构与代码地图" aria-label="Permalink to &quot;目录结构与代码地图&quot;">​</a></h1><p>这页解决一个具体问题：<strong>「我要改 X，该去哪个文件？」</strong> 上半部分是目录树，下半部分是按任务索引的代码地图。</p><h2 id="仓库全貌" tabindex="-1">仓库全貌 <a class="header-anchor" href="#仓库全貌" aria-label="Permalink to &quot;仓库全貌&quot;">​</a></h2><div class="language-text vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">text</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>XiHan.BasicApp/</span></span>
+<span class="line"><span>├── backend/                          # 后端（.NET）</span></span>
 <span class="line"><span>│   ├── src/</span></span>
 <span class="line"><span>│   │   ├── framework/                #   基座层</span></span>
 <span class="line"><span>│   │   │   ├── XiHan.BasicApp.Core/          实体/DTO 基类、查询服务标记、聚合框架模块</span></span>
@@ -15,13 +15,13 @@ import{_ as n,o as a,c as e,a3 as t}from"./chunks/framework.C6R8kWFE.js";const g
 <span class="line"><span>│   ├── props/                        #   共享 MSBuild 属性（framework.props 源码/NuGet 切换）</span></span>
 <span class="line"><span>│   ├── test/                         #   测试项目</span></span>
 <span class="line"><span>│   └── XiHan.BasicApp.slnx           #   解决方案（始终走 NuGet 引用框架）</span></span>
-<span class="line"><span>├── frontend/                         # 前端（Vue 3 + Vite）</span></span>
+<span class="line"><span>├── frontend/                         # 前端（Vue + Vite）</span></span>
 <span class="line"><span>│   ├── src/                          #   应用装配与业务视图</span></span>
 <span class="line"><span>│   ├── packages/                     #   可复用内核</span></span>
 <span class="line"><span>│   ├── .env / .env.development / .env.production</span></span>
 <span class="line"><span>│   └── nginx.conf                    #   生产静态托管与 /api 反代示例</span></span>
 <span class="line"><span>├── docker-compose.yml</span></span>
-<span class="line"><span>└── assets/</span></span></code></pre></div><p><code>backend/src/business</code> 下的 OA、CMS、CRM、HRM、ERP 等 15 个项目目前是解决方案内脚手架，模块注册基本为空，且 <code>XiHanBasicAppWebHostModule</code> 未依赖它们。它们代表预留边界，不应当作已交付业务功能。</p><h2 id="后端-一个业务模块内部" tabindex="-1">后端：一个业务模块内部 <a class="header-anchor" href="#后端-一个业务模块内部" aria-label="Permalink to &quot;后端：一个业务模块内部&quot;">​</a></h2><p>以 <code>XiHan.BasicApp.Saas</code> 为例，四个模块结构一致：</p><div class="language-text vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">text</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>XiHan.BasicApp.Saas/</span></span>
+<span class="line"><span>└── assets/</span></span></code></pre></div><p><code>backend/src/business</code> 下的 OA、CMS、CRM、HRM、ERP 等 15 个项目目前是解决方案内脚手架，模块注册基本为空，且 <code>XiHanBasicAppWebHostModule</code> 未依赖它们。它们代表预留边界，不应当作已交付业务功能。</p><h2 id="后端-一个业务模块内部" tabindex="-1">后端：一个业务模块内部 <a class="header-anchor" href="#后端-一个业务模块内部" aria-label="Permalink to &quot;后端：一个业务模块内部&quot;">​</a></h2><p>以 <code>XiHan.BasicApp.Saas</code> 为例，各模块结构一致：</p><div class="language-text vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang">text</span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>XiHan.BasicApp.Saas/</span></span>
 <span class="line"><span>├── XiHanBasicAppSaasModule.cs        # 模块类：[DependsOn] + ConfigureServices</span></span>
 <span class="line"><span>├── Extensions/</span></span>
 <span class="line"><span>│   └── ServiceCollectionExtensions.cs  # ★ 所有接线集中在这里</span></span>
@@ -58,7 +58,7 @@ import{_ as n,o as a,c as e,a3 as t}from"./chunks/framework.C6R8kWFE.js";const g
 <span class="line"><span>│   │   ├── helpers.ts                #   分页/过滤/排序构造</span></span>
 <span class="line"><span>│   │   └── modules/**                #   ★ 按域的 API 与 DTO 类型</span></span>
 <span class="line"><span>│   ├── router/                       #   路由入口（守卫、静态路由）</span></span>
-<span class="line"><span>│   ├── styles/index.css              #   Tailwind v4 入口（CSS-first @theme）</span></span>
+<span class="line"><span>│   ├── styles/index.css              #   Tailwind 入口（CSS-first @theme）</span></span>
 <span class="line"><span>│   ├── locales/                      #   应用级语言包</span></span>
 <span class="line"><span>│   └── views/**                      #   ★ 业务视图</span></span>
 <span class="line"><span>└── packages/                         # 内核侧（别名 ~）</span></span>

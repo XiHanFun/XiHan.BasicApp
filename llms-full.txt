@@ -1410,7 +1410,7 @@ backend/src/main/XiHan.BasicApp.WebHost/
 
 | 键 | 默认 | 说明 |
 | --- | --- | --- |
-| `Local.RootPath` | `wwwroot/uploads` | 文件落盘根目录；这是 BasicApp 的显式配置，不是 Framework 3.10.1 的 `LocalStorageOptions` 默认值 |
+| `Local.RootPath` | `wwwroot/uploads` | 文件落盘根目录；这是 BasicApp 的显式配置，不是 Framework `LocalStorageOptions` 的默认值（`wwwroot/Uploads`） |
 | `Local.UrlPrefix` | `/uploads` | 对外访问 URL 前缀（**根相对路径**，跨源时前端拼 API origin） |
 
 对象存储的其余后端（S3/OSS/COS/MinIO）**配置落库**在 `SysStorageConfig`，不写 `appsettings`。见 [文件与存储](./backend/file#存储配置-file-storage)。
@@ -1487,7 +1487,7 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | PostgreSQL | 14+（或 MySQL / MariaDB） |
 | Redis | 6.0+ |
 | Node.js（构建前端） | 24.0+ |
-| pnpm（构建前端） | 11.0+（`packageManager` 已锁定 `pnpm@11.7.0`） |
+| pnpm（构建前端） | 11.0+（具体版本以 `packageManager` 为准） |
 
 ::: tip 部署前置
 - 准备好可连接的 **PostgreSQL** 与 **Redis**。
@@ -2596,14 +2596,14 @@ curl -X POST http://127.0.0.1:9708/api/Auth/Login \
 
 # XiHan.BasicApp 基础应用
 
-**企业级中后台内核。** 后端基于 .NET 10 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 3，开箱即带多租户、RBAC + ABAC 权限、代码生成与实时通信等能力。它既是一套可直接投产的中后台起点，也是学习 .NET + Vue 全栈实践、以及 XiHan.Framework 用法的最佳参考。
+**企业级中后台内核。** 后端基于 .NET 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 与 [XiHan.UI](https://ui.docs.xihanfun.com/)，开箱即带多租户、RBAC + ABAC 权限、代码生成与实时通信等能力。它既是一套可直接投产的中后台起点，也是学习 .NET + Vue 全栈实践、以及 XiHan.Framework 用法的最佳参考。
 
 ## 它是什么
 
 XiHan.BasicApp 采用**前后端分离**架构：
 
 - **后端** 遵循 DDD 分层与 CQRS，应用服务经**动态 API** 直接暴露为 REST 接口，无需写 Controller
-- **前端** 使用 Vue 3 + TypeScript + Naive UI，Schema 驱动的列表页、权限/租户/偏好三重感知
+- **前端** 使用 Vue + TypeScript + XiHan.UI，Schema 驱动的列表页、权限/租户/偏好三重感知
 
 系统内置完整的身份、权限、租户与审计能力。你可以拿它当项目脚手架直接改，也可以只读它的代码学习框架怎么用。
 
@@ -2684,8 +2684,8 @@ XiHan.BasicApp 采用**前后端分离**架构：
 
 | 端 | 关键技术 |
 | --- | --- |
-| 后端 | .NET 10 · XiHan.Framework 3.10.1 · SqlSugar（PostgreSQL/MySQL/MariaDB）· Redis · SignalR · Serilog · Scalar |
-| 前端 | Vue 3.5+ · TypeScript 6.0+ · Vite 8 · Naive UI · Pinia · Tailwind CSS 4 · Tiptap · vue-i18n |
+| 后端 | .NET · XiHan.Framework · SqlSugar（PostgreSQL/MySQL/MariaDB）· Redis · SignalR · Serilog · Scalar |
+| 前端 | Vue · TypeScript · Vite · XiHan.UI · Pinia · Tailwind CSS · Tiptap · vue-i18n |
 
 ## 在线体验
 
@@ -2702,7 +2702,7 @@ XiHan.BasicApp 构建在 [XiHan.Framework](https://framework.docs.xihanfun.com/)
 
 # 系统概述
 
-XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 10 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 3。它把中后台系统里"每个项目都要重做一遍"的部分——身份、权限、租户、审计、代码生成、实时通信——一次性做好，让你专注在真正的业务上。
+XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 与 [XiHan.UI](https://ui.docs.xihanfun.com/)。它把中后台系统里"每个项目都要重做一遍"的部分——身份、权限、租户、审计、代码生成、实时通信——一次性做好，让你专注在真正的业务上。
 
 ## 定位
 
@@ -2715,7 +2715,7 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 10 与 
 系统采用**前后端分离**：
 
 - **后端**遵循 DDD 分层与 CQRS，应用服务经**动态 API** 直接暴露为 REST 接口——不写 Controller，接口即服务方法
-- **前端**使用 Vue 3 + TypeScript + Naive UI，列表页由 **Schema 驱动**，搜索/表格/导出按配置生成，并对权限、租户、个人偏好三重感知
+- **前端**使用 Vue + TypeScript + XiHan.UI，列表页由 **Schema 驱动**，搜索/表格/导出按配置生成，并对权限、租户、个人偏好三重感知
 
 详见 [系统架构](./backend/introduction)。
 
@@ -2749,8 +2749,8 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 10 与 
 
 | 技术 | 说明 |
 | --- | --- |
-| .NET 10 / C# | 运行时与语言 |
-| XiHan.Framework 3.10.1 | 自研模块化应用框架 |
+| .NET / C# | 运行时与语言 |
+| XiHan.Framework | 自研模块化应用框架 |
 | SqlSugar | ORM，支持 PostgreSQL / MySQL / MariaDB |
 | Redis | 分布式缓存与分布式锁 |
 | SignalR | 实时通信 |
@@ -2761,12 +2761,12 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 10 与 
 
 | 技术 | 说明 |
 | --- | --- |
-| Vue 3.5+ | UI 框架 |
-| TypeScript 6.0+ | 类型系统 |
-| Vite 8 | 构建工具 |
-| Naive UI | 组件库 |
+| Vue | UI 框架 |
+| TypeScript | 类型系统 |
+| Vite | 构建工具 |
+| XiHan.UI | 组件库 |
 | Pinia | 状态管理 |
-| Tailwind CSS 4 | 原子化 CSS |
+| Tailwind CSS | 原子化 CSS |
 | Tiptap | 富文本编辑器 |
 | vue-i18n | 国际化 |
 
@@ -2802,7 +2802,7 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 10 与 
 
 ```text
 XiHan.BasicApp/
-├── backend/                          # 后端（.NET 10）
+├── backend/                          # 后端（.NET）
 │   ├── src/
 │   │   ├── framework/                #   基座层
 │   │   │   ├── XiHan.BasicApp.Core/          实体/DTO 基类、查询服务标记、聚合框架模块
@@ -2818,7 +2818,7 @@ XiHan.BasicApp/
 │   ├── props/                        #   共享 MSBuild 属性（framework.props 源码/NuGet 切换）
 │   ├── test/                         #   测试项目
 │   └── XiHan.BasicApp.slnx           #   解决方案（始终走 NuGet 引用框架）
-├── frontend/                         # 前端（Vue 3 + Vite）
+├── frontend/                         # 前端（Vue + Vite）
 │   ├── src/                          #   应用装配与业务视图
 │   ├── packages/                     #   可复用内核
 │   ├── .env / .env.development / .env.production
@@ -2831,7 +2831,7 @@ XiHan.BasicApp/
 
 ## 后端：一个业务模块内部
 
-以 `XiHan.BasicApp.Saas` 为例，四个模块结构一致：
+以 `XiHan.BasicApp.Saas` 为例，各模块结构一致：
 
 ```text
 XiHan.BasicApp.Saas/
@@ -2879,7 +2879,7 @@ frontend/
 │   │   ├── helpers.ts                #   分页/过滤/排序构造
 │   │   └── modules/**                #   ★ 按域的 API 与 DTO 类型
 │   ├── router/                       #   路由入口（守卫、静态路由）
-│   ├── styles/index.css              #   Tailwind v4 入口（CSS-first @theme）
+│   ├── styles/index.css              #   Tailwind 入口（CSS-first @theme）
 │   ├── locales/                      #   应用级语言包
 │   └── views/**                      #   ★ 业务视图
 └── packages/                         # 内核侧（别名 ~）
@@ -2978,8 +2978,8 @@ frontend/
 
 ::: warning 这些情况建议先别选
 - **面向 C 端的门户 / 交易 / 高并发系统**：它是中后台内核，设计目标不是极限吞吐
-- **被锁在 .NET 6 / 8**，或团队已深度绑定 EF Core：底座是 .NET 10 + SqlSugar
-- **前端团队是 React 技术栈**：前端是 Vue 3，迁移等于重写
+- **被锁在旧版 .NET**，或团队已深度绑定 EF Core：底座是当前 .NET 版本 + SqlSugar
+- **前端团队是 React 技术栈**：前端是 Vue，迁移等于重写
 - **只需要一个「有登录和菜单」的小后台**：权限、租户、审计这套模型对小系统是过度设计
 :::
 
@@ -5509,7 +5509,7 @@ readinessProbe:
 仓库的 Development 配置打开了 `Enabled`，但关闭控制台导出且 `OtlpEndpoint` 为空。这种配置仍会让 ASP.NET Core 创建 W3C Activity，使响应与日志使用 32 位 TraceId，但不会把链路发送到外部后端。
 
 ::: warning `EnableLogging` 当前未接线
-Framework 3.10.1 的 `EnableLogging` 只有选项字段，没有 OpenTelemetry Logs 装配。应用日志仍走 Serilog；不要因为打开该字段就认为日志已发送到 OTLP。
+Framework 的 `EnableLogging` 目前只有选项字段，没有 OpenTelemetry Logs 装配。应用日志仍走 Serilog；不要因为打开该字段就认为日志已发送到 OTLP。
 :::
 
 ## TraceId 如何贯通
@@ -5615,7 +5615,7 @@ XiHan.BasicApp 后端是一套基于 [XiHan.Framework](https://framework.docs.xi
 | `XiHan.BasicApp.CodeGeneration` | 业务模块 | 代码生成 |
 | `XiHan.BasicApp.AI` | 业务模块 | AI Provider 库化管理 / 知识库 RAG / 提示词库 / AI 助手 |
 | `XiHan.BasicApp.Workflow` | 业务模块 | 工作流应用层（存储持久化 + 定义/实例/待办 + 待办通知） |
-| `XiHan.BasicApp.WebHost` | 主机 | 启动入口，聚合四个业务模块，注册数据库 / Redis / Qdrant 健康检查与 Telegram Webhook |
+| `XiHan.BasicApp.WebHost` | 主机 | 启动入口，聚合各业务模块，注册数据库 / Redis / Qdrant 健康检查与 Telegram Webhook |
 
 **分层规则**：只能依赖比自己低的层，绝不反向。三个卫星模块（CodeGeneration / AI / Workflow）都依赖 `Saas`，彼此不直接依赖。
 
@@ -5651,7 +5651,7 @@ await app.RunAsync();
 )]
 ```
 
-四个业务模块之外的可观测性与 MCP 等框架能力经 `Saas → Web.Core → Core → XiHan.Framework.*` 一路传递，**无需在根模块重复声明**。根模块额外负责：
+业务模块之外的可观测性与 MCP 等框架能力经 `Saas → Web.Core → Core → XiHan.Framework.*` 一路传递，**无需在根模块重复声明**。根模块额外负责：
 
 - **健康检查**：`AddCheck<DatabaseHealthCheck>("database")` + `AddCheck<RedisHealthCheck>("redis")` + `AddCheck<QdrantHealthCheck>("qdrant")`；`/health` 匿名暴露，只回总状态与检查项名（不外泄连接串/异常）。
 - **Telegram Webhook**：在 `OnPreApplicationInitialization` 注册，位于鉴权中间件**之前**，自带 `secret_token` 强校验。
@@ -5669,7 +5669,7 @@ await app.RunAsync();
 
 ## 模块内部：DDD 三层
 
-四个业务模块内部统一分 **Domain / Application / Infrastructure**：
+各业务模块内部统一分 **Domain / Application / Infrastructure**：
 
 | 层 | 目录（以 Saas 为例） | 放什么 |
 | --- | --- | --- |
@@ -8386,11 +8386,11 @@ export default {
 
 缺文案时侧边栏会**直接显示键名**（如 `menu.identity_position`）——看到这个就是漏了这一步。
 
-## Naive UI 内置文案
+## 组件库内置文案
 
-日期选择器、分页「X / 页」这类组件内置文案随应用 locale 切换：`App.vue` 里 `useNaiveLocale()` 注入 `NConfigProvider` 的 `locale` / `date-locale`。
+日期选择器的星期、分页与下拉的读屏名这类 XiHan.UI 内置文案随应用 locale 切换：`App.vue` 里 `provideXhConfig(useXhUiConfig())` 把语言标记与内建文案交给组件库，文案表在 `packages/locales/xihan-ui.ts`（`xhTranslations` 按语言键取，缺对应语言时中文系回退 `zh-CN`、其余回退 `en-US`）。
 
-加新语言时**别忘了这一处**，否则业务文案切了、组件文案还是中文。
+加新语言时**别忘了在 `xihan-ui.ts` 补一份**，否则业务文案切了、组件文案还停在回退语言。
 
 ## 裸 `@` 会白屏
 
@@ -8559,11 +8559,11 @@ new("identity.position", "岗位管理", "menu.identity_position", MenuType.Menu
 
 | 领域 | 选型 |
 | --- | --- |
-| 框架 | Vue 3.5（`<script setup>`） |
+| 框架 | Vue（`<script setup>`） |
 | 语言 / 构建 | TypeScript · Vite |
-| UI 库 | Naive UI |
+| UI 库 | XiHan.UI |
 | 状态 | Pinia（Setup Store + `$reset` 插件） |
-| 样式 | Tailwind CSS 4（CSS-first `@theme`，**preflight 关闭**） |
+| 样式 | Tailwind CSS（CSS-first `@theme`，**preflight 关闭**） |
 | 路由 | vue-router（默认 hash 模式） |
 | 国际化 | vue-i18n（`legacy: false`） |
 | 实时 | `@microsoft/signalr` |
@@ -8717,7 +8717,7 @@ app.use(router).mount('#app')
 - [Schema 驱动页面](../frontend/schema-page)：列表页开发手册
 - [路由与菜单](../frontend/routing)：动态路由生成与守卫
 - [权限与脱敏](../frontend/permission)：三级过滤与 FLS
-- [布局与主题](./theme)：布局、Tailwind v4、主题、偏好同步
+- [布局与主题](./theme)：布局、Tailwind CSS、主题、偏好同步
 - [国际化](./i18n)：语言包与文案
 - [接口对接指南](../api-guide)：响应信封与请求协议
 
@@ -9494,7 +9494,7 @@ resource: {
 
 # 布局与主题
 
-外观相关的一切：布局结构、Tailwind v4 的用法与陷阱、主题系统、偏好同步。
+外观相关的一切：布局结构、Tailwind CSS 的用法与陷阱、主题系统、偏好同步。
 
 ## 布局
 
@@ -9512,7 +9512,7 @@ resource: {
 回到顶部、路由切换重置滚动都已由布局适配器统一处理。
 :::
 
-## 样式：Tailwind CSS 4（CSS-first）
+## 样式：Tailwind CSS（CSS-first）
 
 用 `@tailwindcss/vite` + **CSS-first `@theme`**（入口 `src/styles/index.css`），**没有 JS config 文件**。
 
@@ -9520,7 +9520,7 @@ resource: {
 
 | 约定 | 说明 |
 | --- | --- |
-| **只引入 theme + utilities，不引入 preflight** | 基础重置由 Naive UI 与 `design/global.css` 的最小重置负责，避免与 Naive UI 打架 |
+| **只引入 theme + utilities，不引入 preflight** | 基础重置由 XiHan.UI 的 `xihan.reset` 层与 `design/global.css` 的最小重置负责，避免两套重置互相打架 |
 | 颜色令牌用运行时 HSL CSS 变量 | `--color-primary: hsl(var(--primary))` 等，保证明暗与主题色能动态切换 |
 | 暗色走 class 策略 | `@custom-variant dark (&:where(.dark, .dark *))` |
 
@@ -9586,7 +9586,7 @@ Schema 页的列设置、搜索设置、个人视图按 `pageCode` 走同一套�
 | 深色区域里的元素还是亮色 | 嵌套 `.dark` 令牌问题，见上面的 danger 块 |
 | 改了主题色但某些地方没变 | 那些地方写死了颜色值，没用 CSS 变量 |
 | 页面滚不动 / 吸顶失效 | 用了 `window` 滚动的假设；改用 `h-full` 或 `XPageShell` |
-| 样式被 Naive UI 覆盖 | preflight 是**故意关闭**的，别去打开——会破坏 Naive UI |
+| 打开 preflight 后组件样式错乱 | preflight 是**故意关闭**的，别去打开——基础重置由 XiHan.UI 的 `xihan.reset` 层负责 |
 | 偏好换台设备就没了 | 后端保存失败被静默忽略了，查接口是否可用 |
 
 ## 相关页面

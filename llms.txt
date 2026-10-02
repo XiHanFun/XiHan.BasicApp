@@ -23,7 +23,7 @@
 - [快速开始](https://basicapp.docs.xihanfun.com/getting-started): 本篇带你在本地把 XiHan.BasicApp 的后端与前端跑起来。
 - [曦寒基础应用](https://basicapp.docs.xihanfun.com/): 基于 .NET 与 Vue 的超高颜值中后台内核
 - [XiHan.BasicApp 基础应用](https://basicapp.docs.xihanfun.com/introduction): 企业级中后台内核。
-- [系统概述](https://basicapp.docs.xihanfun.com/overview): XiHan.BasicApp 是一个企业级中后台内核：后端基于 .NET 10 与 XiHan.Framework，前端基于 Vue 3。
+- [系统概述](https://basicapp.docs.xihanfun.com/overview): XiHan.BasicApp 是一个企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 与 XiHan.UI。
 - [目录结构与代码地图](https://basicapp.docs.xihanfun.com/project-structure): 这页解决一个具体问题：「我要改 X，该去哪个文件？」 上半部分是目录树，下半部分是按任务索引的代码地图。
 - [为什么选择曦寒](https://basicapp.docs.xihanfun.com/why): 完整能力清单在 功能清单，这一页不重复。
 
@@ -68,4 +68,4 @@
 - [服务端交互](https://basicapp.docs.xihanfun.com/frontend/request): 前端调后端的全部约定：请求客户端怎么建、URL 怎么拼、分页协议长什么样、响应怎么解包、401/423 怎么处理。
 - [路由与菜单](https://basicapp.docs.xihanfun.com/frontend/routing): 前端路由默认由后端菜单驱动——后端 `PageRegistry` 是菜单、路由、组件路径、权限码、i18n 键的单一事实源，前端只负责把菜单数据转成 `RouteRecordRaw` 并落地视图文件。
 - [Schema 驱动页面](https://basicapp.docs.xihanfun.com/frontend/schema-page): BasicApp 的列表页几乎都不手写表格。
-- [布局与主题](https://basicapp.docs.xihanfun.com/frontend/theme): 外观相关的一切：布局结构、Tailwind v4 的用法与陷阱、主题系统、偏好同步。
+- [布局与主题](https://basicapp.docs.xihanfun.com/frontend/theme): 外观相关的一切：布局结构、Tailwind CSS 的用法与陷阱、主题系统、偏好同步。

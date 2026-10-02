@@ -273,11 +273,11 @@ export default {
 
 缺文案时侧边栏会**直接显示键名**（如 `menu.identity_position`）——看到这个就是漏了这一步。
 
-## Naive UI 内置文案
+## 组件库内置文案
 
-日期选择器、分页「X / 页」这类组件内置文案随应用 locale 切换：`App.vue` 里 `useNaiveLocale()` 注入 `NConfigProvider` 的 `locale` / `date-locale`。
+日期选择器的星期、分页与下拉的读屏名这类 XiHan.UI 内置文案随应用 locale 切换：`App.vue` 里 `provideXhConfig(useXhUiConfig())` 把语言标记与内建文案交给组件库，文案表在 `packages/locales/xihan-ui.ts`（`xhTranslations` 按语言键取，缺对应语言时中文系回退 `zh-CN`、其余回退 `en-US`）。
 
-加新语言时**别忘了这一处**，否则业务文案切了、组件文案还是中文。
+加新语言时**别忘了在 `xihan-ui.ts` 补一份**，否则业务文案切了、组件文案还停在回退语言。
 
 ## 裸 `@` 会白屏
 
@@ -446,11 +446,11 @@ new("identity.position", "岗位管理", "menu.identity_position", MenuType.Menu
 
 | 领域 | 选型 |
 | --- | --- |
-| 框架 | Vue 3.5（`<script setup>`） |
+| 框架 | Vue（`<script setup>`） |
 | 语言 / 构建 | TypeScript · Vite |
-| UI 库 | Naive UI |
+| UI 库 | XiHan.UI |
 | 状态 | Pinia（Setup Store + `$reset` 插件） |
-| 样式 | Tailwind CSS 4（CSS-first `@theme`，**preflight 关闭**） |
+| 样式 | Tailwind CSS（CSS-first `@theme`，**preflight 关闭**） |
 | 路由 | vue-router（默认 hash 模式） |
 | 国际化 | vue-i18n（`legacy: false`） |
 | 实时 | `@microsoft/signalr` |
@@ -604,7 +604,7 @@ app.use(router).mount('#app')
 - [Schema 驱动页面](../frontend/schema-page)：列表页开发手册
 - [路由与菜单](../frontend/routing)：动态路由生成与守卫
 - [权限与脱敏](../frontend/permission)：三级过滤与 FLS
-- [布局与主题](./theme)：布局、Tailwind v4、主题、偏好同步
+- [布局与主题](./theme)：布局、Tailwind CSS、主题、偏好同步
 - [国际化](./i18n)：语言包与文案
 - [接口对接指南](../api-guide)：响应信封与请求协议
 
@@ -1381,7 +1381,7 @@ resource: {
 
 # 布局与主题
 
-外观相关的一切：布局结构、Tailwind v4 的用法与陷阱、主题系统、偏好同步。
+外观相关的一切：布局结构、Tailwind CSS 的用法与陷阱、主题系统、偏好同步。
 
 ## 布局
 
@@ -1399,7 +1399,7 @@ resource: {
 回到顶部、路由切换重置滚动都已由布局适配器统一处理。
 :::
 
-## 样式：Tailwind CSS 4（CSS-first）
+## 样式：Tailwind CSS（CSS-first）
 
 用 `@tailwindcss/vite` + **CSS-first `@theme`**（入口 `src/styles/index.css`），**没有 JS config 文件**。
 
@@ -1407,7 +1407,7 @@ resource: {
 
 | 约定 | 说明 |
 | --- | --- |
-| **只引入 theme + utilities，不引入 preflight** | 基础重置由 Naive UI 与 `design/global.css` 的最小重置负责，避免与 Naive UI 打架 |
+| **只引入 theme + utilities，不引入 preflight** | 基础重置由 XiHan.UI 的 `xihan.reset` 层与 `design/global.css` 的最小重置负责，避免两套重置互相打架 |
 | 颜色令牌用运行时 HSL CSS 变量 | `--color-primary: hsl(var(--primary))` 等，保证明暗与主题色能动态切换 |
 | 暗色走 class 策略 | `@custom-variant dark (&:where(.dark, .dark *))` |
 
@@ -1473,7 +1473,7 @@ Schema 页的列设置、搜索设置、个人视图按 `pageCode` 走同一套�
 | 深色区域里的元素还是亮色 | 嵌套 `.dark` 令牌问题，见上面的 danger 块 |
 | 改了主题色但某些地方没变 | 那些地方写死了颜色值，没用 CSS 变量 |
 | 页面滚不动 / 吸顶失效 | 用了 `window` 滚动的假设；改用 `h-full` 或 `XPageShell` |
-| 样式被 Naive UI 覆盖 | preflight 是**故意关闭**的，别去打开——会破坏 Naive UI |
+| 打开 preflight 后组件样式错乱 | preflight 是**故意关闭**的，别去打开——基础重置由 XiHan.UI 的 `xihan.reset` 层负责 |
 | 偏好换台设备就没了 | 后端保存失败被静默忽略了，查接口是否可用 |
 
 ## 相关页面
