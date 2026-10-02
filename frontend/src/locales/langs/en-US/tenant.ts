@@ -202,6 +202,7 @@ export default {
     default_tag: 'Default',
     // Form label / placeholder
     edition_code_placeholder: 'e.g. pro',
+    edition_code_random: 'Generate random code',
     edition_name_placeholder: 'Enter edition name',
     price_placeholder: 'Leave empty for unpriced',
     billing_period_form: 'Billing Cycle (months)',

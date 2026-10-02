@@ -28,7 +28,8 @@ import { STATUS_OPTIONS } from '@/constants'
 import { SchemaPage, XEditModal, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions, usePermission } from '~/hooks'
-import { getOptionLabel } from '~/utils'
+import { Icon } from '~/iconify'
+import { getOptionLabel, randomString } from '~/utils'
 import { diffEditionGrants, isEmptyEditionGrantDiff, mergeMappedIntoCatalog, validEditionPermissionIds } from './edition-grants'
 
 defineOptions({ name: 'TenantEditionPage' })
@@ -319,6 +320,11 @@ function handleAdd() {
   modalVisible.value = true
 }
 
+/** 随机生成版本编码：解决「起名困难、图省事」；唯一性由后端唯一索引与前置校验兜底 */
+function generateEditionCode() {
+  editionForm.value.editionCode = randomString(8)
+}
+
 async function handleEdit(row: TenantEditionListItemDto) {
   // 列表行不含备注，取详情回填；否则保存时会把备注覆盖为空
   let detail: TenantEditionDetailDto | null = null
@@ -584,7 +590,21 @@ async function savePermChanges() {
                 :disabled="Boolean(editionForm.basicId)"
                 clearable
                 :placeholder="t('tenant.edition.edition_code_placeholder')"
-              />
+              >
+                <!-- 随机生成触发器仅新增态出现；type="button" 防止把整表提交掉 -->
+                <template #suffix>
+                  <button
+                    v-if="!editionForm.basicId"
+                    type="button"
+                    class="edition-code-random"
+                    :aria-label="t('tenant.edition.edition_code_random')"
+                    :title="t('tenant.edition.edition_code_random')"
+                    @click="generateEditionCode"
+                  >
+                    <Icon width="14" height="14" icon="lucide:dices" />
+                  </button>
+                </template>
+              </XInput>
             </XhFieldControl>
             <XhFieldErrorText />
           </XhFieldRoot>
@@ -769,5 +789,22 @@ async function savePermChanges() {
   margin: 0;
   color: var(--xh-fg-muted);
   font-size: var(--xh-text-caption-size);
+}
+
+/* 版本编码随机生成触发器：排在输入框盒内，与清除钮同段；焦点环交给浏览器默认样式 */
+.edition-code-random {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--xh-fg-muted);
+  cursor: pointer;
+}
+
+.edition-code-random:hover {
+  color: var(--xh-fg);
 }
 </style>

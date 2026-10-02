@@ -202,6 +202,7 @@ export default {
     default_tag: '기본',
     // 表单 label / placeholder
     edition_code_placeholder: '예: pro',
+    edition_code_random: '무작위 코드 생성',
     edition_name_placeholder: '에디션 이름을 입력하세요',
     price_placeholder: '비워 두면 가격 미정',
     billing_period_form: '청구 주기(개월)',

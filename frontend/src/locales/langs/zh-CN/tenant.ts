@@ -202,6 +202,7 @@ export default {
     default_tag: '默认',
     // 表单 label / placeholder
     edition_code_placeholder: '如: pro',
+    edition_code_random: '随机生成编码',
     edition_name_placeholder: '请输入版本名称',
     price_placeholder: '留空表示未定价',
     billing_period_form: '计费周期(月)',
