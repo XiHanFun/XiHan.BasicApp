@@ -11,7 +11,7 @@ BasicApp 的列表页几乎都不手写表格。**一份字段声明（`ListFiel
 ```text
 ListFieldSchema[]  ← 字段单一事实源（禁止重复定义）
       │
-      ├──► 搜索表单（searchable / advancedSearch / searchRange / searchMultiple）
+      ├──► 搜索表单（searchable / advancedSearch / searchRange / searchMultiple / searchFilterable）
       ├──► 表格列（visible / width / fixed / render / sortable）
       ├──► 导出字段（exportable）
       ├──► 导入模板（importable）
@@ -52,6 +52,7 @@ PageSchema         ← 整页事实源（字段 + 资源适配器 + 操作 + 权
 | `searchable` / `advancedSearch` | 进入常用搜索 / 高级搜索浮层 |
 | `searchRange` | 时间字段：渲染区间选择器 + 便捷预设，下发 `Between` |
 | `searchMultiple` | 枚举/标签字段：渲染多选下拉，下发 `In` |
+| `searchFilterable` | 单选的枚举/标签字段：渲染可输入筛选的下拉（XCombobox），在已取回的选项里筛；选项多时用，如关联表 |
 | `sortable` | 服务端排序（列头出现排序箭头） |
 | `exportable` / `importable` / `editable` | 参与导出 / 导入模板 / 表单编辑 |
 | **`permission`** | **字段级权限码**：无此权限时该列与该搜索项**整个不渲染** |

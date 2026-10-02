@@ -85,14 +85,6 @@
 - bigint 列的 TS 类型由 `number` 改为 `string`（后端 `LongJsonConverter` 把 long 全部序列化为字符串）。存量表配置**不用管**：渲染期会按 C# 类型归一化，库里存着 `ts_type='number'` 也照样产出正确的产物。升级脚本 `UpdateScripts/4.0.4` 只是顺带把库里的配置刷成一致，好让列配置界面显示的类型与实际产物对得上。
 :::
 
-::: warning 日期时间列目前是文本框
-纯日期列（`date`）用日期选择器，按本地年月日提交，不会因时区换算退掉一天。
-
-而日期时间列（`datetime` / `timestamp` / `datetimeoffset`）渲染成带格式校验的文本框：组件库的 `XDatePicker` 只到日，用它承载会在编辑时把时分秒抹成本地零点。等 `XDatePicker` 补上 `show-time`（headless 层已支持 `showTime` / `timeGranularity`）再切回选择器。
-
-时间列（`time`）同理，也是文本框 + `HH:mm(:ss)` 校验。二进制列用文本框承载 Base64，接真实上传需自行替换成上传组件。
-:::
-
 ::: warning 按钮码必须先落到 PageRegistry
 生成页面的行/页面操作用 `permission: '{页面码}.{按钮键}'` 门控，这是服务端下发的**按钮码**。
 把 `{{ClassName}}PageRegistry.snippet.txt` 里的 `ButtonDescriptor` 条目粘进 `PageRegistry.Buttons` 之前，
@@ -100,6 +92,26 @@
 :::
 
 > 二阶产物是**待并入源码的代码片段，不是运行时写库**。这符合 BasicApp 的单一事实源 + 菜单即绑约定：把片段并入源码后，全新库由 Seeder 初始化；存量库还要把必要的数据变化纳入同版本 `UpdateScripts`。
+
+### 表单控件的取值口径
+
+- 纯日期列（`date`）用 `XDatePicker`，按本地年月日（`yyyy-MM-dd`）提交，不会因时区换算退掉一天。
+- 日期时间列（`datetime` / `timestamp` / `datetimeoffset`）用带时刻的 `XDatePicker show-time`，精确到分，按本地时间文本（`yyyy-MM-dd HH:mm:ss`）提交，与后端下发、导入的口径一致。
+- 数字列用 `XNumberInput`：整数列 `:precision="0"`，输入的小数直接回舍，不会因 1.5 让整单 400；`decimal` 列按列定义的小数位；浮点列不限。
+- 文本列带上列定义的长度 `:max-length`，文本域同时显示字数；DTO 不校验长度，超长原本要到落库才报错。
+- 关联表列的候选随目标表增长：表单用可输入筛选的 `XCombobox`，搜索区的字段标 `searchFilterable` 同样可输入筛选，都在取回的全量选项里本地筛；字典、枚举、常量下拉仍是 `XSelect`，关联树仍是树形下拉。已生成的页面重新生成后搜索区随 `schema.generated.ts` 自动换上，表单在 `index.vue` 里，想要可自行把该列的 `XSelect` 换成 `XCombobox`。
+- 时间列（`time`）没有对应的选择器，仍是文本框 + `HH:mm(:ss)` 校验；二进制列用文本框承载 Base64，接真实上传需自行替换成上传组件。
+
+::: warning 5.4.2 及更早版本生成的页面
+`{kebab}.schema.generated.ts` 每次覆盖，`index.vue` 只首次创建。含日期时间列的表重新生成后，表单模型里该字段变为 `number | null`（时间戳），而旧 `index.vue` 仍用文本框承载，类型检查会报错。按新模板手工迁移旧 `index.vue`：
+
+- 控件换成 `<XDatePicker v-model:value="form.xxx" clearable show-time />`；
+- 回填改为 `xxx: src.xxx ? new Date(String(src.xxx).replace(' ', 'T')).getTime() : null`；
+- 提交改为 `toDateTime(form.value.xxx)`（可空列 `form.value.xxx == null ? null : toDateTime(form.value.xxx)`），`toDateTime` 照抄新模板；
+- 删掉 `DATE_TIME_PATTERN` 及其校验；整数列的 `Number.isInteger` 校验可换成数字框的 `:precision="0"`。
+
+不含日期时间列的表不受影响。
+:::
 
 ## 数据源与表结构
 
