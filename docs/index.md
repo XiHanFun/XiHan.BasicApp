@@ -6,7 +6,7 @@ titleTemplate: 基于 .NET 与 Vue 的超高颜值中后台内核
 hero:
   name: 曦寒基础应用
   text: 超高颜值的企业级中后台内核
-  tagline: 基于 .NET 10 与 Vue 3 · 多租户 · RBAC + ABAC · 代码生成 · 实时通信
+  tagline: 基于 XiHan.Framework 与 XiHan.UI · 多租户 · RBAC + ABAC · 代码生成 · 实时通信
   image:
     src: /images/logo.png
     alt: 曦寒基础应用

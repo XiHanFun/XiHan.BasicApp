@@ -266,7 +266,7 @@ backend/src/main/XiHan.BasicApp.WebHost/
 
 | 键 | 默认 | 说明 |
 | --- | --- | --- |
-| `Local.RootPath` | `wwwroot/uploads` | 文件落盘根目录；这是 BasicApp 的显式配置，不是 Framework 3.10.1 的 `LocalStorageOptions` 默认值 |
+| `Local.RootPath` | `wwwroot/uploads` | 文件落盘根目录；这是 BasicApp 的显式配置，不是 Framework `LocalStorageOptions` 的默认值（`wwwroot/Uploads`） |
 | `Local.UrlPrefix` | `/uploads` | 对外访问 URL 前缀（**根相对路径**，跨源时前端拼 API origin） |
 
 对象存储的其余后端（S3/OSS/COS/MinIO）**配置落库**在 `SysStorageConfig`，不写 `appsettings`。见 [文件与存储](./backend/file#存储配置-file-storage)。

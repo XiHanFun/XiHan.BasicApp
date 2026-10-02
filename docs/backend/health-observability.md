@@ -115,7 +115,7 @@ readinessProbe:
 仓库的 Development 配置打开了 `Enabled`，但关闭控制台导出且 `OtlpEndpoint` 为空。这种配置仍会让 ASP.NET Core 创建 W3C Activity，使响应与日志使用 32 位 TraceId，但不会把链路发送到外部后端。
 
 ::: warning `EnableLogging` 当前未接线
-Framework 3.10.1 的 `EnableLogging` 只有选项字段，没有 OpenTelemetry Logs 装配。应用日志仍走 Serilog；不要因为打开该字段就认为日志已发送到 OTLP。
+Framework 的 `EnableLogging` 目前只有选项字段，没有 OpenTelemetry Logs 装配。应用日志仍走 Serilog；不要因为打开该字段就认为日志已发送到 OTLP。
 :::
 
 ## TraceId 如何贯通

@@ -1,13 +1,13 @@
 # XiHan.BasicApp 基础应用
 
-**企业级中后台内核。** 后端基于 .NET 10 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 3，开箱即带多租户、RBAC + ABAC 权限、代码生成与实时通信等能力。它既是一套可直接投产的中后台起点，也是学习 .NET + Vue 全栈实践、以及 XiHan.Framework 用法的最佳参考。
+**企业级中后台内核。** 后端基于 .NET 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 与 [XiHan.UI](https://ui.docs.xihanfun.com/)，开箱即带多租户、RBAC + ABAC 权限、代码生成与实时通信等能力。它既是一套可直接投产的中后台起点，也是学习 .NET + Vue 全栈实践、以及 XiHan.Framework 用法的最佳参考。
 
 ## 它是什么
 
 XiHan.BasicApp 采用**前后端分离**架构：
 
 - **后端** 遵循 DDD 分层与 CQRS，应用服务经**动态 API** 直接暴露为 REST 接口，无需写 Controller
-- **前端** 使用 Vue 3 + TypeScript + Naive UI，Schema 驱动的列表页、权限/租户/偏好三重感知
+- **前端** 使用 Vue + TypeScript + XiHan.UI，Schema 驱动的列表页、权限/租户/偏好三重感知
 
 系统内置完整的身份、权限、租户与审计能力。你可以拿它当项目脚手架直接改，也可以只读它的代码学习框架怎么用。
 
@@ -88,8 +88,8 @@ XiHan.BasicApp 采用**前后端分离**架构：
 
 | 端 | 关键技术 |
 | --- | --- |
-| 后端 | .NET 10 · XiHan.Framework 3.10.1 · SqlSugar（PostgreSQL/MySQL/MariaDB）· Redis · SignalR · Serilog · Scalar |
-| 前端 | Vue 3.5+ · TypeScript 6.0+ · Vite 8 · Naive UI · Pinia · Tailwind CSS 4 · Tiptap · vue-i18n |
+| 后端 | .NET · XiHan.Framework · SqlSugar（PostgreSQL/MySQL/MariaDB）· Redis · SignalR · Serilog · Scalar |
+| 前端 | Vue · TypeScript · Vite · XiHan.UI · Pinia · Tailwind CSS · Tiptap · vue-i18n |
 
 ## 在线体验
 

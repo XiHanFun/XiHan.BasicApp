@@ -4,9 +4,9 @@
 
 <h1>XiHan.BasicApp</h1>
 
-<p><b>基于 .Net + Vue 的超高颜值通用中后台内核</b></p>
+<p><b>基于 XiHan.Framework 和 XiHan.UI 的超高颜值通用中后台内核</b></p>
 
-<p>后端基于 .NET 10 与 <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>，前端基于 Vue 3 与 <a href="https://github.com/XiHanFun/XiHan.UI">XiHan.UI</a><br/>多租户 · RBAC + 数据范围 + 字段脱敏 · 代码生成 · 实时通信</p>
+<p>后端基于 .NET 与 <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>，前端基于 Vue 与 <a href="https://github.com/XiHanFun/XiHan.UI">XiHan.UI</a><br/>多租户 · RBAC + 数据范围 + 字段脱敏 · 代码生成 · 实时通信</p>
 
 <p><a href="./README.md">English</a> | <b>简体中文</b></p>
 
@@ -18,12 +18,12 @@
 
 
 <p>
-  <img alt=".NET" src="https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet&logoColor=white" />
-  <a href="https://github.com/XiHanFun/XiHan.Framework"><img alt="XiHan.Framework" src="https://img.shields.io/badge/XiHan.Framework-4.0.0-6f42c1?style=flat-square" /></a>
-  <img alt="Vue" src="https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" />
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" />
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
+  <img alt=".NET" src="https://img.shields.io/badge/.NET-512BD4?style=flat-square&logo=dotnet&logoColor=white" />
+  <a href="https://github.com/XiHanFun/XiHan.Framework"><img alt="XiHan.Framework" src="https://img.shields.io/badge/XiHan.Framework-6f42c1?style=flat-square" /></a>
+  <img alt="Vue" src="https://img.shields.io/badge/Vue-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
   <a href="https://www.nuget.org/packages?q=XiHan.BasicApp"><img alt="NuGet" src="https://img.shields.io/nuget/v/XiHan.BasicApp.Core?style=flat-square&logo=nuget&logoColor=white&label=NuGet&color=004880" /></a>
 </p>
 
@@ -52,7 +52,7 @@
 
 ## 简介
 
-XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层，写路径走应用服务、读路径走查询服务，应用服务经动态 API 直接暴露为 REST 接口；前端使用 Vue 3 + TypeScript + XiHan.UI，后端使用 .NET 10 + XiHan.Framework。系统内置完整的身份、权限、租户与审计能力，既可作为中后台项目的起点，也可作为 .NET + Vue 全栈实践的参考。属于曦寒懿（XiHanFun）开源生态的基础应用，拥有底座、组件、应用的完整生态。
+XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层，写路径走应用服务、读路径走查询服务，应用服务经动态 API 直接暴露为 REST 接口；前端使用 Vue + TypeScript + XiHan.UI，后端使用 .NET + XiHan.Framework。系统内置完整的身份、权限、租户与审计能力，既可作为中后台项目的起点，也可作为 .NET + Vue 全栈实践的参考。属于曦寒懿（XiHanFun）开源生态的基础应用。
 
 ## 文档
 
@@ -158,7 +158,7 @@ XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层，写路径
 
 ## 技术栈
 
-后端 .NET 10 + XiHan.Framework 4.0.0（SqlSugar / Redis / SignalR / Serilog / Scalar 均由框架带入）；前端 Vue 3 + TypeScript + Vite 8 + XiHan.UI + Pinia + Tailwind CSS 4。
+后端 .NET + XiHan.Framework（SqlSugar / Redis / SignalR / Serilog / Scalar 均由框架带入）；前端 Vue + TypeScript + Vite + XiHan.UI + Pinia + Tailwind CSS。
 
 逐项清单见[后端工程说明](./backend/README_cn.md#依赖构成)与[前端工程说明](./frontend/README_cn.md#技术栈)。
 
@@ -191,7 +191,7 @@ XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层，写路径
 | 项目 | 说明 | 可卸载 |
 | --- | --- | --- |
 | `XiHan.BasicApp.Core` | 应用基座，聚合框架的非 Web 模块与全应用共享约定 | 否 |
-| `XiHan.BasicApp.Web.Core` | Web 侧基座，聚合六个框架 Web 模块，提供维护模式中间件 | 否 |
+| `XiHan.BasicApp.Web.Core` | Web 侧基座，聚合框架 Web 模块，提供维护模式中间件 | 否 |
 | `XiHan.BasicApp.Saas` | 平台治理模块：用户 / 角色 / 权限 / 菜单 / 部门 / 租户 / 配置 / 字典 / 文件 / 通知 / 审批 / 日志 / 任务 | 否 |
 | `XiHan.BasicApp.CodeGeneration` | 代码生成：数据源管理 / 表结构导入 / 模板配置 / 全栈生成 | 是 |
 | `XiHan.BasicApp.AI` | AI 能力：提供商与密钥管理 / 提示词库 / 知识库 RAG / AI 技能（MCP 工具）/ 聊天 AI 助手 | 是（助手桥接依赖 Chat） |
@@ -202,15 +202,15 @@ XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层，写路径
 
 ```text
 XiHan.BasicApp/
-├── backend/                 # 后端（.NET 10）
+├── backend/                 # 后端（.NET）
 │   ├── src/
 │   │   ├── framework/       #   Core / Web.Core 基础能力
-│   │   ├── modules/         #   Saas + 五个可选模块（CodeGen/AI/Workflow/Printing/Chat）
+│   │   ├── modules/         #   Saas + 可选模块（CodeGen/AI/Workflow/Printing/Chat）
 │   │   └── main/            #   WebHost 启动入口
 │   ├── props/               #   共享 MSBuild 属性
 │   ├── scripts/             #   版本号与清理脚本
 │   └── test/                #   测试项目
-├── frontend/                # 前端（Vue 3 + XiHan.UI）
+├── frontend/                # 前端（Vue + XiHan.UI）
 │   ├── src/                 #   应用源码（src/modules/ 与后端可选模块一一对应）
 │   └── packages/            #   内部包
 └── assets/                  # README 资源

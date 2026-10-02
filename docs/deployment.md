@@ -10,7 +10,7 @@
 | PostgreSQL | 14+（或 MySQL / MariaDB） |
 | Redis | 6.0+ |
 | Node.js（构建前端） | 24.0+ |
-| pnpm（构建前端） | 11.0+（`packageManager` 已锁定 `pnpm@11.7.0`） |
+| pnpm（构建前端） | 11.0+（具体版本以 `packageManager` 为准） |
 
 ::: tip 部署前置
 - 准备好可连接的 **PostgreSQL** 与 **Redis**。

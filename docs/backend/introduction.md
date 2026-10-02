@@ -62,7 +62,7 @@ XiHan.BasicApp 后端是一套基于 [XiHan.Framework](https://framework.docs.xi
 | `XiHan.BasicApp.CodeGeneration` | 业务模块 | 代码生成 |
 | `XiHan.BasicApp.AI` | 业务模块 | AI Provider 库化管理 / 知识库 RAG / 提示词库 / AI 助手 |
 | `XiHan.BasicApp.Workflow` | 业务模块 | 工作流应用层（存储持久化 + 定义/实例/待办 + 待办通知） |
-| `XiHan.BasicApp.WebHost` | 主机 | 启动入口，聚合四个业务模块，注册数据库 / Redis / Qdrant 健康检查与 Telegram Webhook |
+| `XiHan.BasicApp.WebHost` | 主机 | 启动入口，聚合各业务模块，注册数据库 / Redis / Qdrant 健康检查与 Telegram Webhook |
 
 **分层规则**：只能依赖比自己低的层，绝不反向。三个卫星模块（CodeGeneration / AI / Workflow）都依赖 `Saas`，彼此不直接依赖。
 
@@ -98,7 +98,7 @@ await app.RunAsync();
 )]
 ```
 
-四个业务模块之外的可观测性与 MCP 等框架能力经 `Saas → Web.Core → Core → XiHan.Framework.*` 一路传递，**无需在根模块重复声明**。根模块额外负责：
+业务模块之外的可观测性与 MCP 等框架能力经 `Saas → Web.Core → Core → XiHan.Framework.*` 一路传递，**无需在根模块重复声明**。根模块额外负责：
 
 - **健康检查**：`AddCheck<DatabaseHealthCheck>("database")` + `AddCheck<RedisHealthCheck>("redis")` + `AddCheck<QdrantHealthCheck>("qdrant")`；`/health` 匿名暴露，只回总状态与检查项名（不外泄连接串/异常）。
 - **Telegram Webhook**：在 `OnPreApplicationInitialization` 注册，位于鉴权中间件**之前**，自带 `secret_token` 强校验。
@@ -116,7 +116,7 @@ await app.RunAsync();
 
 ## 模块内部：DDD 三层
 
-四个业务模块内部统一分 **Domain / Application / Infrastructure**：
+各业务模块内部统一分 **Domain / Application / Infrastructure**：
 
 | 层 | 目录（以 Saas 为例） | 放什么 |
 | --- | --- | --- |

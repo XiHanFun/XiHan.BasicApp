@@ -4,9 +4,9 @@
 
 <h1>XiHan.BasicApp</h1>
 
-<p><b>A beautifully crafted general-purpose admin kernel built on .NET and Vue</b></p>
+<p><b>A beautifully crafted general-purpose admin kernel built on XiHan.Framework and XiHan.UI</b></p>
 
-<p>A .NET 10 backend on <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>, a Vue 3 frontend on <a href="https://github.com/XiHanFun/XiHan.UI">XiHan.UI</a><br/>Multi-tenancy · RBAC with data scopes and field masking · Code generation · Realtime</p>
+<p>A .NET backend on <a href="https://github.com/XiHanFun/XiHan.Framework">XiHan.Framework</a>, a Vue frontend on <a href="https://github.com/XiHanFun/XiHan.UI">XiHan.UI</a><br/>Multi-tenancy · RBAC with data scopes and field masking · Code generation · Realtime</p>
 
 <p><b>English</b> | <a href="./README_cn.md">简体中文</a></p>
 
@@ -18,12 +18,12 @@
 
 
 <p>
-  <img alt=".NET" src="https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet&logoColor=white" />
-  <a href="https://github.com/XiHanFun/XiHan.Framework"><img alt="XiHan.Framework" src="https://img.shields.io/badge/XiHan.Framework-4.0.0-6f42c1?style=flat-square" /></a>
-  <img alt="Vue" src="https://img.shields.io/badge/Vue-3.5-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" />
-  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white" />
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" />
-  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
+  <img alt=".NET" src="https://img.shields.io/badge/.NET-512BD4?style=flat-square&logo=dotnet&logoColor=white" />
+  <a href="https://github.com/XiHanFun/XiHan.Framework"><img alt="XiHan.Framework" src="https://img.shields.io/badge/XiHan.Framework-6f42c1?style=flat-square" /></a>
+  <img alt="Vue" src="https://img.shields.io/badge/Vue-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
   <a href="https://www.nuget.org/packages?q=XiHan.BasicApp"><img alt="NuGet" src="https://img.shields.io/nuget/v/XiHan.BasicApp.Core?style=flat-square&logo=nuget&logoColor=white&label=NuGet&color=004880" /></a>
 </p>
 
@@ -52,7 +52,7 @@
 
 ## Introduction
 
-XiHan.BasicApp is a decoupled frontend/backend system. The backend follows DDD layering — writes go through application services, reads through query services — and application services are exposed directly as REST endpoints by the dynamic API convention. The frontend is Vue 3 + TypeScript + XiHan.UI, and the backend .NET 10 + XiHan.Framework. Identity, permissions, tenancy and auditing are built in, so it works both as the starting point for an admin project and as a reference for full-stack .NET + Vue practice. XiHan.BasicApp is the application layer of the XiHanFun open-source ecosystem, which spans foundation, components and applications.
+XiHan.BasicApp is a decoupled frontend/backend system. The backend follows DDD layering — writes go through application services, reads through query services — and application services are exposed directly as REST endpoints by the dynamic API convention. The frontend is Vue + TypeScript + XiHan.UI, and the backend .NET + XiHan.Framework. Identity, permissions, tenancy and auditing are built in, so it works both as the starting point for an admin project and as a reference for full-stack .NET + Vue practice. XiHan.BasicApp is the basic application of the XiHanFun open-source ecosystem.
 
 ## Documentation
 
@@ -158,7 +158,7 @@ Mobile:
 
 ## Tech Stack
 
-Backend: .NET 10 with XiHan.Framework 4.0.0 (SqlSugar, Redis, SignalR, Serilog and Scalar all arrive through the framework). Frontend: Vue 3 + TypeScript + Vite 8 + XiHan.UI + Pinia + Tailwind CSS 4.
+Backend: .NET with XiHan.Framework (SqlSugar, Redis, SignalR, Serilog and Scalar all arrive through the framework). Frontend: Vue + TypeScript + Vite + XiHan.UI + Pinia + Tailwind CSS.
 
 Item-by-item lists live in the [backend](./backend/README.md#dependency-footprint) and [frontend](./frontend/README.md#stack) engineering notes.
 
@@ -191,7 +191,7 @@ The system splits into a framework layer, a module layer and the host applicatio
 | Project | Description | Removable |
 | --- | --- | --- |
 | `XiHan.BasicApp.Core` | Application base composing the non-web framework modules and shared conventions | No |
-| `XiHan.BasicApp.Web.Core` | Web base composing six framework web modules, provides the maintenance-mode middleware | No |
+| `XiHan.BasicApp.Web.Core` | Web base composing the framework web modules, provides the maintenance-mode middleware | No |
 | `XiHan.BasicApp.Saas` | Platform governance: users / roles / permissions / menus / departments / tenants / settings / dictionaries / files / notifications / approvals / logs / jobs | No |
 | `XiHan.BasicApp.CodeGeneration` | Code generation: data sources / schema import / template configuration / full-stack output | Yes |
 | `XiHan.BasicApp.AI` | AI: providers and key custody / prompt library / knowledge-base RAG / skills as MCP tools / chat assistant | Yes (the assistant bridge depends on Chat) |
@@ -202,15 +202,15 @@ The system splits into a framework layer, a module layer and the host applicatio
 
 ```text
 XiHan.BasicApp/
-├── backend/                 # backend (.NET 10)
+├── backend/                 # backend (.NET)
 │   ├── src/
 │   │   ├── framework/       #   Core / Web.Core base capabilities
-│   │   ├── modules/         #   Saas + five optional modules (CodeGen/AI/Workflow/Printing/Chat)
+│   │   ├── modules/         #   Saas + optional modules (CodeGen/AI/Workflow/Printing/Chat)
 │   │   └── main/            #   WebHost startup entry
 │   ├── props/               #   shared MSBuild properties
 │   ├── scripts/             #   version bump and cleanup scripts
 │   └── test/                #   test projects
-├── frontend/                # frontend (Vue 3 + XiHan.UI)
+├── frontend/                # frontend (Vue + XiHan.UI)
 │   ├── src/                 #   application sources (src/modules/ mirrors the optional backend modules)
 │   └── packages/            #   internal packages
 └── assets/                  # README assets
