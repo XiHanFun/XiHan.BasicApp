@@ -6,11 +6,11 @@
 
 | 领域 | 选型 |
 | --- | --- |
-| 框架 | Vue 3.5（`<script setup>`） |
+| 框架 | Vue（`<script setup>`） |
 | 语言 / 构建 | TypeScript · Vite |
-| UI 库 | Naive UI |
+| UI 库 | XiHan.UI |
 | 状态 | Pinia（Setup Store + `$reset` 插件） |
-| 样式 | Tailwind CSS 4（CSS-first `@theme`，**preflight 关闭**） |
+| 样式 | Tailwind CSS（CSS-first `@theme`，**preflight 关闭**） |
 | 路由 | vue-router（默认 hash 模式） |
 | 国际化 | vue-i18n（`legacy: false`） |
 | 实时 | `@microsoft/signalr` |
@@ -164,6 +164,6 @@ app.use(router).mount('#app')
 - [Schema 驱动页面](../frontend/schema-page)：列表页开发手册
 - [路由与菜单](../frontend/routing)：动态路由生成与守卫
 - [权限与脱敏](../frontend/permission)：三级过滤与 FLS
-- [布局与主题](./theme)：布局、Tailwind v4、主题、偏好同步
+- [布局与主题](./theme)：布局、Tailwind CSS、主题、偏好同步
 - [国际化](./i18n)：语言包与文案
 - [接口对接指南](../api-guide)：响应信封与请求协议

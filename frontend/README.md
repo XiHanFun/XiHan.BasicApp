@@ -10,13 +10,13 @@ If you just want to get the whole system running, start from the [repository REA
 
 ## Stack
 
-Vue 3 + TypeScript + Vite. The application root only carries vue, vue-router, pinia, vue-i18n, `@vueuse/core` and six `@xihan-ui/*` packages as runtime dependencies; every heavier library is pushed down into the workspace package that owns it.
+Vue + TypeScript + Vite. The application root only carries vue, vue-router, pinia, vue-i18n, `@vueuse/core` and the `@xihan-ui/*` packages as runtime dependencies; every heavier library is pushed down into the workspace package that owns it.
 
-Tooling: Vite, `@vitejs/plugin-vue(-jsx)`, vue-tsc, Turbo, Tailwind CSS v4 (`@tailwindcss/vite`, CSS-first with no JS config), unplugin-auto-import, unplugin-vue-components, oxlint + ESLint.
+Tooling: Vite, `@vitejs/plugin-vue(-jsx)`, vue-tsc, Turbo, Tailwind CSS (`@tailwindcss/vite`, CSS-first with no JS config), unplugin-auto-import, unplugin-vue-components, oxlint + ESLint.
 
 ## Requirements
 
-`packageManager` is `pnpm@11.7.0`; `engines` requires Node ≥ 24 and pnpm ≥ 11.
+`packageManager` pins the exact pnpm version; `engines` requires Node ≥ 24 and pnpm ≥ 11.
 
 `@xihan-ui/*` comes from the published npm releases (pinned to `^1.1.0` in the `pnpm-workspace.yaml` catalog), so cloning this repository on its own and running `pnpm install` just works — no sibling `XiHan.UI` checkout required.
 
@@ -59,7 +59,7 @@ frontend/
 
 `src/modules/<module>/` may only contain `views/`, `api/`, `locales/`, `setup.ts` and `README.md`. `main.ts` discovers startup hooks with `import.meta.glob('/src/modules/*/setup.ts', { eager: true })` — **deleting the directory uninstalls the module; no registration code has to change**.
 
-The five modules ai / chat / codegen / printing / workflow map one-to-one onto the optional backend modules and contribute 35 pages in total.
+The modules ai / chat / codegen / printing / workflow map one-to-one onto the optional backend modules.
 
 ### Routing Model
 

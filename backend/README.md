@@ -15,14 +15,14 @@ Three layers, dependencies flow upwards only, never back:
 ```text
 src/main/       XiHan.BasicApp.WebHost          the only executable project
       ↑
-src/modules/    Saas · CodeGeneration · AI      six business modules
+src/modules/    Saas · CodeGeneration · AI      business modules
                 Workflow · Printing · Chat      depend on Saas or Web.Core only
       ↑
 src/framework/  XiHan.BasicApp.Core             the only two projects referencing
                 XiHan.BasicApp.Web.Core         XiHan.Framework
 ```
 
-`Saas` is the base module — identity, permissions, multi-tenancy, auditing and platform capabilities. The other five are optional and can be removed as a whole.
+`Saas` is the base module — identity, permissions, multi-tenancy, auditing and platform capabilities. The rest are optional and can be removed as a whole.
 
 ## Project Catalog
 
@@ -31,7 +31,7 @@ src/framework/  XiHan.BasicApp.Core             the only two projects referencin
 | Project | Responsibility |
 | --- | --- |
 | `XiHan.BasicApp.Core` | Application base: composes the non-web framework modules and the shared types and conventions |
-| `XiHan.BasicApp.Web.Core` | Web base (`Microsoft.NET.Sdk.Web`): composes six framework web modules, provides maintenance mode (state flag + 503/`Retry-After` middleware, passing through `/health` and `/.well-known/`) |
+| `XiHan.BasicApp.Web.Core` | Web base (`Microsoft.NET.Sdk.Web`): composes the framework web modules, provides maintenance mode (state flag + 503/`Retry-After` middleware, passing through `/health` and `/.well-known/`) |
 | `XiHan.BasicApp.Saas` | Base business module: authentication, RBAC with data scopes and field masking, multi-tenancy, six kinds of audit log, message center, export center, scheduled jobs, open platform |
 | `XiHan.BasicApp.CodeGeneration` | Code generation: DbFirst schema import, single-table / tree / master-detail modes, Scriban templates, derived artifact generators |
 | `XiHan.BasicApp.AI` | AI: provider and API-key custody, prompt library, Qdrant knowledge-base RAG, skill registry with MCP projection, configurable assistants |
@@ -110,7 +110,7 @@ Default super administrator: username `superadmin`, email `superadmin@xihan.fun`
 
 ## Upgrade Scripts
 
-The repository convention is `UpdateScripts/<version>/<version>.sql`, currently six version directories (3.10.0, 3.10.1, 3.12.1, 3.13.0, 4.0.1, 4.0.2). By convention only the PostgreSQL dialect is provided, and each script must be safe to re-run (`IF NOT EXISTS` and friends).
+The repository convention is `UpdateScripts/<version>/<version>.sql`, one directory per version. By convention only the PostgreSQL dialect is provided, and each script must be safe to re-run (`IF NOT EXISTS` and friends).
 
 These scripts are **not executed automatically on startup** — apply them to the target database yourself, in version order.
 
@@ -124,6 +124,6 @@ These scripts are **not executed automatically on startup** — apply them to th
 
 ## Removing Optional Modules
 
-The five optional modules (CodeGeneration / AI / Workflow / Printing / Chat) can be removed wholesale: delete the project and its test project, drop them from `XiHan.BasicApp.slnx`, and remove the module dependency registration on the WebHost side. Chat and AI have a one-way dependency, so removing Chat also means deleting the three assistant bridge files on the AI side.
+The optional modules (CodeGeneration / AI / Workflow / Printing / Chat) can be removed wholesale: delete the project and its test project, drop them from `XiHan.BasicApp.slnx`, and remove the module dependency registration on the WebHost side. Chat and AI have a one-way dependency, so removing Chat also means deleting the three assistant bridge files on the AI side.
 
 ⚠️ **Removal must be paired with rebuilding the database** — seeded menus, permission codes and tables are not reclaimed automatically.

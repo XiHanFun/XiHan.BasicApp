@@ -15,14 +15,14 @@
 ```text
 src/main/       XiHan.BasicApp.WebHost          唯一可执行工程
       ↑
-src/modules/    Saas · CodeGeneration · AI      六个业务模块
+src/modules/    Saas · CodeGeneration · AI      业务模块
                 Workflow · Printing · Chat      只依赖 Saas 或 Web.Core
       ↑
 src/framework/  XiHan.BasicApp.Core             全仓唯一引用 XiHan.Framework 的两个工程
                 XiHan.BasicApp.Web.Core
 ```
 
-`Saas` 是基础模块，承载身份、权限、多租户、审计、平台能力；其余五个是可选模块，可整体卸载。
+`Saas` 是基础模块，承载身份、权限、多租户、审计、平台能力；其余都是可选模块，可整体卸载。
 
 ## 工程清单
 
@@ -31,7 +31,7 @@ src/framework/  XiHan.BasicApp.Core             全仓唯一引用 XiHan.Framewo
 | 工程 | 职责 |
 | --- | --- |
 | `XiHan.BasicApp.Core` | 应用基座：聚合框架的非 Web 模块，提供全应用共享的基础类型与约定 |
-| `XiHan.BasicApp.Web.Core` | Web 侧基座（`Microsoft.NET.Sdk.Web`）：聚合六个框架 Web 模块，提供维护模式（状态位 + 503/`Retry-After` 中间件，放行 `/health` 与 `/.well-known/`） |
+| `XiHan.BasicApp.Web.Core` | Web 侧基座（`Microsoft.NET.Sdk.Web`）：聚合框架 Web 模块，提供维护模式（状态位 + 503/`Retry-After` 中间件，放行 `/health` 与 `/.well-known/`） |
 | `XiHan.BasicApp.Saas` | 基础业务模块：身份认证、RBAC + 数据范围 + 字段脱敏、多租户、审计日志六类、消息中心、导出中心、定时任务、开放平台 |
 | `XiHan.BasicApp.CodeGeneration` | 代码生成：DbFirst 表结构导入、单表/树表/主从三种模式、Scriban 模板、衍生产物生成 |
 | `XiHan.BasicApp.AI` | AI：提供商与密钥托管、提示词库、Qdrant 知识库 RAG、技能注册与 MCP 投影、可配置多助手 |
@@ -110,7 +110,7 @@ dotnet test --solution backend/XiHan.BasicApp.slnx --configuration Release
 
 ## 升级脚本
 
-仓库内约定 `UpdateScripts/<版本号>/<版本号>.sql`，当前有 6 个版本目录（3.10.0、3.10.1、3.12.1、3.13.0、4.0.1、4.0.2）。按约定只提供 PostgreSQL 方言，且脚本须可重复安全空转（`IF NOT EXISTS` 之类）。
+仓库内约定 `UpdateScripts/<版本号>/<版本号>.sql`，每个版本一个目录。按约定只提供 PostgreSQL 方言，且脚本须可重复安全空转（`IF NOT EXISTS` 之类）。
 
 脚本目前**不会在启动时自动执行**，需要自行在目标库上按版本顺序应用。
 
@@ -124,6 +124,6 @@ dotnet test --solution backend/XiHan.BasicApp.slnx --configuration Release
 
 ## 卸载可选模块
 
-五个可选模块（CodeGeneration / AI / Workflow / Printing / Chat）可整体移除：删掉对应工程与测试工程、从 `XiHan.BasicApp.slnx` 摘除，再清掉 WebHost 侧的模块依赖登记。Chat 与 AI 之间有单向依赖，卸载 Chat 需连带删除 AI 侧的三个助手桥接文件。
+可选模块（CodeGeneration / AI / Workflow / Printing / Chat）都可整体移除：删掉对应工程与测试工程、从 `XiHan.BasicApp.slnx` 摘除，再清掉 WebHost 侧的模块依赖登记。Chat 与 AI 之间有单向依赖，卸载 Chat 需连带删除 AI 侧的三个助手桥接文件。
 
 ⚠️ **卸载必须伴随重建数据库**——已播种的菜单、权限码与表结构不会自动回收。

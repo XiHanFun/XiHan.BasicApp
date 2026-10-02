@@ -10,13 +10,13 @@
 
 ## 技术栈
 
-Vue 3 + TypeScript + Vite。应用根的运行时依赖只有 vue、vue-router、pinia、vue-i18n、`@vueuse/core` 与 6 个 `@xihan-ui/*`，其余重库按归属下沉到各 workspace 包。
+Vue + TypeScript + Vite。应用根的运行时依赖只有 vue、vue-router、pinia、vue-i18n、`@vueuse/core` 与 `@xihan-ui/*` 各包，其余重库按归属下沉到各 workspace 包。
 
-工具链：Vite、`@vitejs/plugin-vue(-jsx)`、vue-tsc、Turbo、Tailwind CSS v4（`@tailwindcss/vite`，CSS-first 无 JS config）、unplugin-auto-import、unplugin-vue-components、oxlint + ESLint。
+工具链：Vite、`@vitejs/plugin-vue(-jsx)`、vue-tsc、Turbo、Tailwind CSS（`@tailwindcss/vite`，CSS-first 无 JS config）、unplugin-auto-import、unplugin-vue-components、oxlint + ESLint。
 
 ## 环境要求
 
-`packageManager` 为 `pnpm@11.7.0`，`engines` 要求 Node ≥ 24、pnpm ≥ 11。
+`packageManager` 锁定 pnpm 的具体版本，`engines` 要求 Node ≥ 24、pnpm ≥ 11。
 
 `@xihan-ui/*` 取 npm 上的正式版（`pnpm-workspace.yaml` 的 catalog 里统一钉 `^1.1.0`），单独 clone 本仓即可 `pnpm install`，不需要并列检出 `XiHan.UI`。
 
@@ -59,7 +59,7 @@ frontend/
 
 `src/modules/<module>/` 下只允许 `views/`、`api/`、`locales/`、`setup.ts`、`README.md`。`main.ts` 用 `import.meta.glob('/src/modules/*/setup.ts', { eager: true })` 自动发现启动钩子——**删掉目录即卸载，不需要改任何注册代码**。
 
-五个模块 ai / chat / codegen / printing / workflow 与后端可选模块一一对应，共 35 个页面。
+模块 ai / chat / codegen / printing / workflow 与后端可选模块一一对应。
 
 ### 路由模型
 

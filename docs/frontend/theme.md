@@ -1,6 +1,6 @@
 # 布局与主题
 
-外观相关的一切：布局结构、Tailwind v4 的用法与陷阱、主题系统、偏好同步。
+外观相关的一切：布局结构、Tailwind CSS 的用法与陷阱、主题系统、偏好同步。
 
 ## 布局
 
@@ -18,7 +18,7 @@
 回到顶部、路由切换重置滚动都已由布局适配器统一处理。
 :::
 
-## 样式：Tailwind CSS 4（CSS-first）
+## 样式：Tailwind CSS（CSS-first）
 
 用 `@tailwindcss/vite` + **CSS-first `@theme`**（入口 `src/styles/index.css`），**没有 JS config 文件**。
 
@@ -26,7 +26,7 @@
 
 | 约定 | 说明 |
 | --- | --- |
-| **只引入 theme + utilities，不引入 preflight** | 基础重置由 Naive UI 与 `design/global.css` 的最小重置负责，避免与 Naive UI 打架 |
+| **只引入 theme + utilities，不引入 preflight** | 基础重置由 XiHan.UI 的 `xihan.reset` 层与 `design/global.css` 的最小重置负责，避免两套重置互相打架 |
 | 颜色令牌用运行时 HSL CSS 变量 | `--color-primary: hsl(var(--primary))` 等，保证明暗与主题色能动态切换 |
 | 暗色走 class 策略 | `@custom-variant dark (&:where(.dark, .dark *))` |
 
@@ -92,7 +92,7 @@ Schema 页的列设置、搜索设置、个人视图按 `pageCode` 走同一套�
 | 深色区域里的元素还是亮色 | 嵌套 `.dark` 令牌问题，见上面的 danger 块 |
 | 改了主题色但某些地方没变 | 那些地方写死了颜色值，没用 CSS 变量 |
 | 页面滚不动 / 吸顶失效 | 用了 `window` 滚动的假设；改用 `h-full` 或 `XPageShell` |
-| 样式被 Naive UI 覆盖 | preflight 是**故意关闭**的，别去打开——会破坏 Naive UI |
+| 打开 preflight 后组件样式错乱 | preflight 是**故意关闭**的，别去打开——基础重置由 XiHan.UI 的 `xihan.reset` 层负责 |
 | 偏好换台设备就没了 | 后端保存失败被静默忽略了，查接口是否可用 |
 
 ## 相关页面

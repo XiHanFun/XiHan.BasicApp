@@ -1,6 +1,6 @@
 # 系统概述
 
-XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 10 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 3。它把中后台系统里"每个项目都要重做一遍"的部分——身份、权限、租户、审计、代码生成、实时通信——一次性做好，让你专注在真正的业务上。
+XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 与 [XiHan.UI](https://ui.docs.xihanfun.com/)。它把中后台系统里"每个项目都要重做一遍"的部分——身份、权限、租户、审计、代码生成、实时通信——一次性做好，让你专注在真正的业务上。
 
 ## 定位
 
@@ -13,7 +13,7 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 10 与 
 系统采用**前后端分离**：
 
 - **后端**遵循 DDD 分层与 CQRS，应用服务经**动态 API** 直接暴露为 REST 接口——不写 Controller，接口即服务方法
-- **前端**使用 Vue 3 + TypeScript + Naive UI，列表页由 **Schema 驱动**，搜索/表格/导出按配置生成，并对权限、租户、个人偏好三重感知
+- **前端**使用 Vue + TypeScript + XiHan.UI，列表页由 **Schema 驱动**，搜索/表格/导出按配置生成，并对权限、租户、个人偏好三重感知
 
 详见 [系统架构](./backend/introduction)。
 
@@ -47,8 +47,8 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 10 与 
 
 | 技术 | 说明 |
 | --- | --- |
-| .NET 10 / C# | 运行时与语言 |
-| XiHan.Framework 3.10.1 | 自研模块化应用框架 |
+| .NET / C# | 运行时与语言 |
+| XiHan.Framework | 自研模块化应用框架 |
 | SqlSugar | ORM，支持 PostgreSQL / MySQL / MariaDB |
 | Redis | 分布式缓存与分布式锁 |
 | SignalR | 实时通信 |
@@ -59,12 +59,12 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 10 与 
 
 | 技术 | 说明 |
 | --- | --- |
-| Vue 3.5+ | UI 框架 |
-| TypeScript 6.0+ | 类型系统 |
-| Vite 8 | 构建工具 |
-| Naive UI | 组件库 |
+| Vue | UI 框架 |
+| TypeScript | 类型系统 |
+| Vite | 构建工具 |
+| XiHan.UI | 组件库 |
 | Pinia | 状态管理 |
-| Tailwind CSS 4 | 原子化 CSS |
+| Tailwind CSS | 原子化 CSS |
 | Tiptap | 富文本编辑器 |
 | vue-i18n | 国际化 |
 
