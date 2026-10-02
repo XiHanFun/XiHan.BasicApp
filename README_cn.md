@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./assets/banner.png" alt="XiHan.BasicApp" />
+<img src="./assets/banner_cn.png" alt="XiHan.BasicApp" />
 
 <h1>XiHan.BasicApp</h1>
 
