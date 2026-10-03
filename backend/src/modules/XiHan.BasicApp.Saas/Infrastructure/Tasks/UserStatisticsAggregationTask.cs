@@ -9,7 +9,7 @@ using XiHan.Framework.Data.SqlSugar.Clients;
 namespace XiHan.BasicApp.Saas.Infrastructure.Tasks;
 
 /// <summary>
-/// 用户统计聚合任务：把登录/访问/操作日志与会话时长按周期聚合为 SysUserStatistics 快照
+/// 用户统计聚合任务：把登录/访问/操作/接口调用日志与会话时长按周期聚合为 SysUserStatistics 快照
 /// </summary>
 /// <remarks>
 /// <para>由动态任务调度（SysTask：TaskClass=本类全名，TaskMethod=ExecuteAsync，建议 Cron 每 10 分钟）触发。</para>
@@ -17,6 +17,7 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Tasks;
 /// <list type="bullet">
 ///   <item>周期：今日 / 本周（周一起） / 本月，均为 UTC 自然区间，StatisticsDate=今日；</item>
 ///   <item>登录数=区间内成功登录；访问/操作数=区间内对应日志行数；错误操作数=Result 非 Success；</item>
+///   <item>接口调用数=区间内开放接口日志行数（按请求时间）；</item>
 ///   <item>在线时长=会话活跃区间（登录时间 → 登出/撤销/最后活动时间）与统计区间交集秒数合计，
 ///   最后活动时间由 SignalR 连接/断开心跳刷新；</item>
 ///   <item>按 (TenantId, UserId, StatisticsDate, Period) upsert，每租户另写 UserId=0 的全体汇总行。</item>
@@ -120,6 +121,12 @@ public sealed class UserStatisticsAggregationTask
             .Select(log => new SysOperationLog { TenantId = log.TenantId, UserId = log.UserId, Result = log.Result, OperationTime = log.OperationTime })
             .ToListAsync();
 
+        var apiCalls = await client.Queryable<SysOpenApiLog>()
+            .Where(log => log.RequestTime >= monthStart && log.UserId != null && log.UserId > 0)
+            .SplitTable()
+            .Select(log => new SysOpenApiLog { TenantId = log.TenantId, UserId = log.UserId, RequestTime = log.RequestTime })
+            .ToListAsync();
+
         // 会话：活跃区间与本月有交集的（含跨月在线的活跃会话）。会话在平台库（严格隔离），按实体取连接，只取本作用域的行
         var sessions = await _clientResolver.GetClientForEntity<SysUserSession>().Queryable<SysUserSession>()
             .Where(session => session.TenantId == scopeTenantId && session.LastActivityTime >= monthStart && session.UserId > 0)
@@ -136,7 +143,7 @@ public sealed class UserStatisticsAggregationTask
 
         foreach (var (period, start) in periods)
         {
-            var snapshots = BuildSnapshots(logins, accesses, operations, sessions, start, now);
+            var snapshots = BuildSnapshots(logins, accesses, operations, apiCalls, sessions, start, now);
             foreach (var snapshot in snapshots)
             {
                 if (existingMap.TryGetValue((snapshot.TenantId, snapshot.UserId, period), out var row))
@@ -180,6 +187,7 @@ public sealed class UserStatisticsAggregationTask
         List<SysLoginLog> logins,
         List<SysAccessLog> accesses,
         List<SysOperationLog> operations,
+        List<SysOpenApiLog> apiCalls,
         List<SysUserSession> sessions,
         DateTimeOffset start,
         DateTimeOffset now)
@@ -227,6 +235,11 @@ public sealed class UserStatisticsAggregationTask
             data.LastOperationTime = Max(data.LastOperationTime, operation.OperationTime);
         }
 
+        foreach (var apiCall in apiCalls.Where(item => item.RequestTime >= start))
+        {
+            Get(apiCall.TenantId, apiCall.UserId!.Value).ApiCallCount++;
+        }
+
         foreach (var session in sessions)
         {
             // 会话活跃区间：登录 → 登出/撤销/最后活动（最后活动由 SignalR 心跳刷新）
@@ -250,6 +263,7 @@ public sealed class UserStatisticsAggregationTask
                 total.AccessCount += item.AccessCount;
                 total.OperationCount += item.OperationCount;
                 total.ErrorOperationCount += item.ErrorOperationCount;
+                total.ApiCallCount += item.ApiCallCount;
                 total.OnlineSeconds += item.OnlineSeconds;
                 total.LastLoginTime = Max(total.LastLoginTime, item.LastLoginTime);
                 total.LastAccessTime = Max(total.LastAccessTime, item.LastAccessTime);
@@ -268,6 +282,7 @@ public sealed class UserStatisticsAggregationTask
         entity.AccessCount = data.AccessCount;
         entity.OperationCount = data.OperationCount;
         entity.ErrorOperationCount = data.ErrorOperationCount;
+        entity.ApiCallCount = data.ApiCallCount;
         entity.OnlineTime = data.OnlineSeconds;
         entity.LastLoginTime = data.LastLoginTime;
         entity.LastAccessTime = data.LastAccessTime;
@@ -294,6 +309,8 @@ public sealed class UserStatisticsAggregationTask
         public int OperationCount { get; set; }
 
         public int ErrorOperationCount { get; set; }
+
+        public int ApiCallCount { get; set; }
 
         public long OnlineSeconds { get; set; }
 
