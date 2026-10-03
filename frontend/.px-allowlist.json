@@ -452,7 +452,7 @@
     "reason": "业务页面的排版刻度"
   },
   "src/views/workbench/dashboard/components/AnnouncementWidget.vue": {
-    "cap": 28,
+    "cap": 12,
     "reason": "业务页面的排版刻度"
   },
   "src/views/workbench/dashboard/index.vue": {

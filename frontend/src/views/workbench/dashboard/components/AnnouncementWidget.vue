@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { NotificationListItemDto } from '@/api'
 import { XhCarouselAutoplayTrigger, XhCarouselIndicator, XhCarouselIndicatorGroup, XhCarouselItem, XhCarouselList, XhCarouselNextTrigger, XhCarouselPrevTrigger, XhCarouselRoot, XhCarouselViewport, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { createPageRequest, notificationApi, NotificationType } from '@/api'
@@ -15,6 +15,8 @@ const router = useRouter()
 
 // 轮播公告：已发布的「公告」类型通知（与「通知公告」管理页同源；无权限/接口失败静默为空）
 const announcements = ref<NotificationListItemDto[]>([])
+/** 不止一条才轮播：只有一条时不自动翻页，也不画翻页、播放与指示点 */
+const multiple = computed(() => announcements.value.length > 1)
 
 /** 通知类型 → 标签 key + 主色 */
 interface TypeMeta { label: string, from: string, to: string }
@@ -77,7 +79,7 @@ onMounted(async () => {
     v-if="announcements.length"
     v-slot="{ totalPages }"
     :slide-count="announcements.length"
-    :autoplay="5000"
+    :autoplay="multiple ? 5000 : false"
     loop
     class="announce-carousel"
   >
@@ -90,48 +92,54 @@ onMounted(async () => {
         >
           <div
             class="carousel-slide"
+            :class="{ 'carousel-slide--controls': multiple }"
             :style="slideStyle(item)"
             @click="openAnnouncement(item)"
           >
             <span class="slide-deco" :style="{ color: metaOf(item.notificationType).from }" style="display: inline-flex; font-size: 150px"><Icon icon="lucide:megaphone" /></span>
-            <span class="slide-badge" :style="badgeStyle(item)">{{ metaOf(item.notificationType).label }}</span>
+            <!-- 类型与发布时间同在顶上一行：下沿整条留给指示点与翻页钮，窄屏也不会压到文字上 -->
+            <div class="slide-meta">
+              <span class="slide-badge" :style="badgeStyle(item)">{{ metaOf(item.notificationType).label }}</span>
+              <span v-if="item.sendTime" class="slide-time">
+                <Icon width="13" height="13" icon="lucide:clock" />
+                {{ formatDate(item.sendTime, 'YYYY-MM-DD HH:mm') }}
+              </span>
+            </div>
             <div class="slide-title">
               {{ item.title || t('workbench.dashboard.system_notice') }}
             </div>
             <div v-if="item.content" class="slide-content">
               {{ item.content }}
             </div>
-            <div class="slide-time">
-              <Icon width="13" height="13" icon="lucide:clock" />
-              {{ item.sendTime ? formatDate(item.sendTime, 'YYYY-MM-DD HH:mm') : '' }}
-            </div>
           </div>
         </XhCarouselItem>
       </XhCarouselList>
     </XhCarouselViewport>
 
-    <div class="carousel-arrows">
-      <!-- 开了自动播放就必须给播放开关：它是唯一能停住自动翻页、且不会被悬停焦点重新拉起的入口 -->
-      <XhCarouselAutoplayTrigger v-slot="{ stopped }" class="carousel-arrow">
-        <Icon width="16" height="16" :icon="stopped ? 'lucide:play' : 'lucide:pause'" />
-      </XhCarouselAutoplayTrigger>
-      <XhCarouselPrevTrigger class="carousel-arrow">
-        <Icon width="18" height="18" icon="lucide:arrow-left" />
-      </XhCarouselPrevTrigger>
-      <XhCarouselNextTrigger class="carousel-arrow">
-        <Icon width="18" height="18" icon="lucide:arrow-right" />
-      </XhCarouselNextTrigger>
-    </div>
+    <template v-if="multiple">
+      <div class="carousel-arrows">
+        <!-- 开了自动播放就必须给播放开关：它是唯一能停住自动翻页、且不会被悬停焦点重新拉起的入口 -->
+        <XhCarouselAutoplayTrigger v-slot="{ stopped }" class="carousel-arrow">
+          <Icon width="16" height="16" :icon="stopped ? 'lucide:play' : 'lucide:pause'" />
+        </XhCarouselAutoplayTrigger>
+        <XhCarouselPrevTrigger class="carousel-arrow">
+          <Icon width="18" height="18" icon="lucide:arrow-left" />
+        </XhCarouselPrevTrigger>
+        <XhCarouselNextTrigger class="carousel-arrow">
+          <Icon width="18" height="18" icon="lucide:arrow-right" />
+        </XhCarouselNextTrigger>
+      </div>
 
-    <!-- 点指示点翻页由组件自己接线；当前页按 data-current 画 -->
-    <XhCarouselIndicatorGroup class="carousel-dots">
-      <XhCarouselIndicator
-        v-for="index of totalPages"
-        :key="index"
-        :index="index - 1"
-        class="carousel-dot"
-      />
-    </XhCarouselIndicatorGroup>
+      <!-- 指示点交给组件库画：细指针是 8px 圆点、当前页拉长成带播放进度的胶囊；触屏下盒子撑成 44px 命中区、点改由伪元素画，
+           所以这里只定位，不改点的尺寸与底色 -->
+      <XhCarouselIndicatorGroup class="carousel-dots">
+        <XhCarouselIndicator
+          v-for="index of totalPages"
+          :key="index"
+          :index="index - 1"
+        />
+      </XhCarouselIndicatorGroup>
+    </template>
   </XhCarouselRoot>
   <div v-else class="announce-empty">
     <XhEmptyStateRoot size="sm">
@@ -146,6 +154,9 @@ onMounted(async () => {
 
 <style scoped>
 .announce-carousel {
+  /* 下沿控件条：翻页 / 播放钮的边长，也是指示点那一行的高度 */
+  --announce-control-size: var(--xh-space-8);
+
   height: 190px;
   border: 1px solid hsl(var(--border));
   border-radius: 12px;
@@ -165,7 +176,7 @@ onMounted(async () => {
 
 /* 只铺满高度；宽度交给 NCarousel 自身按像素计算
    （强行设 width:100% 会让 flex 轨道挤窄当前页、露出相邻幻灯片缝隙） */
-.announce-carousel :deep([data-scope='carousel'][data-part='item']) {
+.announce-carousel :deep([data-scope='carousel']:is([data-part='viewport'], [data-part='list'], [data-part='item'])) {
   height: 100%;
 }
 
@@ -174,15 +185,29 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 10px;
+  gap: var(--xh-space-2);
   width: 100%;
   height: 100%;
-  padding: 24px 28px;
+  padding: var(--xh-space-5) var(--xh-space-7);
   box-sizing: border-box;
   color: hsl(var(--foreground));
   cursor: pointer;
   user-select: none;
   overflow: hidden;
+}
+
+/* 有控件条时，正文底部让出控件条的高度与它的下边距，文字不会钻到钮与指示点底下 */
+.carousel-slide--controls {
+  padding-block-end: calc(var(--announce-control-size) + var(--xh-space-4) + var(--xh-space-2));
+}
+
+.slide-meta {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--xh-space-1) var(--xh-space-3);
 }
 
 /* 右侧装饰大图标：填充空白、点缀但不抢内容 */
@@ -196,9 +221,6 @@ onMounted(async () => {
 }
 
 .slide-badge {
-  position: relative;
-  z-index: 1;
-  align-self: flex-start;
   padding: 2px 10px;
   font-size: 12px;
   font-weight: 500;
@@ -235,8 +257,7 @@ onMounted(async () => {
 .slide-time {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 2px;
+  gap: var(--xh-space-1);
   font-size: 12px;
   color: hsl(var(--muted-foreground));
 }
@@ -244,10 +265,10 @@ onMounted(async () => {
 /* 自定义箭头：右下角 */
 .carousel-arrows {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
+  right: var(--xh-space-4);
+  bottom: var(--xh-space-4);
   display: flex;
-  gap: 8px;
+  gap: var(--xh-space-2);
   z-index: 2;
 }
 
@@ -259,9 +280,9 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
+  width: var(--announce-control-size);
   min-inline-size: 0;
-  height: 32px;
+  height: var(--announce-control-size);
   color: hsl(var(--foreground));
   background: hsl(var(--card));
   border: 1px solid hsl(var(--border));
@@ -273,33 +294,12 @@ onMounted(async () => {
   background: hsl(var(--accent));
 }
 
-/* 自定义控制点：左下角（组件库缺省是下沿居中，那条 -50% 位移一并撤掉） */
+/* 指示点挪到左下角，与右下角的钮同一行、竖直居中，左边对齐正文（组件库缺省是下沿居中，那条 -50% 位移一并撤掉） */
 .carousel-dots {
-  position: absolute;
-  left: 24px;
-  bottom: 22px;
+  inset-inline-start: var(--xh-space-7);
+  inset-block-end: var(--xh-space-4);
+  block-size: var(--announce-control-size);
   translate: none;
-  display: flex;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
   z-index: 2;
-}
-
-.carousel-dot {
-  width: 16px;
-  height: 4px;
-  background: hsl(var(--border));
-  border-radius: 999px;
-  cursor: pointer;
-  transition:
-    width var(--xh-motion-duration-slide) var(--xh-motion-ease-slide),
-    background var(--xh-motion-duration-slide) var(--xh-motion-ease-enter);
-}
-
-.carousel-dot[data-current] {
-  width: 28px;
-  background: hsl(var(--primary));
 }
 </style>
