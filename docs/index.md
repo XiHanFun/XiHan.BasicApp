@@ -61,6 +61,10 @@ features:
     linkText: "了解 Schema 驱动页面"
 ---
 
+<script setup>
+import dashboardPreview from '../assets/preview/dashboard.png'
+</script>
+
 <div class="bap-preview">
 <span class="bap-eyebrow">在线演示</span>
 <h2 class="bap-title">不用本地搭建，直接看它长什么样</h2>
@@ -68,8 +72,7 @@ features:
 <div class="bap-window">
 <div class="bap-bar"><span class="bap-dots"><span class="bap-dot bap-dot--r"></span><span class="bap-dot bap-dot--y"></span><span class="bap-dot bap-dot--g"></span></span><span class="bap-url">basicapp.xihanfun.com</span></div>
 <a class="bap-screen" href="https://basicapp.xihanfun.com" target="_blank" rel="noreferrer">
-<img class="bap-img bap-img--light" src="/images/basicapp-preview.png" alt="曦寒基础应用在线预览" />
-<img class="bap-img bap-img--dark" src="/images/basicapp-preview-dark.png" alt="曦寒基础应用在线预览（暗色）" />
+<img class="bap-img" :src="dashboardPreview" alt="曦寒基础应用工作台预览" />
 </a>
 </div>
 <div class="bap-actions">
@@ -165,15 +168,6 @@ features:
   display: block;
   width: 100%;
   height: auto;
-}
-.bap-preview .bap-img--dark {
-  display: none;
-}
-.dark .bap-preview .bap-img--light {
-  display: none;
-}
-.dark .bap-preview .bap-img--dark {
-  display: block;
 }
 .bap-preview .bap-actions {
   display: flex;

@@ -559,7 +559,8 @@ XiHan.BasicApp/
 ├── frontend/                # frontend (Vue + XiHan.UI)
 │   ├── src/                 #   application sources (src/modules/ mirrors the optional backend modules)
 │   └── packages/            #   internal packages
-└── assets/                  # README assets
+└── assets/                  # Branding and README assets
+    └── preview/             # Feature screenshots and manifest
 ```
 
 ### Removing Optional Modules

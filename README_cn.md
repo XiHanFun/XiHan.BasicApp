@@ -559,7 +559,8 @@ XiHan.BasicApp/
 ├── frontend/                # 前端（Vue + XiHan.UI）
 │   ├── src/                 #   应用源码（src/modules/ 与后端可选模块一一对应）
 │   └── packages/            #   内部包
-└── assets/                  # README 资源
+└── assets/                  # 品牌与 README 资源
+    └── preview/             # 功能预览截图与索引
 ```
 
 ### 卸载可选模块
