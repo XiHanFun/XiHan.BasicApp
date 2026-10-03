@@ -54,6 +54,7 @@ const rows = computed(() => {
     </template>
     <XhPieChartRoot
       :key="dimension"
+      class="share-pie"
       :data="rows"
       name-field="name"
       value-field="sales"
@@ -63,7 +64,7 @@ const rows = computed(() => {
       :sort="dimension === 'region' ? 'descending' : 'none'"
       :max-slices="dimension === 'region' ? MAX_REGIONS : undefined"
       :labels="dimension === 'payment' ? 'inside' : 'outside'"
-      :label-content="dimension === 'payment' ? 'share' : 'name-share'"
+      :label-content="dimension === 'region' ? 'name-share' : 'share'"
       :format="CURRENCY_COMPACT"
       :locale="locale"
       :aria-label="t('workbench.widgets.channel_share.desc')"
@@ -77,13 +78,39 @@ const rows = computed(() => {
 </template>
 
 <style scoped>
+/*
+ * 环心的宽度由组件库按环孔大小限定，小组件窄时环孔跟着变小：
+ * 环心铺满这个限宽并作为尺寸容器，合计金额不折行、字号按环心宽度缩放；放不下说明文字时只留金额，金额也放不下时整块收起
+ */
+.share-pie :deep([data-part='center']) {
+  container-type: inline-size;
+  inline-size: 100%;
+}
+
+.center-value,
+.center-label {
+  white-space: nowrap;
+}
+
 .center-value {
-  font-size: var(--xh-font-size-lg);
+  font-size: clamp(var(--xh-font-size-xs), 20cqi, var(--xh-font-size-lg));
   font-weight: var(--xh-font-weight-semibold);
 }
 
 .center-label {
   color: var(--xh-fg-muted);
   font-size: var(--xh-text-secondary-size);
+}
+
+@container (inline-size < 5rem) {
+  .center-label {
+    display: none;
+  }
+}
+
+@container (inline-size < 3.5rem) {
+  .center-value {
+    display: none;
+  }
 }
 </style>
