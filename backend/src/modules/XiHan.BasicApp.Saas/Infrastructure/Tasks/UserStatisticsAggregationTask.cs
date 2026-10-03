@@ -15,20 +15,22 @@ namespace XiHan.BasicApp.Saas.Infrastructure.Tasks;
 /// <para>由动态任务调度（SysTask：TaskClass=本类全名，TaskMethod=ExecuteAsync，建议 Cron 每 10 分钟）触发。</para>
 /// <para>口径：</para>
 /// <list type="bullet">
-///   <item>周期：今日 / 本周（周一起） / 本月，均为 UTC 自然区间，StatisticsDate=今日；</item>
+///   <item>周期：今日 / 本周（周一起，月初几天会跨入上月） / 本月，均为 UTC 自然区间，StatisticsDate=今日；</item>
 ///   <item>登录数=区间内成功登录；访问/操作数=区间内对应日志行数；错误操作数=Result 非 Success；</item>
 ///   <item>接口调用数=区间内开放接口日志行数（按请求时间）；</item>
 ///   <item>在线时长=会话活跃区间（登录时间 → 登出/撤销/最后活动时间）与统计区间交集秒数合计，
 ///   最后活动时间由 SignalR 连接/断开心跳刷新；</item>
 ///   <item>按 (TenantId, UserId, StatisticsDate, Period) upsert，每租户另写 UserId=0 的全体汇总行。</item>
 /// </list>
-/// <para>日志与统计按上下文严格隔离，逐个作用域（平台与每个数据可达的租户）切入聚合，日志按月分表窗口扫描。</para>
+/// <para>日志与统计按上下文严格隔离，逐个作用域（平台与每个数据可达的租户）切入聚合，日志按查询窗口跨月分表扫描。</para>
 /// </remarks>
 public sealed class UserStatisticsAggregationTask
 {
     private readonly ISqlSugarClientResolver _clientResolver;
 
     private readonly ITenantDataScopeRunner _scopeRunner;
+
+    private readonly TimeProvider _timeProvider;
 
     private readonly ILogger<UserStatisticsAggregationTask> _logger;
 
@@ -38,10 +40,12 @@ public sealed class UserStatisticsAggregationTask
     public UserStatisticsAggregationTask(
         ISqlSugarClientResolver clientResolver,
         ITenantDataScopeRunner scopeRunner,
+        TimeProvider timeProvider,
         ILogger<UserStatisticsAggregationTask> logger)
     {
         _clientResolver = clientResolver;
         _scopeRunner = scopeRunner;
+        _timeProvider = timeProvider;
         _logger = logger;
     }
 
@@ -51,7 +55,7 @@ public sealed class UserStatisticsAggregationTask
     /// <returns>聚合结果摘要</returns>
     public async Task<string> ExecuteAsync()
     {
-        var now = DateTimeOffset.UtcNow;
+        var now = _timeProvider.GetUtcNow();
         var today = DateOnly.FromDateTime(now.UtcDateTime.Date);
         var todayStart = new DateTimeOffset(today.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
         var weekStart = todayStart.AddDays(-(((int)todayStart.DayOfWeek + 6) % 7));
@@ -63,6 +67,9 @@ public sealed class UserStatisticsAggregationTask
             (StatisticsPeriod.ThisMonth, monthStart)
         };
 
+        // 查询窗口取各周期起点中最早者：月初几天本周从上月末的周一算起，早于本月起点
+        var windowStart = periods.Min(item => item.Start);
+
         var inserted = 0;
         var updated = 0;
         var failures = new List<string>();
@@ -72,7 +79,7 @@ public sealed class UserStatisticsAggregationTask
         {
             try
             {
-                var (scopeInserted, scopeUpdated) = await AggregateScopeAsync(tenantId ?? 0, today, monthStart, periods, now);
+                var (scopeInserted, scopeUpdated) = await AggregateScopeAsync(tenantId ?? 0, today, windowStart, periods, now);
                 inserted += scopeInserted;
                 updated += scopeUpdated;
             }
@@ -96,40 +103,40 @@ public sealed class UserStatisticsAggregationTask
     private async Task<(int Inserted, int Updated)> AggregateScopeAsync(
         long scopeTenantId,
         DateOnly today,
-        DateTimeOffset monthStart,
+        DateTimeOffset windowStart,
         (StatisticsPeriod Period, DateTimeOffset Start)[] periods,
         DateTimeOffset now)
     {
         var client = _clientResolver.GetCurrentClient();
 
-        // 一次拉取本月窗口的最小列原始数据，三个周期在内存里按起点切分（本月窗口必然覆盖今日/本周）
+        // 一次拉取查询窗口内的最小列原始数据（窗口可能跨月，按分表扫描），三个周期在内存里按各自起点切分
         var logins = await client.Queryable<SysLoginLog>()
-            .Where(log => log.LoginTime >= monthStart && log.UserId != null && log.UserId > 0)
+            .Where(log => log.LoginTime >= windowStart && log.UserId != null && log.UserId > 0)
             .SplitTable()
             .Select(log => new SysLoginLog { TenantId = log.TenantId, UserId = log.UserId, LoginResult = log.LoginResult, LoginTime = log.LoginTime })
             .ToListAsync();
 
         var accesses = await client.Queryable<SysAccessLog>()
-            .Where(log => log.AccessTime >= monthStart && log.UserId != null && log.UserId > 0)
+            .Where(log => log.AccessTime >= windowStart && log.UserId != null && log.UserId > 0)
             .SplitTable()
             .Select(log => new SysAccessLog { TenantId = log.TenantId, UserId = log.UserId, AccessTime = log.AccessTime })
             .ToListAsync();
 
         var operations = await client.Queryable<SysOperationLog>()
-            .Where(log => log.OperationTime >= monthStart && log.UserId != null && log.UserId > 0)
+            .Where(log => log.OperationTime >= windowStart && log.UserId != null && log.UserId > 0)
             .SplitTable()
             .Select(log => new SysOperationLog { TenantId = log.TenantId, UserId = log.UserId, Result = log.Result, OperationTime = log.OperationTime })
             .ToListAsync();
 
         var apiCalls = await client.Queryable<SysOpenApiLog>()
-            .Where(log => log.RequestTime >= monthStart && log.UserId != null && log.UserId > 0)
+            .Where(log => log.RequestTime >= windowStart && log.UserId != null && log.UserId > 0)
             .SplitTable()
             .Select(log => new SysOpenApiLog { TenantId = log.TenantId, UserId = log.UserId, RequestTime = log.RequestTime })
             .ToListAsync();
 
-        // 会话：活跃区间与本月有交集的（含跨月在线的活跃会话）。会话在平台库（严格隔离），按实体取连接，只取本作用域的行
+        // 会话：活跃区间与查询窗口有交集的（含跨窗口起点在线的活跃会话）。会话在平台库（严格隔离），按实体取连接，只取本作用域的行
         var sessions = await _clientResolver.GetClientForEntity<SysUserSession>().Queryable<SysUserSession>()
-            .Where(session => session.TenantId == scopeTenantId && session.LastActivityTime >= monthStart && session.UserId > 0)
+            .Where(session => session.TenantId == scopeTenantId && session.LastActivityTime >= windowStart && session.UserId > 0)
             .ToListAsync();
 
         // 读取今日全部快照一次，upsert 时按键匹配

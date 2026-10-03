@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Globalization;
 using System.Linq.Expressions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -20,6 +21,7 @@ namespace XiHan.BasicApp.Saas.Tests;
 /// <remarks>
 /// 回归锚点：聚合任务只汇总登录、访问、操作与会话，从不统计开放接口日志，用户管理与个人中心展示的接口调用数恒为 0。
 /// 接口调用数是请求时间落在统计周期内的开放接口日志行数，按作用域（平台与每个租户）分别聚合，每个作用域另有 UserId=0 的全员汇总行。
+/// 回归锚点：聚合只查本月起点之后的日志与会话，月初几天本周从上月末的周一算起，上月末那几天的活动从本周的每项计数里漏掉。
 /// </remarks>
 public sealed class UserStatisticsAggregationTaskSqlTests : IDisposable
 {
@@ -32,6 +34,7 @@ public sealed class UserStatisticsAggregationTaskSqlTests : IDisposable
     private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"xihan-user-statistics-{Guid.NewGuid():N}.db");
     private readonly SqlSugarClient _client;
     private readonly TestCurrentTenant _currentTenant = new();
+    private readonly FixedTimeProvider _timeProvider = new(DateTimeOffset.UtcNow);
     private readonly UserStatisticsAggregationTask _task;
     private long _nextId;
 
@@ -92,16 +95,17 @@ public sealed class UserStatisticsAggregationTaskSqlTests : IDisposable
         _task = new UserStatisticsAggregationTask(
             new FixedClientResolver(_client),
             new TenantDataScopeRunner(tenantRepository.Object, _currentTenant),
+            _timeProvider,
             NullLogger<UserStatisticsAggregationTask>.Instance);
     }
 
     /// <summary>
-    /// 接口调用按用户与周期累加，平台与租户各自聚合并各有全员汇总行；匿名调用与本月之前的调用不计入，只有访问没有调用的用户记 0
+    /// 接口调用按用户与周期累加，平台与租户各自聚合并各有全员汇总行；匿名调用与上月初的调用不计入，只有访问没有调用的用户记 0
     /// </summary>
     [Fact]
     public async Task ExecuteAsync_CountsApiCallsPerUserAndPeriod_WithScopeTotals()
     {
-        var window = PeriodWindow.Current();
+        var window = PeriodWindow.At(_timeProvider.GetUtcNow());
         var todayTime = window.TodayStart.AddMinutes(1);
         var earlierThisMonthTime = window.MonthStart.AddMinutes(1);
         var lastMonthTime = window.MonthStart.AddMonths(-1);
@@ -151,7 +155,7 @@ public sealed class UserStatisticsAggregationTaskSqlTests : IDisposable
     [Fact]
     public async Task ExecuteAsync_Rerun_RefreshesApiCallCountOfExistingSnapshots()
     {
-        var window = PeriodWindow.Current();
+        var window = PeriodWindow.At(_timeProvider.GetUtcNow());
         var todayTime = window.TodayStart.AddMinutes(1);
         InsertAccess(0, PlatformUserId, todayTime);
         InsertAccess(TenantId, TenantUserId, todayTime);
@@ -179,6 +183,67 @@ public sealed class UserStatisticsAggregationTaskSqlTests : IDisposable
     }
 
     /// <summary>
+    /// 月初几天本周从上月末的周一算起：上月末本周内的日志与会话计入本周、不计入本月，本周之前的都不计入；
+    /// 只在上月末活动的用户也有本周快照。跨年时上月末的日志落在上一年的月表
+    /// </summary>
+    [Theory]
+    [InlineData("2026-10-03T08:00:00Z", "2026-09-28T00:00:00Z", "2026-10-01T00:00:00Z")]
+    [InlineData("2027-01-02T08:00:00Z", "2026-12-28T00:00:00Z", "2027-01-01T00:00:00Z")]
+    public async Task ExecuteAsync_WeekStartsLastMonth_CountsLastMonthTailInThisWeekOnly(string now, string weekStartText, string monthStartText)
+    {
+        _timeProvider.UtcNow = ParseUtc(now);
+        var weekStart = ParseUtc(weekStartText);
+        var monthStart = ParseUtc(monthStartText);
+        var today = DateOnly.FromDateTime(_timeProvider.UtcNow.UtcDateTime);
+        var beforeWeekTime = weekStart.AddMinutes(-1);
+        var weekHeadTime = weekStart.AddHours(1);
+        var lastMonthEndTime = monthStart.AddMinutes(-1);
+        var monthHeadTime = monthStart.AddHours(1);
+        var todayTime = new DateTimeOffset(today.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero).AddHours(1);
+
+        // 平台用户在本周前、上月末本周内两处、本月、今日各有一条登录、访问、操作与接口调用，上月最后一分钟的操作失败
+        foreach (var time in new[] { beforeWeekTime, weekHeadTime, lastMonthEndTime, monthHeadTime, todayTime })
+        {
+            InsertLogin(0, PlatformUserId, time);
+            InsertAccess(0, PlatformUserId, time);
+            InsertOperation(0, PlatformUserId, time, time == lastMonthEndTime ? OperationExecuteResult.Failed : OperationExecuteResult.Success);
+            InsertApiCall(0, PlatformUserId, time);
+        }
+
+        // 会话：上月末本周内 30 分钟；跨月在线 2 小时（月前月后各 1 小时）；本周之前结束的不计
+        InsertSession(0, PlatformUserId, weekHeadTime, weekHeadTime.AddMinutes(30));
+        InsertSession(0, PlatformUserId, monthStart.AddHours(-1), monthStart.AddHours(1));
+        InsertSession(0, PlatformUserId, beforeWeekTime.AddHours(-1), beforeWeekTime);
+
+        // 租户用户只在上月末本周内活动
+        InsertLogin(TenantId, TenantUserId, weekHeadTime);
+        InsertAccess(TenantId, TenantUserId, weekHeadTime);
+        InsertOperation(TenantId, TenantUserId, lastMonthEndTime, OperationExecuteResult.Failed);
+        InsertApiCall(TenantId, TenantUserId, lastMonthEndTime);
+        InsertSession(TenantId, TenantUserId, weekHeadTime, weekHeadTime.AddMinutes(10));
+
+        var summary = await _task.ExecuteAsync();
+
+        Assert.StartsWith("用户统计聚合完成", summary);
+        var platformToday = new StatisticsSnapshot(1, 1, 1, 0, 1, 0, todayTime, todayTime, todayTime);
+        var platformWeek = new StatisticsSnapshot(4, 4, 4, 1, 4, 30 * 60 + 2 * 3600, todayTime, todayTime, todayTime);
+        var platformMonth = new StatisticsSnapshot(2, 2, 2, 0, 2, 3600, todayTime, todayTime, todayTime);
+        var tenantWeek = new StatisticsSnapshot(1, 1, 1, 1, 1, 10 * 60, weekHeadTime, weekHeadTime, lastMonthEndTime);
+        var expected = new Dictionary<(long TenantId, long UserId, StatisticsPeriod Period), StatisticsSnapshot>
+        {
+            [(0, PlatformUserId, StatisticsPeriod.Today)] = platformToday,
+            [(0, PlatformUserId, StatisticsPeriod.ThisWeek)] = platformWeek,
+            [(0, PlatformUserId, StatisticsPeriod.ThisMonth)] = platformMonth,
+            [(0, 0, StatisticsPeriod.Today)] = platformToday,
+            [(0, 0, StatisticsPeriod.ThisWeek)] = platformWeek,
+            [(0, 0, StatisticsPeriod.ThisMonth)] = platformMonth,
+            [(TenantId, TenantUserId, StatisticsPeriod.ThisWeek)] = tenantWeek,
+            [(TenantId, 0, StatisticsPeriod.ThisWeek)] = tenantWeek
+        };
+        Assert.Equal(expected, ReadSnapshots(today));
+    }
+
+    /// <summary>
     /// 释放连接并清理临时库文件。
     /// </summary>
     public void Dispose()
@@ -191,6 +256,49 @@ public sealed class UserStatisticsAggregationTaskSqlTests : IDisposable
     private static int CountSince(DateTimeOffset periodStart, params DateTimeOffset[] requestTimes)
     {
         return requestTimes.Count(time => time >= periodStart);
+    }
+
+    private static DateTimeOffset ParseUtc(string value)
+    {
+        return DateTimeOffset.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal);
+    }
+
+    private void InsertLogin(long tenantId, long userId, DateTimeOffset loginTime)
+    {
+        _ = _client.Insertable(new SysLoginLog
+        {
+            TenantId = tenantId,
+            UserId = userId,
+            LoginResult = LoginResult.Success,
+            LoginTime = loginTime,
+            CreatedTime = loginTime
+        }).SplitTable().ExecuteCommand();
+    }
+
+    private void InsertOperation(long tenantId, long userId, DateTimeOffset operationTime, OperationExecuteResult result)
+    {
+        _ = _client.Insertable(new SysOperationLog
+        {
+            TenantId = tenantId,
+            UserId = userId,
+            Result = result,
+            OperationTime = operationTime,
+            CreatedTime = operationTime
+        }).SplitTable().ExecuteCommand();
+    }
+
+    private void InsertSession(long tenantId, long userId, DateTimeOffset loginTime, DateTimeOffset lastActivityTime)
+    {
+        // 未登出、未撤销：活跃区间止于最后活动时间
+        _ = _client.Insertable(new SysUserSession
+        {
+            TenantId = tenantId,
+            UserId = userId,
+            UserSessionId = Guid.NewGuid().ToString("N"),
+            LoginTime = loginTime,
+            LastActivityTime = lastActivityTime,
+            CreatedTime = loginTime
+        }).ExecuteCommand();
     }
 
     private void InsertAccess(long tenantId, long userId, DateTimeOffset accessTime)
@@ -229,14 +337,47 @@ public sealed class UserStatisticsAggregationTaskSqlTests : IDisposable
             .Order()];
     }
 
+    private Dictionary<(long TenantId, long UserId, StatisticsPeriod Period), StatisticsSnapshot> ReadSnapshots(DateOnly statisticsDate)
+    {
+        return _client.Queryable<SysUserStatistics>()
+            .ClearFilter<IStrictMultiTenantEntity>()
+            .Where(item => item.StatisticsDate == statisticsDate)
+            .ToList()
+            .ToDictionary(
+                item => (item.TenantId, item.UserId, item.Period),
+                item => new StatisticsSnapshot(
+                    item.LoginCount,
+                    item.AccessCount,
+                    item.OperationCount,
+                    item.ErrorOperationCount,
+                    item.ApiCallCount,
+                    item.OnlineTime,
+                    item.LastLoginTime,
+                    item.LastAccessTime,
+                    item.LastOperationTime));
+    }
+
+    /// <summary>
+    /// 一行统计快照中由聚合任务写入的计数与最后时间
+    /// </summary>
+    private sealed record StatisticsSnapshot(
+        int LoginCount,
+        int AccessCount,
+        int OperationCount,
+        int ErrorOperationCount,
+        int ApiCallCount,
+        long OnlineTime,
+        DateTimeOffset? LastLoginTime,
+        DateTimeOffset? LastAccessTime,
+        DateTimeOffset? LastOperationTime);
+
     /// <summary>
     /// 与任务同口径的 UTC 统计周期：今日 / 本周（周一起） / 本月
     /// </summary>
     private sealed record PeriodWindow(DateOnly Today, DateTimeOffset TodayStart, DateTimeOffset MonthStart, (StatisticsPeriod Period, DateTimeOffset Start)[] Periods)
     {
-        public static PeriodWindow Current()
+        public static PeriodWindow At(DateTimeOffset now)
         {
-            var now = DateTimeOffset.UtcNow;
             var today = DateOnly.FromDateTime(now.UtcDateTime.Date);
             var todayStart = new DateTimeOffset(today.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero);
             var weekStart = todayStart.AddDays(-(((int)todayStart.DayOfWeek + 6) % 7));
@@ -248,6 +389,23 @@ public sealed class UserStatisticsAggregationTaskSqlTests : IDisposable
                 (StatisticsPeriod.ThisMonth, monthStart)
             ]);
         }
+    }
+
+    /// <summary>
+    /// 可设定的 UTC 时间提供器，使周期边界不依赖机器时钟。
+    /// </summary>
+    private sealed class FixedTimeProvider(DateTimeOffset utcNow) : TimeProvider
+    {
+        /// <summary>
+        /// 当前 UTC 时间
+        /// </summary>
+        public DateTimeOffset UtcNow { get; set; } = utcNow;
+
+        /// <summary>
+        /// 获取当前 UTC 时间
+        /// </summary>
+        /// <returns>当前 UTC 时间</returns>
+        public override DateTimeOffset GetUtcNow() => UtcNow;
     }
 
     /// <summary>
