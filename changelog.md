@@ -4,6 +4,31 @@
 
 本文件记录 XiHan.BasicApp 各版本的变更。每条标注 **新增 / 修复 / 优化 / 调整 / 升级 / 移除** 类别。只收录使用者可感知的变更，仓库自身的配置、CI 与测试工程不列入。升级前请留意「调整」类中的破坏性变更。
 
+## v5.5.0 (2026-10-03)
+
+::: warning 升级须知
+本次没有数据库变更。前端升至 XiHan.UI 3.1.0，并有三个依赖的大版本升级，影响二次开发代码；已有 `node_modules` 须重新 `pnpm install`。
+
+- **代码生成**：5.4.2 及更早版本生成的页面，含日期时间列的表重新生成后，`schema.generated.ts` 里该字段改为时间戳，旧 `index.vue` 需按新模板手工迁移，见[代码生成：表单控件的取值口径](backend/code-generation.md#表单控件的取值口径)；不含日期时间列的表不受影响
+- **XiHan.UI 3.1.0**：直接使用 `XhTimePicker`、`XhColorPicker` 的代码，`update:value`、`value-change` 与 `api.value` 由字符串改为字符串数组，读值处取 `value[0]`；应用封装的 `XColorPicker` 仍收发单个 hex 串，不受影响
+- **AntV X6 3.x**：插件并入主包，`@antv/x6-plugin-*` 七个包移除，`Selection`、`History` 等改从 `@antv/x6` 导入，`@antv/x6-vue-shape` 同步升到 3.x；只经 `packages/diagram` 使用图编辑器的代码不受影响
+- **md-editor-v3 7.x**：暗色主题选择器 `.md-editor-dark` 改为 `.md-editor[data-theme="dark"]`，事件 `oninputBoxWidthChange` 改名 `onInputBoxWidthChange`
+- **monaco-editor 0.57**：worker 导入路径去掉 `esm/vs/`，如 `monaco-editor/esm/vs/editor/editor.worker?worker` 改为 `monaco-editor/editor/editor.worker?worker`
+- **悬浮工具组**：拖到的位置改按「贴哪条边 + 视口高度比例」记录，旧版本记下的位置作废，升级后回到默认位置一次
+:::
+
+- **新增** 代码生成的关联表列在表单里改为可输入筛选的下拉；列表字段新增 `searchFilterable`，搜索区的单选下拉可换成可搜索下拉，生成的关联表搜索项默认开启
+- **新增** 新增版本套餐时，版本编码可一键随机生成
+- **新增** 搜索区的日期与日期区间显示占位文字，区间两端为「开始时间」「结束时间」；`XDatePicker` 新增 `placeholder`，`XDateRangePicker` 新增 `startPlaceholder` / `endPlaceholder`
+- **优化** 代码生成的前端模板改用新版表单封装：日期时间列用带时刻的日期选择、按本地时间提交；整数列数字框按 0 位小数收值，`decimal` 列按列定义的小数位；文本框带上列长度上限，文本域显示字数
+- **优化** 悬浮工具组的拖动与贴边改由组件库提供，窗口尺寸变化后仍停在原来那一侧、同一高度比例处，不再回到默认位置
+- **优化** 对话框与抽屉打开后，焦点落在内容里第一个可操作的控件上，不再停在关闭钮
+- **修复** 可搜索下拉在编辑表单里比相邻下拉窄（权限的资源 / 操作、租户支持人员）
+- **修复** 小屏下搜索区的下拉、日期等控件没有像文本框一样占满整行；日期区间与上下行的列边对不齐，带时刻时终点的分钟段被日历钮压住
+- **修复** 弹窗里的次级表格中设为居中的列，复选框等控件没有居中（如代码生成的列配置）
+- **升级** 后端 XiHan.Framework 升至 4.6.1；前端 XiHan.UI 升至 3.1.0，AntV X6 升至 3.x，md-editor-v3 升至 7.x，monaco-editor 升至 0.57，pnpm 升至 11.28.3
+- **升级** 发布 v5.5.0
+
 ## v5.4.2 (2026-10-01)
 
 - **新增** 公共组件 `XCombobox`：可输入筛选、支持远程搜索的下拉选择。权限资源 / 操作、租户支持人员、时区、字段安全与聊天选人改用它
