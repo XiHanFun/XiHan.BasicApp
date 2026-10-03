@@ -151,6 +151,36 @@ const zhCN: XhTranslationOverrides = {
     windowStateTrigger: state => ({ default: '还原面板', minimized: '收拢面板', maximized: '铺满面板' })[state],
     close: '关闭',
   },
+  'funnel-chart': {
+    ...CHART_ZH,
+    nameLabel: '阶段',
+    valueLabel: '数值',
+    previousLabel: '较上一阶段',
+    firstLabel: '较第一阶段',
+    summary: (model) => {
+      if (!model.first) {
+        return '没有数据。'
+      }
+      const head = `${model.stageCount} 个阶段，从「${model.first.name}」${model.first.value} 到「${model.last?.name ?? model.first.name}」${model.last?.value ?? model.first.value}`
+      const overall = model.overall ? `，整体转化 ${model.overall}` : ''
+      const steepest = model.steepest ? `。流失最多的一步：${model.steepest.from} 到 ${model.steepest.to}，转化 ${model.steepest.rate}` : ''
+      return `${head}${overall}${steepest}。`
+    },
+  },
+  'graph-chart': {
+    ...CHART_ZH,
+    sourceLabel: '起点',
+    targetLabel: '终点',
+    valueLabel: '数值',
+    linkLabel: '关系',
+    linksLabel: '连线',
+    incomingLabel: '指向它的',
+    outgoingLabel: '它指向的',
+    summary: (model) => {
+      const head = `${model.nodeCount} 个节点，${model.linkCount} 条连线。`
+      return model.hub ? `${head}连线最多的是「${model.hub.name}」，${model.hub.degree} 条。` : head
+    },
+  },
   'heatmap': {
     gridLabel: '活动热力图',
     // 日期形态每格是当天计数；矩阵形态每格是作者给的值，不替它加量词
@@ -159,6 +189,20 @@ const zhCN: XhTranslationOverrides = {
     legendLabel: '活动量',
     legendLow: '少',
     legendHigh: '多',
+  },
+  'hierarchy-chart': {
+    ...CHART_ZH,
+    rootLabel: '全部',
+    pathLabel: '下钻路径',
+    nameLabel: '名称',
+    valueLabel: '数值',
+    levelLabel: level => `第 ${level} 层`,
+    parentShareLabel: '占上一层',
+    rootShareLabel: '占全部',
+    summary: (model) => {
+      const head = `「${model.root}」合计 ${model.total}，下一层 ${model.childCount} 项。`
+      return model.largest ? `${head}最大的是「${model.largest.name}」，${model.largest.value}，占 ${model.largest.share}。` : head
+    },
   },
   // 只覆盖整组的读法；每一枚键的名字随平台变（Mac 念 Command/Option），交回组件库
   'kbd': { hotkey: names => `快捷键 ${names.join(' 加 ')}` },
@@ -217,9 +261,36 @@ const zhCN: XhTranslationOverrides = {
     capsLockOn: '大写锁定已开启',
     strengthMeter: '密码强度',
   },
+  'pie-chart': {
+    ...CHART_ZH,
+    centerLabel: '合计',
+    nameLabel: '类别',
+    valueLabel: '数值',
+    shareLabel: '占比',
+    summary: (model) => {
+      const top = model.slices[0]
+      if (!top) {
+        return '没有数据。'
+      }
+      return `${model.sliceCount} 项，合计 ${model.total}。最大的是「${top.name}」，${top.value}，占 ${top.share}。`
+    },
+  },
   'pin-input': { input: (index, length) => `第 ${index} 位，共 ${length} 位` },
   'popover': { close: '关闭' },
+  // 分段量（仪表盘）读屏：数值后补上所在分段的名字
+  'progress': { segmentValueText: ({ value, label }) => `${value}，${label}` },
   'prompt-input': { send: '发送', stop: '停止', input: '输入消息' },
+  'radar-chart': {
+    ...CHART_ZH,
+    nameLabel: '指标',
+    summary: (model) => {
+      const lines = model.series
+        .filter(item => item.highest && item.lowest)
+        .map(item => `「${item.name}」最高是${item.highest!.indicator} ${item.highest!.value}，最低是${item.lowest!.indicator} ${item.lowest!.value}`)
+      const head = `${model.seriesCount} 个系列，${model.indicatorCount} 项指标。`
+      return lines.length > 0 ? `${head}${lines.join('；')}。` : head
+    },
+  },
   'sankey-chart': {
     ...CHART_ZH,
     datumLabel: details => `${details.seriesName}，${details.formatted.value ?? ''}`,
@@ -249,6 +320,20 @@ const zhCN: XhTranslationOverrides = {
     moved: (name, position, total) => `已将 ${name} 移到第 ${position} 位，共 ${total} 位`,
     dropped: (name, position) => `${name} 已放到第 ${position} 位`,
     canceled: (name, position) => `已取消排序，${name} 回到第 ${position} 位`,
+  },
+  'sparkline': {
+    summary: (model) => {
+      if (model.count === 0) {
+        return '没有数据。'
+      }
+      const range = `${model.count} 个值，从 ${model.first} 到 ${model.last}，最低 ${model.min}，最高 ${model.max}`
+      const trend = model.direction === 'up'
+        ? `，上升 ${model.change ?? ''}`
+        : model.direction === 'down'
+          ? `，下降 ${model.change ?? ''}`
+          : model.direction === 'flat' ? '，持平' : ''
+      return `${range}${trend}。`
+    },
   },
   'spinner': { label: '加载中' },
   'splitter': {
