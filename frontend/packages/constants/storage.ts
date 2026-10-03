@@ -124,7 +124,7 @@ export const TABBAR_SHOW_ICON_KEY = `${STORAGE_PREFIX}tabbar_show_icon`
 export const TABBAR_SHOW_OVERVIEW_KEY = `${STORAGE_PREFIX}tabbar_show_overview`
 export const TABBAR_STYLE_KEY = `${STORAGE_PREFIX}tabbar_style`
 export const WIDGET_PREFERENCE_POSITION_KEY = `${STORAGE_PREFIX}widget_preference_position`
-/** 悬浮工具组拖到的位置（连同当时的视口尺寸），只存本机、不进偏好快照 */
+/** 悬浮工具组拖到的位置（贴哪条边 + 中心在视口高的比例），只存本机、不进偏好快照 */
 export const WIDGET_FLOAT_TOOLBAR_POSITION_KEY = `${STORAGE_PREFIX}widget_float_toolbar_position`
 export const FOOTER_SHOW_DEV_INFO_KEY = `${STORAGE_PREFIX}footer_show_dev_info`
 export const COPYRIGHT_DATE_KEY = `${STORAGE_PREFIX}copyright_date`

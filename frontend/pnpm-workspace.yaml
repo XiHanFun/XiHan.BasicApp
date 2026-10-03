@@ -3,16 +3,16 @@
 # pnpm 对刚发布不久的包有最短发布时长的默认闸门，升级依赖时由它自动登记当时刚发布的版本。
 # 这些版本过了时长门槛后对应条目即可删除；pnpm 会自己维护这里的条目。
 minimumReleaseAgeExclude:
-  - '@xihan-ui/code-highlight@3.0.0'
-  - '@xihan-ui/core@3.0.0'
-  - '@xihan-ui/headless@3.0.0'
-  - '@xihan-ui/motion@3.0.0'
-  - '@xihan-ui/pointer@3.0.0'
-  - '@xihan-ui/position@3.0.0'
-  - '@xihan-ui/styles@3.0.0'
-  - '@xihan-ui/tokens@3.0.0'
-  - '@xihan-ui/vue@3.0.0'
-  - '@xihan-ui/viz@3.0.0'
+  - '@xihan-ui/code-highlight@3.1.0'
+  - '@xihan-ui/core@3.1.0'
+  - '@xihan-ui/headless@3.1.0'
+  - '@xihan-ui/motion@3.1.0'
+  - '@xihan-ui/pointer@3.1.0'
+  - '@xihan-ui/position@3.1.0'
+  - '@xihan-ui/styles@3.1.0'
+  - '@xihan-ui/tokens@3.1.0'
+  - '@xihan-ui/vue@3.1.0'
+  - '@xihan-ui/viz@3.1.0'
   - '@iconify-json/lucide@1.2.139'
   - '@intlify/core-base@11.4.13'
   - '@intlify/devtools-types@11.4.13'
@@ -97,13 +97,13 @@ catalog:
   '@vitest/coverage-v8': ^5.0.3
   '@vue/test-utils': ^2.5.1
   '@vueuse/core': ^15.0.0
-  '@xihan-ui/code-highlight': ^3.0.0
-  '@xihan-ui/core': ^3.0.0
-  '@xihan-ui/headless': ^3.0.0
-  '@xihan-ui/motion': ^3.0.0
-  '@xihan-ui/styles': ^3.0.0
-  '@xihan-ui/tokens': ^3.0.0
-  '@xihan-ui/vue': ^3.0.0
+  '@xihan-ui/code-highlight': ^3.1.0
+  '@xihan-ui/core': ^3.1.0
+  '@xihan-ui/headless': ^3.1.0
+  '@xihan-ui/motion': ^3.1.0
+  '@xihan-ui/styles': ^3.1.0
+  '@xihan-ui/tokens': ^3.1.0
+  '@xihan-ui/vue': ^3.1.0
   axios: ^1.20.0
   cross-env: ^10.1.0
   dayjs: ^1.11.23

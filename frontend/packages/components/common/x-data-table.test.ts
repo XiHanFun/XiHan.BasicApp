@@ -5,7 +5,9 @@
  * 给了 pagination 就在表格下方出与列表页同一副底栏（条数与页码 + 分页），
  * 此前 pagination 不是本组件的 prop，会被当成属性透传到包裹层，调用方以为有分页、界面上却没有。
  */
+import type { TableColumnDef } from '@xihan-ui/headless'
 import { mount } from '@vue/test-utils'
+import { XhTableRoot } from '@xihan-ui/vue'
 import { describe, expect, it, vi } from 'vitest'
 import { i18n } from '~/locales'
 import XDataTable from './XDataTable.vue'
@@ -44,6 +46,33 @@ describe('xDataTable 与列表页同一副样式', () => {
     await next!.trigger('click')
 
     expect(onUpdatePage).toHaveBeenCalledWith(2)
+  })
+
+  it('列的对齐与下限交给组件库的列契约，对齐按逻辑方向转写', () => {
+    const wrapper = mountTable({
+      columns: [
+        { key: 'name', title: '名称', minWidth: 64 },
+        { key: 'flag', title: '标记', align: 'center' },
+        { key: 'amount', title: '金额', align: 'right' },
+      ],
+    })
+
+    const defs: TableColumnDef[] = wrapper.findComponent(XhTableRoot).props('columns') ?? []
+    expect(defs.find(def => def.id === 'name')).toMatchObject({ minWidth: 64 })
+    expect(defs.find(def => def.id === 'name')).not.toHaveProperty('align')
+    expect(defs.find(def => def.id === 'flag')).toMatchObject({ align: 'center' })
+    expect(defs.find(def => def.id === 'flag')).not.toHaveProperty('minWidth')
+    expect(defs.find(def => def.id === 'amount')).toMatchObject({ align: 'end' })
+  })
+
+  it('居中列的列头与数据格都带上对齐标记，格内控件随之居中', () => {
+    const wrapper = mountTable({ columns: [{ key: 'name', title: '名称', align: 'center' }] })
+
+    const header = wrapper.find('[data-scope="table"][data-part="column-header"][data-value="name"]')
+    const cells = wrapper.findAll('[data-scope="table"][data-part="cell"][data-value="name"]')
+    expect(header.attributes('data-align')).toBe('center')
+    expect(cells).toHaveLength(2)
+    expect(cells.every(cell => cell.attributes('data-align') === 'center')).toBe(true)
   })
 
   it('调用方不接条数变更时不出条数选择器', () => {

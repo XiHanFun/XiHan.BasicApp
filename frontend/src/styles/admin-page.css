@@ -14,10 +14,8 @@
   --xh-field-label-font-size: var(--xh-text-secondary-size);
   --xh-field-label-gap-block: var(--xh-space-2);
   --xh-field-gap: var(--xh-space-1);
-  /* 网格内的控件一律撑满所在格：字段族控件的根宽缺省取 --xh-control-w（16rem），
-     在网格上改一次，经继承覆盖全部种类，新加的控件也不会漏 */
-  --xh-control-w: 100%;
 
+  /* 网格里的控件都放在 XhFieldRoot 里，字段族控件进了字段由组件库铺满字段宽（3.1 起），这里不再另设控件宽 */
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   row-gap: var(--xh-space-1);

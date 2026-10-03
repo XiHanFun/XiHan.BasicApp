@@ -137,12 +137,6 @@ function onTextKeydown(event: KeyboardEvent, canClear: boolean) {
     emit('enter')
 }
 
-/** 清除钮只在可清空时露出，点得到即清得掉；组件库先清值，这里随后报 clear */
-function onClearTriggerClick(canClear: boolean) {
-  if (canClear)
-    emit('clear')
-}
-
 /** 密码档没有清除钮部件，Escape 清空这条自己补，与文本档一致；禁用与只读看输入框上已落定的状态 */
 function onPasswordKeydown(event: KeyboardEvent) {
   if (isEnterSubmit(event)) {
@@ -210,6 +204,7 @@ defineExpose({ el, focus, blur })
     :size="size"
     :auto-size="autosize"
     @update:value="(next: string) => emit('update:value', next)"
+    @clear="emit('clear')"
   >
     <!-- 盒里除输入框外还排着前后缀与清除钮，点在空处时把焦点交回输入框 -->
     <XhTextFieldControl ref="controlRef" class="x-input__control" @mousedown.self.prevent="focus">
@@ -233,7 +228,8 @@ defineExpose({ el, focus, blur })
       <XhTextFieldSuffix v-if="slots.suffix">
         <slot name="suffix" />
       </XhTextFieldSuffix>
-      <XhTextFieldClearTrigger v-if="clearable" @click="onClearTriggerClick(canClear)" />
+      <!-- 按清除钮清掉值后组件库派发 clear（值变化之后、原本就空时不派发），根上原样转出 -->
+      <XhTextFieldClearTrigger v-if="clearable" />
     </XhTextFieldControl>
     <XhTextFieldCount v-if="showCount" />
   </XhTextFieldRoot>

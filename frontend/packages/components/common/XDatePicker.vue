@@ -41,7 +41,7 @@ import { segmentGroupWiring } from './date-picker-wiring'
  * 另一件必须收口的事是值类型：组件库收发 ISO 串，本应用上下游一律用时间戳（毫秒），
  * 换算在这里做（见 date-picker-value.ts）。
  *
- * 输入行没有整条的占位文字：组件库只给各段的 yyyy / mm / dd 占位，不接受字段级 placeholder。
+ * placeholder 是整条占位：一段都没填、焦点不在段上时代替各段的 yyyy / mm / dd 显示，只是视觉提示。
  * 不在字段里时，由调用方写 aria-label 给段位组起名。
  */
 defineOptions({ name: 'XDatePicker', inheritAttrs: false })
@@ -65,6 +65,8 @@ const props = withDefaults(defineProps<{
   size?: Size
   /** 快捷选项：值取 datePickerPreset* 系列算出的串 */
   presets?: Array<{ label: string, value: string }>
+  /** 整条占位文字 */
+  placeholder?: string
 }>(), {
   value: null,
   showTime: false,
@@ -76,6 +78,7 @@ const props = withDefaults(defineProps<{
   invalid: undefined,
   size: 'sm',
   presets: undefined,
+  placeholder: undefined,
 })
 
 const emit = defineEmits<{
@@ -112,6 +115,7 @@ function onValueChange(next: string[]): void {
     :invalid="invalid"
     :size="size"
     :presets="presets"
+    :placeholder="placeholder"
     @update:value="onValueChange"
   >
     <XhDatePickerControl>

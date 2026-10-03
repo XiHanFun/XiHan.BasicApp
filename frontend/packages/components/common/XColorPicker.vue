@@ -40,6 +40,13 @@ withDefaults(defineProps<{
 const emit = defineEmits<{
   'update:value': [value: string]
 }>()
+
+// 库内取色器的值恒为颜色串数组，单选恒为一项；对外仍只交出那一个 hex 串
+function onValueUpdate(next: string[]) {
+  const color = next[0]
+  if (color !== undefined)
+    emit('update:value', color)
+}
 </script>
 
 <template>
@@ -48,7 +55,7 @@ const emit = defineEmits<{
     :swatches="swatches"
     :disabled="disabled"
     :size="size"
-    @update:value="(next: string) => emit('update:value', next)"
+    @update:value="onValueUpdate"
   >
     <!-- 视觉盒（边框/高度/内边距/聚焦环）在 Control 上，少这层触发钮就退回裸按钮 -->
     <XhColorPickerControl>
