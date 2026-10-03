@@ -27,7 +27,7 @@
     "rebuild": "pnpm run clean && pnpm run build"
   },
   "dependencies": {
-    "vue": "^3.5.39",
+    "vue": "^3.5.43",
     "vitepress": "^1.6.4"
   }
 }
