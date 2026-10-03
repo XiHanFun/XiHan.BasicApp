@@ -448,9 +448,6 @@ public static class PageRegistry
         // [8.7] 版本管理（系统版本与升级迁移）
          new("setting.version.export", "导出", "setting.version", SaasPermissionCodes.Version.Export, 9),
 
-        // [1.1] 仪表盘（统计卡片按权限出现）
-         new("workbench.dashboard.user-statistics", "用户统计", "workbench.dashboard", SaasPermissionCodes.UserStatistics.Read, 1),
-
         // [9.1] 访问日志
          new("log.access.export", "导出", "log.access", SaasPermissionCodes.AccessLog.Export, 1),
 

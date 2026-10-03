@@ -1,43 +1,29 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
-import { loadDashboardSummary } from './summary'
+import { useFormatters } from './charts/chart-helpers'
+import { dailySales } from './charts/demo-data'
 import WidgetCard from './WidgetCard.vue'
 
 defineOptions({ name: 'StatsWidget' })
 
 const { t } = useI18n()
+const formatters = useFormatters()
 
-// 今日统计（后端 DashboardSummary 真实数据；接口失败静默清零）
-const accessCount = ref(0)
-const operationCount = ref(0)
-const loginCount = ref(0)
-const apiCallCount = ref(0)
+// 今日统计：示例数据，与「经营指标」「销售趋势」同一套逐日数据的今天那一行
+const today = dailySales(1, new Date())[0]!
 
 const statCards = computed(() => [
-  { key: 'access', label: t('workbench.dashboard.stat_access'), value: accessCount.value, icon: 'lucide:mouse-pointer-click', color: '#3b82f6' },
-  { key: 'operation', label: t('workbench.dashboard.stat_operation'), value: operationCount.value, icon: 'lucide:activity', color: '#22c55e' },
-  { key: 'login', label: t('workbench.dashboard.stat_login'), value: loginCount.value, icon: 'lucide:log-in', color: '#8b5cf6' },
-  { key: 'api', label: t('workbench.dashboard.stat_api'), value: apiCallCount.value, icon: 'lucide:webhook', color: '#f59e0b' },
+  { key: 'sales', label: t('workbench.dashboard.stat_sales'), value: formatters.value.currency(today.sales), icon: 'lucide:banknote', color: '#3b82f6' },
+  { key: 'orders', label: t('workbench.dashboard.stat_orders'), value: formatters.value.number(today.orders), icon: 'lucide:shopping-cart', color: '#22c55e' },
+  { key: 'visitors', label: t('workbench.dashboard.stat_visitors'), value: formatters.value.number(today.visitors), icon: 'lucide:users', color: '#8b5cf6' },
+  { key: 'conversion', label: t('workbench.dashboard.stat_conversion'), value: formatters.value.percent(today.orders / today.visitors), icon: 'lucide:target', color: '#f59e0b' },
 ])
-
-onMounted(async () => {
-  try {
-    const summary = await loadDashboardSummary()
-    accessCount.value = summary.statistics.accessCount
-    operationCount.value = summary.statistics.operationCount
-    loginCount.value = summary.statistics.loginCount
-    apiCallCount.value = summary.statistics.apiCallCount
-  }
-  catch {
-    // 静默回退零值
-  }
-})
 </script>
 
 <template>
-  <WidgetCard icon="lucide:gauge" :title="t('workbench.widgets.stats.title')">
+  <WidgetCard icon="lucide:gauge" :title="t('workbench.widgets.stats.title')" demo>
     <!-- 按小组件自身宽度排布：极窄单列横排；中等两列、图标在上；宽到每格放得下横排时再横排，足够宽四列一行 -->
     <div class="grid grid-cols-1 gap-2 @[14rem]:grid-cols-2 @2xl:grid-cols-4 @2xl:gap-3">
       <div
