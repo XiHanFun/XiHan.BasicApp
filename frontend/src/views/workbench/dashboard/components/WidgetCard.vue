@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { XhTagRoot } from '@xihan-ui/vue'
+import { useI18n } from 'vue-i18n'
 import { Icon } from '~/iconify'
 
 defineOptions({ name: 'WidgetCard' })
@@ -8,15 +10,23 @@ defineProps<{
   icon?: string
   /** 小组件标题 */
   title?: string
+  /** 内容是前端生成的示例数据：标题旁标出来，免得被当成真实业务数据 */
+  demo?: boolean
 }>()
+
+const { t } = useI18n()
 </script>
 
 <template>
   <section class="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card">
-    <header class="flex items-center gap-2 border-b border-border/70 px-4 py-2.5">
-      <Icon v-if="icon" :icon="icon" width="16" height="16" class="text-[hsl(var(--primary))]" />
-      <span class="text-sm font-medium text-card-foreground">{{ title }}</span>
-      <div class="ml-auto flex items-center gap-1">
+    <!-- 窄卡片放不下标题与右侧切换时，切换整组折到下一行靠右，标题与每个切换控件都不在内部折字 -->
+    <header class="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border/70 px-4 py-2.5">
+      <Icon v-if="icon" :icon="icon" width="16" height="16" class="shrink-0 text-[hsl(var(--primary))]" />
+      <span class="whitespace-nowrap text-sm font-medium text-card-foreground">{{ title }}</span>
+      <XhTagRoot v-if="demo" variant="subtle" size="sm" :title="t('workbench.charts.demo_tip')">
+        {{ t('workbench.charts.demo') }}
+      </XhTagRoot>
+      <div class="ml-auto flex flex-wrap items-center justify-end gap-1 *:shrink-0">
         <slot name="extra" />
       </div>
     </header>
