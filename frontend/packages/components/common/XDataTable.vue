@@ -112,6 +112,13 @@ function declaredWidth(column: XDataTableColumn<T>): number | string {
   return column.width ?? column.minWidth ?? 120
 }
 
+/** 列对齐转成组件库的逻辑方向：它把对齐写在列头与数据格上，文字与格内的控件一起对齐 */
+const COLUMN_ALIGN = { left: 'start', center: 'center', right: 'end' } as const
+
+/**
+ * width 只是 flex 基准，容器不够时各列按比例压缩；minWidth 交给组件库当这一列的下限，
+ * 没写的列压到皮肤的 --xh-table-cell-min-w 为止。
+ */
 const tableColumns = computed<TableColumnDef[]>(() => [
   ...(props.selectable ? [{ id: SELECT_COL, width: SELECT_COL_W, ...(props.columns.some(c => c.fixed === 'left') ? { sticky: 'start' as const } : {}) }] : []),
   ...props.columns.map<TableColumnDef>(column => ({
@@ -119,26 +126,13 @@ const tableColumns = computed<TableColumnDef[]>(() => [
     label: column.title,
     ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
     width: declaredWidth(column),
+    ...(column.minWidth !== undefined ? { minWidth: column.minWidth } : {}),
+    ...(column.align ? { align: COLUMN_ALIGN[column.align] } : {}),
   })),
 ])
 
 const rows = computed(() => props.data.map(row => ({ key: keyOf(row), row })))
 const tableRows = computed<TableRowDef[]>(() => rows.value.map(item => ({ id: item.key })))
-
-/**
- * 单元格内联样式：对齐 + 逐列下限。
- * width 只是 flex 基准，容器不够时各列按比例压缩，压到 --xh-table-cell-min-w 为止。
- */
-function cellStyle(column: XDataTableColumn<T>) {
-  const style: Record<string, string> = {}
-  if (column.align && column.align !== 'left') {
-    style.textAlign = column.align
-  }
-  if (column.minWidth !== undefined) {
-    style['--xh-table-cell-min-w'] = `${column.minWidth}px`
-  }
-  return Object.keys(style).length > 0 ? style : undefined
-}
 
 /** 全选时机器给的是 'all'，摊平成实际的键集合再回传 */
 function onSelectionChange(selection: TableSelection) {
@@ -179,7 +173,6 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
             v-for="column in columns"
             :key="column.key"
             :value="column.key"
-            :style="cellStyle(column)"
           >
             <!-- 列名放进 column-label：列头是 flex 行，裸文本缩不下去；这一格超宽出省略号 -->
             <XhTableColumnLabel>{{ column.title }}</XhTableColumnLabel>
@@ -201,7 +194,6 @@ function cellContent(column: XDataTableColumn<T>, row: T, index: number): VNodeC
             v-for="column in columns"
             :key="column.key"
             :value="column.key"
-            :style="cellStyle(column)"
           >
             <!-- 截断要落在单元格内部的行内块上：单元格自身是 flex 容器，text-overflow 在它上面不生效 -->
             <span v-if="column.ellipsis" class="x-data-table__cell-text">

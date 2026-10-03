@@ -82,6 +82,8 @@ function onRangeChange(next: [number, number] | null): void {
     :presets="presets"
     :show-time="withTime"
     :default-time="withTime ? DEFAULT_TIME : undefined"
+    :start-placeholder="t('component.search_date_range.start')"
+    :end-placeholder="t('component.search_date_range.end')"
     @update:value="onRangeChange"
   />
 </template>

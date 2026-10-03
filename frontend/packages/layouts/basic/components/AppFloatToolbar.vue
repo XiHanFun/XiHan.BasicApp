@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import type { FloatButtonPlacement } from '@xihan-ui/headless'
-import type { ComponentPublicInstance } from 'vue'
-import { useFullscreen, useWindowSize } from '@vueuse/core'
-import { FLOAT_BUTTON_DEFAULT_OFFSET } from '@xihan-ui/headless'
+import type { FloatButtonEdgePosition, FloatButtonPosition } from '@xihan-ui/headless'
+import { useFullscreen } from '@vueuse/core'
 import { XhFloatButtonList, XhFloatButtonRoot, XhFloatButtonTrigger } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -19,191 +17,48 @@ import { useWidgetPlacement } from '../composables'
  * 悬浮工具组：命令面板、语言、时区、主题、全屏与偏好设置里，位置落到「悬浮」的都收进这一组。
  * 落位与顶栏共用 useWidgetPlacement 判定，同一个工具不会两处同时出现；一个都没有时整组不渲染。
  *
- * 组件库的悬浮按钮钉在角上，这里补上拖动：按住触发器可拖到任意处，松手贴向近的那条边；
- * 默认贴右边、停在右下角四分之一处（不压分页、页脚与回到顶部），视口尺寸一变就回到默认位置。
+ * 拖动与贴边交给组件库（draggable）：按住触发器可拖到任意处，松手贴向左右两边里近的那条，
+ * 起拖时收起整组、拖完补派的点击不开合，展开组恒朝页面中间长。位置按「贴哪条边 + 中心在视口高的比例」记，
+ * 视口尺寸变了仍落在同一侧、同一比例上；默认贴右边、停在视口四分之三高处（不压分页、页脚与回到顶部）。
  */
 defineOptions({ name: 'AppFloatToolbar' })
 
-type Side = 'left' | 'right'
-
-interface FloatToolbarPosition {
-  side: Side
-  top: number
-  viewportWidth: number
-  viewportHeight: number
-}
-
-/** 默认落点：触发器中心在视口高度的四分之三处 */
-const DEFAULT_CENTER_RATIO = 0.75
-/** 贴边距离：与组件库悬浮按钮缺省的贴边距离一致 */
-const EDGE_GAP = FLOAT_BUTTON_DEFAULT_OFFSET
-/** 位移超过它才算拖动，否则是点击展开 */
-const DRAG_THRESHOLD = 4
+/** 默认落点：贴行尾一侧，触发器中心在视口高度的四分之三处 */
+const DEFAULT_POSITION: FloatButtonEdgePosition = { edge: 'inline-end', ratio: 0.75 }
 
 const { t } = useI18n()
 const layoutBridgeStore = useLayoutBridgeStore()
 const placement = useWidgetPlacement()
 const { isDark, toggleThemeWithTransition } = useTheme()
 const { isFullscreen, toggle: toggleFullscreen } = useFullscreen()
-const { width: viewportWidth, height: viewportHeight } = useWindowSize({ includeScrollbar: false })
 
 const open = ref(false)
 const translations = computed(() => ({ trigger: t('header.toolbar.float_tools') }))
 
-// ---- 位置与拖动 ----
-const triggerRef = ref<ComponentPublicInstance | null>(null)
-/** 触发器边长：随组件库尺寸档走，挂上后量一次 */
-const triggerSize = ref(0)
-const side = ref<Side>('right')
-/** 触发器上沿离视口顶的距离 */
-const top = ref(0)
-/** 拖动中触发器左沿的横坐标；不在拖动时为 null，横向位置由贴边决定 */
-const dragLeft = ref<number | null>(null)
-
-function clampTop(value: number) {
-  return Math.min(viewportHeight.value - triggerSize.value - EDGE_GAP, Math.max(EDGE_GAP, value))
-}
-
-function clampLeft(value: number) {
-  return Math.min(viewportWidth.value - triggerSize.value - EDGE_GAP, Math.max(EDGE_GAP, value))
-}
-
-function placeDefault() {
-  side.value = 'right'
-  top.value = clampTop(viewportHeight.value * DEFAULT_CENTER_RATIO - triggerSize.value / 2)
-}
-
-/** 本机记着的位置只在视口尺寸没变时作数 */
-function restorePosition() {
-  const saved = LocalStorage.get<FloatToolbarPosition>(WIDGET_FLOAT_TOOLBAR_POSITION_KEY)
-  if (
-    saved
-    && (saved.side === 'left' || saved.side === 'right')
-    && Number.isFinite(saved.top)
-    && saved.viewportWidth === viewportWidth.value
-    && saved.viewportHeight === viewportHeight.value
-  ) {
-    side.value = saved.side
-    top.value = clampTop(saved.top)
-    return
+// ---- 位置 ----
+/** 贴左右两边的位置才作数：组件库按缺省 snap（inline）只会落在这两条边上 */
+function isInlineEdgePosition(value: unknown): value is FloatButtonEdgePosition {
+  if (typeof value !== 'object' || value === null) {
+    return false
   }
-  placeDefault()
+  const { edge, ratio } = value as Partial<FloatButtonEdgePosition>
+  return (edge === 'inline-start' || edge === 'inline-end')
+    && typeof ratio === 'number' && Number.isFinite(ratio) && ratio >= 0 && ratio <= 1
 }
 
-function savePosition() {
-  const position: FloatToolbarPosition = {
-    side: side.value,
-    top: top.value,
-    viewportWidth: viewportWidth.value,
-    viewportHeight: viewportHeight.value,
-  }
-  LocalStorage.set(WIDGET_FLOAT_TOOLBAR_POSITION_KEY, position)
+function restorePosition(): FloatButtonEdgePosition {
+  const saved = LocalStorage.get<unknown>(WIDGET_FLOAT_TOOLBAR_POSITION_KEY)
+  return isInlineEdgePosition(saved) ? saved : DEFAULT_POSITION
 }
 
-// 整组出现时量触发器、摆到位
-watch(triggerRef, (instance) => {
-  const el = instance?.$el as HTMLElement | undefined
-  if (!el) {
-    return
-  }
-  triggerSize.value = el.offsetWidth
-  restorePosition()
-})
+const position = ref<FloatButtonPosition>(restorePosition())
+// 组件库只在拖动落定后写回一次，这里随之记到本机
+watch(position, next => LocalStorage.set(WIDGET_FLOAT_TOOLBAR_POSITION_KEY, next))
 
-// 视口一变（窗口缩放、旋转屏幕）就回到默认位置
-watch([viewportWidth, viewportHeight], () => {
-  LocalStorage.remove(WIDGET_FLOAT_TOOLBAR_POSITION_KEY)
-  placeDefault()
-})
-
-const left = computed(() =>
-  dragLeft.value ?? (side.value === 'left' ? EDGE_GAP : viewportWidth.value - triggerSize.value - EDGE_GAP))
-/** 触发器在上半屏时整组往下展开，在下半屏时往上展开，展开的那一截不出屏 */
-const inUpperHalf = computed(() => top.value + triggerSize.value / 2 < viewportHeight.value / 2)
-const rootPlacement = computed<FloatButtonPlacement>(() =>
-  `${inUpperHalf.value ? 'top' : 'bottom'}-${side.value === 'left' ? 'start' : 'end'}`)
-/** 语言、时区菜单朝屏幕里面弹 */
+const edgePosition = computed(() => isInlineEdgePosition(position.value) ? position.value : DEFAULT_POSITION)
+/** 语言、时区菜单朝屏幕里面弹：贴左边往右弹，贴右边往左弹；上半屏往下展开、下半屏往上展开 */
 const menuPlacement = computed(() =>
-  `${side.value === 'left' ? 'right' : 'left'}-${inUpperHalf.value ? 'start' : 'end'}` as const)
-// 组件库按落位贴角；这里四条边都写死，盖掉贴角的那两条，按触发器的坐标摆整组
-const rootStyle = computed(() => ({
-  left: `${left.value}px`,
-  right: 'auto',
-  top: inUpperHalf.value ? `${top.value}px` : 'auto',
-  bottom: inUpperHalf.value ? 'auto' : `${viewportHeight.value - top.value - triggerSize.value}px`,
-}))
-
-let pointerId: number | null = null
-let moved = false
-let startX = 0
-let startY = 0
-let originLeft = 0
-let originTop = 0
-
-function onPointerDown(event: PointerEvent) {
-  if (event.pointerType === 'mouse' && event.button !== 0) {
-    return
-  }
-  pointerId = event.pointerId
-  moved = false
-  startX = event.clientX
-  startY = event.clientY
-  originLeft = left.value
-  originTop = top.value
-  ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
-}
-
-function onPointerMove(event: PointerEvent) {
-  if (event.pointerId !== pointerId) {
-    return
-  }
-  const dx = event.clientX - startX
-  const dy = event.clientY - startY
-  if (!moved) {
-    if (Math.hypot(dx, dy) <= DRAG_THRESHOLD) {
-      return
-    }
-    moved = true
-    open.value = false
-  }
-  event.preventDefault()
-  dragLeft.value = clampLeft(originLeft + dx)
-  top.value = clampTop(originTop + dy)
-}
-
-/** 松手：按触发器中心落在哪半屏贴向那条边，记下位置 */
-function finishDrag(event: PointerEvent) {
-  if (event.pointerId !== pointerId) {
-    return
-  }
-  pointerId = null
-  const el = event.currentTarget as HTMLElement
-  if (el.hasPointerCapture(event.pointerId)) {
-    el.releasePointerCapture(event.pointerId)
-  }
-  if (dragLeft.value === null) {
-    return
-  }
-  side.value = dragLeft.value + triggerSize.value / 2 < viewportWidth.value / 2 ? 'left' : 'right'
-  dragLeft.value = null
-  savePosition()
-}
-
-function onPointerCancel(event: PointerEvent) {
-  finishDrag(event)
-  // 取消的指针后面没有 click，不留着拦下一次点击
-  moved = false
-}
-
-/** 拖完浏览器补发的 click 不能再去展开整组：在捕获阶段拦在根上，触发器自己的点击处理收不到 */
-function onClickCapture(event: MouseEvent) {
-  if (!moved) {
-    return
-  }
-  moved = false
-  event.stopPropagation()
-  event.preventDefault()
-}
+  `${edgePosition.value.edge === 'inline-start' ? 'right' : 'left'}-${edgePosition.value.ratio < 0.5 ? 'start' : 'end'}` as const)
 
 // ---- 动作 ----
 /** 点了动作就收起整组；语言与时区是菜单，选完由菜单自己收起，组保持展开以便看到结果 */
@@ -228,21 +83,11 @@ const glyphStyle = { inlineSize: 'var(--xh-icon-size)', blockSize: 'var(--xh-ico
   <XhFloatButtonRoot
     v-if="placement.hasFloating.value"
     v-model:open="open"
-    class="float-toolbar"
-    :class="{ 'is-dragging': dragLeft !== null }"
-    :style="rootStyle"
-    :placement="rootPlacement"
+    v-model:position="position"
+    draggable
     :translations="translations"
-    @click.capture="onClickCapture"
   >
-    <XhFloatButtonTrigger
-      ref="triggerRef"
-      class="float-trigger"
-      @pointerdown="onPointerDown"
-      @pointermove="onPointerMove"
-      @pointerup="finishDrag"
-      @pointercancel="onPointerCancel"
-    >
+    <XhFloatButtonTrigger>
       <!-- 收起时是螺母（快捷工具），展开后换成关闭，读得出再按一下就收起 -->
       <Icon :icon="open ? 'lucide:x' : 'lucide:bolt'" :style="glyphStyle" />
     </XhFloatButtonTrigger>
@@ -311,26 +156,6 @@ const glyphStyle = { inlineSize: 'var(--xh-icon-size)', blockSize: 'var(--xh-ico
 </template>
 
 <style scoped>
-/* 松手后滑向贴靠的那条边；拖动中跟手，不过渡 */
-.float-toolbar {
-  transition: left var(--xh-motion-duration-move) var(--xh-motion-ease-enter-strong);
-}
-
-.float-toolbar.is-dragging {
-  transition: none;
-}
-
-/* 触发器兼作拖动把手：按住拖动时不滚页面、不选中文字 */
-.float-trigger {
-  touch-action: none;
-  user-select: none;
-  cursor: grab;
-}
-
-.float-toolbar.is-dragging .float-trigger {
-  cursor: grabbing;
-}
-
 /* 语言与时区是菜单：菜单触发器带着自己的 data-scope，悬浮组皮肤只给不带 data-scope 的原生按钮画面，
    这两颗的面改从材质配方取（data-xh-material="frosted"，即缺省 outline 档同一份磨砂面），
    这里只补与原生动作项同一张表的交互阶梯 */

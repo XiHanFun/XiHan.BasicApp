@@ -132,12 +132,9 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   align-items: flex-end;
 }
 
-/* 单个搜索项：上下布局（标题在上、控件在下），常用/高级统一宽度 */
+/* 单个搜索项：上下布局（标题在上、控件在下），常用/高级统一宽度。
+   项本身就是字段根，字段族控件由组件库铺满字段宽；小屏项占满整行时控件跟着铺开 */
 .xh-search__item {
-  /* 控件一律撑满所在搜索项：字段族控件的根宽缺省取 --xh-control-w（16rem），
-     在项上改一次，经继承覆盖全部种类；小屏项占满整行时控件跟着铺开，与文本框同宽 */
-  --xh-control-w: 100%;
-
   display: flex;
   flex-direction: column;
   gap: 2px;

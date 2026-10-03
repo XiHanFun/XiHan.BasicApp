@@ -67,6 +67,7 @@ const isDate = computed(() => props.field.dataType === 'date' || props.field.dat
     clearable
     size="sm"
     class="w-full"
+    :placeholder="placeholder"
   />
   <XInput
     v-else

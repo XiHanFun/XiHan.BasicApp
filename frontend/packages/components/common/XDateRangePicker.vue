@@ -60,6 +60,10 @@ const props = withDefaults(defineProps<{
   showTime?: boolean
   /** showTime 下只点日期时两端各补的时刻，如 ['00:00', '23:59']；已挑过时刻的一端不动 */
   defaultTime?: [string, string]
+  /** 起点那组的整条占位：这一端没填、焦点不在段上时代替各段的 yyyy / mm / dd 显示 */
+  startPlaceholder?: string
+  /** 终点那组的整条占位 */
+  endPlaceholder?: string
 }>(), {
   value: null,
   clearable: true,
@@ -68,6 +72,8 @@ const props = withDefaults(defineProps<{
   presets: undefined,
   showTime: false,
   defaultTime: undefined,
+  startPlaceholder: undefined,
+  endPlaceholder: undefined,
 })
 
 const emit = defineEmits<{
@@ -119,6 +125,8 @@ function onValueChange(next: string[]): void {
     :presets="presets"
     :show-time="showTime"
     :default-time="defaultTime"
+    :start-placeholder="startPlaceholder"
+    :end-placeholder="endPlaceholder"
     :translations="showTime ? timeTranslations : undefined"
     @update:value="onValueChange"
   >

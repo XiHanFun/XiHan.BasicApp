@@ -107,8 +107,9 @@ const zhCN: XhTranslationOverrides = {
     swatch: value => `色卡 ${value}`,
     swatchGroup: '预设色卡',
     eyeDropperTrigger: '取色器',
+    deleteItem: label => `移除 ${label}`,
   },
-  // 多选标签的删除钮与 select 同一说法；overflowTag 不写：+N 与语言无关
+  // 多选标签的删除钮与 select 同一说法（取色器、日期选择的多选标签同此）；overflowTag 不写：+N 与语言无关
   'combobox': { trigger: '显示候选', clearTrigger: '清空', deleteItem: label => `移除 ${label}` },
   'context-menu': { content: '右键菜单' },
   'date-picker': {
@@ -118,6 +119,7 @@ const zhCN: XhTranslationOverrides = {
     minute: '分',
     second: '秒',
     todayDate: date => `今天，${date}`,
+    deleteItem: label => `移除 ${label}`,
   },
   'date-range-picker': {
     startDate: '开始日期',
