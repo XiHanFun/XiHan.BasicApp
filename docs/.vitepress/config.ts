@@ -55,6 +55,7 @@ const startSidebar: DefaultTheme.SidebarItem[] = [
       { text: "接口对接指南", link: "/api-guide" },
       { text: "配置参考", link: "/configuration" },
       { text: "功能清单", link: "/features" },
+      { text: "功能预览", link: "/preview" },
       { text: "部署", link: "/deployment" },
       { text: "更新日志", link: "/changelog" },
     ],
@@ -129,7 +130,7 @@ const nav: DefaultTheme.NavItem[] = [
     text: "开始",
     link: "/introduction",
     activeMatch:
-      "^/(introduction|why|overview|dev-environment|getting-started|project-structure|faq|api-guide|configuration|features|deployment)$",
+      "^/(introduction|why|overview|dev-environment|getting-started|project-structure|faq|api-guide|configuration|features|preview|deployment)$",
   },
   { text: "后端手册", link: "/backend/introduction", activeMatch: "/backend/" },
   {
