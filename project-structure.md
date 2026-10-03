@@ -30,7 +30,8 @@ XiHan.BasicApp/
 │   ├── .env / .env.development / .env.production
 │   └── nginx.conf                    #   生产静态托管与 /api 反代示例
 ├── docker-compose.yml
-└── assets/
+└── assets/                           # 品牌与文档资源
+    └── preview/                      # 功能预览截图与索引
 ```
 
 `backend/src/business` 下的 OA、CMS、CRM、HRM、ERP 等 15 个项目目前是解决方案内脚手架，模块注册基本为空，且 `XiHanBasicAppWebHostModule` 未依赖它们。它们代表预留边界，不应当作已交付业务功能。

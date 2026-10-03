@@ -6,7 +6,7 @@
 
 ## 机读资产
 
-- [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt): 全部 50 页正文
+- [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt): 全部 51 页正文
 - [llms-backend.txt](https://basicapp.docs.xihanfun.com/llms-backend.txt): 26 页后端手册
 - [llms-frontend.txt](https://basicapp.docs.xihanfun.com/llms-frontend.txt): 11 页前端手册
 - 每页 Markdown：把站点地址后缀成 `.md`，如 https://basicapp.docs.xihanfun.com/backend/ai.md
@@ -19,11 +19,12 @@
 - [部署](https://basicapp.docs.xihanfun.com/deployment): 本篇介绍如何把 XiHan.BasicApp 发布到服务器。
 - [开发环境](https://basicapp.docs.xihanfun.com/dev-environment): 承接 系统概述 对整体架构的了解，本篇用 Docker 命令行 准备本地开发可用的 Redis 与关系型数据库，并给出与仓库 `appsettings.Development.json` 对齐的默认 PostgreSQL 组合。
 - [常见问题](https://basicapp.docs.xihanfun.com/faq): 按「现象 → 原因 → 解决」组织的高频故障速查表。
-- [功能清单](https://basicapp.docs.xihanfun.com/features): XiHan.BasicApp 内置了中后台系统所需的完整能力。
+- [功能清单](https://basicapp.docs.xihanfun.com/features): 以下按实际页面与业务能力介绍内置功能；AI、在线聊天、代码生成、工作流和打印属于可选模块。
 - [快速开始](https://basicapp.docs.xihanfun.com/getting-started): 本篇带你在本地把 XiHan.BasicApp 的后端与前端跑起来。
 - [曦寒基础应用](https://basicapp.docs.xihanfun.com/): 基于 .NET 与 Vue 的超高颜值中后台内核
 - [XiHan.BasicApp 基础应用](https://basicapp.docs.xihanfun.com/introduction): 企业级中后台内核。
 - [系统概述](https://basicapp.docs.xihanfun.com/overview): XiHan.BasicApp 是一个企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 与 XiHan.UI。
+- [功能预览](https://basicapp.docs.xihanfun.com/preview): .feature-preview-table td { width: 50%; vertical-align: top; text-align: center; }
 - [目录结构与代码地图](https://basicapp.docs.xihanfun.com/project-structure): 这页解决一个具体问题：「我要改 X，该去哪个文件？」 上半部分是目录树，下半部分是按任务索引的代码地图。
 - [为什么选择曦寒](https://basicapp.docs.xihanfun.com/why): 完整能力清单在 功能清单，这一页不重复。
 
