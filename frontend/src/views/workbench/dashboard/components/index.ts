@@ -50,25 +50,25 @@ function widget(key: string, i18nKey: string, icon: string, defaultSpan: number,
  * 接入真实业务时在后端 WorkbenchQueryService 加接口，再把对应小组件换成接口取数。
  */
 export const WIDGETS: WidgetDef[] = [
-  widget('clock', 'clock', 'lucide:clock', 2, ClockWidget),
   widget('welcome', 'welcome', 'lucide:sparkles', 4, WelcomeWidget),
-  widget('favorites', 'favorites', 'lucide:star', 3, FavoritesWidget),
+  widget('clock', 'clock', 'lucide:clock', 4, ClockWidget),
+  widget('favorites', 'favorites', 'lucide:star', 4, FavoritesWidget),
   widget('todo', 'todo', 'lucide:check-square', 3, TodoWidget),
   widget('announcement', 'announcement', 'lucide:megaphone', 9, AnnouncementWidget),
-  widget('stats', 'stats', 'lucide:gauge', 3, StatsWidget),
+  widget('stats', 'stats', 'lucide:gauge', 2, StatsWidget),
   widget('sales-kpi', 'sales_kpi', 'lucide:activity', 4, SalesKpiWidget),
+  widget('channel-share', 'channel_share', 'lucide:pie-chart', 3, ChannelShareWidget),
+  widget('conversion-funnel', 'conversion_funnel', 'lucide:filter', 3, ConversionFunnelWidget),
   widget('sales-trend', 'sales_trend', 'lucide:trending-up', 8, SalesTrendWidget),
-  widget('channel-share', 'channel_share', 'lucide:pie-chart', 4, ChannelShareWidget),
-  widget('conversion-funnel', 'conversion_funnel', 'lucide:filter', 4, ConversionFunnelWidget),
-  widget('store-radar', 'store_radar', 'lucide:radar', 4, StoreRadarWidget),
+  widget('order-flow', 'order_flow', 'lucide:waypoints', 4, OrderFlowWidget),
   widget('product-performance', 'product_performance', 'lucide:package', 8, ProductPerformanceWidget),
   widget('customer-mix', 'customer_mix', 'lucide:users', 4, CustomerMixWidget),
-  widget('order-heatmap', 'order_heatmap', 'lucide:calendar-clock', 6, OrderHeatmapWidget),
-  widget('order-flow', 'order_flow', 'lucide:waypoints', 6, OrderFlowWidget),
-  widget('category-mix', 'category_mix', 'lucide:layout-grid', 6, CategoryMixWidget),
-  widget('supply-network', 'supply_network', 'lucide:share-2', 6, SupplyNetworkWidget),
-  widget('material-price', 'material_price', 'lucide:chart-candlestick', 6, MaterialPriceWidget),
-  widget('profit-waterfall', 'profit_waterfall', 'lucide:chart-column-decreasing', 6, ProfitWaterfallWidget),
+  widget('order-heatmap', 'order_heatmap', 'lucide:calendar-clock', 4, OrderHeatmapWidget),
+  widget('store-radar', 'store_radar', 'lucide:radar', 4, StoreRadarWidget),
+  widget('profit-waterfall', 'profit_waterfall', 'lucide:chart-column-decreasing', 4, ProfitWaterfallWidget),
+  widget('category-mix', 'category_mix', 'lucide:layout-grid', 4, CategoryMixWidget),
+  widget('supply-network', 'supply_network', 'lucide:share-2', 4, SupplyNetworkWidget),
+  widget('material-price', 'material_price', 'lucide:chart-candlestick', 4, MaterialPriceWidget),
   widget('target-progress', 'target_progress', 'lucide:target', 12, TargetProgressWidget),
 ]
 
@@ -82,8 +82,8 @@ export interface BoardItem {
 
 /**
  * 默认看板，每行凑满 12 栅格：
- * 时间(2) 欢迎(4) 收藏入口(3) 便签待办(3) / 公告轮播(9) 今日统计(3) /
- * 经营指标(4) 销售趋势(8) / 销售构成(4) 转化漏斗(4) 门店对比(4) / 商品表现(8) 会员构成(4) /
- * 下单时段(6) 订单流向(6) / 品类构成(6) 供应网络(6) / 原料行情(6) 利润构成(6) / 目标达成(12)
+ * 欢迎(4) 时间(4) 收藏入口(4) / 便签待办(3) 公告轮播(9) /
+ * 今日统计(2) 经营指标(4) 销售构成(3) 转化漏斗(3) / 销售趋势(8) 订单流向(4) / 商品表现(8) 会员构成(4) /
+ * 下单时段(4) 门店对比(4) 利润构成(4) / 品类构成(4) 供应网络(4) 原料行情(4) / 目标达成(12)
  */
 export const DEFAULT_BOARD: BoardItem[] = WIDGETS.map(widget => ({ key: widget.key, span: widget.defaultSpan }))
