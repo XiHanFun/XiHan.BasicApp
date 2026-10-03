@@ -46,7 +46,7 @@
 </p>
 
 
-<img src="./assets/login.png" alt="Sign in" />
+<img src="./assets/preview/login.png" alt="Sign in" />
 
 </div>
 
@@ -64,97 +64,443 @@ XiHan.BasicApp is a decoupled frontend/backend system. The backend follows DDD l
 
 ## Preview
 
-<table>
-  <tr>
-    <td align="center"><img src="./assets/tenant-select.png" /><br/>Tenant selection</td>
-    <td align="center"><img src="./assets/user-management.png" /><br/>User management</td>
-  </tr>
-  <tr>
-    <td align="center"><img src="./assets/user-management-dark.png" /><br/>User management (dark)</td>
-    <td align="center"><img src="./assets/server-monitor.png" /><br/>Server monitoring</td>
-  </tr>
-  <tr>
-    <td align="center"><img src="./assets/preference-settings.png" /><br/>Preferences</td>
-    <td align="center"><img src="./assets/operation-log.png" /><br/>Operation log</td>
-  </tr>
-  <tr>
-    <td align="center"><img src="./assets/log-traceability.png" /><br/>Log traceability</td>
-    <td align="center"><img src="./assets/about.png" /><br/>About</td>
-  </tr>
-</table>
+Captured locally on October 4, 2026, as lossless 3086 × 1866 PNG images. Click an image to open the original. Dashboard business charts use built-in sample data; empty states and unsaved forms are identified beside each image.
 
+#### Dashboard
 
+[![Dashboard](./assets/preview/dashboard.png)](./assets/preview/dashboard.png)
 
-Mobile:
+#### User management
 
-<img src="./assets/mobile.png" />
+[![User management](./assets/preview/user.png)](./assets/preview/user.png)
+
+#### Log tracing
+
+[![Log tracing](./assets/preview/log-trace.png)](./assets/preview/log-trace.png)
+
+#### Print templates
+
+Unsaved configuration or design preview.
+
+[![Print templates](./assets/preview/printing.png)](./assets/preview/printing.png)
+
+<details>
+<summary>Workspace and identity（14）</summary>
+
+#### Control center
+
+[![Control center](./assets/preview/control-center.png)](./assets/preview/control-center.png)
+
+#### Authentication
+
+[![Authentication](./assets/preview/login.png)](./assets/preview/login.png)
+
+#### Personal center
+
+[![Personal center](./assets/preview/profile.png)](./assets/preview/profile.png)
+
+#### Personal security settings
+
+[![Personal security settings](./assets/preview/profile-security.png)](./assets/preview/profile-security.png)
+
+#### Online users
+
+[![Online users](./assets/preview/online-user.png)](./assets/preview/online-user.png)
+
+#### Role management
+
+[![Role management](./assets/preview/role.png)](./assets/preview/role.png)
+
+#### Organizations
+
+[![Organizations](./assets/preview/org.png)](./assets/preview/org.png)
+
+#### Positions
+
+[![Positions](./assets/preview/position.png)](./assets/preview/position.png)
+
+#### Permissions
+
+[![Permissions](./assets/preview/permission.png)](./assets/preview/permission.png)
+
+#### Menus
+
+[![Menus](./assets/preview/menu.png)](./assets/preview/menu.png)
+
+#### Field security
+
+Unsaved configuration or design preview.
+
+[![Field security](./assets/preview/field-security.png)](./assets/preview/field-security.png)
+
+#### Permission requests and delegation
+
+Unsaved configuration or design preview.
+
+[![Permission requests and delegation](./assets/preview/authorization.png)](./assets/preview/authorization.png)
+
+#### Approval center
+
+No records in the current demo environment.
+
+[![Approval center](./assets/preview/review.png)](./assets/preview/review.png)
+
+#### Approval constraints
+
+Unsaved configuration or design preview.
+
+[![Approval constraints](./assets/preview/constraint.png)](./assets/preview/constraint.png)
+
+</details>
+
+<details>
+<summary>Tenants and messaging（10）</summary>
+
+#### Tenant management
+
+[![Tenant management](./assets/preview/tenant.png)](./assets/preview/tenant.png)
+
+#### Tenant members and support access
+
+[![Tenant members and support access](./assets/preview/tenant-members.png)](./assets/preview/tenant-members.png)
+
+#### Tenant editions
+
+[![Tenant editions](./assets/preview/edition.png)](./assets/preview/edition.png)
+
+#### My subscription
+
+[![My subscription](./assets/preview/subscription.png)](./assets/preview/subscription.png)
+
+#### Announcements
+
+[![Announcements](./assets/preview/notification.png)](./assets/preview/notification.png)
+
+#### My inbox
+
+[![My inbox](./assets/preview/inbox.png)](./assets/preview/inbox.png)
+
+#### Message templates
+
+[![Message templates](./assets/preview/message-template.png)](./assets/preview/message-template.png)
+
+#### Email and SMS records
+
+No records in the current demo environment.
+
+[![Email and SMS records](./assets/preview/message-record.png)](./assets/preview/message-record.png)
+
+#### Online chat
+
+Unsaved configuration or design preview.
+
+[![Online chat](./assets/preview/chat.png)](./assets/preview/chat.png)
+
+#### Chat audit
+
+No records in the current demo environment.
+
+[![Chat audit](./assets/preview/chat-audit.png)](./assets/preview/chat-audit.png)
+
+</details>
+
+<details>
+<summary>Files and system management（16）</summary>
+
+#### Files
+
+Unsaved configuration or design preview.
+
+[![Files](./assets/preview/file-library.png)](./assets/preview/file-library.png)
+
+#### Storage configuration
+
+Unsaved configuration or design preview.
+
+[![Storage configuration](./assets/preview/file-storage.png)](./assets/preview/file-storage.png)
+
+#### Export center
+
+No records in the current demo environment.
+
+[![Export center](./assets/preview/export-center.png)](./assets/preview/export-center.png)
+
+#### Dictionaries
+
+[![Dictionaries](./assets/preview/dict.png)](./assets/preview/dict.png)
+
+#### Parameters
+
+[![Parameters](./assets/preview/config.png)](./assets/preview/config.png)
+
+#### Business numbering
+
+Unsaved configuration or design preview.
+
+[![Business numbering](./assets/preview/numbering.png)](./assets/preview/numbering.png)
+
+#### Scheduled jobs
+
+[![Scheduled jobs](./assets/preview/job.png)](./assets/preview/job.png)
+
+#### Cache management
+
+[![Cache management](./assets/preview/cache.png)](./assets/preview/cache.png)
+
+#### Server monitoring
+
+[![Server monitoring](./assets/preview/server.png)](./assets/preview/server.png)
+
+#### Version management
+
+[![Version management](./assets/preview/version.png)](./assets/preview/version.png)
+
+#### Email configuration
+
+Unsaved configuration or design preview.
+
+[![Email configuration](./assets/preview/email-config.png)](./assets/preview/email-config.png)
+
+#### SMS configuration
+
+Unsaved configuration or design preview.
+
+[![SMS configuration](./assets/preview/sms-config.png)](./assets/preview/sms-config.png)
+
+#### Webhook bots
+
+Unsaved configuration or design preview.
+
+[![Webhook bots](./assets/preview/bot-config.png)](./assets/preview/bot-config.png)
+
+#### Telegram bots
+
+Unsaved configuration or design preview.
+
+[![Telegram bots](./assets/preview/telegram-bot.png)](./assets/preview/telegram-bot.png)
+
+#### Application management
+
+[![Application management](./assets/preview/openapi-app.png)](./assets/preview/openapi-app.png)
+
+#### OpenAPI credentials
+
+No records in the current demo environment.
+
+[![OpenAPI credentials](./assets/preview/openapi-credentials.png)](./assets/preview/openapi-credentials.png)
+
+</details>
+
+<details>
+<summary>Logs and audit（9）</summary>
+
+#### Access logs
+
+[![Access logs](./assets/preview/log-access.png)](./assets/preview/log-access.png)
+
+#### OpenAPI logs
+
+No records in the current demo environment.
+
+[![OpenAPI logs](./assets/preview/log-api.png)](./assets/preview/log-api.png)
+
+#### Operation logs
+
+[![Operation logs](./assets/preview/log-operation.png)](./assets/preview/log-operation.png)
+
+#### Login logs
+
+[![Login logs](./assets/preview/log-login.png)](./assets/preview/log-login.png)
+
+#### Exception logs
+
+[![Exception logs](./assets/preview/log-exception.png)](./assets/preview/log-exception.png)
+
+#### Data change logs
+
+[![Data change logs](./assets/preview/log-diff.png)](./assets/preview/log-diff.png)
+
+#### Permission change logs
+
+[![Permission change logs](./assets/preview/log-permission.png)](./assets/preview/log-permission.png)
+
+#### Correlated log timeline
+
+[![Correlated log timeline](./assets/preview/log-trace-timeline.png)](./assets/preview/log-trace-timeline.png)
+
+#### Migration history
+
+[![Migration history](./assets/preview/log-migration.png)](./assets/preview/log-migration.png)
+
+</details>
+
+<details>
+<summary>Development and optional modules（9）</summary>
+
+#### Code generation
+
+[![Code generation](./assets/preview/codegen.png)](./assets/preview/codegen.png)
+
+#### AI providers
+
+Unsaved configuration or design preview.
+
+[![AI providers](./assets/preview/ai-provider.png)](./assets/preview/ai-provider.png)
+
+#### AI prompts
+
+Unsaved configuration or design preview.
+
+[![AI prompts](./assets/preview/ai-prompt.png)](./assets/preview/ai-prompt.png)
+
+#### Knowledge base
+
+Unsaved configuration or design preview.
+
+[![Knowledge base](./assets/preview/knowledge.png)](./assets/preview/knowledge.png)
+
+#### AI assistants
+
+Unsaved configuration or design preview.
+
+[![AI assistants](./assets/preview/ai-assistant.png)](./assets/preview/ai-assistant.png)
+
+#### Workflow definitions
+
+Unsaved configuration or design preview.
+
+[![Workflow definitions](./assets/preview/workflow-definition.png)](./assets/preview/workflow-definition.png)
+
+#### Workflow JSON editor
+
+Unsaved configuration or design preview.
+
+[![Workflow JSON editor](./assets/preview/workflow-json.png)](./assets/preview/workflow-json.png)
+
+#### Workflow instances
+
+No records in the current demo environment.
+
+[![Workflow instances](./assets/preview/workflow-instance.png)](./assets/preview/workflow-instance.png)
+
+#### My workflow tasks
+
+No records in the current demo environment.
+
+[![My workflow tasks](./assets/preview/workflow-todo.png)](./assets/preview/workflow-todo.png)
+
+</details>
+
+<details>
+<summary>Shared user experience（6）</summary>
+
+#### Preferences
+
+[![Preferences](./assets/preview/preferences.png)](./assets/preview/preferences.png)
+
+#### Advanced lists
+
+[![Advanced lists](./assets/preview/schema-page.png)](./assets/preview/schema-page.png)
+
+#### Content editors
+
+[![Content editors](./assets/preview/editors.png)](./assets/preview/editors.png)
+
+#### JSON editor
+
+[![JSON editor](./assets/preview/editor-json.png)](./assets/preview/editor-json.png)
+
+#### Rich text editor
+
+[![Rich text editor](./assets/preview/editor-rich-text.png)](./assets/preview/editor-rich-text.png)
+
+#### Global navigation
+
+[![Global navigation](./assets/preview/navigation.png)](./assets/preview/navigation.png)
+
+</details>
 
 ## Features
 
-**Identity and authentication**
+### Workspace and identity
 
-- User, role, department and menu management
-- JWT with two tokens (access 120 minutes + refresh 7 days), multi-device sign-in and session management
-- Multiple sign-in methods: password, email / SMS code, 2FA (TOTP / email / SMS, combinable as flags)
-- Eight first-party OAuth providers built in — GitHub, Gitee, Google, QQ, WeChat, WeCom, DingTalk, Lark — enabled by configuration
-- Sign-in protection: first-party SVG captcha (single-use, can be turned off), throttling on both account+IP and IP alone, failure lockout, forced password change after signing in with the default password
-- PBKDF2 password hashing (OWASP-recommended iterations); one-time codes are destroyed on consumption and compared in constant time
+- **Dashboard**: Customize widgets, charts, announcements and pending work, and save a personal dashboard layout.
+- **Control center**: Choose a tenant or enter platform administration from one workspace selector.
+- **Authentication**: Sign in with a password, phone or email codes, external providers and two-factor authentication, with CAPTCHA, throttling and account lockout.
+- **Personal center**: Maintain profile and security settings, linked accounts, devices, notification preferences, tenant memberships and usage statistics.
+- **User management**: Search and maintain users, status, roles, departments, direct grants and data scopes; lock accounts, reset passwords, impersonate users and revoke sessions.
+- **Online users**: Inspect active sessions, clients and live connections, and search users or revoke individual sessions.
+- **Role management**: Manage roles, inheritance and members, batch membership changes, menu and operation grants, and data scopes.
+- **Organizations**: Manage department trees, leaders, child departments and members, including positions, employee numbers, job levels and join dates.
+- **Positions**: Maintain position names, codes, order and enabled state for department membership assignments.
+- **Permissions**: Manage permission codes, modules, resources, operations, API paths, HTTP methods, platform or tenant scope and audit requirements.
+- **Menus**: Maintain directory, menu and button trees with component paths, icons, order, visibility, caching, external links and permission bindings.
+- **Field security**: Configure field read, write and masking policies for entities and authorization targets.
+- **Permission requests and delegation**: Approve, reject or withdraw access requests, and delegate roles or permissions within a time window with revocation.
+- **Approval center**: Inspect approval items, status and processing history, and approve, reject or withdraw requests.
+- **Approval constraints**: Configure separation-of-duty, exclusion, cardinality and conditional rules, their targets and violation handling.
 
-**Permissions**
+### Tenants and messaging
 
-- Three-segment permission codes `module:resource:action`; the super administrator wildcard is `*`
-- Role hierarchy through a closure table, five data scopes (self / own department / department and children / all / custom), six field-masking strategies
-- Static separation of duties: mutually exclusive roles and cardinality constraints, evaluated per constraint group
-- Permission requests with approval, revocable temporary delegation, and a change audit trail
+- **Tenant management**: Manage status, editions, expiration and quotas, initialize databases and administrators, and manage memberships, support access and ownership transfer.
+- **Tenant editions**: Configure prices, billing periods, user and storage quotas, and permission allowlists for tenant features.
+- **My subscription**: View the current tenant edition, subscription period, user and storage usage, quotas and entitlements.
+- **Announcements**: Publish targeted notices to users, roles or departments, configure presentation and mandatory reading, and inspect read statistics.
+- **My inbox**: Read notification details, filter pending messages, and mark individual or all messages as read or confirmed.
+- **Message templates**: Maintain variable-based email, SMS, in-app and bot templates, including tenant overrides.
+- **Email and SMS records**: Inspect recipients, content and delivery results, and resend failed email or SMS messages.
+- **Online chat**: Use direct, group, department and AI assistant conversations with real-time messages and unread state.
+- **Chat audit**: Search conversations and messages, inspect members and message details, and review conversation content.
 
-**Multi-tenancy**
+### Files and system management
 
-- Column-level isolation by default with `TenantId=0` reserved for global data; per-tenant databases are also supported
-- Globally unique email sign-in that routes the user by membership (console / workbench / tenant picker), with tenant switching at any time
-- Platform-mode operations for super administrators, who can step into any tenant
-- Runtime gating by tenant edition allowlist; onboarding creates the administrator, roles and grants in one go; downgrading reclaims grants that fall outside the allowlist
+- **Files**: Upload, search, download and preview files, maintain metadata and archive state, and manage storage copies and the primary location.
+- **Storage configuration**: Configure local, S3, OSS, COS and MinIO storage channels, status and a default provider.
+- **Export center**: Track asynchronous exports, download CSV or XLSX results, cancel pending tasks and delete records.
+- **Dictionaries**: Maintain linked dictionary categories and items, codes, values, defaults, order and status for shared search and form options.
+- **Parameters**: Maintain platform and tenant parameters, search groups and status, and inspect or edit configuration values.
+- **Business numbering**: Configure prefixes, dates, sequence width, reset periods and time zones, preview formats, perform guarded resets and inspect allocation history.
+- **Scheduled jobs**: Configure Cron and interval jobs, status, immediate runs and retry policies, and inspect execution logs.
+- **Cache management**: Search cache keys or patterns, inspect grouped keys and values, edit values and clear individual or multiple entries.
+- **Server monitoring**: Inspect CPU, memory, disks, network, GPU, motherboard and runtime information.
+- **Version management**: Inspect the current release, version notes, database migration information and upgrade state.
+- **Email configuration**: Maintain email channels and server settings, enabled state and the default configuration.
+- **SMS configuration**: Maintain SMS providers, delivery settings, enabled state and a default channel.
+- **Webhook bots**: Configure DingTalk, Feishu and WeCom Webhook channels, status and a default notification bot.
+- **Telegram bots**: Maintain connection settings and status for multiple Telegram Bot instances.
+- **Application management**: Register OAuth2 / OIDC clients with client types, grant types, redirect URIs, status and secrets.
+- **OpenAPI credentials**: Manage personal OpenAPI credentials and rotate keys for signed API calls.
 
-**Audit logging**
+### Logs and audit
 
-- Six independent log streams: access, API, operation, exception, sign-in and entity change
-- Automatic masking before persistence (passwords, tokens, secrets, ID numbers and more, with a counter-example allowlist to avoid over-masking); entity changes distinguish create / update / delete / restore
-- Traceability timeline: aggregate across log types by trace ID, username, session, IP or user ID
+- **Access logs**: Inspect request paths, methods, status, duration and client details, and open related traces.
+- **OpenAPI logs**: Inspect OpenAPI calls, signature authorization results, request and response details, and related traces.
+- **Operation logs**: Inspect business operations, outcomes, duration, descriptions, client details and related traces.
+- **Login logs**: Inspect successful and failed logins, logout and impersonation events, client and IP details.
+- **Exception logs**: Search exception types, messages and locations, and inspect stack traces and related requests.
+- **Data change logs**: Inspect entity creation, updates, deletion and restoration with before-and-after field differences and traces.
+- **Permission change logs**: Inspect role, user and permission grant changes, affected targets and related traces.
+- **Log tracing**: Correlate log types by TraceId, user, session or IP, then analyze timelines, flow diagrams and time distributions.
+- **Migration history**: Inspect database upgrade script history, versions, execution status, duration and errors.
 
-**Code generation**
+### Development and optional modules
 
-- Single-table, tree and master-detail modes: entities, DTOs, APIs and frontend pages in one shot
-- Native Scriban templates embedded into the assembly, each with a manual variant; menu permissions, permission seeds, page descriptors and seeders are generated alongside
-- Download as a zip or write to disk; writing to disk is off by default and requires an explicit absolute-path allowlist root, with fail-closed path traversal checks
+- **Code generation**: Manage data sources, tables, fields and templates; preview and generate single-table, tree and master-detail stacks, download output and inspect history.
+- **AI providers**: Configure endpoints and models, securely store keys, test connections and choose a default provider.
+- **AI prompts**: Maintain prompt codes, content and status for reusable conversation and business templates.
+- **Knowledge base**: Ingest documents, build or rebuild vector indexes, and query tenant-isolated knowledge with source references.
+- **AI assistants**: Configure assistant identities, models and prompts, choose a default and connect assistants to chat.
+- **Workflow definitions**: Design nodes and edges, maintain draft, published, disabled and archived definitions, manage versions and start workflows.
+- **Workflow instances**: Inspect execution and nodes, suspend, resume, cancel, terminate or retry instances, and send workflow signals.
+- **My workflow tasks**: Process human tasks with approval, rejection, transfer and additional signers, and track completion.
+- **Print templates**: Design text, tables, images and barcodes with paper and data-source settings, sample data, zoom, JSON inspection, preview and printing.
 
-**AI**
+### Shared user experience
 
-- Provider onboarding and API-key custody (encrypted at rest with DataProtection; chat and embedding models are configurable)
-- Prompt library stored in the database, able to override the framework defaults
-- Knowledge-base RAG: document ingestion and vector search (Qdrant), isolated per tenant, keeping the raw content so indexes can be rebuilt
-- Registered skills automatically become chat tools and MCP tools; knowledge retrieval ships built in, and business skills join by implementing `IAiSkill`
-- Configurable assistants, bridged into the chat page
-
-**Platform**
-
-- Dynamic APIs: application services are exposed through `[DynamicApi]` with no controller boilerplate, and Scalar documentation is generated automatically
-- One source of truth for menus: the backend `PageRegistry` registers menu, route, component path, permission code and i18n key together
-- Distributed caching end to end (authorization snapshots, edition gating, menus, settings, dictionaries) with precise invalidation on write paths
-- Request tracing; two SignalR hubs (notifications and chat)
-- Message center: email / SMS / in-app notification templates, overridable per tenant
-- Open platform: a built-in OAuth2 / OIDC provider (third-party app registration, user consent) and per-user OpenAPI credentials with signed calls
-- Server monitoring (motherboard / CPU / memory / disk / GPU / network / runtime), cache key lookup and pattern-based clearing
-- Multi-backend file storage (local / Aliyun OSS / Tencent COS / MinIO), database-backed scheduled jobs, review workflow, i18n (Chinese / English)
-- Export center: async tasks with CSV and XLSX writers on a delayed queue
-
-**Frontend experience**
-
-- Schema-driven list pages: search, table and export generated from configuration, with column settings, density switching, advanced search, saved personal views, row hover previews, tree mode and column resizing
-- Permission-, tenant- and preference-aware: pages, fields and actions filtered by permission code with field masking; column and search preferences sync to the backend and stay consistent across devices
-- Dynamic-island feedback, tabbed pages, favorites, command-palette global search
-- Message center: top banner, sign-in dialog, notification center, with forced reading and role/department targeting
-- Preference center: light/dark theme, brand color, layout style and density, synced to the cloud
-- Rich text (Tiptap) and markdown editors, visual cron builder, JSON editor/viewer, code editor
-- Lock screen, watermark, time zone switching, export center
+- **Preferences**: Configure themes, colors, layouts, density, watermarks and interaction preferences with cloud synchronization.
+- **Advanced lists**: Use combined search, saved views, column settings, multi-column sorting, density, trees, quick previews and exports.
+- **Content editors**: Edit rich text, Markdown, code and JSON, and configure Cron expressions visually.
+- **Global navigation**: Use tabs, favorites, global search, notification and task feedback, languages, time zones and screen locking.
 
 ## Tech Stack
 
