@@ -23,6 +23,8 @@ const { t } = useI18n()
     <header class="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border/70 px-4 py-2.5">
       <Icon v-if="icon" :icon="icon" width="16" height="16" class="shrink-0 text-[hsl(var(--primary))]" />
       <span class="whitespace-nowrap text-sm font-medium text-card-foreground">{{ title }}</span>
+      <!-- 标题旁的标签位：小组件自己的身份标记（如欢迎卡片的「官方」） -->
+      <slot name="badge" />
       <XhTagRoot v-if="demo" variant="subtle" size="sm" :title="t('workbench.charts.demo_tip')">
         {{ t('workbench.charts.demo') }}
       </XhTagRoot>
