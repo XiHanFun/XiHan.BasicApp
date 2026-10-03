@@ -9,14 +9,7 @@ import type {
   DiagramNodeStatus,
   DiagramOptions,
 } from './types'
-import { Graph } from '@antv/x6'
-import { Clipboard } from '@antv/x6-plugin-clipboard'
-import { Export } from '@antv/x6-plugin-export'
-import { History } from '@antv/x6-plugin-history'
-import { Keyboard } from '@antv/x6-plugin-keyboard'
-import { MiniMap } from '@antv/x6-plugin-minimap'
-import { Selection } from '@antv/x6-plugin-selection'
-import { Snapline } from '@antv/x6-plugin-snapline'
+import { Clipboard, Export, Graph, History, Keyboard, MiniMap, Selection, Snapline } from '@antv/x6'
 import { DIAGRAM_NODE_HIGHLIGHT_KEY, DIAGRAM_NODE_STATUS_KEY } from './types'
 
 /** 连线保留数据键（label/dashed 的权威副本，业务 data 与其隔离） */

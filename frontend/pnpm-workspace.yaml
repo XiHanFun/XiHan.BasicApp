@@ -1,7 +1,7 @@
 # eslint-disable pnpm/yaml-enforce-settings -- 该规则要求补 trustPolicy: no-downgrade，
 # 启用后 pnpm install 因 semver@6.3.1 的 trust downgrade 判定直接失败，需先处置该锁文件条目
-# pnpm 对刚发布不久的包有最短发布时长的默认闸门，装 @xihan-ui 那批时由它自动登记。
-# 这批包过了时长门槛后本段即可删除；pnpm 会自己维护这里的条目。
+# pnpm 对刚发布不久的包有最短发布时长的默认闸门，升级依赖时由它自动登记当时刚发布的版本。
+# 这些版本过了时长门槛后对应条目即可删除；pnpm 会自己维护这里的条目。
 minimumReleaseAgeExclude:
   - '@xihan-ui/code-highlight@3.0.0'
   - '@xihan-ui/core@3.0.0'
@@ -13,11 +13,32 @@ minimumReleaseAgeExclude:
   - '@xihan-ui/tokens@3.0.0'
   - '@xihan-ui/vue@3.0.0'
   - '@xihan-ui/viz@3.0.0'
+  - '@iconify-json/lucide@1.2.139'
+  - '@intlify/core-base@11.4.13'
+  - '@intlify/devtools-types@11.4.13'
+  - '@intlify/message-compiler@11.4.13'
+  - '@intlify/shared@11.4.13'
+  - '@turbo/darwin-64@2.11.7'
+  - '@turbo/darwin-arm64@2.11.7'
+  - '@turbo/linux-64@2.11.7'
+  - '@turbo/linux-arm64@2.11.7'
+  - '@turbo/windows-64@2.11.7'
+  - '@turbo/windows-arm64@2.11.7'
+  - eslint@10.12.0
+  - turbo@2.11.7
+  - vue-i18n@11.4.13
 
 verifyDepsBeforeRun: false
 
 packages:
   - 'packages/*'
+
+# @antv/x6 3.x 的 es / lib 产物运行时 import tslib，但发布清单只把它放在 devDependencies；
+# pnpm 严格隔离下解析不到，生产构建直接失败。上游清单补上后删掉本段
+packageExtensions:
+  '@antv/x6@3':
+    dependencies:
+      tslib: ^2.8.1
 
 allowBuilds:
   core-js: true
@@ -44,43 +65,36 @@ allowBuilds:
 # 依赖目录（单一版本事实源）：入口包与所有 @xihan/* 底层包用 catalog: 引用，升级只改这里一处
 catalog:
   '@antfu/eslint-config': ^9.5.1
-  '@antv/x6': ^2.19.2
-  '@antv/x6-plugin-clipboard': ^2.1.6
-  '@antv/x6-plugin-export': ^2.1.6
-  '@antv/x6-plugin-history': ^2.2.4
-  '@antv/x6-plugin-keyboard': ^2.2.3
-  '@antv/x6-plugin-minimap': ^2.0.7
-  '@antv/x6-plugin-selection': ^2.2.2
-  '@antv/x6-plugin-snapline': ^2.1.7
-  '@antv/x6-vue-shape': ^2.1.2
+  '@antv/x6': ^3.1.8
+  '@antv/x6-vue-shape': ^3.0.2
   '@emoji-mart/data': ^1.2.1
-  '@iconify-json/carbon': ^1.2.24
+  '@iconify-json/carbon': ^1.2.28
   '@iconify-json/ep': ^1.2.4
   '@iconify-json/heroicons': ^1.2.3
-  '@iconify-json/logos': ^1.2.11
-  '@iconify-json/lucide': ^1.2.117
+  '@iconify-json/logos': ^1.2.15
+  '@iconify-json/lucide': ^1.2.139
   '@iconify-json/mdi': ^1.2.3
-  '@iconify-json/simple-icons': ^1.2.90
-  '@iconify-json/tabler': ^1.2.35
-  '@iconify/vue': ^5.0.1
-  '@microsoft/signalr': ^10.0.0
+  '@iconify-json/simple-icons': ^1.2.98
+  '@iconify-json/tabler': ^1.2.41
+  '@iconify/vue': ^5.0.3
+  '@microsoft/signalr': ^10.0.11
   '@tailwindcss/vite': ^4.3.3
-  '@tiptap/extension-color': ^3.28.0
-  '@tiptap/extension-highlight': ^3.28.0
-  '@tiptap/extension-image': ^3.28.0
-  '@tiptap/extension-link': ^3.28.0
-  '@tiptap/extension-placeholder': ^3.28.0
-  '@tiptap/extension-text-align': ^3.28.0
-  '@tiptap/extension-text-style': ^3.28.0
-  '@tiptap/extension-underline': ^3.28.0
-  '@tiptap/pm': ^3.28.0
-  '@tiptap/starter-kit': ^3.28.0
-  '@tiptap/vue-3': ^3.28.0
-  '@types/node': ^26.6.2
+  '@tiptap/extension-color': ^3.31.4
+  '@tiptap/extension-highlight': ^3.31.4
+  '@tiptap/extension-image': ^3.31.4
+  '@tiptap/extension-link': ^3.31.4
+  '@tiptap/extension-placeholder': ^3.31.4
+  '@tiptap/extension-text-align': ^3.31.4
+  '@tiptap/extension-text-style': ^3.31.4
+  '@tiptap/extension-underline': ^3.31.4
+  '@tiptap/pm': ^3.31.4
+  '@tiptap/starter-kit': ^3.31.4
+  '@tiptap/vue-3': ^3.31.4
+  '@types/node': ^26.6.4
   '@types/papaparse': ^5.5.2
   '@vitejs/plugin-vue': ^6.0.9
   '@vitejs/plugin-vue-jsx': ^5.1.6
-  '@vitest/coverage-v8': ^5.0.1
+  '@vitest/coverage-v8': ^5.0.3
   '@vue/test-utils': ^2.5.1
   '@vueuse/core': ^15.0.0
   '@xihan-ui/code-highlight': ^3.0.0
@@ -90,31 +104,33 @@ catalog:
   '@xihan-ui/styles': ^3.0.0
   '@xihan-ui/tokens': ^3.0.0
   '@xihan-ui/vue': ^3.0.0
-  axios: ^1.18.1
+  axios: ^1.20.0
   cross-env: ^10.1.0
-  dayjs: ^1.11.21
+  dayjs: ^1.11.23
   emoji-mart: ^5.6.0
-  eslint: ^10.11.0
+  eslint: ^10.12.0
   eslint-plugin-format: ^2.0.1
   jsdom: ^30.1.1
-  lint-staged: ^17.5.1
-  md-editor-v3: ^6.5.3
-  monaco-editor: ^0.52.2
-  oxlint: ^1.85.0
-  papaparse: ^5.5.4
+  lint-staged: ^17.6.0
+  md-editor-v3: ^7.1.0
+  monaco-editor: ^0.57.0
+  oxlint: ^1.86.0
+  papaparse: ^5.7.0
   pinia: ^4.0.3
-  pinyin-pro: ^3.28.1
+  pinyin-pro: ^3.29.4
   prettier: ^3.9.9
   tailwindcss: ^4.3.3
-  turbo: ^2.11.5
+  turbo: ^2.11.7
   typescript: ^6.0.3
   unplugin-auto-import: ^21.1.0
   unplugin-vue-components: ^32.1.0
-  vite: ^8.3.0
-  vitest: ^5.0.1
+  vite: ^8.3.2
+  vitest: ^5.0.3
   vue: ^3.5.43
-  vue-i18n: ^11.4.12
+  vue-i18n: ^11.4.13
   vue-plugin-hiprint: 0.0.60
   vue-router: ^5.3.1
-  vue-tsc: ^3.3.11
+  # 钉在 3.3.11：3.3.12 把模板事件处理函数里导入对象的成员访问误补成 .value（toast.success、
+  # 枚举成员等误报 TS2339），见 vuejs/language-tools#6237；上游修复发版后恢复 ^ 范围
+  vue-tsc: 3.3.11
   vue3-ts-jsoneditor: ^3.4.1

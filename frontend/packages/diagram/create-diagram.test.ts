@@ -269,14 +269,7 @@ const x6 = vi.hoisted(() => {
   }
 })
 
-vi.mock('@antv/x6', () => ({ Graph: x6.FakeGraph }))
-vi.mock('@antv/x6-plugin-clipboard', () => ({ Clipboard: x6.plugins.Clipboard }))
-vi.mock('@antv/x6-plugin-export', () => ({ Export: x6.plugins.Export }))
-vi.mock('@antv/x6-plugin-history', () => ({ History: x6.plugins.History }))
-vi.mock('@antv/x6-plugin-keyboard', () => ({ Keyboard: x6.plugins.Keyboard }))
-vi.mock('@antv/x6-plugin-minimap', () => ({ MiniMap: x6.plugins.MiniMap }))
-vi.mock('@antv/x6-plugin-selection', () => ({ Selection: x6.plugins.Selection }))
-vi.mock('@antv/x6-plugin-snapline', () => ({ Snapline: x6.plugins.Snapline }))
+vi.mock('@antv/x6', () => ({ Graph: x6.FakeGraph, ...x6.plugins }))
 
 const { createDiagram } = await import('./create-diagram')
 const { DIAGRAM_NODE_HIGHLIGHT_KEY, DIAGRAM_NODE_STATUS_KEY } = await import('./types')
