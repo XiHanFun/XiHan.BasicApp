@@ -64,361 +64,144 @@ XiHan.BasicApp is a decoupled frontend/backend system. The backend follows DDD l
 
 ## Preview
 
-Captured locally on October 4, 2026, as lossless 3086 × 1866 PNG images. Click an image to open the original. Dashboard business charts use built-in sample data; empty states and unsaved forms are identified beside each image.
-
-#### Dashboard
-
-[![Dashboard](./assets/preview/dashboard.png)](./assets/preview/dashboard.png)
-
-#### User management
-
-[![User management](./assets/preview/user.png)](./assets/preview/user.png)
-
-#### Log tracing
-
-[![Log tracing](./assets/preview/log-trace.png)](./assets/preview/log-trace.png)
-
-#### Print templates
-
-Unsaved configuration or design preview.
-
-[![Print templates](./assets/preview/printing.png)](./assets/preview/printing.png)
-
-<details>
-<summary>Workspace and identity（14）</summary>
-
-#### Control center
-
-[![Control center](./assets/preview/control-center.png)](./assets/preview/control-center.png)
-
-#### Authentication
-
-[![Authentication](./assets/preview/login.png)](./assets/preview/login.png)
-
-#### Personal center
-
-[![Personal center](./assets/preview/profile.png)](./assets/preview/profile.png)
-
-#### Personal security settings
-
-[![Personal security settings](./assets/preview/profile-security.png)](./assets/preview/profile-security.png)
-
-#### Online users
-
-[![Online users](./assets/preview/online-user.png)](./assets/preview/online-user.png)
-
-#### Role management
-
-[![Role management](./assets/preview/role.png)](./assets/preview/role.png)
-
-#### Organizations
-
-[![Organizations](./assets/preview/org.png)](./assets/preview/org.png)
-
-#### Positions
-
-[![Positions](./assets/preview/position.png)](./assets/preview/position.png)
-
-#### Permissions
-
-[![Permissions](./assets/preview/permission.png)](./assets/preview/permission.png)
-
-#### Menus
-
-[![Menus](./assets/preview/menu.png)](./assets/preview/menu.png)
-
-#### Field security
-
-Unsaved configuration or design preview.
-
-[![Field security](./assets/preview/field-security.png)](./assets/preview/field-security.png)
-
-#### Permission requests and delegation
-
-Unsaved configuration or design preview.
-
-[![Permission requests and delegation](./assets/preview/authorization.png)](./assets/preview/authorization.png)
-
-#### Approval center
-
-No records in the current demo environment.
-
-[![Approval center](./assets/preview/review.png)](./assets/preview/review.png)
-
-#### Approval constraints
-
-Unsaved configuration or design preview.
-
-[![Approval constraints](./assets/preview/constraint.png)](./assets/preview/constraint.png)
-
-</details>
-
-<details>
-<summary>Tenants and messaging（10）</summary>
-
-#### Tenant management
-
-[![Tenant management](./assets/preview/tenant.png)](./assets/preview/tenant.png)
-
-#### Tenant members and support access
-
-[![Tenant members and support access](./assets/preview/tenant-members.png)](./assets/preview/tenant-members.png)
-
-#### Tenant editions
-
-[![Tenant editions](./assets/preview/edition.png)](./assets/preview/edition.png)
-
-#### My subscription
-
-[![My subscription](./assets/preview/subscription.png)](./assets/preview/subscription.png)
-
-#### Announcements
-
-[![Announcements](./assets/preview/notification.png)](./assets/preview/notification.png)
-
-#### My inbox
-
-[![My inbox](./assets/preview/inbox.png)](./assets/preview/inbox.png)
-
-#### Message templates
-
-[![Message templates](./assets/preview/message-template.png)](./assets/preview/message-template.png)
-
-#### Email and SMS records
-
-No records in the current demo environment.
-
-[![Email and SMS records](./assets/preview/message-record.png)](./assets/preview/message-record.png)
-
-#### Online chat
-
-Unsaved configuration or design preview.
-
-[![Online chat](./assets/preview/chat.png)](./assets/preview/chat.png)
-
-#### Chat audit
-
-No records in the current demo environment.
-
-[![Chat audit](./assets/preview/chat-audit.png)](./assets/preview/chat-audit.png)
-
-</details>
-
-<details>
-<summary>Files and system management（16）</summary>
-
-#### Files
-
-Unsaved configuration or design preview.
-
-[![Files](./assets/preview/file-library.png)](./assets/preview/file-library.png)
-
-#### Storage configuration
-
-Unsaved configuration or design preview.
-
-[![Storage configuration](./assets/preview/file-storage.png)](./assets/preview/file-storage.png)
-
-#### Export center
-
-No records in the current demo environment.
-
-[![Export center](./assets/preview/export-center.png)](./assets/preview/export-center.png)
-
-#### Dictionaries
-
-[![Dictionaries](./assets/preview/dict.png)](./assets/preview/dict.png)
-
-#### Parameters
-
-[![Parameters](./assets/preview/config.png)](./assets/preview/config.png)
-
-#### Business numbering
-
-Unsaved configuration or design preview.
-
-[![Business numbering](./assets/preview/numbering.png)](./assets/preview/numbering.png)
-
-#### Scheduled jobs
-
-[![Scheduled jobs](./assets/preview/job.png)](./assets/preview/job.png)
-
-#### Cache management
-
-[![Cache management](./assets/preview/cache.png)](./assets/preview/cache.png)
-
-#### Server monitoring
-
-[![Server monitoring](./assets/preview/server.png)](./assets/preview/server.png)
-
-#### Version management
-
-[![Version management](./assets/preview/version.png)](./assets/preview/version.png)
-
-#### Email configuration
-
-Unsaved configuration or design preview.
-
-[![Email configuration](./assets/preview/email-config.png)](./assets/preview/email-config.png)
-
-#### SMS configuration
-
-Unsaved configuration or design preview.
-
-[![SMS configuration](./assets/preview/sms-config.png)](./assets/preview/sms-config.png)
-
-#### Webhook bots
-
-Unsaved configuration or design preview.
-
-[![Webhook bots](./assets/preview/bot-config.png)](./assets/preview/bot-config.png)
-
-#### Telegram bots
-
-Unsaved configuration or design preview.
-
-[![Telegram bots](./assets/preview/telegram-bot.png)](./assets/preview/telegram-bot.png)
-
-#### Application management
-
-[![Application management](./assets/preview/openapi-app.png)](./assets/preview/openapi-app.png)
-
-#### OpenAPI credentials
-
-No records in the current demo environment.
-
-[![OpenAPI credentials](./assets/preview/openapi-credentials.png)](./assets/preview/openapi-credentials.png)
-
-</details>
-
-<details>
-<summary>Logs and audit（9）</summary>
-
-#### Access logs
-
-[![Access logs](./assets/preview/log-access.png)](./assets/preview/log-access.png)
-
-#### OpenAPI logs
-
-No records in the current demo environment.
-
-[![OpenAPI logs](./assets/preview/log-api.png)](./assets/preview/log-api.png)
-
-#### Operation logs
-
-[![Operation logs](./assets/preview/log-operation.png)](./assets/preview/log-operation.png)
-
-#### Login logs
-
-[![Login logs](./assets/preview/log-login.png)](./assets/preview/log-login.png)
-
-#### Exception logs
-
-[![Exception logs](./assets/preview/log-exception.png)](./assets/preview/log-exception.png)
-
-#### Data change logs
-
-[![Data change logs](./assets/preview/log-diff.png)](./assets/preview/log-diff.png)
-
-#### Permission change logs
-
-[![Permission change logs](./assets/preview/log-permission.png)](./assets/preview/log-permission.png)
-
-#### Correlated log timeline
-
-[![Correlated log timeline](./assets/preview/log-trace-timeline.png)](./assets/preview/log-trace-timeline.png)
-
-#### Migration history
-
-[![Migration history](./assets/preview/log-migration.png)](./assets/preview/log-migration.png)
-
-</details>
-
-<details>
-<summary>Development and optional modules（9）</summary>
-
-#### Code generation
-
-[![Code generation](./assets/preview/codegen.png)](./assets/preview/codegen.png)
-
-#### AI providers
-
-Unsaved configuration or design preview.
-
-[![AI providers](./assets/preview/ai-provider.png)](./assets/preview/ai-provider.png)
-
-#### AI prompts
-
-Unsaved configuration or design preview.
-
-[![AI prompts](./assets/preview/ai-prompt.png)](./assets/preview/ai-prompt.png)
-
-#### Knowledge base
-
-Unsaved configuration or design preview.
-
-[![Knowledge base](./assets/preview/knowledge.png)](./assets/preview/knowledge.png)
-
-#### AI assistants
-
-Unsaved configuration or design preview.
-
-[![AI assistants](./assets/preview/ai-assistant.png)](./assets/preview/ai-assistant.png)
-
-#### Workflow definitions
-
-Unsaved configuration or design preview.
-
-[![Workflow definitions](./assets/preview/workflow-definition.png)](./assets/preview/workflow-definition.png)
-
-#### Workflow JSON editor
-
-Unsaved configuration or design preview.
-
-[![Workflow JSON editor](./assets/preview/workflow-json.png)](./assets/preview/workflow-json.png)
-
-#### Workflow instances
-
-No records in the current demo environment.
-
-[![Workflow instances](./assets/preview/workflow-instance.png)](./assets/preview/workflow-instance.png)
-
-#### My workflow tasks
-
-No records in the current demo environment.
-
-[![My workflow tasks](./assets/preview/workflow-todo.png)](./assets/preview/workflow-todo.png)
-
-</details>
-
-<details>
-<summary>Shared user experience（6）</summary>
-
-#### Preferences
-
-[![Preferences](./assets/preview/preferences.png)](./assets/preview/preferences.png)
-
-#### Advanced lists
-
-[![Advanced lists](./assets/preview/schema-page.png)](./assets/preview/schema-page.png)
-
-#### Content editors
-
-[![Content editors](./assets/preview/editors.png)](./assets/preview/editors.png)
-
-#### JSON editor
-
-[![JSON editor](./assets/preview/editor-json.png)](./assets/preview/editor-json.png)
-
-#### Rich text editor
-
-[![Rich text editor](./assets/preview/editor-rich-text.png)](./assets/preview/editor-rich-text.png)
-
-#### Global navigation
-
-[![Global navigation](./assets/preview/navigation.png)](./assets/preview/navigation.png)
-
-</details>
+<table>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/dashboard.png"><img src="./assets/preview/dashboard.png" alt="Dashboard" /></a><br/>Dashboard</td>
+    <td align="center" width="50%"><a href="./assets/preview/user.png"><img src="./assets/preview/user.png" alt="User management" /></a><br/>User management</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-trace.png"><img src="./assets/preview/log-trace.png" alt="Log tracing" /></a><br/>Log tracing</td>
+    <td align="center" width="50%"><a href="./assets/preview/printing.png"><img src="./assets/preview/printing.png" alt="Print templates" /></a><br/>Print templates</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/control-center.png"><img src="./assets/preview/control-center.png" alt="Control center" /></a><br/>Control center</td>
+    <td align="center" width="50%"><a href="./assets/preview/login.png"><img src="./assets/preview/login.png" alt="Authentication" /></a><br/>Authentication</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/profile.png"><img src="./assets/preview/profile.png" alt="Personal center" /></a><br/>Personal center</td>
+    <td align="center" width="50%"><a href="./assets/preview/profile-security.png"><img src="./assets/preview/profile-security.png" alt="Personal security settings" /></a><br/>Personal security settings</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/online-user.png"><img src="./assets/preview/online-user.png" alt="Online users" /></a><br/>Online users</td>
+    <td align="center" width="50%"><a href="./assets/preview/role.png"><img src="./assets/preview/role.png" alt="Role management" /></a><br/>Role management</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/org.png"><img src="./assets/preview/org.png" alt="Organizations" /></a><br/>Organizations</td>
+    <td align="center" width="50%"><a href="./assets/preview/position.png"><img src="./assets/preview/position.png" alt="Positions" /></a><br/>Positions</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/permission.png"><img src="./assets/preview/permission.png" alt="Permissions" /></a><br/>Permissions</td>
+    <td align="center" width="50%"><a href="./assets/preview/menu.png"><img src="./assets/preview/menu.png" alt="Menus" /></a><br/>Menus</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/field-security.png"><img src="./assets/preview/field-security.png" alt="Field security" /></a><br/>Field security</td>
+    <td align="center" width="50%"><a href="./assets/preview/authorization.png"><img src="./assets/preview/authorization.png" alt="Permission requests and delegation" /></a><br/>Permission requests and delegation</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/review.png"><img src="./assets/preview/review.png" alt="Approval center" /></a><br/>Approval center</td>
+    <td align="center" width="50%"><a href="./assets/preview/constraint.png"><img src="./assets/preview/constraint.png" alt="Approval constraints" /></a><br/>Approval constraints</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/tenant.png"><img src="./assets/preview/tenant.png" alt="Tenant management" /></a><br/>Tenant management</td>
+    <td align="center" width="50%"><a href="./assets/preview/tenant-members.png"><img src="./assets/preview/tenant-members.png" alt="Tenant members and support access" /></a><br/>Tenant members and support access</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/edition.png"><img src="./assets/preview/edition.png" alt="Tenant editions" /></a><br/>Tenant editions</td>
+    <td align="center" width="50%"><a href="./assets/preview/subscription.png"><img src="./assets/preview/subscription.png" alt="My subscription" /></a><br/>My subscription</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/notification.png"><img src="./assets/preview/notification.png" alt="Announcements" /></a><br/>Announcements</td>
+    <td align="center" width="50%"><a href="./assets/preview/inbox.png"><img src="./assets/preview/inbox.png" alt="My inbox" /></a><br/>My inbox</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/message-template.png"><img src="./assets/preview/message-template.png" alt="Message templates" /></a><br/>Message templates</td>
+    <td align="center" width="50%"><a href="./assets/preview/message-record.png"><img src="./assets/preview/message-record.png" alt="Email and SMS records" /></a><br/>Email and SMS records</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/chat.png"><img src="./assets/preview/chat.png" alt="Online chat" /></a><br/>Online chat</td>
+    <td align="center" width="50%"><a href="./assets/preview/chat-audit.png"><img src="./assets/preview/chat-audit.png" alt="Chat audit" /></a><br/>Chat audit</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/file-library.png"><img src="./assets/preview/file-library.png" alt="Files" /></a><br/>Files</td>
+    <td align="center" width="50%"><a href="./assets/preview/file-storage.png"><img src="./assets/preview/file-storage.png" alt="Storage configuration" /></a><br/>Storage configuration</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/export-center.png"><img src="./assets/preview/export-center.png" alt="Export center" /></a><br/>Export center</td>
+    <td align="center" width="50%"><a href="./assets/preview/dict.png"><img src="./assets/preview/dict.png" alt="Dictionaries" /></a><br/>Dictionaries</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/config.png"><img src="./assets/preview/config.png" alt="Parameters" /></a><br/>Parameters</td>
+    <td align="center" width="50%"><a href="./assets/preview/numbering.png"><img src="./assets/preview/numbering.png" alt="Business numbering" /></a><br/>Business numbering</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/job.png"><img src="./assets/preview/job.png" alt="Scheduled jobs" /></a><br/>Scheduled jobs</td>
+    <td align="center" width="50%"><a href="./assets/preview/cache.png"><img src="./assets/preview/cache.png" alt="Cache management" /></a><br/>Cache management</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/server.png"><img src="./assets/preview/server.png" alt="Server monitoring" /></a><br/>Server monitoring</td>
+    <td align="center" width="50%"><a href="./assets/preview/version.png"><img src="./assets/preview/version.png" alt="Version management" /></a><br/>Version management</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/email-config.png"><img src="./assets/preview/email-config.png" alt="Email configuration" /></a><br/>Email configuration</td>
+    <td align="center" width="50%"><a href="./assets/preview/sms-config.png"><img src="./assets/preview/sms-config.png" alt="SMS configuration" /></a><br/>SMS configuration</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/bot-config.png"><img src="./assets/preview/bot-config.png" alt="Webhook bots" /></a><br/>Webhook bots</td>
+    <td align="center" width="50%"><a href="./assets/preview/telegram-bot.png"><img src="./assets/preview/telegram-bot.png" alt="Telegram bots" /></a><br/>Telegram bots</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/openapi-app.png"><img src="./assets/preview/openapi-app.png" alt="Application management" /></a><br/>Application management</td>
+    <td align="center" width="50%"><a href="./assets/preview/openapi-credentials.png"><img src="./assets/preview/openapi-credentials.png" alt="OpenAPI credentials" /></a><br/>OpenAPI credentials</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-access.png"><img src="./assets/preview/log-access.png" alt="Access logs" /></a><br/>Access logs</td>
+    <td align="center" width="50%"><a href="./assets/preview/log-api.png"><img src="./assets/preview/log-api.png" alt="OpenAPI logs" /></a><br/>OpenAPI logs</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-operation.png"><img src="./assets/preview/log-operation.png" alt="Operation logs" /></a><br/>Operation logs</td>
+    <td align="center" width="50%"><a href="./assets/preview/log-login.png"><img src="./assets/preview/log-login.png" alt="Login logs" /></a><br/>Login logs</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-exception.png"><img src="./assets/preview/log-exception.png" alt="Exception logs" /></a><br/>Exception logs</td>
+    <td align="center" width="50%"><a href="./assets/preview/log-diff.png"><img src="./assets/preview/log-diff.png" alt="Data change logs" /></a><br/>Data change logs</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-permission.png"><img src="./assets/preview/log-permission.png" alt="Permission change logs" /></a><br/>Permission change logs</td>
+    <td align="center" width="50%"><a href="./assets/preview/log-trace-timeline.png"><img src="./assets/preview/log-trace-timeline.png" alt="Correlated log timeline" /></a><br/>Correlated log timeline</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-migration.png"><img src="./assets/preview/log-migration.png" alt="Migration history" /></a><br/>Migration history</td>
+    <td align="center" width="50%"><a href="./assets/preview/codegen.png"><img src="./assets/preview/codegen.png" alt="Code generation" /></a><br/>Code generation</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/ai-provider.png"><img src="./assets/preview/ai-provider.png" alt="AI providers" /></a><br/>AI providers</td>
+    <td align="center" width="50%"><a href="./assets/preview/ai-prompt.png"><img src="./assets/preview/ai-prompt.png" alt="AI prompts" /></a><br/>AI prompts</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/knowledge.png"><img src="./assets/preview/knowledge.png" alt="Knowledge base" /></a><br/>Knowledge base</td>
+    <td align="center" width="50%"><a href="./assets/preview/ai-assistant.png"><img src="./assets/preview/ai-assistant.png" alt="AI assistants" /></a><br/>AI assistants</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/workflow-definition.png"><img src="./assets/preview/workflow-definition.png" alt="Workflow definitions" /></a><br/>Workflow definitions</td>
+    <td align="center" width="50%"><a href="./assets/preview/workflow-json.png"><img src="./assets/preview/workflow-json.png" alt="Workflow JSON editor" /></a><br/>Workflow JSON editor</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/workflow-instance.png"><img src="./assets/preview/workflow-instance.png" alt="Workflow instances" /></a><br/>Workflow instances</td>
+    <td align="center" width="50%"><a href="./assets/preview/workflow-todo.png"><img src="./assets/preview/workflow-todo.png" alt="My workflow tasks" /></a><br/>My workflow tasks</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/preferences.png"><img src="./assets/preview/preferences.png" alt="Preferences" /></a><br/>Preferences</td>
+    <td align="center" width="50%"><a href="./assets/preview/schema-page.png"><img src="./assets/preview/schema-page.png" alt="Advanced lists" /></a><br/>Advanced lists</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/editors.png"><img src="./assets/preview/editors.png" alt="Content editors" /></a><br/>Content editors</td>
+    <td align="center" width="50%"><a href="./assets/preview/editor-json.png"><img src="./assets/preview/editor-json.png" alt="JSON editor" /></a><br/>JSON editor</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/editor-rich-text.png"><img src="./assets/preview/editor-rich-text.png" alt="Rich text editor" /></a><br/>Rich text editor</td>
+    <td align="center" width="50%"><a href="./assets/preview/navigation.png"><img src="./assets/preview/navigation.png" alt="Global navigation" /></a><br/>Global navigation</td>
+  </tr>
+</table>
 
 ## Features
 

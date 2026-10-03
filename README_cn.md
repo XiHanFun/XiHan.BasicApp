@@ -64,361 +64,144 @@ XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层，写路径
 
 ## 预览
 
-2026 年 10 月 4 日本地实拍，全部使用 3086 × 1866 无损 PNG。点击图片可查看原图。工作台经营图表使用内置示例数据；空状态与未保存的配置草稿在对应图片旁注明。
-
-#### 工作台：统计图表与公告
-
-[![工作台：统计图表与公告](./assets/preview/dashboard.png)](./assets/preview/dashboard.png)
-
-#### 用户管理：多角色、多部门、状态与会话详情
-
-[![用户管理：多角色、多部门、状态与会话详情](./assets/preview/user.png)](./assets/preview/user.png)
-
-#### 日志链路追踪：时间线与链路分析
-
-[![日志链路追踪：时间线与链路分析](./assets/preview/log-trace.png)](./assets/preview/log-trace.png)
-
-#### 打印模板：组件、画布、纸张与元素属性
-
-未保存的打印设计草稿
-
-[![打印模板：组件、画布、纸张与元素属性](./assets/preview/printing.png)](./assets/preview/printing.png)
-
-<details>
-<summary>工作台与身份权限（14）</summary>
-
-#### 控制中心：租户选择与当前身份
-
-[![控制中心：租户选择与当前身份](./assets/preview/control-center.png)](./assets/preview/control-center.png)
-
-#### 登录认证：多种登录方式
-
-[![登录认证：多种登录方式](./assets/preview/login.png)](./assets/preview/login.png)
-
-#### 个人中心：资料、联系方式与账户导航
-
-[![个人中心：资料、联系方式与账户导航](./assets/preview/profile.png)](./assets/preview/profile.png)
-
-#### 个人中心：密码、双因素验证与安全状态
-
-[![个人中心：密码、双因素验证与安全状态](./assets/preview/profile-security.png)](./assets/preview/profile-security.png)
-
-#### 在线用户：活跃会话与实时连接
-
-[![在线用户：活跃会话与实时连接](./assets/preview/online-user.png)](./assets/preview/online-user.png)
-
-#### 角色管理：角色列表与自定义数据范围
-
-[![角色管理：角色列表与自定义数据范围](./assets/preview/role.png)](./assets/preview/role.png)
-
-#### 组织机构：部门树与成员岗位联动
-
-[![组织机构：部门树与成员岗位联动](./assets/preview/org.png)](./assets/preview/org.png)
-
-#### 岗位管理：岗位列表与详情
-
-[![岗位管理：岗位列表与详情](./assets/preview/position.png)](./assets/preview/position.png)
-
-#### 权限管理：目录与作用侧配置详情
-
-[![权限管理：目录与作用侧配置详情](./assets/preview/permission.png)](./assets/preview/permission.png)
-
-#### 菜单管理：树形目录与详情
-
-[![菜单管理：树形目录与详情](./assets/preview/menu.png)](./assets/preview/menu.png)
-
-#### 字段安全：读取、改写与脱敏规则
-
-暂无字段规则，展示未提交的配置表单
-
-[![字段安全：读取、改写与脱敏规则](./assets/preview/field-security.png)](./assets/preview/field-security.png)
-
-#### 授权申请与委托：生效范围与期限
-
-暂无委托记录，展示未提交的配置表单
-
-[![授权申请与委托：生效范围与期限](./assets/preview/authorization.png)](./assets/preview/authorization.png)
-
-#### 审批中心：状态、结果与事项查询
-
-当前没有审批事项
-
-[![审批中心：状态、结果与事项查询](./assets/preview/review.png)](./assets/preview/review.png)
-
-#### 审批约束：职责分离、规则项与违规处理
-
-暂无约束记录，展示未提交的配置表单
-
-[![审批约束：职责分离、规则项与违规处理](./assets/preview/constraint.png)](./assets/preview/constraint.png)
-
-</details>
-
-<details>
-<summary>租户与消息协作（10）</summary>
-
-#### 租户管理：列表与配额详情
-
-[![租户管理：列表与配额详情](./assets/preview/tenant.png)](./assets/preview/tenant.png)
-
-#### 租户管理：成员与支持窗口
-
-[![租户管理：成员与支持窗口](./assets/preview/tenant-members.png)](./assets/preview/tenant-members.png)
-
-#### 版本套餐：价格配额与权限白名单
-
-[![版本套餐：价格配额与权限白名单](./assets/preview/edition.png)](./assets/preview/edition.png)
-
-#### 我的订阅：版本权益与配额用量
-
-[![我的订阅：版本权益与配额用量](./assets/preview/subscription.png)](./assets/preview/subscription.png)
-
-#### 通知公告：公告列表与正文详情
-
-[![通知公告：公告列表与正文详情](./assets/preview/notification.png)](./assets/preview/notification.png)
-
-#### 我的消息：未读通知、详情与阅读操作
-
-[![我的消息：未读通知、详情与阅读操作](./assets/preview/inbox.png)](./assets/preview/inbox.png)
-
-#### 消息模板：渠道、变量与正文预览
-
-[![消息模板：渠道、变量与正文预览](./assets/preview/message-template.png)](./assets/preview/message-template.png)
-
-#### 邮件短信：渠道与投递结果查询
-
-当前没有邮件短信投递记录
-
-[![邮件短信：渠道与投递结果查询](./assets/preview/message-record.png)](./assets/preview/message-record.png)
-
-#### 在线聊天：会话与群组成员选择
-
-暂无会话，展示未提交的群组配置
-
-[![在线聊天：会话与群组成员选择](./assets/preview/chat.png)](./assets/preview/chat.png)
-
-#### 聊天审计：会话与消息检索
-
-当前没有聊天会话记录
-
-[![聊天审计：会话与消息检索](./assets/preview/chat-audit.png)](./assets/preview/chat-audit.png)
-
-</details>
-
-<details>
-<summary>文件与系统管理（16）</summary>
-
-#### 文件管理：上传、访问级别与元数据
-
-暂无文件，展示未执行的上传面板
-
-[![文件管理：上传、访问级别与元数据](./assets/preview/file-library.png)](./assets/preview/file-library.png)
-
-#### 存储配置：对象存储与访问参数
-
-展示未提交的空白配置表单
-
-[![存储配置：对象存储与访问参数](./assets/preview/file-storage.png)](./assets/preview/file-storage.png)
-
-#### 导出中心：任务状态与下载管理
-
-当前没有导出任务
-
-[![导出中心：任务状态与下载管理](./assets/preview/export-center.png)](./assets/preview/export-center.png)
-
-#### 字典管理：分类与字典项联动
-
-[![字典管理：分类与字典项联动](./assets/preview/dict.png)](./assets/preview/dict.png)
-
-#### 参数配置：分类与配置项
-
-[![参数配置：分类与配置项](./assets/preview/config.png)](./assets/preview/config.png)
-
-#### 业务编号：格式与周期配置
-
-展示未提交的编号规则表单
-
-[![业务编号：格式与周期配置](./assets/preview/numbering.png)](./assets/preview/numbering.png)
-
-#### 任务调度：任务与执行日志
-
-[![任务调度：任务与执行日志](./assets/preview/job.png)](./assets/preview/job.png)
-
-#### 缓存管理：键树与缓存内容
-
-[![缓存管理：键树与缓存内容](./assets/preview/cache.png)](./assets/preview/cache.png)
-
-#### 服务监控：硬件与运行状态
-
-[![服务监控：硬件与运行状态](./assets/preview/server.png)](./assets/preview/server.png)
-
-#### 版本管理：当前版本与升级记录
-
-[![版本管理：当前版本与升级记录](./assets/preview/version.png)](./assets/preview/version.png)
-
-#### 邮件配置：SMTP 通道配置
-
-展示未提交的空白配置表单
-
-[![邮件配置：SMTP 通道配置](./assets/preview/email-config.png)](./assets/preview/email-config.png)
-
-#### 短信配置：服务商与模板映射
-
-展示未提交的空白配置表单
-
-[![短信配置：服务商与模板映射](./assets/preview/sms-config.png)](./assets/preview/sms-config.png)
-
-#### 机器人配置：Webhook 与安全配置
-
-展示未提交的空白配置表单
-
-[![机器人配置：Webhook 与安全配置](./assets/preview/bot-config.png)](./assets/preview/bot-config.png)
-
-#### Telegram 机器人：实例配置
-
-展示未提交的空白配置表单
-
-[![Telegram 机器人：实例配置](./assets/preview/telegram-bot.png)](./assets/preview/telegram-bot.png)
-
-#### 应用管理：客户端与授权配置
-
-[![应用管理：客户端与授权配置](./assets/preview/openapi-app.png)](./assets/preview/openapi-app.png)
-
-#### 开放接口凭证：签名算法与 IP 白名单
-
-当前没有个人调用凭证
-
-[![开放接口凭证：签名算法与 IP 白名单](./assets/preview/openapi-credentials.png)](./assets/preview/openapi-credentials.png)
-
-</details>
-
-<details>
-<summary>日志与审计（9）</summary>
-
-#### 访问日志：请求列表与详情
-
-[![访问日志：请求列表与详情](./assets/preview/log-access.png)](./assets/preview/log-access.png)
-
-#### 开放接口日志：请求与签名鉴权查询
-
-当前没有开放接口调用记录
-
-[![开放接口日志：请求与签名鉴权查询](./assets/preview/log-api.png)](./assets/preview/log-api.png)
-
-#### 操作日志：列表与业务操作详情
-
-[![操作日志：列表与业务操作详情](./assets/preview/log-operation.png)](./assets/preview/log-operation.png)
-
-#### 登录日志：登录结果与设备详情
-
-[![登录日志：登录结果与设备详情](./assets/preview/log-login.png)](./assets/preview/log-login.png)
-
-#### 异常日志：错误详情与堆栈
-
-[![异常日志：错误详情与堆栈](./assets/preview/log-exception.png)](./assets/preview/log-exception.png)
-
-#### 数据变更日志：字段前后差异
-
-[![数据变更日志：字段前后差异](./assets/preview/log-diff.png)](./assets/preview/log-diff.png)
-
-#### 权限变更日志：授权对象与变更详情
-
-[![权限变更日志：授权对象与变更详情](./assets/preview/log-permission.png)](./assets/preview/log-permission.png)
-
-#### 日志链路追踪：跨类型时间线
-
-[![日志链路追踪：跨类型时间线](./assets/preview/log-trace-timeline.png)](./assets/preview/log-trace-timeline.png)
-
-#### 升级记录：迁移脚本执行台账
-
-[![升级记录：迁移脚本执行台账](./assets/preview/log-migration.png)](./assets/preview/log-migration.png)
-
-</details>
-
-<details>
-<summary>开发与扩展模块（9）</summary>
-
-#### 代码生成：表配置与全栈代码预览
-
-[![代码生成：表配置与全栈代码预览](./assets/preview/codegen.png)](./assets/preview/codegen.png)
-
-#### AI 提供商：模型与连接配置
-
-展示未提交的空白配置表单
-
-[![AI 提供商：模型与连接配置](./assets/preview/ai-provider.png)](./assets/preview/ai-provider.png)
-
-#### AI 提示词：模板内容配置
-
-展示未提交的空白配置表单
-
-[![AI 提示词：模板内容配置](./assets/preview/ai-prompt.png)](./assets/preview/ai-prompt.png)
-
-#### 知识库：文档摄取与检索入口
-
-展示未提交的空白摄取表单
-
-[![知识库：文档摄取与检索入口](./assets/preview/knowledge.png)](./assets/preview/knowledge.png)
-
-#### AI 助手：模型、知识库与会话配置
-
-展示未提交的空白配置表单
-
-[![AI 助手：模型、知识库与会话配置](./assets/preview/ai-assistant.png)](./assets/preview/ai-assistant.png)
-
-#### 流程定义：可视化设计器与节点面板
-
-展示未提交的流程设计表单
-
-[![流程定义：可视化设计器与节点面板](./assets/preview/workflow-definition.png)](./assets/preview/workflow-definition.png)
-
-#### 流程定义：JSON 编辑入口
-
-未保存的预览草稿
-
-[![流程定义：JSON 编辑入口](./assets/preview/workflow-json.png)](./assets/preview/workflow-json.png)
-
-#### 流程实例：运行状态与操作管理
-
-当前没有流程实例
-
-[![流程实例：运行状态与操作管理](./assets/preview/workflow-instance.png)](./assets/preview/workflow-instance.png)
-
-#### 我的待办：人工审批任务查询
-
-当前没有人工流程待办
-
-[![我的待办：人工审批任务查询](./assets/preview/workflow-todo.png)](./assets/preview/workflow-todo.png)
-
-</details>
-
-<details>
-<summary>通用使用体验（6）</summary>
-
-#### 偏好设置：主题、布局、密度与交互
-
-[![偏好设置：主题、布局、密度与交互](./assets/preview/preferences.png)](./assets/preview/preferences.png)
-
-#### 高级列表：列设置、多列排序与视图偏好
-
-[![高级列表：列设置、多列排序与视图偏好](./assets/preview/schema-page.png)](./assets/preview/schema-page.png)
-
-#### 内容编辑：Markdown 源码与实时预览
-
-[![内容编辑：Markdown 源码与实时预览](./assets/preview/editors.png)](./assets/preview/editors.png)
-
-#### JSON 编辑器：结构树与属性编辑
-
-[![JSON 编辑器：结构树与属性编辑](./assets/preview/editor-json.png)](./assets/preview/editor-json.png)
-
-#### 富文本编辑器：格式工具与内容预览
-
-[![富文本编辑器：格式工具与内容预览](./assets/preview/editor-rich-text.png)](./assets/preview/editor-rich-text.png)
-
-#### 全局导航：命令面板、收藏与快捷操作
-
-[![全局导航：命令面板、收藏与快捷操作](./assets/preview/navigation.png)](./assets/preview/navigation.png)
-
-</details>
+<table>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/dashboard.png"><img src="./assets/preview/dashboard.png" alt="工作台" /></a><br/>工作台</td>
+    <td align="center" width="50%"><a href="./assets/preview/user.png"><img src="./assets/preview/user.png" alt="用户管理" /></a><br/>用户管理</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-trace.png"><img src="./assets/preview/log-trace.png" alt="日志链路追踪" /></a><br/>日志链路追踪</td>
+    <td align="center" width="50%"><a href="./assets/preview/printing.png"><img src="./assets/preview/printing.png" alt="打印模板" /></a><br/>打印模板</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/control-center.png"><img src="./assets/preview/control-center.png" alt="控制中心" /></a><br/>控制中心</td>
+    <td align="center" width="50%"><a href="./assets/preview/login.png"><img src="./assets/preview/login.png" alt="登录认证" /></a><br/>登录认证</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/profile.png"><img src="./assets/preview/profile.png" alt="个人中心" /></a><br/>个人中心</td>
+    <td align="center" width="50%"><a href="./assets/preview/profile-security.png"><img src="./assets/preview/profile-security.png" alt="个人中心（安全设置）" /></a><br/>个人中心（安全设置）</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/online-user.png"><img src="./assets/preview/online-user.png" alt="在线用户" /></a><br/>在线用户</td>
+    <td align="center" width="50%"><a href="./assets/preview/role.png"><img src="./assets/preview/role.png" alt="角色管理" /></a><br/>角色管理</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/org.png"><img src="./assets/preview/org.png" alt="组织机构" /></a><br/>组织机构</td>
+    <td align="center" width="50%"><a href="./assets/preview/position.png"><img src="./assets/preview/position.png" alt="岗位管理" /></a><br/>岗位管理</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/permission.png"><img src="./assets/preview/permission.png" alt="权限管理" /></a><br/>权限管理</td>
+    <td align="center" width="50%"><a href="./assets/preview/menu.png"><img src="./assets/preview/menu.png" alt="菜单管理" /></a><br/>菜单管理</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/field-security.png"><img src="./assets/preview/field-security.png" alt="字段安全" /></a><br/>字段安全</td>
+    <td align="center" width="50%"><a href="./assets/preview/authorization.png"><img src="./assets/preview/authorization.png" alt="授权申请与委托" /></a><br/>授权申请与委托</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/review.png"><img src="./assets/preview/review.png" alt="审批中心" /></a><br/>审批中心</td>
+    <td align="center" width="50%"><a href="./assets/preview/constraint.png"><img src="./assets/preview/constraint.png" alt="审批约束" /></a><br/>审批约束</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/tenant.png"><img src="./assets/preview/tenant.png" alt="租户管理" /></a><br/>租户管理</td>
+    <td align="center" width="50%"><a href="./assets/preview/tenant-members.png"><img src="./assets/preview/tenant-members.png" alt="租户成员" /></a><br/>租户成员</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/edition.png"><img src="./assets/preview/edition.png" alt="版本套餐" /></a><br/>版本套餐</td>
+    <td align="center" width="50%"><a href="./assets/preview/subscription.png"><img src="./assets/preview/subscription.png" alt="我的订阅" /></a><br/>我的订阅</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/notification.png"><img src="./assets/preview/notification.png" alt="通知公告" /></a><br/>通知公告</td>
+    <td align="center" width="50%"><a href="./assets/preview/inbox.png"><img src="./assets/preview/inbox.png" alt="我的消息" /></a><br/>我的消息</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/message-template.png"><img src="./assets/preview/message-template.png" alt="消息模板" /></a><br/>消息模板</td>
+    <td align="center" width="50%"><a href="./assets/preview/message-record.png"><img src="./assets/preview/message-record.png" alt="邮件短信" /></a><br/>邮件短信</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/chat.png"><img src="./assets/preview/chat.png" alt="在线聊天" /></a><br/>在线聊天</td>
+    <td align="center" width="50%"><a href="./assets/preview/chat-audit.png"><img src="./assets/preview/chat-audit.png" alt="聊天审计" /></a><br/>聊天审计</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/file-library.png"><img src="./assets/preview/file-library.png" alt="文件管理" /></a><br/>文件管理</td>
+    <td align="center" width="50%"><a href="./assets/preview/file-storage.png"><img src="./assets/preview/file-storage.png" alt="存储配置" /></a><br/>存储配置</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/export-center.png"><img src="./assets/preview/export-center.png" alt="导出中心" /></a><br/>导出中心</td>
+    <td align="center" width="50%"><a href="./assets/preview/dict.png"><img src="./assets/preview/dict.png" alt="字典管理" /></a><br/>字典管理</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/config.png"><img src="./assets/preview/config.png" alt="参数配置" /></a><br/>参数配置</td>
+    <td align="center" width="50%"><a href="./assets/preview/numbering.png"><img src="./assets/preview/numbering.png" alt="业务编号" /></a><br/>业务编号</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/job.png"><img src="./assets/preview/job.png" alt="任务调度" /></a><br/>任务调度</td>
+    <td align="center" width="50%"><a href="./assets/preview/cache.png"><img src="./assets/preview/cache.png" alt="缓存管理" /></a><br/>缓存管理</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/server.png"><img src="./assets/preview/server.png" alt="服务监控" /></a><br/>服务监控</td>
+    <td align="center" width="50%"><a href="./assets/preview/version.png"><img src="./assets/preview/version.png" alt="版本管理" /></a><br/>版本管理</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/email-config.png"><img src="./assets/preview/email-config.png" alt="邮件配置" /></a><br/>邮件配置</td>
+    <td align="center" width="50%"><a href="./assets/preview/sms-config.png"><img src="./assets/preview/sms-config.png" alt="短信配置" /></a><br/>短信配置</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/bot-config.png"><img src="./assets/preview/bot-config.png" alt="机器人配置" /></a><br/>机器人配置</td>
+    <td align="center" width="50%"><a href="./assets/preview/telegram-bot.png"><img src="./assets/preview/telegram-bot.png" alt="Telegram 机器人" /></a><br/>Telegram 机器人</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/openapi-app.png"><img src="./assets/preview/openapi-app.png" alt="应用管理" /></a><br/>应用管理</td>
+    <td align="center" width="50%"><a href="./assets/preview/openapi-credentials.png"><img src="./assets/preview/openapi-credentials.png" alt="开放接口凭证" /></a><br/>开放接口凭证</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-access.png"><img src="./assets/preview/log-access.png" alt="访问日志" /></a><br/>访问日志</td>
+    <td align="center" width="50%"><a href="./assets/preview/log-api.png"><img src="./assets/preview/log-api.png" alt="开放接口日志" /></a><br/>开放接口日志</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-operation.png"><img src="./assets/preview/log-operation.png" alt="操作日志" /></a><br/>操作日志</td>
+    <td align="center" width="50%"><a href="./assets/preview/log-login.png"><img src="./assets/preview/log-login.png" alt="登录日志" /></a><br/>登录日志</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-exception.png"><img src="./assets/preview/log-exception.png" alt="异常日志" /></a><br/>异常日志</td>
+    <td align="center" width="50%"><a href="./assets/preview/log-diff.png"><img src="./assets/preview/log-diff.png" alt="数据变更日志" /></a><br/>数据变更日志</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-permission.png"><img src="./assets/preview/log-permission.png" alt="权限变更日志" /></a><br/>权限变更日志</td>
+    <td align="center" width="50%"><a href="./assets/preview/log-trace-timeline.png"><img src="./assets/preview/log-trace-timeline.png" alt="日志链路时间线" /></a><br/>日志链路时间线</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/log-migration.png"><img src="./assets/preview/log-migration.png" alt="升级记录" /></a><br/>升级记录</td>
+    <td align="center" width="50%"><a href="./assets/preview/codegen.png"><img src="./assets/preview/codegen.png" alt="代码生成" /></a><br/>代码生成</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/ai-provider.png"><img src="./assets/preview/ai-provider.png" alt="AI 提供商" /></a><br/>AI 提供商</td>
+    <td align="center" width="50%"><a href="./assets/preview/ai-prompt.png"><img src="./assets/preview/ai-prompt.png" alt="AI 提示词" /></a><br/>AI 提示词</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/knowledge.png"><img src="./assets/preview/knowledge.png" alt="知识库" /></a><br/>知识库</td>
+    <td align="center" width="50%"><a href="./assets/preview/ai-assistant.png"><img src="./assets/preview/ai-assistant.png" alt="AI 助手" /></a><br/>AI 助手</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/workflow-definition.png"><img src="./assets/preview/workflow-definition.png" alt="流程定义" /></a><br/>流程定义</td>
+    <td align="center" width="50%"><a href="./assets/preview/workflow-json.png"><img src="./assets/preview/workflow-json.png" alt="流程 JSON 编辑" /></a><br/>流程 JSON 编辑</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/workflow-instance.png"><img src="./assets/preview/workflow-instance.png" alt="流程实例" /></a><br/>流程实例</td>
+    <td align="center" width="50%"><a href="./assets/preview/workflow-todo.png"><img src="./assets/preview/workflow-todo.png" alt="我的待办" /></a><br/>我的待办</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/preferences.png"><img src="./assets/preview/preferences.png" alt="偏好设置" /></a><br/>偏好设置</td>
+    <td align="center" width="50%"><a href="./assets/preview/schema-page.png"><img src="./assets/preview/schema-page.png" alt="高级列表" /></a><br/>高级列表</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/editors.png"><img src="./assets/preview/editors.png" alt="Markdown 编辑器" /></a><br/>Markdown 编辑器</td>
+    <td align="center" width="50%"><a href="./assets/preview/editor-json.png"><img src="./assets/preview/editor-json.png" alt="JSON 编辑器" /></a><br/>JSON 编辑器</td>
+  </tr>
+  <tr>
+    <td align="center" width="50%"><a href="./assets/preview/editor-rich-text.png"><img src="./assets/preview/editor-rich-text.png" alt="富文本编辑器" /></a><br/>富文本编辑器</td>
+    <td align="center" width="50%"><a href="./assets/preview/navigation.png"><img src="./assets/preview/navigation.png" alt="全局导航" /></a><br/>全局导航</td>
+  </tr>
+</table>
 
 ## 功能
 
