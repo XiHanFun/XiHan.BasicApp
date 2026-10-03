@@ -805,6 +805,6 @@ async function savePermChanges() {
 }
 
 .edition-code-random:hover {
-  color: var(--xh-fg);
+  color: var(--xh-fg-default);
 }
 </style>
