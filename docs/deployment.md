@@ -14,7 +14,7 @@
 
 ::: tip 部署前置
 - 准备好可连接的 **PostgreSQL** 与 **Redis**。
-- 全新数据库首次启动会自动建库、建表并执行数据种子（对应 `EnableDbInitialization` / `EnableTableInitialization` / `EnableDataSeeding`，默认均为 `true`）。存量数据库的变更应写入 `UpdateScripts/{version}.sql`，但当前 BasicApp 尚未接入升级执行入口，发布流程必须显式安排迁移步骤，不能假定应用启动会自动执行。
+- 全新数据库首次启动会自动建库、建表并执行数据种子（对应 `EnableDbInitialization` / `EnableTableInitialization` / `EnableDataSeeding`：框架缺省均为 `false`，仓库的 `appsettings.Development.json` 全部打开，生产配置需自行打开）。存量数据库的变更写在 `UpdateScripts/<版本>/<版本>.sql`，`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true`（缺省值）时应用启动会自动执行，失败即中断启动；不希望应用启动时改库，就关掉它并在发布流程里先完成迁移。
 - 基础数据种子始终执行；演示数据（演示租户、组织、账号等）只在 `Saas:Seed:EnableDemoData` 为 `true` 时写入，缺省即不写。生产环境在 `appsettings.Production.json` 里写明 `false`。
 - 生产环境 CORS 仅放行配置中的域名（`XiHan:Web:Api:Cors:AllowedOrigins` 与网关 `XiHan:Web:Gateway:AllowedOrigins`），部署到自己的域名时务必同步修改，否则前端会被跨域拦截。
 - 若用到 AI / 知识库能力，还需准备对应的向量库（如 Qdrant）与嵌入模型配置。
@@ -28,7 +28,7 @@ dotnet publish backend/src/main/XiHan.BasicApp.WebHost -c Release -o /opt/xihan-
 
 发布前在目标环境的 `appsettings.Production.json`（或环境变量）中配置好数据库连接串、Redis、JWT 签名密钥、以及初始超管密码等敏感项。
 
-升级脚本当前使用 PostgreSQL 方言。引擎被调用时可先处理平台库、再处理配置为独立数据库的租户，并用数据库租约锁协调多副本；但这些能力当前不会由 BasicApp 启动流程自动触发。上线前应备份数据库、在同版本副本验证脚本，并按[升级与迁移](./backend/upgrade)补齐或外置唯一执行入口。
+升级脚本当前使用 PostgreSQL 方言。启动时引擎先处理平台库、再处理配置为独立数据库的租户，并用数据库租约锁协调多副本；没抢到租约的副本不会等待，照常启动。上线前应备份数据库、在同版本副本验证脚本，多副本发布时由编排层控制放流，细节见[升级与迁移](./backend/upgrade)。
 
 应用监听地址与端口由配置项 `Hosting:Urls` 决定（`Program.cs` 启动时读取该值并调用 `UseUrls`）；仓库自带的 `appsettings.Production.json` 默认配置为 `http://127.0.0.1:9708`，可按需调整。对外暴露时建议在前面加一层反向代理（Nginx / Caddy 等）做 TLS 终止与静态资源分流。
 

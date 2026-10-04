@@ -6,15 +6,19 @@
 
 ## 支持的数据库
 
-ORM 是 SqlSugar，`DbType` 取它的枚举值：
+ORM 是 SqlSugar，`DbType` 取它的枚举值。「能连上、能首次建表」与「能当独立库租户、有升级脚本」是两回事，下表分开列：
 
-| 数据库 | `DbType` | 说明 |
-| --- | --- | --- |
-| **PostgreSQL** | `PostgreSQL` | **默认与推荐** |
-| MySQL / MariaDB | `MySql` | MariaDB 协议兼容，同用 `MySql` |
-| SQL Server | `SqlServer` | — |
-| Oracle | `Oracle` | 支持但不建议 |
-| 达梦 / 人大金仓 | `Dm` / `Kdbndp` | 国产库，驱动随 `SqlSugarCore` 一并安装 |
+| 数据库 | `DbType` | 独立库租户可选 | 升级脚本 | 说明 |
+| --- | --- | --- | --- | --- |
+| **PostgreSQL** | `PostgreSQL` | ✅ | ✅ | **默认与推荐**，唯一提供 `UpdateScripts` 的方言 |
+| MySQL / MariaDB | `MySql` | ✅ | — | MariaDB 协议兼容，同用 `MySql` |
+| SQL Server | `SqlServer` | ✅ | — | — |
+| SQLite | `Sqlite` | ✅ | — | 仓库测试用它跑建表与仓储用例 |
+| Oracle | `Oracle` | ✅ | — | 支持但不建议 |
+| 达梦 / 人大金仓 | `Dm` / `Kdbndp` | — | — | 只在 ORM 层可用：驱动随 `SqlSugarCore` 一并安装，可作主库 `DbType`；仓库未针对它们验证 |
+
+- **独立库租户**的数据库类型是 `TenantDatabaseType`，只有 `SqlServer` / `MySql` / `PostgreSql` / `SQLite` / `Oracle` 五个值，选不到达梦与人大金仓。
+- **升级脚本**只提供 PostgreSQL 方言。主库或独立库用其它数据库时，全新库由 CodeFirst 建表并登记为最新版本，之后版本的结构变化要自行准备对应方言的脚本，否则开着自动升级时 PostgreSQL 脚本会在该库上执行失败并中断启动（见[升级与迁移](./upgrade)）。
 
 本地用 Docker 起库见 [开发环境](../dev-environment)。
 
@@ -123,7 +127,7 @@ ORM 是 SqlSugar，`DbType` 取它的枚举值：
 给既有实体加字段后部署，运行到该表的查询就会报 `42703 column does not exist`（PG）或等价错误。
 
 三条路：
-- 正式版本在 `WebHost/UpdateScripts/{version}.sql` 编写前向迁移（推荐）；
+- 正式版本在 `WebHost/UpdateScripts/<版本>/<版本>.sql` 编写前向迁移（推荐），启动时由升级引擎执行；
 - 可丢弃数据的本地环境重建数据库；
 - 紧急修复时手工 `ALTER TABLE`，随后仍要补入版本脚本。
 
@@ -131,7 +135,7 @@ CodeFirst 负责首次建表；已有库的结构和数据变化由 Framework Up
 :::
 
 ::: tip 升级状态不是本地文件
-升级引擎可用 `SysVersion` 和 `SysMigrationHistory` 记录每个数据库的版本与脚本结果，不使用 `version.txt`；独立数据库租户也可逐库升级。但当前 BasicApp 尚未调用执行入口，启动不会自动跑脚本，详见[升级与迁移](./upgrade)。
+升级引擎用 `SysVersion` 和 `SysMigrationHistory` 记录每个数据库的版本与脚本结果，不使用 `version.txt`；独立数据库租户逐库升级。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true`（缺省即为 `true`）时启动会自动执行待执行脚本，失败即中断启动，详见[升级与迁移](./upgrade)。
 :::
 
 ## 种子数据

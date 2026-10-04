@@ -140,7 +140,7 @@
 | 2 | 写 `[SugarTable]` + 字段 + `[SugarIndex]`（含审计三件套索引） |
 | 3 | 派生属性放 `Expands/`，枚举放 `Enums/` |
 | 4 | 加仓储接口与实现（继承 `SaasRepository`，自动注册） |
-| 5 | 全新库由 CodeFirst 建表；存量库在 `WebHost/UpdateScripts/{version}.sql` 补建表/列/索引脚本 |
+| 5 | 全新库由 CodeFirst 建表；存量库在 `WebHost/UpdateScripts/<版本>/<版本>.sql` 补建表/列/索引脚本 |
 
 ## 相关页面
 
