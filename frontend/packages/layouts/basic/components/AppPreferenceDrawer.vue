@@ -186,8 +186,10 @@ watch(visible, (open, was) => {
       </div>
 
       <!-- 面板内容各不相同，标签与面板手摆而不喂 collection。
-           滚动区只包面板，标签行留在外面：它不随内容滚，也就不会和滚动条压在一起 -->
-      <XhTabsRoot v-model:value="activeTab" class="preference-tabs" variant="segment">
+           滚动区只包面板，标签行留在外面：它不随内容滚，也就不会和滚动条压在一起。
+           lazy-mount：四页一次全挂是三千多个节点、六十来个提示浮层，抽屉滑入那一帧整块卡住；
+           只挂当前页，其余等第一次切过去再挂，挂过的留着不卸，来回切不重建 -->
+      <XhTabsRoot v-model:value="activeTab" class="preference-tabs" variant="segment" lazy-mount>
         <XhTabsList>
           <XhTabsTrigger value="appearance">
             {{ t('preference.drawer.tab.appearance') }}
