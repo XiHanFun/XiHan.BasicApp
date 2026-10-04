@@ -1,0 +1,430 @@
+<!doctype html>
+<!--
+  XiHan.BasicApp 架构图源文件
+
+  README 的 assets/architecture_cn.png（中文）与 assets/architecture.png（英文）、
+  文档站「框架简介 · 全景」都由本文件导出。改架构时只改下面 DATA 里的内容，再重新导出两张 PNG。
+
+  预览：浏览器直接打开本文件；地址后加 ?lang=en 切换英文。
+  导出（Chrome / Edge）：
+    1. 打开 DevTools，切到设备工具栏（Ctrl+Shift+M），尺寸设为 Responsive，宽 1760，DPR 设为 2
+    2. Ctrl+Shift+P 输入 “Capture full size screenshot” 回车
+    3. 中文存为 assets/architecture_cn.png，?lang=en 存为 assets/architecture.png
+-->
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=1760" />
+    <title>XiHan.BasicApp 架构</title>
+    <style>
+      :root {
+        --bg: #f4f6fa;
+        --card: #ffffff;
+        --line: #e2e7ef;
+        --text: #1e2533;
+        --muted: #5f6b7d;
+        --faint: #8a95a6;
+        --fe: #22936b;
+        --fe-tint: #e9f6f0;
+        --fe-soft: #f5fbf8;
+        --fe-line: #bfe3d3;
+        --fe-dash: #8fd0b4;
+        --be: #5b3fd1;
+        --be-tint: #efebfc;
+        --be-soft: #f8f6fe;
+        --be-line: #d3c9f6;
+        --be-dash: #b4a4f0;
+        --link: #2f6fe0;
+        --infra: #eef1f6;
+      }
+      * { box-sizing: border-box; margin: 0; }
+      body { width: 1760px; background: var(--bg); color: var(--text); font: 14px/1.45 "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif; padding: 40px 44px 36px; }
+      code, .mono { font-family: "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace; }
+
+      .title { display: flex; align-items: baseline; gap: 16px; margin-bottom: 22px; }
+      .title h1 { font-size: 30px; letter-spacing: 0.2px; }
+      .title p { color: var(--muted); font-size: 15px; }
+
+      /* 四列：层标签 · 前端 · 通道 · 后端 */
+      .clients, .cols { display: grid; grid-template-columns: 96px 1fr 184px 1.24fr; gap: 14px; }
+      .clients { margin-bottom: 10px; }
+      .cols { align-items: stretch; }
+      .side-label { border-radius: 12px; background: var(--card); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 700; color: var(--muted); padding: 8px; }
+      .clients .side-label { background: transparent; border: 0; }
+      .client-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .client { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; position: relative; }
+      .client b { font-size: 15px; }
+      .client span { color: var(--muted); font-size: 13px; }
+      .client.fe { border-top: 3px solid var(--fe); }
+      .client.be { border-top: 3px solid var(--be); }
+      .client::after { content: ""; position: absolute; left: 50%; bottom: -12px; width: 2px; height: 10px; background: var(--faint); }
+
+      .col-head { padding: 10px 16px; border-radius: 12px; color: #fff; display: flex; align-items: baseline; gap: 12px; }
+      .col-head b { font-size: 18px; }
+      .col-head span { opacity: 0.88; font-size: 14px; }
+      .col-head.fe { background: var(--fe); }
+      .col-head.be { background: var(--be); }
+      .col-head.mid { background: transparent; color: var(--link); justify-content: center; font-weight: 700; }
+      .layer-label { border-radius: 12px; background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 8px; }
+      .layer-label b { font-size: 16px; }
+      html[lang="zh-CN"] .layer-label b { writing-mode: vertical-rl; letter-spacing: 6px; }
+      .layer-label span { font-size: 12px; color: var(--faint); }
+      .cell { display: flex; flex-direction: column; gap: 10px; }
+
+      .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+      .card.fe { border-color: var(--fe-line); }
+      .card.be { border-color: var(--be-line); }
+      .card.base.fe { background: var(--fe-soft); }
+      .card.base.be { background: var(--be-soft); }
+      .card-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+      .card-head code { font-size: 16px; font-weight: 700; }
+      .card.fe .card-head code, .card.fe .card-head b { color: var(--fe); }
+      .card.be .card-head code, .card.be .card-head b { color: var(--be); }
+      .card-head span { color: var(--muted); font-size: 13px; }
+      .card-head.big b { font-size: 20px; }
+
+      .rows { display: flex; flex-direction: column; gap: 6px; }
+      .kv { display: grid; grid-template-columns: 78px 1fr; gap: 10px; align-items: baseline; }
+      .kv code { color: var(--fe); font-weight: 600; }
+      .kv span { font-size: 13px; }
+      .sub { border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+      .sub-head { display: flex; align-items: center; gap: 10px; }
+      .sub-head code { font-weight: 700; color: var(--fe); }
+      .dashed { border: 1.5px dashed; }
+      .dashed.fe { border-color: var(--fe-dash); background: var(--fe-soft); }
+      .dashed.be { border-color: var(--be-dash); background: var(--be-soft); }
+      .tag { font-size: 11.5px; padding: 1px 8px; border-radius: 999px; }
+      .fe .tag { background: var(--fe-tint); color: var(--fe); }
+      .be .tag { background: var(--be-tint); color: var(--be); }
+
+      .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+      .chip { font-size: 12.5px; padding: 3px 9px; border-radius: 6px; background: #f1f4f8; border: 1px solid transparent; white-space: nowrap; }
+      .fe .chip { background: var(--fe-tint); }
+      .be .chip { background: var(--be-tint); }
+      .chip.lib { background: #ffffff; border-color: var(--line); color: var(--muted); }
+      .chip.on { background: var(--fe); color: #fff; }
+      .chip.off { background: #ffffff; border-color: var(--fe-line); color: var(--faint); }
+      .caps .chip { font-size: 13px; }
+
+      .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .mini { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; background: #fff; }
+      .mini code { color: var(--fe); font-weight: 600; font-size: 13px; }
+      .mini span { color: var(--muted); font-size: 12.5px; }
+
+      .ui-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+      .ui-group { background: #fff; border: 1px solid var(--fe-line); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+      .ui-name { display: flex; align-items: baseline; gap: 8px; }
+      .ui-name code { font-weight: 700; color: var(--fe); }
+      .ui-name span { font-size: 12px; color: var(--faint); }
+      .legend-inline { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+      .legend-inline .chip { margin-left: 8px; }
+      .stack { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 10px; border-top: 1px dashed var(--line); }
+
+      .bar { background: var(--card); border: 1px solid var(--be-line); border-radius: 12px; padding: 10px 16px; display: flex; align-items: baseline; gap: 14px; }
+      .bar code { color: var(--be); font-weight: 700; font-size: 15px; white-space: nowrap; }
+      .bar span { color: var(--muted); font-size: 13px; }
+      .bar.host { background: var(--be); border-color: var(--be); }
+      .bar.host code, .bar.host span { color: #fff; }
+      .bar.host span { opacity: 0.9; }
+      .mods-head { margin: -2px 0 -4px; }
+      .mods { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+      .mod { border-radius: 10px; padding: 9px 10px; display: flex; flex-direction: column; gap: 4px; }
+      .mod code { color: var(--be); font-weight: 700; font-size: 13.5px; }
+      .mod span { font-size: 12.5px; color: var(--muted); }
+      .mod em { font-style: normal; font-size: 11.5px; color: var(--be); }
+      .ddd { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .layer { border: 1px solid var(--be-line); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; background: #fff; }
+      .layer b { color: var(--be); font-size: 13.5px; }
+      .layer span { color: var(--muted); font-size: 12.5px; }
+
+      .fw { display: flex; flex-direction: column; gap: 7px; }
+      .fw-row { display: grid; grid-template-columns: 74px 1fr; gap: 10px; align-items: start; }
+      .fw-row b { font-size: 13px; color: var(--be); padding-top: 3px; }
+      .fw .chip { background: #fff; border-color: var(--be-line); }
+
+      .mid { display: flex; flex-direction: column; justify-content: center; gap: 22px; }
+      .link { display: flex; flex-direction: column; gap: 6px; }
+      .link-text { text-align: center; display: flex; flex-direction: column; }
+      .link-text b { font-size: 13.5px; color: var(--link); }
+      .link-text span { font-size: 12px; color: var(--muted); }
+      .arrow { position: relative; height: 12px; }
+      .arrow .line { position: absolute; left: 8px; right: 8px; top: 5px; height: 2px; background: var(--link); }
+      .link.dash .arrow .line { background: repeating-linear-gradient(90deg, var(--link) 0 6px, transparent 6px 11px); }
+      .arrow::before, .arrow::after { content: ""; position: absolute; top: 0; border: 6px solid transparent; }
+      .link.both .arrow::before, .link.left .arrow::before { left: -4px; border-right: 10px solid var(--link); }
+      .link.both .arrow::after, .link.right .arrow::after { right: -4px; border-left: 10px solid var(--link); }
+
+      .infra { display: grid; grid-template-columns: 96px 1fr; gap: 14px; margin-top: 14px; }
+      .infra-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+      .infra-item { background: var(--infra); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; display: flex; flex-direction: column; gap: 2px; }
+      .infra-item b { font-size: 13.5px; }
+      .infra-item span { font-size: 12.5px; color: var(--muted); }
+      .foot { margin-top: 16px; display: flex; gap: 22px; color: var(--muted); font-size: 12.5px; align-items: center; }
+      .foot i { display: inline-block; width: 26px; height: 0; vertical-align: middle; margin-right: 6px; }
+      .foot .solid { border-top: 2px solid var(--link); }
+      .foot .dash { border-top: 2px dashed var(--be); }
+      .foot .brand { margin-left: auto; color: var(--faint); }
+    </style>
+  </head>
+  <body>
+    <script>
+      // 文案写法：两种语言相同时直接写字符串，不同时写 [中文, English]
+      const DATA = {
+        title: ['XiHan.BasicApp 架构', 'XiHan.BasicApp Architecture'],
+        subtitle: ['前端 Vue + XiHan.UI · 后端 .NET + XiHan.Framework · 前后端分离、模块化、可插拔', 'Vue + XiHan.UI frontend · .NET + XiHan.Framework backend · decoupled, modular, pluggable'],
+
+        clients: {
+          label: ['客户端', 'Clients'],
+          frontend: [{ name: ['浏览器', 'Browser'], note: ['PC · 平板 · 手机（小屏适配）', 'Desktop · tablet · phone (small-screen layout)'] }],
+          backend: [
+            { name: ['第三方系统', 'Third-party systems'], note: ['OAuth2 / OIDC 统一登录 · OpenAPI AK/SK 签名调用', 'OAuth2 / OIDC sign-in · OpenAPI AK/SK signed calls'] },
+            { name: ['AI 客户端', 'AI clients'], note: ['MCP 知识库检索工具', 'MCP knowledge retrieval tool'] },
+          ],
+        },
+
+        heads: {
+          frontend: { name: ['前端', 'Frontend'], note: ['Vue 3 · TypeScript · Vite · pnpm 单仓多包', 'Vue 3 · TypeScript · Vite · pnpm monorepo'] },
+          bridge: ['通信与契约', 'Contracts'],
+          backend: { name: ['后端', 'Backend'], note: ['.NET 10 · C# · DDD / CQRS · 模块化', '.NET 10 · C# · DDD / CQRS · modular'] },
+        },
+
+        layers: [
+          { name: ['应用层', 'App'], note: ['页面与入口', 'pages & entry'] },
+          { name: ['内核层', 'Kernel'], note: ['平台能力', 'platform'] },
+          { name: ['底座层', 'Base'], note: ['自研框架', 'own frameworks'] },
+        ],
+
+        frontend: {
+          src: {
+            name: 'frontend/src',
+            note: ['应用源码', 'Application source'],
+            rows: [
+              ['views', ['业务页面：工作台、身份权限、租户、消息、文件、审批、日志、设置、开放平台', 'Pages: workbench, identity, tenants, messaging, files, approval, logs, settings, open platform']],
+              ['api', ['按域的类型化 Dynamic API 客户端与 DTO 类型', 'Typed Dynamic API clients and DTO types per domain']],
+              ['router', ['后端菜单驱动的动态路由与守卫', 'Dynamic routes and guards driven by backend menus']],
+              ['app', ['启动装配、错误处理、应用上下文', 'Bootstrapping, error handling, app context']],
+            ],
+            modules: { name: 'modules', note: ['可选插件', 'Optional plugins'], items: ['ai', 'chat', 'codegen', 'printing', 'workflow'] },
+          },
+          packages: {
+            name: 'frontend/packages',
+            note: ['可复用内核 · 单向依赖，不反向引用 src', 'Reusable kernel · one-way, never imports src'],
+            items: [
+              ['components', ['Schema 列表页 · 通用组件', 'Schema list pages · shared components']],
+              ['layouts', ['7 种布局 · 标签页 · 分屏', '7 layouts · tabs · split view']],
+              ['stores', ['Pinia 跨页状态', 'Pinia cross-page state']],
+              ['request', ['401 刷新 · 423 锁屏 · 签名', '401 refresh · 423 lock · signing']],
+              ['router', ['动态路由生成', 'Dynamic route builder']],
+              ['locales', ['7 种语言', '7 languages']],
+              ['chat', ['聊天面板 · AI 流式', 'Chat panel · AI streaming']],
+              ['diagram', ['AntV X6 图编辑', 'AntV X6 graph editing']],
+              ['printing', ['hiprint 打印设计', 'hiprint print designer']],
+              ['design · iconify', ['令牌桥 · 离线图标', 'Token bridge · offline icons']],
+              ['composables · hooks', ['灵动岛 · 主题 · 快捷键', 'Island · theme · shortcuts']],
+              ['utils · types', ['工具与公共类型', 'Utilities and shared types']],
+            ],
+          },
+          ui: {
+            name: 'XiHan.UI',
+            note: ['框架无关跨端组件库 · 设计令牌驱动', 'Framework-agnostic component library · token-driven'],
+            // used：BasicApp 实际用到的包（直接依赖与适配器自带的 engine）
+            groups: [
+              { name: 'adapters', note: ['选一个渲染目标', 'pick a renderer'], pkgs: ['vue', 'react', 'web-components'], used: ['vue'] },
+              { name: 'design', note: ['外观层', 'look and feel'], pkgs: ['tokens', 'styles', 'icons'], used: ['tokens', 'styles'] },
+              { name: 'engine', note: ['适配器自带', 'ships with adapters'], pkgs: ['core', 'headless', 'motion', 'pointer', 'position', 'viz'], used: ['core', 'headless', 'motion', 'pointer', 'position', 'viz'] },
+              { name: 'features', note: ['按需自选', 'opt-in'], pkgs: ['code-highlight', 'markdown', 'chat-stream', 'sound', 'animations', 'backgrounds'], used: ['code-highlight'] },
+            ],
+            legend: [['BasicApp 已使用', 'used by BasicApp'], ['可选未用', 'available']],
+            stack: ['Vue 3', 'TypeScript', 'Vite', 'Pinia', 'Vue Router', 'vue-i18n', 'Tailwind CSS', 'Tiptap', 'Monaco', 'AntV X6', 'hiprint', '@microsoft/signalr', 'Iconify', 'pinyin-pro'],
+          },
+        },
+
+        bridge: {
+          app: [
+            { dir: 'both', dash: true, name: ['可选模块', 'Optional modules'], note: ['前端目录与后端工程一一对应', 'frontend folder ↔ backend project'] },
+            { dir: 'left', name: ['菜单 · 权限码', 'Menus · permissions'], note: ['PageRegistry → 动态路由', 'PageRegistry → dynamic routes'] },
+          ],
+          kernel: [
+            { dir: 'both', name: 'HTTP REST', note: ['Dynamic API · JWT 双令牌', 'Dynamic API · JWT access/refresh'] },
+            { dir: 'left', name: 'SignalR', note: ['通知 · 聊天 · 任务进度 · 设置同步', 'notifications · chat · progress · settings sync'] },
+          ],
+        },
+
+        backend: {
+          host: { name: 'XiHan.BasicApp.WebHost', note: ['启动入口 · 模块聚合 · 配置 · 健康检查 · 首次启动建库播种', 'Entry point · module composition · configuration · health checks · first-run schema and seed'] },
+          modulesNote: ['可选业务模块 · 均依赖 Saas · 可整块卸载', 'Optional modules · depend on Saas · removable as a unit'],
+          modules: [
+            { name: 'CodeGeneration', note: ['数据源 · 表结构导入 · 模板 · 单表/树形/主从全栈生成', 'Data sources · table import · templates · full-stack generation'] },
+            { name: 'AI', note: ['提供商 · 提示词 · 知识库 RAG · MCP 技能 · 聊天助手', 'Providers · prompts · RAG knowledge base · MCP skills · assistants'], extra: ['助手桥接依赖 Chat', 'assistant bridge depends on Chat'] },
+            { name: 'Workflow', note: ['流程定义 · 实例 · 待办 · 或签/会签/依次', 'Definitions · instances · tasks · any/all/sequential'] },
+            { name: 'Printing', note: ['可视化设计 · 平台与租户双作用域 · 按编码解析', 'Visual design · platform and tenant scope · resolve by code'] },
+            { name: 'Chat', note: ['单聊 · 群聊 · 部门群 · AI 会话 · 合规审计', 'Direct · group · department · AI chats · compliance audit'] },
+          ],
+          saas: {
+            name: 'XiHan.BasicApp.Saas',
+            note: ['平台治理基座，所有可选模块都依赖它', 'Platform governance base that every optional module depends on'],
+            caps: [
+              ['身份认证', 'Authentication'], 'RBAC · ABAC', ['字段级安全', 'Field-level security'], ['审批与约束', 'Approvals and constraints'],
+              ['多租户 · 版本套餐', 'Multi-tenancy · editions'], ['组织 · 岗位', 'Organizations · positions'], ['菜单 · PageRegistry', 'Menus · PageRegistry'],
+              ['消息中心', 'Messaging'], ['文件 · 导出中心', 'Files · export center'], ['审计日志 · 链路追踪', 'Audit logs · tracing'],
+              ['配置 · 字典 · 业务编号', 'Settings · dictionaries · numbering'], ['任务调度', 'Scheduled jobs'], ['OAuth2 / OIDC 服务端', 'OAuth2 / OIDC server'],
+              ['开放接口', 'OpenAPI'], ['升级台账 · 维护模式', 'Upgrade ledger · maintenance'],
+            ],
+            layers: [
+              { name: 'Domain', note: ['实体 · 领域服务 · 仓储契约', 'Entities · domain services · repository contracts'] },
+              { name: 'Application', note: ['AppService 写 · QueryService 读 · [DynamicApi]', 'AppService writes · QueryService reads · [DynamicApi]'] },
+              { name: 'Infrastructure', note: ['SqlSugar 仓储 · 种子 · 后台服务', 'SqlSugar repositories · seeders · hosted services'] },
+            ],
+          },
+          bars: [
+            { name: 'XiHan.BasicApp.Web.Core', note: ['Dynamic API · Scalar 文档 · SignalR · gRPC · 网关 · MCP · 维护模式', 'Dynamic API · Scalar docs · SignalR · gRPC · gateway · MCP · maintenance mode'] },
+            { name: 'XiHan.BasicApp.Core', note: ['实体基类 · DTO 与查询基类 · 共享约定 · 聚合框架非 Web 模块', 'Entity bases · DTO and query bases · shared conventions · non-web framework modules'] },
+          ],
+          framework: {
+            name: 'XiHan.Framework',
+            note: ['60 多个可独立引用的 NuGet 包 · BasicApp 只用公开接口', '60+ independently referenceable NuGet packages · BasicApp uses public APIs only'],
+            groups: [
+              [['基础', 'Foundation'], ['Core', 'Utils', 'Castle', 'Serialization', 'Threading', 'Timing', 'Script', 'VirtualFileSystem', 'Metadata', 'DevTools']],
+              [['领域与应用', 'DDD'], ['Domain', 'Domain.Shared', 'Application', 'Application.Contracts', 'Uow', 'Validation', 'ObjectMapping']],
+              [['数据', 'Data'], ['Data (SqlSugar)', 'Caching', 'MultiTenancy', 'DistributedIds', 'ObjectStorage', 'SearchEngines']],
+              [['安全', 'Security'], ['Authentication', 'Authorization', 'Security', 'Auditing', 'Traffic']],
+              [['集成', 'Integration'], ['EventBus (Redis · RabbitMQ · Kafka)', 'Messaging', ['Bot (钉钉 · 飞书 · 企微 · Telegram · 邮件 · 短信)', 'Bot (DingTalk · Lark · WeCom · Telegram · Email · SMS)'], 'Templating', 'Http', 'Localization', 'Settings']],
+              [['运行', 'Runtime'], ['Tasks', 'Workflow', 'Upgrade', 'Logging', 'Observability', 'AI']],
+              ['Web', ['Web.Core', 'Web.Api', 'Web.Docs', 'Web.RealTime', 'Web.Gateway', 'Web.Grpc', 'Web.Mcp']],
+            ],
+            stack: ['.NET 10', 'C#', 'SqlSugar', 'Redis', 'SignalR', 'Serilog', 'Scalar', 'OpenTelemetry', 'Scriban'],
+          },
+        },
+
+        infra: {
+          label: ['基础设施', 'Infra'],
+          items: [
+            [['数据库', 'Databases'], ['PostgreSQL（默认）· MySQL · SQL Server · SQLite · Oracle', 'PostgreSQL (default) · MySQL · SQL Server · SQLite · Oracle']],
+            [['缓存', 'Cache'], ['Redis（可选，关闭后退化为进程内缓存）', 'Redis (optional, falls back to in-process cache)']],
+            [['向量库', 'Vector store'], ['Qdrant（AI 知识库）', 'Qdrant (AI knowledge base)']],
+            [['对象存储', 'Object storage'], ['本地 · S3 · OSS · COS · MinIO', 'Local · S3 · OSS · COS · MinIO']],
+            [['消息通道', 'Channels'], ['SMTP · 阿里云/腾讯云短信 · 钉钉 · 飞书 · 企微 · Telegram', 'SMTP · Aliyun/Tencent SMS · DingTalk · Lark · WeCom · Telegram']],
+            [['第三方登录', 'External sign-in'], ['GitHub · Gitee · Google · QQ · 微信 · 企业微信 · 飞书 · 钉钉', 'GitHub · Gitee · Google · QQ · WeChat · WeCom · Lark · DingTalk']],
+            [['一键部署', 'One-command deploy'], ['Docker Compose：PostgreSQL · Redis · Qdrant · 后端 · 前端', 'Docker Compose: PostgreSQL · Redis · Qdrant · backend · frontend']],
+            [['可观测', 'Observability'], ['健康检查 · OpenTelemetry 链路与指标', 'Health checks · OpenTelemetry traces and metrics']],
+          ],
+        },
+
+        legend: { channel: ['通信通道', 'Runtime channel'], optional: ['可选、可卸载', 'Optional, removable'] },
+        brand: 'github.com/XiHanFun/XiHan.BasicApp',
+      }
+
+      // ---------- 渲染 ----------
+      const LANG = new URLSearchParams(location.search).get('lang') === 'en' ? 'en' : 'zh'
+      document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : 'en'
+      const L = v => (Array.isArray(v) ? v[LANG === 'zh' ? 0 : 1] : v)
+      const chips = (list, cls = '') => list.map(c => `<span class="chip ${cls}">${L(c)}</span>`).join('')
+      document.title = L(DATA.title)
+
+      const client = (c, side) => `<div class="client ${side}"><b>${L(c.name)}</b><span>${L(c.note)}</span></div>`
+      const clientsHtml = `
+        <div class="clients">
+          <div class="side-label">${L(DATA.clients.label)}</div>
+          ${DATA.clients.frontend.map(c => client(c, 'fe')).join('')}
+          <div></div>
+          <div class="client-pair">${DATA.clients.backend.map(c => client(c, 'be')).join('')}</div>
+        </div>`
+
+      const fe = DATA.frontend
+      const feApp = `
+        <div class="card fe">
+          <div class="card-head"><code>${fe.src.name}</code><span>${L(fe.src.note)}</span></div>
+          <div class="rows">${fe.src.rows.map(([k, v]) => `<div class="kv"><code>${k}</code><span>${L(v)}</span></div>`).join('')}</div>
+          <div class="sub dashed fe">
+            <div class="sub-head"><code>${fe.src.modules.name}</code><span class="tag">${L(fe.src.modules.note)}</span></div>
+            <div class="chips">${chips(fe.src.modules.items, 'mono')}</div>
+          </div>
+        </div>`
+      const feKernel = `
+        <div class="card fe">
+          <div class="card-head"><code>${fe.packages.name}</code><span>${L(fe.packages.note)}</span></div>
+          <div class="grid3">${fe.packages.items.map(([n, d]) => `<div class="mini"><code>${n}</code><span>${L(d)}</span></div>`).join('')}</div>
+        </div>`
+      const feBase = `
+        <div class="card base fe">
+          <div class="card-head big"><b>${fe.ui.name}</b><span>${L(fe.ui.note)}</span></div>
+          <div class="ui-grid">${fe.ui.groups
+            .map(
+              g => `
+            <div class="ui-group">
+              <div class="ui-name"><code>${g.name}/</code><span>${L(g.note)}</span></div>
+              <div class="chips">${g.pkgs.map(p => `<span class="chip mono ${g.used.includes(p) ? 'on' : 'off'}">${p}</span>`).join('')}</div>
+            </div>`,
+            )
+            .join('')}</div>
+          <div class="legend-inline"><span class="chip mono on">pkg</span>${L(fe.ui.legend[0])}<span class="chip mono off">pkg</span>${L(fe.ui.legend[1])}</div>
+          <div class="stack">${chips(fe.ui.stack, 'lib')}</div>
+        </div>`
+
+      const link = l => `
+        <div class="link ${l.dir} ${l.dash ? 'dash' : ''}">
+          <div class="link-text"><b>${L(l.name)}</b><span>${L(l.note)}</span></div>
+          <div class="arrow"><i class="line"></i></div>
+        </div>`
+
+      const be = DATA.backend
+      const beApp = `
+        <div class="bar host"><code>${be.host.name}</code><span>${L(be.host.note)}</span></div>
+        <div class="mods-head be"><span class="tag">${L(be.modulesNote)}</span></div>
+        <div class="mods">${be.modules
+          .map(m => `<div class="mod dashed be"><code>${m.name}</code><span>${L(m.note)}</span>${m.extra ? `<em>${L(m.extra)}</em>` : ''}</div>`)
+          .join('')}</div>`
+      const beKernel = `
+        <div class="card be">
+          <div class="card-head"><code>${be.saas.name}</code><span>${L(be.saas.note)}</span></div>
+          <div class="chips caps">${chips(be.saas.caps)}</div>
+          <div class="ddd">${be.saas.layers.map(l => `<div class="layer"><b>${l.name}</b><span>${L(l.note)}</span></div>`).join('')}</div>
+        </div>
+        ${be.bars.map(b => `<div class="bar"><code>${b.name}</code><span>${L(b.note)}</span></div>`).join('')}`
+      const beBase = `
+        <div class="card base be">
+          <div class="card-head big"><b>${be.framework.name}</b><span>${L(be.framework.note)}</span></div>
+          <div class="fw">${be.framework.groups.map(([g, pkgs]) => `<div class="fw-row"><b>${L(g)}</b><div class="chips">${chips(pkgs, 'mono')}</div></div>`).join('')}</div>
+          <div class="stack">${chips(be.framework.stack, 'lib')}</div>
+        </div>`
+
+      const layer = l => `<div class="layer-label"><b>${L(l.name)}</b><span>${L(l.note)}</span></div>`
+      const [appLayer, kernelLayer, baseLayer] = DATA.layers
+      const h = DATA.heads
+
+      document.body.innerHTML = `
+        <div class="title"><h1>${L(DATA.title)}</h1><p>${L(DATA.subtitle)}</p></div>
+        ${clientsHtml}
+        <div class="cols">
+          <div></div>
+          <div class="col-head fe"><b>${L(h.frontend.name)}</b><span>${L(h.frontend.note)}</span></div>
+          <div class="col-head mid">${L(h.bridge)}</div>
+          <div class="col-head be"><b>${L(h.backend.name)}</b><span>${L(h.backend.note)}</span></div>
+
+          ${layer(appLayer)}
+          <div class="cell">${feApp}</div>
+          <div class="mid">${DATA.bridge.app.map(link).join('')}</div>
+          <div class="cell">${beApp}</div>
+
+          ${layer(kernelLayer)}
+          <div class="cell">${feKernel}</div>
+          <div class="mid">${DATA.bridge.kernel.map(link).join('')}</div>
+          <div class="cell">${beKernel}</div>
+
+          ${layer(baseLayer)}
+          <div class="cell">${feBase}</div>
+          <div class="mid"></div>
+          <div class="cell">${beBase}</div>
+        </div>
+        <div class="infra">
+          <div class="side-label">${L(DATA.infra.label)}</div>
+          <div class="infra-grid">${DATA.infra.items.map(([k, v]) => `<div class="infra-item"><b>${L(k)}</b><span>${L(v)}</span></div>`).join('')}</div>
+        </div>
+        <div class="foot">
+          <span><i class="solid"></i>${L(DATA.legend.channel)}</span>
+          <span><i class="dash"></i>${L(DATA.legend.optional)}</span>
+          <span class="brand">${DATA.brand}</span>
+        </div>`
+    </script>
+  </body>
+</html>
