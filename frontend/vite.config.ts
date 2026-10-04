@@ -259,6 +259,10 @@ export default defineConfig(({ mode }) => {
       vueJsx(),
       AutoImport({
         imports: ['vue', 'vue-router', 'pinia', '@vueuse/core'],
+        // 只给本仓源码补导入。临时链到同级 XiHan.UI 时（pnpm-workspace.yaml 的 overrides），
+        // 它的产物不在 node_modules 下、默认排除拦不住，会被补上只有本仓才装的 @vueuse/core 等导入，
+        // 在 UI 仓库里解析失败
+        exclude: [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/, /[\\/]XiHan\.UI[\\/]/],
         dts: 'src/types/auto-imports.d.ts',
       }),
       Components({
