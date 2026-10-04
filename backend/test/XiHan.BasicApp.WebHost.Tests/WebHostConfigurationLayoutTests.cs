@@ -82,7 +82,7 @@ public sealed class WebHostConfigurationLayoutTests
     }
 
     /// <summary>
-    /// 雪花算法 WorkerId 必须存在且为整数：升级逻辑靠它判定主节点，键缺失就失去判定依据。
+    /// 雪花算法 WorkerId 必须存在且为整数：同一集群内每个节点都要显式配置唯一值，否则雪花 ID 会生成重复主键。
     /// </summary>
     /// <remarks>
     /// 该键当前只出现在 Development 覆盖文件里，因此这里断言「至少一处配置了」并且
@@ -107,7 +107,7 @@ public sealed class WebHostConfigurationLayoutTests
             Assert.True(element.Value.TryGetInt32(out _), $"{fileName} 的 WorkerId 不是整数。");
         }
 
-        Assert.True(found > 0, "两份配置里都没有 XiHan:DistributedIds:SnowflakeId:WorkerId，升级主节点判定会失去依据。");
+        Assert.True(found > 0, "两份配置里都没有 XiHan:DistributedIds:SnowflakeId:WorkerId，多节点部署无从逐节点配置唯一值，雪花 ID 可能生成重复主键。");
     }
 
     /// <summary>
