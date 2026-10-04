@@ -203,87 +203,65 @@ XiHan.BasicApp is a decoupled frontend/backend system. The backend follows DDD l
   </tr>
 </table>
 
-## Features
+## Highlights
 
-### Workspace and identity
+Close to 90 tables, more than 50 pages and over 300 permission codes come built in. This section covers only what sets the project apart; the page-by-page capability list lives in the [feature list](https://basicapp.docs.xihanfun.com/features) on the docs site (Chinese). AI, chat, code generation, workflow and printing are optional modules.
 
-- **Dashboard**: Customize widgets, charts, announcements and pending work, and save a personal dashboard layout.
-- **Control center**: Choose a tenant or enter platform administration from one workspace selector.
-- **Authentication**: Sign in with a password, phone or email codes, external providers and two-factor authentication, with CAPTCHA, throttling and account lockout.
-- **Personal center**: Maintain profile and security settings, linked accounts, devices, notification preferences, tenant memberships and usage statistics.
-- **User management**: Search and maintain users, status, roles, departments, direct grants and data scopes; lock accounts, reset passwords, impersonate users and revoke sessions.
-- **Online users**: Inspect active sessions, clients and live connections, and search users or revoke individual sessions.
-- **Role management**: Manage roles, inheritance and members, batch membership changes, menu and operation grants, and data scopes.
-- **Organizations**: Manage department trees, leaders, child departments and members, including positions, employee numbers, job levels and join dates.
-- **Positions**: Maintain position names, codes, order and enabled state for department membership assignments.
-- **Permissions**: Manage permission codes, modules, resources, operations, API paths, HTTP methods, platform or tenant scope and audit requirements.
-- **Menus**: Maintain directory, menu and button trees with component paths, icons, order, visibility, caching, external links and permission bindings.
-- **Field security**: Configure field read, write and masking policies for entities and authorization targets.
-- **Permission requests and delegation**: Approve, reject or withdraw access requests, and delegate roles or permissions within a time window with revocation.
-- **Approval center**: Inspect approval items, status and processing history, and approve, reject or withdraw requests.
-- **Approval constraints**: Configure separation-of-duty, exclusion, cardinality and conditional rules, their targets and violation handling.
+### Experience
 
-### Tenants and messaging
+- **Light and dark themes**: Not a class toggled at the root — every page and every component has been color-checked in both; switching ripples out from the point you clicked
+- **One color, a full palette**: 21 traditional Chinese color presets plus any custom color; Material You dynamic color derives secondary, container and tinted neutral tones from the brand color, so changing it takes no CSS edits
+- **Preference center**: Tune 7 layouts, corner radius, density, font size, tab style, page transitions and watermark; preferences, column settings, search habits and dashboard boards sync to the cloud and apply live on your other devices
+- **Dynamic Island feedback**: Borrowed from phones — sign-in, uploads, exports, server-side task progress and reconnects gather in a small island at the top, with progress rings and retry buttons inside, instead of a screen full of toasts
+- **Schema-driven list pages**: Nearly 50 list pages are generated from one field schema each, with column settings, advanced search, multi-column sorting, hover row previews, tree mode, column resizing and import/export out of the box
+- **Command palette search**: Press `Ctrl / ⌘ + K` for fuzzy matching (including Chinese pinyin and initials) that jumps to any page you can access, or runs actions such as switching theme, locking the screen or favoriting the current page
+- **In-app split view**: Put two pages side by side and swap them without reloading; pin and drag tabs, and press `Alt + B` for a searchable tab overview
+- **Small screens**: On narrow viewports the sidebar becomes a drawer, action buttons collapse to icons and chat switches to a single pane, so it works in a phone browser
+- **Motion with an origin**: Dialogs grow out of the button or row that opened them, favorited tabs fly into the favorites bar, and all of it switches off when the OS asks for reduced motion
+- **Languages and time zones**: 7 languages (Simplified and Traditional Chinese, English, Japanese, Korean, Hindi, German) across frontend and backend, with times shown in each user's chosen time zone
 
-- **Tenant management**: Manage status, editions, expiration and quotas, initialize databases and administrators, and manage memberships, support access and ownership transfer.
-- **Tenant editions**: Configure prices, billing periods, user and storage quotas, and permission allowlists for tenant features.
-- **My subscription**: View the current tenant edition, subscription period, user and storage usage, quotas and entitlements.
-- **Announcements**: Publish targeted notices to users, roles or departments, configure presentation and mandatory reading, and inspect read statistics.
-- **My inbox**: Read notification details, filter pending messages, and mark individual or all messages as read or confirmed.
-- **Message templates**: Maintain variable-based email, SMS, in-app and bot templates, including tenant overrides.
-- **Email and SMS records**: Inspect recipients, content and delivery results, and resend failed email or SMS messages.
-- **Online chat**: Use direct, group, department and AI assistant conversations with real-time messages and unread state.
-- **Chat audit**: Search conversations and messages, inspect members and message details, and review conversation content.
+### Access and security
 
-### Files and system management
+- **The server owns the session**: Every request reads a server-side permission snapshot instead of trusting token claims, so revocations and forced sign-outs take effect at once; a locked screen answers every request with 423 and resumes after unlocking, no new sign-in needed
+- **Field-level security**: Control read, edit and masking (hidden, full mask, partial mask, hash, redact) per role, user or department, enforced on the server and in exports; masked fields cannot be sorted or filtered, so their values cannot be inferred from result order
+- **Role inheritance and separation of duties**: Only direct inheritance edges are stored and the full graph is derived, with parent denies flowing down; static separation of duties is checked on role assignment, inheritance changes and request approval, and conflicts are blocked
+- **Time-boxed delegation and access requests**: Delegations must carry an expiry and can be revoked at any time; approved requests grant the role or permission automatically
+- **Impersonation with guardrails**: A reason is required, sessions expire after 30 minutes by default, high-risk permissions are blocked, everything is audited and a banner stays on screen
+- **Authentication, fully stocked**: Passwords, email and SMS codes, TOTP two-factor, 8 external providers (GitHub, Gitee, Google, QQ, WeChat, WeCom, Feishu, DingTalk), and throttling per account + IP and per IP
+- **Built-in OAuth2 / OIDC server**: Authorization code with PKCE, token revocation, discovery and JWKS make it a single sign-on hub for your other systems; OpenAPI callers get AK / SK signed credentials
+- **One source for menus, routes and permission codes**: The backend PageRegistry declares pages, routes, components, permission codes and buttons in one place; menu seeds and frontend routes derive from it, and tests check that both sides agree
 
-- **Files**: Upload, search, download and preview files, maintain metadata and archive state, and manage storage copies and the primary location.
-- **Storage configuration**: Configure local, S3, OSS, COS and MinIO storage channels, status and a default provider.
-- **Export center**: Track asynchronous exports, download CSV or XLSX results, cancel pending tasks and delete records.
-- **Dictionaries**: Maintain linked dictionary categories and items, codes, values, defaults, order and status for shared search and form options.
-- **Parameters**: Maintain platform and tenant parameters, search groups and status, and inspect or edit configuration values.
-- **Business numbering**: Configure prefixes, dates, sequence width, reset periods and time zones, preview formats, perform guarded resets and inspect allocation history.
-- **Scheduled jobs**: Configure Cron and interval jobs, status, immediate runs and retry policies, and inspect execution logs.
-- **Cache management**: Search cache keys or patterns, inspect grouped keys and values, edit values and clear individual or multiple entries.
-- **Server monitoring**: Inspect CPU, memory, disks, network, GPU, motherboard and runtime information.
-- **Version management**: Inspect the current release, version notes, database migration information and upgrade state.
-- **Email configuration**: Maintain email channels and server settings, enabled state and the default configuration.
-- **SMS configuration**: Maintain SMS providers, delivery settings, enabled state and a default channel.
-- **Webhook bots**: Configure DingTalk, Feishu and WeCom Webhook channels, status and a default notification bot.
-- **Telegram bots**: Maintain connection settings and status for multiple Telegram Bot instances.
-- **Application management**: Register OAuth2 / OIDC clients with client types, grant types, redirect URIs, status and secrets.
-- **OpenAPI credentials**: Manage personal OpenAPI credentials and rotate keys for signed API calls.
+### Multi-tenancy
 
-### Logs and audit
+- **Two isolation modes**: Field-level isolation by default, or a dedicated database for any single tenant (PostgreSQL, MySQL, SQL Server, SQLite or Oracle), provisioned step by step together with its administrator
+- **Global data that tenants cannot overwrite**: Platform rows use `TenantId = 0`; tenants can read but not write them, enforced by a write guard in the framework data layer
+- **Editions you can sell**: Free, basic, professional and enterprise editions gate features with permission allowlists, and downgrades revoke out-of-range grants automatically; seat and storage quotas are enforced when adding members and uploading files
+- **Platform-side operations**: Assign support members into tenants, transfer tenant ownership, and let a background job disable tenants when they expire
 
-- **Access logs**: Inspect request paths, methods, status, duration and client details, and open related traces.
-- **OpenAPI logs**: Inspect OpenAPI calls, signature authorization results, request and response details, and related traces.
-- **Operation logs**: Inspect business operations, outcomes, duration, descriptions, client details and related traces.
-- **Login logs**: Inspect successful and failed logins, logout and impersonation events, client and IP details.
-- **Exception logs**: Search exception types, messages and locations, and inspect stack traces and related requests.
-- **Data change logs**: Inspect entity creation, updates, deletion and restoration with before-and-after field differences and traces.
-- **Permission change logs**: Inspect role, user and permission grant changes, affected targets and related traces.
-- **Log tracing**: Correlate log types by TraceId, user, session or IP, then analyze timelines, flow diagrams and time distributions.
-- **Migration history**: Inspect database upgrade script history, versions, execution status, duration and errors.
+### Audit and operations
 
-### Development and optional modules
+- **Seven audit log types**: Access, OpenAPI, operation, exception, sign-in, data change and permission change, with passwords and tokens masked before storage, monthly table splitting and scheduled cleanup
+- **One TraceId, the whole story**: All seven log types line up on one timeline by TraceId, session, user or IP, with a Sankey diagram for flow and a stacked chart for time distribution
+- **Field-by-field change history**: Creates, updates, deletes and restores record before-and-after values and a risk level
+- **Reliable message delivery**: Combine in-app, email, SMS and bot channels freely, with per-tenant template overrides; an outbox with atomic claiming, retries and crash recovery, plus SignalR real-time push
+- **Exports that respect permissions**: The export center runs in the background as the requesting user, so field masking still applies, and progress streams back to the Dynamic Island
+- **Business numbers without duplicates**: Idempotency keys and request fingerprints prevent double allocation, optimistic locking keeps concurrency safe, with batch allocation and time-zone-aware resets
+- **Upgrades with a ledger**: Forward SQL scripts record status, duration and errors per version and per database, while maintenance mode answers 503 with `Retry-After` during upgrades
 
-- **Code generation**: Manage data sources, tables, fields and templates; preview and generate single-table, tree and master-detail stacks, download output and inspect history.
-- **AI providers**: Configure endpoints and models, securely store keys, test connections and choose a default provider.
-- **AI prompts**: Maintain prompt codes, content and status for reusable conversation and business templates.
-- **Knowledge base**: Ingest documents, build or rebuild vector indexes, and query tenant-isolated knowledge with source references.
-- **AI assistants**: Configure assistant identities, models and prompts, choose a default and connect assistants to chat.
-- **Workflow definitions**: Design nodes and edges, maintain draft, published, disabled and archived definitions, manage versions and start workflows.
-- **Workflow instances**: Inspect execution and nodes, suspend, resume, cancel, terminate or retry instances, and send workflow signals.
-- **My workflow tasks**: Process human tasks with approval, rejection, transfer and additional signers, and track completion.
-- **Print templates**: Design text, tables, images and barcodes with paper and data-source settings, sample data, zoom, JSON inspection, preview and printing.
+### Optional modules
 
-### Shared user experience
+- **Keep only what you need**: AI, chat, code generation, workflow and printing are each one backend project paired with one frontend directory, removable as a unit (see [Removing optional modules](#removing-optional-modules))
+- **Code generation**: Single-table, tree and master-detail modes produce entities, DTOs, APIs and frontend pages in one pass, plus permission codes, menus, export providers and print data sources; generated and hand-written code live in separate files, so regenerating never overwrites your edits
+- **Workflow**: A visual designer on AntV X6 with 16 node types, any-of, all-of and sequential approval, reassignment and added signers; state is persisted and recovers after crashes, and instance graphs color each node by status
+- **Print designer**: Drag in fields and bind backend data sources and sample data for WYSIWYG templates; silent direct printing works with the desktop client
+- **Online chat**: Direct, group and department chats with recall, edit, reply, @mentions, reactions, group read receipts, voice messages and sensitive-word blocking, plus a streaming AI assistant and a compliance audit view
+- **AI knowledge base**: RAG on Qdrant with source citations and tenant isolation; model providers are managed as data and can be hot-swapped
 
-- **Preferences**: Configure themes, colors, layouts, density, watermarks and interaction preferences with cloud synchronization.
-- **Advanced lists**: Use combined search, saved views, column settings, multi-column sorting, density, trees, quick previews and exports.
-- **Content editors**: Edit rich text, Markdown, code and JSON, and configure Cron expressions visually.
-- **Global navigation**: Use tabs, favorites, global search, notification and task feedback, languages, time zones and screen locking.
+### Engineering foundation
+
+- **No controllers**: More than 150 application services are exposed as REST through Dynamic API, with writes in AppServices and reads in QueryServices, documented live in Scalar
+- **Architecture rules backed by tests**: Over 2,700 tests, including structural ones that check which database each entity lives in, whether unique indexes include tenant scope, and that no page hard-codes a permission code
+- **A foundation you can take with you**: The backend foundation, XiHan.Framework, ships as over 60 independently referenceable NuGet packages and BasicApp uses only public APIs, so you can launch on the template and replace it piece by piece
 
 ## Tech Stack
 
