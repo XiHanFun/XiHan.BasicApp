@@ -51,3 +51,44 @@ html:active-view-transition *::after {
  *   亮色模式：new 在上（z-2147483646），old 在下（z-1）→ 新（亮）层扩散覆盖
  *   暗色模式：old 在上（z-2147483646），new 在下（z-1）→ 旧（亮）层收缩消退
  * 不再需要 data-theme-to 属性手动管理 z-index */
+
+/*
+ * 图标换形：同一颗按钮里两枚图标互换（明暗主题、全屏进出、侧栏开合、内容最大化）。
+ * 用法：<span class="icon-swap"><Transition name="icon-swap"><Icon :key="icon" … /></Transition></span>。
+ * 新旧两枚叠在同一格里同时播，旧的转走、新的从另一侧转进来；不走 out-in，免得中间空一拍。
+ * 旋转与缩放挂几何时长（move / nudge），减弱动态效果下瞬时，只留淡变。
+ */
+.icon-swap {
+  display: inline-grid;
+  place-items: center;
+}
+
+.icon-swap > * {
+  grid-area: 1 / 1;
+}
+
+.icon-swap-enter-active {
+  transition:
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    rotate var(--xh-motion-duration-move) var(--xh-motion-ease-enter-strong),
+    scale var(--xh-motion-duration-move) var(--xh-motion-ease-enter-strong);
+}
+
+.icon-swap-leave-active {
+  transition:
+    opacity var(--xh-motion-duration-exit) var(--xh-motion-ease-exit),
+    rotate var(--xh-motion-duration-nudge) var(--xh-motion-ease-exit),
+    scale var(--xh-motion-duration-nudge) var(--xh-motion-ease-exit);
+}
+
+.icon-swap-enter-from {
+  opacity: 0;
+  rotate: -90deg;
+  scale: 0.5;
+}
+
+.icon-swap-leave-to {
+  opacity: 0;
+  rotate: 90deg;
+  scale: 0.5;
+}
