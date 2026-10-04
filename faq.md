@@ -113,9 +113,12 @@
 依次排查：
 
 1. **租户版本（Edition）门控**：租户所属版本的权限白名单没放行该权限码，运行时会被拦掉。
-2. **数据范围**：权限码通过了，但数据范围（本人 / 部门 / 部门及下级 / 租户）把这条记录挡在外面——表现常是「有权限但查不到数据」而非 403。
-3. **约束规则引擎**：SSD/DSD、互斥、时间窗、IP 等约束命中，被拒绝。
-4. **权限委托已到期**或被撤销。
+2. **作用侧**：该权限码不在当前上下文生效（平台侧权限进不了业务租户，反之亦然）。
+3. **模仿登录**：模仿态下禁用清单里的权限码一律拒绝。
+4. **用户直授 Deny**：直授的拒绝优先于任何角色授予。
+5. **权限委托已到期**或被撤销。
+
+数据范围不会导致 403：它目前只收窄用户列表，表现是「有权限但查不到数据」。约束规则也不参与请求期判定，只在分配角色等授权写入时拦截。
 
 完整判定链见 [权限模型](./backend/permission)。
 
@@ -212,7 +215,7 @@ services.Replace(ServiceDescriptor.Singleton<IAiProviderConfigStore, SaasAiProvi
 
 `DbInitializer` **表存在就跳过创建**（日志里是「表已存在，跳过创建」），它**从不为已有表补列**。所以给既有实体加字段后部署必炸。
 
-不要依赖 CodeFirst 给已有表补列。正式版本应在 `WebHost/UpdateScripts/{version}.sql` 中加入前向迁移，升级引擎会按版本执行并记录到 `SysMigrationHistory`；临时环境也可重建库或手工 `ALTER TABLE`。
+不要依赖 CodeFirst 给已有表补列。正式版本应在 `WebHost/UpdateScripts/<版本>/<版本>.sql` 中加入前向迁移，启动时升级引擎会按版本执行并记录到 `SysMigrationHistory`（`XiHan:Upgrade:EnableAutoCheckOnStartup` 关掉时不执行）；临时环境也可重建库或手工 `ALTER TABLE`。
 
 ### 本地 `dotnet build` 报文件被占用
 
@@ -259,7 +262,7 @@ npx eslint src/views/identity/position/index.vue --fix
 
 ### 升级版本要写数据迁移吗？
 
-**要写前向 SQL 迁移。** 首次部署由 CodeFirst 建库建表；已有数据库的变更放入 `WebHost/UpdateScripts/{version}.sql`。升级引擎具备逐库执行、台账与失败状态能力，但当前 BasicApp 没有调用执行入口，启动不会自动跑脚本；发布流程必须显式补齐或外置唯一迁移步骤。当前脚本为 PostgreSQL 方言，切换数据库时需提供对应实现。详见[升级与迁移](./backend/upgrade)。
+**要写前向 SQL 迁移。** 首次部署由 CodeFirst 建库建表；已有数据库的变更放入 `WebHost/UpdateScripts/<版本>/<版本>.sql`。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true`（缺省值）时，应用启动会逐库执行待执行脚本、记台账，失败即中断启动；关掉它则要在发布流程里先完成迁移。当前脚本为 PostgreSQL 方言，切换数据库时需提供对应实现。详见[升级与迁移](./backend/upgrade)。
 
 ### 启用 AI 知识库（RAG）前要准备什么？
 

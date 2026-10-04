@@ -67,6 +67,10 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 
 前端先调 `GET /api/Auth/LoginConfig` 拿到 `LoginConfigDto`（`loginMethods` + `oAuthProviders`），据此决定展示哪些登录按钮——**支持的方式以该配置为准**。
 
+::: warning 登录页的「扫码」入口只是占位
+登录页切换栏里的「扫码」（`/auth/qrcode-login`）在前端用固定种子画一张示意图案，后端没有对应的扫码登录接口、轮询或确认流程，扫了也登录不了。可用的扫码方式只有下文第三方登录里微信、企业微信、飞书、钉钉的 `QrCode` 模式，它跳到对方平台的授权页扫码。
+:::
+
 > 路由是方法名 `GetLoginConfigAsync` **剥离动词前缀 `Get` 并去掉 `Async`** 后的结果。全部认证端点的方法与 URL 对照表见 [接口对接指南](../api-guide#端点总表)。
 
 ### 账号密码
@@ -210,7 +214,7 @@ Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`Sessio
 
 ## 相关页面
 
-- [权限模型](./permission)：权限码、RBAC 继承、数据范围、字段脱敏、ABAC 约束、实时校验。
+- [权限模型](./permission)：权限码、RBAC 继承、数据范围、字段脱敏、ABAC 条件与约束规则、实时校验。
 - [多租户](./multi-tenancy)：成员关系、平台运维态、租户切换、版本门控。
 - [框架 · 认证模块](https://framework.docs.xihanfun.com/packages/authentication)：JWT / OAuth2 / TOTP / PBKDF2 的底层实现。
 - [请求生命周期](./request-lifecycle)：认证/租户解析/会话闸门/授权在请求管道中的位置。

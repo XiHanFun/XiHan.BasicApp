@@ -176,6 +176,8 @@ docker run -d --name oracle -p 1521:1521 -v oracle-data:/opt/oracle/oradata -e O
 
 SqlSugar 同样支持这些国产库（`DbType` 取 `Dm` / `Kdbndp` / `PostgreSQL` 等对应值）。它们的官方镜像通常需从厂商渠道获取（并非都在 Docker Hub 公开），拿到镜像后按厂商说明 `docker run`，再把 `DbType` 与连接串填入 `ConnectionConfigs[0]` 即可，用法与上面一致。
 
+限制：仓库没有针对达梦、人大金仓做过验证；它们不在独立库租户可选的数据库类型里；仓库只提供 PostgreSQL 升级脚本，存量库升级要自备对应方言的脚本。详见[数据库配置](./backend/database#支持的数据库)。
+
 ---
 
 ## 向量数据库 Qdrant（可选，AI 知识库用）

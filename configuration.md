@@ -101,7 +101,7 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | --- | --- |
 | `ConfigId` | 连接唯一标识（多库/多租户路由用），字符串 |
 | `ConnectionString` | 主库连接串 |
-| `DbType` | `PostgreSQL` / `MySql` / `SqlServer` / `Oracle` / `Dm` / `Kdbndp` 等 |
+| `DbType` | `PostgreSQL` / `MySql` / `SqlServer` / `Sqlite` / `Oracle` / `Dm` / `Kdbndp` 等；独立库租户与升级脚本的支持范围见[数据库配置](./backend/database#支持的数据库) |
 | `IsAutoCloseConnection` | 是否自动关闭连接 |
 | `SlaveConnectionConfigs[]` | 从库（读写分离）；空数组=单库 |
 
@@ -132,7 +132,7 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | `EnableDataSeeding` | 启动时写入种子数据 |
 
 ::: danger 建表只建不改
-`DbInitializer` **表存在就跳过、从不为已有表补列**。给既有实体加字段后，存量库必须通过前向 `UpdateScripts`（或部署流程中的等价迁移步骤）执行 `ALTER TABLE`。当前 BasicApp 不会自动触发升级引擎，见[升级与迁移](./backend/upgrade)。
+`DbInitializer` **表存在就跳过、从不为已有表补列**。给既有实体加字段后，存量库必须通过前向 `UpdateScripts`（或部署流程中的等价迁移步骤）执行 `ALTER TABLE`。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true` 时启动会自动执行这些脚本（开着数据库初始化时排在建表之后、播种之前），见[升级与迁移](./backend/upgrade)。
 :::
 
 ### `EnableDiffLog`
@@ -245,14 +245,14 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | `MinSupportVersion` / `AppVersion` | 最低来源版本 / 当前版本（留空则运行时探测程序集版本） |
 | `MigrationsRootPath` | 迁移脚本根目录 |
 | `LockResourceKey` / `LockExpirySeconds` | 分布式锁（防多节点并发升级） |
-| `EnableAutoCheckOnStartup` | 启动后初始化/检查版本状态；当前 BasicApp 未调用升级执行入口，不会因此自动跑 SQL |
+| `EnableAutoCheckOnStartup` | 启动时自动执行待执行的升级脚本（缺省 `true`）；失败即中断启动。关掉后启动不改库，须先在发布流程中完成迁移 |
 | `NodeName` / `PrimaryNodeName` | 当前节点 / **仅主节点执行迁移，其余等待** |
 | `EnableMultiTenantIsolation` | 是否按租户逐库执行 |
 | `ConnectionConfigId` | 升级使用的连接 |
 | `EnableMaintenanceMode` | 升级期间进入维护模式 |
 | `EnableFileUpdate` / `EnableRollingRestart` | 文件更新 / 滚动重启 |
 
-版本状态与执行历史分别保存在 `SysVersion`、`SysMigrationHistory`，不使用 `version.txt`。引擎被显式调用后会按 `UpdateScripts/{version}.sql` 顺序处理平台库及配置为独立库的租户，锁租约避免多节点并发。当前 BasicApp 没有 `IUpgradeCoordinator` / `IUpgradeEngine` 调用入口，因此启动只初始化版本状态、不执行脚本；完整边界见[升级与迁移](./backend/upgrade)。当前仓库脚本使用 PostgreSQL SQL，切换数据库提供程序时需要维护对应方言的脚本。
+版本状态与执行历史分别保存在 `SysVersion`、`SysMigrationHistory`，不使用 `version.txt`。引擎按 `UpdateScripts/<版本>/` 的版本顺序处理平台库及配置为独立库的租户，锁租约避免多节点并发；启动时由数据库初始化的升级段（`SaasSchemaUpgrader`）与升级模块的初始化后钩子调用，完整边界见[升级与迁移](./backend/upgrade)。当前仓库脚本使用 PostgreSQL SQL，切换数据库提供程序时需要维护对应方言的脚本。
 
 ## `XiHan:Localization`
 

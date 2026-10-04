@@ -1,6 +1,6 @@
 # 曦寒基础应用
 
-> 企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + ABAC 权限、代码生成与实时通信。
+> 企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + 数据范围 + 字段脱敏的权限体系、代码生成与实时通信。
 
 本文件由文档站构建期生成，内容与仓库文档同源。
 
@@ -24,7 +24,7 @@
 - [曦寒基础应用](https://basicapp.docs.xihanfun.com/): 基于 .NET 与 Vue 的超高颜值中后台内核
 - [XiHan.BasicApp 基础应用](https://basicapp.docs.xihanfun.com/introduction): 企业级中后台内核。
 - [系统概述](https://basicapp.docs.xihanfun.com/overview): XiHan.BasicApp 是一个企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 与 XiHan.UI。
-- [功能预览](https://basicapp.docs.xihanfun.com/preview): .feature-preview-table td { width: 50%; vertical-align: top; text-align: center; }
+- [功能预览](https://basicapp.docs.xihanfun.com/preview): 下面的截图与仓库 README 的「功能亮点」对应，逐项能力见功能清单；想直接上手可打开在线演示。
 - [目录结构与代码地图](https://basicapp.docs.xihanfun.com/project-structure): 这页解决一个具体问题：「我要改 X，该去哪个文件？」 上半部分是目录树，下半部分是按任务索引的代码地图。
 - [为什么选择曦寒](https://basicapp.docs.xihanfun.com/why): 完整能力清单在 功能清单，这一页不重复。
 
@@ -48,7 +48,7 @@
 - [多租户与版本](https://basicapp.docs.xihanfun.com/backend/multi-tenancy): XiHan.BasicApp 是一套 企业级通用中后台内核：一份代码、一套部署，同时承载多个互不可见的租户（企业客户），并以版本（Edition）作为订阅售卖与功能门控的单元。
 - [开放能力](https://basicapp.docs.xihanfun.com/backend/open-api): BasicApp 对外开放有三条互不相同的路径，最容易混淆的是前两条方向正好相反：
 - [组织架构](https://basicapp.docs.xihanfun.com/backend/organization): 组织架构回答的是「这个人在公司里是谁」：属于哪个部门、担任什么岗位、能看到哪个范围的数据。
-- [权限模型](https://basicapp.docs.xihanfun.com/backend/permission): XiHan.BasicApp 的权限体系融合 RBAC（基于角色） 与 ABAC（基于属性），再叠加角色继承、数据范围、字段级脱敏、多租户版本门控。
+- [权限模型](https://basicapp.docs.xihanfun.com/backend/permission): XiHan.BasicApp 的权限体系以 RBAC（基于角色） 为主，叠加角色继承、数据范围、字段级脱敏、多租户版本门控，并为 ABAC（基于属性） 建好了授权条件模型（目前只维护、不参与鉴权）。
 - [打印模板](https://basicapp.docs.xihanfun.com/backend/printing): 打印能力由独立模块 `modules/XiHan.BasicApp.Printing` 承载（后端）与 `frontend/src/modules/printing` + `@xihan/printing` 功能包承载（前端）：可视化设计打印模板、按编码解析、浏览器预览打印与本机静默直打。
 - [即时通讯](https://basicapp.docs.xihanfun.com/backend/realtime): 后端的 SignalR 侧：两条 Hub、怎么往前端推、在线状态怎么算，以及一条必须遵守的载荷约定。
 - [请求生命周期](https://basicapp.docs.xihanfun.com/backend/request-lifecycle): 一个请求从进入进程到返回 JSON，中间经过哪些环节、每个环节能改变什么、出问题该往哪一段看——这页把整条链路摊开。

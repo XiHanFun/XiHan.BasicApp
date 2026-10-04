@@ -82,7 +82,7 @@
 
 - `{kebab}.generated.ts` 的导出由 `xxxBaseManagementApi` 改名为 `xxxBaseApi`，而 `{kebab}.ts` 与 `index.vue` 是仅首次创建的手动文件、不会被覆盖，需手工把这两处的 `xxxManagementApi` / `xxxBaseManagementApi` 改成 `xxxApi` / `xxxBaseApi`。
 - 旧 `index.vue` 引用的 `naive-ui` 与旧 schema 里的 `scrollX` 在当前前端都已不存在，那些文件本来就编译不过，建议删掉后重新生成。
-- bigint 列的 TS 类型由 `number` 改为 `string`（后端 `LongJsonConverter` 把 long 全部序列化为字符串）。存量表配置**不用管**：渲染期会按 C# 类型归一化，库里存着 `ts_type='number'` 也照样产出正确的产物。升级脚本 `UpdateScripts/4.0.4` 只是顺带把库里的配置刷成一致，好让列配置界面显示的类型与实际产物对得上。
+- bigint 列的 TS 类型由 `number` 改为 `string`（后端 `LongJsonConverter` 把 long 全部序列化为字符串）。存量表配置**不用管**：渲染期会按 C# 类型归一化，库里存着 `ts_type='number'` 也照样产出正确的产物。升级脚本 `UpdateScripts/5.1.0` 只是顺带把库里的配置刷成一致，好让列配置界面显示的类型与实际产物对得上。
 :::
 
 ::: warning 按钮码必须先落到 PageRegistry

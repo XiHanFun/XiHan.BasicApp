@@ -266,7 +266,7 @@ MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://fram
 ## 相关文档
 
 - [框架 · XiHan.Framework.AI](https://framework.docs.xihanfun.com/packages/ai)：底层 provider 解析/热切换、RAG 切片检索、提示词模板、Agent/MCP 桥接的抽象与默认实现
-- [权限模型](./permission)：`module:resource:action` 权限码、数据范围、字段级脱敏
+- [权限模型](./permission)：权限码（本模块用 `ai:read` 这类两段式）、数据范围、字段级脱敏
 - [多租户](./multi-tenancy)：字段级隔离与 `TenantId=0` 全局约定
 - [部署](../deployment)：环境要求、升级入口与生产配置
 
@@ -330,7 +330,11 @@ MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://fram
 
 ## 约束规则引擎
 
-这套东西管的**不是业务数据，而是权限本身**：判断一次授权（或一次操作）是否违反组织的合规规则。
+这套东西管的**不是业务数据，而是权限本身**：判断一次授权是否违反组织的合规规则。
+
+::: warning 当前只执行静态职责分离（SSD）
+规则可以按下面八类维护，但真正有代码评估的只有 **SSD**（目标为角色的规则），在三条授权写入路径上执行：分配角色（含角色成员批量调整、让绑定重新生效的改状态 / 改有效期）、调整角色继承、审批通过带角色的权限申请。其余类型目前只是可维护的规则数据，不会拦截任何操作；规则也不参与请求期鉴权。
+:::
 
 `SysConstraintRule` 的结构：
 
@@ -339,7 +343,7 @@ MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://fram
 | `RuleCode` / `RuleName` | 规则编码与名称 | — |
 | `ConstraintType` | **约束类型**（见下表） | `SSD` |
 | `TargetType` | 约束对象类型（角色 / 权限 / …） | `Role` |
-| `Parameters` | 规则参数（JSON），不同类型含义不同 | — |
+| `Parameters` | 规则参数（JSON）；SSD 读 `maxAllowed`：同组内最多同时持有几个目标，缺省 1 | — |
 | **`ViolationAction`** | **违规时怎么处理**（见下表） | `Deny` |
 | `Priority` | 优先级 | `0` |
 | `EffectiveTime` / `ExpirationTime` | 生效时间窗 | — |
@@ -349,34 +353,36 @@ MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://fram
 
 ### 八类约束
 
-| 类型 | 值 | 含义 | 典型场景 |
-| --- | --- | --- | --- |
-| **SSD** 静态职责分离 | 0 | 一个用户**不能同时被授予**这组角色 | 「制单员」与「审核员」不能是同一人 |
-| **DSD** 动态职责分离 | 1 | 可以都有，但**同一会话内不能同时激活** | 平时可切换身份，单次操作只能用一个 |
-| **互斥约束** | 2 | 指定对象互相排斥 | 两个权限不能共存 |
-| **基数约束** | 3 | 数量上限 | 「超级管理员最多 3 人」 |
-| **先决条件** | 4 | 授予 A 前必须先有 B | 给「财务审批」前必须先有「财务查看」 |
-| **时间约束** | 5 | 只在特定时间窗内有效 | 临时权限只在项目期内 |
-| **位置约束** | 6 | 按 IP 限制 | 财务操作只能在办公网 |
-| **自定义** | 99 | 扩展点 | — |
+| 类型 | 值 | 含义 | 典型场景 | 当前是否执行 |
+| --- | --- | --- | --- | --- |
+| **SSD** 静态职责分离 | 0 | 一个用户**不能同时被授予**这组角色 | 「制单员」与「审核员」不能是同一人 | 执行（见上） |
+| **DSD** 动态职责分离 | 1 | 可以都有，但**同一会话内不能同时激活** | 平时可切换身份，单次操作只能用一个 | 不执行：会话角色激活尚无写入口 |
+| **互斥约束** | 2 | 指定对象互相排斥 | 两个权限不能共存 | 不执行 |
+| **基数约束** | 3 | 数量上限 | 「超级管理员最多 3 人」 | 不执行；限制角色人数请用角色的成员上限 `MaxMembers` |
+| **先决条件** | 4 | 授予 A 前必须先有 B | 给「财务审批」前必须先有「财务查看」 | 不执行 |
+| **时间约束** | 5 | 只在特定时间窗内有效 | 临时权限只在项目期内 | 不执行；授权绑定自带生效 / 失效时间 |
+| **位置约束** | 6 | 按 IP 限制 | 财务操作只能在办公网 | 不执行 |
+| **自定义** | 99 | 扩展点 | — | 不执行 |
+
+SSD 评估时展开角色继承链：规则指向角色 A，任何继承了 A 的角色都视为持有 A；停用的角色同样计入（随时可能重新启用）。
 
 ### 四种违规处理
 
-| 动作 | 值 | 效果 |
+| 动作 | 值 | 当前效果 |
 | --- | --- | --- |
-| `Deny` 拒绝 | 0 | 直接阻断，授权/操作失败 |
-| `Warning` 警告 | 1 | 放行但提示 |
-| `Log` 记录日志 | 2 | 静默放行，只留痕 |
-| **`RequireApproval` 转审批** | 3 | **转成审批流程**，批了才生效 |
+| `Deny` 拒绝 | 0 | 直接阻断，整次授权写入失败，错误信息带规则编码、名称与冲突角色主键 |
+| `Warning` 警告 | 1 | 放行，写一条 Warning 级应用日志；不会提示操作人 |
+| `Log` 记录日志 | 2 | 放行，同样写一条 Warning 级应用日志 |
+| `RequireApproval` 需审批 | 3 | **与 `Deny` 相同，直接阻断**；不会生成审批单，也不会转入审批流程 |
 
 ::: tip 上线新规则的姿势
-直接上 `Deny` 风险很大——存量数据里往往已经有一批违规状态，一开就把人挡在外面。
+直接上 `Deny` 风险很大——存量数据里往往已经有一批违规状态，一开就挡住相关人员之后的角色调整。
 
-推荐路径：先用 `Log` 跑一段时间，从日志里看有多少违规、都是谁；清理完存量后改成 `Warning` 观察；确认干净了再切 `Deny`。
+推荐路径：先用 `Log`（或 `Warning`，两者效果相同）跑一段时间，从应用日志里看有哪些授权命中了规则；清理完存量后再切 `Deny`。
 :::
 
-::: warning 违规检查发生在授权时，不是登录时
-约束规则参与的是「能不能把这个角色/权限授给这个人」以及请求期的判定链。已经授出去的存量违规组合**不会自动回收**——要清理得跑一次巡检。
+::: warning 违规检查发生在授权写入时，不是登录或请求时
+约束规则只回答「能不能把这个角色授给这个人」，不参与请求期的鉴权判定。已经授出去的存量违规组合**不会自动回收**，系统也没有内置巡检，需要自行排查清理。
 :::
 
 ## 三套机制怎么选
@@ -388,11 +394,11 @@ MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://fram
 | 「谁不能同时拥有哪些角色」这类合规规则 | **约束规则引擎** |
 | 用户主动申请某个权限，管理员审批 | **权限申请**（`SysPermissionRequest`，见 [权限模型](./permission)） |
 
-它们可以组合：约束规则的 `RequireApproval` 就是把违规转成审批单；工作流的 `UserTask` 也可以承载复杂的权限审批流。
+它们目前彼此独立：约束规则的 `RequireApproval` 不会生成审批单，命中即阻断；需要「违规转审批」时，可让申请人走权限申请，审批通过时同样会做 SSD 校验。工作流的 `UserTask` 也可以承载复杂的权限审批流。
 
 ## 相关页面
 
-- [权限模型](./permission)：约束规则在鉴权判定链里的位置、权限申请与委托
+- [权限模型](./permission)：约束规则的当前执行范围、权限申请与委托
 - [工作流](./workflow)：多步骤流程
 - [审计日志](./logging)：权限变更留痕
 - [数据模型](./data-model#权限与授权)：相关表结构
@@ -467,6 +473,10 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 登录入口是 `AuthAppService`（`[DynamicApi(RouteTemplate = "api/Auth")]`）。核心设计是**先登录后选租户**：登录页不选租户，统一在**平台态**（`TenantId=null`）完成身份认证，认证通过后再按成员关系决定落点（见下文"登录落点"）。
 
 前端先调 `GET /api/Auth/LoginConfig` 拿到 `LoginConfigDto`（`loginMethods` + `oAuthProviders`），据此决定展示哪些登录按钮——**支持的方式以该配置为准**。
+
+::: warning 登录页的「扫码」入口只是占位
+登录页切换栏里的「扫码」（`/auth/qrcode-login`）在前端用固定种子画一张示意图案，后端没有对应的扫码登录接口、轮询或确认流程，扫了也登录不了。可用的扫码方式只有下文第三方登录里微信、企业微信、飞书、钉钉的 `QrCode` 模式，它跳到对方平台的授权页扫码。
+:::
 
 > 路由是方法名 `GetLoginConfigAsync` **剥离动词前缀 `Get` 并去掉 `Async`** 后的结果。全部认证端点的方法与 URL 对照表见 [接口对接指南](../api-guide#端点总表)。
 
@@ -611,7 +621,7 @@ Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`Sessio
 
 ## 相关页面
 
-- [权限模型](./permission)：权限码、RBAC 继承、数据范围、字段脱敏、ABAC 约束、实时校验。
+- [权限模型](./permission)：权限码、RBAC 继承、数据范围、字段脱敏、ABAC 条件与约束规则、实时校验。
 - [多租户](./multi-tenancy)：成员关系、平台运维态、租户切换、版本门控。
 - [框架 · 认证模块](https://framework.docs.xihanfun.com/packages/authentication)：JWT / OAuth2 / TOTP / PBKDF2 的底层实现。
 - [请求生命周期](./request-lifecycle)：认证/租户解析/会话闸门/授权在请求管道中的位置。
@@ -859,7 +869,7 @@ BasicApp 的写路径大量使用本地事件解耦（如授权变更 → 写权
 
 - `{kebab}.generated.ts` 的导出由 `xxxBaseManagementApi` 改名为 `xxxBaseApi`，而 `{kebab}.ts` 与 `index.vue` 是仅首次创建的手动文件、不会被覆盖，需手工把这两处的 `xxxManagementApi` / `xxxBaseManagementApi` 改成 `xxxApi` / `xxxBaseApi`。
 - 旧 `index.vue` 引用的 `naive-ui` 与旧 schema 里的 `scrollX` 在当前前端都已不存在，那些文件本来就编译不过，建议删掉后重新生成。
-- bigint 列的 TS 类型由 `number` 改为 `string`（后端 `LongJsonConverter` 把 long 全部序列化为字符串）。存量表配置**不用管**：渲染期会按 C# 类型归一化，库里存着 `ts_type='number'` 也照样产出正确的产物。升级脚本 `UpdateScripts/4.0.4` 只是顺带把库里的配置刷成一致，好让列配置界面显示的类型与实际产物对得上。
+- bigint 列的 TS 类型由 `number` 改为 `string`（后端 `LongJsonConverter` 把 long 全部序列化为字符串）。存量表配置**不用管**：渲染期会按 C# 类型归一化，库里存着 `ts_type='number'` 也照样产出正确的产物。升级脚本 `UpdateScripts/5.1.0` 只是顺带把库里的配置刷成一致，好让列配置界面显示的类型与实际产物对得上。
 :::
 
 ::: warning 按钮码必须先落到 PageRegistry
@@ -1247,7 +1257,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 
   权限码        能不能调这个接口          → 不过：403
      ↓
-  数据范围      能操作哪些行              → 不过：查不到 / 改不动（不是 403）
+  数据范围      能看到哪些行              → 不过：查不到（不是 403；目前只作用于用户列表）
      ↓
   字段级安全    能看哪些列、能改哪些列    → 不过：值被置空或被打码
 ```
@@ -1268,7 +1278,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 | `All` | 全部数据（仍受租户过滤器约束） | — |
 | `Custom` | 指定部门集合 | `Sys_Role_Data_Scope` / `Sys_User_Data_Scope` |
 
-解析入口是 `IUserDataScopeFilterService.ResolveAccessibleUsersAsync`，当前由用户列表查询（`UserQueryService`）调用。数据范围是租户侧概念：平台没有部门与成员关系，不施加数据范围（超管只在平台成立，也就不需要单独豁免）。
+解析入口是 `IUserDataScopeFilterService.ResolveAccessibleUsersAsync`，当前只由用户分页查询（`UserQueryService.GetUserPageAsync`）调用，用户导出复用这条查询；用户详情、选择项，以及其它资源的查询和写操作都不施加数据范围。数据范围是租户侧概念：平台没有部门与成员关系，不施加数据范围（超管只在平台成立，也就不需要单独豁免）。
 
 ### 合并规则
 
@@ -1425,15 +1435,19 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 
 ## 支持的数据库
 
-ORM 是 SqlSugar，`DbType` 取它的枚举值：
+ORM 是 SqlSugar，`DbType` 取它的枚举值。「能连上、能首次建表」与「能当独立库租户、有升级脚本」是两回事，下表分开列：
 
-| 数据库 | `DbType` | 说明 |
-| --- | --- | --- |
-| **PostgreSQL** | `PostgreSQL` | **默认与推荐** |
-| MySQL / MariaDB | `MySql` | MariaDB 协议兼容，同用 `MySql` |
-| SQL Server | `SqlServer` | — |
-| Oracle | `Oracle` | 支持但不建议 |
-| 达梦 / 人大金仓 | `Dm` / `Kdbndp` | 国产库，驱动随 `SqlSugarCore` 一并安装 |
+| 数据库 | `DbType` | 独立库租户可选 | 升级脚本 | 说明 |
+| --- | --- | --- | --- | --- |
+| **PostgreSQL** | `PostgreSQL` | ✅ | ✅ | **默认与推荐**，唯一提供 `UpdateScripts` 的方言 |
+| MySQL / MariaDB | `MySql` | ✅ | — | MariaDB 协议兼容，同用 `MySql` |
+| SQL Server | `SqlServer` | ✅ | — | — |
+| SQLite | `Sqlite` | ✅ | — | 仓库测试用它跑建表与仓储用例 |
+| Oracle | `Oracle` | ✅ | — | 支持但不建议 |
+| 达梦 / 人大金仓 | `Dm` / `Kdbndp` | — | — | 只在 ORM 层可用：驱动随 `SqlSugarCore` 一并安装，可作主库 `DbType`；仓库未针对它们验证 |
+
+- **独立库租户**的数据库类型是 `TenantDatabaseType`，只有 `SqlServer` / `MySql` / `PostgreSql` / `SQLite` / `Oracle` 五个值，选不到达梦与人大金仓。
+- **升级脚本**只提供 PostgreSQL 方言。主库或独立库用其它数据库时，全新库由 CodeFirst 建表并登记为最新版本，之后版本的结构变化要自行准备对应方言的脚本，否则开着自动升级时 PostgreSQL 脚本会在该库上执行失败并中断启动（见[升级与迁移](./upgrade)）。
 
 本地用 Docker 起库见 [开发环境](../dev-environment)。
 
@@ -1542,7 +1556,7 @@ ORM 是 SqlSugar，`DbType` 取它的枚举值：
 给既有实体加字段后部署，运行到该表的查询就会报 `42703 column does not exist`（PG）或等价错误。
 
 三条路：
-- 正式版本在 `WebHost/UpdateScripts/{version}.sql` 编写前向迁移（推荐）；
+- 正式版本在 `WebHost/UpdateScripts/<版本>/<版本>.sql` 编写前向迁移（推荐），启动时由升级引擎执行；
 - 可丢弃数据的本地环境重建数据库；
 - 紧急修复时手工 `ALTER TABLE`，随后仍要补入版本脚本。
 
@@ -1550,7 +1564,7 @@ CodeFirst 负责首次建表；已有库的结构和数据变化由 Framework Up
 :::
 
 ::: tip 升级状态不是本地文件
-升级引擎可用 `SysVersion` 和 `SysMigrationHistory` 记录每个数据库的版本与脚本结果，不使用 `version.txt`；独立数据库租户也可逐库升级。但当前 BasicApp 尚未调用执行入口，启动不会自动跑脚本，详见[升级与迁移](./upgrade)。
+升级引擎用 `SysVersion` 和 `SysMigrationHistory` 记录每个数据库的版本与脚本结果，不使用 `version.txt`；独立数据库租户逐库升级。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true`（缺省即为 `true`）时启动会自动执行待执行脚本，失败即中断启动，详见[升级与迁移](./upgrade)。
 :::
 
 ## 种子数据
@@ -1652,7 +1666,7 @@ CodeFirst 负责首次建表；已有库的结构和数据变化由 Framework Up
 | **配方 B：独立一等模块** | 加一个完整功能域（代码生成、AI…），自成项目、独立种子/权限命名空间 | `modules/XiHan.BasicApp.<Name>` 新建工程 + 双边接线 | `XiHan.BasicApp.AI` / `CodeGeneration` |
 | **配方 C：仅前端页面** | 后端已有接口，只补一个视图 | `frontend/src/views/**` + `PageRegistry` | 见下 |
 
-**判断准则**：功能是否共享 Saas 的 RBAC 表、`SaasRepository`、Data Protection 密文前缀？是且体量小 → 配方 A；是独立大域、想要独立的权限/种子 `Order` 段与项目边界 → 配方 B。`CodeGeneration` / `AI` / `Workflow` 三个模块彼此不直接依赖，均以 Saas 为共享基座。
+**判断准则**：功能是否共享 Saas 的 RBAC 表、`SaasRepository`、Data Protection 密文前缀？是且体量小 → 配方 A；是独立大域、想要独立的权限/种子 `Order` 段与项目边界 → 配方 B。`AI` / `Chat` / `CodeGeneration` / `Printing` / `Workflow` 五个可选模块都以 Saas 为共享基座；其中 `AI` 工程引用了 `Chat`（AI 助手会话复用聊天的实体、领域服务与权限码），其余彼此不直接依赖。
 
 ## DDD 分层与命名约定
 
@@ -1786,7 +1800,7 @@ public async Task<PageResultDtoBase<PositionListItemDto>> GetPositionPageAsync(
     PositionPageQueryDto input, CancellationToken cancellationToken = default) { … }
 ```
 
-实体要支持字段安全时，在模块服务注册里登记（`AddFieldSecurityEntities(e => e.Add<SysXxx>())`），并落地两处：查询构建完条件后 `GuardQueryAsync(request.Conditions, typeof(SysXxx), ct)`（强制约束放在其后），应用服务新建与修改前 `EnsureCreatableAsync` / `EnsureUpdatableAsync`。读脱敏不用接线——响应过滤器按映射器认出 DTO 统一打码，所以 DTO 要经 `XxxApplicationMapper` 从实体生成，改名的属性加 `[FieldSecuritySource]`。缺任一处 `FieldSecurityEntityWiringTests` 会失败，详见 [数据权限](./data-permission#字段级安全列级)。
+实体要支持字段安全时，在模块服务注册里登记（`AddFieldSecurityEntities(e => e.Add<SysXxx>())`），并落地两处：查询构建完条件后 `GuardQueryAsync(request.Conditions, typeof(SysXxx), ct)`（强制约束放在其后），应用服务新建与修改前 `EnsureCreatableAsync` / `EnsureUpdatableAsync`。读脱敏不用接线——响应过滤器按映射器认出 DTO 统一打码，所以 DTO 要经 `XxxApplicationMapper` 从实体生成，改名的属性加 `[FieldSecuritySource]`。缺任一处 `FieldSecurityEntityWiringTests` 会失败，详见 [数据权限](./data-permission#字段级安全-列级)。
 
 #### 6. 前端页面
 
@@ -2006,7 +2020,7 @@ export const positionApi = {
 
 - **分页方法必须显式补 `[HttpPost]`**。方法名以 `Get` 开头会被默认识别为 GET；新增分页方法漏标 `[HttpPost]` → 前端 body 收不到查询对象。
 
-- **实体变更必须补前向升级脚本**。CodeFirst 只为全新数据库建表；已有库的列、索引和数据变化写入 `WebHost/UpdateScripts/{version}.sql`，并在 PostgreSQL 副本上验证失败回滚与重复启动行为。
+- **实体变更必须补前向升级脚本**。CodeFirst 只为全新数据库建表；已有库的列、索引和数据变化写入 `WebHost/UpdateScripts/<版本>/<版本>.sql`（启动时自动执行），并在 PostgreSQL 副本上验证失败回滚与重复启动行为。
 
 ## 下一步
 
@@ -2163,7 +2177,7 @@ export const positionApi = {
 | 2 | 写 `[SugarTable]` + 字段 + `[SugarIndex]`（含审计三件套索引） |
 | 3 | 派生属性放 `Expands/`，枚举放 `Enums/` |
 | 4 | 加仓储接口与实现（继承 `SaasRepository`，自动注册） |
-| 5 | 全新库由 CodeFirst 建表；存量库在 `WebHost/UpdateScripts/{version}.sql` 补建表/列/索引脚本 |
+| 5 | 全新库由 CodeFirst 建表；存量库在 `WebHost/UpdateScripts/<版本>/<版本>.sql` 补建表/列/索引脚本 |
 
 ## 相关页面
 
@@ -2476,28 +2490,15 @@ XiHan.BasicApp 后端是一套基于 [XiHan.Framework](https://framework.docs.xi
 
 ## 全景
 
-```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│                        XiHan.BasicApp.WebHost                             │
-│        启动入口 Program.cs + 聚合模块 XiHanBasicAppWebHostModule           │
-│             [DependsOn] Saas / CodeGeneration / AI / Workflow             │
-│        健康检查 / MCP Server / Telegram Webhook / /health 端点            │
-├───────────────┬──────────────────┬───────────────┬───────────────────────┤
-│ BasicApp.Saas │ BasicApp.        │ BasicApp.AI   │ BasicApp.Workflow     │
-│ 身份/权限/租户 │  CodeGeneration  │ Provider 库化 │ 流程定义/实例/待办     │
-│ 消息/文件/日志 │ 数据源/表结构/   │ 知识库 RAG /  │ SqlSugar 持久化存储    │
-│ 任务/审批/聊天 │ 模板/全栈生成    │ 提示词库      │ 待办站内通知           │
-├───────────────┴──────────────────┴───────────────┴───────────────────────┤
-│                        XiHan.BasicApp.Web.Core                            │
-│      Web 能力聚合：动态 API / Scalar 文档 / SignalR / 网关灰度             │
-├──────────────────────────────────────────────────────────────────────────┤
-│                          XiHan.BasicApp.Core                              │
-│  基座抽象：实体/DTO 基类（多租户审计）、查询服务标记接口、聚合框架能力模块    │
-├──────────────────────────────────────────────────────────────────────────┤
-│                            XiHan.Framework.*                              │
-│ 认证 / 授权 / 数据(SqlSugar) / 缓存 / 事件总线 / 多租户 / 工作流 / AI / Bot │
-└──────────────────────────────────────────────────────────────────────────┘
-```
+<script setup>
+import architecture from '../../assets/architecture_cn.png'
+</script>
+
+前后端各分三层并横向对齐：应用层放页面与入口，内核层放平台能力，底座层是自研的 XiHan.UI 与 XiHan.Framework；前后端之间通过 Dynamic API、SignalR 和后端下发的菜单与权限码协作。
+
+<a :href="architecture" target="_blank" rel="noopener noreferrer"><img :src="architecture" alt="XiHan.BasicApp 架构" /></a>
+
+> 图的源文件是仓库里的 `assets/architecture.html`：模块或依赖变化时改它顶部的 `DATA`，再按文件头说明导出中英两张 PNG，README 与本页同步更新。
 
 ## 四条贯穿全局的设计
 
@@ -2528,13 +2529,15 @@ XiHan.BasicApp 后端是一套基于 [XiHan.Framework](https://framework.docs.xi
 | `XiHan.Framework.*` | 框架 | 认证/授权/数据/缓存/事件总线/多租户/工作流/AI/Bot 等通用能力（独立仓库） |
 | `XiHan.BasicApp.Core` | 基座 | 聚合全部要用的框架能力模块；提供 BasicApp 实体/DTO 基类与查询服务标记接口 |
 | `XiHan.BasicApp.Web.Core` | Web 基座 | 聚合 `Core` 与框架 Web 能力（`WebCore`/`WebApi`/`WebDocs`/`WebRealTime`/`WebGateway`/`WebMcp`），并接入维护模式 |
-| `XiHan.BasicApp.Saas` | 业务模块 | 核心业务：身份/角色/权限/菜单/组织/租户/配置/字典/文件/消息/日志/任务/审批/OAuth/聊天 |
+| `XiHan.BasicApp.Saas` | 业务模块 | 核心业务：身份/角色/权限/菜单/组织/租户/配置/字典/文件/消息/日志/任务/审批/OAuth |
 | `XiHan.BasicApp.CodeGeneration` | 业务模块 | 代码生成 |
 | `XiHan.BasicApp.AI` | 业务模块 | AI Provider 库化管理 / 知识库 RAG / 提示词库 / AI 助手 |
 | `XiHan.BasicApp.Workflow` | 业务模块 | 工作流应用层（存储持久化 + 定义/实例/待办 + 待办通知） |
+| `XiHan.BasicApp.Printing` | 业务模块 | 打印模板（租户/平台双作用域、按编码解析与缓存、数据源目录） |
+| `XiHan.BasicApp.Chat` | 业务模块 | 在线聊天（单聊/群聊/部门群/AI 助手会话、消息与表情回应、聊天 SignalR Hub、敏感词与保留期清理） |
 | `XiHan.BasicApp.WebHost` | 主机 | 启动入口，聚合各业务模块，注册数据库 / Redis / Qdrant 健康检查与 Telegram Webhook |
 
-**分层规则**：只能依赖比自己低的层，绝不反向。三个卫星模块（CodeGeneration / AI / Workflow）都依赖 `Saas`，彼此不直接依赖。
+**分层规则**：只能依赖比自己低的层，绝不反向。五个可选模块（CodeGeneration / AI / Workflow / Printing / Chat）都依赖 `Saas`；其中 `XiHan.BasicApp.AI.csproj` 引用了 `Chat`（AI 助手在聊天会话里回复，复用聊天的实体、领域服务与权限码），其余彼此不直接依赖。`AI` 模块的 `[DependsOn]` 只写了 `Saas`，`Chat` 模块靠根模块的 `[DependsOn]` 装配，所以停用 `Chat` 时要连同 `AI` 一起停用。
 
 ## 模块装配
 
@@ -2564,7 +2567,9 @@ await app.RunAsync();
     typeof(XiHanBasicAppSaasModule),
     typeof(XiHanBasicAppCodeGenerationModule),
     typeof(XiHanBasicAppAIModule),
-    typeof(XiHanBasicAppWorkflowModule)
+    typeof(XiHanBasicAppWorkflowModule),
+    typeof(XiHanBasicAppPrintingModule),
+    typeof(XiHanBasicAppChatModule)
 )]
 ```
 
@@ -2581,7 +2586,7 @@ await app.RunAsync();
 | --- | --- |
 | `ConfigureServices` | 各模块调自己的 `AddXxx` 扩展方法 |
 | `OnPreApplicationInitialization` | Telegram Webhook 中间件（要插在鉴权前） |
-| `OnApplicationInitialization` | Saas 映射两个 SignalR Hub 与 OAuth 端点 |
+| `OnApplicationInitialization` | Saas 映射通知 Hub 与 OAuth / OIDC 端点；Chat 映射聊天 Hub；Printing 预先解析打印数据源注册表，让契约错误在启动时暴露 |
 | `OnPostApplicationInitialization` | Saas 扫描声明式任务、把库里活跃的 `SysTask` 同步进调度器（含崩溃残留 Running 复位） |
 
 ## 模块内部：DDD 三层
@@ -3299,7 +3304,7 @@ BasicApp 默认走**字段级隔离（Field）**：所有业务实体继承自 `
 | 模式 | 含义 |
 | --- | --- |
 | `Field`（默认） | 同库同表，靠 `TenantId` 列区分租户数据 |
-| `Database` | 每租户独立数据库（`ConnectionString` 加密存储；先 `InitializeDatabase` 建库建表，再 `InitializeTenantAdmin` 开通管理员，见下文「库隔离：平台库是目录库」） |
+| `Database` | 每租户独立数据库（`ConnectionString` 加密存储；`DatabaseType` 可选 `SqlServer` / `MySql` / `PostgreSql` / `SQLite` / `Oracle`，升级脚本只有 PostgreSQL 方言；先 `InitializeDatabase` 建库建表，再 `InitializeTenantAdmin` 开通管理员，见下文「库隔离：平台库是目录库」） |
 | `Schema` | 同库不同 Schema（尚未实装：创建时拒绝；`SaasTenantConnectionProvider` 解析到该模式直接抛异常 fail-closed，拒绝退化为行隔离） |
 
 隔离模式创建时定下、之后不能修改（不在更新契约里）：数据按创建时的模式落库，改模式等于迁移数据，不是改一个字段。
@@ -3554,7 +3559,7 @@ BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统�
 
 ## 与权限的交叉点
 
-版本门控是租户维度对权限的**再收窄**，叠在 RBAC/ABAC 判定链之上。完整判定链（认证 → 租户解析 → RBAC → ABAC → 数据范围 → 字段脱敏）与权限码/数据范围/FLS 细节见 [权限模型](./permission)。要点回顾：
+版本门控是租户维度对权限的**再收窄**，在授权快照里与权限码一起判定。完整判定链（认证 → 租户解析 → 权限码与版本门控 → 数据范围 → 字段脱敏）与权限码/数据范围/FLS 细节见 [权限模型](./permission#判定链)。要点回顾：
 
 - 授权快照只取当前上下文的绑定行（严格租户隔离），按作用侧裁掉不在当前上下文生效的权限，业务租户里再与版本白名单取交集。
 - 只有平台不受版本门控；超管的 `*` 只在平台成立。
@@ -3562,7 +3567,7 @@ BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统�
 
 ## 下一步
 
-- [权限模型](./permission)：RBAC + ABAC、权限码、数据范围、字段脱敏
+- [权限模型](./permission)：RBAC、权限码、数据范围、字段脱敏
 - [系统架构](./introduction)：租户解析在请求管道中的位置
 - [XiHan.Framework.MultiTenancy](https://framework.docs.xihanfun.com/packages/multitenancy)：框架层租户上下文、解析链与存储
 
@@ -3757,9 +3762,9 @@ BasicApp 对外开放有**三条互不相同的路径**，最容易混淆的是�
 | `All` | 全部数据 | — |
 | `Custom` | 指定部门集合 | `Sys_Role_Data_Scope` / `Sys_User_Data_Scope` |
 
-`Custom` 行上的 `IncludeChildren` 决定该部门是否连同后代一起展开。完整判定见 [权限模型](./permission)。
+`Custom` 行上的 `IncludeChildren` 决定该部门是否连同后代一起展开。数据范围目前只作用于用户列表（含用户导出），其它资源的列表不按部门收窄。完整判定见 [权限模型](./permission)。
 
-::: warning 「有权限但查不到数据」多半是数据范围
+::: warning 用户列表「有权限但查不到人」多半是数据范围
 返回 200 且列表为空、而不是 403——这是数据范围在起作用，不是 bug。排查顺序：用户的部门归属对不对 → 角色的数据范围设成了什么 → 闭包表是否完整。
 :::
 
@@ -3791,13 +3796,13 @@ BasicApp 对外开放有**三条互不相同的路径**，最容易混淆的是�
 
 # 权限模型
 
-XiHan.BasicApp 的权限体系融合 **RBAC（基于角色）** 与 **ABAC（基于属性）**，再叠加**角色继承、数据范围、字段级脱敏、多租户版本门控**。这是系统最核心也最需要理解的部分——一次请求要穿过认证、租户解析、权限码、约束、数据范围、字段脱敏六道关卡，每一道都可能收窄或拒绝。
+XiHan.BasicApp 的权限体系以 **RBAC（基于角色）** 为主，叠加**角色继承、数据范围、字段级脱敏、多租户版本门控**，并为 **ABAC（基于属性）** 建好了授权条件模型（目前只维护、不参与鉴权）。这是系统最核心也最需要理解的部分——一次请求要穿过认证、租户解析、权限码（含版本门控）、数据范围、字段脱敏几道关卡，每一道都可能收窄或拒绝；约束规则不在请求链路上，它在授权写入时把关。
 
 权限相关的领域实体几乎全部集中在 `modules/XiHan.BasicApp.Saas/Domain/Entities/`（`Sys*`），运行时判定由框架 [授权模块](https://framework.docs.xihanfun.com/packages/authorization) 承接。本页以真实源码为准，讲清"怎么用、为什么这么设计、怎么扩展"。
 
 ## 权限码：单一事实源
 
-权限的基本单位是**权限码**，格式固定为三段：
+权限的基本单位是**权限码**，以冒号分段。Saas 模块固定三段：
 
 ```text
 module : resource : action
@@ -3805,16 +3810,17 @@ module : resource : action
 ```
 
 - 例：`saas:user:read`（读取用户）、`saas:role:export`（导出角色）、`saas:permission:create`（创建权限定义）
+- 可选模块用两段 `resource:action`，资源段本身带模块语义：AI 的 `ai:read`、`knowledge_base:read`、`ai_prompt:read`，Chat 的 `chat:send`，CodeGeneration 的 `code_gen:execute`，Printing 的 `print-template:use`，Workflow 的 `workflow:execute`。代码生成产出的权限码同样是两段式
 - 超级管理员在**平台**的授权快照里持有**字面通配 `*`**；作用侧不含当前上下文的权限码先于通配拒绝，进了业务租户超管身份不成立（见 [多租户](./multi-tenancy)）。匹配是"命中 `*` 或精确等于该权限码"（大小写不敏感），**不支持** `resource:*:*` 之类的段级通配——通配仅有 `*` 这一个特例，见下文判定链
 
-> 冒号分三段是硬约定：`SaasPermissionDefinitions.ResolveGroupCode` 按 `saas:{resource}:{action}` 取中间段作为**分组码**（资源段），前端权限中心据此把权限归类展示。
+> Saas 的三段是硬约定：`SaasPermissionDefinitions.ResolveGroupCode` 按 `saas:{resource}:{action}` 取中间段作为**分组码**（资源段），前端权限中心据此把权限归类展示。各可选模块的分组码就是两段式里的资源段。
 
 所有 SaaS 权限码的**唯一手写源**是 `Domain/Permissions/SaasPermissionCodes.cs`（常量）与 `Domain/Permissions/SaasPermissionDefinitions.cs`（分组 + 元数据）：
 
 - `SaasPermissionCodes` 按资源分嵌套静态类，每个动作一个 `const string`，如 `SaasPermissionCodes.User.Read = "saas:user:read"`。后端 `[PermissionAuthorize(SaasPermissionCodes.User.Read)]` 直接引用常量，杜绝魔法字符串。
 - `SaasPermissionDefinitions.Groups` 是**手写单一事实源**：每个资源块一个 `SaasPermissionGroup`（组码 + 中文组名 + 组内 `SaasPermissionItem` 列表）。落库扁平表 `All`、组码→组名 `GroupNames` 全由 `Groups` 派生，每条权限的 `ModuleCode`（恒为 `saas`）、`Tags`、`Priority`（恒等于 `Sort`）自动生成，无需手写。
 - 新增资源时只在 `Groups` 增一个分组节点、或在已有节点增一条权限项即可，种子据此落库。
-- 每个分组必须声明**作用侧**（`PermissionSide`：平台 / 租户 / 两侧），条目可单独覆盖；作用侧决定权限在哪个上下文生效、能否进入套餐白名单，详见 [多租户 · 权限作用侧](./multi-tenancy#权限作用侧平台-租户-两侧)。
+- 每个分组必须声明**作用侧**（`PermissionSide`：平台 / 租户 / 两侧），条目可单独覆盖；作用侧决定权限在哪个上下文生效、能否进入套餐白名单，详见 [多租户 · 权限作用侧](./multi-tenancy#权限作用侧-平台-租户-两侧)。
 
 每条权限项携带一个关键标志 `IsRequireAudit`：为 `true` 时，该权限对应的操作应强制写差异日志（`SysDiffLog`），用于合规审计。写类动作（create/update/delete/grant/revoke）多为 `true`，读与导出多为 `false`。
 
@@ -3895,13 +3901,17 @@ module : resource : action
 
 同一个权限码，能看到的数据行随**数据范围**收窄。范围档位由 `SysRole.DataScope`（枚举 `DataPermissionScope`）承载：
 
-| 枚举值 | 含义 |
+| 枚举值 | 含义（以当前唯一接入的用户列表为例） |
 | --- | --- |
-| `SelfOnly` | 仅本人创建的数据 |
-| `DepartmentOnly` | 用户当前租户上下文下全部有效部门归属，仅限这些部门 |
-| `DepartmentAndChildren` | 上述部门 + 其所有下级部门 |
+| `SelfOnly` | 仅本人：用户列表里只看得到自己 |
+| `DepartmentOnly` | 用户当前租户上下文下全部有效部门归属，仅限这些部门的成员 |
+| `DepartmentAndChildren` | 上述部门 + 其所有下级部门的成员 |
 | `All` | 全部数据 |
 | `Custom` | 由 `SysRoleDataScope` 明确枚举可访问的部门列表 |
+
+::: warning 当前只作用于用户列表
+数据范围的解析入口 `IUserDataScopeFilterService` 目前只由用户分页查询 `UserQueryService.GetUserPageAsync` 调用，用户导出复用这条查询，因此同样收窄。用户详情、用户选择项，以及其它资源的列表、详情与写操作都**不施加**数据范围，只受权限码与租户隔离约束。其它资源需要行级范围时，要在对应查询服务里显式接入。
+:::
 
 > **重要**：该枚举**不承诺"数值越大范围越广"**（`Custom=99`）。多角色合并必须按显式语义处理：任一角色 `All` → 全部；`DepartmentOnly`/`DepartmentAndChildren` → 求部门归属并集；`Custom` → 与其它范围并集叠加；仅 `SelfOnly` 才只返回本人数据。禁止用数值大小做合并判断。
 
@@ -3914,31 +3924,25 @@ module : resource : action
 
 档位与部门明细**一次设置、一次落地**：角色走 `SetRoleDataScopeAsync`，成员走 `SetUserDataScopeAsync`，权限码只有查看（`read`）与设置（`update`）。只有自定义档位带部门且至少一个；切到其它档位时已有的部门明细全部撤销（只置失效，历史行再选中时就地复用）。全局角色是各租户共用的模板，只在平台设档位、不能自定义部门（部门是租户自己的数据），在租户里只读。
 
-数据范围在**查询层**生效，是租户侧概念：平台没有部门与成员关系，不施加数据范围。租户里先看成员覆盖；没有覆盖才按启用角色——任一角色为 `All` 则不限，自定义档位的角色并入它的部门明细（非自定义档位角色残留的明细不生效）。解析出可见部门集（`IncludeChildren` 经 `SysDepartmentHierarchy` 展开后代）后，取这些部门下的成员并入"本人"，收敛为可见用户主键集合追加到查询条件，与权限码组合决定"能对哪些行做这个动作"。无任何有效范围时只返回本人数据。
+数据范围在**查询层**生效（目前只在用户列表，见上），是租户侧概念：平台没有部门与成员关系，不施加数据范围。租户里先看成员覆盖；没有覆盖才按启用角色——任一角色为 `All` 则不限，自定义档位的角色并入它的部门明细（非自定义档位角色残留的明细不生效）。解析出可见部门集（`IncludeChildren` 经 `SysDepartmentHierarchy` 展开后代）后，取这些部门下的成员并入"本人"，收敛为可见用户主键集合追加到用户列表的查询条件。无任何有效范围时只返回本人。
 
 ## 字段级脱敏（FLS）
 
-即使有权读取某条记录，**敏感字段**仍可能被脱敏或禁读。策略实体 `SysFieldLevelSecurity` 控制某个资源特定字段的可读/可编辑与脱敏形式：
+即使有权读取某条记录，**敏感字段**仍可能被脱敏或隐藏。规则实体 `SysFieldLevelSecurity` 控制某个实体特定字段的读取方式与能否修改：
 
 | 字段 | 说明 |
 | --- | --- |
-| `TargetType` / `TargetId` | 策略绑定目标（`FieldSecurityTargetType`：`Role` / `User` / `Permission` / `Department`）；服务端解析只匹配 `Role`（当前用户的角色）与 `User`（用户自身） |
-| `ResourceId` / `FieldName` | 受控资源与字段名（区分大小写，对应实体属性名） |
-| `IsReadable` | 是否可读；`false` 时按 `MaskStrategy` 返回 |
-| `IsEditable` | 是否可编辑；`false` 时前端只读、后端写操作拒绝 |
-| `MaskStrategy` | 脱敏策略（见下表） |
-| `MaskPattern` | 配合策略的规则串（JSON/表达式） |
-| `Priority` | 数字越大越高（策略元数据，不能为负）；服务端合并按 deny-overrides 处理，不按优先级放行 |
+| `TargetType` / `TargetId` | 规则目标（`FieldSecurityTargetType`）：`Role`（当前用户生效且启用的角色）/ `User`（本人）/ `Department`（该部门及其下级部门的有效成员） |
+| `EntityName` / `FieldName` | 受控实体类名与属性名（区分大小写），只能从实体目录里选 |
+| `MaskStrategy` | 读取方式（见下） |
+| `MaskKeepHead` / `MaskKeepTail` | 部分脱敏保留的前几位、后几位 |
+| `MaskReplacement` | 固定替换显示的文字 |
+| `IsEditable` | 能否修改；脱敏且可编辑即「只写」：看不到原值但能填新值覆盖 |
+| `Status` | 启用 / 停用 |
 
-脱敏策略 `FieldMaskStrategy`：`None`（原值）/ `Hidden`（隐藏或返回 null）/ `FullMask`（全星号）/ `PartialMask`（保留首尾，如 `138****1234`）/ `Hash`（不可逆）/ `Redact`（固定替换如 `[已脱敏]`）/ `Custom`。
+读取方式 `FieldMaskStrategy`：`None`（明文）/ `Hidden`（隐藏，返回 null 或类型默认值）/ `FullMask`（全星号）/ `PartialMask`（保留首尾，如 `138****1234`）/ `Hash`（不可逆）/ `Redact`（固定替换，如 `[已脱敏]`）。没有自定义策略这一档。
 
-**可见性三段语义**（RBAC/ABAC 判定之后生效）：
-
-- `IsReadable=true` + `MaskStrategy=None` → 可读原文
-- `IsReadable=true` + `MaskStrategy!=None` → 可读脱敏值（如客服看手机号 `138****1234`）
-- `IsReadable=false` → 不可读，按策略返回脱敏/隐藏结果
-
-**冲突合并**采用 deny-overrides：命中同一字段的多条规则里，任一 `IsReadable=false` → 最终不可读，任一 `IsEditable=false` → 最终不可编辑，脱敏取最严。
+规则**只收紧、不放宽**：没有规则就是明文可改。同一字段命中多条规则时取最严的读取方式，任一命中规则只读即只读。
 
 ### 服务端落地：读脱敏 + 写校验 + 排序/过滤门控
 
@@ -3949,17 +3953,17 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 - `MaskAsync(response)`：沿响应对象图找出登记实体的 DTO **反射就地脱敏**。HTTP 接口由 `FieldSecurityResponseFilter` 统一调用，导出由导出基类调用。
 - `EnsureCreatableAsync` / `EnsureUpdatableAsync`：写路径校验——只读字段不能填写、不能修改；表单交回的脱敏值视为没改并还原原值。
 
-规则模型、读取方式、只写语义与接线要求见 [数据权限 · 字段级安全](./data-permission#字段级安全列级)。
+规则模型、读取方式、只写语义与接线要求见 [数据权限 · 字段级安全](./data-permission#字段级安全-列级)。
 
 **导出与在线同一口径**：后台导出走 `ExportExecutor`，它在后台线程按任务发起人重建 `CurrentTenant` + `CurrentPrincipal`，再调用既有 QueryService，使**数据范围与字段脱敏原样生效**，并显式 `IPermissionChecker` 补齐进程内不触发 `[PermissionAuthorize]` 的缺口。导出校验的是 Provider 的 `RequiredPermission`，即页面导出按钮绑定的 `saas:xxx:export`，不是资源的读权限；提交任务时 `ExportTaskAppService.SubmitAsync` 就按它拦截（只有读权限的人直调提交接口也进不来），执行时再校验一次，覆盖提交后被收回权限的情况。重建的主体与在线请求同一口径：发起时记下的会话声明（会话已登出或被下线，导出随之失败）、与签发令牌同一来源的角色（超管判定等依赖角色的规则一致）、模仿者声明（模仿态禁用的权限在导出里同样禁用）；租户停用、到期或未就绪时导出直接失败。因此导出与在线列表看到的数据、脱敏结果一致。
 
-## ABAC：属性驱动的约束
+## ABAC 条件与约束规则
 
-在 RBAC 之上，ABAC 用**属性与规则**做更细的运行时约束。两套机制并存：
+在 RBAC 之上还有两套按属性、按组合收窄授权的机制。先说清落地程度：**权限条件目前只能维护、不参与鉴权**；**约束规则目前执行的是静态职责分离（SSD）**，在授权写入时拦截，不在请求期判定。
 
-### 权限条件 `SysPermissionCondition`（轻量 ABAC）
+### 权限条件 `SysPermissionCondition`（只存储、不求值）
 
-为某条角色权限或用户直授权限附加属性条件，与授权绑定一一挂钩：
+为某条角色权限或用户直授权限附加属性条件，与授权绑定一一挂钩。`PermissionConditionDomainService` 负责增改、启停与校验，`SaasPermissionChecker` 与授权快照都不读取这张表，所以配置的条件**不会让请求被拒**：
 
 - 排他约束：`RolePermissionId` 与 `UserPermissionId` **恰好一个非空**（服务层 XOR 校验，建议库层补 CHECK 约束）。
 - 组合逻辑：同一 `ConditionGroup` 内条件为 **AND**，不同组之间为 **OR**（单权限最多 5 组、每组最多 10 条）。
@@ -3975,7 +3979,7 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 | 只能操作草稿 | `resource.status` | `Equals` | `draft` |
 | 限额操作 | `resource.amount` | `LessThan` | `10000` |
 
-> **建模 vs. 运行时**：上述属性/操作符描述的是 `SysPermissionCondition` 的**存储表达能力**，存储的条件行本身不参与运行时判定。运行时由框架 `IAbacAttributeCollector` 收集 `subject./resource./environment.` 属性、`IAbacEvaluator` 评估，混合策略里 ABAC 段以策略码触发（如 `same_tenant`/`self_only` 及比较式）。框架默认评估器对 `subject.*`/`resource.*` 的同租户、仅本人、字段比较有内建支持；时间窗/IP 这类 `environment.*` 条件的真实取值需应用侧属性收集器提供，未接入收集器的属性不会自动生效——落地前请以仓库为准确认对应属性已被收集。
+> **建模 vs. 运行时**：上述属性/操作符描述的是 `SysPermissionCondition` 的**存储表达能力**，BasicApp 里没有求值它的代码。框架另有一条独立的 ABAC 通道：`[PermissionAuthorize(权限码, ABAC 策略码)]` 的第二个参数会让混合策略在权限码之后调用 `IAbacAttributeCollector` 收集属性、`IAbacEvaluator` 按策略码评估（如 `same_tenant` / `self_only` 及比较式）。BasicApp 现有接口都只传权限码，这条通道没有被触发；它也不读 `SysPermissionCondition`。要让「仅工作时间」「仅内网」这类条件真正生效，需要补一个读取授权条件并参与鉴权的执行入口，`environment.*` 属性还要应用侧提供收集器。
 
 ### 约束规则 `SysConstraintRule`（+ `SysConstraintRuleItem`）
 
@@ -3985,7 +3989,16 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 - `ViolationAction`：违规处理 `Deny` / `Warning` / `Log` / `RequireApproval`。
 - 非 ID 类参数（时间窗、最大数量等）以 JSON 存 `Parameters`；有效性由 `Status=Enabled` 且当前时间落在 `EffectiveTime~ExpirationTime` 共同决定。
 - **约束检查必须展开角色继承链**：若 Item 指向角色 A，任何继承 A 的后代角色都视为等效目标（经 `SysRoleHierarchy` 展开）。`ConstraintGroup` 标识互斥集合（先决条件约束中 0=必备项、1=目标项）。
-- 后端目前只提供约束规则与目标项的定义管理（增删改查），授权写路径不会自动拦截违规组合。
+
+**当前执行范围**：`ConstraintRuleEnforcementDomainService` 只评估 `ConstraintType=SSD`、目标类型为角色的规则——同一 `ConstraintGroup` 内最多同时持有 `Parameters` 里的 `maxAllowed` 个（缺省 1）。调用点有三处：
+
+| 写入路径 | 评估对象 |
+| --- | --- |
+| 分配角色（角色直授、角色成员批量调整，以及让一条绑定重新占名额的改状态 / 改有效期） | 用户现有有效角色 + 新角色 |
+| 调整角色继承 | 本角色及其下级的继承链、持有它们的成员的全部角色 |
+| 审批通过带角色的权限申请 | 申请人现有有效角色 + 申请的角色 |
+
+违规时 `Deny` 与 `RequireApproval` 一样**直接抛错、整次写入失败**，不会生成审批单；`Warning` 与 `Log` 效果相同：放行，每条命中写一条 Warning 级应用日志。其余类型（DSD、互斥、基数、先决条件、时间、位置、自定义）只能维护规则，没有任何代码评估它们；规则也不参与请求期鉴权，已经授出去的存量违规组合不会被回收。
 
 ## 会话角色激活（动态职责分离）
 
@@ -3993,10 +4006,10 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 
 - `SessionId`（关联 `SysUserSession` 主键）+ `RoleId` 在租户内唯一；`Status`（`SessionRoleStatus`）为 `Active`/`Inactive`/`Expired`，配合 `ActivatedTime`/`DeactivatedTime`/`ExpirationTime` 记录生命周期。
 - **激活的模型约定**：该用户确实持有此角色（`SysUserRole` 存在且未过期），且激活须通过 DSD 约束检查（`SysConstraintRule` 中 `ConstraintType=DSD`）。
-- 后端目前只提供会话激活角色的查询（权限码 `saas:session-role:read`），激活/停用的写入接口未开放。
-- 典型用法：敏感操作前临时激活特权角色，完成后立即停用；凌晨扫描失效已过期的会话角色。
+- 后端目前只提供会话激活角色的查询（权限码 `saas:session-role:read`），激活/停用的写入接口未开放，DSD 规则也没有评估代码；授权快照按用户持有的全部有效角色计算，不区分会话激活子集。
+- 设想的用法：敏感操作前临时激活特权角色，完成后立即停用；定时失效已过期的会话角色。
 
-设计意图是让一次会话只以其激活的角色子集办事，从而即便持有互斥角色也不会在同一会话同时生效；DSD 约束在**激活时**校验拦截。持久的角色持有关系仍记在 `SysUserRole`，会话激活是叠加在其上的运行期约束。
+设计意图是让一次会话只以其激活的角色子集办事，从而即便持有互斥角色也不会在同一会话同时生效；DSD 约束在**激活时**校验拦截。上面这些都要等激活写入口与 DSD 执法补齐后才成立，当前持有即生效。
 
 ## 申请、审批、委托与留痕
 
@@ -4030,21 +4043,22 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
   → 认证：你是谁（从主体声明解析 userId；解析不到直接拒绝）
   → 租户解析：落到哪个租户上下文（字段级隔离，全局数据 TenantId=0）
   → 授权(RBAC)：IPermissionChecker 实时校验权限码（查授权快照）
+        · 当前请求所属会话仍有效（登出 / 强制下线 / 禁用后即拒绝）
         · deny-overrides：用户 Deny > 用户 Grant > 角色 Deny > 角色 Grant
         · 角色权限按各自的有效继承链结算（经启用角色可达的上级；链上 Grant 减链上 Deny）
         · 委托权限（SysPermissionDelegation）并入快照，再统一被用户 Deny 收窄
         · 只取当前上下文的绑定（平台的绑定不进租户，反之亦然）
-        · 作用侧：不在当前上下文生效的权限码先于通配拒绝
+        · 作用侧与模仿登录禁用清单：命中即拒绝，先于通配判定
         · 业务租户：版本白名单求交（ApplyEditionGatingAsync，失败即拒绝）
         · 平台的 super_admin 角色 → 平台生效的全部权限 + 字面 * 通配放行
-  → 授权(ABAC)：混合策略里编码在策略名中的 ABAC 策略码
-        · 收集 subject./resource./environment. 属性 → 评估器按策略码判定
-          （同租户/仅本人/比较式内建；时间窗/IP 依赖应用侧属性收集器）
-  → 数据范围：DataPermissionScope 解析可见部门集 → 展开为可见用户主键集合追加到查询条件
-  → 字段脱敏：FLS 按 deny-overrides 就地脱敏（读/导出一致），并门控排序/过滤字段
+  → 数据范围：只在接入的查询里追加条件（目前是用户列表与用户导出），
+        DataPermissionScope 解析可见部门集 → 展开为可见用户主键集合；不过时表现为查不到，不是 403
+  → 字段脱敏：FLS 按最严规则就地脱敏（读/导出一致），并门控排序/过滤字段
 ```
 
-判定采用框架的**混合策略**：`[PermissionAuthorize]` 把"权限码 + ABAC 策略码"编码进一个 ASP.NET Core 策略名，由 `HybridPermissionAuthorizationHandler` 依次执行"权限码实时校验 → ABAC 属性评估"。
+ABAC 授权条件与约束规则都不在这条链上：前者只存储、不求值，后者只在授权写入时执行静态职责分离（见上文）。
+
+判定采用框架的**混合策略**：`[PermissionAuthorize]` 把"权限码 + ABAC 策略码"编码进一个 ASP.NET Core 策略名，由 `HybridPermissionAuthorizationHandler` 依次执行"权限码实时校验 → ABAC 属性评估"。BasicApp 的接口都只声明权限码，ABAC 评估这一段不触发。
 
 > **实时校验，非信任令牌**：授权处理器**不信任 JWT 里冻结的权限声明**，每次都走 `IPermissionChecker` 查当前授权快照。因此权限授予/回收、用户禁用、会话注销**即时生效**，无需等令牌过期。凡是影响授权的写操作（权限增删改、角色/用户授权变更）都会精准失效授权快照缓存。
 
@@ -4345,7 +4359,7 @@ Nginx 等反向代理必须转发 `Upgrade` / `Connection` 头，否则 WebSocke
 
 由此得到一个重要性质：**授权变更即时生效，无需重新登录**。权限码不冻结进 JWT（超管例外，只放一个字面通配 `*` 作快路径）。
 
-判定链依次是：权限码 → 租户版本（Edition）白名单 → 数据范围 → ABAC 属性条件 → 约束规则。任何一环不过都会被拒。见 [权限模型](./permission)。
+这一步只看授权快照：会话仍有效 → 权限码（角色继承、直授、委托合并后）→ 作用侧与模仿登录禁用清单 → 租户版本（Edition）白名单，任何一环不过都是 403。数据范围不在这一步，它由查询服务追加条件（目前只有用户列表），不过时表现为查不到而不是 403；ABAC 授权条件与约束规则都不参与请求期判定。见 [权限模型](./permission#判定链)。
 
 ### ⑱ 端点：动态 API
 
@@ -4410,7 +4424,7 @@ public async Task<PositionDetailDto> CreatePositionAsync(PositionCreateDto input
 | --- | --- |
 | 401 且刷新也救不回来 | ⑯ 会话闸门：会话是否被撤销/过期 |
 | 423 | ⑯ 锁屏，不是认证问题 |
-| 403 但权限码明明有 | ⑰ 版本门控 / 数据范围 / ABAC / 约束规则 |
+| 403 但权限码明明有 | ⑰ 版本门控 / 作用侧 / 模仿登录禁用清单 / 用户直授 Deny |
 | 查得到别的租户数据 | ⑮ 租户解析是否成功；实体是否漏了多租户基类 |
 | 时间差几小时 | 请求有没有带 `X-Timezone`；存储侧是否为 UTC |
 | 客户端 IP 全是网关 IP | ① 转发头配置 |
@@ -4662,7 +4676,7 @@ Saas 模块在 `OnPostApplicationInitialization`（**所有模块都就绪之后
 升级能力由配置节 `XiHan:Upgrade` 控制（分布式锁、主节点、维护模式等），见[升级与迁移](./upgrade)。
 
 ::: warning 版本页只读，脚本才是迁移入口
-`SysVersion` 由升级引擎独占写入，管理端不提供手工改版本。结构和数据迁移放在 `WebHost/UpdateScripts/{version}.sql`；`DbInitializer` 只负责全新数据库建表，不会给已有表补列。当前 BasicApp 尚未调用升级执行入口，脚本不会仅因 `EnableAutoCheckOnStartup=true` 自动运行，详见[当前结论](./upgrade#当前结论)。
+`SysVersion` 由升级引擎独占写入，管理端不提供手工改版本。结构和数据迁移放在 `WebHost/UpdateScripts/<版本>/<版本>.sql`；`DbInitializer` 只负责全新数据库建表，不会给已有表补列。`EnableAutoCheckOnStartup=true`（缺省值）时启动会自动执行待执行脚本、失败即中断启动，详见[当前结论](./upgrade#当前结论)。
 :::
 
 ## 通道配置（邮件 / 短信 / 机器人）
@@ -4695,7 +4709,7 @@ Saas 模块在 `OnPostApplicationInitialization`（**所有模块都就绪之后
 
 # 升级与迁移
 
-BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com/guide/upgrade) 的版本状态、迁移台账、多租户分发、租约锁与维护模式扩展，并在 `WebHost/UpdateScripts` 保存前向 SQL 脚本。本页区分**已经接线的基础能力**与**当前尚未接线的执行入口**，避免把“引擎可做什么”误写成“应用启动时已经做了什么”。
+BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com/guide/upgrade) 的版本状态、迁移台账、多租户分发、租约锁与维护模式扩展，并在 `WebHost/UpdateScripts` 保存前向 SQL 脚本。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true` 时，**应用启动会自动执行待执行的脚本**，失败即中断启动。
 
 ## 当前结论
 
@@ -4703,18 +4717,21 @@ BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com
 | --- | --- |
 | Framework Upgrade 模块与引擎 | 已注册 |
 | `SysVersion` 版本状态 | 已落库，每个数据库各自维护 |
-| `SysMigrationHistory` 台账存储与查询页 | 已接线；只有引擎实际执行后才会产生记录 |
-| 文件系统脚本发现 | 已接入，目录为 `UpdateScripts` |
+| `SysMigrationHistory` 台账存储与查询页 | 已接线；每执行一个脚本记一条 |
+| 文件系统脚本发现 | 已接入，目录为 `UpdateScripts/<版本>/` |
 | 平台库 + 独立租户库分发 | 已实现 |
 | 数据库租约锁 | 已实现 |
 | 维护模式中间件 | 已实现 |
-| BasicApp 调用 `IUpgradeCoordinator.StartAsync()` / `IUpgradeEngine.ExecuteAsync()` | **当前没有调用入口** |
-| 启动时自动执行 SQL | **当前不会发生** |
+| 启动时自动执行 SQL | **`EnableAutoCheckOnStartup=true` 时执行**；框架缺省为 `true`，开发配置也写的是 `true` |
+| 新建库登记基线 | 本次启动从零建出的平台库、`InitializeDatabase` 新建的独立库，建好即登记为最新脚本版本，不补跑历史脚本 |
 
-::: danger `EnableAutoCheckOnStartup` 目前不等于“自动执行迁移”
-`XiHanUpgradeModule.OnPostApplicationInitializationAsync` 当前只调用 `IUpgradeStatusService.EnsureInitializedAsync()`，作用是确保版本行存在；它不会调用升级协调器或引擎。BasicApp 源码中也没有其它 `IUpgradeCoordinator` / `IUpgradeEngine` 调用方。
+::: danger 启动即迁移，失败即中断
+启动时有两个执行点，都调用 `IUpgradeEngine.ExecuteAsync()`、都以 `EnableAutoCheckOnStartup` 为开关：
 
-因此当前版本即使 `EnableAutoCheckOnStartup=true`，也只会初始化状态，不会执行 `UpdateScripts`、不会进入维护模式，也不会因 SQL 失败阻止启动。需要上线自动迁移前，必须先补一个明确的执行入口并定义失败策略。
+1. **数据库初始化的升级段**：`SaasSchemaUpgrader` 实现框架的 `IDbSchemaUpgrader`，`DbInitializer` 按「建库建表 → 升级脚本 → 播种」三段执行，让存量表的新列在种子读写之前补齐。这一段只在 `EnableDbInitialization` 与 `EnableTableInitialization` 都开启时运行。
+2. **应用初始化之后**：`XiHanUpgradeModule.OnPostApplicationInitializationAsync` 先确保版本行存在，再执行一次引擎。数据库初始化关闭时由这里执行；第 1 段已经升级过时这里版本已是最新，直接空转。
+
+两处在引擎返回失败时都抛出「数据库升级失败，已中断启动」，应用不会带着半套表结构对外服务。不希望应用启动时改库，就把 `EnableAutoCheckOnStartup` 设为 `false`，由发布流程先执行脚本再启动应用。
 :::
 
 ## 代码落点
@@ -4726,6 +4743,7 @@ BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com
 | 数据库租约锁 | `SaasUpgradeLockProvider` |
 | 多租户列表 | `SaasUpgradeTenantProvider` |
 | SQL 执行 | `SaasUpgradeMigrationExecutor` |
+| 初始化升级段 | `SaasSchemaUpgrader`（`IDbSchemaUpgrader`：登记新库基线，按开关执行引擎） |
 | 维护模式 | `BasicAppUpgradeMaintenanceModeManager` + `MaintenanceModeMiddleware` |
 | 脚本目录 | `backend/src/main/XiHan.BasicApp.WebHost/UpdateScripts` |
 | 版本页面 | `/setting/version` |
@@ -4746,19 +4764,24 @@ BasicApp 在 `AddSaasDomainServices()` 中注册四个数据库适配器，使�
 
 ## 脚本约定
 
-当前目录内已有：
+目录结构是**一个版本一个子目录**（框架的 `FileSystemUpgradeScriptProvider` 只扫子目录），当前形如：
 
 ```text
 UpdateScripts/
-├── 3.10.0.sql
-├── 3.10.1.sql
+├── 3.10.0/3.10.0.sql
+├── 3.10.1/3.10.1.sql
+├── …
+├── 5.4.0/
+│   ├── 5.4.0-page-codes.sql
+│   └── 5.4.0.sql
+├── 5.6.0/5.6.0.sql
 └── README.md
 ```
 
 规则：
 
-1. 文件名使用语义版本号，如 `3.10.2.sql`，并与 `backend/props/version.props` 一起升级。
-2. 当前脚本使用 **PostgreSQL 方言**；文档中的 MySQL / MariaDB 支持主要指 ORM 与首次 CodeFirst，不代表现有升级脚本可直接跨库运行。
+1. 目录名即版本号，如 `UpdateScripts/5.6.1/5.6.1.sql`。只有高于库中 `DbVersion` 的版本会执行，与程序版本 `backend/props/version.props` 无关。
+2. 当前脚本使用 **PostgreSQL 方言**；文档中的 MySQL / MariaDB 支持主要指 ORM 与首次 CodeFirst，不代表现有升级脚本可直接跨库运行。引擎不区分方言，会把脚本原样交给当前库执行：非 PostgreSQL 的存量库开着 `EnableAutoCheckOnStartup` 升级时，`DO $$ … $$` 这类 PostgreSQL 专有语法会执行失败并中断启动，需要自备对应方言的脚本，或关掉自动升级另行处理。
 3. PostgreSQL 标识符使用小写且不加引号，匹配 SqlSugar 实际创建的表列名。
 4. 尽量用 `IF EXISTS` / `IF NOT EXISTS` 写成可重试脚本。
 5. 一个版本内若存在多个脚本，引擎按脚本名排序；版本之间按语义版本升序执行。
@@ -4767,7 +4790,7 @@ UpdateScripts/
 示例：
 
 ```sql
--- 3.10.2.sql
+-- 5.6.1/5.6.1.sql
 ALTER TABLE sys_example
     ADD COLUMN IF NOT EXISTS remark varchar(500);
 
@@ -4775,9 +4798,9 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
     ON sys_example (tenant_id);
 ```
 
-## 引擎被调用后的流程
+## 引擎执行流程
 
-执行入口接通后，`UpgradeEngine` 对每个目标数据库执行：
+启动时的两个执行点调用的是同一台 `UpgradeEngine`，它对每个目标数据库执行：
 
 ```text
 解析应用版本与脚本
@@ -4811,6 +4834,8 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 
 `PrimaryNodeName` 非空时，只有节点名完全匹配的实例会执行；留空时所有节点均可竞争数据库租约。`NodeName` 留空则由机器名与应用实例 ID 组合生成。
 
+非主节点、以及没抢到租约的节点**不会等待**：引擎直接返回「等待升级 / 锁已被占用」，这不算失败，该节点照常完成启动。多副本同时发布时，要靠发布编排保证升级节点完成之前其它副本不接流量。
+
 ### 维护模式
 
 引擎进入维护模式后，本节点的大部分请求返回：
@@ -4828,15 +4853,15 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 `MaintenanceModeState` 是进程内单例。多副本部署时，执行迁移的节点进入维护模式，不会自动让其它节点一起停流。若迁移与旧版本不兼容，应在网关或发布编排层统一摘流，不能只依赖该中间件。
 :::
 
-## 执行入口怎么选
+## 执行方式怎么选
 
-当前应用没有执行入口。补接线时应先明确策略：
+当前默认是第一种；要换成别的方式，先关掉 `EnableAutoCheckOnStartup`：
 
-| 策略 | 适用场景 | 注意 |
+| 方式 | 适用场景 | 注意 |
 | --- | --- | --- |
-| 发布流水线独立迁移步骤 | 生产推荐 | 迁移成功后再放应用流量，边界最清晰 |
-| 宿主启动时同步调用 `IUpgradeEngine.ExecuteAsync()` | 单体或严格启动门禁 | 必须检查 `UpgradeStartResult.Status`，失败时显式终止启动 |
-| 管理端调用 `IUpgradeCoordinator.StartAsync()` | 人工触发 | 协调器后台运行且只记日志，不能天然形成启动失败门禁 |
+| 启动时自动执行（当前默认，`EnableAutoCheckOnStartup=true`） | 单体或单副本先行的发布 | 失败即中断启动；多副本时非主节点和抢不到租约的节点不等待，需编排层控制放流 |
+| 发布流水线独立迁移步骤（`EnableAutoCheckOnStartup=false`） | 多副本生产 | 迁移成功后再放应用流量，边界最清晰；仓库没有现成的独立迁移命令，需要自建 |
+| 管理端调用 `IUpgradeCoordinator.StartAsync()` | 人工触发 | BasicApp 没有接这个入口；协调器后台运行且只记日志，不能形成启动失败门禁 |
 
 不要在多个位置同时触发。无论选择哪种方式，都要保证只有一个可审计入口，并测试多节点竞争、脚本失败、进程中断和重复执行。
 
@@ -4854,7 +4879,7 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 2. 确认脚本为 PostgreSQL 小写无引号标识符，且可安全重试。
 3. 在生产副本依次验证升级、重复执行和失败恢复。
 4. 备份平台库与全部数据库隔离租户库。
-5. 确认生产环境实际使用的升级触发入口；当前源码默认没有入口。
+5. 确认生产环境的 `EnableAutoCheckOnStartup`：缺省为 `true`，新版本启动即执行脚本；关掉时要在启动前由发布流程完成迁移。
 6. 多节点发布时确认 `NodeName` / `PrimaryNodeName`、租约时长与统一摘流方案。
 7. 升级后检查 `/setting/version`、`/log/migration`、应用日志与关键业务查询。
 

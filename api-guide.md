@@ -353,7 +353,7 @@ curl -X POST http://127.0.0.1:9708/api/UserQuery/UserPage \
 ```
 
 ::: warning 排序/过滤受字段级安全门控
-读侧会经 `IFieldSecurityService.GuardQueryAsync` 门控：**只有当前用户能看明文的字段**才允许参与排序、过滤与关键字搜索，其余被静默剔除；剔完没有有效排序时回退到该接口的默认排序。所以「排序没生效」优先查字段安全，见 [数据权限](./backend/data-permission#字段级安全列级)。
+读侧会经 `IFieldSecurityService.GuardQueryAsync` 门控：**只有当前用户能看明文的字段**才允许参与排序、过滤与关键字搜索，其余被静默剔除；剔完没有有效排序时回退到该接口的默认排序。所以「排序没生效」优先查字段安全，见 [数据权限](./backend/data-permission#字段级安全-列级)。
 :::
 
 ## 动态 API 路由推导规则

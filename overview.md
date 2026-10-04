@@ -6,7 +6,7 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 与 [Xi
 
 ## 定位
 
-- **面向生产的中后台起点**：提供 RBAC + ABAC、多租户与审计等基础能力，上线前仍需完成安全配置、容量验证与业务适配
+- **面向生产的中后台起点**：提供 RBAC + 数据范围 + 字段脱敏、多租户与审计等基础能力，上线前仍需完成安全配置、容量验证与业务适配
 - **全栈实践参考**：一套规范的 .NET + Vue 前后端分离工程，从契约到 UI 数据流都可借鉴
 - **框架用法样板**：XiHan.Framework 各能力在真实业务里怎么用，这里有活的例子
 
@@ -24,12 +24,12 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 与 [Xi
 | 领域 | 关键能力 |
 | --- | --- |
 | [身份与认证](./backend/authentication) | 用户/角色/菜单；JWT 双令牌；账号密码、邮箱/短信验证码、OAuth2（GitHub/Gitee/Google/QQ）、2FA |
-| [权限](./backend/permission) | RBAC + ABAC，权限码 `module:resource:action`（如 `saas:user:read`），数据范围，字段级脱敏，会话角色激活 |
+| [权限](./backend/permission) | RBAC；权限码冒号分段（Saas 三段如 `saas:user:read`，可选模块两段如 `workflow:execute`）；数据范围（目前接入用户列表）；字段级脱敏；ABAC 条件可配置、尚不参与鉴权 |
 | [组织架构](./backend/organization) | 部门树 + 闭包表、岗位字典、用户多部门归属（数据范围的底座） |
 | [多租户](./backend/multi-tenancy) | 字段级隔离，邮箱全局唯一登录，租户版本（Edition）权限白名单门控 |
 | [消息中心](./backend/messaging) | 五类消息 + 优先级 + 强制阅读；模板；四渠道扇出；SignalR 通知与在线聊天 |
 | [工作流](./backend/workflow) | 图执行引擎、17 个内置活动、人工任务（或签/会签/依次）、落库可恢复 |
-| [审批与约束](./backend/approval) | 通用审批单 `SysReview`；RBAC 约束规则引擎（SSD/DSD/互斥/基数…八类） |
+| [审批与约束](./backend/approval) | 通用审批单 `SysReview`；约束规则（可维护八类，当前在授权写入时执行静态职责分离 SSD） |
 | [文件与存储](./backend/file) | 元数据与存储位置分离、多后端（本地/S3/OSS/COS/MinIO）、异步导出中心 |
 | [任务调度](./backend/scheduling) | Cron/间隔/一次性触发、并发控制、多租户上下文、按月分表日志 |
 | [系统设置](./backend/settings) | 菜单、字典、参数、业务编号、缓存、服务监控、版本、通道配置 |
@@ -88,4 +88,4 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 与 [Xi
 - [开发环境](./dev-environment)：用 Docker 命令行准备数据库与 Redis 等本地依赖
 - [快速开始](./getting-started)：在本地把系统跑起来
 - [架构总览](./backend/introduction)：全景与五个架构分册的索引
-- [权限模型](./backend/permission)：RBAC + ABAC 与多租户隔离
+- [权限模型](./backend/permission)：RBAC、数据范围、字段脱敏与多租户隔离

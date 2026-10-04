@@ -13,7 +13,7 @@
 
   权限码        能不能调这个接口          → 不过：403
      ↓
-  数据范围      能操作哪些行              → 不过：查不到 / 改不动（不是 403）
+  数据范围      能看到哪些行              → 不过：查不到（不是 403；目前只作用于用户列表）
      ↓
   字段级安全    能看哪些列、能改哪些列    → 不过：值被置空或被打码
 ```
@@ -34,7 +34,7 @@
 | `All` | 全部数据（仍受租户过滤器约束） | — |
 | `Custom` | 指定部门集合 | `Sys_Role_Data_Scope` / `Sys_User_Data_Scope` |
 
-解析入口是 `IUserDataScopeFilterService.ResolveAccessibleUsersAsync`，当前由用户列表查询（`UserQueryService`）调用。数据范围是租户侧概念：平台没有部门与成员关系，不施加数据范围（超管只在平台成立，也就不需要单独豁免）。
+解析入口是 `IUserDataScopeFilterService.ResolveAccessibleUsersAsync`，当前只由用户分页查询（`UserQueryService.GetUserPageAsync`）调用，用户导出复用这条查询；用户详情、选择项，以及其它资源的查询和写操作都不施加数据范围。数据范围是租户侧概念：平台没有部门与成员关系，不施加数据范围（超管只在平台成立，也就不需要单独豁免）。
 
 ### 合并规则
 

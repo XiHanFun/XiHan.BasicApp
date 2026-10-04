@@ -2,7 +2,7 @@
 
 # 升级与迁移
 
-BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com/guide/upgrade) 的版本状态、迁移台账、多租户分发、租约锁与维护模式扩展，并在 `WebHost/UpdateScripts` 保存前向 SQL 脚本。本页区分**已经接线的基础能力**与**当前尚未接线的执行入口**，避免把“引擎可做什么”误写成“应用启动时已经做了什么”。
+BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com/guide/upgrade) 的版本状态、迁移台账、多租户分发、租约锁与维护模式扩展，并在 `WebHost/UpdateScripts` 保存前向 SQL 脚本。`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 `true` 时，**应用启动会自动执行待执行的脚本**，失败即中断启动。
 
 ## 当前结论
 
@@ -10,18 +10,21 @@ BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com
 | --- | --- |
 | Framework Upgrade 模块与引擎 | 已注册 |
 | `SysVersion` 版本状态 | 已落库，每个数据库各自维护 |
-| `SysMigrationHistory` 台账存储与查询页 | 已接线；只有引擎实际执行后才会产生记录 |
-| 文件系统脚本发现 | 已接入，目录为 `UpdateScripts` |
+| `SysMigrationHistory` 台账存储与查询页 | 已接线；每执行一个脚本记一条 |
+| 文件系统脚本发现 | 已接入，目录为 `UpdateScripts/<版本>/` |
 | 平台库 + 独立租户库分发 | 已实现 |
 | 数据库租约锁 | 已实现 |
 | 维护模式中间件 | 已实现 |
-| BasicApp 调用 `IUpgradeCoordinator.StartAsync()` / `IUpgradeEngine.ExecuteAsync()` | **当前没有调用入口** |
-| 启动时自动执行 SQL | **当前不会发生** |
+| 启动时自动执行 SQL | **`EnableAutoCheckOnStartup=true` 时执行**；框架缺省为 `true`，开发配置也写的是 `true` |
+| 新建库登记基线 | 本次启动从零建出的平台库、`InitializeDatabase` 新建的独立库，建好即登记为最新脚本版本，不补跑历史脚本 |
 
-::: danger `EnableAutoCheckOnStartup` 目前不等于“自动执行迁移”
-`XiHanUpgradeModule.OnPostApplicationInitializationAsync` 当前只调用 `IUpgradeStatusService.EnsureInitializedAsync()`，作用是确保版本行存在；它不会调用升级协调器或引擎。BasicApp 源码中也没有其它 `IUpgradeCoordinator` / `IUpgradeEngine` 调用方。
+::: danger 启动即迁移，失败即中断
+启动时有两个执行点，都调用 `IUpgradeEngine.ExecuteAsync()`、都以 `EnableAutoCheckOnStartup` 为开关：
 
-因此当前版本即使 `EnableAutoCheckOnStartup=true`，也只会初始化状态，不会执行 `UpdateScripts`、不会进入维护模式，也不会因 SQL 失败阻止启动。需要上线自动迁移前，必须先补一个明确的执行入口并定义失败策略。
+1. **数据库初始化的升级段**：`SaasSchemaUpgrader` 实现框架的 `IDbSchemaUpgrader`，`DbInitializer` 按「建库建表 → 升级脚本 → 播种」三段执行，让存量表的新列在种子读写之前补齐。这一段只在 `EnableDbInitialization` 与 `EnableTableInitialization` 都开启时运行。
+2. **应用初始化之后**：`XiHanUpgradeModule.OnPostApplicationInitializationAsync` 先确保版本行存在，再执行一次引擎。数据库初始化关闭时由这里执行；第 1 段已经升级过时这里版本已是最新，直接空转。
+
+两处在引擎返回失败时都抛出「数据库升级失败，已中断启动」，应用不会带着半套表结构对外服务。不希望应用启动时改库，就把 `EnableAutoCheckOnStartup` 设为 `false`，由发布流程先执行脚本再启动应用。
 :::
 
 ## 代码落点
@@ -33,6 +36,7 @@ BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com
 | 数据库租约锁 | `SaasUpgradeLockProvider` |
 | 多租户列表 | `SaasUpgradeTenantProvider` |
 | SQL 执行 | `SaasUpgradeMigrationExecutor` |
+| 初始化升级段 | `SaasSchemaUpgrader`（`IDbSchemaUpgrader`：登记新库基线，按开关执行引擎） |
 | 维护模式 | `BasicAppUpgradeMaintenanceModeManager` + `MaintenanceModeMiddleware` |
 | 脚本目录 | `backend/src/main/XiHan.BasicApp.WebHost/UpdateScripts` |
 | 版本页面 | `/setting/version` |
@@ -53,19 +57,24 @@ BasicApp 在 `AddSaasDomainServices()` 中注册四个数据库适配器，使�
 
 ## 脚本约定
 
-当前目录内已有：
+目录结构是**一个版本一个子目录**（框架的 `FileSystemUpgradeScriptProvider` 只扫子目录），当前形如：
 
 ```text
 UpdateScripts/
-├── 3.10.0.sql
-├── 3.10.1.sql
+├── 3.10.0/3.10.0.sql
+├── 3.10.1/3.10.1.sql
+├── …
+├── 5.4.0/
+│   ├── 5.4.0-page-codes.sql
+│   └── 5.4.0.sql
+├── 5.6.0/5.6.0.sql
 └── README.md
 ```
 
 规则：
 
-1. 文件名使用语义版本号，如 `3.10.2.sql`，并与 `backend/props/version.props` 一起升级。
-2. 当前脚本使用 **PostgreSQL 方言**；文档中的 MySQL / MariaDB 支持主要指 ORM 与首次 CodeFirst，不代表现有升级脚本可直接跨库运行。
+1. 目录名即版本号，如 `UpdateScripts/5.6.1/5.6.1.sql`。只有高于库中 `DbVersion` 的版本会执行，与程序版本 `backend/props/version.props` 无关。
+2. 当前脚本使用 **PostgreSQL 方言**；文档中的 MySQL / MariaDB 支持主要指 ORM 与首次 CodeFirst，不代表现有升级脚本可直接跨库运行。引擎不区分方言，会把脚本原样交给当前库执行：非 PostgreSQL 的存量库开着 `EnableAutoCheckOnStartup` 升级时，`DO $$ … $$` 这类 PostgreSQL 专有语法会执行失败并中断启动，需要自备对应方言的脚本，或关掉自动升级另行处理。
 3. PostgreSQL 标识符使用小写且不加引号，匹配 SqlSugar 实际创建的表列名。
 4. 尽量用 `IF EXISTS` / `IF NOT EXISTS` 写成可重试脚本。
 5. 一个版本内若存在多个脚本，引擎按脚本名排序；版本之间按语义版本升序执行。
@@ -74,7 +83,7 @@ UpdateScripts/
 示例：
 
 ```sql
--- 3.10.2.sql
+-- 5.6.1/5.6.1.sql
 ALTER TABLE sys_example
     ADD COLUMN IF NOT EXISTS remark varchar(500);
 
@@ -82,9 +91,9 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
     ON sys_example (tenant_id);
 ```
 
-## 引擎被调用后的流程
+## 引擎执行流程
 
-执行入口接通后，`UpgradeEngine` 对每个目标数据库执行：
+启动时的两个执行点调用的是同一台 `UpgradeEngine`，它对每个目标数据库执行：
 
 ```text
 解析应用版本与脚本
@@ -118,6 +127,8 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 
 `PrimaryNodeName` 非空时，只有节点名完全匹配的实例会执行；留空时所有节点均可竞争数据库租约。`NodeName` 留空则由机器名与应用实例 ID 组合生成。
 
+非主节点、以及没抢到租约的节点**不会等待**：引擎直接返回「等待升级 / 锁已被占用」，这不算失败，该节点照常完成启动。多副本同时发布时，要靠发布编排保证升级节点完成之前其它副本不接流量。
+
 ### 维护模式
 
 引擎进入维护模式后，本节点的大部分请求返回：
@@ -135,15 +146,15 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 `MaintenanceModeState` 是进程内单例。多副本部署时，执行迁移的节点进入维护模式，不会自动让其它节点一起停流。若迁移与旧版本不兼容，应在网关或发布编排层统一摘流，不能只依赖该中间件。
 :::
 
-## 执行入口怎么选
+## 执行方式怎么选
 
-当前应用没有执行入口。补接线时应先明确策略：
+当前默认是第一种；要换成别的方式，先关掉 `EnableAutoCheckOnStartup`：
 
-| 策略 | 适用场景 | 注意 |
+| 方式 | 适用场景 | 注意 |
 | --- | --- | --- |
-| 发布流水线独立迁移步骤 | 生产推荐 | 迁移成功后再放应用流量，边界最清晰 |
-| 宿主启动时同步调用 `IUpgradeEngine.ExecuteAsync()` | 单体或严格启动门禁 | 必须检查 `UpgradeStartResult.Status`，失败时显式终止启动 |
-| 管理端调用 `IUpgradeCoordinator.StartAsync()` | 人工触发 | 协调器后台运行且只记日志，不能天然形成启动失败门禁 |
+| 启动时自动执行（当前默认，`EnableAutoCheckOnStartup=true`） | 单体或单副本先行的发布 | 失败即中断启动；多副本时非主节点和抢不到租约的节点不等待，需编排层控制放流 |
+| 发布流水线独立迁移步骤（`EnableAutoCheckOnStartup=false`） | 多副本生产 | 迁移成功后再放应用流量，边界最清晰；仓库没有现成的独立迁移命令，需要自建 |
+| 管理端调用 `IUpgradeCoordinator.StartAsync()` | 人工触发 | BasicApp 没有接这个入口；协调器后台运行且只记日志，不能形成启动失败门禁 |
 
 不要在多个位置同时触发。无论选择哪种方式，都要保证只有一个可审计入口，并测试多节点竞争、脚本失败、进程中断和重复执行。
 
@@ -161,7 +172,7 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 2. 确认脚本为 PostgreSQL 小写无引号标识符，且可安全重试。
 3. 在生产副本依次验证升级、重复执行和失败恢复。
 4. 备份平台库与全部数据库隔离租户库。
-5. 确认生产环境实际使用的升级触发入口；当前源码默认没有入口。
+5. 确认生产环境的 `EnableAutoCheckOnStartup`：缺省为 `true`，新版本启动即执行脚本；关掉时要在启动前由发布流程完成迁移。
 6. 多节点发布时确认 `NodeName` / `PrimaryNodeName`、租约时长与统一摘流方案。
 7. 升级后检查 `/setting/version`、`/log/migration`、应用日志与关键业务查询。
 

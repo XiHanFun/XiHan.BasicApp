@@ -138,7 +138,7 @@
 升级能力由配置节 `XiHan:Upgrade` 控制（分布式锁、主节点、维护模式等），见[升级与迁移](./upgrade)。
 
 ::: warning 版本页只读，脚本才是迁移入口
-`SysVersion` 由升级引擎独占写入，管理端不提供手工改版本。结构和数据迁移放在 `WebHost/UpdateScripts/{version}.sql`；`DbInitializer` 只负责全新数据库建表，不会给已有表补列。当前 BasicApp 尚未调用升级执行入口，脚本不会仅因 `EnableAutoCheckOnStartup=true` 自动运行，详见[当前结论](./upgrade#当前结论)。
+`SysVersion` 由升级引擎独占写入，管理端不提供手工改版本。结构和数据迁移放在 `WebHost/UpdateScripts/<版本>/<版本>.sql`；`DbInitializer` 只负责全新数据库建表，不会给已有表补列。`EnableAutoCheckOnStartup=true`（缺省值）时启动会自动执行待执行脚本、失败即中断启动，详见[当前结论](./upgrade#当前结论)。
 :::
 
 ## 通道配置（邮件 / 短信 / 机器人）

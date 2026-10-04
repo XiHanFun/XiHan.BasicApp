@@ -8,28 +8,15 @@ XiHan.BasicApp 后端是一套基于 [XiHan.Framework](https://framework.docs.xi
 
 ## 全景
 
-```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│                        XiHan.BasicApp.WebHost                             │
-│        启动入口 Program.cs + 聚合模块 XiHanBasicAppWebHostModule           │
-│             [DependsOn] Saas / CodeGeneration / AI / Workflow             │
-│        健康检查 / MCP Server / Telegram Webhook / /health 端点            │
-├───────────────┬──────────────────┬───────────────┬───────────────────────┤
-│ BasicApp.Saas │ BasicApp.        │ BasicApp.AI   │ BasicApp.Workflow     │
-│ 身份/权限/租户 │  CodeGeneration  │ Provider 库化 │ 流程定义/实例/待办     │
-│ 消息/文件/日志 │ 数据源/表结构/   │ 知识库 RAG /  │ SqlSugar 持久化存储    │
-│ 任务/审批/聊天 │ 模板/全栈生成    │ 提示词库      │ 待办站内通知           │
-├───────────────┴──────────────────┴───────────────┴───────────────────────┤
-│                        XiHan.BasicApp.Web.Core                            │
-│      Web 能力聚合：动态 API / Scalar 文档 / SignalR / 网关灰度             │
-├──────────────────────────────────────────────────────────────────────────┤
-│                          XiHan.BasicApp.Core                              │
-│  基座抽象：实体/DTO 基类（多租户审计）、查询服务标记接口、聚合框架能力模块    │
-├──────────────────────────────────────────────────────────────────────────┤
-│                            XiHan.Framework.*                              │
-│ 认证 / 授权 / 数据(SqlSugar) / 缓存 / 事件总线 / 多租户 / 工作流 / AI / Bot │
-└──────────────────────────────────────────────────────────────────────────┘
-```
+<script setup>
+import architecture from '../../assets/architecture_cn.png'
+</script>
+
+前后端各分三层并横向对齐：应用层放页面与入口，内核层放平台能力，底座层是自研的 XiHan.UI 与 XiHan.Framework；前后端之间通过 Dynamic API、SignalR 和后端下发的菜单与权限码协作。
+
+<a :href="architecture" target="_blank" rel="noopener noreferrer"><img :src="architecture" alt="XiHan.BasicApp 架构" /></a>
+
+> 图的源文件是仓库里的 `assets/architecture.html`：模块或依赖变化时改它顶部的 `DATA`，再按文件头说明导出中英两张 PNG，README 与本页同步更新。
 
 ## 四条贯穿全局的设计
 
@@ -60,13 +47,15 @@ XiHan.BasicApp 后端是一套基于 [XiHan.Framework](https://framework.docs.xi
 | `XiHan.Framework.*` | 框架 | 认证/授权/数据/缓存/事件总线/多租户/工作流/AI/Bot 等通用能力（独立仓库） |
 | `XiHan.BasicApp.Core` | 基座 | 聚合全部要用的框架能力模块；提供 BasicApp 实体/DTO 基类与查询服务标记接口 |
 | `XiHan.BasicApp.Web.Core` | Web 基座 | 聚合 `Core` 与框架 Web 能力（`WebCore`/`WebApi`/`WebDocs`/`WebRealTime`/`WebGateway`/`WebMcp`），并接入维护模式 |
-| `XiHan.BasicApp.Saas` | 业务模块 | 核心业务：身份/角色/权限/菜单/组织/租户/配置/字典/文件/消息/日志/任务/审批/OAuth/聊天 |
+| `XiHan.BasicApp.Saas` | 业务模块 | 核心业务：身份/角色/权限/菜单/组织/租户/配置/字典/文件/消息/日志/任务/审批/OAuth |
 | `XiHan.BasicApp.CodeGeneration` | 业务模块 | 代码生成 |
 | `XiHan.BasicApp.AI` | 业务模块 | AI Provider 库化管理 / 知识库 RAG / 提示词库 / AI 助手 |
 | `XiHan.BasicApp.Workflow` | 业务模块 | 工作流应用层（存储持久化 + 定义/实例/待办 + 待办通知） |
+| `XiHan.BasicApp.Printing` | 业务模块 | 打印模板（租户/平台双作用域、按编码解析与缓存、数据源目录） |
+| `XiHan.BasicApp.Chat` | 业务模块 | 在线聊天（单聊/群聊/部门群/AI 助手会话、消息与表情回应、聊天 SignalR Hub、敏感词与保留期清理） |
 | `XiHan.BasicApp.WebHost` | 主机 | 启动入口，聚合各业务模块，注册数据库 / Redis / Qdrant 健康检查与 Telegram Webhook |
 
-**分层规则**：只能依赖比自己低的层，绝不反向。三个卫星模块（CodeGeneration / AI / Workflow）都依赖 `Saas`，彼此不直接依赖。
+**分层规则**：只能依赖比自己低的层，绝不反向。五个可选模块（CodeGeneration / AI / Workflow / Printing / Chat）都依赖 `Saas`；其中 `XiHan.BasicApp.AI.csproj` 引用了 `Chat`（AI 助手在聊天会话里回复，复用聊天的实体、领域服务与权限码），其余彼此不直接依赖。`AI` 模块的 `[DependsOn]` 只写了 `Saas`，`Chat` 模块靠根模块的 `[DependsOn]` 装配，所以停用 `Chat` 时要连同 `AI` 一起停用。
 
 ## 模块装配
 
@@ -96,7 +85,9 @@ await app.RunAsync();
     typeof(XiHanBasicAppSaasModule),
     typeof(XiHanBasicAppCodeGenerationModule),
     typeof(XiHanBasicAppAIModule),
-    typeof(XiHanBasicAppWorkflowModule)
+    typeof(XiHanBasicAppWorkflowModule),
+    typeof(XiHanBasicAppPrintingModule),
+    typeof(XiHanBasicAppChatModule)
 )]
 ```
 
@@ -113,7 +104,7 @@ await app.RunAsync();
 | --- | --- |
 | `ConfigureServices` | 各模块调自己的 `AddXxx` 扩展方法 |
 | `OnPreApplicationInitialization` | Telegram Webhook 中间件（要插在鉴权前） |
-| `OnApplicationInitialization` | Saas 映射两个 SignalR Hub 与 OAuth 端点 |
+| `OnApplicationInitialization` | Saas 映射通知 Hub 与 OAuth / OIDC 端点；Chat 映射聊天 Hub；Printing 预先解析打印数据源注册表，让契约错误在启动时暴露 |
 | `OnPostApplicationInitialization` | Saas 扫描声明式任务、把库里活跃的 `SysTask` 同步进调度器（含崩溃残留 Running 复位） |
 
 ## 模块内部：DDD 三层
