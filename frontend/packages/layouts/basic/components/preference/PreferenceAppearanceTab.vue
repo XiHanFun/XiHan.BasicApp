@@ -2,7 +2,7 @@
 import type { UiDensity } from '~/constants'
 import type { useAppStore } from '~/stores'
 import { XhSwitch } from '@xihan-ui/vue'
-import { computed, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
@@ -95,6 +95,30 @@ const transitionItems = computed(() => [
   { value: 'rotate-fade', label: t('preference.general.animation.rotate_fade') },
   { value: 'flip-fade', label: t('preference.general.animation.flip_fade') },
 ])
+
+/**
+ * 加载动画预览二十来个、每个几十个粒子节点，又排在本页靠下、打开时看不到的位置：
+ * 挂载推到抽屉滑入那一帧之后的空闲时段，不和面板的首帧抢主线程。预览格子定了宽高比，
+ * 晚到的粒子不推动布局
+ */
+const loaderPreviewsReady = ref(false)
+let idleHandle = 0
+onMounted(() => {
+  const ready = () => {
+    loaderPreviewsReady.value = true
+  }
+  idleHandle = typeof requestIdleCallback === 'function'
+    ? requestIdleCallback(ready, { timeout: 600 })
+    : window.setTimeout(ready, 200)
+})
+onBeforeUnmount(() => {
+  if (typeof cancelIdleCallback === 'function') {
+    cancelIdleCallback(idleHandle)
+  }
+  else {
+    clearTimeout(idleHandle)
+  }
+})
 
 // 加载动画列表（名称按 locale 国际化）
 const loaderItems = computed(() =>
@@ -332,7 +356,7 @@ const loaderItems = computed(() =>
           @click="appStore.transitionLoading && (appStore.loadingName = item.value)"
         >
           <div class="transition-preview">
-            <PageLoader :name="item.value" :size="40" preview :fixed-color="appStore.loadingFixedColor" />
+            <PageLoader v-if="loaderPreviewsReady" :name="item.value" :size="40" preview :fixed-color="appStore.loadingFixedColor" />
           </div>
           <span class="item-label" :title="item.label">{{ item.label }}</span>
         </div>

@@ -1,6 +1,7 @@
+import type { ComputedRef, Ref } from 'vue'
 import { usePreferredDark } from '@vueuse/core'
 import { deriveBrandScale, ON_COLOR_CROSSOVER, relativeLuminance } from '@xihan-ui/tokens'
-import { computed, nextTick, watch } from 'vue'
+import { computed, effectScope, nextTick, watch } from 'vue'
 import { THEME_AUTO } from '~/constants'
 import { setPendingPreferenceOrigin, useAppStore } from '~/stores'
 import { runThemeTransition } from '~/utils'
@@ -130,76 +131,101 @@ function deriveMaterialPalette(hex: string, dark: boolean): Record<string, strin
   }
 }
 
+/** 计算圆角像素值（写入 --radius / --radius-card，组件库经令牌桥读它） */
+function calcRadius(r: number) {
+  return {
+    radius: `${Math.round(4 + r * 12)}px`,
+    cardRadius: `${Math.round(6 + r * 10)}px`,
+  }
+}
+
+/** 将当前 uiRadius 同步到根元素 CSS 变量，供组件库之外的自定义元素使用 */
+function syncRadiusCssVars(r: number) {
+  if (typeof document === 'undefined')
+    return
+  const { radius, cardRadius } = calcRadius(r)
+  const el = document.documentElement
+  el.style.setProperty('--radius', radius)
+  el.style.setProperty('--radius-card', cardRadius)
+}
+
+/**
+ * 同步主色色阶 + Material You 派生色阶到 CSS 变量（明暗自适应）。
+ * 内联样式覆盖 :root/.dark，故明暗切换时也需重算重写。
+ */
+function applyThemePalette(hex: string, dark: boolean, dynamic: boolean) {
+  if (typeof document === 'undefined' || !hex?.startsWith('#') || hex.length < 7)
+    return
+  const scale = generatePrimaryScale(hex)
+  const el = document.documentElement
+  // 主色：始终保持用户所选精确颜色
+  el.style.setProperty('--primary', hexToHslVars(hex))
+  // 品牌色阶按组件库的固定明度曲线派生：实心底取的是 600 档而不是用户挑的原色，
+  // 明度定住，上面的字才能恒是白的
+  const brand = deriveBrandScale(hex)
+  for (const [step, value] of Object.entries(brand))
+    el.style.setProperty(`--xh-color-brand-${step}`, value)
+  // 主色上的前景跟着实心底那一档走，与 Material You 开关无关：它不是派生的装饰色，
+  // 而是「这个底上的字读不读得清」，关掉动态取色一样要算
+  el.style.setProperty('--primary-foreground', onSolidFor(brand['600']))
+  el.style.setProperty('--primary-hover', hexToHslVars(scale.hover))
+  el.style.setProperty('--primary-active', hexToHslVars(scale.active))
+  el.style.setProperty('--primary-suppl', hexToHslVars(scale.suppl))
+  // 派生色阶：开启 Material You 时写入；关闭则移除内联覆盖，回退到 :root/.dark 静态 token
+  const palette = deriveMaterialPalette(hex, dark)
+  for (const name of Object.keys(palette)) {
+    if (dynamic) {
+      el.style.setProperty(name, palette[name]!)
+    }
+    else {
+      el.style.removeProperty(name)
+    }
+  }
+}
+
+interface SharedTheme {
+  isDark: ComputedRef<boolean>
+  prefersDark: Ref<boolean>
+}
+
+const sharedThemes = new WeakMap<object, SharedTheme>()
+
+/**
+ * 主题落到文档根上这件事全局只做一份。
+ *
+ * useTheme 有十几处调用方（顶栏、悬浮组、命令面板、偏好抽屉、各登录页…），从前每处都挂一套
+ * immediate 监听：主题一变就按调用方数量把整套色阶与圆角重算、重写好几遍，偏好抽屉的外观页
+ * 每次挂载还要立即整套重写一次。现在按 store 实例只装一份、挂在游离的作用域上随应用常驻，
+ * 明暗判断（连同系统偏好的 matchMedia 监听）也共用这一份
+ */
+function sharedThemeOf(appStore: ReturnType<typeof useAppStore>): SharedTheme {
+  const existing = sharedThemes.get(appStore)
+  if (existing)
+    return existing
+  const shared = effectScope(true).run(() => {
+    const prefersDark = usePreferredDark()
+    const isDark = computed(() => {
+      if (appStore.themeMode === THEME_AUTO) {
+        return prefersDark.value
+      }
+      return appStore.themeMode === 'dark'
+    })
+    watch(() => appStore.uiRadius, syncRadiusCssVars, { immediate: true })
+    // 主色 / 明暗 / 动态取色开关 变化都需重算派生色阶（Material You 明暗自适应）
+    watch(
+      [() => appStore.themeColor, isDark, () => appStore.themeDynamicColor],
+      ([hex, dark, dynamic]) => applyThemePalette(hex, dark, dynamic),
+      { immediate: true },
+    )
+    return { isDark, prefersDark }
+  })!
+  sharedThemes.set(appStore, shared)
+  return shared
+}
+
 export function useTheme() {
   const appStore = useAppStore()
-  const prefersDark = usePreferredDark()
-
-  const isDark = computed(() => {
-    if (appStore.themeMode === THEME_AUTO) {
-      return prefersDark.value
-    }
-    return appStore.themeMode === 'dark'
-  })
-
-  /** 计算圆角像素值（写入 --radius / --radius-card，组件库经令牌桥读它） */
-  function calcRadius(r: number) {
-    return {
-      radius: `${Math.round(4 + r * 12)}px`,
-      cardRadius: `${Math.round(6 + r * 10)}px`,
-    }
-  }
-
-  /** 将当前 uiRadius 同步到根元素 CSS 变量，供组件库之外的自定义元素使用 */
-  function syncRadiusCssVars(r: number) {
-    if (typeof document === 'undefined')
-      return
-    const { radius, cardRadius } = calcRadius(r)
-    const el = document.documentElement
-    el.style.setProperty('--radius', radius)
-    el.style.setProperty('--radius-card', cardRadius)
-  }
-
-  /**
-   * 同步主色色阶 + Material You 派生色阶到 CSS 变量（明暗自适应）。
-   * 内联样式覆盖 :root/.dark，故明暗切换时也需重算重写。
-   */
-  function applyThemePalette(hex: string, dark: boolean, dynamic: boolean) {
-    if (typeof document === 'undefined' || !hex?.startsWith('#') || hex.length < 7)
-      return
-    const scale = generatePrimaryScale(hex)
-    const el = document.documentElement
-    // 主色：始终保持用户所选精确颜色
-    el.style.setProperty('--primary', hexToHslVars(hex))
-    // 品牌色阶按组件库的固定明度曲线派生：实心底取的是 600 档而不是用户挑的原色，
-    // 明度定住，上面的字才能恒是白的
-    const brand = deriveBrandScale(hex)
-    for (const [step, value] of Object.entries(brand))
-      el.style.setProperty(`--xh-color-brand-${step}`, value)
-    // 主色上的前景跟着实心底那一档走，与 Material You 开关无关：它不是派生的装饰色，
-    // 而是「这个底上的字读不读得清」，关掉动态取色一样要算
-    el.style.setProperty('--primary-foreground', onSolidFor(brand['600']))
-    el.style.setProperty('--primary-hover', hexToHslVars(scale.hover))
-    el.style.setProperty('--primary-active', hexToHslVars(scale.active))
-    el.style.setProperty('--primary-suppl', hexToHslVars(scale.suppl))
-    // 派生色阶：开启 Material You 时写入；关闭则移除内联覆盖，回退到 :root/.dark 静态 token
-    const palette = deriveMaterialPalette(hex, dark)
-    for (const name of Object.keys(palette)) {
-      if (dynamic) {
-        el.style.setProperty(name, palette[name]!)
-      }
-      else {
-        el.style.removeProperty(name)
-      }
-    }
-  }
-
-  watch(() => appStore.uiRadius, syncRadiusCssVars, { immediate: true })
-  // 主色 / 明暗 / 动态取色开关 变化都需重算派生色阶（Material You 明暗自适应）
-  watch(
-    [() => appStore.themeColor, isDark, () => appStore.themeDynamicColor],
-    ([hex, dark, dynamic]) => applyThemePalette(hex, dark, dynamic),
-    { immediate: true },
-  )
+  const { isDark, prefersDark } = sharedThemeOf(appStore)
 
   /** 解析目标模式切换后「实际呈现的明暗」（auto 取当前系统主题） */
   function resolveEffectiveDark(mode: 'light' | 'dark' | 'auto'): boolean {
