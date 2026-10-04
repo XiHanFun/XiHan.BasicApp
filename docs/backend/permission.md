@@ -1,12 +1,12 @@
 # 权限模型
 
-XiHan.BasicApp 的权限体系融合 **RBAC（基于角色）** 与 **ABAC（基于属性）**，再叠加**角色继承、数据范围、字段级脱敏、多租户版本门控**。这是系统最核心也最需要理解的部分——一次请求要穿过认证、租户解析、权限码、约束、数据范围、字段脱敏六道关卡，每一道都可能收窄或拒绝。
+XiHan.BasicApp 的权限体系以 **RBAC（基于角色）** 为主，叠加**角色继承、数据范围、字段级脱敏、多租户版本门控**，并为 **ABAC（基于属性）** 建好了授权条件模型（目前只维护、不参与鉴权）。这是系统最核心也最需要理解的部分——一次请求要穿过认证、租户解析、权限码（含版本门控）、数据范围、字段脱敏几道关卡，每一道都可能收窄或拒绝；约束规则不在请求链路上，它在授权写入时把关。
 
 权限相关的领域实体几乎全部集中在 `modules/XiHan.BasicApp.Saas/Domain/Entities/`（`Sys*`），运行时判定由框架 [授权模块](https://framework.docs.xihanfun.com/packages/authorization) 承接。本页以真实源码为准，讲清"怎么用、为什么这么设计、怎么扩展"。
 
 ## 权限码：单一事实源
 
-权限的基本单位是**权限码**，格式固定为三段：
+权限的基本单位是**权限码**，以冒号分段。Saas 模块固定三段：
 
 ```text
 module : resource : action
@@ -14,16 +14,17 @@ module : resource : action
 ```
 
 - 例：`saas:user:read`（读取用户）、`saas:role:export`（导出角色）、`saas:permission:create`（创建权限定义）
+- 可选模块用两段 `resource:action`，资源段本身带模块语义：AI 的 `ai:read`、`knowledge_base:read`、`ai_prompt:read`，Chat 的 `chat:send`，CodeGeneration 的 `code_gen:execute`，Printing 的 `print-template:use`，Workflow 的 `workflow:execute`。代码生成产出的权限码同样是两段式
 - 超级管理员在**平台**的授权快照里持有**字面通配 `*`**；作用侧不含当前上下文的权限码先于通配拒绝，进了业务租户超管身份不成立（见 [多租户](./multi-tenancy)）。匹配是"命中 `*` 或精确等于该权限码"（大小写不敏感），**不支持** `resource:*:*` 之类的段级通配——通配仅有 `*` 这一个特例，见下文判定链
 
-> 冒号分三段是硬约定：`SaasPermissionDefinitions.ResolveGroupCode` 按 `saas:{resource}:{action}` 取中间段作为**分组码**（资源段），前端权限中心据此把权限归类展示。
+> Saas 的三段是硬约定：`SaasPermissionDefinitions.ResolveGroupCode` 按 `saas:{resource}:{action}` 取中间段作为**分组码**（资源段），前端权限中心据此把权限归类展示。各可选模块的分组码就是两段式里的资源段。
 
 所有 SaaS 权限码的**唯一手写源**是 `Domain/Permissions/SaasPermissionCodes.cs`（常量）与 `Domain/Permissions/SaasPermissionDefinitions.cs`（分组 + 元数据）：
 
 - `SaasPermissionCodes` 按资源分嵌套静态类，每个动作一个 `const string`，如 `SaasPermissionCodes.User.Read = "saas:user:read"`。后端 `[PermissionAuthorize(SaasPermissionCodes.User.Read)]` 直接引用常量，杜绝魔法字符串。
 - `SaasPermissionDefinitions.Groups` 是**手写单一事实源**：每个资源块一个 `SaasPermissionGroup`（组码 + 中文组名 + 组内 `SaasPermissionItem` 列表）。落库扁平表 `All`、组码→组名 `GroupNames` 全由 `Groups` 派生，每条权限的 `ModuleCode`（恒为 `saas`）、`Tags`、`Priority`（恒等于 `Sort`）自动生成，无需手写。
 - 新增资源时只在 `Groups` 增一个分组节点、或在已有节点增一条权限项即可，种子据此落库。
-- 每个分组必须声明**作用侧**（`PermissionSide`：平台 / 租户 / 两侧），条目可单独覆盖；作用侧决定权限在哪个上下文生效、能否进入套餐白名单，详见 [多租户 · 权限作用侧](./multi-tenancy#权限作用侧平台-租户-两侧)。
+- 每个分组必须声明**作用侧**（`PermissionSide`：平台 / 租户 / 两侧），条目可单独覆盖；作用侧决定权限在哪个上下文生效、能否进入套餐白名单，详见 [多租户 · 权限作用侧](./multi-tenancy#权限作用侧-平台-租户-两侧)。
 
 每条权限项携带一个关键标志 `IsRequireAudit`：为 `true` 时，该权限对应的操作应强制写差异日志（`SysDiffLog`），用于合规审计。写类动作（create/update/delete/grant/revoke）多为 `true`，读与导出多为 `false`。
 
@@ -104,13 +105,17 @@ module : resource : action
 
 同一个权限码，能看到的数据行随**数据范围**收窄。范围档位由 `SysRole.DataScope`（枚举 `DataPermissionScope`）承载：
 
-| 枚举值 | 含义 |
+| 枚举值 | 含义（以当前唯一接入的用户列表为例） |
 | --- | --- |
-| `SelfOnly` | 仅本人创建的数据 |
-| `DepartmentOnly` | 用户当前租户上下文下全部有效部门归属，仅限这些部门 |
-| `DepartmentAndChildren` | 上述部门 + 其所有下级部门 |
+| `SelfOnly` | 仅本人：用户列表里只看得到自己 |
+| `DepartmentOnly` | 用户当前租户上下文下全部有效部门归属，仅限这些部门的成员 |
+| `DepartmentAndChildren` | 上述部门 + 其所有下级部门的成员 |
 | `All` | 全部数据 |
 | `Custom` | 由 `SysRoleDataScope` 明确枚举可访问的部门列表 |
+
+::: warning 当前只作用于用户列表
+数据范围的解析入口 `IUserDataScopeFilterService` 目前只由用户分页查询 `UserQueryService.GetUserPageAsync` 调用，用户导出复用这条查询，因此同样收窄。用户详情、用户选择项，以及其它资源的列表、详情与写操作都**不施加**数据范围，只受权限码与租户隔离约束。其它资源需要行级范围时，要在对应查询服务里显式接入。
+:::
 
 > **重要**：该枚举**不承诺"数值越大范围越广"**（`Custom=99`）。多角色合并必须按显式语义处理：任一角色 `All` → 全部；`DepartmentOnly`/`DepartmentAndChildren` → 求部门归属并集；`Custom` → 与其它范围并集叠加；仅 `SelfOnly` 才只返回本人数据。禁止用数值大小做合并判断。
 
@@ -123,31 +128,25 @@ module : resource : action
 
 档位与部门明细**一次设置、一次落地**：角色走 `SetRoleDataScopeAsync`，成员走 `SetUserDataScopeAsync`，权限码只有查看（`read`）与设置（`update`）。只有自定义档位带部门且至少一个；切到其它档位时已有的部门明细全部撤销（只置失效，历史行再选中时就地复用）。全局角色是各租户共用的模板，只在平台设档位、不能自定义部门（部门是租户自己的数据），在租户里只读。
 
-数据范围在**查询层**生效，是租户侧概念：平台没有部门与成员关系，不施加数据范围。租户里先看成员覆盖；没有覆盖才按启用角色——任一角色为 `All` 则不限，自定义档位的角色并入它的部门明细（非自定义档位角色残留的明细不生效）。解析出可见部门集（`IncludeChildren` 经 `SysDepartmentHierarchy` 展开后代）后，取这些部门下的成员并入"本人"，收敛为可见用户主键集合追加到查询条件，与权限码组合决定"能对哪些行做这个动作"。无任何有效范围时只返回本人数据。
+数据范围在**查询层**生效（目前只在用户列表，见上），是租户侧概念：平台没有部门与成员关系，不施加数据范围。租户里先看成员覆盖；没有覆盖才按启用角色——任一角色为 `All` 则不限，自定义档位的角色并入它的部门明细（非自定义档位角色残留的明细不生效）。解析出可见部门集（`IncludeChildren` 经 `SysDepartmentHierarchy` 展开后代）后，取这些部门下的成员并入"本人"，收敛为可见用户主键集合追加到用户列表的查询条件。无任何有效范围时只返回本人。
 
 ## 字段级脱敏（FLS）
 
-即使有权读取某条记录，**敏感字段**仍可能被脱敏或禁读。策略实体 `SysFieldLevelSecurity` 控制某个资源特定字段的可读/可编辑与脱敏形式：
+即使有权读取某条记录，**敏感字段**仍可能被脱敏或隐藏。规则实体 `SysFieldLevelSecurity` 控制某个实体特定字段的读取方式与能否修改：
 
 | 字段 | 说明 |
 | --- | --- |
-| `TargetType` / `TargetId` | 策略绑定目标（`FieldSecurityTargetType`：`Role` / `User` / `Permission` / `Department`）；服务端解析只匹配 `Role`（当前用户的角色）与 `User`（用户自身） |
-| `ResourceId` / `FieldName` | 受控资源与字段名（区分大小写，对应实体属性名） |
-| `IsReadable` | 是否可读；`false` 时按 `MaskStrategy` 返回 |
-| `IsEditable` | 是否可编辑；`false` 时前端只读、后端写操作拒绝 |
-| `MaskStrategy` | 脱敏策略（见下表） |
-| `MaskPattern` | 配合策略的规则串（JSON/表达式） |
-| `Priority` | 数字越大越高（策略元数据，不能为负）；服务端合并按 deny-overrides 处理，不按优先级放行 |
+| `TargetType` / `TargetId` | 规则目标（`FieldSecurityTargetType`）：`Role`（当前用户生效且启用的角色）/ `User`（本人）/ `Department`（该部门及其下级部门的有效成员） |
+| `EntityName` / `FieldName` | 受控实体类名与属性名（区分大小写），只能从实体目录里选 |
+| `MaskStrategy` | 读取方式（见下） |
+| `MaskKeepHead` / `MaskKeepTail` | 部分脱敏保留的前几位、后几位 |
+| `MaskReplacement` | 固定替换显示的文字 |
+| `IsEditable` | 能否修改；脱敏且可编辑即「只写」：看不到原值但能填新值覆盖 |
+| `Status` | 启用 / 停用 |
 
-脱敏策略 `FieldMaskStrategy`：`None`（原值）/ `Hidden`（隐藏或返回 null）/ `FullMask`（全星号）/ `PartialMask`（保留首尾，如 `138****1234`）/ `Hash`（不可逆）/ `Redact`（固定替换如 `[已脱敏]`）/ `Custom`。
+读取方式 `FieldMaskStrategy`：`None`（明文）/ `Hidden`（隐藏，返回 null 或类型默认值）/ `FullMask`（全星号）/ `PartialMask`（保留首尾，如 `138****1234`）/ `Hash`（不可逆）/ `Redact`（固定替换，如 `[已脱敏]`）。没有自定义策略这一档。
 
-**可见性三段语义**（RBAC/ABAC 判定之后生效）：
-
-- `IsReadable=true` + `MaskStrategy=None` → 可读原文
-- `IsReadable=true` + `MaskStrategy!=None` → 可读脱敏值（如客服看手机号 `138****1234`）
-- `IsReadable=false` → 不可读，按策略返回脱敏/隐藏结果
-
-**冲突合并**采用 deny-overrides：命中同一字段的多条规则里，任一 `IsReadable=false` → 最终不可读，任一 `IsEditable=false` → 最终不可编辑，脱敏取最严。
+规则**只收紧、不放宽**：没有规则就是明文可改。同一字段命中多条规则时取最严的读取方式，任一命中规则只读即只读。
 
 ### 服务端落地：读脱敏 + 写校验 + 排序/过滤门控
 
@@ -158,17 +157,17 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 - `MaskAsync(response)`：沿响应对象图找出登记实体的 DTO **反射就地脱敏**。HTTP 接口由 `FieldSecurityResponseFilter` 统一调用，导出由导出基类调用。
 - `EnsureCreatableAsync` / `EnsureUpdatableAsync`：写路径校验——只读字段不能填写、不能修改；表单交回的脱敏值视为没改并还原原值。
 
-规则模型、读取方式、只写语义与接线要求见 [数据权限 · 字段级安全](./data-permission#字段级安全列级)。
+规则模型、读取方式、只写语义与接线要求见 [数据权限 · 字段级安全](./data-permission#字段级安全-列级)。
 
 **导出与在线同一口径**：后台导出走 `ExportExecutor`，它在后台线程按任务发起人重建 `CurrentTenant` + `CurrentPrincipal`，再调用既有 QueryService，使**数据范围与字段脱敏原样生效**，并显式 `IPermissionChecker` 补齐进程内不触发 `[PermissionAuthorize]` 的缺口。导出校验的是 Provider 的 `RequiredPermission`，即页面导出按钮绑定的 `saas:xxx:export`，不是资源的读权限；提交任务时 `ExportTaskAppService.SubmitAsync` 就按它拦截（只有读权限的人直调提交接口也进不来），执行时再校验一次，覆盖提交后被收回权限的情况。重建的主体与在线请求同一口径：发起时记下的会话声明（会话已登出或被下线，导出随之失败）、与签发令牌同一来源的角色（超管判定等依赖角色的规则一致）、模仿者声明（模仿态禁用的权限在导出里同样禁用）；租户停用、到期或未就绪时导出直接失败。因此导出与在线列表看到的数据、脱敏结果一致。
 
-## ABAC：属性驱动的约束
+## ABAC 条件与约束规则
 
-在 RBAC 之上，ABAC 用**属性与规则**做更细的运行时约束。两套机制并存：
+在 RBAC 之上还有两套按属性、按组合收窄授权的机制。先说清落地程度：**权限条件目前只能维护、不参与鉴权**；**约束规则目前执行的是静态职责分离（SSD）**，在授权写入时拦截，不在请求期判定。
 
-### 权限条件 `SysPermissionCondition`（轻量 ABAC）
+### 权限条件 `SysPermissionCondition`（只存储、不求值）
 
-为某条角色权限或用户直授权限附加属性条件，与授权绑定一一挂钩：
+为某条角色权限或用户直授权限附加属性条件，与授权绑定一一挂钩。`PermissionConditionDomainService` 负责增改、启停与校验，`SaasPermissionChecker` 与授权快照都不读取这张表，所以配置的条件**不会让请求被拒**：
 
 - 排他约束：`RolePermissionId` 与 `UserPermissionId` **恰好一个非空**（服务层 XOR 校验，建议库层补 CHECK 约束）。
 - 组合逻辑：同一 `ConditionGroup` 内条件为 **AND**，不同组之间为 **OR**（单权限最多 5 组、每组最多 10 条）。
@@ -184,7 +183,7 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 | 只能操作草稿 | `resource.status` | `Equals` | `draft` |
 | 限额操作 | `resource.amount` | `LessThan` | `10000` |
 
-> **建模 vs. 运行时**：上述属性/操作符描述的是 `SysPermissionCondition` 的**存储表达能力**，存储的条件行本身不参与运行时判定。运行时由框架 `IAbacAttributeCollector` 收集 `subject./resource./environment.` 属性、`IAbacEvaluator` 评估，混合策略里 ABAC 段以策略码触发（如 `same_tenant`/`self_only` 及比较式）。框架默认评估器对 `subject.*`/`resource.*` 的同租户、仅本人、字段比较有内建支持；时间窗/IP 这类 `environment.*` 条件的真实取值需应用侧属性收集器提供，未接入收集器的属性不会自动生效——落地前请以仓库为准确认对应属性已被收集。
+> **建模 vs. 运行时**：上述属性/操作符描述的是 `SysPermissionCondition` 的**存储表达能力**，BasicApp 里没有求值它的代码。框架另有一条独立的 ABAC 通道：`[PermissionAuthorize(权限码, ABAC 策略码)]` 的第二个参数会让混合策略在权限码之后调用 `IAbacAttributeCollector` 收集属性、`IAbacEvaluator` 按策略码评估（如 `same_tenant` / `self_only` 及比较式）。BasicApp 现有接口都只传权限码，这条通道没有被触发；它也不读 `SysPermissionCondition`。要让「仅工作时间」「仅内网」这类条件真正生效，需要补一个读取授权条件并参与鉴权的执行入口，`environment.*` 属性还要应用侧提供收集器。
 
 ### 约束规则 `SysConstraintRule`（+ `SysConstraintRuleItem`）
 
@@ -194,7 +193,16 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 - `ViolationAction`：违规处理 `Deny` / `Warning` / `Log` / `RequireApproval`。
 - 非 ID 类参数（时间窗、最大数量等）以 JSON 存 `Parameters`；有效性由 `Status=Enabled` 且当前时间落在 `EffectiveTime~ExpirationTime` 共同决定。
 - **约束检查必须展开角色继承链**：若 Item 指向角色 A，任何继承 A 的后代角色都视为等效目标（经 `SysRoleHierarchy` 展开）。`ConstraintGroup` 标识互斥集合（先决条件约束中 0=必备项、1=目标项）。
-- 后端目前只提供约束规则与目标项的定义管理（增删改查），授权写路径不会自动拦截违规组合。
+
+**当前执行范围**：`ConstraintRuleEnforcementDomainService` 只评估 `ConstraintType=SSD`、目标类型为角色的规则——同一 `ConstraintGroup` 内最多同时持有 `Parameters` 里的 `maxAllowed` 个（缺省 1）。调用点有三处：
+
+| 写入路径 | 评估对象 |
+| --- | --- |
+| 分配角色（角色直授、角色成员批量调整，以及让一条绑定重新占名额的改状态 / 改有效期） | 用户现有有效角色 + 新角色 |
+| 调整角色继承 | 本角色及其下级的继承链、持有它们的成员的全部角色 |
+| 审批通过带角色的权限申请 | 申请人现有有效角色 + 申请的角色 |
+
+违规时 `Deny` 与 `RequireApproval` 一样**直接抛错、整次写入失败**，不会生成审批单；`Warning` 与 `Log` 效果相同：放行，每条命中写一条 Warning 级应用日志。其余类型（DSD、互斥、基数、先决条件、时间、位置、自定义）只能维护规则，没有任何代码评估它们；规则也不参与请求期鉴权，已经授出去的存量违规组合不会被回收。
 
 ## 会话角色激活（动态职责分离）
 
@@ -202,10 +210,10 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 
 - `SessionId`（关联 `SysUserSession` 主键）+ `RoleId` 在租户内唯一；`Status`（`SessionRoleStatus`）为 `Active`/`Inactive`/`Expired`，配合 `ActivatedTime`/`DeactivatedTime`/`ExpirationTime` 记录生命周期。
 - **激活的模型约定**：该用户确实持有此角色（`SysUserRole` 存在且未过期），且激活须通过 DSD 约束检查（`SysConstraintRule` 中 `ConstraintType=DSD`）。
-- 后端目前只提供会话激活角色的查询（权限码 `saas:session-role:read`），激活/停用的写入接口未开放。
-- 典型用法：敏感操作前临时激活特权角色，完成后立即停用；凌晨扫描失效已过期的会话角色。
+- 后端目前只提供会话激活角色的查询（权限码 `saas:session-role:read`），激活/停用的写入接口未开放，DSD 规则也没有评估代码；授权快照按用户持有的全部有效角色计算，不区分会话激活子集。
+- 设想的用法：敏感操作前临时激活特权角色，完成后立即停用；定时失效已过期的会话角色。
 
-设计意图是让一次会话只以其激活的角色子集办事，从而即便持有互斥角色也不会在同一会话同时生效；DSD 约束在**激活时**校验拦截。持久的角色持有关系仍记在 `SysUserRole`，会话激活是叠加在其上的运行期约束。
+设计意图是让一次会话只以其激活的角色子集办事，从而即便持有互斥角色也不会在同一会话同时生效；DSD 约束在**激活时**校验拦截。上面这些都要等激活写入口与 DSD 执法补齐后才成立，当前持有即生效。
 
 ## 申请、审批、委托与留痕
 
@@ -239,21 +247,22 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
   → 认证：你是谁（从主体声明解析 userId；解析不到直接拒绝）
   → 租户解析：落到哪个租户上下文（字段级隔离，全局数据 TenantId=0）
   → 授权(RBAC)：IPermissionChecker 实时校验权限码（查授权快照）
+        · 当前请求所属会话仍有效（登出 / 强制下线 / 禁用后即拒绝）
         · deny-overrides：用户 Deny > 用户 Grant > 角色 Deny > 角色 Grant
         · 角色权限按各自的有效继承链结算（经启用角色可达的上级；链上 Grant 减链上 Deny）
         · 委托权限（SysPermissionDelegation）并入快照，再统一被用户 Deny 收窄
         · 只取当前上下文的绑定（平台的绑定不进租户，反之亦然）
-        · 作用侧：不在当前上下文生效的权限码先于通配拒绝
+        · 作用侧与模仿登录禁用清单：命中即拒绝，先于通配判定
         · 业务租户：版本白名单求交（ApplyEditionGatingAsync，失败即拒绝）
         · 平台的 super_admin 角色 → 平台生效的全部权限 + 字面 * 通配放行
-  → 授权(ABAC)：混合策略里编码在策略名中的 ABAC 策略码
-        · 收集 subject./resource./environment. 属性 → 评估器按策略码判定
-          （同租户/仅本人/比较式内建；时间窗/IP 依赖应用侧属性收集器）
-  → 数据范围：DataPermissionScope 解析可见部门集 → 展开为可见用户主键集合追加到查询条件
-  → 字段脱敏：FLS 按 deny-overrides 就地脱敏（读/导出一致），并门控排序/过滤字段
+  → 数据范围：只在接入的查询里追加条件（目前是用户列表与用户导出），
+        DataPermissionScope 解析可见部门集 → 展开为可见用户主键集合；不过时表现为查不到，不是 403
+  → 字段脱敏：FLS 按最严规则就地脱敏（读/导出一致），并门控排序/过滤字段
 ```
 
-判定采用框架的**混合策略**：`[PermissionAuthorize]` 把"权限码 + ABAC 策略码"编码进一个 ASP.NET Core 策略名，由 `HybridPermissionAuthorizationHandler` 依次执行"权限码实时校验 → ABAC 属性评估"。
+ABAC 授权条件与约束规则都不在这条链上：前者只存储、不求值，后者只在授权写入时执行静态职责分离（见上文）。
+
+判定采用框架的**混合策略**：`[PermissionAuthorize]` 把"权限码 + ABAC 策略码"编码进一个 ASP.NET Core 策略名，由 `HybridPermissionAuthorizationHandler` 依次执行"权限码实时校验 → ABAC 属性评估"。BasicApp 的接口都只声明权限码，ABAC 评估这一段不触发。
 
 > **实时校验，非信任令牌**：授权处理器**不信任 JWT 里冻结的权限声明**，每次都走 `IPermissionChecker` 查当前授权快照。因此权限授予/回收、用户禁用、会话注销**即时生效**，无需等令牌过期。凡是影响授权的写操作（权限增删改、角色/用户授权变更）都会精准失效授权快照缓存。
 

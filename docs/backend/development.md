@@ -12,7 +12,7 @@
 | **配方 B：独立一等模块** | 加一个完整功能域（代码生成、AI…），自成项目、独立种子/权限命名空间 | `modules/XiHan.BasicApp.<Name>` 新建工程 + 双边接线 | `XiHan.BasicApp.AI` / `CodeGeneration` |
 | **配方 C：仅前端页面** | 后端已有接口，只补一个视图 | `frontend/src/views/**` + `PageRegistry` | 见下 |
 
-**判断准则**：功能是否共享 Saas 的 RBAC 表、`SaasRepository`、Data Protection 密文前缀？是且体量小 → 配方 A；是独立大域、想要独立的权限/种子 `Order` 段与项目边界 → 配方 B。`CodeGeneration` / `AI` / `Workflow` 三个模块彼此不直接依赖，均以 Saas 为共享基座。
+**判断准则**：功能是否共享 Saas 的 RBAC 表、`SaasRepository`、Data Protection 密文前缀？是且体量小 → 配方 A；是独立大域、想要独立的权限/种子 `Order` 段与项目边界 → 配方 B。`AI` / `Chat` / `CodeGeneration` / `Printing` / `Workflow` 五个可选模块都以 Saas 为共享基座；其中 `AI` 工程引用了 `Chat`（AI 助手会话复用聊天的实体、领域服务与权限码），其余彼此不直接依赖。
 
 ## DDD 分层与命名约定
 
@@ -146,7 +146,7 @@ public async Task<PageResultDtoBase<PositionListItemDto>> GetPositionPageAsync(
     PositionPageQueryDto input, CancellationToken cancellationToken = default) { … }
 ```
 
-实体要支持字段安全时，在模块服务注册里登记（`AddFieldSecurityEntities(e => e.Add<SysXxx>())`），并落地两处：查询构建完条件后 `GuardQueryAsync(request.Conditions, typeof(SysXxx), ct)`（强制约束放在其后），应用服务新建与修改前 `EnsureCreatableAsync` / `EnsureUpdatableAsync`。读脱敏不用接线——响应过滤器按映射器认出 DTO 统一打码，所以 DTO 要经 `XxxApplicationMapper` 从实体生成，改名的属性加 `[FieldSecuritySource]`。缺任一处 `FieldSecurityEntityWiringTests` 会失败，详见 [数据权限](./data-permission#字段级安全列级)。
+实体要支持字段安全时，在模块服务注册里登记（`AddFieldSecurityEntities(e => e.Add<SysXxx>())`），并落地两处：查询构建完条件后 `GuardQueryAsync(request.Conditions, typeof(SysXxx), ct)`（强制约束放在其后），应用服务新建与修改前 `EnsureCreatableAsync` / `EnsureUpdatableAsync`。读脱敏不用接线——响应过滤器按映射器认出 DTO 统一打码，所以 DTO 要经 `XxxApplicationMapper` 从实体生成，改名的属性加 `[FieldSecuritySource]`。缺任一处 `FieldSecurityEntityWiringTests` 会失败，详见 [数据权限](./data-permission#字段级安全-列级)。
 
 #### 6. 前端页面
 
@@ -366,7 +366,7 @@ export const positionApi = {
 
 - **分页方法必须显式补 `[HttpPost]`**。方法名以 `Get` 开头会被默认识别为 GET；新增分页方法漏标 `[HttpPost]` → 前端 body 收不到查询对象。
 
-- **实体变更必须补前向升级脚本**。CodeFirst 只为全新数据库建表；已有库的列、索引和数据变化写入 `WebHost/UpdateScripts/{version}.sql`，并在 PostgreSQL 副本上验证失败回滚与重复启动行为。
+- **实体变更必须补前向升级脚本**。CodeFirst 只为全新数据库建表；已有库的列、索引和数据变化写入 `WebHost/UpdateScripts/<版本>/<版本>.sql`（启动时自动执行），并在 PostgreSQL 副本上验证失败回滚与重复启动行为。
 
 ## 下一步
 

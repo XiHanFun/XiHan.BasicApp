@@ -258,6 +258,6 @@ MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://fram
 ## 相关文档
 
 - [框架 · XiHan.Framework.AI](https://framework.docs.xihanfun.com/packages/ai)：底层 provider 解析/热切换、RAG 切片检索、提示词模板、Agent/MCP 桥接的抽象与默认实现
-- [权限模型](./permission)：`module:resource:action` 权限码、数据范围、字段级脱敏
+- [权限模型](./permission)：权限码（本模块用 `ai:read` 这类两段式）、数据范围、字段级脱敏
 - [多租户](./multi-tenancy)：字段级隔离与 `TenantId=0` 全局约定
 - [部署](../deployment)：环境要求、升级入口与生产配置
