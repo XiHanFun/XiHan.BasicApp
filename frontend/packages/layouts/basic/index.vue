@@ -249,10 +249,12 @@ const sidebarSubTheme = computed(() =>
 )
 const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark ? 'dark' : 'light'))
 
+// 顶栏开关收起侧栏、内容最大化都不卸载侧栏：它照原宽度整块滑出画面，
+// 是否露出由 show-sidebar 决定，见 AppSidebar 的 stowed
 const sidebarEnableState = computed(
   () =>
     shell.isMobile.value
-    || (!shell.isHeaderNav.value && !shell.isFullContent.value && shell.appStore.sidebarShow),
+    || (!shell.isHeaderNav.value && !shell.isFullContent.value),
 )
 </script>
 
@@ -261,7 +263,6 @@ const sidebarEnableState = computed(
     <!-- ==================== Sidebar ==================== -->
     <div
       v-if="sidebarEnableState"
-      v-show="!shell.contentMaximized.value"
       :class="{ dark: sidebarForceDark }"
       :data-theme="sidebarForceDark ? 'dark' : undefined"
     >
@@ -274,7 +275,7 @@ const sidebarEnableState = computed(
         :is-narrow-screen="shell.isNarrowScreen.value"
         :mobile-sidebar-open="shell.mobileSidebarOpen.value"
         :show-sidebar="shell.showSider.value"
-        :sidebar-width="shell.isMobile.value ? shell.siderWidth.value : shell.getSidebarWidth.value"
+        :sidebar-width="shell.isMobile.value ? shell.siderWidth.value : shell.sidebarShownWidth.value"
         :sidebar-collapse-width="shell.getSideCollapseWidth.value"
         :sidebar-margin-top="shell.sidebarMarginTop.value"
         :sidebar-z-index="shell.sidebarZIndex.value"
@@ -299,13 +300,17 @@ const sidebarEnableState = computed(
       <!-- Header + Tabbar wrapper -->
       <div :style="shell.headerWrapperStyle.value">
         <!-- Header -->
+        <!-- 内容最大化时顶栏带着标签栏用负 margin-top 滑出画面（200ms），滑出后打 inert
+             退出键盘与读屏；不用 v-show，否则只能一帧消失 -->
         <header
           v-if="shell.appStore.headerShow"
-          v-show="!shell.isFullContent.value && !shell.contentMaximized.value"
+          v-show="!shell.isFullContent.value"
           :class="headerTheme"
+          :inert="shell.contentMaximized.value || undefined"
           :style="{
             height: `${shell.headerHeight.value}px`,
             right: !shell.isSideMode.value ? 0 : undefined,
+            marginTop: shell.contentMaximized.value ? `-${shell.headerHeight.value}px` : '0',
           }"
           class="top-0 flex w-full flex-[0_0_auto] items-center border-b border-border bg-header pl-2 transition-[margin-top] duration-200"
         >
@@ -533,11 +538,14 @@ const sidebarEnableState = computed(
       </div>
 
       <!-- Footer -->
+      <!-- 内容最大化时页脚向下滑出画面并让出高度，滑出后打 inert -->
       <footer
-        v-if="shell.appStore.footerEnable && !shell.contentMaximized.value"
+        v-if="shell.appStore.footerEnable"
+        :inert="shell.contentMaximized.value || undefined"
         :style="{
           minHeight: `${shell.footerHeight.value}px`,
-          marginBottom: shell.isFullContent.value ? `-${shell.footerHeight.value}px` : '0',
+          marginBottom: shell.isFullContent.value || shell.contentMaximized.value ? `-${shell.footerHeight.value}px` : '0',
+          transform: shell.contentMaximized.value ? 'translateY(100%)' : undefined,
           position: shell.appStore.footerFixed ? 'fixed' : 'static',
           width: shell.footerWidth.value,
           zIndex: shell.appStore.footerFixed ? 199 : undefined,

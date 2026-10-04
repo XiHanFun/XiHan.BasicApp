@@ -88,14 +88,13 @@ export function useLayoutShellAdapter() {
     return isMixedNav.value && !isMobile.value ? headerHeight.value : 0
   })
 
-  const getSidebarWidth = computed(() => {
-    if (contentMaximized.value)
+  /**
+   * 侧栏露出来时该有多宽。内容最大化、顶栏开关藏起侧栏期间，侧栏照这个宽度整块滑出画面
+   * （translate3d(-100%)），不是先把宽度收成 0 再藏
+   */
+  const sidebarShownWidth = computed(() => {
+    if (!isMobile.value && isHeaderNav.value)
       return 0
-    if (!appStore.sidebarShow)
-      return 0
-    if (!sidebarEnableState.value)
-      return 0
-
     if ((isHeaderMixedNav.value || isSideMixedNav.value) && !isMobile.value) {
       return SIDEBAR_MIXED_WIDTH
     }
@@ -103,6 +102,17 @@ export function useLayoutShellAdapter() {
       return isMobile.value ? 0 : getSideCollapseWidth.value
     }
     return sidebarWidth.value
+  })
+
+  /** 侧栏实际占据的宽度：收起期间为 0，正文直接占满 */
+  const getSidebarWidth = computed(() => {
+    if (contentMaximized.value)
+      return 0
+    if (!appStore.sidebarShow)
+      return 0
+    if (!sidebarEnableState.value)
+      return 0
+    return sidebarShownWidth.value
   })
 
   const sidebarExtraWidth = computed(() => {
@@ -211,12 +221,12 @@ export function useLayoutShellAdapter() {
   const headerWrapperStyle = computed((): CSSProperties => {
     const fixed = headerFixed.value
     const maximized = contentMaximized.value
-    // 收起（整页内容 / 内容最大化）时把外壳收成 0 高并裁掉溢出；正常展开时必须放开，
-    // 否则顶栏横向菜单的下拉面板（绝对定位在顶栏内，不走 portal）会被这层按外壳高度切掉
-    const collapsed = isFullContent.value || maximized
+    // 整页内容时把外壳收成 0 高并裁掉溢出；其余时候必须放开，否则顶栏横向菜单的下拉面板
+    // （绝对定位在顶栏内，不走 portal）会被这层按外壳高度切掉。内容最大化也不裁：顶栏要带着
+    // 标签栏一起用负 margin-top 滑出画面，外壳先收到标签栏的高度，裁了标签栏就先没了
     return {
       height: isFullContent.value ? '0' : `${headerWrapperHeight.value}px`,
-      overflow: collapsed ? 'hidden' : 'visible',
+      overflow: isFullContent.value ? 'hidden' : 'visible',
       left: maximized ? '0' : (isMixedNav.value ? '0' : mainStyle.value.sidebarAndExtraWidth),
       position: fixed || maximized ? 'fixed' : 'static',
       top: maximized
@@ -539,6 +549,7 @@ export function useLayoutShellAdapter() {
 
     getSideCollapseWidth,
     getSidebarWidth,
+    sidebarShownWidth,
     sidebarMarginTop,
     sidebarZIndex,
     sidebarExtraWidth,
