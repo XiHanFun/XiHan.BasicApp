@@ -59,13 +59,12 @@ public class XiHanBasicAppWebHostModule : XiHanModule
     }
 
     /// <summary>
-    /// 应用初始化：执行版本升级脚本 + 暴露匿名 /health 端点（仅返回总状态 + 各项名，不外泄连接串/异常细节）
+    /// 应用初始化：暴露匿名 /health 端点（仅返回总状态 + 各项名，不外泄连接串/异常细节）
     /// </summary>
     /// <remarks>
-    /// 自动版本更新：本模块是依赖图的根，其初始化晚于框架 <c>XiHanDataModule</c> 的数据库初始化
-    /// （建表 + 种子），因此在此处执行 <c>UpdateScripts/*.sql</c> 时表结构与基线数据均已就绪。
-    /// 仅主节点（<c>SnowflakeId:WorkerId == 1</c>）执行；全新部署（无 version.txt）视为最新版本、
-    /// 只落版本号不跑脚本，故不会在空库上误执行历史脚本。
+    /// 本模块不执行升级脚本：<c>UpdateScripts/&lt;版本&gt;/&lt;版本&gt;.sql</c> 由 Saas 的 <c>SaasSchemaUpgrader</c>
+    /// （建表之后、播种之前）与框架 <c>XiHanUpgradeModule</c>（应用初始化之后）调用升级引擎执行，
+    /// 受 <c>XiHan:Upgrade:EnableAutoCheckOnStartup</c> 控制，状态记在 SysVersion / SysMigrationHistory。
     /// <para>
     /// 健康检查：框架启用了鉴权 FallbackPolicy：无端点/非匿名端点的请求会被授权中间件 401。
     /// 因此把 /health 注册为端点并 <c>AllowAnonymous()</c>（与框架 <c>MapOpenApi().AllowAnonymous()</c> 一致），
