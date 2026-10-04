@@ -16,9 +16,14 @@ function toggle() {
     class="absolute bottom-2 left-3 z-10 flex cursor-pointer items-center justify-center rounded-sm bg-accent p-1 text-foreground/60 transition-all duration-200 hover:bg-accent-hover hover:text-foreground"
     @click.stop="toggle"
   >
-    <Icon
-      :icon="collapsed ? 'lucide:chevrons-right' : 'lucide:chevrons-left'"
-      class="size-4"
-    />
+    <span class="icon-swap">
+      <Transition name="icon-swap">
+        <Icon
+          :key="collapsed ? 'right' : 'left'"
+          :icon="collapsed ? 'lucide:chevrons-right' : 'lucide:chevrons-left'"
+          class="size-4"
+        />
+      </Transition>
+    </span>
   </div>
 </template>

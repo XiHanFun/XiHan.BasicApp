@@ -329,7 +329,16 @@ const sidebarEnableState = computed(
             :tooltip="shell.showSider.value ? t('header.toolbar.sidebar_collapse') : t('header.toolbar.sidebar_expand')"
             @click="shell.handleHeaderToggle"
           >
-            <Icon :icon="shell.showSider.value ? 'lucide:panel-left-close' : 'lucide:panel-left-open'" width="16" height="16" />
+            <span class="icon-swap">
+              <Transition name="icon-swap">
+                <Icon
+                  :key="shell.showSider.value ? 'close' : 'open'"
+                  :icon="shell.showSider.value ? 'lucide:panel-left-close' : 'lucide:panel-left-open'"
+                  width="16"
+                  height="16"
+                />
+              </Transition>
+            </span>
           </XihanIconButton>
 
           <!-- 收藏夹（收藏常用菜单，跨端同步；可在偏好设置中开关） -->
@@ -588,13 +597,15 @@ const sidebarEnableState = computed(
     <!-- 通知展示分级：登录后弹窗 + 强制阅读拦截（teleport 到 body，位置不敏感） -->
     <NotificationGate />
 
-    <!-- Mobile mask -->
-    <div
-      v-if="shell.maskVisible.value"
-      class="fixed left-0 top-0 h-full w-full bg-overlay transition-[background-color] duration-200"
-      :style="{ zIndex: 200 }"
-      @click="shell.handleClickMask"
-    />
+    <!-- Mobile mask：随移动端侧栏抽屉淡入淡出 -->
+    <Transition name="layout-mask">
+      <div
+        v-if="shell.maskVisible.value"
+        class="fixed left-0 top-0 h-full w-full bg-overlay"
+        :style="{ zIndex: 200 }"
+        @click="shell.handleClickMask"
+      />
+    </Transition>
   </div>
 </template>
 
@@ -773,6 +784,20 @@ const sidebarEnableState = computed(
     transform: scale(0.4);
     opacity: 0;
   }
+}
+
+/* 移动端侧栏遮罩：只动不透明度，退场比进场快 */
+.layout-mask-enter-active {
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+}
+
+.layout-mask-leave-active {
+  transition: opacity var(--xh-motion-duration-exit) var(--xh-motion-ease-exit);
+}
+
+.layout-mask-enter-from,
+.layout-mask-leave-to {
+  opacity: 0;
 }
 
 .footer-bar {
