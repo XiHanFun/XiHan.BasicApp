@@ -64,142 +64,30 @@ XiHan.BasicApp is a decoupled frontend/backend system. The backend follows DDD l
 
 ## Preview
 
+The shots illustrate the [highlights](#highlights); to try it hands-on, open the [live demo](https://basicapp.xihanfun.com).
+
 <table>
   <tr>
-    <td align="center" width="50%"><a href="./assets/preview/dashboard.png"><img src="./assets/preview/dashboard.png" alt="Dashboard" /></a><br/>Dashboard</td>
-    <td align="center" width="50%"><a href="./assets/preview/user.png"><img src="./assets/preview/user.png" alt="User management" /></a><br/>User management</td>
+    <td align="center" width="50%"><a href="./assets/preview/theme-light-dark.png"><img src="./assets/preview/theme-light-dark.png" alt="Light and dark themes" /></a><br/><b>Light and dark themes</b><br/>Every page and component color-checked in both</td>
+    <td align="center" width="50%"><a href="./assets/preview/theme-colors.png"><img src="./assets/preview/theme-colors.png" alt="One color, a full palette" /></a><br/><b>One color, a full palette</b><br/>Material You dynamic color and 21 traditional Chinese presets</td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="./assets/preview/log-trace.png"><img src="./assets/preview/log-trace.png" alt="Log tracing" /></a><br/>Log tracing</td>
-    <td align="center" width="50%"><a href="./assets/preview/printing.png"><img src="./assets/preview/printing.png" alt="Print templates" /></a><br/>Print templates</td>
+    <td align="center" colspan="2"><a href="./assets/preview/preference-center.png"><img src="./assets/preview/preference-center.png" alt="Preference center" /></a><br/><b>Preference center</b><br/>Layout, color, density, shortcuts and cloud sync in one place, applied live on your other devices</td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="./assets/preview/control-center.png"><img src="./assets/preview/control-center.png" alt="Control center" /></a><br/>Control center</td>
-    <td align="center" width="50%"><a href="./assets/preview/login.png"><img src="./assets/preview/login.png" alt="Authentication" /></a><br/>Authentication</td>
+    <td align="center" width="50%"><a href="./assets/preview/schema-list.png"><img src="./assets/preview/schema-list.png" alt="Schema-driven list pages" /></a><br/><b>Schema-driven list pages</b><br/>Hover previews, advanced search and column settings out of the box</td>
+    <td align="center" width="50%"><a href="./assets/preview/command-palette.png"><img src="./assets/preview/command-palette.png" alt="Command palette search" /></a><br/><b>Command palette search</b><br/><code>Ctrl / ⌘ + K</code>, with pinyin initials, straight to pages and actions</td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="./assets/preview/profile.png"><img src="./assets/preview/profile.png" alt="Personal center" /></a><br/>Personal center</td>
-    <td align="center" width="50%"><a href="./assets/preview/profile-security.png"><img src="./assets/preview/profile-security.png" alt="Personal security settings" /></a><br/>Personal security settings</td>
+    <td align="center" width="50%"><a href="./assets/preview/split-view.png"><img src="./assets/preview/split-view.png" alt="In-app split view" /></a><br/><b>In-app split view</b><br/>Two pages side by side, swapped without reloading</td>
+    <td align="center" width="50%"><a href="./assets/preview/control-center.png"><img src="./assets/preview/control-center.png" alt="Multi-tenant control center" /></a><br/><b>Multi-tenant control center</b><br/>Switch between platform administration and tenants in one place</td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="./assets/preview/online-user.png"><img src="./assets/preview/online-user.png" alt="Online users" /></a><br/>Online users</td>
-    <td align="center" width="50%"><a href="./assets/preview/role.png"><img src="./assets/preview/role.png" alt="Role management" /></a><br/>Role management</td>
+    <td align="center" colspan="2"><a href="./assets/preview/mobile.png"><img src="./assets/preview/mobile.png" alt="Small screens" /></a><br/><b>Small screens</b><br/>Sign-in, dashboard, drawer menu, command palette and Dynamic Island, ready in a phone browser</td>
   </tr>
   <tr>
-    <td align="center" width="50%"><a href="./assets/preview/org.png"><img src="./assets/preview/org.png" alt="Organizations" /></a><br/>Organizations</td>
-    <td align="center" width="50%"><a href="./assets/preview/position.png"><img src="./assets/preview/position.png" alt="Positions" /></a><br/>Positions</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/permission.png"><img src="./assets/preview/permission.png" alt="Permissions" /></a><br/>Permissions</td>
-    <td align="center" width="50%"><a href="./assets/preview/menu.png"><img src="./assets/preview/menu.png" alt="Menus" /></a><br/>Menus</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/field-security.png"><img src="./assets/preview/field-security.png" alt="Field security" /></a><br/>Field security</td>
-    <td align="center" width="50%"><a href="./assets/preview/authorization.png"><img src="./assets/preview/authorization.png" alt="Permission requests and delegation" /></a><br/>Permission requests and delegation</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/review.png"><img src="./assets/preview/review.png" alt="Approval center" /></a><br/>Approval center</td>
-    <td align="center" width="50%"><a href="./assets/preview/constraint.png"><img src="./assets/preview/constraint.png" alt="Approval constraints" /></a><br/>Approval constraints</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/tenant.png"><img src="./assets/preview/tenant.png" alt="Tenant management" /></a><br/>Tenant management</td>
-    <td align="center" width="50%"><a href="./assets/preview/tenant-members.png"><img src="./assets/preview/tenant-members.png" alt="Tenant members and support access" /></a><br/>Tenant members and support access</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/edition.png"><img src="./assets/preview/edition.png" alt="Tenant editions" /></a><br/>Tenant editions</td>
-    <td align="center" width="50%"><a href="./assets/preview/subscription.png"><img src="./assets/preview/subscription.png" alt="My subscription" /></a><br/>My subscription</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/notification.png"><img src="./assets/preview/notification.png" alt="Announcements" /></a><br/>Announcements</td>
-    <td align="center" width="50%"><a href="./assets/preview/inbox.png"><img src="./assets/preview/inbox.png" alt="My inbox" /></a><br/>My inbox</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/message-template.png"><img src="./assets/preview/message-template.png" alt="Message templates" /></a><br/>Message templates</td>
-    <td align="center" width="50%"><a href="./assets/preview/message-record.png"><img src="./assets/preview/message-record.png" alt="Email and SMS records" /></a><br/>Email and SMS records</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/chat.png"><img src="./assets/preview/chat.png" alt="Online chat" /></a><br/>Online chat</td>
-    <td align="center" width="50%"><a href="./assets/preview/chat-audit.png"><img src="./assets/preview/chat-audit.png" alt="Chat audit" /></a><br/>Chat audit</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/file-library.png"><img src="./assets/preview/file-library.png" alt="Files" /></a><br/>Files</td>
-    <td align="center" width="50%"><a href="./assets/preview/file-storage.png"><img src="./assets/preview/file-storage.png" alt="Storage configuration" /></a><br/>Storage configuration</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/export-center.png"><img src="./assets/preview/export-center.png" alt="Export center" /></a><br/>Export center</td>
-    <td align="center" width="50%"><a href="./assets/preview/dict.png"><img src="./assets/preview/dict.png" alt="Dictionaries" /></a><br/>Dictionaries</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/config.png"><img src="./assets/preview/config.png" alt="Parameters" /></a><br/>Parameters</td>
-    <td align="center" width="50%"><a href="./assets/preview/numbering.png"><img src="./assets/preview/numbering.png" alt="Business numbering" /></a><br/>Business numbering</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/job.png"><img src="./assets/preview/job.png" alt="Scheduled jobs" /></a><br/>Scheduled jobs</td>
-    <td align="center" width="50%"><a href="./assets/preview/cache.png"><img src="./assets/preview/cache.png" alt="Cache management" /></a><br/>Cache management</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/server.png"><img src="./assets/preview/server.png" alt="Server monitoring" /></a><br/>Server monitoring</td>
-    <td align="center" width="50%"><a href="./assets/preview/version.png"><img src="./assets/preview/version.png" alt="Version management" /></a><br/>Version management</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/email-config.png"><img src="./assets/preview/email-config.png" alt="Email configuration" /></a><br/>Email configuration</td>
-    <td align="center" width="50%"><a href="./assets/preview/sms-config.png"><img src="./assets/preview/sms-config.png" alt="SMS configuration" /></a><br/>SMS configuration</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/bot-config.png"><img src="./assets/preview/bot-config.png" alt="Webhook bots" /></a><br/>Webhook bots</td>
-    <td align="center" width="50%"><a href="./assets/preview/telegram-bot.png"><img src="./assets/preview/telegram-bot.png" alt="Telegram bots" /></a><br/>Telegram bots</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/openapi-app.png"><img src="./assets/preview/openapi-app.png" alt="Application management" /></a><br/>Application management</td>
-    <td align="center" width="50%"><a href="./assets/preview/openapi-credentials.png"><img src="./assets/preview/openapi-credentials.png" alt="OpenAPI credentials" /></a><br/>OpenAPI credentials</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/log-access.png"><img src="./assets/preview/log-access.png" alt="Access logs" /></a><br/>Access logs</td>
-    <td align="center" width="50%"><a href="./assets/preview/log-api.png"><img src="./assets/preview/log-api.png" alt="OpenAPI logs" /></a><br/>OpenAPI logs</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/log-operation.png"><img src="./assets/preview/log-operation.png" alt="Operation logs" /></a><br/>Operation logs</td>
-    <td align="center" width="50%"><a href="./assets/preview/log-login.png"><img src="./assets/preview/log-login.png" alt="Login logs" /></a><br/>Login logs</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/log-exception.png"><img src="./assets/preview/log-exception.png" alt="Exception logs" /></a><br/>Exception logs</td>
-    <td align="center" width="50%"><a href="./assets/preview/log-diff.png"><img src="./assets/preview/log-diff.png" alt="Data change logs" /></a><br/>Data change logs</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/log-permission.png"><img src="./assets/preview/log-permission.png" alt="Permission change logs" /></a><br/>Permission change logs</td>
-    <td align="center" width="50%"><a href="./assets/preview/log-trace-timeline.png"><img src="./assets/preview/log-trace-timeline.png" alt="Correlated log timeline" /></a><br/>Correlated log timeline</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/log-migration.png"><img src="./assets/preview/log-migration.png" alt="Migration history" /></a><br/>Migration history</td>
-    <td align="center" width="50%"><a href="./assets/preview/codegen.png"><img src="./assets/preview/codegen.png" alt="Code generation" /></a><br/>Code generation</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/ai-provider.png"><img src="./assets/preview/ai-provider.png" alt="AI providers" /></a><br/>AI providers</td>
-    <td align="center" width="50%"><a href="./assets/preview/ai-prompt.png"><img src="./assets/preview/ai-prompt.png" alt="AI prompts" /></a><br/>AI prompts</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/knowledge.png"><img src="./assets/preview/knowledge.png" alt="Knowledge base" /></a><br/>Knowledge base</td>
-    <td align="center" width="50%"><a href="./assets/preview/ai-assistant.png"><img src="./assets/preview/ai-assistant.png" alt="AI assistants" /></a><br/>AI assistants</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/workflow-definition.png"><img src="./assets/preview/workflow-definition.png" alt="Workflow definitions" /></a><br/>Workflow definitions</td>
-    <td align="center" width="50%"><a href="./assets/preview/workflow-json.png"><img src="./assets/preview/workflow-json.png" alt="Workflow JSON editor" /></a><br/>Workflow JSON editor</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/workflow-instance.png"><img src="./assets/preview/workflow-instance.png" alt="Workflow instances" /></a><br/>Workflow instances</td>
-    <td align="center" width="50%"><a href="./assets/preview/workflow-todo.png"><img src="./assets/preview/workflow-todo.png" alt="My workflow tasks" /></a><br/>My workflow tasks</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/preferences.png"><img src="./assets/preview/preferences.png" alt="Preferences" /></a><br/>Preferences</td>
-    <td align="center" width="50%"><a href="./assets/preview/schema-page.png"><img src="./assets/preview/schema-page.png" alt="Advanced lists" /></a><br/>Advanced lists</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/editors.png"><img src="./assets/preview/editors.png" alt="Content editors" /></a><br/>Content editors</td>
-    <td align="center" width="50%"><a href="./assets/preview/editor-json.png"><img src="./assets/preview/editor-json.png" alt="JSON editor" /></a><br/>JSON editor</td>
-  </tr>
-  <tr>
-    <td align="center" width="50%"><a href="./assets/preview/editor-rich-text.png"><img src="./assets/preview/editor-rich-text.png" alt="Rich text editor" /></a><br/>Rich text editor</td>
-    <td align="center" width="50%"><a href="./assets/preview/navigation.png"><img src="./assets/preview/navigation.png" alt="Global navigation" /></a><br/>Global navigation</td>
+    <td align="center" width="50%"><a href="./assets/preview/dashboard.png"><img src="./assets/preview/dashboard.png" alt="Dashboard" /></a><br/><b>Dashboard</b><br/>Drag widgets into place, with the board layout saved to the cloud</td>
+    <td align="center" width="50%"><a href="./assets/preview/log-trace.png"><img src="./assets/preview/log-trace.png" alt="One TraceId, the whole story" /></a><br/><b>One TraceId, the whole story</b><br/>Seven log types on one timeline, with a Sankey view of the flow</td>
   </tr>
 </table>
 
@@ -321,7 +209,7 @@ XiHan.BasicApp/
 │   ├── src/                 #   application sources (src/modules/ mirrors the optional backend modules)
 │   └── packages/            #   internal packages
 └── assets/                  # Branding and README assets
-    └── preview/             # Feature screenshots and manifest
+    └── preview/             # Feature screenshots
 ```
 
 ### Removing Optional Modules
