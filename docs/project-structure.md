@@ -29,6 +29,7 @@ XiHan.BasicApp/
 │   └── nginx.conf                    #   生产静态托管与 /api 反代示例
 ├── docker-compose.yml
 └── assets/                           # 品牌与文档资源
+    ├── architecture.html             # 架构图源文件（导出 architecture*.png）
     └── preview/                      # 功能预览截图
 ```
 

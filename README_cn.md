@@ -159,29 +159,11 @@ XiHan.BasicApp 采用前后端分离架构。后端遵循 DDD 分层，写路径
 
 ## 架构
 
-系统分为框架层、模块层与主应用层，每个模块内部遵循 DDD 分层（Domain / Application / Infrastructure）。
+前后端各分三层并横向对齐：应用层放页面与入口，内核层放平台能力，底座层是自研的 XiHan.UI 与 XiHan.Framework。后端每个模块内部遵循 DDD 分层（Domain / Application / Infrastructure），前后端之间通过 Dynamic API、SignalR 和后端下发的菜单与权限码协作。
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                   XiHan.BasicApp.WebHost                    │
-│                    (启动入口与模块聚合)                     │
-├──────────┬──────────┬──────────┬──────────┬─────────────────┤
-│ CodeGen  │    AI    │ Workflow │ Printing │      Chat       │
-│(代码生成)│ (AI/RAG) │ (工作流) │(打印模板)│   (在线聊天)    │
-├──────────┴──────────┴──────────┴──────────┴─────────────────┤
-│                     XiHan.BasicApp.Saas                     │
-│       (RBAC / 多租户 / 组织 / 审批 / 审计 / 消息中心)       │
-├─────────────────────────────────────────────────────────────┤
-│                   XiHan.BasicApp.Web.Core                   │
-│          (Web 侧基座 / 动态 API / 文档 / 维护模式)          │
-├─────────────────────────────────────────────────────────────┤
-│                     XiHan.BasicApp.Core                     │
-│                  (应用基座 / DDD / 模块化)                  │
-├─────────────────────────────────────────────────────────────┤
-│                      XiHan.Framework.*                      │
-│   底层框架(认证 / 授权 / 数据 / 缓存 / 事件总线 / 多租户)   │
-└─────────────────────────────────────────────────────────────┘
-```
+<p align="center"><a href="./assets/architecture_cn.png"><img src="./assets/architecture_cn.png" alt="XiHan.BasicApp 架构" /></a></p>
+
+后端工程一览：
 
 | 项目 | 说明 | 可卸载 |
 | --- | --- | --- |
@@ -209,6 +191,7 @@ XiHan.BasicApp/
 │   ├── src/                 #   应用源码（src/modules/ 与后端可选模块一一对应）
 │   └── packages/            #   内部包
 └── assets/                  # 品牌与 README 资源
+    ├── architecture.html    # 架构图源文件（导出 architecture*.png）
     └── preview/             # 功能预览截图
 ```
 

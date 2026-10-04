@@ -6,28 +6,15 @@ XiHan.BasicApp 后端是一套基于 [XiHan.Framework](https://framework.docs.xi
 
 ## 全景
 
-```text
-┌──────────────────────────────────────────────────────────────────────────┐
-│                        XiHan.BasicApp.WebHost                             │
-│        启动入口 Program.cs + 聚合模块 XiHanBasicAppWebHostModule           │
-│             [DependsOn] Saas / CodeGeneration / AI / Workflow             │
-│        健康检查 / MCP Server / Telegram Webhook / /health 端点            │
-├───────────────┬──────────────────┬───────────────┬───────────────────────┤
-│ BasicApp.Saas │ BasicApp.        │ BasicApp.AI   │ BasicApp.Workflow     │
-│ 身份/权限/租户 │  CodeGeneration  │ Provider 库化 │ 流程定义/实例/待办     │
-│ 消息/文件/日志 │ 数据源/表结构/   │ 知识库 RAG /  │ SqlSugar 持久化存储    │
-│ 任务/审批/聊天 │ 模板/全栈生成    │ 提示词库      │ 待办站内通知           │
-├───────────────┴──────────────────┴───────────────┴───────────────────────┤
-│                        XiHan.BasicApp.Web.Core                            │
-│      Web 能力聚合：动态 API / Scalar 文档 / SignalR / 网关灰度             │
-├──────────────────────────────────────────────────────────────────────────┤
-│                          XiHan.BasicApp.Core                              │
-│  基座抽象：实体/DTO 基类（多租户审计）、查询服务标记接口、聚合框架能力模块    │
-├──────────────────────────────────────────────────────────────────────────┤
-│                            XiHan.Framework.*                              │
-│ 认证 / 授权 / 数据(SqlSugar) / 缓存 / 事件总线 / 多租户 / 工作流 / AI / Bot │
-└──────────────────────────────────────────────────────────────────────────┘
-```
+<script setup>
+import architecture from '../../assets/architecture_cn.png'
+</script>
+
+前后端各分三层并横向对齐：应用层放页面与入口，内核层放平台能力，底座层是自研的 XiHan.UI 与 XiHan.Framework；前后端之间通过 Dynamic API、SignalR 和后端下发的菜单与权限码协作。
+
+<a :href="architecture" target="_blank" rel="noopener noreferrer"><img :src="architecture" alt="XiHan.BasicApp 架构" /></a>
+
+> 图的源文件是仓库里的 `assets/architecture.html`：模块或依赖变化时改它顶部的 `DATA`，再按文件头说明导出中英两张 PNG，README 与本页同步更新。
 
 ## 四条贯穿全局的设计
 

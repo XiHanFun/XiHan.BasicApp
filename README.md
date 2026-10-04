@@ -159,29 +159,11 @@ Item-by-item lists live in the [backend](./backend/README.md#dependency-footprin
 
 ## Architecture
 
-The system splits into a framework layer, a module layer and the host application; each module follows DDD layering internally (domain / application / infrastructure).
+Frontend and backend each split into three aligned layers: the app layer holds pages and entry points, the kernel layer holds platform capabilities, and the base layer is the in-house XiHan.UI and XiHan.Framework. Each backend module follows DDD layering internally (Domain / Application / Infrastructure), and the two sides cooperate through Dynamic API, SignalR, and the menus and permission codes the backend publishes.
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│                   XiHan.BasicApp.WebHost                    │
-│             (startup host, module composition)              │
-├──────────┬──────────┬──────────┬──────────┬─────────────────┤
-│ CodeGen  │    AI    │ Workflow │ Printing │      Chat       │
-│(codegen) │ (AI/RAG) │(workflow)│(printing)│     (chat)      │
-├──────────┴──────────┴──────────┴──────────┴─────────────────┤
-│                     XiHan.BasicApp.Saas                     │
-│    (RBAC / tenancy / org / approval / audit / messaging)    │
-├─────────────────────────────────────────────────────────────┤
-│                   XiHan.BasicApp.Web.Core                   │
-│     (web base / dynamic API / docs / maintenance mode)      │
-├─────────────────────────────────────────────────────────────┤
-│                     XiHan.BasicApp.Core                     │
-│            (application base / DDD / modularity)            │
-├─────────────────────────────────────────────────────────────┤
-│                      XiHan.Framework.*                      │
-│ (auth / authorization / data / caching / events / tenancy)  │
-└─────────────────────────────────────────────────────────────┘
-```
+<p align="center"><a href="./assets/architecture.png"><img src="./assets/architecture.png" alt="XiHan.BasicApp architecture" /></a></p>
+
+Backend projects:
 
 | Project | Description | Removable |
 | --- | --- | --- |
@@ -209,6 +191,7 @@ XiHan.BasicApp/
 │   ├── src/                 #   application sources (src/modules/ mirrors the optional backend modules)
 │   └── packages/            #   internal packages
 └── assets/                  # Branding and README assets
+    ├── architecture.html    # Architecture diagram source (exports architecture*.png)
     └── preview/             # Feature screenshots
 ```
 
