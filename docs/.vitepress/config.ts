@@ -299,7 +299,7 @@ export default defineConfig({
     await writeLlmsAssets(siteConfig.outDir, {
       title: "曦寒基础应用",
       summary:
-        "企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + ABAC 权限、代码生成与实时通信。",
+        "企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + 数据范围 + 字段脱敏的权限体系、代码生成与实时通信。",
       sections: [
         { dir: ".", label: "开始" },
         { dir: "backend", label: "后端手册", bundle: "backend" },

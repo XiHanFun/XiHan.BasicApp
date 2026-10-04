@@ -111,7 +111,7 @@ curl -X POST http://127.0.0.1:9708/api/Auth/Login \
 
 - [接口对接指南](./api-guide)：怎么获取 token、统一响应信封、分页协议
 - [系统架构](./backend/introduction)：理解后端模块与前后端如何协作
-- [权限模型](./backend/permission)：RBAC + ABAC、数据范围、多租户
+- [权限模型](./backend/permission)：RBAC、数据范围、字段脱敏
 - [常见问题](./faq)：高频故障速查
 - [功能清单](./features)：系统都有哪些能力
 - [部署](./deployment)：发布到 Linux / Windows

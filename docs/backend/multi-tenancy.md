@@ -276,6 +276,6 @@ BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统�
 
 ## 下一步
 
-- [权限模型](./permission)：RBAC + ABAC、权限码、数据范围、字段脱敏
+- [权限模型](./permission)：RBAC、权限码、数据范围、字段脱敏
 - [系统架构](./introduction)：租户解析在请求管道中的位置
 - [XiHan.Framework.MultiTenancy](https://framework.docs.xihanfun.com/packages/multitenancy)：框架层租户上下文、解析链与存储
