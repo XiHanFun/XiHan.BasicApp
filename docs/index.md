@@ -6,7 +6,7 @@ titleTemplate: 基于 .NET 与 Vue 的超高颜值中后台内核
 hero:
   name: 曦寒基础应用
   text: 超高颜值的企业级中后台内核
-  tagline: 基于 XiHan.Framework 与 XiHan.UI · 多租户 · RBAC + ABAC · 代码生成 · 实时通信
+  tagline: 基于 XiHan.Framework 与 XiHan.UI · 多租户 · RBAC + 数据范围 + 字段脱敏 · 代码生成 · 实时通信
   image:
     src: /images/logo.png
     alt: 曦寒基础应用
@@ -30,7 +30,7 @@ features:
     link: /backend/multi-tenancy
     linkText: "了解多租户"
 
-  - title: RBAC + ABAC 混合权限
+  - title: RBAC + 数据范围 + 字段脱敏
     icon: 🔐
     details: 权限码、数据范围与字段级脱敏三层叠加，后端判定、前端感知，列表页的列、按钮与导出口径由同一份权限推导。
     link: /backend/permission

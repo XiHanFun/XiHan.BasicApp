@@ -212,7 +212,7 @@ Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`Sessio
 
 ## 相关页面
 
-- [权限模型](./permission)：权限码、RBAC 继承、数据范围、字段脱敏、ABAC 约束、实时校验。
+- [权限模型](./permission)：权限码、RBAC 继承、数据范围、字段脱敏、ABAC 条件与约束规则、实时校验。
 - [多租户](./multi-tenancy)：成员关系、平台运维态、租户切换、版本门控。
 - [框架 · 认证模块](https://framework.docs.xihanfun.com/packages/authentication)：JWT / OAuth2 / TOTP / PBKDF2 的底层实现。
 - [请求生命周期](./request-lifecycle)：认证/租户解析/会话闸门/授权在请求管道中的位置。
