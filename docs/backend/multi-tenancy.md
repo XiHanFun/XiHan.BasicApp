@@ -13,7 +13,7 @@ BasicApp 默认走**字段级隔离（Field）**：所有业务实体继承自 `
 | 模式 | 含义 |
 | --- | --- |
 | `Field`（默认） | 同库同表，靠 `TenantId` 列区分租户数据 |
-| `Database` | 每租户独立数据库（`ConnectionString` 加密存储；先 `InitializeDatabase` 建库建表，再 `InitializeTenantAdmin` 开通管理员，见下文「库隔离：平台库是目录库」） |
+| `Database` | 每租户独立数据库（`ConnectionString` 加密存储；`DatabaseType` 可选 `SqlServer` / `MySql` / `PostgreSql` / `SQLite` / `Oracle`，升级脚本只有 PostgreSQL 方言；先 `InitializeDatabase` 建库建表，再 `InitializeTenantAdmin` 开通管理员，见下文「库隔离：平台库是目录库」） |
 | `Schema` | 同库不同 Schema（尚未实装：创建时拒绝；`SaasTenantConnectionProvider` 解析到该模式直接抛异常 fail-closed，拒绝退化为行隔离） |
 
 隔离模式创建时定下、之后不能修改（不在更新契约里）：数据按创建时的模式落库，改模式等于迁移数据，不是改一个字段。
@@ -268,7 +268,7 @@ BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统�
 
 ## 与权限的交叉点
 
-版本门控是租户维度对权限的**再收窄**，叠在 RBAC/ABAC 判定链之上。完整判定链（认证 → 租户解析 → RBAC → ABAC → 数据范围 → 字段脱敏）与权限码/数据范围/FLS 细节见 [权限模型](./permission)。要点回顾：
+版本门控是租户维度对权限的**再收窄**，在授权快照里与权限码一起判定。完整判定链（认证 → 租户解析 → 权限码与版本门控 → 数据范围 → 字段脱敏）与权限码/数据范围/FLS 细节见 [权限模型](./permission#判定链)。要点回顾：
 
 - 授权快照只取当前上下文的绑定行（严格租户隔离），按作用侧裁掉不在当前上下文生效的权限，业务租户里再与版本白名单取交集。
 - 只有平台不受版本门控；超管的 `*` 只在平台成立。
@@ -276,6 +276,6 @@ BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统�
 
 ## 下一步
 
-- [权限模型](./permission)：RBAC + ABAC、权限码、数据范围、字段脱敏
+- [权限模型](./permission)：RBAC、权限码、数据范围、字段脱敏
 - [系统架构](./introduction)：租户解析在请求管道中的位置
 - [XiHan.Framework.MultiTenancy](https://framework.docs.xihanfun.com/packages/multitenancy)：框架层租户上下文、解析链与存储

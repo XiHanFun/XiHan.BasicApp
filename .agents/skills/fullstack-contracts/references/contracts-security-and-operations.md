@@ -41,7 +41,7 @@
 
 - PostgreSQL 脚本放在 `backend/src/main/XiHan.BasicApp.WebHost/UpdateScripts/<version>/<version>.sql`。
 - 脚本可审阅、尽量幂等，并显式处理已有数据、索引和回滚风险。
-- 应用不自动执行版本脚本；数据库变更由明确的升级流程触发。
+- `XiHan:Upgrade:EnableAutoCheckOnStartup` 开启（缺省）时，应用启动自动执行待执行的版本脚本，失败即中断启动；关闭时由发布流程先完成迁移再启动。脚本必须按会在启动时自动运行来编写和验证。
 - 未经用户明确授权，不连接生产库、不执行迁移、不修改外部数据。
 
 ## 运行与发布

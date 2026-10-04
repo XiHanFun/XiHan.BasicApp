@@ -112,7 +112,7 @@ dotnet test --solution backend/XiHan.BasicApp.slnx --configuration Release
 
 仓库内约定 `UpdateScripts/<版本号>/<版本号>.sql`，每个版本一个目录。按约定只提供 PostgreSQL 方言，且脚本须可重复安全空转（`IF NOT EXISTS` 之类）。
 
-脚本目前**不会在启动时自动执行**，需要自行在目标库上按版本顺序应用。
+`XiHan:Upgrade:EnableAutoCheckOnStartup` 为 true（缺省）时，启动会按版本顺序**自动执行**待执行的脚本，失败即中断启动；关掉它则要先自行在目标库上按版本顺序应用。详见 [升级与迁移](../docs/backend/upgrade.md)。
 
 ## 测试
 

@@ -112,7 +112,7 @@ Default super administrator: username `superadmin`, email `superadmin@xihan.fun`
 
 The repository convention is `UpdateScripts/<version>/<version>.sql`, one directory per version. By convention only the PostgreSQL dialect is provided, and each script must be safe to re-run (`IF NOT EXISTS` and friends).
 
-These scripts are **not executed automatically on startup** — apply them to the target database yourself, in version order.
+With `XiHan:Upgrade:EnableAutoCheckOnStartup` set to true (the default), pending scripts are **executed automatically on startup** in version order, and a failure aborts startup. Turn it off and you apply them to the target database yourself, in version order, before starting. See [Upgrade and migration](../docs/backend/upgrade.md).
 
 ## Tests
 

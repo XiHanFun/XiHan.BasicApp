@@ -1,6 +1,6 @@
 # XiHan.BasicApp 基础应用
 
-**企业级中后台内核。** 后端基于 .NET 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 与 [XiHan.UI](https://ui.docs.xihanfun.com/)，开箱即带多租户、RBAC + ABAC 权限、代码生成与实时通信等能力。它既是一套可直接投产的中后台起点，也是学习 .NET + Vue 全栈实践、以及 XiHan.Framework 用法的最佳参考。
+**企业级中后台内核。** 后端基于 .NET 与 [XiHan.Framework](https://framework.docs.xihanfun.com/)，前端基于 Vue 与 [XiHan.UI](https://ui.docs.xihanfun.com/)，开箱即带多租户、RBAC + 数据范围 + 字段脱敏的权限体系、代码生成与实时通信等能力。它既是一套可直接投产的中后台起点，也是学习 .NET + Vue 全栈实践、以及 XiHan.Framework 用法的最佳参考。
 
 ## 它是什么
 
@@ -21,7 +21,7 @@ XiHan.BasicApp 采用**前后端分离**架构：
 
 1. [**快速开始**](./getting-started) —— 在本地把前后端跑起来（约 10 分钟）
 2. [**系统架构**](./backend/introduction) —— 看懂后端模块划分与前后端协作
-3. [**权限模型**](./backend/permission) —— 理解 RBAC + ABAC、数据范围、多租户隔离
+3. [**权限模型**](./backend/permission) —— 理解 RBAC、数据范围、字段脱敏与多租户隔离
 
 </div>
 
@@ -48,7 +48,7 @@ XiHan.BasicApp 采用**前后端分离**架构：
 **身份与访问**
 
 - [身份与认证](./backend/authentication) —— 多种登录、JWT 双令牌、会话、2FA
-- [权限模型](./backend/permission) —— RBAC + ABAC、权限码、数据范围、字段脱敏
+- [权限模型](./backend/permission) —— RBAC、权限码、数据范围、字段脱敏
 - [组织架构](./backend/organization) —— 部门树与闭包表、岗位、用户归属
 - [多租户与版本](./backend/multi-tenancy) —— 字段级隔离、租户切换、版本门控
 

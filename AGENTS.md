@@ -101,7 +101,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 模块化后端与基于 Xi
 - 使用 SqlSugar 特性和现有仓储契约；不引入 EF Core 作为平行业务数据层。
 - 平台/全局记录固定 `TenantId = 0`，租户记录使用当前租户；不以 nullable TenantId 表示全局。
 - 软删除实体的唯一索引必须包含 `IsDeleted`，保持删除后可重新创建的语义。
-- 数据库升级脚本放在 WebHost 的 `UpdateScripts/<version>/<version>.sql`，面向 PostgreSQL、可重复检查且不自动执行。
+- 数据库升级脚本放在 WebHost 的 `UpdateScripts/<version>/<version>.sql`，面向 PostgreSQL、可重复执行；`XiHan:Upgrade:EnableAutoCheckOnStartup` 开启（缺省）时由应用启动自动执行、失败即中断启动，Agent 不手工对任何库执行脚本。
 - Framework 的默认内存实现保持零外部依赖；BasicApp 负责 Redis/数据库等分布式实现。
 
 ## 前端架构与设计
