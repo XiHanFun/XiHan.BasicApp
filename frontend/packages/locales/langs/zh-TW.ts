@@ -11,6 +11,7 @@ import island from './zh-TW/island'
 import menu from './zh-TW/menu'
 import page from './zh-TW/page'
 import preference from './zh-TW/preference'
+import sidebar from './zh-TW/sidebar'
 import tabbar from './zh-TW/tabbar'
 
 export default {
@@ -20,6 +21,7 @@ export default {
   header,
   tabbar,
   preference,
+  sidebar,
   page,
   island,
   error,

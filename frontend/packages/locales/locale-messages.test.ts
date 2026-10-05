@@ -48,6 +48,7 @@ const SHELL_NAMESPACES = [
   'menu',
   'page',
   'preference',
+  'sidebar',
   'tabbar',
 ] as const
 

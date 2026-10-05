@@ -11,6 +11,7 @@ import island from './de-DE/island'
 import menu from './de-DE/menu'
 import page from './de-DE/page'
 import preference from './de-DE/preference'
+import sidebar from './de-DE/sidebar'
 import tabbar from './de-DE/tabbar'
 
 export default {
@@ -20,6 +21,7 @@ export default {
   header,
   tabbar,
   preference,
+  sidebar,
   page,
   island,
   error,
