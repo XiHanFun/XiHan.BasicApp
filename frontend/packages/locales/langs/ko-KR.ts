@@ -11,6 +11,7 @@ import island from './ko-KR/island'
 import menu from './ko-KR/menu'
 import page from './ko-KR/page'
 import preference from './ko-KR/preference'
+import sidebar from './ko-KR/sidebar'
 import tabbar from './ko-KR/tabbar'
 
 export default {
@@ -20,6 +21,7 @@ export default {
   header,
   tabbar,
   preference,
+  sidebar,
   page,
   island,
   error,
