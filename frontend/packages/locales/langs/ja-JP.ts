@@ -11,6 +11,7 @@ import island from './ja-JP/island'
 import menu from './ja-JP/menu'
 import page from './ja-JP/page'
 import preference from './ja-JP/preference'
+import sidebar from './ja-JP/sidebar'
 import tabbar from './ja-JP/tabbar'
 
 export default {
@@ -20,6 +21,7 @@ export default {
   header,
   tabbar,
   preference,
+  sidebar,
   page,
   island,
   error,
