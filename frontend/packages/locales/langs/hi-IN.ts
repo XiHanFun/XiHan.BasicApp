@@ -11,6 +11,7 @@ import island from './hi-IN/island'
 import menu from './hi-IN/menu'
 import page from './hi-IN/page'
 import preference from './hi-IN/preference'
+import sidebar from './hi-IN/sidebar'
 import tabbar from './hi-IN/tabbar'
 
 export default {
@@ -20,6 +21,7 @@ export default {
   header,
   tabbar,
   preference,
+  sidebar,
   page,
   island,
   error,
