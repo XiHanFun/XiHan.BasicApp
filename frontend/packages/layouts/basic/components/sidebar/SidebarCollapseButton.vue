@@ -26,10 +26,15 @@ function toggle() {
     :title="label"
     @click.stop="toggle"
   >
-    <Icon
-      :icon="collapsed ? 'lucide:chevrons-right' : 'lucide:chevrons-left'"
-      class="size-4"
-    />
+    <span class="icon-swap">
+      <Transition name="icon-swap">
+        <Icon
+          :key="collapsed ? 'right' : 'left'"
+          :icon="collapsed ? 'lucide:chevrons-right' : 'lucide:chevrons-left'"
+          class="size-4"
+        />
+      </Transition>
+    </span>
   </button>
 </template>
 

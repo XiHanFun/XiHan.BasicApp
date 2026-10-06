@@ -172,7 +172,9 @@ watch(visible, (open, was) => {
 </script>
 
 <template>
-  <XhDrawerRoot v-model:open="visible" side="right">
+  <!-- unmount-on-exit=false：第一次打开才挂内容，之后收起只隐藏、不卸载；
+       偏好会被反复开合，每次打开都把整页表单重挂一遍会让滑入那一帧卡住 -->
+  <XhDrawerRoot v-model:open="visible" side="right" :unmount-on-exit="false">
     <XhDrawerContent class="preference-drawer-content">
       <div class="drawer-header">
         <div class="flex items-center gap-2">
@@ -186,8 +188,10 @@ watch(visible, (open, was) => {
       </div>
 
       <!-- 面板内容各不相同，标签与面板手摆而不喂 collection。
-           滚动区只包面板，标签行留在外面：它不随内容滚，也就不会和滚动条压在一起 -->
-      <XhTabsRoot v-model:value="activeTab" class="preference-tabs" variant="segment">
+           滚动区只包面板，标签行留在外面：它不随内容滚，也就不会和滚动条压在一起。
+           lazy-mount：四页一次全挂是三千多个节点、六十来个提示浮层，抽屉滑入那一帧整块卡住；
+           只挂当前页，其余等第一次切过去再挂，挂过的留着不卸，来回切不重建 -->
+      <XhTabsRoot v-model:value="activeTab" class="preference-tabs" variant="segment" lazy-mount>
         <XhTabsList>
           <XhTabsTrigger value="appearance">
             {{ t('preference.drawer.tab.appearance') }}

@@ -252,6 +252,26 @@ const headerMixSecondaryOptions = computed(() =>
 )
 
 // --- Sidebar styles ---
+/**
+ * 桌面端侧栏收起（内容最大化、顶栏开关藏起侧栏）：整块照原宽度滑出画面并打 inert，
+ * 占位列直接让出、正文一步到位——侧栏走 translate3d(-100%)，不逐帧重排正文
+ */
+const stowed = computed(() => !props.isMobile && !props.showSidebar)
+
+// 收起与放出的那一帧占位列不走过渡，宽度一步到位；等这一帧真正画出来，再交还给原有的折叠过渡。
+// 只等一帧不够：rAF 回调排在本帧绘制之前，那时撤掉 none，宽度变化照样会被过渡接住
+const placeholderSnap = ref(false)
+let snapFrame = 0
+watch(stowed, () => {
+  placeholderSnap.value = true
+  cancelAnimationFrame(snapFrame)
+  snapFrame = requestAnimationFrame(() => {
+    snapFrame = requestAnimationFrame(() => {
+      placeholderSnap.value = false
+    })
+  })
+}, { flush: 'sync' })
+
 const placeholderStyle = computed((): CSSProperties => {
   let widthValue = `${props.sidebarWidth}px`
 
@@ -263,11 +283,12 @@ const placeholderStyle = computed((): CSSProperties => {
     widthValue = `${props.sidebarWidth + props.sidebarExtraWidth}px`
   }
 
-  if (props.sidebarWidth === 0) {
+  if (props.sidebarWidth === 0 || stowed.value) {
     widthValue = '0px'
   }
 
   return {
+    ...(placeholderSnap.value ? { transition: 'none' } : {}),
     flex: `0 0 ${widthValue}`,
     maxWidth: widthValue,
     minWidth: widthValue,
@@ -293,6 +314,7 @@ const asideStyle = computed((): CSSProperties => {
     'marginLeft': props.isMobile && !props.showSidebar ? `-${totalW}px` : '0',
     'overflow': props.isMobile && !props.showSidebar ? 'hidden' : undefined,
     'zIndex': props.sidebarZIndex,
+    'transform': stowed.value ? 'translate3d(-100%, 0, 0)' : undefined,
     ...(isMixed && props.extraVisible ? { transition: 'none' } : {}),
   }
 })
@@ -506,6 +528,7 @@ watch(
     <!-- Fixed sidebar aside -->
     <aside
       ref="asideRef"
+      :inert="stowed || undefined"
       :style="asideStyle"
       class="fixed left-0 top-0 h-full transition-all duration-150"
       @mouseenter="onAsideMouseEnter"
@@ -634,6 +657,7 @@ watch(
       <!-- Extra panel for dual-column modes -->
       <div
         v-if="isDualColumn"
+        :inert="stowed || undefined"
         :class="[sidebarSubTheme, { 'border-l': extraVisible }]"
         :data-theme="extraMenuTheme"
         :style="extraStyle"

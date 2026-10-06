@@ -81,11 +81,16 @@ const placement = useWidgetPlacement()
       @mousedown.prevent
       @click="(event: MouseEvent) => emit('themeToggle', event)"
     >
-      <Icon
-        :icon="props.isDark ? 'lucide:sun' : 'lucide:moon'"
-        width="16"
-        height="16"
-      />
+      <span class="icon-swap">
+        <Transition name="icon-swap">
+          <Icon
+            :key="props.isDark ? 'sun' : 'moon'"
+            :icon="props.isDark ? 'lucide:sun' : 'lucide:moon'"
+            width="16"
+            height="16"
+          />
+        </Transition>
+      </span>
     </XihanIconButton>
 
     <!-- 全屏 -->
@@ -95,11 +100,16 @@ const placement = useWidgetPlacement()
       :tooltip="props.isFullscreen ? t('header.toolbar.fullscreen_exit') : t('header.toolbar.fullscreen_enter')"
       @click="emit('fullscreenToggle')"
     >
-      <Icon
-        :icon="props.isFullscreen ? 'lucide:minimize' : 'lucide:maximize'"
-        width="16"
-        height="16"
-      />
+      <span class="icon-swap">
+        <Transition name="icon-swap">
+          <Icon
+            :key="props.isFullscreen ? 'minimize' : 'maximize'"
+            :icon="props.isFullscreen ? 'lucide:minimize' : 'lucide:maximize'"
+            width="16"
+            height="16"
+          />
+        </Transition>
+      </span>
     </XihanIconButton>
 
     <!-- 偏好设置 -->

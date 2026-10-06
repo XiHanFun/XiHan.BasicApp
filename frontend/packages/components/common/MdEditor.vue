@@ -5,6 +5,7 @@ import { MdEditor as Editor, MdPreview } from 'md-editor-v3'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAppStore } from '~/stores'
+import './md-editor-config'
 import 'md-editor-v3/lib/style.css'
 
 defineOptions({ name: 'XMdEditor' })
