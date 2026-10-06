@@ -26,9 +26,9 @@ export function filterRoutesByPermission(
     // 于是只写 meta.roles 的路由 hasPermissionAccess 恒真、排除条件恒假 —— 任何用户都拿得到；
     // 只写 meta.permissions 的由角色侧同样兜住。而路由 meta 通常只写一侧，
     // 等于静态模式下的路由级过滤整体失效，无权限用户会拿到本不该出现的菜单与路由。
+    // 权限码精确匹配、`*` 不当通配，与 useUserStore().hasPermission 同一口径
     const isRestricted = Boolean(requiredRoles?.length) || Boolean(requiredPermissions?.length)
-    const isGranted = userPermissions.includes('*')
-      || (requiredRoles?.some(r => userRoles.includes(r)) ?? false)
+    const isGranted = (requiredRoles?.some(r => userRoles.includes(r)) ?? false)
       || (requiredPermissions?.some(p => userPermissions.includes(p)) ?? false)
 
     if (isRestricted && !isGranted) {

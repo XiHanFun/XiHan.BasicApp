@@ -1,7 +1,7 @@
 /**
  * 访问控制 Store（access）单元测试。
  * 职责边界：只覆盖 useAccessStore 自身——令牌读写与 localStorage 落地、
- * 权限码判定（含通配 '*' 短路）、路由装载标记、homePath 派生与 $reset 清场。
+ * 权限码判定（精确匹配，'*' 不当通配）、路由装载标记、homePath 派生与 $reset 清场。
  * 不涉及登录流程（见 auth.test.ts）与用户信息（见 user.test.ts）。
  */
 import type { MenuRoute } from '~/types'
@@ -118,15 +118,19 @@ describe('权限码判定', () => {
     expect(store.hasCode('system:user:list:extra')).toBe(false)
   })
 
-  it('权限码包含 * 时任意码短路通过（超管）', () => {
+  it('超管带着的 "*" 不当通配：只认服务端展开下发的码，没下发的（作用侧不含当前上下文）判为无', () => {
     const store = useAccessStore()
-    store.setAccessCodes(['*'])
+    store.setAccessCodes(['*', 'saas:user:read'])
+    store.setAccessButtons(['identity.user.create'])
 
-    expect(store.hasCode('anything:at:all')).toBe(true)
-    expect(store.hasCode('')).toBe(true)
+    expect(store.hasCode('saas:user:read')).toBe(true)
+    expect(store.hasCode('identity.user.create')).toBe(true)
+    expect(store.hasCode('saas:department:read')).toBe(false)
+    expect(store.hasCode('identity.user.assign-department')).toBe(false)
+    expect(store.hasCode('')).toBe(false)
   })
 
-  it('通配只认整条 "*"，"system:*" 这类前缀通配不生效', () => {
+  it('"system:*" 这类前缀写法也不是通配', () => {
     const store = useAccessStore()
     store.setAccessCodes(['system:*'])
 
@@ -246,9 +250,9 @@ describe('登录过期标记与 $reset', () => {
     expect(store.homePath).toBe(HOME_PATH)
   })
 
-  it('$reset 后权限码通配也一并失效', () => {
+  it('$reset 后权限码一并失效', () => {
     const store = useAccessStore()
-    store.setAccessCodes(['*'])
+    store.setAccessCodes(['any'])
 
     store.$reset()
 

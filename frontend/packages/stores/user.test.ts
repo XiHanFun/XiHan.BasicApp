@@ -1,7 +1,7 @@
 /**
  * 用户信息 Store（user）单元测试。
  * 职责边界：只覆盖 useUserStore——用户信息落地/还原、各 getter 派生的空值兜底、
- * 角色与权限判定（含 '*' 超管短路）、$reset 清场。
+ * 角色与权限判定（精确匹配，'*' 不当通配）、$reset 清场。
  */
 import type { UserInfo } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
@@ -149,12 +149,14 @@ describe('角色与权限判定', () => {
     expect(store.hasRole('*')).toBe(true)
   })
 
-  it('hasPermission 命中 "*" 时任意权限码短路通过', () => {
+  it('hasPermission 不把超管带着的 "*" 当通配：只认服务端展开下发的码', () => {
     const store = useUserStore()
-    store.setUserInfo(makeUser({ permissions: ['*'] }))
+    // 平台超管：服务端下发 * 与平台生效的全部码，租户侧的码（如部门查看）不在其中、鉴权也拒
+    store.setUserInfo(makeUser({ permissions: ['*', 'saas:user:read'] }))
 
-    expect(store.hasPermission('any:code')).toBe(true)
-    expect(store.hasPermission('')).toBe(true)
+    expect(store.hasPermission('saas:user:read')).toBe(true)
+    expect(store.hasPermission('saas:department:read')).toBe(false)
+    expect(store.hasPermission('')).toBe(false)
   })
 
   it('权限码列表为空时任意权限均判定为无', () => {
@@ -206,9 +208,9 @@ describe('$reset', () => {
     expect(localStorage.getItem(USER_INFO_KEY)).toBeNull()
   })
 
-  it('$reset 后权限通配随之失效', () => {
+  it('$reset 后权限随之失效', () => {
     const store = useUserStore()
-    store.setUserInfo(makeUser({ permissions: ['*'] }))
+    store.setUserInfo(makeUser({ permissions: ['any'] }))
 
     store.$reset()
 

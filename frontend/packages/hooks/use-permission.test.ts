@@ -1,7 +1,7 @@
 /**
  * usePermission 权限判定单元测试。
  * 职责：锁定与 userStore / accessStore 的判定一致性——
- * 用户权限位与访问码任一命中即通过、通配符 `*` 放行、空入参一律放行，
+ * 用户权限位与访问码任一命中即通过、`*` 不当通配（只认服务端展开下发的码）、空入参一律放行，
  * 以及角色判定只看 userStore.roles（不参与访问码回退）。
  */
 import type { UserInfo } from '~/types'
@@ -44,17 +44,14 @@ describe('usePermission.hasPermission 与 store 判定一致', () => {
     expect(usePermission().hasPermission('sys:user:delete')).toBe(false)
   })
 
-  it('用户权限位里的通配符 * 放行任意权限码', () => {
-    useUserStore().setUserInfo(makeUser(['*']))
+  it('平台超管的 * 不放行服务端没下发的按钮码：租户侧按钮在平台态判为无', () => {
+    useUserStore().setUserInfo(makeUser(['*', 'saas:user:read']))
+    useAccessStore().setAccessCodes(['*', 'saas:user:read'])
+    useAccessStore().setAccessButtons(['identity.user.create'])
 
-    expect(usePermission().hasPermission('anything:at:all')).toBe(true)
-  })
-
-  it('访问码里的通配符 * 同样放行任意权限码', () => {
-    useUserStore().setUserInfo(makeUser([]))
-    useAccessStore().setAccessCodes(['*'])
-
-    expect(usePermission().hasPermission('anything:at:all')).toBe(true)
+    expect(usePermission().hasPermission('identity.user.create')).toBe(true)
+    expect(usePermission().hasPermission('identity.user.assign-department')).toBe(false)
+    expect(usePermission().hasPermission(['identity.user.assign-department', 'identity.user.revoke-department'])).toBe(false)
   })
 
   it('未登录（userInfo 为 null）且无访问码时一律拒绝', () => {

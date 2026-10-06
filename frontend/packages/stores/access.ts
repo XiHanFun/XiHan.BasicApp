@@ -53,10 +53,10 @@ export const useAccessStore = defineStore('access', () => {
     loginExpired.value = expired
   }
 
+  /** 权限码与按钮码都照服务端下发的精确匹配，`*` 不当通配，口径见 useUserStore().hasPermission */
   function hasCode(code: string): boolean {
     return accessCodes.value.includes(code)
       || accessButtons.value.includes(code)
-      || accessCodes.value.includes('*')
   }
 
   function $reset() {
