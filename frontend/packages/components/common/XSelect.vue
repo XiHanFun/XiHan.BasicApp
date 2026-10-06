@@ -117,6 +117,8 @@ function onValueChange(next: string[]): void {
 </script>
 
 <template>
+  <!-- lazy-mount：条目第一次展开才挂、之后常驻，表单里成片的下拉不再各自先铺一遍列表；
+       收起时的选中文字与连打定位按 collection 算，所以 collection 必须传全 -->
   <XhSelectRoot
     v-slot="{ tags }"
     :class="attrs.class"
@@ -131,6 +133,7 @@ function onValueChange(next: string[]): void {
     :placeholder="placeholder"
     :size="size"
     :max-tag-count="maxTagCount"
+    lazy-mount
     @update:value="onValueChange"
   >
     <XhSelectLabel v-if="ariaLabel" class="sr-only">
@@ -152,7 +155,7 @@ function onValueChange(next: string[]): void {
     </XhSelectControl>
     <XhSelectPositioner>
       <XhSelectContent>
-        <!-- 列表恒在：它是触发器 aria-controls 指向的 listbox，后台刷新时也保留上一帧 -->
+        <!-- 列表不随在途收放：它是触发器 aria-controls 指向的 listbox，后台刷新时也保留上一帧 -->
         <XhSelectList>
           <XhSelectItem v-for="node in collection" :key="node.value" :value="node.value">
             <XhSelectItemText>{{ node.label }}</XhSelectItemText>

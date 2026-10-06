@@ -96,6 +96,7 @@ function onSizeChange(value: string[]): void {
       :collection="sizeOptions"
       :value="sizeValue"
       size="sm"
+      lazy-mount
       @update:value="onSizeChange"
     />
   </div>
