@@ -56,8 +56,6 @@ const { t } = useI18n()
 const { hasPermission } = usePermission()
 const authStore = useAuthStore()
 const userStore = useUserStore()
-/** 数据范围是租户侧设置：平台没有成员关系 */
-const isPlatformContext = computed(() => userStore.userInfo?.isPlatform ?? false)
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -142,6 +140,11 @@ const formAccess = computed(() => ({
   role: { grant: hasPermission('identity.user.grant-role'), revoke: hasPermission('identity.user.revoke-role') },
   department: { grant: hasPermission('identity.user.assign-department'), revoke: hasPermission('identity.user.revoke-department') },
 }))
+/**
+ * 部门页签与部门选项只给能分配或撤销部门的人：部门是租户侧数据，平台态的按钮码里没有这两项，
+ * 部门树接口在平台态也必拒，不该去拉
+ */
+const canPickDepartments = computed(() => formAccess.value.department.grant || formAccess.value.department.revoke)
 const effectiveRoleIds = computed(() => new Set(existingRoles.value.map(role => role.roleId)))
 const effectiveDeptIds = computed(() => new Set(existingDepts.value.map(dept => dept.departmentId)))
 
@@ -538,7 +541,8 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('identity.user.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'identity.user.update' },
     { key: 'grantRole', title: t('identity.user.action_grant_role'), scope: 'row', icon: 'lucide:users-round', permission: 'identity.user.grant-role' },
     { key: 'grantPermission', title: t('identity.user.action_grant_perm'), scope: 'row', icon: 'lucide:key-round', permission: 'identity.user.grant-permission' },
-    { key: 'dataScope', title: t('identity.user.action_data_scope'), scope: 'row', icon: 'lucide:building-2', visible: () => !isPlatformContext.value, permission: 'identity.user.data-scope' },
+    // 数据范围是租户侧设置：平台态的按钮码里本就没有它，不必再判上下文
+    { key: 'dataScope', title: t('identity.user.action_data_scope'), scope: 'row', icon: 'lucide:building-2', permission: 'identity.user.data-scope' },
     { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', type: 'warning', icon: 'lucide:lock', visible: isHomeAccountRow, permission: 'identity.user.lock' },
     { key: 'resetPassword', title: t('identity.user.action_reset_password'), scope: 'row', type: 'error', icon: 'lucide:key-square', visible: isHomeAccountRow, permission: 'identity.user.reset-password' },
     {
@@ -650,7 +654,7 @@ async function loadOptions() {
   try {
     const [roles, tree] = await Promise.all([
       roleApi.enabledList({ limit: 200 }),
-      userManagementApi.departments.tree({ limit: 500, onlyEnabled: true }),
+      canPickDepartments.value ? userManagementApi.departments.tree({ limit: 500, onlyEnabled: true }) : [],
     ])
     roleOptions.value = roles
     deptFlatOptions.value = flattenDeptOptions(tree)
@@ -1366,7 +1370,7 @@ async function confirmDelete() {
           <XhTabsTrigger value="2">
             {{ t('identity.user.tab_roles') }}
           </XhTabsTrigger>
-          <XhTabsTrigger value="3">
+          <XhTabsTrigger v-if="canPickDepartments" value="3">
             {{ t('identity.user.tab_departments') }}
           </XhTabsTrigger>
           <XhTabsIndicator />
@@ -1566,7 +1570,7 @@ async function confirmDelete() {
             </div>
           </div>
         </XhTabsContent>
-        <XhTabsContent value="3">
+        <XhTabsContent v-if="canPickDepartments" value="3">
           <div class="pick-panel">
             <p class="pick-desc">
               {{ t('identity.user.pick_depts_desc') }}

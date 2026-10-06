@@ -12,7 +12,9 @@
 
 ## 权限码
 
-以 `:` 分段，多数是 `module:resource:action`（如 `saas:user:read`、`saas:tenant-edition-permission:grant`），也有两段的 `module:action`（如 `workflow:execute`）。超管用**字面通配 `*`**（不是段级 `*:*:*`）。
+以 `:` 分段，多数是 `module:resource:action`（如 `saas:user:read`、`saas:tenant-edition-permission:grant`），也有两段的 `module:action`（如 `workflow:execute`）。超管在服务端用**字面通配 `*`**（不是段级 `*:*:*`）。
+
+前端**不把 `*` 当通配**，只按下发的权限码与按钮码精确匹配：服务端下发时已把超管的 `*` 展开成当前上下文生效的全部码，作用侧不含当前上下文的码（如平台态里的部门、数据范围等租户侧权限）不下发、鉴权时 `*` 也不放行。前端再拿 `*` 短路，就会在平台态露出服务端必拒的操作。
 
 **真源在后端** `SaasPermissionDefinitions`（Saas 模块）与各模块自己的权限码类。前端只是消费者——写权限码字符串时去后端对一下，别凭记忆写。
 

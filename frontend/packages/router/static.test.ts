@@ -63,13 +63,14 @@ describe('filterRoutesByPermission 过滤口径', () => {
     expect(paths(result)).toEqual(['/secret'])
   })
 
-  it('权限通配 * 顶替任何具体权限码（当前口径下与角色无关）', () => {
+  it('* 不当通配：权限码里只有 * 而没有所需码时仍被剔除', () => {
+    // 服务端已把超管的 * 展开成当前上下文生效的全部码，没下发的码在当前上下文本就不生效
     const result = filterRoutesByPermission(
       [route('/secret', { roles: ['admin'], permissions: ['sys:view'] })],
       ['guest'],
       ['*'],
     )
-    expect(paths(result)).toEqual(['/secret'])
+    expect(result).toEqual([])
   })
 
   it('仅声明 roles 且用户无该角色时必须被过滤掉', () => {
@@ -93,15 +94,14 @@ describe('filterRoutesByPermission 过滤口径', () => {
     expect(paths(result)).toEqual([])
   })
 
-  it('通配 * 放行任何受限路由，包括只声明 roles 的', () => {
-    // 与 guard.ts 的口径一致：userStore.hasPermission 内部就是 includes(code) || includes('*')，
-    // 所以超管的 * 对角色侧声明的路由同样放行，不能只作用于权限侧。
+  it('超管的 * 与展开的码同在时只按展开的码放行，不顶替角色侧声明', () => {
+    // 与 guard.ts 同一口径：userStore.hasPermission 精确匹配，* 不放行只声明 roles 的路由
     const granted = filterRoutesByPermission(
       [route('/role-only', { roles: ['admin'] }), route('/perm-only', { permissions: ['sys:view'] })],
       ['guest'],
-      ['*'],
+      ['*', 'sys:view'],
     )
-    expect(paths(granted)).toEqual(['/role-only', '/perm-only'])
+    expect(paths(granted)).toEqual(['/perm-only'])
   })
 
   it('角色与权限之间是或：命中任一声明项即放行', () => {

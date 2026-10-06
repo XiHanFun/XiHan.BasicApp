@@ -546,11 +546,11 @@ describe('meta 上的角色与权限校验', () => {
     expect(router.currentRoute.value.path).toBe(FORBIDDEN_PATH)
   })
 
-  it('权限通配 * 顶替具体权限码', async () => {
+  it('* 不顶替具体权限码：没下发所需码时照样落 403', async () => {
     signInWithLoadedRoutes({ roles: ['guest'], permissions: ['*'] })
     const router = createGuardedRouter()
     await router.push('/perm-guarded')
-    expect(router.currentRoute.value.path).toBe('/perm-guarded')
+    expect(router.currentRoute.value.path).toBe(FORBIDDEN_PATH)
   })
 
   it('角色与权限同时声明时任一命中即放行，不是「与」的关系', async () => {

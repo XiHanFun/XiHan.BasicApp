@@ -28,8 +28,13 @@ export const useUserStore = defineStore('user', () => {
     return roles.value.includes(role)
   }
 
+  /**
+   * 照服务端下发的码精确匹配，不把 `*` 当通配：服务端已把超管的 `*` 展开成当前上下文生效的全部码，
+   * 作用侧不含当前上下文的码（如平台态里的租户侧码）不下发、鉴权时 `*` 也不放行。前端再拿 `*` 短路，
+   * 就会把服务端必拒的操作判成可用
+   */
   function hasPermission(permission: string): boolean {
-    return permissions.value.includes(permission) || permissions.value.includes('*')
+    return permissions.value.includes(permission)
   }
 
   function hasAnyRole(roleList: string[]): boolean {
