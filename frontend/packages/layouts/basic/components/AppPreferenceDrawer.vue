@@ -172,7 +172,9 @@ watch(visible, (open, was) => {
 </script>
 
 <template>
-  <XhDrawerRoot v-model:open="visible" side="right">
+  <!-- unmount-on-exit=false：第一次打开才挂内容，之后收起只隐藏、不卸载；
+       偏好会被反复开合，每次打开都把整页表单重挂一遍会让滑入那一帧卡住 -->
+  <XhDrawerRoot v-model:open="visible" side="right" :unmount-on-exit="false">
     <XhDrawerContent class="preference-drawer-content">
       <div class="drawer-header">
         <div class="flex items-center gap-2">
