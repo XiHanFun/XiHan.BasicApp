@@ -2,8 +2,8 @@
   <!-- 项目属性 -->
   <PropertyGroup>
     <!-- 设置程序集的版本信息 -->
-    <AssemblyVersion>5.5.0</AssemblyVersion>
-    <FileVersion>5.5.0</FileVersion>
-    <Version>5.5.0</Version>
+    <AssemblyVersion>5.6.0</AssemblyVersion>
+    <FileVersion>5.6.0</FileVersion>
+    <Version>5.6.0</Version>
   </PropertyGroup>
 </Project>
