@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useIntersectionObserver } from '@vueuse/core'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { buildPath, getDetailScale, getLoaderConfig, getParticle, getRotation } from './math-curve-loaders'
 
@@ -44,6 +45,7 @@ const particleCount = computed(() => props.preview ? Math.min(config.value.parti
 const pathSteps = computed(() => props.preview ? 220 : 460)
 const particleList = computed(() => Array.from({ length: particleCount.value }, (_, index) => index))
 
+const svgEl = ref<SVGSVGElement | null>(null)
 const groupEl = ref<SVGGElement | null>(null)
 const pathEl = ref<SVGPathElement | null>(null)
 let circleEls: SVGCircleElement[] = []
@@ -56,6 +58,8 @@ function collectCircle(el: unknown, index: number) {
 
 let raf = 0
 let startTime = 0
+/** 只在看得见时逐帧推进：每帧要重算路径、改写几十个粒子的四个属性，看不见的那些白白占主线程 */
+let inView = false
 
 function frame(now: number) {
   const cfg = config.value
@@ -90,17 +94,43 @@ function start() {
   raf = requestAnimationFrame(frame)
 }
 
-watch(() => props.name, () => {
-  circleEls = []
-  void nextTick(start)
+function stop() {
+  cancelAnimationFrame(raf)
+  raf = 0
+}
+
+// 偏好抽屉里一排二十来个预览：藏在未选中的标签页里、或滚出抽屉可视区的，交叉观察报不可见即停帧，
+// 再露出来从头播。环境没有 IntersectionObserver 时退回挂载即播
+const { isSupported: observable } = useIntersectionObserver(svgEl, ([entry]) => {
+  inView = entry?.isIntersecting ?? false
+  if (inView) {
+    start()
+  }
+  else {
+    stop()
+  }
 })
 
-onMounted(start)
-onBeforeUnmount(() => cancelAnimationFrame(raf))
+watch(() => props.name, () => {
+  circleEls = []
+  void nextTick(() => {
+    if (inView || !observable.value) {
+      start()
+    }
+  })
+})
+
+onMounted(() => {
+  if (!observable.value) {
+    start()
+  }
+})
+onBeforeUnmount(stop)
 </script>
 
 <template>
   <svg
+    ref="svgEl"
     class="xh-page-loader"
     :class="{ 'is-fixed-color': fixedColor }"
     :style="{ width: `${size}px`, height: `${size}px` }"

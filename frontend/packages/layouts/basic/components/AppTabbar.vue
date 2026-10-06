@@ -619,10 +619,15 @@ watch(() => tabbarStore.tabs.map(tab => tab.path).join('|'), () => {
       :aria-label="isContentMaximized ? t('tabbar.unmaximize') : t('tabbar.maximize')"
       @click="toggleMaximize"
     >
-      <Icon
-        :icon="isContentMaximized ? 'lucide:minimize' : 'lucide:maximize'"
-        width="14"
-      />
+      <span class="icon-swap">
+        <Transition name="icon-swap">
+          <Icon
+            :key="isContentMaximized ? 'minimize' : 'maximize'"
+            :icon="isContentMaximized ? 'lucide:minimize' : 'lucide:maximize'"
+            width="14"
+          />
+        </Transition>
+      </span>
     </XhButton>
   </div>
 </template>

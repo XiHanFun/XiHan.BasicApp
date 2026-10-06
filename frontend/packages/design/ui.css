@@ -473,7 +473,8 @@
   cursor: pointer;
   transition:
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
 }
 
 .xihan-icon-btn:hover:not(:disabled) {
@@ -481,8 +482,12 @@
   color: var(--xh-fg-default);
 }
 
+/* 离散动作钮的统一按压反馈：按下缩到 0.97 并换底，松开回弹；减弱动态效果下缩放令牌归 1 */
 .xihan-icon-btn:active:not(:disabled) {
   background: var(--xh-bg-subtle-active);
+  scale: var(--xh-motion-scale-press);
+  transition-duration: var(--xh-motion-duration-press);
+  transition-timing-function: var(--xh-motion-ease-press);
 }
 
 .xihan-icon-btn:disabled {

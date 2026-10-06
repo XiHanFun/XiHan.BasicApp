@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import PageLoader from '~/components/common/PageLoader.vue'
 import { useAppStore, useTabbarStore } from '~/stores'
-import { playPageEnter } from './page-motion'
+import { cancelPageLeave, playPageEnter, playPageLeave } from './page-motion'
 
 interface LayoutContentRendererProps {
   transitionName: string
@@ -28,9 +28,10 @@ const appStore = useAppStore()
       改一次就把整张自定义属性表重读一遍——实测一次 class 变更触发 66 次门户同步、12 万次
       getPropertyValue；五次 class 变更让整次切页的主线程阻塞从 217ms 涨到 421ms。
 
-      leave 当场收尾：本应用不播页面离场动画（新旧两页并存一帧会跳）。钩子要声明两个形参
-      Vue 才认它接管收尾（hasExplicitCallback 看的是形参个数），同步调 done 即刻摘除旧页，
-      KeepAlive 的 onDeactivated 也就不再压着不发。
+      leave 同样走 WAAPI：旧页钉成绝对定位叠在新页上淡出，两页并存期间不把新页往下挤，
+      切换不再是旧页一帧消失的硬切。钩子要声明两个形参 Vue 才认它接管收尾（hasExplicitCallback
+      看的是形参个数）；淡出取退场档，KeepAlive 的 onDeactivated 只晚这一小段。离场没播完又切回
+      同一页时，after-leave / leave-cancelled 撤掉淡出与钉住的样式（见 page-motion.ts）。
     -->
     <RouterView v-slot="{ Component, route: currentRoute }">
       <template v-if="Component">
@@ -39,7 +40,9 @@ const appStore = useAppStore()
           appear
           @enter="(el, done) => playPageEnter(el, transitionName, done)"
           @appear="(el, done) => playPageEnter(el, transitionName, done)"
-          @leave="(_el, done) => done()"
+          @leave="(el, done) => playPageLeave(el, transitionName, done)"
+          @after-leave="cancelPageLeave"
+          @leave-cancelled="cancelPageLeave"
         >
           <KeepAlive :include="tabbarStore.cachedTabNames">
             <component

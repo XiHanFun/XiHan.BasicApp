@@ -130,7 +130,11 @@ const glyphStyle = { inlineSize: 'var(--xh-icon-size)', blockSize: 'var(--xh-ico
         :title="isDark ? t('header.toolbar.theme_to_light') : t('header.toolbar.theme_to_dark')"
         @click="toggleTheme"
       >
-        <Icon :icon="isDark ? 'lucide:sun' : 'lucide:moon'" :style="glyphStyle" />
+        <span class="icon-swap">
+          <Transition name="icon-swap">
+            <Icon :key="isDark ? 'sun' : 'moon'" :icon="isDark ? 'lucide:sun' : 'lucide:moon'" :style="glyphStyle" />
+          </Transition>
+        </span>
       </button>
       <button
         v-if="placement.fullscreen.value === 'floating'"
@@ -139,7 +143,11 @@ const glyphStyle = { inlineSize: 'var(--xh-icon-size)', blockSize: 'var(--xh-ico
         :title="isFullscreen ? t('header.toolbar.fullscreen_exit') : t('header.toolbar.fullscreen_enter')"
         @click="run(toggleFullscreen)"
       >
-        <Icon :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'" :style="glyphStyle" />
+        <span class="icon-swap">
+          <Transition name="icon-swap">
+            <Icon :key="isFullscreen ? 'minimize' : 'maximize'" :icon="isFullscreen ? 'lucide:minimize' : 'lucide:maximize'" :style="glyphStyle" />
+          </Transition>
+        </span>
       </button>
       <button
         v-if="placement.preference.value === 'floating'"
