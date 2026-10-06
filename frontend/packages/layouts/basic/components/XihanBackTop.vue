@@ -16,12 +16,15 @@ watch(scrollRootRef, (next) => {
   target.value = next
   trackKey.value += 1
 }, { immediate: true })
+
+/** 字形接组件库按圆钮档位下发的字形尺，与悬浮工具组同一把尺，圆钮换档时跟着变 */
+const glyphStyle = { inlineSize: 'var(--xh-icon-size)', blockSize: 'var(--xh-icon-size)' }
 </script>
 
 <template>
   <XhBackTopRoot :key="trackKey" :target="target">
     <XhBackTopTrigger>
-      <Icon icon="lucide:chevron-up" width="18" height="18" />
+      <Icon icon="lucide:chevron-up" :style="glyphStyle" />
     </XhBackTopTrigger>
   </XhBackTopRoot>
 </template>
