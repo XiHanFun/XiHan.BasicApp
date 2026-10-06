@@ -20,7 +20,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 模块化后端与基于 Xi
 
 1. 按任务读取对应技能：后端实现读取 `.agents/skills/backend-development/SKILL.md`；Vue 管理端读取 `.agents/skills/frontend-development/SKILL.md`；跨端 API、权限、租户和运维契约读取 `.agents/skills/fullstack-contracts/SKILL.md`。
 2. 同时涉及多个职责时加载对应多个技能，不要一次读取无关资料。
-3. 检查当前分支、`git status` 和最近提交；保留用户已有改动。
+3. 检查当前分支、`git status` 和最近提交；保留用户已有改动。在 worktree 中还要按「分支与 worktree」核对分支分组和基线。
 4. 阅读目标模块 README、相邻实现、测试和配置，确认当前契约。
 5. 跨前后端改动先固定 DTO、Dynamic API 路由、权限码、菜单组件路径和错误语义。
 6. 前端视觉或交互改动必须读取 `.agents/skills/frontend-development/references/frontend.md`。
@@ -139,6 +139,26 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 模块化后端与基于 Xi
 - 前端逻辑使用 Vitest；视觉与交互改动还要在真实浏览器检查亮/暗色、窄视口、键盘、焦点和 reduced motion。
 - 修改共享组件、路由、请求、权限或主题时，运行 `pnpm check`、`pnpm test` 和 `pnpm build`。
 - 不删除断言、忽略失败、扩大 allowlist 或降低门禁来制造绿色结果。
+
+## 分支与 worktree
+
+在主检出上的日常改动直接提交到当前分支（通常是 `dev`），不另开分支。新功能或并行开发开启 worktree 时，分支按用途分组命名，不保留工具生成的 `claude/<名>`、`codex/<名>` 等前缀：
+
+| 分组 | 用途 | 分支名 |
+| --- | --- | --- |
+| `feat/` | 新功能、增强，以及重构、性能、文档、测试等非缺陷改动 | `feat/<worktree 名>`，如 `feat/confident-morse-925efe` |
+| `fix/` | 缺陷修复 | `fix/<worktree 名>`，如 `fix/confident-morse-925efe` |
+| `issue/` | 处理指定的 GitHub Issue | `issue/<编号>`，如 `issue/46` |
+| `pr/` | 审阅或接手已有 Pull Request | 拉取他人 PR 审阅用 `pr/<编号>-review`；没有编号时用 `pr/<worktree 名>` |
+
+- 任务对应 Issue 或 PR 编号时归入 `issue/`、`pr/` 并以编号命名；其余按改动性质取 `feat/` 或 `fix/`，后缀沿用 worktree 目录名。
+- 进入 worktree 后先看 `git branch --show-current`。分支是工具生成的 `claude/<名>` 等形式时，在首次提交前就地改名：`git branch -m <分组>/<名>`；worktree 目录名不变。改名后上游若指向 `main` 等别的分支，执行 `git branch --unset-upstream`。分支已推送到远端时不改名，先向用户说明。
+- 自行创建时直接带分组：`git worktree add -b feat/<名> .claude/worktrees/<名> dev`。审阅他人 PR 时先 `git fetch origin pull/<编号>/head:pr/<编号>-review`，再 `git worktree add .claude/worktrees/pr-<编号> pr/<编号>-review`。
+- 基线默认是本地 `dev`；热修复以对应 `hotfix/v<主版本>` 为基线，用户指定 `release/*` 时以其为准。工具从 `main` 或 `origin/main` 切出且还没有提交时，用 `git merge --ff-only dev` 对齐；不能快进就停下说明，不 reset。
+- 一个 worktree 只承载一项任务、一条分支。并行任务会改到同一 DTO、Dynamic API、权限码、菜单种子或同一版本的 `UpdateScripts` 时，先说明冲突风险再动手。
+- 新 worktree 没有还原结果、`node_modules` 和被 gitignore 的本地配置（如 `appsettings.Production.json`、`frontend/.env.local`）：后端先执行 `dotnet restore backend/XiHan.BasicApp.slnx`，前端在 `frontend/` 执行 `pnpm install --no-frozen-lockfile`。
+- `backend/props/framework.props` 按相对路径定位同级 XiHan.Framework，worktree 内找不到它，默认走 NuGet 包；需要连 Framework 源码时同时传 `-p:UseXiHanFrameworkSource=true -p:XiHanFrameworkSrc=<XiHan.Framework 检出>/framework/src/`。
+- worktree 分支的合并、推送、创建 PR 以及 worktree 和分支的删除，只在用户明确要求时执行。
 
 ## Git 与提交
 
