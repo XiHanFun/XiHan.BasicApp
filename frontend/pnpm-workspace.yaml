@@ -33,19 +33,13 @@ verifyDepsBeforeRun: false
 packages:
   - 'packages/*'
 
-# @antv/x6 3.x 的 es / lib 产物运行时 import tslib，但发布清单只把它放在 devDependencies；
-# pnpm 严格隔离下解析不到，生产构建直接失败。上游清单补上后删掉本段
-packageExtensions:
-  '@antv/x6@3':
-    dependencies:
-      tslib: ^2.8.1
-
-allowBuilds:
-  core-js: true
-  vue-demi: true
+overrides:
+  # 钉在 8.71.0：8.71.1 的 no-unused-vars 把 .mjs 里正常使用的变量误报为仅作类型使用，
+  # 见 typescript-eslint/typescript-eslint#12980；上游修复发版后删掉这两条
+  '@typescript-eslint/eslint-plugin': 8.71.0
+  '@typescript-eslint/parser': 8.71.0
 # 开发期临时：@xihan-ui/* 改指同级 XiHan.UI 源码，改库不用发版、应用立刻吃到。
 # 缩放口径与响应式那批做完并发版之后，删掉本段即回落到 catalog 里的发布版。
-# overrides:
 #   '@xihan-ui/animations': 'link:../../XiHan.UI/ui/packages/features/animations'
 #   '@xihan-ui/backgrounds': 'link:../../XiHan.UI/ui/packages/features/backgrounds'
 #   '@xihan-ui/chat-stream': 'link:../../XiHan.UI/ui/packages/features/chat-stream'
@@ -61,6 +55,17 @@ allowBuilds:
 #   '@xihan-ui/styles': 'link:../../XiHan.UI/ui/packages/design/styles'
 #   '@xihan-ui/tokens': 'link:../../XiHan.UI/ui/packages/design/tokens'
 #   '@xihan-ui/vue': 'link:../../XiHan.UI/ui/packages/adapters/vue'
+
+# @antv/x6 3.x 的 es / lib 产物运行时 import tslib，但发布清单只把它放在 devDependencies；
+# pnpm 严格隔离下解析不到，生产构建直接失败。上游清单补上后删掉本段
+packageExtensions:
+  '@antv/x6@3':
+    dependencies:
+      tslib: ^2.8.1
+
+allowBuilds:
+  core-js: true
+  vue-demi: true
 
 # 依赖目录（单一版本事实源）：入口包与所有 @xihan/* 底层包用 catalog: 引用，升级只改这里一处
 catalog:
