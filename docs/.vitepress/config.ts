@@ -188,23 +188,6 @@ const nav: DefaultTheme.NavItem[] = [
     ],
   },
   {
-    text: "代码仓库",
-    items: [
-      {
-        text: "Github主库(国际)",
-        link: "https://github.com/XiHanFun/XiHan.BasicApp",
-      },
-      {
-        text: "Gitee同步备库(国内)",
-        link: "https://gitee.com/XiHanFun/XiHan.BasicApp",
-      },
-      {
-        text: "GitCode同步备库(国内)",
-        link: "https://gitcode.com/XiHanFun/XiHan.BasicApp",
-      },
-    ],
-  },
-  {
     text: "参与贡献",
     items: [
       {
