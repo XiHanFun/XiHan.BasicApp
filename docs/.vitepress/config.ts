@@ -1,7 +1,6 @@
 import { createRequire } from "node:module";
 import type { DefaultTheme } from "vitepress";
 import { defineXiHanConfig } from "@xihanfun/vitepress-theme/config";
-import { renderPageMarkdown, writeLlmsAssets } from "./gen-llms.ts";
 const require = createRequire(import.meta.url);
 
 // 导航末项显示的版本号取自应用包 package.json，发版时只改那一处。
@@ -237,19 +236,19 @@ export default defineXiHanConfig({
   description,
   keywords,
   repo: "XiHan.BasicApp",
-  pageMarkdown: renderPageMarkdown,
-  // 机读资产（llms.txt、全站正文、分册与「取本页 Markdown」的单页 .md）在构建末尾落进产物目录
-  async buildEnd(siteConfig) {
-    await writeLlmsAssets(siteConfig.outDir, {
-      title: "曦寒基础应用",
-      summary:
-        "企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + 数据范围 + 字段脱敏的权限体系、代码生成与实时通信。",
-      sections: [
-        { dir: ".", label: "开始" },
-        { dir: "backend", label: "后端手册", bundle: "backend" },
-        { dir: "frontend", label: "前端手册", bundle: "frontend" },
-      ],
-    });
+  llms: {
+    title: "曦寒基础应用",
+    summary:
+      "企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + 数据范围 + 字段脱敏的权限体系、代码生成与实时通信。",
+    sections: [
+      { dir: ".", label: "开始" },
+      { dir: "backend", label: "后端手册" },
+      { dir: "frontend", label: "前端手册" },
+    ],
+    bundles: [
+      { name: "backend", label: "后端手册", dirs: ["backend"] },
+      { name: "frontend", label: "前端手册", dirs: ["frontend"] },
+    ],
   },
   themeConfig: {
     nav,
