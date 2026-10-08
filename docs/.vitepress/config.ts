@@ -115,54 +115,41 @@ const sidebar: DefaultTheme.Sidebar = {
 
 const nav: DefaultTheme.NavItem[] = [
   {
-    text: "开始",
-    link: "/introduction",
+    text: "指南",
     activeMatch:
       "^/(introduction|why|overview|dev-environment|getting-started|project-structure|faq|api-guide|configuration|features|preview|deployment)$",
-  },
-  { text: "后端手册", link: "/backend/introduction", activeMatch: "/backend/" },
-  {
-    text: "前端手册",
-    link: "/frontend/introduction",
-    activeMatch: "/frontend/",
-  },
-  {
-    text: "探索未知",
     items: [
       {
-        text: "关于我们",
+        text: "快速开始",
         items: [
-          {
-            text: "官方网站",
-            link: "https://www.xihanfun.com",
-          },
-          {
-            text: "组织文档",
-            link: "https://docs.xihanfun.com",
-          },
+          { text: "介绍", link: "/introduction" },
+          { text: "快速上手", link: "/getting-started" },
+          { text: "常见问题", link: "/faq" },
+        ],
+      },
+    ],
+  },
+  { text: "后端", link: "/backend/introduction", activeMatch: "/backend/" },
+  { text: "前端", link: "/frontend/introduction", activeMatch: "/frontend/" },
+  {
+    text: "生态",
+    items: [
+      {
+        text: "官方生态",
+        items: [
+          { text: "开发框架", link: "https://framework.docs.xihanfun.com" },
+          { text: "视图组件", link: "https://ui.docs.xihanfun.com" },
+          { text: "基础应用", link: "/" },
         ],
       },
     ],
   },
   {
-    text: "参与贡献",
+    text: "支持",
     items: [
-      {
-        text: "公约",
-        link: "https://docs.xihanfun.com/cosmos/code-of-conduct",
-      },
-      {
-        text: "指南",
-        link: "https://docs.xihanfun.com/cosmos/contributing",
-      },
-      {
-        text: "贡献者",
-        link: "https://docs.xihanfun.com/cosmos/contributors",
-      },
-      {
-        text: "支持&赞助",
-        link: "https://docs.xihanfun.com/cosmos/sponsor",
-      },
+      { text: "公约", link: "https://docs.xihanfun.com/cosmos/code-of-conduct" },
+      { text: "参与", link: "https://docs.xihanfun.com/cosmos/contributing" },
+      { text: "赞助", link: "https://docs.xihanfun.com/cosmos/sponsor" },
     ],
   },
   {
