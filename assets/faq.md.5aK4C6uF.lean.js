@@ -1,0 +1,1 @@
+import{_t as e,it as t,n,rt as r}from"./chunks/framework.D2cFUyj2.js";var i=JSON.parse(`{"title":"常见问题","description":"","frontmatter":{},"headers":[],"relativePath":"faq.md","filePath":"faq.md","lastUpdated":1791101145000}`),a={name:`faq.md`};function o(n,i,a,o,s,c){return e(),r(`div`,null,[...i[0]||=[t("",119)]])}var s=n(a,[[`render`,o]]);export{i as __pageData,s as default};
