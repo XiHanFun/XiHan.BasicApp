@@ -1,1 +1,0 @@
-import{_t as e,it as t,n,rt as r}from"./chunks/framework.D2cFUyj2.js";var i=JSON.parse(`{"title":"为什么选择曦寒","description":"","frontmatter":{},"headers":[],"relativePath":"why.md","filePath":"why.md","lastUpdated":1791107651000}`),a={name:`why.md`};function o(n,i,a,o,s,c){return e(),r(`div`,null,[...i[0]||=[t("",44)]])}var s=n(a,[[`render`,o]]);export{i as __pageData,s as default};
