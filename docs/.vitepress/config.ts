@@ -142,49 +142,6 @@ const nav: DefaultTheme.NavItem[] = [
           },
         ],
       },
-      {
-        text: "生态文档",
-        items: [
-          {
-            text: "后端 | 开发框架",
-            link: "https://framework.docs.xihanfun.com",
-          },
-          {
-            text: "前端 | 视图组件",
-            link: "https://ui.docs.xihanfun.com",
-          },
-        ],
-      },
-      {
-        text: "引用下载",
-        items: [
-          {
-            text: "后端 | nuget",
-            link: "https://www.nuget.org/profiles/XiHanFun",
-          },
-          {
-            text: "前端 | npm",
-            link: "https://www.npmjs.com/org/xihan-ui",
-          },
-        ],
-      },
-      {
-        text: "在线体验",
-        items: [
-          {
-            text: "后端 | 开发框架",
-            link: "https://framework.xihanfun.com",
-          },
-          {
-            text: "前端 | 视图组件",
-            link: "https://ui.xihanfun.com",
-          },
-          {
-            text: "用例 | 基础应用",
-            link: "https://basicapp.xihanfun.com",
-          },
-        ],
-      },
     ],
   },
   {
