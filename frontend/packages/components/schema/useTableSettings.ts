@@ -37,6 +37,9 @@ export interface TableStyle {
   singleLine: boolean
 }
 
+/** 表格对齐：数据列都按这一档排，缺省靠起始边，与组件库一致 */
+export type TableAlign = 'left' | 'center' | 'right'
+
 /** 表格风格默认值（默认不打斑马纹、显示竖线：single-line=false） */
 const DEFAULT_STYLE: TableStyle = { striped: false, bordered: true, singleLine: false }
 
@@ -58,6 +61,8 @@ interface PersistedTableSettings {
   density: TableDensity
   /** 表格风格 */
   style?: TableStyle
+  /** 表格对齐 */
+  align?: TableAlign
   /** 是否允许多选 */
   selectable?: boolean
   /** 是否显示序号列 */
@@ -105,6 +110,7 @@ export function useTableSettings(
   /** 缺省密度：中间档 */
   const density = ref<TableDensity>('medium')
   const style = ref<TableStyle>({ ...DEFAULT_STYLE })
+  const align = ref<TableAlign>('left')
   const selectable = ref<boolean>(defaultSelectable)
   const showIndex = ref<boolean>(true)
 
@@ -142,6 +148,7 @@ export function useTableSettings(
     columns.value = ordered
     density.value = persisted.density ?? 'medium'
     style.value = { ...DEFAULT_STYLE, ...persisted.style }
+    align.value = persisted.align ?? 'left'
     selectable.value = persisted.selectable ?? defaultSelectable
     showIndex.value = persisted.showIndex ?? true
   }
@@ -179,6 +186,7 @@ export function useTableSettings(
       columns: columns.value.map(c => ({ key: c.key, visible: c.visible, fixed: c.fixed, width: c.width, sort: c.sort })),
       density: density.value,
       style: { ...style.value },
+      align: align.value,
       selectable: selectable.value,
       showIndex: showIndex.value,
     }
@@ -235,6 +243,10 @@ export function useTableSettings(
     style.value = { ...style.value, [key]: value }
   }
 
+  function setAlign(value: TableAlign) {
+    align.value = value
+  }
+
   function setSelectable(value: boolean) {
     selectable.value = value
   }
@@ -273,6 +285,7 @@ export function useTableSettings(
     columns.value = buildDefault()
     density.value = 'medium'
     style.value = { ...DEFAULT_STYLE }
+    align.value = 'left'
     selectable.value = defaultSelectable
     showIndex.value = true
   }
@@ -286,6 +299,7 @@ export function useTableSettings(
     columns,
     density,
     style,
+    align,
     selectable,
     showIndex,
     defaultSorts,
@@ -297,6 +311,7 @@ export function useTableSettings(
     setFixed,
     setWidth,
     setStyle,
+    setAlign,
     setSelectable,
     setShowIndex,
     cycleSort,
