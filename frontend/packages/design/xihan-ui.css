@@ -146,9 +146,7 @@
     /* —— 形状：跟随偏好设置里的圆角滑块（useTheme 写 --radius / --radius-card）—— */
     --xh-shape-control: var(--radius);
     --xh-shape-surface: var(--radius-card, var(--radius));
-    /* 浮层（下拉、弹出面、日期面板、对话框）与字段同一把尺：不接就钉在组件库缺省的 4px，
-       滑块调大以后字段比贴在它下面的下拉面板还圆，两个角对不上 */
-    --xh-shape-overlay: var(--radius);
+    /* 浮层（下拉、弹出面、日期面板、对话框、抽屉）由组件库跟着承载面走，随卡片圆角一起变，这里不再单接 */
     /* 内嵌件（3.0 起菜单 / 下拉 / 树 / 穿梭框的行，复选框的方框，标签……）读 inset，不接就钉死在 4px、
        不随滑块走。取控件圆角的一半、不低于库缺省：滑块最小时与库一致，调大时跟着变圆，且始终比外层控件小一档 */
     --xh-shape-inset: max(var(--xh-radius-sm), calc(var(--radius) / 2));
