@@ -75,7 +75,7 @@ function handleModeChange(value: 'light' | 'dark' | 'auto', event: Event) {
   })
 }
 
-// 界面密度：两档对应 XiHan.UI 的 data-density，控件 32/36 与 28/32
+// 界面密度：两档对应 XiHan.UI 的 data-density，控件 28/32/36 与 24/28/32
 const densityOptions = computed<Array<{ value: UiDensity, label: string }>>(() => [
   { value: UI_DENSITY_COMFORTABLE, label: t('preference.appearance.density.comfortable') },
   { value: UI_DENSITY_COMPACT, label: t('preference.appearance.density.compact') },
