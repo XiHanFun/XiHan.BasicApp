@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ChatLocalMessage } from '../store'
-import { XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
+import { XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -68,48 +68,52 @@ async function handleForward(conversationId: string) {
 <template>
   <XhDialogRoot v-model:open="show">
     <XhDialogContent style="--xh-dialog-max-w: 380px">
-      <XhDialogTitle>{{ t('chat.forward.title') }}</XhDialogTitle>
+      <XhDialogHeader>
+        <XhDialogTitle>{{ t('chat.forward.title') }}</XhDialogTitle>
+      </XhDialogHeader>
       <XhDialogCloseTrigger />
-      <XInput
-        v-model:value="keyword"
-        size="sm"
-        clearable
-        :placeholder="t('chat.list.search_placeholder')"
-      >
-        <template #prefix>
-          <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
-        </template>
-      </XInput>
-
-      <div v-if="!candidates.length" class="py-8">
-        <XhEmptyStateRoot size="sm">
-          <XhEmptyStateIndicator>
-            <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:inbox'" width="24" />
-          </XhEmptyStateIndicator>
-          <XhEmptyStateTitle>{{ keyword.trim() ? t('common.no_result') : t('common.empty') }}</XhEmptyStateTitle>
-          <XhEmptyStateDescription>{{ t('chat.list.empty') }}</XhEmptyStateDescription>
-        </XhEmptyStateRoot>
-      </div>
-      <div v-else class="xh-scroll-area mt-2" style="max-height: 320px">
-        <button
-          v-for="conv in candidates"
-          :key="conv.conversationId"
-          type="button"
-          class="chat-forward-item"
-          :disabled="sendingTo !== null"
-          @click="handleForward(conv.conversationId)"
+      <XhDialogBody>
+        <XInput
+          v-model:value="keyword"
+          size="sm"
+          clearable
+          :placeholder="t('chat.list.search_placeholder')"
         >
-          <XUserAvatar :avatar="conv.avatar" :name="conv.displayName" :size="32" />
-          <span class="min-w-0 flex-1 truncate text-left text-[13px] text-foreground">{{ conv.displayName }}</span>
-          <Icon
-            v-if="sendingTo === conv.conversationId"
-            icon="lucide:loader-circle"
-            width="14"
-            height="14"
-            class="animate-spin text-primary"
-          />
-        </button>
-      </div>
+          <template #prefix>
+            <Icon icon="lucide:search" width="14" height="14" class="text-muted-foreground" />
+          </template>
+        </XInput>
+
+        <div v-if="!candidates.length" class="py-8">
+          <XhEmptyStateRoot size="sm">
+            <XhEmptyStateIndicator>
+              <Icon :icon="keyword.trim() ? 'lucide:search-x' : 'lucide:inbox'" width="24" />
+            </XhEmptyStateIndicator>
+            <XhEmptyStateTitle>{{ keyword.trim() ? t('common.no_result') : t('common.empty') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('chat.list.empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+        </div>
+        <div v-else class="xh-scroll-area mt-2" style="max-height: 320px">
+          <button
+            v-for="conv in candidates"
+            :key="conv.conversationId"
+            type="button"
+            class="chat-forward-item"
+            :disabled="sendingTo !== null"
+            @click="handleForward(conv.conversationId)"
+          >
+            <XUserAvatar :avatar="conv.avatar" :name="conv.displayName" :size="32" />
+            <span class="min-w-0 flex-1 truncate text-left text-[13px] text-foreground">{{ conv.displayName }}</span>
+            <Icon
+              v-if="sendingTo === conv.conversationId"
+              icon="lucide:loader-circle"
+              width="14"
+              height="14"
+              class="animate-spin text-primary"
+            />
+          </button>
+        </div>
+      </XhDialogBody>
     </XhDialogContent>
   </XhDialogRoot>
 </template>
