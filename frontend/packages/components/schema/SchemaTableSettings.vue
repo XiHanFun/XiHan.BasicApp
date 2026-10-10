@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnSetting, TableDensity, TableStyle } from './useTableSettings'
+import type { ColumnSetting, TableAlign, TableDensity, TableStyle } from './useTableSettings'
 import { XhButton, XhCheckbox, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSeparator, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -17,6 +17,8 @@ const props = defineProps<{
   density: TableDensity
   /** 表格风格 */
   tableStyle: TableStyle
+  /** 表格对齐 */
+  align: TableAlign
   /** 是否允许多选 */
   selectable: boolean
   /** 是否显示序号列 */
@@ -30,6 +32,7 @@ const emit = defineEmits<{
   move: [fromIndex: number, toIndex: number]
   setDensity: [value: TableDensity]
   setStyle: [key: keyof TableStyle, value: boolean]
+  setAlign: [value: TableAlign]
   setSelectable: [value: boolean]
   setShowIndex: [value: boolean]
   cycleSort: [key: string]
@@ -44,6 +47,12 @@ const densityOptions = computed<Array<{ label: string, value: TableDensity }>>((
   { label: t('component.schema_table_settings.density_small'), value: 'small' },
   { label: t('component.schema_table_settings.density_medium'), value: 'medium' },
   { label: t('component.schema_table_settings.density_large'), value: 'large' },
+])
+
+const alignOptions = computed<Array<{ label: string, value: TableAlign }>>(() => [
+  { label: t('component.schema_table_settings.align_left'), value: 'left' },
+  { label: t('component.schema_table_settings.align_center'), value: 'center' },
+  { label: t('component.schema_table_settings.align_right'), value: 'right' },
 ])
 
 const styleOptions = computed<Array<{ label: string, key: keyof TableStyle, invert?: boolean }>>(() => [
@@ -62,6 +71,12 @@ function onDensityChange(value: string | string[] | null) {
   // 密度单选且不许清空，这里只会收到一个值
   if (typeof value === 'string')
     emit('setDensity', value as TableDensity)
+}
+
+function onAlignChange(value: string | string[] | null) {
+  // 对齐单选且不许清空，这里只会收到一个值
+  if (typeof value === 'string')
+    emit('setAlign', value as TableAlign)
 }
 
 function onStyleChange(value: string | string[] | null) {
@@ -228,6 +243,22 @@ function onSort(details: { from: number, to: number }) {
               </XhToggleGroupItem>
               <XhToggleGroupItem :value="FEATURE_INDEX">
                 {{ t('component.schema_table_settings.index') }}
+              </XhToggleGroupItem>
+            </XhToggleGroupRoot>
+          </div>
+
+          <!-- 对齐：数据列一起换，三档单选、不许清空 -->
+          <div class="flex gap-2 items-center justify-between">
+            <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.align_label') }}</span>
+            <XhToggleGroupRoot
+              size="sm"
+              :value="align"
+              disallow-empty
+              :aria-label="t('component.schema_table_settings.align_label')"
+              @update:value="onAlignChange"
+            >
+              <XhToggleGroupItem v-for="opt in alignOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
               </XhToggleGroupItem>
             </XhToggleGroupRoot>
           </div>
