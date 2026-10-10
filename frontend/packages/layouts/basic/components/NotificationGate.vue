@@ -1,6 +1,17 @@
 <script setup lang="ts">
 import type { AppUserInboxDisplayItem } from '~/types'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
+import {
+  XhButton,
+  XhButtonIndicator,
+  XhButtonLabel,
+  XhDialogBody,
+  XhDialogCloseTrigger,
+  XhDialogContent,
+  XhDialogFooter,
+  XhDialogHeader,
+  XhDialogRoot,
+  XhDialogTitle,
+} from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NotificationContent } from '~/components'
@@ -75,16 +86,18 @@ onMounted(async () => {
     :close-on-interact-outside="false"
   >
     <XhDialogContent class="notif-gate-modal" style="--xh-dialog-max-w: 820px">
-      <XhDialogTitle>{{ currentMandatory.title }}</XhDialogTitle>
-      <div class="notif-gate-body">
+      <XhDialogHeader>
+        <XhDialogTitle>{{ currentMandatory.title }}</XhDialogTitle>
+      </XhDialogHeader>
+      <XhDialogBody class="notif-gate-body">
         <NotificationContent
           v-if="currentMandatory.content"
           :content="currentMandatory.content"
           :format="currentMandatory.contentFormat"
         />
         <pre v-else class="notif-gate-text">{{ t('header.notification.gate.no_content') }}</pre>
-      </div>
-      <div class="flex justify-end">
+      </XhDialogBody>
+      <XhDialogFooter>
         <XhButton
           size="sm"
           variant="solid"
@@ -94,7 +107,7 @@ onMounted(async () => {
           <XhButtonIndicator />
           <XhButtonLabel>{{ t('header.notification.gate.mandatory_read') }}</XhButtonLabel>
         </XhButton>
-      </div>
+      </XhDialogFooter>
     </XhDialogContent>
   </XhDialogRoot>
 
@@ -106,29 +119,29 @@ onMounted(async () => {
     @update:open="(open: boolean) => !open && onPopupConfirm(currentPopup!)"
   >
     <XhDialogContent class="notif-gate-modal" style="--xh-dialog-max-w: 820px">
-      <XhDialogTitle>{{ currentPopup.title }}</XhDialogTitle>
+      <XhDialogHeader>
+        <XhDialogTitle>{{ currentPopup.title }}</XhDialogTitle>
+      </XhDialogHeader>
       <XhDialogCloseTrigger />
-      <div class="notif-gate-body">
+      <XhDialogBody class="notif-gate-body">
         <NotificationContent
           v-if="currentPopup.content"
           :content="currentPopup.content"
           :format="currentPopup.contentFormat"
         />
         <pre v-else class="notif-gate-text">{{ t('header.notification.gate.no_content') }}</pre>
-      </div>
-      <div class="flex justify-end">
+      </XhDialogBody>
+      <XhDialogFooter>
         <XhButton size="sm" variant="solid" @click="onPopupConfirm(currentPopup)">
           {{ t('header.notification.gate.popup_ok') }}
         </XhButton>
-      </div>
+      </XhDialogFooter>
     </XhDialogContent>
   </XhDialogRoot>
 </template>
 
 <style scoped>
 .notif-gate-body {
-  max-height: 60vh;
-  overflow-y: auto;
   font-size: 14px;
   color: hsl(var(--foreground) / 85%);
 }

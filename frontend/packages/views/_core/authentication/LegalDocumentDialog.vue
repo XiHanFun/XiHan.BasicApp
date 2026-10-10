@@ -1,6 +1,16 @@
 <script lang="ts" setup>
 import type { LegalDocumentKind } from './legal'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhSpinner } from '@xihan-ui/vue'
+import {
+  XhButton,
+  XhDialogBody,
+  XhDialogCloseTrigger,
+  XhDialogContent,
+  XhDialogFooter,
+  XhDialogHeader,
+  XhDialogRoot,
+  XhDialogTitle,
+  XhSpinner,
+} from '@xihan-ui/vue'
 import { computed, ref, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XMdEditor } from '~/components'
@@ -58,9 +68,12 @@ watch(
     <!-- 长文阅读：铺到视口的大部分（组件库最大档只有 48rem），一屏能读更多、少翻几屏。
          内容会传送到 body 下、带不上本组件的 scoped 标记，宽度只能写在行内 -->
     <XhDialogContent style="--xh-dialog-max-w: 85vw">
-      <XhDialogTitle>{{ title }}</XhDialogTitle>
+      <XhDialogHeader>
+        <XhDialogTitle>{{ title }}</XhDialogTitle>
+      </XhDialogHeader>
       <XhDialogCloseTrigger />
-      <div class="legal-dialog__body">
+      <!-- 正文在弹窗里滚动，标题与按钮行留在原位：三段的滚动与内衬由组件库给 -->
+      <XhDialogBody class="legal-dialog__body">
         <div v-if="status === 'loading'" class="legal-dialog__state">
           <XhSpinner size="md" />
         </div>
@@ -68,23 +81,17 @@ watch(
           {{ t('page.auth.legal_load_failed') }}
         </p>
         <XMdEditor v-else preview-only :editor-id="editorId" :model-value="content" />
-      </div>
-      <div class="flex justify-end">
+      </XhDialogBody>
+      <XhDialogFooter>
         <XhButton size="sm" variant="solid" @click="open = false">
           {{ t('common.actions.close') }}
         </XhButton>
-      </div>
+      </XhDialogFooter>
     </XhDialogContent>
   </XhDialogRoot>
 </template>
 
 <style scoped>
-/* 正文在弹窗里滚动，标题与关闭钮留在原位 */
-.legal-dialog__body {
-  max-block-size: 75vh;
-  overflow-y: auto;
-}
-
 .legal-dialog__state {
   display: flex;
   align-items: center;

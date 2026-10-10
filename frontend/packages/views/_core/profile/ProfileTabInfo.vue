@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { UserProfile } from '~/types'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFlex, XhPinInputInput, XhPinInputRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFlex, XhPinInputInput, XhPinInputRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XDatePicker, XInput, XSelect, XUserAvatar } from '~/components'
@@ -704,58 +704,62 @@ function cancelChange() {
       @update:open="(open: boolean) => !open && cancelChange()"
     >
       <XhDialogContent>
-        <XhDialogTitle>{{ changeTarget === 'email' ? t('component.profile.info.change_email_title') : t('component.profile.info.change_phone_title') }}</XhDialogTitle>
+        <XhDialogHeader>
+          <XhDialogTitle>{{ changeTarget === 'email' ? t('component.profile.info.change_email_title') : t('component.profile.info.change_phone_title') }}</XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-        <div class="pf-change-body">
-          <template v-if="!changeCodeSent">
-            <XInput
-              v-model:value="changeNewValue"
-              :placeholder="changeTarget === 'email' ? t('component.profile.info.new_email_placeholder') : t('component.profile.info.new_phone_placeholder')"
-              :aria-label="changeTarget === 'email' ? t('component.profile.info.new_email_placeholder') : t('component.profile.info.new_phone_placeholder')"
-            />
-            <XInput
-              v-model:value="changePassword"
-              type="password"
-              :placeholder="t('component.profile.info.current_password_placeholder')"
-              :aria-label="t('component.profile.info.current_password_placeholder')"
-            />
-            <XhButton variant="solid" tone="brand" full-width :loading="changeLoading" @click="sendChangeCode">
-              <XhButtonIndicator />
-              <XhButtonLabel>{{ t('component.profile.info.send_code') }}</XhButtonLabel>
-            </XhButton>
-          </template>
-          <template v-else>
-            <p class="pf-change-hint">
-              {{ t('component.profile.info.code_sent_to') }} <strong>{{ changeNewValue }}</strong>
-            </p>
-            <!-- 输满不自动提交：换绑是敏感操作，交给「确认」钮 -->
-            <XhPinInputRoot v-model:value="changeCode" :length="OTP_CODE_LENGTH" type="numeric" otp>
-              <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
-              <div style="display: flex">
-                <XhPinInputInput v-for="i in OTP_CODE_LENGTH" :key="i" :index="i - 1" />
-              </div>
-            </XhPinInputRoot>
-            <XhFlex gap="sm">
-              <XhButton variant="subtle" tone="brand" :loading="changeLoading" :disabled="changeCodeStr.length < OTP_CODE_LENGTH" @click="confirmChange">
+        <XhDialogBody>
+          <div class="pf-change-body">
+            <template v-if="!changeCodeSent">
+              <XInput
+                v-model:value="changeNewValue"
+                :placeholder="changeTarget === 'email' ? t('component.profile.info.new_email_placeholder') : t('component.profile.info.new_phone_placeholder')"
+                :aria-label="changeTarget === 'email' ? t('component.profile.info.new_email_placeholder') : t('component.profile.info.new_phone_placeholder')"
+              />
+              <XInput
+                v-model:value="changePassword"
+                type="password"
+                :placeholder="t('component.profile.info.current_password_placeholder')"
+                :aria-label="t('component.profile.info.current_password_placeholder')"
+              />
+              <XhButton variant="solid" tone="brand" full-width :loading="changeLoading" @click="sendChangeCode">
                 <XhButtonIndicator />
-                <XhButtonLabel>{{ t('common.actions.confirm') }}</XhButtonLabel>
+                <XhButtonLabel>{{ t('component.profile.info.send_code') }}</XhButtonLabel>
               </XhButton>
-              <XhButton variant="subtle" :disabled="changeResendSeconds > 0" @click="sendChangeCode">
-                <CodeCountdown
-                  v-if="changeResendSeconds > 0"
-                  v-slot="{ seconds }"
-                  :seconds="changeResendSeconds"
-                  @finish="changeResendSeconds = 0"
-                >
-                  {{ t('component.profile.info.resend_after', { seconds }) }}
-                </CodeCountdown>
-                <template v-else>
-                  {{ t('component.profile.info.resend_now') }}
-                </template>
-              </XhButton>
-            </XhFlex>
-          </template>
-        </div>
+            </template>
+            <template v-else>
+              <p class="pf-change-hint">
+                {{ t('component.profile.info.code_sent_to') }} <strong>{{ changeNewValue }}</strong>
+              </p>
+              <!-- 输满不自动提交：换绑是敏感操作，交给「确认」钮 -->
+              <XhPinInputRoot v-model:value="changeCode" :length="OTP_CODE_LENGTH" type="numeric" otp>
+                <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+                <div style="display: flex">
+                  <XhPinInputInput v-for="i in OTP_CODE_LENGTH" :key="i" :index="i - 1" />
+                </div>
+              </XhPinInputRoot>
+              <XhFlex gap="sm">
+                <XhButton variant="subtle" tone="brand" :loading="changeLoading" :disabled="changeCodeStr.length < OTP_CODE_LENGTH" @click="confirmChange">
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('common.actions.confirm') }}</XhButtonLabel>
+                </XhButton>
+                <XhButton variant="subtle" :disabled="changeResendSeconds > 0" @click="sendChangeCode">
+                  <CodeCountdown
+                    v-if="changeResendSeconds > 0"
+                    v-slot="{ seconds }"
+                    :seconds="changeResendSeconds"
+                    @finish="changeResendSeconds = 0"
+                  >
+                    {{ t('component.profile.info.resend_after', { seconds }) }}
+                  </CodeCountdown>
+                  <template v-else>
+                    {{ t('component.profile.info.resend_now') }}
+                  </template>
+                </XhButton>
+              </XhFlex>
+            </template>
+          </div>
+        </XhDialogBody>
       </XhDialogContent>
     </XhDialogRoot>
   </div>

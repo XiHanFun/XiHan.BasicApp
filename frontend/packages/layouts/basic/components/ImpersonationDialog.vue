@@ -2,8 +2,11 @@
 import type { ImpersonationCandidate, ImpersonationTenantOption } from '~/types'
 import {
   XhButton,
+  XhDialogBody,
   XhDialogCloseTrigger,
   XhDialogContent,
+  XhDialogFooter,
+  XhDialogHeader,
   XhDialogRoot,
   XhDialogTitle,
   XhEmptyStateDescription,
@@ -165,69 +168,73 @@ onBeforeUnmount(() => {
 <template>
   <XhDialogRoot v-model:open="show">
     <XhDialogContent style="--xh-dialog-max-w: 420px">
-      <XhDialogTitle>{{ t('header.impersonation.title') }}</XhDialogTitle>
+      <XhDialogHeader>
+        <XhDialogTitle>{{ t('header.impersonation.title') }}</XhDialogTitle>
+      </XhDialogHeader>
       <XhDialogCloseTrigger />
 
-      <div class="flex flex-col gap-3">
-        <p class="impersonation-hint">
-          {{ t('header.impersonation.hint') }}
-        </p>
+      <XhDialogBody>
+        <div class="flex flex-col gap-3">
+          <p class="impersonation-hint">
+            {{ t('header.impersonation.hint') }}
+          </p>
 
-        <XSelect
-          v-if="isPlatform"
-          :value="scope"
-          :options="scopeOptions"
-          :loading="tenantsLoading"
-          :aria-label="t('header.impersonation.scope_label')"
-          @update:value="onScopeChange"
-        />
-        <XInput
-          v-model:value="keyword"
-          clearable
-          :placeholder="t('header.impersonation.search_placeholder')"
-        />
-        <XInput
-          v-model:value="reason"
-          :max-length="200"
-          :placeholder="t('header.impersonation.reason_placeholder')"
-        />
+          <XSelect
+            v-if="isPlatform"
+            :value="scope"
+            :options="scopeOptions"
+            :loading="tenantsLoading"
+            :aria-label="t('header.impersonation.scope_label')"
+            @update:value="onScopeChange"
+          />
+          <XInput
+            v-model:value="keyword"
+            clearable
+            :placeholder="t('header.impersonation.search_placeholder')"
+          />
+          <XInput
+            v-model:value="reason"
+            :max-length="200"
+            :placeholder="t('header.impersonation.reason_placeholder')"
+          />
 
-        <p v-if="errorMessage" class="impersonation-error">
-          {{ errorMessage }}
-        </p>
+          <p v-if="errorMessage" class="impersonation-error">
+            {{ errorMessage }}
+          </p>
 
-        <div class="impersonation-list">
-          <div v-if="loading" class="impersonation-loading">
-            <XhSpinner />
+          <div class="impersonation-list">
+            <div v-if="loading" class="impersonation-loading">
+              <XhSpinner />
+            </div>
+            <template v-else-if="candidates.length">
+              <button
+                v-for="candidate in candidates"
+                :key="candidate.basicId"
+                type="button"
+                class="impersonation-item"
+                :disabled="authStore.impersonationLoading"
+                @click="start(candidate)"
+              >
+                <span>{{ displayName(candidate) }}</span>
+                <span class="impersonation-item-account">{{ candidate.userName }}</span>
+              </button>
+            </template>
+            <XhEmptyStateRoot v-else class="impersonation-empty">
+              <XhEmptyStateIndicator>
+                <Icon icon="lucide:user-round-search" width="24" height="24" />
+              </XhEmptyStateIndicator>
+              <XhEmptyStateTitle>{{ t('header.impersonation.empty_title') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('header.impersonation.empty_description') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
           </div>
-          <template v-else-if="candidates.length">
-            <button
-              v-for="candidate in candidates"
-              :key="candidate.basicId"
-              type="button"
-              class="impersonation-item"
-              :disabled="authStore.impersonationLoading"
-              @click="start(candidate)"
-            >
-              <span>{{ displayName(candidate) }}</span>
-              <span class="impersonation-item-account">{{ candidate.userName }}</span>
-            </button>
-          </template>
-          <XhEmptyStateRoot v-else class="impersonation-empty">
-            <XhEmptyStateIndicator>
-              <Icon icon="lucide:user-round-search" width="24" height="24" />
-            </XhEmptyStateIndicator>
-            <XhEmptyStateTitle>{{ t('header.impersonation.empty_title') }}</XhEmptyStateTitle>
-            <XhEmptyStateDescription>{{ t('header.impersonation.empty_description') }}</XhEmptyStateDescription>
-          </XhEmptyStateRoot>
         </div>
+      </XhDialogBody>
 
-        <div class="flex justify-end">
-          <XhButton size="sm" variant="ghost" @click="show = false">
-            {{ t('common.actions.cancel') }}
-          </XhButton>
-        </div>
-      </div>
+      <XhDialogFooter>
+        <XhButton size="sm" variant="ghost" @click="show = false">
+          {{ t('common.actions.cancel') }}
+        </XhButton>
+      </XhDialogFooter>
     </XhDialogContent>
   </XhDialogRoot>
 </template>

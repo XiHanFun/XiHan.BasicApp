@@ -242,13 +242,6 @@
   color: var(--xh-fg-danger);
 }
 
-/* 弹窗页脚：按钮行右对齐（原先由 NModal 的 #footer 插槽承担） */
-.xh-dialog-footer {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
 /* 正文滚动区：内容层按视口宽排版，不跟着页内最宽的东西长。
    组件库给 content 的 min-inline-size: fit-content 是为「整块内容一起横向滚」准备的；
    页面外壳要的是另一种——页面自己占满视口宽，真正超宽的表格由它自身的滚动容器收。

@@ -10,8 +10,11 @@ import {
   XhButton,
   XhButtonIndicator,
   XhButtonLabel,
+  XhDialogBody,
   XhDialogCloseTrigger,
   XhDialogContent,
+  XhDialogFooter,
+  XhDialogHeader,
   XhDialogRoot,
   XhDialogTitle,
   XhFileUploadDropzone,
@@ -185,161 +188,165 @@ function handleClose(): void {
     @update:open="(value: boolean) => (show = value)"
   >
     <XhDialogContent class="xh-import-modal" style="--xh-dialog-max-w: 720px">
-      <XhDialogTitle>{{ t('component.schema_import.title') }}</XhDialogTitle>
+      <XhDialogHeader>
+        <XhDialogTitle>{{ t('component.schema_import.title') }}</XhDialogTitle>
+      </XhDialogHeader>
       <XhDialogCloseTrigger v-if="phase !== 'importing'" />
 
-      <div class="xh-import-body">
-        <!-- 模板说明 + 下载 -->
-        <XhAlertRoot tone="info">
-          <XhAlertIndicator>
-            <Icon icon="lucide:info" width="16" height="16" />
-          </XhAlertIndicator>
-          <XhAlertContent>
-            <XhAlertDescription>
-              <div class="xh-import-tip">
-                <span>{{ t('component.schema_import.tip') }}</span>
-                <XhButton size="sm" variant="ghost" @click="importer.downloadTemplate">
-                  <Icon icon="lucide:file-down" />
-                  {{ t('component.schema_import.download_template') }}
-                </XhButton>
-              </div>
-            </XhAlertDescription>
-          </XhAlertContent>
-        </XhAlertRoot>
+      <XhDialogBody>
+        <div class="xh-import-body">
+          <!-- 模板说明 + 下载 -->
+          <XhAlertRoot tone="info">
+            <XhAlertIndicator>
+              <Icon icon="lucide:info" width="16" height="16" />
+            </XhAlertIndicator>
+            <XhAlertContent>
+              <XhAlertDescription>
+                <div class="xh-import-tip">
+                  <span>{{ t('component.schema_import.tip') }}</span>
+                  <XhButton size="sm" variant="ghost" @click="importer.downloadTemplate">
+                    <Icon icon="lucide:file-down" />
+                    {{ t('component.schema_import.download_template') }}
+                  </XhButton>
+                </div>
+              </XhAlertDescription>
+            </XhAlertContent>
+          </XhAlertRoot>
 
-        <!-- 选择文件（idle / ready 可重选） -->
-        <XhFileUploadRoot
-          v-if="phase === 'idle' || phase === 'ready'"
-          accept=".csv,text/csv"
-          :max-files="1"
-          :files="NO_FILES"
-          @file-accept="onFileAccept"
-          @file-reject="onFileReject"
-        >
-          <XhFileUploadDropzone>
-            <div class="xh-import-dragger">
-              <Icon icon="lucide:upload" class="xh-import-dragger__icon" />
-              <span>{{ t('component.schema_import.dragger') }}</span>
-            </div>
-          </XhFileUploadDropzone>
-          <XhFileUploadHiddenInput />
-        </XhFileUploadRoot>
-
-        <!-- 文件级错误：一条警示装下全部，多条时列成清单（每条一个 role=alert 会让读屏连播好几遍） -->
-        <XhAlertRoot v-if="fileProblems.length > 0" tone="danger">
-          <XhAlertIndicator>
-            <Icon icon="lucide:circle-alert" width="16" height="16" />
-          </XhAlertIndicator>
-          <XhAlertContent>
-            <XhAlertDescription>
-              <template v-if="fileProblems.length === 1">
-                {{ fileProblems[0] }}
-              </template>
-              <ul v-else class="xh-import-problems">
-                <li v-for="problem in fileProblems" :key="problem">
-                  {{ problem }}
-                </li>
-              </ul>
-            </XhAlertDescription>
-          </XhAlertContent>
-        </XhAlertRoot>
-
-        <!-- 解析结果汇总 -->
-        <div v-if="phase !== 'idle' && rows.length > 0" class="xh-import-summary">
-          <XhTagRoot variant="subtle" size="sm" tone="neutral">
-            <XhTagLabel>
-              {{ t('component.schema_import.total_rows', { count: rows.length }) }}
-            </XhTagLabel>
-          </XhTagRoot>
-          <XhTagRoot variant="subtle" size="sm" tone="success">
-            <XhTagLabel>
-              {{ t('component.schema_import.valid_rows', { count: validRows.length }) }}
-            </XhTagLabel>
-          </XhTagRoot>
-          <XhTagRoot v-if="errorItems.length > 0" variant="subtle" size="sm" tone="danger">
-            <XhTagLabel>
-              {{ phase === 'done' ? t('component.schema_import.failed_rows', { count: errorRows.length }) : t('component.schema_import.validation_failed_rows', { count: errorRows.length }) }}
-            </XhTagLabel>
-          </XhTagRoot>
-        </div>
-
-        <!-- 错误明细：限高的类名放在外层 div 上。表格根渲染成片段，带不上本组件的 scoped 标记，
-             类名写在它身上样式永远命中不了；限高槽是继承的自定义属性，外层给即可 -->
-        <div v-if="errorItems.length > 0" class="xh-import-errors">
-          <XhTableRoot
-            ruled
-            size="md"
-            sticky-header
-            :columns="errorColumns"
-            :rows="errorRowDefs"
+          <!-- 选择文件（idle / ready 可重选） -->
+          <XhFileUploadRoot
+            v-if="phase === 'idle' || phase === 'ready'"
+            accept=".csv,text/csv"
+            :max-files="1"
+            :files="NO_FILES"
+            @file-accept="onFileAccept"
+            @file-reject="onFileReject"
           >
-            <XhTableHeader>
-              <XhTableRow>
-                <XhTableColumnHeader v-for="col in errorColumns" :key="col.id" :value="col.id">
-                  <XhTableColumnLabel>{{ col.label }}</XhTableColumnLabel>
-                </XhTableColumnHeader>
-              </XhTableRow>
-            </XhTableHeader>
-            <XhTableBody>
-              <XhTableRow v-for="item in errorItems" :key="item.key" :value="item.key">
-                <XhTableCell value="row">
-                  {{ item.row }}
-                </XhTableCell>
-                <XhTableCell value="field">
-                  {{ item.field }}
-                </XhTableCell>
-                <XhTableCell value="message" :title="item.message">
-                  {{ item.message }}
-                </XhTableCell>
-              </XhTableRow>
-            </XhTableBody>
-          </XhTableRoot>
-        </div>
+            <XhFileUploadDropzone>
+              <div class="xh-import-dragger">
+                <Icon icon="lucide:upload" class="xh-import-dragger__icon" />
+                <span>{{ t('component.schema_import.dragger') }}</span>
+              </div>
+            </XhFileUploadDropzone>
+            <XhFileUploadHiddenInput />
+          </XhFileUploadRoot>
 
-        <!-- 导入进度 -->
-        <XhProgress v-if="phase === 'importing'" :value="importPercent" :aria-label="t('component.schema_import.title')" />
+          <!-- 文件级错误：一条警示装下全部，多条时列成清单（每条一个 role=alert 会让读屏连播好几遍） -->
+          <XhAlertRoot v-if="fileProblems.length > 0" tone="danger">
+            <XhAlertIndicator>
+              <Icon icon="lucide:circle-alert" width="16" height="16" />
+            </XhAlertIndicator>
+            <XhAlertContent>
+              <XhAlertDescription>
+                <template v-if="fileProblems.length === 1">
+                  {{ fileProblems[0] }}
+                </template>
+                <ul v-else class="xh-import-problems">
+                  <li v-for="problem in fileProblems" :key="problem">
+                    {{ problem }}
+                  </li>
+                </ul>
+              </XhAlertDescription>
+            </XhAlertContent>
+          </XhAlertRoot>
 
-        <!-- 完成汇总 -->
-        <XhAlertRoot
-          v-if="phase === 'done' && summary"
-          :tone="summary.failed === 0 ? 'success' : 'warning'"
-        >
-          <XhAlertIndicator>
-            <Icon :icon="summary.failed === 0 ? 'lucide:circle-check' : 'lucide:triangle-alert'" width="16" height="16" />
-          </XhAlertIndicator>
-          <XhAlertContent>
-            <XhAlertDescription>
-              {{ t('component.schema_import.import_done', { success: summary.success, failed: summary.failed }) }}
-              <template v-if="summary.failed > 0">
-                {{ t('component.schema_import.redownload_hint') }}
-              </template>
-            </XhAlertDescription>
-          </XhAlertContent>
-        </XhAlertRoot>
-
-        <!-- 最近导入（当前用户 × 当前页面） -->
-        <div v-if="phase === 'idle' && recentImports.length > 0" class="xh-import-recent">
-          <div class="xh-import-recent__title">
-            {{ t('component.schema_import.recent_title') }}
-          </div>
-          <div v-for="item in recentImports" :key="item.basicId" class="xh-import-recent__row">
-            <span class="xh-import-recent__time">{{ formatDate(item.createdTime) }}</span>
-            <span class="xh-import-recent__file" :title="item.fileName">{{ item.fileName }}</span>
+          <!-- 解析结果汇总 -->
+          <div v-if="phase !== 'idle' && rows.length > 0" class="xh-import-summary">
+            <XhTagRoot variant="subtle" size="sm" tone="neutral">
+              <XhTagLabel>
+                {{ t('component.schema_import.total_rows', { count: rows.length }) }}
+              </XhTagLabel>
+            </XhTagRoot>
             <XhTagRoot variant="subtle" size="sm" tone="success">
               <XhTagLabel>
-                {{ t('component.schema_import.recent_success', { count: item.successCount }) }}
+                {{ t('component.schema_import.valid_rows', { count: validRows.length }) }}
               </XhTagLabel>
             </XhTagRoot>
-            <XhTagRoot v-if="item.failCount > 0" variant="subtle" size="sm" tone="danger">
+            <XhTagRoot v-if="errorItems.length > 0" variant="subtle" size="sm" tone="danger">
               <XhTagLabel>
-                {{ t('component.schema_import.recent_failed', { count: item.failCount }) }}
+                {{ phase === 'done' ? t('component.schema_import.failed_rows', { count: errorRows.length }) : t('component.schema_import.validation_failed_rows', { count: errorRows.length }) }}
               </XhTagLabel>
             </XhTagRoot>
           </div>
-        </div>
-      </div>
 
-      <div class="xh-import-footer">
+          <!-- 错误明细：限高的类名放在外层 div 上。表格根渲染成片段，带不上本组件的 scoped 标记，
+             类名写在它身上样式永远命中不了；限高槽是继承的自定义属性，外层给即可 -->
+          <div v-if="errorItems.length > 0" class="xh-import-errors">
+            <XhTableRoot
+              ruled
+              size="md"
+              sticky-header
+              :columns="errorColumns"
+              :rows="errorRowDefs"
+            >
+              <XhTableHeader>
+                <XhTableRow>
+                  <XhTableColumnHeader v-for="col in errorColumns" :key="col.id" :value="col.id">
+                    <XhTableColumnLabel>{{ col.label }}</XhTableColumnLabel>
+                  </XhTableColumnHeader>
+                </XhTableRow>
+              </XhTableHeader>
+              <XhTableBody>
+                <XhTableRow v-for="item in errorItems" :key="item.key" :value="item.key">
+                  <XhTableCell value="row">
+                    {{ item.row }}
+                  </XhTableCell>
+                  <XhTableCell value="field">
+                    {{ item.field }}
+                  </XhTableCell>
+                  <XhTableCell value="message" :title="item.message">
+                    {{ item.message }}
+                  </XhTableCell>
+                </XhTableRow>
+              </XhTableBody>
+            </XhTableRoot>
+          </div>
+
+          <!-- 导入进度 -->
+          <XhProgress v-if="phase === 'importing'" :value="importPercent" :aria-label="t('component.schema_import.title')" />
+
+          <!-- 完成汇总 -->
+          <XhAlertRoot
+            v-if="phase === 'done' && summary"
+            :tone="summary.failed === 0 ? 'success' : 'warning'"
+          >
+            <XhAlertIndicator>
+              <Icon :icon="summary.failed === 0 ? 'lucide:circle-check' : 'lucide:triangle-alert'" width="16" height="16" />
+            </XhAlertIndicator>
+            <XhAlertContent>
+              <XhAlertDescription>
+                {{ t('component.schema_import.import_done', { success: summary.success, failed: summary.failed }) }}
+                <template v-if="summary.failed > 0">
+                  {{ t('component.schema_import.redownload_hint') }}
+                </template>
+              </XhAlertDescription>
+            </XhAlertContent>
+          </XhAlertRoot>
+
+          <!-- 最近导入（当前用户 × 当前页面） -->
+          <div v-if="phase === 'idle' && recentImports.length > 0" class="xh-import-recent">
+            <div class="xh-import-recent__title">
+              {{ t('component.schema_import.recent_title') }}
+            </div>
+            <div v-for="item in recentImports" :key="item.basicId" class="xh-import-recent__row">
+              <span class="xh-import-recent__time">{{ formatDate(item.createdTime) }}</span>
+              <span class="xh-import-recent__file" :title="item.fileName">{{ item.fileName }}</span>
+              <XhTagRoot variant="subtle" size="sm" tone="success">
+                <XhTagLabel>
+                  {{ t('component.schema_import.recent_success', { count: item.successCount }) }}
+                </XhTagLabel>
+              </XhTagRoot>
+              <XhTagRoot v-if="item.failCount > 0" variant="subtle" size="sm" tone="danger">
+                <XhTagLabel>
+                  {{ t('component.schema_import.recent_failed', { count: item.failCount }) }}
+                </XhTagLabel>
+              </XhTagRoot>
+            </div>
+          </div>
+        </div>
+      </XhDialogBody>
+
+      <XhDialogFooter>
         <XhButton
           v-if="errorRows.length > 0"
           size="sm"
@@ -363,7 +370,7 @@ function handleClose(): void {
           <XhButtonIndicator />
           <XhButtonLabel>{{ t('component.schema_import.start_import') }}</XhButtonLabel>
         </XhButton>
-      </div>
+      </XhDialogFooter>
     </XhDialogContent>
   </XhDialogRoot>
 </template>
@@ -399,13 +406,6 @@ function handleClose(): void {
 }
 
 /* 底部按钮行右对齐，替掉原先的 NSpace justify=end */
-.xh-import-footer {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  margin-block-start: 12px;
-}
-
 .xh-import-tip {
   display: flex;
   gap: 8px;
