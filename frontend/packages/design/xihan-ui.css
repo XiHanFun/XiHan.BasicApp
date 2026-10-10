@@ -83,9 +83,11 @@
     /* —— 浮层材质：组件库的弹出面（popover / menu / select / 日期面板…）读 frosted，
        对话框与悬浮按钮读 elevated，提示词输入读 soft。这几族的底与线在库里是裸 oklch，
        不再经 --xh-bg-surface-raised，上面那条桥到不了它们；这里把底、描边、分隔线接到
-       应用的浮层配色上，浮层才跟着换主色 / 切暗色走。磨砂的透明度、模糊与高光留给库。
+       应用的浮层配色上，浮层才跟着换主色 / 切暗色走。
+       frosted 的底取实色：组件库缺省的锚定浮层是实体底 + 描边 + 柔和投影，不再叠背景模糊，
+       这里若留半透明，下拉与菜单底下的内容会直接透出来。
        减少透明与强制色由库在 [data-scope] 上直接改写材质名，压得住这份 :root 声明 —— */
-    --xh-material-frosted-bg: hsl(var(--popover) / var(--xh-alpha-high));
+    --xh-material-frosted-bg: hsl(var(--popover));
     --xh-material-frosted-border: hsl(var(--border));
     --xh-material-frosted-separator: hsl(var(--border) / 60%);
     --xh-material-elevated-bg: hsl(var(--popover));
