@@ -41,11 +41,6 @@ const hasAdvanced = computed(() => effectiveAdvancedFields.value.length > 0)
 function toggleExpand() {
   expanded.value = !expanded.value
 }
-
-/** 区间字段（双端日期/时间）占两个标准搜索项的宽度，其余沿用标准宽度 */
-function isWide(field: ListFieldSchema<TRow>): boolean {
-  return !!field.searchRange
-}
 </script>
 
 <template>
@@ -57,7 +52,6 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
         v-for="field in effectiveCommonFields"
         :key="field.key"
         class="xh-search__item"
-        :class="{ 'xh-search__item--wide': isWide(field) }"
       >
         <XhFieldLabel class="xh-search__label">
           {{ field.title }}
@@ -98,7 +92,6 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
           v-for="field in effectiveAdvancedFields"
           :key="field.key"
           class="xh-search__item"
-          :class="{ 'xh-search__item--wide': isWide(field) }"
         >
           <XhFieldLabel class="xh-search__label">
             {{ field.title }}
@@ -139,13 +132,6 @@ function isWide(field: ListFieldSchema<TRow>): boolean {
   flex-direction: column;
   gap: 2px;
   inline-size: var(--xh-search-item-w);
-}
-
-/* 区间字段：占两个标准项加一道间距，与上下行的列边对齐；带时刻的两端也放得下 */
-.xh-search__item--wide {
-  inline-size: calc(var(--xh-search-item-w) * 2 + var(--xh-search-gap-x));
-  /* 窄屏一行放不下两项时收到整行宽，不越出卡片 */
-  max-inline-size: 100%;
 }
 
 /* 搜索标题：小字号、常规字重、紧靠控件 */
