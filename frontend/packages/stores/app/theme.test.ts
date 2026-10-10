@@ -43,10 +43,10 @@ describe('默认值', () => {
     expect(store.uiDensity).toBe(DEFAULT_UI_DENSITY)
   })
 
-  it('界面密度缺省紧凑：管理端控件回到 28 / 32 那档', () => {
+  it('界面密度缺省宽松：组件库的宽松档就是字段 28 / 按钮 32 那档', () => {
     const store = freshStore()
 
-    expect(store.uiDensity).toBe(UI_DENSITY_COMPACT)
+    expect(store.uiDensity).toBe(UI_DENSITY_COMFORTABLE)
   })
 
   it('动态取色、主题动画、页面过渡默认开启；毛玻璃、灰度、色弱、水印默认关闭', () => {

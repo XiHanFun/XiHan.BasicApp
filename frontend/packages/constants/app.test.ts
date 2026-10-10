@@ -76,7 +76,7 @@ describe('默认配置', () => {
     expect(UI_DENSITY_COMFORTABLE).toBe('comfortable')
     expect(UI_DENSITY_COMPACT).toBe('compact')
     expect(UI_DENSITIES).toEqual([UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT])
-    expect(DEFAULT_UI_DENSITY).toBe(UI_DENSITY_COMPACT)
+    expect(DEFAULT_UI_DENSITY).toBe(UI_DENSITY_COMFORTABLE)
   })
 })
 
