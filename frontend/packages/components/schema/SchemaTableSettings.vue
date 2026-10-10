@@ -228,6 +228,22 @@ function onSort(details: { from: number, to: number }) {
             </XhToggleGroupRoot>
           </div>
 
+          <!-- 对齐：数据列一起换，三档单选、不许清空 -->
+          <div class="flex gap-2 items-center justify-between">
+            <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.align_label') }}</span>
+            <XhToggleGroupRoot
+              size="sm"
+              :value="align"
+              disallow-empty
+              :aria-label="t('component.schema_table_settings.align_label')"
+              @update:value="onAlignChange"
+            >
+              <XhToggleGroupItem v-for="opt in alignOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </XhToggleGroupItem>
+            </XhToggleGroupRoot>
+          </div>
+
           <!-- 功能：多选列 / 序号列两个开关 -->
           <div class="flex gap-2 items-center justify-between">
             <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.feature_label') }}</span>
@@ -243,22 +259,6 @@ function onSort(details: { from: number, to: number }) {
               </XhToggleGroupItem>
               <XhToggleGroupItem :value="FEATURE_INDEX">
                 {{ t('component.schema_table_settings.index') }}
-              </XhToggleGroupItem>
-            </XhToggleGroupRoot>
-          </div>
-
-          <!-- 对齐：数据列一起换，三档单选、不许清空 -->
-          <div class="flex gap-2 items-center justify-between">
-            <span class="text-xs text-foreground/60">{{ t('component.schema_table_settings.align_label') }}</span>
-            <XhToggleGroupRoot
-              size="sm"
-              :value="align"
-              disallow-empty
-              :aria-label="t('component.schema_table_settings.align_label')"
-              @update:value="onAlignChange"
-            >
-              <XhToggleGroupItem v-for="opt in alignOptions" :key="opt.value" :value="opt.value">
-                {{ opt.label }}
               </XhToggleGroupItem>
             </XhToggleGroupRoot>
           </div>
