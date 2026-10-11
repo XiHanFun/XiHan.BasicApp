@@ -5,7 +5,11 @@
  */
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { nextTick } from 'vue'
 import {
+  CHART_ANIMATE_IN_VIEW_KEY,
+  CHART_PALETTE_KEY,
+  DEFAULT_CHART_PALETTE,
   DEFAULT_FONT_SIZE,
   DEFAULT_THEME,
   DEFAULT_THEME_COLOR,
@@ -178,6 +182,48 @@ describe('界面密度切换', () => {
 
     expect(store.uiDensity).toBe(UI_DENSITY_COMPACT)
     expect(localStorage.getItem(UI_DENSITY_KEY)).toBe(JSON.stringify(UI_DENSITY_COMPACT))
+  })
+})
+
+describe('图表偏好', () => {
+  it('配色缺省多彩分类，视口内动画缺省开启', () => {
+    const store = freshStore()
+
+    expect(store.chartPalette).toBe(DEFAULT_CHART_PALETTE)
+    expect(DEFAULT_CHART_PALETTE).toBe('categorical')
+    expect(store.chartAnimateInView).toBe(true)
+  })
+
+  it('setChartPalette / setChartAnimateInView 写入并落地，本地已存的值在新会话里还原', () => {
+    const store = freshStore()
+
+    store.setChartPalette('muted')
+    store.setChartAnimateInView(false)
+
+    expect(store.chartPalette).toBe('muted')
+    expect(localStorage.getItem(CHART_PALETTE_KEY)).toBe(JSON.stringify('muted'))
+    expect(store.chartAnimateInView).toBe(false)
+    expect(localStorage.getItem(CHART_ANIMATE_IN_VIEW_KEY)).toBe('false')
+
+    const next = freshStore()
+    expect(next.chartPalette).toBe('muted')
+    expect(next.chartAnimateInView).toBe(false)
+  })
+
+  it('偏好抽屉的草稿同样管着这两项：放弃草稿后回到原值，不落地', async () => {
+    const store = freshStore()
+    store.beginPreferenceDraft()
+    store.setChartPalette('brand')
+    store.setChartAnimateInView(false)
+    await nextTick()
+
+    store.discardPreferenceDraft()
+    await nextTick()
+
+    expect(store.chartPalette).toBe(DEFAULT_CHART_PALETTE)
+    expect(store.chartAnimateInView).toBe(true)
+    expect(localStorage.getItem(CHART_PALETTE_KEY)).toBeNull()
+    expect(localStorage.getItem(CHART_ANIMATE_IN_VIEW_KEY)).toBeNull()
   })
 })
 

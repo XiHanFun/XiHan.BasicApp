@@ -92,6 +92,19 @@ export default {
       title: '字体',
       size: '大小',
     },
+    chart: {
+      title: '图表',
+      palette: '配色',
+      palette_tip: '图表数据系列的配色方案。主题单色随主题色变化，多彩分类是缺省方案',
+      palettes: {
+        monochrome: '主题单色',
+        categorical: '多彩分类',
+        brand: '柔和品牌',
+        muted: '莫兰迪柔彩',
+      },
+      animate_in_view: '视口内动画',
+      animate_in_view_tip: '图表滚动进入可视区域时才播放入场动画；关闭后打开页面即播放',
+    },
     interaction: {
       title: '交互',
     },
