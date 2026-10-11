@@ -92,6 +92,19 @@ export default {
       title: 'フォント',
       size: 'サイズ',
     },
+    chart: {
+      title: 'グラフ',
+      palette: '配色',
+      palette_tip: 'グラフ系列の配色です。テーマ単色はテーマカラーに合わせて変わり、マルチカラーが既定です',
+      palettes: {
+        monochrome: 'テーマ単色',
+        categorical: 'マルチカラー',
+        brand: 'ソフトブランド',
+        muted: 'モランディ',
+      },
+      animate_in_view: '表示時アニメーション',
+      animate_in_view_tip: 'グラフが表示領域にスクロールして入ったときに登場アニメーションを再生します。オフの場合はページを開くとすぐに再生します',
+    },
     interaction: {
       title: 'インタラクション',
     },

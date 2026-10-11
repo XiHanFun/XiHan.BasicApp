@@ -93,6 +93,19 @@ export default {
       title: 'Schriftart',
       size: 'Größe',
     },
+    chart: {
+      title: 'Diagramme',
+      palette: 'Farbschema',
+      palette_tip: 'Farbschema der Diagrammreihen. „Design“ folgt der Designfarbe, „Kategorial“ ist der Standard',
+      palettes: {
+        monochrome: 'Design',
+        categorical: 'Kategorial',
+        brand: 'Sanfte Marke',
+        muted: 'Morandi',
+      },
+      animate_in_view: 'Animation im Sichtbereich',
+      animate_in_view_tip: 'Die Einblendanimation erst abspielen, wenn das Diagramm in den sichtbaren Bereich scrollt; ausgeschaltet startet sie sofort beim Öffnen der Seite',
+    },
     interaction: {
       title: 'Interaktion',
     },

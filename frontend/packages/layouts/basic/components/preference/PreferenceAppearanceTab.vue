@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import type { UiDensity } from '~/constants'
 import type { useAppStore } from '~/stores'
-import { XhSwitch } from '@xihan-ui/vue'
+import { XhRadioGroupItem, XhRadioGroupItemDescription, XhRadioGroupItemText, XhRadioGroupRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XColorPicker, XInput, XNumberInput, XSegmented, XSlider } from '~/components'
 import { LOADER_CURVES } from '~/components/common/math-curve-loaders'
 import PageLoader from '~/components/common/PageLoader.vue'
-import { ALL_THEME_COLORS, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS, UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT } from '~/constants'
+import { ALL_THEME_COLORS, CHART_PALETTES, DEFAULT_THEME_COLOR, THEME_COLOR_GROUPS, UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT } from '~/constants'
 import { useTheme } from '~/hooks'
 import { Icon } from '~/iconify'
 import PrefTip from './PrefTip.vue'
@@ -80,6 +80,29 @@ const densityOptions = computed<Array<{ value: UiDensity, label: string }>>(() =
   { value: UI_DENSITY_COMFORTABLE, label: t('preference.appearance.density.comfortable') },
   { value: UI_DENSITY_COMPACT, label: t('preference.appearance.density.compact') },
 ])
+
+// 图表配色：四套方案对应组件库的 data-xh-chart-palette。卡片里的色点取八个分类色槽，色点容器写上
+// 自己的方案名，组件库的配色钩子只把这一块换成那套方案，不随当前生效的方案变
+const CHART_SWATCHES = [
+  'var(--xh-chart-categorical-1)',
+  'var(--xh-chart-categorical-2)',
+  'var(--xh-chart-categorical-3)',
+  'var(--xh-chart-categorical-4)',
+  'var(--xh-chart-categorical-5)',
+  'var(--xh-chart-categorical-6)',
+  'var(--xh-chart-categorical-7)',
+  'var(--xh-chart-categorical-8)',
+] as const
+const chartPaletteItems = computed(() => CHART_PALETTES.map(value => ({
+  value,
+  label: t(`preference.appearance.chart.palettes.${value}`),
+})))
+
+function onChartPaletteChange(value: string | null) {
+  const palette = CHART_PALETTES.find(item => item === value)
+  if (palette)
+    appStore.setChartPalette(palette)
+}
 
 const transitionItems = computed(() => [
   { value: 'scale-up', label: t('preference.general.animation.scale_up') },
@@ -405,6 +428,43 @@ const loaderItems = computed(() =>
       </div>
     </section>
 
+    <!-- 图表 -->
+    <section class="pref-card">
+      <div class="section-title">
+        {{ t('preference.appearance.chart.title') }}
+      </div>
+      <div class="pref-row">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.appearance.chart.palette') }}</span>
+          <PrefTip :content="t('preference.appearance.chart.palette_tip')" />
+        </div>
+      </div>
+      <XhRadioGroupRoot
+        :value="appStore.chartPalette"
+        variant="card"
+        orientation="horizontal"
+        size="sm"
+        :aria-label="t('preference.appearance.chart.palette')"
+        @update:value="onChartPaletteChange"
+      >
+        <XhRadioGroupItem v-for="item in chartPaletteItems" :key="item.value" :value="item.value">
+          <XhRadioGroupItemText>{{ item.label }}</XhRadioGroupItemText>
+          <XhRadioGroupItemDescription>
+            <span class="chart-swatches" :data-xh-chart-palette="item.value" aria-hidden="true">
+              <span v-for="color in CHART_SWATCHES" :key="color" class="chart-swatch" :style="{ backgroundColor: color }" />
+            </span>
+          </XhRadioGroupItemDescription>
+        </XhRadioGroupItem>
+      </XhRadioGroupRoot>
+      <div class="pref-row mt-2">
+        <div class="flex gap-1 items-center">
+          <span>{{ t('preference.appearance.chart.animate_in_view') }}</span>
+          <PrefTip :content="t('preference.appearance.chart.animate_in_view_tip')" />
+        </div>
+        <XhSwitch v-model:checked="appStore.chartAnimateInView" :aria-label="t('preference.appearance.chart.animate_in_view')" />
+      </div>
+    </section>
+
     <!-- 交互 -->
     <section class="pref-card">
       <div class="section-title">
@@ -698,6 +758,22 @@ const loaderItems = computed(() =>
   background: hsl(var(--primary) / 0.1);
   color: hsl(var(--primary));
   font-weight: 600;
+}
+
+/* 图表配色卡片的说明行：一排色点，取这张卡片所写方案的八个分类色槽 */
+.chart-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--xh-space-1);
+  padding-block-start: var(--xh-space-1);
+}
+
+.chart-swatch {
+  inline-size: var(--xh-space-3);
+  block-size: var(--xh-space-3);
+  border-radius: var(--xh-shape-circle);
+  /* 这一排展示的就是颜色本身，强制色模式下也保留 */
+  forced-color-adjust: none;
 }
 
 /* 过渡动画预览选择器 */
