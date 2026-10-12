@@ -6,6 +6,7 @@ export default {
     drag_toolbar: '拖曳可上下調整工具列位置',
     reset: '恢復預設',
     add: '新增小工具',
+    clear: '清空小工具',
     remove: '移除小工具',
     add_panel_title: '可新增的小工具',
     span: '寬度',
