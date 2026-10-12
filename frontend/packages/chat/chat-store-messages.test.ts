@@ -15,6 +15,7 @@ import { ChatConversationType, ChatMemberRole, ChatMessageType } from './enums'
 import { useChatStore } from './store'
 
 const hub = vi.hoisted(() => ({ calls: [] as string[] }))
+const sound = vi.hoisted(() => ({ played: [] as string[] }))
 
 vi.mock('~/composables/useSignalR', () => ({
   useSignalR: () => ({
@@ -23,6 +24,12 @@ vi.mock('~/composables/useSignalR', () => ({
       return Promise.resolve()
     },
   }),
+}))
+
+vi.mock('~/composables/useNotificationSound', () => ({
+  playNotificationSound: (kind: string) => {
+    sound.played.push(kind)
+  },
 }))
 
 function message(patch: Partial<ChatMessageItem> & { messageId: string }): ChatMessageItem {
@@ -80,6 +87,7 @@ function setup(overrides: Partial<ChatApiContract> = {}) {
 
 beforeEach(() => {
   hub.calls = []
+  sound.played = []
 })
 
 afterEach(() => {
@@ -297,6 +305,30 @@ describe('乐观上屏与回执收敛', () => {
 
     expect(store.messages.a?.[0]?.failed).toBe(true)
     expect(store.messages.a?.[0]?.pending).toBe(false)
+  })
+
+  it('发出去了才响发送音效：成功响一声，失败不响，重发成功时补上', async () => {
+    let attempt = 0
+    const store = setup({
+      sendMessage: (input: { clientMessageId?: null | string }) => {
+        attempt += 1
+        return attempt === 2
+          ? Promise.reject(new Error('超时'))
+          : Promise.resolve(message({ messageId: `9${attempt}`, senderUserId: 'me', clientMessageId: input.clientMessageId }))
+      },
+    })
+
+    await store.sendMessage({ conversationId: 'a', messageType: ChatMessageType.Text, content: '第一条' })
+    expect(sound.played).toStrictEqual(['chat-sent'])
+
+    await expect(
+      store.sendMessage({ conversationId: 'a', messageType: ChatMessageType.Text, content: '第二条' }),
+    ).rejects.toThrow('超时')
+    expect(sound.played).toStrictEqual(['chat-sent'])
+
+    const failed = store.messages.a?.find(item => item.failed)?.clientMessageId ?? ''
+    await store.retryMessage('a', failed)
+    expect(sound.played).toStrictEqual(['chat-sent', 'chat-sent'])
   })
 
   it('重发只作用于失败条目，成功后收敛成正式消息', async () => {

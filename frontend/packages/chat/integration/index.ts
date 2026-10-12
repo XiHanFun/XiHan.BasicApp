@@ -7,11 +7,19 @@ import AppChatPanel from './AppChatPanel.vue'
 import ChatHeaderButton from './ChatHeaderButton.vue'
 import { useChatIntegration } from './use-chat-integration'
 
-/** 注册聊天音色：上行纯五度（A5→E6），短促明亮，与站内通知的下行音色区分 */
+/**
+ * 注册聊天音色：
+ * - chat：他人发来的消息，上行纯五度（A5→E6），短促明亮，与站内通知的下行音色区分
+ * - chat-sent：自己的消息发送成功，上行纯四度（E6→A6）更高、更短、更轻，是对自己操作的确认，压在收消息之下
+ */
 function registerChatSound(): void {
   registerNotificationSound('chat', [
     { frequency: 880, offset: 0, duration: 0.14, gain: 1 },
     { frequency: 1318.51, offset: 0.1, duration: 0.2, gain: 0.8 },
+  ])
+  registerNotificationSound('chat-sent', [
+    { frequency: 1318.51, offset: 0, duration: 0.07, gain: 0.5 },
+    { frequency: 1760, offset: 0.045, duration: 0.1, gain: 0.35 },
   ])
 }
 
