@@ -14,6 +14,7 @@ import type {
 } from './types'
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
+import { playNotificationSound } from '~/composables/useNotificationSound'
 import { useSignalR } from '~/composables/useSignalR'
 import { useUserStore } from '~/stores'
 import { LocalStorage } from '~/utils'
@@ -388,6 +389,8 @@ export const useChatStore = defineStore('chat', () => {
       const saved = await api().sendMessage({ ...input, clientMessageId })
       reconcileSaved(saved)
       touchConversationBySend(saved)
+      // 发出去了才响：失败不响，重发成功时再补这一声；是否发声随偏好「消息提示音」
+      playNotificationSound('chat-sent')
       // 助手会话：消息落库后由前端单独发起一次回复请求，生成期间增量走推送
       if (conversationTypeOf(input.conversationId) === ChatConversationType.Assistant) {
         void requestAssistantReply(input.conversationId)
@@ -422,6 +425,7 @@ export const useChatStore = defineStore('chat', () => {
       })
       reconcileSaved(saved)
       touchConversationBySend(saved)
+      playNotificationSound('chat-sent')
     }
     catch (error) {
       item.pending = false

@@ -292,7 +292,7 @@ export default {
     dynamic_island_tip:
       'Die Dynamic Island oben bündelt den Fortschritt von Anmeldung, Einstellungssynchronisierung, Uploads und Netzwerkstatus — klicken Sie, um Aktivität & Verlauf zu erweitern. Bei Deaktivierung erscheinen diese Ergebnisse stattdessen als Meldungs-Popups.',
     notify_sound_tip:
-      'Spielt einen Ton ab, wenn eine In-App-Benachrichtigung oder ähnliche Meldung eintrifft; jede Quelle kann einen eigenen Ton verwenden. Jeder Eintrag löst einen Ton aus; bei mehreren gleichzeitig eintreffenden werden sie nacheinander abgespielt. Browser erlauben Ton erst, nachdem Sie mit der Seite interagiert haben.',
+      'Spielt einen Ton ab, wenn eine In-App-Benachrichtigung oder ähnliche Meldung eintrifft, und einen leiseren, wenn Ihre eigene Chatnachricht gesendet wurde; jede Quelle kann einen eigenen Ton verwenden. Jeder Eintrag löst einen Ton aus; bei mehreren gleichzeitig eintreffenden werden sie nacheinander abgespielt. Browser erlauben Ton erst, nachdem Sie mit der Seite interagiert haben.',
     table_row_peek_tip:
       'Auf Listenseiten öffnet sich beim Hover über eine Zeile für ca. 0,5 s eine Vorschau-Karte neben dem Cursor mit allen Feldern der Zeile (einschließlich in der Tabelle ausgeblendeter Spalten). Zum Deaktivieren ausschalten. Auf Mobilgeräten nicht aktiv.',
     preference_sync_tip:
