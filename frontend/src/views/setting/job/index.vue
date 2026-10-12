@@ -10,7 +10,7 @@ import type {
   TaskUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { createPageRequest, EnableStatus, jobManagementApi, RunTaskStatus, taskLogApi, TriggerType } from '@/api'
@@ -697,199 +697,201 @@ async function handleSubmit() {
 
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 640px">
-        <XhDrawerTitle>{{ t('setting.job.detail_title') }}</XhDrawerTitle>
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('setting.job.detail_title') }}</XhDrawerTitle>
+        </XhDrawerHeader>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage" :class="{ 'is-loading': detailLoading }">
-          <div class="xh-loading-stage__veil">
-            <XhSpinner />
+        <XhDrawerBody class="xh-overlay-body">
+          <div class="xh-loading-stage" :class="{ 'is-loading': detailLoading }">
+            <div class="xh-loading-stage__veil">
+              <XhSpinner />
+            </div>
+            <XhEmptyStateRoot v-if="!detailLoading && !detailData" class="xh-detail-empty">
+              <XhEmptyStateIndicator>
+                <Icon icon="lucide:inbox" />
+              </XhEmptyStateIndicator>
+              <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('setting.job.detail_empty') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+            <div v-else-if="detailData" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+              <XhDescriptionsRoot :columns="1" variant="outline" placement="left" size="sm">
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.task_name') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.taskName }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.task_code') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.taskCode }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.task_group') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.taskGroup || '-' }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.task_description') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.taskDescription || '-' }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.task_class') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.taskClass }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.task_method') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.taskMethod || '-' }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.task_params') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.taskParams || '-' }}</pre>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.trigger_type') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ getOptionLabel(triggerTypeOptions, detailData.triggerType) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.cron_expression') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.cronExpression || '-' }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.run_status') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <XhTagRoot variant="subtle" :tone="runStatusTag(detailData.runTaskStatus)" size="sm">
+                      <XhTagLabel>
+                        {{ getOptionLabel(runTaskStatusOptions, detailData.runTaskStatus) }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.status') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <XhTagRoot variant="subtle" :tone="statusTag(detailData.status)" size="sm">
+                      <XhTagLabel>
+                        {{ getOptionLabel(statusOptions, detailData.status) }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.priority') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.priority }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.allow_concurrent') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatBoolean(detailData.allowConcurrent) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.timeout_seconds') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.timeoutSeconds }}s
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.interval_seconds') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.intervalSeconds ? `${detailData.intervalSeconds}s` : '-' }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.exec_stats') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ t('setting.job.exec_stats_value', { executed: detailData.executedCount, repeat: detailData.repeatCount, retry: detailData.retryCount, maxRetry: detailData.maxRetryCount }) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.start_time') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(detailData.startTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.end_time') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(detailData.endTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.next_run') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(detailData.nextRunTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.last_run') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(detailData.lastRunTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.created_time') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(detailData.createdTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.modified_time') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(detailData.modifiedTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.job.remark') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detailData.remark || '-' }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+              </XhDescriptionsRoot>
+            </div>
           </div>
-          <XhEmptyStateRoot v-if="!detailLoading && !detailData" class="xh-detail-empty">
-            <XhEmptyStateIndicator>
-              <Icon icon="lucide:inbox" />
-            </XhEmptyStateIndicator>
-            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
-            <XhEmptyStateDescription>{{ t('setting.job.detail_empty') }}</XhEmptyStateDescription>
-          </XhEmptyStateRoot>
-          <div v-else-if="detailData" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
-            <XhDescriptionsRoot :columns="1" variant="outline" placement="left" size="sm">
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.task_name') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.taskName }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.task_code') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.taskCode }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.task_group') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.taskGroup || '-' }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.task_description') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.taskDescription || '-' }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.task_class') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.taskClass }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.task_method') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.taskMethod || '-' }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.task_params') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <pre class="m-0 whitespace-pre-wrap break-all">{{ detailData.taskParams || '-' }}</pre>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.trigger_type') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ getOptionLabel(triggerTypeOptions, detailData.triggerType) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.cron_expression') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.cronExpression || '-' }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.run_status') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <XhTagRoot variant="subtle" :tone="runStatusTag(detailData.runTaskStatus)" size="sm">
-                    <XhTagLabel>
-                      {{ getOptionLabel(runTaskStatusOptions, detailData.runTaskStatus) }}
-                    </XhTagLabel>
-                  </XhTagRoot>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.status') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <XhTagRoot variant="subtle" :tone="statusTag(detailData.status)" size="sm">
-                    <XhTagLabel>
-                      {{ getOptionLabel(statusOptions, detailData.status) }}
-                    </XhTagLabel>
-                  </XhTagRoot>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.priority') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.priority }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.allow_concurrent') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatBoolean(detailData.allowConcurrent) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.timeout_seconds') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.timeoutSeconds }}s
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.interval_seconds') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.intervalSeconds ? `${detailData.intervalSeconds}s` : '-' }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.exec_stats') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ t('setting.job.exec_stats_value', { executed: detailData.executedCount, repeat: detailData.repeatCount, retry: detailData.retryCount, maxRetry: detailData.maxRetryCount }) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.start_time') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(detailData.startTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.end_time') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(detailData.endTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.next_run') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(detailData.nextRunTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.last_run') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(detailData.lastRunTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.created_time') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(detailData.createdTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.modified_time') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(detailData.modifiedTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.job.remark') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detailData.remark || '-' }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-            </XhDescriptionsRoot>
-          </div>
-        </div>
-        <div v-if="detailData" class="xh-dialog-footer">
-          <XhFlex justify="end" gap="md">
-            <!-- 与行内动作同一套按钮码：详情里的入口不能绕过门控 -->
-            <XhButton v-if="hasPermission('setting.job.logs')" variant="subtle" @click="handleLogs(detailData); detailVisible = false">
-              <span><Icon icon="lucide:history" /></span>
-              {{ t('setting.job.logs') }}
-            </XhButton>
-            <XhButton
-              v-if="hasPermission('setting.job.run')"
-              variant="subtle"
-              tone="brand"
-              :disabled="triggerDisabled(detailData)"
-              @click="handleTrigger(detailData); detailVisible = false"
-            >
-              <span><Icon icon="lucide:zap" /></span>
-              {{ t('setting.job.trigger_immediate') }}
-            </XhButton>
-            <XhButton
-              v-if="hasPermission('setting.job.status')"
-              variant="subtle"
-              :tone="detailData.status === EnableStatus.Enabled ? 'warning' : 'success'"
-              :disabled="detailData.runTaskStatus === RunTaskStatus.Running"
-              @click="handleToggleStatus(detailData); detailVisible = false"
-            >
-              <span><Icon :icon="detailData.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" /></span>
-              {{ detailData.status === EnableStatus.Enabled ? t('common.actions.disable') : t('common.actions.enable') }}
-            </XhButton>
-          </XhFlex>
-        </div>
+        </XhDrawerBody>
+        <XhDrawerFooter v-if="detailData">
+          <!-- 与行内动作同一套按钮码：详情里的入口不能绕过门控 -->
+          <XhButton v-if="hasPermission('setting.job.logs')" variant="subtle" @click="handleLogs(detailData); detailVisible = false">
+            <span><Icon icon="lucide:history" /></span>
+            {{ t('setting.job.logs') }}
+          </XhButton>
+          <XhButton
+            v-if="hasPermission('setting.job.run')"
+            variant="subtle"
+            tone="brand"
+            :disabled="triggerDisabled(detailData)"
+            @click="handleTrigger(detailData); detailVisible = false"
+          >
+            <span><Icon icon="lucide:zap" /></span>
+            {{ t('setting.job.trigger_immediate') }}
+          </XhButton>
+          <XhButton
+            v-if="hasPermission('setting.job.status')"
+            variant="subtle"
+            :tone="detailData.status === EnableStatus.Enabled ? 'warning' : 'success'"
+            :disabled="detailData.runTaskStatus === RunTaskStatus.Running"
+            @click="handleToggleStatus(detailData); detailVisible = false"
+          >
+            <span><Icon :icon="detailData.status === EnableStatus.Enabled ? 'lucide:pause' : 'lucide:play'" /></span>
+            {{ detailData.status === EnableStatus.Enabled ? t('common.actions.disable') : t('common.actions.enable') }}
+          </XhButton>
+        </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
 

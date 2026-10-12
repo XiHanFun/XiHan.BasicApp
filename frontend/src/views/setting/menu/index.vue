@@ -2,7 +2,7 @@
 import type { ApiId, MenuCreateDto, MenuDetailDto, MenuListItemDto, MenuTreeNodeDto, MenuUpdateDto } from '@/api'
 import type { PageSchema, SchemaActionPayload, SchemaQueryParams, XDataTableColumn } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -640,206 +640,206 @@ onMounted(() => {
 
     <XhDialogRoot v-model:open="detailVisible">
       <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
-        <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
-        <XhDialogTitle>
-          <template v-if="!currentDetail">
-            {{ t('common.loading') }}
-          </template>
-          <div v-else class="det-hd-entity">
-            <div class="det-hd-ico">
-              <Icon icon="tabler:menu-2" width="22" height="22" />
-            </div>
-            <div class="min-w-0">
-              <div class="det-hd-name">
-                {{ currentDetail.menuName }}
+        <XhDialogHeader>
+          <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
+          <XhDialogTitle>
+            <template v-if="!currentDetail">
+              {{ t('common.loading') }}
+            </template>
+            <div v-else class="det-hd-entity">
+              <div class="det-hd-ico">
+                <Icon icon="tabler:menu-2" width="22" height="22" />
               </div>
-              <div class="det-hd-sub">
-                {{ currentDetail.menuCode }}
+              <div class="min-w-0">
+                <div class="det-hd-name">
+                  {{ currentDetail.menuName }}
+                </div>
+                <div class="det-hd-sub">
+                  {{ currentDetail.menuCode }}
+                </div>
               </div>
             </div>
-          </div>
-        </XhDialogTitle>
+          </XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-
-        <div v-if="detailLoading" class="modal-loading">
-          {{ t('common.statuses.loading') }}
-        </div>
-        <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
-        <XhTabsRoot v-else-if="currentDetail" default-value="overview" variant="line">
-          <XhTabsList>
-            <XhTabsTrigger value="overview">
-              {{ t('setting.menu.overview') }}
-            </XhTabsTrigger>
-            <XhTabsTrigger value="children">
-              {{ t('setting.menu.children_tab', { count: childMenus.length }) }}
-            </XhTabsTrigger>
-            <XhTabsIndicator />
-          </XhTabsList>
-          <XhTabsContent value="overview">
-            <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.menu_type') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ getOptionLabel(menuTypeOptions, currentDetail.menuType) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.status') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
-                    <XhTagLabel>
-                      {{ formatStatus(currentDetail.status) }}
-                    </XhTagLabel>
-                  </XhTagRoot>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.route_path') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.path) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.component_path') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.component) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.route_name') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.routeName) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.icon') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <span v-if="currentDetail.icon" style="display: inline-flex; align-items: center; gap: 6px">
-                    <Icon :icon="currentDetail.icon" width="16" />
-                    <span>{{ currentDetail.icon }}</span>
-                  </span>
-                  <span v-else>-</span>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.title') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.title) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.i18n_key') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.i18nKey) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.badge') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <XhTagRoot v-if="currentDetail.badge" variant="subtle" size="sm" :tone="badgeTone(currentDetail.badgeType)">
-                    <XhTagLabel>
-                      {{ currentDetail.badge }}
-                    </XhTagLabel>
-                  </XhTagRoot>
-                  <span
-                    v-else-if="currentDetail.badgeDot"
-                    :style="{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: badgeDotColor(currentDetail.badgeType) }"
-                  />
-                  <span v-else>-</span>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.is_external') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatBoolean(currentDetail.isExternal) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem v-if="currentDetail.isExternal" style="grid-column: span 2">
-                <XhDescriptionsLabel>{{ t('setting.menu.external_url') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.externalUrl) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.is_cache') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatBoolean(currentDetail.isCache) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.is_visible') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatBoolean(currentDetail.isVisible) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.is_affix') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatBoolean(currentDetail.isAffix) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.sort') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ currentDetail.sort }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.permission_id') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.permissionId) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.menu.created_time') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(currentDetail.createdTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem v-if="currentDetail.remark" style="grid-column: span 2">
-                <XhDescriptionsLabel>{{ t('setting.menu.remark') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ currentDetail.remark }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-            </XhDescriptionsRoot>
-          </XhTabsContent>
-          <XhTabsContent value="children">
-            <div class="xh-detail-table-wrap">
-              <XDataTable
-                v-if="childMenus.length"
-                :columns="childMenuColumns"
-                :data="childMenus"
-                :row-key="(row: MenuTreeNodeDto) => row.basicId"
-              />
-              <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
-                <XhEmptyStateIndicator>
-                  <Icon icon="lucide:inbox" width="24" />
-                </XhEmptyStateIndicator>
-                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-                <XhEmptyStateDescription>{{ t('setting.menu.no_children') }}</XhEmptyStateDescription>
-              </XhEmptyStateRoot>
-            </div>
-          </XhTabsContent>
-        </XhTabsRoot>
-
-        <div class="xh-dialog-footer">
-          <XhFlex justify="end">
-            <XhButton variant="subtle" size="sm" @click="detailVisible = false">
-              {{ t('common.actions.close') }}
-            </XhButton>
-            <!-- 与行内「编辑」同一口径：要编辑按钮，全局菜单只在平台维护 -->
-            <XhButton
-              v-if="currentDetail && canMaintainMenu(currentDetail) && hasPermission('setting.menu.update')"
-              variant="subtle"
-              size="sm"
-              tone="brand"
-              @click="detailVisible = false; openEdit(currentDetail as unknown as MenuListItemDto)"
-            >
-              {{ t('common.actions.edit') }}
-            </XhButton>
-          </XhFlex>
-        </div>
+        <XhDialogBody class="xh-overlay-body">
+          <div v-if="detailLoading" class="modal-loading">
+            {{ t('common.statuses.loading') }}
+          </div>
+          <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+          <XhTabsRoot v-else-if="currentDetail" default-value="overview" variant="line">
+            <XhTabsList>
+              <XhTabsTrigger value="overview">
+                {{ t('setting.menu.overview') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="children">
+                {{ t('setting.menu.children_tab', { count: childMenus.length }) }}
+              </XhTabsTrigger>
+              <XhTabsIndicator />
+            </XhTabsList>
+            <XhTabsContent value="overview">
+              <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.menu_type') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ getOptionLabel(menuTypeOptions, currentDetail.menuType) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.status') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                      <XhTagLabel>
+                        {{ formatStatus(currentDetail.status) }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.route_path') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.path) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.component_path') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.component) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.route_name') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.routeName) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.icon') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <span v-if="currentDetail.icon" style="display: inline-flex; align-items: center; gap: 6px">
+                      <Icon :icon="currentDetail.icon" width="16" />
+                      <span>{{ currentDetail.icon }}</span>
+                    </span>
+                    <span v-else>-</span>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.title') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.title) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.i18n_key') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.i18nKey) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.badge') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <XhTagRoot v-if="currentDetail.badge" variant="subtle" size="sm" :tone="badgeTone(currentDetail.badgeType)">
+                      <XhTagLabel>
+                        {{ currentDetail.badge }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                    <span
+                      v-else-if="currentDetail.badgeDot"
+                      :style="{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: badgeDotColor(currentDetail.badgeType) }"
+                    />
+                    <span v-else>-</span>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.is_external') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatBoolean(currentDetail.isExternal) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem v-if="currentDetail.isExternal" style="grid-column: span 2">
+                  <XhDescriptionsLabel>{{ t('setting.menu.external_url') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.externalUrl) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.is_cache') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatBoolean(currentDetail.isCache) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.is_visible') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatBoolean(currentDetail.isVisible) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.is_affix') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatBoolean(currentDetail.isAffix) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.sort') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ currentDetail.sort }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.permission_id') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.permissionId) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.menu.created_time') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(currentDetail.createdTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem v-if="currentDetail.remark" style="grid-column: span 2">
+                  <XhDescriptionsLabel>{{ t('setting.menu.remark') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ currentDetail.remark }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+              </XhDescriptionsRoot>
+            </XhTabsContent>
+            <XhTabsContent value="children">
+              <div class="xh-detail-table-wrap">
+                <XDataTable
+                  v-if="childMenus.length"
+                  :columns="childMenuColumns"
+                  :data="childMenus"
+                  :row-key="(row: MenuTreeNodeDto) => row.basicId"
+                />
+                <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="24" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('setting.menu.no_children') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </div>
+            </XhTabsContent>
+          </XhTabsRoot>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" size="sm" @click="detailVisible = false">
+            {{ t('common.actions.close') }}
+          </XhButton>
+          <!-- 与行内「编辑」同一口径：要编辑按钮，全局菜单只在平台维护 -->
+          <XhButton
+            v-if="currentDetail && canMaintainMenu(currentDetail) && hasPermission('setting.menu.update')"
+            variant="subtle"
+            size="sm"
+            tone="brand"
+            @click="detailVisible = false; openEdit(currentDetail as unknown as MenuListItemDto)"
+          >
+            {{ t('common.actions.edit') }}
+          </XhButton>
+        </XhDialogFooter>
       </XhDialogContent>
     </XhDialogRoot>
 
