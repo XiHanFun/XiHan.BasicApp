@@ -50,7 +50,12 @@ function sanitize(items: BoardItem[]): BoardItem[] {
 
 const LOCAL_BOARD_KEY = 'xh:workbench:widgets:board'
 
-const board = ref<BoardItem[]>(sanitize(DEFAULT_BOARD))
+// 首屏直接取本地那份布局（每次保存都会写本地）：先摆缺省布局再等后端回来替换，没添加的小组件会闪一下再消失。
+// 空数组也是用户存下的布局（全部移除），不能当成「没存过」回落到缺省
+const localBoard = readLocalBoard()
+const board = ref<BoardItem[]>(sanitize(localBoard ?? DEFAULT_BOARD))
+// 本地没存过、又开着跨端同步（换了台设备）：等后端那份回来再渲染，不先摆出缺省布局
+const ready = ref(localBoard !== null || !appStore.widgetsSyncEnabled)
 const customizing = ref(false)
 const showAdd = ref(false)
 // 悬浮操作栏开合：折叠时右侧只露半隐藏按钮，点击展开为半透明毛玻璃操作栏
@@ -118,21 +123,22 @@ function persist() {
 }
 
 onMounted(async () => {
-  // 开启同步取后端值；关闭时 hydrate 返回 undefined，回退本地
-  const saved = await sync.hydrate<{ items: BoardItem[] }>('board')
-  if (saved?.items?.length) {
-    board.value = sanitize(saved.items)
-    return
+  // 开启同步取后端值；关闭时 hydrate 返回 undefined，沿用首屏的本地布局。
+  // 后端回来前已经动手编辑的，不拿它覆盖用户的改动
+  try {
+    const saved = await sync.hydrate<{ items: BoardItem[] }>('board')
+    if (Array.isArray(saved?.items) && !dirty.value)
+      board.value = sanitize(saved.items)
   }
-  const local = readLocalBoard()
-  if (local?.length)
-    board.value = sanitize(local)
+  finally {
+    ready.value = true
+  }
 })
 
 // 其它设备推送（同步关闭的分区由框架层自动跳过，无需此处再判断）
 const unsubscribe = sync.subscribeRemote('board', (value) => {
   const items = (value as { items?: BoardItem[] }).items
-  if (Array.isArray(items) && items.length)
+  if (Array.isArray(items))
     board.value = sanitize(items)
 })
 onUnmounted(() => {
@@ -304,7 +310,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
       </div>
     </div>
 
-    <div v-if="!board.length" class="py-20">
+    <div v-if="ready && !board.length" class="py-20">
       <XhEmptyStateRoot>
         <XhEmptyStateIndicator>
           <Icon icon="lucide:inbox" width="28" />
@@ -320,7 +326,7 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
     </div>
 
     <XhSortableRoot
-      v-else
+      v-else-if="ready"
       ref="gridHostRef"
       :ids="ids"
       orientation="both"
