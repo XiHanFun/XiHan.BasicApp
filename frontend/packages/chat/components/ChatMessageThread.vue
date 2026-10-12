@@ -4,7 +4,7 @@ import type {
   ChatMessageItem,
 } from '../types'
 import type { ChatContextMenuItem } from './ChatContextMenu.vue'
-import { useMessageFeed, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { useMessageFeed, XhButton, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhImageViewerCloseTrigger, XhImageViewerContent, XhImageViewerCounter, XhImageViewerFlipHorizontalTrigger, XhImageViewerFlipVerticalTrigger, XhImageViewerImage, XhImageViewerNextTrigger, XhImageViewerPrevTrigger, XhImageViewerResetTrigger, XhImageViewerRoot, XhImageViewerRotateLeftTrigger, XhImageViewerRotateRightTrigger, XhImageViewerToolbar, XhImageViewerViewport, XhImageViewerZoomInTrigger, XhImageViewerZoomOutTrigger, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -24,6 +24,7 @@ import {
   CHAT_RECALL_WINDOW_MINUTES,
 } from '../types'
 import { formatMessageTime, messageBodyLabel } from './chat-helpers'
+import { provideChatImageGallery } from './chat-image-gallery'
 import ChatComposer from './ChatComposer.vue'
 import ChatContextMenu from './ChatContextMenu.vue'
 import ChatForwardDialog from './ChatForwardDialog.vue'
@@ -45,6 +46,9 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const chatStore = useChatStore()
+
+// ── 会话图片组：整个会话一个看片浮层，按消息先后串起所有图片，左右翻得到 ──
+const { items: galleryItems, open: galleryOpen, index: galleryIndex } = provideChatImageGallery(() => chatStore.activeMessages)
 const userStore = useUserStore()
 
 // 消息流的滚动机器：新消息来了跟到底，用户上翻就松手，往上补历史时按锚元素补偿滚动位置。
@@ -795,6 +799,31 @@ onBeforeUnmount(() => {
 
         <!-- 转发目标选择 -->
         <ChatForwardDialog v-model:show="showForward" :message="forwardTarget" />
+
+        <!-- 会话图片组的看片浮层：图片消息点缩略图从那一张打开，左右翻得到同会话的其他图片。
+             计数、翻页、工具条、关闭各自钉在浮层的一条边上，都是 content 的直接子件；只有一张时不出计数与翻页 -->
+        <XhImageViewerRoot v-model:open="galleryOpen" v-model:index="galleryIndex" :collection="galleryItems">
+          <XhImageViewerContent>
+            <XhImageViewerViewport>
+              <XhImageViewerImage />
+            </XhImageViewerViewport>
+            <template v-if="galleryItems.length > 1">
+              <XhImageViewerCounter />
+              <XhImageViewerPrevTrigger />
+              <XhImageViewerNextTrigger />
+            </template>
+            <XhImageViewerToolbar>
+              <XhImageViewerZoomOutTrigger />
+              <XhImageViewerZoomInTrigger />
+              <XhImageViewerRotateLeftTrigger />
+              <XhImageViewerRotateRightTrigger />
+              <XhImageViewerFlipHorizontalTrigger />
+              <XhImageViewerFlipVerticalTrigger />
+              <XhImageViewerResetTrigger />
+            </XhImageViewerToolbar>
+            <XhImageViewerCloseTrigger />
+          </XhImageViewerContent>
+        </XhImageViewerRoot>
 
         <!-- 视口分离态：回到最新 -->
         <div v-if="isDetached" class="sticky bottom-1 flex justify-center">

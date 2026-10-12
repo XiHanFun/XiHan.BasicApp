@@ -13,7 +13,7 @@ defineProps<{
   thumb?: boolean
 }>()
 
-/** 点了这张：消息经 XhImageViewerRoot 插槽的 setOpen 打开看片浮层，从这张开始看 */
+/** 点了这张：从这张打开会话图片组（消息流统一提供的看片浮层），左右翻得到同会话的其他图片 */
 const emit = defineEmits<{ select: [] }>()
 
 const { t } = useI18n()
