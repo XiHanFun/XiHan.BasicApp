@@ -44,24 +44,17 @@ export function useViewManager(pageCode: string) {
   const views = ref<PersonalView[]>(storage.get<PersonalView[]>(storageKey) ?? [])
   const activeCode = ref<string | undefined>(views.value.find(v => v.isDefault)?.code)
 
-  // 后端跨端同步：远端视图就绪则覆盖本地（尽力而为，端点未就绪时静默回退 localStorage）
-  void sync.hydrate<PersonalView[]>('views').then((remote) => {
-    if (Array.isArray(remote) && remote.length > 0) {
-      views.value = remote
-      activeCode.value = remote.find(v => v.isDefault)?.code
-    }
+  // 跨端同步：开着同步以后端那份为准（等它回来再渲染），其它设备推来时实时应用，二者都写回本地。
+  // 空数组是用户把视图删光了，同样采用
+  const remote = sync.bindSection<PersonalView[]>('views', {
+    accept: (value): value is PersonalView[] => Array.isArray(value),
+    apply: (list) => {
+      views.value = list
+      activeCode.value = list.find(v => v.isDefault)?.code
+    },
+    writeLocal: list => storage.set(storageKey, list),
   })
-
-  // 其它在线设备保存视图时实时应用（SignalR 推送），并落地本地保持刷新后一致
-  const unsubscribeRemote = sync.subscribeRemote('views', (value) => {
-    if (Array.isArray(value)) {
-      const remote = value as PersonalView[]
-      views.value = remote
-      activeCode.value = remote.find(v => v.isDefault)?.code
-      storage.set(storageKey, remote)
-    }
-  })
-  onScopeDispose(unsubscribeRemote)
+  onScopeDispose(remote.dispose)
 
   function persist() {
     storage.set(storageKey, views.value)
@@ -125,6 +118,8 @@ export function useViewManager(pageCode: string) {
   }
 
   return {
+    /** 首屏能否渲染：开着同步时等后端那份回来 */
+    ready: remote.ready,
     views,
     activeCode,
     addView,

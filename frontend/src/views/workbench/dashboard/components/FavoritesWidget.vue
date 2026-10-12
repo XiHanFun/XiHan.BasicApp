@@ -50,7 +50,8 @@ onMounted(() => {
 
 <template>
   <WidgetCard icon="lucide:star" :title="t('workbench.widgets.favorites.title')">
-    <div v-if="links.length" class="grid grid-cols-3 gap-1 sm:grid-cols-4">
+    <!-- 开着收藏夹同步时等后端那份回来再摆：本地那份可能是别的设备改动之前的旧值 -->
+    <div v-if="favoritesStore.ready && links.length" class="grid grid-cols-3 gap-1 sm:grid-cols-4">
       <button
         v-for="link in links"
         :key="link.key"
@@ -67,7 +68,7 @@ onMounted(() => {
         <span class="truncate text-xs font-medium text-foreground">{{ link.label }}</span>
       </button>
     </div>
-    <div v-else class="flex h-full items-center justify-center py-6">
+    <div v-else-if="favoritesStore.ready" class="flex h-full items-center justify-center py-6">
       <XhEmptyStateRoot size="sm">
         <XhEmptyStateIndicator>
           <Icon icon="lucide:inbox" width="24" />

@@ -428,6 +428,14 @@ export function markPreferenceIdentitySwitched(): void {
   identitySwitched = true
 }
 
+/** 会话重置钩子：各处按会话缓存的后端设置（如页面设置）在此登记清理，免得下一个身份沿用上一个人的那份 */
+const sessionResetHooks = new Set<() => void>()
+
+/** 登记一个会话重置钩子：退出登录、切换身份（走 resetPreferenceBackendSync）时调用 */
+export function onSettingSessionReset(hook: () => void): void {
+  sessionResetHooks.add(hook)
+}
+
 export function resetPreferenceBackendSync(): void {
   backendSyncEnabled = false
   hydrated = false
@@ -435,4 +443,5 @@ export function resetPreferenceBackendSync(): void {
     clearTimeout(syncTimer)
     syncTimer = null
   }
+  sessionResetHooks.forEach(hook => hook())
 }

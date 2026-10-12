@@ -8,13 +8,18 @@ import { effectScope, ref } from 'vue'
 import { storage } from '~/utils'
 import { useTableSettings } from './useTableSettings'
 
-vi.mock('./useUserSettingSync', () => ({
-  useUserSettingSync: () => ({
-    hydrate: async () => undefined,
-    save: vi.fn(),
-    subscribeRemote: () => () => {},
-  }),
-}))
+vi.mock('./useUserSettingSync', async () => {
+  const { ref: vueRef } = await import('vue')
+  return {
+    useUserSettingSync: () => ({
+      hydrate: async () => undefined,
+      save: vi.fn(),
+      subscribeRemote: () => () => {},
+      // 关着同步的样子：立即就绪，不拉后端
+      bindSection: () => ({ ready: vueRef(true), settled: Promise.resolve(), dispose: () => {} }),
+    }),
+  }
+})
 
 const fields = ref([{ key: 'name', title: '名称' }, { key: 'path', title: '路径' }] as ListFieldSchema[])
 

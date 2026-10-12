@@ -163,23 +163,6 @@ export function useTableSettings(
     applyPersisted(persisted)
   }
 
-  // 后端跨端同步：远端列设置就绪则覆盖本地（尽力而为，端点未就绪时静默回退 localStorage）
-  void sync.hydrate<PersistedTableSettings>('table').then((remote) => {
-    if (remote && Array.isArray(remote.columns) && remote.columns.length > 0) {
-      applyPersisted(remote)
-    }
-  })
-
-  // 其它在线设备保存表格设置时实时应用（SignalR 推送），并落地本地保持刷新后一致
-  const unsubscribeRemote = sync.subscribeRemote('table', (value) => {
-    const remote = value as PersistedTableSettings
-    if (remote && Array.isArray(remote.columns) && remote.columns.length > 0) {
-      applyPersisted(remote)
-      storage.set(storageKey, remote)
-    }
-  })
-  onScopeDispose(unsubscribeRemote)
-
   /** 持久化当前设置（写本地 + 后端；仅由「保存」显式触发，避免每次调整都落库） */
   function save() {
     const data: PersistedTableSettings = {
@@ -295,7 +278,17 @@ export function useTableSettings(
 
   restore()
 
+  // 跨端同步：开着同步以后端那份为准（等它回来再渲染），其它设备推来时实时应用，二者都写回本地
+  const remote = sync.bindSection<PersistedTableSettings>('table', {
+    accept: (value): value is PersistedTableSettings => Array.isArray((value as PersistedTableSettings | undefined)?.columns),
+    apply: applyPersisted,
+    writeLocal: value => storage.set(storageKey, value),
+  })
+  onScopeDispose(remote.dispose)
+
   return {
+    /** 首屏能否渲染：开着同步时等后端那份回来 */
+    ready: remote.ready,
     columns,
     density,
     style,

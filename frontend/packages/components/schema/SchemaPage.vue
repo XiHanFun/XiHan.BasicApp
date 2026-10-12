@@ -635,9 +635,10 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
 
 <template>
   <div class="flex overflow-hidden flex-col gap-2 p-3 h-full" :class="{ 'xh-schema-fullscreen': isFullscreen }">
-    <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉 -->
+    <!-- 搜索面板：与表格同款卡片容器；overflow 放开，高级条件浮层才不被卡片裁掉。
+         开着搜索设置同步时等后端那份回来再出，免得先按本地旧的常用 / 高级划分摆出来再换 -->
     <XhCardRoot
-      v-if="searchFields.length || advancedFields.length"
+      v-if="searchSettings.ready.value && (searchFields.length || advancedFields.length)"
       class="xh-schema-card"
       variant="outline"
       style="overflow: visible"
@@ -743,8 +744,9 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
     <!-- 表格容器：定高卡片（flex-1 + height:0），卡片体成为定高 flex 列，滚动只发生在表格内部 -->
     <XhCardRoot class="xh-schema-card flex-1" variant="outline" style="height: 0">
       <XhCardContent class="xh-schema-card__body--table">
-        <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据 -->
-        <XhSkeletonRoot v-if="!firstLoaded" class="xh-table-skeleton" aria-hidden="true">
+        <!-- 列表骨架屏：列宽/行高对应真实表格，逐行逐列，形似即将加载出来的数据。
+             开着表格设置同步时也等后端那份回来，免得先按本地旧的列顺序、显隐与宽度摆出表格再换 -->
+        <XhSkeletonRoot v-if="!firstLoaded || !settings.ready.value" class="xh-table-skeleton" aria-hidden="true">
           <div class="xh-skel-row xh-skel-row--head" :style="{ height: `${skeletonRowHeight}px` }">
             <div
               v-for="col in skeletonColumns"

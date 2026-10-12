@@ -97,23 +97,6 @@ export function useSearchSettings(
     applyPersisted(persisted)
   }
 
-  // 后端跨端同步：远端搜索设置就绪则覆盖本地（尽力而为，端点未就绪静默回退 localStorage）
-  void sync.hydrate<PersistedSearchSettings>('search').then((remote) => {
-    if (remote && Array.isArray(remote.fields) && remote.fields.length > 0) {
-      applyPersisted(remote)
-    }
-  })
-
-  // 其它在线设备保存搜索设置时实时应用（SignalR 推送），并落地本地保持刷新后一致
-  const unsubscribeRemote = sync.subscribeRemote('search', (value) => {
-    const remote = value as PersistedSearchSettings
-    if (remote && Array.isArray(remote.fields) && remote.fields.length > 0) {
-      applyPersisted(remote)
-      storage.set(storageKey, remote)
-    }
-  })
-  onScopeDispose(unsubscribeRemote)
-
   /** 持久化当前设置（写本地 + 后端；仅由「保存」显式触发，避免每次调整都落库） */
   function save() {
     const data: PersistedSearchSettings = {
@@ -174,7 +157,17 @@ export function useSearchSettings(
 
   restore()
 
+  // 跨端同步：开着同步以后端那份为准（等它回来再渲染），其它设备推来时实时应用，二者都写回本地
+  const remote = sync.bindSection<PersistedSearchSettings>('search', {
+    accept: (value): value is PersistedSearchSettings => Array.isArray((value as PersistedSearchSettings | undefined)?.fields),
+    apply: applyPersisted,
+    writeLocal: value => storage.set(storageKey, value),
+  })
+  onScopeDispose(remote.dispose)
+
   return {
+    /** 首屏能否渲染：开着同步时等后端那份回来 */
+    ready: remote.ready,
     settings,
     commonFields,
     advancedFields,
