@@ -165,6 +165,33 @@
     --xh-z-tooltip: 2500;
   }
 
+  /* —— 按压回弹：组件库 4.0 起把 --xh-motion-scale-press 缺省改为 1（按下只换面），本应用的离散
+     动作钮按规范按下缩到 0.97，这里写回；按下 120ms、释放 200ms 的时长与曲线仍随库。
+     选择器与库的声明点对齐：库在 :where([data-density='comfortable']) 上也声明这枚令牌，浮层的
+     Portal 壳又会抄走根上的 data-density，只写 :root 的话对话框、抽屉里的按钮回到 1。
+     减弱动效由库把两段时长压到 1ms，缩放幅度它不管（缺省本就是 1），而本层的 0.97 压过库令牌层的
+     任何取值，归 1 只能在这里写：系统偏好与 data-motion 两条钩子都接，书写顺序照库——媒体查询、
+     reduce、default，同特指度靠后写的胜 —— */
+  :root,
+  [data-density] {
+    --xh-motion-scale-press: 0.97;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root,
+    [data-density] {
+      --xh-motion-scale-press: 1;
+    }
+  }
+
+  [data-motion='reduce'] {
+    --xh-motion-scale-press: 1;
+  }
+
+  [data-motion='default'] {
+    --xh-motion-scale-press: 0.97;
+  }
+
   /* 状态色的实心底按固定明度校准：上面那份是「原色兑黑八成」，明度由用户挑的那枚状态色定，
      偏浅就压不住白字（实测 success 3.21、warning 3.00、danger 4.47），前景只好翻成深字，
      而深字压在饱和底上小字号下就是糊的。压到能上白字的深度，色相与彩度原样保留。
