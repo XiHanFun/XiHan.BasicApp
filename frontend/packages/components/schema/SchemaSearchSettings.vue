@@ -43,12 +43,17 @@ function onSort(details: { from: number, to: number }) {
 
 <template>
   <XhPopoverRoot placement="bottom-end">
-    <!-- 浮层触发器本身就是那颗图标钮；它是 button，不能再往里套一颗 -->
-    <XhPopoverTrigger
-      class="xh-set-trigger"
-      :aria-label="t('component.search_settings.title')"
-    >
-      <Icon icon="lucide:settings-2" />
+    <!-- 浮层触发器合到组件库的纯图标按钮上，与同排的 XIconButton 同为 sm 档、同高 -->
+    <XhPopoverTrigger as-child>
+      <XhButton
+        class="x-icon-btn"
+        variant="ghost"
+        size="sm"
+        icon-only
+        :aria-label="t('component.search_settings.title')"
+      >
+        <Icon icon="lucide:settings-2" />
+      </XhButton>
     </XhPopoverTrigger>
     <XhPopoverPositioner>
       <XhPopoverContent class="xh-set-panel">
@@ -137,25 +142,6 @@ function onSort(details: { from: number, to: number }) {
 </template>
 
 <style scoped>
-/* 设置浮层的触发器：与工具栏其它图标钮同款 */
-.xh-set-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 28px;
-  block-size: 28px;
-  border: 0;
-  border-radius: var(--xh-radius-full);
-  background: transparent;
-  color: var(--xh-fg-muted);
-  cursor: pointer;
-}
-
-.xh-set-trigger:hover {
-  background: var(--xh-bg-subtle-hover);
-  color: var(--xh-fg-default);
-}
-
 .xh-set-panel {
   /* 皮肤给浮层的宽高上限是 rem 值，本应用根字号 14px 会把它们压到 280px / 224px，
      不显式盖掉的话这个面板会被夹窄、列清单也露不出来 */

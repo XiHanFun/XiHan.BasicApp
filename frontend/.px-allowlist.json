@@ -96,7 +96,7 @@
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaSearchSettings.vue": {
-    "cap": 15,
+    "cap": 13,
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaTablePanel.vue": {
@@ -104,7 +104,7 @@
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaTableSettings.vue": {
-    "cap": 21,
+    "cap": 19,
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/design/global.css": {

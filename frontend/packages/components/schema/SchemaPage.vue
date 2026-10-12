@@ -696,9 +696,9 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
                 @select="(details: { value: string }) => onExportSelect(details.value)"
               >
                 <template #trigger>
-                  <button type="button" class="xh-icon-btn" :aria-label="t('component.schema_page.export_csv')">
+                  <XhButton class="x-icon-btn" variant="ghost" size="sm" icon-only :aria-label="t('component.schema_page.export_csv')">
                     <Icon icon="lucide:download" />
-                  </button>
+                  </XhButton>
                 </template>
               </XhMenuRoot>
               <!-- 未登记页面：维持本地同步 CSV 导出 -->
