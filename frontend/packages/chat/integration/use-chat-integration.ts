@@ -56,7 +56,7 @@ export function useChatIntegration() {
       && typeof document !== 'undefined' && document.hasFocus()
 
     if (!watchingThisConversation) {
-      playNotificationSound('chat')
+      playNotificationSound('receive')
     }
 
     if (onChatPage) {

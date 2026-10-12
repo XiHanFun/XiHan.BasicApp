@@ -319,16 +319,16 @@ describe('乐观上屏与回执收敛', () => {
     })
 
     await store.sendMessage({ conversationId: 'a', messageType: ChatMessageType.Text, content: '第一条' })
-    expect(sound.played).toStrictEqual(['chat-sent'])
+    expect(sound.played).toStrictEqual(['send'])
 
     await expect(
       store.sendMessage({ conversationId: 'a', messageType: ChatMessageType.Text, content: '第二条' }),
     ).rejects.toThrow('超时')
-    expect(sound.played).toStrictEqual(['chat-sent'])
+    expect(sound.played).toStrictEqual(['send'])
 
     const failed = store.messages.a?.find(item => item.failed)?.clientMessageId ?? ''
     await store.retryMessage('a', failed)
-    expect(sound.played).toStrictEqual(['chat-sent', 'chat-sent'])
+    expect(sound.played).toStrictEqual(['send', 'send'])
   })
 
   it('重发只作用于失败条目，成功后收敛成正式消息', async () => {
