@@ -8,6 +8,7 @@
 import type { AppContextApis, FavoriteItem } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { SYNCED_SETTING_WAIT } from '~/composables/useSyncedSetting'
 import { FAVORITES_KEY, FAVORITES_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { useAppStore } from './app'
 import { registerAppContext } from './app-context'
@@ -445,5 +446,62 @@ describe('applyRemote：其它设备推来的变更', () => {
     store.applyRemote(JSON.stringify([{ path: '/pushed', title: 'P' }]))
 
     expect(store.favorites.map(x => x.path)).toEqual(['/local'])
+  })
+})
+
+describe('ready：开着同步以后端那份为准', () => {
+  it('拉取回来之前不就绪（界面不摆本地那份旧收藏），回来后就绪', async () => {
+    let resolve: (dto: SettingDto) => void = () => {}
+    getApi.mockImplementation(() => new Promise((done) => {
+      resolve = done
+    }))
+    const store = setupStores()
+    const pending = store.hydrate()
+    expect(store.ready).toBe(false)
+
+    resolve({ scene: 0, settingKey: FAVORITES_SETTING_KEY, settingValue: null })
+    await pending
+
+    expect(store.ready).toBe(true)
+  })
+
+  it('关着同步：一开始就就绪，本地就是事实源', () => {
+    setActivePinia(createPinia())
+    useAppStore().setFavoritesSyncEnabled(false)
+    const store = useFavoritesStore()
+
+    expect(store.ready).toBe(true)
+  })
+
+  it('就绪只升不降：会话里再次水合（进仪表盘、布局重挂）时后台刷新，已摆出的收藏不缩回去', async () => {
+    const store = setupStores()
+    await store.hydrate()
+    getApi.mockImplementation(() => new Promise(() => {}))
+
+    void store.hydrate()
+
+    expect(store.ready).toBe(true)
+  })
+
+  it('远端是空数组：照样采用（另一台设备把收藏全删了）', async () => {
+    getApi.mockResolvedValue({ scene: 0, settingKey: FAVORITES_SETTING_KEY, settingValue: '[]' })
+    const store = setupStores()
+    store.add(item('/stale'))
+
+    await store.hydrate()
+
+    expect(store.favorites).toEqual([])
+    expect(readLocal()).toEqual([])
+  })
+
+  it('迟迟不回：等满上限先就绪，按本地摆出来', async () => {
+    vi.useFakeTimers()
+    getApi.mockImplementation(() => new Promise(() => {}))
+    const store = setupStores()
+    void store.hydrate()
+
+    vi.advanceTimersByTime(SYNCED_SETTING_WAIT)
+
+    expect(store.ready).toBe(true)
   })
 })

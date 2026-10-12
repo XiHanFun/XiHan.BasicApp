@@ -1,7 +1,9 @@
+import type { SyncedSettingBinding, SyncedSettingTarget } from '~/composables/useSyncedSetting'
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
+import { bindSyncedSetting } from '~/composables/useSyncedSetting'
 import { USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { i18n } from '~/locales'
-import { isSearchSyncEnabled, isTableSyncEnabled, isWidgetsSyncEnabled, useAppContext } from '~/stores'
+import { isSearchSyncEnabled, isTableSyncEnabled, isWidgetsSyncEnabled, onSettingSessionReset, useAppContext } from '~/stores'
 
 /** 分区 → i18n 名称键（用于灵动岛同步提示） */
 const SECTION_NAME_KEYS: Record<string, string> = {
@@ -184,6 +186,13 @@ export function applyRemotePageSetting(pageCode: string, settingValue?: null | s
   })
 }
 
+/** 清掉本会话已拉取的页面设置（退出登录、切换身份后不能沿用上一个人的那份） */
+export function resetPageSettingCache(): void {
+  cache.clear()
+  loading.clear()
+}
+onSettingSessionReset(resetPageSettingCache)
+
 export interface UserSettingSync {
   /** 读取指定分区的远端值（首次触发后端加载，后续走缓存） */
   hydrate: <T>(section: string) => Promise<T | undefined>
@@ -191,6 +200,11 @@ export interface UserSettingSync {
   save: (section: string, value: unknown) => void
   /** 订阅该分区的远端实时变更（返回退订函数） */
   subscribeRemote: (section: string, listener: (value: unknown) => void) => () => void
+  /**
+   * 按 bindSyncedSetting 的口径接一个分区：开着同步以后端为准、超时先按本地、拉取与推送都写回本地。
+   * 调用方先从本地恢复，再把 ready 接到渲染上。
+   */
+  bindSection: <T>(section: string, target: SyncedSettingTarget<T>) => SyncedSettingBinding
 }
 
 export function useUserSettingSync(pageCode: string): UserSettingSync {
@@ -208,5 +222,15 @@ export function useUserSettingSync(pageCode: string): UserSettingSync {
     save: (section: string, value: unknown) => saveSection(pageCode, section, value),
     subscribeRemote: (section: string, listener: (value: unknown) => void) =>
       subscribeRemotePageSetting(pageCode, section, listener),
+    bindSection: <T>(section: string, target: SyncedSettingTarget<T>): SyncedSettingBinding => bindSyncedSetting({
+      enabled: () => isSectionSyncEnabled(section),
+      // 本会话已拉过这页（或收到过推送、本机保存过）：直接采用缓存，页面来回切换不再等
+      peek: () => {
+        const cached = cache.get(pageCode)
+        return cached ? { value: cached[section] } : undefined
+      },
+      load: () => loadPayload(pageCode).then(payload => payload[section]),
+      subscribe: listener => subscribeRemotePageSetting(pageCode, section, listener),
+    }, target),
   }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { BoardItem } from './components'
 import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SyncStatusBadge from '~/components/common/SyncStatusBadge.vue'
 import { useUserSettingSync } from '~/components/schema'
@@ -52,11 +52,6 @@ const LOCAL_BOARD_KEY = 'xh:workbench:widgets:board'
 
 // 空数组也是用户存下的布局（全部移除），不能当成「没存过」回落到缺省
 const board = ref<BoardItem[]>(sanitize(readLocalBoard() ?? DEFAULT_BOARD))
-// 开着跨端同步时以后端那份为准：本地那份可能是别的设备改动之前的旧布局（另一台设备上清空，这台刷新会先摆出
-// 旧的小组件再消失），缺省布局更是一样。等后端回来再渲染；关着同步时本地就是事实源，直接渲染
-const ready = ref(!appStore.widgetsSyncEnabled)
-/** 后端迟迟不回时最多空等多久（毫秒）：之后先按本地摆出来，后端回来再换 */
-const HYDRATE_WAIT = 1500
 const customizing = ref(false)
 const showAdd = ref(false)
 // 悬浮操作栏开合：折叠时右侧只露半隐藏按钮，点击展开为半透明毛玻璃操作栏
@@ -125,41 +120,19 @@ function persist() {
   // sync.save 内部按「仪表盘看板同步」开关决定是否上行后端
   sync.save('board', { items: board.value })
 }
-/**
- * 采用后端那份（首次拉取或其它设备推来）：本地跟着写一份，否则下次刷新本地还是旧布局。
- * 已经动手编辑的不拿它覆盖用户的改动
- */
-function applyRemoteBoard(items: BoardItem[]) {
-  if (dirty.value)
-    return
-  board.value = sanitize(items)
-  writeLocalBoard(board.value)
-}
-
-onMounted(async () => {
-  // 开启同步取后端值；关闭时 hydrate 立即返回 undefined，沿用首屏的本地布局
-  const fallback = window.setTimeout(() => {
-    ready.value = true
-  }, HYDRATE_WAIT)
-  try {
-    const saved = await sync.hydrate<{ items: BoardItem[] }>('board')
-    if (Array.isArray(saved?.items))
-      applyRemoteBoard(saved.items)
-  }
-  finally {
-    window.clearTimeout(fallback)
-    ready.value = true
-  }
+// 跨端同步：开着同步以后端那份为准，等它回来再渲染（本地那份可能是别的设备改动之前的旧布局，另一台设备上
+// 清空、这台刷新会先摆出旧的小组件再消失）；其它设备推来时实时应用，二者都写回本地；编辑中途不覆盖改动
+const remote = sync.bindSection<{ items: BoardItem[] }>('board', {
+  accept: (value): value is { items: BoardItem[] } => Array.isArray((value as { items?: unknown } | undefined)?.items),
+  apply: (value) => {
+    board.value = sanitize(value.items)
+  },
+  writeLocal: () => writeLocalBoard(board.value),
+  isDirty: () => dirty.value,
 })
-
-// 其它设备推送（同步关闭的分区由框架层自动跳过，无需此处再判断）
-const unsubscribe = sync.subscribeRemote('board', (value) => {
-  const items = (value as { items?: BoardItem[] }).items
-  if (Array.isArray(items))
-    applyRemoteBoard(items)
-})
+const ready = remote.ready
 onUnmounted(() => {
-  unsubscribe()
+  remote.dispose()
   window.removeEventListener('keydown', onPanelEsc)
   window.removeEventListener('pointermove', onToolbarDragMove)
 })

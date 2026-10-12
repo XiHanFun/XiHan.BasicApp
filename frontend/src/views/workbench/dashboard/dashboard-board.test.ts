@@ -31,21 +31,23 @@ vi.mock('./components', () => {
   }
 })
 
-// 后端那份由用例决定何时回来；关着同步时与真实实现一样立即返回 undefined
+// 分区绑定用真的 bindSyncedSetting，只把后端换成替身：拉取由用例决定何时回来，推送由用例手动发
 vi.mock('~/components/schema', async () => {
   const { useAppStore: appStore } = await import('~/stores')
+  const { bindSyncedSetting } = await import('~/composables/useSyncedSetting')
   return {
     useUserSettingSync: () => ({
-      hydrate: () => appStore().widgetsSyncEnabled
-        ? new Promise((resolve) => {
-            remote.resolve = resolve
-          })
-        : Promise.resolve(undefined),
       save: () => {},
-      subscribeRemote: (_section: string, listener: (value: unknown) => void) => {
-        remote.listener = listener
-        return () => {}
-      },
+      bindSection: (_section: string, target: Parameters<typeof bindSyncedSetting>[1]) => bindSyncedSetting({
+        enabled: () => appStore().widgetsSyncEnabled,
+        load: () => new Promise((resolve) => {
+          remote.resolve = resolve
+        }),
+        subscribe: (listener) => {
+          remote.listener = listener
+          return () => {}
+        },
+      }, target),
     }),
   }
 })

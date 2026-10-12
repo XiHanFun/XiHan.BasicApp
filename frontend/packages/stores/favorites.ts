@@ -2,6 +2,7 @@ import type { FavoriteItem } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { settingSyncIsland, settingSyncRemoteApplied } from '~/composables/useSettingSyncIsland'
+import { bindSyncedSetting } from '~/composables/useSyncedSetting'
 import { FAVORITES_KEY, FAVORITES_SETTING_KEY, USER_SETTING_CLIENT_ID, UserSettingScene } from '~/constants'
 import { i18n } from '~/locales'
 import { useAppContext } from '~/stores/app-context'
@@ -12,12 +13,28 @@ import { LocalStorage } from '~/utils'
 /**
  * 收藏夹状态：收藏常用菜单，支持增删、排序，跨端同步。
  *
- * 设计与「表格设置 / 搜索设置」一致：
- * - localStorage 为同步事实源，交互即时；
- * - 后端为「尽力而为」的跨端同步（防抖落库），端点未就绪 / 离线时静默回退本地，不阻塞 UI。
+ * 设计与「表格设置 / 搜索设置」一致，拉取、推送与回写走 bindSyncedSetting：
+ * - 交互即时写本地，后端「尽力而为」防抖落库，端点未就绪 / 离线时静默回退本地；
+ * - 开着同步时以后端那份为准：ready 之前界面不摆收藏（本地那份可能是别的设备改动之前的旧值），超时先按本地摆；
+ *   后端那份与其它设备推来的都写回本地。
  */
+
+/** 后端载荷归一成收藏列表；认不出返回 null */
+function parseFavorites(value: unknown): FavoriteItem[] | null {
+  if (!Array.isArray(value)) {
+    return null
+  }
+  return value
+    .filter((x): x is FavoriteItem => Boolean(x) && typeof (x as FavoriteItem).path === 'string')
+    .map(x => ({ key: x.path, title: x.title, path: x.path, icon: x.icon }))
+}
 export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
   const favorites = ref<FavoriteItem[]>(LocalStorage.get<FavoriteItem[]>(FAVORITES_KEY) ?? [])
+  /**
+   * 收藏能否摆出来：关着同步立即为真；开着同步等后端那份回来（超时也先置真）。
+   * 只升不降：会话里再次水合（布局重新挂载、进仪表盘）时后台刷新，已摆出的收藏不缩回去
+   */
+  const ready = ref(!isFavoritesSyncEnabled())
   let inflight: Promise<void> | null = null
   let saveTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -108,37 +125,46 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     persist()
   }
 
+  /** 拉取后端收藏；失败或无记录 resolve undefined，保留本地 */
+  async function loadRemote(): Promise<FavoriteItem[] | undefined> {
+    const task = settingSyncIsland('favorites:hydrate', i18n.global.t('island.sync.name.favorites'))
+    try {
+      const dto = await useAppContext().apis.userSettingApi.get({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY })
+      const list = parseFavorites(dto?.settingValue ? JSON.parse(dto.settingValue) : null)
+      task.success()
+      return list ?? undefined
+    }
+    catch {
+      task.dismiss()
+      return undefined
+    }
+  }
+
   /**
    * 从后端拉取并覆盖本地（尽力而为；端点未就绪 / 离线 / 无记录时静默保留本地）。
    * 以 in-flight 去重，允许布局重新挂载（如切换用户）时重新水合。
    */
   function hydrate(): Promise<void> {
-    // 未开启收藏夹同步：不拉取后端，使用本地
-    if (!isFavoritesSyncEnabled()) {
-      return Promise.resolve()
-    }
     if (inflight) {
       return inflight
     }
-    inflight = (async () => {
-      const task = settingSyncIsland('favorites:hydrate', i18n.global.t('island.sync.name.favorites'))
-      try {
-        const dto = await useAppContext().apis.userSettingApi.get({ scene: UserSettingScene.Preference, settingKey: FAVORITES_SETTING_KEY })
-        const remote = dto?.settingValue ? (JSON.parse(dto.settingValue) as unknown) : null
-        if (Array.isArray(remote)) {
-          const list: FavoriteItem[] = remote
-            .filter((x): x is FavoriteItem => Boolean(x) && typeof (x as FavoriteItem).path === 'string')
-            .map(x => ({ key: x.path, title: x.title, path: x.path, icon: x.icon }))
+    const binding = bindSyncedSetting<FavoriteItem[]>(
+      { enabled: isFavoritesSyncEnabled, load: loadRemote },
+      {
+        // 空数组也是用户存下的（收藏全删了），同样采用
+        accept: (value): value is FavoriteItem[] => Array.isArray(value),
+        apply: (list) => {
           favorites.value = list
-          LocalStorage.set(FAVORITES_KEY, list)
-        }
-        task.success()
-      }
-      catch {
-        // 静默：保留本地
-        task.dismiss()
-      }
-    })().finally(() => {
+        },
+        writeLocal: list => LocalStorage.set(FAVORITES_KEY, list),
+      },
+      {
+        onReady: () => {
+          ready.value = true
+        },
+      },
+    )
+    inflight = binding.settled.finally(() => {
       inflight = null
     })
     return inflight
@@ -152,23 +178,20 @@ export const useFavoritesStore = defineStore(SetupStoreId.Favorites, () => {
     if (!settingValue || !isFavoritesSyncEnabled()) {
       return
     }
-    let remote: unknown
+    let list: FavoriteItem[] | null
     try {
-      remote = JSON.parse(settingValue)
+      list = parseFavorites(JSON.parse(settingValue))
     }
     catch {
       return
     }
-    if (!Array.isArray(remote)) {
+    if (!list) {
       return
     }
-    const list: FavoriteItem[] = remote
-      .filter((x): x is FavoriteItem => Boolean(x) && typeof (x as FavoriteItem).path === 'string')
-      .map(x => ({ key: x.path, title: x.title, path: x.path, icon: x.icon }))
     favorites.value = list
     LocalStorage.set(FAVORITES_KEY, list)
     settingSyncRemoteApplied('favorites:remote', i18n.global.t('island.sync.name.favorites'))
   }
 
-  return { favorites, count, has, add, remove, toggle, move, clear, hydrate, applyRemote }
+  return { favorites, ready, count, has, add, remove, toggle, move, clear, hydrate, applyRemote }
 })

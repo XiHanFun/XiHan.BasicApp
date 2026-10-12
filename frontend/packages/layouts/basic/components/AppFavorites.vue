@@ -92,11 +92,12 @@ onBeforeUnmount(() => {
         :title="t('header.favorites.title')"
         :aria-label="t('header.favorites.title')"
       >
-        <!-- 数字、99+、「零则收起」与贴角定位都归组件库算 -->
+        <!-- 数字、99+、「零则收起」与贴角定位都归组件库算。
+             开着收藏夹同步时等后端那份回来再出数：本地那份可能是别的设备改动之前的旧值 -->
         <XhBadge
           size="sm"
           tone="brand"
-          :count="favoritesStore.count"
+          :count="favoritesStore.ready ? favoritesStore.count : 0"
           :label="t('header.favorites.count_label', { n: favoritesStore.count })"
         >
           <Icon icon="lucide:star" width="16" height="16" />
@@ -120,8 +121,8 @@ onBeforeUnmount(() => {
 
           <XhSeparator class="my-1" />
 
-          <!-- 空态 -->
-          <XhEmptyStateRoot v-if="items.length === 0" class="fav-empty" size="sm">
+          <!-- 空态（收藏未就绪时空态与列表都不摆） -->
+          <XhEmptyStateRoot v-if="favoritesStore.ready && items.length === 0" class="fav-empty" size="sm">
             <XhEmptyStateIndicator>
               <Icon icon="lucide:inbox" width="28" />
             </XhEmptyStateIndicator>
@@ -131,7 +132,7 @@ onBeforeUnmount(() => {
 
           <!-- 收藏药丸（可拖拽排序，点击导航，× 移除） -->
           <XhSortableRoot
-            v-else
+            v-else-if="favoritesStore.ready"
             :ids="items.map(i => i.path)"
             orientation="both"
             class="fav-list flex flex-wrap gap-2"
