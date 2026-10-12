@@ -9,7 +9,7 @@ import type {
   PrintPaperType,
 } from './models'
 import type { PrintElementAlignAction, PrintElementSpacingDirection } from '~/printing'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhCollapsibleContent, XhCollapsibleRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCollapsibleContent, XhCollapsibleRoot, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhToggleGroupItem, XhToggleGroupRoot } from '@xihan-ui/vue'
 import { computed, nextTick, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XNumberInput } from '~/components'
@@ -362,60 +362,62 @@ function toggleAlignmentTools(): void {
 
     <XhDialogRoot v-model:open="customPaperVisible">
       <XhDialogContent class="custom-paper-modal" style="--xh-dialog-max-w: 420px">
-        <XhDialogTitle>{{ t('setting.print_template.custom_paper') }}</XhDialogTitle>
+        <XhDialogHeader>
+          <XhDialogTitle>{{ t('setting.print_template.custom_paper') }}</XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-        <!-- 原生 label 包住数字框时，标签点中的是排在输入框前面的减号钮；改由字段把标签接到输入框上 -->
-        <div class="paper-size-fields">
-          <XhFieldRoot class="paper-size-field">
-            <XhFieldLabel>{{ t('setting.print_template.paper_width') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XNumberInput
-                v-model:value="customPaperWidth"
-                :min="MIN_PAPER_SIZE_MM"
-                :max="MAX_PAPER_SIZE_MM"
-                :precision="1"
-                :disabled="customPaperSubmitting"
-              >
-                <template #suffix>
-                  mm
-                </template>
-              </XNumberInput>
-            </XhFieldControl>
-          </XhFieldRoot>
-          <XhFieldRoot class="paper-size-field">
-            <XhFieldLabel>{{ t('setting.print_template.paper_height') }}</XhFieldLabel>
-            <XhFieldControl>
-              <XNumberInput
-                v-model:value="customPaperHeight"
-                :min="MIN_PAPER_SIZE_MM"
-                :max="MAX_PAPER_SIZE_MM"
-                :precision="1"
-                :disabled="customPaperSubmitting"
-              >
-                <template #suffix>
-                  mm
-                </template>
-              </XNumberInput>
-            </XhFieldControl>
-          </XhFieldRoot>
-        </div>
-        <div class="xh-dialog-footer">
-          <div class="modal-actions">
-            <XhButton variant="subtle" :disabled="customPaperSubmitting" @click="customPaperVisible = false">
-              {{ t('common.actions.cancel') }}
-            </XhButton>
-            <XhButton
-              variant="subtle"
-              tone="brand"
-              :loading="customPaperSubmitting"
-              :disabled="!canSubmitCustomPaper"
-              @click="submitCustomPaper"
-            >
-              <XhButtonIndicator />
-              <XhButtonLabel>{{ t('setting.print_template.apply_paper') }}</XhButtonLabel>
-            </XhButton>
+        <XhDialogBody class="xh-overlay-body">
+          <!-- 原生 label 包住数字框时，标签点中的是排在输入框前面的减号钮；改由字段把标签接到输入框上 -->
+          <div class="paper-size-fields">
+            <XhFieldRoot class="paper-size-field">
+              <XhFieldLabel>{{ t('setting.print_template.paper_width') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XNumberInput
+                  v-model:value="customPaperWidth"
+                  :min="MIN_PAPER_SIZE_MM"
+                  :max="MAX_PAPER_SIZE_MM"
+                  :precision="1"
+                  :disabled="customPaperSubmitting"
+                >
+                  <template #suffix>
+                    mm
+                  </template>
+                </XNumberInput>
+              </XhFieldControl>
+            </XhFieldRoot>
+            <XhFieldRoot class="paper-size-field">
+              <XhFieldLabel>{{ t('setting.print_template.paper_height') }}</XhFieldLabel>
+              <XhFieldControl>
+                <XNumberInput
+                  v-model:value="customPaperHeight"
+                  :min="MIN_PAPER_SIZE_MM"
+                  :max="MAX_PAPER_SIZE_MM"
+                  :precision="1"
+                  :disabled="customPaperSubmitting"
+                >
+                  <template #suffix>
+                    mm
+                  </template>
+                </XNumberInput>
+              </XhFieldControl>
+            </XhFieldRoot>
           </div>
-        </div>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" :disabled="customPaperSubmitting" @click="customPaperVisible = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton
+            variant="subtle"
+            tone="brand"
+            :loading="customPaperSubmitting"
+            :disabled="!canSubmitCustomPaper"
+            @click="submitCustomPaper"
+          >
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('setting.print_template.apply_paper') }}</XhButtonLabel>
+          </XhButton>
+        </XhDialogFooter>
       </XhDialogContent>
     </XhDialogRoot>
   </section>
@@ -607,12 +609,6 @@ function toggleAlignmentTools(): void {
   gap: 8px;
   color: #334155;
   font-size: 14px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
 }
 
 :global(.dark) .designer-quick-toolbar {

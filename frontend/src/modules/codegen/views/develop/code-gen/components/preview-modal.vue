@@ -5,7 +5,7 @@ import type {
 import type {
   ApiId,
 } from '@/api'
-import { XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, XCodeEditor, XSegmented, XTree } from '~/components'
@@ -252,59 +252,62 @@ async function loadPreview() {
     @update:open="(open: boolean) => emit('update:show', open)"
   >
     <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1840px)">
-      <XhDialogTitle>{{ modalTitle }}</XhDialogTitle>
+      <XhDialogHeader>
+        <XhDialogTitle>{{ modalTitle }}</XhDialogTitle>
+      </XhDialogHeader>
       <XhDialogCloseTrigger />
-      <div class="xh-loading-stage" :class="{ 'is-loading': previewLoading }">
-        <div class="xh-loading-stage__veil">
-          <XhSpinner />
-        </div>
-        <div class="gen">
-          <div class="gen__tree">
-            <div class="gen__tree-head">
-              <XSegmented v-model:value="activeSide" :options="sideOptions" size="sm" />
+      <XhDialogBody class="xh-overlay-body">
+        <div class="xh-loading-stage" :class="{ 'is-loading': previewLoading }">
+          <div class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <div class="gen">
+            <div class="gen__tree">
+              <div class="gen__tree-head">
+                <XSegmented v-model:value="activeSide" :options="sideOptions" size="sm" />
+              </div>
+              <XhEmptyStateRoot v-if="artifactTree.length === 0" class="gen__tree-empty" size="sm">
+                <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
+                <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                <XhEmptyStateDescription>{{ t('develop.code_gen.preview.side_empty') }}</XhEmptyStateDescription>
+              </XhEmptyStateRoot>
+              <XTree
+                v-else
+                :aria-label="t('develop.code_gen.preview.file_tree')"
+                :data="artifactTree"
+                :render-label="renderNodeLabel"
+                :expanded-keys="expandedKeys"
+                :selected-keys="selectedKeys"
+                @update:expanded-keys="handleExpand"
+                @update:selected-keys="handleSelect"
+              />
             </div>
-            <XhEmptyStateRoot v-if="artifactTree.length === 0" class="gen__tree-empty" size="sm">
-              <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
-              <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
-              <XhEmptyStateDescription>{{ t('develop.code_gen.preview.side_empty') }}</XhEmptyStateDescription>
-            </XhEmptyStateRoot>
-            <XTree
-              v-else
-              :aria-label="t('develop.code_gen.preview.file_tree')"
-              :data="artifactTree"
-              :render-label="renderNodeLabel"
-              :expanded-keys="expandedKeys"
-              :selected-keys="selectedKeys"
-              @update:expanded-keys="handleExpand"
-              @update:selected-keys="handleSelect"
-            />
-          </div>
-          <div class="gen__content">
-            <XhEmptyStateRoot v-if="!activeArtifact" class="gen__content-empty">
-              <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
-              <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
-              <XhEmptyStateDescription>{{ t('develop.code_gen.preview.empty') }}</XhEmptyStateDescription>
-            </XhEmptyStateRoot>
-            <XCodeEditor
-              v-else
-              :value="activeArtifact.content"
-              :file-name="activeArtifact.fileName"
-              copyable
-              height="100%"
-              readonly
-            />
+            <div class="gen__content">
+              <XhEmptyStateRoot v-if="!activeArtifact" class="gen__content-empty">
+                <XhEmptyStateIndicator><Icon icon="lucide:inbox" /></XhEmptyStateIndicator>
+                <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                <XhEmptyStateDescription>{{ t('develop.code_gen.preview.empty') }}</XhEmptyStateDescription>
+              </XhEmptyStateRoot>
+              <XCodeEditor
+                v-else
+                :value="activeArtifact.content"
+                :file-name="activeArtifact.fileName"
+                copyable
+                height="100%"
+                readonly
+              />
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="xh-dialog-footer">
-        <XhFlex justify="between">
+      </XhDialogBody>
+      <XhDialogFooter>
+        <XhFlex class="flex-1" justify="between">
           <span class="gen__hint">{{ t('develop.code_gen.preview.total_files', { count: artifacts.length }) }}</span>
           <XhButton variant="subtle" @click="emit('update:show', false)">
             {{ t('common.actions.close') }}
           </XhButton>
         </XhFlex>
-      </div>
+      </XhDialogFooter>
     </XhDialogContent>
   </XhDialogRoot>
 </template>

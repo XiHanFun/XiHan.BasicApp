@@ -11,7 +11,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, XDataTableColumn } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -530,171 +530,171 @@ onMounted(() => {
   >
     <XhDialogRoot v-model:open="detailVisible">
       <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
-        <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
-        <XhDialogTitle>
-          <template v-if="!detDept">
-            {{ t('common.loading') }}
-          </template>
-          <div v-else class="det-hd-entity">
-            <div class="det-hd-ico">
-              <Icon icon="tabler:building" width="22" height="22" />
-            </div>
-            <div class="min-w-0">
-              <div class="det-hd-name">
-                {{ detDept.departmentName }}
+        <XhDialogHeader>
+          <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
+          <XhDialogTitle>
+            <template v-if="!detDept">
+              {{ t('common.loading') }}
+            </template>
+            <div v-else class="det-hd-entity">
+              <div class="det-hd-ico">
+                <Icon icon="tabler:building" width="22" height="22" />
               </div>
-              <div class="det-hd-sub">
-                {{ detDept.departmentCode }}
+              <div class="min-w-0">
+                <div class="det-hd-name">
+                  {{ detDept.departmentName }}
+                </div>
+                <div class="det-hd-sub">
+                  {{ detDept.departmentCode }}
+                </div>
               </div>
             </div>
-          </div>
-        </XhDialogTitle>
+          </XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-
-        <div v-if="detailLoading" class="modal-loading">
-          {{ t('common.statuses.loading') }}
-        </div>
-        <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
-        <XhTabsRoot v-else-if="managementDetail && detDept" default-value="overview" variant="line">
-          <XhTabsList>
-            <XhTabsTrigger value="overview">
-              {{ t('identity.org.tab_overview') }}
-            </XhTabsTrigger>
-            <XhTabsTrigger value="children">
-              {{ t('identity.org.tab_children', { count: managementDetail.childDepartments?.length ?? 0 }) }}
-            </XhTabsTrigger>
-            <XhTabsTrigger value="members">
-              {{ t('identity.org.tab_members', { count: managementDetail.members?.length ?? 0 }) }}
-            </XhTabsTrigger>
-            <XhTabsIndicator />
-          </XhTabsList>
-          <XhTabsContent value="overview">
-            <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('identity.org.label_department_type') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ getOptionLabel(deptTypeOptions, detDept!.departmentType) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('identity.org.label_parent') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detDept!.parentId ? findDepartmentName(detDept!.parentId) : '—' }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('identity.org.label_leader_id') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(detDept!.leaderId) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('identity.org.label_status') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <XhTagRoot variant="subtle" size="sm" :tone="detDept!.status === EnableStatus.Enabled ? 'success' : 'danger'">
-                    <XhTagLabel>
-                      {{ formatStatus(detDept!.status) }}
-                    </XhTagLabel>
-                  </XhTagRoot>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('identity.org.label_phone') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(detDept!.phone) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('identity.org.label_email') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(detDept!.email) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem style="grid-column: span 2">
-                <XhDescriptionsLabel>{{ t('identity.org.label_address') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(detDept!.address) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('identity.org.label_sort') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detDept!.sort }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('identity.org.label_create_time') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(detDept!.createdTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem v-if="detDept!.remark" style="grid-column: span 2">
-                <XhDescriptionsLabel>{{ t('identity.org.label_remark') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ detDept!.remark }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-            </XhDescriptionsRoot>
-          </XhTabsContent>
-          <XhTabsContent value="children">
-            <div class="xh-detail-table-wrap">
-              <XDataTable
-                v-if="managementDetail.childDepartments?.length"
-                :columns="childDeptColumns"
-                :data="managementDetail.childDepartments"
-                :row-key="(row: DepartmentListItemDto) => row.basicId"
-              />
-              <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
-                <XhEmptyStateIndicator>
-                  <Icon icon="lucide:inbox" width="24" />
-                </XhEmptyStateIndicator>
-                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-                <XhEmptyStateDescription>{{ t('identity.org.empty_children') }}</XhEmptyStateDescription>
-              </XhEmptyStateRoot>
-            </div>
-          </XhTabsContent>
-          <XhTabsContent value="members">
-            <div class="xh-detail-table-wrap">
-              <XDataTable
-                v-if="managementDetail.members?.length"
-                :columns="memberColumns"
-                :data="managementDetail.members"
-                :row-key="(row: DepartmentManagementMemberDto) => row.basicId"
-              />
-              <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
-                <XhEmptyStateIndicator>
-                  <Icon icon="lucide:inbox" width="24" />
-                </XhEmptyStateIndicator>
-                <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-                <XhEmptyStateDescription>{{ t('identity.org.empty_members') }}</XhEmptyStateDescription>
-              </XhEmptyStateRoot>
-            </div>
-          </XhTabsContent>
-        </XhTabsRoot>
-        <XhEmptyStateRoot v-else style="padding: 48px 0">
-          <XhEmptyStateIndicator>
-            <Icon icon="lucide:inbox" width="28" />
-          </XhEmptyStateIndicator>
-          <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-          <XhEmptyStateDescription>{{ t('identity.org.msg_detail_not_found') }}</XhEmptyStateDescription>
-        </XhEmptyStateRoot>
-
-        <div class="xh-dialog-footer">
-          <XhFlex justify="end">
-            <XhButton variant="subtle" size="sm" @click="detailVisible = false">
-              {{ t('common.actions.close') }}
-            </XhButton>
-            <XhButton
-              v-if="detDept && hasPermission('identity.org.update')"
-              variant="subtle"
-              size="sm"
-              tone="brand"
-              @click="detailVisible = false; handleEdit(detDept as DepartmentListItemDto)"
-            >
-              {{ t('common.actions.edit') }}
-            </XhButton>
-          </XhFlex>
-        </div>
+        <XhDialogBody class="xh-overlay-body">
+          <div v-if="detailLoading" class="modal-loading">
+            {{ t('common.statuses.loading') }}
+          </div>
+          <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+          <XhTabsRoot v-else-if="managementDetail && detDept" default-value="overview" variant="line">
+            <XhTabsList>
+              <XhTabsTrigger value="overview">
+                {{ t('identity.org.tab_overview') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="children">
+                {{ t('identity.org.tab_children', { count: managementDetail.childDepartments?.length ?? 0 }) }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="members">
+                {{ t('identity.org.tab_members', { count: managementDetail.members?.length ?? 0 }) }}
+              </XhTabsTrigger>
+              <XhTabsIndicator />
+            </XhTabsList>
+            <XhTabsContent value="overview">
+              <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('identity.org.label_department_type') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ getOptionLabel(deptTypeOptions, detDept!.departmentType) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('identity.org.label_parent') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detDept!.parentId ? findDepartmentName(detDept!.parentId) : '—' }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('identity.org.label_leader_id') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(detDept!.leaderId) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('identity.org.label_status') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <XhTagRoot variant="subtle" size="sm" :tone="detDept!.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                      <XhTagLabel>
+                        {{ formatStatus(detDept!.status) }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('identity.org.label_phone') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(detDept!.phone) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('identity.org.label_email') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(detDept!.email) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem style="grid-column: span 2">
+                  <XhDescriptionsLabel>{{ t('identity.org.label_address') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(detDept!.address) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('identity.org.label_sort') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detDept!.sort }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('identity.org.label_create_time') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(detDept!.createdTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem v-if="detDept!.remark" style="grid-column: span 2">
+                  <XhDescriptionsLabel>{{ t('identity.org.label_remark') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ detDept!.remark }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+              </XhDescriptionsRoot>
+            </XhTabsContent>
+            <XhTabsContent value="children">
+              <div class="xh-detail-table-wrap">
+                <XDataTable
+                  v-if="managementDetail.childDepartments?.length"
+                  :columns="childDeptColumns"
+                  :data="managementDetail.childDepartments"
+                  :row-key="(row: DepartmentListItemDto) => row.basicId"
+                />
+                <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="24" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.org.empty_children') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </div>
+            </XhTabsContent>
+            <XhTabsContent value="members">
+              <div class="xh-detail-table-wrap">
+                <XDataTable
+                  v-if="managementDetail.members?.length"
+                  :columns="memberColumns"
+                  :data="managementDetail.members"
+                  :row-key="(row: DepartmentManagementMemberDto) => row.basicId"
+                />
+                <XhEmptyStateRoot v-else size="sm" style="padding: 32px 0">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="24" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('identity.org.empty_members') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </div>
+            </XhTabsContent>
+          </XhTabsRoot>
+          <XhEmptyStateRoot v-else style="padding: 48px 0">
+            <XhEmptyStateIndicator>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIndicator>
+            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('identity.org.msg_detail_not_found') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" size="sm" @click="detailVisible = false">
+            {{ t('common.actions.close') }}
+          </XhButton>
+          <XhButton
+            v-if="detDept && hasPermission('identity.org.update')"
+            variant="subtle"
+            size="sm"
+            tone="brand"
+            @click="detailVisible = false; handleEdit(detDept as DepartmentListItemDto)"
+          >
+            {{ t('common.actions.edit') }}
+          </XhButton>
+        </XhDialogFooter>
       </XhDialogContent>
     </XhDialogRoot>
 

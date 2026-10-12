@@ -7,7 +7,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -280,83 +280,83 @@ async function handleSubmit() {
   >
     <XhDialogRoot v-model:open="detailVisible">
       <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 640px">
-        <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
-        <XhDialogTitle>
-          <template v-if="!currentDetail">
-            {{ t('common.loading') }}
-          </template>
-          <div v-else class="det-hd-entity">
-            <div class="det-hd-ico">
-              <Icon icon="lucide:briefcase" width="22" height="22" />
-            </div>
-            <div class="min-w-0">
-              <div class="det-hd-name">
-                {{ currentDetail.positionName }}
+        <XhDialogHeader>
+          <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
+          <XhDialogTitle>
+            <template v-if="!currentDetail">
+              {{ t('common.loading') }}
+            </template>
+            <div v-else class="det-hd-entity">
+              <div class="det-hd-ico">
+                <Icon icon="lucide:briefcase" width="22" height="22" />
               </div>
-              <div class="det-hd-sub">
-                {{ currentDetail.positionCode }}
+              <div class="min-w-0">
+                <div class="det-hd-name">
+                  {{ currentDetail.positionName }}
+                </div>
+                <div class="det-hd-sub">
+                  {{ currentDetail.positionCode }}
+                </div>
               </div>
             </div>
-          </div>
-        </XhDialogTitle>
+          </XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-
-        <div v-if="detailLoading" class="modal-loading">
-          {{ t('common.statuses.loading') }}
-        </div>
-        <XhDescriptionsRoot v-else-if="currentDetail" :columns="2" variant="outline" size="sm">
-          <XhDescriptionsItem>
-            <XhDescriptionsLabel>{{ t('identity.position.position_code') }}</XhDescriptionsLabel>
-            <XhDescriptionsValue>
-              {{ currentDetail.positionCode }}
-            </XhDescriptionsValue>
-          </XhDescriptionsItem>
-          <XhDescriptionsItem>
-            <XhDescriptionsLabel>{{ t('identity.position.status') }}</XhDescriptionsLabel>
-            <XhDescriptionsValue>
-              <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
-                <XhTagLabel>
-                  {{ formatStatus(currentDetail.status) }}
-                </XhTagLabel>
-              </XhTagRoot>
-            </XhDescriptionsValue>
-          </XhDescriptionsItem>
-          <XhDescriptionsItem>
-            <XhDescriptionsLabel>{{ t('identity.position.sort') }}</XhDescriptionsLabel>
-            <XhDescriptionsValue>
-              {{ currentDetail.sort }}
-            </XhDescriptionsValue>
-          </XhDescriptionsItem>
-          <XhDescriptionsItem>
-            <XhDescriptionsLabel>{{ t('identity.position.created_time') }}</XhDescriptionsLabel>
-            <XhDescriptionsValue>
-              {{ formatNullableDate(currentDetail.createdTime) }}
-            </XhDescriptionsValue>
-          </XhDescriptionsItem>
-          <XhDescriptionsItem style="grid-column: span 2">
-            <XhDescriptionsLabel>{{ t('identity.position.remark') }}</XhDescriptionsLabel>
-            <XhDescriptionsValue>
-              {{ formatNullable(currentDetail.remark) }}
-            </XhDescriptionsValue>
-          </XhDescriptionsItem>
-        </XhDescriptionsRoot>
-
-        <div class="xh-dialog-footer">
-          <XhFlex justify="end" gap="md">
-            <XhButton variant="subtle" size="sm" @click="detailVisible = false">
-              {{ t('common.actions.close') }}
-            </XhButton>
-            <XhButton
-              v-if="currentDetail && hasPermission('identity.position.update')"
-              variant="subtle"
-              size="sm"
-              tone="brand"
-              @click="detailVisible = false; handleEdit(currentDetail as PositionListItemDto)"
-            >
-              {{ t('common.actions.edit') }}
-            </XhButton>
-          </XhFlex>
-        </div>
+        <XhDialogBody class="xh-overlay-body">
+          <div v-if="detailLoading" class="modal-loading">
+            {{ t('common.statuses.loading') }}
+          </div>
+          <XhDescriptionsRoot v-else-if="currentDetail" :columns="2" variant="outline" size="sm">
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('identity.position.position_code') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.positionCode }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('identity.position.status') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                  <XhTagLabel>
+                    {{ formatStatus(currentDetail.status) }}
+                  </XhTagLabel>
+                </XhTagRoot>
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('identity.position.sort') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ currentDetail.sort }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('identity.position.created_time') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ formatNullableDate(currentDetail.createdTime) }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem style="grid-column: span 2">
+              <XhDescriptionsLabel>{{ t('identity.position.remark') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                {{ formatNullable(currentDetail.remark) }}
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+          </XhDescriptionsRoot>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" size="sm" @click="detailVisible = false">
+            {{ t('common.actions.close') }}
+          </XhButton>
+          <XhButton
+            v-if="currentDetail && hasPermission('identity.position.update')"
+            variant="subtle"
+            size="sm"
+            tone="brand"
+            @click="detailVisible = false; handleEdit(currentDetail as PositionListItemDto)"
+          >
+            {{ t('common.actions.edit') }}
+          </XhButton>
+        </XhDialogFooter>
       </XhDialogContent>
     </XhDialogRoot>
 

@@ -7,7 +7,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -402,171 +402,171 @@ async function handleToggleStatus(row: ConfigListItemDto) {
   >
     <XhDialogRoot v-model:open="detailVisible">
       <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 720px">
-        <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
-        <XhDialogTitle>
-          <template v-if="!currentDetail">
-            {{ t('common.loading') }}
-          </template>
-          <div v-else class="det-hd-entity">
-            <div class="det-hd-ico">
-              <Icon icon="tabler:settings" width="22" height="22" />
-            </div>
-            <div class="min-w-0">
-              <div class="det-hd-name">
-                {{ currentDetail.configName }}
+        <XhDialogHeader>
+          <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
+          <XhDialogTitle>
+            <template v-if="!currentDetail">
+              {{ t('common.loading') }}
+            </template>
+            <div v-else class="det-hd-entity">
+              <div class="det-hd-ico">
+                <Icon icon="tabler:settings" width="22" height="22" />
               </div>
-              <div class="det-hd-sub">
-                {{ currentDetail.configKey }}
+              <div class="min-w-0">
+                <div class="det-hd-name">
+                  {{ currentDetail.configName }}
+                </div>
+                <div class="det-hd-sub">
+                  {{ currentDetail.configKey }}
+                </div>
               </div>
             </div>
-          </div>
-        </XhDialogTitle>
+          </XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-
-        <div v-if="detailLoading" class="modal-loading">
-          {{ t('common.statuses.loading') }}
-        </div>
-        <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
-        <XhTabsRoot v-else-if="currentDetail" default-value="overview" variant="line">
-          <XhTabsList>
-            <XhTabsTrigger value="overview">
-              {{ t('setting.config.overview') }}
-            </XhTabsTrigger>
-            <XhTabsTrigger value="values">
-              {{ t('setting.config.values') }}
-            </XhTabsTrigger>
-            <XhTabsIndicator />
-          </XhTabsList>
-          <XhTabsContent value="overview">
-            <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.config_group') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.configGroup) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.config_type') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ getOptionLabel(configTypeOptions, currentDetail.configType) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.data_type_field') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ getOptionLabel(dataTypeOptions, currentDetail.dataType) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.status') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
-                    <XhTagLabel>
-                      {{ getOptionLabel(statusOptions, currentDetail.status) }}
-                    </XhTagLabel>
-                  </XhTagRoot>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.is_global_field') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatBoolean(currentDetail.isGlobal) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.is_builtin_field') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatBoolean(currentDetail.isBuiltIn) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.is_encrypted_field') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatBoolean(currentDetail.isEncrypted) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.sort') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ currentDetail.sort }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.created_time') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(currentDetail.createdTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.modified_time') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullableDate(currentDetail.modifiedTime) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.created_by') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.createdBy) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.modified_by') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.modifiedBy) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <!-- 跨列项排在末尾：边框按子节点奇偶画竖线，跨列项之后的项奇偶会与实际列位错开 -->
-              <XhDescriptionsItem style="grid-column: span 2">
-                <XhDescriptionsLabel>{{ t('setting.config.description') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ formatNullable(currentDetail.configDescription) }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-            </XhDescriptionsRoot>
-          </XhTabsContent>
-          <XhTabsContent value="values">
-            <XhDescriptionsRoot :columns="1" variant="outline" size="sm">
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.current_value') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:hsl(var(--muted-foreground))">{{ t('setting.config.encrypted_hint') }}</span>
-                  <pre v-else-if="currentDetail.hasCurrentValue" class="config-value-block">{{ formatConfigValue(currentDetail.configValue) }}</pre>
-                  <XhTagRoot v-else variant="subtle" size="sm">
-                    <XhTagLabel>
-                      {{ t('setting.config.not_configured') }}
-                    </XhTagLabel>
-                  </XhTagRoot>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem>
-                <XhDescriptionsLabel>{{ t('setting.config.default_value') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:hsl(var(--muted-foreground))">{{ t('setting.config.encrypted_hint') }}</span>
-                  <pre v-else-if="currentDetail.hasFallbackValue" class="config-value-block">{{ formatConfigValue(currentDetail.defaultValue) }}</pre>
-                  <XhTagRoot v-else variant="subtle" size="sm">
-                    <XhTagLabel>
-                      {{ t('setting.config.value_unset') }}
-                    </XhTagLabel>
-                  </XhTagRoot>
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-              <XhDescriptionsItem v-if="currentDetail.hasNote">
-                <XhDescriptionsLabel>{{ t('setting.config.note') }}</XhDescriptionsLabel>
-                <XhDescriptionsValue>
-                  {{ currentDetail.remark }}
-                </XhDescriptionsValue>
-              </XhDescriptionsItem>
-            </XhDescriptionsRoot>
-          </XhTabsContent>
-        </XhTabsRoot>
-
-        <div class="xh-dialog-footer">
-          <XhFlex justify="end" gap="md">
-            <XhButton variant="subtle" size="sm" @click="detailVisible = false">
-              {{ t('common.actions.close') }}
-            </XhButton>
-          </XhFlex>
-        </div>
+        <XhDialogBody class="xh-overlay-body">
+          <div v-if="detailLoading" class="modal-loading">
+            {{ t('common.statuses.loading') }}
+          </div>
+          <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+          <XhTabsRoot v-else-if="currentDetail" default-value="overview" variant="line">
+            <XhTabsList>
+              <XhTabsTrigger value="overview">
+                {{ t('setting.config.overview') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="values">
+                {{ t('setting.config.values') }}
+              </XhTabsTrigger>
+              <XhTabsIndicator />
+            </XhTabsList>
+            <XhTabsContent value="overview">
+              <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.config_group') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.configGroup) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.config_type') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ getOptionLabel(configTypeOptions, currentDetail.configType) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.data_type_field') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ getOptionLabel(dataTypeOptions, currentDetail.dataType) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.status') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <XhTagRoot variant="subtle" size="sm" :tone="currentDetail.status === EnableStatus.Enabled ? 'success' : 'danger'">
+                      <XhTagLabel>
+                        {{ getOptionLabel(statusOptions, currentDetail.status) }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.is_global_field') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatBoolean(currentDetail.isGlobal) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.is_builtin_field') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatBoolean(currentDetail.isBuiltIn) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.is_encrypted_field') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatBoolean(currentDetail.isEncrypted) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.sort') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ currentDetail.sort }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.created_time') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(currentDetail.createdTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.modified_time') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullableDate(currentDetail.modifiedTime) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.created_by') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.createdBy) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.modified_by') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.modifiedBy) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <!-- 跨列项排在末尾：边框按子节点奇偶画竖线，跨列项之后的项奇偶会与实际列位错开 -->
+                <XhDescriptionsItem style="grid-column: span 2">
+                  <XhDescriptionsLabel>{{ t('setting.config.description') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ formatNullable(currentDetail.configDescription) }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+              </XhDescriptionsRoot>
+            </XhTabsContent>
+            <XhTabsContent value="values">
+              <XhDescriptionsRoot :columns="1" variant="outline" size="sm">
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.current_value') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:hsl(var(--muted-foreground))">{{ t('setting.config.encrypted_hint') }}</span>
+                    <pre v-else-if="currentDetail.hasCurrentValue" class="config-value-block">{{ formatConfigValue(currentDetail.configValue) }}</pre>
+                    <XhTagRoot v-else variant="subtle" size="sm">
+                      <XhTagLabel>
+                        {{ t('setting.config.not_configured') }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem>
+                  <XhDescriptionsLabel>{{ t('setting.config.default_value') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    <span v-if="currentDetail.isEncrypted" style="font-size:12px;color:hsl(var(--muted-foreground))">{{ t('setting.config.encrypted_hint') }}</span>
+                    <pre v-else-if="currentDetail.hasFallbackValue" class="config-value-block">{{ formatConfigValue(currentDetail.defaultValue) }}</pre>
+                    <XhTagRoot v-else variant="subtle" size="sm">
+                      <XhTagLabel>
+                        {{ t('setting.config.value_unset') }}
+                      </XhTagLabel>
+                    </XhTagRoot>
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+                <XhDescriptionsItem v-if="currentDetail.hasNote">
+                  <XhDescriptionsLabel>{{ t('setting.config.note') }}</XhDescriptionsLabel>
+                  <XhDescriptionsValue>
+                    {{ currentDetail.remark }}
+                  </XhDescriptionsValue>
+                </XhDescriptionsItem>
+              </XhDescriptionsRoot>
+            </XhTabsContent>
+          </XhTabsRoot>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" size="sm" @click="detailVisible = false">
+            {{ t('common.actions.close') }}
+          </XhButton>
+        </XhDialogFooter>
       </XhDialogContent>
     </XhDialogRoot>
 

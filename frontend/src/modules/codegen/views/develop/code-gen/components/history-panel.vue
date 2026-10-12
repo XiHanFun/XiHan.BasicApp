@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -229,120 +229,121 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
   <SchemaPage :schema="schema" @action="onAction">
     <XhDialogRoot v-model:open="detailVisible">
       <XhDialogContent style="--xh-dialog-max-w: 820px">
-        <XhDialogTitle>{{ t('develop.code_gen.history.detail_title') }}</XhDialogTitle>
+        <XhDialogHeader>
+          <XhDialogTitle>{{ t('develop.code_gen.history.detail_title') }}</XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-        <XhFlex v-if="detailLoading" justify="center">
-          {{ t('common.statuses.loading') }}
-        </XhFlex>
-        <template v-else-if="detail">
-          <XhDescriptionsRoot :columns="2" placement="left" size="sm">
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_table_name') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ detail.tableName }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_batch_number') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ detail.batchNumber ?? '-' }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_status') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                <XhTagRoot variant="subtle" size="sm" :tone="genStatusTagType(detail.genStatus)">
-                  <XhTagLabel>
-                    {{ getOptionLabel(GEN_STATUS_OPTIONS, detail.genStatus) }}
-                  </XhTagLabel>
-                </XhTagRoot>
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_gen_type') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ getOptionLabel(GEN_TYPE_OPTIONS, detail.genType) }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_file_count') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ detail.fileCount }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_total_size') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ formatSize(detail.totalSize) }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_duration') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ formatDuration(detail.duration) }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_operator') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ detail.operatorName ?? '-' }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_gen_time') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ detail.genTime }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem>
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_operator_ip') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ detail.operatorIp ?? '-' }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem v-if="detail.genPath" style="grid-column: span 2">
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_gen_path') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ detail.genPath }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-            <XhDescriptionsItem v-if="detail.downloadPath" style="grid-column: span 2">
-              <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_download_path') }}</XhDescriptionsLabel>
-              <XhDescriptionsValue>
-                {{ detail.downloadPath }}
-              </XhDescriptionsValue>
-            </XhDescriptionsItem>
-          </XhDescriptionsRoot>
-
-          <div v-if="detail.errorMessage" class="detail-section detail-section--error">
-            <div class="detail-section__title">
-              {{ t('develop.code_gen.history.detail_error') }}
-            </div>
-            <pre class="detail-section__pre">{{ detail.errorMessage }}</pre>
-          </div>
-
-          <div v-if="generatedFiles.length" class="detail-section">
-            <div class="detail-section__title">
-              {{ t('develop.code_gen.history.detail_artifacts', { count: generatedFiles.length }) }}
-            </div>
-            <ul class="detail-files">
-              <li v-for="file in generatedFiles" :key="file" class="detail-files__item">
-                {{ file }}
-              </li>
-            </ul>
-          </div>
-        </template>
-        <XhFlex v-else justify="center">
-          {{ t('common.statuses.no_data') }}
-        </XhFlex>
-
-        <div class="xh-dialog-footer">
-          <XhFlex justify="end">
-            <XhButton variant="subtle" @click="detailVisible = false">
-              {{ t('common.actions.close') }}
-            </XhButton>
+        <XhDialogBody class="xh-overlay-body">
+          <XhFlex v-if="detailLoading" justify="center">
+            {{ t('common.statuses.loading') }}
           </XhFlex>
-        </div>
+          <template v-else-if="detail">
+            <XhDescriptionsRoot :columns="2" placement="left" size="sm">
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_table_name') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detail.tableName }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_batch_number') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detail.batchNumber ?? '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_status') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  <XhTagRoot variant="subtle" size="sm" :tone="genStatusTagType(detail.genStatus)">
+                    <XhTagLabel>
+                      {{ getOptionLabel(GEN_STATUS_OPTIONS, detail.genStatus) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_gen_type') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ getOptionLabel(GEN_TYPE_OPTIONS, detail.genType) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_file_count') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detail.fileCount }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_total_size') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatSize(detail.totalSize) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_duration') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ formatDuration(detail.duration) }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_operator') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detail.operatorName ?? '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_gen_time') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detail.genTime }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem>
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_operator_ip') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detail.operatorIp ?? '-' }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem v-if="detail.genPath" style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_gen_path') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detail.genPath }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+              <XhDescriptionsItem v-if="detail.downloadPath" style="grid-column: span 2">
+                <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_download_path') }}</XhDescriptionsLabel>
+                <XhDescriptionsValue>
+                  {{ detail.downloadPath }}
+                </XhDescriptionsValue>
+              </XhDescriptionsItem>
+            </XhDescriptionsRoot>
+
+            <div v-if="detail.errorMessage" class="detail-section detail-section--error">
+              <div class="detail-section__title">
+                {{ t('develop.code_gen.history.detail_error') }}
+              </div>
+              <pre class="detail-section__pre">{{ detail.errorMessage }}</pre>
+            </div>
+
+            <div v-if="generatedFiles.length" class="detail-section">
+              <div class="detail-section__title">
+                {{ t('develop.code_gen.history.detail_artifacts', { count: generatedFiles.length }) }}
+              </div>
+              <ul class="detail-files">
+                <li v-for="file in generatedFiles" :key="file" class="detail-files__item">
+                  {{ file }}
+                </li>
+              </ul>
+            </div>
+          </template>
+          <XhFlex v-else justify="center">
+            {{ t('common.statuses.no_data') }}
+          </XhFlex>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" @click="detailVisible = false">
+            {{ t('common.actions.close') }}
+          </XhButton>
+        </XhDialogFooter>
       </XhDialogContent>
     </XhDialogRoot>
   </SchemaPage>

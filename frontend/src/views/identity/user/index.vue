@@ -17,7 +17,7 @@ import type { UserRoleListItemDto } from '@/api/modules/authorization/user-role.
 import type { DepartmentTreeNodeDto } from '@/api/modules/organization/department.types'
 import type { UserDepartmentListItemDto } from '@/api/modules/organization/user-department.types'
 import type { GrantTransferGroup, ListFieldSchema, PageSchema, PermissionGrantItem, SchemaActionPayload, SchemaQueryParams } from '~/components'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhSwitch, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -1601,275 +1601,288 @@ async function confirmDelete() {
     <!-- 详情 -->
     <XhDialogRoot v-model:open="showDetModal" :close-on-interact-outside="false">
       <XhDialogContent style="--xh-dialog-max-w: 640px">
-        <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
-        <XhDialogTitle>
-          <template v-if="!detUser">
-            {{ t('common.loading') }}
-          </template>
-          <div v-else class="det-hd-user">
-            <div class="av-lg" :style="{ background: detUser.avatar.bg, color: detUser.avatar.fg }">
-              {{ detUser.initials }}
-            </div>
-            <div class="min-w-0">
-              <div class="det-name">
-                {{ detUser.displayName }}
+        <XhDialogHeader>
+          <!-- 标题须在弹窗打开期间一直在：详情未到时先念「加载中」 -->
+          <XhDialogTitle>
+            <template v-if="!detUser">
+              {{ t('common.loading') }}
+            </template>
+            <div v-else class="det-hd-user">
+              <div class="av-lg" :style="{ background: detUser.avatar.bg, color: detUser.avatar.fg }">
+                {{ detUser.initials }}
               </div>
-              <div class="det-sub">
-                @{{ detUser.userName }}
+              <div class="min-w-0">
+                <div class="det-name">
+                  {{ detUser.displayName }}
+                </div>
+                <div class="det-sub">
+                  @{{ detUser.userName }}
+                </div>
               </div>
             </div>
-          </div>
-        </XhDialogTitle>
+          </XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-
-        <div v-if="detailLoading" class="modal-loading">
-          {{ t('common.statuses.loading') }}
-        </div>
-        <template v-else-if="detUser">
-          <div class="det-info-grid">
-            <div>
-              <span class="muted">{{ t('identity.user.detail.country') }}</span>
-              {{ detUser.country }}
-            </div>
-            <div>
-              <span class="muted">{{ t('identity.user.detail.gender') }}</span>
-              {{ detUser.gender }}
-            </div>
-            <div>
-              <span class="muted">{{ t('identity.user.detail.roles') }}</span>
-              {{ detUser.roles.join('、') || '—' }}
-            </div>
-            <div>
-              <span class="muted">{{ t('identity.user.detail.depts') }}</span>
-              {{ detUser.depts.join('、') || '—' }}
-            </div>
-            <div v-if="detUser.remark" class="col-span-2">
-              <span class="muted">{{ t('identity.user.detail.remark') }}</span>
-              {{ detUser.remark }}
-            </div>
+        <XhDialogBody class="xh-overlay-body">
+          <div v-if="detailLoading" class="modal-loading">
+            {{ t('common.statuses.loading') }}
           </div>
-          <div class="det-badges">
-            <XhTagRoot v-for="badge in detUser.badges" :key="badge.label" variant="subtle" size="sm" :tone="badge.tone">
-              <Icon :icon="badge.icon" width="12" height="12" />
-              <XhTagLabel>{{ badge.label }}</XhTagLabel>
-            </XhTagRoot>
-          </div>
-          <div class="det-divider" />
-          <div class="det-sec">
+          <template v-else-if="detUser">
+            <div class="det-info-grid">
+              <div>
+                <span class="muted">{{ t('identity.user.detail.country') }}</span>
+                {{ detUser.country }}
+              </div>
+              <div>
+                <span class="muted">{{ t('identity.user.detail.gender') }}</span>
+                {{ detUser.gender }}
+              </div>
+              <div>
+                <span class="muted">{{ t('identity.user.detail.roles') }}</span>
+                {{ detUser.roles.join('、') || '—' }}
+              </div>
+              <div>
+                <span class="muted">{{ t('identity.user.detail.depts') }}</span>
+                {{ detUser.depts.join('、') || '—' }}
+              </div>
+              <div v-if="detUser.remark" class="col-span-2">
+                <span class="muted">{{ t('identity.user.detail.remark') }}</span>
+                {{ detUser.remark }}
+              </div>
+            </div>
+            <div class="det-badges">
+              <XhTagRoot v-for="badge in detUser.badges" :key="badge.label" variant="subtle" size="sm" :tone="badge.tone">
+                <Icon :icon="badge.icon" width="12" height="12" />
+                <XhTagLabel>{{ badge.label }}</XhTagLabel>
+              </XhTagRoot>
+            </div>
+            <div class="det-divider" />
+            <div class="det-sec">
+              <div class="det-sec-hd">
+                <Icon icon="tabler:chart-bar" width="14" height="14" />
+                <span>{{ t('identity.user.detail.stats_today') }}</span>
+              </div>
+              <div class="det-stat-grid">
+                <div v-for="m in detUser.metrics" :key="m.label" class="det-stat-card" :class="[m.cls]">
+                  <div class="det-stat-top">
+                    <span class="det-stat-lbl">{{ m.label }}</span>
+                    <Icon :icon="m.icon" width="13" height="13" />
+                  </div>
+                  <div class="det-stat-val">
+                    {{ m.value }}
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="det-sec-hd">
-              <Icon icon="tabler:chart-bar" width="14" height="14" />
-              <span>{{ t('identity.user.detail.stats_today') }}</span>
+              <Icon icon="tabler:device-desktop" width="14" height="14" />
+              <span>{{ t('identity.user.detail.login_session') }}</span>
             </div>
-            <div class="det-stat-grid">
-              <div v-for="m in detUser.metrics" :key="m.label" class="det-stat-card" :class="[m.cls]">
-                <div class="det-stat-top">
-                  <span class="det-stat-lbl">{{ m.label }}</span>
-                  <Icon :icon="m.icon" width="13" height="13" />
+            <div v-if="detUser.online" class="s-row">
+              <Icon icon="tabler:device-desktop" width="18" height="18" class="session-ico" />
+              <div class="flex-1 min-w-0">
+                <div class="session-title">
+                  {{ detUser.sessionLabel }}
                 </div>
-                <div class="det-stat-val">
-                  {{ m.value }}
+                <div class="session-sub">
+                  {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
                 </div>
               </div>
+              <XhTagRoot variant="subtle" size="sm" tone="success">
+                <XhTagLabel>{{ t('identity.user.detail.online') }}</XhTagLabel>
+              </XhTagRoot>
             </div>
-          </div>
-          <div class="det-sec-hd">
-            <Icon icon="tabler:device-desktop" width="14" height="14" />
-            <span>{{ t('identity.user.detail.login_session') }}</span>
-          </div>
-          <div v-if="detUser.online" class="s-row">
-            <Icon icon="tabler:device-desktop" width="18" height="18" class="session-ico" />
-            <div class="flex-1 min-w-0">
-              <div class="session-title">
-                {{ detUser.sessionLabel }}
-              </div>
-              <div class="session-sub">
-                {{ detUser.lastLoginIp }} · {{ detUser.lastLoginTime }}
-              </div>
+            <div v-else class="session-empty">
+              {{ t('identity.user.detail.no_active_session') }}
             </div>
-            <XhTagRoot variant="subtle" size="sm" tone="success">
-              <XhTagLabel>{{ t('identity.user.detail.online') }}</XhTagLabel>
-            </XhTagRoot>
-          </div>
-          <div v-else class="session-empty">
-            {{ t('identity.user.detail.no_active_session') }}
-          </div>
-        </template>
-
-        <div class="xh-dialog-footer">
-          <XhFlex justify="end">
-            <XhButton variant="subtle" size="sm" @click="closeModals">
-              {{ t('common.actions.close') }}
-            </XhButton>
-          </XhFlex>
-        </div>
+          </template>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" size="sm" @click="closeModals">
+            {{ t('common.actions.close') }}
+          </XhButton>
+        </XhDialogFooter>
       </XhDialogContent>
     </XhDialogRoot>
 
     <!-- 删除确认 -->
     <XhDialogRoot v-model:open="showDelModal" :close-on-interact-outside="false">
       <XhDialogContent style="--xh-dialog-max-w: 420px">
-        <XhDialogTitle>{{ t('identity.user.del_title') }}</XhDialogTitle>
+        <XhDialogHeader>
+          <XhDialogTitle>{{ t('identity.user.del_title') }}</XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-        <div class="del-body">
-          <Icon icon="tabler:alert-triangle" width="26" height="26" class="del-icon" />
-          <div>
-            <p class="del-title">
-              {{ t('identity.user.del_confirm_prefix') }}
-              <span class="name">{{ delTarget?.name }}</span>
-              {{ t('identity.user.del_confirm_suffix') }}
-            </p>
-            <p class="del-desc">
-              {{ t('identity.user.del_desc') }}
-            </p>
+        <XhDialogBody class="xh-overlay-body">
+          <div class="del-body">
+            <Icon icon="tabler:alert-triangle" width="26" height="26" class="del-icon" />
+            <div>
+              <p class="del-title">
+                {{ t('identity.user.del_confirm_prefix') }}
+                <span class="name">{{ delTarget?.name }}</span>
+                {{ t('identity.user.del_confirm_suffix') }}
+              </p>
+              <p class="del-desc">
+                {{ t('identity.user.del_desc') }}
+              </p>
+            </div>
           </div>
-        </div>
-
-        <div class="xh-dialog-footer">
-          <XhFlex justify="end">
-            <XhButton variant="subtle" size="sm" @click="closeModals">
-              {{ t('common.actions.cancel') }}
-            </XhButton>
-            <XhButton variant="subtle" size="sm" tone="danger" @click="confirmDelete">
-              {{ t('identity.user.del_confirm_btn') }}
-            </XhButton>
-          </XhFlex>
-        </div>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" size="sm" @click="closeModals">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton variant="subtle" size="sm" tone="danger" @click="confirmDelete">
+            {{ t('identity.user.del_confirm_btn') }}
+          </XhButton>
+        </XhDialogFooter>
       </XhDialogContent>
     </XhDialogRoot>
 
     <!-- 成员数据范围抽屉 -->
     <XhDrawerRoot v-model:open="scopeVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 640px">
-        <XhDrawerTitle>{{ t('identity.data_scope.drawer_title', { name: scopeUser ? displayName(scopeUser) : '' }) }}</XhDrawerTitle>
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('identity.data_scope.drawer_title', { name: scopeUser ? displayName(scopeUser) : '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage scope-stage" :class="{ 'is-loading': scopeLoading }">
-          <div class="xh-loading-stage__veil">
-            <XhSpinner />
+        <XhDrawerBody class="xh-overlay-body">
+          <div class="xh-loading-stage scope-stage" :class="{ 'is-loading': scopeLoading }">
+            <div class="xh-loading-stage__veil">
+              <XhSpinner />
+            </div>
+            <XhAlertRoot tone="info" class="mb-3">
+              <XhAlertIndicator>
+                <Icon icon="tabler:info-circle" width="16" height="16" />
+              </XhAlertIndicator>
+              <XhAlertContent>
+                <XhAlertDescription>
+                  {{ t('identity.data_scope.member_hint') }}
+                </XhAlertDescription>
+              </XhAlertContent>
+            </XhAlertRoot>
+            <DataScopeEditor v-model="scopeDraft" :department-tree="scopeTree" allow-inherit />
           </div>
-          <XhAlertRoot tone="info" class="mb-3">
-            <XhAlertIndicator>
-              <Icon icon="tabler:info-circle" width="16" height="16" />
-            </XhAlertIndicator>
-            <XhAlertContent>
-              <XhAlertDescription>
-                {{ t('identity.data_scope.member_hint') }}
-              </XhAlertDescription>
-            </XhAlertContent>
-          </XhAlertRoot>
-          <DataScopeEditor v-model="scopeDraft" :department-tree="scopeTree" allow-inherit />
-        </div>
-        <div class="xh-dialog-footer">
+        </XhDrawerBody>
+        <XhDrawerFooter>
           <XhButton variant="subtle" @click="scopeVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" class="ml-2" :loading="scopeSubmitting" :disabled="!scopeDirty || scopeLoading" @click="saveScopes">
+          <XhButton variant="subtle" tone="brand" :loading="scopeSubmitting" :disabled="!scopeDirty || scopeLoading" @click="saveScopes">
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('identity.data_scope.save') }}</XhButtonLabel>
           </XhButton>
-        </div>
+        </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
 
     <!-- 角色直授抽屉 -->
     <XhDrawerRoot v-model:open="roleGrantVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 720px">
-        <XhDrawerTitle>{{ t('identity.user.grant_role_title', { name: roleGrantUser?.userName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('identity.user.grant_role_title', { name: roleGrantUser?.userName ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
         <XhDrawerCloseTrigger />
-        <p class="grant-tip">
-          {{ t('identity.user.grant_role_tip') }}
-        </p>
-        <XGrantTransfer
-          :items="roleGrantItems"
-          :value="roleDraft"
-          :groups="roleGrantGroups"
-          :get-label="role => role.roleName"
-          :get-description="role => role.roleCode"
-          :loading="roleGrantLoading"
-          :disabled="roleGrantLoading"
-          :source-title="t('identity.user.grant_role_source')"
-          :target-title="t('identity.user.grant_role_target')"
-          :search-placeholder="t('identity.user.grant_role_search')"
-          @update:value="onRoleTransfer"
-        />
-        <div class="xh-dialog-footer">
+        <XhDrawerBody class="xh-overlay-body">
+          <p class="grant-tip">
+            {{ t('identity.user.grant_role_tip') }}
+          </p>
+          <XGrantTransfer
+            :items="roleGrantItems"
+            :value="roleDraft"
+            :groups="roleGrantGroups"
+            :get-label="role => role.roleName"
+            :get-description="role => role.roleCode"
+            :loading="roleGrantLoading"
+            :disabled="roleGrantLoading"
+            :source-title="t('identity.user.grant_role_source')"
+            :target-title="t('identity.user.grant_role_target')"
+            :search-placeholder="t('identity.user.grant_role_search')"
+            @update:value="onRoleTransfer"
+          />
+        </XhDrawerBody>
+        <XhDrawerFooter>
           <XhButton variant="subtle" @click="roleGrantVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="roleGrantLoading" :disabled="!roleDirty" style="margin-left: 8px" @click="saveRoleGrants">
+          <XhButton variant="subtle" tone="brand" :loading="roleGrantLoading" :disabled="!roleDirty" @click="saveRoleGrants">
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('identity.user.grant_save') }}</XhButtonLabel>
           </XhButton>
-        </div>
+        </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
 
     <!-- 权限直授抽屉：授予与拒绝各一个穿梭框，两者互斥 -->
     <XhDrawerRoot v-model:open="permGrantVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 980px">
-        <XhDrawerTitle>{{ t('identity.user.grant_perm_title', { name: permGrantUser?.userName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('identity.user.grant_perm_title', { name: permGrantUser?.userName ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
         <XhDrawerCloseTrigger />
-        <p class="grant-tip">
-          {{ t('identity.user.grant_perm_tip') }}
-        </p>
-        <XhTabsRoot v-model:value="permGrantTab" class="grant-tabs" variant="line">
-          <XhTabsList>
-            <XhTabsTrigger value="grant">
-              {{ t('identity.user.grant_perm_allow') }}
-            </XhTabsTrigger>
-            <XhTabsTrigger value="deny">
-              {{ t('identity.user.grant_perm_deny') }}
-            </XhTabsTrigger>
-            <XhTabsIndicator />
-          </XhTabsList>
-          <XhTabsContent value="grant">
-            <XPermissionTransfer
-              :items="permGrantItems"
-              :value="permGrantIds"
-              :loading="permGrantLoading"
-              :disabled="permGrantLoading"
-              :source-title="t('identity.user.grant_perm_allow_source')"
-              :target-title="t('identity.user.grant_perm_allow_target')"
-              :search-placeholder="t('identity.user.grant_perm_search')"
-              :other-group-label="t('identity.user.grant_perm_group_other')"
-              @update:value="next => onPermTransfer(PermissionAction.Grant, next)"
-            >
-              <!-- 左栏标出已在另一页签里的：挪过来会把它从拒绝改成授予 -->
-              <template #suffix="{ item, side }">
-                <XhTagRoot v-if="side === 'source' && permActions.get(item.basicId) === PermissionAction.Deny" variant="subtle" size="sm" tone="danger">
-                  <XhTagLabel>{{ t('identity.user.grant_perm_deny_target') }}</XhTagLabel>
-                </XhTagRoot>
-              </template>
-            </XPermissionTransfer>
-          </XhTabsContent>
-          <XhTabsContent value="deny">
-            <XPermissionTransfer
-              :items="permGrantItems"
-              :value="permDenyIds"
-              :loading="permGrantLoading"
-              :disabled="permGrantLoading"
-              :source-title="t('identity.user.grant_perm_deny_source')"
-              :target-title="t('identity.user.grant_perm_deny_target')"
-              :search-placeholder="t('identity.user.grant_perm_search')"
-              :other-group-label="t('identity.user.grant_perm_group_other')"
-              @update:value="next => onPermTransfer(PermissionAction.Deny, next)"
-            >
-              <template #suffix="{ item, side }">
-                <XhTagRoot v-if="side === 'source' && permActions.get(item.basicId) === PermissionAction.Grant" variant="subtle" size="sm" tone="success">
-                  <XhTagLabel>{{ t('identity.user.grant_perm_allow_target') }}</XhTagLabel>
-                </XhTagRoot>
-              </template>
-            </XPermissionTransfer>
-          </XhTabsContent>
-        </XhTabsRoot>
-        <div class="xh-dialog-footer">
+        <XhDrawerBody class="xh-overlay-body">
+          <p class="grant-tip">
+            {{ t('identity.user.grant_perm_tip') }}
+          </p>
+          <XhTabsRoot v-model:value="permGrantTab" class="grant-tabs" variant="line">
+            <XhTabsList>
+              <XhTabsTrigger value="grant">
+                {{ t('identity.user.grant_perm_allow') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="deny">
+                {{ t('identity.user.grant_perm_deny') }}
+              </XhTabsTrigger>
+              <XhTabsIndicator />
+            </XhTabsList>
+            <XhTabsContent value="grant">
+              <XPermissionTransfer
+                :items="permGrantItems"
+                :value="permGrantIds"
+                :loading="permGrantLoading"
+                :disabled="permGrantLoading"
+                :source-title="t('identity.user.grant_perm_allow_source')"
+                :target-title="t('identity.user.grant_perm_allow_target')"
+                :search-placeholder="t('identity.user.grant_perm_search')"
+                :other-group-label="t('identity.user.grant_perm_group_other')"
+                @update:value="next => onPermTransfer(PermissionAction.Grant, next)"
+              >
+                <!-- 左栏标出已在另一页签里的：挪过来会把它从拒绝改成授予 -->
+                <template #suffix="{ item, side }">
+                  <XhTagRoot v-if="side === 'source' && permActions.get(item.basicId) === PermissionAction.Deny" variant="subtle" size="sm" tone="danger">
+                    <XhTagLabel>{{ t('identity.user.grant_perm_deny_target') }}</XhTagLabel>
+                  </XhTagRoot>
+                </template>
+              </XPermissionTransfer>
+            </XhTabsContent>
+            <XhTabsContent value="deny">
+              <XPermissionTransfer
+                :items="permGrantItems"
+                :value="permDenyIds"
+                :loading="permGrantLoading"
+                :disabled="permGrantLoading"
+                :source-title="t('identity.user.grant_perm_deny_source')"
+                :target-title="t('identity.user.grant_perm_deny_target')"
+                :search-placeholder="t('identity.user.grant_perm_search')"
+                :other-group-label="t('identity.user.grant_perm_group_other')"
+                @update:value="next => onPermTransfer(PermissionAction.Deny, next)"
+              >
+                <template #suffix="{ item, side }">
+                  <XhTagRoot v-if="side === 'source' && permActions.get(item.basicId) === PermissionAction.Grant" variant="subtle" size="sm" tone="success">
+                    <XhTagLabel>{{ t('identity.user.grant_perm_allow_target') }}</XhTagLabel>
+                  </XhTagRoot>
+                </template>
+              </XPermissionTransfer>
+            </XhTabsContent>
+          </XhTabsRoot>
+        </XhDrawerBody>
+        <XhDrawerFooter>
           <XhButton variant="subtle" @click="permGrantVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="permGrantLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+          <XhButton variant="subtle" tone="brand" :loading="permGrantLoading" :disabled="!permDirty" @click="savePermGrants">
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('identity.user.grant_save') }}</XhButtonLabel>
           </XhButton>
-        </div>
+        </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
   </SchemaPage>

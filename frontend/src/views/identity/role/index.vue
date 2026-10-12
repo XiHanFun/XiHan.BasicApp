@@ -20,7 +20,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import type { TreeSelectOption } from '~/types'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -1361,157 +1361,173 @@ async function handleToggleStatus(row: RoleListItemDto) {
 
     <XhDrawerRoot v-model:open="permissionVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 980px">
-        <XhDrawerTitle>{{ t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('identity.role.perm_drawer_title', { name: permissionRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
         <XhDrawerCloseTrigger />
-        <p v-if="permInherited.size > 0" class="drawer-tip">
-          {{ t('identity.role.perm_inherit_tip') }}
-        </p>
-        <XPermissionTransfer
-          :items="permItems"
-          :value="permChecked"
-          :loading="permLoading"
-          :disabled="permLoading"
-          :source-title="t('identity.role.perm_available')"
-          :target-title="t('identity.role.perm_granted')"
-          :search-placeholder="t('identity.role.perm_search')"
-          :other-group-label="t('identity.role.perm_group_other')"
-          @update:value="onPermTransfer"
-        >
-          <template #suffix="{ item }">
-            <!-- 上级拒绝的，本角色授予了也不生效；已继承的，不必再授予 -->
-            <XhTagRoot
-              v-if="permInherited.get(String(item.basicId))?.deniedBy.length"
-              variant="subtle"
-              size="sm"
-              tone="danger"
-              :title="t('identity.role.perm_denied_by', { names: permInherited.get(String(item.basicId))?.deniedBy.join('、') })"
-            >
-              <XhTagLabel>{{ t('identity.role.perm_inherited_denied') }}</XhTagLabel>
-            </XhTagRoot>
-            <XhTagRoot
-              v-else-if="permInherited.get(String(item.basicId))?.grantedBy.length"
-              variant="subtle"
-              size="sm"
-              tone="success"
-              :title="t('identity.role.perm_granted_by', { names: permInherited.get(String(item.basicId))?.grantedBy.join('、') })"
-            >
-              <XhTagLabel>{{ t('identity.role.perm_inherited') }}</XhTagLabel>
-            </XhTagRoot>
-            <!-- 平台的授权目录含两侧权限：单侧的标出来，授给平台角色的租户侧权限在平台里不生效，反之亦然 -->
-            <template v-if="isPlatformContext">
-              <XhTagRoot v-if="item.side === PermissionSide.Platform" variant="subtle" size="sm" tone="info">
-                <XhTagLabel>{{ t('identity.role.perm_side_platform') }}</XhTagLabel>
+        <XhDrawerBody class="xh-overlay-body">
+          <p v-if="permInherited.size > 0" class="drawer-tip">
+            {{ t('identity.role.perm_inherit_tip') }}
+          </p>
+          <XPermissionTransfer
+            :items="permItems"
+            :value="permChecked"
+            :loading="permLoading"
+            :disabled="permLoading"
+            :source-title="t('identity.role.perm_available')"
+            :target-title="t('identity.role.perm_granted')"
+            :search-placeholder="t('identity.role.perm_search')"
+            :other-group-label="t('identity.role.perm_group_other')"
+            @update:value="onPermTransfer"
+          >
+            <template #suffix="{ item }">
+              <!-- 上级拒绝的，本角色授予了也不生效；已继承的，不必再授予 -->
+              <XhTagRoot
+                v-if="permInherited.get(String(item.basicId))?.deniedBy.length"
+                variant="subtle"
+                size="sm"
+                tone="danger"
+                :title="t('identity.role.perm_denied_by', { names: permInherited.get(String(item.basicId))?.deniedBy.join('、') })"
+              >
+                <XhTagLabel>{{ t('identity.role.perm_inherited_denied') }}</XhTagLabel>
               </XhTagRoot>
-              <XhTagRoot v-else-if="item.side === PermissionSide.Tenant" variant="subtle" size="sm" tone="neutral">
-                <XhTagLabel>{{ t('identity.role.perm_side_tenant') }}</XhTagLabel>
+              <XhTagRoot
+                v-else-if="permInherited.get(String(item.basicId))?.grantedBy.length"
+                variant="subtle"
+                size="sm"
+                tone="success"
+                :title="t('identity.role.perm_granted_by', { names: permInherited.get(String(item.basicId))?.grantedBy.join('、') })"
+              >
+                <XhTagLabel>{{ t('identity.role.perm_inherited') }}</XhTagLabel>
               </XhTagRoot>
+              <!-- 平台的授权目录含两侧权限：单侧的标出来，授给平台角色的租户侧权限在平台里不生效，反之亦然 -->
+              <template v-if="isPlatformContext">
+                <XhTagRoot v-if="item.side === PermissionSide.Platform" variant="subtle" size="sm" tone="info">
+                  <XhTagLabel>{{ t('identity.role.perm_side_platform') }}</XhTagLabel>
+                </XhTagRoot>
+                <XhTagRoot v-else-if="item.side === PermissionSide.Tenant" variant="subtle" size="sm" tone="neutral">
+                  <XhTagLabel>{{ t('identity.role.perm_side_tenant') }}</XhTagLabel>
+                </XhTagRoot>
+              </template>
             </template>
-          </template>
-        </XPermissionTransfer>
-        <div class="xh-dialog-footer">
+          </XPermissionTransfer>
+        </XhDrawerBody>
+        <XhDrawerFooter>
           <XhButton variant="subtle" @click="permissionVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="permLoading" :disabled="!permDirty" style="margin-left: 8px" @click="savePermGrants">
+          <XhButton variant="subtle" tone="brand" :loading="permLoading" :disabled="!permDirty" @click="savePermGrants">
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('identity.role.perm_save') }}</XhButtonLabel>
           </XhButton>
-        </div>
+        </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
 
     <XhDrawerRoot v-model:open="menuVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 520px">
-        <XhDrawerTitle>{{ t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage menu-tree-stage" :class="{ 'is-loading': menuLoading }">
-          <div class="xh-loading-stage__veil">
-            <XhSpinner />
+        <XhDrawerBody class="xh-overlay-body">
+          <div class="xh-loading-stage menu-tree-stage" :class="{ 'is-loading': menuLoading }">
+            <div class="xh-loading-stage__veil">
+              <XhSpinner />
+            </div>
+            <XhEmptyStateRoot v-if="menuTreeData.length === 0 && !menuLoading" size="sm" class="perm-empty">
+              <XhEmptyStateIndicator>
+                <Icon icon="lucide:inbox" width="28" height="28" />
+              </XhEmptyStateIndicator>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('identity.role.menu_empty') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+            <XTree
+              v-else
+              :data="menuTreeOptions"
+              :aria-label="t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' })"
+              multiple
+              cascade
+              checked-strategy="all"
+              :selected-keys="menuCheckedKeys.map(String)"
+              @update:selected-keys="onMenuCheck"
+            />
           </div>
-          <XhEmptyStateRoot v-if="menuTreeData.length === 0 && !menuLoading" size="sm" class="perm-empty">
-            <XhEmptyStateIndicator>
-              <Icon icon="lucide:inbox" width="28" height="28" />
-            </XhEmptyStateIndicator>
-            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-            <XhEmptyStateDescription>{{ t('identity.role.menu_empty') }}</XhEmptyStateDescription>
-          </XhEmptyStateRoot>
-          <XTree
-            v-else
-            :data="menuTreeOptions"
-            :aria-label="t('identity.role.menu_drawer_title', { name: menuRole?.roleName ?? '' })"
-            multiple
-            cascade
-            checked-strategy="all"
-            :selected-keys="menuCheckedKeys.map(String)"
-            @update:selected-keys="onMenuCheck"
-          />
-        </div>
-        <p class="perm-tip">
-          {{ t('identity.role.menu_tip') }}
-        </p>
-        <div class="xh-dialog-footer">
+          <p class="perm-tip">
+            {{ t('identity.role.menu_tip') }}
+          </p>
+        </XhDrawerBody>
+        <XhDrawerFooter>
           <XhButton variant="subtle" @click="menuVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="menuLoading" :disabled="!menuDirty" style="margin-left: 8px" @click="saveMenuGrants">
+          <XhButton variant="subtle" tone="brand" :loading="menuLoading" :disabled="!menuDirty" @click="saveMenuGrants">
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('identity.role.menu_save') }}</XhButtonLabel>
           </XhButton>
-        </div>
+        </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
 
     <XhDrawerRoot v-model:open="membersVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 720px">
-        <XhDrawerTitle>{{ t('identity.role.members_title', { name: membersRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('identity.role.members_title', { name: membersRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
         <XhDrawerCloseTrigger />
-        <p class="drawer-tip">
-          {{ t('identity.role.members_tip') }}
-        </p>
-        <XGrantTransfer
-          :items="memberCandidates"
-          :value="memberDraft"
-          :groups="memberGroups"
-          :get-label="item => item.displayName"
-          :get-description="memberDescription"
-          :loading="membersLoading"
-          :disabled="membersLoading || membersSubmitting"
-          :source-title="t('identity.role.members_source')"
-          :target-title="t('identity.role.members_target')"
-          :search-placeholder="t('identity.role.members_search')"
-          @update:value="value => (memberDraft = value)"
-        />
-        <div class="xh-dialog-footer">
+        <XhDrawerBody class="xh-overlay-body">
+          <p class="drawer-tip">
+            {{ t('identity.role.members_tip') }}
+          </p>
+          <XGrantTransfer
+            :items="memberCandidates"
+            :value="memberDraft"
+            :groups="memberGroups"
+            :get-label="item => item.displayName"
+            :get-description="memberDescription"
+            :loading="membersLoading"
+            :disabled="membersLoading || membersSubmitting"
+            :source-title="t('identity.role.members_source')"
+            :target-title="t('identity.role.members_target')"
+            :search-placeholder="t('identity.role.members_search')"
+            @update:value="value => (memberDraft = value)"
+          />
+        </XhDrawerBody>
+        <XhDrawerFooter>
           <XhButton variant="subtle" @click="membersVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="membersSubmitting" :disabled="!membersDirty || membersLoading" style="margin-left: 8px" @click="saveMembers">
+          <XhButton variant="subtle" tone="brand" :loading="membersSubmitting" :disabled="!membersDirty || membersLoading" @click="saveMembers">
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('identity.role.members_save') }}</XhButtonLabel>
           </XhButton>
-        </div>
+        </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
 
     <XhDrawerRoot v-model:open="scopeVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 640px">
-        <XhDrawerTitle>{{ t('identity.data_scope.drawer_title', { name: scopeRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('identity.data_scope.drawer_title', { name: scopeRole?.roleName ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
         <XhDrawerCloseTrigger />
-        <div class="xh-loading-stage scope-stage" :class="{ 'is-loading': scopeLoading }">
-          <div class="xh-loading-stage__veil">
-            <XhSpinner />
+        <XhDrawerBody class="xh-overlay-body">
+          <div class="xh-loading-stage scope-stage" :class="{ 'is-loading': scopeLoading }">
+            <div class="xh-loading-stage__veil">
+              <XhSpinner />
+            </div>
+            <DataScopeEditor v-model="scopeDraft" :department-tree="scopeTree" :allow-custom="scopeAllowCustom" />
           </div>
-          <DataScopeEditor v-model="scopeDraft" :department-tree="scopeTree" :allow-custom="scopeAllowCustom" />
-        </div>
-        <div class="xh-dialog-footer">
+        </XhDrawerBody>
+        <XhDrawerFooter>
           <XhButton variant="subtle" @click="scopeVisible = false">
             {{ t('common.actions.cancel') }}
           </XhButton>
-          <XhButton variant="subtle" tone="brand" :loading="scopeSubmitting" :disabled="!scopeDirty || scopeLoading" style="margin-left: 8px" @click="saveScopes">
+          <XhButton variant="subtle" tone="brand" :loading="scopeSubmitting" :disabled="!scopeDirty || scopeLoading" @click="saveScopes">
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('identity.data_scope.save') }}</XhButtonLabel>
           </XhButton>
-        </div>
+        </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
 

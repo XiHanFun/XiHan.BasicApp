@@ -324,7 +324,7 @@
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/modules/printing/views/setting/print-template/components/PrintDesignerJsonModal.vue": {
-    "cap": 8,
+    "cap": 7,
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/modules/printing/views/setting/print-template/components/PrintDesignerMaterialPalette.vue": {
@@ -332,7 +332,7 @@
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/modules/printing/views/setting/print-template/components/PrintDesignerToolbar.vue": {
-    "cap": 41,
+    "cap": 40,
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/modules/printing/views/setting/print-template/components/PrintSampleDataModal.vue": {

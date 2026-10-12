@@ -11,7 +11,7 @@ import type {
   TenantEditionUpdateDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -746,31 +746,34 @@ async function savePermChanges() {
 
     <XhDrawerRoot v-model:open="permDrawerVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 980px">
-        <XhDrawerTitle>{{ t('tenant.edition.perm_drawer_title', { name: permEdition?.editionName ?? '' }) }}</XhDrawerTitle>
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('tenant.edition.perm_drawer_title', { name: permEdition?.editionName ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
         <XhDrawerCloseTrigger />
-        <p v-if="permDisabledIds.size > 0" class="drawer-tip">
-          {{ t('tenant.edition.perm_disabled_tip') }}
-        </p>
-        <XPermissionTransfer
-          :items="permItems"
-          :value="permChecked"
-          :loading="permLoading"
-          :disabled="permLoading || permError || !canEditPermission"
-          :source-title="t('tenant.edition.perm_available')"
-          :target-title="t('tenant.edition.perm_granted')"
-          :search-placeholder="t('tenant.edition.perm_grant_placeholder')"
-          :other-group-label="t('tenant.edition.perm_group_other')"
-          @update:value="onPermTransfer"
-        >
-          <template #suffix="{ item, side }">
-            <!-- 停用的映射不在白名单里，与未授予同在左栏；移到右栏保存即重新启用 -->
-            <XhTagRoot v-if="side === 'source' && permDisabledIds.has(item.basicId)" variant="subtle" size="sm" tone="warning">
-              <XhTagLabel>{{ t('tenant.edition.perm_disabled') }}</XhTagLabel>
-            </XhTagRoot>
-          </template>
-        </XPermissionTransfer>
-        <!-- 按钮行排在抽屉内容区末尾，右对齐 -->
-        <div class="xh-dialog-footer">
+        <XhDrawerBody class="xh-overlay-body">
+          <p v-if="permDisabledIds.size > 0" class="drawer-tip">
+            {{ t('tenant.edition.perm_disabled_tip') }}
+          </p>
+          <XPermissionTransfer
+            :items="permItems"
+            :value="permChecked"
+            :loading="permLoading"
+            :disabled="permLoading || permError || !canEditPermission"
+            :source-title="t('tenant.edition.perm_available')"
+            :target-title="t('tenant.edition.perm_granted')"
+            :search-placeholder="t('tenant.edition.perm_grant_placeholder')"
+            :other-group-label="t('tenant.edition.perm_group_other')"
+            @update:value="onPermTransfer"
+          >
+            <template #suffix="{ item, side }">
+              <!-- 停用的映射不在白名单里，与未授予同在左栏；移到右栏保存即重新启用 -->
+              <XhTagRoot v-if="side === 'source' && permDisabledIds.has(item.basicId)" variant="subtle" size="sm" tone="warning">
+                <XhTagLabel>{{ t('tenant.edition.perm_disabled') }}</XhTagLabel>
+              </XhTagRoot>
+            </template>
+          </XPermissionTransfer>
+        </XhDrawerBody>
+        <XhDrawerFooter>
           <XhButton variant="subtle" @click="permDrawerVisible = false">
             {{ t('tenant.edition.cancel') }}
           </XhButton>
@@ -778,7 +781,7 @@ async function savePermChanges() {
             <XhButtonIndicator />
             <XhButtonLabel>{{ t('tenant.edition.perm_save') }}</XhButtonLabel>
           </XhButton>
-        </div>
+        </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
   </SchemaPage>
