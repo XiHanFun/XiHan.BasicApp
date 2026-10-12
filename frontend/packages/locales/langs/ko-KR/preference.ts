@@ -92,6 +92,19 @@ export default {
       title: '글꼴',
       size: '크기',
     },
+    chart: {
+      title: '차트',
+      palette: '색상 구성',
+      palette_tip: '차트 계열의 색상 구성입니다. 테마 단색은 테마 색을 따르며, 다채로운 분류가 기본값입니다',
+      palettes: {
+        monochrome: '테마 단색',
+        categorical: '다채로운 분류',
+        brand: '소프트 브랜드',
+        muted: '모란디',
+      },
+      animate_in_view: '화면 진입 시 애니메이션',
+      animate_in_view_tip: '차트가 스크롤되어 화면에 들어올 때 등장 애니메이션을 재생합니다. 끄면 페이지를 열자마자 재생합니다',
+    },
     interaction: {
       title: '인터랙션',
     },

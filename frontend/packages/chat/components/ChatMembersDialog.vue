@@ -3,7 +3,7 @@ import type {
   ChatConversationListItem,
   ChatMemberItem,
 } from '../types'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopconfirmCancelTrigger, XhPopconfirmConfirmTrigger, XhPopconfirmContent, XhPopconfirmDescription, XhPopconfirmPositioner, XhPopconfirmRoot, XhPopconfirmTrigger, XhSpinner, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XUserAvatar from '~/components/common/UserAvatar.vue'
@@ -267,224 +267,226 @@ async function handleLeave() {
 <template>
   <XhDialogRoot v-model:open="show">
     <XhDialogContent style="--xh-dialog-max-w: 480px">
-      <XhDialogTitle>{{ t('chat.members.title', { n: members.length }) }}</XhDialogTitle>
+      <XhDialogHeader>
+        <XhDialogTitle>{{ t('chat.members.title', { n: members.length }) }}</XhDialogTitle>
+      </XhDialogHeader>
       <XhDialogCloseTrigger />
-      <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
-        <div class="xh-loading-stage__veil">
-          <XhSpinner />
-        </div>
-        <!-- 群信息（群主/管理员可编辑；部门群名称随部门禁改） -->
-        <div v-if="canManage && !loading" class="mb-4 flex flex-col gap-3">
-          <!-- 头像 + 名称 -->
-          <div class="flex items-center gap-3">
-            <button
-              type="button"
-              class="chat-avatar-upload"
-              :title="t('chat.members.info_avatar')"
-              :disabled="avatarUploading"
-              @click="avatarInputRef?.click()"
-            >
-              <XUserAvatar :avatar="infoAvatar || null" :name="infoName" :size="52" :round="false" />
-              <span class="chat-avatar-upload__mask">
-                <Icon
-                  :icon="avatarUploading ? 'lucide:loader-circle' : 'lucide:camera'"
-                  width="16"
-                  height="16"
-                  :class="{ 'animate-spin': avatarUploading }"
+      <XhDialogBody>
+        <div class="xh-loading-stage" :class="{ 'is-loading': loading }">
+          <div class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <!-- 群信息（群主/管理员可编辑；部门群名称随部门禁改） -->
+          <div v-if="canManage && !loading" class="mb-4 flex flex-col gap-3">
+            <!-- 头像 + 名称 -->
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                class="chat-avatar-upload"
+                :title="t('chat.members.info_avatar')"
+                :disabled="avatarUploading"
+                @click="avatarInputRef?.click()"
+              >
+                <XUserAvatar :avatar="infoAvatar || null" :name="infoName" :size="52" :round="false" />
+                <span class="chat-avatar-upload__mask">
+                  <Icon
+                    :icon="avatarUploading ? 'lucide:loader-circle' : 'lucide:camera'"
+                    width="16"
+                    height="16"
+                    :class="{ 'animate-spin': avatarUploading }"
+                  />
+                </span>
+              </button>
+              <input ref="avatarInputRef" type="file" accept="image/*" class="hidden" @change="handleAvatarPicked">
+              <div class="min-w-0 flex-1">
+                <div class="mb-1 text-xs text-muted-foreground">
+                  {{ t('chat.members.info_name') }}
+                </div>
+                <XInput
+                  v-model:value="infoName"
+                  size="sm"
+                  :max-length="CHAT_MAX_GROUP_NAME_LENGTH"
+                  :disabled="isDepartment"
+                  :placeholder="t('chat.members.info_name')"
+                  :aria-label="t('chat.members.info_name')"
                 />
-              </span>
-            </button>
-            <input ref="avatarInputRef" type="file" accept="image/*" class="hidden" @change="handleAvatarPicked">
-            <div class="min-w-0 flex-1">
+              </div>
+            </div>
+
+            <div>
               <div class="mb-1 text-xs text-muted-foreground">
-                {{ t('chat.members.info_name') }}
+                {{ t('chat.members.info_announcement') }}
               </div>
               <XInput
-                v-model:value="infoName"
+                v-model:value="infoAnnouncement"
+                type="textarea"
                 size="sm"
-                :max-length="CHAT_MAX_GROUP_NAME_LENGTH"
-                :disabled="isDepartment"
-                :placeholder="t('chat.members.info_name')"
-                :aria-label="t('chat.members.info_name')"
+                :autosize="{ minRows: 2, maxRows: 5 }"
+                :max-length="2000"
+                show-count
+                :placeholder="t('chat.members.info_announcement_placeholder')"
+                :aria-label="t('chat.members.info_announcement')"
               />
             </div>
-          </div>
 
-          <div>
-            <div class="mb-1 text-xs text-muted-foreground">
-              {{ t('chat.members.info_announcement') }}
-            </div>
-            <XInput
-              v-model:value="infoAnnouncement"
-              type="textarea"
-              size="sm"
-              :autosize="{ minRows: 2, maxRows: 5 }"
-              :max-length="2000"
-              show-count
-              :placeholder="t('chat.members.info_announcement_placeholder')"
-              :aria-label="t('chat.members.info_announcement')"
-            />
-          </div>
-
-          <div>
-            <div class="mb-1 text-xs text-muted-foreground">
-              {{ t('chat.members.info_description') }}
-            </div>
-            <XInput
-              v-model:value="infoDescription"
-              type="textarea"
-              size="sm"
-              :autosize="{ minRows: 1, maxRows: 3 }"
-              :max-length="500"
-              :placeholder="t('chat.members.info_description')"
-              :aria-label="t('chat.members.info_description')"
-            />
-          </div>
-
-          <div class="flex justify-end">
-            <XhButton variant="subtle" size="sm" tone="brand" :loading="infoSaving" @click="handleSaveInfo">
-              <XhButtonIndicator />
-              <XhButtonLabel>{{ t('chat.members.info_save') }}</XhButtonLabel>
-            </XhButton>
-          </div>
-        </div>
-
-        <!-- 公告展示（普通成员只读，pre-wrap 保留换行） -->
-        <div
-          v-else-if="props.conversation?.announcement"
-          class="mb-4 rounded-lg border border-border/60 bg-amber-500/5 p-2.5"
-        >
-          <div class="mb-1 flex items-center gap-1.5 text-xs font-medium text-foreground">
-            <Icon icon="lucide:megaphone" width="12" height="12" class="text-amber-500" />
-            {{ t('chat.members.announcement_title') }}
-          </div>
-          <div class="text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
-            {{ props.conversation.announcement }}
-          </div>
-        </div>
-
-        <!-- 成员分区 -->
-        <div class="mb-2 flex items-center gap-2">
-          <span class="text-xs font-medium text-muted-foreground">{{ t('chat.members.section_members', { n: members.length }) }}</span>
-          <div class="h-px flex-1 bg-border/60" />
-        </div>
-
-        <!-- 添加成员 -->
-        <div v-if="canManage" class="mb-3">
-          <XhButton v-if="!showAdd" variant="subtle" size="sm" full-width @click="showAdd = true">
-            <Icon icon="lucide:user-plus" width="14" height="14" />
-            {{ t('chat.members.add') }}
-          </XhButton>
-          <div v-else class="flex flex-col gap-2">
-            <ChatUserSelect
-              v-model="addUserIds"
-              multiple
-              :exclude-user-ids="memberIds"
-              :placeholder="t('chat.start.users_placeholder')"
-            />
-            <div class="flex justify-end gap-2">
-              <XhButton variant="subtle" size="sm" :disabled="adding" @click="showAdd = false">
-                {{ t('chat.start.cancel') }}
-              </XhButton>
-              <XhButton
-                variant="subtle"
+            <div>
+              <div class="mb-1 text-xs text-muted-foreground">
+                {{ t('chat.members.info_description') }}
+              </div>
+              <XInput
+                v-model:value="infoDescription"
+                type="textarea"
                 size="sm"
-                tone="brand"
-                :loading="adding"
-                :disabled="!addUserIds.length"
-                @click="handleAddMembers"
-              >
+                :autosize="{ minRows: 1, maxRows: 3 }"
+                :max-length="500"
+                :placeholder="t('chat.members.info_description')"
+                :aria-label="t('chat.members.info_description')"
+              />
+            </div>
+
+            <div class="flex justify-end">
+              <XhButton variant="subtle" size="sm" tone="brand" :loading="infoSaving" @click="handleSaveInfo">
                 <XhButtonIndicator />
-                <XhButtonLabel>{{ t('chat.start.confirm') }}</XhButtonLabel>
+                <XhButtonLabel>{{ t('chat.members.info_save') }}</XhButtonLabel>
               </XhButton>
             </div>
           </div>
-        </div>
 
-        <!-- 成员列表 -->
-        <div v-if="!members.length && !loading" class="py-8">
-          <XhEmptyStateRoot size="sm">
-            <XhEmptyStateIndicator>
-              <Icon icon="lucide:inbox" width="28" />
-            </XhEmptyStateIndicator>
-            <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
-            <XhEmptyStateDescription>{{ t('common.empty') }}</XhEmptyStateDescription>
-          </XhEmptyStateRoot>
-        </div>
-        <div v-else class="xh-scroll-area" style="max-height: min(52vh, 420px)">
+          <!-- 公告展示（普通成员只读，pre-wrap 保留换行） -->
           <div
-            v-for="member in members"
-            :key="member.userId"
-            class="flex items-center gap-2.5 border-b border-border/50 py-2 pr-3 last:border-b-0"
+            v-else-if="props.conversation?.announcement"
+            class="mb-4 rounded-lg border border-border/60 bg-amber-500/5 p-2.5"
           >
-            <XUserAvatar :name="member.userName" :size="32" />
-            <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-1.5">
-                <span class="truncate text-[13px] text-foreground">{{ member.userName }}</span>
-                <XhTagRoot variant="subtle" size="sm" :tone="roleTagType(member.memberRole)">
-                  <XhTagLabel>
-                    {{ roleLabel(member.memberRole) }}
-                  </XhTagLabel>
-                </XhTagRoot>
-                <XhTagRoot v-if="member.isSilenced" variant="subtle" size="sm" tone="danger">
-                  <XhTagLabel>
-                    {{ t('chat.members.silenced') }}
-                  </XhTagLabel>
-                </XhTagRoot>
-              </div>
-              <div class="text-[11px] text-muted-foreground">
-                {{ t('chat.members.joined', { time: formatMessageTime(member.joinTime) }) }}
+            <div class="mb-1 flex items-center gap-1.5 text-xs font-medium text-foreground">
+              <Icon icon="lucide:megaphone" width="12" height="12" class="text-amber-500" />
+              {{ t('chat.members.announcement_title') }}
+            </div>
+            <div class="text-xs leading-relaxed whitespace-pre-wrap text-muted-foreground">
+              {{ props.conversation.announcement }}
+            </div>
+          </div>
+
+          <!-- 成员分区 -->
+          <div class="mb-2 flex items-center gap-2">
+            <span class="text-xs font-medium text-muted-foreground">{{ t('chat.members.section_members', { n: members.length }) }}</span>
+            <div class="h-px flex-1 bg-border/60" />
+          </div>
+
+          <!-- 添加成员 -->
+          <div v-if="canManage" class="mb-3">
+            <XhButton v-if="!showAdd" variant="subtle" size="sm" full-width @click="showAdd = true">
+              <Icon icon="lucide:user-plus" width="14" height="14" />
+              {{ t('chat.members.add') }}
+            </XhButton>
+            <div v-else class="flex flex-col gap-2">
+              <ChatUserSelect
+                v-model="addUserIds"
+                multiple
+                :exclude-user-ids="memberIds"
+                :placeholder="t('chat.start.users_placeholder')"
+              />
+              <div class="flex justify-end gap-2">
+                <XhButton variant="subtle" size="sm" :disabled="adding" @click="showAdd = false">
+                  {{ t('chat.start.cancel') }}
+                </XhButton>
+                <XhButton
+                  variant="subtle"
+                  size="sm"
+                  tone="brand"
+                  :loading="adding"
+                  :disabled="!addUserIds.length"
+                  @click="handleAddMembers"
+                >
+                  <XhButtonIndicator />
+                  <XhButtonLabel>{{ t('chat.start.confirm') }}</XhButtonLabel>
+                </XhButton>
               </div>
             </div>
-            <div class="flex shrink-0 items-center gap-0.5">
-              <XhPopconfirmRoot v-if="canTransferTo(member)" @confirm="handleTransferOwner(member)">
-                <XhPopconfirmTrigger class="xh-linklike-trigger">
-                  {{ t('chat.members.transfer') }}
-                </XhPopconfirmTrigger>
-                <XhPopconfirmPositioner>
-                  <XhPopconfirmContent :aria-label="t('chat.members.transfer')">
-                    <XhPopconfirmDescription>{{ t('chat.members.transfer_confirm', { name: member.userName ?? '' }) }}</XhPopconfirmDescription>
-                    <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
-                    <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
-                  </XhPopconfirmContent>
-                </XhPopconfirmPositioner>
-              </XhPopconfirmRoot>
-              <XhButton v-if="canSilence(member)" size="sm" variant="ghost" @click="handleToggleSilence(member)">
-                {{ member.isSilenced ? t('chat.members.unsilence') : t('chat.members.silence') }}
-              </XhButton>
-              <XhPopconfirmRoot v-if="canRemove(member)" @confirm="handleRemove(member)">
-                <XhPopconfirmTrigger class="xh-linklike-trigger">
-                  {{ t('chat.members.remove') }}
-                </XhPopconfirmTrigger>
-                <XhPopconfirmPositioner>
-                  <XhPopconfirmContent :aria-label="t('chat.members.remove')">
-                    <XhPopconfirmDescription>{{ t('chat.members.remove_confirm', { name: member.userName ?? '' }) }}</XhPopconfirmDescription>
-                    <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
-                    <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
-                  </XhPopconfirmContent>
-                </XhPopconfirmPositioner>
-              </XhPopconfirmRoot>
+          </div>
+
+          <!-- 成员列表 -->
+          <div v-if="!members.length && !loading" class="py-8">
+            <XhEmptyStateRoot size="sm">
+              <XhEmptyStateIndicator>
+                <Icon icon="lucide:inbox" width="28" />
+              </XhEmptyStateIndicator>
+              <XhEmptyStateTitle>{{ t('common.no_data') }}</XhEmptyStateTitle>
+              <XhEmptyStateDescription>{{ t('common.empty') }}</XhEmptyStateDescription>
+            </XhEmptyStateRoot>
+          </div>
+          <div v-else class="xh-scroll-area" style="max-height: min(52vh, 420px)">
+            <div
+              v-for="member in members"
+              :key="member.userId"
+              class="flex items-center gap-2.5 border-b border-border/50 py-2 pr-3 last:border-b-0"
+            >
+              <XUserAvatar :name="member.userName" :size="32" />
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-1.5">
+                  <span class="truncate text-[13px] text-foreground">{{ member.userName }}</span>
+                  <XhTagRoot variant="subtle" size="sm" :tone="roleTagType(member.memberRole)">
+                    <XhTagLabel>
+                      {{ roleLabel(member.memberRole) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
+                  <XhTagRoot v-if="member.isSilenced" variant="subtle" size="sm" tone="danger">
+                    <XhTagLabel>
+                      {{ t('chat.members.silenced') }}
+                    </XhTagLabel>
+                  </XhTagRoot>
+                </div>
+                <div class="text-[11px] text-muted-foreground">
+                  {{ t('chat.members.joined', { time: formatMessageTime(member.joinTime) }) }}
+                </div>
+              </div>
+              <div class="flex shrink-0 items-center gap-0.5">
+                <XhPopconfirmRoot v-if="canTransferTo(member)" @confirm="handleTransferOwner(member)">
+                  <XhPopconfirmTrigger class="xh-linklike-trigger">
+                    {{ t('chat.members.transfer') }}
+                  </XhPopconfirmTrigger>
+                  <XhPopconfirmPositioner>
+                    <XhPopconfirmContent :aria-label="t('chat.members.transfer')">
+                      <XhPopconfirmDescription>{{ t('chat.members.transfer_confirm', { name: member.userName ?? '' }) }}</XhPopconfirmDescription>
+                      <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
+                      <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
+                    </XhPopconfirmContent>
+                  </XhPopconfirmPositioner>
+                </XhPopconfirmRoot>
+                <XhButton v-if="canSilence(member)" size="sm" variant="ghost" @click="handleToggleSilence(member)">
+                  {{ member.isSilenced ? t('chat.members.unsilence') : t('chat.members.silence') }}
+                </XhButton>
+                <XhPopconfirmRoot v-if="canRemove(member)" @confirm="handleRemove(member)">
+                  <XhPopconfirmTrigger class="xh-linklike-trigger">
+                    {{ t('chat.members.remove') }}
+                  </XhPopconfirmTrigger>
+                  <XhPopconfirmPositioner>
+                    <XhPopconfirmContent :aria-label="t('chat.members.remove')">
+                      <XhPopconfirmDescription>{{ t('chat.members.remove_confirm', { name: member.userName ?? '' }) }}</XhPopconfirmDescription>
+                      <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
+                      <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
+                    </XhPopconfirmContent>
+                  </XhPopconfirmPositioner>
+                </XhPopconfirmRoot>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </XhDialogBody>
 
-      <div v-if="canLeave" class="xh-dialog-footer">
-        <div class="flex justify-end">
-          <XhPopconfirmRoot @confirm="handleLeave">
-            <XhPopconfirmTrigger class="xh-linklike-trigger">
-              {{ t('chat.members.leave') }}
-            </XhPopconfirmTrigger>
-            <XhPopconfirmPositioner>
-              <XhPopconfirmContent :aria-label="t('chat.members.leave')">
-                <XhPopconfirmDescription>{{ t('chat.members.leave_confirm') }}</XhPopconfirmDescription>
-                <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
-                <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
-              </XhPopconfirmContent>
-            </XhPopconfirmPositioner>
-          </XhPopconfirmRoot>
-        </div>
-      </div>
+      <XhDialogFooter v-if="canLeave">
+        <XhPopconfirmRoot @confirm="handleLeave">
+          <XhPopconfirmTrigger class="xh-linklike-trigger">
+            {{ t('chat.members.leave') }}
+          </XhPopconfirmTrigger>
+          <XhPopconfirmPositioner>
+            <XhPopconfirmContent :aria-label="t('chat.members.leave')">
+              <XhPopconfirmDescription>{{ t('chat.members.leave_confirm') }}</XhPopconfirmDescription>
+              <XhPopconfirmCancelTrigger>{{ t('common.actions.cancel') }}</XhPopconfirmCancelTrigger>
+              <XhPopconfirmConfirmTrigger>{{ t('common.actions.confirm') }}</XhPopconfirmConfirmTrigger>
+            </XhPopconfirmContent>
+          </XhPopconfirmPositioner>
+        </XhPopconfirmRoot>
+      </XhDialogFooter>
     </XhDialogContent>
   </XhDialogRoot>
 </template>

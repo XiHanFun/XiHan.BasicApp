@@ -1,7 +1,10 @@
-import type { UiDensity } from '~/constants'
+import type { ChartPalette, UiDensity } from '~/constants'
 import { computed, ref } from 'vue'
 import {
+  CHART_ANIMATE_IN_VIEW_KEY,
+  CHART_PALETTE_KEY,
   COLOR_WEAKNESS_ENABLED_KEY,
+  DEFAULT_CHART_PALETTE,
   DEFAULT_FONT_SIZE,
   DEFAULT_THEME,
   DEFAULT_THEME_COLOR,
@@ -42,6 +45,10 @@ export function createThemeSlice() {
   const fontSize = ref<number>(LocalStorage.get<number>(FONT_SIZE_KEY) ?? DEFAULT_FONT_SIZE)
   // 界面密度：由 useHtmlStyle 写到 <html data-density>，XiHan.UI 的控件高度、内距、列表行距整轴换档
   const uiDensity = ref<UiDensity>(LocalStorage.get<UiDensity>(UI_DENSITY_KEY) ?? DEFAULT_UI_DENSITY)
+  // 图表配色：由 useHtmlStyle 写到 <html data-xh-chart-palette>，组件库的图表、图例与提示框整套换分类色槽
+  const chartPalette = ref<ChartPalette>(LocalStorage.get<ChartPalette>(CHART_PALETTE_KEY) ?? DEFAULT_CHART_PALETTE)
+  // 视口内动画：图表滚进视口才挂载、才播入场（ChartInView），缺省开启
+  const chartAnimateInView = ref<boolean>(LocalStorage.get<boolean>(CHART_ANIMATE_IN_VIEW_KEY) ?? true)
 
   const themeAnimationEnabled = ref<boolean>(
     LocalStorage.get<boolean>(THEME_ANIMATION_ENABLED_KEY) ?? true,
@@ -77,6 +84,8 @@ export function createThemeSlice() {
   bindPersist(UI_RADIUS_KEY, uiRadius, DEFAULT_UI_RADIUS)
   bindPersist(FONT_SIZE_KEY, fontSize, DEFAULT_FONT_SIZE)
   bindPersist(UI_DENSITY_KEY, uiDensity, DEFAULT_UI_DENSITY)
+  bindPersist(CHART_PALETTE_KEY, chartPalette, DEFAULT_CHART_PALETTE)
+  bindPersist(CHART_ANIMATE_IN_VIEW_KEY, chartAnimateInView, true)
   bindPersist(THEME_ANIMATION_ENABLED_KEY, themeAnimationEnabled, true)
   bindPersist(TRANSITION_ENABLE_KEY, transitionEnable, true)
   bindPersist(TRANSITION_NAME_KEY, transitionName, 'scale-up')
@@ -114,6 +123,12 @@ export function createThemeSlice() {
   }
   function setUiDensity(v: UiDensity) {
     save(UI_DENSITY_KEY, uiDensity, v)
+  }
+  function setChartPalette(v: ChartPalette) {
+    save(CHART_PALETTE_KEY, chartPalette, v)
+  }
+  function setChartAnimateInView(v: boolean) {
+    save(CHART_ANIMATE_IN_VIEW_KEY, chartAnimateInView, v)
   }
   function setThemeAnimationEnabled(v: boolean) {
     save(THEME_ANIMATION_ENABLED_KEY, themeAnimationEnabled, v)
@@ -162,6 +177,8 @@ export function createThemeSlice() {
     uiRadius,
     fontSize,
     uiDensity,
+    chartPalette,
+    chartAnimateInView,
     isDark,
     themeAnimationEnabled,
     transitionEnable,
@@ -184,6 +201,8 @@ export function createThemeSlice() {
     setUiRadius,
     setFontSize,
     setUiDensity,
+    setChartPalette,
+    setChartAnimateInView,
     setThemeAnimationEnabled,
     setTransitionEnable,
     setTransitionName,

@@ -47,10 +47,6 @@
     "cap": 82,
     "reason": "站内自绘公共组件的排版刻度"
   },
-  "packages/components/common/EditModal.vue": {
-    "cap": 2,
-    "reason": "站内自绘公共组件的排版刻度"
-  },
   "packages/components/common/JsonBlock.vue": {
     "cap": 5,
     "reason": "站内自绘公共组件的排版刻度"
@@ -80,7 +76,7 @@
     "reason": "站内自绘公共组件的排版刻度"
   },
   "packages/components/schema/SchemaImportDialog.vue": {
-    "cap": 15,
+    "cap": 12,
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaPage.vue": {
@@ -96,7 +92,7 @@
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaSearchPanel.vue": {
-    "cap": 16,
+    "cap": 14,
     "reason": "表格与搜索面板的列宽、行高与工具条几何"
   },
   "packages/components/schema/SchemaSearchSettings.vue": {
@@ -116,7 +112,7 @@
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/design/ui.css": {
-    "cap": 18,
+    "cap": 17,
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/design/variables.css": {
@@ -124,7 +120,7 @@
     "reason": "设计层自持的排版刻度与布局尺寸，是本站像素基准本身"
   },
   "packages/iconify/IconPicker.vue": {
-    "cap": 13,
+    "cap": 12,
     "reason": "图标选择器的网格单元尺寸"
   },
   "packages/layouts/basic/components/AppBrand.vue": {
@@ -140,7 +136,7 @@
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
   },
   "packages/layouts/basic/components/AppPreferenceDrawer.vue": {
-    "cap": 11,
+    "cap": 8,
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
   },
   "packages/layouts/basic/components/AppSidebar.vue": {
@@ -248,7 +244,7 @@
     "reason": "个人中心卡片与统计块的排版刻度"
   },
   "packages/views/_core/profile/ProfileTabInfo.vue": {
-    "cap": 5,
+    "cap": 3,
     "reason": "个人中心卡片与统计块的排版刻度"
   },
   "packages/views/_core/profile/ProfileTabLoginLogs.vue": {
@@ -336,7 +332,7 @@
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/modules/printing/views/setting/print-template/components/PrintDesignerToolbar.vue": {
-    "cap": 42,
+    "cap": 41,
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/modules/printing/views/setting/print-template/components/PrintSampleDataModal.vue": {
@@ -360,7 +356,7 @@
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/modules/printing/views/setting/print-template/components/PrintTemplateEditor.vue": {
-    "cap": 21,
+    "cap": 18,
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/modules/printing/views/setting/print-template/components/PrintTemplateMetadataForm.vue": {
@@ -408,7 +404,7 @@
     "reason": "业务页面的排版刻度"
   },
   "src/views/message/notification/index.vue": {
-    "cap": 10,
+    "cap": 8,
     "reason": "业务页面的排版刻度"
   },
   "src/views/message/record/index.vue": {

@@ -21,13 +21,21 @@ export const DEFAULT_FONT_SIZE = 14
 
 // ==================== 界面密度 ====================
 
-/** 对应 XiHan.UI 的 data-density 轴：comfortable 控件 sm 32 / md 36，compact 收到 28 / 32 */
+/** 对应 XiHan.UI 的 data-density 轴：comfortable 控件 sm 28 / md 32 / lg 36，compact 收到 24 / 28 / 32 */
 export const UI_DENSITY_COMFORTABLE = 'comfortable'
 export const UI_DENSITY_COMPACT = 'compact'
 export const UI_DENSITIES = [UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT] as const
 export type UiDensity = (typeof UI_DENSITIES)[number]
-/** 管理端缺省紧凑：与迁移前 Naive UI 时期的控件高度（28 / 32）同档 */
-export const DEFAULT_UI_DENSITY: UiDensity = UI_DENSITY_COMPACT
+/** 缺省宽松：组件库的宽松档即字段 28 / 按钮 32，与迁移前 Naive UI 时期的控件高度同档 */
+export const DEFAULT_UI_DENSITY: UiDensity = UI_DENSITY_COMFORTABLE
+
+// ==================== 图表 ====================
+
+/** 对应 XiHan.UI 的 data-xh-chart-palette：主题单色 / 多彩分类 / 柔和品牌 / 莫兰迪柔彩，整套换掉图表的分类色槽与色块内文字 */
+export const CHART_PALETTES = ['monochrome', 'categorical', 'brand', 'muted'] as const
+export type ChartPalette = (typeof CHART_PALETTES)[number]
+/** 缺省多彩分类：组件库不写 data-xh-chart-palette 时就是这套 */
+export const DEFAULT_CHART_PALETTE: ChartPalette = 'categorical'
 
 // ==================== 主题颜色预设 ====================
 

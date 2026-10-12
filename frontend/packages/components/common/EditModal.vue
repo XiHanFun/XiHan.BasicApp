@@ -1,6 +1,17 @@
 <script lang="ts" setup>
 import type { Tone } from '@xihan-ui/core'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
+import {
+  XhButton,
+  XhButtonIndicator,
+  XhButtonLabel,
+  XhDialogBody,
+  XhDialogCloseTrigger,
+  XhDialogContent,
+  XhDialogFooter,
+  XhDialogHeader,
+  XhDialogRoot,
+  XhDialogTitle,
+} from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
@@ -81,17 +92,20 @@ function handleCancel() {
     @update:open="(value: boolean) => emit('update:show', value)"
   >
     <XhDialogContent class="xh-edit-modal" :style="modalStyle">
-      <!-- 标题恒在：它是对话框的名字（content 的 aria-labelledby 指向它） -->
-      <XhDialogTitle>
-        {{ title }}
-      </XhDialogTitle>
+      <!-- 头、正文、尾三段：头尾定在原处、正文自己滚，头下尾上的分隔线与三段内衬都由组件库给 -->
+      <XhDialogHeader>
+        <!-- 标题恒在：它是对话框的名字（content 的 aria-labelledby 指向它） -->
+        <XhDialogTitle>
+          {{ title }}
+        </XhDialogTitle>
+      </XhDialogHeader>
       <XhDialogCloseTrigger />
 
-      <div class="xh-edit-modal__body">
+      <XhDialogBody>
         <slot />
-      </div>
+      </XhDialogBody>
 
-      <div class="xh-edit-modal__footer">
+      <XhDialogFooter>
         <slot name="footer-extra" />
         <XhButton size="sm" variant="outline" @click="handleCancel">
           {{ cancelText ?? t('common.actions.cancel') }}
@@ -109,32 +123,7 @@ function handleCancel() {
           <XhButtonIndicator />
           <XhButtonLabel>{{ saveText ?? t('common.actions.save') }}</XhButtonLabel>
         </XhButton>
-      </div>
+      </XhDialogFooter>
     </XhDialogContent>
   </XhDialogRoot>
 </template>
-
-<style scoped>
-/* 面板的行内内衬钉在组件库这一个槽上：正文的滚动沟槽按同一个值借位，两处不会各走各的 */
-:global(.xh-edit-modal) {
-  --xh-dialog-px: var(--xh-surface-px-md);
-}
-
-/* 表单区超高时在弹窗内部滚动，标题与按钮行留在原地。
-   滚动口向两侧借走面板的内衬，再用同宽的内边距把表单推回原位：表单仍与标题、按钮行对齐，
-   滚动口两侧则各多出一段沟槽。粗指针下框内按钮（数字框加减、清除、密码显隐）的 44px 命中区
-   是往外扩的透明伪元素，贴着表单行尾的那颗会漫出几像素——没有这段沟槽，它就把滚动口撑出
-   一条滚不出任何内容的横向滚动条，漫出的那截命中区也被滚动口裁掉、点不到 */
-.xh-edit-modal__body {
-  max-block-size: calc(100vh - 220px);
-  margin-inline: calc(-1 * var(--xh-dialog-px));
-  padding-inline: var(--xh-dialog-px);
-  overflow: auto;
-}
-
-.xh-edit-modal__footer {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-</style>

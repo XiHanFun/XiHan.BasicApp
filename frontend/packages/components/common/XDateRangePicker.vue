@@ -8,6 +8,7 @@ import {
   XhDateRangePickerConfirmTrigger,
   XhDateRangePickerContent,
   XhDateRangePickerControl,
+  XhDateRangePickerFooter,
   XhDateRangePickerGrid,
   XhDateRangePickerGridBody,
   XhDateRangePickerGridHead,
@@ -153,85 +154,62 @@ function onValueChange(next: string[]): void {
     </XhDateRangePickerControl>
     <XhDateRangePickerPositioner>
       <XhDateRangePickerContent>
-        <!-- 与 XDatePicker 同一排法：快捷选项、日历与时间列并排，放不下就折行；确认行另起一行 -->
-        <div class="x-date-range-picker__panes">
-          <!-- 不写默认插槽就按 presets 数据自动铺 -->
-          <XhDateRangePickerPresetGroup v-if="presets?.length" />
-          <!-- 面板号写在日历上，面板内的标题、网格与格子跟着它走 -->
-          <XhDateRangePickerCalendar v-for="panel in panels" :key="panel.index" :index="panel.index">
-            <XhDateRangePickerHeader>
-              <!-- 翻页整窗一起走：往前只画在最左那张，往后只画在最右那张。
+        <!-- 快捷选项、日历、时间列与底栏直接排在浮层里，并排、折行与底栏贴边都由组件库负责 -->
+        <!-- 不写默认插槽就按 presets 数据自动铺 -->
+        <XhDateRangePickerPresetGroup v-if="presets?.length" />
+        <!-- 面板号写在日历上，面板内的标题、网格与格子跟着它走 -->
+        <XhDateRangePickerCalendar v-for="panel in panels" :key="panel.index" :index="panel.index">
+          <XhDateRangePickerHeader>
+            <!-- 翻页整窗一起走：往前只画在最左那张，往后只画在最右那张。
                  年钮在外、月钮在内：一大步在外圈，一小步在内圈 -->
-              <XhDateRangePickerPrevYearTrigger
-                v-if="panel.index === 0"
-                :aria-label="t('component.date_picker.prev_year')"
-              >
-                <Icon icon="lucide:chevrons-left" width="14" height="14" />
-              </XhDateRangePickerPrevYearTrigger>
-              <XhDateRangePickerPrevTrigger
-                v-if="panel.index === 0"
-                :aria-label="t('component.date_picker.prev_month')"
-              >
-                <Icon icon="lucide:chevron-left" width="14" height="14" />
-              </XhDateRangePickerPrevTrigger>
-              <XhDateRangePickerHeading />
-              <XhDateRangePickerNextTrigger
-                v-if="panel.index === panels.length - 1"
-                :aria-label="t('component.date_picker.next_month')"
-              >
-                <Icon icon="lucide:chevron-right" width="14" height="14" />
-              </XhDateRangePickerNextTrigger>
-              <XhDateRangePickerNextYearTrigger
-                v-if="panel.index === panels.length - 1"
-                :aria-label="t('component.date_picker.next_year')"
-              >
-                <Icon icon="lucide:chevrons-right" width="14" height="14" />
-              </XhDateRangePickerNextYearTrigger>
-            </XhDateRangePickerHeader>
-            <XhDateRangePickerGrid>
-              <XhDateRangePickerGridHead>
-                <XhDateRangePickerWeekRow>
-                  <XhDateRangePickerWeekDay v-for="d in weekDays" :key="d.value" :value="d.value" />
-                </XhDateRangePickerWeekRow>
-              </XhDateRangePickerGridHead>
-              <XhDateRangePickerGridBody>
-                <!-- v-for 必带 key：就地复用会让承载焦点的那一格换了身份 -->
-                <XhDateRangePickerWeekRow v-for="week in (panel.weeks ?? weeks)" :key="week[0]!.start">
-                  <XhDateRangePickerCell v-for="day in week" :key="day.start" :value="day.start">
-                    <XhDateRangePickerCellTrigger>{{ day.day }}</XhDateRangePickerCellTrigger>
-                  </XhDateRangePickerCell>
-                </XhDateRangePickerWeekRow>
-              </XhDateRangePickerGridBody>
-            </XhDateRangePickerGrid>
-          </XhDateRangePickerCalendar>
-          <!-- 起止各一组时、分列，组顶小标题取 translations 的 startTime / endTime -->
-          <XhDateRangePickerTimePanel v-if="showTime" />
-        </div>
-        <div v-if="showTime" class="x-date-range-picker__footer">
+            <XhDateRangePickerPrevYearTrigger
+              v-if="panel.index === 0"
+              :aria-label="t('component.date_picker.prev_year')"
+            >
+              <Icon icon="lucide:chevrons-left" width="14" height="14" />
+            </XhDateRangePickerPrevYearTrigger>
+            <XhDateRangePickerPrevTrigger
+              v-if="panel.index === 0"
+              :aria-label="t('component.date_picker.prev_month')"
+            >
+              <Icon icon="lucide:chevron-left" width="14" height="14" />
+            </XhDateRangePickerPrevTrigger>
+            <XhDateRangePickerHeading />
+            <XhDateRangePickerNextTrigger
+              v-if="panel.index === panels.length - 1"
+              :aria-label="t('component.date_picker.next_month')"
+            >
+              <Icon icon="lucide:chevron-right" width="14" height="14" />
+            </XhDateRangePickerNextTrigger>
+            <XhDateRangePickerNextYearTrigger
+              v-if="panel.index === panels.length - 1"
+              :aria-label="t('component.date_picker.next_year')"
+            >
+              <Icon icon="lucide:chevrons-right" width="14" height="14" />
+            </XhDateRangePickerNextYearTrigger>
+          </XhDateRangePickerHeader>
+          <XhDateRangePickerGrid>
+            <XhDateRangePickerGridHead>
+              <XhDateRangePickerWeekRow>
+                <XhDateRangePickerWeekDay v-for="d in weekDays" :key="d.value" :value="d.value" />
+              </XhDateRangePickerWeekRow>
+            </XhDateRangePickerGridHead>
+            <XhDateRangePickerGridBody>
+              <!-- v-for 必带 key：就地复用会让承载焦点的那一格换了身份 -->
+              <XhDateRangePickerWeekRow v-for="week in (panel.weeks ?? weeks)" :key="week[0]!.start">
+                <XhDateRangePickerCell v-for="day in week" :key="day.start" :value="day.start">
+                  <XhDateRangePickerCellTrigger>{{ day.day }}</XhDateRangePickerCellTrigger>
+                </XhDateRangePickerCell>
+              </XhDateRangePickerWeekRow>
+            </XhDateRangePickerGridBody>
+          </XhDateRangePickerGrid>
+        </XhDateRangePickerCalendar>
+        <!-- 起止各一组时、分列，组顶小标题取 translations 的 startTime / endTime -->
+        <XhDateRangePickerTimePanel v-if="showTime" />
+        <XhDateRangePickerFooter v-if="showTime">
           <XhDateRangePickerConfirmTrigger>{{ t('common.actions.confirm') }}</XhDateRangePickerConfirmTrigger>
-        </div>
+        </XhDateRangePickerFooter>
       </XhDateRangePickerContent>
     </XhDateRangePickerPositioner>
   </XhDateRangePickerRoot>
 </template>
-
-<style scoped>
-/* 同 XDatePicker：横排、放不下折行、同排等高 */
-.x-date-range-picker__panes {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: stretch;
-}
-
-/* 负外边距吃掉浮层的内边距，分隔线贴满面板两边 */
-.x-date-range-picker__footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  margin-block: var(--xh-space-2) calc(-1 * var(--xh-space-2));
-  margin-inline: calc(-1 * var(--xh-space-2));
-  padding-block: var(--xh-space-1);
-  padding-inline: var(--xh-space-2);
-  border-block-start: var(--xh-stroke-thin) solid var(--xh-border-subtle);
-}
-</style>
