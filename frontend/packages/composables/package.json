@@ -6,6 +6,7 @@
   "dependencies": {
     "@microsoft/signalr": "catalog:",
     "@xihan-ui/core": "catalog:",
+    "@xihan-ui/sound": "catalog:",
     "@xihan-ui/vue": "catalog:",
     "@xihan/constants": "workspace:*",
     "@xihan/locales": "workspace:*",

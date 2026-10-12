@@ -9,6 +9,7 @@ minimumReleaseAgeExclude:
   - '@xihan-ui/motion@4.0.1'
   - '@xihan-ui/pointer@4.0.1'
   - '@xihan-ui/position@4.0.1'
+  - '@xihan-ui/sound@4.0.1'
   - '@xihan-ui/styles@4.0.1'
   - '@xihan-ui/tokens@4.0.1'
   - '@xihan-ui/vue@4.0.1'
@@ -106,6 +107,7 @@ catalog:
   '@xihan-ui/core': ^4.0.1
   '@xihan-ui/headless': ^4.0.1
   '@xihan-ui/motion': ^4.0.1
+  '@xihan-ui/sound': ^4.0.1
   '@xihan-ui/styles': ^4.0.1
   '@xihan-ui/tokens': ^4.0.1
   '@xihan-ui/vue': ^4.0.1

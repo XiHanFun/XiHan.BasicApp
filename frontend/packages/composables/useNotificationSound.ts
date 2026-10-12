@@ -1,135 +1,67 @@
 /**
  * 消息提示音。
  *
- * 用 Web Audio 现场合成，不引第三方库、也不往仓库塞音频文件。
- * 音色按名字注册：内置 notice（站内通知），可选功能模块经
- * registerNotificationSound 补自己的音色；是否发声由偏好 `notifySound` 决定。
+ * 声音取组件库 @xihan-ui/sound 的语义音效，与组件库文档里试听的是同一套：站内通知 notification、
+ * 收到聊天消息 receive、自己的消息发送成功 send。走 @xihan-ui/vue/sound 的共享播放器，音频上下文等第一次
+ * 真正发声才建立；是否发声由偏好 `notifySound` 决定。
  */
+import type { BuiltinSoundName } from '@xihan-ui/sound'
+import { attachDocumentSoundUnlock } from '@xihan-ui/sound'
+import { getSoundPlayer } from '@xihan-ui/vue/sound'
 
-/** 相邻两声的最小间隔（秒）：每条都响，但岔开播放，不叠成一坨噪音 */
-const SPACING = 0.2
+/** 相邻两声的最小间隔（毫秒）：每条都响，但岔开播放，不叠成一坨噪音 */
+const SPACING = 200
 
-/** 最多提前排到多久之后（秒）：刷屏时超出的直接丢，避免响个没完 */
-const MAX_QUEUE_AHEAD = 1.4
+/** 最多提前排到多久之后（毫秒）：刷屏时超出的直接丢，避免响个没完 */
+const MAX_QUEUE_AHEAD = 1400
 
-/** 主音量：提示音只作提醒，压得比界面音效更低一档 */
-const PEAK_GAIN = 0.09
+/** 提示音：组件库声音主题里的语义名 */
+export type NotifySoundKind = Extract<BuiltinSoundName, 'notification' | 'receive' | 'send'>
 
-/** 提示音种类（内置 notice；其余由功能模块注册） */
-export type NotifySoundKind = string
+/** 下一声最早可以从什么时候开始（performance.now 时钟） */
+let nextAvailableAt = 0
+let enabledResolver: (() => boolean) | null = null
+let unlockAttached = false
 
-/** 单个音的合成参数 */
-export interface NotifyToneSpec {
-  /** 频率（Hz） */
-  frequency: number
-  /** 相对本次发声起点的延迟（秒） */
-  offset: number
-  /** 时长（秒） */
-  duration: number
-  /** 相对主音量的比例 */
-  gain: number
-}
-
-/** 音色注册表；notice 内置：下行小六度（E5→B4），低一档且稍长，偏公告口吻 */
-const VOICES: Record<string, NotifyToneSpec[]> = {
-  notice: [
-    { frequency: 659.25, offset: 0, duration: 0.18, gain: 1 },
-    { frequency: 493.88, offset: 0.13, duration: 0.32, gain: 0.85 },
-  ],
+function enabled(): boolean {
+  return !enabledResolver || enabledResolver()
 }
 
 /**
- * 注册一套具名音色；同名覆盖。
- * @param kind 音色名。
- * @param specs 音序列。
+ * 注入是否发声的判定（由全局挂载的组件在 setup 时接上偏好），顺带挂上首次手势解锁：
+ * 浏览器要求页面上发生过点击或按键后音频才能出声，而消息推送不是手势，
+ * 借用户的第一下操作把音频上下文解锁，之后推来的消息才响得出来。
  */
-export function registerNotificationSound(kind: NotifySoundKind, specs: NotifyToneSpec[]): void {
-  VOICES[kind] = specs
-}
-
-type AudioContextCtor = typeof AudioContext
-
-let context: AudioContext | null = null
-/** 音频上下文已确认不可用（不支持 / 构造即抛）；记住失败，不再逐条消息重试构造 */
-let contextUnavailable = false
-/** 下一声最早可以从什么时候开始（AudioContext 时钟） */
-let nextAvailableAt = 0
-let enabledResolver: (() => boolean) | null = null
-
-/** 注入是否发声的判定（由全局挂载的组件在 setup 时接上偏好） */
 export function configureNotificationSound(isEnabled: () => boolean): void {
   enabledResolver = isEnabled
-}
-
-function resolveContext(): AudioContext | null {
-  if (context) {
-    return context
-  }
-  if (contextUnavailable) {
-    return null
-  }
-  const Ctor: AudioContextCtor | undefined = window.AudioContext
-    ?? (window as unknown as { webkitAudioContext?: AudioContextCtor }).webkitAudioContext
-  if (!Ctor) {
-    contextUnavailable = true
-    return null
-  }
-  try {
-    context = new Ctor()
-  }
-  catch {
-    // 部分环境（无音频设备、隐私模式）构造即抛，静默降级为不发声。
-    // 记住这次失败：消息密集时否则每条都要再 new 一次并再抛一次。
-    context = null
-    contextUnavailable = true
-  }
-  return context
-}
-
-/** 单个音：指数包络进出，避免方波式的爆音 */
-function tone(audio: AudioContext, spec: NotifyToneSpec, startAt: number): void {
-  const at = startAt + spec.offset
-  const peak = PEAK_GAIN * spec.gain
-  const oscillator = audio.createOscillator()
-  const gain = audio.createGain()
-  oscillator.type = 'sine'
-  oscillator.frequency.value = spec.frequency
-  gain.gain.setValueAtTime(0.0001, at)
-  gain.gain.exponentialRampToValueAtTime(peak, at + 0.012)
-  gain.gain.exponentialRampToValueAtTime(0.0001, at + spec.duration)
-  oscillator.connect(gain).connect(audio.destination)
-  oscillator.start(at)
-  oscillator.stop(at + spec.duration + 0.02)
+  if (unlockAttached)
+    return
+  unlockAttached = true
+  attachDocumentSoundUnlock(() => {
+    if (enabled())
+      getSoundPlayer().unlock()
+  })
 }
 
 /**
  * 播放一次提示音，每条消息都会响。
- * 密集到达时按 AudioContext 时钟依次排开，排得太靠后的直接丢；
- * 偏好关闭、音色未注册、浏览器不支持或尚未发生用户手势时静默跳过。
+ * 密集到达时依次排开，排得太靠后的直接丢；偏好关闭、浏览器不支持或尚未发生用户手势时静默跳过。
  */
 export function playNotificationSound(kind: NotifySoundKind): void {
-  if (!VOICES[kind] || (enabledResolver && !enabledResolver())) {
+  if (!enabled())
     return
-  }
-  const audio = resolveContext()
-  if (!audio) {
+  const now = performance.now()
+  const startAt = Math.max(now, nextAvailableAt)
+  if (startAt - now > MAX_QUEUE_AHEAD)
     return
-  }
-
-  // 自动播放策略：页面未发生过用户手势前 AudioContext 停在 suspended，
-  // resume 会被拒绝——吞掉即可，等用户点过页面后自然能响
-  if (audio.state === 'suspended') {
-    void audio.resume().catch(() => {})
-  }
-
-  const earliest = audio.currentTime + 0.01
-  const startAt = Math.max(earliest, nextAvailableAt)
-  if (startAt - audio.currentTime > MAX_QUEUE_AHEAD) {
-    return
-  }
   nextAvailableAt = startAt + SPACING
-
-  for (const spec of VOICES[kind]) {
-    tone(audio, spec, startAt)
+  if (startAt === now) {
+    getSoundPlayer().play(kind)
+    return
   }
+  setTimeout(() => {
+    // 排队期间偏好可能已关
+    if (enabled())
+      getSoundPlayer().play(kind)
+  }, startAt - now)
 }
