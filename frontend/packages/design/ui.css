@@ -405,12 +405,22 @@
   cursor: pointer;
   transition:
     background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
-    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
 }
 
 .xh-icon-btn:hover:not(:disabled) {
   background: var(--xh-bg-subtle-hover);
   color: var(--xh-fg-default);
+}
+
+/* 按压反馈同下面的 .xihan-icon-btn。这几颗多是组件库的按钮 / 浮层触发器，本规则不进层，
+   上面的 transition 简写与透明底压过了库在按下时改写的时长、曲线与 active 底，不补回就是瞬间跳到 0.97 */
+.xh-icon-btn:active:not(:disabled) {
+  background: var(--xh-bg-subtle-active);
+  scale: var(--xh-motion-scale-press);
+  transition-duration: var(--xh-motion-duration-press);
+  transition-timing-function: var(--xh-motion-ease-press);
 }
 
 .xh-icon-btn:disabled {
