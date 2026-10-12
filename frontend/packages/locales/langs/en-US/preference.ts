@@ -93,6 +93,19 @@ export default {
       title: 'Font',
       size: 'Size',
     },
+    chart: {
+      title: 'Charts',
+      palette: 'Palette',
+      palette_tip: 'Color scheme for chart series. Theme follows the theme color; Categorical is the default',
+      palettes: {
+        monochrome: 'Theme',
+        categorical: 'Categorical',
+        brand: 'Soft brand',
+        muted: 'Morandi',
+      },
+      animate_in_view: 'Animate in view',
+      animate_in_view_tip: 'Play the entrance animation only when a chart scrolls into view; when off, charts animate as soon as the page opens',
+    },
     interaction: {
       title: 'Interaction',
     },

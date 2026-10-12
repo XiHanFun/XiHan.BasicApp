@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Icon } from '@iconify/vue/offline'
-import { useFieldControl, XhButton, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsNextTrigger, XhTabsPrevTrigger, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { useFieldControl, XhButton, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFlex, XhGridItem, XhGridRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsNextTrigger, XhTabsPrevTrigger, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import XInput from '../components/common/XInput.vue'
@@ -114,9 +114,11 @@ function handleClear() {
 
     <XhDialogRoot v-model:open="visible">
       <XhDialogContent class="icon-picker-modal" style="--xh-dialog-max-w: 560px">
-        <XhDialogTitle>{{ t('component.icon_picker.modal_title') }}</XhDialogTitle>
+        <XhDialogHeader>
+          <XhDialogTitle>{{ t('component.icon_picker.modal_title') }}</XhDialogTitle>
+        </XhDialogHeader>
         <XhDialogCloseTrigger />
-        <div class="icon-picker-body">
+        <XhDialogBody>
           <XhFlex class="mb-3" justify="between">
             <XInput
               v-model:value="searchKeyword"
@@ -189,7 +191,7 @@ function handleClear() {
               </div>
             </XhTabsContent>
           </XhTabsRoot>
-        </div>
+        </XhDialogBody>
       </XhDialogContent>
     </XhDialogRoot>
   </div>
@@ -204,10 +206,6 @@ function handleClear() {
 
 .icon-picker-placeholder {
   color: var(--xh-fg-subtle);
-}
-
-.icon-picker-body {
-  padding: 4px 0;
 }
 
 .icon-picker-loading {

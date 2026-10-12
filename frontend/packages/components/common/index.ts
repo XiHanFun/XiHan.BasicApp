@@ -8,6 +8,7 @@ export const XMdEditor = defineAsyncComponent(() => import('./MdEditor.vue'))
 export const NotificationContent = defineAsyncComponent(() => import('./NotificationContent.vue'))
 export const XRichTextEditor = defineAsyncComponent(() => import('./RichTextEditor.vue'))
 
+export { default as XChartInView } from './ChartInView.vue'
 export { default as XContentEditorField } from './ContentEditorField.vue'
 export { indexDropdownOptions, toDropdownCollection } from './dropdown-collection'
 export { default as XEditModal } from './EditModal.vue'

@@ -62,6 +62,8 @@ const props = withDefaults(defineProps<{
   bordered?: boolean
   /** 单线（关闭时显示纵向分隔线） */
   singleLine?: boolean
+  /** 数据列的对齐（表格设置里选的那一档），缺省靠起始边 */
+  align?: 'left' | 'center' | 'right'
   /** 树形模式（启用后不分页、按 childrenKey 展开子行） */
   tree?: boolean
   /** 子节点字段名（默认 children） */
@@ -93,6 +95,7 @@ const props = withDefaults(defineProps<{
   striped: false,
   bordered: true,
   singleLine: true,
+  align: 'left',
   tree: false,
   childrenKey: 'children',
   defaultExpandAll: true,
@@ -241,6 +244,9 @@ function declaredWidthOf(column: SchemaColumn<TRow>): number {
   return widthOf(column) ?? column.minWidth ?? 120
 }
 
+/** 表格设置里的对齐词汇换成组件库的逻辑方向：左右跟着书写方向走 */
+const COLUMN_ALIGN = { left: 'start', center: 'center', right: 'end' } as const
+
 /**
  * 喂给组件库的列契约：列号、列宽、上下限、可排序与吸附的唯一事实源。
  * 前缀列也必须在此声明，否则右侧所有列的 aria-colindex 串位。
@@ -268,6 +274,8 @@ const tableColumns = computed<TableColumnDef[]>(() => {
         ...(column.sortable ? { sortable: true } : {}),
         // 吸附偏移由库按列宽累加，这里只报侧别
         ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
+        // 对齐交给库落到列头与数据格上（data-align），起始边是库的缺省，不必写出来
+        ...(props.align === 'left' ? {} : { align: COLUMN_ALIGN[props.align] }),
         width,
         minWidth: column.minWidth ?? width,
         // 操作列不给拖：它的宽度跟着按钮走，拖窄了按钮会被挤掉

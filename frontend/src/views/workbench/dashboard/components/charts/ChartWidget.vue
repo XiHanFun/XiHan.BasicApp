@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { XChartInView } from '~/components'
 import WidgetCard from '../WidgetCard.vue'
 
 /**
  * 图表小组件外壳：标题行标出「示例数据」，右侧放范围、视图等切换（extra 插槽），正文放图表。
  * 图表高度经 --xh-chart-height 统一给：md 取中档视口高，lg 取高档视口高。
+ * 正文包在 XChartInView 里：偏好开了视口内动画时，卡片滚进视口才挂上图表、才播入场。
  */
 defineOptions({ name: 'ChartWidget' })
 
@@ -22,7 +24,9 @@ withDefaults(defineProps<{
       <slot name="extra" />
     </template>
     <div class="chart-widget" :data-size="size">
-      <slot />
+      <XChartInView>
+        <slot />
+      </XChartInView>
     </div>
   </WidgetCard>
 </template>

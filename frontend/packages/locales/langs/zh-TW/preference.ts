@@ -92,6 +92,19 @@ export default {
       title: '字型',
       size: '字級',
     },
+    chart: {
+      title: '圖表',
+      palette: '配色',
+      palette_tip: '圖表資料系列的配色方案。主題單色隨主題色變化，多彩分類是預設方案',
+      palettes: {
+        monochrome: '主題單色',
+        categorical: '多彩分類',
+        brand: '柔和品牌',
+        muted: '莫蘭迪柔彩',
+      },
+      animate_in_view: '視口內動畫',
+      animate_in_view_tip: '圖表捲動進入可視區域時才播放進場動畫；關閉後開啟頁面即播放',
+    },
     interaction: {
       title: '互動',
     },

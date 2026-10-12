@@ -83,9 +83,11 @@
     /* —— 浮层材质：组件库的弹出面（popover / menu / select / 日期面板…）读 frosted，
        对话框与悬浮按钮读 elevated，提示词输入读 soft。这几族的底与线在库里是裸 oklch，
        不再经 --xh-bg-surface-raised，上面那条桥到不了它们；这里把底、描边、分隔线接到
-       应用的浮层配色上，浮层才跟着换主色 / 切暗色走。磨砂的透明度、模糊与高光留给库。
+       应用的浮层配色上，浮层才跟着换主色 / 切暗色走。
+       frosted 的底取实色：组件库缺省的锚定浮层是实体底 + 描边 + 柔和投影，不再叠背景模糊，
+       这里若留半透明，下拉与菜单底下的内容会直接透出来。
        减少透明与强制色由库在 [data-scope] 上直接改写材质名，压得住这份 :root 声明 —— */
-    --xh-material-frosted-bg: hsl(var(--popover) / var(--xh-alpha-high));
+    --xh-material-frosted-bg: hsl(var(--popover));
     --xh-material-frosted-border: hsl(var(--border));
     --xh-material-frosted-separator: hsl(var(--border) / 60%);
     --xh-material-elevated-bg: hsl(var(--popover));
@@ -93,10 +95,6 @@
     --xh-material-elevated-separator: hsl(var(--border) / 60%);
     --xh-material-elevated-fg-muted: hsl(var(--muted-foreground));
     --xh-material-soft-bg: hsl(var(--card));
-
-    /* 对话框标题与操作区之间不画横线：本应用的弹窗都不大，标题、正文、按钮靠间距就分得清，
-       两条线反而把一小块面切成三截。只收这一族的分隔线，其它浮层的材质线照旧（菜单分组、面板抬头要靠它） */
-    --xh-dialog-separator: transparent;
 
     /* —— 字 —— */
     --xh-fg-default: hsl(var(--foreground));
@@ -130,22 +128,25 @@
        意在 14px），而本应用的根字号就是偏好设置里的「字号」——useHtmlStyle 与 index.html
        首屏脚本把它写成 html { font-size: N/16*100% }，缺省 14 即 87.5%。库的 rem 在这个根下
        再缩一次，控件文字（表格、输入框、下拉项、按钮）全成了 12.25px，与正文 14px 不齐。
-       这里把七档按 16/14 补回（每档 = 库值 × 8/7），md 恰好回到 1rem：偏好里填的 N px
+       这里把九档按 16/14 补回（每档 = 库值 × 8/7），md 恰好回到 1rem：偏好里填的 N px
        就是 md 控件文字的 px，改字号偏好整族仍跟着走。--xh-control-font-* 与 --xh-text-*-size
-       在库里都引这七档，不必逐个再桥。不动根字号，是因为应用几百处 tailwind 间距是在
+       在库里都引这九档，不必逐个再桥。不动根字号，是因为应用几百处 tailwind 间距是在
        14px 根下调好的，根回 100% 会让它们整体涨 14% —— */
     --xh-font-size-xs: 0.857142857rem;
     --xh-font-size-sm: 0.928571429rem;
     --xh-font-size-md: 1rem;
     --xh-font-size-lg: 1.142857143rem;
-    --xh-font-size-xl: 1.285714286rem;
-    --xh-font-size-2xl: 1.571428571rem;
+    --xh-font-size-xl: 1.428571429rem;
+    --xh-font-size-2xl: 1.714285714rem;
     --xh-font-size-3xl: 2rem;
+    --xh-font-size-4xl: 2.285714286rem;
+    --xh-font-size-5xl: 2.571428571rem;
     /* 日期浮层的时间列高与面板上限由组件库只按 px 结算（3.1 起），不随根字号缩，这里不再补回 */
 
     /* —— 形状：跟随偏好设置里的圆角滑块（useTheme 写 --radius / --radius-card）—— */
     --xh-shape-control: var(--radius);
     --xh-shape-surface: var(--radius-card, var(--radius));
+    /* 浮层（下拉、弹出面、日期面板、对话框、抽屉）由组件库跟着承载面走，随卡片圆角一起变，这里不再单接 */
     /* 内嵌件（3.0 起菜单 / 下拉 / 树 / 穿梭框的行，复选框的方框，标签……）读 inset，不接就钉死在 4px、
        不随滑块走。取控件圆角的一半、不低于库缺省：滑块最小时与库一致，调大时跟着变圆，且始终比外层控件小一档 */
     --xh-shape-inset: max(var(--xh-radius-sm), calc(var(--radius) / 2));
