@@ -192,6 +192,13 @@
     --xh-motion-scale-press: 0.97;
   }
 
+  /* —— 通知卡片宽：组件库 4.0 起卡片缺省收到 300px（--xh-overlay-notification-w），本应用右下角的通知
+     常带凭证号、文件名这类长串，沿用 3.x 的 24rem（浮层 lg 档）。只写组件留给作者的宽度槽，不改语义令牌；
+     槽由卡片与轻提示共用，挂在卡片形态的分组上，顶部的轻提示照旧按库的宽度。窄屏仍由库夹到视口宽减两侧留白 —— */
+  [data-scope='notification'][data-part='group'][data-preset='card'] {
+    --xh-notification-item-w: var(--xh-overlay-max-w-lg);
+  }
+
   /* 状态色的实心底按固定明度校准：上面那份是「原色兑黑八成」，明度由用户挑的那枚状态色定，
      偏浅就压不住白字（实测 success 3.21、warning 3.00、danger 4.47），前景只好翻成深字，
      而深字压在饱和底上小字号下就是糊的。压到能上白字的深度，色相与彩度原样保留。
