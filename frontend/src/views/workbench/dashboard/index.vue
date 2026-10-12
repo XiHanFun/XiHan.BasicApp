@@ -50,12 +50,13 @@ function sanitize(items: BoardItem[]): BoardItem[] {
 
 const LOCAL_BOARD_KEY = 'xh:workbench:widgets:board'
 
-// 首屏直接取本地那份布局（每次保存都会写本地）：先摆缺省布局再等后端回来替换，没添加的小组件会闪一下再消失。
 // 空数组也是用户存下的布局（全部移除），不能当成「没存过」回落到缺省
-const localBoard = readLocalBoard()
-const board = ref<BoardItem[]>(sanitize(localBoard ?? DEFAULT_BOARD))
-// 本地没存过、又开着跨端同步（换了台设备）：等后端那份回来再渲染，不先摆出缺省布局
-const ready = ref(localBoard !== null || !appStore.widgetsSyncEnabled)
+const board = ref<BoardItem[]>(sanitize(readLocalBoard() ?? DEFAULT_BOARD))
+// 开着跨端同步时以后端那份为准：本地那份可能是别的设备改动之前的旧布局（另一台设备上清空，这台刷新会先摆出
+// 旧的小组件再消失），缺省布局更是一样。等后端回来再渲染；关着同步时本地就是事实源，直接渲染
+const ready = ref(!appStore.widgetsSyncEnabled)
+/** 后端迟迟不回时最多空等多久（毫秒）：之后先按本地摆出来，后端回来再换 */
+const HYDRATE_WAIT = 1500
 const customizing = ref(false)
 const showAdd = ref(false)
 // 悬浮操作栏开合：折叠时右侧只露半隐藏按钮，点击展开为半透明毛玻璃操作栏
@@ -110,27 +111,43 @@ function readLocalBoard(): BoardItem[] | null {
     return null
   }
 }
-function persist() {
-  const payload = { items: board.value }
-  // 本地始终留一份（关闭同步时即以此为准）；sync.save 内部按「仪表盘看板同步」开关决定是否上行后端
+/** 本地始终留一份：关闭同步时即以此为准，后端迟迟不回时先按它摆 */
+function writeLocalBoard(items: BoardItem[]) {
   try {
-    localStorage.setItem(LOCAL_BOARD_KEY, JSON.stringify(payload))
+    localStorage.setItem(LOCAL_BOARD_KEY, JSON.stringify({ items }))
   }
   catch {
     // 忽略本地存储异常（隐私模式等）
   }
-  sync.save('board', payload)
+}
+function persist() {
+  writeLocalBoard(board.value)
+  // sync.save 内部按「仪表盘看板同步」开关决定是否上行后端
+  sync.save('board', { items: board.value })
+}
+/**
+ * 采用后端那份（首次拉取或其它设备推来）：本地跟着写一份，否则下次刷新本地还是旧布局。
+ * 已经动手编辑的不拿它覆盖用户的改动
+ */
+function applyRemoteBoard(items: BoardItem[]) {
+  if (dirty.value)
+    return
+  board.value = sanitize(items)
+  writeLocalBoard(board.value)
 }
 
 onMounted(async () => {
-  // 开启同步取后端值；关闭时 hydrate 返回 undefined，沿用首屏的本地布局。
-  // 后端回来前已经动手编辑的，不拿它覆盖用户的改动
+  // 开启同步取后端值；关闭时 hydrate 立即返回 undefined，沿用首屏的本地布局
+  const fallback = window.setTimeout(() => {
+    ready.value = true
+  }, HYDRATE_WAIT)
   try {
     const saved = await sync.hydrate<{ items: BoardItem[] }>('board')
-    if (Array.isArray(saved?.items) && !dirty.value)
-      board.value = sanitize(saved.items)
+    if (Array.isArray(saved?.items))
+      applyRemoteBoard(saved.items)
   }
   finally {
+    window.clearTimeout(fallback)
     ready.value = true
   }
 })
@@ -139,7 +156,7 @@ onMounted(async () => {
 const unsubscribe = sync.subscribeRemote('board', (value) => {
   const items = (value as { items?: BoardItem[] }).items
   if (Array.isArray(items))
-    board.value = sanitize(items)
+    applyRemoteBoard(items)
 })
 onUnmounted(() => {
   unsubscribe()
@@ -173,6 +190,11 @@ function removeWidget(key: string) {
 }
 function setSpan(item: BoardItem, span: number) {
   item.span = span
+  dirty.value = true
+}
+/** 清空看板：与其它编辑一样只在内存预览，点「完成」才落地；点错了可「恢复默认」或不点完成直接刷新 */
+function clearBoard() {
+  board.value = []
   dirty.value = true
 }
 function resetBoard() {
@@ -281,6 +303,10 @@ onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
               <XhButton variant="subtle" size="sm" @click="showAdd = true">
                 <Icon icon="lucide:plus" />
                 {{ t('workbench.widgets.add') }}
+              </XhButton>
+              <XhButton variant="subtle" size="sm" :disabled="!board.length" @click="clearBoard">
+                <Icon icon="lucide:eraser" />
+                {{ t('workbench.widgets.clear') }}
               </XhButton>
               <XhButton variant="subtle" size="sm" @click="resetBoard">
                 <Icon icon="lucide:rotate-ccw" />
