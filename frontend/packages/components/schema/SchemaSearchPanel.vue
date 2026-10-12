@@ -63,8 +63,9 @@ function toggleExpand() {
 
       <!-- 操作按钮：纯图标 + 提示，作为流的最后一项，margin-left:auto 推到所在行右侧 -->
       <div class="xh-search__actions">
+        <!-- 查询是搜索行的主操作：品牌实心，与旁边两颗透明底图标钮拉开层级 -->
         <XIconButton
-          class="xh-search__submit"
+          variant="solid"
           icon="lucide:search"
           :label="t('component.search_panel.search')"
           @click="emit('search')"
