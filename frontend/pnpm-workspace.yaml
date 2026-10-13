@@ -28,19 +28,25 @@ minimumReleaseAgeExclude:
   - eslint@10.12.0
   - turbo@2.11.7
   - vue-i18n@11.4.13
+  - '@typescript-eslint/eslint-plugin@8.71.2'
+  - '@typescript-eslint/parser@8.71.2'
+  - '@typescript-eslint/project-service@8.71.2'
+  - '@typescript-eslint/scope-manager@8.71.2'
+  - '@typescript-eslint/tsconfig-utils@8.71.2'
+  - '@typescript-eslint/type-utils@8.71.2'
+  - '@typescript-eslint/types@8.71.2'
+  - '@typescript-eslint/typescript-estree@8.71.2'
+  - '@typescript-eslint/utils@8.71.2'
+  - '@typescript-eslint/visitor-keys@8.71.2'
 
 verifyDepsBeforeRun: false
 
 packages:
   - 'packages/*'
 
-overrides:
-  # 钉在 8.71.0：8.71.1 的 no-unused-vars 把 .mjs 里正常使用的变量误报为仅作类型使用，
-  # 见 typescript-eslint/typescript-eslint#12980；上游修复发版后删掉这两条
-  '@typescript-eslint/eslint-plugin': 8.71.0
-  '@typescript-eslint/parser': 8.71.0
 # 开发期临时：@xihan-ui/* 改指同级 XiHan.UI 源码，改库不用发版、应用立刻吃到。
 # 缩放口径与响应式那批做完并发版之后，删掉本段即回落到 catalog 里的发布版。
+# overrides:
 #   '@xihan-ui/animations': 'link:../../XiHan.UI/ui/packages/features/animations'
 #   '@xihan-ui/backgrounds': 'link:../../XiHan.UI/ui/packages/features/backgrounds'
 #   '@xihan-ui/chat-stream': 'link:../../XiHan.UI/ui/packages/features/chat-stream'
@@ -78,10 +84,10 @@ catalog:
   '@iconify-json/ep': ^1.2.4
   '@iconify-json/heroicons': ^1.2.3
   '@iconify-json/logos': ^1.2.15
-  '@iconify-json/lucide': ^1.2.139
+  '@iconify-json/lucide': ^1.2.142
   '@iconify-json/mdi': ^1.2.3
-  '@iconify-json/simple-icons': ^1.2.98
-  '@iconify-json/tabler': ^1.2.41
+  '@iconify-json/simple-icons': ^1.2.99
+  '@iconify-json/tabler': ^1.2.42
   '@iconify/vue': ^5.0.3
   '@microsoft/signalr': ^10.0.11
   '@tailwindcss/vite': ^4.3.3
@@ -96,9 +102,9 @@ catalog:
   '@tiptap/pm': ^3.31.4
   '@tiptap/starter-kit': ^3.31.4
   '@tiptap/vue-3': ^3.31.4
-  '@types/node': ^26.6.4
+  '@types/node': ^26.6.5
   '@types/papaparse': ^5.5.2
-  '@vitejs/plugin-vue': ^6.0.9
+  '@vitejs/plugin-vue': ^6.0.10
   '@vitejs/plugin-vue-jsx': ^5.1.6
   '@vitest/coverage-v8': ^5.0.3
   '@vue/test-utils': ^2.5.1
@@ -117,27 +123,27 @@ catalog:
   emoji-mart: ^5.6.0
   eslint: ^10.12.0
   eslint-plugin-format: ^2.0.1
-  jsdom: ^30.1.1
+  jsdom: ^30.1.2
   lint-staged: ^17.6.0
   md-editor-v3: ^7.1.0
   monaco-editor: ^0.57.0
-  oxlint: ^1.86.0
+  oxlint: ^1.87.0
   papaparse: ^5.7.0
   pinia: ^4.0.3
-  pinyin-pro: ^3.29.4
-  prettier: ^3.9.9
+  pinyin-pro: ^3.29.5
+  prettier: ^3.9.10
   tailwindcss: ^4.3.3
   turbo: ^2.11.7
   typescript: ^6.0.3
   unplugin-auto-import: ^21.1.0
   unplugin-vue-components: ^32.1.0
-  vite: ^8.3.2
+  vite: ^8.3.4
   vitest: ^5.0.3
   vue: ^3.5.43
-  vue-i18n: ^11.4.13
-  vue-plugin-hiprint: 0.0.60
-  vue-router: ^5.3.1
+  vue-i18n: ^11.4.14
+  vue-plugin-hiprint: 0.0.62
+  vue-router: ^5.4.0
   # 钉在 3.3.11：3.3.12 把模板事件处理函数里导入对象的成员访问误补成 .value（toast.success、
-  # 枚举成员等误报 TS2339），见 vuejs/language-tools#6237；上游修复发版后恢复 ^ 范围
+  # 枚举成员等误报 TS2339），见 vuejs/language-tools#6237；3.3.13 仍未修复，上游修复发版后恢复 ^ 范围
   vue-tsc: 3.3.11
   vue3-ts-jsoneditor: ^3.4.1

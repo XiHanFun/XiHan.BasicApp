@@ -86,7 +86,7 @@ function createManualChunks(id: string) {
   // hiprint 与其 PDF/Canvas/条码依赖体积较大，单独分块并由 printing 包动态加载，避免进入管理后台首屏。
   if (
     normalizedId.includes('/vue-plugin-hiprint/')
-    || normalizedId.includes('/@wtto00/html2canvas/')
+    || normalizedId.includes('/dom-to-image-more/')
     || normalizedId.includes('/jspdf/')
     || normalizedId.includes('/canvg/')
     || normalizedId.includes('/jsbarcode/')
