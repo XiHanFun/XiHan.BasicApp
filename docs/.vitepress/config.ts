@@ -37,6 +37,15 @@ const startSidebar: DefaultTheme.SidebarItem[] = [
     ],
   },
   {
+    text: "AI 辅助开发",
+    collapsed: false,
+    items: [
+      { text: "For Agents", link: "/ai/agents" },
+      { text: "MCP Server", link: "/ai/mcp" },
+      { text: "LLMs.txt", link: "/ai/llms" },
+    ],
+  },
+  {
     text: "参考",
     collapsed: false,
     items: [
@@ -110,6 +119,7 @@ const frontendSidebar: DefaultTheme.SidebarItem[] = [
 const sidebar: DefaultTheme.Sidebar = {
   "/backend/": backendSidebar,
   "/frontend/": frontendSidebar,
+  "/ai/": startSidebar,
   "/": startSidebar,
 };
 
@@ -117,7 +127,7 @@ const nav: DefaultTheme.NavItem[] = [
   {
     text: "指南",
     activeMatch:
-      "^/(introduction|why|overview|dev-environment|getting-started|project-structure|faq|api-guide|configuration|features|preview|deployment)$",
+      "^/(introduction|why|overview|dev-environment|getting-started|project-structure|faq|api-guide|configuration|features|preview|deployment|ai/.*)$",
     items: [
       {
         text: "快速开始",
@@ -125,6 +135,13 @@ const nav: DefaultTheme.NavItem[] = [
           { text: "介绍", link: "/introduction" },
           { text: "快速上手", link: "/getting-started" },
           { text: "常见问题", link: "/faq" },
+        ],
+      },
+      {
+        text: "AI 辅助开发",
+        items: [
+          { text: "For Agents", link: "/ai/agents" },
+          { text: "MCP Server", link: "/ai/mcp" },
         ],
       },
     ],
@@ -169,6 +186,7 @@ export default defineXiHanConfig({
       "企业级中后台内核：后端基于 .NET 与 XiHan.Framework，前端基于 Vue 3 与 XiHan.UI，开箱即带多租户、RBAC + 数据范围 + 字段脱敏的权限体系、代码生成与实时通信。",
     sections: [
       { dir: ".", label: "开始" },
+      { dir: "ai", label: "AI 辅助开发" },
       { dir: "backend", label: "后端手册" },
       { dir: "frontend", label: "前端手册" },
     ],
