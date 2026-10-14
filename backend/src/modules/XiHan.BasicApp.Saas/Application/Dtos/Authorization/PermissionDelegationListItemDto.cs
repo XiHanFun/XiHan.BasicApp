@@ -22,7 +22,7 @@ public sealed class PermissionDelegationListItemDto : BasicAppDto
     public long? DelegatorTenantMemberId { get; set; }
 
     /// <summary>
-    /// 委托人租户内显示名
+    /// 委托人显示名（租户内显示名优先，没填时取账号的真实姓名 → 昵称 → 用户名）
     /// </summary>
     public string? DelegatorDisplayName { get; set; }
 
@@ -37,7 +37,7 @@ public sealed class PermissionDelegationListItemDto : BasicAppDto
     public long? DelegateeTenantMemberId { get; set; }
 
     /// <summary>
-    /// 被委托人租户内显示名
+    /// 被委托人显示名（租户内显示名优先，没填时取账号的真实姓名 → 昵称 → 用户名）
     /// </summary>
     public string? DelegateeDisplayName { get; set; }
 
