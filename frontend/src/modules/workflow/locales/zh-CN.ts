@@ -179,6 +179,8 @@ export default {
       tb_export: '导出图片',
       tb_arrange: '对齐 / 分布',
       tb_validate: '校验',
+      tb_palette: '节点面板',
+      tb_properties: '属性面板',
       // 对齐 / 分布（作用于多选节点）
       align_left: '左对齐',
       align_center_v: '垂直中线对齐',

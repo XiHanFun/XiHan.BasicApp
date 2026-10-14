@@ -179,6 +179,8 @@ export default {
       tb_export: '匯出圖片',
       tb_arrange: '對齊 / 分佈',
       tb_validate: '驗證',
+      tb_palette: '節點面板',
+      tb_properties: '屬性面板',
       // 对齐 / 分布（作用于多选节点）
       align_left: '靠左對齊',
       align_center_v: '垂直置中對齊',

@@ -179,6 +179,8 @@ export default {
       tb_export: 'छवि निर्यात करें',
       tb_arrange: 'संरेखण / वितरण',
       tb_validate: 'जाँचें',
+      tb_palette: 'नोड पैलेट',
+      tb_properties: 'गुण पैनल',
       // 对齐 / 分布（作用于多选节点）
       align_left: 'बाएँ संरेखित करें',
       align_center_v: 'ऊर्ध्वाधर मध्य में संरेखित करें',

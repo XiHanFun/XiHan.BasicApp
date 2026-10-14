@@ -321,6 +321,12 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
         graph.centerCell(cell)
     },
 
+    revealNode(id: string) {
+      const cell = graph.getCellById(id)
+      if (cell?.isNode() && !graph.getGraphArea().containsRect(cell.getBBox()))
+        graph.centerCell(cell)
+    },
+
     zoomToFit() {
       graph.zoomToFit({ padding: 24, maxScale: 1 })
     },

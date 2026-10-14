@@ -53,6 +53,7 @@ const x6 = vi.hoisted(() => {
       position: () => ({ x, y }),
       getPosition: () => ({ x, y }),
       getSize: () => ({ width, height }),
+      getBBox: () => ({ x, y, width, height }),
       setPosition(nextX: number, nextY: number) {
         x = nextX
         y = nextY
@@ -210,6 +211,19 @@ const x6 = vi.hoisted(() => {
 
     centerCell(cell: unknown) {
       this.centeredCell = cell
+    }
+
+    /** 可视区（画布局部坐标） */
+    graphArea = { x: 0, y: 0, width: 800, height: 600 }
+
+    getGraphArea() {
+      const area = this.graphArea
+      return {
+        containsRect: (rect: { x: number, y: number, width: number, height: number }) =>
+          rect.x >= area.x && rect.y >= area.y
+          && rect.x + rect.width <= area.x + area.width
+          && rect.y + rect.height <= area.y + area.height,
+      }
     }
 
     batchUpdate(run: () => void) {
@@ -749,6 +763,23 @@ describe('运行态与高亮', () => {
 
     api.scrollToNode('n1')
     expect(graph.centeredCell).toBe(graph.getCellById('n1'))
+  })
+
+  it('露出节点时只在节点不全在可视区内才居中', () => {
+    const { api, graph } = create()
+    api.addNode({ id: 'inside', shape: 's', x: 100, y: 100, width: 100, height: 40 })
+    api.addNode({ id: 'straddle', shape: 's', x: 760, y: 100, width: 100, height: 40 })
+    api.addNode({ id: 'outside', shape: 's', x: 1200, y: 900, width: 100, height: 40 })
+
+    api.revealNode('missing')
+    api.revealNode('inside')
+    expect(graph.centeredCell).toBeNull()
+
+    api.revealNode('straddle')
+    expect(graph.centeredCell).toBe(graph.getCellById('straddle'))
+
+    api.revealNode('outside')
+    expect(graph.centeredCell).toBe(graph.getCellById('outside'))
   })
 })
 

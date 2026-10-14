@@ -179,6 +179,8 @@ export default {
       tb_export: 'Export image',
       tb_arrange: 'Align / distribute',
       tb_validate: 'Validate',
+      tb_palette: 'Node palette',
+      tb_properties: 'Properties',
       // Align / distribute (on selected nodes)
       align_left: 'Align left',
       align_center_v: 'Align vertical center',

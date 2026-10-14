@@ -139,6 +139,8 @@ export interface DiagramApi {
   clearHighlights: () => void
   /** 将指定节点居中滚动到视口 */
   scrollToNode: (id: string) => void
+  /** 节点没整个落在可视区内时把它居中，已在可视区内则视口不动——新加的节点要让人看得到，又不打断当前视野 */
+  revealNode: (id: string) => void
 
   // ── 视图与编辑命令（工具栏） ──
   zoomToFit: () => void
