@@ -12,6 +12,7 @@ using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Timing;
 using XiHan.Framework.Workflow.Abstractions.Engine;
 using XiHan.Framework.Workflow.Abstractions.Exceptions;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
@@ -29,15 +30,17 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
     private readonly IWorkflowEngine _engine;
     private readonly ICurrentUser _currentUser;
     private readonly WorkflowBusinessAbortNotifier _abortNotifier;
+    private readonly IClock _clock;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public WorkflowInstanceAppService(IWorkflowEngine engine, ICurrentUser currentUser, WorkflowBusinessAbortNotifier abortNotifier)
+    public WorkflowInstanceAppService(IWorkflowEngine engine, ICurrentUser currentUser, WorkflowBusinessAbortNotifier abortNotifier, IClock clock)
     {
         _engine = engine;
         _currentUser = currentUser;
         _abortNotifier = abortNotifier;
+        _clock = clock;
     }
 
     /// <summary>
@@ -60,7 +63,7 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         };
 
         var instance = await TranslateAsync(() => _engine.StartAsync(request, cancellationToken));
-        return WorkflowApplicationMapper.ToListItemDto(instance);
+        return WorkflowApplicationMapper.ToListItemDto(instance, _clock.Kind);
     }
 
     /// <summary>
@@ -73,7 +76,7 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
 
         var instance = await TranslateAsync(() => _engine.CancelAsync(ToWorkflowId(input.BasicId), input.Reason, cancellationToken));
         await _abortNotifier.NotifyAsync(instance, input.Reason, cancellationToken);
-        return WorkflowApplicationMapper.ToListItemDto(instance);
+        return WorkflowApplicationMapper.ToListItemDto(instance, _clock.Kind);
     }
 
     /// <summary>
@@ -86,7 +89,7 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
 
         var instance = await TranslateAsync(() => _engine.TerminateAsync(ToWorkflowId(input.BasicId), input.Reason, cancellationToken));
         await _abortNotifier.NotifyAsync(instance, input.Reason, cancellationToken);
-        return WorkflowApplicationMapper.ToListItemDto(instance);
+        return WorkflowApplicationMapper.ToListItemDto(instance, _clock.Kind);
     }
 
     /// <summary>
@@ -98,7 +101,7 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         ArgumentNullException.ThrowIfNull(input);
 
         var instance = await TranslateAsync(() => _engine.RetryAsync(ToWorkflowId(input.BasicId), cancellationToken));
-        return WorkflowApplicationMapper.ToListItemDto(instance);
+        return WorkflowApplicationMapper.ToListItemDto(instance, _clock.Kind);
     }
 
     /// <summary>
@@ -110,7 +113,7 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         ArgumentNullException.ThrowIfNull(input);
 
         var instance = await TranslateAsync(() => _engine.SuspendAsync(ToWorkflowId(input.BasicId), input.Reason, cancellationToken));
-        return WorkflowApplicationMapper.ToListItemDto(instance);
+        return WorkflowApplicationMapper.ToListItemDto(instance, _clock.Kind);
     }
 
     /// <summary>
@@ -122,7 +125,7 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         ArgumentNullException.ThrowIfNull(input);
 
         var instance = await TranslateAsync(() => _engine.ResumeAsync(ToWorkflowId(input.BasicId), cancellationToken));
-        return WorkflowApplicationMapper.ToListItemDto(instance);
+        return WorkflowApplicationMapper.ToListItemDto(instance, _clock.Kind);
     }
 
     /// <summary>

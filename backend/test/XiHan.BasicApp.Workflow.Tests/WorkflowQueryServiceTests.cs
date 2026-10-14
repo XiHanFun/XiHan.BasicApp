@@ -13,6 +13,7 @@ using XiHan.BasicApp.Workflow.Infrastructure.Stores;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
+using XiHan.Framework.Timing;
 using XiHan.Framework.Workflow.Abstractions;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
@@ -466,7 +467,7 @@ public sealed class WorkflowQueryServiceTests
         var repository = new Mock<IWorkflowDefinitionRepository>();
         var fieldSecurity = new Mock<IFieldSecurityService>();
         var registry = new WorkflowBusinessRegistry(new ServiceCollection().BuildServiceProvider());
-        return (new WorkflowDefinitionQueryService(repository.Object, fieldSecurity.Object, registry), repository, fieldSecurity);
+        return (new WorkflowDefinitionQueryService(repository.Object, fieldSecurity.Object, registry, Mock.Of<IClock>()), repository, fieldSecurity);
     }
 
     /// <summary>
@@ -480,7 +481,7 @@ public sealed class WorkflowQueryServiceTests
         var bookmarkStore = new Mock<IWorkflowBookmarkStore>();
         var fieldSecurity = new Mock<IFieldSecurityService>();
         var service = new WorkflowInstanceQueryService(
-            repository.Object, instanceStore.Object, bookmarkStore.Object, fieldSecurity.Object);
+            repository.Object, instanceStore.Object, bookmarkStore.Object, fieldSecurity.Object, Mock.Of<IClock>());
         return (service, repository, instanceStore, bookmarkStore, fieldSecurity);
     }
 

@@ -12,6 +12,7 @@ using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Timing;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Options;
 using XiHan.Framework.Workflow.Abstractions;
@@ -386,7 +387,8 @@ public sealed class WorkflowBusinessIntegrationTests
                 Tasks.Object,
                 currentUser.Object,
                 Mock.Of<IUnitOfWorkManager>(),
-                new RecordingLogger<WorkflowBusinessService>());
+                new RecordingLogger<WorkflowBusinessService>(),
+                Mock.Of<IClock>());
         }
 
         public WorkflowBusinessService Service { get; }

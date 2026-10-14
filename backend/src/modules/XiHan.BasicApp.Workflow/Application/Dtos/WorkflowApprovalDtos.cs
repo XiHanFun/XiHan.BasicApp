@@ -63,8 +63,8 @@ public sealed class WorkflowApprovalInstanceItemDto : BasicAppDto
     public string? Outcome { get; set; }
     public string? CorrelationId { get; set; }
     public string? BusinessName { get; set; }
-    public DateTime CreationTime { get; set; }
-    public DateTime? EndTime { get; set; }
+    public DateTimeOffset CreationTime { get; set; }
+    public DateTimeOffset? EndTime { get; set; }
     public string? FaultMessage { get; set; }
 
     /// <summary>当前待办节点名称</summary>
@@ -89,9 +89,9 @@ public sealed class WorkflowApprovalDetailDto
     public string? CorrelationId { get; set; }
     public string? StarterId { get; set; }
     public string? StarterName { get; set; }
-    public DateTime CreationTime { get; set; }
-    public DateTime? StartTime { get; set; }
-    public DateTime? EndTime { get; set; }
+    public DateTimeOffset CreationTime { get; set; }
+    public DateTimeOffset? StartTime { get; set; }
+    public DateTimeOffset? EndTime { get; set; }
     public string? FaultMessage { get; set; }
     public string? CancellationReason { get; set; }
 
@@ -134,7 +134,7 @@ public sealed class WorkflowApprovalTaskDto
     public string NodeId { get; set; } = string.Empty;
     public string NodeName { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
-    public DateTime CreationTime { get; set; }
+    public DateTimeOffset CreationTime { get; set; }
 
     /// <summary>节点允许的办理结果（为空表示同意/驳回）</summary>
     public List<string> AllowedOutcomes { get; set; } = [];

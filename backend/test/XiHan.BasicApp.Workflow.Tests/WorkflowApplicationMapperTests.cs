@@ -27,7 +27,7 @@ public sealed class WorkflowApplicationMapperTests
     {
         var entity = WorkflowStoreMapper.ToEntity(WorkflowTestHelper.CreateInstance());
 
-        var dto = WorkflowApplicationMapper.ToListItemDto(entity);
+        var dto = WorkflowApplicationMapper.ToListItemDto(entity, DateTimeKind.Unspecified);
 
         Assert.Equal(900800700600500L, dto.BasicId);
         Assert.Equal("leave", dto.DefinitionCode, StringComparer.Ordinal);
@@ -54,8 +54,8 @@ public sealed class WorkflowApplicationMapperTests
         var entity = WorkflowStoreMapper.ToEntity(WorkflowTestHelper.CreateDefinition());
         entity.CreatedTime = DateTimeOffset.UnixEpoch;
 
-        var listItem = WorkflowApplicationMapper.ToListItemDto(entity);
-        var detail = WorkflowApplicationMapper.ToDetailDto(entity);
+        var listItem = WorkflowApplicationMapper.ToListItemDto(entity, DateTimeKind.Unspecified);
+        var detail = WorkflowApplicationMapper.ToDetailDto(entity, DateTimeKind.Unspecified);
 
         Assert.Equal(listItem.BasicId, detail.BasicId);
         Assert.Equal(listItem.Code, detail.Code, StringComparer.Ordinal);
@@ -79,7 +79,7 @@ public sealed class WorkflowApplicationMapperTests
     {
         var definition = WorkflowTestHelper.CreateDefinition(status: WorkflowDefinitionStatus.Disabled);
 
-        var detail = WorkflowApplicationMapper.ToDetailDto(definition);
+        var detail = WorkflowApplicationMapper.ToDetailDto(definition, DateTimeKind.Unspecified);
 
         Assert.Equal(100200300400500L, detail.BasicId);
         Assert.Equal(WorkflowDefinitionStatus.Disabled, detail.Status);
@@ -94,7 +94,7 @@ public sealed class WorkflowApplicationMapperTests
     [Fact]
     public void ToDetailDto_FromInstanceModel_WithoutHistory_ShouldReturnEmptyCollections()
     {
-        var detail = WorkflowApplicationMapper.ToDetailDto(WorkflowTestHelper.CreateInstance(), [], []);
+        var detail = WorkflowApplicationMapper.ToDetailDto(WorkflowTestHelper.CreateInstance(), [], [], DateTimeKind.Unspecified);
 
         Assert.Empty(detail.NodeInstances);
         Assert.Empty(detail.PendingBookmarks);
@@ -112,7 +112,7 @@ public sealed class WorkflowApplicationMapperTests
     [Fact]
     public void ToDetailDto_VariablesJson_ShouldEscapeNonAsciiCharacters()
     {
-        var detail = WorkflowApplicationMapper.ToDetailDto(WorkflowTestHelper.CreateInstance(), [], []);
+        var detail = WorkflowApplicationMapper.ToDetailDto(WorkflowTestHelper.CreateInstance(), [], [], DateTimeKind.Unspecified);
 
         Assert.DoesNotContain("年假", detail.VariablesJson, StringComparison.Ordinal);
         Assert.Contains("\\u5E74\\u5047", detail.VariablesJson, StringComparison.Ordinal);
@@ -136,7 +136,8 @@ public sealed class WorkflowApplicationMapperTests
     public void WorkflowBookmarkDto_ShouldNotExposePayloadOrCorrelation()
     {
         var dto = WorkflowApplicationMapper.ToBookmarkDto(
-            WorkflowTestHelper.CreateBookmark(dueTime: WorkflowTestHelper.DueTime));
+            WorkflowTestHelper.CreateBookmark(dueTime: WorkflowTestHelper.DueTime),
+            DateTimeKind.Unspecified);
 
         Assert.Null(typeof(WorkflowBookmarkDto).GetProperty("Payload"));
         Assert.Null(typeof(WorkflowBookmarkDto).GetProperty("CorrelationId"));
@@ -153,7 +154,7 @@ public sealed class WorkflowApplicationMapperTests
     [Fact]
     public void WorkflowTodoListItemDto_ShouldNotExposeAssigneeOrFormData()
     {
-        var dto = WorkflowApplicationMapper.ToTodoListItemDto(WorkflowTestHelper.CreateUserTask());
+        var dto = WorkflowApplicationMapper.ToTodoListItemDto(WorkflowTestHelper.CreateUserTask(), DateTimeKind.Unspecified);
 
         Assert.Null(typeof(WorkflowTodoListItemDto).GetProperty("AssigneeId"));
         Assert.Null(typeof(WorkflowTodoListItemDto).GetProperty("FormData"));

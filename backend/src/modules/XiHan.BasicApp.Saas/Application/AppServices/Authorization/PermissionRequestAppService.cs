@@ -226,10 +226,7 @@ public sealed class PermissionRequestAppService
 
     private static string BuildTitle(PermissionRequestDetailDto request)
     {
-        var applicant = string.IsNullOrWhiteSpace(request.RequestUserDisplayName)
-            ? request.RequestUserId.ToString(CultureInfo.InvariantCulture)
-            : request.RequestUserDisplayName;
-
+        // 申请人就是流程发起人，待办与审批中心另有发起人一栏，标题只写申请对象
         var targets = new List<string>(2);
         if (request.RoleId is > 0)
         {
@@ -241,7 +238,7 @@ public sealed class PermissionRequestAppService
             targets.Add($"权限「{request.PermissionName ?? request.PermissionCode ?? request.PermissionId.Value.ToString(CultureInfo.InvariantCulture)}」");
         }
 
-        return $"权限申请：{applicant} 申请{string.Join("、", targets)}";
+        return $"权限申请：{string.Join("、", targets)}";
     }
 
     private static string ToBusinessId(long requestId)

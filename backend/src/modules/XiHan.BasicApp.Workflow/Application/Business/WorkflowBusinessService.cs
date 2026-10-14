@@ -4,10 +4,12 @@
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Workflow.Application.Mappers;
 using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Timing;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Engine;
@@ -38,6 +40,7 @@ public sealed class WorkflowBusinessService : IWorkflowBusinessService
     private readonly ICurrentUser _currentUser;
     private readonly IUnitOfWorkManager _unitOfWorkManager;
     private readonly ILogger<WorkflowBusinessService> _logger;
+    private readonly IClock _clock;
 
     /// <summary>
     /// 构造函数
@@ -53,7 +56,8 @@ public sealed class WorkflowBusinessService : IWorkflowBusinessService
         IWorkflowUserTaskService userTaskService,
         ICurrentUser currentUser,
         IUnitOfWorkManager unitOfWorkManager,
-        ILogger<WorkflowBusinessService> logger)
+        ILogger<WorkflowBusinessService> logger,
+        IClock clock)
     {
         _registry = registry;
         _userNameResolver = userNameResolver;
@@ -66,6 +70,7 @@ public sealed class WorkflowBusinessService : IWorkflowBusinessService
         _currentUser = currentUser;
         _unitOfWorkManager = unitOfWorkManager;
         _logger = logger;
+        _clock = clock;
     }
 
     /// <summary>
@@ -198,8 +203,8 @@ public sealed class WorkflowBusinessService : IWorkflowBusinessService
                         long.TryParse(id, NumberStyles.None, CultureInfo.InvariantCulture, out var userId) ? userId : 0,
                         names.GetValueOrDefault(id) ?? id))],
                 FaultMessage = instance.FaultMessage,
-                StartTime = instance.StartTime,
-                EndTime = instance.EndTime
+                StartTime = WorkflowTimes.ToOffset(instance.StartTime, _clock.Kind),
+                EndTime = WorkflowTimes.ToOffset(instance.EndTime, _clock.Kind)
             };
         }
 

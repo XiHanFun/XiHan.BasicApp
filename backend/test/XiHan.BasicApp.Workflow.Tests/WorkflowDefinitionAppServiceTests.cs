@@ -8,6 +8,7 @@ using XiHan.BasicApp.Workflow.Application.AppServices;
 using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.Framework.Core.Exceptions;
+using XiHan.Framework.Timing;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Exceptions;
 using XiHan.Framework.Workflow.Builders;
@@ -366,6 +367,6 @@ public sealed class WorkflowDefinitionAppServiceTests
     {
         var manager = new Mock<IWorkflowDefinitionManager>();
         var guard = new WorkflowBusinessDefinitionGuard(new WorkflowBusinessRegistry(new ServiceCollection().BuildServiceProvider()));
-        return (new WorkflowDefinitionAppService(manager.Object, Mock.Of<IFieldSecurityService>(), guard), manager);
+        return (new WorkflowDefinitionAppService(manager.Object, Mock.Of<IFieldSecurityService>(), guard, Mock.Of<IClock>()), manager);
     }
 }

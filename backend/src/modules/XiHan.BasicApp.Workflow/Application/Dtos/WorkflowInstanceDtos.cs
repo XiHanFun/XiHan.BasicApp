@@ -88,9 +88,9 @@ public class WorkflowInstanceListItemDto : BasicAppDto
     public string? StarterId { get; set; }
     public long? ParentInstanceId { get; set; }
     public int Depth { get; set; }
-    public DateTime CreationTime { get; set; }
-    public DateTime? StartTime { get; set; }
-    public DateTime? EndTime { get; set; }
+    public DateTimeOffset CreationTime { get; set; }
+    public DateTimeOffset? StartTime { get; set; }
+    public DateTimeOffset? EndTime { get; set; }
     public string? FaultNodeId { get; set; }
     public string? FaultMessage { get; set; }
 }
@@ -119,8 +119,8 @@ public sealed class WorkflowNodeInstanceDto
     public string ActivityType { get; set; } = string.Empty;
     public WorkflowNodeInstanceStatus Status { get; set; }
     public int TryCount { get; set; }
-    public DateTime StartTime { get; set; }
-    public DateTime? EndTime { get; set; }
+    public DateTimeOffset StartTime { get; set; }
+    public DateTimeOffset? EndTime { get; set; }
     public string? FaultMessage { get; set; }
 
     /// <summary>节点输出（JSON 对象文本）</summary>
@@ -136,6 +136,6 @@ public sealed class WorkflowBookmarkDto
     public string NodeId { get; set; } = string.Empty;
     public string Kind { get; set; } = string.Empty;
     public string? Key { get; set; }
-    public DateTime? DueTime { get; set; }
-    public DateTime CreationTime { get; set; }
+    public DateTimeOffset? DueTime { get; set; }
+    public DateTimeOffset CreationTime { get; set; }
 }

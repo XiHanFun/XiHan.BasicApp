@@ -12,6 +12,7 @@ using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Timing;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
 using XiHan.Framework.Workflow.Abstractions.Stores;
 using XiHan.Framework.Workflow.Abstractions.UserTasks;
@@ -33,6 +34,7 @@ public sealed class WorkflowTodoQueryService : WorkflowApplicationService, IWork
     private readonly WorkflowBusinessRegistry _businessRegistry;
     private readonly WorkflowUserNameResolver _userNameResolver;
     private readonly ICurrentUser _currentUser;
+    private readonly IClock _clock;
 
     /// <summary>
     /// 构造函数
@@ -43,7 +45,8 @@ public sealed class WorkflowTodoQueryService : WorkflowApplicationService, IWork
         IWorkflowDefinitionStore definitionStore,
         WorkflowBusinessRegistry businessRegistry,
         WorkflowUserNameResolver userNameResolver,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IClock clock)
     {
         _userTaskService = userTaskService;
         _instanceStore = instanceStore;
@@ -51,6 +54,7 @@ public sealed class WorkflowTodoQueryService : WorkflowApplicationService, IWork
         _businessRegistry = businessRegistry;
         _userNameResolver = userNameResolver;
         _currentUser = currentUser;
+        _clock = clock;
     }
 
     /// <summary>
@@ -106,7 +110,7 @@ public sealed class WorkflowTodoQueryService : WorkflowApplicationService, IWork
         var items = new List<WorkflowTodoListItemDto>(tasks.Count);
         foreach (var task in tasks)
         {
-            var item = WorkflowApplicationMapper.ToTodoListItemDto(task);
+            var item = WorkflowApplicationMapper.ToTodoListItemDto(task, _clock.Kind);
             var instance = instances.GetValueOrDefault(task.InstanceId);
             if (instance is not null)
             {

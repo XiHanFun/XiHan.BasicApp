@@ -9,6 +9,7 @@ using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Timing;
 using XiHan.Framework.Uow;
 using XiHan.Framework.Workflow.Abstractions.Engine;
 using XiHan.Framework.Workflow.Abstractions.Exceptions;
@@ -394,6 +395,6 @@ public sealed class WorkflowInstanceAppServiceTests
             new WorkflowBusinessRegistry(new ServiceCollection().BuildServiceProvider()),
             Mock.Of<IUnitOfWorkManager>(),
             currentUser.Object);
-        return (new WorkflowInstanceAppService(engine.Object, currentUser.Object, notifier), engine, currentUser);
+        return (new WorkflowInstanceAppService(engine.Object, currentUser.Object, notifier, Mock.Of<IClock>()), engine, currentUser);
     }
 }

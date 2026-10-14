@@ -29,7 +29,7 @@ public sealed class WorkflowTodoListItemDto
     public string NodeName { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? CorrelationId { get; set; }
-    public DateTime CreationTime { get; set; }
+    public DateTimeOffset CreationTime { get; set; }
     public string? StarterId { get; set; }
     public string? StarterName { get; set; }
 

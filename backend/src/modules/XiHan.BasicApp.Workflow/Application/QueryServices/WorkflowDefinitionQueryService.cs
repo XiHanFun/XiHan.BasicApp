@@ -17,6 +17,7 @@ using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
+using XiHan.Framework.Timing;
 
 namespace XiHan.BasicApp.Workflow.Application.QueryServices;
 
@@ -35,17 +36,21 @@ public sealed class WorkflowDefinitionQueryService : WorkflowApplicationService,
 
     private readonly WorkflowBusinessRegistry _businessRegistry;
 
+    private readonly IClock _clock;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public WorkflowDefinitionQueryService(
         IWorkflowDefinitionRepository definitionRepository,
         IFieldSecurityService fieldSecurityService,
-        WorkflowBusinessRegistry businessRegistry)
+        WorkflowBusinessRegistry businessRegistry,
+        IClock clock)
     {
         _definitionRepository = definitionRepository;
         _fieldSecurity = fieldSecurityService;
         _businessRegistry = businessRegistry;
+        _clock = clock;
     }
 
     /// <summary>
@@ -69,7 +74,7 @@ public sealed class WorkflowDefinitionQueryService : WorkflowApplicationService,
         }
 
         var page = await _definitionRepository.GetPagedAsync(request, cancellationToken);
-        var items = page.Items.Select(WorkflowApplicationMapper.ToListItemDto).ToList();
+        var items = page.Items.Select(item => WorkflowApplicationMapper.ToListItemDto(item, _clock.Kind)).ToList();
         return new PageResultDtoBase<WorkflowDefinitionListItemDto>(items, page.Page)
         {
             ExtendDatas = page.ExtendDatas
@@ -90,7 +95,7 @@ public sealed class WorkflowDefinitionQueryService : WorkflowApplicationService,
         cancellationToken.ThrowIfCancellationRequested();
 
         var entity = await _definitionRepository.GetByIdAsync(id, cancellationToken);
-        return entity is null ? null : WorkflowApplicationMapper.ToDetailDto(entity);
+        return entity is null ? null : WorkflowApplicationMapper.ToDetailDto(entity, _clock.Kind);
     }
 
     /// <summary>

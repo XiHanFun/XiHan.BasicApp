@@ -15,6 +15,7 @@ using XiHan.Framework.Workflow.Abstractions.Definitions;
 using XiHan.Framework.Workflow.Abstractions.Exceptions;
 using XiHan.Framework.Workflow.Builders;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.Framework.Timing;
 
 namespace XiHan.BasicApp.Workflow.Application.AppServices;
 
@@ -34,17 +35,21 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
 
     private readonly WorkflowBusinessDefinitionGuard _businessDefinitionGuard;
 
+    private readonly IClock _clock;
+
     /// <summary>
     /// 构造函数
     /// </summary>
     public WorkflowDefinitionAppService(
         IWorkflowDefinitionManager definitionManager,
         IFieldSecurityService fieldSecurity,
-        WorkflowBusinessDefinitionGuard businessDefinitionGuard)
+        WorkflowBusinessDefinitionGuard businessDefinitionGuard,
+        IClock clock)
     {
         _definitionManager = definitionManager;
         _fieldSecurity = fieldSecurity;
         _businessDefinitionGuard = businessDefinitionGuard;
+        _clock = clock;
     }
 
     /// <summary>
@@ -60,7 +65,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
 
         var definition = ParseDefinition(input.DefinitionJson);
         var created = await TranslateAsync(() => _definitionManager.CreateAsync(definition, cancellationToken));
-        return WorkflowApplicationMapper.ToDetailDto(created);
+        return WorkflowApplicationMapper.ToDetailDto(created, _clock.Kind);
     }
 
     /// <summary>
@@ -79,7 +84,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         var definition = ParseDefinition(input.DefinitionJson);
         definition.Id = ToWorkflowId(input.BasicId);
         var updated = await TranslateAsync(() => _definitionManager.UpdateDraftAsync(definition, cancellationToken));
-        return WorkflowApplicationMapper.ToDetailDto(updated);
+        return WorkflowApplicationMapper.ToDetailDto(updated, _clock.Kind);
     }
 
     /// <summary>
@@ -100,7 +105,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         }
 
         var published = await TranslateAsync(() => _definitionManager.PublishAsync(ToWorkflowId(input.BasicId), cancellationToken));
-        return WorkflowApplicationMapper.ToDetailDto(published);
+        return WorkflowApplicationMapper.ToDetailDto(published, _clock.Kind);
     }
 
     /// <summary>
@@ -113,7 +118,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         ArgumentException.ThrowIfNullOrWhiteSpace(input.Code);
 
         var draft = await TranslateAsync(() => _definitionManager.CreateNewVersionAsync(input.Code.Trim(), cancellationToken));
-        return WorkflowApplicationMapper.ToDetailDto(draft);
+        return WorkflowApplicationMapper.ToDetailDto(draft, _clock.Kind);
     }
 
     /// <summary>
@@ -126,7 +131,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         RequirePositiveKey(input.BasicId, nameof(input));
 
         var disabled = await TranslateAsync(() => _definitionManager.DisableAsync(ToWorkflowId(input.BasicId), cancellationToken));
-        return WorkflowApplicationMapper.ToDetailDto(disabled);
+        return WorkflowApplicationMapper.ToDetailDto(disabled, _clock.Kind);
     }
 
     /// <summary>
@@ -139,7 +144,7 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
         RequirePositiveKey(input.BasicId, nameof(input));
 
         var archived = await TranslateAsync(() => _definitionManager.ArchiveAsync(ToWorkflowId(input.BasicId), cancellationToken));
-        return WorkflowApplicationMapper.ToDetailDto(archived);
+        return WorkflowApplicationMapper.ToDetailDto(archived, _clock.Kind);
     }
 
     /// <summary>
