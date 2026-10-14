@@ -45,8 +45,36 @@ onBeforeUnmount(() => {
     <div
       v-show="props.options?.minimap"
       ref="minimapRef"
-      class="absolute bottom-2 right-2 overflow-hidden rounded border border-gray-200 bg-white/90 shadow-sm dark:border-gray-700 dark:bg-gray-800/90"
+      class="x-diagram__minimap absolute bottom-2 right-2 overflow-hidden"
     />
     <DiagramTeleport />
   </div>
 </template>
+
+<style scoped>
+/* 缩略图的面板与 X6 注入的部件样式都换成语义令牌：X6 自带白底、浅灰投影和青色视口框，暗色下会是一块白板 */
+.x-diagram__minimap {
+  border: var(--xh-stroke-thin) solid var(--xh-border-default);
+  border-radius: var(--xh-shape-surface);
+  background-color: var(--xh-bg-surface);
+  box-shadow: var(--xh-shadow-sm);
+}
+
+.x-diagram__minimap :deep(.x6-widget-minimap) {
+  background-color: transparent;
+}
+
+.x-diagram__minimap :deep(.x6-widget-minimap .x6-graph) {
+  box-shadow: none;
+}
+
+/* 视口框的线宽与负外边距是 X6 定位用的，只换颜色 */
+.x-diagram__minimap :deep(.x6-widget-minimap-viewport) {
+  border-color: var(--xh-fg-brand);
+}
+
+.x-diagram__minimap :deep(.x6-widget-minimap-viewport-zoom) {
+  border-color: var(--xh-fg-brand);
+  background-color: var(--xh-bg-surface);
+}
+</style>
