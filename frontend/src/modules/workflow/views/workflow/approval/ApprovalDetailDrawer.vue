@@ -215,8 +215,8 @@ async function withdraw() {
       </div>
 
       <div v-else-if="detail" class="flex flex-col gap-4">
-        <!-- 概要：无边框、标签在上，读起来是一张单子的抬头而不是表格 -->
-        <XhDescriptionsRoot :columns="4">
+        <!-- 概要：描边、标签在上，与各详情页同一种描述列表 -->
+        <XhDescriptionsRoot :columns="4" variant="outline" size="sm">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('workflow.approval.col_status') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>

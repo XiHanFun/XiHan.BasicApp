@@ -238,7 +238,7 @@ async function executePreview(): Promise<void> {
         <XhCardRoot variant="ghost">
           <XhCardContent>
             <XhFlex orientation="vertical" gap="lg">
-              <XhDescriptionsRoot v-if="rule" :columns="1" variant="outline" placement="left" size="sm">
+              <XhDescriptionsRoot v-if="rule" :columns="1" variant="outline" size="sm">
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('setting.numbering.rule_code') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>
@@ -298,7 +298,7 @@ async function executePreview(): Promise<void> {
         <XhCardRoot variant="ghost">
           <XhCardContent>
             <XhFlex v-if="metadata" orientation="vertical" gap="lg">
-              <XhDescriptionsRoot :columns="3" variant="outline" placement="top" size="sm">
+              <XhDescriptionsRoot :columns="3" variant="outline" size="sm">
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('setting.numbering.preview_period') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>

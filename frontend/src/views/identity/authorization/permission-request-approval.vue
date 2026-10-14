@@ -41,8 +41,8 @@ function formatNullableDate(value?: string | null) {
 </script>
 
 <template>
-  <!-- 无边框、标签在上：审批人读的是一张申请单，不是数据表格 -->
-  <XhDescriptionsRoot :columns="2">
+  <!-- 描边、标签在上：与各详情页同一种描述列表 -->
+  <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
     <XhDescriptionsItem>
       <XhDescriptionsLabel>{{ t('identity.authorization.req_col_applicant') }}</XhDescriptionsLabel>
       <XhDescriptionsValue>{{ data.requestUserDisplayName || data.requestUserId }}</XhDescriptionsValue>

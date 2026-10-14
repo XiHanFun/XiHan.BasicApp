@@ -3,7 +3,7 @@ import type { Tone } from '@xihan-ui/core'
 export type LogDetailFieldType = 'boolean' | 'bytes' | 'code' | 'date' | 'duration' | 'enum' | 'text'
 
 /**
- * 详情分组（抽屉按此顺序逐组排版，组内无边框、标签在上）：
+ * 详情分组（抽屉按此顺序逐组排版，组内描边、标签在上）：
  * subject 业务主体、request 请求、client 客户端、runtime 运行环境、handling 处理、trace 追踪标识。
  * 代码块字段（type: 'code'）不分组，统一排在最后。
  */

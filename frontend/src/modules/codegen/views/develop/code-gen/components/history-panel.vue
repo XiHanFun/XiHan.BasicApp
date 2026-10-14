@@ -238,7 +238,7 @@ async function handleDetail(row: CodeGenHistoryListItemDto) {
             {{ t('common.statuses.loading') }}
           </XhFlex>
           <template v-else-if="detail">
-            <XhDescriptionsRoot :columns="2" placement="left" size="sm">
+            <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
               <XhDescriptionsItem>
                 <XhDescriptionsLabel>{{ t('develop.code_gen.history.detail_table_name') }}</XhDescriptionsLabel>
                 <XhDescriptionsValue>
