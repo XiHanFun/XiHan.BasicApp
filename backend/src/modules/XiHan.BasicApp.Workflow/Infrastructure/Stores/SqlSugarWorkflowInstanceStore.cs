@@ -101,7 +101,7 @@ public sealed class SqlSugarWorkflowInstanceStore : IWorkflowInstanceStore
     {
         using var scope = _scopeFactory.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IWorkflowInstanceRepository>();
-        await repository.UpdateAsync(WorkflowStoreMapper.ToEntity(instance), cancellationToken);
+        await WorkflowStoreWrites.UpdateRuntimeRowAsync(repository, WorkflowStoreMapper.ToEntity(instance), cancellationToken);
     }
 
     /// <summary>
@@ -173,6 +173,6 @@ public sealed class SqlSugarWorkflowInstanceStore : IWorkflowInstanceStore
     {
         using var scope = _scopeFactory.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IWorkflowNodeInstanceRepository>();
-        await repository.UpdateAsync(WorkflowStoreMapper.ToEntity(nodeInstance), cancellationToken);
+        await WorkflowStoreWrites.UpdateRuntimeRowAsync(repository, WorkflowStoreMapper.ToEntity(nodeInstance), cancellationToken);
     }
 }
