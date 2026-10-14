@@ -11,12 +11,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import { HOME_PATH } from '~/constants'
 
-const routeStub = reactive({ path: HOME_PATH })
+const routeStub = reactive<{ path: string, fullPath: string, query: Record<string, string>, hash: string }>({ path: HOME_PATH, fullPath: HOME_PATH, query: {}, hash: '' })
 const pushSpy = vi.fn()
+const replaceSpy = vi.fn()
 
 vi.mock('vue-router', () => ({
   useRoute: () => routeStub,
-  useRouter: () => ({ push: pushSpy }),
+  useRouter: () => ({ push: pushSpy, replace: replaceSpy }),
 }))
 
 const { useTabs } = await import('./useTabs')
@@ -38,7 +39,11 @@ function seedTabs(): ReturnType<typeof useTabbarStore> {
 beforeEach(() => {
   setActivePinia(createPinia())
   routeStub.path = HOME_PATH
+  routeStub.fullPath = HOME_PATH
+  routeStub.query = {}
+  routeStub.hash = ''
   pushSpy.mockClear()
+  replaceSpy.mockReset()
 })
 
 afterEach(() => {
@@ -329,5 +334,39 @@ describe('useRefresh 与 refreshCurrentTab', () => {
 
     expect(store.getRefreshSeed('/b')).toBe(1)
     expect(store.getRefreshSeed('/c')).toBe(1)
+  })
+})
+
+describe('useTabs.consumeQuery 用掉一次性参数', () => {
+  it('去掉参数换地址，带参数的标签并入目标标签', async () => {
+    const store = useTabbarStore()
+    store.tabs = [tab(HOME_PATH, false), tab('/approval/center?instanceId=1&tab=done&keep=x', true)]
+    Object.assign(routeStub, {
+      path: '/approval/center',
+      fullPath: '/approval/center?instanceId=1&tab=done&keep=x',
+      query: { instanceId: '1', tab: 'done', keep: 'x' },
+      hash: '',
+    })
+    // 替身模拟路由守卫：换地址后为新地址补上标签
+    replaceSpy.mockImplementation(async () => {
+      routeStub.fullPath = '/approval/center?keep=x'
+      store.tabs.push(tab('/approval/center?keep=x', true))
+    })
+
+    await useTabs().consumeQuery(['instanceId', 'tab'])
+
+    expect(replaceSpy).toHaveBeenCalledWith({ path: '/approval/center', query: { keep: 'x' }, hash: '' })
+    expect(store.tabs.map(item => item.path)).toEqual([HOME_PATH, '/approval/center?keep=x'])
+  })
+
+  it('地址没变（参数本就不在）时不动标签', async () => {
+    const store = useTabbarStore()
+    store.tabs = [tab(HOME_PATH, false), tab('/approval/center', true)]
+    Object.assign(routeStub, { path: '/approval/center', fullPath: '/approval/center', query: {}, hash: '' })
+    replaceSpy.mockResolvedValue(undefined)
+
+    await useTabs().consumeQuery(['instanceId'])
+
+    expect(store.tabs.map(item => item.path)).toEqual([HOME_PATH, '/approval/center'])
   })
 })

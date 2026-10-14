@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import type { Tone } from '@xihan-ui/core'
 import type { Component } from 'vue'
-import type { WorkflowApprovalDetailDto, WorkflowApprovalTimelineItemDto } from '../../../api'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhSeparator, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import type { WorkflowApprovalDetailDto } from '../../../api'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhSeparator, XhStepsDescription, XhStepsIndicator, XhStepsItem, XhStepsList, XhStepsRoot, XhStepsSeparator, XhStepsTitle, XhStepsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, defineAsyncComponent, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, XInput, XJsonBlock, XPopconfirm } from '~/components'
 import { toast } from '~/composables'
 import { resolveView } from '~/router/dynamic'
 import { formatDate } from '~/utils'
-import { workflowApprovalApi, WorkflowApprovalTimelineKind, WorkflowInstanceStatus, workflowTodoApi } from '../../../api'
+import { workflowApprovalApi, workflowTodoApi } from '../../../api'
 import WorkflowUserPicker from '../shared/WorkflowUserPicker.vue'
 import { handleOutcomes, instanceStatusLabelKey, instanceStatusTone, outcomeLabelKey, outcomeTone } from './approval-labels'
+import { buildApprovalSteps } from './approval-steps'
 
 /**
  * 审批详情抽屉：业务单据 + 办理区 + 审批轨迹。
@@ -60,51 +62,16 @@ function outcomeText(outcome?: string | null) {
   return key ? t(key) : outcome
 }
 
-function timelineText(item: WorkflowApprovalTimelineItemDto) {
-  const user = item.userName || item.userId || t('workflow.approval.tl_system')
-  const targets = item.targetUserNames.join('、')
-  switch (item.kind) {
-    case WorkflowApprovalTimelineKind.Started:
-      return t('workflow.approval.tl_started', { user })
-    case WorkflowApprovalTimelineKind.Completed:
-      return t('workflow.approval.tl_completed', { user, outcome: outcomeText(item.outcome) })
-    case WorkflowApprovalTimelineKind.Transferred:
-      return t('workflow.approval.tl_transferred', { user, targets })
-    case WorkflowApprovalTimelineKind.AddedAssignees:
-      return t('workflow.approval.tl_added', { user, targets })
-    case WorkflowApprovalTimelineKind.CarbonCopied:
-      return t('workflow.approval.tl_cc', { user })
-    case WorkflowApprovalTimelineKind.AutoDecided:
-      return t('workflow.approval.tl_auto', { outcome: outcomeText(item.outcome) })
-    case WorkflowApprovalTimelineKind.Pending:
-      return t('workflow.approval.tl_pending', { user })
-    default:
-      return item.instanceStatus === WorkflowInstanceStatus.Completed
-        ? t('workflow.approval.tl_finished_completed', { outcome: outcomeText(item.outcome) || t(instanceStatusLabelKey(WorkflowInstanceStatus.Completed)) })
-        : t(instanceStatusLabelKey(item.instanceStatus ?? WorkflowInstanceStatus.Terminated))
-  }
-}
-
-function timelineIcon(item: WorkflowApprovalTimelineItemDto) {
-  switch (item.kind) {
-    case WorkflowApprovalTimelineKind.Started:
-      return 'lucide:send'
-    case WorkflowApprovalTimelineKind.Completed:
-      return item.outcome === 'rejected' ? 'lucide:circle-x' : 'lucide:circle-check'
-    case WorkflowApprovalTimelineKind.Transferred:
-      return 'lucide:forward'
-    case WorkflowApprovalTimelineKind.AddedAssignees:
-      return 'lucide:user-plus'
-    case WorkflowApprovalTimelineKind.CarbonCopied:
-      return 'lucide:mail'
-    case WorkflowApprovalTimelineKind.AutoDecided:
-      return 'lucide:bot'
-    case WorkflowApprovalTimelineKind.Pending:
-      return 'lucide:hourglass'
-    default:
-      return 'lucide:flag'
-  }
-}
+/** 审批轨迹归并成步骤条：走过的步打勾，当前步是正在等的待办，没结束时末尾留「结束」 */
+const approvalSteps = computed(() => buildApprovalSteps(t, detail.value?.timeline ?? []))
+const stepTones = computed(() => {
+  const tones: Record<number, Tone> = {}
+  approvalSteps.value.steps.forEach((step, index) => {
+    if (step.tone)
+      tones[index] = step.tone
+  })
+  return tones
+})
 
 function resolveForm(path: string): Component | null {
   const loader = resolveView(path)
@@ -248,8 +215,8 @@ async function withdraw() {
       </div>
 
       <div v-else-if="detail" class="flex flex-col gap-4">
-        <!-- 概要 -->
-        <XhDescriptionsRoot :columns="2" variant="outline" placement="left" size="sm">
+        <!-- 概要：无边框、标签在上，读起来是一张单子的抬头而不是表格 -->
+        <XhDescriptionsRoot :columns="4">
           <XhDescriptionsItem>
             <XhDescriptionsLabel>{{ t('workflow.approval.col_status') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
@@ -275,7 +242,7 @@ async function withdraw() {
             <XhDescriptionsLabel>{{ t('workflow.approval.col_started_time') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>{{ formatDate(detail.startTime ?? detail.creationTime) }}</XhDescriptionsValue>
           </XhDescriptionsItem>
-          <XhDescriptionsItem v-if="detail.faultMessage">
+          <XhDescriptionsItem v-if="detail.faultMessage" :span="4">
             <XhDescriptionsLabel>{{ t('workflow.approval.col_fault') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
               <span class="text-destructive">{{ detail.faultMessage }}</span>
@@ -412,29 +379,37 @@ async function withdraw() {
           </XPopconfirm>
         </section>
 
-        <!-- 审批轨迹 -->
+        <!-- 审批流程：只读竖向步骤条；被驳回、出错的步用叉号，不只靠颜色 -->
         <section class="flex flex-col gap-2" :aria-label="t('workflow.approval.section_timeline')">
           <XhSeparator>{{ t('workflow.approval.section_timeline') }}</XhSeparator>
-          <ol class="flex flex-col gap-3">
-            <li v-for="(item, index) in detail.timeline" :key="index" class="flex gap-2">
-              <Icon
-                :icon="timelineIcon(item)"
-                class="mt-0.5 shrink-0"
-                :class="item.kind === WorkflowApprovalTimelineKind.Pending ? 'text-[hsl(var(--warning))]' : item.outcome === 'rejected' ? 'text-destructive' : 'text-muted-foreground'"
-              />
-              <div class="min-w-0 flex-1">
-                <div class="text-sm">
-                  <span v-if="item.nodeName" class="text-muted-foreground">{{ item.nodeName }} · </span>{{ timelineText(item) }}
-                </div>
-                <div v-if="item.comment" class="mt-0.5 whitespace-pre-wrap text-sm text-foreground">
-                  {{ item.comment }}
-                </div>
-                <div v-if="item.time" class="mt-0.5 text-xs text-muted-foreground">
-                  {{ formatDate(item.time) }}
-                </div>
-              </div>
-            </li>
-          </ol>
+          <XhStepsRoot
+            :count="approvalSteps.steps.length"
+            :value="approvalSteps.value"
+            :tones="stepTones"
+            orientation="vertical"
+            size="sm"
+            read-only
+            :translations="{ list: t('workflow.approval.section_timeline') }"
+          >
+            <XhStepsList>
+              <XhStepsItem v-for="(step, index) in approvalSteps.steps" :key="step.key" :value="index">
+                <XhStepsTrigger>
+                  <XhStepsIndicator>
+                    <Icon v-if="step.tone === 'danger'" icon="lucide:x" />
+                    <template v-else-if="index >= approvalSteps.value">
+                      {{ index + 1 }}
+                    </template>
+                  </XhStepsIndicator>
+                  <XhStepsTitle>{{ step.title }}</XhStepsTitle>
+                  <XhStepsDescription v-if="step.lines.length || step.time">
+                    <span v-for="(line, lineIndex) in step.lines" :key="lineIndex" class="block whitespace-pre-wrap">{{ line }}</span>
+                    <time v-if="step.time" class="block" :datetime="step.time">{{ formatDate(step.time) }}</time>
+                  </XhStepsDescription>
+                </XhStepsTrigger>
+                <XhStepsSeparator />
+              </XhStepsItem>
+            </XhStepsList>
+          </XhStepsRoot>
         </section>
       </div>
     </XhDrawerContent>
