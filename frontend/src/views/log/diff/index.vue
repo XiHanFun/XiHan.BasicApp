@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types.ts'
+import type { LogDetailSchema } from '../_components/log-detail.types.ts'
 import type { DiffLogDetailDto, DiffLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
@@ -10,7 +10,8 @@ import { AuditOperationType, AuditRiskLevel, createPageRequest, diffLogApi, quer
 import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
-import { diffLogDetailFields } from '../_components/log-detail-fields'
+import { diffLogDetailSchema } from '../_components/log-detail-fields'
+import { riskLevelTone } from '../_components/log-tones'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -47,20 +48,6 @@ const riskLevelOptions = computed(() => [
   { label: t('log.diff.risk_very_high'), value: AuditRiskLevel.VeryHigh },
   { label: t('log.diff.risk_critical'), value: AuditRiskLevel.Critical },
 ])
-
-/** 风险等级 → 标签类型 */
-function riskTagType(level: AuditRiskLevel) {
-  if (level === AuditRiskLevel.Critical || level === AuditRiskLevel.VeryHigh) {
-    return 'danger'
-  }
-  if (level === AuditRiskLevel.High) {
-    return 'warning'
-  }
-  if (level === AuditRiskLevel.Medium) {
-    return 'info'
-  }
-  return 'neutral'
-}
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
@@ -99,7 +86,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 19,
     render: (row) => {
       const level = (row as unknown as DiffLogListItemDto).riskLevel
-      return h(XhTagRoot, { variant: 'subtle', tone: riskTagType(level) }, () => h(XhTagLabel, () => getOptionLabel(riskLevelOptions.value, level)))
+      return h(XhTagRoot, { variant: 'subtle', tone: riskLevelTone(level) }, () => h(XhTagLabel, () => getOptionLabel(riskLevelOptions.value, level)))
     },
   },
   {
@@ -170,7 +157,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => diffLogDetailFields(t))
+const detailSchema = computed<LogDetailSchema>(() => diffLogDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as DiffLogListItemDto | undefined
@@ -204,7 +191,7 @@ async function handleDetail(row: DiffLogListItemDto) {
   <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
-      :fields="detailFields"
+      :schema="detailSchema"
       :loading="detailLoading"
       :record="detailData"
       :title="t('log.diff.detail_title')"

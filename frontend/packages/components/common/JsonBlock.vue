@@ -2,6 +2,7 @@
 import { XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardRoot, XhJsonViewerRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Icon } from '~/iconify'
 
 /**
  * JSON 展示块：原文能解析成对象或数组就铺成可折叠的树，否则原样出纯文本。
@@ -54,8 +55,12 @@ const tree = computed(() => {
   <div class="x-json-block" :style="{ '--x-json-block-max-h': maxHeight }">
     <XhClipboardRoot v-if="text" class="x-json-block__copy" :value="text">
       <XhClipboardCopyTrigger :aria-label="t('common.actions.copy')">
-        <XhClipboardIndicator />
-        <XhClipboardIndicator copied />
+        <XhClipboardIndicator>
+          <Icon icon="lucide:copy" />
+        </XhClipboardIndicator>
+        <XhClipboardIndicator copied>
+          <Icon icon="lucide:check" />
+        </XhClipboardIndicator>
       </XhClipboardCopyTrigger>
     </XhClipboardRoot>
 

@@ -1,4 +1,4 @@
-import type { LogDetailField, LogDetailOption } from './log-detail.types.ts'
+import type { LogDetailField, LogDetailOption, LogDetailSchema } from './log-detail.types.ts'
 import {
   AccessResult,
   AuditOperationType,
@@ -8,53 +8,79 @@ import {
   PermissionChangeType,
   SignatureType,
 } from '@/api'
+import {
+  accessResultTone,
+  booleanTone,
+  loginResultTone,
+  operationResultTone,
+  operationTypeTone,
+  permissionChangeTone,
+  riskLevelTone,
+  severityTone,
+} from './log-tones'
 
 /**
- * 各日志类型「详情字段」的单一事实源。
+ * 各日志类型「详情」的单一事实源：抬头放什么、字段怎么分组、哪些值可复制或可追踪。
  *
- * 每个日志页与链路追踪详情抽屉共用同一套字段定义（标签/枚举选项/取值类型），
- * 避免链路追踪重新定义标签而漏国际化。工厂接收 i18n 的 t，返回 LogDetailField[]；
- * 在 computed 中调用即可随语言切换响应式更新。
+ * 每个日志页与链路追踪详情抽屉共用同一套定义（标签/枚举选项/取值类型），
+ * 避免链路追踪重新定义标签而漏国际化。工厂接收 i18n 的 t，在 computed 中调用即可随语言切换响应式更新。
+ * 审计列（创建时间/创建人/创建人主键）与日志自身的发生时间、操作人重复，详情里不再列出。
  */
 type Translate = (key: string) => string
 
-export function operationLogDetailFields(t: Translate): LogDetailField[] {
+/** 几种日志共有的追踪标识：可复制，链路追踪 ID 与会话标识点开即追踪 */
+function traceFields(t: Translate, keys: { requestId?: boolean, sessionId?: boolean, userId?: boolean } = {}): LogDetailField[] {
+  const { requestId = false, sessionId = true, userId = true } = keys
+  return [
+    { key: 'traceId', label: t('log.common.trace_id'), group: 'trace', mono: true, trace: 'TraceId' },
+    ...(sessionId ? [{ key: 'sessionId', label: t('log.common.session_id'), group: 'trace', mono: true, trace: 'SessionId' } satisfies LogDetailField] : []),
+    ...(requestId ? [{ key: 'requestId', label: t('log.common.request_id'), group: 'trace', mono: true } satisfies LogDetailField] : []),
+    { key: 'basicId', label: t('log.common.basic_id'), group: 'trace', mono: true },
+    ...(userId ? [{ key: 'userId', label: t('log.common.user_id'), group: 'trace', mono: true } satisfies LogDetailField] : []),
+  ]
+}
+
+export function operationLogDetailSchema(t: Translate): LogDetailSchema {
   const resultOptions: LogDetailOption[] = [
     { label: t('log.operation.result_success'), value: OperationExecuteResult.Success },
     { label: t('log.operation.result_failed'), value: OperationExecuteResult.Failed },
     { label: t('log.operation.result_partial_success'), value: OperationExecuteResult.PartialSuccess },
   ]
 
-  return [
-    { key: 'basicId', label: t('log.common.basic_id') },
-    { key: 'sessionId', label: t('log.common.session_id') },
-    { key: 'traceId', label: t('log.common.trace_id') },
-    { key: 'userName', label: t('log.common.user_name') },
-    { key: 'userId', label: t('log.common.user_id') },
-    // 操作类型直接取后端枚举元数据（前端曾只抄了其中 11 个）
-    { key: 'operationType', label: t('log.operation.operation_type'), enumName: 'OperationType', type: 'enum' },
-    { key: 'result', label: t('log.operation.result'), options: resultOptions, type: 'enum' },
-    { key: 'module', label: t('log.operation.module') },
-    { key: 'function', label: t('log.operation.function') },
-    { key: 'title', label: t('log.operation.title'), span: 2 },
-    { key: 'description', label: t('log.operation.description'), span: 2 },
-    { key: 'method', label: t('log.common.method') },
-    { key: 'requestUrl', label: t('log.operation.request_url'), span: 2 },
-    { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
-    { key: 'operationIp', label: t('log.operation.operation_ip') },
-    { key: 'operationLocation', label: t('log.operation.operation_location') },
-    { key: 'browser', label: t('log.common.browser') },
-    { key: 'os', label: t('log.common.os') },
-    { key: 'operationTime', label: t('log.operation.operation_time'), type: 'date' },
-    { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-    { key: 'createdId', label: t('log.common.created_id') },
-    { key: 'createdBy', label: t('common.fields.created_by') },
-    { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
-    { key: 'errorMessage', label: t('log.common.error_message'), type: 'code' },
-  ]
+  return {
+    header: {
+      title: ['operationType', 'title'],
+      status: 'result',
+      badges: ['executionTime'],
+      meta: ['userName', 'operationTime', 'operationIp', 'operationLocation'],
+      timeKey: 'operationTime',
+    },
+    fields: [
+      // 操作类型直接取后端枚举元数据（前端曾只抄了其中 11 个）
+      { key: 'operationType', label: t('log.operation.operation_type'), enumName: 'OperationType', type: 'enum', tone: operationTypeTone },
+      { key: 'title', label: t('log.operation.title') },
+      { key: 'result', label: t('log.operation.result'), options: resultOptions, type: 'enum', tone: operationResultTone },
+      { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
+      { key: 'userName', label: t('log.common.user_name'), trace: 'UserName' },
+      { key: 'operationTime', label: t('log.operation.operation_time'), type: 'date' },
+      { key: 'operationIp', label: t('log.operation.operation_ip'), trace: 'Ip' },
+      { key: 'operationLocation', label: t('log.operation.operation_location') },
+      { key: 'module', label: t('log.operation.module') },
+      { key: 'function', label: t('log.operation.function') },
+      { key: 'method', label: t('log.common.method'), group: 'request' },
+      { key: 'requestUrl', label: t('log.operation.request_url'), group: 'request', mono: true, span: 'full' },
+      // 描述里带着状态码与模仿者，没有别的列承载，保留
+      { key: 'description', label: t('log.operation.description'), group: 'request', span: 'full' },
+      { key: 'browser', label: t('log.common.browser'), group: 'client' },
+      { key: 'os', label: t('log.common.os'), group: 'client' },
+      ...traceFields(t),
+      { key: 'errorMessage', label: t('log.common.error_message'), type: 'code' },
+      { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
+    ],
+  }
 }
 
-export function accessLogDetailFields(t: Translate): LogDetailField[] {
+export function accessLogDetailSchema(t: Translate): LogDetailSchema {
   const accessResultOptions: LogDetailOption[] = [
     { label: t('log.access.result_success'), value: AccessResult.Success },
     { label: t('log.access.result_failed'), value: AccessResult.Failed },
@@ -64,37 +90,40 @@ export function accessLogDetailFields(t: Translate): LogDetailField[] {
     { label: t('log.access.result_server_error'), value: AccessResult.ServerError },
   ]
 
-  return [
-    { key: 'basicId', label: t('log.common.basic_id') },
-    { key: 'sessionId', label: t('log.common.session_id') },
-    { key: 'traceId', label: t('log.common.trace_id') },
-    { key: 'userName', label: t('log.common.user_name') },
-    { key: 'userId', label: t('log.common.user_id') },
-    { key: 'resourcePath', label: t('log.access.resource_path'), span: 2 },
-    { key: 'resourceName', label: t('log.access.resource_name') },
-    { key: 'resourceType', label: t('log.access.resource_type') },
-    { key: 'method', label: t('log.common.method') },
-    { key: 'statusCode', label: t('log.common.status_code') },
-    { key: 'accessResult', label: t('log.access.access_result'), options: accessResultOptions, type: 'enum' },
-    { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
-    { key: 'accessIp', label: t('log.access.access_ip') },
-    { key: 'accessLocation', label: t('log.access.access_location') },
-    { key: 'browser', label: t('log.common.browser') },
-    { key: 'os', label: t('log.common.os') },
-    { key: 'device', label: t('log.common.device') },
-    { key: 'referer', label: t('log.common.referer'), span: 2 },
-    { key: 'accessTime', label: t('log.access.access_time'), type: 'date' },
-    { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-    { key: 'createdId', label: t('log.common.created_id') },
-    { key: 'createdBy', label: t('common.fields.created_by') },
-    { key: 'remark', label: t('common.fields.remark'), span: 2 },
-    { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
-    { key: 'errorMessage', label: t('log.common.error_message'), type: 'code' },
-    { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
-  ]
+  return {
+    header: {
+      title: ['method', 'resourcePath'],
+      status: 'accessResult',
+      badges: ['statusCode', 'executionTime'],
+      meta: ['userName', 'accessTime', 'accessIp', 'accessLocation'],
+      timeKey: 'accessTime',
+    },
+    fields: [
+      { key: 'method', label: t('log.common.method') },
+      { key: 'resourcePath', label: t('log.access.resource_path') },
+      { key: 'accessResult', label: t('log.access.access_result'), options: accessResultOptions, type: 'enum', tone: accessResultTone },
+      { key: 'statusCode', label: t('log.common.status_code') },
+      { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
+      { key: 'userName', label: t('log.common.user_name'), trace: 'UserName' },
+      { key: 'accessTime', label: t('log.access.access_time'), type: 'date' },
+      { key: 'accessIp', label: t('log.access.access_ip'), trace: 'Ip' },
+      { key: 'accessLocation', label: t('log.access.access_location') },
+      { key: 'resourceName', label: t('log.access.resource_name') },
+      { key: 'resourceType', label: t('log.access.resource_type') },
+      { key: 'remark', label: t('common.fields.remark'), span: 'full' },
+      { key: 'referer', label: t('log.common.referer'), group: 'request', mono: true, span: 'full' },
+      { key: 'browser', label: t('log.common.browser'), group: 'client' },
+      { key: 'os', label: t('log.common.os'), group: 'client' },
+      { key: 'device', label: t('log.common.device'), group: 'client' },
+      ...traceFields(t),
+      { key: 'errorMessage', label: t('log.common.error_message'), type: 'code' },
+      { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
+      { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
+    ],
+  }
 }
 
-export function apiLogDetailFields(t: Translate): LogDetailField[] {
+export function apiLogDetailSchema(t: Translate): LogDetailSchema {
   const signatureTypeOptions: LogDetailOption[] = [
     { label: t('log.api.signature_type_none'), value: SignatureType.None },
     { label: 'HMAC-SHA256', value: SignatureType.HmacSha256 },
@@ -107,76 +136,80 @@ export function apiLogDetailFields(t: Translate): LogDetailField[] {
     { label: 'MD5', value: SignatureType.Md5 },
   ]
 
-  return [
-    { key: 'basicId', label: t('log.common.basic_id') },
-    { key: 'sessionId', label: t('log.common.session_id') },
-    { key: 'traceId', label: t('log.common.trace_id') },
-    { key: 'requestId', label: t('log.common.request_id') },
-    { key: 'userName', label: t('log.common.user_name') },
-    { key: 'userId', label: t('log.common.user_id') },
-    { key: 'clientId', label: t('log.api.client_id') },
-    { key: 'appId', label: t('log.api.app_id') },
-    { key: 'apiPath', label: t('log.api.api_path'), span: 2 },
-    { key: 'apiName', label: t('log.api.api_name') },
-    { key: 'apiVersion', label: t('log.api.api_version') },
-    { key: 'controllerName', label: t('log.common.controller_name') },
-    { key: 'actionName', label: t('log.common.action_name') },
-    { key: 'method', label: t('log.common.method') },
-    { key: 'statusCode', label: t('log.common.status_code') },
-    { key: 'isSuccess', falseText: t('common.statuses.failed'), label: t('log.api.is_success'), trueText: t('common.statuses.success'), type: 'boolean' },
-    { key: 'isSignatureValid', falseText: t('log.api.signature_invalid'), label: t('log.api.is_signature_valid'), trueText: t('log.api.signature_valid'), type: 'boolean' },
-    { key: 'signatureType', label: t('log.api.signature_type'), options: signatureTypeOptions, type: 'enum' },
-    { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
-    { key: 'requestSize', label: t('log.api.request_size'), type: 'bytes' },
-    { key: 'responseSize', label: t('log.api.response_size'), type: 'bytes' },
-    { key: 'requestIp', label: t('log.api.request_ip') },
-    { key: 'requestLocation', label: t('log.api.request_location') },
-    { key: 'browser', label: t('log.common.browser') },
-    { key: 'referer', label: t('log.common.referer'), span: 2 },
-    { key: 'requestTime', label: t('log.api.request_time'), type: 'date' },
-    { key: 'responseTime', label: t('log.api.response_time'), type: 'date' },
-    { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-    { key: 'createdId', label: t('log.common.created_id') },
-    { key: 'createdBy', label: t('common.fields.created_by') },
-    { key: 'remark', label: t('common.fields.remark'), span: 2 },
-    { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
-    { key: 'requestParams', label: t('log.common.request_params'), type: 'code' },
-    { key: 'requestBody', label: t('log.common.request_body'), type: 'code' },
-    { key: 'responseBody', label: t('log.api.response_body'), type: 'code' },
-    { key: 'requestHeaders', label: t('log.common.request_headers'), type: 'code' },
-    { key: 'responseHeaders', label: t('log.common.response_headers'), type: 'code' },
-    { key: 'errorMessage', label: t('log.common.error_message'), type: 'code' },
-    { key: 'exceptionStackTrace', label: t('log.common.exception_stack_trace'), type: 'code' },
-    { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
-  ]
+  return {
+    header: {
+      title: ['method', 'apiPath'],
+      status: 'isSuccess',
+      badges: ['statusCode', 'executionTime'],
+      meta: ['clientId', 'userName', 'requestTime', 'requestIp', 'requestLocation'],
+      timeKey: 'requestTime',
+    },
+    fields: [
+      { key: 'method', label: t('log.common.method') },
+      { key: 'apiPath', label: t('log.api.api_path') },
+      { key: 'isSuccess', falseText: t('common.statuses.failed'), label: t('log.api.is_success'), trueText: t('common.statuses.success'), type: 'boolean', tone: booleanTone },
+      { key: 'statusCode', label: t('log.common.status_code') },
+      { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
+      { key: 'clientId', label: t('log.api.client_id') },
+      { key: 'userName', label: t('log.common.user_name'), trace: 'UserName' },
+      { key: 'requestTime', label: t('log.api.request_time'), type: 'date' },
+      { key: 'requestIp', label: t('log.api.request_ip'), trace: 'Ip' },
+      { key: 'requestLocation', label: t('log.api.request_location') },
+      { key: 'apiName', label: t('log.api.api_name') },
+      { key: 'apiVersion', label: t('log.api.api_version') },
+      { key: 'appId', label: t('log.api.app_id'), mono: true },
+      { key: 'isSignatureValid', falseText: t('log.api.signature_invalid'), label: t('log.api.is_signature_valid'), trueText: t('log.api.signature_valid'), type: 'boolean' },
+      { key: 'signatureType', label: t('log.api.signature_type'), options: signatureTypeOptions, type: 'enum' },
+      { key: 'remark', label: t('common.fields.remark'), span: 'full' },
+      { key: 'controllerName', label: t('log.common.controller_name'), group: 'request' },
+      { key: 'actionName', label: t('log.common.action_name'), group: 'request' },
+      { key: 'responseTime', label: t('log.api.response_time'), group: 'request', type: 'date' },
+      { key: 'requestSize', label: t('log.api.request_size'), group: 'request', type: 'bytes' },
+      { key: 'responseSize', label: t('log.api.response_size'), group: 'request', type: 'bytes' },
+      { key: 'referer', label: t('log.common.referer'), group: 'request', mono: true, span: 'full' },
+      { key: 'browser', label: t('log.common.browser'), group: 'client' },
+      ...traceFields(t, { requestId: true }),
+      { key: 'errorMessage', label: t('log.common.error_message'), type: 'code' },
+      { key: 'exceptionStackTrace', label: t('log.common.exception_stack_trace'), type: 'code' },
+      { key: 'requestParams', label: t('log.common.request_params'), type: 'code' },
+      { key: 'requestBody', label: t('log.common.request_body'), type: 'code' },
+      { key: 'responseBody', label: t('log.api.response_body'), type: 'code' },
+      { key: 'requestHeaders', label: t('log.common.request_headers'), type: 'code' },
+      { key: 'responseHeaders', label: t('log.common.response_headers'), type: 'code' },
+      { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
+      { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
+    ],
+  }
 }
 
-export function loginLogDetailFields(t: Translate): LogDetailField[] {
-  return [
-    { key: 'basicId', label: t('log.common.basic_id') },
-    { key: 'sessionId', label: t('log.common.session_id') },
-    { key: 'traceId', label: t('log.common.trace_id') },
-    { key: 'userName', label: t('log.common.user_name') },
-    { key: 'userId', label: t('log.common.user_id') },
-    { key: 'loginIp', label: t('log.login.login_ip') },
-    { key: 'loginLocation', label: t('log.login.login_location') },
-    { key: 'browser', label: t('log.common.browser') },
-    { key: 'os', label: t('log.common.os') },
-    { key: 'device', label: t('log.common.device') },
-    { key: 'deviceId', label: t('log.common.device_id') },
-    // 登录结果随认证审计事件增长（模仿登录等），标签直接取后端枚举元数据
-    { key: 'loginResult', label: t('log.login.login_result'), enumName: 'LoginResult', type: 'enum' },
-    { key: 'isRiskLogin', falseText: t('common.statuses.no'), label: t('log.login.is_risk_login'), trueText: t('common.statuses.yes'), type: 'boolean' },
-    { key: 'loginTime', label: t('log.login.login_time'), type: 'date' },
-    { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-    { key: 'createdId', label: t('log.common.created_id') },
-    { key: 'createdBy', label: t('common.fields.created_by') },
-    { key: 'message', label: t('log.login.message'), type: 'code' },
-    { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
-  ]
+export function loginLogDetailSchema(t: Translate): LogDetailSchema {
+  return {
+    header: {
+      title: ['userName'],
+      status: 'loginResult',
+      meta: ['loginTime', 'loginIp', 'loginLocation'],
+      timeKey: 'loginTime',
+    },
+    fields: [
+      { key: 'userName', label: t('log.common.user_name') },
+      // 登录结果随认证审计事件增长（模仿登录等），标签直接取后端枚举元数据
+      { key: 'loginResult', label: t('log.login.login_result'), enumName: 'LoginResult', type: 'enum', tone: loginResultTone },
+      { key: 'loginTime', label: t('log.login.login_time'), type: 'date' },
+      { key: 'loginIp', label: t('log.login.login_ip'), trace: 'Ip' },
+      { key: 'loginLocation', label: t('log.login.login_location') },
+      { key: 'isRiskLogin', falseText: t('common.statuses.no'), label: t('log.login.is_risk_login'), trueText: t('common.statuses.yes'), type: 'boolean' },
+      { key: 'browser', label: t('log.common.browser'), group: 'client' },
+      { key: 'os', label: t('log.common.os'), group: 'client' },
+      { key: 'device', label: t('log.common.device'), group: 'client' },
+      { key: 'deviceId', label: t('log.common.device_id'), group: 'client', mono: true },
+      ...traceFields(t),
+      { key: 'message', label: t('log.login.message'), type: 'code' },
+      { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
+    ],
+  }
 }
 
-export function exceptionLogDetailFields(t: Translate): LogDetailField[] {
+export function exceptionLogDetailSchema(t: Translate): LogDetailSchema {
   const severityOptions: LogDetailOption[] = [
     { label: t('log.exception.severity_low'), value: 1 },
     { label: t('log.exception.severity_medium'), value: 2 },
@@ -197,55 +230,58 @@ export function exceptionLogDetailFields(t: Translate): LogDetailField[] {
     { label: 'API', value: DeviceType.Api },
   ]
 
-  return [
-    { key: 'basicId', label: t('log.common.basic_id') },
-    { key: 'sessionId', label: t('log.common.session_id') },
-    { key: 'traceId', label: t('log.common.trace_id') },
-    { key: 'requestId', label: t('log.common.request_id') },
-    { key: 'userName', label: t('log.common.user_name') },
-    { key: 'userId', label: t('log.common.user_id') },
-    { key: 'exceptionType', label: t('log.exception.exception_type') },
-    { key: 'errorCode', label: t('log.exception.error_code') },
-    { key: 'exceptionSource', label: t('log.exception.exception_source') },
-    { key: 'exceptionLocation', label: t('log.exception.exception_location'), span: 2 },
-    { key: 'severityLevel', label: t('log.exception.severity_level'), options: severityOptions, type: 'enum' },
-    { key: 'statusCode', label: t('log.common.status_code') },
-    { key: 'requestPath', label: t('log.exception.request_path'), span: 2 },
-    { key: 'requestMethod', label: t('log.exception.request_method') },
-    { key: 'controllerName', label: t('log.common.controller_name') },
-    { key: 'actionName', label: t('log.common.action_name') },
-    { key: 'operationIp', label: t('log.exception.operation_ip') },
-    { key: 'operationLocation', label: t('log.exception.operation_location') },
-    { key: 'browser', label: t('log.common.browser') },
-    { key: 'os', label: t('log.common.os') },
-    { key: 'deviceType', label: t('log.exception.device_type'), options: deviceTypeOptions, type: 'enum' },
-    { key: 'applicationName', label: t('log.exception.application_name') },
-    { key: 'applicationVersion', label: t('log.exception.application_version') },
-    { key: 'environmentName', label: t('log.exception.environment_name') },
-    { key: 'serverHostName', label: t('log.exception.server_host_name') },
-    { key: 'threadId', label: t('log.exception.thread_id') },
-    { key: 'processId', label: t('log.exception.process_id') },
-    { key: 'isHandled', falseText: t('log.exception.unhandled'), label: t('log.exception.is_handled'), trueText: t('log.exception.handled'), type: 'boolean' },
-    { key: 'handledBy', label: t('log.exception.handled_by') },
-    { key: 'handledTime', label: t('log.exception.handled_time'), type: 'date' },
-    { key: 'exceptionTime', label: t('log.exception.exception_time'), type: 'date' },
-    { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-    { key: 'createdId', label: t('log.common.created_id') },
-    { key: 'createdBy', label: t('common.fields.created_by') },
-    { key: 'handledRemark', label: t('log.exception.handled_remark'), span: 2 },
-    { key: 'remark', label: t('common.fields.remark'), span: 2 },
-    { key: 'exceptionMessage', label: t('log.exception.exception_message'), type: 'code' },
-    { key: 'exceptionStackTrace', label: t('log.common.exception_stack_trace'), type: 'code' },
-    { key: 'requestParams', label: t('log.common.request_params'), type: 'code' },
-    { key: 'requestBody', label: t('log.common.request_body'), type: 'code' },
-    { key: 'requestHeaders', label: t('log.common.request_headers'), type: 'code' },
-    { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
-    { key: 'deviceInfo', label: t('log.exception.device_info'), type: 'code' },
-    { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
-  ]
+  return {
+    header: {
+      title: ['exceptionType'],
+      status: 'severityLevel',
+      badges: ['statusCode'],
+      meta: ['userName', 'exceptionTime', 'operationIp', 'operationLocation'],
+      timeKey: 'exceptionTime',
+    },
+    fields: [
+      { key: 'exceptionType', label: t('log.exception.exception_type') },
+      { key: 'severityLevel', label: t('log.exception.severity_level'), options: severityOptions, type: 'enum', tone: severityTone },
+      { key: 'statusCode', label: t('log.common.status_code') },
+      { key: 'userName', label: t('log.common.user_name'), trace: 'UserName' },
+      { key: 'exceptionTime', label: t('log.exception.exception_time'), type: 'date' },
+      { key: 'operationIp', label: t('log.exception.operation_ip'), trace: 'Ip' },
+      { key: 'operationLocation', label: t('log.exception.operation_location') },
+      { key: 'errorCode', label: t('log.exception.error_code') },
+      { key: 'exceptionSource', label: t('log.exception.exception_source') },
+      { key: 'exceptionLocation', label: t('log.exception.exception_location'), mono: true, span: 'full' },
+      { key: 'remark', label: t('common.fields.remark'), span: 'full' },
+      { key: 'requestMethod', label: t('log.exception.request_method'), group: 'request' },
+      { key: 'controllerName', label: t('log.common.controller_name'), group: 'request' },
+      { key: 'actionName', label: t('log.common.action_name'), group: 'request' },
+      { key: 'requestPath', label: t('log.exception.request_path'), group: 'request', mono: true, span: 'full' },
+      { key: 'browser', label: t('log.common.browser'), group: 'client' },
+      { key: 'os', label: t('log.common.os'), group: 'client' },
+      { key: 'deviceType', label: t('log.exception.device_type'), group: 'client', options: deviceTypeOptions, type: 'enum' },
+      { key: 'applicationName', label: t('log.exception.application_name'), group: 'runtime' },
+      { key: 'applicationVersion', label: t('log.exception.application_version'), group: 'runtime' },
+      { key: 'environmentName', label: t('log.exception.environment_name'), group: 'runtime' },
+      { key: 'serverHostName', label: t('log.exception.server_host_name'), group: 'runtime' },
+      { key: 'threadId', label: t('log.exception.thread_id'), group: 'runtime' },
+      { key: 'processId', label: t('log.exception.process_id'), group: 'runtime' },
+      { key: 'isHandled', falseText: t('log.exception.unhandled'), label: t('log.exception.is_handled'), trueText: t('log.exception.handled'), type: 'boolean', group: 'handling' },
+      { key: 'handledBy', label: t('log.exception.handled_by'), group: 'handling' },
+      { key: 'handledTime', label: t('log.exception.handled_time'), type: 'date', group: 'handling' },
+      { key: 'handledRemark', label: t('log.exception.handled_remark'), group: 'handling', span: 'full' },
+      ...traceFields(t, { requestId: true }),
+      // 异常信息与堆栈是排查的主角，排在代码块最前
+      { key: 'exceptionMessage', label: t('log.exception.exception_message'), type: 'code' },
+      { key: 'exceptionStackTrace', label: t('log.common.exception_stack_trace'), type: 'code' },
+      { key: 'requestParams', label: t('log.common.request_params'), type: 'code' },
+      { key: 'requestBody', label: t('log.common.request_body'), type: 'code' },
+      { key: 'requestHeaders', label: t('log.common.request_headers'), type: 'code' },
+      { key: 'deviceInfo', label: t('log.exception.device_info'), type: 'code' },
+      { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
+      { key: 'userAgent', label: t('log.common.user_agent'), type: 'code' },
+    ],
+  }
 }
 
-export function diffLogDetailFields(t: Translate): LogDetailField[] {
+export function diffLogDetailSchema(t: Translate): LogDetailSchema {
   const operationTypeOptions: LogDetailOption[] = [
     { label: t('log.diff.type_create'), value: AuditOperationType.Create },
     { label: t('log.diff.type_update'), value: AuditOperationType.Update },
@@ -264,38 +300,42 @@ export function diffLogDetailFields(t: Translate): LogDetailField[] {
     { label: t('log.diff.risk_critical'), value: AuditRiskLevel.Critical },
   ]
 
-  return [
-    { key: 'basicId', label: t('log.common.basic_id') },
-    { key: 'sessionId', label: t('log.common.session_id') },
-    { key: 'traceId', label: t('log.common.trace_id') },
-    { key: 'requestId', label: t('log.common.request_id') },
-    { key: 'userName', label: t('log.common.user_name') },
-    { key: 'userId', label: t('log.common.user_id') },
-    { key: 'auditType', label: t('log.diff.audit_type') },
-    { key: 'operationType', label: t('log.diff.operation_type'), options: operationTypeOptions, type: 'enum' },
-    { key: 'riskLevel', label: t('log.diff.risk_level'), options: riskLevelOptions, type: 'enum' },
-    { key: 'entityType', label: t('log.diff.entity_type') },
-    { key: 'entityName', label: t('log.diff.entity_name') },
-    { key: 'tableName', label: t('log.diff.table_name') },
-    { key: 'entityId', label: t('log.diff.entity_id') },
-    { key: 'primaryKey', label: t('log.diff.primary_key') },
-    { key: 'primaryKeyValue', label: t('log.diff.primary_key_value') },
-    { key: 'changeDescription', label: t('log.diff.change_description'), span: 2 },
-    { key: 'description', label: t('log.diff.description'), span: 2 },
-    { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
-    { key: 'operationIp', label: t('log.diff.operation_ip') },
-    { key: 'auditTime', label: t('log.diff.audit_time'), type: 'date' },
-    { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-    { key: 'changedFields', label: t('log.diff.changed_fields'), type: 'code' },
-    { key: 'beforeData', label: t('log.diff.before_data'), type: 'code' },
-    { key: 'afterData', label: t('log.diff.after_data'), type: 'code' },
-    { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
-    { key: 'exceptionMessage', label: t('log.common.exception_message'), type: 'code' },
-    { key: 'exceptionStackTrace', label: t('log.common.exception_stack_trace'), type: 'code' },
-  ]
+  return {
+    header: {
+      title: ['operationType', 'entityName'],
+      status: 'riskLevel',
+      badges: ['executionTime'],
+      meta: ['userName', 'auditTime', 'operationIp'],
+      timeKey: 'auditTime',
+    },
+    fields: [
+      { key: 'operationType', label: t('log.diff.operation_type'), options: operationTypeOptions, type: 'enum' },
+      { key: 'entityName', label: t('log.diff.entity_name') },
+      { key: 'riskLevel', label: t('log.diff.risk_level'), options: riskLevelOptions, type: 'enum', tone: riskLevelTone },
+      { key: 'executionTime', label: t('log.common.execution_time'), type: 'duration' },
+      { key: 'userName', label: t('log.common.user_name'), trace: 'UserName' },
+      { key: 'auditTime', label: t('log.diff.audit_time'), type: 'date' },
+      { key: 'operationIp', label: t('log.diff.operation_ip'), trace: 'Ip' },
+      { key: 'auditType', label: t('log.diff.audit_type') },
+      { key: 'entityType', label: t('log.diff.entity_type') },
+      { key: 'tableName', label: t('log.diff.table_name') },
+      { key: 'entityId', label: t('log.diff.entity_id'), mono: true },
+      { key: 'primaryKey', label: t('log.diff.primary_key') },
+      { key: 'primaryKeyValue', label: t('log.diff.primary_key_value'), mono: true },
+      { key: 'changeDescription', label: t('log.diff.change_description'), span: 'full' },
+      { key: 'description', label: t('log.diff.description'), span: 'full' },
+      ...traceFields(t, { requestId: true }),
+      { key: 'changedFields', label: t('log.diff.changed_fields'), type: 'code' },
+      { key: 'beforeData', label: t('log.diff.before_data'), type: 'code' },
+      { key: 'afterData', label: t('log.diff.after_data'), type: 'code' },
+      { key: 'exceptionMessage', label: t('log.common.exception_message'), type: 'code' },
+      { key: 'exceptionStackTrace', label: t('log.common.exception_stack_trace'), type: 'code' },
+      { key: 'extendData', label: t('log.common.extend_data'), type: 'code' },
+    ],
+  }
 }
 
-export function permissionChangeLogDetailFields(t: Translate): LogDetailField[] {
+export function permissionChangeLogDetailSchema(t: Translate): LogDetailSchema {
   const changeTypeOptions: LogDetailOption[] = [
     { label: t('log.permission_change.type_role_grant'), value: PermissionChangeType.RoleGrantPermission },
     { label: t('log.permission_change.type_role_revoke'), value: PermissionChangeType.RoleRevokePermission },
@@ -311,39 +351,50 @@ export function permissionChangeLogDetailFields(t: Translate): LogDetailField[] 
     { label: t('log.permission_change.type_role_remove_parent'), value: PermissionChangeType.RoleRemoveParent },
   ]
 
-  return [
-    { key: 'basicId', label: t('log.common.basic_id') },
-    { key: 'traceId', label: t('log.common.trace_id') },
-    { key: 'changeType', label: t('log.permission_change.change_type'), options: changeTypeOptions, type: 'enum' },
-    { key: 'operatorUserName', label: t('log.permission_change.operator_user_name') },
-    { key: 'operatorUserId', label: t('log.permission_change.operator_user_id') },
-    { key: 'targetUserName', label: t('log.permission_change.target_user_name') },
-    { key: 'targetUserId', label: t('log.permission_change.target_user_id') },
-    { key: 'targetRoleName', label: t('log.permission_change.target_role_name') },
-    { key: 'targetRoleId', label: t('log.permission_change.target_role_id') },
-    { key: 'permissionName', label: t('log.permission_change.permission_name') },
-    { key: 'permissionId', label: t('log.permission_change.permission_id') },
-    { key: 'operationIp', label: t('log.permission_change.operation_ip') },
-    { key: 'changeReason', label: t('log.permission_change.change_reason'), span: 2 },
-    { key: 'description', label: t('log.permission_change.description'), span: 2 },
-    { key: 'changeTime', label: t('log.permission_change.change_time'), type: 'date' },
-    { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-    { key: 'createdId', label: t('log.common.created_id') },
-    { key: 'createdBy', label: t('common.fields.created_by') },
-  ]
+  return {
+    header: {
+      title: ['targetUserName', 'targetRoleName', 'permissionName'],
+      status: 'changeType',
+      meta: ['operatorUserName', 'changeTime', 'operationIp'],
+      timeKey: 'changeTime',
+    },
+    fields: [
+      { key: 'changeType', label: t('log.permission_change.change_type'), options: changeTypeOptions, type: 'enum', tone: permissionChangeTone },
+      { key: 'targetUserName', label: t('log.permission_change.target_user_name') },
+      { key: 'targetRoleName', label: t('log.permission_change.target_role_name') },
+      { key: 'permissionName', label: t('log.permission_change.permission_name') },
+      { key: 'operatorUserName', label: t('log.permission_change.operator_user_name'), trace: 'UserName' },
+      { key: 'changeTime', label: t('log.permission_change.change_time'), type: 'date' },
+      { key: 'operationIp', label: t('log.permission_change.operation_ip'), trace: 'Ip' },
+      { key: 'changeReason', label: t('log.permission_change.change_reason'), span: 'full' },
+      { key: 'description', label: t('log.permission_change.description'), span: 'full' },
+      { key: 'traceId', label: t('log.common.trace_id'), group: 'trace', mono: true, trace: 'TraceId' },
+      { key: 'basicId', label: t('log.common.basic_id'), group: 'trace', mono: true },
+      { key: 'operatorUserId', label: t('log.permission_change.operator_user_id'), group: 'trace', mono: true },
+      { key: 'targetUserId', label: t('log.permission_change.target_user_id'), group: 'trace', mono: true },
+      { key: 'targetRoleId', label: t('log.permission_change.target_role_id'), group: 'trace', mono: true },
+      { key: 'permissionId', label: t('log.permission_change.permission_id'), group: 'trace', mono: true },
+    ],
+  }
 }
 
 /**
- * 升级记录（数据库升级脚本执行台账）详情字段。
+ * 升级记录（数据库升级脚本执行台账）详情。
  */
-export function migrationHistoryDetailFields(t: Translate): LogDetailField[] {
-  return [
-    { key: 'version', label: t('log.migration.version') },
-    { key: 'scriptName', label: t('log.migration.script_name') },
-    { key: 'success', label: t('log.migration.success'), type: 'boolean', trueText: t('log.migration.success_yes'), falseText: t('log.migration.success_no') },
-    { key: 'executedTime', label: t('log.migration.executed_time'), type: 'date' },
-    { key: 'nodeName', label: t('log.migration.node_name') },
-    { key: 'errorMessage', label: t('log.common.error_message'), type: 'code', span: 2 },
-    { key: 'createdTime', label: t('common.fields.created_time'), type: 'date' },
-  ]
+export function migrationHistoryDetailSchema(t: Translate): LogDetailSchema {
+  return {
+    header: {
+      title: ['version', 'scriptName'],
+      status: 'success',
+      meta: ['executedTime', 'nodeName'],
+    },
+    fields: [
+      { key: 'version', label: t('log.migration.version') },
+      { key: 'scriptName', label: t('log.migration.script_name') },
+      { key: 'success', label: t('log.migration.success'), type: 'boolean', trueText: t('log.migration.success_yes'), falseText: t('log.migration.success_no'), tone: booleanTone },
+      { key: 'executedTime', label: t('log.migration.executed_time'), type: 'date' },
+      { key: 'nodeName', label: t('log.migration.node_name') },
+      { key: 'errorMessage', label: t('log.common.error_message'), type: 'code' },
+    ],
+  }
 }

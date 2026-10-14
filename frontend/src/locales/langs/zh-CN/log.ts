@@ -1,5 +1,15 @@
 export default {
   // 跨日志页面共享的字段标签与通用文案
+  detail: {
+    group_subject: '详情',
+    group_request: '请求',
+    group_client: '客户端',
+    group_runtime: '运行环境',
+    group_handling: '处理',
+    group_trace: '追踪与标识',
+    copied: '已复制',
+    open_trace: '按{label}「{value}」查看链路追踪',
+  },
   common: {
     basic_id: '日志主键',
     user_id: '用户主键',

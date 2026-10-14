@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types.ts'
+import type { LogDetailSchema } from '../_components/log-detail.types.ts'
 import type { TracePreset } from '../_components/trace-nav'
 import type { TraceTimelineItemDto, TraceTimelineResultDto } from '@/api'
 import type { ListFieldSchema } from '~/components'
@@ -12,13 +12,13 @@ import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { formatDate } from '~/utils'
 import {
-  accessLogDetailFields,
-  apiLogDetailFields,
-  diffLogDetailFields,
-  exceptionLogDetailFields,
-  loginLogDetailFields,
-  operationLogDetailFields,
-  permissionChangeLogDetailFields,
+  accessLogDetailSchema,
+  apiLogDetailSchema,
+  diffLogDetailSchema,
+  exceptionLogDetailSchema,
+  loginLogDetailSchema,
+  operationLogDetailSchema,
+  permissionChangeLogDetailSchema,
 } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { tracePreset } from '../_components/trace-nav'
@@ -368,20 +368,20 @@ async function openDetail(item: TraceTimelineItemDto) {
   }
 }
 
-// 详情字段：直接复用各日志类型页已定义的字段/标签/枚举国际化（单一事实源 log-detail-fields.ts），
+// 详情定义：直接复用各日志类型页已定义的抬头、分组、标签与枚举国际化（单一事实源 log-detail-fields.ts），
 // 不在链路追踪里另建映射，避免漏国际化。
-const DETAIL_FIELDS_BY_TYPE: Record<TraceLogType, (t: (key: string) => string) => LogDetailField[]> = {
-  [TraceLogType.Access]: accessLogDetailFields,
-  [TraceLogType.Api]: apiLogDetailFields,
-  [TraceLogType.Operation]: operationLogDetailFields,
-  [TraceLogType.Login]: loginLogDetailFields,
-  [TraceLogType.Exception]: exceptionLogDetailFields,
-  [TraceLogType.Diff]: diffLogDetailFields,
-  [TraceLogType.PermissionChange]: permissionChangeLogDetailFields,
+const DETAIL_SCHEMA_BY_TYPE: Record<TraceLogType, (t: (key: string) => string) => LogDetailSchema> = {
+  [TraceLogType.Access]: accessLogDetailSchema,
+  [TraceLogType.Api]: apiLogDetailSchema,
+  [TraceLogType.Operation]: operationLogDetailSchema,
+  [TraceLogType.Login]: loginLogDetailSchema,
+  [TraceLogType.Exception]: exceptionLogDetailSchema,
+  [TraceLogType.Diff]: diffLogDetailSchema,
+  [TraceLogType.PermissionChange]: permissionChangeLogDetailSchema,
 }
 
-const detailFields = computed<LogDetailField[]>(() =>
-  detailLogType.value != null ? DETAIL_FIELDS_BY_TYPE[detailLogType.value](t) : [])
+const detailSchema = computed<LogDetailSchema>(() =>
+  detailLogType.value != null ? DETAIL_SCHEMA_BY_TYPE[detailLogType.value](t) : { header: { title: [], meta: [] }, fields: [] })
 
 // ── 深链预填（从各日志页「追踪」跳转，经共享预设复用同一标签页） ──
 function applyPreset(preset: TracePreset) {
@@ -547,7 +547,7 @@ watch(tracePreset, (preset) => {
 
     <LogDetailDrawer
       v-model:show="detailVisible"
-      :fields="detailFields"
+      :schema="detailSchema"
       :loading="detailLoading"
       :record="detailData"
       :title="detailTitle"

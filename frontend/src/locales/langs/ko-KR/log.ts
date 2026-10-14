@@ -1,5 +1,15 @@
 export default {
   // 跨日志页面共享的字段标签与通用文案
+  detail: {
+    group_subject: '상세',
+    group_request: '요청',
+    group_client: '클라이언트',
+    group_runtime: '실행 환경',
+    group_handling: '처리',
+    group_trace: '추적 및 식별자',
+    copied: '복사했어요',
+    open_trace: '{label} 「{value}」로 추적 보기',
+  },
   common: {
     basic_id: '로그 ID',
     user_id: '사용자 ID',

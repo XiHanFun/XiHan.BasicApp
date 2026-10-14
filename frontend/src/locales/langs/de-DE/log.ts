@@ -1,5 +1,15 @@
 export default {
   // Shared field labels and common copy across log pages
+  detail: {
+    group_subject: 'Details',
+    group_request: 'Anfrage',
+    group_client: 'Client',
+    group_runtime: 'Laufzeit',
+    group_handling: 'Bearbeitung',
+    group_trace: 'Trace & Kennungen',
+    copied: 'Kopiert',
+    open_trace: 'Trace nach {label} „{value}“',
+  },
   common: {
     basic_id: 'Protokoll-ID',
     user_id: 'Benutzer-ID',
