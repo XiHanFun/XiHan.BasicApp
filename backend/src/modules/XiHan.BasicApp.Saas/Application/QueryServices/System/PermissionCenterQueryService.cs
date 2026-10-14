@@ -50,6 +50,8 @@ public sealed class PermissionCenterQueryService
 
     private readonly ITenantUserRepository _tenantUserRepository;
 
+    private readonly IUserRepository _userRepository;
+
     private readonly IWorkflowBusinessService _workflowBusinessService;
 
     /// <summary>
@@ -66,6 +68,7 @@ public sealed class PermissionCenterQueryService
         IPermissionRequestRepository permissionRequestRepository,
         IRoleRepository roleRepository,
         ITenantUserRepository tenantUserRepository,
+        IUserRepository userRepository,
         IWorkflowBusinessService workflowBusinessService,
         ISqlSugarClientResolver clientResolver)
     {
@@ -79,6 +82,7 @@ public sealed class PermissionCenterQueryService
         _permissionRequestRepository = permissionRequestRepository;
         _roleRepository = roleRepository;
         _tenantUserRepository = tenantUserRepository;
+        _userRepository = userRepository;
         _workflowBusinessService = workflowBusinessService;
         _clientResolver = clientResolver;
     }
@@ -228,9 +232,11 @@ public sealed class PermissionCenterQueryService
             return [];
         }
 
-        var tenantMemberMap = await BuildTenantMemberMapAsync(
-            delegations.SelectMany(item => new[] { item.DelegatorUserId, item.DelegateeUserId }),
-            cancellationToken);
+        var partyUserIds = delegations
+            .SelectMany(item => new[] { item.DelegatorUserId, item.DelegateeUserId })
+            .ToArray();
+        var tenantMemberMap = await BuildTenantMemberMapAsync(partyUserIds, cancellationToken);
+        var userMap = await BuildUserMapAsync(partyUserIds, cancellationToken);
         var roleMap = await BuildRoleMapAsync(
             delegations
                 .Where(item => item.RoleId.HasValue)
@@ -241,7 +247,9 @@ public sealed class PermissionCenterQueryService
             .Select(item => PermissionDelegationApplicationMapper.ToListItemDto(
                 item,
                 tenantMemberMap.GetValueOrDefault(item.DelegatorUserId),
+                userMap.GetValueOrDefault(item.DelegatorUserId),
                 tenantMemberMap.GetValueOrDefault(item.DelegateeUserId),
+                userMap.GetValueOrDefault(item.DelegateeUserId),
                 permission,
                 item.RoleId.HasValue ? roleMap.GetValueOrDefault(item.RoleId.Value) : null,
                 now))
@@ -266,6 +274,7 @@ public sealed class PermissionCenterQueryService
         }
 
         var tenantMemberMap = await BuildTenantMemberMapAsync(requests.Select(item => item.RequestUserId), cancellationToken);
+        var userMap = await BuildUserMapAsync(requests.Select(item => item.RequestUserId), cancellationToken);
         var roleMap = await BuildRoleMapAsync(
             requests
                 .Where(item => item.RoleId.HasValue)
@@ -280,6 +289,7 @@ public sealed class PermissionCenterQueryService
             .Select(item => PermissionRequestApplicationMapper.ToListItemDto(
                 item,
                 tenantMemberMap.GetValueOrDefault(item.RequestUserId),
+                userMap.GetValueOrDefault(item.RequestUserId),
                 permission,
                 item.RoleId.HasValue ? roleMap.GetValueOrDefault(item.RoleId.Value) : null,
                 workflowMap.GetValueOrDefault(item.BasicId.ToString(CultureInfo.InvariantCulture)),
@@ -334,5 +344,24 @@ public sealed class PermissionCenterQueryService
             item => item.CreatedTime,
             cancellationToken);
         return tenantMembers.ToDictionary(item => item.UserId);
+    }
+
+    /// <summary>
+    /// 成员没填租户内显示名时取账号的姓名；忽略租户过滤，外部成员的账号注册在别的租户
+    /// </summary>
+    private async Task<IReadOnlyDictionary<long, SysUser>> BuildUserMapAsync(IEnumerable<long> userIds, CancellationToken cancellationToken)
+    {
+        var ids = userIds
+            .Where(id => id > 0)
+            .Distinct()
+            .ToArray();
+
+        if (ids.Length == 0)
+        {
+            return new Dictionary<long, SysUser>();
+        }
+
+        var users = await _userRepository.GetListByIdsIgnoreTenantAsync(ids, cancellationToken);
+        return users.ToDictionary(item => item.BasicId);
     }
 }

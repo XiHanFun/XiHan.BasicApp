@@ -13,6 +13,33 @@ namespace XiHan.BasicApp.Saas.Application.Mappers;
 public static class TenantMemberApplicationMapper
 {
     /// <summary>
+    /// 解析成员在租户内的显示名
+    /// </summary>
+    /// <remarks>
+    /// 成员名片（租户内显示名）优先，没填时取账号的真实姓名 → 昵称 → 用户名，与审批中心解析人名的口径一致。
+    /// 成员关系与账号都查不到时返回 null，由调用方决定怎么显示。
+    /// </remarks>
+    /// <param name="member">租户成员关系</param>
+    /// <param name="user">成员账号（外部成员的账号注册在别的租户，调用方需跨租户读取）</param>
+    /// <returns>显示名</returns>
+    public static string? ToDisplayName(SysTenantUser? member, SysUser? user)
+    {
+        if (!string.IsNullOrWhiteSpace(member?.DisplayName))
+        {
+            return member.DisplayName;
+        }
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        return !string.IsNullOrWhiteSpace(user.RealName) ? user.RealName
+            : !string.IsNullOrWhiteSpace(user.NickName) ? user.NickName
+            : user.UserName;
+    }
+
+    /// <summary>
     /// 映射租户成员添加命令（直接生效）
     /// </summary>
     public static TenantMemberAddCommand ToAddCommand(TenantMemberAddDto input, long? operatorUserId)

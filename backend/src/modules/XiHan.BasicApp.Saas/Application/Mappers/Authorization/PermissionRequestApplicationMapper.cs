@@ -36,6 +36,7 @@ public static class PermissionRequestApplicationMapper
     public static PermissionRequestListItemDto ToListItemDto(
         SysPermissionRequest request,
         SysTenantUser? requestUser,
+        SysUser? requestAccount,
         SysPermission? permission,
         SysRole? role,
         WorkflowBusinessProgress? workflow,
@@ -48,7 +49,7 @@ public static class PermissionRequestApplicationMapper
             BasicId = request.BasicId,
             RequestUserId = request.RequestUserId,
             RequestTenantMemberId = requestUser?.BasicId,
-            RequestUserDisplayName = requestUser?.DisplayName,
+            RequestUserDisplayName = TenantMemberApplicationMapper.ToDisplayName(requestUser, requestAccount),
             PermissionId = request.PermissionId,
             PermissionCode = permission?.PermissionCode,
             PermissionName = permission?.PermissionName,
@@ -73,6 +74,7 @@ public static class PermissionRequestApplicationMapper
     public static PermissionRequestDetailDto ToDetailDto(
         SysPermissionRequest request,
         SysTenantUser? requestUser,
+        SysUser? requestAccount,
         SysPermission? permission,
         SysRole? role,
         WorkflowBusinessProgress? workflow,
@@ -85,7 +87,7 @@ public static class PermissionRequestApplicationMapper
             BasicId = request.BasicId,
             RequestUserId = request.RequestUserId,
             RequestTenantMemberId = requestUser?.BasicId,
-            RequestUserDisplayName = requestUser?.DisplayName,
+            RequestUserDisplayName = TenantMemberApplicationMapper.ToDisplayName(requestUser, requestAccount),
             PermissionId = request.PermissionId,
             PermissionCode = permission?.PermissionCode,
             PermissionName = permission?.PermissionName,

@@ -22,7 +22,7 @@ public sealed class PermissionRequestDetailDto : BasicAppDto
     public long? RequestTenantMemberId { get; set; }
 
     /// <summary>
-    /// 申请人租户内显示名
+    /// 申请人显示名（租户内显示名优先，没填时取账号的真实姓名 → 昵称 → 用户名）
     /// </summary>
     public string? RequestUserDisplayName { get; set; }
 
