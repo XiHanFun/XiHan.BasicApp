@@ -91,6 +91,22 @@ export function useTabs() {
     tabbarStore.togglePin(path ?? route.path)
   }
 
+  /**
+   * 用掉一次性的路由参数（深链里「打开某条详情」「切到某个页签」这类意图）。
+   * 标签按完整地址区分：参数留在地址里，标签就一直记着它，切回来或刷新会再触发一次；
+   * 这里把地址换成去掉这些参数的地址，带参数的那个标签并入目标标签。
+   * @param keys 要用掉的参数名
+   */
+  async function consumeQuery(keys: readonly string[]) {
+    const from = route.fullPath
+    const query = { ...route.query }
+    for (const key of keys)
+      delete query[key]
+    await router.replace({ path: route.path, query, hash: route.hash })
+    if (route.fullPath !== from)
+      tabbarStore.removeTab(from)
+  }
+
   /** 在新标签页中打开当前路由（或指定路径） */
   function openTabInNewWindow(path?: string) {
     const target = path ?? route.path
@@ -107,6 +123,7 @@ export function useTabs() {
     closeAllTabs,
     refreshCurrentTab,
     toggleTabPin,
+    consumeQuery,
     openTabInNewWindow,
   }
 }

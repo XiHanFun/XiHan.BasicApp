@@ -41,7 +41,8 @@ function formatNullableDate(value?: string | null) {
 </script>
 
 <template>
-  <XhDescriptionsRoot :columns="2" variant="outline" placement="left" size="sm">
+  <!-- 无边框、标签在上：审批人读的是一张申请单，不是数据表格 -->
+  <XhDescriptionsRoot :columns="2">
     <XhDescriptionsItem>
       <XhDescriptionsLabel>{{ t('identity.authorization.req_col_applicant') }}</XhDescriptionsLabel>
       <XhDescriptionsValue>{{ data.requestUserDisplayName || data.requestUserId }}</XhDescriptionsValue>
@@ -64,19 +65,25 @@ function formatNullableDate(value?: string | null) {
         </p>
       </XhDescriptionsValue>
     </XhDescriptionsItem>
+    <XhDescriptionsItem>
+      <XhDescriptionsLabel>{{ t('identity.authorization.req_col_expected_validity') }}</XhDescriptionsLabel>
+      <XhDescriptionsValue>
+        <span class="inline-flex flex-wrap items-center gap-1">
+          {{ t('identity.authorization.validity_range', { from: formatNullableDate(data.expectedEffectiveTime), to: formatNullableDate(data.expectedExpirationTime) }) }}
+          <XhTagRoot v-if="data.isExpectedExpired" variant="subtle" tone="warning" size="sm">
+            <XhTagLabel>{{ t('identity.authorization.expected_expired') }}</XhTagLabel>
+          </XhTagRoot>
+        </span>
+      </XhDescriptionsValue>
+    </XhDescriptionsItem>
+    <XhDescriptionsItem>
+      <XhDescriptionsLabel>{{ t('identity.authorization.req_col_create_time') }}</XhDescriptionsLabel>
+      <XhDescriptionsValue>{{ formatDate(data.createdTime) }}</XhDescriptionsValue>
+    </XhDescriptionsItem>
     <XhDescriptionsItem :span="2">
       <XhDescriptionsLabel>{{ t('identity.authorization.req_col_reason') }}</XhDescriptionsLabel>
       <XhDescriptionsValue>
         <span class="whitespace-pre-wrap">{{ data.requestReason }}</span>
-      </XhDescriptionsValue>
-    </XhDescriptionsItem>
-    <XhDescriptionsItem :span="2">
-      <XhDescriptionsLabel>{{ t('identity.authorization.req_col_expected_validity') }}</XhDescriptionsLabel>
-      <XhDescriptionsValue>
-        {{ t('identity.authorization.validity_range', { from: formatNullableDate(data.expectedEffectiveTime), to: formatNullableDate(data.expectedExpirationTime) }) }}
-        <XhTagRoot v-if="data.isExpectedExpired" variant="subtle" tone="warning" size="sm" class="ml-1">
-          <XhTagLabel>{{ t('identity.authorization.expected_expired') }}</XhTagLabel>
-        </XhTagRoot>
       </XhDescriptionsValue>
     </XhDescriptionsItem>
     <XhDescriptionsItem v-if="data.remark" :span="2">
@@ -84,10 +91,6 @@ function formatNullableDate(value?: string | null) {
       <XhDescriptionsValue>
         <span class="whitespace-pre-wrap">{{ data.remark }}</span>
       </XhDescriptionsValue>
-    </XhDescriptionsItem>
-    <XhDescriptionsItem>
-      <XhDescriptionsLabel>{{ t('identity.authorization.req_col_create_time') }}</XhDescriptionsLabel>
-      <XhDescriptionsValue>{{ formatDate(data.createdTime) }}</XhDescriptionsValue>
     </XhDescriptionsItem>
   </XhDescriptionsRoot>
 </template>

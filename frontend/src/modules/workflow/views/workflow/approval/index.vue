@@ -9,9 +9,10 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/compone
 import { XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { createPageRequest } from '@/api'
 import { SchemaPage } from '~/components'
+import { useTabs } from '~/hooks'
 import { formatDate } from '~/utils'
 import { workflowApprovalApi, WorkflowInstanceStatus, workflowTodoApi } from '../../../api'
 import { instanceStatusLabelKey, instanceStatusTone, outcomeLabelKey, outcomeTone, recordActionLabelKey } from './approval-labels'
@@ -29,9 +30,12 @@ const TABS: ApprovalTab[] = ['todo', 'done', 'started', 'cc']
 
 const { t } = useI18n()
 const route = useRoute()
-const router = useRouter()
 
-const activeTab = ref<ApprovalTab>(readTab(route.query.tab))
+const { consumeQuery } = useTabs()
+/** 本页的路径：页面被缓存时路由在别的页面上变化，不归本页处理 */
+const ownPath = route.path
+
+const activeTab = ref<ApprovalTab>('todo')
 const pageRefs: Partial<Record<ApprovalTab, { reload: () => Promise<void> } | null>> = {}
 
 const drawerOpen = ref(false)
@@ -63,20 +67,18 @@ function openDetail(instanceId: string, taskId: string | null = null) {
   drawerOpen.value = true
 }
 
-// 地址栏带 instanceId 时直接打开详情；打开后把参数清掉，刷新或返回不再重复弹出
-watch(() => route.query.instanceId, (instanceId) => {
-  const id = toStr(instanceId)
-  if (!id)
+// 深链参数只用一次：tab 选中页签（通知里的「去审批」），instanceId 打开该流程的详情（业务页的「查看审批」）。
+// 用完就从地址里去掉，标签停在 /approval/center 上，切回来或刷新不会再弹出详情
+watch(() => [route.path, route.query.tab, route.query.instanceId] as const, ([path, tab, instanceId]) => {
+  if (path !== ownPath || (tab === undefined && instanceId === undefined))
     return
-  openDetail(id)
-  const { instanceId: _instanceId, ...rest } = route.query
-  void router.replace({ query: rest })
-}, { immediate: true })
-
-watch(() => route.query.tab, (tab) => {
   if (tab !== undefined)
     activeTab.value = readTab(tab)
-})
+  const id = toStr(instanceId)
+  if (id)
+    openDetail(id)
+  void consumeQuery(['tab', 'instanceId'])
+}, { immediate: true })
 
 function outcomeTag(outcome?: string | null) {
   if (!outcome)
@@ -113,7 +115,7 @@ const todoSchema = computed<PageSchema>(() => ({
   rowKey: 'taskId',
   fields: [
     keywordField.value,
-    { key: 'title', title: t('workflow.approval.col_title'), dataType: 'string', minWidth: 220, order: 10 },
+    { key: 'instanceName', title: t('workflow.approval.col_title'), dataType: 'string', minWidth: 220, order: 10 },
     { key: 'businessName', title: t('workflow.approval.col_business'), dataType: 'string', minWidth: 120, order: 11, render: row => (row as unknown as WorkflowTodoListItemDto).businessName || '-' },
     { key: 'nodeName', title: t('workflow.approval.col_node'), dataType: 'string', minWidth: 130, order: 12 },
     { key: 'starterName', title: t('workflow.approval.col_starter'), dataType: 'string', minWidth: 120, order: 13, render: (row) => {
@@ -137,7 +139,7 @@ const todoSchema = computed<PageSchema>(() => ({
 function recordFields(kind: 'done' | 'cc'): ListFieldSchema[] {
   const fields: ListFieldSchema[] = [
     keywordField.value,
-    { key: 'title', title: t('workflow.approval.col_title'), dataType: 'string', minWidth: 220, order: 10 },
+    { key: 'instanceName', title: t('workflow.approval.col_title'), dataType: 'string', minWidth: 220, order: 10 },
     { key: 'businessName', title: t('workflow.approval.col_business'), dataType: 'string', minWidth: 120, order: 11, render: row => (row as unknown as WorkflowApprovalRecordItemDto).businessName || '-' },
     { key: 'nodeName', title: t('workflow.approval.col_node'), dataType: 'string', minWidth: 130, order: 12 },
     { key: 'starterName', title: t('workflow.approval.col_starter'), dataType: 'string', minWidth: 120, order: 13, render: (row) => {
@@ -148,13 +150,13 @@ function recordFields(kind: 'done' | 'cc'): ListFieldSchema[] {
   if (kind === 'done') {
     fields.push(
       { key: 'action', title: t('workflow.approval.col_action'), dataType: 'string', width: 100, order: 14, render: row => t(recordActionLabelKey((row as unknown as WorkflowApprovalRecordItemDto).action)) },
-      { key: 'outcome', title: t('workflow.approval.col_my_outcome'), dataType: 'string', width: 100, order: 15, render: row => outcomeTag((row as unknown as WorkflowApprovalRecordItemDto).outcome) },
+      { key: 'outcome', title: t('workflow.approval.col_my_outcome'), dataType: 'string', width: 120, order: 15, render: row => outcomeTag((row as unknown as WorkflowApprovalRecordItemDto).outcome) },
       { key: 'comment', title: t('workflow.approval.col_comment'), dataType: 'string', minWidth: 180, ellipsis: true, order: 16 },
     )
   }
   fields.push(
-    { key: 'instanceStatus', title: t('workflow.approval.col_status'), dataType: 'string', width: 100, order: 20, render: row => statusTag((row as unknown as WorkflowApprovalRecordItemDto).instanceStatus) },
-    { key: 'instanceOutcome', title: t('workflow.approval.col_outcome'), dataType: 'string', width: 100, order: 21, render: row => outcomeTag((row as unknown as WorkflowApprovalRecordItemDto).instanceOutcome) },
+    { key: 'instanceStatus', title: t('workflow.approval.col_status'), dataType: 'string', width: 120, order: 20, render: row => statusTag((row as unknown as WorkflowApprovalRecordItemDto).instanceStatus) },
+    { key: 'instanceOutcome', title: t('workflow.approval.col_outcome'), dataType: 'string', width: 120, order: 21, render: row => outcomeTag((row as unknown as WorkflowApprovalRecordItemDto).instanceOutcome) },
     { key: 'createdTime', title: t(kind === 'done' ? 'workflow.approval.col_handled_time' : 'workflow.approval.col_cc_time'), dataType: 'datetime', minWidth: 170, order: 22 },
   )
   return fields
@@ -207,13 +209,13 @@ const startedSchema = computed<PageSchema>(() => ({
       searchable: true,
       options: statusOptions.value,
       searchPlaceholder: t('workflow.approval.status_placeholder'),
-      width: 100,
+      width: 120,
       order: 1,
       render: row => statusTag((row as unknown as WorkflowApprovalInstanceItemDto).status),
     },
     { key: 'name', title: t('workflow.approval.col_title'), dataType: 'string', minWidth: 220, order: 10 },
     { key: 'businessName', title: t('workflow.approval.col_business'), dataType: 'string', minWidth: 120, order: 11, render: row => (row as unknown as WorkflowApprovalInstanceItemDto).businessName || '-' },
-    { key: 'outcome', title: t('workflow.approval.col_outcome'), dataType: 'string', width: 100, order: 12, render: row => outcomeTag((row as unknown as WorkflowApprovalInstanceItemDto).outcome) },
+    { key: 'outcome', title: t('workflow.approval.col_outcome'), dataType: 'string', width: 120, order: 12, render: row => outcomeTag((row as unknown as WorkflowApprovalInstanceItemDto).outcome) },
     { key: 'pendingNodeNames', title: t('workflow.approval.col_current_node'), dataType: 'string', minWidth: 140, order: 13, render: row => (row as unknown as WorkflowApprovalInstanceItemDto).pendingNodeNames.join('、') || '-' },
     { key: 'pendingAssigneeNames', title: t('workflow.approval.col_current_assignees'), dataType: 'string', minWidth: 160, ellipsis: true, order: 14, render: row => (row as unknown as WorkflowApprovalInstanceItemDto).pendingAssigneeNames.join('、') || '-' },
     { key: 'faultMessage', title: t('workflow.approval.col_fault'), dataType: 'string', minWidth: 180, ellipsis: true, order: 15 },
