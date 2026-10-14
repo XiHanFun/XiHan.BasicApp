@@ -16,6 +16,9 @@ namespace XiHan.BasicApp.Workflow.Application.Mappers;
 /// <summary>
 /// 工作流应用层映射器
 /// </summary>
+/// <remarks>
+/// 引擎时间（定义发布、实例、节点、书签、待办）按框架时钟口径转成带偏移的时间，见 <see cref="WorkflowTimes"/>。
+/// </remarks>
 public static class WorkflowApplicationMapper
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
@@ -23,7 +26,7 @@ public static class WorkflowApplicationMapper
     /// <summary>
     /// 定义实体转列表项 DTO
     /// </summary>
-    public static WorkflowDefinitionListItemDto ToListItemDto(SysWorkflowDefinition entity)
+    public static WorkflowDefinitionListItemDto ToListItemDto(SysWorkflowDefinition entity, DateTimeKind clockKind)
     {
         return new WorkflowDefinitionListItemDto
         {
@@ -35,7 +38,7 @@ public static class WorkflowApplicationMapper
             Category = entity.Category,
             Status = entity.Status,
             EnableCompensation = entity.EnableCompensation,
-            PublishTime = entity.PublishTime,
+            PublishTime = WorkflowTimes.ToOffset(entity.PublishTime, clockKind),
             CreatedTime = entity.CreatedTime
         };
     }
@@ -43,7 +46,7 @@ public static class WorkflowApplicationMapper
     /// <summary>
     /// 定义实体转详情 DTO
     /// </summary>
-    public static WorkflowDefinitionDetailDto ToDetailDto(SysWorkflowDefinition entity)
+    public static WorkflowDefinitionDetailDto ToDetailDto(SysWorkflowDefinition entity, DateTimeKind clockKind)
     {
         return new WorkflowDefinitionDetailDto
         {
@@ -55,7 +58,7 @@ public static class WorkflowApplicationMapper
             Category = entity.Category,
             Status = entity.Status,
             EnableCompensation = entity.EnableCompensation,
-            PublishTime = entity.PublishTime,
+            PublishTime = WorkflowTimes.ToOffset(entity.PublishTime, clockKind),
             CreatedTime = entity.CreatedTime,
             DefinitionJson = entity.DefinitionJson
         };
@@ -64,7 +67,7 @@ public static class WorkflowApplicationMapper
     /// <summary>
     /// 定义模型转详情 DTO（生命周期操作的返回）
     /// </summary>
-    public static WorkflowDefinitionDetailDto ToDetailDto(WorkflowDefinition definition)
+    public static WorkflowDefinitionDetailDto ToDetailDto(WorkflowDefinition definition, DateTimeKind clockKind)
     {
         return new WorkflowDefinitionDetailDto
         {
@@ -76,8 +79,8 @@ public static class WorkflowApplicationMapper
             Category = definition.Category,
             Status = definition.Status,
             EnableCompensation = definition.EnableCompensation,
-            PublishTime = definition.PublishTime,
-            CreatedTime = definition.CreationTime,
+            PublishTime = WorkflowTimes.ToOffset(definition.PublishTime, clockKind),
+            CreatedTime = WorkflowTimes.ToOffset(definition.CreationTime, clockKind),
             DefinitionJson = WorkflowDefinitionJsonSerializer.Serialize(definition)
         };
     }
@@ -85,7 +88,7 @@ public static class WorkflowApplicationMapper
     /// <summary>
     /// 实例实体转列表项 DTO
     /// </summary>
-    public static WorkflowInstanceListItemDto ToListItemDto(SysWorkflowInstance entity)
+    public static WorkflowInstanceListItemDto ToListItemDto(SysWorkflowInstance entity, DateTimeKind clockKind)
     {
         return new WorkflowInstanceListItemDto
         {
@@ -99,9 +102,9 @@ public static class WorkflowApplicationMapper
             StarterId = entity.StarterId,
             ParentInstanceId = entity.ParentInstanceId,
             Depth = entity.Depth,
-            CreationTime = entity.CreationTime,
-            StartTime = entity.StartTime,
-            EndTime = entity.EndTime,
+            CreationTime = WorkflowTimes.ToOffset(entity.CreationTime, clockKind),
+            StartTime = WorkflowTimes.ToOffset(entity.StartTime, clockKind),
+            EndTime = WorkflowTimes.ToOffset(entity.EndTime, clockKind),
             FaultNodeId = entity.FaultNodeId,
             FaultMessage = entity.FaultMessage
         };
@@ -110,7 +113,7 @@ public static class WorkflowApplicationMapper
     /// <summary>
     /// 实例模型转列表项 DTO（实例操作的返回）
     /// </summary>
-    public static WorkflowInstanceListItemDto ToListItemDto(WorkflowInstance instance)
+    public static WorkflowInstanceListItemDto ToListItemDto(WorkflowInstance instance, DateTimeKind clockKind)
     {
         return new WorkflowInstanceListItemDto
         {
@@ -124,9 +127,9 @@ public static class WorkflowApplicationMapper
             StarterId = instance.StarterId,
             ParentInstanceId = instance.ParentInstanceId is { } parentId ? WorkflowStoreMapper.ParseId(parentId) : null,
             Depth = instance.Depth,
-            CreationTime = instance.CreationTime,
-            StartTime = instance.StartTime,
-            EndTime = instance.EndTime,
+            CreationTime = WorkflowTimes.ToOffset(instance.CreationTime, clockKind),
+            StartTime = WorkflowTimes.ToOffset(instance.StartTime, clockKind),
+            EndTime = WorkflowTimes.ToOffset(instance.EndTime, clockKind),
             FaultNodeId = instance.FaultNodeId,
             FaultMessage = instance.FaultMessage
         };
@@ -138,7 +141,8 @@ public static class WorkflowApplicationMapper
     public static WorkflowInstanceDetailDto ToDetailDto(
         WorkflowInstance instance,
         IReadOnlyList<WorkflowNodeInstance> nodeInstances,
-        IReadOnlyList<WorkflowBookmark> bookmarks)
+        IReadOnlyList<WorkflowBookmark> bookmarks,
+        DateTimeKind clockKind)
     {
         return new WorkflowInstanceDetailDto
         {
@@ -152,22 +156,22 @@ public static class WorkflowApplicationMapper
             StarterId = instance.StarterId,
             ParentInstanceId = instance.ParentInstanceId is { } parentId ? WorkflowStoreMapper.ParseId(parentId) : null,
             Depth = instance.Depth,
-            CreationTime = instance.CreationTime,
-            StartTime = instance.StartTime,
-            EndTime = instance.EndTime,
+            CreationTime = WorkflowTimes.ToOffset(instance.CreationTime, clockKind),
+            StartTime = WorkflowTimes.ToOffset(instance.StartTime, clockKind),
+            EndTime = WorkflowTimes.ToOffset(instance.EndTime, clockKind),
             FaultNodeId = instance.FaultNodeId,
             FaultMessage = instance.FaultMessage,
             CancellationReason = instance.CancellationReason,
             VariablesJson = JsonSerializer.Serialize(instance.Variables, JsonOptions),
-            NodeInstances = [.. nodeInstances.Select(ToNodeInstanceDto)],
-            PendingBookmarks = [.. bookmarks.Select(ToBookmarkDto)]
+            NodeInstances = [.. nodeInstances.Select(nodeInstance => ToNodeInstanceDto(nodeInstance, clockKind))],
+            PendingBookmarks = [.. bookmarks.Select(bookmark => ToBookmarkDto(bookmark, clockKind))]
         };
     }
 
     /// <summary>
     /// 节点实例模型转 DTO
     /// </summary>
-    public static WorkflowNodeInstanceDto ToNodeInstanceDto(WorkflowNodeInstance nodeInstance)
+    public static WorkflowNodeInstanceDto ToNodeInstanceDto(WorkflowNodeInstance nodeInstance, DateTimeKind clockKind)
     {
         return new WorkflowNodeInstanceDto
         {
@@ -177,8 +181,8 @@ public static class WorkflowApplicationMapper
             ActivityType = nodeInstance.ActivityType,
             Status = nodeInstance.Status,
             TryCount = nodeInstance.TryCount,
-            StartTime = nodeInstance.StartTime,
-            EndTime = nodeInstance.EndTime,
+            StartTime = WorkflowTimes.ToOffset(nodeInstance.StartTime, clockKind),
+            EndTime = WorkflowTimes.ToOffset(nodeInstance.EndTime, clockKind),
             FaultMessage = nodeInstance.FaultMessage,
             OutputsJson = nodeInstance.Outputs.Count == 0 ? null : JsonSerializer.Serialize(nodeInstance.Outputs, JsonOptions)
         };
@@ -187,7 +191,7 @@ public static class WorkflowApplicationMapper
     /// <summary>
     /// 书签模型转 DTO
     /// </summary>
-    public static WorkflowBookmarkDto ToBookmarkDto(WorkflowBookmark bookmark)
+    public static WorkflowBookmarkDto ToBookmarkDto(WorkflowBookmark bookmark, DateTimeKind clockKind)
     {
         return new WorkflowBookmarkDto
         {
@@ -195,15 +199,15 @@ public static class WorkflowApplicationMapper
             NodeId = bookmark.NodeId,
             Kind = bookmark.Kind,
             Key = bookmark.Key,
-            DueTime = bookmark.DueTime,
-            CreationTime = bookmark.CreationTime
+            DueTime = WorkflowTimes.ToOffset(bookmark.DueTime, clockKind),
+            CreationTime = WorkflowTimes.ToOffset(bookmark.CreationTime, clockKind)
         };
     }
 
     /// <summary>
     /// 待办模型转列表项 DTO
     /// </summary>
-    public static WorkflowTodoListItemDto ToTodoListItemDto(WorkflowUserTask task)
+    public static WorkflowTodoListItemDto ToTodoListItemDto(WorkflowUserTask task, DateTimeKind clockKind)
     {
         return new WorkflowTodoListItemDto
         {
@@ -214,7 +218,7 @@ public static class WorkflowApplicationMapper
             NodeId = task.NodeId,
             Title = task.Title,
             CorrelationId = task.CorrelationId,
-            CreationTime = task.CreationTime
+            CreationTime = WorkflowTimes.ToOffset(task.CreationTime, clockKind)
         };
     }
     /// <summary>

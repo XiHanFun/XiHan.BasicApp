@@ -17,6 +17,7 @@ using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Domain.Shared.Paging.Dtos;
 using XiHan.Framework.Domain.Shared.Paging.Enums;
 using XiHan.Framework.Domain.Shared.Paging.Models;
+using XiHan.Framework.Timing;
 using XiHan.Framework.Workflow.Abstractions.Stores;
 
 namespace XiHan.BasicApp.Workflow.Application.QueryServices;
@@ -36,6 +37,8 @@ public sealed class WorkflowInstanceQueryService : WorkflowApplicationService, I
     /// </summary>
     private readonly IFieldSecurityService _fieldSecurity;
 
+    private readonly IClock _clock;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -43,12 +46,14 @@ public sealed class WorkflowInstanceQueryService : WorkflowApplicationService, I
         IWorkflowInstanceRepository instanceRepository,
         IWorkflowInstanceStore instanceStore,
         IWorkflowBookmarkStore bookmarkStore,
-        IFieldSecurityService fieldSecurityService)
+        IFieldSecurityService fieldSecurityService,
+        IClock clock)
     {
         _instanceRepository = instanceRepository;
         _instanceStore = instanceStore;
         _bookmarkStore = bookmarkStore;
         _fieldSecurity = fieldSecurityService;
+        _clock = clock;
     }
 
     /// <summary>
@@ -71,7 +76,7 @@ public sealed class WorkflowInstanceQueryService : WorkflowApplicationService, I
         }
 
         var page = await _instanceRepository.GetPagedAsync(request, cancellationToken);
-        var items = page.Items.Select(WorkflowApplicationMapper.ToListItemDto).ToList();
+        var items = page.Items.Select(item => WorkflowApplicationMapper.ToListItemDto(item, _clock.Kind)).ToList();
         return new PageResultDtoBase<WorkflowInstanceListItemDto>(items, page.Page)
         {
             ExtendDatas = page.ExtendDatas
@@ -100,7 +105,7 @@ public sealed class WorkflowInstanceQueryService : WorkflowApplicationService, I
 
         var nodeInstances = await _instanceStore.GetNodeInstancesAsync(instanceId, cancellationToken);
         var bookmarks = await _bookmarkStore.GetByInstanceAsync(instanceId, cancellationToken);
-        return WorkflowApplicationMapper.ToDetailDto(instance, nodeInstances, bookmarks);
+        return WorkflowApplicationMapper.ToDetailDto(instance, nodeInstances, bookmarks, _clock.Kind);
     }
 
     /// <summary>

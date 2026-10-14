@@ -17,6 +17,7 @@ using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Timing;
 using XiHan.Framework.Workflow.Abstractions.Exceptions;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
 using XiHan.Framework.Workflow.Abstractions.Stores;
@@ -708,7 +709,8 @@ public sealed class WorkflowTodoServiceTests
             new Mock<IWorkflowDefinitionStore>().Object,
             new WorkflowBusinessRegistry(new ServiceCollection().BuildServiceProvider()),
             new WorkflowUserNameResolver(userRepository.Object),
-            currentUser.Object);
+            currentUser.Object,
+            Mock.Of<IClock>());
         return (service, taskService, currentUser);
     }
 

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Text.Json;
@@ -10,6 +11,7 @@ using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Contracts;
 using XiHan.BasicApp.Workflow.Application.Dtos;
+using XiHan.BasicApp.Workflow.Application.Mappers;
 using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Domain.Permissions;
 using XiHan.BasicApp.Workflow.Domain.Repositories;
@@ -41,14 +43,10 @@ namespace XiHan.BasicApp.Workflow.Application.QueryServices;
 [DynamicApi(Group = "BasicApp.Workflow", GroupName = "工作流服务", Tag = "审批中心")]
 public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, IWorkflowApprovalQueryService
 {
+    /// <summary>
+    /// 引擎表单数据（任意变量）的序列化选项
+    /// </summary>
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
-    private static readonly WorkflowTaskRecordAction[] DoneActions =
-    [
-        WorkflowTaskRecordAction.Completed,
-        WorkflowTaskRecordAction.Transferred,
-        WorkflowTaskRecordAction.AddedAssignees
-    ];
 
     private readonly IWorkflowTaskRecordRepository _recordRepository;
     private readonly IWorkflowInstanceRepository _instanceRepository;
@@ -61,6 +59,11 @@ public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, I
     private readonly IPermissionChecker _permissionChecker;
     private readonly ICurrentUser _currentUser;
     private readonly IClock _clock;
+
+    /// <summary>
+    /// 应用 API 的序列化选项：业务单据是网络契约的一部分，枚举、长整型主键与时间要与接口返回同一口径
+    /// </summary>
+    private readonly JsonSerializerOptions _apiJsonOptions;
 
     /// <summary>
     /// 构造函数
@@ -76,7 +79,8 @@ public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, I
         WorkflowUserNameResolver userNameResolver,
         IPermissionChecker permissionChecker,
         ICurrentUser currentUser,
-        IClock clock)
+        IClock clock,
+        IOptions<Microsoft.AspNetCore.Mvc.JsonOptions> apiJsonOptions)
     {
         _recordRepository = recordRepository;
         _instanceRepository = instanceRepository;
@@ -89,6 +93,7 @@ public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, I
         _permissionChecker = permissionChecker;
         _currentUser = currentUser;
         _clock = clock;
+        _apiJsonOptions = apiJsonOptions.Value.JsonSerializerOptions;
     }
 
     /// <summary>
@@ -98,7 +103,8 @@ public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, I
     public Task<PageResultDtoBase<WorkflowApprovalRecordItemDto>> GetDonePageAsync(WorkflowApprovalPageQueryDto input, CancellationToken cancellationToken = default)
     {
         var userId = RequireCurrentUserId();
-        return GetRecordPageAsync(input, record => record.UserId == userId && DoneActions.Contains(record.Action), cancellationToken);
+        // 办理、转办、加签都算「我已审批」；抄送是别人发给我的，归「抄送我的」（条件里只用常量，SqlSugar 读不了私有静态字段）
+        return GetRecordPageAsync(input, record => record.UserId == userId && record.Action != WorkflowTaskRecordAction.CarbonCopied, cancellationToken);
     }
 
     /// <summary>
@@ -171,8 +177,8 @@ public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, I
                 Outcome = instance.Outcome,
                 CorrelationId = instance.CorrelationId,
                 BusinessName = businessNames.GetValueOrDefault(instance.DefinitionCode),
-                CreationTime = instance.CreationTime,
-                EndTime = instance.EndTime,
+                CreationTime = WorkflowTimes.ToOffset(instance.CreationTime, _clock.Kind),
+                EndTime = WorkflowTimes.ToOffset(instance.EndTime, _clock.Kind),
                 FaultMessage = instance.FaultMessage,
                 PendingNodeNames = pendingNodeNames,
                 PendingAssigneeNames = [.. tasks
@@ -225,9 +231,9 @@ public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, I
             Outcome = instance.Outcome,
             CorrelationId = instance.CorrelationId,
             StarterId = instance.StarterId,
-            CreationTime = instance.CreationTime,
-            StartTime = instance.StartTime,
-            EndTime = instance.EndTime,
+            CreationTime = WorkflowTimes.ToOffset(instance.CreationTime, _clock.Kind),
+            StartTime = WorkflowTimes.ToOffset(instance.StartTime, _clock.Kind),
+            EndTime = WorkflowTimes.ToOffset(instance.EndTime, _clock.Kind),
             FaultMessage = instance.FaultMessage,
             CancellationReason = instance.CancellationReason,
             CanWithdraw = string.Equals(instance.StarterId, userIdText, StringComparison.Ordinal)
@@ -334,11 +340,11 @@ public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, I
             Name = handler.Descriptor.Name,
             FormComponent = handler.Descriptor.FormComponent,
             BusinessId = instance.CorrelationId,
-            DataJson = data is null ? null : JsonSerializer.Serialize(data, data.GetType(), JsonOptions)
+            DataJson = data is null ? null : JsonSerializer.Serialize(data, data.GetType(), _apiJsonOptions)
         };
     }
 
-    private static async Task<WorkflowApprovalTaskDto?> BuildTaskAsync(
+    private async Task<WorkflowApprovalTaskDto?> BuildTaskAsync(
         string? taskId,
         long instanceId,
         string userIdText,
@@ -369,7 +375,7 @@ public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, I
             NodeId = task.NodeId,
             NodeName = await nodeNames.GetAsync(definitionId, task.NodeId, cancellationToken),
             Title = task.Title,
-            CreationTime = task.CreationTime,
+            CreationTime = WorkflowTimes.ToOffset(task.CreationTime, _clock.Kind),
             AllowedOutcomes = allowedOutcomes,
             FormDataJson = JsonSerializer.Serialize(task.FormData, JsonOptions)
         };
@@ -494,11 +500,8 @@ public sealed class WorkflowApprovalQueryService : WorkflowApplicationService, I
             : targets.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
     }
 
-    /// <summary>
-    /// 引擎时间取自框架时钟，落库后丢失 Kind：按时钟的时间类型还原（UTC 时钟按 UTC，否则按服务器本地时间）
-    /// </summary>
     private DateTimeOffset ToOffset(DateTime value)
     {
-        return new DateTimeOffset(DateTime.SpecifyKind(value, _clock.Kind == DateTimeKind.Utc ? DateTimeKind.Utc : DateTimeKind.Local));
+        return WorkflowTimes.ToOffset(value, _clock.Kind);
     }
 }

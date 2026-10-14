@@ -61,7 +61,7 @@ public class WorkflowDefinitionListItemDto : BasicAppDto
     public string? Category { get; set; }
     public WorkflowDefinitionStatus Status { get; set; }
     public bool EnableCompensation { get; set; }
-    public DateTime? PublishTime { get; set; }
+    public DateTimeOffset? PublishTime { get; set; }
     public DateTimeOffset CreatedTime { get; set; }
 }
 
