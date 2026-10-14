@@ -4,6 +4,7 @@ import type {
   PageResult,
   PermissionDelegationCreateDto,
   PermissionDelegationListItemDto,
+  PermissionRequestCreateDto,
   PermissionRequestListItemDto,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
@@ -35,10 +36,21 @@ const router = useRouter()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
+const requestFormId = useId()
 
 interface NumericSelectOption {
   label: string
   value: ApiId
+}
+
+interface RequestFormModel {
+  expectedEffectiveTime: number | null
+  expectedExpirationTime: number | null
+  permissionId: ApiId | null
+  remark: string | null
+  requestReason: string | null
+  roleId: ApiId | null
+  targetKind: 'role' | 'permission'
 }
 
 interface DelegationFormModel {
@@ -256,15 +268,88 @@ const requestSchema = computed<PageSchema>(() => ({
     remove: id => permissionRequestApi.delete(id),
   },
   actions: [
+    { key: 'create', title: t('identity.authorization.req_action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.authorization.create' },
     // 审批在审批中心办理；这里只跳过去看进度与轨迹（发起人、审批人或有流程查看权的人可看）
     { key: 'trace', title: t('identity.authorization.req_action_trace'), scope: 'row', icon: 'lucide:route', visible: hasWorkflow },
     { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, requestName(row)), permission: 'identity.authorization.withdraw' },
   ],
 }))
 
+// ── 发起申请：为当前用户申请角色或权限，提交即进入审批流 ─────────
+const requestModalVisible = ref(false)
+const requestSubmitting = ref(false)
+const requestForm = ref<RequestFormModel>(createRequestForm())
+
+function createRequestForm(): RequestFormModel {
+  return {
+    expectedEffectiveTime: null,
+    expectedExpirationTime: null,
+    permissionId: null,
+    remark: null,
+    requestReason: null,
+    roleId: null,
+    targetKind: 'role',
+  }
+}
+
+function openRequestModal() {
+  requestForm.value = createRequestForm()
+  requestModalVisible.value = true
+  void loadRoleOptions()
+  void loadPermissionOptions()
+}
+
+function validateRequest() {
+  const form = requestForm.value
+  if (form.targetKind === 'role' && !form.roleId) {
+    toast.warning(t('identity.authorization.msg_request_role_required'))
+    return false
+  }
+  if (form.targetKind === 'permission' && !form.permissionId) {
+    toast.warning(t('identity.authorization.msg_request_permission_required'))
+    return false
+  }
+  if (!normalizeNullable(form.requestReason)) {
+    toast.warning(t('identity.authorization.msg_request_reason_required'))
+    return false
+  }
+  return true
+}
+
+async function submitRequest() {
+  if (!validateRequest()) {
+    return
+  }
+  const form = requestForm.value
+  requestSubmitting.value = true
+  try {
+    const input: PermissionRequestCreateDto = {
+      expectedEffectiveTime: form.expectedEffectiveTime ? new Date(form.expectedEffectiveTime).toISOString() : null,
+      expectedExpirationTime: form.expectedExpirationTime ? new Date(form.expectedExpirationTime).toISOString() : null,
+      permissionId: form.targetKind === 'permission' ? form.permissionId : null,
+      remark: normalizeNullable(form.remark),
+      requestReason: normalizeNullable(form.requestReason)!,
+      roleId: form.targetKind === 'role' ? form.roleId : null,
+    }
+    await permissionRequestApi.create(input)
+    toast.success(t('identity.authorization.msg_request_submitted'))
+    requestModalVisible.value = false
+    reloadRequest()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('identity.authorization.msg_request_failed'))
+  }
+  finally {
+    requestSubmitting.value = false
+  }
+}
+
 function onRequestAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as PermissionRequestListItemDto | undefined
   switch (payload.key) {
+    case 'create':
+      openRequestModal()
+      break
     case 'trace':
       if (row?.workflowInstanceId) {
         void router.push({ path: '/approval/center', query: { instanceId: String(row.workflowInstanceId) } })
@@ -518,7 +603,105 @@ async function submitDelegation() {
         <XhTabsIndicator />
       </XhTabsList>
       <XhTabsContent value="request">
-        <SchemaPage ref="requestPageRef" :schema="requestSchema" @action="onRequestAction" />
+        <SchemaPage ref="requestPageRef" :schema="requestSchema" @action="onRequestAction">
+          <XEditModal
+            v-model:show="requestModalVisible"
+            :title="t('identity.authorization.req_modal_title')"
+            :loading="requestSubmitting"
+            :save-text="t('identity.authorization.req_btn_submit')"
+            :form-id="requestFormId"
+          >
+            <XhFormRoot
+              :id="requestFormId"
+              v-model:values="requestForm"
+              validate-on="blur"
+              class="xh-edit-form-grid"
+              @submit="submitRequest"
+            >
+              <XhFormFieldGroup name="targetKind">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_request_kind') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSegmented v-model:value="requestForm.targetKind" :options="[{ value: 'role', label: t('identity.authorization.kind_role') }, { value: 'permission', label: t('identity.authorization.kind_permission') }]" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup v-if="requestForm.targetKind === 'role'" name="roleId">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_request_role') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSelect
+                      v-model:value="requestForm.roleId"
+                      clearable
+                      :options="roleOptions"
+                      :placeholder="t('identity.authorization.ph_role')"
+                      @focus="loadRoleOptions()"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup v-else name="permissionId">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_request_permission') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSelect
+                      v-model:value="requestForm.permissionId"
+                      clearable
+                      :options="permissionOptions"
+                      :placeholder="t('identity.authorization.ph_permission')"
+                      @focus="loadPermissionOptions()"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup name="expectedEffectiveTime">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_expected_effective_time') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XDatePicker v-model:value="requestForm.expectedEffectiveTime" clearable show-time />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup name="expectedExpirationTime">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.label_expected_expiration_time') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XDatePicker v-model:value="requestForm.expectedExpirationTime" clearable show-time />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup name="requestReason" class="xh-span-2">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.req_col_reason') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput
+                      v-model:value="requestForm.requestReason"
+                      clearable
+                      :placeholder="t('identity.authorization.ph_request_reason')"
+                      :rows="2"
+                      type="textarea"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+              <XhFormFieldGroup name="remark" class="xh-span-2">
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('identity.authorization.remark') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="requestForm.remark" clearable :rows="2" type="textarea" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+              </XhFormFieldGroup>
+            </XhFormRoot>
+          </XEditModal>
+        </SchemaPage>
       </XhTabsContent>
       <XhTabsContent value="delegation">
         <SchemaPage ref="delegationPageRef" :schema="delegationSchema" @action="onDelegationAction">
