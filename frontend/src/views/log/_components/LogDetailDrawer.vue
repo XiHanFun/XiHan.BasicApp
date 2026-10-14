@@ -146,7 +146,7 @@ const clipboardTranslations = computed(() => ({ copy: t('common.actions.copy'), 
                     variant="ghost"
                     tone="brand"
                     size="sm"
-                    class="log-detail__link"
+                    class="xh-link-button"
                     :aria-label="t('log.detail.open_trace', { label: entry.field.label, value: entry.text })"
                     @click="openTrace(entry)"
                   >
@@ -174,7 +174,7 @@ const clipboardTranslations = computed(() => ({ copy: t('common.actions.copy'), 
                         variant="ghost"
                         tone="brand"
                         size="sm"
-                        class="log-detail__link"
+                        class="xh-link-button"
                         :aria-label="t('log.detail.open_trace', { label: entry.field.label, value: entry.text })"
                         @click="openTrace(entry)"
                       >
@@ -267,12 +267,5 @@ const clipboardTranslations = computed(() => ({ copy: t('common.actions.copy'), 
 .log-detail__value--mono {
   font-family: var(--xh-font-family-mono);
   word-break: break-all;
-}
-
-/* 追踪链接贴着文字排，不占按钮的内距 */
-.log-detail__link {
-  padding-inline: 0;
-  block-size: auto;
-  min-block-size: 0;
 }
 </style>
