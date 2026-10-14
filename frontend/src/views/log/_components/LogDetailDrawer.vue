@@ -13,7 +13,7 @@ import { gotoTraceDimension } from './trace-nav'
 
 /**
  * 日志详情抽屉（各日志页与链路追踪共用）。
- * 抬头一眼看懂「谁、什么时候、做了什么、成没成功」，其余字段按分组排成无边框、标签在上的列表，
+ * 抬头一眼看懂「谁、什么时候、做了什么、成没成功」，其余字段按分组排成描边、标签在上的描述列表，
  * 原始数据（请求体、堆栈、User-Agent 等）排在最后；空值不显示，标识类的值可复制，追踪维度可点开链路追踪。
  */
 const props = withDefaults(
@@ -157,10 +157,10 @@ const clipboardTranslations = computed(() => ({ copy: t('common.actions.copy'), 
               </div>
             </header>
 
-            <!-- 分组：无边框、标签在上 -->
+            <!-- 分组：描边、标签在上 -->
             <section v-for="group in view.groups" :key="group.group" class="log-detail__section" :aria-label="t(GROUP_LABEL_KEYS[group.group])">
               <XhSeparator>{{ t(GROUP_LABEL_KEYS[group.group]) }}</XhSeparator>
-              <XhDescriptionsRoot :columns="columnsOf(group.entries)">
+              <XhDescriptionsRoot :columns="columnsOf(group.entries)" variant="outline" size="sm">
                 <XhDescriptionsItem
                   v-for="entry in group.entries"
                   :key="entry.field.key"

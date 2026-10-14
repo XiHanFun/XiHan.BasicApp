@@ -362,7 +362,7 @@ function onAction(payload: SchemaActionPayload) {
           {{ t('workflow.instance.loading') }}
         </div>
         <template v-else-if="detailData">
-          <XhDescriptionsRoot :columns="2" variant="outline" placement="left" size="sm">
+          <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('workflow.instance.name') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
@@ -415,7 +415,6 @@ function onAction(payload: SchemaActionPayload) {
             v-if="detailData.faultMessage || detailData.cancellationReason"
             :columns="1"
             variant="outline"
-            placement="left"
             size="sm"
           >
             <XhDescriptionsItem v-if="detailData.faultMessage">

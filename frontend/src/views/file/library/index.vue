@@ -1142,7 +1142,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
           {{ t('common.statuses.loading') }}
         </XhFlex>
 
-        <XhDescriptionsRoot v-else-if="detailKind === 'file' && currentFileDetail" :columns="2" variant="outline" placement="left" size="sm">
+        <XhDescriptionsRoot v-else-if="detailKind === 'file' && currentFileDetail" :columns="2" variant="outline" size="sm">
           <XhDescriptionsItem style="grid-column: span 2">
             <XhDescriptionsLabel>{{ t('file.library.detail.original_name') }}</XhDescriptionsLabel>
             <XhDescriptionsValue>
