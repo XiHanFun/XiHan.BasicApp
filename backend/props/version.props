@@ -4,6 +4,6 @@
     <!-- 设置程序集的版本信息 -->
     <AssemblyVersion>5.7.1</AssemblyVersion>
     <FileVersion>5.7.1</FileVersion>
-    <Version>5.7.1</Version>
+    <Version>5.7.1-fix.1</Version>
   </PropertyGroup>
 </Project>
