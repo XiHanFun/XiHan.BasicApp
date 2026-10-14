@@ -395,10 +395,6 @@
     "cap": 56,
     "reason": "业务页面的排版刻度"
   },
-  "src/views/log/_components/LogDetailDrawer.vue": {
-    "cap": 9,
-    "reason": "业务页面的排版刻度"
-  },
   "src/views/log/trace/index.vue": {
     "cap": 61,
     "reason": "业务页面的排版刻度"

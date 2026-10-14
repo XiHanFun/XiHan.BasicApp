@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types.ts'
+import type { LogDetailSchema } from '../_components/log-detail.types.ts'
 import type { ExceptionLogDetailDto, ExceptionLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
@@ -11,7 +11,8 @@ import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 import { renderHttpMethod } from '../_components/http-method'
-import { exceptionLogDetailFields } from '../_components/log-detail-fields'
+import { exceptionLogDetailSchema } from '../_components/log-detail-fields'
+import { severityTone } from '../_components/log-tones'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -50,17 +51,6 @@ const deviceTypeOptions = computed(() => [
   { label: 'API', value: DeviceType.Api },
 ])
 
-function severityType(level: number) {
-  switch (level) {
-    case 1: return 'info'
-    case 2: return 'warning'
-    case 3:
-    case 4:
-    case 5: return 'danger'
-    default: return 'neutral'
-  }
-}
-
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.exception.keyword_placeholder'), order: 0 },
@@ -85,7 +75,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.exception.severity_level_placeholder'),
     width: 90,
     order: 19,
-    render: row => h(XhTagRoot, { variant: 'subtle', tone: severityType((row as unknown as ExceptionLogListItemDto).severityLevel) }, () => h(XhTagLabel, () => getOptionLabel(severityOptions.value, (row as unknown as ExceptionLogListItemDto).severityLevel))),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: severityTone((row as unknown as ExceptionLogListItemDto).severityLevel) }, () => h(XhTagLabel, () => getOptionLabel(severityOptions.value, (row as unknown as ExceptionLogListItemDto).severityLevel))),
   },
   { key: 'requestPath', title: t('log.exception.request_path'), dataType: 'string', advancedSearch: true, minWidth: 200, order: 20 },
   { key: 'requestMethod', title: t('log.exception.request_method'), dataType: 'string', advancedSearch: true, sortable: true, width: 90, order: 21, render: row => renderHttpMethod((row as unknown as ExceptionLogListItemDto).requestMethod) },
@@ -191,7 +181,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => exceptionLogDetailFields(t))
+const detailSchema = computed<LogDetailSchema>(() => exceptionLogDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as ExceptionLogListItemDto | undefined
@@ -225,7 +215,7 @@ async function handleDetail(row: ExceptionLogListItemDto) {
   <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
-      :fields="detailFields"
+      :schema="detailSchema"
       :loading="detailLoading"
       :record="detailData"
       :title="t('log.exception.detail_title')"

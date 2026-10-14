@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types.ts'
+import type { LogDetailSchema } from '../_components/log-detail.types.ts'
 import type { PageResult, PermissionChangeLogDetailDto, PermissionChangeLogListItemDto } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
@@ -10,7 +10,8 @@ import { createPageRequest, permissionChangeLogApi, PermissionChangeType, queryS
 import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
-import { permissionChangeLogDetailFields } from '../_components/log-detail-fields'
+import { permissionChangeLogDetailSchema } from '../_components/log-detail-fields'
+import { permissionChangeTone } from '../_components/log-tones'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -38,22 +39,6 @@ const changeTypeOptions = computed(() => [
   { label: t('log.permission_change.type_role_remove_parent'), value: PermissionChangeType.RoleRemoveParent },
 ])
 
-/** 变更类型 → 标签类型：授权绿、撤权橙、拒绝红 */
-function changeTypeTagType(type: PermissionChangeType) {
-  switch (type) {
-    case PermissionChangeType.UserDenyPermission:
-    case PermissionChangeType.RoleDenyPermission:
-      return 'danger'
-    case PermissionChangeType.RoleRevokePermission:
-    case PermissionChangeType.UserRevokePermission:
-    case PermissionChangeType.UserRemoveRole:
-    case PermissionChangeType.RoleRemoveParent:
-      return 'warning'
-    default:
-      return 'success'
-  }
-}
-
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('common.fields.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('log.permission_change.keyword_placeholder'), order: 0 },
@@ -70,7 +55,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 10,
     render: (row) => {
       const type = (row as unknown as PermissionChangeLogListItemDto).changeType
-      return h(XhTagRoot, { variant: 'subtle', tone: changeTypeTagType(type) }, () => h(XhTagLabel, () => getOptionLabel(changeTypeOptions.value, type)))
+      return h(XhTagRoot, { variant: 'subtle', tone: permissionChangeTone(type) }, () => h(XhTagLabel, () => getOptionLabel(changeTypeOptions.value, type)))
     },
   },
   { key: 'operatorUserName', title: t('log.permission_change.operator_user_name'), dataType: 'string', minWidth: 130, order: 11 },
@@ -137,7 +122,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => permissionChangeLogDetailFields(t))
+const detailSchema = computed<LogDetailSchema>(() => permissionChangeLogDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as PermissionChangeLogListItemDto | undefined
@@ -171,7 +156,7 @@ async function handleDetail(row: PermissionChangeLogListItemDto) {
   <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
-      :fields="detailFields"
+      :schema="detailSchema"
       :loading="detailLoading"
       :record="detailData"
       :title="t('log.permission_change.detail_title')"

@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types.ts'
+import type { LogDetailSchema } from '../_components/log-detail.types.ts'
 import type { LoginLogDetailDto, LoginLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { createPageRequest, LoginResult, logManagementApi, querySortsFromSchema } from '@/api'
+import { createPageRequest, logManagementApi, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
-import { loginLogDetailFields } from '../_components/log-detail-fields'
+import { loginLogDetailSchema } from '../_components/log-detail-fields'
+import { loginResultTone } from '../_components/log-tones'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -31,29 +32,6 @@ const riskOptions = computed(() => [
   { label: t('common.statuses.yes'), value: 1 },
   { label: t('common.statuses.no'), value: 0 },
 ])
-
-function loginResultType(result: LoginResult) {
-  switch (result) {
-    case LoginResult.Success: return 'success'
-    case LoginResult.Logout:
-    case LoginResult.TokenRefreshed:
-    case LoginResult.TenantSwitched: return 'info'
-    case LoginResult.InvalidCredentials:
-    case LoginResult.TwoFactorFailed:
-    case LoginResult.Failed: return 'danger'
-    case LoginResult.AccountLocked:
-    case LoginResult.AccountDisabled:
-    case LoginResult.RequiresTwoFactor:
-    case LoginResult.PasswordChanged:
-    case LoginResult.PasswordReset:
-    case LoginResult.MfaBound:
-    case LoginResult.MfaUnbound:
-    case LoginResult.SessionRevoked:
-    case LoginResult.ImpersonationStarted:
-    case LoginResult.ImpersonationEnded: return 'warning'
-    default: return 'neutral'
-  }
-}
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
@@ -91,7 +69,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.login.login_result_placeholder'),
     width: 120,
     order: 21,
-    render: row => h(XhTagRoot, { variant: 'subtle', tone: loginResultType((row as unknown as LoginLogListItemDto).loginResult) }, () => h(XhTagLabel, () => getOptionLabel(loginResultOptions.value, (row as unknown as LoginLogListItemDto).loginResult))),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: loginResultTone((row as unknown as LoginLogListItemDto).loginResult) }, () => h(XhTagLabel, () => getOptionLabel(loginResultOptions.value, (row as unknown as LoginLogListItemDto).loginResult))),
   },
   { key: 'message', title: t('log.login.message'), dataType: 'string', minWidth: 220, order: 22 },
   { key: 'loginTime', title: t('log.login.login_time'), dataType: 'datetime', sortable: true, searchRange: true, advancedSearch: true, minWidth: 170, order: 23 },
@@ -139,7 +117,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => loginLogDetailFields(t))
+const detailSchema = computed<LogDetailSchema>(() => loginLogDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as LoginLogListItemDto | undefined
@@ -173,7 +151,7 @@ async function handleDetail(row: LoginLogListItemDto) {
   <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
-      :fields="detailFields"
+      :schema="detailSchema"
       :loading="detailLoading"
       :record="detailData"
       :title="t('log.login.detail_title')"

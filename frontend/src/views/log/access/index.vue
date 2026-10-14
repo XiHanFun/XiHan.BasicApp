@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types.ts'
+import type { LogDetailSchema } from '../_components/log-detail.types.ts'
 import type { AccessLogDetailDto, AccessLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
@@ -11,7 +11,8 @@ import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 import { renderHttpMethod } from '../_components/http-method'
-import { accessLogDetailFields } from '../_components/log-detail-fields'
+import { accessLogDetailSchema } from '../_components/log-detail-fields'
+import { accessResultTone } from '../_components/log-tones'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -40,16 +41,6 @@ const methodOptions = computed(() => [
   { label: t('log.method.delete'), value: 'DELETE' },
   { label: t('log.method.patch'), value: 'PATCH' },
 ])
-
-function accessResultType(result: AccessResult) {
-  switch (result) {
-    case AccessResult.Success: return 'success'
-    case AccessResult.Failed: return 'danger'
-    case AccessResult.Forbidden:
-    case AccessResult.Unauthorized: return 'warning'
-    default: return 'neutral'
-  }
-}
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
@@ -89,7 +80,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 18,
     render: (row) => {
       const r = row as unknown as AccessLogListItemDto
-      return h(XhTagRoot, { variant: 'subtle', tone: accessResultType(r.accessResult) }, () => h(XhTagLabel, () => getOptionLabel(accessResultOptions.value, r.accessResult)))
+      return h(XhTagRoot, { variant: 'subtle', tone: accessResultTone(r.accessResult) }, () => h(XhTagLabel, () => getOptionLabel(accessResultOptions.value, r.accessResult)))
     },
   },
   { key: 'statusCode', title: t('log.common.status_code'), dataType: 'number', advancedSearch: true, sortable: true, width: 100, order: 19 },
@@ -153,7 +144,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => accessLogDetailFields(t))
+const detailSchema = computed<LogDetailSchema>(() => accessLogDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as AccessLogListItemDto | undefined
@@ -187,7 +178,7 @@ async function handleDetail(row: AccessLogListItemDto) {
   <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
-      :fields="detailFields"
+      :schema="detailSchema"
       :loading="detailLoading"
       :record="detailData"
       :title="t('log.access.detail_title')"

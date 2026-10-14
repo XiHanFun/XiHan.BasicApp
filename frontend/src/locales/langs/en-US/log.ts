@@ -1,5 +1,15 @@
 export default {
   // Shared field labels and common copy across log pages
+  detail: {
+    group_subject: 'Details',
+    group_request: 'Request',
+    group_client: 'Client',
+    group_runtime: 'Runtime',
+    group_handling: 'Handling',
+    group_trace: 'Trace & IDs',
+    copied: 'Copied',
+    open_trace: 'Trace by {label} "{value}"',
+  },
   common: {
     basic_id: 'Log ID',
     user_id: 'User ID',

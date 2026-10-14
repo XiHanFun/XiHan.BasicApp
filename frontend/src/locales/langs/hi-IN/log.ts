@@ -1,5 +1,15 @@
 export default {
   // 跨日志页面共享的字段标签与通用文案
+  detail: {
+    group_subject: 'विवरण',
+    group_request: 'अनुरोध',
+    group_client: 'क्लाइंट',
+    group_runtime: 'रनटाइम',
+    group_handling: 'निपटान',
+    group_trace: 'ट्रेस और पहचानकर्ता',
+    copied: 'कॉपी किया गया',
+    open_trace: '{label} "{value}" से ट्रेस देखें',
+  },
   common: {
     basic_id: 'लॉग ID',
     user_id: 'उपयोगकर्ता ID',

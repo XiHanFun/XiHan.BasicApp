@@ -1,5 +1,15 @@
 export default {
   // 跨日志页面共享的字段标签与通用文案
+  detail: {
+    group_subject: '詳細',
+    group_request: 'リクエスト',
+    group_client: 'クライアント',
+    group_runtime: '実行環境',
+    group_handling: '対応',
+    group_trace: 'トレースと識別子',
+    copied: 'コピーしました',
+    open_trace: '{label}「{value}」でトレースを表示',
+  },
   common: {
     basic_id: 'ログ ID',
     user_id: 'ユーザー ID',

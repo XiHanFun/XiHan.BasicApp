@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types.ts'
+import type { LogDetailSchema } from '../_components/log-detail.types.ts'
 import type { MigrationHistoryDetailDto, MigrationHistoryListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
@@ -8,7 +8,7 @@ import { useI18n } from 'vue-i18n'
 import { createPageRequest, querySortsFromSchema, versionApi } from '@/api'
 import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
-import { migrationHistoryDetailFields } from '../_components/log-detail-fields'
+import { migrationHistoryDetailSchema } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 
 defineOptions({ name: 'LogMigrationPage' })
@@ -80,7 +80,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => migrationHistoryDetailFields(t))
+const detailSchema = computed<LogDetailSchema>(() => migrationHistoryDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as MigrationHistoryListItemDto | undefined
@@ -109,7 +109,7 @@ async function handleDetail(row: MigrationHistoryListItemDto) {
   <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
-      :fields="detailFields"
+      :schema="detailSchema"
       :loading="detailLoading"
       :record="detailData"
       :title="t('log.migration.detail_title')"

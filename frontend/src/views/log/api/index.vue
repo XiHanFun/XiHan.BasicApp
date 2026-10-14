@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types.ts'
+import type { LogDetailSchema } from '../_components/log-detail.types.ts'
 import type { ApiLogDetailDto, ApiLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
@@ -11,7 +11,7 @@ import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { getOptionLabel } from '~/utils'
 import { renderHttpMethod } from '../_components/http-method'
-import { apiLogDetailFields } from '../_components/log-detail-fields'
+import { apiLogDetailSchema } from '../_components/log-detail-fields'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -185,7 +185,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => apiLogDetailFields(t))
+const detailSchema = computed<LogDetailSchema>(() => apiLogDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as ApiLogListItemDto | undefined
@@ -219,7 +219,7 @@ async function handleDetail(row: ApiLogListItemDto) {
   <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
-      :fields="detailFields"
+      :schema="detailSchema"
       :loading="detailLoading"
       :record="detailData"
       :title="t('log.api.detail_title')"

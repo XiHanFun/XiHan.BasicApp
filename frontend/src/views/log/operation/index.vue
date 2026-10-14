@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import type { LogDetailField } from '../_components/log-detail.types.ts'
+import type { LogDetailSchema } from '../_components/log-detail.types.ts'
 import type { OperationLogDetailDto, OperationLogListItemDto, PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaQueryParams } from '~/components'
 import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
-import { createPageRequest, logManagementApi, OperationExecuteResult, OperationType, querySortsFromSchema } from '@/api'
+import { createPageRequest, logManagementApi, OperationExecuteResult, querySortsFromSchema } from '@/api'
 import { SchemaPage } from '~/components'
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
 import { renderHttpMethod } from '../_components/http-method'
-import { operationLogDetailFields } from '../_components/log-detail-fields'
+import { operationLogDetailSchema } from '../_components/log-detail-fields'
+import { operationResultTone, operationTypeTone } from '../_components/log-tones'
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { decorateTraceFields, gotoTrace } from '../_components/trace-nav'
 
@@ -31,33 +32,8 @@ const resultOptions = computed(() => [
   { label: t('log.operation.result_partial_success'), value: OperationExecuteResult.PartialSuccess },
 ])
 
-function resultTagType(result: OperationExecuteResult) {
-  switch (result) {
-    case OperationExecuteResult.Success: return 'success'
-    case OperationExecuteResult.PartialSuccess: return 'warning'
-    default: return 'danger'
-  }
-}
-
 // 操作类型的筛选项与单元格标签都取后端枚举元数据（此前前端只抄了 11 个，登录/登出/查询显示成「-」），前端只管配色
 const operationTypeOptions = useEnumOptions('OperationType')
-
-/** 按操作的影响分色：写入绿、改动蓝、删除红、审核审批黄、发起执行品牌色，只读与其他中性 */
-function operationTypeTone(type: OperationType) {
-  switch (type) {
-    case OperationType.Create:
-    case OperationType.Restore: return 'success'
-    case OperationType.Update:
-    case OperationType.Import:
-    case OperationType.Export: return 'info'
-    case OperationType.Delete: return 'danger'
-    case OperationType.Review:
-    case OperationType.Approve: return 'warning'
-    case OperationType.StartTask:
-    case OperationType.Execute: return 'brand'
-    default: return 'neutral'
-  }
-}
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
@@ -102,7 +78,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     searchPlaceholder: t('log.operation.result_placeholder'),
     width: 90,
     order: 26,
-    render: row => h(XhTagRoot, { variant: 'subtle', tone: resultTagType((row as unknown as OperationLogListItemDto).result) }, () => h(XhTagLabel, () => getOptionLabel(resultOptions.value, (row as unknown as OperationLogListItemDto).result))),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: operationResultTone((row as unknown as OperationLogListItemDto).result) }, () => h(XhTagLabel, () => getOptionLabel(resultOptions.value, (row as unknown as OperationLogListItemDto).result))),
   },
   { key: 'operationTime', title: t('log.operation.operation_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 27 },
   { key: 'createdTime', title: t('common.fields.created_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 28 },
@@ -161,7 +137,7 @@ const schema = computed<PageSchema>(() => ({
   ],
 }))
 
-const detailFields = computed<LogDetailField[]>(() => operationLogDetailFields(t))
+const detailSchema = computed<LogDetailSchema>(() => operationLogDetailSchema(t))
 
 function onAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as OperationLogListItemDto | undefined
@@ -195,7 +171,7 @@ async function handleDetail(row: OperationLogListItemDto) {
   <SchemaPage :schema="schema" @action="onAction">
     <LogDetailDrawer
       v-model:show="detailVisible"
-      :fields="detailFields"
+      :schema="detailSchema"
       :loading="detailLoading"
       :record="detailData"
       :title="t('log.operation.detail_title')"
