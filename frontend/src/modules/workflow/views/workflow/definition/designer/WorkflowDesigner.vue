@@ -552,58 +552,62 @@ function onContextSelect(key: string) {
 
 <template>
   <div class="flex h-[78vh] flex-col">
-    <!-- 工具栏 -->
-    <div class="mb-2 flex items-center gap-1">
-      <!-- 设计 / JSON 切换（内联在工具栏最前） -->
-      <XSegmented v-model:value="activeTab" :options="[{ value: 'design', label: t('workflow.designer.tab_design') }, { value: 'json', label: t('workflow.designer.tab_json') }]" size="sm" />
-      <XhSeparator orientation="vertical" class="!mx-1" />
-      <XhTagRoot variant="subtle" size="sm">
-        <XhTagLabel>
-          {{ meta.code || t('workflow.designer.untitled') }}
-        </XhTagLabel>
-      </XhTagRoot>
-      <span class="max-w-40 truncate text-sm text-gray-500">{{ meta.name }}</span>
-      <div class="flex-1" />
+    <!-- 工具栏：左右两组，放不下时整组换行、右组仍靠右；右组本身也放不下时组内再换行，
+         窄屏下组内分隔线随之隐藏，免得换行后落在行首行尾 -->
+    <div class="mb-2 flex flex-wrap items-center gap-x-1 gap-y-2">
+      <div class="flex min-w-0 items-center gap-1">
+        <!-- 设计 / JSON 切换（内联在工具栏最前） -->
+        <XSegmented v-model:value="activeTab" class="shrink-0" :options="[{ value: 'design', label: t('workflow.designer.tab_design') }, { value: 'json', label: t('workflow.designer.tab_json') }]" size="sm" />
+        <XhSeparator orientation="vertical" class="!mx-1" />
+        <XhTagRoot variant="subtle" size="sm" class="shrink-0">
+          <XhTagLabel>
+            {{ meta.code || t('workflow.designer.untitled') }}
+          </XhTagLabel>
+        </XhTagRoot>
+        <span class="min-w-0 max-w-40 truncate text-sm text-gray-500">{{ meta.name }}</span>
+      </div>
 
-      <!-- 撤销/重做/缩放/导出 -->
-      <template v-for="(btn, i) in toolButtons" :key="i">
-        <XhSeparator v-if="btn.divider" orientation="vertical" class="!mx-0.5" />
-        <XhButton v-else :title="btn.tip" :aria-label="btn.tip" size="sm" variant="ghost" icon-only @click="btn.run">
-          <Icon :icon="btn.icon!" />
+      <div class="ml-auto flex flex-wrap items-center justify-end gap-1">
+        <!-- 撤销/重做/缩放/导出 -->
+        <template v-for="(btn, i) in toolButtons" :key="i">
+          <XhSeparator v-if="btn.divider" orientation="vertical" class="!mx-0.5 max-sm:hidden" />
+          <XhButton v-else :title="btn.tip" :aria-label="btn.tip" size="sm" variant="ghost" icon-only @click="btn.run">
+            <Icon :icon="btn.icon!" />
+          </XhButton>
+        </template>
+
+        <!-- 对齐/分布（作用于多选节点） -->
+        <XDropdown :options="arrangeOptions" @select="onArrange">
+          <XhButton :title="t('workflow.designer.tb_arrange')" :aria-label="t('workflow.designer.tb_arrange')" size="sm" variant="ghost" icon-only>
+            <Icon icon="lucide:align-horizontal-distribute-center" />
+          </XhButton>
+        </XDropdown>
+
+        <XhSeparator orientation="vertical" class="!mx-0.5 max-sm:hidden" />
+
+        <!-- 校验状态 -->
+        <XhButton
+          size="sm"
+          variant="ghost"
+          :tone="errorCount ? 'danger' : (warningCount ? 'warning' : 'neutral')"
+          @click="showIssues = !showIssues"
+        >
+          <Icon icon="lucide:list-checks" />
+          {{ issues.length ? issues.length : t('workflow.designer.tb_validate') }}
         </XhButton>
-      </template>
 
-      <!-- 对齐/分布（作用于多选节点） -->
-      <XDropdown :options="arrangeOptions" @select="onArrange">
-        <XhButton :title="t('workflow.designer.tb_arrange')" :aria-label="t('workflow.designer.tb_arrange')" size="sm" variant="ghost" icon-only>
-          <Icon icon="lucide:align-horizontal-distribute-center" />
+        <XhSeparator orientation="vertical" class="!mx-0.5 max-sm:hidden" />
+
+        <XhButton variant="subtle" size="sm" @click="handleAutoLayout">
+          <Icon icon="lucide:layout-dashboard" />
+          {{ t('workflow.designer.btn_layout') }}
         </XhButton>
-      </XDropdown>
-
-      <XhSeparator orientation="vertical" class="!mx-0.5" />
-
-      <!-- 校验状态 -->
-      <XhButton
-        size="sm"
-        variant="ghost"
-        :tone="errorCount ? 'danger' : (warningCount ? 'warning' : 'neutral')"
-        @click="showIssues = !showIssues"
-      >
-        <Icon icon="lucide:list-checks" />
-        {{ issues.length ? issues.length : t('workflow.designer.tb_validate') }}
-      </XhButton>
-
-      <XhSeparator orientation="vertical" class="!mx-0.5" />
-
-      <XhButton variant="subtle" size="sm" @click="handleAutoLayout">
-        <Icon icon="lucide:layout-dashboard" />
-        {{ t('workflow.designer.btn_layout') }}
-      </XhButton>
-      <XhButton variant="subtle" size="sm" tone="brand" :loading="saving" @click="handleSave">
-        <XhButtonIndicator />
-        <Icon icon="lucide:save" />
-        <XhButtonLabel>{{ t('workflow.designer.btn_save') }}</XhButtonLabel>
-      </XhButton>
+        <XhButton variant="subtle" size="sm" tone="brand" :loading="saving" @click="handleSave">
+          <XhButtonIndicator />
+          <Icon icon="lucide:save" />
+          <XhButtonLabel>{{ t('workflow.designer.btn_save') }}</XhButtonLabel>
+        </XhButton>
+      </div>
     </div>
 
     <!-- 工具栏以下的高度全给当前视图：两个视图都是这一列里的 flex-1，各自不再另钉高度，否则与外层 78vh 之差就是底部空白 -->
