@@ -158,7 +158,7 @@ public sealed class SqlSugarWorkflowBookmarkStore : IWorkflowBookmarkStore
     {
         using var scope = _scopeFactory.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<IWorkflowBookmarkRepository>();
-        await repository.UpdateAsync(WorkflowStoreMapper.ToEntity(bookmark), cancellationToken);
+        await WorkflowStoreWrites.UpdateRuntimeRowAsync(repository, WorkflowStoreMapper.ToEntity(bookmark), cancellationToken);
     }
 
     /// <summary>

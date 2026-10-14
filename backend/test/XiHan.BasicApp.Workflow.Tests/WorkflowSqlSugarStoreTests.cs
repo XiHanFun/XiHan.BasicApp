@@ -457,6 +457,42 @@ public sealed class WorkflowSqlSugarStoreTests
     }
 
     /// <summary>
+    /// 仓储更新带行版本乐观锁：由模型重建的实体必须带上库里当前行的版本，
+    /// 否则同一行第二次更新（办理、撤回时再改挂起中的节点实例）就会被当成并发冲突拒绝。
+    /// </summary>
+    [Fact]
+    public async Task InstanceStore_Updates_ShouldCarryCurrentRowVersion()
+    {
+        var (store, instanceRepository, nodeInstanceRepository, _) = CreateInstanceStore();
+        var currentInstance = WorkflowStoreMapper.ToEntity(WorkflowTestHelper.CreateInstance());
+        currentInstance.RowVersion = 7L;
+        var currentNodeInstance = WorkflowStoreMapper.ToEntity(WorkflowTestHelper.CreateNodeInstance());
+        currentNodeInstance.RowVersion = 11L;
+        instanceRepository
+            .Setup(value => value.GetByIdAsync(900800700600500L, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(currentInstance);
+        nodeInstanceRepository
+            .Setup(value => value.GetByIdAsync(300300300300300L, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(currentNodeInstance);
+        SysWorkflowInstance? updatedInstance = null;
+        SysWorkflowNodeInstance? updatedNodeInstance = null;
+        instanceRepository
+            .Setup(value => value.UpdateAsync(It.IsAny<SysWorkflowInstance>(), It.IsAny<CancellationToken>()))
+            .Callback<SysWorkflowInstance, CancellationToken>((entity, _) => updatedInstance = entity)
+            .ReturnsAsync((SysWorkflowInstance entity, CancellationToken _) => entity);
+        nodeInstanceRepository
+            .Setup(value => value.UpdateAsync(It.IsAny<SysWorkflowNodeInstance>(), It.IsAny<CancellationToken>()))
+            .Callback<SysWorkflowNodeInstance, CancellationToken>((entity, _) => updatedNodeInstance = entity)
+            .ReturnsAsync((SysWorkflowNodeInstance entity, CancellationToken _) => entity);
+
+        await store.UpdateAsync(WorkflowTestHelper.CreateInstance());
+        await store.UpdateNodeInstanceAsync(WorkflowTestHelper.CreateNodeInstance());
+
+        Assert.Equal(7L, updatedInstance!.RowVersion);
+        Assert.Equal(11L, updatedNodeInstance!.RowVersion);
+    }
+
+    /// <summary>
     /// 书签查找必须还原节点标识与载荷（两者都没有投影列，只活在 JSON 真源里）。
     /// </summary>
     [Fact]
