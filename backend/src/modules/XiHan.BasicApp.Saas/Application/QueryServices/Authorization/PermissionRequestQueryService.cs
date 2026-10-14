@@ -3,11 +3,13 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using System.Globalization;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -48,9 +50,9 @@ public sealed class PermissionRequestQueryService
     private readonly IRoleRepository _roleRepository;
 
     /// <summary>
-    /// 审批仓储
+    /// 审批业务服务（读取单据的审批进度）
     /// </summary>
-    private readonly IReviewRepository _reviewRepository;
+    private readonly IWorkflowBusinessService _workflowBusinessService;
 
     /// <summary>
     /// 构造函数
@@ -60,13 +62,13 @@ public sealed class PermissionRequestQueryService
         ITenantUserRepository tenantUserRepository,
         IPermissionRepository permissionRepository,
         IRoleRepository roleRepository,
-        IReviewRepository reviewRepository)
+        IWorkflowBusinessService workflowBusinessService)
     {
         _permissionRequestRepository = permissionRequestRepository;
         _tenantUserRepository = tenantUserRepository;
         _permissionRepository = permissionRepository;
         _roleRepository = roleRepository;
-        _reviewRepository = reviewRepository;
+        _workflowBusinessService = workflowBusinessService;
     }
 
     /// <summary>
@@ -101,10 +103,9 @@ public sealed class PermissionRequestQueryService
                 .Where(item => item.RoleId.HasValue)
                 .Select(item => item.RoleId!.Value),
             cancellationToken);
-        var reviewMap = await BuildReviewMapAsync(
-            permissionRequests.Items
-                .Where(item => item.ReviewId.HasValue)
-                .Select(item => item.ReviewId!.Value),
+        var workflowMap = await _workflowBusinessService.GetProgressAsync(
+            SaasWorkflowBusinessCodes.PermissionRequest,
+            [.. permissionRequests.Items.Select(item => item.BasicId.ToString(CultureInfo.InvariantCulture))],
             cancellationToken);
 
         var items = permissionRequests.Items
@@ -113,7 +114,7 @@ public sealed class PermissionRequestQueryService
                 tenantMemberMap.GetValueOrDefault(item.RequestUserId),
                 item.PermissionId.HasValue ? permissionMap.GetValueOrDefault(item.PermissionId.Value) : null,
                 item.RoleId.HasValue ? roleMap.GetValueOrDefault(item.RoleId.Value) : null,
-                item.ReviewId.HasValue ? reviewMap.GetValueOrDefault(item.ReviewId.Value) : null,
+                workflowMap.GetValueOrDefault(item.BasicId.ToString(CultureInfo.InvariantCulture)),
                 now))
             .ToList();
 
@@ -149,11 +150,12 @@ public sealed class PermissionRequestQueryService
         var role = permissionRequest.RoleId.HasValue
             ? await _roleRepository.GetByIdAsync(permissionRequest.RoleId.Value, cancellationToken)
             : null;
-        var review = permissionRequest.ReviewId.HasValue
-            ? await _reviewRepository.GetByIdAsync(permissionRequest.ReviewId.Value, cancellationToken)
-            : null;
+        var businessId = permissionRequest.BasicId.ToString(CultureInfo.InvariantCulture);
+        var workflowMap = await _workflowBusinessService.GetProgressAsync(
+            SaasWorkflowBusinessCodes.PermissionRequest, [businessId], cancellationToken);
 
-        return PermissionRequestApplicationMapper.ToDetailDto(permissionRequest, requestUser, permission, role, review, DateTimeOffset.UtcNow);
+        return PermissionRequestApplicationMapper.ToDetailDto(
+            permissionRequest, requestUser, permission, role, workflowMap.GetValueOrDefault(businessId), DateTimeOffset.UtcNow);
     }
 
     /// <summary>
@@ -190,11 +192,6 @@ public sealed class PermissionRequestQueryService
         if (input.RoleId.HasValue)
         {
             request.Conditions.AddFilter((SysPermissionRequest pr) => pr.RoleId, input.RoleId.Value);
-        }
-
-        if (input.ReviewId.HasValue)
-        {
-            request.Conditions.AddFilter((SysPermissionRequest pr) => pr.ReviewId, input.ReviewId.Value);
         }
 
         if (input.RequestStatus.HasValue)
@@ -264,24 +261,5 @@ public sealed class PermissionRequestQueryService
 
         var roles = await _roleRepository.GetByIdsAsync(ids, cancellationToken);
         return roles.ToDictionary(role => role.BasicId);
-    }
-
-    /// <summary>
-    /// 构建审批单映射
-    /// </summary>
-    private async Task<IReadOnlyDictionary<long, SysReview>> BuildReviewMapAsync(IEnumerable<long> reviewIds, CancellationToken cancellationToken)
-    {
-        var ids = reviewIds
-            .Where(reviewId => reviewId > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysReview>();
-        }
-
-        var reviews = await _reviewRepository.GetByIdsAsync(ids, cancellationToken);
-        return reviews.ToDictionary(review => review.BasicId);
     }
 }

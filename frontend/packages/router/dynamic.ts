@@ -31,7 +31,11 @@ function toKebabCase(input: string) {
     .toLowerCase()
 }
 
-function resolveView(component?: string) {
+/**
+ * 按后端组件路径（菜单 Component 同口径）解析视图加载器；解析不到返回 null。
+ * 审批中心据此加载审批业务的单据视图组件。
+ */
+export function resolveView(component?: string) {
   if (!component) {
     return null
   }

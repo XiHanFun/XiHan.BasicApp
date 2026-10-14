@@ -5,8 +5,13 @@ using Microsoft.Extensions.Logging;
 using System.Globalization;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Workflow.Application.Business;
+using XiHan.BasicApp.Workflow.Domain.Entities;
+using XiHan.BasicApp.Workflow.Domain.Repositories;
+using XiHan.BasicApp.Workflow.Infrastructure.Stores;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Workflow.Abstractions.Events;
+using XiHan.Framework.Workflow.Abstractions.Stores;
 
 namespace XiHan.BasicApp.Workflow.Application.EventHandlers;
 
@@ -16,6 +21,21 @@ namespace XiHan.BasicApp.Workflow.Application.EventHandlers;
 internal static class WorkflowNotificationDispatcher
 {
     /// <summary>
+    /// 审批中心「待我审批」
+    /// </summary>
+    public const string TodoLink = "/approval/center?tab=todo";
+
+    /// <summary>
+    /// 审批中心「抄送我的」
+    /// </summary>
+    public const string CcLink = "/approval/center?tab=cc";
+
+    /// <summary>
+    /// 审批中心「我发起的」
+    /// </summary>
+    public const string StartedLink = "/approval/center?tab=started";
+
+    /// <summary>
     /// 安全投递（标识非用户主键跳过、投递异常仅记日志，均不阻断流程推进）
     /// </summary>
     public static async Task DispatchSafelyAsync(
@@ -24,7 +44,8 @@ internal static class WorkflowNotificationDispatcher
         string userIdText,
         string title,
         string content,
-        long? businessId)
+        long? businessId,
+        string link)
     {
         if (!long.TryParse(userIdText, NumberStyles.None, CultureInfo.InvariantCulture, out var userId))
         {
@@ -41,7 +62,7 @@ internal static class WorkflowNotificationDispatcher
                 NotificationType.Todo,
                 businessType: "workflow",
                 businessId: businessId,
-                link: "/workflow/todo");
+                link: link);
         }
         catch (Exception ex)
         {
@@ -93,7 +114,8 @@ public class WorkflowUserTaskCreatedNotificationHandler : ILocalEventHandler<Wor
             _dispatchService, _logger, task.AssigneeId,
             $"待办审批：{task.Title}",
             $"流程「{task.InstanceName}」有一条待办任务待您处理。",
-            businessId);
+            businessId,
+            WorkflowNotificationDispatcher.TodoLink);
 
         foreach (var ccUserId in eventData.CcUserIds)
         {
@@ -101,7 +123,8 @@ public class WorkflowUserTaskCreatedNotificationHandler : ILocalEventHandler<Wor
                 _dispatchService, _logger, ccUserId,
                 $"抄送：{task.Title}",
                 $"流程「{task.InstanceName}」的审批任务已抄送给您。",
-                businessId);
+                businessId,
+                WorkflowNotificationDispatcher.CcLink);
         }
     }
 }
@@ -135,7 +158,8 @@ public class WorkflowUserTaskTransferredNotificationHandler : ILocalEventHandler
             _dispatchService, _logger, eventData.TargetAssigneeId,
             "转办待办",
             $"一条审批任务已由他人转办给您{(string.IsNullOrWhiteSpace(eventData.Comment) ? "。" : $"：{eventData.Comment}")}",
-            WorkflowNotificationDispatcher.TryParseId(eventData.TaskId));
+            WorkflowNotificationDispatcher.TryParseId(eventData.TaskId),
+            WorkflowNotificationDispatcher.TodoLink);
     }
 }
 
@@ -174,6 +198,89 @@ public class WorkflowInstanceFaultedNotificationHandler : ILocalEventHandler<Wor
             _dispatchService, _logger, instance.StarterId,
             $"流程故障：{instance.Name}",
             $"您发起的流程「{instance.Name}」执行故障：{instance.FaultMessage}",
-            WorkflowNotificationDispatcher.TryParseId(instance.Id));
+            WorkflowNotificationDispatcher.TryParseId(instance.Id),
+            WorkflowNotificationDispatcher.StartedLink);
+    }
+}
+
+/// <summary>
+/// 抄送记录处理器（被抄送人写入审批记录，供「抄送我的」与审批轨迹）
+/// </summary>
+/// <remarks>
+/// 依次审批每轮生成待办都会带上抄送人，同一实例同一节点对同一人只记一次。
+/// 记录失败只记日志，不影响待办与通知。
+/// </remarks>
+public class WorkflowCarbonCopyRecordHandler : ILocalEventHandler<WorkflowUserTaskCreatedEventData>
+{
+    private readonly WorkflowTaskRecordWriter _recordWriter;
+    private readonly IWorkflowTaskRecordRepository _recordRepository;
+    private readonly IWorkflowInstanceStore _instanceStore;
+    private readonly ILogger<WorkflowCarbonCopyRecordHandler> _logger;
+
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    public WorkflowCarbonCopyRecordHandler(
+        WorkflowTaskRecordWriter recordWriter,
+        IWorkflowTaskRecordRepository recordRepository,
+        IWorkflowInstanceStore instanceStore,
+        ILogger<WorkflowCarbonCopyRecordHandler> logger)
+    {
+        _recordWriter = recordWriter;
+        _recordRepository = recordRepository;
+        _instanceStore = instanceStore;
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// 事件处理器通过实现此方法来处理事件
+    /// </summary>
+    /// <param name="eventData">事件数据</param>
+    public async Task HandleEventAsync(WorkflowUserTaskCreatedEventData eventData)
+    {
+        if (eventData.CcUserIds.Count == 0)
+        {
+            return;
+        }
+
+        var task = eventData.Task;
+        try
+        {
+            var instance = await _instanceStore.FindAsync(task.InstanceId);
+            if (instance is null)
+            {
+                return;
+            }
+
+            var instanceId = WorkflowStoreMapper.ParseId(task.InstanceId);
+            var recorded = (await _recordRepository.GetListAsync(record =>
+                    record.InstanceId == instanceId
+                    && record.NodeId == task.NodeId
+                    && record.Action == WorkflowTaskRecordAction.CarbonCopied))
+                .Select(record => record.UserId.ToString(CultureInfo.InvariantCulture))
+                .ToHashSet(StringComparer.Ordinal);
+            var recipients = eventData.CcUserIds.Where(userId => !recorded.Contains(userId)).ToList();
+            if (recipients.Count == 0)
+            {
+                return;
+            }
+
+            await _recordWriter.WriteAsync(
+                new WorkflowTaskSnapshot(
+                    WorkflowStoreMapper.ParseId(task.TaskId),
+                    instanceId,
+                    WorkflowStoreMapper.ParseId(instance.DefinitionId),
+                    task.DefinitionCode,
+                    task.InstanceName,
+                    task.NodeId,
+                    task.Title,
+                    task.CorrelationId),
+                recipients,
+                WorkflowTaskRecordAction.CarbonCopied);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "工作流抄送记录写入失败：任务 {TaskId}", task.TaskId);
+        }
     }
 }

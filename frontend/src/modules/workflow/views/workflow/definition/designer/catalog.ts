@@ -2,7 +2,7 @@
  * 活动类型目录：驱动节点面板与属性表单（与后端内置活动 WorkflowActivityTypes 一一对应）
  */
 
-export type ActivityPropInput = 'text' | 'textarea' | 'number' | 'boolean' | 'select' | 'tags' | 'json'
+export type ActivityPropInput = 'text' | 'textarea' | 'number' | 'boolean' | 'select' | 'tags' | 'json' | 'assignees'
 
 export interface ActivityPropDescriptor {
   /** 节点 properties 键名（与后端活动属性键一致） */
@@ -10,7 +10,8 @@ export interface ActivityPropDescriptor {
   /** i18n 键（workflow.designer.prop 下） */
   labelKey: string
   input: ActivityPropInput
-  options?: { label: string, value: string }[]
+  /** 下拉选项；labelKey（workflow.designer.option 下）存在时按语言显示，否则显示 label */
+  options?: { label: string, value: string, labelKey?: string }[]
   placeholder?: string
 }
 
@@ -36,7 +37,19 @@ const tool = 'tool'
 
 export const ACTIVITY_CATALOG: ActivityTypeMeta[] = [
   { type: 'Start', labelKey: 'start', icon: 'lucide:play', categoryKey: control, props: [] },
-  { type: 'End', labelKey: 'end', icon: 'lucide:square', categoryKey: control, props: [] },
+  {
+    type: 'End',
+    labelKey: 'end',
+    icon: 'lucide:square',
+    categoryKey: control,
+    props: [
+      // 结果结束节点：声明后回写审批业务并立即结束整个实例（审批业务流程的每个结束节点都必须声明）
+      { key: 'Outcome', labelKey: 'end_outcome', input: 'select', options: [
+        { label: 'approved', value: 'approved', labelKey: 'outcome_approved' },
+        { label: 'rejected', value: 'rejected', labelKey: 'outcome_rejected' },
+      ] },
+    ],
+  },
   {
     type: 'Decision',
     labelKey: 'decision',
@@ -111,16 +124,24 @@ export const ACTIVITY_CATALOG: ActivityTypeMeta[] = [
     categoryKey: human,
     outcomes: ['approved', 'rejected', 'timeout'],
     props: [
-      { key: 'Assignees', labelKey: 'assignees', input: 'tags' },
-      { key: 'AssigneesExpression', labelKey: 'assignees_expression', input: 'text', placeholder: 'approverIds' },
+      // 受理人只按规则配置：旧版 Assignees / AssigneesExpression / CcUserIds 打开时由 transform 并入规则
+      { key: 'AssigneeRules', labelKey: 'assignee_rules', input: 'assignees' },
+      { key: 'ExcludeStarter', labelKey: 'exclude_starter', input: 'boolean' },
       { key: 'CompletionPolicy', labelKey: 'completion_policy', input: 'select', options: [
-        { label: 'Any', value: 'Any' },
-        { label: 'All', value: 'All' },
-        { label: 'Sequential', value: 'Sequential' },
+        { label: 'Any', value: 'Any', labelKey: 'policy_any' },
+        { label: 'All', value: 'All', labelKey: 'policy_all' },
+        { label: 'Sequential', value: 'Sequential', labelKey: 'policy_sequential' },
       ] },
+      { key: 'EmptyAssigneeStrategy', labelKey: 'empty_assignee_strategy', input: 'select', options: [
+        { label: 'Fault', value: 'Fault', labelKey: 'empty_fault' },
+        { label: 'AutoApprove', value: 'AutoApprove', labelKey: 'empty_auto_approve' },
+        { label: 'AutoReject', value: 'AutoReject', labelKey: 'empty_auto_reject' },
+        { label: 'Fallback', value: 'Fallback', labelKey: 'empty_fallback' },
+      ] },
+      { key: 'FallbackAssigneeRules', labelKey: 'fallback_assignee_rules', input: 'assignees' },
       { key: 'Title', labelKey: 'title', input: 'text', placeholder: '单据 {{billNo}} 审批' },
       { key: 'FormData', labelKey: 'form_data', input: 'json' },
-      { key: 'CcUserIds', labelKey: 'cc_user_ids', input: 'tags' },
+      { key: 'CcRules', labelKey: 'cc_rules', input: 'assignees' },
       { key: 'AllowedOutcomes', labelKey: 'allowed_outcomes', input: 'tags' },
     ],
   },

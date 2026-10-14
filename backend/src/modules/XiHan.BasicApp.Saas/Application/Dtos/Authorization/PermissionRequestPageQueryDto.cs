@@ -32,11 +32,6 @@ public sealed class PermissionRequestPageQueryDto : BasicAppPRDto
     public long? RoleId { get; set; }
 
     /// <summary>
-    /// 审批单主键
-    /// </summary>
-    public long? ReviewId { get; set; }
-
-    /// <summary>
     /// 申请状态
     /// </summary>
     public PermissionRequestStatus? RequestStatus { get; set; }

@@ -21,6 +21,11 @@ public interface IWorkflowDefinitionQueryService : IApplicationService
     /// 获取定义详情（含定义 JSON）
     /// </summary>
     Task<WorkflowDefinitionDetailDto?> GetDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 已登记的审批业务（设计器关联业务用）
+    /// </summary>
+    Task<List<WorkflowBusinessTypeDto>> GetBusinessTypesAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>

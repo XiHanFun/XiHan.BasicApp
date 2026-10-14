@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Saas.Application.Dtos;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 
@@ -37,7 +38,7 @@ public static class PermissionRequestApplicationMapper
         SysTenantUser? requestUser,
         SysPermission? permission,
         SysRole? role,
-        SysReview? review,
+        WorkflowBusinessProgress? workflow,
         DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -59,11 +60,8 @@ public static class PermissionRequestApplicationMapper
             ExpectedEffectiveTime = request.ExpectedEffectiveTime,
             ExpectedExpirationTime = request.ExpectedExpirationTime,
             IsExpectedExpired = request.ExpectedExpirationTime.HasValue && request.ExpectedExpirationTime.Value <= now,
-            ReviewId = request.ReviewId,
-            ReviewCode = review?.ReviewCode,
-            ReviewTitle = review?.ReviewTitle,
-            ReviewStatus = review?.ReviewStatus,
-            ReviewResult = review?.ReviewResult,
+            WorkflowInstanceId = request.WorkflowInstanceId,
+            Workflow = workflow is null ? null : WorkflowProgressApplicationMapper.ToDto(workflow),
             CreatedTime = request.CreatedTime,
             ModifiedTime = request.ModifiedTime
         };
@@ -77,7 +75,7 @@ public static class PermissionRequestApplicationMapper
         SysTenantUser? requestUser,
         SysPermission? permission,
         SysRole? role,
-        SysReview? review,
+        WorkflowBusinessProgress? workflow,
         DateTimeOffset now)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -101,12 +99,8 @@ public static class PermissionRequestApplicationMapper
             ExpectedEffectiveTime = request.ExpectedEffectiveTime,
             ExpectedExpirationTime = request.ExpectedExpirationTime,
             IsExpectedExpired = request.ExpectedExpirationTime.HasValue && request.ExpectedExpirationTime.Value <= now,
-            ReviewId = request.ReviewId,
-            ReviewCode = review?.ReviewCode,
-            ReviewTitle = review?.ReviewTitle,
-            ReviewDescription = review?.ReviewDescription,
-            ReviewStatus = review?.ReviewStatus,
-            ReviewResult = review?.ReviewResult,
+            WorkflowInstanceId = request.WorkflowInstanceId,
+            Workflow = workflow is null ? null : WorkflowProgressApplicationMapper.ToDto(workflow),
             Remark = request.Remark,
             CreatedTime = request.CreatedTime,
             CreatedId = request.CreatedId,
@@ -120,28 +114,14 @@ public static class PermissionRequestApplicationMapper
     /// <summary>
     /// 映射权限申请状态变更命令
     /// </summary>
-    public static PermissionRequestStatusCommand ToStatusCommand(PermissionRequestStatusUpdateDto input, long reviewUserId)
+    public static PermissionRequestStatusCommand ToStatusCommand(PermissionRequestStatusUpdateDto input, long operatorUserId)
     {
         ArgumentNullException.ThrowIfNull(input);
 
         return new PermissionRequestStatusCommand(
             input.BasicId,
-            reviewUserId,
-            input.RequestStatus,
-            input.ReviewId,
-            input.Remark);
-    }
-
-    /// <summary>
-    /// 映射权限申请审批命令（通过 / 驳回）
-    /// </summary>
-    public static PermissionRequestApprovalCommand ToApprovalCommand(PermissionRequestApprovalDto input, long operatorUserId)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-
-        return new PermissionRequestApprovalCommand(
-            input.BasicId,
             operatorUserId,
+            input.RequestStatus,
             input.Remark);
     }
 

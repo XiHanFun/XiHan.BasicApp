@@ -11,7 +11,7 @@ import {
   tenantEditionPermissionApi,
   tenantMemberApi,
 } from '../tenant'
-import { reviewApi, taskApi } from '../workflow'
+import { taskApi } from '../workflow'
 
 export const appManagementApi = {
   ...oauthAppApi,
@@ -43,10 +43,6 @@ export const fileManagementApi = {
 
 export const jobManagementApi = {
   ...taskApi,
-}
-
-export const approvalManagementApi = {
-  ...reviewApi,
 }
 
 export const serverManagementApi = {

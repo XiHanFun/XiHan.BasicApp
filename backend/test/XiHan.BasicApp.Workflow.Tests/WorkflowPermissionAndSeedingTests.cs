@@ -142,7 +142,7 @@ public sealed class WorkflowPermissionAndSeedingTests
         {
             if (page.ParentCode is { } parentCode
                 && !seen.Contains(parentCode)
-                && !string.Equals(parentCode, WorkflowPageRegistry.WorkbenchDirectoryCode, StringComparison.Ordinal))
+                && !string.Equals(parentCode, WorkflowPageRegistry.ApprovalDirectoryCode, StringComparison.Ordinal))
             {
                 violations.Add($"{page.Code} 的父级 {parentCode} 未在其之前登记");
             }
@@ -156,15 +156,15 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 跨模块父目录码必须真实存在于 Saas 页面登记表中，否则「我的待办」会因解析不到父节点而静默消失。
+    /// 跨模块父目录码必须真实存在于 Saas 页面登记表中，否则「审批中心」会因解析不到父节点而静默消失。
     /// </summary>
     [Fact]
-    public void PageRegistry_WorkbenchParentCode_ShouldExistInSaasRegistry()
+    public void PageRegistry_ApprovalParentCode_ShouldExistInSaasRegistry()
     {
-        Assert.Equal("workbench", WorkflowPageRegistry.WorkbenchDirectoryCode, StringComparer.Ordinal);
+        Assert.Equal(SaasPageRegistry.ApprovalDirectoryCode, WorkflowPageRegistry.ApprovalDirectoryCode, StringComparer.Ordinal);
         Assert.Contains(
             SaasPageRegistry.All,
-            page => string.Equals(page.Code, WorkflowPageRegistry.WorkbenchDirectoryCode, StringComparison.Ordinal));
+            page => string.Equals(page.Code, WorkflowPageRegistry.ApprovalDirectoryCode, StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -217,7 +217,7 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 权限绑定必须精确：目录与「我的待办」不绑权限（登录即可见），流程定义 / 流程实例绑 workflow:read。
+    /// 权限绑定必须精确：目录与「审批中心」不绑权限（登录即可见），流程定义 / 流程实例绑 workflow:read。
     /// </summary>
     [Fact]
     public void PageRegistry_PermissionBindingShouldStayExact()
@@ -225,7 +225,7 @@ public sealed class WorkflowPermissionAndSeedingTests
         var bindings = WorkflowPageRegistry.All.ToDictionary(page => page.Code, page => page.PermissionCode, StringComparer.Ordinal);
 
         Assert.Null(bindings[WorkflowPageRegistry.WorkflowDirectoryCode]);
-        Assert.Null(bindings["workflow_todo"]);
+        Assert.Null(bindings["workflow_approval"]);
         Assert.Equal(WorkflowPermissionCodes.Read, bindings["workflow_definition"], StringComparer.Ordinal);
         Assert.Equal(WorkflowPermissionCodes.Read, bindings["workflow_instance"], StringComparer.Ordinal);
     }
@@ -515,7 +515,7 @@ public sealed class WorkflowPermissionAndSeedingTests
         using var provider = services.BuildServiceProvider();
         var handlers = provider.GetRequiredService<IOptions<XiHanLocalEventBusOptions>>().Value.Handlers;
 
-        Assert.Equal(3, handlers.Count);
+        Assert.Equal(4, handlers.Count);
     }
 
     /// <summary>

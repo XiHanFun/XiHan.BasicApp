@@ -30,7 +30,7 @@ public sealed class WorkflowApiSurfaceTests
     /// <summary>
     /// 方法 → 权限码的完整期望映射（键为「类型名.方法名」）。
     /// </summary>
-    private static readonly Dictionary<string, string> ExpectedPermissionCodes = new(StringComparer.Ordinal)
+    private static readonly Dictionary<string, string?> ExpectedPermissionCodes = new(StringComparer.Ordinal)
     {
         ["WorkflowDefinitionAppService.CreateAsync"] = WorkflowPermissionCodes.Create,
         ["WorkflowDefinitionAppService.NewVersionAsync"] = WorkflowPermissionCodes.Create,
@@ -41,6 +41,12 @@ public sealed class WorkflowApiSurfaceTests
         ["WorkflowDefinitionAppService.DeleteAsync"] = WorkflowPermissionCodes.Delete,
         ["WorkflowDefinitionQueryService.GetPageAsync"] = WorkflowPermissionCodes.Read,
         ["WorkflowDefinitionQueryService.GetDetailAsync"] = WorkflowPermissionCodes.Read,
+        ["WorkflowDefinitionQueryService.GetBusinessTypesAsync"] = WorkflowPermissionCodes.Read,
+        ["WorkflowDirectoryQueryService.GetRoleOptionsAsync"] = WorkflowPermissionCodes.Read,
+        ["WorkflowDirectoryQueryService.GetPositionOptionsAsync"] = WorkflowPermissionCodes.Read,
+        ["WorkflowDirectoryQueryService.GetDepartmentTreeAsync"] = WorkflowPermissionCodes.Read,
+        // 选人：转办/加签的普通审批人也要用，登录即可（与聊天选人同语义）
+        ["WorkflowDirectoryQueryService.GetUserOptionsAsync"] = null,
         ["WorkflowInstanceAppService.StartAsync"] = WorkflowPermissionCodes.Execute,
         ["WorkflowInstanceAppService.CancelAsync"] = WorkflowPermissionCodes.Execute,
         ["WorkflowInstanceAppService.TerminateAsync"] = WorkflowPermissionCodes.Execute,
@@ -53,12 +59,15 @@ public sealed class WorkflowApiSurfaceTests
     };
 
     /// <summary>
-    /// 待办服务的接口刻意不设权限码（登录即可办理，受理人归属由任务服务在实例锁内校验）。
+    /// 待办与审批中心的接口刻意不设权限码（登录即可办理与查看自己的审批，受理人归属由任务服务在实例锁内校验，
+    /// 审批详情按参与关系鉴权）。
     /// </summary>
     private static readonly Type[] PermissionFreeServices =
     [
         typeof(WorkflowTodoAppService),
-        typeof(WorkflowTodoQueryService)
+        typeof(WorkflowTodoQueryService),
+        typeof(WorkflowApprovalAppService),
+        typeof(WorkflowApprovalQueryService)
     ];
 
     /// <summary>
@@ -184,6 +193,8 @@ public sealed class WorkflowApiSurfaceTests
     [Theory]
     [InlineData(typeof(WorkflowTodoAppService))]
     [InlineData(typeof(WorkflowTodoQueryService))]
+    [InlineData(typeof(WorkflowApprovalAppService))]
+    [InlineData(typeof(WorkflowApprovalQueryService))]
     public void TodoEndpoints_ShouldStayPermissionFree(Type serviceType)
     {
         var guarded = DiscoverEndpoints(serviceType)

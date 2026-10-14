@@ -6,9 +6,11 @@
  * 设计器只改 code/name/description/category/enableCompensation/variables/nodes/transitions，
  * 其余字段（id/version/status/租户/时间）原样透传；
  * 画布坐标持久化在 extraProperties.designerLayout（{nodeId: {x,y}} 的 JSON 字符串）。
+ * 人工任务的旧版受理人写法（Assignees / AssigneesExpression / CcUserIds）解析时并入受理人规则，保存即落为新写法。
  */
 
 import type { DiagramData, DiagramEdge, DiagramNode, DiagramNodeStatus, DiagramPortMode } from '~/diagram'
+import { isRuleComplete, migrateLegacyAssignees, readRules, RULE_PROPERTY_KEYS } from './assignee-rules'
 
 export const ACTIVITY_SHAPE = 'workflow-activity'
 
@@ -162,6 +164,14 @@ export function autoLayout(data: DiagramData): void {
   }
 }
 
+/** 节点属性副本；人工任务把旧版受理人写法并入规则 */
+function normalizeProperties(activityType: string, properties: Record<string, unknown> | undefined): Record<string, unknown> {
+  const copy = { ...properties }
+  if (activityType === 'UserTask')
+    migrateLegacyAssignees(copy)
+  return copy
+}
+
 /** 解析后端定义 JSON 为设计器图模型（JSON 非法时抛错，由调用方提示） */
 export function parseDefinition(json: string): ParsedDefinition {
   const raw = JSON.parse(json) as Record<string, unknown>
@@ -190,7 +200,7 @@ export function parseDefinition(json: string): ParsedDefinition {
     data: {
       activityType: rawNode.activityType,
       name: rawNode.name ?? rawNode.id,
-      properties: rawNode.properties ?? {},
+      properties: normalizeProperties(rawNode.activityType, rawNode.properties),
       retryPolicy: rawNode.retryPolicy ?? null,
       timeoutSeconds: rawNode.timeoutSeconds ?? null,
       continueOnError: rawNode.continueOnError ?? false,
@@ -318,8 +328,14 @@ export interface ValidationIssue {
 
 const TERMINAL_TYPES = new Set(['End', 'Terminate', 'Fault'])
 
+/** 本地校验选项 */
+export interface ValidateOptions {
+  /** 流程关联了审批业务时，业务允许的流程结果：每个结束节点都要声明其一，且不能用终止节点（后端发布时同样拒绝） */
+  businessOutcomes?: readonly string[] | null
+}
+
 /** 设计器本地结构校验（常驻问题面板 + 保存前把关；完整校验在后端发布时执行） */
-export function validateGraph(meta: DefinitionMeta, data: DiagramData): ValidationIssue[] {
+export function validateGraph(meta: DefinitionMeta, data: DiagramData, options: ValidateOptions = {}): ValidationIssue[] {
   const issues: ValidationIssue[] = []
   const push = (code: string, level: 'error' | 'warning', nodeId?: string) => issues.push({ code, level, nodeId })
 
@@ -374,6 +390,22 @@ export function validateGraph(meta: DefinitionMeta, data: DiagramData): Validati
     // 孤立入口：非开始节点无入边
     if (type !== 'Start' && (inCount.get(node.id) ?? 0) === 0)
       push('no_incoming', 'warning', node.id)
+    // 人工任务：至少一条受理人规则，规则参数要填全（后端发布时同样拒绝）
+    if (type === 'UserTask') {
+      const properties = dataOf(node).properties ?? {}
+      if (readRules(properties.AssigneeRules).length === 0)
+        push('no_assignee', 'error', node.id)
+      if (RULE_PROPERTY_KEYS.some(key => readRules(properties[key]).some(rule => !isRuleComplete(rule))))
+        push('assignee_incomplete', 'error', node.id)
+    }
+    // 审批业务流程：结束节点要声明业务认可的结果，终止节点让业务得不到结论
+    if (options.businessOutcomes) {
+      const outcome = dataOf(node).properties?.Outcome
+      if (type === 'End' && (typeof outcome !== 'string' || !options.businessOutcomes.includes(outcome)))
+        push('business_end_outcome', 'warning', node.id)
+      if (type === 'Terminate')
+        push('business_terminate', 'warning', node.id)
+    }
     // 独占网关无默认/兜底分支
     if (type === 'Decision') {
       const outs = outgoing.get(node.id) ?? []

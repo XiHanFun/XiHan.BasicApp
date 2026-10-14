@@ -8,8 +8,6 @@
 import type { AxiosRequestConfig } from '~/request'
 import { describe, expect, it, vi } from 'vitest'
 import {
-  AuditResult,
-  AuditStatus,
   ConditionOperator,
   ConfigDataType,
   ConfigType,
@@ -112,8 +110,6 @@ const alignments: [string, Option[], EnumLike][] = [
   ['TRIGGER_TYPE_OPTIONS', constants.TRIGGER_TYPE_OPTIONS, TriggerType],
   ['RUN_TASK_STATUS_OPTIONS', constants.RUN_TASK_STATUS_OPTIONS, RunTaskStatus],
   ['OAUTH_APP_TYPE_OPTIONS', constants.OAUTH_APP_TYPE_OPTIONS, OAuthAppType],
-  ['REVIEW_STATUS_OPTIONS', constants.REVIEW_STATUS_OPTIONS, AuditStatus],
-  ['REVIEW_RESULT_OPTIONS', constants.REVIEW_RESULT_OPTIONS, AuditResult],
   ['DEVICE_TYPE_OPTIONS', constants.DEVICE_TYPE_OPTIONS, DeviceType],
   ['TWO_FACTOR_METHOD_OPTIONS', constants.TWO_FACTOR_METHOD_OPTIONS, TwoFactorMethod],
   ['STATISTICS_PERIOD_OPTIONS', constants.STATISTICS_PERIOD_OPTIONS, StatisticsPeriod],

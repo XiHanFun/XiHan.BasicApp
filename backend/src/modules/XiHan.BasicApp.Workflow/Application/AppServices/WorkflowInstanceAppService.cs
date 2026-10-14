@@ -3,6 +3,7 @@
 
 using System.Globalization;
 using System.Text.Json;
+using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Contracts;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.BasicApp.Workflow.Application.Mappers;
@@ -27,14 +28,16 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
 
     private readonly IWorkflowEngine _engine;
     private readonly ICurrentUser _currentUser;
+    private readonly WorkflowBusinessAbortNotifier _abortNotifier;
 
     /// <summary>
     /// 构造函数
     /// </summary>
-    public WorkflowInstanceAppService(IWorkflowEngine engine, ICurrentUser currentUser)
+    public WorkflowInstanceAppService(IWorkflowEngine engine, ICurrentUser currentUser, WorkflowBusinessAbortNotifier abortNotifier)
     {
         _engine = engine;
         _currentUser = currentUser;
+        _abortNotifier = abortNotifier;
     }
 
     /// <summary>
@@ -61,7 +64,7 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
     }
 
     /// <summary>
-    /// 取消实例（定义启用补偿时按执行逆序补偿）
+    /// 取消实例（定义启用补偿时按执行逆序补偿；审批业务流程同时回写单据为已撤回）
     /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Execute)]
     public async Task<WorkflowInstanceListItemDto> CancelAsync(WorkflowInstanceOperationDto input, CancellationToken cancellationToken = default)
@@ -69,11 +72,12 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         ArgumentNullException.ThrowIfNull(input);
 
         var instance = await TranslateAsync(() => _engine.CancelAsync(ToWorkflowId(input.BasicId), input.Reason, cancellationToken));
+        await _abortNotifier.NotifyAsync(instance, input.Reason, cancellationToken);
         return WorkflowApplicationMapper.ToListItemDto(instance);
     }
 
     /// <summary>
-    /// 终止实例（不补偿）
+    /// 终止实例（不补偿；审批业务流程同时回写单据为已撤回）
     /// </summary>
     [PermissionAuthorize(WorkflowPermissionCodes.Execute)]
     public async Task<WorkflowInstanceListItemDto> TerminateAsync(WorkflowInstanceOperationDto input, CancellationToken cancellationToken = default)
@@ -81,6 +85,7 @@ public sealed class WorkflowInstanceAppService : WorkflowApplicationService, IWo
         ArgumentNullException.ThrowIfNull(input);
 
         var instance = await TranslateAsync(() => _engine.TerminateAsync(ToWorkflowId(input.BasicId), input.Reason, cancellationToken));
+        await _abortNotifier.NotifyAsync(instance, input.Reason, cancellationToken);
         return WorkflowApplicationMapper.ToListItemDto(instance);
     }
 

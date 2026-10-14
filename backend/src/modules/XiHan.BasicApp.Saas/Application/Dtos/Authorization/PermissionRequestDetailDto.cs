@@ -92,34 +92,14 @@ public sealed class PermissionRequestDetailDto : BasicAppDto
     public bool IsExpectedExpired { get; set; }
 
     /// <summary>
-    /// 审批单主键
+    /// 审批流程实例主键
     /// </summary>
-    public long? ReviewId { get; set; }
+    public long? WorkflowInstanceId { get; set; }
 
     /// <summary>
-    /// 审批单编码
+    /// 审批进度（未发起审批时为空）
     /// </summary>
-    public string? ReviewCode { get; set; }
-
-    /// <summary>
-    /// 审批单标题
-    /// </summary>
-    public string? ReviewTitle { get; set; }
-
-    /// <summary>
-    /// 审批单描述
-    /// </summary>
-    public string? ReviewDescription { get; set; }
-
-    /// <summary>
-    /// 审批状态
-    /// </summary>
-    public AuditStatus? ReviewStatus { get; set; }
-
-    /// <summary>
-    /// 审批结果
-    /// </summary>
-    public AuditResult? ReviewResult { get; set; }
+    public WorkflowProgressDto? Workflow { get; set; }
 
     /// <summary>
     /// 备注

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Globalization;
+using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Contracts;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.BasicApp.Workflow.Application.Mappers;
@@ -31,13 +32,19 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
 
     private readonly IFieldSecurityService _fieldSecurity;
 
+    private readonly WorkflowBusinessDefinitionGuard _businessDefinitionGuard;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public WorkflowDefinitionAppService(IWorkflowDefinitionManager definitionManager, IFieldSecurityService fieldSecurity)
+    public WorkflowDefinitionAppService(
+        IWorkflowDefinitionManager definitionManager,
+        IFieldSecurityService fieldSecurity,
+        WorkflowBusinessDefinitionGuard businessDefinitionGuard)
     {
         _definitionManager = definitionManager;
         _fieldSecurity = fieldSecurity;
+        _businessDefinitionGuard = businessDefinitionGuard;
     }
 
     /// <summary>
@@ -83,6 +90,14 @@ public sealed class WorkflowDefinitionAppService : WorkflowApplicationService, I
     {
         ArgumentNullException.ThrowIfNull(input);
         RequirePositiveKey(input.BasicId, nameof(input));
+
+        // 审批业务流程额外校验：每个结束节点都要声明业务允许的结果，业务才能据此回写单据
+        var definition = await TranslateAsync(() => _definitionManager.GetAsync(ToWorkflowId(input.BasicId), cancellationToken));
+        var businessErrors = _businessDefinitionGuard.Validate(definition);
+        if (businessErrors.Count > 0)
+        {
+            throw new BusinessException(message: string.Join("；", businessErrors));
+        }
 
         var published = await TranslateAsync(() => _definitionManager.PublishAsync(ToWorkflowId(input.BasicId), cancellationToken));
         return WorkflowApplicationMapper.ToDetailDto(published);

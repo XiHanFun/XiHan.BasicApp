@@ -24,7 +24,6 @@ export default {
   setting_bot_config: '機器人設定',
   setting_telegram_bot: 'Telegram 機器人',
   approval: '審批',
-  approval_review: '審批中心',
   approval_constraint: '審批約束',
   file_library: '檔案管理',
   file_storage: '儲存設定',

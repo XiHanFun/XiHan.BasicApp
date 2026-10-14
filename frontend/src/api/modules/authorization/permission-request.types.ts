@@ -1,5 +1,5 @@
 import type { ApiId, BasicDto, BasicUpdateDto, DateTimeString, PageRequest } from '../../types'
-import type { AuditResult, AuditStatus } from '../workflow'
+import type { WorkflowProgressDto } from '../workflow'
 
 /** 与后端 JsonStringEnumConverter 序列化值一致 */
 export enum PermissionRequestStatus {
@@ -15,7 +15,6 @@ export interface PermissionRequestPageQueryDto extends PageRequest {
   permissionId?: ApiId | null
   requestStatus?: PermissionRequestStatus | null
   requestUserId?: ApiId | null
-  reviewId?: ApiId | null
   roleId?: ApiId | null
 }
 
@@ -33,14 +32,13 @@ export interface PermissionRequestListItemDto extends BasicDto {
   requestTenantMemberId?: ApiId | null
   requestUserDisplayName?: string | null
   requestUserId: ApiId
-  reviewCode?: string | null
-  reviewId?: ApiId | null
-  reviewResult?: AuditResult | null
-  reviewStatus?: AuditStatus | null
-  reviewTitle?: string | null
   roleCode?: string | null
   roleId?: ApiId | null
   roleName?: string | null
+  /** 审批进度（工作流模块未启用或尚未发起时为空） */
+  workflow?: WorkflowProgressDto | null
+  /** 当前（或最近一次）审批流程实例 */
+  workflowInstanceId?: ApiId | null
 }
 
 export interface PermissionRequestDetailDto extends PermissionRequestListItemDto {
@@ -50,7 +48,6 @@ export interface PermissionRequestDetailDto extends PermissionRequestListItemDto
   modifiedId?: ApiId | null
   permissionDescription?: string | null
   remark?: string | null
-  reviewDescription?: string | null
   roleDescription?: string | null
 }
 
@@ -75,5 +72,4 @@ export interface PermissionRequestUpdateDto extends BasicUpdateDto {
 export interface PermissionRequestStatusUpdateDto extends BasicUpdateDto {
   remark?: string | null
   requestStatus: PermissionRequestStatus
-  reviewId?: ApiId | null
 }

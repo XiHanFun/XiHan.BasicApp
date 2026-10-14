@@ -3,9 +3,11 @@
 
 using Microsoft.AspNetCore.Authorization;
 using SqlSugar;
+using System.Globalization;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -48,7 +50,7 @@ public sealed class PermissionCenterQueryService
 
     private readonly ITenantUserRepository _tenantUserRepository;
 
-    private readonly IReviewRepository _reviewRepository;
+    private readonly IWorkflowBusinessService _workflowBusinessService;
 
     /// <summary>
     /// 构造函数
@@ -64,7 +66,7 @@ public sealed class PermissionCenterQueryService
         IPermissionRequestRepository permissionRequestRepository,
         IRoleRepository roleRepository,
         ITenantUserRepository tenantUserRepository,
-        IReviewRepository reviewRepository,
+        IWorkflowBusinessService workflowBusinessService,
         ISqlSugarClientResolver clientResolver)
     {
         _permissionRepository = permissionRepository;
@@ -77,7 +79,7 @@ public sealed class PermissionCenterQueryService
         _permissionRequestRepository = permissionRequestRepository;
         _roleRepository = roleRepository;
         _tenantUserRepository = tenantUserRepository;
-        _reviewRepository = reviewRepository;
+        _workflowBusinessService = workflowBusinessService;
         _clientResolver = clientResolver;
     }
 
@@ -269,10 +271,9 @@ public sealed class PermissionCenterQueryService
                 .Where(item => item.RoleId.HasValue)
                 .Select(item => item.RoleId!.Value),
             cancellationToken);
-        var reviewMap = await BuildReviewMapAsync(
-            requests
-                .Where(item => item.ReviewId.HasValue)
-                .Select(item => item.ReviewId!.Value),
+        var workflowMap = await _workflowBusinessService.GetProgressAsync(
+            SaasWorkflowBusinessCodes.PermissionRequest,
+            [.. requests.Select(item => item.BasicId.ToString(CultureInfo.InvariantCulture))],
             cancellationToken);
 
         return [.. requests
@@ -281,7 +282,7 @@ public sealed class PermissionCenterQueryService
                 tenantMemberMap.GetValueOrDefault(item.RequestUserId),
                 permission,
                 item.RoleId.HasValue ? roleMap.GetValueOrDefault(item.RoleId.Value) : null,
-                item.ReviewId.HasValue ? reviewMap.GetValueOrDefault(item.ReviewId.Value) : null,
+                workflowMap.GetValueOrDefault(item.BasicId.ToString(CultureInfo.InvariantCulture)),
                 now))
             .OrderByDescending(item => item.CreatedTime)
             .ThenBy(item => item.BasicId)
@@ -333,21 +334,5 @@ public sealed class PermissionCenterQueryService
             item => item.CreatedTime,
             cancellationToken);
         return tenantMembers.ToDictionary(item => item.UserId);
-    }
-
-    private async Task<IReadOnlyDictionary<long, SysReview>> BuildReviewMapAsync(IEnumerable<long> reviewIds, CancellationToken cancellationToken)
-    {
-        var ids = reviewIds
-            .Where(id => id > 0)
-            .Distinct()
-            .ToArray();
-
-        if (ids.Length == 0)
-        {
-            return new Dictionary<long, SysReview>();
-        }
-
-        var reviews = await _reviewRepository.GetByIdsAsync(ids, cancellationToken);
-        return reviews.ToDictionary(item => item.BasicId);
     }
 }

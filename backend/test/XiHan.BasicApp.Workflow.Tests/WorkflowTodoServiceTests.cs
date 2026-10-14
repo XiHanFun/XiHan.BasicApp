@@ -1,15 +1,25 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using System.Globalization;
 using System.Text.Json;
+using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.Entities;
+using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.BasicApp.Workflow.Application.AppServices;
+using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.BasicApp.Workflow.Application.QueryServices;
+using XiHan.BasicApp.Workflow.Domain.Entities;
+using XiHan.BasicApp.Workflow.Domain.Repositories;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Workflow.Abstractions.Exceptions;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
+using XiHan.Framework.Workflow.Abstractions.Stores;
 using XiHan.Framework.Workflow.Abstractions.UserTasks;
 
 namespace XiHan.BasicApp.Workflow.Tests;
@@ -482,16 +492,197 @@ public sealed class WorkflowTodoServiceTests
     }
 
     /// <summary>
+    /// 审批业务流程：办理前必须先回调业务校验，校验拒绝时不得调用任务服务（待办保持不变）。
+    /// </summary>
+    [Fact]
+    public async Task CompleteAsync_BusinessRejects_ShouldNotCompleteTask()
+    {
+        var handler = new Mock<IWorkflowBusinessHandler>();
+        handler.SetupGet(value => value.Descriptor).Returns(new WorkflowBusinessDescriptor
+        {
+            Code = "leave",
+            Name = "请假",
+            FormComponent = "leave/approval"
+        });
+        handler
+            .Setup(value => value.OnTaskCompletingAsync(It.IsAny<WorkflowBusinessTaskContext>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new UserFriendlyException("不能审批自己提交的申请。"));
+        var fixture = CreateAppFixture(userId: 99L, handler: handler.Object, instance: WorkflowTestHelper.CreateInstance(status: WorkflowInstanceStatus.Running, parentInstanceId: null));
+
+        var exception = await Assert.ThrowsAsync<UserFriendlyException>(
+            () => fixture.Service.CompleteAsync(new WorkflowTodoCompleteDto { TaskId = "400400400400400", Outcome = "approved" }));
+
+        Assert.Equal("不能审批自己提交的申请。", exception.Message, StringComparer.Ordinal);
+        handler.Verify(
+            value => value.OnTaskCompletingAsync(
+                It.Is<WorkflowBusinessTaskContext>(context =>
+                    context.BusinessCode == "leave"
+                    && context.BusinessId == "ORDER-2024-0001"
+                    && context.ActorUserId == 99L
+                    && context.Outcome == "approved"
+                    && context.TaskId == "400400400400400"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        fixture.TaskService.Verify(
+            value => value.CompleteAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string?>(), It.IsAny<Dictionary<string, object?>?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+        fixture.Records.Verify(
+            value => value.AddRangeAsync(It.IsAny<IEnumerable<SysWorkflowTaskRecord>>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 不是自己的待办必须在调用任务服务之前就被拒绝。
+    /// </summary>
+    [Fact]
+    public async Task CompleteAsync_TaskOfAnotherUser_ShouldThrowBusinessException()
+    {
+        var fixture = CreateAppFixture(userId: 99L, bookmarkKey: "1001");
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(
+            () => fixture.Service.CompleteAsync(new WorkflowTodoCompleteDto { TaskId = "400400400400400", Outcome = "approved" }));
+
+        Assert.Contains("不是任务", exception.Message, StringComparison.Ordinal);
+        fixture.TaskService.Verify(
+            value => value.CompleteAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string?>(), It.IsAny<Dictionary<string, object?>?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
+    /// 办理成功必须写一条办理记录（办理人、结果、意见与任务快照），供「我的已办」与审批轨迹。
+    /// </summary>
+    [Fact]
+    public async Task CompleteAsync_ShouldWriteCompletedRecord()
+    {
+        var fixture = CreateAppFixture(userId: 99L);
+        List<SysWorkflowTaskRecord>? written = null;
+        fixture.Records
+            .Setup(value => value.AddRangeAsync(It.IsAny<IEnumerable<SysWorkflowTaskRecord>>(), It.IsAny<CancellationToken>()))
+            .Callback<IEnumerable<SysWorkflowTaskRecord>, CancellationToken>((records, _) => written = [.. records])
+            .ReturnsAsync([]);
+        fixture.TaskService
+            .Setup(value => value.CompleteAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string?>(), It.IsAny<Dictionary<string, object?>?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(WorkflowTestHelper.CreateInstance(status: WorkflowInstanceStatus.Running));
+
+        _ = await fixture.Service.CompleteAsync(new WorkflowTodoCompleteDto { TaskId = "400400400400400", Outcome = "rejected", Comment = "材料不全" });
+
+        var record = Assert.Single(written!);
+        Assert.Equal(99L, record.UserId);
+        Assert.Equal(WorkflowTaskRecordAction.Completed, record.Action);
+        Assert.Equal("rejected", record.Outcome, StringComparer.Ordinal);
+        Assert.Equal("材料不全", record.Comment, StringComparer.Ordinal);
+        Assert.Equal(400400400400400L, record.TaskId);
+        Assert.Equal(900800700600500L, record.InstanceId);
+        Assert.Equal("approve", record.NodeId, StringComparer.Ordinal);
+        Assert.Equal("部门审批", record.Title, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 办理后实例故障（后续节点或业务回写出错）时结果必须带出故障信息，审批人得知流程已暂停。
+    /// </summary>
+    [Fact]
+    public async Task CompleteAsync_InstanceFaulted_ShouldReturnFaultMessage()
+    {
+        var fixture = CreateAppFixture(userId: 99L);
+        fixture.TaskService
+            .Setup(value => value.CompleteAsync(
+                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
+                It.IsAny<string?>(), It.IsAny<Dictionary<string, object?>?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(WorkflowTestHelper.CreateInstance(status: WorkflowInstanceStatus.Faulted, faultMessage: "业务回写失败"));
+
+        var result = await fixture.Service.CompleteAsync(new WorkflowTodoCompleteDto { TaskId = "400400400400400", Outcome = "approved" });
+
+        Assert.Equal(WorkflowInstanceStatus.Faulted, result.InstanceStatus);
+        Assert.Equal("业务回写失败", result.FaultMessage, StringComparer.Ordinal);
+    }
+
+    /// <summary>
+    /// 转办目标不是当前上下文可见的启用用户时必须拒绝，不得把待办转给不存在的人。
+    /// </summary>
+    [Fact]
+    public async Task TransferAsync_UnknownTarget_ShouldThrowBusinessException()
+    {
+        var fixture = CreateAppFixture(userId: 99L, visibleUserIds: []);
+
+        var exception = await Assert.ThrowsAsync<BusinessException>(
+            () => fixture.Service.TransferAsync(new WorkflowTodoTransferDto { TaskId = "400400400400400", TargetAssigneeId = "1002" }));
+
+        Assert.Contains("不存在或已停用", exception.Message, StringComparison.Ordinal);
+        fixture.TaskService.Verify(
+            value => value.TransferAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    /// <summary>
     /// 构造待办命令服务及其 Moq 任务服务与当前用户。
     /// </summary>
     /// <param name="userId">当前登录用户主键（null 表示未登录）。</param>
     /// <returns>命令服务、任务服务桩、当前用户桩。</returns>
     private static (WorkflowTodoAppService Service, Mock<IWorkflowUserTaskService> TaskService, Mock<ICurrentUser> CurrentUser) CreateAppService(long? userId = 99L)
     {
+        var fixture = CreateAppFixture(userId);
+        return (fixture.Service, fixture.TaskService, fixture.CurrentUser);
+    }
+
+    /// <summary>
+    /// 构造待办命令服务的完整夹具：待办书签默认属于当前用户、实例为普通流程、转办/加签目标默认可见且启用。
+    /// </summary>
+    private static TodoAppFixture CreateAppFixture(
+        long? userId = 99L,
+        string? bookmarkKey = null,
+        IWorkflowBusinessHandler? handler = null,
+        WorkflowInstance? instance = null,
+        IReadOnlyCollection<long>? visibleUserIds = null)
+    {
         var taskService = new Mock<IWorkflowUserTaskService>();
         var currentUser = new Mock<ICurrentUser>();
         currentUser.SetupGet(value => value.UserId).Returns(userId);
-        return (new WorkflowTodoAppService(taskService.Object, currentUser.Object), taskService, currentUser);
+
+        var bookmarkStore = new Mock<IWorkflowBookmarkStore>();
+        bookmarkStore
+            .Setup(value => value.FindAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((string id, CancellationToken _) => WorkflowTestHelper.CreateBookmark(id: id, key: bookmarkKey ?? userId?.ToString(CultureInfo.InvariantCulture)));
+        var instanceStore = new Mock<IWorkflowInstanceStore>();
+        instanceStore
+            .Setup(value => value.FindAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(instance ?? WorkflowTestHelper.CreateInstance(status: WorkflowInstanceStatus.Running));
+
+        var services = new ServiceCollection();
+        if (handler is not null)
+        {
+            services.AddSingleton(handler);
+        }
+
+        var registry = new WorkflowBusinessRegistry(services.BuildServiceProvider());
+        var records = new Mock<IWorkflowTaskRecordRepository>();
+        records
+            .Setup(value => value.AddRangeAsync(It.IsAny<IEnumerable<SysWorkflowTaskRecord>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+        var recordWriter = new WorkflowTaskRecordWriter(records.Object, new Mock<IWorkflowDefinitionStore>().Object);
+
+        var visible = visibleUserIds ?? [1002L, 1003L];
+        var userDirectory = new Mock<IUserDirectory>();
+        userDirectory
+            .Setup(value => value.FindAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((long id, CancellationToken _) => visible.Contains(id)
+                ? new SysUser { UserName = $"user{id}", Status = EnableStatus.Enabled }
+                : null);
+
+        var service = new WorkflowTodoAppService(
+            taskService.Object,
+            bookmarkStore.Object,
+            instanceStore.Object,
+            registry,
+            recordWriter,
+            userDirectory.Object,
+            currentUser.Object);
+        return new TodoAppFixture(service, taskService, currentUser, records);
     }
 
     /// <summary>
@@ -504,6 +695,26 @@ public sealed class WorkflowTodoServiceTests
         var taskService = new Mock<IWorkflowUserTaskService>();
         var currentUser = new Mock<ICurrentUser>();
         currentUser.SetupGet(value => value.UserId).Returns(userId);
-        return (new WorkflowTodoQueryService(taskService.Object, currentUser.Object), taskService, currentUser);
+
+        var instanceStore = new Mock<IWorkflowInstanceStore>();
+        var userRepository = new Mock<IUserRepository>();
+        userRepository
+            .Setup(value => value.GetListByIdsIgnoreTenantAsync(It.IsAny<IReadOnlyCollection<long>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        var service = new WorkflowTodoQueryService(
+            taskService.Object,
+            instanceStore.Object,
+            new Mock<IWorkflowDefinitionStore>().Object,
+            new WorkflowBusinessRegistry(new ServiceCollection().BuildServiceProvider()),
+            new WorkflowUserNameResolver(userRepository.Object),
+            currentUser.Object);
+        return (service, taskService, currentUser);
     }
+
+    private sealed record TodoAppFixture(
+        WorkflowTodoAppService Service,
+        Mock<IWorkflowUserTaskService> TaskService,
+        Mock<ICurrentUser> CurrentUser,
+        Mock<IWorkflowTaskRecordRepository> Records);
 }

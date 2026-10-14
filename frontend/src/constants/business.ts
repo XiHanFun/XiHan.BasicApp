@@ -2,8 +2,6 @@
  * 下拉选项与后端 API 字符串枚举对齐（Flags 类枚举除外）
  */
 import {
-  AuditResult,
-  AuditStatus,
   ConditionOperator,
   ConfigDataType,
   ConfigType,
@@ -265,22 +263,6 @@ export const OPENAPI_ENCRYPT_ALGORITHM_OPTIONS = [
   { label: 'AES-CBC', value: 'AES-CBC' },
   { label: 'BLOWFISH', value: 'BLOWFISH' },
   { label: 'NONE', value: 'NONE' },
-]
-
-// ==================== 审查 ====================
-
-export const REVIEW_STATUS_OPTIONS = [
-  { label: '待审查', value: AuditStatus.Pending },
-  { label: '审查中', value: AuditStatus.InProgress },
-  { label: '已通过', value: AuditStatus.Approved },
-  { label: '已拒绝', value: AuditStatus.Rejected },
-  { label: '已撤回', value: AuditStatus.Withdrawn },
-]
-
-export const REVIEW_RESULT_OPTIONS = [
-  { label: '通过', value: AuditResult.Pass },
-  { label: '拒绝', value: AuditResult.Reject },
-  { label: '退回修改', value: AuditResult.Return },
 ]
 
 // ==================== 会话/设备 ====================

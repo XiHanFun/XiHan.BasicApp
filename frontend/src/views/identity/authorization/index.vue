@@ -10,6 +10,7 @@ import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/compone
 import { XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import {
   createPageRequest,
   DelegationStatus,
@@ -25,10 +26,12 @@ import { actionConfirmText, deleteConfirmText, SchemaPage, XDatePicker, XEditMod
 import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
+import { workflowProgressText, workflowProgressTone } from './workflow-progress'
 
 defineOptions({ name: 'SystemAuthorizationPage' })
 
 const { t } = useI18n()
+const router = useRouter()
 
 /** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表校验 */
 const editFormId = useId()
@@ -208,6 +211,20 @@ const requestFields = computed<ListFieldSchema[]>(() => [
       return t('identity.authorization.validity_range', { from: formatNullableDate(r.expectedEffectiveTime), to: formatNullableDate(r.expectedExpirationTime) })
     },
   },
+  {
+    key: 'workflow',
+    title: t('identity.authorization.req_col_progress'),
+    dataType: 'string',
+    minWidth: 200,
+    ellipsis: true,
+    order: 4.5,
+    render: (row) => {
+      const progress = (row as unknown as PermissionRequestListItemDto).workflow
+      return progress
+        ? h(XhTagRoot, { variant: 'subtle', tone: workflowProgressTone(progress) }, () => h(XhTagLabel, () => workflowProgressText(t, progress)))
+        : workflowProgressText(t, progress)
+    },
+  },
   { key: 'createdTime', title: t('identity.authorization.req_col_create_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 6 },
 ])
 
@@ -217,8 +234,8 @@ function requestName(row: unknown) {
   return [request.requestUserDisplayName, request.roleName || request.permissionName].filter(Boolean).join(' · ')
 }
 
-function isPending(row: unknown) {
-  return (row as PermissionRequestListItemDto).requestStatus === PermissionRequestStatus.Pending
+function hasWorkflow(row: unknown) {
+  return Boolean((row as PermissionRequestListItemDto).workflowInstanceId)
 }
 
 const requestSchema = computed<PageSchema>(() => ({
@@ -239,40 +256,18 @@ const requestSchema = computed<PageSchema>(() => ({
     remove: id => permissionRequestApi.delete(id),
   },
   actions: [
-    { key: 'approve', title: t('identity.authorization.req_action_approve'), scope: 'row', icon: 'lucide:check', type: 'primary', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.req_action_approve'), requestName(row)), visible: isPending, permission: 'identity.authorization.audit' },
-    { key: 'reject', title: t('identity.authorization.req_action_reject'), scope: 'row', icon: 'lucide:x', type: 'error', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.req_action_reject'), requestName(row)), visible: isPending, permission: 'identity.authorization.audit' },
+    // 审批在审批中心办理；这里只跳过去看进度与轨迹（发起人、审批人或有流程查看权的人可看）
+    { key: 'trace', title: t('identity.authorization.req_action_trace'), scope: 'row', icon: 'lucide:route', visible: hasWorkflow },
     { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, requestName(row)), permission: 'identity.authorization.withdraw' },
   ],
 }))
 
-async function reviewRequest(row: PermissionRequestListItemDto, approved: boolean) {
-  try {
-    if (approved) {
-      // 审批通过：后端走审批流并自动为申请人授予角色/权限
-      await permissionRequestApi.approve({ basicId: row.basicId, remark: t('identity.authorization.req_approve_remark') })
-    }
-    else {
-      await permissionRequestApi.reject({ basicId: row.basicId, remark: t('identity.authorization.req_reject_remark') })
-    }
-    toast.success(approved ? t('identity.authorization.req_approved') : t('identity.authorization.req_rejected'))
-    reloadRequest()
-  }
-  catch (e: unknown) {
-    toast.danger((e as Error)?.message || t('common.messages.operation_failed'))
-  }
-}
-
 function onRequestAction(payload: SchemaActionPayload) {
   const row = payload.row as unknown as PermissionRequestListItemDto | undefined
   switch (payload.key) {
-    case 'approve':
-      if (row) {
-        void reviewRequest(row, true)
-      }
-      break
-    case 'reject':
-      if (row) {
-        void reviewRequest(row, false)
+    case 'trace':
+      if (row?.workflowInstanceId) {
+        void router.push({ path: '/approval/center', query: { instanceId: String(row.workflowInstanceId) } })
       }
       break
     case 'delete':

@@ -24,7 +24,6 @@ export default {
   setting_bot_config: 'बॉट कॉन्फ़िगरेशन',
   setting_telegram_bot: 'Telegram बॉट',
   approval: 'अनुमोदन',
-  approval_review: 'अनुमोदन केंद्र',
   approval_constraint: 'अनुमोदन प्रतिबंध',
   file_library: 'फ़ाइल प्रबंधन',
   file_storage: 'स्टोरेज कॉन्फ़िगरेशन',

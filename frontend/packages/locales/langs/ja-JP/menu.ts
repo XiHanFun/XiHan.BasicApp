@@ -24,7 +24,6 @@ export default {
   setting_bot_config: 'ボット設定',
   setting_telegram_bot: 'Telegram ボット',
   approval: '承認',
-  approval_review: '承認センター',
   approval_constraint: '承認制約',
   file_library: 'ファイル管理',
   file_storage: 'ストレージ設定',

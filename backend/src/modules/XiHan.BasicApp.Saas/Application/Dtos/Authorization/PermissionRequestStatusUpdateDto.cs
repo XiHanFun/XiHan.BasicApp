@@ -17,11 +17,6 @@ public sealed class PermissionRequestStatusUpdateDto : BasicAppUDto
     public PermissionRequestStatus RequestStatus { get; set; }
 
     /// <summary>
-    /// 审批单主键
-    /// </summary>
-    public long? ReviewId { get; set; }
-
-    /// <summary>
     /// 备注
     /// </summary>
     public string? Remark { get; set; }

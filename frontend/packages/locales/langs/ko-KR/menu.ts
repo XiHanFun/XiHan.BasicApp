@@ -24,7 +24,6 @@ export default {
   setting_bot_config: '봇 설정',
   setting_telegram_bot: 'Telegram 봇',
   approval: '결재',
-  approval_review: '결재 센터',
   approval_constraint: '결재 제약',
   file_library: '파일 관리',
   file_storage: '스토리지 설정',

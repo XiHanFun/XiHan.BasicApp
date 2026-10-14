@@ -359,21 +359,6 @@ public static class SaasPermissionDefinitions
         [
             new(SaasPermissionCodes.TaskLog.Read, "任务日志查看", "查看当前租户任务执行日志摘要", true, 850),
         ]),
-        new(SaasPermissionCodes.Review.Group, "系统审查", PermissionSide.Tenant,
-        [
-            new(SaasPermissionCodes.Review.Read, "系统审查查看", "查看当前租户系统审查单摘要", true, 855),
-            new(SaasPermissionCodes.Review.Create, "系统审查创建", "创建当前租户系统审查单", true, 2020),
-            new(SaasPermissionCodes.Review.Update, "系统审查更新", "更新当前租户系统审查单", true, 2021),
-            new(SaasPermissionCodes.Review.Status, "系统审查状态", "更新当前租户系统审查启停状态", true, 2022),
-            new(SaasPermissionCodes.Review.Audit, "系统审查审核", "处理当前租户系统审查单审核结果", true, 2023),
-            new(SaasPermissionCodes.Review.Withdraw, "系统审查撤回", "撤回当前租户系统审查单", true, 2024),
-            new(SaasPermissionCodes.Review.Delete, "系统审查删除", "删除当前租户系统审查单", true, 2025),
-            new(SaasPermissionCodes.Review.Export, "系统审查导出", "导出当前数据范围内的系统审查列表数据", false, 2610),
-        ]),
-        new(SaasPermissionCodes.ReviewLog.Group, "审查日志", PermissionSide.Tenant,
-        [
-            new(SaasPermissionCodes.ReviewLog.Read, "审查日志查看", "查看当前租户审查流转日志摘要", true, 860),
-        ]),
         new(SaasPermissionCodes.Config.Group, "系统配置", PermissionSide.Both,
         [
             new(SaasPermissionCodes.Config.Read, "系统配置查看", "查看当前租户系统配置元数据", true, 870),

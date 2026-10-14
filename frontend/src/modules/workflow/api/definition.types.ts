@@ -46,3 +46,22 @@ export interface WorkflowDefinitionIdDto {
 export interface WorkflowDefinitionNewVersionDto {
   code: string
 }
+
+/** 审批业务流程变量（设计器分支条件与表达式提示） */
+export interface WorkflowBusinessVariableDto {
+  name: string
+  label: string
+  /** string / number / boolean / user（user 为用户主键字符串） */
+  valueType: string
+  description?: string | null
+}
+
+/** 审批业务（流程编码等于业务编码即为该业务的审批流程） */
+export interface WorkflowBusinessTypeDto {
+  code: string
+  name: string
+  description?: string | null
+  formComponent: string
+  outcomes: string[]
+  variables: WorkflowBusinessVariableDto[]
+}

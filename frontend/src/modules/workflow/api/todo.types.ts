@@ -11,9 +11,14 @@ export interface WorkflowTodoListItemDto {
   instanceName: string
   definitionCode: string
   nodeId: string
+  nodeName: string
   title: string
   correlationId?: string | null
   creationTime: DateTimeString
+  starterId?: string | null
+  starterName?: string | null
+  /** 业务名称（非审批业务流程为空） */
+  businessName?: string | null
 }
 
 export interface WorkflowTodoCompleteDto {
@@ -27,6 +32,8 @@ export interface WorkflowTodoCompleteDto {
 export interface WorkflowTodoCompleteResultDto {
   instanceId: string
   instanceStatus: WorkflowInstanceStatus
+  /** 办理后实例故障时的故障信息（审批已记录，后续节点或业务回写出错） */
+  faultMessage?: string | null
 }
 
 export interface WorkflowTodoTransferDto {

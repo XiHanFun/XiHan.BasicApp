@@ -26,9 +26,15 @@ public sealed class WorkflowTodoListItemDto
     public string InstanceName { get; set; } = string.Empty;
     public string DefinitionCode { get; set; } = string.Empty;
     public string NodeId { get; set; } = string.Empty;
+    public string NodeName { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;
     public string? CorrelationId { get; set; }
     public DateTime CreationTime { get; set; }
+    public string? StarterId { get; set; }
+    public string? StarterName { get; set; }
+
+    /// <summary>业务名称（非审批业务流程为空）</summary>
+    public string? BusinessName { get; set; }
 }
 
 /// <summary>
@@ -54,6 +60,9 @@ public sealed class WorkflowTodoCompleteResultDto
 {
     public string InstanceId { get; set; } = string.Empty;
     public WorkflowInstanceStatus InstanceStatus { get; set; }
+
+    /// <summary>办理后实例故障时的故障信息（审批已记录，后续节点或业务回写出错，需管理员处理后重试）</summary>
+    public string? FaultMessage { get; set; }
 }
 
 /// <summary>

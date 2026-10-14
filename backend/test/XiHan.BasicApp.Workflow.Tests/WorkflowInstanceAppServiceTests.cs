@@ -1,12 +1,15 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Text.Json;
 using XiHan.BasicApp.Workflow.Application.AppServices;
+using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Uow;
 using XiHan.Framework.Workflow.Abstractions.Engine;
 using XiHan.Framework.Workflow.Abstractions.Exceptions;
 using XiHan.Framework.Workflow.Abstractions.Runtime;
@@ -387,6 +390,10 @@ public sealed class WorkflowInstanceAppServiceTests
         var engine = new Mock<IWorkflowEngine>();
         var currentUser = new Mock<ICurrentUser>();
         currentUser.SetupGet(value => value.UserId).Returns(userId);
-        return (new WorkflowInstanceAppService(engine.Object, currentUser.Object), engine, currentUser);
+        var notifier = new WorkflowBusinessAbortNotifier(
+            new WorkflowBusinessRegistry(new ServiceCollection().BuildServiceProvider()),
+            Mock.Of<IUnitOfWorkManager>(),
+            currentUser.Object);
+        return (new WorkflowInstanceAppService(engine.Object, currentUser.Object, notifier), engine, currentUser);
     }
 }

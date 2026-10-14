@@ -101,6 +101,7 @@ public static class WorkflowStoreMapper
             CreationTime = instance.CreationTime,
             StartTime = instance.StartTime,
             EndTime = instance.EndTime,
+            Outcome = instance.Outcome,
             FaultNodeId = instance.FaultNodeId,
             FaultMessage = Truncate(instance.FaultMessage, 2000),
             InstanceJson = JsonSerializer.Serialize(instance, JsonOptions)

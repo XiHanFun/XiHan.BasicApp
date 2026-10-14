@@ -217,7 +217,7 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 
 ## 申请、审批、委托与留痕
 
-- **权限申请** `SysPermissionRequest`：用户申请权限/角色 → 关联 `SysReview` 审批流 → 审批通过后由服务层**自动**写入 `SysUserRole`/`SysUserPermission` 完成授权。状态 `PermissionRequestStatus`：`Pending`/`Approved`/`Rejected`/`Withdrawn`/`Expired`；可带期望生效/失效时间。
+- **权限申请** `SysPermissionRequest`：用户申请权限/角色 → 提交即发起「权限申请」审批流（`WorkflowInstanceId` 记下实例，审批在审批中心办理）→ 流程走到「通过」结束节点时**自动**写入 `SysUserRole`/`SysUserPermission` 完成授权；删除、修改或改到终态会撤回进行中的审批。见 [工作流 · 审批业务接入](./workflow#审批业务接入)。状态 `PermissionRequestStatus`：`Pending`/`Approved`/`Rejected`/`Withdrawn`/`Expired`；可带期望生效/失效时间。
 - **权限委托** `SysPermissionDelegation`：建模"委托人 → 被委托人 → 权限范围 → 时间窗口"（如经理出差把审批权委托给副手）。`PermissionId`/`RoleId` 均可空且可同时填写：非空的 `PermissionId` 直接并入被委托人权限，非空的 `RoleId` 展开为该角色当前有效的 Grant 权限，两者都为空则不产生委托权限；`ExpirationTime` **必填**（委托必须有截止）；生效需 `DelegationStatus=Active`（`DelegationStatus`：`Pending`/`Active`/`Expired`/`Revoked`）且当前时间在窗口内。撤销走 `DelegationStatus=Revoked`，记录本身仅软删。
 - **变更留痕** `SysPermissionChangeLog`：结构化记录"谁在什么时候给谁授予/撤销了什么权限"，是 RBAC 合规审计的核心证据。**只追加，禁止更新和删除**，按月分表（`SplitTable`），携带 `OperatorUserId`/`TargetUserId`/`TargetRoleId`/`PermissionId`/`ChangeType`/`OperationIp`/`TraceId`。`ChangeType`（`PermissionChangeType`）区分角色/用户的授予、撤销、拒绝、分配/移除角色等。与 `SysDiffLog`（通用实体字段变更）职责分离——本表专注权限授予/撤销的业务语义。
 
