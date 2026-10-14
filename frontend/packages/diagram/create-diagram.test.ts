@@ -7,7 +7,7 @@
  * 不验证 X6 自身的渲染行为（那属于引擎，不属于本包）。
  */
 import type { DiagramApi, DiagramData } from './types'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const x6 = vi.hoisted(() => {
   interface Spec {
@@ -254,6 +254,12 @@ const x6 = vi.hoisted(() => {
     dispose() {
       this.disposeCalls += 1
     }
+
+    resizeCalls: [number, number][] = []
+
+    resize(width: number, height: number) {
+      this.resizeCalls.push([width, height])
+    }
   }
 
   function pluginClass(name: string) {
@@ -285,6 +291,35 @@ const x6 = vi.hoisted(() => {
 
 vi.mock('@antv/x6', () => ({ Graph: x6.FakeGraph, ...x6.plugins }))
 
+/** jsdom 没有 ResizeObserver：替身记下观察目标，由用例手动派发尺寸 */
+class FakeResizeObserver {
+  static last: FakeResizeObserver | null = null
+  targets: Element[] = []
+  disconnected = false
+
+  constructor(private readonly callback: ResizeObserverCallback) {
+    FakeResizeObserver.last = this
+  }
+
+  observe(target: Element) {
+    this.targets.push(target)
+  }
+
+  disconnect() {
+    this.disconnected = true
+  }
+
+  emit(width: number, height: number) {
+    this.callback([{ contentRect: { width, height } } as ResizeObserverEntry], this as unknown as ResizeObserver)
+  }
+}
+
+// 配置里开着 unstubGlobals，每个用例前都会还原全局，替身要逐个用例重新挂
+beforeEach(() => {
+  FakeResizeObserver.last = null
+  vi.stubGlobal('ResizeObserver', FakeResizeObserver)
+})
+
 const { createDiagram } = await import('./create-diagram')
 const { DIAGRAM_NODE_HIGHLIGHT_KEY, DIAGRAM_NODE_STATUS_KEY } = await import('./types')
 
@@ -298,7 +333,10 @@ interface Harness {
 function create(options: Parameters<typeof createDiagram>[1] = {}): Harness {
   x6.state.plugins = []
   x6.state.keyBindings = new Map()
-  const api = createDiagram(document.createElement('div'), options)
+  // 画布容器在真实布局里总挂在外层元素下，尺寸跟随的是外层
+  const container = document.createElement('div')
+  document.createElement('div').append(container)
+  const api = createDiagram(container, options)
   return { api, graph: x6.state.graph as Graph }
 }
 
@@ -677,6 +715,36 @@ describe('节点与连线的编辑命令', () => {
     api.dispose()
 
     expect(graph.disposeCalls).toBe(1)
+    expect(FakeResizeObserver.last?.disconnected).toBe(true)
+  })
+})
+
+describe('尺寸跟随', () => {
+  it('关掉引擎自带的 autoResize，改为观察容器的外层元素', () => {
+    const container = document.createElement('div')
+    const host = document.createElement('div')
+    host.append(container)
+
+    createDiagram(container)
+
+    expect((x6.state.graph as Graph).options.autoResize).toBe(false)
+    expect(FakeResizeObserver.last?.targets).toStrictEqual([host])
+  })
+
+  it('外层量到 0 时保持画布尺寸，重新露出来再跟上', () => {
+    const { graph } = create()
+    const observer = FakeResizeObserver.last!
+
+    observer.emit(640.4, 480.6)
+    observer.emit(0, 0)
+    observer.emit(800, 0)
+    observer.emit(720, 500)
+
+    expect(graph.resizeCalls).toStrictEqual([[640, 481], [720, 500]])
+  })
+
+  it('游离的容器没有外层可跟，直接报错', () => {
+    expect(() => createDiagram(document.createElement('div'))).toThrow('画布容器必须挂在外层布局元素里')
   })
 })
 

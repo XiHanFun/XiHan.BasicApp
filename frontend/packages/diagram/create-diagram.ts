@@ -111,7 +111,8 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
 
   const graph: Graph = new Graph({
     container,
-    autoResize: true,
+    // 尺寸跟随由下方 syncSize 接管：X6 自带的 autoResize 不跳过 0×0
+    autoResize: false,
     grid: options.grid === false ? false : { visible: true, size: 12 },
     panning: { enabled: true },
     mousewheel: { enabled: true, minScale: 0.2, maxScale: 2 },
@@ -144,6 +145,23 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
       },
     },
   })
+
+  // 尺寸跟随外层布局。X6 自带的 autoResize 在外层被隐藏（v-show 收起的视图、关闭中的弹窗）时也照量 0×0 并下发，
+  // 小地图拿 0 尺寸算缩放比得出非有限值，在 ResizeObserver 回调里抛错；这里量到 0 就保持上次的尺寸，重新露出来再跟上。
+  // 初始尺寸要在挂小地图之前给出：小地图建立时读的就是画布当时的尺寸
+  const sizeTarget = container.parentElement
+  if (!sizeTarget)
+    throw new Error('[diagram] 画布容器必须挂在外层布局元素里，尺寸跟随外层')
+  function syncSize(width: number, height: number) {
+    if (width > 0 && height > 0)
+      graph.resize(Math.round(width), Math.round(height))
+  }
+  syncSize(sizeTarget.offsetWidth, sizeTarget.offsetHeight)
+  const resizeObserver = new ResizeObserver((entries) => {
+    for (const entry of entries)
+      syncSize(entry.contentRect.width, entry.contentRect.height)
+  })
+  resizeObserver.observe(sizeTarget)
 
   if (options.selection !== false) {
     graph.use(new Selection({
@@ -474,6 +492,7 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
     },
 
     dispose() {
+      resizeObserver.disconnect()
       graph.dispose()
     },
 
