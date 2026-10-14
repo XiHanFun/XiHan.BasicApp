@@ -1,19 +1,19 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using XiHan.Framework.Core.Exceptions;
-using XiHan.BasicApp.Saas.Application.Services;
 using Microsoft.AspNetCore.Authorization;
-using XiHan.BasicApp.Saas.Application.Authorization;
+using System.Globalization;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Permissions;
 using XiHan.Framework.Application.Attributes;
 using XiHan.Framework.Authorization.AspNetCore;
+using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Security.Users;
 using XiHan.Framework.Uow.Attributes;
 
@@ -22,38 +22,22 @@ namespace XiHan.BasicApp.Saas.Application.AppServices;
 /// <summary>
 /// 权限申请命令应用服务
 /// </summary>
+/// <remarks>
+/// 审批走工作流「权限申请」流程：提交即发起流程，修改即撤回旧流程并重新发起，撤回或手工终结即撤回流程。
+/// 流程发起与申请写入在同一工作单元内：流程未发布、首个节点解析不到审批人等发起失败时申请一并回滚。
+/// 审批通过后的自动授权由 <see cref="PermissionRequestWorkflowHandler"/> 在流程结束时完成。
+/// </remarks>
 [Authorize]
 [DynamicApi(Group = "BasicApp.Saas", GroupName = "系统SaaS服务", Tag = "权限申请")]
 public sealed class PermissionRequestAppService
     : SaasApplicationService, IPermissionRequestAppService
 {
-    /// <summary>
-    /// 当前用户
-    /// </summary>
     private readonly ICurrentUser _currentUser;
-
-    /// <summary>
-    /// 权限申请领域服务
-    /// </summary>
     private readonly IPermissionRequestDomainService _permissionRequestDomainService;
-
-    /// <summary>
-    /// 权限申请查询服务
-    /// </summary>
     private readonly IPermissionRequestQueryService _permissionRequestQueryService;
-
-    /// <summary>
-    /// SaaS 缓存失效器
-    /// </summary>
+    private readonly IWorkflowBusinessService _workflowBusinessService;
     private readonly ISaasCacheInvalidator _cacheInvalidator;
-
-    /// <summary>
-    /// 授权变更通知器
-    /// </summary>
-    private readonly IAuthorizationChangeNotifier _authorizationChangeNotifier;
-
     private readonly IImpersonationPolicyService _impersonationPolicyService;
-
     private readonly ISuperAdminProtector _superAdminProtector;
 
     /// <summary>
@@ -62,17 +46,17 @@ public sealed class PermissionRequestAppService
     public PermissionRequestAppService(
         IPermissionRequestDomainService permissionRequestDomainService,
         IPermissionRequestQueryService permissionRequestQueryService,
+        IWorkflowBusinessService workflowBusinessService,
         ICurrentUser currentUser,
         ISaasCacheInvalidator cacheInvalidator,
-        IAuthorizationChangeNotifier authorizationChangeNotifier,
         IImpersonationPolicyService impersonationPolicyService,
         ISuperAdminProtector superAdminProtector)
     {
         _permissionRequestDomainService = permissionRequestDomainService;
         _permissionRequestQueryService = permissionRequestQueryService;
+        _workflowBusinessService = workflowBusinessService;
         _currentUser = currentUser;
         _cacheInvalidator = cacheInvalidator;
-        _authorizationChangeNotifier = authorizationChangeNotifier;
         _impersonationPolicyService = impersonationPolicyService;
         _superAdminProtector = superAdminProtector;
     }
@@ -80,7 +64,7 @@ public sealed class PermissionRequestAppService
     #region PermissionRequest
 
     /// <summary>
-    /// 创建权限申请
+    /// 提交权限申请并发起审批流程
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Create)]
@@ -94,15 +78,16 @@ public sealed class PermissionRequestAppService
             PermissionRequestApplicationMapper.ToCreateCommand(input, requestUserId),
             cancellationToken);
 
-        // 保守失效授权快照：避免自动审批等场景下创建即授权造成脏权限
+        await StartWorkflowAsync(result.RequestId, cancellationToken);
+
+        // 流程可能在发起时即走完（如自动通过），保守失效授权快照
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
 
-        return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
-            ?? throw new InvalidOperationException("权限申请不存在。");
+        return await GetDetailOrThrowAsync(result.RequestId, cancellationToken);
     }
 
     /// <summary>
-    /// 撤回权限申请
+    /// 撤回权限申请（同时撤回进行中的审批流程）
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Withdraw)]
@@ -112,13 +97,15 @@ public sealed class PermissionRequestAppService
 
         var requestUserId = GetCurrentUserIdOrThrow();
         await _permissionRequestDomainService.WithdrawPermissionRequestAsync(id, requestUserId, cancellationToken);
+        _ = await _workflowBusinessService.WithdrawAsync(
+            SaasWorkflowBusinessCodes.PermissionRequest, ToBusinessId(id), "申请人撤回", cancellationToken);
 
-        // 保守失效授权快照：撤回可能回收已生效权限，需重建快照
+        // 保守失效授权快照：撤回与审批结论可能并发，统一重建
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
     }
 
     /// <summary>
-    /// 更新权限申请
+    /// 修改权限申请并重新提交（撤回原审批流程后重新发起，已有的审批意见作废）
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Update)]
@@ -132,15 +119,18 @@ public sealed class PermissionRequestAppService
             PermissionRequestApplicationMapper.ToUpdateCommand(input, requestUserId),
             cancellationToken);
 
-        // 保守失效授权快照：更新可能调整申请的目标角色/权限范围，影响最终授权
+        // 申请内容变了，审批人此前看到的不再是同一份申请：撤回旧流程、按新内容重新发起
+        _ = await _workflowBusinessService.WithdrawAsync(
+            SaasWorkflowBusinessCodes.PermissionRequest, ToBusinessId(result.RequestId), "申请人修改后重新提交", cancellationToken);
+        await StartWorkflowAsync(result.RequestId, cancellationToken);
+
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
 
-        return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
-            ?? throw new InvalidOperationException("权限申请不存在。");
+        return await GetDetailOrThrowAsync(result.RequestId, cancellationToken);
     }
 
     /// <summary>
-    /// 更新权限申请状态
+    /// 手工变更权限申请状态（驳回或撤回，同时撤回进行中的审批流程；不能直接置为已批准）
     /// </summary>
     [UnitOfWork(true)]
     [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Status)]
@@ -149,119 +139,67 @@ public sealed class PermissionRequestAppService
         ArgumentNullException.ThrowIfNull(input);
         cancellationToken.ThrowIfCancellationRequested();
 
-        await EnsureApprovableAsync(input.BasicId, cancellationToken);
+        await EnsureOperableAsync(input.BasicId, cancellationToken);
         var result = await _permissionRequestDomainService.UpdatePermissionRequestStatusAsync(
             PermissionRequestApplicationMapper.ToStatusCommand(input, GetCurrentUserIdOrThrow()),
             cancellationToken);
 
-        // 失效授权快照：状态流转可能进入已批准并授权，必须重建快照
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-
-        return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
-            ?? throw new InvalidOperationException("权限申请不存在。");
-    }
-
-    /// <summary>
-    /// 审批通过权限申请（自动授予角色/权限）
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Status)]
-    public async Task<PermissionRequestDetailDto> ApprovePermissionRequestAsync(PermissionRequestApprovalDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        await EnsureApprovableAsync(input.BasicId, cancellationToken);
-        var result = await _permissionRequestDomainService.ApprovePermissionRequestAsync(
-            PermissionRequestApplicationMapper.ToApprovalCommand(input, GetCurrentUserIdOrThrow()),
-            cancellationToken);
-
-        // 失效授权快照：审批通过会自动授予角色/权限，必须重建快照避免脏权限
-        await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
-
-        // 审批通过自动授权留痕：申请角色 → 用户分配角色；申请权限 → 用户直授权限
-        if (result.GrantedUserId is > 0)
+        if (input.RequestStatus != PermissionRequestStatus.Pending)
         {
-            if (result.GrantedRoleId is > 0)
-            {
-                await _authorizationChangeNotifier.NotifyAsync(
-                    PermissionChangeType.UserAssignRole,
-                    targetUserId: result.GrantedUserId,
-                    targetRoleId: result.GrantedRoleId,
-                    permissionId: null,
-                    reason: $"权限申请[{result.RequestId}]审批通过自动授权",
-                    cancellationToken: cancellationToken);
-            }
-
-            if (result.GrantedPermissionId is > 0)
-            {
-                await _authorizationChangeNotifier.NotifyAsync(
-                    PermissionChangeType.UserGrantPermission,
-                    targetUserId: result.GrantedUserId,
-                    targetRoleId: null,
-                    permissionId: result.GrantedPermissionId,
-                    reason: $"权限申请[{result.RequestId}]审批通过自动授权",
-                    cancellationToken: cancellationToken);
-            }
+            _ = await _workflowBusinessService.WithdrawAsync(
+                SaasWorkflowBusinessCodes.PermissionRequest,
+                ToBusinessId(result.RequestId),
+                string.IsNullOrWhiteSpace(input.Remark) ? "管理员变更申请状态" : input.Remark,
+                cancellationToken);
         }
 
-        return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
-            ?? throw new InvalidOperationException("权限申请不存在。");
-    }
-
-    /// <summary>
-    /// 驳回权限申请
-    /// </summary>
-    [UnitOfWork(true)]
-    [PermissionAuthorize(SaasPermissionCodes.PermissionRequest.Status)]
-    public async Task<PermissionRequestDetailDto> RejectPermissionRequestAsync(PermissionRequestApprovalDto input, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var result = await _permissionRequestDomainService.RejectPermissionRequestAsync(
-            PermissionRequestApplicationMapper.ToApprovalCommand(input, GetCurrentUserIdOrThrow()),
-            cancellationToken);
-
-        // 保守失效授权快照：驳回理论上不授权，但状态变更可能撤销先前临时授权，多失效无害
         await _cacheInvalidator.InvalidateAuthorizationAsync(cancellationToken: cancellationToken);
 
-        return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(result.RequestId, cancellationToken)
-            ?? throw new InvalidOperationException("权限申请不存在。");
-    }
-
-    /// <summary>
-    /// 获取当前用户主键
-    /// </summary>
-    private long GetCurrentUserIdOrThrow()
-    {
-        if (!_currentUser.IsAuthenticated || !_currentUser.UserId.HasValue)
-        {
-            throw new InvalidOperationException("当前用户未登录。");
-        }
-
-        return _currentUser.UserId.Value;
+        return await GetDetailOrThrowAsync(result.RequestId, cancellationToken);
     }
 
     #endregion PermissionRequest
 
     /// <summary>
-    /// 校验当前用户可以审批该申请：不得审批自己提交的，且被授出的权限/角色须过与直授同一道准入
+    /// 发起审批流程并回填实例主键
     /// </summary>
-    /// <remarks>
-    /// 审批通过会自动直授权限或分配角色，是一条不经 RoleAppService / UserPermissionAppService 的授权路径；
-    /// 缺了这道校验，持有申请与审批两个权限码的人可以给自己授出任意权限码。
-    /// </remarks>
-    /// <param name="requestId">申请主键</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    private async Task EnsureApprovableAsync(long requestId, CancellationToken cancellationToken)
+    private async Task StartWorkflowAsync(long requestId, CancellationToken cancellationToken)
     {
-        var request = await _permissionRequestQueryService.GetPermissionRequestDetailAsync(requestId, cancellationToken)
+        var detail = await GetDetailOrThrowAsync(requestId, cancellationToken);
+        var started = await _workflowBusinessService.StartAsync(new WorkflowBusinessStartRequest
+        {
+            BusinessCode = SaasWorkflowBusinessCodes.PermissionRequest,
+            BusinessId = ToBusinessId(requestId),
+            Title = BuildTitle(detail),
+            Variables = new Dictionary<string, object?>
+            {
+                ["requestUserId"] = detail.RequestUserId.ToString(CultureInfo.InvariantCulture),
+                ["roleId"] = detail.RoleId,
+                ["roleCode"] = detail.RoleCode,
+                ["permissionId"] = detail.PermissionId,
+                ["permissionCode"] = detail.PermissionCode
+            }
+        }, cancellationToken);
+
+        await _permissionRequestDomainService.AttachWorkflowInstanceAsync(requestId, started.InstanceId, cancellationToken);
+    }
+
+    private async Task<PermissionRequestDetailDto> GetDetailOrThrowAsync(long requestId, CancellationToken cancellationToken)
+    {
+        return await _permissionRequestQueryService.GetPermissionRequestDetailAsync(requestId, cancellationToken)
             ?? throw new UserFriendlyException("权限申请不存在。");
+    }
+
+    /// <summary>
+    /// 手工终结前校验操作人（与审批人同一口径：不能处理自己的申请，且须有权授出申请对象）
+    /// </summary>
+    private async Task EnsureOperableAsync(long requestId, CancellationToken cancellationToken)
+    {
+        var request = await GetDetailOrThrowAsync(requestId, cancellationToken);
 
         if (request.RequestUserId == GetCurrentUserIdOrThrow())
         {
-            throw new UserFriendlyException("不能审批自己提交的权限申请。");
+            throw new UserFriendlyException("不能处理自己提交的权限申请。");
         }
 
         if (request.PermissionId is > 0)
@@ -276,4 +214,38 @@ public sealed class PermissionRequestAppService
         }
     }
 
+    private long GetCurrentUserIdOrThrow()
+    {
+        if (!_currentUser.IsAuthenticated || !_currentUser.UserId.HasValue)
+        {
+            throw new InvalidOperationException("当前用户未登录。");
+        }
+
+        return _currentUser.UserId.Value;
+    }
+
+    private static string BuildTitle(PermissionRequestDetailDto request)
+    {
+        var applicant = string.IsNullOrWhiteSpace(request.RequestUserDisplayName)
+            ? request.RequestUserId.ToString(CultureInfo.InvariantCulture)
+            : request.RequestUserDisplayName;
+
+        var targets = new List<string>(2);
+        if (request.RoleId is > 0)
+        {
+            targets.Add($"角色「{request.RoleName ?? request.RoleCode ?? request.RoleId.Value.ToString(CultureInfo.InvariantCulture)}」");
+        }
+
+        if (request.PermissionId is > 0)
+        {
+            targets.Add($"权限「{request.PermissionName ?? request.PermissionCode ?? request.PermissionId.Value.ToString(CultureInfo.InvariantCulture)}」");
+        }
+
+        return $"权限申请：{applicant} 申请{string.Join("、", targets)}";
+    }
+
+    private static string ToBusinessId(long requestId)
+    {
+        return requestId.ToString(CultureInfo.InvariantCulture);
+    }
 }

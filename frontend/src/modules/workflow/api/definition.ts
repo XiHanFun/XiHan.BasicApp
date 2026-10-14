@@ -1,4 +1,5 @@
 import type {
+  WorkflowBusinessTypeDto,
   WorkflowDefinitionCreateDto,
   WorkflowDefinitionDetailDto,
   WorkflowDefinitionIdDto,
@@ -20,6 +21,10 @@ export const workflowDefinitionApi = {
   },
   detail(id: ApiId) {
     return query.get<WorkflowDefinitionDetailDto | null>('Detail', { id })
+  },
+  /** 已登记的审批业务（设计器「关联业务」） */
+  businessTypes() {
+    return query.get<WorkflowBusinessTypeDto[]>('BusinessTypes')
   },
   // Commands（Create/Update/Delete 动词映射 POST/PUT/DELETE，其余动作保留完整方法名走 POST）
   create(input: WorkflowDefinitionCreateDto) {

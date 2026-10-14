@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Core.Dtos;
 using XiHan.BasicApp.Saas.Application.Extensions;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Contracts;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.BasicApp.Workflow.Application.Mappers;
@@ -32,13 +33,19 @@ public sealed class WorkflowDefinitionQueryService : WorkflowApplicationService,
     /// </summary>
     private readonly IFieldSecurityService _fieldSecurity;
 
+    private readonly WorkflowBusinessRegistry _businessRegistry;
+
     /// <summary>
     /// 构造函数
     /// </summary>
-    public WorkflowDefinitionQueryService(IWorkflowDefinitionRepository definitionRepository, IFieldSecurityService fieldSecurityService)
+    public WorkflowDefinitionQueryService(
+        IWorkflowDefinitionRepository definitionRepository,
+        IFieldSecurityService fieldSecurityService,
+        WorkflowBusinessRegistry businessRegistry)
     {
         _definitionRepository = definitionRepository;
         _fieldSecurity = fieldSecurityService;
+        _businessRegistry = businessRegistry;
     }
 
     /// <summary>
@@ -89,6 +96,17 @@ public sealed class WorkflowDefinitionQueryService : WorkflowApplicationService,
     /// <summary>
     /// 构建定义分页请求
     /// </summary>
+    /// <summary>
+    /// 已登记的审批业务（设计器「关联业务」：流程编码等于业务编码即为该业务的审批流程）
+    /// </summary>
+    [PermissionAuthorize(WorkflowPermissionCodes.Read)]
+    public Task<List<WorkflowBusinessTypeDto>> GetBusinessTypesAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        return Task.FromResult<List<WorkflowBusinessTypeDto>>([.. _businessRegistry.GetDescriptors().Select(WorkflowApplicationMapper.ToBusinessTypeDto)]);
+    }
+
     private static BasicAppPRDto BuildPageRequest(WorkflowDefinitionPageQueryDto input)
     {
         var request = new BasicAppPRDto

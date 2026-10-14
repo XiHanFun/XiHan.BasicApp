@@ -24,7 +24,6 @@ public class SaasEntityDiffContextProvider : IEntityAuditContextProvider
         nameof(SysExceptionLog),
         nameof(SysLoginLog),
         nameof(SysOperationLog),
-        nameof(SysReviewLog),
         nameof(SysTaskLog)
     };
 

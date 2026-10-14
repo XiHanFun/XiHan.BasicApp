@@ -80,6 +80,10 @@ public class WorkflowInstanceListItemDto : BasicAppDto
     public int DefinitionVersion { get; set; }
     public string Name { get; set; } = string.Empty;
     public WorkflowInstanceStatus Status { get; set; }
+
+    /// <summary>流程结果（经结果结束节点完成时有值，如 approved / rejected）</summary>
+    public string? Outcome { get; set; }
+
     public string? CorrelationId { get; set; }
     public string? StarterId { get; set; }
     public long? ParentInstanceId { get; set; }

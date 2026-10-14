@@ -13,19 +13,20 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// </summary>
 /// <remarks>
 /// 职责边界：
-/// - 本表承载"权限申请"业务语义，关联 SysReview 审批流
+/// - 本表承载"权限申请"业务语义，审批走工作流「权限申请」流程（业务编码 permission-request）
 /// - 审批通过后由服务层自动写入 SysUserRole/SysUserPermission 完成授权
 ///
 /// 关联：
 /// - RequestUserId → SysUser（申请人）
 /// - PermissionId → SysPermission（申请的权限，可空）
 /// - RoleId → SysRole（申请的角色，可空）
-/// - ReviewId → SysReview（关联的审批单，审批流创建后回填）
+/// - WorkflowInstanceId → 工作流实例（提交时发起流程后回填；实例的业务相关性标识即本表主键）
 ///
 /// 写入：
-/// - 申请时 RequestStatus=Pending + 创建 SysReview 审批单
-/// - 审批通过 → RequestStatus=Approved + 自动授权
-/// - 审批拒绝 → RequestStatus=Rejected
+/// - 申请时 RequestStatus=Pending + 发起审批流程
+/// - 流程以 approved 结束 → RequestStatus=Approved + 自动授权
+/// - 流程以 rejected 结束 → RequestStatus=Rejected
+/// - 申请人撤回或流程被取消/终止 → RequestStatus=Withdrawn
 ///
 /// 查询：
 /// - 我的申请：IX_TeId_ReUsId + WHERE RequestUserId=?
@@ -37,7 +38,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 [SugarIndex("IX_{table}_TeId_IsDe", nameof(TenantId), OrderByType.Asc, nameof(IsDeleted), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_ReUsId", nameof(TenantId), OrderByType.Asc, nameof(RequestUserId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_TeId_ReSt", nameof(TenantId), OrderByType.Asc, nameof(RequestStatus), OrderByType.Asc)]
-[SugarIndex("IX_{table}_ReId", nameof(ReviewId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_WoInId", nameof(WorkflowInstanceId), OrderByType.Asc)]
 public partial class SysPermissionRequest : BasicAppFullAuditedEntity, IStrictMultiTenantEntity
 {
     /// <summary>
@@ -77,10 +78,10 @@ public partial class SysPermissionRequest : BasicAppFullAuditedEntity, IStrictMu
     public virtual DateTimeOffset? ExpectedExpirationTime { get; set; }
 
     /// <summary>
-    /// 关联审批单ID（审批流创建后回填）
+    /// 审批流程实例ID（提交时发起流程后回填）
     /// </summary>
-    [SugarColumn(ColumnName = "Review_Id", ColumnDescription = "审批单ID", IsNullable = true)]
-    public virtual long? ReviewId { get; set; }
+    [SugarColumn(ColumnName = "Workflow_Instance_Id", ColumnDescription = "审批流程实例ID", IsNullable = true)]
+    public virtual long? WorkflowInstanceId { get; set; }
 
     /// <summary>
     /// 申请状态

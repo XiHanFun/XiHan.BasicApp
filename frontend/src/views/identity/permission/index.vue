@@ -32,6 +32,7 @@ import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
+import { workflowProgressText } from '../authorization/workflow-progress'
 
 defineOptions({ name: 'SystemPermissionPage' })
 
@@ -853,7 +854,7 @@ async function handleToggleStatus(row: PermissionListItemDto) {
                       <td>{{ formatNullable(item.requestUserDisplayName || item.requestUserId) }}</td>
                       <td>{{ getOptionLabel(requestStatusOptions, item.requestStatus) }}</td>
                       <td>{{ formatNullable(item.permissionName || item.roleName) }}</td>
-                      <td>{{ formatNullable(item.reviewTitle || item.reviewCode) }}</td>
+                      <td>{{ workflowProgressText(t, item.workflow) }}</td>
                       <td>{{ t('identity.permission.validity_range', { from: formatNullableDate(item.expectedEffectiveTime), to: formatNullableDate(item.expectedExpirationTime) }) }}</td>
                       <td>{{ formatNullable(item.requestReason) }}</td>
                     </tr>

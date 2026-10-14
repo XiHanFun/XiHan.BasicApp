@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Text.Json;
+using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Workflow.Infrastructure.Stores;
@@ -93,6 +94,7 @@ public static class WorkflowApplicationMapper
             DefinitionVersion = entity.DefinitionVersion,
             Name = entity.Name,
             Status = entity.Status,
+            Outcome = entity.Outcome,
             CorrelationId = entity.CorrelationId,
             StarterId = entity.StarterId,
             ParentInstanceId = entity.ParentInstanceId,
@@ -117,6 +119,7 @@ public static class WorkflowApplicationMapper
             DefinitionVersion = instance.DefinitionVersion,
             Name = instance.Name,
             Status = instance.Status,
+            Outcome = instance.Outcome,
             CorrelationId = instance.CorrelationId,
             StarterId = instance.StarterId,
             ParentInstanceId = instance.ParentInstanceId is { } parentId ? WorkflowStoreMapper.ParseId(parentId) : null,
@@ -144,6 +147,7 @@ public static class WorkflowApplicationMapper
             DefinitionVersion = instance.DefinitionVersion,
             Name = instance.Name,
             Status = instance.Status,
+            Outcome = instance.Outcome,
             CorrelationId = instance.CorrelationId,
             StarterId = instance.StarterId,
             ParentInstanceId = instance.ParentInstanceId is { } parentId ? WorkflowStoreMapper.ParseId(parentId) : null,
@@ -211,6 +215,27 @@ public static class WorkflowApplicationMapper
             Title = task.Title,
             CorrelationId = task.CorrelationId,
             CreationTime = task.CreationTime
+        };
+    }
+    /// <summary>
+    /// 审批业务描述转 DTO
+    /// </summary>
+    public static WorkflowBusinessTypeDto ToBusinessTypeDto(WorkflowBusinessDescriptor descriptor)
+    {
+        return new WorkflowBusinessTypeDto
+        {
+            Code = descriptor.Code,
+            Name = descriptor.Name,
+            Description = descriptor.Description,
+            FormComponent = descriptor.FormComponent,
+            Outcomes = [.. descriptor.Outcomes],
+            Variables = [.. descriptor.Variables.Select(variable => new WorkflowBusinessVariableDto
+            {
+                Name = variable.Name,
+                Label = variable.Label,
+                ValueType = variable.ValueType,
+                Description = variable.Description
+            })]
         };
     }
 }

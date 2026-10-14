@@ -22,18 +22,11 @@ const permissionRequestBaseCommandApi = createCommandApi<
   PermissionRequestDetailDto
 >('PermissionRequest', 'PermissionRequest')
 
-export interface PermissionRequestApprovalDto {
-  basicId: ApiId
-  remark?: string | null
-}
-
+/**
+ * 权限申请：提交即发起「权限申请」审批流程，审批在审批中心办理，通过后由流程回写授权。
+ * 删除、改内容或改到终态都会撤回仍在进行的审批。
+ */
 export const permissionRequestApi = {
-  approve(input: PermissionRequestApprovalDto) {
-    return permissionRequestCommandApi.post<PermissionRequestDetailDto, PermissionRequestApprovalDto>(
-      'ApprovePermissionRequest',
-      input,
-    )
-  },
   create(input: PermissionRequestCreateDto) {
     return permissionRequestBaseCommandApi.create(input)
   },
@@ -45,12 +38,6 @@ export const permissionRequestApi = {
   },
   page(input: PermissionRequestPageQueryDto) {
     return permissionRequestQueryApi.post<PageResult<PermissionRequestListItemDto>>('PermissionRequestPage', input)
-  },
-  reject(input: PermissionRequestApprovalDto) {
-    return permissionRequestCommandApi.post<PermissionRequestDetailDto, PermissionRequestApprovalDto>(
-      'RejectPermissionRequest',
-      input,
-    )
   },
   update(input: PermissionRequestUpdateDto) {
     return permissionRequestBaseCommandApi.update(input)

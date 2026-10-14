@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { ActivityTypeMeta } from './catalog'
+import type { WorkflowBusinessTypeDto } from '../../../../api'
+import type { ActivityPropDescriptor, ActivityTypeMeta } from './catalog'
 import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, DesignerNodeData, ValidationIssue } from './transform'
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
 import type { AppDropdownOption } from '~/types'
@@ -10,7 +11,10 @@ import { useI18n } from 'vue-i18n'
 import { Icon, indexDropdownOptions, toDropdownCollection, VNodeRender, XDropdown, XInput, XNumberInput, XSegmented, XSelect, XTagsInput } from '~/components'
 import { toast } from '~/composables'
 import { registerVueShape, XDiagram } from '~/diagram'
+import { workflowDefinitionApi } from '../../../../api'
+import { loadOrganizationDirectory } from '../../shared/workflow-directory'
 import ActivityNode from './ActivityNode.vue'
+import AssigneeRulesEditor from './AssigneeRulesEditor.vue'
 import { ACTIVITY_CATALOG, ACTIVITY_MAP, CATEGORY_ORDER } from './catalog'
 import {
   ACTIVITY_SHAPE,
@@ -208,6 +212,47 @@ watch(() => props.initialJson, (json) => {
   if (json)
     loadFromJson(json)
 }, { immediate: true })
+
+// ── 审批业务与审批人数据源 ─────────────────────────────────────
+/** 已登记的审批业务：流程编码等于业务编码即为该业务的审批流程 */
+const businessTypes = ref<WorkflowBusinessTypeDto[]>([])
+const boundBusiness = computed(() => businessTypes.value.find(item => item.code === meta.code.trim()) ?? null)
+const businessOptions = computed(() => businessTypes.value.map(item => ({ label: `${item.name}（${item.code}）`, value: item.code })))
+/** 表达式与条件可引用的变量：业务声明的变量 + 定义里声明的启动变量 */
+const knownVariables = computed(() => [...new Set([
+  ...(boundBusiness.value?.variables.map(variable => variable.name) ?? []),
+  ...meta.variables.map(variable => variable.name.trim()).filter(Boolean),
+])])
+
+void workflowDefinitionApi.businessTypes()
+  .then((items) => { businessTypes.value = items })
+  .catch(() => { businessTypes.value = [] })
+// 每次打开设计器刷新一次角色/岗位/部门清单（多个规则编辑器共用）
+void loadOrganizationDirectory(true).catch(() => undefined)
+
+/** 关联审批业务：编码改成业务编码，名称为空时带上业务名，补齐业务声明的变量 */
+function bindBusiness(code: string | number | (string | number)[] | null) {
+  if (typeof code !== 'string' || !code)
+    return
+  const business = businessTypes.value.find(item => item.code === code)
+  if (!business)
+    return
+  meta.code = business.code
+  if (!meta.name.trim())
+    meta.name = business.name
+  for (const variable of business.variables) {
+    if (!meta.variables.some(item => item.name.trim() === variable.name))
+      meta.variables.push({ name: variable.name, required: false, defaultValue: null, description: variable.label })
+  }
+}
+
+/** 下拉选项按语言显示（labelKey 存在时） */
+function localizedOptions(descriptor: ActivityPropDescriptor) {
+  return (descriptor.options ?? []).map(option => ({
+    label: option.labelKey ? t(`workflow.designer.option.${option.labelKey}`) : option.label,
+    value: option.value,
+  }))
+}
 
 // ── 选中态 ─────────────────────────────────────────────────────
 const selectedMeta = computed(() => nodeForm.value ? ACTIVITY_MAP[nodeForm.value.activityType] : undefined)
@@ -451,7 +496,7 @@ function handleSave() {
     if (node.data)
       delete node.data.__selected
   }
-  issues.value = validateGraph(meta, data)
+  issues.value = validateGraph(meta, data, { businessOutcomes: boundBusiness.value?.outcomes })
   const firstError = issues.value.find(issue => issue.level === 'error')
   if (firstError) {
     toast.warning(t(`workflow.designer.validate.${firstError.code}`))
@@ -478,12 +523,14 @@ function runValidate() {
     issues.value = []
     return
   }
-  issues.value = validateGraph(meta, api.toData())
+  issues.value = validateGraph(meta, api.toData(), { businessOutcomes: boundBusiness.value?.outcomes })
   const flagged = [...new Set(issues.value.filter(issue => issue.nodeId).map(issue => issue.nodeId as string))]
   api.highlightNodes(flagged)
 }
 
 watch(meta, scheduleValidate, { deep: true })
+// 审批业务清单晚于画布到达：关联关系确定后重新校验结束节点
+watch(boundBusiness, scheduleValidate)
 
 function issueText(issue: ValidationIssue) {
   return t(`workflow.designer.validate.${issue.code}`)
@@ -859,8 +906,18 @@ function onContextSelect(key: string) {
 
                 <!-- 活动属性（类型驱动） -->
                 <template v-for="descriptor in selectedMeta?.props ?? []" :key="descriptor.key">
+                  <!-- 受理人规则是一组行、每行多个控件：用字段集命名整组，不套单个 Field（同启动变量） -->
+                  <XhFieldsetRoot v-if="descriptor.input === 'assignees'">
+                    <XhFieldsetLegend>{{ t(`workflow.designer.prop.${descriptor.labelKey}`) }}</XhFieldsetLegend>
+                    <AssigneeRulesEditor
+                      :value="nodeProp<unknown>(descriptor.key)"
+                      :label="t(`workflow.designer.prop.${descriptor.labelKey}`)"
+                      :variables="knownVariables"
+                      @update:value="(rules) => setNodeProp(descriptor.key, rules)"
+                    />
+                  </XhFieldsetRoot>
                   <!-- JSON 类属性的解析错误挂在字段上：invalid 让控件转无效态，错误文案经 error-text 接入描述链 -->
-                  <XhFieldRoot :invalid="descriptor.input === 'json' && Boolean(jsonErrors[descriptor.key])">
+                  <XhFieldRoot v-else :invalid="descriptor.input === 'json' && Boolean(jsonErrors[descriptor.key])">
                     <XhFieldLabel>{{ t(`workflow.designer.prop.${descriptor.labelKey}`) }}</XhFieldLabel>
                     <XhFieldControl>
                       <XInput
@@ -892,7 +949,7 @@ function onContextSelect(key: string) {
                       <XSelect
                         v-else-if="descriptor.input === 'select'"
                         :value="(nodeProp<string>(descriptor.key)) ?? null"
-                        :options="descriptor.options"
+                        :options="localizedOptions(descriptor)"
                         clearable
                         @update:value="(value: string | number | (string | number)[] | null) => setNodeProp(descriptor.key, value as string | null)"
                       />
@@ -1001,6 +1058,21 @@ function onContextSelect(key: string) {
               <XhFormRoot
                 validate-on="blur"
               >
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_business') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XSelect
+                      :value="boundBusiness?.code ?? null"
+                      :options="businessOptions"
+                      :placeholder="t('workflow.designer.flow_business_placeholder')"
+                      @update:value="bindBusiness"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <p v-if="boundBusiness" class="text-xs text-gray-500">
+                  {{ t('workflow.designer.flow_business_tip', { name: boundBusiness.name, outcomes: boundBusiness.outcomes.join(' / ') }) }}
+                </p>
                 <XhFieldRoot>
                   <XhFieldLabel>{{ t('workflow.designer.flow_code') }}</XhFieldLabel>
                   <XhFieldControl>

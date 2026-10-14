@@ -44,7 +44,7 @@ public sealed class WorkflowNotificationEventHandlerTests
                 "workflow",
                 400400400400400L,
                 false,
-                "/workflow/todo",
+                "/approval/center?tab=todo",
                 null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -66,12 +66,12 @@ public sealed class WorkflowNotificationEventHandlerTests
         dispatch.Verify(
             value => value.DispatchToUserAsync(
                 2001L, "抄送：部门审批", "流程「张三的请假」的审批任务已抄送给您。",
-                NotificationType.Todo, "workflow", 400400400400400L, false, "/workflow/todo", null, It.IsAny<CancellationToken>()),
+                NotificationType.Todo, "workflow", 400400400400400L, false, "/approval/center?tab=cc", null, It.IsAny<CancellationToken>()),
             Times.Once);
         dispatch.Verify(
             value => value.DispatchToUserAsync(
                 2002L, "抄送：部门审批", It.IsAny<string?>(),
-                NotificationType.Todo, "workflow", 400400400400400L, false, "/workflow/todo", null, It.IsAny<CancellationToken>()),
+                NotificationType.Todo, "workflow", 400400400400400L, false, "/approval/center?tab=cc", null, It.IsAny<CancellationToken>()),
             Times.Once);
         dispatch.Verify(
             value => value.DispatchToUserAsync(
@@ -153,7 +153,7 @@ public sealed class WorkflowNotificationEventHandlerTests
         dispatch.Verify(
             value => value.DispatchToUserAsync(
                 1001L, It.IsAny<string>(), It.IsAny<string?>(), NotificationType.Todo,
-                "workflow", null, false, "/workflow/todo", null, It.IsAny<CancellationToken>()),
+                "workflow", null, false, "/approval/center?tab=todo", null, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -178,7 +178,7 @@ public sealed class WorkflowNotificationEventHandlerTests
         dispatch.Verify(
             value => value.DispatchToUserAsync(
                 1002L, "转办待办", expectedContent, NotificationType.Todo,
-                "workflow", 400400400400400L, false, "/workflow/todo", null, It.IsAny<CancellationToken>()),
+                "workflow", 400400400400400L, false, "/approval/center?tab=todo", null, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
@@ -224,7 +224,7 @@ public sealed class WorkflowNotificationEventHandlerTests
                 "workflow",
                 900800700600500L,
                 false,
-                "/workflow/todo",
+                "/approval/center?tab=started",
                 null,
                 It.IsAny<CancellationToken>()),
             Times.Once);
@@ -309,7 +309,7 @@ public sealed class WorkflowNotificationEventHandlerTests
         dispatch.Verify(
             value => value.DispatchToUserAsync(
                 1001L, "流程故障：张三的请假", "您发起的流程「张三的请假」执行故障：", NotificationType.Todo,
-                "workflow", 900800700600500L, false, "/workflow/todo", null, It.IsAny<CancellationToken>()),
+                "workflow", 900800700600500L, false, "/approval/center?tab=started", null, It.IsAny<CancellationToken>()),
             Times.Once);
     }
 }

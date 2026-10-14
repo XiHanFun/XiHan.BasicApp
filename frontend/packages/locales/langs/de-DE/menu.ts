@@ -24,7 +24,6 @@ export default {
   setting_bot_config: 'Bot-Konfiguration',
   setting_telegram_bot: 'Telegram-Bots',
   approval: 'Genehmigung',
-  approval_review: 'Genehmigungszentrale',
   approval_constraint: 'Genehmigungsbeschränkungen',
   file_library: 'Dateien',
   file_storage: 'Speicherkonfiguration',

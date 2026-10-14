@@ -25,6 +25,7 @@ import {
   WorkflowInstanceStatus,
   WorkflowNodeInstanceStatus,
 } from '../../../api'
+import { outcomeLabelKey, outcomeTone } from '../approval/approval-labels'
 import WorkflowGraphView from '../definition/designer/WorkflowGraphView.vue'
 
 defineOptions({ name: 'WorkflowInstancePage' })
@@ -105,7 +106,14 @@ const fields = computed<ListFieldSchema[]>(() => [
       return h(XhTagRoot, { variant: 'subtle', tone: statusTag(r.status) }, () => h(XhTagLabel, () => statusLabel(r.status)))
     },
   },
-  { key: 'definitionCode', title: t('workflow.instance.definition_code'), dataType: 'string', searchable: true, sortable: true, minWidth: 150, order: 2 },
+  { key: 'outcome', title: t('workflow.instance.outcome'), dataType: 'string', width: 100, order: 2, render: (row) => {
+    const outcome = (row as unknown as WorkflowInstanceListItemDto).outcome
+    if (!outcome)
+      return '-'
+    const key = outcomeLabelKey(outcome)
+    return h(XhTagRoot, { variant: 'subtle', tone: outcomeTone(outcome) }, () => h(XhTagLabel, () => key ? t(key) : outcome))
+  } },
+  { key: 'definitionCode', title: t('workflow.instance.definition_code'), dataType: 'string', searchable: true, sortable: true, minWidth: 150, order: 3 },
   { key: 'name', title: t('workflow.instance.name'), dataType: 'string', sortable: true, minWidth: 180, order: 10 },
   { key: 'definitionVersion', title: t('workflow.instance.version'), dataType: 'number', width: 80, order: 11, render: (row) => {
     const r = row as unknown as WorkflowInstanceListItemDto
@@ -364,11 +372,18 @@ function onAction(payload: SchemaActionPayload) {
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('workflow.instance.status') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>
-                <XhTagRoot variant="subtle" :tone="statusTag(detailData.status)" size="sm">
-                  <XhTagLabel>
-                    {{ statusLabel(detailData.status) }}
-                  </XhTagLabel>
-                </XhTagRoot>
+                <span class="inline-flex items-center gap-1">
+                  <XhTagRoot variant="subtle" :tone="statusTag(detailData.status)" size="sm">
+                    <XhTagLabel>
+                      {{ statusLabel(detailData.status) }}
+                    </XhTagLabel>
+                  </XhTagRoot>
+                  <XhTagRoot v-if="detailData.outcome" variant="subtle" :tone="outcomeTone(detailData.outcome)" size="sm">
+                    <XhTagLabel>
+                      {{ outcomeLabelKey(detailData.outcome) ? t(outcomeLabelKey(detailData.outcome)!) : detailData.outcome }}
+                    </XhTagLabel>
+                  </XhTagRoot>
+                </span>
               </XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem>

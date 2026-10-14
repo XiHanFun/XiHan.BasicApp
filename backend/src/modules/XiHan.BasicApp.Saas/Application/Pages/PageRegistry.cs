@@ -130,9 +130,9 @@ public static class PageRegistry
         // 消息中心只保留日常消息运营（聊天/审计/通知/记录/模板）。
 
         // [5] 审批目录（Saas 自持；工作流目录归 Workflow 模块独占登记）
-         new(ApprovalDirectoryCode, "审批", "menu.approval", MenuType.Directory, "/approval", "Approval", null, null, null, "lucide:check-check", 430, "/approval/review"),
-        // [5.1] 审批中心
-         new("approval.review", "审批中心", "menu.approval_review", MenuType.Menu, "/approval/review", "ApprovalReview", "approval/review/index", ApprovalDirectoryCode, SaasPermissionCodes.Review.Read, "lucide:check-check", 440),
+        //     目录跳转只指向本模块自己的页（审批中心由工作流模块登记，模块可选）
+         new(ApprovalDirectoryCode, "审批", "menu.approval", MenuType.Directory, "/approval", "Approval", null, null, null, "lucide:check-check", 430, "/approval/constraint"),
+        // [5.1] 审批中心：由 Workflow 模块登记到本目录（工作流审批，见其页面登记表）
         // [5.2] 约束规则
          new("approval.constraint", "审批约束", "menu.approval_constraint", MenuType.Menu, "/approval/constraint", "ApprovalConstraint", "approval/constraint/index", ApprovalDirectoryCode, SaasPermissionCodes.ConstraintRule.Read, "lucide:shield-alert", 450),
 
@@ -363,13 +363,6 @@ public static class PageRegistry
          new("setting.telegram-bot.status", "启停", "setting.telegram-bot", SaasPermissionCodes.TelegramBot.Status, 3),
          new("setting.telegram-bot.delete", "删除", "setting.telegram-bot", SaasPermissionCodes.TelegramBot.Delete, 4),
          new("setting.telegram-bot.export", "导出", "setting.telegram-bot", SaasPermissionCodes.TelegramBot.Export, 9),
-
-        // [5.1] 审批中心
-         new("approval.review.audit", "审核", "approval.review", SaasPermissionCodes.Review.Audit, 1),
-         new("approval.review.withdraw", "撤回", "approval.review", SaasPermissionCodes.Review.Withdraw, 2),
-         new("approval.review.delete", "删除", "approval.review", SaasPermissionCodes.Review.Delete, 3),
-         new("approval.review.status", "启停", "approval.review", SaasPermissionCodes.Review.Status, 4),
-         new("approval.review.export", "导出", "approval.review", SaasPermissionCodes.Review.Export, 9),
 
         // [5.2] 约束规则
          new("approval.constraint.read", "查看", "approval.constraint", SaasPermissionCodes.ConstraintRule.Read, 0),

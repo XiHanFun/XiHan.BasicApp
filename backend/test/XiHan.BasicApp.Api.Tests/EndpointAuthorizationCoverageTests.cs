@@ -151,7 +151,19 @@ public sealed class EndpointAuthorizationCoverageTests
             "WorkflowTodoAppService.TransferAsync",
 
             // WorkflowTodoQueryService（1）：我的待办，查询按当前登录用户限定
-            "WorkflowTodoQueryService.GetPageAsync"
+            "WorkflowTodoQueryService.GetPageAsync",
+
+            // WorkflowApprovalAppService（1）：审批中心撤回，只允许发起人撤回自己进行中的流程
+            "WorkflowApprovalAppService.WithdrawAsync",
+
+            // WorkflowApprovalQueryService（4）：审批中心，列表按当前登录用户限定；详情按参与关系（发起人/审批人/被抄送人）或流程查看权限鉴权
+            "WorkflowApprovalQueryService.GetCcPageAsync",
+            "WorkflowApprovalQueryService.GetDetailAsync",
+            "WorkflowApprovalQueryService.GetDonePageAsync",
+            "WorkflowApprovalQueryService.GetStartedPageAsync",
+
+            // WorkflowDirectoryQueryService（1）：审批人选人（转办/加签），与聊天选人同语义：当前上下文的启用用户 + 超管隐藏
+            "WorkflowDirectoryQueryService.GetUserOptionsAsync"
         };
 
     /// <summary>

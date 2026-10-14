@@ -37,15 +37,6 @@ public sealed record PermissionRequestStatusCommand(
     long BasicId,
     long OperatorUserId,
     PermissionRequestStatus RequestStatus,
-    long? ReviewId,
-    string? Remark);
-
-/// <summary>
-/// 权限申请审批命令（通过 / 驳回）
-/// </summary>
-public sealed record PermissionRequestApprovalCommand(
-    long BasicId,
-    long OperatorUserId,
     string? Remark);
 
 /// <summary>

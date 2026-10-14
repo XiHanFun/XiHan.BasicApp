@@ -22,6 +22,7 @@ namespace XiHan.BasicApp.Workflow.Domain.Entities;
 [SugarIndex("IX_{table}_Co_St", nameof(DefinitionCode), OrderByType.Asc, nameof(Status), OrderByType.Asc)]
 [SugarIndex("IX_{table}_PaIn", nameof(ParentInstanceId), OrderByType.Asc)]
 [SugarIndex("IX_{table}_CoId", nameof(CorrelationId), OrderByType.Asc)]
+[SugarIndex("IX_{table}_TeId_StId_CrTi", nameof(TenantId), OrderByType.Asc, nameof(StarterId), OrderByType.Asc, nameof(CreationTime), OrderByType.Desc)]
 public partial class SysWorkflowInstance : BasicAppEntity, IStrictMultiTenantEntity
 {
     /// <summary>
@@ -111,6 +112,12 @@ public partial class SysWorkflowInstance : BasicAppEntity, IStrictMultiTenantEnt
     /// </summary>
     [SugarColumn(ColumnName = "End_Time", ColumnDescription = "结束时间", IsNullable = true)]
     public virtual DateTime? EndTime { get; set; }
+
+    /// <summary>
+    /// 流程结果（经结果结束节点完成时写入，如 approved / rejected）
+    /// </summary>
+    [SugarColumn(ColumnName = "Outcome", ColumnDescription = "流程结果", Length = 100, IsNullable = true)]
+    public virtual string? Outcome { get; set; }
 
     /// <summary>
     /// 故障节点标识

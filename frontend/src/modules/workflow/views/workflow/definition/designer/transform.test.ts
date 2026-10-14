@@ -535,12 +535,73 @@ describe('validateGraph 的本地校验', () => {
   })
 
   it('一条最小可用流程（开始→审批→结束）没有任何 error 级问题', () => {
+    const approve = node('t', 'UserTask')
+    ;(approve.data as DesignerNodeData).properties = { AssigneeRules: [{ type: 'Role', values: ['finance'] }] }
     const data: DiagramData = {
-      nodes: [node('s', 'Start'), node('t', 'UserTask'), node('e', 'End')],
+      nodes: [node('s', 'Start'), approve, node('e', 'End')],
       edges: [edge('s', 't'), edge('t', 'e')],
     }
     const issues = validateGraph(meta(), data)
 
     expect(issues.filter(item => item.level === 'error')).toEqual([])
+  })
+
+  it('人工任务没有受理人规则报 no_assignee，规则参数不全报 assignee_incomplete', () => {
+    const empty = node('a', 'UserTask')
+    const incomplete = node('b', 'UserTask')
+    ;(incomplete.data as DesignerNodeData).properties = {
+      AssigneeRules: [{ type: 'Starter', values: [] }],
+      CcRules: [{ type: 'Role', values: [] }],
+    }
+    const issues = validateGraph(meta(), { nodes: [node('s', 'Start'), empty, incomplete], edges: [edge('s', 'a'), edge('a', 'b')] })
+
+    expect(issues).toContainEqual({ code: 'no_assignee', level: 'error', nodeId: 'a' })
+    expect(issues).toContainEqual({ code: 'assignee_incomplete', level: 'error', nodeId: 'b' })
+    expect(issues.some(issue => issue.code === 'no_assignee' && issue.nodeId === 'b')).toBe(false)
+  })
+})
+
+describe('validateGraph 的审批业务校验', () => {
+  it('关联业务时结束节点缺结果或结果不被认可报警告，终止节点报警告；未关联时不检查', () => {
+    const approved = node('ok', 'End')
+    ;(approved.data as DesignerNodeData).properties = { Outcome: 'approved' }
+    const odd = node('odd', 'End')
+    ;(odd.data as DesignerNodeData).properties = { Outcome: 'returned' }
+    const data: DiagramData = {
+      nodes: [node('s', 'Start'), approved, odd, node('plain', 'End'), node('stop', 'Terminate')],
+      edges: [edge('s', 'ok'), edge('s', 'odd'), edge('s', 'plain'), edge('s', 'stop')],
+    }
+
+    const issues = validateGraph(meta(), data, { businessOutcomes: ['approved', 'rejected'] })
+    const flagged = issues.filter(issue => issue.code.startsWith('business_')).map(issue => `${issue.code}:${issue.nodeId}`)
+
+    expect(flagged.sort()).toEqual(['business_end_outcome:odd', 'business_end_outcome:plain', 'business_terminate:stop'])
+    expect(issues.filter(issue => issue.code.startsWith('business_')).every(issue => issue.level === 'warning')).toBe(true)
+    expect(validateGraph(meta(), data).some(issue => issue.code.startsWith('business_'))).toBe(false)
+  })
+})
+
+describe('parseDefinition 的旧版受理人迁移', () => {
+  it('旧键 Assignees / AssigneesExpression / CcUserIds 并入规则后删除，原始对象不被改写', () => {
+    const raw = {
+      nodes: [{
+        id: 'approve',
+        activityType: 'UserTask',
+        properties: { Assignees: ['1001'], AssigneesExpression: 'approverIds', CcUserIds: ['2001'], Title: '审批' },
+      }],
+    }
+    const parsed = parseDefinition(JSON.stringify(raw))
+
+    expect((parsed.data.nodes[0]?.data as DesignerNodeData).properties).toEqual({
+      AssigneeRules: [{ type: 'User', values: ['1001'] }, { type: 'Expression', values: ['approverIds'] }],
+      CcRules: [{ type: 'User', values: ['2001'] }],
+      Title: '审批',
+    })
+  })
+
+  it('非人工任务节点的同名属性原样保留', () => {
+    const parsed = parseDefinition(JSON.stringify({ nodes: [{ id: 'log', activityType: 'Log', properties: { Assignees: ['x'] } }] }))
+
+    expect((parsed.data.nodes[0]?.data as DesignerNodeData).properties).toEqual({ Assignees: ['x'] })
   })
 })

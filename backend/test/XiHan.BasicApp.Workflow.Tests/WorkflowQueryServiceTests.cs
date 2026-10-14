@@ -1,8 +1,10 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.BasicApp.Workflow.Application.QueryServices;
 using XiHan.BasicApp.Workflow.Domain.Entities;
@@ -463,7 +465,8 @@ public sealed class WorkflowQueryServiceTests
     {
         var repository = new Mock<IWorkflowDefinitionRepository>();
         var fieldSecurity = new Mock<IFieldSecurityService>();
-        return (new WorkflowDefinitionQueryService(repository.Object, fieldSecurity.Object), repository, fieldSecurity);
+        var registry = new WorkflowBusinessRegistry(new ServiceCollection().BuildServiceProvider());
+        return (new WorkflowDefinitionQueryService(repository.Object, fieldSecurity.Object, registry), repository, fieldSecurity);
     }
 
     /// <summary>

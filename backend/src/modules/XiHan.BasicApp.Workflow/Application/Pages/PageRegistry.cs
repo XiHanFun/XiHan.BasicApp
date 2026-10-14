@@ -13,8 +13,8 @@ namespace XiHan.BasicApp.Workflow.Application.Pages;
 /// <remarks>
 /// 沿用 Saas 侧 <see cref="PageDescriptor"/> 的一致性约定（Component 对应 src/views 目录、
 /// I18nKey 为 menu.{Code 中 . 与 - 替换为 _} 并在前端 menu.ts 维护双语文案）。
-/// 工作流是业务功能：顶级目录与「我的待办」不绑权限（登录即可见），
-/// 「流程定义/流程实例」绑 workflow:read。
+/// 工作流是业务功能：「审批中心」不绑权限（登录即可见，待办/已办/我发起的/抄送都只看自己的），
+/// 挂在 Saas 自持的「审批」目录下；「流程定义/流程实例」绑 workflow:read，归本模块的「工作流」目录。
 /// </remarks>
 public static class PageRegistry
 {
@@ -24,9 +24,9 @@ public static class PageRegistry
     public const string WorkflowDirectoryCode = "workflow";
 
     /// <summary>
-    /// 工作台目录码（Saas 模块登记的父级，我的待办挂其下）
+    /// 审批目录码（Saas 模块登记的父级，审批中心挂其下）
     /// </summary>
-    public const string WorkbenchDirectoryCode = "workbench";
+    public const string ApprovalDirectoryCode = "approval";
 
     /// <summary>
     /// 所有已登记页面（父目录必须排在子项之前，种子依顺序解析 ParentId）
@@ -35,8 +35,8 @@ public static class PageRegistry
     [
         // 工作流目录由本模块独占登记（审批目录归 Saas 自持，两者互不共享目录码）
         new(WorkflowDirectoryCode, "工作流", "menu.workflow", MenuType.Directory, "/workflow", "Workflow", null, null, null, "lucide:workflow", 400),
-        // 我的待办属于「与当前登录用户相关」，归工作台；工作流目录聚焦流程管理侧
-        new("workflow_todo", "我的待办", "menu.workflow_todo", MenuType.Menu, "/workflow/todo", "WorkflowTodo", "Workflow/Todo/Index", WorkbenchDirectoryCode, null, "lucide:list-todo", 14),
+        // 审批中心面向每个登录用户（待我审批/我已审批/我发起的/抄送我的），归审批目录；工作流目录聚焦流程管理侧
+        new("workflow_approval", "审批中心", "menu.workflow_approval", MenuType.Menu, "/approval/center", "WorkflowApproval", "workflow/approval/index", ApprovalDirectoryCode, null, "lucide:list-checks", 440),
         new("workflow_definition", "流程定义", "menu.workflow_definition", MenuType.Menu, "/workflow/definition", "WorkflowDefinition", "Workflow/Definition/Index", WorkflowDirectoryCode, WorkflowPermissionCodes.Read, "lucide:git-branch", 410),
         new("workflow_instance", "流程实例", "menu.workflow_instance", MenuType.Menu, "/workflow/instance", "WorkflowInstance", "Workflow/Instance/Index", WorkflowDirectoryCode, WorkflowPermissionCodes.Read, "lucide:activity", 420),
     ];

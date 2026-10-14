@@ -28,7 +28,7 @@ public interface IPermissionRequestAppService : IApplicationService
     Task<PermissionRequestDetailDto> UpdatePermissionRequestAsync(PermissionRequestUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 更新权限申请状态
+    /// 更新权限申请状态（手工驳回或撤回，同时中止进行中的审批流程）
     /// </summary>
     /// <param name="input">状态更新参数</param>
     /// <param name="cancellationToken">取消令牌</param>
@@ -36,23 +36,7 @@ public interface IPermissionRequestAppService : IApplicationService
     Task<PermissionRequestDetailDto> UpdatePermissionRequestStatusAsync(PermissionRequestStatusUpdateDto input, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// 审批通过权限申请（自动授予角色/权限）
-    /// </summary>
-    /// <param name="input">审批参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>权限申请详情</returns>
-    Task<PermissionRequestDetailDto> ApprovePermissionRequestAsync(PermissionRequestApprovalDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 驳回权限申请
-    /// </summary>
-    /// <param name="input">审批参数</param>
-    /// <param name="cancellationToken">取消令牌</param>
-    /// <returns>权限申请详情</returns>
-    Task<PermissionRequestDetailDto> RejectPermissionRequestAsync(PermissionRequestApprovalDto input, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// 撤回权限申请
+    /// 撤回权限申请（同时撤回进行中的审批流程）
     /// </summary>
     /// <param name="id">权限申请主键</param>
     /// <param name="cancellationToken">取消令牌</param>

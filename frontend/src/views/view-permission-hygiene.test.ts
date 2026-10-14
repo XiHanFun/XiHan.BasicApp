@@ -72,10 +72,7 @@ const UNGATED_ACTIONS: Record<string, string> = {
   'views/file/export-center/index.vue#delete': '自助：只作用于本人的导出任务，接口只要求登录',
   'modules/codegen/views/develop/code-gen/components/datasource-panel.vue#test': '只读：连通性测试只要代码生成的读权限',
   'modules/codegen/views/develop/code-gen/components/table-panel.vue#runtime': '只读：运行时预览只要代码生成的读权限',
-  'modules/workflow/views/workflow/todo/index.vue#approve': '自助：办理人办理自己的待办，后端按办理人校验',
-  'modules/workflow/views/workflow/todo/index.vue#reject': '自助：办理人办理自己的待办，后端按办理人校验',
-  'modules/workflow/views/workflow/todo/index.vue#transfer': '自助：办理人转办自己的待办，后端按办理人校验',
-  'modules/workflow/views/workflow/todo/index.vue#addSign': '自助：办理人给自己的待办加签，后端按办理人校验',
+  'modules/workflow/views/workflow/approval/index.vue#handle': '自助：办理人打开自己的待办，办理、转办与加签由后端按办理人校验',
 }
 
 /** 动作对象：从 scope 出现处向外找包住它的对象字面量 */

@@ -32,6 +32,8 @@ export interface WorkflowInstanceListItemDto extends BasicDto {
   definitionVersion: number
   name: string
   status: WorkflowInstanceStatus
+  /** 流程结果（经结果结束节点完成时有值，如 approved / rejected） */
+  outcome?: string | null
   correlationId?: string | null
   starterId?: string | null
   parentInstanceId?: NumericString | null

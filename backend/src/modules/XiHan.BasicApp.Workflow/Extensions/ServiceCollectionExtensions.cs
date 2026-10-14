@@ -3,13 +3,18 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.EventHandlers;
+using XiHan.BasicApp.Workflow.Infrastructure.Assignees;
 using XiHan.BasicApp.Workflow.Infrastructure.Seeders;
 using XiHan.BasicApp.Workflow.Infrastructure.Stores;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Utils.Collections;
+using XiHan.Framework.Workflow.Abstractions.Outcomes;
 using XiHan.Framework.Workflow.Abstractions.Stores;
+using XiHan.Framework.Workflow.Extensions.DependencyInjection;
 using XiHan.BasicApp.Workflow.Domain.Entities;
 using XiHan.BasicApp.Saas.Extensions;
 
@@ -39,6 +44,43 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
+    /// 注册组织架构受理人解析器（角色、部门、部门负责人、岗位、发起人主管）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddWorkflowAssigneeProviders(this IServiceCollection services)
+    {
+        services.TryAddScoped<WorkflowOrganizationDirectory>();
+        services.AddXiHanWorkflowAssigneeProvider<RoleAssigneeProvider>();
+        services.AddXiHanWorkflowAssigneeProvider<DepartmentAssigneeProvider>();
+        services.AddXiHanWorkflowAssigneeProvider<DepartmentLeaderAssigneeProvider>();
+        services.AddXiHanWorkflowAssigneeProvider<PositionAssigneeProvider>();
+        services.AddXiHanWorkflowAssigneeProvider<StarterLeaderAssigneeProvider>();
+        services.AddXiHanWorkflowAssigneeProvider<StarterLeaderChainAssigneeProvider>();
+        return services;
+    }
+
+    /// <summary>
+    /// 注册审批业务接入（业务登记表、发起/撤回/进度服务、结论分发、中止回写、发布校验、审批记录）
+    /// </summary>
+    /// <remarks>
+    /// Saas 先以「工作流未启用」实现占位 <see cref="IWorkflowBusinessService"/>，这里 Replace 为真实实现。
+    /// </remarks>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddWorkflowBusinessIntegration(this IServiceCollection services)
+    {
+        services.TryAddScoped<WorkflowBusinessRegistry>();
+        services.TryAddScoped<WorkflowUserNameResolver>();
+        services.TryAddScoped<WorkflowTaskRecordWriter>();
+        services.TryAddScoped<WorkflowBusinessAbortNotifier>();
+        services.TryAddScoped<WorkflowBusinessDefinitionGuard>();
+        services.Replace(ServiceDescriptor.Scoped<IWorkflowBusinessService, WorkflowBusinessService>());
+        services.TryAddEnumerable(ServiceDescriptor.Transient<IWorkflowOutcomeHandler, WorkflowBusinessOutcomeHandler>());
+        return services;
+    }
+
+    /// <summary>
     /// 注册工作流种子：权限目录、菜单
     /// </summary>
     /// <param name="services">服务集合</param>
@@ -60,6 +102,7 @@ public static class ServiceCollectionExtensions
         services.AddWorkflowLocalEventHandler<WorkflowUserTaskCreatedNotificationHandler>();
         services.AddWorkflowLocalEventHandler<WorkflowUserTaskTransferredNotificationHandler>();
         services.AddWorkflowLocalEventHandler<WorkflowInstanceFaultedNotificationHandler>();
+        services.AddWorkflowLocalEventHandler<WorkflowCarbonCopyRecordHandler>();
         return services;
     }
 

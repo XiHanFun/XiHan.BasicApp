@@ -270,7 +270,7 @@ public static class SaasDemoScenario
             DataPermissionScope.All,
             DemoGrant.Codes("日志只读",
                 P.UserStatistics.Read, P.AccessLog.Read, P.ApiLog.Read, P.OperationLog.Read, P.LoginLog.Read, P.ExceptionLog.Read,
-                P.DiffLog.Read, P.PermissionChangeLog.Read, P.LogTrace.Read, P.ReviewLog.Read),
+                P.DiffLog.Read, P.PermissionChangeLog.Read, P.LogTrace.Read),
             110),
     ];
 
@@ -316,7 +316,7 @@ public static class SaasDemoScenario
                 EmployeeRole,
                 new("dept_manager", "部门主管", "继承普通员工，数据范围为本部门及下级",
                     DataPermissionScope.DepartmentAndChildren,
-                    DemoGrant.Codes("成员、部门、审批查看", P.User.Read, P.Department.Read, P.UserDepartment.Read, P.UserSession.Read, P.Review.Read, P.Review.Update),
+                    DemoGrant.Codes("成员、部门查看", P.User.Read, P.Department.Read, P.UserDepartment.Read, P.UserSession.Read),
                     30, Inherits: "employee"),
                 new("hr_specialist", "人事专员", "自定义数据范围：研发中心（含下级）与市场部",
                     DataPermissionScope.Custom,

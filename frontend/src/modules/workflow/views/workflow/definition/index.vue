@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Tone } from '@xihan-ui/core'
 import type {
+  WorkflowBusinessTypeDto,
   WorkflowDefinitionDetailDto,
   WorkflowDefinitionListItemDto,
 } from '../../../api'
@@ -9,7 +10,7 @@ import type {
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
 import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, h, ref, useId } from 'vue'
+import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   createPageRequest,
@@ -63,6 +64,22 @@ function toStr(v: unknown): string | undefined {
   return (v as string | undefined)?.trim() || undefined
 }
 
+/** 已登记的审批业务：业务编码即流程编码，列表据此标出流程绑定的业务 */
+const businessTypes = ref<WorkflowBusinessTypeDto[]>([])
+
+function businessName(code: string) {
+  return businessTypes.value.find(business => business.code === code)?.name
+}
+
+onMounted(async () => {
+  try {
+    businessTypes.value = await workflowDefinitionApi.businessTypes()
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('workflow.definition.err_business_types'))
+  }
+})
+
 // ── 字段单一事实源：列 + 搜索 ───────────────────────────────────
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('workflow.definition.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('workflow.definition.keyword_placeholder'), width: 240, order: 0 },
@@ -83,6 +100,10 @@ const fields = computed<ListFieldSchema[]>(() => [
   },
   { key: 'code', title: t('workflow.definition.code'), dataType: 'string', sortable: true, minWidth: 160, order: 10 },
   { key: 'name', title: t('workflow.definition.name'), dataType: 'string', sortable: true, minWidth: 180, order: 11 },
+  { key: 'business', title: t('workflow.definition.business'), dataType: 'string', minWidth: 120, order: 11.5, render: (row) => {
+    const name = businessName((row as unknown as WorkflowDefinitionListItemDto).code)
+    return name ? h(XhTagRoot, { variant: 'subtle', tone: 'brand' }, () => h(XhTagLabel, () => name)) : '-'
+  } },
   { key: 'version', title: t('workflow.definition.version'), dataType: 'number', sortable: true, width: 90, order: 12, render: (row) => {
     const r = row as unknown as WorkflowDefinitionListItemDto
     return h(XhTagRoot, { variant: 'subtle', tone: 'neutral' }, () => h(XhTagLabel, () => `v${r.version}`))

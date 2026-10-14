@@ -9,6 +9,7 @@ import type { ActivityTypeMeta } from './catalog'
 import { describe, expect, it } from 'vitest'
 import enUS from '../../../../locales/en-US'
 import zhCN from '../../../../locales/zh-CN'
+import { ASSIGNEE_RULE_TYPES } from './assignee-rules'
 import { ACTIVITY_CATALOG, ACTIVITY_MAP, CATEGORY_ORDER } from './catalog'
 
 type MessageTree = Record<string, unknown>
@@ -69,8 +70,8 @@ describe('活动目录的自身结构', () => {
     expect(bad).toEqual([])
   })
 
-  it('开始 / 结束 / 判定 / 并行四个纯控制节点不带任何属性', () => {
-    for (const type of ['Start', 'End', 'Decision', 'Parallel']) {
+  it('开始 / 判定 / 并行三个纯控制节点不带任何属性', () => {
+    for (const type of ['Start', 'Decision', 'Parallel']) {
       expect(ACTIVITY_MAP[type]?.props).toEqual([])
     }
   })
@@ -129,8 +130,8 @@ describe('活动属性描述符', () => {
     expect(bad).toEqual([])
   })
 
-  it('input 类型只允许目录里约定的七种控件', () => {
-    const allowed = new Set(['text', 'textarea', 'number', 'boolean', 'select', 'tags', 'json'])
+  it('input 类型只允许目录里约定的八种控件', () => {
+    const allowed = new Set(['text', 'textarea', 'number', 'boolean', 'select', 'tags', 'json', 'assignees'])
     const bad = allProps()
       .filter(({ prop }) => !allowed.has(prop.input))
       .map(({ meta, prop }) => `${meta.type}.${prop.key} → ${prop.input}`)
@@ -181,6 +182,27 @@ describe('活动属性描述符', () => {
     expect(policy?.options?.map(option => option.value)).toEqual(['Any', 'All', 'Sequential'])
     expect(userTask?.outcomes).toEqual(['approved', 'rejected', 'timeout'])
   })
+
+  it('人工任务只按规则配置受理人：不再暴露旧版 Assignees / AssigneesExpression / CcUserIds', () => {
+    const keys = ACTIVITY_MAP.UserTask?.props.map(prop => prop.key) ?? []
+
+    expect(keys).toEqual(expect.arrayContaining(['AssigneeRules', 'ExcludeStarter', 'EmptyAssigneeStrategy', 'FallbackAssigneeRules', 'CcRules']))
+    expect(keys).not.toContain('Assignees')
+    expect(keys).not.toContain('AssigneesExpression')
+    expect(keys).not.toContain('CcUserIds')
+  })
+
+  it('受理人为空策略与后端 UserTaskEmptyAssigneeStrategy 成员名一致', () => {
+    const strategy = ACTIVITY_MAP.UserTask?.props.find(prop => prop.key === 'EmptyAssigneeStrategy')
+
+    expect(strategy?.options?.map(option => option.value)).toEqual(['Fault', 'AutoApprove', 'AutoReject', 'Fallback'])
+  })
+
+  it('结束节点的结果只提供审批业务认可的 approved / rejected', () => {
+    const outcome = ACTIVITY_MAP.End?.props.find(prop => prop.key === 'Outcome')
+
+    expect(outcome?.options?.map(option => option.value)).toEqual(['approved', 'rejected'])
+  })
 })
 
 describe('活动目录与两语言文案的对齐', () => {
@@ -226,6 +248,36 @@ describe('活动目录与两语言文案的对齐', () => {
     expect(bad).toEqual([])
   })
 
+  it('下拉选项的 labelKey 在两语言的 workflow.designer.option 下都有文案', () => {
+    const bad: string[] = []
+    for (const [locale, messages] of locales) {
+      const option = designerNode(messages, 'option')
+      for (const { meta, prop } of allProps()) {
+        for (const item of prop.options ?? []) {
+          if (item.labelKey && typeof option[item.labelKey] !== 'string') {
+            bad.push(`${locale}: option.${item.labelKey}（来自 ${meta.type}.${prop.key}）`)
+          }
+        }
+      }
+    }
+
+    expect(bad).toEqual([])
+  })
+
+  it('每种受理人规则在两语言的 workflow.designer.rule 下都有文案', () => {
+    const bad: string[] = []
+    for (const [locale, messages] of locales) {
+      const rule = designerNode(messages, 'rule')
+      for (const meta of ASSIGNEE_RULE_TYPES) {
+        if (typeof rule[meta.labelKey] !== 'string') {
+          bad.push(`${locale}: rule.${meta.labelKey}`)
+        }
+      }
+    }
+
+    expect(bad).toEqual([])
+  })
+
   it('本地校验的问题码在两语言的 workflow.designer.validate 下都有文案', () => {
     const codes = [
       'code',
@@ -239,6 +291,10 @@ describe('活动目录与两语言文案的对齐', () => {
       'no_incoming',
       'decision_no_default',
       'unreachable',
+      'no_assignee',
+      'assignee_incomplete',
+      'business_end_outcome',
+      'business_terminate',
     ]
     const bad: string[] = []
     for (const [locale, messages] of locales) {

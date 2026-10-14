@@ -126,7 +126,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDepartmentHierarchyDomainService, DepartmentHierarchyDomainService>();
         services.AddScoped<IPositionDomainService, PositionDomainService>();
         services.AddScoped<ITaskDomainService, TaskDomainService>();
-        services.AddScoped<IReviewDomainService, ReviewDomainService>();
         services.AddScoped<IOAuthAppDomainService, OAuthAppDomainService>();
         services.AddScoped<IMessageDomainService, MessageDomainService>();
         services.AddScoped<IMessageTemplateDomainService, MessageTemplateDomainService>();
@@ -203,6 +202,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationFanoutService, NotificationFanoutService>();
         services.AddScoped<IMessageTemplateRenderer, MessageTemplateRenderer>();
         services.AddScoped<ITaskSchedulerSyncService, TaskSchedulerSyncService>();
+        // 审批接入：工作流模块未加载时发起/撤回/查询进度一律明确失败；工作流模块以其实现 Replace
+        services.TryAddScoped<IWorkflowBusinessService, UnavailableWorkflowBusinessService>();
+        services.TryAddEnumerable(ServiceDescriptor.Transient<IWorkflowBusinessHandler, PermissionRequestWorkflowHandler>());
         services.AddSingleton<IStorageProviderResolver, StorageProviderResolver>();
         // 短信配置存储：以数据库实现覆盖框架默认空实现（框架模块 TryAdd 先注册，故须 Replace）
         services.Replace(ServiceDescriptor.Singleton<ISmsConfigStore, SaasSmsConfigStore>());
@@ -302,7 +304,6 @@ public static class ServiceCollectionExtensions
             .Add<SysStorageConfig>()
             .Add<SysNumberingRule>()
             .Add<SysNumberingAllocation>()
-            .Add<SysReview>()
             .Add<SysNotification>()
             .Add<SysMessageTemplate>()
             .Add<SysEmail>()

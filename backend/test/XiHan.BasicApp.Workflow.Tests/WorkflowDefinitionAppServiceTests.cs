@@ -1,9 +1,11 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Workflow.Application.AppServices;
+using XiHan.BasicApp.Workflow.Application.Business;
 using XiHan.BasicApp.Workflow.Application.Dtos;
 using XiHan.Framework.Core.Exceptions;
 using XiHan.Framework.Workflow.Abstractions.Definitions;
@@ -164,6 +166,9 @@ public sealed class WorkflowDefinitionAppServiceTests
     public async Task LifecycleOperations_ShouldForwardInvariantStringifiedKey()
     {
         var (service, manager) = CreateService();
+        manager
+            .Setup(value => value.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(WorkflowTestHelper.CreateDefinition());
         manager
             .Setup(value => value.PublishAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(WorkflowTestHelper.CreateDefinition());
@@ -360,6 +365,7 @@ public sealed class WorkflowDefinitionAppServiceTests
     private static (WorkflowDefinitionAppService Service, Mock<IWorkflowDefinitionManager> Manager) CreateService()
     {
         var manager = new Mock<IWorkflowDefinitionManager>();
-        return (new WorkflowDefinitionAppService(manager.Object, Mock.Of<IFieldSecurityService>()), manager);
+        var guard = new WorkflowBusinessDefinitionGuard(new WorkflowBusinessRegistry(new ServiceCollection().BuildServiceProvider()));
+        return (new WorkflowDefinitionAppService(manager.Object, Mock.Of<IFieldSecurityService>(), guard), manager);
     }
 }

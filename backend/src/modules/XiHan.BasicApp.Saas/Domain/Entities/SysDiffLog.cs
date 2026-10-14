@@ -15,7 +15,7 @@ namespace XiHan.BasicApp.Saas.Domain.Entities;
 /// 职责边界：
 /// - 本表仅关注"数据库实体变更"（谁在什么时候改了哪张表哪条记录的哪些字段）
 /// - 与 SysAccessLog（HTTP 访问日志）、SysOpenApiLog（API 调用日志）职责分离，通过 TraceId 串联
-/// - 与 SysReviewLog（业务审批动作日志）职责分离：本表记录数据变更事实，SysReviewLog 记录审批决策过程
+/// - 与工作流审批记录职责分离：本表记录数据变更事实，审批决策过程由工作流实例与审批记录承载
 ///
 /// 写入触发：
 /// - 由 ORM 拦截器自动捕获实体 Insert/Update/Delete 操作
