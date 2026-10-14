@@ -179,6 +179,8 @@ export default {
       tb_export: 'Bild exportieren',
       tb_arrange: 'Ausrichten / verteilen',
       tb_validate: 'Validieren',
+      tb_palette: 'Knotenpalette',
+      tb_properties: 'Eigenschaften',
       // Ausrichten / verteilen (auf ausgewählte Knoten)
       align_left: 'Linksbündig ausrichten',
       align_center_v: 'Vertikal zentrieren',

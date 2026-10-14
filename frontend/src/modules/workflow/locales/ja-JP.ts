@@ -179,6 +179,8 @@ export default {
       tb_export: '画像をエクスポート',
       tb_arrange: '整列 / 分布',
       tb_validate: '検証',
+      tb_palette: 'ノードパレット',
+      tb_properties: 'プロパティ',
       // 对齐 / 分布（作用于多选节点）
       align_left: '左揃え',
       align_center_v: '垂直方向中央揃え',

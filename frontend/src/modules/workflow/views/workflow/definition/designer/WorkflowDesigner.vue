@@ -3,9 +3,9 @@ import type { ActivityTypeMeta } from './catalog'
 import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, DesignerNodeData, ValidationIssue } from './transform'
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
 import type { AppDropdownOption } from '~/types'
-import { useDebounceFn } from '@vueuse/core'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhContextMenuContent, XhContextMenuItem, XhContextMenuItemText, XhContextMenuPositioner, XhContextMenuRoot, XhContextMenuSeparator, XhContextMenuTrigger, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFieldsetLegend, XhFieldsetRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, h, nextTick, reactive, ref, toRaw, watch } from 'vue'
+import { useDebounceFn, useElementSize } from '@vueuse/core'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhContextMenuContent, XhContextMenuItem, XhContextMenuItemText, XhContextMenuPositioner, XhContextMenuRoot, XhContextMenuSeparator, XhContextMenuTrigger, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFieldsetLegend, XhFieldsetRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot, XhToggle } from '@xihan-ui/vue'
+import { computed, h, nextTick, reactive, ref, toRaw, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, indexDropdownOptions, toDropdownCollection, VNodeRender, XDropdown, XInput, XNumberInput, XSegmented, XSelect, XTagsInput } from '~/components'
 import { toast } from '~/composables'
@@ -53,6 +53,41 @@ const meta = reactive<DefinitionMeta>({
 
 const activeTab = ref<'design' | 'json'>('design')
 const jsonText = ref('')
+
+// ── 窄宽布局 ───────────────────────────────────────────────────
+/**
+ * 三栏并排要的宽度：节点面板 11rem + 属性面板 20rem + 画布至少 25rem。
+ * 看的是设计器自己有多宽而不是视口：对话框宽度跟着视口走，但「三栏放不放得下」是这块区域的事，不是「是不是小屏」。
+ * 放不下时两侧面板收成浮在画布上的抽屉，由工具栏开关；同一时刻只开一个，窄到手机宽时两个叠不下
+ */
+const THREE_PANE_MIN_REM = 56
+const rootRef = ref<HTMLElement | null>(null)
+const { width: rootWidth } = useElementSize(rootRef)
+const compact = computed(() => {
+  const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize)
+  return rootWidth.value > 0 && rootWidth.value < THREE_PANE_MIN_REM * rem
+})
+/**
+ * 量到宽度之后才挂画布：首帧还没量时按并排排版，画布若这时装载，会按那一窄栏适应视图，
+ * 随后切成抽屉、画布变宽，节点就挤在左边一角。只放行一次，之后宽度归零（对话框收起）也不卸画布
+ */
+const layoutReady = ref(false)
+watch(rootWidth, (width) => {
+  if (width > 0)
+    layoutReady.value = true
+})
+const paletteOpen = ref(false)
+const propsOpen = ref(false)
+const paletteId = useId()
+const propsId = useId()
+
+function setDrawer(drawer: 'palette' | 'props' | null) {
+  paletteOpen.value = drawer === 'palette'
+  propsOpen.value = drawer === 'props'
+}
+
+// 跨过阈值时两个抽屉都收起：宽变窄时不让面板突然盖住画布，变宽后面板回到并排
+watch(compact, () => setDrawer(null))
 
 /** 选中节点：id + 表单副本（写回经 updateNodeData 全量替换） */
 const selectedNodeId = ref<string | null>(null)
@@ -133,6 +168,7 @@ function onDiagramReady(readyApi: DiagramApi) {
   })
   api.on('blank:click', () => {
     clearSelection()
+    setDrawer(null)
   })
   api.on('edge:connected', (payload) => {
     // 新连线补默认业务数据并直接进入属性编辑
@@ -182,10 +218,15 @@ function selectNode(id: string, data: DesignerNodeData) {
   nodeForm.value = snapshot({ ...data, __selected: true })
   commitNode()
   syncJsonBuffers()
+  // 收成抽屉时选中即打开属性面板：并排时它本来就在，抽屉态下不打开就看不到选中了什么
+  if (compact.value)
+    setDrawer('props')
 }
 
 function selectEdge(payload: DiagramEdgeEventPayload) {
   clearSelection()
+  if (compact.value)
+    setDrawer('props')
   selectedEdgeId.value = payload.id
   const data = (payload.data ?? {}) as DesignerEdgeData
   edgeForm.value = {
@@ -328,11 +369,12 @@ function nextNodeId(type: string): string {
   return id
 }
 
-function createNode(item: ActivityTypeMeta, position: { x: number, y: number }) {
+function createNode(item: ActivityTypeMeta, position: { x: number, y: number }): string | null {
   if (!api)
-    return
+    return null
+  const id = nextNodeId(item.type)
   api.addNode({
-    id: nextNodeId(item.type),
+    id,
     shape: ACTIVITY_SHAPE,
     x: position.x,
     y: position.y,
@@ -346,11 +388,16 @@ function createNode(item: ActivityTypeMeta, position: { x: number, y: number }) 
       continueOnError: false,
     } satisfies DesignerNodeData,
   })
+  return id
 }
 
 function onPaletteClick(item: ActivityTypeMeta) {
   const count = api?.toData().nodes.length ?? 0
-  createNode(item, { x: 120 + (count % 4) * 220, y: 120 + Math.floor(count / 4) * 130 })
+  const id = createNode(item, { x: 120 + (count % 4) * 220, y: 120 + Math.floor(count / 4) * 130 })
+  // 点击添加按网格落位、不看当前视口，窄画布上新节点常落在视野外；不在视野里才平移过去。抽屉盖着画布，加完一并收起
+  if (id)
+    api?.revealNode(id)
+  setDrawer(null)
 }
 
 function onPaletteDragStart(event: DragEvent, item: ActivityTypeMeta) {
@@ -364,6 +411,7 @@ function onCanvasDrop(event: DragEvent) {
   if (!type || !ACTIVITY_MAP[type] || !api)
     return
   createNode(ACTIVITY_MAP[type], api.clientToLocal(event.clientX, event.clientY))
+  setDrawer(null)
 }
 
 // ── JSON 视图 ──────────────────────────────────────────────────
@@ -551,7 +599,7 @@ function onContextSelect(key: string) {
 </script>
 
 <template>
-  <div class="flex h-[78vh] flex-col">
+  <div ref="rootRef" class="flex h-[78vh] flex-col">
     <!-- 工具栏：左右两组，放不下时整组换行、右组仍靠右；右组本身也放不下时组内再换行，
          窄屏下组内分隔线随之隐藏，免得换行后落在行首行尾 -->
     <div class="mb-2 flex flex-wrap items-center gap-x-1 gap-y-2">
@@ -559,6 +607,34 @@ function onContextSelect(key: string) {
         <!-- 设计 / JSON 切换（内联在工具栏最前） -->
         <XSegmented v-model:value="activeTab" class="shrink-0" :options="[{ value: 'design', label: t('workflow.designer.tab_design') }, { value: 'json', label: t('workflow.designer.tab_json') }]" size="sm" />
         <XhSeparator orientation="vertical" class="!mx-1" />
+        <!-- 两侧面板收成抽屉时的开关，紧挨视图切换：开合的是设计视图里的面板 -->
+        <template v-if="compact && activeTab === 'design'">
+          <XhToggle
+            size="sm"
+            variant="ghost"
+            icon-only
+            :pressed="paletteOpen"
+            :title="t('workflow.designer.tb_palette')"
+            :aria-label="t('workflow.designer.tb_palette')"
+            :aria-controls="paletteId"
+            @click="setDrawer(paletteOpen ? null : 'palette')"
+          >
+            <Icon icon="lucide:panel-left" />
+          </XhToggle>
+          <XhToggle
+            size="sm"
+            variant="ghost"
+            icon-only
+            :pressed="propsOpen"
+            :title="t('workflow.designer.tb_properties')"
+            :aria-label="t('workflow.designer.tb_properties')"
+            :aria-controls="propsId"
+            @click="setDrawer(propsOpen ? null : 'props')"
+          >
+            <Icon icon="lucide:panel-right" />
+          </XhToggle>
+          <XhSeparator orientation="vertical" class="!mx-1" />
+        </template>
         <XhTagRoot variant="subtle" size="sm" class="shrink-0">
           <XhTagLabel>
             {{ meta.code || t('workflow.designer.untitled') }}
@@ -613,35 +689,43 @@ function onContextSelect(key: string) {
     <!-- 工具栏以下的高度全给当前视图：两个视图都是这一列里的 flex-1，各自不再另钉高度，否则与外层 78vh 之差就是底部空白 -->
     <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
       <!-- 设计视图（v-show 保留画布：切到 JSON 再切回不卸载、不清空） -->
-      <div v-show="activeTab === 'design'" class="flex min-h-0 flex-1">
-        <!-- 节点面板 -->
-        <div class="w-44 shrink-0 overflow-auto border-r border-gray-200 pr-2 dark:border-gray-700">
-          <div v-for="group in paletteGroups" :key="group.category" class="mb-2">
-            <div class="mb-1 text-xs font-medium text-gray-400">
-              {{ group.label }}
-            </div>
-            <div
-              v-for="item in group.items"
-              :key="item.type"
-              class="mb-1 flex cursor-grab items-center gap-2 rounded border border-gray-200 px-2 py-1.5 text-sm hover:border-primary hover:text-primary dark:border-gray-600"
-              draggable="true"
-              @dragstart="onPaletteDragStart($event, item)"
-              @click="onPaletteClick(item)"
-            >
-              <Icon :icon="item.icon" class="text-sm" />
-              <span class="truncate">{{ t(`workflow.designer.activity.${item.labelKey}`) }}</span>
+      <div v-show="activeTab === 'design'" class="relative isolate flex min-h-0 flex-1">
+        <!-- 节点面板（并排时占一栏；放不下时是贴左边的抽屉，只在抽屉态做进出场） -->
+        <Transition name="workflow-designer-drawer" :css="compact">
+          <div
+            v-show="!compact || paletteOpen"
+            :id="paletteId"
+            class="w-44 overflow-auto"
+            :class="compact ? 'workflow-designer__drawer workflow-designer__drawer--start' : 'shrink-0 border-r border-gray-200 pr-2 dark:border-gray-700'"
+          >
+            <div v-for="group in paletteGroups" :key="group.category" class="mb-2">
+              <div class="mb-1 text-xs font-medium text-gray-400">
+                {{ group.label }}
+              </div>
+              <div
+                v-for="item in group.items"
+                :key="item.type"
+                class="mb-1 flex cursor-grab items-center gap-2 rounded border border-gray-200 px-2 py-1.5 text-sm hover:border-primary hover:text-primary dark:border-gray-600"
+                draggable="true"
+                @dragstart="onPaletteDragStart($event, item)"
+                @click="onPaletteClick(item)"
+              >
+                <Icon :icon="item.icon" class="text-sm" />
+                <span class="truncate">{{ t(`workflow.designer.activity.${item.labelKey}`) }}</span>
+              </div>
             </div>
           </div>
-        </div>
+        </Transition>
 
         <!-- 画布（~/diagram 封装，Shift 框选 / 滚轮缩放 / Del 删除 / Ctrl+Z 撤销 / 右键菜单） -->
         <div class="relative min-w-0 flex-1" @drop="onCanvasDrop" @dragover.prevent>
-          <XDiagram class="h-full" :options="{ minimap: true }" @ready="onDiagramReady" />
+          <XDiagram v-if="layoutReady" class="h-full" :options="{ minimap: true }" @ready="onDiagramReady" />
 
-          <!-- 校验问题面板（点击定位到节点；给右下角小地图留出空间） -->
+          <!-- 校验问题面板（点击定位到节点；并排时给右下角小地图留出空间，抽屉态画布太窄，铺满宽度、暂时盖住小地图） -->
           <div
             v-if="showIssues && issues.length"
-            class="absolute bottom-2 left-2 right-48 max-h-40 overflow-auto rounded-lg border border-gray-200 bg-white/95 p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800/95"
+            class="absolute bottom-2 left-2 max-h-40 overflow-auto rounded-lg border border-gray-200 bg-white/95 p-2 shadow-lg dark:border-gray-700 dark:bg-gray-800/95"
+            :class="compact ? 'right-2' : 'right-48'"
           >
             <div class="mb-1 flex items-center justify-between">
               <span class="text-xs font-medium">
@@ -669,326 +753,333 @@ function onContextSelect(key: string) {
           </div>
         </div>
 
-        <!-- 属性面板 -->
-        <div class="w-80 shrink-0 overflow-auto border-l border-gray-200 pl-3 dark:border-gray-700">
-          <!-- 连线属性 -->
-          <template v-if="edgeForm">
-            <div class="mb-2 text-sm font-medium">
-              {{ t('workflow.designer.edge_panel') }}
-            </div>
-            <div class="mb-2 text-xs text-gray-400">
-              {{ edgeForm.source }} → {{ edgeForm.target }}
-            </div>
-            <XhFormRoot
-              validate-on="blur"
-            >
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.edge_condition') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XInput
-                    :value="edgeForm.condition ?? ''"
-                    type="textarea"
-                    :autosize="{ minRows: 2, maxRows: 4 }"
-                    :placeholder="t('workflow.designer.edge_condition_placeholder')"
-                    @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.condition = value || null; commitEdge() }"
-                  />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <!-- 可选结果点一下填进条件：是动作就用按钮，标签没有按钮语义、键盘也够不着 -->
-              <div v-if="outcomeHints.length > 0" class="mb-2">
-                <XhFlex gap="xs">
-                  <XhButton
-                    v-for="outcome in outcomeHints"
-                    :key="outcome"
-                    variant="subtle"
-                    size="sm"
-                    @click="applyOutcomeHint(outcome)"
-                  >
-                    {{ outcome }}
-                  </XhButton>
-                </XhFlex>
+        <!-- 属性面板（并排时占一栏；放不下时是贴右边的抽屉，窄到装不下 20rem 时铺满） -->
+        <Transition name="workflow-designer-drawer" :css="compact">
+          <div
+            v-show="!compact || propsOpen"
+            :id="propsId"
+            class="w-80 overflow-auto"
+            :class="compact ? 'workflow-designer__drawer workflow-designer__drawer--end' : 'shrink-0 border-l border-gray-200 pl-3 dark:border-gray-700'"
+          >
+            <!-- 连线属性 -->
+            <template v-if="edgeForm">
+              <div class="mb-2 text-sm font-medium">
+                {{ t('workflow.designer.edge_panel') }}
               </div>
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.edge_priority') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XNumberInput
-                    :value="edgeForm.priority ?? 0"
-                    class="w-full"
-                    @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; edgeForm!.priority = value ?? 0; commitEdge() }"
-                  />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.edge_is_default') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XhSwitch
-                    :checked="edgeForm.isDefault ?? false"
-                    @update:checked="(value: boolean) => { edgeForm!.isDefault = value; commitEdge() }"
-                  />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.edge_name') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XInput
-                    :value="edgeForm.name ?? ''"
-                    @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.name = value || null; commitEdge() }"
-                  />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-            </XhFormRoot>
-            <XhButton size="sm" tone="danger" variant="subtle" full-width @click="deleteSelectedEdge">
-              {{ t('workflow.designer.btn_delete_edge') }}
-            </XhButton>
-          </template>
-
-          <!-- 节点属性 -->
-          <template v-else-if="nodeForm">
-            <div class="mb-2 flex items-center gap-2 text-sm font-medium">
-              <Icon :icon="selectedMeta?.icon ?? 'lucide:box'" />
-              {{ selectedMeta ? t(`workflow.designer.activity.${selectedMeta.labelKey}`) : nodeForm.activityType }}
-              <span class="text-xs font-normal text-gray-400">{{ selectedNodeId }}</span>
-            </div>
-            <XhFormRoot
-              validate-on="blur"
-            >
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.node_name') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XInput
-                    :value="nodeForm.name"
-                    @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; nodeForm!.name = value; commitNode() }"
-                  />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-
-              <!-- 活动属性（类型驱动） -->
-              <template v-for="descriptor in selectedMeta?.props ?? []" :key="descriptor.key">
-                <!-- JSON 类属性的解析错误挂在字段上：invalid 让控件转无效态，错误文案经 error-text 接入描述链 -->
-                <XhFieldRoot :invalid="descriptor.input === 'json' && Boolean(jsonErrors[descriptor.key])">
-                  <XhFieldLabel>{{ t(`workflow.designer.prop.${descriptor.labelKey}`) }}</XhFieldLabel>
+              <div class="mb-2 text-xs text-gray-400">
+                {{ edgeForm.source }} → {{ edgeForm.target }}
+              </div>
+              <XhFormRoot
+                validate-on="blur"
+              >
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.edge_condition') }}</XhFieldLabel>
                   <XhFieldControl>
                     <XInput
-                      v-if="descriptor.input === 'text'"
-                      :value="(nodeProp<string>(descriptor.key)) ?? ''"
-                      :placeholder="descriptor.placeholder"
-                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; setNodeProp(descriptor.key, value) }"
-                    />
-                    <XInput
-                      v-else-if="descriptor.input === 'textarea'"
-                      :value="(nodeProp<string>(descriptor.key)) ?? ''"
+                      :value="edgeForm.condition ?? ''"
                       type="textarea"
-                      :autosize="{ minRows: 3, maxRows: 8 }"
-                      class="font-mono"
-                      :placeholder="descriptor.placeholder"
-                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; setNodeProp(descriptor.key, value) }"
+                      :autosize="{ minRows: 2, maxRows: 4 }"
+                      :placeholder="t('workflow.designer.edge_condition_placeholder')"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.condition = value || null; commitEdge() }"
                     />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <!-- 可选结果点一下填进条件：是动作就用按钮，标签没有按钮语义、键盘也够不着 -->
+                <div v-if="outcomeHints.length > 0" class="mb-2">
+                  <XhFlex gap="xs">
+                    <XhButton
+                      v-for="outcome in outcomeHints"
+                      :key="outcome"
+                      variant="subtle"
+                      size="sm"
+                      @click="applyOutcomeHint(outcome)"
+                    >
+                      {{ outcome }}
+                    </XhButton>
+                  </XhFlex>
+                </div>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.edge_priority') }}</XhFieldLabel>
+                  <XhFieldControl>
                     <XNumberInput
-                      v-else-if="descriptor.input === 'number'"
-                      :value="(nodeProp<number>(descriptor.key)) ?? null"
+                      :value="edgeForm.priority ?? 0"
                       class="w-full"
-                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; setNodeProp(descriptor.key, value) }"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; edgeForm!.priority = value ?? 0; commitEdge() }"
                     />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.edge_is_default') }}</XhFieldLabel>
+                  <XhFieldControl>
                     <XhSwitch
-                      v-else-if="descriptor.input === 'boolean'"
-                      :checked="(nodeProp<boolean>(descriptor.key)) ?? false"
-                      @update:checked="(checked: boolean) => setNodeProp(descriptor.key, checked)"
+                      :checked="edgeForm.isDefault ?? false"
+                      @update:checked="(value: boolean) => { edgeForm!.isDefault = value; commitEdge() }"
                     />
-                    <XSelect
-                      v-else-if="descriptor.input === 'select'"
-                      :value="(nodeProp<string>(descriptor.key)) ?? null"
-                      :options="descriptor.options"
-                      clearable
-                      @update:value="(value: string | number | (string | number)[] | null) => setNodeProp(descriptor.key, value as string | null)"
-                    />
-                    <XTagsInput
-                      v-else-if="descriptor.input === 'tags'"
-                      :value="(nodeProp<string[]>(descriptor.key)) ?? []"
-                      @update:value="(value: string[]) => setNodeProp(descriptor.key, value.length > 0 ? value : null)"
-                    />
-                    <!-- control 只包真控件：包一层 div 会让 div 拿到 control 的 id 与字段外壳，内外两层描边 -->
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.edge_name') }}</XhFieldLabel>
+                  <XhFieldControl>
                     <XInput
-                      v-else-if="descriptor.input === 'json'"
-                      v-model:value="jsonBuffers[descriptor.key]"
-                      type="textarea"
-                      :autosize="{ minRows: 3, maxRows: 8 }"
-                      class="font-mono"
-                      :placeholder="t('workflow.designer.json_prop_placeholder')"
-                      @blur="applyJsonBuffer(descriptor.key)"
+                      :value="edgeForm.name ?? ''"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.name = value || null; commitEdge() }"
                     />
                   </XhFieldControl>
-                  <XhFieldErrorText>{{ jsonErrors[descriptor.key] ? t('workflow.designer.err_prop_json') : '' }}</XhFieldErrorText>
+                  <XhFieldErrorText />
                 </XhFieldRoot>
-              </template>
+              </XhFormRoot>
+              <XhButton size="sm" tone="danger" variant="subtle" full-width @click="deleteSelectedEdge">
+                {{ t('workflow.designer.btn_delete_edge') }}
+              </XhButton>
+            </template>
 
-              <XhSeparator style="margin: 8px 0" />
-
-              <!-- 通用执行策略 -->
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.node_timeout') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XNumberInput
-                    :value="nodeForm.timeoutSeconds ?? null"
-                    class="w-full"
-                    :placeholder="t('workflow.designer.node_timeout_placeholder')"
-                    @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.timeoutSeconds = value; commitNode() }"
-                  />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.node_continue_on_error') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XhSwitch
-                    :checked="nodeForm.continueOnError ?? false"
-                    @update:checked="(value: boolean) => { nodeForm!.continueOnError = value; commitNode() }"
-                  />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.node_retry') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XhSwitch v-model:checked="retryEnabled" />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <template v-if="nodeForm.retryPolicy">
+            <!-- 节点属性 -->
+            <template v-else-if="nodeForm">
+              <div class="mb-2 flex items-center gap-2 text-sm font-medium">
+                <Icon :icon="selectedMeta?.icon ?? 'lucide:box'" />
+                {{ selectedMeta ? t(`workflow.designer.activity.${selectedMeta.labelKey}`) : nodeForm.activityType }}
+                <span class="text-xs font-normal text-gray-400">{{ selectedNodeId }}</span>
+              </div>
+              <XhFormRoot
+                validate-on="blur"
+              >
                 <XhFieldRoot>
-                  <XhFieldLabel>{{ t('workflow.designer.retry_max_attempts') }}</XhFieldLabel>
+                  <XhFieldLabel>{{ t('workflow.designer.node_name') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput
+                      :value="nodeForm.name"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; nodeForm!.name = value; commitNode() }"
+                    />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+
+                <!-- 活动属性（类型驱动） -->
+                <template v-for="descriptor in selectedMeta?.props ?? []" :key="descriptor.key">
+                  <!-- JSON 类属性的解析错误挂在字段上：invalid 让控件转无效态，错误文案经 error-text 接入描述链 -->
+                  <XhFieldRoot :invalid="descriptor.input === 'json' && Boolean(jsonErrors[descriptor.key])">
+                    <XhFieldLabel>{{ t(`workflow.designer.prop.${descriptor.labelKey}`) }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XInput
+                        v-if="descriptor.input === 'text'"
+                        :value="(nodeProp<string>(descriptor.key)) ?? ''"
+                        :placeholder="descriptor.placeholder"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; setNodeProp(descriptor.key, value) }"
+                      />
+                      <XInput
+                        v-else-if="descriptor.input === 'textarea'"
+                        :value="(nodeProp<string>(descriptor.key)) ?? ''"
+                        type="textarea"
+                        :autosize="{ minRows: 3, maxRows: 8 }"
+                        class="font-mono"
+                        :placeholder="descriptor.placeholder"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; setNodeProp(descriptor.key, value) }"
+                      />
+                      <XNumberInput
+                        v-else-if="descriptor.input === 'number'"
+                        :value="(nodeProp<number>(descriptor.key)) ?? null"
+                        class="w-full"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; setNodeProp(descriptor.key, value) }"
+                      />
+                      <XhSwitch
+                        v-else-if="descriptor.input === 'boolean'"
+                        :checked="(nodeProp<boolean>(descriptor.key)) ?? false"
+                        @update:checked="(checked: boolean) => setNodeProp(descriptor.key, checked)"
+                      />
+                      <XSelect
+                        v-else-if="descriptor.input === 'select'"
+                        :value="(nodeProp<string>(descriptor.key)) ?? null"
+                        :options="descriptor.options"
+                        clearable
+                        @update:value="(value: string | number | (string | number)[] | null) => setNodeProp(descriptor.key, value as string | null)"
+                      />
+                      <XTagsInput
+                        v-else-if="descriptor.input === 'tags'"
+                        :value="(nodeProp<string[]>(descriptor.key)) ?? []"
+                        @update:value="(value: string[]) => setNodeProp(descriptor.key, value.length > 0 ? value : null)"
+                      />
+                      <!-- control 只包真控件：包一层 div 会让 div 拿到 control 的 id 与字段外壳，内外两层描边 -->
+                      <XInput
+                        v-else-if="descriptor.input === 'json'"
+                        v-model:value="jsonBuffers[descriptor.key]"
+                        type="textarea"
+                        :autosize="{ minRows: 3, maxRows: 8 }"
+                        class="font-mono"
+                        :placeholder="t('workflow.designer.json_prop_placeholder')"
+                        @blur="applyJsonBuffer(descriptor.key)"
+                      />
+                    </XhFieldControl>
+                    <XhFieldErrorText>{{ jsonErrors[descriptor.key] ? t('workflow.designer.err_prop_json') : '' }}</XhFieldErrorText>
+                  </XhFieldRoot>
+                </template>
+
+                <XhSeparator style="margin: 8px 0" />
+
+                <!-- 通用执行策略 -->
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.node_timeout') }}</XhFieldLabel>
                   <XhFieldControl>
                     <XNumberInput
-                      :value="nodeForm.retryPolicy.maxAttempts"
-                      :min="1"
+                      :value="nodeForm.timeoutSeconds ?? null"
                       class="w-full"
-                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.retryPolicy!.maxAttempts = value ?? 1; commitNode() }"
+                      :placeholder="t('workflow.designer.node_timeout_placeholder')"
+                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.timeoutSeconds = value; commitNode() }"
                     />
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>
                 <XhFieldRoot>
-                  <XhFieldLabel>{{ t('workflow.designer.retry_first_delay') }}</XhFieldLabel>
+                  <XhFieldLabel>{{ t('workflow.designer.node_continue_on_error') }}</XhFieldLabel>
                   <XhFieldControl>
-                    <XNumberInput
-                      :value="nodeForm.retryPolicy.firstDelaySeconds"
-                      :min="1"
-                      class="w-full"
-                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.retryPolicy!.firstDelaySeconds = value ?? 10; commitNode() }"
+                    <XhSwitch
+                      :checked="nodeForm.continueOnError ?? false"
+                      @update:checked="(value: boolean) => { nodeForm!.continueOnError = value; commitNode() }"
                     />
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>
                 <XhFieldRoot>
-                  <XhFieldLabel>{{ t('workflow.designer.retry_backoff') }}</XhFieldLabel>
+                  <XhFieldLabel>{{ t('workflow.designer.node_retry') }}</XhFieldLabel>
                   <XhFieldControl>
-                    <XNumberInput
-                      :value="nodeForm.retryPolicy.backoffFactor"
-                      :min="1"
-                      :step="0.5"
-                      class="w-full"
-                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.retryPolicy!.backoffFactor = value ?? 2; commitNode() }"
-                    />
+                    <XhSwitch v-model:checked="retryEnabled" />
                   </XhFieldControl>
                   <XhFieldErrorText />
                 </XhFieldRoot>
-              </template>
-            </XhFormRoot>
-            <XhButton size="sm" tone="danger" variant="subtle" full-width @click="deleteSelectedNode">
-              {{ t('workflow.designer.btn_delete_node') }}
-            </XhButton>
-          </template>
+                <template v-if="nodeForm.retryPolicy">
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('workflow.designer.retry_max_attempts') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XNumberInput
+                        :value="nodeForm.retryPolicy.maxAttempts"
+                        :min="1"
+                        class="w-full"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.retryPolicy!.maxAttempts = value ?? 1; commitNode() }"
+                      />
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('workflow.designer.retry_first_delay') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XNumberInput
+                        :value="nodeForm.retryPolicy.firstDelaySeconds"
+                        :min="1"
+                        class="w-full"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.retryPolicy!.firstDelaySeconds = value ?? 10; commitNode() }"
+                      />
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('workflow.designer.retry_backoff') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XNumberInput
+                        :value="nodeForm.retryPolicy.backoffFactor"
+                        :min="1"
+                        :step="0.5"
+                        class="w-full"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; nodeForm!.retryPolicy!.backoffFactor = value ?? 2; commitNode() }"
+                      />
+                    </XhFieldControl>
+                    <XhFieldErrorText />
+                  </XhFieldRoot>
+                </template>
+              </XhFormRoot>
+              <XhButton size="sm" tone="danger" variant="subtle" full-width @click="deleteSelectedNode">
+                {{ t('workflow.designer.btn_delete_node') }}
+              </XhButton>
+            </template>
 
-          <!-- 流程设置（未选中时） -->
-          <template v-else>
-            <div class="mb-2 text-sm font-medium">
-              {{ t('workflow.designer.flow_panel') }}
-            </div>
-            <XhFormRoot
-              validate-on="blur"
-            >
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.flow_code') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XInput v-model:value="meta.code" :placeholder="t('workflow.designer.flow_code_placeholder')" />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.flow_name') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XInput v-model:value="meta.name" />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.flow_category') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XInput v-model:value="meta.category" />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.flow_description') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XInput v-model:value="meta.description" type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <XhFieldRoot>
-                <XhFieldLabel>{{ t('workflow.designer.flow_compensation') }}</XhFieldLabel>
-                <XhFieldControl>
-                  <XhSwitch v-model:checked="meta.enableCompensation" />
-                </XhFieldControl>
-                <XhFieldErrorText />
-              </XhFieldRoot>
-              <!-- 变量是一组行、每行两个控件，用字段集命名整组，不套单个 Field：
-                   Field 只给唯一控件接线，套在整组外会让每行的输入框都领到同一个 id。
-                   行内控件没有可见标签，输入框给 aria-label，复选框把文字写进自己的插槽。
-                   新增钮只摆一颗、放在行外：它的 id 是整组唯一的，而且没有变量时也要能加第一行 -->
-              <XhFieldsetRoot>
-                <XhFieldsetLegend>{{ t('workflow.designer.flow_variables') }}</XhFieldsetLegend>
-                <XhFieldArrayRoot
-                  v-slot="{ items }"
-                  v-model:value="meta.variables"
-                  :create-item="() => ({ name: '', required: false, defaultValue: null, description: null })"
-                >
-                  <!-- items 是每行的投影（index / key / value…），行数据在 item.value 上 -->
-                  <XhFieldArrayItem
-                    v-for="item in items"
-                    :key="item.key"
-                    :index="item.index"
+            <!-- 流程设置（未选中时） -->
+            <template v-else>
+              <div class="mb-2 text-sm font-medium">
+                {{ t('workflow.designer.flow_panel') }}
+              </div>
+              <XhFormRoot
+                validate-on="blur"
+              >
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_code') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="meta.code" :placeholder="t('workflow.designer.flow_code_placeholder')" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_name') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="meta.name" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_category') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="meta.category" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_description') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XInput v-model:value="meta.description" type="textarea" :autosize="{ minRows: 2, maxRows: 4 }" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <XhFieldRoot>
+                  <XhFieldLabel>{{ t('workflow.designer.flow_compensation') }}</XhFieldLabel>
+                  <XhFieldControl>
+                    <XhSwitch v-model:checked="meta.enableCompensation" />
+                  </XhFieldControl>
+                  <XhFieldErrorText />
+                </XhFieldRoot>
+                <!-- 变量是一组行、每行两个控件，用字段集命名整组，不套单个 Field：
+                     Field 只给唯一控件接线，套在整组外会让每行的输入框都领到同一个 id。
+                     行内控件没有可见标签，输入框给 aria-label，复选框把文字写进自己的插槽。
+                     新增钮只摆一颗、放在行外：它的 id 是整组唯一的，而且没有变量时也要能加第一行 -->
+                <XhFieldsetRoot>
+                  <XhFieldsetLegend>{{ t('workflow.designer.flow_variables') }}</XhFieldsetLegend>
+                  <XhFieldArrayRoot
+                    v-slot="{ items }"
+                    v-model:value="meta.variables"
+                    :create-item="() => ({ name: '', required: false, defaultValue: null, description: null })"
                   >
-                    <XhFieldArrayItemContent>
-                      <div class="flex w-full items-center gap-2">
-                        <XInput
-                          v-model:value="(item.value as DefinitionVariableMeta).name"
-                          size="sm"
-                          :aria-label="t('workflow.designer.variable_name')"
-                          :placeholder="t('workflow.designer.variable_name')"
-                        />
-                        <XhCheckbox v-model:checked="(item.value as DefinitionVariableMeta).required">
-                          {{ t('workflow.designer.variable_required') }}
-                        </XhCheckbox>
-                      </div>
-                    </XhFieldArrayItemContent>
-                    <XhFieldArrayItemAction>
-                      <XhFieldArrayItemDeleteTrigger>−</XhFieldArrayItemDeleteTrigger>
-                    </XhFieldArrayItemAction>
-                  </XhFieldArrayItem>
-                  <XhFieldArrayAddTrigger>＋ {{ t('workflow.designer.variable_add') }}</XhFieldArrayAddTrigger>
-                </XhFieldArrayRoot>
-              </XhFieldsetRoot>
-            </XhFormRoot>
-            <div class="text-xs text-gray-400">
-              {{ t('workflow.designer.flow_tip') }}
-            </div>
-          </template>
-        </div>
+                    <!-- items 是每行的投影（index / key / value…），行数据在 item.value 上 -->
+                    <XhFieldArrayItem
+                      v-for="item in items"
+                      :key="item.key"
+                      :index="item.index"
+                    >
+                      <XhFieldArrayItemContent>
+                        <div class="flex w-full items-center gap-2">
+                          <XInput
+                            v-model:value="(item.value as DefinitionVariableMeta).name"
+                            size="sm"
+                            :aria-label="t('workflow.designer.variable_name')"
+                            :placeholder="t('workflow.designer.variable_name')"
+                          />
+                          <XhCheckbox v-model:checked="(item.value as DefinitionVariableMeta).required">
+                            {{ t('workflow.designer.variable_required') }}
+                          </XhCheckbox>
+                        </div>
+                      </XhFieldArrayItemContent>
+                      <XhFieldArrayItemAction>
+                        <XhFieldArrayItemDeleteTrigger>−</XhFieldArrayItemDeleteTrigger>
+                      </XhFieldArrayItemAction>
+                    </XhFieldArrayItem>
+                    <XhFieldArrayAddTrigger>＋ {{ t('workflow.designer.variable_add') }}</XhFieldArrayAddTrigger>
+                  </XhFieldArrayRoot>
+                </XhFieldsetRoot>
+              </XhFormRoot>
+              <div class="text-xs text-gray-400">
+                {{ t('workflow.designer.flow_tip') }}
+              </div>
+            </template>
+          </div>
+        </Transition>
       </div>
 
       <!-- JSON 视图（文本域铺满视图、不走 autosize：autosize 的外壳另有 12rem 滚动上限，与文本域自己的滚动叠成两条滚动条） -->
@@ -1050,5 +1141,51 @@ function onContextSelect(key: string) {
 
 .workflow-designer__json :deep(textarea) {
   resize: none;
+}
+
+/* 三栏放不下时两侧面板贴着设计视图的边浮在画布上：盖住画布与小地图，宽度不超出设计视图 */
+.workflow-designer__drawer {
+  position: absolute;
+  inset-block: 0;
+  z-index: 1;
+  max-inline-size: 100%;
+  padding: var(--xh-space-2);
+  background-color: var(--xh-bg-surface);
+  box-shadow: var(--xh-shadow-lg);
+}
+
+.workflow-designer__drawer--start {
+  inset-inline-start: 0;
+  border-inline-end: var(--xh-stroke-thin) solid var(--xh-border-default);
+}
+
+.workflow-designer__drawer--end {
+  inset-inline-end: 0;
+  border-inline-start: var(--xh-stroke-thin) solid var(--xh-border-default);
+}
+
+/* 进出场从所贴的那条边滑入并淡变；位移取幅度令牌，减弱动效下归零、只剩淡变 */
+.workflow-designer-drawer-enter-active {
+  transition:
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+}
+
+.workflow-designer-drawer-leave-active {
+  transition:
+    opacity var(--xh-motion-duration-exit) var(--xh-motion-ease-exit),
+    transform var(--xh-motion-duration-exit) var(--xh-motion-ease-exit);
+}
+
+.workflow-designer__drawer--start.workflow-designer-drawer-enter-from,
+.workflow-designer__drawer--start.workflow-designer-drawer-leave-to {
+  opacity: 0;
+  transform: translateX(calc(-1 * var(--xh-motion-distance-lg)));
+}
+
+.workflow-designer__drawer--end.workflow-designer-drawer-enter-from,
+.workflow-designer__drawer--end.workflow-designer-drawer-leave-to {
+  opacity: 0;
+  transform: translateX(var(--xh-motion-distance-lg));
 }
 </style>
