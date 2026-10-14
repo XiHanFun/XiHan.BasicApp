@@ -100,6 +100,7 @@ function traceLink(router: Router, dimension: string, value: unknown, time: stri
     return '-'
 
   return h(XhButton, {
+    class: 'xh-link-button',
     variant: 'ghost',
     tone: 'brand',
     onClick: () => gotoTraceDimension(router, dimension, value as string, time),

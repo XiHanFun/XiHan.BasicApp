@@ -251,6 +251,22 @@
   color: var(--xh-fg-danger);
 }
 
+/* 当文字链用的组件库按钮（表格单元格、详情里跳链路追踪那几处）：经按钮的公开槽去掉盒高、内衬与悬停 / 按下面，
+   只留品牌色字、悬停加下划线，悬停面不再铺满单元格；焦点环照旧由组件库画 */
+.xh-link-button {
+  --xh-button-h: auto;
+  --xh-button-px: 0;
+  --xh-button-bg-hover: transparent;
+  --xh-button-bg-active: transparent;
+
+  min-block-size: 0;
+  max-inline-size: 100%;
+}
+
+.xh-link-button:hover {
+  text-decoration: underline;
+}
+
 /* 正文滚动区：内容层按视口宽排版，不跟着页内最宽的东西长。
    组件库给 content 的 min-inline-size: fit-content 是为「整块内容一起横向滚」准备的；
    页面外壳要的是另一种——页面自己占满视口宽，真正超宽的表格由它自身的滚动容器收。
