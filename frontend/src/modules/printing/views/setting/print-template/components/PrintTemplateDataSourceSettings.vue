@@ -91,7 +91,7 @@ function switchToFreeTemplate(): void {
       </XhFieldControl>
 
       <div class="data-source-guidance">
-        <span color="#4f7cf7" style="display: inline-flex; font-size: 18px"><Icon icon="tabler:info-circle" /></span>
+        <span style="display: inline-flex; color: var(--xh-fg-brand); font-size: 18px"><Icon icon="tabler:info-circle" /></span>
         <div>
           <strong>{{ t('setting.print_template.data_source_guidance_title') }}</strong>
           <p>
@@ -158,15 +158,16 @@ function switchToFreeTemplate(): void {
   align-items: flex-start;
   gap: 9px;
   padding: 10px 12px;
-  color: #475569;
-  border: 1px solid rgba(79, 124, 247, 0.28);
+  color: var(--xh-fg-muted);
+  /* 说明卡按品牌色淡淡着色，跟着主题色走 */
+  border: 1px solid color-mix(in oklab, var(--xh-bg-brand) 28%, transparent);
   border-radius: 8px;
-  background: rgba(79, 124, 247, 0.04);
+  background: color-mix(in oklab, var(--xh-bg-brand) 4%, transparent);
 }
 
 .data-source-guidance strong {
   display: block;
-  color: #334155;
+  color: var(--xh-fg-default);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -193,14 +194,15 @@ function switchToFreeTemplate(): void {
   padding: 6px 10px;
   align-items: center;
   gap: 7px;
-  color: #b45309;
+  /* 警示条与组件库提示条同一套兑法：淡底 12%、描边 40%、文字往前景色兑到 60%；悬停时底与线各加深一档 */
+  color: color-mix(in oklab, var(--xh-color-warning-600) 60%, var(--xh-fg-default));
   font: inherit;
   font-size: 12px;
   text-align: left;
   cursor: pointer;
-  border: 1px solid rgba(245, 158, 11, 0.26);
+  border: 1px solid color-mix(in oklab, var(--xh-color-warning-600) 40%, var(--xh-bg-surface));
   border-radius: 7px;
-  background: rgba(245, 158, 11, 0.06);
+  background: color-mix(in oklab, var(--xh-color-warning-600) 12%, var(--xh-bg-surface));
 }
 
 .compatibility-warning span {
@@ -208,8 +210,8 @@ function switchToFreeTemplate(): void {
 }
 
 .compatibility-warning:hover {
-  border-color: rgba(245, 158, 11, 0.5);
-  background: rgba(245, 158, 11, 0.1);
+  border-color: color-mix(in oklab, var(--xh-color-warning-600) 60%, var(--xh-bg-surface));
+  background: color-mix(in oklab, var(--xh-color-warning-600) 18%, var(--xh-bg-surface));
 }
 
 .data-source-field-list {
@@ -219,26 +221,16 @@ function switchToFreeTemplate(): void {
 
 .field-list-heading {
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.24);
+  border-bottom: 1px solid var(--xh-border-subtle);
 }
 
 .field-list-heading span,
 .field-list-row code {
-  color: #64748b;
+  color: var(--xh-fg-muted);
   font-size: 12px;
 }
 
 .field-list-row {
   padding: 8px 0;
-}
-
-.dark .data-source-guidance strong {
-  color: #e2e8f0;
-}
-
-.dark .data-source-guidance,
-.dark .field-list-heading span,
-.dark .field-list-row code {
-  color: #94a3b8;
 }
 </style>

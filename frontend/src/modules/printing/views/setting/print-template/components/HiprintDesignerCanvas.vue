@@ -538,7 +538,7 @@ defineExpose({ clear, getJson, preview, redo, undo })
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
-  background: #fff;
+  background: var(--xh-bg-surface);
 }
 
 .designer-workspace {
@@ -548,28 +548,29 @@ defineExpose({ clear, getJson, preview, redo, undo })
   flex: 1 1 0;
   grid-template-columns: 380px minmax(620px, 1fr) 288px;
   overflow: auto;
-  border-top: 1px solid rgba(148, 163, 184, 0.24);
-  background: #fff;
+  border-top: 1px solid var(--xh-border-subtle);
+  background: var(--xh-bg-surface);
 }
 
 .materials-panel,
 .property-panel {
   min-height: 0;
   overflow: auto;
-  background: #fff;
+  background: var(--xh-bg-surface);
 }
 
 .materials-panel {
-  border-right: 1px solid rgba(148, 163, 184, 0.28);
+  border-right: 1px solid var(--xh-border-default);
 }
 
+/* 画布区取页面底色，比两侧面板低一层，白纸落在上面才显得出来 */
 .canvas-column {
   display: flex;
   min-width: 620px;
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
-  background: #f1f3f5;
+  background: var(--xh-bg-canvas);
 }
 
 .canvas-stage {
@@ -579,7 +580,7 @@ defineExpose({ clear, getJson, preview, redo, undo })
   min-height: 0;
   overflow: auto;
   padding: 14px 16px 28px;
-  background: #f1f3f5;
+  background: var(--xh-bg-canvas);
 }
 
 .canvas-stage:focus-visible {
@@ -604,12 +605,12 @@ defineExpose({ clear, getJson, preview, redo, undo })
   min-height: 58px;
   padding: 10px 16px;
   overflow-x: auto;
-  border-top: 1px solid rgba(148, 163, 184, 0.28);
-  background: rgba(255, 255, 255, 0.98);
+  border-top: 1px solid var(--xh-border-default);
+  background: var(--xh-bg-surface);
 }
 
 .property-panel {
-  border-left: 1px solid rgba(148, 163, 184, 0.28);
+  border-left: 1px solid var(--xh-border-default);
 }
 
 .property-heading {
@@ -621,9 +622,9 @@ defineExpose({ clear, getJson, preview, redo, undo })
   gap: 8px;
   min-height: 50px;
   padding: 0 18px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(255, 255, 255, 0.96);
-  color: #334155;
+  border-bottom: 1px solid var(--xh-border-subtle);
+  background: var(--xh-bg-surface);
+  color: var(--xh-fg-default);
   font-size: 14px;
   font-weight: 650;
 }
@@ -662,31 +663,6 @@ defineExpose({ clear, getJson, preview, redo, undo })
 :deep(.hiprint-printPaper.design .hiprint-headerLine) {
   z-index: 1;
   border-top-color: rgba(239, 68, 68, 0.82) !important;
-}
-
-:global(.dark) .designer-shell,
-:global(.dark) .designer-workspace,
-:global(.dark) .materials-panel,
-:global(.dark) .property-panel {
-  background: #111827;
-}
-
-:global(.dark) .canvas-stage {
-  background: #080d18;
-}
-
-:global(.dark) .canvas-column {
-  background: #080d18;
-}
-
-:global(.dark) .panel-pagination {
-  border-top-color: rgba(100, 116, 139, 0.38);
-  background: rgba(17, 24, 39, 0.98);
-}
-
-:global(.dark) .property-heading {
-  background: rgba(17, 24, 39, 0.96);
-  color: #e2e8f0;
 }
 
 @media (max-width: 1500px) {

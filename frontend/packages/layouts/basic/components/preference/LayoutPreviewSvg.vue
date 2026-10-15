@@ -276,8 +276,9 @@ svg {
   fill: hsl(var(--primary) / 0.06);
 }
 
+/* 徽标块压在品牌色的侧栏 / 顶栏上，取品牌底上的前景 */
 .svg-brand {
-  fill: #fff;
+  fill: var(--xh-fg-on-brand);
 }
 
 .svg-chip {

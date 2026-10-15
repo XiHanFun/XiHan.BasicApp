@@ -103,9 +103,9 @@ function switchTab(tab: 'advanced' | 'basic'): void {
 <style scoped>
 .metadata-form {
   min-height: 100%;
-  background: #fff;
 }
 
+/* 表单挂在设置抽屉里：吸顶标签带取抽屉同一层材质的实色底，滚过的字段不会从底下透出来 */
 .settings-tab-bar {
   position: sticky;
   z-index: 3;
@@ -114,15 +114,14 @@ function switchTab(tab: 'advanced' | 'basic'): void {
   height: 52px;
   align-items: stretch;
   padding: 0 22px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.24);
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--xh-border-subtle);
+  background: var(--xh-material-elevated-bg);
 }
 
 .settings-tab-button {
   position: relative;
   padding: 0 6px;
-  color: #334155;
+  color: var(--xh-fg-default);
   font: inherit;
   font-size: 14px;
   cursor: pointer;
@@ -147,11 +146,11 @@ function switchTab(tab: 'advanced' | 'basic'): void {
 
 .settings-tab-button:hover,
 .settings-tab-button.active {
-  color: #4f7cf7;
+  color: var(--xh-fg-brand);
 }
 
 .settings-tab-button.active::after {
-  background: #4f7cf7;
+  background: var(--xh-fg-brand);
 }
 
 .settings-tab-button:focus-visible,
@@ -165,13 +164,13 @@ function switchTab(tab: 'advanced' | 'basic'): void {
   margin-left: auto;
   align-items: center;
   gap: 5px;
-  color: #b45309;
+  color: var(--xh-fg-warning);
   font-size: 12px;
   white-space: nowrap;
 }
 
 .required-progress.complete {
-  color: #16a34a;
+  color: var(--xh-fg-success);
 }
 
 .security-notice {
@@ -182,14 +181,15 @@ function switchTab(tab: 'advanced' | 'basic'): void {
   padding: 8px 12px;
   align-items: center;
   gap: 8px;
-  color: #92400e;
+  /* 警示条与组件库提示条同一套兑法：淡底 12%、描边 40%、文字往前景色兑到 60% */
+  color: color-mix(in oklab, var(--xh-color-warning-600) 60%, var(--xh-fg-default));
   font: inherit;
   font-size: 12px;
   text-align: left;
   cursor: pointer;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid color-mix(in oklab, var(--xh-color-warning-600) 40%, var(--xh-bg-surface));
   border-radius: 8px;
-  background: rgba(245, 158, 11, 0.08);
+  background: color-mix(in oklab, var(--xh-color-warning-600) 12%, var(--xh-bg-surface));
 }
 
 .security-notice span {
@@ -207,28 +207,10 @@ function switchTab(tab: 'advanced' | 'basic'): void {
 .security-detail {
   margin: 8px 22px 0;
   padding: 8px 12px;
-  color: #64748b;
+  color: var(--xh-fg-muted);
   font-size: 12px;
   line-height: 1.65;
-  border-left: 2px solid rgba(245, 158, 11, 0.5);
-}
-
-.dark .metadata-form,
-.dark .settings-tab-bar {
-  background: rgba(24, 24, 28, 0.96);
-}
-
-.dark .settings-tab-button {
-  color: #cbd5e1;
-}
-
-.dark .settings-tab-button:hover,
-.dark .settings-tab-button.active {
-  color: #7aa2ff;
-}
-
-.dark .security-detail {
-  color: #94a3b8;
+  border-left: 2px solid color-mix(in oklab, var(--xh-color-warning-600) 40%, var(--xh-bg-surface));
 }
 
 @media (max-width: 520px) {

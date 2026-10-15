@@ -18,15 +18,16 @@ const announcements = ref<NotificationListItemDto[]>([])
 /** 不止一条才轮播：只有一条时不自动翻页，也不画翻页、播放与指示点 */
 const multiple = computed(() => announcements.value.length > 1)
 
-/** 通知类型 → 标签 key + 主色 */
-interface TypeMeta { label: string, from: string, to: string }
-const DEFAULT_META: TypeMeta = { label: 'workbench.dashboard.type_system', from: '#3b82f6', to: '#2563eb' }
+/** 通知类型 → 标签 key + 主色。语气与通知管理页、收件箱的类型标签一致（系统 info、安全 warning、业务 success、
+ *  紧急 danger），取组件库的语气色阶，跟着应用的状态色与深浅两态走；待办在标签里是 neutral，这里保留紫色好与系统类区分 */
+interface TypeMeta { label: string, accent: string }
+const DEFAULT_META: TypeMeta = { label: 'workbench.dashboard.type_system', accent: 'var(--xh-color-info-600)' }
 const TYPE_META: Record<string, TypeMeta> = {
   System: DEFAULT_META,
-  Security: { label: 'workbench.dashboard.type_security', from: '#f59e0b', to: '#ea580c' },
-  Business: { label: 'workbench.dashboard.type_business', from: '#22c55e', to: '#059669' },
-  Todo: { label: 'workbench.dashboard.type_todo', from: '#8b5cf6', to: '#6d28d9' },
-  Emergency: { label: 'workbench.dashboard.type_emergency', from: '#ef4444', to: '#b91c1c' },
+  Security: { label: 'workbench.dashboard.type_security', accent: 'var(--xh-color-warning-600)' },
+  Business: { label: 'workbench.dashboard.type_business', accent: 'var(--xh-color-success-600)' },
+  Todo: { label: 'workbench.dashboard.type_todo', accent: 'var(--xh-color-purple-500)' },
+  Emergency: { label: 'workbench.dashboard.type_emergency', accent: 'var(--xh-color-danger-600)' },
 }
 
 function metaOf(type?: NotificationType | null): TypeMeta {
@@ -35,14 +36,18 @@ function metaOf(type?: NotificationType | null): TypeMeta {
 }
 
 function slideStyle(item: NotificationListItemDto) {
-  const accent = metaOf(item.notificationType).from
+  const accent = metaOf(item.notificationType).accent
   // 浅色「纯色」背景：所有列同色，避免相邻幻灯片边缘透出导致的发丝缝
-  return { background: `color-mix(in srgb, ${accent} 7%, hsl(var(--card)))` }
+  return { background: `color-mix(in srgb, ${accent} 7%, var(--xh-bg-surface))` }
 }
 
 function badgeStyle(item: NotificationListItemDto) {
-  const accent = metaOf(item.notificationType).from
-  return { color: accent, background: `color-mix(in srgb, ${accent} 14%, transparent)` }
+  const accent = metaOf(item.notificationType).accent
+  // 文字往前景色兑到 60%（组件库提示条的兑法）：深色态下不至于压在深底上发闷
+  return {
+    color: `color-mix(in oklab, ${accent} 60%, var(--xh-fg-default))`,
+    background: `color-mix(in oklab, ${accent} 14%, transparent)`,
+  }
 }
 
 function openAnnouncement(item: NotificationListItemDto) {
@@ -96,7 +101,7 @@ onMounted(async () => {
             :style="slideStyle(item)"
             @click="openAnnouncement(item)"
           >
-            <span class="slide-deco" :style="{ color: metaOf(item.notificationType).from }" style="display: inline-flex; font-size: 150px"><Icon icon="lucide:megaphone" /></span>
+            <span class="slide-deco" :style="{ color: metaOf(item.notificationType).accent }" style="display: inline-flex; font-size: 150px"><Icon icon="lucide:megaphone" /></span>
             <!-- 类型与发布时间同在顶上一行：下沿整条留给指示点与翻页钮，窄屏也不会压到文字上 -->
             <div class="slide-meta">
               <span class="slide-badge" :style="badgeStyle(item)">{{ metaOf(item.notificationType).label }}</span>
