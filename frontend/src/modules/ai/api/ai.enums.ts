@@ -2,7 +2,7 @@
  * AI 模块前端选项。
  *
  * Provider 后端为自由字符串（对应框架 AiProviderOptions.Provider），此处仅提供一组常见的
- * OpenAI 兼容供应商建议值，配合 NSelect 的 tag+filterable 允许用户自定义录入。
+ * OpenAI 兼容供应商建议值，表单里用可自填的 XCombobox，清单外的供应商照样能填。
  */
 
 /** AI 提供商建议项（自由字符串，可自定义；均走 OpenAI 兼容协议，配对应 BaseUrl + Model） */

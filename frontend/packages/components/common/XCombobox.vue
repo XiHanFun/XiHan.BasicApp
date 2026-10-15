@@ -34,6 +34,7 @@ import { useControlAttrs } from './control-attrs'
  *    打字时显示打的字；收起或失焦即复位，不留半截筛选串。
  * 3. 筛选。缺省按文字（含副文本）在本地筛；remote 时不筛，候选全由调用方据 search 换。
  * 4. 检索。打字停顿后发出 search，同一串不重复发；清空、选中后回到空串也会发一次，供远程换回缺省清单。
+ * 5. 自填。allowCustomValue 时候选只是建议：回车或失焦把打的字本身收为选中值（取值是字符串）。
  *
  * 落在这个标签上的 id 与 aria-* 转交给输入框；aria-label 改放进视觉隐藏的 label 部件，
  * 因为输入框的名字由 aria-labelledby 指向 label 部件给出，直接写的 aria-label 会被它盖掉。
@@ -63,6 +64,8 @@ const props = withDefaults(defineProps<{
   debounce?: number
   /** 无候选时的提示；缺省按有无检索串取「暂无数据 / 没有匹配的结果」 */
   empty?: string
+  /** 候选只是建议，允许填清单里没有的值：回车或失焦时把打的字收为选中值 */
+  allowCustomValue?: boolean
 }>(), {
   options: () => [],
   value: null,
@@ -78,6 +81,7 @@ const props = withDefaults(defineProps<{
   remote: false,
   debounce: 300,
   empty: undefined,
+  allowCustomValue: false,
 })
 
 const emit = defineEmits<{
@@ -195,7 +199,9 @@ function onInputValueChange(details: { inputValue: string }): void {
 }
 
 function onOpenChange(details: { open: boolean }): void {
-  if (!details.open) {
+  // 自填时收起不收字：Tab 离开是先收起再失焦，字在收起时没了，失焦提交的就是旧文字。
+  // 打的字由组件库在回车 / 失焦时收成值，值一换下面的 watch 自然复位
+  if (!details.open && !props.allowCustomValue) {
     draft.value = null
   }
 }
@@ -226,6 +232,7 @@ function onInputBlur(event: FocusEvent): void {
     :placeholder="placeholder"
     :size="size"
     :max-tag-count="maxTagCount"
+    :allow-custom-value="allowCustomValue"
     input-behavior="autohighlight"
     open-on-click
     @update:value="onValueChange"
