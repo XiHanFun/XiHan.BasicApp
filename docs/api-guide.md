@@ -9,7 +9,7 @@
 | 环境 | 监听端口 | API 基址 | 在线文档（Scalar） |
 | --- | --- | --- | --- |
 | Development | `9708` | `http://127.0.0.1:9708/api` | `http://127.0.0.1:9708/scalar` |
-| Production | `9708`（仓库默认） | 由部署域名决定 | 生产建议关闭 |
+| Production | `9709`（launch profile；Docker 镜像内为 `9708`） | 由部署域名决定 | 生产建议关闭 |
 
 - 所有动态 API 都挂在 **`/api`** 前缀下。前端通过两个环境变量拼装：`VITE_API_BASE_URL`（协议+主机，开发态通常为空走 Vite 代理）与 `VITE_API_PREFIX`（默认 `/api`）。
 - 实际监听以 `Hosting:Urls` 为准；该配置会覆盖 launch profile 的 `applicationUrl`。
