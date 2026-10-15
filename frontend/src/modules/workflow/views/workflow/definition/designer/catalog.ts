@@ -4,6 +4,15 @@
 
 export type ActivityPropInput = 'text' | 'textarea' | 'number' | 'boolean' | 'select' | 'tags' | 'json' | 'assignees'
 
+/**
+ * 属性面板的分节（i18n 键 workflow.designer.section 下）：basic 与节点名称同一节，
+ * participants 放受理人与抄送人，form 放表单与办理结果，props 是未归节属性的缺省节。
+ */
+export type ActivityPropGroup = 'basic' | 'participants' | 'form' | 'props'
+
+/** 分节在面板里的先后（执行策略不属于活动属性，由面板固定排在最后） */
+export const PROP_GROUP_ORDER: readonly ActivityPropGroup[] = ['basic', 'participants', 'form', 'props']
+
 export interface ActivityPropDescriptor {
   /** 节点 properties 键名（与后端活动属性键一致） */
   key: string
@@ -13,6 +22,12 @@ export interface ActivityPropDescriptor {
   /** 下拉选项；labelKey（workflow.designer.option 下）存在时按语言显示，否则显示 label */
   options?: { label: string, value: string, labelKey?: string }[]
   placeholder?: string
+  /** 所属分节；未写时归 props */
+  group?: ActivityPropGroup
+  /** 留空时后端取的值（只用作下拉的占位提示，不写进定义） */
+  defaultValue?: string
+  /** 只在另一属性取某值时才有意义；已经填过值的照样显示，不把配置藏起来 */
+  visibleWhen?: { key: string, equals: string }
 }
 
 export interface ActivityTypeMeta {
@@ -125,24 +140,26 @@ export const ACTIVITY_CATALOG: ActivityTypeMeta[] = [
     outcomes: ['approved', 'rejected', 'timeout'],
     props: [
       // 受理人只按规则配置：旧版 Assignees / AssigneesExpression / CcUserIds 打开时由 transform 并入规则
-      { key: 'AssigneeRules', labelKey: 'assignee_rules', input: 'assignees' },
-      { key: 'ExcludeStarter', labelKey: 'exclude_starter', input: 'boolean' },
-      { key: 'CompletionPolicy', labelKey: 'completion_policy', input: 'select', options: [
+      { key: 'AssigneeRules', labelKey: 'assignee_rules', input: 'assignees', group: 'participants' },
+      { key: 'ExcludeStarter', labelKey: 'exclude_starter', input: 'boolean', group: 'participants' },
+      // 两个下拉留空时后端分别取或签、报错（UserTaskActivity 的 TryResolvePolicy / TryResolveEmptyStrategy）
+      { key: 'CompletionPolicy', labelKey: 'completion_policy', input: 'select', group: 'participants', defaultValue: 'Any', options: [
         { label: 'Any', value: 'Any', labelKey: 'policy_any' },
         { label: 'All', value: 'All', labelKey: 'policy_all' },
         { label: 'Sequential', value: 'Sequential', labelKey: 'policy_sequential' },
       ] },
-      { key: 'EmptyAssigneeStrategy', labelKey: 'empty_assignee_strategy', input: 'select', options: [
+      { key: 'EmptyAssigneeStrategy', labelKey: 'empty_assignee_strategy', input: 'select', group: 'participants', defaultValue: 'Fault', options: [
         { label: 'Fault', value: 'Fault', labelKey: 'empty_fault' },
         { label: 'AutoApprove', value: 'AutoApprove', labelKey: 'empty_auto_approve' },
         { label: 'AutoReject', value: 'AutoReject', labelKey: 'empty_auto_reject' },
         { label: 'Fallback', value: 'Fallback', labelKey: 'empty_fallback' },
       ] },
-      { key: 'FallbackAssigneeRules', labelKey: 'fallback_assignee_rules', input: 'assignees' },
-      { key: 'Title', labelKey: 'title', input: 'text', placeholder: '单据 {{billNo}} 审批' },
-      { key: 'FormData', labelKey: 'form_data', input: 'json' },
-      { key: 'CcRules', labelKey: 'cc_rules', input: 'assignees' },
-      { key: 'AllowedOutcomes', labelKey: 'allowed_outcomes', input: 'tags' },
+      // 兜底受理人只在「转交兜底受理人」时才用得上
+      { key: 'FallbackAssigneeRules', labelKey: 'fallback_assignee_rules', input: 'assignees', group: 'participants', visibleWhen: { key: 'EmptyAssigneeStrategy', equals: 'Fallback' } },
+      { key: 'Title', labelKey: 'title', input: 'text', group: 'basic', placeholder: '单据 {{billNo}} 审批' },
+      { key: 'FormData', labelKey: 'form_data', input: 'json', group: 'form' },
+      { key: 'CcRules', labelKey: 'cc_rules', input: 'assignees', group: 'participants' },
+      { key: 'AllowedOutcomes', labelKey: 'allowed_outcomes', input: 'tags', group: 'form' },
     ],
   },
   {
@@ -230,3 +247,27 @@ export const ACTIVITY_MAP: Record<string, ActivityTypeMeta> = Object.fromEntries
 
 /** 面板分类顺序 */
 export const CATEGORY_ORDER = [control, human, data, integration, event, tool]
+
+function isFilled(value: unknown): boolean {
+  if (value === null || value === undefined || value === '')
+    return false
+  return !Array.isArray(value) || value.length > 0
+}
+
+/** 属性此刻是否该出现在面板里：条件不满足、但已经填过值的照样显示 */
+export function isPropVisible(descriptor: ActivityPropDescriptor, properties: Record<string, unknown>): boolean {
+  const when = descriptor.visibleWhen
+  if (!when)
+    return true
+  return properties[when.key] === when.equals || isFilled(properties[descriptor.key])
+}
+
+/**
+ * 把活动属性按分节排好：分节按 PROP_GROUP_ORDER，节内保持目录里的先后；没有可见属性的节不出现。
+ */
+export function groupActivityProps(meta: ActivityTypeMeta | undefined, properties: Record<string, unknown>): Array<{ group: ActivityPropGroup, props: ActivityPropDescriptor[] }> {
+  const visible = (meta?.props ?? []).filter(descriptor => isPropVisible(descriptor, properties))
+  return PROP_GROUP_ORDER
+    .map(group => ({ group, props: visible.filter(descriptor => (descriptor.group ?? 'props') === group) }))
+    .filter(section => section.props.length > 0)
+}
