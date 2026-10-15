@@ -123,6 +123,67 @@ describe('xCombobox 取值', () => {
   })
 })
 
+describe('xCombobox 自填', () => {
+  function mountCustom() {
+    const wrapper = mountCombobox({
+      'options': [{ label: 'OpenAI', value: 'OpenAI' }, { label: 'DeepSeek', value: 'DeepSeek' }],
+      'value': null,
+      'allowCustomValue': true,
+      'onUpdate:value': (value: unknown) => wrapper.setProps({ value: value as string | null }),
+    })
+    return wrapper
+  }
+
+  it('打了清单里没有的值，失焦即收为选中值，输入框留着这段字', async () => {
+    const wrapper = mountCustom()
+    await open(wrapper)
+    await type(wrapper, 'Moonshot')
+
+    await wrapper.find('input').trigger('blur')
+    await flushPromises()
+
+    expect(wrapper.emitted('update:value')?.at(-1)).toEqual(['Moonshot'])
+    expect((wrapper.find('input').element as HTMLInputElement).value).toBe('Moonshot')
+  })
+
+  it('按 Tab 离开：先收起列表再失焦，打的字照样收为选中值', async () => {
+    const wrapper = mountCustom()
+    await open(wrapper)
+    await type(wrapper, 'Moonshot')
+
+    await wrapper.find('input').trigger('keydown', { key: 'Tab' })
+    await flushPromises()
+    await wrapper.find('input').trigger('blur')
+    await flushPromises()
+
+    expect(wrapper.emitted('update:value')?.at(-1)).toEqual(['Moonshot'])
+    expect((wrapper.find('input').element as HTMLInputElement).value).toBe('Moonshot')
+  })
+
+  it('回车同样收为选中值', async () => {
+    const wrapper = mountCustom()
+    await open(wrapper)
+    await type(wrapper, 'Zhipu')
+
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(wrapper.emitted('update:value')?.at(-1)).toEqual(['Zhipu'])
+  })
+
+  it('不开自填时，失焦丢掉清单外的字', async () => {
+    const wrapper = mountCombobox({ options: [{ label: 'OpenAI', value: 'OpenAI' }], value: null })
+    await open(wrapper)
+    await type(wrapper, 'Moonshot')
+
+    await wrapper.find('input').trigger('blur')
+    await flushPromises()
+
+    expect(wrapper.emitted('update:value')).toBeUndefined()
+    expect((wrapper.find('input').element as HTMLInputElement).value).toBe('')
+  })
+})
+
 describe('xCombobox 筛选与检索', () => {
   it('缺省在本地按文字与副文本筛', async () => {
     const wrapper = mountCombobox()

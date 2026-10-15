@@ -17,7 +17,7 @@ import {
   querySortsFromSchema,
 } from '@/api'
 import { STATUS_OPTIONS } from '@/constants'
-import { actionConfirmText, SchemaPage, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { actionConfirmText, SchemaPage, XCombobox, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
 import { dialog, notification, toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { getOptionLabel } from '~/utils'
@@ -446,9 +446,11 @@ async function handleSubmit() {
           <XhFieldRoot>
             <XhFieldLabel>{{ t('develop.ai_provider.form_provider') }}</XhFieldLabel>
             <XhFieldControl>
-              <XSelect
+              <!-- 供应商是自由字符串：清单只是常见建议，清单外的直接打字回车 -->
+              <XCombobox
                 v-model:value="form.provider"
                 :options="AI_PROVIDER_OPTIONS"
+                allow-custom-value
                 :placeholder="t('develop.ai_provider.form_provider_placeholder')"
               />
             </XhFieldControl>
