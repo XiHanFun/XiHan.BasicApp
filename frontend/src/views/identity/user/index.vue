@@ -39,7 +39,7 @@ import {
   ValidityStatus,
 } from '@/api'
 import { GENDER_OPTIONS, ROLE_TYPE_OPTIONS, STATUS_OPTIONS } from '@/constants'
-import { Icon, SchemaPage, XDatePicker, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
+import { Icon, SchemaPage, XDatePicker, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect, XUserAvatar } from '~/components'
 import { dialog, toast } from '~/composables'
 import { useEnumOptions, usePermission } from '~/hooks'
 import { useAuthStore, useUserStore } from '~/stores'
@@ -48,7 +48,6 @@ import { isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from '../co
 import DataScopeEditor from '../components/DataScopeEditor.vue'
 import { applyPermissionTransfer, diffPermissionGrants, diffRoleGrants } from './direct-grant'
 import { canTogglePick, diffUserFormSecurity } from './user-form-access'
-import UserAvatarCell from './UserAvatarCell.vue'
 
 defineOptions({ name: 'SystemUserPage' })
 
@@ -92,7 +91,6 @@ interface UserFormState {
 }
 
 /** 头像色板：跟随语义色，明暗主题均可用 */
-const AVATAR_TONES = ['primary', 'info', 'success', 'warning', 'error'] as const
 
 // 搜索/表单选项
 const statusOptions = STATUS_OPTIONS.map(o => ({ label: o.label, value: o.value }))
@@ -204,8 +202,7 @@ const detUser = computed(() => {
   return {
     userName: u.userName,
     displayName: u.realName || u.nickName || u.userName,
-    initials: getInitials(u),
-    avatar: getAvatarStyle(u.userName),
+    avatar: u.avatar ?? null,
     country: u.country ?? '—',
     gender: getOptionLabel(genderEnumOptions.value, u.gender),
     roles: d.roles.map(r => r.roleName ?? '').filter(Boolean),
@@ -268,23 +265,6 @@ function createDefaultForm(): UserFormState {
     maxDev: 0,
     isExternal: false,
   }
-}
-
-function getAvatarStyle(name: string) {
-  const tone = AVATAR_TONES[name.charCodeAt(0) % AVATAR_TONES.length]!
-  return {
-    bg: `color-mix(in srgb, var(--n-${tone}-color) 16%, hsl(var(--card)))`,
-    fg: `var(--n-${tone}-color)`,
-  }
-}
-
-function getInitials(row: {
-  realName?: string | null
-  nickName?: string | null
-  userName: string
-}) {
-  const name = row.realName || row.nickName || row.userName
-  return name ? name.substring(0, 2) : '?'
 }
 
 function formatTwoFa(method: number) {
@@ -353,12 +333,9 @@ const fields = computed<ListFieldSchema[]>(() => [
     order: 1,
     render: (row) => {
       const r = row as unknown as UserListItemDto
-      const c = getAvatarStyle(r.userName)
-      return h(UserAvatarCell, {
+      return h(XUserAvatar, {
         avatar: r.avatar,
         name: r.realName || r.nickName || r.userName,
-        bg: c.bg,
-        fg: c.fg,
         size: 40,
       })
     },
@@ -1608,9 +1585,7 @@ async function confirmDelete() {
               {{ t('common.loading') }}
             </template>
             <div v-else class="det-hd-user">
-              <div class="av-lg" :style="{ background: detUser.avatar.bg, color: detUser.avatar.fg }">
-                {{ detUser.initials }}
-              </div>
+              <XUserAvatar :avatar="detUser.avatar" :name="detUser.displayName" :size="40" />
               <div class="min-w-0">
                 <div class="det-name">
                   {{ detUser.displayName }}
@@ -2094,18 +2069,6 @@ async function confirmDelete() {
   align-items: center;
   gap: 10px;
   min-width: 0;
-}
-
-.av-lg {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 500;
-  flex-shrink: 0;
 }
 
 .det-name {
