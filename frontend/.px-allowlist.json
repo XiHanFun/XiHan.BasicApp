@@ -47,10 +47,6 @@
     "cap": 82,
     "reason": "站内自绘公共组件的排版刻度"
   },
-  "packages/components/common/JsonBlock.vue": {
-    "cap": 5,
-    "reason": "站内自绘公共组件的排版刻度"
-  },
   "packages/components/common/LayoutAlignSwitcher.vue": {
     "cap": 1,
     "reason": "站内自绘公共组件的排版刻度"

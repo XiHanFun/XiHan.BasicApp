@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardRoot, XhJsonViewerRoot } from '@xihan-ui/vue'
+import { XhJsonViewerRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { Icon } from '~/iconify'
 
 /**
- * JSON 展示块：原文能解析成对象或数组就铺成可折叠的树，否则原样出纯文本。
- * 右上角的复制钮取的一律是后端下发的原文，不是树里那份重新格式化过的值。
+ * JSON 展示块：原文能解析成对象或数组就铺成可折叠的树，否则直接显示原文。
+ * 工具条（展开 / 收起全部、原文与自动换行、复制）由查看器内建；原文档与复制取的一律是后端下发的原文，
+ * 64 位 ID 这类超出安全整数的数字不会因解析而失真。
  */
 defineOptions({ name: 'XJsonBlock' })
 
@@ -29,21 +28,19 @@ const props = withDefaults(defineProps<{
   maxHeight: '24rem',
 })
 
-const { t } = useI18n()
+/** 解析不成树的原文只能看原文：工具条只留换行与复制 */
+const TEXT_TOOLS: Array<'wrap' | 'copy'> = ['wrap', 'copy']
 
 const text = computed(() => props.raw ?? '')
 
-/**
- * 树视图的数据源；解析不出对象或数组时为空，此时退回纯文本。
- * XhJsonViewerRoot 的 value 只在类型上被推成 undefined，运行期收任意形状。
- */
-const tree = computed(() => {
+/** 树视图的数据源；解析不出对象或数组时为空，此时只显示原文 */
+const tree = computed<unknown>(() => {
   if (!text.value) {
     return undefined
   }
   try {
     const parsed: unknown = JSON.parse(text.value)
-    return (typeof parsed === 'object' && parsed !== null ? parsed : undefined) as undefined
+    return typeof parsed === 'object' && parsed !== null ? parsed : undefined
   }
   catch {
     return undefined
@@ -52,59 +49,28 @@ const tree = computed(() => {
 </script>
 
 <template>
-  <div class="x-json-block" :style="{ '--x-json-block-max-h': maxHeight }">
-    <XhClipboardRoot v-if="text" class="x-json-block__copy" :value="text">
-      <XhClipboardCopyTrigger :aria-label="t('common.actions.copy')">
-        <XhClipboardIndicator>
-          <Icon icon="lucide:copy" />
-        </XhClipboardIndicator>
-        <XhClipboardIndicator copied>
-          <Icon icon="lucide:check" />
-        </XhClipboardIndicator>
-      </XhClipboardCopyTrigger>
-    </XhClipboardRoot>
-
-    <XhJsonViewerRoot
-      v-if="tree"
-      class="x-json-block__tree"
-      :value="tree"
-      :default-expanded-depth="defaultExpandedDepth"
-      :max-string-length="maxStringLength"
-      :max-items="maxItems"
-      size="sm"
-    />
-    <pre v-else class="x-json-block__text">{{ text || '-' }}</pre>
-  </div>
+  <XhJsonViewerRoot
+    v-if="tree"
+    class="x-json-block"
+    :style="{ '--xh-json-viewer-max-h': maxHeight }"
+    :value="tree"
+    :source="text"
+    tools
+    :default-expanded-depth="defaultExpandedDepth"
+    :max-string-length="maxStringLength"
+    :max-items="maxItems"
+    size="sm"
+  />
+  <XhJsonViewerRoot
+    v-else-if="text"
+    class="x-json-block"
+    :style="{ '--xh-json-viewer-max-h': maxHeight }"
+    :value="text"
+    :source="text"
+    :tools="TEXT_TOOLS"
+    default-view="text"
+    default-wrap
+    size="sm"
+  />
+  <span v-else>-</span>
 </template>
-
-<style scoped>
-.x-json-block {
-  position: relative;
-}
-
-/* 复制钮压在右上角，避开树的首行缩进 */
-.x-json-block__copy {
-  position: absolute;
-  inset-block-start: 4px;
-  inset-inline-end: 4px;
-  z-index: 1;
-}
-
-.x-json-block__tree {
-  --xh-json-viewer-max-h: var(--x-json-block-max-h);
-}
-
-.x-json-block__text {
-  margin: 0;
-  max-block-size: var(--x-json-block-max-h);
-  overflow: auto;
-  padding: 12px;
-  padding-inline-end: 36px;
-  border-radius: var(--xh-shape-control);
-  background: var(--xh-bg-subtle);
-  font-size: 12px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-</style>
