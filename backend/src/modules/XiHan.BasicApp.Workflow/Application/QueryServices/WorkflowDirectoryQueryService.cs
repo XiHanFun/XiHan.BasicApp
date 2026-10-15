@@ -25,7 +25,8 @@ namespace XiHan.BasicApp.Workflow.Application.QueryServices;
 /// </summary>
 /// <remarks>
 /// 设计器配置审批人、待办转办/加签都要选人，但审批人不一定有用户/角色/部门管理权限，
-/// 这里按工作流自己的门槛提供轻量选项：选用户登录即可（与聊天选人同语义：启用用户 + 超管隐藏），
+/// 这里按工作流自己的门槛提供轻量选项：选用户登录即可（候选范围与聊天选人一致：启用用户 + 超管隐藏，
+/// 但聊天要求 chat:read，这里不设权限码，原因见 <see cref="GetUserOptionsAsync"/>），
 /// 角色/岗位/部门只在设计流程时用，需要流程查看权限。角色、部门、岗位以编码返回（规则按编码引用）。
 /// </remarks>
 [DynamicApi(Group = "BasicApp.Workflow", GroupName = "工作流服务", Tag = "审批人选择")]
@@ -62,6 +63,19 @@ public sealed class WorkflowDirectoryQueryService : WorkflowApplicationService, 
     /// <summary>
     /// 用户选项（按主键回显时返回当前上下文可见的这些用户，含已停用者以便回显；否则按关键字搜启用用户）
     /// </summary>
+    /// <remarks>
+    /// 刻意不挂 <c>[PermissionAuthorize]</c>，登录即可：审批中心不绑权限，办理人在待办里转办、加签
+    /// （WorkflowTodoAppService 同样登录即可，受理人归属在实例锁内校验）必须能选人，而办理人未必持有
+    /// workflow:read，挂上流程查看权限就会让这些人转办、加签时选不了人。暴露面由以下边界收住：
+    /// <list type="bullet">
+    /// <item>候选只来自 <see cref="IUserDirectory"/>：租户里是本租户已接受的成员，平台里是平台账号，不跨租户；</item>
+    /// <item>只返回主键、用户名、显示名、头像，不带手机号、邮箱等联系方式，关键字也只匹配用户名与姓名、昵称，
+    /// 加字段或加检索列前须重新评估是否要挂权限；</item>
+    /// <item>单次最多 <see cref="MaxOptionCount"/> 条；关键字检索只出启用用户，非超管看不到超管；</item>
+    /// <item>按主键回显用来念出调用方手里已有的主键（已配置的规则、刚选中的人），服务端同样只解析当前上下文目录内的用户；
+    /// 含已停用者、不做超管隐藏，审批详情里参与人的姓名本就照常显示。</item>
+    /// </list>
+    /// </remarks>
     [HttpPost]
     public async Task<List<WorkflowUserOptionDto>> GetUserOptionsAsync(WorkflowUserOptionQueryDto input, CancellationToken cancellationToken = default)
     {
