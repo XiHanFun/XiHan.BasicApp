@@ -50,7 +50,7 @@ import architecture from '../../assets/architecture_cn.png'
 | `XiHan.BasicApp.Saas` | 业务模块 | 核心业务：身份/角色/权限/菜单/组织/租户/配置/字典/文件/消息/日志/任务/审批/OAuth |
 | `XiHan.BasicApp.CodeGeneration` | 业务模块 | 代码生成 |
 | `XiHan.BasicApp.AI` | 业务模块 | AI Provider 库化管理 / 知识库 RAG / 提示词库 / AI 助手 |
-| `XiHan.BasicApp.Workflow` | 业务模块 | 工作流应用层（存储持久化 + 定义/实例/待办 + 待办通知） |
+| `XiHan.BasicApp.Workflow` | 业务模块 | 工作流应用层（存储持久化 + 定义/实例 + 组织架构受理人规则 + 审批中心与审批业务接入 + 待办通知） |
 | `XiHan.BasicApp.Printing` | 业务模块 | 打印模板（租户/平台双作用域、按编码解析与缓存、数据源目录） |
 | `XiHan.BasicApp.Chat` | 业务模块 | 在线聊天（单聊/群聊/部门群/AI 助手会话、消息与表情回应、聊天 SignalR Hub、敏感词与保留期清理） |
 | `XiHan.BasicApp.WebHost` | 主机 | 启动入口，聚合各业务模块，注册数据库 / Redis / Qdrant 健康检查与 Telegram Webhook |

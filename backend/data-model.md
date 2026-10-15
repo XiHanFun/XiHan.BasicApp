@@ -109,13 +109,12 @@
 | 表 | 实体 | 说明 |
 | --- | --- | --- |
 | `Sys_OAuth_App` / `Sys_OAuth_Code` / `Sys_OAuth_Token` | — | 作为 OAuth2 / OIDC **服务端**的应用、授权码与令牌 |
-| `Sys_Review` | `SysReview` | 审批 / 审查单 |
 
 → [开放接口](./open-api) · [审批与约束](./approval)
 
 ## 工作流
 
-`XiHan.BasicApp.Workflow` 模块的四张表：
+`XiHan.BasicApp.Workflow` 模块的五张表（审批中心的待办、轨迹与业务单据都建在这几张表上）：
 
 | 表 | 实体 | 说明 |
 | --- | --- | --- |
@@ -123,6 +122,7 @@
 | `Sys_Workflow_Instance` | `SysWorkflowInstance` | 流程实例 |
 | `Sys_Workflow_Node_Instance` | `SysWorkflowNodeInstance` | 节点实例 |
 | `Sys_Workflow_Bookmark` | `SysWorkflowBookmark` | 书签（挂起点） |
+| `Sys_Workflow_Task_Record` | `SysWorkflowTaskRecord` | 审批记录（办理 / 转办 / 加签 / 抄送，供「我已审批」「抄送我的」与审批轨迹） |
 
 → [工作流](./workflow)
 
@@ -137,7 +137,6 @@
 | `Sys_Exception_Log` | 异常日志 |
 | `Sys_Diff_Log` | 数据变更日志（需开 `EnableDiffLog`） |
 | `Sys_Permission_Change_Log` | 权限变更日志 |
-| `Sys_Review_Log` | 审批日志 |
 | `Sys_Task_Log` | 任务执行日志 |
 | `Sys_Telegram_Message` | Telegram 出站审计 |
 

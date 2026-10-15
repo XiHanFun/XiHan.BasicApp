@@ -64,7 +64,7 @@ const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:gr
 ```
 
 ```vue
-<NButton v-if="canGrant">分配权限</NButton>
+<XhButton v-if="canGrant">分配权限</XhButton>
 ```
 
 `usePermission()`（`~/hooks/usePermission.ts`）提供：

@@ -1,6 +1,6 @@
 # 曦寒基础应用 · 全站正文
 
-共 51 页。索引见 https://basicapp.docs.xihanfun.com/llms.txt
+共 54 页。索引见 https://basicapp.docs.xihanfun.com/llms.txt
 
 ---
 
@@ -484,6 +484,62 @@ Hub 侧**没有** `long → string` 与枚举的自动转换器（那是 MVC JSO
 # 更新日志 · XiHan.BasicApp
 
 本文件记录 XiHan.BasicApp 各版本的变更。每条标注 **新增 / 修复 / 优化 / 调整 / 升级 / 移除** 类别。只收录使用者可感知的变更，仓库自身的配置、CI 与测试工程不列入。升级前请留意「调整」类中的破坏性变更。
+
+## v5.8.0 (2026-10-15)
+
+::: warning 升级须知
+本次审批统一改走工作流，Saas 自带的「系统审查」整体撤掉，有数据库变更，后端接口与前端二次开发接口都有破坏性变更。**升级前请备份平台库与全部数据库隔离租户库。**
+
+- **数据库**：随附 `UpdateScripts/5.8.0`，可重复执行。`XiHan:Upgrade:EnableAutoCheckOnStartup` 开启（缺省）时，启动在建表之后、播种之前对平台库与各数据库隔离租户库逐库自动执行，执行失败即中断启动；关掉该开关的，须先在每个库上按版本顺序手工执行再启动。新建的库直接登记为最新版本，不跑本次脚本。脚本内容：
+  - 删除系统审查的 `sys_review`、`sys_review_log` 两张表，旧审查单与审查日志不迁移
+  - 权限申请表以 `workflow_instance_id`（审批流程实例）取代 `review_id`。**仍在待审批的存量申请统一置为「已撤回」**，备注写明原因，需要的请申请人重新提交，走新的审批流程；已批准、已拒绝等已完结的申请保持原样
+  - 删除 `saas:review:*` 与 `saas:review-log:read` 共 9 个权限码，连同它们在角色、用户、版本套餐、权限委托里的授权，以及申请这些权限的权限申请；引用它们的菜单解除权限绑定，权限变更日志保留原样
+  - 删除平台菜单「审批 → 审批中心」（系统审查，`/approval/review`）与「工作台 → 我的待办」（`/workflow/todo`）及其按钮。新的「审批 → 审批中心」（`/approval/center`）由菜单种子补入，「审批」目录默认打开「审批约束」
+  - 工作流实例新增「流程结果」列与按发起人查询的索引，存量实例的结果为空；审批记录表由建表阶段新建。「我已审批」「抄送我的」只收录升级后产生的办理与抄送
+  - 菜单标签类型换成新取值：`default` → `neutral`、`primary` → `brand`、`error` → `danger`，`info` / `success` / `warning` 不变，其余无法识别的值清空，按未设置处理
+- **权限**：权限申请由「权限申请」流程的受理人审批，不再凭 `saas:permission-request:status`。默认流程在租户第一次提交权限申请时自动建好并发布，只有租户所有者（平台为超级管理员）能审批；原先靠该权限码审批的其他角色，需在「工作流 → 流程定义」给「权限申请」新建版本、调整受理人规则后发布。审批人仍须有权授出所申请的角色或权限。审批中心不绑权限码，「审批」目录对所有登录用户可见
+- **接口**：
+  - 删除 `Review`、`ReviewQuery`、`ReviewLogQuery` 三个服务，以及 `PermissionRequest/ApprovePermissionRequest`、`PermissionRequest/RejectPermissionRequest` 与 `PermissionRequestApprovalDto`。审批改在审批中心办理：待办与办理仍是 `WorkflowTodo`，我已审批、抄送我的、我发起的与审批详情走 `WorkflowApprovalQuery`，发起人撤回走 `WorkflowApproval/Withdraw`
+  - 权限申请 DTO 的 `ReviewId`、`ReviewCode`、`ReviewTitle`、`ReviewDescription`、`ReviewStatus`、`ReviewResult` 换成 `WorkflowInstanceId` 与审批进度 `Workflow`，分页查询与状态更新去掉 `ReviewId`
+  - 工作流 DTO 的时间字段由 `DateTime` 改为 `DateTimeOffset`，返回值带时区偏移
+  - 菜单的 `badgeType` 只接受 `neutral`、`brand`、`info`、`success`、`warning`、`danger`，传旧值会被拒绝
+- **二次开发**：
+  - 后端 Saas 的 `SysReview` / `SysReviewLog` 实体、`IReviewDomainService` 与对应仓储删除。业务单据要走审批的，实现 `IWorkflowBusinessHandler` 接入工作流，见[审批业务接入](backend/workflow.md#审批业务接入)
+  - 权限申请依赖工作流模块：宿主去掉工作流模块后，权限申请的提交、列表与详情都会报「工作流模块未启用」
+  - 前端删除 `reviewApi`、`approvalManagementApi`、`review.types.ts`、`REVIEW_STATUS_OPTIONS` / `REVIEW_RESULT_OPTIONS` 与 `permissionRequestApi.approve` / `reject`
+  - Schema 页面操作的 `type`（`primary` / `error` 等）改为 `tone`，取 XiHan.UI 的语气词（`brand` / `danger` 等）；`TableDensity` 改为 `sm` / `md` / `lg`，`TableStyle.singleLine` 改为 `ruled`（含义相反），本地与跨端同步里旧版存下的表格设置读到时自动换算；灵动岛按钮语气 `default` / `primary` 改为 `neutral` / `brand`
+- **流程定义**：人工任务的受理人改按规则配置。旧流程里的 `Assignees`、`AssigneesExpression`、`CcUserIds` 在设计器打开时并入受理人规则，保存即为新写法，已发布的版本照常运行
+- **站内通知**：升级前产生的待办、转办通知仍链接到已删除的「我的待办」（`/workflow/todo`），点开找不到页面，到「审批 → 审批中心」办理即可
+- **依赖**：后端随附 XiHan.Framework 4.7.0（审批流程用到其受理人规则与结果结束节点），前端随附 XiHan.UI 4.2.0，已有 `node_modules` 须重新 `pnpm install`
+:::
+
+- **新增** 审批中心（「审批 → 审批中心」，`/approval/center`）取代「工作台 → 我的待办」，登录即可见：待我审批、我已审批、我发起的、抄送我的四个页签；详情抽屉依次是概要、业务单据、办理区与只读竖向步骤条式的审批轨迹，可同意 / 驳回 / 转办 / 加签并填写意见，发起人可撤回进行中的流程；待办、转办、抄送与流程故障的站内通知直接打开对应页签
+- **新增** 流程设计器的人工任务按规则选审批人：指定用户、角色、部门成员、部门负责人、岗位、发起人本人、发起人的第 N 级上级或逐级上级、表达式，可多条组合；另可设置跳过发起人本人、找不到受理人时的处理（流程报错 / 自动通过 / 自动驳回 / 转交兜底受理人）、兜底受理人与抄送人。角色、部门、岗位按编码引用，用户可远程搜索
+- **新增** 业务单据可接入审批流程：与审批业务同编码的流程即该业务的审批流，设计器里可绑定审批业务，每个结束节点须声明结果（通过 / 驳回）才能发布，流程结束后结论自动回写单据；租户首次发起时按业务的默认模板自动建好并发布流程。流程定义列表标出关联业务，流程实例列表与详情显示流程结果
+- **新增** 授权申请页补上「发起申请」：选择角色或权限，填期望有效期、原因与备注，提交即进入审批流程（此前后端有接口与按钮码，页面没有入口）
+- **修复** 办理待办、取消或终止流程实例时报「数据已被其他操作修改」：同一流程的运行时数据从第二次更新起被当成并发冲突
+- **修复** 流程定义的发布时间、流程实例的开始 / 结束时间与待办时间比实际多出服务器所在时区的偏移（东八区多 8 小时）
+- **修复** 授权申请、权限委托与权限中心里，成员没填租户内显示名时申请人、委托人、接收人显示成用户主键：改为依次取账号的真实姓名、昵称、用户名
+- **修复** 流程设计器在窄窗口里工具栏按钮挤压重叠、溢出对话框：工具栏分左右两组，放不下时整组换行；三栏放不下时节点面板与属性面板收成浮在画布上的抽屉，由工具栏开关，选中节点即打开属性、点空白收起；点击添加的节点不在视野内时画布平移过去
+- **修复** 流程设计器的画布与 JSON 视图下方留出大块空白、JSON 视图出现两条滚动条：两个视图铺满工具栏以下的高度
+- **修复** 流程设计器切到 JSON 视图时控制台报小地图错误；暗色下画布缩略图是一块白板
+- **修复** 流程设计器自动布局、应用 JSON 后画布上残留旧连线与端口，每操作一次翻一倍；自动布局改为只移动节点，选中状态与撤销历史保留
+- **修复** 日志列表与详情里跳转链路追踪的文字链铺成一块按钮底：只留品牌色文字，悬停加下划线
+- **修复** AI 提供商表单里清单之外的供应商填不进去：恢复可自填，输入后回车或离开即收下；公共组件 `XCombobox` 新增 `allowCustomValue`
+- **修复** 菜单标签在侧栏与菜单管理页颜色对不上：侧栏不认「主要」、退成中性，菜单管理页未设类型时圆点是灰的、侧栏却是红的。标签类型改为中性 / 品牌 / 信息 / 成功 / 警告 / 危险六种，两处同色，存量取值由升级脚本换算
+- **修复** 用户列表与用户详情的头像是灰底黑字，与顶栏的品牌色头像对不上：全应用统一为同一种头像
+- **修复** 顶栏用户菜单钮与旁边的上下文切换钮圆角、高度与悬停效果不一致；顶栏按钮用键盘聚焦时看不到焦点环
+- **修复** 多处颜色不随主题与深浅色变化：打印模板设计器与设置抽屉、任务调度的异常信息、顶部通知横幅写死了浅色或旧组件库的固定色；关于页、服务监控、我的消息、知识库、通知公告等处的次要文字与卡片底引用了不存在的样式变量，一直没有生效；暗色下打开过打印模板设置后，全应用的表头都被改了颜色。这些地方改用 XiHan.UI 语义令牌，仪表盘公告的类型配色也与通知公告、我的消息的类型标签统一
+- **调整** 权限申请改由工作流审批：提交即发起「权限申请」流程，默认由租户所有者（平台为超级管理员）审批、申请人不审批自己的申请，可在流程定义里新建版本调整审批人；通过即自动授予角色或权限，驳回即置为已拒绝；修改申请会撤回原流程、按新内容重新发起，撤回、删除或手工改到终态会撤回进行中的审批。授权申请列表与权限中心的申请明细显示审批进度，可跳到审批中心查看轨迹；授权申请页的「通过」「驳回」按钮移除，改在审批中心办理，见升级须知
+- **调整** 详情类描述列表统一为参数配置详情的样式（描边、标签在上、紧凑尺寸）：文件、任务调度、编号规则、消息模板与通知、版本、流程定义与实例、代码生成历史、日志与审批详情不再各用一套
+- **优化** 日志详情（9 个日志页共用）改为「摘要抬头 + 分组」：抬头直接写出做了什么与结果（结果带配色，耗时、状态码成标签），下一行是操作人、时间与 IP；其余字段按详情、请求、客户端、运行环境、处理、追踪与标识分组，空值和抬头里已有的字段不再重复；主键、追踪标识等长值等宽显示可复制，链路追踪 ID、会话标识、用户名、IP 点开即按该维度查链路追踪；请求体、堆栈等原始数据排在最后，JSON 展开成树。列表与详情的结果、类型、等级配色一致
+- **优化** 流程设计器的属性、节点与连线三块面板按「抬头 → 分节 → 字段」重排：节点属性分「基本 / 参与人 / 表单与结果 / 执行策略」，连线分「基本 / 流转条件」，分节标题写在分隔线中间；兜底受理人只在「转交兜底受理人」时出现，完成策略与找不到受理人时两个下拉的占位写出缺省值；节点面板条目可用键盘添加（仍可拖到画布）；工具栏流程名称为主、编码为辅
+- **优化** JSON 展示块（日志详情、审批详情、审批约束、流程定义与实例）改用查看器内建工具条：展开 / 收起全部、树与原文切换、自动换行与复制；原文视图与复制取后端下发的原文，64 位 ID 这类大整数不会因解析而失真，解析不成树的内容直接按原文显示
+- **优化** 文档站新增「AI 辅助开发」一册（For Agents、MCP Server、LLMs.txt）；工作流文档补「审批业务接入」与组织架构受理人规则，审批、权限、数据模型等页随审批改走工作流同步
+- **移除** Saas 自带的「系统审查」：原「审批 → 审批中心」页（`/approval/review`）、审查单与审查日志的实体和接口、`saas:review:*` / `saas:review-log:read` 权限码一并删除，审批统一走工作流；「审批」目录默认打开「审批约束」，见升级须知
+- **升级** 前端 XiHan.UI 升至 4.2.0：JSON 查看器内建工具条与原文着色，描述列表描边档同列标签对齐、格线不再错位，表格单元格内衬随尺寸档换档，图表缺省配色、配色方案与色阶改为浅色调，分隔线竖线铺满行高，树形表父行收起后能再展开，多行文本自增高只剩一层滚动
+- **升级** 后端 XiHan.Framework 升至 4.7.0，随附传递依赖 `System.Security.Cryptography.Pkcs` 的漏洞修复（CVE-2026-84008、CVE-2026-70162）；前端 tiptap、vue、vitest、oxlint 等依赖随补丁与次版本更新
+- **升级** 发布 v5.8.0
 
 ## v5.7.1-fix.1 (2026-10-14)
 
@@ -2325,8 +2381,8 @@ npx eslint src/views/identity/position/index.vue --fix
 - **权限管理**：集中维护模块、资源和操作权限，配置权限编码、接口路径、请求方法、平台或租户作用域及审计要求。
 - **菜单管理**：以树形结构维护目录、菜单与按钮，配置组件路径、图标、排序、可见性、缓存、外链和关联权限。
 - **字段安全**：按实体字段与授权对象配置字段读取、写入和脱敏策略，控制敏感字段的展示与修改。
-- **授权申请与委托**：处理权限申请的批准、拒绝和撤回，支持限时委托角色或权限并随时撤销。
-- **审批中心**：查询审批事项、审批状态和处理记录，支持查看详情、批准、拒绝及撤回。
+- **授权申请与委托**：提交权限申请即发起审批流，列表跟踪审批进度并跳转审批详情；支持限时委托角色或权限并随时撤销。
+- **审批中心**：待我审批、我已审批、我发起的、抄送我的四个视图；详情里查看业务单据与审批轨迹，办理同意、驳回、转办、加签，发起人可撤回。
 - **审批约束**：维护职责分离、互斥、基数和条件约束，配置适用对象、规则参数及违规处理方式。
 
 ## 租户与消息协作
@@ -2379,9 +2435,8 @@ npx eslint src/views/identity/position/index.vue --fix
 - **AI 提示词**：集中维护提示词编码、内容和状态，为 AI 对话及业务场景复用提示词模板。
 - **知识库**：导入知识文档并建立向量索引，支持重建索引、检索问答和来源引用，按租户隔离知识数据。
 - **AI 助手**：配置助手身份、模型与提示词，设置默认助手并接入在线聊天会话。
-- **流程定义**：可视化设计流程节点与连线，维护草稿、发布、停用和归档状态，支持版本管理及启动流程。
+- **流程定义**：可视化设计流程节点与连线，按角色、部门、岗位、发起人主管等规则配置审批人，绑定审批业务并声明结束结果；维护草稿、发布、停用和归档状态，支持版本管理及启动流程。
 - **流程实例**：查看流程运行状态、节点与详情，支持挂起、恢复、取消、终止、故障重试及发送流程信号。
-- **我的待办**：集中处理人工流程任务，支持批准、拒绝、转办和加签，跟踪任务办理状态。
 - **打印模板**：拖拽设计文本、表格、图片和条码，配置纸张、数据源与样例数据，支持缩放排版、JSON 查看、预览和打印。
 
 ## 通用使用体验
@@ -2830,8 +2885,8 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 与 [Xi
 | [组织架构](./backend/organization) | 部门树 + 闭包表、岗位字典、用户多部门归属（数据范围的底座） |
 | [多租户](./backend/multi-tenancy) | 字段级隔离，邮箱全局唯一登录，租户版本（Edition）权限白名单门控 |
 | [消息中心](./backend/messaging) | 五类消息 + 优先级 + 强制阅读；模板；四渠道扇出；SignalR 通知与在线聊天 |
-| [工作流](./backend/workflow) | 图执行引擎、17 个内置活动、人工任务（或签/会签/依次）、落库可恢复 |
-| [审批与约束](./backend/approval) | 通用审批单 `SysReview`；约束规则（可维护八类，当前在授权写入时执行静态职责分离 SSD） |
+| [工作流](./backend/workflow) | 图执行引擎、17 个内置活动、人工任务（或签/会签/依次）、组织架构受理人规则、审批业务接入与审批中心、落库可恢复 |
+| [审批与约束](./backend/approval) | 审批中心（工作流承载）；约束规则（可维护八类，当前在授权写入时执行静态职责分离 SSD） |
 | [文件与存储](./backend/file) | 元数据与存储位置分离、多后端（本地/S3/OSS/COS/MinIO）、异步导出中心 |
 | [任务调度](./backend/scheduling) | Cron/间隔/一次性触发、并发控制、多租户上下文、按月分表日志 |
 | [系统设置](./backend/settings) | 菜单、字典、参数、业务编号、缓存、服务监控、版本、通道配置 |
@@ -3252,6 +3307,178 @@ frontend/
 
 ---
 
+来源：https://basicapp.docs.xihanfun.com/ai/agents
+
+# For Agents
+
+在 XiHan.BasicApp 上做二次开发时，怎样让 Claude Code、Cursor、Codex、GitHub Copilot 这类 AI 编程工具写出符合项目约定的代码。
+
+::: tip 和「AI 模块」不是一回事
+本册讲的是**用 AI 工具开发 BasicApp**。BasicApp 自带的大模型接入、智能体与知识库功能见后端手册的 [AI 模块](../backend/ai)。
+:::
+
+BasicApp 是克隆下来二次开发的应用，没有单独的命令行或 MCP 服务端；AI 工具需要的资料分三处：仓库自带的 Agent 规范与技能、后端依赖的 [XiHan.Framework](https://framework.docs.xihanfun.com/ai/agents) 与前端依赖的 [XiHan.UI](https://ui.docs.xihanfun.com/ai/agents) 各自的 MCP 服务端，以及本站的机读文档。
+
+## 复制这段提示词
+
+把下面这段放进对话，或补进仓库根 `AGENTS.md` 的开头：
+
+```text
+这是基于 XiHan.BasicApp 的项目：后端 .NET + XiHan.Framework（backend/），前端 Vue 3 + XiHan.UI（frontend/）。
+开始前先读仓库根的 AGENTS.md，并按任务读取 .agents/skills/ 下对应的技能：
+后端读 backend-development，前端读 frontend-development，跨前后端的 DTO、权限码、菜单与租户契约读 fullstack-contracts。
+
+框架与组件库的 API 以项目引用的版本为准，不要凭记忆写：
+- 后端的包、模块类、[DependsOn] 与配置键用 xihan-framework MCP 工具查（xihan_framework_info / xihan_framework_config / xihan_framework_search）；
+- 前端的组件名、部件、Props 与设计令牌用 xihan-ui MCP 工具查（xihan_ui_info / xihan_ui_demo / xihan_ui_parts / xihan_ui_token）。
+没有 MCP 时读 https://basicapp.docs.xihanfun.com/llms.txt、https://framework.docs.xihanfun.com/llms.txt 与 https://ui.docs.xihanfun.com/llms.txt。
+```
+
+## 仓库自带的 Agent 规范
+
+| 文件 | 内容 |
+| --- | --- |
+| `AGENTS.md` | 仓库概览、开始前必须做的检查、目录结构、常用命令、后端与前端架构约束、前后端契约、配置运维、测试与提交规范、禁止事项 |
+| `CLAUDE.md` | 指向 `AGENTS.md` 的链接，Claude Code 打开仓库时自动读取 |
+| `.agents/skills/` | 按任务划分的技能，`.claude/skills` 链接到这里 |
+
+技能按任务加载，不必一次读完：
+
+| 技能 | 什么时候用 |
+| --- | --- |
+| `backend-development` | 实现或重构后端模块：Dynamic API、DDD/CQRS、SqlSugar、实体、仓储、权限、租户、事务、种子 |
+| `frontend-development` | 实现或重构 Vue 管理端：XiHan.UI、类型化 API、Pinia、动态路由、插件模块、权限可见性、统一视觉 |
+| `fullstack-contracts` | 改动跨前后端的契约：Dynamic API 服务与 DTO、权限码、租户隔离、菜单路由、可选模块、配置与部署边界 |
+| `test-review` | 审查测试是否有效、重复、过度 mock |
+| `commit-msg` · `create-pr` · `changelog-collect` · `version-release` · `issue-reply` | 提交、PR、更新日志、发版与 Issue 回复 |
+
+Claude Code 与 Codex 打开仓库即可读到 `AGENTS.md`；Cursor、GitHub Copilot 等工具可以在各自的规则文件里写一句「先读仓库根的 AGENTS.md」。
+
+## 接入两个 MCP 服务端
+
+后端用 XiHan.Framework 的 MCP 服务端查包、模块与配置键，前端用 XiHan.UI 的 MCP 服务端查组件 API、示例与令牌。两者都离线、按版本钉住，配置方法见 [MCP Server](./mcp)。
+
+最省事的做法是在仓库根运行两条 `setup`，各自读出后端与前端引用的版本，写进同一个 `.mcp.json`：
+
+```bash
+dnx XiHan.Framework.Cli --yes -- setup --client claude
+npx -y @xihan-ui/cli setup --client claude
+```
+
+## 机读文档
+
+本站在构建时产出 [机读资产](./llms)：`llms.txt` 索引、`llms-full.txt` 全站正文、`llms-backend.txt` 后端手册与 `llms-frontend.txt` 前端手册，每一页在站点地址后加 `.md` 即可取到 Markdown。
+
+## 相关
+
+- [目录结构与代码地图](../project-structure) · [接口对接指南](../api-guide) · [开发环境](../dev-environment)
+- [XiHan.Framework 的 AI 辅助开发](https://framework.docs.xihanfun.com/ai/agents) · [XiHan.UI 的 AI 辅助开发](https://ui.docs.xihanfun.com/ai/agents)
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/ai/llms
+
+# LLMs.txt
+
+文档站在构建时产出一组给大语言模型读的机读资产，内容与站点正文同源。AI 工具读取它们即可了解 BasicApp 的结构、约定与功能。
+
+## 可用资源
+
+| 文件 | 说明 |
+| --- | --- |
+| [llms.txt](https://basicapp.docs.xihanfun.com/llms.txt) | 索引：全部页面的标题、一句话摘要与地址，以及下列资产的入口 |
+| [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt) | 全站正文 |
+| [llms-backend.txt](https://basicapp.docs.xihanfun.com/llms-backend.txt) | 后端手册：模块、Dynamic API、权限、租户、数据与可选业务模块 |
+| [llms-frontend.txt](https://basicapp.docs.xihanfun.com/llms-frontend.txt) | 前端手册：请求与类型化 API、路由与菜单、权限、组件与 SchemaPage、主题、国际化与实时通信 |
+
+**单页 Markdown**：任何一页的站点地址后加 `.md` 即可取到这一页的 Markdown，如 [api-guide.md](https://basicapp.docs.xihanfun.com/api-guide.md)、[project-structure.md](https://basicapp.docs.xihanfun.com/project-structure.md)。每页正文上方的「取本页 Markdown」也指向它。
+
+BasicApp 建立在 XiHan.Framework 与 XiHan.UI 之上，两者各有一套机读资产：
+
+| 站点 | 索引 |
+| --- | --- |
+| 开发框架 | [framework.docs.xihanfun.com/llms.txt](https://framework.docs.xihanfun.com/llms.txt) |
+| 视图组件 | [ui.docs.xihanfun.com/llms.txt](https://ui.docs.xihanfun.com/llms.txt) |
+
+## 在 AI 工具中使用
+
+所有工具都可以用同一段提示词：
+
+```text
+阅读 https://basicapp.docs.xihanfun.com/llms.txt 了解 XiHan.BasicApp；后端用到框架能力时再读 https://framework.docs.xihanfun.com/llms.txt，前端用到组件时再读 https://ui.docs.xihanfun.com/llms.txt。按需读取其中列出的页面（站点地址后加 .md 取 Markdown），以文档和仓库根的 AGENTS.md 为准。
+```
+
+| 工具 | 做法 |
+| --- | --- |
+| Claude Code | 写进仓库的 `CLAUDE.md`（它链接到 `AGENTS.md`），或用 `/memory` 记下 |
+| Cursor | 在对话中用 `@Docs` 添加上面三个索引，或写进 `.cursor/rules` |
+| Codex | 写进仓库的 `AGENTS.md` |
+| GitHub Copilot | 写进 `.github/copilot-instructions.md` |
+
+能运行命令或接入 MCP 的工具，优先用 [MCP Server](./mcp)：数据离线且与项目引用的版本一致。
+
+## 相关
+
+- [For Agents](./agents) · [MCP Server](./mcp)
+
+---
+
+来源：https://basicapp.docs.xihanfun.com/ai/mcp
+
+# MCP Server
+
+BasicApp 没有自己的 MCP 服务端：后端与前端分别接入 XiHan.Framework 与 XiHan.UI 的服务端，AI 写后端代码时查框架的包、模块与配置键，写前端代码时查组件的 API、示例与令牌。两者都随包离线发布，按项目引用的版本钉住。
+
+| 服务端 | 由谁提供 | 管什么 | 文档 |
+| --- | --- | --- | --- |
+| `xihan-framework` | .NET 工具 `XiHan.Framework.Cli` | 包与模块类、`[DependsOn]`、包依赖、配置节的属性与缺省值、框架文档 | [框架的 MCP Server](https://framework.docs.xihanfun.com/ai/mcp) |
+| `xihan-ui` | npm 包 `@xihan-ui/cli` | 组件 API、部件与样式钩子、三种写法的示例、设计令牌、design.md | [组件库的 MCP Server](https://ui.docs.xihanfun.com/ai/mcp) |
+
+## 用 setup 写入
+
+在仓库根运行。两条命令分别扫描 `backend/` 的项目文件与 `frontend/` 的依赖读出版本，写进仓库根同一个配置文件，各自只改自己那一项：
+
+```bash
+dnx XiHan.Framework.Cli --yes -- setup --client claude    # 写 xihan-framework，并写入框架技能
+npx -y @xihan-ui/cli setup --client claude                # 写 xihan-ui，并写入组件库技能
+```
+
+`--client` 可换成 `cursor`（`.cursor/mcp.json`）、`vscode`（`.vscode/mcp.json`）或 `codex`（打印 `~/.codex/config.toml` 片段）。只要 MCP 配置不要技能时加 `--mode mcp`；加 `--dry-run` 只打印不写文件，加 `--check` 核对配置是否就绪。需要 .NET 10 SDK（`dnx`）与 Node ≥ 18（`npx`）。
+
+## 手写配置
+
+仓库根的 `.mcp.json`（Claude Code）或 `.cursor/mcp.json`（Cursor）：
+
+```json
+{
+  "mcpServers": {
+    "xihan-framework": {
+      "command": "dnx",
+      "args": ["XiHan.Framework.Cli@<框架版本>", "--yes", "--", "mcp"]
+    },
+    "xihan-ui": {
+      "command": "npx",
+      "args": ["-y", "@xihan-ui/cli@<组件库版本>", "mcp"]
+    }
+  }
+}
+```
+
+两个版本号分别取自：
+
+| 版本 | 从哪里看 |
+| --- | --- |
+| 框架版本 | `backend/` 下各项目文件里 `XiHan.Framework.*` 的 `Version` |
+| 组件库版本 | `frontend/pnpm-workspace.yaml` 的 catalog 里 `@xihan-ui/vue` 的版本 |
+
+Windows（非 WSL）上 Claude Code 需要经 `cmd /c` 调用 `dnx` 与 `npx`：把 `command` 写成 `cmd`，`args` 前面加上 `"/c"` 与原来的命令名，`setup --client claude` 会自动这样写。VS Code 的 `.vscode/mcp.json` 顶层键是 `servers`，每一项再加 `"type": "stdio"`。
+
+## 相关
+
+- [For Agents](./agents) · [LLMs.txt](./llms)
+
+---
+
 来源：https://basicapp.docs.xihanfun.com/backend/ai
 
 # AI 能力
@@ -3526,55 +3753,20 @@ MCP Server 的启用与暴露由框架包 [XiHan.Framework.Web.Mcp](https://fram
 
 菜单目录 `/approval` 下有两个页面，它们解决的是不同的问题，容易混淆：
 
-| 页面 | 实体 | 解决什么 |
+| 页面 | 归属 | 解决什么 |
 | --- | --- | --- |
-| **审批中心** `/approval/review` | `SysReview` + `SysReviewLog` | 通用的**单据审批**：某条业务数据要人来批一下 |
-| **约束规则** `/approval/constraint` | `SysConstraintRule` + `SysConstraintRuleItem` | **RBAC 约束引擎**：授权本身合不合规 |
-
-再加上第三套：[工作流](./workflow) 处理**多步骤、有分支、要等很久**的流程。三者的选型见文末。
+| **审批中心** `/approval/center` | 工作流模块 | **单据审批**：业务数据要人来批，一步或多级 |
+| **约束规则** `/approval/constraint` | Saas（`SysConstraintRule` + `SysConstraintRuleItem`） | **RBAC 约束引擎**：授权本身合不合规 |
 
 ## 审批中心
 
-`SysReview` 是一张通用审批单，特点是**不绑定具体业务表**——靠三个字段挂到任意业务对象上：
+审批统一走 [工作流](./workflow)：业务单据按「业务编码 = 流程编码、单据主键 = 实例业务相关性标识」挂到流程上，审批人按角色、部门、岗位、发起人主管等规则解析，在审批中心的「待我审批」里办理，流程结束时回调业务回写单据。
 
-| 字段 | 说明 |
-| --- | --- |
-| `ReviewCode` / `ReviewTitle` | 单号与标题 |
-| `ReviewType` | 业务类型（字符串），由接入方定义 |
-| **`EntityType` / `EntityId`** | **指向被审批的业务对象**（多态关联） |
-| **`BusinessData`** | **提交时的业务数据快照**（JSON） |
-| `ReviewContent` / `ReviewDescription` | 内容与说明 |
-| `ReviewStatus` | `Pending` / 已通过 / 已拒绝 等 |
-| `ReviewResult` | 审批结果 |
-| `Priority` | 优先级 |
-| `SubmitUserId` / `SubmitTime` | 提交人与时间 |
-| `CurrentReviewUserId` | 当前处理人 |
+一步审批就是只有一个人工任务节点的流程；多级、会签、条件分支、超时自动处理、并行汇合都在同一套机制里，改流程只需在设计器里发新版本。业务怎么接入见 [工作流 · 审批业务接入](./workflow#审批业务接入)。
 
-`SysReviewLog`（按月分表）记录每一步的操作留痕。
-
-### 接入方式
-
-```text
-业务写侧
-   │ 落业务表（状态=待审批）
-   │ 建 SysReview：EntityType="Contract", EntityId=合同Id, BusinessData=快照JSON
-   ▼
-审批人在审批中心处理 → 通过 / 拒绝 → 写 SysReviewLog
-   ▼
-业务侧据审批结果回写业务表状态
-```
-
-::: tip `BusinessData` 快照的意义
-审批发生在提交之后，中间业务数据可能已经被改。快照保证**审批人看到的是提交那一刻的内容**，也让事后追溯有据可查（「当时批的是什么」）。
-
-代价是快照与当前数据可能不一致——通过后回写业务表时要考虑这一点，必要时做冲突检查。
+::: tip 5.8.0 起不再有「系统审查」
+早先 Saas 自带的通用审批单 `SysReview` / `SysReviewLog` 已撤掉，权限申请改由工作流审批。升级脚本删除两张旧表；存量的待审批权限申请没有对应流程，统一置为已撤回，申请人重新提交即走新流程。
 :::
-
-### 与工作流的分工
-
-审批中心是**单步**的：一个单子、一个（或一组）审批人、一次决定。
-
-要多级审批、会签、条件分支、超时自动处理、并行分支汇合——用 [工作流](./workflow)，它的 `UserTask` 活动天然支持或签/会签/依次审批与转办加签。
 
 ## 约束规则引擎
 
@@ -3633,21 +3825,20 @@ SSD 评估时展开角色继承链：规则指向角色 A，任何继承了 A �
 约束规则只回答「能不能把这个角色授给这个人」，不参与请求期的鉴权判定。已经授出去的存量违规组合**不会自动回收**，系统也没有内置巡检，需要自行排查清理。
 :::
 
-## 三套机制怎么选
+## 怎么选
 
 | 你的需求 | 用哪套 |
 | --- | --- |
-| 一条业务数据要人批一下，一步搞定 | **审批中心** `SysReview` |
-| 多级/会签/分支/超时/并行的长流程 | **[工作流](./workflow)** |
+| 业务单据要人批（一步或多级、会签、分支、超时） | **审批中心**（由 [工作流](./workflow) 承载） |
 | 「谁不能同时拥有哪些角色」这类合规规则 | **约束规则引擎** |
-| 用户主动申请某个权限，管理员审批 | **权限申请**（`SysPermissionRequest`，见 [权限模型](./permission)） |
+| 用户主动申请某个权限，管理员审批 | **权限申请**（`SysPermissionRequest`，提交即发起审批流，见 [权限模型](./permission)） |
 
-它们目前彼此独立：约束规则的 `RequireApproval` 不会生成审批单，命中即阻断；需要「违规转审批」时，可让申请人走权限申请，审批通过时同样会做 SSD 校验。工作流的 `UserTask` 也可以承载复杂的权限审批流。
+约束规则与审批彼此独立：约束规则的 `RequireApproval` 不会发起审批，命中即阻断；需要「违规转审批」时，可让申请人走权限申请，审批通过授予时同样会做 SSD 校验。
 
 ## 相关页面
 
 - [权限模型](./permission)：约束规则的当前执行范围、权限申请与委托
-- [工作流](./workflow)：多步骤流程
+- [工作流](./workflow)：审批中心、受理人规则与审批业务接入
 - [审计日志](./logging)：权限变更留痕
 - [数据模型](./data-model#权限与授权)：相关表结构
 
@@ -4444,13 +4635,12 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 | 表 | 实体 | 说明 |
 | --- | --- | --- |
 | `Sys_OAuth_App` / `Sys_OAuth_Code` / `Sys_OAuth_Token` | — | 作为 OAuth2 / OIDC **服务端**的应用、授权码与令牌 |
-| `Sys_Review` | `SysReview` | 审批 / 审查单 |
 
 → [开放接口](./open-api) · [审批与约束](./approval)
 
 ## 工作流
 
-`XiHan.BasicApp.Workflow` 模块的四张表：
+`XiHan.BasicApp.Workflow` 模块的五张表（审批中心的待办、轨迹与业务单据都建在这几张表上）：
 
 | 表 | 实体 | 说明 |
 | --- | --- | --- |
@@ -4458,6 +4648,7 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 | `Sys_Workflow_Instance` | `SysWorkflowInstance` | 流程实例 |
 | `Sys_Workflow_Node_Instance` | `SysWorkflowNodeInstance` | 节点实例 |
 | `Sys_Workflow_Bookmark` | `SysWorkflowBookmark` | 书签（挂起点） |
+| `Sys_Workflow_Task_Record` | `SysWorkflowTaskRecord` | 审批记录（办理 / 转办 / 加签 / 抄送，供「我已审批」「抄送我的」与审批轨迹） |
 
 → [工作流](./workflow)
 
@@ -4472,7 +4663,6 @@ Options            扩展键（树/主从结构字段、ParentMenuId 等）
 | `Sys_Exception_Log` | 异常日志 |
 | `Sys_Diff_Log` | 数据变更日志（需开 `EnableDiffLog`） |
 | `Sys_Permission_Change_Log` | 权限变更日志 |
-| `Sys_Review_Log` | 审批日志 |
 | `Sys_Task_Log` | 任务执行日志 |
 | `Sys_Telegram_Message` | Telegram 出站审计 |
 
@@ -5780,7 +5970,7 @@ import architecture from '../../assets/architecture_cn.png'
 | `XiHan.BasicApp.Saas` | 业务模块 | 核心业务：身份/角色/权限/菜单/组织/租户/配置/字典/文件/消息/日志/任务/审批/OAuth |
 | `XiHan.BasicApp.CodeGeneration` | 业务模块 | 代码生成 |
 | `XiHan.BasicApp.AI` | 业务模块 | AI Provider 库化管理 / 知识库 RAG / 提示词库 / AI 助手 |
-| `XiHan.BasicApp.Workflow` | 业务模块 | 工作流应用层（存储持久化 + 定义/实例/待办 + 待办通知） |
+| `XiHan.BasicApp.Workflow` | 业务模块 | 工作流应用层（存储持久化 + 定义/实例 + 组织架构受理人规则 + 审批中心与审批业务接入 + 待办通知） |
 | `XiHan.BasicApp.Printing` | 业务模块 | 打印模板（租户/平台双作用域、按编码解析与缓存、数据源目录） |
 | `XiHan.BasicApp.Chat` | 业务模块 | 在线聊天（单聊/群聊/部门群/AI 助手会话、消息与表情回应、聊天 SignalR Hub、敏感词与保留期清理） |
 | `XiHan.BasicApp.WebHost` | 主机 | 启动入口，聚合各业务模块，注册数据库 / Redis / Qdrant 健康检查与 Telegram Webhook |
@@ -7261,7 +7451,7 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 
 ## 申请、审批、委托与留痕
 
-- **权限申请** `SysPermissionRequest`：用户申请权限/角色 → 关联 `SysReview` 审批流 → 审批通过后由服务层**自动**写入 `SysUserRole`/`SysUserPermission` 完成授权。状态 `PermissionRequestStatus`：`Pending`/`Approved`/`Rejected`/`Withdrawn`/`Expired`；可带期望生效/失效时间。
+- **权限申请** `SysPermissionRequest`：用户申请权限/角色 → 提交即发起「权限申请」审批流（`WorkflowInstanceId` 记下实例，审批在审批中心办理）→ 流程走到「通过」结束节点时**自动**写入 `SysUserRole`/`SysUserPermission` 完成授权；删除、修改或改到终态会撤回进行中的审批。见 [工作流 · 审批业务接入](./workflow#审批业务接入)。状态 `PermissionRequestStatus`：`Pending`/`Approved`/`Rejected`/`Withdrawn`/`Expired`；可带期望生效/失效时间。
 - **权限委托** `SysPermissionDelegation`：建模"委托人 → 被委托人 → 权限范围 → 时间窗口"（如经理出差把审批权委托给副手）。`PermissionId`/`RoleId` 均可空且可同时填写：非空的 `PermissionId` 直接并入被委托人权限，非空的 `RoleId` 展开为该角色当前有效的 Grant 权限，两者都为空则不产生委托权限；`ExpirationTime` **必填**（委托必须有截止）；生效需 `DelegationStatus=Active`（`DelegationStatus`：`Pending`/`Active`/`Expired`/`Revoked`）且当前时间在窗口内。撤销走 `DelegationStatus=Revoked`，记录本身仅软删。
 - **变更留痕** `SysPermissionChangeLog`：结构化记录"谁在什么时候给谁授予/撤销了什么权限"，是 RBAC 合规审计的核心证据。**只追加，禁止更新和删除**，按月分表（`SplitTable`），携带 `OperatorUserId`/`TargetUserId`/`TargetRoleId`/`PermissionId`/`ChangeType`/`OperationIp`/`TraceId`。`ChangeType`（`PermissionChangeType`）区分角色/用户的授予、撤销、拒绝、分配/移除角色等。与 `SysDiffLog`（通用实体字段变更）职责分离——本表专注权限授予/撤销的业务语义。
 
@@ -8145,21 +8335,24 @@ CREATE INDEX IF NOT EXISTS ix_sys_example_tenant_id
 
 # 工作流
 
-`XiHan.BasicApp.Workflow` 是四个一等业务模块之一，坐落在框架 [工作流引擎](https://framework.docs.xihanfun.com/packages/workflow) 之上，把「图执行引擎」变成一套可运营的审批/流程系统：定义能在管理端建、实例能在页面上看和干预、待办能办理和转办、状态落库不怕重启。
+`XiHan.BasicApp.Workflow` 是四个一等业务模块之一，坐落在框架 [工作流引擎](https://framework.docs.xihanfun.com/packages/workflow) 之上，把「图执行引擎」变成一套可运营的审批系统：定义在管理端画、审批人按组织架构规则解析、业务单据挂到流程上走审批、审批人在审批中心办理，状态落库不怕重启。
 
-> 引擎本身的机制（书签、活动、表达式、定时器）见 [框架 · Workflow](https://framework.docs.xihanfun.com/packages/workflow)。本页只讲 BasicApp 这一层加了什么。
+> 引擎本身的机制（书签、活动、表达式、定时器、受理人规则、结果结束节点）见 [框架 · Workflow](https://framework.docs.xihanfun.com/packages/workflow)。本页只讲 BasicApp 这一层加了什么。
 
 ## 模块做了什么
 
-模块类 `[DependsOn]` 同时挂 `XiHanBasicAppSaasModule` 与 `XiHanWorkflowModule`，`ConfigureServices` 只有三行：
+模块类 `[DependsOn]` 同时挂 `XiHanBasicAppSaasModule` 与 `XiHanWorkflowModule`，`ConfigureServices` 按职责分成几段：
 
 ```csharp
-services.AddWorkflowStores();          // ① Replace 掉框架的内存存储
-services.AddWorkflowDataSeeders();     // ② 权限与菜单种子（Order 300–304）
-services.AddWorkflowEventHandlers();   // ③ 待办通知
+services.AddWorkflowStores();               // ① Replace 掉框架的内存存储
+services.AddWorkflowAssigneeProviders();    // ② 组织架构受理人规则（角色 / 部门 / 岗位 / 主管）
+services.AddWorkflowBusinessIntegration();  // ③ 审批业务接入（发起、回写、撤回、进度）
+services.AddWorkflowFieldSecurityEntities();
+services.AddWorkflowDataSeeders();          // ④ 权限与菜单种子
+services.AddWorkflowEventHandlers();        // ⑤ 待办通知与抄送记录
 ```
 
-仓储与应用服务全部交给约定注册。**这是仓库里最干净的独立模块样板**——要照着做一个新模块，读它比读 AI 模块省力。
+仓储与应用服务全部交给约定注册。
 
 ### ① 存储持久化（最关键的一层）
 
@@ -8175,17 +8368,50 @@ services.AddWorkflowEventHandlers();   // ③ 待办通知
 框架 `AddXiHanWorkflow` 已经 `TryAddSingleton` 了内存实现，你再 `TryAdd` 会被静默忽略——表现是「重启后流程全没了」而没有任何报错。
 :::
 
-落库之后才谈得上**崩溃恢复**：进程重启后定时器 Worker 能重新捞到到期书签，挂起中的实例继续往下走。
+存储是单例、每次操作开独立作用域；但 SqlSugar 客户端解析会加入当前环境里的事务工作单元，所以业务在 `[UnitOfWork(true)]` 里发起流程时，引擎写入与业务写入同一个事务提交或回滚。
 
-### ② 权限与菜单
+另有一张 `Sys_Workflow_Task_Record` 记下每次办理、转办、加签与抄送，供「我已审批」「抄送我的」与审批轨迹使用——引擎的书签在办理后即删除，不能用来回看。
+
+### ② 组织架构受理人规则
+
+人工任务的受理人按规则 `{ type, values }` 解析（规则机制与内置的 `User` / `Starter` / `Expression` 见框架文档）。BasicApp 基于 Saas 组织数据注册了六种：
+
+| 规则 | 参数 | 解析为 |
+| --- | --- | --- |
+| `Role` | 角色编码列表 | 启用角色里有效期内的成员 |
+| `Department` | 部门编码列表 | 启用部门的有效成员（不含下级部门） |
+| `DepartmentLeader` | 部门编码列表 | 部门负责人 |
+| `Position` | 岗位编码列表 | 部门任职上挂这些岗位的用户 |
+| `StarterLeader` | 层级 N（缺省 1） | 发起人的第 N 级主管 |
+| `StarterLeaderChain` | 最多层级 N（缺省 1） | 发起人往上逐级的主管，配合「依次审批」做连续多级 |
+
+角色、部门、岗位按**编码**引用（编码创建后不可改），同一份流程定义可以在租户间复用，业务的默认流程模板也能直接写系统角色编码。主管从发起人的主部门起沿上级部门逐级找负责人；发起人自己是某部门负责人时跳过该部门。
+
+节点上与规则配套的设置：
+
+| 设置 | 作用 |
+| --- | --- |
+| 跳过发起人本人 `ExcludeStarter` | 解析结果里去掉发起人，避免「自己批自己」 |
+| 找不到受理人时 `EmptyAssigneeStrategy` | `Fault` 流程报错（缺省）/ `AutoApprove` / `AutoReject` / `Fallback` 转交兜底受理人 |
+| 兜底受理人 `FallbackAssigneeRules` | 策略为 `Fallback` 时使用 |
+| 抄送人 `CcRules` | 任务创建时抄送，进「抄送我的」，不参与办理 |
+| 完成策略 `CompletionPolicy` | 或签 / 会签 / 依次审批 |
+
+设计器的属性面板按这些规则给出选择器：角色、部门、岗位从组织目录选，用户远程检索，主管填层级，表达式提示可用的流程变量。旧版定义里的 `Assignees` / `AssigneesExpression` / `CcUserIds` 打开时会并入规则。
+
+### ③ 审批业务接入
+
+这是把「报销」「权限申请」这类业务单据挂到流程上的机制，详见下文 [审批业务接入](#审批业务接入)。
+
+### ④ 权限与菜单
 
 权限码是独立命名空间 `workflow:*`（不是 `saas:*`）：
 
 | 权限码 | 用途 |
 | --- | --- |
-| `workflow:read` | 查看定义 / 实例 / 待办 |
+| `workflow:read` | 查看定义 / 实例；也可以查看任意审批的详情 |
 | `workflow:create` | 新建定义 |
-| `workflow:update` | 编辑草稿、发布、新版本、停用、归档 |
+| `workflow:update` | 编辑草稿、发布、新版本、停用、归档；挂起 / 恢复实例 |
 | `workflow:delete` | 删除定义 |
 | `workflow:execute` | 发起实例、干预实例（取消/终止/重试） |
 
@@ -8195,23 +8421,50 @@ services.AddWorkflowEventHandlers();   // ③ 待办通知
 
 | 页面 | 路由 | 权限 |
 | --- | --- | --- |
-| 我的待办 | `/workflow/todo` | 无（受理人服务端锁定为当前用户） |
+| 审批中心 | `/approval/center`（挂在「审批」目录下） | 无（主体服务端锁定为当前用户） |
 | 流程定义 | `/workflow/definition` | `workflow:read` |
 | 流程实例 | `/workflow/instance` | `workflow:read` |
 
-### ③ 待办通知
+### ⑤ 待办通知与抄送记录
 
-三个本地事件处理器，经 `AddWorkflowLocalEventHandler<T>` 登记进 `XiHanLocalEventBusOptions.Handlers`：
+四个本地事件处理器，经 `AddWorkflowLocalEventHandler<T>` 登记进 `XiHanLocalEventBusOptions.Handlers`：
 
 - 待办**创建** → 站内通知受理人
 - 待办**转办** → 通知新受理人
 - 实例**故障** → 通知相关人
+- 任务**抄送** → 写抄送记录
 
 ::: warning 裸 `AddTransient` 不会被订阅
 本地事件总线只自动发现「以接口为服务类型」的注册。加新处理器必须走 `AddWorkflowLocalEventHandler<T>()`，否则静默不触发。
 :::
 
 ## 三个页面能做什么
+
+### 审批中心（`/approval/center`）
+
+四个页签，主体都由服务端锁定为当前用户，所以页面不需要权限码：
+
+| 页签 | 内容 |
+| --- | --- |
+| 待我审批 | 当前用户的待办；「办理」打开详情抽屉 |
+| 我已审批 | 当前用户办理、转办、加签过的记录，以及流程现在的状态与结果 |
+| 我发起的 | 当前用户发起的流程，停在哪个节点、等谁审批；可按状态筛选 |
+| 抄送我的 | 抄送给当前用户的流程 |
+
+详情抽屉自上而下是：概要（状态、结果、业务、发起人）、**业务单据**（由审批业务登记的视图组件渲染）、办理区（仅待办）、撤回（仅发起人且流程进行中）、审批轨迹（发起 → 每次办理 / 转办 / 加签 / 抄送 / 自动处理 → 当前等待谁 → 流程结束）。
+
+| 动作 | 说明 |
+| --- | --- |
+| 办理 | 同意 / 驳回，或节点白名单里的自定义结果；可带意见。单据组件暴露 `getVariables()` 时，返回值作为附加变量一起提交 |
+| 转办 | 把任务移交给另一位用户（转办后原受理人的办理会被拒绝） |
+| 加签 | 追加受理人 |
+| 撤回 | 发起人撤回进行中（含故障）的流程，业务单据回到撤回状态 |
+
+办理后若后续节点或业务回写出错，审批已经记录，页面提示流程进入故障态，由管理员在流程实例页重试。
+
+查看详情的人须是发起人、受理人、办理或抄送过的人，或拥有 `workflow:read`；业务单据数据随之下发，业务侧不必再给审批人开单据的查看权限。
+
+地址栏带 `?instanceId=` 会直接打开该流程的详情（业务页面的「查看审批」就是这样跳过来的），`?tab=done` 等预选页签（待办通知里的链接用它）。这两个参数只用一次：页面读完就把地址换回 `/approval/center`，带参数的标签并入审批中心的标签，切回来或刷新不会再弹出详情。
 
 ### 流程定义（`/workflow/definition`）
 
@@ -8227,16 +8480,16 @@ Draft 草稿 ──发布──► Published 已发布 ──停用──► Dis
 | --- | --- | --- |
 | 新建 | `CreateAsync` | 建出来是 `Draft` |
 | 编辑 | `UpdateDraftAsync` | **只能改草稿**，已发布的不能直接改 |
-| 发布 | `PublishAsync` | **只有已发布的定义才能启动实例** |
+| 发布 | `PublishAsync` | **只有已发布的定义才能启动实例**；编码等于审批业务编码时，每个结束节点都要声明该业务允许的结果，且不能有终止节点 |
 | 新版本 | `NewVersionAsync` | 基于现有定义开一个新版本草稿 |
 | 停用 | `DisableAsync` | 不可启动新实例，**存量实例继续运行** |
 | 归档 | `ArchiveAsync` | 彻底下架 |
 
-定义本身是**可序列化的纯数据**（节点 + 连线 + 变量），所以能落库、能在管理端编辑，改流程不需要改代码重新部署。
+列表的「关联业务」列标出编码与哪个审批业务对应。设计器的流程设置里可以选「审批业务」：选中后流程编码随之改成业务编码，并补上业务写入的流程变量声明；校验面板提前提示缺结果的结束节点与终止节点（发布时后端同样拒绝）。
 
 ### 流程实例（`/workflow/instance`）
 
-分页查询 + 详情（**含变量、执行历史与待恢复等待点**），以及四个干预动作：
+分页查询 + 详情（**含变量、执行历史与待恢复等待点**），以及干预动作：
 
 | 动作 | 语义 |
 | --- | --- |
@@ -8245,48 +8498,151 @@ Draft 草稿 ──发布──► Published 已发布 ──停用──► Dis
 | 终止 `TerminateAsync` | 强制结束，**不执行补偿**、不可恢复 |
 | 重试 `RetryAsync` | 从故障节点重新执行 |
 
-取消与终止在实例已处于终态时**幂等返回**，不会报错。
+取消与终止在实例已处于终态时**幂等返回**；故障实例也可以取消或终止（不必先重试成功）。审批业务的实例被取消或终止后，会回调业务把单据置为中止。
 
-实例状态：`Running`（含等待书签的空闲态）/ `Suspended` / `Completed` / `Canceled` / `Faulted`（可重试）/ `Terminated`。
+实例状态：`Running`（含等待书签的空闲态）/ `Suspended` / `Completed` / `Canceled` / `Faulted`（可重试）/ `Terminated`。经结果结束节点完成的实例另有「结果」（如 `approved` / `rejected`），列表与详情都会显示。
 
-### 我的待办（`/workflow/todo`）
+## 审批业务接入
 
-**受理人与办理人都由服务端锁定为当前用户**，所以这个页面不需要额外权限码——你只能看到和办理属于自己的待办。
+业务单据（报销、合同、权限申请……）接审批流，只需要写一个处理器，不用碰引擎。约定只有两条：
 
-| 动作 | 说明 |
-| --- | --- |
-| 办理 `CompleteAsync` | 同意 / 拒绝 / 自定义结果，可带意见与附加变量 |
-| 转办 | 把任务移交给新受理人（转办后原受理人的办理动作会被拒绝） |
-| 加签 | 追加受理人 |
-
-办理结果除内置的 `approved` / `rejected` / `timeout` 外**允许自定义**——配合连线条件即可做多路分支（如「退回补充材料」走一条单独的线）。
-
-完成策略由节点配置决定：**或签**（任一同意即通过、任一拒绝即拒绝）、**会签**（全部同意才通过、任一拒绝一票否决）、**依次审批**（按顺序逐一）。
-
-## 典型接入姿势
-
-业务系统接工作流通常是这样：
+- **业务编码 = 流程定义编码**。发起时按编码取当前租户最新已发布的版本；管理员在设计器里改流程、发新版本，业务代码不用动。
+- **单据主键 = 实例的 `CorrelationId`**。按单据反查流程、批量查进度都靠它。
 
 ```text
-业务写侧（如报销申请提交）
-   │ 落业务表（状态=审批中）
-   │ 调 IWorkflowEngine.StartAsync(定义编码, 变量, CorrelationId=业务单号)
+业务提交（[UnitOfWork(true)]）
+   │ 落业务表（状态 = 待审批）
+   │ IWorkflowBusinessService.StartAsync(业务编码, 单据主键, 标题, 变量)
+   ▼                                   ← 引擎写入与业务写入同一事务
+UserTask：按受理人规则解析审批人 → 待办 + 站内通知
+   │ 审批人在审批中心办理
+   │   └─ OnTaskCompletingAsync：办理前校验（如「不能审批自己的申请」），抛异常即拒绝办理
    ▼
-流程跑到 UserTask 节点 → 写 UserTask 书签 → 实例挂起（不占线程）
-   │ 事件处理器发站内通知给受理人
+走到结果结束节点（Outcome = approved / rejected）
+   │   └─ OnOutcomeAsync：回写业务表、授予权限……失败则回滚，实例进入故障态待重试
    ▼
-受理人在「我的待办」办理 → CompleteAsync → 引擎恢复书签继续推进
-   ▼
-流程走到 End → 实例 Completed
-   │ 业务侧订阅实例完成事件（或流程里用 PublishEvent 活动）
-   ▼
-回写业务表（状态=已通过/已驳回）
+实例 Completed（结果 = approved / rejected）
 ```
 
-两个建议：
+### 1. 实现处理器
 
-- **用 `CorrelationId` 挂业务单号**，这样按业务单反查流程实例、或用 `PublishSignalAsync` 定向唤醒都很自然。
-- **业务状态以业务表为准**，流程实例只驱动流转。不要把业务状态只存在流程变量里——查询、报表、权限都会很难做。
+处理器接口 `IWorkflowBusinessHandler` 在 Saas 里（业务模块不依赖工作流模块）：
+
+```csharp
+public sealed class ExpenseWorkflowHandler : IWorkflowBusinessHandler
+{
+    public WorkflowBusinessDescriptor Descriptor { get; } = new()
+    {
+        Code = "expense",                                  // 同时是流程编码
+        Name = "费用报销",
+        FormComponent = "finance/expense/expense-approval", // 审批抽屉里渲染单据的前端组件
+        Variables = [new("amount", "报销金额", "number")],  // 设计器据此提示分支条件
+        DefaultDefinition = BuildDefaultDefinition,         // 可空：租户首次发起时自动建流程
+    };
+
+    // 办理前校验：只读，抛异常即拒绝本次办理
+    public Task OnTaskCompletingAsync(WorkflowBusinessTaskContext context, CancellationToken ct) => Task.CompletedTask;
+
+    // 流程得出结论：回写单据（必须幂等）
+    public async Task OnOutcomeAsync(WorkflowBusinessOutcomeContext context, CancellationToken ct)
+    {
+        // context.Outcome 为结束节点声明的 approved / rejected（或 Descriptor.Outcomes 里的自定义结果）
+    }
+
+    // 流程被审批中心撤回、或被管理员取消 / 终止：把单据置为中止（必须幂等）
+    public async Task OnAbortedAsync(WorkflowBusinessAbortedContext context, CancellationToken ct) { }
+
+    // 审批抽屉读取单据数据；单据不存在返回 null
+    public async Task<object?> GetFormDataAsync(string businessId, CancellationToken ct) => ...;
+}
+```
+
+在业务模块里注册：
+
+```csharp
+services.TryAddEnumerable(ServiceDescriptor.Transient<IWorkflowBusinessHandler, ExpenseWorkflowHandler>());
+```
+
+### 2. 在业务写侧发起与撤回
+
+```csharp
+[UnitOfWork(true)]
+public async Task<ExpenseDto> SubmitAsync(ExpenseSubmitDto input, CancellationToken ct)
+{
+    var expense = await _expenseRepository.AddAsync(..., ct);       // 状态 = 待审批
+    var result = await _workflowBusinessService.StartAsync(new WorkflowBusinessStartRequest
+    {
+        BusinessCode = "expense",
+        BusinessId = expense.BasicId.ToString(CultureInfo.InvariantCulture),
+        Title = $"费用报销：{expense.Title}",
+        Variables = { ["amount"] = expense.Amount },
+    }, ct);
+    expense.WorkflowInstanceId = result.InstanceId;                 // 单据记住实例，便于跳转审批中心
+    ...
+}
+```
+
+| 方法 | 说明 |
+| --- | --- |
+| `StartAsync` | 当前用户为发起人。业务未登记、同一单据已有进行中的审批、流程未发布、发起即故障（如首个节点解析不到审批人）都抛业务异常，事务随之回滚 |
+| `WithdrawAsync` | 业务自己撤回（删除单据、修改后重新提交前）。业务已自行更新单据状态，**不再回调** `OnAbortedAsync` |
+| `GetProgressAsync` | 批量查单据的审批进度：状态、结果、停在哪个节点、等谁审批。列表页一次查一页 |
+
+工作流模块没有加载时，`IWorkflowBusinessService` 的占位实现对每个调用都抛业务异常——业务不会在不知情的情况下跳过审批。
+
+### 3. 回调的事务与上下文
+
+| 回调 | 何时、在哪个上下文 | 失败时 |
+| --- | --- | --- |
+| `OnTaskCompletingAsync` | 审批人办理之前，审批人的请求上下文 | 拒绝本次办理，待办不变 |
+| `OnOutcomeAsync` | 结果结束节点执行时；有环境事务就加入，否则开独立工作单元 | 回滚回写，实例进入故障态；管理员重试会再次调用 |
+| `OnAbortedAsync` | 审批中心撤回、实例被取消 / 终止之后 | 记录日志，不影响已完成的中止 |
+| `GetFormDataAsync` | 查看审批详情时，按流程参与关系鉴权 | — |
+
+`OnOutcomeAsync` 与 `OnAbortedAsync` 都可能被重复调用，必须幂等（例如按单据当前状态判断是否已处理）。
+
+### 4. 默认流程模板
+
+`DefaultDefinition` 让业务开箱即用：某租户第一次发起该业务、且租户里还没有任何同编码的流程定义时，按模板建一个并发布；之后它和手工设计的流程一样可改、可发新版本。租户里已有同编码定义（哪怕是草稿或已停用）就不再自动建——没发布则发起失败，尊重管理员的选择。
+
+模板用框架的构建器写，结束节点用 `AddOutcomeEnd` 声明结果：
+
+```csharp
+private static WorkflowDefinition BuildDefaultDefinition() =>
+    WorkflowDefinitionBuilder.Create("expense", "费用报销")
+        .AddStart()
+        .AddUserTask("leader-approve", "主管审批", node => node
+            .WithAssigneeRule(OrganizationAssigneeRuleTypes.StarterLeader, "1")
+            .WithProperty("ExcludeStarter", true))
+        .AddOutcomeEnd("end-approved", WorkflowUserTaskOutcomes.Approved, "通过")
+        .AddOutcomeEnd("end-rejected", WorkflowUserTaskOutcomes.Rejected, "驳回")
+        .AddTransition("start", "leader-approve")
+        .AddTransition("leader-approve", "end-approved", "outcome == 'approved'")
+        .AddTransition("leader-approve", "end-rejected", "outcome == 'rejected'")
+        .Build();
+```
+
+### 5. 前端单据组件
+
+`FormComponent` 是相对 `src/views` 的组件路径（与菜单 `Component` 同口径）。审批抽屉按路径加载它，传入：
+
+| 属性 | 说明 |
+| --- | --- |
+| `businessId` | 单据主键 |
+| `data` | `GetFormDataAsync` 的返回值 |
+| `mode` | `approve`（办理中）/ `view`（只读查看） |
+| `nodeId` | 当前待办节点（只读查看时为空） |
+
+需要审批人补填字段时，组件 `defineExpose({ getVariables })`，办理时返回值作为流程变量一起提交。业务列表页可以用 `GetProgressAsync` 的结果显示审批进度，并以 `/approval/center?instanceId=<实例主键>` 跳到审批详情。
+
+### 参照实现：权限申请
+
+`PermissionRequestWorkflowHandler`（编码 `permission-request`）是第一个接入的业务：
+
+- 提交申请即发起流程；删除、修改内容或改到终态时撤回进行中的审批，修改后重新发起；
+- 默认模板是一个「管理员审批」节点，受理人为 `tenant_owner` 与 `super_admin` 角色、跳过申请人本人；
+- 办理前拒绝审批自己的申请，并检查审批人能否授出该角色 / 权限；
+- 通过时授予角色或权限并刷新授权缓存，驳回时只改申请状态；撤回或终止时申请置为已撤回。
 
 ## 运维注意
 
@@ -8296,13 +8652,15 @@ Draft 草稿 ──发布──► Published 已发布 ──停用──► Dis
 | **集群单活** | 定时器 Worker 靠分布式锁保证集群内单活；分布式锁来自 Caching，**未接 Redis 时会退化为进程内锁**，多实例会各跑各的 |
 | **环路防护** | 单批次最大节点执行数（默认 1000）、子流程最大嵌套深度（默认 16）都有硬上限，坏定义不会把进程转死 |
 | **并发** | 引擎对同一实例的所有操作以分布式锁保证单写者；抢锁超时会抛 `WorkflowLockTimeoutException` |
+| **业务回写失败** | 实例停在 `Faulted`，审批记录已保留；修好原因后在流程实例页重试，`OnOutcomeAsync` 会再次执行 |
 
 ## 相关页面
 
-- [框架 · Workflow](https://framework.docs.xihanfun.com/packages/workflow)：引擎机制、内置活动、配置项、代码方式定义流程
+- [框架 · Workflow](https://framework.docs.xihanfun.com/packages/workflow)：引擎机制、内置活动、受理人规则、结果结束节点、代码方式定义流程
 - [框架 · Workflow.Abstractions](https://framework.docs.xihanfun.com/packages/workflow-abstractions)：定义模型与存储端口
-- [审批与约束](./approval)：另一套更轻的审批（`SysReview`）与 RBAC 约束规则引擎
-- [数据模型](./data-model#工作流)：四张表
+- [审批与约束](./approval)：审批中心与 RBAC 约束规则引擎的分工
+- [权限模型](./permission)：权限申请与委托
+- [数据模型](./data-model#工作流)：工作流的表
 - [消息中心](./messaging)：待办通知的投递通道
 
 ---
@@ -8333,7 +8691,7 @@ Draft 草稿 ──发布──► Published 已发布 ──停用──► Dis
 | `XLogoUpload`（`src/components/LogoUpload.vue`） / `XUserAvatar` | 图片上传与头像展示（内置 URL 解析与首字母兜底） |
 
 ::: danger 新增/编辑弹窗一律用 `XEditModal`
-全仓已统一，**不要再手写 `NModal` 外壳**。统一外壳保证了弹窗尺寸、间距、标签宽度、按钮位置在所有页面一致，也让后续调整只改一处。
+全仓已统一，**不要再用 `XhDialog*` 部件手拼外壳**。统一外壳保证了弹窗尺寸、间距、标签宽度、按钮位置在所有页面一致，也让后续调整只改一处。
 :::
 
 ## 消息中心 UI
@@ -8813,7 +9171,7 @@ new("identity.position", "岗位管理", "menu.identity_position", MenuType.Menu
 ### 第三方依赖的归属规则
 
 - **底层功能依赖归属对应的 `packages/` 子包**（自包含）。
-- 根 `package.json` 只留应用层跨切面依赖（`vue` / `vue-router` / `pinia` / `@vueuse` 因 Vite AutoImport 全局导入不可下沉，加上 `naive-ui` / `vue-i18n`）。
+- 根 `package.json` 只留应用层跨切面依赖（`vue` / `vue-router` / `pinia` / `@vueuse` 因 Vite AutoImport 全局导入不可下沉，加上组件库 `@xihan-ui/*` 与 `vue-i18n`）。
 - **`src/` 里禁止直接 import 已下沉的第三方**，一律经 `~/` 转出。
 - 改完依赖归属须跑 `pnpm install` + `pnpm type-check`；死依赖当场删。
 
@@ -8981,7 +9339,7 @@ const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:gr
 ```
 
 ```vue
-<NButton v-if="canGrant">分配权限</NButton>
+<XhButton v-if="canGrant">分配权限</XhButton>
 ```
 
 `usePermission()`（`~/hooks/usePermission.ts`）提供：
@@ -9532,7 +9890,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'accessResult', title: t('log.access.access_result'), dataType: 'enum',
     searchable: true, searchMultiple: true, sortable: true,
     options: accessResultOptions.value, order: 18,
-    render: row => h(NTag, { type: accessResultType(row.accessResult) }, () => /* label */),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: accessResultTone(row.accessResult) }, () => h(XhTagLabel, () => /* label */)),
   },
 
   // 时间区间搜索
@@ -9743,7 +10101,7 @@ resource: {
 
 所以**换主题色不需要改任何 CSS**：改一个色值，整套配色跟着重算。
 
-主色、明暗、圆角、字号变化都会同步到 CSS 变量，非 Naive 的自定义元素也能直接用这些变量。
+主色、明暗、圆角、字号变化都会同步到 CSS 变量，页面里的自定义元素也能直接用这些变量。
 
 ### 切换动画
 

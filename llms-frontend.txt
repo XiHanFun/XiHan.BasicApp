@@ -30,7 +30,7 @@
 | `XLogoUpload`（`src/components/LogoUpload.vue`） / `XUserAvatar` | 图片上传与头像展示（内置 URL 解析与首字母兜底） |
 
 ::: danger 新增/编辑弹窗一律用 `XEditModal`
-全仓已统一，**不要再手写 `NModal` 外壳**。统一外壳保证了弹窗尺寸、间距、标签宽度、按钮位置在所有页面一致，也让后续调整只改一处。
+全仓已统一，**不要再用 `XhDialog*` 部件手拼外壳**。统一外壳保证了弹窗尺寸、间距、标签宽度、按钮位置在所有页面一致，也让后续调整只改一处。
 :::
 
 ## 消息中心 UI
@@ -510,7 +510,7 @@ new("identity.position", "岗位管理", "menu.identity_position", MenuType.Menu
 ### 第三方依赖的归属规则
 
 - **底层功能依赖归属对应的 `packages/` 子包**（自包含）。
-- 根 `package.json` 只留应用层跨切面依赖（`vue` / `vue-router` / `pinia` / `@vueuse` 因 Vite AutoImport 全局导入不可下沉，加上 `naive-ui` / `vue-i18n`）。
+- 根 `package.json` 只留应用层跨切面依赖（`vue` / `vue-router` / `pinia` / `@vueuse` 因 Vite AutoImport 全局导入不可下沉，加上组件库 `@xihan-ui/*` 与 `vue-i18n`）。
 - **`src/` 里禁止直接 import 已下沉的第三方**，一律经 `~/` 转出。
 - 改完依赖归属须跑 `pnpm install` + `pnpm type-check`；死依赖当场删。
 
@@ -678,7 +678,7 @@ const canGrant = computed(() => hasPermission('saas:tenant-edition-permission:gr
 ```
 
 ```vue
-<NButton v-if="canGrant">分配权限</NButton>
+<XhButton v-if="canGrant">分配权限</XhButton>
 ```
 
 `usePermission()`（`~/hooks/usePermission.ts`）提供：
@@ -1229,7 +1229,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'accessResult', title: t('log.access.access_result'), dataType: 'enum',
     searchable: true, searchMultiple: true, sortable: true,
     options: accessResultOptions.value, order: 18,
-    render: row => h(NTag, { type: accessResultType(row.accessResult) }, () => /* label */),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: accessResultTone(row.accessResult) }, () => h(XhTagLabel, () => /* label */)),
   },
 
   // 时间区间搜索
@@ -1440,7 +1440,7 @@ resource: {
 
 所以**换主题色不需要改任何 CSS**：改一个色值，整套配色跟着重算。
 
-主色、明暗、圆角、字号变化都会同步到 CSS 变量，非 Naive 的自定义元素也能直接用这些变量。
+主色、明暗、圆角、字号变化都会同步到 CSS 变量，页面里的自定义元素也能直接用这些变量。
 
 ### 切换动画
 

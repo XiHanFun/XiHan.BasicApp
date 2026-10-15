@@ -6,10 +6,10 @@
 
 ## 机读资产
 
-- [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt): 全部 51 页正文
+- [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt): 全部 54 页正文
 - [llms-backend.txt](https://basicapp.docs.xihanfun.com/llms-backend.txt): 26 页后端手册
 - [llms-frontend.txt](https://basicapp.docs.xihanfun.com/llms-frontend.txt): 11 页前端手册
-- 每页 Markdown：把站点地址后缀成 `.md`，如 https://basicapp.docs.xihanfun.com/backend/ai.md
+- 每页 Markdown：把站点地址后缀成 `.md`，如 https://basicapp.docs.xihanfun.com/ai/agents.md
 
 ## 开始
 
@@ -27,6 +27,12 @@
 - [功能预览](https://basicapp.docs.xihanfun.com/preview): 下面的截图与仓库 README 的「功能亮点」对应，逐项能力见功能清单；想直接上手可打开在线演示。
 - [目录结构与代码地图](https://basicapp.docs.xihanfun.com/project-structure): 这页解决一个具体问题：「我要改 X，该去哪个文件？」 上半部分是目录树，下半部分是按任务索引的代码地图。
 - [为什么选择曦寒](https://basicapp.docs.xihanfun.com/why): 完整能力清单在 功能清单，这一页不重复。
+
+## AI 辅助开发
+
+- [For Agents](https://basicapp.docs.xihanfun.com/ai/agents): 在 XiHan.BasicApp 上做二次开发时，怎样让 Claude Code、Cursor、Codex、GitHub Copilot 这类 AI 编程工具写出符合项目约定的代码。
+- [LLMs.txt](https://basicapp.docs.xihanfun.com/ai/llms): 文档站在构建时产出一组给大语言模型读的机读资产，内容与站点正文同源。
+- [MCP Server](https://basicapp.docs.xihanfun.com/ai/mcp): BasicApp 没有自己的 MCP 服务端：后端与前端分别接入 XiHan.Framework 与 XiHan.UI 的服务端，AI 写后端代码时查框架的包、模块与配置键，写前端代码时查组件的 API、示例与令牌。
 
 ## 后端手册
 
@@ -55,7 +61,7 @@
 - [任务调度](https://basicapp.docs.xihanfun.com/backend/scheduling): 页面 `/setting/job`，实体 `SysTask` + `SysTaskLog`（按月分表）。
 - [系统设置](https://basicapp.docs.xihanfun.com/backend/settings): 「系统设置」这一组页面管的是运行期可调、不需要改代码重新部署的东西：菜单、字典、参数、业务编号、缓存、服务监控、版本。
 - [升级与迁移](https://basicapp.docs.xihanfun.com/backend/upgrade): BasicApp 已接入 XiHan.Framework.Upgrade 的版本状态、迁移台账、多租户分发、租约锁与维护模式扩展，并在 `WebHost/UpdateScripts` 保存前向 SQL 脚本。
-- [工作流](https://basicapp.docs.xihanfun.com/backend/workflow): `XiHan.BasicApp.Workflow` 是四个一等业务模块之一，坐落在框架 工作流引擎 之上，把「图执行引擎」变成一套可运营的审批/流程系统：定义能在管理端建、实例能在页面上看和干预、待办能办理和转办、状态落库不怕重启。
+- [工作流](https://basicapp.docs.xihanfun.com/backend/workflow): `XiHan.BasicApp.Workflow` 是四个一等业务模块之一，坐落在框架 工作流引擎 之上，把「图执行引擎」变成一套可运营的审批系统：定义在管理端画、审批人按组织架构规则解析、业务单据挂到流程上走审批、审批人在审批中心办理，状态落库不怕重启。
 
 ## 前端手册
 
