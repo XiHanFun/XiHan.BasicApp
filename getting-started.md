@@ -56,7 +56,7 @@ dotnet run --project src/main/XiHan.BasicApp.WebHost --launch-profile Developmen
 启动后：
 
 - API 文档（Scalar）：<http://127.0.0.1:9708/scalar>
-- 仓库当前 Development 与 Production 都监听 `9708`；部署时可通过 `Hosting:Urls` 或容器端口映射覆盖
+- Development 监听 `9708`；launch profile 的 Production 为 `9709`，Docker 镜像内为 `9708`。实际监听以 `Hosting:Urls` 为准，部署时可用它或容器端口映射覆盖
 
 **首次启动会自动建表并执行数据种子初始化**，稍等片刻即可。
 

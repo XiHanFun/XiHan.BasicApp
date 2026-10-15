@@ -10,7 +10,7 @@
 backend/src/main/XiHan.BasicApp.WebHost/
 ├── appsettings.json                 # 基础（Logging / AllowedHosts / CodeGeneration）
 ├── appsettings.Development.json     # 开发环境（完整示例，带逐项注释）
-└── appsettings.Production.json      # 生产环境
+└── appsettings.Production.json      # 生产环境（被 .gitignore 忽略，仓库里没有，部署处自建）
 ```
 
 优先级（后者覆盖前者）：`appsettings.json` → `appsettings.{Environment}.json` → 环境变量 → 命令行。
@@ -27,7 +27,7 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | --- | --- | --- |
 | `Urls` | 监听地址与端口，多个用分号分隔 | `http://127.0.0.1:9708` |
 
-仓库 Development 与 Production 当前都监听 `9708`；Docker Compose 也在容器内使用 `9708`，宿主机端口可由 `BACKEND_PORT` 覆盖。开发环境改端口后要同步修改前端的 `VITE_DEV_PROXY_TARGET`。
+`appsettings.Development.json` 与 Development launch profile 都是 `9708`；Production launch profile 的 `applicationUrl` 为 `9709`，仓库不含 `appsettings.Production.json`，部署处写入 `Hosting:Urls` 后以它为准。Docker 镜像通过环境变量 `Hosting__Urls` 在容器内监听 `9708`，宿主机端口可由 Compose 的 `BACKEND_PORT` 覆盖。开发环境改端口后要同步修改前端的 `VITE_DEV_PROXY_TARGET`。
 
 ## `XiHan:Observability`
 

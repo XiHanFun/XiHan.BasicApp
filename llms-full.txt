@@ -17,7 +17,7 @@
 | 环境 | 监听端口 | API 基址 | 在线文档（Scalar） |
 | --- | --- | --- | --- |
 | Development | `9708` | `http://127.0.0.1:9708/api` | `http://127.0.0.1:9708/scalar` |
-| Production | `9708`（仓库默认） | 由部署域名决定 | 生产建议关闭 |
+| Production | `9709`（launch profile；Docker 镜像内为 `9708`） | 由部署域名决定 | 生产建议关闭 |
 
 - 所有动态 API 都挂在 **`/api`** 前缀下。前端通过两个环境变量拼装：`VITE_API_BASE_URL`（协议+主机，开发态通常为空走 Vite 代理）与 `VITE_API_PREFIX`（默认 `/api`）。
 - 实际监听以 `Hosting:Urls` 为准；该配置会覆盖 launch profile 的 `applicationUrl`。
@@ -1306,7 +1306,7 @@ Hub 侧**没有** `long → string` 与枚举的自动转换器（那是 MVC JSO
 backend/src/main/XiHan.BasicApp.WebHost/
 ├── appsettings.json                 # 基础（Logging / AllowedHosts / CodeGeneration）
 ├── appsettings.Development.json     # 开发环境（完整示例，带逐项注释）
-└── appsettings.Production.json      # 生产环境
+└── appsettings.Production.json      # 生产环境（被 .gitignore 忽略，仓库里没有，部署处自建）
 ```
 
 优先级（后者覆盖前者）：`appsettings.json` → `appsettings.{Environment}.json` → 环境变量 → 命令行。
@@ -1323,7 +1323,7 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | --- | --- | --- |
 | `Urls` | 监听地址与端口，多个用分号分隔 | `http://127.0.0.1:9708` |
 
-仓库 Development 与 Production 当前都监听 `9708`；Docker Compose 也在容器内使用 `9708`，宿主机端口可由 `BACKEND_PORT` 覆盖。开发环境改端口后要同步修改前端的 `VITE_DEV_PROXY_TARGET`。
+`appsettings.Development.json` 与 Development launch profile 都是 `9708`；Production launch profile 的 `applicationUrl` 为 `9709`，仓库不含 `appsettings.Production.json`，部署处写入 `Hosting:Urls` 后以它为准。Docker 镜像通过环境变量 `Hosting__Urls` 在容器内监听 `9708`，宿主机端口可由 Compose 的 `BACKEND_PORT` 覆盖。开发环境改端口后要同步修改前端的 `VITE_DEV_PROXY_TARGET`。
 
 ## `XiHan:Observability`
 
@@ -1661,7 +1661,7 @@ dotnet publish backend/src/main/XiHan.BasicApp.WebHost -c Release -o /opt/xihan-
 
 升级脚本当前使用 PostgreSQL 方言。启动时引擎先处理平台库、再处理配置为独立数据库的租户，并用数据库租约锁协调多副本；没抢到租约的副本不会等待，照常启动。上线前应备份数据库、在同版本副本验证脚本，多副本发布时由编排层控制放流，细节见[升级与迁移](./backend/upgrade)。
 
-应用监听地址与端口由配置项 `Hosting:Urls` 决定（`Program.cs` 启动时读取该值并调用 `UseUrls`）；仓库自带的 `appsettings.Production.json` 默认配置为 `http://127.0.0.1:9708`，可按需调整。对外暴露时建议在前面加一层反向代理（Nginx / Caddy 等）做 TLS 终止与静态资源分流。
+应用监听地址与端口由配置项 `Hosting:Urls` 决定（`Program.cs` 启动时读取该值并调用 `UseUrls`）；`appsettings.Production.json` 被 `.gitignore` 忽略、仓库里没有，需在部署处自行写入该键，如 `http://127.0.0.1:9708`；未配置时 `--launch-profile Production` 取 launch profile 的 `http://127.0.0.1:9709`，Docker 镜像则由环境变量 `Hosting__Urls` 设为容器内 `9708`。对外暴露时建议在前面加一层反向代理（Nginx / Caddy 等）做 TLS 终止与静态资源分流。
 
 ## 后端：Linux（Supervisor）
 
@@ -2089,7 +2089,7 @@ docker volume ls          # 查看数据卷
 | 进程 | 端口 | 备注 |
 | --- | --- | --- |
 | 后端 Development | `9708` | API 文档 `http://127.0.0.1:9708/scalar` |
-| 后端 Production | `9708`（仓库默认） | 可由 `Hosting:Urls` / 容器端口映射覆盖 |
+| 后端 Production | `9709`（launch profile；Docker 镜像内为 `9708`） | 实际以 `Hosting:Urls` 为准，也可由容器端口映射覆盖 |
 | 前端 dev server | `9800` | `VITE_PORT` |
 
 开发态前端**不直连后端**：`VITE_API_BASE_URL` 留空，请求打到自己的 dev server，再由 Vite 代理转发到 `VITE_DEV_PROXY_TARGET`（默认 `http://localhost:9708`）——同源转发，天然没有 CORS 问题。
@@ -2512,7 +2512,7 @@ dotnet run --project src/main/XiHan.BasicApp.WebHost --launch-profile Developmen
 启动后：
 
 - API 文档（Scalar）：<http://127.0.0.1:9708/scalar>
-- 仓库当前 Development 与 Production 都监听 `9708`；部署时可通过 `Hosting:Urls` 或容器端口映射覆盖
+- Development 监听 `9708`；launch profile 的 Production 为 `9709`，Docker 镜像内为 `9708`。实际监听以 `Hosting:Urls` 为准，部署时可用它或容器端口映射覆盖
 
 **首次启动会自动建表并执行数据种子初始化**，稍等片刻即可。
 

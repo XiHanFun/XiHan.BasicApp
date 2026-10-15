@@ -32,7 +32,7 @@ dotnet publish backend/src/main/XiHan.BasicApp.WebHost -c Release -o /opt/xihan-
 
 升级脚本当前使用 PostgreSQL 方言。启动时引擎先处理平台库、再处理配置为独立数据库的租户，并用数据库租约锁协调多副本；没抢到租约的副本不会等待，照常启动。上线前应备份数据库、在同版本副本验证脚本，多副本发布时由编排层控制放流，细节见[升级与迁移](./backend/upgrade)。
 
-应用监听地址与端口由配置项 `Hosting:Urls` 决定（`Program.cs` 启动时读取该值并调用 `UseUrls`）；仓库自带的 `appsettings.Production.json` 默认配置为 `http://127.0.0.1:9708`，可按需调整。对外暴露时建议在前面加一层反向代理（Nginx / Caddy 等）做 TLS 终止与静态资源分流。
+应用监听地址与端口由配置项 `Hosting:Urls` 决定（`Program.cs` 启动时读取该值并调用 `UseUrls`）；`appsettings.Production.json` 被 `.gitignore` 忽略、仓库里没有，需在部署处自行写入该键，如 `http://127.0.0.1:9708`；未配置时 `--launch-profile Production` 取 launch profile 的 `http://127.0.0.1:9709`，Docker 镜像则由环境变量 `Hosting__Urls` 设为容器内 `9708`。对外暴露时建议在前面加一层反向代理（Nginx / Caddy 等）做 TLS 终止与静态资源分流。
 
 ## 后端：Linux（Supervisor）
 
