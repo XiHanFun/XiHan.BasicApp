@@ -5,7 +5,7 @@ import type { DefinitionMeta, DefinitionVariableMeta, DesignerEdgeData, Designer
 import type { DiagramAlign, DiagramApi, DiagramEdgeEventPayload } from '~/diagram'
 import type { AppDropdownOption } from '~/types'
 import { useDebounceFn, useElementSize } from '@vueuse/core'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhContextMenuContent, XhContextMenuItem, XhContextMenuItemText, XhContextMenuPositioner, XhContextMenuRoot, XhContextMenuSeparator, XhContextMenuTrigger, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFieldsetLegend, XhFieldsetRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhTagLabel, XhTagRoot, XhToggle } from '@xihan-ui/vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhContextMenuContent, XhContextMenuItem, XhContextMenuItemText, XhContextMenuPositioner, XhContextMenuRoot, XhContextMenuSeparator, XhContextMenuTrigger, XhFieldArrayAddTrigger, XhFieldArrayItem, XhFieldArrayItemAction, XhFieldArrayItemContent, XhFieldArrayItemDeleteTrigger, XhFieldArrayRoot, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFieldsetLegend, XhFieldsetRoot, XhFlex, XhFormRoot, XhSeparator, XhSwitch, XhToggle } from '@xihan-ui/vue'
 import { computed, h, nextTick, reactive, ref, toRaw, useId, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Icon, indexDropdownOptions, toDropdownCollection, VNodeRender, XDropdown, XInput, XNumberInput, XSegmented, XSelect, XTagsInput } from '~/components'
@@ -520,12 +520,14 @@ function handleSave() {
   emit('save', serializeDefinition(rawDefinition, meta, data))
 }
 
+/** 自动布局只挪节点：不重建格子，选中与撤销历史都留着，Ctrl+Z 一步退回布局前 */
 function handleAutoLayout() {
   if (!api)
     return
   const data = api.toData()
   autoLayout(data)
-  api.load(data)
+  api.moveNodes(data.nodes.map(node => ({ id: node.id, x: node.x, y: node.y })))
+  api.zoomToFit()
 }
 
 // ── 结构校验（常驻问题面板 + 节点红点） ─────────────────────────
@@ -667,7 +669,7 @@ function onContextSelect(key: string) {
       <div class="flex min-w-0 items-center gap-1">
         <!-- 设计 / JSON 切换（内联在工具栏最前） -->
         <XSegmented v-model:value="activeTab" class="shrink-0" :options="[{ value: 'design', label: t('workflow.designer.tab_design') }, { value: 'json', label: t('workflow.designer.tab_json') }]" size="sm" />
-        <XhSeparator orientation="vertical" class="!mx-1" />
+        <XhSeparator orientation="vertical" class="workflow-designer__tool-divider !mx-1" />
         <!-- 两侧面板收成抽屉时的开关，紧挨视图切换：开合的是设计视图里的面板 -->
         <template v-if="compact && activeTab === 'design'">
           <XhToggle
@@ -694,20 +696,19 @@ function onContextSelect(key: string) {
           >
             <Icon icon="lucide:panel-right" />
           </XhToggle>
-          <XhSeparator orientation="vertical" class="!mx-1" />
+          <XhSeparator orientation="vertical" class="workflow-designer__tool-divider !mx-1" />
         </template>
-        <XhTagRoot variant="subtle" size="sm" class="shrink-0">
-          <XhTagLabel>
-            {{ meta.code || t('workflow.designer.untitled') }}
-          </XhTagLabel>
-        </XhTagRoot>
-        <span class="min-w-0 max-w-40 truncate text-sm text-gray-500">{{ meta.name }}</span>
+        <!-- 正在编辑的是哪个流程：名称为主（与面板抬头同一档），编码等宽小字为辅；编码不是状态，不套标签 -->
+        <div class="workflow-designer__identity">
+          <span class="workflow-designer__identity-name">{{ meta.name || t('workflow.designer.untitled') }}</span>
+          <span v-if="meta.code" class="workflow-designer__identity-code">{{ meta.code }}</span>
+        </div>
       </div>
 
       <div class="ml-auto flex flex-wrap items-center justify-end gap-1">
         <!-- 撤销/重做/缩放/导出 -->
         <template v-for="(btn, i) in toolButtons" :key="i">
-          <XhSeparator v-if="btn.divider" orientation="vertical" class="!mx-0.5 max-sm:hidden" />
+          <XhSeparator v-if="btn.divider" orientation="vertical" class="workflow-designer__tool-divider !mx-0.5 max-sm:hidden" />
           <XhButton v-else :title="btn.tip" :aria-label="btn.tip" size="sm" variant="ghost" icon-only @click="btn.run">
             <Icon :icon="btn.icon!" />
           </XhButton>
@@ -720,7 +721,7 @@ function onContextSelect(key: string) {
           </XhButton>
         </XDropdown>
 
-        <XhSeparator orientation="vertical" class="!mx-0.5 max-sm:hidden" />
+        <XhSeparator orientation="vertical" class="workflow-designer__tool-divider !mx-0.5 max-sm:hidden" />
 
         <!-- 校验状态 -->
         <XhButton
@@ -733,7 +734,7 @@ function onContextSelect(key: string) {
           {{ issues.length ? issues.length : t('workflow.designer.tb_validate') }}
         </XhButton>
 
-        <XhSeparator orientation="vertical" class="!mx-0.5 max-sm:hidden" />
+        <XhSeparator orientation="vertical" class="workflow-designer__tool-divider !mx-0.5 max-sm:hidden" />
 
         <XhButton variant="subtle" size="sm" @click="handleAutoLayout">
           <Icon icon="lucide:layout-dashboard" />
@@ -1275,6 +1276,38 @@ function onContextSelect(key: string) {
 
 .workflow-designer__json :deep(textarea) {
   resize: none;
+}
+
+/* 工具栏的竖分隔线与组件库 Toolbar 同一把尺：条目高的一半、垂直居中 */
+.workflow-designer__tool-divider {
+  align-self: center;
+  block-size: calc(var(--xh-control-h-sm) / 2);
+  min-block-size: 0;
+}
+
+.workflow-designer__identity {
+  display: flex;
+  align-items: baseline;
+  gap: var(--xh-space-2);
+  min-inline-size: 0;
+}
+
+.workflow-designer__identity-name {
+  overflow: hidden;
+  font-size: var(--xh-text-label-size);
+  font-weight: var(--xh-font-weight-semibold);
+  color: var(--xh-fg-default);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-designer__identity-code {
+  overflow: hidden;
+  font-family: var(--xh-font-family-mono);
+  font-size: var(--xh-text-caption-size);
+  color: var(--xh-fg-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /*
