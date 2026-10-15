@@ -1,3 +1,4 @@
+import type { Tone } from '@xihan-ui/core'
 import { computed, ref, watch } from 'vue'
 
 /**
@@ -15,7 +16,8 @@ import { computed, ref, watch } from 'vue'
  */
 
 export type IslandState = 'loading' | 'success' | 'error' | 'info'
-export type IslandTone = 'default' | 'primary' | 'danger'
+/** 岛内按钮的语气：取组件库 tone 轴里的三档，缺省 neutral */
+export type IslandTone = Extract<Tone, 'neutral' | 'brand' | 'danger'>
 
 /** 岛内交互按钮 */
 export interface IslandAction {

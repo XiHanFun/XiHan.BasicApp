@@ -189,9 +189,9 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'download', title: t('file.export_center.actions.download'), scope: 'row', icon: 'lucide:download', type: 'primary', visible: row => (row as unknown as ExportTaskDto).status === ExportTaskStatus.Success && !!(row as unknown as ExportTaskDto).fileId },
-    { key: 'cancel', title: t('file.export_center.actions.cancel'), scope: 'row', icon: 'lucide:circle-x', type: 'warning', confirm: true, confirmText: row => actionConfirmText(t, t('file.export_center.actions.cancel'), (row as unknown as ExportTaskDto).taskName), visible: row => (row as unknown as ExportTaskDto).status === ExportTaskStatus.Pending },
-    { key: 'delete', title: t('file.export_center.actions.delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error' },
+    { key: 'download', title: t('file.export_center.actions.download'), scope: 'row', icon: 'lucide:download', tone: 'brand', visible: row => (row as unknown as ExportTaskDto).status === ExportTaskStatus.Success && !!(row as unknown as ExportTaskDto).fileId },
+    { key: 'cancel', title: t('file.export_center.actions.cancel'), scope: 'row', icon: 'lucide:circle-x', tone: 'warning', confirm: true, confirmText: row => actionConfirmText(t, t('file.export_center.actions.cancel'), (row as unknown as ExportTaskDto).taskName), visible: row => (row as unknown as ExportTaskDto).status === ExportTaskStatus.Pending },
+    { key: 'delete', title: t('file.export_center.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger' },
   ],
 }))
 

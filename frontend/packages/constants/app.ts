@@ -26,7 +26,7 @@ export const UI_DENSITY_COMFORTABLE = 'comfortable'
 export const UI_DENSITY_COMPACT = 'compact'
 export const UI_DENSITIES = [UI_DENSITY_COMFORTABLE, UI_DENSITY_COMPACT] as const
 export type UiDensity = (typeof UI_DENSITIES)[number]
-/** 缺省宽松：组件库的宽松档即字段 28 / 按钮 32，与迁移前 Naive UI 时期的控件高度同档 */
+/** 缺省宽松：组件库的宽松档即字段 28 / 按钮 32 */
 export const DEFAULT_UI_DENSITY: UiDensity = UI_DENSITY_COMFORTABLE
 
 // ==================== 图表 ====================

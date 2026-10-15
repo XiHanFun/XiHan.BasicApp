@@ -164,9 +164,9 @@ const emailSchema = computed<PageSchema>(() => ({
     remove: id => messageCenterApi.deleteEmail(id),
   },
   actions: [
-    { key: 'detail', title: t('message.record.action_detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
-    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', confirm: true, confirmText: row => actionConfirmText(t, t('message.record.action_resend'), (row as unknown as EmailListItemDto).subject), visible: row => canResend((row as unknown as EmailListItemDto).emailStatus), permission: 'message.record.resend' },
-    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'message.record.delete' },
+    { key: 'detail', title: t('message.record.action_detail'), scope: 'row', tone: 'brand', icon: 'lucide:eye' },
+    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', tone: 'warning', icon: 'lucide:refresh-cw', confirm: true, confirmText: row => actionConfirmText(t, t('message.record.action_resend'), (row as unknown as EmailListItemDto).subject), visible: row => canResend((row as unknown as EmailListItemDto).emailStatus), permission: 'message.record.resend' },
+    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'message.record.delete' },
   ],
 }))
 
@@ -309,9 +309,9 @@ const smsSchema = computed<PageSchema>(() => ({
     remove: id => messageCenterApi.deleteSms(id),
   },
   actions: [
-    { key: 'detail', title: t('message.record.action_detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
-    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', type: 'warning', icon: 'lucide:refresh-cw', confirm: true, confirmText: row => actionConfirmText(t, t('message.record.action_resend'), (row as unknown as SmsListItemDto).templateCode || String((row as unknown as SmsListItemDto).basicId)), visible: row => canResend((row as unknown as SmsListItemDto).smsStatus), permission: 'message.record.resend' },
-    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'message.record.delete' },
+    { key: 'detail', title: t('message.record.action_detail'), scope: 'row', tone: 'brand', icon: 'lucide:eye' },
+    { key: 'resend', title: t('message.record.action_resend'), scope: 'row', tone: 'warning', icon: 'lucide:refresh-cw', confirm: true, confirmText: row => actionConfirmText(t, t('message.record.action_resend'), (row as unknown as SmsListItemDto).templateCode || String((row as unknown as SmsListItemDto).basicId)), visible: row => canResend((row as unknown as SmsListItemDto).smsStatus), permission: 'message.record.resend' },
+    { key: 'delete', title: t('message.record.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'message.record.delete' },
   ],
 }))
 
@@ -570,8 +570,8 @@ async function deleteSms(row: SmsListItemDto) {
 }
 
 /* SchemaPage 依赖父级定高（内部 flex-1 + height:0 的表格卡片，分页贴底）。
-   被 NTabs 包裹时高度链在 tab pane 处断裂，这里补全传递链，
-   与授权申请等以 NTabs 包裹 SchemaPage 的页面保持一致。 */
+   包在标签页里时高度链在标签页根上断开，这里补全传递链，
+   与授权申请等把 SchemaPage 放进标签页的页面保持一致。 */
 .message-page :deep([data-scope='tabs'][data-part='root']) {
   display: flex;
   flex-direction: column;

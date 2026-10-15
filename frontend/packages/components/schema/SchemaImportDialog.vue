@@ -376,7 +376,7 @@ function handleClose(): void {
 </template>
 
 <style scoped>
-/* 内容纵向堆叠，替掉原先的 NSpace vertical */
+/* 内容纵向堆叠 */
 .xh-import-body {
   display: flex;
   flex-direction: column;
@@ -405,7 +405,7 @@ function handleClose(): void {
   font-size: 32px;
 }
 
-/* 底部按钮行右对齐，替掉原先的 NSpace justify=end */
+/* 说明与下载模板钮一行排开，挤不下时折行 */
 .xh-import-tip {
   display: flex;
   gap: 8px;

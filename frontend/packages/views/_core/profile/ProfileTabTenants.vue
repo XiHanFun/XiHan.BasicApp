@@ -58,7 +58,7 @@ async function switchTo(tenantId: string) {
   }
 }
 
-/** 成员类型 → NTag 类型（所有者/管理员高亮） */
+/** 成员类型 → 标签语气（所有者/管理员高亮） */
 function memberTagType(type: TenantMemberType) {
   if (type === TenantMemberType.Owner) {
     return 'warning'

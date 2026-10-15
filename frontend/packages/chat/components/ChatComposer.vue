@@ -215,7 +215,7 @@ function insertNewlineAtCursor() {
   })
 }
 
-/** 键盘分发：NInput 的 onKeydown 只接受单个函数；发送键位随偏好切换 */
+/** 键盘分发：回车发送还是换行随偏好切换 */
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Enter') {
     // 中文输入法组合态的回车是选词，不发送

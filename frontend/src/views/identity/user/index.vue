@@ -513,20 +513,20 @@ const schema = computed<PageSchema>(() => ({
     export: { businessType: 'identity.user', buildQuery: buildUserQuery },
   },
   actions: [
-    { key: 'create', title: t('identity.user.action_create'), scope: 'page', type: 'primary', icon: 'tabler:plus', permission: 'identity.user.create' },
+    { key: 'create', title: t('identity.user.action_create'), scope: 'page', tone: 'brand', icon: 'tabler:plus', permission: 'identity.user.create' },
     { key: 'view', title: t('identity.user.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('identity.user.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'identity.user.update' },
     { key: 'grantRole', title: t('identity.user.action_grant_role'), scope: 'row', icon: 'lucide:users-round', permission: 'identity.user.grant-role' },
     { key: 'grantPermission', title: t('identity.user.action_grant_perm'), scope: 'row', icon: 'lucide:key-round', permission: 'identity.user.grant-permission' },
     // 数据范围是租户侧设置：平台态的按钮码里本就没有它，不必再判上下文
     { key: 'dataScope', title: t('identity.user.action_data_scope'), scope: 'row', icon: 'lucide:building-2', permission: 'identity.user.data-scope' },
-    { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', type: 'warning', icon: 'lucide:lock', visible: isHomeAccountRow, permission: 'identity.user.lock' },
-    { key: 'resetPassword', title: t('identity.user.action_reset_password'), scope: 'row', type: 'error', icon: 'lucide:key-square', visible: isHomeAccountRow, permission: 'identity.user.reset-password' },
+    { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', visible: isHomeAccountRow, permission: 'identity.user.lock' },
+    { key: 'resetPassword', title: t('identity.user.action_reset_password'), scope: 'row', tone: 'danger', icon: 'lucide:key-square', visible: isHomeAccountRow, permission: 'identity.user.reset-password' },
     {
       key: 'resetOtp',
       title: t('identity.user.action_reset_otp'),
       scope: 'row',
-      type: 'error',
+      tone: 'danger',
       icon: 'lucide:shield-off',
       visible: row => isHomeAccountRow(row) && (row as unknown as UserListItemDto).twoFactorEnabled,
       permission: 'identity.user.reset-two-factor',
@@ -539,12 +539,12 @@ const schema = computed<PageSchema>(() => ({
       visible: row => canImpersonate((row as unknown as UserListItemDto)),
       permission: 'identity.user.impersonate',
     },
-    { key: 'logout', title: t('identity.user.action_logout'), scope: 'row', type: 'error', icon: 'lucide:log-out', visible: isHomeAccountRow, permission: 'identity.user.revoke-sessions' },
+    { key: 'logout', title: t('identity.user.action_logout'), scope: 'row', tone: 'danger', icon: 'lucide:log-out', visible: isHomeAccountRow, permission: 'identity.user.revoke-sessions' },
     {
       key: 'delete',
       title: t('identity.user.action_delete'),
       scope: 'row',
-      type: 'error',
+      tone: 'danger',
       icon: 'lucide:trash-2',
       visible: row => isHomeAccountRow(row) && !(row as unknown as UserListItemDto).isSystemAccount,
       permission: 'identity.user.delete',
@@ -1353,7 +1353,7 @@ async function confirmDelete() {
           <XhTabsIndicator />
         </XhTabsList>
         <XhTabsContent value="0">
-          <!-- NForm 渲染真实 form 元素：密码输入必须在 form 内，否则浏览器告警 -->
+          <!-- 表单根渲染真实 form 元素：密码输入必须在 form 内，否则浏览器告警 -->
           <XhFormRoot
             :id="editFormId"
             validate-on="blur"

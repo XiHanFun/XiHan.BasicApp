@@ -627,7 +627,7 @@ export default {
     density_large: '넓게',
     striped: '줄무늬',
     bordered: '테두리',
-    single_line: '단일 선',
+    ruled: '세로선',
     auto: '자동',
     title: '테이블 설정',
     reset: '기본값 복원',

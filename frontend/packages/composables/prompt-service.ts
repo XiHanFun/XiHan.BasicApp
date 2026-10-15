@@ -1,4 +1,5 @@
 import type { Tone } from '@xihan-ui/core'
+import type { DialogServiceBadge } from '@xihan-ui/headless'
 import type { VNodeChild } from 'vue'
 import {
   XhDialogDescription,
@@ -43,8 +44,8 @@ export interface PromptOptions {
   cancelText?: string
   /** 确认钮语气；不可逆操作传 danger */
   tone?: Tone
-  /** 标题旁的类型徽记 */
-  badge?: 'info' | 'success' | 'warning' | 'error'
+  /** 标题旁的类型徽记（组件库弹窗服务的徽记词） */
+  badge?: DialogServiceBadge
   /**
    * 确认回调。返回 false 表示校验未通过，弹窗保持打开；
    * 抛错同理，另由调用方自行提示。

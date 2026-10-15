@@ -766,7 +766,7 @@ onUnmounted(() => {
 }
 
 .sv-refresh-btn {
-  color: var(--text-secondary) !important;
+  color: var(--text-secondary);
 }
 
 .sv-overview-grid {
@@ -1103,7 +1103,7 @@ onUnmounted(() => {
   padding: 20px 0;
   text-align: center;
   font-size: 13px;
-  color: var(--text-tertiary);
+  color: var(--xh-fg-subtle);
 }
 
 /* ========== Responsive ========== */

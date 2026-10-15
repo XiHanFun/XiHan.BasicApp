@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { BannerTone } from '../composables/use-banner-notices'
 import type { AppUserInboxDisplayItem } from '~/types'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
@@ -12,19 +13,19 @@ const { t } = useI18n()
 const router = useRouter()
 const { banners, active, activeIndex, paused, dismiss } = useBannerNotices()
 
-/** 视觉类型 → 默认图标（公告项自带 icon 时优先） */
-const TONE_ICON: Record<string, string> = {
+/** 语气 → 默认图标（公告项自带 icon 时优先） */
+const TONE_ICON: Record<BannerTone, string> = {
   info: 'lucide:info',
   success: 'lucide:check-circle-2',
   warning: 'lucide:alert-triangle',
-  error: 'lucide:alert-circle',
-  primary: 'lucide:megaphone',
+  danger: 'lucide:alert-circle',
+  brand: 'lucide:megaphone',
 }
 
 function resolveIcon(item: AppUserInboxDisplayItem): string {
   const icon = item.icon
   if (!icon) {
-    return TONE_ICON[resolveBannerTone(item)] ?? 'lucide:megaphone'
+    return TONE_ICON[resolveBannerTone(item)]
   }
   return icon.includes(':') ? icon : `lucide:${icon}`
 }
@@ -149,38 +150,31 @@ function onDetail(item: AppUserInboxDisplayItem): void {
   height: 36px;
   padding: 0 10px;
   border-radius: 8px;
-  border: 1px solid;
+  /* 配色与组件库提示条同一套兑法：淡底 12%、描边 40%、文字往前景色兑到 60%，深浅两态都跟着主题走 */
+  border: var(--xh-stroke-thin) solid color-mix(in oklab, var(--notif-banner-tone) 40%, var(--xh-bg-surface));
+  background: color-mix(in oklab, var(--notif-banner-tone) 12%, var(--xh-bg-surface));
+  color: color-mix(in oklab, var(--notif-banner-tone) 60%, var(--xh-fg-default));
 }
 
-/* 5 态配色（按通知类型/优先级映射） */
+/* 5 种语气（按通知类型/优先级映射） */
 .notif-banner--info {
-  border-color: #3b82f64d;
-  background: #3b82f614;
-  color: #1d4ed8;
+  --notif-banner-tone: var(--xh-color-info-600);
 }
 
 .notif-banner--success {
-  border-color: #22c55e4d;
-  background: #22c55e14;
-  color: #15803d;
+  --notif-banner-tone: var(--xh-color-success-600);
 }
 
 .notif-banner--warning {
-  border-color: #f59e0b55;
-  background: #f59e0b16;
-  color: #b45309;
+  --notif-banner-tone: var(--xh-color-warning-600);
 }
 
-.notif-banner--error {
-  border-color: #ef44444d;
-  background: #ef444414;
-  color: #b91c1c;
+.notif-banner--danger {
+  --notif-banner-tone: var(--xh-color-danger-600);
 }
 
-.notif-banner--primary {
-  border-color: hsl(var(--primary) / 30%);
-  background: hsl(var(--primary) / 8%);
-  color: hsl(var(--primary));
+.notif-banner--brand {
+  --notif-banner-tone: var(--xh-bg-brand);
 }
 
 .notif-banner__icon {

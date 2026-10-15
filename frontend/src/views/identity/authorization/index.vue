@@ -268,10 +268,10 @@ const requestSchema = computed<PageSchema>(() => ({
     remove: id => permissionRequestApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('identity.authorization.req_action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.authorization.create' },
+    { key: 'create', title: t('identity.authorization.req_action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'identity.authorization.create' },
     // 审批在审批中心办理；这里只跳过去看进度与轨迹（发起人、审批人或有流程查看权的人可看）
     { key: 'trace', title: t('identity.authorization.req_action_trace'), scope: 'row', icon: 'lucide:route', visible: hasWorkflow },
-    { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, requestName(row)), permission: 'identity.authorization.withdraw' },
+    { key: 'delete', title: t('identity.authorization.req_action_delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, requestName(row)), permission: 'identity.authorization.withdraw' },
   ],
 }))
 
@@ -463,9 +463,9 @@ const delegationSchema = computed<PageSchema>(() => ({
     remove: id => permissionDelegationApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('identity.authorization.del_action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.authorization.delegation-create' },
-    { key: 'revoke', title: t('identity.authorization.del_action_revoke'), scope: 'row', icon: 'lucide:undo-2', type: 'error', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.del_action_revoke'), delegationName(row)), visible: canRevoke, permission: 'identity.authorization.delegation-revoke' },
-    { key: 'delete', title: t('identity.authorization.del_action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, delegationName(row)), permission: 'identity.authorization.delegation-delete' },
+    { key: 'create', title: t('identity.authorization.del_action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'identity.authorization.delegation-create' },
+    { key: 'revoke', title: t('identity.authorization.del_action_revoke'), scope: 'row', icon: 'lucide:undo-2', tone: 'danger', confirm: true, confirmText: row => actionConfirmText(t, t('identity.authorization.del_action_revoke'), delegationName(row)), visible: canRevoke, permission: 'identity.authorization.delegation-revoke' },
+    { key: 'delete', title: t('identity.authorization.del_action_delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, delegationName(row)), permission: 'identity.authorization.delegation-delete' },
   ],
 }))
 
@@ -834,7 +834,7 @@ async function submitDelegation() {
 }
 
 /* SchemaPage 依赖父级定高（内部 flex-1 + height:0 定高表格卡片，分页贴底）。
-   页面主体被 NTabs 包裹时高度链在 tab pane 处断裂，这里补全传递链，
+   页面主体包在标签页里，高度链在标签页根上断开，这里补全传递链，
    使其与用户管理等根级 SchemaPage 页面布局一致。 */
 .auth-page :deep([data-scope='tabs'][data-part='root']) {
   display: flex;

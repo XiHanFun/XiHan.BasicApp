@@ -13,7 +13,7 @@ export interface RowPeekState<TRow> {
   row: Ref<TRow | null>
   x: Ref<number>
   y: Ref<number>
-  /** 绑定到 NDataTable :row-props 的工厂 */
+  /** 逐行附加属性（悬停事件）的工厂，由表格面板合进每一行 */
   rowProps: (row: TRow) => Record<string, unknown>
   hide: () => void
 }

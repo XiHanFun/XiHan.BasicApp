@@ -123,7 +123,7 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => emailConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('message.email_config.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.email-config.create' },
+    { key: 'create', title: t('message.email_config.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'setting.email-config.create' },
     { key: 'edit', title: t('message.email_config.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.email-config.update' },
     { key: 'toggle', title: t('message.email_config.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.email-config.status' },
     {
@@ -139,7 +139,7 @@ const schema = computed<PageSchema>(() => ({
       title: t('message.email_config.actions.delete'),
       scope: 'row',
       icon: 'lucide:trash-2',
-      type: 'error',
+      tone: 'danger',
       permission: 'setting.email-config.delete',
       visible: row => !(row as unknown as EmailConfigListItemDto).isDefault,
     },

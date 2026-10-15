@@ -110,9 +110,9 @@ const schema = computed<PageSchema>(() => ({
     remove: id => aiPromptApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('develop.ai_prompt.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'ai_prompt.create' },
+    { key: 'create', title: t('develop.ai_prompt.add'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'ai_prompt.create' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'ai_prompt.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'ai_prompt.delete' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'ai_prompt.delete' },
   ],
 }))
 
@@ -393,7 +393,7 @@ async function handleSubmit() {
 
 <style scoped>
 .prompt-content-input :deep(textarea) {
-  font-family: var(--font-mono, ui-monospace, 'SFMono-Regular', 'Consolas', monospace);
+  font-family: var(--xh-font-family-mono);
   font-size: 12px;
   line-height: 1.6;
 }

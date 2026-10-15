@@ -131,7 +131,7 @@ const todoSchema = computed<PageSchema>(() => ({
     }) as unknown as Promise<PageResult<Record<string, unknown>>>,
   },
   actions: [
-    { key: 'handle', title: t('workflow.approval.action_handle'), scope: 'row', icon: 'lucide:stamp', type: 'primary' },
+    { key: 'handle', title: t('workflow.approval.action_handle'), scope: 'row', icon: 'lucide:stamp', tone: 'brand' },
   ],
 }))
 

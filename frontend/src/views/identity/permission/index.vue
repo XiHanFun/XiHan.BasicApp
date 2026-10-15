@@ -282,11 +282,11 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => permissionCenterApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('identity.permission.batch_enable_remark') : t('identity.permission.batch_disable_remark') }),
   },
   actions: [
-    { key: 'create', title: t('identity.permission.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.permission.create' },
+    { key: 'create', title: t('identity.permission.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'identity.permission.create' },
     { key: 'view', title: t('identity.permission.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('identity.permission.action_edit'), scope: 'row', icon: 'lucide:pencil', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.update' },
     { key: 'toggle', title: t('identity.permission.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PermissionListItemDto).status === EnableStatus.Enabled, (row as unknown as PermissionListItemDto).permissionName), visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.status' },
-    { key: 'delete', title: t('identity.permission.action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as PermissionListItemDto).permissionName), visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.delete' },
+    { key: 'delete', title: t('identity.permission.action_delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as PermissionListItemDto).permissionName), visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.delete' },
   ],
 }))
 

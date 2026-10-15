@@ -408,10 +408,10 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => fieldLevelSecurityApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled, remark: enabled ? t('identity.field_security.batch_enable_remark') : t('identity.field_security.batch_disable_remark') }),
   },
   actions: [
-    { key: 'create', title: t('identity.field_security.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.field-security.create' },
+    { key: 'create', title: t('identity.field_security.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'identity.field-security.create' },
     { key: 'edit', title: t('identity.field_security.action_edit'), scope: 'row', icon: 'lucide:pencil', visible: canMaintain, permission: 'identity.field-security.update' },
     { key: 'toggle', title: t('identity.field_security.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as FieldLevelSecurityListItemDto).status === EnableStatus.Enabled, fieldSecurityName(row as unknown as FieldLevelSecurityListItemDto)), visible: canMaintain, permission: 'identity.field-security.status' },
-    { key: 'delete', title: t('identity.field_security.action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, fieldSecurityName(row as unknown as FieldLevelSecurityListItemDto)), visible: canMaintain, permission: 'identity.field-security.delete' },
+    { key: 'delete', title: t('identity.field_security.action_delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, fieldSecurityName(row as unknown as FieldLevelSecurityListItemDto)), visible: canMaintain, permission: 'identity.field-security.delete' },
   ],
 }))
 

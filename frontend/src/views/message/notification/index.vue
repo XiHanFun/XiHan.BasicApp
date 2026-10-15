@@ -307,12 +307,12 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'create', title: t('message.notification.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'message.notification.create' },
+    { key: 'create', title: t('message.notification.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'message.notification.create' },
     { key: 'view', title: t('message.notification.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'stats', title: t('message.notification.action_stats'), scope: 'row', icon: 'lucide:bar-chart-3', permission: 'message.notification.read', visible: isPublished },
     { key: 'edit', title: t('message.notification.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'message.notification.update', visible: isUnpublished },
-    { key: 'publish', title: t('message.notification.action_publish'), scope: 'row', type: 'primary', icon: 'lucide:send', permission: 'message.notification.publish', visible: isUnpublished },
-    { key: 'delete', title: t('message.notification.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'message.notification.delete', confirm: true, confirmText: t('message.notification.confirm_delete') },
+    { key: 'publish', title: t('message.notification.action_publish'), scope: 'row', tone: 'brand', icon: 'lucide:send', permission: 'message.notification.publish', visible: isUnpublished },
+    { key: 'delete', title: t('message.notification.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'message.notification.delete', confirm: true, confirmText: t('message.notification.confirm_delete') },
   ],
 }))
 
@@ -1171,7 +1171,7 @@ async function handleSubmit() {
 .stats__rate-label {
   flex: none;
   font-size: 13px;
-  color: var(--text-color-3, #999);
+  color: var(--xh-fg-subtle);
 }
 
 .stats__ops {

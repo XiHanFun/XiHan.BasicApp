@@ -627,7 +627,7 @@ export default {
     density_large: 'ゆったり',
     striped: 'ストライプ',
     bordered: '罫線',
-    single_line: '単線',
+    ruled: '縦罫線',
     auto: '自動',
     title: 'テーブル設定',
     reset: '初期値に戻す',

@@ -60,8 +60,8 @@ const props = withDefaults(defineProps<{
   striped?: boolean
   /** 边框 */
   bordered?: boolean
-  /** 单线（关闭时显示纵向分隔线） */
-  singleLine?: boolean
+  /** 列之间的竖线 */
+  ruled?: boolean
   /** 数据列的对齐（表格设置里选的那一档），缺省靠起始边 */
   align?: 'left' | 'center' | 'right'
   /** 树形模式（启用后不分页、按 childrenKey 展开子行） */
@@ -94,7 +94,7 @@ const props = withDefaults(defineProps<{
   density: 'sm',
   striped: false,
   bordered: true,
-  singleLine: true,
+  ruled: false,
   align: 'left',
   tree: false,
   childrenKey: 'children',
@@ -353,7 +353,7 @@ function rowAttrs(row: TRow, rowIndex: number) {
       sticky-header
       :striped="striped"
       :variant="bordered ? 'outline' : 'ghost'"
-      :ruled="!singleLine"
+      :ruled="ruled"
       @column-preference-change="onColumnPreferenceChange"
       @update:sort="onSortChange"
       @update:selection="onSelectionChange"

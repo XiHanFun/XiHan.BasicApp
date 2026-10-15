@@ -229,7 +229,7 @@ function clearSession(): void {
     :close-on-interact-outside="false"
     @update:open="requestVisible"
   >
-    <XhDialogContent class="print-sample-data-modal">
+    <XhDialogContent class="print-sample-data-modal" style="--xh-dialog-max-w: min(94vw, 960px)">
       <XhDialogHeader>
         <XhDialogTitle>{{ t('setting.print_template.sample_data_title') }}</XhDialogTitle>
       </XhDialogHeader>
@@ -417,11 +417,6 @@ function clearSession(): void {
 </template>
 
 <style>
-.print-sample-data-modal {
-  width: 960px !important;
-  max-width: 94vw;
-}
-
 .sample-data-body {
   display: flex;
   min-height: 220px;

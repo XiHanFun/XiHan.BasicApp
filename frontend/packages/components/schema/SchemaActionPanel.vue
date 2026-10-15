@@ -10,7 +10,7 @@ import { Icon } from '~/iconify'
 import { VNodeRender } from '../common/VNodeRender'
 import XIconButton from '../common/XIconButton.vue'
 import { actionMenuPrefix } from './action-menu'
-import { actionButtonTone, actionMenuTone } from './action-tone'
+import { actionMenuTone } from './action-tone'
 
 defineOptions({ name: 'SchemaActionPanel' })
 
@@ -51,7 +51,7 @@ const primaryActions = computed(() => permitted.value.slice(0, props.maxButtons)
 const moreActions = computed(() => permitted.value.slice(props.maxButtons))
 
 const moreOptions = computed<MenuNode[]>(() =>
-  moreActions.value.map(a => ({ value: a.key, label: a.title, tone: actionMenuTone(a.type) })),
+  moreActions.value.map(a => ({ value: a.key, label: a.title, tone: actionMenuTone(a.tone) })),
 )
 
 /** 「更多」里的行首图标；没有一条声明图标时为空，不铺这一列 */
@@ -73,8 +73,8 @@ const moreItemPrefix = computed(() => actionMenuPrefix(moreActions.value))
       <XhButton
         v-else
         size="sm"
-        :variant="action.type && action.type !== 'default' ? 'solid' : 'outline'"
-        :tone="actionButtonTone(action.type)"
+        :variant="action.tone && action.tone !== 'neutral' ? 'solid' : 'outline'"
+        :tone="action.tone ?? 'neutral'"
         :aria-label="action.title"
         @click="emit('action', action.key)"
       >

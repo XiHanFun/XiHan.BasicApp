@@ -603,7 +603,7 @@ onBeforeUnmount(() => {
                         :key="action.key"
                         type="button"
                         class="di-action"
-                        :class="`tone-${action.tone || 'default'}`"
+                        :class="`tone-${action.tone ?? 'neutral'}`"
                         @click.stop="onActionClick(task, action)"
                       >
                         <Icon v-if="action.icon" :icon="action.icon" width="13" height="13" />
@@ -1109,13 +1109,13 @@ onBeforeUnmount(() => {
   background: rgb(255 255 255 / 20%);
 }
 
-.di-action.tone-primary {
-  background: #3b82f6;
-  color: #fff;
+.di-action.tone-brand {
+  background: var(--xh-bg-brand);
+  color: var(--xh-fg-on-brand);
 }
 
-.di-action.tone-primary:hover {
-  background: #2f74e8;
+.di-action.tone-brand:hover {
+  background: var(--xh-bg-brand-hover);
 }
 
 .di-action.tone-danger {

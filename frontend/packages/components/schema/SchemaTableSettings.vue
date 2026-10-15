@@ -44,9 +44,9 @@ const { t } = useI18n()
 const appStore = useAppStore()
 
 const densityOptions = computed<Array<{ label: string, value: TableDensity }>>(() => [
-  { label: t('component.schema_table_settings.density_small'), value: 'small' },
-  { label: t('component.schema_table_settings.density_medium'), value: 'medium' },
-  { label: t('component.schema_table_settings.density_large'), value: 'large' },
+  { label: t('component.schema_table_settings.density_small'), value: 'sm' },
+  { label: t('component.schema_table_settings.density_medium'), value: 'md' },
+  { label: t('component.schema_table_settings.density_large'), value: 'lg' },
 ])
 
 const alignOptions = computed<Array<{ label: string, value: TableAlign }>>(() => [
@@ -55,16 +55,15 @@ const alignOptions = computed<Array<{ label: string, value: TableAlign }>>(() =>
   { label: t('component.schema_table_settings.align_right'), value: 'right' },
 ])
 
-const styleOptions = computed<Array<{ label: string, key: keyof TableStyle, invert?: boolean }>>(() => [
+const styleOptions = computed<Array<{ label: string, key: keyof TableStyle }>>(() => [
   { label: t('component.schema_table_settings.striped'), key: 'striped' },
   { label: t('component.schema_table_settings.bordered'), key: 'bordered' },
-  // 存的是 single-line：true 表示「无竖线」，与按钮直觉相反，故反向显示：选中=有竖线
-  { label: t('component.schema_table_settings.single_line'), key: 'singleLine', invert: true },
+  { label: t('component.schema_table_settings.ruled'), key: 'ruled' },
 ])
 
-/** 风格是一组可同时开的开关：选中集合按「显示语义」算（竖线那一项反向） */
+/** 风格是一组可同时开的开关：选中集合即开着的那几项 */
 const styleValue = computed(() => styleOptions.value
-  .filter(opt => (opt.invert ? !props.tableStyle[opt.key] : props.tableStyle[opt.key]))
+  .filter(opt => props.tableStyle[opt.key])
   .map(opt => opt.key))
 
 function onDensityChange(value: string | string[] | null) {
@@ -83,9 +82,8 @@ function onStyleChange(value: string | string[] | null) {
   const next = new Set(Array.isArray(value) ? value : value == null ? [] : [value])
   for (const opt of styleOptions.value) {
     const shown = next.has(opt.key)
-    const current = opt.invert ? !props.tableStyle[opt.key] : props.tableStyle[opt.key]
-    if (shown !== current)
-      emit('setStyle', opt.key, opt.invert ? !shown : shown)
+    if (shown !== props.tableStyle[opt.key])
+      emit('setStyle', opt.key, shown)
   }
 }
 

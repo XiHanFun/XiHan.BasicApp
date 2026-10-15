@@ -142,12 +142,12 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'create', title: t('setting.config.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.config.create' },
+    { key: 'create', title: t('setting.config.add'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'setting.config.create' },
     { key: 'view', title: t('setting.config.view'), scope: 'row', icon: 'lucide:eye' },
     // 内置配置本就是给运维调值的：后端只禁止删除，不限制改值与启停
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', visible: row => canMaintainConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.update' },
     { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as ConfigListItemDto).status === EnableStatus.Enabled, (row as unknown as ConfigListItemDto).configName), visible: row => canMaintainConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.status' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as ConfigListItemDto).configName), visible: row => canDeleteConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.delete' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as ConfigListItemDto).configName), visible: row => canDeleteConfig(row as unknown as ConfigListItemDto), permission: 'setting.config.delete' },
   ],
 }))
 
@@ -725,7 +725,7 @@ async function handleToggleStatus(row: ConfigListItemDto) {
   padding: 8px 10px;
   border-radius: 4px;
   background: var(--xh-bg-subtle);
-  font-family: var(--font-family-mono, monospace);
+  font-family: var(--xh-font-family-mono);
   font-size: 12px;
   line-height: 1.5;
   white-space: pre-wrap;

@@ -174,7 +174,7 @@ onMounted(async () => {
   background: hsl(var(--card));
 }
 
-/* 只铺满高度；宽度交给 NCarousel 自身按像素计算
+/* 只铺满高度；宽度交给轮播组件自身按像素计算
    （强行设 width:100% 会让 flex 轨道挤窄当前页、露出相邻幻灯片缝隙） */
 .announce-carousel :deep([data-scope='carousel']:is([data-part='viewport'], [data-part='list'], [data-part='item'])) {
   height: 100%;

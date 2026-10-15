@@ -145,7 +145,7 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => orgManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: t('identity.org.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'identity.org.create' },
+    { key: 'create', title: t('identity.org.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'identity.org.create' },
     { key: 'addChild', title: t('identity.org.action_add_child'), scope: 'row', icon: 'lucide:plus', permission: 'identity.org.create' },
     { key: 'view', title: t('identity.org.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('identity.org.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'identity.org.update' },
