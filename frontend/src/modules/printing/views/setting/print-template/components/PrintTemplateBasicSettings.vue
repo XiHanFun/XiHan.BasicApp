@@ -107,16 +107,19 @@ const basicComplete = computed(() => completedRequiredCount.value === 2)
   gap: 12px;
   margin-top: 8px;
   padding: 14px 16px;
-  color: #b45309;
-  border: 1px solid rgba(245, 158, 11, 0.28);
+  /* 完成度条与组件库提示条同一套兑法：淡底 12%、描边 40%；图标随语气色 */
+  --basic-completion-tone: var(--xh-color-warning-600);
+
+  color: var(--xh-fg-warning);
+  border: 1px solid color-mix(in oklab, var(--basic-completion-tone) 40%, var(--xh-bg-surface));
   border-radius: 8px;
-  background: rgba(245, 158, 11, 0.05);
+  background: color-mix(in oklab, var(--basic-completion-tone) 12%, var(--xh-bg-surface));
 }
 
 .basic-completion.is-complete {
-  color: #16a34a;
-  border-color: rgba(34, 197, 94, 0.28);
-  background: rgba(34, 197, 94, 0.05);
+  --basic-completion-tone: var(--xh-color-success-600);
+
+  color: var(--xh-fg-success);
 }
 
 .completion-copy {
@@ -128,20 +131,12 @@ const basicComplete = computed(() => completedRequiredCount.value === 2)
 }
 
 .completion-copy strong {
-  color: #334155;
+  color: var(--xh-fg-default);
   font-size: 13px;
 }
 
 .completion-copy span {
-  color: #64748b;
+  color: var(--xh-fg-muted);
   font-size: 12px;
-}
-
-.dark .completion-copy strong {
-  color: #e2e8f0;
-}
-
-.dark .completion-copy span {
-  color: #94a3b8;
 }
 </style>

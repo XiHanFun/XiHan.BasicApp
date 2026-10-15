@@ -92,8 +92,7 @@ onMounted(() => {
         <canvas ref="canvasRef" class="rounded-xl" style="width: 216px; height: 216px" />
         <div class="flex absolute inset-0 justify-center items-center">
           <div
-            class="flex justify-center items-center w-12 h-12 rounded-xl"
-            :class="isDark ? 'bg-[#0b1220]' : 'bg-white'"
+            class="flex justify-center items-center w-12 h-12 rounded-xl bg-[var(--xh-bg-surface)]"
           >
             <span :class="isDark ? 'text-white' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: 24px"><Icon icon="lucide:scan" /></span>
           </div>

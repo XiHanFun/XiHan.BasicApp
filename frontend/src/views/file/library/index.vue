@@ -1566,7 +1566,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
 
 .file-upload-dragger__hint {
   font-size: 12px;
-  color: var(--text-secondary, rgb(140 145 150));
+  color: var(--xh-fg-subtle);
 }
 
 .file-preview-body {
@@ -1615,15 +1615,15 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
   z-index: 1;
   padding: 2px 10px;
   font-size: 12px;
-  color: #374151;
+  color: var(--xh-fg-default);
   cursor: pointer;
-  background: #fff;
-  border: 1px solid #d1d5db;
+  background: var(--xh-bg-surface);
+  border: 1px solid var(--xh-border-default);
   border-radius: 4px;
 }
 
 .file-preview-copy:hover {
-  background: #f3f4f6;
+  background: var(--xh-bg-subtle-hover);
 }
 
 .file-preview-code-scroll {
@@ -1631,7 +1631,7 @@ const storageColumns = computed<XDataTableColumn<FileStorageListItemDto>[]>(() =
   padding: 12px 16px;
   overflow: auto;
   font-size: 13px;
-  border: 1px solid rgba(128, 128, 128, 0.2);
+  border: 1px solid var(--xh-border-default);
   border-radius: 6px;
 }
 </style>

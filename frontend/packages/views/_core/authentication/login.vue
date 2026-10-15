@@ -629,12 +629,11 @@ const onAuthInvalid = useAuthFormInvalid()
           </span>
         </p>
 
-        <!-- 带字分隔线：文案走默认插槽，库在两侧各画一段线；线由 background 画，颜色经 --xh-separator-color 给。
+        <!-- 带字分隔线：文案走默认插槽，库在两侧各画一段线，颜色取库缺省的描边令牌，深浅两态都跟着走。
              separator 角色的子节点对读屏是展示性的，名字另用 aria-label 给出 -->
         <XhSeparator
           v-if="oauthProviders.length > 0"
           class="my-6"
-          :style="{ '--xh-separator-color': isDark ? 'rgb(255 255 255 / 10%)' : 'hsl(var(--border))' }"
           :aria-label="t('page.auth.third_party_login')"
         >
           <span class="auth-caption" :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'">

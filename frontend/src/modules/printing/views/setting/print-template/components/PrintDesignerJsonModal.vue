@@ -114,12 +114,12 @@ const textareaId = `print-template-json-${crypto.randomUUID()}`
   min-width: 0;
   flex-direction: column;
   gap: 3px;
-  color: #334155;
+  color: var(--xh-fg-default);
 }
 
 .json-editor-intro span,
 .json-memory-tip {
-  color: #64748b;
+  color: var(--xh-fg-muted);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -141,14 +141,5 @@ const textareaId = `print-template-json-${crypto.randomUUID()}`
 
 .json-memory-tip {
   margin: 10px 0 0;
-}
-
-:global(.dark) .json-editor-intro {
-  color: #e2e8f0;
-}
-
-:global(.dark) .json-editor-intro span,
-:global(.dark) .json-memory-tip {
-  color: #94a3b8;
 }
 </style>

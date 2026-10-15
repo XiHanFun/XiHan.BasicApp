@@ -659,7 +659,7 @@ onMounted(loadKeys)
 
 .cache-batch-count {
   font-size: 12px;
-  color: var(--text-secondary, rgb(118 124 130));
+  color: var(--xh-fg-muted);
 }
 
 .cache-batch-count strong {
@@ -668,7 +668,7 @@ onMounted(loadKeys)
 
 .cache-batch-hint {
   font-size: 12px;
-  color: var(--text-secondary, rgb(150 154 160));
+  color: var(--xh-fg-subtle);
 }
 
 .cache-batch-actions {
