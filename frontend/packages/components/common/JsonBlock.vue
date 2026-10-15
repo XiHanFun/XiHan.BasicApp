@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { JsonViewerTool } from '@xihan-ui/headless'
 import { XhJsonViewerRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 
@@ -29,7 +30,7 @@ const props = withDefaults(defineProps<{
 })
 
 /** 解析不成树的原文只能看原文：工具条只留换行与复制 */
-const TEXT_TOOLS: Array<'wrap' | 'copy'> = ['wrap', 'copy']
+const TEXT_TOOLS: JsonViewerTool[] = ['wrap', 'copy']
 
 const text = computed(() => props.raw ?? '')
 
