@@ -67,9 +67,10 @@ const strengthLabel = computed(() => {
   return labels[passwordStrength.value] || ''
 })
 
+/** 强度色走组件库语气前景：弱 danger、中 warning、强 success、很强 info，深浅两态与状态色设置都跟着走 */
 const strengthColor = computed(() => {
-  const colors = ['#e53e3e', '#e53e3e', '#dd6b20', '#38a169', '#2b6cb0']
-  return colors[passwordStrength.value] || '#e53e3e'
+  const colors = ['var(--xh-fg-danger)', 'var(--xh-fg-danger)', 'var(--xh-fg-warning)', 'var(--xh-fg-success)', 'var(--xh-fg-info)']
+  return colors[passwordStrength.value] || 'var(--xh-fg-danger)'
 })
 
 const rules = computed<FormRules>(() => ({
@@ -237,7 +238,7 @@ const onAuthInvalid = useAuthFormInvalid()
             class="flex-1 h-1 rounded-full transition-colors"
             :style="{
               backgroundColor:
-                i <= passwordStrength ? strengthColor : isDark ? '#374151' : '#e5e7eb',
+                i <= passwordStrength ? strengthColor : 'var(--xh-border-default)',
             }"
           />
         </div>

@@ -434,19 +434,19 @@ function clearSession(): void {
 
 .sample-data-intro p {
   margin: 4px 0 0;
-  color: #64748b;
+  color: var(--xh-fg-muted);
   font-size: 12px;
 }
 
 .sample-records {
   padding: 12px 12px 0;
-  border: 1px solid rgba(148, 163, 184, 0.28);
+  border: 1px solid var(--xh-border-default);
   border-radius: 8px;
 }
 
 .sample-records-heading {
   margin-bottom: 10px;
-  color: #475569;
+  color: var(--xh-fg-muted);
   font-size: 12px;
 }
 
@@ -485,14 +485,8 @@ function clearSession(): void {
 }
 
 .sample-data-footer-tip {
-  color: #64748b;
+  color: var(--xh-fg-muted);
   font-size: 12px;
-}
-
-.dark .sample-data-intro p,
-.dark .sample-records-heading,
-.dark .sample-data-footer-tip {
-  color: #94a3b8;
 }
 
 @media (max-width: 720px) {

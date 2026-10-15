@@ -501,8 +501,8 @@ watch(
   justify-content: center;
   align-items: flex-start;
   padding-top: 14vh;
-  /* 自包含暗色遮罩：--overlay 变量自带 alpha，叠加二次 alpha 会成为非法值导致背景失效 */
-  background: rgb(0 0 0 / 40%);
+  /* 遮罩与组件库对话框同一层：令牌自带 alpha，直接用，不要再叠一次透明度 */
+  background: var(--xh-bg-overlay);
   backdrop-filter: blur(2px);
 }
 
@@ -515,7 +515,7 @@ watch(
   overflow: hidden;
   background: hsl(var(--background));
   border: 1px solid hsl(var(--border));
-  box-shadow: 0 24px 60px rgb(0 0 0 / 28%);
+  box-shadow: var(--xh-shadow-xl);
 }
 
 .cmdk-input {

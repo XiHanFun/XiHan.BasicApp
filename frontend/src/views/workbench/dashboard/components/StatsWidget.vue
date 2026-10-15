@@ -14,11 +14,12 @@ const formatters = useFormatters()
 // 今日统计：示例数据，与「经营指标」「销售趋势」同一套逐日数据的今天那一行
 const today = dailySales(1, new Date())[0]!
 
+// 指标图标的颜色只为彼此区分、不表语义，取组件库的色相色阶
 const statCards = computed(() => [
-  { key: 'sales', label: t('workbench.dashboard.stat_sales'), value: formatters.value.currency(today.sales), icon: 'lucide:banknote', color: '#3b82f6' },
-  { key: 'orders', label: t('workbench.dashboard.stat_orders'), value: formatters.value.number(today.orders), icon: 'lucide:shopping-cart', color: '#22c55e' },
-  { key: 'visitors', label: t('workbench.dashboard.stat_visitors'), value: formatters.value.number(today.visitors), icon: 'lucide:users', color: '#8b5cf6' },
-  { key: 'conversion', label: t('workbench.dashboard.stat_conversion'), value: formatters.value.percent(today.orders / today.visitors), icon: 'lucide:target', color: '#f59e0b' },
+  { key: 'sales', label: t('workbench.dashboard.stat_sales'), value: formatters.value.currency(today.sales), icon: 'lucide:banknote', color: 'var(--xh-color-blue-500)' },
+  { key: 'orders', label: t('workbench.dashboard.stat_orders'), value: formatters.value.number(today.orders), icon: 'lucide:shopping-cart', color: 'var(--xh-color-green-500)' },
+  { key: 'visitors', label: t('workbench.dashboard.stat_visitors'), value: formatters.value.number(today.visitors), icon: 'lucide:users', color: 'var(--xh-color-purple-500)' },
+  { key: 'conversion', label: t('workbench.dashboard.stat_conversion'), value: formatters.value.percent(today.orders / today.visitors), icon: 'lucide:target', color: 'var(--xh-color-amber-500)' },
 ])
 </script>
 
@@ -33,7 +34,7 @@ const statCards = computed(() => [
       >
         <div
           class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-          :style="{ backgroundColor: `${stat.color}18` }"
+          :style="{ backgroundColor: `color-mix(in oklab, ${stat.color} 9%, transparent)` }"
         >
           <Icon :icon="stat.icon" width="20" height="20" :style="{ color: stat.color }" />
         </div>

@@ -105,14 +105,14 @@ const switchIdPrefix = useId()
   gap: 4px;
   margin-bottom: 20px;
   padding: 12px 14px;
-  color: #64748b;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  color: var(--xh-fg-muted);
+  border: 1px solid var(--xh-border-subtle);
   border-radius: 8px;
-  background: rgba(248, 250, 252, 0.86);
+  background: var(--xh-bg-subtle);
 }
 
 .advanced-intro strong {
-  color: #334155;
+  color: var(--xh-fg-default);
   font-size: 13px;
 }
 
@@ -135,8 +135,8 @@ const switchIdPrefix = useId()
   justify-content: space-between;
   gap: 20px;
   padding: 12px 14px;
-  color: #64748b;
-  border: 1px solid rgba(148, 163, 184, 0.22);
+  color: var(--xh-fg-muted);
+  border: 1px solid var(--xh-border-subtle);
   border-radius: 8px;
 }
 
@@ -147,17 +147,7 @@ const switchIdPrefix = useId()
 }
 
 .switch-setting-row strong {
-  color: #334155;
+  color: var(--xh-fg-default);
   font-size: 13px;
-}
-
-.dark .advanced-intro,
-.dark .switch-setting-row {
-  background: rgba(15, 23, 42, 0.28);
-}
-
-.dark .advanced-intro strong,
-.dark .switch-setting-row strong {
-  color: #e2e8f0;
 }
 </style>
