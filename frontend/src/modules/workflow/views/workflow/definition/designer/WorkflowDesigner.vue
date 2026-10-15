@@ -768,12 +768,12 @@ function onContextSelect(key: string) {
                 <span class="workflow-designer__props-sub">{{ t('workflow.designer.palette_hint') }}</span>
               </div>
             </header>
-            <template v-for="(group, index) in paletteGroups" :key="group.category">
-              <XhSeparator v-if="index > 0" class="workflow-designer__palette-divider" />
-              <section class="workflow-designer__palette-group" :aria-labelledby="`${paletteId}-${group.category}`">
-                <h3 :id="`${paletteId}-${group.category}`" class="workflow-designer__palette-title">
-                  {{ group.label }}
-                </h3>
+            <template v-for="group in paletteGroups" :key="group.category">
+              <!-- 分类标题写在分隔线中间：分隔线的文字对读屏是展示性的，分组的名字另由 aria-label 给 -->
+              <XhSeparator class="workflow-designer__divider">
+                {{ group.label }}
+              </XhSeparator>
+              <section class="workflow-designer__palette-group" :aria-label="group.label">
                 <button
                   v-for="item in group.items"
                   :key="item.type"
@@ -915,10 +915,14 @@ function onContextSelect(key: string) {
               </header>
               <XhFormRoot validate-on="blur">
                 <!-- 活动属性按分节排（类型驱动）；「基本」节恒在第一位，节点名称住在里面 -->
-                <template v-for="(section, index) in propSections" :key="section.group">
-                  <XhSeparator v-if="index > 0" class="workflow-designer__divider" />
+                <template v-for="section in propSections" :key="section.group">
+                  <XhSeparator class="workflow-designer__divider">
+                    {{ t(`workflow.designer.section.${section.group}`) }}
+                  </XhSeparator>
                   <XhFieldsetRoot class="workflow-designer__section">
-                    <XhFieldsetLegend>{{ t(`workflow.designer.section.${section.group}`) }}</XhFieldsetLegend>
+                    <XhFieldsetLegend class="xh-visually-hidden">
+                      {{ t(`workflow.designer.section.${section.group}`) }}
+                    </XhFieldsetLegend>
                     <XhFieldRoot v-if="section.group === 'basic'">
                       <XhFieldLabel>{{ t('workflow.designer.node_name') }}</XhFieldLabel>
                       <XhFieldControl>
@@ -1014,9 +1018,13 @@ function onContextSelect(key: string) {
                 </template>
 
                 <!-- 通用执行策略：重试的三项依附重试开关，往里缩一格 -->
-                <XhSeparator class="workflow-designer__divider" />
+                <XhSeparator class="workflow-designer__divider">
+                  {{ t('workflow.designer.section.execution') }}
+                </XhSeparator>
                 <XhFieldsetRoot class="workflow-designer__section">
-                  <XhFieldsetLegend>{{ t('workflow.designer.section.execution') }}</XhFieldsetLegend>
+                  <XhFieldsetLegend class="xh-visually-hidden">
+                    {{ t('workflow.designer.section.execution') }}
+                  </XhFieldsetLegend>
                   <XhFieldRoot>
                     <XhFieldLabel>{{ t('workflow.designer.node_timeout') }}</XhFieldLabel>
                     <XhFieldControl>
@@ -1090,8 +1098,13 @@ function onContextSelect(key: string) {
                 </div>
               </header>
               <XhFormRoot validate-on="blur">
+                <XhSeparator class="workflow-designer__divider">
+                  {{ t('workflow.designer.section.basic') }}
+                </XhSeparator>
                 <XhFieldsetRoot class="workflow-designer__section">
-                  <XhFieldsetLegend>{{ t('workflow.designer.section.basic') }}</XhFieldsetLegend>
+                  <XhFieldsetLegend class="xh-visually-hidden">
+                    {{ t('workflow.designer.section.basic') }}
+                  </XhFieldsetLegend>
                   <XhFieldRoot>
                     <XhFieldLabel>{{ t('workflow.designer.flow_business') }}</XhFieldLabel>
                     <XhFieldControl>
@@ -1138,9 +1151,13 @@ function onContextSelect(key: string) {
                      Field 只给唯一控件接线，套在整组外会让每行的输入框都领到同一个 id。
                      行内控件没有可见标签，输入框给 aria-label，复选框把文字写进自己的插槽。
                      新增钮只摆一颗、放在行外：它的 id 是整组唯一的，而且没有变量时也要能加第一行 -->
-                <XhSeparator class="workflow-designer__divider" />
+                <XhSeparator class="workflow-designer__divider">
+                  {{ t('workflow.designer.flow_variables') }}
+                </XhSeparator>
                 <XhFieldsetRoot class="workflow-designer__section">
-                  <XhFieldsetLegend>{{ t('workflow.designer.flow_variables') }}</XhFieldsetLegend>
+                  <XhFieldsetLegend class="xh-visually-hidden">
+                    {{ t('workflow.designer.flow_variables') }}
+                  </XhFieldsetLegend>
                   <XhFieldArrayRoot
                     v-slot="{ items }"
                     v-model:value="meta.variables"
@@ -1243,10 +1260,17 @@ function onContextSelect(key: string) {
 }
 
 /*
- * 属性面板：一列 20rem 的窄栏，三档层级 —— 抬头（md 半粗 + 图标）→ 分节标题（sm 半粗、正文色）→ 字段标签（sm、次要色），
- * 控件一律 sm。经组件库的公开槽收紧：表单与字段集的项距 12px（缺省 20px 是给整页表单的），
- * 标签与控件之间 6px，组标题从 heading-3 收到分节标题那一档
+ * 属性面板：一列 20rem 的窄栏，三档层级 —— 抬头（md 半粗 + 图标）→ 分节标题（sm 半粗、正文色，写在分隔线中间）
+ * → 字段标签（sm、次要色），控件一律 sm。经组件库的公开槽收紧：表单与字段集的项距 12px（缺省 20px 是给整页表单的），
+ * 标签与控件之间 6px，组标题从 heading-3 收到字段标签那一档
  */
+.workflow-designer__props,
+.workflow-designer__palette {
+  --xh-separator-gap: var(--xh-space-2);
+  --xh-separator-content-font-size: var(--xh-text-secondary-size);
+  --xh-separator-content-font-weight: var(--xh-font-weight-semibold);
+}
+
 .workflow-designer__props {
   --xh-form-gap: var(--xh-space-3);
   --xh-fieldset-gap: var(--xh-space-3);
@@ -1257,13 +1281,13 @@ function onContextSelect(key: string) {
   --xh-field-label-gap-block: var(--xh-space-1_5);
 }
 
+/* 抬头不再画底线：紧跟着的第一道分节线就是它的下沿 */
 .workflow-designer__props-head {
   display: flex;
   align-items: center;
   gap: var(--xh-space-2);
-  padding-block: var(--xh-space-1) var(--xh-space-3);
-  margin-block-end: var(--xh-space-3);
-  border-block-end: var(--xh-stroke-thin) solid var(--xh-border-subtle);
+  padding-block-start: var(--xh-space-1);
+  margin-block-end: var(--xh-space-1);
 }
 
 .workflow-designer__props-icon {
@@ -1292,9 +1316,9 @@ function onContextSelect(key: string) {
   white-space: nowrap;
 }
 
-/* 分节之间一道分隔线，上下各留 16px。不用 fieldset 自己的上描边当线：组标题画在上描边里，会压在线上 */
+/* 每一节由一道写着节名的分隔线起头：线与上一节之间是项距加 8px，与本节首项隔 8px，节名与本节贴在一起 */
 .workflow-designer__divider {
-  margin-block: var(--xh-space-1) var(--xh-space-4);
+  margin-block: var(--xh-space-2);
 }
 
 /* 节里的一组规则（受理人、兜底受理人、抄送人）是一项而不是一节：组标题按字段标签那一档排 */
@@ -1306,25 +1330,14 @@ function onContextSelect(key: string) {
 }
 
 /*
- * 节点面板：抬头与属性面板同一副；分类标题与属性面板的分节标题同一档（sm 半粗、正文色），
- * 条目是一列行：sm 控件高、sm 字号，不再每条一圈描边；悬停 / 按下只换底（集合行的阶梯 100 → 200，不缩放），
- * 图标取次要色、悬停换品牌色。分类之间的分隔线比属性面板收一档：十来条短条目，线距太大会把列表拉得过长
+ * 节点面板：抬头与属性面板同一副；分类标题与属性面板的分节标题同一档，同样写在分隔线中间。
+ * 条目是一块块待拖出的节点模板：虚线外框 + 承载面底、sm 控件高与 sm 字号；悬停描边加深、换淡底，按下再深一档（不缩放），
+ * 图标取次要色、悬停换品牌色
  */
-.workflow-designer__palette-divider {
-  margin-block: var(--xh-space-2);
-}
-
 .workflow-designer__palette-group {
   display: flex;
   flex-direction: column;
-  gap: var(--xh-space-0_5);
-}
-
-.workflow-designer__palette-title {
-  margin: 0 0 var(--xh-space-1);
-  font-size: var(--xh-text-secondary-size);
-  font-weight: var(--xh-font-weight-semibold);
-  color: var(--xh-fg-default);
+  gap: var(--xh-space-1_5);
 }
 
 .workflow-designer__palette-item {
@@ -1333,18 +1346,21 @@ function onContextSelect(key: string) {
   gap: var(--xh-space-2);
   min-block-size: var(--xh-control-h-sm);
   padding-inline: var(--xh-space-2);
-  border: 0;
+  border: var(--xh-stroke-thin) dashed var(--xh-border-default);
   border-radius: var(--xh-shape-control);
-  background: transparent;
+  background: var(--xh-bg-surface);
   color: var(--xh-fg-default);
   font: inherit;
   font-size: var(--xh-control-font-sm);
   text-align: start;
   cursor: grab;
-  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    border-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .workflow-designer__palette-item:hover {
+  border-color: var(--xh-border-control-hover);
   background: var(--xh-bg-subtle);
 }
 
