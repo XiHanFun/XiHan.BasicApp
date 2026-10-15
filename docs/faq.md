@@ -13,7 +13,7 @@
 | 进程 | 端口 | 备注 |
 | --- | --- | --- |
 | 后端 Development | `9708` | API 文档 `http://127.0.0.1:9708/scalar` |
-| 后端 Production | `9708`（仓库默认） | 可由 `Hosting:Urls` / 容器端口映射覆盖 |
+| 后端 Production | `9709`（launch profile；Docker 镜像内为 `9708`） | 实际以 `Hosting:Urls` 为准，也可由容器端口映射覆盖 |
 | 前端 dev server | `9800` | `VITE_PORT` |
 
 开发态前端**不直连后端**：`VITE_API_BASE_URL` 留空，请求打到自己的 dev server，再由 Vite 代理转发到 `VITE_DEV_PROXY_TARGET`（默认 `http://localhost:9708`）——同源转发，天然没有 CORS 问题。
