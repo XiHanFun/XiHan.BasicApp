@@ -187,6 +187,7 @@ export default {
       tb_arrange: '对齐 / 分布',
       tb_validate: '校验',
       tb_palette: '节点面板',
+      palette_hint: '拖到画布，或点击添加',
       tb_properties: '属性面板',
       // 对齐 / 分布（作用于多选节点）
       align_left: '左对齐',

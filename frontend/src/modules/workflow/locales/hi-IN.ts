@@ -187,6 +187,7 @@ export default {
       tb_arrange: 'संरेखण / वितरण',
       tb_validate: 'जाँचें',
       tb_palette: 'नोड पैलेट',
+      palette_hint: 'कैनवास पर खींचें, या जोड़ने के लिए क्लिक करें',
       tb_properties: 'गुण पैनल',
       // 对齐 / 分布（作用于多选节点）
       align_left: 'बाएँ संरेखित करें',

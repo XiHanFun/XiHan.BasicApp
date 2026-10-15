@@ -751,30 +751,43 @@ function onContextSelect(key: string) {
     <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
       <!-- 设计视图（v-show 保留画布：切到 JSON 再切回不卸载、不清空） -->
       <div v-show="activeTab === 'design'" class="relative isolate flex min-h-0 flex-1">
-        <!-- 节点面板（并排时占一栏；放不下时是贴左边的抽屉，只在抽屉态做进出场） -->
+        <!-- 节点面板（并排时占一栏；放不下时是贴左边的抽屉，只在抽屉态做进出场）。
+             与属性面板同一套层级：抬头（是什么、怎么用）→ 分类标题 → 节点条目；分类之间一道分隔线。
+             条目是按钮：点一下（键盘 Enter / Space 同样）添加到画布，也能拖到画布上落在指定位置 -->
         <Transition name="workflow-designer-drawer" :css="compact">
           <div
             v-show="!compact || paletteOpen"
             :id="paletteId"
-            class="w-44 overflow-auto"
+            class="workflow-designer__palette w-44 overflow-auto"
             :class="compact ? 'workflow-designer__drawer workflow-designer__drawer--start' : 'shrink-0 border-r border-gray-200 pr-2 dark:border-gray-700'"
           >
-            <div v-for="group in paletteGroups" :key="group.category" class="mb-2">
-              <div class="mb-1 text-xs font-medium text-gray-400">
-                {{ group.label }}
+            <header class="workflow-designer__props-head">
+              <Icon icon="lucide:shapes" class="workflow-designer__props-icon" />
+              <div class="workflow-designer__props-heading">
+                <span class="workflow-designer__props-title">{{ t('workflow.designer.tb_palette') }}</span>
+                <span class="workflow-designer__props-sub">{{ t('workflow.designer.palette_hint') }}</span>
               </div>
-              <div
-                v-for="item in group.items"
-                :key="item.type"
-                class="mb-1 flex cursor-grab items-center gap-2 rounded border border-gray-200 px-2 py-1.5 text-sm hover:border-primary hover:text-primary dark:border-gray-600"
-                draggable="true"
-                @dragstart="onPaletteDragStart($event, item)"
-                @click="onPaletteClick(item)"
-              >
-                <Icon :icon="item.icon" class="text-sm" />
-                <span class="truncate">{{ t(`workflow.designer.activity.${item.labelKey}`) }}</span>
-              </div>
-            </div>
+            </header>
+            <template v-for="(group, index) in paletteGroups" :key="group.category">
+              <XhSeparator v-if="index > 0" class="workflow-designer__palette-divider" />
+              <section class="workflow-designer__palette-group" :aria-labelledby="`${paletteId}-${group.category}`">
+                <h3 :id="`${paletteId}-${group.category}`" class="workflow-designer__palette-title">
+                  {{ group.label }}
+                </h3>
+                <button
+                  v-for="item in group.items"
+                  :key="item.type"
+                  type="button"
+                  class="workflow-designer__palette-item"
+                  draggable="true"
+                  @dragstart="onPaletteDragStart($event, item)"
+                  @click="onPaletteClick(item)"
+                >
+                  <Icon :icon="item.icon" class="workflow-designer__palette-icon" />
+                  <span class="truncate">{{ t(`workflow.designer.activity.${item.labelKey}`) }}</span>
+                </button>
+              </section>
+            </template>
           </div>
         </Transition>
 
@@ -1160,7 +1173,7 @@ function onContextSelect(key: string) {
                   </XhFieldArrayRoot>
                 </XhFieldsetRoot>
               </XhFormRoot>
-              <p class="workflow-designer__hint">
+              <p class="workflow-designer__hint workflow-designer__props-foot">
                 {{ t('workflow.designer.flow_tip') }}
               </p>
             </template>
@@ -1292,6 +1305,71 @@ function onContextSelect(key: string) {
   --xh-fieldset-legend-gap: var(--xh-space-1_5);
 }
 
+/*
+ * 节点面板：抬头与属性面板同一副；分类标题与属性面板的分节标题同一档（sm 半粗、正文色），
+ * 条目是一列行：sm 控件高、sm 字号，不再每条一圈描边；悬停 / 按下只换底（集合行的阶梯 100 → 200，不缩放），
+ * 图标取次要色、悬停换品牌色。分类之间的分隔线比属性面板收一档：十来条短条目，线距太大会把列表拉得过长
+ */
+.workflow-designer__palette-divider {
+  margin-block: var(--xh-space-2);
+}
+
+.workflow-designer__palette-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xh-space-0_5);
+}
+
+.workflow-designer__palette-title {
+  margin: 0 0 var(--xh-space-1);
+  font-size: var(--xh-text-secondary-size);
+  font-weight: var(--xh-font-weight-semibold);
+  color: var(--xh-fg-default);
+}
+
+.workflow-designer__palette-item {
+  display: flex;
+  align-items: center;
+  gap: var(--xh-space-2);
+  min-block-size: var(--xh-control-h-sm);
+  padding-inline: var(--xh-space-2);
+  border: 0;
+  border-radius: var(--xh-shape-control);
+  background: transparent;
+  color: var(--xh-fg-default);
+  font: inherit;
+  font-size: var(--xh-control-font-sm);
+  text-align: start;
+  cursor: grab;
+  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+.workflow-designer__palette-item:hover {
+  background: var(--xh-bg-subtle);
+}
+
+.workflow-designer__palette-item:active {
+  background: var(--xh-bg-subtle-hover);
+  cursor: grabbing;
+  transition-duration: var(--xh-motion-duration-press);
+}
+
+.workflow-designer__palette-item:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: calc(-1 * var(--xh-ring-width));
+}
+
+.workflow-designer__palette-icon {
+  flex: none;
+  font-size: var(--xh-glyph-size-sm);
+  color: var(--xh-fg-muted);
+  transition: color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+.workflow-designer__palette-item:hover .workflow-designer__palette-icon {
+  color: var(--xh-fg-brand);
+}
+
 /* 依附上一项才有意义的几项（重试参数、兜底受理人）往里缩一格，左侧一道细线标出从属 */
 .workflow-designer__nested {
   padding-inline-start: var(--xh-space-3);
@@ -1304,11 +1382,17 @@ function onContextSelect(key: string) {
   gap: var(--xh-space-3);
 }
 
+/* 说明是上一项的补充，下方仍留项距（由字段集给），只去掉段落自带的上外边距 */
 .workflow-designer__hint {
-  margin: 0;
+  margin-block-start: 0;
   font-size: var(--xh-text-caption-size);
   line-height: var(--xh-leading-normal);
   color: var(--xh-fg-muted);
+}
+
+/* 面板底部的说明与表单隔开一档 */
+.workflow-designer__props-foot {
+  margin-block: var(--xh-space-4) 0;
 }
 
 .workflow-designer__props-delete {

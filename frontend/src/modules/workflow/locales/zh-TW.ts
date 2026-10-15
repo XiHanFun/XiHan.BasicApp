@@ -187,6 +187,7 @@ export default {
       tb_arrange: '對齊 / 分佈',
       tb_validate: '驗證',
       tb_palette: '節點面板',
+      palette_hint: '拖到畫布，或點擊新增',
       tb_properties: '屬性面板',
       // 对齐 / 分布（作用于多选节点）
       align_left: '靠左對齊',
