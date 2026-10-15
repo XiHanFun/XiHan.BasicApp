@@ -58,9 +58,10 @@ async function stop() {
   align-items: center;
   padding: 8px 16px;
   font-size: 13px;
-  color: hsl(var(--warning-foreground));
-  background: hsl(var(--warning-surface));
-  border-bottom: 1px solid hsl(var(--warning) / 35%);
+  /* 与通知横幅、组件库提示条同一套兑法：淡底 12%、描边 40%、文字往前景色兑到 60%，深浅两态都读得清 */
+  color: color-mix(in oklab, var(--xh-color-warning-600) 60%, var(--xh-fg-default));
+  background: color-mix(in oklab, var(--xh-color-warning-600) 12%, var(--xh-bg-surface));
+  border-bottom: var(--xh-stroke-thin) solid color-mix(in oklab, var(--xh-color-warning-600) 40%, var(--xh-bg-surface));
 }
 
 .impersonation-banner-text {
@@ -71,6 +72,6 @@ async function stop() {
 }
 
 .impersonation-banner-error {
-  color: hsl(var(--destructive));
+  color: var(--xh-fg-danger);
 }
 </style>
