@@ -187,6 +187,7 @@ export default {
       tb_arrange: 'Align / distribute',
       tb_validate: 'Validate',
       tb_palette: 'Node palette',
+      palette_hint: 'Drag onto the canvas, or click to add',
       tb_properties: 'Properties',
       // Align / distribute (on selected nodes)
       align_left: 'Align left',

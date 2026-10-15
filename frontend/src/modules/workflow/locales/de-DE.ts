@@ -187,6 +187,7 @@ export default {
       tb_arrange: 'Ausrichten / verteilen',
       tb_validate: 'Validieren',
       tb_palette: 'Knotenpalette',
+      palette_hint: 'Auf die Arbeitsfläche ziehen oder zum Hinzufügen klicken',
       tb_properties: 'Eigenschaften',
       // Ausrichten / verteilen (auf ausgewählte Knoten)
       align_left: 'Linksbündig ausrichten',

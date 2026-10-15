@@ -187,6 +187,7 @@ export default {
       tb_arrange: '정렬 / 분포',
       tb_validate: '검증',
       tb_palette: '노드 팔레트',
+      palette_hint: '캔버스로 끌어오거나 클릭해 추가',
       tb_properties: '속성 패널',
       // 对齐 / 分布（作用于多选节点）
       align_left: '왼쪽 맞춤',
