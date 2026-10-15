@@ -331,8 +331,11 @@ function onKeydown(e: KeyboardEvent): void {
   justify-content: center;
   align-items: flex-start;
   padding: 8vh 24px 24px;
-  /* 自包含暗色遮罩：--overlay 变量自带 alpha，叠加二次 alpha 会成为非法值导致背景失效 */
-  background: rgb(0 0 0 / 50%);
+  /* 遮罩与组件库对话框同一层（自带 alpha，深浅两态都是暗的）；落在遮罩上的字、钮与键帽一律取「暗色衬底上的前景」，
+     半透明的那几块按它兑透明 */
+  --tab-ov-ink: var(--xh-fg-on-media-chrome);
+
+  background: var(--xh-bg-overlay);
   backdrop-filter: blur(8px);
   overflow-y: auto;
 }
@@ -356,8 +359,8 @@ function onKeydown(e: KeyboardEvent): void {
   gap: 8px;
   font-size: 17px;
   font-weight: 600;
-  color: #fff;
-  text-shadow: 0 1px 8px rgb(0 0 0 / 40%);
+  color: var(--tab-ov-ink);
+  text-shadow: 0 1px 8px var(--xh-bg-media-chrome);
   white-space: nowrap;
 }
 
@@ -365,7 +368,7 @@ function onKeydown(e: KeyboardEvent): void {
   min-width: 22px;
   padding: 1px 7px;
   border-radius: 9999px;
-  background: rgb(255 255 255 / 18%);
+  background: color-mix(in oklab, var(--tab-ov-ink) 18%, transparent);
   font-size: 12px;
   font-weight: 600;
   text-align: center;
@@ -404,14 +407,14 @@ function onKeydown(e: KeyboardEvent): void {
   margin-left: auto;
   border: none;
   border-radius: 9999px;
-  background: rgb(255 255 255 / 14%);
-  color: #fff;
+  background: color-mix(in oklab, var(--tab-ov-ink) 14%, transparent);
+  color: var(--tab-ov-ink);
   cursor: pointer;
   transition: background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }
 
 .tab-ov__close-btn:hover {
-  background: rgb(255 255 255 / 26%);
+  background: color-mix(in oklab, var(--tab-ov-ink) 26%, transparent);
 }
 
 .tab-ov__grid {
@@ -529,9 +532,9 @@ function onKeydown(e: KeyboardEvent): void {
   grid-column: 1 / -1;
   padding: 24px 0;
 
-  --xh-empty-state-title-fg: #fff;
-  --xh-empty-state-description-fg: rgb(255 255 255 / 70%);
-  --xh-empty-state-indicator-fg: rgb(255 255 255 / 60%);
+  --xh-empty-state-title-fg: var(--tab-ov-ink);
+  --xh-empty-state-description-fg: color-mix(in oklab, var(--tab-ov-ink) 70%, transparent);
+  --xh-empty-state-indicator-fg: color-mix(in oklab, var(--tab-ov-ink) 60%, transparent);
 }
 
 .tab-ov__footer {
@@ -539,14 +542,14 @@ function onKeydown(e: KeyboardEvent): void {
   gap: 18px;
   justify-content: center;
   font-size: 12px;
-  color: rgb(255 255 255 / 65%);
+  color: color-mix(in oklab, var(--tab-ov-ink) 65%, transparent);
 }
 
 .tab-ov__footer kbd {
   padding: 1px 5px;
   margin-right: 3px;
   border-radius: 4px;
-  background: rgb(255 255 255 / 16%);
+  background: color-mix(in oklab, var(--tab-ov-ink) 16%, transparent);
   font-family: ui-monospace, monospace;
   font-size: 11px;
 }

@@ -430,10 +430,10 @@ function toggleAlignmentTools(): void {
   flex: none;
   margin: 10px 18px 8px;
   overflow: hidden;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid var(--xh-border-default);
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  background: var(--xh-bg-surface);
+  box-shadow: var(--xh-shadow-sm);
   /* 工具栏各组按钮的统一高度 */
   --print-toolbar-control-h: 38px;
 }
@@ -463,7 +463,7 @@ function toggleAlignmentTools(): void {
 }
 
 .control-section-label {
-  color: #334155;
+  color: var(--xh-fg-default);
   font-size: 12px;
   font-weight: 650;
   line-height: 18px;
@@ -480,7 +480,7 @@ function toggleAlignmentTools(): void {
   width: 1px;
   height: 54px;
   flex: none;
-  background: rgba(148, 163, 184, 0.3);
+  background: var(--xh-border-default);
 }
 
 .canvas-settings-section {
@@ -498,11 +498,11 @@ function toggleAlignmentTools(): void {
 }
 
 .control-secondary-row {
-  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  border-top: 1px solid var(--xh-border-subtle);
 }
 
 .control-alignment-row {
-  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  border-top: 1px solid var(--xh-border-subtle);
 }
 
 .control-secondary-scroll {
@@ -530,7 +530,7 @@ function toggleAlignmentTools(): void {
 
 .element-alignment-label {
   flex: none;
-  color: #334155;
+  color: var(--xh-fg-default);
   font-size: 14px;
   line-height: 22px;
 }
@@ -607,29 +607,7 @@ function toggleAlignmentTools(): void {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  color: #334155;
+  color: var(--xh-fg-default);
   font-size: 14px;
-}
-
-:global(.dark) .designer-quick-toolbar {
-  border-color: rgba(100, 116, 139, 0.42);
-  background: rgba(17, 24, 39, 0.98);
-}
-
-:global(.dark) .control-secondary-row {
-  border-top-color: rgba(100, 116, 139, 0.32);
-}
-
-:global(.dark) .control-alignment-row {
-  border-top-color: rgba(100, 116, 139, 0.32);
-}
-
-:global(.dark) .control-section-label,
-:global(.dark) .element-alignment-label {
-  color: #e2e8f0;
-}
-
-:global(.dark) .paper-size-field {
-  color: #e2e8f0;
 }
 </style>

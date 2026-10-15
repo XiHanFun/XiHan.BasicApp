@@ -94,17 +94,18 @@ function notificationTypeTag(type: NotificationType): Tone {
   }
 }
 
-/** 按通知类型给图标着色（主题无关的语义色 + 同色低透明度底） */
+/** 按通知类型给图标着色：语气与类型标签一致，取组件库的语气色阶（同色低透明度底）；
+ *  待办的标签是 neutral，图标保留紫色好与系统类区分 */
 const TYPE_COLOR: Record<string, string> = {
-  [NotificationType.System]: '#3b82f6',
-  [NotificationType.Security]: '#f59e0b',
-  [NotificationType.Business]: '#22c55e',
-  [NotificationType.Todo]: '#8b5cf6',
-  [NotificationType.Emergency]: '#ef4444',
+  [NotificationType.System]: 'var(--xh-color-info-600)',
+  [NotificationType.Security]: 'var(--xh-color-warning-600)',
+  [NotificationType.Business]: 'var(--xh-color-success-600)',
+  [NotificationType.Todo]: 'var(--xh-color-purple-500)',
+  [NotificationType.Emergency]: 'var(--xh-color-danger-600)',
 }
 
 function iconStyle(item: UserInboxItemDto) {
-  const color = TYPE_COLOR[item.notificationType] ?? '#64748b'
+  const color = TYPE_COLOR[item.notificationType] ?? 'var(--xh-fg-muted)'
   return { color, background: `color-mix(in srgb, ${color} 14%, transparent)` }
 }
 

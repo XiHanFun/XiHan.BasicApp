@@ -237,7 +237,8 @@ function handleItemAction(key: string) {
   padding: 0 4px;
   border-radius: 999px;
   background: var(--xh-color-danger-600);
-  color: #fff;
+  /* 实心语气底上的字恒是白的，与组件库徽标同取 */
+  color: var(--xh-color-neutral-0);
   font-size: 10px;
   line-height: 16px;
   text-align: center;

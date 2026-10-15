@@ -328,7 +328,7 @@ defineExpose({ confirmDiscard })
 .print-template-editor-modal > [data-scope='dialog'][data-part='title'] {
   flex: none;
   padding: 16px 24px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  border-bottom: 1px solid var(--xh-border-subtle);
 }
 
 .editor-layout {
@@ -350,7 +350,7 @@ defineExpose({ confirmDiscard })
   width: 1px;
   height: 24px;
   margin: 0 2px;
-  background: rgba(148, 163, 184, 0.36);
+  background: var(--xh-border-default);
 }
 
 .template-context {
@@ -359,7 +359,7 @@ defineExpose({ confirmDiscard })
   align-items: center;
   gap: 6px;
   overflow: hidden;
-  color: #64748b;
+  color: var(--xh-fg-muted);
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -380,7 +380,7 @@ defineExpose({ confirmDiscard })
 }
 
 .template-settings-header strong {
-  color: #1f2937;
+  color: var(--xh-fg-default);
   font-size: 18px;
   font-weight: 600;
 }
@@ -406,18 +406,11 @@ defineExpose({ confirmDiscard })
   right: 8px;
   width: 7px;
   height: 7px;
-  border: 1px solid #fff;
+  /* 描一圈面色把圆点从按钮底上抠出来，深浅两态都清楚 */
+  border: 1px solid var(--xh-bg-surface);
   border-radius: 50%;
-  background: #f59e0b;
-  box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.12);
-}
-
-.dark .template-context {
-  color: #94a3b8;
-}
-
-.dark .template-settings-header strong {
-  color: #f1f5f9;
+  background: var(--xh-color-warning-500);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--xh-color-warning-600) 12%, transparent);
 }
 
 @media (max-width: 1200px) {

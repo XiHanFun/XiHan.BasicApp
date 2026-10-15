@@ -14,7 +14,17 @@ const router = useRouter()
 const favoritesStore = useFavoritesStore()
 
 // 收藏入口：复用「收藏夹」数据（右键标签收藏的常用菜单），跨端同步
-const QUICK_PALETTE = ['#3b82f6', '#22c55e', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#14b8a6']
+// 入口图标按位置轮换着色，只为彼此区分、不表语义，取组件库的色相色阶
+const QUICK_PALETTE = [
+  'var(--xh-color-blue-500)',
+  'var(--xh-color-green-500)',
+  'var(--xh-color-purple-500)',
+  'var(--xh-color-amber-500)',
+  'var(--xh-color-red-500)',
+  'var(--xh-color-cyan-500)',
+  'var(--xh-color-pink-500)',
+  'var(--xh-color-teal-500)',
+]
 
 /** 收藏标题多为 i18n key（如 menu.user），渲染时翻译；非 key 原样展示 */
 function displayTitle(title: string) {
@@ -34,7 +44,7 @@ const links = computed(() =>
     label: displayTitle(fav.title),
     icon: resolveIcon(fav.icon),
     to: fav.path,
-    color: QUICK_PALETTE[index % QUICK_PALETTE.length] ?? '#3b82f6',
+    color: QUICK_PALETTE[index % QUICK_PALETTE.length] ?? 'var(--xh-color-blue-500)',
   })),
 )
 
@@ -61,7 +71,7 @@ onMounted(() => {
       >
         <div
           class="flex h-11 w-11 items-center justify-center rounded-xl"
-          :style="{ backgroundColor: `${link.color}18` }"
+          :style="{ backgroundColor: `color-mix(in oklab, ${link.color} 9%, transparent)` }"
         >
           <Icon :icon="link.icon" width="22" height="22" :style="{ color: link.color }" />
         </div>

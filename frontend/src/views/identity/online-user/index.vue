@@ -280,19 +280,20 @@ function confirmRevoke(row: OnlineUserListItemDto) {
   flex-shrink: 0;
 }
 
+/* 在线 → success、会话 → 品牌色、用户 → 紫色只为区分；底是同色 12% 淡底 */
 .ou-card__icon.is-online {
-  color: #16a34a;
-  background: rgb(22 163 74 / 12%);
+  color: var(--xh-fg-success);
+  background: color-mix(in oklab, var(--xh-color-success-600) 12%, transparent);
 }
 
 .ou-card__icon.is-session {
-  color: #2563eb;
-  background: rgb(37 99 235 / 12%);
+  color: var(--xh-fg-brand);
+  background: color-mix(in oklab, var(--xh-bg-brand) 12%, transparent);
 }
 
 .ou-card__icon.is-user {
-  color: #9333ea;
-  background: rgb(147 51 234 / 12%);
+  color: var(--xh-color-purple-600);
+  background: color-mix(in oklab, var(--xh-color-purple-600) 12%, transparent);
 }
 
 .ou-card__body {

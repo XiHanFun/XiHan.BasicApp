@@ -900,11 +900,11 @@ const skeletonColumns = computed(() => {
 .xh-skel-row {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.08);
+  border-bottom: 1px solid var(--xh-border-subtle);
 }
 
 .xh-skel-row--head {
-  border-bottom: 1px solid rgba(128, 128, 128, 0.18);
+  border-bottom: 1px solid var(--xh-border-default);
 }
 
 .xh-skel-cell {

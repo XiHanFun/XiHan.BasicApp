@@ -511,8 +511,9 @@ async function handleLeave() {
   align-items: center;
   justify-content: center;
   border-radius: 10px;
-  background: hsl(0deg 0% 0% / 40%);
-  color: #fff;
+  /* 压在头像图片上的上传遮罩：与媒体控件同一套暗色衬底 + 前景 */
+  background: var(--xh-bg-media-chrome);
+  color: var(--xh-fg-on-media-chrome);
   opacity: 0;
   transition: opacity var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
 }

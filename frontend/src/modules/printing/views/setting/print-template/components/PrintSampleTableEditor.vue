@@ -208,9 +208,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 <style scoped>
 .sample-table-editor {
   padding: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.28);
+  border: 1px solid var(--xh-border-default);
   border-radius: 8px;
-  background: rgba(248, 250, 252, 0.7);
+  background: var(--xh-bg-subtle);
 }
 
 .sample-table-toolbar {
@@ -219,7 +219,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
-  color: #475569;
+  color: var(--xh-fg-muted);
   font-size: 12px;
 }
 
@@ -237,14 +237,15 @@ th,
 td {
   min-width: 150px;
   padding: 7px;
-  border: 1px solid rgba(148, 163, 184, 0.24);
+  border: 1px solid var(--xh-border-subtle);
   text-align: left;
   vertical-align: middle;
 }
 
+/* 表头比编辑区的淡底再深一档，两态下都与数据行分得开 */
 th {
-  background: rgba(226, 232, 240, 0.62);
-  color: #334155;
+  background: var(--xh-bg-subtle-active);
+  color: var(--xh-fg-default);
   font-size: 12px;
   font-weight: 650;
 }
@@ -255,14 +256,5 @@ th {
   min-width: 80px;
   text-align: center;
   white-space: nowrap;
-}
-
-:global(.dark) .sample-table-editor {
-  background: rgba(15, 23, 42, 0.58);
-}
-
-:global(.dark) th {
-  background: rgba(51, 65, 85, 0.72);
-  color: #e2e8f0;
 }
 </style>
