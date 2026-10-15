@@ -24,26 +24,33 @@ const props = withDefaults(defineProps<{
 /** fileId → 预签名 URL；直链原样；空值/失败为 ''，交由首字母回退 */
 const resolvedUrl = useAvatarUrl(computed(() => props.avatar))
 
-/** 首字母回退（取前两位，兼容中英文）；NAvatar 在无 src 或图片加载失败时渲染默认插槽 */
+/** 首字母回退（取前两位，兼容中英文） */
 const initials = computed(() => {
   const n = (props.name ?? '').trim()
   return n ? n.slice(0, 2) : '?'
 })
 
-const fontSize = computed(() => `${Math.max(12, Math.round(props.size * 0.4))}px`)
+/** 回退字随头像尺寸放大，两个汉字在小头像里也放得下 */
+const fontSize = computed(() => `${Math.max(12, Math.round(props.size * 0.36))}px`)
 </script>
 
 <template>
-  <!-- 头像根自带回退：图片没给/加载失败时自动显示 fallback，不必在外面分支渲染 -->
+  <!-- 全应用唯一的用户头像：顶栏、用户列表、聊天、锁屏都用它，同一个人处处同一副样子。
+       回退字与底色走组件库的品牌语气，不在应用里另配颜色；尺寸与圆角经头像的公开槽给。
+       src / alt 是根部件的属性：写在 image 部件上状态机拿不到地址；图片没给 / 加载失败时自动显示回退 -->
   <XhAvatarRoot
     class="xh-user-avatar"
+    tone="brand"
     :src="resolvedUrl || undefined"
-    :style="{ inlineSize: `${size}px`, blockSize: `${size}px`, borderRadius: round ? 'var(--xh-radius-full)' : 'var(--xh-shape-control)' }"
+    :alt="name || initials"
+    :style="{
+      '--xh-avatar-size': `${size}px`,
+      '--xh-avatar-font-size': fontSize,
+      '--xh-avatar-radius': round ? undefined : 'var(--xh-shape-control)',
+    }"
   >
-    <XhAvatarImage :alt="initials" />
-    <XhAvatarFallback class="xh-user-avatar__initials" :style="{ fontSize }">
-      {{ initials }}
-    </XhAvatarFallback>
+    <XhAvatarImage />
+    <XhAvatarFallback>{{ initials }}</XhAvatarFallback>
   </XhAvatarRoot>
 </template>
 
@@ -51,11 +58,5 @@ const fontSize = computed(() => `${Math.max(12, Math.round(props.size * 0.4))}px
 /* 作为 flex 子项时不被横向压缩，保证任何布局下始终为正圆 */
 .xh-user-avatar {
   flex-shrink: 0;
-}
-
-.xh-user-avatar__initials {
-  font-weight: 700;
-  line-height: 1;
-  color: hsl(var(--primary));
 }
 </style>
