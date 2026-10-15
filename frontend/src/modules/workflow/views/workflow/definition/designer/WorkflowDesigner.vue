@@ -846,58 +846,76 @@ function onContextSelect(key: string) {
                   <span class="workflow-designer__props-sub">{{ edgeForm.source }} → {{ edgeForm.target }}</span>
                 </div>
               </header>
+              <!-- 与节点属性同一套分节：每节由写着节名的分隔线起头，字段集的组标题只留给读屏 -->
               <XhFormRoot validate-on="blur">
-                <XhFieldRoot>
-                  <XhFieldLabel>{{ t('workflow.designer.edge_condition') }}</XhFieldLabel>
-                  <XhFieldControl>
-                    <XInput
-                      :value="edgeForm.condition ?? ''"
-                      type="textarea"
-                      class="font-mono"
-                      :autosize="{ minRows: 2, maxRows: 4 }"
-                      :placeholder="t('workflow.designer.edge_condition_placeholder')"
-                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.condition = value || null; commitEdge() }"
-                    />
-                  </XhFieldControl>
-                </XhFieldRoot>
-                <!-- 可选结果点一下填进条件：是动作就用按钮，标签没有按钮语义、键盘也够不着 -->
-                <XhFlex v-if="outcomeHints.length > 0" gap="xs" wrap>
-                  <XhButton
-                    v-for="outcome in outcomeHints"
-                    :key="outcome"
-                    variant="subtle"
+                <XhSeparator class="workflow-designer__divider">
+                  {{ t('workflow.designer.section.basic') }}
+                </XhSeparator>
+                <XhFieldsetRoot class="workflow-designer__section">
+                  <XhFieldsetLegend class="xh-visually-hidden">
+                    {{ t('workflow.designer.section.basic') }}
+                  </XhFieldsetLegend>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('workflow.designer.edge_name') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XInput
+                        :value="edgeForm.name ?? ''"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.name = value || null; commitEdge() }"
+                      />
+                    </XhFieldControl>
+                  </XhFieldRoot>
+                </XhFieldsetRoot>
+
+                <XhSeparator class="workflow-designer__divider">
+                  {{ t('workflow.designer.section.condition') }}
+                </XhSeparator>
+                <XhFieldsetRoot class="workflow-designer__section">
+                  <XhFieldsetLegend class="xh-visually-hidden">
+                    {{ t('workflow.designer.section.condition') }}
+                  </XhFieldsetLegend>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('workflow.designer.edge_condition') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XInput
+                        :value="edgeForm.condition ?? ''"
+                        type="textarea"
+                        class="font-mono"
+                        :autosize="{ minRows: 2, maxRows: 4 }"
+                        :placeholder="t('workflow.designer.edge_condition_placeholder')"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.condition = value || null; commitEdge() }"
+                      />
+                    </XhFieldControl>
+                  </XhFieldRoot>
+                  <!-- 可选结果点一下填进条件：是动作就用按钮，标签没有按钮语义、键盘也够不着 -->
+                  <XhFlex v-if="outcomeHints.length > 0" gap="xs" wrap>
+                    <XhButton
+                      v-for="outcome in outcomeHints"
+                      :key="outcome"
+                      variant="subtle"
+                      size="sm"
+                      @click="applyOutcomeHint(outcome)"
+                    >
+                      {{ outcome }}
+                    </XhButton>
+                  </XhFlex>
+                  <XhSwitch
                     size="sm"
-                    @click="applyOutcomeHint(outcome)"
+                    :checked="edgeForm.isDefault ?? false"
+                    @update:checked="(value: boolean) => { edgeForm!.isDefault = value; commitEdge() }"
                   >
-                    {{ outcome }}
-                  </XhButton>
-                </XhFlex>
-                <XhFieldRoot>
-                  <XhFieldLabel>{{ t('workflow.designer.edge_priority') }}</XhFieldLabel>
-                  <XhFieldControl>
-                    <XNumberInput
-                      :value="edgeForm.priority ?? 0"
-                      class="w-full"
-                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; edgeForm!.priority = value ?? 0; commitEdge() }"
-                    />
-                  </XhFieldControl>
-                </XhFieldRoot>
-                <XhSwitch
-                  size="sm"
-                  :checked="edgeForm.isDefault ?? false"
-                  @update:checked="(value: boolean) => { edgeForm!.isDefault = value; commitEdge() }"
-                >
-                  {{ t('workflow.designer.edge_is_default') }}
-                </XhSwitch>
-                <XhFieldRoot>
-                  <XhFieldLabel>{{ t('workflow.designer.edge_name') }}</XhFieldLabel>
-                  <XhFieldControl>
-                    <XInput
-                      :value="edgeForm.name ?? ''"
-                      @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as string; edgeForm!.name = value || null; commitEdge() }"
-                    />
-                  </XhFieldControl>
-                </XhFieldRoot>
+                    {{ t('workflow.designer.edge_is_default') }}
+                  </XhSwitch>
+                  <XhFieldRoot>
+                    <XhFieldLabel>{{ t('workflow.designer.edge_priority') }}</XhFieldLabel>
+                    <XhFieldControl>
+                      <XNumberInput
+                        :value="edgeForm.priority ?? 0"
+                        class="w-full"
+                        @update:value="(raw: string | number | (string | number)[] | null) => { const value = raw as number | null; edgeForm!.priority = value ?? 0; commitEdge() }"
+                      />
+                    </XhFieldControl>
+                  </XhFieldRoot>
+                </XhFieldsetRoot>
               </XhFormRoot>
               <XhButton class="workflow-designer__props-delete" size="sm" tone="danger" variant="subtle" full-width @click="deleteSelectedEdge">
                 {{ t('workflow.designer.btn_delete_edge') }}
