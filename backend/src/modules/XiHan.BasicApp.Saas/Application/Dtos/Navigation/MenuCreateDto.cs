@@ -102,7 +102,7 @@ public sealed class MenuCreateDto
     public string? Badge { get; set; }
 
     /// <summary>
-    /// 标签类型
+    /// 标签类型（语气：neutral/brand/info/success/warning/danger）
     /// </summary>
     public string? BadgeType { get; set; }
 

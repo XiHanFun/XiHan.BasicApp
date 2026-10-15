@@ -108,7 +108,7 @@ public sealed class MenuListItemDto : BasicAppDto
     public string? Badge { get; set; }
 
     /// <summary>
-    /// 标签类型（default/info/success/warning/error）
+    /// 标签类型（语气：neutral/brand/info/success/warning/danger）
     /// </summary>
     public string? BadgeType { get; set; }
 

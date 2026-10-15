@@ -160,7 +160,7 @@
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
   },
   "packages/layouts/basic/components/MenuBadge.vue": {
-    "cap": 13,
+    "cap": 5,
     "reason": "应用外壳几何：顶栏、侧栏、标签栏的固定高宽与内衬"
   },
   "packages/layouts/basic/components/NotificationBanner.vue": {

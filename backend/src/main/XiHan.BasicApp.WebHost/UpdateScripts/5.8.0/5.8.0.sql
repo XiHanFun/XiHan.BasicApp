@@ -2,6 +2,7 @@
 -- 一、审批统一走工作流：撤掉 Saas 自带的「系统审查」（sys_review / sys_review_log），权限申请改由工作流审批。
 -- 二、工作流实例记录流程结果、按发起人查询。
 -- 三、「我的待办」并入审批中心。
+-- 四、菜单标签类型改用组件库的语气词。
 --
 -- 只在 5.8.0 之前建的库上执行：新建的库按当前实体建表后直接登记为最新版本，不跑本脚本。
 -- 本脚本在建表之后、播种之前执行；新表（审批记录 sys_workflow_task_record）由建表阶段创建，这里不涉及。
@@ -130,6 +131,29 @@ BEGIN
         COMMENT ON COLUMN sys_workflow_instance.outcome IS '流程结果';
         CREATE INDEX IF NOT EXISTS ix_sys_workflow_instance_teid_stid_crti
             ON sys_workflow_instance (tenant_id, starter_id, creation_time DESC);
+    END IF;
+END
+$$;
+
+-- 六、菜单标签类型（badge_type）改用组件库的语气词：default → neutral、primary → brand、error → danger，
+-- info / success / warning 同名不动；此后只接受 neutral、brand、info、success、warning、danger。
+-- 不认识的旧值（手填的拼写错误等）清空，按未配置标签类型处理。sys_menu 只在平台库建表，独立库上整段跳过。
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables
+                WHERE table_schema = current_schema() AND table_name = 'sys_menu') THEN
+        UPDATE sys_menu
+           SET badge_type = CASE badge_type
+                                WHEN 'default' THEN 'neutral'
+                                WHEN 'primary' THEN 'brand'
+                                WHEN 'error' THEN 'danger'
+                            END
+         WHERE badge_type IN ('default', 'primary', 'error');
+
+        UPDATE sys_menu
+           SET badge_type = NULL
+         WHERE badge_type IS NOT NULL
+           AND badge_type NOT IN ('neutral', 'brand', 'info', 'success', 'warning', 'danger');
     END IF;
 END
 $$;

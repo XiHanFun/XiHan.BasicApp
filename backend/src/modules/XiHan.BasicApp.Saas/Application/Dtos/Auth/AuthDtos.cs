@@ -565,7 +565,7 @@ public sealed class MenuMetaDto
     public string? Badge { get; set; }
 
     /// <summary>
-    /// 徽标类型
+    /// 徽标类型（语气：neutral/brand/info/success/warning/danger）
     /// </summary>
     public string? BadgeType { get; set; }
 
