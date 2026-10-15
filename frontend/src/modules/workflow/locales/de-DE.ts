@@ -256,6 +256,7 @@ export default {
         participants: 'Beteiligte',
         form: 'Formular & Ergebnisse',
         props: 'Eigenschaften',
+        condition: 'Übergangsbedingung',
         execution: 'Ausführung',
       },
       prop: {

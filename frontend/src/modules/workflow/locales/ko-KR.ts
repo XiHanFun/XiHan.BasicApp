@@ -256,6 +256,7 @@ export default {
         participants: '참여자',
         form: '양식 및 결과',
         props: '속성',
+        condition: '전이 조건',
         execution: '실행 정책',
       },
       prop: {

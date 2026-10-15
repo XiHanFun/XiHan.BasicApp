@@ -256,6 +256,7 @@ export default {
         participants: '参与人',
         form: '表单与结果',
         props: '属性',
+        condition: '流转条件',
         execution: '执行策略',
       },
       prop: {

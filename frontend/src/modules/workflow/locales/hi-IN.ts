@@ -256,6 +256,7 @@ export default {
         participants: 'प्रतिभागी',
         form: 'फ़ॉर्म और परिणाम',
         props: 'गुण',
+        condition: 'संक्रमण शर्त',
         execution: 'निष्पादन नीति',
       },
       prop: {

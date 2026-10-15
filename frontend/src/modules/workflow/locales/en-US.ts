@@ -256,6 +256,7 @@ export default {
         participants: 'Participants',
         form: 'Form & outcomes',
         props: 'Properties',
+        condition: 'Routing',
         execution: 'Execution',
       },
       prop: {

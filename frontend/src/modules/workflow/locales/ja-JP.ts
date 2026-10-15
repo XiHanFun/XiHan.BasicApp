@@ -256,6 +256,7 @@ export default {
         participants: '参加者',
         form: 'フォームと結果',
         props: 'プロパティ',
+        condition: '遷移条件',
         execution: '実行ポリシー',
       },
       prop: {
