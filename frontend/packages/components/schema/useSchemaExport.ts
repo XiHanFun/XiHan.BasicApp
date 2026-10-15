@@ -67,7 +67,7 @@ export function useSchemaExport<TRow extends object>(options: UseSchemaExportOpt
     catch {
       task.error(i18n.global.t('island.export.failed'), {
         actions: [
-          { key: 'retry', label: i18n.global.t('island.export.retry'), icon: 'lucide:rotate-cw', tone: 'primary', handler: () => void exportCsv() },
+          { key: 'retry', label: i18n.global.t('island.export.retry'), icon: 'lucide:rotate-cw', tone: 'brand', handler: () => void exportCsv() },
         ],
       })
     }

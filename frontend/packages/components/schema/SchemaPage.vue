@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { MenuNode } from '@xihan-ui/headless'
 import type { ActionSchema, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaColumn } from './types'
+import type { TableDensity } from './useTableSettings'
 import type { ApiId } from '~/types/contracts'
 import { XhButton, XhButtonIndicator, XhButtonLabel, XhCardContent, XhCardRoot, XhMenuRoot, XhSkeletonItem, XhSkeletonRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useSlots, watch } from 'vue'
@@ -12,7 +13,7 @@ import { Icon } from '~/iconify'
 import { useAppContext, useAppStore } from '~/stores'
 import XIconButton from '../common/XIconButton.vue'
 import { actionMenuPrefix } from './action-menu'
-import { actionButtonTone, actionMenuTone } from './action-tone'
+import { actionMenuTone } from './action-tone'
 import { formatFieldText } from './renderer'
 import SchemaActionPanel from './SchemaActionPanel.vue'
 import SchemaImportDialog from './SchemaImportDialog.vue'
@@ -257,7 +258,7 @@ function renderRowActions(row: Row) {
     value: a.key,
     label: a.title,
     disabled: a.disabled ? a.disabled(row) : false,
-    tone: actionMenuTone(a.type),
+    tone: actionMenuTone(a.tone),
   }))
   if (collection.length === 0) {
     return h('span', { class: 'text-foreground/30' }, '-')
@@ -301,7 +302,7 @@ function dispatchAction(key: string, payload: SchemaActionPayload<Row>) {
     title: action.title,
     content: content ?? t('component.schema_page.action_confirm'),
     badge: 'warning',
-    tone: action.type === 'error' ? 'danger' : undefined,
+    tone: action.tone === 'danger' ? 'danger' : undefined,
     okText: t('component.schema_page.confirm'),
     cancelText: t('component.schema_page.cancel'),
     onOk: () => {
@@ -591,13 +592,13 @@ defineExpose({
   setDefaultView: viewManager.setDefault,
 })
 
-// 列表骨架屏：列宽/列数/行高全部对应真实表格 —— 从 columns 派生每列宽度，行高随密度（small/medium/large）
+// 列表骨架屏：列宽/列数/行高全部对应真实表格 —— 从 columns 派生每列宽度，行高随密度（sm/md/lg）
 const SKELETON_ROWS = 14
-const SKELETON_ROW_HEIGHT: Record<string, number> = { small: 40, medium: 48, large: 56 }
+const SKELETON_ROW_HEIGHT: Record<TableDensity, number> = { sm: 40, md: 48, lg: 56 }
 // 单元格内骨架条占列宽的比例（按列位置循环，模拟不同长度的内容）
 const SKELETON_CELL_FILL = ['62%', '48%', '80%', '55%', '70%', '45%', '75%', '58%', '66%', '50%']
 
-const skeletonRowHeight = computed(() => SKELETON_ROW_HEIGHT[settings.density.value] ?? 40)
+const skeletonRowHeight = computed(() => SKELETON_ROW_HEIGHT[settings.density.value])
 
 const skeletonColumns = computed(() => {
   // 前缀列（展开/多选/序号）不在 columns 里——它们由表格面板按开关插入，骨架屏照同一套开关补上
@@ -621,15 +622,6 @@ const skeletonColumns = computed(() => {
       fill: SKELETON_CELL_FILL[i % SKELETON_CELL_FILL.length] as string,
     })),
   ]
-})
-
-/**
- * 密度：用户偏好存的是 small/medium/large（后端 PagePreference 里也是这套词），
- * 组件库用的是 sm/md/lg。在此换算，不改存储词汇。
- */
-const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
-  const density = settings.density.value
-  return density === 'small' ? 'sm' : density === 'large' ? 'lg' : 'md'
 })
 </script>
 
@@ -780,10 +772,10 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
             v-model:checked-keys="checkedKeys"
             :columns="columns"
             :data="rows"
-            :density="tableDensity"
+            :density="settings.density.value"
             :striped="settings.style.value.striped"
             :bordered="settings.style.value.bordered"
-            :single-line="settings.style.value.singleLine"
+            :ruled="settings.style.value.ruled"
             :align="settings.align.value"
             :show-index="settings.showIndex.value"
             :loading="loading"
@@ -850,7 +842,7 @@ const tableDensity = computed<'sm' | 'md' | 'lg'>(() => {
                   :key="action.key"
                   size="sm"
                   variant="outline"
-                  :tone="actionButtonTone(action.type)"
+                  :tone="action.tone ?? 'neutral'"
                   @click="onBatchAction(action.key)"
                 >
                   {{ action.title }}

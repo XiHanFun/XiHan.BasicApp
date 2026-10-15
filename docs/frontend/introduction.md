@@ -68,7 +68,7 @@
 ### 第三方依赖的归属规则
 
 - **底层功能依赖归属对应的 `packages/` 子包**（自包含）。
-- 根 `package.json` 只留应用层跨切面依赖（`vue` / `vue-router` / `pinia` / `@vueuse` 因 Vite AutoImport 全局导入不可下沉，加上 `naive-ui` / `vue-i18n`）。
+- 根 `package.json` 只留应用层跨切面依赖（`vue` / `vue-router` / `pinia` / `@vueuse` 因 Vite AutoImport 全局导入不可下沉，加上组件库 `@xihan-ui/*` 与 `vue-i18n`）。
 - **`src/` 里禁止直接 import 已下沉的第三方**，一律经 `~/` 转出。
 - 改完依赖归属须跑 `pnpm install` + `pnpm type-check`；死依赖当场删。
 

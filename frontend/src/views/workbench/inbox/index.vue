@@ -520,7 +520,7 @@ onMounted(loadNotifications)
   gap: 10px;
   margin-top: 8px;
   font-size: 12px;
-  color: var(--text-tertiary);
+  color: var(--xh-fg-subtle);
 }
 
 .inbox-item-actions {

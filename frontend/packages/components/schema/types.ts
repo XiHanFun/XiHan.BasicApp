@@ -1,3 +1,4 @@
+import type { Tone } from '@xihan-ui/core'
 import type { VNodeChild } from 'vue'
 import type { ApiId, PageResult, QueryFilter } from '~/types/contracts'
 
@@ -118,13 +119,13 @@ export interface ActionSchema<TRow = Record<string, unknown>> {
   title: string
   /** 作用域 */
   scope: SchemaActionScope
-  /** 按钮类型 */
-  type?: 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
+  /** 语气：缺省 neutral 出描边钮，其余出实底钮；收进下拉菜单时只有 danger / warning 着色 */
+  tone?: Tone
   /** 图标（iconify） */
   icon?: string
   /** 所需权限码；无权限时不渲染 */
   permission?: string
-  /** 是否需要二次确认；type 为 error 的确认钮转危险色 */
+  /** 是否需要二次确认；tone 为 danger 的确认钮转危险色 */
   confirm?: boolean
   /** 确认提示文案；行级操作可传函数按行生成，写明操作对象（如「确定删除「某角色」？」） */
   confirmText?: string | ((row: TRow) => string)

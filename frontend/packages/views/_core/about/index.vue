@@ -551,10 +551,6 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.ab-card {
-  background: var(--bg-card);
-}
-
 .ab-section-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -667,7 +663,7 @@ onMounted(() => {
   padding: 20px 0;
   text-align: center;
   font-size: 13px;
-  color: var(--text-tertiary);
+  color: var(--xh-fg-subtle);
 }
 
 .ab-pkg-count {

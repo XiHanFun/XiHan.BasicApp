@@ -628,7 +628,7 @@ export default {
     density_large: 'Geräumig',
     striped: 'Gestreift',
     bordered: 'Mit Rahmen',
-    single_line: 'Einzeilig',
+    ruled: 'Spaltenlinien',
     auto: 'Automatisch',
     title: 'Tabelleneinstellungen',
     reset: 'Zurücksetzen',

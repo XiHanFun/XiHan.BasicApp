@@ -1,3 +1,4 @@
+import type { Tone } from '@xihan-ui/core'
 import type { AppUserInboxDisplayItem } from '~/types'
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useAppContext } from '~/stores'
@@ -15,13 +16,13 @@ const DISMISSED_TTL_MS = 30 * 24 * 3600_000
 const MAX_BANNERS = 3
 const ROTATE_INTERVAL_MS = 5000
 
-/** 横幅视觉类型（按通知类型/优先级映射，见 resolveBannerTone） */
-export type BannerTone = 'info' | 'success' | 'warning' | 'error' | 'primary'
+/** 横幅语气（组件库 tone 轴里除 neutral 外的五种，按通知类型/优先级映射，见 resolveBannerTone） */
+export type BannerTone = Exclude<Tone, 'neutral'>
 
-/** 通知 → 横幅视觉类型：优先级压过类型（Urgent→error、High→warning） */
+/** 通知 → 横幅语气：优先级压过类型（Urgent→danger、High→warning） */
 export function resolveBannerTone(item: AppUserInboxDisplayItem): BannerTone {
   if (item.priority === NotificationPriority.Urgent || item.notificationType === NotificationType.Emergency) {
-    return 'error'
+    return 'danger'
   }
   if (item.priority === NotificationPriority.High || item.notificationType === NotificationType.Security) {
     return 'warning'
@@ -30,7 +31,7 @@ export function resolveBannerTone(item: AppUserInboxDisplayItem): BannerTone {
     return 'success'
   }
   if (item.notificationType === NotificationType.Todo) {
-    return 'primary'
+    return 'brand'
   }
   return 'info'
 }
@@ -38,7 +39,7 @@ export function resolveBannerTone(item: AppUserInboxDisplayItem): BannerTone {
 /** 严重度排序权重（高在前） */
 function severityRank(item: AppUserInboxDisplayItem): number {
   const tone = resolveBannerTone(item)
-  return { error: 4, warning: 3, primary: 2, success: 1, info: 0 }[tone]
+  return { danger: 4, warning: 3, brand: 2, success: 1, info: 0 }[tone]
 }
 
 function readDismissed(): Record<string, number> {

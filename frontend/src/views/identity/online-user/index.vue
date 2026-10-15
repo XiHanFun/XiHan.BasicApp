@@ -164,7 +164,7 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'revoke', title: t('identity.online_user.action_revoke'), scope: 'row', icon: 'lucide:log-out', type: 'error', permission: 'identity.online-user.revoke' },
+    { key: 'revoke', title: t('identity.online_user.action_revoke'), scope: 'row', icon: 'lucide:log-out', tone: 'danger', permission: 'identity.online-user.revoke' },
   ],
 }))
 

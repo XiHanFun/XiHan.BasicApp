@@ -134,11 +134,11 @@ function onAlignChange(align: LoginFormAlign) {
 }
 
 .toolbar-btn {
-  color: hsl(var(--foreground)) !important;
+  color: hsl(var(--foreground));
 }
 
 .toolbar-btn:hover {
-  background: hsl(var(--accent)) !important;
+  background: hsl(var(--accent));
 }
 
 /* 颜色色板 */

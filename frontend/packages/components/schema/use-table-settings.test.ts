@@ -1,5 +1,6 @@
 /**
  * 表格设置的对齐：数据列一起换，缺省靠起始边；随「保存」落地、随「恢复默认」回到靠左。
+ * 密度与竖线：直接存组件库的尺寸档与 ruled，旧版存的 small / medium / large 与 singleLine 读到时换算。
  * 跨端同步换成替身：这里只看本地状态与本地存储。
  */
 import type { ListFieldSchema } from './types'
@@ -65,5 +66,50 @@ describe('useTableSettings 对齐', () => {
     const { settings, stop } = setup()
     expect(settings.align.value).toBe('left')
     stop()
+  })
+})
+
+describe('useTableSettings 密度与竖线', () => {
+  it('缺省中间档、显示竖线', () => {
+    const { settings, stop } = setup('density-test')
+    expect(settings.density.value).toBe('md')
+    expect(settings.style.value.ruled).toBe(true)
+    stop()
+  })
+
+  it('存下的是组件库尺寸档，保存后读回同一档', () => {
+    const first = setup('density-test')
+    first.settings.setDensity('sm')
+    first.settings.setStyle('ruled', false)
+    first.settings.save()
+    expect(storage.get<{ density?: string }>('xh:table-settings:density-test')?.density).toBe('sm')
+    first.stop()
+
+    const second = setup('density-test')
+    expect(second.settings.density.value).toBe('sm')
+    expect(second.settings.style.value.ruled).toBe(false)
+    second.stop()
+  })
+
+  it('旧版存的 small / large 换成 sm / lg', () => {
+    storage.set('xh:table-settings:density-small', { columns: [{ key: 'name', visible: true }], density: 'small' })
+    storage.set('xh:table-settings:density-large', { columns: [{ key: 'name', visible: true }], density: 'large' })
+    const small = setup('density-small')
+    const large = setup('density-large')
+    expect(small.settings.density.value).toBe('sm')
+    expect(large.settings.density.value).toBe('lg')
+    small.stop()
+    large.stop()
+  })
+
+  it('旧版存的 singleLine 反过来读成竖线开关', () => {
+    storage.set('xh:table-settings:ruled-off', { columns: [{ key: 'name', visible: true }], style: { striped: true, bordered: true, singleLine: true } })
+    storage.set('xh:table-settings:ruled-on', { columns: [{ key: 'name', visible: true }], style: { striped: false, bordered: true, singleLine: false } })
+    const off = setup('ruled-off')
+    const on = setup('ruled-on')
+    expect(off.settings.style.value).toStrictEqual({ striped: true, bordered: true, ruled: false })
+    expect(on.settings.style.value).toStrictEqual({ striped: false, bordered: true, ruled: true })
+    off.stop()
+    on.stop()
   })
 })

@@ -164,15 +164,15 @@ const schema = computed<PageSchema>(() => ({
   actions: [
     // SchemaActionPanel 仅按权限筛选页面级动作，因此只在可维护作用域中组装“新增”按钮。
     ...(canMaintain.value
-      ? [{ key: 'create', title: t('setting.numbering.action_create'), scope: 'page' as const, type: 'primary' as const, icon: 'lucide:plus', permission: 'setting.numbering.create' }]
+      ? [{ key: 'create', title: t('setting.numbering.action_create'), scope: 'page' as const, tone: 'brand' as const, icon: 'lucide:plus', permission: 'setting.numbering.create' }]
       : []),
     { key: 'preview', title: t('setting.numbering.action_preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'setting.numbering.read' },
     { key: 'view', title: t('setting.numbering.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('setting.numbering.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'setting.numbering.update', visible: () => canMaintain.value },
     { key: 'toggle', title: t('setting.numbering.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as NumberingRuleListItemDto).status === EnableStatus.Enabled, (row as unknown as NumberingRuleListItemDto).ruleName), permission: 'setting.numbering.status', visible: () => canMaintain.value },
-    { key: 'reset', title: t('setting.numbering.action_reset'), scope: 'row', type: 'warning', icon: 'lucide:rotate-ccw', permission: 'setting.numbering.reset', visible: () => canMaintain.value },
+    { key: 'reset', title: t('setting.numbering.action_reset'), scope: 'row', tone: 'warning', icon: 'lucide:rotate-ccw', permission: 'setting.numbering.reset', visible: () => canMaintain.value },
     { key: 'allocations', title: t('setting.numbering.action_allocations'), scope: 'row', icon: 'lucide:history', permission: 'setting.numbering.allocations' },
-    { key: 'delete', title: t('setting.numbering.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'setting.numbering.delete', visible: () => canMaintain.value, disabled: row => (row as unknown as NumberingRuleListItemDto).hasAllocated },
+    { key: 'delete', title: t('setting.numbering.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'setting.numbering.delete', visible: () => canMaintain.value, disabled: row => (row as unknown as NumberingRuleListItemDto).hasAllocated },
   ],
 }))
 

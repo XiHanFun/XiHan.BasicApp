@@ -224,13 +224,13 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => jobManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: t('setting.job.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.job.create' },
+    { key: 'create', title: t('setting.job.add'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'setting.job.create' },
     { key: 'view', title: t('setting.job.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'logs', title: t('setting.job.logs'), scope: 'row', icon: 'lucide:history', permission: 'setting.job.logs' },
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.job.update' },
     { key: 'trigger', title: t('setting.job.trigger_immediate'), scope: 'row', icon: 'lucide:play', disabled: row => triggerDisabled(row as unknown as TaskListItemDto), permission: 'setting.job.run' },
     { key: 'toggle', title: t('setting.job.toggle'), scope: 'row', icon: 'lucide:power', disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running, permission: 'setting.job.status' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as TaskListItemDto).taskName), disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running, permission: 'setting.job.delete' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as TaskListItemDto).taskName), disabled: row => (row as unknown as TaskListItemDto).runTaskStatus === RunTaskStatus.Running, permission: 'setting.job.delete' },
   ],
 }))
 
@@ -1295,8 +1295,9 @@ async function handleSubmit() {
   word-break: break-all;
 }
 
+/* 异常信息与堆栈：危险色字、淡危险底，跟着主题走 */
 .xh-task-log-pre.is-error {
-  color: #d03050;
-  background: rgb(208 48 80 / 6%);
+  color: var(--xh-fg-danger);
+  background: color-mix(in oklab, var(--xh-color-danger-600) 6%, transparent);
 }
 </style>

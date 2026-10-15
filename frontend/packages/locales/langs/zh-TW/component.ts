@@ -627,7 +627,7 @@ export default {
     density_large: '寬鬆',
     striped: '斑馬紋',
     bordered: '邊框',
-    single_line: '單線',
+    ruled: '豎線',
     auto: '自動',
     title: '表格設定',
     reset: '恢復預設',

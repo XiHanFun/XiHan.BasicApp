@@ -281,14 +281,15 @@ function getFieldIcon(kind: PrintFieldKind): string {
 .data-source-section {
   margin-top: 14px;
   overflow: hidden;
-  border: 1px solid rgba(32, 128, 240, 0.18);
+  /* 绑了数据源的卡片按品牌色淡淡着色，跟着主题色走 */
+  border: 1px solid color-mix(in oklab, var(--xh-bg-brand) 18%, transparent);
   border-radius: 10px;
-  background: rgba(32, 128, 240, 0.035);
+  background: color-mix(in oklab, var(--xh-bg-brand) 4%, transparent);
 }
 
 .data-source-section--free {
-  border-color: rgba(148, 163, 184, 0.24);
-  background: rgba(248, 250, 252, 0.76);
+  border-color: var(--xh-border-subtle);
+  background: var(--xh-bg-subtle);
 }
 
 .data-source-summary {
@@ -314,7 +315,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
 
 .data-source-summary--expandable:hover,
 .data-source-summary--expandable:focus-visible {
-  background: rgba(32, 128, 240, 0.07);
+  background: color-mix(in oklab, var(--xh-bg-brand) 7%, transparent);
 }
 
 .data-source-summary:focus-visible {
@@ -330,8 +331,8 @@ function getFieldIcon(kind: PrintFieldKind): string {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  background: rgba(32, 128, 240, 0.1);
-  color: #2080f0;
+  background: color-mix(in oklab, var(--xh-bg-brand) 10%, transparent);
+  color: var(--xh-fg-brand);
 }
 
 .data-source-copy {
@@ -352,7 +353,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
 
 .data-source-caption {
   overflow: hidden;
-  color: #64748b;
+  color: var(--xh-fg-muted);
   font-size: 12px;
   line-height: 18px;
   text-overflow: ellipsis;
@@ -361,7 +362,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
 
 .data-source-chevron {
   flex: none;
-  color: #64748b;
+  color: var(--xh-fg-muted);
   transition: transform var(--xh-motion-duration-expand) var(--xh-motion-ease-enter);
 }
 
@@ -392,7 +393,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #2080f0;
+  color: var(--xh-fg-brand);
   font: inherit;
   font-size: 16px;
   user-select: none;
@@ -404,7 +405,7 @@ function getFieldIcon(kind: PrintFieldKind): string {
 
 .material-item:hover,
 .material-item:focus-visible {
-  background: rgba(32, 128, 240, 0.09);
+  background: color-mix(in oklab, var(--xh-bg-brand) 9%, transparent);
 }
 
 .material-item:focus-visible {
@@ -422,26 +423,16 @@ function getFieldIcon(kind: PrintFieldKind): string {
 
 .data-source-grid {
   padding: 8px 10px 10px;
-  border-top: 1px solid rgba(32, 128, 240, 0.12);
+  border-top: 1px solid color-mix(in oklab, var(--xh-bg-brand) 12%, transparent);
   gap: 8px;
 }
 
 .data-source-item {
   min-height: 78px;
   padding: 8px 6px;
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--xh-border-subtle);
+  background: var(--xh-bg-surface);
   font-size: 13px;
-}
-
-:global(.dark) .data-source-section--free {
-  border-color: rgba(100, 116, 139, 0.38);
-  background: rgba(30, 41, 59, 0.54);
-}
-
-:global(.dark) .data-source-caption,
-:global(.dark) .data-source-chevron {
-  color: #94a3b8;
 }
 
 .material-icon {

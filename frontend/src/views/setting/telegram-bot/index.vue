@@ -115,10 +115,10 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => telegramBotApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('message.telegram_bot.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.telegram-bot.create' },
+    { key: 'create', title: t('message.telegram_bot.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'setting.telegram-bot.create' },
     { key: 'edit', title: t('message.telegram_bot.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.telegram-bot.update' },
     { key: 'toggle', title: t('message.telegram_bot.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.telegram-bot.status' },
-    { key: 'delete', title: t('message.telegram_bot.actions.delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', permission: 'setting.telegram-bot.delete' },
+    { key: 'delete', title: t('message.telegram_bot.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', permission: 'setting.telegram-bot.delete' },
   ],
 }))
 

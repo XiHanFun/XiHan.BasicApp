@@ -138,7 +138,7 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => smsConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('message.sms_config.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.sms-config.create' },
+    { key: 'create', title: t('message.sms_config.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'setting.sms-config.create' },
     { key: 'edit', title: t('message.sms_config.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.sms-config.update' },
     { key: 'toggle', title: t('message.sms_config.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.sms-config.status' },
     {
@@ -154,7 +154,7 @@ const schema = computed<PageSchema>(() => ({
       title: t('message.sms_config.actions.delete'),
       scope: 'row',
       icon: 'lucide:trash-2',
-      type: 'error',
+      tone: 'danger',
       permission: 'setting.sms-config.delete',
       visible: row => !(row as unknown as SmsConfigListItemDto).isDefault,
     },

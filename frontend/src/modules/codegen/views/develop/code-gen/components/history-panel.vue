@@ -170,7 +170,7 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'view', title: t('common.actions.detail'), scope: 'row', type: 'primary', icon: 'lucide:eye' },
+    { key: 'view', title: t('common.actions.detail'), scope: 'row', tone: 'brand', icon: 'lucide:eye' },
   ],
 }))
 

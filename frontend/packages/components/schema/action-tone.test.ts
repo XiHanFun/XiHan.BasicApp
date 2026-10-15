@@ -2,35 +2,26 @@
  * 危险操作在下拉菜单里的条目语气。
  *
  * 行操作与页面「更多」都收在下拉菜单里，删除、重置密码、强制下线这类命令要靠红字从一列里跳出来；
- * 只有 error / warning 着色，其余类型与普通条目同档，否则一片彩字又分不出哪条危险。
+ * 只有 danger / warning 着色，其余语气与普通条目同档，否则一片彩字又分不出哪条危险。
  * 通用下拉（XDropdown / 右键菜单）经 toDropdownCollection 把条目上写的 tone 原样交给组件库。
  */
 import type { MenuNodeMeta } from '@xihan-ui/headless'
 import { describe, expect, it } from 'vitest'
 import { toDropdownCollection } from '../common/dropdown-collection'
 import { actionMenuPrefix } from './action-menu'
-import { actionButtonTone, actionMenuTone } from './action-tone'
+import { actionMenuTone } from './action-tone'
 
 const meta = (value: string) => ({ value }) as MenuNodeMeta
 
 describe('actionMenuTone', () => {
   it('只给破坏性与停用类着色', () => {
-    expect(actionMenuTone('error')).toBe('danger')
+    expect(actionMenuTone('danger')).toBe('danger')
     expect(actionMenuTone('warning')).toBe('warning')
   })
 
-  it('其余类型不着色，与普通条目同档', () => {
-    for (const type of [undefined, 'default', 'primary', 'info', 'success'] as const)
-      expect(actionMenuTone(type)).toBeUndefined()
-  })
-})
-
-describe('actionButtonTone', () => {
-  it('按钮仍按整条 tone 轴换算', () => {
-    expect(actionButtonTone('primary')).toBe('brand')
-    expect(actionButtonTone('error')).toBe('danger')
-    expect(actionButtonTone('success')).toBe('success')
-    expect(actionButtonTone(undefined)).toBe('neutral')
+  it('其余语气不着色，与普通条目同档', () => {
+    for (const tone of [undefined, 'neutral', 'brand', 'info', 'success'] as const)
+      expect(actionMenuTone(tone)).toBeUndefined()
   })
 })
 

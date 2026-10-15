@@ -1,3 +1,4 @@
+import type { Size } from '@xihan-ui/core'
 import type { Ref } from 'vue'
 import type { ListFieldSchema } from './types'
 import { computed, onScopeDispose, ref, watch } from 'vue'
@@ -24,8 +25,8 @@ export interface ColumnSetting {
   sort?: 'asc' | 'desc'
 }
 
-/** 表格密度 */
-export type TableDensity = 'small' | 'medium' | 'large'
+/** 表格密度：直接用组件库的尺寸档 */
+export type TableDensity = Size
 
 /** 表格风格 */
 export interface TableStyle {
@@ -33,15 +34,31 @@ export interface TableStyle {
   striped: boolean
   /** 边框 */
   bordered: boolean
-  /** 单线（关闭时显示纵向分隔线） */
-  singleLine: boolean
+  /** 列之间的竖线 */
+  ruled: boolean
 }
 
 /** 表格对齐：数据列都按这一档排，缺省靠起始边，与组件库一致 */
 export type TableAlign = 'left' | 'center' | 'right'
 
-/** 表格风格默认值（默认不打斑马纹、显示竖线：single-line=false） */
-const DEFAULT_STYLE: TableStyle = { striped: false, bordered: true, singleLine: false }
+/** 表格风格默认值：不打斑马纹、显示竖线 */
+const DEFAULT_STYLE: TableStyle = { striped: false, bordered: true, ruled: true }
+
+/** 旧版存的密度词（small / medium / large），读到时换成尺寸档 */
+const LEGACY_DENSITY: Record<string, TableDensity> = { small: 'sm', medium: 'md', large: 'lg' }
+
+/** 读出持久化的密度：现行尺寸档原样，旧版密度词换算 */
+function readDensity(value: string | undefined): TableDensity {
+  if (value === 'sm' || value === 'md' || value === 'lg')
+    return value
+  return (value && LEGACY_DENSITY[value]) || 'md'
+}
+
+/** 读出持久化的风格：旧版按 singleLine 存竖线（true 表示无竖线），换成 ruled */
+function readStyle(value: PersistedTableSettings['style']): TableStyle {
+  const { singleLine, ...rest } = value ?? {}
+  return { ...DEFAULT_STYLE, ...(singleLine === undefined ? {} : { ruled: !singleLine }), ...rest }
+}
 
 /** 默认排序单条规则（列表打开时的初始排序；列头点击的临时排序会覆盖本次会话） */
 export interface TableDefaultSort {
@@ -57,10 +74,10 @@ export interface TableDefaultSort {
 interface PersistedTableSettings {
   /** 按顺序的列设置（含每列默认排序方向 sort） */
   columns: Array<{ key: string, visible: boolean, fixed?: 'left' | 'right', width?: number, sort?: 'asc' | 'desc' }>
-  /** 密度 */
-  density: TableDensity
-  /** 表格风格 */
-  style?: TableStyle
+  /** 密度；旧版存的是 small / medium / large，由 readDensity 换算 */
+  density?: string
+  /** 表格风格；旧版存的是 singleLine，由 readStyle 换算 */
+  style?: Partial<TableStyle> & { singleLine?: boolean }
   /** 表格对齐 */
   align?: TableAlign
   /** 是否允许多选 */
@@ -108,7 +125,7 @@ export function useTableSettings(
 
   const columns = ref<ColumnSetting[]>(buildDefault())
   /** 缺省密度：中间档 */
-  const density = ref<TableDensity>('medium')
+  const density = ref<TableDensity>('md')
   const style = ref<TableStyle>({ ...DEFAULT_STYLE })
   const align = ref<TableAlign>('left')
   const selectable = ref<boolean>(defaultSelectable)
@@ -146,8 +163,8 @@ export function useTableSettings(
       }
     }
     columns.value = ordered
-    density.value = persisted.density ?? 'medium'
-    style.value = { ...DEFAULT_STYLE, ...persisted.style }
+    density.value = readDensity(persisted.density)
+    style.value = readStyle(persisted.style)
     align.value = persisted.align ?? 'left'
     selectable.value = persisted.selectable ?? defaultSelectable
     showIndex.value = persisted.showIndex ?? true
@@ -266,7 +283,7 @@ export function useTableSettings(
   function resetDefault() {
     // buildDefault 不含 sort，列重建后 defaultSorts 计算属性自然清空
     columns.value = buildDefault()
-    density.value = 'medium'
+    density.value = 'md'
     style.value = { ...DEFAULT_STYLE }
     align.value = 'left'
     selectable.value = defaultSelectable

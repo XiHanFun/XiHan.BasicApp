@@ -105,9 +105,9 @@ const schema = computed<PageSchema>(() => ({
     remove: id => knowledgeApi.delete(id),
   },
   actions: [
-    { key: 'create', title: t('develop.knowledge.add'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'knowledge_base.create' },
-    { key: 'reindex', title: t('develop.knowledge.action_reindex'), scope: 'row', type: 'info', icon: 'lucide:refresh-cw', permission: 'knowledge_base.update' },
-    { key: 'delete', title: t('common.actions.delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'knowledge_base.delete' },
+    { key: 'create', title: t('develop.knowledge.add'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'knowledge_base.create' },
+    { key: 'reindex', title: t('develop.knowledge.action_reindex'), scope: 'row', tone: 'info', icon: 'lucide:refresh-cw', permission: 'knowledge_base.update' },
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'knowledge_base.delete' },
   ],
 }))
 
@@ -524,7 +524,7 @@ function onQueryKeydown(event: KeyboardEvent) {
 
 .knowledge__source {
   font-size: 12px;
-  color: var(--text-color-3, #999);
+  color: var(--xh-fg-subtle);
   align-self: center;
 }
 
@@ -558,7 +558,7 @@ function onQueryKeydown(event: KeyboardEvent) {
   white-space: pre-wrap;
   font-size: 13px;
   line-height: 1.6;
-  color: var(--text-color-2, #666);
+  color: var(--xh-fg-muted);
 }
 
 .playground__empty {

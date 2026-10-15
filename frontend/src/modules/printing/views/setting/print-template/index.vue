@@ -148,13 +148,13 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     ...(canMaintain.value
-      ? [{ key: 'create', title: t('setting.print_template.action_create'), scope: 'page' as const, type: 'primary' as const, icon: 'lucide:plus', permission: 'setting.print-template.create' }]
+      ? [{ key: 'create', title: t('setting.print_template.action_create'), scope: 'page' as const, tone: 'brand' as const, icon: 'lucide:plus', permission: 'setting.print-template.create' }]
       : []),
     { key: 'preview', title: t('setting.print_template.action_preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'setting.print-template.use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
     { key: 'direct', title: t('setting.print_template.action_direct'), scope: 'row', icon: 'lucide:printer', permission: 'setting.print-template.use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
     { key: 'edit', title: t('setting.print_template.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'setting.print-template.update', visible: () => canMaintain.value },
     { key: 'toggle', title: t('setting.print_template.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled, (row as unknown as PrintTemplateListItemDto).templateName), permission: 'setting.print-template.status', visible: () => canMaintain.value },
-    { key: 'delete', title: t('setting.print_template.action_delete'), scope: 'row', type: 'error', icon: 'lucide:trash-2', permission: 'setting.print-template.delete', visible: () => canMaintain.value, disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Disabled },
+    { key: 'delete', title: t('setting.print_template.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'setting.print-template.delete', visible: () => canMaintain.value, disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Disabled },
   ],
 }))
 

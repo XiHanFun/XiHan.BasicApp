@@ -357,16 +357,16 @@ const schema = computed<PageSchema>(() => ({
     },
   },
   actions: [
-    { key: 'upload', title: t('file.library.actions.upload'), scope: 'page', type: 'primary', icon: 'lucide:upload', permission: 'file.library.create' },
+    { key: 'upload', title: t('file.library.actions.upload'), scope: 'page', tone: 'brand', icon: 'lucide:upload', permission: 'file.library.create' },
     { key: 'preview', title: t('file.library.actions.preview'), scope: 'row', icon: 'lucide:scan-eye', visible: row => canPreview(row as unknown as FileListItemDto) },
     { key: 'download', title: t('file.library.actions.download'), scope: 'row', icon: 'lucide:download', visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal },
     { key: 'view', title: t('file.library.actions.view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'metadata', title: t('file.library.actions.metadata'), scope: 'row', icon: 'lucide:tags', permission: 'file.library.update' },
     { key: 'storages', title: t('file.library.actions.storages'), scope: 'row', icon: 'lucide:hard-drive' },
     // 回收站语义：正常文件可「归档」（软删，可恢复）；非正常文件可「恢复」；任意状态可「彻底删除」（物理删，不可恢复）
-    { key: 'archive', title: t('file.library.actions.archive'), scope: 'row', icon: 'lucide:archive', type: 'warning', confirm: true, confirmText: row => actionConfirmText(t, t('file.library.actions.archive'), (row as unknown as FileListItemDto).originalName || (row as unknown as FileListItemDto).fileName), visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal, permission: 'file.library.status' },
+    { key: 'archive', title: t('file.library.actions.archive'), scope: 'row', icon: 'lucide:archive', tone: 'warning', confirm: true, confirmText: row => actionConfirmText(t, t('file.library.actions.archive'), (row as unknown as FileListItemDto).originalName || (row as unknown as FileListItemDto).fileName), visible: row => (row as unknown as FileListItemDto).status === FileStatus.Normal, permission: 'file.library.status' },
     { key: 'restore', title: t('file.library.actions.restore'), scope: 'row', icon: 'lucide:archive-restore', visible: row => (row as unknown as FileListItemDto).status !== FileStatus.Normal, permission: 'file.library.status' },
-    { key: 'destroy', title: t('file.library.actions.destroy'), scope: 'row', icon: 'lucide:trash-2', type: 'error', permission: 'file.library.delete' },
+    { key: 'destroy', title: t('file.library.actions.destroy'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', permission: 'file.library.delete' },
   ],
 }))
 

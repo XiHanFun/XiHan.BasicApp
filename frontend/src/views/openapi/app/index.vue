@@ -165,12 +165,12 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => appManagementApi.updateStatus({ basicId: id, status: enabled ? EnableStatus.Enabled : EnableStatus.Disabled }),
   },
   actions: [
-    { key: 'create', title: t('openapi.app.action_create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'openapi.app.create' },
+    { key: 'create', title: t('openapi.app.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'openapi.app.create' },
     { key: 'view', title: t('openapi.app.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('openapi.app.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'openapi.app.update' },
     { key: 'toggle', title: t('openapi.app.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as OAuthAppListItemDto).status === EnableStatus.Enabled, (row as unknown as OAuthAppListItemDto).appName), permission: 'openapi.app.status' },
-    { key: 'secret', title: t('openapi.app.action_secret'), scope: 'row', icon: 'lucide:key-square', type: 'error', confirm: true, confirmText: row => t('openapi.app.confirm_secret', { name: (row as unknown as OAuthAppListItemDto).appName }), permission: 'openapi.app.secret' },
-    { key: 'delete', title: t('openapi.app.action_delete'), scope: 'row', icon: 'lucide:trash-2', type: 'error', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as OAuthAppListItemDto).appName), permission: 'openapi.app.delete' },
+    { key: 'secret', title: t('openapi.app.action_secret'), scope: 'row', icon: 'lucide:key-square', tone: 'danger', confirm: true, confirmText: row => t('openapi.app.confirm_secret', { name: (row as unknown as OAuthAppListItemDto).appName }), permission: 'openapi.app.secret' },
+    { key: 'delete', title: t('openapi.app.action_delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, (row as unknown as OAuthAppListItemDto).appName), permission: 'openapi.app.delete' },
   ],
 }))
 

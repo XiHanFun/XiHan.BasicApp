@@ -152,7 +152,7 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => storageConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('file.storage.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'file.storage.create' },
+    { key: 'create', title: t('file.storage.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'file.storage.create' },
     { key: 'edit', title: t('file.storage.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'file.storage.update' },
     { key: 'toggle', title: t('file.storage.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'file.storage.status' },
     {
@@ -168,7 +168,7 @@ const schema = computed<PageSchema>(() => ({
       title: t('file.storage.actions.delete'),
       scope: 'row',
       icon: 'lucide:trash-2',
-      type: 'error',
+      tone: 'danger',
       permission: 'file.storage.delete',
       visible: row => !(row as unknown as StorageConfigListItemDto).isDefault,
     },

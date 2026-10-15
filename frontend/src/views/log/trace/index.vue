@@ -590,9 +590,9 @@ watch(tracePreset, (preset) => {
   font-size: 12px;
 }
 
-/* ── 时间线轨道（内嵌于外层 NCard，等宽机器值；卡片按状态浅色着色） ── */
+/* ── 时间线轨道（内嵌于外层卡片，等宽机器值；卡片按状态浅色着色） ── */
 .trace-panel {
-  --trace-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --trace-mono: var(--xh-font-family-mono);
   /* 状态色 / 耗时色 / 请求方式色 + 底色（卡片用 color-mix 调浅色） */
   --t-card: var(--xh-bg-surface);
   --t-action: var(--xh-bg-subtle);

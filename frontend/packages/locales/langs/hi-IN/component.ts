@@ -627,7 +627,7 @@ export default {
     density_large: 'विस्तृत',
     striped: 'धारीदार',
     bordered: 'बॉर्डर',
-    single_line: 'एकल रेखा',
+    ruled: 'स्तंभ रेखाएँ',
     auto: 'स्वतः',
     title: 'तालिका सेटिंग',
     reset: 'डिफ़ॉल्ट पर लौटें',

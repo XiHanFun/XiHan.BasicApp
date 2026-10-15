@@ -628,7 +628,7 @@ export default {
     density_large: 'Spacious',
     striped: 'Striped',
     bordered: 'Bordered',
-    single_line: 'Single Line',
+    ruled: 'Column Lines',
     auto: 'Auto',
     title: 'Table Settings',
     reset: 'Reset',

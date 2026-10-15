@@ -135,7 +135,7 @@ const schema = computed<PageSchema>(() => ({
     updateStatus: (id, enabled) => botConfigApi.updateStatus({ basicId: id, isEnabled: enabled }),
   },
   actions: [
-    { key: 'create', title: t('message.bot_config.actions.create'), scope: 'page', type: 'primary', icon: 'lucide:plus', permission: 'setting.bot-config.create' },
+    { key: 'create', title: t('message.bot_config.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'setting.bot-config.create' },
     { key: 'edit', title: t('message.bot_config.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.bot-config.update' },
     { key: 'toggle', title: t('message.bot_config.actions.toggle'), scope: 'row', icon: 'lucide:power', permission: 'setting.bot-config.status' },
     {
@@ -151,7 +151,7 @@ const schema = computed<PageSchema>(() => ({
       title: t('message.bot_config.actions.delete'),
       scope: 'row',
       icon: 'lucide:trash-2',
-      type: 'error',
+      tone: 'danger',
       permission: 'setting.bot-config.delete',
       visible: row => !(row as unknown as BotConfigListItemDto).isDefault,
     },

@@ -447,7 +447,7 @@
   flex: none;
 }
 
-/* 紧凑空状态（替代大面积留白的 NEmpty） */
+/* 紧凑空状态：一行图标加文字，不占大面积留白 */
 .pf-empty {
   display: flex;
   align-items: center;

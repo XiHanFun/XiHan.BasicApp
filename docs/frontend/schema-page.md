@@ -103,7 +103,7 @@ const fields = computed<ListFieldSchema[]>(() => [
     key: 'accessResult', title: t('log.access.access_result'), dataType: 'enum',
     searchable: true, searchMultiple: true, sortable: true,
     options: accessResultOptions.value, order: 18,
-    render: row => h(NTag, { type: accessResultType(row.accessResult) }, () => /* label */),
+    render: row => h(XhTagRoot, { variant: 'subtle', tone: accessResultTone(row.accessResult) }, () => h(XhTagLabel, () => /* label */)),
   },
 
   // 时间区间搜索
