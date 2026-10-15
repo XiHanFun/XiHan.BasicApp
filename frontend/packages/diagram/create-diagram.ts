@@ -84,6 +84,18 @@ function toX6Node(node: DiagramNode) {
   }
 }
 
+function toX6Edge(edge: DiagramEdge) {
+  return {
+    id: edge.id,
+    source: { cell: edge.source },
+    target: { cell: edge.target },
+    attrs: edgeAttrs(edge.dashed),
+    labels: edgeLabels(edge.label),
+    zIndex: 0,
+    data: { [EDGE_META_KEY]: { label: edge.label, dashed: edge.dashed }, payload: edge.data ?? {} },
+  }
+}
+
 function readNode(node: Node): DiagramNode {
   const position = node.position()
   const ports = node.getPorts()
@@ -233,24 +245,13 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
 
   const api: DiagramApi = {
     load(data: DiagramData) {
-      graph.clearCells()
-      for (const node of data.nodes)
-        graph.addNode(toX6Node(node))
-      for (const edge of data.edges) {
-        const created = graph.addEdge({
-          id: edge.id,
-          source: { cell: edge.source },
-          target: { cell: edge.target },
-          attrs: edgeAttrs(edge.dashed),
-          labels: edgeLabels(edge.label),
-          zIndex: 0,
-          data: {
-            [EDGE_META_KEY]: { label: edge.label, dashed: edge.dashed },
-            payload: edge.data ?? {},
-          },
-        })
-        void created
-      }
+      // 整图替换走 resetCells：渲染器收到 reset 会当场摘掉全部旧视图再铺新的。
+      // 先 clearCells 再逐个 add 同 id 的格子不行——删除排进异步队列、按格子 id 排队，
+      // 同 id 的新格子把这条删除顶掉，旧连线与端口就一直留在画布上（重新装载同一张图时每次翻一倍）
+      graph.resetCells([
+        ...data.nodes.map(node => graph.createNode(toX6Node(node))),
+        ...data.edges.map(edge => graph.createEdge(toX6Edge(edge))),
+      ])
       graph.cleanHistory()
       api.zoomToFit()
     },
@@ -267,16 +268,18 @@ export function createDiagram(container: HTMLElement, options: DiagramOptions = 
     },
 
     addEdge(edge: DiagramEdge) {
-      const created = graph.addEdge({
-        id: edge.id,
-        source: { cell: edge.source },
-        target: { cell: edge.target },
-        attrs: edgeAttrs(edge.dashed),
-        labels: edgeLabels(edge.label),
-        zIndex: 0,
-        data: { [EDGE_META_KEY]: { label: edge.label, dashed: edge.dashed }, payload: edge.data ?? {} },
+      graph.addEdge(toX6Edge(edge))
+    },
+
+    moveNodes(positions) {
+      // 一批改完：连线跟着节点重算路径，撤销也只算一步
+      graph.batchUpdate(() => {
+        for (const { id, x, y } of positions) {
+          const cell = graph.getCellById(id)
+          if (cell?.isNode())
+            cell.setPosition(x, y)
+        }
       })
-      void created
     },
 
     updateNodeData(id: string, data: Record<string, unknown>) {

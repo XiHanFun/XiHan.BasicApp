@@ -136,6 +136,15 @@ const x6 = vi.hoisted(() => {
       return makeEdge(spec)
     }
 
+    createNode(spec: Spec) {
+      return makeNode(spec)
+    }
+
+    resetCells(cells: (ReturnType<typeof makeEdge> | ReturnType<typeof makeNode>)[]) {
+      this.cells = [...cells]
+      this.trace.push('resetCells')
+    }
+
     getCellById(id: string) {
       return this.cells.find(cell => cell.id === id)
     }
@@ -550,12 +559,20 @@ describe('键盘命令', () => {
 })
 
 describe('整图装载与导出', () => {
-  it('装载按「清空 → 加内容 → 清历史 → 适配视口」的固定顺序执行', () => {
+  it('装载按「整图替换 → 清历史 → 适配视口」的固定顺序执行，不走清空后逐个加', () => {
     const { api, graph } = create()
+    const clearCells = vi.spyOn(graph, 'clearCells')
+    const addNode = vi.spyOn(graph, 'addNode')
+    const addEdge = vi.spyOn(graph, 'addEdge')
 
     api.load(sampleData)
 
-    expect(graph.trace).toStrictEqual(['clearCells', 'cleanHistory', 'zoomToFit'])
+    // 清空后逐个加同 id 的格子会被异步渲染顶掉删除，旧视图残留在画布上；整图替换由渲染器当场摘掉旧视图
+    expect(graph.trace).toStrictEqual(['resetCells', 'cleanHistory', 'zoomToFit'])
+    expect(clearCells).not.toHaveBeenCalled()
+    expect(addNode).not.toHaveBeenCalled()
+    expect(addEdge).not.toHaveBeenCalled()
+    expect(graph.cells.map(cell => cell.id)).toStrictEqual(['n1', 'n2', 'e1'])
     expect(graph.zoomToFitOptions[0]).toStrictEqual({ padding: 24, maxScale: 1 })
   })
 
@@ -622,7 +639,24 @@ describe('整图装载与导出', () => {
     api.load({ nodes: [], edges: [] })
 
     expect(api.toData()).toStrictEqual({ nodes: [], edges: [] })
-    expect(graph.trace).toStrictEqual(['clearCells', 'cleanHistory', 'zoomToFit'])
+    expect(graph.trace).toStrictEqual(['resetCells', 'cleanHistory', 'zoomToFit'])
+  })
+
+  it('挪动节点：一批改完、只动节点，不认识的 id 与连线一概不碰，格子不重建', () => {
+    const { api, graph } = create()
+    api.load(sampleData)
+    const before = graph.cells.slice()
+    graph.trace.length = 0
+
+    api.moveNodes([
+      { id: 'n1', x: 300, y: 40 },
+      { id: 'e1', x: 9, y: 9 },
+      { id: 'missing', x: 1, y: 1 },
+    ])
+
+    expect(graph.trace).toStrictEqual(['batchUpdate'])
+    expect(graph.getNodes().map(node => node.getPosition())).toStrictEqual([{ x: 300, y: 40 }, { x: 200, y: 20 }])
+    expect(graph.cells).toStrictEqual(before)
   })
 
   it('导出 PNG 默认文件名为 diagram.png，可被调用方覆盖', () => {

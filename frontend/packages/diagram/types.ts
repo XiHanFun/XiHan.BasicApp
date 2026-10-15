@@ -125,6 +125,8 @@ export interface DiagramApi {
   /** 更新连线标签/样式/数据 */
   updateEdge: (id: string, patch: { label?: string, dashed?: boolean, data?: Record<string, unknown> }) => void
   removeCells: (ids: string[]) => void
+  /** 把已有节点挪到给定位置（自动布局用）：不重建格子，连线随之重算，整批算一步撤销；不存在的 id 与连线忽略 */
+  moveNodes: (positions: Array<{ id: string, x: number, y: number }>) => void
   /** 浏览器坐标 → 画布坐标（拖放定位） */
   clientToLocal: (clientX: number, clientY: number) => DiagramPoint
 
