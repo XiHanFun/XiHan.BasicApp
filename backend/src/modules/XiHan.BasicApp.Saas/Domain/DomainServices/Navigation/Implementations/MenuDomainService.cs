@@ -15,6 +15,14 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class MenuDomainService
     : IMenuDomainService
 {
+    /// <summary>
+    /// 标签类型的取值：标签与圆点的语气，与前端组件库的 tone 同名
+    /// </summary>
+    private static readonly HashSet<string> BadgeTypes = new(StringComparer.Ordinal)
+    {
+        "neutral", "brand", "info", "success", "warning", "danger"
+    };
+
     private readonly IMenuRepository _menuRepository;
 
     private readonly IPermissionRepository _permissionRepository;
@@ -256,7 +264,10 @@ public sealed class MenuDomainService
         ValidateOptionalLength(i18nKey, 100, nameof(i18nKey), "国际化键不能超过 100 个字符。");
         ValidateOptionalLength(externalUrl, 500, nameof(externalUrl), "外链地址不能超过 500 个字符。");
         ValidateOptionalLength(badge, 50, nameof(badge), "标签内容不能超过 50 个字符。");
-        ValidateOptionalLength(badgeType, 20, nameof(badgeType), "标签类型不能超过 20 个字符。");
+        if (!string.IsNullOrWhiteSpace(badgeType) && !BadgeTypes.Contains(badgeType.Trim()))
+        {
+            throw new ArgumentOutOfRangeException(nameof(badgeType), "标签类型只能是 neutral、brand、info、success、warning、danger 之一。");
+        }
         ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");
         _ = NormalizeMetadata(metadata);
 

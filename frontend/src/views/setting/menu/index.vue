@@ -14,7 +14,7 @@ import { Icon, IconPicker, SchemaPage, statusConfirmText, XDataTable, XEditModal
 import { toast } from '~/composables'
 import { usePermission } from '~/hooks'
 import { useUserStore } from '~/stores'
-import { formatDate, getOptionLabel } from '~/utils'
+import { formatDate, getOptionLabel, menuBadgeDotColor, resolveMenuBadgeTone } from '~/utils'
 
 defineOptions({ name: 'PlatformMenuPage' })
 
@@ -61,44 +61,25 @@ function menuTypeTagType(menuType: MenuType) {
   return menuType === MenuType.Menu ? 'info' : 'neutral'
 }
 
+/** 标签类型就是组件库的语气词，存库取值与侧栏渲染同一套 */
 const badgeTypeOptions = computed(() => [
-  { label: t('setting.menu.badge_default'), value: 'default' },
-  { label: t('setting.menu.badge_primary'), value: 'primary' },
+  { label: t('setting.menu.badge_neutral'), value: 'neutral' },
+  { label: t('setting.menu.badge_brand'), value: 'brand' },
   { label: t('setting.menu.badge_info'), value: 'info' },
   { label: t('setting.menu.badge_success'), value: 'success' },
   { label: t('setting.menu.badge_warning'), value: 'warning' },
-  { label: t('setting.menu.badge_error'), value: 'error' },
+  { label: t('setting.menu.badge_danger'), value: 'danger' },
 ])
 
-/** 菜单徽标类型：存库取值，不随组件库词汇变动 */
-type BadgeTagType = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error'
-
-/** 存库取值 → 组件库语气 */
-const BADGE_TONE: Record<BadgeTagType, 'neutral' | 'brand' | 'info' | 'success' | 'warning' | 'danger'> = {
-  default: 'neutral',
-  primary: 'brand',
-  info: 'info',
-  success: 'success',
-  warning: 'warning',
-  error: 'danger',
-}
-
-const badgeDotColorMap: Record<string, string> = {
-  default: '#909399',
-  primary: '#2080f0',
-  info: '#2080f0',
-  success: '#18a058',
-  warning: '#f0a020',
-  error: '#d03050',
-}
-
-function badgeTone(value?: string | null) {
-  const stored = (value && badgeTypeOptions.value.some(o => o.value === value) ? value : 'default') as BadgeTagType
-  return BADGE_TONE[stored]
-}
-
-function badgeDotColor(value?: string | null) {
-  return (value && badgeDotColorMap[value]) || badgeDotColorMap.default
+/** 圆点与侧栏同色：没配标签类型时按提醒红 */
+function badgeDotStyle(badgeType?: string | null) {
+  return {
+    display: 'inline-block',
+    inlineSize: 'var(--xh-space-2)',
+    blockSize: 'var(--xh-space-2)',
+    borderRadius: 'var(--xh-shape-circle)',
+    backgroundColor: menuBadgeDotColor(resolveMenuBadgeTone(badgeType, true)),
+  }
 }
 
 // 上级菜单树（树选择器的选项来源，独立 ref，增删改后与表格一起 reload）
@@ -306,18 +287,10 @@ const schema = computed<PageSchema>(() => ({
       render: (row) => {
         const item = row as unknown as MenuListItemDto
         if (item.badgeDot) {
-          return h('span', {
-            style: {
-              display: 'inline-block',
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: badgeDotColor(item.badgeType),
-            },
-          })
+          return h('span', { style: badgeDotStyle(item.badgeType) })
         }
         if (item.badge) {
-          return h(XhTagRoot, { variant: 'subtle', tone: badgeTone(item.badgeType) }, () => h(XhTagLabel, () => item.badge))
+          return h(XhTagRoot, { variant: 'subtle', tone: resolveMenuBadgeTone(item.badgeType) }, () => h(XhTagLabel, () => item.badge))
         }
         return '-'
       },
@@ -738,15 +711,13 @@ onMounted(() => {
                 <XhDescriptionsItem>
                   <XhDescriptionsLabel>{{ t('setting.menu.badge') }}</XhDescriptionsLabel>
                   <XhDescriptionsValue>
-                    <XhTagRoot v-if="currentDetail.badge" variant="subtle" size="sm" :tone="badgeTone(currentDetail.badgeType)">
+                    <!-- 与列表、侧栏同一优先级：开了圆点就只出圆点 -->
+                    <span v-if="currentDetail.badgeDot" :style="badgeDotStyle(currentDetail.badgeType)" />
+                    <XhTagRoot v-else-if="currentDetail.badge" variant="subtle" size="sm" :tone="resolveMenuBadgeTone(currentDetail.badgeType)">
                       <XhTagLabel>
                         {{ currentDetail.badge }}
                       </XhTagLabel>
                     </XhTagRoot>
-                    <span
-                      v-else-if="currentDetail.badgeDot"
-                      :style="{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: badgeDotColor(currentDetail.badgeType) }"
-                    />
                     <span v-else>-</span>
                   </XhDescriptionsValue>
                 </XhDescriptionsItem>

@@ -170,7 +170,7 @@ public partial class SysMenu : BasicAppFullAuditedEntity
     public virtual string? Badge { get; set; }
 
     /// <summary>
-    /// 标签类型（控制标签颜色：default/success/warning/error/info）
+    /// 标签类型（标签与圆点的语气：neutral/brand/info/success/warning/danger，与前端组件库的 tone 同名）
     /// </summary>
     [SugarColumn(ColumnName = "Badge_Type", ColumnDescription = "标签类型", Length = 20, IsNullable = true)]
     public virtual string? BadgeType { get; set; }
