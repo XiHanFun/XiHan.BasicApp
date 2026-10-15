@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
 import enUS from '../../../../locales/en-US'
 import zhCN from '../../../../locales/zh-CN'
 import { ASSIGNEE_RULE_TYPES } from './assignee-rules'
-import { ACTIVITY_CATALOG, ACTIVITY_MAP, CATEGORY_ORDER } from './catalog'
+import { ACTIVITY_CATALOG, ACTIVITY_MAP, CATEGORY_ORDER, groupActivityProps, isPropVisible, PROP_GROUP_ORDER } from './catalog'
 
 type MessageTree = Record<string, unknown>
 
@@ -306,6 +306,53 @@ describe('活动目录与两语言文案的对齐', () => {
       }
     }
 
+    expect(bad).toEqual([])
+  })
+})
+
+describe('属性面板分节', () => {
+  const userTask = ACTIVITY_MAP.UserTask!
+  const keysOf = (sections: ReturnType<typeof groupActivityProps>) => sections.map(section => [section.group, section.props.map(prop => prop.key)])
+
+  it('人工任务按 基本 → 参与人 → 表单 分节，节内保持目录先后；兜底受理人默认不出现', () => {
+    expect(keysOf(groupActivityProps(userTask, {}))).toEqual([
+      ['basic', ['Title']],
+      ['participants', ['AssigneeRules', 'ExcludeStarter', 'CompletionPolicy', 'EmptyAssigneeStrategy', 'CcRules']],
+      ['form', ['FormData', 'AllowedOutcomes']],
+    ])
+  })
+
+  it('选了「转交兜底受理人」才出现兜底受理人，紧跟在找不到受理人时之后', () => {
+    const participants = groupActivityProps(userTask, { EmptyAssigneeStrategy: 'Fallback' }).find(section => section.group === 'participants')!
+    expect(participants.props.map(prop => prop.key)).toEqual(['AssigneeRules', 'ExcludeStarter', 'CompletionPolicy', 'EmptyAssigneeStrategy', 'FallbackAssigneeRules', 'CcRules'])
+  })
+
+  it('已经配过兜底受理人的，策略改掉了也照样显示，不把配置藏起来', () => {
+    const fallback = userTask.props.find(prop => prop.key === 'FallbackAssigneeRules')!
+    expect(isPropVisible(fallback, { FallbackAssigneeRules: [{ type: 'Role', values: ['admin'] }] })).toBe(true)
+    expect(isPropVisible(fallback, { FallbackAssigneeRules: [] })).toBe(false)
+  })
+
+  it('没写分节的属性归 props；没有属性的活动一节也不出', () => {
+    expect(keysOf(groupActivityProps(ACTIVITY_MAP.Log, {}))).toEqual([['props', ['Message', 'Level']]])
+    expect(groupActivityProps(ACTIVITY_MAP.Start, {})).toEqual([])
+    expect(groupActivityProps(undefined, {})).toEqual([])
+  })
+
+  it('目录里写的分节都在排序表里，每一节都有两语言文案', () => {
+    const used = new Set(ACTIVITY_CATALOG.flatMap(meta => meta.props.map(prop => prop.group ?? 'props')))
+    expect([...used].filter(group => !PROP_GROUP_ORDER.includes(group))).toEqual([])
+    for (const messages of [zhCN, enUS] as MessageTree[]) {
+      const sections = designerNode(messages, 'section')
+      for (const group of [...PROP_GROUP_ORDER, 'execution'])
+        expect(typeof sections[group], group).toBe('string')
+    }
+  })
+
+  it('写了 defaultValue 的下拉，默认值必须是它自己的一个选项', () => {
+    const bad = ACTIVITY_CATALOG.flatMap(meta => meta.props
+      .filter(prop => prop.defaultValue !== undefined && !prop.options?.some(option => option.value === prop.defaultValue))
+      .map(prop => `${meta.type}.${prop.key}`))
     expect(bad).toEqual([])
   })
 })

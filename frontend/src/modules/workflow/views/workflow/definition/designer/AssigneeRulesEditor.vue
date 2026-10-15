@@ -112,10 +112,11 @@ onMounted(async () => {
           @update:value="(value: string | number | (string | number)[] | null) => changeType(index, value)"
         />
         <XhButton
-          variant="subtle"
+          variant="ghost"
           size="sm"
           icon-only
           :aria-label="t('workflow.designer.rule.remove', { index: index + 1 })"
+          :title="t('workflow.designer.rule.remove', { index: index + 1 })"
           @click="removeRule(index)"
         >
           <Icon icon="lucide:x" />
@@ -177,7 +178,8 @@ onMounted(async () => {
       </p>
     </div>
 
-    <XhButton variant="subtle" size="sm" @click="addRule">
+    <!-- 新增是这一组的次要动作：品牌色文字钮贴左排，不再铺成一整条灰底，抢不过规则本身 -->
+    <XhButton class="xh-link-button self-start" variant="ghost" tone="brand" size="sm" @click="addRule">
       <XhButtonIndicator>
         <Icon icon="lucide:plus" />
       </XhButtonIndicator>
