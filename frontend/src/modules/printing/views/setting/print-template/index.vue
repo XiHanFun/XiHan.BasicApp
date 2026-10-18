@@ -7,6 +7,7 @@ import type { PrintTemplateDetailDto, PrintTemplateListItemDto } from '../../../
 import type PrintTemplateEditor from './components/PrintTemplateEditor.vue'
 import type { PageResult } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
+import type { PrintDocument } from '~/printing/designer'
 import { XhButton, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -47,6 +48,7 @@ const previewLoading = ref(false)
 const samplePreviewVisible = ref(false)
 const samplePreviewContext = ref<{
   detail: PrintTemplateDetailDto
+  document: PrintDocument
   scope: PrintTemplateScope
 } | null>(null)
 /** 当前是否在平台：取用户信息（守卫每次整页加载都会重取，切换上下文会整页重载） */
@@ -203,8 +205,8 @@ async function openSamplePreview(row: PrintTemplateListItemDto): Promise<void> {
       throw new Error(t('setting.print_template.not_found'))
 
     // 表单必须基于详情接口返回的版本构建，列表摘要不足以保证并发预览安全；旧格式的模板在这里就明确报错。
-    parsePrintTemplateJson(detail.templateJson, detail.templateCode)
-    samplePreviewContext.value = { detail, scope }
+    const document = parsePrintTemplateJson(detail.templateJson, detail.templateCode)
+    samplePreviewContext.value = { detail, document, scope }
     samplePreviewVisible.value = true
   }
   catch (error) {
@@ -350,6 +352,7 @@ function remove(row: PrintTemplateListItemDto): void {
       v-model:show="samplePreviewVisible"
       :data-source-code="samplePreviewContext?.detail.dataSourceCode ?? null"
       :submitting="previewLoading"
+      :template="samplePreviewContext?.document ?? null"
       :template-code="samplePreviewContext?.detail.templateCode"
       :template-name="samplePreviewContext?.detail.templateName"
       @preview="previewSampleData"

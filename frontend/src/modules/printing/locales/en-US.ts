@@ -21,6 +21,8 @@ export default {
       data_source_optional_placeholder: 'Optional; leave empty for a free template',
       data_source_catalog_load_failed: 'Failed to load the print data source catalog; only locally registered sources are shown. Please retry later.',
       data_source_missing_option: '{code} (not registered in this frontend)',
+      data_source_mismatch_warning: '{count} canvas fields are outside the selected data-source contract. Saving and printing remain allowed; ensure callers provide them.',
+      data_source_mismatch_compact: '{count} field is outside the contract; click to review',
       data_source_guidance_title: 'Data sources assist template design',
       data_source_registered_compact_help: 'Provides suggested fields and default samples without restricting custom fields.',
       data_source_free_compact_help: 'No code contract is attached; use any standard field binding.',

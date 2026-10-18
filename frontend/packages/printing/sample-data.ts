@@ -1,7 +1,9 @@
 /**
  * 模拟打印数据模型。
- * 职责：按代码数据源的字段目录生成模拟数据表单结构，并安全归一、克隆和读写仅存于浏览器内存的模拟数据。
+ * 职责：按模板引用的字段与代码数据源的字段目录生成模拟数据表单结构，并安全归一、克隆和读写仅存于浏览器内存的模拟数据。
  */
+import type { PrintDocument } from '@xihan-print/core'
+import type { DataField } from '@xihan-ui/designer-kit'
 import type {
   PrintFieldDefinition,
   PrintFieldKind,
@@ -9,36 +11,46 @@ import type {
   PrintSampleFormField,
   PrintSampleFormSchema,
   PrintSampleInputType,
+  PrintTableColumn,
 } from './types'
-import { getPrintDataSource, requirePrintDataSource } from './data-source-registry'
+import { collectDocumentFields } from '@xihan-print/core'
+import { requirePrintDataSource } from './data-source-registry'
 
 const DANGEROUS_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype'])
 
 /**
- * 按模板绑定的代码数据源生成模拟数据表单结构。
+ * 按模板引用的字段生成模拟数据表单结构。
+ * @param document 打印模板。
  * @param dataSourceCode 模板可选的代码数据源编码；为空表示自由模板。
- * @returns 按数据源字段顺序排列的表单结构；自由模板没有登记字段，表单为空并带一条提示。
+ * @returns 按字段在模板里首次出现的顺序排列、按路径去重的表单结构：数据源登记过的字段用登记的名称与控件，
+ * 其余按模板的引用推断（明细表取它下面的列，其它按文本），绑定了数据源时每个未登记字段带一条提示。
  * @throws 非空数据源未注册或字段路径包含原型污染片段。
  * @example
- * const schema = extractPrintSampleFormSchema('system.print-demo')
- * // schema.fields 为数据源登记的全部字段。
+ * const schema = extractPrintSampleFormSchema(document, 'system.print-demo')
+ * // schema.fields 只包含模板实际引用的字段。
  */
-export function extractPrintSampleFormSchema(dataSourceCode: null | string): PrintSampleFormSchema {
+export function extractPrintSampleFormSchema(document: PrintDocument, dataSourceCode: null | string): PrintSampleFormSchema {
   const normalizedDataSourceCode = dataSourceCode?.trim() || null
-  if (!normalizedDataSourceCode) {
-    return Object.freeze({
-      fields: Object.freeze([]),
-      warnings: Object.freeze(['自由模板没有登记字段，样例数据按空记录打印；需要填写样例时请给模板选择数据源。']),
-    })
+  const source = normalizedDataSourceCode ? requirePrintDataSource(normalizedDataSourceCode) : undefined
+  const registeredFields = new Map((source?.fields ?? []).map(field => [field.key, field]))
+  const fields: PrintSampleFormField[] = []
+  const warnings: string[] = []
+
+  for (const used of flattenUsedFields(collectDocumentFields(document), '')) {
+    validatePrintSamplePath(used.key)
+    const registered = registeredFields.get(used.key)
+    if (registered) {
+      fields.push(toRegisteredFormField(registered))
+      continue
+    }
+    fields.push(Object.freeze(used))
+    if (source)
+      warnings.push(`模板字段“${used.key}”未在数据源 ${source.code} 中注册，已按模板的引用生成输入项。`)
   }
-  const source = requirePrintDataSource(normalizedDataSourceCode)
-  const fields = source.fields.map((field) => {
-    validatePrintSamplePath(field.key)
-    return toRegisteredFormField(field)
-  })
+
   return Object.freeze({
     fields: Object.freeze(fields),
-    warnings: Object.freeze([]),
+    warnings: Object.freeze(warnings),
   })
 }
 
@@ -94,16 +106,13 @@ export function createBlankPrintSampleRecord(
  * 为直打等无需人工填写的入口创建默认模拟数据。
  * @param dataSourceCode 可选代码数据源；存在时调用其样例工厂。
  * @returns 与数据源样例一致的单对象/对象数组；自由模板为一个空白对象。
- * @throws 数据源未注册、样例结构非法或字段路径不安全。
+ * @throws 数据源未注册或样例结构非法。
  */
 export async function createDefaultPrintSampleData(
   dataSourceCode: null | string,
 ): Promise<Record<string, unknown> | Record<string, unknown>[]> {
-  const schema = extractPrintSampleFormSchema(dataSourceCode)
-  const source = getPrintDataSource(dataSourceCode)
-  const sample = source
-    ? await source.createSampleData()
-    : createBlankPrintSampleRecord(schema.fields)
+  const source = dataSourceCode?.trim() ? requirePrintDataSource(dataSourceCode.trim()) : undefined
+  const sample = source ? await source.createSampleData() : {}
   const dataSet = normalizePrintSampleData(sample)
   return createPrintSamplePayload(dataSet.records, dataSet.isCollection)
 }
@@ -214,6 +223,33 @@ function toRegisteredFormField(field: Readonly<PrintFieldDefinition>): PrintSamp
     placeholder: field.placeholder,
     columns: field.columns,
     registered: true,
+  })
+}
+
+/**
+ * 把模板引用的字段树摊成表单项：对象展开成点路径，数组是明细表、它下面的值字段是列（列路径相对一行），其余按文本。
+ * @param fields collectDocumentFields 给出的字段树。
+ * @param prefix 上层对象的点路径。
+ * @returns 未登记的表单项，registered 为 false。
+ */
+function flattenUsedFields(fields: readonly DataField[], prefix: string): PrintSampleFormField[] {
+  return fields.flatMap((field): PrintSampleFormField[] => {
+    const key = prefix ? `${prefix}.${field.name}` : field.name
+    if (field.kind === 'object')
+      return flattenUsedFields(field.children ?? [], key)
+    if (field.kind === 'list')
+      return [{ key, label: key, kind: 'table', columns: Object.freeze(listColumns(field.children ?? [], '')), registered: false }]
+    return [{ key, label: key, kind: 'text', registered: false }]
+  })
+}
+
+/** 明细表一行里引用的值字段，嵌套对象展开成点路径；行里再套的数组不出列。 */
+function listColumns(fields: readonly DataField[], prefix: string): PrintTableColumn[] {
+  return fields.flatMap((field): PrintTableColumn[] => {
+    const path = prefix ? `${prefix}.${field.name}` : field.name
+    if (field.kind === 'object')
+      return listColumns(field.children ?? [], path)
+    return field.kind === 'value' ? [{ field: path, title: path }] : []
   })
 }
 

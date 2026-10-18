@@ -4,6 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
+import type { PrintDocument } from '~/printing/designer'
 import { XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -15,6 +16,7 @@ defineOptions({ name: 'PrintTemplateBasicSettings' })
 
 defineProps<{
   editing: boolean
+  template: PrintDocument
 }>()
 
 const emit = defineEmits<{
@@ -70,7 +72,7 @@ const basicComplete = computed(() => completedRequiredCount.value === 2)
         <XhFieldErrorText />
       </XhFieldRoot>
 
-      <PrintTemplateDataSourceSettings v-model="model" />
+      <PrintTemplateDataSourceSettings v-model="model" :template="template" />
     </XhFormRoot>
 
     <div class="basic-completion" :class="{ 'is-complete': basicComplete }">

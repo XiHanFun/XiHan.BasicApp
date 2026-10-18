@@ -21,6 +21,8 @@ export default {
       data_source_optional_placeholder: 'वैकल्पिक; न चुनने पर फ़्री टेम्पलेट का उपयोग होगा',
       data_source_catalog_load_failed: 'प्रिंट डेटा स्रोत कैटलॉग लोड नहीं हो सका; केवल स्थानीय रूप से पंजीकृत स्रोत दिख रहे हैं, कृपया बाद में पुनः प्रयास करें।',
       data_source_missing_option: '{code} (वर्तमान फ़्रंटएंड में पंजीकृत नहीं)',
+      data_source_mismatch_warning: 'वर्तमान कैनवास में {count} फ़ील्ड चुने गए डेटा स्रोत के अनुबंध में नहीं हैं; सहेजना और प्रिंट करना फिर भी संभव है, कृपया पुष्टि करें कि कॉलर ये फ़ील्ड भेजेगा।',
+      data_source_mismatch_compact: 'अनुबंध से बाहर {count} फ़ील्ड मिले, देखने के लिए क्लिक करें',
       data_source_guidance_title: 'डेटा स्रोत डिज़ाइन में सहायता के लिए है',
       data_source_registered_compact_help: 'सुझाए गए फ़ील्ड और डिफ़ॉल्ट नमूने देता है, कस्टम field पर रोक नहीं लगाता।',
       data_source_free_compact_help: 'किसी कोड अनुबंध से बंधा नहीं; कोई भी मानक field सीधे उपयोग करें।',

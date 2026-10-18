@@ -2,8 +2,10 @@
  * 公共打印包无设备单元测试。
  * 职责：通过替身运行时验证数据源约束、字段树、模板格式、浏览器打印、打印机优先级、FIFO、客户端失败与取消，以及数据源目录加载。
  */
+import type { PrintDocument, TextContent } from '@xihan-print/core'
 import type { PrintDevice, RemotePrintDataSourceDto, ResolvedPrintTemplate } from './types'
 import assert from 'node:assert/strict'
+import { createDocument, createElementRegistry, createPage } from '@xihan-print/core'
 import { afterEach, beforeEach, it, vi } from 'vitest'
 // 预热依赖图：打印包经 printer-preference 引 ~/stores 桶文件，会牵出 pinia、~/locales、~/utils 等整张图，
 // 首次转换在满并行下超过 10 秒的钩子超时。静态导入让这笔开销落在文件收集阶段，不计入任何钩子或用例；
@@ -49,12 +51,14 @@ it('重复数据源编码立即报错', () => {
   assert.throws(() => registerSource(code), /已注册/u)
 })
 
-it('数据源字段换成设计器字段树：点号拆成对象层级，明细表是 list，控件类型给出数据类型', () => {
+it('数据源字段换成设计器字段树：点号拆成对象层级，明细表是 list，控件类型给出数据类型，图片、条码、二维码带上 content', () => {
   const fields = printing.toPrintDataFields([
     { key: 'title', label: '标题' },
     { key: 'customer.name', label: '客户名称' },
     { key: 'customer.level', label: '客户等级', inputType: 'number' },
     { key: 'logo', label: '标志', kind: 'image' },
+    { key: 'documentNo', label: '单号条码', kind: 'barcode' },
+    { key: 'link', label: '查询码', kind: 'qrcode' },
     { key: 'createdTime', label: '创建时间', inputType: 'datetime' },
     { key: 'items', label: '明细', kind: 'table', columns: [{ field: 'sku', title: '编码' }, { field: 'spec.color', title: '颜色' }, { field: 'qty', title: '数量', inputType: 'number' }] },
   ])
@@ -68,7 +72,9 @@ it('数据源字段换成设计器字段树：点号拆成对象层级，明细�
         { name: 'level', label: '客户等级', kind: 'value', type: 'number' },
       ],
     },
-    { name: 'logo', label: '标志', kind: 'value' },
+    { name: 'logo', label: '标志', kind: 'value', content: 'image' },
+    { name: 'documentNo', label: '单号条码', kind: 'value', content: 'barcode' },
+    { name: 'link', label: '查询码', kind: 'value', content: 'qrcode' },
     { name: 'createdTime', label: '创建时间', kind: 'value', type: 'datetime' },
     {
       name: 'items',
@@ -103,30 +109,45 @@ it('模板 JSON 只接受当前格式：旧格式、无效 JSON、版本不对�
   }
 })
 
-it('模拟数据表单按数据源字段生成；自由模板没有字段并给出提示；未注册的数据源报错', () => {
+it('模拟数据表单只列模板引用的字段：登记过的用数据源的名称与控件，其余按引用推断并提示；未注册的数据源报错', () => {
   const code = uniqueCode('sample-schema')
-  printing.registerPrintDataSource({
-    code,
-    name: code,
-    fields: [
-      { key: 'documentNo', label: '单据编号' },
-      { key: 'items', label: '明细', kind: 'table', columns: [{ field: 'sku', title: '编码' }] },
-    ],
-    createSampleData: () => ({ documentNo: 'S-1', items: [] }),
-  })
+  registerSampleSchemaSource(code)
+  const document = documentWithTexts(
+    { kind: 'field', field: 'documentNo' },
+    { kind: 'template', template: '{{items[0].sku}} × {{items[0].qty}}' },
+    { kind: 'field', field: 'customer.name' },
+  )
 
-  const schema = printing.extractPrintSampleFormSchema(code)
-  assert.deepEqual(schema.fields.map(field => [field.key, field.kind, field.registered]), [
-    ['documentNo', 'text', true],
-    ['items', 'table', true],
+  const schema = printing.extractPrintSampleFormSchema(document, code)
+  assert.deepEqual(schema.fields.map(field => [field.key, field.label, field.kind, field.registered]), [
+    ['documentNo', '单据编号', 'text', true],
+    ['items', '明细', 'table', true],
+    ['customer.name', 'customer.name', 'text', false],
   ])
-  assert.deepEqual(schema.warnings, [])
+  assert.equal(schema.warnings.length, 1)
 
-  const free = printing.extractPrintSampleFormSchema(null)
-  assert.deepEqual(free.fields, [])
-  assert.equal(free.warnings.length, 1)
+  const free = printing.extractPrintSampleFormSchema(document, null)
+  assert.deepEqual(free.fields.map(field => [field.key, field.kind, field.registered, field.columns?.map(column => column.field)]), [
+    ['documentNo', 'text', false, undefined],
+    ['items', 'table', false, ['sku', 'qty']],
+    ['customer.name', 'text', false, undefined],
+  ])
+  assert.deepEqual(free.warnings, [])
 
-  assert.throws(() => printing.extractPrintSampleFormSchema(uniqueCode('missing')), /未注册/u)
+  assert.throws(() => printing.extractPrintSampleFormSchema(document, uniqueCode('missing')), /未注册/u)
+})
+
+it('列出模板引用了、数据源却没登记的字段：明细表的列写成「表.列」，没登记的对象整个算一个', () => {
+  const code = uniqueCode('unregistered')
+  registerSampleSchemaSource(code)
+  const document = documentWithTexts(
+    { kind: 'field', field: 'documentNo' },
+    { kind: 'template', template: '{{items[0].sku}} × {{items[0].qty}}' },
+    { kind: 'expression', expression: 'customer.name + customer.phone' },
+  )
+  const source = printing.requirePrintDataSource(code)
+  assert.deepEqual(printing.listUnregisteredPrintFields(document, source.fields), ['items.qty', 'customer'])
+  assert.deepEqual(printing.listUnregisteredPrintFields(documentWithTexts({ kind: 'field', field: 'documentNo' }), source.fields), [])
 })
 
 it('默认模拟数据：有数据源时用它的样例，自由模板是一个空白对象', async () => {
@@ -538,6 +559,28 @@ function restoreBrowserPreferenceContext(): void {
 
   Object.defineProperty(globalThis, 'localStorage', originalLocalStorageDescriptor)
   originalLocalStorageDescriptor = undefined
+}
+
+/** 登记一个带单号、明细与备注的数据源，供模拟数据表单与字段比对用例共用。 */
+function registerSampleSchemaSource(code: string): void {
+  printing.registerPrintDataSource({
+    code,
+    name: code,
+    fields: [
+      { key: 'documentNo', label: '单据编号' },
+      { key: 'items', label: '明细', kind: 'table', columns: [{ field: 'sku', title: '编码' }] },
+      { key: 'remark', label: '备注' },
+    ],
+    createSampleData: () => ({ documentNo: 'S-1', items: [] }),
+  })
+}
+
+/** 一页模板，每个文本元素按给定的内容取值。 */
+function documentWithTexts(...contents: TextContent[]): PrintDocument {
+  const registry = createElementRegistry()
+  const page = createPage({ id: 'page-1' })
+  page.elements = contents.map((content, index) => registry.createElement('text', { id: `text-${index}`, x: 0, y: index * 10, overrides: { content } }))
+  return createDocument({ pages: [page] })
 }
 
 /** 生成不会与其它测试或应用启动数据源冲突的编码。 */

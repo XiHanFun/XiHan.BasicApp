@@ -4,6 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
+import type { PrintDocument } from '~/printing/designer'
 import { XhCollapsibleContent, XhCollapsibleRoot } from '@xihan-ui/vue'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -16,6 +17,7 @@ defineOptions({ name: 'PrintTemplateMetadataForm' })
 defineProps<{
   editing: boolean
   globalMode: boolean
+  template: PrintDocument
 }>()
 
 const model = defineModel<PrintTemplateFormModel>({ required: true })
@@ -87,6 +89,7 @@ function switchTab(tab: 'advanced' | 'basic'): void {
       v-if="activeTab === 'basic'"
       v-model="model"
       :editing="editing"
+      :template="template"
       @next="switchTab('advanced')"
     />
     <AdvancedSettings

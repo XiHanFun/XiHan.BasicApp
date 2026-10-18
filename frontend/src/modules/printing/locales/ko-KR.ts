@@ -21,6 +21,8 @@ export default {
       data_source_optional_placeholder: '선택 사항. 선택하지 않으면 자유 템플릿을 사용해요',
       data_source_catalog_load_failed: '인쇄 데이터 소스 카탈로그를 불러오지 못했어요. 로컬에 등록된 데이터 소스만 표시하니 잠시 후 다시 시도하세요.',
       data_source_missing_option: '{code}(현재 프런트엔드에 미등록)',
+      data_source_mismatch_warning: '현재 캔버스에 선택한 데이터 소스 계약에 없는 필드가 {count}개 있어요. 저장과 인쇄는 가능하지만 호출 측이 해당 필드를 전달하는지 확인하세요.',
+      data_source_mismatch_compact: '계약 외 필드 {count}개 발견, 클릭하여 보기',
       data_source_guidance_title: '데이터 소스는 설계를 보조해요',
       data_source_registered_compact_help: '권장 필드와 기본 샘플을 제공하며 사용자 정의 field를 제한하지 않아요.',
       data_source_free_compact_help: '코드 계약에 묶이지 않고 표준 field를 자유롭게 사용할 수 있어요.',

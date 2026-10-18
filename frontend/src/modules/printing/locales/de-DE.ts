@@ -21,6 +21,8 @@ export default {
       data_source_optional_placeholder: 'Optional; leer lassen für eine freie Vorlage',
       data_source_catalog_load_failed: 'Laden des Katalogs der Druckdatenquellen fehlgeschlagen; es werden nur lokal registrierte Quellen angezeigt. Bitte später erneut versuchen.',
       data_source_missing_option: '{code} (in diesem Frontend nicht registriert)',
+      data_source_mismatch_warning: '{count} Canvas-Felder liegen außerhalb des gewählten Datenquellenvertrags. Speichern und Drucken bleiben weiterhin möglich; stellen Sie sicher, dass Aufrufer diese Felder bereitstellen.',
+      data_source_mismatch_compact: '{count} Feld liegt außerhalb des Vertrags; zum Prüfen klicken',
       data_source_guidance_title: 'Datenquellen unterstützen die Vorlagengestaltung',
       data_source_registered_compact_help: 'Bietet vorgeschlagene Felder und Standardbeispiele, ohne benutzerdefinierte Felder einzuschränken.',
       data_source_free_compact_help: 'Es ist kein Code-Vertrag verknüpft; beliebige Standard-Feldbindungen können verwendet werden.',
