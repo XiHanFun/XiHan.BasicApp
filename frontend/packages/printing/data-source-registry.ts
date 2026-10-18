@@ -7,16 +7,6 @@ import type { PrintDataSourceDefinition, PrintFieldDefinition } from './types'
 const dataSources = new Map<string, PrintDataSourceDefinition<unknown>>()
 const SUPPORTED_SAMPLE_INPUT_TYPES = new Set(['boolean', 'date', 'datetime', 'number', 'text', 'textarea'])
 
-let registryVersion = 0
-
-/**
- * 数据源注册表版本号；每次注册递增，适配层据此判断 provider 是否需要重建。
- * @returns 单调递增的版本号。
- */
-export function getPrintDataSourceRegistryVersion(): number {
-  return registryVersion
-}
-
 /**
  * 注册一个打印数据源；重复编码立即抛错，避免后注册模块静默覆盖已有字段契约。
  * @param definition 数据源定义。
@@ -49,7 +39,6 @@ export function registerPrintDataSource<T>(
     fields: Object.freeze(fields),
   })
   dataSources.set(code, normalized as PrintDataSourceDefinition<unknown>)
-  registryVersion++
   return normalized
 }
 
@@ -89,16 +78,6 @@ export function requirePrintDataSource<T = Record<string, unknown>>(
  */
 export function listPrintDataSources(): readonly Readonly<PrintDataSourceDefinition<unknown>>[] {
   return [...dataSources.values()].sort((left, right) => left.code.localeCompare(right.code))
-}
-
-/**
- * 生成字段对应的稳定 hiprint tid。
- * @param dataSourceCode 数据源编码。
- * @param fieldKey 字段路径。
- * @returns provider 与拖拽元素共用的 tid。
- */
-export function getPrintFieldTid(dataSourceCode: string, fieldKey: string): string {
-  return `xihan.${dataSourceCode}.${fieldKey}`
 }
 
 /** 规范化并校验编码。 */

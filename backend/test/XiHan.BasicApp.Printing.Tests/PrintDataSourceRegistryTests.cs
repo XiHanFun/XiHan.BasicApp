@@ -16,7 +16,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </summary>
 public sealed class PrintDataSourceRegistryTests
 {
-    private const string ValidTemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string ValidTemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// 重复编码注册必须抛出，后注册模块不得静默覆盖既有字段契约。
@@ -120,7 +120,6 @@ public sealed class PrintDataSourceRegistryTests
             "ghost.source",
             "订单模板",
             ValidTemplateJson,
-            "0.0.60",
             false,
             XiHan.BasicApp.Saas.Domain.Enums.EnableStatus.Enabled,
             10,

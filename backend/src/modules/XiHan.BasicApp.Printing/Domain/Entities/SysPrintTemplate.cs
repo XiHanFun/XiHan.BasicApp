@@ -9,7 +9,7 @@ using XiHan.Framework.Data.SqlSugar.Routing;
 namespace XiHan.BasicApp.Printing.Domain.Entities;
 
 /// <summary>
-/// hiprint 打印模板实体，保存租户或平台作用域内的设计 JSON 与运行元数据。
+/// 打印模板实体，保存租户或平台作用域内的设计 JSON 与运行元数据。
 /// </summary>
 /// <remarks>
 /// <para><c>TenantId == 0</c> 表示平台全局模板；业务租户模板保存在当前租户范围内。</para>
@@ -44,16 +44,10 @@ public partial class SysPrintTemplate : BasicAppFullAuditedEntity
     public virtual string TemplateName { get; set; } = string.Empty;
 
     /// <summary>
-    /// hiprint 模板 JSON；使用数据库大文本类型且不设置业务专属大小上限。
+    /// 打印模板 JSON（XiHan 打印模板）；使用数据库大文本类型且不设置业务专属大小上限。
     /// </summary>
-    [SugarColumn(ColumnName = "Template_Json", ColumnDescription = "hiprint模板JSON", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = false)]
+    [SugarColumn(ColumnName = "Template_Json", ColumnDescription = "打印模板JSON", ColumnDataType = StaticConfig.CodeFirst_BigString, IsNullable = false)]
     public virtual string TemplateJson { get; set; } = string.Empty;
-
-    /// <summary>
-    /// 保存模板时使用的 hiprint 引擎版本。
-    /// </summary>
-    [SugarColumn(ColumnName = "Engine_Version", ColumnDescription = "hiprint引擎版本", Length = 32, IsNullable = false)]
-    public virtual string EngineVersion { get; set; } = "0.0.60";
 
     /// <summary>
     /// 全局模板是否允许业务租户解析使用；租户私有模板固定为 false。

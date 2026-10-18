@@ -2,15 +2,13 @@
  * packages/printing/data-source-registry.ts 的注册期校验与目录查询。
  *
  * 职责边界：本文件专攻「注册时立即失败」的各条校验分支、规范化结果的冻结与归一，
- * 以及目录查询/版本号/tid 生成。重复编码报错与字段目录到 hiprint 协议的映射已在 printing.test.ts 覆盖，
+ * 以及目录查询。重复编码报错与字段目录到设计器字段树的映射已在 printing.test.ts 覆盖，
  * 这里不重复。注册表是模块级单例，用例一律使用带序号的唯一编码，保证可任意顺序执行。
  */
 import type { PrintDataSourceDefinition, PrintFieldDefinition } from './types'
 import { describe, expect, it } from 'vitest'
 import {
   getPrintDataSource,
-  getPrintDataSourceRegistryVersion,
-  getPrintFieldTid,
   listPrintDataSources,
   registerPrintDataSource,
   requirePrintDataSource,
@@ -270,38 +268,5 @@ describe('目录查询', () => {
 
     const codes = listPrintDataSources().map(item => item.code).filter(code => code.endsWith(suffix))
     expect(codes).toStrictEqual([`aaa-${suffix}`, `zzz-${suffix}`])
-  })
-})
-
-describe('注册表版本号', () => {
-  it('每成功注册一次版本号加一，适配层据此决定是否重建 provider', () => {
-    const before = getPrintDataSourceRegistryVersion()
-
-    registerPrintDataSource(definition())
-    registerPrintDataSource(definition())
-
-    expect(getPrintDataSourceRegistryVersion()).toBe(before + 2)
-  })
-
-  it('注册失败不推进版本号，避免白白重建 provider 打断引擎连接', () => {
-    const before = getPrintDataSourceRegistryVersion()
-
-    expect(() => registerPrintDataSource(definition({ fields: [] }))).toThrow()
-
-    expect(getPrintDataSourceRegistryVersion()).toBe(before)
-  })
-})
-
-describe('字段 tid 生成', () => {
-  it('按 xihan.数据源编码.字段路径 三段拼接，供 provider 与拖拽元素共用', () => {
-    expect(getPrintFieldTid('sales', 'title')).toBe('xihan.sales.title')
-  })
-
-  it('嵌套字段路径原样保留点号，不做二次转义', () => {
-    expect(getPrintFieldTid('sales', 'customer.name')).toBe('xihan.sales.customer.name')
-  })
-
-  it('不同数据源的同名字段得到不同 tid，设计器素材不会互相顶掉', () => {
-    expect(getPrintFieldTid('a', 'title')).not.toBe(getPrintFieldTid('b', 'title'))
   })
 })

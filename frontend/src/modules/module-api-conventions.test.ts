@@ -18,7 +18,6 @@ import { codeGenRuntimeApi } from './codegen/api/dynamic-runtime'
 import { codeGenerationApi } from './codegen/api/generation'
 import { printDataSourceApi } from './printing/api/print-data-source'
 import { printTemplateApi } from './printing/api/print-template'
-import { PRINT_PAPER_PRESETS } from './printing/views/setting/print-template/components/models'
 import { workflowDefinitionApi } from './workflow/api/definition'
 import { workflowTodoApi } from './workflow/api/todo'
 
@@ -132,11 +131,6 @@ describe('打印模板的路由段与作用域', () => {
     await printDataSourceApi.list()
 
     expect(only()).toEqual({ method: 'GET', url: '/PrintDataSourceQuery/List', params: undefined })
-  })
-
-  it('标准纸张预设无重复且全为大写编码', () => {
-    expect(new Set(PRINT_PAPER_PRESETS).size).toBe(PRINT_PAPER_PRESETS.length)
-    expect(PRINT_PAPER_PRESETS.filter(item => !/^[AB]\d$/.test(item))).toEqual([])
   })
 })
 

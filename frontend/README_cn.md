@@ -26,7 +26,7 @@ Vue + TypeScript + Vite。应用根的运行时依赖只有 vue、vue-router、p
 
 `pnpm-workspace.yaml` 声明 `packages/*`，共 19 个 private workspace 包（全部 `@xihan/<name>`、version `0.0.0`、别名 `~/`）：chat、components、composables、constants、design、designers、hooks、iconify、layouts、locales、printing、request、router、stores、types、utils、views 等。
 
-第三方重库下沉到归属包，应用根不直接依赖：axios → request，`@xihan-flow/*` / `@xihan-ui/web-components` → designers，tiptap / monaco / md-editor-v3 / jsoneditor → components，`@microsoft/signalr` / pinyin-pro → composables，vue-plugin-hiprint → printing，emoji-mart → chat，8 套 `@iconify-json` → iconify，dayjs / papaparse → utils。
+第三方重库下沉到归属包，应用根不直接依赖：axios → request，`@xihan-flow/*` / `@xihan-ui/web-components` → designers，tiptap / monaco / md-editor-v3 / jsoneditor → components，`@microsoft/signalr` / pinyin-pro → composables，`@xihan-print/*` → printing，emoji-mart → chat，8 套 `@iconify-json` → iconify，dayjs / papaparse → utils。
 
 所有第三方版本在 `pnpm-workspace.yaml` 的 `catalog:` 里声明一次（约 75 条），各包只写 `"catalog:"`。
 
@@ -109,11 +109,10 @@ Tailwind 的 utilities 刻意排在 `xihan.components` 之后；组件的 `<styl
 | 应用标识     | `VITE_APP_TITLE` / `SUBTITLE` / `DESCRIPTION` / `LOGO` / `NAMESPACE` / `VERSION`                                                                                                                |
 | API 与路由   | `VITE_API_BASE_URL`（开发留空走同源代理避 CORS）、`VITE_API_PREFIX=/api`、`VITE_DEV_PROXY_TARGET=http://localhost:9708`、`VITE_PORT=9800`、`VITE_ROUTER_HISTORY`、`VITE_BASE`、`VITE_HOME_PATH` |
 | API 安全管线 | 8 个 `VITE_API_SECURITY_*`，三份 .env 里 `ENABLED` 均为 false（默认关）                                                                                                                         |
-| 打印         | `VITE_HIPRINT_HOST` / `VITE_HIPRINT_TOKEN`                                                                                                                                                      |
 
 ## 构建与部署
 
-构建目标 es2022，手写 `manualChunks` 切出 vendor-ui、vendor-printing（hiprint 系动态加载，不进后台首屏）、vendor-monaco、vendor-icon-`<set>` 等十余组，产物命名 `assets/js/[name]-[hash].js`。
+构建目标 es2022，手写 `manualChunks` 切出 vendor-ui、vendor-monaco、vendor-icon-`<set>` 等十余组，产物命名 `assets/js/[name]-[hash].js`。
 
 `Dockerfile` 两阶段（`node:24-alpine` → `nginx:1.29-alpine`），`ARG VITE_API_BASE_URL` 写进 `.env.production.local`（优先级高于 `.env.production`），留空即同源。`nginx.conf` 里 `upstream basicapp_backend = backend:9708`，SPA 走 `try_files`，`/assets/` 一年 immutable、`index.html` no-cache，反代 `/api/`（300s）、`/hubs/`（SignalR：带 Upgrade 头、关 `proxy_buffering`、3600s）与 `/uploads/`，`client_max_body_size 100m`。
 

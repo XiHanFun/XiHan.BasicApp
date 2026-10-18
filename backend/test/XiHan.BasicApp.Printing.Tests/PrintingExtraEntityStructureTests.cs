@@ -121,7 +121,6 @@ public sealed class PrintingExtraEntityStructureTests
         Assert.Equal(0L, template.TenantId);
         Assert.Equal(EnableStatus.Enabled, template.Status);
         Assert.False(template.AllowTenantUse);
-        Assert.Equal("0.0.60", template.EngineVersion);
         Assert.Equal(0, template.Sort);
         Assert.Null(template.DataSourceCode);
         Assert.Null(template.Remark);
@@ -136,7 +135,6 @@ public sealed class PrintingExtraEntityStructureTests
     [InlineData(nameof(SysPrintTemplate.TemplateCode), 100)]
     [InlineData(nameof(SysPrintTemplate.DataSourceCode), 100)]
     [InlineData(nameof(SysPrintTemplate.TemplateName), 100)]
-    [InlineData(nameof(SysPrintTemplate.EngineVersion), 32)]
     [InlineData(nameof(SysPrintTemplate.Remark), 500)]
     public void Columns_LengthShouldMatchDomainValidationLimits(string propertyName, int expectedLength)
     {
@@ -162,7 +160,7 @@ public sealed class PrintingExtraEntityStructureTests
     }
 
     /// <summary>
-    /// 五条自校验规则各自独立触发，失败项要点名对应的成员，前端才能定位到具体输入框。
+    /// 四条自校验规则各自独立触发，失败项要点名对应的成员，前端才能定位到具体输入框。
     /// </summary>
     /// <param name="mutation">把合法实体改坏的方式。</param>
     /// <param name="expectedMember">期望被点名的成员。</param>
@@ -171,7 +169,6 @@ public sealed class PrintingExtraEntityStructureTests
     [InlineData("dataSource", nameof(SysPrintTemplate.DataSourceCode))]
     [InlineData("name", nameof(SysPrintTemplate.TemplateName))]
     [InlineData("json", nameof(SysPrintTemplate.TemplateJson))]
-    [InlineData("engine", nameof(SysPrintTemplate.EngineVersion))]
     public void Validate_BrokenField_ShouldReportOwningMember(string mutation, string expectedMember)
     {
         var template = CreateValidTemplate();
@@ -186,11 +183,8 @@ public sealed class PrintingExtraEntityStructureTests
             case "name":
                 template.TemplateName = string.Empty;
                 break;
-            case "json":
-                template.TemplateJson = "   ";
-                break;
             default:
-                template.EngineVersion = string.Empty;
+                template.TemplateJson = "   ";
                 break;
         }
 
@@ -229,8 +223,7 @@ public sealed class PrintingExtraEntityStructureTests
             TemplateCode = "ORDER",
             DataSourceCode = "system.print-demo",
             TemplateName = "订单模板",
-            TemplateJson = "{\"panels\":[{\"printElements\":[]}]}",
-            EngineVersion = "0.0.60"
+            TemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}"
         };
     }
 

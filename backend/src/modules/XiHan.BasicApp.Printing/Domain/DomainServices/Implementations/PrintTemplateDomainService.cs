@@ -23,8 +23,10 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
 {
     private const int CodeMaximumLength = 100;
     private const int NameMaximumLength = 100;
-    private const int EngineVersionMaximumLength = 32;
     private const int RemarkMaximumLength = 500;
+    private const int SupportedSchemaVersion = 1;
+    private const string SchemaVersionPropertyName = "schemaVersion";
+    private const string PagesPropertyName = "pages";
 
     private readonly IPrintTemplateRepository _repository;
     private readonly ICurrentTenant _currentTenant;
@@ -82,7 +84,6 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
         ValidateEditableFields(
             command.TemplateName,
             command.TemplateJson,
-            command.EngineVersion,
             command.Sort,
             command.Remark);
         ValidateEnum(command.Status, "模板状态");
@@ -100,7 +101,6 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
             DataSourceCode = dataSourceCode,
             TemplateName = command.TemplateName.Trim(),
             TemplateJson = command.TemplateJson,
-            EngineVersion = command.EngineVersion.Trim(),
             // 租户私有模板不允许携带全局开放标记，避免后续误判可见边界。
             AllowTenantUse = ownerTenantId == 0 && command.AllowTenantUse,
             Status = command.Status,
@@ -138,7 +138,6 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
         ValidateEditableFields(
             command.TemplateName,
             command.TemplateJson,
-            command.EngineVersion,
             command.Sort,
             command.Remark);
 
@@ -149,7 +148,6 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
         template.DataSourceCode = updatedDataSourceCode;
         template.TemplateName = command.TemplateName.Trim();
         template.TemplateJson = command.TemplateJson;
-        template.EngineVersion = command.EngineVersion.Trim();
         template.AllowTenantUse = template.IsGlobal && command.AllowTenantUse;
         template.Sort = command.Sort;
         template.Remark = NormalizeNullable(command.Remark);
@@ -264,26 +262,19 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
     }
 
     /// <summary>
-    /// 校验可编辑字段和 hiprint 模板根结构。
+    /// 校验可编辑字段和打印模板 JSON 的根结构。
     /// </summary>
     private static void ValidateEditableFields(
         string templateName,
         string templateJson,
-        string engineVersion,
         int sort,
         string? remark)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(templateName);
         ArgumentException.ThrowIfNullOrWhiteSpace(templateJson);
-        ArgumentException.ThrowIfNullOrWhiteSpace(engineVersion);
         if (templateName.Trim().Length > NameMaximumLength)
         {
             throw new UserFriendlyException($"模板名称不能超过 {NameMaximumLength} 个字符。");
-        }
-
-        if (engineVersion.Trim().Length > EngineVersionMaximumLength)
-        {
-            throw new UserFriendlyException($"打印引擎版本不能超过 {EngineVersionMaximumLength} 个字符。");
         }
 
         if (sort < 0)
@@ -296,32 +287,54 @@ public sealed class PrintTemplateDomainService : IPrintTemplateDomainService
     }
 
     /// <summary>
-    /// 校验 JSON 语法以及 hiprint 所需的根对象、面板和打印元素数组结构。
+    /// 校验打印模板 JSON 的最小结构：语法合法，根节点是对象，schemaVersion 是数字 1，pages 是非空数组且每一项都是对象；其余字段不检查、原样保存。
     /// </summary>
     private static void ValidateTemplateJson(string templateJson)
     {
         try
         {
             using var document = JsonDocument.Parse(templateJson);
-            if (document.RootElement.ValueKind != JsonValueKind.Object)
+            var root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
             {
-                throw new UserFriendlyException("hiprint 模板 JSON 根节点必须是对象。");
+                throw new UserFriendlyException("打印模板 JSON 根节点必须是对象。");
             }
 
-            if (!document.RootElement.TryGetProperty("panels", out var panels)
-                || panels.ValueKind != JsonValueKind.Array
-                || panels.GetArrayLength() == 0)
+            if (!root.TryGetProperty(SchemaVersionPropertyName, out var schemaVersion))
             {
-                throw new UserFriendlyException("hiprint 模板必须包含至少一个 panels 面板。");
+                throw new UserFriendlyException($"打印模板缺少 {SchemaVersionPropertyName} 字段。");
             }
 
-            foreach (var panel in panels.EnumerateArray())
+            if (schemaVersion.ValueKind != JsonValueKind.Number
+                || !schemaVersion.TryGetDouble(out var version)
+                || version != SupportedSchemaVersion)
             {
-                if (panel.ValueKind != JsonValueKind.Object
-                    || !panel.TryGetProperty("printElements", out var elements)
-                    || elements.ValueKind != JsonValueKind.Array)
+                throw new UserFriendlyException(
+                    $"不支持的打印模板格式版本：{SchemaVersionPropertyName} 必须是数字 {SupportedSchemaVersion}。");
+            }
+
+            if (!root.TryGetProperty(PagesPropertyName, out var pages))
+            {
+                throw new UserFriendlyException($"打印模板缺少 {PagesPropertyName} 字段。");
+            }
+
+            if (pages.ValueKind != JsonValueKind.Array)
+            {
+                throw new UserFriendlyException($"打印模板的 {PagesPropertyName} 必须是数组。");
+            }
+
+            if (pages.GetArrayLength() == 0)
+            {
+                throw new UserFriendlyException($"打印模板的 {PagesPropertyName} 至少要有一页。");
+            }
+
+            var pageNumber = 0;
+            foreach (var page in pages.EnumerateArray())
+            {
+                pageNumber++;
+                if (page.ValueKind != JsonValueKind.Object)
                 {
-                    throw new UserFriendlyException("hiprint 每个面板都必须包含 printElements 数组。");
+                    throw new UserFriendlyException($"打印模板的 {PagesPropertyName} 第 {pageNumber} 项必须是对象。");
                 }
             }
         }

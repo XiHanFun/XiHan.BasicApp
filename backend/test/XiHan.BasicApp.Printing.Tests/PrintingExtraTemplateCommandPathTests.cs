@@ -24,7 +24,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </remarks>
 public sealed class PrintingExtraTemplateCommandPathTests
 {
-    private const string ValidTemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string ValidTemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// 平台态创建的是全局模板：租户号落 0，且 AllowTenantUse 按命令原样保留。
@@ -35,7 +35,7 @@ public sealed class PrintingExtraTemplateCommandPathTests
         var fixture = CreateFixture(tenantId: null);
 
         var result = await fixture.Service.CreateAsync(new PrintTemplateCreateCommand(
-            "ORDER", "system.print-demo", "订单模板", ValidTemplateJson, "0.0.60", true, EnableStatus.Enabled, 10, null));
+            "ORDER", "system.print-demo", "订单模板", ValidTemplateJson, true, EnableStatus.Enabled, 10, null));
 
         Assert.Equal(0, result.Template.TenantId);
         Assert.True(result.Template.AllowTenantUse);
@@ -390,7 +390,7 @@ public sealed class PrintingExtraTemplateCommandPathTests
     private static PrintTemplateUpdateCommand UpdateCommand(long id, long expectedRowVersion)
     {
         return new PrintTemplateUpdateCommand(
-            id, expectedRowVersion, "system.print-demo", "订单模板", ValidTemplateJson, "0.0.60", false, 10, null);
+            id, expectedRowVersion, "system.print-demo", "订单模板", ValidTemplateJson, false, 10, null);
     }
 
     /// <summary>
@@ -450,7 +450,6 @@ public sealed class PrintingExtraTemplateCommandPathTests
             DataSourceCode = "system.print-demo",
             TemplateName = "订单模板",
             TemplateJson = ValidTemplateJson,
-            EngineVersion = "0.0.60",
             Status = status,
             RowVersion = rowVersion
         };

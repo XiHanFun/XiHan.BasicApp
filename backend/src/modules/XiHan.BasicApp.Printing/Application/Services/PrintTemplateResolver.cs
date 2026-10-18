@@ -97,7 +97,6 @@ public sealed class PrintTemplateResolver : IPrintTemplateResolver
             DataSourceCode = item.DataSourceCode,
             TemplateName = item.TemplateName,
             TemplateJson = item.TemplateJson,
-            EngineVersion = item.EngineVersion,
             RequestedScope = scope,
             ResolvedScope = item.ResolvedScope,
             RowVersion = item.RowVersion.ToString(CultureInfo.InvariantCulture)
@@ -162,7 +161,6 @@ public sealed class PrintTemplateResolver : IPrintTemplateResolver
             DataSourceCode = template.DataSourceCode,
             TemplateName = template.TemplateName,
             TemplateJson = template.TemplateJson,
-            EngineVersion = template.EngineVersion,
             ResolvedScope = resolvedScope,
             RowVersion = template.RowVersion,
             CachedAt = DateTimeOffset.UtcNow

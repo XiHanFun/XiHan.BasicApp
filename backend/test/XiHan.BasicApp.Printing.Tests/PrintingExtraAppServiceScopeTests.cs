@@ -33,7 +33,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </remarks>
 public sealed class PrintingExtraAppServiceScopeTests
 {
-    private const string TemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string TemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// 未定义的作用域枚举值必须先于任何租户判定被拒绝。
@@ -193,7 +193,6 @@ public sealed class PrintingExtraAppServiceScopeTests
             DataSourceCode = "system.print-demo",
             TemplateName = "订单模板",
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             Sort = 10
         });
 
@@ -351,7 +350,6 @@ public sealed class PrintingExtraAppServiceScopeTests
             DataSourceCode = "system.print-demo",
             TemplateName = "发货单",
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.61",
             AllowTenantUse = true,
             Status = EnableStatus.Disabled,
             Sort = 42,
@@ -363,7 +361,6 @@ public sealed class PrintingExtraAppServiceScopeTests
         Assert.Equal("system.print-demo", captured.DataSourceCode);
         Assert.Equal("发货单", captured.TemplateName);
         Assert.Equal(TemplateJson, captured.TemplateJson);
-        Assert.Equal("0.0.61", captured.EngineVersion);
         Assert.True(captured.AllowTenantUse);
         Assert.Equal(EnableStatus.Disabled, captured.Status);
         Assert.Equal(42, captured.Sort);
@@ -392,7 +389,6 @@ public sealed class PrintingExtraAppServiceScopeTests
             DataSourceCode = "system.print-demo",
             TemplateName = "订单模板",
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             Status = EnableStatus.Enabled,
             Sort = 10
         };
@@ -460,7 +456,6 @@ public sealed class PrintingExtraAppServiceScopeTests
             DataSourceCode = "system.print-demo",
             TemplateName = "订单模板",
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             Status = EnableStatus.Enabled,
             Sort = 10
         };

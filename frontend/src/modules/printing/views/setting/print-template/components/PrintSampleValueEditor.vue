@@ -49,7 +49,7 @@ function updateText(value: string): void {
 }
 
 /**
- * 发布日期格式化字符串，清空时使用空字符串以符合 hiprint 文本字段语义。
+ * 发布日期格式化字符串，清空时使用空字符串，打印出来是空白。
  * @param value DatePicker 格式化值。
  * @returns 无返回值。
  */

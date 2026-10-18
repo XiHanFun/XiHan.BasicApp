@@ -315,20 +315,8 @@
     "cap": 2,
     "reason": "代码生成器页面的排版刻度"
   },
-  "src/modules/printing/views/setting/print-template/components/HiprintDesignerCanvas.vue": {
-    "cap": 28,
-    "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
-  },
   "src/modules/printing/views/setting/print-template/components/PrintDesignerJsonModal.vue": {
     "cap": 7,
-    "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
-  },
-  "src/modules/printing/views/setting/print-template/components/PrintDesignerMaterialPalette.vue": {
-    "cap": 38,
-    "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
-  },
-  "src/modules/printing/views/setting/print-template/components/PrintDesignerToolbar.vue": {
-    "cap": 39,
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
   "src/modules/printing/views/setting/print-template/components/PrintSampleDataModal.vue": {

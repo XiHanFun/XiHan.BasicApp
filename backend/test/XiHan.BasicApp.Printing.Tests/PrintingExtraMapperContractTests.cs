@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </remarks>
 public sealed class PrintingExtraMapperContractTests
 {
-    private const string TemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string TemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// 创建 DTO 的每个字段都要原样进入领域命令，映射层不做任何默认值补齐或改写。
@@ -35,7 +35,6 @@ public sealed class PrintingExtraMapperContractTests
             DataSourceCode = "system.print-demo",
             TemplateName = "发货单",
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.61",
             AllowTenantUse = true,
             Status = EnableStatus.Disabled,
             Sort = 42,
@@ -46,7 +45,6 @@ public sealed class PrintingExtraMapperContractTests
         Assert.Equal("system.print-demo", command.DataSourceCode);
         Assert.Equal("发货单", command.TemplateName);
         Assert.Equal(TemplateJson, command.TemplateJson);
-        Assert.Equal("0.0.61", command.EngineVersion);
         Assert.True(command.AllowTenantUse);
         Assert.Equal(EnableStatus.Disabled, command.Status);
         Assert.Equal(42, command.Sort);
@@ -66,7 +64,6 @@ public sealed class PrintingExtraMapperContractTests
             DataSourceCode = null,
             TemplateName = "订单模板",
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             AllowTenantUse = true,
             Sort = 7,
             Remark = null
@@ -165,7 +162,6 @@ public sealed class PrintingExtraMapperContractTests
         Assert.Equal(template.DataSourceCode, detail.DataSourceCode);
         Assert.Equal(template.TemplateName, detail.TemplateName);
         Assert.Equal(template.TemplateJson, detail.TemplateJson);
-        Assert.Equal(template.EngineVersion, detail.EngineVersion);
         Assert.Equal(template.AllowTenantUse, detail.AllowTenantUse);
         Assert.Equal(template.Status, detail.Status);
         Assert.Equal(template.Sort, detail.Sort);
@@ -302,7 +298,6 @@ public sealed class PrintingExtraMapperContractTests
             DataSourceCode = "system.print-demo",
             TemplateName = "订单模板",
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             Status = EnableStatus.Enabled,
             Sort = 10,
             RowVersion = 4,

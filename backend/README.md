@@ -36,7 +36,7 @@ src/framework/  XiHan.BasicApp.Core             the only two projects referencin
 | `XiHan.BasicApp.CodeGeneration` | Code generation: DbFirst schema import, single-table / tree / master-detail modes, Scriban templates, derived artifact generators |
 | `XiHan.BasicApp.AI` | AI: provider and API-key custody, prompt library, Qdrant knowledge-base RAG, skill registry with MCP projection, configurable assistants |
 | `XiHan.BasicApp.Workflow` | Workflow: the framework engine plus SqlSugar persistence (replacing the in-memory default), definition / instance / todo application services |
-| `XiHan.BasicApp.Printing` | Printing: hiprint template management; template codes are unique per tenant and immutable after creation; data sources come from a code-registered registry |
+| `XiHan.BasicApp.Printing` | Printing: print template management with the XiHan print designer; template codes are unique per tenant and immutable after creation; data sources come from a code-registered registry |
 | `XiHan.BasicApp.Chat` | Chat: single / group / department / assistant conversations, realtime delivery, sensitive-word filtering, retention cleanup |
 | `XiHan.BasicApp.WebHost` | Startup host: module composition, middleware pipeline, health checks, seeding and upgrade entry points |
 

@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </summary>
 public sealed class PrintTemplateResolverTests
 {
-    private const string TemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string TemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// Auto 必须优先返回同编码的启用租户模板，且不再读取全局模板。
@@ -221,7 +221,6 @@ public sealed class PrintTemplateResolverTests
             DataSourceCode = "system.print-demo",
             TemplateName = code,
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             AllowTenantUse = allowTenantUse,
             Status = EnableStatus.Enabled,
             RowVersion = 4

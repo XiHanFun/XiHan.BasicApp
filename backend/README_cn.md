@@ -36,7 +36,7 @@ src/framework/  XiHan.BasicApp.Core             全仓唯一引用 XiHan.Framewo
 | `XiHan.BasicApp.CodeGeneration` | 代码生成：DbFirst 表结构导入、单表/树表/主从三种模式、Scriban 模板、衍生产物生成 |
 | `XiHan.BasicApp.AI` | AI：提供商与密钥托管、提示词库、Qdrant 知识库 RAG、技能注册与 MCP 投影、可配置多助手 |
 | `XiHan.BasicApp.Workflow` | 工作流：框架引擎 + SqlSugar 持久化（Replace 掉内存默认实现）、定义/实例/待办三个应用服务 |
-| `XiHan.BasicApp.Printing` | 打印：hiprint 模板管理，模板编码租户内唯一且创建后不可改，代码注册式数据源注册表 |
+| `XiHan.BasicApp.Printing` | 打印：XiHan 打印设计器的模板管理，模板编码租户内唯一且创建后不可改，代码注册式数据源注册表 |
 | `XiHan.BasicApp.Chat` | 聊天：Single / Group / Department / Assistant 四类会话、实时推送、敏感词拦截、保留期清理 |
 | `XiHan.BasicApp.WebHost` | 启动宿主：模块装配、中间件管道、健康检查、种子与升级入口 |
 

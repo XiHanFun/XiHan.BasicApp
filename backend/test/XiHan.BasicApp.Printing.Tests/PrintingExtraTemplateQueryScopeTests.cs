@@ -30,7 +30,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </remarks>
 public sealed class PrintingExtraTemplateQueryScopeTests
 {
-    private const string TemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string TemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// 未定义的作用域枚举值在分页与详情两条路径上都必须拒绝。
@@ -516,7 +516,6 @@ public sealed class PrintingExtraTemplateQueryScopeTests
             DataSourceCode = "system.print-demo",
             TemplateName = "订单模板",
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             AllowTenantUse = allowTenantUse,
             Status = status,
             RowVersion = 4

@@ -1,11 +1,12 @@
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
+import type { PrintTemplateFormModel } from './models'
 /**
  * 打印模板编辑器会话 Composable。
  * 职责：集中管理元数据与设计草稿、未保存守卫、保存并发锁、样例预览、FIFO 直打和本地打印机偏好。
  */
-import type HiprintDesignerCanvas from './HiprintDesignerCanvas.vue'
-import type { PrintTemplateFormModel } from './models'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import type PrintDesignerCanvas from './PrintDesignerCanvas.vue'
+import type { PrintDocument } from '~/printing/designer'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { EnableStatus } from '@/api'
 import { dialog, toast } from '~/composables'
@@ -14,9 +15,12 @@ import {
   directPrintByCode,
   getPreferredPrinter,
   listPrinters,
+  parsePrintTemplateJson,
+  PrintTemplateFormatError,
   refreshPrinters,
   setPreferredPrinter,
 } from '~/printing'
+import { createEmptyPrintDocument } from '~/printing/designer'
 import { printTemplateApi } from '../../../../api/print-template'
 
 /** 编辑器父组件传入的响应式属性。 */
@@ -38,16 +42,16 @@ interface PrintTemplateEditorEmit {
  * @param props 编辑器详情、作用域和显示状态；必须直接传入 defineProps 返回的响应式对象。
  * @param emit 保存完成与可见性变更事件发送器。
  * @returns 供编辑器视图绑定的状态、计算属性和操作方法。
- * @throws 必须在 Vue setup 生命周期内调用；初始化时模板 JSON 损坏会提示并关闭编辑器。
+ * @throws 必须在 Vue setup 生命周期内调用。
  */
 export function usePrintTemplateEditor(
   props: Readonly<PrintTemplateEditorProps>,
   emit: PrintTemplateEditorEmit,
 ) {
   const { t } = useI18n()
-  const designerRef = ref<InstanceType<typeof HiprintDesignerCanvas> | null>(null)
+  const designerRef = ref<InstanceType<typeof PrintDesignerCanvas> | null>(null)
   const form = ref<PrintTemplateFormModel>(createDefaultForm())
-  const draftTemplate = ref<Record<string, unknown>>(createEmptyTemplate())
+  const draftTemplate = shallowRef<PrintDocument>(createEmptyPrintDocument())
   const currentDetail = ref<PrintTemplateDetailDto | null>(null)
   const designerKey = ref(0)
   const dirty = ref(false)
@@ -56,7 +60,6 @@ export function usePrintTemplateEditor(
   const saveLoading = ref(false)
   const previewLoading = ref(false)
   const samplePreviewVisible = ref(false)
-  const samplePreviewTemplate = ref<Record<string, unknown> | null>(null)
   const directLoading = ref(false)
   const printerLoading = ref(false)
   const printers = ref<{ label: string, value: string }[]>([])
@@ -80,7 +83,6 @@ export function usePrintTemplateEditor(
       }
       else {
         samplePreviewVisible.value = false
-        samplePreviewTemplate.value = null
         abortController.abort(new DOMException('打印模板编辑器已关闭。', 'AbortError'))
       }
     },
@@ -91,50 +93,47 @@ export function usePrintTemplateEditor(
       dirty.value = true
   }, { deep: true })
 
-  watch(
-    () => form.value.dataSourceCode,
-    (nextCode, previousCode) => {
-      if (!props.show || resetting.value || nextCode === previousCode)
-        return
-      try {
-        // 数据源切换会通过组件 key 重建设计器；销毁前同步抓取画布，避免未保存元素随旧实例一起丢失。
-        draftTemplate.value = (designerRef.value?.getJson() ?? draftTemplate.value) as Record<string, unknown>
-        designerReady.value = false
-      }
-      catch (error) {
-        toast.danger((error as Error).message || t('setting.print_template.designer_not_ready'))
-      }
-    },
-    { flush: 'sync' },
-  )
-
   onMounted(() => window.addEventListener('beforeunload', preventUnload))
   onBeforeUnmount(() => {
     abortController.abort(new DOMException('打印模板编辑器已卸载。', 'AbortError'))
     window.removeEventListener('beforeunload', preventUnload)
     samplePreviewVisible.value = false
-    samplePreviewTemplate.value = null
   })
 
-  /** 重置本次编辑会话并重新构建设计器。 */
+  /** 重置本次编辑会话并重新装载设计器。 */
   async function resetEditor(): Promise<void> {
     resetting.value = true
     designerReady.value = false
     abortController.abort()
     abortController = new AbortController()
     samplePreviewVisible.value = false
-    samplePreviewTemplate.value = null
+    let legacyFormat = false
     try {
       currentDetail.value = props.detail
       form.value = props.detail ? toForm(props.detail) : createDefaultForm()
-      draftTemplate.value = props.detail ? parseTemplate(props.detail.templateJson) : createEmptyTemplate()
+      if (props.detail) {
+        try {
+          draftTemplate.value = parsePrintTemplateJson(props.detail.templateJson, props.detail.templateCode)
+        }
+        catch (error) {
+          if (!(error instanceof PrintTemplateFormatError))
+            throw error
+          // 旧格式或损坏的模板打不开：换成空白模板并明确提示，保存后覆盖原内容
+          draftTemplate.value = createEmptyPrintDocument()
+          legacyFormat = true
+          toast.warning(t('setting.print_template.legacy_format_reset'))
+        }
+      }
+      else {
+        draftTemplate.value = createEmptyPrintDocument()
+      }
       // 新建模板在用户填写稳定编码前没有可用的偏好存储键；此时保持客户端默认打印机，避免空编码阻断编辑器打开。
       selectedPrinter.value = form.value.templateCode.trim()
         ? getPreferredPrinter(form.value.templateCode)
         : null
       designerKey.value += 1
       await nextTick()
-      dirty.value = false
+      dirty.value = legacyFormat
       void loadPrinters(false)
     }
     catch (error) {
@@ -146,26 +145,26 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 设计器就绪后才接收其变更事件，避免初始化布局误标记脏状态。 */
+  /** 设计器就绪后才接收其变更事件，避免装载误标记脏状态。 */
   function onDesignerReady(): void {
     designerReady.value = true
   }
 
   /** 接收设计变化并标记未保存。 */
-  function onDesignerChanged(template: unknown): void {
+  function onDesignerChanged(template: PrintDocument): void {
     if (!designerReady.value)
       return
-    draftTemplate.value = template as Record<string, unknown>
+    draftTemplate.value = template
     dirty.value = true
   }
 
   /** 接收 Vue 组件模板 ref，并把宽泛的运行时实例收窄为设计器公开句柄。 */
   function setDesignerRef(instance: unknown): void {
-    designerRef.value = instance as InstanceType<typeof HiprintDesignerCanvas> | null
+    designerRef.value = instance as InstanceType<typeof PrintDesignerCanvas> | null
   }
 
   /**
-   * 保存模板；loading 锁阻止重复提交，行版本用于拒绝覆盖并行编辑。
+   * 保存模板；loading 锁阻止重复提交，行版本用于拒绝覆盖并行编辑，模板有错误级问题时拦下。
    * @param metadataOverride 可选的设置抽屉隔离草稿；只有 API 成功后才写回主表单。
    * @returns 保存后的模板详情；校验失败、并发提交或接口失败时返回 null。
    */
@@ -177,9 +176,13 @@ export function usePrintTemplateEditor(
       toast.warning(t('setting.print_template.required_fields'))
       return null
     }
-    const templateSnapshot = (designerRef.value?.getJson() ?? draftTemplate.value) as Record<string, unknown>
+    const errorCount = designerRef.value?.validate().filter(issue => issue.severity === 'error').length ?? 0
+    if (errorCount > 0) {
+      toast.warning(t('setting.print_template.save_blocked_issues', { count: errorCount }))
+      return null
+    }
+    const templateSnapshot = designerRef.value?.getJson() ?? draftTemplate.value
     const templateJson = JSON.stringify(templateSnapshot)
-    const previousDataSourceCode = form.value.dataSourceCode?.trim() || null
 
     saveLoading.value = true
     try {
@@ -188,7 +191,6 @@ export function usePrintTemplateEditor(
         dataSourceCode: effectiveForm.dataSourceCode?.trim() || null,
         templateName: effectiveForm.templateName.trim(),
         templateJson,
-        engineVersion: effectiveForm.engineVersion.trim(),
         allowTenantUse: props.globalMode && effectiveForm.allowTenantUse,
         sort: effectiveForm.sort,
         remark: effectiveForm.remark.trim() || null,
@@ -205,18 +207,13 @@ export function usePrintTemplateEditor(
             status: effectiveForm.status,
           })
 
-      const dataSourceChanged = previousDataSourceCode !== (saved.dataSourceCode?.trim() || null)
       resetting.value = true
       try {
         currentDetail.value = saved
-        // 数据源改变会触发 DesignerCanvas key 重建；保存当前快照，确保新实例回显刚保存的画布。
-        if (dataSourceChanged) {
-          draftTemplate.value = templateSnapshot
-          designerReady.value = false
-        }
         form.value = toForm(saved)
         await nextTick()
         dirty.value = false
+        designerRef.value?.markSaved()
       }
       finally {
         resetting.value = false
@@ -235,23 +232,16 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 读取当前未保存画布快照并打开模板驱动的模拟数据表单。 */
+  /** 打开数据源驱动的模拟数据表单。 */
   function openSamplePreview(): void {
-    if (!designerReady.value)
-      return
-    try {
-      samplePreviewTemplate.value = (designerRef.value?.getJson() ?? draftTemplate.value) as Record<string, unknown>
+    if (designerReady.value)
       samplePreviewVisible.value = true
-    }
-    catch (error) {
-      toast.danger((error as Error).message || t('setting.print_template.preview_failed'))
-    }
   }
 
   /**
-   * 使用当前未保存画布和用户填写的内存模拟数据打开浏览器预览。
+   * 使用当前未保存设计和用户填写的内存模拟数据调起浏览器打印。
    * @param sample 模拟数据弹窗输出的单对象或对象数组。
-   * @returns 预览调用完成信号。
+   * @returns 打印调用完成信号。
    */
   async function preview(sample: Record<string, unknown> | Record<string, unknown>[]): Promise<void> {
     if (previewLoading.value)
@@ -269,7 +259,7 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 先保存最新设计，再通过公共 FIFO 直打服务提交内存样例。 */
+  /** 先保存最新设计，再通过公共 FIFO 直打服务交给本地打印客户端。 */
   async function directPrint(): Promise<void> {
     if (directLoading.value)
       return
@@ -280,7 +270,7 @@ export function usePrintTemplateEditor(
         return
       if (saved.status !== EnableStatus.Enabled)
         throw new Error(t('setting.print_template.disabled_cannot_print'))
-      const sample = await createDefaultPrintSampleData(parseTemplate(saved.templateJson), saved.dataSourceCode)
+      const sample = await createDefaultPrintSampleData(saved.dataSourceCode)
       await directPrintByCode(saved.templateCode, sample, {
         scope: props.scope,
         printerName: selectedPrinter.value || undefined,
@@ -298,14 +288,14 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 加载或刷新客户端打印机列表；离线时保留编辑能力。 */
+  /** 加载或刷新客户端打印机列表；客户端不可用时保留编辑能力。 */
   async function loadPrinters(forceRefresh: boolean): Promise<void> {
     if (printerLoading.value)
       return
     printerLoading.value = true
     try {
       const values = forceRefresh ? await refreshPrinters() : await listPrinters()
-      printers.value = values.map(printer => ({ label: printer.displayName || printer.name, value: printer.name }))
+      printers.value = values.map(printer => ({ label: printer.name, value: printer.name }))
     }
     catch (error) {
       printers.value = []
@@ -380,7 +370,6 @@ export function usePrintTemplateEditor(
     requestVisible,
     save,
     saveLoading,
-    samplePreviewTemplate,
     samplePreviewVisible,
     selectedPrinter,
     setDesignerRef,
@@ -395,7 +384,6 @@ function createDefaultForm(): PrintTemplateFormModel {
     templateCode: '',
     dataSourceCode: null,
     templateName: '',
-    engineVersion: '0.0.60',
     allowTenantUse: false,
     status: EnableStatus.Enabled,
     sort: 100,
@@ -409,42 +397,9 @@ function toForm(detail: PrintTemplateDetailDto): PrintTemplateFormModel {
     templateCode: detail.templateCode,
     dataSourceCode: detail.dataSourceCode,
     templateName: detail.templateName,
-    engineVersion: detail.engineVersion,
     allowTenantUse: detail.allowTenantUse,
     status: detail.status,
     sort: detail.sort,
     remark: detail.remark ?? '',
   }
-}
-
-/** A4 纵向纸张宽度，单位 mm。 */
-const A4_PAPER_WIDTH_MM = 210
-/** A4 纵向纸张高度，单位 mm。 */
-const A4_PAPER_HEIGHT_MM = 297
-/** A4 纵向纸张高度，单位 pt，作为默认页脚参考线。 */
-const A4_PAPER_HEIGHT_PT = 841.89
-/** 官网空白模板采用的 20mm 页眉参考线，单位 pt。 */
-const DEFAULT_PAPER_HEADER_PT = 56.69
-
-/** 创建后端校验和 hiprint 均可接受、且带默认页眉参考线的 A4 空白模板。 */
-function createEmptyTemplate(): Record<string, unknown> {
-  return {
-    panels: [{
-      index: 0,
-      paperType: 'A4',
-      width: A4_PAPER_WIDTH_MM,
-      height: A4_PAPER_HEIGHT_MM,
-      paperHeader: DEFAULT_PAPER_HEADER_PT,
-      paperFooter: A4_PAPER_HEIGHT_PT,
-      printElements: [],
-    }],
-  }
-}
-
-/** 解析详情 JSON；异常由页面统一提示并阻止打开损坏设计。 */
-function parseTemplate(value: string): Record<string, unknown> {
-  const parsed = JSON.parse(value) as unknown
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
-    throw new Error('打印模板 JSON 根节点必须是对象。')
-  return parsed as Record<string, unknown>
 }

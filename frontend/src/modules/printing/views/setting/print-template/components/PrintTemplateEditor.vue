@@ -10,7 +10,7 @@ import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XSelect } from '~/components'
 import { Icon } from '~/iconify'
-import DesignerCanvas from './HiprintDesignerCanvas.vue'
+import DesignerCanvas from './PrintDesignerCanvas.vue'
 import SampleDataModal from './PrintSampleDataModal.vue'
 import MetadataForm from './PrintTemplateMetadataForm.vue'
 import { usePrintTemplateEditor } from './use-print-template-editor'
@@ -52,7 +52,6 @@ const {
   requestVisible,
   save,
   saveLoading,
-  samplePreviewTemplate,
   samplePreviewVisible,
   selectedPrinter,
   setDesignerRef,
@@ -134,7 +133,6 @@ function cloneMetadata(value: PrintTemplateFormModel): PrintTemplateFormModel {
 function isSameMetadata(left: PrintTemplateFormModel, right: PrintTemplateFormModel): boolean {
   return left.allowTenantUse === right.allowTenantUse
     && left.dataSourceCode === right.dataSourceCode
-    && left.engineVersion === right.engineVersion
     && left.remark === right.remark
     && left.sort === right.sort
     && left.status === right.status
@@ -168,13 +166,14 @@ defineExpose({ confirmDiscard })
 
       <div class="editor-layout">
         <DesignerCanvas
-          :key="`${designerKey}:${form.dataSourceCode}`"
+          :key="designerKey"
           :ref="setDesignerRef"
           class="min-h-0 flex-1"
           :data-source-code="form.dataSourceCode"
           :template="draftTemplate"
           @changed="onDesignerChanged"
           @ready="onDesignerReady"
+          @save="handleSave"
         >
           <template #template-actions>
             <div class="toolbar-primary-actions">
@@ -246,7 +245,6 @@ defineExpose({ confirmDiscard })
         v-model:show="samplePreviewVisible"
         :data-source-code="form.dataSourceCode"
         :submitting="previewLoading"
-        :template="samplePreviewTemplate"
         :template-code="form.templateCode || undefined"
         :template-name="form.templateName || undefined"
         @preview="preview"
@@ -270,7 +268,6 @@ defineExpose({ confirmDiscard })
               v-model="metadataDraft"
               :editing="Boolean(currentDetail)"
               :global-mode="globalMode"
-              :template="draftTemplate"
             />
           </XhDrawerBody>
           <XhDrawerFooter class="template-settings-footer">

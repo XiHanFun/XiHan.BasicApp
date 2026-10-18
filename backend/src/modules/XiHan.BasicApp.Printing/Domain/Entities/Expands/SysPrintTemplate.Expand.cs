@@ -43,10 +43,5 @@ public partial class SysPrintTemplate : IValidatableObject
         {
             yield return new ValidationResult("打印模板 JSON 不能为空。", [nameof(TemplateJson)]);
         }
-
-        if (string.IsNullOrWhiteSpace(EngineVersion))
-        {
-            yield return new ValidationResult("打印引擎版本不能为空。", [nameof(EngineVersion)]);
-        }
     }
 }
