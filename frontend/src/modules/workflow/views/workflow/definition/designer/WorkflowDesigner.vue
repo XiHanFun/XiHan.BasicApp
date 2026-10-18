@@ -187,10 +187,12 @@ function handleSave() {
 
     <!-- 工具栏以下的高度全给当前视图；设计视图用 v-show 保留设计器：切到 JSON 再切回不卸载、不丢撤销历史 -->
     <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <!-- 设计器设置（主题、小地图、吸附、自动布局的方向与间距）存在本机，下次打开照用 -->
       <xh-flow-designer
         v-show="activeTab === 'design'"
         ref="designerRef"
         class="workflow-designer__canvas"
+        settings-storage-key="xihan-basicapp:workflow-designer-settings"
         @schema-change="onSchemaChange"
         @save="handleSave"
         @export="onExport"
