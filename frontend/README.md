@@ -24,9 +24,9 @@ Tooling: Vite, `@vitejs/plugin-vue(-jsx)`, vue-tsc, Turbo, Tailwind CSS (`@tailw
 
 ## Monorepo Structure
 
-`pnpm-workspace.yaml` declares `packages/*` — 19 private workspace packages (all named `@xihan/<name>`, version `0.0.0`, aliased as `~/`): chat, components, composables, constants, design, diagram, hooks, iconify, layouts, locales, printing, request, router, stores, types, utils, views and more.
+`pnpm-workspace.yaml` declares `packages/*` — 19 private workspace packages (all named `@xihan/<name>`, version `0.0.0`, aliased as `~/`): chat, components, composables, constants, design, designers, hooks, iconify, layouts, locales, printing, request, router, stores, types, utils, views and more.
 
-Heavier third-party libraries live in the package that owns them, never at the application root: axios → request, `@antv/x6` → diagram, tiptap / monaco / md-editor-v3 / jsoneditor → components, `@microsoft/signalr` / pinyin-pro → composables, vue-plugin-hiprint → printing, emoji-mart → chat, eight `@iconify-json` sets → iconify, dayjs / papaparse → utils.
+Heavier third-party libraries live in the package that owns them, never at the application root: axios → request, `@xihan-flow/*` / `@xihan-ui/web-components` → designers, tiptap / monaco / md-editor-v3 / jsoneditor → components, `@microsoft/signalr` / pinyin-pro → composables, vue-plugin-hiprint → printing, emoji-mart → chat, eight `@iconify-json` sets → iconify, dayjs / papaparse → utils.
 
 Every third-party version is declared once in the `catalog:` block of `pnpm-workspace.yaml` (~75 entries); packages just write `"catalog:"`.
 
@@ -119,6 +119,6 @@ The build targets es2022 and uses a hand-written `manualChunks` split — vendor
 
 ## Removing Optional Modules
 
-Delete `src/modules/<module>/` along with the matching `packages/{chat,printing,diagram}` and their catalog entries.
+Delete `src/modules/<module>/` along with the matching `packages/{chat,printing,designers}` and their catalog entries.
 
 ⚠️ **Removal must be paired with rebuilding the database** — seeded menus and permission codes are not reclaimed automatically.

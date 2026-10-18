@@ -1,0 +1,16 @@
+{
+  "name": "@xihan/designers",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./index.ts",
+  "dependencies": {
+    "@xihan-flow/core": "catalog:",
+    "@xihan-flow/designer": "catalog:",
+    "@xihan-flow/runtime": "catalog:",
+    "@xihan-ui/designer-kit": "catalog:",
+    "@xihan-ui/designer-shell": "catalog:",
+    "@xihan-ui/web-components": "catalog:",
+    "@xihan/locales": "workspace:*"
+  }
+}
