@@ -21,6 +21,8 @@ export default {
       data_source_optional_placeholder: '可选；不选择即使用自由模板',
       data_source_catalog_load_failed: '打印数据源目录加载失败，仅显示本地已注册数据源，请稍后重试。',
       data_source_missing_option: '{code}（当前前端未注册）',
+      data_source_mismatch_warning: '当前画布有 {count} 个字段不在所选数据源契约中；仍可保存和打印，请确认调用方会传入这些字段。',
+      data_source_mismatch_compact: '发现 {count} 个契约外字段，点击查看',
       data_source_guidance_title: '数据源用于辅助设计',
       data_source_registered_compact_help: '提供建议字段与默认样例，不限制自定义 field。',
       data_source_free_compact_help: '不绑定代码契约，可直接使用任意标准 field。',

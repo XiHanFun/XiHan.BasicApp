@@ -4,6 +4,7 @@
 -->
 <script setup lang="ts">
 import type { PrintSampleFormField, PrintSampleFormSchema } from '~/printing'
+import type { PrintDocument } from '~/printing/designer'
 import { createReusableTemplate } from '@vueuse/core'
 import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFieldsetLegend, XhFieldsetRoot, XhFlex, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, onBeforeUnmount, ref, shallowRef, useId, watch } from 'vue'
@@ -29,6 +30,8 @@ const props = defineProps<{
   dataSourceCode: null | string
   show: boolean
   submitting: boolean
+  /** 样例表单按它引用的字段生成；还没拿到模板时为 null */
+  template: null | PrintDocument
   templateCode?: string
   templateName?: string
 }>()
@@ -86,7 +89,7 @@ onBeforeUnmount(() => {
 })
 
 /**
- * 初始化样例字段结构；绑定数据源时用它的字段与样例，自由模板是一条空白记录。
+ * 初始化样例字段结构：字段取模板引用的那些；绑定数据源时样例用它的工厂，自由模板是一条按字段生成的空白记录。
  * @returns 初始化完成信号。
  * @throws 所有异常都会转换为弹窗内错误，不向事件循环泄漏。
  */
@@ -97,7 +100,9 @@ async function initialize(): Promise<void> {
   try {
     // 字段结构与样例工厂读取数据源注册表，先确保后端目录已加载
     await ensureRemotePrintDataSourcesLoaded()
-    const nextSchema = extractPrintSampleFormSchema(props.dataSourceCode)
+    if (!props.template)
+      throw new Error(t('setting.print_template.sample_template_missing'))
+    const nextSchema = extractPrintSampleFormSchema(props.template, props.dataSourceCode)
     const source = getPrintDataSource(props.dataSourceCode)
     const sample = source
       ? await source.createSampleData()

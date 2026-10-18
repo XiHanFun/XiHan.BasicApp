@@ -21,6 +21,8 @@ export default {
       data_source_optional_placeholder: '任意。未選択の場合はフリーテンプレートを使用',
       data_source_catalog_load_failed: '印刷データソースカタログの読み込みに失敗しました。ローカル登録済みのデータソースのみ表示します。しばらくしてから再試行してください。',
       data_source_missing_option: '{code}（現在のフロントエンドに未登録）',
+      data_source_mismatch_warning: '現在のキャンバスには、選択したデータソース契約に含まれないフィールドが {count} 件あります。保存と印刷は可能ですが、呼び出し側がこれらのフィールドを渡すことを確認してください。',
+      data_source_mismatch_compact: '契約外のフィールドが {count} 件見つかりました。クリックで確認',
       data_source_guidance_title: 'データソースは設計の補助に使用します',
       data_source_registered_compact_help: '推奨フィールドと既定サンプルを提供し、カスタム field は制限しません。',
       data_source_free_compact_help: 'コード契約にひも付かず、任意の標準 field をそのまま使用できます。',

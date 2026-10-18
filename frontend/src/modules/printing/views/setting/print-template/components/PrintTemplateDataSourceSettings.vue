@@ -4,15 +4,20 @@
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
+import type { PrintDocument } from '~/printing/designer'
 import { XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger } from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XSelect } from '~/components'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
-import { ensureRemotePrintDataSourcesLoaded, getPrintDataSource, listPrintDataSources } from '~/printing'
+import { ensureRemotePrintDataSourcesLoaded, getPrintDataSource, listPrintDataSources, listUnregisteredPrintFields } from '~/printing'
 
 defineOptions({ name: 'PrintTemplateDataSourceSettings' })
+
+const props = defineProps<{
+  template: PrintDocument
+}>()
 
 const model = defineModel<PrintTemplateFormModel>({ required: true })
 const { t } = useI18n()
@@ -52,6 +57,10 @@ const dataSourceOptions = computed(() => {
   }
   return options
 })
+/** 模板引用了、所选数据源却没登记的字段数；不阻断保存与打印，只提示调用方要传这些字段。 */
+const unmatchedFieldCount = computed(() => selectedSource.value
+  ? listUnregisteredPrintFields(props.template, selectedSource.value.fields).length
+  : 0)
 
 /** 切换为自由模板；这里只修改抽屉草稿，保存成功前不会重建设计器。 */
 function switchToFreeTemplate(): void {
@@ -109,6 +118,19 @@ function switchToFreeTemplate(): void {
           </XhPopoverPositioner>
         </XhPopoverRoot>
       </div>
+
+      <XhPopoverRoot v-if="unmatchedFieldCount > 0" placement="bottom">
+        <XhPopoverTrigger class="xh-linklike-trigger">
+          <Icon width="17" height="17" icon="tabler:alert-triangle" />
+          <span>{{ t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount }) }}</span>
+          <Icon width="16" height="16" icon="tabler:chevron-right" />
+        </XhPopoverTrigger>
+        <XhPopoverPositioner>
+          <XhPopoverContent :aria-label="t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount })">
+            {{ t('setting.print_template.data_source_mismatch_warning', { count: unmatchedFieldCount }) }}
+          </XhPopoverContent>
+        </XhPopoverPositioner>
+      </XhPopoverRoot>
     </div>
     <XhFieldErrorText />
   </XhFieldRoot>

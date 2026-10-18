@@ -21,6 +21,8 @@ export default {
       data_source_optional_placeholder: '可選；未選擇即使用自由範本',
       data_source_catalog_load_failed: '列印資料來源目錄載入失敗，僅顯示本機已註冊的資料來源，請稍後再試。',
       data_source_missing_option: '{code}（目前前端未註冊）',
+      data_source_mismatch_warning: '目前畫布有 {count} 個欄位不在所選資料來源的契約中；仍可儲存與列印，請確認呼叫方會傳入這些欄位。',
+      data_source_mismatch_compact: '發現 {count} 個契約外欄位，點擊檢視',
       data_source_guidance_title: '資料來源用於輔助設計',
       data_source_registered_compact_help: '提供建議欄位與預設樣例，不限制自訂 field。',
       data_source_free_compact_help: '不繫結程式契約，可直接使用任意標準 field。',

@@ -245,6 +245,7 @@ defineExpose({ confirmDiscard })
         v-model:show="samplePreviewVisible"
         :data-source-code="form.dataSourceCode"
         :submitting="previewLoading"
+        :template="draftTemplate"
         :template-code="form.templateCode || undefined"
         :template-name="form.templateName || undefined"
         @preview="preview"
@@ -268,6 +269,7 @@ defineExpose({ confirmDiscard })
               v-model="metadataDraft"
               :editing="Boolean(currentDetail)"
               :global-mode="globalMode"
+              :template="draftTemplate"
             />
           </XhDrawerBody>
           <XhDrawerFooter class="template-settings-footer">
