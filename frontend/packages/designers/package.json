@@ -11,6 +11,7 @@
     "@xihan-ui/designer-kit": "catalog:",
     "@xihan-ui/designer-shell": "catalog:",
     "@xihan-ui/web-components": "catalog:",
+    "@xihan/composables": "workspace:*",
     "@xihan/locales": "workspace:*"
   }
 }
