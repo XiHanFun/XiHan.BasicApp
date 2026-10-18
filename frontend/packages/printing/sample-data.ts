@@ -23,7 +23,7 @@ const DANGEROUS_PATH_SEGMENTS = new Set(['__proto__', 'constructor', 'prototype'
  * @param document 打印模板。
  * @param dataSourceCode 模板可选的代码数据源编码；为空表示自由模板。
  * @returns 按字段在模板里首次出现的顺序排列、按路径去重的表单结构：数据源登记过的字段用登记的名称与控件，
- * 其余按模板的引用推断（明细表取它下面的列，其它按文本），绑定了数据源时每个未登记字段带一条提示。
+ * 其余按模板的引用推断（明细表取它下面的列，图片、条码、二维码按引用它的元素，其它按文本），绑定了数据源时每个未登记字段带一条提示。
  * @throws 非空数据源未注册或字段路径包含原型污染片段。
  * @example
  * const schema = extractPrintSampleFormSchema(document, 'system.print-demo')
@@ -226,8 +226,17 @@ function toRegisteredFormField(field: Readonly<PrintFieldDefinition>): PrintSamp
   })
 }
 
+/** 字段的内容种类 → 表单项种类；没写的按文本 */
+const CONTENT_KINDS: Readonly<Record<NonNullable<DataField['content']>, PrintFieldKind>> = {
+  barcode: 'barcode',
+  image: 'image',
+  qrcode: 'qrcode',
+  text: 'text',
+}
+
 /**
- * 把模板引用的字段树摊成表单项：对象展开成点路径，数组是明细表、它下面的值字段是列（列路径相对一行），其余按文本。
+ * 把模板引用的字段树摊成表单项：对象展开成点路径，数组是明细表、它下面的值字段是列（列路径相对一行），
+ * 值字段按它的内容种类（图片、条码、二维码），没写的按文本。
  * @param fields collectDocumentFields 给出的字段树。
  * @param prefix 上层对象的点路径。
  * @returns 未登记的表单项，registered 为 false。
@@ -239,7 +248,7 @@ function flattenUsedFields(fields: readonly DataField[], prefix: string): PrintS
       return flattenUsedFields(field.children ?? [], key)
     if (field.kind === 'list')
       return [{ key, label: key, kind: 'table', columns: Object.freeze(listColumns(field.children ?? [], '')), registered: false }]
-    return [{ key, label: key, kind: 'text', registered: false }]
+    return [{ key, label: key, kind: field.content ? CONTENT_KINDS[field.content] : 'text', registered: false }]
   })
 }
 

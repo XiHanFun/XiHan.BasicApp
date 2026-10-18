@@ -137,6 +137,24 @@ it('模拟数据表单只列模板引用的字段：登记过的用数据源的�
   assert.throws(() => printing.extractPrintSampleFormSchema(document, uniqueCode('missing')), /未注册/u)
 })
 
+it('没登记的字段按引用它的元素选输入方式：图片、条码、二维码各归各的，只在模板串里出现的按文本', () => {
+  const registry = createElementRegistry()
+  const page = createPage({ id: 'page-1' })
+  page.elements = [
+    registry.createElement('image', { id: 'image-1', x: 0, y: 0, overrides: { source: { kind: 'field', field: 'photo' } } }),
+    registry.createElement('barCode', { id: 'barcode-1', x: 0, y: 20, overrides: { content: { kind: 'field', field: 'sku' } } }),
+    registry.createElement('matrixCode', { id: 'qrcode-1', x: 0, y: 40, overrides: { content: { kind: 'field', field: 'link' } } }),
+    registry.createElement('text', { id: 'text-1', x: 0, y: 60, overrides: { content: { kind: 'template', template: '备注 {{remark}}' } } }),
+  ]
+  const schema = printing.extractPrintSampleFormSchema(createDocument({ pages: [page] }), null)
+  assert.deepEqual(schema.fields.map(field => [field.key, field.kind]), [
+    ['photo', 'image'],
+    ['sku', 'barcode'],
+    ['link', 'qrcode'],
+    ['remark', 'text'],
+  ])
+})
+
 it('列出模板引用了、数据源却没登记的字段：明细表的列写成「表.列」，没登记的对象整个算一个', () => {
   const code = uniqueCode('unregistered')
   registerSampleSchemaSource(code)
