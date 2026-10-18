@@ -71,8 +71,20 @@ function XiHanUiResolver(): ComponentResolver {
 function createManualChunks(id: string) {
   const normalizedId = id.replace(/\\/g, '/')
 
-  // 两种装法都要认：装 npm 正式版时路径是 /@xihan-ui/；临时用 overrides 链到同级
-  // XiHan.UI 源码调试时路径不含 /node_modules/，因此本判断必须排在下面的 node_modules 早退之前。
+  // 两种装法都要认：装 npm 正式版时路径是 /@xihan-ui/ 等作用域；临时用 overrides 链到同级源码调试时
+  // 路径不含 /node_modules/，因此下面几条判断必须排在 node_modules 早退之前。
+  // 设计器（Web Components）与它独占的 UI 包只有设计、查看流程等少数页面用到：不归入首屏的 vendor-ui，
+  // 也不另立手动分组——手动分组会把命中模块的依赖（headless、core 等公共部分）一并收走，首屏反而要引它；
+  // 交给按需分块，跟着用到它们的页面走
+  if (
+    /\/XiHan\.(?:Print|Flow|Form|Report)Designer\//.test(normalizedId)
+    || /\/@xihan-(?:print|flow|form|report)\//.test(normalizedId)
+    || /\/(?:adapters\/web-components|features\/designer-kit|features\/designer-shell|features\/xlsx)\//.test(normalizedId)
+    || /\/@xihan-ui\/(?:web-components|designer-kit|designer-shell|xlsx)\//.test(normalizedId)
+  ) {
+    return undefined
+  }
+
   if (normalizedId.includes('/XiHan.UI/ui/packages/') || normalizedId.includes('/@xihan-ui/')) {
     if (normalizedId.includes('/features/backgrounds/') || normalizedId.includes('/@xihan-ui/backgrounds/'))
       return 'vendor-backgrounds'
@@ -255,7 +267,9 @@ export default defineConfig(({ mode }) => {
       xihanUiBanner(),
       releaseManifest(),
       tailwindcss(),
-      vue(),
+      // 设计器是 Web Components（<xh-print-designer>、<xh-flow-viewer> 等），模板里的 xh- 标签交给浏览器，不当组件解析；
+      // 应用里的组件库组件一律写 PascalCase 的 Xh*，不受影响
+      vue({ template: { compilerOptions: { isCustomElement: tag => tag.startsWith('xh-') } } }),
       vueJsx(),
       AutoImport({
         imports: ['vue', 'vue-router', 'pinia', '@vueuse/core'],

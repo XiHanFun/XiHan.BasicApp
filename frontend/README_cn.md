@@ -24,9 +24,9 @@ Vue + TypeScript + Vite。应用根的运行时依赖只有 vue、vue-router、p
 
 ## Monorepo 结构
 
-`pnpm-workspace.yaml` 声明 `packages/*`，共 19 个 private workspace 包（全部 `@xihan/<name>`、version `0.0.0`、别名 `~/`）：chat、components、composables、constants、design、diagram、hooks、iconify、layouts、locales、printing、request、router、stores、types、utils、views 等。
+`pnpm-workspace.yaml` 声明 `packages/*`，共 19 个 private workspace 包（全部 `@xihan/<name>`、version `0.0.0`、别名 `~/`）：chat、components、composables、constants、design、designers、hooks、iconify、layouts、locales、printing、request、router、stores、types、utils、views 等。
 
-第三方重库下沉到归属包，应用根不直接依赖：axios → request，`@antv/x6` → diagram，tiptap / monaco / md-editor-v3 / jsoneditor → components，`@microsoft/signalr` / pinyin-pro → composables，vue-plugin-hiprint → printing，emoji-mart → chat，8 套 `@iconify-json` → iconify，dayjs / papaparse → utils。
+第三方重库下沉到归属包，应用根不直接依赖：axios → request，`@xihan-flow/*` / `@xihan-ui/web-components` → designers，tiptap / monaco / md-editor-v3 / jsoneditor → components，`@microsoft/signalr` / pinyin-pro → composables，vue-plugin-hiprint → printing，emoji-mart → chat，8 套 `@iconify-json` → iconify，dayjs / papaparse → utils。
 
 所有第三方版本在 `pnpm-workspace.yaml` 的 `catalog:` 里声明一次（约 75 条），各包只写 `"catalog:"`。
 
@@ -119,6 +119,6 @@ Tailwind 的 utilities 刻意排在 `xihan.components` 之后；组件的 `<styl
 
 ## 卸载可选模块
 
-删掉 `src/modules/<module>/`，以及对应的 `packages/{chat,printing,diagram}` 与 catalog 条目。
+删掉 `src/modules/<module>/`，以及对应的 `packages/{chat,printing,designers}` 与 catalog 条目。
 
 ⚠️ **卸载必须伴随重建数据库**——已播种的菜单与权限码不会自动回收。

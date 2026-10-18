@@ -413,6 +413,7 @@ function onAction(payload: SchemaActionPayload) {
         <WorkflowDesigner
           :key="designerKey"
           :initial-json="editJson"
+          :lock-code="editMode === 'edit'"
           :saving="editLoading"
           @save="handleDesignerSave"
         />

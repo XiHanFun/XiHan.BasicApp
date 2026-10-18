@@ -8,7 +8,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import type { DiagramNodeStatus } from '~/diagram'
+import type { FlowNodeStatus } from '~/designers/flow'
 import { XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFlex, XhFormFieldGroup, XhFormRoot, XhSeparator, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -167,7 +167,7 @@ const detailData = ref<WorkflowInstanceDetailDto | null>(null)
 const detailDefinitionJson = ref<string | null>(null)
 
 /** 节点实例/运行态 → 图节点着色状态 */
-const NODE_STATUS_MAP: Record<WorkflowNodeInstanceStatus, DiagramNodeStatus> = {
+const NODE_STATUS_MAP: Record<WorkflowNodeInstanceStatus, FlowNodeStatus> = {
   [WorkflowNodeInstanceStatus.Running]: 'running',
   [WorkflowNodeInstanceStatus.Completed]: 'completed',
   [WorkflowNodeInstanceStatus.Faulted]: 'faulted',
@@ -177,8 +177,8 @@ const NODE_STATUS_MAP: Record<WorkflowNodeInstanceStatus, DiagramNodeStatus> = {
 }
 
 /** 定义节点 id → 运行态（取该节点最近一次实例状态；等待中的书签补 waiting） */
-const nodeStatuses = computed<Record<string, DiagramNodeStatus | null>>(() => {
-  const result: Record<string, DiagramNodeStatus | null> = {}
+const nodeStatuses = computed<Record<string, FlowNodeStatus | null>>(() => {
+  const result: Record<string, FlowNodeStatus | null> = {}
   const detail = detailData.value
   if (!detail)
     return result
