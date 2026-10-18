@@ -405,13 +405,14 @@ function onAction(payload: SchemaActionPayload) {
       </XhDrawerContent>
     </XhDrawerRoot>
 
-    <!-- 创建/编辑（可视化设计器，内置 JSON 视图） -->
+    <!-- 创建/编辑（可视化设计器，内置 JSON 视图）：与打印模板编辑一样满屏打开 -->
     <XhDialogRoot v-model:open="editVisible">
-      <XhDialogContent style="--xh-dialog-max-w: min(96vw, 1600px)">
+      <XhDialogContent class="workflow-designer-modal">
         <XhDialogTitle>{{ editMode === 'create' ? t('workflow.definition.create_title') : t('workflow.definition.edit_title') }}</XhDialogTitle>
         <XhDialogCloseTrigger />
         <WorkflowDesigner
           :key="designerKey"
+          class="workflow-designer-modal__body"
           :initial-json="editJson"
           :lock-code="editMode === 'edit'"
           :saving="editLoading"
@@ -483,3 +484,36 @@ function onAction(payload: SchemaActionPayload) {
     </XEditModal>
   </SchemaPage>
 </template>
+
+<style>
+.workflow-designer-modal {
+  /* 皮肤的宽度上限读这个公开槽，缺省 32rem 会把满屏弹窗夹成 512px */
+  --xh-dialog-max-w: 100vw;
+
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  flex-direction: column;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+/* 满屏编辑器贴满视口：定位层缺省留一圈视口间距，它不收作者属性，只能从面板反查 */
+[data-scope='dialog'][data-part='positioner']:has(> .workflow-designer-modal) {
+  --xh-dialog-positioner-padding: var(--xh-space-0);
+}
+
+.workflow-designer-modal > [data-scope='dialog'][data-part='title'] {
+  flex: none;
+  padding: var(--xh-space-4) var(--xh-space-6);
+  border-bottom: 1px solid var(--xh-border-subtle);
+}
+
+/* 标题以下的高度全给设计器 */
+.workflow-designer-modal > .workflow-designer-modal__body {
+  flex: 1 1 0;
+  min-height: 0;
+}
+</style>

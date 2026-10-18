@@ -162,7 +162,8 @@ function handleSave() {
 </script>
 
 <template>
-  <div class="flex h-[78vh] flex-col">
+  <!-- 根不定高，高度由宿主给 -->
+  <div class="flex min-h-0 flex-col">
     <!-- 工具栏：视图切换与正在编辑的流程在左，保存在右；画布自己的命令在设计器的工具栏里 -->
     <div class="mb-2 flex flex-wrap items-center gap-x-1 gap-y-2">
       <div class="flex min-w-0 items-center gap-1">
@@ -212,9 +213,8 @@ function handleSave() {
 </template>
 
 <style scoped>
-/* 设计器铺满自身：宿主给它定高，这里是视图列里的 flex-1 */
+/* 宿主给设计器定高：视图列里的 flex-1；display 用设计器样式里的 flex，内部外框才能撑满 */
 .workflow-designer__canvas {
-  display: block;
   flex: 1 1 0;
   min-block-size: 0;
 }
