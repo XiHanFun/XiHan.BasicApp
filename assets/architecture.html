@@ -217,8 +217,8 @@
               ['router', ['动态路由生成', 'Dynamic route builder']],
               ['locales', ['7 种语言', '7 languages']],
               ['chat', ['聊天面板 · AI 流式', 'Chat panel · AI streaming']],
-              ['diagram', ['AntV X6 图编辑', 'AntV X6 graph editing']],
-              ['printing', ['hiprint 打印设计', 'hiprint print designer']],
+              ['designers', ['设计器接入 · 语言包桥 · 属性编辑器', 'Designer hosting · locale bridge · property editors']],
+              ['printing', ['XiHan 打印设计器 · 浏览器与客户端打印', 'XiHan print designer · browser and client printing']],
               ['design · iconify', ['令牌桥 · 离线图标', 'Token bridge · offline icons']],
               ['composables · hooks', ['灵动岛 · 主题 · 快捷键', 'Island · theme · shortcuts']],
               ['utils · types', ['工具与公共类型', 'Utilities and shared types']],
@@ -229,13 +229,13 @@
             note: ['框架无关跨端组件库 · 设计令牌驱动', 'Framework-agnostic component library · token-driven'],
             // used：BasicApp 实际用到的包（直接依赖与适配器自带的 engine）
             groups: [
-              { name: 'adapters', note: ['选一个渲染目标', 'pick a renderer'], pkgs: ['vue', 'react', 'web-components'], used: ['vue'] },
+              { name: 'adapters', note: ['选一个渲染目标', 'pick a renderer'], pkgs: ['vue', 'react', 'web-components'], used: ['vue', 'web-components'] },
               { name: 'design', note: ['外观层', 'look and feel'], pkgs: ['tokens', 'styles', 'icons'], used: ['tokens', 'styles'] },
               { name: 'engine', note: ['适配器自带', 'ships with adapters'], pkgs: ['core', 'headless', 'motion', 'pointer', 'position', 'viz'], used: ['core', 'headless', 'motion', 'pointer', 'position', 'viz'] },
-              { name: 'features', note: ['按需自选', 'opt-in'], pkgs: ['code-highlight', 'markdown', 'chat-stream', 'sound', 'animations', 'backgrounds'], used: ['code-highlight'] },
+              { name: 'features', note: ['按需自选', 'opt-in'], pkgs: ['code-highlight', 'markdown', 'chat-stream', 'sound', 'animations', 'backgrounds', 'designer-kit', 'designer-shell'], used: ['code-highlight', 'designer-kit', 'designer-shell'] },
             ],
             legend: [['BasicApp 已使用', 'used by BasicApp'], ['可选未用', 'available']],
-            stack: ['Vue 3', 'TypeScript', 'Vite', 'Pinia', 'Vue Router', 'vue-i18n', 'Tailwind CSS', 'Tiptap', 'Monaco', 'AntV X6', 'hiprint', '@microsoft/signalr', 'Iconify', 'pinyin-pro'],
+            stack: ['Vue 3', 'TypeScript', 'Vite', 'Pinia', 'Vue Router', 'vue-i18n', 'Tailwind CSS', 'Tiptap', 'Monaco', '@xihan-flow', '@xihan-print', '@microsoft/signalr', 'Iconify', 'pinyin-pro'],
           },
         },
 
