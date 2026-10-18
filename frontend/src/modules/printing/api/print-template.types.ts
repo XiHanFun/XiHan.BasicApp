@@ -17,7 +17,6 @@ export interface PrintTemplateListItemDto extends BasicDto {
   allowTenantUse: boolean
   /** null 表示模板不绑定代码数据源。 */
   dataSourceCode: null | string
-  engineVersion: string
   isGlobal: boolean
   remark?: null | string
   /** 十进制字符串，避免 JavaScript 整数精度问题。 */
@@ -39,7 +38,6 @@ export interface PrintTemplateDetailDto extends PrintTemplateListItemDto {
 export interface ResolvedPrintTemplateDto {
   basicId: ApiId
   dataSourceCode: null | string
-  engineVersion: string
   requestedScope: PrintTemplateScope
   resolvedScope: PrintTemplateScope
   rowVersion: string
@@ -52,7 +50,6 @@ export interface ResolvedPrintTemplateDto {
 export interface PrintTemplateCreateDto {
   allowTenantUse: boolean
   dataSourceCode?: null | string
-  engineVersion: string
   remark?: null | string
   scope: PrintTemplateScope
   sort: number
@@ -67,7 +64,6 @@ export interface PrintTemplateUpdateDto {
   allowTenantUse: boolean
   basicId: ApiId
   dataSourceCode?: null | string
-  engineVersion: string
   remark?: null | string
   rowVersion: string
   scope: PrintTemplateScope

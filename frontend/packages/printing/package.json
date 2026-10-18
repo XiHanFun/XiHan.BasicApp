@@ -5,7 +5,15 @@
   "private": true,
   "main": "./index.ts",
   "dependencies": {
-    "@xihan/stores": "workspace:*",
-    "vue-plugin-hiprint": "catalog:"
+    "@xihan-print/core": "catalog:",
+    "@xihan-print/designer": "catalog:",
+    "@xihan-print/runtime": "catalog:",
+    "@xihan-ui/designer-kit": "catalog:",
+    "@xihan-ui/designer-shell": "catalog:",
+    "@xihan-ui/expression": "catalog:",
+    "@xihan-ui/viz": "catalog:",
+    "@xihan/designers": "workspace:*",
+    "@xihan/locales": "workspace:*",
+    "@xihan/stores": "workspace:*"
   }
 }

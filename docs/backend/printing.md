@@ -6,12 +6,12 @@
 
 | 能力 | 依赖 | 说明 |
 | --- | --- | --- |
-| 模板设计器 | 仅浏览器 | hiprint 可视化拖拽设计，模板 JSON 存 `Sys_Print_Template` |
-| 浏览器预览打印 | 仅浏览器 | `previewPrintByCode` 打开系统打印预览窗口，任何部署形态可用 |
-| 打印机列表 / 静默直打 | **electron-hiprint 桌面客户端** | `listPrinters` / `refreshPrinters` / `directPrintByCode` 要求每台操作机安装并运行 [electron-hiprint](https://gitee.com/CcSimple/electron-hiprint) 客户端，前端经 WebSocket（默认 `http://localhost:17521`）连接；客户端未连接时这三条路径明确报错，不静默回退 |
+| 模板设计器 | 仅浏览器 | [XiHan 打印设计器](https://print.docs.xihanfun.com) 可视化设计，模板 JSON（`schemaVersion` 为 1 的打印模板）存 `Sys_Print_Template` |
+| 浏览器打印 | 仅浏览器 | `previewPrintByCode` 在看不见的 iframe 里排好输出页再调起浏览器打印对话框，任何部署形态可用；传对象数组时各自分页后一次打印 |
+| 打印机列表 / 静默直打 | **XiHan 打印客户端** | `listPrinters` / `refreshPrinters` / `directPrintByCode` 要求每台操作机安装并运行 [打印客户端](https://print.docs.xihanfun.com/guide/client)，前端经本机 WebSocket 连接；连不上、未授权或打印机出错时这三条路径按错误码明确报错，不退回浏览器打印 |
 
 ::: warning 部署前提
-静默直打是**企业内网桌面场景**的能力：纯 Web 部署（用户不装桌面客户端）只有设计器与浏览器预览可用。客户端连接地址与令牌经 Vite 环境变量 `VITE_HIPRINT_HOST` / `VITE_HIPRINT_TOKEN` 配置（省略时用内置默认值 `http://localhost:17521` / `vue-plugin-hiprint`）。该令牌随前端产物分发、可在浏览器端看到，仅是本机客户端的握手口令，不是保密凭据。
+静默直打是**企业内网桌面场景**的能力：纯 Web 部署（用户不装桌面客户端）只有设计器与浏览器打印可用。网站第一次连接时，客户端在桌面上弹出授权窗口，允许后才能打印。生产站点要用 HTTPS；Chrome / Edge 访问本机应用要先过浏览器的本机网络访问授权，嵌在 iframe 里时每层都要允许 `loopback-network`。
 :::
 
 ## 作用域模型
@@ -41,9 +41,11 @@
 由此推出的两条约束：
 
 - 数据源随后端代码发版，删除/改名会使既有模板的绑定失效（打印时报「数据源未注册」）；
-- 不绑数据源的「自由模板」按模板内标准字段绑定推断样例表单，不受上述影响。
+- 不绑数据源的「自由模板」不受上述影响，模拟数据按空记录打印。
+
+模板 JSON 的服务端校验只做最小结构检查（JSON 对象、`schemaVersion` 为 1、`pages` 是非空的对象数组），完整校验在前端保存前由设计器做。库里存着旧格式内容的模板，打印时明确报格式错误；在打印模板页打开时换成空白模板并提示，重新设计保存后覆盖。
 
 ## 已知限制
 
-- `previewPrintByCode` 的完成信号仅表示预览调用已发起，无法得知用户在系统对话框中点了打印还是取消（上游引擎限制）；
+- `previewPrintByCode` 的完成信号仅表示打印对话框已调起，无法得知用户在系统对话框中点了打印还是取消；
 - 直打依赖的打印机名单来自客户端所在机器，跨机器无共享；打印机偏好存浏览器 `localStorage`（按 用户×租户×模板 隔离，不上传服务端）。

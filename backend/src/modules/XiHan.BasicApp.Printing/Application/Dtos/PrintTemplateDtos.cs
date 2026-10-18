@@ -33,14 +33,9 @@ public sealed class PrintTemplateCreateDto : BasicAppCDto
     [StringLength(100)]
     public string TemplateName { get; set; } = string.Empty;
 
-    /// <summary>hiprint 模板 JSON。</summary>
+    /// <summary>打印模板 JSON（XiHan 打印模板）。</summary>
     [Required]
     public string TemplateJson { get; set; } = string.Empty;
-
-    /// <summary>hiprint 引擎版本。</summary>
-    [Required]
-    [StringLength(32)]
-    public string EngineVersion { get; set; } = "0.0.60";
 
     /// <summary>全局模板是否允许租户使用。</summary>
     public bool AllowTenantUse { get; set; }
@@ -82,14 +77,9 @@ public sealed class PrintTemplateUpdateDto : BasicAppUDto
     [StringLength(100)]
     public string TemplateName { get; set; } = string.Empty;
 
-    /// <summary>hiprint 模板 JSON。</summary>
+    /// <summary>打印模板 JSON（XiHan 打印模板）。</summary>
     [Required]
     public string TemplateJson { get; set; } = string.Empty;
-
-    /// <summary>hiprint 引擎版本。</summary>
-    [Required]
-    [StringLength(32)]
-    public string EngineVersion { get; set; } = "0.0.60";
 
     /// <summary>全局模板是否允许租户使用。</summary>
     public bool AllowTenantUse { get; set; }
@@ -155,9 +145,6 @@ public class PrintTemplateListItemDto : BasicAppDto
     /// <summary>模板名称。</summary>
     public string TemplateName { get; set; } = string.Empty;
 
-    /// <summary>hiprint 引擎版本。</summary>
-    public string EngineVersion { get; set; } = string.Empty;
-
     /// <summary>是否为平台全局模板。</summary>
     public bool IsGlobal { get; set; }
 
@@ -182,7 +169,7 @@ public class PrintTemplateListItemDto : BasicAppDto
 /// </summary>
 public sealed class PrintTemplateDetailDto : PrintTemplateListItemDto
 {
-    /// <summary>hiprint 模板 JSON。</summary>
+    /// <summary>打印模板 JSON（XiHan 打印模板）。</summary>
     public string TemplateJson { get; set; } = string.Empty;
 
     /// <summary>创建时间。</summary>
@@ -209,11 +196,8 @@ public sealed class ResolvedPrintTemplateDto
     /// <summary>模板名称。</summary>
     public string TemplateName { get; set; } = string.Empty;
 
-    /// <summary>hiprint 模板 JSON。</summary>
+    /// <summary>打印模板 JSON（XiHan 打印模板）。</summary>
     public string TemplateJson { get; set; } = string.Empty;
-
-    /// <summary>hiprint 引擎版本。</summary>
-    public string EngineVersion { get; set; } = string.Empty;
 
     /// <summary>请求的解析作用域。</summary>
     public PrintTemplateScope RequestedScope { get; set; }

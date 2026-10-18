@@ -26,7 +26,7 @@ Tooling: Vite, `@vitejs/plugin-vue(-jsx)`, vue-tsc, Turbo, Tailwind CSS (`@tailw
 
 `pnpm-workspace.yaml` declares `packages/*` — 19 private workspace packages (all named `@xihan/<name>`, version `0.0.0`, aliased as `~/`): chat, components, composables, constants, design, designers, hooks, iconify, layouts, locales, printing, request, router, stores, types, utils, views and more.
 
-Heavier third-party libraries live in the package that owns them, never at the application root: axios → request, `@xihan-flow/*` / `@xihan-ui/web-components` → designers, tiptap / monaco / md-editor-v3 / jsoneditor → components, `@microsoft/signalr` / pinyin-pro → composables, vue-plugin-hiprint → printing, emoji-mart → chat, eight `@iconify-json` sets → iconify, dayjs / papaparse → utils.
+Heavier third-party libraries live in the package that owns them, never at the application root: axios → request, `@xihan-flow/*` / `@xihan-ui/web-components` → designers, tiptap / monaco / md-editor-v3 / jsoneditor → components, `@microsoft/signalr` / pinyin-pro → composables, `@xihan-print/*` → printing, emoji-mart → chat, eight `@iconify-json` sets → iconify, dayjs / papaparse → utils.
 
 Every third-party version is declared once in the `catalog:` block of `pnpm-workspace.yaml` (~75 entries); packages just write `"catalog:"`.
 
@@ -109,11 +109,10 @@ Three `.env` files are committed (`.env`, `.env.development`, `.env.production`)
 | Application identity  | `VITE_APP_TITLE` / `SUBTITLE` / `DESCRIPTION` / `LOGO` / `NAMESPACE` / `VERSION`                                                                                                                                                           |
 | API and routing       | `VITE_API_BASE_URL` (left empty in development to use the same-origin proxy and avoid CORS), `VITE_API_PREFIX=/api`, `VITE_DEV_PROXY_TARGET=http://localhost:9708`, `VITE_PORT=9800`, `VITE_ROUTER_HISTORY`, `VITE_BASE`, `VITE_HOME_PATH` |
 | API security pipeline | eight `VITE_API_SECURITY_*` variables; `ENABLED` is false in all three .env files (off by default)                                                                                                                                         |
-| Printing              | `VITE_HIPRINT_HOST` / `VITE_HIPRINT_TOKEN`                                                                                                                                                                                                 |
 
 ## Build and Deployment
 
-The build targets es2022 and uses a hand-written `manualChunks` split — vendor-ui, vendor-printing (the hiprint family is loaded dynamically and stays out of the admin first paint), vendor-monaco, vendor-icon-`<set>` and a dozen more — emitting `assets/js/[name]-[hash].js`.
+The build targets es2022 and uses a hand-written `manualChunks` split — vendor-ui, vendor-monaco, vendor-icon-`<set>` and a dozen more — emitting `assets/js/[name]-[hash].js`.
 
 `Dockerfile` is a two-stage build (`node:24-alpine` → `nginx:1.29-alpine`); `ARG VITE_API_BASE_URL` is written into `.env.production.local`, which outranks `.env.production`, and an empty value means same-origin. `nginx.conf` defines `upstream basicapp_backend = backend:9708`, serves the SPA through `try_files`, caches `/assets/` for a year as immutable while keeping `index.html` no-cache, and proxies `/api/` (300s), `/hubs/` (SignalR: Upgrade headers, `proxy_buffering off`, 3600s) and `/uploads/`, with `client_max_body_size 100m`.
 

@@ -12,8 +12,7 @@ namespace XiHan.BasicApp.Printing.Domain.DomainServices;
 /// <param name="TemplateCode">不可变模板编码。</param>
 /// <param name="DataSourceCode">可选数据源编码；为空表示自由模板。</param>
 /// <param name="TemplateName">模板名称。</param>
-/// <param name="TemplateJson">hiprint 模板 JSON。</param>
-/// <param name="EngineVersion">hiprint 引擎版本。</param>
+/// <param name="TemplateJson">打印模板 JSON（XiHan 打印模板）。</param>
 /// <param name="AllowTenantUse">全局模板是否向租户开放。</param>
 /// <param name="Status">初始状态。</param>
 /// <param name="Sort">显示排序。</param>
@@ -23,7 +22,6 @@ public sealed record PrintTemplateCreateCommand(
     string? DataSourceCode,
     string TemplateName,
     string TemplateJson,
-    string EngineVersion,
     bool AllowTenantUse,
     EnableStatus Status,
     int Sort,
@@ -36,8 +34,7 @@ public sealed record PrintTemplateCreateCommand(
 /// <param name="ExpectedRowVersion">客户端读取到的行版本。</param>
 /// <param name="DataSourceCode">可选数据源编码；为空表示自由模板。</param>
 /// <param name="TemplateName">模板名称。</param>
-/// <param name="TemplateJson">hiprint 模板 JSON。</param>
-/// <param name="EngineVersion">hiprint 引擎版本。</param>
+/// <param name="TemplateJson">打印模板 JSON（XiHan 打印模板）。</param>
 /// <param name="AllowTenantUse">全局模板是否向租户开放。</param>
 /// <param name="Sort">显示排序。</param>
 /// <param name="Remark">备注。</param>
@@ -47,7 +44,6 @@ public sealed record PrintTemplateUpdateCommand(
     string? DataSourceCode,
     string TemplateName,
     string TemplateJson,
-    string EngineVersion,
     bool AllowTenantUse,
     int Sort,
     string? Remark);

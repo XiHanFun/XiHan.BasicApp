@@ -16,7 +16,6 @@ defineOptions({ name: 'PrintTemplateMetadataForm' })
 defineProps<{
   editing: boolean
   globalMode: boolean
-  template: Record<string, unknown>
 }>()
 
 const model = defineModel<PrintTemplateFormModel>({ required: true })
@@ -88,7 +87,6 @@ function switchTab(tab: 'advanced' | 'basic'): void {
       v-if="activeTab === 'basic'"
       v-model="model"
       :editing="editing"
-      :template="template"
       @next="switchTab('advanced')"
     />
     <AdvancedSettings

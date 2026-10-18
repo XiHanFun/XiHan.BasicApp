@@ -23,6 +23,7 @@ import {
   createDefaultPrintSampleData,
   directPrintByCode,
   ensureRemotePrintDataSourcesLoaded,
+  parsePrintTemplateJson,
   previewPrintByCode,
   PrintTemplateVersionChangedError,
 } from '~/printing'
@@ -44,7 +45,6 @@ const editorDetail = ref<PrintTemplateDetailDto | null>(null)
 const actionLoading = ref(false)
 const previewLoading = ref(false)
 const samplePreviewVisible = ref(false)
-const samplePreviewTemplate = ref<Record<string, unknown> | null>(null)
 const samplePreviewContext = ref<{
   detail: PrintTemplateDetailDto
   scope: PrintTemplateScope
@@ -69,7 +69,6 @@ const scopeSwitchLabel = computed(() => t('setting.print_template.switch_scope_t
 watch(isPlatform, platform => activeScope.value = platform ? PrintTemplateScope.Global : PrintTemplateScope.Tenant)
 watch(samplePreviewVisible, (show) => {
   if (!show) {
-    samplePreviewTemplate.value = null
     samplePreviewContext.value = null
   }
 })
@@ -101,7 +100,6 @@ const fields = computed<ListFieldSchema[]>(() => [
       return code || h(XhTagRoot, { variant: 'subtle', tone: 'neutral' }, () => h(XhTagLabel, () => t('setting.print_template.free_template')))
     },
   },
-  { key: 'engineVersion', title: t('setting.print_template.engine_version'), dataType: 'string', width: 110, order: 4 },
   {
     key: 'allowTenantUse',
     title: t('setting.print_template.allow_tenant_use'),
@@ -204,8 +202,8 @@ async function openSamplePreview(row: PrintTemplateListItemDto): Promise<void> {
     if (!detail)
       throw new Error(t('setting.print_template.not_found'))
 
-    // 表单必须基于详情接口返回的完整 JSON 和版本构建，列表摘要不足以保证并发预览安全。
-    samplePreviewTemplate.value = parseTemplateJson(detail.templateJson)
+    // 表单必须基于详情接口返回的版本构建，列表摘要不足以保证并发预览安全；旧格式的模板在这里就明确报错。
+    parsePrintTemplateJson(detail.templateJson, detail.templateCode)
     samplePreviewContext.value = { detail, scope }
     samplePreviewVisible.value = true
   }
@@ -261,10 +259,7 @@ async function direct(row: PrintTemplateListItemDto): Promise<void> {
       throw new Error(t('setting.print_template.not_found'))
     // 样例生成读取数据源注册表，先确保后端目录已加载
     await ensureRemotePrintDataSourcesLoaded()
-    const sample = await createDefaultPrintSampleData(
-      parseTemplateJson(detail.templateJson),
-      detail.dataSourceCode,
-    )
+    const sample = await createDefaultPrintSampleData(detail.dataSourceCode)
     await directPrintByCode(row.templateCode, sample, { scope: activeScope.value, title: row.templateName })
     toast.success(t('setting.print_template.direct_success'))
   }
@@ -328,28 +323,6 @@ function remove(row: PrintTemplateListItemDto): void {
     },
   })
 }
-
-/**
- * 解析列表详情中的 hiprint 根模板对象。
- * @param value 后端返回的模板 JSON 文本。
- * @returns 可供字段解析器读取的模板根对象。
- * @throws JSON 损坏、根节点不是对象或缺少有效 panels 时抛出友好错误。
- */
-function parseTemplateJson(value: string): Record<string, unknown> {
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(value)
-  }
-  catch {
-    throw new Error(t('setting.print_template.json_syntax_invalid'))
-  }
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed))
-    throw new Error(t('setting.print_template.invalid_json'))
-  const panels = (parsed as { panels?: unknown }).panels
-  if (!Array.isArray(panels) || panels.length === 0)
-    throw new Error(t('setting.print_template.json_panels_required'))
-  return parsed as Record<string, unknown>
-}
 </script>
 
 <template>
@@ -377,7 +350,6 @@ function parseTemplateJson(value: string): Record<string, unknown> {
       v-model:show="samplePreviewVisible"
       :data-source-code="samplePreviewContext?.detail.dataSourceCode ?? null"
       :submitting="previewLoading"
-      :template="samplePreviewTemplate"
       :template-code="samplePreviewContext?.detail.templateCode"
       :template-name="samplePreviewContext?.detail.templateName"
       @preview="previewSampleData"

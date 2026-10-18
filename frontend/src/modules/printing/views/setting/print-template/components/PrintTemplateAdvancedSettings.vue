@@ -34,14 +34,6 @@ const switchIdPrefix = useId()
       v-model:values="(model as unknown as Record<string, unknown>)"
       validate-on="blur"
     >
-      <XhFieldRoot>
-        <XhFieldLabel>{{ t('setting.print_template.engine_version') }}</XhFieldLabel>
-        <XhFieldControl>
-          <XInput v-model:value="model.engineVersion" :max-length="32" disabled />
-        </XhFieldControl>
-        <XhFieldErrorText />
-      </XhFieldRoot>
-
       <div class="switch-settings">
         <div v-if="!editing" class="switch-setting-row">
           <div>

@@ -25,7 +25,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </summary>
 public sealed class PrintTemplateApplicationTests
 {
-    private const string TemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string TemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// 权限清单必须完整覆盖七码（作用侧由权限种子声明，见种子契约测试）。
@@ -81,7 +81,6 @@ public sealed class PrintTemplateApplicationTests
             DataSourceCode = template.DataSourceCode,
             TemplateName = template.TemplateName,
             TemplateJson = template.TemplateJson,
-            EngineVersion = template.EngineVersion,
             Status = EnableStatus.Enabled,
             Sort = 10
         });
@@ -104,7 +103,6 @@ public sealed class PrintTemplateApplicationTests
             DataSourceCode = "system.print-demo",
             TemplateName = "订单模板",
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             Status = EnableStatus.Enabled,
             Sort = 10
         };

@@ -13,9 +13,8 @@ import PrintTemplateDataSourceSettings from './PrintTemplateDataSourceSettings.v
 
 defineOptions({ name: 'PrintTemplateBasicSettings' })
 
-const props = defineProps<{
+defineProps<{
   editing: boolean
-  template: Record<string, unknown>
 }>()
 
 const emit = defineEmits<{
@@ -71,7 +70,7 @@ const basicComplete = computed(() => completedRequiredCount.value === 2)
         <XhFieldErrorText />
       </XhFieldRoot>
 
-      <PrintTemplateDataSourceSettings v-model="model" :template="props.template" />
+      <PrintTemplateDataSourceSettings v-model="model" />
     </XhFormRoot>
 
     <div class="basic-completion" :class="{ 'is-complete': basicComplete }">

@@ -27,7 +27,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </remarks>
 public sealed class PrintingExtraResolverEdgeTests
 {
-    private const string TemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string TemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// 未定义的作用域枚举值必须先于任何查询被拒绝。
@@ -367,7 +367,6 @@ public sealed class PrintingExtraResolverEdgeTests
             DataSourceCode = "system.print-demo",
             TemplateName = code,
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             AllowTenantUse = allowTenantUse,
             Status = EnableStatus.Enabled,
             RowVersion = 4

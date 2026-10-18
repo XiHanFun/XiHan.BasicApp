@@ -10,13 +10,9 @@ import { useI18n } from 'vue-i18n'
 import { XSelect } from '~/components'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
-import { ensureRemotePrintDataSourcesLoaded, extractPrintSampleFormSchema, getPrintDataSource, listPrintDataSources } from '~/printing'
+import { ensureRemotePrintDataSourcesLoaded, getPrintDataSource, listPrintDataSources } from '~/printing'
 
 defineOptions({ name: 'PrintTemplateDataSourceSettings' })
-
-const props = defineProps<{
-  template: Record<string, unknown>
-}>()
 
 const model = defineModel<PrintTemplateFormModel>({ required: true })
 const { t } = useI18n()
@@ -55,20 +51,6 @@ const dataSourceOptions = computed(() => {
     })
   }
   return options
-})
-const unmatchedFieldCount = computed(() => {
-  if (!selectedSource.value)
-    return 0
-  try {
-    return extractPrintSampleFormSchema(props.template, selectedSource.value.code)
-      .fields
-      .filter(field => !field.registered)
-      .length
-  }
-  catch {
-    // 模板结构错误由保存或 JSON 编辑器统一处理；设置抽屉只展示非阻断的兼容性提示。
-    return 0
-  }
 })
 
 /** 切换为自由模板；这里只修改抽屉草稿，保存成功前不会重建设计器。 */
@@ -127,19 +109,6 @@ function switchToFreeTemplate(): void {
           </XhPopoverPositioner>
         </XhPopoverRoot>
       </div>
-
-      <XhPopoverRoot v-if="unmatchedFieldCount > 0" placement="bottom">
-        <XhPopoverTrigger class="xh-linklike-trigger">
-          <Icon width="17" height="17" icon="tabler:alert-triangle" />
-          <span>{{ t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount }) }}</span>
-          <Icon width="16" height="16" icon="tabler:chevron-right" />
-        </XhPopoverTrigger>
-        <XhPopoverPositioner>
-          <XhPopoverContent :aria-label="t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount })">
-            {{ t('setting.print_template.data_source_mismatch_warning', { count: unmatchedFieldCount }) }}
-          </XhPopoverContent>
-        </XhPopoverPositioner>
-      </XhPopoverRoot>
     </div>
     <XhFieldErrorText />
   </XhFieldRoot>

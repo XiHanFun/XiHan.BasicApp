@@ -15,15 +15,15 @@ using XiHan.Framework.MultiTenancy.Abstractions;
 namespace XiHan.BasicApp.Printing.Tests;
 
 /// <summary>
-/// 打印模板可编辑字段与 hiprint 模板 JSON 的边界值测试。
+/// 打印模板可编辑字段与打印模板 JSON 的边界值测试。
 /// </summary>
 /// <remarks>
-/// 领域服务的长度上限（编码 100、名称 100、引擎版本 32、备注 500）与实体列长度一一对应：
+/// 领域服务的长度上限（编码 100、名称 100、备注 500）与实体列长度一一对应：
 /// 校验一旦放宽，落库时会被数据库静默截断或直接报驱动级错误。这里逐条钉住"恰好通过"和"多一个字符即拒绝"。
 /// </remarks>
 public sealed class PrintingExtraTemplateFieldBoundaryTests
 {
-    private const string ValidTemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string ValidTemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// 模板编码在写入前要去掉首尾空白，规范化结果才是唯一索引与缓存键的实际取值。
@@ -38,14 +38,12 @@ public sealed class PrintingExtraTemplateFieldBoundaryTests
             TemplateCode = "  ORDER  ",
             DataSourceCode = "  system.print-demo  ",
             TemplateName = "  订单模板  ",
-            EngineVersion = "  0.0.60  ",
             Remark = "  备注  "
         });
 
         Assert.Equal("ORDER", result.Template.TemplateCode);
         Assert.Equal("system.print-demo", result.Template.DataSourceCode);
         Assert.Equal("订单模板", result.Template.TemplateName);
-        Assert.Equal("0.0.60", result.Template.EngineVersion);
         Assert.Equal("备注", result.Template.Remark);
     }
 
@@ -116,22 +114,6 @@ public sealed class PrintingExtraTemplateFieldBoundaryTests
     }
 
     /// <summary>
-    /// 引擎版本上限 32，超长必须拒绝而不是留给数据库截断。
-    /// </summary>
-    [Fact]
-    public async Task CreateAsync_EngineVersionLength_ShouldStopAtThirtyTwo()
-    {
-        var fixture = CreateFixture();
-
-        var accepted = await fixture.Service.CreateAsync(CreateCommand() with { EngineVersion = new string('9', 32) });
-        Assert.Equal(32, accepted.Template.EngineVersion.Length);
-
-        var exception = await Assert.ThrowsAsync<UserFriendlyException>(
-            () => fixture.Service.CreateAsync(CreateCommand() with { EngineVersion = new string('9', 33) }));
-        Assert.Contains("打印引擎版本不能超过 32 个字符", exception.Message, StringComparison.Ordinal);
-    }
-
-    /// <summary>
     /// 备注上限 500；恰好 500 通过，501 拒绝。
     /// </summary>
     [Fact]
@@ -196,29 +178,24 @@ public sealed class PrintingExtraTemplateFieldBoundaryTests
     }
 
     /// <summary>
-    /// 名称、模板 JSON、引擎版本为 null 或纯空白时抛的是参数校验异常族（null 走派生的空引用异常）。
+    /// 名称、模板 JSON 为 null 或纯空白时抛的是参数校验异常族（null 走派生的空引用异常）。
     /// </summary>
     /// <param name="templateName">模板名称。</param>
     /// <param name="templateJson">模板 JSON。</param>
-    /// <param name="engineVersion">引擎版本。</param>
     [Theory]
-    [InlineData(null, ValidTemplateJson, "0.0.60")]
-    [InlineData("  ", ValidTemplateJson, "0.0.60")]
-    [InlineData("订单模板", null, "0.0.60")]
-    [InlineData("订单模板", "   ", "0.0.60")]
-    [InlineData("订单模板", ValidTemplateJson, null)]
-    [InlineData("订单模板", ValidTemplateJson, " ")]
+    [InlineData(null, ValidTemplateJson)]
+    [InlineData("  ", ValidTemplateJson)]
+    [InlineData("订单模板", null)]
+    [InlineData("订单模板", "   ")]
     public async Task CreateAsync_BlankRequiredFields_ShouldThrowArgumentFamily(
         string? templateName,
-        string? templateJson,
-        string? engineVersion)
+        string? templateJson)
     {
         var fixture = CreateFixture();
         var command = CreateCommand() with
         {
             TemplateName = templateName!,
-            TemplateJson = templateJson!,
-            EngineVersion = engineVersion!
+            TemplateJson = templateJson!
         };
 
         _ = await Assert.ThrowsAnyAsync<ArgumentException>(() => fixture.Service.CreateAsync(command));
@@ -243,33 +220,59 @@ public sealed class PrintingExtraTemplateFieldBoundaryTests
     }
 
     /// <summary>
-    /// hiprint 结构校验必须逐个面板检查：只要有一个面板缺少 printElements 数组就整体拒绝。
+    /// 根节点不是对象时拒绝，提示点名根节点。
     /// </summary>
-    /// <param name="templateJson">多面板模板 JSON。</param>
+    /// <param name="templateJson">根节点不是对象的模板 JSON。</param>
     [Theory]
-    [InlineData("{\"panels\":[{\"printElements\":[]},{\"printElements\":{}}]}")]
-    [InlineData("{\"panels\":[{\"printElements\":[]},{\"name\":\"第二页\"}]}")]
-    [InlineData("{\"panels\":[{\"printElements\":[]},null]}")]
-    [InlineData("{\"panels\":[{\"printElements\":[]},1]}")]
-    [InlineData("{\"panels\":[{\"printElements\":[]},\"panel\"]}")]
-    public async Task CreateAsync_SecondPanelBroken_ShouldReject(string templateJson)
+    [InlineData("[]")]
+    [InlineData("[{\"schemaVersion\":1,\"pages\":[{}]}]")]
+    [InlineData("1")]
+    [InlineData("\"template\"")]
+    [InlineData("null")]
+    public async Task CreateAsync_RootNotObject_ShouldReject(string templateJson)
     {
         var fixture = CreateFixture();
 
         var exception = await Assert.ThrowsAsync<UserFriendlyException>(
             () => fixture.Service.CreateAsync(CreateCommand() with { TemplateJson = templateJson }));
 
-        Assert.Contains("printElements", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("根节点必须是对象", exception.Message, StringComparison.Ordinal);
         VerifyNoWrite(fixture);
     }
 
     /// <summary>
-    /// 多面板且元素非空的正常模板必须放行，模板正文原样保留（不做任何美化或重排）。
+    /// schemaVersion 缺失或不是数字 1 时拒绝，提示点名 schemaVersion。
+    /// </summary>
+    /// <param name="templateJson">schemaVersion 异常的模板 JSON。</param>
+    /// <param name="expectedMessage">提示中必须出现的片段。</param>
+    [Theory]
+    [InlineData("{\"pages\":[{}]}", "缺少 schemaVersion 字段")]
+    [InlineData("{\"SchemaVersion\":1,\"pages\":[{}]}", "缺少 schemaVersion 字段")]
+    [InlineData("{\"schemaVersion\":2,\"pages\":[{}]}", "不支持的打印模板格式版本：schemaVersion 必须是数字 1")]
+    [InlineData("{\"schemaVersion\":0,\"pages\":[{}]}", "不支持的打印模板格式版本：schemaVersion 必须是数字 1")]
+    [InlineData("{\"schemaVersion\":1.5,\"pages\":[{}]}", "不支持的打印模板格式版本：schemaVersion 必须是数字 1")]
+    [InlineData("{\"schemaVersion\":\"1\",\"pages\":[{}]}", "不支持的打印模板格式版本：schemaVersion 必须是数字 1")]
+    [InlineData("{\"schemaVersion\":null,\"pages\":[{}]}", "不支持的打印模板格式版本：schemaVersion 必须是数字 1")]
+    [InlineData("{\"schemaVersion\":true,\"pages\":[{}]}", "不支持的打印模板格式版本：schemaVersion 必须是数字 1")]
+    [InlineData("{\"schemaVersion\":[1],\"pages\":[{}]}", "不支持的打印模板格式版本：schemaVersion 必须是数字 1")]
+    public async Task CreateAsync_BrokenSchemaVersion_ShouldNameSchemaVersion(string templateJson, string expectedMessage)
+    {
+        var fixture = CreateFixture();
+
+        var exception = await Assert.ThrowsAsync<UserFriendlyException>(
+            () => fixture.Service.CreateAsync(CreateCommand() with { TemplateJson = templateJson }));
+
+        Assert.Contains(expectedMessage, exception.Message, StringComparison.Ordinal);
+        VerifyNoWrite(fixture);
+    }
+
+    /// <summary>
+    /// schemaVersion 写成 1.0 时与数字 1 等值，照常保存且正文不变。
     /// </summary>
     [Fact]
-    public async Task CreateAsync_MultiPanelTemplate_ShouldBeStoredVerbatim()
+    public async Task CreateAsync_SchemaVersionWrittenAsOnePointZero_ShouldBeAccepted()
     {
-        const string TemplateJson = "{\"panels\":[{\"printElements\":[{\"options\":{\"field\":\"title\"}}]},{\"printElements\":[]}],\"extra\":1}";
+        const string TemplateJson = "{\"schemaVersion\":1.0,\"pages\":[{}]}";
         var fixture = CreateFixture();
 
         var result = await fixture.Service.CreateAsync(CreateCommand() with { TemplateJson = TemplateJson });
@@ -278,22 +281,64 @@ public sealed class PrintingExtraTemplateFieldBoundaryTests
     }
 
     /// <summary>
-    /// panels 不是数组或为空数组时，提示必须点名 panels 面板而不是笼统的 JSON 错误。
+    /// pages 缺失、不是数组或为空数组时拒绝，提示点名 pages。
     /// </summary>
-    /// <param name="templateJson">panels 结构异常的模板 JSON。</param>
+    /// <param name="templateJson">pages 异常的模板 JSON。</param>
+    /// <param name="expectedMessage">提示中必须出现的片段。</param>
     [Theory]
-    [InlineData("{\"panels\":{}}")]
-    [InlineData("{\"panels\":null}")]
-    [InlineData("{\"panels\":[]}")]
-    [InlineData("{\"Panels\":[{\"printElements\":[]}]}")]
-    public async Task CreateAsync_BrokenPanelsRoot_ShouldMentionPanels(string templateJson)
+    [InlineData("{\"schemaVersion\":1}", "缺少 pages 字段")]
+    [InlineData("{\"schemaVersion\":1,\"Pages\":[{}]}", "缺少 pages 字段")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":{}}", "pages 必须是数组")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":null}", "pages 必须是数组")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":1}", "pages 必须是数组")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":\"[{}]\"}", "pages 必须是数组")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":[]}", "pages 至少要有一页")]
+    public async Task CreateAsync_BrokenPages_ShouldNamePages(string templateJson, string expectedMessage)
     {
         var fixture = CreateFixture();
 
         var exception = await Assert.ThrowsAsync<UserFriendlyException>(
             () => fixture.Service.CreateAsync(CreateCommand() with { TemplateJson = templateJson }));
 
-        Assert.Contains("panels", exception.Message, StringComparison.Ordinal);
+        Assert.Contains(expectedMessage, exception.Message, StringComparison.Ordinal);
+        VerifyNoWrite(fixture);
+    }
+
+    /// <summary>
+    /// pages 逐项检查：任一页不是对象就整体拒绝，提示点名 pages 及出错的页序号。
+    /// </summary>
+    /// <param name="templateJson">含非对象页的模板 JSON。</param>
+    /// <param name="expectedMessage">提示中必须出现的片段。</param>
+    [Theory]
+    [InlineData("{\"schemaVersion\":1,\"pages\":[null]}", "pages 第 1 项必须是对象")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":[{},null]}", "pages 第 2 项必须是对象")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":[{},1]}", "pages 第 2 项必须是对象")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":[{},\"page\"]}", "pages 第 2 项必须是对象")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":[{},[]]}", "pages 第 2 项必须是对象")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":[{},{},true]}", "pages 第 3 项必须是对象")]
+    public async Task CreateAsync_PageNotObject_ShouldNamePages(string templateJson, string expectedMessage)
+    {
+        var fixture = CreateFixture();
+
+        var exception = await Assert.ThrowsAsync<UserFriendlyException>(
+            () => fixture.Service.CreateAsync(CreateCommand() with { TemplateJson = templateJson }));
+
+        Assert.Contains(expectedMessage, exception.Message, StringComparison.Ordinal);
+        VerifyNoWrite(fixture);
+    }
+
+    /// <summary>
+    /// 多页且带额外字段的合法模板照常保存，模板正文原样保留（不做任何美化或重排）。
+    /// </summary>
+    [Fact]
+    public async Task CreateAsync_MultiPageTemplateWithExtraFields_ShouldBeStoredVerbatim()
+    {
+        const string TemplateJson = "{ \"schemaVersion\": 1, \"name\": \"订单\", \"pages\": [{\"id\":\"p1\",\"elements\":[{\"type\":\"text\",\"field\":\"title\"}]}, {}], \"meta\": {\"author\":\"x\"}, \"extensions\": {\"pro\":{}}, \"extra\": 1 }";
+        var fixture = CreateFixture();
+
+        var result = await fixture.Service.CreateAsync(CreateCommand() with { TemplateJson = TemplateJson });
+
+        Assert.Equal(TemplateJson, result.Template.TemplateJson);
     }
 
     /// <summary>
@@ -305,7 +350,7 @@ public sealed class PrintingExtraTemplateFieldBoundaryTests
         var fixture = CreateFixture();
 
         var exception = await Assert.ThrowsAsync<UserFriendlyException>(
-            () => fixture.Service.CreateAsync(CreateCommand() with { TemplateJson = "{\"panels\":[" }));
+            () => fixture.Service.CreateAsync(CreateCommand() with { TemplateJson = "{\"schemaVersion\":1,\"pages\":[" }));
 
         Assert.Contains("不是有效的 JSON", exception.Message, StringComparison.Ordinal);
         Assert.IsAssignableFrom<System.Text.Json.JsonException>(exception.InnerException);
@@ -394,7 +439,6 @@ public sealed class PrintingExtraTemplateFieldBoundaryTests
             "system.print-demo",
             "订单模板",
             ValidTemplateJson,
-            "0.0.60",
             false,
             EnableStatus.Enabled,
             10,

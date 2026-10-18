@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </summary>
 public sealed class PrintTemplateDomainServiceTests
 {
-    private const string ValidTemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string ValidTemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
 
     /// <summary>
     /// 租户创建模板时必须写入当前租户，且不得保留仅全局模板可用的开放标记。
@@ -74,15 +74,16 @@ public sealed class PrintTemplateDomainServiceTests
     }
 
     /// <summary>
-    /// 非法 hiprint 根结构必须在进入仓储前被拒绝。
+    /// 非法打印模板根结构必须在进入仓储前被拒绝。
     /// </summary>
     /// <param name="templateJson">待校验模板 JSON。</param>
     [Theory]
     [InlineData("not-json")]
     [InlineData("[]")]
     [InlineData("{}")]
-    [InlineData("{\"panels\":[]}")]
-    [InlineData("{\"panels\":[{}]}")]
+    [InlineData("{\"pages\":[{}]}")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":[]}")]
+    [InlineData("{\"schemaVersion\":1,\"pages\":[[]]}")]
     public async Task CreateAsync_InvalidTemplateJsonShouldReject(string templateJson)
     {
         var fixture = CreateFixture(tenantId: 7);
@@ -109,7 +110,6 @@ public sealed class PrintTemplateDomainServiceTests
             null,
             "新版名称",
             ValidTemplateJson,
-            "0.0.60",
             false,
             10,
             null);
@@ -136,7 +136,6 @@ public sealed class PrintTemplateDomainServiceTests
             null,
             "新版名称",
             ValidTemplateJson,
-            "0.0.60",
             false,
             10,
             null);
@@ -242,7 +241,6 @@ public sealed class PrintTemplateDomainServiceTests
             "system.print-demo",
             "订单模板",
             ValidTemplateJson,
-            "0.0.60",
             allowTenantUse,
             EnableStatus.Enabled,
             10,
@@ -264,7 +262,6 @@ public sealed class PrintTemplateDomainServiceTests
             DataSourceCode = "system.print-demo",
             TemplateName = "订单模板",
             TemplateJson = ValidTemplateJson,
-            EngineVersion = "0.0.60",
             Status = status,
             RowVersion = rowVersion
         };

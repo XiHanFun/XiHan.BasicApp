@@ -4,8 +4,8 @@
  * 使数据源目录以后端为单一事实源；设计与打印路径在使用前确保目录已加载。
  */
 import type { PrintSampleInputType, PrintTableColumn, RemotePrintDataSourceDto } from './types'
+import { tryGetPrintingConfiguration } from './configuration'
 import { getPrintDataSource, registerPrintDataSource } from './data-source-registry'
-import { tryGetPrintingConfiguration } from './hiprint-adapter'
 
 let loadPromise: Promise<void> | null = null
 

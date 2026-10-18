@@ -29,11 +29,8 @@ public sealed class PrintTemplateCacheItem
     /// <summary>模板名称。</summary>
     public string TemplateName { get; set; } = string.Empty;
 
-    /// <summary>hiprint 模板 JSON。</summary>
+    /// <summary>打印模板 JSON（XiHan 打印模板）。</summary>
     public string TemplateJson { get; set; } = string.Empty;
-
-    /// <summary>hiprint 引擎版本。</summary>
-    public string EngineVersion { get; set; } = string.Empty;
 
     /// <summary>最终命中的明确作用域。</summary>
     public PrintTemplateScope ResolvedScope { get; set; }

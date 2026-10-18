@@ -29,7 +29,6 @@ const props = defineProps<{
   dataSourceCode: null | string
   show: boolean
   submitting: boolean
-  template: null | Record<string, unknown>
   templateCode?: string
   templateName?: string
 }>()
@@ -69,8 +68,7 @@ const unregisteredFields = computed(() => props.dataSourceCode
   : [])
 const canPreview = computed(() => !loading.value
   && !loadError.value
-  && records.value.length > 0
-  && Boolean(props.template))
+  && records.value.length > 0)
 
 watch(
   () => props.show,
@@ -88,7 +86,7 @@ onBeforeUnmount(() => {
 })
 
 /**
- * 初始化模板字段结构；契约增强模式使用注册样例，自由模式按模板字段创建空白数据。
+ * 初始化样例字段结构；绑定数据源时用它的字段与样例，自由模板是一条空白记录。
  * @returns 初始化完成信号。
  * @throws 所有异常都会转换为弹窗内错误，不向事件循环泄漏。
  */
@@ -97,11 +95,9 @@ async function initialize(): Promise<void> {
   loading.value = true
   loadError.value = ''
   try {
-    if (!props.template)
-      throw new Error(t('setting.print_template.sample_template_missing'))
     // 字段结构与样例工厂读取数据源注册表，先确保后端目录已加载
     await ensureRemotePrintDataSourcesLoaded()
-    const nextSchema = extractPrintSampleFormSchema(props.template, props.dataSourceCode)
+    const nextSchema = extractPrintSampleFormSchema(props.dataSourceCode)
     const source = getPrintDataSource(props.dataSourceCode)
     const sample = source
       ? await source.createSampleData()

@@ -13,7 +13,7 @@ namespace XiHan.BasicApp.Printing.Tests;
 /// </summary>
 public sealed class PrintTemplateDatabaseConstraintTests : IDisposable
 {
-    private const string TemplateJson = "{\"panels\":[{\"printElements\":[]}]}";
+    private const string TemplateJson = "{\"schemaVersion\":1,\"pages\":[{}]}";
     private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"xihan-print-template-{Guid.NewGuid():N}.db");
     private readonly SqlSugarClient _client;
 
@@ -89,7 +89,6 @@ public sealed class PrintTemplateDatabaseConstraintTests : IDisposable
             DataSourceCode = "system.print-demo",
             TemplateName = code,
             TemplateJson = TemplateJson,
-            EngineVersion = "0.0.60",
             Status = EnableStatus.Enabled,
             CreatedTime = DateTimeOffset.UnixEpoch
         };

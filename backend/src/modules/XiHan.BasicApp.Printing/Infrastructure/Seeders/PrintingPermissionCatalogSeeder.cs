@@ -48,7 +48,7 @@ public sealed class PrintingPermissionCatalogSeeder(
     [
         new(PrintingPermissionCodes.Read, "打印模板查看", "查看当前作用域打印模板列表与详情", PrintingPermissionCodes.Module, PermissionSide.Both, false, 3400, PrintTemplate, OperationSeeds.Read),
         new(PrintingPermissionCodes.Create, "打印模板创建", "创建当前作用域打印模板", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3401, PrintTemplate, OperationSeeds.Create),
-        new(PrintingPermissionCodes.Update, "打印模板编辑", "编辑打印模板元数据和 hiprint 设计 JSON", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3402, PrintTemplate, OperationSeeds.Update),
+        new(PrintingPermissionCodes.Update, "打印模板编辑", "编辑打印模板元数据和打印模板设计 JSON", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3402, PrintTemplate, OperationSeeds.Update),
         new(PrintingPermissionCodes.Status, "打印模板启停", "启用或停用打印模板", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3403, PrintTemplate, OperationSeeds.Status),
         new(PrintingPermissionCodes.Delete, "打印模板删除", "删除已经停用的打印模板", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3404, PrintTemplate, OperationSeeds.Delete),
         new(PrintingPermissionCodes.Use, "打印模板使用", "按编码解析模板并执行预览或直接打印", PrintingPermissionCodes.Module, PermissionSide.Both, true, 3405, PrintTemplate, OperationSeeds.Use),

@@ -1,16 +1,8 @@
 /**
  * 公共打印包无设备单元测试。
- * 职责：通过可替换适配器验证数据源约束、预览数据、打印机优先级、FIFO、失败、超时和监听器清理。
+ * 职责：通过替身运行时验证数据源约束、字段树、模板格式、浏览器打印、打印机优先级、FIFO、客户端失败与取消，以及数据源目录加载。
  */
-import type {
-  HiprintTemplateInstance,
-  PrintDevice,
-  PrintElementAlignAction,
-  PrintElementSpacingDirection,
-  PrintingAdapter,
-  RemotePrintDataSourceDto,
-  ResolvedPrintTemplate,
-} from './types'
+import type { PrintDevice, RemotePrintDataSourceDto, ResolvedPrintTemplate } from './types'
 import assert from 'node:assert/strict'
 import { afterEach, beforeEach, it, vi } from 'vitest'
 // 预热依赖图：打印包经 printer-preference 引 ~/stores 桶文件，会牵出 pinia、~/locales、~/utils 等整张图，
@@ -23,206 +15,125 @@ import './index'
  * 被测模块的当前实例。
  *
  * 打印包有多处模块级可变单例、且不对外暴露重置入口：
- * remote-data-sources 的 loadPromise（目录拉取缓存）、print-service 的 directQueueTail
- * （直打 FIFO 队列尾）、hiprint-adapter 的 configuration / adapterPromise / adapterOverride。
- * 静态导入时这些状态在同文件的用例之间累积：目录类用例会读到上一个用例缓存下来的 loadPromise，
- * 队列类用例会接到上一个用例遗留的队列尾 —— 用例因此只在「按声明顺序执行」时成立，
- * 一旦乱序（vitest --sequence.shuffle）就随机失败。
- * 这里改为每个用例前 resetModules + 动态导入，让每个用例拿到全新的模块实例。
+ * remote-data-sources 的 loadPromise（目录拉取缓存）、print-service 的 directQueueTail（直打 FIFO 队列尾）、
+ * configuration 的运行配置。每个用例前 resetModules + 动态导入，让每个用例拿到全新的模块实例，乱序执行也成立。
  */
 let printing: typeof import('./index')
-let adapterModule: typeof import('./hiprint-adapter')
 let piniaModule: typeof import('pinia')
 let storesModule: typeof import('~/stores')
+let runtime: FakeRuntime
+
+const TemplateJson = '{"schemaVersion":1,"pages":[{"id":"page-1"}]}'
 
 beforeEach(async () => {
   vi.resetModules()
-  // pinia 与 stores 必须跟被测模块来自同一次 resetModules 后的实例：
-  // resetModules 之后 printing 内部 import 到的是全新的 pinia 模块，
-  // 若测试仍用静态导入那份去 setActivePinia，printing 侧的 getActivePinia() 会拿到 null，
-  // 报「there was no active Pinia」。
-  ;[printing, adapterModule, piniaModule, storesModule] = await Promise.all([
+  runtime = createFakeRuntime()
+  vi.doMock('./runtime', () => ({ loadPrintRuntime: async () => runtime.api }))
+  ;[printing, piniaModule, storesModule] = await Promise.all([
     import('./index'),
-    import('./hiprint-adapter'),
     import('pinia'),
     import('~/stores'),
   ])
   // 每个用例都装一个空 pinia：打印机偏好按用户/租户分域，直打路径会读用户 store。
-  // 原先只有 installBrowserPreferenceContext 装 pinia，直打类用例是靠先跑过的偏好类用例
-  // 泄漏过来的 activePinia 才没炸 —— 乱序时先跑直打就报「no active Pinia」。
   piniaModule.setActivePinia(piniaModule.createPinia())
 })
 
-const TemplateJson = '{"panels":[{"printElements":[]}]}'
-
 afterEach(() => {
-  printing.setPrintingAdapter(null)
+  vi.doUnmock('./runtime')
   restoreBrowserPreferenceContext()
 })
 
 it('重复数据源编码立即报错', () => {
   const code = uniqueCode('duplicate')
   registerSource(code)
-
   assert.throws(() => registerSource(code), /已注册/u)
 })
 
-it('字段目录按 hiprint 0.0.60 协议映射全部支持类型', () => {
-  const definitions = adapterModule.buildHiprintElementDefinitions({
-    code: uniqueCode('field-kinds'),
-    name: '字段类型',
-    fields: [
-      { key: 'title', label: '文本', kind: 'text' },
-      { key: 'logo', label: '图片', kind: 'image' },
-      { key: 'barcode', label: '条码', kind: 'barcode' },
-      { key: 'qrcode', label: '二维码', kind: 'qrcode' },
-      {
-        key: 'details',
-        label: '明细',
-        kind: 'table',
-        columns: [{ field: 'materialCode', title: '物料编码', width: 120 }],
-      },
-    ],
-    createSampleData: () => ({}),
-  })
-
-  assert.deepEqual(
-    definitions.map(item => ({ type: item.type, textType: item.textType })),
-    [
-      { type: 'text', textType: undefined },
-      { type: 'image', textType: undefined },
-      { type: 'text', textType: 'barcode' },
-      { type: 'text', textType: 'qrcode' },
-      { type: 'table', textType: undefined },
-    ],
-  )
-  assert.deepEqual(definitions[4]?.columns, [[{
-    field: 'materialCode',
-    title: '物料编码',
-    width: 120,
-  }]])
+it('数据源字段换成设计器字段树：点号拆成对象层级，明细表是 list，控件类型给出数据类型', () => {
+  const fields = printing.toPrintDataFields([
+    { key: 'title', label: '标题' },
+    { key: 'customer.name', label: '客户名称' },
+    { key: 'customer.level', label: '客户等级', inputType: 'number' },
+    { key: 'logo', label: '标志', kind: 'image' },
+    { key: 'createdTime', label: '创建时间', inputType: 'datetime' },
+    { key: 'items', label: '明细', kind: 'table', columns: [{ field: 'sku', title: '编码' }, { field: 'spec.color', title: '颜色' }, { field: 'qty', title: '数量', inputType: 'number' }] },
+  ])
+  assert.deepEqual(fields, [
+    { name: 'title', label: '标题', kind: 'value' },
+    {
+      name: 'customer',
+      kind: 'object',
+      children: [
+        { name: 'name', label: '客户名称', kind: 'value' },
+        { name: 'level', label: '客户等级', kind: 'value', type: 'number' },
+      ],
+    },
+    { name: 'logo', label: '标志', kind: 'value' },
+    { name: 'createdTime', label: '创建时间', kind: 'value', type: 'datetime' },
+    {
+      name: 'items',
+      label: '明细',
+      kind: 'list',
+      children: [
+        { name: 'sku', label: '编码', kind: 'value' },
+        { name: 'spec', kind: 'object', children: [{ name: 'color', label: '颜色', kind: 'value' }] },
+        { name: 'qty', label: '数量', kind: 'value', type: 'number' },
+      ],
+    },
+  ])
 })
 
-it('多面板模板按视觉顺序提取三种绑定、去重并忽略静态元素', () => {
+it('模板 JSON 只接受当前格式：旧格式、无效 JSON、版本不对或没有页面模板时明确报格式错误', () => {
+  assert.equal(printing.parsePrintTemplateJson(TemplateJson).schemaVersion, 1)
+  const rejected = [
+    '{"panels":[{"printElements":[]}]}',
+    '{',
+    '[]',
+    '{"schemaVersion":2,"pages":[{}]}',
+    '{"schemaVersion":"1","pages":[{}]}',
+    '{"schemaVersion":1,"pages":[]}',
+    '{"schemaVersion":1}',
+  ]
+  for (const json of rejected) {
+    assert.throws(
+      () => printing.parsePrintTemplateJson(json, 'ORDER'),
+      (error: unknown) => error instanceof printing.PrintTemplateFormatError && error.templateCode === 'ORDER' && error.message.includes('ORDER'),
+      json,
+    )
+  }
+})
+
+it('模拟数据表单按数据源字段生成；自由模板没有字段并给出提示；未注册的数据源报错', () => {
   const code = uniqueCode('sample-schema')
   printing.registerPrintDataSource({
     code,
-    name: '模拟字段数据源',
+    name: code,
     fields: [
-      { key: 'title', label: '标题', kind: 'text', inputType: 'textarea', placeholder: '请输入标题' },
-      { key: 'logo', label: 'Logo', kind: 'image' },
-      { key: 'barcode', label: '条码', kind: 'barcode' },
-      { key: 'qrcode', label: '二维码', kind: 'qrcode' },
-      {
-        key: 'details',
-        label: '明细',
-        kind: 'table',
-        columns: [
-          { field: 'materialCode', title: '物料编码' },
-          { field: 'quantity', title: '数量', inputType: 'number' },
-        ],
-      },
-      { key: 'enabled', label: '启用', inputType: 'boolean' },
+      { key: 'documentNo', label: '单据编号' },
+      { key: 'items', label: '明细', kind: 'table', columns: [{ field: 'sku', title: '编码' }] },
     ],
-    createSampleData: () => ({}),
+    createSampleData: () => ({ documentNo: 'S-1', items: [] }),
   })
-  const template = {
-    panels: [
-      {
-        printElements: [
-          { options: { left: 0, text: '静态标题', top: 0 }, printElementType: { type: 'text' } },
-          { options: { field: 'title', left: 20, top: 40 } },
-          { options: { left: 30, top: 10 }, printElementType: { field: 'logo' } },
-          { options: { field: 'barcode', left: 80, top: 20 } },
-          { options: { left: 10, top: 20 }, tid: `xihan.${code}.qrcode` },
-          { options: { field: 'manual.reference', left: 10, top: 30 } },
-          { options: { field: 'details', left: 10, top: 50 } },
-          { options: { field: 'title', left: 10, top: 60 } },
-        ],
-      },
-      { printElements: [{ options: { field: 'enabled', left: 0, top: 0 } }] },
-    ],
-  }
 
-  const schema = printing.extractPrintSampleFormSchema(template, code)
+  const schema = printing.extractPrintSampleFormSchema(code)
+  assert.deepEqual(schema.fields.map(field => [field.key, field.kind, field.registered]), [
+    ['documentNo', 'text', true],
+    ['items', 'table', true],
+  ])
+  assert.deepEqual(schema.warnings, [])
 
-  assert.deepEqual(schema.fields.map(field => field.key), [
-    'logo',
-    'qrcode',
-    'barcode',
-    'manual.reference',
-    'title',
-    'details',
-    'enabled',
-  ])
-  assert.deepEqual(schema.fields.map(field => field.kind), [
-    'image',
-    'qrcode',
-    'barcode',
-    'text',
-    'text',
-    'table',
-    'text',
-  ])
-  assert.equal(schema.fields.find(field => field.key === 'title')?.inputType, 'textarea')
-  assert.equal(schema.fields.find(field => field.key === 'title')?.placeholder, '请输入标题')
-  assert.equal(schema.fields.find(field => field.key === 'details')?.columns?.[1]?.inputType, 'number')
-  assert.equal(schema.fields.find(field => field.key === 'manual.reference')?.registered, false)
-  assert.equal(schema.warnings.length, 1)
+  const free = printing.extractPrintSampleFormSchema(null)
+  assert.deepEqual(free.fields, [])
+  assert.equal(free.warnings.length, 1)
+
+  assert.throws(() => printing.extractPrintSampleFormSchema(uniqueCode('missing')), /未注册/u)
 })
 
-it('自由模板按元素元数据推断图片、条码、表格和空白默认数据', async () => {
-  const template = {
-    panels: [{
-      printElements: [
-        {
-          options: { field: 'customer.name', left: 10, top: 10 },
-          printElementType: { title: '客户名称', type: 'text' },
-        },
-        {
-          options: { field: 'logo', left: 10, top: 20 },
-          printElementType: { title: '企业 Logo', type: 'image' },
-        },
-        {
-          options: { field: 'documentNo', left: 10, top: 30 },
-          printElementType: { textType: 'barcode', title: '单据条码', type: 'text' },
-        },
-        {
-          options: { field: 'items', left: 10, top: 40 },
-          printElementType: {
-            columns: [[
-              { field: 'sku', title: '物料编码' },
-              { field: 'quantity', inputType: 'number', title: '数量' },
-            ]],
-            title: '明细',
-            type: 'table',
-          },
-        },
-      ],
-    }],
-  }
-
-  const schema = printing.extractPrintSampleFormSchema(template, null)
-  const sample = await printing.createDefaultPrintSampleData(template, null)
-
-  assert.deepEqual(schema.fields.map(field => ({
-    key: field.key,
-    kind: field.kind,
-    label: field.label,
-  })), [
-    { key: 'customer.name', kind: 'text', label: '客户名称' },
-    { key: 'logo', kind: 'image', label: '企业 Logo' },
-    { key: 'documentNo', kind: 'barcode', label: '单据条码' },
-    { key: 'items', kind: 'table', label: '明细' },
-  ])
-  assert.equal(schema.fields[3]?.columns?.[1]?.inputType, 'number')
-  assert.equal(schema.warnings.length, 0)
-  assert.deepEqual(sample, {
-    customer: { name: '' },
-    documentNo: '',
-    items: [],
-    logo: '',
-  })
+it('默认模拟数据：有数据源时用它的样例，自由模板是一个空白对象', async () => {
+  const code = uniqueCode('default-sample')
+  registerSource(code)
+  assert.deepEqual(await printing.createDefaultPrintSampleData(code), { documentNo: 'SAMPLE-1' })
+  assert.deepEqual(await printing.createDefaultPrintSampleData(null), {})
 })
 
 it('模拟数据安全处理嵌套路径、控件类型、对象数组与内部标识隔离', () => {
@@ -257,340 +168,148 @@ it('模拟数据安全处理嵌套路径、控件类型、对象数组与内部�
   assert.throws(() => printing.normalizePrintSampleData('invalid'), /对象或对象数组/u)
   assert.throws(() => printing.normalizePrintSampleData([{}, 'invalid']), /每一项都必须是对象/u)
 
-  const editableRecords = [
-    { id: crypto.randomUUID(), data: normalized.records[0]! },
-    { id: crypto.randomUUID(), data: { enabled: false, quantity: 3 } },
-  ]
-  const payload = printing.createPrintSamplePayload(editableRecords.map(record => record.data), true)
+  const payload = printing.createPrintSamplePayload([normalized.records[0]!, { enabled: false, quantity: 3 }], true)
   assert.deepEqual(payload, [
     { enabled: true, quantity: 2, details: [{ quantity: 1 }] },
     { enabled: false, quantity: 3 },
   ])
-  assert.equal(Object.hasOwn((payload as Record<string, unknown>[])[0]!, 'id'), false)
 })
 
-it('设计器旋转和 JSON 整体更新会发布最终模板，更新失败时恢复原设计', async () => {
-  const code = uniqueCode('designer-json')
+it('浏览器打印把单对象包成一条记录、数组原样交给运行时，标题缺省为模板名称', async () => {
+  const code = uniqueCode('browser')
   registerSource(code)
-  const initialTemplate = {
-    panels: [{ height: 297, index: 0, printElements: [], width: 210 }],
-  }
-  let currentTemplate: unknown = structuredClone(initialTemplate)
-  let rotationCount = 0
-  const changes: unknown[] = []
-  const template: HiprintTemplateInstance = {
-    id: 'designer-template',
-    clientIsOpened: () => false,
-    clear: () => undefined,
-    design: () => undefined,
-    getJson: () => structuredClone(currentTemplate),
-    getPaneltotal: () => 1,
-    getPrinterList: () => [],
-    on: () => undefined,
-    print: () => undefined,
-    print2: () => undefined,
-    redo: () => undefined,
-    rotatePaper: () => {
-      rotationCount += 1
-    },
-    selectPanel: () => undefined,
-    setPaper: () => undefined,
-    undo: () => undefined,
-    update: (nextTemplate) => {
-      if ((nextTemplate as { shouldFail?: boolean }).shouldFail)
-        throw new Error('模拟 JSON 更新失败')
-      currentTemplate = structuredClone(nextTemplate)
-    },
-    zoom: () => undefined,
-  }
-  const adapter: PrintingAdapter = {
-    createTemplate: () => template,
-    enableFieldDragging: () => undefined,
-    isClientConnected: () => false,
-    listPrinters: () => [],
-    refreshPrinters: async () => [],
-    removePrintListeners: () => undefined,
-  }
-  printing.setPrintingAdapter(adapter)
-
-  const designer = await printing.createPrintDesigner({
-    canvas: '#designer-test-canvas',
-    dataSourceCode: code,
-    onDataChanged: json => changes.push(structuredClone(json)),
-    settingContainer: '#designer-test-settings',
-    template: initialTemplate,
-  })
-  designer.rotatePaper()
-  const updatedTemplate = {
-    panels: [{ height: 210, index: 0, printElements: [], width: 297 }],
-  }
-  designer.updateTemplate(updatedTemplate)
-
-  assert.equal(rotationCount, 1)
-  assert.deepEqual(currentTemplate, updatedTemplate)
-  assert.deepEqual(changes, [initialTemplate, updatedTemplate])
-
-  assert.throws(
-    () => designer.updateTemplate({ panels: [{}], shouldFail: true }),
-    /模拟 JSON 更新失败/u,
-  )
-  assert.deepEqual(currentTemplate, updatedTemplate)
-})
-
-it('设计器元素对齐与固定间距校验选择数量并发布最终模板', async () => {
-  const code = uniqueCode('designer-alignment')
-  registerSource(code)
-  let selectedElementCount = 1
-  const alignActions: PrintElementAlignAction[] = []
-  const spacingActions: Array<{ direction: PrintElementSpacingDirection, spacing: number }> = []
-  const changes: unknown[] = []
-  const currentTemplate = { panels: [{ printElements: [] }] }
-  const template: HiprintTemplateInstance = {
-    id: 'designer-alignment-template',
-    clientIsOpened: () => false,
-    clear: () => undefined,
-    design: () => undefined,
-    getJson: () => structuredClone(currentTemplate),
-    getPaneltotal: () => 1,
-    getPrinterList: () => [],
-    getSelectEls: () => Array.from({ length: selectedElementCount }, () => ({})),
-    on: () => undefined,
-    print: () => undefined,
-    print2: () => undefined,
-    redo: () => undefined,
-    selectAllElements: () => {
-      selectedElementCount = 3
-    },
-    selectPanel: () => undefined,
-    setElsAlign: action => alignActions.push(action),
-    setElsSpace: (spacing, horizontal) => spacingActions.push({
-      direction: horizontal ? 'horizontal' : 'vertical',
-      spacing,
-    }),
-    setPaper: () => undefined,
-    undo: () => undefined,
-    zoom: () => undefined,
-  }
-  const adapter: PrintingAdapter = {
-    createTemplate: () => template,
-    enableFieldDragging: () => undefined,
-    isClientConnected: () => false,
-    listPrinters: () => [],
-    refreshPrinters: async () => [],
-    removePrintListeners: () => undefined,
-  }
-  printing.setPrintingAdapter(adapter)
-
-  const designer = await printing.createPrintDesigner({
-    canvas: '#designer-alignment-canvas',
-    dataSourceCode: code,
-    onDataChanged: json => changes.push(structuredClone(json)),
-    settingContainer: '#designer-alignment-settings',
-    template: currentTemplate,
-  })
-
-  assert.throws(() => designer.alignElements('left'), /至少需要选择 2 个元素/u)
-  designer.selectAllElements()
-  assert.equal(designer.getSelectedElementCount(), 3)
-  selectedElementCount = 2
-  designer.alignElements('left')
-  designer.setElementSpacing(10, 'horizontal')
-  designer.setElementSpacing(10, 'vertical')
-  assert.throws(() => designer.alignElements('distributeHor'), /至少需要选择 3 个元素/u)
-  assert.throws(() => designer.setElementSpacing(-1, 'horizontal'), /0～1000/u)
-
-  selectedElementCount = 3
-  designer.alignElements('distributeHor')
-
-  assert.deepEqual(alignActions, ['left', 'distributeHor'])
-  assert.deepEqual(spacingActions, [
-    { direction: 'horizontal', spacing: 10 },
-    { direction: 'vertical', spacing: 10 },
-  ])
-  assert.equal(changes.length, 4)
-})
-
-it('浏览器预览原样接收对象和数组数据', async () => {
-  const code = uniqueCode('preview')
-  registerSource(code)
-  const fixture = createAdapterFixture()
   configureFor(code)
-  printing.setPrintingAdapter(fixture.adapter)
-  const objectData = { documentNo: 'A-1' }
-  const arrayData = [{ documentNo: 'A-2' }, { documentNo: 'A-3' }]
 
-  await printing.previewPrintByCode(code, objectData)
-  await printing.previewPrintByCode(code, arrayData)
+  await printing.previewPrintByCode(code, { documentNo: 'V-1' })
+  await printing.previewPrintByCode(code, [{ documentNo: 'V-2' }, { documentNo: 'V-3' }], { title: '对账单' })
 
-  assert.deepEqual(fixture.previewData, [objectData, arrayData])
+  assert.deepEqual(runtime.browserPrints, [
+    { records: [{ documentNo: 'V-1' }], title: code },
+    { records: [{ documentNo: 'V-2' }, { documentNo: 'V-3' }], title: '对账单' },
+  ])
+  await assert.rejects(printing.previewPrintByCode(code, []), /不能为空数组/u)
 })
 
-it('自由模板无需注册数据源即可使用公共预览 API', async () => {
-  const code = uniqueCode('free-preview')
-  const fixture = createAdapterFixture()
+it('自由模板无需注册数据源即可浏览器打印', async () => {
+  const code = uniqueCode('free')
   configureFor(code, '1', null)
-  printing.setPrintingAdapter(fixture.adapter)
-
-  await printing.previewPrintByCode(code, { customField: '自由数据' })
-
-  assert.deepEqual(fixture.previewData, [{ customField: '自由数据' }])
+  await printing.previewPrintByCode(code, { anything: 1 })
+  assert.equal(runtime.browserPrints.length, 1)
 })
 
-it('浏览器预览在预期模板版本一致时继续打开', async () => {
-  const code = uniqueCode('preview-version-match')
+it('浏览器打印在模板版本一致时继续，冲突时拒绝且不交给运行时', async () => {
+  const code = uniqueCode('version')
   registerSource(code)
-  const fixture = createAdapterFixture()
-  configureFor(code, 'version-7')
-  printing.setPrintingAdapter(fixture.adapter)
+  configureFor(code, '42')
 
-  await printing.previewPrintByCode(code, { documentNo: 'V-1' }, { expectedRowVersion: 'version-7' })
-
-  assert.equal(fixture.createdTemplateCount, 1)
-})
-
-it('浏览器预览在模板版本冲突时阻止旧表单数据且不创建模板实例', async () => {
-  const code = uniqueCode('preview-version-conflict')
-  registerSource(code)
-  const fixture = createAdapterFixture()
-  configureFor(code, 'version-8')
-  printing.setPrintingAdapter(fixture.adapter)
-
+  await printing.previewPrintByCode(code, { documentNo: 'V-1' }, { expectedRowVersion: ' 42 ' })
   await assert.rejects(
-    printing.previewPrintByCode(code, { documentNo: 'V-2' }, { expectedRowVersion: 'version-7' }),
-    error => error instanceof printing.PrintTemplateVersionChangedError,
+    printing.previewPrintByCode(code, { documentNo: 'V-2' }, { expectedRowVersion: '41' }),
+    (error: unknown) => error instanceof printing.PrintTemplateVersionChangedError,
   )
-  assert.equal(fixture.createdTemplateCount, 0)
+  assert.equal(runtime.browserPrints.length, 1)
 })
 
-it('浏览器预览未传预期版本时保持原有调用兼容性', async () => {
-  const code = uniqueCode('preview-version-optional')
+it('后端存的是旧格式模板时打印明确报格式错误，不交给运行时', async () => {
+  const code = uniqueCode('legacy')
   registerSource(code)
-  const fixture = createAdapterFixture()
-  configureFor(code, 'version-9')
-  printing.setPrintingAdapter(fixture.adapter)
+  configureFor(code, '1', code, '{"panels":[{"printElements":[]}]}')
 
-  await printing.previewPrintByCode(code, { documentNo: 'V-3' })
-
-  assert.equal(fixture.createdTemplateCount, 1)
+  await assert.rejects(printing.previewPrintByCode(code, {}), (error: unknown) => error instanceof printing.PrintTemplateFormatError)
+  await assert.rejects(printing.directPrintByCode(code, {}), (error: unknown) => error instanceof printing.PrintTemplateFormatError)
+  assert.equal(runtime.browserPrints.length, 0)
+  assert.equal(runtime.clientPrints.length, 0)
 })
 
 it('直打按显式、本地偏好、客户端默认的顺序选择打印机', async () => {
   installBrowserPreferenceContext()
   const code = uniqueCode('priority')
   registerSource(code)
-  const fixture = createAdapterFixture({
-    printers: [
-      { name: 'Default Printer', isDefault: true },
-      { name: 'Preferred Printer' },
-      { name: 'Explicit Printer' },
-    ],
-  })
   configureFor(code)
-  printing.setPrintingAdapter(fixture.adapter)
+  runtime.printers = [
+    { name: 'Default Printer', isDefault: true },
+    { name: 'Preferred Printer', isDefault: false },
+    { name: 'Explicit Printer', isDefault: false },
+  ]
 
-  const explicit = await printing.directPrintByCode(code, { documentNo: 'P-1' }, { printerName: 'Explicit Printer' })
+  const explicit = await printing.directPrintByCode(code, { documentNo: 'P-1' }, { printerName: 'Explicit Printer', copies: 2 })
   await printing.setPreferredPrinter(code, 'Preferred Printer')
   const preferred = await printing.directPrintByCode(code, { documentNo: 'P-2' })
   await printing.setPreferredPrinter(code, null)
   const clientDefault = await printing.directPrintByCode(code, { documentNo: 'P-3' })
 
   assert.equal(explicit.printerName, 'Explicit Printer')
+  assert.equal(explicit.copies, 2)
   assert.equal(preferred.printerName, 'Preferred Printer')
   assert.equal(clientDefault.printerName, 'Default Printer')
+  assert.deepEqual(runtime.clientPrints.map(print => [print.options.printer, print.options.copies]), [
+    ['Explicit Printer', 2],
+    ['Preferred Printer', 1],
+    ['Default Printer', 1],
+  ])
+  await assert.rejects(printing.directPrintByCode(code, {}, { printerName: 'Missing' }), /不存在或已离线/u)
+  await assert.rejects(printing.directPrintByCode(code, {}, { copies: 100 }), /1～99/u)
 })
 
-it('当前会话直打队列严格 FIFO 且逐任务清理监听器', async () => {
+it('当前会话直打队列严格 FIFO：前一个任务交给打印队列之前，后一个不送出', async () => {
   const code = uniqueCode('fifo')
   registerSource(code)
-  const fixture = createAdapterFixture({
-    onPrint2: (template, _data, _options, sequence) => {
-      setTimeout(
-        () => fixture.emit(template.id, 'printSuccess', { sequence }),
-        sequence === 1 ? 20 : 0,
-      )
-    },
-  })
   configureFor(code)
-  printing.setPrintingAdapter(fixture.adapter)
+  runtime.manualJobs = true
 
   const first = printing.directPrintByCode(code, { documentNo: 'F-1' })
   const second = printing.directPrintByCode(code, { documentNo: 'F-2' })
+  await vi.waitFor(() => assert.equal(runtime.clientPrints.length, 1))
   await new Promise(resolve => setTimeout(resolve, 5))
-  assert.deepEqual(fixture.directStartOrder, [1])
+  assert.equal(runtime.clientPrints.length, 1)
 
-  const results = await Promise.all([first, second])
-  assert.deepEqual(fixture.directStartOrder, [1, 2])
-  assert.deepEqual(results.map(result => result.payload), [{ sequence: 1 }, { sequence: 2 }])
-  assert.equal(fixture.cleanupCount, 2)
+  runtime.clientPrints[0]!.complete()
+  await first
+  await vi.waitFor(() => assert.equal(runtime.clientPrints.length, 2))
+  runtime.clientPrints[1]!.complete()
+  await second
+  assert.deepEqual(runtime.clientPrints.map(print => print.records), [[{ documentNo: 'F-1' }], [{ documentNo: 'F-2' }]])
 })
 
-it('客户端失败事件明确拒绝且不回退浏览器预览', async () => {
+it('连不上客户端时按错误码明确报错，不退回浏览器打印', async () => {
+  const code = uniqueCode('unavailable')
+  registerSource(code)
+  configureFor(code)
+  runtime.printersError = clientError('CLIENT_UNAVAILABLE')
+
+  await assert.rejects(printing.directPrintByCode(code, { documentNo: 'U-1' }), /没有连上本地打印客户端/u)
+  await assert.rejects(printing.listPrinters(), /没有连上本地打印客户端/u)
+  assert.equal(runtime.browserPrints.length, 0)
+  assert.equal(runtime.clientPrints.length, 0)
+})
+
+it('客户端报告任务失败时按错误码拒绝；客户端没有打印机时明确报错', async () => {
   const code = uniqueCode('failure')
   registerSource(code)
-  const fixture = createAdapterFixture({
-    onPrint2: template => queueMicrotask(
-      () => fixture.emit(template.id, 'printError', { message: '驱动拒绝任务' }),
-    ),
-  })
   configureFor(code)
-  printing.setPrintingAdapter(fixture.adapter)
+  runtime.jobError = clientError('PRINTER_OFFLINE')
+  await assert.rejects(printing.directPrintByCode(code, { documentNo: 'E-1' }), /脱机/u)
 
-  await assert.rejects(
-    printing.directPrintByCode(code, { documentNo: 'E-1' }),
-    /驱动拒绝任务/u,
-  )
-  assert.equal(fixture.previewData.length, 0)
-  assert.equal(fixture.cleanupCount, 1)
+  runtime.jobError = clientError('SOMETHING_NEW')
+  await assert.rejects(printing.directPrintByCode(code, { documentNo: 'E-2' }), /SOMETHING_NEW/u)
+
+  runtime.printers = []
+  await assert.rejects(printing.directPrintByCode(code, { documentNo: 'E-3' }), /没有找到任何打印机/u)
 })
 
-it('直打超时后拒绝并清理任务监听器', async () => {
-  const code = uniqueCode('timeout')
-  registerSource(code)
-  const fixture = createAdapterFixture({ onPrint2: () => undefined })
-  configureFor(code)
-  printing.setPrintingAdapter(fixture.adapter)
-
-  await assert.rejects(
-    printing.directPrintByCode(code, { documentNo: 'T-1' }, { timeoutMs: 10 }),
-    /超时/u,
-  )
-  assert.equal(fixture.cleanupCount, 1)
-})
-
-it('组件卸载取消直打后立即拒绝并清理任务监听器', async () => {
+it('组件卸载取消直打后取消客户端任务并以取消原因拒绝', async () => {
   const code = uniqueCode('abort')
   registerSource(code)
-  const fixture = createAdapterFixture({ onPrint2: () => undefined })
+  configureFor(code)
+  runtime.manualJobs = true
   const controller = new AbortController()
-  configureFor(code)
-  printing.setPrintingAdapter(fixture.adapter)
 
-  const task = printing.directPrintByCode(
-    code,
-    { documentNo: 'A-1' },
-    { signal: controller.signal, timeoutMs: 5_000 },
-  )
-  setTimeout(
-    () => controller.abort(new DOMException('组件已卸载。', 'AbortError')),
-    5,
-  )
+  const pending = printing.directPrintByCode(code, { documentNo: 'A-1' }, { signal: controller.signal })
+  await vi.waitFor(() => assert.equal(runtime.clientPrints.length, 1))
+  controller.abort(new DOMException('打印模板编辑器已卸载。', 'AbortError'))
 
-  await assert.rejects(task, error => (error as Error).name === 'AbortError')
-  assert.equal(fixture.cleanupCount, 1)
-})
-
-it('客户端离线时直接报错且不创建打印模板实例', async () => {
-  const code = uniqueCode('offline')
-  registerSource(code)
-  const fixture = createAdapterFixture({ connected: false })
-  configureFor(code)
-  printing.setPrintingAdapter(fixture.adapter)
-
-  await assert.rejects(
-    printing.directPrintByCode(code, { documentNo: 'O-1' }),
-    /客户端未连接/u,
-  )
-  assert.equal(fixture.createdTemplateCount, 0)
+  await assert.rejects(pending, (error: unknown) => (error as Error).name === 'AbortError')
+  assert.equal(runtime.clientPrints[0]!.cancelled, true)
 })
 
 it('未注入 listDataSources 时目录直接完成且不缓存空结果', async () => {
@@ -677,6 +396,76 @@ it('目录拉取注册后端数据源：跳过已注册编码、隔离坏样例�
   assert.equal(second.title, '示例')
 })
 
+/** 替身运行时：记下浏览器打印与客户端任务，打印机列表、错误与任务完成时机由用例控制。 */
+interface FakeRuntime {
+  api: {
+    printInBrowser: (document: unknown, records: readonly unknown[], options: { title?: string }) => Promise<number>
+    printWithClient: (document: unknown, records: readonly unknown[], options: { printer?: string, copies?: number }) => unknown
+    client: () => { printers: () => Promise<PrintDevice[]> }
+  }
+  browserPrints: { records: unknown[], title?: string }[]
+  clientPrints: { records: unknown[], options: { printer?: string, copies?: number }, cancelled: boolean, complete: () => void }[]
+  printers: PrintDevice[]
+  printersError: Error | null
+  jobError: Error | null
+  manualJobs: boolean
+}
+
+function createFakeRuntime(): FakeRuntime {
+  const fake: FakeRuntime = {
+    browserPrints: [],
+    clientPrints: [],
+    printers: [{ name: 'Default Printer', isDefault: true }],
+    printersError: null,
+    jobError: null,
+    manualJobs: false,
+    api: {
+      printInBrowser: async (_document, records, options) => {
+        fake.browserPrints.push({ records: [...records], title: options.title })
+        return 1
+      },
+      printWithClient: (_document, records, options) => {
+        let resolve!: () => void
+        let reject!: (error: unknown) => void
+        const done = new Promise<void>((ok, fail) => {
+          resolve = ok
+          reject = fail
+        })
+        const entry = { records: [...records], options, cancelled: false, complete: () => resolve() }
+        fake.clientPrints.push(entry)
+        if (fake.jobError)
+          reject(fake.jobError)
+        else if (!fake.manualJobs)
+          resolve()
+        return {
+          done,
+          cancel: async () => {
+            entry.cancelled = true
+            reject(clientError('JOB_CANCELLED'))
+            return true
+          },
+        }
+      },
+      client: () => ({
+        printers: async () => {
+          if (fake.printersError)
+            throw fake.printersError
+          return fake.printers
+        },
+      }),
+    },
+  }
+  return fake
+}
+
+/** 与客户端 SDK 同名的错误：打印服务按 name 与 code 认它。 */
+function clientError(code: string): Error {
+  const error = new Error(code) as Error & { code: string }
+  error.name = 'PrintClientError'
+  error.code = code
+  return error
+}
+
 /** 注册单字段测试数据源。 */
 function registerSource(code: string): void {
   printing.registerPrintDataSource({
@@ -688,19 +477,16 @@ function registerSource(code: string): void {
 }
 
 /** 注入返回指定模板与数据源的稳定解析函数。 */
-function configureFor(code: string, rowVersion = '1', dataSourceCode: null | string = code): void {
+function configureFor(code: string, rowVersion = '1', dataSourceCode: null | string = code, templateJson = TemplateJson): void {
   printing.configurePrinting({
-    host: 'http://localhost:17521',
-    token: 'test-token',
     resolveTemplate: async (_templateCode, scope): Promise<ResolvedPrintTemplate> => ({
       basicId: '1',
       dataSourceCode,
-      engineVersion: '0.0.60',
       requestedScope: scope,
       resolvedScope: scope === 'Auto' ? 'Tenant' : scope,
       rowVersion,
       templateCode: code,
-      templateJson: TemplateJson,
+      templateJson,
       templateName: code,
     }),
   })
@@ -709,8 +495,6 @@ function configureFor(code: string, rowVersion = '1', dataSourceCode: null | str
 /** 注入指定目录取数函数（可为空）的运行配置。 */
 function configureCatalog(listDataSources: (() => Promise<RemotePrintDataSourceDto[]>) | undefined): void {
   printing.configurePrinting({
-    host: 'http://localhost:17521',
-    token: 'test-token',
     resolveTemplate: async () => {
       throw new Error('目录测试不解析模板。')
     },
@@ -723,11 +507,7 @@ let originalLocalStorageDescriptor: PropertyDescriptor | undefined
 
 /**
  * 安装隔离的 Pinia 与内存 localStorage，支持本地打印机偏好测试。
- *
- * 替身实现完整的 Storage 接口（而不只是用到的三个方法）：
- * 这个替身会覆盖全局，缺方法时后续用例或测试基建碰到它就会以
- * "xxx is not a function" 的形式炸在无关的地方。
- * 覆盖前记下原描述符，由 afterEach 还原，避免污染同文件的后续用例。
+ * 替身实现完整的 Storage 接口；覆盖前记下原描述符，由 afterEach 还原，避免污染同文件的后续用例。
  */
 function installBrowserPreferenceContext(): void {
   piniaModule.setActivePinia(piniaModule.createPinia())
@@ -763,130 +543,4 @@ function restoreBrowserPreferenceContext(): void {
 /** 生成不会与其它测试或应用启动数据源冲突的编码。 */
 function uniqueCode(prefix: string): string {
   return `test.${prefix}.${crypto.randomUUID()}`
-}
-
-/** 创建可触发一次性打印事件的内存适配器。 */
-function createAdapterFixture(options: AdapterFixtureOptions = {}): AdapterFixture {
-  const listeners = new Map<string, Map<string, (payload: unknown) => void>>()
-  const previewData: unknown[] = []
-  const directStartOrder: number[] = []
-  const printers = options.printers ?? [{ name: 'Default Printer', isDefault: true }]
-  let cleanupCount = 0
-  let createdTemplateCount = 0
-  const emit = (templateId: string, event: 'printError' | 'printSuccess', payload: unknown) => {
-    listeners.get(templateId)?.get(event)?.(payload)
-  }
-
-  const adapter: PrintingAdapter = {
-    createTemplate() {
-      createdTemplateCount += 1
-      const id = `template-${createdTemplateCount}`
-      const callbacks = new Map<string, (payload: unknown) => void>()
-      listeners.set(id, callbacks)
-      return {
-        id,
-        clientIsOpened: () => options.connected !== false,
-        clear: () => undefined,
-        design: () => undefined,
-        getJson: () => JSON.parse(TemplateJson) as unknown,
-        getPaneltotal: () => 1,
-        getPrinterList: () => printers,
-        on: (eventName, callback) => callbacks.set(eventName, callback),
-        print: (data, _printOptions, styleOptions) => {
-          previewData.push(data)
-          const callback = styleOptions?.callback
-          if (typeof callback === 'function')
-            callback()
-        },
-        print2: (data, printOptions) => {
-          const sequence = directStartOrder.length + 1
-          directStartOrder.push(sequence)
-          if (options.onPrint2) {
-            options.onPrint2(
-              templateById(id, listeners),
-              data,
-              printOptions ?? {},
-              sequence,
-            )
-          }
-          else {
-            queueMicrotask(() => emit(id, 'printSuccess', { sequence }))
-          }
-        },
-        redo: () => undefined,
-        selectPanel: () => undefined,
-        setPaper: () => undefined,
-        undo: () => undefined,
-        zoom: () => undefined,
-      }
-    },
-    enableFieldDragging: () => undefined,
-    isClientConnected: () => options.connected !== false,
-    listPrinters: () => printers,
-    refreshPrinters: async () => printers,
-    removePrintListeners: (template) => {
-      cleanupCount += 1
-      listeners.delete(template.id)
-    },
-  }
-
-  const fixture: AdapterFixture = {
-    adapter,
-    directStartOrder,
-    emit,
-    get cleanupCount() {
-      return cleanupCount
-    },
-    get createdTemplateCount() {
-      return createdTemplateCount
-    },
-    previewData,
-  }
-  return fixture
-}
-
-/** 按 id 返回仅供测试回调发出事件的模板引用。 */
-function templateById(
-  id: string,
-  listeners: Map<string, Map<string, (payload: unknown) => void>>,
-): HiprintTemplateInstance {
-  return {
-    id,
-    clientIsOpened: () => true,
-    clear: () => undefined,
-    design: () => undefined,
-    getJson: () => ({}),
-    getPaneltotal: () => 1,
-    getPrinterList: () => [],
-    on: (event, callback) => listeners.get(id)?.set(event, callback),
-    print: () => undefined,
-    print2: () => undefined,
-    redo: () => undefined,
-    selectPanel: () => undefined,
-    setPaper: () => undefined,
-    undo: () => undefined,
-    zoom: () => undefined,
-  }
-}
-
-/** 内存适配器创建选项。 */
-interface AdapterFixtureOptions {
-  connected?: boolean
-  onPrint2?: (
-    template: HiprintTemplateInstance,
-    data: unknown,
-    options: Record<string, unknown>,
-    sequence: number,
-  ) => void
-  printers?: PrintDevice[]
-}
-
-/** 内存适配器测试观测面。 */
-interface AdapterFixture {
-  adapter: PrintingAdapter
-  readonly cleanupCount: number
-  readonly createdTemplateCount: number
-  directStartOrder: number[]
-  emit: (templateId: string, event: 'printError' | 'printSuccess', payload: unknown) => void
-  previewData: unknown[]
 }
