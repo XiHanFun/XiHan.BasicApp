@@ -42,6 +42,7 @@ export type {
 export type { FlowNodeStatus, FlowViewerEventMap, XhFlowViewer } from '@xihan-flow/runtime'
 export type { SchemaRule } from '@xihan-ui/designer-kit'
 export type { SchemaIssue } from '@xihan-ui/designer-kit/schema'
+export type { DesignerSettings } from '@xihan-ui/designer-shell'
 
 /** 语言标签 → 流程的语言包（设计器零件与查看器、设计器的内建文案）。 */
 const FLOW_LOCALES: Readonly<Record<string, XhConfig>> = {

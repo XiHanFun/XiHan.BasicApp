@@ -12,6 +12,7 @@ import { downloadBlob } from '~/utils'
 import { workflowDefinitionApi } from '../../../../api'
 import { loadOrganizationDirectory } from '../../shared/workflow-directory'
 import { openDefinition, serializeDefinition } from './definition-codec'
+import { useFlowDesignerSettings } from './use-designer-settings'
 import { createWorkflowExtension } from './workflow-extension'
 
 /**
@@ -75,6 +76,8 @@ const workflowExtension = computed(() => {
 })
 
 const extensions = computed(() => [preset.value, workflowExtension.value])
+/** 设计器设置随用户存进用户设置，与流程定义页的列设置、搜索设置同一条记录 */
+const designerSettings = useFlowDesignerSettings('workflow_definition')
 const groupTexts = computed(() => xihanWorkflowTexts(locale.value))
 
 function applyExtensions(designer: XhFlowDesigner) {
@@ -104,8 +107,10 @@ function load(json: string): boolean {
 }
 
 onMounted(() => {
-  if (designerRef.value)
+  if (designerRef.value) {
     applyExtensions(designerRef.value)
+    designerSettings.attach(designerRef.value)
+  }
   load(props.initialJson)
 })
 
@@ -187,13 +192,12 @@ function handleSave() {
 
     <!-- 工具栏以下的高度全给当前视图；设计视图用 v-show 保留设计器：切到 JSON 再切回不卸载、不丢撤销历史 -->
     <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <!-- 设计器设置（主题、小地图、吸附、自动布局的方向与间距）存在本机，下次打开照用 -->
       <xh-flow-designer
         v-show="activeTab === 'design'"
         ref="designerRef"
         class="workflow-designer__canvas"
-        settings-storage-key="xihan-basicapp:workflow-designer-settings"
         @schema-change="onSchemaChange"
+        @settings-change="designerSettings.onSettingsChange"
         @save="handleSave"
         @export="onExport"
       />
