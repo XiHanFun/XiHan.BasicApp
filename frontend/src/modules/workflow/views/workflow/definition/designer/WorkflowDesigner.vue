@@ -8,6 +8,7 @@ import { Icon, XInput, XSegmented } from '~/components'
 import { toast } from '~/composables'
 import { createXihanWorkflow, xihanWorkflowTexts } from '~/designers/flow'
 import { ensureFlowDesigner } from '~/designers/flow-designer'
+import { downloadBlob } from '~/utils'
 import { workflowDefinitionApi } from '../../../../api'
 import { loadOrganizationDirectory } from '../../shared/workflow-directory'
 import { openDefinition, serializeDefinition } from './definition-codec'
@@ -119,6 +120,13 @@ const identity = computed(() => {
   }
 })
 
+/** 设计器导出图片时按流程编码命名文件 */
+function onExport(event: Event) {
+  const { format, blob } = (event as FlowDesignerEventMap['export']).detail
+  event.preventDefault()
+  downloadBlob(blob, `${identity.value.code.trim() || 'workflow'}.${format}`)
+}
+
 // ── JSON 视图 ──────────────────────────────────────────────────
 watch(activeTab, (tab) => {
   if (tab === 'json' && designerRef.value)
@@ -181,6 +189,7 @@ function handleSave() {
         class="workflow-designer__canvas"
         @schema-change="onSchemaChange"
         @save="handleSave"
+        @export="onExport"
       />
 
       <!-- JSON 视图（文本域铺满视图、不走 autosize：autosize 的外壳另有滚动上限，与文本域自己的滚动叠成两条滚动条） -->
