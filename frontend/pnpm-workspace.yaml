@@ -130,13 +130,11 @@ catalog:
   '@xihan-ui/core': ^5.0.0
   '@xihan-ui/designer-kit': ^5.0.0
   '@xihan-ui/designer-shell': ^5.0.0
-  '@xihan-ui/expression': ^5.0.0
   '@xihan-ui/headless': ^5.0.0
   '@xihan-ui/motion': ^5.0.0
   '@xihan-ui/sound': ^5.0.0
   '@xihan-ui/styles': ^5.0.0
   '@xihan-ui/tokens': ^5.0.0
-  '@xihan-ui/viz': ^5.0.0
   '@xihan-ui/vue': ^5.0.0
   '@xihan-ui/web-components': ^5.0.0
   axios: ^1.20.0

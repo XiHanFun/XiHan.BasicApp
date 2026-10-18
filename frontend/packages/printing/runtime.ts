@@ -31,30 +31,18 @@ export function loadPrintRuntime(): Promise<PrintRuntime> {
 }
 
 async function createRuntime(): Promise<PrintRuntime> {
-  const [runtime, clientModule, core, viz, expression, locales] = await Promise.all([
+  const [runtime, clientModule, locales] = await Promise.all([
     import('@xihan-print/runtime'),
     import('@xihan-print/runtime/client'),
-    import('@xihan-print/core'),
-    import('@xihan-ui/viz'),
-    import('@xihan-ui/expression'),
     import('~/locales'),
   ])
 
   let client: PrintClient | null = null
   const locale = () => locales.i18n.global.locale.value
 
-  /** 多份数据各自分页再接成一份：注入项与运行时 printDocument 的缺省一致（Canvas 度量器、受限表达式、formatValue）。 */
+  /** 多份数据各自分页再接成一份；分页的缺省注入项与 printDocument 相同。 */
   function paginateRecords(document: PrintDocument, records: readonly unknown[]): PaginationResult {
-    const measurer = viz.createCanvasMeasurer(globalThis.document)
-    if (!measurer)
-      throw new Error('浏览器拿不到 Canvas 2D 上下文，无法排版打印模板。')
-    const options = {
-      measurer,
-      expressionEngine: expression.createExpressionEngine(),
-      formatter: expression.formatValue,
-      locale: locale(),
-    }
-    return runtime.mergePaginationResults(records.map(record => core.paginate(document, record, options)))
+    return runtime.mergePaginationResults(records.map(record => runtime.paginateDocument(document, record, { locale: locale() })))
   }
 
   return {
