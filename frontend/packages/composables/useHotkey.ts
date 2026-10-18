@@ -1,5 +1,6 @@
-import type { KbdResolvedPlatform } from '@xihan-ui/headless'
-import { detectKbdPlatform, formatHotkey, isTypingTarget, matchesHotkey } from '@xihan-ui/headless'
+import type { KbdResolvedPlatform } from '@xihan-ui/core/hotkey'
+import { detectKbdPlatform, formatHotkey, matchesHotkey } from '@xihan-ui/core/hotkey'
+import { isTypingTarget } from '@xihan-ui/headless'
 import { onBeforeUnmount, onMounted, ref, toValue, watchEffect } from 'vue'
 
 export interface HotkeyTriggerDetails {
@@ -24,7 +25,7 @@ export interface UseHotkeyOptions {
  *
  * XiHan.UI 只保留 XhKbd 一件（展示键帽，`register` 打开才顺带监听），文档明说
  * 「只注册、不需要可见提示的全局命令放应用自己的命令系统」；本应用的全局快捷键
- * 与画布内的全选都是这一类，这里拿 headless 的 matchesHotkey / isTypingTarget
+ * 与画布内的全选都是这一类，这里拿 core 的 matchesHotkey 与 headless 的 isTypingTarget
  * 自装监听，键位解析与 XhKbd 铺出来的键帽同一套规则。
  *
  * 判据与 XhKbd 一致：输入法合成期间不响应；没有命令修饰键（Ctrl / ⌘ / Alt）的组合

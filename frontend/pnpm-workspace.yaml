@@ -128,14 +128,14 @@ catalog:
   '@vitest/coverage-v8': ^5.0.4
   '@vue/test-utils': ^2.5.1
   '@vueuse/core': ^15.0.0
-  '@xihan-ui/code-highlight': ^4.2.0
-  '@xihan-ui/core': ^4.2.0
-  '@xihan-ui/headless': ^4.2.0
-  '@xihan-ui/motion': ^4.2.0
-  '@xihan-ui/sound': ^4.2.0
-  '@xihan-ui/styles': ^4.2.0
-  '@xihan-ui/tokens': ^4.2.0
-  '@xihan-ui/vue': ^4.2.0
+  '@xihan-ui/code-highlight': ^5.0.0
+  '@xihan-ui/core': ^5.0.0
+  '@xihan-ui/headless': ^5.0.0
+  '@xihan-ui/motion': ^5.0.0
+  '@xihan-ui/sound': ^5.0.0
+  '@xihan-ui/styles': ^5.0.0
+  '@xihan-ui/tokens': ^5.0.0
+  '@xihan-ui/vue': ^5.0.0
   axios: ^1.20.0
   cross-env: ^10.1.0
   dayjs: ^1.11.23
