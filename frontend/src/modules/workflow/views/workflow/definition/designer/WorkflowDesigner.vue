@@ -55,8 +55,11 @@ void loadOrganizationDirectory(true).catch(() => undefined)
 // ── 扩展 ───────────────────────────────────────────────────────
 const appContext = getCurrentInstance()?.appContext ?? null
 
-/** 预设的文案随语言换：换语言就换一个扩展对象，设计器按卸下再装上处理，流程定义不变 */
-const preset = computed(() => createXihanWorkflow({ texts: xihanWorkflowTexts(locale.value) }))
+/**
+ * 预设的文案随语言换：换语言就换一个扩展对象，设计器按卸下再装上处理，流程定义不变。
+ * 受理人只用受理人规则一种写法，属性面板不显示旧的受理人三项。
+ */
+const preset = computed(() => createXihanWorkflow({ texts: xihanWorkflowTexts(locale.value), legacyAssignees: false }))
 
 /** 审批业务清单到达后重建一次：规则按关联的业务检查结束节点，新的扩展对象让设计器重新校验 */
 const workflowExtension = computed(() => {

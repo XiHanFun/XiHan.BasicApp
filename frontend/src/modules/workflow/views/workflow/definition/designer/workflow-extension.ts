@@ -3,7 +3,6 @@
  *
  * - 受理人规则：预设登记的编辑方式由 AssigneeRulesEditor 提供（选人、选角色查应用自己的数据）。
  * - 流程编码：先选关联的审批业务再看编码；编辑已有草稿时只读。
- * - 启动变量：每行变量名与是否必填，替代预设缺省的 JSON 文本框。
  * - 连线条件：条件表达式加源节点常见办理结果的一键填入。
  * - 规则：见 workflow-rules.ts。
  */
@@ -17,7 +16,6 @@ import { XIHAN_WORKFLOW_ASSIGNEE_RULES } from '~/designers/flow'
 import AssigneeRulesEditor from './AssigneeRulesEditor.vue'
 import EdgeConditionEditor from './EdgeConditionEditor.vue'
 import FlowCodeEditor from './FlowCodeEditor.vue'
-import FlowVariablesEditor from './FlowVariablesEditor.vue'
 import { createWorkflowRules, WORKFLOW_EXTENSION_ID, WORKFLOW_ISSUE_KEYS } from './workflow-rules'
 
 /** 源节点类型 → 常见办理结果（连线条件一键填入） */
@@ -118,12 +116,6 @@ export function createWorkflowExtension(options: WorkflowExtensionOptions): Flow
             'onUpdate:code': (code: string) => context.setValue(code),
             'onCommit': () => context.commit(),
             'onBind': (business: WorkflowBusinessTypeDto) => bindBusiness(options, business),
-          })),
-          'data.variables': editor(context => h(FlowVariablesEditor, {
-            'value': context.value,
-            'readonly': context.readonly,
-            'onUpdate:value': (variables: unknown) => context.setValue(variables as Context['value']),
-            'onCommit': () => context.commit(),
           })),
         },
         edge: {
