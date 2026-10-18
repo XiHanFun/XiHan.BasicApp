@@ -30,6 +30,7 @@ export {
   fromWorkflowDefinition,
   toWorkflowDefinition,
   XIHAN_WORKFLOW_ASSIGNEE_RULES,
+  XIHAN_WORKFLOW_START_VARIABLES,
 } from '@xihan-flow/core/presets/xihan-workflow'
 export type { XihanWorkflowDefinition, XihanWorkflowNode } from '@xihan-flow/core/presets/xihan-workflow'
 export type {
