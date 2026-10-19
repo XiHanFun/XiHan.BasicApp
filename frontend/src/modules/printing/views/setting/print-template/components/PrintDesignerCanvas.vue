@@ -237,9 +237,8 @@ defineExpose({ getJson, markSaved, preview, validate })
   margin-inline-start: auto;
 }
 
-/* 设计器铺满自身：宿主给它定高，这里是编辑器列里的 flex-1 */
+/* 设计器铺满自身：宿主给它定高，这里是编辑器列里的 flex-1；display 用设计器样式自带的纵向 flex */
 .designer-host {
-  display: block;
   flex: 1 1 0;
   min-block-size: 0;
 }
