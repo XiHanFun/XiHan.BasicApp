@@ -7,15 +7,16 @@
 
 import type { DesignerSettings, FlowDesignerEventMap, XhFlowDesigner } from '~/designers/flow'
 import { useUserSettingSync } from '~/components/schema'
+import { FLOW_SETTING_KEYS } from '~/designers/flow-designer'
 
 /** 用户设置里放设计器设置的分区；与所在页面的列设置、搜索设置同一条记录 */
 const SETTINGS_SECTION = 'designer'
 
 /** 宿主给的缺省：自动布局自左而右，与 XiHan 工作流引擎预设的端口方向一致；间距照旧版设计器，层间 88、同层 64 */
 export const FLOW_DESIGNER_DEFAULT_SETTINGS: DesignerSettings = {
-  'flow.layoutDirection': 'LR',
-  'flow.layerGap': 88,
-  'flow.nodeGap': 64,
+  [FLOW_SETTING_KEYS.layoutDirection]: 'LR',
+  [FLOW_SETTING_KEYS.layerGap]: 88,
+  [FLOW_SETTING_KEYS.nodeGap]: 64,
 }
 
 type SettingValue = DesignerSettings[string]
