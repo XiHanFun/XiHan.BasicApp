@@ -90,21 +90,15 @@ describe('零代码只读运行时', () => {
   })
 })
 
-describe('打印模板的路由段与作用域', () => {
-  it('详情把主键编码后拼进路由段，作用域走查询串', async () => {
+describe('打印模板的查询参数与作用域', () => {
+  it('详情的主键与作用域都走查询串，不拼进路由段', async () => {
     await printTemplateApi.detail('1975', 'Tenant' as never)
 
     expect(only()).toEqual({
       method: 'GET',
-      url: '/PrintTemplateQuery/PrintTemplateDetail/1975',
-      params: { scope: 'Tenant' },
+      url: '/PrintTemplateQuery/PrintTemplateDetail',
+      params: { id: '1975', scope: 'Tenant' },
     })
-  })
-
-  it('主键里的斜杠与中文被编码，不会把一个主键拆成多个路由段', async () => {
-    await printTemplateApi.detail('模板/1', 'Global' as never)
-
-    expect(only().url).toBe('/PrintTemplateQuery/PrintTemplateDetail/%E6%A8%A1%E6%9D%BF%2F1')
   })
 
   it('删除把 DTO 显式展开成三个查询参数——框架的 DELETE 不发请求体', async () => {

@@ -14,7 +14,7 @@ import type {
  * 职责：提供管理端 CRUD、可用全局模板查询和公共打印按编码解析入口。
  */
 import type { PageResult } from '@/api/types'
-import { createDynamicApiClient, formatDynamicApiRouteValue } from '@/api/base'
+import { createDynamicApiClient } from '@/api/base'
 
 const queryApi = createDynamicApiClient('PrintTemplateQuery')
 const commandApi = createDynamicApiClient('PrintTemplate')
@@ -92,8 +92,8 @@ export const printTemplateApi = {
    */
   detail(id: string, scope: PrintTemplateScope) {
     return queryApi.get<PrintTemplateDetailDto | null>(
-      `PrintTemplateDetail/${formatDynamicApiRouteValue(id)}`,
-      { scope },
+      'PrintTemplateDetail',
+      { id, scope },
     )
   },
 
