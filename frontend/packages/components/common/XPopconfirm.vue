@@ -34,7 +34,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <XhPopconfirmRoot @confirm="emit('confirm')" @cancel="emit('cancel')">
+  <XhPopconfirmRoot @confirm="emit('confirm')" @cancel-press="emit('cancel')">
     <XhPopconfirmTrigger as-child>
       <slot name="trigger" />
     </XhPopconfirmTrigger>
