@@ -127,9 +127,10 @@ export default {
     },
     designer: {
       untitled: '이름 없는 워크플로',
-      tab_design: '디자인',
-      tab_json: 'JSON',
-      btn_save: '저장',
+      engine_json: '엔진 정의 JSON',
+      back_to_list: '목록으로 돌아가기',
+      saved: '저장됨',
+      unsaved: '저장 안 됨',
       btn_apply_json: '캔버스에 적용',
       save_blocked: '오류가 {count}개 있습니다. 문제 목록에서 수정한 후 저장하세요',
       edge_condition_placeholder: '예: amount > 10000 또는 outcome == \'approved\'(비우면 조건 없음)',

@@ -127,9 +127,10 @@ export default {
     },
     designer: {
       untitled: 'Untitled Workflow',
-      tab_design: 'Design',
-      tab_json: 'JSON',
-      btn_save: 'Save',
+      engine_json: 'Engine Definition JSON',
+      back_to_list: 'Back to List',
+      saved: 'Saved',
+      unsaved: 'Unsaved',
       btn_apply_json: 'Apply to Canvas',
       save_blocked: '{count} error(s) found. Fix them in the issue list before saving',
       edge_condition_placeholder: 'e.g. amount > 10000 or outcome == \'approved\' (empty = unconditional)',
