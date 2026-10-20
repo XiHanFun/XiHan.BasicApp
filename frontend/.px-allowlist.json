@@ -323,26 +323,6 @@
     "cap": 11,
     "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
   },
-  "src/modules/printing/views/setting/print-template/components/PrintTemplateAdvancedSettings.vue": {
-    "cap": 17,
-    "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
-  },
-  "src/modules/printing/views/setting/print-template/components/PrintTemplateBasicSettings.vue": {
-    "cap": 10,
-    "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
-  },
-  "src/modules/printing/views/setting/print-template/components/PrintTemplateDataSourceSettings.vue": {
-    "cap": 19,
-    "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
-  },
-  "src/modules/printing/views/setting/print-template/components/PrintTemplateEditor.vue": {
-    "cap": 18,
-    "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
-  },
-  "src/modules/printing/views/setting/print-template/components/PrintTemplateMetadataForm.vue": {
-    "cap": 24,
-    "reason": "打印设计器：画布坐标、标尺与纸张刻度须为绝对像素"
-  },
   "src/styles/admin-page.css": {
     "cap": 8,
     "reason": "页面外壳的排版刻度"

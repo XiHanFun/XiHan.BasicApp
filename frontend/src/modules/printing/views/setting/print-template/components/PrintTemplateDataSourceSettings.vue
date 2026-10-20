@@ -1,11 +1,36 @@
 <!--
-  打印模板数据源契约设置。
-  职责：集中管理可选数据源、自由模板切换、字段目录及模板字段兼容性提示，避免基础设置页承担过多契约展示逻辑。
+  打印模板的数据源：可选的数据源、它的用途说明、切换为自由模板与字段清单，以及模板里有、数据源却没登记的字段提示。
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
+import type { PrintFieldKind } from '~/printing'
 import type { PrintDocument } from '~/printing/designer'
-import { XhButton, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTitle, XhPopoverTrigger } from '@xihan-ui/vue'
+import {
+  XhAlertContent,
+  XhAlertDescription,
+  XhAlertIndicator,
+  XhAlertRoot,
+  XhButton,
+  XhFieldControl,
+  XhFieldDescription,
+  XhFieldErrorText,
+  XhFieldLabel,
+  XhFieldRoot,
+  XhFormFieldGroup,
+  XhPopoverContent,
+  XhPopoverPositioner,
+  XhPopoverRoot,
+  XhPopoverTitle,
+  XhPopoverTrigger,
+  XhScrollAreaContent,
+  XhScrollAreaRoot,
+  XhScrollAreaScrollbar,
+  XhScrollAreaThumb,
+  XhScrollAreaTrack,
+  XhScrollAreaViewport,
+  XhTagLabel,
+  XhTagRoot,
+} from '@xihan-ui/vue'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XSelect } from '~/components'
@@ -62,16 +87,25 @@ const unmatchedFieldCount = computed(() => selectedSource.value
   ? listUnregisteredPrintFields(props.template, selectedSource.value.fields).length
   : 0)
 
-/** 切换为自由模板；这里只修改抽屉草稿，保存成功前不会重建设计器。 */
+/** 字段清单里各内容种类的图标 */
+const FIELD_KIND_ICONS: Record<PrintFieldKind, string> = {
+  text: 'tabler:abc',
+  image: 'tabler:photo',
+  barcode: 'tabler:barcode',
+  qrcode: 'tabler:qrcode',
+  table: 'tabler:table',
+}
+
+/** 切换为自由模板；只改弹窗里的草稿，保存成功才生效。 */
 function switchToFreeTemplate(): void {
   model.value.dataSourceCode = null
 }
 </script>
 
 <template>
-  <XhFieldRoot>
-    <XhFieldLabel>{{ `${t('setting.print_template.data_source')} (${t('setting.print_template.optional')})` }}</XhFieldLabel>
-    <div class="data-source-field">
+  <XhFormFieldGroup name="dataSourceCode">
+    <XhFieldRoot>
+      <XhFieldLabel>{{ `${t('setting.print_template.data_source')} (${t('setting.print_template.optional')})` }}</XhFieldLabel>
       <XhFieldControl>
         <XSelect
           v-model:value="model.dataSourceCode"
@@ -80,148 +114,158 @@ function switchToFreeTemplate(): void {
           clearable
         />
       </XhFieldControl>
+      <XhFieldDescription>
+        {{ selectedSource
+          ? t('setting.print_template.data_source_registered_compact_help')
+          : t('setting.print_template.data_source_free_compact_help') }}
+      </XhFieldDescription>
+      <XhFieldErrorText />
+    </XhFieldRoot>
+  </XhFormFieldGroup>
 
-      <div class="data-source-guidance">
-        <span style="display: inline-flex; color: var(--xh-fg-brand); font-size: 18px"><Icon icon="tabler:info-circle" /></span>
-        <div>
-          <strong>{{ t('setting.print_template.data_source_guidance_title') }}</strong>
-          <p>
-            {{ selectedSource
-              ? t('setting.print_template.data_source_registered_compact_help')
-              : t('setting.print_template.data_source_free_compact_help') }}
-          </p>
-        </div>
-      </div>
-
-      <div v-if="selectedSource" class="data-source-actions">
-        <XhButton size="sm" variant="subtle" tone="brand" @click="switchToFreeTemplate">
-          {{ t('setting.print_template.switch_to_free_template') }}
+  <div v-if="selectedSource" class="data-source-actions">
+    <XhButton size="sm" variant="subtle" @click="switchToFreeTemplate">
+      {{ t('setting.print_template.switch_to_free_template') }}
+    </XhButton>
+    <XhPopoverRoot placement="bottom-end">
+      <XhPopoverTrigger as-child>
+        <XhButton size="sm" variant="ghost">
+          <Icon icon="tabler:list-details" />
+          {{ t('setting.print_template.view_field_list') }}
         </XhButton>
-        <XhPopoverRoot placement="bottom-end">
-          <XhPopoverTrigger class="xh-linklike-trigger">
-            {{ t('setting.print_template.view_field_list') }}
-            <span><Icon icon="tabler:list-details" /></span>
-          </XhPopoverTrigger>
-          <XhPopoverPositioner>
-            <XhPopoverContent>
-              <div class="data-source-field-list">
-                <div class="field-list-heading">
-                  <XhPopoverTitle>{{ selectedSource.name }}</XhPopoverTitle>
-                  <span>{{ selectedSource.code }}</span>
-                </div>
-                <div v-for="field in selectedSource.fields" :key="field.key" class="field-list-row">
-                  <span>{{ field.label }}</span>
-                  <code>{{ field.key }}</code>
-                </div>
-              </div>
-            </XhPopoverContent>
-          </XhPopoverPositioner>
-        </XhPopoverRoot>
-      </div>
+      </XhPopoverTrigger>
+      <XhPopoverPositioner>
+        <!-- 字段清单：数据源名称、编码与字段数在上面，字段一行一个，列表自己滚、表头不动 -->
+        <XhPopoverContent class="field-list">
+          <div class="field-list__header">
+            <div class="field-list__heading">
+              <XhPopoverTitle>{{ selectedSource.name }}</XhPopoverTitle>
+              <code class="field-list__code">{{ selectedSource.code }}</code>
+            </div>
+            <XhTagRoot variant="subtle" size="sm">
+              <XhTagLabel>{{ t('setting.print_template.field_count', { count: selectedSource.fields.length }) }}</XhTagLabel>
+            </XhTagRoot>
+          </div>
+          <XhScrollAreaRoot size="sm">
+            <XhScrollAreaViewport class="field-list__viewport">
+              <XhScrollAreaContent>
+                <ul class="field-list__items">
+                  <li v-for="field in selectedSource.fields" :key="field.key" class="field-list__item">
+                    <Icon class="field-list__kind" :icon="FIELD_KIND_ICONS[field.kind ?? 'text']" aria-hidden="true" />
+                    <span class="field-list__label" :title="field.label">{{ field.label }}</span>
+                    <code class="field-list__key" :title="field.key">{{ field.key }}</code>
+                  </li>
+                </ul>
+              </XhScrollAreaContent>
+            </XhScrollAreaViewport>
+            <XhScrollAreaScrollbar orientation="vertical">
+              <XhScrollAreaTrack>
+                <XhScrollAreaThumb />
+              </XhScrollAreaTrack>
+            </XhScrollAreaScrollbar>
+          </XhScrollAreaRoot>
+        </XhPopoverContent>
+      </XhPopoverPositioner>
+    </XhPopoverRoot>
+  </div>
 
-      <XhPopoverRoot v-if="unmatchedFieldCount > 0" placement="bottom">
-        <XhPopoverTrigger class="xh-linklike-trigger">
-          <Icon width="17" height="17" icon="tabler:alert-triangle" />
-          <span>{{ t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount }) }}</span>
-          <Icon width="16" height="16" icon="tabler:chevron-right" />
-        </XhPopoverTrigger>
-        <XhPopoverPositioner>
-          <XhPopoverContent :aria-label="t('setting.print_template.data_source_mismatch_compact', { count: unmatchedFieldCount })">
-            {{ t('setting.print_template.data_source_mismatch_warning', { count: unmatchedFieldCount }) }}
-          </XhPopoverContent>
-        </XhPopoverPositioner>
-      </XhPopoverRoot>
-    </div>
-    <XhFieldErrorText />
-  </XhFieldRoot>
+  <!-- 表单只给直接子项留项距，提示条自带的外边距会把它清掉，所以套一层 -->
+  <div v-if="unmatchedFieldCount > 0">
+    <XhAlertRoot tone="warning">
+      <XhAlertIndicator>
+        <Icon icon="tabler:alert-triangle" width="16" height="16" />
+      </XhAlertIndicator>
+      <XhAlertContent>
+        <XhAlertDescription>
+          {{ t('setting.print_template.data_source_mismatch_warning', { count: unmatchedFieldCount }) }}
+        </XhAlertDescription>
+      </XhAlertContent>
+    </XhAlertRoot>
+  </div>
 </template>
 
 <style scoped>
-.data-source-field {
+.data-source-actions {
   display: flex;
-  width: 100%;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.data-source-guidance {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  padding: 10px 12px;
-  color: var(--xh-fg-muted);
-  /* 说明卡按品牌色淡淡着色，跟着主题色走 */
-  border: 1px solid color-mix(in oklab, var(--xh-bg-brand) 28%, transparent);
-  border-radius: 8px;
-  background: color-mix(in oklab, var(--xh-bg-brand) 4%, transparent);
-}
-
-.data-source-guidance strong {
-  display: block;
-  color: var(--xh-fg-default);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.data-source-guidance p {
-  margin: 3px 0 0;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.data-source-actions,
-.field-list-heading,
-.field-list-row {
-  display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: var(--xh-space-2);
 }
 
-.compatibility-warning {
+/* 字段清单：定宽，表头不动，字段列表封顶后自己滚 */
+.field-list {
+  --xh-popover-max-w: var(--xh-overlay-max-w-lg);
+  --xh-popover-max-h: var(--xh-viewport-h-lg);
+  --xh-popover-gap: var(--xh-space-2);
+
+  inline-size: var(--xh-overlay-max-w-lg);
+}
+
+.field-list__header {
   display: flex;
-  width: 100%;
-  min-height: 34px;
-  padding: 6px 10px;
-  align-items: center;
-  gap: 7px;
-  /* 警示条与组件库提示条同一套兑法：淡底 12%、描边 40%、文字往前景色兑到 60%；悬停时底与线各加深一档 */
-  color: color-mix(in oklab, var(--xh-color-warning-600) 60%, var(--xh-fg-default));
-  font: inherit;
-  font-size: 12px;
-  text-align: left;
-  cursor: pointer;
-  border: 1px solid color-mix(in oklab, var(--xh-color-warning-600) 40%, var(--xh-bg-surface));
-  border-radius: 7px;
-  background: color-mix(in oklab, var(--xh-color-warning-600) 12%, var(--xh-bg-surface));
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--xh-space-3);
+  padding-block-end: var(--xh-space-3);
+  border-block-end: 1px solid var(--xh-border-subtle);
 }
 
-.compatibility-warning span {
-  flex: 1;
+.field-list__heading {
+  display: flex;
+  min-inline-size: 0;
+  flex-direction: column;
+  gap: var(--xh-space-1);
 }
 
-.compatibility-warning:hover {
-  border-color: color-mix(in oklab, var(--xh-color-warning-600) 60%, var(--xh-bg-surface));
-  background: color-mix(in oklab, var(--xh-color-warning-600) 18%, var(--xh-bg-surface));
-}
-
-.data-source-field-list {
-  max-height: 320px;
-  overflow-y: auto;
-}
-
-.field-list-heading {
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--xh-border-subtle);
-}
-
-.field-list-heading span,
-.field-list-row code {
+.field-list__code,
+.field-list__key {
+  overflow: hidden;
   color: var(--xh-fg-muted);
-  font-size: 12px;
+  font-family: var(--xh-font-family-mono);
+  font-size: var(--xh-text-caption-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.field-list-row {
-  padding: 8px 0;
+.field-list__viewport {
+  max-block-size: var(--xh-viewport-h-md);
+}
+
+.field-list__items {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.field-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--xh-space-2);
+  padding: var(--xh-space-1) var(--xh-space-2);
+  border-radius: var(--xh-shape-control);
+}
+
+.field-list__item:hover {
+  background: var(--xh-bg-subtle-hover);
+}
+
+.field-list__kind {
+  flex: none;
+  color: var(--xh-fg-subtle);
+}
+
+.field-list__label {
+  overflow: hidden;
+  flex: 1 1 auto;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-list__key {
+  flex: 0 1 auto;
+  text-align: end;
 }
 </style>

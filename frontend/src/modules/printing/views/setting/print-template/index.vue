@@ -34,6 +34,7 @@ import { PrintTemplateScope } from '../../../api/print-template.types'
 import { PRINT_TEMPLATE_PAGE_CODE } from './components/models'
 import SampleDataModal from './components/PrintSampleDataModal.vue'
 import TemplateEditor from './components/PrintTemplateEditor.vue'
+import MetadataModal from './components/PrintTemplateMetadataModal.vue'
 
 defineOptions({ name: 'SettingPrintTemplatePage' })
 
@@ -44,6 +45,9 @@ const schemaPageRef = ref<InstanceType<typeof SchemaPage> | null>(null)
 const editorRef = ref<InstanceType<typeof PrintTemplateEditor> | null>(null)
 const editorVisible = ref(false)
 const editorDetail = ref<PrintTemplateDetailDto | null>(null)
+const metadataVisible = ref(false)
+/** 编辑弹窗里的模板详情；null 是新增 */
+const metadataDetail = ref<PrintTemplateDetailDto | null>(null)
 const actionLoading = ref(false)
 const previewLoading = ref(false)
 const samplePreviewVisible = ref(false)
@@ -153,7 +157,8 @@ const schema = computed<PageSchema>(() => ({
       : []),
     { key: 'preview', title: t('setting.print_template.action_preview'), scope: 'row', icon: 'lucide:scan-eye', permission: 'setting.print-template.use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
     { key: 'direct', title: t('setting.print_template.action_direct'), scope: 'row', icon: 'lucide:printer', permission: 'setting.print-template.use', disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Enabled },
-    { key: 'edit', title: t('setting.print_template.action_edit'), scope: 'row', icon: 'lucide:pen', permission: 'setting.print-template.update', visible: () => canMaintain.value },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'setting.print-template.update', visible: () => canMaintain.value },
+    { key: 'design', title: t('setting.print_template.action_design'), scope: 'row', icon: 'lucide:pen-tool', permission: 'setting.print-template.update', visible: () => canMaintain.value },
     { key: 'toggle', title: t('setting.print_template.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PrintTemplateListItemDto).status === EnableStatus.Enabled, (row as unknown as PrintTemplateListItemDto).templateName), permission: 'setting.print-template.status', visible: () => canMaintain.value },
     { key: 'delete', title: t('setting.print_template.action_delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', permission: 'setting.print-template.delete', visible: () => canMaintain.value, disabled: row => (row as unknown as PrintTemplateListItemDto).status !== EnableStatus.Disabled },
   ],
@@ -163,13 +168,15 @@ const schema = computed<PageSchema>(() => ({
 function onAction(payload: SchemaActionPayload): void {
   const row = payload.row as unknown as PrintTemplateListItemDto | undefined
   if (payload.key === 'create') {
-    editorDetail.value = null
-    editorVisible.value = true
+    metadataDetail.value = null
+    metadataVisible.value = true
     return
   }
   if (!row)
     return
   if (payload.key === 'edit')
+    void openMetadata(row)
+  else if (payload.key === 'design')
     void openEditor(row)
   else if (payload.key === 'toggle')
     void toggleStatus(row)
@@ -179,6 +186,28 @@ function onAction(payload: SchemaActionPayload): void {
     void openSamplePreview(row)
   else if (payload.key === 'direct')
     void direct(row)
+}
+
+/** 加载最新详情（行版本）后打开编辑弹窗。 */
+async function openMetadata(row: PrintTemplateListItemDto): Promise<void> {
+  try {
+    metadataDetail.value = await printTemplateApi.detail(row.basicId, activeScope.value)
+    if (!metadataDetail.value)
+      throw new Error(t('setting.print_template.not_found'))
+    metadataVisible.value = true
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('setting.print_template.not_found'))
+  }
+}
+
+/** 元数据存好后刷新列表；新建的模板版面是空白的，接着打开设计器。 */
+function onMetadataSaved(detail: PrintTemplateDetailDto, created: boolean): void {
+  void schemaPageRef.value?.reload()
+  if (!created)
+    return
+  editorDetail.value = detail
+  editorVisible.value = true
 }
 
 /** 加载完整 JSON 后打开全屏设计器。 */
@@ -347,6 +376,14 @@ function remove(row: PrintTemplateListItemDto): void {
       :scope="activeScope"
       :global-mode="activeScope === PrintTemplateScope.Global"
       @saved="schemaPageRef?.reload()"
+    />
+
+    <MetadataModal
+      v-model:show="metadataVisible"
+      :detail="metadataDetail"
+      :scope="activeScope"
+      :global-mode="activeScope === PrintTemplateScope.Global"
+      @saved="onMetadataSaved"
     />
 
     <SampleDataModal

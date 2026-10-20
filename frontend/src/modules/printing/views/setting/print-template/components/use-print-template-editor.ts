@@ -1,8 +1,8 @@
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
-import type { PrintTemplateFormModel } from './models'
 /**
  * 打印模板编辑器会话 Composable。
- * 职责：集中管理元数据与设计草稿、未保存守卫、保存并发锁、样例预览、FIFO 直打和本地打印机偏好。
+ * 职责：集中管理已有模板的设计草稿、未保存守卫、保存并发锁、样例预览、FIFO 直打和本地打印机偏好；
+ * 模板的名称、编码、数据源等元数据在列表页的新增、编辑弹窗里改，这里只沿用详情里的那份。
  */
 import type PrintDesignerCanvas from './PrintDesignerCanvas.vue'
 import type { PrintDocument } from '~/printing/designer'
@@ -22,6 +22,7 @@ import {
 } from '~/printing'
 import { createEmptyPrintDocument } from '~/printing/designer'
 import { printTemplateApi } from '../../../../api/print-template'
+import { toPrintTemplateForm, toPrintTemplateUpdateInput } from './print-template-form'
 
 /** 编辑器父组件传入的响应式属性。 */
 interface PrintTemplateEditorProps {
@@ -50,12 +51,10 @@ export function usePrintTemplateEditor(
 ) {
   const { t } = useI18n()
   const designerRef = ref<InstanceType<typeof PrintDesignerCanvas> | null>(null)
-  const form = ref<PrintTemplateFormModel>(createDefaultForm())
   const draftTemplate = shallowRef<PrintDocument>(createEmptyPrintDocument())
   const currentDetail = ref<PrintTemplateDetailDto | null>(null)
   const designerKey = ref(0)
   const dirty = ref(false)
-  const resetting = ref(false)
   const designerReady = ref(false)
   const saveLoading = ref(false)
   const previewLoading = ref(false)
@@ -66,11 +65,9 @@ export function usePrintTemplateEditor(
   const selectedPrinter = ref<string | null>(null)
   let abortController = new AbortController()
 
-  const title = computed(() => currentDetail.value
-    ? t('setting.print_template.edit_title', { code: currentDetail.value.templateCode })
-    : t('setting.print_template.add_title'))
+  const title = computed(() => t('setting.print_template.design_title', { code: currentDetail.value?.templateCode ?? '' }))
   const canDirectPrint = computed(() => currentDetail.value?.status === EnableStatus.Enabled)
-  /** 设计器本机草稿的键：编辑已有模板时是模板 id，不同模板的草稿不串；新建时不给，设计器按页面地址区分 */
+  /** 设计器本机草稿的键：模板 id，不同模板的草稿不串 */
   const draftKey = computed(() => currentDetail.value?.basicId || undefined)
   const printerOptions = computed(() => [
     { label: t('setting.print_template.client_default_printer'), value: '' },
@@ -90,11 +87,6 @@ export function usePrintTemplateEditor(
     },
   )
 
-  watch(form, () => {
-    if (props.show && !resetting.value)
-      dirty.value = true
-  }, { deep: true })
-
   onMounted(() => window.addEventListener('beforeunload', preventUnload))
   onBeforeUnmount(() => {
     abortController.abort(new DOMException('打印模板编辑器已卸载。', 'AbortError'))
@@ -102,37 +94,30 @@ export function usePrintTemplateEditor(
     samplePreviewVisible.value = false
   })
 
-  /** 重置本次编辑会话并重新装载设计器。 */
+  /** 重置本次编辑会话并重新装载设计器；只打开已有模板，新模板先在列表页的新增弹窗里建好。 */
   async function resetEditor(): Promise<void> {
-    resetting.value = true
     designerReady.value = false
     abortController.abort()
     abortController = new AbortController()
     samplePreviewVisible.value = false
     let legacyFormat = false
     try {
-      currentDetail.value = props.detail
-      form.value = props.detail ? toForm(props.detail) : createDefaultForm()
-      if (props.detail) {
-        try {
-          draftTemplate.value = parsePrintTemplateJson(props.detail.templateJson, props.detail.templateCode)
-        }
-        catch (error) {
-          if (!(error instanceof PrintTemplateFormatError))
-            throw error
-          // 旧格式或损坏的模板打不开：换成空白模板并明确提示，保存后覆盖原内容
-          draftTemplate.value = createEmptyPrintDocument()
-          legacyFormat = true
-          toast.warning(t('setting.print_template.legacy_format_reset'))
-        }
+      const detail = props.detail
+      if (!detail)
+        throw new Error(t('setting.print_template.not_found'))
+      currentDetail.value = detail
+      try {
+        draftTemplate.value = parsePrintTemplateJson(detail.templateJson, detail.templateCode)
       }
-      else {
+      catch (error) {
+        if (!(error instanceof PrintTemplateFormatError))
+          throw error
+        // 旧格式或损坏的模板打不开：换成空白模板并明确提示，保存后覆盖原内容
         draftTemplate.value = createEmptyPrintDocument()
+        legacyFormat = true
+        toast.warning(t('setting.print_template.legacy_format_reset'))
       }
-      // 新建模板在用户填写稳定编码前没有可用的偏好存储键；此时保持客户端默认打印机，避免空编码阻断编辑器打开。
-      selectedPrinter.value = form.value.templateCode.trim()
-        ? getPreferredPrinter(form.value.templateCode)
-        : null
+      selectedPrinter.value = getPreferredPrinter(detail.templateCode)
       designerKey.value += 1
       await nextTick()
       dirty.value = legacyFormat
@@ -141,9 +126,6 @@ export function usePrintTemplateEditor(
     catch (error) {
       toast.danger((error as Error).message || t('setting.print_template.invalid_json'))
       emit('update:show', false)
-    }
-    finally {
-      resetting.value = false
     }
   }
 
@@ -166,18 +148,13 @@ export function usePrintTemplateEditor(
   }
 
   /**
-   * 保存模板；loading 锁阻止重复提交，行版本用于拒绝覆盖并行编辑，模板有错误级问题时拦下。
-   * @param metadataOverride 可选的设置抽屉隔离草稿；只有 API 成功后才写回主表单。
+   * 保存设计；loading 锁阻止重复提交，行版本用于拒绝覆盖并行编辑，模板有错误级问题时拦下。元数据沿用详情里的那份。
    * @returns 保存后的模板详情；校验失败、并发提交或接口失败时返回 null。
    */
-  async function save(metadataOverride?: PrintTemplateFormModel): Promise<PrintTemplateDetailDto | null> {
-    if (saveLoading.value)
+  async function save(): Promise<PrintTemplateDetailDto | null> {
+    const detail = currentDetail.value
+    if (saveLoading.value || !detail)
       return null
-    const effectiveForm = metadataOverride ?? form.value
-    if (!effectiveForm.templateCode.trim() || !effectiveForm.templateName.trim()) {
-      toast.warning(t('setting.print_template.required_fields'))
-      return null
-    }
     const errorCount = designerRef.value?.validate().filter(issue => issue.severity === 'error').length ?? 0
     if (errorCount > 0) {
       toast.warning(t('setting.print_template.save_blocked_issues', { count: errorCount }))
@@ -188,40 +165,16 @@ export function usePrintTemplateEditor(
 
     saveLoading.value = true
     try {
-      const common = {
-        scope: props.scope,
-        dataSourceCode: effectiveForm.dataSourceCode?.trim() || null,
-        templateName: effectiveForm.templateName.trim(),
+      const saved = await printTemplateApi.update(toPrintTemplateUpdateInput(
+        detail,
+        toPrintTemplateForm(detail),
         templateJson,
-        allowTenantUse: props.globalMode && effectiveForm.allowTenantUse,
-        sort: effectiveForm.sort,
-        remark: effectiveForm.remark.trim() || null,
-      }
-      const saved = currentDetail.value
-        ? await printTemplateApi.update({
-            ...common,
-            basicId: currentDetail.value.basicId,
-            rowVersion: currentDetail.value.rowVersion,
-          })
-        : await printTemplateApi.create({
-            ...common,
-            templateCode: effectiveForm.templateCode.trim(),
-            status: effectiveForm.status,
-          })
-
-      resetting.value = true
-      try {
-        // 先记为已保存、再换上存好的那份：新建模板的草稿在页面地址那把键下，换成模板 id 之前让设计器删掉它
-        designerRef.value?.markSaved()
-        currentDetail.value = saved
-        form.value = toForm(saved)
-        await nextTick()
-        dirty.value = false
-      }
-      finally {
-        resetting.value = false
-      }
-      selectedPrinter.value = getPreferredPrinter(saved.templateCode)
+        { scope: props.scope, globalMode: props.globalMode },
+      ))
+      // 存好后让设计器记为已保存，删掉这份模板的本机草稿
+      designerRef.value?.markSaved()
+      currentDetail.value = saved
+      dirty.value = false
       emit('saved', saved)
       toast.success(t('setting.print_template.save_success'))
       return saved
@@ -268,7 +221,7 @@ export function usePrintTemplateEditor(
       return
     directLoading.value = true
     try {
-      const saved = dirty.value || !currentDetail.value ? await save() : currentDetail.value
+      const saved = dirty.value ? await save() : currentDetail.value
       if (!saved)
         return
       if (saved.status !== EnableStatus.Enabled)
@@ -313,10 +266,11 @@ export function usePrintTemplateEditor(
   /** 更新本地偏好；空字符串表示交给客户端默认打印机。 */
   async function updatePrinterPreference(value: null | string): Promise<void> {
     selectedPrinter.value = value || null
-    if (!form.value.templateCode.trim())
+    const templateCode = currentDetail.value?.templateCode
+    if (!templateCode)
       return
     try {
-      await setPreferredPrinter(form.value.templateCode, selectedPrinter.value)
+      await setPreferredPrinter(templateCode, selectedPrinter.value)
     }
     catch (error) {
       toast.danger((error as Error).message)
@@ -362,7 +316,6 @@ export function usePrintTemplateEditor(
     dirty,
     draftKey,
     draftTemplate,
-    form,
     loadPrinters,
     onDesignerChanged,
     onDesignerReady,
@@ -379,31 +332,5 @@ export function usePrintTemplateEditor(
     setDesignerRef,
     title,
     updatePrinterPreference,
-  }
-}
-
-/** 创建新模板安全默认元数据。 */
-function createDefaultForm(): PrintTemplateFormModel {
-  return {
-    templateCode: '',
-    dataSourceCode: null,
-    templateName: '',
-    allowTenantUse: false,
-    status: EnableStatus.Enabled,
-    sort: 100,
-    remark: '',
-  }
-}
-
-/** 从详情创建独立表单对象。 */
-function toForm(detail: PrintTemplateDetailDto): PrintTemplateFormModel {
-  return {
-    templateCode: detail.templateCode,
-    dataSourceCode: detail.dataSourceCode,
-    templateName: detail.templateName,
-    allowTenantUse: detail.allowTenantUse,
-    status: detail.status,
-    sort: detail.sort,
-    remark: detail.remark ?? '',
   }
 }

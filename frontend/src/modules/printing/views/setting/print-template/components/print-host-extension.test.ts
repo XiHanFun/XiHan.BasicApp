@@ -1,7 +1,7 @@
 /**
  * 打印模板编辑器挂进设计器的宿主操作（print-host-extension.ts）的单元测试。
  *
- * 锁定：样例预览、直接打印、模板设置、返回列表进「文件」菜单并上工具栏；打印机是文件菜单里的单选子菜单，末尾一条刷新；
+ * 锁定：样例预览、直接打印、返回列表进「文件」菜单并上工具栏；打印机是文件菜单里的单选子菜单，末尾一条刷新；
  * 各条按编辑会话此刻的状态可用，执行时交给编辑会话。
  */
 import type { DesignerCommandMenuItem } from '~/designers'
@@ -36,7 +36,6 @@ function setup(overrides: Partial<State> = {}) {
     directPrint: vi.fn(),
     selectPrinter: vi.fn(),
     refreshPrinters: vi.fn(),
-    openTemplateSettings: vi.fn(),
     backToList: vi.fn(),
   }
   const extension = createPrintHostExtension({
@@ -67,14 +66,13 @@ function setup(overrides: Partial<State> = {}) {
 }
 
 describe('落点与文案', () => {
-  it('样例预览、直接打印、打印机、模板设置、返回列表依次进文件菜单；除打印机外都上工具栏', () => {
+  it('样例预览、直接打印、打印机、返回列表依次进文件菜单；除打印机外都上工具栏', () => {
     const { extension } = setup()
 
     expect(extension.commands?.map(item => [item.id, item.placement])).toEqual([
       [PRINT_HOST_COMMANDS.samplePreview, ['menubar:file', 'toolbar']],
       [PRINT_HOST_COMMANDS.directPrint, ['menubar:file', 'toolbar']],
       [PRINT_HOST_COMMANDS.printer, ['menubar:file']],
-      [PRINT_HOST_COMMANDS.templateSettings, ['menubar:file', 'toolbar']],
       [PRINT_HOST_COMMANDS.backToList, ['menubar:file', 'toolbar']],
     ])
   })
@@ -86,18 +84,17 @@ describe('落点与文案', () => {
     expect(label(PRINT_HOST_COMMANDS.samplePreview)).toBe('setting.print_template.sample_preview')
     expect(label(PRINT_HOST_COMMANDS.directPrint)).toBe('setting.print_template.direct_print')
     expect(label(PRINT_HOST_COMMANDS.printer)).toBe('setting.print_template.printer')
-    expect(label(PRINT_HOST_COMMANDS.templateSettings)).toBe('setting.print_template.template_settings')
     expect(label(PRINT_HOST_COMMANDS.backToList)).toBe('setting.print_template.back_to_list')
   })
 })
 
 describe('可用', () => {
-  it('设计器没装好时样例预览与直接打印不可用，模板设置照常可用', () => {
+  it('设计器没装好时样例预览与直接打印不可用，返回列表照常可用', () => {
     const { enabled } = setup({ ready: false })
 
     expect(enabled(PRINT_HOST_COMMANDS.samplePreview)).toBe(false)
     expect(enabled(PRINT_HOST_COMMANDS.directPrint)).toBe(false)
-    expect(enabled(PRINT_HOST_COMMANDS.templateSettings)).toBe(true)
+    expect(enabled(PRINT_HOST_COMMANDS.backToList)).toBe(true)
   })
 
   it('预览中不能再预览，直打中不能再直打；这份模板不能直打时直接打印不可用', () => {
@@ -152,15 +149,14 @@ describe('打印机子菜单', () => {
 })
 
 describe('执行', () => {
-  it('样例预览、直接打印、模板设置、返回列表交给编辑会话', () => {
+  it('样例预览、直接打印、返回列表交给编辑会话', () => {
     const { command, actions } = setup()
 
-    for (const id of [PRINT_HOST_COMMANDS.samplePreview, PRINT_HOST_COMMANDS.directPrint, PRINT_HOST_COMMANDS.templateSettings, PRINT_HOST_COMMANDS.backToList])
+    for (const id of [PRINT_HOST_COMMANDS.samplePreview, PRINT_HOST_COMMANDS.directPrint, PRINT_HOST_COMMANDS.backToList])
       command(id).run?.({} as never)
 
     expect(actions.openSamplePreview).toHaveBeenCalledTimes(1)
     expect(actions.directPrint).toHaveBeenCalledTimes(1)
-    expect(actions.openTemplateSettings).toHaveBeenCalledTimes(1)
     expect(actions.backToList).toHaveBeenCalledTimes(1)
   })
 })
