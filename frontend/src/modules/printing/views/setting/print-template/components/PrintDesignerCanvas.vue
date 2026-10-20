@@ -1,6 +1,6 @@
 <!--
   打印设计器工作区。
-  职责：承载 XiHan 打印设计器（<xh-print-designer>），给它字段树与样例数据（数据源的，或自由模板这次导入的），提供 JSON 模板的导出与回写；
+  职责：承载 XiHan 打印设计器（<xh-print-designer>），给它字段树与样例数据（数据源的，或自由模板这次导入的），工具栏上给设计器自带的 JSON 编辑框留一个入口；
   画布、物料、页面模板、标尺、属性与问题列表都由设计器提供。
 -->
 <script setup lang="ts">
@@ -15,13 +15,11 @@ import {
   ensureRemotePrintDataSourcesLoaded,
   getPrintDataSource,
   normalizePrintSampleData,
-  parsePrintTemplateJson,
   previewPrintDocument,
   toPrintDataFields,
 } from '~/printing'
 import { ensurePrintDesigner } from '~/printing/designer'
 import { PRINT_TEMPLATE_PAGE_CODE } from './models'
-import JsonTemplateModal from './PrintDesignerJsonModal.vue'
 
 defineOptions({ name: 'PrintDesignerCanvas' })
 
@@ -42,10 +40,6 @@ ensurePrintDesigner()
 
 const designerRef = ref<XhPrintDesigner | null>(null)
 const loadError = ref('')
-const jsonEditorVisible = ref(false)
-const jsonEditorText = ref('')
-const jsonEditorError = ref('')
-const jsonApplying = ref(false)
 
 /** 设计器设置（含面板布局、工具栏与新手引导走过与否）随用户存进用户设置，与打印模板页的列设置同一条记录 */
 const designerSettings = useDesignerSettings(PRINT_TEMPLATE_PAGE_CODE)
@@ -163,45 +157,9 @@ async function preview(data: Record<string, unknown> | Record<string, unknown>[]
   await previewPrintDocument(designer.schema, data)
 }
 
+/** 打开设计器自带的 JSON 编辑框：边改边校验，应用后整份换上、记一步撤销，经 schema-change 上报修改。 */
 function openJsonEditor(): void {
-  jsonEditorError.value = ''
-  exportCurrentTemplateToTextArea()
-  jsonEditorVisible.value = true
-}
-
-function exportCurrentTemplateToTextArea(): void {
-  try {
-    jsonEditorText.value = JSON.stringify(getJson(), null, 2)
-    jsonEditorError.value = ''
-  }
-  catch (error) {
-    jsonEditorError.value = (error as Error).message
-  }
-}
-
-function updateJsonEditorText(value: string): void {
-  jsonEditorText.value = value
-  jsonEditorError.value = ''
-}
-
-/** 回写前确认是当前格式的打印模板；赋给设计器即装载，撤销历史随之清空，按一次修改上报。 */
-function applyJsonTemplate(): void {
-  const designer = designerRef.value
-  if (!designer || jsonApplying.value)
-    return
-  jsonApplying.value = true
-  try {
-    const document = parsePrintTemplateJson(jsonEditorText.value)
-    designer.schema = document
-    emit('changed', designer.schema)
-    jsonEditorVisible.value = false
-  }
-  catch (error) {
-    jsonEditorError.value = (error as Error).message
-  }
-  finally {
-    jsonApplying.value = false
-  }
+  designerRef.value?.openJsonEditor()
 }
 
 defineExpose({ getJson, markSaved, preview, validate })
@@ -211,7 +169,7 @@ defineExpose({ getJson, markSaved, preview, validate })
   <div class="designer-shell">
     <div class="designer-toolbar">
       <slot name="template-actions" />
-      <XhButton variant="subtle" :disabled="Boolean(loadError)" @click="openJsonEditor">
+      <XhButton variant="subtle" :disabled="Boolean(loadError) || !designerRef" @click="openJsonEditor">
         <span><Icon icon="tabler:code" /></span>
         {{ t('setting.print_template.json_template') }}
       </XhButton>
@@ -219,18 +177,6 @@ defineExpose({ getJson, markSaved, preview, validate })
         <slot name="printer-actions" />
       </div>
     </div>
-
-    <JsonTemplateModal
-      :show="jsonEditorVisible"
-      :value="jsonEditorText"
-      :error="jsonEditorError"
-      :applying="jsonApplying"
-      :disabled="Boolean(loadError)"
-      @update:show="jsonEditorVisible = $event"
-      @update:value="updateJsonEditorText"
-      @export="exportCurrentTemplateToTextArea"
-      @apply="applyJsonTemplate"
-    />
 
     <XhAlertRoot v-if="loadError" tone="danger" class="designer-error">
       <XhAlertIndicator>
