@@ -3,6 +3,9 @@ import type { Ref } from 'vue'
 import { ref } from 'vue'
 import { useUserSettingSync } from '~/components/schema'
 
+/** 此刻生效的设置里开发者模式开没开：宿主自己的 JSON 类命令照它显隐，与设计器自带的「编辑 JSON」同一口径 */
+export { developerModeOf } from '@xihan-ui/designer-shell'
+
 /**
  * 设计器的设置（主题、面板布局、工具栏、新手引导走过与否，以及各款自己那一页）按用户存进用户设置，换浏览器、换电脑都在。
  *
