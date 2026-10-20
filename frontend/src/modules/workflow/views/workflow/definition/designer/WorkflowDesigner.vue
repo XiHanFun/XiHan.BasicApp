@@ -8,11 +8,12 @@ import { Icon, XInput, XSegmented } from '~/components'
 import { toast } from '~/composables'
 import { createXihanWorkflow, xihanWorkflowTexts } from '~/designers/flow'
 import { ensureFlowDesigner } from '~/designers/flow-designer'
+import { useDesignerSettings } from '~/designers/settings'
 import { downloadBlob } from '~/utils'
 import { workflowDefinitionApi } from '../../../../api'
 import { loadOrganizationDirectory } from '../../shared/workflow-directory'
 import { openDefinition, serializeDefinition } from './definition-codec'
-import { useFlowDesignerSettings } from './use-designer-settings'
+import { FLOW_DESIGNER_DEFAULT_SETTINGS } from './designer-settings'
 import { createWorkflowExtension } from './workflow-extension'
 
 /**
@@ -76,8 +77,9 @@ const workflowExtension = computed(() => {
 })
 
 const extensions = computed(() => [preset.value, workflowExtension.value])
-/** 设计器设置随用户存进用户设置，与流程定义页的列设置、搜索设置同一条记录 */
-const designerSettings = useFlowDesignerSettings('workflow_definition')
+/** 设计器设置（含面板布局、工具栏与新手引导走过与否）随用户存进用户设置，与流程定义页的列设置、搜索设置同一条记录 */
+const designerSettings = useDesignerSettings('workflow_definition', FLOW_DESIGNER_DEFAULT_SETTINGS)
+const { ready: settingsReady } = designerSettings
 const groupTexts = computed(() => xihanWorkflowTexts(locale.value))
 
 function applyExtensions(designer: XhFlowDesigner) {
@@ -106,13 +108,17 @@ function load(json: string): boolean {
   }
 }
 
-onMounted(() => {
-  if (designerRef.value) {
-    applyExtensions(designerRef.value)
-    designerSettings.attach(designerRef.value)
-  }
-  load(props.initialJson)
-})
+onMounted(() => load(props.initialJson))
+
+/** 设计器等用户设置取回后才挂上，第一次铺好时就有用户的设置；挂上时装扩展、设置与已读入的流程定义 */
+watch(designerRef, (designer) => {
+  if (!designer)
+    return
+  applyExtensions(designer)
+  designerSettings.attach(designer)
+  if (schema.value)
+    designer.schema = schema.value
+}, { flush: 'post' })
 
 watch(() => props.initialJson, json => load(json))
 
@@ -193,6 +199,7 @@ function handleSave() {
     <!-- 工具栏以下的高度全给当前视图；设计视图用 v-show 保留设计器：切到 JSON 再切回不卸载、不丢撤销历史 -->
     <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
       <xh-flow-designer
+        v-if="settingsReady"
         v-show="activeTab === 'design'"
         ref="designerRef"
         class="workflow-designer__canvas"

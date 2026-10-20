@@ -31,6 +31,7 @@ import {
 import { useAccessStore, useUserStore } from '~/stores'
 import { printTemplateApi } from '../../../api/print-template'
 import { PrintTemplateScope } from '../../../api/print-template.types'
+import { PRINT_TEMPLATE_PAGE_CODE } from './components/models'
 import SampleDataModal from './components/PrintSampleDataModal.vue'
 import TemplateEditor from './components/PrintTemplateEditor.vue'
 
@@ -126,7 +127,7 @@ const fields = computed<ListFieldSchema[]>(() => [
 ])
 
 const schema = computed<PageSchema>(() => ({
-  pageCode: 'setting.print-template',
+  pageCode: PRINT_TEMPLATE_PAGE_CODE,
   pageName: t('setting.print_template.page_name'),
   rowKey: 'basicId',
   fields: fields.value,
