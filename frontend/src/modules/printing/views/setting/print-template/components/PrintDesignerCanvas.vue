@@ -26,6 +26,11 @@ defineOptions({ name: 'PrintDesignerCanvas' })
 const props = defineProps<{
   dataSourceCode: null | string
   template: PrintDocument
+  /**
+   * 本机草稿的键：编辑已有模板时是模板 id；新建不给，设计器按页面地址区分。
+   * 草稿只在设置里开了自动保存时才写；宿主存好后调 markSaved()，设计器随之删掉草稿。
+   */
+  draftKey?: string
   /** 宿主的扩展：编辑器的操作写成命令挂进菜单栏与工具栏；引用要稳定，换引用设计器当作卸下再装上 */
   hostExtension?: PrintDesignerExtension
 }>()
@@ -186,6 +191,7 @@ defineExpose({ getJson, markSaved, preview, refreshCommands, validate })
       ref="designerRef"
       class="designer-host"
       data-testid="print-designer-canvas-stage"
+      :draft-key="draftKey"
       @schema-change="onSchemaChange"
       @settings-change="designerSettings.onSettingsChange"
       @fields-change="onFieldsChange"

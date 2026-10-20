@@ -70,6 +70,8 @@ export function usePrintTemplateEditor(
     ? t('setting.print_template.edit_title', { code: currentDetail.value.templateCode })
     : t('setting.print_template.add_title'))
   const canDirectPrint = computed(() => currentDetail.value?.status === EnableStatus.Enabled)
+  /** 设计器本机草稿的键：编辑已有模板时是模板 id，不同模板的草稿不串；新建时不给，设计器按页面地址区分 */
+  const draftKey = computed(() => currentDetail.value?.basicId || undefined)
   const printerOptions = computed(() => [
     { label: t('setting.print_template.client_default_printer'), value: '' },
     ...printers.value,
@@ -209,11 +211,12 @@ export function usePrintTemplateEditor(
 
       resetting.value = true
       try {
+        // 先记为已保存、再换上存好的那份：新建模板的草稿在页面地址那把键下，换成模板 id 之前让设计器删掉它
+        designerRef.value?.markSaved()
         currentDetail.value = saved
         form.value = toForm(saved)
         await nextTick()
         dirty.value = false
-        designerRef.value?.markSaved()
       }
       finally {
         resetting.value = false
@@ -357,6 +360,7 @@ export function usePrintTemplateEditor(
     directLoading,
     directPrint,
     dirty,
+    draftKey,
     draftTemplate,
     form,
     loadPrinters,
