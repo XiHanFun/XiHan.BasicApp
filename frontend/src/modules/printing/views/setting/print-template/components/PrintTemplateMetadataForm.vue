@@ -4,7 +4,6 @@
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
-import type { PrintDocument } from '~/printing/designer'
 import {
   XhFieldControl,
   XhFieldDescription,
@@ -25,7 +24,6 @@ defineOptions({ name: 'PrintTemplateMetadataForm' })
 defineProps<{
   editing: boolean
   globalMode: boolean
-  template: PrintDocument
 }>()
 
 const model = defineModel<PrintTemplateFormModel>({ required: true })
@@ -66,7 +64,7 @@ const { t } = useI18n()
       </XhFieldRoot>
     </XhFormFieldGroup>
 
-    <PrintTemplateDataSourceSettings v-model="model" :template="template" />
+    <PrintTemplateDataSourceSettings v-model="model" />
 
     <!-- 状态只在新建时定；已有模板在列表页启停 -->
     <XhFormFieldGroup v-if="!editing" name="status">
