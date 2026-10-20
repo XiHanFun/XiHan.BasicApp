@@ -183,6 +183,7 @@ const editMode = ref<'create' | 'edit'>('create')
 const editTargetId = ref<string | null>(null)
 const editJson = ref('')
 const designerKey = ref(0)
+const workflowDesignerRef = ref<InstanceType<typeof WorkflowDesigner> | null>(null)
 
 // 新建时开一张空白画布：编码/名称在「流程设置」中填写，节点从左侧面板拖入
 const emptyDefinitionJson = `{
@@ -224,6 +225,8 @@ async function handleDesignerSave(json: string) {
       await workflowDefinitionApi.updateDraft({ basicId: editTargetId.value, definitionJson: json })
       toast.success(t('workflow.definition.msg_updated'))
     }
+    // 记为已保存再关：设计器删掉本机草稿，下次打开这个流程不再提示恢复
+    workflowDesignerRef.value?.markSaved()
     editVisible.value = false
     reload()
   }
@@ -413,7 +416,9 @@ function onAction(payload: SchemaActionPayload) {
         </XhDialogTitle>
         <WorkflowDesigner
           :key="designerKey"
+          ref="workflowDesignerRef"
           class="workflow-designer-modal__body"
+          :draft-key="editTargetId ?? undefined"
           :initial-json="editJson"
           :lock-code="editMode === 'edit'"
           :saving="editLoading"

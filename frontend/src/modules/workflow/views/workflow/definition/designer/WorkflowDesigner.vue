@@ -31,6 +31,11 @@ const props = defineProps<{
   saving?: boolean
   /** 编辑已有草稿：编码与关联业务只读（后端更新草稿沿用原编码） */
   lockCode?: boolean
+  /**
+   * 本机草稿的键：编辑已有草稿时写定义 id，不同流程的草稿不串；新建不给，设计器按页面地址区分。
+   * 草稿只在设置里开了自动保存时才写；宿主存好后调 markSaved()，设计器随之删掉草稿。
+   */
+  draftKey?: string
 }>()
 
 const emit = defineEmits<{
@@ -183,6 +188,13 @@ function applyJsonToCanvas() {
 
 // ── 保存 ───────────────────────────────────────────────────────
 /** 设计器的 save 命令派发 save；正在保存时不再提交。错误级问题拦下保存，警告不拦；问题明细在设计器的问题列表里 */
+/** 宿主存好后调用：记为已保存，设计器随之删掉本机草稿，下次打开不再提示恢复 */
+function markSaved() {
+  designerRef.value?.markSaved()
+}
+
+defineExpose({ markSaved })
+
 function handleSave() {
   const designer = designerRef.value
   if (props.saving || !designer)
@@ -203,6 +215,7 @@ function handleSave() {
       v-if="settingsReady"
       ref="designerRef"
       class="workflow-designer__canvas"
+      :draft-key="draftKey"
       @schema-change="onSchemaChange"
       @dirty-change="onDirtyChange"
       @settings-change="designerSettings.onSettingsChange"
