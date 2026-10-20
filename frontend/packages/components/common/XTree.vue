@@ -55,7 +55,7 @@ const collection = computed(() => toNodes(props.data))
   <XhTreeRoot
     class="x-tree"
     :collection="collection"
-    :multiple="multiple"
+    :selection-mode="multiple ? 'multiple' : 'single'"
     :selection="selectedKeys"
     :expanded-value="expandedKeys"
     :cascade="cascade"

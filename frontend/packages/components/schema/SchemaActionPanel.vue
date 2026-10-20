@@ -88,7 +88,7 @@ const moreItemPrefix = computed(() => actionMenuPrefix(moreActions.value))
       v-if="moreOptions.length"
       trigger-as-child
       :collection="moreOptions"
-      @select="(details: { value: string }) => emit('action', details.value)"
+      @item-select="(details: { value: string }) => emit('action', details.value)"
     >
       <template #trigger>
         <!-- 窄屏只剩省略号图标：转成图标钮并补名字 -->

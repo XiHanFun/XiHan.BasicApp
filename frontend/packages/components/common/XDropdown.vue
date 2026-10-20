@@ -34,7 +34,7 @@ const byKey = computed(() => indexDropdownOptions(props.options))
     trigger-as-child
     :collection="collection"
     :placement="placement"
-    @select="(details: { value: string }) => emit('select', details.value)"
+    @item-select="(details: { value: string }) => emit('select', details.value)"
   >
     <template #trigger>
       <slot />

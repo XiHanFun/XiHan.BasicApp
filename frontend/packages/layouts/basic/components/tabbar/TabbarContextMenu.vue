@@ -59,7 +59,7 @@ watch(
     ref="rootRef"
     placement="bottom-start"
     @update:open="(open: boolean) => !open && emit('close')"
-    @select="(details: { value: string }) => emit('select', details.value)"
+    @item-select="(details: { value: string }) => emit('select', details.value)"
   >
     <!-- tabindex=-1 让占位触发区退出 Tab 序列（作者属性压过部件的 0），否则是一个看不见、没名字的停靠点；
          键盘入口在真实标签上：聚焦标签按菜单键或 Shift+F10 触发原生 contextmenu，另有工具栏的当前标签菜单钮 -->
