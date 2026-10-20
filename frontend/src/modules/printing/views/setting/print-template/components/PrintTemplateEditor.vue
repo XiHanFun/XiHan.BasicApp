@@ -41,6 +41,7 @@ const {
   directLoading,
   directPrint,
   dirty,
+  draftKey,
   draftTemplate,
   form,
   loadPrinters,
@@ -199,6 +200,7 @@ defineExpose({ confirmDiscard })
           :ref="bindCanvas"
           class="min-h-0 flex-1"
           :data-source-code="form.dataSourceCode"
+          :draft-key="draftKey"
           :host-extension="hostExtension"
           :template="draftTemplate"
           @changed="onDesignerChanged"
