@@ -43,6 +43,7 @@ const {
   draftTemplate,
   loadPrinters,
   onDesignerChanged,
+  onDesignerDirtyChange,
   onDesignerReady,
   openSamplePreview,
   preview,
@@ -119,6 +120,7 @@ defineExpose({ confirmDiscard })
           :host-extension="hostExtension"
           :template="draftTemplate"
           @changed="onDesignerChanged"
+          @dirty-change="onDesignerDirtyChange"
           @ready="onDesignerReady"
           @save="save"
         >

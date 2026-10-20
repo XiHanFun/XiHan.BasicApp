@@ -37,6 +37,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   changed: [template: PrintDocument]
+  dirtyChange: [dirty: boolean]
   ready: []
   save: []
 }>()
@@ -129,6 +130,11 @@ function onSchemaChange(event: Event): void {
     emit('changed', schema)
 }
 
+/** 有没有未保存的修改以设计器的判定为准：改了又撤销回原样时它报干净。 */
+function onDirtyChange(event: Event): void {
+  emit('dirtyChange', (event as PrintDesignerEventMap['dirty-change']).detail.dirty)
+}
+
 /**
  * 读取当前设计。
  * @returns 设计器里此刻的模板。
@@ -193,6 +199,7 @@ defineExpose({ getJson, markSaved, preview, refreshCommands, validate })
       data-testid="print-designer-canvas-stage"
       :draft-key="draftKey"
       @schema-change="onSchemaChange"
+      @dirty-change="onDirtyChange"
       @settings-change="designerSettings.onSettingsChange"
       @fields-change="onFieldsChange"
       @sample-data-change="onSampleDataChange"
