@@ -10,6 +10,7 @@
     "@xihan-flow/runtime": "catalog:",
     "@xihan-ui/designer-kit": "catalog:",
     "@xihan-ui/designer-shell": "catalog:",
+    "@xihan-ui/icons": "catalog:",
     "@xihan-ui/web-components": "catalog:",
     "@xihan/components": "workspace:*",
     "@xihan/composables": "workspace:*",

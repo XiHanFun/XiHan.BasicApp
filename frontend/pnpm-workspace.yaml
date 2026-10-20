@@ -131,6 +131,7 @@ catalog:
   '@xihan-ui/designer-kit': ^5.0.0
   '@xihan-ui/designer-shell': ^5.0.0
   '@xihan-ui/headless': ^5.0.0
+  '@xihan-ui/icons': ^5.0.0
   '@xihan-ui/motion': ^5.0.0
   '@xihan-ui/sound': ^5.0.0
   '@xihan-ui/styles': ^5.0.0

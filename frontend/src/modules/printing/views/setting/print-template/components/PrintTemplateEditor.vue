@@ -1,15 +1,17 @@
 <!--
   打印模板全屏编辑器。
   职责：维护元数据与设计 JSON、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好。
+  编辑器的操作（样例预览、直接打印、打印机、模板设置、返回列表）挂进设计器的菜单栏，保存走设计器的 save 命令；
+  标题、保存状态与模板信息放在菜单栏右边。
 -->
 <script setup lang="ts">
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
 import type { PrintTemplateFormModel } from './models'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerDescription, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFlex, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, ref, watch } from 'vue'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerDescription, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { computed, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { XSelect } from '~/components'
 import { Icon } from '~/iconify'
+import { createPrintHostExtension } from './print-host-extension'
 import DesignerCanvas from './PrintDesignerCanvas.vue'
 import SampleDataModal from './PrintSampleDataModal.vue'
 import MetadataForm from './PrintTemplateMetadataForm.vue'
@@ -29,7 +31,7 @@ const emit = defineEmits<{
   'update:show': [value: boolean]
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const {
   canDirectPrint,
   confirmDiscard,
@@ -68,6 +70,40 @@ const metadataIncomplete = computed(() => !form.value.templateCode.trim()
 const metadataDraftIncomplete = computed(() => !metadataDraft.value.templateCode.trim()
   || !metadataDraft.value.templateName.trim())
 const metadataDraftDirty = computed(() => !isSameMetadata(metadataDraft.value, metadataBaseline.value))
+
+const canvasRef = shallowRef<InstanceType<typeof DesignerCanvas> | null>(null)
+
+/** 画布实例交给编辑会话（保存、预览要读设计），这里另留一份用来刷新菜单栏上的宿主命令。 */
+function bindCanvas(instance: unknown): void {
+  setDesignerRef(instance)
+  canvasRef.value = instance as InstanceType<typeof DesignerCanvas> | null
+}
+
+/** 编辑器的操作写成设计器的命令，挂进菜单栏「文件」与工具栏；建一次，命令执行时现读编辑会话的状态。 */
+const hostExtension = createPrintHostExtension({
+  t: key => t(key),
+  ready: () => designerReady.value,
+  previewing: () => previewLoading.value,
+  printing: () => directLoading.value,
+  // 新模板先保存再打；已有模板停用了不能直打
+  canDirectPrint: () => currentDetail.value === null || canDirectPrint.value,
+  busy: () => saveLoading.value || directLoading.value,
+  printers: () => printerOptions.value,
+  selectedPrinter: () => selectedPrinter.value,
+  loadingPrinters: () => printerLoading.value,
+  openSamplePreview,
+  directPrint: () => void directPrint(),
+  selectPrinter: printer => void updatePrinterPreference(printer),
+  refreshPrinters: () => void loadPrinters(true),
+  openTemplateSettings: openMetadata,
+  backToList: () => void requestVisible(false),
+})
+
+// 编辑会话的状态变了设计器不知道：让它重算宿主命令的可用、打印机的勾与随语言变的文字
+watch(
+  [designerReady, previewLoading, directLoading, saveLoading, canDirectPrint, currentDetail, printerOptions, selectedPrinter, printerLoading, locale],
+  () => canvasRef.value?.refreshCommands(),
+)
 
 watch(
   () => props.show,
@@ -152,91 +188,39 @@ defineExpose({ confirmDiscard })
     @update:open="requestVisible"
   >
     <XhDialogContent class="print-template-editor-modal">
-      <XhDialogTitle>
-        <div class="template-settings-header">
-          <strong>{{ title }}</strong>
-          <XhTagRoot variant="subtle" :tone="dirty ? 'warning' : 'success'" size="sm">
-            <XhTagLabel>
-              {{ dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved') }}
-            </XhTagLabel>
-          </XhTagRoot>
-        </div>
+      <!-- 标题只给读屏作弹窗的名字；看得见的标题与保存状态在设计器菜单栏的右边，返回列表在「文件」菜单与工具栏上 -->
+      <XhDialogTitle class="sr-only">
+        {{ title }}
       </XhDialogTitle>
-      <XhDialogCloseTrigger v-if="!saveLoading && !directLoading" />
 
       <div class="editor-layout">
         <DesignerCanvas
           :key="designerKey"
-          :ref="setDesignerRef"
+          :ref="bindCanvas"
           class="min-h-0 flex-1"
           :data-source-code="form.dataSourceCode"
+          :host-extension="hostExtension"
           :template="draftTemplate"
           @changed="onDesignerChanged"
           @ready="onDesignerReady"
           @save="handleSave"
         >
-          <template #template-actions>
-            <div class="toolbar-primary-actions">
-              <XhButton variant="subtle" data-testid="print-template-save" tone="brand" :loading="saveLoading" :disabled="!designerReady" @click="handleSave">
-                <XhButtonIndicator />
-                <span><Icon icon="tabler:device-floppy" /></span>
-                <XhButtonLabel>{{ t('common.actions.save') }}</XhButtonLabel>
-              </XhButton>
-              <XhButton variant="subtle" :loading="previewLoading" :disabled="!designerReady" @click="openSamplePreview">
-                <XhButtonIndicator />
-                <span><Icon icon="tabler:eye" /></span>
-                <XhButtonLabel>{{ t('setting.print_template.sample_preview') }}</XhButtonLabel>
-              </XhButton>
-              <XhButton variant="subtle" tone="success" :loading="directLoading" :disabled="!designerReady || (currentDetail !== null && !canDirectPrint)" @click="directPrint">
-                <XhButtonIndicator />
-                <span><Icon icon="tabler:printer" /></span>
-                <XhButtonLabel>{{ t('setting.print_template.direct_print') }}</XhButtonLabel>
-              </XhButton>
-
-              <span class="action-divider" aria-hidden="true" />
-
-              <XhButton
-                data-testid="print-template-settings"
-                :tone="metadataIncomplete ? 'warning' : 'neutral'"
-                variant="subtle"
-                @click="openMetadata"
-              >
-                <span><Icon icon="tabler:settings" /></span>
-                {{ t('setting.print_template.template_settings') }}
-              </XhButton>
-              <XhTagRoot v-if="metadataIncomplete" variant="subtle" size="sm" tone="warning">
-                <XhTagLabel>
-                  {{ t('setting.print_template.metadata_incomplete') }}
-                </XhTagLabel>
-              </XhTagRoot>
-              <span v-else class="template-context" :title="form.dataSourceCode || t('setting.print_template.free_template')">
-                <Icon width="16" height="16" :icon="form.dataSourceCode ? 'tabler:database' : 'tabler:database-off'" />
-                {{ form.templateCode }} · {{ form.dataSourceCode || t('setting.print_template.free_template') }}
-              </span>
-            </div>
-          </template>
-
-          <template #printer-actions>
-            <XhFlex class="printer-actions" align="center" :wrap="false">
-              <XSelect
-                :value="selectedPrinter ?? ''"
-                :options="printerOptions"
-                class="printer-select"
-                @update:value="(value: string | number | (string | number)[] | null) => updatePrinterPreference(value as string | null)"
-              />
-              <XhButton
-                class="xh-icon-btn"
-                variant="ghost"
-                icon-only
-                :loading="printerLoading"
-                :title="t('setting.print_template.refresh_printers')"
-                :aria-label="t('setting.print_template.refresh_printers')"
-                @click="loadPrinters(true)"
-              >
-                <XhButtonIndicator />
-                <span><Icon icon="tabler:refresh" /></span>
-              </XhButton>
-            </XhFlex>
+          <template #menubar-end>
+            <XhTagRoot v-if="metadataIncomplete" variant="subtle" size="sm" tone="warning">
+              <XhTagLabel>
+                {{ t('setting.print_template.metadata_incomplete') }}
+              </XhTagLabel>
+            </XhTagRoot>
+            <span v-else class="template-context" :title="form.dataSourceCode || t('setting.print_template.free_template')">
+              <Icon class="shrink-0" width="16" height="16" :icon="form.dataSourceCode ? 'tabler:database' : 'tabler:database-off'" />
+              <span class="template-context__text">{{ form.templateCode }} · {{ form.dataSourceCode || t('setting.print_template.free_template') }}</span>
+            </span>
+            <strong class="template-title" :title="title">{{ title }}</strong>
+            <XhTagRoot class="shrink-0" variant="subtle" :tone="dirty ? 'warning' : 'success'" size="sm">
+              <XhTagLabel>
+                {{ dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved') }}
+              </XhTagLabel>
+            </XhTagRoot>
           </template>
         </DesignerCanvas>
       </div>
@@ -324,12 +308,6 @@ defineExpose({ confirmDiscard })
   overflow: hidden;
 }
 
-.print-template-editor-modal > [data-scope='dialog'][data-part='title'] {
-  flex: none;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--xh-border-subtle);
-}
-
 .editor-layout {
   display: flex;
   height: 100%;
@@ -338,50 +316,26 @@ defineExpose({ confirmDiscard })
   overflow: hidden;
 }
 
-.toolbar-primary-actions {
-  display: flex;
-  min-width: max-content;
-  align-items: center;
-  gap: 10px;
-}
-
-.action-divider {
-  width: 1px;
-  height: 24px;
-  margin: 0 2px;
-  background: var(--xh-border-default);
-}
-
+/* 菜单栏右边：模板信息弱一档、放不下先收窄，标题取正常字色，保存状态不收窄 */
 .template-context {
   display: inline-flex;
-  max-width: 320px;
+  min-width: 0;
   align-items: center;
-  gap: 6px;
-  overflow: hidden;
+  gap: var(--xh-space-1);
   color: var(--xh-fg-muted);
-  font-size: 12px;
+}
+
+.template-context__text,
+.template-title {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.printer-actions {
-  min-width: max-content;
-}
-
-.printer-select {
-  width: 238px;
-}
-
-.template-settings-header {
-  display: flex;
-  align-items: center;
-  gap: var(--xh-space-2);
-}
-
-.template-settings-header strong {
+.template-title {
+  min-width: 0;
   color: var(--xh-fg-default);
-  font-size: 18px;
-  font-weight: 600;
+  font-weight: var(--xh-font-weight-semibold);
 }
 
 /* 面板横向内衬已归零交给表单自管，头尾两段自己补回内衬 */
@@ -410,12 +364,6 @@ defineExpose({ confirmDiscard })
   border-radius: 50%;
   background: var(--xh-color-warning-500);
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--xh-color-warning-600) 12%, transparent);
-}
-
-@media (max-width: 1200px) {
-  .printer-select {
-    width: 210px;
-  }
 }
 
 @media (max-width: 520px) {
