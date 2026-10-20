@@ -127,9 +127,10 @@ export default {
     },
     designer: {
       untitled: 'Unbenannter Workflow',
-      tab_design: 'Design',
-      tab_json: 'JSON',
-      btn_save: 'Speichern',
+      engine_json: 'Engine-Definition (JSON)',
+      back_to_list: 'Zurück zur Liste',
+      saved: 'Gespeichert',
+      unsaved: 'Nicht gespeichert',
       btn_apply_json: 'Auf Canvas anwenden',
       save_blocked: '{count} Fehler gefunden. Beheben Sie sie in der Problemliste, bevor Sie speichern',
       edge_condition_placeholder: 'z. B. amount > 10000 oder outcome == \'approved\' (leer = bedingungslos)',

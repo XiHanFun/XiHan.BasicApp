@@ -9,7 +9,7 @@ import type {
   PageResult,
 } from '@/api'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload } from '~/components'
-import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogCloseTrigger, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, onMounted, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
@@ -405,11 +405,12 @@ function onAction(payload: SchemaActionPayload) {
       </XhDrawerContent>
     </XhDrawerRoot>
 
-    <!-- 创建/编辑（可视化设计器，内置 JSON 视图）：与打印模板编辑一样满屏打开 -->
+    <!-- 创建/编辑（可视化设计器）：与打印模板编辑一样满屏打开；标题只给读屏作弹窗的名字，返回列表在设计器的「文件」菜单与工具栏上 -->
     <XhDialogRoot v-model:open="editVisible">
       <XhDialogContent class="workflow-designer-modal">
-        <XhDialogTitle>{{ editMode === 'create' ? t('workflow.definition.create_title') : t('workflow.definition.edit_title') }}</XhDialogTitle>
-        <XhDialogCloseTrigger />
+        <XhDialogTitle class="sr-only">
+          {{ editMode === 'create' ? t('workflow.definition.create_title') : t('workflow.definition.edit_title') }}
+        </XhDialogTitle>
         <WorkflowDesigner
           :key="designerKey"
           class="workflow-designer-modal__body"
@@ -417,6 +418,7 @@ function onAction(payload: SchemaActionPayload) {
           :lock-code="editMode === 'edit'"
           :saving="editLoading"
           @save="handleDesignerSave"
+          @close="editVisible = false"
         />
       </XhDialogContent>
     </XhDialogRoot>
@@ -505,13 +507,7 @@ function onAction(payload: SchemaActionPayload) {
   --xh-dialog-positioner-padding: var(--xh-space-0);
 }
 
-.workflow-designer-modal > [data-scope='dialog'][data-part='title'] {
-  flex: none;
-  padding: var(--xh-space-4) var(--xh-space-6);
-  border-bottom: 1px solid var(--xh-border-subtle);
-}
-
-/* 标题以下的高度全给设计器 */
+/* 高度全给设计器 */
 .workflow-designer-modal > .workflow-designer-modal__body {
   flex: 1 1 0;
   min-height: 0;

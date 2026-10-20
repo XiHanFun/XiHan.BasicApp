@@ -127,9 +127,10 @@ export default {
     },
     designer: {
       untitled: '未命名的流程',
-      tab_design: '設計',
-      tab_json: 'JSON',
-      btn_save: '儲存',
+      engine_json: '引擎定義 JSON',
+      back_to_list: '返回列表',
+      saved: '已儲存',
+      unsaved: '未儲存',
       btn_apply_json: '套用至畫布',
       save_blocked: '有 {count} 個錯誤，請依問題清單修正後再儲存',
       edge_condition_placeholder: '例如 amount > 10000 或 outcome == \'approved\'（留空表示無條件）',

@@ -127,9 +127,10 @@ export default {
     },
     designer: {
       untitled: 'बिना नाम का वर्कफ़्लो',
-      tab_design: 'डिज़ाइन',
-      tab_json: 'JSON',
-      btn_save: 'सहेजें',
+      engine_json: 'इंजन परिभाषा JSON',
+      back_to_list: 'सूची पर वापस जाएं',
+      saved: 'सहेजा गया',
+      unsaved: 'सहेजा नहीं गया',
       btn_apply_json: 'कैनवास पर लागू करें',
       save_blocked: '{count} त्रुटियाँ मिलीं। सहेजने से पहले उन्हें समस्या सूची में ठीक करें',
       edge_condition_placeholder: 'जैसे amount > 10000 या outcome == \'approved\' (खाली छोड़ने पर कोई शर्त नहीं)',

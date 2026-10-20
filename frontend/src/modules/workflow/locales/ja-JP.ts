@@ -127,9 +127,10 @@ export default {
     },
     designer: {
       untitled: '無題のワークフロー',
-      tab_design: 'デザイン',
-      tab_json: 'JSON',
-      btn_save: '保存する',
+      engine_json: 'エンジン定義 JSON',
+      back_to_list: '一覧に戻る',
+      saved: '保存済み',
+      unsaved: '未保存の変更',
       btn_apply_json: 'キャンバスに適用',
       save_blocked: '{count} 件のエラーがあります。問題リストで修正してから保存してください',
       edge_condition_placeholder: '例: amount > 10000 または outcome == \'approved\'（空欄は無条件）',

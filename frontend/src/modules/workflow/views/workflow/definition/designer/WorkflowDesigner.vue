@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { WorkflowBusinessTypeDto } from '../../../../api'
 import type { FlowDesignerEventMap, FlowDocument, XhFlowDesigner } from '~/designers/flow'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhSeparator } from '@xihan-ui/vue'
+import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, getCurrentInstance, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon, XInput, XSegmented } from '~/components'
+import { XEditModal, XInput } from '~/components'
 import { toast } from '~/composables'
 import { createXihanWorkflow, xihanWorkflowTexts } from '~/designers/flow'
 import { ensureFlowDesigner } from '~/designers/flow-designer'
@@ -15,12 +15,15 @@ import { loadOrganizationDirectory } from '../../shared/workflow-directory'
 import { openDefinition, serializeDefinition } from './definition-codec'
 import { FLOW_DESIGNER_DEFAULT_SETTINGS } from './designer-settings'
 import { createWorkflowExtension } from './workflow-extension'
+import { createWorkflowHostExtension } from './workflow-host-extension'
 
 /**
  * 流程定义设计器：XiHan 流程设计器（<xh-flow-designer>）装上工作流引擎预设与 BasicApp 的扩展。
  *
- * 画布、节点面板、属性面板、问题列表、撤销重做、缩放、对齐分布与自动布局都由设计器提供；
- * 这里只管装载与保存、设计 / JSON 两个视图，以及经扩展接入的应用语义（见 workflow-extension.ts）。
+ * 菜单栏、画布、节点面板、属性面板、问题列表、撤销重做、缩放、对齐分布与自动布局都由设计器提供；
+ * 这里只管装载与保存、引擎定义 JSON 的弹窗，以及经扩展接入的应用语义（见 workflow-extension.ts）。
+ * 保存走设计器内置的 save 命令（「文件」菜单与 Ctrl / ⌘ + S）；引擎定义 JSON 与返回列表经宿主扩展挂进菜单栏
+ * （见 workflow-host-extension.ts）；流程名称、编码与保存状态放在菜单栏右边。
  */
 
 const props = defineProps<{
@@ -32,6 +35,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   save: [json: string]
+  /** 返回列表 */
+  close: []
 }>()
 
 const { t, locale } = useI18n()
@@ -42,7 +47,9 @@ const designerRef = ref<XhFlowDesigner | null>(null)
 /** 设计器里此刻的流程定义：随 schema-change 更新，供标题与编辑器提示 */
 const schema = shallowRef<FlowDocument>()
 
-const activeTab = ref<'design' | 'json'>('design')
+/** 设计器里有没有未保存的修改：随 dirty-change 更新 */
+const dirty = ref(false)
+const jsonVisible = ref(false)
 const jsonText = ref('')
 
 // ── 审批业务与审批人数据源 ─────────────────────────────────────
@@ -76,7 +83,17 @@ const workflowExtension = computed(() => {
   })
 })
 
-const extensions = computed(() => [preset.value, workflowExtension.value])
+/** 引擎定义 JSON 与返回列表挂进菜单栏；建一次、引用不变，保存状态变了只让设计器重算可用 */
+const hostExtension = createWorkflowHostExtension({
+  t: key => t(key),
+  saving: () => props.saving ?? false,
+  openEngineJson,
+  backToList: () => emit('close'),
+})
+
+watch(() => props.saving, () => designerRef.value?.requestUpdate())
+
+const extensions = computed(() => [preset.value, workflowExtension.value, hostExtension])
 /** 设计器设置（含面板布局、工具栏与新手引导走过与否）随用户存进用户设置，与流程定义页的列设置、搜索设置同一条记录 */
 const designerSettings = useDesignerSettings('workflow_definition', FLOW_DESIGNER_DEFAULT_SETTINGS)
 const { ready: settingsReady } = designerSettings
@@ -126,6 +143,13 @@ function onSchemaChange(event: Event) {
   schema.value = (event as FlowDesignerEventMap['schema-change']).detail.schema
 }
 
+function onDirtyChange(event: Event) {
+  dirty.value = (event as FlowDesignerEventMap['dirty-change']).detail.dirty
+}
+
+/** 编辑已有草稿时库里有一份，没改过就是已保存；新建的流程保存之前都是未保存 */
+const saved = computed(() => (props.lockCode ?? false) && !dirty.value)
+
 const identity = computed(() => {
   const data = schema.value?.data
   return {
@@ -141,30 +165,30 @@ function onExport(event: Event) {
   downloadBlob(blob, `${identity.value.code.trim() || 'workflow'}.${format}`)
 }
 
-// ── JSON 视图 ──────────────────────────────────────────────────
-watch(activeTab, (tab) => {
-  if (tab === 'json' && designerRef.value)
-    jsonText.value = serializeDefinition(designerRef.value.schema)
-})
+// ── 引擎定义 JSON ──────────────────────────────────────────────
+/** 打开弹窗编辑保存进库的那份引擎定义；设计器自带的「编辑 JSON」编辑的是设计器格式，两者并存 */
+function openEngineJson() {
+  if (!designerRef.value)
+    return
+  jsonText.value = serializeDefinition(designerRef.value.schema)
+  jsonVisible.value = true
+}
 
 function applyJsonToCanvas() {
   if (load(jsonText.value)) {
-    activeTab.value = 'design'
+    jsonVisible.value = false
     toast.success(t('workflow.designer.msg_json_applied'))
   }
 }
 
 // ── 保存 ───────────────────────────────────────────────────────
-/** 错误级问题拦下保存，警告不拦；问题明细在设计器的问题列表里 */
+/** 设计器的 save 命令派发 save；正在保存时不再提交。错误级问题拦下保存，警告不拦；问题明细在设计器的问题列表里 */
 function handleSave() {
-  if (activeTab.value === 'json' && !load(jsonText.value))
-    return
   const designer = designerRef.value
-  if (!designer)
+  if (props.saving || !designer)
     return
   const errors = designer.validate().filter(issue => issue.severity === 'error')
   if (errors.length > 0) {
-    activeTab.value = 'design'
     toast.warning(t('workflow.designer.save_blocked', { count: errors.length }))
     return
   }
@@ -173,55 +197,42 @@ function handleSave() {
 </script>
 
 <template>
-  <!-- 根不定高，高度由宿主给 -->
+  <!-- 根不定高，高度由宿主给；菜单栏、工具栏与画布都在设计器里 -->
   <div class="flex min-h-0 flex-col">
-    <!-- 工具栏：视图切换与正在编辑的流程在左，保存在右；画布自己的命令在设计器的工具栏里 -->
-    <div class="mb-2 flex flex-wrap items-center gap-x-1 gap-y-2">
-      <div class="flex min-w-0 items-center gap-1">
-        <XSegmented v-model:value="activeTab" class="shrink-0" :options="[{ value: 'design', label: t('workflow.designer.tab_design') }, { value: 'json', label: t('workflow.designer.tab_json') }]" size="sm" />
-        <XhSeparator orientation="vertical" class="workflow-designer__tool-divider !mx-1" />
-        <!-- 正在编辑的是哪个流程：名称为主，编码等宽小字为辅；编码不是状态，不套标签 -->
-        <div class="workflow-designer__identity">
-          <span class="workflow-designer__identity-name">{{ identity.name || t('workflow.designer.untitled') }}</span>
-          <span v-if="identity.code" class="workflow-designer__identity-code">{{ identity.code }}</span>
-        </div>
+    <xh-flow-designer
+      v-if="settingsReady"
+      ref="designerRef"
+      class="workflow-designer__canvas"
+      @schema-change="onSchemaChange"
+      @dirty-change="onDirtyChange"
+      @settings-change="designerSettings.onSettingsChange"
+      @save="handleSave"
+      @export="onExport"
+    >
+      <!-- 设计器把它转进外框，显示在菜单栏右边；这个容器常驻，宿主只换里面的内容。名称为主，编码等宽小字为辅 -->
+      <div slot="menubar-end" class="workflow-designer__identity">
+        <span class="workflow-designer__identity-name">{{ identity.name || t('workflow.designer.untitled') }}</span>
+        <span v-if="identity.code" class="workflow-designer__identity-code">{{ identity.code }}</span>
+        <XhTagRoot class="shrink-0" variant="subtle" size="sm" :tone="saved ? 'success' : 'warning'">
+          <XhTagLabel>{{ saved ? t('workflow.designer.saved') : t('workflow.designer.unsaved') }}</XhTagLabel>
+        </XhTagRoot>
       </div>
+    </xh-flow-designer>
 
-      <div class="ml-auto flex items-center gap-1">
-        <XhButton variant="subtle" size="sm" tone="brand" :loading="saving" @click="handleSave">
-          <XhButtonIndicator />
-          <Icon icon="lucide:save" />
-          <XhButtonLabel>{{ t('workflow.designer.btn_save') }}</XhButtonLabel>
-        </XhButton>
-      </div>
-    </div>
-
-    <!-- 工具栏以下的高度全给当前视图；设计视图用 v-show 保留设计器：切到 JSON 再切回不卸载、不丢撤销历史 -->
-    <div class="flex min-h-0 flex-1 flex-col overflow-hidden">
-      <xh-flow-designer
-        v-if="settingsReady"
-        v-show="activeTab === 'design'"
-        ref="designerRef"
-        class="workflow-designer__canvas"
-        @schema-change="onSchemaChange"
-        @settings-change="designerSettings.onSettingsChange"
-        @save="handleSave"
-        @export="onExport"
+    <XEditModal
+      v-model:show="jsonVisible"
+      :title="t('workflow.designer.engine_json')"
+      :width="960"
+      :save-text="t('workflow.designer.btn_apply_json')"
+      @save="applyJsonToCanvas"
+    >
+      <XInput
+        v-model:value="jsonText"
+        type="textarea"
+        class="workflow-designer__json font-mono"
+        :placeholder="t('workflow.designer.json_placeholder')"
       />
-
-      <!-- JSON 视图（文本域铺满视图、不走 autosize：autosize 的外壳另有滚动上限，与文本域自己的滚动叠成两条滚动条） -->
-      <div v-show="activeTab === 'json'" class="flex min-h-0 flex-1 flex-col gap-2">
-        <XInput
-          v-model:value="jsonText"
-          type="textarea"
-          class="workflow-designer__json min-h-0 flex-1 font-mono"
-          :placeholder="t('workflow.designer.json_placeholder')"
-        />
-        <XhButton variant="subtle" size="sm" @click="applyJsonToCanvas">
-          {{ t('workflow.designer.btn_apply_json') }}
-        </XhButton>
-      </div>
-    </div>
+    </XEditModal>
   </div>
 </template>
 
@@ -232,34 +243,22 @@ function handleSave() {
   min-block-size: 0;
 }
 
-/* 根已是视图里的 flex-1；视觉盒随根拉满，文本域在盒内拉伸到盒高，滚动只留文本域自己这一层 */
-.workflow-designer__json :deep(.x-input__control) {
-  flex: 1 1 0;
-  min-block-size: 0;
-  align-items: stretch;
-}
-
+/* 引擎定义 JSON 一屏放得下常见的流程，再长就在文本域里滚动 */
 .workflow-designer__json :deep(textarea) {
-  resize: none;
+  block-size: var(--xh-viewport-h-lg);
+  resize: vertical;
 }
 
-/* 工具栏的竖分隔线与组件库 Toolbar 同一把尺：条目高的一半、垂直居中 */
-.workflow-designer__tool-divider {
-  align-self: center;
-  block-size: calc(var(--xh-control-h-sm) / 2);
-  min-block-size: 0;
-}
-
+/* 菜单栏右边：放不下时名称与编码先收窄，保存状态不收窄 */
 .workflow-designer__identity {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: var(--xh-space-2);
   min-inline-size: 0;
 }
 
 .workflow-designer__identity-name {
   overflow: hidden;
-  font-size: var(--xh-text-label-size);
   font-weight: var(--xh-font-weight-semibold);
   color: var(--xh-fg-default);
   text-overflow: ellipsis;
