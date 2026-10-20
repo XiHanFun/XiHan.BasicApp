@@ -15,3 +15,6 @@ export interface PrintTemplateFormModel {
   templateCode: string
   templateName: string
 }
+
+/** 打印模板页的设置键：列设置、搜索设置与打印设计器的设置同一条用户设置记录。 */
+export const PRINT_TEMPLATE_PAGE_CODE = 'setting.print-template'

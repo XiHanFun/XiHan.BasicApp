@@ -6,8 +6,9 @@
 <script setup lang="ts">
 import type { PrintDesignerEventMap, PrintDocument, XhPrintDesigner } from '~/printing/designer'
 import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton } from '@xihan-ui/vue'
-import { onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useDesignerSettings } from '~/designers/settings'
 import { Icon } from '~/iconify'
 import {
   createDefaultPrintSampleData,
@@ -19,6 +20,7 @@ import {
   toPrintDataFields,
 } from '~/printing'
 import { ensurePrintDesigner } from '~/printing/designer'
+import { PRINT_TEMPLATE_PAGE_CODE } from './models'
 import JsonTemplateModal from './PrintDesignerJsonModal.vue'
 
 defineOptions({ name: 'PrintDesignerCanvas' })
@@ -45,9 +47,17 @@ const jsonEditorText = ref('')
 const jsonEditorError = ref('')
 const jsonApplying = ref(false)
 
-onMounted(() => {
+/** 设计器设置（含面板布局、工具栏与新手引导走过与否）随用户存进用户设置，与打印模板页的列设置同一条记录 */
+const designerSettings = useDesignerSettings(PRINT_TEMPLATE_PAGE_CODE)
+const { ready: settingsReady } = designerSettings
+
+/** 设计器等用户设置取回后才挂上，第一次铺好时就有用户的设置；挂上时赋设置，再装载模板与数据源 */
+watch(designerRef, (designer) => {
+  if (!designer)
+    return
+  designerSettings.attach(designer)
   void initialize()
-})
+}, { flush: 'post' })
 
 watch(() => props.dataSourceCode, () => {
   void applyDataSource()
@@ -208,10 +218,12 @@ defineExpose({ getJson, markSaved, preview, validate })
     </XhAlertRoot>
 
     <xh-print-designer
+      v-if="settingsReady"
       ref="designerRef"
       class="designer-host"
       data-testid="print-designer-canvas-stage"
       @schema-change="onSchemaChange"
+      @settings-change="designerSettings.onSettingsChange"
       @save="emit('save')"
     />
   </div>
