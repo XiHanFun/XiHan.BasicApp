@@ -1,7 +1,8 @@
 /**
  * 流程定义设计器挂进菜单栏的宿主操作（workflow-host-extension.ts）的单元测试。
  *
- * 锁定：引擎定义 JSON 与返回列表进「文件」菜单，返回列表也上工具栏；保存中不许返回列表；执行时交给宿主。
+ * 锁定：引擎定义 JSON 与返回列表进「文件」菜单，返回列表也上工具栏；引擎定义 JSON 只在开发者模式开着时有；
+ * 保存中不许返回列表；执行时交给宿主。
  */
 import { describe, expect, it, vi } from 'vitest'
 import { createWorkflowHostExtension, WORKFLOW_HOST_COMMANDS } from './workflow-host-extension'
@@ -38,6 +39,23 @@ describe('落点与文案', () => {
     expect(extension.commands?.every(item => item.id.startsWith(`${extension.id}.`) && item.icon !== undefined)).toBe(true)
     expect(label(WORKFLOW_HOST_COMMANDS.engineJson)).toBe('workflow.designer.engine_json')
     expect(label(WORKFLOW_HOST_COMMANDS.backToList)).toBe('workflow.designer.back_to_list')
+  })
+})
+
+describe('开发者模式', () => {
+  const visible = (id: string, settings: Record<string, unknown>) => {
+    const { command } = setup()
+    return command(id).visible?.({ settings } as never) ?? true
+  }
+
+  it('关着时没有引擎定义 JSON，与设计器自带的「编辑 JSON」同一口径；开着时才有', () => {
+    expect(visible(WORKFLOW_HOST_COMMANDS.engineJson, {})).toBe(false)
+    expect(visible(WORKFLOW_HOST_COMMANDS.engineJson, { 'general.developer': false })).toBe(false)
+    expect(visible(WORKFLOW_HOST_COMMANDS.engineJson, { 'general.developer': true })).toBe(true)
+  })
+
+  it('返回列表不受开发者模式影响', () => {
+    expect(visible(WORKFLOW_HOST_COMMANDS.backToList, {})).toBe(true)
   })
 })
 
