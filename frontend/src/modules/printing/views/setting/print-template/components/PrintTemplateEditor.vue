@@ -1,20 +1,18 @@
 <!--
   打印模板全屏编辑器。
-  职责：维护元数据与设计 JSON、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好。
-  编辑器的操作（样例预览、直接打印、打印机、模板设置、返回列表）挂进设计器的菜单栏，保存走设计器的 save 命令；
-  标题、保存状态与模板信息放在菜单栏右边。
+  职责：设计已有模板的版面、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好。
+  编辑器的操作（样例预览、直接打印、打印机、返回列表）挂进设计器的菜单栏，保存走设计器的 save 命令；
+  模板名称、编码、所绑数据源与保存状态放在菜单栏右边。名称、编码、数据源等在列表页的编辑弹窗里改。
 -->
 <script setup lang="ts">
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
-import type { PrintTemplateFormModel } from './models'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhDialogContent, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerDescription, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
-import { computed, ref, shallowRef, watch } from 'vue'
+import { XhDialogContent, XhDialogRoot, XhDialogTitle, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Icon } from '~/iconify'
+import { DesignerMenubarTitle } from '~/designers'
 import { createPrintHostExtension } from './print-host-extension'
 import DesignerCanvas from './PrintDesignerCanvas.vue'
 import SampleDataModal from './PrintSampleDataModal.vue'
-import MetadataForm from './PrintTemplateMetadataForm.vue'
 import { usePrintTemplateEditor } from './use-print-template-editor'
 
 defineOptions({ name: 'PrintTemplateEditor' })
@@ -43,7 +41,6 @@ const {
   dirty,
   draftKey,
   draftTemplate,
-  form,
   loadPrinters,
   onDesignerChanged,
   onDesignerReady,
@@ -62,16 +59,6 @@ const {
   updatePrinterPreference,
 } = usePrintTemplateEditor(props, emit)
 
-const metadataVisible = ref(false)
-const metadataSessionKey = ref(0)
-const metadataDraft = ref<PrintTemplateFormModel>(cloneMetadata(form.value))
-const metadataBaseline = ref<PrintTemplateFormModel>(cloneMetadata(form.value))
-const metadataIncomplete = computed(() => !form.value.templateCode.trim()
-  || !form.value.templateName.trim())
-const metadataDraftIncomplete = computed(() => !metadataDraft.value.templateCode.trim()
-  || !metadataDraft.value.templateName.trim())
-const metadataDraftDirty = computed(() => !isSameMetadata(metadataDraft.value, metadataBaseline.value))
-
 const canvasRef = shallowRef<InstanceType<typeof DesignerCanvas> | null>(null)
 
 /** 画布实例交给编辑会话（保存、预览要读设计），这里另留一份用来刷新菜单栏上的宿主命令。 */
@@ -86,8 +73,8 @@ const hostExtension = createPrintHostExtension({
   ready: () => designerReady.value,
   previewing: () => previewLoading.value,
   printing: () => directLoading.value,
-  // 新模板先保存再打；已有模板停用了不能直打
-  canDirectPrint: () => currentDetail.value === null || canDirectPrint.value,
+  // 停用的模板不能直打
+  canDirectPrint: () => canDirectPrint.value,
   busy: () => saveLoading.value || directLoading.value,
   printers: () => printerOptions.value,
   selectedPrinter: () => selectedPrinter.value,
@@ -96,7 +83,6 @@ const hostExtension = createPrintHostExtension({
   directPrint: () => void directPrint(),
   selectPrinter: printer => void updatePrinterPreference(printer),
   refreshPrinters: () => void loadPrinters(true),
-  openTemplateSettings: openMetadata,
   backToList: () => void requestVisible(false),
 })
 
@@ -105,77 +91,6 @@ watch(
   [designerReady, previewLoading, directLoading, saveLoading, canDirectPrint, currentDetail, printerOptions, selectedPrinter, printerLoading, locale],
   () => canvasRef.value?.refreshCommands(),
 )
-
-watch(
-  () => props.show,
-  (show) => {
-    if (!show)
-      metadataVisible.value = false
-  },
-)
-
-/** 打开设置抽屉并创建隔离草稿，使关闭抽屉不会污染当前设计会话。 */
-function openMetadata(): void {
-  const snapshot = cloneMetadata(form.value)
-  metadataDraft.value = snapshot
-  metadataBaseline.value = cloneMetadata(snapshot)
-  metadataSessionKey.value += 1
-  metadataVisible.value = true
-}
-
-/** 关闭设置抽屉并丢弃尚未提交的局部草稿。 */
-function cancelMetadata(): void {
-  if (saveLoading.value)
-    return
-  metadataDraft.value = cloneMetadata(metadataBaseline.value)
-  metadataVisible.value = false
-}
-
-/** 接收抽屉遮罩或关闭按钮的可见性变化，并统一走取消语义。 */
-function handleMetadataVisible(value: boolean): void {
-  if (!value)
-    cancelMetadata()
-}
-
-/** 使用抽屉草稿保存完整模板；API 成功后才写回主会话并关闭抽屉。 */
-async function saveMetadata(): Promise<void> {
-  if (saveLoading.value || metadataDraftIncomplete.value)
-    return
-  const savedDetail = await save(cloneMetadata(metadataDraft.value))
-  if (!savedDetail)
-    return
-  metadataBaseline.value = cloneMetadata(form.value)
-  metadataDraft.value = cloneMetadata(form.value)
-  metadataVisible.value = false
-}
-
-/**
- * 保存当前设计；基础信息缺失时先打开设置抽屉，避免用户只收到提示却找不到填写入口。
- * @returns 无返回值；成功后关闭设置抽屉，失败信息由编辑会话统一提示。
- */
-async function handleSave(): Promise<void> {
-  if (metadataIncomplete.value) {
-    openMetadata()
-    return
-  }
-  await save()
-}
-
-/** 克隆扁平元数据对象，阻断抽屉草稿与主表单之间的响应式引用共享。 */
-function cloneMetadata(value: PrintTemplateFormModel): PrintTemplateFormModel {
-  return { ...value }
-}
-
-/** 比较两个元数据快照；字段均为标量，逐字段比较比 JSON 序列化更明确且无额外分配。 */
-function isSameMetadata(left: PrintTemplateFormModel, right: PrintTemplateFormModel): boolean {
-  return left.allowTenantUse === right.allowTenantUse
-    && left.dataSourceCode === right.dataSourceCode
-    && left.remark === right.remark
-    && left.sort === right.sort
-    && left.status === right.status
-    && left.templateCode === right.templateCode
-    && left.templateName === right.templateName
-}
 
 defineExpose({ confirmDiscard })
 </script>
@@ -199,85 +114,39 @@ defineExpose({ confirmDiscard })
           :key="designerKey"
           :ref="bindCanvas"
           class="min-h-0 flex-1"
-          :data-source-code="form.dataSourceCode"
+          :data-source-code="currentDetail?.dataSourceCode ?? null"
           :draft-key="draftKey"
           :host-extension="hostExtension"
           :template="draftTemplate"
           @changed="onDesignerChanged"
           @ready="onDesignerReady"
-          @save="handleSave"
+          @save="save"
         >
+          <!-- 菜单栏右边：模板名称、编码、所绑数据源与保存状态，与流程编辑器同一个样子 -->
           <template #menubar-end>
-            <XhTagRoot v-if="metadataIncomplete" variant="subtle" size="sm" tone="warning">
-              <XhTagLabel>
-                {{ t('setting.print_template.metadata_incomplete') }}
-              </XhTagLabel>
-            </XhTagRoot>
-            <span v-else class="template-context" :title="form.dataSourceCode || t('setting.print_template.free_template')">
-              <Icon class="shrink-0" width="16" height="16" :icon="form.dataSourceCode ? 'tabler:database' : 'tabler:database-off'" />
-              <span class="template-context__text">{{ form.templateCode }} · {{ form.dataSourceCode || t('setting.print_template.free_template') }}</span>
-            </span>
-            <strong class="template-title" :title="title">{{ title }}</strong>
-            <XhTagRoot class="shrink-0" variant="subtle" :tone="dirty ? 'warning' : 'success'" size="sm">
-              <XhTagLabel>
-                {{ dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved') }}
-              </XhTagLabel>
-            </XhTagRoot>
+            <DesignerMenubarTitle
+              :name="currentDetail?.templateName || title"
+              :code="currentDetail?.templateCode"
+              :saved="!dirty"
+              :status-text="dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved')"
+            >
+              <XhTagRoot variant="outline" size="sm" :title="t('setting.print_template.data_source')">
+                <XhTagLabel>{{ currentDetail?.dataSourceCode || t('setting.print_template.free_template') }}</XhTagLabel>
+              </XhTagRoot>
+            </DesignerMenubarTitle>
           </template>
         </DesignerCanvas>
       </div>
 
       <SampleDataModal
         v-model:show="samplePreviewVisible"
-        :data-source-code="form.dataSourceCode"
+        :data-source-code="currentDetail?.dataSourceCode ?? null"
         :submitting="previewLoading"
         :template="draftTemplate"
-        :template-code="form.templateCode || undefined"
-        :template-name="form.templateName || undefined"
+        :template-code="currentDetail?.templateCode"
+        :template-name="currentDetail?.templateName"
         @preview="preview"
       />
-
-      <XhDrawerRoot
-        :open="metadataVisible"
-        side="left"
-        :close-on-interact-outside="!saveLoading"
-        @update:open="handleMetadataVisible"
-      >
-        <!-- 取消与保存必须在抽屉面板里：抽屉是模态，面板外的按钮被遮罩与焦点陷阱挡住，新建模板永远存不上 -->
-        <XhDrawerContent class="print-template-settings-drawer" style="--xh-drawer-size: min(444px, 100vw); --xh-drawer-px: 0">
-          <XhDrawerHeader>
-            <XhDrawerTitle>{{ t('setting.print_template.template_settings') }}</XhDrawerTitle>
-            <XhDrawerDescription>{{ t('setting.print_template.template_settings_subtitle') }}</XhDrawerDescription>
-          </XhDrawerHeader>
-          <XhDrawerBody>
-            <MetadataForm
-              :key="metadataSessionKey"
-              v-model="metadataDraft"
-              :editing="Boolean(currentDetail)"
-              :global-mode="globalMode"
-              :template="draftTemplate"
-            />
-          </XhDrawerBody>
-          <XhDrawerFooter class="template-settings-footer">
-            <XhButton variant="subtle" :disabled="saveLoading" @click="cancelMetadata">
-              {{ t('common.actions.cancel') }}
-            </XhButton>
-            <XhButton
-              variant="subtle"
-              tone="brand"
-              :loading="saveLoading"
-              :disabled="metadataDraftIncomplete"
-              class="template-settings-submit"
-              @click="saveMetadata"
-            >
-              <XhButtonIndicator />
-              <XhButtonLabel>{{ t('setting.print_template.save_and_return') }}</XhButtonLabel>
-              <span v-if="metadataDraftDirty && !saveLoading" class="metadata-dirty-dot" aria-hidden="true" />
-            </XhButton>
-          </XhDrawerFooter>
-          <XhDrawerCloseTrigger />
-        </XhDrawerContent>
-      </XhDrawerRoot>
     </XhDialogContent>
   </XhDialogRoot>
 </template>
@@ -316,62 +185,5 @@ defineExpose({ confirmDiscard })
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
-}
-
-/* 菜单栏右边：模板信息弱一档、放不下先收窄，标题取正常字色，保存状态不收窄 */
-.template-context {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: var(--xh-space-1);
-  color: var(--xh-fg-muted);
-}
-
-.template-context__text,
-.template-title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.template-title {
-  min-width: 0;
-  color: var(--xh-fg-default);
-  font-weight: var(--xh-font-weight-semibold);
-}
-
-/* 面板横向内衬已归零交给表单自管，头尾两段自己补回内衬 */
-.print-template-settings-drawer > [data-scope='drawer'][data-part='header'],
-.print-template-settings-drawer > [data-scope='drawer'][data-part='footer'] {
-  padding-inline: var(--xh-surface-px-md);
-}
-
-.template-settings-footer > [data-scope='button'][data-part='root']:first-child {
-  min-width: 92px;
-}
-
-.template-settings-submit {
-  position: relative;
-  min-width: 210px;
-}
-
-.metadata-dirty-dot {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 7px;
-  height: 7px;
-  /* 描一圈面色把圆点从按钮底上抠出来，深浅两态都清楚 */
-  border: 1px solid var(--xh-bg-surface);
-  border-radius: 50%;
-  background: var(--xh-color-warning-500);
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--xh-color-warning-600) 12%, transparent);
-}
-
-@media (max-width: 520px) {
-  .template-settings-submit {
-    min-width: 0;
-    flex: 1;
-  }
 }
 </style>

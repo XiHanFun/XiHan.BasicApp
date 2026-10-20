@@ -1,10 +1,10 @@
 /**
  * 打印模板管理页内部表单模型。
- * 职责：在元数据表单、全屏编辑器和列表页之间共享强类型状态，不作为后端 API 契约导出。
+ * 职责：在列表页的新增、编辑弹窗与元数据表单之间共享强类型状态，不作为后端 API 契约导出。
  */
 import type { EnableStatus } from '@/api'
 
-/** 打印模板全屏编辑器表单。 */
+/** 打印模板元数据表单。 */
 export interface PrintTemplateFormModel {
   allowTenantUse: boolean
   /** null 表示自由模板，不绑定代码注册的数据契约。 */

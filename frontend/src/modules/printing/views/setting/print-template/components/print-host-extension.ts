@@ -1,5 +1,5 @@
 /**
- * 打印模板编辑器挂进打印设计器的宿主操作：样例预览、直接打印、打印机、模板设置与返回列表写成一个扩展的命令，
+ * 打印模板编辑器挂进打印设计器的宿主操作：样例预览、直接打印、打印机与返回列表写成一个扩展的命令，
  * 落在菜单栏的「文件」菜单里，常用的同时上工具栏；保存用设计器内置的 save 命令（Ctrl / ⌘ + S），不在这里。
  *
  * 命令只读编辑会话此刻的状态、执行时交回编辑会话；状态变了由宿主调设计器的 requestUpdate() 刷新可用与勾选，
@@ -7,7 +7,7 @@
  */
 import type { DesignerCommandMenuEntry } from '~/designers'
 import type { PrintDesignerExtension } from '~/printing/designer'
-import { ArrowLeftIcon, PrinterIcon, ReceiptIcon, RefreshIcon, SendIcon, SlidersHorizontalIcon } from '~/designers'
+import { ArrowLeftIcon, PrinterIcon, ReceiptIcon, RefreshIcon, SendIcon } from '~/designers'
 
 /** 宿主扩展的 id；命令 id 都以它加点开头 */
 export const PRINT_HOST_EXTENSION_ID = '@xihan/print-template'
@@ -16,7 +16,6 @@ export const PRINT_HOST_COMMANDS = {
   samplePreview: `${PRINT_HOST_EXTENSION_ID}.sample-preview`,
   directPrint: `${PRINT_HOST_EXTENSION_ID}.direct-print`,
   printer: `${PRINT_HOST_EXTENSION_ID}.printer`,
-  templateSettings: `${PRINT_HOST_EXTENSION_ID}.template-settings`,
   backToList: `${PRINT_HOST_EXTENSION_ID}.back-to-list`,
 } as const
 
@@ -48,7 +47,6 @@ export interface PrintHostOptions {
   selectPrinter: (printer: string | null) => void
   /** 强制刷新打印机列表 */
   refreshPrinters: () => void
-  openTemplateSettings: () => void
   backToList: () => void
 }
 
@@ -105,13 +103,6 @@ export function createPrintHostExtension(options: PrintHostOptions): PrintDesign
           else if (value.startsWith(PRINTER_VALUE_PREFIX))
             options.selectPrinter(value.slice(PRINTER_VALUE_PREFIX.length) || null)
         },
-      },
-      {
-        id: PRINT_HOST_COMMANDS.templateSettings,
-        label: () => t('setting.print_template.template_settings'),
-        icon: SlidersHorizontalIcon,
-        placement: ['menubar:file', 'toolbar'],
-        run: () => options.openTemplateSettings(),
       },
       {
         id: PRINT_HOST_COMMANDS.backToList,
