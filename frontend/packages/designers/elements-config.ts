@@ -1,6 +1,6 @@
 import type { XhConfig } from '@xihan-ui/web-components'
 import { mergeXhConfig, setXhConfig } from '@xihan-ui/web-components'
-import { watch } from 'vue'
+import { effectScope, watch } from 'vue'
 import { getScrollRoot } from '~/composables/useScrollRoot'
 import { i18n } from '~/locales'
 import { xhFallbackLocale, xhLocales } from '~/locales/xihan-ui'
@@ -11,6 +11,7 @@ import { xhFallbackLocale, xhLocales } from '~/locales/xihan-ui'
  * 应用自己的组件经 provideXhConfig 拿配置，Web Components 元素读的是另一份全局配置，两边不通；
  * 每款设计器装上时登记自己的语言包，这里把 UI 语言包与它们合并后整份写入，切语言时重写一遍。
  * 滚动源与 Vue 一侧取同一个，设计器里的对话框锁的也是内容容器。
+ * 第一次登记多在设计器组件的 setup 里：跟随语言的 watch 放进独立的作用域，组件卸载（关掉编辑器）后照样跟随。
  */
 
 /** 一款设计器按应用语言给出的语言包；没有这种语言时返回 undefined，界面落到元素缺省的英文。 */
@@ -36,5 +37,5 @@ export function registerXhElementsLocale(contribution: XhElementsLocale): void {
     return
   }
   watching = true
-  watch(() => i18n.global.locale.value, apply, { immediate: true })
+  effectScope(true).run(() => watch(() => i18n.global.locale.value, apply, { immediate: true }))
 }
