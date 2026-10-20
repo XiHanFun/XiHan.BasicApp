@@ -1,11 +1,11 @@
 <!--
   打印设计器工作区。
-  职责：承载 XiHan 打印设计器（<xh-print-designer>），给它字段树与样例数据（数据源的，或自由模板这次导入的），工具栏上给设计器自带的 JSON 编辑框留一个入口；
-  画布、物料、页面模板、标尺、属性与问题列表都由设计器提供。
+  职责：承载 XiHan 打印设计器（<xh-print-designer>），给它字段树与样例数据（数据源的，或自由模板这次导入的），装上宿主的扩展（编辑器的操作挂进菜单栏），
+  把宿主的标题与保存状态放进菜单栏右边一段（slot="menubar-end"）；画布、物料、页面模板、标尺、属性、问题列表、JSON 编辑与菜单栏都由设计器提供。
 -->
 <script setup lang="ts">
-import type { PrintDesignerEventMap, PrintDocument, XhPrintDesigner } from '~/printing/designer'
-import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton } from '@xihan-ui/vue'
+import type { PrintDesignerEventMap, PrintDesignerExtension, PrintDocument, XhPrintDesigner } from '~/printing/designer'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot } from '@xihan-ui/vue'
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDesignerSettings } from '~/designers/settings'
@@ -26,6 +26,8 @@ defineOptions({ name: 'PrintDesignerCanvas' })
 const props = defineProps<{
   dataSourceCode: null | string
   template: PrintDocument
+  /** 宿主的扩展：编辑器的操作写成命令挂进菜单栏与工具栏；引用要稳定，换引用设计器当作卸下再装上 */
+  hostExtension?: PrintDesignerExtension
 }>()
 
 const emit = defineEmits<{
@@ -45,11 +47,12 @@ const loadError = ref('')
 const designerSettings = useDesignerSettings(PRINT_TEMPLATE_PAGE_CODE)
 const { ready: settingsReady } = designerSettings
 
-/** 设计器等用户设置取回后才挂上，第一次铺好时就有用户的设置；挂上时赋设置，再装载模板与数据源 */
+/** 设计器等用户设置取回后才挂上，第一次铺好时就有用户的设置；挂上时赋设置与宿主的扩展，再装载模板与数据源 */
 watch(designerRef, (designer) => {
   if (!designer)
     return
   designerSettings.attach(designer)
+  designer.extensions = props.hostExtension ? [props.hostExtension] : undefined
   void initialize()
 }, { flush: 'post' })
 
@@ -157,27 +160,16 @@ async function preview(data: Record<string, unknown> | Record<string, unknown>[]
   await previewPrintDocument(designer.schema, data)
 }
 
-/** 打开设计器自带的 JSON 编辑框：边改边校验，应用后整份换上、记一步撤销，经 schema-change 上报修改。 */
-function openJsonEditor(): void {
-  designerRef.value?.openJsonEditor()
+/** 宿主的状态变了（如保存中、打印机列表到了）：让设计器重算菜单栏与工具栏上宿主命令的可用与勾选。 */
+function refreshCommands(): void {
+  designerRef.value?.requestUpdate()
 }
 
-defineExpose({ getJson, markSaved, preview, validate })
+defineExpose({ getJson, markSaved, preview, refreshCommands, validate })
 </script>
 
 <template>
   <div class="designer-shell">
-    <div class="designer-toolbar">
-      <slot name="template-actions" />
-      <XhButton variant="subtle" :disabled="Boolean(loadError) || !designerRef" @click="openJsonEditor">
-        <span><Icon icon="tabler:code" /></span>
-        {{ t('setting.print_template.json_template') }}
-      </XhButton>
-      <div class="designer-toolbar__end">
-        <slot name="printer-actions" />
-      </div>
-    </div>
-
     <XhAlertRoot v-if="loadError" tone="danger" class="designer-error">
       <XhAlertIndicator>
         <Icon icon="lucide:alert-circle" width="16" />
@@ -199,7 +191,12 @@ defineExpose({ getJson, markSaved, preview, validate })
       @fields-change="onFieldsChange"
       @sample-data-change="onSampleDataChange"
       @save="emit('save')"
-    />
+    >
+      <!-- 设计器把它转进外框，显示在菜单栏右边；这个容器常驻，宿主只换里面的内容 -->
+      <div slot="menubar-end" class="designer-menubar-end">
+        <slot name="menubar-end" />
+      </div>
+    </xh-print-designer>
   </div>
 </template>
 
@@ -211,21 +208,17 @@ defineExpose({ getJson, markSaved, preview, validate })
   gap: var(--xh-space-2);
 }
 
-/* 模板动作在左、打印机在右，放不下时整组换行 */
-.designer-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--xh-space-2);
-}
-
-.designer-toolbar__end {
-  margin-inline-start: auto;
-}
-
 /* 设计器铺满自身：宿主给它定高，这里是编辑器列里的 flex-1；display 用设计器样式自带的纵向 flex */
 .designer-host {
   flex: 1 1 0;
   min-block-size: 0;
+}
+
+/* 菜单栏右段里宿主的一行：放不下时跟着外框的右段一起收窄 */
+.designer-menubar-end {
+  display: flex;
+  min-inline-size: 0;
+  align-items: center;
+  gap: var(--xh-space-2);
 }
 </style>

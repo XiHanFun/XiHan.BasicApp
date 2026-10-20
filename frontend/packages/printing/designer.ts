@@ -14,7 +14,7 @@ import '@xihan-print/runtime/style.css'
 import '@xihan-print/designer/style.css'
 
 export type { PrintDocument } from '@xihan-print/core'
-export type { PrintDesignerEventMap, XhPrintDesigner } from '@xihan-print/designer'
+export type { PrintDesignerEventMap, PrintDesignerExtension, XhPrintDesigner } from '@xihan-print/designer'
 
 /** 语言标签 → 打印的语言包（设计器零件与预览、设计器的内建文案）。 */
 const PRINT_LOCALES: Readonly<Record<string, XhConfig>> = {

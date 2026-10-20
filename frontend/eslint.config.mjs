@@ -18,6 +18,8 @@ export default antfu(
       'vue/no-undef-components': ['error', {
         ignorePatterns: ['Xh.*', 'RouterView', 'RouterLink', 'router-view', 'router-link'],
       }],
+      // 设计器是原生 Web Components：写在它们直接子节点上的 slot 是原生插槽（如菜单栏右段的 menubar-end），不是 Vue 2 的旧插槽语法
+      'vue/no-deprecated-slot-attribute': ['error', { ignoreParents: ['/^xh-[a-z]+-designer$/'] }],
       'vue/multi-word-component-names': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
     },
