@@ -58,7 +58,7 @@ function choose(key: string) {
     trigger-as-child
     :collection="options"
     :placement="placement"
-    @select="(details: { value: string }) => choose(details.value)"
+    @item-select="(details: { value: string }) => choose(details.value)"
   >
     <template #trigger>
       <slot />

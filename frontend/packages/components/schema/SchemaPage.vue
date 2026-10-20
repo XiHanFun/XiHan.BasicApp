@@ -271,7 +271,7 @@ function renderRowActions(row: Row) {
       // 借用下面那颗按钮当触发器。不借的话菜单根会自己包一颗裸 button，
       // 而 menu 皮肤没有 trigger 这一部件，露出的是浏览器默认按钮样式
       triggerAsChild: true,
-      onSelect: (details: { value: string }) => dispatchAction(details.value, { key: details.value, scope: 'row', row }),
+      onItemSelect: (details: { value: string }) => dispatchAction(details.value, { key: details.value, scope: 'row', row }),
     },
     {
       trigger: () => h(
@@ -686,7 +686,7 @@ const skeletonColumns = computed(() => {
                 v-if="canSubmitExport"
                 trigger-as-child
                 :collection="exportMenuOptions"
-                @select="(details: { value: string }) => onExportSelect(details.value)"
+                @item-select="(details: { value: string }) => onExportSelect(details.value)"
               >
                 <template #trigger>
                   <XhButton class="x-icon-btn" variant="ghost" size="sm" icon-only :aria-label="t('component.schema_page.export_csv')">

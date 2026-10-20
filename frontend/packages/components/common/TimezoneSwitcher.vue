@@ -108,7 +108,7 @@ function onSelect(next: unknown) {
     trigger-as-child
     :collection="dropdownOptions"
     :placement="placement"
-    @select="(details: { value: string }) => choose(details.value)"
+    @item-select="(details: { value: string }) => choose(details.value)"
   >
     <template #trigger>
       <slot />
