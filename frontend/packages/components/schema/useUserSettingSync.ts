@@ -93,6 +93,12 @@ async function loadPayload(pageCode: string): Promise<Record<string, unknown>> {
   return pending
 }
 
+/** 拉取完成后读缓存里这个分区此刻的值（含本会话保存与其它设备推来的） */
+async function loadSection(pageCode: string, section: string): Promise<unknown> {
+  await loadPayload(pageCode)
+  return cache.get(pageCode)?.[section]
+}
+
 function saveSection(pageCode: string, section: string, value: unknown): void {
   // 该分区未开启同步：仅本地（由调用方写 localStorage），不更新合并缓存、不上行后端
   if (!isSectionSyncEnabled(section)) {
@@ -216,8 +222,7 @@ export function useUserSettingSync(pageCode: string): UserSettingSync {
       if (!isSectionSyncEnabled(section)) {
         return undefined
       }
-      const payload = await loadPayload(pageCode)
-      return payload[section] as T | undefined
+      return await loadSection(pageCode, section) as T | undefined
     },
     save: (section: string, value: unknown) => saveSection(pageCode, section, value),
     subscribeRemote: (section: string, listener: (value: unknown) => void) =>
@@ -229,7 +234,7 @@ export function useUserSettingSync(pageCode: string): UserSettingSync {
         const cached = cache.get(pageCode)
         return cached ? { value: cached[section] } : undefined
       },
-      load: () => loadPayload(pageCode).then(payload => payload[section]),
+      load: () => loadSection(pageCode, section),
       subscribe: listener => subscribeRemotePageSetting(pageCode, section, listener),
     }, target),
   }

@@ -1,7 +1,8 @@
 /**
  * 页面设置的分区绑定（useUserSettingSync.bindSection）。
  * 锁定：分区关着同步不请求后端；同一页的几个分区只拉一次，回来后各自应用并写回本地；
- * 本会话拉过的页再绑直接用缓存；其它设备推来的分发给对应分区并写回本地；退出登录后缓存清掉、再绑重新拉取。
+ * 本会话拉过的页再绑直接用缓存；其它设备推来的分发给对应分区并写回本地；推来以后再保存，hydrate 取的是保存后的值；
+ * 退出登录后缓存清掉、再绑重新拉取。
  */
 import type { SyncedSettingTarget } from '~/composables/useSyncedSetting'
 import { createPinia, setActivePinia } from 'pinia'
@@ -98,6 +99,18 @@ describe('开着同步', () => {
 
     expect(search.applied).toStrictEqual([['old'], []])
     expect(search.written).toStrictEqual([['old'], []])
+  })
+
+  it('其它设备推来以后本端再保存：hydrate 取到保存后的值，不是第一次拉取那份', async () => {
+    const sync = useUserSettingSync('page-e')
+    const first = sync.hydrate('designer')
+    resolveGet({ settingValue: JSON.stringify({ designer: { theme: 'light' } }) })
+    expect(await first).toStrictEqual({ theme: 'light' })
+
+    applyRemotePageSetting('page-e', JSON.stringify({ designer: { theme: 'dark' } }))
+    sync.save('designer', { theme: 'follow' })
+
+    expect(await sync.hydrate('designer')).toStrictEqual({ theme: 'follow' })
   })
 
   it('退出登录后缓存清掉：再绑重新拉取，不沿用上一个人的那份', async () => {
