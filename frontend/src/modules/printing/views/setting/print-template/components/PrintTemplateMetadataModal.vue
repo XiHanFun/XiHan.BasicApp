@@ -5,12 +5,10 @@
 <script setup lang="ts">
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
 import type { PrintTemplateFormModel } from './models'
-import type { PrintDocument } from '~/printing/designer'
-import { computed, ref, shallowRef, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal } from '~/components'
 import { toast } from '~/composables'
-import { parsePrintTemplateJson, PrintTemplateFormatError } from '~/printing'
 import { createEmptyPrintDocument } from '~/printing/designer'
 import { printTemplateApi } from '../../../../api/print-template'
 import {
@@ -39,8 +37,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 const form = ref<PrintTemplateFormModel>(createDefaultPrintTemplateForm())
-/** 模板的版面：数据源一栏拿它比对字段，提示数据源里没登记的字段 */
-const template = shallowRef<PrintDocument>(createEmptyPrintDocument())
 const formKey = ref(0)
 const saving = ref(false)
 const complete = computed(() => isPrintTemplateFormComplete(form.value))
@@ -56,20 +52,7 @@ watch(() => props.show, (show) => {
 /** 每次打开按详情重填一份表单，取消不留痕。 */
 function reset(): void {
   form.value = props.detail ? toPrintTemplateForm(props.detail) : createDefaultPrintTemplateForm()
-  template.value = props.detail ? readTemplate(props.detail) : createEmptyPrintDocument()
   formKey.value += 1
-}
-
-/** 读出模板的版面；旧格式读不出来时当空白版面，只是不提示字段差异，版面本身不动。 */
-function readTemplate(detail: PrintTemplateDetailDto): PrintDocument {
-  try {
-    return parsePrintTemplateJson(detail.templateJson, detail.templateCode)
-  }
-  catch (error) {
-    if (error instanceof PrintTemplateFormatError)
-      return createEmptyPrintDocument()
-    throw error
-  }
 }
 
 /** 保存进行中不许关；取消、关闭钮与 Esc 都走这里。 */
@@ -117,7 +100,6 @@ async function save(): Promise<void> {
       v-model="form"
       :editing="Boolean(detail)"
       :global-mode="globalMode"
-      :template="template"
     />
   </XEditModal>
 </template>

@@ -1,15 +1,10 @@
 <!--
-  打印模板的数据源：可选的数据源、它的用途说明、切换为自由模板与字段清单，以及模板里有、数据源却没登记的字段提示。
+  打印模板的数据源：可选的数据源、它的用途说明、切换为自由模板与字段清单。
 -->
 <script setup lang="ts">
 import type { PrintTemplateFormModel } from './models'
 import type { PrintFieldKind } from '~/printing'
-import type { PrintDocument } from '~/printing/designer'
 import {
-  XhAlertContent,
-  XhAlertDescription,
-  XhAlertIndicator,
-  XhAlertRoot,
   XhButton,
   XhFieldControl,
   XhFieldDescription,
@@ -36,13 +31,9 @@ import { useI18n } from 'vue-i18n'
 import { XSelect } from '~/components'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
-import { ensureRemotePrintDataSourcesLoaded, getPrintDataSource, listPrintDataSources, listUnregisteredPrintFields } from '~/printing'
+import { ensureRemotePrintDataSourcesLoaded, getPrintDataSource, listPrintDataSources } from '~/printing'
 
 defineOptions({ name: 'PrintTemplateDataSourceSettings' })
-
-const props = defineProps<{
-  template: PrintDocument
-}>()
 
 const model = defineModel<PrintTemplateFormModel>({ required: true })
 const { t } = useI18n()
@@ -82,11 +73,6 @@ const dataSourceOptions = computed(() => {
   }
   return options
 })
-/** 模板引用了、所选数据源却没登记的字段数；不阻断保存与打印，只提示调用方要传这些字段。 */
-const unmatchedFieldCount = computed(() => selectedSource.value
-  ? listUnregisteredPrintFields(props.template, selectedSource.value.fields).length
-  : 0)
-
 /** 字段清单里各内容种类的图标 */
 const FIELD_KIND_ICONS: Record<PrintFieldKind, string> = {
   text: 'tabler:abc',
@@ -167,20 +153,6 @@ function switchToFreeTemplate(): void {
         </XhPopoverContent>
       </XhPopoverPositioner>
     </XhPopoverRoot>
-  </div>
-
-  <!-- 表单只给直接子项留项距，提示条自带的外边距会把它清掉，所以套一层 -->
-  <div v-if="unmatchedFieldCount > 0">
-    <XhAlertRoot tone="warning">
-      <XhAlertIndicator>
-        <Icon icon="tabler:alert-triangle" width="16" height="16" />
-      </XhAlertIndicator>
-      <XhAlertContent>
-        <XhAlertDescription>
-          {{ t('setting.print_template.data_source_mismatch_warning', { count: unmatchedFieldCount }) }}
-        </XhAlertDescription>
-      </XhAlertContent>
-    </XhAlertRoot>
   </div>
 </template>
 

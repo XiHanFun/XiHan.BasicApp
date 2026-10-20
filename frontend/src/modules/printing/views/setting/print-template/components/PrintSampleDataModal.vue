@@ -66,9 +66,6 @@ const [DefineRecordFields, ReuseRecordFields] = createReusableTemplate()
 const currentRecord = computed(() => records.value.find(record => record.id === activeRecordId.value)
   ?? records.value[0]
   ?? null)
-const unregisteredFields = computed(() => props.dataSourceCode
-  ? schema.value.fields.filter(field => !field.registered)
-  : [])
 const canPreview = computed(() => !loading.value
   && !loadError.value
   && records.value.length > 0)
@@ -283,22 +280,6 @@ function clearSession(): void {
                 </XhButton>
               </div>
 
-              <!-- 警示档带 role=alert：每个字段各摆一条会叠成一串连续播报，收进一条里逐项列出 -->
-              <XhAlertRoot v-if="unregisteredFields.length > 0" tone="warning">
-                <XhAlertIndicator>
-                  <Icon icon="lucide:triangle-alert" width="16" height="16" />
-                </XhAlertIndicator>
-                <XhAlertContent>
-                  <XhAlertDescription>
-                    <ul class="sample-unregistered-list">
-                      <li v-for="field in unregisteredFields" :key="field.key">
-                        {{ t('setting.print_template.sample_unregistered_field', { field: field.key, source: dataSourceCode }) }}
-                      </li>
-                    </ul>
-                  </XhAlertDescription>
-                </XhAlertContent>
-              </XhAlertRoot>
-
               <DefineRecordFields>
                 <XhEmptyStateRoot
                   v-if="schema.fields.length === 0"
@@ -394,12 +375,14 @@ function clearSession(): void {
           <span class="sample-data-footer-tip">
             {{ t('setting.print_template.sample_fields_count', { count: schema.fields.length }) }}
           </span>
-          <XhFlex>
-            <XhButton variant="subtle" :disabled="submitting" @click="requestVisible(false)">
+          <!-- 与新增、编辑弹窗同一组：小号，取消描边、主操作实心 -->
+          <XhFlex gap="sm">
+            <XhButton size="sm" variant="outline" :disabled="submitting" @click="requestVisible(false)">
               {{ t('common.actions.cancel') }}
             </XhButton>
             <XhButton
-              variant="subtle"
+              size="sm"
+              variant="solid"
               data-testid="print-sample-preview-submit"
               tone="brand"
               :loading="submitting"
@@ -458,17 +441,6 @@ function clearSession(): void {
 
 .sample-record-panel {
   --xh-tabs-content-py: 0;
-}
-
-.sample-unregistered-list {
-  margin: 0;
-  padding-inline-start: var(--xh-space-4);
-  list-style: disc;
-}
-
-.sample-unregistered-list:has(> li:only-child) {
-  padding-inline-start: 0;
-  list-style: none;
 }
 
 .sample-fields-grid {
