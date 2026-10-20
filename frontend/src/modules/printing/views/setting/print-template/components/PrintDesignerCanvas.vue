@@ -1,6 +1,6 @@
 <!--
   打印设计器工作区。
-  职责：承载 XiHan 打印设计器（<xh-print-designer>），给它数据源的字段树与样例数据，提供 JSON 模板的导出与回写；
+  职责：承载 XiHan 打印设计器（<xh-print-designer>），给它字段树与样例数据（数据源的，或自由模板这次导入的），提供 JSON 模板的导出与回写；
   画布、物料、页面模板、标尺、属性与问题列表都由设计器提供。
 -->
 <script setup lang="ts">
@@ -79,7 +79,14 @@ async function initialize(): Promise<void> {
   }
 }
 
-/** 数据源的字段树交给属性面板，样例数据交给画布与设计器的预览态；自由模板两者都不给。 */
+/** 自由模板在这次编辑里导入的字段与示例数据：后端没有存处，关掉编辑器就没了；换了数据源再换回自由模板时赋回。 */
+let importedFields: PrintDesignerEventMap['fields-change']['detail']['fields'] | undefined
+let importedSample: unknown
+
+/**
+ * 字段树交给物料面板与属性面板，样例数据交给画布与设计器的预览态。
+ * 绑了数据源的模板用数据源的字段与缺省样例，字段由后端元数据定、不许在设计器里导入；自由模板用这次导入的。
+ */
 async function applyDataSource(): Promise<void> {
   const designer = designerRef.value
   if (!designer)
@@ -87,11 +94,30 @@ async function applyDataSource(): Promise<void> {
   const code = props.dataSourceCode?.trim() || null
   if (code)
     await ensureRemotePrintDataSourcesLoaded()
+  designer.fieldsReadonly = code !== null
+  if (code === null) {
+    designer.fields = importedFields
+    designer.sampleData = importedSample
+    designer.data = importedSample
+    return
+  }
   const source = getPrintDataSource(code)
   designer.fields = source ? toPrintDataFields(source.fields) : undefined
   const sample = source ? normalizePrintSampleData(await createDefaultPrintSampleData(code)).records[0] : undefined
   designer.sampleData = sample
   designer.data = sample
+}
+
+/** 自由模板导入了字段：设计器已换上，记下来供换回自由模板时赋回。 */
+function onFieldsChange(event: Event): void {
+  importedFields = (event as PrintDesignerEventMap['fields-change']).detail.fields
+}
+
+/** 导入字段时带了示例数据：设计器已换上 sampleData，记下来，并交给设计器的预览态。 */
+function onSampleDataChange(event: Event): void {
+  importedSample = (event as PrintDesignerEventMap['sample-data-change']).detail.sampleData
+  if (designerRef.value)
+    designerRef.value.data = importedSample
 }
 
 /** 编辑与撤销重做都上报最新模板；装载新模板不算修改。 */
@@ -224,6 +250,8 @@ defineExpose({ getJson, markSaved, preview, validate })
       data-testid="print-designer-canvas-stage"
       @schema-change="onSchemaChange"
       @settings-change="designerSettings.onSettingsChange"
+      @fields-change="onFieldsChange"
+      @sample-data-change="onSampleDataChange"
       @save="emit('save')"
     />
   </div>
