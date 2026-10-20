@@ -54,7 +54,11 @@ export function usePrintTemplateEditor(
   const draftTemplate = shallowRef<PrintDocument>(createEmptyPrintDocument())
   const currentDetail = ref<PrintTemplateDetailDto | null>(null)
   const designerKey = ref(0)
-  const dirty = ref(false)
+  /** 设计器判定的未保存：随它的 dirty-change 更新，改了又撤销回原样即复位 */
+  const designerDirty = ref(false)
+  /** 旧格式模板换成了空白：设计器里看着干净，库里仍是旧内容，存好前一直算未保存 */
+  const legacyReset = ref(false)
+  const dirty = computed(() => designerDirty.value || legacyReset.value)
   const designerReady = ref(false)
   const saveLoading = ref(false)
   const previewLoading = ref(false)
@@ -120,7 +124,9 @@ export function usePrintTemplateEditor(
       selectedPrinter.value = getPreferredPrinter(detail.templateCode)
       designerKey.value += 1
       await nextTick()
-      dirty.value = legacyFormat
+      // 新装的设计器没有修改；旧格式换成空白的要存一次才覆盖库里的旧内容
+      designerDirty.value = false
+      legacyReset.value = legacyFormat
       void loadPrinters(false)
     }
     catch (error) {
@@ -129,17 +135,21 @@ export function usePrintTemplateEditor(
     }
   }
 
-  /** 设计器就绪后才接收其变更事件，避免装载误标记脏状态。 */
+  /** 设计器就绪后才接收其模板变化，装载过程中的变化不当作编辑。 */
   function onDesignerReady(): void {
     designerReady.value = true
   }
 
-  /** 接收设计变化并标记未保存。 */
+  /** 接收设计变化，更新草稿；未保存与否以设计器的 dirty-change 为准。 */
   function onDesignerChanged(template: PrintDocument): void {
     if (!designerReady.value)
       return
     draftTemplate.value = template
-    dirty.value = true
+  }
+
+  /** 设计器判定的未保存变了：改了又撤销回原样、存好后记为已保存时它报干净。 */
+  function onDesignerDirtyChange(value: boolean): void {
+    designerDirty.value = value
   }
 
   /** 接收 Vue 组件模板 ref，并把宽泛的运行时实例收窄为设计器公开句柄。 */
@@ -171,10 +181,10 @@ export function usePrintTemplateEditor(
         templateJson,
         { scope: props.scope, globalMode: props.globalMode },
       ))
-      // 存好后让设计器记为已保存，删掉这份模板的本机草稿
+      // 存好后让设计器记为已保存，删掉这份模板的本机草稿；设计器随之报干净
       designerRef.value?.markSaved()
       currentDetail.value = saved
-      dirty.value = false
+      legacyReset.value = false
       emit('saved', saved)
       toast.success(t('setting.print_template.save_success'))
       return saved
@@ -318,6 +328,7 @@ export function usePrintTemplateEditor(
     draftTemplate,
     loadPrinters,
     onDesignerChanged,
+    onDesignerDirtyChange,
     onDesignerReady,
     openSamplePreview,
     preview,
