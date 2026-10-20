@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { WorkflowBusinessTypeDto } from '../../../../api'
 import type { FlowDesignerEventMap, FlowDocument, XhFlowDesigner } from '~/designers/flow'
-import { XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, getCurrentInstance, onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput } from '~/components'
 import { toast } from '~/composables'
+import { DesignerMenubarTitle } from '~/designers'
 import { createXihanWorkflow, xihanWorkflowTexts } from '~/designers/flow'
 import { ensureFlowDesigner } from '~/designers/flow-designer'
 import { useDesignerSettings } from '~/designers/settings'
@@ -222,14 +222,14 @@ function handleSave() {
       @save="handleSave"
       @export="onExport"
     >
-      <!-- 设计器把它转进外框，显示在菜单栏右边；这个容器常驻，宿主只换里面的内容。名称为主，编码等宽小字为辅 -->
-      <div slot="menubar-end" class="workflow-designer__identity">
-        <span class="workflow-designer__identity-name">{{ identity.name || t('workflow.designer.untitled') }}</span>
-        <span v-if="identity.code" class="workflow-designer__identity-code">{{ identity.code }}</span>
-        <XhTagRoot class="shrink-0" variant="subtle" size="sm" :tone="saved ? 'success' : 'warning'">
-          <XhTagLabel>{{ saved ? t('workflow.designer.saved') : t('workflow.designer.unsaved') }}</XhTagLabel>
-        </XhTagRoot>
-      </div>
+      <!-- 设计器把它转进外框，显示在菜单栏右边；元素常驻，宿主只换里面的内容。与打印编辑器同一个样子 -->
+      <DesignerMenubarTitle
+        slot="menubar-end"
+        :name="identity.name || t('workflow.designer.untitled')"
+        :code="identity.code || undefined"
+        :saved="saved"
+        :status-text="saved ? t('workflow.designer.saved') : t('workflow.designer.unsaved')"
+      />
     </xh-flow-designer>
 
     <XEditModal
@@ -260,30 +260,5 @@ function handleSave() {
 .workflow-designer__json :deep(textarea) {
   block-size: var(--xh-viewport-h-lg);
   resize: vertical;
-}
-
-/* 菜单栏右边：放不下时名称与编码先收窄，保存状态不收窄 */
-.workflow-designer__identity {
-  display: flex;
-  align-items: center;
-  gap: var(--xh-space-2);
-  min-inline-size: 0;
-}
-
-.workflow-designer__identity-name {
-  overflow: hidden;
-  font-weight: var(--xh-font-weight-semibold);
-  color: var(--xh-fg-default);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.workflow-designer__identity-code {
-  overflow: hidden;
-  font-family: var(--xh-font-family-mono);
-  font-size: var(--xh-text-caption-size);
-  color: var(--xh-fg-muted);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>
