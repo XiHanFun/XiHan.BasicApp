@@ -3,17 +3,28 @@
 # pnpm 对刚发布不久的包有最短发布时长的默认闸门，升级依赖时由它自动登记当时刚发布的版本。
 # 这些版本过了时长门槛后对应条目即可删除；pnpm 会自己维护这里的条目。
 minimumReleaseAgeExclude:
-  - '@xihan-ui/code-highlight@4.2.0'
-  - '@xihan-ui/core@4.2.0'
-  - '@xihan-ui/headless@4.2.0'
-  - '@xihan-ui/motion@4.2.0'
-  - '@xihan-ui/pointer@4.2.0'
-  - '@xihan-ui/position@4.2.0'
-  - '@xihan-ui/sound@4.2.0'
-  - '@xihan-ui/styles@4.2.0'
-  - '@xihan-ui/tokens@4.2.0'
-  - '@xihan-ui/vue@4.2.0'
-  - '@xihan-ui/viz@4.2.0'
+  - '@xihan-flow/core@1.0.0-rc.1'
+  - '@xihan-flow/designer@1.0.0-rc.1'
+  - '@xihan-flow/runtime@1.0.0-rc.1'
+  - '@xihan-print/core@1.0.0-rc.1'
+  - '@xihan-print/designer@1.0.0-rc.1'
+  - '@xihan-print/runtime@1.0.0-rc.1'
+  - '@xihan-ui/code-highlight@5.0.0'
+  - '@xihan-ui/core@5.0.0'
+  - '@xihan-ui/designer-kit@5.0.0'
+  - '@xihan-ui/designer-shell@5.0.0'
+  - '@xihan-ui/expression@5.0.0'
+  - '@xihan-ui/headless@5.0.0'
+  - '@xihan-ui/icons@5.0.0'
+  - '@xihan-ui/motion@5.0.0'
+  - '@xihan-ui/pointer@5.0.0'
+  - '@xihan-ui/position@5.0.0'
+  - '@xihan-ui/sound@5.0.0'
+  - '@xihan-ui/styles@5.0.0'
+  - '@xihan-ui/tokens@5.0.0'
+  - '@xihan-ui/viz@5.0.0'
+  - '@xihan-ui/vue@5.0.0'
+  - '@xihan-ui/web-components@5.0.0'
   - '@iconify-json/lucide@1.2.139'
   - '@intlify/core-base@11.4.13'
   - '@intlify/devtools-types@11.4.13'
@@ -100,13 +111,13 @@ catalog:
   '@vitest/coverage-v8': ^5.0.4
   '@vue/test-utils': ^2.5.1
   '@vueuse/core': ^15.0.0
-  # 四款设计器首发前按各包当前版本写 ^0.0.0（联调期由 overrides 指向源码），发布后改成首发版本号
-  '@xihan-flow/core': ^0.0.0
-  '@xihan-flow/designer': ^0.0.0
-  '@xihan-flow/runtime': ^0.0.0
-  '@xihan-print/core': ^0.0.0
-  '@xihan-print/designer': ^0.0.0
-  '@xihan-print/runtime': ^0.0.0
+  # 打印、流程设计器用 npm 上的候选版
+  '@xihan-flow/core': ^1.0.0-rc.1
+  '@xihan-flow/designer': ^1.0.0-rc.1
+  '@xihan-flow/runtime': ^1.0.0-rc.1
+  '@xihan-print/core': ^1.0.0-rc.1
+  '@xihan-print/designer': ^1.0.0-rc.1
+  '@xihan-print/runtime': ^1.0.0-rc.1
   '@xihan-ui/code-highlight': ^5.0.0
   '@xihan-ui/core': ^5.0.0
   '@xihan-ui/designer-kit': ^5.0.0
