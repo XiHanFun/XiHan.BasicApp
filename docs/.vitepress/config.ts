@@ -159,6 +159,15 @@ const nav: DefaultTheme.NavItem[] = [
           { text: "基础应用", link: "/" },
         ],
       },
+      {
+        text: "设计器",
+        items: [
+          { text: "打印设计器", link: "https://print.docs.xihanfun.com" },
+          { text: "流程设计器", link: "https://flow.docs.xihanfun.com" },
+          { text: "表单设计器", link: "https://form.docs.xihanfun.com" },
+          { text: "报表设计器", link: "https://report.docs.xihanfun.com" },
+        ],
+      },
     ],
   },
   {
@@ -180,6 +189,12 @@ export default defineXiHanConfig({
   description,
   keywords,
   repo: "XiHan.BasicApp",
+  banner: {
+    id: "2026-10-designers-rc",
+    text: "生态产品多个设计器现已发布候选版本",
+    link: "https://docs.xihanfun.com/cosmos/ecosystem",
+    linkText: "查看生态总览",
+  },
   llms: {
     title: "曦寒基础应用",
     summary:
