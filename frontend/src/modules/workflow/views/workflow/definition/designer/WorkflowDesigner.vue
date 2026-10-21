@@ -29,10 +29,8 @@ import { createWorkflowHostExtension } from './workflow-host-extension'
 const props = defineProps<{
   initialJson: string
   saving?: boolean
-  /** 编辑已有草稿：编码与关联业务只读（后端更新草稿沿用原编码） */
-  lockCode?: boolean
   /**
-   * 本机草稿的键：编辑已有草稿时写定义 id，不同流程的草稿不串；新建不给，设计器按页面地址区分。
+   * 本机草稿的键：定义 id，不同流程的草稿不串。
    * 草稿只在设置里开了自动保存时才写；宿主存好后调 markSaved()，设计器随之删掉草稿。
    */
   draftKey?: string
@@ -80,11 +78,9 @@ const workflowExtension = computed(() => {
   void businessTypes.value
   return createWorkflowExtension({
     appContext,
-    lockCode: props.lockCode ?? false,
     businessTypes: () => businessTypes.value,
     document: () => schema.value,
-    designer: () => designerRef.value,
-    t: key => t(key),
+    t: (key, params) => params ? t(key, params) : t(key),
   })
 })
 
@@ -152,8 +148,8 @@ function onDirtyChange(event: Event) {
   dirty.value = (event as FlowDesignerEventMap['dirty-change']).detail.dirty
 }
 
-/** 编辑已有草稿时库里有一份，没改过就是已保存；新建的流程保存之前都是未保存 */
-const saved = computed(() => (props.lockCode ?? false) && !dirty.value)
+/** 设计的都是库里已有的草稿，没改过就是已保存 */
+const saved = computed(() => !dirty.value)
 
 const identity = computed(() => {
   const data = schema.value?.data
