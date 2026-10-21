@@ -24,6 +24,7 @@ import {
   WorkflowDefinitionStatus,
   workflowInstanceApi,
 } from '../../../api'
+import MetadataModal from './DefinitionMetadataModal.vue'
 import WorkflowDesigner from './designer/WorkflowDesigner.vue'
 import WorkflowGraphView from './designer/WorkflowGraphView.vue'
 
@@ -146,6 +147,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'create', title: t('workflow.definition.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'workflow_definition.create' },
     { key: 'view', title: t('workflow.definition.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('workflow.definition.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
+    { key: 'design', title: t('workflow.definition.action_design'), scope: 'row', icon: 'lucide:pen-tool', permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
     { key: 'publish', title: t('workflow.definition.action_publish'), scope: 'row', icon: 'lucide:send', tone: 'success', confirm: true, confirmText: row => actionConfirmText(t, t('workflow.definition.action_publish'), definitionName(row)), permission: 'workflow_definition.update', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Draft },
     { key: 'start', title: t('workflow.definition.action_start'), scope: 'row', icon: 'lucide:play', tone: 'brand', permission: 'workflow_definition.execute', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status === WorkflowDefinitionStatus.Published },
     { key: 'newVersion', title: t('workflow.definition.action_new_version'), scope: 'row', icon: 'lucide:git-branch-plus', permission: 'workflow_definition.create', visible: row => (row as unknown as WorkflowDefinitionListItemDto).status !== WorkflowDefinitionStatus.Draft },
@@ -176,55 +178,71 @@ async function handleDetail(row: WorkflowDefinitionListItemDto) {
   }
 }
 
-// ── 创建/编辑（可视化设计器，JSON 视图内置其中） ────────────────
+// ── 新建/编辑元数据（编码、名称、分类、描述） ──────────────────
+const metadataVisible = ref(false)
+/** 编辑弹窗里的草稿详情；null 是新建 */
+const metadataDetail = ref<WorkflowDefinitionDetailDto | null>(null)
+
+function openCreate() {
+  metadataDetail.value = null
+  metadataVisible.value = true
+}
+
+/** 读出最新的草稿详情再开编辑弹窗：改的是整份定义 JSON 里的几项 */
+async function openMetadata(row: WorkflowDefinitionListItemDto) {
+  try {
+    const detail = await workflowDefinitionApi.detail(row.basicId)
+    if (!detail)
+      throw new Error(t('workflow.definition.err_load_detail'))
+    metadataDetail.value = detail
+    metadataVisible.value = true
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('workflow.definition.err_load_detail'))
+  }
+}
+
+/** 元数据存好后刷新列表；新建的流程还是空白的，接着打开设计器 */
+function onMetadataSaved(detail: WorkflowDefinitionDetailDto, created: boolean) {
+  reload()
+  if (created)
+    openDesigner(detail)
+}
+
+// ── 设计（可视化设计器，只改已有草稿的节点、连线与执行设置） ────────
 const editVisible = ref(false)
 const editLoading = ref(false)
-const editMode = ref<'create' | 'edit'>('create')
 const editTargetId = ref<string | null>(null)
 const editJson = ref('')
 const designerKey = ref(0)
 const workflowDesignerRef = ref<InstanceType<typeof WorkflowDesigner> | null>(null)
 
-// 新建时开一张空白画布：编码/名称在「流程设置」中填写，节点从左侧面板拖入
-const emptyDefinitionJson = `{
-  "code": "",
-  "name": "",
-  "nodes": [],
-  "transitions": []
-}`
-
-function openCreate() {
-  editMode.value = 'create'
-  editTargetId.value = null
-  editJson.value = emptyDefinitionJson
-  designerKey.value++
-  editVisible.value = true
-}
-
-async function openEdit(row: WorkflowDefinitionListItemDto) {
-  const detail = await workflowDefinitionApi.detail(row.basicId)
-  if (!detail) {
-    toast.danger(t('workflow.definition.err_load_detail'))
-    return
-  }
-  editMode.value = 'edit'
+function openDesigner(detail: WorkflowDefinitionDetailDto) {
   editTargetId.value = detail.basicId
   editJson.value = detail.definitionJson
   designerKey.value++
   editVisible.value = true
 }
 
+async function openDesign(row: WorkflowDefinitionListItemDto) {
+  try {
+    const detail = await workflowDefinitionApi.detail(row.basicId)
+    if (!detail)
+      throw new Error(t('workflow.definition.err_load_detail'))
+    openDesigner(detail)
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('workflow.definition.err_load_detail'))
+  }
+}
+
 async function handleDesignerSave(json: string) {
+  if (!editTargetId.value)
+    return
   editLoading.value = true
   try {
-    if (editMode.value === 'create') {
-      await workflowDefinitionApi.create({ definitionJson: json })
-      toast.success(t('workflow.definition.msg_created'))
-    }
-    else if (editTargetId.value) {
-      await workflowDefinitionApi.updateDraft({ basicId: editTargetId.value, definitionJson: json })
-      toast.success(t('workflow.definition.msg_updated'))
-    }
+    await workflowDefinitionApi.updateDraft({ basicId: editTargetId.value, definitionJson: json })
+    toast.success(t('workflow.definition.msg_updated'))
     // 记为已保存再关：设计器删掉本机草稿，下次打开这个流程不再提示恢复
     workflowDesignerRef.value?.markSaved()
     editVisible.value = false
@@ -315,7 +333,11 @@ function onAction(payload: SchemaActionPayload) {
       break
     case 'edit':
       if (row)
-        void openEdit(row)
+        void openMetadata(row)
+      break
+    case 'design':
+      if (row)
+        void openDesign(row)
       break
     case 'start':
       if (row)
@@ -408,11 +430,19 @@ function onAction(payload: SchemaActionPayload) {
       </XhDrawerContent>
     </XhDrawerRoot>
 
-    <!-- 创建/编辑（可视化设计器）：与打印模板编辑一样满屏打开；标题只给读屏作弹窗的名字，返回列表在设计器的「文件」菜单与工具栏上 -->
+    <!-- 新建、编辑元数据：编码、名称、分类、描述 -->
+    <MetadataModal
+      v-model:show="metadataVisible"
+      :detail="metadataDetail"
+      :business-types="businessTypes"
+      @saved="onMetadataSaved"
+    />
+
+    <!-- 设计（可视化设计器）：与打印模板设计一样满屏打开；标题只给读屏作弹窗的名字，返回列表在设计器的「文件」菜单与工具栏上 -->
     <XhDialogRoot v-model:open="editVisible">
       <XhDialogContent class="workflow-designer-modal">
         <XhDialogTitle class="sr-only">
-          {{ editMode === 'create' ? t('workflow.definition.create_title') : t('workflow.definition.edit_title') }}
+          {{ t('workflow.definition.design_title') }}
         </XhDialogTitle>
         <WorkflowDesigner
           :key="designerKey"
@@ -420,7 +450,6 @@ function onAction(payload: SchemaActionPayload) {
           class="workflow-designer-modal__body"
           :draft-key="editTargetId ?? undefined"
           :initial-json="editJson"
-          :lock-code="editMode === 'edit'"
           :saving="editLoading"
           @save="handleDesignerSave"
           @close="editVisible = false"

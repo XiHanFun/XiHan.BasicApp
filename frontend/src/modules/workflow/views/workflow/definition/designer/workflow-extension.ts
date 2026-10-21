@@ -2,20 +2,20 @@
  * 流程设计器上 BasicApp 的设计器扩展：只放应用语义，节点类型与属性都来自工作流引擎预设。
  *
  * - 受理人规则：预设登记的编辑方式由 AssigneeRulesEditor 提供（选人、选角色查应用自己的数据）。
- * - 流程编码：先选关联的审批业务再看编码；编辑已有草稿时只读。
+ * - 流程元数据：编码、名称、分类、描述只读（在流程定义列表的「编辑」里改），编码一行带关联审批业务的提示。
  * - 连线条件：条件表达式加源节点常见办理结果的一键填入。
  * - 规则：见 workflow-rules.ts。
  */
 
 import type { AppContext } from 'vue'
 import type { WorkflowBusinessTypeDto } from '../../../../api'
-import type { FlowDesignerExtension, FlowDocument, FlowEdge, FlowPropertyEditorContext, XhFlowDesigner } from '~/designers/flow'
+import type { FlowDesignerExtension, FlowDocument, FlowEdge, FlowPropertyEditorContext } from '~/designers/flow'
 import { h } from 'vue'
 import { createVuePropertyEditor } from '~/designers'
 import { XIHAN_WORKFLOW_ASSIGNEE_RULES } from '~/designers/flow'
 import AssigneeRulesEditor from './AssigneeRulesEditor.vue'
 import EdgeConditionEditor from './EdgeConditionEditor.vue'
-import FlowCodeEditor from './FlowCodeEditor.vue'
+import FlowMetadataField from './FlowMetadataField.vue'
 import { createWorkflowRules, WORKFLOW_EXTENSION_ID, WORKFLOW_ISSUE_KEYS } from './workflow-rules'
 
 /** 源节点类型 → 常见办理结果（连线条件一键填入） */
@@ -27,16 +27,12 @@ const OUTCOME_HINTS: Readonly<Record<string, readonly string[]>> = {
 export interface WorkflowExtensionOptions {
   /** 编辑器挂在这个应用上下文下，照常能用 i18n、Pinia 与应用组件 */
   appContext: AppContext | null
-  /** 编辑已有草稿：编码与关联业务只读（后端更新草稿沿用原编码） */
-  lockCode: boolean
   /** 已登记的审批业务 */
   businessTypes: () => readonly WorkflowBusinessTypeDto[]
   /** 设计器里此刻的流程定义（响应式），编辑器据它给提示 */
   document: () => FlowDocument | undefined
-  /** 设计器元素；关联业务时经它一步写入编码、名称与业务变量 */
-  designer: () => XhFlowDesigner | null
-  /** 问题说明的文案 */
-  t: (key: string) => string
+  /** 问题说明与提示的文案 */
+  t: (key: string, params?: Record<string, unknown>) => string
 }
 
 type Context = FlowPropertyEditorContext
@@ -57,20 +53,13 @@ function knownVariables(options: WorkflowExtensionOptions): string[] {
   return [...new Set([...(business?.variables.map(variable => variable.name) ?? []), ...variableNames(data?.variables)])]
 }
 
-/** 关联审批业务：编码改成业务编码，名称为空时带上业务名，补齐业务声明的变量；一步撤销 */
-function bindBusiness(options: WorkflowExtensionOptions, business: WorkflowBusinessTypeDto): void {
-  const designer = options.designer()
-  if (!designer)
-    return
-  const data = { ...designer.schema.data }
-  const variables = Array.isArray(data.variables) ? [...data.variables] : []
-  const declared = new Set(variableNames(variables))
-  for (const variable of business.variables) {
-    if (!declared.has(variable.name))
-      variables.push({ name: variable.name, required: false, defaultValue: null, description: variable.label ?? null })
-  }
-  const name = typeof data.name === 'string' && data.name.trim() ? data.name : business.name
-  designer.execute([{ type: 'updateDocument', patch: { data: { ...data, code: business.code, name, variables } } }])
+/** 编码一行的提示：关联了审批业务时先说业务要的结束结果，再说这几项去哪里改 */
+function codeHints(options: WorkflowExtensionOptions, code: string): string[] {
+  const business = options.businessTypes().find(item => item.code === code.trim())
+  const readonlyTip = options.t('workflow.designer.metadata_readonly_tip')
+  return business
+    ? [options.t('workflow.designer.flow_business_tip', { name: business.name, outcomes: business.outcomes.join(' / ') }), readonlyTip]
+    : [readonlyTip]
 }
 
 function sourceOutcomes(options: WorkflowExtensionOptions, context: Context): readonly string[] {
@@ -83,6 +72,11 @@ function sourceOutcomes(options: WorkflowExtensionOptions, context: Context): re
 
 export function createWorkflowExtension(options: WorkflowExtensionOptions): FlowDesignerExtension {
   const editor = (render: (context: Context) => ReturnType<typeof h>) => createVuePropertyEditor(options.appContext, render)
+  /** 流程元数据只显示当前值 */
+  const metadata = (extra: (value: string) => Record<string, unknown> = () => ({})) => editor((context) => {
+    const value = typeof context.value === 'string' ? context.value : ''
+    return h(FlowMetadataField, { value, label: context.descriptor.label, ...extra(value) })
+  })
 
   return {
     id: WORKFLOW_EXTENSION_ID,
@@ -107,16 +101,10 @@ export function createWorkflowExtension(options: WorkflowExtensionOptions): Flow
       },
       byTarget: {
         document: {
-          'data.code': editor(context => h(FlowCodeEditor, {
-            'code': typeof context.value === 'string' ? context.value : undefined,
-            'label': context.descriptor.label,
-            'locked': options.lockCode,
-            'readonly': context.readonly,
-            'businessTypes': options.businessTypes(),
-            'onUpdate:code': (code: string) => context.setValue(code),
-            'onCommit': () => context.commit(),
-            'onBind': (business: WorkflowBusinessTypeDto) => bindBusiness(options, business),
-          })),
+          'data.code': metadata(code => ({ hints: codeHints(options, code) })),
+          'data.name': metadata(),
+          'data.category': metadata(),
+          'data.description': metadata(() => ({ multiline: true })),
         },
         edge: {
           'data.condition': editor(context => h(EdgeConditionEditor, {
