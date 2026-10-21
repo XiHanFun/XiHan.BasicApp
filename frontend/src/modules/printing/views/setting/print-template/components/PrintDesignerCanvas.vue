@@ -1,7 +1,7 @@
 <!--
   打印设计器工作区。
   职责：承载 XiHan 打印设计器（<xh-print-designer>），给它字段树与样例数据（数据源的，或自由模板这次导入的），装上宿主的扩展（编辑器的操作挂进菜单栏），
-  把宿主的标题与保存状态放进菜单栏右边一段（slot="menubar-end"）；画布、物料、页面模板、标尺、属性、问题列表、JSON 编辑与菜单栏都由设计器提供。
+  宿主的标题（菜单栏正中）与所绑数据源、保存状态（状态栏右端）经默认插槽放进设计器；画布、物料、页面模板、标尺、属性、问题列表、JSON 编辑与菜单栏都由设计器提供。
 -->
 <script setup lang="ts">
 import type { PrintDesignerEventMap, PrintDesignerExtension, PrintDocument, XhPrintDesigner } from '~/printing/designer'
@@ -205,10 +205,8 @@ defineExpose({ getJson, markSaved, preview, refreshCommands, validate })
       @sample-data-change="onSampleDataChange"
       @save="emit('save')"
     >
-      <!-- 设计器把它转进外框，显示在菜单栏右边；这个容器常驻，宿主只换里面的内容 -->
-      <div slot="menubar-end" class="designer-menubar-end">
-        <slot name="menubar-end" />
-      </div>
+      <!-- 宿主放进外框的几样（各自写 slot="menubar-center" / "status-end"），作为设计器的直接子元素由它转交；元素常驻，只换文字 -->
+      <slot />
     </xh-print-designer>
   </div>
 </template>
@@ -225,13 +223,5 @@ defineExpose({ getJson, markSaved, preview, refreshCommands, validate })
 .designer-host {
   flex: 1 1 0;
   min-block-size: 0;
-}
-
-/* 菜单栏右段里宿主的一行：放不下时跟着外框的右段一起收窄 */
-.designer-menubar-end {
-  display: flex;
-  min-inline-size: 0;
-  align-items: center;
-  gap: var(--xh-space-2);
 }
 </style>
