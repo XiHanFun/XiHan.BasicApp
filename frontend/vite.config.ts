@@ -261,7 +261,7 @@ export default defineConfig(({ mode }) => {
         // 只给本仓源码补导入。临时链到同级 XiHan.UI 时（pnpm-workspace.yaml 的 overrides），
         // 它的产物不在 node_modules 下、默认排除拦不住，会被补上只有本仓才装的 @vueuse/core 等导入，
         // 在 UI 仓库里解析失败
-        exclude: [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/, /[\\/]XiHan\.UI[\\/]/, /[\\/]XiHan\.(?:Print|Flow|Form|Report)Designer[\\/]/],
+        exclude: [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/, /[\\/]XiHan\.UI[\\/]/],
         dts: 'src/types/auto-imports.d.ts',
       }),
       Components({
@@ -293,16 +293,7 @@ export default defineConfig(({ mode }) => {
       // 留着 ../../XiHan.UI：临时用 overrides 链到同级源码调试时，仓外路径不在
       // Vite 默认允许的文件系统范围内。装正式版时这一条不起作用，也没有副作用。
       fs: {
-        // 联调期临时：本 worktree 链到同级 XiHan.UI 与四款设计器，仓外路径要多上三级。发布后随 overrides 一起删
-        allow: [
-          '..',
-          '../../XiHan.UI',
-          '../../../../../XiHan.UI',
-          '../../../../../XiHan.PrintDesigner',
-          '../../../../../XiHan.FlowDesigner',
-          '../../../../../XiHan.FormDesigner',
-          '../../../../../XiHan.ReportDesigner',
-        ],
+        allow: ['..', '../../XiHan.UI'],
       },
       proxy: {
         [apiPrefix]: {
