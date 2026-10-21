@@ -2,14 +2,14 @@
   打印模板全屏编辑器。
   职责：设计已有模板的版面、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好。
   编辑器的操作（样例预览、直接打印、打印机、返回列表）挂进设计器的菜单栏，保存走设计器的 save 命令；
-  模板名称、编码、所绑数据源与保存状态放在菜单栏右边。名称、编码、数据源等在列表页的编辑弹窗里改。
+  模板名称与编码放在菜单栏正中，所绑数据源与保存状态放在状态栏右端。名称、编码、数据源等在列表页的编辑弹窗里改。
 -->
 <script setup lang="ts">
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
-import { XhDialogContent, XhDialogRoot, XhDialogTitle, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DesignerMenubarTitle } from '~/designers'
+import { DesignerMenubarTitle, DesignerStatusText } from '~/designers'
 import { createPrintHostExtension } from './print-host-extension'
 import DesignerCanvas from './PrintDesignerCanvas.vue'
 import SampleDataModal from './PrintSampleDataModal.vue'
@@ -105,7 +105,7 @@ defineExpose({ confirmDiscard })
     @update:open="requestVisible"
   >
     <XhDialogContent class="print-template-editor-modal">
-      <!-- 标题只给读屏作弹窗的名字；看得见的标题与保存状态在设计器菜单栏的右边，返回列表在「文件」菜单与工具栏上 -->
+      <!-- 标题只给读屏作弹窗的名字；看得见的标题在设计器菜单栏正中、保存状态在状态栏右端，返回列表在「文件」菜单与工具栏上 -->
       <XhDialogTitle class="sr-only">
         {{ title }}
       </XhDialogTitle>
@@ -124,19 +124,19 @@ defineExpose({ confirmDiscard })
           @ready="onDesignerReady"
           @save="save"
         >
-          <!-- 菜单栏右边：模板名称、编码、所绑数据源与保存状态，与流程编辑器同一个样子 -->
-          <template #menubar-end>
-            <DesignerMenubarTitle
-              :name="currentDetail?.templateName || title"
-              :code="currentDetail?.templateCode"
-              :saved="!dirty"
-              :status-text="dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved')"
-            >
-              <XhTagRoot variant="outline" size="sm" :title="t('setting.print_template.data_source')">
-                <XhTagLabel>{{ currentDetail?.dataSourceCode || t('setting.print_template.free_template') }}</XhTagLabel>
-              </XhTagRoot>
-            </DesignerMenubarTitle>
-          </template>
+          <!-- 菜单栏正中：模板名称与编码；状态栏右端：所绑数据源与保存状态。与流程编辑器同一个样子 -->
+          <DesignerMenubarTitle
+            :name="currentDetail?.templateName || title"
+            :code="currentDetail?.templateCode"
+          />
+          <DesignerStatusText
+            :text="currentDetail?.dataSourceCode || t('setting.print_template.free_template')"
+            :title="t('setting.print_template.data_source')"
+          />
+          <DesignerStatusText
+            :text="dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved')"
+            :tone="dirty ? 'warning' : undefined"
+          />
         </DesignerCanvas>
       </div>
 
