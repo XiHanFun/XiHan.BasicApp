@@ -159,6 +159,15 @@ const nav: DefaultTheme.NavItem[] = [
           { text: "基础应用", link: "/" },
         ],
       },
+      {
+        text: "设计器",
+        items: [
+          { text: "打印设计器", link: "https://print.docs.xihanfun.com" },
+          { text: "流程设计器", link: "https://flow.docs.xihanfun.com" },
+          { text: "表单设计器", link: "https://form.docs.xihanfun.com" },
+          { text: "报表设计器", link: "https://report.docs.xihanfun.com" },
+        ],
+      },
     ],
   },
   {
