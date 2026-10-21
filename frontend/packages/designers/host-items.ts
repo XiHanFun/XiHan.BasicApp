@@ -1,11 +1,13 @@
 /**
- * 宿主放进设计器外框的两样：菜单栏正中的标题、状态栏右端的一样。
+ * 宿主放进设计器外框的几样：菜单栏正中的标题、状态栏右端的一样、菜单栏右上角的关闭钮。
  *
  * 都作为设计器元素的直接子元素放进去，写原生 Web Components 的 slot 属性由设计器转交；元素常驻，只换文字。
  * 流程、打印两款编辑器共用，长相一致。
  */
 
 import type { PropType } from 'vue'
+import { XIcon } from '@xihan-ui/icons'
+import { XhButton, XhIcon } from '@xihan-ui/vue'
 import { computed, defineComponent, h } from 'vue'
 
 /**
@@ -47,5 +49,31 @@ export const DesignerStatusText = defineComponent({
       'data-tone': props.tone,
       'style': props.tone === 'warning' ? { color: 'var(--xh-fg-warning)' } : undefined,
     }, props.text)
+  },
+})
+
+/**
+ * 菜单栏右上角的关闭钮：只有图标，点了交给宿主关掉编辑器（与「返回列表」同一条路，有未保存的修改时由宿主先确认）。
+ * 宿主正在保存、打印时不可点。
+ */
+export const DesignerCloseButton = defineComponent({
+  name: 'DesignerCloseButton',
+  props: {
+    /** 可及名与悬停说明 */
+    label: { type: String, required: true },
+    disabled: { type: Boolean, default: false },
+  },
+  emits: ['close'],
+  setup(props, { emit }) {
+    return () => h(XhButton, {
+      'slot': 'menubar-end',
+      'variant': 'ghost',
+      'size': 'sm',
+      'iconOnly': true,
+      'aria-label': props.label,
+      'title': props.label,
+      'disabled': props.disabled,
+      'onClick': () => emit('close'),
+    }, () => h(XhIcon, { icon: XIcon }))
   },
 })

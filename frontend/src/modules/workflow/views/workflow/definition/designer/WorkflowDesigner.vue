@@ -5,7 +5,7 @@ import { computed, getCurrentInstance, onMounted, ref, shallowRef, watch } from 
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput } from '~/components'
 import { toast } from '~/composables'
-import { DesignerMenubarTitle, DesignerStatusText } from '~/designers'
+import { DesignerCloseButton, DesignerMenubarTitle, DesignerStatusText } from '~/designers'
 import { createXihanWorkflow, xihanWorkflowTexts } from '~/designers/flow'
 import { ensureFlowDesigner } from '~/designers/flow-designer'
 import { useDesignerSettings } from '~/designers/settings'
@@ -23,7 +23,7 @@ import { createWorkflowHostExtension } from './workflow-host-extension'
  * 菜单栏、画布、节点面板、属性面板、问题列表、撤销重做、缩放、对齐分布与自动布局都由设计器提供；
  * 这里只管装载与保存、引擎定义 JSON 的弹窗，以及经扩展接入的应用语义（见 workflow-extension.ts）。
  * 保存走设计器内置的 save 命令（「文件」菜单与 Ctrl / ⌘ + S）；引擎定义 JSON 与返回列表经宿主扩展挂进菜单栏
- * （见 workflow-host-extension.ts）；流程名称与编码放在菜单栏正中，保存状态放在状态栏右端。
+ * （见 workflow-host-extension.ts）；流程名称与编码放在菜单栏正中，保存状态放在状态栏右端，菜单栏右上角一颗关闭钮。
  */
 
 const props = defineProps<{
@@ -218,7 +218,7 @@ function handleSave() {
       @save="handleSave"
       @export="onExport"
     >
-      <!-- 设计器把它们转进外框：名称与编码在菜单栏正中，保存状态在状态栏右端；元素常驻，只换文字。与打印编辑器同一个样子 -->
+      <!-- 设计器把它们转进外框：名称与编码在菜单栏正中，保存状态在状态栏右端，关闭钮在菜单栏右上角；元素常驻。与打印编辑器同一个样子 -->
       <DesignerMenubarTitle
         :name="identity.name || t('workflow.designer.untitled')"
         :code="identity.code || undefined"
@@ -227,6 +227,7 @@ function handleSave() {
         :text="saved ? t('workflow.designer.saved') : t('workflow.designer.unsaved')"
         :tone="saved ? undefined : 'warning'"
       />
+      <DesignerCloseButton :label="t('common.actions.close')" :disabled="saving" @close="emit('close')" />
     </xh-flow-designer>
 
     <XEditModal
