@@ -2,14 +2,14 @@
   打印模板全屏编辑器。
   职责：设计已有模板的版面、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好。
   编辑器的操作（样例预览、直接打印、打印机、返回列表）挂进设计器的菜单栏，保存走设计器的 save 命令；
-  模板名称与编码放在菜单栏正中，所绑数据源与保存状态放在状态栏右端。名称、编码、数据源等在列表页的编辑弹窗里改。
+  模板名称与编码放在菜单栏正中，所绑数据源与保存状态放在状态栏右端，菜单栏右上角一颗关闭钮（与返回列表同一条路）。名称、编码、数据源等在列表页的编辑弹窗里改。
 -->
 <script setup lang="ts">
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
 import { XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DesignerMenubarTitle, DesignerStatusText } from '~/designers'
+import { DesignerCloseButton, DesignerMenubarTitle, DesignerStatusText } from '~/designers'
 import { createPrintHostExtension } from './print-host-extension'
 import DesignerCanvas from './PrintDesignerCanvas.vue'
 import SampleDataModal from './PrintSampleDataModal.vue'
@@ -124,7 +124,7 @@ defineExpose({ confirmDiscard })
           @ready="onDesignerReady"
           @save="save"
         >
-          <!-- 菜单栏正中：模板名称与编码；状态栏右端：所绑数据源与保存状态。与流程编辑器同一个样子 -->
+          <!-- 菜单栏正中：模板名称与编码；状态栏右端：所绑数据源与保存状态；菜单栏右上角：关闭钮。与流程编辑器同一个样子 -->
           <DesignerMenubarTitle
             :name="currentDetail?.templateName || title"
             :code="currentDetail?.templateCode"
@@ -136,6 +136,11 @@ defineExpose({ confirmDiscard })
           <DesignerStatusText
             :text="dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved')"
             :tone="dirty ? 'warning' : undefined"
+          />
+          <DesignerCloseButton
+            :label="t('common.actions.close')"
+            :disabled="saveLoading || directLoading"
+            @close="requestVisible(false)"
           />
         </DesignerCanvas>
       </div>
