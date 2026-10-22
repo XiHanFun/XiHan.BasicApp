@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Saas.Application.Conditions;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Hubs;
 using XiHan.BasicApp.Saas.Infrastructure.OAuth;
@@ -115,6 +116,34 @@ public class XiHanBasicAppSaasModule : XiHanModule
         var schedulerSyncService = scope.ServiceProvider.GetRequiredService<ITaskSchedulerSyncService>();
         schedulerSyncService.SyncAllActiveJobsAsync().GetAwaiter().GetResult();
         logger.LogInformation("数据库中的活跃 SysTask 记录已同步到调度器");
+
+        // 3. 权限条件盘点：启动时写一行各类条数的汇总，详单在权限管理页的「条件盘点」
+        LogPermissionConditionInventory(context.ServiceProvider, logger);
+    }
+
+    /// <summary>
+    /// 写一行权限条件盘点的汇总；盘点失败只记警告，不影响启动
+    /// </summary>
+    private static void LogPermissionConditionInventory(IServiceProvider serviceProvider, ILogger logger)
+    {
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var inventory = scope.ServiceProvider.GetRequiredService<PermissionConditionInventoryService>()
+                .BuildAsync(DateTimeOffset.UtcNow)
+                .GetAwaiter()
+                .GetResult();
+            logger.LogInformation(
+                "权限条件盘点：{ConditionCount} 条条件、{BindingCount} 条授权；条件组 {GroupConclusions}；诊断 {Diagnostics}",
+                inventory.ConditionCount,
+                inventory.BindingCount,
+                string.Join("，", inventory.GroupConclusions.Select(item => $"{item.Key} {item.Value}")),
+                string.Join("，", inventory.Diagnostics.Select(item => $"{item.Key} {item.Value}")));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "权限条件盘点失败，不影响启动；可在权限管理页重跑");
+        }
     }
 
     /// <summary>

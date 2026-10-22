@@ -236,6 +236,12 @@ public static class PageRegistry
          new("identity.user.revoke-role", "撤销角色", "identity.user", SaasPermissionCodes.UserRole.Revoke, 16),
          new("identity.user.revoke-permission", "撤销直授", "identity.user", SaasPermissionCodes.UserPermission.Revoke, 17),
          new("identity.user.revoke-department", "撤销部门", "identity.user", SaasPermissionCodes.UserDepartment.Revoke, 18),
+         new("identity.user.grant-conditions", "直授条件", "identity.user", SaasPermissionCodes.PermissionCondition.Read, 19),
+         new("identity.user.condition-create", "新增条件", "identity.user", SaasPermissionCodes.PermissionCondition.Create, 20),
+         new("identity.user.condition-update", "编辑条件", "identity.user", SaasPermissionCodes.PermissionCondition.Update, 21),
+         new("identity.user.condition-status", "启停条件", "identity.user", SaasPermissionCodes.PermissionCondition.Status, 22),
+         new("identity.user.condition-delete", "删除条件", "identity.user", SaasPermissionCodes.PermissionCondition.Delete, 23),
+         new("identity.user.condition-trial", "条件试算", "identity.user", SaasPermissionCodes.PermissionCondition.Trial, 24),
 
         // [2.2] 角色管理
          new("identity.role.create", "新增", "identity.role", SaasPermissionCodes.Role.Create, 1),
@@ -251,6 +257,12 @@ public static class PageRegistry
          // 上级角色：设置入口挂新增上级，解除上级另挂按钮（批量接口只在本次含解除时要删除权限）
          new("identity.role.parents", "设置上级", "identity.role", SaasPermissionCodes.RoleHierarchy.Create, 12),
          new("identity.role.remove-parents", "解除上级", "identity.role", SaasPermissionCodes.RoleHierarchy.Delete, 13),
+         new("identity.role.grant-conditions", "授权条件", "identity.role", SaasPermissionCodes.PermissionCondition.Read, 14),
+         new("identity.role.condition-create", "新增条件", "identity.role", SaasPermissionCodes.PermissionCondition.Create, 15),
+         new("identity.role.condition-update", "编辑条件", "identity.role", SaasPermissionCodes.PermissionCondition.Update, 16),
+         new("identity.role.condition-status", "启停条件", "identity.role", SaasPermissionCodes.PermissionCondition.Status, 17),
+         new("identity.role.condition-delete", "删除条件", "identity.role", SaasPermissionCodes.PermissionCondition.Delete, 18),
+         new("identity.role.condition-trial", "条件试算", "identity.role", SaasPermissionCodes.PermissionCondition.Trial, 19),
 
         // [2.3] 组织机构
          new("identity.org.create", "新增", "identity.org", SaasPermissionCodes.Department.Create, 1),
@@ -273,6 +285,8 @@ public static class PageRegistry
          new("identity.permission.delete", "删除", "identity.permission", SaasPermissionCodes.Permission.Delete, 3),
          new("identity.permission.status", "启停", "identity.permission", SaasPermissionCodes.Permission.Status, 4),
          new("identity.permission.export", "导出", "identity.permission", SaasPermissionCodes.Permission.Export, 9),
+         new("identity.permission.condition-inventory", "条件盘点", "identity.permission", SaasPermissionCodes.PermissionCondition.Trial, 10),
+         new("identity.permission.condition-trial", "条件试算", "identity.permission", SaasPermissionCodes.PermissionCondition.Trial, 11),
 
         // [2.5] 字段安全（字段级读写与脱敏策略）
          new("identity.field-security.create", "新增", "identity.field-security", SaasPermissionCodes.FieldLevelSecurity.Create, 1),

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Conditions;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -43,18 +44,25 @@ public sealed class RolePermissionQueryService
     private readonly ISuperAdminProtector _superAdminProtector;
 
     /// <summary>
+    /// 权限条件仓储
+    /// </summary>
+    private readonly IPermissionConditionRepository _permissionConditionRepository;
+
+    /// <summary>
     /// 构造函数
     /// </summary>
     public RolePermissionQueryService(
         IRoleRepository roleRepository,
         IRolePermissionRepository rolePermissionRepository,
         IPermissionRepository permissionRepository,
-        ISuperAdminProtector superAdminProtector)
+        ISuperAdminProtector superAdminProtector,
+        IPermissionConditionRepository permissionConditionRepository)
     {
         _roleRepository = roleRepository;
         _rolePermissionRepository = rolePermissionRepository;
         _permissionRepository = permissionRepository;
         _superAdminProtector = superAdminProtector;
+        _permissionConditionRepository = permissionConditionRepository;
     }
 
     /// <summary>
@@ -95,11 +103,13 @@ public sealed class RolePermissionQueryService
         }
 
         var permissionMap = await BuildPermissionMapAsync(rolePermissions.Select(rolePermission => rolePermission.PermissionId), cancellationToken);
+        var conditionCounts = await _permissionConditionRepository.CountForRolePermissionsAsync(rolePermissions.Select(rolePermission => rolePermission.BasicId), cancellationToken);
 
         return [.. rolePermissions
             .Select(rolePermission => RolePermissionApplicationMapper.ToListItemDto(
                 rolePermission,
-                permissionMap.GetValueOrDefault(rolePermission.PermissionId)))
+                permissionMap.GetValueOrDefault(rolePermission.PermissionId),
+                conditionCounts.GetValueOrDefault(rolePermission.BasicId)))
             .OrderBy(item => item.PermissionCode)
             .ThenBy(item => item.PermissionId)];
     }

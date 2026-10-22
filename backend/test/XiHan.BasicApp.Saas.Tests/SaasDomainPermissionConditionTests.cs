@@ -102,6 +102,23 @@ public sealed class SaasDomainPermissionConditionTests
     }
 
     /// <summary>
+    /// 判空的两个运算符不看条件值，值可以留空。
+    /// </summary>
+    [Theory]
+    [InlineData(ConditionOperator.IsNull)]
+    [InlineData(ConditionOperator.IsNotNull)]
+    public async Task CreatePermissionCondition_NullCheckOperator_AllowsBlankValue(ConditionOperator conditionOperator)
+    {
+        var context = new ConditionTestContext();
+        context.SetupUsableRolePermission();
+        context.SetupNoExistingConditions();
+
+        _ = await context.Service.CreatePermissionConditionAsync(BuildCreateCommand(conditionOperator: conditionOperator, conditionValue: ""));
+
+        Assert.Equal(string.Empty, context.SavedCondition?.ConditionValue);
+    }
+
+    /// <summary>
     /// 条件分组序号不能为负数。
     /// </summary>
     [Fact]

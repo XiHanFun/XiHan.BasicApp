@@ -108,6 +108,11 @@ public sealed class UserPermissionListItemDto : BasicAppDto
     public ValidityStatus Status { get; set; }
 
     /// <summary>
+    /// 启用的条件条数（大于 0 即「有条件」）
+    /// </summary>
+    public int ConditionCount { get; set; }
+
+    /// <summary>
     /// 是否已过期
     /// </summary>
     public bool IsExpired { get; set; }

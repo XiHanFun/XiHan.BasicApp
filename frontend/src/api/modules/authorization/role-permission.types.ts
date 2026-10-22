@@ -8,6 +8,8 @@ export enum PermissionAction {
 }
 
 export interface RolePermissionListItemDto extends BasicDto {
+  /** 启用的条件条数（大于 0 即「有条件」） */
+  conditionCount: number
   createdTime: DateTimeString
   effectiveTime?: DateTimeString | null
   expirationTime?: DateTimeString | null
