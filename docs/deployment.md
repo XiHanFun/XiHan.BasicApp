@@ -165,7 +165,7 @@ pnpm build
 
 ### 访问策略与真实 IP
 
-访问策略按客户端 IP、地区、时段、用户、角色、接口等条件放行、拒绝或只记录请求，登录失败过多的 IP 会被自动封禁（参数 `saas.security.login-auto-ban`，缺省关）。策略在「系统管理 → 访问策略」里维护，命中写进条件命中记录。
+访问策略按客户端 IP、地区、时段、用户、角色、接口等条件放行、拒绝或只记录请求，登录失败过多的 IP 会被自动封禁（参数 `saas.security.login-auto-ban`，缺省关）。策略在「系统管理 → 访问策略」里维护，命中写进条件命中记录，用法见[访问策略](./backend/access-policy)。
 
 - **真实客户端 IP**：日志、会话、访问策略与自动封禁读的都是框架转发头中间件按受信代理还原后的地址，客户端自己伪造的 `X-Forwarded-For`、`X-Real-IP` 不算。缺省只信任本机回环地址上的代理（同机 nginx）；代理不在本机时（另一台主机上的 nginx、Docker Compose 里经桥接网络转发的前端 nginx 容器、云负载均衡），要在配置节 `XiHan:Web:Api:ForwardedHeaders` 里加上代理的地址（`KnownProxies`）或网段（`KnownNetworks`），多级代理同时调大 `ForwardLimit`，否则看到的客户端 IP 都是代理的地址。见[配置 · 受信代理](./configuration#api-forwardedheaders)。
 - **出错时放行**：策略求值本身出错时记错误日志、本次请求放行，不因访问策略自身的故障拒绝全部请求。
