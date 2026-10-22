@@ -348,7 +348,7 @@ describe('代码生成与工作流的动作名', () => {
     expect(only()).toMatchObject({ method: 'POST', url: '/WorkflowTodoQuery/Page', params: undefined })
   })
 
-  it('待办的三个写动作都保留完整方法名走 POST', async () => {
+  it('待办的三个写动作走 POST：办理与转办保留完整方法名，加签剥掉动词前缀 Add', async () => {
     await workflowTodoApi.complete({} as never)
     await workflowTodoApi.transfer({} as never)
     await workflowTodoApi.addAssignees({} as never)
@@ -356,7 +356,7 @@ describe('代码生成与工作流的动作名', () => {
     expect(calls.map(item => `${item.method} ${item.url}`)).toEqual([
       'POST /WorkflowTodo/Complete',
       'POST /WorkflowTodo/Transfer',
-      'POST /WorkflowTodo/AddAssignees',
+      'POST /WorkflowTodo/Assignees',
     ])
   })
 })

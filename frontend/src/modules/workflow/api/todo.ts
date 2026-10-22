@@ -17,7 +17,7 @@ export const workflowTodoApi = {
   page(input: WorkflowTodoPageQueryDto) {
     return query.post<PageResult<WorkflowTodoListItemDto>>('Page', input)
   },
-  // Commands（Complete/Transfer/AddAssignees 不在动词剥离表内：路由保留完整方法名，POST）
+  // Commands（Complete/Transfer 不在动词剥离表内，路由保留完整方法名；AddAssignees 的 Add 被剥掉，路由为 Assignees；均为 POST）
   complete(input: WorkflowTodoCompleteDto) {
     return command.post<WorkflowTodoCompleteResultDto, WorkflowTodoCompleteDto>('Complete', input)
   },
@@ -25,6 +25,6 @@ export const workflowTodoApi = {
     return command.post<void, WorkflowTodoTransferDto>('Transfer', input)
   },
   addAssignees(input: WorkflowTodoAddAssigneesDto) {
-    return command.post<void, WorkflowTodoAddAssigneesDto>('AddAssignees', input)
+    return command.post<void, WorkflowTodoAddAssigneesDto>('Assignees', input)
   },
 }
