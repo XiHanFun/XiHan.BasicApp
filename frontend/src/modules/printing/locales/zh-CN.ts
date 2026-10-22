@@ -81,7 +81,6 @@ export default {
       direct_print: '直接打印',
       printer: '打印机',
       refresh_printers: '刷新打印机列表',
-      back_to_list: '返回列表',
       invalid_json: '模板 JSON 不是当前格式的打印模板。',
       not_found: '打印模板不存在或当前作用域不可访问。',
       preview_failed: '打印预览失败',

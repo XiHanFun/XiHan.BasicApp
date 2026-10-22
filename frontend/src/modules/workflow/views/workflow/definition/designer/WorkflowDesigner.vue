@@ -5,7 +5,7 @@ import { computed, getCurrentInstance, onMounted, ref, shallowRef, watch } from 
 import { useI18n } from 'vue-i18n'
 import { XEditModal, XInput } from '~/components'
 import { toast } from '~/composables'
-import { DesignerCloseButton, DesignerMenubarTitle, DesignerStatusText } from '~/designers'
+import { DesignerMenubarTitle, DesignerStatusText } from '~/designers'
 import { createXihanWorkflow, xihanWorkflowTexts } from '~/designers/flow'
 import { ensureFlowDesigner } from '~/designers/flow-designer'
 import { useDesignerSettings } from '~/designers/settings'
@@ -22,8 +22,9 @@ import { createWorkflowHostExtension } from './workflow-host-extension'
  *
  * 菜单栏、画布、节点面板、属性面板、问题列表、撤销重做、缩放、对齐分布与自动布局都由设计器提供；
  * 这里只管装载与保存、引擎定义 JSON 的弹窗，以及经扩展接入的应用语义（见 workflow-extension.ts）。
- * 保存走设计器内置的 save 命令（「文件」菜单与 Ctrl / ⌘ + S）；引擎定义 JSON 与返回列表经宿主扩展挂进菜单栏
- * （见 workflow-host-extension.ts）；流程名称与编码放在菜单栏正中，保存状态放在状态栏右端，菜单栏右上角一颗关闭钮。
+ * 保存走设计器内置的 save 命令（「文件」菜单与 Ctrl / ⌘ + S）；引擎定义 JSON 经宿主扩展挂进菜单栏
+ * （见 workflow-host-extension.ts）；回列表用设计器自带的关闭钮（closable），保存中按了不理；
+ * 流程名称与编码放在菜单栏正中，保存状态放在状态栏右端。
  */
 
 const props = defineProps<{
@@ -84,15 +85,11 @@ const workflowExtension = computed(() => {
   })
 })
 
-/** 引擎定义 JSON 与返回列表挂进菜单栏；建一次、引用不变，保存状态变了只让设计器重算可用 */
+/** 引擎定义 JSON 挂进菜单栏；建一次、引用不变 */
 const hostExtension = createWorkflowHostExtension({
   t: key => t(key),
-  saving: () => props.saving ?? false,
   openEngineJson,
-  backToList: () => emit('close'),
 })
-
-watch(() => props.saving, () => designerRef.value?.requestUpdate())
 
 const extensions = computed(() => [preset.value, workflowExtension.value, hostExtension])
 /** 设计器设置（含面板布局、工具栏与新手引导走过与否）随用户存进用户设置，与流程定义页的列设置、搜索设置同一条记录 */
@@ -191,6 +188,13 @@ function markSaved() {
 
 defineExpose({ markSaved })
 
+/** 按了设计器菜单栏右端自带的关闭钮：保存中不理，其余回列表 */
+function handleClose() {
+  if (props.saving)
+    return
+  emit('close')
+}
+
 function handleSave() {
   const designer = designerRef.value
   if (props.saving || !designer)
@@ -210,15 +214,17 @@ function handleSave() {
     <xh-flow-designer
       v-if="settingsReady"
       ref="designerRef"
+      :closable="true"
       class="workflow-designer__canvas"
       :draft-key="draftKey"
       @schema-change="onSchemaChange"
       @dirty-change="onDirtyChange"
       @settings-change="designerSettings.onSettingsChange"
       @save="handleSave"
+      @close="handleClose"
       @export="onExport"
     >
-      <!-- 设计器把它们转进外框：名称与编码在菜单栏正中，保存状态在状态栏右端，关闭钮在菜单栏右上角；元素常驻。与打印编辑器同一个样子 -->
+      <!-- 设计器把它们转进外框：名称与编码在菜单栏正中，保存状态在状态栏右端；元素常驻。与打印编辑器同一个样子 -->
       <DesignerMenubarTitle
         :name="identity.name || t('workflow.designer.untitled')"
         :code="identity.code || undefined"
@@ -227,7 +233,6 @@ function handleSave() {
         :text="saved ? t('workflow.designer.saved') : t('workflow.designer.unsaved')"
         :tone="saved ? undefined : 'warning'"
       />
-      <DesignerCloseButton :label="t('common.actions.close')" :disabled="saving" @close="emit('close')" />
     </xh-flow-designer>
 
     <XEditModal

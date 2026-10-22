@@ -36,6 +36,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
+  /** 按了设计器菜单栏右端自带的关闭钮 */
+  close: []
   changed: [template: PrintDocument]
   dirtyChange: [dirty: boolean]
   ready: []
@@ -195,6 +197,7 @@ defineExpose({ getJson, markSaved, preview, refreshCommands, validate })
     <xh-print-designer
       v-if="settingsReady"
       ref="designerRef"
+      :closable="true"
       class="designer-host"
       data-testid="print-designer-canvas-stage"
       :draft-key="draftKey"
@@ -204,6 +207,7 @@ defineExpose({ getJson, markSaved, preview, refreshCommands, validate })
       @fields-change="onFieldsChange"
       @sample-data-change="onSampleDataChange"
       @save="emit('save')"
+      @close="emit('close')"
     >
       <!-- 宿主放进外框的几样（各自写 slot="menubar-center" / "status-end"），作为设计器的直接子元素由它转交；元素常驻，只换文字 -->
       <slot />

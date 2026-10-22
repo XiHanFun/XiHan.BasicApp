@@ -1,15 +1,15 @@
 <!--
   打印模板全屏编辑器。
   职责：设计已有模板的版面、阻止未保存离开、使用内存样例预览，并通过公共 FIFO API 提供直打入口和本地打印机偏好。
-  编辑器的操作（样例预览、直接打印、打印机、返回列表）挂进设计器的菜单栏，保存走设计器的 save 命令；
-  模板名称与编码放在菜单栏正中，所绑数据源与保存状态放在状态栏右端，菜单栏右上角一颗关闭钮（与返回列表同一条路）。名称、编码、数据源等在列表页的编辑弹窗里改。
+  编辑器的操作（样例预览、直接打印、打印机）挂进设计器的菜单栏，保存走设计器的 save 命令，回列表用设计器自带的关闭钮；
+  模板名称与编码放在菜单栏正中，所绑数据源与保存状态放在状态栏右端。名称、编码、数据源等在列表页的编辑弹窗里改。
 -->
 <script setup lang="ts">
 import type { PrintTemplateDetailDto, PrintTemplateScope } from '../../../../api/print-template.types'
 import { XhDialogContent, XhDialogRoot, XhDialogTitle } from '@xihan-ui/vue'
 import { shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { DesignerCloseButton, DesignerMenubarTitle, DesignerStatusText } from '~/designers'
+import { DesignerMenubarTitle, DesignerStatusText } from '~/designers'
 import { createPrintHostExtension } from './print-host-extension'
 import DesignerCanvas from './PrintDesignerCanvas.vue'
 import SampleDataModal from './PrintSampleDataModal.vue'
@@ -76,7 +76,6 @@ const hostExtension = createPrintHostExtension({
   printing: () => directLoading.value,
   // 停用的模板不能直打
   canDirectPrint: () => canDirectPrint.value,
-  busy: () => saveLoading.value || directLoading.value,
   printers: () => printerOptions.value,
   selectedPrinter: () => selectedPrinter.value,
   loadingPrinters: () => printerLoading.value,
@@ -84,12 +83,18 @@ const hostExtension = createPrintHostExtension({
   directPrint: () => void directPrint(),
   selectPrinter: printer => void updatePrinterPreference(printer),
   refreshPrinters: () => void loadPrinters(true),
-  backToList: () => void requestVisible(false),
 })
+
+/** 按了设计器自带的关闭钮：保存、直打进行中不理；有未保存的修改先确认（与 Esc 关弹窗同一条路） */
+function handleClose(): void {
+  if (saveLoading.value || directLoading.value)
+    return
+  void requestVisible(false)
+}
 
 // 编辑会话的状态变了设计器不知道：让它重算宿主命令的可用、打印机的勾与随语言变的文字
 watch(
-  [designerReady, previewLoading, directLoading, saveLoading, canDirectPrint, currentDetail, printerOptions, selectedPrinter, printerLoading, locale],
+  [designerReady, previewLoading, directLoading, canDirectPrint, currentDetail, printerOptions, selectedPrinter, printerLoading, locale],
   () => canvasRef.value?.refreshCommands(),
 )
 
@@ -123,8 +128,9 @@ defineExpose({ confirmDiscard })
           @dirty-change="onDesignerDirtyChange"
           @ready="onDesignerReady"
           @save="save"
+          @close="handleClose"
         >
-          <!-- 菜单栏正中：模板名称与编码；状态栏右端：所绑数据源与保存状态；菜单栏右上角：关闭钮。与流程编辑器同一个样子 -->
+          <!-- 菜单栏正中：模板名称与编码；状态栏右端：所绑数据源与保存状态。与流程编辑器同一个样子 -->
           <DesignerMenubarTitle
             :name="currentDetail?.templateName || title"
             :code="currentDetail?.templateCode"
@@ -136,11 +142,6 @@ defineExpose({ confirmDiscard })
           <DesignerStatusText
             :text="dirty ? t('setting.print_template.unsaved') : t('setting.print_template.saved')"
             :tone="dirty ? 'warning' : undefined"
-          />
-          <DesignerCloseButton
-            :label="t('common.actions.close')"
-            :disabled="saveLoading || directLoading"
-            @close="requestVisible(false)"
           />
         </DesignerCanvas>
       </div>

@@ -131,7 +131,6 @@ export default {
     designer: {
       untitled: 'Unbenannter Workflow',
       engine_json: 'Engine-Definition (JSON)',
-      back_to_list: 'Zurück zur Liste',
       saved: 'Gespeichert',
       unsaved: 'Nicht gespeichert',
       btn_apply_json: 'Auf Canvas anwenden',

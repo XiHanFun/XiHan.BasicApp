@@ -3,7 +3,6 @@
  */
 
 export {
-  ArrowLeftIcon,
   FileTextIcon,
   PrinterIcon,
   ReceiptIcon,

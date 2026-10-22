@@ -131,7 +131,6 @@ export default {
     designer: {
       untitled: '無題のワークフロー',
       engine_json: 'エンジン定義 JSON',
-      back_to_list: '一覧に戻る',
       saved: '保存済み',
       unsaved: '未保存の変更',
       btn_apply_json: 'キャンバスに適用',

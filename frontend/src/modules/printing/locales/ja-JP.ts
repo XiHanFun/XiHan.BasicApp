@@ -81,7 +81,6 @@ export default {
       direct_print: '直接印刷',
       printer: 'プリンター',
       refresh_printers: 'プリンター一覧を更新',
-      back_to_list: '一覧に戻る',
       invalid_json: 'テンプレート JSON が現在の形式の印刷テンプレートではありません。',
       not_found: '印刷テンプレートが存在しないか、現在のスコープではアクセスできません。',
       preview_failed: '印刷プレビューに失敗しました',

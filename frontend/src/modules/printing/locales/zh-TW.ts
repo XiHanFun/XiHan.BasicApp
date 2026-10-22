@@ -81,7 +81,6 @@ export default {
       direct_print: '直接列印',
       printer: '印表機',
       refresh_printers: '重新整理印表機清單',
-      back_to_list: '返回列表',
       invalid_json: '範本 JSON 不是目前格式的列印範本。',
       not_found: '列印範本不存在，或目前作用域無法存取。',
       preview_failed: '列印預覽失敗',

@@ -81,7 +81,6 @@ export default {
       direct_print: '바로 인쇄',
       printer: '프린터',
       refresh_printers: '프린터 목록 새로 고침',
-      back_to_list: '목록으로 돌아가기',
       invalid_json: '템플릿 JSON이 현재 형식의 인쇄 템플릿이 아니에요.',
       not_found: '인쇄 템플릿이 없거나 현재 범위에서 접근할 수 없어요.',
       preview_failed: '인쇄 미리 보기에 실패했어요',

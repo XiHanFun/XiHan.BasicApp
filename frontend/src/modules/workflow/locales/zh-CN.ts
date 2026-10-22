@@ -131,7 +131,6 @@ export default {
     designer: {
       untitled: '未命名流程',
       engine_json: '引擎定义 JSON',
-      back_to_list: '返回列表',
       saved: '已保存',
       unsaved: '未保存',
       btn_apply_json: '应用到画布',

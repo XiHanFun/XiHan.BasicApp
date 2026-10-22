@@ -131,7 +131,6 @@ export default {
     designer: {
       untitled: 'बिना नाम का वर्कफ़्लो',
       engine_json: 'इंजन परिभाषा JSON',
-      back_to_list: 'सूची पर वापस जाएं',
       saved: 'सहेजा गया',
       unsaved: 'सहेजा नहीं गया',
       btn_apply_json: 'कैनवास पर लागू करें',
