@@ -10,7 +10,9 @@ using XiHan.BasicApp.AI.Extensions;
 using XiHan.BasicApp.Chat.Extensions;
 using XiHan.BasicApp.CodeGeneration.Domain.Entities;
 using XiHan.BasicApp.CodeGeneration.Extensions;
+using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Extensions;
+using XiHan.BasicApp.Printing.Infrastructure.Seeders;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -45,6 +47,7 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         typeof(SysDepartment), typeof(SysDepartmentHierarchy), typeof(SysPosition),
         typeof(SysConfig), typeof(SysStorageConfig), typeof(SysMessageTemplate), typeof(SysOAuthApp), typeof(SysTask),
         typeof(SysNotification), typeof(SysDict), typeof(SysDictItem), typeof(SysCodeGenTemplate),
+        typeof(SysPrintTemplate),
     ];
 
     private readonly string _connectionString = $"Data Source=xihan-modules-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
@@ -85,11 +88,12 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         var protector = new Mock<IConfigValueSecretProtector>();
         protector.Setup(value => value.Protect(It.IsAny<string?>())).Returns((string? plaintext) => $"enc:{plaintext}");
 
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { [DemoDataSeederBase.EnableDemoDataKey] = "true" })
+            .Build();
         var services = new ServiceCollection()
             .AddLogging()
-            .AddSingleton<IConfiguration>(new ConfigurationBuilder()
-                .AddInMemoryCollection(new Dictionary<string, string?> { [DemoDataSeederBase.EnableDemoDataKey] = "true" })
-                .Build())
+            .AddSingleton<IConfiguration>(configuration)
             .AddSingleton<ICurrentTenant>(tenant)
             .AddSingleton(resolver.Object)
             .AddSingleton(hasher.Object)
@@ -100,6 +104,7 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         services.AddWorkflowDataSeeders();
         services.AddChatDataSeeders();
         services.AddPrintingDataSeeders();
+        services.AddPrintingDemoData(configuration);
         _services = services.BuildServiceProvider();
     }
 
@@ -153,6 +158,27 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
     /// <summary>
     /// 再跑一遍一行都不多。
     /// </summary>
+    /// <summary>
+    /// 演示开关打开时写入打印演示模板：平台全局、对租户开放、启用，内容是打印设计器的模板 JSON。
+    /// </summary>
+    [Fact]
+    public async Task PrintingDemoTemplates_ShouldSeedGlobalTemplatesOpenToTenants()
+    {
+        await SeedAsync();
+
+        var templates = await _db.Queryable<SysPrintTemplate>().ToListAsync();
+        Assert.Equal(
+            PrintingDemoCatalog.Templates.Select(template => template.Code).Order(StringComparer.Ordinal),
+            templates.Select(template => template.TemplateCode).Order(StringComparer.Ordinal));
+        Assert.All(templates, template =>
+        {
+            Assert.Equal(0, template.TenantId);
+            Assert.True(template.AllowTenantUse);
+            Assert.Equal(EnableStatus.Enabled, template.Status);
+            Assert.Contains("\"schemaVersion\": 1", template.TemplateJson, StringComparison.Ordinal);
+        });
+    }
+
     [Fact]
     public async Task AllModuleSeeders_Twice_ShouldNotAddRows()
     {

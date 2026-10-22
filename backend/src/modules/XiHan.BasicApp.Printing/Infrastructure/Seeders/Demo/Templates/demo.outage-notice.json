@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "pages": [
+    {
+      "id": "notice",
+      "paper": {
+        "preset": "A5",
+        "width": 148,
+        "height": 210
+      },
+      "orientation": "portrait",
+      "margins": {
+        "top": 12,
+        "right": 12,
+        "bottom": 12,
+        "left": 12
+      },
+      "header": {
+        "default": {
+          "height": 0,
+          "elements": []
+        },
+        "singleSheet": "first"
+      },
+      "footer": {
+        "default": {
+          "height": 0,
+          "elements": []
+        },
+        "singleSheet": "last"
+      },
+      "elements": [
+        {
+          "id": "body",
+          "type": "richText",
+          "x": 12,
+          "y": 12,
+          "width": 124,
+          "height": 40,
+          "content": {
+            "kind": "static",
+            "document": {
+              "blocks": [
+                {
+                  "type": "heading",
+                  "level": 1,
+                  "align": "center",
+                  "runs": [
+                    {
+                      "type": "text",
+                      "text": "停电检修通知"
+                    }
+                  ]
+                },
+                {
+                  "type": "paragraph",
+                  "runs": [
+                    {
+                      "type": "text",
+                      "text": "因供电线路检修，"
+                    },
+                    {
+                      "type": "field",
+                      "field": "building",
+                      "marks": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": "将于 "
+                    },
+                    {
+                      "type": "field",
+                      "field": "start",
+                      "format": {
+                        "kind": "date",
+                        "pattern": "M 月 d 日 HH:mm"
+                      },
+                      "marks": {
+                        "color": "#c0392b"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": " 起停电，预计持续 "
+                    },
+                    {
+                      "type": "field",
+                      "field": "hours"
+                    },
+                    {
+                      "type": "text",
+                      "text": " 小时。请提前做好以下准备："
+                    }
+                  ]
+                },
+                {
+                  "type": "list",
+                  "ordered": true,
+                  "items": [
+                    {
+                      "blocks": [
+                        {
+                          "type": "paragraph",
+                          "runs": [
+                            {
+                              "type": "text",
+                              "text": "保存正在编辑的文件，关闭电脑与显示器。"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "blocks": [
+                        {
+                          "type": "paragraph",
+                          "runs": [
+                            {
+                              "type": "text",
+                              "text": "冰箱里的易腐物品",
+                              "marks": {
+                                "bold": true
+                              }
+                            },
+                            {
+                              "type": "text",
+                              "text": "请当天带走。"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "blocks": [
+                        {
+                          "type": "paragraph",
+                          "runs": [
+                            {
+                              "type": "text",
+                              "text": "电梯暂停运行，请走楼梯。"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "paragraph",
+                  "align": "right",
+                  "runs": [
+                    {
+                      "type": "text",
+                      "text": "物业服务中心",
+                      "marks": {
+                        "italic": true
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "style": {
+            "fontSize": 11,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "top",
+            "lineHeight": 1.5,
+            "letterSpacing": 0
+          }
+        },
+        {
+          "id": "remark",
+          "type": "richText",
+          "x": 12,
+          "y": 58,
+          "width": 124,
+          "height": 20,
+          "content": {
+            "kind": "field",
+            "field": "remark",
+            "source": "html"
+          },
+          "style": {
+            "fontSize": 10,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#444444",
+            "align": "left",
+            "verticalAlign": "top",
+            "lineHeight": 1.5,
+            "letterSpacing": 0
+          }
+        }
+      ],
+      "numbering": {
+        "continuous": true,
+        "start": 1
+      }
+    }
+  ],
+  "name": "停电检修通知"
+}

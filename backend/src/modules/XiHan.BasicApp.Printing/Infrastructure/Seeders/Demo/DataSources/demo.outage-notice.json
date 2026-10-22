@@ -1,0 +1,31 @@
+{
+  "code": "demo.outage-notice",
+  "name": "演示 · 停电检修通知",
+  "fields": [
+    {
+      "key": "building",
+      "label": "楼栋"
+    },
+    {
+      "key": "start",
+      "label": "停电开始时间",
+      "inputType": "datetime"
+    },
+    {
+      "key": "hours",
+      "label": "预计时长（小时）",
+      "inputType": "number"
+    },
+    {
+      "key": "remark",
+      "label": "补充说明（HTML）",
+      "inputType": "textarea"
+    }
+  ],
+  "sample": {
+    "building": "3 号楼",
+    "start": "2026-10-24 08:30:00",
+    "hours": 4,
+    "remark": "<h3>补充说明</h3><p>如有<strong>医疗设备</strong>等不能断电的情况，请在 <u>10 月 22 日前</u>联系物业登记。</p><script>track()</script>"
+  }
+}

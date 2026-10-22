@@ -1,0 +1,13 @@
+{
+  "code": "demo.pickup-receipt",
+  "name": "演示 · 取件凭条",
+  "fields": [
+    {
+      "key": "code",
+      "label": "取件码"
+    }
+  ],
+  "sample": {
+    "code": "A-0517"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "code": "demo.formats",
+  "name": "演示 · 格式示例",
+  "fields": [
+    {
+      "key": "amount",
+      "label": "金额",
+      "inputType": "number"
+    },
+    {
+      "key": "rate",
+      "label": "比率",
+      "inputType": "number"
+    },
+    {
+      "key": "signedAt",
+      "label": "签署时间",
+      "inputType": "datetime"
+    },
+    {
+      "key": "paid",
+      "label": "实付金额",
+      "inputType": "number"
+    },
+    {
+      "key": "qty",
+      "label": "数量",
+      "inputType": "number"
+    },
+    {
+      "key": "price",
+      "label": "单价",
+      "inputType": "number"
+    },
+    {
+      "key": "status",
+      "label": "发货状态"
+    },
+    {
+      "key": "remark",
+      "label": "备注"
+    },
+    {
+      "key": "customer.name",
+      "label": "客户名称"
+    },
+    {
+      "key": "customer.city",
+      "label": "客户城市"
+    }
+  ],
+  "sample": {
+    "amount": 1234567.891,
+    "rate": 0.1234,
+    "signedAt": "2026-10-17 08:30:00",
+    "paid": 1001.5,
+    "qty": 3,
+    "price": 19.9,
+    "status": "shipped",
+    "remark": "",
+    "customer": {
+      "name": "曦寒商贸",
+      "city": "杭州"
+    }
+  }
+}

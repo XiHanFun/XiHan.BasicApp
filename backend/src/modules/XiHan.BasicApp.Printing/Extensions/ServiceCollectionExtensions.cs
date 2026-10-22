@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Printing.Application.Caching;
@@ -12,6 +13,7 @@ using XiHan.BasicApp.Printing.Infrastructure.Seeders;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Saas.Extensions;
+using XiHan.BasicApp.Saas.Infrastructure.Seeders;
 
 namespace XiHan.BasicApp.Printing.Extensions;
 
@@ -70,6 +72,26 @@ public static class ServiceCollectionExtensions
         if (!demoRegistered)
         {
             services.RegisterPrintDataSource(BuiltInPrintDataSources.SystemPrintDemo);
+        }
+
+        return services;
+    }
+
+    /// <summary>
+    /// 打印演示数据：演示模板种子照常登记（种子自己按开关跳过）；五个演示数据源只在演示开关打开时注册，开关关着时目录里没有它们
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <param name="configuration">应用配置，读演示开关 <see cref="DemoDataSeederBase.EnableDemoDataKey"/></param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddPrintingDemoData(this IServiceCollection services, IConfiguration configuration)
+    {
+        _ = services.AddDataSeeder<PrintingDemoTemplateSeeder>();
+        if (configuration.GetValue<bool>(DemoDataSeederBase.EnableDemoDataKey))
+        {
+            foreach (var definition in PrintingDemoCatalog.LoadDataSources())
+            {
+                services.RegisterPrintDataSource(definition);
+            }
         }
 
         return services;
