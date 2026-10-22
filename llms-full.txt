@@ -485,6 +485,37 @@ Hub 侧**没有** `long → string` 与枚举的自动转换器（那是 MVC JSO
 
 本文件记录 XiHan.BasicApp 各版本的变更。每条标注 **新增 / 修复 / 优化 / 调整 / 升级 / 移除** 类别。只收录使用者可感知的变更，仓库自身的配置、CI 与测试工程不列入。升级前请留意「调整」类中的破坏性变更。
 
+## v5.9.0-rc.1 (2026-10-22)
+
+::: warning 升级须知
+本版是 5.9.0 的候选版本：打印与流程设计器整体换成 XiHan 打印设计器与 XiHan 流程设计器，有数据库变更，前端二次开发要跟上 XiHan.UI 5.0.0 的破坏性改名。**升级前请备份平台库。**
+
+- **数据库**：随附 `UpdateScripts/5.9.0`，可重复执行。`XiHan:Upgrade:EnableAutoCheckOnStartup` 开启（缺省）时，启动在建表之后、播种之前对平台库与各数据库隔离租户库逐库自动执行，执行失败即中断启动；关掉该开关的，须先手工执行再启动。新建的库直接登记为最新版本，不跑本次脚本。脚本内容：打印模板表删除记录 hiprint 引擎版本的 `engine_version` 列（打印模板只在平台库建表，独立库上整段空转）
+- **打印模板**：模板 JSON 改存 XiHan 打印设计器的格式（`schemaVersion` 为 1），**存量的 hiprint 模板不迁移**：在「打印模板」页打开时换成空白模板并提示，重新设计保存后覆盖；重新设计之前，按编码打印这些模板会明确报格式错误
+- **直打**：打印机列表与静默直打改用 [XiHan 打印客户端](https://print.docs.xihanfun.com/guide/client)，每台要直打的电脑安装并运行客户端，原 hiprint 客户端与 `VITE_HIPRINT_HOST` / `VITE_HIPRINT_TOKEN` 不再使用。网站第一次连接时，客户端在桌面上弹出授权窗口，允许后才能打印；Chrome / Edge 147 起，网页连接本机客户端前还要先过浏览器的本机网络访问授权（每个网站询问一次），生产站点须用 HTTPS，页面嵌在 iframe 里时每层 iframe 都要允许 `loopback-network`。连不上、未授权或打印机出错时按原因提示，不退回浏览器打印，见[打印模板](backend/printing.md)
+- **接口**：打印模板的 DTO 与命令去掉 `EngineVersion`；服务端保存校验改为结构检查：模板 JSON 须是对象、`schemaVersion` 为 1、`pages` 为非空的对象数组，完整校验由前端设计器在保存前做
+- **流程定义**：存量定义原样打开、不迁移，节点坐标照旧存在 `extraProperties.designerLayout`，旧版受理人写法照旧在打开时并入受理人规则
+- **二次开发**：
+  - 打印：`@xihan/printing` 的 `previewPrintByCode`、`directPrintByCode`、数据源注册与目录、打印机偏好入口与签名不变；hiprint 适配与 `vue-plugin-hiprint` 依赖删除，读到旧格式模板 JSON 时抛 `PrintTemplateFormatError`
+  - 流程：设计器与查看器换成 `@xihan-flow` 的 `<xh-flow-designer>` / `<xh-flow-viewer>`，X6 封装 `@xihan/diagram`（`packages/diagram`）与 `@antv/x6` 依赖删除，只看流程图的页面改用 `~/designers/flow`
+  - 跟上 XiHan.UI 5.0.0 的破坏性改名（见 [XiHan.UI 升级须知](https://ui.docs.xihanfun.com/changelog#v5-0-0-2026-10-21)）：菜单族（Menu、ContextMenu、Menubar 等）的选中事件 `select` 改为 `item-select`，条目行首内容（`item-prefix` 插槽）落到 `item-icon`、随条目字色，`item-indicator` 只当对号；Popconfirm 的取消事件 `cancel` 改为 `cancel-press`；Tree 的 `multiple` 改为 `selectionMode`；`formatHotkey`、`matchesHotkey`、`detectKbdPlatform` 移出 headless，改从 `@xihan-ui/core/hotkey` 引入。BasicApp 自带的 `XDropdown`、`TabbarContextMenu`、`XPopconfirm` 对外事件与 `XTree` 的 `multiple` 属性不变，直接用 XiHan.UI 组件的代码须照改
+- **依赖**：后端随附 XiHan.Framework 4.7.1（自写的动态 API 在 `POST` / `PUT` / `PATCH` 上靠查询串传集合参数的，需给参数加 `[FromQuery]`，BasicApp 自带接口不受影响）；前端随附 XiHan.UI 5.1.0、XiHan 打印设计器与 XiHan 流程设计器 1.0.0-rc.2，已有 `node_modules` 须重新 `pnpm install`
+:::
+
+- **调整** 打印模板的设计换成 XiHan 打印设计器：画布、物料、页面模板、标尺、属性面板、问题列表、撤销重做与 JSON 编辑由设计器提供；数据源字段列在物料面板的「字段」一组，拖上画布就是绑好字段的元素（图片、条码、二维码字段生成对应元素，明细生成表格），自由模板可导入字段与示例数据；保存、样例预览、直接打印与打印机并进设计器菜单栏，模板名称与编码在菜单栏正中，所绑数据源与保存状态在状态栏，右上角关闭；有错误级问题时拦下保存，改了又撤销回原样即显示已保存。见升级须知
+- **调整** 流程设计器与查看器换成 XiHan 流程设计器：画布、带图标的节点面板、属性面板、流程结构、问题列表、撤销重做、缩放、对齐分布与自动布局（缺省自左而右）由设计器提供，启动变量用设计器内建的编辑器，连线条件可一键填入源节点的常见结果，人工任务只显示受理人规则；保存与导出 PNG / SVG 在菜单栏，导出的图片按流程编码命名，引擎定义 JSON 只在开发者模式下出现在「文件」菜单；流程定义预览与实例轨迹改用同一套查看器
+- **调整** 打印模板与流程定义的「编辑」和「设计」分开：名称、分类、描述、数据源等元数据在列表页的「编辑」弹窗里改，「设计」满屏打开设计器、只管版面与流程图；新建先在弹窗里填好，建好空白模板或草稿后直接进设计器
+- **调整** 直打改用 XiHan 打印客户端，网站首次连接需在客户端里授权，浏览器另需本机网络访问授权，见升级须知
+- **新增** 打印与流程设计器的设置（语言、主题色、菜单栏、状态栏、自动保存、开发者模式、面板布局与工具栏）存进用户设置，跨端同步；设计器界面按应用语言切换；开着自动保存时未保存的设计存为本机草稿，保存后自动删除
+- **修复** 打印模板列表的「设计」、样例预览与样例直打打不开已有模板：模板详情接口一律返回 404
+- **修复** 开着跨端同步时，另一台设备推来同一页的设置或首次拉取失败之后，本端再改的表格设置、搜索设置、个人视图与仪表盘，重新打开页面时读回旧值
+- **修复** 模仿登录横幅在暗色下文字糊在暗琥珀底上：改用与通知横幅同一套警示配色
+- **优化** 文档站生态导航补「设计器」一组，加公告横幅，文档主题升至 1.2.1；架构图跟上设计器替换
+- **移除** hiprint 打印引擎（`vue-plugin-hiprint`）与 X6 流程图封装（`@xihan/diagram`、`@antv/x6`），打印模板的引擎版本字段一并删除，见升级须知
+- **升级** 前端 XiHan.UI 由 4.2.0 升至 5.1.0：亮色主题的警告色加深一档，菜单条目的图标随条目字色（危险条目随字转红）；二次开发须跟上 5.0.0 的改名，见升级须知
+- **升级** 后端 XiHan.Framework 升至 4.7.1；前端接入 XiHan 打印设计器与 XiHan 流程设计器 1.0.0-rc.2
+- **升级** 发布 v5.9.0-rc.1
+
 ## v5.8.0 (2026-10-15)
 
 ::: warning 升级须知
@@ -3111,7 +3142,7 @@ frontend/
     ├── stores/  hooks/  composables/
     ├── layouts/                      #   布局与顶部横幅/通知门
     ├── locales/langs/{zh-CN,en-US}/  #   ★ 语言包（含 menu.ts）
-    ├── design/  iconify/  diagram/  plugins/  views/
+    ├── design/  iconify/  designers/  plugins/  views/
     └── types/  utils/  constants/
 ```
 
@@ -7520,12 +7551,12 @@ ABAC 授权条件与约束规则都不在这条链上：前者只存储、不求
 
 | 能力 | 依赖 | 说明 |
 | --- | --- | --- |
-| 模板设计器 | 仅浏览器 | hiprint 可视化拖拽设计，模板 JSON 存 `Sys_Print_Template` |
-| 浏览器预览打印 | 仅浏览器 | `previewPrintByCode` 打开系统打印预览窗口，任何部署形态可用 |
-| 打印机列表 / 静默直打 | **electron-hiprint 桌面客户端** | `listPrinters` / `refreshPrinters` / `directPrintByCode` 要求每台操作机安装并运行 [electron-hiprint](https://gitee.com/CcSimple/electron-hiprint) 客户端，前端经 WebSocket（默认 `http://localhost:17521`）连接；客户端未连接时这三条路径明确报错，不静默回退 |
+| 模板设计器 | 仅浏览器 | [XiHan 打印设计器](https://print.docs.xihanfun.com) 可视化设计，模板 JSON（`schemaVersion` 为 1 的打印模板）存 `Sys_Print_Template` |
+| 浏览器打印 | 仅浏览器 | `previewPrintByCode` 在看不见的 iframe 里排好输出页再调起浏览器打印对话框，任何部署形态可用；传对象数组时各自分页后一次打印 |
+| 打印机列表 / 静默直打 | **XiHan 打印客户端** | `listPrinters` / `refreshPrinters` / `directPrintByCode` 要求每台操作机安装并运行 [打印客户端](https://print.docs.xihanfun.com/guide/client)，前端经本机 WebSocket 连接；连不上、未授权或打印机出错时这三条路径按错误码明确报错，不退回浏览器打印 |
 
 ::: warning 部署前提
-静默直打是**企业内网桌面场景**的能力：纯 Web 部署（用户不装桌面客户端）只有设计器与浏览器预览可用。客户端连接地址与令牌经 Vite 环境变量 `VITE_HIPRINT_HOST` / `VITE_HIPRINT_TOKEN` 配置（省略时用内置默认值 `http://localhost:17521` / `vue-plugin-hiprint`）。该令牌随前端产物分发、可在浏览器端看到，仅是本机客户端的握手口令，不是保密凭据。
+静默直打是**企业内网桌面场景**的能力：纯 Web 部署（用户不装桌面客户端）只有设计器与浏览器打印可用。网站第一次连接时，客户端在桌面上弹出授权窗口，允许后才能打印。生产站点要用 HTTPS；Chrome / Edge 访问本机应用要先过浏览器的本机网络访问授权，嵌在 iframe 里时每层都要允许 `loopback-network`。
 :::
 
 ## 作用域模型
@@ -7544,7 +7575,7 @@ ABAC 授权条件与约束规则都不在这条链上：前者只存储、不求
 
 ## 数据源目录
 
-模板可绑定「代码注册数据源」获得字段素材与样例数据。目录以**后端注册表为单一事实源**（`Domain/DataSources/IPrintDataSourceRegistry`）：
+模板可绑定「代码注册数据源」获得字段素材与样例数据：字段列在设计器物料面板的「字段」一组，拖上画布就是绑好的元素（图片、条码、二维码字段生成对应元素，明细表生成表格）。目录以**后端注册表为单一事实源**（`Domain/DataSources/IPrintDataSourceRegistry`）：
 
 - **注册**：业务模块在自己的 `ConfigureServices` 中调 `services.RegisterPrintDataSource(definition)` 登记定义（字段契约 + 静态样例 JSON）；打印模块内置示例数据源 `system.print-demo` 随模块自注册。
 - **启动期校验**：应用启动即收纳全部登记项，重复编码、非法字段契约（未知类型/重复字段/空列明细/非法控件类型）、坏样例 JSON（不可解析或根节点不是对象/数组）都会让启动直接失败。
@@ -7555,11 +7586,15 @@ ABAC 授权条件与约束规则都不在这条链上：前者只存储、不求
 由此推出的两条约束：
 
 - 数据源随后端代码发版，删除/改名会使既有模板的绑定失效（打印时报「数据源未注册」）；
-- 不绑数据源的「自由模板」按模板内标准字段绑定推断样例表单，不受上述影响。
+- 不绑数据源的「自由模板」不受上述影响：直打按空记录打印，样例预览的表单按模板引用的字段生成。
+
+绑定了数据源时，模板引用了、数据源却没登记的字段在模板设置里提示数量（不阻断保存与打印，调用方要传这些字段），样例预览的表单也为它们单独列出输入项。
+
+模板 JSON 的服务端校验只做最小结构检查（JSON 对象、`schemaVersion` 为 1、`pages` 是非空的对象数组），完整校验在前端保存前由设计器做。库里存着旧格式内容的模板，打印时明确报格式错误；在打印模板页打开时换成空白模板并提示，重新设计保存后覆盖。
 
 ## 已知限制
 
-- `previewPrintByCode` 的完成信号仅表示预览调用已发起，无法得知用户在系统对话框中点了打印还是取消（上游引擎限制）；
+- `previewPrintByCode` 的完成信号仅表示打印对话框已调起，无法得知用户在系统对话框中点了打印还是取消；
 - 直打依赖的打印机名单来自客户端所在机器，跨机器无共享；打印机偏好存浏览器 `localStorage`（按 用户×租户×模板 隔离，不上传服务端）。
 
 ---
@@ -8485,7 +8520,7 @@ Draft 草稿 ──发布──► Published 已发布 ──停用──► Dis
 | 停用 | `DisableAsync` | 不可启动新实例，**存量实例继续运行** |
 | 归档 | `ArchiveAsync` | 彻底下架 |
 
-列表的「关联业务」列标出编码与哪个审批业务对应。设计器的流程设置里可以选「审批业务」：选中后流程编码随之改成业务编码，并补上业务写入的流程变量声明；校验面板提前提示缺结果的结束节点与终止节点（发布时后端同样拒绝）。
+列表的「关联业务」列标出编码与哪个审批业务对应。设计器里什么都不选时，属性面板的「编码」一行可以先选「审批业务」：选中后流程编码随之改成业务编码，并补上业务写入的流程变量声明；问题列表提前提示缺结果的结束节点与终止节点（发布时后端同样拒绝）。编辑已有草稿时编码与业务只读，更新草稿沿用原编码。
 
 ### 流程实例（`/workflow/instance`）
 
@@ -8730,9 +8765,9 @@ private static WorkflowDefinition BuildDefaultDefinition() =>
 本地存储返回 `/uploads/...`。前后端同源没问题，**线上不同源时必须拼上 `VITE_API_BASE_URL` 的 origin**，否则浏览器拿前端域名去请求而 404。上面两个工具已处理，自己拼 URL 时别忘了。
 :::
 
-## 图编辑
+## 设计器
 
-`packages/diagram` 基于 AntV X6 封装通用图编辑能力（工作流设计器在用）。应用侧只依赖本包导出的 `XDiagram` / `DiagramApi` / `DiagramData` / `registerVueShape`，不直接依赖 `@antv/x6`。
+`packages/designers` 接入曦寒的设计器（原生 Web Components）：流程设计器与查看器（`@xihan-flow/*`，工作流的流程定义与实例轨迹在用）。应用侧经 `~/designers/flow` 取用，不直接依赖 `@xihan-flow/*`；设计器的语言跟随应用语言，设计器属性面板里要查应用数据的编辑器用 `createVuePropertyEditor` 把 Vue 组件挂进去。模板里的 `xh-` 开头标签交给浏览器（`vite.config.ts` 的 `isCustomElement`），应用里的组件库组件一律写 PascalCase 的 `Xh*`。
 
 ## 布局
 
@@ -9145,7 +9180,7 @@ new("identity.position", "岗位管理", "menu.identity_position", MenuType.Menu
 │  ② 可复用内核  packages/**                                        │
 │     components(schema/chat/common) · composables · hooks ·        │
 │     stores · layouts · router · locales · design · iconify ·      │
-│     diagram · plugins · views · types · utils · constants         │
+│     designers · plugins · views · types · utils · constants       │
 ├──────────────────────────────────────────────────────────────────┤
 │  ① 传输底座  packages/request                                     │
 │     RequestClient：请求头注入 / 响应解包 / 401 刷新重放 /          │

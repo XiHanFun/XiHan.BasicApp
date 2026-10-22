@@ -63,9 +63,9 @@
 本地存储返回 `/uploads/...`。前后端同源没问题，**线上不同源时必须拼上 `VITE_API_BASE_URL` 的 origin**，否则浏览器拿前端域名去请求而 404。上面两个工具已处理，自己拼 URL 时别忘了。
 :::
 
-## 图编辑
+## 设计器
 
-`packages/diagram` 基于 AntV X6 封装通用图编辑能力（工作流设计器在用）。应用侧只依赖本包导出的 `XDiagram` / `DiagramApi` / `DiagramData` / `registerVueShape`，不直接依赖 `@antv/x6`。
+`packages/designers` 接入曦寒的设计器（原生 Web Components）：流程设计器与查看器（`@xihan-flow/*`，工作流的流程定义与实例轨迹在用）。应用侧经 `~/designers/flow` 取用，不直接依赖 `@xihan-flow/*`；设计器的语言跟随应用语言，设计器属性面板里要查应用数据的编辑器用 `createVuePropertyEditor` 把 Vue 组件挂进去。模板里的 `xh-` 开头标签交给浏览器（`vite.config.ts` 的 `isCustomElement`），应用里的组件库组件一律写 PascalCase 的 `Xh*`。
 
 ## 布局
 

@@ -44,7 +44,7 @@
 │  ② 可复用内核  packages/**                                        │
 │     components(schema/chat/common) · composables · hooks ·        │
 │     stores · layouts · router · locales · design · iconify ·      │
-│     diagram · plugins · views · types · utils · constants         │
+│     designers · plugins · views · types · utils · constants       │
 ├──────────────────────────────────────────────────────────────────┤
 │  ① 传输底座  packages/request                                     │
 │     RequestClient：请求头注入 / 响应解包 / 401 刷新重放 /          │

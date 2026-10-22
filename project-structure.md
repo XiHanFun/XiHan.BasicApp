@@ -99,7 +99,7 @@ frontend/
     ├── stores/  hooks/  composables/
     ├── layouts/                      #   布局与顶部横幅/通知门
     ├── locales/langs/{zh-CN,en-US}/  #   ★ 语言包（含 menu.ts）
-    ├── design/  iconify/  diagram/  plugins/  views/
+    ├── design/  iconify/  designers/  plugins/  views/
     └── types/  utils/  constants/
 ```
 
