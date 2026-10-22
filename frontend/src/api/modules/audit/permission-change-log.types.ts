@@ -14,6 +14,7 @@ export enum PermissionChangeType {
   UserDelegateRevoke = 'UserDelegateRevoke',
   RoleAddParent = 'RoleAddParent',
   RoleRemoveParent = 'RoleRemoveParent',
+  ConditionChange = 'ConditionChange',
 }
 
 export interface PermissionChangeLogPageQueryDto extends PageRequest {

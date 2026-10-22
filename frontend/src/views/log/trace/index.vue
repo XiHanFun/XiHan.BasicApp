@@ -6,13 +6,14 @@ import type { ListFieldSchema } from '~/components'
 import { XhButton, XhCardContent, XhCardRoot, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhSpinner } from '@xihan-ui/vue'
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { logManagementApi, TraceDimension, TraceLogType } from '@/api'
+import { accessPolicyHitApi, logManagementApi, TraceDimension, TraceLogType } from '@/api'
 import { SchemaSearchPanel } from '~/components'
 import { toast } from '~/composables'
 import { Icon } from '~/iconify'
 import { formatDate } from '~/utils'
 import {
   accessLogDetailSchema,
+  accessPolicyHitDetailSchema,
   apiLogDetailSchema,
   diffLogDetailSchema,
   exceptionLogDetailSchema,
@@ -23,6 +24,7 @@ import {
 import LogDetailDrawer from '../_components/LogDetailDrawer.vue'
 import { tracePreset } from '../_components/trace-nav'
 import TraceAnalysisDialog from './components/TraceAnalysisDialog.vue'
+import { traceTypesWithoutDimension } from './trace-analysis'
 
 defineOptions({ name: 'LogTracePage' })
 
@@ -38,6 +40,7 @@ const ALL_LOG_TYPES: TraceLogType[] = [
   TraceLogType.Exception,
   TraceLogType.Diff,
   TraceLogType.PermissionChange,
+  TraceLogType.AccessPolicyHit,
 ]
 
 /** 通用搜索组件无高级区 */
@@ -87,6 +90,7 @@ const logTypeLabelMap = computed<Record<string, string>>(() => ({
   Exception: t('log.trace.log_type_exception'),
   Diff: t('log.trace.log_type_diff'),
   PermissionChange: t('log.trace.log_type_permission_change'),
+  AccessPolicyHit: t('log.trace.log_type_access_policy_hit'),
 }))
 
 const logTypeOptions = computed(() => ALL_LOG_TYPES.map(value => ({ label: logTypeLabelMap.value[value] ?? value, value })))
@@ -100,11 +104,10 @@ const logTypeLabelByLower = computed<Record<string, string>>(() => {
   return map
 })
 
-// 权限变更日志无用户名/会话维度
-const disabledTypes = computed<TraceLogType[]>(() =>
-  filters.dimension === TraceDimension.UserName || filters.dimension === TraceDimension.SessionId
-    ? [TraceLogType.PermissionChange]
-    : [])
+// 没有这个维度的日志类型不参与追踪
+const disabledTypes = computed<TraceLogType[]>(() => traceTypesWithoutDimension(filters.dimension as TraceDimension))
+
+const unsupportedTypesText = computed(() => disabledTypes.value.map(type => logTypeLabelMap.value[type] ?? type).join(' / '))
 
 const showUnsupportedHint = computed(() => disabledTypes.value.length > 0)
 
@@ -249,7 +252,8 @@ function logTypeClass(item: TraceTimelineItemDto): string {
   switch (item.logType) {
     case TraceLogType.Login: return 't-success'
     case TraceLogType.Exception: return 't-error'
-    case TraceLogType.Diff: return 't-warning'
+    case TraceLogType.Diff:
+    case TraceLogType.AccessPolicyHit: return 't-warning'
     case TraceLogType.Operation:
     case TraceLogType.PermissionChange: return 't-primary'
     case TraceLogType.Access:
@@ -349,6 +353,7 @@ const detailFetchers: Record<TraceLogType, (id: string) => Promise<unknown>> = {
   [TraceLogType.Exception]: id => logManagementApi.exception.detail(id),
   [TraceLogType.Diff]: id => logManagementApi.diff.detail(id),
   [TraceLogType.PermissionChange]: id => logManagementApi.permissionChanges.detail(id),
+  [TraceLogType.AccessPolicyHit]: id => accessPolicyHitApi.detail(id),
 }
 
 async function openDetail(item: TraceTimelineItemDto) {
@@ -378,6 +383,7 @@ const DETAIL_SCHEMA_BY_TYPE: Record<TraceLogType, (t: (key: string) => string) =
   [TraceLogType.Exception]: exceptionLogDetailSchema,
   [TraceLogType.Diff]: diffLogDetailSchema,
   [TraceLogType.PermissionChange]: permissionChangeLogDetailSchema,
+  [TraceLogType.AccessPolicyHit]: accessPolicyHitDetailSchema,
 }
 
 const detailSchema = computed<LogDetailSchema>(() =>
@@ -421,7 +427,7 @@ watch(tracePreset, (preset) => {
           @search="runQuery"
         />
         <span v-if="showUnsupportedHint" class="trace-hint">
-          {{ t('log.trace.unsupported_hint') }}
+          {{ t('log.trace.unsupported_hint', { types: unsupportedTypesText }) }}
         </span>
       </XhCardContent>
     </XhCardRoot>

@@ -17,13 +17,15 @@ public static class RolePermissionApplicationMapper
     /// </summary>
     /// <param name="rolePermission">角色权限绑定</param>
     /// <param name="permission">权限定义</param>
+    /// <param name="conditionCount">启用的条件条数</param>
     /// <returns>角色权限列表项 DTO</returns>
-    public static RolePermissionListItemDto ToListItemDto(SysRolePermission rolePermission, SysPermission? permission)
+    public static RolePermissionListItemDto ToListItemDto(SysRolePermission rolePermission, SysPermission? permission, int conditionCount = 0)
     {
         ArgumentNullException.ThrowIfNull(rolePermission);
 
         return new RolePermissionListItemDto
         {
+            ConditionCount = conditionCount,
             BasicId = rolePermission.BasicId,
             RoleId = rolePermission.RoleId,
             PermissionId = rolePermission.PermissionId,

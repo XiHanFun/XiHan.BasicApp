@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using System.Runtime.CompilerServices;
@@ -26,7 +27,8 @@ namespace XiHan.BasicApp.Web.Core.Tests;
 /// </summary>
 /// <remarks>
 /// 维护模式由三处协作才能成立：状态必须是单例（升级引擎置位的实例与中间件读取的实例必须是同一个）、
-/// 管理器必须替换掉框架的空实现、中间件必须真的被装进管线。任何一处走样都会让维护模式
+/// 管理器必须替换掉框架的空实现、中间件必须真的被装进管线，而且装在最前面——模块初始化里装的中间件
+/// 排在 UseEndpoints 之后，命中路由的请求根本到不了它，所以经启动过滤器挂到管线最前。任何一处走样都会让维护模式
 /// 在不报错的情况下静默失效，因此这里把注册形状与真实管线行为一起钉死。
 /// </remarks>
 public sealed class MaintenanceModeRegistrationTests
@@ -95,14 +97,26 @@ public sealed class MaintenanceModeRegistrationTests
     }
 
     /// <summary>
-    /// 模块只登记这两条注册，不得夹带未声明的副作用注册。
+    /// 模块只登记状态、管理器与启动过滤器这三条注册，不得夹带未声明的副作用注册。
     /// </summary>
     [Fact]
-    public void ConfigureServices_ShouldRegisterExactlyTwoDescriptors()
+    public void ConfigureServices_ShouldRegisterExactlyThreeDescriptors()
     {
         var services = ConfigureModuleServices();
 
-        Assert.Equal(2, services.Count);
+        Assert.Equal(3, services.Count);
+    }
+
+    /// <summary>
+    /// 中间件经启动过滤器挂到管线最前：模块初始化里装的中间件排在 UseEndpoints 之后，拦不到命中路由的请求。
+    /// </summary>
+    [Fact]
+    public void ConfigureServices_ShouldRegisterStartupFilter()
+    {
+        var services = ConfigureModuleServices();
+
+        var descriptor = Assert.Single(services, value => value.ServiceType == typeof(IStartupFilter));
+        Assert.Equal(typeof(MaintenanceModeStartupFilter), descriptor.ImplementationType);
     }
 
     /// <summary>
@@ -151,6 +165,7 @@ public sealed class MaintenanceModeRegistrationTests
     [InlineData("XiHan.BasicApp.Web.Core.Upgrade.MaintenanceModeState")]
     [InlineData("XiHan.BasicApp.Web.Core.Upgrade.BasicAppUpgradeMaintenanceModeManager")]
     [InlineData("XiHan.BasicApp.Web.Core.Upgrade.MaintenanceModeMiddleware")]
+    [InlineData("XiHan.BasicApp.Web.Core.Upgrade.MaintenanceModeStartupFilter")]
     public void MaintenanceModeTypes_ShouldBePublicSealed(string typeName)
     {
         var type = typeof(MaintenanceModeState).Assembly.GetType(typeName);
@@ -247,11 +262,42 @@ public sealed class MaintenanceModeRegistrationTests
     }
 
     /// <summary>
-    /// 模块初始化必须经 IObjectAccessor&lt;IApplicationBuilder&gt; 取到 builder 并装上中间件：
-    /// 装配后维护期业务路径返回 503，否则模块声明了维护能力却从未接入管线。
+    /// 启动过滤器把中间件放在应用其余管线之前：维护期间业务路径返回 503，后面的中间件（如要查库的租户解析）一个都不进。
     /// </summary>
     [Fact]
-    public async Task OnApplicationInitialization_ShouldPlugMiddlewareIntoPipeline()
+    public async Task StartupFilter_ActiveShouldShortCircuitBeforeRestOfPipeline()
+    {
+        var state = new MaintenanceModeState();
+        state.Enter();
+        var (pipeline, restCalls) = BuildStartupFilterPipeline(state);
+        var context = MaintenanceModeTestHelper.CreateContext("/api/order");
+
+        await pipeline(context);
+
+        Assert.Equal(0, restCalls.Value);
+        Assert.Equal(StatusCodes.Status503ServiceUnavailable, context.Response.StatusCode);
+    }
+
+    /// <summary>
+    /// 非维护期必须把请求交给其余管线，常态流量不能被吃掉。
+    /// </summary>
+    [Fact]
+    public async Task StartupFilter_InactiveShouldReachRestOfPipeline()
+    {
+        var (pipeline, restCalls) = BuildStartupFilterPipeline(new MaintenanceModeState());
+        var context = MaintenanceModeTestHelper.CreateContext("/api/order");
+
+        await pipeline(context);
+
+        Assert.Equal(1, restCalls.Value);
+        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+    }
+
+    /// <summary>
+    /// 模块初始化不再装中间件：否则会多一份拦截，而且后装的那份在 UseEndpoints 之后，拦不到命中路由的请求。
+    /// </summary>
+    [Fact]
+    public async Task OnApplicationInitialization_ShouldNotPlugMiddleware()
     {
         var state = new MaintenanceModeState();
         state.Enter();
@@ -260,23 +306,30 @@ public sealed class MaintenanceModeRegistrationTests
 
         await pipeline(context);
 
-        Assert.Equal(0, terminalCalls.Value);
-        Assert.Equal(StatusCodes.Status503ServiceUnavailable, context.Response.StatusCode);
+        Assert.Equal(1, terminalCalls.Value);
     }
 
     /// <summary>
-    /// 模块初始化装上的中间件在非维护期必须放行，不能把常态流量也拦了。
+    /// 按宿主真实路径走一遍启动过滤器：过滤器包住「其余管线」（一个计数的中间件加终端委托）。
     /// </summary>
-    [Fact]
-    public async Task OnApplicationInitialization_InactiveShouldReachTerminal()
+    /// <param name="state">维护模式状态</param>
+    /// <returns>可驱动的管线与其余管线的命中计数</returns>
+    private static (RequestDelegate Pipeline, StrongBox<int> RestCalls) BuildStartupFilterPipeline(MaintenanceModeState state)
     {
-        var (pipeline, terminalCalls) = InitializeModulePipeline(new MaintenanceModeState());
-        var context = MaintenanceModeTestHelper.CreateContext("/api/order");
-
-        await pipeline(context);
-
-        Assert.Equal(1, terminalCalls.Value);
-        Assert.Equal(StatusCodes.Status200OK, context.Response.StatusCode);
+        var services = new ServiceCollection();
+        _ = services.AddSingleton(state);
+        var app = new ApplicationBuilder(services.BuildServiceProvider());
+        var restCalls = new StrongBox<int>(0);
+        new MaintenanceModeStartupFilter().Configure(rest =>
+        {
+            _ = rest.Use(next => context =>
+            {
+                restCalls.Value++;
+                return next(context);
+            });
+            rest.Run(_ => Task.CompletedTask);
+        })(app);
+        return (app.Build(), restCalls);
     }
 
     /// <summary>

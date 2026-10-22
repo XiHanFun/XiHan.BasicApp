@@ -13,6 +13,7 @@ using XiHan.BasicApp.CodeGeneration.Extensions;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Extensions;
 using XiHan.BasicApp.Printing.Infrastructure.Seeders;
+using XiHan.BasicApp.Saas.Domain.Conditions;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -47,12 +48,13 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         typeof(SysDepartment), typeof(SysDepartmentHierarchy), typeof(SysPosition),
         typeof(SysConfig), typeof(SysStorageConfig), typeof(SysMessageTemplate), typeof(SysOAuthApp), typeof(SysTask),
         typeof(SysNotification), typeof(SysDict), typeof(SysDictItem), typeof(SysCodeGenTemplate),
-        typeof(SysPrintTemplate),
+        typeof(SysPrintTemplate), typeof(SysAccessPolicy), typeof(SysAccessPolicyCondition),
     ];
 
     private readonly string _connectionString = $"Data Source=xihan-modules-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
     private readonly SqliteConnection _keepAlive;
     private readonly SqlSugarScope _db;
+    private readonly SqlSugarScope _seedDb;
     private readonly ServiceProvider _services;
 
     /// <summary>
@@ -64,11 +66,18 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         _keepAlive.Open();
 
         var tenant = new ProbeCurrentTenant();
+        // 断言用：只滤软删除，跨租户看全部
         _db = new SqlSugarScope(
+            new ConnectionConfig { DbType = DbType.Sqlite, ConnectionString = _connectionString, IsAutoCloseConnection = true, InitKeyType = InitKeyType.Attribute },
+            db => db.QueryFilter.AddTableFilter<ISoftDelete>(entity => !entity.IsDeleted));
+        // 种子用：租户过滤与框架同口径，种子要自己切租户才看得到租户数据
+        _seedDb = new SqlSugarScope(
             new ConnectionConfig { DbType = DbType.Sqlite, ConnectionString = _connectionString, IsAutoCloseConnection = true, InitKeyType = InitKeyType.Attribute },
             db =>
             {
                 db.QueryFilter.AddTableFilter<ISoftDelete>(entity => !entity.IsDeleted);
+                db.QueryFilter.AddTableFilter<IMultiTenantEntity>(entity => entity.TenantId == 0 || entity.TenantId == ScopeOf(tenant));
+                db.QueryFilter.AddTableFilter<IStrictMultiTenantEntity>(entity => entity.TenantId == ScopeOf(tenant));
                 db.Aop.DataExecuting = (_, entityInfo) =>
                 {
                     if (entityInfo.OperationType == DataFilterType.InsertByObject)
@@ -81,8 +90,8 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         _db.CodeFirst.InitTables(Tables);
 
         var resolver = new Mock<ISqlSugarClientResolver>();
-        resolver.Setup(value => value.GetCurrentClient()).Returns(_db);
-        resolver.Setup(value => value.GetClientForEntity(It.IsAny<Type>())).Returns(_db);
+        resolver.Setup(value => value.GetCurrentClient()).Returns(_seedDb);
+        resolver.Setup(value => value.GetClientForEntity(It.IsAny<Type>())).Returns(_seedDb);
         var hasher = new Mock<IPasswordHasher>();
         hasher.Setup(value => value.HashPassword(It.IsAny<string>())).Returns((string password) => $"hash:{password}");
         var protector = new Mock<IConfigValueSecretProtector>();
@@ -156,8 +165,27 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
     }
 
     /// <summary>
-    /// 再跑一遍一行都不多。
+    /// 平台预置访问策略全部落库，拒绝类停用、只记录类启用；演示租户另有两条只记录的演示策略。
     /// </summary>
+    [Fact]
+    public async Task AccessPolicyPresets_ShouldSeedPlatformTemplatesAndDemoPolicies()
+    {
+        await SeedAsync();
+
+        var platform = await _db.Queryable<SysAccessPolicy>().Where(policy => policy.TenantId == 0).ToListAsync();
+        Assert.Equal(
+            AccessPolicyTemplates.All.Select(template => template.Code).Order(StringComparer.Ordinal),
+            platform.Select(policy => policy.PolicyCode).Order(StringComparer.Ordinal));
+        Assert.All(platform, policy => Assert.Equal(policy.Action == AccessPolicyAction.Deny ? EnableStatus.Disabled : EnableStatus.Enabled, policy.Status));
+        var conditions = await _db.Queryable<SysAccessPolicyCondition>().ToListAsync();
+        Assert.All(platform, policy => Assert.Contains(conditions, condition => condition.PolicyId == policy.BasicId && condition.TenantId == 0));
+
+        var demoTenant = await _db.Queryable<SysTenant>().SingleAsync(tenant => tenant.TenantCode == "demo-enterprise");
+        var demo = await _db.Queryable<SysAccessPolicy>().Where(policy => policy.TenantId == demoTenant.BasicId).ToListAsync();
+        Assert.Equal(["demo.off-hours", "demo.overseas"], demo.Select(policy => policy.PolicyCode).Order(StringComparer.Ordinal));
+        Assert.All(demo, policy => Assert.Equal(AccessPolicyAction.LogOnly, policy.Action));
+    }
+
     /// <summary>
     /// 演示开关打开时写入打印演示模板：平台全局、对租户开放、启用，内容是打印设计器的模板 JSON。
     /// </summary>
@@ -179,6 +207,9 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         });
     }
 
+    /// <summary>
+    /// 再跑一遍一行都不多。
+    /// </summary>
     [Fact]
     public async Task AllModuleSeeders_Twice_ShouldNotAddRows()
     {
@@ -196,6 +227,7 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
     public void Dispose()
     {
         _services.Dispose();
+        _seedDb.Dispose();
         _db.Dispose();
         _keepAlive.Dispose();
     }
@@ -218,6 +250,14 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         }
 
         return counts;
+    }
+
+    /// <summary>
+    /// 与框架的租户过滤同一口径：没有租户上下文按平台（0）
+    /// </summary>
+    private static long ScopeOf(ProbeCurrentTenant tenant)
+    {
+        return tenant.Id ?? 0;
     }
 
     /// <summary>

@@ -102,6 +102,23 @@ public sealed class SaasDomainPermissionConditionTests
     }
 
     /// <summary>
+    /// 判空的两个运算符不看条件值，值可以留空。
+    /// </summary>
+    [Theory]
+    [InlineData(ConditionOperator.IsNull)]
+    [InlineData(ConditionOperator.IsNotNull)]
+    public async Task CreatePermissionCondition_NullCheckOperator_AllowsBlankValue(ConditionOperator conditionOperator)
+    {
+        var context = new ConditionTestContext();
+        context.SetupUsableRolePermission();
+        context.SetupNoExistingConditions();
+
+        _ = await context.Service.CreatePermissionConditionAsync(BuildCreateCommand(conditionOperator: conditionOperator, conditionValue: ""));
+
+        Assert.Equal(string.Empty, context.SavedCondition?.ConditionValue);
+    }
+
+    /// <summary>
     /// 条件分组序号不能为负数。
     /// </summary>
     [Fact]
@@ -448,12 +465,14 @@ public sealed class SaasDomainPermissionConditionTests
     }
 
     /// <summary>
-    /// 状态置为无效时无需重新校验绑定可用性：条件已停用不再影响鉴权，不能被失效绑定卡住。
+    /// 状态置为无效时无需重新校验绑定可用性：条件已停用不再影响鉴权，不能被失效绑定卡住；结果带上绑定的角色与权限供审计。
     /// </summary>
     [Fact]
     public async Task UpdatePermissionConditionStatus_ToInvalid_ShouldSkipBindingRevalidation()
     {
         var context = new ConditionTestContext();
+        context.SetupUsableRolePermission();
+        context.RolePermission.Status = ValidityStatus.Invalid;
         var condition = BuildCondition(0, "subject.department", ConfigDataType.String);
         SaasTestHelper.SetBasicId(condition, 88);
         condition.RolePermissionId = 10;
@@ -467,9 +486,54 @@ public sealed class SaasDomainPermissionConditionTests
         Assert.Equal(88, result.ConditionId);
         Assert.Equal(ValidityStatus.Invalid, condition.Status);
         Assert.Equal("停用", condition.Remark, StringComparer.Ordinal);
-        context.RolePermissionRepository.Verify(
-            repo => repo.GetByIdAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+        Assert.Equal(context.RolePermission.RoleId, result.TargetRoleId);
+        Assert.Equal(context.RolePermission.PermissionId, result.PermissionId);
+        Assert.Null(result.TargetUserId);
+        context.RuleChecker.VerifyNoOtherCalls();
+    }
+
+    /// <summary>
+    /// 状态置为有效时要过求值规则校验：存量里不合规的条件改对之前不能重新启用。
+    /// </summary>
+    [Fact]
+    public async Task UpdatePermissionConditionStatus_ToValid_ShouldRunRuleChecker()
+    {
+        var context = new ConditionTestContext();
+        context.SetupUsableRolePermission();
+        context.SetupNoExistingConditions();
+        var condition = BuildCondition(0, "subject.department", ConfigDataType.String);
+        SaasTestHelper.SetBasicId(condition, 88);
+        condition.RolePermissionId = 10;
+        condition.Status = ValidityStatus.Invalid;
+        _ = context.ConditionRepository
+            .Setup(repo => repo.GetByIdAsync(88, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(condition);
+        _ = context.RuleChecker
+            .Setup(checker => checker.ValidateAsync(10, null, "subject.department", It.IsAny<ConditionOperator>(), false, ConfigDataType.String, It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("条件无法求值"));
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => context.Service.UpdatePermissionConditionStatusAsync(new PermissionConditionStatusCommand(88, ValidityStatus.Valid, null)));
+
+        Assert.Equal(ValidityStatus.Invalid, condition.Status);
+    }
+
+    /// <summary>
+    /// 新增与修改都过求值规则校验，校验不过不落库。
+    /// </summary>
+    [Fact]
+    public async Task CreatePermissionCondition_ShouldRunRuleCheckerBeforeSaving()
+    {
+        var context = new ConditionTestContext();
+        context.SetupUsableRolePermission();
+        context.SetupNoExistingConditions();
+        _ = context.RuleChecker
+            .Setup(checker => checker.ValidateAsync(It.IsAny<long?>(), It.IsAny<long?>(), It.IsAny<string>(), It.IsAny<ConditionOperator>(), It.IsAny<bool>(), It.IsAny<ConfigDataType>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("条件无法求值"));
+
+        _ = await Assert.ThrowsAsync<InvalidOperationException>(() => context.Service.CreatePermissionConditionAsync(BuildCreateCommand()));
+
+        context.ConditionRepository.Verify(repo => repo.AddAsync(It.IsAny<SysPermissionCondition>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -633,6 +697,7 @@ public sealed class SaasDomainPermissionConditionTests
         internal ConditionTestContext(long? currentTenantId = null)
         {
             ConditionRepository = new Mock<IPermissionConditionRepository>();
+            RuleChecker = new Mock<IPermissionConditionRuleChecker>();
             RolePermissionRepository = new Mock<IRolePermissionRepository>();
             UserPermissionRepository = new Mock<IUserPermissionRepository>();
             RoleRepository = new Mock<IRoleRepository>();
@@ -660,10 +725,13 @@ public sealed class SaasDomainPermissionConditionTests
                 RoleRepository.Object,
                 PermissionRepository.Object,
                 TenantUserRepository.Object,
-                CurrentTenant.Object);
+                CurrentTenant.Object,
+                RuleChecker.Object);
         }
 
         internal Mock<IPermissionConditionRepository> ConditionRepository { get; }
+
+        internal Mock<IPermissionConditionRuleChecker> RuleChecker { get; }
 
         internal Mock<ICurrentTenant> CurrentTenant { get; }
 

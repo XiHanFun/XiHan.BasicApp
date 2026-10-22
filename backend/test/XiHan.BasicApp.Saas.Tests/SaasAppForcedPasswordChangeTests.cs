@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
+using XiHan.BasicApp.Saas.Application.AccessPolicies;
 using XiHan.BasicApp.Saas.Application.AppServices;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -212,6 +213,7 @@ public sealed class SaasAppForcedPasswordChangeTests
             Mock.Of<ILoginThrottleService>(),
             Mock.Of<ICaptchaService>(),
             new TwoFactorTicketService(cache),
+            Mock.Of<IAccessPolicyLoginGuard>(),
             new ConfigurationBuilder().Build(),
             NullLogger<AuthAppService>.Instance);
     }

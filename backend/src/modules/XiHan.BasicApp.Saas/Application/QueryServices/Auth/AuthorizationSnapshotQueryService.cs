@@ -43,6 +43,8 @@ public sealed class AuthorizationSnapshotQueryService
 
     private readonly IPermissionDelegationRepository _permissionDelegationRepository;
 
+    private readonly IPermissionConditionRepository _permissionConditionRepository;
+
     private readonly ITenantRepository _tenantRepository;
 
     private readonly ITenantEditionPermissionRepository _tenantEditionPermissionRepository;
@@ -64,6 +66,7 @@ public sealed class AuthorizationSnapshotQueryService
         IUserPermissionRepository userPermissionRepository,
         IPermissionRepository permissionRepository,
         IPermissionDelegationRepository permissionDelegationRepository,
+        IPermissionConditionRepository permissionConditionRepository,
         ITenantRepository tenantRepository,
         ITenantEditionPermissionRepository tenantEditionPermissionRepository,
         ICurrentTenant currentTenant,
@@ -77,6 +80,7 @@ public sealed class AuthorizationSnapshotQueryService
         _userPermissionRepository = userPermissionRepository;
         _permissionRepository = permissionRepository;
         _permissionDelegationRepository = permissionDelegationRepository;
+        _permissionConditionRepository = permissionConditionRepository;
         _tenantRepository = tenantRepository;
         _tenantEditionPermissionRepository = tenantEditionPermissionRepository;
         _currentTenant = currentTenant;
@@ -112,6 +116,7 @@ public sealed class AuthorizationSnapshotQueryService
                     Permissions = built.Permissions,
                     PermissionIds = [.. built.PermissionIds],
                     ContextDeniedCodes = [.. built.ContextDeniedCodes],
+                    Conditions = built.Conditions,
                     CachedAt = DateTimeOffset.UtcNow
                 };
             },
@@ -125,7 +130,10 @@ public sealed class AuthorizationSnapshotQueryService
                 item.Roles,
                 item.Permissions,
                 [.. item.PermissionIds],
-                new HashSet<string>(item.ContextDeniedCodes, StringComparer.OrdinalIgnoreCase));
+                new HashSet<string>(item.ContextDeniedCodes, StringComparer.OrdinalIgnoreCase))
+            {
+                Conditions = item.Conditions?.Normalize() ?? new AuthorizationConditions()
+            };
 
         // 套餐(Edition)运行时门控：在 per-user 缓存之外按当前租户上下文叠加，避免切换租户后缓存串味
         return await ApplyEditionGatingAsync(snapshot, cancellationToken);
@@ -184,7 +192,7 @@ public sealed class AuthorizationSnapshotQueryService
             .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        return snapshot with { Permissions = gatedCodes, PermissionIds = gatedIds };
+        return snapshot with { Permissions = gatedCodes, PermissionIds = gatedIds, Conditions = snapshot.Conditions.Retain(gatedCodes) };
     }
 
     /// <summary>
@@ -262,37 +270,32 @@ public sealed class AuthorizationSnapshotQueryService
         }
 
         // 角色权限：每个角色按自己的有效继承链结算，角色级 Deny 只作用于本链
-        var roleGrantIds = await ResolveRoleGrantIdsAsync(roles.Select(role => role.BasicId), now, cancellationToken);
+        var heldChains = await LoadRoleChainsAsync(roles.Select(role => role.BasicId), "role", now, cancellationToken);
 
         var userPermissions = (await _userPermissionRepository.GetValidByUserIdAsync(userId, now, cancellationToken))
             .Where(item => item.TenantId == bindingScopeTenantId)
             .ToList();
-        var userGrantIds = userPermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-        var userDenyIds = userPermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
-            .Select(permission => permission.PermissionId)
-            .ToHashSet();
-
-        var finalPermissionIds = roleGrantIds;
-        finalPermissionIds.UnionWith(userGrantIds);
-        finalPermissionIds.ExceptWith(userDenyIds);
 
         // 叠加当前有效的权限委托（被委托人 = 当前用户）：
-        // - 直接委托权限（PermissionId）→ 直接并入
+        // - 直接委托权限（PermissionId）→ 无条件路径
         // - 委托角色（RoleId）→ 按该角色的有效继承链结算（与持有角色同一口径）
-        // 用户显式 Deny 仍然优先（最后再扣除一次）。
-        var delegatedGrantIds = await ResolveDelegatedPermissionIdsAsync(userId, now, cancellationToken);
-        if (delegatedGrantIds.Count > 0)
-        {
-            finalPermissionIds.UnionWith(delegatedGrantIds);
-            finalPermissionIds.ExceptWith(userDenyIds);
-        }
+        var (delegatedPermissionIds, delegatedChains) = await ResolveDelegationsAsync(userId, now, cancellationToken);
+
+        // 授权行上启用的条件：写在授予行上是「满足才授予」，写在禁止行上是「满足才禁止」
+        var rolePermissionRows = heldChains.Rows.Concat(delegatedChains.Rows).ToList();
+        var conditions = await _permissionConditionRepository.GetValidByAuthorizationIdsAsync(
+            rolePermissionRows.Select(row => row.BasicId),
+            userPermissions.Select(row => row.BasicId),
+            cancellationToken);
+        var resolution = AuthorizationConditionResolver.Resolve(new AuthorizationGrantSources(
+            [.. heldChains.Chains, .. delegatedChains.Chains],
+            rolePermissionRows,
+            userPermissions,
+            delegatedPermissionIds,
+            conditions));
 
         // 只留作用侧允许当前上下文、且启用的权限
-        var effectivePermissions = effectiveCatalog.Where(permission => finalPermissionIds.Contains(permission.BasicId)).ToList();
+        var effectivePermissions = effectiveCatalog.Where(permission => resolution.GrantedPermissionIds.Contains(permission.BasicId)).ToList();
         var effectiveIds = effectivePermissions.Select(permission => permission.BasicId).ToHashSet();
         var permissionCodes = effectivePermissions
             .Select(permission => permission.PermissionCode)
@@ -301,7 +304,47 @@ public sealed class AuthorizationSnapshotQueryService
             .OrderBy(code => code, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
-        return new AuthorizationSnapshot(roleCodes, permissionCodes, effectiveIds, contextDeniedCodes);
+        return new AuthorizationSnapshot(roleCodes, permissionCodes, effectiveIds, contextDeniedCodes)
+        {
+            Conditions = BuildConditions(resolution, catalog)
+        };
+    }
+
+    /// <summary>
+    /// 合并结果按权限码落进快照：条件集补上所绑权限码，只留生效权限的条件
+    /// </summary>
+    private static AuthorizationConditions BuildConditions(AuthorizationGrantResolution resolution, IReadOnlyList<SysPermission> catalog)
+    {
+        var codes = catalog
+            .Where(permission => !string.IsNullOrWhiteSpace(permission.PermissionCode))
+            .ToDictionary(permission => permission.BasicId, permission => permission.PermissionCode);
+        var conditions = new AuthorizationConditions();
+        foreach (var (permissionId, paths) in resolution.ConditionalGrants)
+        {
+            if (codes.TryGetValue(permissionId, out var code))
+            {
+                conditions.Grants[code] = paths;
+            }
+        }
+
+        foreach (var (permissionId, keys) in resolution.ConditionalDenies)
+        {
+            if (codes.TryGetValue(permissionId, out var code))
+            {
+                conditions.Denies[code] = keys;
+            }
+        }
+
+        foreach (var (key, (permissionId, set)) in resolution.Sets)
+        {
+            if (codes.TryGetValue(permissionId, out var code))
+            {
+                set.PermissionCode = code;
+                conditions.Sets[key] = set;
+            }
+        }
+
+        return conditions.Retain(conditions.Grants.Keys.Concat(conditions.Denies.Keys));
     }
 
     /// <summary>
@@ -315,9 +358,9 @@ public sealed class AuthorizationSnapshotQueryService
     }
 
     /// <summary>
-    /// 解析当前用户作为被委托人、当前有效的委托所赋予的权限 ID 集合。
+    /// 当前用户作为被委托人、当前有效的委托：直接委托的权限主键，以及委托角色的继承链
     /// </summary>
-    private async Task<HashSet<long>> ResolveDelegatedPermissionIdsAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
+    private async Task<(HashSet<long> PermissionIds, RoleChainSet Chains)> ResolveDelegationsAsync(long userId, DateTimeOffset now, CancellationToken cancellationToken)
     {
         // 委托绑定同样只在所属上下文生效，见 BuildSnapshotAsync 中绑定行过滤说明
         var bindingScopeTenantId = _currentTenant.Id ?? 0;
@@ -326,7 +369,7 @@ public sealed class AuthorizationSnapshotQueryService
             .ToList();
         if (delegations.Count == 0)
         {
-            return [];
+            return ([], RoleChainSet.Empty);
         }
 
         var grantIds = new HashSet<long>();
@@ -344,52 +387,43 @@ public sealed class AuthorizationSnapshotQueryService
             }
         }
 
-        if (roleIds.Count > 0)
-        {
-            grantIds.UnionWith(await ResolveRoleGrantIdsAsync(roleIds, now, cancellationToken));
-        }
-
-        return grantIds;
+        var chains = roleIds.Count > 0
+            ? await LoadRoleChainsAsync(roleIds, "delegation-role", now, cancellationToken)
+            : RoleChainSet.Empty;
+        return (grantIds, chains);
     }
 
     /// <summary>
-    /// 解析给定角色当前有效的 Grant 权限 ID 集合
+    /// 给定角色的有效继承链与链上当前有效的授权行
     /// </summary>
     /// <remarks>
     /// 角色继承语义：每个角色单独结算自己的有效继承链（自身 + 经启用角色可达的上级），
     /// 链上 Grant 并集减去链上 Deny 并集；多个角色之间取并集，一个角色的 Deny 不影响另一个独立角色。
     /// 自身停用的角色不贡献权限；停用的上级不贡献，也切断经由它的继承。
     /// </remarks>
-    private async Task<HashSet<long>> ResolveRoleGrantIdsAsync(IEnumerable<long> roleIds, DateTimeOffset now, CancellationToken cancellationToken)
+    private async Task<RoleChainSet> LoadRoleChainsAsync(IEnumerable<long> roleIds, string sourcePrefix, DateTimeOffset now, CancellationToken cancellationToken)
     {
         var enabledRoles = await _roleRepository.GetEnabledByIdsAsync(roleIds.Where(id => id > 0).Distinct(), cancellationToken);
         if (enabledRoles.Count == 0)
         {
-            return [];
+            return RoleChainSet.Empty;
         }
 
         var roleIdList = enabledRoles.Select(role => role.BasicId).ToList();
         var effectiveAncestors = await _roleHierarchyDomainService.GetEffectiveAncestorsAsync(roleIdList, cancellationToken);
         var chains = roleIdList
-            .Select(roleId => effectiveAncestors[roleId].Keys.Append(roleId).ToHashSet())
+            .Select(roleId => new AuthorizationRoleChain($"{sourcePrefix}:{roleId}", effectiveAncestors[roleId].Keys.Append(roleId).ToHashSet()))
             .ToList();
 
-        var rolePermissions = await _rolePermissionRepository.GetValidByRoleIdsAsync(chains.SelectMany(chain => chain).Distinct(), now, cancellationToken);
-        var grantsByRole = rolePermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Grant)
-            .ToLookup(permission => permission.RoleId, permission => permission.PermissionId);
-        var deniesByRole = rolePermissions
-            .Where(permission => permission.PermissionAction == PermissionAction.Deny)
-            .ToLookup(permission => permission.RoleId, permission => permission.PermissionId);
+        var rows = await _rolePermissionRepository.GetValidByRoleIdsAsync(chains.SelectMany(chain => chain.RoleIds).Distinct(), now, cancellationToken);
+        return new RoleChainSet(chains, rows);
+    }
 
-        var grantIds = new HashSet<long>();
-        foreach (var chain in chains)
-        {
-            var chainGrantIds = chain.SelectMany(roleId => grantsByRole[roleId]).ToHashSet();
-            chainGrantIds.ExceptWith(chain.SelectMany(roleId => deniesByRole[roleId]));
-            grantIds.UnionWith(chainGrantIds);
-        }
-
-        return grantIds;
+    /// <summary>
+    /// 角色链与链上授权行
+    /// </summary>
+    private sealed record RoleChainSet(IReadOnlyList<AuthorizationRoleChain> Chains, IReadOnlyList<SysRolePermission> Rows)
+    {
+        public static RoleChainSet Empty { get; } = new([], []);
     }
 }

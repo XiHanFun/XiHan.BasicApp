@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.AspNetCore.Http;
 using Moq;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
@@ -124,6 +125,6 @@ public sealed class PlatformPermissionContextTests
         var currentUser = new Mock<ICurrentUser>();
         currentUser.Setup(user => user.UserId).Returns(UserId);
 
-        return new SaasPermissionChecker(snapshots.Object, sessions.Object, currentUser.Object);
+        return new SaasPermissionChecker(snapshots.Object, sessions.Object, currentUser.Object, new HttpContextAccessor(), PermissionConditionTestKit.Enforcer(currentUser.Object));
     }
 }

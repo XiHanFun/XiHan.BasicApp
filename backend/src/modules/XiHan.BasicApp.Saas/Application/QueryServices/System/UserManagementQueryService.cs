@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.AspNetCore.Authorization;
+using XiHan.BasicApp.Saas.Application.Conditions;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
 using XiHan.BasicApp.Saas.Application.Mappers;
@@ -58,6 +59,8 @@ public sealed class UserManagementQueryService
 
     private readonly ISuperAdminProtector _superAdminProtector;
 
+    private readonly IPermissionConditionRepository _permissionConditionRepository;
+
     /// <summary>
     /// 构造函数
     /// </summary>
@@ -76,7 +79,8 @@ public sealed class UserManagementQueryService
         IUserStatisticsRepository userStatisticsRepository,
         IExternalLoginRepository externalLoginRepository,
         IPasswordHistoryRepository passwordHistoryRepository,
-        ISuperAdminProtector superAdminProtector)
+        ISuperAdminProtector superAdminProtector,
+        IPermissionConditionRepository permissionConditionRepository)
     {
         _userDirectory = userDirectory;
         _tenantUserRepository = tenantUserRepository;
@@ -93,6 +97,7 @@ public sealed class UserManagementQueryService
         _externalLoginRepository = externalLoginRepository;
         _passwordHistoryRepository = passwordHistoryRepository;
         _superAdminProtector = superAdminProtector;
+        _permissionConditionRepository = permissionConditionRepository;
     }
 
     /// <summary>
@@ -215,13 +220,15 @@ public sealed class UserManagementQueryService
         }
 
         var permissionMap = await BuildPermissionMapAsync(userPermissions.Select(item => item.PermissionId), cancellationToken);
+        var conditionCounts = await _permissionConditionRepository.CountForUserPermissionsAsync(userPermissions.Select(item => item.BasicId), cancellationToken);
 
         return [.. userPermissions
             .Select(item => UserPermissionApplicationMapper.ToListItemDto(
                 item,
                 permissionMap.GetValueOrDefault(item.PermissionId),
                 tenantMember,
-                now))
+                now,
+                conditionCounts.GetValueOrDefault(item.BasicId)))
             .OrderBy(item => item.PermissionCode)
             .ThenBy(item => item.PermissionId)];
     }

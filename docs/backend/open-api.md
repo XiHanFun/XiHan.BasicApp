@@ -43,6 +43,8 @@ BasicApp 对外开放有**三条互不相同的路径**，最容易混淆的是�
 | `/connect/token` | POST | 表单编码，用授权码/刷新令牌换令牌 |
 | `/connect/revoke` | POST | 表单编码，吊销令牌（RFC 7009） |
 
+换来的访问令牌都带 `client_id` 声明，值是应用的 `ClientId`：代用户签发的令牌照常带用户、租户与角色，另多这一项；客户端凭证模式的令牌只代表应用本身。条件属性 `environment.client.kind` 据此把这类请求认作 `oauth`，不当作网页登录。
+
 ::: tip 为什么 `/connect/authorize` 只做跳转
 第一方前端用的是 **JWT bearer，没有会话 Cookie**，所以后端在这个匿名端点上**无法判定用户是否已登录**。因此它不渲染同意页，只把请求参数带着 302 到 SPA 的同意页（`/oauth/authorize`），由已登录的前端去完成确认并调后端换码。
 :::

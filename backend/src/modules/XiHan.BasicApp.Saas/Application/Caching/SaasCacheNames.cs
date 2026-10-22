@@ -14,9 +14,9 @@ public static class SaasCacheNames
     public const string ConfigValue = "basicapp:saas:config:value";
 
     /// <summary>
-    /// 用户授权快照缓存。
+    /// 用户授权快照缓存（带权限条件的格式）。
     /// </summary>
-    public const string AuthorizationSnapshot = "basicapp:saas:auth:snapshot";
+    public const string AuthorizationSnapshot = "basicapp:saas:auth:snapshot:v2";
 
     /// <summary>
     /// 菜单路由缓存。
@@ -102,4 +102,24 @@ public static class SaasCacheNames
     /// 会话状态缓存（session_id → 有效性 + 锁定位）。会话闸门每请求读取，是最热的路径之一。
     /// </summary>
     public const string SessionState = "basicapp:saas:identity:session-state";
+
+    /// <summary>
+    /// 访问策略版本号（原生 IDistributedCache 字符串值）。策略或条件写入后换新值，各节点据此重建快照。
+    /// </summary>
+    public const string AccessPolicyVersion = "basicapp:saas:access-policy:version";
+
+    /// <summary>
+    /// 登录失败计数键前缀（原生 Redis INCR，后接客户端 IP）。
+    /// </summary>
+    public const string LoginFailureCount = "basicapp:saas:access:login-fail";
+
+    /// <summary>
+    /// 自动封禁名单（原生 Redis 有序集合：成员是客户端 IP，分值是解封时刻的 Unix 秒）。
+    /// </summary>
+    public const string LoginBans = "basicapp:saas:access:bans";
+
+    /// <summary>
+    /// 最近一次封禁时长键前缀（原生 Redis，后接客户端 IP，24 小时过期），再犯时据此翻倍。
+    /// </summary>
+    public const string LoginBanHistory = "basicapp:saas:access:ban-history";
 }

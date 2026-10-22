@@ -19,13 +19,15 @@ public static class UserPermissionApplicationMapper
     /// <param name="permission">权限定义</param>
     /// <param name="tenantMember">租户成员</param>
     /// <param name="now">当前时间</param>
+    /// <param name="conditionCount">启用的条件条数</param>
     /// <returns>用户直授权限列表项 DTO</returns>
-    public static UserPermissionListItemDto ToListItemDto(SysUserPermission userPermission, SysPermission? permission, SysTenantUser? tenantMember, DateTimeOffset now)
+    public static UserPermissionListItemDto ToListItemDto(SysUserPermission userPermission, SysPermission? permission, SysTenantUser? tenantMember, DateTimeOffset now, int conditionCount = 0)
     {
         ArgumentNullException.ThrowIfNull(userPermission);
 
         return new UserPermissionListItemDto
         {
+            ConditionCount = conditionCount,
             BasicId = userPermission.BasicId,
             UserId = userPermission.UserId,
             TenantMemberId = tenantMember?.BasicId,

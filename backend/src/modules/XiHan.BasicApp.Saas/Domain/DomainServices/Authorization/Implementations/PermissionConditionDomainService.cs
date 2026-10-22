@@ -25,6 +25,7 @@ public sealed class PermissionConditionDomainService
     private readonly ITenantUserRepository _tenantUserRepository;
     private readonly IUserPermissionRepository _userPermissionRepository;
     private readonly ICurrentTenant _currentTenant;
+    private readonly IPermissionConditionRuleChecker _ruleChecker;
 
     /// <summary>
     /// 构造函数
@@ -36,7 +37,8 @@ public sealed class PermissionConditionDomainService
         IRoleRepository roleRepository,
         IPermissionRepository permissionRepository,
         ITenantUserRepository tenantUserRepository,
-        ICurrentTenant currentTenant)
+        ICurrentTenant currentTenant,
+        IPermissionConditionRuleChecker ruleChecker)
     {
         _permissionConditionRepository = permissionConditionRepository;
         _rolePermissionRepository = rolePermissionRepository;
@@ -45,6 +47,7 @@ public sealed class PermissionConditionDomainService
         _permissionRepository = permissionRepository;
         _tenantUserRepository = tenantUserRepository;
         _currentTenant = currentTenant;
+        _ruleChecker = ruleChecker;
     }
 
     /// <summary>
@@ -67,6 +70,15 @@ public sealed class PermissionConditionDomainService
             command.ValueType,
             null,
             cancellationToken);
+        await _ruleChecker.ValidateAsync(
+            command.RolePermissionId,
+            command.UserPermissionId,
+            command.AttributeName,
+            command.Operator,
+            command.IsNegated,
+            command.ValueType,
+            command.ConditionValue,
+            cancellationToken);
 
         var condition = new SysPermissionCondition
         {
@@ -84,21 +96,24 @@ public sealed class PermissionConditionDomainService
         };
 
         var savedCondition = await _permissionConditionRepository.AddAsync(condition, cancellationToken);
-        return new PermissionConditionCommandResult(savedCondition.BasicId);
+        return await CreateResultAsync(savedCondition, cancellationToken);
     }
 
     /// <summary>
     /// 删除权限 ABAC 条件
     /// </summary>
-    public async Task DeletePermissionConditionAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<PermissionConditionCommandResult> DeletePermissionConditionAsync(long id, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var condition = await GetPermissionConditionOrThrowAsync(id, cancellationToken);
+        var result = await CreateResultAsync(condition, cancellationToken);
         if (!await _permissionConditionRepository.DeleteAsync(condition, cancellationToken))
         {
             throw new InvalidOperationException("权限 ABAC 条件删除失败。");
         }
+
+        return result;
     }
 
     /// <summary>
@@ -122,6 +137,15 @@ public sealed class PermissionConditionDomainService
             command.ValueType,
             condition.BasicId,
             cancellationToken);
+        await _ruleChecker.ValidateAsync(
+            command.RolePermissionId,
+            command.UserPermissionId,
+            command.AttributeName,
+            command.Operator,
+            command.IsNegated,
+            command.ValueType,
+            command.ConditionValue,
+            cancellationToken);
 
         condition.RolePermissionId = command.RolePermissionId;
         condition.UserPermissionId = command.UserPermissionId;
@@ -135,7 +159,7 @@ public sealed class PermissionConditionDomainService
         condition.Remark = NormalizeNullable(command.Remark);
 
         var savedCondition = await _permissionConditionRepository.UpdateAsync(condition, cancellationToken);
-        return new PermissionConditionCommandResult(savedCondition.BasicId);
+        return await CreateResultAsync(savedCondition, cancellationToken);
     }
 
     /// <summary>
@@ -165,13 +189,43 @@ public sealed class PermissionConditionDomainService
                 condition.ValueType,
                 condition.BasicId,
                 cancellationToken);
+            // 存量里不合规的条件改对之前不能重新启用
+            await _ruleChecker.ValidateAsync(
+                condition.RolePermissionId,
+                condition.UserPermissionId,
+                condition.AttributeName,
+                condition.Operator,
+                condition.IsNegated,
+                condition.ValueType,
+                condition.ConditionValue,
+                cancellationToken);
         }
 
         condition.Status = command.Status;
         condition.Remark = NormalizeNullable(command.Remark) ?? condition.Remark;
 
         var savedCondition = await _permissionConditionRepository.UpdateAsync(condition, cancellationToken);
-        return new PermissionConditionCommandResult(savedCondition.BasicId);
+        return await CreateResultAsync(savedCondition, cancellationToken);
+    }
+
+    /// <summary>
+    /// 命令结果带上绑定的角色或用户与所绑权限，供授权失效与变更审计用
+    /// </summary>
+    private async Task<PermissionConditionCommandResult> CreateResultAsync(SysPermissionCondition condition, CancellationToken cancellationToken)
+    {
+        if (condition.RolePermissionId is > 0)
+        {
+            var rolePermission = await _rolePermissionRepository.GetByIdAsync(condition.RolePermissionId.Value, cancellationToken);
+            return new PermissionConditionCommandResult(condition.BasicId, rolePermission?.RoleId, null, rolePermission?.PermissionId);
+        }
+
+        if (condition.UserPermissionId is > 0)
+        {
+            var userPermission = await _userPermissionRepository.GetByIdAsync(condition.UserPermissionId.Value, cancellationToken);
+            return new PermissionConditionCommandResult(condition.BasicId, null, userPermission?.UserId, userPermission?.PermissionId);
+        }
+
+        return new PermissionConditionCommandResult(condition.BasicId);
     }
 
     private static void EnsureValidity(
@@ -242,7 +296,12 @@ public sealed class PermissionConditionDomainService
         ValidateEnum(conditionOperator, nameof(conditionOperator));
         ValidateEnum(valueType, nameof(valueType));
         ArgumentException.ThrowIfNullOrWhiteSpace(attributeName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(conditionValue);
+        ArgumentNullException.ThrowIfNull(conditionValue);
+        // 判空的两个运算符不看条件值，值可以留空
+        if (conditionOperator is not (ConditionOperator.IsNull or ConditionOperator.IsNotNull))
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(conditionValue);
+        }
         ValidateLength(attributeName, 200, nameof(attributeName), "属性名称不能超过 200 个字符。");
         ValidateOptionalLength(description, 500, nameof(description), "条件说明不能超过 500 个字符。");
         ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");

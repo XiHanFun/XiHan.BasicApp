@@ -177,7 +177,20 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | 键 | 说明 |
 | --- | --- |
 | `EnableIpRegion` | 是否启用 IP 归属地解析 |
-| `Ip2RegionDbPath` | ip2region 离线库路径 |
+| `Ip2RegionDbPath` | IPv4 的 ip2region 离线库路径 |
+| `Ip2RegionV6DbPath` | IPv6 的 ip2region 离线库路径；文件不存在时 IPv6 地址不解析归属地 |
+
+### `Api:ForwardedHeaders`
+
+受信反向代理：转发头（`X-Forwarded-For` / `Proto` / `Host`）只在请求来自这些代理时才被采信，其余来源带的一律忽略。本机回环始终受信，这里配的是追加项。
+
+| 键 | 默认 | 说明 |
+| --- | --- | --- |
+| `KnownProxies` | `[]` | 受信代理的地址，如 `10.0.0.5` |
+| `KnownNetworks` | `[]` | 受信代理所在网段（CIDR，主机位须为 0），如 `172.18.0.0/16` |
+| `ForwardLimit` | `1` | 最多从 `X-Forwarded-For` 右端剥几层受信代理，多级代理按层数调大 |
+
+地址或网段写错、`ForwardLimit` 小于 1 时启动失败。代理不在本机时必须配置，否则日志、会话、访问策略与自动封禁看到的客户端 IP 都是代理的地址。
 
 ### `Api:Auth`
 
@@ -290,6 +303,33 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | `EnableDemoData` | 演示数据开关：`true` 才写演示租户与账号，**缺省或 `false` 都不写**，不是布尔值直接启动失败。开发环境配置开启，生产环境在 `appsettings.Production.json` 里设置 |
 
 超管初始密码写在种子里（`superadmin` / `SuperAdmin@123`），不走配置；账号标记为需要本人改密，生产首次登录后立即修改，并建议在参数「密码设置」里开启强制改密。演示账号与各阶段种子见 [框架简介：种子数据](./backend/introduction#种子数据)。
+
+## `Saas:Conditions`
+
+条件求值用的设置，同样不在 `XiHan:` 命名空间下。
+
+| 键 | 默认 | 说明 |
+| --- | --- | --- |
+| `TimeZone` | `Asia/Shanghai` | 时间类条件属性（`environment.time`、`environment.hour`、`environment.weekday`、`environment.date`）按这个时区计算，不带时区的日期时间条件值也按它解释。IANA 或 Windows 时区标识都认，本机找不到时启动失败。客户端带的 `X-Timezone` 请求头可以伪造，不参与条件 |
+
+## `Saas:PermissionConditions`
+
+权限条件（[权限模型 · 权限条件](./backend/permission#权限条件-syspermissioncondition)）的生效模式，改了热生效。
+
+| 键 | 默认 | 说明 |
+| --- | --- | --- |
+| `Mode` | `Enforce` | `Enforce`：条件不满足即拒绝，返回 403「当前条件下不允许此操作」；`LogOnly`：照常求值但不拦截，本该拒绝的请求记进条件命中记录；`Disabled`：不求值，有条件的授予按授予、有条件的禁止按禁止处理，只作应急 |
+
+## `Saas:AccessPolicy`
+
+访问策略的运行设置，改了热生效。
+
+| 键 | 默认 | 说明 |
+| --- | --- | --- |
+| `Enabled` | `true` | 总开关。关掉时认证前、认证后、登录时的访问策略与自动封禁都不拦截，登录失败照常计数；用于误封自己后解围，见[部署 · 误封了自己](./deployment#误封了自己) |
+| `VersionCheckSeconds` | `5` | 每个节点最多隔多少秒检查一次策略是否改过，策略改动最多这么久后在所有节点生效 |
+| `BanCheckCacheSeconds` | `5` | 「这个 IP 没被封」在本机缓存的秒数，自动封禁最多这么久后在所有节点生效 |
+| `HitBufferCapacity` | `10000` | 命中记录在内存里按分钟合并时最多的合并键数，超出的命中只计数并告警 |
 
 ## `CodeGeneration`
 

@@ -5,13 +5,18 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using XiHan.BasicApp.Saas.Application.AccessPolicies;
 using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
+using XiHan.BasicApp.Saas.Application.Conditions;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.EventHandlers;
 using XiHan.BasicApp.Saas.Application.Exporting;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.Conditions;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Numbering;
@@ -31,6 +36,7 @@ using XiHan.Framework.Auditing.Writers;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Users;
+using XiHan.Framework.Authorization.Extensions.DependencyInjection;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Bot.DingTalk.Abstractions;
 using XiHan.Framework.Bot.Email.Abstractions;
@@ -42,6 +48,7 @@ using XiHan.Framework.Bot.WeCom.Abstractions;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.Data.SqlSugar.Initializers;
 using XiHan.Framework.Data.SqlSugar.Tenanting;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Security.Services;
@@ -49,7 +56,9 @@ using XiHan.Framework.Tasks.ScheduledJobs.Abstractions;
 using XiHan.Framework.Upgrade.Abstractions;
 using XiHan.Framework.Utils.Collections;
 using XiHan.Framework.Web.Api.Security.OpenApi;
+using StackExchange.Redis;
 using XiHan.Framework.Web.Api.Session;
+using XiHan.Framework.Web.Core.Access;
 using XiHan.Framework.Web.Core.Session;
 
 namespace XiHan.BasicApp.Saas.Extensions;
@@ -93,6 +102,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserDomainService, UserDomainService>();
         services.AddScoped<IPasswordHistoryDomainService, PasswordHistoryDomainService>();
         services.AddScoped<IConstraintRuleDomainService, ConstraintRuleDomainService>();
+        services.AddScoped<IAccessPolicyDomainService, AccessPolicyDomainService>();
         services.AddScoped<IConstraintRuleEnforcementDomainService, ConstraintRuleEnforcementDomainService>();
         services.AddScoped<IFieldLevelSecurityDomainService, FieldLevelSecurityDomainService>();
         services.AddSingleton<IFieldSecurityEntityCatalog, FieldSecurityEntityCatalog>();
@@ -237,8 +247,6 @@ public static class ServiceCollectionExtensions
         // OpenAPI 安全客户端存储：以数据库凭证（SysUserApiCredential）实现覆盖框架默认配置源实现
         // （框架 XiHanWebApiModule 以 TryAddScoped 先注册 DefaultOpenApiSecurityClientStore，故须 Replace，否则 DB 凭证永不生效）
         services.Replace(ServiceDescriptor.Scoped<IOpenApiSecurityClientStore, SaasOpenApiSecurityClientStore>());
-        // 全局 IP 黑名单：经启动过滤器挂到请求管线最前，接口、实时通道、静态文件与文档一并拦截
-        services.AddTransient<IStartupFilter, SaasIpBlacklistStartupFilter>();
         services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
         // 手机号登录验证码：发码要经发件箱（作用域服务）落短信，故按作用域注册
         services.AddScoped<IAuthPhoneLoginCodeService, AuthPhoneLoginCodeService>();
@@ -263,6 +271,98 @@ public static class ServiceCollectionExtensions
         // 进程内锁既无法覆盖跨节点竞争，也会在锁与数据库锁之间引入数据库看不见的等待环。
         services.TryAddSingleton(TimeProvider.System);
         services.AddScoped<INumberGenerator, NumberGenerator>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加条件求值的属性登记与属性来源（权限条件与访问策略共用）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasConditions(this IServiceCollection services)
+    {
+        services.AddXiHanConditionAttributes([.. SaasConditionAttributes.All]);
+        // 时区配错在启动时就报出来，不等到第一次求值
+        services.AddOptions<SaasConditionOptions>()
+            .BindConfiguration(SaasConditionOptions.SectionName)
+            .ValidateOnStart();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<SaasConditionOptions>, SaasConditionOptionsValidator>());
+        services.AddScoped<SaasConditionSubjectLoader>();
+        services.AddScoped<ISaasConditionAttributeSourceFactory, SaasConditionAttributeSourceFactory>();
+
+        // 权限条件：生效模式经 IOptionsMonitor 读取（Saas:PermissionConditions:Mode），改了热生效
+        services.AddOptions<SaasPermissionConditionOptions>().BindConfiguration(SaasPermissionConditionOptions.SectionName);
+        services.AddOptions<PermissionResourceOptions>();
+        services.TryAddSingleton<IPermissionResourceRegistry, PermissionResourceRegistry>();
+        services.TryAddSingleton<SaasConditionSetCompiler>();
+        services.TryAddSingleton<PermissionConditionDecider>();
+        services.TryAddSingleton<IPermissionConditionHitRecorder, AccessPolicyPermissionConditionHitRecorder>();
+        services.AddScoped<PermissionConditionEnforcer>();
+        services.AddScoped<IPermissionConditionRuleChecker, PermissionConditionValidator>();
+        services.AddScoped<PermissionConditionInventoryService>();
+        services.AddScoped<PermissionConditionTrialService>();
+        // 数据行属性的补算排在全部动作过滤器之前，不满足时不进入动作
+        services.TryAddScoped<IPermissionResourceRowReader, SqlSugarPermissionResourceRowReader>();
+        services.AddScoped<PermissionConditionRowFilter>();
+        services.Configure<MvcOptions>(options => options.Filters.AddService<PermissionConditionRowFilter>(PermissionConditionRowFilter.FilterOrder));
+        return services;
+    }
+
+    /// <summary>
+    /// 添加访问策略：认证前中间件、认证后请求闸门、登录时检查、命中记录与登录失败自动封禁
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasAccessPolicies(this IServiceCollection services)
+    {
+        // 总开关经 IOptionsMonitor 读取（Saas:AccessPolicy:Enabled），改了热生效
+        services.AddOptions<AccessPolicyOptions>().BindConfiguration(AccessPolicyOptions.SectionName);
+        services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton<AccessPolicyConditionCompiler>();
+        services.TryAddSingleton<IAccessPolicyRuleChecker>(provider => provider.GetRequiredService<AccessPolicyConditionCompiler>());
+        services.TryAddSingleton<IAccessPolicySnapshotProvider, AccessPolicySnapshotProvider>();
+        services.TryAddSingleton<AccessPolicyEvaluator>();
+        services.TryAddSingleton<IAccessPolicyHitRecorder, AccessPolicyHitRecorder>();
+        services.AddScoped<AccessPolicyAuthenticatedEvaluator>();
+        services.AddScoped<IAccessPolicyLoginGuard, AccessPolicyLoginGuard>();
+        services.AddScoped<AccessPolicyTrialService>();
+        services.TryAddEnumerable(ServiceDescriptor.Scoped<IRequestAccessGate, AccessPolicyRequestGate>());
+        // 认证前一段经启动过滤器挂到请求管线最前，接口、实时通道、静态文件与文档一并经过
+        services.AddTransient<IStartupFilter, AccessPolicyStartupFilter>();
+
+        // 登录失败计数与封禁名单：启用 Redis 时用 Redis，否则用进程内实现（多实例部署必须启用 Redis）
+        services.TryAddSingleton<ILoginBanStore>(provider =>
+        {
+            if (provider.GetService<IConnectionMultiplexer>() is { } redis)
+            {
+                return new RedisLoginBanStore(redis);
+            }
+
+            provider.GetRequiredService<ILoggerFactory>().CreateLogger<MemoryLoginBanStore>()
+                .LogWarning("Redis 未启用，登录失败计数与自动封禁名单使用进程内实现；多实例部署必须启用 Redis");
+            return new MemoryLoginBanStore(provider.GetRequiredService<TimeProvider>());
+        });
+        services.TryAddSingleton<LoginBanCheckCache>();
+        services.AddScoped<ILoginBanService, LoginBanService>();
+        return services;
+    }
+
+    /// <summary>
+    /// 把实体登记为某权限码的条件资源：该权限的条件可以引用数据行属性 <c>resource.&lt;名&gt;</c>
+    /// </summary>
+    /// <typeparam name="TEntity">实体类型</typeparam>
+    /// <param name="services">服务集合</param>
+    /// <param name="permissionCode">权限码</param>
+    /// <param name="keySelector">主键取法，见 <see cref="PermissionResourceKeys"/></param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddPermissionResource<TEntity>(
+        this IServiceCollection services,
+        string permissionCode,
+        Func<IReadOnlyDictionary<string, object?>, IEnumerable<long>?> keySelector)
+        where TEntity : class, IEntityBase<long>, new()
+    {
+        var registration = PermissionResourceRegistration.Create<TEntity>(permissionCode, keySelector);
+        services.Configure<PermissionResourceOptions>(options => options.Registrations.Add(registration));
         return services;
     }
 
@@ -295,6 +395,7 @@ public static class ServiceCollectionExtensions
             .Add<SysRole>()
             .Add<SysPermission>()
             .Add<SysConstraintRule>()
+            .Add<SysAccessPolicy>()
             .Add<SysPosition>()
             .Add<SysTenant>()
             .Add<SysTenantEdition>()
@@ -322,7 +423,8 @@ public static class ServiceCollectionExtensions
             .Add<SysOperationLog>()
             .Add<SysLoginLog>()
             .Add<SysExceptionLog>()
-            .Add<SysDiffLog>());
+            .Add<SysDiffLog>()
+            .Add<SysAccessPolicyHit>());
     }
 
     /// <summary>
@@ -386,6 +488,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasMessageTemplateSeeder>();
         services.AddDataSeeder<SaasOAuthAppSeeder>();
         services.AddDataSeeder<SaasTaskSeeder>();
+        services.AddDataSeeder<SaasAccessPolicySeeder>();
         return services;
     }
 
@@ -402,6 +505,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasDemoSeeder>();
         services.AddDataSeeder<SaasDemoNotificationSeeder>();
         services.AddDataSeeder<SaasDemoDictSeeder>();
+        services.AddDataSeeder<SaasDemoAccessPolicySeeder>();
         return services;
     }
 

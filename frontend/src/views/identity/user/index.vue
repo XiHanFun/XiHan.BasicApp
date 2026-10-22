@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Tone } from '@xihan-ui/core'
 import type { DataScopeDraft } from '../components/data-scope'
+import type { GrantConditionTarget } from '../components/permission-condition'
 import type { UserFormSecurity } from './user-form-access'
 import type {
   ApiId,
@@ -46,6 +47,8 @@ import { useAuthStore, useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 import { isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from '../components/data-scope'
 import DataScopeEditor from '../components/DataScopeEditor.vue'
+import GrantConditionsDrawer from '../components/GrantConditionsDrawer.vue'
+import { toGrantConditionTargets } from '../components/permission-condition'
 import { applyPermissionTransfer, diffPermissionGrants, diffRoleGrants } from './direct-grant'
 import { canTogglePick, diffUserFormSecurity } from './user-form-access'
 
@@ -518,6 +521,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('identity.user.action_edit'), scope: 'row', icon: 'lucide:pencil', permission: 'identity.user.update' },
     { key: 'grantRole', title: t('identity.user.action_grant_role'), scope: 'row', icon: 'lucide:users-round', permission: 'identity.user.grant-role' },
     { key: 'grantPermission', title: t('identity.user.action_grant_perm'), scope: 'row', icon: 'lucide:key-round', permission: 'identity.user.grant-permission' },
+    { key: 'grantConditions', title: t('identity.user.action_grant_conditions'), scope: 'row', icon: 'lucide:filter', permission: 'identity.user.grant-conditions' },
     // 数据范围是租户侧设置：平台态的按钮码里本就没有它，不必再判上下文
     { key: 'dataScope', title: t('identity.user.action_data_scope'), scope: 'row', icon: 'lucide:building-2', permission: 'identity.user.data-scope' },
     { key: 'lock', title: t('identity.user.action_lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', visible: isHomeAccountRow, permission: 'identity.user.lock' },
@@ -578,6 +582,10 @@ function onAction(payload: SchemaActionPayload) {
     case 'grantPermission':
       if (row)
         void openPermGrantDrawer(row)
+      break
+    case 'grantConditions':
+      if (row)
+        void openConditionsDrawer(row)
       break
     case 'dataScope':
       if (row)
@@ -1193,6 +1201,42 @@ async function saveRoleGrants() {
   }
 }
 
+// ── 直授条件抽屉 ──────────────────────────────────────────────
+const conditionsVisible = ref(false)
+const conditionsUser = ref<UserListItemDto | null>(null)
+const conditionsLoading = ref(false)
+const conditionTargets = ref<GrantConditionTarget[]>([])
+const conditionsCan = computed(() => ({
+  create: hasPermission('identity.user.condition-create'),
+  update: hasPermission('identity.user.condition-update'),
+  status: hasPermission('identity.user.condition-status'),
+  delete: hasPermission('identity.user.condition-delete'),
+  trial: hasPermission('identity.user.condition-trial'),
+}))
+
+async function loadConditionTargets() {
+  if (!conditionsUser.value) {
+    return
+  }
+  conditionsLoading.value = true
+  try {
+    conditionTargets.value = toGrantConditionTargets('user', await userManagementApi.permissions.list(conditionsUser.value.basicId, true))
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('identity.user.grant_load_failed'))
+  }
+  finally {
+    conditionsLoading.value = false
+  }
+}
+
+async function openConditionsDrawer(row: UserListItemDto) {
+  conditionsUser.value = row
+  conditionTargets.value = []
+  conditionsVisible.value = true
+  await loadConditionTargets()
+}
+
 // ── 权限直授抽屉（授予 / 拒绝各一个穿梭框，两页签一次提交） ──────────────
 const permGrantVisible = ref(false)
 const permGrantUser = ref<UserListItemDto | null>(null)
@@ -1227,6 +1271,8 @@ function permKeysOf(action: PermissionAction): ApiId[] {
 }
 
 const permGrantIds = computed(() => permKeysOf(PermissionAction.Grant))
+/** 权限主键 → 有效直授，标「有条件」用 */
+const permGrantByPermissionId = computed(() => new Map(permGrants.value.map(grant => [grant.permissionId, grant] as const)))
 const permDenyIds = computed(() => permKeysOf(PermissionAction.Deny))
 
 async function loadPermCatalog() {
@@ -1788,6 +1834,15 @@ async function confirmDelete() {
     </XhDrawerRoot>
 
     <!-- 权限直授抽屉：授予与拒绝各一个穿梭框，两者互斥 -->
+    <GrantConditionsDrawer
+      v-model:open="conditionsVisible"
+      :title="t('identity.user.conditions_title', { name: conditionsUser?.userName ?? '' })"
+      :grants="conditionTargets"
+      :loading="conditionsLoading"
+      :can="conditionsCan"
+      @changed="loadConditionTargets"
+    />
+
     <XhDrawerRoot v-model:open="permGrantVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 980px">
         <XhDrawerHeader>
@@ -1825,6 +1880,9 @@ async function confirmDelete() {
                   <XhTagRoot v-if="side === 'source' && permActions.get(item.basicId) === PermissionAction.Deny" variant="subtle" size="sm" tone="danger">
                     <XhTagLabel>{{ t('identity.user.grant_perm_deny_target') }}</XhTagLabel>
                   </XhTagRoot>
+                  <XhTagRoot v-if="side === 'target' && (permGrantByPermissionId.get(item.basicId)?.conditionCount ?? 0) > 0" variant="subtle" size="sm" tone="info">
+                    <XhTagLabel>{{ t('identity.user.grant_perm_conditional') }}</XhTagLabel>
+                  </XhTagRoot>
                 </template>
               </XPermissionTransfer>
             </XhTabsContent>
@@ -1843,6 +1901,9 @@ async function confirmDelete() {
                 <template #suffix="{ item, side }">
                   <XhTagRoot v-if="side === 'source' && permActions.get(item.basicId) === PermissionAction.Grant" variant="subtle" size="sm" tone="success">
                     <XhTagLabel>{{ t('identity.user.grant_perm_allow_target') }}</XhTagLabel>
+                  </XhTagRoot>
+                  <XhTagRoot v-if="side === 'target' && (permGrantByPermissionId.get(item.basicId)?.conditionCount ?? 0) > 0" variant="subtle" size="sm" tone="info">
+                    <XhTagLabel>{{ t('identity.user.grant_perm_conditional') }}</XhTagLabel>
                   </XhTagRoot>
                 </template>
               </XPermissionTransfer>

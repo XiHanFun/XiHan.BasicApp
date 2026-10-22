@@ -46,4 +46,8 @@ public sealed record PermissionConditionStatusCommand(long BasicId, ValidityStat
 /// <summary>
 /// 权限 ABAC 条件命令结果
 /// </summary>
-public sealed record PermissionConditionCommandResult(long ConditionId);
+/// <param name="ConditionId">条件主键</param>
+/// <param name="TargetRoleId">绑定在角色权限上时为该角色</param>
+/// <param name="TargetUserId">绑定在用户直授上时为该用户</param>
+/// <param name="PermissionId">所绑权限</param>
+public sealed record PermissionConditionCommandResult(long ConditionId, long? TargetRoleId = null, long? TargetUserId = null, long? PermissionId = null);

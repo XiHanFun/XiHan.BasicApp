@@ -17,4 +17,10 @@ public sealed record AuthorizationSnapshot(
     List<string> Roles,
     List<string> Permissions,
     HashSet<long> PermissionIds,
-    HashSet<string> ContextDeniedCodes);
+    HashSet<string> ContextDeniedCodes)
+{
+    /// <summary>
+    /// 权限条件：有条件授予的权限照样在 <see cref="Permissions"/> 里，接口上再按它求值
+    /// </summary>
+    public AuthorizationConditions Conditions { get; init; } = new();
+}
