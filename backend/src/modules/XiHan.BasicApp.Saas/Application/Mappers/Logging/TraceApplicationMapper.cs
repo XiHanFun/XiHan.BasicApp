@@ -223,8 +223,8 @@ public static class TraceApplicationMapper
             LogType = TraceLogType.AccessPolicyHit,
             BasicId = e.BasicId,
             Time = e.HitTime,
-            Title = FirstNonEmpty(e.PolicyName, e.PolicyCode),
-            Summary = ComposeRequest(e.Method, e.Path),
+            Title = ComposeRequest(e.Method, e.Path),
+            Summary = FirstNonEmpty(e.PolicyName, e.PolicyCode),
             Status = e.IsBlocked
                 ? StatusWarning
                 : e.Action == AccessPolicyAction.Allow ? StatusSuccess : StatusInfo,

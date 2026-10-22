@@ -127,8 +127,8 @@ public sealed class TraceTimelineItemDto : IFieldSecurityMultiSourceDto
                 (nameof(Summary), nameof(SysDiffLog.ChangeDescription)), (nameof(Status), nameof(SysDiffLog.IsSuccess)),
                 (nameof(Ip), nameof(SysDiffLog.OperationIp)))),
             [TraceLogType.AccessPolicyHit] = (typeof(SysAccessPolicyHit), Sources(
-                (nameof(Time), nameof(SysAccessPolicyHit.HitTime)), (nameof(Title), nameof(SysAccessPolicyHit.PolicyName)),
-                (nameof(Summary), nameof(SysAccessPolicyHit.Path)), (nameof(Status), nameof(SysAccessPolicyHit.IsBlocked))))
+                (nameof(Time), nameof(SysAccessPolicyHit.HitTime)), (nameof(Title), nameof(SysAccessPolicyHit.Path)),
+                (nameof(Summary), nameof(SysAccessPolicyHit.PolicyName)), (nameof(Status), nameof(SysAccessPolicyHit.IsBlocked))))
         };
 
     /// <summary>
