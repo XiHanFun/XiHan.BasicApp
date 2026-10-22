@@ -81,7 +81,6 @@ export default {
       direct_print: 'Direct Print',
       printer: 'Printer',
       refresh_printers: 'Refresh Printers',
-      back_to_list: 'Back to List',
       invalid_json: 'The template JSON is not a print template in the current format.',
       not_found: 'The print template does not exist or is unavailable in this scope.',
       preview_failed: 'Print preview failed',

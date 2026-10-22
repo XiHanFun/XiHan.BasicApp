@@ -1,13 +1,14 @@
 /**
- * 打印模板编辑器挂进打印设计器的宿主操作：样例预览、直接打印、打印机与返回列表写成一个扩展的命令，
- * 落在菜单栏的「文件」菜单里，常用的同时上工具栏；保存用设计器内置的 save 命令（Ctrl / ⌘ + S），不在这里。
+ * 打印模板编辑器挂进打印设计器的宿主操作：样例预览、直接打印与打印机写成一个扩展的命令，
+ * 落在菜单栏的「文件」菜单里，常用的同时上工具栏；保存用设计器内置的 save 命令（Ctrl / ⌘ + S），
+ * 回列表用设计器自带的关闭钮（closable），都不在这里。
  *
  * 命令只读编辑会话此刻的状态、执行时交回编辑会话；状态变了由宿主调设计器的 requestUpdate() 刷新可用与勾选，
  * 扩展对象本身建一次、引用不变（换引用设计器当作卸下再装上）。
  */
 import type { DesignerCommandMenuEntry } from '~/designers'
 import type { PrintDesignerExtension } from '~/printing/designer'
-import { ArrowLeftIcon, PrinterIcon, ReceiptIcon, RefreshIcon, SendIcon } from '~/designers'
+import { PrinterIcon, ReceiptIcon, RefreshIcon, SendIcon } from '~/designers'
 
 /** 宿主扩展的 id；命令 id 都以它加点开头 */
 export const PRINT_HOST_EXTENSION_ID = '@xihan/print-template'
@@ -16,7 +17,6 @@ export const PRINT_HOST_COMMANDS = {
   samplePreview: `${PRINT_HOST_EXTENSION_ID}.sample-preview`,
   directPrint: `${PRINT_HOST_EXTENSION_ID}.direct-print`,
   printer: `${PRINT_HOST_EXTENSION_ID}.printer`,
-  backToList: `${PRINT_HOST_EXTENSION_ID}.back-to-list`,
 } as const
 
 /** 打印机子菜单里各台打印机条目的 value 前缀；客户端默认打印机的 value 是空串，加了前缀不与刷新撞 */
@@ -33,8 +33,6 @@ export interface PrintHostOptions {
   printing: () => boolean
   /** 这份模板此刻能直接打印（停用的模板不能） */
   canDirectPrint: () => boolean
-  /** 正在保存或直打，不许离开 */
-  busy: () => boolean
   /** 打印机选项：客户端默认打印机（value 为空串）在前 */
   printers: () => readonly { label: string, value: string }[]
   /** 选中的打印机；null 交给客户端默认 */
@@ -47,7 +45,6 @@ export interface PrintHostOptions {
   selectPrinter: (printer: string | null) => void
   /** 强制刷新打印机列表 */
   refreshPrinters: () => void
-  backToList: () => void
 }
 
 export function createPrintHostExtension(options: PrintHostOptions): PrintDesignerExtension {
@@ -103,14 +100,6 @@ export function createPrintHostExtension(options: PrintHostOptions): PrintDesign
           else if (value.startsWith(PRINTER_VALUE_PREFIX))
             options.selectPrinter(value.slice(PRINTER_VALUE_PREFIX.length) || null)
         },
-      },
-      {
-        id: PRINT_HOST_COMMANDS.backToList,
-        label: () => t('setting.print_template.back_to_list'),
-        icon: ArrowLeftIcon,
-        placement: ['menubar:file', 'toolbar'],
-        enabled: () => !options.busy(),
-        run: () => options.backToList(),
       },
     ],
   }

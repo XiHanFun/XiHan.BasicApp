@@ -81,7 +81,6 @@ export default {
       direct_print: 'Direktdruck',
       printer: 'Drucker',
       refresh_printers: 'Drucker aktualisieren',
-      back_to_list: 'Zurück zur Liste',
       invalid_json: 'Die Vorlagen-JSON ist keine Druckvorlage im aktuellen Format.',
       not_found: 'Die Druckvorlage existiert nicht oder ist in diesem Geltungsbereich nicht verfügbar.',
       preview_failed: 'Druckvorschau fehlgeschlagen',

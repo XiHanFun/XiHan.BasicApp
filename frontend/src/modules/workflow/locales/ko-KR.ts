@@ -131,7 +131,6 @@ export default {
     designer: {
       untitled: '이름 없는 워크플로',
       engine_json: '엔진 정의 JSON',
-      back_to_list: '목록으로 돌아가기',
       saved: '저장됨',
       unsaved: '저장 안 됨',
       btn_apply_json: '캔버스에 적용',
