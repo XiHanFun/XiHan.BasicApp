@@ -140,7 +140,7 @@ public sealed class NumberingFormatterTests
                 $"时区选项“{option.Id}”不是可移植的 IANA 标识。");
 
             var systemTimeZone = ResolveSystemTimeZone(option.Id);
-            var legacyWindowsTimeZone = ResolveLegacyWindowsTimeZone(windowsTimeZoneId!);
+            var legacyWindowsTimeZone = ResolveLegacyWindowsTimeZone(windowsTimeZoneId!, systemTimeZone);
             Assert.Equal(systemTimeZone.DisplayName, option.DisplayName);
             Assert.Equal((int)systemTimeZone.BaseUtcOffset.TotalMinutes, option.BaseUtcOffsetMinutes);
             Assert.Equal(systemTimeZone.SupportsDaylightSavingTime, option.SupportsDaylightSavingTime);
@@ -233,9 +233,12 @@ public sealed class NumberingFormatterTests
     }
 
     /// <summary>
-    /// 独立解析历史 Windows 时区 ID：Windows 使用原生目录，Unix 显式转换为系统 IANA ID。
+    /// 独立解析历史 Windows 时区 ID 应得的时区：Windows 使用原生目录；Unix 显式转换为 ICU 给出的标准 IANA ID，
+    /// 系统目录没有这个旧别名时（新版 tzdata 把 America/Indianapolis 这类别名拆进 legacy 包）取该 Windows ID 所来自的时区选项。
     /// </summary>
-    private static TimeZoneInfo ResolveLegacyWindowsTimeZone(string windowsTimeZoneId)
+    /// <param name="windowsTimeZoneId">由时区选项映射出的 Windows 时区 ID。</param>
+    /// <param name="optionTimeZone">该时区选项在当前系统上的时区，与 Windows 时区同组、现行规则一致。</param>
+    private static TimeZoneInfo ResolveLegacyWindowsTimeZone(string windowsTimeZoneId, TimeZoneInfo optionTimeZone)
     {
         if (OperatingSystem.IsWindows())
         {
@@ -245,7 +248,7 @@ public sealed class NumberingFormatterTests
         if (TimeZoneInfo.TryConvertWindowsIdToIanaId(windowsTimeZoneId, out var ianaId)
             && !string.IsNullOrWhiteSpace(ianaId))
         {
-            return TimeZoneInfo.FindSystemTimeZoneById(ianaId);
+            return TimeZoneInfo.TryFindSystemTimeZoneById(ianaId, out var timeZone) ? timeZone : optionTimeZone;
         }
 
         throw new InvalidOperationException($"Windows 时区“{windowsTimeZoneId}”无法映射到当前 Unix 运行环境。");
