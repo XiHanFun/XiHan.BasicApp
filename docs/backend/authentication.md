@@ -65,7 +65,7 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 
 前端先调 `GET /api/Auth/LoginConfig` 拿到 `LoginConfigDto`（`loginMethods` + `oAuthProviders`），据此决定展示哪些登录按钮——**支持的方式以该配置为准**。
 
-`loginMethods` 取自参数 `saas.auth.login` 的 `methods`，编码是 `password`（账号密码）、`phone`（手机号验证码）、`email`（邮箱验证码）、`qrcode`（扫码）。登录页的切换栏只列开放的方式，按这个固定顺序排；只开放一种时不出切换栏；停在没开放的方式上会换到第一个开放的入口。缺省只开放 `password`，要用别的方式先到参数配置里加上。
+`loginMethods` 取自参数 `saas.auth.login` 的 `methods`，编码是 `password`（账号密码）、`phone`（手机号验证码）、`email`（邮箱验证码）、`qrcode`（扫码）。登录页的切换栏只列开放的方式，按这个固定顺序排；只开放一种时切换栏也照常显示（只有这一个入口）；停在没开放的方式上会换到第一个开放的入口。缺省只开放 `password`，要用别的方式先到参数配置里加上。
 
 ::: warning 登录页的「扫码」入口只是占位
 登录页切换栏里的「扫码」（`/auth/qrcode-login`）在前端用固定种子画一张示意图案，后端没有对应的扫码登录接口、轮询或确认流程，扫了也登录不了。可用的扫码方式只有下文第三方登录里微信、企业微信、飞书、钉钉的 `QrCode` 模式，它跳到对方平台的授权页扫码。

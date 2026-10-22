@@ -4,7 +4,7 @@
  * 职责边界：切换器用专属短标签 page.auth.entry.*，而不是借用页面标题键——
  * 登录卡片右栏固定宽，德文 / 日文等长标题会把整排挤出容器，最右侧的扫码入口被裁掉看不见。
  * 页面标题（浏览器标签页）仍用完整说法，不受影响。
- * 入口按登录设置开放的方式列出：只开放一种不出标签带，停在没开放的方式上换到第一个开放的入口。
+ * 入口按登录设置开放的方式列出：只开放一种也出标签带，停在没开放的方式上换到第一个开放的入口。
  */
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -106,11 +106,11 @@ describe('登录方式切换器按登录设置列入口', () => {
     expect(wrapper.findAll('[data-scope="tabs"][data-part="trigger"]').map(item => item.text())).toEqual(['账号登录', '邮箱登录'])
   })
 
-  it('只开放一种方式：不出标签带，表单照常显示', async () => {
+  it('只开放一种方式：照样出标签带，只有这一个入口，表单在它的面板里', async () => {
     const { wrapper } = await mountAt(LOGIN_PATH, ['password'])
 
-    expect(wrapper.find('[data-scope="tabs"]').exists()).toBe(false)
-    expect(wrapper.find('.form').exists()).toBe(true)
+    expect(wrapper.findAll('[data-scope="tabs"][data-part="trigger"]').map(item => item.text())).toEqual(['账号登录'])
+    expect(wrapper.find('[data-scope="tabs"][data-part="content"] .form').exists()).toBe(true)
   })
 
   it('登录设置还没取到：不出标签带，也不换页', async () => {
