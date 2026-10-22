@@ -19,7 +19,7 @@ BasicApp 的热点读路径走 Redis 分布式缓存，写路径**精准失效**
 
 | 缓存条目 | 键前缀 | 用途 |
 | --- | --- | --- |
-| `SaasAuthorizationSnapshotCacheItem` | `basicapp:saas:auth:snapshot` | **授权快照**——请求期鉴权热路径，让授权变更免重登即生效 |
+| `SaasAuthorizationSnapshotCacheItem` | `basicapp:saas:auth:snapshot:v2` | **授权快照**——请求期鉴权热路径，让授权变更免重登即生效；带权限条件 |
 | `SaasMenuRoutesCacheItem` | `basicapp:saas:navigation:routes` | 菜单路由（前端动态路由数据源） |
 | `SaasConfigValueCacheItem` | `basicapp:saas:config:value` | 系统参数值 |
 | `SaasDictItemTreeCacheItem` | `basicapp:saas:configuration:dict-tree` | 字典项树（下拉高频读） |

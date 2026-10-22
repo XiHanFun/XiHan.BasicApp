@@ -79,14 +79,12 @@ public sealed class SaasSettingSeeder(
         SettingSeed.Number(
             SaasConfigKeys.Log.RetentionDays, "日志保留天数", SaasConfigKeys.Groups.Log,
             LogRetentionCleanupTask.DefaultRetentionDays,
-            "访问、接口、异常、操作、差异、登录日志的保留天数，清理任务删除更早的记录",
+            "访问、接口、异常、操作、差异、登录、权限变更日志与条件命中记录的保留天数，清理任务删除更早的记录",
             200),
-        // 初始值只放文档保留网段（RFC 5737 / RFC 3849），不会封住真实地址或本机
         SettingSeed.Json(
-            SaasConfigKeys.Security.IpBlacklist, "IP 黑名单", SaasConfigKeys.Groups.Security,
-            new SaasIpBlacklistSettings { Entries = ["203.0.113.0/24", "2001:db8::/32"] },
-            new SaasIpBlacklistSettings(),
-            "entries：拒绝的客户端地址，单个 IPv4 / IPv6 地址或 CIDR 网段；命中即拒绝一切请求（403），只认平台这一条，保存后立即生效；停用本参数即关闭黑名单",
+            SaasConfigKeys.Security.LoginAutoBan, "登录失败自动封禁", SaasConfigKeys.Groups.Security,
+            new SaasLoginAutoBanSettings(), new SaasLoginAutoBanSettings(),
+            "isEnabled 开关（缺省关）；同一 IP 在 windowMinutes 分钟内登录失败（跨账号累计）达到 maxFailures 次即封禁 banMinutes 分钟，24 小时内再犯时长翻倍、最长 maxBanMinutes 分钟；访问策略里放行的 IP 不计数；只认平台这一条，当前封禁在访问策略页查看与解封",
             300),
     ];
 }

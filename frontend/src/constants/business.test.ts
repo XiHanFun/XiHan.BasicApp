@@ -8,6 +8,9 @@
 import type { AxiosRequestConfig } from '~/request'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  AccessPolicyAction,
+  AccessPolicyHitSource,
+  AccessPolicyPhase,
   ConditionOperator,
   ConfigDataType,
   ConfigType,
@@ -130,6 +133,9 @@ const alignments: [string, Option[], EnumLike][] = [
   ['PERMISSION_CHANGE_TYPE_OPTIONS', constants.PERMISSION_CHANGE_TYPE_OPTIONS, PermissionChangeType],
   ['CONSTRAINT_TYPE_OPTIONS', constants.CONSTRAINT_TYPE_OPTIONS, ConstraintType],
   ['VIOLATION_ACTION_OPTIONS', constants.VIOLATION_ACTION_OPTIONS, ViolationAction],
+  ['ACCESS_POLICY_ACTION_OPTIONS', constants.ACCESS_POLICY_ACTION_OPTIONS, AccessPolicyAction],
+  ['ACCESS_POLICY_PHASE_OPTIONS', constants.ACCESS_POLICY_PHASE_OPTIONS, AccessPolicyPhase],
+  ['ACCESS_POLICY_HIT_SOURCE_OPTIONS', constants.ACCESS_POLICY_HIT_SOURCE_OPTIONS, AccessPolicyHitSource],
   ['NOTIFICATION_STATUS_OPTIONS', constants.NOTIFICATION_STATUS_OPTIONS, NotificationStatus],
 ]
 

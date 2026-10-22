@@ -12,7 +12,8 @@ namespace XiHan.BasicApp.Saas.Application.Services;
 /// </summary>
 /// <remarks>
 /// <see cref="User"/> 是令牌代表的身份（模仿场景下即被模仿者）；
-/// 模仿者四项非空时额外写入 <c>impersonator_*</c> 声明。
+/// 模仿者四项非空时额外写入 <c>impersonator_*</c> 声明；
+/// <see cref="ClientId"/> 非空时写入 <c>client_id</c> 声明，标明令牌由哪个 OAuth 应用签发。
 /// </remarks>
 public sealed record AuthAccessTokenIssueCommand(
     SysUser User,
@@ -25,7 +26,8 @@ public sealed record AuthAccessTokenIssueCommand(
     long? ImpersonatorUserId = null,
     string? ImpersonatorUserName = null,
     long? ImpersonatorTenantId = null,
-    string? ImpersonatorTenantName = null);
+    string? ImpersonatorTenantName = null,
+    string? ClientId = null);
 
 /// <summary>
 /// 访问令牌签发结果

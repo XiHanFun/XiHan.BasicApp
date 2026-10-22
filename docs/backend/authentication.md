@@ -80,9 +80,9 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 1. 平台态定位账号 → `IAuthenticationDomainService.AuthenticatePasswordLoginAsync`：校验存在性、`IsActive`、密码哈希、账户锁定/失败计数，并判定是否需要二次验证。
 2. 同一域服务内的账号可用性校验：`Status` 是否启用、（带租户时）成员关系与生效/过期、密码是否过期。
 3. 若 `RequiresTwoFactor` → 返回 2FA 挑战（不签发令牌，见下）。
-4. 通过 → 决定落点租户、签发双令牌、落地会话、发布登录成功领域事件。
+4. 通过 → 决定落点租户 → 按[访问策略](./access-policy#求值时机)做登录时检查（被拒绝记登录结果 `AccessDenied`）→ 签发双令牌、落地会话、发布登录成功领域事件。
 
-失败会发布 `AuthLoginFailedDomainEvent`（落 `SysLoginLog`），并抛出友好错误。
+失败会发布 `AuthLoginFailedDomainEvent`（落 `SysLoginLog`），并抛出友好错误。邮箱、手机号、第三方登录与切换租户同样做登录时检查。
 
 ### 邮箱验证码
 
@@ -172,7 +172,7 @@ TOTP 遵循 RFC 6238：HMAC-SHA1、Base32 密钥、6 位、30 秒步长、±1 �
 
 登录成功签发 `LoginTokenDto`：**Access Token**（JWT，HMAC-SHA256 签名）+ **Refresh Token**（不透明随机串）。配置节 `XiHan:Authentication:Jwt`（`JwtOptions`），默认 Access 60 分钟、Refresh 7 天、时钟偏移容差 5 分钟（**以仓库配置为准**）。
 
-Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`SessionId`、`TenantId`（有则带）、`Email`/`Phone`/`Picture`、`DeviceFingerprint`、多个 `Role`。**具体权限码不冻结进令牌**——只在超管时放一个通配 `*` 作快路径；其余权限一律由服务端**实时快照**判定，避免授予/回收后令牌失效不及时，也避免权限清单泄露（与 [权限模型](./permission) 的实时校验一致）。
+Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`SessionId`、`TenantId`（有则带）、`Email`/`Phone`/`Picture`、`DeviceFingerprint`、多个 `Role`，OAuth 应用代用户换来的令牌另带 `client_id`。**具体权限码不冻结进令牌**——只在超管时放一个通配 `*` 作快路径；其余权限一律由服务端**实时快照**判定，避免授予/回收后令牌失效不及时，也避免权限清单泄露（与 [权限模型](./permission) 的实时校验一致）。
 
 刷新：`POST /api/Auth/RefreshToken`（`RefreshTokenRequestDto` 带旧 AccessToken + RefreshToken）→ 校验后签发新令牌，并落一条 `TokenRefreshed` 审计。
 
@@ -198,6 +198,7 @@ Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`Sessio
 - **验证码一次性消费**：邮箱登录码、2FA 邮箱/短信码、找回密码链接均**用后即焚**——读取即从缓存删除，防重放/爆破。邮箱码 6 位、10 分钟；找回密码令牌 30 分钟。
 - **找回密码**（匿名，防用户枚举）：`POST /api/Auth/PasswordResetRequest` 无论邮箱是否存在都返回"已受理"；存在则签发一次性重置令牌（`auth:pwd-reset:{token}`，缓存 30 分钟，仅记录 token→userId，**不立即改密**）并邮件带链接。用户点链接后 `POST /api/Auth/ConsumePasswordResetToken` 设新密码（8-128 位），成功即失效令牌并落 `PasswordReset` 审计。
 - **锁定与风控**：`SysUserSecurity` 记 `FailedLoginAttempts`/`LockoutEndTime` 等；`SysLoginLog` 记录每次尝试（含 `IsRiskLogin` 异地/新设备标记），按月分表，供暴力破解检测与合规审计。
+- **自动封禁**：同一 IP 跨账号登录失败过多可整体封禁一段时间（参数 `saas.security.login-auto-ban`，缺省关），见[访问策略 · 登录失败自动封禁](./access-policy#登录失败自动封禁)。
 - **注册**（`POST /api/Auth/Register`，匿名）：邮箱必填（全平台唯一登录标识），统一落默认注册租户、成为普通成员、**不分配角色**（权限由管理员后续授权）；欢迎邮件尽力而为、失败不阻断。
 
 ## 登录落点

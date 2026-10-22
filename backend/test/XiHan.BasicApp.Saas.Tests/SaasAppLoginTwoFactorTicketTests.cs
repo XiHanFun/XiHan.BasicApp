@@ -8,6 +8,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using XiHan.BasicApp.Saas.Application.AccessPolicies;
 using XiHan.BasicApp.Saas.Application.AppServices;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -71,6 +72,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
     private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly Mock<IUnitOfWorkManager> _unitOfWorkManager = new();
     private readonly List<string> _failureSteps = [];
+    private readonly Mock<IAccessPolicyLoginGuard> _loginGuard = new();
 
     private readonly SysUser _user = BuildUser(UserId, LoginName);
 
@@ -115,6 +117,10 @@ public sealed class SaasAppLoginTwoFactorTicketTests
             .Callback(() => _failureSteps.Add("complete"))
             .Returns(Task.CompletedTask);
         _unitOfWorkManager.Setup(manager => manager.Current).Returns(_unitOfWork.Object);
+        _loginGuard
+            .Setup(guard => guard.CountFailedLoginAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Callback((string? ip, CancellationToken _) => _failureSteps.Add($"count {ip}"))
+            .Returns(Task.CompletedTask);
     }
 
     /// <summary>
@@ -425,10 +431,10 @@ public sealed class SaasAppLoginTwoFactorTicketTests
     }
 
     /// <summary>
-    /// 密码错误、两步验证码错误：先发失败事件、再完成工作单元，失败计数、锁定与登录日志随之落库，然后才抛出；图形验证码错误不碰工作单元。
+    /// 密码错误、两步验证码错误：先按客户端 IP 计入自动封禁，再发失败事件、完成工作单元，失败计数、锁定与登录日志随之落库，然后才抛出；图形验证码错误既不计数也不碰工作单元。
     /// </summary>
     [Fact]
-    public async Task Login_Failures_ShouldCompleteUnitOfWorkBeforeThrowing()
+    public async Task Login_Failures_ShouldCountAndCompleteUnitOfWorkBeforeThrowing()
     {
         var service = CreateService();
 
@@ -439,7 +445,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
             CaptchaId = CaptchaId,
             CaptchaCode = CaptchaCode
         }));
-        Assert.Equal(["publish", "complete"], _failureSteps);
+        Assert.Equal(["count 127.0.0.1", "publish", "complete"], _failureSteps);
 
         _liveCaptchas.Add(CaptchaId);
         var ticket = (await service.LoginAsync(CredentialsRequest())).TwoFactorTicket!;
@@ -451,7 +457,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
             TwoFactorCode = "000000",
             TwoFactorTicket = ticket
         }));
-        Assert.Equal(["publish", "complete", "publish", "complete"], _failureSteps);
+        Assert.Equal(["count 127.0.0.1", "publish", "complete", "count 127.0.0.1", "publish", "complete"], _failureSteps);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
         {
@@ -460,7 +466,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
             CaptchaId = CaptchaId,
             CaptchaCode = "0000"
         }));
-        Assert.Equal(4, _failureSteps.Count);
+        Assert.Equal(6, _failureSteps.Count);
     }
 
     private static bool IsLoginName(string value)
@@ -525,6 +531,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
             Mock.Of<ILoginThrottleService>(),
             _captchaService.Object,
             new TwoFactorTicketService(_cache),
+            _loginGuard.Object,
             new ConfigurationBuilder().Build(),
             NullLogger<AuthAppService>.Instance);
     }

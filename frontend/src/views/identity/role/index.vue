@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { DataScopeDraft } from '../components/data-scope'
+import type { GrantConditionTarget } from '../components/permission-condition'
 import type { InheritedPermissionSources } from './role-grants'
 import type { RoleMemberCandidate } from './role-members'
 import type {
@@ -50,6 +51,8 @@ import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 import { isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from '../components/data-scope'
 import DataScopeEditor from '../components/DataScopeEditor.vue'
+import GrantConditionsDrawer from '../components/GrantConditionsDrawer.vue'
+import { toGrantConditionTargets } from '../components/permission-condition'
 import RoleParentsDialog from './components/RoleParentsDialog.vue'
 import { diffMenuGrants, mergeGrantedIntoCatalog, summarizeInheritedPermissions, validRoleGrants } from './role-grants'
 import { diffRoleMembers, mergeMemberCandidates } from './role-members'
@@ -225,6 +228,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'view', title: t('identity.role.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('identity.role.action_edit'), scope: 'row', icon: 'lucide:pencil', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.update' },
     { key: 'assignPermission', title: t('identity.role.action_assign_permission'), scope: 'row', icon: 'lucide:key-round', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
+    { key: 'grantConditions', title: t('identity.role.action_grant_conditions'), scope: 'row', icon: 'lucide:filter', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-conditions' },
     { key: 'assignMenu', title: t('identity.role.action_assign_menu'), scope: 'row', icon: 'lucide:list-tree', visible: row => canMaintainRole(row as unknown as RoleListItemDto), permission: 'identity.role.grant-permission' },
     { key: 'parents', title: t('identity.role.action_parents'), scope: 'row', icon: 'lucide:git-fork', visible: row => canSetParents(row as unknown as RoleListItemDto), permission: 'identity.role.parents' },
     { key: 'members', title: t('identity.role.action_members'), scope: 'row', icon: 'lucide:users', visible: row => canAssignMembers(row as unknown as RoleListItemDto), permission: 'identity.role.members' },
@@ -266,6 +270,11 @@ function onAction(payload: SchemaActionPayload) {
         void openPermissionDrawer(row)
       }
       break
+    case 'grantConditions':
+      if (row) {
+        void openConditionsDrawer(row)
+      }
+      break
     case 'assignMenu':
       if (row) {
         void openMenuDrawer(row)
@@ -296,6 +305,42 @@ const parentsRole = ref<RoleListItemDto | null>(null)
 function openParentsDialog(row: RoleListItemDto) {
   parentsRole.value = row
   parentsVisible.value = true
+}
+
+// ── 授权条件抽屉 ────────────────────────────────────────────────
+const conditionsVisible = ref(false)
+const conditionsRole = ref<RoleListItemDto | null>(null)
+const conditionsLoading = ref(false)
+const conditionTargets = ref<GrantConditionTarget[]>([])
+const conditionsCan = computed(() => ({
+  create: hasPermission('identity.role.condition-create'),
+  update: hasPermission('identity.role.condition-update'),
+  status: hasPermission('identity.role.condition-status'),
+  delete: hasPermission('identity.role.condition-delete'),
+  trial: hasPermission('identity.role.condition-trial'),
+}))
+
+async function loadConditionTargets() {
+  if (!conditionsRole.value) {
+    return
+  }
+  conditionsLoading.value = true
+  try {
+    conditionTargets.value = toGrantConditionTargets('role', await rolePermissionApi.list(conditionsRole.value.basicId))
+  }
+  catch (e: unknown) {
+    toast.danger((e as Error)?.message || t('identity.role.perm_load_failed'))
+  }
+  finally {
+    conditionsLoading.value = false
+  }
+}
+
+async function openConditionsDrawer(row: RoleListItemDto) {
+  conditionsRole.value = row
+  conditionTargets.value = []
+  conditionsVisible.value = true
+  await loadConditionTargets()
 }
 
 // ── 权限分配抽屉 ────────────────────────────────────────────────
@@ -1359,6 +1404,15 @@ async function handleToggleStatus(row: RoleListItemDto) {
       </XhFormRoot>
     </XEditModal>
 
+    <GrantConditionsDrawer
+      v-model:open="conditionsVisible"
+      :title="t('identity.role.conditions_title', { name: conditionsRole?.roleName ?? '' })"
+      :grants="conditionTargets"
+      :loading="conditionsLoading"
+      :can="conditionsCan"
+      @changed="loadConditionTargets"
+    />
+
     <XhDrawerRoot v-model:open="permissionVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 980px">
         <XhDrawerHeader>
@@ -1381,6 +1435,15 @@ async function handleToggleStatus(row: RoleListItemDto) {
             @update:value="onPermTransfer"
           >
             <template #suffix="{ item }">
+              <XhTagRoot
+                v-if="(permGrantByPermissionId.get(item.basicId)?.conditionCount ?? 0) > 0"
+                variant="subtle"
+                size="sm"
+                tone="info"
+                :title="t('identity.role.perm_conditional_hint')"
+              >
+                <XhTagLabel>{{ t('identity.role.perm_conditional') }}</XhTagLabel>
+              </XhTagRoot>
               <!-- 上级拒绝的，本角色授予了也不生效；已继承的，不必再授予 -->
               <XhTagRoot
                 v-if="permInherited.get(String(item.basicId))?.deniedBy.length"

@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.Framework.Caching.Attributes;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
@@ -38,6 +39,11 @@ public sealed class SaasAuthorizationSnapshotCacheItem
     /// 当前上下文不生效的权限编码（作用侧不含该上下文）。
     /// </summary>
     public List<string> ContextDeniedCodes { get; set; } = [];
+
+    /// <summary>
+    /// 权限条件（有条件授予的路径、有条件的禁止与条件集）。
+    /// </summary>
+    public AuthorizationConditions Conditions { get; set; } = new();
 
     /// <summary>
     /// 缓存时间。

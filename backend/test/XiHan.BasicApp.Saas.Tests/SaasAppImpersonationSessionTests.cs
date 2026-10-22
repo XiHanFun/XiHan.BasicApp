@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Moq;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
@@ -498,7 +499,8 @@ public sealed class SaasAppImpersonationSessionTests
             .Setup(repository => repository.GetByUserSessionIdAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync((SysUserSession?)null);
 
-        return new SaasPermissionChecker(snapshots.Object, sessions.Object, BuildCurrentUser(isImpersonating).Object);
+        var currentUser = BuildCurrentUser(isImpersonating).Object;
+        return new SaasPermissionChecker(snapshots.Object, sessions.Object, currentUser, new HttpContextAccessor(), PermissionConditionTestKit.Enforcer(currentUser));
     }
 
     private static Mock<ICurrentUser> BuildCurrentUser(bool isImpersonating)

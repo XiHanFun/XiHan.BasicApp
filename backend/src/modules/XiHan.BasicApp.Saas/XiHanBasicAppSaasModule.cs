@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Core;
+using XiHan.BasicApp.Saas.Application.Conditions;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Hubs;
 using XiHan.BasicApp.Saas.Infrastructure.OAuth;
@@ -50,6 +51,12 @@ public class XiHanBasicAppSaasModule : XiHanModule
         // 注册 SaaS 应用层内部服务
         services.AddSaasApplicationServices();
         services.AddSaasFieldSecurityEntities();
+
+        // 注册条件求值的属性登记与属性来源（时区取 Saas:Conditions:TimeZone）
+        services.AddSaasConditions();
+
+        // 注册访问策略（总开关 Saas:AccessPolicy:Enabled）
+        services.AddSaasAccessPolicies();
 
         // 修正 .NET 配置对 List<T> 的「追加而非替换」语义：框架 XiHanOpenApiSecurityOptions 的默认
         // ProtectedPathPrefixes=["/api"] 不会被 appsettings 的值替换，而是被追加，导致最终为 ["/api", 配置值...]，
@@ -112,6 +119,34 @@ public class XiHanBasicAppSaasModule : XiHanModule
         var schedulerSyncService = scope.ServiceProvider.GetRequiredService<ITaskSchedulerSyncService>();
         schedulerSyncService.SyncAllActiveJobsAsync().GetAwaiter().GetResult();
         logger.LogInformation("数据库中的活跃 SysTask 记录已同步到调度器");
+
+        // 3. 权限条件盘点：启动时写一行各类条数的汇总，详单在权限管理页的「条件盘点」
+        LogPermissionConditionInventory(context.ServiceProvider, logger);
+    }
+
+    /// <summary>
+    /// 写一行权限条件盘点的汇总；盘点失败只记警告，不影响启动
+    /// </summary>
+    private static void LogPermissionConditionInventory(IServiceProvider serviceProvider, ILogger logger)
+    {
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var inventory = scope.ServiceProvider.GetRequiredService<PermissionConditionInventoryService>()
+                .BuildAsync(DateTimeOffset.UtcNow)
+                .GetAwaiter()
+                .GetResult();
+            logger.LogInformation(
+                "权限条件盘点：{ConditionCount} 条条件、{BindingCount} 条授权；条件组 {GroupConclusions}；诊断 {Diagnostics}",
+                inventory.ConditionCount,
+                inventory.BindingCount,
+                PermissionConditionInventoryService.FormatCounts(inventory.GroupConclusions),
+                PermissionConditionInventoryService.FormatCounts(inventory.Diagnostics));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogWarning(ex, "权限条件盘点失败，不影响启动；可在权限管理页重跑");
+        }
     }
 
     /// <summary>

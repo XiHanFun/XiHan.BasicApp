@@ -16,7 +16,7 @@ public interface IPermissionConditionDomainService
     /// <summary>
     /// 删除权限 ABAC 条件
     /// </summary>
-    Task DeletePermissionConditionAsync(long id, CancellationToken cancellationToken = default);
+    Task<PermissionConditionCommandResult> DeletePermissionConditionAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// 更新权限 ABAC 条件

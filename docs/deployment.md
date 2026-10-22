@@ -163,29 +163,18 @@ pnpm build
 生产环境首次登录后立即修改初始密码，并建议开启强制改密。数据库、Redis 等连接凭据请通过环境变量或密钥管理注入，不要写死在提交的配置文件里。
 :::
 
-### IP 黑名单
+### 访问策略与真实 IP
 
-在「系统管理 → 参数配置」里维护平台参数 `saas.security.ip-blacklist`（分组「security」），值形如 `{"entries":["203.0.113.0/24","2001:db8::/32"]}`。客户端地址命中任一条目的请求一律拒绝：HTTP 403，响应体是统一的失败响应（`code` 为 403，`data` 为「当前 IP 已被禁止访问。」）。拦截在请求管线最前，接口、实时通道、`/uploads` 静态文件与接口文档都在它后面。
+访问策略按客户端 IP、地区、时段、用户、角色、接口等条件放行、拒绝或只记录请求，登录失败过多的 IP 会被自动封禁（参数 `saas.security.login-auto-ban`，缺省关）。策略在「系统管理 → 访问策略」里维护，命中写进条件命中记录，用法见[访问策略](./backend/access-policy)。
 
-- **条目写法**：单个 IPv4 / IPv6 地址，或 CIDR 网段。IPv4 只认四段点分写法（`10.1` 这类简写不收）；网段的主机位必须为零（写 `203.0.113.0/24`，不写 `203.0.113.5/24`）；IPv6 不带区域标识。客户端以 IPv4 映射的 IPv6 地址（`::ffff:a.b.c.d`）连进来时按 IPv4 匹配。保存时逐条校验，有写错的条目整条参数拒绝保存并点名。
-- **只认平台这一条**：读取时固定切到平台（TenantId = 0），租户不能建同键参数覆盖它。
-- **生效时间**：经参数缓存读取，在参数页保存或启停时缓存随之清掉，下一个请求即按新值判断，多实例部署一样。绕过参数页直接改库的，要等缓存过期（10 分钟）或手工删缓存。
-- **停用即关闭**：把参数停用，或把 `entries` 清空。种子的初始值只放文档保留网段（RFC 5737 的 `203.0.113.0/24`、RFC 3849 的 `2001:db8::/32`），不会封住真实地址或本机。
-- **出错时放行**：参数读不到或值无效时记错误日志、本次请求放行，不因黑名单自身的故障拒绝全部请求。
-- **经反向代理时的客户端地址**：与框架的转发头配置是同一份（`ForwardedHeadersOptions`，还原 `X-Forwarded-For` / `Proto` / `Host`），缺省只信任本机回环地址上的代理（同机 nginx），按代理追加的最后一跳判断，客户端自己伪造的转发头不算。代理不在本机时（例如 Docker Compose 里前端 nginx 容器经桥接网络转发），后端看到的是代理容器的地址：要在宿主里给 `ForwardedHeadersOptions` 追加该代理的 `KnownProxies` / `KnownIPNetworks`，否则黑名单只能看到代理地址，按客户端地址封不住。
+- **真实客户端 IP**：日志、会话、访问策略与自动封禁读的都是框架转发头中间件按受信代理还原后的地址，客户端自己伪造的 `X-Forwarded-For`、`X-Real-IP` 不算。缺省只信任本机回环地址上的代理（同机 nginx）；代理不在本机时（另一台主机上的 nginx、Docker Compose 里经桥接网络转发的前端 nginx 容器、云负载均衡），要在配置节 `XiHan:Web:Api:ForwardedHeaders` 里加上代理的地址（`KnownProxies`）或网段（`KnownNetworks`），多级代理同时调大 `ForwardLimit`，否则看到的客户端 IP 都是代理的地址。见[配置 · 受信代理](./configuration#api-forwardedheaders)。
+- **出错时放行**：策略求值本身出错时记错误日志、本次请求放行，不因访问策略自身的故障拒绝全部请求。
+- **多实例部署**：策略改动最多 5 秒后在所有节点生效；自动封禁的计数与名单在启用 Redis 时存在 Redis，没有 Redis 时退回进程内实现，多实例部署必须启用 Redis。
 
 #### 误封了自己
 
-1. 换一个不在黑名单里的地址（其他网络、手机热点、跳板机）登录，回到参数配置里改掉或停用 `saas.security.ip-blacklist`。
-2. 所有可用地址都被封时，直接改平台库，再清缓存：
-
-   ```sql
-   UPDATE sys_config
-      SET config_value = '{"entries":[]}'
-    WHERE config_key = 'saas.security.ip-blacklist' AND tenant_id = 0;
-   ```
-
-   然后删掉 Redis 里这条参数的缓存（键里含 `basicapp:saas:config:value` 与 `saas.security.ip-blacklist`，如 `redis-cli --scan --pattern '*basicapp:saas:config:value*saas.security.ip-blacklist*'` 列出后逐个 `DEL`），或等 10 分钟缓存过期。
+1. 换一个不受这条策略影响的网络或账号登录，在访问策略页把它停用或改回「只记录」；被自动封禁时，换个地址登录后在「自动封禁」里解封，或等封禁到期。
+2. 所有入口都被拦住时，在配置里关掉总开关 `Saas:AccessPolicy:Enabled`（改 `appsettings.Production.json` 热生效；用环境变量 `Saas__AccessPolicy__Enabled=false` 设置的要重启），改完策略后再打开。总开关关着时访问策略与自动封禁都不拦截，登录失败照常计数，日志里每 10 分钟提醒一次。
 
 ## 下一步
 

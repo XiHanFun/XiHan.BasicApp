@@ -130,9 +130,9 @@ public static class SaasConfigKeys
     public static class Security
     {
         /// <summary>
-        /// IP 黑名单（JSON，<see cref="SaasIpBlacklistSettings"/>）：命中的客户端 IP 拒绝一切请求；只认平台（TenantId = 0）这一条。
+        /// 登录失败自动封禁（JSON，<see cref="SaasLoginAutoBanSettings"/>）：同一 IP 一段时间内登录失败过多即暂时封禁；只认平台（TenantId = 0）这一条。
         /// </summary>
-        public const string IpBlacklist = "saas.security.ip-blacklist";
+        public const string LoginAutoBan = "saas.security.login-auto-ban";
     }
 
     /// <summary>

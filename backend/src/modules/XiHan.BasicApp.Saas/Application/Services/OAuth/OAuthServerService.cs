@@ -507,7 +507,8 @@ public sealed class OAuthServerService : IOAuthServerService
                 accessTokenJti,
                 snapshot.Roles,
                 tokenPermissions,
-                DeviceId: null));
+                DeviceId: null,
+                ClientId: app.ClientId));
         var jwt = issue.TokenResult;
         var refreshToken = issueRefresh ? jwt.RefreshToken : null;
 

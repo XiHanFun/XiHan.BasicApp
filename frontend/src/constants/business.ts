@@ -2,6 +2,9 @@
  * 下拉选项与后端 API 字符串枚举对齐（Flags 类枚举除外）
  */
 import {
+  AccessPolicyAction,
+  AccessPolicyHitSource,
+  AccessPolicyPhase,
   ConditionOperator,
   ConfigDataType,
   ConfigType,
@@ -460,6 +463,7 @@ export const PERMISSION_CHANGE_TYPE_OPTIONS = [
   { label: '用户委托授权收回', value: PermissionChangeType.UserDelegateRevoke },
   { label: '角色新增上级', value: PermissionChangeType.RoleAddParent },
   { label: '角色解除上级', value: PermissionChangeType.RoleRemoveParent },
+  { label: '授权条件变更', value: PermissionChangeType.ConditionChange },
 ]
 
 // ==================== 约束规则 ====================
@@ -480,6 +484,24 @@ export const VIOLATION_ACTION_OPTIONS = [
   { label: '警告放行', value: ViolationAction.Warning },
   { label: '仅记录日志', value: ViolationAction.Log },
   { label: '需要审批', value: ViolationAction.RequireApproval },
+]
+
+export const ACCESS_POLICY_ACTION_OPTIONS = [
+  { label: '只记录', value: AccessPolicyAction.LogOnly },
+  { label: '拒绝', value: AccessPolicyAction.Deny },
+  { label: '放行', value: AccessPolicyAction.Allow },
+]
+
+export const ACCESS_POLICY_PHASE_OPTIONS = [
+  { label: '认证前', value: AccessPolicyPhase.BeforeAuthentication },
+  { label: '认证后', value: AccessPolicyPhase.AfterAuthentication },
+  { label: '登录时', value: AccessPolicyPhase.Login },
+  { label: '鉴权时', value: AccessPolicyPhase.Authorization },
+]
+
+export const ACCESS_POLICY_HIT_SOURCE_OPTIONS = [
+  { label: '访问策略', value: AccessPolicyHitSource.AccessPolicy },
+  { label: '权限条件', value: AccessPolicyHitSource.PermissionCondition },
 ]
 
 // ==================== 通知 ====================

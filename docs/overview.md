@@ -22,7 +22,7 @@ XiHan.BasicApp 是一个**企业级中后台内核**：后端基于 .NET 与 [Xi
 | 领域 | 关键能力 |
 | --- | --- |
 | [身份与认证](./backend/authentication) | 用户/角色/菜单；JWT 双令牌；账号密码、邮箱/短信验证码、OAuth2（GitHub/Gitee/Google/QQ）、2FA |
-| [权限](./backend/permission) | RBAC；权限码冒号分段（Saas 三段如 `saas:user:read`，可选模块两段如 `workflow:execute`）；数据范围（目前接入用户列表）；字段级脱敏；ABAC 条件可配置、尚不参与鉴权 |
+| [权限](./backend/permission) | RBAC；权限码冒号分段（Saas 三段如 `saas:user:read`，可选模块两段如 `workflow:execute`）；数据范围（目前接入用户列表）；字段级脱敏；ABAC 权限条件按请求求值，可盘点、试算；[访问策略](./backend/access-policy)按 IP、地区、时段等放行或拒绝请求，登录失败自动封禁 |
 | [组织架构](./backend/organization) | 部门树 + 闭包表、岗位字典、用户多部门归属（数据范围的底座） |
 | [多租户](./backend/multi-tenancy) | 字段级隔离，邮箱全局唯一登录，租户版本（Edition）权限白名单门控 |
 | [消息中心](./backend/messaging) | 五类消息 + 优先级 + 强制阅读；模板；四渠道扇出；SignalR 通知与在线聊天 |

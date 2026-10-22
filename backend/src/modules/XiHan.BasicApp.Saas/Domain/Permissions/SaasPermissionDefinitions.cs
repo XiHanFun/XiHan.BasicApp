@@ -320,6 +320,21 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.PermissionCondition.Update, "权限ABAC条件更新", "更新角色或用户授权绑定的ABAC条件", true, 700),
             new(SaasPermissionCodes.PermissionCondition.Status, "权限ABAC条件状态", "更新权限ABAC条件状态", true, 710),
             new(SaasPermissionCodes.PermissionCondition.Delete, "权限ABAC条件删除", "删除权限ABAC条件", true, 720),
+            new(SaasPermissionCodes.PermissionCondition.Trial, "权限条件盘点与试算", "盘点存量权限条件，按模拟的请求上下文试算条件的判定路径", false, 725),
+        ]),
+        new(SaasPermissionCodes.AccessPolicy.Group, "访问策略", PermissionSide.Both,
+        [
+            new(SaasPermissionCodes.AccessPolicy.Read, "访问策略查看", "查看当前层的访问策略与命中统计；平台还可查看当前的自动封禁", false, 726),
+            new(SaasPermissionCodes.AccessPolicy.Create, "访问策略创建", "创建访问策略，新建一律只记录", true, 727),
+            new(SaasPermissionCodes.AccessPolicy.Update, "访问策略更新", "更新访问策略的条件、优先级、生效期与动作（含启用拦截）", true, 728),
+            new(SaasPermissionCodes.AccessPolicy.Status, "访问策略状态", "启用、停用访问策略", true, 729),
+            new(SaasPermissionCodes.AccessPolicy.Delete, "访问策略删除", "删除访问策略", true, 730),
+            new(SaasPermissionCodes.AccessPolicy.Trial, "访问策略试运行", "按模拟的请求上下文试运行访问策略", false, 731),
+            new(SaasPermissionCodes.AccessPolicy.Ban, "自动封禁解除", "手动解除登录失败自动封禁", true, 732, PermissionSide.Platform),
+        ]),
+        new(SaasPermissionCodes.AccessPolicyHit.Group, "条件命中记录", PermissionSide.Both,
+        [
+            new(SaasPermissionCodes.AccessPolicyHit.Read, "条件命中记录查看", "查看访问策略与权限条件的命中记录", false, 541),
         ]),
         new(SaasPermissionCodes.DiffLog.Group, "数据变更日志", PermissionSide.Both,
         [

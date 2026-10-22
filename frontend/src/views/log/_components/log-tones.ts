@@ -48,7 +48,7 @@ export function accessResultTone(result: unknown): Tone {
   }
 }
 
-/** 登录结果：成功绿、凭据或二次验证失败红、会话类事件蓝、账号状态与安全设置变动黄 */
+/** 登录结果：成功绿、凭据或二次验证失败与访问策略拒绝红、会话类事件蓝、账号状态与安全设置变动黄 */
 export function loginResultTone(result: unknown): Tone {
   switch (result) {
     case LoginResult.Success: return 'success'
@@ -57,6 +57,7 @@ export function loginResultTone(result: unknown): Tone {
     case LoginResult.TenantSwitched: return 'info'
     case LoginResult.InvalidCredentials:
     case LoginResult.TwoFactorFailed:
+    case LoginResult.AccessDenied:
     case LoginResult.Failed: return 'danger'
     case LoginResult.AccountLocked:
     case LoginResult.AccountDisabled:
@@ -95,7 +96,7 @@ export function riskLevelTone(level: unknown): Tone {
   return 'neutral'
 }
 
-/** 权限变更：拒绝红、撤销与移除黄、授予与分配绿 */
+/** 权限变更：拒绝红、撤销与移除黄、条件变更蓝、授予与分配绿 */
 export function permissionChangeTone(type: unknown): Tone {
   switch (type) {
     case PermissionChangeType.UserDenyPermission:
@@ -106,6 +107,8 @@ export function permissionChangeTone(type: unknown): Tone {
     case PermissionChangeType.UserRemoveRole:
     case PermissionChangeType.RoleRemoveParent:
       return 'warning'
+    case PermissionChangeType.ConditionChange:
+      return 'info'
     default:
       return 'success'
   }

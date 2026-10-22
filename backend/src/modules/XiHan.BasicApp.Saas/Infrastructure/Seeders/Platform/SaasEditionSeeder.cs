@@ -120,7 +120,7 @@ public sealed class SaasEditionSeeder(
     ];
 
     /// <summary>
-    /// 专业版：基础版 + 高级授权（继承、数据范围、直授、字段安全、委托、申请、条件、约束）、审计日志、存储与模板管理
+    /// 专业版：基础版 + 高级授权（继承、数据范围、直授、字段安全、委托、申请、条件、约束）、访问策略、审计日志、存储与模板管理
     /// </summary>
     private static readonly string[] ProPermissions =
     [
@@ -159,6 +159,14 @@ public sealed class SaasEditionSeeder(
         SaasPermissionCodes.PermissionCondition.Update,
         SaasPermissionCodes.PermissionCondition.Status,
         SaasPermissionCodes.PermissionCondition.Delete,
+        SaasPermissionCodes.PermissionCondition.Trial,
+        SaasPermissionCodes.AccessPolicy.Read,
+        SaasPermissionCodes.AccessPolicy.Create,
+        SaasPermissionCodes.AccessPolicy.Update,
+        SaasPermissionCodes.AccessPolicy.Status,
+        SaasPermissionCodes.AccessPolicy.Delete,
+        SaasPermissionCodes.AccessPolicy.Trial,
+        SaasPermissionCodes.AccessPolicyHit.Read,
         SaasPermissionCodes.ConstraintRule.Read,
         SaasPermissionCodes.ConstraintRule.Create,
         SaasPermissionCodes.ConstraintRule.Update,

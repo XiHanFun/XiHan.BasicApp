@@ -33,6 +33,8 @@ import { useEnumOptions } from '~/hooks'
 import { useUserStore } from '~/stores'
 import { formatDate, getOptionLabel } from '~/utils'
 import { workflowProgressText } from '../authorization/workflow-progress'
+import ConditionInventoryDrawer from './components/ConditionInventoryDrawer.vue'
+import ConditionTrialDrawer from './components/ConditionTrialDrawer.vue'
 
 defineOptions({ name: 'SystemPermissionPage' })
 
@@ -56,6 +58,9 @@ const submitLoading = ref(false)
 const resourceLoading = ref(false)
 const operationLoading = ref(false)
 const detailVisible = ref(false)
+/** 条件盘点与条件试算两个抽屉 */
+const inventoryVisible = ref(false)
+const trialVisible = ref(false)
 const detailLoading = ref(false)
 const currentDetail = ref<PermissionCenterDetailDto | null>(null)
 const permissionForm = ref<PermissionFormModel>(createDefaultForm())
@@ -283,6 +288,8 @@ const schema = computed<PageSchema>(() => ({
   },
   actions: [
     { key: 'create', title: t('identity.permission.action_create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'identity.permission.create' },
+    { key: 'conditionInventory', title: t('identity.permission.action_condition_inventory'), scope: 'page', icon: 'lucide:clipboard-check', permission: 'identity.permission.condition-inventory' },
+    { key: 'conditionTrial', title: t('identity.permission.action_condition_trial'), scope: 'page', icon: 'lucide:flask-conical', permission: 'identity.permission.condition-trial' },
     { key: 'view', title: t('identity.permission.action_view'), scope: 'row', icon: 'lucide:eye' },
     { key: 'edit', title: t('identity.permission.action_edit'), scope: 'row', icon: 'lucide:pencil', visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.update' },
     { key: 'toggle', title: t('identity.permission.action_toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, (row as unknown as PermissionListItemDto).status === EnableStatus.Enabled, (row as unknown as PermissionListItemDto).permissionName), visible: row => canMaintainPermission(row as unknown as PermissionListItemDto), permission: 'identity.permission.status' },
@@ -296,6 +303,12 @@ function onAction(payload: SchemaActionPayload) {
   switch (payload.key) {
     case 'create':
       handleAdd()
+      break
+    case 'conditionInventory':
+      inventoryVisible.value = true
+      break
+    case 'conditionTrial':
+      trialVisible.value = true
       break
     case 'view':
       if (row) {
@@ -603,6 +616,9 @@ async function handleToggleStatus(row: PermissionListItemDto) {
     :schema="schema"
     @action="onAction"
   >
+    <ConditionInventoryDrawer v-model:open="inventoryVisible" />
+    <ConditionTrialDrawer v-model:open="trialVisible" />
+
     <XhDrawerRoot v-model:open="detailVisible" side="right">
       <XhDrawerContent style="--xh-drawer-size: 980px">
         <XhDrawerTitle>{{ t('identity.permission.detail_title') }}</XhDrawerTitle>

@@ -68,6 +68,7 @@ const READ_ONLY_ACTION_KEYS = new Set(['view', 'detail', 'preview', 'download', 
 const UNGATED_ACTIONS: Record<string, string> = {
   'views/tenant/list/index.vue#quota-audit': '只读：核对超配额租户，接口只要租户查看权限',
   'views/file/library/index.vue#storages': '只读入口：打开存储副本列表，抽屉里的写操作各自按按钮码门控',
+  'views/setting/access-policy/index.vue#bans': '只读入口：打开封禁名单，接口只要访问策略查看权限，解封按按钮码门控',
   'views/file/export-center/index.vue#cancel': '自助：只作用于本人的导出任务，接口只要求登录',
   'views/file/export-center/index.vue#delete': '自助：只作用于本人的导出任务，接口只要求登录',
   'modules/codegen/views/develop/code-gen/components/datasource-panel.vue#test': '只读：连通性测试只要代码生成的读权限',

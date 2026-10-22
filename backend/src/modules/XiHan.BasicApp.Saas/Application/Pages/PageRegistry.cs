@@ -154,6 +154,8 @@ public static class PageRegistry
          new("setting.dict", "字典管理", "menu.setting_dict", MenuType.Menu, "/setting/dict", "SettingDict", "setting/dict/index", "setting", SaasPermissionCodes.Dict.Read, "lucide:book-open", 720),
         // [8.3] 参数配置
          new("setting.config", "参数配置", "menu.setting_config", MenuType.Menu, "/setting/config", "SettingConfig", "setting/config/index", "setting", SaasPermissionCodes.Config.Read, "lucide:sliders-horizontal", 730),
+        // [8.3.0] 访问策略（平台上下文看平台策略，租户上下文看本租户的）
+         new("setting.access-policy", "访问策略", "menu.setting_access_policy", MenuType.Menu, "/setting/access-policy", "SettingAccessPolicy", "setting/access-policy/index", "setting", SaasPermissionCodes.AccessPolicy.Read, "lucide:shield-ban", 733),
         // [8.3.1] 业务编号（租户私有规则 + 可用全局规则；平台态管理全局规则）
          new("setting.numbering", "编号配置", "menu.setting_numbering", MenuType.Menu, "/setting/numbering", "SettingNumbering", "setting/numbering/index", "setting", SaasPermissionCodes.Numbering.Read, "lucide:hash", 735),
         // [8.4] 任务调度
@@ -184,6 +186,8 @@ public static class PageRegistry
          new("log.trace", "日志链路追踪", "menu.log_trace", MenuType.Menu, "/log/trace", "LogTrace", "log/trace/index", "log", SaasPermissionCodes.LogTrace.Read, "lucide:route", 1080),
         // [9.1] 访问日志
          new("log.access", "访问日志", "menu.log_access", MenuType.Menu, "/log/access", "LogAccess", "log/access/index", "log", SaasPermissionCodes.AccessLog.Read, "lucide:globe", 1020),
+        // [9.1.1] 条件命中记录（访问策略与权限条件）
+         new("log.access-policy", "条件命中", "menu.log_access_policy", MenuType.Menu, "/log/access-policy", "LogAccessPolicy", "log/access-policy/index", "log", SaasPermissionCodes.AccessPolicyHit.Read, "lucide:shield-alert", 1025),
         // [9.2] 开放接口日志
          new("log.api", "开放接口日志", "menu.log_api", MenuType.Menu, "/log/api", "LogApi", "log/api/index", "log", SaasPermissionCodes.ApiLog.Read, "lucide:webhook", 1060),
         // [9.3] 操作日志
@@ -236,6 +240,12 @@ public static class PageRegistry
          new("identity.user.revoke-role", "撤销角色", "identity.user", SaasPermissionCodes.UserRole.Revoke, 16),
          new("identity.user.revoke-permission", "撤销直授", "identity.user", SaasPermissionCodes.UserPermission.Revoke, 17),
          new("identity.user.revoke-department", "撤销部门", "identity.user", SaasPermissionCodes.UserDepartment.Revoke, 18),
+         new("identity.user.grant-conditions", "直授条件", "identity.user", SaasPermissionCodes.PermissionCondition.Read, 19),
+         new("identity.user.condition-create", "新增条件", "identity.user", SaasPermissionCodes.PermissionCondition.Create, 20),
+         new("identity.user.condition-update", "编辑条件", "identity.user", SaasPermissionCodes.PermissionCondition.Update, 21),
+         new("identity.user.condition-status", "启停条件", "identity.user", SaasPermissionCodes.PermissionCondition.Status, 22),
+         new("identity.user.condition-delete", "删除条件", "identity.user", SaasPermissionCodes.PermissionCondition.Delete, 23),
+         new("identity.user.condition-trial", "条件试算", "identity.user", SaasPermissionCodes.PermissionCondition.Trial, 24),
 
         // [2.2] 角色管理
          new("identity.role.create", "新增", "identity.role", SaasPermissionCodes.Role.Create, 1),
@@ -251,6 +261,12 @@ public static class PageRegistry
          // 上级角色：设置入口挂新增上级，解除上级另挂按钮（批量接口只在本次含解除时要删除权限）
          new("identity.role.parents", "设置上级", "identity.role", SaasPermissionCodes.RoleHierarchy.Create, 12),
          new("identity.role.remove-parents", "解除上级", "identity.role", SaasPermissionCodes.RoleHierarchy.Delete, 13),
+         new("identity.role.grant-conditions", "授权条件", "identity.role", SaasPermissionCodes.PermissionCondition.Read, 14),
+         new("identity.role.condition-create", "新增条件", "identity.role", SaasPermissionCodes.PermissionCondition.Create, 15),
+         new("identity.role.condition-update", "编辑条件", "identity.role", SaasPermissionCodes.PermissionCondition.Update, 16),
+         new("identity.role.condition-status", "启停条件", "identity.role", SaasPermissionCodes.PermissionCondition.Status, 17),
+         new("identity.role.condition-delete", "删除条件", "identity.role", SaasPermissionCodes.PermissionCondition.Delete, 18),
+         new("identity.role.condition-trial", "条件试算", "identity.role", SaasPermissionCodes.PermissionCondition.Trial, 19),
 
         // [2.3] 组织机构
          new("identity.org.create", "新增", "identity.org", SaasPermissionCodes.Department.Create, 1),
@@ -273,6 +289,8 @@ public static class PageRegistry
          new("identity.permission.delete", "删除", "identity.permission", SaasPermissionCodes.Permission.Delete, 3),
          new("identity.permission.status", "启停", "identity.permission", SaasPermissionCodes.Permission.Status, 4),
          new("identity.permission.export", "导出", "identity.permission", SaasPermissionCodes.Permission.Export, 9),
+         new("identity.permission.condition-inventory", "条件盘点", "identity.permission", SaasPermissionCodes.PermissionCondition.Trial, 10),
+         new("identity.permission.condition-trial", "条件试算", "identity.permission", SaasPermissionCodes.PermissionCondition.Trial, 11),
 
         // [2.5] 字段安全（字段级读写与脱敏策略）
          new("identity.field-security.create", "新增", "identity.field-security", SaasPermissionCodes.FieldLevelSecurity.Create, 1),
@@ -415,6 +433,15 @@ public static class PageRegistry
          new("setting.config.status", "启停", "setting.config", SaasPermissionCodes.Config.Status, 4),
          new("setting.config.import", "导入", "setting.config", SaasPermissionCodes.Config.Import, 5),
          new("setting.config.export", "导出", "setting.config", SaasPermissionCodes.Config.Export, 9),
+
+        // [8.3.0] 访问策略
+         new("setting.access-policy.create", "新增", "setting.access-policy", SaasPermissionCodes.AccessPolicy.Create, 1),
+         new("setting.access-policy.update", "编辑", "setting.access-policy", SaasPermissionCodes.AccessPolicy.Update, 2),
+         new("setting.access-policy.delete", "删除", "setting.access-policy", SaasPermissionCodes.AccessPolicy.Delete, 3),
+         new("setting.access-policy.status", "启停", "setting.access-policy", SaasPermissionCodes.AccessPolicy.Status, 4),
+         new("setting.access-policy.trial", "试运行", "setting.access-policy", SaasPermissionCodes.AccessPolicy.Trial, 5),
+         new("setting.access-policy.ban", "解除封禁", "setting.access-policy", SaasPermissionCodes.AccessPolicy.Ban, 6),
+         new("setting.access-policy.hits", "命中记录", "setting.access-policy", SaasPermissionCodes.AccessPolicyHit.Read, 7),
 
         // [8.3.1] 业务编号（页面不提供真实发号按钮，Generate 权限仅供 API/DI 调用）
          new("setting.numbering.read", "预览", "setting.numbering", SaasPermissionCodes.Numbering.Read, 0),
