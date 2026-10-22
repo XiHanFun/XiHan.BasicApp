@@ -32,6 +32,7 @@ public sealed class SaasSettingContractTests
         [SaasConfigKeys.Auth.Password] = typeof(SaasPasswordSettings),
         [SaasConfigKeys.Auth.Impersonation] = typeof(SaasImpersonationSettings),
         [SaasConfigKeys.Bot.Telegram.Settings] = typeof(SaasTelegramBotConfig),
+        [SaasConfigKeys.Security.IpBlacklist] = typeof(SaasIpBlacklistSettings),
     };
 
     /// <summary>

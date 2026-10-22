@@ -1,8 +1,10 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Saas.Domain.Configurations;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
+using XiHan.BasicApp.Saas.Domain.Security;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -52,6 +54,8 @@ public sealed class ConfigDomainService
         {
             throw new InvalidOperationException("配置键已存在。");
         }
+
+        ValidateIpBlacklist(configKey, scope, command.ConfigValue);
 
         var config = new SysConfig
         {
@@ -104,6 +108,7 @@ public sealed class ConfigDomainService
 
         ValidateUpdateConfigCommand(command);
         var config = await GetConfigOrThrowAsync(command.BasicId, cancellationToken);
+        ValidateIpBlacklist(config.ConfigKey, config.TenantId, command.ConfigValue);
         config.ConfigName = Required(command.ConfigName, 100, nameof(command.ConfigName), "配置名称不能超过 100 个字符。");
         config.ConfigGroup = Optional(command.ConfigGroup, 100, nameof(command.ConfigGroup), "配置分组不能超过 100 个字符。");
         config.ConfigValue = ResolveConfigValueOnUpdate(config, command);
@@ -172,6 +177,28 @@ public sealed class ConfigDomainService
         if (value.Any(char.IsWhiteSpace))
         {
             throw new InvalidOperationException(message);
+        }
+    }
+
+    /// <summary>
+    /// IP 黑名单只认平台那一条，值里的每个条目都要能解析成地址或网段
+    /// </summary>
+    private static void ValidateIpBlacklist(string configKey, long tenantId, string? value)
+    {
+        if (!string.Equals(configKey, SaasConfigKeys.Security.IpBlacklist, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (tenantId != 0)
+        {
+            throw new InvalidOperationException("IP 黑名单只在平台生效，租户不能单独配置。");
+        }
+
+        var blacklist = SaasIpBlacklist.FromJson(value);
+        if (blacklist.InvalidEntries.Count > 0)
+        {
+            throw new InvalidOperationException($"这些条目不是合法的 IP 地址或 CIDR 网段：{string.Join("、", blacklist.InvalidEntries)}");
         }
     }
 

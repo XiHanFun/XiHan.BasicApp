@@ -10,6 +10,7 @@
    ▼
 ┌─ ASP.NET Core 中间件管道（由框架 XiHanWebApiModule 编排，顺序经过设计） ──────────┐
 │                                                                                  │
+│  ★ BasicApp 最前：IP 黑名单（启动过滤器挂入，命中→403，其后一切都不执行）          │
 │  ① UseForwardedHeaders          还原反向代理转发头（scheme/host/客户端 IP）        │
 │  ② XiHanTraceIdMiddleware       分配/透传 TraceId，写入响应头 X-Trace-Id          │
 │  ③ UseXiHanRequestCulture       按 X-Language 设置请求文化                        │
@@ -50,6 +51,10 @@
 ### ① 转发头还原必须在最前
 
 `UseForwardedHeaders` 先于一切读取 scheme / host / 客户端 IP 的中间件（路由、鉴权、CORS、重定向生成）。放错位置的表现是：反向代理后面拿到的客户端 IP 全是网关 IP、生成的重定向 URL 是 `http://` 而不是 `https://`。
+
+### ★ IP 黑名单在转发头之前
+
+平台参数 `saas.security.ip-blacklist` 命中的客户端地址，请求在管线最前就被拒（403），接口、实时通道、`/uploads` 静态文件与接口文档都在它后面。这一步早于 ①，客户端地址按 ① 同一份转发头配置在请求副本上还原，不改动请求本身。配置、生效时间与误封自己后的恢复见[部署 · IP 黑名单](../deployment#ip-黑名单)。
 
 ### ② TraceId
 
