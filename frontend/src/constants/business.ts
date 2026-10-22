@@ -460,6 +460,7 @@ export const PERMISSION_CHANGE_TYPE_OPTIONS = [
   { label: '用户委托授权收回', value: PermissionChangeType.UserDelegateRevoke },
   { label: '角色新增上级', value: PermissionChangeType.RoleAddParent },
   { label: '角色解除上级', value: PermissionChangeType.RoleRemoveParent },
+  { label: '授权条件变更', value: PermissionChangeType.ConditionChange },
 ]
 
 // ==================== 约束规则 ====================

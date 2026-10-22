@@ -237,6 +237,7 @@ export default {
     type_user_delegate_revoke: '委托授权收回',
     type_role_add_parent: '角色新增上级',
     type_role_remove_parent: '角色解除上级',
+    type_condition_change: '授权条件变更',
     operator_user_id: '操作人主键',
     operator_user_name: '操作人',
     target_user_id: '目标用户主键',

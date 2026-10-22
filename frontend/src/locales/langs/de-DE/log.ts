@@ -237,6 +237,7 @@ export default {
     type_user_delegate_revoke: 'Delegierte Berechtigung entzogen',
     type_role_add_parent: 'Übergeordnete Rolle hinzugefügt',
     type_role_remove_parent: 'Übergeordnete Rolle entfernt',
+    type_condition_change: 'Berechtigungsbedingung geändert',
     operator_user_id: 'Bearbeiter-ID',
     operator_user_name: 'Bearbeiter',
     target_user_id: 'Ziel-Benutzer-ID',

@@ -237,6 +237,7 @@ export default {
     type_user_delegate_revoke: 'Delegated Grant Revoked',
     type_role_add_parent: 'Role parent added',
     type_role_remove_parent: 'Role parent removed',
+    type_condition_change: 'Authorization condition changed',
     operator_user_id: 'Operator ID',
     operator_user_name: 'Operator',
     target_user_id: 'Target User ID',

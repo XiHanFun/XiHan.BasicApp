@@ -37,6 +37,7 @@ const changeTypeOptions = computed(() => [
   { label: t('log.permission_change.type_user_delegate_revoke'), value: PermissionChangeType.UserDelegateRevoke },
   { label: t('log.permission_change.type_role_add_parent'), value: PermissionChangeType.RoleAddParent },
   { label: t('log.permission_change.type_role_remove_parent'), value: PermissionChangeType.RoleRemoveParent },
+  { label: t('log.permission_change.type_condition_change'), value: PermissionChangeType.ConditionChange },
 ])
 
 // ── 字段单一事实源：列 + 常用搜索 + 高级搜索 ─────────────────────

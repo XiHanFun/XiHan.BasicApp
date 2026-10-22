@@ -80,5 +80,11 @@ public enum PermissionChangeType
     /// 角色解除上级
     /// </summary>
     [Description("角色解除上级")]
-    RoleRemoveParent = 11
+    RoleRemoveParent = 11,
+
+    /// <summary>
+    /// 授权条件变更：角色权限或用户直授上的条件新增、修改、删除、启停
+    /// </summary>
+    [Description("授权条件变更")]
+    ConditionChange = 12
 }

@@ -349,6 +349,7 @@ export function permissionChangeLogDetailSchema(t: Translate): LogDetailSchema {
     { label: t('log.permission_change.type_user_delegate_revoke'), value: PermissionChangeType.UserDelegateRevoke },
     { label: t('log.permission_change.type_role_add_parent'), value: PermissionChangeType.RoleAddParent },
     { label: t('log.permission_change.type_role_remove_parent'), value: PermissionChangeType.RoleRemoveParent },
+    { label: t('log.permission_change.type_condition_change'), value: PermissionChangeType.ConditionChange },
   ]
 
   return {

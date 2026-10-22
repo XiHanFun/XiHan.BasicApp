@@ -300,6 +300,14 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | --- | --- | --- |
 | `TimeZone` | `Asia/Shanghai` | 时间类条件属性（`environment.time`、`environment.hour`、`environment.weekday`、`environment.date`）按这个时区计算，不带时区的日期时间条件值也按它解释。IANA 或 Windows 时区标识都认，本机找不到时启动失败。客户端带的 `X-Timezone` 请求头可以伪造，不参与条件 |
 
+## `Saas:PermissionConditions`
+
+权限条件（[权限模型 · 权限条件](./backend/permission#权限条件-syspermissioncondition)）的生效模式，改了热生效。
+
+| 键 | 默认 | 说明 |
+| --- | --- | --- |
+| `Mode` | `Enforce` | `Enforce`：条件不满足即拒绝，返回 403「当前条件下不允许此操作」；`LogOnly`：照常求值但不拦截，本该拒绝的请求写一条警告日志；`Disabled`：不求值，有条件的授予按授予、有条件的禁止按禁止处理，只作应急 |
+
 ## `CodeGeneration`
 
 只在 `appsettings.Development.json` 里配置，`appsettings.json` 与生产配置都不放：不配置即不能生成到项目，只能生成并下载。

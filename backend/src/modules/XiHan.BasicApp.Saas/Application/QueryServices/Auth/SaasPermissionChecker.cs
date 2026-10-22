@@ -1,6 +1,8 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.AspNetCore.Http;
+using XiHan.BasicApp.Saas.Application.Conditions;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
@@ -20,6 +22,8 @@ namespace XiHan.BasicApp.Saas.Application.QueryServices;
 /// 本实现改为读取按用户缓存、且在授权写路径失效的 <see cref="AuthorizationSnapshot"/>，使授权变更无需重新登录即可生效；
 /// 并在鉴权前校验「当前请求所属会话」是否仍有效（登出/强制下线/禁用→吊销会话 后即时拒绝）。
 /// 作用侧不含当前上下文的权限码（随快照下发）与模仿态禁用清单先于通配判定拒绝：平台超管的 * 也放不出租户侧权限。
+/// 快照里有条件授予（或有条件禁止）的权限码再按当前请求求权限条件（见 <see cref="PermissionConditionEnforcer"/>）；
+/// 不带请求上下文的重载取当前请求，没有请求时不求条件。
 /// </remarks>
 public sealed class SaasPermissionChecker : IPermissionChecker
 {
@@ -30,6 +34,10 @@ public sealed class SaasPermissionChecker : IPermissionChecker
     private readonly IUserSessionRepository _userSessionRepository;
 
     private readonly ICurrentUser _currentUser;
+
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    private readonly PermissionConditionEnforcer _conditionEnforcer;
 
     // 请求级（Scoped 实例生命周期=单次请求）记忆化：一个请求内多次鉴权只构建/取一次快照、只校验一次会话
     private readonly Dictionary<long, AuthorizationSnapshot> _requestSnapshots = [];
@@ -42,11 +50,41 @@ public sealed class SaasPermissionChecker : IPermissionChecker
     public SaasPermissionChecker(
         IAuthorizationSnapshotQueryService authorizationSnapshotQueryService,
         IUserSessionRepository userSessionRepository,
-        ICurrentUser currentUser)
+        ICurrentUser currentUser,
+        IHttpContextAccessor httpContextAccessor,
+        PermissionConditionEnforcer conditionEnforcer)
     {
         _authorizationSnapshotQueryService = authorizationSnapshotQueryService;
         _userSessionRepository = userSessionRepository;
         _currentUser = currentUser;
+        _httpContextAccessor = httpContextAccessor;
+        _conditionEnforcer = conditionEnforcer;
+    }
+
+    /// <summary>
+    /// 带请求上下文的权限检查：快照没有授予为「权限不足」，授予了但权限条件不满足为「当前条件下不允许此操作」
+    /// </summary>
+    /// <param name="context">检查上下文</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>检查结果</returns>
+    public async Task<PermissionCheckResult> CheckAsync(PermissionCheckContext context, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        if (!TryResolveUserId(context.UserId, out var id) || !await IsCurrentSessionValidAsync(cancellationToken))
+        {
+            return PermissionCheckResult.NotGranted;
+        }
+
+        var snapshot = await BuildSnapshotAsync(id, cancellationToken);
+        var code = context.PermissionCode.Trim();
+        if (IsDeniedInCurrentContext(snapshot, code) || !HasPermission(snapshot, code))
+        {
+            return PermissionCheckResult.NotGranted;
+        }
+
+        return await _conditionEnforcer.AllowAsync(id, snapshot, code, context.HttpContext, cancellationToken)
+            ? PermissionCheckResult.Granted
+            : PermissionCheckResult.ConditionNotMet;
     }
 
     /// <summary>
@@ -69,7 +107,7 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         }
 
         var snapshot = await BuildSnapshotAsync(id, cancellationToken);
-        return !IsDeniedInCurrentContext(snapshot, permissionName) && HasPermission(snapshot, permissionName);
+        return await IsGrantedInRequestAsync(id, snapshot, permissionName, cancellationToken);
     }
 
     /// <summary>
@@ -93,7 +131,15 @@ public sealed class SaasPermissionChecker : IPermissionChecker
 
         // 逐条过滤而不是整体拒绝：任一未被禁用的权限码仍应按快照判定
         var snapshot = await BuildSnapshotAsync(id, cancellationToken);
-        return permissionNames.Any(name => !IsDeniedInCurrentContext(snapshot, name) && HasPermission(snapshot, name));
+        foreach (var name in permissionNames)
+        {
+            if (await IsGrantedInRequestAsync(id, snapshot, name, cancellationToken))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -116,7 +162,15 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         }
 
         var snapshot = await BuildSnapshotAsync(id, cancellationToken);
-        return permissionNames.All(name => !IsDeniedInCurrentContext(snapshot, name) && HasPermission(snapshot, name));
+        foreach (var name in permissionNames)
+        {
+            if (!await IsGrantedInRequestAsync(id, snapshot, name, cancellationToken))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -161,6 +215,19 @@ public sealed class SaasPermissionChecker : IPermissionChecker
         var code = permissionName.Trim();
         return snapshot.ContextDeniedCodes.Contains(code)
             || (_currentUser.IsImpersonating() && ImpersonationDefaults.DeniedPermissionCodes.Contains(code));
+    }
+
+    /// <summary>
+    /// 快照授予且在当前请求（没有请求时不求条件）下权限条件放行
+    /// </summary>
+    private async Task<bool> IsGrantedInRequestAsync(long userId, AuthorizationSnapshot snapshot, string permissionName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(permissionName) || IsDeniedInCurrentContext(snapshot, permissionName) || !HasPermission(snapshot, permissionName))
+        {
+            return false;
+        }
+
+        return await _conditionEnforcer.AllowAsync(userId, snapshot, permissionName, _httpContextAccessor.HttpContext, cancellationToken);
     }
 
     private static bool HasPermission(AuthorizationSnapshot snapshot, string permissionName)

@@ -471,6 +471,12 @@ public sealed class AuthorizationSnapshotSideTests
             .Returns((string _, Func<Task<SaasEditionGateCacheItem>> factory, Func<DistributedCacheEntryOptions>? _, bool? _, bool _, CancellationToken _)
                 => _editionGateCacheUnavailable ? Task.FromResult<SaasEditionGateCacheItem?>(null) : InvokeAsync(factory));
 
+        // 授权行上没有条件
+        var conditionRepository = new Mock<IPermissionConditionRepository>();
+        conditionRepository
+            .Setup(repository => repository.GetValidByAuthorizationIdsAsync(It.IsAny<IEnumerable<long>>(), It.IsAny<IEnumerable<long>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
         return new AuthorizationSnapshotQueryService(
             userRoleRepository.Object,
             roleRepository.Object,
@@ -479,6 +485,7 @@ public sealed class AuthorizationSnapshotSideTests
             userPermissionRepository.Object,
             permissionRepository.Object,
             delegationRepository.Object,
+            conditionRepository.Object,
             tenantRepository.Object,
             editionPermissionRepository.Object,
             _currentTenant,
