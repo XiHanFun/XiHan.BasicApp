@@ -1,7 +1,12 @@
 export default {
   context: {
     platform: 'Plattform',
-    switch: 'Aktuell: {name}. Zum Wechseln klicken',
+    switch: 'Aktuell: {name}. Mandant wechseln',
+    manage: 'Kontrollzentrum',
+    loading: 'Mandanten werden geladen…',
+    empty: 'Keine Mandanten zum Wechseln',
+    load_failed: 'Mandanten konnten nicht geladen werden',
+    switch_failed: 'Wechsel fehlgeschlagen',
   },
   user: {
     profile: 'Profil',
