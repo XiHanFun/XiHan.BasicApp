@@ -28,6 +28,7 @@ using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Uow;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Tests;
@@ -192,6 +193,7 @@ public sealed class SaasAppForcedPasswordChangeTests
             Mock.Of<IOtpService>(),
             Mock.Of<IEmailConfigStore>(),
             Mock.Of<ILocalEventBus>(),
+            Mock.Of<IUnitOfWorkManager>(),
             new TestCurrentTenant(),
             Mock.Of<ICurrentUser>(),
             clientInfoProvider.Object,

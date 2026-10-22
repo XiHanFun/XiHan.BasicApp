@@ -39,6 +39,7 @@ using XiHan.Framework.MultiTenancy.Abstractions;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Extensions;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Uow;
 using XiHan.Framework.Uow.Attributes;
 using XiHan.Framework.Web.Core.Clients;
 
@@ -99,6 +100,7 @@ public sealed partial class AuthAppService
     private readonly ITraceIdProvider _traceIdProvider;
 
     private readonly ILocalEventBus _localEventBus;
+    private readonly IUnitOfWorkManager _unitOfWorkManager;
 
     private readonly ILoginSessionDomainService _loginSessionDomainService;
 
@@ -158,6 +160,7 @@ public sealed partial class AuthAppService
         IOtpService otpService,
         IEmailConfigStore emailConfigStore,
         ILocalEventBus localEventBus,
+        IUnitOfWorkManager unitOfWorkManager,
         ICurrentTenant currentTenant,
         ICurrentUser currentUser,
         IClientInfoProvider clientInfoProvider,
@@ -201,6 +204,7 @@ public sealed partial class AuthAppService
         _otpService = otpService;
         _emailConfigStore = emailConfigStore;
         _localEventBus = localEventBus;
+        _unitOfWorkManager = unitOfWorkManager;
         _currentTenant = currentTenant;
         _currentUser = currentUser;
         _clientInfoProvider = clientInfoProvider;
@@ -676,7 +680,7 @@ public sealed partial class AuthAppService
         if (!authResult.Succeeded)
         {
             var clientForFailure = _clientInfoProvider.GetCurrent();
-            await _localEventBus.PublishAsync(
+            await PublishLoginFailedAsync(
                 new AuthLoginFailedDomainEvent(
                     null,
                     authResult.User?.BasicId,
@@ -772,7 +776,7 @@ public sealed partial class AuthAppService
         if (!authResult.Succeeded)
         {
             var clientForFailure = _clientInfoProvider.GetCurrent();
-            await _localEventBus.PublishAsync(
+            await PublishLoginFailedAsync(
                 new AuthLoginFailedDomainEvent(
                     null,
                     authResult.User?.BasicId,
@@ -864,7 +868,7 @@ public sealed partial class AuthAppService
         if (!authResult.Succeeded)
         {
             var clientForFailure = _clientInfoProvider.GetCurrent();
-            await _localEventBus.PublishAsync(
+            await PublishLoginFailedAsync(
                 new AuthLoginFailedDomainEvent(
                     null,
                     authResult.User?.BasicId,
@@ -1942,6 +1946,18 @@ public sealed partial class AuthAppService
     }
 
     /// <summary>
+    /// 发登录失败事件并完成当前工作单元：失败计数、锁定与登录日志随之落库，调用方随后抛出
+    /// </summary>
+    private async Task PublishLoginFailedAsync(AuthLoginFailedDomainEvent failure)
+    {
+        await _localEventBus.PublishAsync(failure);
+        if (_unitOfWorkManager.Current is { } unitOfWork)
+        {
+            await unitOfWork.CompleteAsync(CancellationToken.None);
+        }
+    }
+
+    /// <summary>
     /// 发布认证安全审计事件（令牌刷新/密码重置等），失败不影响主流程
     /// </summary>
     private async Task PublishSecurityAuditAsync(long? tenantId, long? userId, string? userName, LoginResult auditResult, string message)
@@ -2040,7 +2056,7 @@ public sealed partial class AuthAppService
         }
 
         var client = _clientInfoProvider.GetCurrent();
-        await _localEventBus.PublishAsync(
+        await PublishLoginFailedAsync(
             new AuthLoginFailedDomainEvent(
                 tenantId,
                 user.BasicId,

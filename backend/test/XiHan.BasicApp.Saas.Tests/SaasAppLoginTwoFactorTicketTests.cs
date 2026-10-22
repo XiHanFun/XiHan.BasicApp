@@ -16,6 +16,7 @@ using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
+using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Domain.Repositories;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.OAuth;
@@ -26,6 +27,7 @@ using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Uow;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Tests;
@@ -65,6 +67,10 @@ public sealed class SaasAppLoginTwoFactorTicketTests
     private readonly Mock<IOtpService> _otpService = new();
     private readonly Mock<ILoginSessionDomainService> _loginSessionDomainService = new();
     private readonly Mock<IAuthTokenIssueService> _authTokenIssueService = new();
+    private readonly Mock<ILocalEventBus> _localEventBus = new();
+    private readonly Mock<IUnitOfWork> _unitOfWork = new();
+    private readonly Mock<IUnitOfWorkManager> _unitOfWorkManager = new();
+    private readonly List<string> _failureSteps = [];
 
     private readonly SysUser _user = BuildUser(UserId, LoginName);
 
@@ -99,6 +105,16 @@ public sealed class SaasAppLoginTwoFactorTicketTests
                 It.IsAny<JwtTokenResult>(), It.IsAny<string?>(), It.IsAny<ClientInfo>(), It.IsAny<DateTimeOffset>(),
                 It.IsAny<string?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new LoginSessionIssueResult(BuildSession(), []));
+
+        _localEventBus
+            .Setup(bus => bus.PublishAsync(It.IsAny<AuthLoginFailedDomainEvent>(), It.IsAny<bool>()))
+            .Callback(() => _failureSteps.Add("publish"))
+            .Returns(Task.CompletedTask);
+        _unitOfWork
+            .Setup(unitOfWork => unitOfWork.CompleteAsync(It.IsAny<CancellationToken>()))
+            .Callback(() => _failureSteps.Add("complete"))
+            .Returns(Task.CompletedTask);
+        _unitOfWorkManager.Setup(manager => manager.Current).Returns(_unitOfWork.Object);
     }
 
     /// <summary>
@@ -408,6 +424,45 @@ public sealed class SaasAppLoginTwoFactorTicketTests
         Assert.True(_cache.Values.ContainsKey(TwoFactorTicketService.CacheKey(ticket)));
     }
 
+    /// <summary>
+    /// 密码错误、两步验证码错误：先发失败事件、再完成工作单元，失败计数、锁定与登录日志随之落库，然后才抛出；图形验证码错误不碰工作单元。
+    /// </summary>
+    [Fact]
+    public async Task Login_Failures_ShouldCompleteUnitOfWorkBeforeThrowing()
+    {
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
+        {
+            Username = LoginName,
+            Password = "wrong-password",
+            CaptchaId = CaptchaId,
+            CaptchaCode = CaptchaCode
+        }));
+        Assert.Equal(["publish", "complete"], _failureSteps);
+
+        _liveCaptchas.Add(CaptchaId);
+        var ticket = (await service.LoginAsync(CredentialsRequest())).TwoFactorTicket!;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
+        {
+            Username = LoginName,
+            Password = Password,
+            TwoFactorMethod = "totp",
+            TwoFactorCode = "000000",
+            TwoFactorTicket = ticket
+        }));
+        Assert.Equal(["publish", "complete", "publish", "complete"], _failureSteps);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
+        {
+            Username = LoginName,
+            Password = "wrong-password",
+            CaptchaId = CaptchaId,
+            CaptchaCode = "0000"
+        }));
+        Assert.Equal(4, _failureSteps.Count);
+    }
+
     private static bool IsLoginName(string value)
     {
         return string.Equals(value, LoginName, StringComparison.OrdinalIgnoreCase);
@@ -450,7 +505,8 @@ public sealed class SaasAppLoginTwoFactorTicketTests
             Mock.Of<IMessageDeliveryService>(),
             _otpService.Object,
             Mock.Of<IEmailConfigStore>(),
-            Mock.Of<ILocalEventBus>(),
+            _localEventBus.Object,
+            _unitOfWorkManager.Object,
             new TestCurrentTenant(),
             Mock.Of<ICurrentUser>(),
             clientInfoProvider.Object,
