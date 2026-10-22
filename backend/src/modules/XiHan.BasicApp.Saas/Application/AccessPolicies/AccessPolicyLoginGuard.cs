@@ -14,7 +14,7 @@ using XiHan.Framework.Web.Core.Clients;
 namespace XiHan.BasicApp.Saas.Application.AccessPolicies;
 
 /// <summary>
-/// 登录时的访问策略检查
+/// 登录时的访问策略检查与登录失败计数
 /// </summary>
 /// <remarks>
 /// 密码、两步验证、邮箱、手机号、第三方登录与切换租户都经过这里。被拒绝的登录记为 <see cref="LoginResult.AccessDenied"/>，不计入自动封禁。
@@ -34,6 +34,7 @@ public sealed class AccessPolicyLoginGuard : IAccessPolicyLoginGuard
     private readonly ILocalEventBus _localEventBus;
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly ITraceIdProvider _traceIdProvider;
+    private readonly ILoginBanService _banService;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<AccessPolicyLoginGuard> _logger;
 
@@ -48,6 +49,7 @@ public sealed class AccessPolicyLoginGuard : IAccessPolicyLoginGuard
         ILocalEventBus localEventBus,
         IClientInfoProvider clientInfoProvider,
         ITraceIdProvider traceIdProvider,
+        ILoginBanService banService,
         TimeProvider timeProvider,
         ILogger<AccessPolicyLoginGuard> logger)
     {
@@ -58,8 +60,27 @@ public sealed class AccessPolicyLoginGuard : IAccessPolicyLoginGuard
         _localEventBus = localEventBus;
         _clientInfoProvider = clientInfoProvider;
         _traceIdProvider = traceIdProvider;
+        _banService = banService;
         _timeProvider = timeProvider;
         _logger = logger;
+    }
+
+    /// <inheritdoc />
+    public async Task CountFailedLoginAsync(string? ipAddress, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(ipAddress))
+        {
+            return;
+        }
+
+        try
+        {
+            await _banService.RecordFailureAsync(ipAddress.Trim(), cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _logger.LogError(exception, "登录失败计数出错，IP {Ip}", ipAddress);
+        }
     }
 
     /// <inheritdoc />

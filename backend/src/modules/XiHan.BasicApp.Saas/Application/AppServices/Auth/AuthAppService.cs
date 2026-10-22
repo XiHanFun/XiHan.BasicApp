@@ -680,6 +680,7 @@ public sealed partial class AuthAppService
         if (!authResult.Succeeded)
         {
             var clientForFailure = _clientInfoProvider.GetCurrent();
+            await _accessPolicyLoginGuard.CountFailedLoginAsync(clientForFailure.IpAddress, cancellationToken);
             await _localEventBus.PublishAsync(
                 new AuthLoginFailedDomainEvent(
                     null,
@@ -776,6 +777,7 @@ public sealed partial class AuthAppService
         if (!authResult.Succeeded)
         {
             var clientForFailure = _clientInfoProvider.GetCurrent();
+            await _accessPolicyLoginGuard.CountFailedLoginAsync(clientForFailure.IpAddress, cancellationToken);
             await _localEventBus.PublishAsync(
                 new AuthLoginFailedDomainEvent(
                     null,
@@ -868,6 +870,7 @@ public sealed partial class AuthAppService
         if (!authResult.Succeeded)
         {
             var clientForFailure = _clientInfoProvider.GetCurrent();
+            await _accessPolicyLoginGuard.CountFailedLoginAsync(clientForFailure.IpAddress, cancellationToken);
             await _localEventBus.PublishAsync(
                 new AuthLoginFailedDomainEvent(
                     null,
@@ -2047,6 +2050,7 @@ public sealed partial class AuthAppService
         }
 
         var client = _clientInfoProvider.GetCurrent();
+        await _accessPolicyLoginGuard.CountFailedLoginAsync(client.IpAddress, cancellationToken);
         await _localEventBus.PublishAsync(
             new AuthLoginFailedDomainEvent(
                 tenantId,

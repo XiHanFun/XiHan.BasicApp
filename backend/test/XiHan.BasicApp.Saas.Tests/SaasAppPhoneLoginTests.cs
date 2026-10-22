@@ -50,6 +50,7 @@ public sealed class SaasAppPhoneLoginTests
     private readonly Mock<IAuthenticationDomainService> _authenticationDomainService = new();
     private readonly Mock<IAuthPhoneLoginCodeService> _phoneLoginCodeService = new();
     private readonly Mock<ILocalEventBus> _localEventBus = new();
+    private readonly Mock<IAccessPolicyLoginGuard> _loginGuard = new();
     private readonly SysUser _user = BuildUser(UserId);
 
     /// <summary>
@@ -151,7 +152,7 @@ public sealed class SaasAppPhoneLoginTests
     }
 
     /// <summary>
-    /// 登录：验证码对、账号不可用时发登录失败事件（写登录日志），登录名记手机号。
+    /// 登录：验证码对、账号不可用时发登录失败事件（写登录日志），登录名记手机号，并按客户端 IP 计一次登录失败。
     /// </summary>
     [Fact]
     public async Task PhoneLogin_AccountUnavailable_ShouldPublishLoginFailedEvent()
@@ -172,6 +173,7 @@ public sealed class SaasAppPhoneLoginTests
                 It.Is<AuthLoginFailedDomainEvent>(item => item.UserName == Phone && item.LoginResult == LoginResult.AccountDisabled),
                 It.IsAny<bool>()),
             Times.Once);
+        _loginGuard.Verify(guard => guard.CountFailedLoginAsync("127.0.0.1", It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private void OpenLoginMethods(params string[] methods)
@@ -222,7 +224,7 @@ public sealed class SaasAppPhoneLoginTests
             Mock.Of<ILoginThrottleService>(),
             Mock.Of<ICaptchaService>(),
             new TwoFactorTicketService(cache),
-            Mock.Of<IAccessPolicyLoginGuard>(),
+            _loginGuard.Object,
             new ConfigurationBuilder().Build(),
             NullLogger<AuthAppService>.Instance);
     }

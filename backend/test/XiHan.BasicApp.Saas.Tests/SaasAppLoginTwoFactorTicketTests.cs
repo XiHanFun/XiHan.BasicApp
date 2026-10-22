@@ -66,6 +66,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
     private readonly Mock<IOtpService> _otpService = new();
     private readonly Mock<ILoginSessionDomainService> _loginSessionDomainService = new();
     private readonly Mock<IAuthTokenIssueService> _authTokenIssueService = new();
+    private readonly Mock<IAccessPolicyLoginGuard> _loginGuard = new();
 
     private readonly SysUser _user = BuildUser(UserId, LoginName);
 
@@ -409,6 +410,45 @@ public sealed class SaasAppLoginTwoFactorTicketTests
         Assert.True(_cache.Values.ContainsKey(TwoFactorTicketService.CacheKey(ticket)));
     }
 
+    /// <summary>
+    /// 密码错误、两步验证码错误各按客户端 IP 计一次登录失败；图形验证码错误不计。
+    /// </summary>
+    [Fact]
+    public async Task Login_Failures_ShouldCountTowardAutoBan()
+    {
+        var service = CreateService();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
+        {
+            Username = LoginName,
+            Password = "wrong-password",
+            CaptchaId = CaptchaId,
+            CaptchaCode = CaptchaCode
+        }));
+        _loginGuard.Verify(guard => guard.CountFailedLoginAsync("127.0.0.1", It.IsAny<CancellationToken>()), Times.Once);
+
+        _liveCaptchas.Add(CaptchaId);
+        var ticket = (await service.LoginAsync(CredentialsRequest())).TwoFactorTicket!;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
+        {
+            Username = LoginName,
+            Password = Password,
+            TwoFactorMethod = "totp",
+            TwoFactorCode = "000000",
+            TwoFactorTicket = ticket
+        }));
+        _loginGuard.Verify(guard => guard.CountFailedLoginAsync("127.0.0.1", It.IsAny<CancellationToken>()), Times.Exactly(2));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.LoginAsync(new LoginRequestDto
+        {
+            Username = LoginName,
+            Password = "wrong-password",
+            CaptchaId = CaptchaId,
+            CaptchaCode = "0000"
+        }));
+        _loginGuard.Verify(guard => guard.CountFailedLoginAsync(It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
+
     private static bool IsLoginName(string value)
     {
         return string.Equals(value, LoginName, StringComparison.OrdinalIgnoreCase);
@@ -470,7 +510,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
             Mock.Of<ILoginThrottleService>(),
             _captchaService.Object,
             new TwoFactorTicketService(_cache),
-            Mock.Of<IAccessPolicyLoginGuard>(),
+            _loginGuard.Object,
             new ConfigurationBuilder().Build(),
             NullLogger<AuthAppService>.Instance);
     }
