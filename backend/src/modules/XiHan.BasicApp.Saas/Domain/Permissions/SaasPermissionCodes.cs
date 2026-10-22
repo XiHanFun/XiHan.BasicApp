@@ -1871,6 +1871,11 @@ public static class SaasPermissionCodes
         /// 删除权限 ABAC 条件
         /// </summary>
         public const string Delete = "saas:permission-condition:delete";
+
+        /// <summary>
+        /// 盘点存量权限条件、模拟上下文试算条件的判定路径
+        /// </summary>
+        public const string Trial = "saas:permission-condition:trial";
     }
 
     /// <summary>

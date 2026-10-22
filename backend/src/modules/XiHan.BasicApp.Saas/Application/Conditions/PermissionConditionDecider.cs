@@ -28,6 +28,13 @@ public enum PermissionConditionOutcome
 }
 
 /// <summary>
+/// 求值判定与说明：结果，以及每个条件集的求值说明（快照引用到却找不到的条件集为空）
+/// </summary>
+public sealed record PermissionConditionExplanation(
+    PermissionConditionOutcome Outcome,
+    IReadOnlyDictionary<string, ConditionEvaluationResult?> Sets);
+
+/// <summary>
 /// 权限条件判定：在授权快照的条件上求值一个权限码
 /// </summary>
 /// <remarks>
@@ -80,8 +87,7 @@ public sealed class PermissionConditionDecider
         ArgumentNullException.ThrowIfNull(source);
 
         var outcomes = new Dictionary<string, ConditionOutcome?>(StringComparer.Ordinal);
-
-        async ValueTask<ConditionOutcome?> SetOutcomeAsync(string key)
+        return await DecideCoreAsync(conditions, permissionCode, async key =>
         {
             if (!outcomes.TryGetValue(key, out var outcome))
             {
@@ -92,14 +98,49 @@ public sealed class PermissionConditionDecider
             }
 
             return outcome;
+        });
+    }
+
+    /// <summary>
+    /// 求值判定并给出说明：该权限码引用到的每个条件集都完整求值（不短路），附带每组每个子句的取值与结果，试算用
+    /// </summary>
+    public async Task<PermissionConditionExplanation> ExplainAsync(
+        AuthorizationConditions conditions,
+        string permissionCode,
+        IConditionAttributeSource source,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(conditions);
+        ArgumentException.ThrowIfNullOrWhiteSpace(permissionCode);
+        ArgumentNullException.ThrowIfNull(source);
+
+        var keys = (conditions.Grants.GetValueOrDefault(permissionCode) ?? [])
+            .SelectMany(path => path.GrantSetKeys.Concat(path.DenySetKeys))
+            .Concat(conditions.Denies.GetValueOrDefault(permissionCode) ?? [])
+            .Distinct(StringComparer.Ordinal);
+        var results = new Dictionary<string, ConditionEvaluationResult?>(StringComparer.Ordinal);
+        foreach (var key in keys)
+        {
+            results[key] = conditions.Sets.TryGetValue(key, out var set)
+                ? await _evaluator.EvaluateAsync(_compiler.Compile(set), source, explain: true, cancellationToken)
+                : null;
         }
 
+        var outcome = await DecideCoreAsync(conditions, permissionCode, key => ValueTask.FromResult(results.GetValueOrDefault(key)?.Outcome));
+        return new PermissionConditionExplanation(outcome, results);
+    }
+
+    private static async Task<PermissionConditionOutcome> DecideCoreAsync(
+        AuthorizationConditions conditions,
+        string permissionCode,
+        Func<string, ValueTask<ConditionOutcome?>> setOutcomeAsync)
+    {
         var pending = false;
         if (conditions.Denies.TryGetValue(permissionCode, out var denyKeys))
         {
             foreach (var key in denyKeys)
             {
-                switch (await SetOutcomeAsync(key))
+                switch (await setOutcomeAsync(key))
                 {
                     case null or ConditionOutcome.Matched:
                         return PermissionConditionOutcome.Denied;
@@ -126,7 +167,7 @@ public sealed class PermissionConditionDecider
                     break;
                 }
 
-                var outcome = await SetOutcomeAsync(key);
+                var outcome = await setOutcomeAsync(key);
                 if (outcome is ConditionOutcome.Matched or ConditionOutcome.Pending)
                 {
                     grant = outcome.Value;
@@ -142,7 +183,7 @@ public sealed class PermissionConditionDecider
             var denyPending = false;
             foreach (var key in path.DenySetKeys)
             {
-                var outcome = await SetOutcomeAsync(key);
+                var outcome = await setOutcomeAsync(key);
                 if (outcome is null or ConditionOutcome.Matched)
                 {
                     denied = true;

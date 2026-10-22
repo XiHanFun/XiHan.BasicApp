@@ -14,4 +14,9 @@ public interface IPermissionConditionRepository : ISaasRepository<SysPermissionC
     /// 获取角色或用户授权关联的有效 ABAC 条件
     /// </summary>
     Task<IReadOnlyList<SysPermissionCondition>> GetValidByAuthorizationIdsAsync(IEnumerable<long> rolePermissionIds, IEnumerable<long> userPermissionIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 盘点用：全部条件（含停用的，不含已删的）；<paramref name="allTenants"/> 为真时跨全部租户读，否则按当前租户的读共享过滤
+    /// </summary>
+    Task<IReadOnlyList<SysPermissionCondition>> GetForInventoryAsync(bool allTenants, CancellationToken cancellationToken = default);
 }

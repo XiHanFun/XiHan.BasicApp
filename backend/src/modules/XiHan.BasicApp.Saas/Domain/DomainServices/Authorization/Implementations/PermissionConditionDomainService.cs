@@ -296,7 +296,12 @@ public sealed class PermissionConditionDomainService
         ValidateEnum(conditionOperator, nameof(conditionOperator));
         ValidateEnum(valueType, nameof(valueType));
         ArgumentException.ThrowIfNullOrWhiteSpace(attributeName);
-        ArgumentException.ThrowIfNullOrWhiteSpace(conditionValue);
+        ArgumentNullException.ThrowIfNull(conditionValue);
+        // 判空的两个运算符不看条件值，值可以留空
+        if (conditionOperator is not (ConditionOperator.IsNull or ConditionOperator.IsNotNull))
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(conditionValue);
+        }
         ValidateLength(attributeName, 200, nameof(attributeName), "属性名称不能超过 200 个字符。");
         ValidateOptionalLength(description, 500, nameof(description), "条件说明不能超过 500 个字符。");
         ValidateOptionalLength(remark, 500, nameof(remark), "备注不能超过 500 个字符。");

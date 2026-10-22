@@ -159,6 +159,7 @@ public sealed class SaasEditionSeeder(
         SaasPermissionCodes.PermissionCondition.Update,
         SaasPermissionCodes.PermissionCondition.Status,
         SaasPermissionCodes.PermissionCondition.Delete,
+        SaasPermissionCodes.PermissionCondition.Trial,
         SaasPermissionCodes.ConstraintRule.Read,
         SaasPermissionCodes.ConstraintRule.Create,
         SaasPermissionCodes.ConstraintRule.Update,

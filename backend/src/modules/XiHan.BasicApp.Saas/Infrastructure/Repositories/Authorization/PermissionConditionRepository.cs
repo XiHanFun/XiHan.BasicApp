@@ -41,4 +41,18 @@ public sealed class PermissionConditionRepository(ISqlSugarClientResolver client
             .Where(condition => condition.Status == ValidityStatus.Valid)
             .ToListAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// 盘点用：全部条件（含停用的，不含已删的）
+    /// </summary>
+    public async Task<IReadOnlyList<SysPermissionCondition>> GetForInventoryAsync(bool allTenants, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var queryable = allTenants ? CreateNoTenantQueryable() : CreateQueryable();
+        return await queryable
+            .OrderBy(condition => condition.TenantId)
+            .OrderBy(condition => condition.ConditionGroup)
+            .ToListAsync(cancellationToken);
+    }
 }

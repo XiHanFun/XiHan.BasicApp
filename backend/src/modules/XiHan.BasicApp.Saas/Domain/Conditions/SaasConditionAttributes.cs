@@ -195,6 +195,15 @@ public static class SaasConditionAttributes
         new(EnvironmentClientKind, ConditionValueKind.String, DisplayName: "客户端类型"),
         new(EnvironmentClientAppId, ConditionValueKind.String, DisplayName: "客户端应用")
     ];
+
+    /// <summary>
+    /// 是否旧写法：用了别名，或是保留下来的旧属性（如 <see cref="EnvironmentLocation"/>）
+    /// </summary>
+    public static bool IsLegacy(ConditionAttributeResolution resolution)
+    {
+        ArgumentNullException.ThrowIfNull(resolution);
+        return resolution.IsAlias || string.Equals(resolution.CanonicalName, EnvironmentLocation, StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 /// <summary>

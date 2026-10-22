@@ -320,6 +320,7 @@ public static class SaasPermissionDefinitions
             new(SaasPermissionCodes.PermissionCondition.Update, "权限ABAC条件更新", "更新角色或用户授权绑定的ABAC条件", true, 700),
             new(SaasPermissionCodes.PermissionCondition.Status, "权限ABAC条件状态", "更新权限ABAC条件状态", true, 710),
             new(SaasPermissionCodes.PermissionCondition.Delete, "权限ABAC条件删除", "删除权限ABAC条件", true, 720),
+            new(SaasPermissionCodes.PermissionCondition.Trial, "权限条件盘点与试算", "盘点存量权限条件，按模拟的请求上下文试算条件的判定路径", false, 725),
         ]),
         new(SaasPermissionCodes.DiffLog.Group, "数据变更日志", PermissionSide.Both,
         [

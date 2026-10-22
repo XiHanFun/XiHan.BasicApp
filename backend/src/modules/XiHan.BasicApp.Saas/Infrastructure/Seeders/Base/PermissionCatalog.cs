@@ -207,6 +207,11 @@ public static class OperationSeeds
     public static readonly OperationSeed CrossTenant = new("cross-tenant", "跨租户", OperationTypeCode.Custom, OperationCategory.Admin, HttpMethodType.POST, true, true, 350);
 
     /// <summary>
+    /// 试算（只读的模拟求值）
+    /// </summary>
+    public static readonly OperationSeed Trial = new("trial", "试算", OperationTypeCode.Read, OperationCategory.Admin, HttpMethodType.POST, false, false, 360);
+
+    /// <summary>
     /// 全部操作
     /// </summary>
     public static IReadOnlyList<OperationSeed> All { get; } =
@@ -214,7 +219,7 @@ public static class OperationSeeds
         Read, Create, Update, Delete, Export, Import, Execute,
         Status, Grant, Revoke, Audit, Withdraw, Publish, Send, Use, Manage, Default, Invite, InviteStatus,
         SupportMember, TransferOwner, InitDb, ResetPassword, ResetTwoFactor, Lock, LoginPolicy, Secret,
-        RunStatus, Reset, Generate, AllocationRead, GlobalManage, Clear, Start, CrossTenant,
+        RunStatus, Reset, Generate, AllocationRead, GlobalManage, Clear, Start, CrossTenant, Trial,
     ];
 
     private static readonly Dictionary<string, OperationSeed> ByCode = All.ToDictionary(static operation => operation.Code, StringComparer.Ordinal);

@@ -296,6 +296,8 @@ public static class ServiceCollectionExtensions
         services.TryAddSingleton<IPermissionConditionHitRecorder, LoggingPermissionConditionHitRecorder>();
         services.AddScoped<PermissionConditionEnforcer>();
         services.AddScoped<IPermissionConditionRuleChecker, PermissionConditionValidator>();
+        services.AddScoped<PermissionConditionInventoryService>();
+        services.AddScoped<PermissionConditionTrialService>();
         // 数据行属性的补算排在全部动作过滤器之前，不满足时不进入动作
         services.TryAddScoped<IPermissionResourceRowReader, SqlSugarPermissionResourceRowReader>();
         services.AddScoped<PermissionConditionRowFilter>();
