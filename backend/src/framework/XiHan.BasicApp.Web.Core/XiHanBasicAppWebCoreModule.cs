@@ -4,12 +4,10 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Core;
 using XiHan.BasicApp.Web.Core.Upgrade;
-using XiHan.Framework.Core.Application;
 using XiHan.Framework.Core.Modularity;
 using XiHan.Framework.Upgrade.Abstractions;
 using XiHan.Framework.Web.Api;
 using XiHan.Framework.Web.Core;
-using XiHan.Framework.Web.Core.Extensions;
 using XiHan.Framework.Web.Docs;
 using XiHan.Framework.Web.Gateway;
 using XiHan.Framework.Web.Mcp;
@@ -39,18 +37,9 @@ public class XiHanBasicAppWebCoreModule : XiHanModule
     {
         var services = context.Services;
 
-        // 维护模式：升级引擎置位、中间件据此拦截业务请求
+        // 维护模式：升级引擎置位、中间件据此拦截业务请求；中间件经启动过滤器挂到管线最前
         services.TryAddSingleton<MaintenanceModeState>();
         services.Replace(ServiceDescriptor.Singleton<IUpgradeMaintenanceModeManager, BasicAppUpgradeMaintenanceModeManager>());
-    }
-
-    /// <summary>
-    /// 应用初始化
-    /// </summary>
-    /// <param name="context">应用初始化上下文</param>
-    public override void OnApplicationInitialization(ApplicationInitializationContext context)
-    {
-        // 尽量靠前：维护期间的请求不必再走后续管线
-        _ = context.GetApplicationBuilder().UseMaintenanceMode();
+        services.AddTransient<IStartupFilter, MaintenanceModeStartupFilter>();
     }
 }
