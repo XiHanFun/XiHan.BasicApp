@@ -1,4 +1,4 @@
-import type { AccessPolicyAttributeDto, AccessPolicyConditionDto } from '@/api'
+import type { AccessPolicyAttributeDto, AccessPolicyConditionDto, ApiId } from '@/api'
 import { AccessPolicyAction, AccessPolicyPhase, ConditionOperator, ConfigDataType } from '@/api'
 import { defaultValueType, requiresValue, resolveAttribute } from '../../identity/components/permission-condition'
 
@@ -110,6 +110,14 @@ export function actionTone(action: AccessPolicyAction): AccessPolicyTone {
     default:
       return 'neutral'
   }
+}
+
+/** 试运行结果里显示的用户：选了人取下拉里的名字，没选为当前用户，选项里找不到时退回主键 */
+export function trialUserLabel(userId: ApiId | null, options: ReadonlyArray<{ label: string, value: ApiId }>, currentUserLabel: string) {
+  if (!userId) {
+    return currentUserLabel
+  }
+  return options.find(option => option.value === userId)?.label ?? String(userId)
 }
 
 /** 登录失败自动封禁参数的配置键 */

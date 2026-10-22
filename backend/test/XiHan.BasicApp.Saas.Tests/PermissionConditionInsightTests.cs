@@ -146,6 +146,22 @@ public sealed class PermissionConditionInsightTests
     }
 
     /// <summary>
+    /// 盘点汇总的各类条数：写成「名称 条数」逗号连接，一条都没有时写「无」
+    /// </summary>
+    [Fact]
+    public void Inventory_FormatCounts()
+    {
+        Assert.Equal("无", PermissionConditionInventoryService.FormatCounts(new Dictionary<PermissionConditionDiagnostic, int>()));
+        Assert.Equal(
+            "Evaluable 2，NeverMatches 1",
+            PermissionConditionInventoryService.FormatCounts(new Dictionary<PermissionConditionGroupConclusion, int>
+            {
+                [PermissionConditionGroupConclusion.Evaluable] = 2,
+                [PermissionConditionGroupConclusion.NeverMatches] = 1
+            }));
+    }
+
+    /// <summary>
     /// 单人试算：在目标租户里取快照，给出每条路径、每组每个子句的取值与结果
     /// </summary>
     [Fact]

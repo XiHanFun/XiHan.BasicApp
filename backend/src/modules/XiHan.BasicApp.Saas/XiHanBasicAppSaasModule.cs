@@ -140,8 +140,8 @@ public class XiHanBasicAppSaasModule : XiHanModule
                 "权限条件盘点：{ConditionCount} 条条件、{BindingCount} 条授权；条件组 {GroupConclusions}；诊断 {Diagnostics}",
                 inventory.ConditionCount,
                 inventory.BindingCount,
-                string.Join("，", inventory.GroupConclusions.Select(item => $"{item.Key} {item.Value}")),
-                string.Join("，", inventory.Diagnostics.Select(item => $"{item.Key} {item.Value}")));
+                PermissionConditionInventoryService.FormatCounts(inventory.GroupConclusions),
+                PermissionConditionInventoryService.FormatCounts(inventory.Diagnostics));
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

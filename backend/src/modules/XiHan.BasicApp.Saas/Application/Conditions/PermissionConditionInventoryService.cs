@@ -63,6 +63,15 @@ public sealed class PermissionConditionInventoryService
     }
 
     /// <summary>
+    /// 各类条数写成「名称 条数」逗号连接；一条都没有时为「无」
+    /// </summary>
+    public static string FormatCounts<TKey>(IReadOnlyDictionary<TKey, int> counts)
+        where TKey : notnull
+    {
+        return counts.Count == 0 ? "无" : string.Join("，", counts.Select(item => $"{item.Key} {item.Value}"));
+    }
+
+    /// <summary>
     /// 生成盘点
     /// </summary>
     public async Task<PermissionConditionInventoryDto> BuildAsync(DateTimeOffset now, CancellationToken cancellationToken = default)

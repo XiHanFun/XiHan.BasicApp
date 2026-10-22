@@ -635,6 +635,8 @@ export default {
       would_block: '會攔下這個請求',
       would_pass: '不會攔下',
       context: 'IP {ip}（{location}），時間 {time}（{zone}），使用者 {user}',
+      current_user: '目前使用者',
+      draft_tip: '草稿按「拒絕」來試：結果說的是啟用攔截後會不會攔下這個請求。',
     },
     bans: {
       title: '自動封鎖',

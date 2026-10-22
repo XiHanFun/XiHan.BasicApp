@@ -31,6 +31,7 @@ import { toast } from '~/composables'
 import { useEnumOptions } from '~/hooks'
 import { formatDate, getOptionLabel } from '~/utils'
 import { outcomeTone } from '../../../identity/components/permission-condition'
+import { trialUserLabel } from '../access-policy'
 
 /**
  * 访问策略试运行：已保存的策略或条件草稿，按模拟的请求上下文求一次，看每组每个子句取到什么值、会不会拦下。
@@ -72,6 +73,7 @@ const userOptions = ref<Array<{ label: string, value: ApiId }>>([])
 const userLoading = ref(false)
 const running = ref(false)
 const result = ref<AccessPolicyTrialResultDto | null>(null)
+const resultUser = ref('')
 
 function emptyForm(): TrialFormModel {
   return { ip: '', time: null, userAgent: '', path: '', method: null, userId: null, permissionCodes: '' }
@@ -95,6 +97,7 @@ async function run() {
   running.value = true
   try {
     const codes = form.value.permissionCodes.split(/[\s,，]+/).map(code => code.trim()).filter(Boolean)
+    const userLabel = trialUserLabel(form.value.userId, userOptions.value, t('setting.access_policy.trial.current_user'))
     result.value = await accessPolicyApi.trial({
       policyId: props.policyId ?? null,
       conditions: props.policyId ? null : (props.conditions ?? []),
@@ -109,6 +112,7 @@ async function run() {
         permissionCodes: codes.length ? codes : null,
       },
     })
+    resultUser.value = userLabel
   }
   catch (error) {
     toast.danger((error as Error).message || t('setting.access_policy.trial.failed'))
@@ -139,6 +143,9 @@ watch(open, (value) => {
       <XhDrawerBody class="xh-overlay-body policy-trial">
         <p class="policy-trial__tip">
           {{ t('setting.access_policy.trial.tip') }}
+        </p>
+        <p v-if="!policyId" class="policy-trial__tip">
+          {{ t('setting.access_policy.trial.draft_tip') }}
         </p>
         <XhFormRoot :id="formId" v-model:values="form" class="xh-edit-form-grid" @submit="run">
           <XhFormFieldGroup name="ip">
@@ -241,7 +248,7 @@ watch(open, (value) => {
               location: result.location ?? '-',
               time: formatDate(result.time),
               zone: result.timeZone,
-              user: result.userId ?? '-',
+              user: resultUser,
             }) }}
           </p>
           <table v-for="group in result.groups" :key="group.group ?? ''" class="xh-detail-table">

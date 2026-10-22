@@ -635,6 +635,8 @@ export default {
       would_block: '会拦下这个请求',
       would_pass: '不会拦下',
       context: 'IP {ip}（{location}），时间 {time}（{zone}），用户 {user}',
+      current_user: '当前用户',
+      draft_tip: '草稿按「拒绝」来试：结果说的是启用拦截后会不会拦下这个请求。',
     },
     bans: {
       title: '自动封禁',
