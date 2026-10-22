@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Globalization;
+using System.Reflection;
 using XiHan.BasicApp.Saas.Domain.Enums;
 using XiHan.BasicApp.Saas.Domain.Numbering;
 
@@ -173,6 +174,39 @@ public sealed class NumberingFormatterTests
     }
 
     /// <summary>
+    /// 系统时区目录里没有旧别名时（新版 tzdata 把它们拆进 legacy 包），旧 IANA 别名与历史 Windows ID
+    /// 按同一个 Windows 时区落到已安装的时区；目录用模拟的 Unix 目录，不依赖本机有没有别名文件。
+    /// </summary>
+    /// <param name="timeZoneId">存量规则或请求里的旧 IANA 别名、历史 Windows ID。</param>
+    /// <param name="expectedId">模拟目录里应当选中的时区。</param>
+    [Theory]
+    [InlineData("America/Indianapolis", "America/Indiana/Indianapolis")]
+    [InlineData("US Eastern Standard Time", "America/Indiana/Indianapolis")]
+    [InlineData("Asia/Calcutta", "Asia/Kolkata")]
+    [InlineData("India Standard Time", "Asia/Kolkata")]
+    [InlineData("Europe/Kiev", "Europe/Helsinki")]
+    [InlineData("FLE Standard Time", "Europe/Helsinki")]
+    [InlineData("Asia/Shanghai", "Asia/Shanghai")]
+    public void TryFindByWindowsZone_ShouldResolveLegacyIdsWithoutAliasFiles(string timeZoneId, string expectedId)
+    {
+        Assert.True(InvokeTryFindByWindowsZone(timeZoneId, CreateCanonicalOnlyCatalog(), out var timeZone));
+        Assert.Equal(expectedId, timeZone.Id);
+    }
+
+    /// <summary>
+    /// 不属于任何 Windows 时区、或模拟目录里没有同一 Windows 时区成员的标识，必须解析失败而不是随便落到一个时区。
+    /// </summary>
+    /// <param name="timeZoneId">待解析的标识。</param>
+    [Theory]
+    [InlineData("Mars/Olympus_Mons")]
+    [InlineData("Tokyo Standard Time")]
+    [InlineData("Asia/Tokyo")]
+    public void TryFindByWindowsZone_ShouldFailWithoutEquivalentZone(string timeZoneId)
+    {
+        Assert.False(InvokeTryFindByWindowsZone(timeZoneId, CreateCanonicalOnlyCatalog(), out _));
+    }
+
+    /// <summary>
     /// 流水值超出固定位数容量时必须拒绝格式化。
     /// </summary>
     [Fact]
@@ -215,5 +249,41 @@ public sealed class NumberingFormatterTests
         }
 
         throw new InvalidOperationException($"Windows 时区“{windowsTimeZoneId}”无法映射到当前 Unix 运行环境。");
+    }
+
+    /// <summary>
+    /// 模拟新版 tzdata 的 Unix 时区目录：只有规范 IANA 标识，没有 America/Indianapolis、Asia/Calcutta、Europe/Kiev 这类旧别名。
+    /// </summary>
+    private static TimeZoneInfo[] CreateCanonicalOnlyCatalog()
+    {
+        return
+        [
+            CreateZone("America/Indiana/Marengo", -300),
+            CreateZone("America/Indiana/Indianapolis", -300),
+            CreateZone("America/New_York", -300),
+            CreateZone("Asia/Kolkata", 330),
+            CreateZone("Asia/Shanghai", 480),
+            CreateZone("Europe/Kyiv", 120),
+            CreateZone("Europe/Helsinki", 120),
+            CreateZone("Europe/Riga", 120)
+        ];
+
+        static TimeZoneInfo CreateZone(string id, int baseUtcOffsetMinutes)
+        {
+            return TimeZoneInfo.CreateCustomTimeZone(id, TimeSpan.FromMinutes(baseUtcOffsetMinutes), id, id);
+        }
+    }
+
+    /// <summary>
+    /// 反射调用格式器的私有静态方法 TryFindByWindowsZone，传入模拟目录。
+    /// </summary>
+    private static bool InvokeTryFindByWindowsZone(string timeZoneId, IEnumerable<TimeZoneInfo> systemTimeZones, out TimeZoneInfo timeZone)
+    {
+        var method = typeof(NumberingFormatter).GetMethod("TryFindByWindowsZone", BindingFlags.NonPublic | BindingFlags.Static)
+            ?? throw new InvalidOperationException("NumberingFormatter 缺少 TryFindByWindowsZone。");
+        var arguments = new object?[] { timeZoneId, systemTimeZones, null };
+        var found = (bool)method.Invoke(null, arguments)!;
+        timeZone = (TimeZoneInfo)arguments[2]!;
+        return found;
     }
 }
