@@ -2,7 +2,7 @@
 
 # 权限模型
 
-XiHan.BasicApp 的权限体系以 **RBAC（基于角色）** 为主，叠加**角色继承、数据范围、字段级脱敏、多租户版本门控**，并为 **ABAC（基于属性）** 建好了授权条件模型（目前只维护、不参与鉴权）。这是系统最核心也最需要理解的部分——一次请求要穿过认证、租户解析、权限码（含版本门控）、数据范围、字段脱敏几道关卡，每一道都可能收窄或拒绝；约束规则不在请求链路上，它在授权写入时把关。
+XiHan.BasicApp 的权限体系以 **RBAC（基于角色）** 为主，叠加**角色继承、数据范围、字段级脱敏、多租户版本门控**，并以**权限条件（ABAC，基于属性）**按请求属性收窄单条授权。这是系统最核心也最需要理解的部分——一次请求要穿过认证、租户解析、权限码（含版本门控与权限条件）、数据范围、字段脱敏几道关卡，每一道都可能收窄或拒绝；约束规则不在请求链路上，它在授权写入时把关。不看授权、按 IP、地区、时段等整体放行或拒绝请求的是[访问策略](./access-policy)。
 
 权限相关的领域实体几乎全部集中在 `modules/XiHan.BasicApp.Saas/Domain/Entities/`（`Sys*`），运行时判定由框架 [授权模块](https://framework.docs.xihanfun.com/packages/authorization) 承接。本页以真实源码为准，讲清"怎么用、为什么这么设计、怎么扩展"。
 
@@ -165,27 +165,72 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 
 ## ABAC 条件与约束规则
 
-在 RBAC 之上还有两套按属性、按组合收窄授权的机制。先说清落地程度：**权限条件目前只能维护、不参与鉴权**；**约束规则目前执行的是静态职责分离（SSD）**，在授权写入时拦截，不在请求期判定。
+在 RBAC 之上还有两套按属性、按组合收窄授权的机制：**权限条件在请求期参与鉴权**；**约束规则目前执行的是静态职责分离（SSD）**，在授权写入时拦截，不在请求期判定。
 
-### 权限条件 `SysPermissionCondition`（只存储、不求值）
+### 权限条件 `SysPermissionCondition`
 
-为某条角色权限或用户直授权限附加属性条件，与授权绑定一一挂钩。`PermissionConditionDomainService` 负责增改、启停与校验，`SaasPermissionChecker` 与授权快照都不读取这张表，所以配置的条件**不会让请求被拒**：
+为某条角色权限或用户直授权限附加属性条件，与授权绑定一一挂钩。写在授予上是「满足才授予」，写在禁止上是「满足才禁止」：
 
-- 排他约束：`RolePermissionId` 与 `UserPermissionId` **恰好一个非空**（服务层 XOR 校验，建议库层补 CHECK 约束）。
-- 组合逻辑：同一 `ConditionGroup` 内条件为 **AND**，不同组之间为 **OR**（单权限最多 5 组、每组最多 10 条）。
-- 属性命名走 XACML 风格命名空间：`subject.*` / `resource.*` / `environment.*`。建模层面的常用属性如 `subject.department`、`resource.status`、`resource.owner`、`resource.amount`、`environment.hour`、`environment.ip`、`environment.location`。
-- `Operator`（`ConditionOperator`）覆盖 `Equals`/`NotEquals`/比较/`Contains`/`In`/`Between`/`StartsWith`/`EndsWith`/`IsNull` 等，`IsNegated` 可整体取反；`ValueType` 固定值解析类型防漂移。
+- 排他约束：`RolePermissionId` 与 `UserPermissionId` **恰好一个非空**（服务层校验）。
+- 组合逻辑：同一 `ConditionGroup` 内条件为 **AND**，不同组之间为 **OR**（单条授权最多 5 组、每组最多 10 条）。停用的条件不参与，一条授权的条件全部停用就等于没有条件。
+- `Operator`（`ConditionOperator`）覆盖 `Equals`/`NotEquals`/比较/`Contains`/`In`/`Between`/`StartsWith`/`EndsWith`/`IsNull` 等，`IsNegated` 对单条取反。`ValueType` 只决定条件值的书写格式，比较方式以属性的值种类为准。
+- 保存与重新启用时校验条件能否正常求值：属性要登记过、运算符要适用于属性的值种类、条件值要能解析，布尔与数字两种值类型只能配同种类的属性。存量里不合规的条件不改写，但改不了、也启用不了，直到改对为止。
+- 条件的增删改、启停都失效授权快照，并记一条「授权条件变更」权限变更日志。
 
-条件建模示例（存储层语义）：
+**属性**按 `subject.` / `resource.` / `environment.` 前缀登记，大小写不敏感：
+
+| 属性 | 值种类 | 说明 |
+| --- | --- | --- |
+| `subject.userId` / `subject.userName` | 字符串 | 当前用户 |
+| `subject.tenantCode` | 字符串 | 租户编码，平台上下文取不到 |
+| `subject.roleCodes` | 字符串（多值） | 当前上下文有效的角色编码，旧写法 `subject.role` |
+| `subject.departmentCodes` / `subject.mainDepartmentCode` / `subject.positionCodes` | 字符串 | 有效任职的部门、主部门、岗位，旧写法 `subject.department` |
+| `subject.memberType` | 字符串 | 租户成员类型（`Owner`、`Admin`、`Member` 等） |
+| `subject.isImpersonating` | 布尔 | 是否模仿登录 |
+| `resource.permissionCodes` | 字符串（多值） | 当前端点声明的权限码，旧写法 `resource.permissionCode` |
+| `resource.path` / `resource.method` | 字符串 | 请求路径（不含查询串）、HTTP 方法 |
+| `resource.service` / `resource.action` | 字符串 | 动态 API 的服务名、方法名 |
+| `resource.route.<名>` / `resource.query.<名>` | 字符串 | 路由值、查询串；同名多值只取第一个，不读请求体 |
+| `environment.ip` | IP | 客户端地址，条件值可写单个地址或 CIDR 列表 |
+| `environment.geo.country` / `.province` / `.city` / `.isp` | 字符串 | 离线地址库解析的归属地，内网地址取不到 |
+| `environment.location` | 字符串 | 旧写法：国家省份城市拼成的一个字符串 |
+| `environment.time` / `environment.hour` / `environment.weekday` / `environment.date` | 时刻 / 数字 / 数字 / 日期 | 按 [`Saas:Conditions:TimeZone`](../configuration#saas-conditions) 计算；星期一为 1、星期日为 7 |
+| `environment.client.userAgent` | 字符串 | User-Agent 请求头 |
+| `environment.client.kind` / `environment.client.appId` | 字符串 | `web`（网页登录）、`openapi`（开放接口签名，应用为 AccessKey）、`oauth`（OAuth 应用令牌，应用为 client_id）、`anonymous` |
+
+条件示例：
 
 | 场景 | 属性 | 操作符 | 值 |
 | --- | --- | --- | --- |
 | 仅工作时间 | `environment.hour` | `Between` | `9,18` |
-| 仅内网 | `environment.ip` | `StartsWith` | `192.168.` |
-| 只能操作草稿 | `resource.status` | `Equals` | `draft` |
-| 限额操作 | `resource.amount` | `LessThan` | `10000` |
+| 夜间禁止（写在禁止上） | `environment.time` | `Between` | `22:00,06:00` |
+| 仅办公网 | `environment.ip` | `In` | `10.0.0.0/8,192.168.1.0/24` |
+| 模仿登录时禁止（写在禁止上） | `subject.isImpersonating` | `Equals` | `true` |
+| 只能操作草稿 | `resource.status` | `Equals` | `Draft` |
 
-> **建模 vs. 运行时**：上述属性/操作符描述的是 `SysPermissionCondition` 的**存储表达能力**，BasicApp 里没有求值它的代码。框架另有一条独立的 ABAC 通道：`[PermissionAuthorize(权限码, ABAC 策略码)]` 的第二个参数会让混合策略在权限码之后调用 `IAbacAttributeCollector` 收集属性、`IAbacEvaluator` 按策略码评估（如 `same_tenant` / `self_only` 及比较式）。BasicApp 现有接口都只传权限码，这条通道没有被触发；它也不读 `SysPermissionCondition`。要让「仅工作时间」「仅内网」这类条件真正生效，需要补一个读取授权条件并参与鉴权的执行入口，`environment.*` 属性还要应用侧提供收集器。
+**取不到值**（离线库查不到地址、没有请求）时，除 `IsNull` / `IsNotNull` 外条件按不满足处理，取反也不会把它翻成满足。所以写在授予上的条件取不到值就不授予，写在禁止上的取不到值就不禁止。
+
+**数据行属性**（如 `resource.status`）由业务模块按权限码登记实体后才有：
+
+```csharp
+services.AddPermissionResource<SysNotification>(
+    SaasPermissionCodes.Notification.Update,
+    PermissionResourceKeys.FromArgument<NotificationUpdateDto>("input", input => [input.BasicId]));
+```
+
+实体的公开标量属性按 camelCase 映射成 `resource.<名>`，枚举按名称比较；密码、密钥这类列标 `[ExcludeFromConditions]` 排除。鉴权发生在模型绑定之前，含行属性的条件先记为待定，模型绑定之后由 `PermissionConditionRowFilter` 按登记取出主键、按当前租户读出数据行补算，批量主键逐行算、每行都要满足；取不到主键或读不到行时不满足。没登记的权限码上不能保存行属性条件；不是 MVC 动作的端点等不到补算，动作执行中再查权限（如按操作校验的守卫）时补算已经过去，这两种都按不满足处理。
+
+**谁不受条件约束**：平台超管与租户所有者不走授权行，条件对他们不适用。
+
+**生效模式**由 [`Saas:PermissionConditions:Mode`](../configuration#saas-permissionconditions) 决定，缺省 `Enforce`（不满足即拒绝）；`LogOnly` 照常求值但只记录、不拦截；`Disabled` 只作应急，有条件的授予按授予、有条件的禁止按禁止处理。改了配置热生效。
+
+**在哪里配**：角色管理的「授权条件」、用户管理的「直授条件」打开同一个抽屉，左边是这个角色或用户的有效授权，右边编辑选中那条授权上的条件。属性下拉只列登记过的属性，运算符只列适用于该属性的（与保存时的校验同一份规则，见 [框架 · 条件求值](https://framework.docs.xihanfun.com/packages/authorization#条件求值-可配置条件)）；改到旧写法的条件时提示改用的新名。挂了条件的授权在分配权限的穿梭框里标「有条件」。
+
+**盘点与试算**（权限码 `saas:permission-condition:trial`，平台与租户两侧都有，初始化的专业版、企业版套餐含它）：
+
+- 权限管理页的「条件盘点」逐条检查存量条件：属性是否登记（含数据行属性有没有按权限码登记）、是否用了旧名、运算符与值能否求值、值类型与属性是否相符、所在授权是否还有效、绑定是否二选一，并给每个条件组一个结论——可正常求值、恒不满足、不影响任何人（授权已失效）、已停用。平台上下文扫全部租户，租户上下文只看本租户；可导出 CSV。应用启动时写一行各类条数的汇总日志。
+- 权限管理页的「条件试算」选人、权限码，填模拟的 IP、时刻、User-Agent、路径、方法、查询串与路由值（不填取当前请求与当前时刻），给出走了哪条授予路径、每组每个子句取到什么值、结果如何；权限码登记了数据行属性时可填数据行主键按那一行算。
+- 授权条件抽屉里的「影响试算」按这条授权找出受影响的人（角色成员含继承该角色的角色成员，只在当前上下文里找，最多 200 人），用当前请求的 IP 与当前时刻各算一遍，列出谁会被拒。
 
 ### 约束规则 `SysConstraintRule`（+ `SysConstraintRuleItem`）
 
@@ -242,12 +287,15 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
 
 ## 判定链
 
-一次访问要逐层穿过下面的关卡，层层收紧、默认从严。请求先经框架中间件管道 `TraceId → 请求文化 → 认证 → 租户解析 → 授权 → 端点`，授权在其中由 `[PermissionAuthorize(...)]` 触发：
+一次访问要逐层穿过下面的关卡，层层收紧、默认从严。请求先经中间件管道 `访问策略（认证前）→ TraceId → 请求文化 → 认证 → 租户解析 → 访问策略（认证后）→ 授权 → 端点`，授权在其中由 `[PermissionAuthorize(...)]` 触发：
 
 ```text
 请求进来
+  → 访问策略（认证前）：平台级、只看 IP、地区、时段、UA、路径、方法的策略，拒绝返回 403；
+        自动封禁中的 IP 返回 429
   → 认证：你是谁（从主体声明解析 userId；解析不到直接拒绝）
   → 租户解析：落到哪个租户上下文（字段级隔离，全局数据 TenantId=0）
+  → 访问策略（认证后）：平台级其余策略加上所在租户的策略，同层放行压过拒绝，拒绝返回 403
   → 授权(RBAC)：IPermissionChecker 实时校验权限码（查授权快照）
         · 当前请求所属会话仍有效（登出 / 强制下线 / 禁用后即拒绝）
         · deny-overrides：用户 Deny > 用户 Grant > 角色 Deny > 角色 Grant
@@ -257,20 +305,27 @@ FLS 按「实体 × 字段 × 目标（角色 / 用户 / 部门）」定义规�
         · 作用侧与模仿登录禁用清单：命中即拒绝，先于通配判定
         · 业务租户：版本白名单求交（ApplyEditionGatingAsync，失败即拒绝）
         · 平台的 super_admin 角色 → 平台生效的全部权限 + 字面 * 通配放行
+  → 权限条件：只有有条件授予（或有条件禁止）的权限码再按当前请求求条件
+        · 任一授予路径成立即授予；角色链上的有条件禁止只扣本链；用户的有条件禁止命中即拒绝
+        · 不满足返回 403「当前条件下不允许此操作」，与「权限不足」区分
+        · 含数据行属性的条件在模型绑定之后补算
   → 数据范围：只在接入的查询里追加条件（目前是用户列表与用户导出），
         DataPermissionScope 解析可见部门集 → 展开为可见用户主键集合；不过时表现为查不到，不是 403
   → 字段脱敏：FLS 按最严规则就地脱敏（读/导出一致），并门控排序/过滤字段
 ```
 
-ABAC 授权条件与约束规则都不在这条链上：前者只存储、不求值，后者只在授权写入时执行静态职责分离（见上文）。
+约束规则不在这条链上，只在授权写入时执行静态职责分离（见上文）。访问策略的两层裁决、登录时检查与自动封禁见[访问策略](./access-policy)。
 
-判定采用框架的**混合策略**：`[PermissionAuthorize]` 把"权限码 + ABAC 策略码"编码进一个 ASP.NET Core 策略名，由 `HybridPermissionAuthorizationHandler` 依次执行"权限码实时校验 → ABAC 属性评估"。BasicApp 的接口都只声明权限码，ABAC 评估这一段不触发。
+判定采用框架的**混合策略**：`[PermissionAuthorize]` 把"权限码 + ABAC 策略码"编码进一个 ASP.NET Core 策略名，由 `HybridPermissionAuthorizationHandler` 依次执行"带请求上下文的权限码实时校验（含权限条件）→ ABAC 策略评估"。BasicApp 的接口都只声明权限码，策略码那一段不触发。
+
+> **请求以外的检查**：业务代码直接调 `IPermissionChecker.IsGrantedAsync` 时取当前请求求条件；没有请求的后台续做（如导出执行）不再求条件，以发起时那次请求的判定为准。菜单、按钮与「我的权限」把有条件的授权当已授予显示，真正放不放行在接口上判。
 
 > **实时校验，非信任令牌**：授权处理器**不信任 JWT 里冻结的权限声明**，每次都走 `IPermissionChecker` 查当前授权快照。因此权限授予/回收、用户禁用、会话注销**即时生效**，无需等令牌过期。凡是影响授权的写操作（权限增删改、角色/用户授权变更）都会精准失效授权快照缓存。
 
 ## 下一步
 
 - [系统架构](./introduction)：权限判定在请求管道中的位置
+- [访问策略](./access-policy)：按 IP、地区、时段等放行或拒绝请求，登录失败自动封禁
 - [多租户](./multi-tenancy)：租户隔离与版本门控全貌
 - [审计日志](./logging)：`SysDiffLog` / `SysPermissionChangeLog` 等留痕
 - [框架 · 授权模块](https://framework.docs.xihanfun.com/packages/authorization)：底层 RBAC / Policy / ABAC 与混合策略实现

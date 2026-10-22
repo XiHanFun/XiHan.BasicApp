@@ -67,6 +67,8 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 
 前端先调 `GET /api/Auth/LoginConfig` 拿到 `LoginConfigDto`（`loginMethods` + `oAuthProviders`），据此决定展示哪些登录按钮——**支持的方式以该配置为准**。
 
+`loginMethods` 取自参数 `saas.auth.login` 的 `methods`，编码是 `password`（账号密码）、`phone`（手机号验证码）、`email`（邮箱验证码）、`qrcode`（扫码）。登录页的切换栏只列开放的方式，按这个固定顺序排；只开放一种时切换栏也照常显示（只有这一个入口）；停在没开放的方式上会换到第一个开放的入口。缺省只开放 `password`，要用别的方式先到参数配置里加上。
+
 ::: warning 登录页的「扫码」入口只是占位
 登录页切换栏里的「扫码」（`/auth/qrcode-login`）在前端用固定种子画一张示意图案，后端没有对应的扫码登录接口、轮询或确认流程，扫了也登录不了。可用的扫码方式只有下文第三方登录里微信、企业微信、飞书、钉钉的 `QrCode` 模式，它跳到对方平台的授权页扫码。
 :::
@@ -80,9 +82,9 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 1. 平台态定位账号 → `IAuthenticationDomainService.AuthenticatePasswordLoginAsync`：校验存在性、`IsActive`、密码哈希、账户锁定/失败计数，并判定是否需要二次验证。
 2. 同一域服务内的账号可用性校验：`Status` 是否启用、（带租户时）成员关系与生效/过期、密码是否过期。
 3. 若 `RequiresTwoFactor` → 返回 2FA 挑战（不签发令牌，见下）。
-4. 通过 → 决定落点租户、签发双令牌、落地会话、发布登录成功领域事件。
+4. 通过 → 决定落点租户 → 按[访问策略](./access-policy#求值时机)做登录时检查（被拒绝记登录结果 `AccessDenied`）→ 签发双令牌、落地会话、发布登录成功领域事件。
 
-失败会发布 `AuthLoginFailedDomainEvent`（落 `SysLoginLog`），并抛出友好错误。
+失败会发布 `AuthLoginFailedDomainEvent`（落 `SysLoginLog`），并抛出友好错误。邮箱、手机号、第三方登录与切换租户同样做登录时检查。
 
 ### 邮箱验证码
 
@@ -92,6 +94,20 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 2. `POST /api/Auth/EmailLogin`（`EmailLoginRequestDto`）：一次性消费验证码 → 校验账号 → 签发令牌并落点。
 
 验证码为 **6 位数字、有效期 10 分钟（600s）、一次性消费**（读取即销毁，无论成败），由框架 `IOneTimeCodeService` 存分布式缓存承载。开发环境会在结果里回显 `DebugCode` 便于联调，生产绝不回显。
+
+### 手机号验证码
+
+两步，均匿名，写法与邮箱验证码一致：
+
+1. `POST /api/Auth/PhoneLoginCode`（`PhoneLoginCodeRequestDto`）：手机号+IP 频率限制（60s 窗口）→ 复用手机号登录的账号可用性校验 → 经短信下发验证码。
+2. `POST /api/Auth/PhoneLogin`（`PhoneLoginRequestDto`）：一次性消费验证码 → 校验账号 → 签发令牌并落点。
+
+与邮箱验证码不同的几点：
+
+- `saas.auth.login` 的 `methods` 里没有 `phone` 时，两个接口都直接拒绝（「未开放手机号登录」），不只是登录页不显示入口。
+- 只认账号持有人**验证过**的手机号（`SysUserSecurity.PhoneVerified`）。手机号不要求唯一，管理员录入的号码也未必属于本人；同一手机号在多个账号上都验证过时不替用户选，提示改用账号密码登录。
+- 短信走短信配置里平台默认且启用的网关，用登录验证码短信模板（`auth-sms-login-code`），由发件箱异步发送。阿里云、腾讯云只按服务商模板发送，网关配置的模板映射（`TemplateMap`）里要有 `auth-sms-login-code` 到服务商模板码的映射。网关没配、停用或缺这条映射时，发码接口直接报错，不生成验证码，也不假装已发送。
+- 验证码规格（6 位、10 分钟、一次性消费）、开发环境回显 `DebugCode`、失败发布 `AuthLoginFailedDomainEvent` 都与邮箱验证码相同。
 
 ### 第三方登录（OAuth2）
 
@@ -158,7 +174,7 @@ TOTP 遵循 RFC 6238：HMAC-SHA1、Base32 密钥、6 位、30 秒步长、±1 �
 
 登录成功签发 `LoginTokenDto`：**Access Token**（JWT，HMAC-SHA256 签名）+ **Refresh Token**（不透明随机串）。配置节 `XiHan:Authentication:Jwt`（`JwtOptions`），默认 Access 60 分钟、Refresh 7 天、时钟偏移容差 5 分钟（**以仓库配置为准**）。
 
-Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`SessionId`、`TenantId`（有则带）、`Email`/`Phone`/`Picture`、`DeviceFingerprint`、多个 `Role`。**具体权限码不冻结进令牌**——只在超管时放一个通配 `*` 作快路径；其余权限一律由服务端**实时快照**判定，避免授予/回收后令牌失效不及时，也避免权限清单泄露（与 [权限模型](./permission) 的实时校验一致）。
+Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`SessionId`、`TenantId`（有则带）、`Email`/`Phone`/`Picture`、`DeviceFingerprint`、多个 `Role`，OAuth 应用代用户换来的令牌另带 `client_id`。**具体权限码不冻结进令牌**——只在超管时放一个通配 `*` 作快路径；其余权限一律由服务端**实时快照**判定，避免授予/回收后令牌失效不及时，也避免权限清单泄露（与 [权限模型](./permission) 的实时校验一致）。
 
 刷新：`POST /api/Auth/RefreshToken`（`RefreshTokenRequestDto` 带旧 AccessToken + RefreshToken）→ 校验后签发新令牌，并落一条 `TokenRefreshed` 审计。
 
@@ -184,6 +200,7 @@ Access Token 的 Claim 主要有：`sub`/`jti`、`UserId`、`UserName`、`Sessio
 - **验证码一次性消费**：邮箱登录码、2FA 邮箱/短信码、找回密码链接均**用后即焚**——读取即从缓存删除，防重放/爆破。邮箱码 6 位、10 分钟；找回密码令牌 30 分钟。
 - **找回密码**（匿名，防用户枚举）：`POST /api/Auth/PasswordResetRequest` 无论邮箱是否存在都返回"已受理"；存在则签发一次性重置令牌（`auth:pwd-reset:{token}`，缓存 30 分钟，仅记录 token→userId，**不立即改密**）并邮件带链接。用户点链接后 `POST /api/Auth/ConsumePasswordResetToken` 设新密码（8-128 位），成功即失效令牌并落 `PasswordReset` 审计。
 - **锁定与风控**：`SysUserSecurity` 记 `FailedLoginAttempts`/`LockoutEndTime` 等；`SysLoginLog` 记录每次尝试（含 `IsRiskLogin` 异地/新设备标记），按月分表，供暴力破解检测与合规审计。
+- **自动封禁**：同一 IP 跨账号登录失败过多可整体封禁一段时间（参数 `saas.security.login-auto-ban`，缺省关），见[访问策略 · 登录失败自动封禁](./access-policy#登录失败自动封禁)。
 - **注册**（`POST /api/Auth/Register`，匿名）：邮箱必填（全平台唯一登录标识），统一落默认注册租户、成为普通成员、**不分配角色**（权限由管理员后续授权）；欢迎邮件尽力而为、失败不阻断。
 
 ## 登录落点

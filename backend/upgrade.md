@@ -37,7 +37,7 @@ BasicApp 已接入 [XiHan.Framework.Upgrade](https://framework.docs.xihanfun.com
 | 多租户列表 | `SaasUpgradeTenantProvider` |
 | SQL 执行 | `SaasUpgradeMigrationExecutor` |
 | 初始化升级段 | `SaasSchemaUpgrader`（`IDbSchemaUpgrader`：登记新库基线，按开关执行引擎） |
-| 维护模式 | `BasicAppUpgradeMaintenanceModeManager` + `MaintenanceModeMiddleware` |
+| 维护模式 | `BasicAppUpgradeMaintenanceModeManager` + `MaintenanceModeMiddleware`（经 `MaintenanceModeStartupFilter` 挂在请求管线最前，认证与租户解析之前就拦下） |
 | 脚本目录 | `backend/src/main/XiHan.BasicApp.WebHost/UpdateScripts` |
 | 版本页面 | `/setting/version` |
 | 升级记录页面 | `/log/migration` |

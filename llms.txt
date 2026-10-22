@@ -6,8 +6,8 @@
 
 ## 机读资产
 
-- [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt): 全部 54 页正文
-- [llms-backend.txt](https://basicapp.docs.xihanfun.com/llms-backend.txt): 26 页后端手册
+- [llms-full.txt](https://basicapp.docs.xihanfun.com/llms-full.txt): 全部 55 页正文
+- [llms-backend.txt](https://basicapp.docs.xihanfun.com/llms-backend.txt): 27 页后端手册
 - [llms-frontend.txt](https://basicapp.docs.xihanfun.com/llms-frontend.txt): 11 页前端手册
 - 每页 Markdown：把站点地址后缀成 `.md`，如 https://basicapp.docs.xihanfun.com/ai/agents.md
 
@@ -36,6 +36,7 @@
 
 ## 后端手册
 
+- [访问策略](https://basicapp.docs.xihanfun.com/backend/access-policy): 访问策略按请求的 IP、地区、时段、User-Agent、路径、用户、角色、客户端类型、接口权限码等属性放行、拒绝或只记录请求，管的是「从哪里、什么时候、以什么方式访问」。
 - [AI 能力](https://basicapp.docs.xihanfun.com/backend/ai): BasicApp 的 AI 能力落在独立模块 `XiHan.BasicApp.AI` 里，与代码生成模块同构（独立工程、独立种子段、独立权限资源）。
 - [审批与约束规则](https://basicapp.docs.xihanfun.com/backend/approval): 菜单目录 `/approval` 下有两个页面，它们解决的是不同的问题，容易混淆：
 - [身份与认证](https://basicapp.docs.xihanfun.com/backend/authentication): XiHan.BasicApp 的身份体系围绕统一身份设计：一个自然人对应一个 `SysUser` 账号，用邮箱作为全平台唯一登录标识；同一账号可通过成员关系在多个租户里办事。
@@ -54,7 +55,7 @@
 - [多租户与版本](https://basicapp.docs.xihanfun.com/backend/multi-tenancy): XiHan.BasicApp 是一套 企业级通用中后台内核：一份代码、一套部署，同时承载多个互不可见的租户（企业客户），并以版本（Edition）作为订阅售卖与功能门控的单元。
 - [开放能力](https://basicapp.docs.xihanfun.com/backend/open-api): BasicApp 对外开放有三条互不相同的路径，最容易混淆的是前两条方向正好相反：
 - [组织架构](https://basicapp.docs.xihanfun.com/backend/organization): 组织架构回答的是「这个人在公司里是谁」：属于哪个部门、担任什么岗位、能看到哪个范围的数据。
-- [权限模型](https://basicapp.docs.xihanfun.com/backend/permission): XiHan.BasicApp 的权限体系以 RBAC（基于角色） 为主，叠加角色继承、数据范围、字段级脱敏、多租户版本门控，并为 ABAC（基于属性） 建好了授权条件模型（目前只维护、不参与鉴权）。
+- [权限模型](https://basicapp.docs.xihanfun.com/backend/permission): XiHan.BasicApp 的权限体系以 RBAC（基于角色） 为主，叠加角色继承、数据范围、字段级脱敏、多租户版本门控，并以权限条件（ABAC，基于属性）按请求属性收窄单条授权。
 - [打印模板](https://basicapp.docs.xihanfun.com/backend/printing): 打印能力由独立模块 `modules/XiHan.BasicApp.Printing` 承载（后端）与 `frontend/src/modules/printing` + `@xihan/printing` 功能包承载（前端）：可视化设计打印模板、按编码解析、浏览器预览打印与本机静默直打。
 - [即时通讯](https://basicapp.docs.xihanfun.com/backend/realtime): 后端的 SignalR 侧：两条 Hub、怎么往前端推、在线状态怎么算，以及一条必须遵守的载荷约定。
 - [请求生命周期](https://basicapp.docs.xihanfun.com/backend/request-lifecycle): 一个请求从进入进程到返回 JSON，中间经过哪些环节、每个环节能改变什么、出问题该往哪一段看——这页把整条链路摊开。

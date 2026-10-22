@@ -311,6 +311,36 @@ private static WorkflowDefinition BuildDefaultDefinition() =>
 - 办理前拒绝审批自己的申请，并检查审批人能否授出该角色 / 权限；
 - 通过时授予角色或权限并刷新授权缓存，驳回时只改申请状态；撤回或终止时申请置为已撤回。
 
+## 演示流程
+
+配置 `Saas:Seed:EnableDemoData` 为 `true` 时，种子在演示租户「示例企业」（`demo-enterprise`）里创建并发布四个流程，分类为「演示」；开关关着时不写。种子按流程编码先查后写，重复启动不重复创建，已有的不改、删掉的不补回；演示租户或演示账号（`admin`、`manager`、`lead`）不在时跳过并记日志。
+
+| 编码 | 名称 | 变量 | 演示什么 |
+| --- | --- | --- | --- |
+| `demo-expense` | 费用报销 | `amount`（必填）、`reason` | 直属主管或签（`StarterLeader` 1 级，跳过发起人，找不到主管时自动通过）；条件分支：超过 10000 元再由总经理（`Position` `gm`）审批 |
+| `demo-leave` | 请假 | `days`（必填）、`reason` | 逐级主管依次审批（`StarterLeaderChain` 2 级）；找不到审批人时转租户管理员（`Fallback`，兜底规则 `Role` `tenant_admin`）；抄送人事专员；超过 3 天再由人事部（`Department` `hr`）审批 |
+| `demo-procurement` | 采购 | `itemName`、`amount` | 并行网关：财务会签（`User` 指定李管理、王主管，全部通过）与总部负责人审核（`DepartmentLeader` `hq`）同时进行，汇聚后总经理审批；总经理超时未办走超时分支，记一条警告日志后以 `timeout` 结局结束 |
+| `demo-onboarding` | 入职 | `employeeName`（必填）、`travelAmount` | 设置变量（设备清单、导师、按表达式算预算）、记日志；人事准备（`Role` `hr_specialist`，抄送发起人）；导师确认（`Expression` 取变量里的导师周负责人，找不到时自动通过）；等待；遍历设备清单，每件并行发起一个采购子流程；再以子流程发起一笔差旅报销 |
+
+受理人规则引用的角色、部门、岗位都是示例企业演示数据里已有的编码，指定用户与导师在播种时按演示账号的用户名查出主键。用前端工程师赵工程师（`engineer`）发起费用报销，待办先到研发中心主管王主管，金额超过 10000 元再到总经理张总。
+
+两个时长为演示缩短：
+
+| 节点 | 时长 |
+| --- | --- |
+| 采购的「总经理审批」超时 | 120 秒 |
+| 入职的「等待入职当天」 | 60 秒 |
+
+超时与等待由定时器 Worker 恢复（`XiHan:Workflow:Worker:IsTimerEnabled` 缺省开启，每 5 秒轮询一次），实际触发会比设定晚几秒；关掉定时器时这两处不会自动推进。
+
+以下节点没有放进演示流程：
+
+- `Http`、`Script`、`PublishEvent`：效果在流程之外（调外部地址、跑脚本、发事件给订阅方），演示环境没有对应的服务与订阅方，要么请求失败，要么页面上看不出结果；
+- `WaitSignal`：等的是业务系统发来的信号，演示环境没有发信号的业务方，只能在流程实例页手动「发布信号」，看不出它的用途；
+- `Terminate`、`Fault`：一个强行终止流程、一个让流程报错，放进演示就是一条注定中途失败的流程。
+
+这些节点在设计器和代码方式里都能用，机制见[框架 · Workflow](https://framework.docs.xihanfun.com/packages/workflow)。
+
 ## 运维注意
 
 | 项 | 说明 |

@@ -42,13 +42,14 @@
 | `Sys_Role_Permission` / `Sys_User_Permission` | — | 角色授权 / 用户直授 |
 | `Sys_Role_Data_Scope` / `Sys_User_Data_Scope` | — | 自定义数据范围 |
 | `Sys_Permission_Condition` | `SysPermissionCondition` | ABAC 属性条件 |
+| `Sys_Access_Policy` / `Sys_Access_Policy_Condition` | `SysAccessPolicy` / `SysAccessPolicyCondition` | 访问策略与它的条件（平台级 `TenantId=0`，其余为租户级） |
 | `Sys_Permission_Delegation` | `SysPermissionDelegation` | 权限委托 |
 | `Sys_Permission_Request` | `SysPermissionRequest` | 权限申请 |
 | `Sys_Field_Level_Security` | `SysFieldLevelSecurity` | 字段级安全（实体 × 字段 × 目标：读取方式 / 可编辑） |
 | `Sys_Constraint_Rule` / `Sys_Constraint_Rule_Item` | — | 约束规则引擎（SSD / DSD / 互斥 / 基数…） |
 | `Sys_Session_Role` | `SysSessionRole` | 会话角色映射 |
 
-→ [权限管理](./permission) · [数据权限](./data-permission) · [审批与约束](./approval)
+→ [权限管理](./permission) · [数据权限](./data-permission) · [访问策略](./access-policy) · [审批与约束](./approval)
 
 ## 组织与租户
 
@@ -137,6 +138,7 @@
 | `Sys_Exception_Log` | 异常日志 |
 | `Sys_Diff_Log` | 数据变更日志（需开 `EnableDiffLog`） |
 | `Sys_Permission_Change_Log` | 权限变更日志 |
+| `Sys_Access_Policy_Hit` | 条件命中记录（访问策略与权限条件，同一分钟合并） |
 | `Sys_Task_Log` | 任务执行日志 |
 | `Sys_Telegram_Message` | Telegram 出站审计 |
 

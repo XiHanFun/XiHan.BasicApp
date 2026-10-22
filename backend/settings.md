@@ -67,12 +67,13 @@
 
 | 键 | 类型 | 内容 |
 | --- | --- | --- |
-| `saas.auth.login` | JSON | `methods` 登录页开放的登录方式；`oauthProviders` 展示的第三方登录（`name` 须与已注册的认证方案一致） |
+| `saas.auth.login` | JSON | `methods` 开放的登录方式：`password`、`phone`、`email`、`qrcode`，缺省只开 `password`，登录页只列开放的方式，没开放 `phone` 时手机号登录接口也拒绝；`oauthProviders` 展示的第三方登录（`name` 须与已注册的认证方案一致） |
 | `saas.auth.password` | JSON | `forceChange` 强制改密，默认关闭：开启后，密码由他人设置（管理员创建或重置、平台开通、种子写入）的账号登录后先锁定到改密为止 |
 | `saas.auth.impersonation` | JSON | `sessionMinutes` 模仿会话分钟数（按 1~480 归一）；`notifyTarget` 是否通知被模仿者 |
 | `saas.bot.telegram` | JSON | Telegram 机器人平台设置：总开关、Webhook 地址与路由前缀、刷新与缓存周期、兜底回复、网络 |
 | `saas.bot.telegram.webhook-secret-token` | 加密文本 | Webhook 模式必填的密钥令牌，单列是为了加密存储 |
-| `saas.log.retention-days` | 数字 | 7 类分表日志的保留天数，缺省 180 |
+| `saas.log.retention-days` | 数字 | 8 类分表日志（含条件命中记录）的保留天数，缺省 180 |
+| `saas.security.login-auto-ban` | JSON | 登录失败自动封禁：`isEnabled` 开关（缺省关）；同一 IP 在 `windowMinutes` 分钟内登录失败（跨账号累计）达到 `maxFailures` 次即封禁 `banMinutes` 分钟，24 小时内再犯时长翻倍、最长 `maxBanMinutes` 分钟；访问策略里放行的 IP 不计数；只认平台这一条，租户不能建同键覆盖。见[部署 · 访问策略与真实 IP](../deployment#访问策略与真实-ip) |
 | `chat.policy` | JSON | `retentionDays` 聊天消息保留天数（缺省 365）；`sensitiveWords` 敏感词数组 |
 
 种子只补缺的参数、对齐名称与说明等元数据，配置值只在为空时写入初始值，运营改过的值与启停状态不动。
