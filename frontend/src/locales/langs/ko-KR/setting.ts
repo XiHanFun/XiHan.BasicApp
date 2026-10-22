@@ -635,6 +635,8 @@ export default {
       would_block: '이 요청을 차단합니다',
       would_pass: '차단하지 않습니다',
       context: 'IP {ip}({location}), 시간 {time}({zone}), 사용자 {user}',
+      current_user: '현재 사용자',
+      draft_tip: '초안은 「거부」로 시험합니다. 결과는 차단을 활성화했을 때 이 요청이 차단되는지를 뜻합니다.',
     },
     bans: {
       title: '자동 차단',

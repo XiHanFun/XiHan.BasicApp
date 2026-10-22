@@ -1,7 +1,7 @@
 import type { AccessPolicyAttributeDto } from '@/api'
 import { describe, expect, it } from 'vitest'
 import { AccessPolicyAction, AccessPolicyPhase, ConditionOperator, ConditionValueKind, ConfigDataType } from '@/api'
-import { actionTone, emptyRow, findIncomplete, phaseOf, readAutoBanSettings, toConditions, toGroups, writeAutoBanSettings } from './access-policy'
+import { actionTone, emptyRow, findIncomplete, phaseOf, readAutoBanSettings, toConditions, toGroups, trialUserLabel, writeAutoBanSettings } from './access-policy'
 
 function attribute(name: string, kind: ConditionValueKind, isBeforeAuthentication: boolean, extra: Partial<AccessPolicyAttributeDto> = {}): AccessPolicyAttributeDto {
   return { name, kind, isBeforeAuthentication, aliases: [], isFamily: false, isLegacy: false, isMultiValued: false, operators: [], ...extra }
@@ -67,6 +67,13 @@ describe('访问策略条件编辑', () => {
     expect(settings).toEqual({ isEnabled: true, windowMinutes: 10, maxFailures: 5, banMinutes: 30, maxBanMinutes: 1440 })
     expect(readAutoBanSettings(null, defaults)?.isEnabled).toBe(false)
     expect(JSON.parse(writeAutoBanSettings({ ...settings!, banMinutes: 60 }))).toEqual({ isEnabled: true, windowMinutes: 10, maxFailures: 5, banMinutes: 60, maxBanMinutes: 1440 })
+  })
+
+  it('试运行结果里的用户：选了人显示下拉里的名字，没选显示当前用户，选项里找不到时退回主键', () => {
+    const options = [{ label: '张三 (@zhangsan)', value: '7' }]
+    expect(trialUserLabel('7', options, '当前用户')).toBe('张三 (@zhangsan)')
+    expect(trialUserLabel(null, options, '当前用户')).toBe('当前用户')
+    expect(trialUserLabel('9', options, '当前用户')).toBe('9')
   })
 
   it('自动封禁参数：解析不了或类型不对时返回 null，不拿猜的值顶上', () => {

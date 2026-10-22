@@ -635,6 +635,8 @@ export default {
       would_block: 'Would block this request',
       would_pass: 'Would not block',
       context: 'IP {ip} ({location}), time {time} ({zone}), user {user}',
+      current_user: 'Current user',
+      draft_tip: 'Drafts are tried as "deny": the result tells whether this request would be blocked once blocking is enabled.',
     },
     bans: {
       title: 'Auto bans',

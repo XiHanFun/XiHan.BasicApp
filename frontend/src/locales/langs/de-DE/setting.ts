@@ -635,6 +635,8 @@ export default {
       would_block: 'Würde diese Anfrage blockieren',
       would_pass: 'Würde nicht blockieren',
       context: 'IP {ip} ({location}), Zeit {time} ({zone}), Benutzer {user}',
+      current_user: 'Aktueller Benutzer',
+      draft_tip: 'Entwürfe werden als „Ablehnen“ geprüft: Das Ergebnis zeigt, ob diese Anfrage nach dem Aktivieren des Blockierens blockiert würde.',
     },
     bans: {
       title: 'Automatische Sperren',

@@ -635,6 +635,8 @@ export default {
       would_block: 'このリクエストをブロックします',
       would_pass: 'ブロックしません',
       context: 'IP {ip}（{location}）、時刻 {time}（{zone}）、ユーザー {user}',
+      current_user: '現在のユーザー',
+      draft_tip: '下書きは「拒否」として試します。結果は、ブロックを有効にしたときにこのリクエストがブロックされるかどうかです。',
     },
     bans: {
       title: '自動ブロック',
