@@ -35,6 +35,7 @@ public class XiHanBasicAppWorkflowModule : XiHanModule
         services.AddWorkflowBusinessIntegration();
         services.AddWorkflowFieldSecurityEntities();
         services.AddWorkflowDataSeeders();
+        services.AddWorkflowDemoData();
         services.AddWorkflowEventHandlers();
     }
 }

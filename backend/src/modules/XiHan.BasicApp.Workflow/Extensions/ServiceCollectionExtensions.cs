@@ -93,6 +93,17 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
+    /// 注册工作流演示流程种子（种子自己按演示开关跳过；创建与发布经流程定义管理器，需要工作流引擎与持久化存储）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddWorkflowDemoData(this IServiceCollection services)
+    {
+        services.AddDataSeeder<WorkflowDemoDefinitionSeeder>();
+        return services;
+    }
+
+    /// <summary>
     /// 注册工作流本地事件处理器（待办创建/转办/实例故障 → 站内通知）
     /// </summary>
     /// <param name="services">服务集合</param>

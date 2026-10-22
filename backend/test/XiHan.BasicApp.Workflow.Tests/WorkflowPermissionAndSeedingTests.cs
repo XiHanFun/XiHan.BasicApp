@@ -384,6 +384,7 @@ public sealed class WorkflowPermissionAndSeedingTests
     {
         Assert.Equal(SeedOrders.PermissionCatalog + 30, CreatePermissionCatalogSeeder().Order);
         Assert.Equal(SeedOrders.Menus + 30, CreateMenuSeeder().Order);
+        Assert.Equal(SeedOrders.Demo + 30, CreateDemoDefinitionSeeder().Order);
     }
 
     /// <summary>
@@ -419,7 +420,7 @@ public sealed class WorkflowPermissionAndSeedingTests
     }
 
     /// <summary>
-    /// 模块内的种子类型必须正好是权限目录与菜单两个；租户里的授权由运营或演示数据负责，模块不写角色授权。
+    /// 模块内的种子类型必须正好是权限目录、菜单与演示流程三个；租户里的授权由运营或演示数据负责，模块不写角色授权。
     /// </summary>
     [Fact]
     public void Seeders_DiscoveredTypesShouldMatchRegisteredChain()
@@ -431,7 +432,7 @@ public sealed class WorkflowPermissionAndSeedingTests
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToList();
 
-        Assert.Equal([nameof(WorkflowMenuSeeder), nameof(WorkflowPermissionCatalogSeeder)], discovered);
+        Assert.Equal([nameof(WorkflowDemoDefinitionSeeder), nameof(WorkflowMenuSeeder), nameof(WorkflowPermissionCatalogSeeder)], discovered);
     }
 
     /// <summary>
@@ -467,6 +468,24 @@ public sealed class WorkflowPermissionAndSeedingTests
             .ToArray();
 
         Assert.Equal([nameof(WorkflowMenuSeeder), nameof(WorkflowPermissionCatalogSeeder)], registered);
+    }
+
+    /// <summary>
+    /// 演示流程种子单独登记：模块初始化时登记，种子自己按演示开关跳过；不随权限与菜单种子登记，免得只装种子的环境缺工作流引擎。
+    /// </summary>
+    [Fact]
+    public void AddWorkflowDemoData_ShouldRegisterOnlyTheDemoSeeder()
+    {
+        var services = new ServiceCollection();
+
+        _ = services.AddWorkflowDemoData();
+
+        var registered = services
+            .Where(descriptor => descriptor.ServiceType == typeof(IDataSeeder))
+            .Select(descriptor => descriptor.ImplementationType!.Name)
+            .ToArray();
+
+        Assert.Equal([nameof(WorkflowDemoDefinitionSeeder)], registered);
     }
 
     /// <summary>
@@ -539,7 +558,7 @@ public sealed class WorkflowPermissionAndSeedingTests
     /// <returns>种子实例集合。</returns>
     private static List<IDataSeeder> CreateAllSeeders()
     {
-        return [CreatePermissionCatalogSeeder(), CreateMenuSeeder()];
+        return [CreatePermissionCatalogSeeder(), CreateMenuSeeder(), CreateDemoDefinitionSeeder()];
     }
 
     /// <summary>
@@ -563,6 +582,18 @@ public sealed class WorkflowPermissionAndSeedingTests
         return new WorkflowMenuSeeder(
             Mock.Of<ISqlSugarClientResolver>(),
             new RecordingLogger<WorkflowMenuSeeder>(),
+            Mock.Of<IServiceProvider>());
+    }
+
+    /// <summary>
+    /// 构造演示流程种子。
+    /// </summary>
+    /// <returns>演示流程种子。</returns>
+    private static WorkflowDemoDefinitionSeeder CreateDemoDefinitionSeeder()
+    {
+        return new WorkflowDemoDefinitionSeeder(
+            Mock.Of<ISqlSugarClientResolver>(),
+            new RecordingLogger<WorkflowDemoDefinitionSeeder>(),
             Mock.Of<IServiceProvider>());
     }
 }
