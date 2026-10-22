@@ -125,6 +125,17 @@ public static class SaasConfigKeys
     }
 
     /// <summary>
+    /// 安全配置。
+    /// </summary>
+    public static class Security
+    {
+        /// <summary>
+        /// IP 黑名单（JSON，<see cref="SaasIpBlacklistSettings"/>）：命中的客户端 IP 拒绝一切请求；只认平台（TenantId = 0）这一条。
+        /// </summary>
+        public const string IpBlacklist = "saas.security.ip-blacklist";
+    }
+
+    /// <summary>
     /// 配置分组。
     /// </summary>
     public static class Groups
@@ -143,5 +154,10 @@ public static class SaasConfigKeys
         /// 日志配置分组。
         /// </summary>
         public const string Log = "log";
+
+        /// <summary>
+        /// 安全配置分组。
+        /// </summary>
+        public const string Security = "security";
     }
 }

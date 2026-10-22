@@ -55,6 +55,17 @@ public sealed class SaasPasswordSettings
 }
 
 /// <summary>
+/// IP 黑名单设置（配置键 <see cref="SaasConfigKeys.Security.IpBlacklist"/>）
+/// </summary>
+public sealed class SaasIpBlacklistSettings
+{
+    /// <summary>
+    /// 拒绝的客户端地址：单个 IPv4 / IPv6 地址，或 CIDR 网段（如 203.0.113.0/24、2001:db8::/32）
+    /// </summary>
+    public List<string> Entries { get; set; } = [];
+}
+
+/// <summary>
 /// 模仿登录设置（配置键 <see cref="SaasConfigKeys.Auth.Impersonation"/>）
 /// </summary>
 public sealed class SaasImpersonationSettings

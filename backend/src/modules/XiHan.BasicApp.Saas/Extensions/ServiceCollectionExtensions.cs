@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -236,6 +237,8 @@ public static class ServiceCollectionExtensions
         // OpenAPI 安全客户端存储：以数据库凭证（SysUserApiCredential）实现覆盖框架默认配置源实现
         // （框架 XiHanWebApiModule 以 TryAddScoped 先注册 DefaultOpenApiSecurityClientStore，故须 Replace，否则 DB 凭证永不生效）
         services.Replace(ServiceDescriptor.Scoped<IOpenApiSecurityClientStore, SaasOpenApiSecurityClientStore>());
+        // 全局 IP 黑名单：经启动过滤器挂到请求管线最前，接口、实时通道、静态文件与文档一并拦截
+        services.AddTransient<IStartupFilter, SaasIpBlacklistStartupFilter>();
         services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
         // 验证码防刷限流（发送间隔/日配额/错误计数封禁）：覆盖 Profile 全部发码用途与消费校验
         services.AddScoped<IVerificationThrottleService, VerificationThrottleService>();

@@ -81,5 +81,12 @@ public sealed class SaasSettingSeeder(
             LogRetentionCleanupTask.DefaultRetentionDays,
             "访问、接口、异常、操作、差异、登录日志的保留天数，清理任务删除更早的记录",
             200),
+        // 初始值只放文档保留网段（RFC 5737 / RFC 3849），不会封住真实地址或本机
+        SettingSeed.Json(
+            SaasConfigKeys.Security.IpBlacklist, "IP 黑名单", SaasConfigKeys.Groups.Security,
+            new SaasIpBlacklistSettings { Entries = ["203.0.113.0/24", "2001:db8::/32"] },
+            new SaasIpBlacklistSettings(),
+            "entries：拒绝的客户端地址，单个 IPv4 / IPv6 地址或 CIDR 网段；命中即拒绝一切请求（403），只认平台这一条，保存后立即生效；停用本参数即关闭黑名单",
+            300),
     ];
 }
