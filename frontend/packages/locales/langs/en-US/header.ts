@@ -1,12 +1,7 @@
 export default {
   context: {
     platform: 'Platform',
-    switch: 'Current: {name}. Switch tenant',
-    manage: 'Control Center',
-    loading: 'Loading tenants…',
-    empty: 'No tenants to switch to',
-    load_failed: 'Failed to load tenants',
-    switch_failed: 'Switch failed',
+    switch: 'Current: {name}. Click to switch',
   },
   user: {
     profile: 'Profile',

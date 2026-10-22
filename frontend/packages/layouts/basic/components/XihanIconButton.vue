@@ -4,13 +4,10 @@ defineOptions({ name: 'XihanIconButton', inheritAttrs: false })
 
 withDefaults(defineProps<{
   tooltip?: string
-  /** 只给可及名、不出原生提示：悬停即展开菜单的触发钮用它，免得提示与菜单叠在一起 */
-  ariaLabel?: string
   active?: boolean
   disabled?: boolean
 }>(), {
   tooltip: '',
-  ariaLabel: '',
   active: false,
   disabled: false,
 })
@@ -24,7 +21,7 @@ withDefaults(defineProps<{
     :class="{ 'xihan-icon-btn--active': active }"
     :disabled="disabled"
     :title="tooltip || undefined"
-    :aria-label="tooltip || ariaLabel || undefined"
+    :aria-label="tooltip || undefined"
   >
     <slot />
   </button>

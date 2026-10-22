@@ -1,12 +1,7 @@
 export default {
   context: {
     platform: 'プラットフォーム',
-    switch: '現在：{name}（テナントを切り替え）',
-    manage: 'コントロールセンター',
-    loading: '切り替え可能なテナントを読み込み中…',
-    empty: '切り替え可能なテナントがありません',
-    load_failed: 'テナントの読み込みに失敗しました',
-    switch_failed: '切り替えに失敗しました',
+    switch: '現在：{name}（クリックで切り替え）',
   },
   user: {
     profile: 'マイページ',

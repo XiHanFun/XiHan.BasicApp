@@ -1,12 +1,7 @@
 export default {
   context: {
     platform: '平台',
-    switch: '当前：{name}，切换租户',
-    manage: '控制中心',
-    loading: '正在加载可切换的租户…',
-    empty: '没有可切换的租户',
-    load_failed: '加载可切换的租户失败',
-    switch_failed: '切换失败',
+    switch: '当前：{name}，点击切换',
   },
   user: {
     profile: '个人中心',
