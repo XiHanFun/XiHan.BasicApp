@@ -6,6 +6,32 @@ using System.Text.Json.Serialization;
 namespace XiHan.BasicApp.Saas.Domain.Configurations;
 
 /// <summary>
+/// 登录方式编码（登录设置 <see cref="SaasLoginSettings.Methods"/> 的取值，前端登录页按它显示入口）
+/// </summary>
+public static class SaasLoginMethods
+{
+    /// <summary>
+    /// 账号密码
+    /// </summary>
+    public const string Password = "password";
+
+    /// <summary>
+    /// 手机号验证码
+    /// </summary>
+    public const string Phone = "phone";
+
+    /// <summary>
+    /// 邮箱验证码
+    /// </summary>
+    public const string Email = "email";
+
+    /// <summary>
+    /// 扫码
+    /// </summary>
+    public const string QrCode = "qrcode";
+}
+
+/// <summary>
 /// 登录设置（配置键 <see cref="SaasConfigKeys.Auth.Login"/>）
 /// </summary>
 /// <remarks>
@@ -15,9 +41,9 @@ namespace XiHan.BasicApp.Saas.Domain.Configurations;
 public sealed class SaasLoginSettings
 {
     /// <summary>
-    /// 登录页开放的登录方式编码（如 password）
+    /// 登录页开放的登录方式编码（见 <see cref="SaasLoginMethods"/>）
     /// </summary>
-    public List<string> Methods { get; set; } = ["password"];
+    public List<string> Methods { get; set; } = [SaasLoginMethods.Password];
 
     /// <summary>
     /// 登录页展示的第三方登录

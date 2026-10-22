@@ -185,6 +185,7 @@ public sealed class SaasAppForcedPasswordChangeTests
             _configuration.Object,
             _authTokenIssueService.Object,
             Mock.Of<IAuthEmailLoginCodeService>(),
+            Mock.Of<IAuthPhoneLoginCodeService>(),
             Mock.Of<IImpersonationPolicyService>(),
             Mock.Of<IProfileVerificationService>(),
             Mock.Of<IMessageDeliveryService>(),

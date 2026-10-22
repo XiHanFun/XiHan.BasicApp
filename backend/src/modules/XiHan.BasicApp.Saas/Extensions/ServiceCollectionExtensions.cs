@@ -240,6 +240,8 @@ public static class ServiceCollectionExtensions
         // 全局 IP 黑名单：经启动过滤器挂到请求管线最前，接口、实时通道、静态文件与文档一并拦截
         services.AddTransient<IStartupFilter, SaasIpBlacklistStartupFilter>();
         services.AddSingleton<IAuthEmailLoginCodeService, AuthEmailLoginCodeService>();
+        // 手机号登录验证码：发码要经发件箱（作用域服务）落短信，故按作用域注册
+        services.AddScoped<IAuthPhoneLoginCodeService, AuthPhoneLoginCodeService>();
         // 验证码防刷限流（发送间隔/日配额/错误计数封禁）：覆盖 Profile 全部发码用途与消费校验
         services.AddScoped<IVerificationThrottleService, VerificationThrottleService>();
         services.AddScoped<IProfileVerificationService, ProfileVerificationService>();

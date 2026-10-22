@@ -40,7 +40,7 @@ BasicApp 默认走**字段级隔离（Field）**：所有业务实体继承自 `
 BasicApp 采用**先登录、后定上下文**：登录页不选择租户，统一在平台（`_currentTenant.Change(null)`）完成身份认证，成功后由服务端决定落点——登录后总是落在一个上下文里（平台，或一个租户）。
 
 - **邮箱是全平台唯一的登录身份标识**。注册、开通租户管理员、找回密码都强制校验邮箱且全局唯一（`ExistsEmailGloballyAsync`）。平台账号也可用用户名登录。
-- 支持密码登录、邮箱验证码登录、第三方（OAuth）登录，均在平台态定位用户后走统一落点逻辑（`IssueLoginTokenWithLandingAsync`）。
+- 支持密码登录、手机号验证码登录、邮箱验证码登录、第三方（OAuth）登录，均在平台态定位用户后走统一落点逻辑（`IssueLoginTokenWithLandingAsync`）。
 
 ### 落点策略
 

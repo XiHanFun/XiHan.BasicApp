@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { LoginFormAlign } from './LoginToolbar.vue'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, FOUNDATION_PROJECTS, LOGIN_PATH, QRCODE_LOGIN_PATH } from '~/constants'
-import { useAppStore } from '~/stores'
+import { useAppContext, useAppStore } from '~/stores'
 import AuthEntrySwitcher from './AuthEntrySwitcher.vue'
 import LoginToolbar from './LoginToolbar.vue'
 
@@ -30,6 +30,14 @@ const showFooter = computed(
 const showEntryTabs = computed(() =>
   [LOGIN_PATH, CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, QRCODE_LOGIN_PATH].includes(route.path),
 )
+
+/** 登录设置开放的方式：切换器只列这些入口；取到之前为 null */
+const loginMethods = ref<string[] | null>(null)
+const { apis } = useAppContext()
+
+onMounted(async () => {
+  loginMethods.value = (await apis.getLoginConfigApi()).loginMethods
+})
 
 const appVersion = __APP_VERSION__
 const appBuildTime = __APP_BUILD_TIME__
@@ -121,7 +129,7 @@ const appName = __APP_NAME__
               :class="formAlign === 'center' ? 'max-w-[560px]' : 'max-w-[460px]'"
             >
               <!-- 登录四种入口下表单即当前标签的面板，故由切换器接住；其余页面它只透传内容 -->
-              <AuthEntrySwitcher :enabled="showEntryTabs">
+              <AuthEntrySwitcher :enabled="showEntryTabs" :methods="loginMethods">
                 <!-- 这层裁掉切换过渡的 ±24px 平移。不必再为聚焦环留内衬：组件库的环是 outline 配负 offset，画在控件盒内侧 -->
                 <div class="overflow-hidden" :class="showEntryTabs ? 'min-h-[520px]' : ''">
                   <router-view v-slot="{ Component }">
