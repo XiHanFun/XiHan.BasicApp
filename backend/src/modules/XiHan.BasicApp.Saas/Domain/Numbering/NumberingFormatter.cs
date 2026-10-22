@@ -271,7 +271,44 @@ public sealed class NumberingFormatter : INumberingFormatter
             return timeZone;
         }
 
+        // 系统目录没有旧 IANA 别名时（如 America/Indianapolis、Asia/Calcutta），按同一个 Windows 时区落到已安装的时区。
+        if (!OperatingSystem.IsWindows()
+            && TryFindByWindowsZone(normalizedId, TimeZoneInfo.GetSystemTimeZones(), out timeZone))
+        {
+            return timeZone;
+        }
+
         throw new InvalidOperationException($"规则时区“{timeZoneId}”无效。");
+    }
+
+    /// <summary>
+    /// 在系统时区目录里找与给定标识属于同一个 Windows 时区的时区。
+    /// </summary>
+    /// <param name="timeZoneId">旧 IANA 别名、规范 IANA ID 或历史 Windows 时区 ID。</param>
+    /// <param name="systemTimeZones">当前系统已安装的时区。</param>
+    /// <param name="timeZone">成功时返回同一 Windows 时区下 ID 按序数排在最前的时区。</param>
+    /// <returns>标识属于某个 Windows 时区且目录里有它的成员时返回 <see langword="true"/>。</returns>
+    /// <remarks>同一个 Windows 时区下的 IANA 时区现行规则一致，换算结果与 Windows 节点相同。</remarks>
+    private static bool TryFindByWindowsZone(string timeZoneId, IEnumerable<TimeZoneInfo> systemTimeZones, out TimeZoneInfo timeZone)
+    {
+        string? windowsId = null;
+        if (TimeZoneInfo.TryConvertIanaIdToWindowsId(timeZoneId, out var mappedWindowsId))
+        {
+            windowsId = mappedWindowsId;
+        }
+        else if (TimeZoneInfo.TryConvertWindowsIdToIanaId(timeZoneId, out _))
+        {
+            windowsId = timeZoneId;
+        }
+
+        timeZone = string.IsNullOrWhiteSpace(windowsId)
+            ? null!
+            : systemTimeZones
+                .Where(candidate => TimeZoneInfo.TryConvertIanaIdToWindowsId(candidate.Id, out var candidateWindowsId)
+                    && string.Equals(candidateWindowsId, windowsId, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(candidate => candidate.Id, StringComparer.Ordinal)
+                .FirstOrDefault()!;
+        return timeZone is not null;
     }
 
     /// <summary>
