@@ -344,6 +344,42 @@ public sealed class AccessPolicyAttributeDto
 }
 
 /// <summary>
+/// 访问策略模板（从模板新建用；新建出来一律只记录）
+/// </summary>
+public sealed class AccessPolicyTemplateDto
+{
+    /// <summary>
+    /// 模板编码
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 名称
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 说明
+    /// </summary>
+    public string Description { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 建议的动作（试运行无误后再改）
+    /// </summary>
+    public AccessPolicyAction SuggestedAction { get; set; }
+
+    /// <summary>
+    /// 优先级
+    /// </summary>
+    public int Priority { get; set; }
+
+    /// <summary>
+    /// 条件
+    /// </summary>
+    public List<AccessPolicyConditionDto> Conditions { get; set; } = [];
+}
+
+/// <summary>
 /// 访问策略试运行的模拟上下文；不填的项取当前请求
 /// </summary>
 public sealed class AccessPolicyTrialContextDto

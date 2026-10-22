@@ -28,6 +28,11 @@ public interface IAccessPolicyQueryService : IApplicationService
     Task<List<AccessPolicyAttributeDto>> GetAccessPolicyAttributesAsync();
 
     /// <summary>
+    /// 预置模板
+    /// </summary>
+    Task<List<AccessPolicyTemplateDto>> GetAccessPolicyTemplatesAsync();
+
+    /// <summary>
     /// 试运行一条策略
     /// </summary>
     Task<AccessPolicyTrialResultDto> GetAccessPolicyTrialAsync(AccessPolicyTrialInputDto input, CancellationToken cancellationToken = default);

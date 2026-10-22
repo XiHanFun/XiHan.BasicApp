@@ -76,8 +76,11 @@ export function nextGroupNumber(conditions: readonly PermissionConditionListItem
   return conditions.length === 0 ? 0 : Math.max(...conditions.map(condition => condition.conditionGroup)) + 1
 }
 
+/** 条件属性目录项的最小形状：权限条件与访问策略的目录项都满足 */
+export type ConditionAttributeLike = Pick<PermissionConditionAttributeDto, 'aliases' | 'isFamily' | 'name'>
+
 /** 按属性名找目录项：精确名、旧名别名、一族属性（如 resource.query.status） */
-export function resolveAttribute(catalog: readonly PermissionConditionAttributeDto[], name: string) {
+export function resolveAttribute<T extends ConditionAttributeLike>(catalog: readonly T[], name: string): { attribute: T | null, isAlias: boolean, familySuffix: string | null } {
   const target = name.trim().toLowerCase()
   const exact = catalog.find(item => !item.isFamily && item.name.toLowerCase() === target)
   if (exact) {
@@ -95,7 +98,7 @@ export function resolveAttribute(catalog: readonly PermissionConditionAttributeD
 }
 
 /** 一族属性的完整名：前缀加上填写的名字 */
-export function composeAttributeName(attribute: PermissionConditionAttributeDto, familySuffix: string | null | undefined) {
+export function composeAttributeName(attribute: ConditionAttributeLike, familySuffix: string | null | undefined) {
   return attribute.isFamily ? `${attribute.name.slice(0, -1)}${(familySuffix ?? '').trim()}` : attribute.name
 }
 
