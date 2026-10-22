@@ -449,7 +449,6 @@ public static class ServiceCollectionExtensions
 
         // 认证事件
         services.AddSaasLocalEventHandler<AuthLoginEventHandler>();
-        services.AddSaasLocalEventHandler<LoginAutoBanEventHandler>();
 
         // 文件事件
         services.AddSaasLocalEventHandler<FileUploadedEventHandler>();

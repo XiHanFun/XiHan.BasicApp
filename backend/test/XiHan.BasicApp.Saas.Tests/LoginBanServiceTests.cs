@@ -5,11 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using XiHan.BasicApp.Saas.Application.AccessPolicies;
-using XiHan.BasicApp.Saas.Application.EventHandlers;
 using XiHan.BasicApp.Saas.Application.Services;
 using XiHan.BasicApp.Saas.Domain.Configurations;
-using XiHan.BasicApp.Saas.Domain.Entities;
-using XiHan.BasicApp.Saas.Domain.Events;
 using static XiHan.BasicApp.Saas.Tests.AccessPolicyTestKit;
 
 namespace XiHan.BasicApp.Saas.Tests;
@@ -126,23 +123,6 @@ public sealed class LoginBanServiceTests
     }
 
     /// <summary>
-    /// 失败事件计数：访问策略拒绝的登录不算；计数出错不影响登录失败本身
-    /// </summary>
-    [Fact]
-    public async Task EventHandler_SkipsAccessDeniedAndSwallowsErrors()
-    {
-        var bans = new Mock<ILoginBanService>();
-        var handler = new LoginAutoBanEventHandler(bans.Object, NullLogger<LoginAutoBanEventHandler>.Instance);
-
-        await handler.HandleEventAsync(Failed(LoginResult.AccessDenied));
-        await handler.HandleEventAsync(Failed(LoginResult.InvalidCredentials));
-        bans.Setup(service => service.RecordFailureAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).ThrowsAsync(new InvalidOperationException("Redis 不可用"));
-        await handler.HandleEventAsync(Failed(LoginResult.TwoFactorFailed));
-
-        bans.Verify(service => service.RecordFailureAsync(Ip, It.IsAny<CancellationToken>()), Times.Exactly(2));
-    }
-
-    /// <summary>
     /// 进程内存储有容量上限：满了先清过期项，再淘汰最早到期的
     /// </summary>
     [Fact]
@@ -161,11 +141,6 @@ public sealed class LoginBanServiceTests
         Assert.Equal(MemoryLoginBanStore.Capacity, bans.Count);
         Assert.DoesNotContain(bans, ban => ban.Ip == "ip-0");
         Assert.Contains(bans, ban => ban.Ip == "newcomer");
-    }
-
-    private static AuthLoginFailedDomainEvent Failed(LoginResult result)
-    {
-        return new AuthLoginFailedDomainEvent(null, 1, "admin", result, null, Now, null, Ip, null);
     }
 
     private sealed class Harness

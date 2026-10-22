@@ -126,6 +126,7 @@ public sealed class AccessPolicyRequestGateTests
             It.IsAny<bool>()), Times.Once);
         var hit = Assert.Single(harness.DrainHits()).First;
         Assert.Equal((AccessPolicyPhase.Login, true), (hit.Phase, hit.IsBlocked));
+        harness.Bans.Verify(service => service.RecordFailureAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     /// <summary>
@@ -147,6 +148,24 @@ public sealed class AccessPolicyRequestGateTests
         await harness.LoginGuard.EnsureLoginAllowedAsync(AdminId, "admin", TenantId);
 
         harness.EventBus.Verify(bus => bus.PublishAsync(It.IsAny<AuthLoginFailedDomainEvent>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    /// <summary>
+    /// 登录失败计数：按 IP 交给自动封禁；IP 为空不计；计数出错只记日志
+    /// </summary>
+    [Fact]
+    public async Task LoginGuard_CountsFailedLoginsAndSwallowsErrors()
+    {
+        var harness = new Harness();
+
+        await harness.LoginGuard.CountFailedLoginAsync(" 203.0.113.9 ");
+        await harness.LoginGuard.CountFailedLoginAsync(null);
+        harness.Bans
+            .Setup(service => service.RecordFailureAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Redis 不可用"));
+        await harness.LoginGuard.CountFailedLoginAsync("203.0.113.9");
+
+        harness.Bans.Verify(service => service.RecordFailureAsync("203.0.113.9", It.IsAny<CancellationToken>()), Times.Exactly(2));
     }
 
     private sealed class Harness
@@ -173,6 +192,7 @@ public sealed class AccessPolicyRequestGateTests
                 EventBus.Object,
                 clientInfo.Object,
                 new Mock<ITraceIdProvider>().Object,
+                Bans.Object,
                 _time,
                 NullLogger<AccessPolicyLoginGuard>.Instance);
         }
@@ -186,6 +206,8 @@ public sealed class AccessPolicyRequestGateTests
         public PermissionConditionTestKit.FixedOptionsMonitor<AccessPolicyOptions> Options { get; } = PolicyOptions();
 
         public Mock<ILocalEventBus> EventBus { get; } = new();
+
+        public Mock<ILoginBanService> Bans { get; } = new();
 
         public DefaultHttpContext Context { get; private set; } = Request("127.0.0.1");
 
