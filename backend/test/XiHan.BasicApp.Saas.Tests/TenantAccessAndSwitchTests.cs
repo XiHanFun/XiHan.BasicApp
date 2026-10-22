@@ -27,6 +27,7 @@ using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Claims;
 using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Uow;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Tests;
@@ -425,6 +426,7 @@ public sealed class TenantAccessAndSwitchTests
                 Mock.Of<IOtpService>(),
                 Mock.Of<IEmailConfigStore>(),
                 Mock.Of<ILocalEventBus>(),
+                Mock.Of<IUnitOfWorkManager>(),
                 _currentTenant,
                 currentUser.Object,
                 clientInfo.Object,

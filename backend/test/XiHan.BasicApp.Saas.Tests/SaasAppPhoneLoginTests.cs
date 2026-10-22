@@ -33,6 +33,7 @@ using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.EventBus.Abstractions.Local;
 using XiHan.Framework.Security.Password;
 using XiHan.Framework.Security.Users;
+using XiHan.Framework.Uow;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Tests;
@@ -49,6 +50,7 @@ public sealed class SaasAppPhoneLoginTests
     private readonly Mock<IAuthenticationDomainService> _authenticationDomainService = new();
     private readonly Mock<IAuthPhoneLoginCodeService> _phoneLoginCodeService = new();
     private readonly Mock<ILocalEventBus> _localEventBus = new();
+    private readonly Mock<IUnitOfWork> _unitOfWork = new();
     private readonly SysUser _user = BuildUser(UserId);
 
     /// <summary>
@@ -150,7 +152,7 @@ public sealed class SaasAppPhoneLoginTests
     }
 
     /// <summary>
-    /// 登录：验证码对、账号不可用时发登录失败事件（写登录日志），登录名记手机号。
+    /// 登录：验证码对、账号不可用时发登录失败事件（写登录日志），登录名记手机号，并完成工作单元让失败留痕落库。
     /// </summary>
     [Fact]
     public async Task PhoneLogin_AccountUnavailable_ShouldPublishLoginFailedEvent()
@@ -171,6 +173,14 @@ public sealed class SaasAppPhoneLoginTests
                 It.Is<AuthLoginFailedDomainEvent>(item => item.UserName == Phone && item.LoginResult == LoginResult.AccountDisabled),
                 It.IsAny<bool>()),
             Times.Once);
+        _unitOfWork.Verify(unitOfWork => unitOfWork.CompleteAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    private IUnitOfWorkManager UnitOfWorkManager()
+    {
+        var manager = new Mock<IUnitOfWorkManager>();
+        manager.Setup(item => item.Current).Returns(_unitOfWork.Object);
+        return manager.Object;
     }
 
     private void OpenLoginMethods(params string[] methods)
@@ -203,6 +213,7 @@ public sealed class SaasAppPhoneLoginTests
             Mock.Of<IOtpService>(),
             Mock.Of<IEmailConfigStore>(),
             _localEventBus.Object,
+            UnitOfWorkManager(),
             new TestCurrentTenant(),
             Mock.Of<ICurrentUser>(),
             clientInfoProvider.Object,
