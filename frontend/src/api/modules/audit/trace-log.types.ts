@@ -18,6 +18,7 @@ export enum TraceLogType {
   Exception = 'Exception',
   Diff = 'Diff',
   PermissionChange = 'PermissionChange',
+  AccessPolicyHit = 'AccessPolicyHit',
 }
 
 export interface TraceTimelineQueryDto {

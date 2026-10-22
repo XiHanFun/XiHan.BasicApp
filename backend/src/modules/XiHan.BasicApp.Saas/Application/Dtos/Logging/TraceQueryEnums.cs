@@ -76,5 +76,10 @@ public enum TraceLogType
     /// <summary>
     /// 权限变更日志
     /// </summary>
-    PermissionChange = 6
+    PermissionChange = 6,
+
+    /// <summary>
+    /// 条件命中记录（访问策略与权限条件）
+    /// </summary>
+    AccessPolicyHit = 7
 }

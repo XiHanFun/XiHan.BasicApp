@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -185,6 +186,22 @@ public sealed class AccessPolicyMiddlewareTests
         await harness.Middleware.InvokeAsync(harness.CreateContext("203.0.113.9"));
 
         Assert.True(harness.NextCalled);
+    }
+
+    /// <summary>
+    /// 链路追踪 ID 与其他日志同口径：有当前 Activity 时取它的 TraceId，没有才退回请求标识
+    /// </summary>
+    [Fact]
+    public void TraceId_PrefersCurrentActivity()
+    {
+        Activity.Current = null;
+        var context = new DefaultHttpContext { TraceIdentifier = "0HNPGE80KLPG5:00000001" };
+        Assert.Equal("0HNPGE80KLPG5:00000001", AccessPolicyRequests.GetTraceId(context));
+
+        using var activity = new Activity("access-policy-test").SetIdFormat(ActivityIdFormat.W3C).Start();
+
+        Assert.Equal(activity.TraceId.ToHexString(), AccessPolicyRequests.GetTraceId(context));
+        Assert.Null(AccessPolicyRequests.GetTraceId(null));
     }
 
     private static string ReadBody(HttpContext context)

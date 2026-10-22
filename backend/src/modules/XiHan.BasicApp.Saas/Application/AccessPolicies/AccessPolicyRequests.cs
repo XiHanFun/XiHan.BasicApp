@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Diagnostics;
 using System.Net;
 using Microsoft.AspNetCore.Http;
 using XiHan.BasicApp.Saas.Application.Conditions;
@@ -47,12 +48,18 @@ public static class AccessPolicyRequests
     }
 
     /// <summary>
-    /// 链路追踪 ID：框架追踪中间件写下的值，还没执行到它时取 <see cref="HttpContext.TraceIdentifier"/>
+    /// 链路追踪 ID，与其他日志同口径：先取当前 <see cref="Activity"/> 的 TraceId，其次框架追踪中间件写下的值，最后 <see cref="HttpContext.TraceIdentifier"/>
     /// </summary>
     public static string? GetTraceId(HttpContext? httpContext)
     {
-        return httpContext is null
-            ? null
+        if (httpContext is null)
+        {
+            return null;
+        }
+
+        var activity = Activity.Current;
+        return activity is not null && activity.TraceId != default
+            ? activity.TraceId.ToHexString()
             : httpContext.Items[XiHanWebApiConstants.TraceIdItemKey]?.ToString() ?? httpContext.TraceIdentifier;
     }
 

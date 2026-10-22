@@ -213,6 +213,32 @@ public static class TraceApplicationMapper
     }
 
     /// <summary>
+    /// 条件命中记录 → 时间线条目
+    /// </summary>
+    public static TraceTimelineItemDto FromAccessPolicyHit(SysAccessPolicyHit e)
+    {
+        ArgumentNullException.ThrowIfNull(e);
+        return new TraceTimelineItemDto
+        {
+            LogType = TraceLogType.AccessPolicyHit,
+            BasicId = e.BasicId,
+            Time = e.HitTime,
+            Title = FirstNonEmpty(e.PolicyName, e.PolicyCode),
+            Summary = ComposeRequest(e.Method, e.Path),
+            Status = e.IsBlocked
+                ? StatusWarning
+                : e.Action == AccessPolicyAction.Allow ? StatusSuccess : StatusInfo,
+            UserId = e.UserId,
+            UserName = e.UserName,
+            TraceId = e.TraceId,
+            Ip = e.Ip,
+            Location = e.Location,
+            Method = e.Method,
+            Path = e.Path
+        };
+    }
+
+    /// <summary>
     /// 组合 "方法 路径" 标题
     /// </summary>
     private static string ComposeRequest(string? method, string? path)

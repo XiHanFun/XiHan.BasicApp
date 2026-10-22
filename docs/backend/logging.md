@@ -190,7 +190,7 @@ services.AddScoped<IEntityAuditContextProvider, SaasEntityDiffContextProvider>()
 "审计中心"菜单分组下，除本页六类外还挂了两个紧密关联、但**不计入"六类"**的能力，二者共用同一套写入基础设施与保留策略（含前文的 `LogRetentionCleanupTask`）：
 
 - **权限变更日志 `SysPermissionChangeLog`**（菜单"权限变更日志"，路由 `/log/permission-change`，权限码 `saas:permission-change-log:read`，仅查看、无导出）：结构化记录"谁在什么时候给谁授予/撤销了什么权限"——`OperatorUserId`/`TargetUserId`/`TargetRoleId`/`PermissionId` + `ChangeType`，按月分表。授权写路径通过 `IAuthorizationChangeNotifier` 发布 `AuthorizationChangedDomainEvent`，`PermissionChangeLogEventHandler` 订阅后落库；查询走只读的 `PermissionChangeLogQueryService`。与 `SysDiffLog` 的边界：`SysDiffLog` 记通用实体字段变更，本表专注权限授予/撤销这一业务语义。
-- **链路追踪查询 `TraceQueryService`**（菜单"日志链路追踪"，路由 `/log/trace`，权限码 `saas:log-trace:read`）：按维度（用户名 / 会话标识 / `TraceId` / IP / 用户主键）+ 时间范围（≤ 31 天，防止扫描过多月表）跨**全部 7 类**分表日志（本页六类 + 权限变更日志）聚合成一条时间倒序时间线，单类型默认最多返回 200 条（上限 500，超出标记 `Truncated`）。它是本页反复强调的"用 `TraceId` 串联同一次请求全链路"能力的实际查询入口。
+- **链路追踪查询 `TraceQueryService`**（菜单"日志链路追踪"，路由 `/log/trace`，权限码 `saas:log-trace:read`）：按维度（用户名 / 会话标识 / `TraceId` / IP / 用户主键）+ 时间范围（≤ 31 天，防止扫描过多月表）跨**全部 8 类**分表日志（本页六类、权限变更日志与条件命中记录）聚合成一条时间倒序时间线；权限变更日志没有用户名与会话维度，条件命中记录没有会话维度，这两种维度下它们不参与，单类型默认最多返回 200 条（上限 500，超出标记 `Truncated`）。它是本页反复强调的"用 `TraceId` 串联同一次请求全链路"能力的实际查询入口。
 
 ## 与框架的关系
 

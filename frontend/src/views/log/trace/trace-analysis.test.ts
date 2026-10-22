@@ -1,7 +1,7 @@
 import type { TraceTimelineItemDto } from '@/api'
 import { describe, expect, it } from 'vitest'
-import { TraceLogType } from '@/api'
-import { buildTraceFlow, buildTraceTimeBuckets, pickTraceBucketMinutes, traceModuleOf } from './trace-analysis'
+import { TraceDimension, TraceLogType } from '@/api'
+import { buildTraceFlow, buildTraceTimeBuckets, pickTraceBucketMinutes, traceModuleOf, traceTypesWithoutDimension } from './trace-analysis'
 
 function log(partial: Partial<TraceTimelineItemDto>): TraceTimelineItemDto {
   return { basicId: '1', logType: TraceLogType.Access, status: 'success', time: '2026-09-30T10:00:00', ...partial } as TraceTimelineItemDto
@@ -97,5 +97,18 @@ describe('time buckets', () => {
 
   it('没有可用时间时返回空', () => {
     expect(buildTraceTimeBuckets([]).buckets).toEqual([])
+  })
+})
+
+describe('traceTypesWithoutDimension', () => {
+  it('会话维度：权限变更与条件命中都没有会话，不参与追踪', () => {
+    expect(traceTypesWithoutDimension(TraceDimension.SessionId)).toEqual([TraceLogType.PermissionChange, TraceLogType.AccessPolicyHit])
+  })
+
+  it('用户名维度：只有权限变更没有用户名；链路 ID、IP、用户主键各类都有', () => {
+    expect(traceTypesWithoutDimension(TraceDimension.UserName)).toEqual([TraceLogType.PermissionChange])
+    expect(traceTypesWithoutDimension(TraceDimension.TraceId)).toEqual([])
+    expect(traceTypesWithoutDimension(TraceDimension.Ip)).toEqual([])
+    expect(traceTypesWithoutDimension(TraceDimension.UserId)).toEqual([])
   })
 })
