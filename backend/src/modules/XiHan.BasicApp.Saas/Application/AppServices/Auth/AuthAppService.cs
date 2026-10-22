@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.Framework.Security.Password;
+using XiHan.BasicApp.Saas.Application.AccessPolicies;
 using XiHan.BasicApp.Saas.Application.Caching;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -129,6 +130,7 @@ public sealed partial class AuthAppService
     private readonly IWebHostEnvironment _webHostEnvironment;
 
     private readonly ILoginThrottleService _loginThrottleService;
+    private readonly IAccessPolicyLoginGuard _accessPolicyLoginGuard;
 
     private readonly ICaptchaService _captchaService;
 
@@ -176,6 +178,7 @@ public sealed partial class AuthAppService
         ILoginThrottleService loginThrottleService,
         ICaptchaService captchaService,
         ITwoFactorTicketService twoFactorTicketService,
+        IAccessPolicyLoginGuard accessPolicyLoginGuard,
         IConfiguration configuration,
         ILogger<AuthAppService> logger)
     {
@@ -185,6 +188,7 @@ public sealed partial class AuthAppService
         _loginThrottleService = loginThrottleService;
         _captchaService = captchaService;
         _twoFactorTicketService = twoFactorTicketService;
+        _accessPolicyLoginGuard = accessPolicyLoginGuard;
         _authenticationDomainService = authenticationDomainService;
         _loginSessionDomainService = loginSessionDomainService;
         _authContextQueryService = authContextQueryService;
@@ -932,6 +936,7 @@ public sealed partial class AuthAppService
 
         // 在目标上下文内重建授权快照、续接会话并签发新令牌（平台不带 TenantId claim）
         using var tenantScope = _currentTenant.Change(targetTenantId, targetTenantName);
+        await _accessPolicyLoginGuard.EnsureLoginAllowedAsync(user.BasicId, user.UserName, targetTenantId, cancellationToken);
         var authSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
         var sessionBusinessId = Guid.NewGuid().ToString("N");
         var accessTokenJti = Guid.NewGuid().ToString("N");
@@ -1884,6 +1889,8 @@ public sealed partial class AuthAppService
         string? initialLockReason = null,
         CancellationToken cancellationToken = default)
     {
+        await _accessPolicyLoginGuard.EnsureLoginAllowedAsync(user.BasicId, userName, effectiveTenantId, cancellationToken);
+
         // 构建授权快照（角色 + 权限）
         var authSnapshot = await _authorizationSnapshotQueryService.BuildAsync(user.BasicId, now, cancellationToken);
         var client = _clientInfoProvider.GetCurrent();

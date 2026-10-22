@@ -8,8 +8,6 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using XiHan.BasicApp.Saas.Domain.Conditions;
 using XiHan.Framework.Authorization.AspNetCore;
 using XiHan.Framework.Authorization.Conditions;
-using XiHan.Framework.Security.Claims;
-using XiHan.Framework.Web.Api.Security.OpenApi;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Application.Conditions;
@@ -55,8 +53,8 @@ public sealed class SaasConditionAttributeSource : IConditionAttributeSource
             [SaasConditionAttributes.EnvironmentWeekday] = static (source, _) => Ready(((int)source.LocalNow.DayOfWeek + 6) % 7 + 1),
             [SaasConditionAttributes.EnvironmentDate] = static (source, _) => Ready(DateOnly.FromDateTime(source.LocalNow.DateTime)),
             [SaasConditionAttributes.EnvironmentClientUserAgent] = static (source, _) => Ready(source._context.HttpContext?.Request.Headers.UserAgent.ToString()),
-            [SaasConditionAttributes.EnvironmentClientKind] = static (source, _) => Ready(source.GetClient()?.Kind),
-            [SaasConditionAttributes.EnvironmentClientAppId] = static (source, _) => Ready(source.GetClient()?.AppId)
+            [SaasConditionAttributes.EnvironmentClientKind] = static (source, _) => Ready(SaasConditionClient.Resolve(source._context.HttpContext)?.Kind),
+            [SaasConditionAttributes.EnvironmentClientAppId] = static (source, _) => Ready(SaasConditionClient.Resolve(source._context.HttpContext)?.AppId)
         };
 
     private readonly SaasConditionContext _context;
@@ -209,32 +207,5 @@ public sealed class SaasConditionAttributeSource : IConditionAttributeSource
     {
         var region = GetRegion();
         return region is null ? null : string.Concat(region.Country, region.Province, region.City);
-    }
-
-    /// <summary>
-    /// 客户端类型：开放接口签名客户端优先，其次令牌里的 client_id（OAuth 应用），再次 session_id（网页登录）
-    /// </summary>
-    private (string Kind, string? AppId)? GetClient()
-    {
-        var httpContext = _context.HttpContext;
-        if (httpContext is null)
-        {
-            return null;
-        }
-
-        if (httpContext.Items[OpenApiSecurityConstants.SecurityClientContextKey] is OpenApiSecurityClient openApiClient)
-        {
-            return (SaasConditionClientKinds.OpenApi, openApiClient.AccessKey);
-        }
-
-        var user = httpContext.User;
-        if (user.FindFirst(XiHanClaimTypes.ClientId)?.Value is { Length: > 0 } clientId)
-        {
-            return (SaasConditionClientKinds.OAuth, clientId);
-        }
-
-        return user.FindFirst(XiHanClaimTypes.SessionId)?.Value is { Length: > 0 }
-            ? (SaasConditionClientKinds.Web, null)
-            : (SaasConditionClientKinds.Anonymous, null);
     }
 }

@@ -1879,6 +1879,68 @@ public static class SaasPermissionCodes
     }
 
     /// <summary>
+    /// 访问策略权限码
+    /// </summary>
+    public static class AccessPolicy
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "access-policy";
+
+        /// <summary>
+        /// 查看访问策略与当前封禁
+        /// </summary>
+        public const string Read = "saas:access-policy:read";
+
+        /// <summary>
+        /// 创建访问策略（只能建成只记录）
+        /// </summary>
+        public const string Create = "saas:access-policy:create";
+
+        /// <summary>
+        /// 更新访问策略的条件、优先级、生效期与动作（含启用拦截）
+        /// </summary>
+        public const string Update = "saas:access-policy:update";
+
+        /// <summary>
+        /// 启用、停用访问策略
+        /// </summary>
+        public const string Status = "saas:access-policy:status";
+
+        /// <summary>
+        /// 删除访问策略
+        /// </summary>
+        public const string Delete = "saas:access-policy:delete";
+
+        /// <summary>
+        /// 按模拟的请求上下文试运行访问策略
+        /// </summary>
+        public const string Trial = "saas:access-policy:trial";
+
+        /// <summary>
+        /// 手动解除登录失败自动封禁（只在平台生效）
+        /// </summary>
+        public const string Ban = "saas:access-policy:ban";
+    }
+
+    /// <summary>
+    /// 条件命中记录权限码
+    /// </summary>
+    public static class AccessPolicyHit
+    {
+        /// <summary>
+        /// 分组编码（资源段）
+        /// </summary>
+        public const string Group = "access-policy-hit";
+
+        /// <summary>
+        /// 查看访问策略与权限条件的命中记录
+        /// </summary>
+        public const string Read = "saas:access-policy-hit:read";
+    }
+
+    /// <summary>
     /// 约束规则权限码
     /// </summary>
     public static class ConstraintRule

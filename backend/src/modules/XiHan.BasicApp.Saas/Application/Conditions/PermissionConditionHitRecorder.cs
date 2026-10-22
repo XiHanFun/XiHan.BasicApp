@@ -1,7 +1,6 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
-using Microsoft.Extensions.Logging;
 
 namespace XiHan.BasicApp.Saas.Application.Conditions;
 
@@ -14,13 +13,19 @@ namespace XiHan.BasicApp.Saas.Application.Conditions;
 /// <param name="Mode">当时的生效模式</param>
 /// <param name="Path">请求路径</param>
 /// <param name="TraceId">追踪标识</param>
+/// <param name="Method">请求方法</param>
+/// <param name="Ip">客户端 IP</param>
+/// <param name="UserAgent">User-Agent</param>
 public sealed record PermissionConditionHit(
     long UserId,
     long TenantId,
     string PermissionCode,
     PermissionConditionMode Mode,
     string? Path,
-    string? TraceId);
+    string? TraceId,
+    string? Method = null,
+    string? Ip = null,
+    string? UserAgent = null);
 
 /// <summary>
 /// 权限条件拒绝记录器
@@ -31,35 +36,4 @@ public interface IPermissionConditionHitRecorder
     /// 记一次拒绝
     /// </summary>
     Task RecordAsync(PermissionConditionHit hit, CancellationToken cancellationToken = default);
-}
-
-/// <summary>
-/// 写日志的拒绝记录器
-/// </summary>
-public sealed class LoggingPermissionConditionHitRecorder : IPermissionConditionHitRecorder
-{
-    private readonly ILogger<LoggingPermissionConditionHitRecorder> _logger;
-
-    /// <summary>
-    /// 构造函数
-    /// </summary>
-    public LoggingPermissionConditionHitRecorder(ILogger<LoggingPermissionConditionHitRecorder> logger)
-    {
-        _logger = logger;
-    }
-
-    /// <inheritdoc />
-    public Task RecordAsync(PermissionConditionHit hit, CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(hit);
-        _logger.LogWarning(
-            "权限条件不满足（{Mode}）：用户 {UserId} 租户 {TenantId} 权限 {PermissionCode} 路径 {Path} TraceId {TraceId}",
-            hit.Mode,
-            hit.UserId,
-            hit.TenantId,
-            hit.PermissionCode,
-            hit.Path,
-            hit.TraceId);
-        return Task.CompletedTask;
-    }
 }

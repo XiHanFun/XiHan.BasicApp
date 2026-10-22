@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Options;
+using XiHan.BasicApp.Saas.Application.AccessPolicies;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.Framework.Authorization.Conditions;
 using XiHan.Framework.MultiTenancy.Abstractions;
@@ -122,7 +123,10 @@ public sealed class PermissionConditionEnforcer
             permissionCode,
             mode,
             httpContext.Request.Path.Value,
-            httpContext.Items[XiHanWebApiConstants.TraceIdItemKey]?.ToString() ?? httpContext.TraceIdentifier);
+            httpContext.Items[XiHanWebApiConstants.TraceIdItemKey]?.ToString() ?? httpContext.TraceIdentifier,
+            httpContext.Request.Method,
+            AccessPolicyRequests.FormatIp(httpContext.Connection.RemoteIpAddress),
+            httpContext.Request.Headers.UserAgent.ToString() is { Length: > 0 } userAgent ? userAgent : null);
     }
 
     private static bool IsMvcAction(HttpContext httpContext)

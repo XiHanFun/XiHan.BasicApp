@@ -47,6 +47,12 @@ public enum LoginResult
     TwoFactorFailed = 5,
 
     /// <summary>
+    /// 失败 - 访问策略不允许在当前网络或时段登录
+    /// </summary>
+    [Description("访问策略拒绝")]
+    AccessDenied = 6,
+
+    /// <summary>
     /// 正常登出
     /// </summary>
     [Description("正常登出")]

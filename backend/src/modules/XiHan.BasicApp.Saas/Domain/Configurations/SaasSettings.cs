@@ -81,14 +81,64 @@ public sealed class SaasPasswordSettings
 }
 
 /// <summary>
-/// IP 黑名单设置（配置键 <see cref="SaasConfigKeys.Security.IpBlacklist"/>）
+/// 登录失败自动封禁设置（配置键 <see cref="SaasConfigKeys.Security.LoginAutoBan"/>）
 /// </summary>
-public sealed class SaasIpBlacklistSettings
+/// <remarks>
+/// 同一 IP 在 <see cref="WindowMinutes"/> 分钟内登录失败（跨账号累计）达到 <see cref="MaxFailures"/> 次即封禁 <see cref="BanMinutes"/> 分钟；
+/// 24 小时内再次被封时长翻倍，最长 <see cref="MaxBanMinutes"/> 分钟。访问策略里「放行」的 IP 不计数、不封禁。
+/// </remarks>
+public sealed class SaasLoginAutoBanSettings
 {
     /// <summary>
-    /// 拒绝的客户端地址：单个 IPv4 / IPv6 地址，或 CIDR 网段（如 203.0.113.0/24、2001:db8::/32）
+    /// 是否启用
     /// </summary>
-    public List<string> Entries { get; set; } = [];
+    public bool IsEnabled { get; set; }
+
+    /// <summary>
+    /// 计数窗口（分钟）
+    /// </summary>
+    public int WindowMinutes { get; set; } = 10;
+
+    /// <summary>
+    /// 窗口内的失败次数上限
+    /// </summary>
+    public int MaxFailures { get; set; } = 20;
+
+    /// <summary>
+    /// 首次封禁时长（分钟）
+    /// </summary>
+    public int BanMinutes { get; set; } = 30;
+
+    /// <summary>
+    /// 封禁时长上限（分钟）
+    /// </summary>
+    public int MaxBanMinutes { get; set; } = 1440;
+
+    /// <summary>
+    /// 校验各项数值
+    /// </summary>
+    /// <returns>第一处不合规的说明；全部合规时为空</returns>
+    public string? Validate()
+    {
+        if (WindowMinutes is < 1 or > 1440)
+        {
+            return "计数窗口须在 1 到 1440 分钟之间。";
+        }
+
+        if (MaxFailures is < 1 or > 10_000)
+        {
+            return "失败次数上限须在 1 到 10000 之间。";
+        }
+
+        if (MaxBanMinutes is < 1 or > 43_200)
+        {
+            return "封禁时长上限须在 1 到 43200 分钟之间。";
+        }
+
+        return BanMinutes < 1 || BanMinutes > MaxBanMinutes
+            ? "首次封禁时长须在 1 分钟到封禁时长上限之间。"
+            : null;
+    }
 }
 
 /// <summary>

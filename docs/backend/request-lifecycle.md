@@ -10,7 +10,7 @@
    ▼
 ┌─ ASP.NET Core 中间件管道（由框架 XiHanWebApiModule 编排，顺序经过设计） ──────────┐
 │                                                                                  │
-│  ★ BasicApp 最前：IP 黑名单（启动过滤器挂入，命中→403，其后一切都不执行）          │
+│  ★ BasicApp 最前：访问策略认证前一段与自动封禁（启动过滤器挂入，403 / 429）         │
 │  ① UseForwardedHeaders          还原反向代理转发头（scheme/host/客户端 IP）        │
 │  ② XiHanTraceIdMiddleware       分配/透传 TraceId，写入响应头 X-Trace-Id          │
 │  ③ UseXiHanRequestCulture       按 X-Language 设置请求文化                        │
@@ -26,9 +26,10 @@
 │  ⑬ XiHanOpenApiSecurityMiddleware 开放接口签名/防重放/加解密                       │
 │  ⑭ UseAuthentication            JWT 认证 → 填充 ClaimsPrincipal                   │
 │  ⑮ XiHanTenantResolveMiddleware 租户解析 → 建立 ICurrentTenant                    │
-│  ⑯ XiHanSessionStateMiddleware  会话闸门：失效→401，锁屏→423                       │
-│  ⑰ UseAuthorization             授权（权限码判定）                                 │
-│  ⑱ UseEndpoints                 命中动态 API 生成的 Controller Action              │
+│  ⑯ XiHanRequestAccessMiddleware 请求访问闸门：访问策略认证后一段→403                │
+│  ⑰ XiHanSessionStateMiddleware  会话闸门：失效→401，锁屏→423                       │
+│  ⑱ UseAuthorization             授权（权限码判定）                                 │
+│  ⑲ UseEndpoints                 命中动态 API 生成的 Controller Action              │
 │                                                                                  │
 │  ★ BasicApp 追加：Telegram Webhook 中间件（鉴权之前，强校验 secret_token）          │
 └──────────────────────────────────────────────────────────────────────────────────┘
@@ -52,9 +53,9 @@
 
 `UseForwardedHeaders` 先于一切读取 scheme / host / 客户端 IP 的中间件（路由、鉴权、CORS、重定向生成）。放错位置的表现是：反向代理后面拿到的客户端 IP 全是网关 IP、生成的重定向 URL 是 `http://` 而不是 `https://`。
 
-### ★ IP 黑名单在转发头之前
+### ★ 访问策略认证前一段在转发头之前
 
-平台参数 `saas.security.ip-blacklist` 命中的客户端地址，请求在管线最前就被拒（403），接口、实时通道、`/uploads` 静态文件与接口文档都在它后面。这一步早于 ①，客户端地址按 ① 同一份转发头配置在请求副本上还原，不改动请求本身。配置、生效时间与误封自己后的恢复见[部署 · IP 黑名单](../deployment#ip-黑名单)。
+平台级、只看请求本身属性（IP、地区、时段、UA、路径、方法）的访问策略，以及登录失败自动封禁，在管线最前求值：拒绝返回 403，封禁中返回 429 并带 `Retry-After`，接口、实时通道、`/uploads` 静态文件与接口文档都在它后面。这一步早于 ①，客户端地址按 ① 同一份转发头配置在请求副本上还原，不改动请求本身。求值出错时放行并记错误日志。总开关与误封自己后的恢复见[部署 · 访问策略与真实 IP](../deployment#访问策略与真实-ip)。
 
 ### ② TraceId
 
@@ -88,7 +89,11 @@
 
 租户上下文决定了两件事：读什么（过滤器放行 `TenantId IN (0, 当前租户)`）、写哪里（写路径禁止改非本租户行）。见 [多租户与版本](./multi-tenancy)。
 
-### ⑯ 会话闸门（401 与 423 的分水岭）
+### ⑯ 请求访问闸门：访问策略认证后一段
+
+框架在认证、租户解析与路由之后、会话闸门与授权之前，依次询问应用注册的请求访问闸门。BasicApp 在这里求两层访问策略：平台级要用到用户、角色、部门、客户端类型或端点权限码的策略，加上已登录请求所在租户的策略；同一层里放行压过拒绝，平台的拒绝租户放行不了。匿名接口、Minimal API 与实时通道的协商请求同样经过。被拒返回 403「访问被安全策略拒绝。」，命中记录里能按 TraceId 查到是哪条策略。
+
+### ⑰ 会话闸门（401 与 423 的分水岭）
 
 `XiHanSessionStateMiddleware` 的位置是精心安排的：
 
@@ -103,7 +108,7 @@
 | `401` | 会话已失效（登出 / 被踢 / 撤销 / 过期） | 尝试刷新令牌，失败则跳登录页 |
 | **`423`** | **会话被锁屏，身份仍然有效** | **弹解锁遮罩，绝不能跳登录页** |
 
-### ⑰ 授权：读授权快照，不读令牌
+### ⑱ 授权：读授权快照，不读令牌
 
 框架的 `UseAuthorization` 会调 `IPermissionChecker`。BasicApp 用 `services.Replace(IPermissionChecker → SaasPermissionChecker)` 把判定改为读 **Redis 里的授权快照**（`SaasAuthorizationSnapshotCacheItem`）。
 
@@ -111,7 +116,7 @@
 
 这一步只看授权快照：会话仍有效 → 权限码（角色继承、直授、委托合并后）→ 作用侧与模仿登录禁用清单 → 租户版本（Edition）白名单，任何一环不过都是 403。数据范围不在这一步，它由查询服务追加条件（目前只有用户列表），不过时表现为查不到而不是 403；ABAC 授权条件与约束规则都不参与请求期判定。见 [权限模型](./permission#判定链)。
 
-### ⑱ 端点：动态 API
+### ⑲ 端点：动态 API
 
 没有手写 Controller——应用服务打 `[DynamicApi]` 由框架在启动时生成 Controller 并注册路由。路由推导规则（动词前缀剥离、默认 POST、路由段只由 `[FromRoute]` 产生）见 [接口对接指南](../api-guide#动态-api-路由推导规则)。
 
@@ -172,9 +177,9 @@ public async Task<PositionDetailDto> CreatePositionAsync(PositionCreateDto input
 
 | 现象 | 先看哪一段 |
 | --- | --- |
-| 401 且刷新也救不回来 | ⑯ 会话闸门：会话是否被撤销/过期 |
-| 423 | ⑯ 锁屏，不是认证问题 |
-| 403 但权限码明明有 | ⑰ 版本门控 / 作用侧 / 模仿登录禁用清单 / 用户直授 Deny |
+| 401 且刷新也救不回来 | ⑰ 会话闸门：会话是否被撤销/过期 |
+| 423 | ⑰ 锁屏，不是认证问题 |
+| 403 但权限码明明有 | ⑱ 版本门控 / 作用侧 / 模仿登录禁用清单 / 用户直授 Deny |
 | 查得到别的租户数据 | ⑮ 租户解析是否成功；实体是否漏了多租户基类 |
 | 时间差几小时 | 请求有没有带 `X-Timezone`；存储侧是否为 UTC |
 | 客户端 IP 全是网关 IP | ① 转发头配置 |
