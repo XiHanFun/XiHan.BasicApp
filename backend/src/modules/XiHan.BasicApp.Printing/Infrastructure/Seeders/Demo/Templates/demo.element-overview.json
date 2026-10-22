@@ -1,0 +1,1875 @@
+{
+  "schemaVersion": 1,
+  "pages": [
+    {
+      "id": "overview-codes",
+      "paper": {
+        "preset": "A4",
+        "width": 210,
+        "height": 297
+      },
+      "orientation": "portrait",
+      "margins": {
+        "top": 12,
+        "right": 12,
+        "bottom": 12,
+        "left": 12
+      },
+      "header": {
+        "default": {
+          "height": 10,
+          "elements": [
+            {
+              "id": "header-running",
+              "type": "text",
+              "x": 12,
+              "y": 12,
+              "width": 186,
+              "height": 6,
+              "content": {
+                "kind": "template",
+                "template": "打印元素总览 · {{documentNo}}"
+              },
+              "style": {
+                "fontSize": 8,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#666666",
+                "align": "left",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "wrap": false,
+              "overflow": "clip",
+              "rotation": 0
+            }
+          ]
+        },
+        "singleSheet": "first",
+        "first": {
+          "height": 22,
+          "elements": [
+            {
+              "id": "header-logo",
+              "type": "image",
+              "x": 12,
+              "y": 13,
+              "width": 16,
+              "height": 16,
+              "source": {
+                "kind": "field",
+                "field": "logo"
+              },
+              "fit": "contain",
+              "rotation": 0
+            },
+            {
+              "id": "header-title",
+              "type": "text",
+              "x": 30,
+              "y": 13,
+              "width": 150,
+              "height": 9,
+              "content": {
+                "kind": "static",
+                "text": "打印元素总览"
+              },
+              "style": {
+                "fontSize": 16,
+                "bold": true,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#000000",
+                "align": "left",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "wrap": false,
+              "overflow": "clip",
+              "rotation": 0
+            },
+            {
+              "id": "header-no",
+              "type": "text",
+              "x": 30,
+              "y": 23,
+              "width": 150,
+              "height": 6,
+              "content": {
+                "kind": "template",
+                "template": "单据编号 {{documentNo}} · 首页页眉"
+              },
+              "style": {
+                "fontSize": 8,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#666666",
+                "align": "left",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "wrap": false,
+              "overflow": "clip",
+              "rotation": 0
+            }
+          ]
+        },
+        "odd": {
+          "height": 10,
+          "elements": [
+            {
+              "id": "header-odd",
+              "type": "text",
+              "x": 12,
+              "y": 12,
+              "width": 186,
+              "height": 6,
+              "content": {
+                "kind": "template",
+                "template": "奇数页页眉 · {{documentNo}}"
+              },
+              "style": {
+                "fontSize": 8,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#666666",
+                "align": "right",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "wrap": false,
+              "overflow": "clip",
+              "rotation": 0
+            }
+          ]
+        },
+        "even": {
+          "height": 10,
+          "elements": [
+            {
+              "id": "header-even",
+              "type": "text",
+              "x": 12,
+              "y": 12,
+              "width": 186,
+              "height": 6,
+              "content": {
+                "kind": "template",
+                "template": "偶数页页眉 · {{customerName}}"
+              },
+              "style": {
+                "fontSize": 8,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#666666",
+                "align": "left",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "wrap": false,
+              "overflow": "clip",
+              "rotation": 0
+            }
+          ]
+        }
+      },
+      "footer": {
+        "default": {
+          "height": 8,
+          "elements": [
+            {
+              "id": "footer-page",
+              "type": "pageNumber",
+              "x": 80,
+              "y": 278,
+              "width": 50,
+              "height": 6,
+              "format": "第 {{$page}} 页 / 共 {{$pages}} 页",
+              "style": {
+                "fontSize": 9,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#000000",
+                "align": "center",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              }
+            }
+          ]
+        },
+        "singleSheet": "last"
+      },
+      "elements": [
+        {
+          "id": "section-text",
+          "type": "text",
+          "x": 12,
+          "y": 36,
+          "width": 186,
+          "height": 7,
+          "content": {
+            "kind": "static",
+            "text": "文字"
+          },
+          "style": {
+            "fontSize": 11,
+            "bold": true,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#1f4e79",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "text-static",
+          "type": "text",
+          "x": 12,
+          "y": 45,
+          "width": 60,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "固定文字"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0,
+          "box": {
+            "border": {
+              "top": {
+                "width": 0.2,
+                "style": "solid",
+                "color": "#999999"
+              },
+              "right": {
+                "width": 0.2,
+                "style": "solid",
+                "color": "#999999"
+              },
+              "bottom": {
+                "width": 0.2,
+                "style": "solid",
+                "color": "#999999"
+              },
+              "left": {
+                "width": 0.2,
+                "style": "solid",
+                "color": "#999999"
+              }
+            },
+            "padding": {
+              "top": 0.5,
+              "right": 1,
+              "bottom": 0.5,
+              "left": 1
+            }
+          }
+        },
+        {
+          "id": "text-field",
+          "type": "text",
+          "x": 76,
+          "y": 45,
+          "width": 60,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "customerName"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": true,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "text-date",
+          "type": "text",
+          "x": 140,
+          "y": 45,
+          "width": 58,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "createdTime",
+            "format": {
+              "kind": "date",
+              "pattern": "yyyy年M月d日 HH:mm"
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "right",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "text-template",
+          "type": "text",
+          "x": 12,
+          "y": 55,
+          "width": 90,
+          "height": 8,
+          "content": {
+            "kind": "template",
+            "template": "{{title}}（{{documentNo}}）"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "shrink",
+          "rotation": 0
+        },
+        {
+          "id": "text-expression",
+          "type": "text",
+          "x": 106,
+          "y": 55,
+          "width": 92,
+          "height": 8,
+          "content": {
+            "kind": "expression",
+            "expression": "COUNT(items)",
+            "format": {
+              "kind": "numeral",
+              "style": "cn-upper"
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": true,
+            "underline": true,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "text-rotated",
+          "type": "text",
+          "x": 12,
+          "y": 65,
+          "width": 40,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "旋转 15°"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#c0392b",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 15
+        },
+        {
+          "id": "text-preview-only",
+          "type": "text",
+          "x": 60,
+          "y": 65,
+          "width": 138,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "这一行只在预览中显示，打印时不出现"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": true,
+            "color": "#999999",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0,
+          "previewOnly": true
+        },
+        {
+          "id": "long-text",
+          "type": "longText",
+          "x": 12,
+          "y": 75,
+          "width": 186,
+          "height": 12,
+          "content": {
+            "kind": "static",
+            "text": "长文本随内容纵向延展、可跨页续排：适合合同条款、说明与备注。这里用固定文字演示，字段与模板写法同普通文字。"
+          },
+          "style": {
+            "fontSize": 9,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "top",
+            "lineHeight": 1.5,
+            "letterSpacing": 0
+          }
+        },
+        {
+          "id": "rich-text",
+          "type": "richText",
+          "x": 12,
+          "y": 90,
+          "width": 186,
+          "height": 14,
+          "content": {
+            "kind": "static",
+            "document": {
+              "blocks": [
+                {
+                  "type": "paragraph",
+                  "runs": [
+                    {
+                      "type": "text",
+                      "text": "富文本："
+                    },
+                    {
+                      "type": "text",
+                      "text": "粗体",
+                      "marks": {
+                        "bold": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": "、"
+                    },
+                    {
+                      "type": "text",
+                      "text": "彩色",
+                      "marks": {
+                        "color": "#c0392b"
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": "，以及行内字段 "
+                    },
+                    {
+                      "type": "field",
+                      "field": "customerName",
+                      "marks": {
+                        "underline": true
+                      }
+                    },
+                    {
+                      "type": "text",
+                      "text": "。"
+                    }
+                  ]
+                }
+              ]
+            }
+          },
+          "style": {
+            "fontSize": 9,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "top",
+            "lineHeight": 1.5,
+            "letterSpacing": 0
+          }
+        },
+        {
+          "id": "section-image",
+          "type": "text",
+          "x": 12,
+          "y": 108,
+          "width": 186,
+          "height": 7,
+          "content": {
+            "kind": "static",
+            "text": "图片"
+          },
+          "style": {
+            "fontSize": 11,
+            "bold": true,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#1f4e79",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "image-field",
+          "type": "image",
+          "x": 12,
+          "y": 117,
+          "width": 24,
+          "height": 24,
+          "source": {
+            "kind": "field",
+            "field": "logo"
+          },
+          "fit": "contain",
+          "rotation": 0
+        },
+        {
+          "id": "image-static",
+          "type": "image",
+          "x": 42,
+          "y": 117,
+          "width": 36,
+          "height": 24,
+          "source": {
+            "kind": "static",
+            "url": "/favicon.png"
+          },
+          "fit": "cover",
+          "rotation": 0
+        },
+        {
+          "id": "image-fill",
+          "type": "image",
+          "x": 84,
+          "y": 117,
+          "width": 36,
+          "height": 24,
+          "source": {
+            "kind": "static",
+            "url": "/favicon.png"
+          },
+          "fit": "fill",
+          "rotation": 0
+        },
+        {
+          "id": "caption-image-field",
+          "type": "text",
+          "x": 12,
+          "y": 142,
+          "width": 24,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "字段 · 完整显示"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "caption-image-static",
+          "type": "text",
+          "x": 42,
+          "y": 142,
+          "width": 36,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "固定地址 · 铺满裁切"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "caption-image-fill",
+          "type": "text",
+          "x": 84,
+          "y": 142,
+          "width": 36,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "拉伸铺满"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "section-barcode",
+          "type": "text",
+          "x": 12,
+          "y": 150,
+          "width": 186,
+          "height": 7,
+          "content": {
+            "kind": "static",
+            "text": "条码"
+          },
+          "style": {
+            "fontSize": 11,
+            "bold": true,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#1f4e79",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "barcode-code128",
+          "type": "barCode",
+          "x": 12,
+          "y": 159,
+          "width": 44,
+          "height": 18,
+          "format": "code128",
+          "content": {
+            "kind": "field",
+            "field": "barcode"
+          },
+          "showText": true,
+          "textStyle": {
+            "fontSize": 9
+          },
+          "color": "#000000",
+          "rotation": 0
+        },
+        {
+          "id": "caption-barcode-code128",
+          "type": "text",
+          "x": 12,
+          "y": 178,
+          "width": 44,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "Code 128（字段）"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "barcode-ean13",
+          "type": "barCode",
+          "x": 59,
+          "y": 159,
+          "width": 44,
+          "height": 18,
+          "format": "ean13",
+          "content": {
+            "kind": "static",
+            "text": "6901234567892"
+          },
+          "showText": true,
+          "textStyle": {
+            "fontSize": 9
+          },
+          "color": "#000000",
+          "rotation": 0
+        },
+        {
+          "id": "caption-barcode-ean13",
+          "type": "text",
+          "x": 59,
+          "y": 178,
+          "width": 44,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "EAN-13"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "barcode-ean8",
+          "type": "barCode",
+          "x": 106,
+          "y": 159,
+          "width": 44,
+          "height": 18,
+          "format": "ean8",
+          "content": {
+            "kind": "static",
+            "text": "96385074"
+          },
+          "showText": true,
+          "textStyle": {
+            "fontSize": 9
+          },
+          "color": "#000000",
+          "rotation": 0
+        },
+        {
+          "id": "caption-barcode-ean8",
+          "type": "text",
+          "x": 106,
+          "y": 178,
+          "width": 44,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "EAN-8"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "barcode-upca",
+          "type": "barCode",
+          "x": 153,
+          "y": 159,
+          "width": 44,
+          "height": 18,
+          "format": "upca",
+          "content": {
+            "kind": "static",
+            "text": "036000291452"
+          },
+          "showText": true,
+          "textStyle": {
+            "fontSize": 9
+          },
+          "color": "#000000",
+          "rotation": 0
+        },
+        {
+          "id": "caption-barcode-upca",
+          "type": "text",
+          "x": 153,
+          "y": 178,
+          "width": 44,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "UPC-A"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "barcode-upce",
+          "type": "barCode",
+          "x": 12,
+          "y": 186,
+          "width": 44,
+          "height": 18,
+          "format": "upce",
+          "content": {
+            "kind": "static",
+            "text": "01234565"
+          },
+          "showText": true,
+          "textStyle": {
+            "fontSize": 9
+          },
+          "color": "#000000",
+          "rotation": 0
+        },
+        {
+          "id": "caption-barcode-upce",
+          "type": "text",
+          "x": 12,
+          "y": 205,
+          "width": 44,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "UPC-E"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "barcode-itf14",
+          "type": "barCode",
+          "x": 59,
+          "y": 186,
+          "width": 44,
+          "height": 18,
+          "format": "itf14",
+          "content": {
+            "kind": "static",
+            "text": "15400141288763"
+          },
+          "showText": true,
+          "textStyle": {
+            "fontSize": 9
+          },
+          "color": "#000000",
+          "rotation": 0
+        },
+        {
+          "id": "caption-barcode-itf14",
+          "type": "text",
+          "x": 59,
+          "y": 205,
+          "width": 44,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "ITF-14"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "barcode-code39",
+          "type": "barCode",
+          "x": 106,
+          "y": 186,
+          "width": 44,
+          "height": 18,
+          "format": "code39",
+          "content": {
+            "kind": "static",
+            "text": "XIHAN-39"
+          },
+          "showText": true,
+          "textStyle": {
+            "fontSize": 9
+          },
+          "color": "#000000",
+          "rotation": 0
+        },
+        {
+          "id": "caption-barcode-code39",
+          "type": "text",
+          "x": 106,
+          "y": 205,
+          "width": 44,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "Code 39"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "section-matrix",
+          "type": "text",
+          "x": 12,
+          "y": 214,
+          "width": 186,
+          "height": 7,
+          "content": {
+            "kind": "static",
+            "text": "二维码"
+          },
+          "style": {
+            "fontSize": 11,
+            "bold": true,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#1f4e79",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "matrix-qr",
+          "type": "matrixCode",
+          "x": 12,
+          "y": 223,
+          "width": 25,
+          "height": 25,
+          "format": "qr",
+          "content": {
+            "kind": "field",
+            "field": "qrCode"
+          },
+          "level": "Q",
+          "color": "#000000",
+          "quietZone": 1,
+          "rotation": 0
+        },
+        {
+          "id": "caption-matrix-qr",
+          "type": "text",
+          "x": 12,
+          "y": 249,
+          "width": 25,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "QR（字段）"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "matrix-data-matrix",
+          "type": "matrixCode",
+          "x": 45,
+          "y": 223,
+          "width": 25,
+          "height": 25,
+          "format": "data-matrix",
+          "content": {
+            "kind": "static",
+            "text": "XIHAN-DM-2026"
+          },
+          "color": "#000000",
+          "quietZone": 1,
+          "rotation": 0
+        },
+        {
+          "id": "caption-matrix-data-matrix",
+          "type": "text",
+          "x": 45,
+          "y": 249,
+          "width": 25,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "Data Matrix"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "matrix-pdf417",
+          "type": "matrixCode",
+          "x": 78,
+          "y": 223,
+          "width": 48,
+          "height": 25,
+          "format": "pdf417",
+          "content": {
+            "kind": "static",
+            "text": "XiHan BasicApp PDF417"
+          },
+          "level": 2,
+          "color": "#000000",
+          "quietZone": 1,
+          "rotation": 0
+        },
+        {
+          "id": "caption-matrix-pdf417",
+          "type": "text",
+          "x": 78,
+          "y": 249,
+          "width": 48,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "PDF417"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "matrix-aztec",
+          "type": "matrixCode",
+          "x": 134,
+          "y": 223,
+          "width": 25,
+          "height": 25,
+          "format": "aztec",
+          "content": {
+            "kind": "static",
+            "text": "XIHAN-AZTEC"
+          },
+          "level": 23,
+          "color": "#000000",
+          "quietZone": 1,
+          "rotation": 0
+        },
+        {
+          "id": "caption-matrix-aztec",
+          "type": "text",
+          "x": 134,
+          "y": 249,
+          "width": 25,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "Aztec"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        }
+      ],
+      "numbering": {
+        "continuous": true,
+        "start": 1
+      },
+      "watermark": {
+        "text": "{{customerName}} · 仅供演示",
+        "fontSize": 14,
+        "color": "#999999",
+        "opacity": 0.1,
+        "rotation": 30,
+        "gapX": 30,
+        "gapY": 30
+      }
+    },
+    {
+      "id": "overview-layout",
+      "paper": {
+        "preset": "A4",
+        "width": 210,
+        "height": 297
+      },
+      "orientation": "portrait",
+      "margins": {
+        "top": 12,
+        "right": 12,
+        "bottom": 12,
+        "left": 12
+      },
+      "header": {
+        "default": {
+          "height": 10,
+          "elements": [
+            {
+              "id": "header-running-2",
+              "type": "text",
+              "x": 12,
+              "y": 12,
+              "width": 186,
+              "height": 6,
+              "content": {
+                "kind": "template",
+                "template": "打印元素总览 · {{documentNo}}"
+              },
+              "style": {
+                "fontSize": 8,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#666666",
+                "align": "left",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "wrap": false,
+              "overflow": "clip",
+              "rotation": 0
+            }
+          ]
+        },
+        "singleSheet": "first",
+        "odd": {
+          "height": 10,
+          "elements": [
+            {
+              "id": "header-odd-2",
+              "type": "text",
+              "x": 12,
+              "y": 12,
+              "width": 186,
+              "height": 6,
+              "content": {
+                "kind": "template",
+                "template": "奇数页页眉 · {{documentNo}}"
+              },
+              "style": {
+                "fontSize": 8,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#666666",
+                "align": "right",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "wrap": false,
+              "overflow": "clip",
+              "rotation": 0
+            }
+          ]
+        },
+        "even": {
+          "height": 10,
+          "elements": [
+            {
+              "id": "header-even-2",
+              "type": "text",
+              "x": 12,
+              "y": 12,
+              "width": 186,
+              "height": 6,
+              "content": {
+                "kind": "template",
+                "template": "偶数页页眉 · {{customerName}}"
+              },
+              "style": {
+                "fontSize": 8,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#666666",
+                "align": "left",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "wrap": false,
+              "overflow": "clip",
+              "rotation": 0
+            }
+          ]
+        }
+      },
+      "footer": {
+        "default": {
+          "height": 8,
+          "elements": [
+            {
+              "id": "footer-page-roman",
+              "type": "pageNumber",
+              "x": 80,
+              "y": 278,
+              "width": 50,
+              "height": 6,
+              "format": "第 {{$page}} 页 / 共 {{$pages}} 页",
+              "style": {
+                "fontSize": 9,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#000000",
+                "align": "center",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "numeral": "roman-upper"
+            }
+          ]
+        },
+        "singleSheet": "last",
+        "last": {
+          "height": 8,
+          "elements": [
+            {
+              "id": "footer-page-last",
+              "type": "pageNumber",
+              "x": 70,
+              "y": 278,
+              "width": 70,
+              "height": 6,
+              "format": "末页 · 第 {{$page}} 页 / 共 {{$pages}} 页",
+              "style": {
+                "fontSize": 9,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#000000",
+                "align": "center",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "numeral": "cn-upper"
+            }
+          ]
+        }
+      },
+      "elements": [
+        {
+          "id": "section-shape",
+          "type": "text",
+          "x": 12,
+          "y": 24,
+          "width": 186,
+          "height": 7,
+          "content": {
+            "kind": "static",
+            "text": "图形"
+          },
+          "style": {
+            "fontSize": 11,
+            "bold": true,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#1f4e79",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "line-horizontal",
+          "type": "line",
+          "x": 12,
+          "y": 40,
+          "width": 40,
+          "height": 0,
+          "direction": "horizontal",
+          "stroke": {
+            "width": 0.3,
+            "style": "solid",
+            "color": "#000000"
+          }
+        },
+        {
+          "id": "line-dashed",
+          "type": "line",
+          "x": 12,
+          "y": 48,
+          "width": 40,
+          "height": 0,
+          "direction": "horizontal",
+          "stroke": {
+            "width": 0.5,
+            "style": "dashed",
+            "color": "#1f4e79"
+          }
+        },
+        {
+          "id": "line-vertical",
+          "type": "line",
+          "x": 60,
+          "y": 33,
+          "width": 0,
+          "height": 22,
+          "direction": "vertical",
+          "stroke": {
+            "width": 0.3,
+            "style": "solid",
+            "color": "#000000"
+          }
+        },
+        {
+          "id": "line-diagonal-down",
+          "type": "line",
+          "x": 68,
+          "y": 33,
+          "width": 22,
+          "height": 22,
+          "direction": "diagonalDown",
+          "stroke": {
+            "width": 0.3,
+            "style": "solid",
+            "color": "#000000"
+          }
+        },
+        {
+          "id": "line-diagonal-up",
+          "type": "line",
+          "x": 96,
+          "y": 33,
+          "width": 22,
+          "height": 22,
+          "direction": "diagonalUp",
+          "stroke": {
+            "width": 0.3,
+            "style": "dotted",
+            "color": "#c0392b"
+          }
+        },
+        {
+          "id": "rect",
+          "type": "rect",
+          "x": 126,
+          "y": 33,
+          "width": 32,
+          "height": 22,
+          "stroke": {
+            "width": 0.3,
+            "style": "solid",
+            "color": "#000000"
+          },
+          "radius": 3,
+          "rotation": 0,
+          "fill": "#eaf2f8"
+        },
+        {
+          "id": "ellipse",
+          "type": "ellipse",
+          "x": 166,
+          "y": 33,
+          "width": 32,
+          "height": 22,
+          "stroke": {
+            "width": 0.4,
+            "style": "solid",
+            "color": "#e67e22"
+          },
+          "rotation": 0,
+          "fill": "#fdebd0"
+        },
+        {
+          "id": "caption-line",
+          "type": "text",
+          "x": 12,
+          "y": 56,
+          "width": 106,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "直线：水平、虚线、竖直、左上到右下、左下到右上"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "caption-rect",
+          "type": "text",
+          "x": 126,
+          "y": 56,
+          "width": 32,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "圆角矩形"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "caption-ellipse",
+          "type": "text",
+          "x": 166,
+          "y": 56,
+          "width": 32,
+          "height": 5,
+          "content": {
+            "kind": "static",
+            "text": "椭圆"
+          },
+          "style": {
+            "fontSize": 7.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "center",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "section-table",
+          "type": "text",
+          "x": 12,
+          "y": 66,
+          "width": 186,
+          "height": 7,
+          "content": {
+            "kind": "static",
+            "text": "表格"
+          },
+          "style": {
+            "fontSize": 11,
+            "bold": true,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#1f4e79",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "items",
+          "type": "table",
+          "x": 12,
+          "y": 75,
+          "width": 186,
+          "height": 22,
+          "dataField": "items",
+          "columns": [
+            {
+              "id": "no",
+              "title": "序号",
+              "width": 14,
+              "align": "center",
+              "content": {
+                "kind": "rowNumber"
+              },
+              "cellType": "text"
+            },
+            {
+              "id": "sku",
+              "title": "物料编码",
+              "width": 30,
+              "align": "left",
+              "content": {
+                "kind": "field",
+                "field": "sku"
+              },
+              "cellType": "text"
+            },
+            {
+              "id": "name",
+              "title": "物料名称",
+              "width": 52,
+              "align": "left",
+              "content": {
+                "kind": "field",
+                "field": "name"
+              },
+              "cellType": "text"
+            },
+            {
+              "id": "quantity",
+              "title": "数量",
+              "width": 22,
+              "align": "right",
+              "content": {
+                "kind": "field",
+                "field": "quantity",
+                "format": {
+                  "kind": "number",
+                  "decimals": 0
+                }
+              },
+              "cellType": "text"
+            },
+            {
+              "id": "unit",
+              "title": "单位",
+              "width": 18,
+              "align": "center",
+              "content": {
+                "kind": "field",
+                "field": "unit"
+              },
+              "cellType": "text"
+            },
+            {
+              "id": "code",
+              "title": "物料条码",
+              "width": 50,
+              "align": "center",
+              "content": {
+                "kind": "field",
+                "field": "sku"
+              },
+              "cellType": "barCode",
+              "barCodeFormat": "code128"
+            }
+          ],
+          "header": {
+            "visible": true,
+            "repeat": true,
+            "height": 8,
+            "style": {
+              "fontSize": 10.5,
+              "bold": true,
+              "italic": false,
+              "color": "#000000",
+              "verticalAlign": "middle",
+              "padding": 1,
+              "lineHeight": 4.5,
+              "align": "center"
+            }
+          },
+          "body": {
+            "rowHeight": 12,
+            "rowHeightMode": "fixed",
+            "style": {
+              "fontSize": 10.5,
+              "bold": false,
+              "italic": false,
+              "color": "#000000",
+              "verticalAlign": "middle",
+              "padding": 1,
+              "lineHeight": 4.5
+            }
+          },
+          "footerRows": [
+            {
+              "id": "total",
+              "placement": "lastPage",
+              "height": 7,
+              "style": {
+                "fontSize": 10.5,
+                "bold": true,
+                "italic": false,
+                "color": "#000000",
+                "verticalAlign": "middle",
+                "padding": 1,
+                "lineHeight": 4.5
+              },
+              "cells": [
+                {
+                  "columnId": "no",
+                  "colSpan": 3,
+                  "content": {
+                    "kind": "static",
+                    "text": "合计"
+                  },
+                  "align": "right"
+                },
+                {
+                  "columnId": "quantity",
+                  "colSpan": 1,
+                  "content": {
+                    "kind": "aggregate",
+                    "fn": "sum",
+                    "field": "quantity",
+                    "scope": "all"
+                  }
+                },
+                {
+                  "columnId": "unit",
+                  "colSpan": 2,
+                  "content": {
+                    "kind": "static",
+                    "text": "（不足 6 行用空行补齐）"
+                  },
+                  "align": "left"
+                }
+              ]
+            }
+          ],
+          "fillEmptyRows": true,
+          "border": {
+            "stroke": {
+              "width": 0.2,
+              "style": "solid",
+              "color": "#000000"
+            },
+            "outer": true,
+            "horizontal": true,
+            "vertical": true
+          },
+          "maxRowsPerPage": 6
+        }
+      ],
+      "numbering": {
+        "continuous": true,
+        "start": 1
+      },
+      "watermark": {
+        "text": "{{customerName}} · 仅供演示",
+        "fontSize": 14,
+        "color": "#999999",
+        "opacity": 0.1,
+        "rotation": 30,
+        "gapX": 30,
+        "gapY": 30
+      }
+    }
+  ],
+  "name": "打印元素总览"
+}

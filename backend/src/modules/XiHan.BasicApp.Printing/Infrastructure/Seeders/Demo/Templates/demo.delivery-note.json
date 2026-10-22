@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "pages": [
+    {
+      "id": "delivery",
+      "paper": {
+        "preset": "A5",
+        "width": 148,
+        "height": 210
+      },
+      "orientation": "landscape",
+      "margins": {
+        "top": 10,
+        "right": 10,
+        "bottom": 10,
+        "left": 10
+      },
+      "header": {
+        "default": {
+          "height": 14,
+          "elements": [
+            {
+              "id": "title",
+              "type": "text",
+              "x": 10,
+              "y": 12,
+              "width": 190,
+              "height": 10,
+              "content": {
+                "kind": "static",
+                "text": "送货单"
+              },
+              "style": {
+                "fontSize": 16,
+                "bold": true,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#000000",
+                "align": "center",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              },
+              "wrap": false,
+              "overflow": "clip",
+              "rotation": 0
+            }
+          ]
+        },
+        "singleSheet": "first"
+      },
+      "footer": {
+        "default": {
+          "height": 8,
+          "elements": [
+            {
+              "id": "page-number",
+              "type": "pageNumber",
+              "x": 80,
+              "y": 131,
+              "width": 50,
+              "height": 6,
+              "format": "第 {{$page}} 页 / 共 {{$pages}} 页",
+              "style": {
+                "fontSize": 9,
+                "bold": false,
+                "italic": false,
+                "underline": false,
+                "lineThrough": false,
+                "color": "#000000",
+                "align": "center",
+                "verticalAlign": "middle",
+                "lineHeight": 1.2,
+                "letterSpacing": 0
+              }
+            }
+          ]
+        },
+        "singleSheet": "last"
+      },
+      "elements": [
+        {
+          "id": "customer",
+          "type": "text",
+          "x": 10,
+          "y": 26,
+          "width": 120,
+          "height": 8,
+          "content": {
+            "kind": "template",
+            "template": "客户：{{customer.name}}"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "date",
+          "type": "text",
+          "x": 140,
+          "y": 26,
+          "width": 60,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "date",
+            "format": {
+              "kind": "date",
+              "pattern": "yyyy年M月d日"
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "right",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "items",
+          "type": "table",
+          "x": 10,
+          "y": 36,
+          "width": 190,
+          "height": 22,
+          "dataField": "items",
+          "columns": [
+            {
+              "id": "no",
+              "title": "序号",
+              "width": 14,
+              "align": "center",
+              "content": {
+                "kind": "rowNumber"
+              },
+              "cellType": "text"
+            },
+            {
+              "id": "name",
+              "title": "品名",
+              "width": 80,
+              "align": "left",
+              "content": {
+                "kind": "field",
+                "field": "name"
+              },
+              "cellType": "text"
+            },
+            {
+              "id": "qty",
+              "title": "数量",
+              "width": 28,
+              "align": "right",
+              "content": {
+                "kind": "field",
+                "field": "qty"
+              },
+              "cellType": "text"
+            },
+            {
+              "id": "price",
+              "title": "单价",
+              "width": 34,
+              "align": "right",
+              "content": {
+                "kind": "field",
+                "field": "price",
+                "format": {
+                  "kind": "number",
+                  "decimals": 2,
+                  "grouping": true
+                }
+              },
+              "cellType": "text"
+            },
+            {
+              "id": "amount",
+              "title": "金额",
+              "width": 34,
+              "align": "right",
+              "content": {
+                "kind": "field",
+                "field": "amount",
+                "format": {
+                  "kind": "number",
+                  "decimals": 2,
+                  "grouping": true
+                }
+              },
+              "cellType": "text"
+            }
+          ],
+          "header": {
+            "visible": true,
+            "repeat": true,
+            "height": 8,
+            "style": {
+              "fontSize": 10.5,
+              "bold": true,
+              "italic": false,
+              "color": "#000000",
+              "verticalAlign": "middle",
+              "padding": 1,
+              "lineHeight": 4.5,
+              "align": "center"
+            }
+          },
+          "body": {
+            "rowHeight": 7,
+            "rowHeightMode": "fixed",
+            "style": {
+              "fontSize": 10.5,
+              "bold": false,
+              "italic": false,
+              "color": "#000000",
+              "verticalAlign": "middle",
+              "padding": 1,
+              "lineHeight": 4.5
+            }
+          },
+          "footerRows": [
+            {
+              "id": "total",
+              "placement": "lastPage",
+              "height": 7,
+              "style": {
+                "fontSize": 10.5,
+                "bold": true,
+                "italic": false,
+                "color": "#000000",
+                "verticalAlign": "middle",
+                "padding": 1,
+                "lineHeight": 4.5
+              },
+              "cells": [
+                {
+                  "columnId": "no",
+                  "colSpan": 4,
+                  "content": {
+                    "kind": "static",
+                    "text": "合计"
+                  },
+                  "align": "right"
+                },
+                {
+                  "columnId": "amount",
+                  "colSpan": 1,
+                  "content": {
+                    "kind": "aggregate",
+                    "fn": "sum",
+                    "field": "amount",
+                    "scope": "all",
+                    "format": {
+                      "kind": "number",
+                      "decimals": 2,
+                      "grouping": true
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "fillEmptyRows": false,
+          "border": {
+            "stroke": {
+              "width": 0.2,
+              "style": "solid",
+              "color": "#000000"
+            },
+            "outer": true,
+            "horizontal": true,
+            "vertical": true
+          }
+        }
+      ],
+      "numbering": {
+        "continuous": true,
+        "start": 1
+      }
+    }
+  ],
+  "name": "送货单"
+}

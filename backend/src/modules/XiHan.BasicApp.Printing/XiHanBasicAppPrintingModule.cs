@@ -6,6 +6,7 @@ using XiHan.BasicApp.Printing.Domain.DataSources;
 using XiHan.Framework.Core.Application;
 using XiHan.BasicApp.Printing.Extensions;
 using XiHan.BasicApp.Saas;
+using XiHan.Framework.Core.Extensions.DependencyInjection;
 using XiHan.Framework.Core.Modularity;
 
 namespace XiHan.BasicApp.Printing;
@@ -37,6 +38,7 @@ public class XiHanBasicAppPrintingModule : XiHanModule
         services.AddPrintingApplicationServices();
         services.AddPrintingFieldSecurityEntities();
         services.AddPrintingDataSources();
+        services.AddPrintingDemoData(services.GetConfiguration());
     }
 
     /// <summary>

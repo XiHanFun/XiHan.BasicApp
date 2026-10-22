@@ -1,0 +1,624 @@
+{
+  "schemaVersion": 1,
+  "pages": [
+    {
+      "id": "formats",
+      "paper": {
+        "preset": "A6",
+        "width": 105,
+        "height": 148
+      },
+      "orientation": "landscape",
+      "margins": {
+        "top": 8,
+        "right": 8,
+        "bottom": 8,
+        "left": 8
+      },
+      "header": {
+        "default": {
+          "height": 0,
+          "elements": []
+        },
+        "singleSheet": "first"
+      },
+      "footer": {
+        "default": {
+          "height": 0,
+          "elements": []
+        },
+        "singleSheet": "last"
+      },
+      "elements": [
+        {
+          "id": "label-0",
+          "type": "text",
+          "x": 8,
+          "y": 8,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "数字"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-0",
+          "type": "text",
+          "x": 46,
+          "y": 8,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "amount",
+            "format": {
+              "kind": "number",
+              "decimals": 2,
+              "grouping": true
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "label-1",
+          "type": "text",
+          "x": 8,
+          "y": 16.5,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "百分比"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-1",
+          "type": "text",
+          "x": 46,
+          "y": 16.5,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "rate",
+            "format": {
+              "kind": "percent",
+              "decimals": 1
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "label-2",
+          "type": "text",
+          "x": 8,
+          "y": 25,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "日期"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-2",
+          "type": "text",
+          "x": 46,
+          "y": 25,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "signedAt",
+            "format": {
+              "kind": "date",
+              "pattern": "yyyy年M月d日 HH:mm"
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "label-3",
+          "type": "text",
+          "x": 8,
+          "y": 33.5,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "人民币大写"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-3",
+          "type": "text",
+          "x": 46,
+          "y": 33.5,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "paid",
+            "format": {
+              "kind": "rmb-upper"
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "label-4",
+          "type": "text",
+          "x": 8,
+          "y": 42,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "中文数字"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-4",
+          "type": "text",
+          "x": 46,
+          "y": 42,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "qty",
+            "format": {
+              "kind": "numeral",
+              "style": "cn-upper"
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "label-5",
+          "type": "text",
+          "x": 8,
+          "y": 50.5,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "值映射"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-5",
+          "type": "text",
+          "x": 46,
+          "y": 50.5,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "status",
+            "format": {
+              "kind": "map",
+              "entries": [
+                {
+                  "value": "pending",
+                  "label": "待发货"
+                },
+                {
+                  "value": "shipped",
+                  "label": "已发货"
+                }
+              ],
+              "fallback": "未知"
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "label-6",
+          "type": "text",
+          "x": 8,
+          "y": 59,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "表达式格式"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-6",
+          "type": "text",
+          "x": 46,
+          "y": 59,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "qty",
+            "format": {
+              "kind": "expression",
+              "expression": "IF(value >= 3, '多件', '单件')"
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "label-7",
+          "type": "text",
+          "x": 8,
+          "y": 67.5,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "空值"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-7",
+          "type": "text",
+          "x": 46,
+          "y": 67.5,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "field",
+            "field": "remark",
+            "emptyText": "无"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "label-8",
+          "type": "text",
+          "x": 8,
+          "y": 76,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "占位模板"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-8",
+          "type": "text",
+          "x": 46,
+          "y": 76,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "template",
+            "template": "{{customer.name}}（{{customer.city}}）"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "label-9",
+          "type": "text",
+          "x": 8,
+          "y": 84.5,
+          "width": 36,
+          "height": 8,
+          "content": {
+            "kind": "static",
+            "text": "表达式"
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#666666",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        },
+        {
+          "id": "value-9",
+          "type": "text",
+          "x": 46,
+          "y": 84.5,
+          "width": 94,
+          "height": 8,
+          "content": {
+            "kind": "expression",
+            "expression": "qty * price",
+            "format": {
+              "kind": "number",
+              "decimals": 2
+            }
+          },
+          "style": {
+            "fontSize": 10.5,
+            "bold": false,
+            "italic": false,
+            "underline": false,
+            "lineThrough": false,
+            "color": "#000000",
+            "align": "left",
+            "verticalAlign": "middle",
+            "lineHeight": 1.2,
+            "letterSpacing": 0
+          },
+          "wrap": false,
+          "overflow": "clip",
+          "rotation": 0
+        }
+      ],
+      "numbering": {
+        "continuous": true,
+        "start": 1
+      }
+    }
+  ],
+  "name": "格式示例"
+}
