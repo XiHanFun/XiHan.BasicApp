@@ -418,6 +418,7 @@ public sealed class TenantAccessAndSwitchTests
                 Mock.Of<ISaasConfigurationService>(),
                 tokenIssue.Object,
                 Mock.Of<IAuthEmailLoginCodeService>(),
+                Mock.Of<IAuthPhoneLoginCodeService>(),
                 Mock.Of<IImpersonationPolicyService>(),
                 Mock.Of<IProfileVerificationService>(),
                 Mock.Of<IMessageDeliveryService>(),

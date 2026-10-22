@@ -216,7 +216,7 @@ curl -X POST http://127.0.0.1:9708/api/Auth/Login \
 ```
 
 ::: tip 免密码的两条路
-邮箱验证码登录是两步：先 `POST /api/Auth/EmailLoginCode`（body `{"email":"a@b.com"}`，返回 `expiresInSeconds`，**开发环境**才回显 `debugCode`），再 `POST /api/Auth/EmailLogin`（body `{"email":"a@b.com","code":"123456"}`）直接拿到 `LoginTokenDto`。短信同理走 `PhoneLoginCode` / `PhoneLogin`。验证码 6 位、10 分钟、**一次性消费**（读取即销毁，无论成败）。
+邮箱验证码登录是两步：先 `POST /api/Auth/EmailLoginCode`（body `{"email":"a@b.com"}`，返回 `expiresInSeconds`，**开发环境**才回显 `debugCode`），再 `POST /api/Auth/EmailLogin`（body `{"email":"a@b.com","code":"123456"}`）直接拿到 `LoginTokenDto`。短信同理走 `PhoneLoginCode` / `PhoneLogin`（body 字段是 `phone`），前提是参数 `saas.auth.login` 的 `methods` 里有 `phone`、手机号已在账号上验证、短信网关已配置并启用且模板映射里有 `auth-sms-login-code`，否则发码接口直接报错。验证码 6 位、10 分钟、**一次性消费**（读取即销毁，无论成败）。
 :::
 
 ### 第 2 步：带令牌调接口

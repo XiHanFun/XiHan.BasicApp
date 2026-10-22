@@ -66,6 +66,27 @@ public sealed class UserRepository(
     }
 
     /// <summary>
+    /// 按手机号查账号（全平台范围）
+    /// </summary>
+    /// <remarks>
+    /// 手机号不要求唯一，可能查出多个账号，由调用方判定；账号可能归属任意租户，显式跨租户查找。
+    /// 平台态执行：账号注册表落在平台库，租户上下文下连接会被解析到该租户独立库（库隔离部署）。
+    /// </remarks>
+    /// <param name="phone">手机号（调用方已 Trim）</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    public async Task<IReadOnlyList<SysUser>> GetListByPhoneGloballyAsync(string phone, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(phone);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        using var platformScope = currentTenant.Change(null);
+
+        return await CreateNoTenantQueryable()
+            .Where(user => user.Phone == phone)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>
     /// 检查当前上下文注册的账号里用户名是否已被占用（租户里连带平台账号一起比对）
     /// </summary>
     public async Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default)

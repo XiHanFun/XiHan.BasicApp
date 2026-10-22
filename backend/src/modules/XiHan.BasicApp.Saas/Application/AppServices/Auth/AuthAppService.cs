@@ -76,6 +76,8 @@ public sealed partial class AuthAppService
 
     private readonly IAuthEmailLoginCodeService _emailLoginCodeService;
 
+    private readonly IAuthPhoneLoginCodeService _phoneLoginCodeService;
+
     private readonly IImpersonationPolicyService _impersonationPolicyService;
 
     private readonly IProfileVerificationService _profileVerificationService;
@@ -149,6 +151,7 @@ public sealed partial class AuthAppService
         ISaasConfigurationService saasConfigurationService,
         IAuthTokenIssueService authTokenIssueService,
         IAuthEmailLoginCodeService emailLoginCodeService,
+        IAuthPhoneLoginCodeService phoneLoginCodeService,
         IImpersonationPolicyService impersonationPolicyService,
         IProfileVerificationService profileVerificationService,
         IMessageDeliveryService messageDeliveryService,
@@ -191,6 +194,7 @@ public sealed partial class AuthAppService
         _saasConfigurationService = saasConfigurationService;
         _authTokenIssueService = authTokenIssueService;
         _emailLoginCodeService = emailLoginCodeService;
+        _phoneLoginCodeService = phoneLoginCodeService;
         _impersonationPolicyService = impersonationPolicyService;
         _profileVerificationService = profileVerificationService;
         _messageDeliveryService = messageDeliveryService;
@@ -788,6 +792,98 @@ public sealed partial class AuthAppService
     }
 
     /// <summary>
+    /// 发送手机号登录验证码
+    /// </summary>
+    /// <param name="input">手机号登录验证码请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>验证码下发结果</returns>
+    [AllowAnonymous]
+    [UnitOfWork(true)]
+    public async Task<VerificationCodeResultDto> PhoneLoginCodeAsync(PhoneLoginCodeRequestDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var phone = NormalizeRequired(input.Phone, "手机号不能为空。", 20, "手机号不能超过 20 个字符。");
+        var now = DateTimeOffset.UtcNow;
+
+        await EnsurePhoneLoginEnabledAsync(cancellationToken);
+
+        // 频率限制（手机号+IP）：防刷验证码
+        await EnsureNotRateLimitedAsync("phone-code", phone, cancellationToken);
+
+        // 先登录后选租户：平台态按已验证的手机号定位用户，短信网关取平台默认
+        using var platformScope = _currentTenant.Change(null);
+
+        // 复用手机号登录的用户定位与账号可用性校验，确保仅向有效账号下发验证码
+        var authResult = await _authenticationDomainService.AuthenticatePhoneLoginAsync(phone, tenantId: null, now, cancellationToken);
+        if (!authResult.Succeeded)
+        {
+            throw new InvalidOperationException(authResult.ErrorMessage ?? "手机号不可用。");
+        }
+
+        var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
+        var code = await _phoneLoginCodeService.IssueAndSendAsync(phone, user.BasicId, cancellationToken);
+
+        return new VerificationCodeResultDto
+        {
+            ExpiresInSeconds = _phoneLoginCodeService.ExpiresInSeconds,
+            // 仅开发环境回显验证码便于本地联调；生产绝不回显
+            DebugCode = _webHostEnvironment.IsDevelopment() ? code : null
+        };
+    }
+
+    /// <summary>
+    /// 手机号验证码登录
+    /// </summary>
+    /// <param name="input">手机号验证码登录请求</param>
+    /// <param name="cancellationToken">取消令牌</param>
+    /// <returns>登录令牌</returns>
+    [AllowAnonymous]
+    [UnitOfWork(true)]
+    public async Task<LoginTokenDto> PhoneLoginAsync(PhoneLoginRequestDto input, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var phone = NormalizeRequired(input.Phone, "手机号不能为空。", 20, "手机号不能超过 20 个字符。");
+        var code = NormalizeRequired(input.Code, "验证码不能为空。", 12, "验证码格式无效。");
+        var now = DateTimeOffset.UtcNow;
+
+        await EnsurePhoneLoginEnabledAsync(cancellationToken);
+
+        // 先登录后选租户：平台态验证 + 智能落点
+        using var platformScope = _currentTenant.Change(null);
+
+        if (!await _phoneLoginCodeService.TryConsumeAsync(phone, code, cancellationToken))
+        {
+            throw new InvalidOperationException("验证码无效或已过期。");
+        }
+
+        var authResult = await _authenticationDomainService.AuthenticatePhoneLoginAsync(phone, tenantId: null, now, cancellationToken);
+        if (!authResult.Succeeded)
+        {
+            var clientForFailure = _clientInfoProvider.GetCurrent();
+            await _localEventBus.PublishAsync(
+                new AuthLoginFailedDomainEvent(
+                    null,
+                    authResult.User?.BasicId,
+                    phone,
+                    authResult.FailureResult,
+                    authResult.ErrorMessage,
+                    now,
+                    _traceIdProvider.GetCurrentTraceId(),
+                    clientForFailure.IpAddress,
+                    clientForFailure.UserAgent,
+                    input.DeviceId));
+            throw new InvalidOperationException(authResult.ErrorMessage ?? "手机号或验证码错误。");
+        }
+
+        var user = authResult.User ?? throw new InvalidOperationException("认证用户不存在。");
+        return await IssueLoginTokenWithLandingAsync(user, authResult.Security, user.UserName, input.DeviceId, now, initialLockReason: null, cancellationToken);
+    }
+
+    /// <summary>
     /// 切换租户 / 进入平台：在目标上下文里续接会话并签发访问令牌
     /// </summary>
     /// <remarks>
@@ -1369,6 +1465,18 @@ public sealed partial class AuthAppService
         }
 
         return SessionLockReasons.PasswordChangeRequired;
+    }
+
+    /// <summary>
+    /// 登录设置没开放手机号登录时拒绝：登录页按同一份设置决定是否显示入口，这里防直接调接口
+    /// </summary>
+    private async Task EnsurePhoneLoginEnabledAsync(CancellationToken cancellationToken)
+    {
+        var loginConfig = await _saasConfigurationService.GetLoginConfigAsync(cancellationToken);
+        if (!loginConfig.LoginMethods.Contains(SaasLoginMethods.Phone, StringComparer.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("未开放手机号登录。");
+        }
     }
 
     private async Task EnsureNotRateLimitedAsync(string scope, string email, CancellationToken cancellationToken)

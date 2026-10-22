@@ -29,6 +29,14 @@ public interface IUserRepository : ISaasAggregateRepository<SysUser>
     Task<SysUser?> GetByEmailGloballyAsync(string email, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// 按手机号查账号（全平台范围）
+    /// </summary>
+    /// <remarks>
+    /// 手机号不要求唯一，可能查出多个账号，由调用方判定；账号可能归属任意租户，显式跨租户查找。
+    /// </remarks>
+    Task<IReadOnlyList<SysUser>> GetListByPhoneGloballyAsync(string phone, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// 检查当前上下文注册的账号里用户名是否已被占用（租户里连带平台账号一起比对）
     /// </summary>
     Task<bool> ExistsUserNameAsync(string userName, long? excludeUserId = null, CancellationToken cancellationToken = default);

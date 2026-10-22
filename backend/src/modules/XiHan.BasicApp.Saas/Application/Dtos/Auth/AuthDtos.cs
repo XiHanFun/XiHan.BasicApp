@@ -191,6 +191,38 @@ public sealed class EmailLoginRequestDto
 }
 
 /// <summary>
+/// 手机号登录验证码请求 DTO
+/// </summary>
+public sealed class PhoneLoginCodeRequestDto
+{
+    /// <summary>
+    /// 手机号（须已在账号上验证）
+    /// </summary>
+    public string Phone { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// 手机号验证码登录请求 DTO
+/// </summary>
+public sealed class PhoneLoginRequestDto
+{
+    /// <summary>
+    /// 手机号
+    /// </summary>
+    public string Phone { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 短信验证码
+    /// </summary>
+    public string Code { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 设备标识
+    /// </summary>
+    public string? DeviceId { get; set; }
+}
+
+/// <summary>
 /// 验证码下发结果 DTO
 /// </summary>
 public sealed class VerificationCodeResultDto

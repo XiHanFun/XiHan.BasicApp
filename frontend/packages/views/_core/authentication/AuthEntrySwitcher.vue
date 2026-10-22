@@ -2,7 +2,7 @@
 import type { TabsValueChangeDetails } from '@xihan-ui/headless'
 import { useElementSize } from '@vueuse/core'
 import { XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
-import { computed, useTemplateRef } from 'vue'
+import { computed, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from '~/constants'
@@ -12,12 +12,15 @@ import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from
  * 表单由路由渲染，这里把它接进当前标签的面板里——只摆一条 tablist 而没有 tabpanel 是错的语义，
  * 触发器上的 aria-controls 会指向一个不存在的区域。
  * 标签用 page.auth.entry.* 短说法，不借页面标题键：登录卡片右栏固定宽，长标题会把扫码入口挤出容器。
+ * 只列登录设置开放的方式；只开放一种时不出标签带，停在没开放的方式上会换到第一个开放的入口。
  */
 defineOptions({ name: 'AuthEntrySwitcher' })
 
 const props = defineProps<{
   /** 关掉时只渲染插槽内容：忘记密码、注册这类页面不出切换器 */
   enabled?: boolean
+  /** 登录设置开放的方式编码（LoginConfig.loginMethods）；还没取到时为 null，此时不出标签、也不换页 */
+  methods: string[] | null
 }>()
 
 /**
@@ -41,17 +44,37 @@ const entrySize = computed(() => {
   return width.value >= MD_MIN_WIDTH ? 'md' : 'sm'
 })
 
-/** 标签值用短键而不是路由路径：它要进 id / aria-controls，短键读起来也干净 */
-const entryList = computed(() => [
-  { value: 'account', path: LOGIN_PATH, label: t('page.auth.entry.account') },
-  { value: 'mobile', path: CODE_LOGIN_PATH, label: t('page.auth.entry.mobile') },
-  { value: 'email', path: EMAIL_LOGIN_PATH, label: t('page.auth.entry.email') },
-  { value: 'qrcode', path: QRCODE_LOGIN_PATH, label: t('page.auth.entry.qrcode') },
-])
+/**
+ * 标签值用短键而不是路由路径：它要进 id / aria-controls，短键读起来也干净。
+ * method 对应后端登录设置里的方式编码（SaasLoginMethods）
+ */
+const entryList = computed(() => {
+  const opened = new Set(props.methods ?? [])
+  return [
+    { value: 'account', method: 'password', path: LOGIN_PATH, label: t('page.auth.entry.account') },
+    { value: 'mobile', method: 'phone', path: CODE_LOGIN_PATH, label: t('page.auth.entry.mobile') },
+    { value: 'email', method: 'email', path: EMAIL_LOGIN_PATH, label: t('page.auth.entry.email') },
+    { value: 'qrcode', method: 'qrcode', path: QRCODE_LOGIN_PATH, label: t('page.auth.entry.qrcode') },
+  ].filter(entry => opened.has(entry.method))
+})
+
+const showTabs = computed(() => props.enabled && entryList.value.length > 1)
 
 /** 选中项取自当前路由，不另存一份状态 */
 const activeEntry = computed(
-  () => entryList.value.find(entry => entry.path === route.path)?.value ?? 'account',
+  () => entryList.value.find(entry => entry.path === route.path)?.value ?? entryList.value[0]?.value ?? '',
+)
+
+/** 停在没开放的登录方式上：换到第一个开放的入口，不把表单留给一个后端会拒绝的方式 */
+watch(
+  [() => props.enabled, entryList, () => route.path],
+  ([enabled, entries, path]) => {
+    const first = entries[0]
+    if (enabled && props.methods && first && !entries.some(entry => entry.path === path)) {
+      void router.replace(first.path)
+    }
+  },
+  { immediate: true },
 )
 
 function onEntryChange(details: TabsValueChangeDetails) {
@@ -64,7 +87,7 @@ function onEntryChange(details: TabsValueChangeDetails) {
 
 <template>
   <XhTabsRoot
-    v-if="props.enabled"
+    v-if="showTabs"
     ref="root"
     class="auth-entry-switcher"
     :value="activeEntry"

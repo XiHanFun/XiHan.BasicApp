@@ -65,6 +65,8 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 
 前端先调 `GET /api/Auth/LoginConfig` 拿到 `LoginConfigDto`（`loginMethods` + `oAuthProviders`），据此决定展示哪些登录按钮——**支持的方式以该配置为准**。
 
+`loginMethods` 取自参数 `saas.auth.login` 的 `methods`，编码是 `password`（账号密码）、`phone`（手机号验证码）、`email`（邮箱验证码）、`qrcode`（扫码）。登录页的切换栏只列开放的方式，按这个固定顺序排；只开放一种时不出切换栏；停在没开放的方式上会换到第一个开放的入口。缺省只开放 `password`，要用别的方式先到参数配置里加上。
+
 ::: warning 登录页的「扫码」入口只是占位
 登录页切换栏里的「扫码」（`/auth/qrcode-login`）在前端用固定种子画一张示意图案，后端没有对应的扫码登录接口、轮询或确认流程，扫了也登录不了。可用的扫码方式只有下文第三方登录里微信、企业微信、飞书、钉钉的 `QrCode` 模式，它跳到对方平台的授权页扫码。
 :::
@@ -90,6 +92,20 @@ RBAC 的核心实体都落在 `Saas` 模块的 `Domain/Entities` 下，均为 `s
 2. `POST /api/Auth/EmailLogin`（`EmailLoginRequestDto`）：一次性消费验证码 → 校验账号 → 签发令牌并落点。
 
 验证码为 **6 位数字、有效期 10 分钟（600s）、一次性消费**（读取即销毁，无论成败），由框架 `IOneTimeCodeService` 存分布式缓存承载。开发环境会在结果里回显 `DebugCode` 便于联调，生产绝不回显。
+
+### 手机号验证码
+
+两步，均匿名，写法与邮箱验证码一致：
+
+1. `POST /api/Auth/PhoneLoginCode`（`PhoneLoginCodeRequestDto`）：手机号+IP 频率限制（60s 窗口）→ 复用手机号登录的账号可用性校验 → 经短信下发验证码。
+2. `POST /api/Auth/PhoneLogin`（`PhoneLoginRequestDto`）：一次性消费验证码 → 校验账号 → 签发令牌并落点。
+
+与邮箱验证码不同的几点：
+
+- `saas.auth.login` 的 `methods` 里没有 `phone` 时，两个接口都直接拒绝（「未开放手机号登录」），不只是登录页不显示入口。
+- 只认账号持有人**验证过**的手机号（`SysUserSecurity.PhoneVerified`）。手机号不要求唯一，管理员录入的号码也未必属于本人；同一手机号在多个账号上都验证过时不替用户选，提示改用账号密码登录。
+- 短信走短信配置里平台默认且启用的网关，用登录验证码短信模板（`auth-sms-login-code`），由发件箱异步发送。阿里云、腾讯云只按服务商模板发送，网关配置的模板映射（`TemplateMap`）里要有 `auth-sms-login-code` 到服务商模板码的映射。网关没配、停用或缺这条映射时，发码接口直接报错，不生成验证码，也不假装已发送。
+- 验证码规格（6 位、10 分钟、一次性消费）、开发环境回显 `DebugCode`、失败发布 `AuthLoginFailedDomainEvent` 都与邮箱验证码相同。
 
 ### 第三方登录（OAuth2）
 
