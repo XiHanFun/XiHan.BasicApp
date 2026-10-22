@@ -138,6 +138,28 @@ public sealed class MaintenanceModeMiddleware
 }
 
 /// <summary>
+/// 维护模式启动过滤器：把维护模式中间件挂到请求管线最前
+/// </summary>
+/// <remarks>
+/// 模块初始化里装的中间件排在框架的 UseEndpoints 之后，命中路由的请求根本到不了它；
+/// 经启动过滤器包在应用其余管线之外，维护期间请求在认证、租户解析（可能要查库）之前就被拦下。
+/// </remarks>
+public sealed class MaintenanceModeStartupFilter : IStartupFilter
+{
+    /// <summary>
+    /// 先挂维护模式，再交给应用配置的其余管线
+    /// </summary>
+    public Action<IApplicationBuilder> Configure(Action<IApplicationBuilder> next)
+    {
+        return app =>
+        {
+            app.UseMaintenanceMode();
+            next(app);
+        };
+    }
+}
+
+/// <summary>
 /// 维护模式中间件注册扩展
 /// </summary>
 public static class MaintenanceModeApplicationBuilderExtensions

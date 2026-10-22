@@ -177,7 +177,8 @@ backend/src/main/XiHan.BasicApp.WebHost/
 | 键 | 说明 |
 | --- | --- |
 | `EnableIpRegion` | 是否启用 IP 归属地解析 |
-| `Ip2RegionDbPath` | ip2region 离线库路径 |
+| `Ip2RegionDbPath` | IPv4 的 ip2region 离线库路径 |
+| `Ip2RegionV6DbPath` | IPv6 的 ip2region 离线库路径；文件不存在时 IPv6 地址不解析归属地 |
 
 ### `Api:Auth`
 
