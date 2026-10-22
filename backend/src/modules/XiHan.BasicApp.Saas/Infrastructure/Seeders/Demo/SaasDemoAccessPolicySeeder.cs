@@ -49,6 +49,7 @@ public sealed class SaasDemoAccessPolicySeeder(
             return;
         }
 
+        using var tenantScope = CurrentTenant.Change(tenant.BasicId, tenant.TenantName);
         var client = DbClientFor<SysAccessPolicy>();
         var codes = DemoPolicies.Select(item => item.Code).ToList();
         var existing = (await client.Queryable<SysAccessPolicy>()
@@ -58,7 +59,6 @@ public sealed class SaasDemoAccessPolicySeeder(
                 .ToListAsync())
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var added = 0;
-        using var tenantScope = CurrentTenant.Change(tenant.BasicId, tenant.TenantName);
         foreach (var (code, templateCode) in DemoPolicies.Where(item => !existing.Contains(item.Code)))
         {
             var template = AccessPolicyTemplates.Find(templateCode)
