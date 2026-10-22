@@ -46,6 +46,7 @@ using XiHan.Framework.Bot.WeCom.Abstractions;
 using XiHan.Framework.Data.Extensions.DependencyInjection;
 using XiHan.Framework.Data.SqlSugar.Initializers;
 using XiHan.Framework.Data.SqlSugar.Tenanting;
+using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.EventBus.Local;
 using XiHan.Framework.Messaging.Abstractions;
 using XiHan.Framework.Security.Services;
@@ -285,6 +286,39 @@ public static class ServiceCollectionExtensions
         services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<SaasConditionOptions>, SaasConditionOptionsValidator>());
         services.AddScoped<SaasConditionSubjectLoader>();
         services.AddScoped<ISaasConditionAttributeSourceFactory, SaasConditionAttributeSourceFactory>();
+
+        // 权限条件：生效模式经 IOptionsMonitor 读取（Saas:PermissionConditions:Mode），改了热生效
+        services.AddOptions<SaasPermissionConditionOptions>().BindConfiguration(SaasPermissionConditionOptions.SectionName);
+        services.AddOptions<PermissionResourceOptions>();
+        services.TryAddSingleton<IPermissionResourceRegistry, PermissionResourceRegistry>();
+        services.TryAddSingleton<SaasConditionSetCompiler>();
+        services.TryAddSingleton<PermissionConditionDecider>();
+        services.TryAddSingleton<IPermissionConditionHitRecorder, LoggingPermissionConditionHitRecorder>();
+        services.AddScoped<PermissionConditionEnforcer>();
+        services.AddScoped<IPermissionConditionRuleChecker, PermissionConditionValidator>();
+        // 数据行属性的补算排在全部动作过滤器之前，不满足时不进入动作
+        services.TryAddScoped<IPermissionResourceRowReader, SqlSugarPermissionResourceRowReader>();
+        services.AddScoped<PermissionConditionRowFilter>();
+        services.Configure<MvcOptions>(options => options.Filters.AddService<PermissionConditionRowFilter>(PermissionConditionRowFilter.FilterOrder));
+        return services;
+    }
+
+    /// <summary>
+    /// 把实体登记为某权限码的条件资源：该权限的条件可以引用数据行属性 <c>resource.&lt;名&gt;</c>
+    /// </summary>
+    /// <typeparam name="TEntity">实体类型</typeparam>
+    /// <param name="services">服务集合</param>
+    /// <param name="permissionCode">权限码</param>
+    /// <param name="keySelector">主键取法，见 <see cref="PermissionResourceKeys"/></param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddPermissionResource<TEntity>(
+        this IServiceCollection services,
+        string permissionCode,
+        Func<IReadOnlyDictionary<string, object?>, IEnumerable<long>?> keySelector)
+        where TEntity : class, IEntityBase<long>, new()
+    {
+        var registration = PermissionResourceRegistration.Create<TEntity>(permissionCode, keySelector);
+        services.Configure<PermissionResourceOptions>(options => options.Registrations.Add(registration));
         return services;
     }
 

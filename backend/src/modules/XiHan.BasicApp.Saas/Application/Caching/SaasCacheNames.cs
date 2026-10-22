@@ -14,9 +14,9 @@ public static class SaasCacheNames
     public const string ConfigValue = "basicapp:saas:config:value";
 
     /// <summary>
-    /// 用户授权快照缓存。
+    /// 用户授权快照缓存（带权限条件的格式）。
     /// </summary>
-    public const string AuthorizationSnapshot = "basicapp:saas:auth:snapshot";
+    public const string AuthorizationSnapshot = "basicapp:saas:auth:snapshot:v2";
 
     /// <summary>
     /// 菜单路由缓存。

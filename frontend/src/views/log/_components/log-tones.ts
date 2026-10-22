@@ -95,7 +95,7 @@ export function riskLevelTone(level: unknown): Tone {
   return 'neutral'
 }
 
-/** 权限变更：拒绝红、撤销与移除黄、授予与分配绿 */
+/** 权限变更：拒绝红、撤销与移除黄、条件变更蓝、授予与分配绿 */
 export function permissionChangeTone(type: unknown): Tone {
   switch (type) {
     case PermissionChangeType.UserDenyPermission:
@@ -106,6 +106,8 @@ export function permissionChangeTone(type: unknown): Tone {
     case PermissionChangeType.UserRemoveRole:
     case PermissionChangeType.RoleRemoveParent:
       return 'warning'
+    case PermissionChangeType.ConditionChange:
+      return 'info'
     default:
       return 'success'
   }

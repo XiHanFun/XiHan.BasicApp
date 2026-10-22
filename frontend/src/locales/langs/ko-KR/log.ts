@@ -237,6 +237,7 @@ export default {
     type_user_delegate_revoke: '위임 권한 회수',
     type_role_add_parent: '상위 역할 추가',
     type_role_remove_parent: '상위 역할 해제',
+    type_condition_change: '권한 조건 변경',
     operator_user_id: '작업자 ID',
     operator_user_name: '작업자',
     target_user_id: '대상 사용자 ID',

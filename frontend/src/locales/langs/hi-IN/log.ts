@@ -237,6 +237,7 @@ export default {
     type_user_delegate_revoke: 'प्रत्यायोजित अनुमति वापस ली',
     type_role_add_parent: 'मूल भूमिका जोड़ी गई',
     type_role_remove_parent: 'मूल भूमिका हटाई गई',
+    type_condition_change: 'प्राधिकरण शर्त बदली गई',
     operator_user_id: 'ऑपरेटर ID',
     operator_user_name: 'ऑपरेटर',
     target_user_id: 'लक्ष्य उपयोगकर्ता ID',
