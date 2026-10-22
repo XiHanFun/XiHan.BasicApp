@@ -9,6 +9,7 @@ using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.Framework.Uow;
 using XiHan.Framework.Web.Core.Clients;
 
 namespace XiHan.BasicApp.Saas.Application.AccessPolicies;
@@ -32,6 +33,7 @@ public sealed class AccessPolicyLoginGuard : IAccessPolicyLoginGuard
     private readonly IAccessPolicyHitRecorder _hits;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILocalEventBus _localEventBus;
+    private readonly IUnitOfWorkManager _unitOfWorkManager;
     private readonly IClientInfoProvider _clientInfoProvider;
     private readonly ITraceIdProvider _traceIdProvider;
     private readonly ILoginBanService _banService;
@@ -47,6 +49,7 @@ public sealed class AccessPolicyLoginGuard : IAccessPolicyLoginGuard
         IAccessPolicyHitRecorder hits,
         IHttpContextAccessor httpContextAccessor,
         ILocalEventBus localEventBus,
+        IUnitOfWorkManager unitOfWorkManager,
         IClientInfoProvider clientInfoProvider,
         ITraceIdProvider traceIdProvider,
         ILoginBanService banService,
@@ -58,6 +61,7 @@ public sealed class AccessPolicyLoginGuard : IAccessPolicyLoginGuard
         _hits = hits;
         _httpContextAccessor = httpContextAccessor;
         _localEventBus = localEventBus;
+        _unitOfWorkManager = unitOfWorkManager;
         _clientInfoProvider = clientInfoProvider;
         _traceIdProvider = traceIdProvider;
         _banService = banService;
@@ -135,6 +139,11 @@ public sealed class AccessPolicyLoginGuard : IAccessPolicyLoginGuard
             _traceIdProvider.GetCurrentTraceId(),
             client.IpAddress,
             client.UserAgent));
+        if (_unitOfWorkManager.Current is { } unitOfWork)
+        {
+            await unitOfWork.CompleteAsync(CancellationToken.None);
+        }
+
         throw new InvalidOperationException(DeniedMessage);
     }
 }
