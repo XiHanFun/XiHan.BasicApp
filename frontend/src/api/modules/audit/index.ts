@@ -1,5 +1,7 @@
 export * from './access-log'
 export * from './access-log.types'
+export * from './access-policy-hit'
+export * from './access-policy-hit.types'
 export * from './api-log'
 export * from './api-log.types'
 export * from './diff-log'

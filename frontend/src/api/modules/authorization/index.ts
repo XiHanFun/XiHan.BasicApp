@@ -1,3 +1,5 @@
+export * from './access-policy'
+export * from './access-policy.types'
 export * from './field-level-security'
 export * from './field-level-security.types'
 export * from './operation'

@@ -13,6 +13,7 @@ using XiHan.BasicApp.CodeGeneration.Extensions;
 using XiHan.BasicApp.Printing.Domain.Entities;
 using XiHan.BasicApp.Printing.Extensions;
 using XiHan.BasicApp.Printing.Infrastructure.Seeders;
+using XiHan.BasicApp.Saas.Domain.Conditions;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Enums;
@@ -47,7 +48,7 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         typeof(SysDepartment), typeof(SysDepartmentHierarchy), typeof(SysPosition),
         typeof(SysConfig), typeof(SysStorageConfig), typeof(SysMessageTemplate), typeof(SysOAuthApp), typeof(SysTask),
         typeof(SysNotification), typeof(SysDict), typeof(SysDictItem), typeof(SysCodeGenTemplate),
-        typeof(SysPrintTemplate),
+        typeof(SysPrintTemplate), typeof(SysAccessPolicy), typeof(SysAccessPolicyCondition),
     ];
 
     private readonly string _connectionString = $"Data Source=xihan-modules-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
@@ -156,8 +157,27 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
     }
 
     /// <summary>
-    /// 再跑一遍一行都不多。
+    /// 平台预置访问策略全部落库，拒绝类停用、只记录类启用；演示租户另有两条只记录的演示策略。
     /// </summary>
+    [Fact]
+    public async Task AccessPolicyPresets_ShouldSeedPlatformTemplatesAndDemoPolicies()
+    {
+        await SeedAsync();
+
+        var platform = await _db.Queryable<SysAccessPolicy>().Where(policy => policy.TenantId == 0).ToListAsync();
+        Assert.Equal(
+            AccessPolicyTemplates.All.Select(template => template.Code).Order(StringComparer.Ordinal),
+            platform.Select(policy => policy.PolicyCode).Order(StringComparer.Ordinal));
+        Assert.All(platform, policy => Assert.Equal(policy.Action == AccessPolicyAction.Deny ? EnableStatus.Disabled : EnableStatus.Enabled, policy.Status));
+        var conditions = await _db.Queryable<SysAccessPolicyCondition>().ToListAsync();
+        Assert.All(platform, policy => Assert.Contains(conditions, condition => condition.PolicyId == policy.BasicId && condition.TenantId == 0));
+
+        var demoTenant = await _db.Queryable<SysTenant>().SingleAsync(tenant => tenant.TenantCode == "demo-enterprise");
+        var demo = await _db.Queryable<SysAccessPolicy>().Where(policy => policy.TenantId == demoTenant.BasicId).ToListAsync();
+        Assert.Equal(["demo.off-hours", "demo.overseas"], demo.Select(policy => policy.PolicyCode).Order(StringComparer.Ordinal));
+        Assert.All(demo, policy => Assert.Equal(AccessPolicyAction.LogOnly, policy.Action));
+    }
+
     /// <summary>
     /// 演示开关打开时写入打印演示模板：平台全局、对租户开放、启用，内容是打印设计器的模板 JSON。
     /// </summary>
@@ -179,6 +199,9 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         });
     }
 
+    /// <summary>
+    /// 再跑一遍一行都不多。
+    /// </summary>
     [Fact]
     public async Task AllModuleSeeders_Twice_ShouldNotAddRows()
     {

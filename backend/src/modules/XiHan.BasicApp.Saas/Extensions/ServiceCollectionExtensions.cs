@@ -489,6 +489,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasMessageTemplateSeeder>();
         services.AddDataSeeder<SaasOAuthAppSeeder>();
         services.AddDataSeeder<SaasTaskSeeder>();
+        services.AddDataSeeder<SaasAccessPolicySeeder>();
         return services;
     }
 
@@ -505,6 +506,7 @@ public static class ServiceCollectionExtensions
         services.AddDataSeeder<SaasDemoSeeder>();
         services.AddDataSeeder<SaasDemoNotificationSeeder>();
         services.AddDataSeeder<SaasDemoDictSeeder>();
+        services.AddDataSeeder<SaasDemoAccessPolicySeeder>();
         return services;
     }
 

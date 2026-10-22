@@ -152,6 +152,35 @@ public sealed class AccessPolicyQueryService
     }
 
     /// <summary>
+    /// 预置模板
+    /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.AccessPolicy.Read)]
+    public Task<List<AccessPolicyTemplateDto>> GetAccessPolicyTemplatesAsync()
+    {
+        var items = AccessPolicyTemplates.All
+            .Select(template => new AccessPolicyTemplateDto
+            {
+                Code = template.Code,
+                Name = template.Name,
+                Description = template.Description,
+                SuggestedAction = template.Action,
+                Priority = template.Priority,
+                Conditions = [.. template.Conditions.Select(condition => new AccessPolicyConditionDto
+                {
+                    ConditionGroup = condition.ConditionGroup,
+                    AttributeName = condition.AttributeName,
+                    Operator = condition.Operator,
+                    IsNegated = condition.IsNegated,
+                    ValueType = condition.ValueType,
+                    ConditionValue = condition.ConditionValue,
+                    Description = condition.Description
+                })]
+            })
+            .ToList();
+        return Task.FromResult(items);
+    }
+
+    /// <summary>
     /// 试运行一条策略
     /// </summary>
     [HttpPost]

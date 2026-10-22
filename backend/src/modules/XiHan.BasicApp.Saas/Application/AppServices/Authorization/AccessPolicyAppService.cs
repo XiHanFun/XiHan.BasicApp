@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using XiHan.BasicApp.Saas.Application.AccessPolicies;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -129,6 +130,7 @@ public sealed class AccessPolicyAppService
     /// <summary>
     /// 手动解除自动封禁（只在平台）
     /// </summary>
+    [HttpPost]
     [PermissionAuthorize(SaasPermissionCodes.AccessPolicy.Ban)]
     public async Task<bool> UnbanLoginAsync(LoginUnbanDto input, CancellationToken cancellationToken = default)
     {
