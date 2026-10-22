@@ -4,15 +4,14 @@ import type { NotificationItem } from '~/stores'
 
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { XDropdown, XUserAvatar } from '~/components'
 import LocaleSwitcher from '~/components/common/LocaleSwitcher.vue'
 import TimezoneSwitcher from '~/components/common/TimezoneSwitcher.vue'
 import { Icon } from '~/iconify'
 import { useShellExtensions } from '~/stores'
 import { useWidgetPlacement } from '../../composables'
 import XihanIconButton from '../XihanIconButton.vue'
-import HeaderContextMenu from './HeaderContextMenu.vue'
 import HeaderSearchTrigger from './HeaderSearchTrigger.vue'
-import HeaderUserMenu from './HeaderUserMenu.vue'
 import NotificationPopover from './NotificationPopover.vue'
 
 defineOptions({ name: 'HeaderToolbar' })
@@ -43,7 +42,7 @@ const shellHeaderItems = computed(() => useShellExtensions().flatMap(extension =
 
 const { t } = useI18n()
 // 命令面板、语言、时区、主题、全屏按各自的位置落到顶栏或悬浮组（AppFloatToolbar），只有落到顶栏的在这里画。
-// 小屏（< 768）顶栏放不下，除隐藏的以外一律回落悬浮组，右上角的账号入口不被挤掉；上下文名称另由断点收起
+// 小屏（< 768）顶栏放不下，除隐藏的以外一律回落悬浮组，右上角的账号入口不被挤掉；用户名文字另由断点收起
 const placement = useWidgetPlacement()
 </script>
 
@@ -146,21 +145,32 @@ const placement = useWidgetPlacement()
       @refresh="emit('notificationRefresh')"
     />
 
-    <!-- 当前上下文：平台或租户名，悬停展开可切换的租户，末项进控制中心 -->
-    <HeaderContextMenu
+    <!-- 当前上下文：平台或租户名，点击进控制中心切换。皮肤与其它顶栏图标钮同一套，只是带上文字 -->
+    <XihanIconButton
       v-if="props.contextLabel"
-      :label="props.contextLabel"
-      :is-platform="props.contextIsPlatform ?? false"
-      @control-center="emit('userAction', 'control-center')"
-    />
+      class="xihan-icon-btn--labeled mr-1"
+      :tooltip="t('header.context.switch', { name: props.contextLabel })"
+      @click="emit('userAction', 'control-center')"
+    >
+      <Icon :icon="props.contextIsPlatform ? 'lucide:shield-check' : 'lucide:building-2'" width="16" height="16" class="shrink-0" />
+      <span class="hidden max-w-32 truncate text-sm text-foreground md:block">{{ props.contextLabel }}</span>
+      <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />
+    </XihanIconButton>
 
-    <!-- 账号菜单：触发钮只有头像，名字在浮层第一行 -->
-    <HeaderUserMenu
-      :avatar="props.userStore.avatar"
-      :nickname="props.userStore.nickname"
-      :username="props.userStore.username"
-      :options="props.userOptions"
-      @select="(key: string) => emit('userAction', key)"
-    />
+    <!-- 用户菜单：与上下文切换同一颗带文字的顶栏钮，圆角、悬停、按压与焦点环一致。
+         窄屏只剩头像，名字经 tooltip 进 aria-label：菜单触发钮任何宽度下都有名字 -->
+    <XDropdown :options="props.userOptions" @select="(key: string) => emit('userAction', key)">
+      <XihanIconButton class="xihan-icon-btn--labeled ml-1" :tooltip="props.userStore.nickname || props.userStore.username">
+        <XUserAvatar
+          :size="24"
+          :avatar="props.userStore.avatar"
+          :name="props.userStore.nickname || props.userStore.username"
+        />
+        <span class="hidden max-w-[96px] truncate text-sm text-foreground md:block">
+          {{ props.userStore.nickname || props.userStore.username }}
+        </span>
+        <Icon icon="lucide:chevron-down" width="13" height="13" class="shrink-0 text-muted-foreground" />
+      </XihanIconButton>
+    </XDropdown>
   </div>
 </template>

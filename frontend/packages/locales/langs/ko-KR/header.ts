@@ -1,12 +1,7 @@
 export default {
   context: {
     platform: '플랫폼',
-    switch: '현재: {name}, 테넌트 전환',
-    manage: '컨트롤 센터',
-    loading: '전환 가능한 테넌트를 불러오는 중…',
-    empty: '전환할 수 있는 테넌트가 없습니다',
-    load_failed: '테넌트를 불러오지 못했습니다',
-    switch_failed: '전환에 실패했습니다',
+    switch: '현재: {name}, 클릭하여 전환',
   },
   user: {
     profile: '내 정보',
