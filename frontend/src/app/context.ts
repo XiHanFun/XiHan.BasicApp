@@ -222,7 +222,7 @@ function createProfileApis() {
       return requestClient.put<ApiCredentialItem>('/Profile/ApiCredentialStatus', { basicId: id, status })
     },
     deleteApiCredentialApi(id: number | string) {
-      return requestClient.delete(`/Profile/ApiCredential/${id}`)
+      return requestClient.delete('/Profile/ApiCredential', { params: { id } })
     },
     getMyOAuthAppsApi() {
       return requestClient.get<MyOAuthAppItem[]>('/MyOAuthApp/MyOAuthApps')
@@ -234,13 +234,13 @@ function createProfileApis() {
       return requestClient.put<MyOAuthAppItem>('/MyOAuthApp/MyOAuthApp', input)
     },
     regenerateMyOAuthAppSecretApi(id: number | string) {
-      return requestClient.post<MyOAuthAppSecret>(`/MyOAuthApp/RegenerateMyOAuthAppSecret/${id}`)
+      return requestClient.post<MyOAuthAppSecret>('/MyOAuthApp/RegenerateMyOAuthAppSecret', undefined, { params: { id } })
     },
     updateMyOAuthAppStatusApi(id: number | string, status: 'Disabled' | 'Enabled') {
       return requestClient.put<MyOAuthAppItem>('/MyOAuthApp/MyOAuthAppStatus', { basicId: id, status })
     },
     deleteMyOAuthAppApi(id: number | string) {
-      return requestClient.delete(`/MyOAuthApp/MyOAuthApp/${id}`)
+      return requestClient.delete('/MyOAuthApp/MyOAuthApp', { params: { id } })
     },
     getNotificationPreferenceApi() {
       return requestClient.get<NotificationPreference>('/Profile/NotificationPreference')
