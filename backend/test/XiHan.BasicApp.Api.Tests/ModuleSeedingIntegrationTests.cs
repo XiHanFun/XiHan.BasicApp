@@ -54,6 +54,7 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
     private readonly string _connectionString = $"Data Source=xihan-modules-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
     private readonly SqliteConnection _keepAlive;
     private readonly SqlSugarScope _db;
+    private readonly SqlSugarScope _seedDb;
     private readonly ServiceProvider _services;
 
     /// <summary>
@@ -65,11 +66,18 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         _keepAlive.Open();
 
         var tenant = new ProbeCurrentTenant();
+        // 断言用：只滤软删除，跨租户看全部
         _db = new SqlSugarScope(
+            new ConnectionConfig { DbType = DbType.Sqlite, ConnectionString = _connectionString, IsAutoCloseConnection = true, InitKeyType = InitKeyType.Attribute },
+            db => db.QueryFilter.AddTableFilter<ISoftDelete>(entity => !entity.IsDeleted));
+        // 种子用：租户过滤与框架同口径，种子要自己切租户才看得到租户数据
+        _seedDb = new SqlSugarScope(
             new ConnectionConfig { DbType = DbType.Sqlite, ConnectionString = _connectionString, IsAutoCloseConnection = true, InitKeyType = InitKeyType.Attribute },
             db =>
             {
                 db.QueryFilter.AddTableFilter<ISoftDelete>(entity => !entity.IsDeleted);
+                db.QueryFilter.AddTableFilter<IMultiTenantEntity>(entity => entity.TenantId == 0 || entity.TenantId == ScopeOf(tenant));
+                db.QueryFilter.AddTableFilter<IStrictMultiTenantEntity>(entity => entity.TenantId == ScopeOf(tenant));
                 db.Aop.DataExecuting = (_, entityInfo) =>
                 {
                     if (entityInfo.OperationType == DataFilterType.InsertByObject)
@@ -82,8 +90,8 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         _db.CodeFirst.InitTables(Tables);
 
         var resolver = new Mock<ISqlSugarClientResolver>();
-        resolver.Setup(value => value.GetCurrentClient()).Returns(_db);
-        resolver.Setup(value => value.GetClientForEntity(It.IsAny<Type>())).Returns(_db);
+        resolver.Setup(value => value.GetCurrentClient()).Returns(_seedDb);
+        resolver.Setup(value => value.GetClientForEntity(It.IsAny<Type>())).Returns(_seedDb);
         var hasher = new Mock<IPasswordHasher>();
         hasher.Setup(value => value.HashPassword(It.IsAny<string>())).Returns((string password) => $"hash:{password}");
         var protector = new Mock<IConfigValueSecretProtector>();
@@ -219,6 +227,7 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
     public void Dispose()
     {
         _services.Dispose();
+        _seedDb.Dispose();
         _db.Dispose();
         _keepAlive.Dispose();
     }
@@ -241,6 +250,14 @@ public sealed class ModuleSeedingIntegrationTests : IDisposable
         }
 
         return counts;
+    }
+
+    /// <summary>
+    /// 与框架的租户过滤同一口径：没有租户上下文按平台（0）
+    /// </summary>
+    private static long ScopeOf(ProbeCurrentTenant tenant)
+    {
+        return tenant.Id ?? 0;
     }
 
     /// <summary>
