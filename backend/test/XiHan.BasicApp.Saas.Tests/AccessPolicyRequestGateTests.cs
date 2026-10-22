@@ -12,6 +12,7 @@ using XiHan.BasicApp.Saas.Domain.Events;
 using XiHan.BasicApp.Saas.Infrastructure.Security;
 using XiHan.Framework.Domain.Entities.Abstracts;
 using XiHan.Framework.EventBus.Abstractions.Local;
+using XiHan.Framework.Uow;
 using XiHan.Framework.Web.Core.Clients;
 using static XiHan.BasicApp.Saas.Tests.AccessPolicyTestKit;
 using ConditionOperator = XiHan.BasicApp.Saas.Domain.Entities.ConditionOperator;
@@ -110,7 +111,7 @@ public sealed class AccessPolicyRequestGateTests
     }
 
     /// <summary>
-    /// 登录时：目标租户的策略按这个用户求，被拒时写一条「访问策略拒绝」的登录失败并拒绝登录
+    /// 登录时：目标租户的策略按这个用户求，被拒时写一条「访问策略拒绝」的登录失败、完成工作单元让它落库，再拒绝登录
     /// </summary>
     [Fact]
     public async Task LoginGuard_RejectsLoginIntoTenantOutsideOffice()
@@ -124,6 +125,7 @@ public sealed class AccessPolicyRequestGateTests
         harness.EventBus.Verify(bus => bus.PublishAsync(
             It.Is<AuthLoginFailedDomainEvent>(eventData => eventData.LoginResult == LoginResult.AccessDenied && eventData.UserId == AdminId && eventData.TenantId == TenantId),
             It.IsAny<bool>()), Times.Once);
+        Assert.Equal(["publish", "complete"], harness.FailureSteps);
         var hit = Assert.Single(harness.DrainHits()).First;
         Assert.Equal((AccessPolicyPhase.Login, true), (hit.Phase, hit.IsBlocked));
         harness.Bans.Verify(service => service.RecordFailureAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
@@ -148,6 +150,7 @@ public sealed class AccessPolicyRequestGateTests
         await harness.LoginGuard.EnsureLoginAllowedAsync(AdminId, "admin", TenantId);
 
         harness.EventBus.Verify(bus => bus.PublishAsync(It.IsAny<AuthLoginFailedDomainEvent>(), It.IsAny<bool>()), Times.Never);
+        Assert.Empty(harness.FailureSteps);
     }
 
     /// <summary>
@@ -184,12 +187,24 @@ public sealed class AccessPolicyRequestGateTests
             Gate = new AccessPolicyRequestGate(Options, evaluator, _sources, _hits, _time, NullLogger<AccessPolicyRequestGate>.Instance);
             var clientInfo = new Mock<IClientInfoProvider>();
             clientInfo.Setup(provider => provider.GetCurrent()).Returns(() => new ClientInfo { IpAddress = Context.Connection.RemoteIpAddress?.ToString() });
+            EventBus
+                .Setup(bus => bus.PublishAsync(It.IsAny<AuthLoginFailedDomainEvent>(), It.IsAny<bool>()))
+                .Callback(() => FailureSteps.Add("publish"))
+                .Returns(Task.CompletedTask);
+            var unitOfWork = new Mock<IUnitOfWork>();
+            unitOfWork
+                .Setup(item => item.CompleteAsync(It.IsAny<CancellationToken>()))
+                .Callback(() => FailureSteps.Add("complete"))
+                .Returns(Task.CompletedTask);
+            var unitOfWorkManager = new Mock<IUnitOfWorkManager>();
+            unitOfWorkManager.Setup(manager => manager.Current).Returns(unitOfWork.Object);
             LoginGuard = new AccessPolicyLoginGuard(
                 Options,
                 evaluator,
                 _hits,
                 _sources.HttpContextAccessor,
                 EventBus.Object,
+                unitOfWorkManager.Object,
                 clientInfo.Object,
                 new Mock<ITraceIdProvider>().Object,
                 Bans.Object,
@@ -206,6 +221,8 @@ public sealed class AccessPolicyRequestGateTests
         public PermissionConditionTestKit.FixedOptionsMonitor<AccessPolicyOptions> Options { get; } = PolicyOptions();
 
         public Mock<ILocalEventBus> EventBus { get; } = new();
+
+        public List<string> FailureSteps { get; } = [];
 
         public Mock<ILoginBanService> Bans { get; } = new();
 

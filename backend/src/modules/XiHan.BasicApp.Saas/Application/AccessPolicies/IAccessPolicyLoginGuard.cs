@@ -9,7 +9,7 @@ namespace XiHan.BasicApp.Saas.Application.AccessPolicies;
 public interface IAccessPolicyLoginGuard
 {
     /// <summary>
-    /// 不允许这个用户此刻登录进目标租户时，写一条登录失败日志并抛出 <see cref="InvalidOperationException"/>
+    /// 不允许这个用户此刻登录进目标租户时，写一条登录失败日志、完成当前工作单元让它落库，再抛出 <see cref="InvalidOperationException"/>
     /// </summary>
     /// <param name="userId">用户主键</param>
     /// <param name="userName">用户名</param>
