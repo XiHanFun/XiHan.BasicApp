@@ -1,10 +1,10 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Text.Json;
 using XiHan.BasicApp.Saas.Domain.Configurations;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Repositories;
-using XiHan.BasicApp.Saas.Domain.Security;
 using XiHan.Framework.MultiTenancy.Abstractions;
 
 namespace XiHan.BasicApp.Saas.Domain.DomainServices;
@@ -19,6 +19,11 @@ namespace XiHan.BasicApp.Saas.Domain.DomainServices;
 public sealed class ConfigDomainService
     : IConfigDomainService
 {
+    private static readonly JsonSerializerOptions SettingsJsonOptions = new(JsonSerializerDefaults.Web)
+    {
+        NumberHandling = System.Text.Json.Serialization.JsonNumberHandling.Strict
+    };
+
     private readonly IConfigRepository _configRepository;
 
     private readonly ICurrentTenant _currentTenant;
@@ -55,7 +60,7 @@ public sealed class ConfigDomainService
             throw new InvalidOperationException("配置键已存在。");
         }
 
-        ValidateIpBlacklist(configKey, scope, command.ConfigValue);
+        ValidateLoginAutoBan(configKey, scope, command.ConfigValue);
 
         var config = new SysConfig
         {
@@ -108,7 +113,7 @@ public sealed class ConfigDomainService
 
         ValidateUpdateConfigCommand(command);
         var config = await GetConfigOrThrowAsync(command.BasicId, cancellationToken);
-        ValidateIpBlacklist(config.ConfigKey, config.TenantId, command.ConfigValue);
+        ValidateLoginAutoBan(config.ConfigKey, config.TenantId, command.ConfigValue);
         config.ConfigName = Required(command.ConfigName, 100, nameof(command.ConfigName), "配置名称不能超过 100 个字符。");
         config.ConfigGroup = Optional(command.ConfigGroup, 100, nameof(command.ConfigGroup), "配置分组不能超过 100 个字符。");
         config.ConfigValue = ResolveConfigValueOnUpdate(config, command);
@@ -181,24 +186,38 @@ public sealed class ConfigDomainService
     }
 
     /// <summary>
-    /// IP 黑名单只认平台那一条，值里的每个条目都要能解析成地址或网段
+    /// 登录失败自动封禁只认平台那一条，各项数值要在允许的范围内
     /// </summary>
-    private static void ValidateIpBlacklist(string configKey, long tenantId, string? value)
+    private static void ValidateLoginAutoBan(string configKey, long tenantId, string? value)
     {
-        if (!string.Equals(configKey, SaasConfigKeys.Security.IpBlacklist, StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(configKey, SaasConfigKeys.Security.LoginAutoBan, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
         if (tenantId != 0)
         {
-            throw new InvalidOperationException("IP 黑名单只在平台生效，租户不能单独配置。");
+            throw new InvalidOperationException("登录失败自动封禁只在平台生效，租户不能单独配置。");
         }
 
-        var blacklist = SaasIpBlacklist.FromJson(value);
-        if (blacklist.InvalidEntries.Count > 0)
+        if (string.IsNullOrWhiteSpace(value))
         {
-            throw new InvalidOperationException($"这些条目不是合法的 IP 地址或 CIDR 网段：{string.Join("、", blacklist.InvalidEntries)}");
+            return;
+        }
+
+        SaasLoginAutoBanSettings? settings;
+        try
+        {
+            settings = JsonSerializer.Deserialize<SaasLoginAutoBanSettings>(value, SettingsJsonOptions);
+        }
+        catch (JsonException exception)
+        {
+            throw new InvalidOperationException($"登录失败自动封禁不是合法的 JSON：{exception.Message}", exception);
+        }
+
+        if (settings?.Validate() is { } error)
+        {
+            throw new InvalidOperationException(error);
         }
     }
 

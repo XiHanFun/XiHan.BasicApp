@@ -8,6 +8,7 @@ export enum LoginResult {
   AccountDisabled = 'AccountDisabled',
   RequiresTwoFactor = 'RequiresTwoFactor',
   TwoFactorFailed = 'TwoFactorFailed',
+  AccessDenied = 'AccessDenied',
   Logout = 'Logout',
   TokenRefreshed = 'TokenRefreshed',
   PasswordChanged = 'PasswordChanged',

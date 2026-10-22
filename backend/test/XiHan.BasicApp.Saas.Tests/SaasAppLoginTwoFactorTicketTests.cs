@@ -8,6 +8,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using XiHan.BasicApp.Saas.Application.AccessPolicies;
 using XiHan.BasicApp.Saas.Application.AppServices;
 using XiHan.BasicApp.Saas.Application.Caching;
 using XiHan.BasicApp.Saas.Application.Dtos;
@@ -469,6 +470,7 @@ public sealed class SaasAppLoginTwoFactorTicketTests
             Mock.Of<ILoginThrottleService>(),
             _captchaService.Object,
             new TwoFactorTicketService(_cache),
+            Mock.Of<IAccessPolicyLoginGuard>(),
             new ConfigurationBuilder().Build(),
             NullLogger<AuthAppService>.Instance);
     }
