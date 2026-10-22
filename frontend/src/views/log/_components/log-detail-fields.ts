@@ -382,6 +382,37 @@ export function permissionChangeLogDetailSchema(t: Translate): LogDetailSchema {
 /**
  * 升级记录（数据库升级脚本执行台账）详情。
  */
+/** 条件命中记录：访问策略与权限条件 */
+export function accessPolicyHitDetailSchema(t: Translate): LogDetailSchema {
+  return {
+    header: {
+      title: ['policyName', 'policyCode'],
+      status: 'isBlocked',
+      meta: ['userName', 'hitTime', 'ip', 'location'],
+      timeKey: 'hitTime',
+    },
+    fields: [
+      { key: 'isBlocked', label: t('log.access_policy.is_blocked'), type: 'boolean', trueText: t('log.access_policy.blocked_yes'), falseText: t('log.access_policy.blocked_no'), tone: value => (value ? 'danger' : 'neutral') },
+      { key: 'policyName', label: t('log.access_policy.policy_name') },
+      { key: 'policyCode', label: t('log.access_policy.policy_code'), mono: true },
+      { key: 'source', label: t('log.access_policy.source'), type: 'enum', enumName: 'AccessPolicyHitSource' },
+      { key: 'action', label: t('log.access_policy.action'), type: 'enum', enumName: 'AccessPolicyAction' },
+      { key: 'phase', label: t('log.access_policy.phase'), type: 'enum', enumName: 'AccessPolicyPhase' },
+      { key: 'hitCount', label: t('log.access_policy.hit_count') },
+      { key: 'hitTime', label: t('log.access_policy.hit_time'), type: 'date' },
+      { key: 'userName', label: t('log.access_policy.user_name'), trace: 'UserName' },
+      { key: 'method', label: t('log.access_policy.method'), group: 'request' },
+      { key: 'path', label: t('log.access_policy.path'), group: 'request', mono: true, span: 'full' },
+      { key: 'permissionCodes', label: t('log.access_policy.permission_codes'), group: 'request', span: 'full' },
+      { key: 'ip', label: t('log.access_policy.ip'), group: 'client', mono: true, trace: 'Ip' },
+      { key: 'location', label: t('log.access_policy.location'), group: 'client' },
+      { key: 'clientKind', label: t('log.access_policy.client_kind'), group: 'client' },
+      { key: 'userAgent', label: t('log.access_policy.user_agent'), group: 'client', span: 'full' },
+      ...traceFields(t, { sessionId: false }),
+    ],
+  }
+}
+
 export function migrationHistoryDetailSchema(t: Translate): LogDetailSchema {
   return {
     header: {

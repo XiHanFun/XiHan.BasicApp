@@ -16,4 +16,9 @@ public interface IAccessPolicyHitQueryService : IApplicationService
     /// 命中记录分页列表（当前层）
     /// </summary>
     Task<PageResultDtoBase<AccessPolicyHitListItemDto>> GetAccessPolicyHitPageAsync(AccessPolicyHitPageQueryDto input, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 命中记录详情（当前层）
+    /// </summary>
+    Task<AccessPolicyHitListItemDto?> GetAccessPolicyHitDetailAsync(long id, CancellationToken cancellationToken = default);
 }

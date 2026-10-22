@@ -168,6 +168,7 @@ public sealed class TraceQueryService
             TraceLogType.Exception => QueryExceptionAsync(dim, value, userId, start, end, max, ct),
             TraceLogType.Diff => QueryDiffAsync(dim, value, userId, start, end, max, ct),
             TraceLogType.PermissionChange => QueryPermissionChangeAsync(dim, value, userId, start, end, max, ct),
+            TraceLogType.AccessPolicyHit => QueryAccessPolicyHitAsync(dim, value, userId, start, end, max, ct),
             _ => Task.FromResult(new List<TraceTimelineItemDto>())
         };
     }
@@ -351,5 +352,31 @@ public sealed class TraceQueryService
             .Take(max)
             .ToListAsync(ct);
         return list.ConvertAll(TraceApplicationMapper.FromPermissionChange);
+    }
+
+    private async Task<List<TraceTimelineItemDto>> QueryAccessPolicyHitAsync(TraceDimension dim, string value, long? userId, DateTimeOffset start, DateTimeOffset end, int max, CancellationToken ct)
+    {
+        // 命中记录不记会话：会话维度不适用
+        Expression<Func<SysAccessPolicyHit, bool>>? predicate = dim switch
+        {
+            TraceDimension.UserName => x => x.UserName == value,
+            TraceDimension.TraceId => x => x.TraceId == value,
+            TraceDimension.Ip => x => x.Ip == value,
+            TraceDimension.UserId => x => x.UserId == userId,
+            _ => null
+        };
+        if (predicate is null)
+        {
+            return [];
+        }
+
+        var list = await DbClient.Queryable<SysAccessPolicyHit>()
+            .Where(x => x.HitTime >= start && x.HitTime <= end)
+            .Where(predicate)
+            .SplitTable()
+            .OrderByDescending(x => x.HitTime)
+            .Take(max)
+            .ToListAsync(ct);
+        return list.ConvertAll(TraceApplicationMapper.FromAccessPolicyHit);
     }
 }

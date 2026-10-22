@@ -1,5 +1,5 @@
 import type { TraceTimelineItemDto } from '@/api'
-import { TraceLogType } from '@/api'
+import { TraceDimension, TraceLogType } from '@/api'
 
 /** 结果分类：以后端已折算的 item.status 为准（与卡片着色同一口径） */
 export const TRACE_RESULTS = ['success', 'info', 'warning', 'error'] as const
@@ -13,6 +13,18 @@ export function traceResultOf(item: TraceTimelineItemDto): TraceResult {
       return item.status
     default:
       return 'info'
+  }
+}
+
+/** 没有这个追踪维度的日志类型：该维度下它们不参与追踪 */
+export function traceTypesWithoutDimension(dimension: TraceDimension): TraceLogType[] {
+  switch (dimension) {
+    case TraceDimension.SessionId:
+      return [TraceLogType.PermissionChange, TraceLogType.AccessPolicyHit]
+    case TraceDimension.UserName:
+      return [TraceLogType.PermissionChange]
+    default:
+      return []
   }
 }
 

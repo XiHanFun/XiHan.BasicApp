@@ -90,4 +90,23 @@ public sealed class AccessPolicyHitQueryService
         var page = new PageResultMetadata(input.Page.PageIndex, input.Page.PageSize, totalCount);
         return new PageResultDtoBase<AccessPolicyHitListItemDto>([.. entities.Select(AccessPolicyApplicationMapper.ToHitListItemDto)], page);
     }
+
+    /// <summary>
+    /// 命中记录详情
+    /// </summary>
+    [PermissionAuthorize(SaasPermissionCodes.AccessPolicyHit.Read)]
+    public async Task<AccessPolicyHitListItemDto?> GetAccessPolicyHitDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(id), "命中记录主键必须大于 0。");
+        }
+
+        cancellationToken.ThrowIfCancellationRequested();
+        var hit = await _clientResolver.GetCurrentClient().Queryable<SysAccessPolicyHit>()
+            .Where(item => item.BasicId == id)
+            .SplitTable()
+            .FirstAsync(cancellationToken);
+        return hit is null ? null : AccessPolicyApplicationMapper.ToHitListItemDto(hit);
+    }
 }
