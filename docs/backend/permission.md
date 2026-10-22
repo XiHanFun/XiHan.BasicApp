@@ -1,6 +1,6 @@
 # 权限模型
 
-XiHan.BasicApp 的权限体系以 **RBAC（基于角色）** 为主，叠加**角色继承、数据范围、字段级脱敏、多租户版本门控**，并为 **ABAC（基于属性）** 建好了授权条件模型（目前只维护、不参与鉴权）。这是系统最核心也最需要理解的部分——一次请求要穿过认证、租户解析、权限码（含版本门控）、数据范围、字段脱敏几道关卡，每一道都可能收窄或拒绝；约束规则不在请求链路上，它在授权写入时把关。
+XiHan.BasicApp 的权限体系以 **RBAC（基于角色）** 为主，叠加**角色继承、数据范围、字段级脱敏、多租户版本门控**，并以**权限条件（ABAC，基于属性）**按请求属性收窄单条授权。这是系统最核心也最需要理解的部分——一次请求要穿过认证、租户解析、权限码（含版本门控与权限条件）、数据范围、字段脱敏几道关卡，每一道都可能收窄或拒绝；约束规则不在请求链路上，它在授权写入时把关。不看授权、按 IP、地区、时段等整体放行或拒绝请求的是[访问策略](./access-policy)。
 
 权限相关的领域实体几乎全部集中在 `modules/XiHan.BasicApp.Saas/Domain/Entities/`（`Sys*`），运行时判定由框架 [授权模块](https://framework.docs.xihanfun.com/packages/authorization) 承接。本页以真实源码为准，讲清"怎么用、为什么这么设计、怎么扩展"。
 
@@ -285,12 +285,15 @@ services.AddPermissionResource<SysNotification>(
 
 ## 判定链
 
-一次访问要逐层穿过下面的关卡，层层收紧、默认从严。请求先经框架中间件管道 `TraceId → 请求文化 → 认证 → 租户解析 → 授权 → 端点`，授权在其中由 `[PermissionAuthorize(...)]` 触发：
+一次访问要逐层穿过下面的关卡，层层收紧、默认从严。请求先经中间件管道 `访问策略（认证前）→ TraceId → 请求文化 → 认证 → 租户解析 → 访问策略（认证后）→ 授权 → 端点`，授权在其中由 `[PermissionAuthorize(...)]` 触发：
 
 ```text
 请求进来
+  → 访问策略（认证前）：平台级、只看 IP、地区、时段、UA、路径、方法的策略，拒绝返回 403；
+        自动封禁中的 IP 返回 429
   → 认证：你是谁（从主体声明解析 userId；解析不到直接拒绝）
   → 租户解析：落到哪个租户上下文（字段级隔离，全局数据 TenantId=0）
+  → 访问策略（认证后）：平台级其余策略加上所在租户的策略，同层放行压过拒绝，拒绝返回 403
   → 授权(RBAC)：IPermissionChecker 实时校验权限码（查授权快照）
         · 当前请求所属会话仍有效（登出 / 强制下线 / 禁用后即拒绝）
         · deny-overrides：用户 Deny > 用户 Grant > 角色 Deny > 角色 Grant
@@ -309,7 +312,7 @@ services.AddPermissionResource<SysNotification>(
   → 字段脱敏：FLS 按最严规则就地脱敏（读/导出一致），并门控排序/过滤字段
 ```
 
-约束规则不在这条链上，只在授权写入时执行静态职责分离（见上文）。
+约束规则不在这条链上，只在授权写入时执行静态职责分离（见上文）。访问策略的两层裁决、登录时检查与自动封禁见[访问策略](./access-policy)。
 
 判定采用框架的**混合策略**：`[PermissionAuthorize]` 把"权限码 + ABAC 策略码"编码进一个 ASP.NET Core 策略名，由 `HybridPermissionAuthorizationHandler` 依次执行"带请求上下文的权限码实时校验（含权限条件）→ ABAC 策略评估"。BasicApp 的接口都只声明权限码，策略码那一段不触发。
 
@@ -320,6 +323,7 @@ services.AddPermissionResource<SysNotification>(
 ## 下一步
 
 - [系统架构](./introduction)：权限判定在请求管道中的位置
+- [访问策略](./access-policy)：按 IP、地区、时段等放行或拒绝请求，登录失败自动封禁
 - [多租户](./multi-tenancy)：租户隔离与版本门控全貌
 - [审计日志](./logging)：`SysDiffLog` / `SysPermissionChangeLog` 等留痕
 - [框架 · 授权模块](https://framework.docs.xihanfun.com/packages/authorization)：底层 RBAC / Policy / ABAC 与混合策略实现

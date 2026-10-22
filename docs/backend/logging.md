@@ -86,7 +86,7 @@ XiHan.BasicApp 把"谁在什么时候、从哪里、对什么做了什么、结�
 - `AuthLoginSucceededDomainEvent` / `AuthLoginFailedDomainEvent` / `AuthLogoutDomainEvent` / `AuthSecurityAuditDomainEvent`
 - 事件处理器 `AuthLoginEventHandler` 把它们统一投影为 `LoginLogRecord` 写入。
 
-`LoginResult` 枚举既覆盖登录结果（`Success`/`InvalidCredentials`/`AccountLocked`/`AccountDisabled`/`RequiresTwoFactor`/`TwoFactorFailed`/`Failed`），也覆盖**认证审计事件**（`Logout`/`TokenRefreshed`/`PasswordChanged`/`PasswordReset`/`MfaBound`/`MfaUnbound`/`TenantSwitched`/`SessionRevoked`）——即令牌刷新、改密、绑定/解绑 MFA、切换租户（含进入平台运维态）、会话撤销（本人撤销其他会话或被管理员踢下线）也统一落这张表。`IsRiskLogin` 字段已建索引、查询与前端均可按其过滤，但**当前写入链路（`SaasLoginLogWriter`）尚未接入风控判定逻辑，恒为 `false`**（预留位，异地/新设备/深夜登录等规则待接入）。已经落地、真实生效的是登录事件处理器（`AuthLoginEventHandler`）的**并发登录检测**：登录成功时查同用户是否存在其它活跃会话（`SysUserSession`），并按设备是否曾用过区分"新设备登录"/"其它设备登录"，据此推送安全通知；登出时也会向其它在线设备推送"账号在其它设备登出"提醒。
+`LoginResult` 枚举既覆盖登录结果（`Success`/`InvalidCredentials`/`AccountLocked`/`AccountDisabled`/`RequiresTwoFactor`/`TwoFactorFailed`/`AccessDenied`（[访问策略](./access-policy)拒绝）/`Failed`），也覆盖**认证审计事件**（`Logout`/`TokenRefreshed`/`PasswordChanged`/`PasswordReset`/`MfaBound`/`MfaUnbound`/`TenantSwitched`/`SessionRevoked`）——即令牌刷新、改密、绑定/解绑 MFA、切换租户（含进入平台运维态）、会话撤销（本人撤销其他会话或被管理员踢下线）也统一落这张表。`IsRiskLogin` 字段已建索引、查询与前端均可按其过滤，但**当前写入链路（`SaasLoginLogWriter`）尚未接入风控判定逻辑，恒为 `false`**（预留位，异地/新设备/深夜登录等规则待接入）。已经落地、真实生效的是登录事件处理器（`AuthLoginEventHandler`）的**并发登录检测**：登录成功时查同用户是否存在其它活跃会话（`SysUserSession`），并按设备是否曾用过区分"新设备登录"/"其它设备登录"，据此推送安全通知；登出时也会向其它在线设备推送"账号在其它设备登出"提醒。
 
 ### 实体变更 `SysDiffLog`（数据溯源）
 
@@ -181,15 +181,16 @@ services.AddScoped<IEntityAuditContextProvider, SaasEntityDiffContextProvider>()
 | 异常日志 | `/log/exception` | `log/exception/index` | `lucide:triangle-alert` |
 | 数据变更日志 | `/log/diff` | `log/diff/index` | `lucide:file-diff` |
 
-> 同一分组下还有"日志链路追踪"（`/log/trace`）与"权限变更日志"（`/log/permission-change`）两个页面，见下文[相关能力](#相关能力-权限变更日志与链路追踪查询)。
+> 同一分组下还有"日志链路追踪"（`/log/trace`）、"权限变更日志"（`/log/permission-change`）与"条件命中"（`/log/access-policy`）三个页面，见下文[相关能力](#相关能力-权限变更日志与链路追踪查询)。
 
 每页是一个查询表格（时间区间 + 多维过滤 + 多字段排序 + 导出按钮），点行进共享的详情抽屉 `_components/LogDetailDrawer.vue` 查看完整字段——实体变更页在详情里渲染 `BeforeData`/`AfterData`/`ChangedFields` 的前后对比。导出按钮受 `saas:xxx-log:export` 权限码控制（无权限不渲染）。
 
 ## 相关能力：权限变更日志与链路追踪查询
 
-"审计中心"菜单分组下，除本页六类外还挂了两个紧密关联、但**不计入"六类"**的能力，二者共用同一套写入基础设施与保留策略（含前文的 `LogRetentionCleanupTask`）：
+"审计中心"菜单分组下，除本页六类外还挂了三个紧密关联、但**不计入"六类"**的能力，它们共用同一套保留策略（含前文的 `LogRetentionCleanupTask`）：
 
 - **权限变更日志 `SysPermissionChangeLog`**（菜单"权限变更日志"，路由 `/log/permission-change`，权限码 `saas:permission-change-log:read`，仅查看、无导出）：结构化记录"谁在什么时候给谁授予/撤销了什么权限"——`OperatorUserId`/`TargetUserId`/`TargetRoleId`/`PermissionId` + `ChangeType`，按月分表。授权写路径通过 `IAuthorizationChangeNotifier` 发布 `AuthorizationChangedDomainEvent`，`PermissionChangeLogEventHandler` 订阅后落库；查询走只读的 `PermissionChangeLogQueryService`。与 `SysDiffLog` 的边界：`SysDiffLog` 记通用实体字段变更，本表专注权限授予/撤销这一业务语义。
+- **条件命中记录 `SysAccessPolicyHit`**（菜单"条件命中"，路由 `/log/access-policy`，权限码 `saas:access-policy-hit:read`，仅查看、无导出）：访问策略与权限条件的命中，`Source` 区分来源；同一策略、动作、时机、是否拦截、IP、方法、路径、用户在同一分钟里合并为一行、累计次数，在内存里合并后由后台服务批量落库。平台策略的命中记在平台，租户策略与权限条件的命中记在该租户。见[访问策略 · 命中记录](./access-policy#命中记录)。
 - **链路追踪查询 `TraceQueryService`**（菜单"日志链路追踪"，路由 `/log/trace`，权限码 `saas:log-trace:read`）：按维度（用户名 / 会话标识 / `TraceId` / IP / 用户主键）+ 时间范围（≤ 31 天，防止扫描过多月表）跨**全部 8 类**分表日志（本页六类、权限变更日志与条件命中记录）聚合成一条时间倒序时间线；权限变更日志没有用户名与会话维度，条件命中记录没有会话维度，这两种维度下它们不参与，单类型默认最多返回 200 条（上限 500，超出标记 `Truncated`）。它是本页反复强调的"用 `TraceId` 串联同一次请求全链路"能力的实际查询入口。
 
 ## 与框架的关系

@@ -73,6 +73,7 @@ const backendSidebar: DefaultTheme.SidebarItem[] = [
       ["统一认证", "authentication"],
       ["权限管理", "permission"],
       ["数据权限", "data-permission"],
+      ["访问策略", "access-policy"],
       ["组织架构", "organization"],
       ["多租户 SaaS", "multi-tenancy"],
       ["缓存与异步", "caching"],
