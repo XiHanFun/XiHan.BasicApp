@@ -12,7 +12,7 @@ import { CODE_LOGIN_PATH, EMAIL_LOGIN_PATH, LOGIN_PATH, QRCODE_LOGIN_PATH } from
  * 表单由路由渲染，这里把它接进当前标签的面板里——只摆一条 tablist 而没有 tabpanel 是错的语义，
  * 触发器上的 aria-controls 会指向一个不存在的区域。
  * 标签用 page.auth.entry.* 短说法，不借页面标题键：登录卡片右栏固定宽，长标题会把扫码入口挤出容器。
- * 只列登录设置开放的方式；只开放一种时不出标签带，停在没开放的方式上会换到第一个开放的入口。
+ * 只列登录设置开放的方式；只开放一种时也出标签带，停在没开放的方式上会换到第一个开放的入口。
  */
 defineOptions({ name: 'AuthEntrySwitcher' })
 
@@ -58,7 +58,7 @@ const entryList = computed(() => {
   ].filter(entry => opened.has(entry.method))
 })
 
-const showTabs = computed(() => props.enabled && entryList.value.length > 1)
+const showTabs = computed(() => props.enabled && entryList.value.length > 0)
 
 /** 选中项取自当前路由，不另存一份状态 */
 const activeEntry = computed(
