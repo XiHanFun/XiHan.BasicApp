@@ -5,13 +5,16 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using XiHan.BasicApp.Saas.Application.Authorization;
 using XiHan.BasicApp.Saas.Application.Caching;
+using XiHan.BasicApp.Saas.Application.Conditions;
 using XiHan.BasicApp.Saas.Application.Contracts;
 using XiHan.BasicApp.Saas.Application.EventHandlers;
 using XiHan.BasicApp.Saas.Application.Exporting;
 using XiHan.BasicApp.Saas.Application.QueryServices;
 using XiHan.BasicApp.Saas.Application.Services;
+using XiHan.BasicApp.Saas.Domain.Conditions;
 using XiHan.BasicApp.Saas.Domain.DomainServices;
 using XiHan.BasicApp.Saas.Domain.Entities;
 using XiHan.BasicApp.Saas.Domain.Numbering;
@@ -31,6 +34,7 @@ using XiHan.Framework.Auditing.Writers;
 using XiHan.Framework.Authentication.Jwt;
 using XiHan.Framework.Authentication.OAuth;
 using XiHan.Framework.Authentication.Users;
+using XiHan.Framework.Authorization.Extensions.DependencyInjection;
 using XiHan.Framework.Authorization.Permissions;
 using XiHan.Framework.Bot.DingTalk.Abstractions;
 using XiHan.Framework.Bot.Email.Abstractions;
@@ -263,6 +267,24 @@ public static class ServiceCollectionExtensions
         // 进程内锁既无法覆盖跨节点竞争，也会在锁与数据库锁之间引入数据库看不见的等待环。
         services.TryAddSingleton(TimeProvider.System);
         services.AddScoped<INumberGenerator, NumberGenerator>();
+        return services;
+    }
+
+    /// <summary>
+    /// 添加条件求值的属性登记与属性来源（权限条件与访问策略共用）
+    /// </summary>
+    /// <param name="services">服务集合</param>
+    /// <returns>服务集合</returns>
+    public static IServiceCollection AddSaasConditions(this IServiceCollection services)
+    {
+        services.AddXiHanConditionAttributes([.. SaasConditionAttributes.All]);
+        // 时区配错在启动时就报出来，不等到第一次求值
+        services.AddOptions<SaasConditionOptions>()
+            .BindConfiguration(SaasConditionOptions.SectionName)
+            .ValidateOnStart();
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<SaasConditionOptions>, SaasConditionOptionsValidator>());
+        services.AddScoped<SaasConditionSubjectLoader>();
+        services.AddScoped<ISaasConditionAttributeSourceFactory, SaasConditionAttributeSourceFactory>();
         return services;
     }
 

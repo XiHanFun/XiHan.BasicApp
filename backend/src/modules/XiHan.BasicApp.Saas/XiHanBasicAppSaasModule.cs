@@ -51,6 +51,9 @@ public class XiHanBasicAppSaasModule : XiHanModule
         services.AddSaasApplicationServices();
         services.AddSaasFieldSecurityEntities();
 
+        // 注册条件求值的属性登记与属性来源（时区取 Saas:Conditions:TimeZone）
+        services.AddSaasConditions();
+
         // 修正 .NET 配置对 List<T> 的「追加而非替换」语义：框架 XiHanOpenApiSecurityOptions 的默认
         // ProtectedPathPrefixes=["/api"] 不会被 appsettings 的值替换，而是被追加，导致最终为 ["/api", 配置值...]，
         // 把整个第一方前端 /api/* 全纳入强制签名（登录等匿名调用直接 401「缺少安全请求头」）。

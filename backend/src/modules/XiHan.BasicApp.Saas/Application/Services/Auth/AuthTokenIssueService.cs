@@ -46,6 +46,11 @@ public sealed class AuthTokenIssueService
             command.ImpersonatorUserName,
             command.ImpersonatorTenantId,
             command.ImpersonatorTenantName);
+        if (!string.IsNullOrWhiteSpace(command.ClientId))
+        {
+            claims.Add(new Claim(XiHanClaimTypes.ClientId, command.ClientId.Trim()));
+        }
+
         var tokenResult = _jwtTokenService.GenerateAccessToken(claims);
         return new AuthAccessTokenIssueResult(tokenResult, ToLoginTokenDto(tokenResult));
     }
