@@ -1,0 +1,4 @@
+{
+  "host.commands.seed_description": "Ejecuta los sembradores en orden (--only <nombre,...> para elegir algunos, --list para mostrarlos sin ejecutar).",
+  "host.commands.seeder_unknown": "Sembrador desconocido '{name}'. Ejecute 'seed --list' para ver los sembradores."
+}

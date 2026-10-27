@@ -1,0 +1,4 @@
+{
+  "host.commands.seed_description": "按顺序执行种子（--only <名,...> 只跑指定的，--list 只列出不执行）。",
+  "host.commands.seeder_unknown": "没有名为 '{name}' 的种子。执行 'seed --list' 查看种子列表。"
+}

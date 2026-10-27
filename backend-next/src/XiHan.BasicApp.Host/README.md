@@ -26,25 +26,25 @@ Development 打开 `XiHan:Persistence:SqlSugar:InitTables`，启动按已登记�
 - `XiHan:Bindings:db`：平台库连接串（`value`）与库类型（`provider`，缺省 `postgresql`）。缺失即 `RUNTIME_VALIDATION_001` 中断启动。
 - `XiHan:Security:Jwt:Secret`：HS256 密钥，至少 32 字节；`appsettings.json` 留空，由环境配置或密钥存储提供。不提交真实密钥。
 - `BasicApp:ApiDocs:Enabled`：是否映射 `/openapi.json` 与 `/scalar`；没写时 Development 为真、其余为假。
+- `BasicApp:Auth`：访问令牌分钟数、刷新令牌天数、登录失败上限与锁定分钟数、密码最短长度与历史深度、会话门禁缓存秒数（缺省见 `appsettings.json`）。
+- `BasicApp:Seed`：`EnableDemoData`（演示数据，Development 打开）与 `SuperAdminPassword`（初始超级管理员密码；留空沿用 `SuperAdmin@123`，部署前改掉）。
 
 ## 命令
 
 ```bash
-# 导出接口文档（不启动应用、不连数据库）；前端 gen-contracts 与 CI 漂移门禁读它
-dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out frontend-next/contracts
+# 导出接口文档（不启动应用、不连数据库）；前端 gen-contracts 与 CI 漂移门禁读它。
+# dotnet run 以工程目录为工作目录，--out 给绝对路径（仓库根执行时用 $PWD）
+dotnet run --project backend-next/src/XiHan.BasicApp.Host -- contracts export --out "$PWD/frontend-next/contracts"
+
+# 种子：按号段顺序执行各包登记的种子（可重复执行；--list 只列出，--only identity.platform 只跑指定的）
+dotnet run --project backend-next/src/XiHan.BasicApp.Host --launch-profile Development -- seed
+
+# 框架内建命令：help / graph / pipeline / operations / invoke <操作 ID> [--json ...]
+dotnet run --project backend-next/src/XiHan.BasicApp.Host -- operations
 ```
 
-## N0 的开发数据
+命令模式用同一套装配启动宿主但不监听端口（不与正在运行的实例争抢 9710 / 9711）；命令经完整内核管道执行，日志只写 stderr，stdout 只承载命令输出（成功是 JSON，失败是 `{"code","detail"}`，退出码按错误 KIND）。
 
-N0 没有登录与种子：
+## 初始账号
 
-1. 用 `frontend-next/scripts/dev-token.mjs` 按 Development 的密钥签一枚令牌（`sub`、`tenant`、`role` 声明）。
-2. 在平台库里准备租户与授权行（N1 的 `seed` 命令取代这一步）：
-
-```sql
-INSERT INTO tenant_record (id, display_name, is_enabled, properties_json, created_at, concurrency_stamp)
-VALUES ('acme', 'Acme', true, '{}', now(), md5(random()::text));
-INSERT INTO permission_grant_record (id, subject_kind, subject_id, permission, tenant_id, created_at)
-VALUES (gen_random_uuid(), 'role', 'admin', 'identity.users.read', '', now()),
-       (gen_random_uuid(), 'role', 'admin', 'identity.users.create', '', now());
-```
+`seed` 写入平台账号 `superadmin`（密码来自 `BasicApp:Seed:SuperAdminPassword`，缺省 `SuperAdmin@123`）与它的全局授予 `*`。用它登录（`POST /api/auth:login`，租户留空），再创建租户与租户用户。

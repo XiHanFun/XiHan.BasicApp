@@ -1,0 +1,4 @@
+{
+  "host.commands.seed_description": "シーダーを順に実行します（--only <名前,...> で対象を絞り、--list で実行せずに一覧表示）。",
+  "host.commands.seeder_unknown": "シーダー '{name}' は存在しません。'seed --list' で一覧を表示してください。"
+}

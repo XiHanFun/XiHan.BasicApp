@@ -1,0 +1,4 @@
+{
+  "host.commands.seed_description": "Führt die Seeder der Reihe nach aus (--only <Name,...> wählt einzelne aus, --list zeigt sie nur an).",
+  "host.commands.seeder_unknown": "Unbekannter Seeder '{name}'. Führen Sie 'seed --list' aus, um die Seeder anzuzeigen."
+}

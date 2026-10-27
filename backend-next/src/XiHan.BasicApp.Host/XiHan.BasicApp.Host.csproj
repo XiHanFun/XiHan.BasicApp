@@ -23,6 +23,13 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Messaging.Abstractions" />
+    <!-- 命令模式：help / graph / pipeline / operations / invoke 由框架提供，seed 由本宿主登记 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Hosting.CommandLine" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 宿主的消息文案（命令说明与命令错误），与能力包同一格式 -->
+    <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
