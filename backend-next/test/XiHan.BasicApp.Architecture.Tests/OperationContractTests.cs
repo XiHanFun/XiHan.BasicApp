@@ -1,0 +1,116 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System.Reflection;
+using System.Text.RegularExpressions;
+using XiHan.BasicApp.Architecture.Tests.Model;
+using XiHan.BasicApp.Contracts.Security;
+using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.Primitives;
+
+namespace XiHan.BasicApp.Architecture.Tests;
+
+/// <summary>
+/// 方案 5.4 / 第 10 节第 8 项：每个操作显式写 <c>Expose</c>；权限码点分三段且资源段与操作 ID 同词；匿名操作只能在白名单里。
+/// </summary>
+public sealed partial class OperationContractTests
+{
+    /// <summary>不写 Permission 也不写 Policy 的操作（登录、验证码、找回密码、刷新令牌）在这里登记；N0 没有。</summary>
+    private static readonly HashSet<string> _anonymousOperations = new(StringComparer.Ordinal);
+
+    private static IEnumerable<(Type Type, OperationAttribute Attribute, string Package)> Operations()
+        => Packages.Assemblies
+            .SelectMany(static a => a.GetTypes().Select(t => (Type: t, Attribute: t.GetCustomAttribute<OperationAttribute>(), Package: Packages.ShortName(a.GetName().Name!))))
+            .Where(static x => x.Attribute is not null)
+            .Select(static x => (x.Type, x.Attribute!, x.Package));
+
+    [Fact]
+    public void ThereAreOperations()
+    {
+        Assert.NotEmpty(Operations());
+    }
+
+    [Fact]
+    public void EveryOperation_WritesExposeExplicitly()
+    {
+        // 特性缺省是 All 且 sealed，反射分不出「显式写了 All」与「没写」：按源码判，Operations 目录下每个 [Operation(...)] 的文本必须带 Expose =
+        var violations = new List<string>();
+        foreach (var file in Directory.EnumerateFiles(Packages.SourceRoot, "*.cs", SearchOption.AllDirectories))
+        {
+            if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal) || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var source = File.ReadAllText(file);
+            foreach (Match match in OperationAttributeText().Matches(source))
+            {
+                if (!match.Value.Contains("Expose =", StringComparison.Ordinal))
+                {
+                    violations.Add($"{Path.GetRelativePath(Packages.SourceRoot, file)}: {match.Value.Split('\n')[0].Trim()}");
+                }
+            }
+        }
+
+        Assert.True(violations.Count == 0, "Operations without an explicit Expose:" + Environment.NewLine + string.Join(Environment.NewLine, violations));
+        foreach (var (type, attribute, _) in Operations())
+        {
+            Assert.True(attribute.Expose != Expose.None, $"{type.FullName}: Expose.None publishes nothing");
+        }
+    }
+
+    [Fact]
+    public void EveryOperation_LivesUnderOperationsResourceNamespace()
+    {
+        foreach (var (type, attribute, package) in Operations())
+        {
+            var resource = ToPascal(OperationId.ResourceOf(attribute.Id));
+            var expected = $"{Packages.Prefix}{package}.Operations.{resource}";
+            Assert.True(string.Equals(type.Namespace, expected, StringComparison.Ordinal), $"{type.FullName}: operation '{attribute.Id}' must live in namespace {expected} (Operations/{resource}/)");
+        }
+    }
+
+    [Fact]
+    public void EveryOperation_HasAThreeSegmentPermission_OrIsWhitelistedAnonymous()
+    {
+        foreach (var (type, attribute, package) in Operations())
+        {
+            if (attribute.Permission is null && attribute.Policy is null)
+            {
+                Assert.True(_anonymousOperations.Contains(attribute.Id), $"{type.FullName}: operation '{attribute.Id}' has neither Permission nor Policy; anonymous operations must be whitelisted in {nameof(OperationContractTests)}");
+                continue;
+            }
+
+            if (attribute.Permission is null)
+            {
+                continue;
+            }
+
+            Assert.True(PermissionDescriptor.IsValidCode(attribute.Permission), $"{type.FullName}: permission '{attribute.Permission}' is not '<package>.<resource>.<action>'");
+            var descriptor = new PermissionDescriptor(attribute.Permission, "x", PermissionScope.Both);
+            Assert.True(string.Equals(descriptor.Package, package.ToLowerInvariant(), StringComparison.Ordinal), $"{type.FullName}: permission '{attribute.Permission}' must start with the owning package '{package.ToLowerInvariant()}'");
+            Assert.True(string.Equals(descriptor.Resource, OperationId.ResourceOf(attribute.Id), StringComparison.Ordinal), $"{type.FullName}: permission resource '{descriptor.Resource}' must equal the operation resource '{OperationId.ResourceOf(attribute.Id)}'");
+            Assert.True(PermissionCatalog.Of(package).Any(p => string.Equals(p.Code, attribute.Permission, StringComparison.Ordinal)), $"{type.FullName}: permission '{attribute.Permission}' is not declared in {package}Permissions.All");
+        }
+    }
+
+    [Fact]
+    public void PermissionCatalogs_DeclareOnlyTheirOwnPackage_WithUniqueCodes()
+    {
+        foreach (var package in Packages.Assemblies.Select(static a => Packages.ShortName(a.GetName().Name!)))
+        {
+            var all = PermissionCatalog.Of(package);
+            Assert.Equal(all.Count, all.Select(static p => p.Code).Distinct(StringComparer.Ordinal).Count());
+            foreach (var descriptor in all)
+            {
+                Assert.True(string.Equals(descriptor.Package, package.ToLowerInvariant(), StringComparison.Ordinal), $"{package}Permissions declares '{descriptor.Code}' of another package");
+            }
+        }
+    }
+
+    private static string ToPascal(string kebab)
+        => string.Concat(kebab.Split('-').Select(static part => char.ToUpperInvariant(part[0]) + part[1..]));
+
+    [GeneratedRegex(@"\[Operation\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)\]")]
+    private static partial Regex OperationAttributeText();
+}
