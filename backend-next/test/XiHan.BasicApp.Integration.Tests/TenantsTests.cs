@@ -76,7 +76,7 @@ public sealed class TenantsTests : IDisposable
         Assert.Contains("identity.users.create", codes);
         Assert.Contains("access.roles.grant", codes);
         Assert.DoesNotContain("tenancy.tenants.read", codes);
-        Assert.Equal(["identity.users", "access.roles"], permissionsBody.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
+        Assert.Equal(["identity.users", "organization.departments", "organization.positions", "access.roles"], permissionsBody.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
 
         // 在本租户内工作：只看到本租户的用户；平台专属操作即使持有 * 也被操作本身拒绝
         var (list, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", tenantAdmin));
