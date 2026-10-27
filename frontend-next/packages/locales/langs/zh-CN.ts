@@ -10,10 +10,12 @@ export default {
       next: '下一页',
     },
     session: {
-      token: '令牌',
-      token_placeholder: '粘贴 pnpm dev:token 签出的令牌',
-      apply: '应用',
-      signed_in: '已登录：{subject} · {tenant}',
+      label: '会话',
+      signed_in: '{name} · {tenant}',
+      platform: '平台',
+      change_password: '修改密码',
+      sign_out: '退出登录',
+      must_change_password: '密码已被管理员重置，请先修改密码。',
     },
   },
 }

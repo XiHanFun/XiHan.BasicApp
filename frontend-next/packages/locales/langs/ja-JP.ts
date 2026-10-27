@@ -10,10 +10,12 @@ export default {
       next: '次へ',
     },
     session: {
-      token: 'トークン',
-      token_placeholder: 'pnpm dev:token で発行したトークンを貼り付け',
-      apply: '適用',
-      signed_in: 'ログイン中：{subject} · {tenant}',
+      label: 'セッション',
+      signed_in: '{name} · {tenant}',
+      platform: 'プラットフォーム',
+      change_password: 'パスワード変更',
+      sign_out: 'ログアウト',
+      must_change_password: '管理者によりパスワードがリセットされました。続行する前に変更してください。',
     },
   },
 }

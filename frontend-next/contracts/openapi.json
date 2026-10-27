@@ -5,13 +5,507 @@
     "version": "6.0.0-preview.1"
   },
   "paths": {
+    "/api/auth:login": {
+      "post": {
+        "operationId": "auth.login",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sign in with user name and password (tenant optional; platform accounts leave it empty); returns access and refresh tokens.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "LoginRequest",
+                "type": "object",
+                "properties": {
+                  "userName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "tenant": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                  }
+                },
+                "required": [
+                  "userName",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TokenResponse",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessExpiresAt",
+                    "refreshToken",
+                    "refreshExpiresAt",
+                    "sessionId",
+                    "mustChangePassword",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:logout": {
+      "post": {
+        "operationId": "auth.logout",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Revoke the session of the current token.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "LogoutRequest",
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "LogoutResponse",
+                  "type": "object",
+                  "properties": {
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "revokedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "sessionId",
+                    "revokedAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:me": {
+      "post": {
+        "operationId": "auth.me",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Return the current user, tenant, session and roles.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MeRequest",
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MeResponse",
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "tenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "roles": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "roles",
+                    "mustChangePassword"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:refresh": {
+      "post": {
+        "operationId": "auth.refresh",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Exchange a refresh token for new tokens; the refresh token rotates and the old one stops working.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RefreshRequest",
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "minLength": 16,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "refreshToken"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TokenResponse",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessExpiresAt",
+                    "refreshToken",
+                    "refreshExpiresAt",
+                    "sessionId",
+                    "mustChangePassword",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:change-password": {
+      "post": {
+        "operationId": "profile.change-password",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Change your own password; requires the current password and revokes your other sessions.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ChangePasswordRequest",
+                "type": "object",
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PasswordChangedResponse",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "changedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionsRevoked": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "changedAt",
+                    "sessionsRevoked"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users": {
+      "delete": {
+        "operationId": "users.delete",
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete users in batch (soft delete) and revoke their sessions; you cannot delete yourself. Requires identity.users.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "operationId": "users.create",
         "tags": [
           "users"
         ],
-        "summary": "Create a user in the current tenant; requires the identity.users.create permission.",
+        "summary": "Create a user: a tenant principal creates one in its own tenant; a platform principal may name the home tenant or create a platform account. Requires identity.users.create.",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "identity.users.create",
         "parameters": [],
@@ -40,6 +534,28 @@
                       "null"
                     ],
                     "maxLength": 256
+                  },
+                  "phoneNumber": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 32
+                  },
+                  "password": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 8,
+                    "maxLength": 128
+                  },
+                  "homeTenantId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
                   }
                 },
                 "required": [
@@ -75,16 +591,24 @@
                         "null"
                       ]
                     },
+                    "phoneNumber": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "homeTenantId": {
                       "type": "string"
                     },
                     "status": {
-                      "type": "string",
-                      "enum": [
-                        "Active",
-                        "Disabled",
-                        "Locked"
-                      ]
+                      "$ref": "#/components/schemas/UserStatus"
+                    },
+                    "lastLoginAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     },
                     "createdAt": {
                       "type": "string",
@@ -128,7 +652,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Get a user of the current tenant by ID; requires the identity.users.read permission.",
+        "summary": "Get a user by ID; tenant principals only see their own tenant. Requires identity.users.read.",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "identity.users.read",
         "parameters": [
@@ -167,16 +691,162 @@
                         "null"
                       ]
                     },
+                    "phoneNumber": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
                     "homeTenantId": {
                       "type": "string"
                     },
                     "status": {
+                      "$ref": "#/components/schemas/UserStatus"
+                    },
+                    "lastLoginAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "createdAt": {
                       "type": "string",
-                      "enum": [
-                        "Active",
-                        "Disabled",
-                        "Locked"
+                      "format": "date-time"
+                    },
+                    "createdBy": {
+                      "type": [
+                        "string",
+                        "null"
                       ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "userName",
+                    "displayName",
+                    "homeTenantId",
+                    "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "users.update",
+        "tags": [
+          "users"
+        ],
+        "summary": "Update a user\u0027s display name, email and phone number. Requires identity.users.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateUserRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "displayName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "email": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "phoneNumber": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "id",
+                  "displayName"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "UserResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": "string"
+                    },
+                    "displayName": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "phoneNumber": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "homeTenantId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/UserStatus"
+                    },
+                    "lastLoginAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
                     },
                     "createdAt": {
                       "type": "string",
@@ -214,13 +884,102 @@
         }
       }
     },
+    "/api/users/{id}:reset-password": {
+      "post": {
+        "operationId": "users.reset-password",
+        "tags": [
+          "users"
+        ],
+        "summary": "Set a new password for a user, revoke their sessions and require a change at next login. Requires identity.users.reset-password.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.reset-password",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ResetPasswordRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "minLength": 8,
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "id",
+                  "newPassword"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PasswordChangedResponse",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "changedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionsRevoked": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "changedAt",
+                    "sessionsRevoked"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users:list": {
       "post": {
         "operationId": "users.list",
         "tags": [
           "users"
         ],
-        "summary": "List users of the current tenant with paging, filters, keyword and sorting; requires the identity.users.read permission.",
+        "summary": "List users with paging, filters, keyword and sorting; tenant principals only see their own tenant. Requires identity.users.read.",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "identity.users.read",
         "parameters": [],
@@ -267,7 +1026,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "PageResult",
+                  "title": "PageResultOfUserResponse",
                   "type": "object",
                   "properties": {
                     "items": {
@@ -288,6 +1047,164 @@
                     "items",
                     "total",
                     "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users:lock": {
+      "post": {
+        "operationId": "users.lock",
+        "tags": [
+          "users"
+        ],
+        "summary": "Lock users in batch and revoke their sessions; you cannot lock yourself. Requires identity.users.lock.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.lock",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UserIdsRequest",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/users:unlock": {
+      "post": {
+        "operationId": "users.unlock",
+        "tags": [
+          "users"
+        ],
+        "summary": "Unlock users in batch. Requires identity.users.lock.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.lock",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UserIdsRequest",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
                   ]
                 }
               }
@@ -362,6 +1279,22 @@
           "code"
         ]
       },
+      "BatchFailure": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "code"
+        ]
+      },
       "PageFilter": {
         "type": "object",
         "properties": {
@@ -402,10 +1335,6 @@
             "format": "int32",
             "minimum": 1,
             "maximum": 500
-          },
-          "skip": {
-            "type": "integer",
-            "format": "int32"
           }
         }
       },
@@ -444,16 +1373,24 @@
               "null"
             ]
           },
+          "phoneNumber": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "homeTenantId": {
             "type": "string"
           },
           "status": {
-            "type": "string",
-            "enum": [
-              "Active",
-              "Disabled",
-              "Locked"
-            ]
+            "$ref": "#/components/schemas/UserStatus"
+          },
+          "lastLoginAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
           },
           "createdAt": {
             "type": "string",
@@ -474,6 +1411,14 @@
           "status",
           "createdAt"
         ]
+      },
+      "UserStatus": {
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled",
+          "Locked"
+        ]
       }
     },
     "securitySchemes": {
@@ -489,10 +1434,30 @@
         "displayName": "Create users",
         "description": "Create users in the current tenant."
       },
+      "identity.users.delete": {
+        "code": "identity.users.delete",
+        "displayName": "Delete users",
+        "description": "Delete users of the current tenant."
+      },
+      "identity.users.lock": {
+        "code": "identity.users.lock",
+        "displayName": "Lock users",
+        "description": "Lock and unlock users of the current tenant."
+      },
       "identity.users.read": {
         "code": "identity.users.read",
         "displayName": "Read users",
         "description": "View users of the current tenant."
+      },
+      "identity.users.reset-password": {
+        "code": "identity.users.reset-password",
+        "displayName": "Reset passwords",
+        "description": "Reset user passwords; the user must change the password at next sign-in."
+      },
+      "identity.users.update": {
+        "code": "identity.users.update",
+        "displayName": "Update users",
+        "description": "Edit user profiles of the current tenant."
       }
     }
   },

@@ -10,10 +10,12 @@ export default {
       next: 'Suivant',
     },
     session: {
-      token: 'Jeton',
-      token_placeholder: 'Collez un jeton issu de pnpm dev:token',
-      apply: 'Appliquer',
-      signed_in: 'Connecté : {subject} · {tenant}',
+      label: 'Session',
+      signed_in: '{name} · {tenant}',
+      platform: 'Plateforme',
+      change_password: 'Changer le mot de passe',
+      sign_out: 'Se déconnecter',
+      must_change_password: 'Votre mot de passe a été réinitialisé par un administrateur ; changez-le avant de continuer.',
     },
   },
 }

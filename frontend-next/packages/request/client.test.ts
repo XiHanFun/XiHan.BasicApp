@@ -88,6 +88,25 @@ describe('invoke', () => {
     expect(onUnauthenticated).toHaveBeenCalledOnce()
   })
 
+  it('sends anonymous calls without a token and never refreshes them', async () => {
+    const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+      expect((init!.headers as Record<string, string>).Authorization).toBeUndefined()
+      return problem(401, { code: 'SECURITY_DENIED_001', status: 401, detail: 'auth' })
+    })
+    const onUnauthenticated = vi.fn(async () => 'fresh')
+    configureRequest({ baseUrl: '', fetch: fetchMock as unknown as typeof fetch, getToken: () => 'stale', hooks: { onUnauthenticated } })
+    await expect(invoke('auth.login', list, {}, { anonymous: true })).rejects.toMatchObject({ code: 'SECURITY_DENIED_001' })
+    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(onUnauthenticated).not.toHaveBeenCalled()
+  })
+
+  it('invokes the session hook on IDENTITY_DENIED_001 and still throws', async () => {
+    const onSessionInvalid = vi.fn()
+    configureRequest({ baseUrl: '', fetch: (async () => problem(403, { code: 'IDENTITY_DENIED_001', status: 403, detail: 'revoked' })) as unknown as typeof fetch, getToken: () => 't', hooks: { onSessionInvalid } })
+    await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'IDENTITY_DENIED_001' })
+    expect(onSessionInvalid).toHaveBeenCalledOnce()
+  })
+
   it('invokes the lock hook on IDENTITY_DENIED_002 and still throws', async () => {
     const onLocked = vi.fn()
     configureRequest({ baseUrl: '', fetch: (async () => problem(403, { code: 'IDENTITY_DENIED_002', status: 403, detail: 'locked' })) as unknown as typeof fetch, getToken: () => 't', hooks: { onLocked } })

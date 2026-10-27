@@ -10,10 +10,12 @@ export default {
       next: '다음',
     },
     session: {
-      token: '토큰',
-      token_placeholder: 'pnpm dev:token 으로 발급한 토큰을 붙여넣기',
-      apply: '적용',
-      signed_in: '로그인: {subject} · {tenant}',
+      label: '세션',
+      signed_in: '{name} · {tenant}',
+      platform: '플랫폼',
+      change_password: '비밀번호 변경',
+      sign_out: '로그아웃',
+      must_change_password: '관리자가 비밀번호를 재설정했습니다. 계속하기 전에 변경하세요.',
     },
   },
 }

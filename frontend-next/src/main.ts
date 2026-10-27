@@ -2,7 +2,7 @@ import { createPinia } from 'pinia'
 import { createApp } from 'vue'
 import { setupI18n } from '~/locales'
 import { configureRequest } from '~/request'
-import { router } from '~/router'
+import { LOGIN_ROUTE, router } from '~/router'
 import { useAppStore, useAuthStore } from '~/stores'
 import App from './App.vue'
 import './styles/index.css'
@@ -19,16 +19,25 @@ async function bootstrap() {
 
   const auth = useAuthStore()
   const appStore = useAppStore()
+  const toLogin = () => {
+    auth.clear()
+    if (router.currentRoute.value.name !== LOGIN_ROUTE)
+      void router.replace({ name: LOGIN_ROUTE, query: { redirect: router.currentRoute.value.fullPath } })
+  }
   configureRequest({
     baseUrl: import.meta.env.VITE_API_BASE_URL ?? '',
-    getToken: () => auth.token,
+    getToken: () => auth.accessToken,
     getLocale: () => appStore.locale,
     hooks: {
-      // N1 的 auth.refresh 落地前没有刷新令牌：未认证即清掉令牌
+      // 访问令牌过期：用刷新令牌换一次并重放；刷新也失败即回登录页
       onUnauthenticated: async () => {
-        auth.setToken(null)
-        return null
+        const token = await auth.refresh()
+        if (!token)
+          toLogin()
+        return token
       },
+      // 会话被吊销（注销、改密、锁定、重置密码）：刷新令牌同样失效，直接回登录页
+      onSessionInvalid: toLogin,
     },
   })
   await appStore.setLocale(appStore.locale)
