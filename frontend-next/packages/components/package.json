@@ -1,0 +1,19 @@
+{
+  "name": "@xihan/components",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@vueuse/core": "catalog:",
+    "@xihan-ui/core": "catalog:",
+    "@xihan-ui/headless": "catalog:",
+    "@xihan-ui/vue": "catalog:",
+    "@xihan/composables": "workspace:*",
+    "@xihan/constants": "workspace:*",
+    "@xihan/hooks": "workspace:*",
+    "@xihan/iconify": "workspace:*",
+    "@xihan/stores": "workspace:*",
+    "@xihan/types": "workspace:*",
+    "@xihan/utils": "workspace:*"
+  }
+}

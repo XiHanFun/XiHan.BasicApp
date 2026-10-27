@@ -32,12 +32,20 @@
     "check": "pnpm run type-check && pnpm run lint && pnpm run px:check && pnpm run token:check && pnpm run i18n:check && pnpm run modules:check && pnpm run contracts:check && pnpm run permissions:check"
   },
   "dependencies": {
+    "@iconify/vue": "catalog:",
+    "@microsoft/signalr": "catalog:",
+    "@vueuse/core": "catalog:",
     "@xihan-ui/core": "catalog:",
     "@xihan-ui/headless": "catalog:",
+    "@xihan-ui/icons": "catalog:",
+    "@xihan-ui/motion": "catalog:",
+    "@xihan-ui/sound": "catalog:",
     "@xihan-ui/styles": "catalog:",
     "@xihan-ui/tokens": "catalog:",
     "@xihan-ui/vue": "catalog:",
+    "dayjs": "catalog:",
     "pinia": "catalog:",
+    "pinyin-pro": "catalog:",
     "vue": "catalog:",
     "vue-i18n": "catalog:",
     "vue-router": "catalog:"

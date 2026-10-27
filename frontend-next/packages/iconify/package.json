@@ -1,0 +1,14 @@
+{
+  "name": "@xihan/iconify",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@iconify-json/lucide": "catalog:",
+    "@iconify-json/mdi": "catalog:",
+    "@iconify-json/simple-icons": "catalog:",
+    "@iconify-json/tabler": "catalog:",
+    "@iconify/vue": "catalog:",
+    "@xihan-ui/vue": "catalog:"
+  }
+}
