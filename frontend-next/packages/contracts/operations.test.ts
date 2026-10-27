@@ -3,7 +3,7 @@ import { resolve } from 'node:path'
 import process from 'node:process'
 import { describe, expect, it } from 'vitest'
 import { routes, users } from './operations'
-import { operationPermission, permissions } from './permissions'
+import { operationPermission, permissionDefinitions } from './permissions'
 
 /** 生成物与 contracts/openapi.json 的对应关系：路由表覆盖全部 operationId，权限码来自文档的扩展。 */
 describe('generated contracts', () => {
@@ -31,6 +31,6 @@ describe('generated contracts', () => {
           expect(operationPermission[op.operationId as keyof typeof operationPermission]).toBe(op['x-xihan-permission'])
       }
     }
-    expect(Object.keys(permissions).sort()).toEqual(Object.keys(document.components['x-xihan-permissions']).sort())
+    expect(Object.keys(permissionDefinitions).sort()).toEqual(Object.keys(document.components['x-xihan-permissions']).sort())
   })
 })

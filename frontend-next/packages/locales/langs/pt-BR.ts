@@ -8,6 +8,7 @@ export default {
       refresh: 'Atualizar',
       previous: 'Anterior',
       next: 'Próxima',
+      home: 'Início',
     },
     session: {
       label: 'Sessão',
@@ -16,6 +17,17 @@ export default {
       change_password: 'Alterar senha',
       sign_out: 'Sair',
       must_change_password: 'Sua senha foi redefinida por um administrador; altere-a antes de continuar.',
+    },
+    nav: {
+      label: 'Navegação',
+    },
+    status: {
+      forbidden: 'Acesso negado',
+      forbidden_hint: 'Você não tem permissão para esta página.',
+      not_found: 'Página não encontrada',
+      not_found_hint: 'O endereço não corresponde a nenhuma página.',
+      home: 'Nenhuma página disponível',
+      home_hint: 'Peça a um administrador que lhe atribua um papel.',
     },
   },
 }

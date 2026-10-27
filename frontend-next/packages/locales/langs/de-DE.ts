@@ -8,6 +8,7 @@ export default {
       refresh: 'Aktualisieren',
       previous: 'Zurück',
       next: 'Weiter',
+      home: 'Startseite',
     },
     session: {
       label: 'Sitzung',
@@ -16,6 +17,17 @@ export default {
       change_password: 'Passwort ändern',
       sign_out: 'Abmelden',
       must_change_password: 'Ihr Passwort wurde von einem Administrator zurückgesetzt; ändern Sie es, bevor Sie fortfahren.',
+    },
+    nav: {
+      label: 'Navigation',
+    },
+    status: {
+      forbidden: 'Zugriff verweigert',
+      forbidden_hint: 'Sie haben keine Berechtigung für diese Seite.',
+      not_found: 'Seite nicht gefunden',
+      not_found_hint: 'Unter dieser Adresse gibt es keine Seite.',
+      home: 'Keine Seiten verfügbar',
+      home_hint: 'Bitten Sie einen Administrator, Ihnen eine Rolle zuzuweisen.',
     },
   },
 }

@@ -1,15 +1,19 @@
 import type { RouteRecordRaw } from 'vue-router'
+import type { MenuNode } from '~/stores'
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '~/stores'
+import { firstRoute, menuRoutes } from './menus'
+import { StatusView } from './status-view'
 import { resolveView } from './views'
 
+export { firstRoute, menuRoutes } from './menus'
 export { resolveView, viewKeys } from './views'
 
 declare module 'vue-router' {
   interface RouteMeta {
     /** 不要求登录的页面（登录页） */
     public?: boolean
-    /** 页面登记的权限码；N1 的 auth.permissions 下发后由守卫校验 */
+    /** 页面登记的权限码；守卫按 auth.permissions 精确校验 */
     permission?: string
     /** 标题文案键 */
     titleKey?: string
@@ -17,10 +21,12 @@ declare module 'vue-router' {
 }
 
 export const LOGIN_ROUTE = 'identity.login'
+export const FORBIDDEN_ROUTE = 'forbidden'
+export const HOME_ROUTE = 'home'
 
-// 静态路由表：登录、个人（改密）与核心页面；业务页面随 N1 的后端菜单驱动（页面登记 → 菜单 → 动态路由）
+// 静态核心路由：登录、个人（改密）、状态页；业务页面由后端菜单驱动（auth.permissions → installMenuRoutes）
 export const routes: RouteRecordRaw[] = [
-  { path: '/', redirect: '/identity/users' },
+  { path: '/', name: HOME_ROUTE, component: StatusView, props: { kind: 'home' } },
   {
     path: '/login',
     name: LOGIN_ROUTE,
@@ -33,12 +39,8 @@ export const routes: RouteRecordRaw[] = [
     component: resolveView('identity/profile/change-password/index'),
     meta: { titleKey: 'identity.profile.change_password.title' },
   },
-  {
-    path: '/identity/users',
-    name: 'identity.users',
-    component: resolveView('identity/users/index'),
-    meta: { permission: 'identity.users.read', titleKey: 'identity.users.title' },
-  },
+  { path: '/forbidden', name: FORBIDDEN_ROUTE, component: StatusView, props: { kind: 'forbidden' } },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: StatusView, props: { kind: 'not_found' } },
 ]
 
 export const router = createRouter({
@@ -46,12 +48,43 @@ export const router = createRouter({
   routes,
 })
 
-/** 守卫：未登录去登录页（带回跳地址）；已登录访问登录页回首页。权限门控随 auth.permissions 接入。 */
-router.beforeEach((to) => {
+let installed: string[] = []
+
+/** 把菜单树装进路由表（重复装载先卸掉上一份：换账号后菜单不同）。 */
+export function installMenuRoutes(menus: readonly MenuNode[]): void {
+  for (const name of installed)
+    router.removeRoute(name)
+  installed = []
+  for (const record of menuRoutes(menus)) {
+    router.addRoute(record)
+    installed.push(String(record.name))
+  }
+}
+
+/**
+ * 守卫顺序（方案 6.5）：白名单 → 登录态 → 装载权限与菜单路由（首次或刷新后）→ 首页落到第一个菜单 → 权限校验。
+ */
+router.beforeEach(async (to) => {
   const auth = useAuthStore()
   if (to.meta.public)
     return auth.isAuthenticated && to.name === LOGIN_ROUTE ? { path: '/' } : true
   if (!auth.isAuthenticated)
     return { name: LOGIN_ROUTE, query: to.fullPath === '/' ? {} : { redirect: to.fullPath } }
+  if (!auth.permissions) {
+    const loaded = await auth.loadPermissions().catch(() => null)
+    if (!loaded) {
+      auth.clear()
+      return { name: LOGIN_ROUTE }
+    }
+    installMenuRoutes(loaded.menus)
+    // 路由表变了：按新表重新解析目标
+    return { path: to.fullPath, replace: true }
+  }
+  if (to.name === HOME_ROUTE) {
+    const first = firstRoute(auth.menus)
+    return first ? { path: first, replace: true } : true
+  }
+  if (to.meta.permission && !auth.can(to.meta.permission))
+    return { name: FORBIDDEN_ROUTE, replace: true }
   return true
 })

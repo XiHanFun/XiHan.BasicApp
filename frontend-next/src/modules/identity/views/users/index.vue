@@ -1,11 +1,13 @@
 <script lang="ts" setup>
 import { onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '~/stores'
 import { useUsers } from './use-users'
 
 defineOptions({ name: 'IdentityUsersView' })
 
 const { t } = useI18n()
+const auth = useAuthStore()
 const page = useUsers(10)
 
 onMounted(() => {
@@ -33,8 +35,8 @@ function formatTime(value: string): string {
       <XhPageHeaderDescription>{{ t('identity.users.description') }}</XhPageHeaderDescription>
     </XhPageHeaderRoot>
 
-    <!-- 创建：每个字段有可见标签；校验以后端 Schema 与自校验为准（novalidate 关掉浏览器原生校验，否则 type=email 不合法时 submit 根本不触发），字段级 errors 由 ApiError 交到对应字段 -->
-    <form class="grid gap-3 rounded-surface border border-border bg-surface p-4 md:grid-cols-4" data-testid="create-user" novalidate @submit.prevent="page.submit()">
+    <!-- 创建：按钮即操作，门控用操作的权限码（安全边界在后端）；每个字段有可见标签；校验以后端 Schema 与自校验为准（novalidate 关掉浏览器原生校验，否则 type=email 不合法时 submit 根本不触发），字段级 errors 由 ApiError 交到对应字段 -->
+    <form v-if="auth.can('identity.users.create')" class="grid gap-3 rounded-surface border border-border bg-surface p-4 md:grid-cols-4" data-testid="create-user" novalidate @submit.prevent="page.submit()">
       <!-- 字段部件不写默认插槽：标题、错误文案由 label / error-text 属性铺出，控件放 control 插槽，标签的 for 与控件的 id、aria-* 由它生成 -->
       <XhFieldRoot :label="t('identity.users.fields.user_name')" :error-text="page.fieldError('userName')" :invalid="!!page.fieldError('userName')" required>
         <template #control>
