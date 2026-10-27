@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Architecture.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <!-- 架构测试引用全部正式包：EverySourceProject_IsReferenced 会强制这一点 -->
+  <ItemGroup>
+    <ProjectReference Include="../../src/XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../../src/XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+    <ProjectReference Include="../../src/XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+    <ProjectReference Include="../../src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+  </ItemGroup>
+</Project>
