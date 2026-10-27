@@ -1,0 +1,166 @@
+name: Next CI
+
+# 6.0（backend-next / frontend-next）的构建、测试与门禁。框架 5 尚未发包，按 backend-next/props/framework.props 锁定的提交检出同级 XiHan.Framework 源码。
+on:
+  push:
+    branches: [next]
+    paths:
+      - "backend-next/**"
+      - "frontend-next/**"
+      - ".github/workflows/next-ci.yml"
+  pull_request:
+    branches: [next]
+    paths:
+      - "backend-next/**"
+      - "frontend-next/**"
+      - ".github/workflows/next-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: next-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: 后端构建、测试与架构门禁
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - name: 检出 BasicApp
+        uses: actions/checkout@v7
+        with:
+          path: XiHan.BasicApp
+
+      - name: 读取锁定的框架提交
+        id: framework
+        run: echo "commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend-next/props/framework.props)" >> "$GITHUB_OUTPUT"
+
+      # 同级目录 XiHan.Framework：props/framework.props 的缺省 ProjectReference 路径；检出锁定的提交，Architecture.Tests 核对 HEAD
+      - name: 检出 XiHan.Framework（锁定提交）
+        uses: actions/checkout@v7
+        with:
+          repository: XiHanFun/XiHan.Framework
+          ref: ${{ steps.framework.outputs.commit }}
+          path: XiHan.Framework
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 还原
+        run: dotnet restore XiHan.BasicApp/backend-next/XiHan.BasicApp.slnx
+
+      - name: 构建（警告即错误）
+        run: dotnet build XiHan.BasicApp/backend-next/XiHan.BasicApp.slnx -c Release --no-restore
+
+      # MTP 模式：解决方案由 --solution 传入。两库冒烟对真实 PostgreSQL 跑（XIHAN_TEST_POSTGRES 未设置时跳过）
+      - name: 测试
+        env:
+          XIHAN_TEST_POSTGRES: Host=127.0.0.1;Port=5432;Username=postgres;Password=postgres
+        run: dotnet test --solution XiHan.BasicApp/backend-next/XiHan.BasicApp.slnx -c Release --no-build -- --report-trx
+
+      - name: 上传测试结果
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-next-test-results
+          path: 'XiHan.BasicApp/backend-next/**/TestResults/*.trx'
+          if-no-files-found: ignore
+
+  contracts:
+    name: 契约漂移门禁
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出 BasicApp
+        uses: actions/checkout@v7
+        with:
+          path: XiHan.BasicApp
+
+      - name: 读取锁定的框架提交
+        id: framework
+        run: echo "commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend-next/props/framework.props)" >> "$GITHUB_OUTPUT"
+
+      - name: 检出 XiHan.Framework（锁定提交）
+        uses: actions/checkout@v7
+        with:
+          repository: XiHanFun/XiHan.Framework
+          ref: ${{ steps.framework.outputs.commit }}
+          path: XiHan.Framework
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: XiHan.BasicApp/frontend-next/package.json
+
+      - name: 安装 Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      # 后端导出的 openapi.json 必须与入库的一致；再由它重新生成契约层，diff 也须为空
+      - name: 导出接口文档并比对
+        run: |
+          dotnet run --project XiHan.BasicApp/backend-next/src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj -c Release -- contracts export --out XiHan.BasicApp/frontend-next/contracts
+          git -C XiHan.BasicApp diff --exit-code -- frontend-next/contracts
+
+      - name: 安装前端依赖
+        working-directory: XiHan.BasicApp/frontend-next
+        run: pnpm install --no-frozen-lockfile
+
+      - name: 重新生成契约层并比对
+        working-directory: XiHan.BasicApp/frontend-next
+        run: pnpm run contracts:check
+
+  frontend:
+    name: 前端门禁、单测与构建
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend-next
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          package_json_file: frontend-next/package.json
+
+      - name: 安装 Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      # 没有锁文件（沿用 frontend 的做法）
+      - name: 安装依赖
+        run: pnpm install --no-frozen-lockfile
+
+      # type-check → lint → px → token → i18n → modules → contracts → permissions
+      - name: 门禁
+        run: pnpm run check
+
+      - name: 单测
+        run: pnpm run test
+
+      - name: 生产构建
+        run: pnpm run build
