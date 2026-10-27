@@ -7,6 +7,7 @@ using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Users;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -22,6 +23,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="issuer">令牌签发器。</param>
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
+/// <param name="tenants">框架租户目录：会话所属租户已停用或已删即不再续签。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class Refresh(
     UserAccountService accounts,
@@ -29,7 +31,8 @@ public sealed class Refresh(
     IRepository<SysUserSession, Guid> sessions,
     AccessTokenIssuer issuer,
     IdentityOptions options,
-    TimeProvider clock) : IOperation<RefreshRequest, TokenResponse>
+    TimeProvider clock,
+    ITenantStore tenants) : IOperation<RefreshRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -50,6 +53,15 @@ public sealed class Refresh(
         }
 
         var session = matches[0];
+        if (session.ActiveTenantId is { } tenantId)
+        {
+            var directory = await tenants.FindAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
+            if (!directory.TryGetValue(out var info) || !info.IsEnabled)
+            {
+                return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenantId)));
+            }
+        }
+
         if (!(await users.FindAsync(session.UserId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user) || user.Status != UserStatus.Active)
         {
             return Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.AccountUnavailable, MessageArguments.Of(("status", user?.Status.ToString() ?? "Deleted")));

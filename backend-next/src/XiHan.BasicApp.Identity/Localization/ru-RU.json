@@ -27,5 +27,6 @@
   "identity.auth.no_session": "Текущий токен не содержит сеанса, выход невозможен.",
   "identity.password.too_short": "Пароль должен содержать не менее {min} символов.",
   "identity.password.too_simple": "Пароль должен содержать и буквы, и цифры.",
-  "identity.password.reused": "Пароль должен отличаться от последних {depth} паролей."
+  "identity.password.reused": "Пароль должен отличаться от последних {depth} паролей.",
+  "identity.auth.tenant_unavailable": "Арендатор '{tenantId}' не существует или приостановлен."
 }

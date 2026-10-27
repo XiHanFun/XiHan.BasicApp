@@ -27,5 +27,6 @@
   "identity.auth.no_session": "현재 토큰에 세션이 없어 로그아웃할 수 없습니다.",
   "identity.password.too_short": "비밀번호는 {min}자 이상이어야 합니다.",
   "identity.password.too_simple": "비밀번호에는 영문자와 숫자가 모두 포함되어야 합니다.",
-  "identity.password.reused": "비밀번호는 최근 {depth}회 사용한 것과 달라야 합니다."
+  "identity.password.reused": "비밀번호는 최근 {depth}회 사용한 것과 달라야 합니다.",
+  "identity.auth.tenant_unavailable": "테넌트 '{tenantId}'이(가) 존재하지 않거나 중지되었습니다."
 }

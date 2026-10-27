@@ -27,5 +27,6 @@
   "identity.auth.no_session": "The current token carries no session and cannot be signed out.",
   "identity.password.too_short": "The password must be at least {min} characters long.",
   "identity.password.too_simple": "The password must contain both letters and digits.",
-  "identity.password.reused": "The password must differ from the last {depth} passwords."
+  "identity.password.reused": "The password must differ from the last {depth} passwords.",
+  "identity.auth.tenant_unavailable": "Tenant '{tenantId}' does not exist or is suspended."
 }

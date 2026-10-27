@@ -27,5 +27,6 @@
   "identity.auth.no_session": "目前權杖不含工作階段，無法登出。",
   "identity.password.too_short": "密碼至少 {min} 個字元。",
   "identity.password.too_simple": "密碼須同時包含字母與數字。",
-  "identity.password.reused": "密碼不能與最近 {depth} 次使用過的相同。"
+  "identity.password.reused": "密碼不能與最近 {depth} 次使用過的相同。",
+  "identity.auth.tenant_unavailable": "租戶 '{tenantId}' 不存在或已停用。"
 }

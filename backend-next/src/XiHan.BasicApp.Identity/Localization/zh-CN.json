@@ -27,5 +27,6 @@
   "identity.auth.no_session": "当前令牌不带会话，不能注销。",
   "identity.password.too_short": "密码至少 {min} 个字符。",
   "identity.password.too_simple": "密码须同时包含字母与数字。",
-  "identity.password.reused": "密码不能与最近 {depth} 次使用过的相同。"
+  "identity.password.reused": "密码不能与最近 {depth} 次使用过的相同。",
+  "identity.auth.tenant_unavailable": "租户 '{tenantId}' 不存在或已停用。"
 }
