@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Persistence;
+using XiHan.BasicApp.Organization;
 using XiHan.BasicApp.Tenancy;
 using XiHan.Framework.Auditing.Database;
 using XiHan.Framework.Hosting.AspNetCore;
@@ -55,6 +56,7 @@ public static class BasicAppHost
             .UseFeature<RuntimeFeature>()
             .UseFeature<IdentityFeature>()
             .UseFeature<TenancyFeature>()
+            .UseFeature<OrganizationFeature>()
             .UseFeature<AccessFeature>());
 
         var app = builder.Build();

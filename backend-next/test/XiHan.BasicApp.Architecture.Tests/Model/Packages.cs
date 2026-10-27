@@ -8,6 +8,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Host;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
+using XiHan.BasicApp.Organization;
 using XiHan.BasicApp.Tenancy;
 
 namespace XiHan.BasicApp.Architecture.Tests.Model;
@@ -73,6 +74,7 @@ public static class Packages
         typeof(RuntimeFeature).Assembly,
         typeof(IdentityFeature).Assembly,
         typeof(TenancyFeature).Assembly,
+        typeof(OrganizationFeature).Assembly,
         typeof(AccessFeature).Assembly,
         typeof(BasicAppHost).Assembly,
     ];
