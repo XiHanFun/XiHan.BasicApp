@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Host</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 宿主：Full Profile + SqlSugar + JWT + 三个数据库 Provider + 发件箱，映射 HTTP / OpenAPI / Scalar / MCP / gRPC 端点。</Description>
+    <!-- 最小 API 的端点委托在编译期生成，去掉反射绑定 -->
+    <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
+    <UserSecretsId>xihan-basicapp-next</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Full 组合：Standard + 对象存储 / 调度 / 审计 / 工作流 / AI 工具的默认实现 + OpenTelemetry + 四种协议适配器 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Profiles.Full" />
+    <!-- 显式 Provider：SqlSugar、JWT、租户目录 / 授权 / 审计的数据库实现、发件箱 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Jwt" />
+    <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Database" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Database" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Messaging.Abstractions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 接口文档页面：读框架生成的 /openapi.json -->
+    <PackageReference Include="Scalar.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 测试工程复用宿主装配 -->
+    <InternalsVisibleTo Include="XiHan.BasicApp.Integration.Tests" />
+  </ItemGroup>
+</Project>
