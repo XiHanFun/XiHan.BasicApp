@@ -15,7 +15,12 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
+    <!-- 签发访问令牌与框架的 JWT 校验共用 XiHan:Security:Jwt 的 JwtOptions -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Jwt" />
+    <!-- 超级管理员种子直接写框架的授予表；角色与授权快照随 Access 包落地 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Caching.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
     <!-- 源生成器：[Operation] → 登记代码与 JSON Schema；实体 → 仓储登记与过滤规约。不进入运行时依赖 -->
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />

@@ -26,7 +26,7 @@ public sealed class UsersMcpTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         var tools = listBody.GetProperty("result").GetProperty("tools").EnumerateArray().ToDictionary(static t => t.GetProperty("name").GetString()!, static t => t);
         Assert.Equal(["users_create", "users_get", "users_list"], tools.Keys.Order(StringComparer.Ordinal));
-        Assert.StartsWith("在当前租户创建用户", tools["users_create"].GetProperty("description").GetString(), StringComparison.Ordinal);
+        Assert.StartsWith("创建用户：", tools["users_create"].GetProperty("description").GetString(), StringComparison.Ordinal);
         Assert.Equal("object", tools["users_create"].GetProperty("inputSchema").GetProperty("type").GetString());
         Assert.True(tools["users_list"].GetProperty("annotations").GetProperty("readOnlyHint").GetBoolean());
 

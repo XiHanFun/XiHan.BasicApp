@@ -38,10 +38,19 @@ public sealed class UsersHttpTests : IDisposable
         Assert.Equal(HttpStatusCode.Forbidden, viewer.StatusCode);
         Assert.Equal("SECURITY_DENIED_004", viewerBody.GetProperty("code").GetString());
 
-        // 平台主体没有租户声明：创建用户要求当前租户
-        var (platform, platformBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", body, TestTokens.Issue("root", null, "admin")));
-        Assert.Equal(HttpStatusCode.BadRequest, platform.StatusCode);
-        Assert.Equal("IDENTITY_VALIDATION_001", platformBody.GetProperty("code").GetString());
+        // 租户主体只能建本租户的用户：指定别的注册地是校验错误
+        var (mismatch, mismatchBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"alice.w","displayName":"Alice","homeTenantId":"globex"}""", TestTokens.Issue("alice", "acme", "admin")));
+        Assert.Equal(HttpStatusCode.BadRequest, mismatch.StatusCode);
+        Assert.Equal("IDENTITY_VALIDATION_001", mismatchBody.GetProperty("code").GetString());
+        Assert.Equal("globex", mismatchBody.GetProperty("details").GetProperty("requested").GetString());
+
+        // 平台主体没有租户声明：不指定注册地即平台账号，指定了就建到那个租户
+        var (platform, platformBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"root.ops","displayName":"Ops"}""", TestTokens.Issue("root", null, "admin")));
+        Assert.Equal(HttpStatusCode.Created, platform.StatusCode);
+        Assert.Equal("platform", platformBody.GetProperty("homeTenantId").GetString());
+        var (delegated, delegatedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"globex.admin","displayName":"Globex Admin","homeTenantId":"globex"}""", TestTokens.Issue("root", null, "admin")));
+        Assert.Equal(HttpStatusCode.Created, delegated.StatusCode);
+        Assert.Equal("globex", delegatedBody.GetProperty("homeTenantId").GetString());
 
         var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", body, TestTokens.Issue("alice", "acme", "admin")));
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
@@ -137,7 +146,7 @@ public sealed class UsersHttpTests : IDisposable
         Assert.Equal("IDENTITY_NOTFOUND_001", missingBody.GetProperty("code").GetString());
         Assert.Equal(ids[0], missingBody.GetProperty("details").GetProperty("id").GetString());
 
-        // 平台主体（无租户）看全部
+        // 平台主体（无租户）看全部（本用例建的 3 个；没有跑种子，没有 superadmin）
         var (all, allBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", TestTokens.Issue("root", null, "admin")));
         Assert.Equal(HttpStatusCode.OK, all.StatusCode);
         Assert.Equal(3, allBody.GetProperty("total").GetInt64());

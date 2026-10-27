@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Host;
+using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.MultiTenancy.Database.Tenants;
@@ -128,6 +129,12 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         });
         result.ThrowIfFailure();
     }
+
+    /// <summary>
+    /// 执行各包登记的种子（超级管理员 <c>superadmin</c> 与它的全局授予等），与 <c>seed</c> 命令同一条路径。
+    /// </summary>
+    public async Task RunSeedersAsync(IReadOnlyCollection<string>? only = null)
+        => (await Services.GetRequiredService<SeedRunner>().RunAsync(only, CancellationToken.None)).ThrowIfFailure();
 
     /// <summary>
     /// 缺省的测试数据：租户 <c>acme</c> 与 <c>globex</c>；角色 <c>admin</c> 可读可建，<c>viewer</c> 只读。

@@ -2,7 +2,10 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Text.Json.Serialization;
+using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Identity.Operations.Auth;
+using XiHan.BasicApp.Identity.Operations.Profile;
 using XiHan.BasicApp.Identity.Operations.Users;
 
 namespace XiHan.BasicApp.Identity;
@@ -18,7 +21,20 @@ namespace XiHan.BasicApp.Identity;
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(CreateUserRequest))]
 [JsonSerializable(typeof(GetUserRequest))]
+[JsonSerializable(typeof(UpdateUserRequest))]
+[JsonSerializable(typeof(UserIdsRequest))]
+[JsonSerializable(typeof(ResetPasswordRequest))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(UserResponse))]
 [JsonSerializable(typeof(PageResult<UserResponse>))]
+[JsonSerializable(typeof(BatchResult))]
+[JsonSerializable(typeof(PasswordChangedResponse))]
+[JsonSerializable(typeof(LoginRequest))]
+[JsonSerializable(typeof(RefreshRequest))]
+[JsonSerializable(typeof(LogoutRequest))]
+[JsonSerializable(typeof(LogoutResponse))]
+[JsonSerializable(typeof(MeRequest))]
+[JsonSerializable(typeof(MeResponse))]
+[JsonSerializable(typeof(TokenResponse))]
+[JsonSerializable(typeof(ChangePasswordRequest))]
 public sealed partial class IdentityJsonContext : JsonSerializerContext;
