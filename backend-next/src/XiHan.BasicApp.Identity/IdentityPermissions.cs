@@ -10,11 +10,35 @@ namespace XiHan.BasicApp.Identity;
 /// </summary>
 public static class IdentityPermissions
 {
-    /// <summary>读用户：<c>users.get</c>、<c>users.list</c>。</summary>
+    /// <summary>
+    /// 读用户：<c>users.get</c>、<c>users.list</c>。
+    /// </summary>
     public const string UsersRead = "identity.users.read";
 
-    /// <summary>创建用户：<c>users.create</c>。</summary>
+    /// <summary>
+    /// 创建用户：<c>users.create</c>。
+    /// </summary>
     public const string UsersCreate = "identity.users.create";
+
+    /// <summary>
+    /// 修改用户资料：<c>users.update</c>。
+    /// </summary>
+    public const string UsersUpdate = "identity.users.update";
+
+    /// <summary>
+    /// 删除用户：<c>users.delete</c>。
+    /// </summary>
+    public const string UsersDelete = "identity.users.delete";
+
+    /// <summary>
+    /// 锁定与解锁用户：<c>users.lock</c>、<c>users.unlock</c>。
+    /// </summary>
+    public const string UsersLock = "identity.users.lock";
+
+    /// <summary>
+    /// 重置用户密码：<c>users.reset-password</c>。
+    /// </summary>
+    public const string UsersResetPassword = "identity.users.reset-password";
 
     /// <summary>
     /// 本包全部权限的描述。
@@ -23,5 +47,9 @@ public static class IdentityPermissions
     [
         new(UsersRead, "Read users", PermissionScope.Both, description: "View users of the current tenant."),
         new(UsersCreate, "Create users", PermissionScope.Both, audited: true, description: "Create users in the current tenant."),
+        new(UsersUpdate, "Update users", PermissionScope.Both, audited: true, description: "Edit user profiles of the current tenant."),
+        new(UsersDelete, "Delete users", PermissionScope.Both, audited: true, description: "Delete users of the current tenant."),
+        new(UsersLock, "Lock users", PermissionScope.Both, audited: true, description: "Lock and unlock users of the current tenant."),
+        new(UsersResetPassword, "Reset passwords", PermissionScope.Both, audited: true, description: "Reset user passwords; the user must change the password at next sign-in."),
     ];
 }

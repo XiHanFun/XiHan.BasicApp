@@ -15,8 +15,10 @@ namespace XiHan.BasicApp.Architecture.Tests;
 /// </summary>
 public sealed partial class OperationContractTests
 {
-    /// <summary>不写 Permission 也不写 Policy 的操作（登录、验证码、找回密码、刷新令牌）在这里登记；N0 没有。</summary>
-    private static readonly HashSet<string> _anonymousOperations = new(StringComparer.Ordinal);
+    /// <summary>
+    /// 不写 Permission 也不写 Policy 的操作（登录、刷新令牌；之后的验证码、找回密码）在这里登记。
+    /// </summary>
+    private static readonly HashSet<string> _anonymousOperations = new(StringComparer.Ordinal) { "auth.login", "auth.refresh" };
 
     private static IEnumerable<(Type Type, OperationAttribute Attribute, string Package)> Operations()
         => Packages.Assemblies

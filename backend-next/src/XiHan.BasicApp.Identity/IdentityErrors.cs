@@ -8,15 +8,58 @@ namespace XiHan.BasicApp.Identity;
 /// </summary>
 public static class IdentityErrors
 {
-    /// <summary>用户不存在（或不在当前租户）。</summary>
+    /// <summary>
+    /// 用户不存在（或不在当前租户）。
+    /// </summary>
     public const string UserNotFound = "IDENTITY_NOTFOUND_001";
 
-    /// <summary>用户名在该租户内已被占用。</summary>
+    /// <summary>
+    /// 用户名在该租户内已被占用。
+    /// </summary>
     public const string UserNameTaken = "IDENTITY_CONFLICT_001";
 
-    /// <summary>创建用户需要当前租户。</summary>
-    public const string TenantRequired = "IDENTITY_VALIDATION_001";
+    /// <summary>
+    /// 不能对自己的账号执行该操作（删除、锁定）。
+    /// </summary>
+    public const string SelfOperation = "IDENTITY_CONFLICT_002";
 
-    /// <summary>列表的筛选或排序字段不受支持。</summary>
+    /// <summary>
+    /// 请求指定的注册地租户与当前租户不一致。
+    /// </summary>
+    public const string TenantMismatch = "IDENTITY_VALIDATION_001";
+
+    /// <summary>
+    /// 列表的筛选或排序字段不受支持。
+    /// </summary>
     public const string QueryUnsupported = "IDENTITY_VALIDATION_002";
+
+    /// <summary>
+    /// 新密码不符合密码策略。
+    /// </summary>
+    public const string PasswordPolicy = "IDENTITY_VALIDATION_003";
+
+    /// <summary>
+    /// 新密码与最近的历史密码相同。
+    /// </summary>
+    public const string PasswordReused = "IDENTITY_VALIDATION_004";
+
+    /// <summary>
+    /// 当前令牌不带会话，不能注销。
+    /// </summary>
+    public const string NoSession = "IDENTITY_VALIDATION_005";
+
+    /// <summary>
+    /// 会话已吊销、已过期或不存在；客户端应重新登录。
+    /// </summary>
+    public const string SessionInvalid = "IDENTITY_DENIED_001";
+
+    /// <summary>
+    /// 用户名或密码不正确（不区分哪一个）。
+    /// </summary>
+    public const string InvalidCredentials = "IDENTITY_DENIED_003";
+
+    /// <summary>
+    /// 账号被禁用、锁定或处于登录失败锁定期。
+    /// </summary>
+    public const string AccountUnavailable = "IDENTITY_DENIED_004";
 }
