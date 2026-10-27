@@ -3,6 +3,8 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Pages;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Middleware;
@@ -71,6 +73,9 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddScoped<UserAccountService>();
         context.Services.AddScoped<UserQueries>();
         context.Services.AddSeeder<PlatformIdentitySeeder>();
+        // 权限目录与页面登记：Access 汇总成权限目录、菜单种子与 auth.permissions 的菜单树
+        context.Services.AddPermissionCatalog("identity", IdentityPermissions.All);
+        context.Services.AddPageCatalog("identity", IdentityPages.All);
         // 权限码先登记，操作契约才能引用；未登记的权限码在装配时报错
         foreach (var permission in IdentityPermissions.All)
         {

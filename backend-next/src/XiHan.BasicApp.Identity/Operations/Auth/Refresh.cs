@@ -72,7 +72,9 @@ public sealed class Refresh(
             return updated.Error!;
         }
 
-        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, []);
+        // 角色在每次刷新时重算：角色指派的变化最迟在下一次刷新生效
+        var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
+        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user));
     }
 }

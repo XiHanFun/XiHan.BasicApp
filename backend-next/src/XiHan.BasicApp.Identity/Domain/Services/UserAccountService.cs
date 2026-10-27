@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.Framework.Domain.Specifications;
@@ -24,6 +25,7 @@ public sealed class UserAccountService
     private readonly IdentityOptions _options;
     private readonly SessionGate _gate;
     private readonly TimeProvider _clock;
+    private readonly IUserRoleResolver[] _roleResolvers;
 
     /// <summary>
     /// 构造服务。
@@ -36,8 +38,11 @@ public sealed class UserAccountService
         IIdGenerator<Guid> ids,
         IdentityOptions options,
         SessionGate gate,
-        TimeProvider clock)
+        TimeProvider clock,
+        IEnumerable<IUserRoleResolver> roleResolvers)
     {
+        ArgumentNullException.ThrowIfNull(roleResolvers);
+        _roleResolvers = roleResolvers.ToArray();
         _users = users ?? throw new ArgumentNullException(nameof(users));
         _securities = securities ?? throw new ArgumentNullException(nameof(securities));
         _sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
@@ -149,6 +154,25 @@ public sealed class UserAccountService
         }
 
         return Result.Success();
+    }
+
+    /// <summary>
+    /// 用户在某个租户侧（<see langword="null"/> 即平台）的角色 ID，进入访问令牌的 <c>role</c> 声明；由 Access 包的 <see cref="IUserRoleResolver"/> 提供，没有实现即空。
+    /// </summary>
+    public async Task<IReadOnlyList<string>> RolesOfAsync(Guid userId, string? tenantId, CancellationToken cancellationToken)
+    {
+        if (_roleResolvers.Length == 0)
+        {
+            return [];
+        }
+
+        var roles = new List<string>();
+        foreach (var resolver in _roleResolvers)
+        {
+            roles.AddRange(await resolver.ResolveAsync(userId, tenantId, cancellationToken).ConfigureAwait(false));
+        }
+
+        return roles.Distinct(StringComparer.Ordinal).ToList();
     }
 
     /// <summary>
