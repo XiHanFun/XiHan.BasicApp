@@ -14,5 +14,6 @@
   "tenancy.tenant.platform_only": "Los inquilinos solo se gestionan desde el lado de plataforma.",
   "tenancy.tenant.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",
   "tenancy.tenant.sort_unsupported": "La ordenación por '{field}' no es compatible.",
-  "tenancy.admin.name_taken": "El nombre de usuario '{userName}' ya está en uso en este inquilino."
+  "tenancy.admin.name_taken": "El nombre de usuario '{userName}' ya está en uso en este inquilino.",
+  "tenancy.tenant.no_initializer": "No hay ningún inicializador de inquilino configurado; el administrador no tendría permisos."
 }

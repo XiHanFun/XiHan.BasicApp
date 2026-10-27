@@ -14,5 +14,6 @@
   "tenancy.tenant.platform_only": "テナントはプラットフォーム側からのみ管理できます。",
   "tenancy.tenant.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",
   "tenancy.tenant.sort_unsupported": "'{field}' による並べ替えはサポートされていません。",
-  "tenancy.admin.name_taken": "ユーザー名 '{userName}' はこのテナントで既に使用されています。"
+  "tenancy.admin.name_taken": "ユーザー名 '{userName}' はこのテナントで既に使用されています。",
+  "tenancy.tenant.no_initializer": "テナント初期化拡張が設定されていないため、管理者に権限が付与されません。"
 }

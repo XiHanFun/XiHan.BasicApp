@@ -15,6 +15,7 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="Description">说明。</param>
 /// <param name="Order">排序号。</param>
 /// <param name="IsBuiltIn">是否内建。</param>
+/// <param name="DataScope">数据范围。</param>
 /// <param name="Status">状态。</param>
 /// <param name="CreatedAt">创建时间（UTC）。</param>
 public sealed record RoleResponse(
@@ -26,6 +27,7 @@ public sealed record RoleResponse(
     int Order,
     bool IsBuiltIn,
     RoleStatus Status,
+    DataScope DataScope,
     DateTimeOffset CreatedAt)
 {
     /// <summary>
@@ -34,6 +36,6 @@ public sealed record RoleResponse(
     public static RoleResponse From(SysRole role)
     {
         ArgumentNullException.ThrowIfNull(role);
-        return new RoleResponse(role.Id, role.OwnerTenantId, role.Code, role.Name, role.Description, role.Order, role.IsBuiltIn, role.Status, role.CreatedAt);
+        return new RoleResponse(role.Id, role.OwnerTenantId, role.Code, role.Name, role.Description, role.Order, role.IsBuiltIn, role.Status, role.DataScope, role.CreatedAt);
     }
 }

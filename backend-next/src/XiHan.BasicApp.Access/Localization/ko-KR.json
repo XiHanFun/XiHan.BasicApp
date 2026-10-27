@@ -18,5 +18,9 @@
   "access.role.sort_unsupported": "'{field}' 기준 정렬은 지원되지 않습니다.",
   "access.permission.unknown": "권한 '{code}'이(가) 카탈로그에 없습니다.",
   "access.permission.scope_mismatch": "권한 '{code}'은(는) {side} 측에 부여할 수 없습니다.",
-  "access.member.not_found": "사용자 '{id}'이(가) 존재하지 않거나 역할의 측에 속하지 않습니다."
+  "access.member.not_found": "사용자 '{id}'이(가) 존재하지 않거나 역할의 측에 속하지 않습니다.",
+  "roles.by_user.description": "사용자가 현재 측(플랫폼 또는 테넌트)에서 가진 역할을 나열합니다. access.roles.read 권한이 필요합니다.",
+  "access.role.data_scope_not_applicable": "플랫폼 역할 '{code}'의 데이터 범위는 '전체'만 가능하며 사용자 지정 부서를 가질 수 없습니다.",
+  "access.role.custom_scope_empty": "역할 '{code}'은(는) 사용자 지정 데이터 범위를 쓰지만 부서가 없습니다.",
+  "access.department.not_found": "부서 '{id}'이(가) 이 테넌트에 없습니다."
 }

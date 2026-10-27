@@ -18,5 +18,9 @@
   "access.role.sort_unsupported": "La ordenación por '{field}' no es compatible.",
   "access.permission.unknown": "El permiso '{code}' no está en el catálogo.",
   "access.permission.scope_mismatch": "El permiso '{code}' no se puede conceder en el lado {side}.",
-  "access.member.not_found": "El usuario '{id}' no existe o no pertenece al lado del rol."
+  "access.member.not_found": "El usuario '{id}' no existe o no pertenece al lado del rol.",
+  "roles.by_user.description": "Lista los roles que un usuario tiene en el lado actual (plataforma o inquilino). Requiere access.roles.read.",
+  "access.role.data_scope_not_applicable": "El rol de plataforma '{code}' solo puede tener el ámbito de datos 'Todo' y sin departamentos personalizados.",
+  "access.role.custom_scope_empty": "El rol '{code}' usa un ámbito de datos personalizado pero no indica ningún departamento.",
+  "access.department.not_found": "El departamento '{id}' no existe en este inquilino."
 }

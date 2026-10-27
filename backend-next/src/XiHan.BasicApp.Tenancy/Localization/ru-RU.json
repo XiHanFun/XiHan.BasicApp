@@ -14,5 +14,6 @@
   "tenancy.tenant.platform_only": "Арендаторами управляют только со стороны платформы.",
   "tenancy.tenant.filter_unsupported": "Фильтр '{field} {operator}' не поддерживается.",
   "tenancy.tenant.sort_unsupported": "Сортировка по '{field}' не поддерживается.",
-  "tenancy.admin.name_taken": "Имя пользователя '{userName}' уже занято в этом арендаторе."
+  "tenancy.admin.name_taken": "Имя пользователя '{userName}' уже занято в этом арендаторе.",
+  "tenancy.tenant.no_initializer": "Инициализатор арендатора не настроен; у администратора не будет разрешений."
 }

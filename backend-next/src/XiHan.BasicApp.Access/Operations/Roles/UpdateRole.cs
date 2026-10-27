@@ -14,8 +14,9 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// </summary>
 /// <param name="roles">角色仓储。</param>
 /// <param name="service">角色域服务。</param>
+/// <param name="scopes">角色数据范围服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesUpdate)]
-public sealed class UpdateRole(IRepository<SysRole, Guid> roles, RoleService service) : IOperation<UpdateRoleRequest, RoleResponse>
+public sealed class UpdateRole(IRepository<SysRole, Guid> roles, RoleService service, RoleDataScopeService scopes) : IOperation<UpdateRoleRequest, RoleResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -36,7 +37,22 @@ public sealed class UpdateRole(IRepository<SysRole, Guid> roles, RoleService ser
         role.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         role.Order = request.Order;
         role.Status = request.Status;
+        var scope = request.DataScope ?? role.DataScope;
+        var customDepartments = request.CustomDepartments ?? (scope == DataScope.Custom ? (await scopes.ListAsync(role.Id, context.CancellationToken).ConfigureAwait(false)).Select(static s => new DataScopeDepartmentRequest(s.DepartmentId, s.IncludeChildren)).ToList() : []);
+        var validated = await scopes.ValidateAsync(role, scope, customDepartments, context.CancellationToken).ConfigureAwait(false);
+        if (validated.IsFailure)
+        {
+            return validated.Error!;
+        }
+
+        role.DataScope = scope;
         var updated = await roles.UpdateAsync(role, context.CancellationToken).ConfigureAwait(false);
-        return updated.IsFailure ? updated.Error! : RoleResponse.From(role);
+        if (updated.IsFailure)
+        {
+            return updated.Error!;
+        }
+
+        var replaced = await scopes.ReplaceAsync(role, customDepartments, context.CancellationToken).ConfigureAwait(false);
+        return replaced.IsFailure ? replaced.Error! : RoleResponse.From(role);
     }
 }

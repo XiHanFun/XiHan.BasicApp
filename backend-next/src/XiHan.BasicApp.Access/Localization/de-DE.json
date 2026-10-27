@@ -18,5 +18,9 @@
   "access.role.sort_unsupported": "Die Sortierung nach '{field}' wird nicht unterstützt.",
   "access.permission.unknown": "Die Berechtigung '{code}' steht nicht im Katalog.",
   "access.permission.scope_mismatch": "Die Berechtigung '{code}' kann auf der Seite {side} nicht erteilt werden.",
-  "access.member.not_found": "Der Benutzer '{id}' existiert nicht oder gehört nicht zur Seite der Rolle."
+  "access.member.not_found": "Der Benutzer '{id}' existiert nicht oder gehört nicht zur Seite der Rolle.",
+  "roles.by_user.description": "Listet die Rollen, die ein Benutzer auf der aktuellen Seite (Plattform oder Mandant) hat. Erfordert access.roles.read.",
+  "access.role.data_scope_not_applicable": "Die Plattformrolle '{code}' kann nur den Datenbereich 'Alle' und keine eigenen Abteilungen haben.",
+  "access.role.custom_scope_empty": "Die Rolle '{code}' nutzt einen eigenen Datenbereich, nennt aber keine Abteilung.",
+  "access.department.not_found": "Die Abteilung '{id}' existiert in diesem Mandanten nicht."
 }

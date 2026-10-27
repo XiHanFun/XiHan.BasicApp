@@ -15,9 +15,10 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// </summary>
 /// <param name="roles">角色仓储。</param>
 /// <param name="service">角色域服务。</param>
+/// <param name="scopes">角色数据范围服务。</param>
 /// <param name="ids">标识生成器。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesCreate)]
-public sealed class CreateRole(IRepository<SysRole, Guid> roles, RoleService service, IIdGenerator<Guid> ids) : IOperation<CreateRoleRequest, RoleResponse>
+public sealed class CreateRole(IRepository<SysRole, Guid> roles, RoleService service, RoleDataScopeService scopes, IIdGenerator<Guid> ids) : IOperation<CreateRoleRequest, RoleResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -44,7 +45,14 @@ public sealed class CreateRole(IRepository<SysRole, Guid> roles, RoleService ser
             Name = request.Name.Trim(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
             Order = request.Order,
+            DataScope = request.DataScope ?? (RoleService.IsPlatform(owner) ? DataScope.All : DataScope.SelfOnly),
         };
+        var validated = await scopes.ValidateAsync(role, role.DataScope, [], context.CancellationToken).ConfigureAwait(false);
+        if (validated.IsFailure)
+        {
+            return validated.Error!;
+        }
+
         var added = await roles.AddAsync(role, context.CancellationToken).ConfigureAwait(false);
         return added.IsFailure ? added.Error! : RoleResponse.From(role);
     }

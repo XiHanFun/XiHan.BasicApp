@@ -14,5 +14,6 @@
   "tenancy.tenant.platform_only": "Tenants are managed from the platform side only.",
   "tenancy.tenant.filter_unsupported": "Filter '{field} {operator}' is not supported.",
   "tenancy.tenant.sort_unsupported": "Sorting by '{field}' is not supported.",
-  "tenancy.admin.name_taken": "User name '{userName}' is already taken in this tenant."
+  "tenancy.admin.name_taken": "User name '{userName}' is already taken in this tenant.",
+  "tenancy.tenant.no_initializer": "No tenant initializer is configured; the administrator would have no permissions."
 }

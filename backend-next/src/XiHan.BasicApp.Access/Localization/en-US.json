@@ -18,5 +18,9 @@
   "access.role.sort_unsupported": "Sorting by '{field}' is not supported.",
   "access.permission.unknown": "Permission '{code}' is not in the catalog.",
   "access.permission.scope_mismatch": "Permission '{code}' cannot be granted on the {side} side.",
-  "access.member.not_found": "User '{id}' does not exist or does not belong to the role's side."
+  "access.member.not_found": "User '{id}' does not exist or does not belong to the role's side.",
+  "roles.by_user.description": "List the roles a user holds on the current side (platform or tenant). Requires access.roles.read.",
+  "access.role.data_scope_not_applicable": "Platform role '{code}' can only have the data scope 'All' and no custom departments.",
+  "access.role.custom_scope_empty": "Role '{code}' uses a custom data scope but lists no department.",
+  "access.department.not_found": "Department '{id}' does not exist in this tenant."
 }

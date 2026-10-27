@@ -34,7 +34,8 @@ public sealed class MembershipQueries(SqlSugarUnitOfWork unitOfWork, MembershipS
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        var query = TenantScopedQuery.For<SysUserDepartment>(unitOfWork.ConnectionFor(typeof(SysUserDepartment)), context);
+        var query = TenantScopedQuery.For<SysUserDepartment>(unitOfWork.ConnectionFor(typeof(SysUserDepartment)), context)
+            .ApplyDataScope(await DataScopeQuery.ResolveAsync(context).ConfigureAwait(false), static m => m.UserId, static m => m.DepartmentId);
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             return Error.Validation(OrganizationErrors.QueryUnsupported, OrganizationMessages.FilterUnsupported, MessageArguments.Of(("field", "keyword"), ("operator", "contains")));

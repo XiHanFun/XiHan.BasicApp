@@ -18,5 +18,9 @@
   "access.role.sort_unsupported": "Сортировка по '{field}' не поддерживается.",
   "access.permission.unknown": "Разрешения '{code}' нет в каталоге.",
   "access.permission.scope_mismatch": "Разрешение '{code}' нельзя выдать на стороне {side}.",
-  "access.member.not_found": "Пользователь '{id}' не существует или не принадлежит стороне роли."
+  "access.member.not_found": "Пользователь '{id}' не существует или не принадлежит стороне роли.",
+  "roles.by_user.description": "Выводит роли пользователя на текущей стороне (платформа или арендатор). Требуется access.roles.read.",
+  "access.role.data_scope_not_applicable": "Роль платформы '{code}' может иметь только область данных «Все» и без собственных подразделений.",
+  "access.role.custom_scope_empty": "Роль '{code}' использует собственную область данных, но не указывает ни одного подразделения.",
+  "access.department.not_found": "Подразделение '{id}' не существует в этом арендаторе."
 }

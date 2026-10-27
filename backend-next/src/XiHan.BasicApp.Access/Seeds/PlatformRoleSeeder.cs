@@ -56,7 +56,7 @@ public sealed class PlatformRoleSeeder(
         }
         else
         {
-            admin = new SysRole { Id = ids.NewId(), OwnerTenantId = TenantIds.Platform, Code = AdminRoleCode, Name = "Administrator", Description = "Built-in platform administrator with every permission.", IsBuiltIn = true };
+            admin = new SysRole { Id = ids.NewId(), OwnerTenantId = TenantIds.Platform, Code = AdminRoleCode, Name = "Administrator", Description = "Built-in platform administrator with every permission.", IsBuiltIn = true, DataScope = DataScope.All };
             var added = await roles.AddAsync(admin, context.CancellationToken).ConfigureAwait(false);
             if (added.IsFailure)
             {

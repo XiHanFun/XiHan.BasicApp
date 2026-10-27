@@ -14,5 +14,6 @@
   "tenancy.tenant.platform_only": "테넌트는 플랫폼 측에서만 관리할 수 있습니다.",
   "tenancy.tenant.filter_unsupported": "필터 '{field} {operator}'은(는) 지원되지 않습니다.",
   "tenancy.tenant.sort_unsupported": "'{field}' 기준 정렬은 지원되지 않습니다.",
-  "tenancy.admin.name_taken": "사용자 이름 '{userName}'은(는) 이 테넌트에서 이미 사용 중입니다."
+  "tenancy.admin.name_taken": "사용자 이름 '{userName}'은(는) 이 테넌트에서 이미 사용 중입니다.",
+  "tenancy.tenant.no_initializer": "테넌트 초기화 확장이 구성되지 않아 관리자에게 권한이 없게 됩니다."
 }

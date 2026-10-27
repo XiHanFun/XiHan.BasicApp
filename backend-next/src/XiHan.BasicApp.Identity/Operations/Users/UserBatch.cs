@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Runtime.Queries;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -24,11 +25,12 @@ internal static class UserBatch
         // 外部签发的令牌 sub 不一定是 GUID：解析失败即不是本应用用户，不会与任何目标相等
         var selfId = Guid.TryParse(security.Principal.Id, out var parsed) ? parsed : Guid.Empty;
         var found = (await users.FindManyAsync(ids, context.CancellationToken).ConfigureAwait(false)).ToDictionary(static u => u.Id);
+        var scope = await DataScopeQuery.ResolveAsync(context).ConfigureAwait(false);
         var targets = new List<SysUser>(ids.Count);
         var failed = new List<BatchFailure>();
         foreach (var id in ids.Distinct())
         {
-            if (!found.TryGetValue(id, out var user) || (tenantId is not null && !string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal)))
+            if (!found.TryGetValue(id, out var user) || (tenantId is not null && !string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal)) || !scope.Allows(id))
             {
                 failed.Add(new BatchFailure(id, IdentityErrors.UserNotFound));
             }

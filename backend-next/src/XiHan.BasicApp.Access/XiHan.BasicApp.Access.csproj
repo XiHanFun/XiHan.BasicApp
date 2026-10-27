@@ -9,6 +9,8 @@
     <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
     <!-- Tier 1 按 Identity → Tenancy → Organization → Access 单向：成员指派要核对用户 -->
     <ProjectReference Include="../XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+    <!-- 数据范围要经归属与部门闭包表展开（Tier 1 单向：Access 在 Organization 之后） -->
+    <ProjectReference Include="../XiHan.BasicApp.Organization/XiHan.BasicApp.Organization.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,5 +8,6 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// </summary>
 /// <param name="Role">角色。</param>
 /// <param name="Permissions">已授予的权限码，按码排序。</param>
+/// <param name="CustomDepartments">自定义数据范围的部门（只有 DataScope 为 Custom 时非空）。</param>
 /// <param name="MemberCount">成员数。</param>
-public sealed record RoleDetailResponse(RoleResponse Role, IReadOnlyList<string> Permissions, long MemberCount);
+public sealed record RoleDetailResponse(RoleResponse Role, IReadOnlyList<string> Permissions, long MemberCount, IReadOnlyList<DataScopeDepartmentRequest> CustomDepartments);

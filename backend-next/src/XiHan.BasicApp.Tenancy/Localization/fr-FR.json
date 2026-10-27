@@ -14,5 +14,6 @@
   "tenancy.tenant.platform_only": "Les locataires ne se gèrent que du côté plateforme.",
   "tenancy.tenant.filter_unsupported": "Le filtre '{field} {operator}' n'est pas pris en charge.",
   "tenancy.tenant.sort_unsupported": "Le tri par '{field}' n'est pas pris en charge.",
-  "tenancy.admin.name_taken": "Le nom d'utilisateur '{userName}' est déjà pris dans ce locataire."
+  "tenancy.admin.name_taken": "Le nom d'utilisateur '{userName}' est déjà pris dans ce locataire.",
+  "tenancy.tenant.no_initializer": "Aucun initialiseur de locataire n'est configuré ; l'administrateur n'aurait aucune permission."
 }

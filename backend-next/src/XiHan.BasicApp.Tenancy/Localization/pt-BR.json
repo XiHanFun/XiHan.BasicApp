@@ -14,5 +14,6 @@
   "tenancy.tenant.platform_only": "Locatários só são gerenciados pelo lado da plataforma.",
   "tenancy.tenant.filter_unsupported": "O filtro '{field} {operator}' não é suportado.",
   "tenancy.tenant.sort_unsupported": "A ordenação por '{field}' não é suportada.",
-  "tenancy.admin.name_taken": "O nome de usuário '{userName}' já está em uso neste locatário."
+  "tenancy.admin.name_taken": "O nome de usuário '{userName}' já está em uso neste locatário.",
+  "tenancy.tenant.no_initializer": "Nenhum inicializador de locatário está configurado; o administrador não teria permissões."
 }
