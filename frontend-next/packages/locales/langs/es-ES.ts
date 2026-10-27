@@ -10,10 +10,12 @@ export default {
       next: 'Siguiente',
     },
     session: {
-      token: 'Token',
-      token_placeholder: 'Pega un token de pnpm dev:token',
-      apply: 'Aplicar',
-      signed_in: 'Sesión de {subject} · {tenant}',
+      label: 'Sesión',
+      signed_in: '{name} · {tenant}',
+      platform: 'Plataforma',
+      change_password: 'Cambiar contraseña',
+      sign_out: 'Cerrar sesión',
+      must_change_password: 'Un administrador restableció su contraseña; cámbiela antes de continuar.',
     },
   },
 }

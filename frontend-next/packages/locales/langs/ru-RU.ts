@@ -10,10 +10,12 @@ export default {
       next: 'Далее',
     },
     session: {
-      token: 'Токен',
-      token_placeholder: 'Вставьте токен из pnpm dev:token',
-      apply: 'Применить',
-      signed_in: 'Вы вошли как {subject} · {tenant}',
+      label: 'Сеанс',
+      signed_in: '{name} · {tenant}',
+      platform: 'Платформа',
+      change_password: 'Сменить пароль',
+      sign_out: 'Выйти',
+      must_change_password: 'Администратор сбросил ваш пароль; смените его, прежде чем продолжить.',
     },
   },
 }

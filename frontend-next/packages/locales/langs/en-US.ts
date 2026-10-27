@@ -10,10 +10,12 @@ export default {
       next: 'Next',
     },
     session: {
-      token: 'Token',
-      token_placeholder: 'Paste a token from pnpm dev:token',
-      apply: 'Apply',
-      signed_in: 'Signed in as {subject} · {tenant}',
+      label: 'Session',
+      signed_in: '{name} · {tenant}',
+      platform: 'Platform',
+      change_password: 'Change password',
+      sign_out: 'Sign out',
+      must_change_password: 'Your password was reset by an administrator; change it before continuing.',
     },
   },
 }

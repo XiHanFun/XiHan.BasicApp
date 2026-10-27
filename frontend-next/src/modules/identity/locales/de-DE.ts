@@ -3,7 +3,7 @@ export default {
   identity: {
     users: {
       title: 'Benutzer',
-      description: 'Benutzer des aktuellen Mandanten (N0-Beispiel des Identity-Pakets).',
+      description: 'Für das aktuelle Prinzipal sichtbare Benutzer.',
       fields: {
         user_name: 'Benutzername',
         display_name: 'Anzeigename',
@@ -16,6 +16,35 @@ export default {
       },
       empty: 'Noch keine Benutzer.',
       total: '{total} Benutzer',
+    },
+    login: {
+      title: 'Anmelden',
+      description: 'Melden Sie sich mit Benutzername und Passwort an.',
+      fields: {
+        tenant: 'Mandant',
+        user_name: 'Benutzername',
+        password: 'Passwort',
+      },
+      tenant_placeholder: 'Für ein Plattformkonto leer lassen',
+      actions: {
+        sign_in: 'Anmelden',
+      },
+    },
+    profile: {
+      change_password: {
+        title: 'Passwort ändern',
+        description: 'Geben Sie das aktuelle und ein neues Passwort ein (mindestens 8 Zeichen mit Buchstaben und Ziffern). Ihre übrigen Sitzungen werden abgemeldet.',
+        fields: {
+          current_password: 'Aktuelles Passwort',
+          new_password: 'Neues Passwort',
+          confirm_password: 'Neues Passwort bestätigen',
+        },
+        mismatch: 'Die beiden neuen Passwörter stimmen nicht überein.',
+        success: 'Passwort geändert; Ihre übrigen Sitzungen wurden abgemeldet.',
+        actions: {
+          submit: 'Passwort ändern',
+        },
+      },
     },
   },
 }

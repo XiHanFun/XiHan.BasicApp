@@ -1,57 +1,108 @@
+import type { RequestOf, ResponseOf } from '~/contracts'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { auth as authApi } from '~/contracts'
 
-const TOKEN_KEY = 'xihan.next.token'
+const SESSION_KEY = 'xihan.next.session'
 
-function readToken(): string | null {
+/** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`）。 */
+export type Session = ResponseOf<'auth.login'>
+export type SessionUser = Session['user']
+
+function readSession(): Session | null {
   try {
-    return localStorage.getItem(TOKEN_KEY)
+    const raw = localStorage.getItem(SESSION_KEY)
+    if (!raw)
+      return null
+    const parsed = JSON.parse(raw) as Partial<Session>
+    return typeof parsed.accessToken === 'string' && typeof parsed.refreshToken === 'string' && parsed.user ? (parsed as Session) : null
   }
   catch {
     return null
   }
 }
 
-/** JWT 载荷里关心的声明：主体、租户、角色。只用于展示，授权以后端为准。 */
-export interface TokenClaims {
-  sub?: string
-  tenant?: string
-  role?: string | string[]
-  exp?: number
-}
-
-export function decodeClaims(token: string | null): TokenClaims | null {
-  if (!token)
-    return null
-  const part = token.split('.')[1]
-  if (!part)
-    return null
+function writeSession(session: Session | null): void {
   try {
-    const json = atob(part.replace(/-/g, '+').replace(/_/g, '/'))
-    return JSON.parse(json) as TokenClaims
+    if (session)
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+    else localStorage.removeItem(SESSION_KEY)
   }
-  catch {
-    return null
-  }
+  catch {}
 }
 
 /**
- * 会话：访问令牌与它的声明。N0 没有登录操作，令牌由开发者粘贴（`pnpm dev:token` 自签）；N1 的 auth.login 接入后换成登录流程写入。
+ * 会话：`auth.login` 写入，`auth.refresh` 轮换（单飞，并发的未认证重放共用一次刷新），`auth.logout` 吊销并清掉。
+ * 登录与刷新匿名调用（不带旧令牌，否则过期令牌先在 Authenticate 阶段被拒）。授权以后端为准，这里只保存后端返回的资料。
  */
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(readToken())
-  const claims = computed(() => decodeClaims(token.value))
-  const isAuthenticated = computed(() => !!claims.value?.sub)
+  const session = ref<Session | null>(readSession())
+  let refreshing: Promise<string | null> | null = null
 
-  function setToken(value: string | null) {
-    token.value = value?.trim() || null
-    try {
-      if (token.value)
-        localStorage.setItem(TOKEN_KEY, token.value)
-      else localStorage.removeItem(TOKEN_KEY)
-    }
-    catch {}
+  const isAuthenticated = computed(() => session.value !== null)
+  const accessToken = computed(() => session.value?.accessToken ?? null)
+  const user = computed(() => session.value?.user ?? null)
+  const tenantId = computed(() => session.value?.tenantId ?? null)
+  const mustChangePassword = computed(() => session.value?.mustChangePassword ?? false)
+
+  function store(next: Session | null) {
+    session.value = next
+    writeSession(next)
   }
 
-  return { token, claims, isAuthenticated, setToken }
+  async function login(request: RequestOf<'auth.login'>): Promise<Session> {
+    const result = await authApi.login(request, { anonymous: true })
+    store(result)
+    return result
+  }
+
+  /** 用刷新令牌换新会话；成功返回新的访问令牌，失败（会话已吊销 / 过期）清掉会话并返回 null。 */
+  function refresh(): Promise<string | null> {
+    const current = session.value
+    if (!current)
+      return Promise.resolve(null)
+    refreshing ??= authApi.refresh({ refreshToken: current.refreshToken }, { anonymous: true })
+      .then((result) => {
+        store(result)
+        return result.accessToken
+      }, () => {
+        store(null)
+        return null
+      })
+      .finally(() => {
+        refreshing = null
+      })
+    return refreshing
+  }
+
+  /** 注销：请求后端吊销会话（失败也照常清本地，会话本就不可用了）。 */
+  async function logout(): Promise<void> {
+    if (!session.value)
+      return
+    try {
+      await authApi.logout({})
+    }
+    catch {}
+    store(null)
+  }
+
+  /** 按 `auth.me` 刷新资料（改名、改密后或打开页面时）。 */
+  async function loadMe(): Promise<void> {
+    if (!session.value)
+      return
+    const me = await authApi.me({})
+    store({ ...session.value, user: me.user, tenantId: me.tenantId, mustChangePassword: me.mustChangePassword })
+  }
+
+  /** 本人改密成功后：当前会话保留，强制改密标记清除。 */
+  function markPasswordChanged(): void {
+    if (session.value)
+      store({ ...session.value, mustChangePassword: false })
+  }
+
+  function clear(): void {
+    store(null)
+  }
+
+  return { session, isAuthenticated, accessToken, user, tenantId, mustChangePassword, login, refresh, logout, loadMe, markPasswordChanged, clear }
 })

@@ -22,11 +22,15 @@ export interface CallOptions {
   deadline?: Date
   /** 覆盖本次调用的区域 */
   locale?: string
+  /** 匿名调用（登录、刷新令牌）：不带 Authorization，未认证也不走刷新钩子 */
+  anonymous?: boolean
 }
 
 export interface RequestHooks {
   /** 未认证（SECURITY_DENIED_001）：返回新令牌则重放一次，返回 null 即登出 */
   onUnauthenticated?: () => Promise<string | null>
+  /** 会话已吊销或过期（IDENTITY_DENIED_001）：刷新令牌同样失效，清会话回登录页 */
+  onSessionInvalid?: (error: ApiError) => void
   /** 会话锁定（IDENTITY_DENIED_002）：拉起锁屏 */
   onLocked?: (error: ApiError) => void
   /** 维护中（KERNEL_UNAVAILABLE_001） */
@@ -44,6 +48,7 @@ export interface RequestConfig {
 
 export const ErrorCodes = {
   unauthenticated: 'SECURITY_DENIED_001',
+  sessionInvalid: 'IDENTITY_DENIED_001',
   locked: 'IDENTITY_DENIED_002',
   maintenance: 'KERNEL_UNAVAILABLE_001',
 } as const
@@ -125,10 +130,10 @@ export async function invoke<TRequest, TResponse>(id: string, route: RouteDef, r
     return (config.fetch ?? fetch)(url, { method: route.method, headers, body, signal: options.signal })
   }
 
-  let response = await send(config.getToken?.() ?? null)
+  let response = await send(options.anonymous ? null : config.getToken?.() ?? null)
   if (!response.ok) {
     let error = await parseProblem(response, traceparent.split('-')[1] ?? '')
-    if (error.code === ErrorCodes.unauthenticated && config.hooks?.onUnauthenticated) {
+    if (error.code === ErrorCodes.unauthenticated && !options.anonymous && config.hooks?.onUnauthenticated) {
       const refreshed = await config.hooks.onUnauthenticated()
       if (refreshed) {
         response = await send(refreshed)
@@ -137,6 +142,8 @@ export async function invoke<TRequest, TResponse>(id: string, route: RouteDef, r
         error = await parseProblem(response, traceparent.split('-')[1] ?? '')
       }
     }
+    if (error.code === ErrorCodes.sessionInvalid && !options.anonymous)
+      config.hooks?.onSessionInvalid?.(error)
     if (error.code === ErrorCodes.locked)
       config.hooks?.onLocked?.(error)
     if (error.code === ErrorCodes.maintenance)

@@ -134,9 +134,16 @@ function emitPermissions(doc, operations) {
   return lines.join('\n')
 }
 
-/** 收集字符串枚举：组件 Schema 与操作内联 Schema 里 `enum` 为字符串数组的属性，名字取 `<Schema 标题><属性 Pascal>` */
+/**
+ * 收集字符串枚举：按字符串序列化的 C# 枚举进 `components.schemas/<枚举名>`（type string + enum），名字就是枚举名；
+ * 仍内联在属性上的枚举（整数枚举不在此列）按 `<Schema 标题><属性 Pascal>` 起名。
+ */
 function collectEnums(doc) {
   const found = new Map()
+  for (const [name, schema] of Object.entries(doc.components?.schemas ?? {})) {
+    if (schema?.type === 'string' && Array.isArray(schema.enum) && schema.enum.every(v => typeof v === 'string'))
+      found.set(pascal(name), schema.enum)
+  }
   const visitSchema = (schema, title) => {
     if (!schema || typeof schema !== 'object')
       return

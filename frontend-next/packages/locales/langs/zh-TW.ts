@@ -10,10 +10,12 @@ export default {
       next: '下一頁',
     },
     session: {
-      token: '權杖',
-      token_placeholder: '貼上 pnpm dev:token 簽出的權杖',
-      apply: '套用',
-      signed_in: '已登入：{subject} · {tenant}',
+      label: '工作階段',
+      signed_in: '{name} · {tenant}',
+      platform: '平台',
+      change_password: '變更密碼',
+      sign_out: '登出',
+      must_change_password: '密碼已由管理員重設，請先變更密碼。',
     },
   },
 }
