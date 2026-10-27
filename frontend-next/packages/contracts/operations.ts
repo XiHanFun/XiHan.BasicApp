@@ -23,6 +23,14 @@ export const routes = {
   'roles.revoke': { method: 'POST', template: '/api/roles/{id}:revoke', path: ['id'], query: [], success: 200 },
   'roles.unassign': { method: 'POST', template: '/api/roles/{id}:unassign', path: ['id'], query: [], success: 200 },
   'roles.update': { method: 'PUT', template: '/api/roles/{id}', path: ['id'], query: [], success: 200 },
+  'tenants.create': { method: 'POST', template: '/api/tenants', path: [], query: [], success: 201 },
+  'tenants.delete': { method: 'DELETE', template: '/api/tenants', path: [], query: ['ids'], success: 200 },
+  'tenants.get': { method: 'GET', template: '/api/tenants/{id}', path: ['id'], query: [], success: 200 },
+  'tenants.initialize-admin': { method: 'POST', template: '/api/tenants/{id}:initialize-admin', path: ['id'], query: [], success: 200 },
+  'tenants.list': { method: 'POST', template: '/api/tenants:list', path: [], query: [], success: 200 },
+  'tenants.resume': { method: 'POST', template: '/api/tenants:resume', path: [], query: [], success: 200 },
+  'tenants.suspend': { method: 'POST', template: '/api/tenants:suspend', path: [], query: [], success: 200 },
+  'tenants.update': { method: 'PUT', template: '/api/tenants/{id}', path: ['id'], query: [], success: 200 },
   'users.create': { method: 'POST', template: '/api/users', path: [], query: [], success: 201 },
   'users.delete': { method: 'DELETE', template: '/api/users', path: [], query: ['ids'], success: 200 },
   'users.get': { method: 'GET', template: '/api/users/{id}', path: ['id'], query: [], success: 200 },
@@ -75,6 +83,18 @@ export const roles = {
   revoke: (request: RequestOf<'roles.revoke'>, options?: CallOptions) => invoke<RequestOf<'roles.revoke'>, ResponseOf<'roles.revoke'>>('roles.revoke', routes['roles.revoke'], request, options),
   unassign: (request: RequestOf<'roles.unassign'>, options?: CallOptions) => invoke<RequestOf<'roles.unassign'>, ResponseOf<'roles.unassign'>>('roles.unassign', routes['roles.unassign'], request, options),
   update: (request: RequestOf<'roles.update'>, options?: CallOptions) => invoke<RequestOf<'roles.update'>, ResponseOf<'roles.update'>>('roles.update', routes['roles.update'], request, options),
+}
+
+/** 资源 `tenants` 的操作。 */
+export const tenants = {
+  create: (request: RequestOf<'tenants.create'>, options?: CallOptions) => invoke<RequestOf<'tenants.create'>, ResponseOf<'tenants.create'>>('tenants.create', routes['tenants.create'], request, options),
+  delete: (request: RequestOf<'tenants.delete'>, options?: CallOptions) => invoke<RequestOf<'tenants.delete'>, ResponseOf<'tenants.delete'>>('tenants.delete', routes['tenants.delete'], request, options),
+  get: (request: RequestOf<'tenants.get'>, options?: CallOptions) => invoke<RequestOf<'tenants.get'>, ResponseOf<'tenants.get'>>('tenants.get', routes['tenants.get'], request, options),
+  initializeAdmin: (request: RequestOf<'tenants.initialize-admin'>, options?: CallOptions) => invoke<RequestOf<'tenants.initialize-admin'>, ResponseOf<'tenants.initialize-admin'>>('tenants.initialize-admin', routes['tenants.initialize-admin'], request, options),
+  list: (request: RequestOf<'tenants.list'>, options?: CallOptions) => invoke<RequestOf<'tenants.list'>, ResponseOf<'tenants.list'>>('tenants.list', routes['tenants.list'], request, options),
+  resume: (request: RequestOf<'tenants.resume'>, options?: CallOptions) => invoke<RequestOf<'tenants.resume'>, ResponseOf<'tenants.resume'>>('tenants.resume', routes['tenants.resume'], request, options),
+  suspend: (request: RequestOf<'tenants.suspend'>, options?: CallOptions) => invoke<RequestOf<'tenants.suspend'>, ResponseOf<'tenants.suspend'>>('tenants.suspend', routes['tenants.suspend'], request, options),
+  update: (request: RequestOf<'tenants.update'>, options?: CallOptions) => invoke<RequestOf<'tenants.update'>, ResponseOf<'tenants.update'>>('tenants.update', routes['tenants.update'], request, options),
 }
 
 /** 资源 `users` 的操作。 */
