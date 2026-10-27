@@ -1,0 +1,12 @@
+{
+  "users.create.description": "在目前租戶建立使用者；需要 identity.users.create 權限。",
+  "users.get.description": "依 ID 取得目前租戶的使用者；需要 identity.users.read 權限。",
+  "users.list.description": "分頁列出目前租戶的使用者，支援篩選、關鍵字與排序；需要 identity.users.read 權限。",
+  "identity.user.not_found": "使用者 '{id}' 不存在。",
+  "identity.user.name_taken": "使用者名稱 '{userName}' 在租戶 '{tenant}' 內已被使用。",
+  "identity.user.tenant_required": "建立使用者需要目前租戶。",
+  "identity.user.display_name_blank": "顯示名稱不能只有空白。",
+  "identity.user.email_invalid": "電子郵件地址格式不正確。",
+  "identity.user.filter_unsupported": "不支援篩選 '{field} {operator}'。",
+  "identity.user.sort_unsupported": "不支援依 '{field}' 排序。"
+}

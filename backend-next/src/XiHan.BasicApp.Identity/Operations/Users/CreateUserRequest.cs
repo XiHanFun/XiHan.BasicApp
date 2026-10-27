@@ -1,0 +1,35 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using System.ComponentModel.DataAnnotations;
+using XiHan.Framework.Primitives;
+
+namespace XiHan.BasicApp.Identity.Operations.Users;
+
+/// <summary>
+/// <c>users.create</c> 的请求。单字段约束用 DataAnnotations（由生成器折进请求 Schema，Validate 阶段按 Schema 拒绝并带字段级 <c>errors</c>）；
+/// 跨字段与格式规则在 <see cref="Validate"/> 里自校验，文案按消息键取调用方语言。
+/// </summary>
+/// <param name="UserName">登录名：3 到 64 个字符，小写字母开头，只含小写字母、数字、<c>.</c>、<c>_</c>、<c>-</c>。</param>
+/// <param name="DisplayName">显示名：1 到 64 个字符。</param>
+/// <param name="Email">邮箱，可空。</param>
+public sealed record CreateUserRequest(
+    [Required, StringLength(64, MinimumLength = 3), RegularExpression("^[a-z][a-z0-9._-]*$")] string UserName,
+    [Required, StringLength(64, MinimumLength = 1)] string DisplayName,
+    [StringLength(256)] string? Email) : IValidatableObject
+{
+    /// <inheritdoc />
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (string.IsNullOrWhiteSpace(DisplayName))
+        {
+            yield return new ValidationResult(IdentityMessages.DisplayNameBlank.L(), [nameof(DisplayName)]);
+        }
+
+        // [EmailAddress] 不折进 Schema，格式在这里判；只要求形如 local@domain，不做完整的 RFC 5322
+        if (Email is { Length: > 0 } && (Email.IndexOf('@', StringComparison.Ordinal) is var at && (at <= 0 || at == Email.Length - 1 || Email.IndexOf('@', at + 1) >= 0)))
+        {
+            yield return new ValidationResult(IdentityMessages.EmailInvalid.L(), [nameof(Email)]);
+        }
+    }
+}

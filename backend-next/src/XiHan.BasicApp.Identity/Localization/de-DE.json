@@ -1,0 +1,12 @@
+{
+  "users.create.description": "Legt einen Benutzer im aktuellen Mandanten an; erfordert die Berechtigung identity.users.create.",
+  "users.get.description": "Liest einen Benutzer des aktuellen Mandanten anhand der ID; erfordert die Berechtigung identity.users.read.",
+  "users.list.description": "Listet Benutzer des aktuellen Mandanten mit Seitenwahl, Filtern, Stichwort und Sortierung; erfordert die Berechtigung identity.users.read.",
+  "identity.user.not_found": "Der Benutzer '{id}' existiert nicht.",
+  "identity.user.name_taken": "Der Benutzername '{userName}' ist im Mandanten '{tenant}' bereits vergeben.",
+  "identity.user.tenant_required": "Zum Anlegen eines Benutzers ist ein aktueller Mandant erforderlich.",
+  "identity.user.display_name_blank": "Der Anzeigename darf nicht nur aus Leerzeichen bestehen.",
+  "identity.user.email_invalid": "Die E-Mail-Adresse ist nicht wohlgeformt.",
+  "identity.user.filter_unsupported": "Der Filter '{field} {operator}' wird nicht unterstützt.",
+  "identity.user.sort_unsupported": "Die Sortierung nach '{field}' wird nicht unterstützt."
+}

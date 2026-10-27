@@ -1,0 +1,12 @@
+{
+  "users.create.description": "Cria um usuário no locatário atual; requer a permissão identity.users.create.",
+  "users.get.description": "Obtém um usuário do locatário atual pelo ID; requer a permissão identity.users.read.",
+  "users.list.description": "Lista os usuários do locatário atual com paginação, filtros, palavra-chave e ordenação; requer a permissão identity.users.read.",
+  "identity.user.not_found": "O usuário '{id}' não existe.",
+  "identity.user.name_taken": "O nome de usuário '{userName}' já está em uso no locatário '{tenant}'.",
+  "identity.user.tenant_required": "Criar um usuário requer um locatário atual.",
+  "identity.user.display_name_blank": "O nome de exibição não pode ficar em branco.",
+  "identity.user.email_invalid": "O endereço de e-mail não está bem formado.",
+  "identity.user.filter_unsupported": "O filtro '{field} {operator}' não é compatível.",
+  "identity.user.sort_unsupported": "A ordenação por '{field}' não é compatível."
+}

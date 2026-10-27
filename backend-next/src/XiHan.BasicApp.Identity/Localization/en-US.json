@@ -1,0 +1,12 @@
+{
+  "users.create.description": "Create a user in the current tenant; requires the identity.users.create permission.",
+  "users.get.description": "Get a user of the current tenant by ID; requires the identity.users.read permission.",
+  "users.list.description": "List users of the current tenant with paging, filters, keyword and sorting; requires the identity.users.read permission.",
+  "identity.user.not_found": "User '{id}' does not exist.",
+  "identity.user.name_taken": "User name '{userName}' is already taken in tenant '{tenant}'.",
+  "identity.user.tenant_required": "Creating a user requires a current tenant.",
+  "identity.user.display_name_blank": "The display name must not be blank.",
+  "identity.user.email_invalid": "The email address is not well-formed.",
+  "identity.user.filter_unsupported": "Filter '{field} {operator}' is not supported.",
+  "identity.user.sort_unsupported": "Sorting by '{field}' is not supported."
+}
