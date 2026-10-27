@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "Provisionne un locataire : écrit le locataire et l'enregistre (activé) dans l'annuaire ; l'administrateur est créé avec tenants.initialize-admin. Côté plateforme uniquement ; nécessite tenancy.tenants.create.",
+  "tenants.get.description": "Lit un locataire avec le nom d'utilisateur de son administrateur et le nombre d'utilisateurs. Nécessite tenancy.tenants.read.",
+  "tenants.list.description": "Liste les locataires avec pagination, filtres, mot-clé et tri. Nécessite tenancy.tenants.read.",
+  "tenants.update.description": "Modifie le nom, la description, l'expiration et l'ordre d'un locataire ; le nom est répercuté dans l'annuaire. Nécessite tenancy.tenants.update.",
+  "tenants.suspend.description": "Suspend des locataires par lot : l'annuaire les marque désactivés, leurs utilisateurs ne peuvent plus se connecter et les appels portant ce locataire sont refusés. Nécessite tenancy.tenants.suspend.",
+  "tenants.resume.description": "Réactive des locataires suspendus par lot. Nécessite tenancy.tenants.suspend.",
+  "tenants.delete.description": "Supprime des locataires par lot et les retire de l'annuaire ; ceux qui ont encore des utilisateurs sont refusés un à un. Nécessite tenancy.tenants.delete.",
+  "tenants.initialize_admin.description": "Crée le premier administrateur d'un locataire avec toutes les permissions côté locataire ; le mot de passe doit être changé à la première connexion. Une fois par locataire. Nécessite tenancy.tenants.initialize-admin.",
+  "tenancy.tenant.not_found": "Le locataire '{id}' n'existe pas.",
+  "tenancy.tenant.id_taken": "L'identifiant de locataire '{tenantId}' est déjà pris.",
+  "tenancy.tenant.admin_initialized": "Le locataire '{tenantId}' a déjà un administrateur.",
+  "tenancy.tenant.has_users": "Le locataire '{tenantId}' a encore {count} utilisateurs et ne peut pas être supprimé.",
+  "tenancy.tenant.platform_only": "Les locataires ne se gèrent que du côté plateforme.",
+  "tenancy.tenant.filter_unsupported": "Le filtre '{field} {operator}' n'est pas pris en charge.",
+  "tenancy.tenant.sort_unsupported": "Le tri par '{field}' n'est pas pris en charge.",
+  "tenancy.admin.name_taken": "Le nom d'utilisateur '{userName}' est déjà pris dans ce locataire."
+}

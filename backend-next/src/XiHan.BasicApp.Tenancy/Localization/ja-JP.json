@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "テナントを開通します。テナントを書き込み、ディレクトリに（有効で）登録します。管理者は tenants.initialize-admin で初期化します。プラットフォーム側のみ。tenancy.tenants.create 権限が必要です。",
+  "tenants.get.description": "テナントの詳細（管理者のユーザー名とユーザー数）を取得します。tenancy.tenants.read 権限が必要です。",
+  "tenants.list.description": "テナントをページング、フィルター、キーワード、並べ替えで一覧します。tenancy.tenants.read 権限が必要です。",
+  "tenants.update.description": "テナントの名前、説明、有効期限、並び順を更新します。名前はディレクトリに反映されます。tenancy.tenants.update 権限が必要です。",
+  "tenants.suspend.description": "テナントを一括停止します。ディレクトリで無効化され、ユーザーはログインできず、そのテナントの呼び出しは拒否されます。tenancy.tenants.suspend 権限が必要です。",
+  "tenants.resume.description": "停止中のテナントを一括再開します。tenancy.tenants.suspend 権限が必要です。",
+  "tenants.delete.description": "テナントを一括削除し、ディレクトリから除きます。ユーザーが残るテナントは個別に拒否されます。tenancy.tenants.delete 権限が必要です。",
+  "tenants.initialize_admin.description": "テナント側の全権限を持つ最初の管理者を作成します。初回ログイン時にパスワード変更が必要です。テナントごとに一度だけ。tenancy.tenants.initialize-admin 権限が必要です。",
+  "tenancy.tenant.not_found": "テナント '{id}' は存在しません。",
+  "tenancy.tenant.id_taken": "テナント ID '{tenantId}' は既に使用されています。",
+  "tenancy.tenant.admin_initialized": "テナント '{tenantId}' には既に管理者がいます。",
+  "tenancy.tenant.has_users": "テナント '{tenantId}' にはまだ {count} 人のユーザーがいるため削除できません。",
+  "tenancy.tenant.platform_only": "テナントはプラットフォーム側からのみ管理できます。",
+  "tenancy.tenant.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",
+  "tenancy.tenant.sort_unsupported": "'{field}' による並べ替えはサポートされていません。",
+  "tenancy.admin.name_taken": "ユーザー名 '{userName}' はこのテナントで既に使用されています。"
+}

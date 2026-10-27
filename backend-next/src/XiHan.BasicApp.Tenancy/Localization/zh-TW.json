@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "開通租戶：寫入租戶並登記進租戶目錄（啟用）；管理員由 tenants.initialize-admin 初始化。只在平台側；需要 tenancy.tenants.create 權限。",
+  "tenants.get.description": "取得租戶詳情：管理員登入名與使用者數。需要 tenancy.tenants.read 權限。",
+  "tenants.list.description": "分頁列出租戶，支援篩選、關鍵字與排序。需要 tenancy.tenants.read 權限。",
+  "tenants.update.description": "修改租戶的名稱、說明、到期與排序；名稱同步到目錄。需要 tenancy.tenants.update 權限。",
+  "tenants.suspend.description": "批次停用租戶：目錄標記為停用，租戶使用者不能登入、帶該租戶的呼叫被拒。需要 tenancy.tenants.suspend 權限。",
+  "tenants.resume.description": "批次恢復已停用的租戶。需要 tenancy.tenants.suspend 權限。",
+  "tenants.delete.description": "批次刪除租戶並從目錄移除；還有使用者的租戶逐項拒絕。需要 tenancy.tenants.delete 權限。",
+  "tenants.initialize_admin.description": "為租戶建立第一個管理員，持有租戶側全部權限；首次登入須變更密碼。每個租戶只能初始化一次。需要 tenancy.tenants.initialize-admin 權限。",
+  "tenancy.tenant.not_found": "租戶 '{id}' 不存在。",
+  "tenancy.tenant.id_taken": "租戶 ID '{tenantId}' 已被使用。",
+  "tenancy.tenant.admin_initialized": "租戶 '{tenantId}' 已有管理員。",
+  "tenancy.tenant.has_users": "租戶 '{tenantId}' 下還有 {count} 個使用者，不能刪除。",
+  "tenancy.tenant.platform_only": "租戶只能在平台側管理。",
+  "tenancy.tenant.filter_unsupported": "不支援篩選 '{field} {operator}'。",
+  "tenancy.tenant.sort_unsupported": "不支援依 '{field}' 排序。",
+  "tenancy.admin.name_taken": "使用者名稱 '{userName}' 在該租戶內已被使用。"
+}

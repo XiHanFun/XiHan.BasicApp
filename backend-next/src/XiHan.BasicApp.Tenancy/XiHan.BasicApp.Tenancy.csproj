@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Tenancy</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 租户能力包（Tier 1）：租户业务实体与开通、启停、租户管理员初始化；租户目录同步写框架 MultiTenancy.Database 的 TenantRecord。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+    <!-- Tier 1 按 Identity → Tenancy → Organization → Access 单向：开通租户管理员要建用户与设密码 -->
+    <ProjectReference Include="../XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
+    <!-- 租户管理员的开通授予直接写框架授予表（Tenancy 不能引用 Access） -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
+    <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />
+    <!-- 租户目录：开通 / 启停 / 改名在同一工作单元里同步写 TenantRecord -->
+    <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Database" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>
