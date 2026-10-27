@@ -1,0 +1,60 @@
+/*
+ * 设计令牌单轨（方案 6.7）：Tailwind 的主题变量直接指向 XiHan.UI 的语义令牌，不再有第二套 HSL 令牌与令牌桥。
+ * 主题切换、主题色、圆角、密度由 XiHan.UI 的视觉环境控制器与 data-theme 决定，应用不改写令牌值。
+ */
+@theme {
+  --color-page: var(--xh-bg-page);
+  --color-surface: var(--xh-bg-surface);
+  --color-surface-raised: var(--xh-bg-surface-raised);
+  --color-subtle: var(--xh-bg-subtle);
+  --color-muted: var(--xh-bg-muted);
+  --color-brand: var(--xh-bg-brand);
+  --color-brand-subtle: var(--xh-bg-brand-subtle);
+  --color-fg: var(--xh-fg-default);
+  --color-fg-muted: var(--xh-fg-muted);
+  --color-fg-subtle: var(--xh-fg-subtle);
+  --color-fg-brand: var(--xh-fg-brand);
+  --color-fg-danger: var(--xh-fg-danger);
+  --color-fg-success: var(--xh-fg-success);
+  --color-fg-on-brand: var(--xh-fg-on-brand);
+  --color-border: var(--xh-border-default);
+  --color-border-subtle: var(--xh-border-subtle);
+  --color-border-strong: var(--xh-border-strong);
+  --color-border-invalid: var(--xh-border-invalid);
+
+  --radius-control: var(--xh-radius-sm);
+  --radius-surface: var(--xh-radius-md);
+  --radius-overlay: var(--xh-radius-lg);
+
+  --spacing-1: var(--xh-space-1);
+  --spacing-2: var(--xh-space-2);
+  --spacing-3: var(--xh-space-3);
+  --spacing-4: var(--xh-space-4);
+  --spacing-5: var(--xh-space-5);
+  --spacing-6: var(--xh-space-6);
+  --spacing-8: var(--xh-space-8);
+
+  --text-caption: var(--xh-text-caption-size);
+  --text-body: var(--xh-text-body-size);
+  --text-label: var(--xh-text-label-size);
+  --text-heading-3: var(--xh-text-heading-3-size);
+  --text-heading-2: var(--xh-text-heading-2-size);
+
+  --shadow-sm: var(--xh-shadow-sm);
+  --shadow-md: var(--xh-shadow-md);
+}
+
+/* 管理端基础：页面底色与文字色跟随令牌（含明暗主题），不在这里写死任何颜色 */
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--xh-bg-page);
+  color: var(--xh-fg-default);
+  font-size: var(--xh-text-body-size);
+  line-height: var(--xh-text-body-line-h);
+}
