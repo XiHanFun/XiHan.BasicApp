@@ -54,8 +54,23 @@ function onLocaleChange(event: Event) {
         {{ t('common.session.change_password') }}
       </RouterLink>
     </p>
-    <main class="flex flex-1 flex-col p-4" :class="auth.isAuthenticated ? '' : 'items-center justify-center'">
-      <RouterView />
-    </main>
+    <div class="flex flex-1 flex-col md:flex-row">
+      <!-- 导航来自 auth.permissions 的菜单树（按权限裁剪过）；标题键由后端页面登记给出，文案在各模块的语言文件 -->
+      <aside v-if="auth.isAuthenticated && auth.menus.length > 0" class="border-b border-border bg-surface md:w-56 md:border-b-0 md:border-r" :aria-label="t('common.nav.label')">
+        <nav class="flex flex-row flex-wrap gap-1 p-2 md:flex-col" data-testid="menu">
+          <template v-for="menu in auth.menus" :key="menu.code">
+            <RouterLink :to="menu.route" class="rounded-control px-3 py-1 text-body hover:bg-subtle" active-class="bg-brand-subtle text-fg-brand">
+              {{ t(menu.titleKey) }}
+            </RouterLink>
+            <RouterLink v-for="child in menu.children" :key="child.code" :to="child.route" class="rounded-control px-3 py-1 text-body hover:bg-subtle md:pl-6" active-class="bg-brand-subtle text-fg-brand">
+              {{ t(child.titleKey) }}
+            </RouterLink>
+          </template>
+        </nav>
+      </aside>
+      <main class="flex flex-1 flex-col p-4" :class="auth.isAuthenticated ? '' : 'items-center justify-center'">
+        <RouterView />
+      </main>
+    </div>
   </div>
 </template>

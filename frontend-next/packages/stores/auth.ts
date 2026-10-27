@@ -8,6 +8,9 @@ const SESSION_KEY = 'xihan.next.session'
 /** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`）。 */
 export type Session = ResponseOf<'auth.login'>
 export type SessionUser = Session['user']
+/** `auth.permissions`：有效权限码、角色、菜单树与页面码。 */
+export type Permissions = ResponseOf<'auth.permissions'>
+export type MenuNode = Permissions['menus'][number]
 
 function readSession(): Session | null {
   try {
@@ -32,11 +35,13 @@ function writeSession(session: Session | null): void {
 }
 
 /**
- * 会话：`auth.login` 写入，`auth.refresh` 轮换（单飞，并发的未认证重放共用一次刷新），`auth.logout` 吊销并清掉。
- * 登录与刷新匿名调用（不带旧令牌，否则过期令牌先在 Authenticate 阶段被拒）。授权以后端为准，这里只保存后端返回的资料。
+ * 会话与权限：`auth.login` 写入会话，`auth.refresh` 轮换（单飞，并发的未认证重放共用一次刷新），`auth.logout` 吊销并清掉；
+ * `auth.permissions` 在路由守卫首次进入时装载（刷新令牌后清空、下次导航重取，角色变化随之生效）。
+ * 登录与刷新匿名调用（不带旧令牌，否则过期令牌先在 Authenticate 阶段被拒）。授权以后端为准，这里只保存后端返回的结果，`can` 精确匹配、不认通配。
  */
 export const useAuthStore = defineStore('auth', () => {
   const session = ref<Session | null>(readSession())
+  const permissions = ref<Permissions | null>(null)
   let refreshing: Promise<string | null> | null = null
 
   const isAuthenticated = computed(() => session.value !== null)
@@ -44,10 +49,19 @@ export const useAuthStore = defineStore('auth', () => {
   const user = computed(() => session.value?.user ?? null)
   const tenantId = computed(() => session.value?.tenantId ?? null)
   const mustChangePassword = computed(() => session.value?.mustChangePassword ?? false)
+  const granted = computed(() => new Set(permissions.value?.permissions ?? []))
+  const menus = computed(() => permissions.value?.menus ?? [])
 
   function store(next: Session | null) {
     session.value = next
     writeSession(next)
+    if (!next)
+      permissions.value = null
+  }
+
+  /** 是否持有某个权限码（精确匹配；后端已把 `*` 展开）。 */
+  function can(permission: string): boolean {
+    return granted.value.has(permission)
   }
 
   async function login(request: RequestOf<'auth.login'>): Promise<Session> {
@@ -56,7 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
     return result
   }
 
-  /** 用刷新令牌换新会话；成功返回新的访问令牌，失败（会话已吊销 / 过期）清掉会话并返回 null。 */
+  /** 用刷新令牌换新会话；成功返回新的访问令牌（权限随后重取），失败（会话已吊销 / 过期）清掉会话并返回 null。 */
   function refresh(): Promise<string | null> {
     const current = session.value
     if (!current)
@@ -64,6 +78,7 @@ export const useAuthStore = defineStore('auth', () => {
     refreshing ??= authApi.refresh({ refreshToken: current.refreshToken }, { anonymous: true })
       .then((result) => {
         store(result)
+        permissions.value = null
         return result.accessToken
       }, () => {
         store(null)
@@ -73,6 +88,15 @@ export const useAuthStore = defineStore('auth', () => {
         refreshing = null
       })
     return refreshing
+  }
+
+  /** 装载当前主体的权限、菜单与页面；没有会话即 null。 */
+  async function loadPermissions(): Promise<Permissions | null> {
+    if (!session.value)
+      return null
+    const result = await authApi.permissions({})
+    permissions.value = result
+    return result
   }
 
   /** 注销：请求后端吊销会话（失败也照常清本地，会话本就不可用了）。 */
@@ -104,5 +128,5 @@ export const useAuthStore = defineStore('auth', () => {
     store(null)
   }
 
-  return { session, isAuthenticated, accessToken, user, tenantId, mustChangePassword, login, refresh, logout, loadMe, markPasswordChanged, clear }
+  return { session, permissions, menus, isAuthenticated, accessToken, user, tenantId, mustChangePassword, can, login, refresh, loadPermissions, logout, loadMe, markPasswordChanged, clear }
 })

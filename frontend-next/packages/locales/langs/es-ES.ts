@@ -8,6 +8,7 @@ export default {
       refresh: 'Actualizar',
       previous: 'Anterior',
       next: 'Siguiente',
+      home: 'Inicio',
     },
     session: {
       label: 'Sesión',
@@ -16,6 +17,17 @@ export default {
       change_password: 'Cambiar contraseña',
       sign_out: 'Cerrar sesión',
       must_change_password: 'Un administrador restableció su contraseña; cámbiela antes de continuar.',
+    },
+    nav: {
+      label: 'Navegación',
+    },
+    status: {
+      forbidden: 'Acceso denegado',
+      forbidden_hint: 'No tiene permiso para esta página.',
+      not_found: 'Página no encontrada',
+      not_found_hint: 'La dirección no corresponde a ninguna página.',
+      home: 'No hay páginas disponibles',
+      home_hint: 'Pida a un administrador que le asigne un rol.',
     },
   },
 }

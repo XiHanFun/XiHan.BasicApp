@@ -77,7 +77,9 @@ function emitOperations(operations) {
   lines.push(`type JsonBody<T> = T extends { content: { 'application/json': infer B } } ? B : never`)
   lines.push(`type Params<T> = T extends { parameters: infer P } ? (P extends { path: infer A } ? (A extends object ? A : object) : object) & (P extends { query?: infer Q } ? (Q extends object ? Q : object) : object) : object`)
   lines.push(`/** 操作的请求类型：有请求体取请求体，否则是路由值与查询串的并集。 */`)
-  lines.push(`export type RequestOf<Id extends OperationId> = operations[Id] extends { requestBody: infer R } ? JsonBody<R> : (operations[Id] extends { requestBody?: infer R } ? JsonBody<R> : Params<operations[Id]>)`)
+  // 没有请求体的操作（GET / DELETE，openapi-typescript 生成 requestBody?: never）取路由值与查询串；有请求体（必填或可选）取请求体
+  lines.push(`type BodyOf<T> = T extends { requestBody?: infer R } ? JsonBody<NonNullable<R>> : never`)
+  lines.push(`export type RequestOf<Id extends OperationId> = [BodyOf<operations[Id]>] extends [never] ? Params<operations[Id]> : BodyOf<operations[Id]>`)
   lines.push(`type SuccessCode<Id extends OperationId> = (typeof routes)[Id]['success']`)
   lines.push(`/** 操作的成功响应类型。 */`)
   lines.push(`export type ResponseOf<Id extends OperationId> = operations[Id]['responses'] extends infer R ? (SuccessCode<Id> extends keyof R ? JsonBody<R[SuccessCode<Id>]> : never) : never`)
@@ -109,7 +111,8 @@ function emitPermissions(doc, operations) {
   lines.push(`import type { OperationId } from './operations'`)
   lines.push('')
   lines.push('/** 权限定义表（码、显示名、说明）：授权界面按它生成。 */')
-  lines.push('export const permissions = {')
+  // 权限定义表叫 permissionDefinitions：资源 `permissions` 的调用门面占了 `permissions` 这个名字
+  lines.push('export const permissionDefinitions = {')
   for (const code of codes) {
     const d = definitions[code]
     lines.push(`  '${code}': { code: '${code}', displayName: ${quote(d.displayName ?? '')}, description: ${quote(d.description ?? '')} },`)
@@ -117,7 +120,7 @@ function emitPermissions(doc, operations) {
   lines.push('} as const')
   lines.push('')
   lines.push('/** 权限码字面量联合；`can()` 只认精确匹配，不认通配。 */')
-  lines.push('export type Permission = keyof typeof permissions')
+  lines.push('export type Permission = keyof typeof permissionDefinitions')
   lines.push('')
   lines.push('/** 操作 → 保护它的权限码（按钮即操作：门控直接用操作的权限码）。 */')
   lines.push('export const operationPermission: Partial<Record<OperationId, Permission>> = {')

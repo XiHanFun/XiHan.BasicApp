@@ -34,9 +34,11 @@ frontend-next/
 
 运行时只依赖 `code` 与 `errors`：`SECURITY_DENIED_001`（访问令牌过期）走刷新钩子——用刷新令牌换一次并重放，刷新也失败即回登录页；`IDENTITY_DENIED_001`（会话被吊销：注销、改密、锁定、重置密码）直接回登录页；`IDENTITY_DENIED_002` 走锁屏钩子，`KERNEL_UNAVAILABLE_001` 走维护钩子；字段级 `errors` 交给表单按字段显示。登录与刷新以 `anonymous: true` 调用，不带旧令牌。
 
-## 会话
+## 会话、权限与菜单
 
 `/login`：租户（平台账号留空）、用户名、密码 → `auth.login`；会话（访问令牌、刷新令牌、会话 ID、租户、用户资料）由 `~/stores` 的 `auth` 保存在 `localStorage`，路由守卫把未登录的访问带回跳地址送到登录页。顶栏显示当前用户与租户、修改密码入口（`/identity/profile/change-password`，`profile.change-password`）与退出（`auth.logout`）；管理员重置过密码的账号登录后顶栏提示先改密。初始账号由后端 `seed` 命令写入（`superadmin`，见 `backend-next/src/XiHan.BasicApp.Host/README.md`）。
+
+登录后守卫首次进入时调 `auth.permissions`（有效权限码、角色、按权限裁剪的菜单树、页面码），把菜单树装成动态路由（`packages/router/menus.ts`：节点的 `component` 是 `<包>/<路径>/index`，按 `src/modules/*/views/**/index.vue` 精确解析），侧栏导航由同一棵树渲染，`/` 落到第一个菜单；`meta.permission` 不在有效权限里进 `/forbidden`。按钮即操作：`auth.can('identity.users.create')` 精确匹配操作的权限码控制可见性，安全边界仍在后端。刷新令牌后权限清空、下一次导航重取（角色指派的变化随之生效）。静态核心路由只有登录、改密与状态页（`packages/router/status-view.ts`）。
 
 ## XiHan.UI 本地联调
 
