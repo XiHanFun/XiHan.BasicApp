@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "Create a role on the current side (platform or tenant); the code is unique per side and cannot be changed. Requires access.roles.create.",
+  "roles.get.description": "Get a role with its granted permissions and member count. Requires access.roles.read.",
+  "roles.list.description": "List roles of the current side with paging, filters, keyword and sorting. Requires access.roles.read.",
+  "roles.update.description": "Update a role's name, description, order and status. Requires access.roles.update.",
+  "roles.delete.description": "Delete roles in batch together with their members and permissions; built-in roles cannot be deleted. Requires access.roles.delete.",
+  "roles.grant.description": "Grant permissions to a role; codes must exist in the catalog and match the role's side. Requires access.roles.grant.",
+  "roles.revoke.description": "Revoke permissions from a role. Requires access.roles.grant.",
+  "roles.assign.description": "Assign users to a role; users must belong to the role's side. Takes effect at the user's next token refresh. Requires access.roles.assign.",
+  "roles.unassign.description": "Remove users from a role. Takes effect at the user's next token refresh. Requires access.roles.assign.",
+  "roles.members.description": "List the members of a role. Requires access.roles.read.",
+  "permissions.list.description": "List the permission catalog grantable on the current side. Requires access.permissions.read.",
+  "auth.permissions.description": "Return the current principal's effective permissions, roles, menu tree and page codes.",
+  "access.role.not_found": "Role '{id}' does not exist.",
+  "access.role.code_taken": "Role code '{code}' is already taken on this side.",
+  "access.role.built_in": "Role '{code}' is built in and cannot be deleted.",
+  "access.role.filter_unsupported": "Filter '{field} {operator}' is not supported.",
+  "access.role.sort_unsupported": "Sorting by '{field}' is not supported.",
+  "access.permission.unknown": "Permission '{code}' is not in the catalog.",
+  "access.permission.scope_mismatch": "Permission '{code}' cannot be granted on the {side} side.",
+  "access.member.not_found": "User '{id}' does not exist or does not belong to the role's side."
+}

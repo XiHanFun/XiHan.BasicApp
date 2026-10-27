@@ -11,6 +11,7 @@
     <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
     <ProjectReference Include="../XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Access/XiHan.BasicApp.Access.csproj" />
   </ItemGroup>
 
   <ItemGroup>

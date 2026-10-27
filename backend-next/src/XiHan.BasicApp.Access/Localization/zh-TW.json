@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "在目前作用側（平台或租戶）建立角色；角色碼在本側唯一且不可改。需要 access.roles.create 權限。",
+  "roles.get.description": "取得角色詳情：已授予的權限碼與成員數。需要 access.roles.read 權限。",
+  "roles.list.description": "分頁列出目前作用側的角色，支援篩選、關鍵字與排序。需要 access.roles.read 權限。",
+  "roles.update.description": "修改角色的名稱、說明、排序與狀態。需要 access.roles.update 權限。",
+  "roles.delete.description": "批次刪除角色，連同成員與授予；內建角色不能刪除。需要 access.roles.delete 權限。",
+  "roles.grant.description": "為角色授予權限；權限碼須在目錄裡且與角色所在側相符。需要 access.roles.grant 權限。",
+  "roles.revoke.description": "撤銷角色的權限。需要 access.roles.grant 權限。",
+  "roles.assign.description": "為角色指派成員；使用者須與角色同一側。最遲在使用者下次更新權杖時生效。需要 access.roles.assign 權限。",
+  "roles.unassign.description": "解除角色成員。最遲在使用者下次更新權杖時生效。需要 access.roles.assign 權限。",
+  "roles.members.description": "列出角色的成員。需要 access.roles.read 權限。",
+  "permissions.list.description": "列出目前作用側可授予的權限目錄。需要 access.permissions.read 權限。",
+  "auth.permissions.description": "回傳目前主體的有效權限碼、角色、選單樹與頁面碼。",
+  "access.role.not_found": "角色 '{id}' 不存在。",
+  "access.role.code_taken": "角色碼 '{code}' 在本側已被使用。",
+  "access.role.built_in": "角色 '{code}' 是內建角色，不能刪除。",
+  "access.role.filter_unsupported": "不支援篩選 '{field} {operator}'。",
+  "access.role.sort_unsupported": "不支援依 '{field}' 排序。",
+  "access.permission.unknown": "權限 '{code}' 不在目錄裡。",
+  "access.permission.scope_mismatch": "權限 '{code}' 不能授予給 {side} 側。",
+  "access.member.not_found": "使用者 '{id}' 不存在或不屬於角色所在側。"
+}

@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using System.Xml.Linq;
+using XiHan.BasicApp.Access;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Host;
 using XiHan.BasicApp.Identity;
@@ -70,6 +71,7 @@ public static class Packages
         typeof(AppInfo).Assembly,
         typeof(RuntimeFeature).Assembly,
         typeof(IdentityFeature).Assembly,
+        typeof(AccessFeature).Assembly,
         typeof(BasicAppHost).Assembly,
     ];
 

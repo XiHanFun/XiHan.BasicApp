@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Scalar.AspNetCore;
+using XiHan.BasicApp.Access;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
@@ -51,7 +52,8 @@ public static class BasicAppHost
             // 发件箱必装：领域事件与业务写入同事务派发
             .UseFeature<OutboxFeature>()
             .UseFeature<RuntimeFeature>()
-            .UseFeature<IdentityFeature>());
+            .UseFeature<IdentityFeature>()
+            .UseFeature<AccessFeature>());
 
         var app = builder.Build();
         configureApp?.Invoke(app);

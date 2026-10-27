@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "現在の側（プラットフォームまたはテナント）にロールを作成します。コードは側ごとに一意で変更できません。access.roles.create 権限が必要です。",
+  "roles.get.description": "ロールの詳細（付与済みの権限コードとメンバー数）を取得します。access.roles.read 権限が必要です。",
+  "roles.list.description": "現在の側のロールをページング、フィルター、キーワード、並べ替えで一覧します。access.roles.read 権限が必要です。",
+  "roles.update.description": "ロールの名前、説明、並び順、状態を更新します。access.roles.update 権限が必要です。",
+  "roles.delete.description": "ロールをメンバーと権限ごと一括削除します。組み込みロールは削除できません。access.roles.delete 権限が必要です。",
+  "roles.grant.description": "ロールに権限を付与します。コードはカタログに存在し、ロールの側と一致する必要があります。access.roles.grant 権限が必要です。",
+  "roles.revoke.description": "ロールから権限を取り消します。access.roles.grant 権限が必要です。",
+  "roles.assign.description": "ロールにユーザーを割り当てます。ユーザーはロールと同じ側に属している必要があり、次回のトークン更新時に反映されます。access.roles.assign 権限が必要です。",
+  "roles.unassign.description": "ロールからユーザーを外します。次回のトークン更新時に反映されます。access.roles.assign 権限が必要です。",
+  "roles.members.description": "ロールのメンバーを一覧します。access.roles.read 権限が必要です。",
+  "permissions.list.description": "現在の側で付与できる権限カタログを一覧します。access.permissions.read 権限が必要です。",
+  "auth.permissions.description": "現在の主体の有効な権限コード、ロール、メニューツリー、ページコードを返します。",
+  "access.role.not_found": "ロール '{id}' は存在しません。",
+  "access.role.code_taken": "ロールコード '{code}' はこの側で既に使用されています。",
+  "access.role.built_in": "ロール '{code}' は組み込みのため削除できません。",
+  "access.role.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",
+  "access.role.sort_unsupported": "'{field}' による並べ替えはサポートされていません。",
+  "access.permission.unknown": "権限 '{code}' はカタログにありません。",
+  "access.permission.scope_mismatch": "権限 '{code}' は {side} 側には付与できません。",
+  "access.member.not_found": "ユーザー '{id}' は存在しないか、ロールの側に属していません。"
+}
