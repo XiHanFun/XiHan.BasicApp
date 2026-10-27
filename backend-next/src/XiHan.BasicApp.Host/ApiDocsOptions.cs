@@ -8,10 +8,14 @@ namespace XiHan.BasicApp.Host;
 /// </summary>
 public sealed record ApiDocsOptions
 {
-    /// <summary>配置节。</summary>
+    /// <summary>
+    /// 配置节。
+    /// </summary>
     public const string ConfigurationSection = "BasicApp:ApiDocs";
 
-    /// <summary>是否映射接口文档端点。</summary>
+    /// <summary>
+    /// 是否映射接口文档端点。
+    /// </summary>
     public bool Enabled { get; init; }
 
     /// <summary>

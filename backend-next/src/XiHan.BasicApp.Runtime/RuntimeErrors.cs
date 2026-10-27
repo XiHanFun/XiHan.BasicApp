@@ -8,9 +8,13 @@ namespace XiHan.BasicApp.Runtime;
 /// </summary>
 public static class RuntimeErrors
 {
-    /// <summary>数据库绑定 <c>XiHan:Bindings:db</c> 缺失或为空：数据库是启动硬要求。</summary>
+    /// <summary>
+    /// 数据库绑定 <c>XiHan:Bindings:db</c> 缺失或为空：数据库是启动硬要求。
+    /// </summary>
     public const string DatabaseBindingMissing = "RUNTIME_VALIDATION_001";
 
-    /// <summary>数据库绑定的 <c>provider</c> 属性不是支持的库类型。</summary>
+    /// <summary>
+    /// 数据库绑定的 <c>provider</c> 属性不是支持的库类型。
+    /// </summary>
     public const string DatabaseProviderUnsupported = "RUNTIME_VALIDATION_002";
 }

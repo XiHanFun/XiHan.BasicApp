@@ -11,16 +11,24 @@ namespace XiHan.BasicApp.Runtime.Persistence;
 /// </summary>
 public static class DatabaseProviders
 {
-    /// <summary>PostgreSQL：生产与开发的缺省库。</summary>
+    /// <summary>
+    /// PostgreSQL：生产与开发的缺省库。
+    /// </summary>
     public const string PostgreSql = "postgresql";
 
-    /// <summary>SQLite：测试用。</summary>
+    /// <summary>
+    /// SQLite：测试用。
+    /// </summary>
     public const string Sqlite = "sqlite";
 
-    /// <summary>MySQL。</summary>
+    /// <summary>
+    /// MySQL。
+    /// </summary>
     public const string MySql = "mysql";
 
-    /// <summary>SQL Server。</summary>
+    /// <summary>
+    /// SQL Server。
+    /// </summary>
     public const string SqlServer = "sqlserver";
 
     /// <summary>

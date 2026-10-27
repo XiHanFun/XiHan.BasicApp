@@ -36,28 +36,44 @@ public sealed partial record PermissionDescriptor
         Description = description;
     }
 
-    /// <summary>权限码。</summary>
+    /// <summary>
+    /// 权限码。
+    /// </summary>
     public string Code { get; }
 
-    /// <summary>显示名。</summary>
+    /// <summary>
+    /// 显示名。
+    /// </summary>
     public string DisplayName { get; }
 
-    /// <summary>作用侧。</summary>
+    /// <summary>
+    /// 作用侧。
+    /// </summary>
     public PermissionScope Scope { get; }
 
-    /// <summary>该权限保护的操作是否进审计。</summary>
+    /// <summary>
+    /// 该权限保护的操作是否进审计。
+    /// </summary>
     public bool Audited { get; }
 
-    /// <summary>说明。</summary>
+    /// <summary>
+    /// 说明。
+    /// </summary>
     public string? Description { get; }
 
-    /// <summary>包段，如 <c>identity</c>。</summary>
+    /// <summary>
+    /// 包段，如 <c>identity</c>。
+    /// </summary>
     public string Package => Code[..Code.IndexOf('.', StringComparison.Ordinal)];
 
-    /// <summary>资源段，如 <c>users</c>。</summary>
+    /// <summary>
+    /// 资源段，如 <c>users</c>。
+    /// </summary>
     public string Resource => Code.Split('.')[1];
 
-    /// <summary>动作段，如 <c>read</c>。</summary>
+    /// <summary>
+    /// 动作段，如 <c>read</c>。
+    /// </summary>
     public string Action => Code[(Code.LastIndexOf('.') + 1)..];
 
     /// <summary>

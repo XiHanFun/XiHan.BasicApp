@@ -15,7 +15,9 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Grpc | Expose.Mcp | Expose.Ai, Permission = IdentityPermissions.UsersRead)]
 public sealed class ListUsers(UserQueries queries) : IOperation<PageRequest, PageResult<UserResponse>>
 {
-    /// <summary>操作 ID。</summary>
+    /// <summary>
+    /// 操作 ID。
+    /// </summary>
     public const string Id = "users.list";
 
     /// <inheritdoc />
