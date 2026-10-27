@@ -34,13 +34,12 @@ bld/
 # Allow frontend business API module named "log".
 !frontend/src/api/modules/log/
 !frontend/src/api/modules/log/**
-!next-frontend/src/api/modules/log/
-!next-frontend/src/api/modules/log/**
 # Allow frontend business views directory named "log".
 !frontend/src/views/log/
 !frontend/src/views/log/**
-!next-frontend/src/views/log/
-!next-frontend/src/views/log/**
+# frontend-next：页面在 src/modules/<包>/views 下，同样放行名为 log 的视图目录
+!frontend-next/src/modules/*/views/**/log/
+!frontend-next/src/modules/*/views/**/log/**
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
@@ -216,8 +215,8 @@ PublishScripts/
 # keep frontend workspace packages trackable
 !frontend/packages/
 !frontend/packages/**
-!next-frontend/packages/
-!next-frontend/packages/**
+!frontend-next/packages/
+!frontend-next/packages/**
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/[Pp]ackages/repositories.config
 # NuGet v3's project.json files produces more ignorable files
