@@ -11,7 +11,22 @@ export const routes = {
   'auth.me': { method: 'POST', template: '/api/auth:me', path: [], query: [], success: 200 },
   'auth.permissions': { method: 'POST', template: '/api/auth:permissions', path: [], query: [], success: 200 },
   'auth.refresh': { method: 'POST', template: '/api/auth:refresh', path: [], query: [], success: 200 },
+  'departments.create': { method: 'POST', template: '/api/departments', path: [], query: [], success: 201 },
+  'departments.delete': { method: 'DELETE', template: '/api/departments', path: [], query: ['ids'], success: 200 },
+  'departments.get': { method: 'GET', template: '/api/departments/{id}', path: ['id'], query: [], success: 200 },
+  'departments.move': { method: 'POST', template: '/api/departments/{id}:move', path: ['id'], query: [], success: 200 },
+  'departments.tree': { method: 'POST', template: '/api/departments:tree', path: [], query: [], success: 200 },
+  'departments.update': { method: 'PUT', template: '/api/departments/{id}', path: ['id'], query: [], success: 200 },
+  'memberships.create': { method: 'POST', template: '/api/memberships', path: [], query: [], success: 201 },
+  'memberships.delete': { method: 'DELETE', template: '/api/memberships', path: [], query: ['ids'], success: 200 },
+  'memberships.list': { method: 'POST', template: '/api/memberships:list', path: [], query: [], success: 200 },
+  'memberships.update': { method: 'PUT', template: '/api/memberships/{id}', path: ['id'], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: [], success: 200 },
+  'positions.create': { method: 'POST', template: '/api/positions', path: [], query: [], success: 201 },
+  'positions.delete': { method: 'DELETE', template: '/api/positions', path: [], query: ['ids'], success: 200 },
+  'positions.get': { method: 'GET', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
+  'positions.list': { method: 'POST', template: '/api/positions:list', path: [], query: [], success: 200 },
+  'positions.update': { method: 'PUT', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
   'profile.change-password': { method: 'POST', template: '/api/profile:change-password', path: [], query: [], success: 200 },
   'roles.assign': { method: 'POST', template: '/api/roles/{id}:assign', path: ['id'], query: [], success: 200 },
   'roles.create': { method: 'POST', template: '/api/roles', path: [], query: [], success: 201 },
@@ -61,9 +76,36 @@ export const auth = {
   refresh: (request: RequestOf<'auth.refresh'>, options?: CallOptions) => invoke<RequestOf<'auth.refresh'>, ResponseOf<'auth.refresh'>>('auth.refresh', routes['auth.refresh'], request, options),
 }
 
+/** 资源 `departments` 的操作。 */
+export const departments = {
+  create: (request: RequestOf<'departments.create'>, options?: CallOptions) => invoke<RequestOf<'departments.create'>, ResponseOf<'departments.create'>>('departments.create', routes['departments.create'], request, options),
+  delete: (request: RequestOf<'departments.delete'>, options?: CallOptions) => invoke<RequestOf<'departments.delete'>, ResponseOf<'departments.delete'>>('departments.delete', routes['departments.delete'], request, options),
+  get: (request: RequestOf<'departments.get'>, options?: CallOptions) => invoke<RequestOf<'departments.get'>, ResponseOf<'departments.get'>>('departments.get', routes['departments.get'], request, options),
+  move: (request: RequestOf<'departments.move'>, options?: CallOptions) => invoke<RequestOf<'departments.move'>, ResponseOf<'departments.move'>>('departments.move', routes['departments.move'], request, options),
+  tree: (request: RequestOf<'departments.tree'>, options?: CallOptions) => invoke<RequestOf<'departments.tree'>, ResponseOf<'departments.tree'>>('departments.tree', routes['departments.tree'], request, options),
+  update: (request: RequestOf<'departments.update'>, options?: CallOptions) => invoke<RequestOf<'departments.update'>, ResponseOf<'departments.update'>>('departments.update', routes['departments.update'], request, options),
+}
+
+/** 资源 `memberships` 的操作。 */
+export const memberships = {
+  create: (request: RequestOf<'memberships.create'>, options?: CallOptions) => invoke<RequestOf<'memberships.create'>, ResponseOf<'memberships.create'>>('memberships.create', routes['memberships.create'], request, options),
+  delete: (request: RequestOf<'memberships.delete'>, options?: CallOptions) => invoke<RequestOf<'memberships.delete'>, ResponseOf<'memberships.delete'>>('memberships.delete', routes['memberships.delete'], request, options),
+  list: (request: RequestOf<'memberships.list'>, options?: CallOptions) => invoke<RequestOf<'memberships.list'>, ResponseOf<'memberships.list'>>('memberships.list', routes['memberships.list'], request, options),
+  update: (request: RequestOf<'memberships.update'>, options?: CallOptions) => invoke<RequestOf<'memberships.update'>, ResponseOf<'memberships.update'>>('memberships.update', routes['memberships.update'], request, options),
+}
+
 /** 资源 `permissions` 的操作。 */
 export const permissions = {
   list: (request: RequestOf<'permissions.list'>, options?: CallOptions) => invoke<RequestOf<'permissions.list'>, ResponseOf<'permissions.list'>>('permissions.list', routes['permissions.list'], request, options),
+}
+
+/** 资源 `positions` 的操作。 */
+export const positions = {
+  create: (request: RequestOf<'positions.create'>, options?: CallOptions) => invoke<RequestOf<'positions.create'>, ResponseOf<'positions.create'>>('positions.create', routes['positions.create'], request, options),
+  delete: (request: RequestOf<'positions.delete'>, options?: CallOptions) => invoke<RequestOf<'positions.delete'>, ResponseOf<'positions.delete'>>('positions.delete', routes['positions.delete'], request, options),
+  get: (request: RequestOf<'positions.get'>, options?: CallOptions) => invoke<RequestOf<'positions.get'>, ResponseOf<'positions.get'>>('positions.get', routes['positions.get'], request, options),
+  list: (request: RequestOf<'positions.list'>, options?: CallOptions) => invoke<RequestOf<'positions.list'>, ResponseOf<'positions.list'>>('positions.list', routes['positions.list'], request, options),
+  update: (request: RequestOf<'positions.update'>, options?: CallOptions) => invoke<RequestOf<'positions.update'>, ResponseOf<'positions.update'>>('positions.update', routes['positions.update'], request, options),
 }
 
 /** 资源 `profile` 的操作。 */

@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: '부서',
+      description: '현재 테넌트의 부서 트리: 생성, 편집, 이동, 삭제, 구성원 관리.',
+      fields: {
+        code: '코드',
+        name: '이름',
+        parent: '상위 부서',
+        leader: '책임자',
+        status: '상태',
+        order: '순서',
+        description: '설명',
+        created_at: '생성 시각',
+        member_count: '구성원',
+        path: '경로',
+      },
+      actions: {
+        create: '부서 생성',
+        save: '저장',
+        move: '이동',
+        delete: '부서 삭제',
+        add_member: '구성원 추가',
+        remove_member: '제거',
+        set_primary: '주 소속으로',
+      },
+      sections: {
+        detail: '부서',
+        members: '구성원',
+      },
+      member_form: {
+        user: '사용자',
+        position: '직위',
+        employee_number: '사번',
+        primary: '주 소속',
+      },
+      status: {
+        active: '활성',
+        disabled: '비활성',
+      },
+      empty: '아직 부서가 없습니다.',
+      total: '부서 {total}개',
+      top_level: '(최상위)',
+      no_members: '아직 구성원이 없습니다.',
+      saved: '부서를 저장했습니다.',
+      moved: '부서를 이동했습니다.',
+      member_added: '구성원을 추가했습니다.',
+      primary_badge: '주',
+    },
+    positions: {
+      title: '직위',
+      description: '현재 테넌트의 직위이며 부서 구성원이 참조합니다.',
+      fields: {
+        code: '코드',
+        name: '이름',
+        status: '상태',
+        order: '순서',
+        description: '설명',
+        created_at: '생성 시각',
+      },
+      actions: {
+        create: '직위 생성',
+        save: '저장',
+        delete: '직위 삭제',
+      },
+      status: {
+        active: '활성',
+        disabled: '비활성',
+      },
+      empty: '아직 직위가 없습니다.',
+      total: '직위 {total}개',
+      saved: '직위를 저장했습니다.',
+    },
+  },
+}

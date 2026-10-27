@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: 'Departamentos',
+      description: 'Árvore de departamentos do locatário atual: criar, editar, mover, excluir e gerenciar membros.',
+      fields: {
+        code: 'Código',
+        name: 'Nome',
+        parent: 'Superior',
+        leader: 'Responsável',
+        status: 'Status',
+        order: 'Ordem',
+        description: 'Descrição',
+        created_at: 'Criado em',
+        member_count: 'Membros',
+        path: 'Caminho',
+      },
+      actions: {
+        create: 'Criar departamento',
+        save: 'Salvar',
+        move: 'Mover',
+        delete: 'Excluir departamento',
+        add_member: 'Adicionar membro',
+        remove_member: 'Remover',
+        set_primary: 'Definir principal',
+      },
+      sections: {
+        detail: 'Departamento',
+        members: 'Membros',
+      },
+      member_form: {
+        user: 'Usuário',
+        position: 'Cargo',
+        employee_number: 'Matrícula',
+        primary: 'Departamento principal',
+      },
+      status: {
+        active: 'Ativo',
+        disabled: 'Desabilitado',
+      },
+      empty: 'Ainda não há departamentos.',
+      total: '{total} departamentos',
+      top_level: '(nível superior)',
+      no_members: 'Ainda não há membros.',
+      saved: 'Departamento salvo.',
+      moved: 'Departamento movido.',
+      member_added: 'Membro adicionado.',
+      primary_badge: 'Principal',
+    },
+    positions: {
+      title: 'Cargos',
+      description: 'Cargos do locatário atual, referenciados pelos membros dos departamentos.',
+      fields: {
+        code: 'Código',
+        name: 'Nome',
+        status: 'Status',
+        order: 'Ordem',
+        description: 'Descrição',
+        created_at: 'Criado em',
+      },
+      actions: {
+        create: 'Criar cargo',
+        save: 'Salvar',
+        delete: 'Excluir cargo',
+      },
+      status: {
+        active: 'Ativo',
+        disabled: 'Desabilitado',
+      },
+      empty: 'Ainda não há cargos.',
+      total: '{total} cargos',
+      saved: 'Cargo salvo.',
+    },
+  },
+}

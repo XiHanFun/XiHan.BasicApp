@@ -86,6 +86,128 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/departments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a department anywhere in the tree (code unique within the tenant; parent must exist; leader must be a user of this tenant). Tenant side only; requires organization.departments.create. */
+        post: operations["departments.create"];
+        /** Delete departments in batch; departments that still have children or members are rejected item by item. Requires organization.departments.delete. */
+        delete: operations["departments.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/departments/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a department with its ancestors, leader user name, child count and member count. Requires organization.departments.read. */
+        get: operations["departments.get"];
+        /** Update a department's name, leader, order, description and status (the parent is changed with departments.move). Requires organization.departments.update. */
+        put: operations["departments.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/departments/{id}:move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move a department under another parent or to the top level; moving under itself or a descendant is rejected. Requires organization.departments.update. */
+        post: operations["departments.move"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/departments:tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** The whole department tree of the current tenant with direct member counts. Requires organization.departments.read. */
+        post: operations["departments.tree"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/memberships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a user of this tenant to a department, optionally with a position; the first membership of a user becomes the primary one. Requires organization.memberships.create. */
+        post: operations["memberships.create"];
+        /** Remove users from departments in batch; when a primary membership is removed the next one becomes primary. Requires organization.memberships.delete. */
+        delete: operations["memberships.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/memberships/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update a membership's position, primary flag, employee number, grade, hire date and order. Requires organization.memberships.update. */
+        put: operations["memberships.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/memberships:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List memberships filtered by department, user, position or primary flag, with user, department and position names. Requires organization.memberships.read. */
+        post: operations["memberships.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/permissions": {
         parameters: {
             query?: never;
@@ -97,6 +219,59 @@ export interface paths {
         get: operations["permissions.list"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/positions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a position (code unique within the tenant). Requires organization.positions.create. */
+        post: operations["positions.create"];
+        /** Delete positions in batch; positions still referenced by memberships are rejected item by item. Requires organization.positions.delete. */
+        delete: operations["positions.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/positions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a position. Requires organization.positions.read. */
+        get: operations["positions.get"];
+        /** Update a position's name, order, description and status. Requires organization.positions.update. */
+        put: operations["positions.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/positions:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List positions with paging, keyword, filters and sorting. Requires organization.positions.read. */
+        post: operations["positions.list"];
         delete?: never;
         options?: never;
         head?: never;
@@ -490,6 +665,51 @@ export interface components {
             id: string;
             code: string;
         };
+        DepartmentNode: {
+            department: components["schemas"]["DepartmentResponse"];
+            /** Format: int64 */
+            memberCount: number;
+            children: components["schemas"]["DepartmentNode"][];
+        };
+        DepartmentResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            /** Format: uuid */
+            parentId?: string | null;
+            /** Format: uuid */
+            leaderUserId?: string | null;
+            status: components["schemas"]["OrganizationStatus"];
+            /** Format: int32 */
+            order: number;
+            description?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        MembershipResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId: string;
+            userName: string;
+            displayName: string;
+            /** Format: uuid */
+            departmentId: string;
+            departmentName: string;
+            /** Format: uuid */
+            positionId?: string | null;
+            positionName?: string | null;
+            isPrimary: boolean;
+            employeeNumber?: string | null;
+            jobGrade?: string | null;
+            /** Format: date-time */
+            hiredAt?: string | null;
+            /** Format: int32 */
+            order: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
         MenuNode: {
             code: string;
             route: string;
@@ -501,6 +721,8 @@ export interface components {
             permission?: string | null;
             children: components["schemas"]["MenuNode"][];
         };
+        /** @enum {string} */
+        OrganizationStatus: "Active" | "Disabled";
         PageFilter: {
             field: string;
             operator: string;
@@ -532,6 +754,18 @@ export interface components {
         };
         /** @enum {string} */
         PermissionScope: "Platform" | "Tenant" | "Both";
+        PositionResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            status: components["schemas"]["OrganizationStatus"];
+            /** Format: int32 */
+            order: number;
+            description?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
         RoleMemberResponse: {
             /** Format: uuid */
             userId: string;
@@ -820,6 +1054,504 @@ export interface operations {
             };
         };
     };
+    "departments.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    /** Format: uuid */
+                    parentId?: string | null;
+                    /** Format: uuid */
+                    leaderUserId?: string | null;
+                    /** Format: int32 */
+                    order?: number;
+                    description?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        /** Format: uuid */
+                        leaderUserId?: string | null;
+                        status: components["schemas"]["OrganizationStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "departments.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "departments.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        department: components["schemas"]["DepartmentResponse"];
+                        ancestors: components["schemas"]["DepartmentResponse"][];
+                        leaderUserName?: string | null;
+                        /** Format: int64 */
+                        childCount: number;
+                        /** Format: int64 */
+                        memberCount: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "departments.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    /** Format: uuid */
+                    leaderUserId?: string | null;
+                    /** Format: int32 */
+                    order?: number;
+                    description?: string | null;
+                    status?: components["schemas"]["OrganizationStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        /** Format: uuid */
+                        leaderUserId?: string | null;
+                        status: components["schemas"]["OrganizationStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "departments.move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    parentId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        /** Format: uuid */
+                        leaderUserId?: string | null;
+                        status: components["schemas"]["OrganizationStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "departments.tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DepartmentNode"][];
+                        /** Format: int64 */
+                        total: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "memberships.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    userId: string;
+                    /** Format: uuid */
+                    departmentId: string;
+                    /** Format: uuid */
+                    positionId?: string | null;
+                    isPrimary?: boolean;
+                    employeeNumber?: string | null;
+                    jobGrade?: string | null;
+                    /** Format: date-time */
+                    hiredAt?: string | null;
+                    /** Format: int32 */
+                    order?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        userId: string;
+                        userName: string;
+                        displayName: string;
+                        /** Format: uuid */
+                        departmentId: string;
+                        departmentName: string;
+                        /** Format: uuid */
+                        positionId?: string | null;
+                        positionName?: string | null;
+                        isPrimary: boolean;
+                        employeeNumber?: string | null;
+                        jobGrade?: string | null;
+                        /** Format: date-time */
+                        hiredAt?: string | null;
+                        /** Format: int32 */
+                        order: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "memberships.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "memberships.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    positionId?: string | null;
+                    isPrimary?: boolean;
+                    employeeNumber?: string | null;
+                    jobGrade?: string | null;
+                    /** Format: date-time */
+                    hiredAt?: string | null;
+                    /** Format: int32 */
+                    order?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        userId: string;
+                        userName: string;
+                        displayName: string;
+                        /** Format: uuid */
+                        departmentId: string;
+                        departmentName: string;
+                        /** Format: uuid */
+                        positionId?: string | null;
+                        positionName?: string | null;
+                        isPrimary: boolean;
+                        employeeNumber?: string | null;
+                        jobGrade?: string | null;
+                        /** Format: date-time */
+                        hiredAt?: string | null;
+                        /** Format: int32 */
+                        order: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "memberships.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MembershipResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "permissions.list": {
         parameters: {
             query?: never;
@@ -837,6 +1569,229 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["PermissionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "positions.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    /** Format: int32 */
+                    order?: number;
+                    description?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        status: components["schemas"]["OrganizationStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "positions.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "positions.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        status: components["schemas"]["OrganizationStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "positions.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    /** Format: int32 */
+                    order?: number;
+                    description?: string | null;
+                    status?: components["schemas"]["OrganizationStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        name: string;
+                        status: components["schemas"]["OrganizationStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "positions.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PositionResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };

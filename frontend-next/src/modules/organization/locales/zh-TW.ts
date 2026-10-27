@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: '部門',
+      description: '目前租戶的部門樹：建立、編輯、移動、刪除與成員維護。',
+      fields: {
+        code: '編碼',
+        name: '名稱',
+        parent: '上級',
+        leader: '負責人',
+        status: '狀態',
+        order: '排序',
+        description: '說明',
+        created_at: '建立時間',
+        member_count: '成員',
+        path: '路徑',
+      },
+      actions: {
+        create: '建立部門',
+        save: '儲存',
+        move: '移動',
+        delete: '刪除部門',
+        add_member: '新增成員',
+        remove_member: '移出',
+        set_primary: '設為主部門',
+      },
+      sections: {
+        detail: '部門',
+        members: '成員',
+      },
+      member_form: {
+        user: '使用者',
+        position: '崗位',
+        employee_number: '工號',
+        primary: '主部門',
+      },
+      status: {
+        active: '啟用',
+        disabled: '停用',
+      },
+      empty: '還沒有部門。',
+      total: '共 {total} 個部門',
+      top_level: '（頂層）',
+      no_members: '還沒有成員。',
+      saved: '部門已儲存。',
+      moved: '部門已移動。',
+      member_added: '成員已新增。',
+      primary_badge: '主',
+    },
+    positions: {
+      title: '崗位',
+      description: '目前租戶的崗位，供部門成員引用。',
+      fields: {
+        code: '編碼',
+        name: '名稱',
+        status: '狀態',
+        order: '排序',
+        description: '說明',
+        created_at: '建立時間',
+      },
+      actions: {
+        create: '建立崗位',
+        save: '儲存',
+        delete: '刪除崗位',
+      },
+      status: {
+        active: '啟用',
+        disabled: '停用',
+      },
+      empty: '還沒有崗位。',
+      total: '共 {total} 個崗位',
+      saved: '崗位已儲存。',
+    },
+  },
+}
