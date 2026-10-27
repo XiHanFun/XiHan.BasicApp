@@ -1,0 +1,18 @@
+<Project>
+  <!--
+    把工程里声明的框架引用项翻译成真正的引用：
+      <XiHanFrameworkReference Include="XiHan.Framework.Domain" />          运行时引用
+      <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" /> 源生成器 / 分析器，不进入运行时依赖
+    源码模式下是 ProjectReference，包模式下是 PackageReference；工程文件本身不写路径与版本。
+  -->
+  <ItemGroup Condition="'$(UseXiHanFrameworkSource)' == 'true'">
+    <ProjectReference Include="@(XiHanFrameworkReference->'$(XiHanFrameworkSrc)%(Identity)/%(Identity).csproj')" />
+    <ProjectReference Include="@(XiHanFrameworkAnalyzer->'$(XiHanFrameworkSrc)%(Identity)/%(Identity).csproj')" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseXiHanFrameworkSource)' != 'true'">
+    <PackageVersion Include="@(XiHanFrameworkReference);@(XiHanFrameworkAnalyzer)" Version="$(XiHanFrameworkPackageVersion)" />
+    <PackageReference Include="@(XiHanFrameworkReference)" />
+    <PackageReference Include="@(XiHanFrameworkAnalyzer)" PrivateAssets="all" />
+  </ItemGroup>
+</Project>

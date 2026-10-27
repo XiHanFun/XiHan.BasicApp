@@ -1,0 +1,65 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{json,props,targets,csproj,slnx,yml,yaml,md}]
+indent_style = space
+indent_size = 2
+
+[*.cs]
+indent_style = space
+indent_size = 4
+tab_width = 4
+
+# 命名：规则本身的 severity 只对 IDE 生效，构建期（EnforceCodeStyleInBuild）按下面的诊断 severity 报告
+dotnet_diagnostic.IDE1006.severity = warning
+# 未使用的 using
+dotnet_diagnostic.IDE0005.severity = warning
+
+# 私有常量 PascalCase（先于下面的静态字段规则匹配，const 也带 static 修饰）
+dotnet_naming_rule.private_constants_should_be_pascal_case.severity = warning
+dotnet_naming_rule.private_constants_should_be_pascal_case.symbols = private_constants
+dotnet_naming_rule.private_constants_should_be_pascal_case.style = pascal_case
+dotnet_naming_symbols.private_constants.applicable_kinds = field
+dotnet_naming_symbols.private_constants.applicable_accessibilities = private
+dotnet_naming_symbols.private_constants.required_modifiers = const
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+dotnet_naming_rule.private_fields_should_have_underscore.severity = warning
+dotnet_naming_rule.private_fields_should_have_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_should_have_underscore.style = underscore_prefix
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.underscore_prefix.required_prefix = _
+dotnet_naming_style.underscore_prefix.capitalization = camel_case
+
+dotnet_naming_rule.private_static_field_should_be_underscore_camelcase.severity = warning
+dotnet_naming_rule.private_static_field_should_be_underscore_camelcase.symbols = private_static_field
+dotnet_naming_rule.private_static_field_should_be_underscore_camelcase.style = underscore_prefix
+dotnet_naming_symbols.private_static_field.applicable_kinds = field
+dotnet_naming_symbols.private_static_field.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_field.required_modifiers = static
+
+# 修饰符
+dotnet_style_require_accessibility_modifiers = for_non_interface_members
+
+# 表达式体
+csharp_style_expression_bodied_methods = false
+csharp_style_expression_bodied_operators = false
+csharp_style_expression_bodied_constructors = false
+
+# var
+csharp_style_var_when_type_is_apparent = true:suggestion
+csharp_style_var_for_built_in_types = true:suggestion
+csharp_style_var_elsewhere = true:suggestion
+
+# Null 检查
+csharp_style_conditional_delegate_call = true
+
+# 代码块
+csharp_prefer_braces = true
+csharp_style_namespace_declarations = file_scoped
