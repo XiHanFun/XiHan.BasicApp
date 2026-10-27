@@ -263,6 +263,26 @@ export default {
     },
   },
   page: {
+    control_center: {
+      title: 'Centro de control',
+      welcome: 'Bienvenido de nuevo, {name}',
+      subtitle: 'Elige un inquilino para entrar o ve a la administración de la plataforma',
+      my_tenants: 'Inquilinos',
+      current: 'Actual',
+      home_tenant: 'Origen',
+      refresh: 'Actualizar',
+      no_tenants: 'No hay inquilinos disponibles',
+      no_tenants_hint: 'Pide a un administrador que te añada a un inquilino',
+      platform_panel: 'Administración de la plataforma',
+      platform_desc: 'Gestiona inquilinos, usuarios, menús, permisos y ajustes del sistema',
+      load_failed: 'No se pudo cargar la lista de inquilinos',
+      switch_failed: 'No se pudo cambiar',
+      platform_group: 'Plataforma',
+      member_type: {
+        owner: 'Propietario',
+        member: 'Miembro',
+      },
+    },
     auth: {
       slogan_title: 'Núcleo de administración de nivel empresarial',
       slogan_desc: 'Ecosistema completo · Ingeniería · Inteligencia · Internacionalización',

@@ -263,6 +263,26 @@ export default {
     },
   },
   page: {
+    control_center: {
+      title: 'Control Center',
+      welcome: 'Welcome back, {name}',
+      subtitle: 'Pick a tenant to enter, or go to platform administration',
+      my_tenants: 'Tenants',
+      current: 'Current',
+      home_tenant: 'Home',
+      refresh: 'Refresh',
+      no_tenants: 'No tenants available',
+      no_tenants_hint: 'Ask an administrator to add you to a tenant',
+      platform_panel: 'Platform Administration',
+      platform_desc: 'Manage tenants, users, menus, permissions and system settings',
+      load_failed: 'Failed to load tenant list',
+      switch_failed: 'Switch failed',
+      platform_group: 'Platform',
+      member_type: {
+        owner: 'Owner',
+        member: 'Member',
+      },
+    },
     auth: {
       slogan_title: 'Enterprise-Grade Admin Platform Core',
       slogan_desc: 'Full-Ecosystem · Engineered · Intelligent · Internationalized',

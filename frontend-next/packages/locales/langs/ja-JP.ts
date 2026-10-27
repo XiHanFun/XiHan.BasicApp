@@ -263,6 +263,26 @@ export default {
     },
   },
   page: {
+    control_center: {
+      title: 'コントロールセンター',
+      welcome: 'おかえりなさい、{name} さん',
+      subtitle: 'テナントを選んで入るか、プラットフォーム管理へ移動します',
+      my_tenants: 'テナント',
+      current: '現在',
+      home_tenant: '所属',
+      refresh: '更新',
+      no_tenants: '利用できるテナントがありません',
+      no_tenants_hint: '管理者にテナントへの追加を依頼してください',
+      platform_panel: 'プラットフォーム管理',
+      platform_desc: 'テナント・ユーザー・メニュー・権限・システム設定を管理します',
+      load_failed: 'テナント一覧の読み込みに失敗しました',
+      switch_failed: '切り替えに失敗しました',
+      platform_group: 'プラットフォーム',
+      member_type: {
+        owner: 'オーナー',
+        member: 'メンバー',
+      },
+    },
     auth: {
       slogan_title: 'エンタープライズ向け汎用管理基盤',
       slogan_desc: 'エコシステム・エンジニアリング・インテリジェント・国際化',

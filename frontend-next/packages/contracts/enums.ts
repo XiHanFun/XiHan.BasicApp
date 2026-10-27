@@ -14,6 +14,9 @@ export type PermissionScope = (typeof PermissionScope)[number]
 export const RoleStatus = ['Active', 'Disabled'] as const
 export type RoleStatus = (typeof RoleStatus)[number]
 
+export const TenantMemberType = ['Member', 'Owner'] as const
+export type TenantMemberType = (typeof TenantMemberType)[number]
+
 export const TenantStatus = ['Active', 'Suspended'] as const
 export type TenantStatus = (typeof TenantStatus)[number]
 
@@ -26,6 +29,7 @@ export const enums = {
   OrganizationStatus,
   PermissionScope,
   RoleStatus,
+  TenantMemberType,
   TenantStatus,
   UserStatus,
 } as const

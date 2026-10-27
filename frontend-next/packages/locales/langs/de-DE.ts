@@ -263,6 +263,26 @@ export default {
     },
   },
   page: {
+    control_center: {
+      title: 'Kontrollzentrum',
+      welcome: 'Willkommen zurück, {name}',
+      subtitle: 'Wählen Sie einen Mandanten aus oder wechseln Sie zur Plattformverwaltung',
+      my_tenants: 'Mandanten',
+      current: 'Aktuell',
+      home_tenant: 'Heimatmandant',
+      refresh: 'Aktualisieren',
+      no_tenants: 'Keine Mandanten verfügbar',
+      no_tenants_hint: 'Bitten Sie einen Administrator, Sie einem Mandanten hinzuzufügen',
+      platform_panel: 'Plattformverwaltung',
+      platform_desc: 'Mandanten, Benutzer, Menüs, Berechtigungen und Systemeinstellungen verwalten',
+      load_failed: 'Mandantenliste konnte nicht geladen werden',
+      switch_failed: 'Wechsel fehlgeschlagen',
+      platform_group: 'Plattform',
+      member_type: {
+        owner: 'Eigentümer',
+        member: 'Mitglied',
+      },
+    },
     auth: {
       slogan_title: 'Enterprise-Kern für Verwaltungsplattformen',
       slogan_desc: 'Vollständiges Ökosystem · Engineering · Intelligent · International',

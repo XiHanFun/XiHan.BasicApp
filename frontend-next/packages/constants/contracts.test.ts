@@ -1,13 +1,13 @@
 /**
  * packages/constants 跨模块契约测试（http / route / layout-events / user-setting /
- * notification / tenant / index 汇总）。
+ * notification / index 汇总）。
  *
  * 职责边界：这些常量都是与后端或与 shell 其它层的**约定**——状态码与后端一致、
  * 场景枚举与后端 UserSettingScene 一致、静态选项覆盖枚举的全部成员、
  * 事件名不与其它自定义事件撞名、汇总入口不丢导出。逐条锁定，改一处即失败。
  */
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { NotificationType, TenantMemberType } from '~/types/enums'
+import { NotificationType } from '~/types/enums'
 import { BIZ_CODE, HTTP_STATUS } from './http'
 import * as barrel from './index'
 import {
@@ -29,7 +29,6 @@ import {
   QRCODE_LOGIN_PATH,
   SERVER_ERROR_PATH,
 } from './route'
-import { MEMBER_TYPE_OPTIONS } from './tenant'
 import {
   FAVORITES_SETTING_KEY,
   PREFERENCE_SETTING_KEY,
@@ -236,30 +235,9 @@ describe('静态选项与后端枚举对齐', () => {
     expect(new Set(labels).size).toBe(labels.length)
   })
 
-  it('租户成员类型选项覆盖 TenantMemberType 的全部成员，不多不少', () => {
-    expect(MEMBER_TYPE_OPTIONS.map(option => option.value)).toEqual(
-      Object.values(TenantMemberType),
-    )
-  })
-
-  it('租户成员类型选项的兜底中文标签非空且互不重复', () => {
-    const labels = MEMBER_TYPE_OPTIONS.map(option => option.label)
-    expect(labels.filter(label => label.trim() === '')).toEqual([])
-    expect(new Set(labels).size).toBe(labels.length)
-  })
-
-  it('两组选项的 value 都是后端序列化用的字符串枚举值，不是数字下标', () => {
-    const values = [
-      ...NOTIFICATION_TYPE_OPTIONS.map(option => option.value),
-      ...MEMBER_TYPE_OPTIONS.map(option => option.value),
-    ]
+  it('通知类型选项的 value 都是后端序列化用的字符串枚举值，不是数字下标', () => {
+    const values = NOTIFICATION_TYPE_OPTIONS.map(option => option.value)
     expect(values.filter(value => typeof value !== 'string')).toEqual([])
-  })
-
-  it('平台管理员是租户成员类型中的一员，配额统计需要能识别它', () => {
-    expect(MEMBER_TYPE_OPTIONS.map(option => option.value)).toContain(
-      TenantMemberType.PlatformAdmin,
-    )
   })
 })
 

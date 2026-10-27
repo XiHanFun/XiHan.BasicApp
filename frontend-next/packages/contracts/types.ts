@@ -86,6 +86,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth:switch-tenant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Switch the current session to another tenant (home tenant or a tenant the user is a member of) or back to the platform (platform accounts only); returns new tokens. */
+        post: operations["auth.switch-tenant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments": {
         parameters: {
             query?: never;
@@ -150,6 +167,57 @@ export interface paths {
         put?: never;
         /** The whole department tree of the current tenant with direct member counts. Requires organization.departments.read. */
         post: operations["departments.tree"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/impersonation:candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List up to 20 active users that can be impersonated in a tenant (or the platform), matched by keyword. Requires identity.impersonation.start. */
+        post: operations["impersonation.candidates"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/impersonation:start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sign in as another user: opens a separate session for the target and returns tokens carrying the actor claim. Tenant subjects stay in their own tenant. Requires identity.impersonation.start. */
+        post: operations["impersonation.start"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/impersonation:stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End impersonation: revokes the impersonation session and returns tokens for the actor's original session. */
+        post: operations["impersonation.stop"];
         delete?: never;
         options?: never;
         head?: never;
@@ -450,6 +518,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/tenant-members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["tenant-members.list"];
+        put?: never;
+        post: operations["tenant-members.create"];
+        delete: operations["tenant-members.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/tenants": {
         parameters: {
             query?: never;
@@ -514,6 +598,23 @@ export interface paths {
         put?: never;
         /** List tenants with paging, filters, keyword and sorting. Requires tenancy.tenants.read. */
         post: operations["tenants.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants:mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Tenants the current user can enter (home tenant and memberships, active only) and whether the platform is available; the control center switches with auth.switch-tenant. */
+        post: operations["tenants.mine"];
         delete?: never;
         options?: never;
         head?: never;
@@ -677,6 +778,13 @@ export interface components {
                 [key: string]: string | number | boolean | null;
             };
         };
+        AvailableTenantResponse: {
+            tenantId: string;
+            name: string;
+            isHome: boolean;
+            memberType?: components["schemas"]["TenantMemberType"] | null;
+            isCurrent: boolean;
+        };
         BatchFailure: {
             /** Format: uuid */
             id: string;
@@ -710,6 +818,13 @@ export interface components {
             description?: string | null;
             /** Format: date-time */
             createdAt: string;
+        };
+        ImpersonationCandidateResponse: {
+            /** Format: uuid */
+            id: string;
+            userName: string;
+            displayName: string;
+            homeTenantId: string;
         };
         MembershipResponse: {
             /** Format: uuid */
@@ -822,6 +937,21 @@ export interface components {
             code: string;
             name: string;
         };
+        TenantMemberResponse: {
+            /** Format: uuid */
+            id: string;
+            tenantId: string;
+            /** Format: uuid */
+            userId: string;
+            userName: string;
+            displayName: string;
+            homeTenantId: string;
+            memberType: components["schemas"]["TenantMemberType"];
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {string} */
+        TenantMemberType: "Member" | "Owner";
         TenantResponse: {
             /** Format: uuid */
             id: string;
@@ -901,6 +1031,8 @@ export interface operations {
                         tenantId?: string | null;
                         mustChangePassword: boolean;
                         user: components["schemas"]["UserResponse"];
+                        tenantName?: string | null;
+                        impersonatorUserName?: string | null;
                     };
                 };
             };
@@ -979,6 +1111,8 @@ export interface operations {
                         sessionId?: string | null;
                         roles: string[];
                         mustChangePassword: boolean;
+                        tenantName?: string | null;
+                        impersonatorUserName?: string | null;
                     };
                 };
             };
@@ -1065,6 +1199,57 @@ export interface operations {
                         tenantId?: string | null;
                         mustChangePassword: boolean;
                         user: components["schemas"]["UserResponse"];
+                        tenantName?: string | null;
+                        impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.switch-tenant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    tenantId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        accessToken: string;
+                        /** Format: date-time */
+                        accessExpiresAt: string;
+                        refreshToken: string;
+                        /** Format: date-time */
+                        refreshExpiresAt: string;
+                        /** Format: uuid */
+                        sessionId: string;
+                        tenantId?: string | null;
+                        mustChangePassword: boolean;
+                        user: components["schemas"]["UserResponse"];
+                        tenantName?: string | null;
+                        impersonatorUserName?: string | null;
                     };
                 };
             };
@@ -1348,6 +1533,143 @@ export interface operations {
                         items: components["schemas"]["DepartmentNode"][];
                         /** Format: int64 */
                         total: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "impersonation.candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    tenantId?: string | null;
+                    keyword?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ImpersonationCandidateResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "impersonation.start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    targetUserId: string;
+                    tenantId?: string | null;
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        accessToken: string;
+                        /** Format: date-time */
+                        accessExpiresAt: string;
+                        refreshToken: string;
+                        /** Format: date-time */
+                        refreshExpiresAt: string;
+                        /** Format: uuid */
+                        sessionId: string;
+                        tenantId?: string | null;
+                        mustChangePassword: boolean;
+                        user: components["schemas"]["UserResponse"];
+                        tenantName?: string | null;
+                        impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "impersonation.stop": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        accessToken: string;
+                        /** Format: date-time */
+                        accessExpiresAt: string;
+                        refreshToken: string;
+                        /** Format: date-time */
+                        refreshExpiresAt: string;
+                        /** Format: uuid */
+                        sessionId: string;
+                        tenantId?: string | null;
+                        mustChangePassword: boolean;
+                        user: components["schemas"]["UserResponse"];
+                        tenantName?: string | null;
+                        impersonatorUserName?: string | null;
                     };
                 };
             };
@@ -2348,6 +2670,123 @@ export interface operations {
             };
         };
     };
+    "tenant-members.list": {
+        parameters: {
+            query: {
+                tenantId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TenantMemberResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tenant-members.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    tenantId: string;
+                    /** Format: uuid */
+                    userId: string;
+                    memberType?: components["schemas"]["TenantMemberType"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        tenantId: string;
+                        /** Format: uuid */
+                        userId: string;
+                        userName: string;
+                        displayName: string;
+                        homeTenantId: string;
+                        memberType: components["schemas"]["TenantMemberType"];
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tenant-members.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "tenants.create": {
         parameters: {
             query?: never;
@@ -2618,6 +3057,43 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tenants.mine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        canAccessPlatform: boolean;
+                        platformIsCurrent: boolean;
+                        tenants: components["schemas"]["AvailableTenantResponse"][];
                     };
                 };
             };

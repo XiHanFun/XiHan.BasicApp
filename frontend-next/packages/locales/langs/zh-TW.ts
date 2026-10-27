@@ -263,6 +263,26 @@ export default {
     },
   },
   page: {
+    control_center: {
+      title: '主控台',
+      welcome: '歡迎回來，{name}',
+      subtitle: '選擇一個租戶進入，或前往平台管理',
+      my_tenants: '租戶',
+      current: '目前',
+      home_tenant: '註冊地',
+      refresh: '重新整理',
+      no_tenants: '暫無可進入的租戶',
+      no_tenants_hint: '請聯絡管理員將您加入租戶',
+      platform_panel: '平台管理',
+      platform_desc: '管理租戶、使用者、選單、權限與系統設定',
+      load_failed: '載入租戶清單失敗',
+      switch_failed: '切換失敗',
+      platform_group: '平台',
+      member_type: {
+        owner: '擁有者',
+        member: '成員',
+      },
+    },
     auth: {
       slogan_title: '企業級通用中後台核心',
       slogan_desc: '全生態、工程化、智慧化、國際化',

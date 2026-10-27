@@ -263,6 +263,26 @@ export default {
     },
   },
   page: {
+    control_center: {
+      title: 'Central de controle',
+      welcome: 'Bem-vindo de volta, {name}',
+      subtitle: 'Escolha um locatário para entrar ou vá para a administração da plataforma',
+      my_tenants: 'Locatários',
+      current: 'Atual',
+      home_tenant: 'Origem',
+      refresh: 'Atualizar',
+      no_tenants: 'Nenhum locatário disponível',
+      no_tenants_hint: 'Peça a um administrador para adicioná-lo a um locatário',
+      platform_panel: 'Administração da plataforma',
+      platform_desc: 'Gerencie locatários, usuários, menus, permissões e configurações do sistema',
+      load_failed: 'Falha ao carregar a lista de locatários',
+      switch_failed: 'Falha ao trocar',
+      platform_group: 'Plataforma',
+      member_type: {
+        owner: 'Proprietário',
+        member: 'Membro',
+      },
+    },
     auth: {
       slogan_title: 'Núcleo de administração de nível corporativo',
       slogan_desc: 'Ecossistema completo · Engenharia · Inteligência · Internacionalização',

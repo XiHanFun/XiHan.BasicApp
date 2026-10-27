@@ -1,7 +1,13 @@
+import type { AppContextApis } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { configureRequest } from '~/request'
+import { registerAppContext } from './app-context'
 import { useAuthStore } from './auth'
+import { relaunchApp } from './relaunch'
+
+// 切换上下文 / 身份后整页重建：测试里只核对它被调用
+vi.mock('./relaunch', () => ({ relaunchApp: vi.fn() }))
 
 const user = { id: 'u-1', userName: 'alice', displayName: 'Alice', email: null, phoneNumber: null, homeTenantId: 'acme', status: 'Active', lastLoginAt: null, createdAt: '2026-10-28T00:00:00Z', createdBy: null }
 
@@ -17,6 +23,7 @@ describe('auth store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorage.clear()
+    vi.mocked(relaunchApp).mockClear()
   })
 
   it('logs in anonymously, persists the session and signs out', async () => {
@@ -78,5 +85,52 @@ describe('auth store', () => {
   it('ignores a malformed stored session', () => {
     localStorage.setItem('xihan.next.session', '{"accessToken":1}')
     expect(useAuthStore().isAuthenticated).toBe(false)
+  })
+
+  it('switchTenant stores the continued session (new tenant, same sid) and relaunches the app', async () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
+    const switchTenant = vi.fn(async () => ({ ...session('a-2', 'r-2'), tenantId: 'globex', tenantName: 'Globex' }))
+    registerAppContext({ apis: { tenantApi: { switchTenant, myAvailableTenants: vi.fn() } } as unknown as AppContextApis })
+    const store = useAuthStore()
+
+    await store.switchTenant('globex')
+    expect(switchTenant).toHaveBeenCalledWith({ tenantId: 'globex' })
+    expect(store.tenantId).toBe('globex')
+    expect(store.session?.sessionId).toBe('s-1')
+    expect(JSON.parse(localStorage.getItem('xihan.next.session')!)).toMatchObject({ accessToken: 'a-2', refreshToken: 'r-2', tenantId: 'globex' })
+    expect(relaunchApp).toHaveBeenCalledOnce()
+
+    await store.switchTenant(null)
+    expect(switchTenant).toHaveBeenLastCalledWith({ tenantId: null })
+  })
+
+  it('startImpersonation stores the target session and relaunches; the loading flag stays up until the reload', async () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
+    const start = vi.fn(async () => ({ ...session('a-9', 'r-9'), sessionId: 's-9', tenantId: 'acme', impersonatorUserName: 'alice', user: { ...user, id: 'u-2', userName: 'bob' } }))
+    registerAppContext({ apis: { impersonationApi: { start, stop: vi.fn(), tenants: vi.fn(), candidates: vi.fn() } } as unknown as AppContextApis })
+    const store = useAuthStore()
+
+    await store.startImpersonation({ targetUserId: 'u-2', tenantId: 'acme', reason: 'ticket 42' })
+    expect(start).toHaveBeenCalledWith({ targetUserId: 'u-2', tenantId: 'acme', reason: 'ticket 42' })
+    expect(store.session).toMatchObject({ sessionId: 's-9', impersonatorUserName: 'alice', user: { userName: 'bob' } })
+    expect(relaunchApp).toHaveBeenCalledOnce()
+    expect(store.impersonationLoading).toBe(true)
+    // 重建前的重复点击不再发请求
+    await store.startImpersonation({ targetUserId: 'u-3' })
+    expect(start).toHaveBeenCalledOnce()
+  })
+
+  it('stopImpersonation failure releases the loading flag, keeps the session and rethrows', async () => {
+    localStorage.setItem('xihan.next.session', JSON.stringify(session('a-1', 'r-1')))
+    const stop = vi.fn(async () => {
+      throw new Error('IDENTITY_VALIDATION_006')
+    })
+    registerAppContext({ apis: { impersonationApi: { start: vi.fn(), stop, tenants: vi.fn(), candidates: vi.fn() } } as unknown as AppContextApis })
+    const store = useAuthStore()
+
+    await expect(store.stopImpersonation()).rejects.toThrow('IDENTITY_VALIDATION_006')
+    expect(store.impersonationLoading).toBe(false)
+    expect(store.accessToken).toBe('a-1')
+    expect(relaunchApp).not.toHaveBeenCalled()
   })
 })

@@ -12,24 +12,15 @@ import type {
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
 import type { ChangePasswordParams } from './profile'
 /**
- * 租户切换器条目：控制中心 / 个人中心「我的租户」只读这些字段。
- *
- * 刻意是 src 侧 `TenantSwitcherDto` 的**窄投影**而非全量下沉——后者会连坐把
- * TenantStatus / TenantConfigStatus / TenantMemberInviteStatus 三个纯业务枚举拖进契约层。
- * src 的 DTO 字段更多，结构上可直接赋值给它。
+ * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片。
+ * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户。
  */
 export interface AppTenantSwitcherItem {
-  membershipId: string
   tenantId: string
-  tenantCode: string
   tenantName: string
-  tenantShortName?: null | string
-  logo?: null | string
-  domain?: null | string
-  memberType: TenantMemberType
+  isHome: boolean
+  memberType: null | TenantMemberType
   isCurrent: boolean
-  joinedTime: string
-  membershipExpirationTime?: null | string
 }
 
 /**
