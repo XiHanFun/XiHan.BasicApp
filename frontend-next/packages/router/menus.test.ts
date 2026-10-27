@@ -10,7 +10,8 @@ describe('menu routes', () => {
     const records = menuRoutes([{ ...users, children: [roles] }])
     expect(records.map(r => r.name)).toEqual(['identity.users', 'access.roles'])
     expect(records[0]?.path).toBe('/identity/users')
-    expect(records[0]?.meta).toEqual({ permission: 'identity.users.read', titleKey: 'identity.users.title' })
+    // 壳层（标签栏、面包屑、全局搜索）读 meta.title / icon
+    expect(records[0]?.meta).toEqual({ permission: 'identity.users.read', titleKey: 'identity.users.title', title: 'identity.users.title', icon: 'lucide:users' })
     expect(typeof records[1]?.component).toBe('function')
   })
 

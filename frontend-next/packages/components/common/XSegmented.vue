@@ -1,0 +1,55 @@
+<script lang="ts" setup generic="V extends string">
+import { XhRadioGroupRoot } from '@xihan-ui/vue'
+import { computed } from 'vue'
+import { useControlAttrs } from './control-attrs'
+
+/** 分段选择器：一组互斥选项排成按钮条，用于视图切换、格式切换这类小集合 */
+defineOptions({ name: 'XSegmented', inheritAttrs: false })
+
+const props = withDefaults(defineProps<{
+  options: ReadonlyArray<{ label: string, value: V, disabled?: boolean }>
+  size?: 'sm' | 'md' | 'lg'
+  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
+  disabled?: boolean
+  /** 铺满容器宽度，各段等分 */
+  block?: boolean
+}>(), {
+  size: 'sm',
+  disabled: undefined,
+  block: false,
+})
+
+// 组本身就是控件，字段挂来的 id 与 aria-* 落在根上，见 control-attrs.ts
+const { attrs, controlAttrs } = useControlAttrs()
+
+const value = defineModel<V>('value', { required: true })
+
+const collection = computed(() => props.options.map(option => ({
+  value: String(option.value),
+  label: option.label,
+  ...(option.disabled ? { disabled: true } : {}),
+})))
+
+/** 选不空，机器给回 null 时保持原值 */
+function onValueChange(details: { value: string | null }) {
+  if (details.value != null) {
+    value.value = details.value as V
+  }
+}
+</script>
+
+<template>
+  <!-- 单选组的 segmented 形态：条目由 collection 代铺，滑块与连体皮肤归组件库 -->
+  <XhRadioGroupRoot
+    v-bind="controlAttrs"
+    :class="attrs.class"
+    :style="attrs.style"
+    variant="segmented"
+    :collection="collection"
+    :value="String(value)"
+    :disabled="disabled"
+    :size="size"
+    :block="block"
+    @value-change="onValueChange"
+  />
+</template>

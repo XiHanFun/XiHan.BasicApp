@@ -60,6 +60,9 @@ export default {
         password: 'Contraseña',
       },
       tenant_placeholder: 'Déjelo vacío para una cuenta de plataforma',
+      subtitle: 'Introduzca su nombre de usuario y contraseña para iniciar sesión',
+      user_name_placeholder: 'Nombre de usuario o correo',
+      password_placeholder: 'Contraseña',
       actions: {
         sign_in: 'Iniciar sesión',
       },

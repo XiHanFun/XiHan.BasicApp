@@ -1,0 +1,96 @@
+/*
+ * 新增/编辑弹窗统一表单网格（以用户页为基准，配合 XEditModal 使用）：
+ * 两列等宽、紧凑行距、紧凑标签；跨整行字段（备注/长文本等）加 .xh-span-2。
+ * 加在 XhFormRoot 或普通 div 容器上均可。
+ *
+ * 标签字号与字段内的几段间距走组件库的覆盖槽，在这里一处给全网格内的字段。
+ * 紧凑网格里标签刻意比 md 控件文字低一档，取说明 / helper 那档字号，层级靠字号差表达。
+ *
+ * 行距的主体是字段底下那一行错误文案占位：组件库给渲染了 error-text 的字段常驻留着这一行，
+ * 报错时文案顶进去、表单不重排。所以控件到它这一行只隔一小段（报错时文案贴着出错的控件），
+ * 行与行之间也只再补一小段；标签到控件另走 label-gap-block，保持原来的距离不动。
+ */
+.xh-edit-form-grid {
+  --xh-field-label-font-size: var(--xh-text-secondary-size);
+  --xh-field-label-gap-block: var(--xh-space-2);
+  --xh-field-gap: var(--xh-space-1);
+
+  /* 网格里的控件都放在 XhFieldRoot 里，字段族控件进了字段由组件库铺满字段宽（3.1 起），这里不再另设控件宽 */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: var(--xh-space-1);
+  column-gap: var(--xh-space-2_5);
+}
+
+.xh-edit-form-grid .xh-span-2 {
+  grid-column: span 2;
+}
+
+/* 小屏单列 */
+@media (max-width: 960px) {
+  .xh-edit-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .xh-edit-form-grid .xh-span-2 {
+    grid-column: auto;
+  }
+}
+
+/* 管理页详情弹窗（与用户页一致） */
+.xh-mgmt-detail-modal .det-hd-entity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.xh-mgmt-detail-modal .det-hd-ico {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: color-mix(in srgb, hsl(var(--primary)) 14%, hsl(var(--card)));
+  color: hsl(var(--primary));
+}
+
+/* 实体名是弹窗头部的主标题：取 lg 档字号、semibold */
+.xh-mgmt-detail-modal .det-hd-name {
+  font-size: var(--xh-font-size-lg);
+  font-weight: var(--xh-font-weight-semibold);
+  color: hsl(var(--foreground));
+}
+
+/* 实体名下的副标题（标识、时间戳一类）是次级标注 */
+.xh-mgmt-detail-modal .det-hd-sub {
+  font-size: var(--xh-text-caption-size);
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+}
+
+.xh-mgmt-detail-modal .modal-loading {
+  padding: 48px 0;
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  /* 读数中的占位提示是说明文字 */
+  font-size: var(--xh-text-secondary-size);
+}
+
+.xh-mgmt-detail-modal .xh-detail-table-wrap {
+  max-height: 280px;
+  overflow: auto;
+}
+
+/*
+ * 偏好设置抽屉面板：XhDrawerContent 的渲染根是 Teleport，content 那个 div 拿不到 scopeId，
+ * 所以面板自身的规则只能写在非 scoped 表里。类名全仓只此一个元素在用。
+ */
+.preference-drawer-content {
+  --xh-drawer-size: 396px;
+
+  /* 面板正文与 md 控件同档 */
+  font-size: var(--xh-text-body-size);
+}

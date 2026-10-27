@@ -1,0 +1,262 @@
+import type { VNodeChild } from 'vue'
+import type { LayoutRouteMeta, LayoutRouteRecord } from '../contracts'
+import type { AppMenuOption, MenuRoute } from '~/types'
+import { computed, h } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAccessStore } from '~/stores'
+import { resolveFirstNavigableRoutePath, resolveRouteFullPath } from '~/utils'
+
+interface BadgeInfo {
+  text?: string | number
+  type?: string
+  dot?: boolean
+}
+
+interface BuildMenuOptionsConfig {
+  keyBy: 'name' | 'path'
+  translate: (title: string, fallback: string) => string
+  iconRenderer?: (icon: string) => AppMenuOption['icon']
+  /** 标签渲染器：将菜单文本与标签信息合并为带标签的 label */
+  badgeLabelRenderer?: (text: string, badge: BadgeInfo) => string | (() => VNodeChild)
+  /** 外链图标渲染器：外链菜单（meta.link）标签末尾追加的小图标 */
+  linkIcon?: () => VNodeChild
+}
+
+type RouteRecordName = LayoutRouteRecord['name']
+
+function toRouteNameKey(name: RouteRecordName) {
+  return typeof name === 'string' || typeof name === 'number' ? String(name) : undefined
+}
+
+function toLayoutMeta(record: LayoutRouteRecord): LayoutRouteMeta {
+  return (record.meta ?? {}) as LayoutRouteMeta
+}
+
+const resolveFullPath = resolveRouteFullPath
+
+function normalizeMenuRoutes(menuRoutes: MenuRoute[]): LayoutRouteRecord[] {
+  return menuRoutes.map((route) => {
+    const normalized = {
+      path: route.path,
+      name: route.name,
+      meta: route.meta as unknown as LayoutRouteRecord['meta'],
+    } as LayoutRouteRecord
+    if (route.redirect) {
+      normalized.redirect = route.redirect
+    }
+    if (route.children?.length) {
+      normalized.children = normalizeMenuRoutes(route.children)
+    }
+    return normalized
+  })
+}
+
+function routeTreeContainsMatched(
+  currentPath: string,
+  node: LayoutRouteRecord,
+  matchedNames: Set<string>,
+  parentPath = '',
+): boolean {
+  const selfName = toRouteNameKey(node.name)
+  if (selfName && matchedNames.has(selfName)) {
+    return true
+  }
+
+  const fullPath = resolveFullPath(node.path, parentPath)
+  if (fullPath && (currentPath === fullPath || currentPath.startsWith(`${fullPath}/`))) {
+    return true
+  }
+
+  const children = node.children ?? []
+  return children.some(child =>
+    routeTreeContainsMatched(currentPath, child, matchedNames, fullPath),
+  )
+}
+
+function buildMenuOptionsFromRoutes(
+  routeList: LayoutRouteRecord[],
+  config: BuildMenuOptionsConfig,
+  parentPath = '',
+): AppMenuOption[] {
+  const options: AppMenuOption[] = []
+
+  for (const item of routeList) {
+    const meta = toLayoutMeta(item)
+    const fullPath = resolveFullPath(item.path, parentPath)
+    const children = item.children ?? []
+    const childOptions = children.length
+      ? buildMenuOptionsFromRoutes(children, config, fullPath)
+      : undefined
+
+    // xihan 风格：隐藏父节点不直接渲染，提升其可见子节点，避免 mixed 模式二列空白。
+    if (meta.hidden) {
+      if (childOptions?.length) {
+        options.push(...childOptions)
+      }
+      continue
+    }
+
+    const key
+      = config.keyBy === 'path'
+        ? fullPath
+        : (toRouteNameKey(item.name)
+          ?? (childOptions?.[0]?.key ? String(childOptions[0].key) : fullPath))
+
+    if (!key) {
+      continue
+    }
+
+    const fallback = toRouteNameKey(item.name) ?? fullPath
+    const rawLabel = meta.title ? config.translate(meta.title, fallback) : fallback
+    const icon = meta.icon ? config.iconRenderer?.(meta.icon) : undefined
+
+    // 当菜单配置了标签且提供了标签渲染器时，生成带标签的 label
+    const hasBadge = meta.badge || meta.dot
+    const baseLabel = hasBadge && config.badgeLabelRenderer
+      ? config.badgeLabelRenderer(rawLabel, {
+          text: meta.badge,
+          type: meta.badgeType,
+          dot: meta.dot,
+        })
+      : rawLabel
+
+    // 外链菜单：标签末尾追加外链图标（保留已有 badge 渲染），提示点击后新标签打开
+    const label = meta.link && config.linkIcon
+      ? () => h(
+          'span',
+          { style: 'display:inline-flex;align-items:center;gap:4px;min-width:0' },
+          [typeof baseLabel === 'function' ? baseLabel() : baseLabel, config.linkIcon!()],
+        )
+      : baseLabel
+
+    options.push({
+      key,
+      label,
+      icon,
+      children: childOptions?.length ? childOptions : undefined,
+    })
+  }
+
+  return options
+}
+
+export function useLayoutMenuDomain() {
+  const route = useRoute()
+  const router = useRouter()
+  const accessStore = useAccessStore()
+
+  const staticRootChildren = computed<LayoutRouteRecord[]>(() => {
+    return (router.options.routes.find(item => item.path === '/')?.children
+      ?? []) as LayoutRouteRecord[]
+  })
+
+  const baseMenuSource = computed<LayoutRouteRecord[]>(() => {
+    // 个人中心已由后端菜单（PageRegistry workbench.profile）驱动，随 accessRoutes 下发，无需前端注入
+    return accessStore.accessRoutes.length
+      ? normalizeMenuRoutes(accessStore.accessRoutes)
+      : staticRootChildren.value
+  })
+
+  const visibleRootRoutes = computed(() => {
+    return baseMenuSource.value.filter(item => !toLayoutMeta(item).hidden)
+  })
+
+  function findMatchedRouteNameKey(candidates: LayoutRouteRecord[]) {
+    for (const matchedRecord of route.matched) {
+      const matchedName = toRouteNameKey(matchedRecord.name as RouteRecordName)
+      if (matchedName && candidates.some(item => toRouteNameKey(item.name) === matchedName)) {
+        return matchedName
+      }
+    }
+    return undefined
+  }
+
+  function findMatchedRoutePath(candidates: LayoutRouteRecord[], parentPath = '') {
+    const matchedNames = new Set(
+      route.matched
+        .map(item => toRouteNameKey(item.name as RouteRecordName))
+        .filter((item): item is string => Boolean(item)),
+    )
+
+    for (const item of candidates) {
+      if (routeTreeContainsMatched(route.path, item, matchedNames, parentPath)) {
+        return resolveFullPath(item.path, parentPath)
+      }
+    }
+    return undefined
+  }
+
+  const activeRootKey = computed<string>(() => {
+    const matchedNames = new Set(
+      route.matched
+        .map(item => toRouteNameKey(item.name as RouteRecordName))
+        .filter((item): item is string => Boolean(item)),
+    )
+    const nestedMatchedRoot = visibleRootRoutes.value.find(item =>
+      routeTreeContainsMatched(route.path, item, matchedNames),
+    )
+    return (
+      findMatchedRouteNameKey(visibleRootRoutes.value)
+      ?? toRouteNameKey(nestedMatchedRoot?.name)
+      ?? toRouteNameKey(visibleRootRoutes.value[0]?.name)
+      ?? ''
+    )
+  })
+
+  const activeRootRoute = computed(() => {
+    return visibleRootRoutes.value.find(item => toRouteNameKey(item.name) === activeRootKey.value)
+  })
+
+  // 外链菜单（meta.link）按菜单键（路径与路由名两种）索引，供点击处理统一识别后新标签打开。
+  const externalLinkByKey = computed(() => {
+    const map = new Map<string, string>()
+    const walk = (nodes: MenuRoute[], parentPath = '') => {
+      for (const node of nodes) {
+        const fullPath = resolveFullPath(node.path, parentPath)
+        const link = node.meta?.link
+        if (link) {
+          if (fullPath) {
+            map.set(fullPath, link)
+          }
+          const nameKey = toRouteNameKey(node.name)
+          if (nameKey) {
+            map.set(nameKey, link)
+          }
+        }
+        if (node.children?.length) {
+          walk(node.children, fullPath)
+        }
+      }
+    }
+    walk(accessStore.accessRoutes)
+    return map
+  })
+
+  /** 若菜单键对应外链菜单则新标签打开并返回 true（命中后调用方应中止路由跳转） */
+  function openExternalIfMatch(key: string): boolean {
+    const link = externalLinkByKey.value.get(key)
+    if (!link) {
+      return false
+    }
+    window.open(link, '_blank', 'noopener,noreferrer')
+    return true
+  }
+
+  return {
+    route,
+    router,
+    baseMenuSource,
+    visibleRootRoutes,
+    activeRootKey,
+    activeRootRoute,
+    toRouteNameKey,
+    toLayoutMeta,
+    resolveFullPath,
+    normalizeMenuRoutes,
+    buildMenuOptionsFromRoutes,
+    findMatchedRouteNameKey,
+    findMatchedRoutePath,
+    resolveFirstNavigablePath: resolveFirstNavigableRoutePath,
+    openExternalIfMatch,
+  }
+}

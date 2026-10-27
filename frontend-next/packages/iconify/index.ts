@@ -1,0 +1,2 @@
+export { ICON_SET_META, loadIconNames, setupIconifyOffline } from './offline'
+export { Icon } from '@iconify/vue/offline'

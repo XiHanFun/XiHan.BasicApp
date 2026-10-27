@@ -1,76 +1,36 @@
 <script lang="ts" setup>
-import type { Locale } from '~/locales'
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { LOCALES } from '~/locales'
-import { LOGIN_ROUTE } from '~/router'
-import { useAppStore, useAuthStore } from '~/stores'
+import { provideXhConfig } from '@xihan-ui/vue'
+import { computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import AppWatermark from '~/components/common/AppWatermark.vue'
+import DynamicIsland from '~/components/common/DynamicIsland.vue'
+import LockScreen from '~/components/common/LockScreen.vue'
+import { useGlobalShortcuts, useHtmlStyle } from '~/composables'
+import { useXhUiConfig } from '~/hooks'
+import { BasicLayout } from '~/layouts'
+import AuthLayout from '~/views/_core/authentication/AuthLayout.vue'
 
 defineOptions({ name: 'App' })
 
-const { t } = useI18n()
-const auth = useAuthStore()
-const app = useAppStore()
-const router = useRouter()
-const tenantLabel = computed(() => auth.tenantId ?? t('common.session.platform'))
+// 组件库的语言标记与内建文案（日期选择器的星期、分页 / 下拉的读屏名等）随应用 locale 切换；传的是 computed，切语言时组件跟着重渲
+provideXhConfig(useXhUiConfig())
+useHtmlStyle()
+useGlobalShortcuts()
 
-async function signOut() {
-  await auth.logout()
-  await router.replace({ name: LOGIN_ROUTE })
-}
+// 壳由路由决定：认证页走 AuthLayout，其余走管理端壳（守卫保证未登录到不了这里）
+const route = useRoute()
+const layout = computed(() => (route.meta.layout === 'auth' ? AuthLayout : BasicLayout))
 
-function onLocaleChange(event: Event) {
-  const value = (event.target as HTMLSelectElement).value as Locale
-  void app.setLocale(value)
-}
+onMounted(() => {
+  document.getElementById('app-loading')?.classList.add('hidden')
+})
 </script>
 
 <template>
-  <div class="flex min-h-full flex-col bg-page text-fg">
-    <header class="flex flex-wrap items-center gap-3 border-b border-border bg-surface px-4 py-2">
-      <span class="text-label font-semibold">{{ t('common.app_name') }}</span>
-      <span class="text-caption text-fg-muted">{{ t('common.version', { version: '6.0.0-preview.1' }) }}</span>
-      <!-- 会话区：登录后显示当前用户与租户、改密入口与注销；授权以后端为准，这里只展示 -->
-      <nav v-if="auth.isAuthenticated" class="ml-auto flex items-center gap-3" :aria-label="t('common.session.label')">
-        <span class="text-caption text-fg-muted" data-testid="session-user">{{ t('common.session.signed_in', { name: auth.user?.displayName ?? '', tenant: tenantLabel }) }}</span>
-        <RouterLink class="text-caption text-fg-brand underline-offset-2 hover:underline" :to="{ name: 'identity.profile.change-password' }">
-          {{ t('common.session.change_password') }}
-        </RouterLink>
-        <XhButton size="sm" @click="signOut">
-          {{ t('common.session.sign_out') }}
-        </XhButton>
-      </nav>
-      <label class="text-caption text-fg-muted" :class="auth.isAuthenticated ? '' : 'ml-auto'" for="locale">{{ t('common.locale') }}</label>
-      <select id="locale" class="rounded-control border border-border bg-surface px-2 py-1 text-caption text-fg" :value="app.locale" @change="onLocaleChange">
-        <option v-for="locale in LOCALES" :key="locale" :value="locale">
-          {{ locale }}
-        </option>
-      </select>
-    </header>
-    <p v-if="auth.isAuthenticated && auth.mustChangePassword" class="border-b border-border bg-brand-subtle px-4 py-2 text-caption text-fg" role="status">
-      {{ t('common.session.must_change_password') }}
-      <RouterLink class="text-fg-brand underline-offset-2 hover:underline" :to="{ name: 'identity.profile.change-password' }">
-        {{ t('common.session.change_password') }}
-      </RouterLink>
-    </p>
-    <div class="flex flex-1 flex-col md:flex-row">
-      <!-- 导航来自 auth.permissions 的菜单树（按权限裁剪过）；标题键由后端页面登记给出，文案在各模块的语言文件 -->
-      <aside v-if="auth.isAuthenticated && auth.menus.length > 0" class="border-b border-border bg-surface md:w-56 md:border-b-0 md:border-r" :aria-label="t('common.nav.label')">
-        <nav class="flex flex-row flex-wrap gap-1 p-2 md:flex-col" data-testid="menu">
-          <template v-for="menu in auth.menus" :key="menu.code">
-            <RouterLink :to="menu.route" class="rounded-control px-3 py-1 text-body hover:bg-subtle" active-class="bg-brand-subtle text-fg-brand">
-              {{ t(menu.titleKey) }}
-            </RouterLink>
-            <RouterLink v-for="child in menu.children" :key="child.code" :to="child.route" class="rounded-control px-3 py-1 text-body hover:bg-subtle md:pl-6" active-class="bg-brand-subtle text-fg-brand">
-              {{ t(child.titleKey) }}
-            </RouterLink>
-          </template>
-        </nav>
-      </aside>
-      <main class="flex flex-1 flex-col p-4" :class="auth.isAuthenticated ? '' : 'items-center justify-center'">
-        <RouterView />
-      </main>
-    </div>
+  <div class="h-full">
+    <component :is="layout" />
+    <LockScreen />
+    <AppWatermark />
+    <DynamicIsland />
   </div>
 </template>

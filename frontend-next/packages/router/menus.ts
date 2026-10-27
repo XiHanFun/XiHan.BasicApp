@@ -14,7 +14,8 @@ export function menuRoutes(menus: readonly MenuNode[]): RouteRecordRaw[] {
         path: node.route,
         name: node.code,
         component: resolveView(node.component),
-        meta: { permission: node.permission ?? undefined, titleKey: node.titleKey },
+        // 壳层（标签栏、面包屑、全局搜索）读 meta.title / icon：标题给文案键，由壳层按 te / t 翻译
+        meta: { permission: node.permission ?? undefined, titleKey: node.titleKey, title: node.titleKey, icon: node.icon ?? undefined },
       })
       walk(node.children)
     }

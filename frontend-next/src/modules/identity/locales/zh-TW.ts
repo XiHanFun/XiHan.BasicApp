@@ -60,6 +60,9 @@ export default {
         password: '密碼',
       },
       tenant_placeholder: '平台帳號留空',
+      subtitle: '請輸入您的帳號密碼以登入系統',
+      user_name_placeholder: '請輸入使用者名稱或電子郵件',
+      password_placeholder: '請輸入密碼',
       actions: {
         sign_in: '登入',
       },

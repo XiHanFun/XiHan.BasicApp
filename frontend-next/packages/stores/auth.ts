@@ -1,7 +1,10 @@
 import type { RequestOf, ResponseOf } from '~/contracts'
+import type { ImpersonationCandidate, ImpersonationCandidateQuery, ImpersonationTenantOption, StartImpersonationParams } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { LOGIN_PATH } from '~/constants'
 import { auth as authApi } from '~/contracts'
+import { useAppContext } from './app-context'
 
 const SESSION_KEY = 'xihan.next.session'
 
@@ -99,15 +102,18 @@ export const useAuthStore = defineStore('auth', () => {
     return result
   }
 
-  /** 注销：请求后端吊销会话（失败也照常清本地，会话本就不可用了）。 */
+  /** 注销：请求后端吊销会话（失败也照常清本地，会话本就不可用了），然后回登录页（壳层的各个退出入口都指望 store 自己跳）。 */
   async function logout(): Promise<void> {
-    if (!session.value)
-      return
-    try {
-      await authApi.logout({})
+    if (session.value) {
+      try {
+        await authApi.logout({})
+      }
+      catch {}
+      store(null)
     }
-    catch {}
-    store(null)
+    const router = await useAppContext().getRouter().catch(() => null)
+    if (router && router.currentRoute.value.path !== LOGIN_PATH)
+      await router.replace(LOGIN_PATH)
   }
 
   /** 按 `auth.me` 刷新资料（改名、改密后或打开页面时）。 */
@@ -128,5 +134,61 @@ export const useAuthStore = defineStore('auth', () => {
     store(null)
   }
 
-  return { session, permissions, menus, isAuthenticated, accessToken, user, tenantId, mustChangePassword, can, login, refresh, loadPermissions, logout, loadMe, markPasswordChanged, clear }
+  // ---- 模仿登录（壳层入口；接口经应用上下文注入，6.0 后端接上前是显式拒绝）----
+  const impersonationLoading = ref(false)
+
+  function impersonationCandidates(input: ImpersonationCandidateQuery): Promise<ImpersonationCandidate[]> {
+    return useAppContext().apis.impersonationApi.candidates(input)
+  }
+
+  function impersonationTenants(): Promise<ImpersonationTenantOption[]> {
+    return useAppContext().apis.impersonationApi.tenants()
+  }
+
+  /** 模仿 / 退出模仿都拿回一份新会话：换掉当前会话并重取权限 */
+  async function applyImpersonation(run: () => Promise<unknown>): Promise<void> {
+    if (impersonationLoading.value)
+      return
+    impersonationLoading.value = true
+    try {
+      const next = await run() as Session
+      store(next)
+      await loadPermissions()
+    }
+    finally {
+      impersonationLoading.value = false
+    }
+  }
+
+  function startImpersonation(input: StartImpersonationParams): Promise<void> {
+    return applyImpersonation(() => useAppContext().apis.impersonationApi.start(input))
+  }
+
+  function stopImpersonation(): Promise<void> {
+    return applyImpersonation(() => useAppContext().apis.impersonationApi.stop())
+  }
+
+  return {
+    session,
+    permissions,
+    menus,
+    isAuthenticated,
+    accessToken,
+    user,
+    tenantId,
+    mustChangePassword,
+    can,
+    login,
+    refresh,
+    loadPermissions,
+    logout,
+    loadMe,
+    markPasswordChanged,
+    clear,
+    impersonationLoading,
+    impersonationCandidates,
+    impersonationTenants,
+    startImpersonation,
+    stopImpersonation,
+  }
 })

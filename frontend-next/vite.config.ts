@@ -1,4 +1,6 @@
 import type { ComponentResolver } from 'unplugin-vue-components'
+import type { PluginOption } from 'vite'
+import { readFileSync } from 'node:fs'
 import process from 'node:process'
 import { fileURLToPath, URL } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
@@ -18,6 +20,23 @@ function XiHanUiResolver(): ComponentResolver {
   }
 }
 
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
+const buildTime = new Date().toISOString().slice(0, 16).replace('T', ' ')
+/** 本次构建的标记：同一份源码重复打包也会换新值；发版检查据它判断线上那一版是不是正在跑的这一版 */
+const buildStamp = new Date().toISOString()
+
+/** 把版本与构建标记落成 version.json，随产物一起发出去 */
+function releaseManifest(): PluginOption {
+  return {
+    name: 'xihan:release-manifest',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({ type: 'asset', fileName: 'version.json', source: `${JSON.stringify({ version, buildTime, buildStamp }, null, 2)}
+` })
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   // 开发态把 /api、/openapi.json、/mcp、/health 代理到后端宿主（Kestrel 的 Http 端点）
@@ -25,7 +44,17 @@ export default defineConfig(({ mode }) => {
   const proxy = Object.fromEntries(['/api', '/openapi.json', '/mcp', '/health'].map(path => [path, { target, changeOrigin: true }]))
 
   return {
+    // 版本号进壳层页脚；来源只有 package.json 一处
+    define: {
+      __APP_VERSION__: JSON.stringify(version),
+      // 页脚与标题里的应用名（package.json 的 name 是工作区包名，不上屏）
+      __APP_NAME__: JSON.stringify('XiHan.BasicApp'),
+      __APP_BUILD_TIME__: JSON.stringify(buildTime),
+      __APP_BUILD_STAMP__: JSON.stringify(buildStamp),
+      __APP_REPOSITORY__: JSON.stringify('https://github.com/XiHanFun/XiHan.BasicApp'),
+    },
     plugins: [
+      releaseManifest(),
       tailwindcss(),
       vue(),
       Components({

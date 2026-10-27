@@ -1,0 +1,177 @@
+import type { MenuRoute } from './menu'
+
+// ==================== 认证 & 用户类型 ====================
+
+export interface UserInfo {
+  basicId: string
+  userName: string
+  nickName?: string
+  appTitle?: string
+  appSubtitle?: string
+  appLogo?: string
+  avatar?: string
+  email?: string
+  phone?: string
+  tenantId?: null | string
+  /** 当前租户名称（平台为空） */
+  tenantName?: null | string
+  /** 是否处于平台（0 号租户，令牌不带租户） */
+  isPlatform?: boolean
+  /** 是否可进入平台（平台账号） */
+  canAccessPlatform?: boolean
+  roles: string[]
+  permissions: string[]
+  /** 是否可发起模仿登录（服务端按实时权限判定后下发） */
+  canImpersonate?: boolean
+  /** 是否处于模仿态（当前身份由他人以模仿方式登录得到） */
+  isImpersonating?: boolean
+  /** 模仿者用户主键 */
+  impersonatorUserId?: null | string
+  /** 模仿者用户名 */
+  impersonatorUserName?: null | string
+}
+
+/** 发起模仿登录参数 */
+export interface StartImpersonationParams {
+  /** 目标用户主键 */
+  targetUserId: string
+  /** 目标租户主键；为空时沿用发起人当前上下文 */
+  tenantId?: null | string
+  /** 模仿事由（落审计） */
+  reason?: null | string
+}
+
+/** 模仿登录的候选查询 */
+export interface ImpersonationCandidateQuery {
+  keyword?: string
+  /** 给了取该租户的成员；不给取平台账号（仅平台可用） */
+  tenantId?: string
+}
+
+/** 平台发起模仿时可选的租户 */
+export interface ImpersonationTenantOption {
+  tenantId: string
+  tenantName: string
+}
+
+/** 模仿登录的候选目标 */
+export interface ImpersonationCandidate {
+  basicId: string
+  userName: string
+  nickName?: null | string
+  realName?: null | string
+  avatar?: null | string
+}
+
+/** 切换租户 / 进入平台参数（服务端在目标上下文续接当前会话，无需设备标识） */
+export interface SwitchTenantParams {
+  /** 目标租户标识；为空表示进入平台 */
+  tenantId?: null | string
+}
+
+export interface OAuthProviderItem {
+  name: string
+  displayName: string
+}
+
+export interface LoginConfig {
+  loginMethods: string[]
+  // 与后端序列化键一致：OAuthProviders 经 camelCase 策略输出为 oAuthProviders
+  oAuthProviders: OAuthProviderItem[]
+  /** 密码登录是否要求图形验证码 */
+  captchaEnabled: boolean
+}
+
+/** 登录参数（先登录后选租户：登录不携带租户，落点由后端按成员关系决定） */
+export interface LoginParams {
+  /** 登录账号（邮箱，全平台唯一；平台账号也可用用户名） */
+  username: string
+  password: string
+  /** 图形验证码标识（后端要求验证码时必填） */
+  captchaId?: string
+  /** 图形验证码（后端要求验证码时必填） */
+  captchaCode?: string
+  /** 双因素验证码（开启 2FA 时必填） */
+  twoFactorCode?: string
+  /** 用户选择的双因素方式（totp/email/phone） */
+  twoFactorMethod?: string
+  /** 两步验证票据（首段挑战响应签发；后续阶段携带即免图形验证码） */
+  twoFactorTicket?: string
+  /** 设备唯一标识（设备指纹） */
+  deviceId?: string
+}
+
+export interface RegisterParams {
+  username: string
+  password: string
+  nickName?: string
+  /** 邮箱（必填，全平台唯一的登录身份标识） */
+  email: string
+  phone?: string
+}
+
+export interface PhoneLoginParams {
+  phone: string
+  code: string
+}
+
+export interface EmailLoginParams {
+  email: string
+  code: string
+  deviceId?: string
+}
+
+export interface VerificationCodeResult {
+  expiresInSeconds: number
+  debugCode?: string
+}
+
+/** 登录图形验证码挑战 */
+export interface CaptchaChallenge {
+  captchaId: string
+  /** SVG Data URL，直接作为 img src */
+  image: string
+  expiresInSeconds: number
+}
+
+export interface PasswordResetResult {
+  accepted: boolean
+  /** 一次性重置链接，仅开发环境回显，便于本地无邮件时联调 */
+  debugResetUrl?: string
+}
+
+export interface PasswordResetConfirmResult {
+  success: boolean
+}
+
+/** 登录响应（区分正常登录与双因素验证挑战） */
+export interface LoginResponse {
+  requiresTwoFactor: boolean
+  /** 可用的双因素方式列表 */
+  availableTwoFactorMethods?: string[]
+  /** 当前选中的双因素方式 */
+  twoFactorMethod?: string
+  /** 验证码是否已发送（邮箱/手机方式） */
+  codeSent?: boolean
+  /** 两步验证票据（仅挑战响应携带；后续阶段回传即免图形验证码，登录完成后作废） */
+  twoFactorTicket?: string
+  token: LoginToken | null
+}
+
+/** 鉴权令牌 */
+export interface LoginToken {
+  accessToken: string
+  refreshToken: string
+  tokenType: string
+  expiresIn: number
+  issuedAt: string
+  expiresAt: string
+}
+
+export interface PermissionInfo {
+  /** 可用按钮码：页面按钮是否可见由服务端判定后下发，前端不持有权限码。缺省视为一个都没有（fail-closed） */
+  buttons?: string[]
+  roles: string[]
+  permissions: string[]
+  menus: MenuRoute[]
+}
