@@ -55,5 +55,16 @@ public static class SqlSugarRuntime
         {
             column.DbColumnName = SnakeCaseNaming.Of(property.Name);
         }
+
+        // 建表（Development 的 InitTables）时字符串列缺省 varchar(255)，装不下契约允许的 256 字符：没写长度与类型的字符串列一律 512；更长的字段显式写 [SugarColumn]
+        if (property.PropertyType == typeof(string) && column.Length == 0 && string.IsNullOrEmpty(column.DataType))
+        {
+            column.Length = DefaultStringLength;
+        }
     }
+
+    /// <summary>
+    /// 没有显式长度的字符串列的建表长度。
+    /// </summary>
+    public const int DefaultStringLength = 512;
 }
