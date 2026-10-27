@@ -12,6 +12,7 @@
     <ProjectReference Include="../../src/XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+    <ProjectReference Include="../../src/XiHan.BasicApp.Tenancy/XiHan.BasicApp.Tenancy.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Access/XiHan.BasicApp.Access.csproj" />
     <ProjectReference Include="../../src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj" />
   </ItemGroup>

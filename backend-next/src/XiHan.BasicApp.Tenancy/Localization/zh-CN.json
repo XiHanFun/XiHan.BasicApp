@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "开通租户：写入租户并登记进租户目录（启用）；管理员由 tenants.initialize-admin 初始化。只在平台侧；需要 tenancy.tenants.create 权限。",
+  "tenants.get.description": "取租户详情：管理员登录名与用户数。需要 tenancy.tenants.read 权限。",
+  "tenants.list.description": "分页列出租户，支持筛选、关键字与排序。需要 tenancy.tenants.read 权限。",
+  "tenants.update.description": "修改租户的名称、说明、到期与排序；名称同步到目录。需要 tenancy.tenants.update 权限。",
+  "tenants.suspend.description": "批量停用租户：目录标记为禁用，租户用户不能登录、带该租户的调用被拒。需要 tenancy.tenants.suspend 权限。",
+  "tenants.resume.description": "批量恢复已停用的租户。需要 tenancy.tenants.suspend 权限。",
+  "tenants.delete.description": "批量删除租户并从目录移除；还有用户的租户逐项拒绝。需要 tenancy.tenants.delete 权限。",
+  "tenants.initialize_admin.description": "给租户建第一个管理员，持有租户侧全部权限；首次登录须改密。每个租户只能初始化一次。需要 tenancy.tenants.initialize-admin 权限。",
+  "tenancy.tenant.not_found": "租户 '{id}' 不存在。",
+  "tenancy.tenant.id_taken": "租户 ID '{tenantId}' 已被占用。",
+  "tenancy.tenant.admin_initialized": "租户 '{tenantId}' 已有管理员。",
+  "tenancy.tenant.has_users": "租户 '{tenantId}' 下还有 {count} 个用户，不能删除。",
+  "tenancy.tenant.platform_only": "租户只能在平台侧管理。",
+  "tenancy.tenant.filter_unsupported": "不支持筛选 '{field} {operator}'。",
+  "tenancy.tenant.sort_unsupported": "不支持按 '{field}' 排序。",
+  "tenancy.admin.name_taken": "用户名 '{userName}' 在该租户内已被占用。"
+}

@@ -5,6 +5,7 @@
   </Folder>
   <Folder Name="/1.Identity/">
     <Project Path="src/XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+    <Project Path="src/XiHan.BasicApp.Tenancy/XiHan.BasicApp.Tenancy.csproj" />
     <Project Path="src/XiHan.BasicApp.Access/XiHan.BasicApp.Access.csproj" />
   </Folder>
   <Folder Name="/Host/">

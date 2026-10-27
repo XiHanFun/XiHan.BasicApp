@@ -42,11 +42,11 @@ public sealed class AuthPermissionsTests : IDisposable
         Assert.Equal(["admin"], body.GetProperty("roles").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
 
         var menus = body.GetProperty("menus").EnumerateArray().ToList();
-        Assert.Equal(["identity.users", "access.roles"], menus.Select(static m => m.GetProperty("code").GetString()).ToList());
+        Assert.Equal(["identity.users", "access.roles", "tenancy.tenants"], menus.Select(static m => m.GetProperty("code").GetString()).ToList());
         Assert.Equal("identity/users/index", menus[0].GetProperty("component").GetString());
         Assert.Equal("/access/roles", menus[1].GetProperty("route").GetString());
         Assert.Equal("access.roles.read", menus[1].GetProperty("permission").GetString());
-        Assert.Equal(["identity.users", "access.roles"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
+        Assert.Equal(["identity.users", "access.roles", "tenancy.tenants"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
 
         var (catalog, catalogBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permissions", token: admin));
         Assert.Equal(HttpStatusCode.OK, catalog.StatusCode);

@@ -48,3 +48,5 @@ dotnet run --project backend-next/src/XiHan.BasicApp.Host -- operations
 ## 初始账号
 
 `seed` 写入平台账号 `superadmin`（密码来自 `BasicApp:Seed:SuperAdminPassword`，缺省 `SuperAdmin@123`）与它的全局授予 `*`。用它登录（`POST /api/auth:login`，租户留空），再创建租户与租户用户。
+
+Development 打开 `BasicApp:Seed:EnableDemoData` 时，`tenancy.demo` 种子另写演示租户 `demo`（管理员 `admin` / `Demo@123456`，首次登录须改密）；开通正式租户走 `POST /api/tenants` 再 `POST /api/tenants/{id}:initialize-admin`。

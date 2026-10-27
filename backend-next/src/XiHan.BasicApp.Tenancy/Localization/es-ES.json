@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "Aprovisiona un inquilino: escribe el inquilino y lo registra (habilitado) en el directorio; el administrador se crea con tenants.initialize-admin. Solo lado de plataforma; requiere tenancy.tenants.create.",
+  "tenants.get.description": "Obtiene un inquilino con el nombre de usuario de su administrador y el número de usuarios. Requiere tenancy.tenants.read.",
+  "tenants.list.description": "Lista inquilinos con paginación, filtros, palabra clave y ordenación. Requiere tenancy.tenants.read.",
+  "tenants.update.description": "Actualiza el nombre, la descripción, la caducidad y el orden de un inquilino; el nombre se refleja en el directorio. Requiere tenancy.tenants.update.",
+  "tenants.suspend.description": "Suspende inquilinos por lotes: el directorio los marca como deshabilitados, sus usuarios no pueden iniciar sesión y las llamadas con ese inquilino se rechazan. Requiere tenancy.tenants.suspend.",
+  "tenants.resume.description": "Reanuda inquilinos suspendidos por lotes. Requiere tenancy.tenants.suspend.",
+  "tenants.delete.description": "Elimina inquilinos por lotes y los quita del directorio; los que aún tienen usuarios se rechazan uno a uno. Requiere tenancy.tenants.delete.",
+  "tenants.initialize_admin.description": "Crea el primer administrador de un inquilino con todos los permisos del lado del inquilino; la contraseña debe cambiarse en el primer inicio de sesión. Una vez por inquilino. Requiere tenancy.tenants.initialize-admin.",
+  "tenancy.tenant.not_found": "El inquilino '{id}' no existe.",
+  "tenancy.tenant.id_taken": "El ID de inquilino '{tenantId}' ya está en uso.",
+  "tenancy.tenant.admin_initialized": "El inquilino '{tenantId}' ya tiene administrador.",
+  "tenancy.tenant.has_users": "El inquilino '{tenantId}' aún tiene {count} usuarios y no se puede eliminar.",
+  "tenancy.tenant.platform_only": "Los inquilinos solo se gestionan desde el lado de plataforma.",
+  "tenancy.tenant.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",
+  "tenancy.tenant.sort_unsupported": "La ordenación por '{field}' no es compatible.",
+  "tenancy.admin.name_taken": "El nombre de usuario '{userName}' ya está en uso en este inquilino."
+}

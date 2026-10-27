@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "테넌트를 개통합니다. 테넌트를 기록하고 디렉터리에 (활성 상태로) 등록합니다. 관리자는 tenants.initialize-admin으로 초기화합니다. 플랫폼 측 전용이며 tenancy.tenants.create 권한이 필요합니다.",
+  "tenants.get.description": "테넌트 상세(관리자 사용자 이름과 사용자 수)를 조회합니다. tenancy.tenants.read 권한이 필요합니다.",
+  "tenants.list.description": "테넌트를 페이징, 필터, 키워드, 정렬로 나열합니다. tenancy.tenants.read 권한이 필요합니다.",
+  "tenants.update.description": "테넌트의 이름, 설명, 만료, 순서를 수정합니다. 이름은 디렉터리에 반영됩니다. tenancy.tenants.update 권한이 필요합니다.",
+  "tenants.suspend.description": "테넌트를 일괄 중지합니다. 디렉터리에서 비활성화되어 사용자가 로그인할 수 없고 해당 테넌트의 호출이 거부됩니다. tenancy.tenants.suspend 권한이 필요합니다.",
+  "tenants.resume.description": "중지된 테넌트를 일괄 재개합니다. tenancy.tenants.suspend 권한이 필요합니다.",
+  "tenants.delete.description": "테넌트를 일괄 삭제하고 디렉터리에서 제거합니다. 사용자가 남아 있는 테넌트는 항목별로 거부됩니다. tenancy.tenants.delete 권한이 필요합니다.",
+  "tenants.initialize_admin.description": "테넌트 측 모든 권한을 가진 첫 관리자를 생성합니다. 첫 로그인 시 비밀번호를 변경해야 합니다. 테넌트당 한 번만 가능합니다. tenancy.tenants.initialize-admin 권한이 필요합니다.",
+  "tenancy.tenant.not_found": "테넌트 '{id}'이(가) 존재하지 않습니다.",
+  "tenancy.tenant.id_taken": "테넌트 ID '{tenantId}'은(는) 이미 사용 중입니다.",
+  "tenancy.tenant.admin_initialized": "테넌트 '{tenantId}'에는 이미 관리자가 있습니다.",
+  "tenancy.tenant.has_users": "테넌트 '{tenantId}'에 아직 사용자 {count}명이 있어 삭제할 수 없습니다.",
+  "tenancy.tenant.platform_only": "테넌트는 플랫폼 측에서만 관리할 수 있습니다.",
+  "tenancy.tenant.filter_unsupported": "필터 '{field} {operator}'은(는) 지원되지 않습니다.",
+  "tenancy.tenant.sort_unsupported": "'{field}' 기준 정렬은 지원되지 않습니다.",
+  "tenancy.admin.name_taken": "사용자 이름 '{userName}'은(는) 이 테넌트에서 이미 사용 중입니다."
+}

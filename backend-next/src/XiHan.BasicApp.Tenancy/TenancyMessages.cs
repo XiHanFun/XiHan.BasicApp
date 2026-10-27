@@ -1,0 +1,104 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using XiHan.Framework.Localization.Abstractions.Messages;
+
+namespace XiHan.BasicApp.Tenancy;
+
+/// <summary>
+/// 租户包的消息键；各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（<c>-</c> 换成 <c>_</c>）。
+/// </summary>
+public static class TenancyMessages
+{
+    /// <summary>
+    /// 消息目录名。
+    /// </summary>
+    public const string CatalogName = "basicapp.tenancy";
+
+    /// <summary>
+    /// 操作 <c>tenants.create</c> 的说明。
+    /// </summary>
+    public const string CreateTenantDescription = "tenants.create.description";
+
+    /// <summary>
+    /// 操作 <c>tenants.get</c> 的说明。
+    /// </summary>
+    public const string GetTenantDescription = "tenants.get.description";
+
+    /// <summary>
+    /// 操作 <c>tenants.list</c> 的说明。
+    /// </summary>
+    public const string ListTenantsDescription = "tenants.list.description";
+
+    /// <summary>
+    /// 操作 <c>tenants.update</c> 的说明。
+    /// </summary>
+    public const string UpdateTenantDescription = "tenants.update.description";
+
+    /// <summary>
+    /// 操作 <c>tenants.suspend</c> 的说明。
+    /// </summary>
+    public const string SuspendTenantsDescription = "tenants.suspend.description";
+
+    /// <summary>
+    /// 操作 <c>tenants.resume</c> 的说明。
+    /// </summary>
+    public const string ResumeTenantsDescription = "tenants.resume.description";
+
+    /// <summary>
+    /// 操作 <c>tenants.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteTenantsDescription = "tenants.delete.description";
+
+    /// <summary>
+    /// 操作 <c>tenants.initialize-admin</c> 的说明。
+    /// </summary>
+    public const string InitializeAdminDescription = "tenants.initialize_admin.description";
+
+    /// <summary>
+    /// 租户不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string TenantNotFound = "tenancy.tenant.not_found";
+
+    /// <summary>
+    /// 租户 ID 已被占用；参数 <c>tenantId</c>。
+    /// </summary>
+    public const string TenantIdTaken = "tenancy.tenant.id_taken";
+
+    /// <summary>
+    /// 管理员已初始化；参数 <c>tenantId</c>。
+    /// </summary>
+    public const string AdminInitialized = "tenancy.tenant.admin_initialized";
+
+    /// <summary>
+    /// 租户下还有用户；参数 <c>tenantId</c>、<c>count</c>。
+    /// </summary>
+    public const string HasUsers = "tenancy.tenant.has_users";
+
+    /// <summary>
+    /// 只有平台主体能管理租户。
+    /// </summary>
+    public const string PlatformOnly = "tenancy.tenant.platform_only";
+
+    /// <summary>
+    /// 列表筛选不受支持；参数 <c>field</c>、<c>operator</c>。
+    /// </summary>
+    public const string FilterUnsupported = "tenancy.tenant.filter_unsupported";
+
+    /// <summary>
+    /// 列表排序字段不受支持；参数 <c>field</c>。
+    /// </summary>
+    public const string SortUnsupported = "tenancy.tenant.sort_unsupported";
+
+    /// <summary>
+    /// 管理员登录名已被占用；参数 <c>userName</c>。
+    /// </summary>
+    public const string AdminNameTaken = "tenancy.admin.name_taken";
+
+    private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(TenancyMessages)));
+
+    /// <summary>
+    /// 本包的消息目录（嵌入的 10 种区域文件）。
+    /// </summary>
+    public static MessageCatalog Catalog => _catalog.Value;
+}

@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "Создаёт арендатора: записывает его и регистрирует (включённым) в каталоге арендаторов; администратор создаётся через tenants.initialize-admin. Только сторона платформы; требуется tenancy.tenants.create.",
+  "tenants.get.description": "Возвращает арендатора с именем пользователя его администратора и числом пользователей. Требуется tenancy.tenants.read.",
+  "tenants.list.description": "Выводит арендаторов с постраничным выводом, фильтрами, ключевым словом и сортировкой. Требуется tenancy.tenants.read.",
+  "tenants.update.description": "Изменяет имя, описание, срок и порядок арендатора; имя отражается в каталоге. Требуется tenancy.tenants.update.",
+  "tenants.suspend.description": "Пакетно приостанавливает арендаторов: каталог помечает их отключёнными, их пользователи не могут войти, вызовы с этим арендатором отклоняются. Требуется tenancy.tenants.suspend.",
+  "tenants.resume.description": "Пакетно возобновляет приостановленных арендаторов. Требуется tenancy.tenants.suspend.",
+  "tenants.delete.description": "Пакетно удаляет арендаторов и убирает их из каталога; арендаторы с пользователями отклоняются по отдельности. Требуется tenancy.tenants.delete.",
+  "tenants.initialize_admin.description": "Создаёт первого администратора арендатора со всеми разрешениями стороны арендатора; пароль нужно сменить при первом входе. Один раз на арендатора. Требуется tenancy.tenants.initialize-admin.",
+  "tenancy.tenant.not_found": "Арендатор '{id}' не существует.",
+  "tenancy.tenant.id_taken": "Идентификатор арендатора '{tenantId}' уже занят.",
+  "tenancy.tenant.admin_initialized": "У арендатора '{tenantId}' уже есть администратор.",
+  "tenancy.tenant.has_users": "У арендатора '{tenantId}' ещё {count} пользователей, удалить нельзя.",
+  "tenancy.tenant.platform_only": "Арендаторами управляют только со стороны платформы.",
+  "tenancy.tenant.filter_unsupported": "Фильтр '{field} {operator}' не поддерживается.",
+  "tenancy.tenant.sort_unsupported": "Сортировка по '{field}' не поддерживается.",
+  "tenancy.admin.name_taken": "Имя пользователя '{userName}' уже занято в этом арендаторе."
+}

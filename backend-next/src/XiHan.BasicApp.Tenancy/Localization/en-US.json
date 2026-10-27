@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "Provision a tenant: write the tenant and register it (enabled) in the tenant directory; the administrator is created with tenants.initialize-admin. Platform side only; requires tenancy.tenants.create.",
+  "tenants.get.description": "Get a tenant with its administrator's user name and user count. Requires tenancy.tenants.read.",
+  "tenants.list.description": "List tenants with paging, filters, keyword and sorting. Requires tenancy.tenants.read.",
+  "tenants.update.description": "Update a tenant's name, description, expiry and order; the name is mirrored to the directory. Requires tenancy.tenants.update.",
+  "tenants.suspend.description": "Suspend tenants in batch: the directory marks them disabled, their users cannot sign in and calls carrying the tenant are rejected. Requires tenancy.tenants.suspend.",
+  "tenants.resume.description": "Resume suspended tenants in batch. Requires tenancy.tenants.suspend.",
+  "tenants.delete.description": "Delete tenants in batch and remove them from the directory; tenants that still have users are rejected item by item. Requires tenancy.tenants.delete.",
+  "tenants.initialize_admin.description": "Create the first administrator of a tenant with every tenant-side permission; the password must be changed at first sign-in. Once per tenant. Requires tenancy.tenants.initialize-admin.",
+  "tenancy.tenant.not_found": "Tenant '{id}' does not exist.",
+  "tenancy.tenant.id_taken": "Tenant ID '{tenantId}' is already taken.",
+  "tenancy.tenant.admin_initialized": "Tenant '{tenantId}' already has an administrator.",
+  "tenancy.tenant.has_users": "Tenant '{tenantId}' still has {count} users and cannot be deleted.",
+  "tenancy.tenant.platform_only": "Tenants are managed from the platform side only.",
+  "tenancy.tenant.filter_unsupported": "Filter '{field} {operator}' is not supported.",
+  "tenancy.tenant.sort_unsupported": "Sorting by '{field}' is not supported.",
+  "tenancy.admin.name_taken": "User name '{userName}' is already taken in this tenant."
+}

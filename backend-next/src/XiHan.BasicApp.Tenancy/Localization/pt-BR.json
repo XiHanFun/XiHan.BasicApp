@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "Provisiona um locatário: grava o locatário e o registra (habilitado) no diretório; o administrador é criado com tenants.initialize-admin. Apenas lado da plataforma; requer tenancy.tenants.create.",
+  "tenants.get.description": "Obtém um locatário com o nome de usuário do administrador e a quantidade de usuários. Requer tenancy.tenants.read.",
+  "tenants.list.description": "Lista locatários com paginação, filtros, palavra-chave e ordenação. Requer tenancy.tenants.read.",
+  "tenants.update.description": "Atualiza o nome, a descrição, a expiração e a ordem de um locatário; o nome é refletido no diretório. Requer tenancy.tenants.update.",
+  "tenants.suspend.description": "Suspende locatários em lote: o diretório os marca como desabilitados, seus usuários não conseguem entrar e chamadas com esse locatário são rejeitadas. Requer tenancy.tenants.suspend.",
+  "tenants.resume.description": "Retoma locatários suspensos em lote. Requer tenancy.tenants.suspend.",
+  "tenants.delete.description": "Exclui locatários em lote e os remove do diretório; os que ainda têm usuários são rejeitados item a item. Requer tenancy.tenants.delete.",
+  "tenants.initialize_admin.description": "Cria o primeiro administrador de um locatário com todas as permissões do lado do locatário; a senha deve ser alterada no primeiro login. Uma vez por locatário. Requer tenancy.tenants.initialize-admin.",
+  "tenancy.tenant.not_found": "O locatário '{id}' não existe.",
+  "tenancy.tenant.id_taken": "O ID de locatário '{tenantId}' já está em uso.",
+  "tenancy.tenant.admin_initialized": "O locatário '{tenantId}' já tem administrador.",
+  "tenancy.tenant.has_users": "O locatário '{tenantId}' ainda tem {count} usuários e não pode ser excluído.",
+  "tenancy.tenant.platform_only": "Locatários só são gerenciados pelo lado da plataforma.",
+  "tenancy.tenant.filter_unsupported": "O filtro '{field} {operator}' não é suportado.",
+  "tenancy.tenant.sort_unsupported": "A ordenação por '{field}' não é suportada.",
+  "tenancy.admin.name_taken": "O nome de usuário '{userName}' já está em uso neste locatário."
+}

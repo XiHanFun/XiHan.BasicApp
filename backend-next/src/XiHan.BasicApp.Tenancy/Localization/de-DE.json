@@ -1,0 +1,18 @@
+{
+  "tenants.create.description": "Richtet einen Mandanten ein: schreibt den Mandanten und registriert ihn (aktiviert) im Mandantenverzeichnis; der Administrator wird mit tenants.initialize-admin angelegt. Nur Plattformseite; erfordert tenancy.tenants.create.",
+  "tenants.get.description": "Liest einen Mandanten mit dem Benutzernamen seines Administrators und der Benutzerzahl. Erfordert tenancy.tenants.read.",
+  "tenants.list.description": "Listet Mandanten mit Paginierung, Filtern, Suchbegriff und Sortierung. Erfordert tenancy.tenants.read.",
+  "tenants.update.description": "Ändert Name, Beschreibung, Ablauf und Reihenfolge eines Mandanten; der Name wird ins Verzeichnis gespiegelt. Erfordert tenancy.tenants.update.",
+  "tenants.suspend.description": "Setzt Mandanten stapelweise aus: das Verzeichnis markiert sie als deaktiviert, ihre Benutzer können sich nicht anmelden und Aufrufe mit dem Mandanten werden abgelehnt. Erfordert tenancy.tenants.suspend.",
+  "tenants.resume.description": "Nimmt ausgesetzte Mandanten stapelweise wieder in Betrieb. Erfordert tenancy.tenants.suspend.",
+  "tenants.delete.description": "Löscht Mandanten stapelweise und entfernt sie aus dem Verzeichnis; Mandanten mit Benutzern werden einzeln abgelehnt. Erfordert tenancy.tenants.delete.",
+  "tenants.initialize_admin.description": "Legt den ersten Administrator eines Mandanten mit allen mandantenseitigen Berechtigungen an; das Passwort muss bei der ersten Anmeldung geändert werden. Einmal je Mandant. Erfordert tenancy.tenants.initialize-admin.",
+  "tenancy.tenant.not_found": "Der Mandant '{id}' existiert nicht.",
+  "tenancy.tenant.id_taken": "Die Mandanten-ID '{tenantId}' ist bereits vergeben.",
+  "tenancy.tenant.admin_initialized": "Der Mandant '{tenantId}' hat bereits einen Administrator.",
+  "tenancy.tenant.has_users": "Der Mandant '{tenantId}' hat noch {count} Benutzer und kann nicht gelöscht werden.",
+  "tenancy.tenant.platform_only": "Mandanten werden nur von der Plattformseite verwaltet.",
+  "tenancy.tenant.filter_unsupported": "Der Filter '{field} {operator}' wird nicht unterstützt.",
+  "tenancy.tenant.sort_unsupported": "Die Sortierung nach '{field}' wird nicht unterstützt.",
+  "tenancy.admin.name_taken": "Der Benutzername '{userName}' ist in diesem Mandanten bereits vergeben."
+}
