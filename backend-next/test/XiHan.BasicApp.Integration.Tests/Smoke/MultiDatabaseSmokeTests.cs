@@ -78,6 +78,24 @@ public sealed class MultiDatabaseSmokeTests
         var (created, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users", """{"userName":"sharded","displayName":"Sharded"}""", acme));
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var createdId = Guid.Parse(body.GetProperty("id").GetString()!);
+        // 时间列在 PostgreSQL 上按 UTC 往返（框架 ADR-0037：Npgsql legacy 模式交出的本地时间要先还原 UTC）：新增后读回等于时钟，更新一次后创建时间不变
+        Assert.InRange((DateTimeOffset.UtcNow - body.GetProperty("createdAt").GetDateTimeOffset()).Duration(), TimeSpan.Zero, TimeSpan.FromMinutes(1));
+        // 创建响应里是内存值（100ns 刻度），库里是微秒；比较"更新前后不变"用两次读回的值
+        var (stored, storedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/users/{createdId}", token: acme));
+        Assert.Equal(HttpStatusCode.OK, stored.StatusCode);
+        var createdAt = storedBody.GetProperty("createdAt").GetDateTimeOffset();
+        Assert.InRange((DateTimeOffset.UtcNow - createdAt).Duration(), TimeSpan.Zero, TimeSpan.FromMinutes(1));
+        (await server.InvokeAsync(async ctx =>
+        {
+            var repository = ctx.Services.GetRequiredService<IRepository<SysUser, Guid>>();
+            Assert.True((await repository.FindAsync(createdId, ctx.CancellationToken)).TryGetValue(out var user));
+            user!.DisplayName = "Sharded Again";
+            return await repository.UpdateAsync(user, ctx.CancellationToken);
+        }, acme)).ThrowIfFailure();
+        var (fetched, fetchedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/users/{createdId}", token: acme));
+        Assert.Equal(HttpStatusCode.OK, fetched.StatusCode);
+        Assert.Equal("Sharded Again", fetchedBody.GetProperty("displayName").GetString());
+        Assert.Equal(createdAt, fetchedBody.GetProperty("createdAt").GetDateTimeOffset());
         Assert.Equal(1, Count<SysUser>(databases.Platform, u => u.Id == createdId));
         Assert.Equal(1, Count<SysUserStatistics>(databases.Tenant, s => s.UserId == createdId));
         Assert.Equal(0, Count<SysUserStatistics>(databases.Platform, s => s.UserId == createdId));
