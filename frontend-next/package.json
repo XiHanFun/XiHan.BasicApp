@@ -1,0 +1,66 @@
+{
+  "name": "XiHanBasicAppNext",
+  "type": "module",
+  "version": "6.0.0-preview.1",
+  "private": true,
+  "packageManager": "pnpm@11.22.0",
+  "description": "XiHan.BasicApp 6.0 管理端：契约由后端 openapi.json 生成，页面按能力包组织。",
+  "author": {
+    "name": "XiHanFun"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0",
+    "pnpm": ">=11.0.0"
+  },
+  "scripts": {
+    "dev": "vite --mode development",
+    "build": "vite build --mode production",
+    "preview": "vite preview",
+    "type-check": "vue-tsc --noEmit",
+    "lint": "cross-env CI=true oxlint && cross-env CI=true eslint .",
+    "lint:fix": "cross-env CI=true oxlint --fix && cross-env CI=true eslint . --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "gen:contracts": "node scripts/gen-contracts.mjs",
+    "contracts:check": "node scripts/gen-contracts.mjs --check",
+    "permissions:check": "node scripts/check-permissions.mjs",
+    "px:check": "node scripts/check-px.mjs",
+    "token:check": "node scripts/check-tokens.mjs",
+    "i18n:check": "node scripts/check-i18n.mjs",
+    "modules:check": "node scripts/check-modules.mjs",
+    "dev:token": "node scripts/dev-token.mjs",
+    "check": "pnpm run type-check && pnpm run lint && pnpm run px:check && pnpm run token:check && pnpm run i18n:check && pnpm run modules:check && pnpm run contracts:check && pnpm run permissions:check"
+  },
+  "dependencies": {
+    "@xihan-ui/core": "catalog:",
+    "@xihan-ui/headless": "catalog:",
+    "@xihan-ui/styles": "catalog:",
+    "@xihan-ui/tokens": "catalog:",
+    "@xihan-ui/vue": "catalog:",
+    "pinia": "catalog:",
+    "vue": "catalog:",
+    "vue-i18n": "catalog:",
+    "vue-router": "catalog:"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@types/node": "catalog:",
+    "@vitejs/plugin-vue": "catalog:",
+    "@vue/test-utils": "catalog:",
+    "cross-env": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-format": "catalog:",
+    "jsdom": "catalog:",
+    "openapi-typescript": "catalog:",
+    "oxlint": "catalog:",
+    "prettier": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "unplugin-vue-components": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "vue-tsc": "catalog:"
+  }
+}

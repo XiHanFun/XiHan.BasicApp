@@ -1,0 +1,15 @@
+/*
+ * 样式总入口（由 main.ts 唯一导入）。层序一次定死：XiHan.UI 的四层在前，Tailwind 的 theme / base / components / utilities 在后，
+ * 工具类压得住皮肤；xihan.overrides 垫底只放令牌改写。
+ */
+@layer xihan.reset, xihan.tokens, xihan.motion, xihan.components, theme, base, components, utilities, xihan.overrides;
+
+/* XiHan.UI 皮肤：自带 reset + 令牌 + 全部组件样式 */
+@import '@xihan-ui/styles';
+
+/* Tailwind v4（不引 preflight：基础重置由 XiHan.UI 的 xihan.reset 层负责） */
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+/* 设计令牌单轨：Tailwind 主题变量 → XiHan.UI 语义令牌 */
+@import '../../packages/design/index.css';

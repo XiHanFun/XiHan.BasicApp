@@ -1,0 +1,24 @@
+# 依赖与产物
+node_modules/
+dist/
+coverage/
+
+# 本地环境
+.env.local
+.env.*.local
+
+# 编辑器
+.idea/
+.DS_Store
+*.sw?
+
+# 生成物：由 unplugin-vue-components 按用到的 Xh* 部件写出
+src/types/components.d.ts
+
+# 缓存
+.eslintcache
+*.tsbuildinfo
+*.log
+
+# 没有锁文件（沿用 frontend 的做法）；XiHan.UI 本地联调的 overrides 也不提交
+pnpm-lock.yaml
