@@ -217,8 +217,9 @@ let drift = 0
 for (const [file, content] of Object.entries(outputs)) {
   const target = join(OUT_DIR, file)
   if (check) {
-    const current = await readFile(target, 'utf8').catch(() => null)
-    if (current !== content) {
+    // 只比内容：Windows 上 autocrlf 会把入库的生成物检出成 CRLF，换行符不算漂移
+    const current = (await readFile(target, 'utf8').catch(() => null))?.replaceAll('\r\n', '\n') ?? null
+    if (current !== content.replaceAll('\r\n', '\n')) {
       drift++
       console.error(`[contracts:check] ${file} 与 contracts/openapi.json 不一致，执行 pnpm gen:contracts 后提交`)
     }
