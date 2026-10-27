@@ -27,5 +27,6 @@
   "identity.auth.no_session": "Das aktuelle Token trägt keine Sitzung und kann nicht abgemeldet werden.",
   "identity.password.too_short": "Das Passwort muss mindestens {min} Zeichen lang sein.",
   "identity.password.too_simple": "Das Passwort muss Buchstaben und Ziffern enthalten.",
-  "identity.password.reused": "Das Passwort muss sich von den letzten {depth} Passwörtern unterscheiden."
+  "identity.password.reused": "Das Passwort muss sich von den letzten {depth} Passwörtern unterscheiden.",
+  "identity.auth.tenant_unavailable": "Der Mandant '{tenantId}' existiert nicht oder ist ausgesetzt."
 }

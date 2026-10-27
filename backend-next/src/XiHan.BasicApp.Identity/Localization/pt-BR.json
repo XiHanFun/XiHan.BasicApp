@@ -27,5 +27,6 @@
   "identity.auth.no_session": "O token atual não carrega sessão e não pode ser encerrado.",
   "identity.password.too_short": "A senha deve ter pelo menos {min} caracteres.",
   "identity.password.too_simple": "A senha deve conter letras e dígitos.",
-  "identity.password.reused": "A senha deve ser diferente das últimas {depth} senhas."
+  "identity.password.reused": "A senha deve ser diferente das últimas {depth} senhas.",
+  "identity.auth.tenant_unavailable": "O locatário '{tenantId}' não existe ou está suspenso."
 }

@@ -27,5 +27,6 @@
   "identity.auth.no_session": "現在のトークンにはセッションがないためログアウトできません。",
   "identity.password.too_short": "パスワードは {min} 文字以上にしてください。",
   "identity.password.too_simple": "パスワードには英字と数字の両方を含めてください。",
-  "identity.password.reused": "パスワードは直近 {depth} 回に使用したものと異なる必要があります。"
+  "identity.password.reused": "パスワードは直近 {depth} 回に使用したものと異なる必要があります。",
+  "identity.auth.tenant_unavailable": "テナント '{tenantId}' は存在しないか停止中です。"
 }

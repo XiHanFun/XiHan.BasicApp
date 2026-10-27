@@ -27,5 +27,6 @@
   "identity.auth.no_session": "Le jeton courant ne porte pas de session et ne peut pas être déconnecté.",
   "identity.password.too_short": "Le mot de passe doit comporter au moins {min} caractères.",
   "identity.password.too_simple": "Le mot de passe doit contenir des lettres et des chiffres.",
-  "identity.password.reused": "Le mot de passe doit être différent des {depth} derniers mots de passe."
+  "identity.password.reused": "Le mot de passe doit être différent des {depth} derniers mots de passe.",
+  "identity.auth.tenant_unavailable": "Le locataire '{tenantId}' n'existe pas ou est suspendu."
 }

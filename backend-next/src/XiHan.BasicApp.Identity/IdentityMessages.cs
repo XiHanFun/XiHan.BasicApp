@@ -147,6 +147,11 @@ public static class IdentityMessages
     public const string NoSession = "identity.auth.no_session";
 
     /// <summary>
+    /// 租户不存在或已停用；参数 <c>tenantId</c>。
+    /// </summary>
+    public const string TenantUnavailable = "identity.auth.tenant_unavailable";
+
+    /// <summary>
     /// 密码太短；参数 <c>min</c>。
     /// </summary>
     public const string PasswordTooShort = "identity.password.too_short";

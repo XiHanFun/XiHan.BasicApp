@@ -62,4 +62,9 @@ public static class IdentityErrors
     /// 账号被禁用、锁定或处于登录失败锁定期。
     /// </summary>
     public const string AccountUnavailable = "IDENTITY_DENIED_004";
+
+    /// <summary>
+    /// 登录指定的租户不存在或已停用（不核对用户名）。
+    /// </summary>
+    public const string TenantUnavailable = "IDENTITY_DENIED_005";
 }

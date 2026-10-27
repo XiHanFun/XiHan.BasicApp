@@ -7,6 +7,7 @@ using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Identity.Operations.Users;
 using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -26,6 +27,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="options">身份配置。</param>
 /// <param name="ids">标识生成器。</param>
 /// <param name="clock">时间源。</param>
+/// <param name="tenants">框架租户目录：租户账号登录前先确认租户存在且启用。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class Login(
     UserAccountService accounts,
@@ -36,7 +38,8 @@ public sealed class Login(
     AccessTokenIssuer issuer,
     IdentityOptions options,
     IIdGenerator<Guid> ids,
-    TimeProvider clock) : IOperation<LoginRequest, TokenResponse>
+    TimeProvider clock,
+    ITenantStore tenants) : IOperation<LoginRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -49,6 +52,16 @@ public sealed class Login(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var tenant = string.IsNullOrWhiteSpace(request.Tenant) ? TenantIds.Platform : request.Tenant.Trim();
+        // 租户账号：租户须在目录里且启用（停用的租户连用户名都不核对，直接拒绝）
+        if (!string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal))
+        {
+            var directory = await tenants.FindAsync(tenant, context.CancellationToken).ConfigureAwait(false);
+            if (!directory.TryGetValue(out var info) || !info.IsEnabled)
+            {
+                return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenant)));
+            }
+        }
+
         var found = await accounts.FindByNameAsync(tenant, request.UserName.Trim().ToLowerInvariant(), context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var user))
         {
