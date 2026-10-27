@@ -118,10 +118,11 @@ jobs:
         with:
           node-version: '24'
 
-      # 后端导出的 openapi.json 必须与入库的一致；再由它重新生成契约层，diff 也须为空
+      # 后端导出的 openapi.json 必须与入库的一致；再由它重新生成契约层，diff 也须为空。
+      # dotnet run 以工程目录为工作目录，--out 必须给绝对路径
       - name: 导出接口文档并比对
         run: |
-          dotnet run --project XiHan.BasicApp/backend-next/src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj -c Release -- contracts export --out XiHan.BasicApp/frontend-next/contracts
+          dotnet run --project XiHan.BasicApp/backend-next/src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj -c Release -- contracts export --out "$GITHUB_WORKSPACE/XiHan.BasicApp/frontend-next/contracts"
           git -C XiHan.BasicApp diff --exit-code -- frontend-next/contracts
 
       - name: 安装前端依赖

@@ -3,30 +3,24 @@
 
 using System.Diagnostics.CodeAnalysis;
 using XiHan.BasicApp.Contracts;
-using XiHan.Framework.Kernel.Operations;
-using XiHan.Framework.Kernel.Security;
-using XiHan.Framework.Localization.Abstractions.Locales;
-using XiHan.Framework.Localization.Abstractions.Messages;
-using XiHan.Framework.Primitives;
-using XiHan.Framework.Protocols.Http;
 using XiHan.Framework.Protocols.Http.OpenApi;
-using XiHan.Framework.Security.Abstractions.Authentication;
 
 namespace XiHan.BasicApp.Host.Contracts;
 
 /// <summary>
-/// <c>contracts export --out &lt;dir&gt;</c>：把与 <c>/openapi.json</c> 同一生成器产出的接口文档写成 <c>openapi.json</c>，供前端 <c>gen-contracts</c> 与 CI 漂移门禁使用。
-/// 摘要按默认区域（<c>en-US</c>）取，与 <c>/openapi.json</c> 在 <c>Accept-Language: en-US</c> 下的内容一致。不启动应用，不需要数据库。
+/// <c>contracts export --out &lt;目录&gt;</c>：把宿主装配后的接口文档（<c>openapi.json</c>，含操作、权限码扩展与普通端点）写到目录，不启动应用、不连数据库。
+/// 文档输入由框架 <see cref="OpenApiDocumentSource.FromServices"/> 组装，与 <c>MapXiHanOpenApi</c> 服务的 <c>/openapi.json</c> 同源（集成测试逐字节比对）。
+/// 前端 <c>gen-contracts</c> 与 CI 的契约漂移门禁读这个文件。
 /// </summary>
 public static class ContractsExporter
 {
-    /// <summary>导出文件名。</summary>
+    /// <summary>
+    /// 输出文件名。
+    /// </summary>
     public const string FileName = "openapi.json";
 
-    private const string DescriptionKeySuffix = ".description";
-
     /// <summary>
-    /// 识别命令行 <c>contracts export --out &lt;dir&gt;</c>（也接受 <c>--out=&lt;dir&gt;</c>）。
+    /// 解析命令行：<c>contracts export --out &lt;目录&gt;</c>（或 <c>--out=&lt;目录&gt;</c>）。不是这条命令返回假；是但缺 <c>--out</c> 抛出用法错误。
     /// </summary>
     public static bool TryParse(IReadOnlyList<string> args, [NotNullWhen(true)] out string? outputDirectory)
     {
@@ -56,7 +50,7 @@ public static class ContractsExporter
     }
 
     /// <summary>
-    /// 生成文档并写入 <paramref name="outputDirectory"/>/<see cref="FileName"/>；返回进程退出码。
+    /// 生成文档并写到 <paramref name="outputDirectory"/>，把完整路径打到 stdout；返回进程退出码。
     /// </summary>
     public static int Export(WebApplication app, string outputDirectory)
     {
@@ -71,30 +65,13 @@ public static class ContractsExporter
     }
 
     /// <summary>
-    /// 与 <c>MapXiHanOpenApi</c> 同一来源的文档字节：登记表、权限码注册表、认证方案与宿主已映射的全部端点。
+    /// 生成文档字节：标题与版本取 <see cref="AppInfo"/>，端点取宿主全部数据源，摘要按默认区域。
     /// </summary>
     public static byte[] Build(WebApplication app)
     {
         ArgumentNullException.ThrowIfNull(app);
-        var services = app.Services;
-        var localizer = services.GetService<IMessageLocalizer>();
-        var locale = localizer?.Options.DefaultLocale ?? SupportedLocales.Default;
-        return OpenApiDocumentBuilder.Build(new OpenApiDocumentSource(
-            services.GetRequiredService<OperationRegistry>(),
-            services.GetService<HttpProtocolOptions>() ?? new HttpProtocolOptions(),
-            services.GetService<PermissionRegistry>())
-        {
-            Title = AppInfo.Name,
-            Version = AppInfo.Version,
-            AuthenticationSchemes = services.GetServices<IAuthenticationHandler>().Select(static h => h.Scheme).ToList(),
-            Endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(static source => source.Endpoints).ToList(),
-            Describe = localizer is null ? null : id => Describe(localizer, id, locale),
-        });
-    }
-
-    private static string? Describe(IMessageLocalizer localizer, string operationId, string locale)
-    {
-        var key = operationId.Replace('-', '_') + DescriptionKeySuffix;
-        return MessageTemplate.IsValidKey(key) && localizer.Find(key, locale).TryGetValue(out var text) ? text : null;
+        var endpoints = ((IEndpointRouteBuilder)app).DataSources.SelectMany(static source => source.Endpoints);
+        var source = OpenApiDocumentSource.FromServices(app.Services, new OpenApiOptions { Title = AppInfo.Name, Version = AppInfo.Version }, endpoints);
+        return OpenApiDocumentBuilder.Build(source);
     }
 }
