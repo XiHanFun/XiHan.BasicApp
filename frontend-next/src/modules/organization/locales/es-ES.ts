@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: 'Departamentos',
+      description: 'Árbol de departamentos del inquilino actual: crear, editar, mover, eliminar y gestionar miembros.',
+      fields: {
+        code: 'Código',
+        name: 'Nombre',
+        parent: 'Superior',
+        leader: 'Responsable',
+        status: 'Estado',
+        order: 'Orden',
+        description: 'Descripción',
+        created_at: 'Creado el',
+        member_count: 'Miembros',
+        path: 'Ruta',
+      },
+      actions: {
+        create: 'Crear departamento',
+        save: 'Guardar',
+        move: 'Mover',
+        delete: 'Eliminar departamento',
+        add_member: 'Añadir miembro',
+        remove_member: 'Quitar',
+        set_primary: 'Marcar principal',
+      },
+      sections: {
+        detail: 'Departamento',
+        members: 'Miembros',
+      },
+      member_form: {
+        user: 'Usuario',
+        position: 'Puesto',
+        employee_number: 'Número de empleado',
+        primary: 'Departamento principal',
+      },
+      status: {
+        active: 'Activo',
+        disabled: 'Deshabilitado',
+      },
+      empty: 'Aún no hay departamentos.',
+      total: '{total} departamentos',
+      top_level: '(nivel superior)',
+      no_members: 'Aún no hay miembros.',
+      saved: 'Departamento guardado.',
+      moved: 'Departamento movido.',
+      member_added: 'Miembro añadido.',
+      primary_badge: 'Principal',
+    },
+    positions: {
+      title: 'Puestos',
+      description: 'Puestos del inquilino actual, referenciados por los miembros de los departamentos.',
+      fields: {
+        code: 'Código',
+        name: 'Nombre',
+        status: 'Estado',
+        order: 'Orden',
+        description: 'Descripción',
+        created_at: 'Creado el',
+      },
+      actions: {
+        create: 'Crear puesto',
+        save: 'Guardar',
+        delete: 'Eliminar puesto',
+      },
+      status: {
+        active: 'Activo',
+        disabled: 'Deshabilitado',
+      },
+      empty: 'Aún no hay puestos.',
+      total: '{total} puestos',
+      saved: 'Puesto guardado.',
+    },
+  },
+}

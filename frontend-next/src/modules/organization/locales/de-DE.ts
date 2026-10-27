@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: 'Abteilungen',
+      description: 'Abteilungsbaum des aktuellen Mandanten: anlegen, bearbeiten, verschieben, löschen und Mitglieder verwalten.',
+      fields: {
+        code: 'Code',
+        name: 'Name',
+        parent: 'Übergeordnet',
+        leader: 'Leitung',
+        status: 'Status',
+        order: 'Reihenfolge',
+        description: 'Beschreibung',
+        created_at: 'Erstellt am',
+        member_count: 'Mitglieder',
+        path: 'Pfad',
+      },
+      actions: {
+        create: 'Abteilung anlegen',
+        save: 'Speichern',
+        move: 'Verschieben',
+        delete: 'Abteilung löschen',
+        add_member: 'Mitglied hinzufügen',
+        remove_member: 'Entfernen',
+        set_primary: 'Als Hauptabteilung',
+      },
+      sections: {
+        detail: 'Abteilung',
+        members: 'Mitglieder',
+      },
+      member_form: {
+        user: 'Benutzer',
+        position: 'Stelle',
+        employee_number: 'Personalnummer',
+        primary: 'Hauptabteilung',
+      },
+      status: {
+        active: 'Aktiv',
+        disabled: 'Deaktiviert',
+      },
+      empty: 'Noch keine Abteilungen.',
+      total: '{total} Abteilungen',
+      top_level: '(oberste Ebene)',
+      no_members: 'Noch keine Mitglieder.',
+      saved: 'Abteilung gespeichert.',
+      moved: 'Abteilung verschoben.',
+      member_added: 'Mitglied hinzugefügt.',
+      primary_badge: 'Haupt',
+    },
+    positions: {
+      title: 'Stellen',
+      description: 'Stellen des aktuellen Mandanten, auf die Abteilungsmitglieder verweisen.',
+      fields: {
+        code: 'Code',
+        name: 'Name',
+        status: 'Status',
+        order: 'Reihenfolge',
+        description: 'Beschreibung',
+        created_at: 'Erstellt am',
+      },
+      actions: {
+        create: 'Stelle anlegen',
+        save: 'Speichern',
+        delete: 'Stelle löschen',
+      },
+      status: {
+        active: 'Aktiv',
+        disabled: 'Deaktiviert',
+      },
+      empty: 'Noch keine Stellen.',
+      total: '{total} Stellen',
+      saved: 'Stelle gespeichert.',
+    },
+  },
+}

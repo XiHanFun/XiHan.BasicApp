@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: 'Подразделения',
+      description: 'Дерево подразделений текущего арендатора: создание, правка, перенос, удаление и участники.',
+      fields: {
+        code: 'Код',
+        name: 'Имя',
+        parent: 'Родитель',
+        leader: 'Руководитель',
+        status: 'Статус',
+        order: 'Порядок',
+        description: 'Описание',
+        created_at: 'Создано',
+        member_count: 'Участники',
+        path: 'Путь',
+      },
+      actions: {
+        create: 'Создать подразделение',
+        save: 'Сохранить',
+        move: 'Перенести',
+        delete: 'Удалить подразделение',
+        add_member: 'Добавить участника',
+        remove_member: 'Убрать',
+        set_primary: 'Сделать основным',
+      },
+      sections: {
+        detail: 'Подразделение',
+        members: 'Участники',
+      },
+      member_form: {
+        user: 'Пользователь',
+        position: 'Должность',
+        employee_number: 'Табельный номер',
+        primary: 'Основное подразделение',
+      },
+      status: {
+        active: 'Активно',
+        disabled: 'Отключено',
+      },
+      empty: 'Подразделений пока нет.',
+      total: 'Подразделений: {total}',
+      top_level: '(верхний уровень)',
+      no_members: 'Участников пока нет.',
+      saved: 'Подразделение сохранено.',
+      moved: 'Подразделение перенесено.',
+      member_added: 'Участник добавлен.',
+      primary_badge: 'Основное',
+    },
+    positions: {
+      title: 'Должности',
+      description: 'Должности текущего арендатора, на которые ссылаются участники подразделений.',
+      fields: {
+        code: 'Код',
+        name: 'Имя',
+        status: 'Статус',
+        order: 'Порядок',
+        description: 'Описание',
+        created_at: 'Создано',
+      },
+      actions: {
+        create: 'Создать должность',
+        save: 'Сохранить',
+        delete: 'Удалить должность',
+      },
+      status: {
+        active: 'Активна',
+        disabled: 'Отключена',
+      },
+      empty: 'Должностей пока нет.',
+      total: 'Должностей: {total}',
+      saved: 'Должность сохранена.',
+    },
+  },
+}

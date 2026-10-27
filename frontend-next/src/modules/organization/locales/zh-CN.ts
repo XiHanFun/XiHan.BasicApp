@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: '部门',
+      description: '当前租户的部门树：创建、编辑、移动、删除与成员维护。',
+      fields: {
+        code: '编码',
+        name: '名称',
+        parent: '上级',
+        leader: '负责人',
+        status: '状态',
+        order: '排序',
+        description: '说明',
+        created_at: '创建时间',
+        member_count: '成员',
+        path: '路径',
+      },
+      actions: {
+        create: '创建部门',
+        save: '保存',
+        move: '移动',
+        delete: '删除部门',
+        add_member: '添加成员',
+        remove_member: '移出',
+        set_primary: '设为主部门',
+      },
+      sections: {
+        detail: '部门',
+        members: '成员',
+      },
+      member_form: {
+        user: '用户',
+        position: '岗位',
+        employee_number: '工号',
+        primary: '主部门',
+      },
+      status: {
+        active: '启用',
+        disabled: '停用',
+      },
+      empty: '还没有部门。',
+      total: '共 {total} 个部门',
+      top_level: '（顶层）',
+      no_members: '还没有成员。',
+      saved: '部门已保存。',
+      moved: '部门已移动。',
+      member_added: '成员已添加。',
+      primary_badge: '主',
+    },
+    positions: {
+      title: '岗位',
+      description: '当前租户的岗位，供部门成员引用。',
+      fields: {
+        code: '编码',
+        name: '名称',
+        status: '状态',
+        order: '排序',
+        description: '说明',
+        created_at: '创建时间',
+      },
+      actions: {
+        create: '创建岗位',
+        save: '保存',
+        delete: '删除岗位',
+      },
+      status: {
+        active: '启用',
+        disabled: '停用',
+      },
+      empty: '还没有岗位。',
+      total: '共 {total} 个岗位',
+      saved: '岗位已保存。',
+    },
+  },
+}

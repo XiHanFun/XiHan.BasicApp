@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: 'Services',
+      description: 'Arbre des services du locataire courant : créer, modifier, déplacer, supprimer et gérer les membres.',
+      fields: {
+        code: 'Code',
+        name: 'Nom',
+        parent: 'Parent',
+        leader: 'Responsable',
+        status: 'Statut',
+        order: 'Ordre',
+        description: 'Description',
+        created_at: 'Créé le',
+        member_count: 'Membres',
+        path: 'Chemin',
+      },
+      actions: {
+        create: 'Créer un service',
+        save: 'Enregistrer',
+        move: 'Déplacer',
+        delete: 'Supprimer le service',
+        add_member: 'Ajouter un membre',
+        remove_member: 'Retirer',
+        set_primary: 'Définir principal',
+      },
+      sections: {
+        detail: 'Service',
+        members: 'Membres',
+      },
+      member_form: {
+        user: 'Utilisateur',
+        position: 'Poste',
+        employee_number: 'Matricule',
+        primary: 'Service principal',
+      },
+      status: {
+        active: 'Actif',
+        disabled: 'Désactivé',
+      },
+      empty: 'Aucun service pour l\'instant.',
+      total: '{total} services',
+      top_level: '(premier niveau)',
+      no_members: 'Aucun membre pour l\'instant.',
+      saved: 'Service enregistré.',
+      moved: 'Service déplacé.',
+      member_added: 'Membre ajouté.',
+      primary_badge: 'Principal',
+    },
+    positions: {
+      title: 'Postes',
+      description: 'Postes du locataire courant, référencés par les membres des services.',
+      fields: {
+        code: 'Code',
+        name: 'Nom',
+        status: 'Statut',
+        order: 'Ordre',
+        description: 'Description',
+        created_at: 'Créé le',
+      },
+      actions: {
+        create: 'Créer un poste',
+        save: 'Enregistrer',
+        delete: 'Supprimer le poste',
+      },
+      status: {
+        active: 'Actif',
+        disabled: 'Désactivé',
+      },
+      empty: 'Aucun poste pour l\'instant.',
+      total: '{total} postes',
+      saved: 'Poste enregistré.',
+    },
+  },
+}

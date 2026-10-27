@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: 'Departments',
+      description: 'Department tree of the current tenant: create, edit, move, delete, and manage members.',
+      fields: {
+        code: 'Code',
+        name: 'Name',
+        parent: 'Parent',
+        leader: 'Leader',
+        status: 'Status',
+        order: 'Order',
+        description: 'Description',
+        created_at: 'Created at',
+        member_count: 'Members',
+        path: 'Path',
+      },
+      actions: {
+        create: 'Create department',
+        save: 'Save',
+        move: 'Move',
+        delete: 'Delete department',
+        add_member: 'Add member',
+        remove_member: 'Remove',
+        set_primary: 'Set primary',
+      },
+      sections: {
+        detail: 'Department',
+        members: 'Members',
+      },
+      member_form: {
+        user: 'User',
+        position: 'Position',
+        employee_number: 'Employee number',
+        primary: 'Primary department',
+      },
+      status: {
+        active: 'Active',
+        disabled: 'Disabled',
+      },
+      empty: 'No departments yet.',
+      total: '{total} departments',
+      top_level: '(top level)',
+      no_members: 'No members yet.',
+      saved: 'Department saved.',
+      moved: 'Department moved.',
+      member_added: 'Member added.',
+      primary_badge: 'Primary',
+    },
+    positions: {
+      title: 'Positions',
+      description: 'Positions of the current tenant, referenced by department members.',
+      fields: {
+        code: 'Code',
+        name: 'Name',
+        status: 'Status',
+        order: 'Order',
+        description: 'Description',
+        created_at: 'Created at',
+      },
+      actions: {
+        create: 'Create position',
+        save: 'Save',
+        delete: 'Delete position',
+      },
+      status: {
+        active: 'Active',
+        disabled: 'Disabled',
+      },
+      empty: 'No positions yet.',
+      total: '{total} positions',
+      saved: 'Position saved.',
+    },
+  },
+}

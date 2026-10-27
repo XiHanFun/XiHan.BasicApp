@@ -1,0 +1,76 @@
+// 文案文件：键集须与 en-US.ts 完全对称（scripts/check-i18n.mjs 守护）。
+export default {
+  organization: {
+    departments: {
+      title: '部門',
+      description: '現在のテナントの部門ツリー：作成、編集、移動、削除、メンバー管理。',
+      fields: {
+        code: 'コード',
+        name: '名前',
+        parent: '親部門',
+        leader: '責任者',
+        status: '状態',
+        order: '並び順',
+        description: '説明',
+        created_at: '作成日時',
+        member_count: 'メンバー',
+        path: 'パス',
+      },
+      actions: {
+        create: '部門を作成',
+        save: '保存',
+        move: '移動',
+        delete: '部門を削除',
+        add_member: 'メンバーを追加',
+        remove_member: '外す',
+        set_primary: '主所属にする',
+      },
+      sections: {
+        detail: '部門',
+        members: 'メンバー',
+      },
+      member_form: {
+        user: 'ユーザー',
+        position: '役職',
+        employee_number: '社員番号',
+        primary: '主所属',
+      },
+      status: {
+        active: '有効',
+        disabled: '無効',
+      },
+      empty: '部門はまだありません。',
+      total: '{total} 件の部門',
+      top_level: '（最上位）',
+      no_members: 'メンバーはまだいません。',
+      saved: '部門を保存しました。',
+      moved: '部門を移動しました。',
+      member_added: 'メンバーを追加しました。',
+      primary_badge: '主',
+    },
+    positions: {
+      title: '役職',
+      description: '現在のテナントの役職。部門メンバーから参照されます。',
+      fields: {
+        code: 'コード',
+        name: '名前',
+        status: '状態',
+        order: '並び順',
+        description: '説明',
+        created_at: '作成日時',
+      },
+      actions: {
+        create: '役職を作成',
+        save: '保存',
+        delete: '役職を削除',
+      },
+      status: {
+        active: '有効',
+        disabled: '無効',
+      },
+      empty: '役職はまだありません。',
+      total: '{total} 件の役職',
+      saved: '役職を保存しました。',
+    },
+  },
+}
