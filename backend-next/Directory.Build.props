@@ -1,0 +1,34 @@
+<Project>
+  <!-- backend-next 自成一体：不导入仓库根或 backend/ 的任何 props，6.0 与 5.x 的构建策略互不影响 -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- NuGet 审计：高危(NU1903)/严重(NU1904)漏洞直接中断构建 -->
+    <WarningsAsErrors>$(WarningsAsErrors);NU1903;NU1904</WarningsAsErrors>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <!-- .editorconfig 里的命名与风格规则在构建期一并执行，IDE 与 CI 同一口径 -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Version>6.0.0-preview.1</Version>
+    <Authors>XiHanFun</Authors>
+    <Company>XiHanFun</Company>
+    <Product>XiHan.BasicApp</Product>
+    <Copyright>Copyright (c) 2021-Present XiHanFun and contributors.</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/XiHanFun/XiHan.BasicApp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- 框架引用方式（ProjectReference 指向同级 XiHan.Framework/next/src，或 NuGet 包）由 props/framework.props 决定 -->
+  <Import Project="$(MSBuildThisFileDirectory)props/framework.props" />
+</Project>

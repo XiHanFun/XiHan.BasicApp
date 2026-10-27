@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/0.Base/">
+    <Project Path="src/XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <Project Path="src/XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+  </Folder>
+  <Folder Name="/1.Identity/">
+    <Project Path="src/XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+  </Folder>
+  <Folder Name="/Host/">
+    <Project Path="src/XiHan.BasicApp.Host/XiHan.BasicApp.Host.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="test/XiHan.BasicApp.Architecture.Tests/XiHan.BasicApp.Architecture.Tests.csproj" />
+    <Project Path="test/XiHan.BasicApp.Integration.Tests/XiHan.BasicApp.Integration.Tests.csproj" />
+  </Folder>
+</Solution>
