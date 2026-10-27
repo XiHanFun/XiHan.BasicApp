@@ -17,7 +17,9 @@ public static class Packages
 {
     public const string Prefix = "XiHan.BasicApp.";
 
-    /// <summary>包名（去前缀）→ 秩；引用只能指向秩更小的包。</summary>
+    /// <summary>
+    /// 包名（去前缀）→ 秩；引用只能指向秩更小的包。
+    /// </summary>
     public static IReadOnlyDictionary<string, int> Ranks { get; } = new Dictionary<string, int>(StringComparer.Ordinal)
     {
         // Tier 0：Contracts → Runtime
@@ -47,16 +49,22 @@ public static class Packages
         ["Host"] = 100,
     };
 
-    /// <summary>Tier 0 基座与宿主不按能力包的目录结构约束。</summary>
+    /// <summary>
+    /// Tier 0 基座与宿主不按能力包的目录结构约束。
+    /// </summary>
     public static IReadOnlySet<string> StructureExempt { get; } = new HashSet<string>(StringComparer.Ordinal) { "Contracts", "Runtime", "Host" };
 
-    /// <summary>能力包顶层目录白名单（方案 5.3）。</summary>
+    /// <summary>
+    /// 能力包顶层目录白名单（方案 5.3）。
+    /// </summary>
     public static IReadOnlySet<string> CapabilityDirectories { get; } = new HashSet<string>(StringComparer.Ordinal)
     {
         "Domain", "Operations", "Queries", "Handlers", "Middleware", "Jobs", "Infrastructure", "Seeds", "Schema", "Localization",
     };
 
-    /// <summary>已装进测试进程的正式程序集（宿主引用了全部能力包）。</summary>
+    /// <summary>
+    /// 已装进测试进程的正式程序集（宿主引用了全部能力包）。
+    /// </summary>
     public static IReadOnlyList<Assembly> Assemblies { get; } =
     [
         typeof(AppInfo).Assembly,
@@ -65,12 +73,16 @@ public static class Packages
         typeof(BasicAppHost).Assembly,
     ];
 
-    /// <summary>backend-next 目录（含 XiHan.BasicApp.slnx）。</summary>
+    /// <summary>
+    /// backend-next 目录（含 XiHan.BasicApp.slnx）。
+    /// </summary>
     public static string Root { get; } = Locate();
 
     public static string SourceRoot => Path.Combine(Root, "src");
 
-    /// <summary>src 下全部工程：包名（去前缀）→ 工程文件路径。</summary>
+    /// <summary>
+    /// src 下全部工程：包名（去前缀）→ 工程文件路径。
+    /// </summary>
     public static IReadOnlyDictionary<string, string> Projects { get; } = Directory
         .EnumerateFiles(SourceRoot, "*.csproj", SearchOption.AllDirectories)
         .ToDictionary(static p => ShortName(Path.GetFileNameWithoutExtension(p)), static p => p, StringComparer.Ordinal);
@@ -81,7 +93,9 @@ public static class Packages
         return assemblyOrProjectName.StartsWith(Prefix, StringComparison.Ordinal) ? assemblyOrProjectName[Prefix.Length..] : assemblyOrProjectName;
     }
 
-    /// <summary>工程文件里对本应用其他包的 ProjectReference（短名）。</summary>
+    /// <summary>
+    /// 工程文件里对本应用其他包的 ProjectReference（短名）。
+    /// </summary>
     public static IReadOnlyList<string> PackageReferencesOf(string projectPath)
     {
         var document = XDocument.Load(projectPath);

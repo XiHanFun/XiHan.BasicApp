@@ -10,9 +10,13 @@ namespace XiHan.BasicApp.Identity;
 /// </summary>
 public static class IdentityCapabilities
 {
-    /// <summary>身份能力：用户、会话、个人中心。</summary>
+    /// <summary>
+    /// 身份能力：用户、会话、个人中心。
+    /// </summary>
     public const string Identity = AppInfo.CapabilityPrefix + "identity";
 
-    /// <summary>能力版本。</summary>
+    /// <summary>
+    /// 能力版本。
+    /// </summary>
     public const int Version = AppInfo.CapabilityVersion;
 }

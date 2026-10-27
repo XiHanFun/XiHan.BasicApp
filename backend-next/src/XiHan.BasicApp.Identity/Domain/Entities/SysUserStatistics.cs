@@ -10,12 +10,18 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// </summary>
 public sealed class SysUserStatistics : TenantScopedAuditedEntity
 {
-    /// <summary>用户 ID。</summary>
+    /// <summary>
+    /// 用户 ID。
+    /// </summary>
     public Guid UserId { get; set; }
 
-    /// <summary>登录次数。</summary>
+    /// <summary>
+    /// 登录次数。
+    /// </summary>
     public int LoginCount { get; set; }
 
-    /// <summary>最近登录时间。</summary>
+    /// <summary>
+    /// 最近登录时间。
+    /// </summary>
     public DateTimeOffset? LastLoginAt { get; set; }
 }

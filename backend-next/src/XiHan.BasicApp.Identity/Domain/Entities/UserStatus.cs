@@ -8,12 +8,18 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// </summary>
 public enum UserStatus
 {
-    /// <summary>正常。</summary>
+    /// <summary>
+    /// 正常。
+    /// </summary>
     Active = 0,
 
-    /// <summary>已禁用，不能登录。</summary>
+    /// <summary>
+    /// 已禁用，不能登录。
+    /// </summary>
     Disabled = 1,
 
-    /// <summary>已锁定（安全策略触发），待解锁。</summary>
+    /// <summary>
+    /// 已锁定（安全策略触发），待解锁。
+    /// </summary>
     Locked = 2,
 }

@@ -8,12 +8,18 @@ namespace XiHan.BasicApp.Contracts.Security;
 /// </summary>
 public enum PermissionScope
 {
-    /// <summary>只有平台主体可用。</summary>
+    /// <summary>
+    /// 只有平台主体可用。
+    /// </summary>
     Platform = 0,
 
-    /// <summary>只有租户主体可用。</summary>
+    /// <summary>
+    /// 只有租户主体可用。
+    /// </summary>
     Tenant = 1,
 
-    /// <summary>两侧都可用。</summary>
+    /// <summary>
+    /// 两侧都可用。
+    /// </summary>
     Both = 2,
 }
