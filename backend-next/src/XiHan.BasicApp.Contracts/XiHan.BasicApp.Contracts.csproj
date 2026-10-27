@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Contracts</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 的跨包契约：实体协议与应用基类、分页与批量结果、权限描述。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 实体协议（IEntity、审计接口、租户、软删除、聚合根） -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
+    <!-- PermissionDefinition：权限描述换算成内核权限定义 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+  </ItemGroup>
+</Project>
