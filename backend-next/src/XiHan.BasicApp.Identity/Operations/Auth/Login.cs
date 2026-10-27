@@ -110,7 +110,8 @@ public sealed class Login(
             return added.Error!;
         }
 
-        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, []);
+        var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
+        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user));
     }
 
