@@ -28,5 +28,13 @@
   "identity.password.too_short": "The password must be at least {min} characters long.",
   "identity.password.too_simple": "The password must contain both letters and digits.",
   "identity.password.reused": "The password must differ from the last {depth} passwords.",
-  "identity.auth.tenant_unavailable": "Tenant '{tenantId}' does not exist or is suspended."
+  "identity.auth.tenant_unavailable": "Tenant '{tenantId}' does not exist or is suspended.",
+  "auth.switch_tenant.description": "Switch the current session to another tenant (home tenant or a tenant the user is a member of) or back to the platform (platform accounts only); returns new tokens.",
+  "impersonation.start.description": "Sign in as another user: opens a separate session for the target and returns tokens carrying the actor claim. Tenant subjects stay in their own tenant. Requires identity.impersonation.start.",
+  "impersonation.stop.description": "End impersonation: revokes the impersonation session and returns tokens for the actor's original session.",
+  "impersonation.candidates.description": "List up to 20 active users that can be impersonated in a tenant (or the platform), matched by keyword. Requires identity.impersonation.start.",
+  "identity.auth.tenant_not_accessible": "You cannot enter tenant '{tenantId}'.",
+  "identity.impersonation.active": "The current session is already impersonating another user.",
+  "identity.impersonation.not_active": "The current session is not impersonating anyone.",
+  "identity.impersonation.target_unavailable": "User '{id}' cannot be impersonated here."
 }

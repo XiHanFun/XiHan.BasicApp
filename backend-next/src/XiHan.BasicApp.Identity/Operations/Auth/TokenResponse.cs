@@ -16,6 +16,8 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="TenantId">当前租户；平台账号为 <see langword="null"/>。</param>
 /// <param name="MustChangePassword">是否必须先改密。</param>
 /// <param name="User">用户资料。</param>
+/// <param name="TenantName">当前租户的显示名；平台为 <see langword="null"/>。</param>
+/// <param name="ImpersonatorUserName">模仿会话的发起人登录名；普通会话为 <see langword="null"/>。</param>
 public sealed record TokenResponse(
     string AccessToken,
     DateTimeOffset AccessExpiresAt,
@@ -24,4 +26,6 @@ public sealed record TokenResponse(
     Guid SessionId,
     string? TenantId,
     bool MustChangePassword,
-    UserResponse User);
+    UserResponse User,
+    string? TenantName = null,
+    string? ImpersonatorUserName = null);

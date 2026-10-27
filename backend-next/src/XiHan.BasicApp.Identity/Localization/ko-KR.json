@@ -28,5 +28,13 @@
   "identity.password.too_short": "비밀번호는 {min}자 이상이어야 합니다.",
   "identity.password.too_simple": "비밀번호에는 영문자와 숫자가 모두 포함되어야 합니다.",
   "identity.password.reused": "비밀번호는 최근 {depth}회 사용한 것과 달라야 합니다.",
-  "identity.auth.tenant_unavailable": "테넌트 '{tenantId}'이(가) 존재하지 않거나 중지되었습니다."
+  "identity.auth.tenant_unavailable": "테넌트 '{tenantId}'이(가) 존재하지 않거나 중지되었습니다.",
+  "auth.switch_tenant.description": "현재 세션을 다른 테넌트(소속 테넌트 또는 구성원인 테넌트)로 전환하거나 플랫폼으로 돌아갑니다(플랫폼 계정만). 새 토큰을 반환합니다.",
+  "impersonation.start.description": "다른 사용자로 로그인합니다. 대상용 세션을 따로 열고 수행자 클레임이 담긴 토큰을 반환합니다. 테넌트 주체는 자기 테넌트 안에서만 가장할 수 있습니다. identity.impersonation.start 권한이 필요합니다.",
+  "impersonation.stop.description": "가장을 종료합니다. 가장 세션을 취소하고 수행자의 원래 세션 토큰을 반환합니다.",
+  "impersonation.candidates.description": "테넌트(또는 플랫폼)에서 가장할 수 있는 활성 사용자를 키워드로 최대 20명까지 나열합니다. identity.impersonation.start 권한이 필요합니다.",
+  "identity.auth.tenant_not_accessible": "테넌트 '{tenantId}'에 들어갈 수 없습니다.",
+  "identity.impersonation.active": "현재 세션은 이미 다른 사용자를 가장하고 있습니다.",
+  "identity.impersonation.not_active": "현재 세션은 가장 상태가 아닙니다.",
+  "identity.impersonation.target_unavailable": "사용자 '{id}'는 여기서 가장할 수 없습니다."
 }

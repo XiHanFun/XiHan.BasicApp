@@ -28,5 +28,13 @@
   "identity.password.too_short": "Le mot de passe doit comporter au moins {min} caractères.",
   "identity.password.too_simple": "Le mot de passe doit contenir des lettres et des chiffres.",
   "identity.password.reused": "Le mot de passe doit être différent des {depth} derniers mots de passe.",
-  "identity.auth.tenant_unavailable": "Le locataire '{tenantId}' n'existe pas ou est suspendu."
+  "identity.auth.tenant_unavailable": "Le locataire '{tenantId}' n'existe pas ou est suspendu.",
+  "auth.switch_tenant.description": "Bascule la session actuelle vers un autre locataire (locataire d'origine ou locataire dont l'utilisateur est membre) ou revient à la plateforme (comptes plateforme uniquement) ; renvoie de nouveaux jetons.",
+  "impersonation.start.description": "Se connecter en tant qu'un autre utilisateur : ouvre une session distincte pour la cible et renvoie des jetons portant la revendication d'acteur. Les sujets de locataire restent dans leur locataire. Nécessite identity.impersonation.start.",
+  "impersonation.stop.description": "Met fin à l'usurpation : révoque la session d'usurpation et renvoie les jetons de la session d'origine de l'acteur.",
+  "impersonation.candidates.description": "Liste jusqu'à 20 utilisateurs actifs pouvant être usurpés dans un locataire (ou sur la plateforme), filtrés par mot-clé. Nécessite identity.impersonation.start.",
+  "identity.auth.tenant_not_accessible": "Vous ne pouvez pas entrer dans le locataire '{tenantId}'.",
+  "identity.impersonation.active": "La session actuelle usurpe déjà un autre utilisateur.",
+  "identity.impersonation.not_active": "La session actuelle n'usurpe personne.",
+  "identity.impersonation.target_unavailable": "L'utilisateur '{id}' ne peut pas être usurpé ici."
 }

@@ -12,7 +12,7 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Identity.Infrastructure;
 
 /// <summary>
-/// 会话门禁（单例）：按访问令牌的 <c>sid</c> 核对会话仍有效（未吊销、未过期、用户正常）。
+/// 会话门禁（单例）：按访问令牌的 <c>sid</c> 核对会话仍有效（未吊销、未过期、用户正常；模仿会话还要求发起人的原会话仍有效）。
 /// 在 Authenticate 阶段被调用，那时还没有工作单元，所以经 <see cref="StoreScope"/> 在独立作用域里只读；结果进共享缓存，存活 <see cref="IdentityOptions.SessionCacheTimeToLive"/>，吊销时主动失效。
 /// </summary>
 public sealed class SessionGate
@@ -59,10 +59,21 @@ public sealed class SessionGate
         var now = _clock.GetUtcNow();
         return await StoreScope.ReadAsync(_scopes, async (services, ct) =>
         {
-            var session = await services.GetRequiredService<IRepository<SysUserSession, Guid>>().FindAsync(sessionId, ct).ConfigureAwait(false);
+            var sessions = services.GetRequiredService<IRepository<SysUserSession, Guid>>();
+            var session = await sessions.FindAsync(sessionId, ct).ConfigureAwait(false);
             if (!session.TryGetValue(out var row) || !row.IsActive(now))
             {
                 return Invalid;
+            }
+
+            // 模仿会话随发起人的原会话一起失效：发起人注销或被吊销后，被模仿身份的令牌也不能再用
+            if (row.ImpersonatorSessionId is { } originId)
+            {
+                var origin = await sessions.FindAsync(originId, ct).ConfigureAwait(false);
+                if (!origin.TryGetValue(out var originRow) || !originRow.IsActive(now))
+                {
+                    return Invalid;
+                }
             }
 
             var user = await services.GetRequiredService<IRepository<SysUser, Guid>>().FindAsync(row.UserId, ct).ConfigureAwait(false);

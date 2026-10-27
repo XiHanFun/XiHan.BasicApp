@@ -28,5 +28,13 @@
   "identity.password.too_short": "A senha deve ter pelo menos {min} caracteres.",
   "identity.password.too_simple": "A senha deve conter letras e dígitos.",
   "identity.password.reused": "A senha deve ser diferente das últimas {depth} senhas.",
-  "identity.auth.tenant_unavailable": "O locatário '{tenantId}' não existe ou está suspenso."
+  "identity.auth.tenant_unavailable": "O locatário '{tenantId}' não existe ou está suspenso.",
+  "auth.switch_tenant.description": "Troca a sessão atual para outro locatário (o de origem ou um do qual o usuário é membro) ou volta à plataforma (somente contas de plataforma); retorna novos tokens.",
+  "impersonation.start.description": "Entra como outro usuário: abre uma sessão separada para o alvo e retorna tokens com a declaração do ator. Sujeitos de locatário permanecem no próprio locatário. Requer identity.impersonation.start.",
+  "impersonation.stop.description": "Encerra a personificação: revoga a sessão de personificação e retorna tokens da sessão original do ator.",
+  "impersonation.candidates.description": "Lista até 20 usuários ativos que podem ser personificados em um locatário (ou na plataforma), filtrados por palavra-chave. Requer identity.impersonation.start.",
+  "identity.auth.tenant_not_accessible": "Você não pode entrar no locatário '{tenantId}'.",
+  "identity.impersonation.active": "A sessão atual já está personificando outro usuário.",
+  "identity.impersonation.not_active": "A sessão atual não está personificando ninguém.",
+  "identity.impersonation.target_unavailable": "O usuário '{id}' não pode ser personificado aqui."
 }

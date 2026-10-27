@@ -28,5 +28,13 @@
   "identity.password.too_short": "パスワードは {min} 文字以上にしてください。",
   "identity.password.too_simple": "パスワードには英字と数字の両方を含めてください。",
   "identity.password.reused": "パスワードは直近 {depth} 回に使用したものと異なる必要があります。",
-  "identity.auth.tenant_unavailable": "テナント '{tenantId}' は存在しないか停止中です。"
+  "identity.auth.tenant_unavailable": "テナント '{tenantId}' は存在しないか停止中です。",
+  "auth.switch_tenant.description": "現在のセッションを別のテナント（所属テナントまたはメンバーとして参加しているテナント）へ切り替えるか、プラットフォームへ戻します（プラットフォームアカウントのみ）。新しいトークンを返します。",
+  "impersonation.start.description": "別のユーザーとしてサインインします。対象用に別セッションを開き、代行者クレーム付きのトークンを返します。テナント主体は自分のテナント内でのみ代行できます。identity.impersonation.start 権限が必要です。",
+  "impersonation.stop.description": "代行を終了します。代行セッションを失効させ、代行者の元のセッションのトークンを返します。",
+  "impersonation.candidates.description": "テナント（またはプラットフォーム）で代行できる有効なユーザーをキーワードで最大 20 件列挙します。identity.impersonation.start 権限が必要です。",
+  "identity.auth.tenant_not_accessible": "テナント '{tenantId}' には入れません。",
+  "identity.impersonation.active": "現在のセッションはすでに代行中です。",
+  "identity.impersonation.not_active": "現在のセッションは代行中ではありません。",
+  "identity.impersonation.target_unavailable": "ユーザー '{id}' はここでは代行できません。"
 }

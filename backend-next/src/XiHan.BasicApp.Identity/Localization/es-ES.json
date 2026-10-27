@@ -28,5 +28,13 @@
   "identity.password.too_short": "La contraseña debe tener al menos {min} caracteres.",
   "identity.password.too_simple": "La contraseña debe contener letras y dígitos.",
   "identity.password.reused": "La contraseña debe ser distinta de las últimas {depth} contraseñas.",
-  "identity.auth.tenant_unavailable": "El inquilino '{tenantId}' no existe o está suspendido."
+  "identity.auth.tenant_unavailable": "El inquilino '{tenantId}' no existe o está suspendido.",
+  "auth.switch_tenant.description": "Cambia la sesión actual a otro inquilino (el de origen o uno del que el usuario es miembro) o vuelve a la plataforma (solo cuentas de plataforma); devuelve nuevos tokens.",
+  "impersonation.start.description": "Inicia sesión como otro usuario: abre una sesión aparte para el objetivo y devuelve tokens con la reclamación del actor. Los sujetos de inquilino permanecen en su propio inquilino. Requiere identity.impersonation.start.",
+  "impersonation.stop.description": "Termina la suplantación: revoca la sesión de suplantación y devuelve tokens de la sesión original del actor.",
+  "impersonation.candidates.description": "Lista hasta 20 usuarios activos que pueden suplantarse en un inquilino (o en la plataforma), filtrados por palabra clave. Requiere identity.impersonation.start.",
+  "identity.auth.tenant_not_accessible": "No puede entrar en el inquilino '{tenantId}'.",
+  "identity.impersonation.active": "La sesión actual ya está suplantando a otro usuario.",
+  "identity.impersonation.not_active": "La sesión actual no está suplantando a nadie.",
+  "identity.impersonation.target_unavailable": "El usuario '{id}' no puede suplantarse aquí."
 }

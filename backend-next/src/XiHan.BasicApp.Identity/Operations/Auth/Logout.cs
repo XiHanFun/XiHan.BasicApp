@@ -4,8 +4,10 @@
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Infrastructure;
+using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 
@@ -13,6 +15,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
 /// 注销（自助操作，只要求已认证）：吊销当前令牌的 <c>sid</c> 会话并让门禁缓存失效；之后同一会话的访问令牌与刷新令牌都不再可用。
+/// 由这个会话发起的模仿会话一并吊销（发起人走了，被模仿身份的令牌不能继续用）。
 /// </summary>
 /// <param name="sessions">会话仓储。</param>
 /// <param name="gate">会话门禁。</param>
@@ -41,9 +44,10 @@ public sealed class Logout(IRepository<SysUserSession, Guid> sessions, SessionGa
             return Error.Denied(IdentityErrors.SessionInvalid, IdentityMessages.SessionInvalid);
         }
 
+        var now = clock.GetUtcNow();
         if (session.RevokedAt is null)
         {
-            session.RevokedAt = clock.GetUtcNow();
+            session.RevokedAt = now;
             session.RevokeReason = "logout";
             var updated = await sessions.UpdateAsync(session, context.CancellationToken).ConfigureAwait(false);
             if (updated.IsFailure)
@@ -53,6 +57,26 @@ public sealed class Logout(IRepository<SysUserSession, Guid> sessions, SessionGa
         }
 
         await gate.InvalidateAsync(sessionId, context.CancellationToken).ConfigureAwait(false);
+        var impersonations = await sessions.ListAsync(EntityQuery.All<SysUserSession>().Where(new Specification<SysUserSession>(s => s.ImpersonatorSessionId == sessionId && !s.RevokedAt.HasValue)), context.CancellationToken).ConfigureAwait(false);
+        foreach (var impersonation in impersonations)
+        {
+            impersonation.RevokedAt = now;
+            impersonation.RevokeReason = "impersonator-logout";
+        }
+
+        foreach (var outcome in await sessions.UpdateRangeAsync(impersonations, context.CancellationToken).ConfigureAwait(false))
+        {
+            if (outcome.IsFailure)
+            {
+                return outcome.Error!;
+            }
+        }
+
+        foreach (var impersonation in impersonations)
+        {
+            await gate.InvalidateAsync(impersonation.Id, context.CancellationToken).ConfigureAwait(false);
+        }
+
         return new LogoutResponse(sessionId, session.RevokedAt.Value);
     }
 }

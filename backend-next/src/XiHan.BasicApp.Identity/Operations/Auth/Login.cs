@@ -52,6 +52,7 @@ public sealed class Login(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var tenant = string.IsNullOrWhiteSpace(request.Tenant) ? TenantIds.Platform : request.Tenant.Trim();
+        string? tenantName = null;
         // 租户账号：租户须在目录里且启用（停用的租户连用户名都不核对，直接拒绝）
         if (!string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal))
         {
@@ -60,6 +61,8 @@ public sealed class Login(
             {
                 return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenant)));
             }
+
+            tenantName = info.DisplayName;
         }
 
         var found = await accounts.FindByNameAsync(tenant, request.UserName.Trim().ToLowerInvariant(), context.CancellationToken).ConfigureAwait(false);
@@ -125,7 +128,7 @@ public sealed class Login(
 
         var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
         var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user));
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName);
     }
 
     private static Error LockedOut(TimeSpan remaining)
