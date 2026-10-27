@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Runtime</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 的运行时基座：SqlSugar 方式一回调（库类型、连接串、操作人字段、snake_case 命名）、租户作用域查询助手、操作人中间件。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
+    <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />
+  </ItemGroup>
+</Project>
