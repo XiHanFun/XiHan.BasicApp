@@ -55,3 +55,6 @@ export async function setLocale(locale: Locale): Promise<void> {
 export function setupI18n(app: App): void {
   app.use(i18n)
 }
+
+/** 组件树外取文案（store、命令式服务、路由守卫）。 */
+export const { t: $t } = i18n.global

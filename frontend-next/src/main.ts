@@ -1,15 +1,21 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
-import { setupI18n } from '~/locales'
+import { setupIconifyOffline } from '~/iconify'
+import { DEFAULT_LOCALE, isLocale, setLocale, setupI18n } from '~/locales'
 import { configureRequest } from '~/request'
 import { LOGIN_ROUTE, router } from '~/router'
 import { useAppStore, useAuthStore } from '~/stores'
+import { resetSetupStorePlugin } from '~/stores/plugins'
 import App from './App.vue'
+import { registerApplicationContext } from './app/context'
 import './styles/index.css'
 
 async function bootstrap() {
+  // 图标集离线预载：Icon 组件对挂载后才到的图标集不重渲，先于挂载装好
+  await setupIconifyOffline()
   const app = createApp(App)
   const pinia = createPinia()
+  pinia.use(resetSetupStorePlugin())
   app.use(pinia)
   setupI18n(app)
 
@@ -40,8 +46,11 @@ async function bootstrap() {
       onSessionInvalid: toLogin,
     },
   })
-  await appStore.setLocale(appStore.locale)
+  // 首屏文案先装好再挂载，否则会先渲一帧裸 key；之后切语言由偏好 store 的 locale 监听驱动
+  await setLocale(isLocale(appStore.locale) ? appStore.locale : DEFAULT_LOCALE)
 
+  // 壳层要的接口实现、路由实例与应用路由（packages 不直接依赖 src）
+  registerApplicationContext(router)
   app.use(router)
   await router.isReady()
   app.mount('#app')

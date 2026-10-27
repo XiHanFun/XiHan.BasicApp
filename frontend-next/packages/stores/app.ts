@@ -1,33 +1,34 @@
-import type { Locale } from '~/locales'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
-import { setLocale as applyLocale, DEFAULT_LOCALE, isLocale } from '~/locales'
+import { createLayoutSlice } from './app/layout'
+import { createPreferencesSlice } from './app/preferences'
+import { createThemeSlice } from './app/theme'
+import { beginPreferenceDraft, commitPreferenceDraft, discardPreferenceDraft, preferenceDraftDirty, resetRegisteredPreferences } from './helpers'
+import { SetupStoreId } from './store-ids'
 
-const LOCALE_KEY = 'xihan.next.locale'
+/**
+ * 全局应用 Store（组合门面）。
+ * 内部按领域拆分为 theme / layout / preferences 三个 slice，
+ * 对外保持原有 API 不变，消费者无需修改导入。
+ */
+export const useAppStore = defineStore(SetupStoreId.App, () => {
+  const theme = createThemeSlice()
+  const layout = createLayoutSlice()
+  const preferences = createPreferencesSlice()
 
-function readLocale(): Locale {
-  try {
-    const stored = localStorage.getItem(LOCALE_KEY)
-    if (isLocale(stored))
-      return stored
-  }
-  catch {}
-  const browser = navigator.language
-  return isLocale(browser) ? browser : DEFAULT_LOCALE
-}
-
-/** 应用偏好：区域（主题、布局、密度随壳层在 N1 补入）。 */
-export const useAppStore = defineStore('app', () => {
-  const locale = ref<Locale>(readLocale())
-
-  async function setLocale(value: Locale) {
-    locale.value = value
-    try {
-      localStorage.setItem(LOCALE_KEY, value)
-    }
-    catch {}
-    await applyLocale(value)
+  /** 重置所有偏好为默认值（内存级，不触发整页刷新，因此不会影响登录态） */
+  function resetPreferences() {
+    resetRegisteredPreferences()
   }
 
-  return { locale, setLocale }
+  return {
+    ...theme,
+    ...layout,
+    ...preferences,
+    resetPreferences,
+    // 偏好草稿：抽屉打开预览、点击保存提交、关闭未保存还原
+    preferenceDraftDirty,
+    beginPreferenceDraft,
+    commitPreferenceDraft,
+    discardPreferenceDraft,
+  }
 })

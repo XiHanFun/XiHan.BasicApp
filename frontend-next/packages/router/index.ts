@@ -1,6 +1,8 @@
 import type { RouteRecordRaw } from 'vue-router'
 import type { MenuNode } from '~/stores'
 import { createRouter, createWebHistory } from 'vue-router'
+import { LOGIN_PATH } from '~/constants'
+import { i18n } from '~/locales'
 import { useAuthStore } from '~/stores'
 import { firstRoute, menuRoutes } from './menus'
 import { StatusView } from './status-view'
@@ -17,6 +19,13 @@ declare module 'vue-router' {
     permission?: string
     /** 标题文案键 */
     titleKey?: string
+    /** 壳：认证页用 auth，其余缺省管理端壳 */
+    layout?: 'basic' | 'auth'
+    /** 壳层读的标题（与 titleKey 同值）与图标名（页面登记的 `lucide:<名>`） */
+    title?: string
+    icon?: string
+    /** 标签页是否参与 KeepAlive 缓存 */
+    keepAlive?: boolean
   }
 }
 
@@ -28,10 +37,11 @@ export const HOME_ROUTE = 'home'
 export const routes: RouteRecordRaw[] = [
   { path: '/', name: HOME_ROUTE, component: StatusView, props: { kind: 'home' } },
   {
-    path: '/login',
+    // 路径取壳层的 LOGIN_PATH（/auth/login）：认证壳的入口标签带与登录页工具条按它认登录页
+    path: LOGIN_PATH,
     name: LOGIN_ROUTE,
     component: resolveView('identity/login/index'),
-    meta: { public: true, titleKey: 'identity.login.title' },
+    meta: { public: true, titleKey: 'identity.login.title', layout: 'auth' },
   },
   {
     path: '/identity/profile/change-password',
@@ -87,4 +97,10 @@ router.beforeEach(async (to) => {
   if (to.meta.permission && !auth.can(to.meta.permission))
     return { name: FORBIDDEN_ROUTE, replace: true }
   return true
+})
+
+// 文档标题跟随页面：「页面标题 · 应用名」，没有标题键的只留应用名
+router.afterEach((to) => {
+  const t = i18n.global.t
+  document.title = to.meta.titleKey ? `${t(to.meta.titleKey)} · ${t('common.app_name')}` : t('common.app_name')
 })

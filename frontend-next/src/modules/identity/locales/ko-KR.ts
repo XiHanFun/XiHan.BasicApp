@@ -60,6 +60,9 @@ export default {
         password: '비밀번호',
       },
       tenant_placeholder: '플랫폼 계정은 비워 두세요',
+      subtitle: '사용자 이름과 비밀번호를 입력해 로그인하세요',
+      user_name_placeholder: '사용자 이름 또는 이메일',
+      password_placeholder: '비밀번호',
       actions: {
         sign_in: '로그인',
       },

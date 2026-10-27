@@ -60,6 +60,9 @@ export default {
         password: '密码',
       },
       tenant_placeholder: '平台账号留空',
+      subtitle: '请输入您的账号密码以登录系统',
+      user_name_placeholder: '请输入用户名或邮箱',
+      password_placeholder: '请输入密码',
       actions: {
         sign_in: '登录',
       },

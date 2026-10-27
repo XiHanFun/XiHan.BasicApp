@@ -60,6 +60,9 @@ export default {
         password: 'Password',
       },
       tenant_placeholder: 'Leave empty for a platform account',
+      subtitle: 'Enter your user name and password to sign in',
+      user_name_placeholder: 'User name or email',
+      password_placeholder: 'Password',
       actions: {
         sign_in: 'Sign in',
       },

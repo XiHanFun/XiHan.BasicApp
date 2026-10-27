@@ -60,6 +60,9 @@ export default {
         password: 'Passwort',
       },
       tenant_placeholder: 'Für ein Plattformkonto leer lassen',
+      subtitle: 'Geben Sie Benutzername und Passwort ein, um sich anzumelden',
+      user_name_placeholder: 'Benutzername oder E-Mail',
+      password_placeholder: 'Passwort',
       actions: {
         sign_in: 'Anmelden',
       },

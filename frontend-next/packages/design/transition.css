@@ -1,0 +1,94 @@
+/*
+ * 元素过渡预设。
+ *
+ * 只剩页面内部自绘的那几条：路由切换的十二种动画已不走 CSS 类——类式过渡要在页面根上
+ * 增删 class，而那会惊动页内每个浮层的 Portal 视觉环境桥（见 layouts/basic/core/page-motion.ts），
+ * 现改为 WAAPI 逐帧播放，关键帧与时长曲线在那里。
+ */
+
+/* 展开收起过渡 */
+.collapse-enter-active,
+.collapse-leave-active {
+  transition:
+    height var(--transition-normal) var(--xh-motion-ease-slide),
+    opacity var(--transition-fast) var(--xh-motion-ease-enter);
+  overflow: hidden;
+}
+
+.collapse-enter-from,
+.collapse-leave-to {
+  height: 0;
+  opacity: 0;
+}
+
+/* 侧边栏过渡 */
+.sidebar-enter-active,
+.sidebar-leave-active {
+  transition: width var(--transition-normal) var(--xh-motion-ease-slide);
+}
+
+/* 主题切换动画（ViewTransition） */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/*
+ * backdrop-filter 会创建独立的 GPU 合成层，在某些 Chrome 版本中会
+ * 浮到 ViewTransition 伪元素之上导致动画被遮挡。
+ * :active-view-transition 在过渡进行期间自动应用于 html 元素，
+ * 此期间临时禁用所有 backdrop-filter 以保证扩散动画完整可见。
+ */
+html:active-view-transition *,
+html:active-view-transition *::before,
+html:active-view-transition *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* z-index 由 global.css 中的 html.dark 选择器自动控制：
+ *   亮色模式：new 在上（z-2147483646），old 在下（z-1）→ 新（亮）层扩散覆盖
+ *   暗色模式：old 在上（z-2147483646），new 在下（z-1）→ 旧（亮）层收缩消退
+ * 不再需要 data-theme-to 属性手动管理 z-index */
+
+/*
+ * 图标换形：同一颗按钮里两枚图标互换（明暗主题、全屏进出、侧栏开合、内容最大化）。
+ * 用法：<span class="icon-swap"><Transition name="icon-swap"><Icon :key="icon" … /></Transition></span>。
+ * 新旧两枚叠在同一格里同时播，旧的转走、新的从另一侧转进来；不走 out-in，免得中间空一拍。
+ * 旋转与缩放挂几何时长（move / nudge），减弱动态效果下瞬时，只留淡变。
+ */
+.icon-swap {
+  display: inline-grid;
+  place-items: center;
+}
+
+.icon-swap > * {
+  grid-area: 1 / 1;
+}
+
+.icon-swap-enter-active {
+  transition:
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    rotate var(--xh-motion-duration-move) var(--xh-motion-ease-enter-strong),
+    scale var(--xh-motion-duration-move) var(--xh-motion-ease-enter-strong);
+}
+
+.icon-swap-leave-active {
+  transition:
+    opacity var(--xh-motion-duration-exit) var(--xh-motion-ease-exit),
+    rotate var(--xh-motion-duration-nudge) var(--xh-motion-ease-exit),
+    scale var(--xh-motion-duration-nudge) var(--xh-motion-ease-exit);
+}
+
+.icon-swap-enter-from {
+  opacity: 0;
+  rotate: -90deg;
+  scale: 0.5;
+}
+
+.icon-swap-leave-to {
+  opacity: 0;
+  rotate: 90deg;
+  scale: 0.5;
+}

@@ -1,0 +1,841 @@
+<script lang="ts" setup>
+import type { SplitterPanelProps, SplitterSizesChangeDetails } from '@xihan-ui/headless'
+import {
+  XhScrollAreaContent,
+  XhScrollAreaCorner,
+  XhScrollAreaRoot,
+  XhScrollAreaScrollbar,
+  XhScrollAreaThumb,
+  XhScrollAreaTrack,
+  XhScrollAreaViewport,
+} from '@xihan-ui/vue'
+import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { XDropdown } from '~/components'
+import { setupContainerTransform } from '~/composables/useContainerTransform'
+import { FOUNDATION_PROJECTS } from '~/constants'
+import { useRefresh, useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
+import { useShellExtensions, useSplitViewStore, useTabbarStore } from '~/stores'
+import AppFavorites from './components/AppFavorites.vue'
+import AppFloatToolbar from './components/AppFloatToolbar.vue'
+import AppGlobalSearch from './components/AppGlobalSearch.vue'
+import AppHeader from './components/AppHeader.vue'
+import AppPreferenceDrawer from './components/AppPreferenceDrawer.vue'
+import AppSidebar from './components/AppSidebar.vue'
+import AppTabbar from './components/AppTabbar.vue'
+import AppTabOverview from './components/AppTabOverview.vue'
+import ImpersonationBanner from './components/ImpersonationBanner.vue'
+import NotificationBanner from './components/NotificationBanner.vue'
+import NotificationGate from './components/NotificationGate.vue'
+import SplitPane from './components/SplitPane.vue'
+import XihanBackTop from './components/XihanBackTop.vue'
+import XihanIconButton from './components/XihanIconButton.vue'
+import { openTabInNewWindow, useLayoutShellAdapter } from './composables'
+import { useCheckUpdates } from './composables/use-check-updates'
+import { useSignalRIntegration } from './composables/use-signalr-integration'
+import { LayoutContentRenderer } from './core'
+
+defineOptions({ name: 'BasicLayout' })
+
+const { isDark } = useTheme()
+const shell = useLayoutShellAdapter()
+const route = useRoute()
+const router = useRouter()
+const { t, te } = useI18n()
+const splitView = useSplitViewStore()
+const tabbarStore = useTabbarStore()
+
+// 初始化 SignalR 连接（实时通知 + 踢下线）
+useSignalRIntegration()
+
+// 壳层扩展：可选模块注册的布局集成钩子在 setup 顶层逐个调用（如聊天实时链路），浮层组件在模板尾部渲染
+const shellExtensions = useShellExtensions()
+for (const extension of shellExtensions) {
+  for (const integration of extension.integrations ?? [])
+    integration()
+}
+const shellOverlays = computed(() => shellExtensions.flatMap(extension => extension.overlays ?? []))
+
+// 定时检查前端资源更新
+useCheckUpdates()
+
+// 容器变形转场：点击的行/按钮「长大」成弹窗、关闭收回原位（跟随「页面切换动画」偏好）
+setupContainerTransform({ enabled: () => shell.appStore.transitionEnable })
+
+// 仅当「当前路由 === 分屏锚定标签」且视口足够宽时显示分屏（右标签已并入、从标签栏隐藏）；
+// 小屏禁用分屏（store 会自动关闭，此处 canSplit 再兜一道防抖动）
+const showSplit = computed(() => splitView.canSplit && splitView.active && route.fullPath === splitView.leftPath)
+
+// 路由变化时对齐分屏状态（pre-flush，渲染前完成 → 不闪烁）：
+// - 抵达副标签路径（用户经菜单直接导航）→ 锚定/副互换
+// - 抵达「替换锚定页」的目标路径 → 把锚定切到新页
+const pendingAnchorSwitch = ref('')
+watch(() => route.fullPath, (path) => {
+  if (!splitView.active) {
+    return
+  }
+  if (path === splitView.rightPath) {
+    splitView.swapPaths()
+    return
+  }
+  if (pendingAnchorSwitch.value && path === pendingAnchorSwitch.value) {
+    splitView.setLeftPath(path)
+    pendingAnchorSwitch.value = ''
+  }
+})
+
+const splitRowRef = ref<HTMLElement | null>(null)
+
+/** 两栏各自的百分比区间，与 store 对视觉左侧占比 [0.2, 0.8] 的夹取一致 */
+const splitPanels: SplitterPanelProps[] = [
+  { id: 'anchor', min: 20, max: 80 },
+  { id: 'secondary', min: 20, max: 80 },
+]
+
+/** 受控布局：DOM 顺序恒为「锚定块、分隔条、副块」，reversed 时锚定块的占比取视觉右侧那一份 */
+const splitSizes = computed(() => {
+  const anchor = (splitView.reversed ? 1 - splitView.ratio : splitView.ratio) * 100
+  return [anchor, 100 - anchor]
+})
+
+/** 分隔条推动（拖拽或方向键）后回写视觉左侧占比 */
+function onSplitSizesChange(details: SplitterSizesChangeDetails): void {
+  const anchor = (details.sizes[0] ?? 50) / 100
+  splitView.setRatio(splitView.reversed ? 1 - anchor : anchor)
+}
+
+// ── 分割线悬浮工具组（左右页面各自的替换/刷新/新窗口，分组显示）────
+const splitPaneRef = ref<InstanceType<typeof SplitPane> | null>(null)
+const { refresh: refreshCurrentTab } = useRefresh()
+
+function trTab(title: string): string {
+  return te(title) ? t(title) : title
+}
+
+/** 可替换为的标签：其它已打开标签（排除分屏中的两个页面） */
+const splitTabOptions = computed(() =>
+  tabbarStore.tabs
+    .filter(item => item.path !== splitView.leftPath && item.path !== splitView.rightPath)
+    .map(item => ({ key: item.path, label: trTab(item.title) })),
+)
+
+/** 视觉侧 → 是否为锚定 pane（锚定默认在左，reversed 后在右） */
+function sideIsAnchor(side: 'left' | 'right'): boolean {
+  return side === 'left' ? !splitView.reversed : splitView.reversed
+}
+
+function sidePath(side: 'left' | 'right'): string {
+  return sideIsAnchor(side) ? splitView.leftPath : splitView.rightPath
+}
+
+/** 替换某一侧页面：锚定侧需导航（watcher 在路由抵达时对齐）；副侧直接换渲染组件 */
+function onSideSelect(side: 'left' | 'right', key: string | number): void {
+  const path = String(key)
+  if (sideIsAnchor(side)) {
+    pendingAnchorSwitch.value = path
+    void router.push(path)
+  }
+  else {
+    splitView.setRightPath(path)
+  }
+}
+
+/** 刷新某一侧：锚定侧走标签刷新机制（当前路由），副侧重建渲染组件 */
+function onSideReload(side: 'left' | 'right'): void {
+  if (sideIsAnchor(side)) {
+    refreshCurrentTab()
+  }
+  else {
+    splitPaneRef.value?.reload()
+  }
+}
+
+/** 新窗口打开某一侧页面 */
+function onSideOpen(side: 'left' | 'right'): void {
+  openTabInNewWindow(sidePath(side))
+}
+
+/**
+ * 工具组不在分隔条里，按下冒泡不到它：手柄、标签与留白处按下时把这一下原样转交给分隔条，照旧能拖。
+ * 按钮自己拦了 pointerdown，点按钮不会顺带拖动
+ */
+function forwardSplitDrag(event: PointerEvent): void {
+  const divider = splitRowRef.value?.querySelector<HTMLElement>('[data-scope="splitter"][data-part="resize-trigger"]')
+  if (!divider || event.button !== 0) {
+    return
+  }
+  event.preventDefault()
+  divider.dispatchEvent(new PointerEvent('pointerdown', event))
+}
+
+// ── 左右互换（收缩成页面大图标 → 图标交叉飞行 → 展开为交换后内容）──
+// 互换 = 翻转视觉顺序（CSS order），两侧组件实例原地保留——不导航、不重挂载、不刷新。
+// shrink：两屏向中心收缩淡出、各自中央弹出页面大图标 → fly：两枚图标互飞对方位置
+// →（翻转 order，幕后瞬时完成）→ expand：图标弹出消失、两屏展开
+const swapPhase = ref<'idle' | 'shrink' | 'fly' | 'expand'>('idle')
+const swapCenters = ref({ left: { x: 0, y: 0 }, right: { x: 0, y: 0 } })
+const swapIcons = ref({ left: 'lucide:file', right: 'lucide:file' })
+
+function resolveTabIcon(path: string): string {
+  const icon = tabbarStore.tabs.find(tab => tab.path === path)?.meta?.icon as string | undefined
+  if (!icon) {
+    return 'lucide:file'
+  }
+  return icon.includes(':') ? icon : `lucide:${icon}`
+}
+
+/** 取 pane 中心点（相对分屏行），作为图标的停靠/飞行坐标 */
+function paneCenter(selector: string): { x: number, y: number } {
+  const row = splitRowRef.value
+  const el = row?.querySelector(selector)
+  if (!row || !el) {
+    return { x: 0, y: 0 }
+  }
+  const rowRect = row.getBoundingClientRect()
+  const rect = el.getBoundingClientRect()
+  return { x: rect.left - rowRect.left + rect.width / 2, y: rect.top - rowRect.top + rect.height / 2 }
+}
+
+/** 图标位置：shrink 停在本侧中心，fly/expand 飞到对侧中心（transition 负责插值飞行） */
+function swapIconTransform(side: 'left' | 'right'): string {
+  const own = swapCenters.value[side]
+  const other = swapCenters.value[side === 'left' ? 'right' : 'left']
+  const pos = swapPhase.value === 'shrink' ? own : other
+  return `translate(${pos.x}px, ${pos.y}px)`
+}
+
+function wait(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function swapSplitPanes(): Promise<void> {
+  if (swapPhase.value !== 'idle' || !splitView.rightPath) {
+    return
+  }
+  // 视觉侧中心/图标（锚定 pane 可能在视觉右侧）
+  const anchorCenter = paneCenter('.split-anchor')
+  const secondaryCenter = paneCenter('.split-secondary')
+  const visualLeftIsAnchor = anchorCenter.x <= secondaryCenter.x
+  swapCenters.value = visualLeftIsAnchor
+    ? { left: anchorCenter, right: secondaryCenter }
+    : { left: secondaryCenter, right: anchorCenter }
+  swapIcons.value = {
+    left: resolveTabIcon(visualLeftIsAnchor ? splitView.leftPath : splitView.rightPath),
+    right: resolveTabIcon(visualLeftIsAnchor ? splitView.rightPath : splitView.leftPath),
+  }
+  swapPhase.value = 'shrink'
+  await wait(260)
+  swapPhase.value = 'fly'
+  await wait(360)
+  // 纯视觉交换：翻转 order，两侧实例原地保留（零刷新）
+  splitView.toggleReversed()
+  swapPhase.value = 'expand'
+  await wait(260)
+  swapPhase.value = 'idle'
+}
+
+const appVersion = __APP_VERSION__
+const appBuildTime = __APP_BUILD_TIME__
+const appRepository = __APP_REPOSITORY__
+const appName = __APP_NAME__
+
+const sidebarForceDark = computed(() => shell.appStore.sidebarDark && !isDark.value)
+const headerForceDark = computed(() => shell.appStore.headerDark && !isDark.value)
+const sidebarTheme = computed(() => (isDark.value || shell.appStore.sidebarDark ? 'dark' : 'light'))
+const sidebarSubTheme = computed(() =>
+  isDark.value || shell.appStore.sidebarSubDark ? 'dark' : 'light',
+)
+const headerTheme = computed(() => (isDark.value || shell.appStore.headerDark ? 'dark' : 'light'))
+
+// 顶栏开关收起侧栏、内容最大化都不卸载侧栏：它照原宽度整块滑出画面，
+// 是否露出由 show-sidebar 决定，见 AppSidebar 的 stowed
+const sidebarEnableState = computed(
+  () =>
+    shell.isMobile.value
+    || (!shell.isHeaderNav.value && !shell.isFullContent.value),
+)
+</script>
+
+<template>
+  <div class="relative flex h-full w-full">
+    <!-- ==================== Sidebar ==================== -->
+    <div
+      v-if="sidebarEnableState"
+      :class="{ dark: sidebarForceDark }"
+      :data-theme="sidebarForceDark ? 'dark' : undefined"
+    >
+      <AppSidebar
+        v-model:collapse="shell.sidebarCollapse.value"
+        v-model:expand-on-hovering="shell.sidebarExpandOnHovering.value"
+        v-model:extra-visible="shell.sidebarExtraVisible.value"
+        v-model:extra-collapse="shell.sidebarExtraCollapse.value"
+        :is-mobile="shell.isMobile.value"
+        :is-narrow-screen="shell.isNarrowScreen.value"
+        :mobile-sidebar-open="shell.mobileSidebarOpen.value"
+        :show-sidebar="shell.showSider.value"
+        :sidebar-width="shell.isMobile.value ? shell.siderWidth.value : shell.sidebarShownWidth.value"
+        :sidebar-collapse-width="shell.getSideCollapseWidth.value"
+        :sidebar-margin-top="shell.sidebarMarginTop.value"
+        :sidebar-z-index="shell.sidebarZIndex.value"
+        :sidebar-extra-width="shell.sidebarExtraWidth.value"
+        :header-height="shell.isMixedNav.value ? 0 : shell.headerHeight.value"
+        :is-side-mode="shell.isSideMode.value"
+        :is-mixed-nav="shell.isMixedNav.value"
+        :is-dual-column="shell.isDualColumnMode.value"
+        :floating-mode="shell.floatingSidebarMode.value"
+        :floating-expand="shell.floatingSidebarExpand.value"
+        :expanded-width="shell.expandedSidebarWidth.value"
+        :effective-collapsed="shell.effectiveCollapsed.value"
+        :sidebar-theme="sidebarTheme"
+        :sidebar-sub-theme="sidebarSubTheme"
+        @sidebar-mouse-enter="shell.handleSidebarMouseEnter"
+        @sidebar-mouse-leave="shell.handleSidebarMouseLeave"
+      />
+    </div>
+
+    <!-- ==================== Main Content ==================== -->
+    <div class="flex flex-1 flex-col overflow-hidden transition-all duration-300 ease-in">
+      <!-- Header + Tabbar wrapper -->
+      <div :style="shell.headerWrapperStyle.value">
+        <!-- Header -->
+        <!-- 内容最大化时顶栏带着标签栏用负 margin-top 滑出画面（200ms），滑出后打 inert
+             退出键盘与读屏；不用 v-show，否则只能一帧消失 -->
+        <header
+          v-if="shell.appStore.headerShow"
+          v-show="!shell.isFullContent.value"
+          :class="headerTheme"
+          :inert="shell.contentMaximized.value || undefined"
+          :style="{
+            height: `${shell.headerHeight.value}px`,
+            right: !shell.isSideMode.value ? 0 : undefined,
+            marginTop: shell.contentMaximized.value ? `-${shell.headerHeight.value}px` : '0',
+          }"
+          class="top-0 flex w-full flex-[0_0_auto] items-center border-b border-border bg-header pl-2 transition-[margin-top] duration-200"
+        >
+          <!-- Logo in header (for header-nav / mixed-nav / mobile) -->
+          <div
+            v-if="shell.showHeaderLogo.value"
+            :style="{ minWidth: `${shell.headerLogoMinWidth.value}px` }"
+          >
+            <div
+              :class="{ dark: headerForceDark }"
+              :data-theme="headerForceDark ? 'dark' : undefined"
+            >
+              <AppSidebar mode="header-logo" :effective-collapsed="shell.isMobile.value" />
+            </div>
+          </div>
+
+          <!-- Toggle sidebar button -->
+          <XihanIconButton
+            v-if="shell.showHeaderToggleButton.value"
+            class="my-0 mr-1"
+            :tooltip="shell.showSider.value ? t('header.toolbar.sidebar_collapse') : t('header.toolbar.sidebar_expand')"
+            @click="shell.handleHeaderToggle"
+          >
+            <span class="icon-swap">
+              <Transition name="icon-swap">
+                <Icon
+                  :key="shell.showSider.value ? 'close' : 'open'"
+                  :icon="shell.showSider.value ? 'lucide:panel-left-close' : 'lucide:panel-left-open'"
+                  width="16"
+                  height="16"
+                />
+              </Transition>
+            </span>
+          </XihanIconButton>
+
+          <!-- 收藏夹（收藏常用菜单，跨端同步；可在偏好设置中开关） -->
+          <AppFavorites v-if="shell.appStore.widgetFavorites" />
+
+          <!-- Header content (flex-1 fills remaining header space) -->
+          <div
+            class="flex min-w-0 flex-1 items-center" :class="[{ dark: headerForceDark }]"
+            :data-theme="headerForceDark ? 'dark' : undefined"
+          >
+            <AppHeader :theme="headerTheme" />
+          </div>
+        </header>
+
+        <!-- Tabbar：随「深色顶栏」一起暗化（与 header 同款：本地 dark class + 组件库暗色） -->
+        <div
+          v-if="shell.appStore.tabbarEnabled && !shell.isFullContent.value"
+          :class="headerTheme"
+          :style="shell.tabbarStyle.value"
+        >
+          <div
+            :class="{ dark: headerForceDark }"
+            :data-theme="headerForceDark ? 'dark' : undefined"
+          >
+            <AppTabbar />
+          </div>
+        </div>
+      </div>
+
+      <!-- Page content -->
+      <div class="flex min-h-0 flex-1 flex-col overflow-hidden transition-[margin-top] duration-200" :style="shell.contentStyle.value">
+        <!-- 通知横幅：置于正文容器内（容器已按固定顶栏做 margin-top 让位），
+             紧贴标签栏下方、块级推下页面内容；放容器外会被固定顶栏遮住并顶出空白条 -->
+        <ImpersonationBanner />
+
+        <NotificationBanner />
+
+        <!-- 普通内容：root 由 flex 定高并承载紧凑布局的居中与最大宽度，viewport 是真正 overflow:auto 的那层 -->
+        <XhScrollAreaRoot
+          v-if="!showSplit"
+          class="xh-content-scroll min-h-0 flex-1"
+          :class="{ 'xihan-compact-layout': shell.appStore.contentCompact }"
+          :style="
+            shell.appStore.contentCompact
+              ? { maxWidth: `${shell.appStore.contentMaxWidth}px`, margin: '0 auto' }
+              : {}
+          "
+        >
+          <XhScrollAreaViewport :ref="shell.setContentScrollEl">
+            <!-- content 撑满视口高度，LayoutContentRenderer 的 height:100% 照旧解析得到高度 -->
+            <XhScrollAreaContent class="h-full">
+              <LayoutContentRenderer :transition-name="shell.transitionName.value" />
+            </XhScrollAreaContent>
+          </XhScrollAreaViewport>
+          <!-- 滑块的行程按轨道节点量：少了 Track 这层，拖滑块与点轨道都会变成空操作 -->
+          <XhScrollAreaScrollbar orientation="vertical">
+            <XhScrollAreaTrack>
+              <XhScrollAreaThumb />
+            </XhScrollAreaTrack>
+            <XhScrollAreaCorner />
+          </XhScrollAreaScrollbar>
+          <XhScrollAreaScrollbar orientation="horizontal">
+            <XhScrollAreaTrack>
+              <XhScrollAreaThumb />
+            </XhScrollAreaTrack>
+          </XhScrollAreaScrollbar>
+        </XhScrollAreaRoot>
+        <!-- 分屏对照：锚定标签（主视图）+ 副标签（应用内直接渲染）；reversed 时仅交换视觉顺序 -->
+        <div
+          v-else
+          ref="splitRowRef"
+          class="relative flex min-h-0 w-full flex-1 overflow-hidden"
+          :class="{ 'split-collapsed': swapPhase === 'shrink' || swapPhase === 'fly' }"
+        >
+          <!-- reversed 时用 dir 让指针位移与方向键跟着视觉顺序一起翻转 -->
+          <XhSplitterRoot
+            class="split-row relative h-full min-w-0 flex-1"
+            :sizes="splitSizes"
+            :panels="splitPanels"
+            :dir="splitView.reversed ? 'rtl' : 'ltr'"
+            @sizes-change="onSplitSizesChange"
+          >
+            <template #default="{ dragging }">
+              <XhSplitterPanel
+                :index="0"
+                class="split-anchor h-full"
+                :style="{ order: splitView.reversed ? 3 : 1 }"
+              >
+                <XhScrollAreaRoot class="xh-content-scroll h-full w-full">
+                  <XhScrollAreaViewport :ref="shell.setContentScrollEl">
+                    <XhScrollAreaContent class="h-full">
+                      <LayoutContentRenderer :transition-name="shell.transitionName.value" />
+                    </XhScrollAreaContent>
+                  </XhScrollAreaViewport>
+                  <XhScrollAreaScrollbar orientation="vertical">
+                    <XhScrollAreaTrack>
+                      <XhScrollAreaThumb />
+                    </XhScrollAreaTrack>
+                    <XhScrollAreaCorner />
+                  </XhScrollAreaScrollbar>
+                  <XhScrollAreaScrollbar orientation="horizontal">
+                    <XhScrollAreaTrack>
+                      <XhScrollAreaThumb />
+                    </XhScrollAreaTrack>
+                  </XhScrollAreaScrollbar>
+                </XhScrollAreaRoot>
+              </XhSplitterPanel>
+
+              <XhSplitterResizeTrigger
+                :index="0"
+                class="split-divider"
+                :aria-label="t('tabbar.split_divider')"
+                :style="{ order: 2 }"
+              />
+
+              <!-- 分割线悬浮工具组：左/右页面各自的替换、刷新、新窗口 + 中部共享操作。
+                   放在分隔条外面：分隔条是 role=separator，子孙对读屏一律按展示处理，按钮放进去就没人念得到。
+                   这里是排在分隔条后面的一个零宽锚点，工具组从它那儿居中压在分隔条上 -->
+              <div class="split-tools-anchor" :style="{ order: 2 }">
+                <div class="split-tools" @pointerdown="forwardSplitDrag">
+                  <span class="split-tools__label">{{ t('tabbar.split_left_label') }}</span>
+                  <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('left', key)">
+                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_left')" :aria-label="t('tabbar.split_switch_left')" @pointerdown.stop>
+                      <Icon icon="lucide:replace" width="16" height="16" />
+                    </button>
+                  </XDropdown>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_left')" @pointerdown.stop @click="onSideReload('left')">
+                    <Icon icon="lucide:rotate-cw" width="16" height="16" />
+                  </button>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_left')" @pointerdown.stop @click="onSideOpen('left')">
+                    <Icon icon="lucide:external-link" width="16" height="16" />
+                  </button>
+
+                  <span class="split-tools__sep" />
+                  <span class="split-tools__grip">
+                    <Icon icon="lucide:grip-vertical" width="16" height="16" />
+                  </span>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_swap')" @pointerdown.stop @click="swapSplitPanes">
+                    <Icon icon="lucide:arrow-left-right" width="16" height="16" />
+                  </button>
+                  <button type="button" class="split-tools__btn split-tools__btn--close" :title="t('tabbar.split_close')" @pointerdown.stop @click="splitView.close()">
+                    <Icon icon="lucide:x" width="17" height="17" />
+                  </button>
+                  <span class="split-tools__sep" />
+
+                  <span class="split-tools__label">{{ t('tabbar.split_right_label') }}</span>
+                  <XDropdown :options="splitTabOptions" placement="bottom-start" @select="(key: string) => onSideSelect('right', key)">
+                    <button type="button" class="split-tools__btn" :title="t('tabbar.split_switch_right')" :aria-label="t('tabbar.split_switch_right')" @pointerdown.stop>
+                      <Icon icon="lucide:replace" width="16" height="16" />
+                    </button>
+                  </XDropdown>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_reload_right')" @pointerdown.stop @click="onSideReload('right')">
+                    <Icon icon="lucide:rotate-cw" width="16" height="16" />
+                  </button>
+                  <button type="button" class="split-tools__btn" :title="t('tabbar.split_open_right')" @pointerdown.stop @click="onSideOpen('right')">
+                    <Icon icon="lucide:external-link" width="16" height="16" />
+                  </button>
+                </div>
+              </div>
+
+              <XhSplitterPanel
+                :index="1"
+                class="split-secondary h-full"
+                :style="{ order: splitView.reversed ? 1 : 3 }"
+              >
+                <SplitPane ref="splitPaneRef" />
+              </XhSplitterPanel>
+
+              <!-- 拖拽遮罩：拖拽期间接管指针，拖动丝滑 -->
+              <div v-if="dragging" class="split-drag-overlay" />
+            </template>
+          </XhSplitterRoot>
+
+          <!-- 互换动画：两枚页面大图标（收缩时弹出 → 交叉飞行 → 展开时消散） -->
+          <template v-if="swapPhase !== 'idle'">
+            <div class="swap-icon" :style="{ transform: swapIconTransform('left') }">
+              <div class="swap-icon__center">
+                <div class="swap-icon__card" :class="swapPhase === 'expand' ? 'is-out' : 'is-in'">
+                  <Icon :icon="swapIcons.left" width="30" height="30" />
+                </div>
+              </div>
+            </div>
+            <div class="swap-icon" :style="{ transform: swapIconTransform('right') }">
+              <div class="swap-icon__center">
+                <div class="swap-icon__card" :class="swapPhase === 'expand' ? 'is-out' : 'is-in'">
+                  <Icon :icon="swapIcons.right" width="30" height="30" />
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <!-- 内容最大化时页脚向下滑出画面并让出高度，滑出后打 inert -->
+      <footer
+        v-if="shell.appStore.footerEnable"
+        :inert="shell.contentMaximized.value || undefined"
+        :style="{
+          minHeight: `${shell.footerHeight.value}px`,
+          marginBottom: shell.isFullContent.value || shell.contentMaximized.value ? `-${shell.footerHeight.value}px` : '0',
+          transform: shell.contentMaximized.value ? 'translateY(100%)' : undefined,
+          position: shell.appStore.footerFixed ? 'fixed' : 'static',
+          width: shell.footerWidth.value,
+          zIndex: shell.appStore.footerFixed ? 199 : undefined,
+        }"
+        class="footer-bar bottom-0 flex w-full border-t border-border bg-background text-xs text-muted-foreground transition-all duration-200"
+        :class="shell.isMobile.value ? 'flex-col items-center justify-center gap-0.5 px-3 py-1' : 'flex-row items-center px-4'"
+      >
+        <!-- Left: Dev version info -->
+        <div v-if="shell.appStore.footerShowDevInfo" class="footer-section-left" :class="{ 'text-center': shell.isMobile.value }">
+          <a :href="appRepository" target="_blank" class="hover:underline">{{ appName }}</a>
+          v{{ appVersion }}({{ appBuildTime }})
+          · Powered by
+          <template v-for="(p, i) in FOUNDATION_PROJECTS" :key="p.name">
+            <span v-if="i > 0"> &amp; </span>
+            <a :href="p.url" target="_blank" class="hover:underline">{{ p.name }}</a>
+          </template>
+        </div>
+        <div v-else-if="!shell.isMobile.value" class="footer-section-left" />
+
+        <!-- Center: Copyright -->
+        <div v-if="shell.appStore.copyrightEnable" class="footer-section-center">
+          <span>
+            Copyright &copy; {{ shell.appStore.copyrightDate || new Date().getFullYear() }}-{{ new Date().getFullYear() }}
+            <a
+              v-if="shell.appStore.copyrightSite"
+              :href="shell.appStore.copyrightSite"
+              target="_blank"
+              class="hover:underline"
+            >{{ shell.appStore.copyrightName }}</a>
+            <span v-else>{{ shell.appStore.copyrightName }}</span>.
+            All Rights Reserved.
+          </span>
+        </div>
+        <div v-else-if="!shell.isMobile.value" class="footer-section-center" />
+
+        <!-- Right: ICP -->
+        <div v-if="shell.appStore.copyrightEnable && shell.appStore.copyrightIcp" :class="shell.isMobile.value ? '' : 'footer-section-right'">
+          <a
+            :href="shell.appStore.copyrightIcpUrl || '#'"
+            target="_blank"
+            class="hover:underline"
+          >{{ shell.appStore.copyrightIcp }}</a>
+        </div>
+        <div v-else-if="!shell.isMobile.value" class="footer-section-right" />
+      </footer>
+    </div>
+
+    <!-- ==================== Extra ==================== -->
+    <AppPreferenceDrawer />
+    <AppGlobalSearch />
+    <AppFloatToolbar />
+    <!-- 壳层扩展浮层（可选模块注册的抽屉/全局对话框） -->
+    <component :is="overlay" v-for="(overlay, index) in shellOverlays" :key="index" />
+    <AppTabOverview />
+    <XihanBackTop />
+
+    <!-- 通知展示分级：登录后弹窗 + 强制阅读拦截（teleport 到 body，位置不敏感） -->
+    <NotificationGate />
+
+    <!-- Mobile mask：随移动端侧栏抽屉淡入淡出 -->
+    <Transition name="layout-mask">
+      <div
+        v-if="shell.maskVisible.value"
+        class="fixed left-0 top-0 h-full w-full bg-overlay"
+        :style="{ zIndex: 200 }"
+        @click="shell.handleClickMask"
+      />
+    </Transition>
+  </div>
+</template>
+
+<style scoped>
+/* 分屏容器：与内容区齐平，四角不圆。分隔条粗细放在这一层，工具组的锚点也要读它 */
+.split-row {
+  --xh-splitter-radius: 0;
+  --xh-splitter-trigger-thickness: 6px;
+}
+
+/* 分屏分隔条：配色经组件库皮肤的自定义属性接入本站主题色 */
+.split-divider {
+  --xh-splitter-trigger-bg: hsl(var(--border));
+  --xh-splitter-trigger-bg-hover: hsl(var(--primary) / 50%);
+  --xh-splitter-trigger-bg-dragging: hsl(var(--primary) / 50%);
+}
+
+/* 工具组的锚点：零宽的一列，紧跟分隔条，再往回拉半条分隔条宽——正好落在分隔条中线上。
+   两侧外边距一负一正、合计为零，不占面板的宽度；逻辑方向属性让 rtl（左右互换）下照样对齐 */
+.split-tools-anchor {
+  position: relative;
+  flex: none;
+  inline-size: 0;
+  margin-inline: calc(var(--xh-splitter-trigger-thickness) / -2) calc(var(--xh-splitter-trigger-thickness) / 2);
+}
+
+/* 分割线悬浮工具组：垂直胶囊，悬浮在分隔条中央，不占两侧空间。
+   默认隐藏，悬停分割线或工具组自身、分隔条获得焦点、工具组内有焦点或拖拽中才显示 */
+.split-tools {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  z-index: 21;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 5px;
+  border-radius: 9999px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 6px 22px hsl(var(--foreground) / 12%);
+  transform: translate(-50%, -50%);
+  cursor: col-resize;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+}
+
+.split-divider:is(:hover, :focus, [data-dragging]) + .split-tools-anchor .split-tools,
+.split-tools:is(:hover, :focus-within) {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 左/右分组小标签 */
+.split-tools__label {
+  padding: 2px 0;
+  font-size: 12px;
+  line-height: 1;
+  color: hsl(var(--muted-foreground));
+  user-select: none;
+}
+
+/* 分组分隔线 */
+.split-tools__sep {
+  width: 20px;
+  height: 1px;
+  margin: 4px 0;
+  background: hsl(var(--border));
+}
+
+/* 拖拽手柄：按下由工具组转交给分隔条，工具组里也能拖 */
+.split-tools__grip {
+  display: inline-flex;
+  padding: 2px 0;
+  color: hsl(var(--muted-foreground));
+  cursor: col-resize;
+}
+
+.split-tools__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: hsl(var(--foreground) / 65%);
+  cursor: pointer;
+  transition:
+    background var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+.split-tools__btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+.split-tools__btn--close:hover {
+  background: hsl(var(--destructive) / 12%);
+  color: hsl(var(--destructive));
+}
+
+/* 拖拽遮罩：覆盖整个分屏行，拖拽期间接管指针避免卡顿 */
+.split-drag-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  cursor: col-resize;
+}
+
+/* 左右互换动画：两屏向中心收缩淡出（split-collapsed），expand 时过渡回原状 */
+.split-anchor,
+.split-secondary {
+  transform-origin: center;
+  transition:
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-sweep),
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-sweep);
+}
+
+.split-collapsed .split-anchor,
+.split-collapsed .split-secondary {
+  transform: scale(0.62);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 飞行图标：外层（.swap-icon）负责定位与飞行（transition transform），
+   内层卡片（__card）负责弹入/消散动画——分层避免 animation 覆盖 transform 定位 */
+.swap-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 22;
+  pointer-events: none;
+  transition: transform var(--xh-motion-duration-slide) var(--xh-motion-ease-sweep);
+}
+
+.swap-icon__center {
+  transform: translate(-50%, -50%);
+}
+
+.swap-icon__card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 12px 32px hsl(var(--foreground) / 15%);
+  color: hsl(var(--primary));
+}
+
+.swap-icon__card.is-in {
+  animation: swap-card-in var(--xh-motion-duration-move) var(--xh-motion-ease-settle) both;
+}
+
+.swap-icon__card.is-out {
+  animation: swap-card-out var(--xh-motion-duration-move) var(--xh-motion-ease-exit) both;
+}
+
+@keyframes swap-card-in {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes swap-card-out {
+  to {
+    transform: scale(0.4);
+    opacity: 0;
+  }
+}
+
+/* 移动端侧栏遮罩：只动不透明度，退场比进场快 */
+.layout-mask-enter-active {
+  transition: opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+}
+
+.layout-mask-leave-active {
+  transition: opacity var(--xh-motion-duration-exit) var(--xh-motion-ease-exit);
+}
+
+.layout-mask-enter-from,
+.layout-mask-leave-to {
+  opacity: 0;
+}
+
+.footer-bar {
+  gap: 8px;
+}
+
+.footer-bar.flex-col {
+  gap: 4px;
+}
+
+.footer-section-left {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.footer-section-center {
+  flex: 0 0 auto;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.footer-section-right {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+}
+
+.footer-bar :deep(a) {
+  color: hsl(var(--foreground));
+  text-decoration: none;
+}
+</style>

@@ -60,6 +60,9 @@ export default {
         password: 'Пароль',
       },
       tenant_placeholder: 'Для платформенной учётной записи оставьте пустым',
+      subtitle: 'Введите имя пользователя и пароль для входа',
+      user_name_placeholder: 'Имя пользователя или e-mail',
+      password_placeholder: 'Пароль',
       actions: {
         sign_in: 'Войти',
       },

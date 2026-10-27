@@ -1,0 +1,191 @@
+/**
+ * useSettingSyncIsland 用户设置同步提示封装单元测试。
+ * 职责：锁定上行保存 / 水合 / 远端下行三类场景共用同一套文案与节奏——
+ * 起始「正在同步{name}…」、成功「{name}已同步」、失败「{name}同步失败」、
+ * 远端下行一次性走「正在应用…」→「{name}已从其他设备同步」，
+ * 以及 dismiss 为静默收尾（不落历史、不弹结果）。
+ */
+import { afterEach, describe, expect, it, vi } from 'vitest'
+// 预热依赖图：被测模块引 ~/locales，会牵出七套语言包、vue-i18n 与 ~/utils 桶文件，首次转换在满并行下要数秒。
+// 静态导入让这笔开销落在文件收集阶段，不计入任何用例的超时；loadModule() 里的 vi.resetModules()
+// 只清模块实例、保留转换结果，重新导入只剩求值开销，每个用例拿到的状态照样是全新的。
+import './useSettingSyncIsland'
+
+/** 每个用例一份全新模块状态：灵动岛的 tasks / history 是模块级的 */
+async function loadModule() {
+  vi.resetModules()
+  // 文案按区域懒加载：模块重置后要重新装一次（vitest-setup 装的是上一份实例）
+  const { i18n, setLocale } = await import('~/locales')
+  await setLocale('zh-CN')
+  const island = await import('./useDynamicIsland')
+  const sync = await import('./useSettingSyncIsland')
+  return { ...sync, ...island, i18n, setLocale }
+}
+
+afterEach(() => {
+  vi.useRealTimers()
+})
+
+describe('settingSyncIsland 上行同步', () => {
+  it('起始文案为「正在同步{name}…」并处于进行中态', async () => {
+    const { settingSyncIsland, useDynamicIsland } = await loadModule()
+
+    settingSyncIsland('sync:pref', '偏好设置')
+
+    const current = useDynamicIsland().current.value
+    expect(current?.label).toBe('正在同步偏好设置…')
+    expect(current?.state).toBe('loading')
+  })
+
+  it('成功收尾切到「{name}已同步」', async () => {
+    const { settingSyncIsland, useDynamicIsland } = await loadModule()
+
+    settingSyncIsland('sync:fav', '收藏夹').success()
+
+    const current = useDynamicIsland().current.value
+    expect(current?.label).toBe('收藏夹已同步')
+    expect(current?.state).toBe('success')
+  })
+
+  it('失败收尾切到「{name}同步失败」', async () => {
+    const { settingSyncIsland, useDynamicIsland } = await loadModule()
+
+    settingSyncIsland('sync:table', '表格设置').error()
+
+    const current = useDynamicIsland().current.value
+    expect(current?.label).toBe('表格设置同步失败')
+    expect(current?.state).toBe('error')
+  })
+
+  it('静默收尾直接移除任务，不弹结果也不入历史', async () => {
+    const { settingSyncIsland, useDynamicIsland } = await loadModule()
+
+    settingSyncIsland('sync:search', '搜索设置').dismiss()
+
+    const island = useDynamicIsland()
+    expect(island.activeTasks.value).toEqual([])
+    expect(island.history.value).toEqual([])
+  })
+
+  it('同一个 id 复用同一条，重复保存不会堆出多条提示', async () => {
+    const { settingSyncIsland, useDynamicIsland } = await loadModule()
+
+    settingSyncIsland('sync:pref', '偏好设置')
+    settingSyncIsland('sync:pref', '偏好设置')
+
+    expect(useDynamicIsland().activeTasks.value).toHaveLength(1)
+  })
+
+  it('不同 id 的同步任务各占一条，互不覆盖', async () => {
+    const { settingSyncIsland, useDynamicIsland } = await loadModule()
+
+    settingSyncIsland('sync:pref', '偏好设置')
+    settingSyncIsland('sync:fav', '收藏夹')
+
+    expect(useDynamicIsland().activeTasks.value).toHaveLength(2)
+  })
+
+  it('成功收尾后按成功停留时长自动消失并入历史', async () => {
+    vi.useFakeTimers()
+    const { settingSyncIsland, useDynamicIsland } = await loadModule()
+    const island = useDynamicIsland()
+
+    settingSyncIsland('sync:pref', '偏好设置').success()
+    vi.advanceTimersByTime(1600)
+
+    expect(island.activeTasks.value).toEqual([])
+    expect(island.history.value.map(item => item.label)).toEqual(['偏好设置已同步'])
+  })
+
+  it('设置名为空串时文案退化为不带名称，仍不产生裸 key', async () => {
+    const { settingSyncIsland, useDynamicIsland } = await loadModule()
+
+    settingSyncIsland('sync:x', '')
+
+    expect(useDynamicIsland().current.value?.label).toBe('正在同步…')
+  })
+
+  it('切到英文后同一封装产出英文文案', async () => {
+    const { settingSyncIsland, useDynamicIsland, setLocale } = await loadModule()
+    await setLocale('en-US')
+
+    settingSyncIsland('sync:pref', 'Preferences').success()
+
+    expect(useDynamicIsland().current.value?.label).toBe('Preferences synced')
+  })
+})
+
+describe('settingSyncRemoteApplied 远端下行', () => {
+  it('一次调用即完成「正在应用」→「已从其他设备同步」的收尾', async () => {
+    const { settingSyncRemoteApplied, useDynamicIsland } = await loadModule()
+
+    settingSyncRemoteApplied('sync:remote:pref', '偏好设置')
+
+    const current = useDynamicIsland().current.value
+    expect(current?.label).toBe('偏好设置已从其他设备同步')
+    expect(current?.state).toBe('success')
+  })
+
+  it('下行提示同样按成功节奏消失并入历史', async () => {
+    vi.useFakeTimers()
+    const { settingSyncRemoteApplied, useDynamicIsland } = await loadModule()
+    const island = useDynamicIsland()
+
+    settingSyncRemoteApplied('sync:remote:fav', '收藏夹')
+    vi.advanceTimersByTime(1600)
+
+    expect(island.activeTasks.value).toEqual([])
+    expect(island.history.value.map(item => item.label)).toEqual(['收藏夹已从其他设备同步'])
+  })
+
+  it('同 id 的多次下行提示复用同一条，不刷屏', async () => {
+    const { settingSyncRemoteApplied, useDynamicIsland } = await loadModule()
+
+    settingSyncRemoteApplied('sync:remote:pref', '偏好设置')
+    settingSyncRemoteApplied('sync:remote:pref', '偏好设置')
+
+    expect(useDynamicIsland().activeTasks.value).toHaveLength(1)
+  })
+
+  it('上行与下行用不同 id 时可并存，互不覆盖', async () => {
+    const { settingSyncIsland, settingSyncRemoteApplied, useDynamicIsland } = await loadModule()
+
+    settingSyncIsland('sync:pref', '偏好设置')
+    settingSyncRemoteApplied('sync:remote:pref', '偏好设置')
+
+    expect(useDynamicIsland().activeTasks.value).toHaveLength(2)
+  })
+})
+
+describe('settingSyncIsland 与灵动岛开关联动', () => {
+  it('灵动岛关闭时同步提示改由轻提示接管，不进岛', async () => {
+    const { settingSyncIsland, configureDynamicIsland, useDynamicIsland } = await loadModule()
+    const message = vi.fn()
+    configureDynamicIsland({ isEnabled: () => false, message })
+
+    settingSyncIsland('sync:pref', '偏好设置').success()
+
+    expect(useDynamicIsland().activeTasks.value).toEqual([])
+    expect(message).toHaveBeenCalledWith('success', '偏好设置已同步')
+  })
+
+  it('灵动岛关闭时静默收尾不发任何轻提示（高频场景不刷屏）', async () => {
+    const { settingSyncIsland, configureDynamicIsland } = await loadModule()
+    const message = vi.fn()
+    configureDynamicIsland({ isEnabled: () => false, message })
+
+    settingSyncIsland('sync:pref', '偏好设置').dismiss()
+
+    expect(message).not.toHaveBeenCalled()
+  })
+
+  it('灵动岛关闭时失败仍会提示，不静默吞掉错误', async () => {
+    const { settingSyncIsland, configureDynamicIsland } = await loadModule()
+    const message = vi.fn()
+    configureDynamicIsland({ isEnabled: () => false, message })
+
+    settingSyncIsland('sync:table', '表格设置').error()
+
+    expect(message).toHaveBeenCalledWith('error', '表格设置同步失败')
+  })
+})

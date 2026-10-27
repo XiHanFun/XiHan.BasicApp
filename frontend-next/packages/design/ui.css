@@ -1,0 +1,582 @@
+.side-content {
+  animation-duration: var(--xh-motion-duration-slide);
+  animation-timing-function: var(--xh-motion-ease-enter-strong);
+}
+
+.side-content[data-side='top'] {
+  animation-name: slide-up;
+}
+
+.side-content[data-side='bottom'] {
+  animation-name: slide-down;
+}
+
+.side-content[data-side='left'] {
+  animation-name: slide-left;
+}
+
+.side-content[data-side='right'] {
+  animation-name: slide-right;
+}
+
+.breadcrumb-transition-enter-active {
+  transition:
+    transform var(--xh-motion-duration-slide) var(--xh-motion-ease-sweep),
+    opacity var(--xh-motion-duration-slide) var(--xh-motion-ease-sweep);
+}
+
+.breadcrumb-transition-leave-active {
+  display: none;
+}
+
+.breadcrumb-transition-enter-from {
+  opacity: 0;
+  transform: translateX(30px) skewX(-30deg);
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==================== 布局核心样式 ==================== */
+
+.bg-sidebar {
+  background: hsl(var(--sidebar));
+}
+
+.bg-sidebar-deep {
+  background: hsl(var(--sidebar-deep));
+}
+
+.bg-header {
+  background: hsl(var(--header));
+}
+
+.bg-background-deep {
+  background: hsl(var(--background-deep));
+}
+
+.bg-overlay {
+  background: hsl(var(--overlay));
+}
+
+/* menu align helpers compatible with xihan layout */
+.menu-align-start {
+  --menu-align: start;
+}
+
+.menu-align-center {
+  --menu-align: center;
+}
+
+.menu-align-end {
+  --menu-align: end;
+}
+
+/* ==================== 偏好设置公共样式 ==================== */
+
+/* 每个分组的标题行：面内标题，与 md 控件同档字号、semibold */
+.section-title {
+  margin-bottom: 4px;
+  padding: 0 6px;
+  font-weight: var(--xh-font-weight-semibold);
+  font-size: var(--xh-text-label-size);
+  color: hsl(var(--foreground));
+}
+
+/* 数值输入框后的单位文字：次级标注 */
+.unit-label {
+  font-size: var(--xh-text-caption-size);
+  color: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+
+/* 设置行：等高等间距 + hover 背景 */
+.pref-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius);
+  padding: 0 6px;
+  margin: 1px 0;
+  height: 38px;
+  /* 行内文字与右侧的 md 控件同档 */
+  font-size: var(--xh-font-size-md);
+  transition: background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter);
+}
+
+/* 偏好行右侧的取值列只有百来像素，而组件库的输入类控件自带 12rem 最小宽。
+   放开各族的最小宽钩子，并让视觉盒按调用点给的宽度铺满，否则会顶破这一行 */
+.pref-row {
+  --xh-number-field-control-min-w: 0;
+  --xh-select-control-min-w: 0;
+  --xh-text-field-control-min-w: 0;
+}
+
+.pref-row [data-scope='number-field'][data-part='control'],
+.pref-row [data-scope='select'][data-part='control'],
+.pref-row [data-scope='text-field'][data-part='control'] {
+  inline-size: 100%;
+}
+
+.pref-row:hover {
+  background-color: hsl(var(--accent));
+}
+
+/* 首列是该行的标签：字号与并排的 md 控件同档，行距取紧档让折成两行的标签仍装在 38px 行高里 */
+.pref-row > span:first-child,
+.pref-row > label:first-child {
+  font-size: var(--xh-text-label-size);
+  line-height: var(--xh-leading-tight);
+  flex-shrink: 1;
+  min-width: 0;
+}
+
+/* 偏好设置的分区面：一块无边框的内边距面（原先由卡片承担，现在只需要这点样式） */
+.pref-card {
+  display: block;
+  padding: 6px 16px;
+  border-radius: var(--radius);
+  background: hsl(var(--card));
+}
+
+/* ==================== 通用结构件 ==================== */
+
+/*
+ * 加载罩层：组件库的旋转标记是纯标记，不带遮罩能力，罩层由这里补上。
+ * 容器给定位上下文，罩层半透明盖住内容，读数期间下面的旧数据仍可见但不可误点。
+ */
+.xh-loading-stage {
+  position: relative;
+}
+
+/* 罩层恒在 DOM 里，由容器上的 is-loading 决定显不显示：
+   留着节点才能给进出场做过渡，也省得每处各写一遍 v-if */
+.xh-loading-stage:not(.is-loading) > .xh-loading-stage__veil {
+  display: none;
+}
+
+.xh-loading-stage__veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(var(--card) / 70%);
+}
+
+/* 对话框 / 抽屉三段式的正文段照不分段时的面板排：组件库的 body 是块级滚动面，
+   这里接回面板一层的纵向排布与同一档间距，多段内容（提示、穿梭框、详情各节）照旧隔开，
+   写了 flex: 1 的编辑区仍撑满头尾之间的剩余高度 */
+.xh-overlay-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--xh-stack-gap-md);
+}
+
+/* 命令式取值弹窗（prompt）的正文：字段竖排，撑到弹窗的取值宽度。
+   字段族控件缺省按控件宽（--xh-control-w）定宽，这里改一次让全部种类占满这一列 */
+.x-prompt__fields {
+  --xh-control-w: 100%;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-block: 12px;
+  inline-size: 380px;
+  max-inline-size: 100%;
+}
+
+/* 长得像文字链的浮层触发器（气泡确认那几处：触发器本身就是按钮，去掉按钮相） */
+.xh-linklike-trigger {
+  border: 0;
+  background: transparent;
+  color: var(--xh-fg-brand);
+  font: inherit;
+  font-size: var(--xh-font-size-sm);
+  cursor: pointer;
+}
+
+.xh-linklike-trigger:hover {
+  text-decoration: underline;
+}
+
+.xh-linklike-trigger--danger {
+  color: var(--xh-fg-danger);
+}
+
+/* 当文字链用的组件库按钮（表格单元格、详情里跳链路追踪那几处）：经按钮的公开槽去掉盒高、内衬与悬停 / 按下面，
+   只留品牌色字、悬停加下划线，悬停面不再铺满单元格；焦点环照旧由组件库画 */
+.xh-link-button {
+  --xh-button-h: auto;
+  --xh-button-px: 0;
+  --xh-button-bg-hover: transparent;
+  --xh-button-bg-active: transparent;
+
+  min-block-size: 0;
+  max-inline-size: 100%;
+}
+
+.xh-link-button:hover {
+  text-decoration: underline;
+}
+
+/* 正文滚动区：内容层按视口宽排版，不跟着页内最宽的东西长。
+   组件库给 content 的 min-inline-size: fit-content 是为「整块内容一起横向滚」准备的；
+   页面外壳要的是另一种——页面自己占满视口宽，真正超宽的表格由它自身的滚动容器收。
+   不收窄的话页面被撑到表格那么宽，靠右的搜索按钮会被推出屏幕。
+   只收外壳自己那一层，按子代链写：页内再放的滚动区（如包着表格的那个）仍要靠 fit-content
+   按表格宽度撑开，否则表格根被压成视口宽，横向滚开后外框在半路收口、行线截断而表头还往右延伸。 */
+.xh-content-scroll
+  > [data-scope='scroll-area'][data-part='viewport']
+  > [data-scope='scroll-area'][data-part='content'] {
+  min-inline-size: 0;
+}
+
+/* 定高滚动区：只需要溢出滚动，不需要自绘滚动条 */
+.xh-scroll-area {
+  overflow: auto;
+}
+
+/* 骨架条：加载占位的一块微光圆角。不用组件库的 bone 部件——它要求有 SkeletonRoot 祖先，
+   而这些占位散落在各处容器里 */
+.xh-skeleton-bone {
+  display: block;
+  /* 缺省按一行正文高度：空 span 没有内容撑不出盒子，作者可用 block-size 覆盖 */
+  block-size: var(--xh-text-body-size);
+  border-radius: var(--xh-shape-control);
+  background: linear-gradient(90deg, var(--xh-bg-subtle) 25%, var(--xh-bg-subtle-hover) 37%, var(--xh-bg-subtle) 63%);
+  background-size: 400% 100%;
+  animation: xh-app-skeleton-shimmer var(--xh-motion-loop-shimmer) var(--xh-motion-ease-loop) infinite;
+}
+
+.xh-skeleton-bone--circle {
+  border-radius: var(--xh-radius-full);
+}
+
+@keyframes xh-app-skeleton-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+/* 减弱动效时停掉微光，只留底色 */
+@media (prefers-reduced-motion: reduce) {
+  .xh-skeleton-bone {
+    animation: none;
+  }
+}
+
+/* 通知正文保留换行：多行结果（如连通性探测逐项结果）直接用 \n 分行。
+   轻提示没有正文这一层——它只出一句话，多行的那些一律走通知 */
+[data-scope='notification'][data-part='item-description'] {
+  white-space: pre-line;
+}
+
+/* 卡片正文兜底限高：组件库不限描述长度，长文会把卡片撑到整屏高。超出的在卡片里滚动，
+   多行结果照样读得全。主动推送的通知本就只给一句摘要（utils/notification-text），这条只防漏网 */
+[data-scope='notification'][data-part='item-description'][data-preset='card'],
+[data-scope='notification'][data-part='item'][data-preset='card'] [data-part='item-description'] {
+  max-block-size: 40vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* 手写表格的共享皮肤：结构由页面自己写 thead/tbody，这里只给行线与紧排；
+   单元格文字与组件库 Table 的 md 档同一支令牌 */
+.xh-plain-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--xh-control-font-md);
+}
+
+/* 行高与列表的紧凑数据行同一把尺（control-h-sm + 4px×2 = 36）：md 标签行框 24 落在里面不撑高，
+   纯文本行也补到同高 */
+.xh-plain-table th,
+.xh-plain-table td {
+  padding-block: var(--xh-space-1);
+  padding-inline: var(--xh-space-3);
+  block-size: calc(var(--xh-control-h-sm) + 2 * var(--xh-space-1));
+  text-align: start;
+  border-block-end: 1px solid var(--xh-border-subtle);
+}
+
+.xh-plain-table th {
+  font-weight: 600;
+  color: var(--xh-fg-muted);
+  background: var(--xh-bg-subtle);
+}
+
+/* 抽屉 / 弹窗里的明细表（角色、权限、租户成员）：与 .xh-plain-table 同一把尺，只是四边描边的
+   网格形态；三处页面不再各自 scoped 一份 9px 竖衬的版本 */
+.xh-detail-table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--xh-control-font-md);
+}
+
+.xh-detail-table th,
+.xh-detail-table td {
+  padding-block: var(--xh-space-1);
+  padding-inline: var(--xh-space-2_5);
+  block-size: calc(var(--xh-control-h-sm) + 2 * var(--xh-space-1));
+  border: 1px solid var(--xh-border-default);
+  text-align: start;
+  vertical-align: middle;
+}
+
+.xh-detail-table th {
+  font-weight: var(--xh-font-weight-medium);
+  background: var(--xh-bg-subtle);
+}
+
+/* @iconify/vue 的 svg 只认 1em，跟着字号走就只有 12px，在 28px 的图标钮里显得太小。
+   组件库的图标随控件尺寸档走（xs / sm 16、md 20、lg 24），XhIcon 自己会读家族下发的槽；
+   这里按 Action Control 的档位属性给直接塞进按钮 / 触发器的 Iconify 图标接上同一把尺，
+   没有档位的圆形图标钮取 sm 档字形 */
+[data-xh-action-control] > svg,
+.xh-icon-btn > svg {
+  flex: none;
+  inline-size: var(--xh-glyph-size-sm);
+  block-size: var(--xh-glyph-size-sm);
+}
+
+[data-xh-action-control][data-xh-action-size='md'] > svg {
+  inline-size: var(--xh-glyph-size-md);
+  block-size: var(--xh-glyph-size-md);
+}
+
+[data-xh-action-control][data-xh-action-size='lg'] > svg {
+  inline-size: var(--xh-glyph-size-lg);
+  block-size: var(--xh-glyph-size-lg);
+}
+
+/* 菜单行首图标格里的 Iconify 图标（Schema 行操作、页面「更多」经 item-prefix 放入）：
+   图标格按 --xh-icon-size 定宽，这里让 1em 的 svg 接上同一把尺；颜色随条目字色，不用另写 */
+[data-scope='menu'][data-part='item-icon'] > svg {
+  inline-size: var(--xh-icon-size);
+  block-size: var(--xh-icon-size);
+}
+
+/* 工具栏圆形图标钮：XIconButton 与同排的菜单 / 浮层触发钮都是组件库的 sm 纯图标按钮，
+   尺寸、悬停、按下与禁用随按钮走，这里只把圆角换成整圆 */
+.x-icon-btn {
+  --xh-button-radius: var(--xh-radius-full);
+}
+
+/* 登录页工具栏的圆形图标钮（手写触发器）：盒尺寸取 sm 档控件方盒，随密度轴换档 */
+.xh-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--xh-control-box-sm);
+  block-size: var(--xh-control-box-sm);
+  padding: 0;
+  border: 0;
+  border-radius: var(--xh-radius-full);
+  background: transparent;
+  color: var(--xh-fg-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
+}
+
+.xh-icon-btn:hover:not(:disabled) {
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
+}
+
+/* 按压反馈同下面的 .xihan-icon-btn。这几颗多是组件库的按钮 / 浮层触发器，本规则不进层，
+   上面的 transition 简写与透明底压过了库在按下时改写的时长、曲线与 active 底，不补回就是瞬间跳到 0.97 */
+.xh-icon-btn:active:not(:disabled) {
+  background: var(--xh-bg-subtle-active);
+  scale: var(--xh-motion-scale-press);
+  transition-duration: var(--xh-motion-duration-press);
+  transition-timing-function: var(--xh-motion-ease-press);
+}
+
+.xh-icon-btn:disabled {
+  opacity: var(--xh-state-disabled-opacity);
+  cursor: not-allowed;
+}
+
+/* 顶栏 32px 圆角图标钮：主题/全屏/偏好/语言/时区/铃铛/星标/聊天入口共用。
+   与上面 28px 圆形的 .xh-icon-btn 是两族，按语境密度分工，勿混用 */
+.xihan-icon-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  inline-size: 32px;
+  block-size: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--xh-radius-md, 6px);
+  background: transparent;
+  color: var(--xh-fg-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-micro) var(--xh-motion-ease-enter),
+    scale var(--xh-motion-duration-release) var(--xh-motion-ease-release);
+}
+
+/* 键盘聚焦给焦点环；鼠标点按不出（:focus-visible） */
+.xihan-icon-btn:focus-visible {
+  outline: var(--xh-ring-width) solid var(--xh-ring-focus);
+  outline-offset: var(--xh-ring-offset);
+}
+
+.xihan-icon-btn:hover:not(:disabled) {
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-default);
+}
+
+/* 离散动作钮的统一按压反馈：按下缩到 0.97 并换底，松开回弹；减弱动态效果下缩放令牌归 1 */
+.xihan-icon-btn:active:not(:disabled) {
+  background: var(--xh-bg-subtle-active);
+  scale: var(--xh-motion-scale-press);
+  transition-duration: var(--xh-motion-duration-press);
+  transition-timing-function: var(--xh-motion-ease-press);
+}
+
+.xihan-icon-btn:disabled {
+  opacity: var(--xh-state-disabled-opacity);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 带文字的顶栏钮（如上下文切换）：皮肤同图标钮，宽度随内容 */
+.xihan-icon-btn.xihan-icon-btn--labeled {
+  inline-size: auto;
+  gap: var(--xh-space-2);
+  padding-inline: var(--xh-space-2);
+}
+
+/* 双类加权：在同文件里也稳压 :hover，不依赖书写顺序 */
+.xihan-icon-btn.xihan-icon-btn--active {
+  background: var(--xh-bg-subtle-hover);
+  color: var(--xh-fg-brand);
+}
+
+/* 认证页的主提交钮：账号/手机/邮箱登录、注册、找回与重置密码共用同一颗。
+   尺寸与形状都取控件令牌，与这几页 size="lg" 的输入框同一套：高度随 density 换档，
+   圆角随偏好设置里的圆角滑块走（xihan-ui.css 把 shape-control 桥到了 --radius）。
+   本文件不进任何层，压得住皮肤按钮的分档尺寸，无需 !important */
+.auth-submit {
+  block-size: var(--xh-control-h-lg);
+  border-radius: var(--xh-shape-control);
+  font-size: var(--xh-control-font-lg);
+  font-weight: var(--xh-font-weight-semibold);
+}
+
+/* 认证页的验证码行：六格分格输入在左，「发送验证码」钮在右。放得下时同一行、钮靠右缘；
+   放不下（手机宽）时钮整颗换到下一行仍靠右，格子不参与收缩——格子只会横向收窄、高度不变，
+   一收就成扁格。间距取控件档位的行内间距令牌 */
+.auth-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--xh-control-gap-lg);
+}
+
+.auth-code-row > [data-scope='button'],
+.auth-code-row > .auth-captcha {
+  flex: none;
+  margin-inline-start: auto;
+}
+
+/* 账号登录的图形验证码：高度取 lg 档控件高、随 density 换档，宽度按服务端 SVG 画布
+   （CaptchaSvgRenderer 的 120×44）的比例随高度走，图片铺满不留边。定宽 120px 时框比画布扁，
+   图片等比缩进去后左右露出垫底色，暗色下成了两道灰边。圆角与旁边的格子同一个控件令牌 */
+.auth-captcha {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  block-size: var(--xh-control-h-lg);
+  aspect-ratio: 120 / 44;
+  border-radius: var(--xh-shape-control);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.auth-captcha > img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+/* 认证页的辅助文字按 §6.4 角色取语义排版令牌，与 14px 的控件文字成阶：
+   tailwind 的 text-xs / text-sm 在 14px 根下是 10.5 / 12.25px，既非整数也不在字号阶梯上。
+   行高一并取令牌，不再由工具类写死。
+   正文：标题下的副标题（原 15px / 28 行高，字号阶梯上没有 15）、记住我 + 忘记密码一行、
+   注册页同意条款、两步验证方式项的名字、品牌面板的标语 chip */
+.auth-body {
+  font-size: var(--xh-text-body-size);
+  line-height: var(--xh-text-body-leading);
+}
+
+/* 说明 / helper：验证码提示、扫码提示、「还没有账号 / 已有账号 / 返回登录」这类表单下的引导句、
+   第三方回调页的跳转提示 */
+.auth-helper {
+  font-size: var(--xh-text-secondary-size);
+  line-height: var(--xh-leading-normal);
+}
+
+/* 次级标注：分隔线中缝的「第三方登录」、密码强度读数、品牌面板 logo 下的大写品牌字、页脚版本行 */
+.auth-caption {
+  font-size: var(--xh-text-caption-size);
+  line-height: var(--xh-leading-normal);
+}

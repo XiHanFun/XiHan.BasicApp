@@ -1,12 +1,91 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="system">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="XiHan.BasicApp 6.0" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=0"
+    />
     <title>XiHan.BasicApp</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="alternate icon" type="image/x-icon" href="/favicon.ico" />
+    <script>
+      // 首屏引导：应用挂载前先把根字号与圆角写到 <html>，让首帧就是最终值。
+      // 存储键取自 packages/constants/storage.ts，默认值与换算规则跟 constants/app.ts、useHtmlStyle、useTheme 保持一致；
+      // 没存过或值不合法时按默认值写——新装的浏览器正是没存过的那一批，不写的话首帧仍会按 CSS 默认值画一遍再跳。
+      ;(function () {
+        function readNumber(key, fallback) {
+          try {
+            var raw = localStorage.getItem(key)
+            if (raw === null) return fallback
+            var value = JSON.parse(raw)
+            return typeof value === 'number' && isFinite(value) ? value : fallback
+          } catch (e) {
+            return fallback
+          }
+        }
+
+        var el = document.documentElement
+        el.style.fontSize = (readNumber('xihan_font_size', 14) / 16) * 100 + '%'
+
+        var radius = readNumber('xihan_ui_radius', 0.25)
+        el.style.setProperty('--radius', Math.round(4 + radius * 12) + 'px')
+        el.style.setProperty('--radius-card', Math.round(6 + radius * 10) + 'px')
+      })()
+    </script>
+    <style>
+      #app-loading {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+
+      #app-loading.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #f0f0f0;
+        border-top-color: #006be6;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        #app-loading {
+          background: #1a1a1a;
+        }
+
+        .loading-spinner {
+          border-color: #333;
+          border-top-color: #006be6;
+        }
+      }
+    </style>
   </head>
+
   <body>
+    <div id="app-loading">
+      <div class="loading-spinner"></div>
+    </div>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>

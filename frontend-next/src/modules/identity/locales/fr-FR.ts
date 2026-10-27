@@ -60,6 +60,9 @@ export default {
         password: 'Mot de passe',
       },
       tenant_placeholder: 'Laissez vide pour un compte de plateforme',
+      subtitle: 'Saisissez votre identifiant et votre mot de passe pour vous connecter',
+      user_name_placeholder: 'Identifiant ou e-mail',
+      password_placeholder: 'Mot de passe',
       actions: {
         sign_in: 'Se connecter',
       },
