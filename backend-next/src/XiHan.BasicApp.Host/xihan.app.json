@@ -1,0 +1,14 @@
+{
+  "$schema": "https://spec.xihanfun.com/packaging/app.v1.json",
+  "name": "xihan-basicapp",
+  "project": "XiHan.BasicApp.Host.csproj",
+  "profile": "full",
+  "image": { "repository": "ghcr.io/xihanfun/xihan-basicapp", "tag": "6.0.0-preview.1" },
+  "ports": { "http": 9710, "grpc": 9711 },
+  "bindings": [{ "name": "db", "type": "connection:relational" }],
+  "config": { "files": ["appsettings.json"] },
+  "probes": { "startupSeconds": 60, "periodSeconds": 10 },
+  "shutdown": { "graceSeconds": 30 },
+  "resources": { "requests": { "cpu": "250m", "memory": "256Mi" }, "limits": { "cpu": "1", "memory": "512Mi" } },
+  "environment": { "ASPNETCORE_ENVIRONMENT": "Production" }
+}
