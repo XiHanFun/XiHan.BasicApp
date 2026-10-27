@@ -263,6 +263,26 @@ export default {
     },
   },
   page: {
+    control_center: {
+      title: '控制中心',
+      welcome: '欢迎回来，{name}',
+      subtitle: '选择一个租户进入，或前往平台管理',
+      my_tenants: '租户',
+      current: '当前',
+      home_tenant: '注册地',
+      refresh: '刷新',
+      no_tenants: '暂无可进入的租户',
+      no_tenants_hint: '请联系管理员将您加入租户',
+      platform_panel: '平台管理',
+      platform_desc: '管理租户、用户、菜单、权限与系统设置',
+      load_failed: '加载租户列表失败',
+      switch_failed: '切换失败',
+      platform_group: '平台',
+      member_type: {
+        owner: '所有者',
+        member: '成员',
+      },
+    },
     auth: {
       slogan_title: '企业级通用中后台内核',
       slogan_desc: '全生态、工程化、智能化、国际化',

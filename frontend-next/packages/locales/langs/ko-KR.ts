@@ -263,6 +263,26 @@ export default {
     },
   },
   page: {
+    control_center: {
+      title: '컨트롤 센터',
+      welcome: '다시 오신 걸 환영해요, {name}',
+      subtitle: '들어갈 테넌트를 선택하거나 플랫폼 관리로 이동하세요',
+      my_tenants: '테넌트',
+      current: '현재',
+      home_tenant: '소속',
+      refresh: '새로 고침',
+      no_tenants: '들어갈 수 있는 테넌트가 없어요',
+      no_tenants_hint: '관리자에게 테넌트 추가를 요청해 주세요',
+      platform_panel: '플랫폼 관리',
+      platform_desc: '테넌트, 사용자, 메뉴, 권한 및 시스템 설정을 관리해요',
+      load_failed: '테넌트 목록을 불러오지 못했어요',
+      switch_failed: '전환하지 못했어요',
+      platform_group: '플랫폼',
+      member_type: {
+        owner: '소유자',
+        member: '구성원',
+      },
+    },
     auth: {
       slogan_title: '엔터프라이즈급 통합 관리 플랫폼 코어',
       slogan_desc: '생태계 · 엔지니어링 · 지능화 · 국제화',

@@ -34,5 +34,6 @@
   "packages/layouts/basic/index.vue": 18,
   "packages/views/_core/authentication/AuthLayout.vue": 2,
   "packages/views/_core/authentication/LoginToolbar.vue": 13,
+  "packages/views/_core/control-center/index.vue": 60,
   "src/styles/admin-page.css": 8
 }

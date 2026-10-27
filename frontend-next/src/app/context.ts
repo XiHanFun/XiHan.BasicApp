@@ -1,10 +1,14 @@
 import type { Router } from 'vue-router'
 import type { AppContextApis } from '~/types'
+import { auth as authOps, impersonation as impersonationOps, tenants as tenantOps } from '~/contracts'
 import { registerAppContext, useAuthStore } from '~/stores'
+
+/** 后端 `PageInfo.MaxSize`：模仿弹窗的租户范围一次取全 */
+const PAGE_MAX_SIZE = 500
 
 /**
  * 壳层用到、但 6.0 后端还没有的接口：显式拒绝而不是回空。
- * 对应的壳层件（通知、模仿、锁屏、偏好 / 收藏的服务端同步、租户切换）缺省关着（见 stores/app/preferences.ts 的缺省值），
+ * 对应的壳层件（通知、锁屏、偏好 / 收藏的服务端同步）缺省关着（见 stores/app/preferences.ts 的缺省值），
  * 用户在偏好中心打开后会看到这条错误，而不是一个看似工作的空件。
  */
 function notAvailable(name: string): never {
@@ -51,15 +55,18 @@ export function registerApplicationContext(router: Router): void {
       markRead: () => notAvailable('userInboxApi.markRead'),
       popup: () => notAvailable('userInboxApi.popup'),
     },
+    // 模仿登录（方案 5.8）：平台主体先选范围（平台账号或某个租户的成员），租户主体钉在本租户；候选、发起与结束都是 Identity 的操作
     impersonationApi: {
-      tenants: () => notAvailable('impersonationApi.tenants'),
-      candidates: () => notAvailable('impersonationApi.candidates'),
-      start: () => notAvailable('impersonationApi.start'),
-      stop: () => notAvailable('impersonationApi.stop'),
+      // 可选范围：全部正常状态的租户（只有平台主体会调到；tenants.list 是平台专属操作）
+      tenants: async () => (await tenantOps.list({ page: { index: 1, size: PAGE_MAX_SIZE }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }] })).items.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name })),
+      candidates: async input => (await impersonationOps.candidates({ tenantId: input.tenantId ?? null, keyword: input.keyword ?? null })).items.map(candidate => ({ basicId: candidate.id, userName: candidate.userName, nickName: candidate.displayName })),
+      start: input => impersonationOps.start({ targetUserId: input.targetUserId, tenantId: input.tenantId ?? null, reason: input.reason ?? null }),
+      stop: () => impersonationOps.stop({}),
     },
+    // 控制中心：我能进入的租户（注册地 + 成员）与能否进入平台；切换走 auth.switch-tenant，在目标上下文续接当前会话
     tenantApi: {
-      myAvailableTenants: () => notAvailable('tenantApi.myAvailableTenants'),
-      switchTenant: () => notAvailable('tenantApi.switchTenant'),
+      myAvailableTenants: async () => (await tenantOps.mine({})).tenants.map(tenant => ({ tenantId: tenant.tenantId, tenantName: tenant.name, isHome: tenant.isHome, memberType: tenant.memberType ?? null, isCurrent: tenant.isCurrent })),
+      switchTenant: input => authOps.switchTenant({ tenantId: input.tenantId ?? null }),
     },
     getFilePresignedUrlApi: () => notAvailable('getFilePresignedUrlApi'),
     timeZoneApi: { options: timeZoneOptions },
@@ -73,7 +80,8 @@ export function registerApplicationContext(router: Router): void {
   registerAppContext({
     apis,
     getRouter: () => Promise.resolve(router),
-    // 个人中心页随 Identity 的后续批次补；改密页先顶在这个入口上，顶栏用户菜单才有去处
-    shellRoutes: { profile: '/identity/profile/change-password' },
+    // 个人中心页随 Identity 的后续批次补；改密页先顶在这个入口上，顶栏用户菜单才有去处。
+    // 控制中心视图在 packages，路径由这里登记（顶栏的上下文按钮据此显示并跳转）
+    shellRoutes: { profile: '/identity/profile/change-password', controlCenter: '/control-center' },
   })
 }

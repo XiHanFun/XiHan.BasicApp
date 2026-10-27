@@ -263,6 +263,26 @@ export default {
     },
   },
   page: {
+    control_center: {
+      title: 'Centre de contrôle',
+      welcome: 'Bon retour, {name}',
+      subtitle: 'Choisissez un locataire pour y entrer, ou passez à l\'administration de la plateforme',
+      my_tenants: 'Locataires',
+      current: 'Actuel',
+      home_tenant: 'Origine',
+      refresh: 'Actualiser',
+      no_tenants: 'Aucun locataire disponible',
+      no_tenants_hint: 'Demandez à un administrateur de vous ajouter à un locataire',
+      platform_panel: 'Administration de la plateforme',
+      platform_desc: 'Gérer les locataires, utilisateurs, menus, permissions et paramètres système',
+      load_failed: 'Échec du chargement de la liste des locataires',
+      switch_failed: 'Échec du changement',
+      platform_group: 'Plateforme',
+      member_type: {
+        owner: 'Propriétaire',
+        member: 'Membre',
+      },
+    },
     auth: {
       slogan_title: 'Noyau d\'administration de niveau entreprise',
       slogan_desc: 'Écosystème complet · Industrialisé · Intelligent · Internationalisé',

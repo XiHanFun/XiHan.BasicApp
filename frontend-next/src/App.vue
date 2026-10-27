@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { provideXhConfig } from '@xihan-ui/vue'
 import { computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { RouterView, useRoute } from 'vue-router'
 import AppWatermark from '~/components/common/AppWatermark.vue'
 import DynamicIsland from '~/components/common/DynamicIsland.vue'
 import LockScreen from '~/components/common/LockScreen.vue'
@@ -17,9 +17,13 @@ provideXhConfig(useXhUiConfig())
 useHtmlStyle()
 useGlobalShortcuts()
 
-// 壳由路由决定：认证页走 AuthLayout，其余走管理端壳（守卫保证未登录到不了这里）
+// 壳由路由决定：认证页走 AuthLayout，全屏独立页（控制中心）直接渲染视图，其余走管理端壳（守卫保证未登录到不了这里）
 const route = useRoute()
-const layout = computed(() => (route.meta.layout === 'auth' ? AuthLayout : BasicLayout))
+const layout = computed(() => {
+  if (route.meta.layout === 'auth')
+    return AuthLayout
+  return route.meta.layout === 'blank' ? RouterView : BasicLayout
+})
 
 onMounted(() => {
   document.getElementById('app-loading')?.classList.add('hidden')

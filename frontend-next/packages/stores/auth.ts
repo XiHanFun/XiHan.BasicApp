@@ -5,6 +5,7 @@ import { computed, ref } from 'vue'
 import { LOGIN_PATH } from '~/constants'
 import { auth as authApi } from '~/contracts'
 import { useAppContext } from './app-context'
+import { relaunchApp } from './relaunch'
 
 const SESSION_KEY = 'xihan.next.session'
 
@@ -134,7 +135,17 @@ export const useAuthStore = defineStore('auth', () => {
     store(null)
   }
 
-  // ---- 模仿登录（壳层入口；接口经应用上下文注入，6.0 后端接上前是显式拒绝）----
+  /**
+   * 切换上下文：进入某个租户，或（平台账号）回到平台（`tenantId` 为 null）。
+   * 后端在目标上下文续接同一会话、签发新令牌（旧令牌随即失效）；本地存下新会话后整页重建，
+   * 由守卫按新上下文重取权限、重装菜单路由（标签栏等壳层状态都属于上一上下文）。
+   */
+  async function switchTenant(tenantId: null | string): Promise<void> {
+    store(await useAppContext().apis.tenantApi.switchTenant({ tenantId }))
+    relaunchApp()
+  }
+
+  // ---- 模仿登录（壳层入口；接口经应用上下文注入）----
   const impersonationLoading = ref(false)
 
   function impersonationCandidates(input: ImpersonationCandidateQuery): Promise<ImpersonationCandidate[]> {
@@ -145,18 +156,18 @@ export const useAuthStore = defineStore('auth', () => {
     return useAppContext().apis.impersonationApi.tenants()
   }
 
-  /** 模仿 / 退出模仿都拿回一份新会话：换掉当前会话并重取权限 */
-  async function applyImpersonation(run: () => Promise<unknown>): Promise<void> {
+  /** 模仿 / 退出模仿都拿回一份新会话：换掉当前会话后整页重建（与切换租户同一条路）；失败时放开加载态、把错误抛给调用方提示 */
+  async function applyImpersonation(run: () => Promise<Session>): Promise<void> {
     if (impersonationLoading.value)
       return
     impersonationLoading.value = true
     try {
-      const next = await run() as Session
-      store(next)
-      await loadPermissions()
+      store(await run())
+      relaunchApp()
     }
-    finally {
+    catch (error) {
       impersonationLoading.value = false
+      throw error
     }
   }
 
@@ -185,6 +196,7 @@ export const useAuthStore = defineStore('auth', () => {
     loadMe,
     markPasswordChanged,
     clear,
+    switchTenant,
     impersonationLoading,
     impersonationCandidates,
     impersonationTenants,

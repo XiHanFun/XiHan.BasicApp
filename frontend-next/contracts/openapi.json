@@ -87,6 +87,18 @@
                     },
                     "user": {
                       "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "tenantName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impersonatorUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -231,6 +243,18 @@
                     },
                     "mustChangePassword": {
                       "type": "boolean"
+                    },
+                    "tenantName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impersonatorUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -407,6 +431,126 @@
                     },
                     "user": {
                       "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "tenantName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impersonatorUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessExpiresAt",
+                    "refreshToken",
+                    "refreshExpiresAt",
+                    "sessionId",
+                    "mustChangePassword",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:switch-tenant": {
+      "post": {
+        "operationId": "auth.switch-tenant",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Switch the current session to another tenant (home tenant or a tenant the user is a member of) or back to the platform (platform accounts only); returns new tokens.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SwitchTenantRequest",
+                "type": "object",
+                "properties": {
+                  "tenantId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TokenResponse",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "tenantName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impersonatorUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
                     }
                   },
                   "required": [
@@ -1030,6 +1174,301 @@
                   "required": [
                     "items",
                     "total"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/impersonation:candidates": {
+      "post": {
+        "operationId": "impersonation.candidates",
+        "tags": [
+          "impersonation"
+        ],
+        "summary": "List up to 20 active users that can be impersonated in a tenant (or the platform), matched by keyword. Requires identity.impersonation.start.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.impersonation.start",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ImpersonationCandidatesRequest",
+                "type": "object",
+                "properties": {
+                  "tenantId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ImpersonationCandidatesResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ImpersonationCandidateResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/impersonation:start": {
+      "post": {
+        "operationId": "impersonation.start",
+        "tags": [
+          "impersonation"
+        ],
+        "summary": "Sign in as another user: opens a separate session for the target and returns tokens carrying the actor claim. Tenant subjects stay in their own tenant. Requires identity.impersonation.start.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.impersonation.start",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "StartImpersonationRequest",
+                "type": "object",
+                "properties": {
+                  "targetUserId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "tenantId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  }
+                },
+                "required": [
+                  "targetUserId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TokenResponse",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "tenantName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impersonatorUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessExpiresAt",
+                    "refreshToken",
+                    "refreshExpiresAt",
+                    "sessionId",
+                    "mustChangePassword",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/impersonation:stop": {
+      "post": {
+        "operationId": "impersonation.stop",
+        "tags": [
+          "impersonation"
+        ],
+        "summary": "End impersonation: revokes the impersonation session and returns tokens for the actor\u0027s original session.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "StopImpersonationRequest",
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TokenResponse",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "tenantName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impersonatorUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessExpiresAt",
+                    "refreshToken",
+                    "refreshExpiresAt",
+                    "sessionId",
+                    "mustChangePassword",
+                    "user"
                   ]
                 }
               }
@@ -3200,6 +3639,228 @@
         }
       }
     },
+    "/api/tenant-members": {
+      "delete": {
+        "operationId": "tenant-members.delete",
+        "tags": [
+          "tenant-members"
+        ],
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.tenant-members.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "tenant-members.list",
+        "tags": [
+          "tenant-members"
+        ],
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.tenant-members.read",
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TenantMembersResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TenantMemberResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "tenant-members.create",
+        "tags": [
+          "tenant-members"
+        ],
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.tenant-members.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "AddTenantMemberRequest",
+                "type": "object",
+                "properties": {
+                  "tenantId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "memberType": {
+                    "$ref": "#/components/schemas/TenantMemberType"
+                  }
+                },
+                "required": [
+                  "tenantId",
+                  "userId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TenantMemberResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": "string"
+                    },
+                    "displayName": {
+                      "type": "string"
+                    },
+                    "homeTenantId": {
+                      "type": "string"
+                    },
+                    "memberType": {
+                      "$ref": "#/components/schemas/TenantMemberType"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "tenantId",
+                    "userId",
+                    "userName",
+                    "displayName",
+                    "homeTenantId",
+                    "memberType",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/tenants": {
       "delete": {
         "operationId": "tenants.delete",
@@ -3826,6 +4487,72 @@
                     "items",
                     "total",
                     "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tenants:mine": {
+      "post": {
+        "operationId": "tenants.mine",
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Tenants the current user can enter (home tenant and memberships, active only) and whether the platform is available; the control center switches with auth.switch-tenant.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MyTenantsRequest",
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MyTenantsResponse",
+                  "type": "object",
+                  "properties": {
+                    "canAccessPlatform": {
+                      "type": "boolean"
+                    },
+                    "platformIsCurrent": {
+                      "type": "boolean"
+                    },
+                    "tenants": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AvailableTenantResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "canAccessPlatform",
+                    "platformIsCurrent",
+                    "tenants"
                   ]
                 }
               }
@@ -4849,6 +5576,39 @@
           "code"
         ]
       },
+      "AvailableTenantResponse": {
+        "type": "object",
+        "properties": {
+          "tenantId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isHome": {
+            "type": "boolean"
+          },
+          "memberType": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TenantMemberType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "isCurrent": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "tenantId",
+          "name",
+          "isHome",
+          "isCurrent"
+        ]
+      },
       "BatchFailure": {
         "type": "object",
         "properties": {
@@ -4965,6 +5725,30 @@
           "status",
           "order",
           "createdAt"
+        ]
+      },
+      "ImpersonationCandidateResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "homeTenantId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "userName",
+          "displayName",
+          "homeTenantId"
         ]
       },
       "MembershipResponse": {
@@ -5372,6 +6156,55 @@
           "name"
         ]
       },
+      "TenantMemberResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userName": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "homeTenantId": {
+            "type": "string"
+          },
+          "memberType": {
+            "$ref": "#/components/schemas/TenantMemberType"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "userId",
+          "userName",
+          "displayName",
+          "homeTenantId",
+          "memberType",
+          "createdAt"
+        ]
+      },
+      "TenantMemberType": {
+        "type": "string",
+        "enum": [
+          "Member",
+          "Owner"
+        ]
+      },
       "TenantResponse": {
         "type": "object",
         "properties": {
@@ -5543,6 +6376,11 @@
         "displayName": "Update roles",
         "description": "Edit role names, descriptions, order and status."
       },
+      "identity.impersonation.start": {
+        "code": "identity.impersonation.start",
+        "displayName": "Impersonate users",
+        "description": "Sign in as another user of the current tenant (platform: any tenant) to troubleshoot on their behalf."
+      },
       "identity.users.create": {
         "code": "identity.users.create",
         "displayName": "Create users",
@@ -5632,6 +6470,21 @@
         "code": "organization.positions.update",
         "displayName": "Update positions",
         "description": "Edit and disable positions."
+      },
+      "tenancy.tenant-members.create": {
+        "code": "tenancy.tenant-members.create",
+        "displayName": "Add tenant members",
+        "description": "Let a user whose home tenant is elsewhere enter a tenant."
+      },
+      "tenancy.tenant-members.delete": {
+        "code": "tenancy.tenant-members.delete",
+        "displayName": "Remove tenant members",
+        "description": "Revoke a member\u0027s access to a tenant."
+      },
+      "tenancy.tenant-members.read": {
+        "code": "tenancy.tenant-members.read",
+        "displayName": "Read tenant members",
+        "description": "View which users may enter a tenant as members."
       },
       "tenancy.tenants.create": {
         "code": "tenancy.tenants.create",

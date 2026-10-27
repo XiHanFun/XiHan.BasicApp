@@ -19,8 +19,8 @@ declare module 'vue-router' {
     permission?: string
     /** 标题文案键 */
     titleKey?: string
-    /** 壳：认证页用 auth，其余缺省管理端壳 */
-    layout?: 'basic' | 'auth'
+    /** 壳：认证页用 auth，控制中心这类全屏独立页用 blank（直接渲染视图），其余缺省管理端壳 */
+    layout?: 'basic' | 'auth' | 'blank'
     /** 壳层读的标题（与 titleKey 同值）与图标名（页面登记的 `lucide:<名>`） */
     title?: string
     icon?: string
@@ -48,6 +48,13 @@ export const routes: RouteRecordRaw[] = [
     name: 'identity.profile.change-password',
     component: resolveView('identity/profile/change-password/index'),
     meta: { titleKey: 'identity.profile.change_password.title' },
+  },
+  {
+    // 控制中心：切换租户 / 进入平台的全屏落点页（视图在 packages，路径由应用的 shellRoutes 登记）；不挂管理端壳
+    path: '/control-center',
+    name: 'control-center',
+    component: () => import('~/views/_core/control-center/index.vue'),
+    meta: { titleKey: 'page.control_center.title', layout: 'blank' },
   },
   { path: '/forbidden', name: FORBIDDEN_ROUTE, component: StatusView, props: { kind: 'forbidden' } },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: StatusView, props: { kind: 'not_found' } },

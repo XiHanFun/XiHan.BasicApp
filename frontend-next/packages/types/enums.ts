@@ -41,19 +41,7 @@ export enum NotificationStatus {
 }
 
 /**
- * 租户成员类型（与后端 JsonStringEnumConverter 序列化值一致）。
- *
- * 下沉理由：控制中心与个人中心「我的租户」两个 shell 页把它当**运行时值**做标签配色判断
- * （Owner / Admin / PlatformAdmin），属「被 packages 复用的契约枚举」。
- * 同文件的 TenantStatus / TenantConfigStatus / TenantMemberInviteStatus 等**不下沉**——
- * packages 零引用，搬进来就是本文件开头警告的「污染契约层」。
+ * 租户成员类型：直接用契约层生成的值集（Member / Owner，字符串联合），控制中心按它做标签配色；
+ * 不另抄一份枚举，免得与 tenants.mine 的响应类型不兼容。
  */
-export enum TenantMemberType {
-  Owner = 'Owner',
-  Admin = 'Admin',
-  Member = 'Member',
-  External = 'External',
-  Guest = 'Guest',
-  Consultant = 'Consultant',
-  PlatformAdmin = 'PlatformAdmin',
-}
+export type { TenantMemberType } from '~/contracts'

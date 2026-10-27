@@ -1,4 +1,5 @@
 import type { MenuRoute } from './menu'
+import type { ResponseOf } from '~/contracts'
 
 // ==================== 认证 & 用户类型 ====================
 
@@ -159,14 +160,8 @@ export interface LoginResponse {
 }
 
 /** 鉴权令牌 */
-export interface LoginToken {
-  accessToken: string
-  refreshToken: string
-  tokenType: string
-  expiresIn: number
-  issuedAt: string
-  expiresAt: string
-}
+/** 登录 / 切换租户 / 模仿登录拿回的会话（后端 `TokenResponse`：令牌对、会话 ID、当前租户与用户资料） */
+export type LoginToken = ResponseOf<'auth.login'>
 
 export interface PermissionInfo {
   /** 可用按钮码：页面按钮是否可见由服务端判定后下发，前端不持有权限码。缺省视为一个都没有（fail-closed） */
