@@ -1,0 +1,4 @@
+{
+  "host.commands.seed_description": "依序執行種子（--only <名稱,...> 只執行指定的，--list 只列出不執行）。",
+  "host.commands.seeder_unknown": "沒有名為 '{name}' 的種子。執行 'seed --list' 檢視種子清單。"
+}

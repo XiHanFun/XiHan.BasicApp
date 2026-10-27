@@ -1,0 +1,4 @@
+{
+  "host.commands.seed_description": "Run the seeders in order (--only <name,...> to pick some, --list to show them without running).",
+  "host.commands.seeder_unknown": "Unknown seeder '{name}'. Run 'seed --list' to show the seeders."
+}

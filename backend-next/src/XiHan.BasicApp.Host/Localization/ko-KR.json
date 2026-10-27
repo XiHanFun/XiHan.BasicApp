@@ -1,0 +1,4 @@
+{
+  "host.commands.seed_description": "시더를 순서대로 실행합니다(--only <이름,...>으로 일부만 실행, --list로 실행 없이 목록만 표시).",
+  "host.commands.seeder_unknown": "시더 '{name}'이(가) 없습니다. 'seed --list'로 목록을 확인하세요."
+}
