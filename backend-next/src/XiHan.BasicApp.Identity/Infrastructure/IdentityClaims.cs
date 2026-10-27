@@ -39,7 +39,7 @@ public static class IdentityClaims
     public const string Role = "role";
 
     /// <summary>
-    /// 模仿者（真实主体）；N1 后续补。
+    /// 模仿者（发起模仿的用户 ID）；只有模仿会话的令牌带它，<c>impersonation.stop</c> 据它与会话行核对。
     /// </summary>
     public const string Actor = "act";
 }

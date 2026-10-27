@@ -61,6 +61,16 @@ public sealed class SysUserSession : AppAuditedEntity
     public string? IpAddress { get; set; }
 
     /// <summary>
+    /// 模仿会话：发起模仿的用户 ID（令牌的 <c>act</c>）；普通会话为 <see langword="null"/>。
+    /// </summary>
+    public Guid? ImpersonatorUserId { get; set; }
+
+    /// <summary>
+    /// 模仿会话：发起人当时的会话；结束模仿时回到它，它失效时模仿会话也失效。
+    /// </summary>
+    public Guid? ImpersonatorSessionId { get; set; }
+
+    /// <summary>
     /// 当前是否有效：未吊销且未过期。
     /// </summary>
     public bool IsActive(DateTimeOffset now) => RevokedAt is null && RefreshExpiresAt > now;

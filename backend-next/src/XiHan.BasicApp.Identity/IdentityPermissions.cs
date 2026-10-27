@@ -41,6 +41,11 @@ public static class IdentityPermissions
     public const string UsersResetPassword = "identity.users.reset-password";
 
     /// <summary>
+    /// 模仿登录：<c>impersonation.start</c>、<c>impersonation.candidates</c>（结束模仿是自助操作）。
+    /// </summary>
+    public const string ImpersonationStart = "identity.impersonation.start";
+
+    /// <summary>
     /// 本包全部权限的描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -51,5 +56,6 @@ public static class IdentityPermissions
         new(UsersDelete, "Delete users", PermissionScope.Both, audited: true, description: "Delete users of the current tenant."),
         new(UsersLock, "Lock users", PermissionScope.Both, audited: true, description: "Lock and unlock users of the current tenant."),
         new(UsersResetPassword, "Reset passwords", PermissionScope.Both, audited: true, description: "Reset user passwords; the user must change the password at next sign-in."),
+        new(ImpersonationStart, "Impersonate users", PermissionScope.Both, audited: true, description: "Sign in as another user of the current tenant (platform: any tenant) to troubleshoot on their behalf."),
     ];
 }

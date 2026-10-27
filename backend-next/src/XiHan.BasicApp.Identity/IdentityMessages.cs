@@ -166,6 +166,46 @@ public static class IdentityMessages
     /// </summary>
     public const string PasswordReused = "identity.password.reused";
 
+    /// <summary>
+    /// 操作 <c>auth.switch-tenant</c> 的说明。
+    /// </summary>
+    public const string SwitchTenantDescription = "auth.switch_tenant.description";
+
+    /// <summary>
+    /// 操作 <c>impersonation.start</c> 的说明。
+    /// </summary>
+    public const string StartImpersonationDescription = "impersonation.start.description";
+
+    /// <summary>
+    /// 操作 <c>impersonation.stop</c> 的说明。
+    /// </summary>
+    public const string StopImpersonationDescription = "impersonation.stop.description";
+
+    /// <summary>
+    /// 操作 <c>impersonation.candidates</c> 的说明。
+    /// </summary>
+    public const string ImpersonationCandidatesDescription = "impersonation.candidates.description";
+
+    /// <summary>
+    /// 不能进入该租户；参数 <c>tenantId</c>。
+    /// </summary>
+    public const string TenantNotAccessible = "identity.auth.tenant_not_accessible";
+
+    /// <summary>
+    /// 当前会话处于模仿态。
+    /// </summary>
+    public const string ImpersonationActive = "identity.impersonation.active";
+
+    /// <summary>
+    /// 当前不处于模仿态。
+    /// </summary>
+    public const string NotImpersonating = "identity.impersonation.not_active";
+
+    /// <summary>
+    /// 模仿目标不可用；参数 <c>id</c>。
+    /// </summary>
+    public const string ImpersonationTargetUnavailable = "identity.impersonation.target_unavailable";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

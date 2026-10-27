@@ -28,5 +28,13 @@
   "identity.password.too_short": "密碼至少 {min} 個字元。",
   "identity.password.too_simple": "密碼須同時包含字母與數字。",
   "identity.password.reused": "密碼不能與最近 {depth} 次使用過的相同。",
-  "identity.auth.tenant_unavailable": "租戶 '{tenantId}' 不存在或已停用。"
+  "identity.auth.tenant_unavailable": "租戶 '{tenantId}' 不存在或已停用。",
+  "auth.switch_tenant.description": "把目前工作階段切換到另一個租戶（註冊地租戶或成員租戶）或回到平台（僅平台帳號）；回傳新權杖。",
+  "impersonation.start.description": "以另一個使用者的身分登入：為目標另開工作階段並回傳帶發起人宣告的權杖。租戶主體只能在自己的租戶裡模仿。需要 identity.impersonation.start 權限。",
+  "impersonation.stop.description": "結束模仿：撤銷模仿工作階段並回傳發起人原工作階段的權杖。",
+  "impersonation.candidates.description": "依關鍵字列出某租戶（或平台）裡最多 20 個可被模仿的正常使用者。需要 identity.impersonation.start 權限。",
+  "identity.auth.tenant_not_accessible": "你不能進入租戶 '{tenantId}'。",
+  "identity.impersonation.active": "目前工作階段已處於模仿狀態。",
+  "identity.impersonation.not_active": "目前工作階段不處於模仿狀態。",
+  "identity.impersonation.target_unavailable": "不能在這裡模仿使用者 '{id}'。"
 }

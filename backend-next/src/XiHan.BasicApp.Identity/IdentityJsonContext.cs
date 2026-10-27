@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Identity.Operations.Auth;
+using XiHan.BasicApp.Identity.Operations.Impersonation;
 using XiHan.BasicApp.Identity.Operations.Profile;
 using XiHan.BasicApp.Identity.Operations.Users;
 
@@ -37,4 +38,10 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(MeResponse))]
 [JsonSerializable(typeof(TokenResponse))]
 [JsonSerializable(typeof(ChangePasswordRequest))]
+[JsonSerializable(typeof(SwitchTenantRequest))]
+[JsonSerializable(typeof(StartImpersonationRequest))]
+[JsonSerializable(typeof(StopImpersonationRequest))]
+[JsonSerializable(typeof(ImpersonationCandidatesRequest))]
+[JsonSerializable(typeof(ImpersonationCandidateResponse))]
+[JsonSerializable(typeof(ImpersonationCandidatesResponse))]
 public sealed partial class IdentityJsonContext : JsonSerializerContext;

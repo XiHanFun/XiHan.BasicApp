@@ -28,5 +28,13 @@
   "identity.password.too_short": "Das Passwort muss mindestens {min} Zeichen lang sein.",
   "identity.password.too_simple": "Das Passwort muss Buchstaben und Ziffern enthalten.",
   "identity.password.reused": "Das Passwort muss sich von den letzten {depth} Passwörtern unterscheiden.",
-  "identity.auth.tenant_unavailable": "Der Mandant '{tenantId}' existiert nicht oder ist ausgesetzt."
+  "identity.auth.tenant_unavailable": "Der Mandant '{tenantId}' existiert nicht oder ist ausgesetzt.",
+  "auth.switch_tenant.description": "Wechselt die aktuelle Sitzung in einen anderen Mandanten (Heimatmandant oder Mitgliedschaft) oder zurück zur Plattform (nur Plattformkonten); liefert neue Token.",
+  "impersonation.start.description": "Als anderer Benutzer anmelden: öffnet eine eigene Sitzung für das Ziel und liefert Token mit dem Akteur-Claim. Mandantensubjekte bleiben in ihrem Mandanten. Erfordert identity.impersonation.start.",
+  "impersonation.stop.description": "Beendet die Imitation: widerruft die Imitationssitzung und liefert Token für die ursprüngliche Sitzung des Akteurs.",
+  "impersonation.candidates.description": "Listet bis zu 20 aktive Benutzer, die in einem Mandanten (oder auf der Plattform) imitiert werden können, nach Stichwort. Erfordert identity.impersonation.start.",
+  "identity.auth.tenant_not_accessible": "Sie können den Mandanten '{tenantId}' nicht betreten.",
+  "identity.impersonation.active": "Die aktuelle Sitzung imitiert bereits einen anderen Benutzer.",
+  "identity.impersonation.not_active": "Die aktuelle Sitzung imitiert niemanden.",
+  "identity.impersonation.target_unavailable": "Benutzer '{id}' kann hier nicht imitiert werden."
 }

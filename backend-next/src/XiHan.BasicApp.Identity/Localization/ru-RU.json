@@ -28,5 +28,13 @@
   "identity.password.too_short": "Пароль должен содержать не менее {min} символов.",
   "identity.password.too_simple": "Пароль должен содержать и буквы, и цифры.",
   "identity.password.reused": "Пароль должен отличаться от последних {depth} паролей.",
-  "identity.auth.tenant_unavailable": "Арендатор '{tenantId}' не существует или приостановлен."
+  "identity.auth.tenant_unavailable": "Арендатор '{tenantId}' не существует или приостановлен.",
+  "auth.switch_tenant.description": "Переключает текущий сеанс на другого арендатора (домашнего или того, участником которого является пользователь) либо возвращает на платформу (только для учётных записей платформы); возвращает новые токены.",
+  "impersonation.start.description": "Вход от имени другого пользователя: открывает отдельный сеанс для цели и возвращает токены с утверждением актора. Субъекты арендатора остаются в своём арендаторе. Требуется identity.impersonation.start.",
+  "impersonation.stop.description": "Завершает имперсонацию: отзывает сеанс имперсонации и возвращает токены исходного сеанса актора.",
+  "impersonation.candidates.description": "Выводит до 20 активных пользователей, от имени которых можно войти в арендаторе (или на платформе), по ключевому слову. Требуется identity.impersonation.start.",
+  "identity.auth.tenant_not_accessible": "Вы не можете войти в арендатора '{tenantId}'.",
+  "identity.impersonation.active": "Текущий сеанс уже выполняет имперсонацию другого пользователя.",
+  "identity.impersonation.not_active": "Текущий сеанс не выполняет имперсонацию.",
+  "identity.impersonation.target_unavailable": "Пользователя '{id}' нельзя имперсонировать здесь."
 }

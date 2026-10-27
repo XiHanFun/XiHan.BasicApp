@@ -24,6 +24,11 @@ public static class IdentityErrors
     public const string SelfOperation = "IDENTITY_CONFLICT_002";
 
     /// <summary>
+    /// 当前会话处于模仿态：不能再次发起模仿，也不能切换租户。
+    /// </summary>
+    public const string ImpersonationActive = "IDENTITY_CONFLICT_003";
+
+    /// <summary>
     /// 请求指定的注册地租户与当前租户不一致。
     /// </summary>
     public const string TenantMismatch = "IDENTITY_VALIDATION_001";
@@ -49,6 +54,11 @@ public static class IdentityErrors
     public const string NoSession = "IDENTITY_VALIDATION_005";
 
     /// <summary>
+    /// 当前不处于模仿态，没有可结束的模仿。
+    /// </summary>
+    public const string NotImpersonating = "IDENTITY_VALIDATION_006";
+
+    /// <summary>
     /// 会话已吊销、已过期或不存在；客户端应重新登录。
     /// </summary>
     public const string SessionInvalid = "IDENTITY_DENIED_001";
@@ -67,4 +77,14 @@ public static class IdentityErrors
     /// 登录指定的租户不存在或已停用（不核对用户名）。
     /// </summary>
     public const string TenantUnavailable = "IDENTITY_DENIED_005";
+
+    /// <summary>
+    /// 当前用户不能进入该租户（不是注册地也不是成员），或租户主体试图离开自己的租户。
+    /// </summary>
+    public const string TenantNotAccessible = "IDENTITY_DENIED_006";
+
+    /// <summary>
+    /// 模仿目标不可用：不存在、非正常状态、是自己，或不在目标上下文里。
+    /// </summary>
+    public const string ImpersonationTargetUnavailable = "IDENTITY_DENIED_007";
 }

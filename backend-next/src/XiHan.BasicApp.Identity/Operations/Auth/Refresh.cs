@@ -53,12 +53,30 @@ public sealed class Refresh(
         }
 
         var session = matches[0];
+        string? tenantName = null;
         if (session.ActiveTenantId is { } tenantId)
         {
             var directory = await tenants.FindAsync(tenantId, context.CancellationToken).ConfigureAwait(false);
             if (!directory.TryGetValue(out var info) || !info.IsEnabled)
             {
                 return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", tenantId)));
+            }
+
+            tenantName = info.DisplayName;
+        }
+
+        // 模仿会话随发起人的原会话一起失效，续签前再核一次
+        string? impersonator = null;
+        if (session.ImpersonatorSessionId is { } originId)
+        {
+            if (!(await sessions.FindAsync(originId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var origin) || !origin.IsActive(now))
+            {
+                return Error.Denied(IdentityErrors.SessionInvalid, IdentityMessages.SessionInvalid);
+            }
+
+            if (session.ImpersonatorUserId is { } actorId && (await users.FindAsync(actorId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var actor))
+            {
+                impersonator = actor.UserName;
             }
         }
 
@@ -86,7 +104,7 @@ public sealed class Refresh(
 
         // 角色在每次刷新时重算：角色指派的变化最迟在下一次刷新生效
         var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
-        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user));
+        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles, session.ImpersonatorUserId);
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName, impersonator);
     }
 }

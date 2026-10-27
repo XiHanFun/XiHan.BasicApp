@@ -13,4 +13,6 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="SessionId">会话 ID；非本应用签发的令牌没有。</param>
 /// <param name="Roles">角色（令牌里的 <c>role</c> 声明）。</param>
 /// <param name="MustChangePassword">是否必须先改密。</param>
-public sealed record MeResponse(UserResponse User, string? TenantId, Guid? SessionId, IReadOnlyList<string> Roles, bool MustChangePassword);
+/// <param name="TenantName">当前租户的显示名；平台为 <see langword="null"/>。</param>
+/// <param name="ImpersonatorUserName">模仿会话的发起人登录名；普通会话为 <see langword="null"/>。</param>
+public sealed record MeResponse(UserResponse User, string? TenantId, Guid? SessionId, IReadOnlyList<string> Roles, bool MustChangePassword, string? TenantName = null, string? ImpersonatorUserName = null);

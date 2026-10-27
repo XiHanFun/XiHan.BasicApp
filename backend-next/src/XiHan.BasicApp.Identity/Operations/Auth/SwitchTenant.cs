@@ -1,0 +1,134 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.MultiTenancy;
+using XiHan.BasicApp.Contracts.Security;
+using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
+using XiHan.BasicApp.Identity.Infrastructure;
+using XiHan.BasicApp.Identity.Operations.Users;
+using XiHan.Framework.Kernel.Operations;
+using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
+using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Primitives;
+
+namespace XiHan.BasicApp.Identity.Operations.Auth;
+
+/// <summary>
+/// 切换租户 <c>auth.switch-tenant</c>（自助操作，只要求已认证）：当前会话换到目标上下文——注册地租户、成员租户，或平台（平台账号）。
+/// 会话续用（同一 <c>sid</c>），刷新令牌轮换，访问令牌按新租户重算角色；客户端换令牌后整页重载。模仿态的会话不能切换。
+/// </summary>
+/// <param name="users">用户仓储。</param>
+/// <param name="sessions">会话仓储。</param>
+/// <param name="accounts">账号域服务。</param>
+/// <param name="memberships">成员关系（Tenancy 实现；没有即只有注册地可进）。</param>
+/// <param name="issuer">令牌签发器。</param>
+/// <param name="options">身份配置。</param>
+/// <param name="clock">时间源。</param>
+/// <param name="tenants">框架租户目录。</param>
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+public sealed class SwitchTenant(
+    IRepository<SysUser, Guid> users,
+    IRepository<SysUserSession, Guid> sessions,
+    UserAccountService accounts,
+    IEnumerable<ITenantMembershipResolver> memberships,
+    AccessTokenIssuer issuer,
+    IdentityOptions options,
+    TimeProvider clock,
+    ITenantStore tenants) : IOperation<SwitchTenantRequest, TokenResponse>
+{
+    /// <summary>
+    /// 操作 ID。
+    /// </summary>
+    public const string Id = "auth.switch-tenant";
+
+    /// <inheritdoc />
+    public async ValueTask<Result<TokenResponse>> HandleAsync(SwitchTenantRequest request, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(context);
+        var now = clock.GetUtcNow();
+        var sid = context.GetSecurity().Principal.ClaimValues(IdentityClaims.Session).FirstOrDefault();
+        if (sid is null || !Guid.TryParse(sid, out var sessionId))
+        {
+            return Error.Validation(IdentityErrors.NoSession, IdentityMessages.NoSession);
+        }
+
+        if (!(await sessions.FindAsync(sessionId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var session) || !session.IsActive(now))
+        {
+            return Error.Denied(IdentityErrors.SessionInvalid, IdentityMessages.SessionInvalid);
+        }
+
+        if (session.ImpersonatorUserId is not null)
+        {
+            return Error.Conflict(IdentityErrors.ImpersonationActive, IdentityMessages.ImpersonationActive);
+        }
+
+        if (!(await users.FindAsync(session.UserId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user) || user.Status != UserStatus.Active)
+        {
+            return Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.AccountUnavailable, MessageArguments.Of(("status", user?.Status.ToString() ?? "Deleted")));
+        }
+
+        var target = string.IsNullOrWhiteSpace(request.TenantId) || string.Equals(request.TenantId.Trim(), TenantIds.Platform, StringComparison.Ordinal) ? null : request.TenantId.Trim();
+        var isPlatformAccount = string.Equals(user.HomeTenantId, TenantIds.Platform, StringComparison.Ordinal);
+        string? tenantName = null;
+        if (target is null)
+        {
+            if (!isPlatformAccount)
+            {
+                return Error.Denied(IdentityErrors.TenantNotAccessible, IdentityMessages.TenantNotAccessible, MessageArguments.Of(("tenantId", TenantIds.Platform)));
+            }
+        }
+        else
+        {
+            var directory = await tenants.FindAsync(target, context.CancellationToken).ConfigureAwait(false);
+            if (!directory.TryGetValue(out var info) || !info.IsEnabled)
+            {
+                return Error.Denied(IdentityErrors.TenantUnavailable, IdentityMessages.TenantUnavailable, MessageArguments.Of(("tenantId", target)));
+            }
+
+            tenantName = info.DisplayName;
+            if (!string.Equals(user.HomeTenantId, target, StringComparison.Ordinal) && !await IsMemberAsync(target, user.Id, context.CancellationToken).ConfigureAwait(false))
+            {
+                return Error.Denied(IdentityErrors.TenantNotAccessible, IdentityMessages.TenantNotAccessible, MessageArguments.Of(("tenantId", target)));
+            }
+        }
+
+        // 续用会话：换上下文、轮换刷新令牌（旧的立即失效）、顺延有效期
+        var refreshToken = RefreshTokens.Generate();
+        session.ActiveTenantId = target;
+        session.RefreshTokenHash = RefreshTokens.Hash(refreshToken);
+        session.LastSeenAt = now;
+        session.RefreshExpiresAt = now + options.RefreshTokenLifetime;
+        var updated = await sessions.UpdateAsync(session, context.CancellationToken).ConfigureAwait(false);
+        if (updated.IsFailure)
+        {
+            return updated.Error!;
+        }
+
+        var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
+        if (!securityResult.TryGetValue(out var security))
+        {
+            return securityResult.Error!;
+        }
+
+        var roles = await accounts.RolesOfAsync(user.Id, target, context.CancellationToken).ConfigureAwait(false);
+        var access = issuer.Issue(user, session.Id, target, roles);
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, target, security.MustChangePassword, UserResponse.From(user), tenantName);
+    }
+
+    private async Task<bool> IsMemberAsync(string tenantId, Guid userId, CancellationToken cancellationToken)
+    {
+        foreach (var resolver in memberships)
+        {
+            if (await resolver.IsMemberAsync(tenantId, userId, cancellationToken).ConfigureAwait(false))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}

@@ -28,5 +28,13 @@
   "identity.password.too_short": "密码至少 {min} 个字符。",
   "identity.password.too_simple": "密码须同时包含字母与数字。",
   "identity.password.reused": "密码不能与最近 {depth} 次使用过的相同。",
-  "identity.auth.tenant_unavailable": "租户 '{tenantId}' 不存在或已停用。"
+  "identity.auth.tenant_unavailable": "租户 '{tenantId}' 不存在或已停用。",
+  "auth.switch_tenant.description": "把当前会话切换到另一个租户（注册地租户或成员租户）或回到平台（仅平台账号）；返回新令牌。",
+  "impersonation.start.description": "以另一个用户的身份登录：为目标另开会话并返回带发起人声明的令牌。租户主体只能在自己的租户里模仿。需要 identity.impersonation.start 权限。",
+  "impersonation.stop.description": "结束模仿：吊销模仿会话并返回发起人原会话的令牌。",
+  "impersonation.candidates.description": "按关键字列出某租户（或平台）里最多 20 个可被模仿的正常用户。需要 identity.impersonation.start 权限。",
+  "identity.auth.tenant_not_accessible": "你不能进入租户 '{tenantId}'。",
+  "identity.impersonation.active": "当前会话已处于模仿态。",
+  "identity.impersonation.not_active": "当前会话不处于模仿态。",
+  "identity.impersonation.target_unavailable": "不能在这里模仿用户 '{id}'。"
 }
