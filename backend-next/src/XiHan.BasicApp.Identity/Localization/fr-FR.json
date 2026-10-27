@@ -1,0 +1,12 @@
+{
+  "users.create.description": "Crée un utilisateur dans le locataire courant ; nécessite la permission identity.users.create.",
+  "users.get.description": "Lit un utilisateur du locataire courant par son ID ; nécessite la permission identity.users.read.",
+  "users.list.description": "Liste les utilisateurs du locataire courant avec pagination, filtres, mot-clé et tri ; nécessite la permission identity.users.read.",
+  "identity.user.not_found": "L'utilisateur '{id}' n'existe pas.",
+  "identity.user.name_taken": "Le nom d'utilisateur '{userName}' est déjà utilisé dans le locataire '{tenant}'.",
+  "identity.user.tenant_required": "La création d'un utilisateur nécessite un locataire courant.",
+  "identity.user.display_name_blank": "Le nom d'affichage ne peut pas être vide.",
+  "identity.user.email_invalid": "L'adresse e-mail n'est pas bien formée.",
+  "identity.user.filter_unsupported": "Le filtre '{field} {operator}' n'est pas pris en charge.",
+  "identity.user.sort_unsupported": "Le tri par '{field}' n'est pas pris en charge."
+}

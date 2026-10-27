@@ -1,0 +1,12 @@
+{
+  "users.create.description": "Создаёт пользователя в текущем арендаторе; требуется разрешение identity.users.create.",
+  "users.get.description": "Возвращает пользователя текущего арендатора по идентификатору; требуется разрешение identity.users.read.",
+  "users.list.description": "Выводит пользователей текущего арендатора с постраничной выдачей, фильтрами, ключевым словом и сортировкой; требуется разрешение identity.users.read.",
+  "identity.user.not_found": "Пользователь '{id}' не существует.",
+  "identity.user.name_taken": "Имя пользователя '{userName}' уже занято в арендаторе '{tenant}'.",
+  "identity.user.tenant_required": "Для создания пользователя требуется текущий арендатор.",
+  "identity.user.display_name_blank": "Отображаемое имя не может состоять только из пробелов.",
+  "identity.user.email_invalid": "Адрес электронной почты имеет неверный формат.",
+  "identity.user.filter_unsupported": "Фильтр '{field} {operator}' не поддерживается.",
+  "identity.user.sort_unsupported": "Сортировка по '{field}' не поддерживается."
+}

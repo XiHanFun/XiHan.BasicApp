@@ -1,0 +1,12 @@
+{
+  "users.create.description": "現在のテナントにユーザーを作成します。identity.users.create 権限が必要です。",
+  "users.get.description": "ID で現在のテナントのユーザーを取得します。identity.users.read 権限が必要です。",
+  "users.list.description": "現在のテナントのユーザーをページング、フィルター、キーワード、並べ替え付きで一覧します。identity.users.read 権限が必要です。",
+  "identity.user.not_found": "ユーザー '{id}' は存在しません。",
+  "identity.user.name_taken": "ユーザー名 '{userName}' はテナント '{tenant}' で既に使用されています。",
+  "identity.user.tenant_required": "ユーザーの作成には現在のテナントが必要です。",
+  "identity.user.display_name_blank": "表示名を空白のみにすることはできません。",
+  "identity.user.email_invalid": "メールアドレスの形式が正しくありません。",
+  "identity.user.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",
+  "identity.user.sort_unsupported": "'{field}' による並べ替えはサポートされていません。"
+}

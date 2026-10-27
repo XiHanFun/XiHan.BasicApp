@@ -1,0 +1,12 @@
+{
+  "users.create.description": "현재 테넌트에 사용자를 생성합니다. identity.users.create 권한이 필요합니다.",
+  "users.get.description": "ID로 현재 테넌트의 사용자를 조회합니다. identity.users.read 권한이 필요합니다.",
+  "users.list.description": "현재 테넌트의 사용자를 페이징, 필터, 키워드, 정렬과 함께 나열합니다. identity.users.read 권한이 필요합니다.",
+  "identity.user.not_found": "사용자 '{id}'이(가) 존재하지 않습니다.",
+  "identity.user.name_taken": "사용자 이름 '{userName}'은(는) 테넌트 '{tenant}'에서 이미 사용 중입니다.",
+  "identity.user.tenant_required": "사용자를 생성하려면 현재 테넌트가 필요합니다.",
+  "identity.user.display_name_blank": "표시 이름은 공백만으로 구성될 수 없습니다.",
+  "identity.user.email_invalid": "이메일 주소 형식이 올바르지 않습니다.",
+  "identity.user.filter_unsupported": "필터 '{field} {operator}'은(는) 지원되지 않습니다.",
+  "identity.user.sort_unsupported": "'{field}' 기준 정렬은 지원되지 않습니다."
+}

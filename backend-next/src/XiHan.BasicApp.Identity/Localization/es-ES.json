@@ -1,0 +1,12 @@
+{
+  "users.create.description": "Crea un usuario en el inquilino actual; requiere el permiso identity.users.create.",
+  "users.get.description": "Obtiene un usuario del inquilino actual por ID; requiere el permiso identity.users.read.",
+  "users.list.description": "Lista los usuarios del inquilino actual con paginación, filtros, palabra clave y ordenación; requiere el permiso identity.users.read.",
+  "identity.user.not_found": "El usuario '{id}' no existe.",
+  "identity.user.name_taken": "El nombre de usuario '{userName}' ya está en uso en el inquilino '{tenant}'.",
+  "identity.user.tenant_required": "Crear un usuario requiere un inquilino actual.",
+  "identity.user.display_name_blank": "El nombre para mostrar no puede estar en blanco.",
+  "identity.user.email_invalid": "La dirección de correo electrónico no tiene un formato válido.",
+  "identity.user.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",
+  "identity.user.sort_unsupported": "La ordenación por '{field}' no es compatible."
+}
