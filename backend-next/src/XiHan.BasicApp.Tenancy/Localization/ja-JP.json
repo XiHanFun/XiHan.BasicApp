@@ -15,5 +15,12 @@
   "tenancy.tenant.filter_unsupported": "フィルター '{field} {operator}' はサポートされていません。",
   "tenancy.tenant.sort_unsupported": "'{field}' による並べ替えはサポートされていません。",
   "tenancy.admin.name_taken": "ユーザー名 '{userName}' はこのテナントで既に使用されています。",
-  "tenancy.tenant.no_initializer": "テナント初期化拡張が設定されていないため、管理者に権限が付与されません。"
+  "tenancy.tenant.no_initializer": "テナント初期化拡張が設定されていないため、管理者に権限が付与されません。",
+  "tenants.mine.description": "現在のユーザーが入れるテナント（所属テナントとメンバー参加テナント、有効なもののみ）とプラットフォームに入れるかどうか。コントロールセンターはこれを基に auth.switch-tenant で切り替えます。",
+  "tenant_members.list.description": "テナントのメンバー（所属テナントが別で、メンバーとしてそのテナントに入るユーザー）をユーザー名と表示名付きで一覧します。プラットフォーム側のみ。tenancy.tenant-members.read 権限が必要です。",
+  "tenant_members.create.description": "ユーザーをテナントのメンバーに追加します。すでにメンバーの場合や所属テナントがそのテナントの場合は拒否します。プラットフォーム側のみ。tenancy.tenant-members.create 権限が必要です。",
+  "tenant_members.delete.description": "テナントのメンバーを一括で削除します。以後そのテナントへは切り替えられません。プラットフォーム側のみ。tenancy.tenant-members.delete 権限が必要です。",
+  "tenancy.member.exists": "ユーザー '{userId}' はすでにテナント '{tenantId}' のメンバーです（または所属テナントです）。",
+  "tenancy.member.not_found": "メンバー '{id}' は存在しません。",
+  "tenancy.member.user_not_found": "ユーザー '{userId}' は存在しません。"
 }

@@ -15,5 +15,12 @@
   "tenancy.tenant.filter_unsupported": "不支持筛选 '{field} {operator}'。",
   "tenancy.tenant.sort_unsupported": "不支持按 '{field}' 排序。",
   "tenancy.admin.name_taken": "用户名 '{userName}' 在该租户内已被占用。",
-  "tenancy.tenant.no_initializer": "没有配置租户初始化扩展，管理员将没有任何权限。"
+  "tenancy.tenant.no_initializer": "没有配置租户初始化扩展，管理员将没有任何权限。",
+  "tenants.mine.description": "当前用户能进入的租户（注册地租户与成员租户，只含正常状态的）以及能否进入平台；控制中心据此切换（auth.switch-tenant）。",
+  "tenant_members.list.description": "列出某个租户的成员（注册地在别处、以成员身份进入该租户的用户），带用户名与显示名。只在平台侧；需要 tenancy.tenant-members.read 权限。",
+  "tenant_members.create.description": "把用户加为租户成员；已是成员或注册地就在该租户的拒绝。只在平台侧；需要 tenancy.tenant-members.create 权限。",
+  "tenant_members.delete.description": "批量移除租户成员，之后不能再切换进该租户。只在平台侧；需要 tenancy.tenant-members.delete 权限。",
+  "tenancy.member.exists": "用户 '{userId}' 已是租户 '{tenantId}' 的成员（或注册地就在该租户）。",
+  "tenancy.member.not_found": "成员 '{id}' 不存在。",
+  "tenancy.member.user_not_found": "用户 '{userId}' 不存在。"
 }

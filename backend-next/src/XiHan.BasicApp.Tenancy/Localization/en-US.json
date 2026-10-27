@@ -15,5 +15,12 @@
   "tenancy.tenant.filter_unsupported": "Filter '{field} {operator}' is not supported.",
   "tenancy.tenant.sort_unsupported": "Sorting by '{field}' is not supported.",
   "tenancy.admin.name_taken": "User name '{userName}' is already taken in this tenant.",
-  "tenancy.tenant.no_initializer": "No tenant initializer is configured; the administrator would have no permissions."
+  "tenancy.tenant.no_initializer": "No tenant initializer is configured; the administrator would have no permissions.",
+  "tenants.mine.description": "Tenants the current user can enter (home tenant and memberships, active only) and whether the platform is available; the control center switches with auth.switch-tenant.",
+  "tenant_members.list.description": "List a tenant's members (users whose home tenant is elsewhere and who enter it by membership) with user name and display name. Platform side only; requires tenancy.tenant-members.read.",
+  "tenant_members.create.description": "Add a user as a tenant member; rejected when the user is already a member or the tenant is the user's home. Platform side only; requires tenancy.tenant-members.create.",
+  "tenant_members.delete.description": "Remove tenant members in batch; they can no longer switch into the tenant. Platform side only; requires tenancy.tenant-members.delete.",
+  "tenancy.member.exists": "User '{userId}' is already a member of tenant '{tenantId}' (or it is their home tenant).",
+  "tenancy.member.not_found": "Member '{id}' does not exist.",
+  "tenancy.member.user_not_found": "User '{userId}' does not exist."
 }

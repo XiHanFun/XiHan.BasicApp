@@ -15,5 +15,12 @@
   "tenancy.tenant.filter_unsupported": "O filtro '{field} {operator}' não é suportado.",
   "tenancy.tenant.sort_unsupported": "A ordenação por '{field}' não é suportada.",
   "tenancy.admin.name_taken": "O nome de usuário '{userName}' já está em uso neste locatário.",
-  "tenancy.tenant.no_initializer": "Nenhum inicializador de locatário está configurado; o administrador não teria permissões."
+  "tenancy.tenant.no_initializer": "Nenhum inicializador de locatário está configurado; o administrador não teria permissões.",
+  "tenants.mine.description": "Locatários em que o usuário atual pode entrar (locatário de origem e associações, somente ativos) e se a plataforma está disponível; a central de controle troca com auth.switch-tenant.",
+  "tenant_members.list.description": "Lista os membros de um locatário (usuários cujo locatário de origem é outro e que entram por associação) com nome de usuário e nome de exibição. Somente no lado da plataforma; requer tenancy.tenant-members.read.",
+  "tenant_members.create.description": "Adiciona um usuário como membro de um locatário; recusado se já for membro ou se esse locatário for o de origem. Somente no lado da plataforma; requer tenancy.tenant-members.create.",
+  "tenant_members.delete.description": "Remove membros de um locatário em lote; depois eles não podem mais alternar para esse locatário. Somente no lado da plataforma; requer tenancy.tenant-members.delete.",
+  "tenancy.member.exists": "O usuário '{userId}' já é membro do locatário '{tenantId}' (ou ele é seu locatário de origem).",
+  "tenancy.member.not_found": "O membro '{id}' não existe.",
+  "tenancy.member.user_not_found": "O usuário '{userId}' não existe."
 }

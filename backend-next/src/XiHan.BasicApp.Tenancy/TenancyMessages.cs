@@ -100,6 +100,41 @@ public static class TenancyMessages
     /// </summary>
     public const string NoInitializer = "tenancy.tenant.no_initializer";
 
+    /// <summary>
+    /// 操作 <c>tenants.mine</c> 的说明。
+    /// </summary>
+    public const string MyTenantsDescription = "tenants.mine.description";
+
+    /// <summary>
+    /// 操作 <c>tenant-members.list</c> 的说明（约定键把 <c>-</c> 换成 <c>_</c>）。
+    /// </summary>
+    public const string ListTenantMembersDescription = "tenant_members.list.description";
+
+    /// <summary>
+    /// 操作 <c>tenant-members.create</c> 的说明。
+    /// </summary>
+    public const string AddTenantMemberDescription = "tenant_members.create.description";
+
+    /// <summary>
+    /// 操作 <c>tenant-members.delete</c> 的说明。
+    /// </summary>
+    public const string RemoveTenantMembersDescription = "tenant_members.delete.description";
+
+    /// <summary>
+    /// 用户已是该租户的成员；参数 <c>tenantId</c>、<c>userId</c>。
+    /// </summary>
+    public const string MemberExists = "tenancy.member.exists";
+
+    /// <summary>
+    /// 成员行不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string MemberNotFound = "tenancy.member.not_found";
+
+    /// <summary>
+    /// 要加为成员的用户不存在；参数 <c>userId</c>。
+    /// </summary>
+    public const string MemberUserNotFound = "tenancy.member.user_not_found";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(TenancyMessages)));
 
     /// <summary>

@@ -15,5 +15,12 @@
   "tenancy.tenant.filter_unsupported": "Le filtre '{field} {operator}' n'est pas pris en charge.",
   "tenancy.tenant.sort_unsupported": "Le tri par '{field}' n'est pas pris en charge.",
   "tenancy.admin.name_taken": "Le nom d'utilisateur '{userName}' est déjà pris dans ce locataire.",
-  "tenancy.tenant.no_initializer": "Aucun initialiseur de locataire n'est configuré ; l'administrateur n'aurait aucune permission."
+  "tenancy.tenant.no_initializer": "Aucun initialiseur de locataire n'est configuré ; l'administrateur n'aurait aucune permission.",
+  "tenants.mine.description": "Locataires dans lesquels l'utilisateur actuel peut entrer (locataire d'origine et adhésions, actifs uniquement) et disponibilité de la plateforme ; le centre de contrôle bascule avec auth.switch-tenant.",
+  "tenant_members.list.description": "Liste les membres d'un locataire (utilisateurs dont le locataire d'origine est ailleurs et qui y entrent par adhésion) avec nom d'utilisateur et nom affiché. Côté plateforme uniquement ; nécessite tenancy.tenant-members.read.",
+  "tenant_members.create.description": "Ajoute un utilisateur comme membre d'un locataire ; refusé s'il est déjà membre ou si ce locataire est son locataire d'origine. Côté plateforme uniquement ; nécessite tenancy.tenant-members.create.",
+  "tenant_members.delete.description": "Retire des membres d'un locataire par lot ; ils ne peuvent plus basculer vers ce locataire. Côté plateforme uniquement ; nécessite tenancy.tenant-members.delete.",
+  "tenancy.member.exists": "L'utilisateur '{userId}' est déjà membre du locataire '{tenantId}' (ou c'est son locataire d'origine).",
+  "tenancy.member.not_found": "Le membre '{id}' n'existe pas.",
+  "tenancy.member.user_not_found": "L'utilisateur '{userId}' n'existe pas."
 }

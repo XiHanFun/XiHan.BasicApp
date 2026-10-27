@@ -41,6 +41,21 @@ public static class TenancyPermissions
     public const string TenantsInitializeAdmin = "tenancy.tenants.initialize-admin";
 
     /// <summary>
+    /// 查看租户成员：<c>tenant-members.list</c>。
+    /// </summary>
+    public const string TenantMembersRead = "tenancy.tenant-members.read";
+
+    /// <summary>
+    /// 加成员：<c>tenant-members.create</c>。
+    /// </summary>
+    public const string TenantMembersCreate = "tenancy.tenant-members.create";
+
+    /// <summary>
+    /// 移除成员：<c>tenant-members.delete</c>。
+    /// </summary>
+    public const string TenantMembersDelete = "tenancy.tenant-members.delete";
+
+    /// <summary>
     /// 全部权限描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -51,5 +66,8 @@ public static class TenancyPermissions
         new(TenantsSuspend, "Suspend tenants", PermissionScope.Platform, audited: true, description: "Suspend and resume tenants; suspended tenants cannot sign in."),
         new(TenantsDelete, "Delete tenants", PermissionScope.Platform, audited: true, description: "Delete tenants without users and remove them from the directory."),
         new(TenantsInitializeAdmin, "Initialize tenant administrators", PermissionScope.Platform, audited: true, description: "Create the first administrator of a tenant with every tenant-side permission."),
+        new(TenantMembersRead, "Read tenant members", PermissionScope.Platform, description: "View which users may enter a tenant as members."),
+        new(TenantMembersCreate, "Add tenant members", PermissionScope.Platform, audited: true, description: "Let a user whose home tenant is elsewhere enter a tenant."),
+        new(TenantMembersDelete, "Remove tenant members", PermissionScope.Platform, audited: true, description: "Revoke a member's access to a tenant."),
     ];
 }
