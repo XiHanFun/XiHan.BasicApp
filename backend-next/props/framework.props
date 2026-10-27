@@ -11,7 +11,7 @@
     工程文件里只写 <XiHanFrameworkReference Include="XiHan.Framework.Xxx" />，由 Directory.Build.targets 翻译成对应引用。
   -->
   <PropertyGroup>
-    <XiHanFrameworkCommit>66184da5</XiHanFrameworkCommit>
+    <XiHanFrameworkCommit>9724bdaa</XiHanFrameworkCommit>
     <XiHanFrameworkPackageVersion>5.0.0-preview.*</XiHanFrameworkPackageVersion>
     <XiHanFrameworkSrc Condition="'$(XiHanFrameworkSrc)' == ''">$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)..\..\..\XiHan.Framework\next\src'))</XiHanFrameworkSrc>
     <UseXiHanFrameworkSource Condition="'$(UseXiHanFrameworkSource)' == '' AND Exists('$(XiHanFrameworkSrc)XiHan.Framework.Kernel\XiHan.Framework.Kernel.csproj')">true</UseXiHanFrameworkSource>
