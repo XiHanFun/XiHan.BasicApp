@@ -142,7 +142,7 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 模块化后端与基于 Xi
 
 ## 分支与 worktree
 
-在主检出上的日常改动直接提交到当前分支（通常是 `dev`），不另开分支。新功能或并行开发开启 worktree 时，分支按用途分组命名，不保留工具生成的 `claude/<名>`、`codex/<名>` 等前缀：
+在主检出上的日常改动直接提交到当前分支（通常是 `dev`），不另开分支。6.0 重写（`backend-next/`、`frontend-next/`、`nextdocs/`）在长期分支 `next` 上开发：主检出在 `next` 时直接提交到 `next`，不改名、不切回 `dev`，它不属于下表的分组。新功能或并行开发开启 worktree 时，分支按用途分组命名，不保留工具生成的 `claude/<名>`、`codex/<名>` 等前缀：
 
 | 分组 | 用途 | 分支名 |
 | --- | --- | --- |
@@ -153,8 +153,8 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 模块化后端与基于 Xi
 
 - 任务对应 Issue 或 PR 编号时归入 `issue/`、`pr/` 并以编号命名；其余按改动性质取 `feat/` 或 `fix/`，后缀沿用 worktree 目录名。
 - 进入 worktree 后先看 `git branch --show-current`。分支是工具生成的 `claude/<名>` 等形式时，在首次提交前就地改名：`git branch -m <分组>/<名>`；worktree 目录名不变。改名后上游若指向 `main` 等别的分支，执行 `git branch --unset-upstream`。分支已推送到远端时不改名，先向用户说明。
-- 自行创建时直接带分组：`git worktree add -b feat/<名> .claude/worktrees/<名> dev`。审阅他人 PR 时先 `git fetch origin pull/<编号>/head:pr/<编号>-review`，再 `git worktree add .claude/worktrees/pr-<编号> pr/<编号>-review`。
-- 基线默认是本地 `dev`；热修复以对应 `hotfix/v<主版本>` 为基线，用户指定 `release/*` 时以其为准。工具从 `main` 或 `origin/main` 切出且还没有提交时，用 `git merge --ff-only dev` 对齐；不能快进就停下说明，不 reset。
+- 自行创建时直接带分组：`git worktree add -b feat/<名> .claude/worktrees/<名> dev`（6.0 重写的任务把基线 `dev` 换成 `next`）。审阅他人 PR 时先 `git fetch origin pull/<编号>/head:pr/<编号>-review`，再 `git worktree add .claude/worktrees/pr-<编号> pr/<编号>-review`。
+- 基线默认是本地 `dev`；6.0 重写的 worktree 以 `next` 为基线并合回 `next`；热修复以对应 `hotfix/v<主版本>` 为基线，用户指定 `release/*` 时以其为准。工具从 `main` 或 `origin/main` 切出且还没有提交时，用 `git merge --ff-only dev` 对齐；不能快进就停下说明，不 reset。
 - 一个 worktree 只承载一项任务、一条分支。并行任务会改到同一 DTO、Dynamic API、权限码、菜单种子或同一版本的 `UpdateScripts` 时，先说明冲突风险再动手。
 - 新 worktree 没有还原结果、`node_modules` 和被 gitignore 的本地配置（如 `appsettings.Production.json`、`frontend/.env.local`）：后端先执行 `dotnet restore backend/XiHan.BasicApp.slnx`，前端在 `frontend/` 执行 `pnpm install --no-frozen-lockfile`。
 - `backend/props/framework.props` 按相对路径定位同级 XiHan.Framework，worktree 内找不到它，默认走 NuGet 包；需要连 Framework 源码时同时传 `-p:UseXiHanFrameworkSource=true -p:XiHanFrameworkSrc=<XiHan.Framework 检出>/framework/src/`。
