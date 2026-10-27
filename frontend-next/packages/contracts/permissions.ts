@@ -17,6 +17,12 @@ export const permissionDefinitions = {
   'identity.users.read': { code: 'identity.users.read', displayName: 'Read users', description: 'View users of the current tenant.' },
   'identity.users.reset-password': { code: 'identity.users.reset-password', displayName: 'Reset passwords', description: 'Reset user passwords; the user must change the password at next sign-in.' },
   'identity.users.update': { code: 'identity.users.update', displayName: 'Update users', description: 'Edit user profiles of the current tenant.' },
+  'tenancy.tenants.create': { code: 'tenancy.tenants.create', displayName: 'Create tenants', description: 'Provision a tenant and register it in the tenant directory.' },
+  'tenancy.tenants.delete': { code: 'tenancy.tenants.delete', displayName: 'Delete tenants', description: 'Delete tenants without users and remove them from the directory.' },
+  'tenancy.tenants.initialize-admin': { code: 'tenancy.tenants.initialize-admin', displayName: 'Initialize tenant administrators', description: 'Create the first administrator of a tenant with every tenant-side permission.' },
+  'tenancy.tenants.read': { code: 'tenancy.tenants.read', displayName: 'Read tenants', description: 'View tenants and their administrators.' },
+  'tenancy.tenants.suspend': { code: 'tenancy.tenants.suspend', displayName: 'Suspend tenants', description: 'Suspend and resume tenants; suspended tenants cannot sign in.' },
+  'tenancy.tenants.update': { code: 'tenancy.tenants.update', displayName: 'Update tenants', description: 'Edit tenant names, descriptions, expiry and order.' },
 } as const
 
 /** 权限码字面量联合；`can()` 只认精确匹配，不认通配。 */
@@ -35,6 +41,14 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'roles.revoke': 'access.roles.grant',
   'roles.unassign': 'access.roles.assign',
   'roles.update': 'access.roles.update',
+  'tenants.create': 'tenancy.tenants.create',
+  'tenants.delete': 'tenancy.tenants.delete',
+  'tenants.get': 'tenancy.tenants.read',
+  'tenants.initialize-admin': 'tenancy.tenants.initialize-admin',
+  'tenants.list': 'tenancy.tenants.read',
+  'tenants.resume': 'tenancy.tenants.suspend',
+  'tenants.suspend': 'tenancy.tenants.suspend',
+  'tenants.update': 'tenancy.tenants.update',
   'users.create': 'identity.users.create',
   'users.delete': 'identity.users.delete',
   'users.get': 'identity.users.read',
