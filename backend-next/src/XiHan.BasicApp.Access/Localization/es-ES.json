@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "Crea un rol en el lado actual (plataforma o inquilino); el código es único por lado y no se puede cambiar. Requiere access.roles.create.",
+  "roles.get.description": "Obtiene un rol con sus permisos concedidos y el número de miembros. Requiere access.roles.read.",
+  "roles.list.description": "Lista los roles del lado actual con paginación, filtros, palabra clave y ordenación. Requiere access.roles.read.",
+  "roles.update.description": "Actualiza el nombre, la descripción, el orden y el estado de un rol. Requiere access.roles.update.",
+  "roles.delete.description": "Elimina roles por lotes junto con sus miembros y permisos; los roles integrados no se pueden eliminar. Requiere access.roles.delete.",
+  "roles.grant.description": "Concede permisos a un rol; los códigos deben existir en el catálogo y coincidir con el lado del rol. Requiere access.roles.grant.",
+  "roles.revoke.description": "Revoca permisos de un rol. Requiere access.roles.grant.",
+  "roles.assign.description": "Asigna usuarios a un rol; los usuarios deben pertenecer al lado del rol. Surte efecto en la próxima renovación del token del usuario. Requiere access.roles.assign.",
+  "roles.unassign.description": "Quita usuarios de un rol. Surte efecto en la próxima renovación del token del usuario. Requiere access.roles.assign.",
+  "roles.members.description": "Lista los miembros de un rol. Requiere access.roles.read.",
+  "permissions.list.description": "Lista el catálogo de permisos concedibles en el lado actual. Requiere access.permissions.read.",
+  "auth.permissions.description": "Devuelve los permisos efectivos, los roles, el árbol de menús y los códigos de página del principal actual.",
+  "access.role.not_found": "El rol '{id}' no existe.",
+  "access.role.code_taken": "El código de rol '{code}' ya está en uso en este lado.",
+  "access.role.built_in": "El rol '{code}' es integrado y no se puede eliminar.",
+  "access.role.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",
+  "access.role.sort_unsupported": "La ordenación por '{field}' no es compatible.",
+  "access.permission.unknown": "El permiso '{code}' no está en el catálogo.",
+  "access.permission.scope_mismatch": "El permiso '{code}' no se puede conceder en el lado {side}.",
+  "access.member.not_found": "El usuario '{id}' no existe o no pertenece al lado del rol."
+}

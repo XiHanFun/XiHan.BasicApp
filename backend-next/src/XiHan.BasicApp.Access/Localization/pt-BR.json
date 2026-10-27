@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "Cria um papel no lado atual (plataforma ou locatário); o código é único por lado e não pode ser alterado. Requer access.roles.create.",
+  "roles.get.description": "Obtém um papel com as permissões concedidas e o número de membros. Requer access.roles.read.",
+  "roles.list.description": "Lista os papéis do lado atual com paginação, filtros, palavra-chave e ordenação. Requer access.roles.read.",
+  "roles.update.description": "Atualiza o nome, a descrição, a ordem e o status de um papel. Requer access.roles.update.",
+  "roles.delete.description": "Exclui papéis em lote junto com membros e permissões; papéis internos não podem ser excluídos. Requer access.roles.delete.",
+  "roles.grant.description": "Concede permissões a um papel; os códigos devem existir no catálogo e corresponder ao lado do papel. Requer access.roles.grant.",
+  "roles.revoke.description": "Revoga permissões de um papel. Requer access.roles.grant.",
+  "roles.assign.description": "Atribui usuários a um papel; os usuários devem pertencer ao lado do papel. Entra em vigor na próxima renovação do token do usuário. Requer access.roles.assign.",
+  "roles.unassign.description": "Remove usuários de um papel. Entra em vigor na próxima renovação do token do usuário. Requer access.roles.assign.",
+  "roles.members.description": "Lista os membros de um papel. Requer access.roles.read.",
+  "permissions.list.description": "Lista o catálogo de permissões concedíveis no lado atual. Requer access.permissions.read.",
+  "auth.permissions.description": "Retorna as permissões efetivas, os papéis, a árvore de menus e os códigos de página do principal atual.",
+  "access.role.not_found": "O papel '{id}' não existe.",
+  "access.role.code_taken": "O código de papel '{code}' já está em uso neste lado.",
+  "access.role.built_in": "O papel '{code}' é interno e não pode ser excluído.",
+  "access.role.filter_unsupported": "O filtro '{field} {operator}' não é suportado.",
+  "access.role.sort_unsupported": "A ordenação por '{field}' não é suportada.",
+  "access.permission.unknown": "A permissão '{code}' não está no catálogo.",
+  "access.permission.scope_mismatch": "A permissão '{code}' não pode ser concedida no lado {side}.",
+  "access.member.not_found": "O usuário '{id}' não existe ou não pertence ao lado do papel."
+}

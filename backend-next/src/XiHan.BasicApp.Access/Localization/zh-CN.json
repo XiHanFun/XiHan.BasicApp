@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "在当前作用侧（平台或租户）创建角色；角色码在本侧唯一且不可改。需要 access.roles.create 权限。",
+  "roles.get.description": "取角色详情：已授予的权限码与成员数。需要 access.roles.read 权限。",
+  "roles.list.description": "分页列出当前作用侧的角色，支持筛选、关键字与排序。需要 access.roles.read 权限。",
+  "roles.update.description": "修改角色的名称、说明、排序与状态。需要 access.roles.update 权限。",
+  "roles.delete.description": "批量删除角色，连同成员与授予；内建角色不能删除。需要 access.roles.delete 权限。",
+  "roles.grant.description": "给角色授予权限；权限码须在目录里且与角色所在侧相符。需要 access.roles.grant 权限。",
+  "roles.revoke.description": "撤销角色的权限。需要 access.roles.grant 权限。",
+  "roles.assign.description": "给角色指派成员；用户须与角色同一侧。最迟在用户下次刷新令牌时生效。需要 access.roles.assign 权限。",
+  "roles.unassign.description": "解除角色成员。最迟在用户下次刷新令牌时生效。需要 access.roles.assign 权限。",
+  "roles.members.description": "列出角色的成员。需要 access.roles.read 权限。",
+  "permissions.list.description": "列出当前作用侧可授予的权限目录。需要 access.permissions.read 权限。",
+  "auth.permissions.description": "返回当前主体的有效权限码、角色、菜单树与页面码。",
+  "access.role.not_found": "角色 '{id}' 不存在。",
+  "access.role.code_taken": "角色码 '{code}' 在本侧已被占用。",
+  "access.role.built_in": "角色 '{code}' 是内建角色，不能删除。",
+  "access.role.filter_unsupported": "不支持筛选 '{field} {operator}'。",
+  "access.role.sort_unsupported": "不支持按 '{field}' 排序。",
+  "access.permission.unknown": "权限 '{code}' 不在目录里。",
+  "access.permission.scope_mismatch": "权限 '{code}' 不能授予给 {side} 侧。",
+  "access.member.not_found": "用户 '{id}' 不存在或不属于角色所在侧。"
+}

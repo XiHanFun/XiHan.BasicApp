@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "Создаёт роль на текущей стороне (платформа или арендатор); код уникален на стороне и не меняется. Требуется access.roles.create.",
+  "roles.get.description": "Возвращает роль с выданными разрешениями и числом участников. Требуется access.roles.read.",
+  "roles.list.description": "Выводит роли текущей стороны с постраничным выводом, фильтрами, ключевым словом и сортировкой. Требуется access.roles.read.",
+  "roles.update.description": "Изменяет имя, описание, порядок и состояние роли. Требуется access.roles.update.",
+  "roles.delete.description": "Пакетно удаляет роли вместе с участниками и разрешениями; встроенные роли удалить нельзя. Требуется access.roles.delete.",
+  "roles.grant.description": "Выдаёт роли разрешения; коды должны быть в каталоге и соответствовать стороне роли. Требуется access.roles.grant.",
+  "roles.revoke.description": "Отзывает разрешения у роли. Требуется access.roles.grant.",
+  "roles.assign.description": "Назначает пользователей в роль; пользователи должны принадлежать стороне роли. Вступает в силу при следующем обновлении токена пользователя. Требуется access.roles.assign.",
+  "roles.unassign.description": "Исключает пользователей из роли. Вступает в силу при следующем обновлении токена пользователя. Требуется access.roles.assign.",
+  "roles.members.description": "Выводит участников роли. Требуется access.roles.read.",
+  "permissions.list.description": "Выводит каталог разрешений, доступных для выдачи на текущей стороне. Требуется access.permissions.read.",
+  "auth.permissions.description": "Возвращает действующие разрешения, роли, дерево меню и коды страниц текущего субъекта.",
+  "access.role.not_found": "Роль '{id}' не существует.",
+  "access.role.code_taken": "Код роли '{code}' на этой стороне уже занят.",
+  "access.role.built_in": "Роль '{code}' встроенная, её нельзя удалить.",
+  "access.role.filter_unsupported": "Фильтр '{field} {operator}' не поддерживается.",
+  "access.role.sort_unsupported": "Сортировка по '{field}' не поддерживается.",
+  "access.permission.unknown": "Разрешения '{code}' нет в каталоге.",
+  "access.permission.scope_mismatch": "Разрешение '{code}' нельзя выдать на стороне {side}.",
+  "access.member.not_found": "Пользователь '{id}' не существует или не принадлежит стороне роли."
+}

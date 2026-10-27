@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "Crée un rôle du côté courant (plateforme ou locataire) ; le code est unique par côté et ne peut pas être modifié. Nécessite access.roles.create.",
+  "roles.get.description": "Lit un rôle avec ses permissions accordées et son nombre de membres. Nécessite access.roles.read.",
+  "roles.list.description": "Liste les rôles du côté courant avec pagination, filtres, mot-clé et tri. Nécessite access.roles.read.",
+  "roles.update.description": "Modifie le nom, la description, l'ordre et l'état d'un rôle. Nécessite access.roles.update.",
+  "roles.delete.description": "Supprime des rôles par lot avec leurs membres et leurs permissions ; les rôles intégrés ne peuvent pas être supprimés. Nécessite access.roles.delete.",
+  "roles.grant.description": "Accorde des permissions à un rôle ; les codes doivent exister dans le catalogue et correspondre au côté du rôle. Nécessite access.roles.grant.",
+  "roles.revoke.description": "Retire des permissions à un rôle. Nécessite access.roles.grant.",
+  "roles.assign.description": "Affecte des utilisateurs à un rôle ; ils doivent appartenir au côté du rôle. Prend effet au prochain rafraîchissement du jeton de l'utilisateur. Nécessite access.roles.assign.",
+  "roles.unassign.description": "Retire des utilisateurs d'un rôle. Prend effet au prochain rafraîchissement du jeton de l'utilisateur. Nécessite access.roles.assign.",
+  "roles.members.description": "Liste les membres d'un rôle. Nécessite access.roles.read.",
+  "permissions.list.description": "Liste le catalogue des permissions accordables du côté courant. Nécessite access.permissions.read.",
+  "auth.permissions.description": "Renvoie les permissions effectives, les rôles, l'arborescence des menus et les codes de page du principal courant.",
+  "access.role.not_found": "Le rôle '{id}' n'existe pas.",
+  "access.role.code_taken": "Le code de rôle '{code}' est déjà utilisé de ce côté.",
+  "access.role.built_in": "Le rôle '{code}' est intégré et ne peut pas être supprimé.",
+  "access.role.filter_unsupported": "Le filtre '{field} {operator}' n'est pas pris en charge.",
+  "access.role.sort_unsupported": "Le tri par '{field}' n'est pas pris en charge.",
+  "access.permission.unknown": "La permission '{code}' n'est pas dans le catalogue.",
+  "access.permission.scope_mismatch": "La permission '{code}' ne peut pas être accordée du côté {side}.",
+  "access.member.not_found": "L'utilisateur '{id}' n'existe pas ou n'appartient pas au côté du rôle."
+}

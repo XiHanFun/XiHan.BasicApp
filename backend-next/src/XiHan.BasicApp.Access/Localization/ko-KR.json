@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "현재 측(플랫폼 또는 테넌트)에 역할을 생성합니다. 코드는 측별로 고유하며 변경할 수 없습니다. access.roles.create 권한이 필요합니다.",
+  "roles.get.description": "역할 상세(부여된 권한 코드와 구성원 수)를 조회합니다. access.roles.read 권한이 필요합니다.",
+  "roles.list.description": "현재 측의 역할을 페이징, 필터, 키워드, 정렬로 나열합니다. access.roles.read 권한이 필요합니다.",
+  "roles.update.description": "역할의 이름, 설명, 순서, 상태를 수정합니다. access.roles.update 권한이 필요합니다.",
+  "roles.delete.description": "역할을 구성원 및 권한과 함께 일괄 삭제합니다. 내장 역할은 삭제할 수 없습니다. access.roles.delete 권한이 필요합니다.",
+  "roles.grant.description": "역할에 권한을 부여합니다. 코드는 카탈로그에 있어야 하며 역할의 측과 일치해야 합니다. access.roles.grant 권한이 필요합니다.",
+  "roles.revoke.description": "역할에서 권한을 회수합니다. access.roles.grant 권한이 필요합니다.",
+  "roles.assign.description": "역할에 사용자를 배정합니다. 사용자는 역할과 같은 측에 속해야 하며 다음 토큰 갱신 시 반영됩니다. access.roles.assign 권한이 필요합니다.",
+  "roles.unassign.description": "역할에서 사용자를 제외합니다. 다음 토큰 갱신 시 반영됩니다. access.roles.assign 권한이 필요합니다.",
+  "roles.members.description": "역할의 구성원을 나열합니다. access.roles.read 권한이 필요합니다.",
+  "permissions.list.description": "현재 측에서 부여할 수 있는 권한 카탈로그를 나열합니다. access.permissions.read 권한이 필요합니다.",
+  "auth.permissions.description": "현재 주체의 유효 권한 코드, 역할, 메뉴 트리, 페이지 코드를 반환합니다.",
+  "access.role.not_found": "역할 '{id}'이(가) 존재하지 않습니다.",
+  "access.role.code_taken": "역할 코드 '{code}'은(는) 이 측에서 이미 사용 중입니다.",
+  "access.role.built_in": "역할 '{code}'은(는) 내장 역할이라 삭제할 수 없습니다.",
+  "access.role.filter_unsupported": "필터 '{field} {operator}'은(는) 지원되지 않습니다.",
+  "access.role.sort_unsupported": "'{field}' 기준 정렬은 지원되지 않습니다.",
+  "access.permission.unknown": "권한 '{code}'이(가) 카탈로그에 없습니다.",
+  "access.permission.scope_mismatch": "권한 '{code}'은(는) {side} 측에 부여할 수 없습니다.",
+  "access.member.not_found": "사용자 '{id}'이(가) 존재하지 않거나 역할의 측에 속하지 않습니다."
+}

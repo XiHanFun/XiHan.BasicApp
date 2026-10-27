@@ -1,0 +1,22 @@
+{
+  "roles.create.description": "Legt eine Rolle auf der aktuellen Seite (Plattform oder Mandant) an; der Code ist je Seite eindeutig und unveränderlich. Erfordert access.roles.create.",
+  "roles.get.description": "Liest eine Rolle mit ihren erteilten Berechtigungen und der Mitgliederzahl. Erfordert access.roles.read.",
+  "roles.list.description": "Listet die Rollen der aktuellen Seite mit Paginierung, Filtern, Suchbegriff und Sortierung. Erfordert access.roles.read.",
+  "roles.update.description": "Ändert Name, Beschreibung, Reihenfolge und Status einer Rolle. Erfordert access.roles.update.",
+  "roles.delete.description": "Löscht Rollen stapelweise samt Mitgliedern und Berechtigungen; eingebaute Rollen können nicht gelöscht werden. Erfordert access.roles.delete.",
+  "roles.grant.description": "Erteilt einer Rolle Berechtigungen; die Codes müssen im Katalog stehen und zur Seite der Rolle passen. Erfordert access.roles.grant.",
+  "roles.revoke.description": "Entzieht einer Rolle Berechtigungen. Erfordert access.roles.grant.",
+  "roles.assign.description": "Weist einer Rolle Benutzer zu; die Benutzer müssen zur Seite der Rolle gehören. Wirkt ab der nächsten Token-Aktualisierung des Benutzers. Erfordert access.roles.assign.",
+  "roles.unassign.description": "Entfernt Benutzer aus einer Rolle. Wirkt ab der nächsten Token-Aktualisierung des Benutzers. Erfordert access.roles.assign.",
+  "roles.members.description": "Listet die Mitglieder einer Rolle. Erfordert access.roles.read.",
+  "permissions.list.description": "Listet den auf der aktuellen Seite erteilbaren Berechtigungskatalog. Erfordert access.permissions.read.",
+  "auth.permissions.description": "Liefert die wirksamen Berechtigungen, Rollen, den Menübaum und die Seitencodes des aktuellen Prinzipals.",
+  "access.role.not_found": "Die Rolle '{id}' existiert nicht.",
+  "access.role.code_taken": "Der Rollencode '{code}' ist auf dieser Seite bereits vergeben.",
+  "access.role.built_in": "Die Rolle '{code}' ist eingebaut und kann nicht gelöscht werden.",
+  "access.role.filter_unsupported": "Der Filter '{field} {operator}' wird nicht unterstützt.",
+  "access.role.sort_unsupported": "Die Sortierung nach '{field}' wird nicht unterstützt.",
+  "access.permission.unknown": "Die Berechtigung '{code}' steht nicht im Katalog.",
+  "access.permission.scope_mismatch": "Die Berechtigung '{code}' kann auf der Seite {side} nicht erteilt werden.",
+  "access.member.not_found": "Der Benutzer '{id}' existiert nicht oder gehört nicht zur Seite der Rolle."
+}
