@@ -42,4 +42,9 @@ public static class TenancyErrors
     /// 列表的筛选或排序字段不受支持。
     /// </summary>
     public const string QueryUnsupported = "TENANCY_VALIDATION_001";
+
+    /// <summary>
+    /// 没有任何租户初始化扩展（上层包未装配），开通管理员会没有权限。
+    /// </summary>
+    public const string NoInitializer = "TENANCY_UNAVAILABLE_001";
 }

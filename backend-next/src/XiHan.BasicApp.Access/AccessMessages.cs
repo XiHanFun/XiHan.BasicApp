@@ -115,6 +115,26 @@ public static class AccessMessages
     /// </summary>
     public const string MemberNotFound = "access.member.not_found";
 
+    /// <summary>
+    /// 操作 <c>roles.by-user</c> 的说明。
+    /// </summary>
+    public const string RolesByUserDescription = "roles.by_user.description";
+
+    /// <summary>
+    /// 平台角色的数据范围只能是全部；参数 <c>code</c>。
+    /// </summary>
+    public const string DataScopeNotApplicable = "access.role.data_scope_not_applicable";
+
+    /// <summary>
+    /// 自定义数据范围至少一个部门；参数 <c>code</c>。
+    /// </summary>
+    public const string CustomScopeEmpty = "access.role.custom_scope_empty";
+
+    /// <summary>
+    /// 部门不在当前租户；参数 <c>id</c>。
+    /// </summary>
+    public const string DepartmentNotFound = "access.department.not_found";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

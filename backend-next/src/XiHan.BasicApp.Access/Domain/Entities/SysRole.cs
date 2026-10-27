@@ -43,4 +43,9 @@ public sealed class SysRole : AppAuditedEntity, IOwnedByTenant
     /// 状态。
     /// </summary>
     public RoleStatus Status { get; set; } = RoleStatus.Active;
+
+    /// <summary>
+    /// 数据范围：租户角色缺省只看自己，平台角色固定为全部；<see cref="Entities.DataScope.Custom"/> 的部门在 <see cref="SysRoleDataScope"/>。
+    /// </summary>
+    public DataScope DataScope { get; set; } = DataScope.SelfOnly;
 }

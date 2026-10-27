@@ -8,6 +8,7 @@ using XiHan.BasicApp.Access.Queries;
 using XiHan.BasicApp.Access.Seeds;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
@@ -67,6 +68,9 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<EffectivePermissions>();
         context.Services.AddScoped<RoleQueries>();
         context.Services.AddScoped<IUserRoleResolver, UserRoleResolver>();
+        context.Services.AddScoped<RoleDataScopeService>();
+        context.Services.AddScoped<IDataScopeResolver, DataScopeResolver>();
+        context.Services.AddScoped<ITenantInitializer, TenantRoleInitializer>();
         context.Services.AddSeeder<PlatformRoleSeeder>();
         context.Services.AddSeeder<MenuSeeder>();
         context.Services.AddPermissionCatalog("access", AccessPermissions.All);

@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Operations.Users;
@@ -10,8 +11,6 @@ using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
-using XiHan.Framework.Security.Abstractions.Permissions;
-using XiHan.Framework.Security.Database.Grants;
 
 namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 
@@ -22,7 +21,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="tenants">租户仓储。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
-/// <param name="grants">框架授予存储。</param>
+/// <param name="initializers">租户初始化扩展（Access 实现：内建角色与指派）。</param>
 /// <param name="service">租户域服务。</param>
 /// <param name="ids">标识生成器。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = TenancyPermissions.TenantsInitializeAdmin)]
@@ -30,7 +29,7 @@ public sealed class InitializeAdmin(
     IRepository<SysTenant, Guid> tenants,
     IRepository<SysUser, Guid> users,
     UserAccountService accounts,
-    PermissionGrantRecordStore grants,
+    IEnumerable<ITenantInitializer> initializers,
     TenantService service,
     IIdGenerator<Guid> ids) : IOperation<InitializeAdminRequest, UserResponse>
 {
@@ -92,13 +91,21 @@ public sealed class InitializeAdmin(
             return set.Error!;
         }
 
-        // 租户范围的用户授予 *：框架 PermissionChecker 在该租户内放行一切，auth.permissions 展开为租户侧目录
-        foreach (var outcome in await grants.GrantAsync([new PermissionGrant(GrantSubject.ForUser(admin.Id.ToString("D")), PermissionGrant.All, tenant.TenantId)], context.CancellationToken).ConfigureAwait(false))
+        // 管理员身份由上层包准备（Access：内建租户角色 admin 持 *，并指派）；没有任何实现时管理员会没有权限，直接失败
+        var ran = false;
+        foreach (var initializer in initializers)
         {
-            if (outcome.Outcome.IsFailure)
+            ran = true;
+            var initialized = await initializer.InitializeAsync(tenant.TenantId, admin.Id, context).ConfigureAwait(false);
+            if (initialized.IsFailure)
             {
-                return outcome.Outcome.Error!;
+                return initialized.Error!;
             }
+        }
+
+        if (!ran)
+        {
+            return Error.Unavailable(TenancyErrors.NoInitializer, TenancyMessages.NoInitializer);
         }
 
         tenant.AdminUserId = admin.Id;

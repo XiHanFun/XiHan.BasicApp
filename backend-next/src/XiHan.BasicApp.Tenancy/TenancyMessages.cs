@@ -95,6 +95,11 @@ public static class TenancyMessages
     /// </summary>
     public const string AdminNameTaken = "tenancy.admin.name_taken";
 
+    /// <summary>
+    /// 没有租户初始化扩展。
+    /// </summary>
+    public const string NoInitializer = "tenancy.tenant.no_initializer";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(TenancyMessages)));
 
     /// <summary>

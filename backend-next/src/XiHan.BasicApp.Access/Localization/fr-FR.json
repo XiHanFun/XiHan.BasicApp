@@ -18,5 +18,9 @@
   "access.role.sort_unsupported": "Le tri par '{field}' n'est pas pris en charge.",
   "access.permission.unknown": "La permission '{code}' n'est pas dans le catalogue.",
   "access.permission.scope_mismatch": "La permission '{code}' ne peut pas être accordée du côté {side}.",
-  "access.member.not_found": "L'utilisateur '{id}' n'existe pas ou n'appartient pas au côté du rôle."
+  "access.member.not_found": "L'utilisateur '{id}' n'existe pas ou n'appartient pas au côté du rôle.",
+  "roles.by_user.description": "Liste les rôles qu'un utilisateur détient du côté courant (plateforme ou locataire). Nécessite access.roles.read.",
+  "access.role.data_scope_not_applicable": "Le rôle de plateforme '{code}' ne peut avoir que la portée de données « Tout » et aucun service personnalisé.",
+  "access.role.custom_scope_empty": "Le rôle '{code}' utilise une portée de données personnalisée sans indiquer de service.",
+  "access.department.not_found": "Le service '{id}' n'existe pas dans ce locataire."
 }

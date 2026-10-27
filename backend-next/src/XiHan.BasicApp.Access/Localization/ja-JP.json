@@ -18,5 +18,9 @@
   "access.role.sort_unsupported": "'{field}' による並べ替えはサポートされていません。",
   "access.permission.unknown": "権限 '{code}' はカタログにありません。",
   "access.permission.scope_mismatch": "権限 '{code}' は {side} 側には付与できません。",
-  "access.member.not_found": "ユーザー '{id}' は存在しないか、ロールの側に属していません。"
+  "access.member.not_found": "ユーザー '{id}' は存在しないか、ロールの側に属していません。",
+  "roles.by_user.description": "ユーザーが現在の側（プラットフォームまたはテナント）で持つロールを一覧します。access.roles.read 権限が必要です。",
+  "access.role.data_scope_not_applicable": "プラットフォームロール '{code}' のデータ範囲は「すべて」のみで、カスタム部門は指定できません。",
+  "access.role.custom_scope_empty": "ロール '{code}' はカスタムデータ範囲ですが部門が指定されていません。",
+  "access.department.not_found": "部門 '{id}' はこのテナントに存在しません。"
 }

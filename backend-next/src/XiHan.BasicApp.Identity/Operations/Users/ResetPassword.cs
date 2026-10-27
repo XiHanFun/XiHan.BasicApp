@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
+using XiHan.BasicApp.Runtime.Queries;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -30,7 +31,7 @@ public sealed class ResetPassword(IRepository<SysUser, Guid> users, UserAccountS
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var tenantId = context.GetSecurity().Tenant?.Id;
-        if (!(await users.FindAsync(request.Id, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user) || (tenantId is not null && !string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal)))
+        if (!(await users.FindAsync(request.Id, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user) || (tenantId is not null && !string.Equals(user.HomeTenantId, tenantId, StringComparison.Ordinal)) || !(await DataScopeQuery.ResolveAsync(context).ConfigureAwait(false)).Allows(user.Id))
         {
             return Error.NotFound(IdentityErrors.UserNotFound, IdentityMessages.UserNotFound, MessageArguments.Of(("id", request.Id)));
         }

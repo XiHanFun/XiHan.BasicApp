@@ -42,4 +42,19 @@ public static class AccessErrors
     /// 列表的筛选或排序字段不受支持。
     /// </summary>
     public const string QueryUnsupported = "ACCESS_VALIDATION_003";
+
+    /// <summary>
+    /// 平台角色的数据范围只能是全部、不能带自定义部门。
+    /// </summary>
+    public const string DataScopeNotApplicable = "ACCESS_VALIDATION_004";
+
+    /// <summary>
+    /// 自定义数据范围至少要有一个部门。
+    /// </summary>
+    public const string CustomScopeEmpty = "ACCESS_VALIDATION_005";
+
+    /// <summary>
+    /// 自定义数据范围里的部门不在当前租户。
+    /// </summary>
+    public const string DepartmentNotFound = "ACCESS_NOTFOUND_003";
 }

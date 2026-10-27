@@ -14,5 +14,6 @@
   "tenancy.tenant.platform_only": "Mandanten werden nur von der Plattformseite verwaltet.",
   "tenancy.tenant.filter_unsupported": "Der Filter '{field} {operator}' wird nicht unterstützt.",
   "tenancy.tenant.sort_unsupported": "Die Sortierung nach '{field}' wird nicht unterstützt.",
-  "tenancy.admin.name_taken": "Der Benutzername '{userName}' ist in diesem Mandanten bereits vergeben."
+  "tenancy.admin.name_taken": "Der Benutzername '{userName}' ist in diesem Mandanten bereits vergeben.",
+  "tenancy.tenant.no_initializer": "Kein Mandanten-Initialisierer ist konfiguriert; der Administrator hätte keine Berechtigungen."
 }

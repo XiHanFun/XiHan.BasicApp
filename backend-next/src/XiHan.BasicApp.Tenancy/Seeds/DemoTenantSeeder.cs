@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Seeding;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
@@ -10,8 +11,6 @@ using XiHan.BasicApp.Tenancy.Domain.Services;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
-using XiHan.Framework.Security.Abstractions.Permissions;
-using XiHan.Framework.Security.Database.Grants;
 
 namespace XiHan.BasicApp.Tenancy.Seeds;
 
@@ -21,7 +20,7 @@ namespace XiHan.BasicApp.Tenancy.Seeds;
 /// <param name="tenants">租户仓储。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
-/// <param name="grants">框架授予存储。</param>
+/// <param name="initializers">租户初始化扩展（Access 实现：内建角色与指派）。</param>
 /// <param name="service">租户域服务。</param>
 /// <param name="options">种子配置。</param>
 /// <param name="ids">标识生成器。</param>
@@ -29,7 +28,7 @@ public sealed class DemoTenantSeeder(
     IRepository<SysTenant, Guid> tenants,
     IRepository<SysUser, Guid> users,
     UserAccountService accounts,
-    PermissionGrantRecordStore grants,
+    IEnumerable<ITenantInitializer> initializers,
     TenantService service,
     SeedOptions options,
     IIdGenerator<Guid> ids) : ISeeder
@@ -109,12 +108,20 @@ public sealed class DemoTenantSeeder(
             return set;
         }
 
-        foreach (var outcome in await grants.GrantAsync([new PermissionGrant(GrantSubject.ForUser(admin.Id.ToString("D")), PermissionGrant.All, DemoTenantId)], context.CancellationToken).ConfigureAwait(false))
+        var ran = false;
+        foreach (var initializer in initializers)
         {
-            if (outcome.Outcome.IsFailure)
+            ran = true;
+            var initialized = await initializer.InitializeAsync(DemoTenantId, admin.Id, context).ConfigureAwait(false);
+            if (initialized.IsFailure)
             {
-                return outcome.Outcome;
+                return initialized;
             }
+        }
+
+        if (!ran)
+        {
+            return Error.Unavailable(TenancyErrors.NoInitializer, TenancyMessages.NoInitializer);
         }
 
         tenant.AdminUserId = admin.Id;

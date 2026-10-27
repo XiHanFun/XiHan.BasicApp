@@ -18,5 +18,9 @@
   "access.role.sort_unsupported": "A ordenação por '{field}' não é suportada.",
   "access.permission.unknown": "A permissão '{code}' não está no catálogo.",
   "access.permission.scope_mismatch": "A permissão '{code}' não pode ser concedida no lado {side}.",
-  "access.member.not_found": "O usuário '{id}' não existe ou não pertence ao lado do papel."
+  "access.member.not_found": "O usuário '{id}' não existe ou não pertence ao lado do papel.",
+  "roles.by_user.description": "Lista os papéis que um usuário tem no lado atual (plataforma ou locatário). Requer access.roles.read.",
+  "access.role.data_scope_not_applicable": "O papel de plataforma '{code}' só pode ter o escopo de dados 'Tudo' e nenhum departamento personalizado.",
+  "access.role.custom_scope_empty": "O papel '{code}' usa escopo de dados personalizado, mas não informa nenhum departamento.",
+  "access.department.not_found": "O departamento '{id}' não existe neste locatário."
 }

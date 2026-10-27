@@ -14,5 +14,6 @@
   "tenancy.tenant.platform_only": "租户只能在平台侧管理。",
   "tenancy.tenant.filter_unsupported": "不支持筛选 '{field} {operator}'。",
   "tenancy.tenant.sort_unsupported": "不支持按 '{field}' 排序。",
-  "tenancy.admin.name_taken": "用户名 '{userName}' 在该租户内已被占用。"
+  "tenancy.admin.name_taken": "用户名 '{userName}' 在该租户内已被占用。",
+  "tenancy.tenant.no_initializer": "没有配置租户初始化扩展，管理员将没有任何权限。"
 }

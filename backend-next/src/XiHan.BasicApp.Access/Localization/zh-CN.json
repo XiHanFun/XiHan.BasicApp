@@ -18,5 +18,9 @@
   "access.role.sort_unsupported": "不支持按 '{field}' 排序。",
   "access.permission.unknown": "权限 '{code}' 不在目录里。",
   "access.permission.scope_mismatch": "权限 '{code}' 不能授予给 {side} 侧。",
-  "access.member.not_found": "用户 '{id}' 不存在或不属于角色所在侧。"
+  "access.member.not_found": "用户 '{id}' 不存在或不属于角色所在侧。",
+  "roles.by_user.description": "列出某个用户在当前作用侧（平台或租户）持有的角色。需要 access.roles.read 权限。",
+  "access.role.data_scope_not_applicable": "平台角色 '{code}' 的数据范围只能是全部，且不能带自定义部门。",
+  "access.role.custom_scope_empty": "角色 '{code}' 用自定义数据范围却没有列出任何部门。",
+  "access.department.not_found": "部门 '{id}' 不在当前租户。"
 }

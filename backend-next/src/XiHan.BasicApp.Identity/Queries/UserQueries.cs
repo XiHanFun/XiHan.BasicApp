@@ -37,6 +37,9 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork)
             query = query.Where(u => u.HomeTenantId == tenantId);
         }
 
+        // 数据范围（方案 5.6）：受限主体只看得到自己与可见部门里的用户
+        query = query.ApplyDataScope(await DataScopeQuery.ResolveAsync(context).ConfigureAwait(false), static u => u.Id);
+
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();

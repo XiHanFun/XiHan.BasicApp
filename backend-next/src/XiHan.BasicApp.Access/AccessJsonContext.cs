@@ -25,6 +25,8 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(RolePermissionsRequest))]
 [JsonSerializable(typeof(RoleMembersRequest))]
 [JsonSerializable(typeof(RoleMembersQueryRequest))]
+[JsonSerializable(typeof(RolesByUserRequest))]
+[JsonSerializable(typeof(RolesByUserResponse))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(RoleResponse))]
 [JsonSerializable(typeof(RoleDetailResponse))]

@@ -19,9 +19,10 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="roles">角色仓储。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="service">角色域服务。</param>
+/// <param name="scopes">角色数据范围服务（连同删自定义部门行）。</param>
 /// <param name="grants">角色授予。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesDelete)]
-public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants) : IOperation<RoleIdsRequest, BatchResult>
+public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes) : IOperation<RoleIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -66,6 +67,12 @@ public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<Sy
     private async Task<Result> RemoveAsync(SysRole role, CancellationToken cancellationToken)
     {
         var roleId = role.Id;
+        var scopeRows = await scopes.ReplaceAsync(role, [], cancellationToken).ConfigureAwait(false);
+        if (scopeRows.IsFailure)
+        {
+            return scopeRows;
+        }
+
         var assignments = await members.ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.RoleId == roleId)), cancellationToken).ConfigureAwait(false);
         if (assignments.Count > 0)
         {

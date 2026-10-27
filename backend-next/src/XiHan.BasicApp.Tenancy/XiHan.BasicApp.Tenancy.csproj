@@ -17,8 +17,6 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
-    <!-- 租户管理员的开通授予直接写框架授予表（Tenancy 不能引用 Access） -->
-    <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />
     <!-- 租户目录：开通 / 启停 / 改名在同一工作单元里同步写 TenantRecord -->
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Database" />

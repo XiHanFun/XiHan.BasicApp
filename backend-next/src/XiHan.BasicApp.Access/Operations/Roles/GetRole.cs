@@ -17,9 +17,10 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// </summary>
 /// <param name="service">角色域服务。</param>
 /// <param name="grants">角色授予。</param>
+/// <param name="scopes">角色数据范围服务。</param>
 /// <param name="members">指派仓储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
-public sealed class GetRole(RoleService service, RoleGrants grants, IRepository<SysUserRole, Guid> members) : IOperation<GetRoleRequest, RoleDetailResponse>
+public sealed class GetRole(RoleService service, RoleGrants grants, IRepository<SysUserRole, Guid> members, RoleDataScopeService scopes) : IOperation<GetRoleRequest, RoleDetailResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -39,6 +40,9 @@ public sealed class GetRole(RoleService service, RoleGrants grants, IRepository<
         var permissions = await grants.ListAsync(role, context.CancellationToken).ConfigureAwait(false);
         var roleId = role.Id;
         var count = await members.CountAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.RoleId == roleId)), context.CancellationToken).ConfigureAwait(false);
-        return new RoleDetailResponse(RoleResponse.From(role), permissions, count);
+        var custom = role.DataScope == DataScope.Custom
+            ? (await scopes.ListAsync(role.Id, context.CancellationToken).ConfigureAwait(false)).Select(static s => new DataScopeDepartmentRequest(s.DepartmentId, s.IncludeChildren)).ToList()
+            : [];
+        return new RoleDetailResponse(RoleResponse.From(role), permissions, count, custom);
     }
 }
