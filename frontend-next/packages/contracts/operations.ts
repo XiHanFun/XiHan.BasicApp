@@ -29,6 +29,7 @@ export const routes = {
   'positions.update': { method: 'PUT', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
   'profile.change-password': { method: 'POST', template: '/api/profile:change-password', path: [], query: [], success: 200 },
   'roles.assign': { method: 'POST', template: '/api/roles/{id}:assign', path: ['id'], query: [], success: 200 },
+  'roles.by-user': { method: 'POST', template: '/api/roles:by-user', path: [], query: [], success: 200 },
   'roles.create': { method: 'POST', template: '/api/roles', path: [], query: [], success: 201 },
   'roles.delete': { method: 'DELETE', template: '/api/roles', path: [], query: ['ids'], success: 200 },
   'roles.get': { method: 'GET', template: '/api/roles/{id}', path: ['id'], query: [], success: 200 },
@@ -116,6 +117,7 @@ export const profile = {
 /** 资源 `roles` 的操作。 */
 export const roles = {
   assign: (request: RequestOf<'roles.assign'>, options?: CallOptions) => invoke<RequestOf<'roles.assign'>, ResponseOf<'roles.assign'>>('roles.assign', routes['roles.assign'], request, options),
+  byUser: (request: RequestOf<'roles.by-user'>, options?: CallOptions) => invoke<RequestOf<'roles.by-user'>, ResponseOf<'roles.by-user'>>('roles.by-user', routes['roles.by-user'], request, options),
   create: (request: RequestOf<'roles.create'>, options?: CallOptions) => invoke<RequestOf<'roles.create'>, ResponseOf<'roles.create'>>('roles.create', routes['roles.create'], request, options),
   delete: (request: RequestOf<'roles.delete'>, options?: CallOptions) => invoke<RequestOf<'roles.delete'>, ResponseOf<'roles.delete'>>('roles.delete', routes['roles.delete'], request, options),
   get: (request: RequestOf<'roles.get'>, options?: CallOptions) => invoke<RequestOf<'roles.get'>, ResponseOf<'roles.get'>>('roles.get', routes['roles.get'], request, options),

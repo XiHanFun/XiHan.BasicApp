@@ -416,6 +416,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/roles:by-user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List the roles a user holds on the current side (platform or tenant). Requires access.roles.read. */
+        post: operations["roles.by-user"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/roles:list": {
         parameters: {
             query?: never;
@@ -665,6 +682,13 @@ export interface components {
             id: string;
             code: string;
         };
+        /** @enum {string} */
+        DataScope: "SelfOnly" | "DepartmentOnly" | "DepartmentAndChildren" | "All" | "Custom";
+        DataScopeDepartmentRequest: {
+            /** Format: uuid */
+            departmentId: string;
+            includeChildren?: boolean;
+        };
         DepartmentNode: {
             department: components["schemas"]["DepartmentResponse"];
             /** Format: int64 */
@@ -786,6 +810,7 @@ export interface components {
             order: number;
             isBuiltIn: boolean;
             status: components["schemas"]["RoleStatus"];
+            dataScope: components["schemas"]["DataScope"];
             /** Format: date-time */
             createdAt: string;
         };
@@ -1863,6 +1888,7 @@ export interface operations {
                     description?: string | null;
                     /** Format: int32 */
                     order?: number;
+                    dataScope?: components["schemas"]["DataScope"] | null;
                 };
             };
         };
@@ -1884,6 +1910,7 @@ export interface operations {
                         order: number;
                         isBuiltIn: boolean;
                         status: components["schemas"]["RoleStatus"];
+                        dataScope: components["schemas"]["DataScope"];
                         /** Format: date-time */
                         createdAt: string;
                     };
@@ -1956,6 +1983,7 @@ export interface operations {
                         permissions: string[];
                         /** Format: int64 */
                         memberCount: number;
+                        customDepartments: components["schemas"]["DataScopeDepartmentRequest"][];
                     };
                 };
             };
@@ -1989,6 +2017,8 @@ export interface operations {
                     /** Format: int32 */
                     order?: number;
                     status?: components["schemas"]["RoleStatus"];
+                    dataScope?: components["schemas"]["DataScope"] | null;
+                    customDepartments?: components["schemas"]["DataScopeDepartmentRequest"][] | null;
                 };
             };
         };
@@ -2010,6 +2040,7 @@ export interface operations {
                         order: number;
                         isBuiltIn: boolean;
                         status: components["schemas"]["RoleStatus"];
+                        dataScope: components["schemas"]["DataScope"];
                         /** Format: date-time */
                         createdAt: string;
                     };
@@ -2222,6 +2253,44 @@ export interface operations {
                     "application/json": {
                         succeeded: string[];
                         failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "roles.by-user": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    userId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["RoleResponse"][];
                     };
                 };
             };

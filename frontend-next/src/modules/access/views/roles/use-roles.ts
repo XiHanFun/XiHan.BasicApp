@@ -1,13 +1,30 @@
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { permissions as permissionsApi, roles as rolesApi, users as usersApi } from '~/contracts'
+import { departments as departmentsApi, permissions as permissionsApi, roles as rolesApi, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 
 export type RoleRow = ResponseOf<'roles.list'>['items'][number]
 export type RoleDetail = ResponseOf<'roles.get'>
+export type DataScopeValue = RoleRow['dataScope']
 export type PermissionItem = ResponseOf<'permissions.list'>['items'][number]
 export type RoleMember = ResponseOf<'roles.members'>['items'][number]
 export type UserOption = ResponseOf<'users.list'>['items'][number]
+export type DepartmentNode = ResponseOf<'departments.tree'>['items'][number]
+
+/** 部门树展平后的候选项（自定义数据范围的勾选列表） */
+export interface DepartmentOption {
+  id: string
+  name: string
+  depth: number
+}
+
+function flattenDepartments(nodes: DepartmentNode[], depth: number, out: DepartmentOption[]): DepartmentOption[] {
+  for (const node of nodes) {
+    out.push({ id: node.department.id, name: node.department.name, depth })
+    flattenDepartments(node.children, depth + 1, out)
+  }
+  return out
+}
 
 export interface CreateRoleForm {
   code: string
@@ -44,6 +61,22 @@ export function useRoles(pageSize = 20) {
   const detailError = ref<string | null>(null)
   const notice = ref<string | null>(null)
   const working = ref(false)
+
+  // 数据范围草稿：范围值 + 自定义部门（id → 是否含子部门）
+  const scopeDraft = ref<DataScopeValue>('SelfOnly')
+  const customDraft = ref<Map<string, boolean>>(new Map())
+  const departmentOptions = ref<DepartmentOption[]>([])
+  const scopeDirty = computed(() => {
+    const role = selected.value
+    if (!role)
+      return false
+    if (role.role.dataScope !== scopeDraft.value)
+      return true
+    if (scopeDraft.value !== 'Custom')
+      return false
+    const current = new Map(role.customDepartments.map(d => [d.departmentId, d.includeChildren ?? false]))
+    return current.size !== customDraft.value.size || [...customDraft.value].some(([id, children]) => current.get(id) !== children)
+  })
 
   /** 目录按包分组，供复选框渲染 */
   const groups = computed(() => {
@@ -131,6 +164,8 @@ export function useRoles(pageSize = 20) {
       const detail = await rolesApi.get({ id })
       selected.value = detail
       draft.value = new Set(detail.permissions)
+      scopeDraft.value = detail.role.dataScope
+      customDraft.value = new Map(detail.customDepartments.map(d => [d.departmentId, d.includeChildren ?? false]))
       await Promise.all([loadCatalog(), loadMembers(id)])
     }
     catch (error) {
@@ -223,6 +258,59 @@ export function useRoles(pageSize = 20) {
     }
   }
 
+  /** 自定义数据范围的候选部门（本租户的树展平）：只有能读部门的租户侧主体才会调用 */
+  async function loadDepartmentOptions() {
+    if (departmentOptions.value.length === 0)
+      departmentOptions.value = flattenDepartments((await departmentsApi.tree({})).items, 0, [])
+  }
+
+  function toggleCustomDepartment(id: string) {
+    const next = new Map(customDraft.value)
+    if (next.has(id))
+      next.delete(id)
+    else next.set(id, false)
+    customDraft.value = next
+  }
+
+  function toggleIncludeChildren(id: string) {
+    if (!customDraft.value.has(id))
+      return
+    const next = new Map(customDraft.value)
+    next.set(id, !next.get(id))
+    customDraft.value = next
+  }
+
+  /** 保存数据范围：roles.update 整体回传（名称等原样），自定义部门整体替换 */
+  async function saveDataScope(): Promise<boolean> {
+    const role = selected.value
+    if (!role)
+      return false
+    working.value = true
+    detailError.value = null
+    notice.value = null
+    try {
+      await rolesApi.update({
+        id: role.role.id,
+        name: role.role.name,
+        description: role.role.description ?? null,
+        order: role.role.order,
+        status: role.role.status,
+        dataScope: scopeDraft.value,
+        customDepartments: scopeDraft.value === 'Custom' ? [...customDraft.value].map(([departmentId, includeChildren]) => ({ departmentId, includeChildren })) : [],
+      })
+      await select(role.role.id)
+      notice.value = 'data_scope_saved'
+      return true
+    }
+    catch (error) {
+      detailError.value = describe(error)
+      return false
+    }
+    finally {
+      working.value = false
+    }
+  }
+
   async function remove(): Promise<boolean> {
     const role = selected.value
     if (!role)
@@ -272,12 +360,20 @@ export function useRoles(pageSize = 20) {
     detailError,
     notice,
     working,
+    scopeDraft,
+    customDraft,
+    scopeDirty,
+    departmentOptions,
     load,
     submit,
     select,
     loadUserOptions,
+    loadDepartmentOptions,
     togglePermission,
     savePermissions,
+    toggleCustomDepartment,
+    toggleIncludeChildren,
+    saveDataScope,
     addMember,
     removeMember,
     remove,

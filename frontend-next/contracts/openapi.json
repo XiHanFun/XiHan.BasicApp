@@ -2270,6 +2270,16 @@
                     "format": "int32",
                     "minimum": 0,
                     "maximum": 100000
+                  },
+                  "dataScope": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/DataScope"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -2318,6 +2328,9 @@
                     "status": {
                       "$ref": "#/components/schemas/RoleStatus"
                     },
+                    "dataScope": {
+                      "$ref": "#/components/schemas/DataScope"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -2331,6 +2344,7 @@
                     "order",
                     "isBuiltIn",
                     "status",
+                    "dataScope",
                     "createdAt"
                   ]
                 }
@@ -2391,12 +2405,19 @@
                     "memberCount": {
                       "type": "integer",
                       "format": "int64"
+                    },
+                    "customDepartments": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DataScopeDepartmentRequest"
+                      }
                     }
                   },
                   "required": [
                     "role",
                     "permissions",
-                    "memberCount"
+                    "memberCount",
+                    "customDepartments"
                   ]
                 }
               }
@@ -2465,6 +2486,25 @@
                   },
                   "status": {
                     "$ref": "#/components/schemas/RoleStatus"
+                  },
+                  "dataScope": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/DataScope"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "customDepartments": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/DataScopeDepartmentRequest"
+                    }
                   }
                 },
                 "required": [
@@ -2513,6 +2553,9 @@
                     "status": {
                       "$ref": "#/components/schemas/RoleStatus"
                     },
+                    "dataScope": {
+                      "$ref": "#/components/schemas/DataScope"
+                    },
                     "createdAt": {
                       "type": "string",
                       "format": "date-time"
@@ -2526,6 +2569,7 @@
                     "order",
                     "isBuiltIn",
                     "status",
+                    "dataScope",
                     "createdAt"
                   ]
                 }
@@ -2980,6 +3024,72 @@
                   "required": [
                     "succeeded",
                     "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roles:by-user": {
+      "post": {
+        "operationId": "roles.by-user",
+        "tags": [
+          "roles"
+        ],
+        "summary": "List the roles a user holds on the current side (platform or tenant). Requires access.roles.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.roles.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RolesByUserRequest",
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "userId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "RolesByUserResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/RoleResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -4755,6 +4865,31 @@
           "code"
         ]
       },
+      "DataScope": {
+        "type": "string",
+        "enum": [
+          "SelfOnly",
+          "DepartmentOnly",
+          "DepartmentAndChildren",
+          "All",
+          "Custom"
+        ]
+      },
+      "DataScopeDepartmentRequest": {
+        "type": "object",
+        "properties": {
+          "departmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "includeChildren": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "departmentId"
+        ]
+      },
       "DepartmentNode": {
         "type": "object",
         "properties": {
@@ -5190,6 +5325,9 @@
           "status": {
             "$ref": "#/components/schemas/RoleStatus"
           },
+          "dataScope": {
+            "$ref": "#/components/schemas/DataScope"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -5203,6 +5341,7 @@
           "order",
           "isBuiltIn",
           "status",
+          "dataScope",
           "createdAt"
         ]
       },

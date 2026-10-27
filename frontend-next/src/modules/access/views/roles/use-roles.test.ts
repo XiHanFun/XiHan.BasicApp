@@ -6,7 +6,7 @@ function json(status: number, body: object, contentType = 'application/json'): R
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
 }
 
-const role = { id: 'r-1', ownerTenantId: 'platform', code: 'auditor', name: 'Auditor', description: null, order: 0, isBuiltIn: false, status: 'Active', createdAt: '2026-10-28T00:00:00Z' }
+const role = { id: 'r-1', ownerTenantId: 'platform', code: 'auditor', name: 'Auditor', description: null, order: 0, isBuiltIn: false, status: 'Active', dataScope: 'All', createdAt: '2026-10-28T00:00:00Z' }
 
 describe('useRoles', () => {
   it('loads the list, selects a role with its catalog and members, and saves permission changes as a diff', async () => {
@@ -21,7 +21,7 @@ describe('useRoles', () => {
         if (path.endsWith('/api/roles:list'))
           return json(200, { items: [role], total: 1, page: { index: 1, size: 20 } })
         if (path.endsWith('/api/roles/r-1'))
-          return json(200, { role, permissions: ['identity.users.read'], memberCount: 1 })
+          return json(200, { role, permissions: ['identity.users.read'], memberCount: 1, customDepartments: [] })
         if (path.endsWith('/api/permissions')) {
           return json(200, { items: [
             { code: 'identity.users.read', displayName: 'Read users', description: null, package: 'identity', resource: 'users', action: 'read', scope: 'Both', audited: false },

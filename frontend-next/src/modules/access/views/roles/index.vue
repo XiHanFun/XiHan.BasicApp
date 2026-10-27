@@ -23,12 +23,23 @@ onMounted(() => {
   void page.load()
 })
 
-// 选中角色后装候选用户（只有能读用户的主体）
+// 选中角色后装候选用户（只有能读用户的主体）与候选部门（租户侧、能读部门的主体；平台没有部门也没有数据范围）
 watch(() => page.selected.value?.role.id, (id) => {
   memberToAdd.value = ''
   if (id && auth.can('identity.users.read') && auth.can('access.roles.assign'))
     void page.loadUserOptions()
+  if (id && auth.tenantId !== null && auth.can('organization.departments.read'))
+    void page.loadDepartmentOptions()
 })
+
+// 数据范围的下拉项：契约枚举值 → 静态文案键（i18n 门禁核对）
+const scopeOptions = [
+  { value: 'SelfOnly', label: 'access.roles.data_scope.self_only' },
+  { value: 'DepartmentOnly', label: 'access.roles.data_scope.department_only' },
+  { value: 'DepartmentAndChildren', label: 'access.roles.data_scope.department_and_children' },
+  { value: 'All', label: 'access.roles.data_scope.all' },
+  { value: 'Custom', label: 'access.roles.data_scope.custom' },
+] as const
 
 function formatTime(value: string): string {
   return new Date(value).toLocaleString()
@@ -152,6 +163,44 @@ async function addMember() {
         <p v-if="page.notice.value === 'saved'" class="text-caption text-fg-success" role="status">
           {{ t('access.roles.saved') }}
         </p>
+        <p v-if="page.notice.value === 'data_scope_saved'" class="text-caption text-fg-success" role="status">
+          {{ t('access.roles.data_scope_saved') }}
+        </p>
+
+        <!-- 数据范围：只在租户侧（平台角色固定为全部）；自定义时勾部门并可含子部门 -->
+        <div v-if="auth.tenantId !== null" class="flex flex-col gap-2" data-testid="role-data-scope">
+          <h3 class="text-body font-semibold">
+            {{ t('access.roles.sections.data_scope') }}
+          </h3>
+          <label class="flex flex-col gap-1 text-caption text-fg-muted" for="role-data-scope">
+            {{ t('access.roles.sections.data_scope') }}
+            <select id="role-data-scope" v-model="page.scopeDraft.value" class="rounded-control border border-border bg-surface px-2 py-1 text-body text-fg" :disabled="!auth.can('access.roles.update') || page.working.value">
+              <option v-for="option in scopeOptions" :key="option.value" :value="option.value">
+                {{ t(option.label) }}
+              </option>
+            </select>
+          </label>
+          <fieldset v-if="page.scopeDraft.value === 'Custom'" class="flex flex-col gap-1 rounded-control border border-border-subtle p-2">
+            <legend class="px-1 text-caption text-fg-muted">
+              {{ t('access.roles.custom_departments') }}
+            </legend>
+            <div v-for="department in page.departmentOptions.value" :key="department.id" class="flex flex-wrap items-center gap-3 text-body">
+              <label class="flex items-center gap-2">
+                <input type="checkbox" :checked="page.customDraft.value.has(department.id)" :disabled="!auth.can('access.roles.update') || page.working.value" @change="page.toggleCustomDepartment(department.id)">
+                <span>{{ '· '.repeat(department.depth) }}{{ department.name }}</span>
+              </label>
+              <label v-if="page.customDraft.value.has(department.id)" class="flex items-center gap-2 text-caption text-fg-muted">
+                <input type="checkbox" :checked="page.customDraft.value.get(department.id) === true" :disabled="!auth.can('access.roles.update') || page.working.value" @change="page.toggleIncludeChildren(department.id)">
+                {{ t('access.roles.include_children') }}
+              </label>
+            </div>
+          </fieldset>
+          <div v-if="auth.can('access.roles.update')">
+            <XhButton size="sm" variant="solid" :disabled="!page.scopeDirty.value || page.working.value" :loading="page.working.value" @click="page.saveDataScope()">
+              {{ t('access.roles.actions.save_data_scope') }}
+            </XhButton>
+          </div>
+        </div>
 
         <div class="flex flex-col gap-2">
           <h3 class="text-body font-semibold">
