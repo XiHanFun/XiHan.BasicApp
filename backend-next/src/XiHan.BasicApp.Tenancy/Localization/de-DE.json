@@ -15,5 +15,12 @@
   "tenancy.tenant.filter_unsupported": "Der Filter '{field} {operator}' wird nicht unterstützt.",
   "tenancy.tenant.sort_unsupported": "Die Sortierung nach '{field}' wird nicht unterstützt.",
   "tenancy.admin.name_taken": "Der Benutzername '{userName}' ist in diesem Mandanten bereits vergeben.",
-  "tenancy.tenant.no_initializer": "Kein Mandanten-Initialisierer ist konfiguriert; der Administrator hätte keine Berechtigungen."
+  "tenancy.tenant.no_initializer": "Kein Mandanten-Initialisierer ist konfiguriert; der Administrator hätte keine Berechtigungen.",
+  "tenants.mine.description": "Mandanten, die der aktuelle Benutzer betreten kann (Heimatmandant und Mitgliedschaften, nur aktive), und ob die Plattform verfügbar ist; das Kontrollzentrum wechselt mit auth.switch-tenant.",
+  "tenant_members.list.description": "Listet die Mitglieder eines Mandanten (Benutzer mit anderem Heimatmandanten, die ihn per Mitgliedschaft betreten) mit Benutzer- und Anzeigename. Nur plattformseitig; erfordert tenancy.tenant-members.read.",
+  "tenant_members.create.description": "Fügt einen Benutzer als Mitglied eines Mandanten hinzu; abgelehnt, wenn er bereits Mitglied ist oder der Mandant sein Heimatmandant ist. Nur plattformseitig; erfordert tenancy.tenant-members.create.",
+  "tenant_members.delete.description": "Entfernt Mandantenmitglieder stapelweise; sie können danach nicht mehr in den Mandanten wechseln. Nur plattformseitig; erfordert tenancy.tenant-members.delete.",
+  "tenancy.member.exists": "Benutzer '{userId}' ist bereits Mitglied des Mandanten '{tenantId}' (oder es ist sein Heimatmandant).",
+  "tenancy.member.not_found": "Mitglied '{id}' existiert nicht.",
+  "tenancy.member.user_not_found": "Benutzer '{userId}' existiert nicht."
 }

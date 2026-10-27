@@ -14,6 +14,16 @@ public static class TenancyErrors
     public const string TenantNotFound = "TENANCY_NOTFOUND_001";
 
     /// <summary>
+    /// 成员行不存在。
+    /// </summary>
+    public const string MemberNotFound = "TENANCY_NOTFOUND_002";
+
+    /// <summary>
+    /// 要加为成员的用户不存在。
+    /// </summary>
+    public const string MemberUserNotFound = "TENANCY_NOTFOUND_003";
+
+    /// <summary>
     /// 租户 ID 已被占用。
     /// </summary>
     public const string TenantIdTaken = "TENANCY_CONFLICT_001";
@@ -32,6 +42,11 @@ public static class TenancyErrors
     /// 管理员登录名在该租户内已被占用。
     /// </summary>
     public const string AdminNameTaken = "TENANCY_CONFLICT_004";
+
+    /// <summary>
+    /// 用户已是该租户的成员（或注册地就在该租户）。
+    /// </summary>
+    public const string MemberExists = "TENANCY_CONFLICT_005";
 
     /// <summary>
     /// 只有平台主体能管理租户。

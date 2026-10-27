@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Identity.Operations.Users;
+using XiHan.BasicApp.Tenancy.Operations.TenantMembers;
 using XiHan.BasicApp.Tenancy.Operations.Tenants;
 
 namespace XiHan.BasicApp.Tenancy;
@@ -28,4 +29,12 @@ namespace XiHan.BasicApp.Tenancy;
 [JsonSerializable(typeof(PageResult<TenantResponse>))]
 [JsonSerializable(typeof(BatchResult))]
 [JsonSerializable(typeof(UserResponse))]
+[JsonSerializable(typeof(MyTenantsRequest))]
+[JsonSerializable(typeof(MyTenantsResponse))]
+[JsonSerializable(typeof(AvailableTenantResponse))]
+[JsonSerializable(typeof(TenantMembersRequest))]
+[JsonSerializable(typeof(TenantMembersResponse))]
+[JsonSerializable(typeof(TenantMemberResponse))]
+[JsonSerializable(typeof(AddTenantMemberRequest))]
+[JsonSerializable(typeof(TenantMemberIdsRequest))]
 public sealed partial class TenancyJsonContext : JsonSerializerContext;

@@ -15,5 +15,12 @@
   "tenancy.tenant.filter_unsupported": "El filtro '{field} {operator}' no es compatible.",
   "tenancy.tenant.sort_unsupported": "La ordenación por '{field}' no es compatible.",
   "tenancy.admin.name_taken": "El nombre de usuario '{userName}' ya está en uso en este inquilino.",
-  "tenancy.tenant.no_initializer": "No hay ningún inicializador de inquilino configurado; el administrador no tendría permisos."
+  "tenancy.tenant.no_initializer": "No hay ningún inicializador de inquilino configurado; el administrador no tendría permisos.",
+  "tenants.mine.description": "Inquilinos en los que puede entrar el usuario actual (inquilino de origen y membresías, solo activos) y si la plataforma está disponible; el centro de control cambia con auth.switch-tenant.",
+  "tenant_members.list.description": "Lista los miembros de un inquilino (usuarios cuyo inquilino de origen es otro y que entran por membresía) con nombre de usuario y nombre visible. Solo en el lado de la plataforma; requiere tenancy.tenant-members.read.",
+  "tenant_members.create.description": "Añade un usuario como miembro de un inquilino; se rechaza si ya es miembro o si ese inquilino es su inquilino de origen. Solo en el lado de la plataforma; requiere tenancy.tenant-members.create.",
+  "tenant_members.delete.description": "Quita miembros de un inquilino por lotes; después ya no pueden cambiar a ese inquilino. Solo en el lado de la plataforma; requiere tenancy.tenant-members.delete.",
+  "tenancy.member.exists": "El usuario '{userId}' ya es miembro del inquilino '{tenantId}' (o es su inquilino de origen).",
+  "tenancy.member.not_found": "El miembro '{id}' no existe.",
+  "tenancy.member.user_not_found": "El usuario '{userId}' no existe."
 }
