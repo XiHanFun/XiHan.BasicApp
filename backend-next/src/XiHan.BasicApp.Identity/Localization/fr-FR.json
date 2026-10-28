@@ -12,6 +12,8 @@
   "auth.logout.description": "Révoque la session du jeton courant.",
   "auth.me.description": "Renvoie l'utilisateur, le locataire, la session et les rôles courants.",
   "profile.change_password.description": "Change votre propre mot de passe ; nécessite le mot de passe actuel et révoque vos autres sessions.",
+  "user_settings.get.description": "Lire un de vos réglages par scène et clé ; la valeur reste vide tant qu’il n’est pas enregistré. Tout utilisateur connecté.",
+  "user_settings.update.description": "Écrire un de vos réglages par scène et clé, en le remplaçant entièrement ou en le créant ; une valeur vide l’efface. Tout utilisateur connecté.",
   "identity.user.not_found": "L'utilisateur '{id}' n'existe pas.",
   "identity.user.name_taken": "Le nom d'utilisateur '{userName}' est déjà pris dans le locataire '{tenant}'.",
   "identity.user.tenant_mismatch": "Le locataire d'origine '{requested}' diffère du locataire courant '{current}'.",

@@ -68,6 +68,8 @@ export const routes = {
   'tenants.resume': { method: 'POST', template: '/api/tenants:resume', path: [], query: [], success: 200 },
   'tenants.suspend': { method: 'POST', template: '/api/tenants:suspend', path: [], query: [], success: 200 },
   'tenants.update': { method: 'PUT', template: '/api/tenants/{id}', path: ['id'], query: [], success: 200 },
+  'user-settings.get': { method: 'GET', template: '/api/user-settings', path: [], query: ['scene', 'key'], success: 200 },
+  'user-settings.update': { method: 'PUT', template: '/api/user-settings', path: [], query: [], success: 200 },
   'users.create': { method: 'POST', template: '/api/users', path: [], query: [], success: 201 },
   'users.delete': { method: 'DELETE', template: '/api/users', path: [], query: ['ids'], success: 200 },
   'users.get': { method: 'GET', template: '/api/users/{id}', path: ['id'], query: [], success: 200 },
@@ -197,6 +199,12 @@ export const tenants = {
   resume: (request: RequestOf<'tenants.resume'>, options?: CallOptions) => invoke<RequestOf<'tenants.resume'>, ResponseOf<'tenants.resume'>>('tenants.resume', routes['tenants.resume'], request, options),
   suspend: (request: RequestOf<'tenants.suspend'>, options?: CallOptions) => invoke<RequestOf<'tenants.suspend'>, ResponseOf<'tenants.suspend'>>('tenants.suspend', routes['tenants.suspend'], request, options),
   update: (request: RequestOf<'tenants.update'>, options?: CallOptions) => invoke<RequestOf<'tenants.update'>, ResponseOf<'tenants.update'>>('tenants.update', routes['tenants.update'], request, options),
+}
+
+/** 资源 `user-settings` 的操作。 */
+export const userSettings = {
+  get: (request: RequestOf<'user-settings.get'>, options?: CallOptions) => invoke<RequestOf<'user-settings.get'>, ResponseOf<'user-settings.get'>>('user-settings.get', routes['user-settings.get'], request, options),
+  update: (request: RequestOf<'user-settings.update'>, options?: CallOptions) => invoke<RequestOf<'user-settings.update'>, ResponseOf<'user-settings.update'>>('user-settings.update', routes['user-settings.update'], request, options),
 }
 
 /** 资源 `users` 的操作。 */

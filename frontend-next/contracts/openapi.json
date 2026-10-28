@@ -6085,6 +6085,177 @@
         }
       }
     },
+    "/api/user-settings": {
+      "get": {
+        "operationId": "user-settings.get",
+        "tags": [
+          "user-settings"
+        ],
+        "summary": "Read one of your own settings by scene and key; the value is empty until saved. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "scene",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UserSettingScene"
+            }
+          },
+          {
+            "name": "key",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "UserSettingResponse",
+                  "type": "object",
+                  "properties": {
+                    "scene": {
+                      "$ref": "#/components/schemas/UserSettingScene"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "scene",
+                    "key"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "user-settings.update",
+        "tags": [
+          "user-settings"
+        ],
+        "summary": "Write one of your own settings by scene and key, replacing it whole or creating it; an empty value clears it. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateUserSettingRequest",
+                "type": "object",
+                "properties": {
+                  "scene": {
+                    "$ref": "#/components/schemas/UserSettingScene"
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$"
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 262144
+                  }
+                },
+                "required": [
+                  "scene",
+                  "key"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "UserSettingResponse",
+                  "type": "object",
+                  "properties": {
+                    "scene": {
+                      "$ref": "#/components/schemas/UserSettingScene"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "scene",
+                    "key"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users": {
       "delete": {
         "operationId": "users.delete",
@@ -7866,6 +8037,13 @@
           "homeTenantId",
           "status",
           "createdAt"
+        ]
+      },
+      "UserSettingScene": {
+        "type": "string",
+        "enum": [
+          "Preference",
+          "Page"
         ]
       },
       "UserStatus": {

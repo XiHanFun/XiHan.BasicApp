@@ -126,4 +126,6 @@ export const operationPolicy: Partial<Record<OperationId, string>> = {
   'impersonation.stop': 'authenticated',
   'profile.change-password': 'authenticated',
   'tenants.mine': 'authenticated',
+  'user-settings.get': 'authenticated',
+  'user-settings.update': 'authenticated',
 }

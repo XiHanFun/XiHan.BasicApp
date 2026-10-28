@@ -12,6 +12,8 @@
   "auth.logout.description": "撤銷目前權杖所屬的工作階段。",
   "auth.me.description": "回傳目前使用者、租戶、工作階段與角色。",
   "profile.change_password.description": "變更本人密碼；須提供目前密碼，並撤銷本人的其他工作階段。",
+  "user_settings.get.description": "讀本人的一條設定（按場景與設定鍵）；還沒存過時值為空。已登入即可。",
+  "user_settings.update.description": "寫本人的一條設定（按場景與設定鍵整體覆蓋，無則新建；值為空即清空）。已登入即可。",
   "identity.user.not_found": "使用者 '{id}' 不存在。",
   "identity.user.name_taken": "使用者名稱 '{userName}' 在租戶 '{tenant}' 內已被使用。",
   "identity.user.tenant_mismatch": "註冊地租戶 '{requested}' 與目前租戶 '{current}' 不一致。",

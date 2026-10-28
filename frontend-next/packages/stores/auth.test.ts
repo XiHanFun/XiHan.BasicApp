@@ -3,7 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { configureRequest } from '~/request'
 import { registerAppContext } from './app-context'
-import { useAuthStore } from './auth'
+import { takeIdentitySwitchedMarker, useAuthStore } from './auth'
 import { relaunchApp } from './relaunch'
 
 // 切换上下文 / 身份后整页重建：测试里只核对它被调用
@@ -99,6 +99,8 @@ describe('auth store', () => {
     expect(store.session?.sessionId).toBe('s-1')
     expect(JSON.parse(localStorage.getItem('xihan.next.session')!)).toMatchObject({ accessToken: 'a-2', refreshToken: 'r-2', tenantId: 'globex' })
     expect(relaunchApp).toHaveBeenCalledOnce()
+    // 切换上下文是同一个人：不留身份切换标记，重建后照常可用本地偏好播种
+    expect(takeIdentitySwitchedMarker()).toBe(false)
 
     await store.switchTenant(null)
     expect(switchTenant).toHaveBeenLastCalledWith({ tenantId: null })
@@ -115,6 +117,9 @@ describe('auth store', () => {
     expect(store.session).toMatchObject({ sessionId: 's-9', impersonatorUserName: 'alice', user: { userName: 'bob' } })
     expect(relaunchApp).toHaveBeenCalledOnce()
     expect(store.impersonationLoading).toBe(true)
+    // 换了身份：重建后的偏好水合不拿本地那份给被模仿者播种；标记取一次即清
+    expect(takeIdentitySwitchedMarker()).toBe(true)
+    expect(takeIdentitySwitchedMarker()).toBe(false)
     // 重建前的重复点击不再发请求
     await store.startImpersonation({ targetUserId: 'u-3' })
     expect(start).toHaveBeenCalledOnce()
@@ -132,5 +137,6 @@ describe('auth store', () => {
     expect(store.impersonationLoading).toBe(false)
     expect(store.accessToken).toBe('a-1')
     expect(relaunchApp).not.toHaveBeenCalled()
+    expect(takeIdentitySwitchedMarker()).toBe(false)
   })
 })

@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts.Paging;
 using XiHan.BasicApp.Identity.Operations.Auth;
 using XiHan.BasicApp.Identity.Operations.Impersonation;
 using XiHan.BasicApp.Identity.Operations.Profile;
+using XiHan.BasicApp.Identity.Operations.UserSettings;
 using XiHan.BasicApp.Identity.Operations.Users;
 
 namespace XiHan.BasicApp.Identity;
@@ -38,6 +39,9 @@ namespace XiHan.BasicApp.Identity;
 [JsonSerializable(typeof(MeResponse))]
 [JsonSerializable(typeof(TokenResponse))]
 [JsonSerializable(typeof(ChangePasswordRequest))]
+[JsonSerializable(typeof(GetUserSettingRequest))]
+[JsonSerializable(typeof(UpdateUserSettingRequest))]
+[JsonSerializable(typeof(UserSettingResponse))]
 [JsonSerializable(typeof(SwitchTenantRequest))]
 [JsonSerializable(typeof(StartImpersonationRequest))]
 [JsonSerializable(typeof(StopImpersonationRequest))]

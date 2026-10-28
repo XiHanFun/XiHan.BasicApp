@@ -5,9 +5,24 @@ import { computed, ref } from 'vue'
 import { LOGIN_PATH } from '~/constants'
 import { auth as authApi } from '~/contracts'
 import { useAppContext } from './app-context'
+import { resetPreferenceBackendSync } from './helpers'
 import { relaunchApp } from './relaunch'
 
 const SESSION_KEY = 'xihan.next.session'
+/** 模仿 / 退出模仿后整页重建前留的标记：重建后的偏好水合不拿本地那份（属于上一身份）给新身份播种 */
+const IDENTITY_SWITCHED_KEY = 'xihan.next.identity-switched'
+
+/** 取走（并清除）身份切换标记：本次页面生命周期是不是刚经模仿换了身份 */
+export function takeIdentitySwitchedMarker(): boolean {
+  try {
+    const marked = sessionStorage.getItem(IDENTITY_SWITCHED_KEY) !== null
+    sessionStorage.removeItem(IDENTITY_SWITCHED_KEY)
+    return marked
+  }
+  catch {
+    return false
+  }
+}
 
 /** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`）。 */
 export type Session = ResponseOf<'auth.login'>
@@ -112,6 +127,8 @@ export const useAuthStore = defineStore('auth', () => {
       catch {}
       store(null)
     }
+    // 偏好回写通道属于这个人，退出即关；下一个登录的人重新水合
+    resetPreferenceBackendSync()
     const router = await useAppContext().getRouter().catch(() => null)
     if (router && router.currentRoute.value.path !== LOGIN_PATH)
       await router.replace(LOGIN_PATH)
@@ -163,6 +180,10 @@ export const useAuthStore = defineStore('auth', () => {
     impersonationLoading.value = true
     try {
       store(await run())
+      try {
+        sessionStorage.setItem(IDENTITY_SWITCHED_KEY, '1')
+      }
+      catch {}
       relaunchApp()
     }
     catch (error) {

@@ -12,6 +12,8 @@
   "auth.logout.description": "Revoke the session of the current token.",
   "auth.me.description": "Return the current user, tenant, session and roles.",
   "profile.change_password.description": "Change your own password; requires the current password and revokes your other sessions.",
+  "user_settings.get.description": "Read one of your own settings by scene and key; the value is empty until saved. Any signed-in user.",
+  "user_settings.update.description": "Write one of your own settings by scene and key, replacing it whole or creating it; an empty value clears it. Any signed-in user.",
   "identity.user.not_found": "User '{id}' does not exist.",
   "identity.user.name_taken": "User name '{userName}' is already taken in tenant '{tenant}'.",
   "identity.user.tenant_mismatch": "The home tenant '{requested}' differs from the current tenant '{current}'.",

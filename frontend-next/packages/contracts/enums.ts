@@ -23,6 +23,9 @@ export type TenantMemberType = (typeof TenantMemberType)[number]
 export const TenantStatus = ['Active', 'Suspended'] as const
 export type TenantStatus = (typeof TenantStatus)[number]
 
+export const UserSettingScene = ['Preference', 'Page'] as const
+export type UserSettingScene = (typeof UserSettingScene)[number]
+
 export const UserStatus = ['Active', 'Disabled', 'Locked'] as const
 export type UserStatus = (typeof UserStatus)[number]
 
@@ -35,6 +38,7 @@ export const enums = {
   RoleStatus,
   TenantMemberType,
   TenantStatus,
+  UserSettingScene,
   UserStatus,
 } as const
 
