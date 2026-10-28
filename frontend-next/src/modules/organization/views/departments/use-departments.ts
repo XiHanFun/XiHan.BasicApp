@@ -1,139 +1,161 @@
+import type { Ref } from 'vue'
+import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
+import type { SelectOption, TreeSelectOption } from '~/types'
 import { computed, reactive, ref } from 'vue'
 import { departments as departmentsApi, memberships as membershipsApi, positions as positionsApi, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 
 export type DepartmentNode = ResponseOf<'departments.tree'>['items'][number]
-export type DepartmentRow = DepartmentNode['department']
-export type DepartmentStatus = DepartmentRow['status']
+export type DepartmentRecord = DepartmentNode['department']
+export type DepartmentStatus = DepartmentRecord['status']
 export type DepartmentDetail = ResponseOf<'departments.get'>
 export type MembershipRow = ResponseOf<'memberships.list'>['items'][number]
-export type UserOption = ResponseOf<'users.list'>['items'][number]
-export type PositionOption = ResponseOf<'positions.list'>['items'][number]
 
-/** 树展平后的一行：深度用于缩进与上级选择 */
-export interface FlatDepartment {
-  id: string
-  code: string
-  name: string
-  status: DepartmentStatus
-  order: number
-  depth: number
+/** SchemaPage 树形模式的一行：部门字段平铺，带直接成员数与子行（`children`） */
+export interface DepartmentRow extends DepartmentRecord {
   memberCount: number
-  createdAt: string
+  children: DepartmentRow[]
 }
 
-export interface CreateDepartmentForm {
+/** 候选用户：主文本取显示名，副文本取登录名（XCombobox 两行都参与本地筛选） */
+export interface UserOption extends SelectOption {
+  description: string
+}
+
+/** 部门弹窗表单：新建与编辑共用（编码只在新建时可改；上级在编辑时经 departments.move 落库） */
+export interface DepartmentForm {
   code: string
   name: string
-  parentId: string
-  order: string
-}
-
-export interface EditDepartmentForm {
-  name: string
+  parentId: null | string
+  order: null | number
   description: string
-  order: string
   status: DepartmentStatus
 }
 
-export interface MemberForm {
-  userId: string
-  positionId: string
+export type DepartmentEditorMode = 'create' | 'edit'
+
+/** 任职弹窗表单：添加成员与编辑任职共用（用户只在添加时选；主部门只在添加时可勾，已有归属设主走「设为主部门」） */
+export interface MembershipForm {
+  userId: null | string
+  positionId: null | string
   employeeNumber: string
+  jobGrade: string
+  /** 入职日期，时间戳（毫秒），与 XDatePicker 同一口径 */
+  hiredAt: null | number
+  order: null | number
   isPrimary: boolean
+}
+
+export type MembershipEditorMode = 'create' | 'edit'
+
+/** 候选清单与成员列表取前 100 条（与改版前的页面同一上限） */
+const LIST_LIMIT = 100
+
+function blankToNull(value: string): null | string {
+  return value.trim() === '' ? null : value.trim()
 }
 
 function describe(error: unknown): string {
   return error instanceof ApiError ? error.detail : String(error)
 }
 
-function toOrder(value: string): number {
-  return value.trim() === '' ? 0 : Number(value)
+function isBlank(value: unknown): boolean {
+  return value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
 }
 
-function flatten(nodes: DepartmentNode[], depth: number, out: FlatDepartment[]): FlatDepartment[] {
-  for (const node of nodes) {
-    const d = node.department
-    out.push({ id: d.id, code: d.code, name: d.name, status: d.status, order: d.order, depth, memberCount: Number(node.memberCount), createdAt: d.createdAt })
-    flatten(node.children, depth + 1, out)
-  }
-  return out
+/** 批量删除的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
+function failedCodes(result: { failed: { code: string }[] }): void {
+  if (result.failed.length > 0)
+    throw new Error(result.failed.map(f => f.code).join('; '))
+}
+
+/** departments.tree 的节点（部门 + 成员数 + 子节点）→ SchemaPage 树表的行 */
+export function toDepartmentRows(nodes: DepartmentNode[]): DepartmentRow[] {
+  return nodes.map(node => ({ ...node.department, memberCount: Number(node.memberCount), children: toDepartmentRows(node.children) }))
+}
+
+/** 上级部门的候选树：编辑时去掉部门自己连同整棵子树（后端也拒绝循环，这里只是少给错误的选项） */
+export function toParentOptions(rows: DepartmentRow[], excludeId?: string): TreeSelectOption[] {
+  return rows.filter(row => row.id !== excludeId).map((row) => {
+    const children = toParentOptions(row.children, excludeId)
+    return children.length > 0 ? { label: row.name, value: row.id, children } : { label: row.name, value: row.id }
+  })
 }
 
 /**
- * 部门页的状态与动作（租户侧）：整棵树（展平带深度）、创建、选中部门的详情 / 编辑 / 移动 / 删除、成员列表与增删、主部门切换。
- * 契约类型来自生成物；错误只看 `code`、`detail` 与字段级 `errors`；批量操作逐项失败以错误码显示。
+ * SchemaPage 的资源（树形模式）：整棵树（departments.tree 一次取回、不分页）、删除与启停。
+ * 部门树不接受筛选与排序：查询里出现即报错，而不是静默丢掉条件。取回的树经 onTree 交给页面，供上级候选复用。
  */
-export function useDepartments() {
-  const tree = ref<DepartmentNode[]>([])
-  const total = ref(0)
-  const loading = ref(false)
-  const listError = ref<string | null>(null)
-  const flat = computed(() => flatten(tree.value, 0, []))
+export function departmentsResource(onTree?: (rows: DepartmentRow[]) => void): SchemaResource<DepartmentRow> {
+  return {
+    tree: async (params: SchemaQueryParams) => {
+      if ((params.sorts ?? []).length > 0 || (params.conditionFilters ?? []).length > 0 || Object.values(params.filters).some(value => !isBlank(value)))
+        throw new Error('部门树（departments.tree）不接受筛选与排序：页面字段不要声明 searchable / advancedSearch / sortable')
+      const rows = toDepartmentRows((await departmentsApi.tree({})).items)
+      onTree?.(rows)
+      return rows
+    },
+    remove: async id => failedCodes(await departmentsApi.delete({ ids: [String(id)] })),
+    // 更新是整体替换：先取当前值再只改状态（负责人原样带回）
+    updateStatus: async (id, enabled) => {
+      const { department } = await departmentsApi.get({ id: String(id) })
+      return departmentsApi.update({
+        id: department.id,
+        name: department.name,
+        leaderUserId: department.leaderUserId ?? null,
+        order: department.order,
+        description: department.description ?? null,
+        status: enabled ? 'Active' : 'Disabled',
+      })
+    },
+  }
+}
 
-  const form = reactive<CreateDepartmentForm>({ code: '', name: '', parentId: '', order: '' })
+function emptyDepartmentForm(): DepartmentForm {
+  return { code: '', name: '', parentId: null, order: 0, description: '', status: 'Active' }
+}
+
+/**
+ * 部门的编辑弹窗：新建（顶层或某部门之下）、编辑。
+ * 6.0 的上级不在 departments.update 里改：编辑时上级变了，保存后再调 departments.move。负责人页面不提供选择，编辑时原样带回。
+ * 字段级错误挂回对应字段，其余错误给整条提示。
+ */
+export function useDepartmentEditor(tree: Ref<DepartmentRow[]>) {
+  const open = ref(false)
+  const mode = ref<DepartmentEditorMode>('create')
+  const editing = ref<DepartmentRow | null>(null)
+  const form = reactive<DepartmentForm>(emptyDepartmentForm())
   const fieldErrors = ref<Record<string, string[]>>({})
   const submitError = ref<string | null>(null)
   const submitting = ref(false)
 
-  const selected = ref<DepartmentDetail | null>(null)
-  const edit = reactive<EditDepartmentForm>({ name: '', description: '', order: '', status: 'Active' })
-  const editErrors = ref<Record<string, string[]>>({})
-  const moveTarget = ref('')
-  const members = ref<MembershipRow[]>([])
-  const memberForm = reactive<MemberForm>({ userId: '', positionId: '', employeeNumber: '', isPrimary: false })
-  const memberErrors = ref<Record<string, string[]>>({})
-  const userOptions = ref<UserOption[]>([])
-  const positionOptions = ref<PositionOption[]>([])
-  const detailError = ref<string | null>(null)
-  const notice = ref<'saved' | 'moved' | 'member_added' | null>(null)
-  const working = ref(false)
+  const isEdit = computed(() => mode.value === 'edit')
+  const parentOptions = computed(() => toParentOptions(tree.value, isEdit.value ? editing.value?.id : undefined))
 
-  /** 可作为上级的候选：选中部门自己及其子孙除外（后端也会拒绝循环，这里只是少给一个错误的选项） */
-  const moveOptions = computed(() => {
-    const current = selected.value?.department.id
-    if (!current)
-      return flat.value
-    const rows = flat.value
-    const start = rows.findIndex(r => r.id === current)
-    if (start < 0)
-      return rows
-    const depth = rows[start]!.depth
-    let end = start + 1
-    while (end < rows.length && rows[end]!.depth > depth)
-      end++
-    return [...rows.slice(0, start), ...rows.slice(end)]
-  })
-
-  async function load() {
-    loading.value = true
-    listError.value = null
-    try {
-      const result = await departmentsApi.tree({})
-      tree.value = result.items
-      total.value = Number(result.total)
-    }
-    catch (error) {
-      tree.value = []
-      total.value = 0
-      listError.value = describe(error)
-    }
-    finally {
-      loading.value = false
-    }
+  function reset(next: Partial<DepartmentForm> = {}) {
+    Object.assign(form, emptyDepartmentForm(), next)
+    fieldErrors.value = {}
+    submitError.value = null
   }
 
-  function fieldError(field: keyof CreateDepartmentForm): string | undefined {
+  /** 新建：给了上级即「新增子部门」 */
+  function startCreate(parentId: null | string = null) {
+    mode.value = 'create'
+    editing.value = null
+    reset({ parentId })
+    open.value = true
+  }
+
+  function startEdit(row: DepartmentRow) {
+    mode.value = 'edit'
+    editing.value = row
+    reset({ code: row.code, name: row.name, parentId: row.parentId ?? null, order: row.order, description: row.description ?? '', status: row.status })
+    open.value = true
+  }
+
+  function fieldError(field: keyof DepartmentForm): string | undefined {
     return fieldErrors.value[field]?.[0]
-  }
-
-  function editError(field: keyof EditDepartmentForm): string | undefined {
-    return editErrors.value[field]?.[0]
-  }
-
-  function memberError(field: keyof MemberForm): string | undefined {
-    return memberErrors.value[field]?.[0]
   }
 
   async function submit(): Promise<boolean> {
@@ -141,12 +163,30 @@ export function useDepartments() {
     submitError.value = null
     fieldErrors.value = {}
     try {
-      const created = await departmentsApi.create({ code: form.code.trim(), name: form.name.trim(), parentId: form.parentId || null, order: toOrder(form.order) })
-      form.code = ''
-      form.name = ''
-      form.order = ''
-      await load()
-      await select(created.id)
+      const current = editing.value
+      if (mode.value === 'edit' && current) {
+        await departmentsApi.update({
+          id: current.id,
+          name: form.name.trim(),
+          leaderUserId: current.leaderUserId ?? null,
+          order: form.order ?? 0,
+          description: blankToNull(form.description),
+          status: form.status,
+        })
+        // 移动：空目标即移到顶层；移到自己或子孙之下由后端拒绝（ORGANIZATION_VALIDATION_002）
+        if ((form.parentId ?? null) !== (current.parentId ?? null))
+          await departmentsApi.move({ id: current.id, parentId: form.parentId })
+      }
+      else {
+        await departmentsApi.create({
+          code: form.code.trim(),
+          name: form.name.trim(),
+          parentId: form.parentId,
+          order: form.order ?? 0,
+          description: blankToNull(form.description),
+        })
+      }
+      open.value = false
       return true
     }
     catch (error) {
@@ -165,252 +205,235 @@ export function useDepartments() {
     }
   }
 
-  async function loadMembers(id: string) {
-    members.value = (await membershipsApi.list({ page: { index: 1, size: 100 }, filters: [{ field: 'departmentId', operator: 'eq', value: id }], sorts: [{ field: 'order' }, { field: 'createdAt' }] })).items
-  }
+  return { open, mode, isEdit, editing, form, parentOptions, fieldError, submitError, submitting, startCreate, startEdit, submit }
+}
 
-  /** 候选用户与岗位（本租户前 100 个）：只有能读用户的主体才会调用 */
-  async function loadOptions() {
-    const [usersResult, positionsResult] = await Promise.all([
-      usersApi.list({ page: { index: 1, size: 100 }, filters: [], sorts: [{ field: 'userName' }] }),
-      positionsApi.list({ page: { index: 1, size: 100 }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [{ field: 'order' }] }),
+function listMembers(departmentId: string) {
+  return membershipsApi.list({
+    page: { index: 1, size: LIST_LIMIT },
+    filters: [{ field: 'departmentId', operator: 'eq', value: departmentId }],
+    sorts: [{ field: 'order' }, { field: 'createdAt' }],
+  })
+}
+
+/**
+ * 部门详情对话框：详情（祖先链、负责人、子部门数、成员数）与成员列表（能读归属的主体才取）；子部门取自树里这一行的子行。
+ */
+export function useDepartmentDetail(canReadMembers: () => boolean) {
+  const open = ref(false)
+  const loading = ref(false)
+  const row = ref<DepartmentRow | null>(null)
+  const detail = ref<DepartmentDetail | null>(null)
+  const members = ref<MembershipRow[]>([])
+  const error = ref<string | null>(null)
+
+  /** 路径：由远到近的祖先，再到部门自己 */
+  const path = computed(() => {
+    const current = detail.value
+    if (!current)
+      return ''
+    return [...current.ancestors].reverse().map(a => a.name).concat(current.department.name).join(' / ')
+  })
+
+  async function load(id: string) {
+    const [loaded, memberPage] = await Promise.all([
+      departmentsApi.get({ id }),
+      canReadMembers() ? listMembers(id) : Promise.resolve(null),
     ])
-    userOptions.value = usersResult.items
-    positionOptions.value = positionsResult.items
+    detail.value = loaded
+    members.value = memberPage?.items ?? []
   }
 
-  async function select(id: string) {
-    detailError.value = null
-    notice.value = null
-    editErrors.value = {}
-    memberErrors.value = {}
+  async function show(target: DepartmentRow) {
+    row.value = target
+    detail.value = null
+    members.value = []
+    error.value = null
+    open.value = true
+    loading.value = true
     try {
-      const detail = await departmentsApi.get({ id })
-      selected.value = detail
-      edit.name = detail.department.name
-      edit.description = detail.department.description ?? ''
-      edit.order = String(detail.department.order)
-      edit.status = detail.department.status
-      moveTarget.value = detail.department.parentId ?? ''
-      memberForm.userId = ''
-      memberForm.positionId = ''
-      memberForm.employeeNumber = ''
-      memberForm.isPrimary = false
-      await loadMembers(id)
+      await load(target.id)
+    }
+    catch (failure) {
+      error.value = describe(failure)
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /** 成员增删改之后重取详情与成员（失败照常抛出，由页面提示） */
+  async function refresh() {
+    if (row.value)
+      await load(row.value.id)
+  }
+
+  return { open, loading, row, detail, members, error, path, show, refresh }
+}
+
+function emptyMembershipForm(): MembershipForm {
+  return { userId: null, positionId: null, employeeNumber: '', jobGrade: '', hiredAt: null, order: 0, isPrimary: false }
+}
+
+function toTimestamp(value: null | string | undefined): null | number {
+  return value ? new Date(value).getTime() : null
+}
+
+function toIso(value: null | number): null | string {
+  return value === null ? null : new Date(value).toISOString()
+}
+
+/** 候选从哪里取：没有读用户 / 读岗位权限的主体不发对应请求，页面也不出对应字段 */
+export interface MembershipOptionScope {
+  users: boolean
+  positions: boolean
+}
+
+/**
+ * 任职弹窗：添加成员（选用户、岗位、工号、职级、入职日期、排序、是否主部门）与编辑任职（用户与主部门不在这里改）。
+ * 候选用户与启用中的岗位在打开时取（各前 100 条）；编辑时原岗位已停用也补进候选，免得选中值显示为空。
+ */
+export function useMembershipEditor() {
+  const open = ref(false)
+  const mode = ref<MembershipEditorMode>('create')
+  const departmentId = ref<string | null>(null)
+  const editing = ref<MembershipRow | null>(null)
+  const form = reactive<MembershipForm>(emptyMembershipForm())
+  const userOptions = ref<UserOption[]>([])
+  const positionOptions = ref<SelectOption[]>([])
+  const optionsLoading = ref(false)
+  const fieldErrors = ref<Record<string, string[]>>({})
+  const submitError = ref<string | null>(null)
+  const submitting = ref(false)
+
+  const isEdit = computed(() => mode.value === 'edit')
+
+  async function loadOptions(scope: MembershipOptionScope) {
+    optionsLoading.value = true
+    try {
+      const [usersPage, positionsPage] = await Promise.all([
+        scope.users ? usersApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [], sorts: [{ field: 'userName' }] }) : Promise.resolve(null),
+        scope.positions ? positionsApi.list({ page: { index: 1, size: LIST_LIMIT }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }], sorts: [{ field: 'order' }] }) : Promise.resolve(null),
+      ])
+      if (usersPage)
+        userOptions.value = usersPage.items.map(user => ({ label: user.displayName, value: user.id, description: user.userName }))
+      if (positionsPage) {
+        const options: SelectOption[] = positionsPage.items.map(position => ({ label: position.name, value: position.id }))
+        const current = editing.value
+        if (current?.positionId && !options.some(option => option.value === current.positionId))
+          options.push({ label: current.positionName ?? current.positionId, value: current.positionId })
+        positionOptions.value = options
+      }
     }
     catch (error) {
-      selected.value = null
-      members.value = []
-      detailError.value = describe(error)
+      submitError.value = describe(error)
+    }
+    finally {
+      optionsLoading.value = false
     }
   }
 
-  async function save(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    editErrors.value = {}
+  function reset(next: Partial<MembershipForm> = {}) {
+    Object.assign(form, emptyMembershipForm(), next)
+    fieldErrors.value = {}
+    submitError.value = null
+  }
+
+  function startCreate(targetDepartmentId: string, scope: MembershipOptionScope) {
+    mode.value = 'create'
+    departmentId.value = targetDepartmentId
+    editing.value = null
+    reset()
+    open.value = true
+    return loadOptions(scope)
+  }
+
+  function startEdit(member: MembershipRow, scope: MembershipOptionScope) {
+    mode.value = 'edit'
+    departmentId.value = member.departmentId
+    editing.value = member
+    reset({
+      userId: member.userId,
+      positionId: member.positionId ?? null,
+      employeeNumber: member.employeeNumber ?? '',
+      jobGrade: member.jobGrade ?? '',
+      hiredAt: toTimestamp(member.hiredAt),
+      order: member.order,
+      isPrimary: member.isPrimary,
+    })
+    open.value = true
+    return loadOptions({ users: false, positions: scope.positions })
+  }
+
+  function fieldError(field: keyof MembershipForm): string | undefined {
+    return fieldErrors.value[field]?.[0]
+  }
+
+  async function submit(): Promise<boolean> {
+    submitting.value = true
+    submitError.value = null
+    fieldErrors.value = {}
     try {
-      await departmentsApi.update({ id: current.department.id, name: edit.name.trim(), leaderUserId: current.department.leaderUserId ?? null, order: toOrder(edit.order), description: edit.description.trim() || null, status: edit.status })
-      await Promise.all([load(), select(current.department.id)])
-      notice.value = 'saved'
+      const current = editing.value
+      if (mode.value === 'edit' && current) {
+        await membershipsApi.update({
+          id: current.id,
+          positionId: form.positionId,
+          isPrimary: current.isPrimary,
+          employeeNumber: blankToNull(form.employeeNumber),
+          jobGrade: blankToNull(form.jobGrade),
+          hiredAt: toIso(form.hiredAt),
+          order: form.order ?? 0,
+        })
+      }
+      else {
+        await membershipsApi.create({
+          userId: form.userId ?? '',
+          departmentId: departmentId.value ?? '',
+          positionId: form.positionId,
+          isPrimary: form.isPrimary,
+          employeeNumber: blankToNull(form.employeeNumber),
+          jobGrade: blankToNull(form.jobGrade),
+          hiredAt: toIso(form.hiredAt),
+          order: form.order ?? 0,
+        })
+      }
+      open.value = false
       return true
     }
     catch (error) {
       if (error instanceof ApiError) {
-        editErrors.value = error.errors ?? {}
+        fieldErrors.value = error.errors ?? {}
         if (!error.hasFieldErrors)
-          detailError.value = error.detail
+          submitError.value = error.detail
       }
       else {
-        detailError.value = String(error)
+        submitError.value = String(error)
       }
       return false
     }
     finally {
-      working.value = false
+      submitting.value = false
     }
   }
 
-  /** 移动：空目标即移到顶层；移到自己或子孙之下由后端拒绝（ORGANIZATION_VALIDATION_002） */
-  async function move(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      await departmentsApi.move({ id: current.department.id, parentId: moveTarget.value || null })
-      await Promise.all([load(), select(current.department.id)])
-      notice.value = 'moved'
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
+  return { open, mode, isEdit, editing, form, userOptions, positionOptions, optionsLoading, fieldError, submitError, submitting, startCreate, startEdit, submit }
+}
 
-  /** 删除：还有子部门或成员的由后端逐项拒绝（ORGANIZATION_CONFLICT_002） */
-  async function remove(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      const result = await departmentsApi.delete({ ids: [current.department.id] })
-      if (result.failed.length > 0) {
-        detailError.value = result.failed.map(f => f.code).join('; ')
-        return false
-      }
-      selected.value = null
-      members.value = []
-      await load()
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
+/** 设为主部门：update 是整体替换，其余字段原样带回 */
+export async function setPrimaryMembership(member: MembershipRow): Promise<void> {
+  await membershipsApi.update({
+    id: member.id,
+    positionId: member.positionId ?? null,
+    isPrimary: true,
+    employeeNumber: member.employeeNumber ?? null,
+    jobGrade: member.jobGrade ?? null,
+    hiredAt: member.hiredAt ?? null,
+    order: member.order,
+  })
+}
 
-  async function addMember(): Promise<boolean> {
-    const current = selected.value
-    if (!current || !memberForm.userId)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    memberErrors.value = {}
-    try {
-      await membershipsApi.create({
-        userId: memberForm.userId,
-        departmentId: current.department.id,
-        positionId: memberForm.positionId || null,
-        isPrimary: memberForm.isPrimary,
-        employeeNumber: memberForm.employeeNumber.trim() || null,
-      })
-      memberForm.userId = ''
-      memberForm.positionId = ''
-      memberForm.employeeNumber = ''
-      memberForm.isPrimary = false
-      await Promise.all([load(), loadMembers(current.department.id)])
-      notice.value = 'member_added'
-      return true
-    }
-    catch (error) {
-      if (error instanceof ApiError) {
-        memberErrors.value = error.errors ?? {}
-        if (!error.hasFieldErrors)
-          detailError.value = error.detail
-      }
-      else {
-        detailError.value = String(error)
-      }
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  async function removeMember(membershipId: string): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      const result = await membershipsApi.delete({ ids: [membershipId] })
-      if (result.failed.length > 0)
-        detailError.value = result.failed.map(f => f.code).join('; ')
-      await Promise.all([load(), loadMembers(current.department.id)])
-      return result.failed.length === 0
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  /** 设主：其余字段原样回传（update 是整体替换） */
-  async function setPrimary(membership: MembershipRow): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      await membershipsApi.update({
-        id: membership.id,
-        positionId: membership.positionId ?? null,
-        isPrimary: true,
-        employeeNumber: membership.employeeNumber ?? null,
-        jobGrade: membership.jobGrade ?? null,
-        hiredAt: membership.hiredAt ?? null,
-        order: membership.order,
-      })
-      await loadMembers(current.department.id)
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  return {
-    tree,
-    flat,
-    total,
-    loading,
-    listError,
-    form,
-    fieldError,
-    submitError,
-    submitting,
-    selected,
-    edit,
-    editError,
-    moveTarget,
-    moveOptions,
-    members,
-    memberForm,
-    memberError,
-    userOptions,
-    positionOptions,
-    detailError,
-    notice,
-    working,
-    load,
-    submit,
-    select,
-    save,
-    move,
-    remove,
-    loadOptions,
-    addMember,
-    removeMember,
-    setPrimary,
-  }
+/** 移出部门：被后端逐项拒绝时带着错误码抛出 */
+export async function removeMembership(id: string): Promise<void> {
+  failedCodes(await membershipsApi.delete({ ids: [id] }))
 }
