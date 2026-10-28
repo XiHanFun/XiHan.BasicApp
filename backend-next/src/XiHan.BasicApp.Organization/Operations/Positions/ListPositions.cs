@@ -11,9 +11,10 @@ namespace XiHan.BasicApp.Organization.Operations.Positions;
 
 /// <summary>
 /// 岗位列表：<c>POST /api/positions:list</c>（分页、关键字、筛选、排序）。
+/// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
 /// </summary>
 /// <param name="queries">岗位查询。</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsRead)]
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.PositionsRead)]
 public sealed class ListPositions(PositionQueries queries) : IOperation<PageRequest, PageResult<PositionResponse>>
 {
     /// <summary>
