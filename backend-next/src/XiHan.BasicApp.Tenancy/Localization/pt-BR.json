@@ -1,5 +1,5 @@
 {
-  "tenants.create.description": "Provisiona um locatário: grava o locatário e o registra (habilitado) no diretório; o administrador é criado com tenants.initialize-admin. Apenas lado da plataforma; requer tenancy.tenants.create.",
+  "tenants.create.description": "Provisiona um locatário: grava o locatário e o registra (habilitado) no diretório; o administrador é criado com tenants.initialize-admin. Apenas lado da plataforma; requer tenancy.tenants.create. Sem edição, vale a edição padrão (erro se não houver).",
   "tenants.get.description": "Obtém um locatário com o nome de usuário do administrador e a quantidade de usuários. Requer tenancy.tenants.read.",
   "tenants.list.description": "Lista locatários com paginação, filtros, palavra-chave e ordenação. Requer tenancy.tenants.read.",
   "tenants.update.description": "Atualiza o nome, a descrição, a expiração e a ordem de um locatário; o nome é refletido no diretório. Requer tenancy.tenants.update.",
@@ -22,5 +22,17 @@
   "tenant_members.delete.description": "Remove membros de um locatário em lote; depois eles não podem mais alternar para esse locatário. Somente no lado da plataforma; requer tenancy.tenant-members.delete.",
   "tenancy.member.exists": "O usuário '{userId}' já é membro do locatário '{tenantId}' (ou ele é seu locatário de origem).",
   "tenancy.member.not_found": "O membro '{id}' não existe.",
-  "tenancy.member.user_not_found": "O usuário '{userId}' não existe."
+  "tenancy.member.user_not_found": "O usuário '{userId}' não existe.",
+  "editions.list.description": "Lista todas as edições (por ordem e depois código) com o tamanho da lista branca e o número de locatários que as usam. Somente no lado da plataforma; requer tenancy.editions.read.",
+  "editions.get.description": "Obtém uma edição com sua lista branca de permissões. Requer tenancy.editions.read.",
+  "editions.create.description": "Cria uma edição com uma lista branca inicial (somente permissões do lado do locatário); ela pode virar a edição padrão dos novos locatários. Requer tenancy.editions.create.",
+  "editions.update.description": "Altera nome, descrição, indicador de padrão e ordem de uma edição; o código não muda. Requer tenancy.editions.update.",
+  "editions.set_permissions.description": "Substitui a lista branca de permissões de uma edição; as permissões efetivas dos locatários nela se estreitam ou ampliam na hora. Requer tenancy.editions.update.",
+  "editions.delete.description": "Exclui edições e suas listas brancas em lote; as ainda usadas por locatários são recusadas item a item. Requer tenancy.editions.delete.",
+  "tenants.change_edition.description": "Muda um locatário para outra edição ou remove os limites de edição; as permissões efetivas dos usuários seguem na hora a nova lista branca. Requer tenancy.tenants.update.",
+  "tenancy.edition.not_found": "A edição '{id}' não existe.",
+  "tenancy.edition.code_taken": "O código de edição '{code}' já está em uso.",
+  "tenancy.edition.in_use": "A edição '{code}' ainda é usada por locatários e não pode ser excluída.",
+  "tenancy.edition.permission_invalid": "A permissão '{code}' não é uma permissão do lado do locatário no catálogo e não pode entrar em uma edição.",
+  "tenancy.edition.no_default": "Não há edição padrão; informe uma ao criar um locatário."
 }

@@ -25,8 +25,9 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Tenancy;
 
 /// <summary>
-/// 租户能力包（Tier 1）：<see cref="Domain.Entities.SysTenant"/> 业务实体、开通 / 启停 / 删除时同步框架租户目录、租户管理员初始化、租户成员（给 Identity 提供 <see cref="ITenantMembershipResolver"/>，切换租户与模仿按它判能否进入）、演示租户种子。
-/// 套餐、所有权转移、分库开通随后续批次加入；租户目录与解析本身由框架 <c>MultiTenancy.Database</c> 提供。
+/// 租户能力包（Tier 1）：<see cref="Domain.Entities.SysTenant"/> 业务实体、开通 / 启停 / 删除时同步框架租户目录、租户管理员初始化、租户成员（给 Identity 提供 <see cref="ITenantMembershipResolver"/>，切换租户与模仿按它判能否进入）、
+/// 套餐与白名单（给 Access 提供 <see cref="IEditionGate"/>，有效权限与白名单求交）、套餐与演示租户种子。
+/// 套餐的价格 / 配额、我的订阅、所有权转移、分库开通随后续批次加入；租户目录与解析本身由框架 <c>MultiTenancy.Database</c> 提供。
 /// </summary>
 public sealed class TenancyFeature : IFeature
 {
@@ -65,6 +66,10 @@ public sealed class TenancyFeature : IFeature
         context.Services.AddScoped<TenantService>();
         context.Services.AddScoped<TenantQueries>();
         context.Services.AddScoped<ITenantMembershipResolver, TenantMembershipResolver>();
+        context.Services.AddScoped<EditionService>();
+        context.Services.AddSingleton<EditionGate>();
+        context.Services.AddSingleton<IEditionGate>(static sp => sp.GetRequiredService<EditionGate>());
+        context.Services.AddSeeder<EditionSeeder>();
         context.Services.AddSeeder<DemoTenantSeeder>();
         context.Services.AddPermissionCatalog("tenancy", TenancyPermissions.All);
         context.Services.AddPageCatalog("tenancy", TenancyPages.All);

@@ -135,6 +135,66 @@ public static class TenancyMessages
     /// </summary>
     public const string MemberUserNotFound = "tenancy.member.user_not_found";
 
+    /// <summary>
+    /// 操作 <c>editions.list</c> 的说明。
+    /// </summary>
+    public const string ListEditionsDescription = "editions.list.description";
+
+    /// <summary>
+    /// 操作 <c>editions.get</c> 的说明。
+    /// </summary>
+    public const string GetEditionDescription = "editions.get.description";
+
+    /// <summary>
+    /// 操作 <c>editions.create</c> 的说明。
+    /// </summary>
+    public const string CreateEditionDescription = "editions.create.description";
+
+    /// <summary>
+    /// 操作 <c>editions.update</c> 的说明。
+    /// </summary>
+    public const string UpdateEditionDescription = "editions.update.description";
+
+    /// <summary>
+    /// 操作 <c>editions.set-permissions</c> 的说明（约定键把 <c>-</c> 换成 <c>_</c>）。
+    /// </summary>
+    public const string SetEditionPermissionsDescription = "editions.set_permissions.description";
+
+    /// <summary>
+    /// 操作 <c>editions.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteEditionsDescription = "editions.delete.description";
+
+    /// <summary>
+    /// 操作 <c>tenants.change-edition</c> 的说明。
+    /// </summary>
+    public const string ChangeTenantEditionDescription = "tenants.change_edition.description";
+
+    /// <summary>
+    /// 套餐不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string EditionNotFound = "tenancy.edition.not_found";
+
+    /// <summary>
+    /// 套餐编码已被占用；参数 <c>code</c>。
+    /// </summary>
+    public const string EditionCodeTaken = "tenancy.edition.code_taken";
+
+    /// <summary>
+    /// 套餐还有租户在用；参数 <c>code</c>。
+    /// </summary>
+    public const string EditionInUse = "tenancy.edition.in_use";
+
+    /// <summary>
+    /// 白名单里的权限不是租户能生效的；参数 <c>code</c>。
+    /// </summary>
+    public const string EditionPermissionInvalid = "tenancy.edition.permission_invalid";
+
+    /// <summary>
+    /// 没有缺省套餐。
+    /// </summary>
+    public const string NoDefaultEdition = "tenancy.edition.no_default";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(TenancyMessages)));
 
     /// <summary>

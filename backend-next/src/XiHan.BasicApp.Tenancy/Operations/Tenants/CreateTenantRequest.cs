@@ -13,9 +13,11 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="Description">说明，可空。</param>
 /// <param name="ExpiresAt">到期时间（UTC），可空。</param>
 /// <param name="Order">排序号。</param>
+/// <param name="EditionId">套餐；不填即缺省套餐（没有缺省套餐时 <c>TENANCY_VALIDATION_003</c>）。</param>
 public sealed record CreateTenantRequest(
     [Required, StringLength(64, MinimumLength = 1), RegularExpression("^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")] string TenantId,
     [Required, StringLength(128, MinimumLength = 1)] string Name,
     [StringLength(512)] string? Description = null,
     DateTimeOffset? ExpiresAt = null,
-    [Range(0, 100_000)] int Order = 0);
+    [Range(0, 100_000)] int Order = 0,
+    Guid? EditionId = null);

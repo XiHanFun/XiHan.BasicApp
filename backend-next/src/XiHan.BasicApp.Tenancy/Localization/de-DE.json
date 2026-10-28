@@ -1,5 +1,5 @@
 {
-  "tenants.create.description": "Richtet einen Mandanten ein: schreibt den Mandanten und registriert ihn (aktiviert) im Mandantenverzeichnis; der Administrator wird mit tenants.initialize-admin angelegt. Nur Plattformseite; erfordert tenancy.tenants.create.",
+  "tenants.create.description": "Richtet einen Mandanten ein: schreibt den Mandanten und registriert ihn (aktiviert) im Mandantenverzeichnis; der Administrator wird mit tenants.initialize-admin angelegt. Nur Plattformseite; erfordert tenancy.tenants.create. Ohne Edition gilt die Standardedition (Fehler, wenn es keine gibt).",
   "tenants.get.description": "Liest einen Mandanten mit dem Benutzernamen seines Administrators und der Benutzerzahl. Erfordert tenancy.tenants.read.",
   "tenants.list.description": "Listet Mandanten mit Paginierung, Filtern, Suchbegriff und Sortierung. Erfordert tenancy.tenants.read.",
   "tenants.update.description": "Ändert Name, Beschreibung, Ablauf und Reihenfolge eines Mandanten; der Name wird ins Verzeichnis gespiegelt. Erfordert tenancy.tenants.update.",
@@ -22,5 +22,17 @@
   "tenant_members.delete.description": "Entfernt Mandantenmitglieder stapelweise; sie können danach nicht mehr in den Mandanten wechseln. Nur plattformseitig; erfordert tenancy.tenant-members.delete.",
   "tenancy.member.exists": "Benutzer '{userId}' ist bereits Mitglied des Mandanten '{tenantId}' (oder es ist sein Heimatmandant).",
   "tenancy.member.not_found": "Mitglied '{id}' existiert nicht.",
-  "tenancy.member.user_not_found": "Benutzer '{userId}' existiert nicht."
+  "tenancy.member.user_not_found": "Benutzer '{userId}' existiert nicht.",
+  "editions.list.description": "Listet alle Editionen (nach Reihenfolge, dann Code) mit der Größe ihrer Whitelist und der Zahl der Mandanten darauf. Nur plattformseitig; erfordert tenancy.editions.read.",
+  "editions.get.description": "Ruft eine Edition mit ihrer Berechtigungs-Whitelist ab. Erfordert tenancy.editions.read.",
+  "editions.create.description": "Legt eine Edition mit einer anfänglichen Whitelist an (nur mandantenseitige Berechtigungen); sie kann zur Standardedition für neue Mandanten werden. Erfordert tenancy.editions.create.",
+  "editions.update.description": "Ändert Name, Beschreibung, Standardkennzeichen und Reihenfolge einer Edition; der Code ist unveränderlich. Erfordert tenancy.editions.update.",
+  "editions.set_permissions.description": "Ersetzt die Berechtigungs-Whitelist einer Edition; die wirksamen Berechtigungen der Mandanten darauf werden sofort enger oder weiter. Erfordert tenancy.editions.update.",
+  "editions.delete.description": "Löscht Editionen samt Whitelist stapelweise; noch von Mandanten genutzte Editionen werden einzeln abgelehnt. Erfordert tenancy.editions.delete.",
+  "tenants.change_edition.description": "Stellt einen Mandanten auf eine andere Edition um oder hebt die Editionsgrenzen auf; die wirksamen Berechtigungen seiner Benutzer folgen sofort der neuen Whitelist. Erfordert tenancy.tenants.update.",
+  "tenancy.edition.not_found": "Edition '{id}' existiert nicht.",
+  "tenancy.edition.code_taken": "Der Editionscode '{code}' ist bereits vergeben.",
+  "tenancy.edition.in_use": "Edition '{code}' wird noch von Mandanten genutzt und kann nicht gelöscht werden.",
+  "tenancy.edition.permission_invalid": "Die Berechtigung '{code}' ist keine mandantenseitige Berechtigung im Katalog und kann nicht in eine Edition aufgenommen werden.",
+  "tenancy.edition.no_default": "Es gibt keine Standardedition; geben Sie beim Anlegen eines Mandanten eine an."
 }

@@ -1,5 +1,5 @@
 {
-  "tenants.create.description": "Provisionne un locataire : écrit le locataire et l'enregistre (activé) dans l'annuaire ; l'administrateur est créé avec tenants.initialize-admin. Côté plateforme uniquement ; nécessite tenancy.tenants.create.",
+  "tenants.create.description": "Provisionne un locataire : écrit le locataire et l'enregistre (activé) dans l'annuaire ; l'administrateur est créé avec tenants.initialize-admin. Côté plateforme uniquement ; nécessite tenancy.tenants.create. Sans édition, l'édition par défaut s'applique (erreur s'il n'y en a pas).",
   "tenants.get.description": "Lit un locataire avec le nom d'utilisateur de son administrateur et le nombre d'utilisateurs. Nécessite tenancy.tenants.read.",
   "tenants.list.description": "Liste les locataires avec pagination, filtres, mot-clé et tri. Nécessite tenancy.tenants.read.",
   "tenants.update.description": "Modifie le nom, la description, l'expiration et l'ordre d'un locataire ; le nom est répercuté dans l'annuaire. Nécessite tenancy.tenants.update.",
@@ -22,5 +22,17 @@
   "tenant_members.delete.description": "Retire des membres d'un locataire par lot ; ils ne peuvent plus basculer vers ce locataire. Côté plateforme uniquement ; nécessite tenancy.tenant-members.delete.",
   "tenancy.member.exists": "L'utilisateur '{userId}' est déjà membre du locataire '{tenantId}' (ou c'est son locataire d'origine).",
   "tenancy.member.not_found": "Le membre '{id}' n'existe pas.",
-  "tenancy.member.user_not_found": "L'utilisateur '{userId}' n'existe pas."
+  "tenancy.member.user_not_found": "L'utilisateur '{userId}' n'existe pas.",
+  "editions.list.description": "Liste toutes les éditions (par ordre puis code) avec la taille de leur liste blanche et le nombre de locataires qui les utilisent. Côté plateforme uniquement ; nécessite tenancy.editions.read.",
+  "editions.get.description": "Récupère une édition avec sa liste blanche de permissions. Nécessite tenancy.editions.read.",
+  "editions.create.description": "Crée une édition avec une liste blanche initiale (permissions côté locataire uniquement) ; elle peut devenir l'édition par défaut des nouveaux locataires. Nécessite tenancy.editions.create.",
+  "editions.update.description": "Modifie le nom, la description, l'indicateur par défaut et l'ordre d'une édition ; le code ne change pas. Nécessite tenancy.editions.update.",
+  "editions.set_permissions.description": "Remplace la liste blanche de permissions d'une édition ; les permissions effectives des locataires qui l'utilisent se resserrent ou s'élargissent aussitôt. Nécessite tenancy.editions.update.",
+  "editions.delete.description": "Supprime des éditions et leurs listes blanches par lot ; celles encore utilisées par des locataires sont refusées une à une. Nécessite tenancy.editions.delete.",
+  "tenants.change_edition.description": "Passe un locataire à une autre édition ou lève les limites d'édition ; les permissions effectives de ses utilisateurs suivent aussitôt la nouvelle liste blanche. Nécessite tenancy.tenants.update.",
+  "tenancy.edition.not_found": "L'édition '{id}' n'existe pas.",
+  "tenancy.edition.code_taken": "Le code d'édition '{code}' est déjà pris.",
+  "tenancy.edition.in_use": "L'édition '{code}' est encore utilisée par des locataires et ne peut pas être supprimée.",
+  "tenancy.edition.permission_invalid": "La permission '{code}' n'est pas une permission côté locataire du catalogue et ne peut pas entrer dans une édition.",
+  "tenancy.edition.no_default": "Il n'y a pas d'édition par défaut ; indiquez-en une à la création d'un locataire."
 }

@@ -1,5 +1,5 @@
 {
-  "tenants.create.description": "テナントを開通します。テナントを書き込み、ディレクトリに（有効で）登録します。管理者は tenants.initialize-admin で初期化します。プラットフォーム側のみ。tenancy.tenants.create 権限が必要です。",
+  "tenants.create.description": "テナントを開通します。テナントを書き込み、ディレクトリに（有効で）登録します。管理者は tenants.initialize-admin で初期化します。プラットフォーム側のみ。tenancy.tenants.create 権限が必要です。エディションを指定しない場合は既定エディションを使います（既定がなければエラー）。",
   "tenants.get.description": "テナントの詳細（管理者のユーザー名とユーザー数）を取得します。tenancy.tenants.read 権限が必要です。",
   "tenants.list.description": "テナントをページング、フィルター、キーワード、並べ替えで一覧します。tenancy.tenants.read 権限が必要です。",
   "tenants.update.description": "テナントの名前、説明、有効期限、並び順を更新します。名前はディレクトリに反映されます。tenancy.tenants.update 権限が必要です。",
@@ -22,5 +22,17 @@
   "tenant_members.delete.description": "テナントのメンバーを一括で削除します。以後そのテナントへは切り替えられません。プラットフォーム側のみ。tenancy.tenant-members.delete 権限が必要です。",
   "tenancy.member.exists": "ユーザー '{userId}' はすでにテナント '{tenantId}' のメンバーです（または所属テナントです）。",
   "tenancy.member.not_found": "メンバー '{id}' は存在しません。",
-  "tenancy.member.user_not_found": "ユーザー '{userId}' は存在しません。"
+  "tenancy.member.user_not_found": "ユーザー '{userId}' は存在しません。",
+  "editions.list.description": "すべてのエディションを（並び順、コード順で）一覧し、ホワイトリストの権限数と利用テナント数を付けます。プラットフォーム側のみ。tenancy.editions.read 権限が必要です。",
+  "editions.get.description": "エディションの詳細とホワイトリストを取得します。tenancy.editions.read 権限が必要です。",
+  "editions.create.description": "初期ホワイトリスト（テナントで有効な権限のみ）を付けてエディションを作成します。新規テナントの既定エディションにできます。tenancy.editions.create 権限が必要です。",
+  "editions.update.description": "エディションの名前、説明、既定フラグ、並び順を変更します。コードは変更できません。tenancy.editions.update 権限が必要です。",
+  "editions.set_permissions.description": "エディションのホワイトリストを置き換えます。利用テナントの有効権限は直ちに新しいホワイトリストに従います。tenancy.editions.update 権限が必要です。",
+  "editions.delete.description": "エディションとそのホワイトリストを一括削除します。テナントが利用中のエディションは項目ごとに拒否します。tenancy.editions.delete 権限が必要です。",
+  "tenants.change_edition.description": "テナントのエディションを変更するか、エディションの制限を外します。ユーザーの有効権限は直ちに新しいホワイトリストに従います。tenancy.tenants.update 権限が必要です。",
+  "tenancy.edition.not_found": "エディション '{id}' は存在しません。",
+  "tenancy.edition.code_taken": "エディションコード '{code}' は既に使われています。",
+  "tenancy.edition.in_use": "エディション '{code}' はテナントが利用中のため削除できません。",
+  "tenancy.edition.permission_invalid": "権限 '{code}' はテナントで有効な権限カタログにないため、エディションに入れられません。",
+  "tenancy.edition.no_default": "既定エディションがありません。テナント作成時にエディションを指定してください。"
 }
