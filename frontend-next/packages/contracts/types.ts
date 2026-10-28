@@ -103,6 +103,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/configs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a configuration entry on the caller’s side: the key is unique per side and the value is checked against the data type; a tenant entry with a platform key overrides it (rejected when the platform entry forbids overrides). Requires settings.configs.create. */
+        post: operations["configs.create"];
+        /** Delete configuration entries on the caller’s side in bulk; built-in entries are rejected one by one. Requires settings.configs.delete. */
+        delete: operations["configs.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/configs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a configuration entry (encrypted values are never returned). Requires settings.configs.read. */
+        get: operations["configs.get"];
+        /** Update a configuration entry on the caller’s side: name, group, value, default, data type, encryption, order, description and status (the key cannot change; an encrypted entry keeps its value when none is given). Requires settings.configs.update. */
+        put: operations["configs.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/configs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List configuration entries page by page: platform principals see platform entries, tenant principals see platform entries plus their own; encrypted values are never returned. Requires settings.configs.read. */
+        post: operations["configs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/departments": {
         parameters: {
             query?: never;
@@ -165,6 +218,113 @@ export interface paths {
         };
         /** The whole department tree of the current tenant with direct member counts. Requires organization.departments.read. */
         get: operations["departments.tree"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dict-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all items of a dictionary (depth-first, with depth). Requires settings.dict-items.read. */
+        get: operations["dict-items.list"];
+        put?: never;
+        /** Create an item in an enabled dictionary on the caller’s side: the code is unique in the dictionary, the parent must be in the same dictionary, making it the default clears the other default. Requires settings.dict-items.create. */
+        post: operations["dict-items.create"];
+        /** Delete dictionary items in bulk; items that still have children are rejected one by one. Requires settings.dict-items.delete. */
+        delete: operations["dict-items.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dict-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a dictionary item. Requires settings.dict-items.read. */
+        get: operations["dict-items.get"];
+        /** Update a dictionary item: parent, name, value, description, metadata, default, order and status (the code cannot change; an item cannot move under itself or its descendants). Requires settings.dict-items.update. */
+        put: operations["dict-items.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dicts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a dictionary on the caller’s side; codes are unique across platform and tenants (dictionaries are never overridden). Requires settings.dicts.create. */
+        post: operations["dicts.create"];
+        /** Delete dictionaries on the caller’s side in bulk; built-in dictionaries and those that still have items are rejected one by one. Requires settings.dicts.delete. */
+        delete: operations["dicts.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dicts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a dictionary. Requires settings.dicts.read. */
+        get: operations["dicts.get"];
+        /** Update a dictionary on the caller’s side: name, category, description, order and status (the code cannot change). Requires settings.dicts.update. */
+        put: operations["dicts.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dicts:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List dictionaries page by page: platform dictionaries plus the caller’s tenant dictionaries. Requires settings.dicts.read. */
+        post: operations["dicts.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dicts:options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the options of a dictionary by code: tree dictionaries are flattened depth-first, disabled items are flagged, a disabled dictionary has no options. Any signed-in user. */
+        get: operations["dicts.options"];
         put?: never;
         post?: never;
         delete?: never;
@@ -378,6 +538,127 @@ export interface paths {
         put?: never;
         /** Restore a page node's presentation to its registration and clear the customization flag. Requires access.menus.update. */
         post: operations["menus.reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/numbering-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a numbering rule on the caller’s side: the date format must distinguish the reset cycle and the time zone is an IANA id. Requires settings.numbering-rules.create. */
+        post: operations["numbering-rules.create"];
+        /** Delete numbering rules on the caller’s side in bulk; rules that have issued numbers are rejected one by one. Requires settings.numbering-rules.delete. */
+        delete: operations["numbering-rules.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/numbering-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a numbering rule, including its current period and last issued sequence value. Requires settings.numbering-rules.read. */
+        get: operations["numbering-rules.get"];
+        /** Update a numbering rule on the caller’s side; once it has issued numbers the format is frozen and only name, description, order, status and tenant sharing can change. Requires settings.numbering-rules.update. */
+        put: operations["numbering-rules.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/numbering-rules/{id}:allocations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List a rule’s issue records page by page (a tenant only sees the ones it requested). Requires settings.numbering-rules.read. */
+        post: operations["numbering-rules.allocations"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/numbering-rules/{id}:reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Safely reset the sequence: the next value must exceed the highest value already issued in the current period (jumping forward is allowed), a reason is required and platform rules need the rule code typed back as confirmation. Requires settings.numbering-rules.reset. */
+        post: operations["numbering-rules.reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/numbering-rules:generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue numbers from a rule: committed in its own transaction, numbers are consumed permanently; the same idempotency key replays with identical parameters and conflicts otherwise. Requires settings.numbering-rules.generate. */
+        post: operations["numbering-rules.generate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/numbering-rules:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List numbering rules page by page: platform principals see platform rules, tenant principals see their own rules plus platform rules shared with tenants. Requires settings.numbering-rules.read. */
+        post: operations["numbering-rules.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/numbering-rules:preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview numbers for a given format (pure computation, nothing is issued, up to 50). Requires settings.numbering-rules.read. */
+        get: operations["numbering-rules.preview"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -937,6 +1218,32 @@ export interface components {
             code: string;
         };
         /** @enum {string} */
+        ConfigDataType: "Text" | "Number" | "Boolean" | "Json" | "Array";
+        ConfigResponse: {
+            /** Format: uuid */
+            id: string;
+            ownerTenantId: string;
+            isPlatform: boolean;
+            key: string;
+            name: string;
+            group?: string | null;
+            dataType: components["schemas"]["ConfigDataType"];
+            value?: string | null;
+            defaultValue?: string | null;
+            hasValue: boolean;
+            isEncrypted: boolean;
+            isBuiltIn: boolean;
+            allowTenantOverride: boolean;
+            status: components["schemas"]["SettingStatus"];
+            /** Format: int32 */
+            order: number;
+            description?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
         DataScope: "SelfOnly" | "DepartmentOnly" | "DepartmentAndChildren" | "All" | "Custom";
         DataScopeDepartmentRequest: {
             /** Format: uuid */
@@ -962,6 +1269,50 @@ export interface components {
             /** Format: int32 */
             order: number;
             description?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        DictItemResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            dictId: string;
+            /** Format: uuid */
+            parentId?: string | null;
+            code: string;
+            name: string;
+            value?: string | null;
+            description?: string | null;
+            metadata?: string | null;
+            isDefault: boolean;
+            status: components["schemas"]["SettingStatus"];
+            /** Format: int32 */
+            order: number;
+            /** Format: int32 */
+            depth: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        DictOption: {
+            value: string;
+            label: string;
+            parentValue?: string | null;
+            isDefault: boolean;
+            disabled: boolean;
+        };
+        DictResponse: {
+            /** Format: uuid */
+            id: string;
+            ownerTenantId: string;
+            isPlatform: boolean;
+            code: string;
+            name: string;
+            category?: string | null;
+            description?: string | null;
+            isBuiltIn: boolean;
+            status: components["schemas"]["SettingStatus"];
+            /** Format: int32 */
+            order: number;
             /** Format: date-time */
             createdAt: string;
         };
@@ -1053,6 +1404,60 @@ export interface components {
             isCustomized: boolean;
             children: components["schemas"]["MenuResponse"][];
         };
+        NumberingAllocationResponse: {
+            /** Format: uuid */
+            id: string;
+            requestTenantId: string;
+            idempotencyKey: string;
+            /** Format: int32 */
+            count: number;
+            /** Format: int64 */
+            startValue: number;
+            /** Format: int64 */
+            endValue: number;
+            periodKey: string;
+            firstNumber: string;
+            lastNumber: string;
+            businessType?: string | null;
+            businessId?: string | null;
+            /** Format: date-time */
+            generatedAt: string;
+        };
+        /** @enum {string} */
+        NumberingDateFormat: "None" | "Yyyy" | "YyyyMM" | "YyyyMMdd" | "YyMM" | "YyMMdd" | "MMdd";
+        /** @enum {string} */
+        NumberingResetCycle: "Never" | "Daily" | "Monthly" | "Yearly";
+        NumberingRuleResponse: {
+            /** Format: uuid */
+            id: string;
+            ownerTenantId: string;
+            isPlatform: boolean;
+            code: string;
+            name: string;
+            prefix?: string | null;
+            separator: string;
+            dateFormat: components["schemas"]["NumberingDateFormat"];
+            /** Format: int32 */
+            serialLength: number;
+            resetCycle: components["schemas"]["NumberingResetCycle"];
+            timeZoneId: string;
+            template: string;
+            /** Format: int64 */
+            currentValue: number;
+            currentPeriod: string;
+            hasAllocated: boolean;
+            allowTenantUse: boolean;
+            status: components["schemas"]["SettingStatus"];
+            /** Format: int32 */
+            order: number;
+            description?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            modifiedAt?: string | null;
+        };
+        /** @enum {string} */
+        NumberingScope: "Auto" | "Tenant" | "Platform";
         /** @enum {string} */
         OrganizationStatus: "Active" | "Disabled";
         PageFilter: {
@@ -1130,6 +1535,8 @@ export interface components {
             code: string;
             name: string;
         };
+        /** @enum {string} */
+        SettingStatus: "Active" | "Disabled";
         TenantMemberResponse: {
             /** Format: uuid */
             id: string;
@@ -1453,6 +1860,277 @@ export interface operations {
             };
         };
     };
+    "configs.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    key: string;
+                    name: string;
+                    dataType?: components["schemas"]["ConfigDataType"];
+                    group?: string | null;
+                    value?: string | null;
+                    defaultValue?: string | null;
+                    isEncrypted?: boolean;
+                    allowTenantOverride?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    description?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        key: string;
+                        name: string;
+                        group?: string | null;
+                        dataType: components["schemas"]["ConfigDataType"];
+                        value?: string | null;
+                        defaultValue?: string | null;
+                        hasValue: boolean;
+                        isEncrypted: boolean;
+                        isBuiltIn: boolean;
+                        allowTenantOverride: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "configs.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "configs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        key: string;
+                        name: string;
+                        group?: string | null;
+                        dataType: components["schemas"]["ConfigDataType"];
+                        value?: string | null;
+                        defaultValue?: string | null;
+                        hasValue: boolean;
+                        isEncrypted: boolean;
+                        isBuiltIn: boolean;
+                        allowTenantOverride: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "configs.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    dataType?: components["schemas"]["ConfigDataType"];
+                    group?: string | null;
+                    value?: string | null;
+                    defaultValue?: string | null;
+                    isEncrypted?: boolean;
+                    allowTenantOverride?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    description?: string | null;
+                    status?: components["schemas"]["SettingStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        key: string;
+                        name: string;
+                        group?: string | null;
+                        dataType: components["schemas"]["ConfigDataType"];
+                        value?: string | null;
+                        defaultValue?: string | null;
+                        hasValue: boolean;
+                        isEncrypted: boolean;
+                        isBuiltIn: boolean;
+                        allowTenantOverride: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "configs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConfigResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "departments.create": {
         parameters: {
             query?: never;
@@ -1718,6 +2396,528 @@ export interface operations {
                         items: components["schemas"]["DepartmentNode"][];
                         /** Format: int64 */
                         total: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dict-items.list": {
+        parameters: {
+            query: {
+                dictId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DictItemResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dict-items.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    dictId: string;
+                    code: string;
+                    name: string;
+                    /** Format: uuid */
+                    parentId?: string | null;
+                    value?: string | null;
+                    description?: string | null;
+                    metadata?: string | null;
+                    isDefault?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        dictId: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        code: string;
+                        name: string;
+                        value?: string | null;
+                        description?: string | null;
+                        metadata?: string | null;
+                        isDefault: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        /** Format: int32 */
+                        depth: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dict-items.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dict-items.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        dictId: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        code: string;
+                        name: string;
+                        value?: string | null;
+                        description?: string | null;
+                        metadata?: string | null;
+                        isDefault: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        /** Format: int32 */
+                        depth: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dict-items.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    /** Format: uuid */
+                    parentId?: string | null;
+                    value?: string | null;
+                    description?: string | null;
+                    metadata?: string | null;
+                    isDefault?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    status?: components["schemas"]["SettingStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: uuid */
+                        dictId: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        code: string;
+                        name: string;
+                        value?: string | null;
+                        description?: string | null;
+                        metadata?: string | null;
+                        isDefault: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        /** Format: int32 */
+                        depth: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dicts.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    category?: string | null;
+                    description?: string | null;
+                    /** Format: int32 */
+                    order?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        code: string;
+                        name: string;
+                        category?: string | null;
+                        description?: string | null;
+                        isBuiltIn: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dicts.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dicts.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        code: string;
+                        name: string;
+                        category?: string | null;
+                        description?: string | null;
+                        isBuiltIn: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dicts.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    category?: string | null;
+                    description?: string | null;
+                    /** Format: int32 */
+                    order?: number;
+                    status?: components["schemas"]["SettingStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        code: string;
+                        name: string;
+                        category?: string | null;
+                        description?: string | null;
+                        isBuiltIn: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dicts.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DictResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "dicts.options": {
+        parameters: {
+            query: {
+                code: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DictOption"][];
                     };
                 };
             };
@@ -2613,6 +3813,509 @@ export interface operations {
                         isAffix: boolean;
                         isCustomized: boolean;
                         children: components["schemas"]["MenuResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "numbering-rules.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    prefix?: string | null;
+                    separator?: string | null;
+                    dateFormat?: components["schemas"]["NumberingDateFormat"];
+                    /** Format: int32 */
+                    serialLength?: number;
+                    resetCycle?: components["schemas"]["NumberingResetCycle"];
+                    timeZoneId?: string;
+                    allowTenantUse?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    description?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        code: string;
+                        name: string;
+                        prefix?: string | null;
+                        separator: string;
+                        dateFormat: components["schemas"]["NumberingDateFormat"];
+                        /** Format: int32 */
+                        serialLength: number;
+                        resetCycle: components["schemas"]["NumberingResetCycle"];
+                        timeZoneId: string;
+                        template: string;
+                        /** Format: int64 */
+                        currentValue: number;
+                        currentPeriod: string;
+                        hasAllocated: boolean;
+                        allowTenantUse: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "numbering-rules.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "numbering-rules.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        code: string;
+                        name: string;
+                        prefix?: string | null;
+                        separator: string;
+                        dateFormat: components["schemas"]["NumberingDateFormat"];
+                        /** Format: int32 */
+                        serialLength: number;
+                        resetCycle: components["schemas"]["NumberingResetCycle"];
+                        timeZoneId: string;
+                        template: string;
+                        /** Format: int64 */
+                        currentValue: number;
+                        currentPeriod: string;
+                        hasAllocated: boolean;
+                        allowTenantUse: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "numbering-rules.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    prefix?: string | null;
+                    separator?: string | null;
+                    dateFormat?: components["schemas"]["NumberingDateFormat"];
+                    /** Format: int32 */
+                    serialLength?: number;
+                    resetCycle?: components["schemas"]["NumberingResetCycle"];
+                    timeZoneId?: string;
+                    allowTenantUse?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    description?: string | null;
+                    status?: components["schemas"]["SettingStatus"];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        code: string;
+                        name: string;
+                        prefix?: string | null;
+                        separator: string;
+                        dateFormat: components["schemas"]["NumberingDateFormat"];
+                        /** Format: int32 */
+                        serialLength: number;
+                        resetCycle: components["schemas"]["NumberingResetCycle"];
+                        timeZoneId: string;
+                        template: string;
+                        /** Format: int64 */
+                        currentValue: number;
+                        currentPeriod: string;
+                        hasAllocated: boolean;
+                        allowTenantUse: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "numbering-rules.allocations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    page?: components["schemas"]["PageInfo"] | null;
+                    keyword?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["NumberingAllocationResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "numbering-rules.reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    nextValue: string;
+                    reason: string;
+                    confirmCode?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        ownerTenantId: string;
+                        isPlatform: boolean;
+                        code: string;
+                        name: string;
+                        prefix?: string | null;
+                        separator: string;
+                        dateFormat: components["schemas"]["NumberingDateFormat"];
+                        /** Format: int32 */
+                        serialLength: number;
+                        resetCycle: components["schemas"]["NumberingResetCycle"];
+                        timeZoneId: string;
+                        template: string;
+                        /** Format: int64 */
+                        currentValue: number;
+                        currentPeriod: string;
+                        hasAllocated: boolean;
+                        allowTenantUse: boolean;
+                        status: components["schemas"]["SettingStatus"];
+                        /** Format: int32 */
+                        order: number;
+                        description?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "numbering-rules.generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    idempotencyKey: string;
+                    /** Format: int32 */
+                    count?: number;
+                    scope?: components["schemas"]["NumberingScope"];
+                    businessType?: string | null;
+                    businessId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        ruleId: string;
+                        ruleCode: string;
+                        scope: components["schemas"]["NumberingScope"];
+                        requestTenantId: string;
+                        idempotencyKey: string;
+                        periodKey: string;
+                        /** Format: int64 */
+                        startValue: number;
+                        /** Format: int64 */
+                        endValue: number;
+                        numbers: string[];
+                        /** Format: date-time */
+                        generatedAt: string;
+                        isReplay: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "numbering-rules.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["NumberingRuleResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "numbering-rules.preview": {
+        parameters: {
+            query?: {
+                prefix?: string | null;
+                separator?: string | null;
+                dateFormat?: components["schemas"]["NumberingDateFormat"];
+                serialLength?: number;
+                resetCycle?: components["schemas"]["NumberingResetCycle"];
+                timeZoneId?: string;
+                startValue?: string;
+                count?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        numbers: string[];
+                        periodKey: string;
+                        dateText?: string | null;
                     };
                 };
             };

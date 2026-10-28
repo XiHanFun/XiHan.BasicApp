@@ -1,7 +1,7 @@
 import type { Router } from 'vue-router'
 import type { ResponseOf } from '~/contracts'
 import type { AppContextApis } from '~/types'
-import { auth as authOps, impersonation as impersonationOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import { auth as authOps, dicts as dictOps, impersonation as impersonationOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { registerAppContext, useAuthStore } from '~/stores'
 
 /** 后端 `PageInfo.MaxSize`：模仿弹窗的租户范围一次取全 */
@@ -89,7 +89,8 @@ export function registerApplicationContext(router: Router): void {
       getBatch: () => notAvailable('enumApi.getBatch'),
       getByName: () => notAvailable('enumApi.getByName'),
     },
-    dictApi: { options: () => notAvailable('dictApi.options') },
+    // 字典选项（Settings 的 dicts.options，只要求已登录）：树形字典已按深度优先展平
+    dictApi: { options: async code => (await dictOps.options({ code })).items },
   }
 
   registerAppContext({

@@ -12,12 +12,28 @@ export const routes = {
   'auth.permissions': { method: 'GET', template: '/api/auth:permissions', path: [], query: [], success: 200 },
   'auth.refresh': { method: 'POST', template: '/api/auth:refresh', path: [], query: [], success: 200 },
   'auth.switch-tenant': { method: 'POST', template: '/api/auth:switch-tenant', path: [], query: [], success: 200 },
+  'configs.create': { method: 'POST', template: '/api/configs', path: [], query: [], success: 201 },
+  'configs.delete': { method: 'DELETE', template: '/api/configs', path: [], query: ['ids'], success: 200 },
+  'configs.get': { method: 'GET', template: '/api/configs/{id}', path: ['id'], query: [], success: 200 },
+  'configs.list': { method: 'POST', template: '/api/configs:list', path: [], query: [], success: 200 },
+  'configs.update': { method: 'PUT', template: '/api/configs/{id}', path: ['id'], query: [], success: 200 },
   'departments.create': { method: 'POST', template: '/api/departments', path: [], query: [], success: 201 },
   'departments.delete': { method: 'DELETE', template: '/api/departments', path: [], query: ['ids'], success: 200 },
   'departments.get': { method: 'GET', template: '/api/departments/{id}', path: ['id'], query: [], success: 200 },
   'departments.move': { method: 'POST', template: '/api/departments/{id}:move', path: ['id'], query: [], success: 200 },
   'departments.tree': { method: 'GET', template: '/api/departments:tree', path: [], query: [], success: 200 },
   'departments.update': { method: 'PUT', template: '/api/departments/{id}', path: ['id'], query: [], success: 200 },
+  'dict-items.create': { method: 'POST', template: '/api/dict-items', path: [], query: [], success: 201 },
+  'dict-items.delete': { method: 'DELETE', template: '/api/dict-items', path: [], query: ['ids'], success: 200 },
+  'dict-items.get': { method: 'GET', template: '/api/dict-items/{id}', path: ['id'], query: [], success: 200 },
+  'dict-items.list': { method: 'GET', template: '/api/dict-items', path: [], query: ['dictId'], success: 200 },
+  'dict-items.update': { method: 'PUT', template: '/api/dict-items/{id}', path: ['id'], query: [], success: 200 },
+  'dicts.create': { method: 'POST', template: '/api/dicts', path: [], query: [], success: 201 },
+  'dicts.delete': { method: 'DELETE', template: '/api/dicts', path: [], query: ['ids'], success: 200 },
+  'dicts.get': { method: 'GET', template: '/api/dicts/{id}', path: ['id'], query: [], success: 200 },
+  'dicts.list': { method: 'POST', template: '/api/dicts:list', path: [], query: [], success: 200 },
+  'dicts.options': { method: 'GET', template: '/api/dicts:options', path: [], query: ['code'], success: 200 },
+  'dicts.update': { method: 'PUT', template: '/api/dicts/{id}', path: ['id'], query: [], success: 200 },
   'editions.create': { method: 'POST', template: '/api/editions', path: [], query: [], success: 201 },
   'editions.delete': { method: 'DELETE', template: '/api/editions', path: [], query: ['ids'], success: 200 },
   'editions.get': { method: 'GET', template: '/api/editions/{id}', path: ['id'], query: [], success: 200 },
@@ -37,6 +53,15 @@ export const routes = {
   'menus.list': { method: 'GET', template: '/api/menus', path: [], query: [], success: 200 },
   'menus.reset': { method: 'POST', template: '/api/menus/{id}:reset', path: ['id'], query: [], success: 200 },
   'menus.update': { method: 'PUT', template: '/api/menus/{id}', path: ['id'], query: [], success: 200 },
+  'numbering-rules.allocations': { method: 'POST', template: '/api/numbering-rules/{id}:allocations', path: ['id'], query: [], success: 200 },
+  'numbering-rules.create': { method: 'POST', template: '/api/numbering-rules', path: [], query: [], success: 201 },
+  'numbering-rules.delete': { method: 'DELETE', template: '/api/numbering-rules', path: [], query: ['ids'], success: 200 },
+  'numbering-rules.generate': { method: 'POST', template: '/api/numbering-rules:generate', path: [], query: [], success: 200 },
+  'numbering-rules.get': { method: 'GET', template: '/api/numbering-rules/{id}', path: ['id'], query: [], success: 200 },
+  'numbering-rules.list': { method: 'POST', template: '/api/numbering-rules:list', path: [], query: [], success: 200 },
+  'numbering-rules.preview': { method: 'GET', template: '/api/numbering-rules:preview', path: [], query: ['prefix', 'separator', 'dateFormat', 'serialLength', 'resetCycle', 'timeZoneId', 'startValue', 'count'], success: 200 },
+  'numbering-rules.reset': { method: 'POST', template: '/api/numbering-rules/{id}:reset', path: ['id'], query: [], success: 200 },
+  'numbering-rules.update': { method: 'PUT', template: '/api/numbering-rules/{id}', path: ['id'], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
   'positions.create': { method: 'POST', template: '/api/positions', path: [], query: [], success: 201 },
   'positions.delete': { method: 'DELETE', template: '/api/positions', path: [], query: ['ids'], success: 200 },
@@ -101,6 +126,15 @@ export const auth = {
   switchTenant: (request: RequestOf<'auth.switch-tenant'>, options?: CallOptions) => invoke<RequestOf<'auth.switch-tenant'>, ResponseOf<'auth.switch-tenant'>>('auth.switch-tenant', routes['auth.switch-tenant'], request, options),
 }
 
+/** 资源 `configs` 的操作。 */
+export const configs = {
+  create: (request: RequestOf<'configs.create'>, options?: CallOptions) => invoke<RequestOf<'configs.create'>, ResponseOf<'configs.create'>>('configs.create', routes['configs.create'], request, options),
+  delete: (request: RequestOf<'configs.delete'>, options?: CallOptions) => invoke<RequestOf<'configs.delete'>, ResponseOf<'configs.delete'>>('configs.delete', routes['configs.delete'], request, options),
+  get: (request: RequestOf<'configs.get'>, options?: CallOptions) => invoke<RequestOf<'configs.get'>, ResponseOf<'configs.get'>>('configs.get', routes['configs.get'], request, options),
+  list: (request: RequestOf<'configs.list'>, options?: CallOptions) => invoke<RequestOf<'configs.list'>, ResponseOf<'configs.list'>>('configs.list', routes['configs.list'], request, options),
+  update: (request: RequestOf<'configs.update'>, options?: CallOptions) => invoke<RequestOf<'configs.update'>, ResponseOf<'configs.update'>>('configs.update', routes['configs.update'], request, options),
+}
+
 /** 资源 `departments` 的操作。 */
 export const departments = {
   create: (request: RequestOf<'departments.create'>, options?: CallOptions) => invoke<RequestOf<'departments.create'>, ResponseOf<'departments.create'>>('departments.create', routes['departments.create'], request, options),
@@ -109,6 +143,25 @@ export const departments = {
   move: (request: RequestOf<'departments.move'>, options?: CallOptions) => invoke<RequestOf<'departments.move'>, ResponseOf<'departments.move'>>('departments.move', routes['departments.move'], request, options),
   tree: (request: RequestOf<'departments.tree'>, options?: CallOptions) => invoke<RequestOf<'departments.tree'>, ResponseOf<'departments.tree'>>('departments.tree', routes['departments.tree'], request, options),
   update: (request: RequestOf<'departments.update'>, options?: CallOptions) => invoke<RequestOf<'departments.update'>, ResponseOf<'departments.update'>>('departments.update', routes['departments.update'], request, options),
+}
+
+/** 资源 `dict-items` 的操作。 */
+export const dictItems = {
+  create: (request: RequestOf<'dict-items.create'>, options?: CallOptions) => invoke<RequestOf<'dict-items.create'>, ResponseOf<'dict-items.create'>>('dict-items.create', routes['dict-items.create'], request, options),
+  delete: (request: RequestOf<'dict-items.delete'>, options?: CallOptions) => invoke<RequestOf<'dict-items.delete'>, ResponseOf<'dict-items.delete'>>('dict-items.delete', routes['dict-items.delete'], request, options),
+  get: (request: RequestOf<'dict-items.get'>, options?: CallOptions) => invoke<RequestOf<'dict-items.get'>, ResponseOf<'dict-items.get'>>('dict-items.get', routes['dict-items.get'], request, options),
+  list: (request: RequestOf<'dict-items.list'>, options?: CallOptions) => invoke<RequestOf<'dict-items.list'>, ResponseOf<'dict-items.list'>>('dict-items.list', routes['dict-items.list'], request, options),
+  update: (request: RequestOf<'dict-items.update'>, options?: CallOptions) => invoke<RequestOf<'dict-items.update'>, ResponseOf<'dict-items.update'>>('dict-items.update', routes['dict-items.update'], request, options),
+}
+
+/** 资源 `dicts` 的操作。 */
+export const dicts = {
+  create: (request: RequestOf<'dicts.create'>, options?: CallOptions) => invoke<RequestOf<'dicts.create'>, ResponseOf<'dicts.create'>>('dicts.create', routes['dicts.create'], request, options),
+  delete: (request: RequestOf<'dicts.delete'>, options?: CallOptions) => invoke<RequestOf<'dicts.delete'>, ResponseOf<'dicts.delete'>>('dicts.delete', routes['dicts.delete'], request, options),
+  get: (request: RequestOf<'dicts.get'>, options?: CallOptions) => invoke<RequestOf<'dicts.get'>, ResponseOf<'dicts.get'>>('dicts.get', routes['dicts.get'], request, options),
+  list: (request: RequestOf<'dicts.list'>, options?: CallOptions) => invoke<RequestOf<'dicts.list'>, ResponseOf<'dicts.list'>>('dicts.list', routes['dicts.list'], request, options),
+  options: (request: RequestOf<'dicts.options'>, options?: CallOptions) => invoke<RequestOf<'dicts.options'>, ResponseOf<'dicts.options'>>('dicts.options', routes['dicts.options'], request, options),
+  update: (request: RequestOf<'dicts.update'>, options?: CallOptions) => invoke<RequestOf<'dicts.update'>, ResponseOf<'dicts.update'>>('dicts.update', routes['dicts.update'], request, options),
 }
 
 /** 资源 `editions` 的操作。 */
@@ -144,6 +197,19 @@ export const menus = {
   list: (request: RequestOf<'menus.list'>, options?: CallOptions) => invoke<RequestOf<'menus.list'>, ResponseOf<'menus.list'>>('menus.list', routes['menus.list'], request, options),
   reset: (request: RequestOf<'menus.reset'>, options?: CallOptions) => invoke<RequestOf<'menus.reset'>, ResponseOf<'menus.reset'>>('menus.reset', routes['menus.reset'], request, options),
   update: (request: RequestOf<'menus.update'>, options?: CallOptions) => invoke<RequestOf<'menus.update'>, ResponseOf<'menus.update'>>('menus.update', routes['menus.update'], request, options),
+}
+
+/** 资源 `numbering-rules` 的操作。 */
+export const numberingRules = {
+  allocations: (request: RequestOf<'numbering-rules.allocations'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.allocations'>, ResponseOf<'numbering-rules.allocations'>>('numbering-rules.allocations', routes['numbering-rules.allocations'], request, options),
+  create: (request: RequestOf<'numbering-rules.create'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.create'>, ResponseOf<'numbering-rules.create'>>('numbering-rules.create', routes['numbering-rules.create'], request, options),
+  delete: (request: RequestOf<'numbering-rules.delete'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.delete'>, ResponseOf<'numbering-rules.delete'>>('numbering-rules.delete', routes['numbering-rules.delete'], request, options),
+  generate: (request: RequestOf<'numbering-rules.generate'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.generate'>, ResponseOf<'numbering-rules.generate'>>('numbering-rules.generate', routes['numbering-rules.generate'], request, options),
+  get: (request: RequestOf<'numbering-rules.get'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.get'>, ResponseOf<'numbering-rules.get'>>('numbering-rules.get', routes['numbering-rules.get'], request, options),
+  list: (request: RequestOf<'numbering-rules.list'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.list'>, ResponseOf<'numbering-rules.list'>>('numbering-rules.list', routes['numbering-rules.list'], request, options),
+  preview: (request: RequestOf<'numbering-rules.preview'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.preview'>, ResponseOf<'numbering-rules.preview'>>('numbering-rules.preview', routes['numbering-rules.preview'], request, options),
+  reset: (request: RequestOf<'numbering-rules.reset'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.reset'>, ResponseOf<'numbering-rules.reset'>>('numbering-rules.reset', routes['numbering-rules.reset'], request, options),
+  update: (request: RequestOf<'numbering-rules.update'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.update'>, ResponseOf<'numbering-rules.update'>>('numbering-rules.update', routes['numbering-rules.update'], request, options),
 }
 
 /** 资源 `permissions` 的操作。 */

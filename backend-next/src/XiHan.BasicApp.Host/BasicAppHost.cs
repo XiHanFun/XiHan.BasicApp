@@ -8,6 +8,7 @@ using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Organization;
+using XiHan.BasicApp.Settings;
 using XiHan.BasicApp.Tenancy;
 using XiHan.BasicApp.Workbench;
 using XiHan.Framework.Auditing.Database;
@@ -62,7 +63,8 @@ public static class BasicAppHost
             .UseFeature<IdentityFeature>()
             .UseFeature<TenancyFeature>()
             .UseFeature<OrganizationFeature>()
-            .UseFeature<AccessFeature>();
+            .UseFeature<AccessFeature>()
+            .UseFeature<SettingsFeature>();
             if (modules.Workbench)
             {
                 xihan.UseFeature<WorkbenchFeature>();

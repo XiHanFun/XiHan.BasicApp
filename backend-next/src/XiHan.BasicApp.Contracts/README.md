@@ -8,6 +8,7 @@ Tier 0 基座：跨包共享的契约，不含任何装配与基础设施。
 | `Paging/` | `PageRequest { Page { Index, Size }, Filters[], Keyword, Sorts[] }`（页大小上限 500，约束折进 Schema）与 `PageResult<T> { Items, Total, Page }` |
 | `Batch/` | `BatchResult { Succeeded[], Failed[{ id, code }] }`：批量优先，集合入参的写操作统一返回它 |
 | `Security/` | `PermissionDescriptor`（码、显示名、作用侧、是否审计、说明）与三段权限码文法 |
+| `Settings/` | `IConfigValueReader`（参数的生效值：租户覆盖优先、停用视为不存在、没有值回落缺省值、加密值解密后返回）与 `INumberGenerator`（按规则码发号，带幂等键；`NumberRequest` / `NumberAllocation` / `NumberingScope`），由 `Settings` 包实现 |
 | `AppInfo` / `TenantIds` | 应用名与版本；租户 ID 文法与平台属主常量 `platform` |
 
 ## 规则

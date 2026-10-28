@@ -9,6 +9,9 @@
     <Project Path="src/XiHan.BasicApp.Organization/XiHan.BasicApp.Organization.csproj" />
     <Project Path="src/XiHan.BasicApp.Access/XiHan.BasicApp.Access.csproj" />
   </Folder>
+  <Folder Name="/2.Platform/">
+    <Project Path="src/XiHan.BasicApp.Settings/XiHan.BasicApp.Settings.csproj" />
+  </Folder>
   <Folder Name="/3.Optional/">
     <Project Path="src/XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />
   </Folder>

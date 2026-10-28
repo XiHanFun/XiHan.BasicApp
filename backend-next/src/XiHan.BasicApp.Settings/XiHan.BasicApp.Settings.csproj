@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Settings</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 设置能力包（Tier 2）：系统参数（平台值与租户覆盖、加密值）、字典与树形字典项、业务编号规则与永久发号记录。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

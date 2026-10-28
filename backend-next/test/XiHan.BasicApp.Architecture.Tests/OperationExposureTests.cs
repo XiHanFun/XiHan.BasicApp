@@ -32,6 +32,11 @@ public sealed class OperationExposureTests
         ["positions.list"] = DirectoryRead,
         ["memberships.list"] = DirectoryRead,
         ["permissions.list"] = DirectoryRead,
+        // 字典是 5.4 点名的目录类：字典、字典项与业务表单要的选项
+        ["dicts.list"] = DirectoryRead,
+        ["dicts.get"] = DirectoryRead,
+        ["dicts.options"] = DirectoryRead,
+        ["dict-items.list"] = DirectoryRead,
     };
 
     /// <summary>
