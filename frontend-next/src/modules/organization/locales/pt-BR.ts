@@ -64,27 +64,27 @@ export default {
     },
     positions: {
       title: 'Cargos',
-      description: 'Cargos do locatário atual, referenciados pelos membros dos departamentos.',
+      keyword: 'Palavra-chave',
+      keyword_placeholder: 'Buscar por nome / código',
       fields: {
-        code: 'Código',
-        name: 'Nome',
+        code: 'Código do cargo',
+        name: 'Nome do cargo',
         status: 'Status',
         order: 'Ordem',
         description: 'Descrição',
         created_at: 'Criado em',
       },
-      actions: {
-        create: 'Criar cargo',
-        save: 'Salvar',
-        delete: 'Excluir cargo',
-      },
       status: {
         active: 'Ativo',
         disabled: 'Desabilitado',
       },
-      empty: 'Ainda não há cargos.',
-      total: '{total} cargos',
-      saved: 'Cargo salvo.',
+      actions: {
+        create: 'Novo cargo',
+        toggle: 'Habilitar/Desabilitar',
+      },
+      create_title: 'Novo cargo',
+      edit_title: 'Editar cargo',
+      code_placeholder: 'ex.: manager',
     },
   },
 }

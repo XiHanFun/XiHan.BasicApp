@@ -64,27 +64,27 @@ export default {
     },
     positions: {
       title: '岗位',
-      description: '当前租户的岗位，供部门成员引用。',
+      keyword: '关键词',
+      keyword_placeholder: '搜索岗位名称/编码',
       fields: {
-        code: '编码',
-        name: '名称',
+        code: '岗位编码',
+        name: '岗位名称',
         status: '状态',
         order: '排序',
         description: '说明',
         created_at: '创建时间',
       },
-      actions: {
-        create: '创建岗位',
-        save: '保存',
-        delete: '删除岗位',
-      },
       status: {
         active: '启用',
         disabled: '停用',
       },
-      empty: '还没有岗位。',
-      total: '共 {total} 个岗位',
-      saved: '岗位已保存。',
+      actions: {
+        create: '新增岗位',
+        toggle: '启用/停用',
+      },
+      create_title: '新增岗位',
+      edit_title: '编辑岗位',
+      code_placeholder: '如：manager',
     },
   },
 }

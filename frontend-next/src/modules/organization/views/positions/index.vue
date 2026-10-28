@@ -1,190 +1,280 @@
 <script lang="ts" setup>
-import { onMounted } from 'vue'
+import type { PositionRow, PositionStatus } from './use-positions'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
+import type { SelectOption } from '~/types'
+import { XhButton, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '~/stores'
-import { usePositions } from './use-positions'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEditModal, XInput, XNumberInput, XSelect } from '~/components'
+import { toast } from '~/composables'
+import { usePermission } from '~/hooks'
+import { formatDate } from '~/utils'
+import { positionsResource, usePositionEditor } from './use-positions'
 
 defineOptions({ name: 'OrganizationPositionsView' })
 
 const { t } = useI18n()
-const auth = useAuthStore()
-const page = usePositions(20)
+const { hasPermission } = usePermission()
+const editor = usePositionEditor()
+const resource = positionsResource()
 
-// 手写结构的表格每一行各自伸缩：列宽基准写在 width 里，表头与各行才按同一基准分剩余空间；不写就按各格内容定基准，整列对不齐
-const columns = [
-  { id: 'code', label: 'organization.positions.fields.code', width: '6rem' },
-  { id: 'name', label: 'organization.positions.fields.name', width: '7rem' },
-  { id: 'status', label: 'organization.positions.fields.status', width: '4rem' },
-  { id: 'order', label: 'organization.positions.fields.order', width: '4rem' },
-  { id: 'createdAt', label: 'organization.positions.fields.created_at', width: '10rem' },
-] as const
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
+const editFormId = useId()
+const schemaPageRef = ref<SchemaPageInstance | null>(null)
 
-onMounted(() => {
-  void page.load()
-})
-
-function formatTime(value: string): string {
-  return new Date(value).toLocaleString()
+function reload() {
+  void schemaPageRef.value?.reload()
 }
 
-// 状态值是契约枚举（字符串），文案键静态写出以便 i18n 门禁核对
-function statusLabel(status: 'Active' | 'Disabled'): string {
+// 状态值是契约字面量，文案键静态写出以便 i18n 门禁核对
+function statusLabel(status: PositionStatus): string {
   return status === 'Disabled' ? t('organization.positions.status.disabled') : t('organization.positions.status.active')
+}
+
+function statusTone(status: PositionStatus) {
+  return status === 'Active' ? 'success' : 'danger'
+}
+
+const statusOptions = computed<SelectOption[]>(() => (['Active', 'Disabled'] as const).map(status => ({ label: statusLabel(status), value: status })))
+
+// ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序；可排序的只放后端白名单里的） ──
+// SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
+const asRow = (row: object) => row as PositionRow
+
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('organization.positions.keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('organization.positions.keyword_placeholder'), order: 0 },
+  { key: 'name', title: t('organization.positions.fields.name'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 180, order: 1 },
+  { key: 'code', title: t('organization.positions.fields.code'), dataType: 'string', sortable: true, importable: true, required: true, exportable: true, minWidth: 160, order: 2 },
+  { key: 'status', title: t('organization.positions.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), statusTone(asRow(row).status)), width: 100, order: 3 },
+  { key: 'order', title: t('organization.positions.fields.order'), dataType: 'number', sortable: true, importable: true, exportable: true, width: 90, order: 4 },
+  { key: 'description', title: t('organization.positions.fields.description'), dataType: 'text', visible: false, importable: true, exportable: true, order: 4.5 },
+  { key: 'createdAt', title: t('organization.positions.fields.created_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 5 },
+])
+
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'organization.positions',
+  pageName: t('organization.positions.title'),
+  exportPermission: 'organization.positions.read',
+  importPermission: 'organization.positions.create',
+  batchRemovable: true,
+  removePermission: 'organization.positions.delete',
+  statusPermission: 'organization.positions.update',
+  rowKey: 'id',
+  fields: fields.value,
+  resource: resource as unknown as PageSchema['resource'],
+  actions: [
+    { key: 'create', title: t('organization.positions.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'organization.positions.create' },
+    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'organization.positions.update' },
+    { key: 'toggle', title: t('organization.positions.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'organization.positions.update' },
+    // 还被归属引用的由后端逐项拒绝（ORGANIZATION_CONFLICT_004）
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), permission: 'organization.positions.delete' },
+  ],
+}))
+
+// ── 行 / 页面操作分发 ──
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row ? asRow(payload.row) : undefined
+  switch (payload.key) {
+    case 'create':
+      editor.startCreate()
+      break
+    case 'view':
+      if (row)
+        openDetail(row)
+      break
+    case 'edit':
+      if (row)
+        editor.startEdit(row)
+      break
+    case 'toggle':
+      if (row)
+        void toggleStatus(row)
+      break
+    case 'delete':
+      if (row)
+        void removeRow(row)
+      break
+  }
+}
+
+const modalTitle = computed(() => editor.isEdit.value ? t('organization.positions.edit_title') : t('organization.positions.create_title'))
+
+async function onSubmit() {
+  if (await editor.submit()) {
+    toast.success(t('common.messages.save_success'))
+    reload()
+  }
+}
+
+async function removeRow(row: PositionRow) {
+  try {
+    await resource.remove?.(row.id)
+    toast.success(t('common.messages.delete_success'))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.delete_failed'))
+  }
+}
+
+async function toggleStatus(row: PositionRow) {
+  try {
+    await resource.updateStatus?.(row.id, row.status !== 'Active')
+    toast.success(t('common.messages.status_updated'))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.status_failed'))
+  }
+}
+
+// ── 查看详情（列表行即完整岗位） ──
+const detailOpen = ref(false)
+const detail = ref<PositionRow | null>(null)
+
+function openDetail(row: PositionRow) {
+  detail.value = row
+  detailOpen.value = true
+}
+
+function editFromDetail() {
+  const row = detail.value
+  if (!row)
+    return
+  detailOpen.value = false
+  editor.startEdit(row)
+}
+
+function formatNullable(value: unknown): string {
+  return value === null || value === undefined || value === '' ? '-' : String(value)
 }
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
-    <XhPageHeaderRoot size="sm">
-      <XhPageHeaderTitle>{{ t('organization.positions.title') }}</XhPageHeaderTitle>
-      <XhPageHeaderDescription>{{ t('organization.positions.description') }}</XhPageHeaderDescription>
-    </XhPageHeaderRoot>
-
-    <!-- 创建：按钮即操作，门控用操作的权限码；校验以后端为准，字段级 errors 落到对应字段 -->
-    <form v-if="auth.can('organization.positions.create')" class="grid gap-3 rounded-surface border border-border bg-surface p-4 md:grid-cols-5" data-testid="create-position" novalidate @submit.prevent="page.submit()">
-      <XhFieldRoot :label="t('organization.positions.fields.code')" :error-text="page.fieldError('code')" :invalid="!!page.fieldError('code')" required>
-        <template #control>
-          <XhTextFieldRoot v-model:value="page.form.code" name="code" autocomplete="off" />
-        </template>
-      </XhFieldRoot>
-      <XhFieldRoot :label="t('organization.positions.fields.name')" :error-text="page.fieldError('name')" :invalid="!!page.fieldError('name')" required>
-        <template #control>
-          <XhTextFieldRoot v-model:value="page.form.name" name="name" />
-        </template>
-      </XhFieldRoot>
-      <XhFieldRoot :label="t('organization.positions.fields.description')" :error-text="page.fieldError('description')" :invalid="!!page.fieldError('description')">
-        <template #control>
-          <XhTextFieldRoot v-model:value="page.form.description" name="description" />
-        </template>
-      </XhFieldRoot>
-      <XhFieldRoot :label="t('organization.positions.fields.order')" :error-text="page.fieldError('order')" :invalid="!!page.fieldError('order')">
-        <template #control>
-          <XhNumberFieldRoot v-model:value="page.form.order" name="order" :step="1" />
-        </template>
-      </XhFieldRoot>
-      <div class="flex items-end gap-2">
-        <XhButton type="submit" variant="solid" :loading="page.submitting.value" :disabled="page.submitting.value">
-          {{ t('organization.positions.actions.create') }}
-        </XhButton>
-        <XhButton type="button" :disabled="page.loading.value" @click="page.load()">
-          {{ t('common.actions.refresh') }}
-        </XhButton>
-      </div>
-      <p v-if="page.submitError.value" class="text-caption text-fg-danger md:col-span-5" role="alert">
-        {{ page.submitError.value }}
-      </p>
-    </form>
-
-    <p v-if="page.listError.value" class="text-caption text-fg-danger" role="alert">
-      {{ page.listError.value }}
-    </p>
-
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <div class="flex flex-col gap-3">
-        <XhTableRoot
-          :columns="columns.map(c => ({ ...c, label: t(c.label) }))"
-          :rows="page.items.value.map(row => ({ id: row.id }))"
-          :loading="page.loading.value"
-          size="sm"
-          ruled
-        >
-          <XhTableHeader>
-            <XhTableRow>
-              <XhTableColumnHeader v-for="column in columns" :key="column.id" :value="column.id">
-                <XhTableColumnLabel>{{ t(column.label) }}</XhTableColumnLabel>
-              </XhTableColumnHeader>
-            </XhTableRow>
-          </XhTableHeader>
-          <XhTableBody>
-            <XhTableRow v-for="row in page.items.value" :key="row.id" :value="row.id" :class="page.selected.value?.id === row.id ? 'bg-brand-subtle' : 'cursor-pointer'" @click="page.select(row.id)">
-              <XhTableCell value="code">
-                <button type="button" class="text-fg-brand underline-offset-2 hover:underline" :aria-pressed="page.selected.value?.id === row.id" @click.stop="page.select(row.id)">
-                  {{ row.code }}
-                </button>
-              </XhTableCell>
-              <XhTableCell value="name">
-                {{ row.name }}
-              </XhTableCell>
-              <XhTableCell value="status">
-                <span :class="row.status === 'Disabled' ? 'text-fg-muted' : ''">{{ statusLabel(row.status) }}</span>
-              </XhTableCell>
-              <XhTableCell value="order">
-                {{ row.order }}
-              </XhTableCell>
-              <XhTableCell value="createdAt">
-                {{ formatTime(row.createdAt) }}
-              </XhTableCell>
-            </XhTableRow>
-            <XhTableEmpty v-if="!page.loading.value && page.items.value.length === 0">
-              {{ t('organization.positions.empty') }}
-            </XhTableEmpty>
-          </XhTableBody>
-        </XhTableRoot>
-        <div class="flex items-center gap-3 text-caption text-fg-muted">
-          <span>{{ t('organization.positions.total', { total: page.total.value }) }}</span>
-          <XhButton size="sm" :disabled="page.pageIndex.value <= 1 || page.loading.value" @click="page.load(page.pageIndex.value - 1)">
-            {{ t('common.actions.previous') }}
+  <SchemaPage
+    ref="schemaPageRef"
+    :schema="schema"
+    @action="onAction"
+  >
+    <XhDialogRoot v-model:open="detailOpen">
+      <XhDialogContent class="xh-mgmt-detail-modal" style="--xh-dialog-max-w: 640px">
+        <XhDialogHeader>
+          <XhDialogTitle>
+            <div v-if="detail" class="det-hd-entity">
+              <div class="det-hd-ico">
+                <Icon icon="lucide:briefcase" width="22" height="22" />
+              </div>
+              <div class="min-w-0">
+                <div class="det-hd-name">
+                  {{ detail.name }}
+                </div>
+                <div class="det-hd-sub">
+                  {{ detail.code }}
+                </div>
+              </div>
+            </div>
+          </XhDialogTitle>
+        </XhDialogHeader>
+        <XhDialogCloseTrigger />
+        <XhDialogBody class="xh-overlay-body">
+          <XhDescriptionsRoot v-if="detail" :columns="2" variant="outline" size="sm">
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('organization.positions.fields.code') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ detail.code }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('organization.positions.fields.status') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>
+                <XhTagRoot variant="subtle" size="sm" :tone="statusTone(detail.status)">
+                  <XhTagLabel>{{ statusLabel(detail.status) }}</XhTagLabel>
+                </XhTagRoot>
+              </XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('organization.positions.fields.order') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ detail.order }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('organization.positions.fields.created_at') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ formatDate(detail.createdAt) }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem style="grid-column: span 2">
+              <XhDescriptionsLabel>{{ t('organization.positions.fields.description') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ formatNullable(detail.description) }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+          </XhDescriptionsRoot>
+        </XhDialogBody>
+        <XhDialogFooter>
+          <XhButton variant="subtle" size="sm" @click="detailOpen = false">
+            {{ t('common.actions.close') }}
           </XhButton>
-          <span>{{ page.pageIndex.value }} / {{ page.pageCount.value }}</span>
-          <XhButton size="sm" :disabled="page.pageIndex.value >= page.pageCount.value || page.loading.value" @click="page.load(page.pageIndex.value + 1)">
-            {{ t('common.actions.next') }}
+          <XhButton
+            v-if="detail && hasPermission('organization.positions.update')"
+            variant="subtle"
+            size="sm"
+            tone="brand"
+            @click="editFromDetail"
+          >
+            {{ t('common.actions.edit') }}
           </XhButton>
-        </div>
-      </div>
+        </XhDialogFooter>
+      </XhDialogContent>
+    </XhDialogRoot>
 
-      <!-- 详情：编辑与删除按各自权限码门控 -->
-      <section v-if="page.selected.value" class="flex flex-col gap-4 rounded-surface border border-border bg-surface p-4" data-testid="position-detail">
-        <header class="flex flex-wrap items-center gap-2">
-          <h2 class="text-label font-semibold">
-            {{ page.selected.value.name }}
-          </h2>
-          <span class="text-caption text-fg-muted">{{ page.selected.value.code }}</span>
-          <XhButton v-if="auth.can('organization.positions.delete')" class="ml-auto" size="sm" :disabled="page.working.value" @click="page.remove()">
-            {{ t('organization.positions.actions.delete') }}
-          </XhButton>
-        </header>
-        <p v-if="page.detailError.value" class="text-caption text-fg-danger" role="alert">
-          {{ page.detailError.value }}
+    <XEditModal
+      v-model:show="editor.open.value"
+      :title="modalTitle"
+      :loading="editor.submitting.value"
+      :form-id="editFormId"
+    >
+      <XhFormRoot :id="editFormId" class="xh-edit-form-grid" data-testid="position-form" @submit="onSubmit">
+        <XhFieldRoot :invalid="!!editor.fieldError('name')" required>
+          <XhFieldLabel>{{ t('organization.positions.fields.name') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.name" name="name" clearable />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('name')">
+            {{ editor.fieldError('name') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('code')" :required="!editor.isEdit.value">
+          <XhFieldLabel>{{ t('organization.positions.fields.code') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.code" name="code" clearable autocomplete="off" :disabled="editor.isEdit.value" :placeholder="t('organization.positions.code_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('code')">
+            {{ editor.fieldError('code') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('order')">
+          <XhFieldLabel>{{ t('organization.positions.fields.order') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XNumberInput v-model:value="editor.form.order" name="order" :min="0" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('order')">
+            {{ editor.fieldError('order') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot v-if="editor.isEdit.value">
+          <XhFieldLabel>{{ t('organization.positions.fields.status') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XSelect v-model:value="editor.form.status" name="status" :options="statusOptions" />
+          </XhFieldControl>
+        </XhFieldRoot>
+        <XhFieldRoot class="xh-span-2" :invalid="!!editor.fieldError('description')">
+          <XhFieldLabel>{{ t('organization.positions.fields.description') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.description" name="description" type="textarea" :rows="3" clearable />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('description')">
+            {{ editor.fieldError('description') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <p v-if="editor.submitError.value" class="xh-span-2 text-caption text-fg-danger" role="alert">
+          {{ editor.submitError.value }}
         </p>
-        <p v-if="page.notice.value === 'saved'" class="text-caption text-fg-success" role="status">
-          {{ t('organization.positions.saved') }}
-        </p>
-        <form class="flex flex-col gap-2" data-testid="edit-position" novalidate @submit.prevent="page.save()">
-          <div class="grid gap-3 md:grid-cols-2">
-            <XhFieldRoot :label="t('organization.positions.fields.name')" :error-text="page.editError('name')" :invalid="!!page.editError('name')" required>
-              <template #control>
-                <XhTextFieldRoot v-model:value="page.edit.name" name="name" :disabled="!auth.can('organization.positions.update')" />
-              </template>
-            </XhFieldRoot>
-            <XhFieldRoot :label="t('organization.positions.fields.order')" :error-text="page.editError('order')" :invalid="!!page.editError('order')">
-              <template #control>
-                <XhNumberFieldRoot v-model:value="page.edit.order" name="order" :step="1" :disabled="!auth.can('organization.positions.update')" />
-              </template>
-            </XhFieldRoot>
-            <XhFieldRoot :label="t('organization.positions.fields.description')" :error-text="page.editError('description')" :invalid="!!page.editError('description')">
-              <template #control>
-                <XhTextFieldRoot v-model:value="page.edit.description" name="description" :disabled="!auth.can('organization.positions.update')" />
-              </template>
-            </XhFieldRoot>
-            <label class="flex flex-col gap-1 text-caption text-fg-muted" for="position-status">
-              {{ t('organization.positions.fields.status') }}
-              <select id="position-status" v-model="page.edit.status" class="rounded-control border border-border bg-surface px-2 py-1 text-body text-fg" :disabled="!auth.can('organization.positions.update')">
-                <option value="Active">
-                  {{ t('organization.positions.status.active') }}
-                </option>
-                <option value="Disabled">
-                  {{ t('organization.positions.status.disabled') }}
-                </option>
-              </select>
-            </label>
-          </div>
-          <div v-if="auth.can('organization.positions.update')">
-            <XhButton type="submit" size="sm" variant="solid" :disabled="page.working.value" :loading="page.working.value">
-              {{ t('organization.positions.actions.save') }}
-            </XhButton>
-          </div>
-        </form>
-      </section>
-    </div>
-  </section>
+      </XhFormRoot>
+    </XEditModal>
+  </SchemaPage>
 </template>
