@@ -64,27 +64,27 @@ export default {
     },
     positions: {
       title: 'Puestos',
-      description: 'Puestos del inquilino actual, referenciados por los miembros de los departamentos.',
+      keyword: 'Palabra clave',
+      keyword_placeholder: 'Buscar por nombre / código',
       fields: {
-        code: 'Código',
-        name: 'Nombre',
+        code: 'Código del puesto',
+        name: 'Nombre del puesto',
         status: 'Estado',
         order: 'Orden',
         description: 'Descripción',
         created_at: 'Creado el',
       },
-      actions: {
-        create: 'Crear puesto',
-        save: 'Guardar',
-        delete: 'Eliminar puesto',
-      },
       status: {
         active: 'Activo',
         disabled: 'Deshabilitado',
       },
-      empty: 'Aún no hay puestos.',
-      total: '{total} puestos',
-      saved: 'Puesto guardado.',
+      actions: {
+        create: 'Nuevo puesto',
+        toggle: 'Habilitar/Deshabilitar',
+      },
+      create_title: 'Nuevo puesto',
+      edit_title: 'Editar puesto',
+      code_placeholder: 'p. ej. manager',
     },
   },
 }

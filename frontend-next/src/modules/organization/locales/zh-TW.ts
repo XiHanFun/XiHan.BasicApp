@@ -64,27 +64,27 @@ export default {
     },
     positions: {
       title: '崗位',
-      description: '目前租戶的崗位，供部門成員引用。',
+      keyword: '關鍵字',
+      keyword_placeholder: '搜尋崗位名稱/編碼',
       fields: {
-        code: '編碼',
-        name: '名稱',
+        code: '崗位編碼',
+        name: '崗位名稱',
         status: '狀態',
         order: '排序',
         description: '說明',
         created_at: '建立時間',
       },
-      actions: {
-        create: '建立崗位',
-        save: '儲存',
-        delete: '刪除崗位',
-      },
       status: {
         active: '啟用',
         disabled: '停用',
       },
-      empty: '還沒有崗位。',
-      total: '共 {total} 個崗位',
-      saved: '崗位已儲存。',
+      actions: {
+        create: '新增崗位',
+        toggle: '啟用/停用',
+      },
+      create_title: '新增崗位',
+      edit_title: '編輯崗位',
+      code_placeholder: '例如：manager',
     },
   },
 }

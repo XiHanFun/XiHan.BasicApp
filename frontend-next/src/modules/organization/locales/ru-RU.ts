@@ -64,27 +64,27 @@ export default {
     },
     positions: {
       title: 'Должности',
-      description: 'Должности текущего арендатора, на которые ссылаются участники подразделений.',
+      keyword: 'Ключевое слово',
+      keyword_placeholder: 'Поиск по названию / коду',
       fields: {
-        code: 'Код',
-        name: 'Имя',
+        code: 'Код должности',
+        name: 'Название должности',
         status: 'Статус',
         order: 'Порядок',
         description: 'Описание',
         created_at: 'Создано',
       },
-      actions: {
-        create: 'Создать должность',
-        save: 'Сохранить',
-        delete: 'Удалить должность',
-      },
       status: {
         active: 'Активна',
         disabled: 'Отключена',
       },
-      empty: 'Должностей пока нет.',
-      total: 'Должностей: {total}',
-      saved: 'Должность сохранена.',
+      actions: {
+        create: 'Новая должность',
+        toggle: 'Включить/Отключить',
+      },
+      create_title: 'Новая должность',
+      edit_title: 'Редактировать должность',
+      code_placeholder: 'например, manager',
     },
   },
 }

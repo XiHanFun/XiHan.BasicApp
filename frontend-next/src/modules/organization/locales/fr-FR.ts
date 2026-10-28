@@ -64,27 +64,27 @@ export default {
     },
     positions: {
       title: 'Postes',
-      description: 'Postes du locataire courant, référencés par les membres des services.',
+      keyword: 'Mot-clé',
+      keyword_placeholder: 'Rechercher par nom / code',
       fields: {
-        code: 'Code',
-        name: 'Nom',
+        code: 'Code du poste',
+        name: 'Nom du poste',
         status: 'Statut',
         order: 'Ordre',
         description: 'Description',
         created_at: 'Créé le',
       },
-      actions: {
-        create: 'Créer un poste',
-        save: 'Enregistrer',
-        delete: 'Supprimer le poste',
-      },
       status: {
         active: 'Actif',
         disabled: 'Désactivé',
       },
-      empty: 'Aucun poste pour l\'instant.',
-      total: '{total} postes',
-      saved: 'Poste enregistré.',
+      actions: {
+        create: 'Nouveau poste',
+        toggle: 'Activer/Désactiver',
+      },
+      create_title: 'Nouveau poste',
+      edit_title: 'Modifier le poste',
+      code_placeholder: 'ex. manager',
     },
   },
 }
