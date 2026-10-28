@@ -6,12 +6,16 @@ import type { operations } from './types'
 
 /** 每个操作的 HTTP 落点：方法、路由模板、路由值与查询串里的字段名；其余字段进请求体（GET / DELETE 没有请求体）。 */
 export const routes = {
+  'access-logs.get': { method: 'GET', template: '/api/access-logs/{id}', path: ['id'], query: [], success: 200 },
+  'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
   'auth.login': { method: 'POST', template: '/api/auth:login', path: [], query: [], success: 200 },
   'auth.logout': { method: 'POST', template: '/api/auth:logout', path: [], query: [], success: 200 },
   'auth.me': { method: 'GET', template: '/api/auth:me', path: [], query: [], success: 200 },
   'auth.permissions': { method: 'GET', template: '/api/auth:permissions', path: [], query: [], success: 200 },
   'auth.refresh': { method: 'POST', template: '/api/auth:refresh', path: [], query: [], success: 200 },
   'auth.switch-tenant': { method: 'POST', template: '/api/auth:switch-tenant', path: [], query: [], success: 200 },
+  'condition-hits.get': { method: 'GET', template: '/api/condition-hits/{id}', path: ['id'], query: [], success: 200 },
+  'condition-hits.list': { method: 'POST', template: '/api/condition-hits:list', path: [], query: [], success: 200 },
   'configs.create': { method: 'POST', template: '/api/configs', path: [], query: [], success: 201 },
   'configs.delete': { method: 'DELETE', template: '/api/configs', path: [], query: ['ids'], success: 200 },
   'configs.get': { method: 'GET', template: '/api/configs/{id}', path: ['id'], query: [], success: 200 },
@@ -34,15 +38,21 @@ export const routes = {
   'dicts.list': { method: 'POST', template: '/api/dicts:list', path: [], query: [], success: 200 },
   'dicts.options': { method: 'GET', template: '/api/dicts:options', path: [], query: ['code'], success: 200 },
   'dicts.update': { method: 'PUT', template: '/api/dicts/{id}', path: ['id'], query: [], success: 200 },
+  'diff-logs.get': { method: 'GET', template: '/api/diff-logs/{id}', path: ['id'], query: [], success: 200 },
+  'diff-logs.list': { method: 'POST', template: '/api/diff-logs:list', path: [], query: [], success: 200 },
   'editions.create': { method: 'POST', template: '/api/editions', path: [], query: [], success: 201 },
   'editions.delete': { method: 'DELETE', template: '/api/editions', path: [], query: ['ids'], success: 200 },
   'editions.get': { method: 'GET', template: '/api/editions/{id}', path: ['id'], query: [], success: 200 },
   'editions.list': { method: 'GET', template: '/api/editions', path: [], query: [], success: 200 },
   'editions.set-permissions': { method: 'POST', template: '/api/editions/{id}:set-permissions', path: ['id'], query: [], success: 200 },
   'editions.update': { method: 'PUT', template: '/api/editions/{id}', path: ['id'], query: [], success: 200 },
+  'exception-logs.get': { method: 'GET', template: '/api/exception-logs/{id}', path: ['id'], query: [], success: 200 },
+  'exception-logs.list': { method: 'POST', template: '/api/exception-logs:list', path: [], query: [], success: 200 },
   'impersonation.candidates': { method: 'GET', template: '/api/impersonation:candidates', path: [], query: ['tenantId', 'keyword'], success: 200 },
   'impersonation.start': { method: 'POST', template: '/api/impersonation:start', path: [], query: [], success: 200 },
   'impersonation.stop': { method: 'POST', template: '/api/impersonation:stop', path: [], query: [], success: 200 },
+  'login-logs.get': { method: 'GET', template: '/api/login-logs/{id}', path: ['id'], query: [], success: 200 },
+  'login-logs.list': { method: 'POST', template: '/api/login-logs:list', path: [], query: [], success: 200 },
   'memberships.create': { method: 'POST', template: '/api/memberships', path: [], query: [], success: 201 },
   'memberships.delete': { method: 'DELETE', template: '/api/memberships', path: [], query: ['ids'], success: 200 },
   'memberships.list': { method: 'POST', template: '/api/memberships:list', path: [], query: [], success: 200 },
@@ -62,6 +72,12 @@ export const routes = {
   'numbering-rules.preview': { method: 'GET', template: '/api/numbering-rules:preview', path: [], query: ['prefix', 'separator', 'dateFormat', 'serialLength', 'resetCycle', 'timeZoneId', 'startValue', 'count'], success: 200 },
   'numbering-rules.reset': { method: 'POST', template: '/api/numbering-rules/{id}:reset', path: ['id'], query: [], success: 200 },
   'numbering-rules.update': { method: 'PUT', template: '/api/numbering-rules/{id}', path: ['id'], query: [], success: 200 },
+  'open-api-logs.get': { method: 'GET', template: '/api/open-api-logs/{id}', path: ['id'], query: [], success: 200 },
+  'open-api-logs.list': { method: 'POST', template: '/api/open-api-logs:list', path: [], query: [], success: 200 },
+  'operation-logs.get': { method: 'GET', template: '/api/operation-logs/{id}', path: ['id'], query: [], success: 200 },
+  'operation-logs.list': { method: 'POST', template: '/api/operation-logs:list', path: [], query: [], success: 200 },
+  'permission-change-logs.get': { method: 'GET', template: '/api/permission-change-logs/{id}', path: ['id'], query: [], success: 200 },
+  'permission-change-logs.list': { method: 'POST', template: '/api/permission-change-logs:list', path: [], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
   'positions.create': { method: 'POST', template: '/api/positions', path: [], query: [], success: 201 },
   'positions.delete': { method: 'DELETE', template: '/api/positions', path: [], query: ['ids'], success: 200 },
@@ -93,6 +109,7 @@ export const routes = {
   'tenants.resume': { method: 'POST', template: '/api/tenants:resume', path: [], query: [], success: 200 },
   'tenants.suspend': { method: 'POST', template: '/api/tenants:suspend', path: [], query: [], success: 200 },
   'tenants.update': { method: 'PUT', template: '/api/tenants/{id}', path: ['id'], query: [], success: 200 },
+  'traces.timeline': { method: 'GET', template: '/api/traces:timeline', path: [], query: ['dimension', 'value', 'from', 'to', 'logTypes', 'maxPerType'], success: 200 },
   'user-settings.get': { method: 'GET', template: '/api/user-settings', path: [], query: ['scene', 'key'], success: 200 },
   'user-settings.update': { method: 'PUT', template: '/api/user-settings', path: [], query: [], success: 200 },
   'users.create': { method: 'POST', template: '/api/users', path: [], query: [], success: 201 },
@@ -116,6 +133,12 @@ type SuccessCode<Id extends OperationId> = (typeof routes)[Id]['success']
 /** 操作的成功响应类型。 */
 export type ResponseOf<Id extends OperationId> = operations[Id]['responses'] extends infer R ? (SuccessCode<Id> extends keyof R ? JsonBody<R[SuccessCode<Id>]> : never) : never
 
+/** 资源 `access-logs` 的操作。 */
+export const accessLogs = {
+  get: (request: RequestOf<'access-logs.get'>, options?: CallOptions) => invoke<RequestOf<'access-logs.get'>, ResponseOf<'access-logs.get'>>('access-logs.get', routes['access-logs.get'], request, options),
+  list: (request: RequestOf<'access-logs.list'>, options?: CallOptions) => invoke<RequestOf<'access-logs.list'>, ResponseOf<'access-logs.list'>>('access-logs.list', routes['access-logs.list'], request, options),
+}
+
 /** 资源 `auth` 的操作。 */
 export const auth = {
   login: (request: RequestOf<'auth.login'>, options?: CallOptions) => invoke<RequestOf<'auth.login'>, ResponseOf<'auth.login'>>('auth.login', routes['auth.login'], request, options),
@@ -124,6 +147,12 @@ export const auth = {
   permissions: (request: RequestOf<'auth.permissions'>, options?: CallOptions) => invoke<RequestOf<'auth.permissions'>, ResponseOf<'auth.permissions'>>('auth.permissions', routes['auth.permissions'], request, options),
   refresh: (request: RequestOf<'auth.refresh'>, options?: CallOptions) => invoke<RequestOf<'auth.refresh'>, ResponseOf<'auth.refresh'>>('auth.refresh', routes['auth.refresh'], request, options),
   switchTenant: (request: RequestOf<'auth.switch-tenant'>, options?: CallOptions) => invoke<RequestOf<'auth.switch-tenant'>, ResponseOf<'auth.switch-tenant'>>('auth.switch-tenant', routes['auth.switch-tenant'], request, options),
+}
+
+/** 资源 `condition-hits` 的操作。 */
+export const conditionHits = {
+  get: (request: RequestOf<'condition-hits.get'>, options?: CallOptions) => invoke<RequestOf<'condition-hits.get'>, ResponseOf<'condition-hits.get'>>('condition-hits.get', routes['condition-hits.get'], request, options),
+  list: (request: RequestOf<'condition-hits.list'>, options?: CallOptions) => invoke<RequestOf<'condition-hits.list'>, ResponseOf<'condition-hits.list'>>('condition-hits.list', routes['condition-hits.list'], request, options),
 }
 
 /** 资源 `configs` 的操作。 */
@@ -164,6 +193,12 @@ export const dicts = {
   update: (request: RequestOf<'dicts.update'>, options?: CallOptions) => invoke<RequestOf<'dicts.update'>, ResponseOf<'dicts.update'>>('dicts.update', routes['dicts.update'], request, options),
 }
 
+/** 资源 `diff-logs` 的操作。 */
+export const diffLogs = {
+  get: (request: RequestOf<'diff-logs.get'>, options?: CallOptions) => invoke<RequestOf<'diff-logs.get'>, ResponseOf<'diff-logs.get'>>('diff-logs.get', routes['diff-logs.get'], request, options),
+  list: (request: RequestOf<'diff-logs.list'>, options?: CallOptions) => invoke<RequestOf<'diff-logs.list'>, ResponseOf<'diff-logs.list'>>('diff-logs.list', routes['diff-logs.list'], request, options),
+}
+
 /** 资源 `editions` 的操作。 */
 export const editions = {
   create: (request: RequestOf<'editions.create'>, options?: CallOptions) => invoke<RequestOf<'editions.create'>, ResponseOf<'editions.create'>>('editions.create', routes['editions.create'], request, options),
@@ -174,11 +209,23 @@ export const editions = {
   update: (request: RequestOf<'editions.update'>, options?: CallOptions) => invoke<RequestOf<'editions.update'>, ResponseOf<'editions.update'>>('editions.update', routes['editions.update'], request, options),
 }
 
+/** 资源 `exception-logs` 的操作。 */
+export const exceptionLogs = {
+  get: (request: RequestOf<'exception-logs.get'>, options?: CallOptions) => invoke<RequestOf<'exception-logs.get'>, ResponseOf<'exception-logs.get'>>('exception-logs.get', routes['exception-logs.get'], request, options),
+  list: (request: RequestOf<'exception-logs.list'>, options?: CallOptions) => invoke<RequestOf<'exception-logs.list'>, ResponseOf<'exception-logs.list'>>('exception-logs.list', routes['exception-logs.list'], request, options),
+}
+
 /** 资源 `impersonation` 的操作。 */
 export const impersonation = {
   candidates: (request: RequestOf<'impersonation.candidates'>, options?: CallOptions) => invoke<RequestOf<'impersonation.candidates'>, ResponseOf<'impersonation.candidates'>>('impersonation.candidates', routes['impersonation.candidates'], request, options),
   start: (request: RequestOf<'impersonation.start'>, options?: CallOptions) => invoke<RequestOf<'impersonation.start'>, ResponseOf<'impersonation.start'>>('impersonation.start', routes['impersonation.start'], request, options),
   stop: (request: RequestOf<'impersonation.stop'>, options?: CallOptions) => invoke<RequestOf<'impersonation.stop'>, ResponseOf<'impersonation.stop'>>('impersonation.stop', routes['impersonation.stop'], request, options),
+}
+
+/** 资源 `login-logs` 的操作。 */
+export const loginLogs = {
+  get: (request: RequestOf<'login-logs.get'>, options?: CallOptions) => invoke<RequestOf<'login-logs.get'>, ResponseOf<'login-logs.get'>>('login-logs.get', routes['login-logs.get'], request, options),
+  list: (request: RequestOf<'login-logs.list'>, options?: CallOptions) => invoke<RequestOf<'login-logs.list'>, ResponseOf<'login-logs.list'>>('login-logs.list', routes['login-logs.list'], request, options),
 }
 
 /** 资源 `memberships` 的操作。 */
@@ -210,6 +257,24 @@ export const numberingRules = {
   preview: (request: RequestOf<'numbering-rules.preview'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.preview'>, ResponseOf<'numbering-rules.preview'>>('numbering-rules.preview', routes['numbering-rules.preview'], request, options),
   reset: (request: RequestOf<'numbering-rules.reset'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.reset'>, ResponseOf<'numbering-rules.reset'>>('numbering-rules.reset', routes['numbering-rules.reset'], request, options),
   update: (request: RequestOf<'numbering-rules.update'>, options?: CallOptions) => invoke<RequestOf<'numbering-rules.update'>, ResponseOf<'numbering-rules.update'>>('numbering-rules.update', routes['numbering-rules.update'], request, options),
+}
+
+/** 资源 `open-api-logs` 的操作。 */
+export const openApiLogs = {
+  get: (request: RequestOf<'open-api-logs.get'>, options?: CallOptions) => invoke<RequestOf<'open-api-logs.get'>, ResponseOf<'open-api-logs.get'>>('open-api-logs.get', routes['open-api-logs.get'], request, options),
+  list: (request: RequestOf<'open-api-logs.list'>, options?: CallOptions) => invoke<RequestOf<'open-api-logs.list'>, ResponseOf<'open-api-logs.list'>>('open-api-logs.list', routes['open-api-logs.list'], request, options),
+}
+
+/** 资源 `operation-logs` 的操作。 */
+export const operationLogs = {
+  get: (request: RequestOf<'operation-logs.get'>, options?: CallOptions) => invoke<RequestOf<'operation-logs.get'>, ResponseOf<'operation-logs.get'>>('operation-logs.get', routes['operation-logs.get'], request, options),
+  list: (request: RequestOf<'operation-logs.list'>, options?: CallOptions) => invoke<RequestOf<'operation-logs.list'>, ResponseOf<'operation-logs.list'>>('operation-logs.list', routes['operation-logs.list'], request, options),
+}
+
+/** 资源 `permission-change-logs` 的操作。 */
+export const permissionChangeLogs = {
+  get: (request: RequestOf<'permission-change-logs.get'>, options?: CallOptions) => invoke<RequestOf<'permission-change-logs.get'>, ResponseOf<'permission-change-logs.get'>>('permission-change-logs.get', routes['permission-change-logs.get'], request, options),
+  list: (request: RequestOf<'permission-change-logs.list'>, options?: CallOptions) => invoke<RequestOf<'permission-change-logs.list'>, ResponseOf<'permission-change-logs.list'>>('permission-change-logs.list', routes['permission-change-logs.list'], request, options),
 }
 
 /** 资源 `permissions` 的操作。 */
@@ -265,6 +330,11 @@ export const tenants = {
   resume: (request: RequestOf<'tenants.resume'>, options?: CallOptions) => invoke<RequestOf<'tenants.resume'>, ResponseOf<'tenants.resume'>>('tenants.resume', routes['tenants.resume'], request, options),
   suspend: (request: RequestOf<'tenants.suspend'>, options?: CallOptions) => invoke<RequestOf<'tenants.suspend'>, ResponseOf<'tenants.suspend'>>('tenants.suspend', routes['tenants.suspend'], request, options),
   update: (request: RequestOf<'tenants.update'>, options?: CallOptions) => invoke<RequestOf<'tenants.update'>, ResponseOf<'tenants.update'>>('tenants.update', routes['tenants.update'], request, options),
+}
+
+/** 资源 `traces` 的操作。 */
+export const traces = {
+  timeline: (request: RequestOf<'traces.timeline'>, options?: CallOptions) => invoke<RequestOf<'traces.timeline'>, ResponseOf<'traces.timeline'>>('traces.timeline', routes['traces.timeline'], request, options),
 }
 
 /** 资源 `user-settings` 的操作。 */

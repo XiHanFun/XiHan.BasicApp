@@ -43,6 +43,7 @@
   "packages/views/_core/authentication/AuthLayout.vue": 2,
   "packages/views/_core/authentication/LoginToolbar.vue": 13,
   "packages/views/_core/control-center/index.vue": 60,
+  "src/modules/auditing/views/traces/index.vue": 58,
   "src/modules/workbench/views/dashboard/index.vue": 1,
   "src/styles/admin-page.css": 8
 }
