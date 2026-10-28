@@ -76,17 +76,19 @@ jobs:
         run: dotnet build XiHan.BasicApp/backend-next/XiHan.BasicApp.slnx -c Release --no-restore
 
       # MTP 模式：解决方案由 --solution 传入。两库冒烟对真实 PostgreSQL 跑（XIHAN_TEST_POSTGRES 未设置时跳过）
+      # 选 MTP 的 global.json 在 BasicApp 仓库根，dotnet 从工作目录往上找它：必须在 XiHan.BasicApp 里执行，否则退回 VSTest 不认 --solution
       - name: 测试
+        working-directory: XiHan.BasicApp
         env:
           XIHAN_TEST_POSTGRES: Host=127.0.0.1;Port=5432;Username=postgres;Password=postgres
-        run: dotnet test --solution XiHan.BasicApp/backend-next/XiHan.BasicApp.slnx -c Release --no-build -- --report-trx
+        run: dotnet test --solution backend-next/XiHan.BasicApp.slnx -c Release --no-build -- --report-trx
 
       - name: 上传测试结果
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: backend-next-test-results
-          path: 'XiHan.BasicApp/backend-next/**/TestResults/*.trx'
+          path: 'XiHan.BasicApp/**/TestResults/*.trx'
           if-no-files-found: ignore
 
   contracts:
