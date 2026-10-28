@@ -3,7 +3,7 @@ import type { MenuNode } from '~/stores'
 import { createRouter, createWebHistory } from 'vue-router'
 import { LOGIN_PATH } from '~/constants'
 import { i18n } from '~/locales'
-import { useAuthStore } from '~/stores'
+import { hydratePreferencesFromBackend, markPreferenceIdentitySwitched, takeIdentitySwitchedMarker, useAuthStore } from '~/stores'
 import { firstRoute, menuRoutes } from './menus'
 import { StatusView } from './status-view'
 import { resolveView } from './views'
@@ -94,6 +94,16 @@ router.beforeEach(async (to) => {
       return { name: LOGIN_ROUTE }
     }
     installMenuRoutes(loaded.menus)
+    // 偏好跨端同步（Identity 的 user-settings）：本次页面生命周期第一次装好菜单时（登录后或刷新恢复会话）拉一次后端偏好并应用；
+    // 刚经模仿换了身份的不拿本地那份给新身份播种。偏好同步是锦上添花，失败不连累已经装好的路由
+    if (takeIdentitySwitchedMarker())
+      markPreferenceIdentitySwitched()
+    try {
+      await hydratePreferencesFromBackend()
+    }
+    catch (error) {
+      console.error('[preferences] 偏好同步失败，已跳过', error)
+    }
     // 路由表变了：按新表重新解析目标
     return { path: to.fullPath, replace: true }
   }

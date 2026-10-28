@@ -12,6 +12,8 @@
   "auth.logout.description": "Revoga a sessão do token atual.",
   "auth.me.description": "Retorna o usuário, o locatário, a sessão e os papéis atuais.",
   "profile.change_password.description": "Altera a própria senha; requer a senha atual e revoga suas outras sessões.",
+  "user_settings.get.description": "Lê uma de suas configurações por cena e chave; o valor fica vazio até ser salvo. Qualquer usuário autenticado.",
+  "user_settings.update.description": "Grava uma de suas configurações por cena e chave, substituindo-a inteira ou criando-a; um valor vazio a limpa. Qualquer usuário autenticado.",
   "identity.user.not_found": "O usuário '{id}' não existe.",
   "identity.user.name_taken": "O nome de usuário '{userName}' já está em uso no locatário '{tenant}'.",
   "identity.user.tenant_mismatch": "O locatário de origem '{requested}' difere do locatário atual '{current}'.",

@@ -12,6 +12,8 @@
   "auth.logout.description": "Widerruft die Sitzung des aktuellen Tokens.",
   "auth.me.description": "Liefert den aktuellen Benutzer, Mandanten, die Sitzung und die Rollen.",
   "profile.change_password.description": "Ändert das eigene Passwort; erfordert das aktuelle Passwort und widerruft die übrigen eigenen Sitzungen.",
+  "user_settings.get.description": "Eine eigene Einstellung nach Bereich und Schlüssel lesen; bis zum Speichern ist der Wert leer. Für alle angemeldeten Benutzer.",
+  "user_settings.update.description": "Eine eigene Einstellung nach Bereich und Schlüssel vollständig schreiben oder anlegen; ein leerer Wert löscht sie. Für alle angemeldeten Benutzer.",
   "identity.user.not_found": "Der Benutzer '{id}' existiert nicht.",
   "identity.user.name_taken": "Der Benutzername '{userName}' ist im Mandanten '{tenant}' bereits vergeben.",
   "identity.user.tenant_mismatch": "Der Heimatmandant '{requested}' weicht vom aktuellen Mandanten '{current}' ab.",

@@ -12,6 +12,8 @@
   "auth.logout.description": "吊销当前令牌所属的会话。",
   "auth.me.description": "返回当前用户、租户、会话与角色。",
   "profile.change_password.description": "修改本人密码；须提供当前密码，并吊销本人的其他会话。",
+  "user_settings.get.description": "读本人的一条设置（按场景与设置键）；还没存过时值为空。已登录即可。",
+  "user_settings.update.description": "写本人的一条设置（按场景与设置键整体覆盖，无则新建；值为空即清空）。已登录即可。",
   "identity.user.not_found": "用户 '{id}' 不存在。",
   "identity.user.name_taken": "用户名 '{userName}' 在租户 '{tenant}' 内已被占用。",
   "identity.user.tenant_mismatch": "注册地租户 '{requested}' 与当前租户 '{current}' 不一致。",

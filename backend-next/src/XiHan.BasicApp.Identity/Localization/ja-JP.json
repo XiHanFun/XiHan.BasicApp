@@ -12,6 +12,8 @@
   "auth.logout.description": "現在のトークンのセッションを失効させます。",
   "auth.me.description": "現在のユーザー、テナント、セッション、ロールを返します。",
   "profile.change_password.description": "自分のパスワードを変更します。現在のパスワードが必要で、他のセッションは失効します。",
+  "user_settings.get.description": "自分の設定を場面と設定キーで 1 件読み取ります。未保存なら値は空です。ログインしていれば利用できます。",
+  "user_settings.update.description": "自分の設定を場面と設定キーで丸ごと上書きします（なければ作成、値が空ならクリア）。ログインしていれば利用できます。",
   "identity.user.not_found": "ユーザー '{id}' は存在しません。",
   "identity.user.name_taken": "ユーザー名 '{userName}' はテナント '{tenant}' で既に使用されています。",
   "identity.user.tenant_mismatch": "所属テナント '{requested}' が現在のテナント '{current}' と一致しません。",

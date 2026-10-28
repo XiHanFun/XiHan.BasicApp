@@ -82,6 +82,16 @@ public static class IdentityMessages
     public const string ChangePasswordDescription = "profile.change_password.description";
 
     /// <summary>
+    /// 操作 <c>user-settings.get</c> 的说明。
+    /// </summary>
+    public const string GetUserSettingDescription = "user_settings.get.description";
+
+    /// <summary>
+    /// 操作 <c>user-settings.update</c> 的说明。
+    /// </summary>
+    public const string UpdateUserSettingDescription = "user_settings.update.description";
+
+    /// <summary>
     /// 用户不存在；参数 <c>id</c>。
     /// </summary>
     public const string UserNotFound = "identity.user.not_found";

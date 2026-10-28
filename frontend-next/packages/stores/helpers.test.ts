@@ -124,14 +124,14 @@ describe('构建时间变化时作废本地偏好缓存', () => {
   })
 })
 
-describe('五个同步开关：缺省关闭且属设备本地维度', () => {
-  it('新装用户五个开关缺省全部关闭（6.0 的服务端同步还没接）', () => {
+describe('五个同步开关：缺省值与设备本地维度', () => {
+  it('新装用户：偏好与收藏缺省开（已接 user-settings），搜索 / 表格 / 看板缺省关', () => {
     for (const key of [PREFERENCE_SYNC_KEY, FAVORITES_SYNC_KEY, SEARCH_SYNC_KEY, TABLE_SYNC_KEY, WIDGETS_SYNC_KEY])
       localStorage.removeItem(key)
     freshAppStore()
 
-    expect(isPreferenceSyncEnabled()).toBe(false)
-    expect(isFavoritesSyncEnabled()).toBe(false)
+    expect(isPreferenceSyncEnabled()).toBe(true)
+    expect(isFavoritesSyncEnabled()).toBe(true)
     expect(isSearchSyncEnabled()).toBe(false)
     expect(isTableSyncEnabled()).toBe(false)
     expect(isWidgetsSyncEnabled()).toBe(false)

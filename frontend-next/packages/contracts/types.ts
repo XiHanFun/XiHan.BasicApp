@@ -783,6 +783,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/user-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read one of your own settings by scene and key; the value is empty until saved. Any signed-in user. */
+        get: operations["user-settings.get"];
+        /** Write one of your own settings by scene and key, replacing it whole or creating it; an empty value clears it. Any signed-in user. */
+        put: operations["user-settings.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users": {
         parameters: {
             query?: never;
@@ -1162,6 +1180,8 @@ export interface components {
             createdAt: string;
             createdBy?: string | null;
         };
+        /** @enum {string} */
+        UserSettingScene: "Preference" | "Page";
         /** @enum {string} */
         UserStatus: "Active" | "Disabled" | "Locked";
     };
@@ -3927,6 +3947,87 @@ export interface operations {
                     "application/json": {
                         succeeded: string[];
                         failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "user-settings.get": {
+        parameters: {
+            query: {
+                scene: components["schemas"]["UserSettingScene"];
+                key: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        scene: components["schemas"]["UserSettingScene"];
+                        key: string;
+                        value?: string | null;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "user-settings.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    scene: components["schemas"]["UserSettingScene"];
+                    key: string;
+                    value?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        scene: components["schemas"]["UserSettingScene"];
+                        key: string;
+                        value?: string | null;
+                        /** Format: date-time */
+                        modifiedAt?: string | null;
                     };
                 };
             };

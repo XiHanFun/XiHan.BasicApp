@@ -12,6 +12,8 @@
   "auth.logout.description": "Revoca la sesión del token actual.",
   "auth.me.description": "Devuelve el usuario, el inquilino, la sesión y los roles actuales.",
   "profile.change_password.description": "Cambia su propia contraseña; requiere la contraseña actual y revoca sus demás sesiones.",
+  "user_settings.get.description": "Lee uno de tus ajustes por escena y clave; el valor está vacío hasta que se guarda. Cualquier usuario autenticado.",
+  "user_settings.update.description": "Escribe uno de tus ajustes por escena y clave, reemplazándolo entero o creándolo; un valor vacío lo borra. Cualquier usuario autenticado.",
   "identity.user.not_found": "El usuario '{id}' no existe.",
   "identity.user.name_taken": "El nombre de usuario '{userName}' ya está en uso en el inquilino '{tenant}'.",
   "identity.user.tenant_mismatch": "El inquilino de origen '{requested}' difiere del inquilino actual '{current}'.",

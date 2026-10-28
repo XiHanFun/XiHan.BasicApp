@@ -73,9 +73,9 @@ export function createPreferencesSlice() {
   const locale = ref<string>(resolveInitialLocale())
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
   // 各类后端同步开关：默认开启（保存时上行后端并实时推送多端），关闭后仅本地存储
-  // 6.0 还没接服务端同步 / 通知 / 锁屏（方案 §8 后续批次），这几件缺省关着；打开会走到 src/app/context.ts 里的显式拒绝
-  const preferenceSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PREFERENCE_SYNC_KEY) ?? false)
-  const favoritesSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(FAVORITES_SYNC_KEY) ?? false)
+  // 偏好与收藏的同步已接 Identity 的 user-settings（N2 第二批），缺省开；搜索 / 表格随 SchemaPage、看板随 Workbench 批次接入，仍缺省关
+  const preferenceSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PREFERENCE_SYNC_KEY) ?? true)
+  const favoritesSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(FAVORITES_SYNC_KEY) ?? true)
   const searchSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_SYNC_KEY) ?? false)
   const tableSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(TABLE_SYNC_KEY) ?? false)
   const widgetsSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(WIDGETS_SYNC_KEY) ?? false)

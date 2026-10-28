@@ -1,6 +1,7 @@
 import type { Router } from 'vue-router'
+import type { ResponseOf } from '~/contracts'
 import type { AppContextApis } from '~/types'
-import { auth as authOps, impersonation as impersonationOps, tenants as tenantOps } from '~/contracts'
+import { auth as authOps, impersonation as impersonationOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { registerAppContext, useAuthStore } from '~/stores'
 
 /** 后端 `PageInfo.MaxSize`：模仿弹窗的租户范围一次取全 */
@@ -8,11 +9,24 @@ const PAGE_MAX_SIZE = 500
 
 /**
  * 壳层用到、但 6.0 后端还没有的接口：显式拒绝而不是回空。
- * 对应的壳层件（通知、锁屏、偏好 / 收藏的服务端同步）缺省关着（见 stores/app/preferences.ts 的缺省值），
+ * 对应的壳层件（通知、锁屏、搜索 / 表格 / 看板的服务端同步）缺省关着（见 stores/app/preferences.ts 的缺省值），
  * 用户在偏好中心打开后会看到这条错误，而不是一个看似工作的空件。
  */
 function notAvailable(name: string): never {
   throw new Error(`${name} 尚未接入 6.0 后端`)
+}
+
+/** 壳层的用户设置场景是 4.x 的枚举数值（UserSettingScene），契约是字面量 */
+function sceneOf(scene: number): 'Page' | 'Preference' {
+  if (scene === 0)
+    return 'Preference'
+  if (scene === 1)
+    return 'Page'
+  throw new Error(`未知的用户设置场景 ${scene}`)
+}
+
+function toShellSetting(setting: ResponseOf<'user-settings.get'>) {
+  return { scene: setting.scene === 'Page' ? 1 : 0, settingKey: setting.key, settingValue: setting.value ?? null }
 }
 
 /** 时区目录：浏览器自带的 IANA 清单（后端时区目录接入后换成 metadata 操作） */
@@ -41,9 +55,10 @@ export function registerApplicationContext(router: Router): void {
     changePasswordApi: () => notAvailable('changePasswordApi'),
     lockSessionApi: () => notAvailable('lockSessionApi'),
     unlockSessionApi: () => notAvailable('unlockSessionApi'),
+    // 用户设置（Identity 的 user-settings，按 用户 × 场景 × 键 整体覆盖）：偏好与收藏的跨端同步；clientId / origin 是实时回推用的，随 Realtime 批次接入
     userSettingApi: {
-      get: () => notAvailable('userSettingApi.get'),
-      save: () => notAvailable('userSettingApi.save'),
+      get: async input => toShellSetting(await userSettingOps.get({ scene: sceneOf(input.scene), key: input.settingKey })),
+      save: async input => toShellSetting(await userSettingOps.update({ scene: sceneOf(input.scene), key: input.settingKey, value: input.settingValue ?? null })),
     },
     userInboxApi: {
       banner: () => notAvailable('userInboxApi.banner'),
