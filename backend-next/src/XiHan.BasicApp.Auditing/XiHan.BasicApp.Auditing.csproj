@@ -22,6 +22,9 @@
     <!-- 操作审计：中间件排在框架 AuditMiddleware 里面，按权限的审计标记显式声明动作、补充细节；操作日志查的是框架的 AuditRecord 表 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Abstractions" />
     <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Database" />
+    <!-- 访问日志的 HTTP 状态码按 HTTP 适配器的同一套映射推出（成功状态取路由约定，失败取 Problem Details 的映射） -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Protocols.Http" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Hosting.AspNetCore" />
     <!-- 保留清理是代码登记的作业 -->
     <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Abstractions" />
     <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />

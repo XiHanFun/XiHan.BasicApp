@@ -128,6 +128,8 @@ public sealed class StartImpersonation(
             RefreshExpiresAt = now + options.RefreshTokenLifetime,
             ImpersonatorUserId = actor.Id,
             ImpersonatorSessionId = origin.Id,
+            IpAddress = SessionClient.AddressOf(context),
+            ClientInfo = SessionClient.AgentOf(context),
         };
         var added = await sessions.AddAsync(session, context.CancellationToken).ConfigureAwait(false);
         if (added.IsFailure)

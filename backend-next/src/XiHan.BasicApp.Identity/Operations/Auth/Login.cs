@@ -128,6 +128,8 @@ public sealed class Login(
             RefreshTokenHash = RefreshTokens.Hash(refreshToken),
             IssuedAt = now,
             RefreshExpiresAt = now + options.RefreshTokenLifetime,
+            IpAddress = SessionClient.AddressOf(context),
+            ClientInfo = SessionClient.AgentOf(context),
         };
         var added = await sessions.AddAsync(session, context.CancellationToken).ConfigureAwait(false);
         if (added.IsFailure)
