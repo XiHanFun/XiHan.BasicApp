@@ -109,5 +109,7 @@ router.beforeEach(async (to) => {
 // 文档标题跟随页面：「页面标题 · 应用名」，没有标题键的只留应用名
 router.afterEach((to) => {
   const t = i18n.global.t
-  document.title = to.meta.titleKey ? `${t(to.meta.titleKey)} · ${t('common.app_name')}` : t('common.app_name')
+  // 运营改过的菜单标题是原文（没有文案键）
+  const label = to.meta.titleKey ? t(to.meta.titleKey) : to.meta.title
+  document.title = label ? `${label} · ${t('common.app_name')}` : t('common.app_name')
 })

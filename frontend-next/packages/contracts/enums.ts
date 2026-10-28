@@ -5,6 +5,9 @@
 export const DataScope = ['SelfOnly', 'DepartmentOnly', 'DepartmentAndChildren', 'All', 'Custom'] as const
 export type DataScope = (typeof DataScope)[number]
 
+export const MenuKind = ['Page', 'Directory', 'Link'] as const
+export type MenuKind = (typeof MenuKind)[number]
+
 export const OrganizationStatus = ['Active', 'Disabled'] as const
 export type OrganizationStatus = (typeof OrganizationStatus)[number]
 
@@ -26,6 +29,7 @@ export type UserStatus = (typeof UserStatus)[number]
 /** 全部枚举：类型名 → 成员。 */
 export const enums = {
   DataScope,
+  MenuKind,
   OrganizationStatus,
   PermissionScope,
   RoleStatus,

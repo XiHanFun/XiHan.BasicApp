@@ -330,6 +330,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/menus": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the whole menu tree (hidden nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only; requires access.menus.read. */
+        get: operations["menus.list"];
+        put?: never;
+        /** Create an operator node: a directory (top level only) or an external link (http / https, may sit in a directory); page nodes come from page registrations and cannot be created. Requires access.menus.create. */
+        post: operations["menus.create"];
+        /** Delete operator nodes in batch; page nodes and directories that still have children are rejected item by item. Requires access.menus.delete. */
+        delete: operations["menus.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/menus/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get one menu node. Requires access.menus.read. */
+        get: operations["menus.get"];
+        /** Update a menu node: page nodes only change presentation (title, icon, order, directory, visibility, caching, pinned tab) and become customized; operator nodes may also change their link and permission. Requires access.menus.update. */
+        put: operations["menus.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/menus/{id}:reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Restore a page node's presentation to its registration and clear the customization flag. Requires access.menus.update. */
+        post: operations["menus.reset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/permissions": {
         parameters: {
             query?: never;
@@ -939,16 +993,47 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        /** @enum {string} */
+        MenuKind: "Page" | "Directory" | "Link";
         MenuNode: {
             code: string;
+            kind: components["schemas"]["MenuKind"];
             route: string;
             component: string;
             titleKey: string;
+            title?: string | null;
             icon?: string | null;
             /** Format: int32 */
             order: number;
             permission?: string | null;
+            externalUrl?: string | null;
+            hidden: boolean;
+            keepAlive: boolean;
+            affix: boolean;
             children: components["schemas"]["MenuNode"][];
+        };
+        MenuResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            kind: components["schemas"]["MenuKind"];
+            package: string;
+            /** Format: uuid */
+            parentId?: string | null;
+            route: string;
+            component: string;
+            titleKey: string;
+            title?: string | null;
+            icon?: string | null;
+            /** Format: int32 */
+            order: number;
+            permission?: string | null;
+            externalUrl?: string | null;
+            isVisible: boolean;
+            keepAlive: boolean;
+            isAffix: boolean;
+            isCustomized: boolean;
+            children: components["schemas"]["MenuResponse"][];
         };
         /** @enum {string} */
         OrganizationStatus: "Active" | "Disabled";
@@ -2208,6 +2293,322 @@ export interface operations {
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "menus.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["MenuResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "menus.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    kind: components["schemas"]["MenuKind"];
+                    code: string;
+                    title: string;
+                    icon?: string | null;
+                    /** Format: int32 */
+                    order?: number;
+                    /** Format: uuid */
+                    parentId?: string | null;
+                    externalUrl?: string | null;
+                    permission?: string | null;
+                    isVisible?: boolean;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        kind: components["schemas"]["MenuKind"];
+                        package: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        route: string;
+                        component: string;
+                        titleKey: string;
+                        title?: string | null;
+                        icon?: string | null;
+                        /** Format: int32 */
+                        order: number;
+                        permission?: string | null;
+                        externalUrl?: string | null;
+                        isVisible: boolean;
+                        keepAlive: boolean;
+                        isAffix: boolean;
+                        isCustomized: boolean;
+                        children: components["schemas"]["MenuResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "menus.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "menus.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        kind: components["schemas"]["MenuKind"];
+                        package: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        route: string;
+                        component: string;
+                        titleKey: string;
+                        title?: string | null;
+                        icon?: string | null;
+                        /** Format: int32 */
+                        order: number;
+                        permission?: string | null;
+                        externalUrl?: string | null;
+                        isVisible: boolean;
+                        keepAlive: boolean;
+                        isAffix: boolean;
+                        isCustomized: boolean;
+                        children: components["schemas"]["MenuResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "menus.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    title?: string | null;
+                    icon?: string | null;
+                    /** Format: int32 */
+                    order?: number;
+                    /** Format: uuid */
+                    parentId?: string | null;
+                    isVisible?: boolean;
+                    keepAlive?: boolean;
+                    isAffix?: boolean;
+                    externalUrl?: string | null;
+                    permission?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        kind: components["schemas"]["MenuKind"];
+                        package: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        route: string;
+                        component: string;
+                        titleKey: string;
+                        title?: string | null;
+                        icon?: string | null;
+                        /** Format: int32 */
+                        order: number;
+                        permission?: string | null;
+                        externalUrl?: string | null;
+                        isVisible: boolean;
+                        keepAlive: boolean;
+                        isAffix: boolean;
+                        isCustomized: boolean;
+                        children: components["schemas"]["MenuResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "menus.reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        code: string;
+                        kind: components["schemas"]["MenuKind"];
+                        package: string;
+                        /** Format: uuid */
+                        parentId?: string | null;
+                        route: string;
+                        component: string;
+                        titleKey: string;
+                        title?: string | null;
+                        icon?: string | null;
+                        /** Format: int32 */
+                        order: number;
+                        permission?: string | null;
+                        externalUrl?: string | null;
+                        isVisible: boolean;
+                        keepAlive: boolean;
+                        isAffix: boolean;
+                        isCustomized: boolean;
+                        children: components["schemas"]["MenuResponse"][];
                     };
                 };
             };

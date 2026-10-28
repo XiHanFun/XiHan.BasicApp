@@ -4,6 +4,10 @@ import type { OperationId } from './operations'
 
 /** 权限定义表（码、显示名、说明）：授权界面按它生成。 */
 export const permissionDefinitions = {
+  'access.menus.create': { code: 'access.menus.create', displayName: 'Create menus', description: 'Create directories and external links in the menu.' },
+  'access.menus.delete': { code: 'access.menus.delete', displayName: 'Delete menus', description: 'Delete operator-created directories and links.' },
+  'access.menus.read': { code: 'access.menus.read', displayName: 'Read menus', description: 'View the whole menu tree, including hidden and operator-created nodes.' },
+  'access.menus.update': { code: 'access.menus.update', displayName: 'Update menus', description: 'Change how menu nodes are presented and restore page defaults.' },
   'access.permissions.read': { code: 'access.permissions.read', displayName: 'Read permissions', description: 'View the permission catalog of the current side.' },
   'access.roles.assign': { code: 'access.roles.assign', displayName: 'Assign members', description: 'Assign users to roles and remove them.' },
   'access.roles.create': { code: 'access.roles.create', displayName: 'Create roles', description: 'Create roles on the current side (platform or tenant).' },
@@ -68,6 +72,12 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'memberships.delete': 'organization.memberships.delete',
   'memberships.list': 'organization.memberships.read',
   'memberships.update': 'organization.memberships.update',
+  'menus.create': 'access.menus.create',
+  'menus.delete': 'access.menus.delete',
+  'menus.get': 'access.menus.read',
+  'menus.list': 'access.menus.read',
+  'menus.reset': 'access.menus.update',
+  'menus.update': 'access.menus.update',
   'permissions.list': 'access.permissions.read',
   'positions.create': 'organization.positions.create',
   'positions.delete': 'organization.positions.delete',

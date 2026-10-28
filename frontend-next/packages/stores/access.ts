@@ -9,18 +9,22 @@ import { SetupStoreId } from './store-ids'
 
 /**
  * 后端菜单树（auth.permissions 的 MenuNode）→ 壳层的菜单路由模型（MenuRoute）。
- * 标题给文案键：壳层按 te / t 翻译（各能力包的语言文件登记）；分组节点没有路由，给它一条以页面码命名的占位路径，
- * 侧栏按它当展开键，不会生成路由记录。
+ * 标题：运营改过或运营建的节点给原文，其余给文案键，壳层按 te / t 翻译（各能力包的语言文件登记）。
+ * 目录与外链没有路由，给它一条以节点码命名的占位路径（侧栏按它当展开键 / 外链键，不生成路由记录）；外链走 meta.link 新标签打开。
  */
 export function toMenuRoutes(menus: readonly MenuNode[]): MenuRoute[] {
   return menus.map(node => ({
     path: node.route || `/${node.code}`,
     name: node.code,
-    component: node.component || undefined,
+    component: node.kind === 'Page' ? node.component || undefined : undefined,
     meta: {
-      title: node.titleKey,
+      title: node.title || node.titleKey,
       icon: node.icon ?? undefined,
       order: node.order,
+      hidden: node.hidden || undefined,
+      keepAlive: node.keepAlive || undefined,
+      affixTab: node.affix || undefined,
+      link: node.kind === 'Link' ? node.externalUrl ?? undefined : undefined,
       permissions: node.permission ? [node.permission] : undefined,
     },
     children: node.children.length > 0 ? toMenuRoutes(node.children) : undefined,
