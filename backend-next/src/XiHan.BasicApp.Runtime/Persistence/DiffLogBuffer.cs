@@ -11,6 +11,7 @@ namespace XiHan.BasicApp.Runtime.Persistence;
 /// <summary>
 /// 一次调用里仓储写入产生的差异日志（作用域服务）：SqlSugar 在写入执行后、提交之前同步回调（ADR-0044），这里只收集；
 /// 调用以成功结束时由 Auditing 取走落库，失败的调用已回滚，取走后丢弃。
+/// 收集时复制一份：SqlSugar 在分表插入的各组之间复用同一个 <see cref="DiffLogModel"/>，留下引用会被后一组改掉。
 /// </summary>
 public sealed class DiffLogBuffer
 {
@@ -43,7 +44,27 @@ public sealed class DiffLogBuffer
         ArgumentNullException.ThrowIfNull(model);
         if (model.BusinessData is SqlSugarDiffLogData data && data.Services.GetService<DiffLogBuffer>() is { } buffer)
         {
-            buffer._changes.Add(model);
+            buffer._changes.Add(new DiffLogModel
+            {
+                DiffType = model.DiffType,
+                BusinessData = data,
+                BeforeData = Copy(model.BeforeData),
+                AfterData = Copy(model.AfterData),
+            });
         }
     }
+
+    private static List<DiffLogTableInfo>? Copy(List<DiffLogTableInfo>? rows)
+        => rows?.Select(static row => new DiffLogTableInfo
+        {
+            TableName = row.TableName,
+            TableDescription = row.TableDescription,
+            Columns = row.Columns?.Select(static column => new DiffLogColumnInfo
+            {
+                ColumnName = column.ColumnName,
+                ColumnDescription = column.ColumnDescription,
+                Value = column.Value,
+                IsPrimaryKey = column.IsPrimaryKey,
+            }).ToList() ?? [],
+        }).ToList();
 }
