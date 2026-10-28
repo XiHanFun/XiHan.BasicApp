@@ -4,6 +4,7 @@
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
@@ -58,6 +59,7 @@ public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<Sy
                 return removed.Error!;
             }
 
+            context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.RoleDelete) { RoleId = role.Id, RoleName = role.Name });
             succeeded.Add(id);
         }
 

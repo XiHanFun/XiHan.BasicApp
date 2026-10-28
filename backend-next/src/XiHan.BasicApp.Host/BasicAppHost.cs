@@ -3,6 +3,7 @@
 
 using Scalar.AspNetCore;
 using XiHan.BasicApp.Access;
+using XiHan.BasicApp.Auditing;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
@@ -64,7 +65,8 @@ public static class BasicAppHost
             .UseFeature<TenancyFeature>()
             .UseFeature<OrganizationFeature>()
             .UseFeature<AccessFeature>()
-            .UseFeature<SettingsFeature>();
+            .UseFeature<SettingsFeature>()
+            .UseFeature<AuditingFeature>();
             if (modules.Workbench)
             {
                 xihan.UseFeature<WorkbenchFeature>();

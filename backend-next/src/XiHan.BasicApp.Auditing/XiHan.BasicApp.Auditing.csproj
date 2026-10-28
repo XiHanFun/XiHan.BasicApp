@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Auditing</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 审计能力包（Tier 2）：按月分表的访问、异常、登录、数据变更、权限变更、条件命中、开放接口日志，操作日志的查询面（框架 Auditing.Database 落库），按链路聚合与保留清理。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+    <!-- 访问令牌的声明名（登录名、会话、模仿者）归 Identity -->
+    <ProjectReference Include="../XiHan.BasicApp.Identity/XiHan.BasicApp.Identity.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Domain" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Persistence.SqlSugar" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Localization.Abstractions" />
+    <!-- 操作审计：中间件排在框架 AuditMiddleware 里面，按权限的审计标记显式声明动作、补充细节；操作日志查的是框架的 AuditRecord 表 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Abstractions" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Database" />
+    <!-- 保留清理是代码登记的作业 -->
+    <XiHanFrameworkReference Include="XiHan.Framework.Scheduling.Abstractions" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Kernel.Generators" />
+    <XiHanFrameworkAnalyzer Include="XiHan.Framework.Persistence.Generators" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Localization/*.json" LogicalName="Localization/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

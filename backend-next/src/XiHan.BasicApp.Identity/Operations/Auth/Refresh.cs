@@ -1,6 +1,8 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
@@ -53,6 +55,9 @@ public sealed class Refresh(
         }
 
         var session = matches[0];
+        // 认出会话之后才记登录日志（拿着无效令牌的调用不记）；落在会话当前所在的一侧
+        var log = new LoginLogEntry(LoginEvent.Refresh) { TenantId = session.ActiveTenantId ?? TenantIds.Platform, UserId = session.UserId, SessionId = session.Id, ImpersonatorUserId = session.ImpersonatorUserId };
+        context.AddAuditLog(log);
         string? tenantName = null;
         if (session.ActiveTenantId is { } tenantId)
         {
@@ -85,6 +90,8 @@ public sealed class Refresh(
             return Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.AccountUnavailable, MessageArguments.Of(("status", user?.Status.ToString() ?? "Deleted")));
         }
 
+        log.UserName = user.UserName;
+        log.AccountTenantId = user.HomeTenantId;
         var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
         if (!securityResult.TryGetValue(out var security))
         {

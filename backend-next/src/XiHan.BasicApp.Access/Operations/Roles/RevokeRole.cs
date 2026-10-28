@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Primitives;
 
@@ -27,6 +28,6 @@ public sealed class RevokeRole(RoleService service, PermissionCatalog catalog, R
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
-        return RolePermissionBatch.RunAsync(request, context, service, catalog, grants.RevokeAsync);
+        return RolePermissionBatch.RunAsync(request, context, service, catalog, PermissionChangeType.RoleRevoke, grants.RevokeAsync);
     }
 }

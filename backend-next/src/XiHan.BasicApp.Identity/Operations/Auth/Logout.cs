@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Infrastructure;
@@ -33,6 +34,7 @@ public sealed class Logout(IRepository<SysUserSession, Guid> sessions, SessionGa
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
+        context.AddAuditLog(new LoginLogEntry(LoginEvent.Logout));
         var sid = context.GetSecurity().Principal.ClaimValues(IdentityClaims.Session).FirstOrDefault();
         if (sid is null || !Guid.TryParse(sid, out var sessionId))
         {
