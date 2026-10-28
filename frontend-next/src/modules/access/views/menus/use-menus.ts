@@ -1,3 +1,4 @@
+import type { SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
 import { menus as menusApi } from '~/contracts'
@@ -5,164 +6,228 @@ import { ApiError } from '~/request'
 
 export type MenuRow = ResponseOf<'menus.list'>['items'][number]
 export type MenuKind = MenuRow['kind']
+/** 运营能新建的种类：页面菜单来自页面登记，不在这里新建 */
+export type OperatorKind = Exclude<MenuKind, 'Page'>
 
-export interface FlatMenu {
-  node: MenuRow
-  depth: number
-}
+export const MENU_KINDS: readonly MenuKind[] = ['Directory', 'Page', 'Link']
+export const OPERATOR_KINDS: readonly OperatorKind[] = ['Directory', 'Link']
 
-export interface CreateMenuForm {
-  kind: 'Directory' | 'Link'
-  code: string
-  title: string
-  icon: string
-  order: string
-  /** 所属目录；空串即顶层（目录只能在顶层） */
-  parentId: string
-  externalUrl: string
-  permission: string
-}
+/** 运营节点的编码存为 custom.<名>（后端补前缀） */
+export const CUSTOM_CODE_PREFIX = 'custom.'
 
-export interface EditMenuForm {
-  title: string
-  icon: string
-  order: string
-  parentId: string
-  isVisible: boolean
-  keepAlive: boolean
-  isAffix: boolean
-  externalUrl: string
-  permission: string
-}
-
-function describe(error: unknown): string {
-  return error instanceof ApiError ? error.detail : String(error)
-}
-
-function toOrder(value: string): number {
-  return value.trim() === '' ? 0 : Number(value)
-}
-
-function blank(value: string): string | null {
+function blankToNull(value: string): null | string {
   return value.trim() === '' ? null : value.trim()
 }
 
-/**
- * 菜单页的状态与动作（平台侧）：整棵树（含隐藏与运营节点）、新建目录 / 外链、选中节点的编辑（页面节点只改展示、改过即定制）、
- * 页面节点恢复默认、删除运营节点。规则以后端为准：目录只在顶层、外链与顶层页面可挂目录、子页面钉在登记的父页面下。
- */
-export function useMenus() {
-  const items = ref<MenuRow[]>([])
-  const loading = ref(false)
-  const listError = ref<string | null>(null)
+/** 批量删除的结果里只有失败项的错误码：页面节点（ACCESS_CONFLICT_004）、还有子节点的目录（ACCESS_CONFLICT_005）由后端逐项拒绝 */
+function failedCodes(result: { failed: { code: string }[] }): void {
+  if (result.failed.length > 0)
+    throw new Error(result.failed.map(f => f.code).join('; '))
+}
 
-  const form = reactive<CreateMenuForm>({ kind: 'Directory', code: '', title: '', icon: '', order: '', parentId: '', externalUrl: '', permission: '' })
+/** 深度优先摊平整棵树（上级菜单的候选、子页面判定都在摊平后的序列里找） */
+export function flattenMenus(nodes: readonly MenuRow[], out: MenuRow[] = []): MenuRow[] {
+  for (const node of nodes) {
+    out.push(node)
+    flattenMenus(node.children, out)
+  }
+  return out
+}
+
+/** 本地筛选登记的字段：menus.list 一次返回整棵树、不收筛选参数，搜索在取回的整树上做 */
+const LOCAL_FILTERS = new Set(['keyword', 'kind', 'isVisible', 'isCustomized'])
+
+function isBlank(value: unknown): boolean {
+  return value === undefined || value === null || (typeof value === 'string' && value.trim() === '')
+}
+
+function matchesBoolean(value: unknown, actual: boolean): boolean {
+  return String(value) === String(actual)
+}
+
+/**
+ * 按搜索条件筛整棵菜单树：节点自身命中、或有命中的后代就留下（保留祖先链看得出层级），留下节点的子级只留命中的。
+ * 关键字匹配显示标题、编码、路由与外链地址；种类、显示、已定制精确匹配。没登记的字段、区间 / 多选出现即报错，不静默丢条件。
+ */
+export function filterMenuTree(nodes: readonly MenuRow[], params: Pick<SchemaQueryParams, 'conditionFilters' | 'filters'>, titleOf: (node: MenuRow) => string): MenuRow[] {
+  if (params.conditionFilters?.length)
+    throw new Error('菜单树不支持区间 / 多选搜索：页面字段不要声明 searchRange / searchMultiple')
+  const active = Object.entries(params.filters).filter(([, value]) => !isBlank(value))
+  for (const [field] of active) {
+    if (!LOCAL_FILTERS.has(field))
+      throw new Error(`搜索字段 ${field} 没有登记菜单树的本地筛选`)
+  }
+  if (active.length === 0)
+    return [...nodes]
+  const filters = Object.fromEntries(active)
+  const keyword = isBlank(filters.keyword) ? null : String(filters.keyword).trim().toLowerCase()
+  const matches = (node: MenuRow): boolean => {
+    if (keyword !== null && ![titleOf(node), node.code, node.route, node.externalUrl ?? ''].some(text => text.toLowerCase().includes(keyword)))
+      return false
+    if (!isBlank(filters.kind) && node.kind !== filters.kind)
+      return false
+    if (!isBlank(filters.isVisible) && !matchesBoolean(filters.isVisible, node.isVisible))
+      return false
+    return isBlank(filters.isCustomized) || matchesBoolean(filters.isCustomized, node.isCustomized)
+  }
+  const walk = (list: readonly MenuRow[]): MenuRow[] => list.flatMap((node) => {
+    const children = walk(node.children)
+    return matches(node) || children.length > 0 ? [{ ...node, children }] : []
+  })
+  return walk(nodes)
+}
+
+/**
+ * SchemaPage 的资源（树形模式）：整棵树（含隐藏与运营节点）在本地筛选后交给表格；删除只对运营节点生效。
+ * 取回的整树另交给 onLoaded（上级目录的候选与子页面判定按整树算，不受搜索影响）。
+ */
+export function menusResource(titleOf: (node: MenuRow) => string, onLoaded: (nodes: MenuRow[]) => void = () => {}): SchemaResource<MenuRow> {
+  return {
+    tree: async (params: SchemaQueryParams) => {
+      const { items } = await menusApi.list({})
+      onLoaded(items)
+      return filterMenuTree(items, params, titleOf)
+    },
+    remove: async id => failedCodes(await menusApi.delete({ ids: [String(id)] })),
+  }
+}
+
+/** 恢复默认：页面节点回到登记的展示并清掉定制标记 */
+export function resetMenu(id: string): Promise<MenuRow> {
+  return menusApi.reset({ id })
+}
+
+/** 弹窗表单：新建目录 / 外链与编辑共用一份（种类与编码只在新建时可填） */
+export interface MenuForm {
+  kind: MenuKind
+  code: string
+  title: string
+  icon: string
+  order: number
+  /** 所属目录；null 即顶层（目录只能在顶层） */
+  parentId: null | string
+  externalUrl: string
+  permission: string
+  isVisible: boolean
+  keepAlive: boolean
+  isAffix: boolean
+}
+
+export type MenuEditorMode = 'create' | 'edit'
+
+function emptyForm(): MenuForm {
+  return { kind: 'Directory', code: '', title: '', icon: '', order: 0, parentId: null, externalUrl: '', permission: '', isVisible: true, keepAlive: false, isAffix: false }
+}
+
+/**
+ * 菜单的编辑弹窗（平台侧）：新建目录（只在顶层）或外链（可挂目录）、编辑节点。
+ * 页面节点只改展示（标题覆盖、图标、排序、所属目录、显示、缓存、固定标签），改过即定制；路由、组件与权限来自页面登记，不送。
+ * 子页面钉在登记的父页面下，所属目录不能改。字段级错误挂回对应字段。
+ */
+export function useMenuEditor(isChildPage: (node: MenuRow) => boolean) {
+  const open = ref(false)
+  const mode = ref<MenuEditorMode>('create')
+  const editing = ref<MenuRow | null>(null)
+  const form = reactive<MenuForm>(emptyForm())
   const fieldErrors = ref<Record<string, string[]>>({})
-  const submitError = ref<string | null>(null)
+  const submitError = ref<null | string>(null)
   const submitting = ref(false)
 
-  const selected = ref<MenuRow | null>(null)
-  const edit = reactive<EditMenuForm>({ title: '', icon: '', order: '', parentId: '', isVisible: true, keepAlive: false, isAffix: false, externalUrl: '', permission: '' })
-  const editErrors = ref<Record<string, string[]>>({})
-  const detailError = ref<string | null>(null)
-  const notice = ref<'saved' | 'reset' | null>(null)
-  const working = ref(false)
+  const isEdit = computed(() => mode.value === 'edit')
+  const isPage = computed(() => form.kind === 'Page')
+  /** 目录只在顶层；子页面不能离开登记的父页面 */
+  const parentLocked = computed(() => form.kind === 'Directory' || (editing.value !== null && isChildPage(editing.value)))
 
-  /** 深度优先摊平，供树表逐行缩进 */
-  const flat = computed<FlatMenu[]>(() => {
-    const rows: FlatMenu[] = []
-    const walk = (nodes: readonly MenuRow[], depth: number) => {
-      for (const node of nodes) {
-        rows.push({ node, depth })
-        walk(node.children, depth + 1)
-      }
-    }
-    walk(items.value, 0)
-    return rows
-  })
-
-  const directories = computed(() => flat.value.map(row => row.node).filter(node => node.kind === 'Directory'))
-
-  /** 子页面（上级是页面节点）不能离开登记的父页面 */
-  function isChildPage(node: MenuRow | null): boolean {
-    if (!node || node.kind !== 'Page' || !node.parentId)
-      return false
-    return flat.value.find(row => row.node.id === node.parentId)?.node.kind === 'Page'
+  function reset(next: Partial<MenuForm> = {}) {
+    Object.assign(form, emptyForm(), next)
+    fieldErrors.value = {}
+    submitError.value = null
   }
 
-  async function load() {
-    loading.value = true
-    listError.value = null
-    try {
-      items.value = (await menusApi.list({})).items
-    }
-    catch (error) {
-      items.value = []
-      listError.value = describe(error)
-    }
-    finally {
-      loading.value = false
-    }
+  /** 新建：缺省目录；在某个目录下新建即外链挂在该目录 */
+  function startCreate(kind: OperatorKind = 'Directory', parentId: null | string = null) {
+    mode.value = 'create'
+    editing.value = null
+    reset({ kind, parentId: kind === 'Link' ? parentId : null })
+    open.value = true
   }
 
-  function fieldError(field: keyof CreateMenuForm): string | undefined {
+  function startEdit(row: MenuRow) {
+    mode.value = 'edit'
+    editing.value = row
+    reset({
+      kind: row.kind,
+      code: row.code,
+      title: row.title ?? '',
+      icon: row.icon ?? '',
+      order: row.order,
+      parentId: row.parentId ?? null,
+      externalUrl: row.externalUrl ?? '',
+      permission: row.permission ?? '',
+      isVisible: row.isVisible,
+      keepAlive: row.keepAlive,
+      isAffix: row.isAffix,
+    })
+    open.value = true
+  }
+
+  /** 新建时切换种类：目录不带上级 */
+  function changeKind(kind: OperatorKind) {
+    form.kind = kind
+    if (kind === 'Directory')
+      form.parentId = null
+  }
+
+  function fieldError(field: keyof MenuForm): string | undefined {
     return fieldErrors.value[field]?.[0]
   }
 
-  function editError(field: keyof EditMenuForm): string | undefined {
-    return editErrors.value[field]?.[0]
-  }
-
-  function apply(node: MenuRow) {
-    selected.value = node
-    edit.title = node.title ?? ''
-    edit.icon = node.icon ?? ''
-    edit.order = String(node.order)
-    edit.parentId = node.parentId ?? ''
-    edit.isVisible = node.isVisible
-    edit.keepAlive = node.keepAlive
-    edit.isAffix = node.isAffix
-    edit.externalUrl = node.externalUrl ?? ''
-    edit.permission = node.permission ?? ''
-  }
-
-  function handleFormError(error: unknown, fields: typeof fieldErrors, message: typeof submitError) {
-    if (error instanceof ApiError) {
-      fields.value = error.errors ?? {}
-      if (!error.hasFieldErrors)
-        message.value = error.detail
-    }
-    else {
-      message.value = String(error)
-    }
-  }
-
-  /** 新建目录或外链：目录不带上级与地址，外链地址必填 */
   async function submit(): Promise<boolean> {
     submitting.value = true
     submitError.value = null
     fieldErrors.value = {}
     try {
       const link = form.kind === 'Link'
-      const created = await menusApi.create({
-        kind: form.kind,
-        code: form.code.trim(),
-        title: form.title.trim(),
-        icon: blank(form.icon),
-        order: toOrder(form.order),
-        parentId: link ? form.parentId || null : null,
-        externalUrl: link ? blank(form.externalUrl) : null,
-        permission: blank(form.permission),
-        isVisible: true,
-      })
-      Object.assign(form, { code: '', title: '', icon: '', order: '', parentId: '', externalUrl: '', permission: '' })
-      await load()
-      apply(created)
-      notice.value = null
+      const current = editing.value
+      if (mode.value === 'edit' && current) {
+        await menusApi.update({
+          id: current.id,
+          title: blankToNull(form.title),
+          icon: blankToNull(form.icon),
+          order: form.order,
+          parentId: current.kind === 'Directory' ? null : form.parentId,
+          isVisible: form.isVisible,
+          keepAlive: form.keepAlive,
+          isAffix: form.isAffix,
+          externalUrl: link ? blankToNull(form.externalUrl) : null,
+          permission: current.kind === 'Page' ? null : blankToNull(form.permission),
+        })
+      }
+      else {
+        await menusApi.create({
+          kind: form.kind,
+          code: form.code.trim(),
+          title: form.title.trim(),
+          icon: blankToNull(form.icon),
+          order: form.order,
+          parentId: link ? form.parentId : null,
+          externalUrl: link ? blankToNull(form.externalUrl) : null,
+          permission: blankToNull(form.permission),
+          isVisible: form.isVisible,
+        })
+      }
+      open.value = false
       return true
     }
     catch (error) {
-      handleFormError(error, fieldErrors, submitError)
+      if (error instanceof ApiError) {
+        fieldErrors.value = error.errors ?? {}
+        if (!error.hasFieldErrors)
+          submitError.value = error.detail
+      }
+      else {
+        submitError.value = String(error)
+      }
       return false
     }
     finally {
@@ -170,128 +235,29 @@ export function useMenus() {
     }
   }
 
-  async function select(id: string) {
-    detailError.value = null
-    notice.value = null
-    editErrors.value = {}
-    try {
-      apply(await menusApi.get({ id }))
-    }
-    catch (error) {
-      selected.value = null
-      detailError.value = describe(error)
-    }
+  return { open, mode, isEdit, isPage, parentLocked, editing, form, fieldError, submitError, submitting, startCreate, startEdit, changeKind, submit }
+}
+
+/**
+ * 整棵菜单树（不受搜索影响）：上级目录的候选、子页面判定。
+ * 页面节点的上级若也是页面，就是登记里的子页面。
+ */
+export function useMenuTree() {
+  const nodes = ref<MenuRow[]>([])
+  const flat = computed(() => flattenMenus(nodes.value))
+  const directories = computed(() => flat.value.filter(node => node.kind === 'Directory'))
+
+  function find(id: null | string | undefined): MenuRow | undefined {
+    return id ? flat.value.find(node => node.id === id) : undefined
   }
 
-  /** 保存：页面节点不送外链与权限（来自页面登记），子页面的上级原样送回 */
-  async function save(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    editErrors.value = {}
-    try {
-      const page = current.kind === 'Page'
-      apply(await menusApi.update({
-        id: current.id,
-        title: blank(edit.title),
-        icon: blank(edit.icon),
-        order: toOrder(edit.order),
-        parentId: current.kind === 'Directory' ? null : edit.parentId || null,
-        isVisible: edit.isVisible,
-        keepAlive: edit.keepAlive,
-        isAffix: edit.isAffix,
-        externalUrl: current.kind === 'Link' ? blank(edit.externalUrl) : null,
-        permission: page ? null : blank(edit.permission),
-      }))
-      await load()
-      notice.value = 'saved'
-      return true
-    }
-    catch (error) {
-      handleFormError(error, editErrors, detailError)
-      return false
-    }
-    finally {
-      working.value = false
-    }
+  function isChildPage(node: MenuRow): boolean {
+    return node.kind === 'Page' && find(node.parentId)?.kind === 'Page'
   }
 
-  /** 恢复默认：页面节点回到登记的展示并清掉定制标记 */
-  async function reset(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      apply(await menusApi.reset({ id: current.id }))
-      await load()
-      notice.value = 'reset'
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
+  function setNodes(next: MenuRow[]) {
+    nodes.value = next
   }
 
-  /** 删除：页面节点与还有子节点的目录由后端逐项拒绝 */
-  async function remove(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      const result = await menusApi.delete({ ids: [current.id] })
-      if (result.failed.length > 0) {
-        detailError.value = result.failed.map(f => f.code).join('; ')
-        return false
-      }
-      selected.value = null
-      await load()
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  return {
-    items,
-    flat,
-    directories,
-    loading,
-    listError,
-    form,
-    fieldErrors,
-    fieldError,
-    submitError,
-    submitting,
-    selected,
-    edit,
-    editError,
-    detailError,
-    notice,
-    working,
-    isChildPage,
-    load,
-    submit,
-    select,
-    save,
-    reset,
-    remove,
-  }
+  return { nodes, flat, directories, find, isChildPage, setNodes }
 }
