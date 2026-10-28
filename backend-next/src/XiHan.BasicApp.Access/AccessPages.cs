@@ -16,7 +16,12 @@ public static class AccessPages
     public static PageDescriptor Roles { get; } = new("access.roles", "/access/roles", "access.roles.title", "lucide:shield", 200, AccessPermissions.RolesRead);
 
     /// <summary>
+    /// 菜单页（平台侧）。
+    /// </summary>
+    public static PageDescriptor Menus { get; } = new("access.menus", "/access/menus", "access.menus.title", "lucide:menu", 210, AccessPermissions.MenusRead);
+
+    /// <summary>
     /// 全部顶层页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Menus];
 }

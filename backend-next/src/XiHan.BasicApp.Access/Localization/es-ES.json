@@ -23,5 +23,21 @@
   "access.role.data_scope_not_applicable": "El rol de plataforma '{code}' solo puede tener el ámbito de datos 'Todo' y sin departamentos personalizados.",
   "access.role.custom_scope_empty": "El rol '{code}' usa un ámbito de datos personalizado pero no indica ningún departamento.",
   "access.department.not_found": "El departamento '{id}' no existe en este inquilino.",
-  "access.permission.side_denied": "Los principales de inquilino solo pueden ver el catálogo de permisos del lado del inquilino."
+  "access.permission.side_denied": "Los principales de inquilino solo pueden ver el catálogo de permisos del lado del inquilino.",
+  "menus.list.description": "Lista todo el árbol de menús (nodos ocultos, directorios y enlaces creados por operación y la marca de personalización de los nodos de página). Solo en el lado de la plataforma; requiere access.menus.read.",
+  "menus.get.description": "Obtiene un nodo de menú. Requiere access.menus.read.",
+  "menus.create.description": "Crea un nodo de operación: un directorio (solo en el nivel superior) o un enlace externo (http / https, puede ir dentro de un directorio); los nodos de página vienen de los registros de páginas y no se pueden crear. Requiere access.menus.create.",
+  "menus.update.description": "Modifica un nodo de menú: los nodos de página solo cambian la presentación (título, icono, orden, directorio, visibilidad, caché, pestaña fija) y quedan personalizados; los nodos de operación también pueden cambiar su enlace y permiso. Requiere access.menus.update.",
+  "menus.reset.description": "Restablece la presentación de un nodo de página a su registro y quita la marca de personalización. Requiere access.menus.update.",
+  "menus.delete.description": "Elimina nodos de operación por lotes; los nodos de página y los directorios que aún tienen hijos se rechazan elemento a elemento. Requiere access.menus.delete.",
+  "access.menu.not_found": "El menú '{id}' no existe.",
+  "access.menu.code_taken": "El código de menú '{code}' ya está en uso.",
+  "access.menu.built_in": "El menú '{code}' proviene de un registro de página y no se puede eliminar; ocúltalo en su lugar.",
+  "access.menu.has_children": "El directorio '{code}' aún contiene menús y no se puede eliminar.",
+  "access.menu.parent_invalid": "Padre no válido: los directorios van en el nivel superior, los enlaces y las páginas de nivel superior solo pueden ir dentro de un directorio y las subpáginas no pueden salir de su página padre registrada.",
+  "access.menu.url_invalid": "Un enlace externo debe ser una dirección absoluta http o https; los directorios no tienen.",
+  "access.menu.page_managed": "Los menús de página vienen de los registros de páginas: no se pueden crear y su ruta, componente, permiso y enlace no se pueden cambiar.",
+  "access.menu.title_required": "Los directorios y enlaces necesitan un título.",
+  "access.menu.not_page": "'{code}' no es un menú de página y no tiene valores predeterminados que restablecer.",
+  "access.menu.platform_only": "Los menús solo se pueden gestionar en el lado de la plataforma."
 }

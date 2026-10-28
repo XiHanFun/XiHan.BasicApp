@@ -23,5 +23,21 @@
   "access.role.data_scope_not_applicable": "平台角色 '{code}' 的資料範圍只能是全部，且不能帶自訂部門。",
   "access.role.custom_scope_empty": "角色 '{code}' 使用自訂資料範圍卻沒有列出任何部門。",
   "access.department.not_found": "部門 '{id}' 不在目前租戶。",
-  "access.permission.side_denied": "租戶主體只能查看租戶側的權限目錄。"
+  "access.permission.side_denied": "租戶主體只能查看租戶側的權限目錄。",
+  "menus.list.description": "列出整棵選單樹（含隱藏節點、營運建立的目錄與外部連結、頁面節點的自訂標記）。只在平台側；需要 access.menus.read 權限。",
+  "menus.get.description": "取得一個選單節點。需要 access.menus.read 權限。",
+  "menus.create.description": "新增營運節點：目錄（只在頂層）或外部連結（http / https，可放在目錄下）；頁面節點由頁面登記產生，不能新增。需要 access.menus.create 權限。",
+  "menus.update.description": "修改選單節點：頁面節點只改呈現（標題、圖示、排序、所屬目錄、可見、快取、固定分頁）並標為已自訂；營運節點另可改外部連結與權限。需要 access.menus.update 權限。",
+  "menus.reset.description": "把頁面節點的呈現還原為頁面登記的值並清除自訂標記。需要 access.menus.update 權限。",
+  "menus.delete.description": "批次刪除營運節點；頁面節點與仍有子節點的目錄逐項拒絕。需要 access.menus.delete 權限。",
+  "access.menu.not_found": "選單 '{id}' 不存在。",
+  "access.menu.code_taken": "選單編碼 '{code}' 已被佔用。",
+  "access.menu.built_in": "選單 '{code}' 由頁面登記產生，不能刪除；不想顯示可以設為隱藏。",
+  "access.menu.has_children": "目錄 '{code}' 下仍有選單，不能刪除。",
+  "access.menu.parent_invalid": "上層不合規：目錄只能在頂層，外部連結與頂層頁面只能放在目錄下，子頁面不能離開登記的父頁面。",
+  "access.menu.url_invalid": "外部連結須是 http 或 https 的絕對位址；目錄不能有外部連結。",
+  "access.menu.page_managed": "頁面選單由頁面登記產生：不能新增，路由、元件、權限與外部連結也不能改。",
+  "access.menu.title_required": "目錄與外部連結必須有標題。",
+  "access.menu.not_page": "'{code}' 不是頁面選單，沒有可還原的預設值。",
+  "access.menu.platform_only": "選單只能在平台側管理。"
 }

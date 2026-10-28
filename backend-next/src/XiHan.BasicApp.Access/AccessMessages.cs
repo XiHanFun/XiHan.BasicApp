@@ -140,6 +140,86 @@ public static class AccessMessages
     /// </summary>
     public const string PlatformSideDenied = "access.permission.side_denied";
 
+    /// <summary>
+    /// 操作 <c>menus.list</c> 的说明。
+    /// </summary>
+    public const string ListMenusDescription = "menus.list.description";
+
+    /// <summary>
+    /// 操作 <c>menus.get</c> 的说明。
+    /// </summary>
+    public const string GetMenuDescription = "menus.get.description";
+
+    /// <summary>
+    /// 操作 <c>menus.create</c> 的说明。
+    /// </summary>
+    public const string CreateMenuDescription = "menus.create.description";
+
+    /// <summary>
+    /// 操作 <c>menus.update</c> 的说明。
+    /// </summary>
+    public const string UpdateMenuDescription = "menus.update.description";
+
+    /// <summary>
+    /// 操作 <c>menus.reset</c> 的说明。
+    /// </summary>
+    public const string ResetMenuDescription = "menus.reset.description";
+
+    /// <summary>
+    /// 操作 <c>menus.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteMenusDescription = "menus.delete.description";
+
+    /// <summary>
+    /// 菜单节点不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string MenuNotFound = "access.menu.not_found";
+
+    /// <summary>
+    /// 菜单编码已被占用；参数 <c>code</c>。
+    /// </summary>
+    public const string MenuCodeTaken = "access.menu.code_taken";
+
+    /// <summary>
+    /// 页面菜单不能删除；参数 <c>code</c>。
+    /// </summary>
+    public const string MenuBuiltIn = "access.menu.built_in";
+
+    /// <summary>
+    /// 目录下还有节点；参数 <c>code</c>。
+    /// </summary>
+    public const string MenuHasChildren = "access.menu.has_children";
+
+    /// <summary>
+    /// 上级节点不合规。
+    /// </summary>
+    public const string MenuParentInvalid = "access.menu.parent_invalid";
+
+    /// <summary>
+    /// 外链地址不合规。
+    /// </summary>
+    public const string MenuUrlInvalid = "access.menu.url_invalid";
+
+    /// <summary>
+    /// 页面菜单的来源字段归页面登记。
+    /// </summary>
+    public const string MenuPageManaged = "access.menu.page_managed";
+
+    /// <summary>
+    /// 目录与外链必须有标题。
+    /// </summary>
+    public const string MenuTitleRequired = "access.menu.title_required";
+
+    /// <summary>
+    /// 不是页面菜单，没有默认值可恢复；参数 <c>code</c>。
+    /// </summary>
+    public const string MenuNotPage = "access.menu.not_page";
+
+    /// <summary>
+    /// 菜单只能在平台侧管理。
+    /// </summary>
+    public const string MenuPlatformOnly = "access.menu.platform_only";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

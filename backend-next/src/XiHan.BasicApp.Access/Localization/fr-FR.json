@@ -23,5 +23,21 @@
   "access.role.data_scope_not_applicable": "Le rôle de plateforme '{code}' ne peut avoir que la portée de données « Tout » et aucun service personnalisé.",
   "access.role.custom_scope_empty": "Le rôle '{code}' utilise une portée de données personnalisée sans indiquer de service.",
   "access.department.not_found": "Le service '{id}' n'existe pas dans ce locataire.",
-  "access.permission.side_denied": "Les principaux d'un locataire ne peuvent consulter que le catalogue de permissions côté locataire."
+  "access.permission.side_denied": "Les principaux d'un locataire ne peuvent consulter que le catalogue de permissions côté locataire.",
+  "menus.list.description": "Liste tout l'arbre des menus (nœuds masqués, répertoires et liens créés par l'exploitation, et indicateur de personnalisation des nœuds de page). Côté plateforme uniquement ; nécessite access.menus.read.",
+  "menus.get.description": "Récupère un nœud de menu. Nécessite access.menus.read.",
+  "menus.create.description": "Crée un nœud d'exploitation : un répertoire (niveau supérieur uniquement) ou un lien externe (http / https, éventuellement dans un répertoire) ; les nœuds de page viennent des enregistrements de pages et ne peuvent pas être créés. Nécessite access.menus.create.",
+  "menus.update.description": "Modifie un nœud de menu : les nœuds de page ne changent que la présentation (titre, icône, ordre, répertoire, visibilité, cache, onglet épinglé) et deviennent personnalisés ; les nœuds d'exploitation peuvent aussi changer leur lien et leur permission. Nécessite access.menus.update.",
+  "menus.reset.description": "Rétablit la présentation d'un nœud de page selon son enregistrement et retire l'indicateur de personnalisation. Nécessite access.menus.update.",
+  "menus.delete.description": "Supprime des nœuds d'exploitation par lot ; les nœuds de page et les répertoires qui ont encore des enfants sont refusés un à un. Nécessite access.menus.delete.",
+  "access.menu.not_found": "Le menu '{id}' n'existe pas.",
+  "access.menu.code_taken": "Le code de menu '{code}' est déjà pris.",
+  "access.menu.built_in": "Le menu '{code}' provient d'un enregistrement de page et ne peut pas être supprimé ; masquez-le plutôt.",
+  "access.menu.has_children": "Le répertoire '{code}' contient encore des menus et ne peut pas être supprimé.",
+  "access.menu.parent_invalid": "Parent invalide : les répertoires restent au niveau supérieur, les liens et les pages de niveau supérieur ne peuvent aller que dans un répertoire, et les sous-pages ne peuvent pas quitter leur page parente enregistrée.",
+  "access.menu.url_invalid": "Un lien externe doit être une adresse absolue http ou https ; les répertoires n'en ont pas.",
+  "access.menu.page_managed": "Les menus de page viennent des enregistrements de pages : ils ne peuvent pas être créés, et leur route, composant, permission et lien ne peuvent pas changer.",
+  "access.menu.title_required": "Les répertoires et les liens ont besoin d'un titre.",
+  "access.menu.not_page": "'{code}' n'est pas un menu de page et n'a pas de valeurs par défaut à rétablir.",
+  "access.menu.platform_only": "Les menus ne se gèrent que côté plateforme."
 }
