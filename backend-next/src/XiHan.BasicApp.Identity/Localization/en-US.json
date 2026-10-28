@@ -54,5 +54,7 @@
   "identity.two_factor.method_unavailable": "Verification method {method} is not available.",
   "identity.two_factor.unavailable": "Two-factor is on for this account but no method is usable. Ask an administrator to reset it.",
   "identity.two_factor.totp_already_enabled": "An authenticator is already bound; turn it off first to switch devices.",
-  "identity.two_factor.totp_setup_missing": "The authenticator binding has expired or was not started. Generate a new key."
+  "identity.two_factor.totp_setup_missing": "The authenticator binding has expired or was not started. Generate a new key.",
+  "identity.field_security.protected": "Field {field} is protected by field security and cannot be used to filter or sort.",
+  "identity.field_security.read_only": "Field {field} is read-only for you and cannot be filled in or changed."
 }

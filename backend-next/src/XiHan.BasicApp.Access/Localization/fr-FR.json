@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "Définir ou retirer le remplacement du périmètre de données d’un utilisateur (côté locataire uniquement) ; il remplace entièrement les périmètres des rôles. Requiert access.user-data-scopes.update.",
   "access.grant.window_invalid": "Période de validité invalide : la fin ({expiresAt}) doit être postérieure au début ({effectiveAt}).",
   "access.user_data_scope.tenant_only": "Les périmètres de données utilisateur se définissent côté locataire uniquement.",
-  "access.user_data_scope.departments": "Un périmètre personnalisé doit lister des départements ; les autres périmètres ne le peuvent pas."
+  "access.user_data_scope.departments": "Un périmètre personnalisé doit lister des départements ; les autres périmètres ne le peuvent pas.",
+  "field_security.entities.description": "Lister les entités et champs que la sécurité des champs peut protéger (déclarés par chaque paquet). Requiert access.field-security.read.",
+  "field_security.list.description": "Lister avec pagination les règles de sécurité des champs du côté courant. Requiert access.field-security.read.",
+  "field_security.get.description": "Lire une règle de sécurité des champs. Requiert access.field-security.read.",
+  "field_security.create.description": "Créer une règle de sécurité des champs : comment un rôle, un utilisateur ou un département lit un champ et s’il peut le modifier. Requiert access.field-security.create.",
+  "field_security.update.description": "Modifier une règle de sécurité des champs, y compris l’activer ou la désactiver. Requiert access.field-security.update.",
+  "field_security.delete.description": "Supprimer des règles de sécurité des champs. Requiert access.field-security.delete.",
+  "access.field_security.not_found": "La règle de sécurité des champs {id} n’existe pas.",
+  "access.field_security.taken": "Cette cible a déjà une règle sur {entity}.{field} ; modifiez celle-ci.",
+  "access.field_security.entity_unknown": "L’entité {entity} ne prend pas en charge la sécurité des champs.",
+  "access.field_security.field_unknown": "L’entité {entity} n’a pas de champ configurable {field}.",
+  "access.field_security.strategy_not_applicable": "Le champ {field} ne peut pas utiliser la stratégie {strategy} : les champs non textuels ne peuvent être qu’affichés en lecture seule ou masqués, et les champs non nullables ne peuvent pas être masqués.",
+  "access.field_security.no_effect": "Une règle en clair et modifiable ne restreint rien ; choisissez un masquage ou passez-la en lecture seule.",
+  "access.field_security.keep_invalid": "Le masquage partiel doit conserver de 0 à {max} caractères à chaque extrémité, et pas 0 aux deux (cela revient à tout masquer).",
+  "access.field_security.replacement_invalid": "La stratégie de texte fixe exige un texte d’au plus {max} caractères.",
+  "access.field_security.target_tenant_only": "Les cibles de département se configurent côté locataire uniquement.",
+  "access.field_security.target_disabled": "La cible {kind} {id} est désactivée et ne peut pas recevoir de règles de sécurité des champs."
 }

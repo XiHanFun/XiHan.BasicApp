@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "ユーザー単位のデータ範囲の上書きを設定または解除します（テナント側のみ）。上書きはロールのデータ範囲を完全に置き換えます。access.user-data-scopes.update 権限が必要です。",
   "access.grant.window_invalid": "有効期間が不正です：終了（{expiresAt}）は開始（{effectiveAt}）より後でなければなりません。",
   "access.user_data_scope.tenant_only": "ユーザー単位のデータ範囲はテナント側でのみ設定できます。",
-  "access.user_data_scope.departments": "カスタムのデータ範囲には部門が必要で、それ以外の範囲には部門を指定できません。"
+  "access.user_data_scope.departments": "カスタムのデータ範囲には部門が必要で、それ以外の範囲には部門を指定できません。",
+  "field_security.entities.description": "フィールドセキュリティを設定できるエンティティとフィールドを一覧します（各パッケージが登録）。access.field-security.read 権限が必要です。",
+  "field_security.list.description": "現在の側のフィールドセキュリティルールをページングで一覧します。access.field-security.read 権限が必要です。",
+  "field_security.get.description": "フィールドセキュリティルールを取得します。access.field-security.read 権限が必要です。",
+  "field_security.create.description": "フィールドセキュリティルールを作成します：ロール、ユーザー、部門がフィールドをどう読み、変更できるかを設定します。access.field-security.create 権限が必要です。",
+  "field_security.update.description": "フィールドセキュリティルールを変更します（有効・無効を含む）。access.field-security.update 権限が必要です。",
+  "field_security.delete.description": "フィールドセキュリティルールを削除します。access.field-security.delete 権限が必要です。",
+  "access.field_security.not_found": "フィールドセキュリティルール {id} は存在しません。",
+  "access.field_security.taken": "この対象には {entity}.{field} のルールが既にあります。そのルールを変更してください。",
+  "access.field_security.entity_unknown": "エンティティ {entity} はフィールドセキュリティに対応していません。",
+  "access.field_security.field_unknown": "エンティティ {entity} に設定可能なフィールド {field} はありません。",
+  "access.field_security.strategy_not_applicable": "フィールド {field} には読み取り方式 {strategy} を使えません：テキスト以外のフィールドは平文読み取り専用か非表示のみ、null にできないフィールドは非表示にできません。",
+  "access.field_security.no_effect": "平文で編集可能なルールは何も制限しません。マスク方式を選ぶか読み取り専用にしてください。",
+  "access.field_security.keep_invalid": "部分マスクの保持桁数は 0～{max} で、前後とも 0 にはできません（全マスクと同じになります）。",
+  "access.field_security.replacement_invalid": "固定テキスト方式には {max} 文字以内の表示文字が必要です。",
+  "access.field_security.target_tenant_only": "部門の対象はテナント側でのみ設定できます。",
+  "access.field_security.target_disabled": "対象 {kind} {id} は無効化されているため、フィールドセキュリティルールを設定できません。"
 }

@@ -83,6 +83,7 @@ public sealed class IdentityFeature : IFeature
         // 权限目录与页面登记：Access 汇总成权限目录、菜单种子与 auth.permissions 的菜单树
         context.Services.AddPermissionCatalog("identity", IdentityPermissions.All);
         context.Services.AddPageCatalog("identity", IdentityPages.All);
+        context.Services.AddFieldSecurityCatalog("identity", IdentityFieldSecurity.All);
         // 权限码先登记，操作契约才能引用；未登记的权限码在装配时报错
         foreach (var permission in IdentityPermissions.All)
         {

@@ -40,10 +40,31 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork)
         // 数据范围（方案 5.6）：受限主体只看得到自己与可见部门里的用户
         query = query.ApplyDataScope(await DataScopeQuery.ResolveAsync(context).ConfigureAwait(false), static u => u.Id);
 
+        // 字段安全（方案 5.9）：读受保护的字段不能拿来筛选与排序（按结果可反推原值），关键字搜索也不再覆盖它们
+        var rules = await FieldSecurityQuery.ResolveAsync(context, IdentityFieldSecurity.Users).ConfigureAwait(false);
+        if (rules.FirstProtected(request) is { } protectedField)
+        {
+            return Error.Denied(IdentityErrors.FieldProtected, IdentityMessages.FieldProtected, MessageArguments.Of(("field", protectedField)));
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Keyword))
         {
             var keyword = request.Keyword.Trim();
-            query = query.Where(u => u.UserName.Contains(keyword) || u.DisplayName.Contains(keyword));
+            switch (rules.CanSearch(IdentityFieldSecurity.UserName), rules.CanSearch(IdentityFieldSecurity.DisplayName))
+            {
+                case (true, true):
+                    query = query.Where(u => u.UserName.Contains(keyword) || u.DisplayName.Contains(keyword));
+                    break;
+                case (true, false):
+                    query = query.Where(u => u.UserName.Contains(keyword));
+                    break;
+                case (false, true):
+                    query = query.Where(u => u.DisplayName.Contains(keyword));
+                    break;
+                default:
+                    // 关键字能搜的字段都受保护：没有可匹配的行
+                    return new PageResult<UserResponse>([], 0, request.Page);
+            }
         }
 
         foreach (var filter in request.Filters)
@@ -80,7 +101,7 @@ public sealed class UserQueries(SqlSugarUnitOfWork unitOfWork)
 
         var total = new RefAsync<int>();
         var rows = await query.ToPageListAsync(request.Page.Index, request.Page.Size, total, context.CancellationToken).ConfigureAwait(false);
-        return new PageResult<UserResponse>(rows.Select(UserResponse.From).ToList(), total.Value, request.Page);
+        return new PageResult<UserResponse>(rows.Select(u => UserResponse.From(u, rules)).ToList(), total.Value, request.Page);
     }
 
     private static Result<ISugarQueryable<SysUser>> Apply(ISugarQueryable<SysUser> query, PageFilter filter)

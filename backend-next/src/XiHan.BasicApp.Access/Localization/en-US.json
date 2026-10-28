@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "Set or clear a user's data scope override (tenant side only); the override replaces the roles' scopes entirely. Requires access.user-data-scopes.update.",
   "access.grant.window_invalid": "Invalid validity window: the expiry ({expiresAt}) must be later than the start ({effectiveAt}).",
   "access.user_data_scope.tenant_only": "User data scopes are set on the tenant side only.",
-  "access.user_data_scope.departments": "A custom data scope must list departments; other scopes must not."
+  "access.user_data_scope.departments": "A custom data scope must list departments; other scopes must not.",
+  "field_security.entities.description": "List the entities and fields that field security can protect (registered by each package). Requires access.field-security.read.",
+  "field_security.list.description": "List the field security rules of the current side with paging. Requires access.field-security.read.",
+  "field_security.get.description": "Get a field security rule. Requires access.field-security.read.",
+  "field_security.create.description": "Create a field security rule: how a role, user or department reads a field and whether it may change it. Requires access.field-security.create.",
+  "field_security.update.description": "Edit a field security rule, including enabling and disabling it. Requires access.field-security.update.",
+  "field_security.delete.description": "Delete field security rules. Requires access.field-security.delete.",
+  "access.field_security.not_found": "Field security rule {id} does not exist.",
+  "access.field_security.taken": "This target already has a rule on {entity}.{field}; edit that one instead.",
+  "access.field_security.entity_unknown": "Entity {entity} does not support field security.",
+  "access.field_security.field_unknown": "Entity {entity} has no configurable field {field}.",
+  "access.field_security.strategy_not_applicable": "Field {field} cannot use the {strategy} strategy: non-text fields can only be shown read-only or hidden, and non-nullable fields cannot be hidden.",
+  "access.field_security.no_effect": "A plain, editable rule restricts nothing; choose a mask or make it read-only.",
+  "access.field_security.keep_invalid": "Partial masking must keep 0 to {max} characters at each end, and not zero at both (that is the same as a full mask).",
+  "access.field_security.replacement_invalid": "The fixed-text strategy needs a text of at most {max} characters.",
+  "access.field_security.target_tenant_only": "Department targets are configured on the tenant side only.",
+  "access.field_security.target_disabled": "Target {kind} {id} is disabled and cannot get field security rules."
 }

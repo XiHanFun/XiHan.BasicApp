@@ -77,4 +77,9 @@ public enum PermissionChangeType
     /// 设置或清除用户级数据范围覆盖。
     /// </summary>
     UserDataScope = 13,
+
+    /// <summary>
+    /// 新建、修改或删除字段安全规则。
+    /// </summary>
+    FieldSecurity = 14,
 }

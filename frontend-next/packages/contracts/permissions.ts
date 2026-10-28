@@ -4,6 +4,10 @@ import type { OperationId } from './operations'
 
 /** 权限定义表（码、显示名、说明）：授权界面按它生成。 */
 export const permissionDefinitions = {
+  'access.field-security.create': { code: 'access.field-security.create', displayName: 'Create field security', description: 'Create rules that mask or lock fields for roles, users or departments.' },
+  'access.field-security.delete': { code: 'access.field-security.delete', displayName: 'Delete field security', description: 'Delete field security rules.' },
+  'access.field-security.read': { code: 'access.field-security.read', displayName: 'Read field security', description: 'View field security rules and the entities and fields they can protect.' },
+  'access.field-security.update': { code: 'access.field-security.update', displayName: 'Update field security', description: 'Edit, enable and disable field security rules.' },
   'access.menus.create': { code: 'access.menus.create', displayName: 'Create menus', description: 'Create directories and external links in the menu.' },
   'access.menus.delete': { code: 'access.menus.delete', displayName: 'Delete menus', description: 'Delete operator-created directories and links.' },
   'access.menus.read': { code: 'access.menus.read', displayName: 'Read menus', description: 'View the whole menu tree, including hidden and operator-created nodes.' },
@@ -121,6 +125,12 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'editions.update': 'tenancy.editions.update',
   'exception-logs.get': 'auditing.exception-logs.read',
   'exception-logs.list': 'auditing.exception-logs.read',
+  'field-security.create': 'access.field-security.create',
+  'field-security.delete': 'access.field-security.delete',
+  'field-security.entities': 'access.field-security.read',
+  'field-security.get': 'access.field-security.read',
+  'field-security.list': 'access.field-security.read',
+  'field-security.update': 'access.field-security.update',
   'impersonation.candidates': 'identity.impersonation.start',
   'impersonation.start': 'identity.impersonation.start',
   'login-logs.get': 'auditing.login-logs.read',

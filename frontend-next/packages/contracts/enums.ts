@@ -23,6 +23,15 @@ export type DataScope = (typeof DataScope)[number]
 export const DiffKind = ['Insert', 'Update', 'Delete'] as const
 export type DiffKind = (typeof DiffKind)[number]
 
+export const FieldMaskStrategy = ['None', 'Hidden', 'FullMask', 'PartialMask', 'Hash', 'Redact'] as const
+export type FieldMaskStrategy = (typeof FieldMaskStrategy)[number]
+
+export const FieldRuleStatus = ['Active', 'Disabled'] as const
+export type FieldRuleStatus = (typeof FieldRuleStatus)[number]
+
+export const FieldSecurityTargetKind = ['Role', 'User', 'Department'] as const
+export type FieldSecurityTargetKind = (typeof FieldSecurityTargetKind)[number]
+
 export const LoginEvent = ['Login', 'Refresh', 'Logout', 'SwitchTenant', 'ImpersonationStart', 'ImpersonationStop', 'ChangePassword', 'TwoFactorChallenge', 'TwoFactorEnable', 'TwoFactorDisable', 'TwoFactorReset'] as const
 export type LoginEvent = (typeof LoginEvent)[number]
 
@@ -44,7 +53,7 @@ export type OrganizationStatus = (typeof OrganizationStatus)[number]
 export const PermissionAction = ['Grant', 'Deny'] as const
 export type PermissionAction = (typeof PermissionAction)[number]
 
-export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope'] as const
+export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity'] as const
 export type PermissionChangeType = (typeof PermissionChangeType)[number]
 
 export const PermissionScope = ['Platform', 'Tenant', 'Both'] as const
@@ -89,6 +98,9 @@ export const enums = {
   ConfigDataType,
   DataScope,
   DiffKind,
+  FieldMaskStrategy,
+  FieldRuleStatus,
+  FieldSecurityTargetKind,
   LoginEvent,
   MenuKind,
   NumberingDateFormat,

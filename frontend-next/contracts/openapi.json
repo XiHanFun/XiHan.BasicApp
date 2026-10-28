@@ -4725,6 +4725,720 @@
         }
       }
     },
+    "/api/field-security": {
+      "delete": {
+        "operationId": "field-security.delete",
+        "tags": [
+          "field-security"
+        ],
+        "summary": "Delete field security rules. Requires access.field-security.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.field-security.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "field-security.create",
+        "tags": [
+          "field-security"
+        ],
+        "summary": "Create a field security rule: how a role, user or department reads a field and whether it may change it. Requires access.field-security.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.field-security.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateFieldSecurityRuleRequest",
+                "type": "object",
+                "properties": {
+                  "targetKind": {
+                    "$ref": "#/components/schemas/FieldSecurityTargetKind"
+                  },
+                  "targetId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "entity": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "field": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "strategy": {
+                    "$ref": "#/components/schemas/FieldMaskStrategy"
+                  },
+                  "keepHead": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 32
+                  },
+                  "keepTail": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 32
+                  },
+                  "replacement": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "isEditable": {
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/FieldRuleStatus"
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  }
+                },
+                "required": [
+                  "targetKind",
+                  "targetId",
+                  "entity",
+                  "field",
+                  "strategy"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "FieldSecurityRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "targetKind": {
+                      "$ref": "#/components/schemas/FieldSecurityTargetKind"
+                    },
+                    "targetId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "targetName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "entity": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    },
+                    "strategy": {
+                      "$ref": "#/components/schemas/FieldMaskStrategy"
+                    },
+                    "keepHead": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "keepTail": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "replacement": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isEditable": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/FieldRuleStatus"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "targetKind",
+                    "targetId",
+                    "entity",
+                    "field",
+                    "strategy",
+                    "isEditable",
+                    "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/field-security/{id}": {
+      "get": {
+        "operationId": "field-security.get",
+        "tags": [
+          "field-security"
+        ],
+        "summary": "Get a field security rule. Requires access.field-security.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.field-security.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "FieldSecurityRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "targetKind": {
+                      "$ref": "#/components/schemas/FieldSecurityTargetKind"
+                    },
+                    "targetId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "targetName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "entity": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    },
+                    "strategy": {
+                      "$ref": "#/components/schemas/FieldMaskStrategy"
+                    },
+                    "keepHead": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "keepTail": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "replacement": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isEditable": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/FieldRuleStatus"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "targetKind",
+                    "targetId",
+                    "entity",
+                    "field",
+                    "strategy",
+                    "isEditable",
+                    "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "field-security.update",
+        "tags": [
+          "field-security"
+        ],
+        "summary": "Edit a field security rule, including enabling and disabling it. Requires access.field-security.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.field-security.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateFieldSecurityRuleRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "targetKind": {
+                    "$ref": "#/components/schemas/FieldSecurityTargetKind"
+                  },
+                  "targetId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "entity": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "field": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "strategy": {
+                    "$ref": "#/components/schemas/FieldMaskStrategy"
+                  },
+                  "keepHead": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 32
+                  },
+                  "keepTail": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ],
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 32
+                  },
+                  "replacement": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "isEditable": {
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/FieldRuleStatus"
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  }
+                },
+                "required": [
+                  "id",
+                  "targetKind",
+                  "targetId",
+                  "entity",
+                  "field",
+                  "strategy"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "FieldSecurityRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "targetKind": {
+                      "$ref": "#/components/schemas/FieldSecurityTargetKind"
+                    },
+                    "targetId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "targetName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "entity": {
+                      "type": "string"
+                    },
+                    "field": {
+                      "type": "string"
+                    },
+                    "strategy": {
+                      "$ref": "#/components/schemas/FieldMaskStrategy"
+                    },
+                    "keepHead": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "keepTail": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "replacement": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isEditable": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/FieldRuleStatus"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "targetKind",
+                    "targetId",
+                    "entity",
+                    "field",
+                    "strategy",
+                    "isEditable",
+                    "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/field-security:entities": {
+      "get": {
+        "operationId": "field-security.entities",
+        "tags": [
+          "field-security"
+        ],
+        "summary": "List the entities and fields that field security can protect (registered by each package). Requires access.field-security.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.field-security.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "FieldSecurityEntitiesResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldSecurityEntityResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/field-security:list": {
+      "post": {
+        "operationId": "field-security.list",
+        "tags": [
+          "field-security"
+        ],
+        "summary": "List the field security rules of the current side with paging. Requires access.field-security.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.field-security.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfFieldSecurityRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/FieldSecurityRuleResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/impersonation:candidates": {
       "get": {
         "operationId": "impersonation.candidates",
@@ -14854,6 +15568,155 @@
           "message"
         ]
       },
+      "FieldMaskStrategy": {
+        "type": "string",
+        "enum": [
+          "None",
+          "Hidden",
+          "FullMask",
+          "PartialMask",
+          "Hash",
+          "Redact"
+        ]
+      },
+      "FieldRuleStatus": {
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
+        ]
+      },
+      "FieldSecurityEntityResponse": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "titleKey": {
+            "type": "string"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldSecurityFieldResponse"
+            }
+          }
+        },
+        "required": [
+          "code",
+          "titleKey",
+          "fields"
+        ]
+      },
+      "FieldSecurityFieldResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "titleKey": {
+            "type": "string"
+          },
+          "isText": {
+            "type": "boolean"
+          },
+          "isNullable": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "titleKey",
+          "isText",
+          "isNullable"
+        ]
+      },
+      "FieldSecurityRuleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetKind": {
+            "$ref": "#/components/schemas/FieldSecurityTargetKind"
+          },
+          "targetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "targetName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entity": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/FieldMaskStrategy"
+          },
+          "keepHead": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "keepTail": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "replacement": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isEditable": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FieldRuleStatus"
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "targetKind",
+          "targetId",
+          "entity",
+          "field",
+          "strategy",
+          "isEditable",
+          "status",
+          "createdAt"
+        ]
+      },
+      "FieldSecurityTargetKind": {
+        "type": "string",
+        "enum": [
+          "Role",
+          "User",
+          "Department"
+        ]
+      },
       "ImpersonationCandidateResponse": {
         "type": "object",
         "properties": {
@@ -15875,7 +16738,8 @@
           "UserGrant",
           "UserDeny",
           "UserRevoke",
-          "UserDataScope"
+          "UserDataScope",
+          "FieldSecurity"
         ]
       },
       "PermissionFailure": {
@@ -16620,6 +17484,26 @@
       }
     },
     "x-xihan-permissions": {
+      "access.field-security.create": {
+        "code": "access.field-security.create",
+        "displayName": "Create field security",
+        "description": "Create rules that mask or lock fields for roles, users or departments."
+      },
+      "access.field-security.delete": {
+        "code": "access.field-security.delete",
+        "displayName": "Delete field security",
+        "description": "Delete field security rules."
+      },
+      "access.field-security.read": {
+        "code": "access.field-security.read",
+        "displayName": "Read field security",
+        "description": "View field security rules and the entities and fields they can protect."
+      },
+      "access.field-security.update": {
+        "code": "access.field-security.update",
+        "displayName": "Update field security",
+        "description": "Edit, enable and disable field security rules."
+      },
       "access.menus.create": {
         "code": "access.menus.create",
         "displayName": "Create menus",

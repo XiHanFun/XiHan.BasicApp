@@ -54,5 +54,7 @@
   "identity.two_factor.method_unavailable": "O método de verificação {method} não está disponível.",
   "identity.two_factor.unavailable": "A conta tem autenticação de dois fatores ativada, mas nenhum método utilizável. Peça a um administrador para redefini-la.",
   "identity.two_factor.totp_already_enabled": "Já existe um autenticador vinculado; desative-o primeiro para trocar de aparelho.",
-  "identity.two_factor.totp_setup_missing": "A vinculação do autenticador expirou ou não foi iniciada. Gere uma nova chave."
+  "identity.two_factor.totp_setup_missing": "A vinculação do autenticador expirou ou não foi iniciada. Gere uma nova chave.",
+  "identity.field_security.protected": "O campo {field} é protegido pela segurança de campos e não pode ser usado para filtrar ou ordenar.",
+  "identity.field_security.read_only": "O campo {field} é somente leitura para você e não pode ser preenchido nem alterado."
 }

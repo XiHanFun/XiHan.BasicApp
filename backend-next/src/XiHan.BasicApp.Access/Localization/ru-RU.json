@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "Задать или снять переопределение области данных пользователя (только на стороне арендатора); оно полностью заменяет области данных ролей. Требуется access.user-data-scopes.update.",
   "access.grant.window_invalid": "Неверный срок действия: окончание ({expiresAt}) должно быть позже начала ({effectiveAt}).",
   "access.user_data_scope.tenant_only": "Области данных пользователя задаются только на стороне арендатора.",
-  "access.user_data_scope.departments": "Пользовательская область данных должна перечислять отделы, остальные области — нет."
+  "access.user_data_scope.departments": "Пользовательская область данных должна перечислять отделы, остальные области — нет.",
+  "field_security.entities.description": "Показать сущности и поля, которые может защищать безопасность полей (их регистрирует каждый пакет). Требуется access.field-security.read.",
+  "field_security.list.description": "Постранично показать правила безопасности полей текущей стороны. Требуется access.field-security.read.",
+  "field_security.get.description": "Получить правило безопасности полей. Требуется access.field-security.read.",
+  "field_security.create.description": "Создать правило безопасности полей: как роль, пользователь или отдел видит поле и может ли его менять. Требуется access.field-security.create.",
+  "field_security.update.description": "Изменить правило безопасности полей, включая его включение и выключение. Требуется access.field-security.update.",
+  "field_security.delete.description": "Удалить правила безопасности полей. Требуется access.field-security.delete.",
+  "access.field_security.not_found": "Правило безопасности полей {id} не существует.",
+  "access.field_security.taken": "У этой цели уже есть правило для {entity}.{field}; измените его.",
+  "access.field_security.entity_unknown": "Сущность {entity} не поддерживает безопасность полей.",
+  "access.field_security.field_unknown": "У сущности {entity} нет настраиваемого поля {field}.",
+  "access.field_security.strategy_not_applicable": "Для поля {field} нельзя использовать способ {strategy}: нетекстовые поля можно только показывать без изменения или скрывать, а поля, не допускающие пустого значения, скрывать нельзя.",
+  "access.field_security.no_effect": "Открытое и изменяемое правило ничего не ограничивает; выберите маскирование или сделайте его только для чтения.",
+  "access.field_security.keep_invalid": "Частичное маскирование должно сохранять от 0 до {max} символов с каждого края и не 0 с обоих (это то же, что полное маскирование).",
+  "access.field_security.replacement_invalid": "Для способа «фиксированный текст» нужен текст не длиннее {max} символов.",
+  "access.field_security.target_tenant_only": "Цели-отделы настраиваются только на стороне арендатора.",
+  "access.field_security.target_disabled": "Цель {kind} {id} отключена, для неё нельзя задавать правила безопасности полей."
 }

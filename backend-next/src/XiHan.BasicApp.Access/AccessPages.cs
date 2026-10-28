@@ -21,15 +21,17 @@ public static class AccessPages
     public static PageDescriptor Menus { get; } = new("access.menus", "/access/menus", "access.menus.title", "lucide:menu", 210, AccessPermissions.MenusRead);
 
     /// <summary>
-    /// 全部顶层页面。
-    /// </summary>
-    /// <summary>
     /// 权限目录（只读）：各包登记的权限码按包分组。
     /// </summary>
     public static PageDescriptor Permissions { get; } = new("access.permissions", "/access/permissions", "access.permissions.title", "lucide:key-round", 205, AccessPermissions.PermissionsRead);
 
     /// <summary>
+    /// 字段安全：按角色、用户或部门给实体字段打码或锁定。
+    /// </summary>
+    public static PageDescriptor FieldSecurity { get; } = new("access.field-security", "/access/field-security", "access.field_security.title", "lucide:eye-off", 207, AccessPermissions.FieldSecurityRead);
+
+    /// <summary>
     /// 全部页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, Menus];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, FieldSecurity, Menus];
 }

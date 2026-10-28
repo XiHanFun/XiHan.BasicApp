@@ -574,6 +574,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/field-security": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a field security rule: how a role, user or department reads a field and whether it may change it. Requires access.field-security.create. */
+        post: operations["field-security.create"];
+        /** Delete field security rules. Requires access.field-security.delete. */
+        delete: operations["field-security.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/field-security/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a field security rule. Requires access.field-security.read. */
+        get: operations["field-security.get"];
+        /** Edit a field security rule, including enabling and disabling it. Requires access.field-security.update. */
+        put: operations["field-security.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/field-security:entities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the entities and fields that field security can protect (registered by each package). Requires access.field-security.read. */
+        get: operations["field-security.entities"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/field-security:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List the field security rules of the current side with paging. Requires access.field-security.read. */
+        post: operations["field-security.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/impersonation:candidates": {
         parameters: {
             query?: never;
@@ -2005,6 +2075,44 @@ export interface components {
             environmentName?: string | null;
             appVersion?: string | null;
         };
+        /** @enum {string} */
+        FieldMaskStrategy: "None" | "Hidden" | "FullMask" | "PartialMask" | "Hash" | "Redact";
+        /** @enum {string} */
+        FieldRuleStatus: "Active" | "Disabled";
+        FieldSecurityEntityResponse: {
+            code: string;
+            titleKey: string;
+            fields: components["schemas"]["FieldSecurityFieldResponse"][];
+        };
+        FieldSecurityFieldResponse: {
+            name: string;
+            titleKey: string;
+            isText: boolean;
+            isNullable: boolean;
+        };
+        FieldSecurityRuleResponse: {
+            /** Format: uuid */
+            id: string;
+            targetKind: components["schemas"]["FieldSecurityTargetKind"];
+            /** Format: uuid */
+            targetId: string;
+            targetName?: string | null;
+            entity: string;
+            field: string;
+            strategy: components["schemas"]["FieldMaskStrategy"];
+            /** Format: int32 */
+            keepHead?: number | null;
+            /** Format: int32 */
+            keepTail?: number | null;
+            replacement?: string | null;
+            isEditable: boolean;
+            status: components["schemas"]["FieldRuleStatus"];
+            remark?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        /** @enum {string} */
+        FieldSecurityTargetKind: "Role" | "User" | "Department";
         ImpersonationCandidateResponse: {
             /** Format: uuid */
             id: string;
@@ -2260,7 +2368,7 @@ export interface components {
             detail?: string | null;
         };
         /** @enum {string} */
-        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope";
+        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope" | "FieldSecurity";
         PermissionFailure: {
             permission: string;
             code: string;
@@ -4523,6 +4631,305 @@ export interface operations {
                 content: {
                     "application/json": {
                         items: components["schemas"]["ExceptionLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "field-security.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    targetKind: components["schemas"]["FieldSecurityTargetKind"];
+                    /** Format: uuid */
+                    targetId: string;
+                    entity: string;
+                    field: string;
+                    strategy: components["schemas"]["FieldMaskStrategy"];
+                    /** Format: int32 */
+                    keepHead?: number | null;
+                    /** Format: int32 */
+                    keepTail?: number | null;
+                    replacement?: string | null;
+                    isEditable?: boolean;
+                    status?: components["schemas"]["FieldRuleStatus"];
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        targetKind: components["schemas"]["FieldSecurityTargetKind"];
+                        /** Format: uuid */
+                        targetId: string;
+                        targetName?: string | null;
+                        entity: string;
+                        field: string;
+                        strategy: components["schemas"]["FieldMaskStrategy"];
+                        /** Format: int32 */
+                        keepHead?: number | null;
+                        /** Format: int32 */
+                        keepTail?: number | null;
+                        replacement?: string | null;
+                        isEditable: boolean;
+                        status: components["schemas"]["FieldRuleStatus"];
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "field-security.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "field-security.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        targetKind: components["schemas"]["FieldSecurityTargetKind"];
+                        /** Format: uuid */
+                        targetId: string;
+                        targetName?: string | null;
+                        entity: string;
+                        field: string;
+                        strategy: components["schemas"]["FieldMaskStrategy"];
+                        /** Format: int32 */
+                        keepHead?: number | null;
+                        /** Format: int32 */
+                        keepTail?: number | null;
+                        replacement?: string | null;
+                        isEditable: boolean;
+                        status: components["schemas"]["FieldRuleStatus"];
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "field-security.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    targetKind: components["schemas"]["FieldSecurityTargetKind"];
+                    /** Format: uuid */
+                    targetId: string;
+                    entity: string;
+                    field: string;
+                    strategy: components["schemas"]["FieldMaskStrategy"];
+                    /** Format: int32 */
+                    keepHead?: number | null;
+                    /** Format: int32 */
+                    keepTail?: number | null;
+                    replacement?: string | null;
+                    isEditable?: boolean;
+                    status?: components["schemas"]["FieldRuleStatus"];
+                    remark?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        targetKind: components["schemas"]["FieldSecurityTargetKind"];
+                        /** Format: uuid */
+                        targetId: string;
+                        targetName?: string | null;
+                        entity: string;
+                        field: string;
+                        strategy: components["schemas"]["FieldMaskStrategy"];
+                        /** Format: int32 */
+                        keepHead?: number | null;
+                        /** Format: int32 */
+                        keepTail?: number | null;
+                        replacement?: string | null;
+                        isEditable: boolean;
+                        status: components["schemas"]["FieldRuleStatus"];
+                        remark?: string | null;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "field-security.entities": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["FieldSecurityEntityResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "field-security.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["FieldSecurityRuleResponse"][];
                         /** Format: int64 */
                         total: number;
                         page: components["schemas"]["PageInfo"];

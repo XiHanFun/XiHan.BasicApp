@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Text.Json.Serialization;
+using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Access.Operations.Auth;
+using XiHan.BasicApp.Access.Operations.FieldSecurity;
 using XiHan.BasicApp.Access.Operations.Menus;
 using XiHan.BasicApp.Access.Operations.Permissions;
 using XiHan.BasicApp.Access.Operations.Roles;
@@ -58,4 +60,13 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(MenuIdsRequest))]
 [JsonSerializable(typeof(MenuResponse))]
 [JsonSerializable(typeof(MenusResponse))]
+[JsonSerializable(typeof(FieldSecurityEntitiesRequest))]
+[JsonSerializable(typeof(FieldSecurityEntitiesResponse))]
+[JsonSerializable(typeof(GetFieldSecurityRuleRequest))]
+[JsonSerializable(typeof(FieldSecurityRuleIdsRequest))]
+[JsonSerializable(typeof(CreateFieldSecurityRuleRequest))]
+[JsonSerializable(typeof(UpdateFieldSecurityRuleRequest))]
+[JsonSerializable(typeof(FieldSecurityRuleResponse))]
+[JsonSerializable(typeof(PageResult<FieldSecurityRuleResponse>))]
+[JsonSerializable(typeof(List<FieldSecurityRuleView>))]
 public sealed partial class AccessJsonContext : JsonSerializerContext;

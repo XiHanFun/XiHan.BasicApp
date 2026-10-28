@@ -2,8 +2,10 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
+using XiHan.BasicApp.Runtime.Queries;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
@@ -42,6 +44,17 @@ public sealed class CreateUser(IRepository<SysUser, Guid> users, IRepository<Sys
         }
 
         var homeTenant = currentTenant ?? requested ?? TenantIds.Platform;
+
+        // 字段安全（方案 5.9）：只读字段不能填写
+        var rules = await FieldSecurityQuery.ResolveAsync(context, IdentityFieldSecurity.Users).ConfigureAwait(false);
+        foreach (var (field, value) in new[] { (IdentityFieldSecurity.UserName, request.UserName), (IdentityFieldSecurity.DisplayName, request.DisplayName), (IdentityFieldSecurity.Email, request.Email), (IdentityFieldSecurity.PhoneNumber, request.PhoneNumber) })
+        {
+            if (rules.OnCreate(field, value?.Trim()) == FieldWrite.Denied)
+            {
+                return Error.Denied(IdentityErrors.FieldReadOnly, IdentityMessages.FieldReadOnly, MessageArguments.Of(("field", field)));
+            }
+        }
+
         var userName = request.UserName.Trim();
         if ((await accounts.FindByNameAsync(homeTenant, userName, context.CancellationToken).ConfigureAwait(false)).HasValue)
         {
@@ -90,6 +103,6 @@ public sealed class CreateUser(IRepository<SysUser, Guid> users, IRepository<Sys
             }
         }
 
-        return UserResponse.From(user);
+        return UserResponse.From(user, rules);
     }
 }

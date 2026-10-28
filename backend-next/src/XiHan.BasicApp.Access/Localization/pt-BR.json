@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "Definir ou remover a substituição do escopo de dados de um usuário (somente no lado do locatário); ela substitui por completo os escopos das funções. Requer access.user-data-scopes.update.",
   "access.grant.window_invalid": "Vigência inválida: o fim ({expiresAt}) deve ser posterior ao início ({effectiveAt}).",
   "access.user_data_scope.tenant_only": "Escopos de dados de usuário só são definidos no lado do locatário.",
-  "access.user_data_scope.departments": "Um escopo de dados personalizado deve listar departamentos; os demais escopos não podem tê-los."
+  "access.user_data_scope.departments": "Um escopo de dados personalizado deve listar departamentos; os demais escopos não podem tê-los.",
+  "field_security.entities.description": "Listar as entidades e campos que a segurança de campos pode proteger (registrados por cada pacote). Requer access.field-security.read.",
+  "field_security.list.description": "Listar com paginação as regras de segurança de campos do lado atual. Requer access.field-security.read.",
+  "field_security.get.description": "Obter uma regra de segurança de campos. Requer access.field-security.read.",
+  "field_security.create.description": "Criar uma regra de segurança de campos: como uma função, usuário ou departamento lê um campo e se pode alterá-lo. Requer access.field-security.create.",
+  "field_security.update.description": "Editar uma regra de segurança de campos, incluindo ativá-la e desativá-la. Requer access.field-security.update.",
+  "field_security.delete.description": "Excluir regras de segurança de campos. Requer access.field-security.delete.",
+  "access.field_security.not_found": "A regra de segurança de campos {id} não existe.",
+  "access.field_security.taken": "Este destino já tem uma regra em {entity}.{field}; edite essa.",
+  "access.field_security.entity_unknown": "A entidade {entity} não suporta segurança de campos.",
+  "access.field_security.field_unknown": "A entidade {entity} não tem o campo configurável {field}.",
+  "access.field_security.strategy_not_applicable": "O campo {field} não pode usar a estratégia {strategy}: campos que não são texto só podem ser exibidos como somente leitura ou ocultos, e campos não anuláveis não podem ser ocultos.",
+  "access.field_security.no_effect": "Uma regra em texto claro e editável não restringe nada; escolha um mascaramento ou torne-a somente leitura.",
+  "access.field_security.keep_invalid": "O mascaramento parcial deve manter de 0 a {max} caracteres em cada ponta, e não 0 nas duas (isso equivale a mascarar tudo).",
+  "access.field_security.replacement_invalid": "A estratégia de texto fixo precisa de um texto de no máximo {max} caracteres.",
+  "access.field_security.target_tenant_only": "Destinos de departamento só são configurados no lado do locatário.",
+  "access.field_security.target_disabled": "O destino {kind} {id} está desativado e não pode receber regras de segurança de campos."
 }

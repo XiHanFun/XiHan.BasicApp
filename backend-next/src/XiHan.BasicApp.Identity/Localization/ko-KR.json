@@ -54,5 +54,7 @@
   "identity.two_factor.method_unavailable": "인증 방법 {method}을(를) 사용할 수 없습니다.",
   "identity.two_factor.unavailable": "이 계정은 2단계 인증이 켜져 있지만 사용할 수 있는 방법이 없습니다. 관리자에게 초기화를 요청하세요.",
   "identity.two_factor.totp_already_enabled": "인증 앱이 이미 등록되어 있습니다. 기기를 바꾸려면 먼저 끄고 다시 등록하세요.",
-  "identity.two_factor.totp_setup_missing": "인증 앱 등록이 만료되었거나 시작되지 않았습니다. 키를 다시 생성하세요."
+  "identity.two_factor.totp_setup_missing": "인증 앱 등록이 만료되었거나 시작되지 않았습니다. 키를 다시 생성하세요.",
+  "identity.field_security.protected": "필드 {field}은(는) 필드 보안으로 보호되어 필터나 정렬에 쓸 수 없습니다.",
+  "identity.field_security.read_only": "필드 {field}은(는) 읽기 전용이어서 입력하거나 변경할 수 없습니다."
 }

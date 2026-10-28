@@ -195,6 +195,7 @@ export default {
         user_deny: 'Negação ao usuário',
         user_revoke: 'Revogação do usuário',
         user_data_scope: 'Escopo de dados do usuário',
+        field_security: 'Regra de segurança de campos',
       },
       role_id: 'ID do papel',
       role_name: 'Papel',

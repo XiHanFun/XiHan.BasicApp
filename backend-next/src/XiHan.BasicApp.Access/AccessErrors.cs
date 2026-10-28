@@ -127,4 +127,54 @@ public static class AccessErrors
     /// 用户级自定义数据范围要列出部门，其他范围不能带部门。
     /// </summary>
     public const string UserDataScopeDepartments = "ACCESS_VALIDATION_013";
+
+    /// <summary>
+    /// 字段安全规则不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string FieldRuleNotFound = "ACCESS_NOTFOUND_005";
+
+    /// <summary>
+    /// 这一侧这个目标在这个字段上已有规则；参数 <c>entity</c>、<c>field</c>。
+    /// </summary>
+    public const string FieldRuleTaken = "ACCESS_CONFLICT_006";
+
+    /// <summary>
+    /// 实体没有登记字段安全；参数 <c>entity</c>。
+    /// </summary>
+    public const string FieldEntityUnknown = "ACCESS_VALIDATION_014";
+
+    /// <summary>
+    /// 实体没有这个可配置字段；参数 <c>entity</c>、<c>field</c>。
+    /// </summary>
+    public const string FieldUnknown = "ACCESS_VALIDATION_015";
+
+    /// <summary>
+    /// 读取方式不适用于这个字段（非文本只能明文或隐藏，不可空的不能隐藏）；参数 <c>field</c>、<c>strategy</c>。
+    /// </summary>
+    public const string FieldStrategyNotApplicable = "ACCESS_VALIDATION_016";
+
+    /// <summary>
+    /// 明文且可改写的规则什么都没限制。
+    /// </summary>
+    public const string FieldRuleNoEffect = "ACCESS_VALIDATION_017";
+
+    /// <summary>
+    /// 部分脱敏的保留位数不合规；参数 <c>max</c>。
+    /// </summary>
+    public const string FieldKeepInvalid = "ACCESS_VALIDATION_018";
+
+    /// <summary>
+    /// 固定文本缺失或过长；参数 <c>max</c>。
+    /// </summary>
+    public const string FieldReplacementInvalid = "ACCESS_VALIDATION_019";
+
+    /// <summary>
+    /// 部门目标只在租户侧。
+    /// </summary>
+    public const string FieldTargetTenantOnly = "ACCESS_VALIDATION_020";
+
+    /// <summary>
+    /// 目标（角色或部门）已停用；参数 <c>kind</c>、<c>id</c>。
+    /// </summary>
+    public const string FieldTargetDisabled = "ACCESS_VALIDATION_021";
 }
