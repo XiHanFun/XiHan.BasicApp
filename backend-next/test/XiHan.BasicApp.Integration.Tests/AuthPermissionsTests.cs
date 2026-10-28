@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Net;
+using System.Text.Json;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 
 namespace XiHan.BasicApp.Integration.Tests;
@@ -42,11 +43,14 @@ public sealed class AuthPermissionsTests : IDisposable
         Assert.Equal(["admin"], body.GetProperty("roles").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
 
         var menus = body.GetProperty("menus").EnumerateArray().ToList();
-        Assert.Equal(["identity.users", "access.roles", "tenancy.tenants", "tenancy.editions"], menus.Select(static m => m.GetProperty("code").GetString()).ToList());
-        Assert.Equal("identity/users/index", menus[0].GetProperty("component").GetString());
-        Assert.Equal("/access/roles", menus[1].GetProperty("route").GetString());
-        Assert.Equal("access.roles.read", menus[1].GetProperty("permission").GetString());
-        Assert.Equal(["identity.users", "access.roles", "tenancy.tenants", "tenancy.editions"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
+        // 工作台（Tier 3 模块，排序 0、登录即可见）是第一页：登录后的落点
+        Assert.Equal(["workbench.dashboard", "identity.users", "access.roles", "access.menus", "tenancy.tenants", "tenancy.editions"], menus.Select(static m => m.GetProperty("code").GetString()).ToList());
+        Assert.Equal("Page", menus[0].GetProperty("kind").GetString());
+        Assert.Equal(JsonValueKind.Null, menus[0].GetProperty("permission").ValueKind);
+        Assert.Equal("identity/users/index", menus[1].GetProperty("component").GetString());
+        Assert.Equal("/access/roles", menus[2].GetProperty("route").GetString());
+        Assert.Equal("access.roles.read", menus[2].GetProperty("permission").GetString());
+        Assert.Equal(["workbench.dashboard", "identity.users", "access.roles", "access.menus", "tenancy.tenants", "tenancy.editions"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
 
         var (catalog, catalogBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permissions", token: admin));
         Assert.Equal(HttpStatusCode.OK, catalog.StatusCode);
@@ -74,8 +78,8 @@ public sealed class AuthPermissionsTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(["identity.users.read"], body.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList());
         Assert.Equal(["viewer"], body.GetProperty("roles").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
-        Assert.Equal(["identity.users"], body.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
-        Assert.Equal(["identity.users"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "identity.users"], body.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "identity.users"], body.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()).ToList());
 
         // 没有 access.permissions.read 的主体看不到权限目录
         var (catalog, catalogBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/permissions", token: token));
@@ -93,7 +97,7 @@ public sealed class AuthPermissionsTests : IDisposable
         Assert.False(body.GetProperty("isPlatform").GetBoolean());
         Assert.Equal(["identity.users.create", "identity.users.read"], body.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList());
         Assert.Equal(0, body.GetProperty("roles").GetArrayLength());
-        Assert.Equal(["identity.users"], body.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
+        Assert.Equal(["workbench.dashboard", "identity.users"], body.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
 
         var (anonymous, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}"));
         Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
