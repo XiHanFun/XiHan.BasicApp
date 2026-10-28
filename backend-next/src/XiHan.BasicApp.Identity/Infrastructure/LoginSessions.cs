@@ -1,0 +1,91 @@
+// Copyright (c) 2021-Present XiHanFun and contributors.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
+using XiHan.BasicApp.Contracts.Auditing;
+using XiHan.BasicApp.Identity.Domain.Entities;
+using XiHan.BasicApp.Identity.Domain.Services;
+using XiHan.BasicApp.Identity.Operations.Auth;
+using XiHan.BasicApp.Identity.Operations.Users;
+using XiHan.Framework.Persistence.Abstractions.Identifiers;
+using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Primitives;
+
+namespace XiHan.BasicApp.Identity.Infrastructure;
+
+/// <summary>
+/// 登录完成（作用域服务）：密码登录与两步验证的最后一步共用——清零失败计数与锁定、记最近登录、开会话、取角色并签发令牌对。
+/// 会话记下客户端地址与 User-Agent；登录日志补上会话 ID。
+/// </summary>
+/// <param name="accounts">账号域服务。</param>
+/// <param name="users">用户仓储。</param>
+/// <param name="securities">账号安全仓储。</param>
+/// <param name="sessions">会话仓储。</param>
+/// <param name="issuer">令牌签发器。</param>
+/// <param name="options">身份配置。</param>
+/// <param name="ids">标识生成器。</param>
+/// <param name="clock">时间源。</param>
+public sealed class LoginSessions(
+    UserAccountService accounts,
+    IRepository<SysUser, Guid> users,
+    IRepository<SysUserSecurity, Guid> securities,
+    IRepository<SysUserSession, Guid> sessions,
+    AccessTokenIssuer issuer,
+    IdentityOptions options,
+    IIdGenerator<Guid> ids,
+    TimeProvider clock)
+{
+    /// <summary>
+    /// 为已通过全部验证的账号开会话。
+    /// </summary>
+    /// <param name="user">账号。</param>
+    /// <param name="security">账号安全（本方法写回清零的计数与锁定）。</param>
+    /// <param name="tenantId">登录的上下文；平台为 <see langword="null"/>。</param>
+    /// <param name="tenantName">上下文的显示名。</param>
+    /// <param name="log">本次调用登记的登录日志。</param>
+    /// <param name="context">调用上下文。</param>
+    public async Task<Result<TokenResponse>> StartAsync(SysUser user, SysUserSecurity security, string? tenantId, string? tenantName, LoginLogEntry log, InvocationContext context)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        ArgumentNullException.ThrowIfNull(security);
+        ArgumentNullException.ThrowIfNull(log);
+        ArgumentNullException.ThrowIfNull(context);
+        var now = clock.GetUtcNow();
+        security.FailedAccessCount = 0;
+        security.LockoutEndAt = null;
+        var securityUpdated = await securities.UpdateAsync(security, context.CancellationToken).ConfigureAwait(false);
+        if (securityUpdated.IsFailure)
+        {
+            return securityUpdated.Error!;
+        }
+
+        user.LastLoginAt = now;
+        var userUpdated = await users.UpdateAsync(user, context.CancellationToken).ConfigureAwait(false);
+        if (userUpdated.IsFailure)
+        {
+            return userUpdated.Error!;
+        }
+
+        var refreshToken = RefreshTokens.Generate();
+        var session = new SysUserSession
+        {
+            Id = ids.NewId(),
+            UserId = user.Id,
+            ActiveTenantId = tenantId,
+            RefreshTokenHash = RefreshTokens.Hash(refreshToken),
+            IssuedAt = now,
+            RefreshExpiresAt = now + options.RefreshTokenLifetime,
+            IpAddress = SessionClient.AddressOf(context),
+            ClientInfo = SessionClient.AgentOf(context),
+        };
+        var added = await sessions.AddAsync(session, context.CancellationToken).ConfigureAwait(false);
+        if (added.IsFailure)
+        {
+            return added.Error!;
+        }
+
+        log.SessionId = session.Id;
+        var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
+        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles);
+        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName);
+    }
+}

@@ -38,6 +38,7 @@ export default {
         lock: 'Bloquear',
         unlock: 'Desbloquear',
         reset_password: 'Restablecer contraseña',
+        reset_two_factor: 'Restablecer dos factores',
         impersonate: 'Suplantar',
         generate_password: 'Volver a generar',
         add_department: 'Añadir al departamento',
@@ -49,6 +50,8 @@ export default {
       confirm_unlock: '¿Desbloquear «{name}»?',
       locked: 'Cuenta bloqueada',
       unlocked: 'Cuenta desbloqueada',
+      confirm_reset_two_factor: '¿Restablecer la autenticación de dos factores de «{name}»? Se borra la vinculación del autenticador; la próxima vez iniciará sesión solo con la contraseña y deberá vincularlo de nuevo.',
+      two_factor_reset: 'Dos factores restablecidos',
       impersonate_content: 'Iniciará sesión como «{name}» para investigar su problema. Las acciones realizadas durante ese tiempo quedan auditadas.',
       impersonate_failed: 'No se pudo iniciar la suplantación',
       reset_title: 'Restablecer contraseña · {name}',
@@ -75,38 +78,6 @@ export default {
       member_form: {
         department: 'Departamento',
         position: 'Puesto',
-      },
-    },
-    login: {
-      title: 'Iniciar sesión',
-      description: 'Inicie sesión con su nombre de usuario y contraseña.',
-      fields: {
-        tenant: 'Inquilino',
-        user_name: 'Nombre de usuario',
-        password: 'Contraseña',
-      },
-      tenant_placeholder: 'Déjelo vacío para una cuenta de plataforma',
-      subtitle: 'Introduzca su nombre de usuario y contraseña para iniciar sesión',
-      user_name_placeholder: 'Nombre de usuario o correo',
-      password_placeholder: 'Contraseña',
-      actions: {
-        sign_in: 'Iniciar sesión',
-      },
-    },
-    profile: {
-      change_password: {
-        title: 'Cambiar contraseña',
-        description: 'Introduzca la contraseña actual y una nueva (al menos 8 caracteres con letras y dígitos). Sus demás sesiones se cerrarán.',
-        fields: {
-          current_password: 'Contraseña actual',
-          new_password: 'Nueva contraseña',
-          confirm_password: 'Confirmar nueva contraseña',
-        },
-        mismatch: 'Las dos contraseñas nuevas no coinciden.',
-        success: 'Contraseña cambiada; sus demás sesiones se han cerrado.',
-        actions: {
-          submit: 'Cambiar contraseña',
-        },
       },
     },
   },

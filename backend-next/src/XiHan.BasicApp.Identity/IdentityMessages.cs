@@ -216,6 +216,86 @@ public static class IdentityMessages
     /// </summary>
     public const string ImpersonationTargetUnavailable = "identity.impersonation.target_unavailable";
 
+    /// <summary>
+    /// 操作 <c>auth.verify-two-factor</c> 的说明。
+    /// </summary>
+    public const string VerifyTwoFactorDescription = "auth.verify_two_factor.description";
+
+    /// <summary>
+    /// 操作 <c>auth.captcha</c> 的说明。
+    /// </summary>
+    public const string IssueCaptchaDescription = "auth.captcha.description";
+
+    /// <summary>
+    /// 操作 <c>auth.login-config</c> 的说明。
+    /// </summary>
+    public const string LoginConfigDescription = "auth.login_config.description";
+
+    /// <summary>
+    /// 操作 <c>profile.get</c> 的说明。
+    /// </summary>
+    public const string GetProfileDescription = "profile.get.description";
+
+    /// <summary>
+    /// 操作 <c>profile.setup-totp</c> 的说明。
+    /// </summary>
+    public const string SetupTotpDescription = "profile.setup_totp.description";
+
+    /// <summary>
+    /// 操作 <c>profile.enable-two-factor</c> 的说明。
+    /// </summary>
+    public const string EnableTwoFactorDescription = "profile.enable_two_factor.description";
+
+    /// <summary>
+    /// 操作 <c>profile.disable-two-factor</c> 的说明。
+    /// </summary>
+    public const string DisableTwoFactorDescription = "profile.disable_two_factor.description";
+
+    /// <summary>
+    /// 操作 <c>users.reset-two-factor</c> 的说明。
+    /// </summary>
+    public const string ResetTwoFactorDescription = "users.reset_two_factor.description";
+
+    /// <summary>
+    /// 图形验证码不对。
+    /// </summary>
+    public const string CaptchaInvalid = "identity.auth.captcha_invalid";
+
+    /// <summary>
+    /// 登录被节流；参数 <c>retryAfter</c>。
+    /// </summary>
+    public const string LoginThrottled = "identity.auth.login_throttled";
+
+    /// <summary>
+    /// 两步验证票据失效。
+    /// </summary>
+    public const string TwoFactorTicketInvalid = "identity.two_factor.ticket_invalid";
+
+    /// <summary>
+    /// 双因素验证码不对。
+    /// </summary>
+    public const string TwoFactorCodeInvalid = "identity.two_factor.code_invalid";
+
+    /// <summary>
+    /// 双因素方式不可用；参数 <c>method</c>。
+    /// </summary>
+    public const string TwoFactorMethodUnavailable = "identity.two_factor.method_unavailable";
+
+    /// <summary>
+    /// 开着双因素却没有可用方式。
+    /// </summary>
+    public const string TwoFactorUnavailable = "identity.two_factor.unavailable";
+
+    /// <summary>
+    /// 认证器已经绑定。
+    /// </summary>
+    public const string TotpAlreadyEnabled = "identity.two_factor.totp_already_enabled";
+
+    /// <summary>
+    /// 没有待确认的认证器密钥。
+    /// </summary>
+    public const string TotpSetupMissing = "identity.two_factor.totp_setup_missing";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

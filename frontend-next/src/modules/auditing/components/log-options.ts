@@ -40,6 +40,10 @@ export function loginEventLabel(t: Translate, value: LoginEvent): string {
     case 'ImpersonationStart': return t('auditing.login_logs.events.impersonation_start')
     case 'ImpersonationStop': return t('auditing.login_logs.events.impersonation_stop')
     case 'ChangePassword': return t('auditing.login_logs.events.change_password')
+    case 'TwoFactorChallenge': return t('auditing.login_logs.events.two_factor_challenge')
+    case 'TwoFactorEnable': return t('auditing.login_logs.events.two_factor_enable')
+    case 'TwoFactorDisable': return t('auditing.login_logs.events.two_factor_disable')
+    case 'TwoFactorReset': return t('auditing.login_logs.events.two_factor_reset')
   }
 }
 

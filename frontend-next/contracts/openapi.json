@@ -266,13 +266,77 @@
         }
       }
     },
+    "/api/auth:captcha": {
+      "post": {
+        "operationId": "auth.captcha",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Issue a captcha (4 digits, valid for one use within 5 minutes).",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CaptchaRequest",
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "CaptchaResponse",
+                  "type": "object",
+                  "properties": {
+                    "captchaId": {
+                      "type": "string"
+                    },
+                    "image": {
+                      "type": "string"
+                    },
+                    "expiresInSeconds": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "captchaId",
+                    "image",
+                    "expiresInSeconds"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth:login": {
       "post": {
         "operationId": "auth.login",
         "tags": [
           "auth"
         ],
-        "summary": "Sign in with user name and password (tenant optional; platform accounts leave it empty); returns access and refresh tokens.",
+        "summary": "Sign in with user name and password (tenant optional; platform accounts leave it empty; when the captcha is on, include the id and code from auth.captcha). Returns a second-step ticket when the account has two-factor on, otherwise access and refresh tokens.",
         "x-xihan-stability": "Preview",
         "security": [],
         "parameters": [],
@@ -300,6 +364,20 @@
                       "null"
                     ],
                     "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+                  },
+                  "captchaId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "captchaCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 16
                   }
                 },
                 "required": [
@@ -316,60 +394,86 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "title": "TokenResponse",
+                  "title": "LoginResponse",
                   "type": "object",
                   "properties": {
-                    "accessToken": {
-                      "type": "string"
-                    },
-                    "accessExpiresAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "refreshToken": {
-                      "type": "string"
-                    },
-                    "refreshExpiresAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "sessionId": {
-                      "type": "string",
-                      "format": "uuid"
-                    },
-                    "tenantId": {
-                      "type": [
-                        "string",
-                        "null"
+                    "token": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/TokenResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
                       ]
                     },
-                    "mustChangePassword": {
+                    "twoFactor": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/TwoFactorChallengeResponse"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:login-config": {
+      "get": {
+        "operationId": "auth.login-config",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sign-in page settings: available sign-in methods, third-party providers and whether a captcha is required.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "LoginConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "loginMethods": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "oAuthProviders": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LoginProviderResponse"
+                      }
+                    },
+                    "captchaEnabled": {
                       "type": "boolean"
-                    },
-                    "user": {
-                      "$ref": "#/components/schemas/UserResponse"
-                    },
-                    "tenantName": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
-                    },
-                    "impersonatorUserName": {
-                      "type": [
-                        "string",
-                        "null"
-                      ]
                     }
                   },
                   "required": [
-                    "accessToken",
-                    "accessExpiresAt",
-                    "refreshToken",
-                    "refreshExpiresAt",
-                    "sessionId",
-                    "mustChangePassword",
-                    "user"
+                    "loginMethods",
+                    "oAuthProviders",
+                    "captchaEnabled"
                   ]
                 }
               }
@@ -734,6 +838,125 @@
                     "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
                   }
                 }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TokenResponse",
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "accessExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "refreshExpiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "sessionId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "tenantName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impersonatorUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "accessExpiresAt",
+                    "refreshToken",
+                    "refreshExpiresAt",
+                    "sessionId",
+                    "mustChangePassword",
+                    "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth:verify-two-factor": {
+      "post": {
+        "operationId": "auth.verify-two-factor",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Second step of two-factor sign-in: submit the code with the ticket from auth.login; returns access and refresh tokens on success.",
+        "x-xihan-stability": "Preview",
+        "security": [],
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "VerifyTwoFactorRequest",
+                "type": "object",
+                "properties": {
+                  "ticket": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "method": {
+                    "$ref": "#/components/schemas/TwoFactorMethod"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16
+                  }
+                },
+                "required": [
+                  "ticket",
+                  "method",
+                  "code"
+                ]
               }
             }
           }
@@ -8934,6 +9157,83 @@
         }
       }
     },
+    "/api/profile": {
+      "get": {
+        "operationId": "profile.get",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Your profile and account security summary (two-factor, last password change). Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ProfileResponse",
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "twoFactorEnabled": {
+                      "type": "boolean"
+                    },
+                    "twoFactorMethods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TwoFactorMethod"
+                      }
+                    },
+                    "passwordChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "failedAccessCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "lockoutEndAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "twoFactorEnabled",
+                    "twoFactorMethods",
+                    "mustChangePassword",
+                    "failedAccessCount"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/profile:change-password": {
       "post": {
         "operationId": "profile.change-password",
@@ -8996,6 +9296,274 @@
                     "userId",
                     "changedAt",
                     "sessionsRevoked"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:disable-two-factor": {
+      "post": {
+        "operationId": "profile.disable-two-factor",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Turn off a two-factor method: confirm with a current authenticator code. Not available while impersonating.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "TwoFactorChangeRequest",
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "$ref": "#/components/schemas/TwoFactorMethod"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16
+                  }
+                },
+                "required": [
+                  "method",
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ProfileResponse",
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "twoFactorEnabled": {
+                      "type": "boolean"
+                    },
+                    "twoFactorMethods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TwoFactorMethod"
+                      }
+                    },
+                    "passwordChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "failedAccessCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "lockoutEndAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "twoFactorEnabled",
+                    "twoFactorMethods",
+                    "mustChangePassword",
+                    "failedAccessCount"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:enable-two-factor": {
+      "post": {
+        "operationId": "profile.enable-two-factor",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Turn on a two-factor method: confirm the authenticator with a code from the newly generated key. Not available while impersonating.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "TwoFactorChangeRequest",
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "$ref": "#/components/schemas/TwoFactorMethod"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 16
+                  }
+                },
+                "required": [
+                  "method",
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ProfileResponse",
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "$ref": "#/components/schemas/UserResponse"
+                    },
+                    "twoFactorEnabled": {
+                      "type": "boolean"
+                    },
+                    "twoFactorMethods": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TwoFactorMethod"
+                      }
+                    },
+                    "passwordChangedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "mustChangePassword": {
+                      "type": "boolean"
+                    },
+                    "failedAccessCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "lockoutEndAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "user",
+                    "twoFactorEnabled",
+                    "twoFactorMethods",
+                    "mustChangePassword",
+                    "failedAccessCount"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile:setup-totp": {
+      "post": {
+        "operationId": "profile.setup-totp",
+        "tags": [
+          "profile"
+        ],
+        "summary": "Start binding an authenticator: generate a new key (confirm with an authenticator code within 10 minutes). Not available while impersonating.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ProfileRequest",
+                "type": "object",
+                "properties": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TotpSetupResponse",
+                  "type": "object",
+                  "properties": {
+                    "sharedKey": {
+                      "type": "string"
+                    },
+                    "authenticatorUri": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "sharedKey",
+                    "authenticatorUri",
+                    "expiresAt"
                   ]
                 }
               }
@@ -12268,6 +12836,85 @@
         }
       }
     },
+    "/api/users:reset-two-factor": {
+      "post": {
+        "operationId": "users.reset-two-factor",
+        "tags": [
+          "users"
+        ],
+        "summary": "Reset two-factor for users in bulk (clears all methods and authenticator keys); you cannot reset yourself. Requires identity.users.reset-two-factor.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "identity.users.reset-two-factor",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UserIdsRequest",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/users:unlock": {
       "post": {
         "operationId": "users.unlock",
@@ -13385,7 +14032,11 @@
           "SwitchTenant",
           "ImpersonationStart",
           "ImpersonationStop",
-          "ChangePassword"
+          "ChangePassword",
+          "TwoFactorChallenge",
+          "TwoFactorEnable",
+          "TwoFactorDisable",
+          "TwoFactorReset"
         ]
       },
       "LoginLogResponse": {
@@ -13496,6 +14147,21 @@
           "traceId",
           "event",
           "succeeded"
+        ]
+      },
+      "LoginProviderResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "displayName"
         ]
       },
       "MembershipResponse": {
@@ -14680,6 +15346,62 @@
           "Suspended"
         ]
       },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "accessExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "refreshExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sessionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mustChangePassword": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          },
+          "tenantName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "impersonatorUserName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "accessToken",
+          "accessExpiresAt",
+          "refreshToken",
+          "refreshExpiresAt",
+          "sessionId",
+          "mustChangePassword",
+          "user"
+        ]
+      },
       "TraceDimension": {
         "type": "string",
         "enum": [
@@ -14817,6 +15539,51 @@
         "required": [
           "logType",
           "count"
+        ]
+      },
+      "TwoFactorChallengeResponse": {
+        "type": "object",
+        "properties": {
+          "ticket": {
+            "type": "string"
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TwoFactorMethod"
+            }
+          },
+          "method": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TwoFactorMethod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "codeSent": {
+            "type": "boolean"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "ticket",
+          "methods",
+          "codeSent",
+          "expiresAt"
+        ]
+      },
+      "TwoFactorMethod": {
+        "type": "string",
+        "enum": [
+          "Totp",
+          "Email",
+          "Phone"
         ]
       },
       "UserResponse": {
@@ -15030,6 +15797,11 @@
         "code": "identity.users.reset-password",
         "displayName": "Reset passwords",
         "description": "Reset user passwords; the user must change the password at next sign-in."
+      },
+      "identity.users.reset-two-factor": {
+        "code": "identity.users.reset-two-factor",
+        "displayName": "Reset two-factor",
+        "description": "Clear a user\u0027s two-factor methods and authenticator key so they can sign in with the password and enroll again."
       },
       "identity.users.update": {
         "code": "identity.users.update",

@@ -61,7 +61,9 @@ public sealed class BasicAppTestServer : IAsyncDisposable
             builder =>
             {
                 builder.WebHost.UseTestServer();
-                builder.Configuration.AddInMemoryCollection(Settings(connectionString, provider).Concat(settings ?? []));
+                // 用例的设置单独一层，叠在缺省值之上（同键覆盖，不在一个字典里撞键）
+                builder.Configuration.AddInMemoryCollection(Settings(connectionString, provider));
+                builder.Configuration.AddInMemoryCollection(settings ?? []);
                 configure?.Invoke(builder);
             },
             configureApp);
@@ -85,6 +87,8 @@ public sealed class BasicAppTestServer : IAsyncDisposable
         new("XiHan:Protocols:Http:RoutePrefix", ApiPrefix),
         new("XiHan:Protocols:Grpc:Package", "xihan.basicapp"),
         new("BasicApp:ApiDocs:Enabled", "true"),
+        // 图形验证码缺省关：需要它的用例自己打开并换上固定码源
+        new("BasicApp:Auth:CaptchaEnabled", "false"),
     ];
 
     /// <summary>

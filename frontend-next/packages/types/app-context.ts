@@ -1,4 +1,5 @@
 import type {
+  CaptchaChallenge,
   ImpersonationCandidate,
   ImpersonationCandidateQuery,
   ImpersonationTenantOption,
@@ -8,9 +9,10 @@ import type {
   StartImpersonationParams,
   SwitchTenantParams,
   UserInfo,
+  VerificationCodeResult,
 } from './auth'
 import type { NotificationContentFormat, NotificationPriority, NotificationStatus, NotificationType, TenantMemberType } from './enums'
-import type { ChangePasswordParams } from './profile'
+import type { ChangePasswordParams, TwoFactorSetupResult, UserProfile } from './profile'
 /**
  * 租户切换器条目（`tenants.mine` 的投影）：控制中心按它画卡片。
  * 注册地租户 `isHome`（没有成员类型），成员租户带 `memberType`；`isCurrent` 是当前会话所在的租户。
@@ -118,10 +120,26 @@ export interface AppUserInboxDisplayItem extends AppUserInboxItem {
 export interface AppContextApis {
   /** 登录页配置：开放的登录方式、第三方登录与是否要图形验证码 */
   getLoginConfigApi: () => Promise<LoginConfig>
+  /** 图形验证码（登录配置要求时，密码登录的首段带上） */
+  getCaptchaApi: () => Promise<CaptchaChallenge>
   getPermissionsApi: () => Promise<PermissionInfo>
   getUserInfoApi: () => Promise<UserInfo>
   logoutApi: () => Promise<unknown>
   changePasswordApi: (input: ChangePasswordParams) => Promise<unknown>
+  /** 个人中心：本人资料与账号安全概况 */
+  getProfileApi: () => Promise<UserProfile>
+  /** 双因素：开始绑定认证器（返回待确认的密钥与扫码链接） */
+  setup2FAApi: () => Promise<TwoFactorSetupResult>
+  /** 双因素：开启一种方式（method 为位标志 1=TOTP 2=邮箱 4=手机，code 为该方式的验证码） */
+  enable2FAApi: (method: number | string, code: string) => Promise<unknown>
+  /** 双因素：关闭一种方式（同上） */
+  disable2FAApi: (method: number | string, code: string) => Promise<unknown>
+  /** 双因素：给邮箱 / 手机方式发开关用的验证码 */
+  send2FASetupCodeApi: (method: number | string) => Promise<VerificationCodeResult>
+  /** 停用本人账号（凭当前密码） */
+  deactivateAccountApi: (password: string) => Promise<unknown>
+  /** 注销本人账号（凭当前密码） */
+  deleteAccountApi: (password: string) => Promise<unknown>
   /** 锁屏（服务端强制）：设置会话级一次性口令并置位锁屏标记 */
   lockSessionApi: (input: { password: string }) => Promise<unknown>
   /** 解锁：口令由服务端校验；连续失败 5 次服务端会直接吊销会话 */

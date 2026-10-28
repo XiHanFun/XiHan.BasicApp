@@ -42,4 +42,24 @@ public enum LoginEvent
     /// 本人修改密码。
     /// </summary>
     ChangePassword = 6,
+
+    /// <summary>
+    /// 密码通过、账号开了双因素：签发两步验证票据，尚未开会话（成功即发出了挑战）。
+    /// </summary>
+    TwoFactorChallenge = 7,
+
+    /// <summary>
+    /// 本人开启一种双因素方式。
+    /// </summary>
+    TwoFactorEnable = 8,
+
+    /// <summary>
+    /// 本人关闭一种双因素方式。
+    /// </summary>
+    TwoFactorDisable = 9,
+
+    /// <summary>
+    /// 管理员重置用户的双因素设置（日志的用户是被重置的账号）。
+    /// </summary>
+    TwoFactorReset = 10,
 }

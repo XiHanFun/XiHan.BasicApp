@@ -59,6 +59,11 @@ export async function setUserLocked(id: string, locked: boolean): Promise<void> 
   failedCodes(locked ? await usersApi.lock({ ids: [id] }) : await usersApi.unlock({ ids: [id] }))
 }
 
+/** 重置一个用户的双因素（清掉全部方式与认证器密钥，下次只凭密码登录）；被后端逐项拒绝时带着错误码抛出 */
+export async function resetUserTwoFactor(id: string): Promise<void> {
+  failedCodes(await usersApi.resetTwoFactor({ ids: [id] }))
+}
+
 /** 生成临时密码：大小写 + 数字 + 符号各至少一个，规避易混淆字符（0O1lI），满足后端「至少 8 位、含字母与数字」的策略 */
 export function generateTempPassword(length = 12): string {
   const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ'

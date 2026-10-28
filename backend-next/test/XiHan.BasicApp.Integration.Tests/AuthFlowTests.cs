@@ -31,8 +31,11 @@ public sealed class AuthFlowTests : IDisposable
     public async Task Login_IssuesTokens_AndMe_ReturnsThePrincipal()
     {
         await using var server = await StartAsync();
-        var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", SuperAdminLogin));
+        var (response, signedIn) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", SuperAdminLogin));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        // 没开双因素：直接拿到令牌，没有第二步
+        Assert.Equal(JsonValueKind.Null, signedIn.GetProperty("twoFactor").ValueKind);
+        var body = signedIn.GetProperty("token");
         var access = body.GetProperty("accessToken").GetString()!;
         Assert.True(body.GetProperty("refreshToken").GetString()!.Length >= 32);
         Assert.Equal(JsonValueKind.Null, body.GetProperty("tenantId").ValueKind);
@@ -189,6 +192,6 @@ public sealed class AuthFlowTests : IDisposable
             : $$"""{"userName":"{{userName}}","password":"{{password}}","tenant":"{{tenant}}"}""";
         var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", json));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        return body;
+        return body.GetProperty("token");
     }
 }

@@ -1,7 +1,7 @@
 import type { Router } from 'vue-router'
-import type { ResponseOf } from '~/contracts'
-import type { AppContextApis } from '~/types'
-import { auth as authOps, dicts as dictOps, impersonation as impersonationOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
+import type { ResponseOf, TwoFactorMethod } from '~/contracts'
+import type { AppContextApis, UserProfile } from '~/types'
+import { auth as authOps, dicts as dictOps, impersonation as impersonationOps, profile as profileOps, tenants as tenantOps, userSettings as userSettingOps } from '~/contracts'
 import { registerAppContext, useAuthStore } from '~/stores'
 
 /** 后端 `PageInfo.MaxSize`：模仿弹窗的租户范围一次取全 */
@@ -29,6 +29,44 @@ function toShellSetting(setting: ResponseOf<'user-settings.get'>) {
   return { scene: setting.scene === 'Page' ? 1 : 0, settingKey: setting.key, settingValue: setting.value ?? null }
 }
 
+/** 双因素方式：壳层（4.x 个人中心）按位标志 1 = 认证器、2 = 邮箱、4 = 手机传，契约是字面量 */
+const TWO_FACTOR_FLAGS: Record<TwoFactorMethod, number> = { Totp: 1, Email: 2, Phone: 4 }
+
+function twoFactorMethodOf(flag: number | string): TwoFactorMethod {
+  const found = (Object.keys(TWO_FACTOR_FLAGS) as TwoFactorMethod[]).find(method => TWO_FACTOR_FLAGS[method] === Number(flag))
+  if (!found)
+    throw new Error(`未知的双因素方式 ${flag}`)
+  return found
+}
+
+/**
+ * `profile.get` → 4.x 个人中心的 UserProfile：6.0 还没有的资料字段（性别、生日、头像、联系方式验证、改用户名）按「没有」给，
+ * 这些随个人中心批次补全；锁定取账号状态与登录失败锁定期。
+ */
+function toShellProfile(profile: ResponseOf<'profile.get'>): UserProfile {
+  const lockedUntil = profile.lockoutEndAt && Date.parse(profile.lockoutEndAt) > Date.now() ? profile.lockoutEndAt : null
+  return {
+    userId: profile.user.id,
+    userName: profile.user.userName,
+    nickName: profile.user.displayName,
+    ...(profile.user.email ? { email: profile.user.email } : {}),
+    ...(profile.user.phoneNumber ? { phone: profile.user.phoneNumber } : {}),
+    gender: 0,
+    tenantId: profile.user.homeTenantId === 'platform' ? null : profile.user.homeTenantId,
+    ...(profile.user.lastLoginAt ? { lastLoginTime: profile.user.lastLoginAt } : {}),
+    isSystemAccount: false,
+    twoFactorEnabled: profile.twoFactorEnabled,
+    twoFactorMethod: profile.twoFactorMethods.reduce((bits, method) => bits | TWO_FACTOR_FLAGS[method], 0),
+    emailVerified: false,
+    phoneVerified: false,
+    ...(profile.passwordChangedAt ? { lastPasswordChangeTime: profile.passwordChangedAt } : {}),
+    canChangeUserName: false,
+    isLocked: profile.user.status === 'Locked' || lockedUntil !== null,
+    ...(lockedUntil ? { lockoutEndTime: lockedUntil } : {}),
+    failedLoginAttempts: profile.failedAccessCount,
+  }
+}
+
 /** 时区目录：浏览器自带的 IANA 清单（后端时区目录接入后换成 metadata 操作） */
 function timeZoneOptions() {
   const now = new Date()
@@ -44,15 +82,35 @@ function timeZoneOptions() {
 
 /**
  * 应用上下文（壳层 ← 应用）：packages 不直接依赖 src，由这里注入接口实现、路由实例与壳层要跳的应用路由。
- * 登录配置目前只有账号密码一种；其余入口随认证批次接入。
+ * 登录配置来自 `auth.login-config`（目前只有账号密码一种，是否要图形验证码由后端配置）；验证码登录、第三方登录随后续批次接入。
  */
 export function registerApplicationContext(router: Router): void {
   const apis: AppContextApis = {
-    getLoginConfigApi: () => Promise.resolve({ loginMethods: ['password'], oAuthProviders: [], captchaEnabled: false }),
+    getLoginConfigApi: async () => {
+      const config = await authOps.loginConfig({}, { anonymous: true })
+      return { loginMethods: [...config.loginMethods], oAuthProviders: config.oAuthProviders.map(provider => ({ name: provider.name, displayName: provider.displayName })), captchaEnabled: config.captchaEnabled }
+    },
+    getCaptchaApi: () => authOps.captcha({}, { anonymous: true }),
     logoutApi: () => useAuthStore().logout(),
     getUserInfoApi: () => notAvailable('getUserInfoApi'),
     getPermissionsApi: () => notAvailable('getPermissionsApi'),
-    changePasswordApi: () => notAvailable('changePasswordApi'),
+    // 本人改密（profile.change-password）：本会话保留、其他会话注销，强制改密标记随之清除
+    changePasswordApi: async (input) => {
+      const changed = await profileOps.changePassword({ currentPassword: input.oldPassword, newPassword: input.newPassword })
+      useAuthStore().markPasswordChanged()
+      return changed
+    },
+    // 个人中心：资料与账号安全概况、认证器双因素；邮箱 / 短信双因素要等 Notification 发码，停用与注销账号随个人中心批次
+    getProfileApi: async () => toShellProfile(await profileOps.get({})),
+    setup2FAApi: async () => {
+      const setup = await profileOps.setupTotp({})
+      return { sharedKey: setup.sharedKey, authenticatorUri: setup.authenticatorUri }
+    },
+    enable2FAApi: (method, code) => profileOps.enableTwoFactor({ method: twoFactorMethodOf(method), code }),
+    disable2FAApi: (method, code) => profileOps.disableTwoFactor({ method: twoFactorMethodOf(method), code }),
+    send2FASetupCodeApi: () => notAvailable('send2FASetupCodeApi'),
+    deactivateAccountApi: () => notAvailable('deactivateAccountApi'),
+    deleteAccountApi: () => notAvailable('deleteAccountApi'),
     lockSessionApi: () => notAvailable('lockSessionApi'),
     unlockSessionApi: () => notAvailable('unlockSessionApi'),
     // 用户设置（Identity 的 user-settings，按 用户 × 场景 × 键 整体覆盖）：偏好与收藏的跨端同步；clientId / origin 是实时回推用的，随 Realtime 批次接入
@@ -102,8 +160,7 @@ export function registerApplicationContext(router: Router): void {
   registerAppContext({
     apis,
     getRouter: () => Promise.resolve(router),
-    // 个人中心页随 Identity 的后续批次补；改密页先顶在这个入口上，顶栏用户菜单才有去处。
-    // 控制中心视图在 packages，路径由这里登记（顶栏的上下文按钮据此显示并跳转）
-    shellRoutes: { profile: '/identity/profile/change-password', controlCenter: '/control-center' },
+    // 个人中心与控制中心的视图都在 packages（4.x 原样搬入），路径由这里登记（顶栏的用户菜单与上下文按钮据此显示并跳转）
+    shellRoutes: { profile: '/profile', controlCenter: '/control-center' },
   })
 }

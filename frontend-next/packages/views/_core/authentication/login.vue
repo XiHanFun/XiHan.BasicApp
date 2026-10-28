@@ -1,0 +1,753 @@
+<script lang="ts" setup>
+import type { FormRules } from '@xihan-ui/headless'
+import type { CaptchaChallenge, LoginConfig, LoginResponse } from '~/types'
+
+import { useElementSize } from '@vueuse/core'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhCheckbox, XhFieldControl, XhFieldLabel, XhFieldRoot, XhFormFieldGroup, XhFormRoot, XhFormSubmitTrigger, XhPinInputInput, XhPinInputRoot, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSeparator } from '@xihan-ui/vue'
+import { computed, nextTick, onMounted, ref, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRoute, useRouter } from 'vue-router'
+import { XInput } from '~/components'
+import { toast } from '~/composables'
+import { useTheme } from '~/hooks'
+import { Icon } from '~/iconify'
+import { ApiError } from '~/request'
+import { useAppContext, useAuthStore } from '~/stores'
+import { CAPTCHA_CODE_LENGTH } from '../shared/pin-code'
+import { useAuthFormInvalid } from './use-auth-form-invalid'
+
+defineOptions({ name: 'LoginPage' })
+
+const { isDark } = useTheme()
+const { t } = useI18n()
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+const { apis } = useAppContext()
+const rememberMe = ref(true)
+const loginConfig = ref<LoginConfig>({
+  loginMethods: ['password'],
+  oAuthProviders: [],
+  captchaEnabled: false,
+})
+
+// ==================== 图形验证码 ====================
+
+const captcha = ref<CaptchaChallenge | null>(null)
+/** 图形验证码的逐格值；提交时拼成串 */
+const captchaCode = ref<string[]>([])
+const captchaCodeStr = computed(() => captchaCode.value.join(''))
+const captchaLoading = ref(false)
+
+/** 拉取新验证码（页面加载、点击图片、验证码错误提示后调用） */
+async function refreshCaptcha() {
+  if (!loginConfig.value.captchaEnabled) {
+    return
+  }
+  captchaLoading.value = true
+  try {
+    captcha.value = await apis.getCaptchaApi()
+    captchaCode.value = []
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('page.login.captcha_load_failed'))
+  }
+  finally {
+    captchaLoading.value = false
+  }
+}
+
+// ==================== 2FA 三阶段状态 ====================
+
+/** 阶段：credentials | method-select | code-input */
+const tfStage = ref<'code-input' | 'credentials' | 'method-select'>('credentials')
+const availableMethods = ref<string[]>([])
+const selectedMethod = ref('')
+const twoFactorCode = ref<string[]>([])
+const codeSent = ref(false)
+const sendingCode = ref(false)
+/**
+ * 两步验证票据：三个阶段都重新提交同一个登录请求，而图形验证码一次性消费、首段过后即销毁；
+ * 服务端在首段通过图形码与密码后随挑战签发票据，后续阶段改带票据免图形码，登录完成后作废
+ */
+const twoFactorTicket = ref('')
+/** 服务端票据失效（不存在 / 过期 / 输错次数用完）的错误码：要求重新登录 */
+const TWO_FACTOR_TICKET_INVALID = 'IDENTITY_DENIED_008'
+/** 图形验证码错误或已过期的错误码：一次性消费，提示后换新码 */
+const CAPTCHA_INVALID = 'IDENTITY_VALIDATION_007'
+
+/** 提示用的文案：服务端错误取本地化后的 detail（不带错误码前缀），其余取 message */
+function messageOf(error: unknown): string | undefined {
+  return error instanceof ApiError ? error.detail : (error as Error | undefined)?.message
+}
+
+// 键名对齐服务端 ResolveTwoFactorMethods 给出的方式标识：totp / email / phone
+const methodLabels = computed<Record<string, string>>(() => ({
+  totp: t('page.auth.two_factor_method_totp'),
+  email: t('page.auth.two_factor_method_email'),
+  phone: t('page.auth.two_factor_method_phone'),
+}))
+
+const methodIcons: Record<string, string> = {
+  totp: 'lucide:smartphone',
+  email: 'lucide:mail',
+  phone: 'lucide:phone',
+}
+
+const formData = ref({
+  tenant: '',
+  username: '',
+  password: '',
+})
+
+const rules = computed<FormRules>(() => ({
+  username: [
+    { required: true, message: t('page.login.username_placeholder') },
+  ],
+  password: [
+    { required: true, message: t('page.login.password_placeholder') },
+  ],
+}))
+
+const redirect = computed(() => {
+  return (route.query.redirect as string) || undefined
+})
+
+// 品牌图标用离线已预加载的图标集（offline.ts 预加载 lucide/tabler/mdi/simple-icons）。
+// 企业微信、飞书在这四个集里都没有品牌 logo，先用语义相近的通用图标占位以便彼此区分；
+// 要换成真 logo 需另行预载含该品牌的图标集，或把 SVG 注册成自定义图标集。
+const oauthProviderIcons: Record<string, string> = {
+  github: 'mdi:github',
+  gitee: 'simple-icons:gitee',
+  google: 'mdi:google',
+  qq: 'mdi:qqchat',
+  wechat: 'mdi:wechat',
+  dingtalk: 'tabler:brand-dingtalk',
+  wecom: 'mdi:briefcase-account',
+  feishu: 'lucide:send',
+}
+
+const oauthProviders = computed(() => loginConfig.value.oAuthProviders ?? [])
+
+/**
+ * 一行放得下的渠道数；多出来的收进「更多」浮层，免得换行把卡片撑高。
+ * 三颗带字钮加「更多」一行约 316 宽，手机窄栏（375 宽视口只剩 304）放不下时 flex 会把钮压到
+ * 比内容还窄、图标文字溢出钮外，这时按行宽退到两颗
+ */
+const OAUTH_INLINE_COUNT = 3
+const OAUTH_INLINE_COUNT_NARROW = 2
+const OAUTH_ROW_MIN_WIDTH = 320
+
+const oauthRowRef = useTemplateRef('oauthRow')
+const { width: oauthRowWidth } = useElementSize(oauthRowRef)
+const oauthInlineCount = computed(() =>
+  oauthRowWidth.value >= OAUTH_ROW_MIN_WIDTH ? OAUTH_INLINE_COUNT : OAUTH_INLINE_COUNT_NARROW,
+)
+const inlineOauthProviders = computed(() => oauthProviders.value.slice(0, oauthInlineCount.value))
+const moreOauthProviders = computed(() => oauthProviders.value.slice(oauthInlineCount.value))
+const showMoreOauth = ref(false)
+
+function getOauthProviderIcon(name: string) {
+  return oauthProviderIcons[name.toLowerCase()] ?? 'lucide:link-2'
+}
+
+function handleOAuthLogin(provider: typeof oauthProviders.value[number]) {
+  showMoreOauth.value = false
+  authStore.startOAuthLogin(provider)
+}
+
+async function loadLoginConfig() {
+  loginConfig.value = await apis.getLoginConfigApi()
+}
+
+const cachedDeviceId = ref('')
+
+onMounted(async () => {
+  const { generateDeviceFingerprint } = await import('~/utils/device-fingerprint')
+  cachedDeviceId.value = await generateDeviceFingerprint()
+})
+
+function buildLoginParams() {
+  // 持票即为两步验证的后续阶段：只带票不带图形码（图形码已在首段消费销毁，再带必红）；
+  // 无票时才是凭据阶段，按配置携带图形码
+  const hasTicket = Boolean(twoFactorTicket.value)
+  const carryCaptcha = !hasTicket && loginConfig.value.captchaEnabled
+  return {
+    tenant: formData.value.tenant || undefined,
+    username: formData.value.username,
+    password: formData.value.password,
+    captchaId: carryCaptcha ? captcha.value?.captchaId : undefined,
+    captchaCode: carryCaptcha ? captchaCodeStr.value || undefined : undefined,
+    twoFactorCode: tfStage.value === 'code-input' ? twoFactorCode.value.join('') : undefined,
+    twoFactorMethod: selectedMethod.value || undefined,
+    twoFactorTicket: twoFactorTicket.value || undefined,
+    deviceId: cachedDeviceId.value || undefined,
+  }
+}
+
+/** 挑战响应随行票据时记下，后续阶段都凭它免图形码 */
+function rememberTwoFactorTicket(result: LoginResponse | null) {
+  if (result?.twoFactorTicket) {
+    twoFactorTicket.value = result.twoFactorTicket
+  }
+}
+
+/**
+ * 票据失效（不存在 / 过期 / 用户不匹配）：服务端要求重新登录，回到凭据阶段并换一枚新图形码。
+ * 返回是否已按票据失效处理，调用方据此跳过通用错误分支。
+ */
+function handleTicketExpired(error: unknown) {
+  if (!(error instanceof ApiError) || error.code !== TWO_FACTOR_TICKET_INVALID) {
+    return false
+  }
+  const message = error.detail
+  tfStage.value = 'credentials'
+  twoFactorTicket.value = ''
+  twoFactorCode.value = []
+  availableMethods.value = []
+  selectedMethod.value = ''
+  codeSent.value = false
+  toast.danger(message)
+  void refreshCaptcha()
+  return true
+}
+
+/**
+ * 三个阶段的提交都汇到这里：credentials 的表单提交、code-input 的验证码输满自动提交 / Enter / 「验证并登录」。
+ * 入口先同步看 loginLoading：XhButton 的 loading 拦截读的是渲染期状态，首个 click 到重渲染之间的
+ * 第二次 click 仍能穿过，自动提交与 Enter 更不经过按钮；store 一进 login 就同步置位，这里读到即在途。
+ */
+async function onSubmit() {
+  if (authStore.loginLoading)
+    return
+  try {
+    if (tfStage.value === 'credentials') {
+      // 图形验证码：提交前校验非空，避免白白消耗一次登录节流计数
+      if (loginConfig.value.captchaEnabled && (!captcha.value || captchaCodeStr.value.length < CAPTCHA_CODE_LENGTH)) {
+        toast.warning(t('page.login.captcha_required'))
+        return
+      }
+    }
+
+    const result: LoginResponse | null = await authStore.login(buildLoginParams(), redirect.value)
+
+    if (!result) {
+      return
+    }
+
+    // 服务端返回需要 2FA：先记票据，再决定下一阶段——唯一方式时会立刻发起第二段请求，届时必须已持票
+    rememberTwoFactorTicket(result)
+    if (result.availableTwoFactorMethods?.length) {
+      availableMethods.value = result.availableTwoFactorMethods
+    }
+
+    if (result.twoFactorMethod) {
+      // 服务端已确认方式（可能已发送验证码）
+      selectedMethod.value = result.twoFactorMethod
+      codeSent.value = result.codeSent ?? false
+      tfStage.value = 'code-input'
+    }
+    else if (availableMethods.value.length === 1) {
+      // 仅一种方式可用，自动选中并进入下一步
+      selectedMethod.value = availableMethods.value[0]!
+      await handleSelectMethod()
+    }
+    else if (availableMethods.value.length > 1) {
+      // 配置了多种双因素方式：全部列出，由用户任选一种进行验证
+      tfStage.value = 'method-select'
+      selectedMethod.value = availableMethods.value[0] ?? ''
+    }
+  }
+  catch (err: unknown) {
+    if (tfStage.value === 'code-input') {
+      twoFactorCode.value = []
+    }
+    if (handleTicketExpired(err)) {
+      return
+    }
+    const message = messageOf(err)
+    if (message) {
+      toast.danger(message)
+    }
+    // 图形验证码一次性消费：凭据阶段一旦提交，无论对错都已销毁（服务端先核对验证码），出错后立即换新码，避免反复撞已销毁的码；
+    // 持票的后续阶段不再消费图形码，两步验证码出错时不必换
+    if (tfStage.value === 'credentials' && loginConfig.value.captchaEnabled) {
+      if (err instanceof ApiError && err.code === CAPTCHA_INVALID)
+        captchaCode.value = []
+      void refreshCaptcha()
+    }
+  }
+}
+
+/** 用户选好方式后，发起带 twoFactorMethod 的登录请求 */
+async function handleSelectMethod() {
+  // 「继续」钮的 loading 同样是渲染期才拦，在途时直接返回；sendingCode 在 await 之前同步置位
+  if (sendingCode.value || authStore.loginLoading)
+    return
+  if (!selectedMethod.value) {
+    toast.warning(t('page.auth.select_method_required'))
+    return
+  }
+
+  // TOTP 不需要发送验证码，直接进入输入界面
+  if (selectedMethod.value === 'totp') {
+    codeSent.value = false
+    tfStage.value = 'code-input'
+    return
+  }
+
+  // 邮箱/手机方式需要调用后端发送验证码
+  sendingCode.value = true
+  try {
+    const result = await authStore.login(buildLoginParams(), redirect.value)
+    rememberTwoFactorTicket(result)
+    if (result && result.twoFactorMethod) {
+      codeSent.value = result.codeSent ?? false
+      tfStage.value = 'code-input'
+    }
+  }
+  catch (err: unknown) {
+    if (handleTicketExpired(err)) {
+      return
+    }
+    const message = messageOf(err)
+    if (message) {
+      toast.danger(message)
+    }
+  }
+  finally {
+    sendingCode.value = false
+  }
+}
+
+/** 重新发送验证码 */
+async function handleResendCode() {
+  if (sendingCode.value || authStore.loginLoading)
+    return
+  sendingCode.value = true
+  try {
+    const result = await authStore.login(buildLoginParams(), redirect.value)
+    rememberTwoFactorTicket(result)
+    if (result?.codeSent) {
+      codeSent.value = true
+      toast.success(t('page.auth.code_resent'))
+    }
+  }
+  catch (err: unknown) {
+    if (handleTicketExpired(err)) {
+      return
+    }
+    const message = messageOf(err)
+    if (message)
+      toast.danger(message)
+  }
+  finally {
+    sendingCode.value = false
+  }
+}
+
+function handleOtpComplete(codes: string[]) {
+  twoFactorCode.value = codes
+  nextTick(() => onSubmit())
+}
+
+/** 返回双因素方式选择（多种方式时可换一种验证） */
+function handleBackToMethodSelect() {
+  tfStage.value = 'method-select'
+  twoFactorCode.value = []
+  codeSent.value = false
+}
+
+function goTo(path: string) {
+  router.push(path)
+}
+
+onMounted(async () => {
+  try {
+    await loadLoginConfig()
+    if (loginConfig.value.captchaEnabled) {
+      await refreshCaptcha()
+    }
+  }
+  catch (error) {
+    toast.danger((error as Error)?.message || t('page.auth.load_config_failed'))
+  }
+})
+const onAuthInvalid = useAuthFormInvalid()
+</script>
+
+<template>
+  <div class="py-1">
+    <Transition name="fade-slide" mode="out-in">
+      <!-- 阶段2：输入验证码 -->
+      <div v-if="tfStage === 'code-input'" key="code-input">
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div
+              class="flex justify-center items-center w-11 h-11 rounded-xl"
+              :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--primary)/0.08)]'"
+            >
+              <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: 22px"><Icon :icon="methodIcons[selectedMethod] || 'lucide:shield-check'" /></span>
+            </div>
+            <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
+              {{ t('page.auth.two_factor_title') }}
+            </h1>
+          </div>
+          <p
+            class="auth-body"
+            :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+          >
+            <template v-if="selectedMethod === 'totp'">
+              {{ t('page.auth.two_factor_subtitle') }}
+            </template>
+            <template v-else-if="selectedMethod === 'email'">
+              {{ t('page.auth.two_factor_code_sent_email') }}
+            </template>
+            <template v-else-if="selectedMethod === 'phone'">
+              {{ t('page.auth.two_factor_code_sent_phone') }}
+            </template>
+          </p>
+        </div>
+
+        <div class="flex flex-col items-center py-4" @keydown.enter="onSubmit">
+          <XhPinInputRoot
+            v-model:value="twoFactorCode"
+            :length="6"
+            otp
+            @value-complete="(details: { value: string[] }) => handleOtpComplete(details.value)"
+          >
+            <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+            <div style="display: flex">
+              <XhPinInputInput v-for="i in 6" :key="i" :index="i - 1" />
+            </div>
+          </XhPinInputRoot>
+          <p
+            class="mt-4 auth-helper"
+            :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
+          >
+            {{ selectedMethod === 'totp' ? t('page.auth.two_factor_hint') : t('page.auth.two_factor_code_input_hint') }}
+          </p>
+        </div>
+
+        <!-- 这一阶段没有可校验的字段，验证码输满、Enter 与这颗钮都直接走 onSubmit，
+             不套 XhFormRoot：表单提交钮离开表单根会抛错、整颗钮不渲染 -->
+        <XhButton
+          variant="solid"
+          tone="brand"
+          full-width
+          :loading="authStore.loginLoading"
+          class="auth-submit !mt-4"
+          @click="onSubmit"
+        >
+          <XhButtonIndicator />
+          <XhButtonLabel>{{ t('page.auth.two_factor_verify') }}</XhButtonLabel>
+        </XhButton>
+
+        <div class="flex gap-2 mt-3">
+          <XhButton
+            v-if="selectedMethod !== 'totp'"
+            class="flex-1"
+            variant="ghost"
+            size="lg"
+            :loading="sendingCode"
+            @click="handleResendCode"
+          >
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('page.auth.two_factor_resend') }}</XhButtonLabel>
+          </XhButton>
+          <XhButton
+            v-if="availableMethods.length > 1"
+            class="flex-1"
+            variant="ghost"
+            size="lg"
+            @click="handleBackToMethodSelect"
+          >
+            {{ t('page.auth.two_factor_switch_method') }}
+          </XhButton>
+        </div>
+      </div>
+
+      <!-- 阶段2：选择双因素验证方式（配置多种时全部列出，任选其一） -->
+      <div v-else-if="tfStage === 'method-select'" key="method-select">
+        <div class="mb-8">
+          <div class="flex items-center gap-3 mb-3">
+            <div
+              class="flex justify-center items-center w-11 h-11 rounded-xl"
+              :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--primary)/0.08)]'"
+            >
+              <span :class="isDark ? 'text-blue-400' : 'text-[hsl(var(--primary))]'" style="display: inline-flex; font-size: 22px"><Icon icon="lucide:shield-check" /></span>
+            </div>
+            <h1 class="text-[28px] font-semibold leading-tight sm:text-[32px]">
+              {{ t('page.auth.two_factor_select_title') }}
+            </h1>
+          </div>
+          <p
+            class="auth-body"
+            :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+          >
+            {{ t('page.auth.two_factor_select_subtitle') }}
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-3 mb-6">
+          <button
+            v-for="m in availableMethods"
+            :key="m"
+            type="button"
+            class="flex items-center gap-3 px-4 w-full h-14 rounded-xl border transition-colors"
+            :class="selectedMethod === m
+              ? 'border-[hsl(var(--primary))] bg-[hsl(var(--primary)/0.08)]'
+              : isDark ? 'border-white/10 hover:border-white/25' : 'border-[hsl(var(--border))] hover:border-[hsl(var(--primary)/0.4)]'"
+            @click="selectedMethod = m"
+          >
+            <span
+              :class="selectedMethod === m
+                ? 'text-[hsl(var(--primary))]'
+                : isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'" style="display: inline-flex; font-size: 20px"
+            ><Icon :icon="methodIcons[m] || 'lucide:shield-check'" /></span>
+            <span class="auth-body">{{ methodLabels[m] || m }}</span>
+          </button>
+        </div>
+
+        <XhButton
+          variant="solid"
+          tone="brand"
+          full-width
+          :loading="sendingCode"
+          class="auth-submit"
+          @click="handleSelectMethod"
+        >
+          <XhButtonIndicator />
+          <XhButtonLabel>{{ t('page.auth.two_factor_continue') }}</XhButtonLabel>
+        </XhButton>
+      </div>
+
+      <!-- 阶段1：常规登录表单 -->
+      <div v-else key="credentials">
+        <div class="mb-8">
+          <p
+            class="mt-3 auth-body"
+            :class="isDark ? 'text-gray-300' : 'text-[hsl(var(--muted-foreground))]'"
+          >
+            {{ t('page.auth.login_subtitle') }}
+          </p>
+        </div>
+
+        <!-- Enter 只走原生隐式提交这一条：字段里按 Enter 触发表单提交，经规则校验后才到 @submit。
+             原先另挂的 keydown 直接调 onSubmit 绕过了校验（用户名为空也发请求），且它一置 loading
+             就把提交钮禁掉，浏览器随后的隐式提交被压下，Enter 发出的恰是那次没校验的请求 -->
+        <XhFormRoot
+          v-model:values="formData"
+          :rules="rules"
+          validate-on="blur"
+          @invalid="onAuthInvalid"
+          @submit="onSubmit"
+        >
+          <!-- 字段靠占位文案表意，标签只留给读屏。
+               6.0 的用户名在注册地租户内唯一：租户账号填租户 ID，平台账号留空（4.x 先登录后选租户，没有这一栏） -->
+          <XhFormFieldGroup name="tenant" class="!mb-6">
+            <XhFieldRoot>
+              <XhFieldLabel class="sr-only">
+                {{ t('page.login.tenant') }}
+              </XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="formData.tenant"
+                  size="lg"
+                  :placeholder="t('page.login.tenant_placeholder')"
+                  autocomplete="organization"
+                />
+              </XhFieldControl>
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="username" class="!mb-6">
+            <XhFieldRoot>
+              <XhFieldLabel class="sr-only">
+                {{ t('page.login.username') }}
+              </XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="formData.username"
+                  size="lg"
+                  :placeholder="t('page.login.username_placeholder')"
+                  autocomplete="username"
+                />
+              </XhFieldControl>
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup name="password" class="!mb-6">
+            <XhFieldRoot>
+              <XhFieldLabel class="sr-only">
+                {{ t('page.login.password') }}
+              </XhFieldLabel>
+              <XhFieldControl>
+                <XInput
+                  v-model:value="formData.password"
+                  type="password"
+                  size="lg"
+                  :placeholder="t('page.login.password_placeholder')"
+                  autocomplete="current-password"
+                />
+              </XhFieldControl>
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <XhFormFieldGroup v-if="loginConfig.captchaEnabled" name="captchaCode" class="!mb-6">
+            <XhFieldRoot>
+              <XhFieldLabel class="sr-only">
+                {{ t('page.login.captcha_required') }}
+              </XhFieldLabel>
+              <!-- 布局层留在控件外面：唯一子节点若不是控件，会被组件库当成输入控件本体上妆。
+                   服务端签发的是四位纯数字（CaptchaService 走框架一次性验证码，只出 0-9），格子按 numeric 准入、
+                   弹数字键盘；不是一次性验证码，不开 otp，格子自带 autocomplete=off。
+                   格子取缺省档：正方格的缺省档与旁边 lg 档文本框、验证码图片同一个控件高度。
+                   与手机/邮箱登录的验证码行同一套排布：格子在左，验证码图靠右缘 -->
+              <div class="auth-code-row">
+                <XhFieldControl>
+                  <XhPinInputRoot
+                    v-model:value="captchaCode"
+                    :length="CAPTCHA_CODE_LENGTH"
+                    type="numeric"
+                  >
+                    <!-- 格间距长在格子自己身上，这层包裹只负责排成一行 -->
+                    <div style="display: flex">
+                      <XhPinInputInput v-for="i in CAPTCHA_CODE_LENGTH" :key="i" :index="i - 1" />
+                    </div>
+                  </XhPinInputRoot>
+                </XhFieldControl>
+                <!-- 尺寸与圆角见 .auth-captcha；底色只在图片未到时垫着 -->
+                <div
+                  class="auth-captcha"
+                  :class="isDark ? 'bg-white/10' : 'bg-[hsl(var(--muted)/0.15)]'"
+                  :title="t('page.login.captcha_refresh_title')"
+                  @click="refreshCaptcha"
+                >
+                  <img
+                    v-if="captcha?.image"
+                    :src="captcha.image"
+                    :alt="t('page.login.captcha_refresh_title')"
+                    class="select-none"
+                    draggable="false"
+                  >
+                  <span v-else-if="captchaLoading" class="animate-spin" style="display: inline-flex; font-size: 18px"><Icon icon="lucide:loader-2" /></span>
+                </div>
+              </div>
+            </XhFieldRoot>
+          </XhFormFieldGroup>
+          <div class="flex justify-between items-center mb-5 auth-body">
+            <XhCheckbox v-model:checked="rememberMe">
+              {{ t('page.login.remember_me') }}
+            </XhCheckbox>
+            <!-- 找回密码与注册页随 Identity 的后续批次补回：路由没登记就不给入口 -->
+            <span v-if="router.hasRoute('ForgetPassword')" class="cursor-pointer link-primary" @click="goTo('/auth/forget-password')">
+              {{ t('page.login.forgot_password') }}?
+            </span>
+          </div>
+
+          <!-- 在途由表单自己报：onSubmit 返回的 Promise 落定前提交钮带 data-loading、再按不重复提交 -->
+          <XhFormSubmitTrigger class="auth-submit">
+            {{ t('page.login.login_btn') }}
+          </XhFormSubmitTrigger>
+        </XhFormRoot>
+
+        <p
+          v-if="router.hasRoute('Register')"
+          class="mt-6 auth-helper text-center"
+          :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'"
+        >
+          {{ t('page.auth.no_account') }}
+          <span class="cursor-pointer link-primary" @click="goTo('/auth/register')">
+            {{ t('page.login.register') }}
+          </span>
+        </p>
+
+        <!-- 带字分隔线：文案走默认插槽，库在两侧各画一段线，颜色取库缺省的描边令牌，深浅两态都跟着走。
+             separator 角色的子节点对读屏是展示性的，名字另用 aria-label 给出 -->
+        <XhSeparator
+          v-if="oauthProviders.length > 0"
+          class="my-6"
+          :aria-label="t('page.auth.third_party_login')"
+        >
+          <span class="auth-caption" :class="isDark ? 'text-gray-500' : 'text-[hsl(var(--muted-foreground))]'">
+            {{ t('page.auth.third_party_login') }}
+          </span>
+        </XhSeparator>
+        <!-- 第三方渠道是次要入口，比表单控件低一档走 md：图标与文字都收小，高度与圆角仍由库的控件令牌给 -->
+        <div v-if="oauthProviders.length > 0" ref="oauthRow" class="flex gap-3 justify-center items-center">
+          <XhButton
+            v-for="provider in inlineOauthProviders"
+            :key="provider.name"
+            variant="subtle"
+            size="md"
+            @click="handleOAuthLogin(provider)"
+          >
+            <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
+            {{ provider.displayName }}
+          </XhButton>
+
+          <!-- as-child：浮层触发器缺省渲染成 button，这里借用 XhButton 本体，好与同排渠道钮同款同档 -->
+          <XhPopoverRoot v-if="moreOauthProviders.length > 0" v-model:open="showMoreOauth" placement="top">
+            <XhPopoverTrigger as-child>
+              <XhButton
+                variant="subtle"
+                size="md"
+                icon-only
+                :aria-label="t('page.auth.third_party_more')"
+              >
+                <Icon icon="lucide:ellipsis" width="16" />
+              </XhButton>
+            </XhPopoverTrigger>
+            <XhPopoverPositioner>
+              <XhPopoverContent :aria-label="t('page.auth.third_party_more')">
+                <div class="oauth-more-grid">
+                  <XhButton
+                    v-for="provider in moreOauthProviders"
+                    :key="provider.name"
+                    variant="subtle"
+                    size="md"
+                    class="!justify-start"
+                    @click="handleOAuthLogin(provider)"
+                  >
+                    <Icon :icon="getOauthProviderIcon(provider.name)" width="16" />
+                    {{ provider.displayName }}
+                  </XhButton>
+                </div>
+              </XhPopoverContent>
+            </XhPopoverPositioner>
+          </XhPopoverRoot>
+        </div>
+      </div>
+    </Transition>
+  </div>
+</template>
+
+<style scoped>
+/* 收进浮层的渠道排两列，条目左对齐便于扫读 */
+.oauth-more-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.link-primary {
+  color: hsl(var(--primary));
+}
+
+.link-primary:hover {
+  text-decoration: underline;
+}
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all var(--xh-motion-duration-slide) var(--xh-motion-ease-slide);
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateX(24px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-24px);
+}
+</style>

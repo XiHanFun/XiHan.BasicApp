@@ -41,6 +41,11 @@ public static class IdentityPermissions
     public const string UsersResetPassword = "identity.users.reset-password";
 
     /// <summary>
+    /// 重置用户的双因素：<c>users.reset-two-factor</c>。
+    /// </summary>
+    public const string UsersResetTwoFactor = "identity.users.reset-two-factor";
+
+    /// <summary>
     /// 模仿登录：<c>impersonation.start</c>、<c>impersonation.candidates</c>（结束模仿是自助操作）。
     /// </summary>
     public const string ImpersonationStart = "identity.impersonation.start";
@@ -56,6 +61,7 @@ public static class IdentityPermissions
         new(UsersDelete, "Delete users", PermissionScope.Both, audited: true, description: "Delete users of the current tenant."),
         new(UsersLock, "Lock users", PermissionScope.Both, audited: true, description: "Lock and unlock users of the current tenant."),
         new(UsersResetPassword, "Reset passwords", PermissionScope.Both, audited: true, description: "Reset user passwords; the user must change the password at next sign-in."),
+        new(UsersResetTwoFactor, "Reset two-factor", PermissionScope.Both, audited: true, description: "Clear a user's two-factor methods and authenticator key so they can sign in with the password and enroll again."),
         new(ImpersonationStart, "Impersonate users", PermissionScope.Both, audited: true, description: "Sign in as another user of the current tenant (platform: any tenant) to troubleshoot on their behalf."),
     ];
 }

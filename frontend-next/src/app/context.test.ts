@@ -29,7 +29,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
   })
 
   it('登记了控制中心与个人中心的路径', () => {
-    expect(useAppContext().shellRoutes).toMatchObject({ controlCenter: '/control-center', profile: '/identity/profile/change-password' })
+    expect(useAppContext().shellRoutes).toMatchObject({ controlCenter: '/control-center', profile: '/profile' })
   })
 
   it('我的租户：tenants.mine 投影成切换器条目（注册地没有成员类型）', async () => {

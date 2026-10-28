@@ -35,6 +35,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth:captcha": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Issue a captcha (4 digits, valid for one use within 5 minutes). */
+        post: operations["auth.captcha"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth:login": {
         parameters: {
             query?: never;
@@ -44,8 +61,25 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Sign in with user name and password (tenant optional; platform accounts leave it empty); returns access and refresh tokens. */
+        /** Sign in with user name and password (tenant optional; platform accounts leave it empty; when the captcha is on, include the id and code from auth.captcha). Returns a second-step ticket when the account has two-factor on, otherwise access and refresh tokens. */
         post: operations["auth.login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth:login-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Sign-in page settings: available sign-in methods, third-party providers and whether a captcha is required. */
+        get: operations["auth.login-config"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -131,6 +165,23 @@ export interface paths {
         put?: never;
         /** Switch the current session to another tenant (home tenant or a tenant the user is a member of) or back to the platform (platform accounts only); returns new tokens. */
         post: operations["auth.switch-tenant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth:verify-two-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Second step of two-factor sign-in: submit the code with the ticket from auth.login; returns access and refresh tokens on success. */
+        post: operations["auth.verify-two-factor"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1007,6 +1058,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Your profile and account security summary (two-factor, last password change). Any signed-in user. */
+        get: operations["profile.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/profile:change-password": {
         parameters: {
             query?: never;
@@ -1018,6 +1086,57 @@ export interface paths {
         put?: never;
         /** Change your own password; requires the current password and revokes your other sessions. */
         post: operations["profile.change-password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:disable-two-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Turn off a two-factor method: confirm with a current authenticator code. Not available while impersonating. */
+        post: operations["profile.disable-two-factor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:enable-two-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Turn on a two-factor method: confirm the authenticator with a code from the newly generated key. Not available while impersonating. */
+        post: operations["profile.enable-two-factor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/profile:setup-totp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start binding an authenticator: generate a new key (confirm with an authenticator code within 10 minutes). Not available while impersonating. */
+        post: operations["profile.setup-totp"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1458,6 +1577,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/users:reset-two-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset two-factor for users in bulk (clears all methods and authenticator keys); you cannot reset yourself. Requires identity.users.reset-two-factor. */
+        post: operations["users.reset-two-factor"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/users:unlock": {
         parameters: {
             query?: never;
@@ -1741,7 +1877,7 @@ export interface components {
             homeTenantId: string;
         };
         /** @enum {string} */
-        LoginEvent: "Login" | "Refresh" | "Logout" | "SwitchTenant" | "ImpersonationStart" | "ImpersonationStop" | "ChangePassword";
+        LoginEvent: "Login" | "Refresh" | "Logout" | "SwitchTenant" | "ImpersonationStart" | "ImpersonationStop" | "ChangePassword" | "TwoFactorChallenge" | "TwoFactorEnable" | "TwoFactorDisable" | "TwoFactorReset";
         LoginLogResponse: {
             /** Format: uuid */
             id: string;
@@ -1766,6 +1902,10 @@ export interface components {
             browser?: string | null;
             os?: string | null;
             device?: string | null;
+        };
+        LoginProviderResponse: {
+            name: string;
+            displayName: string;
         };
         MembershipResponse: {
             /** Format: uuid */
@@ -2080,6 +2220,21 @@ export interface components {
         };
         /** @enum {string} */
         TenantStatus: "Active" | "Suspended";
+        TokenResponse: {
+            accessToken: string;
+            /** Format: date-time */
+            accessExpiresAt: string;
+            refreshToken: string;
+            /** Format: date-time */
+            refreshExpiresAt: string;
+            /** Format: uuid */
+            sessionId: string;
+            tenantId?: string | null;
+            mustChangePassword: boolean;
+            user: components["schemas"]["UserResponse"];
+            tenantName?: string | null;
+            impersonatorUserName?: string | null;
+        };
         /** @enum {string} */
         TraceDimension: "TraceId" | "UserId" | "UserName" | "SessionId" | "ClientIp";
         /** @enum {string} */
@@ -2114,6 +2269,16 @@ export interface components {
             /** Format: int32 */
             count: number;
         };
+        TwoFactorChallengeResponse: {
+            ticket: string;
+            methods: components["schemas"]["TwoFactorMethod"][];
+            method?: components["schemas"]["TwoFactorMethod"] | null;
+            codeSent: boolean;
+            /** Format: date-time */
+            expiresAt: string;
+        };
+        /** @enum {string} */
+        TwoFactorMethod: "Totp" | "Email" | "Phone";
         UserResponse: {
             /** Format: uuid */
             id: string;
@@ -2244,6 +2409,44 @@ export interface operations {
             };
         };
     };
+    "auth.captcha": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        captchaId: string;
+                        image: string;
+                        /** Format: int32 */
+                        expiresInSeconds: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "auth.login": {
         parameters: {
             query?: never;
@@ -2257,6 +2460,8 @@ export interface operations {
                     userName: string;
                     password: string;
                     tenant?: string | null;
+                    captchaId?: string | null;
+                    captchaCode?: string | null;
                 };
             };
         };
@@ -2268,19 +2473,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        accessToken: string;
-                        /** Format: date-time */
-                        accessExpiresAt: string;
-                        refreshToken: string;
-                        /** Format: date-time */
-                        refreshExpiresAt: string;
-                        /** Format: uuid */
-                        sessionId: string;
-                        tenantId?: string | null;
-                        mustChangePassword: boolean;
-                        user: components["schemas"]["UserResponse"];
-                        tenantName?: string | null;
-                        impersonatorUserName?: string | null;
+                        token?: components["schemas"]["TokenResponse"] | null;
+                        twoFactor?: components["schemas"]["TwoFactorChallengeResponse"] | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.login-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        loginMethods: string[];
+                        oAuthProviders: components["schemas"]["LoginProviderResponse"][];
+                        captchaEnabled: boolean;
                     };
                 };
             };
@@ -2466,6 +2693,57 @@ export interface operations {
             content: {
                 "application/json": {
                     tenantId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        accessToken: string;
+                        /** Format: date-time */
+                        accessExpiresAt: string;
+                        refreshToken: string;
+                        /** Format: date-time */
+                        refreshExpiresAt: string;
+                        /** Format: uuid */
+                        sessionId: string;
+                        tenantId?: string | null;
+                        mustChangePassword: boolean;
+                        user: components["schemas"]["UserResponse"];
+                        tenantName?: string | null;
+                        impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "auth.verify-two-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ticket: string;
+                    method: components["schemas"]["TwoFactorMethod"];
+                    code: string;
                 };
             };
         };
@@ -5925,6 +6203,46 @@ export interface operations {
             };
         };
     };
+    "profile.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user: components["schemas"]["UserResponse"];
+                        twoFactorEnabled: boolean;
+                        twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
+                        /** Format: date-time */
+                        passwordChangedAt?: string | null;
+                        mustChangePassword: boolean;
+                        /** Format: int32 */
+                        failedAccessCount: number;
+                        /** Format: date-time */
+                        lockoutEndAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "profile.change-password": {
         parameters: {
             query?: never;
@@ -5953,6 +6271,138 @@ export interface operations {
                         /** Format: date-time */
                         changedAt: string;
                         sessionsRevoked: boolean;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.disable-two-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    method: components["schemas"]["TwoFactorMethod"];
+                    code: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user: components["schemas"]["UserResponse"];
+                        twoFactorEnabled: boolean;
+                        twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
+                        /** Format: date-time */
+                        passwordChangedAt?: string | null;
+                        mustChangePassword: boolean;
+                        /** Format: int32 */
+                        failedAccessCount: number;
+                        /** Format: date-time */
+                        lockoutEndAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.enable-two-factor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    method: components["schemas"]["TwoFactorMethod"];
+                    code: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        user: components["schemas"]["UserResponse"];
+                        twoFactorEnabled: boolean;
+                        twoFactorMethods: components["schemas"]["TwoFactorMethod"][];
+                        /** Format: date-time */
+                        passwordChangedAt?: string | null;
+                        mustChangePassword: boolean;
+                        /** Format: int32 */
+                        failedAccessCount: number;
+                        /** Format: date-time */
+                        lockoutEndAt?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "profile.setup-totp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": Record<string, never>;
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        sharedKey: string;
+                        authenticatorUri: string;
+                        /** Format: date-time */
+                        expiresAt: string;
                     };
                 };
             };
@@ -7403,6 +7853,44 @@ export interface operations {
         };
     };
     "users.lock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    ids: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "users.reset-two-factor": {
         parameters: {
             query?: never;
             header?: never;

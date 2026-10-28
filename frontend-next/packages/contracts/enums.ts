@@ -23,7 +23,7 @@ export type DataScope = (typeof DataScope)[number]
 export const DiffKind = ['Insert', 'Update', 'Delete'] as const
 export type DiffKind = (typeof DiffKind)[number]
 
-export const LoginEvent = ['Login', 'Refresh', 'Logout', 'SwitchTenant', 'ImpersonationStart', 'ImpersonationStop', 'ChangePassword'] as const
+export const LoginEvent = ['Login', 'Refresh', 'Logout', 'SwitchTenant', 'ImpersonationStart', 'ImpersonationStop', 'ChangePassword', 'TwoFactorChallenge', 'TwoFactorEnable', 'TwoFactorDisable', 'TwoFactorReset'] as const
 export type LoginEvent = (typeof LoginEvent)[number]
 
 export const MenuKind = ['Page', 'Directory', 'Link'] as const
@@ -68,6 +68,9 @@ export type TraceItemStatus = (typeof TraceItemStatus)[number]
 export const TraceLogType = ['Access', 'OpenApi', 'Operation', 'Login', 'Exception', 'Diff', 'PermissionChange', 'ConditionHit'] as const
 export type TraceLogType = (typeof TraceLogType)[number]
 
+export const TwoFactorMethod = ['Totp', 'Email', 'Phone'] as const
+export type TwoFactorMethod = (typeof TwoFactorMethod)[number]
+
 export const UserSettingScene = ['Preference', 'Page'] as const
 export type UserSettingScene = (typeof UserSettingScene)[number]
 
@@ -98,6 +101,7 @@ export const enums = {
   TraceDimension,
   TraceItemStatus,
   TraceLogType,
+  TwoFactorMethod,
   UserSettingScene,
   UserStatus,
 } as const

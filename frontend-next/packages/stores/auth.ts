@@ -1,5 +1,5 @@
-import type { RequestOf, ResponseOf } from '~/contracts'
-import type { ImpersonationCandidate, ImpersonationCandidateQuery, ImpersonationTenantOption, StartImpersonationParams } from '~/types'
+import type { ResponseOf, TwoFactorMethod } from '~/contracts'
+import type { ImpersonationCandidate, ImpersonationCandidateQuery, ImpersonationTenantOption, LoginParams, LoginResponse, OAuthProviderItem, StartImpersonationParams } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { LOGIN_PATH } from '~/constants'
@@ -25,7 +25,22 @@ export function takeIdentitySwitchedMarker(): boolean {
 }
 
 /** 登录 / 刷新返回的会话：访问令牌、刷新令牌、会话 ID、当前租户与用户资料（后端 `TokenResponse`）。 */
-export type Session = ResponseOf<'auth.login'>
+export type Session = ResponseOf<'auth.refresh'>
+
+/** 双因素方式：契约是 `Totp` / `Email` / `Phone`，4.x 登录页按小写标识 `totp` / `email` / `phone` 认 */
+const PAGE_METHODS: Record<TwoFactorMethod, string> = { Totp: 'totp', Email: 'email', Phone: 'phone' }
+
+function contractMethodOf(method: string | undefined): TwoFactorMethod {
+  const found = (Object.keys(PAGE_METHODS) as TwoFactorMethod[]).find(key => PAGE_METHODS[key] === method)
+  if (!found)
+    throw new Error(`未知的双因素方式 ${method}`)
+  return found
+}
+
+/** 回跳只认站内路径（防开放重定向） */
+function safeRedirect(redirect: string | undefined): string {
+  return redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/'
+}
 export type SessionUser = Session['user']
 /** `auth.permissions`：有效权限码、角色、菜单树与页面码。 */
 export type Permissions = ResponseOf<'auth.permissions'>
@@ -83,10 +98,64 @@ export const useAuthStore = defineStore('auth', () => {
     return granted.value.has(permission)
   }
 
-  async function login(request: RequestOf<'auth.login'>): Promise<Session> {
-    const result = await authApi.login(request, { anonymous: true })
-    store(result)
-    return result
+  const loginLoading = ref(false)
+
+  /**
+   * 密码登录（4.x 登录页的入口，同一个函数走两步验证的每一段）：
+   * - 不带票据是首段：账号、密码与图形验证码交给 `auth.login`；账号开了双因素即返回挑战（票据、可用方式），不存会话；
+   * - 带票据与验证码是第二段：`auth.verify-two-factor` 换令牌；
+   * 拿到令牌就存会话并跳到回跳地址，返回 null。页面上的点击、Enter、验证码输满自动提交都汇到这里，`loginLoading` 同步置位守住重入。
+   */
+  async function login(params: LoginParams, redirect?: string): Promise<LoginResponse | null> {
+    if (loginLoading.value)
+      return null
+    loginLoading.value = true
+    try {
+      if (params.twoFactorTicket) {
+        // 邮箱 / 短信方式要服务端先发码，随 Notification 接入；认证器方式直接输码，不走这里
+        if (!params.twoFactorCode)
+          throw new Error('邮箱与短信验证码尚未接入 6.0 后端')
+        const token = await authApi.verifyTwoFactor({ ticket: params.twoFactorTicket, method: contractMethodOf(params.twoFactorMethod), code: params.twoFactorCode }, { anonymous: true })
+        await afterLogin(token, redirect)
+        return null
+      }
+      const result = await authApi.login({
+        userName: params.username.trim(),
+        password: params.password,
+        tenant: params.tenant?.trim() || null,
+        captchaId: params.captchaId ?? null,
+        captchaCode: params.captchaCode ?? null,
+      }, { anonymous: true })
+      if (result.twoFactor) {
+        return {
+          requiresTwoFactor: true,
+          availableTwoFactorMethods: result.twoFactor.methods.map(method => PAGE_METHODS[method]),
+          twoFactorMethod: result.twoFactor.method ? PAGE_METHODS[result.twoFactor.method] : undefined,
+          codeSent: result.twoFactor.codeSent,
+          twoFactorTicket: result.twoFactor.ticket,
+          token: null,
+        }
+      }
+      if (!result.token)
+        throw new Error('登录响应既没有令牌也没有双因素挑战')
+      await afterLogin(result.token, redirect)
+      return null
+    }
+    finally {
+      loginLoading.value = false
+    }
+  }
+
+  /** 存下会话后跳到回跳地址（缺省首页）；权限与菜单由路由守卫首次进入时装载 */
+  async function afterLogin(token: Session, redirect?: string): Promise<void> {
+    store(token)
+    const router = await useAppContext().getRouter()
+    await router.replace(safeRedirect(redirect))
+  }
+
+  /** 第三方登录：提供方列表要等 OpenPlatform（N2 第六批）才有，登录页拿到的列表为空，不会走到这里 */
+  function startOAuthLogin(provider: OAuthProviderItem): never {
+    throw new Error(`第三方登录（${provider.name}）尚未接入 6.0 后端`)
   }
 
   /** 用刷新令牌换新会话；成功返回新的访问令牌（权限随后重取），失败（会话已吊销 / 过期）清掉会话并返回 null。 */
@@ -211,6 +280,8 @@ export const useAuthStore = defineStore('auth', () => {
     mustChangePassword,
     can,
     login,
+    loginLoading,
+    startOAuthLogin,
     refresh,
     loadPermissions,
     logout,

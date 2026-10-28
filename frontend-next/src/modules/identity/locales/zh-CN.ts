@@ -38,6 +38,7 @@ export default {
         lock: '锁定',
         unlock: '解锁',
         reset_password: '重置密码',
+        reset_two_factor: '重置双因素',
         impersonate: '模仿登录',
         generate_password: '重新生成',
         add_department: '加入部门',
@@ -49,6 +50,8 @@ export default {
       confirm_unlock: '确定解锁「{name}」？',
       locked: '账号已锁定',
       unlocked: '账号已解锁',
+      confirm_reset_two_factor: '确定重置「{name}」的双因素？其认证器绑定将被清除，下次只凭密码登录，需要自行重新绑定。',
+      two_factor_reset: '双因素已重置',
       impersonate_content: '将以「{name}」的身份登录，用于排查其遇到的问题。期间的操作会记入审计。',
       impersonate_failed: '发起模仿登录失败',
       reset_title: '重置密码 · {name}',
@@ -75,38 +78,6 @@ export default {
       member_form: {
         department: '部门',
         position: '岗位',
-      },
-    },
-    login: {
-      title: '登录',
-      description: '用用户名与密码登录。',
-      fields: {
-        tenant: '租户',
-        user_name: '用户名',
-        password: '密码',
-      },
-      tenant_placeholder: '平台账号留空',
-      subtitle: '请输入您的账号密码以登录系统',
-      user_name_placeholder: '请输入用户名或邮箱',
-      password_placeholder: '请输入密码',
-      actions: {
-        sign_in: '登录',
-      },
-    },
-    profile: {
-      change_password: {
-        title: '修改密码',
-        description: '输入当前密码与新密码（至少 8 位，含字母与数字）；本人的其他会话将被注销。',
-        fields: {
-          current_password: '当前密码',
-          new_password: '新密码',
-          confirm_password: '确认新密码',
-        },
-        mismatch: '两次输入的新密码不一致。',
-        success: '密码已修改，其他会话已注销。',
-        actions: {
-          submit: '修改密码',
-        },
       },
     },
   },

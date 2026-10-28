@@ -38,6 +38,7 @@ export default {
         lock: 'ロック',
         unlock: 'ロック解除',
         reset_password: 'パスワードをリセット',
+        reset_two_factor: '二要素認証をリセット',
         impersonate: '代理ログイン',
         generate_password: '再生成',
         add_department: '部門に追加',
@@ -49,6 +50,8 @@ export default {
       confirm_unlock: '「{name}」のロックを解除しますか？',
       locked: 'アカウントをロックしました',
       unlocked: 'アカウントのロックを解除しました',
+      confirm_reset_two_factor: '「{name}」の二要素認証をリセットしますか？認証アプリの登録が消え、次回はパスワードだけでサインインし、自分で登録し直す必要があります。',
+      two_factor_reset: '二要素認証をリセットしました',
       impersonate_content: '「{name}」としてログインし、そのユーザーが直面している問題を調査します。期間中の操作は監査に記録されます。',
       impersonate_failed: '代理ログインを開始できませんでした',
       reset_title: 'パスワードのリセット · {name}',
@@ -75,38 +78,6 @@ export default {
       member_form: {
         department: '部門',
         position: '役職',
-      },
-    },
-    login: {
-      title: 'ログイン',
-      description: 'ユーザー名とパスワードでログインします。',
-      fields: {
-        tenant: 'テナント',
-        user_name: 'ユーザー名',
-        password: 'パスワード',
-      },
-      tenant_placeholder: 'プラットフォームアカウントは空のまま',
-      subtitle: 'ユーザー名とパスワードを入力してログインしてください',
-      user_name_placeholder: 'ユーザー名またはメールアドレス',
-      password_placeholder: 'パスワード',
-      actions: {
-        sign_in: 'ログイン',
-      },
-    },
-    profile: {
-      change_password: {
-        title: 'パスワード変更',
-        description: '現在のパスワードと新しいパスワード（8 文字以上、英字と数字を含む）を入力します。他のセッションはログアウトされます。',
-        fields: {
-          current_password: '現在のパスワード',
-          new_password: '新しいパスワード',
-          confirm_password: '新しいパスワード（確認）',
-        },
-        mismatch: '新しいパスワードが一致しません。',
-        success: 'パスワードを変更しました。他のセッションはログアウトされました。',
-        actions: {
-          submit: 'パスワードを変更',
-        },
       },
     },
   },
