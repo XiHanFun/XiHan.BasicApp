@@ -10,12 +10,13 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const page = useDepartments()
 
+// 手写结构的表格每一行各自伸缩：列宽基准写在 width 里，表头与各行才按同一基准分剩余空间；不写就按各格内容定基准，整列对不齐
 const columns = [
-  { id: 'code', label: 'organization.departments.fields.code' },
-  { id: 'name', label: 'organization.departments.fields.name' },
-  { id: 'status', label: 'organization.departments.fields.status' },
-  { id: 'memberCount', label: 'organization.departments.fields.member_count' },
-  { id: 'order', label: 'organization.departments.fields.order' },
+  { id: 'code', label: 'organization.departments.fields.code', width: '8rem' },
+  { id: 'name', label: 'organization.departments.fields.name', width: '7rem' },
+  { id: 'status', label: 'organization.departments.fields.status', width: '4rem' },
+  { id: 'memberCount', label: 'organization.departments.fields.member_count', width: '5rem' },
+  { id: 'order', label: 'organization.departments.fields.order', width: '4rem' },
 ] as const
 
 // 树的缩进：按深度取固定间距类（门禁不收裸 px）
@@ -100,10 +101,10 @@ function pathOf(): string {
       {{ page.listError.value }}
     </p>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <div class="flex flex-col gap-3">
         <XhTableRoot
-          :columns="columns.map(c => ({ id: c.id, label: t(c.label) }))"
+          :columns="columns.map(c => ({ ...c, label: t(c.label) }))"
           :rows="page.flat.value.map(row => ({ id: row.id }))"
           :loading="page.loading.value"
           size="sm"

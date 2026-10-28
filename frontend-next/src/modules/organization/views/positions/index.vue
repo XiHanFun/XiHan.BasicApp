@@ -10,12 +10,13 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const page = usePositions(20)
 
+// 手写结构的表格每一行各自伸缩：列宽基准写在 width 里，表头与各行才按同一基准分剩余空间；不写就按各格内容定基准，整列对不齐
 const columns = [
-  { id: 'code', label: 'organization.positions.fields.code' },
-  { id: 'name', label: 'organization.positions.fields.name' },
-  { id: 'status', label: 'organization.positions.fields.status' },
-  { id: 'order', label: 'organization.positions.fields.order' },
-  { id: 'createdAt', label: 'organization.positions.fields.created_at' },
+  { id: 'code', label: 'organization.positions.fields.code', width: '6rem' },
+  { id: 'name', label: 'organization.positions.fields.name', width: '7rem' },
+  { id: 'status', label: 'organization.positions.fields.status', width: '4rem' },
+  { id: 'order', label: 'organization.positions.fields.order', width: '4rem' },
+  { id: 'createdAt', label: 'organization.positions.fields.created_at', width: '10rem' },
 ] as const
 
 onMounted(() => {
@@ -78,10 +79,10 @@ function statusLabel(status: 'Active' | 'Disabled'): string {
       {{ page.listError.value }}
     </p>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <div class="flex flex-col gap-3">
         <XhTableRoot
-          :columns="columns.map(c => ({ id: c.id, label: t(c.label) }))"
+          :columns="columns.map(c => ({ ...c, label: t(c.label) }))"
           :rows="page.items.value.map(row => ({ id: row.id }))"
           :loading="page.loading.value"
           size="sm"
