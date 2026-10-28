@@ -27,7 +27,7 @@ export interface CallOptions {
 }
 
 export interface RequestHooks {
-  /** 未认证（SECURITY_DENIED_001）：返回新令牌则重放一次，返回 null 即登出 */
+  /** 未认证（SECURITY_DENIED_001）或访问令牌被拒（SECURITY_DENIED_003：过期、签名不符）：返回新令牌则重放一次，返回 null 即登出 */
   onUnauthenticated?: () => Promise<string | null>
   /** 会话已吊销或过期（IDENTITY_DENIED_001）：刷新令牌同样失效，清会话回登录页 */
   onSessionInvalid?: (error: ApiError) => void
@@ -48,6 +48,8 @@ export interface RequestConfig {
 
 export const ErrorCodes = {
   unauthenticated: 'SECURITY_DENIED_001',
+  /** 认证处理器拒收所带凭据（JWT 过期、签名不符、缺主体声明）：与未认证一样先用刷新令牌换一次 */
+  tokenRejected: 'SECURITY_DENIED_003',
   sessionInvalid: 'IDENTITY_DENIED_001',
   locked: 'IDENTITY_DENIED_002',
   maintenance: 'KERNEL_UNAVAILABLE_001',
@@ -133,7 +135,7 @@ export async function invoke<TRequest, TResponse>(id: string, route: RouteDef, r
   let response = await send(options.anonymous ? null : config.getToken?.() ?? null)
   if (!response.ok) {
     let error = await parseProblem(response, traceparent.split('-')[1] ?? '')
-    if (error.code === ErrorCodes.unauthenticated && !options.anonymous && config.hooks?.onUnauthenticated) {
+    if ((error.code === ErrorCodes.unauthenticated || error.code === ErrorCodes.tokenRejected) && !options.anonymous && config.hooks?.onUnauthenticated) {
       const refreshed = await config.hooks.onUnauthenticated()
       if (refreshed) {
         response = await send(refreshed)

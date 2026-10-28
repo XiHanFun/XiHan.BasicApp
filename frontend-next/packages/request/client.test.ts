@@ -88,6 +88,25 @@ describe('invoke', () => {
     expect(onUnauthenticated).toHaveBeenCalledOnce()
   })
 
+  it('treats a rejected access token (SECURITY_DENIED_003, e.g. expired) like unauthenticated: refresh once, then replay', async () => {
+    const seen: string[] = []
+    const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+      const auth = (init!.headers as Record<string, string>).Authorization ?? 'none'
+      seen.push(auth)
+      return auth === 'Bearer fresh'
+        ? new Response(JSON.stringify({ ok: true }), { status: 200 })
+        : problem(403, { code: 'SECURITY_DENIED_003', status: 403, detail: 'expired' })
+    })
+    const onUnauthenticated = vi.fn(async () => 'fresh')
+    configureRequest({ baseUrl: '', fetch: fetchMock as unknown as typeof fetch, getToken: () => 'expired', hooks: { onUnauthenticated } })
+    expect(await invoke<object, { ok: boolean }>('users.list', list, {})).toEqual({ ok: true })
+    expect(seen).toEqual(['Bearer expired', 'Bearer fresh'])
+
+    // 刷新也换不回令牌：钩子返回 null（由它清会话回登录页），原错误照常抛出
+    onUnauthenticated.mockResolvedValueOnce(null as unknown as string)
+    await expect(invoke('users.list', list, {})).rejects.toMatchObject({ code: 'SECURITY_DENIED_003' })
+  })
+
   it('sends anonymous calls without a token and never refreshes them', async () => {
     const fetchMock = vi.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
       expect((init!.headers as Record<string, string>).Authorization).toBeUndefined()
