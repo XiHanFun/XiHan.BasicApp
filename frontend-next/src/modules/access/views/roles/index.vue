@@ -11,12 +11,13 @@ const auth = useAuthStore()
 const page = useRoles(20)
 const memberToAdd = ref('')
 
+// 手写结构的表格每一行各自伸缩：列宽基准写在 width 里，表头与各行才按同一基准分剩余空间；不写就按各格内容定基准，整列对不齐
 const columns = [
-  { id: 'code', label: 'access.roles.fields.code' },
-  { id: 'name', label: 'access.roles.fields.name' },
-  { id: 'status', label: 'access.roles.fields.status' },
-  { id: 'builtIn', label: 'access.roles.fields.built_in' },
-  { id: 'createdAt', label: 'access.roles.fields.created_at' },
+  { id: 'code', label: 'access.roles.fields.code', width: '6rem' },
+  { id: 'name', label: 'access.roles.fields.name', width: '7rem' },
+  { id: 'status', label: 'access.roles.fields.status', width: '4rem' },
+  { id: 'builtIn', label: 'access.roles.fields.built_in', width: '4rem' },
+  { id: 'createdAt', label: 'access.roles.fields.created_at', width: '10rem' },
 ] as const
 
 onMounted(() => {
@@ -92,10 +93,10 @@ async function addMember() {
       {{ page.listError.value }}
     </p>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <div class="flex flex-col gap-3">
         <XhTableRoot
-          :columns="columns.map(c => ({ id: c.id, label: t(c.label) }))"
+          :columns="columns.map(c => ({ ...c, label: t(c.label) }))"
           :rows="page.items.value.map(row => ({ id: row.id }))"
           :loading="page.loading.value"
           size="sm"

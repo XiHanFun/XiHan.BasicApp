@@ -10,14 +10,15 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const page = useTenants(20)
 
+// 手写结构的表格每一行各自伸缩：列宽基准写在 width 里，表头与各行才按同一基准分剩余空间；不写就按各格内容定基准，整列对不齐
 const columns = [
-  { id: 'tenantId', label: 'tenancy.tenants.fields.tenant_id' },
-  { id: 'name', label: 'tenancy.tenants.fields.name' },
-  { id: 'status', label: 'tenancy.tenants.fields.status' },
-  { id: 'edition', label: 'tenancy.tenants.fields.edition' },
-  { id: 'admin', label: 'tenancy.tenants.fields.admin' },
-  { id: 'expiresAt', label: 'tenancy.tenants.fields.expires_at' },
-  { id: 'createdAt', label: 'tenancy.tenants.fields.created_at' },
+  { id: 'tenantId', label: 'tenancy.tenants.fields.tenant_id', width: '6rem' },
+  { id: 'name', label: 'tenancy.tenants.fields.name', width: '7rem' },
+  { id: 'status', label: 'tenancy.tenants.fields.status', width: '4rem' },
+  { id: 'edition', label: 'tenancy.tenants.fields.edition', width: '6rem' },
+  { id: 'admin', label: 'tenancy.tenants.fields.admin', width: '4rem' },
+  { id: 'expiresAt', label: 'tenancy.tenants.fields.expires_at', width: '10rem' },
+  { id: 'createdAt', label: 'tenancy.tenants.fields.created_at', width: '10rem' },
 ] as const
 
 onMounted(() => {
@@ -93,10 +94,10 @@ function statusLabel(status: 'Active' | 'Suspended'): string {
       {{ page.listError.value }}
     </p>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <div class="flex flex-col gap-3">
         <XhTableRoot
-          :columns="columns.map(c => ({ id: c.id, label: t(c.label) }))"
+          :columns="columns.map(c => ({ ...c, label: t(c.label) }))"
           :rows="page.items.value.map(row => ({ id: row.id }))"
           :loading="page.loading.value"
           size="sm"
