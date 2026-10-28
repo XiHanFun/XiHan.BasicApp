@@ -94,4 +94,11 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(await userSettingApi.save({ scene: 1, settingKey: 'identity.users', settingValue: null, clientId: 'c-1' })).toEqual({ scene: 1, settingKey: 'identity.users', settingValue: null })
     expect(calls[1]).toEqual({ method: 'PUT', url: '/api/user-settings', body: { scene: 'Page', key: 'identity.users', value: null } })
   })
+
+  it('字典选项：取 dicts.options 的 items（已深度优先展平）', async () => {
+    const calls: Call[] = []
+    record(calls, () => json(200, { items: [{ value: 'vip', label: 'VIP', parentValue: null, isDefault: false, disabled: false }] }))
+    expect(await useAppContext().apis.dictApi.options('customer_level')).toEqual([{ value: 'vip', label: 'VIP', parentValue: null, isDefault: false, disabled: false }])
+    expect(calls[0]).toEqual({ method: 'GET', url: '/api/dicts:options?code=customer_level', body: null })
+  })
 })

@@ -555,6 +555,701 @@
         }
       }
     },
+    "/api/configs": {
+      "delete": {
+        "operationId": "configs.delete",
+        "tags": [
+          "configs"
+        ],
+        "summary": "Delete configuration entries on the caller\u2019s side in bulk; built-in entries are rejected one by one. Requires settings.configs.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.configs.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "configs.create",
+        "tags": [
+          "configs"
+        ],
+        "summary": "Create a configuration entry on the caller\u2019s side: the key is unique per side and the value is checked against the data type; a tenant entry with a platform key overrides it (rejected when the platform entry forbids overrides). Requires settings.configs.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.configs.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateConfigRequest",
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 128,
+                    "pattern": "^[a-z][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)\u002B$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "dataType": {
+                    "$ref": "#/components/schemas/ConfigDataType"
+                  },
+                  "group": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 65536
+                  },
+                  "defaultValue": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 65536
+                  },
+                  "isEncrypted": {
+                    "type": "boolean"
+                  },
+                  "allowTenantOverride": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "key",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "group": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dataType": {
+                      "$ref": "#/components/schemas/ConfigDataType"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "defaultValue": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasValue": {
+                      "type": "boolean"
+                    },
+                    "isEncrypted": {
+                      "type": "boolean"
+                    },
+                    "isBuiltIn": {
+                      "type": "boolean"
+                    },
+                    "allowTenantOverride": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "key",
+                    "name",
+                    "dataType",
+                    "hasValue",
+                    "isEncrypted",
+                    "isBuiltIn",
+                    "allowTenantOverride",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/configs/{id}": {
+      "get": {
+        "operationId": "configs.get",
+        "tags": [
+          "configs"
+        ],
+        "summary": "Get a configuration entry (encrypted values are never returned). Requires settings.configs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.configs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "group": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dataType": {
+                      "$ref": "#/components/schemas/ConfigDataType"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "defaultValue": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasValue": {
+                      "type": "boolean"
+                    },
+                    "isEncrypted": {
+                      "type": "boolean"
+                    },
+                    "isBuiltIn": {
+                      "type": "boolean"
+                    },
+                    "allowTenantOverride": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "key",
+                    "name",
+                    "dataType",
+                    "hasValue",
+                    "isEncrypted",
+                    "isBuiltIn",
+                    "allowTenantOverride",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "configs.update",
+        "tags": [
+          "configs"
+        ],
+        "summary": "Update a configuration entry on the caller\u2019s side: name, group, value, default, data type, encryption, order, description and status (the key cannot change; an encrypted entry keeps its value when none is given). Requires settings.configs.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.configs.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateConfigRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "dataType": {
+                    "$ref": "#/components/schemas/ConfigDataType"
+                  },
+                  "group": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 65536
+                  },
+                  "defaultValue": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 65536
+                  },
+                  "isEncrypted": {
+                    "type": "boolean"
+                  },
+                  "allowTenantOverride": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/SettingStatus"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "group": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "dataType": {
+                      "$ref": "#/components/schemas/ConfigDataType"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "defaultValue": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasValue": {
+                      "type": "boolean"
+                    },
+                    "isEncrypted": {
+                      "type": "boolean"
+                    },
+                    "isBuiltIn": {
+                      "type": "boolean"
+                    },
+                    "allowTenantOverride": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "key",
+                    "name",
+                    "dataType",
+                    "hasValue",
+                    "isEncrypted",
+                    "isBuiltIn",
+                    "allowTenantOverride",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/configs:list": {
+      "post": {
+        "operationId": "configs.list",
+        "tags": [
+          "configs"
+        ],
+        "summary": "List configuration entries page by page: platform principals see platform entries, tenant principals see platform entries plus their own; encrypted values are never returned. Requires settings.configs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.configs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConfigResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/departments": {
       "delete": {
         "operationId": "departments.delete",
@@ -1138,6 +1833,1198 @@
                   "required": [
                     "items",
                     "total"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dict-items": {
+      "delete": {
+        "operationId": "dict-items.delete",
+        "tags": [
+          "dict-items"
+        ],
+        "summary": "Delete dictionary items in bulk; items that still have children are rejected one by one. Requires settings.dict-items.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dict-items.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "dict-items.list",
+        "tags": [
+          "dict-items"
+        ],
+        "summary": "List all items of a dictionary (depth-first, with depth). Requires settings.dict-items.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dict-items.read",
+        "parameters": [
+          {
+            "name": "dictId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DictItemsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DictItemResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "dict-items.create",
+        "tags": [
+          "dict-items"
+        ],
+        "summary": "Create an item in an enabled dictionary on the caller\u2019s side: the code is unique in the dictionary, the parent must be in the same dictionary, making it the default clears the other default. Requires settings.dict-items.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dict-items.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateDictItemRequest",
+                "type": "object",
+                "properties": {
+                  "dictId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,99}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "parentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "metadata": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 65536
+                  },
+                  "isDefault": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  }
+                },
+                "required": [
+                  "dictId",
+                  "code",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DictItemResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "dictId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "parentId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "metadata": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "depth": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "dictId",
+                    "code",
+                    "name",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "depth",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dict-items/{id}": {
+      "get": {
+        "operationId": "dict-items.get",
+        "tags": [
+          "dict-items"
+        ],
+        "summary": "Get a dictionary item. Requires settings.dict-items.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dict-items.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DictItemResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "dictId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "parentId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "metadata": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "depth": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "dictId",
+                    "code",
+                    "name",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "depth",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "dict-items.update",
+        "tags": [
+          "dict-items"
+        ],
+        "summary": "Update a dictionary item: parent, name, value, description, metadata, default, order and status (the code cannot change; an item cannot move under itself or its descendants). Requires settings.dict-items.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dict-items.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateDictItemRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "parentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "metadata": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 65536
+                  },
+                  "isDefault": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/SettingStatus"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DictItemResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "dictId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "parentId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "metadata": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "depth": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "dictId",
+                    "code",
+                    "name",
+                    "isDefault",
+                    "status",
+                    "order",
+                    "depth",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dicts": {
+      "delete": {
+        "operationId": "dicts.delete",
+        "tags": [
+          "dicts"
+        ],
+        "summary": "Delete dictionaries on the caller\u2019s side in bulk; built-in dictionaries and those that still have items are rejected one by one. Requires settings.dicts.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dicts.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "dicts.create",
+        "tags": [
+          "dicts"
+        ],
+        "summary": "Create a dictionary on the caller\u2019s side; codes are unique across platform and tenants (dictionaries are never overridden). Requires settings.dicts.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dicts.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateDictRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,99}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "category": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  }
+                },
+                "required": [
+                  "code",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DictResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isBuiltIn": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "code",
+                    "name",
+                    "isBuiltIn",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dicts/{id}": {
+      "get": {
+        "operationId": "dicts.get",
+        "tags": [
+          "dicts"
+        ],
+        "summary": "Get a dictionary. Requires settings.dicts.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dicts.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DictResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isBuiltIn": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "code",
+                    "name",
+                    "isBuiltIn",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "dicts.update",
+        "tags": [
+          "dicts"
+        ],
+        "summary": "Update a dictionary on the caller\u2019s side: name, category, description, order and status (the code cannot change). Requires settings.dicts.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dicts.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateDictRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "category": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/SettingStatus"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DictResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isBuiltIn": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "code",
+                    "name",
+                    "isBuiltIn",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dicts:list": {
+      "post": {
+        "operationId": "dicts.list",
+        "tags": [
+          "dicts"
+        ],
+        "summary": "List dictionaries page by page: platform dictionaries plus the caller\u2019s tenant dictionaries. Requires settings.dicts.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.dicts.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfDictResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DictResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dicts:options": {
+      "get": {
+        "operationId": "dicts.options",
+        "tags": [
+          "dicts"
+        ],
+        "summary": "Get the options of a dictionary by code: tree dictionaries are flattened depth-first, disabled items are flagged, a disabled dictionary has no options. Any signed-in user.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-policy": "authenticated",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100,
+              "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,99}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DictOptionsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DictOption"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
                   ]
                 }
               }
@@ -3212,6 +5099,1310 @@
                     "isAffix",
                     "isCustomized",
                     "children"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/numbering-rules": {
+      "delete": {
+        "operationId": "numbering-rules.delete",
+        "tags": [
+          "numbering-rules"
+        ],
+        "summary": "Delete numbering rules on the caller\u2019s side in bulk; rules that have issued numbers are rejected one by one. Requires settings.numbering-rules.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.numbering-rules.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "numbering-rules.create",
+        "tags": [
+          "numbering-rules"
+        ],
+        "summary": "Create a numbering rule on the caller\u2019s side: the date format must distinguish the reset cycle and the time zone is an IANA id. Requires settings.numbering-rules.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.numbering-rules.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateNumberingRuleRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,99}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "prefix": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50,
+                    "pattern": "^\\S*$"
+                  },
+                  "separator": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 10,
+                    "pattern": "^\\S*$"
+                  },
+                  "dateFormat": {
+                    "$ref": "#/components/schemas/NumberingDateFormat"
+                  },
+                  "serialLength": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 18
+                  },
+                  "resetCycle": {
+                    "$ref": "#/components/schemas/NumberingResetCycle"
+                  },
+                  "timeZoneId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "allowTenantUse": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NumberingRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "prefix": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "separator": {
+                      "type": "string"
+                    },
+                    "dateFormat": {
+                      "$ref": "#/components/schemas/NumberingDateFormat"
+                    },
+                    "serialLength": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "resetCycle": {
+                      "$ref": "#/components/schemas/NumberingResetCycle"
+                    },
+                    "timeZoneId": {
+                      "type": "string"
+                    },
+                    "template": {
+                      "type": "string"
+                    },
+                    "currentValue": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "currentPeriod": {
+                      "type": "string"
+                    },
+                    "hasAllocated": {
+                      "type": "boolean"
+                    },
+                    "allowTenantUse": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "code",
+                    "name",
+                    "separator",
+                    "dateFormat",
+                    "serialLength",
+                    "resetCycle",
+                    "timeZoneId",
+                    "template",
+                    "currentValue",
+                    "currentPeriod",
+                    "hasAllocated",
+                    "allowTenantUse",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/numbering-rules/{id}": {
+      "get": {
+        "operationId": "numbering-rules.get",
+        "tags": [
+          "numbering-rules"
+        ],
+        "summary": "Get a numbering rule, including its current period and last issued sequence value. Requires settings.numbering-rules.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.numbering-rules.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NumberingRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "prefix": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "separator": {
+                      "type": "string"
+                    },
+                    "dateFormat": {
+                      "$ref": "#/components/schemas/NumberingDateFormat"
+                    },
+                    "serialLength": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "resetCycle": {
+                      "$ref": "#/components/schemas/NumberingResetCycle"
+                    },
+                    "timeZoneId": {
+                      "type": "string"
+                    },
+                    "template": {
+                      "type": "string"
+                    },
+                    "currentValue": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "currentPeriod": {
+                      "type": "string"
+                    },
+                    "hasAllocated": {
+                      "type": "boolean"
+                    },
+                    "allowTenantUse": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "code",
+                    "name",
+                    "separator",
+                    "dateFormat",
+                    "serialLength",
+                    "resetCycle",
+                    "timeZoneId",
+                    "template",
+                    "currentValue",
+                    "currentPeriod",
+                    "hasAllocated",
+                    "allowTenantUse",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "numbering-rules.update",
+        "tags": [
+          "numbering-rules"
+        ],
+        "summary": "Update a numbering rule on the caller\u2019s side; once it has issued numbers the format is frozen and only name, description, order, status and tenant sharing can change. Requires settings.numbering-rules.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.numbering-rules.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateNumberingRuleRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "prefix": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 50,
+                    "pattern": "^\\S*$"
+                  },
+                  "separator": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 10,
+                    "pattern": "^\\S*$"
+                  },
+                  "dateFormat": {
+                    "$ref": "#/components/schemas/NumberingDateFormat"
+                  },
+                  "serialLength": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 18
+                  },
+                  "resetCycle": {
+                    "$ref": "#/components/schemas/NumberingResetCycle"
+                  },
+                  "timeZoneId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "allowTenantUse": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/SettingStatus"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NumberingRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "prefix": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "separator": {
+                      "type": "string"
+                    },
+                    "dateFormat": {
+                      "$ref": "#/components/schemas/NumberingDateFormat"
+                    },
+                    "serialLength": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "resetCycle": {
+                      "$ref": "#/components/schemas/NumberingResetCycle"
+                    },
+                    "timeZoneId": {
+                      "type": "string"
+                    },
+                    "template": {
+                      "type": "string"
+                    },
+                    "currentValue": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "currentPeriod": {
+                      "type": "string"
+                    },
+                    "hasAllocated": {
+                      "type": "boolean"
+                    },
+                    "allowTenantUse": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "code",
+                    "name",
+                    "separator",
+                    "dateFormat",
+                    "serialLength",
+                    "resetCycle",
+                    "timeZoneId",
+                    "template",
+                    "currentValue",
+                    "currentPeriod",
+                    "hasAllocated",
+                    "allowTenantUse",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/numbering-rules/{id}:allocations": {
+      "post": {
+        "operationId": "numbering-rules.allocations",
+        "tags": [
+          "numbering-rules"
+        ],
+        "summary": "List a rule\u2019s issue records page by page (a tenant only sees the ones it requested). Requires settings.numbering-rules.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.numbering-rules.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "NumberingAllocationsRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "page": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/PageInfo"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfNumberingAllocationResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NumberingAllocationResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/numbering-rules/{id}:reset": {
+      "post": {
+        "operationId": "numbering-rules.reset",
+        "tags": [
+          "numbering-rules"
+        ],
+        "summary": "Safely reset the sequence: the next value must exceed the highest value already issued in the current period (jumping forward is allowed), a reason is required and platform rules need the rule code typed back as confirmation. Requires settings.numbering-rules.reset.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.numbering-rules.reset",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ResetNumberingRuleRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "nextValue": {
+                    "type": "string",
+                    "minLength": 1,
+                    "pattern": "^[1-9][0-9]{0,17}$"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "confirmCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "id",
+                  "nextValue",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NumberingRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ownerTenantId": {
+                      "type": "string"
+                    },
+                    "isPlatform": {
+                      "type": "boolean"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "prefix": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "separator": {
+                      "type": "string"
+                    },
+                    "dateFormat": {
+                      "$ref": "#/components/schemas/NumberingDateFormat"
+                    },
+                    "serialLength": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "resetCycle": {
+                      "$ref": "#/components/schemas/NumberingResetCycle"
+                    },
+                    "timeZoneId": {
+                      "type": "string"
+                    },
+                    "template": {
+                      "type": "string"
+                    },
+                    "currentValue": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "currentPeriod": {
+                      "type": "string"
+                    },
+                    "hasAllocated": {
+                      "type": "boolean"
+                    },
+                    "allowTenantUse": {
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/SettingStatus"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "ownerTenantId",
+                    "isPlatform",
+                    "code",
+                    "name",
+                    "separator",
+                    "dateFormat",
+                    "serialLength",
+                    "resetCycle",
+                    "timeZoneId",
+                    "template",
+                    "currentValue",
+                    "currentPeriod",
+                    "hasAllocated",
+                    "allowTenantUse",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/numbering-rules:generate": {
+      "post": {
+        "operationId": "numbering-rules.generate",
+        "tags": [
+          "numbering-rules"
+        ],
+        "summary": "Issue numbers from a rule: committed in its own transaction, numbers are consumed permanently; the same idempotency key replays with identical parameters and conflicts otherwise. Requires settings.numbering-rules.generate.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.numbering-rules.generate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "GenerateNumbersRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[A-Za-z][A-Za-z0-9._-]{0,99}$"
+                  },
+                  "idempotencyKey": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "count": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 1000
+                  },
+                  "scope": {
+                    "$ref": "#/components/schemas/NumberingScope"
+                  },
+                  "businessType": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  },
+                  "businessId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "code",
+                  "idempotencyKey"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NumberAllocation",
+                  "type": "object",
+                  "properties": {
+                    "ruleId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "ruleCode": {
+                      "type": "string"
+                    },
+                    "scope": {
+                      "$ref": "#/components/schemas/NumberingScope"
+                    },
+                    "requestTenantId": {
+                      "type": "string"
+                    },
+                    "idempotencyKey": {
+                      "type": "string"
+                    },
+                    "periodKey": {
+                      "type": "string"
+                    },
+                    "startValue": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "endValue": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "numbers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "generatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "isReplay": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "ruleId",
+                    "ruleCode",
+                    "scope",
+                    "requestTenantId",
+                    "idempotencyKey",
+                    "periodKey",
+                    "startValue",
+                    "endValue",
+                    "numbers",
+                    "generatedAt",
+                    "isReplay"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/numbering-rules:list": {
+      "post": {
+        "operationId": "numbering-rules.list",
+        "tags": [
+          "numbering-rules"
+        ],
+        "summary": "List numbering rules page by page: platform principals see platform rules, tenant principals see their own rules plus platform rules shared with tenants. Requires settings.numbering-rules.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.numbering-rules.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfNumberingRuleResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/NumberingRuleResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/numbering-rules:preview": {
+      "get": {
+        "operationId": "numbering-rules.preview",
+        "tags": [
+          "numbering-rules"
+        ],
+        "summary": "Preview numbers for a given format (pure computation, nothing is issued, up to 50). Requires settings.numbering-rules.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "settings.numbering-rules.read",
+        "parameters": [
+          {
+            "name": "prefix",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 50,
+              "pattern": "^\\S*$"
+            }
+          },
+          {
+            "name": "separator",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 10,
+              "pattern": "^\\S*$"
+            }
+          },
+          {
+            "name": "dateFormat",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/NumberingDateFormat"
+            }
+          },
+          {
+            "name": "serialLength",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 18
+            }
+          },
+          {
+            "name": "resetCycle",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/NumberingResetCycle"
+            }
+          },
+          {
+            "name": "timeZoneId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          },
+          {
+            "name": "startValue",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "pattern": "^[1-9][0-9]{0,17}$"
+            }
+          },
+          {
+            "name": "count",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "NumberingPreviewResponse",
+                  "type": "object",
+                  "properties": {
+                    "numbers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "periodKey": {
+                      "type": "string"
+                    },
+                    "dateText": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "numbers",
+                    "periodKey"
                   ]
                 }
               }
@@ -7152,6 +10343,109 @@
           "code"
         ]
       },
+      "ConfigDataType": {
+        "type": "string",
+        "enum": [
+          "Text",
+          "Number",
+          "Boolean",
+          "Json",
+          "Array"
+        ]
+      },
+      "ConfigResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerTenantId": {
+            "type": "string"
+          },
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "group": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "dataType": {
+            "$ref": "#/components/schemas/ConfigDataType"
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "defaultValue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hasValue": {
+            "type": "boolean"
+          },
+          "isEncrypted": {
+            "type": "boolean"
+          },
+          "isBuiltIn": {
+            "type": "boolean"
+          },
+          "allowTenantOverride": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SettingStatus"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "ownerTenantId",
+          "isPlatform",
+          "key",
+          "name",
+          "dataType",
+          "hasValue",
+          "isEncrypted",
+          "isBuiltIn",
+          "allowTenantOverride",
+          "status",
+          "order",
+          "createdAt"
+        ]
+      },
       "DataScope": {
         "type": "string",
         "enum": [
@@ -7249,6 +10543,166 @@
           "id",
           "code",
           "name",
+          "status",
+          "order",
+          "createdAt"
+        ]
+      },
+      "DictItemResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dictId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metadata": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SettingStatus"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "depth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "dictId",
+          "code",
+          "name",
+          "isDefault",
+          "status",
+          "order",
+          "depth",
+          "createdAt"
+        ]
+      },
+      "DictOption": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "parentValue": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "disabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "value",
+          "label",
+          "isDefault",
+          "disabled"
+        ]
+      },
+      "DictResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerTenantId": {
+            "type": "string"
+          },
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isBuiltIn": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SettingStatus"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "ownerTenantId",
+          "isPlatform",
+          "code",
+          "name",
+          "isBuiltIn",
           "status",
           "order",
           "createdAt"
@@ -7586,6 +11040,202 @@
           "children"
         ]
       },
+      "NumberingAllocationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "requestTenantId": {
+            "type": "string"
+          },
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startValue": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "endValue": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "periodKey": {
+            "type": "string"
+          },
+          "firstNumber": {
+            "type": "string"
+          },
+          "lastNumber": {
+            "type": "string"
+          },
+          "businessType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "businessId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "requestTenantId",
+          "idempotencyKey",
+          "count",
+          "startValue",
+          "endValue",
+          "periodKey",
+          "firstNumber",
+          "lastNumber",
+          "generatedAt"
+        ]
+      },
+      "NumberingDateFormat": {
+        "type": "string",
+        "enum": [
+          "None",
+          "Yyyy",
+          "YyyyMM",
+          "YyyyMMdd",
+          "YyMM",
+          "YyMMdd",
+          "MMdd"
+        ]
+      },
+      "NumberingResetCycle": {
+        "type": "string",
+        "enum": [
+          "Never",
+          "Daily",
+          "Monthly",
+          "Yearly"
+        ]
+      },
+      "NumberingRuleResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ownerTenantId": {
+            "type": "string"
+          },
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "prefix": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "separator": {
+            "type": "string"
+          },
+          "dateFormat": {
+            "$ref": "#/components/schemas/NumberingDateFormat"
+          },
+          "serialLength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "resetCycle": {
+            "$ref": "#/components/schemas/NumberingResetCycle"
+          },
+          "timeZoneId": {
+            "type": "string"
+          },
+          "template": {
+            "type": "string"
+          },
+          "currentValue": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "currentPeriod": {
+            "type": "string"
+          },
+          "hasAllocated": {
+            "type": "boolean"
+          },
+          "allowTenantUse": {
+            "type": "boolean"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SettingStatus"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "ownerTenantId",
+          "isPlatform",
+          "code",
+          "name",
+          "separator",
+          "dateFormat",
+          "serialLength",
+          "resetCycle",
+          "timeZoneId",
+          "template",
+          "currentValue",
+          "currentPeriod",
+          "hasAllocated",
+          "allowTenantUse",
+          "status",
+          "order",
+          "createdAt"
+        ]
+      },
+      "NumberingScope": {
+        "type": "string",
+        "enum": [
+          "Auto",
+          "Tenant",
+          "Platform"
+        ]
+      },
       "OrganizationStatus": {
         "type": "string",
         "enum": [
@@ -7862,6 +11512,13 @@
           "id",
           "code",
           "name"
+        ]
+      },
+      "SettingStatus": {
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
         ]
       },
       "TenantMemberResponse": {
@@ -8212,6 +11869,96 @@
         "code": "organization.positions.update",
         "displayName": "Update positions",
         "description": "Edit and disable positions."
+      },
+      "settings.configs.create": {
+        "code": "settings.configs.create",
+        "displayName": "Create configuration",
+        "description": "Create configuration entries on the caller\u0027s side, including tenant overrides of platform entries."
+      },
+      "settings.configs.delete": {
+        "code": "settings.configs.delete",
+        "displayName": "Delete configuration",
+        "description": "Delete configuration entries on the caller\u0027s side that are not built in."
+      },
+      "settings.configs.read": {
+        "code": "settings.configs.read",
+        "displayName": "Read configuration",
+        "description": "View platform configuration entries and the caller\u0027s own; encrypted values are never shown."
+      },
+      "settings.configs.update": {
+        "code": "settings.configs.update",
+        "displayName": "Update configuration",
+        "description": "Edit, encrypt and disable configuration entries on the caller\u0027s side."
+      },
+      "settings.dict-items.create": {
+        "code": "settings.dict-items.create",
+        "displayName": "Create dictionary items",
+        "description": "Add items to enabled dictionaries on the caller\u0027s side."
+      },
+      "settings.dict-items.delete": {
+        "code": "settings.dict-items.delete",
+        "displayName": "Delete dictionary items",
+        "description": "Delete dictionary items without children on the caller\u0027s side."
+      },
+      "settings.dict-items.read": {
+        "code": "settings.dict-items.read",
+        "displayName": "Read dictionary items",
+        "description": "View the items of visible dictionaries."
+      },
+      "settings.dict-items.update": {
+        "code": "settings.dict-items.update",
+        "displayName": "Update dictionary items",
+        "description": "Edit, move and disable dictionary items on the caller\u0027s side."
+      },
+      "settings.dicts.create": {
+        "code": "settings.dicts.create",
+        "displayName": "Create dictionaries",
+        "description": "Create dictionaries on the caller\u0027s side."
+      },
+      "settings.dicts.delete": {
+        "code": "settings.dicts.delete",
+        "displayName": "Delete dictionaries",
+        "description": "Delete empty dictionaries on the caller\u0027s side that are not built in."
+      },
+      "settings.dicts.read": {
+        "code": "settings.dicts.read",
+        "displayName": "Read dictionaries",
+        "description": "View platform dictionaries and the caller\u0027s own."
+      },
+      "settings.dicts.update": {
+        "code": "settings.dicts.update",
+        "displayName": "Update dictionaries",
+        "description": "Edit and disable dictionaries on the caller\u0027s side."
+      },
+      "settings.numbering-rules.create": {
+        "code": "settings.numbering-rules.create",
+        "displayName": "Create numbering rules",
+        "description": "Create numbering rules on the caller\u0027s side."
+      },
+      "settings.numbering-rules.delete": {
+        "code": "settings.numbering-rules.delete",
+        "displayName": "Delete numbering rules",
+        "description": "Delete numbering rules on the caller\u0027s side that never issued a number."
+      },
+      "settings.numbering-rules.generate": {
+        "code": "settings.numbering-rules.generate",
+        "displayName": "Issue numbers",
+        "description": "Issue numbers from the caller\u0027s rules or from platform rules shared with tenants."
+      },
+      "settings.numbering-rules.read": {
+        "code": "settings.numbering-rules.read",
+        "displayName": "Read numbering rules",
+        "description": "View numbering rules, preview formats and read issue records."
+      },
+      "settings.numbering-rules.reset": {
+        "code": "settings.numbering-rules.reset",
+        "displayName": "Reset numbering rules",
+        "description": "Move a rule\u0027s sequence forward past every value issued in the current period."
+      },
+      "settings.numbering-rules.update": {
+        "code": "settings.numbering-rules.update",
+        "displayName": "Update numbering rules",
+        "description": "Edit numbering rules on the caller\u0027s side; the format freezes after the first issue."
       },
       "tenancy.editions.create": {
         "code": "tenancy.editions.create",
