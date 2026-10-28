@@ -1196,6 +1196,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/roles/{id}:deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deny permissions on a role: revokes the same grants and writes Deny rules (optional validity window and reason); a role deny only removes that role's own grants. Requires access.roles.grant. */
+        post: operations["roles.deny"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/roles/{id}:grant": {
         parameters: {
             query?: never;
@@ -1258,6 +1275,23 @@ export interface paths {
         put?: never;
         /** Remove users from a role. Takes effect at the user's next token refresh. Requires access.roles.assign. */
         post: operations["roles.unassign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles/{id}:update-member": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change the validity window of a member assignment; expired or future assignments are dropped from decisions at once. Requires access.roles.assign. */
+        post: operations["roles.update-member"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1466,6 +1500,108 @@ export interface paths {
         get: operations["traces.timeline"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user-data-scopes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a user's data scope override (tenant side only); without one the roles decide. Requires access.user-data-scopes.read. */
+        get: operations["user-data-scopes.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user-data-scopes:set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set or clear a user's data scope override (tenant side only); the override replaces the roles' scopes entirely. Requires access.user-data-scopes.update. */
+        post: operations["user-data-scopes.set"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user-grants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the permissions granted or denied directly to a user on the current side, with windows and reasons. Requires access.user-grants.read. */
+        get: operations["user-grants.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user-grants:deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deny permissions directly on a user; a user deny overrides every grant. Requires access.user-grants.grant. */
+        post: operations["user-grants.deny"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user-grants:grant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Grant permissions directly to a user (optional validity window and reason). Requires access.user-grants.grant. */
+        post: operations["user-grants.grant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/user-grants:revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke direct grants or denies of a user. Requires access.user-grants.grant. */
+        post: operations["user-grants.revoke"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2094,6 +2230,8 @@ export interface components {
             field: string;
             descending?: boolean;
         };
+        /** @enum {string} */
+        PermissionAction: "Grant" | "Deny";
         PermissionChangeLogResponse: {
             /** Format: uuid */
             id: string;
@@ -2122,7 +2260,7 @@ export interface components {
             detail?: string | null;
         };
         /** @enum {string} */
-        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition";
+        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition" | "RoleDeny" | "RoleAssignmentWindow" | "UserGrant" | "UserDeny" | "UserRevoke" | "UserDataScope";
         PermissionFailure: {
             permission: string;
             code: string;
@@ -2136,6 +2274,15 @@ export interface components {
             action: string;
             scope: components["schemas"]["PermissionScope"];
             audited: boolean;
+        };
+        PermissionRuleResponse: {
+            permission: string;
+            action: components["schemas"]["PermissionAction"];
+            /** Format: date-time */
+            effectiveAt?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            reason?: string | null;
         };
         /** @enum {string} */
         PermissionScope: "Platform" | "Tenant" | "Both";
@@ -2159,6 +2306,10 @@ export interface components {
             status: components["schemas"]["UserStatus"];
             /** Format: date-time */
             assignedAt: string;
+            /** Format: date-time */
+            effectiveAt?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
         };
         RoleResponse: {
             /** Format: uuid */
@@ -2279,6 +2430,15 @@ export interface components {
         };
         /** @enum {string} */
         TwoFactorMethod: "Totp" | "Email" | "Phone";
+        UserGrantResponse: {
+            permission: string;
+            action: components["schemas"]["PermissionAction"];
+            /** Format: date-time */
+            effectiveAt?: string | null;
+            /** Format: date-time */
+            expiresAt?: string | null;
+            reason?: string | null;
+        };
         UserResponse: {
             /** Format: uuid */
             id: string;
@@ -6528,6 +6688,7 @@ export interface operations {
                         /** Format: int64 */
                         memberCount: number;
                         customDepartments: components["schemas"]["DataScopeDepartmentRequest"][];
+                        rules: components["schemas"]["PermissionRuleResponse"][];
                     };
                 };
             };
@@ -6616,6 +6777,10 @@ export interface operations {
                     /** Format: uuid */
                     id: string;
                     userIds: string[];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
                 };
             };
         };
@@ -6629,6 +6794,53 @@ export interface operations {
                     "application/json": {
                         succeeded: string[];
                         failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "roles.deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    permissions: string[];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["PermissionFailure"][];
                     };
                 };
             };
@@ -6658,6 +6870,11 @@ export interface operations {
                     /** Format: uuid */
                     id: string;
                     permissions: string[];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    reason?: string | null;
                 };
             };
         };
@@ -6735,6 +6952,11 @@ export interface operations {
                     /** Format: uuid */
                     id: string;
                     permissions: string[];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    reason?: string | null;
                 };
             };
         };
@@ -6777,6 +6999,10 @@ export interface operations {
                     /** Format: uuid */
                     id: string;
                     userIds: string[];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
                 };
             };
         };
@@ -6790,6 +7016,62 @@ export interface operations {
                     "application/json": {
                         succeeded: string[];
                         failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "roles.update-member": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    userId: string;
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        userName: string;
+                        displayName: string;
+                        status: components["schemas"]["UserStatus"];
+                        /** Format: date-time */
+                        assignedAt: string;
+                        /** Format: date-time */
+                        effectiveAt?: string | null;
+                        /** Format: date-time */
+                        expiresAt?: string | null;
                     };
                 };
             };
@@ -7481,6 +7763,255 @@ export interface operations {
                         truncated: boolean;
                         /** Format: int32 */
                         total: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "user-data-scopes.get": {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        dataScope?: components["schemas"]["DataScope"] | null;
+                        departments: components["schemas"]["DataScopeDepartmentRequest"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "user-data-scopes.set": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    userId: string;
+                    dataScope?: components["schemas"]["DataScope"] | null;
+                    departments?: components["schemas"]["DataScopeDepartmentRequest"][] | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        dataScope?: components["schemas"]["DataScope"] | null;
+                        departments: components["schemas"]["DataScopeDepartmentRequest"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "user-grants.list": {
+        parameters: {
+            query: {
+                userId: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        userId: string;
+                        grants: components["schemas"]["UserGrantResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "user-grants.deny": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    userId: string;
+                    permissions: string[];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["PermissionFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "user-grants.grant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    userId: string;
+                    permissions: string[];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["PermissionFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "user-grants.revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    userId: string;
+                    permissions: string[];
+                    /** Format: date-time */
+                    effectiveAt?: string | null;
+                    /** Format: date-time */
+                    expiresAt?: string | null;
+                    reason?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["PermissionFailure"][];
                     };
                 };
             };

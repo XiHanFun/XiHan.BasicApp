@@ -112,4 +112,19 @@ public static class AccessErrors
     /// 只有页面菜单能恢复默认。
     /// </summary>
     public const string MenuNotPage = "ACCESS_VALIDATION_010";
+
+    /// <summary>
+    /// 有效期不合法：到期须晚于生效。
+    /// </summary>
+    public const string WindowInvalid = "ACCESS_VALIDATION_011";
+
+    /// <summary>
+    /// 用户级数据范围只在租户侧设置。
+    /// </summary>
+    public const string UserDataScopeTenantOnly = "ACCESS_VALIDATION_012";
+
+    /// <summary>
+    /// 用户级自定义数据范围要列出部门，其他范围不能带部门。
+    /// </summary>
+    public const string UserDataScopeDepartments = "ACCESS_VALIDATION_013";
 }

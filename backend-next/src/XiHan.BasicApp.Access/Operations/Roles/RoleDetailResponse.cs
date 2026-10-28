@@ -10,4 +10,5 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="Permissions">已授予的权限码，按码排序。</param>
 /// <param name="CustomDepartments">自定义数据范围的部门（只有 DataScope 为 Custom 时非空）。</param>
 /// <param name="MemberCount">成员数。</param>
-public sealed record RoleDetailResponse(RoleResponse Role, IReadOnlyList<string> Permissions, long MemberCount, IReadOnlyList<DataScopeDepartmentRequest> CustomDepartments);
+/// <param name="Rules">授予规则：Deny 的权限码，以及带有效期或原因的授予（普通授予不在这里）。</param>
+public sealed record RoleDetailResponse(RoleResponse Role, IReadOnlyList<string> Permissions, long MemberCount, IReadOnlyList<DataScopeDepartmentRequest> CustomDepartments, IReadOnlyList<PermissionRuleResponse> Rules);

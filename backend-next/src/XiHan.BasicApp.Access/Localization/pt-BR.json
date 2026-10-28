@@ -39,5 +39,16 @@
   "access.menu.page_managed": "Menus de página vêm dos registros de páginas: não podem ser criados, e rota, componente, permissão e link não podem mudar.",
   "access.menu.title_required": "Diretórios e links precisam de um título.",
   "access.menu.not_page": "'{code}' não é um menu de página e não tem padrões para restaurar.",
-  "access.menu.platform_only": "Os menus só podem ser gerenciados no lado da plataforma."
+  "access.menu.platform_only": "Os menus só podem ser gerenciados no lado da plataforma.",
+  "roles.deny.description": "Negar permissões em uma função: revoga as mesmas concessões e grava regras Deny (vigência e motivo opcionais); a negação de uma função só remove as concessões dessa própria função. Requer access.roles.grant.",
+  "roles.update_member.description": "Alterar a vigência de uma atribuição de membro; atribuições vencidas ou futuras deixam de contar na hora. Requer access.roles.assign.",
+  "user_grants.list.description": "Listar as permissões concedidas ou negadas diretamente a um usuário no lado atual, com vigência e motivo. Requer access.user-grants.read.",
+  "user_grants.grant.description": "Conceder permissões diretamente a um usuário (vigência e motivo opcionais). Requer access.user-grants.grant.",
+  "user_grants.deny.description": "Negar permissões diretamente a um usuário; a negação do usuário prevalece sobre qualquer concessão. Requer access.user-grants.grant.",
+  "user_grants.revoke.description": "Revogar concessões ou negações diretas de um usuário. Requer access.user-grants.grant.",
+  "user_data_scopes.get.description": "Ler a substituição do escopo de dados de um usuário (somente no lado do locatário); sem ela as funções decidem. Requer access.user-data-scopes.read.",
+  "user_data_scopes.set.description": "Definir ou remover a substituição do escopo de dados de um usuário (somente no lado do locatário); ela substitui por completo os escopos das funções. Requer access.user-data-scopes.update.",
+  "access.grant.window_invalid": "Vigência inválida: o fim ({expiresAt}) deve ser posterior ao início ({effectiveAt}).",
+  "access.user_data_scope.tenant_only": "Escopos de dados de usuário só são definidos no lado do locatário.",
+  "access.user_data_scope.departments": "Um escopo de dados personalizado deve listar departamentos; os demais escopos não podem tê-los."
 }

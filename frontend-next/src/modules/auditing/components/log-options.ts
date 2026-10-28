@@ -65,6 +65,12 @@ export function permissionChangeLabel(t: Translate, value: PermissionChangeType)
     case 'RoleDelete': return t('auditing.permission_change_logs.types.role_delete')
     case 'EditionPermissions': return t('auditing.permission_change_logs.types.edition_permissions')
     case 'TenantEdition': return t('auditing.permission_change_logs.types.tenant_edition')
+    case 'RoleDeny': return t('auditing.permission_change_logs.types.role_deny')
+    case 'RoleAssignmentWindow': return t('auditing.permission_change_logs.types.role_assignment_window')
+    case 'UserGrant': return t('auditing.permission_change_logs.types.user_grant')
+    case 'UserDeny': return t('auditing.permission_change_logs.types.user_deny')
+    case 'UserRevoke': return t('auditing.permission_change_logs.types.user_revoke')
+    case 'UserDataScope': return t('auditing.permission_change_logs.types.user_data_scope')
   }
 }
 

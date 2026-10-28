@@ -5,16 +5,19 @@ import type { RoleGrantItem } from './use-user-roles'
 import type { UserRow, UserStatus } from './use-users'
 import type { GrantTransferGroup, ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
 import type { SelectOption } from '~/types'
-import { XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
+import { XhAlertContent, XhAlertDescription, XhAlertIndicator, XhAlertRoot, XhButton, XhButtonIndicator, XhButtonLabel, XhClipboardControl, XhClipboardCopyTrigger, XhClipboardIndicator, XhClipboardInput, XhClipboardLabel, XhClipboardRoot, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDialogBody, XhDialogCloseTrigger, XhDialogContent, XhDialogFooter, XhDialogHeader, XhDialogRoot, XhDialogTitle, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger, XhTagLabel, XhTagRoot } from '@xihan-ui/vue'
 import { computed, h, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XEditModal, XGrantTransfer, XInput, XSelect } from '~/components'
+import DataScopeEditor from '@/modules/access/views/roles/components/DataScopeEditor.vue'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, XDataTable, XEditModal, XGrantTransfer, XInput, XPermissionTransfer, XSelect } from '~/components'
 import { dialog, toast } from '~/composables'
 import { PLATFORM_TENANT_ID } from '~/constants'
 import { useAuthStore, useUserStore } from '~/stores'
 import { formatDate } from '~/utils'
+import { useUserDataScope } from './use-user-data-scope'
 import { useUserDepartments } from './use-user-departments'
 import { useUserDetail } from './use-user-detail'
+import { useUserGrants } from './use-user-grants'
 import { useUserRoles } from './use-user-roles'
 import { displayNameOf, resetUserTwoFactor, setUserLocked, usePasswordReset, USER_STATUSES, usersResource, useUserEditor } from './use-users'
 
@@ -29,6 +32,9 @@ const passwordReset = usePasswordReset()
 const detail = useUserDetail()
 const roleAssign = useUserRoles()
 const departments = useUserDepartments()
+// 直接授权与成员数据范围（4.x 用户页的「直接授权」「数据范围」，后端在 Access）
+const grants = useUserGrants(() => t('identity.users.grants.group_outside'))
+const dataScope = useUserDataScope()
 
 /** 弹窗的保存钮靠这些 id 关联到各自的表单，点它才会走整表提交 */
 const editFormId = useId()
@@ -111,6 +117,9 @@ const schema = computed<PageSchema>(() => ({
     { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'identity.users.update' },
     // 回显要读角色；指派只对同一侧的用户成立（平台角色给平台账号、租户角色给本租户用户）
     { key: 'assignRoles', title: t('identity.users.actions.assign_roles'), scope: 'row', icon: 'lucide:users-round', visible: row => isOwnSide(asRow(row)) && auth.can('access.roles.read'), permission: 'access.roles.assign' },
+    // 直接授权只对同一侧的用户成立；数据范围覆盖只在租户侧
+    { key: 'grantPermissions', title: t('identity.users.actions.grant_permissions'), scope: 'row', icon: 'lucide:key-round', visible: row => isOwnSide(asRow(row)), permission: 'access.user-grants.read' },
+    { key: 'dataScope', title: t('identity.users.actions.data_scope'), scope: 'row', icon: 'lucide:scan-eye', visible: row => !isPlatformCaller() && isOwnSide(asRow(row)), permission: 'access.user-data-scopes.read' },
     // 部门与岗位是租户侧数据：平台态不出这个入口
     { key: 'departments', title: t('identity.users.actions.departments'), scope: 'row', icon: 'lucide:building-2', visible: () => !isPlatformCaller(), permission: 'organization.memberships.read' },
     { key: 'lock', title: t('identity.users.actions.lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', confirm: true, confirmText: row => t('identity.users.confirm_lock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Locked' && !isSelf(asRow(row)), permission: 'identity.users.lock' },
@@ -145,6 +154,14 @@ function onAction(payload: SchemaActionPayload) {
     case 'departments':
       if (row)
         void openDepartments(row)
+      break
+    case 'grantPermissions':
+      if (row)
+        void grants.start(row)
+      break
+    case 'dataScope':
+      if (row)
+        void dataScope.start(row)
       break
     case 'lock':
     case 'unlock':
@@ -201,6 +218,35 @@ async function resetTwoFactor(row: UserRow) {
   }
   catch (error) {
     toast.danger((error as Error).message || t('common.messages.operation_failed'))
+  }
+}
+
+// ── 直接授权与数据范围 ──
+const canEditGrants = computed(() => auth.can('access.user-grants.grant'))
+const canEditDataScope = computed(() => auth.can('access.user-data-scopes.update'))
+
+async function saveGrants() {
+  try {
+    const saved = await grants.save()
+    if (saved)
+      toast.success(t('identity.users.grants.saved', saved))
+    else
+      toast.info(t('identity.users.grants.no_change'))
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.save_failed'))
+  }
+}
+
+async function saveDataScope() {
+  try {
+    if (await dataScope.save()) {
+      toast.success(t('common.messages.save_success'))
+      dataScope.open.value = false
+    }
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.save_failed'))
   }
 }
 
@@ -634,5 +680,150 @@ const membershipColumns = computed<XDataTableColumn<MembershipRow>[]>(() => [
         </XhDrawerFooter>
       </XhDrawerContent>
     </XhDrawerRoot>
+
+    <!-- 直接授权抽屉（4.x 原样）：授予与拒绝两个页签，用户上的拒绝压过一切授予 -->
+    <XhDrawerRoot v-model:open="grants.open.value" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 980px">
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('identity.users.grants.title', { name: grants.user.value ? displayNameOf(grants.user.value) : '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
+        <XhDrawerCloseTrigger />
+        <XhDrawerBody class="xh-overlay-body">
+          <p class="grant-tip">
+            {{ t('identity.users.grants.tip') }}
+          </p>
+          <XhAlertRoot v-if="grants.error.value" tone="danger" class="mb-3">
+            <XhAlertIndicator>
+              <Icon icon="lucide:circle-alert" width="16" height="16" />
+            </XhAlertIndicator>
+            <XhAlertContent>
+              <XhAlertDescription>{{ grants.error.value }}</XhAlertDescription>
+            </XhAlertContent>
+          </XhAlertRoot>
+          <XhTabsRoot v-model:value="grants.tab.value" class="grant-tabs" variant="line">
+            <XhTabsList>
+              <XhTabsTrigger value="grant">
+                {{ t('identity.users.grants.allow') }}
+              </XhTabsTrigger>
+              <XhTabsTrigger value="deny">
+                {{ t('identity.users.grants.deny') }}
+              </XhTabsTrigger>
+              <XhTabsIndicator />
+            </XhTabsList>
+            <XhTabsContent value="grant">
+              <XPermissionTransfer
+                :items="grants.items.value"
+                :value="grants.grantIds.value"
+                :loading="grants.loading.value"
+                :disabled="grants.loading.value || !canEditGrants"
+                :source-title="t('identity.users.grants.allow_source')"
+                :target-title="t('identity.users.grants.allow_target')"
+                :search-placeholder="t('identity.users.grants.search')"
+                :other-group-label="t('identity.users.grants.group_other')"
+                @update:value="next => grants.transfer('Grant', next)"
+              >
+                <!-- 左栏标出已在另一页签里的：挪过来会把它从拒绝改成授予 -->
+                <template #suffix="{ item, side }">
+                  <XhTagRoot v-if="side === 'source' && grants.actions.value.get(item.basicId) === 'Deny'" variant="subtle" size="sm" tone="danger">
+                    <XhTagLabel>{{ t('identity.users.grants.deny_target') }}</XhTagLabel>
+                  </XhTagRoot>
+                </template>
+              </XPermissionTransfer>
+            </XhTabsContent>
+            <XhTabsContent value="deny">
+              <XPermissionTransfer
+                :items="grants.items.value"
+                :value="grants.denyIds.value"
+                :loading="grants.loading.value"
+                :disabled="grants.loading.value || !canEditGrants"
+                :source-title="t('identity.users.grants.deny_source')"
+                :target-title="t('identity.users.grants.deny_target')"
+                :search-placeholder="t('identity.users.grants.search')"
+                :other-group-label="t('identity.users.grants.group_other')"
+                @update:value="next => grants.transfer('Deny', next)"
+              >
+                <template #suffix="{ item, side }">
+                  <XhTagRoot v-if="side === 'source' && grants.actions.value.get(item.basicId) === 'Grant'" variant="subtle" size="sm" tone="success">
+                    <XhTagLabel>{{ t('identity.users.grants.allow_target') }}</XhTagLabel>
+                  </XhTagRoot>
+                </template>
+              </XPermissionTransfer>
+            </XhTabsContent>
+          </XhTabsRoot>
+        </XhDrawerBody>
+        <XhDrawerFooter>
+          <XhButton variant="subtle" @click="grants.open.value = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton v-if="canEditGrants" variant="subtle" tone="brand" :loading="grants.loading.value" :disabled="!grants.dirty.value" @click="saveGrants">
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('identity.users.grants.save') }}</XhButtonLabel>
+          </XhButton>
+        </XhDrawerFooter>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+
+    <!-- 成员数据范围抽屉（4.x 原样，租户侧）：「跟随角色」即不覆盖 -->
+    <XhDrawerRoot v-model:open="dataScope.open.value" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 720px">
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('identity.users.data_scope.title', { name: dataScope.user.value ? displayNameOf(dataScope.user.value) : '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
+        <XhDrawerCloseTrigger />
+        <XhDrawerBody class="xh-overlay-body scope-stage">
+          <p class="grant-tip">
+            {{ t('identity.users.data_scope.tip') }}
+          </p>
+          <XhAlertRoot v-if="dataScope.error.value" tone="danger" class="mb-3">
+            <XhAlertIndicator>
+              <Icon icon="lucide:circle-alert" width="16" height="16" />
+            </XhAlertIndicator>
+            <XhAlertContent>
+              <XhAlertDescription>{{ dataScope.error.value }}</XhAlertDescription>
+            </XhAlertContent>
+          </XhAlertRoot>
+          <DataScopeEditor v-model="dataScope.draft.value" :department-tree="dataScope.tree.value" allow-inherit :readonly="!canEditDataScope || dataScope.loading.value" />
+        </XhDrawerBody>
+        <XhDrawerFooter>
+          <XhButton variant="subtle" @click="dataScope.open.value = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton v-if="canEditDataScope" variant="subtle" tone="brand" :loading="dataScope.loading.value" :disabled="!dataScope.dirty.value || !dataScope.complete.value" @click="saveDataScope">
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('common.actions.save') }}</XhButtonLabel>
+          </XhButton>
+        </XhDrawerFooter>
+      </XhDrawerContent>
+    </XhDrawerRoot>
   </SchemaPage>
 </template>
+
+<style scoped>
+/* 成员数据范围抽屉：编辑区撑满剩余高度，保存/取消落在底部；部门多时在这里滚动（4.x 原样） */
+.scope-stage {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+}
+
+.grant-tip {
+  margin: 0;
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-text-caption-size);
+}
+
+.grant-tabs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+/* 当前页签的面板接着往下撑，穿梭框才拿得到剩余高度 */
+.grant-tabs > [data-scope='tabs'][data-part='content'][data-state='active'] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-block-size: 0;
+}
+</style>

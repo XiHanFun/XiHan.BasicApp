@@ -39,5 +39,16 @@
   "access.menu.page_managed": "Seitenmenüs stammen aus Seitenregistrierungen: Sie können nicht angelegt werden, und Route, Komponente, Berechtigung und Link sind unveränderlich.",
   "access.menu.title_required": "Verzeichnisse und Links brauchen einen Titel.",
   "access.menu.not_page": "'{code}' ist kein Seitenmenü und hat keine Standardwerte zum Wiederherstellen.",
-  "access.menu.platform_only": "Menüs können nur plattformseitig verwaltet werden."
+  "access.menu.platform_only": "Menüs können nur plattformseitig verwaltet werden.",
+  "roles.deny.description": "Berechtigungen einer Rolle verweigern: entzieht dieselben Erteilungen und schreibt Deny-Regeln (optional mit Gültigkeit und Grund); eine Rollen-Verweigerung nimmt nur die eigenen Erteilungen dieser Rolle weg. Erfordert access.roles.grant.",
+  "roles.update_member.description": "Gültigkeitszeitraum einer Rollenzuweisung ändern; abgelaufene oder künftige Zuweisungen fallen sofort aus der Prüfung. Erfordert access.roles.assign.",
+  "user_grants.list.description": "Direkt erteilte oder verweigerte Berechtigungen eines Benutzers auf der aktuellen Seite auflisten, mit Gültigkeit und Grund. Erfordert access.user-grants.read.",
+  "user_grants.grant.description": "Einem Benutzer Berechtigungen direkt erteilen (optional mit Gültigkeit und Grund). Erfordert access.user-grants.grant.",
+  "user_grants.deny.description": "Berechtigungen eines Benutzers direkt verweigern; eine Benutzer-Verweigerung hat Vorrang vor jeder Erteilung. Erfordert access.user-grants.grant.",
+  "user_grants.revoke.description": "Direkte Erteilungen oder Verweigerungen eines Benutzers entziehen. Erfordert access.user-grants.grant.",
+  "user_data_scopes.get.description": "Datenbereichs-Überschreibung eines Benutzers lesen (nur Mandantenseite); ohne Überschreibung entscheiden die Rollen. Erfordert access.user-data-scopes.read.",
+  "user_data_scopes.set.description": "Datenbereichs-Überschreibung eines Benutzers setzen oder entfernen (nur Mandantenseite); sie ersetzt die Datenbereiche der Rollen vollständig. Erfordert access.user-data-scopes.update.",
+  "access.grant.window_invalid": "Ungültiger Gültigkeitszeitraum: Das Ende ({expiresAt}) muss nach dem Beginn ({effectiveAt}) liegen.",
+  "access.user_data_scope.tenant_only": "Benutzer-Datenbereiche werden nur auf der Mandantenseite gesetzt.",
+  "access.user_data_scope.departments": "Ein benutzerdefinierter Datenbereich muss Abteilungen nennen, andere Bereiche dürfen keine haben."
 }

@@ -47,4 +47,34 @@ public enum PermissionChangeType
     /// 给租户换套餐。
     /// </summary>
     TenantEdition = 7,
+
+    /// <summary>
+    /// 角色拒绝权限（Deny）。
+    /// </summary>
+    RoleDeny = 8,
+
+    /// <summary>
+    /// 改成员指派的有效期。
+    /// </summary>
+    RoleAssignmentWindow = 9,
+
+    /// <summary>
+    /// 给用户直接授予权限。
+    /// </summary>
+    UserGrant = 10,
+
+    /// <summary>
+    /// 给用户直接拒绝权限（Deny）。
+    /// </summary>
+    UserDeny = 11,
+
+    /// <summary>
+    /// 撤销用户的直接授予或拒绝。
+    /// </summary>
+    UserRevoke = 12,
+
+    /// <summary>
+    /// 设置或清除用户级数据范围覆盖。
+    /// </summary>
+    UserDataScope = 13,
 }

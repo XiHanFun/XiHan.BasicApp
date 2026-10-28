@@ -94,13 +94,15 @@ public sealed class RolesTests : IDisposable
         var (denied, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", bob));
         Assert.Equal(HttpStatusCode.Forbidden, denied.StatusCode);
 
-        // 解除指派：当前令牌仍带角色（重新授予后仍可用），刷新后角色消失
+        // 解除指派立即生效：当前令牌虽仍带角色声明，权限过滤器按指派求交把它拿掉；刷新后声明里也没有了
         await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:grant", """{"permissions":["identity.users.read"]}""", admin));
+        var (regranted, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", bob));
+        Assert.Equal(HttpStatusCode.OK, regranted.StatusCode);
         var (unassigned, unassignedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:unassign", $$"""{"userIds":["{{bobId}}"]}""", admin));
         Assert.Equal(HttpStatusCode.OK, unassigned.StatusCode);
         Assert.Equal(1, unassignedBody.GetProperty("succeeded").GetArrayLength());
-        var (stillAllowed, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", bob));
-        Assert.Equal(HttpStatusCode.OK, stillAllowed.StatusCode);
+        var (droppedAtOnce, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", bob));
+        Assert.Equal(HttpStatusCode.Forbidden, droppedAtOnce.StatusCode);
         var (refreshed, refreshedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:refresh", $$"""{"refreshToken":"{{bobLogin.GetProperty("refreshToken").GetString()}}"}"""));
         Assert.Equal(HttpStatusCode.OK, refreshed.StatusCode);
         var (afterRefresh, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", refreshedBody.GetProperty("accessToken").GetString()));

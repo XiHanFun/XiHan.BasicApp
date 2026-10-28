@@ -96,6 +96,7 @@ export const routes = {
   'roles.by-user': { method: 'GET', template: '/api/roles:by-user', path: [], query: ['userId'], success: 200 },
   'roles.create': { method: 'POST', template: '/api/roles', path: [], query: [], success: 201 },
   'roles.delete': { method: 'DELETE', template: '/api/roles', path: [], query: ['ids'], success: 200 },
+  'roles.deny': { method: 'POST', template: '/api/roles/{id}:deny', path: ['id'], query: [], success: 200 },
   'roles.get': { method: 'GET', template: '/api/roles/{id}', path: ['id'], query: [], success: 200 },
   'roles.grant': { method: 'POST', template: '/api/roles/{id}:grant', path: ['id'], query: [], success: 200 },
   'roles.list': { method: 'POST', template: '/api/roles:list', path: [], query: [], success: 200 },
@@ -103,6 +104,7 @@ export const routes = {
   'roles.revoke': { method: 'POST', template: '/api/roles/{id}:revoke', path: ['id'], query: [], success: 200 },
   'roles.unassign': { method: 'POST', template: '/api/roles/{id}:unassign', path: ['id'], query: [], success: 200 },
   'roles.update': { method: 'PUT', template: '/api/roles/{id}', path: ['id'], query: [], success: 200 },
+  'roles.update-member': { method: 'POST', template: '/api/roles/{id}:update-member', path: ['id'], query: [], success: 200 },
   'tenant-members.create': { method: 'POST', template: '/api/tenant-members', path: [], query: [], success: 201 },
   'tenant-members.delete': { method: 'DELETE', template: '/api/tenant-members', path: [], query: ['ids'], success: 200 },
   'tenant-members.list': { method: 'GET', template: '/api/tenant-members', path: [], query: ['tenantId'], success: 200 },
@@ -117,6 +119,12 @@ export const routes = {
   'tenants.suspend': { method: 'POST', template: '/api/tenants:suspend', path: [], query: [], success: 200 },
   'tenants.update': { method: 'PUT', template: '/api/tenants/{id}', path: ['id'], query: [], success: 200 },
   'traces.timeline': { method: 'GET', template: '/api/traces:timeline', path: [], query: ['dimension', 'value', 'from', 'to', 'logTypes', 'maxPerType'], success: 200 },
+  'user-data-scopes.get': { method: 'GET', template: '/api/user-data-scopes', path: [], query: ['userId'], success: 200 },
+  'user-data-scopes.set': { method: 'POST', template: '/api/user-data-scopes:set', path: [], query: [], success: 200 },
+  'user-grants.deny': { method: 'POST', template: '/api/user-grants:deny', path: [], query: [], success: 200 },
+  'user-grants.grant': { method: 'POST', template: '/api/user-grants:grant', path: [], query: [], success: 200 },
+  'user-grants.list': { method: 'GET', template: '/api/user-grants', path: [], query: ['userId'], success: 200 },
+  'user-grants.revoke': { method: 'POST', template: '/api/user-grants:revoke', path: [], query: [], success: 200 },
   'user-settings.get': { method: 'GET', template: '/api/user-settings', path: [], query: ['scene', 'key'], success: 200 },
   'user-settings.update': { method: 'PUT', template: '/api/user-settings', path: [], query: [], success: 200 },
   'users.create': { method: 'POST', template: '/api/users', path: [], query: [], success: 201 },
@@ -317,6 +325,7 @@ export const roles = {
   byUser: (request: RequestOf<'roles.by-user'>, options?: CallOptions) => invoke<RequestOf<'roles.by-user'>, ResponseOf<'roles.by-user'>>('roles.by-user', routes['roles.by-user'], request, options),
   create: (request: RequestOf<'roles.create'>, options?: CallOptions) => invoke<RequestOf<'roles.create'>, ResponseOf<'roles.create'>>('roles.create', routes['roles.create'], request, options),
   delete: (request: RequestOf<'roles.delete'>, options?: CallOptions) => invoke<RequestOf<'roles.delete'>, ResponseOf<'roles.delete'>>('roles.delete', routes['roles.delete'], request, options),
+  deny: (request: RequestOf<'roles.deny'>, options?: CallOptions) => invoke<RequestOf<'roles.deny'>, ResponseOf<'roles.deny'>>('roles.deny', routes['roles.deny'], request, options),
   get: (request: RequestOf<'roles.get'>, options?: CallOptions) => invoke<RequestOf<'roles.get'>, ResponseOf<'roles.get'>>('roles.get', routes['roles.get'], request, options),
   grant: (request: RequestOf<'roles.grant'>, options?: CallOptions) => invoke<RequestOf<'roles.grant'>, ResponseOf<'roles.grant'>>('roles.grant', routes['roles.grant'], request, options),
   list: (request: RequestOf<'roles.list'>, options?: CallOptions) => invoke<RequestOf<'roles.list'>, ResponseOf<'roles.list'>>('roles.list', routes['roles.list'], request, options),
@@ -324,6 +333,7 @@ export const roles = {
   revoke: (request: RequestOf<'roles.revoke'>, options?: CallOptions) => invoke<RequestOf<'roles.revoke'>, ResponseOf<'roles.revoke'>>('roles.revoke', routes['roles.revoke'], request, options),
   unassign: (request: RequestOf<'roles.unassign'>, options?: CallOptions) => invoke<RequestOf<'roles.unassign'>, ResponseOf<'roles.unassign'>>('roles.unassign', routes['roles.unassign'], request, options),
   update: (request: RequestOf<'roles.update'>, options?: CallOptions) => invoke<RequestOf<'roles.update'>, ResponseOf<'roles.update'>>('roles.update', routes['roles.update'], request, options),
+  updateMember: (request: RequestOf<'roles.update-member'>, options?: CallOptions) => invoke<RequestOf<'roles.update-member'>, ResponseOf<'roles.update-member'>>('roles.update-member', routes['roles.update-member'], request, options),
 }
 
 /** 资源 `tenant-members` 的操作。 */
@@ -350,6 +360,20 @@ export const tenants = {
 /** 资源 `traces` 的操作。 */
 export const traces = {
   timeline: (request: RequestOf<'traces.timeline'>, options?: CallOptions) => invoke<RequestOf<'traces.timeline'>, ResponseOf<'traces.timeline'>>('traces.timeline', routes['traces.timeline'], request, options),
+}
+
+/** 资源 `user-data-scopes` 的操作。 */
+export const userDataScopes = {
+  get: (request: RequestOf<'user-data-scopes.get'>, options?: CallOptions) => invoke<RequestOf<'user-data-scopes.get'>, ResponseOf<'user-data-scopes.get'>>('user-data-scopes.get', routes['user-data-scopes.get'], request, options),
+  set: (request: RequestOf<'user-data-scopes.set'>, options?: CallOptions) => invoke<RequestOf<'user-data-scopes.set'>, ResponseOf<'user-data-scopes.set'>>('user-data-scopes.set', routes['user-data-scopes.set'], request, options),
+}
+
+/** 资源 `user-grants` 的操作。 */
+export const userGrants = {
+  deny: (request: RequestOf<'user-grants.deny'>, options?: CallOptions) => invoke<RequestOf<'user-grants.deny'>, ResponseOf<'user-grants.deny'>>('user-grants.deny', routes['user-grants.deny'], request, options),
+  grant: (request: RequestOf<'user-grants.grant'>, options?: CallOptions) => invoke<RequestOf<'user-grants.grant'>, ResponseOf<'user-grants.grant'>>('user-grants.grant', routes['user-grants.grant'], request, options),
+  list: (request: RequestOf<'user-grants.list'>, options?: CallOptions) => invoke<RequestOf<'user-grants.list'>, ResponseOf<'user-grants.list'>>('user-grants.list', routes['user-grants.list'], request, options),
+  revoke: (request: RequestOf<'user-grants.revoke'>, options?: CallOptions) => invoke<RequestOf<'user-grants.revoke'>, ResponseOf<'user-grants.revoke'>>('user-grants.revoke', routes['user-grants.revoke'], request, options),
 }
 
 /** 资源 `user-settings` 的操作。 */

@@ -20,4 +20,6 @@ public sealed record RoleMembersResponse(IReadOnlyList<RoleMemberResponse> Items
 /// <param name="DisplayName">显示名。</param>
 /// <param name="Status">用户状态。</param>
 /// <param name="AssignedAt">指派时间（UTC）。</param>
-public sealed record RoleMemberResponse(Guid UserId, string UserName, string DisplayName, UserStatus Status, DateTimeOffset AssignedAt);
+/// <param name="EffectiveAt">生效时间；为空即立即生效。</param>
+/// <param name="ExpiresAt">到期时间（不含）；为空即长期有效。</param>
+public sealed record RoleMemberResponse(Guid UserId, string UserName, string DisplayName, UserStatus Status, DateTimeOffset AssignedAt, DateTimeOffset? EffectiveAt, DateTimeOffset? ExpiresAt);

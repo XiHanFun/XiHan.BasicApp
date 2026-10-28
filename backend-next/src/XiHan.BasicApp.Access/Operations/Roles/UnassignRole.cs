@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Identity.Domain.Entities;
@@ -20,8 +21,9 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="service">角色域服务。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="users">用户仓储（权限变更日志记目标用户的登录名）。</param>
+/// <param name="assignments">指派缓存（移出即从判定里拿掉，不等令牌刷新）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
-public sealed class UnassignRole(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users) : IOperation<RoleMembersRequest, BatchResult>
+public sealed class UnassignRole(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users, RoleAssignments assignments) : IOperation<RoleMembersRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -55,6 +57,7 @@ public sealed class UnassignRole(RoleService service, IRepository<SysUserRole, G
             var names = (await users.FindManyAsync(rows.Select(static m => m.UserId).ToList(), context.CancellationToken).ConfigureAwait(false)).ToDictionary(static u => u.Id, static u => u.UserName);
             foreach (var row in rows)
             {
+                await assignments.InvalidateAsync(row.OwnerTenantId, row.UserId, context.CancellationToken).ConfigureAwait(false);
                 context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.RoleUnassign) { RoleId = roleId, RoleName = role.Name, TargetUserId = row.UserId, TargetUserName = names.GetValueOrDefault(row.UserId) });
             }
         }

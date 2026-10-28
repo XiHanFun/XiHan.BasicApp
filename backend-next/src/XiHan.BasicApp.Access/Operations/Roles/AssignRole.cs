@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Access.Infrastructure;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Identity.Domain.Entities;
@@ -23,8 +24,9 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="users">用户仓储。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="ids">标识生成器。</param>
+/// <param name="assignments">指派缓存（新成员的判定立即看到）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
-public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> users, IRepository<SysUserRole, Guid> members, IIdGenerator<Guid> ids) : IOperation<RoleMembersRequest, BatchResult>
+public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> users, IRepository<SysUserRole, Guid> members, IIdGenerator<Guid> ids, RoleAssignments assignments) : IOperation<RoleMembersRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -36,6 +38,12 @@ public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> u
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
+        var window = GrantWindow.Validate(request.EffectiveAt, request.ExpiresAt);
+        if (window.IsFailure)
+        {
+            return window.Error!;
+        }
+
         var owner = RoleService.OwnerOf(context);
         if (!(await service.FindAsync(request.Id, owner, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var role))
         {
@@ -58,7 +66,7 @@ public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> u
 
             if (!existing.Contains(userId))
             {
-                additions.Add(new SysUserRole { Id = ids.NewId(), OwnerTenantId = owner, UserId = userId, RoleId = roleId });
+                additions.Add(new SysUserRole { Id = ids.NewId(), OwnerTenantId = owner, UserId = userId, RoleId = roleId, EffectiveAt = request.EffectiveAt, ExpiresAt = request.ExpiresAt });
             }
 
             succeeded.Add(userId);
@@ -78,6 +86,7 @@ public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> u
         // 已经是成员的不算变更；新加入的每人一条权限变更日志
         foreach (var addition in additions)
         {
+            await assignments.InvalidateAsync(owner, addition.UserId, context.CancellationToken).ConfigureAwait(false);
             context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.RoleAssign) { RoleId = roleId, RoleName = role.Name, TargetUserId = addition.UserId, TargetUserName = found[addition.UserId].UserName });
         }
 

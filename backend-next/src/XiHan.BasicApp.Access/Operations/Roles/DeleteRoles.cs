@@ -22,8 +22,10 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="service">角色域服务。</param>
 /// <param name="scopes">角色数据范围服务（连同删自定义部门行）。</param>
 /// <param name="grants">角色授予。</param>
+/// <param name="rules">授予规则（连同删 Deny 与有效期）。</param>
+/// <param name="cache">指派缓存。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesDelete)]
-public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes) : IOperation<RoleIdsRequest, BatchResult>
+public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes, PermissionRuleWriter rules, RoleAssignments cache) : IOperation<RoleIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -85,6 +87,17 @@ public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<Sy
                     return outcome;
                 }
             }
+
+            foreach (var assignment in assignments)
+            {
+                await cache.InvalidateAsync(assignment.OwnerTenantId, assignment.UserId, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        var ruleRows = await rules.RemoveAsync(role.OwnerTenantId, GrantSubjectKind.Role, role.Id, null, cancellationToken).ConfigureAwait(false);
+        if (ruleRows.IsFailure)
+        {
+            return ruleRows.Error!;
         }
 
         var revoked = await grants.RevokeAllAsync(role, cancellationToken).ConfigureAwait(false);

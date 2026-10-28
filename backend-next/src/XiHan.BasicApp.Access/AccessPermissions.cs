@@ -41,6 +41,26 @@ public static class AccessPermissions
     public const string RolesAssign = "access.roles.assign";
 
     /// <summary>
+    /// 查看用户的直接授权：<c>user-grants.list</c>。
+    /// </summary>
+    public const string UserGrantsRead = "access.user-grants.read";
+
+    /// <summary>
+    /// 给用户直接授予、拒绝与撤销：<c>user-grants.grant / deny / revoke</c>。
+    /// </summary>
+    public const string UserGrantsGrant = "access.user-grants.grant";
+
+    /// <summary>
+    /// 查看用户级数据范围覆盖：<c>user-data-scopes.get</c>（只在租户侧）。
+    /// </summary>
+    public const string UserDataScopesRead = "access.user-data-scopes.read";
+
+    /// <summary>
+    /// 设置或清除用户级数据范围覆盖：<c>user-data-scopes.set</c>（只在租户侧）。
+    /// </summary>
+    public const string UserDataScopesUpdate = "access.user-data-scopes.update";
+
+    /// <summary>
     /// 查看权限目录。
     /// </summary>
     public const string PermissionsRead = "access.permissions.read";
@@ -76,6 +96,10 @@ public static class AccessPermissions
         new(RolesDelete, "Delete roles", PermissionScope.Both, audited: true, description: "Delete roles together with their members and permissions."),
         new(RolesGrant, "Grant permissions", PermissionScope.Both, audited: true, description: "Grant permissions to roles and revoke them."),
         new(RolesAssign, "Assign members", PermissionScope.Both, audited: true, description: "Assign users to roles and remove them."),
+        new(UserGrantsRead, "Read user grants", PermissionScope.Both, description: "View the permissions granted or denied directly to users."),
+        new(UserGrantsGrant, "Manage user grants", PermissionScope.Both, audited: true, description: "Grant, deny and revoke permissions directly on users, with optional validity windows."),
+        new(UserDataScopesRead, "Read user data scopes", PermissionScope.Tenant, description: "View per-user data scope overrides."),
+        new(UserDataScopesUpdate, "Update user data scopes", PermissionScope.Tenant, audited: true, description: "Override a user's data scope in place of their roles' scopes, or clear the override."),
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
         new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
         new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),

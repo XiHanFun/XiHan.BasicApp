@@ -47,10 +47,10 @@ public sealed class RoleMembers(RoleService service, IRepository<SysUserRole, Gu
             return new RoleMembersResponse([], total);
         }
 
-        var assignedAt = rows.ToDictionary(static m => m.UserId, static m => m.CreatedAt);
+        var assignments = rows.ToDictionary(static m => m.UserId);
         var found = await users.FindManyAsync(rows.Select(static m => m.UserId).ToList(), context.CancellationToken).ConfigureAwait(false);
         var items = found
-            .Select(u => new RoleMemberResponse(u.Id, u.UserName, u.DisplayName, u.Status, assignedAt[u.Id]))
+            .Select(u => new RoleMemberResponse(u.Id, u.UserName, u.DisplayName, u.Status, assignments[u.Id].CreatedAt, assignments[u.Id].EffectiveAt, assignments[u.Id].ExpiresAt))
             .OrderBy(static m => m.UserName, StringComparer.Ordinal)
             .ToList();
         return new RoleMembersResponse(items, total);

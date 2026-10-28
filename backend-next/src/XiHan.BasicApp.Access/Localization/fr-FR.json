@@ -39,5 +39,16 @@
   "access.menu.page_managed": "Les menus de page viennent des enregistrements de pages : ils ne peuvent pas être créés, et leur route, composant, permission et lien ne peuvent pas changer.",
   "access.menu.title_required": "Les répertoires et les liens ont besoin d'un titre.",
   "access.menu.not_page": "'{code}' n'est pas un menu de page et n'a pas de valeurs par défaut à rétablir.",
-  "access.menu.platform_only": "Les menus ne se gèrent que côté plateforme."
+  "access.menu.platform_only": "Les menus ne se gèrent que côté plateforme.",
+  "roles.deny.description": "Refuser des autorisations sur un rôle : révoque les mêmes attributions et écrit des règles Deny (validité et motif facultatifs) ; un refus de rôle ne retire que les attributions propres à ce rôle. Requiert access.roles.grant.",
+  "roles.update_member.description": "Modifier la période de validité d’une affectation ; les affectations expirées ou futures cessent aussitôt de compter. Requiert access.roles.assign.",
+  "user_grants.list.description": "Lister les autorisations attribuées ou refusées directement à un utilisateur côté courant, avec validité et motif. Requiert access.user-grants.read.",
+  "user_grants.grant.description": "Attribuer directement des autorisations à un utilisateur (validité et motif facultatifs). Requiert access.user-grants.grant.",
+  "user_grants.deny.description": "Refuser directement des autorisations à un utilisateur ; un refus utilisateur l’emporte sur toute attribution. Requiert access.user-grants.grant.",
+  "user_grants.revoke.description": "Révoquer les attributions ou refus directs d’un utilisateur. Requiert access.user-grants.grant.",
+  "user_data_scopes.get.description": "Lire le remplacement du périmètre de données d’un utilisateur (côté locataire uniquement) ; sans lui, les rôles décident. Requiert access.user-data-scopes.read.",
+  "user_data_scopes.set.description": "Définir ou retirer le remplacement du périmètre de données d’un utilisateur (côté locataire uniquement) ; il remplace entièrement les périmètres des rôles. Requiert access.user-data-scopes.update.",
+  "access.grant.window_invalid": "Période de validité invalide : la fin ({expiresAt}) doit être postérieure au début ({effectiveAt}).",
+  "access.user_data_scope.tenant_only": "Les périmètres de données utilisateur se définissent côté locataire uniquement.",
+  "access.user_data_scope.departments": "Un périmètre personnalisé doit lister des départements ; les autres périmètres ne le peuvent pas."
 }
