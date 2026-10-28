@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
@@ -33,6 +34,7 @@ public sealed class UpdateRole(IRepository<SysRole, Guid> roles, RoleService ser
             return Error.NotFound(AccessErrors.RoleNotFound, AccessMessages.RoleNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
+        var previousScope = role.DataScope;
         role.Name = request.Name.Trim();
         role.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
         role.Order = request.Order;
@@ -53,6 +55,17 @@ public sealed class UpdateRole(IRepository<SysRole, Guid> roles, RoleService ser
         }
 
         var replaced = await scopes.ReplaceAsync(role, customDepartments, context.CancellationToken).ConfigureAwait(false);
-        return replaced.IsFailure ? replaced.Error! : RoleResponse.From(role);
+        if (replaced.IsFailure)
+        {
+            return replaced.Error!;
+        }
+
+        // 数据范围变了（或重新给了自定义部门）记一条权限变更日志：说明里是新旧范围与自定义部门数
+        if (previousScope != scope || request.CustomDepartments is not null)
+        {
+            context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.RoleDataScope) { RoleId = role.Id, RoleName = role.Name, Detail = scope == DataScope.Custom ? $"{previousScope} -> {scope} ({customDepartments.Count})" : $"{previousScope} -> {scope}" });
+        }
+
+        return RoleResponse.From(role);
     }
 }

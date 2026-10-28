@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Tenancy.Domain.Entities;
 using XiHan.BasicApp.Tenancy.Domain.Services;
 using XiHan.BasicApp.Tenancy.Infrastructure;
@@ -41,9 +42,15 @@ public sealed class ChangeTenantEdition(IRepository<SysTenant, Guid> tenants, Te
             return Error.NotFound(TenancyErrors.TenantNotFound, TenancyMessages.TenantNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
-        if (request.EditionId is { } editionId && !(await editions.FindAsync(editionId, context.CancellationToken).ConfigureAwait(false)).HasValue)
+        string? editionCode = null;
+        if (request.EditionId is { } editionId)
         {
-            return Error.NotFound(TenancyErrors.EditionNotFound, TenancyMessages.EditionNotFound, MessageArguments.Of(("id", editionId)));
+            if (!(await editions.FindAsync(editionId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var edition))
+            {
+                return Error.NotFound(TenancyErrors.EditionNotFound, TenancyMessages.EditionNotFound, MessageArguments.Of(("id", editionId)));
+            }
+
+            editionCode = edition.Code;
         }
 
         tenant.EditionId = request.EditionId;
@@ -54,6 +61,8 @@ public sealed class ChangeTenantEdition(IRepository<SysTenant, Guid> tenants, Te
         }
 
         await gate.InvalidateAsync([tenant.TenantId], context.CancellationToken).ConfigureAwait(false);
+        // 换套餐即改了租户能用的权限范围（空即不受限）：记一条权限变更日志
+        context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.TenantEdition) { EditionId = request.EditionId, EditionCode = editionCode, TargetTenantId = tenant.TenantId });
         return TenantResponse.From(tenant);
     }
 }

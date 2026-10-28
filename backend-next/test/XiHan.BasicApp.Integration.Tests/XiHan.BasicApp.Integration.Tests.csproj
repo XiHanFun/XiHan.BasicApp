@@ -20,6 +20,7 @@
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Jwt" />
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Conformance" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Conformance" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Auditing.Conformance" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
@@ -52,6 +53,10 @@ public sealed class Login(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var tenant = string.IsNullOrWhiteSpace(request.Tenant) ? TenantIds.Platform : request.Tenant.Trim();
+        var userName = request.UserName.Trim().ToLowerInvariant();
+        // 登录日志成败都记（成败取调用结果）：租户核实之前落在平台一侧，账号所在租户留原值供排查
+        var log = new LoginLogEntry(LoginEvent.Login) { AccountTenantId = tenant, UserName = userName };
+        context.AddAuditLog(log);
         string? tenantName = null;
         // 租户账号：租户须在目录里且启用（停用的租户连用户名都不核对，直接拒绝）
         if (!string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal))
@@ -63,13 +68,17 @@ public sealed class Login(
             }
 
             tenantName = info.DisplayName;
+            log.TenantId = tenant;
         }
 
-        var found = await accounts.FindByNameAsync(tenant, request.UserName.Trim().ToLowerInvariant(), context.CancellationToken).ConfigureAwait(false);
+        var found = await accounts.FindByNameAsync(tenant, userName, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var user))
         {
             return Error.Denied(IdentityErrors.InvalidCredentials, IdentityMessages.InvalidCredentials);
         }
+
+        log.UserId = user.Id;
+        log.UserName = user.UserName;
 
         if (user.Status != UserStatus.Active)
         {
@@ -126,6 +135,7 @@ public sealed class Login(
             return added.Error!;
         }
 
+        log.SessionId = session.Id;
         var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
         var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName);

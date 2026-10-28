@@ -3,13 +3,14 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Security.Database.Grants;
 
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 授予 / 撤销的共同骨架：找角色、逐项校验权限码（在目录里、作用侧相符），通过的一次交给框架授予存储，逐项结果合并。
+/// 授予 / 撤销的共同骨架：找角色、逐项校验权限码（在目录里、作用侧相符），通过的一次交给框架授予存储，逐项结果合并；真正生效的权限码登记一条权限变更日志。
 /// </summary>
 internal static class RolePermissionBatch
 {
@@ -21,6 +22,7 @@ internal static class RolePermissionBatch
         InvocationContext context,
         RoleService service,
         PermissionCatalog catalog,
+        PermissionChangeType change,
         Func<SysRole, IReadOnlyList<string>, CancellationToken, ValueTask<IReadOnlyList<PermissionGrantResult>>> apply)
     {
         var owner = RoleService.OwnerOf(context);
@@ -63,6 +65,11 @@ internal static class RolePermissionBatch
                     failed.Add(new PermissionFailure(outcome.Grant.Permission, outcome.Outcome.Error!.Code));
                 }
             }
+        }
+
+        if (succeeded.Count > 0)
+        {
+            context.AddAuditLog(new PermissionChangeLogEntry(change) { RoleId = role.Id, RoleName = role.Name, PermissionCodes = succeeded });
         }
 
         return new PermissionBatchResult(succeeded, failed);

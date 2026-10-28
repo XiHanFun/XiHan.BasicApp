@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Tenancy.Domain.Services;
 using XiHan.BasicApp.Tenancy.Infrastructure;
 using XiHan.Framework.Kernel.Operations;
@@ -50,6 +51,8 @@ public sealed class SetEditionPermissions(EditionService service, EditionGate ga
         }
 
         await gate.InvalidateAsync(await service.TenantsUsingAsync(edition.Id, context.CancellationToken).ConfigureAwait(false), context.CancellationToken).ConfigureAwait(false);
+        // 整体替换：日志记替换后的白名单
+        context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.EditionPermissions) { EditionId = edition.Id, EditionCode = edition.Code, PermissionCodes = permissions.ToList() });
         return await EditionDetailResponse.LoadAsync(service, edition, context.CancellationToken).ConfigureAwait(false);
     }
 }

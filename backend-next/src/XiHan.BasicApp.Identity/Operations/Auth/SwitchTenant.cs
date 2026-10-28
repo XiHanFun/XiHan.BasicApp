@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
@@ -50,6 +51,9 @@ public sealed class SwitchTenant(
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var now = clock.GetUtcNow();
+        // 切换成功即记在目标一侧（目标租户能看到谁进来了），没切成记在原来一侧；说明里是另一端
+        var log = new LoginLogEntry(LoginEvent.SwitchTenant) { Detail = request.TenantId?.Trim() };
+        context.AddAuditLog(log);
         var sid = context.GetSecurity().Principal.ClaimValues(IdentityClaims.Session).FirstOrDefault();
         if (sid is null || !Guid.TryParse(sid, out var sessionId))
         {
@@ -72,6 +76,8 @@ public sealed class SwitchTenant(
         }
 
         var target = string.IsNullOrWhiteSpace(request.TenantId) || string.Equals(request.TenantId.Trim(), TenantIds.Platform, StringComparison.Ordinal) ? null : request.TenantId.Trim();
+        log.AccountTenantId = user.HomeTenantId;
+        log.Detail = target ?? TenantIds.Platform;
         var isPlatformAccount = string.Equals(user.HomeTenantId, TenantIds.Platform, StringComparison.Ordinal);
         string? tenantName = null;
         if (target is null)
@@ -95,6 +101,9 @@ public sealed class SwitchTenant(
                 return Error.Denied(IdentityErrors.TenantNotAccessible, IdentityMessages.TenantNotAccessible, MessageArguments.Of(("tenantId", target)));
             }
         }
+
+        log.TenantId = target ?? TenantIds.Platform;
+        log.Detail = session.ActiveTenantId ?? TenantIds.Platform;
 
         // 续用会话：换上下文、轮换刷新令牌（旧的立即失效）、顺延有效期
         var refreshToken = RefreshTokens.Generate();

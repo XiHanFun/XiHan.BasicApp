@@ -3,6 +3,7 @@
 
 using XiHan.BasicApp.Access.Domain.Entities;
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.Framework.Domain.Specifications;
@@ -72,6 +73,12 @@ public sealed class AssignRole(RoleService service, IRepository<SysUser, Guid> u
                     return outcome.Error!;
                 }
             }
+        }
+
+        // 已经是成员的不算变更；新加入的每人一条权限变更日志
+        foreach (var addition in additions)
+        {
+            context.AddAuditLog(new PermissionChangeLogEntry(PermissionChangeType.RoleAssign) { RoleId = roleId, RoleName = role.Name, TargetUserId = addition.UserId, TargetUserName = found[addition.UserId].UserName });
         }
 
         return new BatchResult(succeeded, failed);

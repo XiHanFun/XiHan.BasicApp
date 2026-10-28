@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Contracts;
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
@@ -55,6 +56,9 @@ public sealed class StartImpersonation(
         ArgumentNullException.ThrowIfNull(context);
         var now = clock.GetUtcNow();
         var security = context.GetSecurity();
+        // 发起人记在模仿者一栏；目标认出之后用户换成被模仿的人，成功即记在目标上下文那一侧
+        var log = new LoginLogEntry(LoginEvent.ImpersonationStart) { ImpersonatorUserId = Guid.TryParse(security.Principal.Id, out var actorId) ? actorId : null, Detail = request.TargetUserId.ToString("D") };
+        context.AddAuditLog(log);
         var sid = security.Principal.ClaimValues(IdentityClaims.Session).FirstOrDefault();
         if (sid is null || !Guid.TryParse(sid, out var originSessionId))
         {
@@ -108,6 +112,11 @@ public sealed class StartImpersonation(
             return Error.Denied(IdentityErrors.ImpersonationTargetUnavailable, IdentityMessages.ImpersonationTargetUnavailable, MessageArguments.Of(("id", request.TargetUserId)));
         }
 
+        log.TenantId = requested ?? TenantIds.Platform;
+        log.UserId = target.Id;
+        log.UserName = target.UserName;
+        log.AccountTenantId = target.HomeTenantId;
+        log.Detail = actor.UserName;
         var refreshToken = RefreshTokens.Generate();
         var session = new SysUserSession
         {
@@ -126,6 +135,7 @@ public sealed class StartImpersonation(
             return added.Error!;
         }
 
+        log.SessionId = session.Id;
         var securityResult = await accounts.SecurityOfAsync(target.Id, context.CancellationToken).ConfigureAwait(false);
         if (!securityResult.TryGetValue(out var targetSecurity))
         {

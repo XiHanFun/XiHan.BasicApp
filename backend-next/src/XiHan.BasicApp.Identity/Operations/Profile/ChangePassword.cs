@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
@@ -32,6 +33,7 @@ public sealed class ChangePassword(IRepository<SysUser, Guid> users, UserAccount
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
+        context.AddAuditLog(new LoginLogEntry(LoginEvent.ChangePassword));
         var principal = context.GetSecurity().Principal;
         if (!Guid.TryParse(principal.Id, out var userId) || !(await users.FindAsync(userId, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var user))
         {

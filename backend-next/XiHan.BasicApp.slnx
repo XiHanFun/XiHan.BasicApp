@@ -11,6 +11,7 @@
   </Folder>
   <Folder Name="/2.Platform/">
     <Project Path="src/XiHan.BasicApp.Settings/XiHan.BasicApp.Settings.csproj" />
+    <Project Path="src/XiHan.BasicApp.Auditing/XiHan.BasicApp.Auditing.csproj" />
   </Folder>
   <Folder Name="/3.Optional/">
     <Project Path="src/XiHan.BasicApp.Workbench/XiHan.BasicApp.Workbench.csproj" />

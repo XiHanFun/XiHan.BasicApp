@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
@@ -50,6 +51,8 @@ public sealed class StopImpersonation(
         ArgumentNullException.ThrowIfNull(context);
         var now = clock.GetUtcNow();
         var principal = context.GetSecurity().Principal;
+        // 调用方是被模仿的人（用户与会话取调用方），发起人取令牌的模仿者声明
+        context.AddAuditLog(new LoginLogEntry(LoginEvent.ImpersonationStop) { ImpersonatorUserId = Guid.TryParse(principal.ClaimValues(IdentityClaims.Actor).FirstOrDefault(), out var impersonator) ? impersonator : null });
         var sid = principal.ClaimValues(IdentityClaims.Session).FirstOrDefault();
         if (sid is null || !Guid.TryParse(sid, out var sessionId))
         {
