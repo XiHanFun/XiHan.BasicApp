@@ -3,7 +3,6 @@ export default {
   settings: {
     configs: {
       title: 'Paramètres',
-      description: 'Paramètres de la plateforme et les vôtres : un paramètre de locataire de même clé surcharge celui de la plateforme ; les valeurs chiffrées ne sont jamais affichées.',
       search: 'Recherche',
       fields: {
         key: 'Clé',
@@ -18,6 +17,8 @@ export default {
         status: 'Statut',
         encrypted: 'Chiffrer au stockage',
         allow_tenant_override: 'Surcharge par les locataires',
+        created_at: 'Créé le',
+        modified_at: 'Modifié le',
       },
       data_types: {
         text: 'Texte',
@@ -36,18 +37,16 @@ export default {
       },
       actions: {
         create: 'Créer un paramètre',
-        save: 'Enregistrer',
-        delete: 'Supprimer le paramètre',
-        search: 'Rechercher',
         override: 'Surcharger',
+        toggle: 'Activer / désactiver',
       },
-      empty: 'Aucun paramètre pour l’instant.',
-      total: '{total} paramètres',
-      saved: 'Paramètre enregistré.',
       built_in: 'Intégré',
       encrypted_value: '(chiffré)',
       encrypted_hint: 'Les valeurs chiffrées ne sont pas affichées ; laissez vide pour garder la valeur actuelle.',
-      other_side_hint: 'Ce paramètre appartient à l’autre côté et est en lecture seule.',
+      keyword_placeholder: 'Clé ou nom',
+      create_title: 'Créer un paramètre',
+      edit_title: 'Modifier le paramètre',
+      override_title: 'Remplacer le paramètre de la plateforme',
     },
     dicts: {
       title: 'Dictionnaires',

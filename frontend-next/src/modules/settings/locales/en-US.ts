@@ -3,7 +3,6 @@ export default {
   settings: {
     configs: {
       title: 'Configuration',
-      description: 'Platform entries plus your own: a tenant entry with the same key overrides the platform one; encrypted values are never shown.',
       search: 'Search',
       fields: {
         key: 'Key',
@@ -18,6 +17,8 @@ export default {
         status: 'Status',
         encrypted: 'Encrypt at rest',
         allow_tenant_override: 'Tenants may override',
+        created_at: 'Created at',
+        modified_at: 'Modified at',
       },
       data_types: {
         text: 'Text',
@@ -36,18 +37,16 @@ export default {
       },
       actions: {
         create: 'Create entry',
-        save: 'Save',
-        delete: 'Delete entry',
-        search: 'Search',
         override: 'Override',
+        toggle: 'Enable / Disable',
       },
-      empty: 'No configuration entries yet.',
-      total: '{total} entries',
-      saved: 'Entry saved.',
       built_in: 'Built in',
       encrypted_value: '(encrypted)',
       encrypted_hint: 'Encrypted values are not shown; leave empty to keep the current value.',
-      other_side_hint: 'This entry belongs to the other side and is read-only.',
+      keyword_placeholder: 'Key or name',
+      create_title: 'Create entry',
+      edit_title: 'Edit entry',
+      override_title: 'Override platform entry',
     },
     dicts: {
       title: 'Dictionaries',

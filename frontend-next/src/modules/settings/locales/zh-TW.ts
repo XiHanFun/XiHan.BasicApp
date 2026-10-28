@@ -3,7 +3,6 @@ export default {
   settings: {
     configs: {
       title: '參數設定',
-      description: '平台參數與本側參數：租戶用相同的鍵新建即覆蓋平台參數；加密值不回顯。',
       search: '搜尋',
       fields: {
         key: '鍵',
@@ -18,6 +17,8 @@ export default {
         status: '狀態',
         encrypted: '加密儲存',
         allow_tenant_override: '允許租戶覆蓋',
+        created_at: '建立時間',
+        modified_at: '修改時間',
       },
       data_types: {
         text: '文字',
@@ -36,18 +37,16 @@ export default {
       },
       actions: {
         create: '新建參數',
-        save: '儲存',
-        delete: '刪除參數',
-        search: '搜尋',
         override: '覆蓋此參數',
+        toggle: '啟停',
       },
-      empty: '還沒有參數。',
-      total: '共 {total} 個參數',
-      saved: '參數已儲存。',
       built_in: '內建',
       encrypted_value: '（已加密）',
       encrypted_hint: '加密值不回顯；留空即保留原值。',
-      other_side_hint: '這是另一側的參數，唯讀。',
+      keyword_placeholder: '鍵或名稱',
+      create_title: '新建參數',
+      edit_title: '編輯參數',
+      override_title: '覆寫平台參數',
     },
     dicts: {
       title: '字典管理',

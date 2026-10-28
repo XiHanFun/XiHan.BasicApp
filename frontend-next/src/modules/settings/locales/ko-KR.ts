@@ -3,7 +3,6 @@ export default {
   settings: {
     configs: {
       title: '매개변수 설정',
-      description: '플랫폼 매개변수와 자신의 측 매개변수입니다. 테넌트가 같은 키로 만들면 플랫폼 값을 재정의합니다. 암호화된 값은 표시하지 않습니다.',
       search: '검색',
       fields: {
         key: '키',
@@ -18,6 +17,8 @@ export default {
         status: '상태',
         encrypted: '암호화 저장',
         allow_tenant_override: '테넌트 재정의 허용',
+        created_at: '생성 시간',
+        modified_at: '수정 시간',
       },
       data_types: {
         text: '텍스트',
@@ -36,18 +37,16 @@ export default {
       },
       actions: {
         create: '매개변수 만들기',
-        save: '저장',
-        delete: '매개변수 삭제',
-        search: '검색',
         override: '이 매개변수 재정의',
+        toggle: '활성 / 비활성',
       },
-      empty: '아직 매개변수가 없습니다.',
-      total: '매개변수 {total}개',
-      saved: '매개변수를 저장했습니다.',
       built_in: '기본 제공',
       encrypted_value: '(암호화됨)',
       encrypted_hint: '암호화된 값은 표시하지 않습니다. 비워 두면 현재 값을 유지합니다.',
-      other_side_hint: '다른 측의 매개변수이며 읽기 전용입니다.',
+      keyword_placeholder: '키 또는 이름',
+      create_title: '매개변수 만들기',
+      edit_title: '매개변수 편집',
+      override_title: '플랫폼 매개변수 재정의',
     },
     dicts: {
       title: '사전 관리',

@@ -3,7 +3,6 @@ export default {
   settings: {
     configs: {
       title: 'Parâmetros',
-      description: 'Parâmetros da plataforma e os seus: um parâmetro de locatário com a mesma chave substitui o da plataforma; valores criptografados nunca são exibidos.',
       search: 'Pesquisar',
       fields: {
         key: 'Chave',
@@ -18,6 +17,8 @@ export default {
         status: 'Status',
         encrypted: 'Criptografar ao salvar',
         allow_tenant_override: 'Locatários podem substituir',
+        created_at: 'Criado em',
+        modified_at: 'Modificado em',
       },
       data_types: {
         text: 'Texto',
@@ -36,18 +37,16 @@ export default {
       },
       actions: {
         create: 'Criar parâmetro',
-        save: 'Salvar',
-        delete: 'Excluir parâmetro',
-        search: 'Pesquisar',
         override: 'Substituir',
+        toggle: 'Ativar / desativar',
       },
-      empty: 'Ainda não há parâmetros.',
-      total: '{total} parâmetros',
-      saved: 'Parâmetro salvo.',
       built_in: 'Integrado',
       encrypted_value: '(criptografado)',
       encrypted_hint: 'Valores criptografados não são exibidos; deixe vazio para manter o atual.',
-      other_side_hint: 'Este parâmetro pertence ao outro lado e é somente leitura.',
+      keyword_placeholder: 'Chave ou nome',
+      create_title: 'Criar parâmetro',
+      edit_title: 'Editar parâmetro',
+      override_title: 'Sobrescrever parâmetro da plataforma',
     },
     dicts: {
       title: 'Dicionários',
