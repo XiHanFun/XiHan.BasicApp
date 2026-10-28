@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using XiHan.BasicApp.Access.Domain.Services;
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.Framework.Kernel.Security;
 using XiHan.Framework.Security.Abstractions;
 using XiHan.Framework.Security.Abstractions.Permissions;
@@ -10,12 +11,13 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
 /// 当前主体的有效权限：用户本身的授予 + 令牌里每个角色的授予（经框架 <see cref="IPermissionGrantStore"/>，带缓存），通配 <c>*</c> 展开成本侧目录的全部权限码，
-/// 再按作用侧裁掉不属于本侧的码。与框架 <c>PermissionChecker</c> 的判定同源。
+/// 再按作用侧裁掉不属于本侧的码；租户侧再与套餐白名单求交（<see cref="IEditionGate"/>，租户管理员的 <c>*</c> 也被收窄）。与框架 <c>PermissionChecker</c> 的判定同源。
 /// </summary>
 /// <param name="store">框架授予存储。</param>
 /// <param name="catalog">权限目录。</param>
 /// <param name="options">安全选项（角色声明名）。</param>
-public sealed class EffectivePermissions(IPermissionGrantStore store, PermissionCatalog catalog, SecurityOptions options)
+/// <param name="gates">套餐门控（Tenancy 实现；没有即不门控）。</param>
+public sealed class EffectivePermissions(IPermissionGrantStore store, PermissionCatalog catalog, SecurityOptions options, IEnumerable<IEditionGate> gates)
 {
     /// <summary>
     /// 解析为按权限码排序的集合。
@@ -32,6 +34,24 @@ public sealed class EffectivePermissions(IPermissionGrantStore store, Permission
 
         var side = catalog.ForSide(platformSide: tenant is null);
         var all = grants.Contains(PermissionGrant.All);
-        return side.Where(p => all || grants.Contains(p.Code)).Select(static p => p.Code).ToHashSet(StringComparer.Ordinal);
+        var effective = side.Where(p => all || grants.Contains(p.Code)).Select(static p => p.Code).ToHashSet(StringComparer.Ordinal);
+        return tenant is null ? effective : await NarrowAsync(effective, tenant, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// 按租户的套餐白名单收窄一组权限码（平台侧不调用）。
+    /// </summary>
+    public async Task<HashSet<string>> NarrowAsync(HashSet<string> codes, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(codes);
+        foreach (var gate in gates)
+        {
+            if (await gate.AllowedAsync(tenantId, cancellationToken).ConfigureAwait(false) is { } allowed)
+            {
+                codes.IntersectWith(allowed);
+            }
+        }
+
+        return codes;
     }
 }

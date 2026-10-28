@@ -57,4 +57,9 @@ public static class AccessErrors
     /// 自定义数据范围里的部门不在当前租户。
     /// </summary>
     public const string DepartmentNotFound = "ACCESS_NOTFOUND_003";
+
+    /// <summary>
+    /// 租户主体要看平台侧的权限目录。
+    /// </summary>
+    public const string PlatformSideDenied = "ACCESS_DENIED_001";
 }

@@ -21,12 +21,14 @@ using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Security.Abstractions;
+using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Access;
 
 /// <summary>
 /// 授权能力包（Tier 1）：角色与成员、角色授予（写框架 <c>PermissionGrantRecord</c>，判定仍由框架 <c>PermissionChecker</c> 完成）、权限目录（汇总各包登记）、菜单种子（汇总各包页面登记）、<c>auth.permissions</c>。
-/// 给 Identity 提供 <see cref="IUserRoleResolver"/>：登录 / 刷新把用户的角色 ID 放进令牌。角色继承、Deny、委托、套餐门控、ABAC 随后续批次加入。
+/// 给 Identity 提供 <see cref="IUserRoleResolver"/>：登录 / 刷新把用户的角色 ID 放进令牌。套餐门控：<see cref="EditionPermissionFilter"/> 接进框架的权限判定，<c>auth.permissions</c> 与权限目录同样按套餐白名单收窄。
+/// 角色继承、Deny、委托、ABAC 随后续批次加入。
 /// </summary>
 public sealed class AccessFeature : IFeature
 {
@@ -66,6 +68,7 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<RoleService>();
         context.Services.AddScoped<RoleGrants>();
         context.Services.AddScoped<EffectivePermissions>();
+        context.Services.AddSingleton<IPermissionFilter, EditionPermissionFilter>();
         context.Services.AddScoped<RoleQueries>();
         context.Services.AddScoped<IUserRoleResolver, UserRoleResolver>();
         context.Services.AddScoped<RoleDataScopeService>();

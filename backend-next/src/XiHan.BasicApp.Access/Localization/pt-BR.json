@@ -9,7 +9,7 @@
   "roles.assign.description": "Atribui usuários a um papel; os usuários devem pertencer ao lado do papel. Entra em vigor na próxima renovação do token do usuário. Requer access.roles.assign.",
   "roles.unassign.description": "Remove usuários de um papel. Entra em vigor na próxima renovação do token do usuário. Requer access.roles.assign.",
   "roles.members.description": "Lista os membros de um papel. Requer access.roles.read.",
-  "permissions.list.description": "Lista o catálogo de permissões concedíveis no lado atual. Requer access.permissions.read.",
+  "permissions.list.description": "Lista o catálogo de permissões concedíveis: por padrão o lado de quem chama; principais da plataforma podem passar side=tenant para o lado do locatário (para editar listas brancas de edições); para principais de locatário o catálogo é estreitado pela edição. Requer access.permissions.read.",
   "auth.permissions.description": "Retorna as permissões efetivas, os papéis, a árvore de menus e os códigos de página do principal atual.",
   "access.role.not_found": "O papel '{id}' não existe.",
   "access.role.code_taken": "O código de papel '{code}' já está em uso neste lado.",
@@ -22,5 +22,6 @@
   "roles.by_user.description": "Lista os papéis que um usuário tem no lado atual (plataforma ou locatário). Requer access.roles.read.",
   "access.role.data_scope_not_applicable": "O papel de plataforma '{code}' só pode ter o escopo de dados 'Tudo' e nenhum departamento personalizado.",
   "access.role.custom_scope_empty": "O papel '{code}' usa escopo de dados personalizado, mas não informa nenhum departamento.",
-  "access.department.not_found": "O departamento '{id}' não existe neste locatário."
+  "access.department.not_found": "O departamento '{id}' não existe neste locatário.",
+  "access.permission.side_denied": "Principais de locatário só podem ver o catálogo de permissões do lado do locatário."
 }

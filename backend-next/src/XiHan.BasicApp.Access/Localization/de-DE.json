@@ -9,7 +9,7 @@
   "roles.assign.description": "Weist einer Rolle Benutzer zu; die Benutzer müssen zur Seite der Rolle gehören. Wirkt ab der nächsten Token-Aktualisierung des Benutzers. Erfordert access.roles.assign.",
   "roles.unassign.description": "Entfernt Benutzer aus einer Rolle. Wirkt ab der nächsten Token-Aktualisierung des Benutzers. Erfordert access.roles.assign.",
   "roles.members.description": "Listet die Mitglieder einer Rolle. Erfordert access.roles.read.",
-  "permissions.list.description": "Listet den auf der aktuellen Seite erteilbaren Berechtigungskatalog. Erfordert access.permissions.read.",
+  "permissions.list.description": "Listet den erteilbaren Berechtigungskatalog: standardmäßig die Seite des Aufrufers; Plattformprinzipale können mit side=tenant die Mandantenseite abrufen (zum Bearbeiten von Editions-Whitelists); für Mandantenprinzipale wird der Katalog durch ihre Edition eingeschränkt. Erfordert access.permissions.read.",
   "auth.permissions.description": "Liefert die wirksamen Berechtigungen, Rollen, den Menübaum und die Seitencodes des aktuellen Prinzipals.",
   "access.role.not_found": "Die Rolle '{id}' existiert nicht.",
   "access.role.code_taken": "Der Rollencode '{code}' ist auf dieser Seite bereits vergeben.",
@@ -22,5 +22,6 @@
   "roles.by_user.description": "Listet die Rollen, die ein Benutzer auf der aktuellen Seite (Plattform oder Mandant) hat. Erfordert access.roles.read.",
   "access.role.data_scope_not_applicable": "Die Plattformrolle '{code}' kann nur den Datenbereich 'Alle' und keine eigenen Abteilungen haben.",
   "access.role.custom_scope_empty": "Die Rolle '{code}' nutzt einen eigenen Datenbereich, nennt aber keine Abteilung.",
-  "access.department.not_found": "Die Abteilung '{id}' existiert in diesem Mandanten nicht."
+  "access.department.not_found": "Die Abteilung '{id}' existiert in diesem Mandanten nicht.",
+  "access.permission.side_denied": "Mandantenprinzipale können nur den mandantenseitigen Berechtigungskatalog einsehen."
 }
