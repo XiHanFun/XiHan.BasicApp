@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>XiHan.BasicApp.Workbench</RootNamespace>
+    <Description>XiHan.BasicApp 6.0 工作台模块（Tier 3，可选，BasicApp:Modules:Workbench:Enabled）：登记工作台页面，登录后的落点；小组件数据（workbench.* 与 IWorkbenchWidgetProvider）随 N2 加入。</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../XiHan.BasicApp.Contracts/XiHan.BasicApp.Contracts.csproj" />
+    <ProjectReference Include="../XiHan.BasicApp.Runtime/XiHan.BasicApp.Runtime.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <XiHanFrameworkReference Include="XiHan.Framework.Kernel" />
+  </ItemGroup>
+</Project>
