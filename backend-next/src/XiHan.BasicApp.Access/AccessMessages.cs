@@ -275,6 +275,86 @@ public static class AccessMessages
     /// </summary>
     public const string UserDataScopeDepartments = "access.user_data_scope.departments";
 
+    /// <summary>
+    /// 操作 <c>field-security.entities</c> 的说明。
+    /// </summary>
+    public const string ListFieldSecurityEntitiesDescription = "field_security.entities.description";
+
+    /// <summary>
+    /// 操作 <c>field-security.list</c> 的说明。
+    /// </summary>
+    public const string ListFieldSecurityRulesDescription = "field_security.list.description";
+
+    /// <summary>
+    /// 操作 <c>field-security.get</c> 的说明。
+    /// </summary>
+    public const string GetFieldSecurityRuleDescription = "field_security.get.description";
+
+    /// <summary>
+    /// 操作 <c>field-security.create</c> 的说明。
+    /// </summary>
+    public const string CreateFieldSecurityRuleDescription = "field_security.create.description";
+
+    /// <summary>
+    /// 操作 <c>field-security.update</c> 的说明。
+    /// </summary>
+    public const string UpdateFieldSecurityRuleDescription = "field_security.update.description";
+
+    /// <summary>
+    /// 操作 <c>field-security.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteFieldSecurityRulesDescription = "field_security.delete.description";
+
+    /// <summary>
+    /// 字段安全规则不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string FieldRuleNotFound = "access.field_security.not_found";
+
+    /// <summary>
+    /// 目标在字段上已有规则；参数 <c>entity</c>、<c>field</c>。
+    /// </summary>
+    public const string FieldRuleTaken = "access.field_security.taken";
+
+    /// <summary>
+    /// 实体没有登记字段安全；参数 <c>entity</c>。
+    /// </summary>
+    public const string FieldEntityUnknown = "access.field_security.entity_unknown";
+
+    /// <summary>
+    /// 实体没有这个字段；参数 <c>entity</c>、<c>field</c>。
+    /// </summary>
+    public const string FieldUnknown = "access.field_security.field_unknown";
+
+    /// <summary>
+    /// 读取方式不适用；参数 <c>field</c>、<c>strategy</c>。
+    /// </summary>
+    public const string FieldStrategyNotApplicable = "access.field_security.strategy_not_applicable";
+
+    /// <summary>
+    /// 明文且可改写的规则没有限制。
+    /// </summary>
+    public const string FieldRuleNoEffect = "access.field_security.no_effect";
+
+    /// <summary>
+    /// 部分脱敏保留位数不合规；参数 <c>max</c>。
+    /// </summary>
+    public const string FieldKeepInvalid = "access.field_security.keep_invalid";
+
+    /// <summary>
+    /// 固定文本缺失或过长；参数 <c>max</c>。
+    /// </summary>
+    public const string FieldReplacementInvalid = "access.field_security.replacement_invalid";
+
+    /// <summary>
+    /// 部门目标只在租户侧。
+    /// </summary>
+    public const string FieldTargetTenantOnly = "access.field_security.target_tenant_only";
+
+    /// <summary>
+    /// 目标已停用；参数 <c>kind</c>、<c>id</c>。
+    /// </summary>
+    public const string FieldTargetDisabled = "access.field_security.target_disabled";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

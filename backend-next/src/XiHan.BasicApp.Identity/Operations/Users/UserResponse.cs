@@ -1,6 +1,7 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 
 namespace XiHan.BasicApp.Identity.Operations.Users;
@@ -37,5 +38,25 @@ public sealed record UserResponse(
     {
         ArgumentNullException.ThrowIfNull(user);
         return new UserResponse(user.Id, user.UserName, user.DisplayName, user.Email, user.PhoneNumber, user.HomeTenantId, user.Status, user.LastLoginAt, user.CreatedAt, user.CreatedBy);
+    }
+
+    /// <summary>
+    /// 由实体投影并按字段安全规则打码（用户目录的响应）；登录名与显示名不可空，规则写入时已拒绝对它们隐藏，打码后不会为空。
+    /// </summary>
+    public static UserResponse From(SysUser user, FieldRules rules)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+        ArgumentNullException.ThrowIfNull(rules);
+        return new UserResponse(
+            user.Id,
+            rules.Mask(IdentityFieldSecurity.UserName, user.UserName)!,
+            rules.Mask(IdentityFieldSecurity.DisplayName, user.DisplayName)!,
+            rules.Mask(IdentityFieldSecurity.Email, user.Email),
+            rules.Mask(IdentityFieldSecurity.PhoneNumber, user.PhoneNumber),
+            user.HomeTenantId,
+            user.Status,
+            rules.Mask(IdentityFieldSecurity.LastLoginAt, user.LastLoginAt),
+            user.CreatedAt,
+            user.CreatedBy);
     }
 }

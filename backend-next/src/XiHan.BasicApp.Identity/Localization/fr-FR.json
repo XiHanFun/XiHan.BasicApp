@@ -54,5 +54,7 @@
   "identity.two_factor.method_unavailable": "La méthode de vérification {method} n'est pas disponible.",
   "identity.two_factor.unavailable": "La double authentification est activée pour ce compte mais aucune méthode n'est utilisable. Demandez à un administrateur de la réinitialiser.",
   "identity.two_factor.totp_already_enabled": "Une application d'authentification est déjà liée ; désactivez-la d'abord pour changer d'appareil.",
-  "identity.two_factor.totp_setup_missing": "La liaison de l'application d'authentification a expiré ou n'a pas commencé. Générez une nouvelle clé."
+  "identity.two_factor.totp_setup_missing": "La liaison de l'application d'authentification a expiré ou n'a pas commencé. Générez une nouvelle clé.",
+  "identity.field_security.protected": "Le champ {field} est protégé par la sécurité des champs et ne peut pas servir à filtrer ni à trier.",
+  "identity.field_security.read_only": "Le champ {field} est en lecture seule pour vous et ne peut être ni rempli ni modifié."
 }

@@ -129,6 +129,16 @@ public static class IdentityErrors
     public const string TwoFactorUnavailable = "IDENTITY_DENIED_010";
 
     /// <summary>
+    /// 按字段安全读受保护的字段筛选或排序；参数 <c>field</c>。
+    /// </summary>
+    public const string FieldProtected = "IDENTITY_DENIED_011";
+
+    /// <summary>
+    /// 填写或改动了字段安全里只读的字段；参数 <c>field</c>。
+    /// </summary>
+    public const string FieldReadOnly = "IDENTITY_DENIED_012";
+
+    /// <summary>
     /// 登录失败太频繁，本窗口内暂停尝试；参数 <c>retryAfter</c> 秒。
     /// </summary>
     public const string LoginThrottled = "IDENTITY_UNAVAILABLE_001";

@@ -11,7 +11,7 @@ namespace XiHan.BasicApp.Identity.Operations.Users;
 /// </summary>
 /// <param name="Id">用户 ID。</param>
 /// <param name="DisplayName">显示名。</param>
-/// <param name="Email">邮箱，可空。</param>
+/// <param name="Email">邮箱，可空；格式在操作里按字段安全决定之后才校验（交回的脱敏值不像邮箱，但视为没改）。</param>
 /// <param name="PhoneNumber">手机号，可空。</param>
 public sealed record UpdateUserRequest(
     Guid Id,
@@ -25,11 +25,6 @@ public sealed record UpdateUserRequest(
         if (string.IsNullOrWhiteSpace(DisplayName))
         {
             yield return new ValidationResult(IdentityMessages.DisplayNameBlank.L(), [nameof(DisplayName)]);
-        }
-
-        if (Email is { Length: > 0 } && (Email.IndexOf('@', StringComparison.Ordinal) is var at && (at <= 0 || at == Email.Length - 1 || Email.IndexOf('@', at + 1) >= 0)))
-        {
-            yield return new ValidationResult(IdentityMessages.EmailInvalid.L(), [nameof(Email)]);
         }
     }
 }

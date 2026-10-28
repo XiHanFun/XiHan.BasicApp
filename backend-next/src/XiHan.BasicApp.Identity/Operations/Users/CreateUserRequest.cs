@@ -32,8 +32,7 @@ public sealed record CreateUserRequest(
             yield return new ValidationResult(IdentityMessages.DisplayNameBlank.L(), [nameof(DisplayName)]);
         }
 
-        // [EmailAddress] 不折进 Schema，格式在这里判；只要求形如 local@domain，不做完整的 RFC 5322
-        if (Email is { Length: > 0 } && (Email.IndexOf('@', StringComparison.Ordinal) is var at && (at <= 0 || at == Email.Length - 1 || Email.IndexOf('@', at + 1) >= 0)))
+        if (Email is { Length: > 0 } && !UserEmail.IsValid(Email))
         {
             yield return new ValidationResult(IdentityMessages.EmailInvalid.L(), [nameof(Email)]);
         }

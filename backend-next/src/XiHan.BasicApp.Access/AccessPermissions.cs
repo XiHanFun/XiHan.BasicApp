@@ -61,6 +61,26 @@ public static class AccessPermissions
     public const string UserDataScopesUpdate = "access.user-data-scopes.update";
 
     /// <summary>
+    /// 查看字段安全规则与实体目录：<c>field-security.list / get / entities</c>。
+    /// </summary>
+    public const string FieldSecurityRead = "access.field-security.read";
+
+    /// <summary>
+    /// 新建字段安全规则。
+    /// </summary>
+    public const string FieldSecurityCreate = "access.field-security.create";
+
+    /// <summary>
+    /// 修改与启停字段安全规则。
+    /// </summary>
+    public const string FieldSecurityUpdate = "access.field-security.update";
+
+    /// <summary>
+    /// 删除字段安全规则。
+    /// </summary>
+    public const string FieldSecurityDelete = "access.field-security.delete";
+
+    /// <summary>
     /// 查看权限目录。
     /// </summary>
     public const string PermissionsRead = "access.permissions.read";
@@ -100,6 +120,10 @@ public static class AccessPermissions
         new(UserGrantsGrant, "Manage user grants", PermissionScope.Both, audited: true, description: "Grant, deny and revoke permissions directly on users, with optional validity windows."),
         new(UserDataScopesRead, "Read user data scopes", PermissionScope.Tenant, description: "View per-user data scope overrides."),
         new(UserDataScopesUpdate, "Update user data scopes", PermissionScope.Tenant, audited: true, description: "Override a user's data scope in place of their roles' scopes, or clear the override."),
+        new(FieldSecurityRead, "Read field security", PermissionScope.Both, description: "View field security rules and the entities and fields they can protect."),
+        new(FieldSecurityCreate, "Create field security", PermissionScope.Both, audited: true, description: "Create rules that mask or lock fields for roles, users or departments."),
+        new(FieldSecurityUpdate, "Update field security", PermissionScope.Both, audited: true, description: "Edit, enable and disable field security rules."),
+        new(FieldSecurityDelete, "Delete field security", PermissionScope.Both, audited: true, description: "Delete field security rules."),
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
         new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
         new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),

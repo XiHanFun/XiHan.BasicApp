@@ -35,6 +35,6 @@ public sealed class GetUser(IRepository<SysUser, Guid> users) : IOperation<GetUs
             return Error.NotFound(IdentityErrors.UserNotFound, IdentityMessages.UserNotFound, MessageArguments.Of(("id", request.Id)));
         }
 
-        return UserResponse.From(user);
+        return UserResponse.From(user, await FieldSecurityQuery.ResolveAsync(context, IdentityFieldSecurity.Users).ConfigureAwait(false));
     }
 }

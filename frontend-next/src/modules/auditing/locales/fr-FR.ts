@@ -195,6 +195,7 @@ export default {
         user_deny: 'Refus à l’utilisateur',
         user_revoke: 'Révocation utilisateur',
         user_data_scope: 'Périmètre de données utilisateur',
+        field_security: 'Règle de sécurité des champs',
       },
       role_id: 'ID du rôle',
       role_name: 'Rôle',

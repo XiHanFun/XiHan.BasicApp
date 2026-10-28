@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "設定或清除使用者級資料範圍覆寫（只在租戶側）；覆寫完全取代角色的資料範圍。需要 access.user-data-scopes.update 權限。",
   "access.grant.window_invalid": "有效期不合法：到期時間（{expiresAt}）必須晚於生效時間（{effectiveAt}）。",
   "access.user_data_scope.tenant_only": "使用者級資料範圍只在租戶側設定。",
-  "access.user_data_scope.departments": "自訂資料範圍要列出部門，其他範圍不能帶部門。"
+  "access.user_data_scope.departments": "自訂資料範圍要列出部門，其他範圍不能帶部門。",
+  "field_security.entities.description": "列出可設定欄位安全的實體與欄位（各套件登記）。需要 access.field-security.read 權限。",
+  "field_security.list.description": "分頁列出目前這一側的欄位安全規則。需要 access.field-security.read 權限。",
+  "field_security.get.description": "取得一條欄位安全規則。需要 access.field-security.read 權限。",
+  "field_security.create.description": "新增欄位安全規則：為角色、使用者或部門在某個欄位上設定讀取方式與能否改寫。需要 access.field-security.create 權限。",
+  "field_security.update.description": "修改欄位安全規則（含啟停）。需要 access.field-security.update 權限。",
+  "field_security.delete.description": "刪除欄位安全規則。需要 access.field-security.delete 權限。",
+  "access.field_security.not_found": "欄位安全規則 {id} 不存在。",
+  "access.field_security.taken": "該目標在 {entity}.{field} 上已有規則，請直接修改那一條。",
+  "access.field_security.entity_unknown": "實體 {entity} 不支援欄位安全。",
+  "access.field_security.field_unknown": "實體 {entity} 沒有可設定的欄位 {field}。",
+  "access.field_security.strategy_not_applicable": "欄位 {field} 不能使用讀取方式 {strategy}：非文字欄位只能明文唯讀或隱藏，不可為空的欄位不能隱藏。",
+  "access.field_security.no_effect": "明文且可改寫的規則什麼都沒限制，請選擇遮罩方式或設為唯讀。",
+  "access.field_security.keep_invalid": "部分遮罩的保留位數須在 0 到 {max} 之間，且前後不能都不保留（那等同於全部星號）。",
+  "access.field_security.replacement_invalid": "固定文字方式須填寫顯示的文字，且不超過 {max} 個字元。",
+  "access.field_security.target_tenant_only": "部門目標只在租戶側設定。",
+  "access.field_security.target_disabled": "目標 {kind} {id} 已停用，不能設定欄位安全規則。"
 }

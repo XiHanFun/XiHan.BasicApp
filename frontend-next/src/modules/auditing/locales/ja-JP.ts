@@ -195,6 +195,7 @@ export default {
         user_deny: 'ユーザーへの直接拒否',
         user_revoke: 'ユーザー直接権限の取り消し',
         user_data_scope: 'ユーザーのデータ範囲',
+        field_security: 'フィールドセキュリティルール',
       },
       role_id: 'ロール ID',
       role_name: 'ロール',

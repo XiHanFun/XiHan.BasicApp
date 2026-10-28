@@ -54,5 +54,7 @@
   "identity.two_factor.method_unavailable": "Die Verifizierungsmethode {method} ist nicht verfügbar.",
   "identity.two_factor.unavailable": "Für dieses Konto ist Zwei-Faktor aktiv, aber keine Methode nutzbar. Bitte einen Administrator um das Zurücksetzen.",
   "identity.two_factor.totp_already_enabled": "Ein Authenticator ist bereits verknüpft; zum Gerätewechsel zuerst ausschalten.",
-  "identity.two_factor.totp_setup_missing": "Die Verknüpfung des Authenticators ist abgelaufen oder wurde nicht gestartet. Bitte neuen Schlüssel erzeugen."
+  "identity.two_factor.totp_setup_missing": "Die Verknüpfung des Authenticators ist abgelaufen oder wurde nicht gestartet. Bitte neuen Schlüssel erzeugen.",
+  "identity.field_security.protected": "Feld {field} ist durch die Feldsicherheit geschützt und kann nicht zum Filtern oder Sortieren verwendet werden.",
+  "identity.field_security.read_only": "Feld {field} ist für Sie schreibgeschützt und kann nicht ausgefüllt oder geändert werden."
 }

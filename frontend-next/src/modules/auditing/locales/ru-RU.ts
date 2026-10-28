@@ -195,6 +195,7 @@ export default {
         user_deny: 'Запрет пользователю',
         user_revoke: 'Отзыв у пользователя',
         user_data_scope: 'Область данных пользователя',
+        field_security: 'Правило безопасности полей',
       },
       role_id: 'ID роли',
       role_name: 'Роль',

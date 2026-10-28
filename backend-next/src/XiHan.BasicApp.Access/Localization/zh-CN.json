@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "设置或清除用户级数据范围覆盖（只在租户侧）；覆盖完全取代角色的数据范围。需要 access.user-data-scopes.update 权限。",
   "access.grant.window_invalid": "有效期不合法：到期时间（{expiresAt}）必须晚于生效时间（{effectiveAt}）。",
   "access.user_data_scope.tenant_only": "用户级数据范围只在租户侧设置。",
-  "access.user_data_scope.departments": "自定义数据范围要列出部门，其他范围不能带部门。"
+  "access.user_data_scope.departments": "自定义数据范围要列出部门，其他范围不能带部门。",
+  "field_security.entities.description": "列出可配置字段安全的实体与字段（各包登记）。需要 access.field-security.read 权限。",
+  "field_security.list.description": "分页列出当前一侧的字段安全规则。需要 access.field-security.read 权限。",
+  "field_security.get.description": "取一条字段安全规则。需要 access.field-security.read 权限。",
+  "field_security.create.description": "新建字段安全规则：给角色、用户或部门在某个字段上设读取方式与能否改写。需要 access.field-security.create 权限。",
+  "field_security.update.description": "修改字段安全规则（含启停）。需要 access.field-security.update 权限。",
+  "field_security.delete.description": "删除字段安全规则。需要 access.field-security.delete 权限。",
+  "access.field_security.not_found": "字段安全规则 {id} 不存在。",
+  "access.field_security.taken": "该目标在 {entity}.{field} 上已有规则，请直接修改那一条。",
+  "access.field_security.entity_unknown": "实体 {entity} 不支持字段安全。",
+  "access.field_security.field_unknown": "实体 {entity} 没有可配置的字段 {field}。",
+  "access.field_security.strategy_not_applicable": "字段 {field} 不能用读取方式 {strategy}：非文本字段只能明文只读或隐藏，不可为空的字段不能隐藏。",
+  "access.field_security.no_effect": "明文且可改写的规则什么都没限制，请选择脱敏方式或设为只读。",
+  "access.field_security.keep_invalid": "部分脱敏的保留位数须在 0 到 {max} 之间，且前后不能都不保留（那等同于全部星号）。",
+  "access.field_security.replacement_invalid": "固定文本方式须填写显示的文字，且不超过 {max} 个字符。",
+  "access.field_security.target_tenant_only": "部门目标只在租户侧配置。",
+  "access.field_security.target_disabled": "目标 {kind} {id} 已停用，不能配置字段安全规则。"
 }

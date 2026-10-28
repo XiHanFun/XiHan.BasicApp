@@ -195,6 +195,7 @@ export default {
         user_deny: 'User deny',
         user_revoke: 'User grant revoked',
         user_data_scope: 'User data scope',
+        field_security: 'Field security rule',
       },
       role_id: 'Role ID',
       role_name: 'Role',

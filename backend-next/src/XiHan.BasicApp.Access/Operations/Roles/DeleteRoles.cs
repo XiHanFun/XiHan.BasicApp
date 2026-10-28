@@ -24,8 +24,9 @@ namespace XiHan.BasicApp.Access.Operations.Roles;
 /// <param name="grants">角色授予。</param>
 /// <param name="rules">授予规则（连同删 Deny 与有效期）。</param>
 /// <param name="cache">指派缓存。</param>
+/// <param name="fieldRules">字段安全规则（连同删以该角色为目标的规则）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesDelete)]
-public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes, PermissionRuleWriter rules, RoleAssignments cache) : IOperation<RoleIdsRequest, BatchResult>
+public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<SysUserRole, Guid> members, RoleService service, RoleGrants grants, RoleDataScopeService scopes, PermissionRuleWriter rules, RoleAssignments cache, FieldSecurityService fieldRules) : IOperation<RoleIdsRequest, BatchResult>
 {
     /// <summary>
     /// 操作 ID。
@@ -75,6 +76,12 @@ public sealed class DeleteRoles(IRepository<SysRole, Guid> roles, IRepository<Sy
         if (scopeRows.IsFailure)
         {
             return scopeRows;
+        }
+
+        var fieldRows = await fieldRules.RemoveForTargetAsync(role.OwnerTenantId, FieldSecurityTargetKind.Role, roleId, cancellationToken).ConfigureAwait(false);
+        if (fieldRows.IsFailure)
+        {
+            return fieldRows;
         }
 
         var assignments = await members.ListAsync(EntityQuery.All<SysUserRole>().Where(new Specification<SysUserRole>(m => m.RoleId == roleId)), cancellationToken).ConfigureAwait(false);

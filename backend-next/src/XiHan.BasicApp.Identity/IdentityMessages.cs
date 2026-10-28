@@ -296,6 +296,16 @@ public static class IdentityMessages
     /// </summary>
     public const string TotpSetupMissing = "identity.two_factor.totp_setup_missing";
 
+    /// <summary>
+    /// 不能按读受保护的字段筛选或排序；参数 <c>field</c>。
+    /// </summary>
+    public const string FieldProtected = "identity.field_security.protected";
+
+    /// <summary>
+    /// 只读字段不能填写或改动；参数 <c>field</c>。
+    /// </summary>
+    public const string FieldReadOnly = "identity.field_security.read_only";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(IdentityMessages)));
 
     /// <summary>

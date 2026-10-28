@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "Establecer o quitar la anulación del ámbito de datos de un usuario (solo lado del inquilino); sustituye por completo los ámbitos de los roles. Requiere access.user-data-scopes.update.",
   "access.grant.window_invalid": "Vigencia no válida: el vencimiento ({expiresAt}) debe ser posterior al inicio ({effectiveAt}).",
   "access.user_data_scope.tenant_only": "Los ámbitos de datos de usuario solo se establecen en el lado del inquilino.",
-  "access.user_data_scope.departments": "Un ámbito de datos personalizado debe indicar departamentos; los demás ámbitos no pueden llevarlos."
+  "access.user_data_scope.departments": "Un ámbito de datos personalizado debe indicar departamentos; los demás ámbitos no pueden llevarlos.",
+  "field_security.entities.description": "Listar las entidades y campos que la seguridad de campos puede proteger (registrados por cada paquete). Requiere access.field-security.read.",
+  "field_security.list.description": "Listar con paginación las reglas de seguridad de campos del lado actual. Requiere access.field-security.read.",
+  "field_security.get.description": "Obtener una regla de seguridad de campos. Requiere access.field-security.read.",
+  "field_security.create.description": "Crear una regla de seguridad de campos: cómo lee un campo un rol, usuario o departamento y si puede cambiarlo. Requiere access.field-security.create.",
+  "field_security.update.description": "Editar una regla de seguridad de campos, incluido activarla y desactivarla. Requiere access.field-security.update.",
+  "field_security.delete.description": "Eliminar reglas de seguridad de campos. Requiere access.field-security.delete.",
+  "access.field_security.not_found": "La regla de seguridad de campos {id} no existe.",
+  "access.field_security.taken": "Este destino ya tiene una regla en {entity}.{field}; edite esa.",
+  "access.field_security.entity_unknown": "La entidad {entity} no admite seguridad de campos.",
+  "access.field_security.field_unknown": "La entidad {entity} no tiene el campo configurable {field}.",
+  "access.field_security.strategy_not_applicable": "El campo {field} no puede usar la estrategia {strategy}: los campos que no son texto solo se muestran en solo lectura u ocultos, y los no anulables no se pueden ocultar.",
+  "access.field_security.no_effect": "Una regla en claro y editable no restringe nada; elija un enmascaramiento o hágala de solo lectura.",
+  "access.field_security.keep_invalid": "El enmascaramiento parcial debe conservar de 0 a {max} caracteres en cada extremo y no 0 en ambos (equivale a enmascarar todo).",
+  "access.field_security.replacement_invalid": "La estrategia de texto fijo necesita un texto de como máximo {max} caracteres.",
+  "access.field_security.target_tenant_only": "Los destinos de departamento solo se configuran en el lado del inquilino.",
+  "access.field_security.target_disabled": "El destino {kind} {id} está desactivado y no admite reglas de seguridad de campos."
 }

@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "Datenbereichs-Überschreibung eines Benutzers setzen oder entfernen (nur Mandantenseite); sie ersetzt die Datenbereiche der Rollen vollständig. Erfordert access.user-data-scopes.update.",
   "access.grant.window_invalid": "Ungültiger Gültigkeitszeitraum: Das Ende ({expiresAt}) muss nach dem Beginn ({effectiveAt}) liegen.",
   "access.user_data_scope.tenant_only": "Benutzer-Datenbereiche werden nur auf der Mandantenseite gesetzt.",
-  "access.user_data_scope.departments": "Ein benutzerdefinierter Datenbereich muss Abteilungen nennen, andere Bereiche dürfen keine haben."
+  "access.user_data_scope.departments": "Ein benutzerdefinierter Datenbereich muss Abteilungen nennen, andere Bereiche dürfen keine haben.",
+  "field_security.entities.description": "Entitäten und Felder auflisten, die die Feldsicherheit schützen kann (von jedem Paket registriert). Erfordert access.field-security.read.",
+  "field_security.list.description": "Feldsicherheitsregeln der aktuellen Seite seitenweise auflisten. Erfordert access.field-security.read.",
+  "field_security.get.description": "Eine Feldsicherheitsregel lesen. Erfordert access.field-security.read.",
+  "field_security.create.description": "Feldsicherheitsregel anlegen: wie eine Rolle, ein Benutzer oder eine Abteilung ein Feld liest und ob sie es ändern darf. Erfordert access.field-security.create.",
+  "field_security.update.description": "Feldsicherheitsregel bearbeiten, auch aktivieren und deaktivieren. Erfordert access.field-security.update.",
+  "field_security.delete.description": "Feldsicherheitsregeln löschen. Erfordert access.field-security.delete.",
+  "access.field_security.not_found": "Feldsicherheitsregel {id} existiert nicht.",
+  "access.field_security.taken": "Dieses Ziel hat bereits eine Regel für {entity}.{field}; bearbeiten Sie diese.",
+  "access.field_security.entity_unknown": "Entität {entity} unterstützt keine Feldsicherheit.",
+  "access.field_security.field_unknown": "Entität {entity} hat kein konfigurierbares Feld {field}.",
+  "access.field_security.strategy_not_applicable": "Feld {field} kann die Strategie {strategy} nicht verwenden: Nicht-Textfelder können nur schreibgeschützt angezeigt oder ausgeblendet werden, nicht-nullbare Felder nicht ausgeblendet.",
+  "access.field_security.no_effect": "Eine Klartextregel mit Bearbeitung schränkt nichts ein; wählen Sie eine Maskierung oder machen Sie sie schreibgeschützt.",
+  "access.field_security.keep_invalid": "Teilmaskierung muss an jedem Ende 0 bis {max} Zeichen behalten und nicht an beiden 0 (das entspricht der Vollmaskierung).",
+  "access.field_security.replacement_invalid": "Die Festtext-Strategie benötigt einen Text mit höchstens {max} Zeichen.",
+  "access.field_security.target_tenant_only": "Abteilungsziele werden nur auf der Mandantenseite konfiguriert.",
+  "access.field_security.target_disabled": "Ziel {kind} {id} ist deaktiviert und kann keine Feldsicherheitsregeln erhalten."
 }

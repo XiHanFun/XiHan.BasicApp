@@ -51,6 +51,12 @@ export const routes = {
   'editions.update': { method: 'PUT', template: '/api/editions/{id}', path: ['id'], query: [], success: 200 },
   'exception-logs.get': { method: 'GET', template: '/api/exception-logs/{id}', path: ['id'], query: [], success: 200 },
   'exception-logs.list': { method: 'POST', template: '/api/exception-logs:list', path: [], query: [], success: 200 },
+  'field-security.create': { method: 'POST', template: '/api/field-security', path: [], query: [], success: 201 },
+  'field-security.delete': { method: 'DELETE', template: '/api/field-security', path: [], query: ['ids'], success: 200 },
+  'field-security.entities': { method: 'GET', template: '/api/field-security:entities', path: [], query: [], success: 200 },
+  'field-security.get': { method: 'GET', template: '/api/field-security/{id}', path: ['id'], query: [], success: 200 },
+  'field-security.list': { method: 'POST', template: '/api/field-security:list', path: [], query: [], success: 200 },
+  'field-security.update': { method: 'PUT', template: '/api/field-security/{id}', path: ['id'], query: [], success: 200 },
   'impersonation.candidates': { method: 'GET', template: '/api/impersonation:candidates', path: [], query: ['tenantId', 'keyword'], success: 200 },
   'impersonation.start': { method: 'POST', template: '/api/impersonation:start', path: [], query: [], success: 200 },
   'impersonation.stop': { method: 'POST', template: '/api/impersonation:stop', path: [], query: [], success: 200 },
@@ -232,6 +238,16 @@ export const editions = {
 export const exceptionLogs = {
   get: (request: RequestOf<'exception-logs.get'>, options?: CallOptions) => invoke<RequestOf<'exception-logs.get'>, ResponseOf<'exception-logs.get'>>('exception-logs.get', routes['exception-logs.get'], request, options),
   list: (request: RequestOf<'exception-logs.list'>, options?: CallOptions) => invoke<RequestOf<'exception-logs.list'>, ResponseOf<'exception-logs.list'>>('exception-logs.list', routes['exception-logs.list'], request, options),
+}
+
+/** 资源 `field-security` 的操作。 */
+export const fieldSecurity = {
+  create: (request: RequestOf<'field-security.create'>, options?: CallOptions) => invoke<RequestOf<'field-security.create'>, ResponseOf<'field-security.create'>>('field-security.create', routes['field-security.create'], request, options),
+  delete: (request: RequestOf<'field-security.delete'>, options?: CallOptions) => invoke<RequestOf<'field-security.delete'>, ResponseOf<'field-security.delete'>>('field-security.delete', routes['field-security.delete'], request, options),
+  entities: (request: RequestOf<'field-security.entities'>, options?: CallOptions) => invoke<RequestOf<'field-security.entities'>, ResponseOf<'field-security.entities'>>('field-security.entities', routes['field-security.entities'], request, options),
+  get: (request: RequestOf<'field-security.get'>, options?: CallOptions) => invoke<RequestOf<'field-security.get'>, ResponseOf<'field-security.get'>>('field-security.get', routes['field-security.get'], request, options),
+  list: (request: RequestOf<'field-security.list'>, options?: CallOptions) => invoke<RequestOf<'field-security.list'>, ResponseOf<'field-security.list'>>('field-security.list', routes['field-security.list'], request, options),
+  update: (request: RequestOf<'field-security.update'>, options?: CallOptions) => invoke<RequestOf<'field-security.update'>, ResponseOf<'field-security.update'>>('field-security.update', routes['field-security.update'], request, options),
 }
 
 /** 资源 `impersonation` 的操作。 */

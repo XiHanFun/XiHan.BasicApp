@@ -50,5 +50,21 @@
   "user_data_scopes.set.description": "사용자별 데이터 범위 재정의를 설정하거나 해제합니다(테넌트 쪽만). 재정의는 역할의 데이터 범위를 완전히 대체합니다. access.user-data-scopes.update 권한이 필요합니다.",
   "access.grant.window_invalid": "유효 기간이 올바르지 않습니다: 종료({expiresAt})는 시작({effectiveAt})보다 늦어야 합니다.",
   "access.user_data_scope.tenant_only": "사용자별 데이터 범위는 테넌트 쪽에서만 설정할 수 있습니다.",
-  "access.user_data_scope.departments": "사용자 지정 데이터 범위에는 부서가 있어야 하고, 다른 범위에는 부서를 둘 수 없습니다."
+  "access.user_data_scope.departments": "사용자 지정 데이터 범위에는 부서가 있어야 하고, 다른 범위에는 부서를 둘 수 없습니다.",
+  "field_security.entities.description": "필드 보안을 설정할 수 있는 엔터티와 필드를 나열합니다(각 패키지가 등록). access.field-security.read 권한이 필요합니다.",
+  "field_security.list.description": "현재 쪽의 필드 보안 규칙을 페이지로 나열합니다. access.field-security.read 권한이 필요합니다.",
+  "field_security.get.description": "필드 보안 규칙을 조회합니다. access.field-security.read 권한이 필요합니다.",
+  "field_security.create.description": "필드 보안 규칙을 만듭니다: 역할·사용자·부서가 필드를 어떻게 읽고 변경할 수 있는지 설정합니다. access.field-security.create 권한이 필요합니다.",
+  "field_security.update.description": "필드 보안 규칙을 수정합니다(사용·중지 포함). access.field-security.update 권한이 필요합니다.",
+  "field_security.delete.description": "필드 보안 규칙을 삭제합니다. access.field-security.delete 권한이 필요합니다.",
+  "access.field_security.not_found": "필드 보안 규칙 {id}이(가) 없습니다.",
+  "access.field_security.taken": "이 대상은 {entity}.{field}에 이미 규칙이 있습니다. 그 규칙을 수정하세요.",
+  "access.field_security.entity_unknown": "엔터티 {entity}은(는) 필드 보안을 지원하지 않습니다.",
+  "access.field_security.field_unknown": "엔터티 {entity}에 설정 가능한 필드 {field}이(가) 없습니다.",
+  "access.field_security.strategy_not_applicable": "필드 {field}에는 읽기 방식 {strategy}을(를) 쓸 수 없습니다: 텍스트가 아닌 필드는 평문 읽기 전용이나 숨김만 가능하고, null이 될 수 없는 필드는 숨길 수 없습니다.",
+  "access.field_security.no_effect": "평문이면서 수정 가능한 규칙은 아무것도 제한하지 않습니다. 마스킹 방식을 고르거나 읽기 전용으로 설정하세요.",
+  "access.field_security.keep_invalid": "부분 마스킹의 유지 자릿수는 0~{max}이어야 하며 앞뒤 모두 0일 수 없습니다(전체 마스킹과 같음).",
+  "access.field_security.replacement_invalid": "고정 텍스트 방식에는 {max}자 이하의 표시 문자가 필요합니다.",
+  "access.field_security.target_tenant_only": "부서 대상은 테넌트 쪽에서만 설정합니다.",
+  "access.field_security.target_disabled": "대상 {kind} {id}이(가) 사용 중지되어 필드 보안 규칙을 설정할 수 없습니다."
 }
