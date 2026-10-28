@@ -6,6 +6,7 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Runtime.Middleware;
 using XiHan.BasicApp.Contracts.MultiTenancy;
 using XiHan.BasicApp.Runtime.MultiTenancy;
+using XiHan.BasicApp.Runtime.Security;
 using XiHan.BasicApp.Runtime.Seeding;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Hosting;
@@ -49,6 +50,7 @@ public sealed class RuntimeFeature : IFeature
         context.Services.AddSingleton(SeedOptions.FromConfiguration(context.Configuration));
         context.Services.AddSingleton<SeedRunner>();
         context.Services.AddSingleton<ITenantScopeRunner, TenantScopeRunner>();
+        context.Services.AddSecretProtection(context.Configuration);
         // 持久化 Provider 的工作单元中间件也在 Transaction 阶段；本包依赖 persistence.relational@1，按拓扑序排在它之后
         context.AddMiddleware<AuditorStampMiddleware>(PipelineStage.Transaction);
     }
