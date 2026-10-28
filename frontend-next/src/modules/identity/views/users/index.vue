@@ -16,12 +16,13 @@ onMounted(() => {
   void page.load()
 })
 
+// 手写结构的表格每一行各自伸缩：列宽基准写在 width 里，表头与各行才按同一基准分剩余空间；不写就按各格内容定基准，整列对不齐
 const columns = [
-  { id: 'userName', label: 'identity.users.fields.user_name' },
-  { id: 'displayName', label: 'identity.users.fields.display_name' },
-  { id: 'email', label: 'identity.users.fields.email' },
-  { id: 'status', label: 'identity.users.fields.status' },
-  { id: 'createdAt', label: 'identity.users.fields.created_at' },
+  { id: 'userName', label: 'identity.users.fields.user_name', width: '7rem' },
+  { id: 'displayName', label: 'identity.users.fields.display_name', width: '7rem' },
+  { id: 'email', label: 'identity.users.fields.email', width: '10rem' },
+  { id: 'status', label: 'identity.users.fields.status', width: '4rem' },
+  { id: 'createdAt', label: 'identity.users.fields.created_at', width: '10rem' },
 ] as const
 
 function formatTime(value: string | null | undefined): string {
@@ -99,10 +100,10 @@ async function act(action: 'lock' | 'unlock' | 'remove') {
       {{ page.listError.value }}
     </p>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <div class="flex flex-col gap-3">
         <XhTableRoot
-          :columns="columns.map(c => ({ id: c.id, label: t(c.label) }))"
+          :columns="columns.map(c => ({ ...c, label: t(c.label) }))"
           :rows="page.items.value.map(row => ({ id: row.id }))"
           :loading="page.loading.value"
           size="sm"
