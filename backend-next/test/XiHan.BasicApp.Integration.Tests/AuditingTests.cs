@@ -4,6 +4,7 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
+using SqlSugar;
 using XiHan.BasicApp.Auditing.Domain.Entities;
 using XiHan.BasicApp.Auditing.Domain.Services;
 using XiHan.BasicApp.Auditing.Jobs;
@@ -11,10 +12,12 @@ using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Auditing.Database.Trail;
 using XiHan.Framework.Kernel.Diagnostics;
 using XiHan.Framework.Persistence.Abstractions.Queries;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
+using XiHan.Framework.Persistence.SqlSugar;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Scheduling.Abstractions.Jobs;
 using XiHan.Framework.Scheduling.Abstractions.Schedulers;
@@ -24,7 +27,8 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// <summary>
 /// 审计日志：日志严格按上下文隔离（平台主体看平台一侧，租户主体看本租户）；登录日志成败都记、找不到的租户落平台一侧；
 /// 访问日志每次操作调用一条、结果按错误类别归并；操作日志只记标了审计的操作并带上中间件补的细节；权限变更只在真正生效时记；
-/// 链路按 trace-id 与会话聚合；未处理异常进异常日志；查询拒绝白名单外的筛选；保留清理删过期的分表日志与操作审计、参数不合法即失败。
+/// 链路按 trace-id 与会话聚合；未处理异常进异常日志；查询拒绝白名单外的筛选；保留清理删过期的分表日志与操作审计、参数不合法即失败；
+/// 差异缓冲在回调里复制一份，SqlSugar 复用的差异模型改不到已收集的变更。
 /// </summary>
 public sealed class AuditingTests : IDisposable
 {
@@ -280,5 +284,35 @@ public sealed class AuditingTests : IDisposable
         var (config, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", """{"key":"auditing.retention-days","name":"Log retention","dataType":"Number","value":"0"}""", platform));
         Assert.Equal(HttpStatusCode.Created, config.StatusCode);
         Assert.Equal("AUDITING_VALIDATION_004", (await RunAsync()).Error?.Code);
+    }
+
+    [Fact]
+    public void DiffLogBuffer_KeepsACopy_SoAReusedModelCannotRewriteCollectedChanges()
+    {
+        using var provider = new ServiceCollection().AddScoped<DiffLogBuffer>().BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        static List<DiffLogTableInfo> Row(string id, string name) =>
+        [
+            new DiffLogTableInfo
+            {
+                TableName = "sys_user",
+                Columns =
+                [
+                    new DiffLogColumnInfo { ColumnName = "id", Value = id, IsPrimaryKey = true },
+                    new DiffLogColumnInfo { ColumnName = "user_name", Value = name },
+                ],
+            },
+        ];
+
+        // SqlSugar 分表插入的各组复用同一个模型：第一组回调之后，模型的行与值都会被下一组改掉
+        var model = new DiffLogModel { DiffType = DiffType.insert, BusinessData = new SqlSugarDiffLogData(typeof(SysUser), scope.ServiceProvider), AfterData = Row("1", "alice") };
+        DiffLogBuffer.OnDiffLog(model);
+        model.AfterData[0].Columns[1].Value = "mallory";
+        model.AfterData = Row("2", "bob");
+        DiffLogBuffer.OnDiffLog(model);
+
+        var changes = scope.ServiceProvider.GetRequiredService<DiffLogBuffer>().Drain();
+        Assert.Equal(["alice", "bob"], changes.Select(static c => (string)c.AfterData[0].Columns[1].Value));
+        Assert.All(changes, static c => Assert.Equal(typeof(SysUser), Assert.IsType<SqlSugarDiffLogData>(c.BusinessData).EntityType));
     }
 }
