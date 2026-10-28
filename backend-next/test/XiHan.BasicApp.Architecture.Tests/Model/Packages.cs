@@ -10,6 +10,7 @@ using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Organization;
 using XiHan.BasicApp.Tenancy;
+using XiHan.BasicApp.Workbench;
 
 namespace XiHan.BasicApp.Architecture.Tests.Model;
 
@@ -76,6 +77,7 @@ public static class Packages
         typeof(TenancyFeature).Assembly,
         typeof(OrganizationFeature).Assembly,
         typeof(AccessFeature).Assembly,
+        typeof(WorkbenchFeature).Assembly,
         typeof(BasicAppHost).Assembly,
     ];
 

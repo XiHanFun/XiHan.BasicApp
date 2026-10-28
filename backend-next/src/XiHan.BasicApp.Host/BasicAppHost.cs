@@ -9,6 +9,7 @@ using XiHan.BasicApp.Runtime;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.BasicApp.Organization;
 using XiHan.BasicApp.Tenancy;
+using XiHan.BasicApp.Workbench;
 using XiHan.Framework.Auditing.Database;
 using XiHan.Framework.Hosting.AspNetCore;
 using XiHan.Framework.Hosting.AspNetCore.Endpoints;
@@ -26,7 +27,7 @@ using XiHan.Framework.Security.Jwt;
 namespace XiHan.BasicApp.Host;
 
 /// <summary>
-/// 宿主装配（方案 5.13）：Full Profile + 显式 Provider + 全部能力包；端点按固定顺序映射。测试工程经 <see cref="Create"/> 复用同一份装配。
+/// 宿主装配（方案 5.13）：Full Profile + 显式 Provider + 全部能力包，可选模块按 <see cref="HostModules"/> 的开关装配；端点按固定顺序映射。测试工程经 <see cref="Create"/> 复用同一份装配。
 /// </summary>
 public static class BasicAppHost
 {
@@ -43,7 +44,11 @@ public static class BasicAppHost
         // 先让调用方改配置与服务：AddXiHan 在这一步就读配置、装配特性
         configure?.Invoke(builder);
 
-        builder.AddXiHan(static xihan => xihan
+        // 可选模块的开关在调用方改完配置之后读（测试可以关掉模块）
+        var modules = HostModules.FromConfiguration(builder.Configuration);
+        builder.AddXiHan(xihan =>
+        {
+            xihan
             .UseFullProfile()
             // 方式一：回调设库类型、连接串、AopEvents（操作人）与 snake_case 命名；协议约定由框架随后施加
             .UseFeature(new SqlSugarPersistenceFeature(SqlSugarRuntime.Configure))
@@ -57,7 +62,12 @@ public static class BasicAppHost
             .UseFeature<IdentityFeature>()
             .UseFeature<TenancyFeature>()
             .UseFeature<OrganizationFeature>()
-            .UseFeature<AccessFeature>());
+            .UseFeature<AccessFeature>();
+            if (modules.Workbench)
+            {
+                xihan.UseFeature<WorkbenchFeature>();
+            }
+        });
 
         var app = builder.Build();
         configureApp?.Invoke(app);
