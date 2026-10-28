@@ -1,16 +1,19 @@
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { tenants as tenantsApi } from '~/contracts'
+import { editions as editionsApi, tenants as tenantsApi } from '~/contracts'
 import { ApiError } from '~/request'
 
 export type TenantRow = ResponseOf<'tenants.list'>['items'][number]
 export type TenantDetail = ResponseOf<'tenants.get'>
+export type EditionOption = ResponseOf<'editions.list'>['items'][number]
 
 export interface CreateTenantForm {
   tenantId: string
   name: string
   description: string
   order: string
+  /** 套餐主键；空串即用缺省套餐 */
+  editionId: string
 }
 
 export interface EditTenantForm {
@@ -34,7 +37,7 @@ function toOrder(value: string): number {
 }
 
 /**
- * 租户页的状态与动作（平台侧）：分页列表、开通表单、选中租户的详情与编辑、管理员初始化、停用 / 恢复、删除。
+ * 租户页的状态与动作（平台侧）：分页列表、开通表单（可选套餐，不选即缺省套餐）、选中租户的详情与编辑、换套餐（含不受限）、管理员初始化、停用 / 恢复、删除。
  * 契约类型来自生成物；错误只看 `code`、`detail` 与字段级 `errors`；批量操作逐项失败以错误码显示。
  */
 export function useTenants(pageSize = 20) {
@@ -45,7 +48,10 @@ export function useTenants(pageSize = 20) {
   const listError = ref<string | null>(null)
   const pageCount = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 
-  const form = reactive<CreateTenantForm>({ tenantId: '', name: '', description: '', order: '' })
+  const form = reactive<CreateTenantForm>({ tenantId: '', name: '', description: '', order: '', editionId: '' })
+  const editions = ref<EditionOption[]>([])
+  /** 详情里的套餐选择；空串即不受套餐限制 */
+  const editionDraft = ref('')
   const fieldErrors = ref<Record<string, string[]>>({})
   const submitError = ref<string | null>(null)
   const submitting = ref(false)
@@ -56,7 +62,7 @@ export function useTenants(pageSize = 20) {
   const adminForm = reactive<InitializeAdminForm>({ userName: '', password: '', displayName: '' })
   const adminErrors = ref<Record<string, string[]>>({})
   const detailError = ref<string | null>(null)
-  const notice = ref<'saved' | 'admin_created' | null>(null)
+  const notice = ref<'saved' | 'admin_created' | 'edition_changed' | null>(null)
   const working = ref(false)
 
   async function load(index = pageIndex.value) {
@@ -76,6 +82,24 @@ export function useTenants(pageSize = 20) {
     finally {
       loading.value = false
     }
+  }
+
+  /** 套餐选项（需要 tenancy.editions.read；页面按权限决定是否加载） */
+  async function loadEditions() {
+    try {
+      editions.value = (await editionsApi.list({})).items
+    }
+    catch (error) {
+      editions.value = []
+      listError.value = describe(error)
+    }
+  }
+
+  /** 列表里的套餐名：没绑定即不受限，绑定的没在选项里（没有读套餐的权限）就显示主键 */
+  function editionName(id: string | null | undefined): string | null {
+    if (!id)
+      return null
+    return editions.value.find(e => e.id === id)?.name ?? id
   }
 
   function fieldError(field: keyof CreateTenantForm): string | undefined {
@@ -100,11 +124,13 @@ export function useTenants(pageSize = 20) {
         name: form.name.trim(),
         description: form.description.trim() || null,
         order: toOrder(form.order),
+        editionId: form.editionId || null,
       })
       form.tenantId = ''
       form.name = ''
       form.description = ''
       form.order = ''
+      form.editionId = ''
       await load(1)
       await select(created.id)
       return true
@@ -136,6 +162,7 @@ export function useTenants(pageSize = 20) {
       edit.name = detail.tenant.name
       edit.description = detail.tenant.description ?? ''
       edit.order = String(detail.tenant.order)
+      editionDraft.value = detail.tenant.editionId ?? ''
       adminForm.userName = ''
       adminForm.password = ''
       adminForm.displayName = ''
@@ -170,6 +197,29 @@ export function useTenants(pageSize = 20) {
       else {
         detailError.value = String(error)
       }
+      return false
+    }
+    finally {
+      working.value = false
+    }
+  }
+
+  /** 换套餐：空选即不受套餐限制；后端写入后立即失效该租户的门控缓存 */
+  async function changeEdition(): Promise<boolean> {
+    const current = selected.value
+    if (!current)
+      return false
+    working.value = true
+    detailError.value = null
+    notice.value = null
+    try {
+      await tenantsApi.changeEdition({ id: current.tenant.id, editionId: editionDraft.value || null })
+      await Promise.all([load(), select(current.tenant.id)])
+      notice.value = 'edition_changed'
+      return true
+    }
+    catch (error) {
+      detailError.value = describe(error)
       return false
     }
     finally {
@@ -275,6 +325,9 @@ export function useTenants(pageSize = 20) {
     loading,
     listError,
     form,
+    editions,
+    editionDraft,
+    editionName,
     fieldErrors,
     fieldError,
     submitError,
@@ -288,7 +341,9 @@ export function useTenants(pageSize = 20) {
     notice,
     working,
     load,
+    loadEditions,
     submit,
+    changeEdition,
     select,
     save,
     initializeAdmin,

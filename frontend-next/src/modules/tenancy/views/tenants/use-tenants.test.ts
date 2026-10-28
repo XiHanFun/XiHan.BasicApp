@@ -6,13 +6,18 @@ function json(status: number, body: object, contentType = 'application/json'): R
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
 }
 
-const tenant = { id: 't-1', tenantId: 'contoso', name: 'Contoso', description: null, status: 'Active', expiresAt: null, adminUserId: null, order: 10, createdAt: '2026-10-28T00:00:00Z' }
+const tenant = { id: 't-1', tenantId: 'contoso', name: 'Contoso', description: null, status: 'Active', expiresAt: null, adminUserId: null, editionId: 'e-1', order: 10, createdAt: '2026-10-28T00:00:00Z' }
+const editionRows = [
+  { id: 'e-1', code: 'free', name: 'Free', description: null, isDefault: true, order: 10, permissionCount: 6, tenantCount: 1, createdAt: '2026-10-28T00:00:00Z' },
+  { id: 'e-4', code: 'enterprise', name: 'Enterprise', description: null, isDefault: false, order: 40, permissionCount: 26, tenantCount: 0, createdAt: '2026-10-28T00:00:00Z' },
+]
 
 describe('useTenants', () => {
   it('loads the list, selects a tenant, initializes its administrator, suspends it and reports a refused delete', async () => {
     const calls: { method: string, url: string, body: unknown }[] = []
     let adminUserId: string | null = null
     let status = 'Active'
+    let editionId: string | null = 'e-1'
     configureRequest({
       baseUrl: '',
       getToken: () => 't',
@@ -20,7 +25,13 @@ describe('useTenants', () => {
         const path = String(url)
         const body = init?.body ? JSON.parse(String(init.body)) : undefined
         calls.push({ method: init?.method ?? 'GET', url: path, body })
-        const current = { ...tenant, adminUserId, status }
+        const current = { ...tenant, adminUserId, status, editionId }
+        if (path.endsWith('/api/editions'))
+          return json(200, { items: editionRows })
+        if (path.endsWith('/api/tenants/t-1:change-edition')) {
+          editionId = body.editionId
+          return json(200, { ...current, editionId })
+        }
         if (path.endsWith('/api/tenants:list'))
           return json(200, { items: [current], total: 1, page: { index: 1, size: 20 } })
         if (path.endsWith('/api/tenants/t-1'))
@@ -40,13 +51,27 @@ describe('useTenants', () => {
     })
 
     const page = useTenants(20)
-    await page.load()
+    await Promise.all([page.load(), page.loadEditions()])
     expect(page.items.value.map(r => r.tenantId)).toEqual(['contoso'])
+    expect(page.editionName('e-1')).toBe('Free')
+    expect(page.editionName(null)).toBeNull()
 
     await page.select('t-1')
     expect(page.selected.value?.adminUserName).toBeNull()
     expect(page.edit.name).toBe('Contoso')
     expect(page.edit.order).toBe('10')
+    expect(page.editionDraft.value).toBe('e-1')
+
+    // 换套餐：选企业版；再清空即不受套餐限制（请求里是 null）
+    page.editionDraft.value = 'e-4'
+    expect(await page.changeEdition()).toBe(true)
+    expect(calls.filter(c => c.url.endsWith(':change-edition')).at(-1)?.body).toEqual({ editionId: 'e-4' })
+    expect(page.selected.value?.tenant.editionId).toBe('e-4')
+    expect(page.notice.value).toBe('edition_changed')
+    page.editionDraft.value = ''
+    expect(await page.changeEdition()).toBe(true)
+    expect(calls.filter(c => c.url.endsWith(':change-edition')).at(-1)?.body).toEqual({ editionId: null })
+    expect(page.selected.value?.tenant.editionId).toBeNull()
 
     page.adminForm.userName = 'admin'
     page.adminForm.password = 'Admin@123456'

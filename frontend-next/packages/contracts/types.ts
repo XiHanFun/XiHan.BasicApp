@@ -173,6 +173,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/editions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List every edition (by order, then code) with its whitelist size and the number of tenants on it. Platform side only; requires tenancy.editions.read. */
+        get: operations["editions.list"];
+        put?: never;
+        /** Create an edition with an initial whitelist (tenant-side permissions only); it can become the default edition for new tenants. Requires tenancy.editions.create. */
+        post: operations["editions.create"];
+        /** Delete editions and their whitelists in batch; editions still used by tenants are rejected item by item. Requires tenancy.editions.delete. */
+        delete: operations["editions.delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/editions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an edition with its permission whitelist. Requires tenancy.editions.read. */
+        get: operations["editions.get"];
+        /** Update an edition's name, description, default flag and order; the code cannot change. Requires tenancy.editions.update. */
+        put: operations["editions.update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/editions/{id}:set-permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Replace an edition's permission whitelist; the effective permissions of tenants on it narrow or widen immediately. Requires tenancy.editions.update. */
+        post: operations["editions.set-permissions"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/impersonation:candidates": {
         parameters: {
             query?: never;
@@ -283,7 +337,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List the permission catalog grantable on the current side. Requires access.permissions.read. */
+        /** List the grantable permission catalog: the caller's side by default; platform principals may pass side=tenant for the tenant side (used to edit edition whitelists); for tenant principals the catalog is narrowed by their edition. Requires access.permissions.read. */
         get: operations["permissions.list"];
         put?: never;
         post?: never;
@@ -525,9 +579,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** List a tenant's members (users whose home tenant is elsewhere and who enter it by membership) with user name and display name. Platform side only; requires tenancy.tenant-members.read. */
         get: operations["tenant-members.list"];
         put?: never;
+        /** Add a user as a tenant member; rejected when the user is already a member or the tenant is the user's home. Platform side only; requires tenancy.tenant-members.create. */
         post: operations["tenant-members.create"];
+        /** Remove tenant members in batch; they can no longer switch into the tenant. Platform side only; requires tenancy.tenant-members.delete. */
         delete: operations["tenant-members.delete"];
         options?: never;
         head?: never;
@@ -543,7 +600,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Provision a tenant: write the tenant and register it (enabled) in the tenant directory; the administrator is created with tenants.initialize-admin. Platform side only; requires tenancy.tenants.create. */
+        /** Provision a tenant: write the tenant and register it (enabled) in the tenant directory; the administrator is created with tenants.initialize-admin. Platform side only; requires tenancy.tenants.create. Without an edition the default edition applies (an error if there is none). */
         post: operations["tenants.create"];
         /** Delete tenants in batch and remove them from the directory; tenants that still have users are rejected item by item. Requires tenancy.tenants.delete. */
         delete: operations["tenants.delete"];
@@ -564,6 +621,23 @@ export interface paths {
         /** Update a tenant's name, description, expiry and order; the name is mirrored to the directory. Requires tenancy.tenants.update. */
         put: operations["tenants.update"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/tenants/{id}:change-edition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move a tenant to another edition, or lift edition limits; its users' effective permissions follow the new whitelist immediately. Requires tenancy.tenants.update. */
+        post: operations["tenants.change-edition"];
         delete?: never;
         options?: never;
         head?: never;
@@ -819,6 +893,22 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        EditionResponse: {
+            /** Format: uuid */
+            id: string;
+            code: string;
+            name: string;
+            description?: string | null;
+            isDefault: boolean;
+            /** Format: int32 */
+            order: number;
+            /** Format: int32 */
+            permissionCount: number;
+            /** Format: int32 */
+            tenantCount: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
         ImpersonationCandidateResponse: {
             /** Format: uuid */
             id: string;
@@ -963,6 +1053,8 @@ export interface components {
             expiresAt?: string | null;
             /** Format: uuid */
             adminUserId?: string | null;
+            /** Format: uuid */
+            editionId?: string | null;
             /** Format: int32 */
             order: number;
             /** Format: date-time */
@@ -1547,6 +1639,237 @@ export interface operations {
             };
         };
     };
+    "editions.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["EditionResponse"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "editions.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    code: string;
+                    name: string;
+                    description?: string | null;
+                    isDefault?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                    permissions?: string[] | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        edition: components["schemas"]["EditionResponse"];
+                        permissions: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "editions.delete": {
+        parameters: {
+            query: {
+                ids: string[];
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        succeeded: string[];
+                        failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "editions.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        edition: components["schemas"]["EditionResponse"];
+                        permissions: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "editions.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    name: string;
+                    description?: string | null;
+                    isDefault?: boolean;
+                    /** Format: int32 */
+                    order?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        edition: components["schemas"]["EditionResponse"];
+                        permissions: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "editions.set-permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    permissions: string[];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        edition: components["schemas"]["EditionResponse"];
+                        permissions: string[];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "impersonation.candidates": {
         parameters: {
             query?: never;
@@ -1901,7 +2224,9 @@ export interface operations {
     };
     "permissions.list": {
         parameters: {
-            query?: never;
+            query?: {
+                side?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -2804,6 +3129,8 @@ export interface operations {
                     expiresAt?: string | null;
                     /** Format: int32 */
                     order?: number;
+                    /** Format: uuid */
+                    editionId?: string | null;
                 };
             };
         };
@@ -2825,6 +3152,8 @@ export interface operations {
                         expiresAt?: string | null;
                         /** Format: uuid */
                         adminUserId?: string | null;
+                        /** Format: uuid */
+                        editionId?: string | null;
                         /** Format: int32 */
                         order: number;
                         /** Format: date-time */
@@ -2954,6 +3283,65 @@ export interface operations {
                         expiresAt?: string | null;
                         /** Format: uuid */
                         adminUserId?: string | null;
+                        /** Format: uuid */
+                        editionId?: string | null;
+                        /** Format: int32 */
+                        order: number;
+                        /** Format: date-time */
+                        createdAt: string;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "tenants.change-edition": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    id: string;
+                    /** Format: uuid */
+                    editionId?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        tenantId: string;
+                        name: string;
+                        description?: string | null;
+                        status: components["schemas"]["TenantStatus"];
+                        /** Format: date-time */
+                        expiresAt?: string | null;
+                        /** Format: uuid */
+                        adminUserId?: string | null;
+                        /** Format: uuid */
+                        editionId?: string | null;
                         /** Format: int32 */
                         order: number;
                         /** Format: date-time */
