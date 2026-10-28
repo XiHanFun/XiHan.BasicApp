@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { configureRequest } from '~/request'
 import { findCoveredDepartments, isDataScopeDirty, syncPickedDepartments } from './data-scope'
-import { diffGrants, mergeMemberCandidates, rolesResource, toPermissionItems, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from './use-roles'
+import { diffGrants, mergeMemberCandidates, rolePermissionEntries, rolesResource, toPermissionItems, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from './use-roles'
 
 function json(status: number, body: object, contentType = 'application/json'): Response {
   return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': contentType } })
@@ -259,7 +259,7 @@ describe('useRoleDetail', () => {
   it('详情带成员；已授权限按权限定义表取显示名；自定义部门按部门树取名称', async () => {
     record((call) => {
       if (call.url === '/api/roles/r-1')
-        return json(200, { role: role('r-1', 'auditor', { dataScope: 'Custom' }), permissions: ['identity.users.read', 'custom.unknown'], memberCount: 1, customDepartments: [{ departmentId: 'd-2', includeChildren: false }] })
+        return json(200, { role: role('r-1', 'auditor', { dataScope: 'Custom' }), permissions: ['identity.users.read', 'custom.unknown'], rules: [], memberCount: 1, customDepartments: [{ departmentId: 'd-2', includeChildren: false }] })
       if (call.url === '/api/roles/r-1:members')
         return json(200, { items: [member('u-1', 'bob')], total: 1 })
       return json(200, { items: [department('d-1', 'HQ', [department('d-2', 'Sales')])] })
@@ -271,5 +271,19 @@ describe('useRoleDetail', () => {
     expect(detail.members.value.map(m => m.userName)).toEqual(['bob'])
     expect(detail.departmentName('d-2')).toBe('Sales')
     expect(detail.departmentName('d-9')).toBe('d-9')
+  })
+})
+
+describe('rolePermissionEntries', () => {
+  it('授予带上同码 Grant 规则的有效期与原因，拒绝只来自规则，先列授予再列拒绝', () => {
+    const entries = rolePermissionEntries(['identity.users.read', 'identity.users.update'], [
+      { permission: 'identity.users.update', action: 'Grant', effectiveAt: null, expiresAt: '2026-11-01T00:00:00Z', reason: 'on call' },
+      { permission: 'identity.users.delete', action: 'Deny', effectiveAt: null, expiresAt: null, reason: 'freeze' },
+    ])
+    expect(entries.map(e => [e.code, e.action, e.expiresAt, e.reason])).toEqual([
+      ['identity.users.read', 'Grant', null, null],
+      ['identity.users.update', 'Grant', '2026-11-01T00:00:00Z', 'on call'],
+      ['identity.users.delete', 'Deny', null, 'freeze'],
+    ])
   })
 })

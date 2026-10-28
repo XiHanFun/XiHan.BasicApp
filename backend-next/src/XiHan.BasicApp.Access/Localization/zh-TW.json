@@ -39,5 +39,16 @@
   "access.menu.page_managed": "頁面選單由頁面登記產生：不能新增，路由、元件、權限與外部連結也不能改。",
   "access.menu.title_required": "目錄與外部連結必須有標題。",
   "access.menu.not_page": "'{code}' 不是頁面選單，沒有可還原的預設值。",
-  "access.menu.platform_only": "選單只能在平台側管理。"
+  "access.menu.platform_only": "選單只能在平台側管理。",
+  "roles.deny.description": "讓角色拒絕權限：撤掉同碼的授予、寫入 Deny（可帶有效期與原因）；角色上的拒絕只拿走這個角色自己的授予。需要 access.roles.grant 權限。",
+  "roles.update_member.description": "變更成員指派的有效期；到期或改為未來生效的指派立即從判定中移除。需要 access.roles.assign 權限。",
+  "user_grants.list.description": "列出使用者在目前這一側的直接授予與拒絕（含有效期與原因）。需要 access.user-grants.read 權限。",
+  "user_grants.grant.description": "直接授予使用者權限（可帶有效期與原因）。需要 access.user-grants.grant 權限。",
+  "user_grants.deny.description": "直接拒絕使用者權限：使用者上的拒絕壓過一切授予。需要 access.user-grants.grant 權限。",
+  "user_grants.revoke.description": "撤銷使用者的直接授予或拒絕。需要 access.user-grants.grant 權限。",
+  "user_data_scopes.get.description": "讀取使用者級資料範圍覆寫（只在租戶側）；沒有覆寫即依角色。需要 access.user-data-scopes.read 權限。",
+  "user_data_scopes.set.description": "設定或清除使用者級資料範圍覆寫（只在租戶側）；覆寫完全取代角色的資料範圍。需要 access.user-data-scopes.update 權限。",
+  "access.grant.window_invalid": "有效期不合法：到期時間（{expiresAt}）必須晚於生效時間（{effectiveAt}）。",
+  "access.user_data_scope.tenant_only": "使用者級資料範圍只在租戶側設定。",
+  "access.user_data_scope.departments": "自訂資料範圍要列出部門，其他範圍不能帶部門。"
 }

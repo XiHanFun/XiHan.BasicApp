@@ -39,5 +39,16 @@
   "access.menu.page_managed": "페이지 메뉴는 페이지 등록에서 생성됩니다. 만들 수 없고 라우트, 컴포넌트, 권한, 링크도 바꿀 수 없습니다.",
   "access.menu.title_required": "디렉터리와 외부 링크에는 제목이 필요합니다.",
   "access.menu.not_page": "'{code}'은(는) 페이지 메뉴가 아니어서 되돌릴 기본값이 없습니다.",
-  "access.menu.platform_only": "메뉴는 플랫폼 측에서만 관리할 수 있습니다."
+  "access.menu.platform_only": "메뉴는 플랫폼 측에서만 관리할 수 있습니다.",
+  "roles.deny.description": "역할에서 권한 거부: 같은 권한 부여를 취소하고 Deny를 기록합니다(유효 기간과 사유는 선택). 역할의 거부는 그 역할 자신의 부여만 제거합니다. access.roles.grant 권한이 필요합니다.",
+  "roles.update_member.description": "멤버 할당의 유효 기간을 변경합니다. 만료되었거나 미래에 시작되는 할당은 즉시 판정에서 빠집니다. access.roles.assign 권한이 필요합니다.",
+  "user_grants.list.description": "현재 쪽에서 사용자에게 직접 부여·거부된 권한을 나열합니다(유효 기간과 사유 포함). access.user-grants.read 권한이 필요합니다.",
+  "user_grants.grant.description": "사용자에게 권한을 직접 부여합니다(유효 기간과 사유는 선택). access.user-grants.grant 권한이 필요합니다.",
+  "user_grants.deny.description": "사용자의 권한을 직접 거부합니다. 사용자 거부는 모든 부여보다 우선합니다. access.user-grants.grant 권한이 필요합니다.",
+  "user_grants.revoke.description": "사용자의 직접 부여 또는 거부를 취소합니다. access.user-grants.grant 권한이 필요합니다.",
+  "user_data_scopes.get.description": "사용자별 데이터 범위 재정의를 읽습니다(테넌트 쪽만). 재정의가 없으면 역할을 따릅니다. access.user-data-scopes.read 권한이 필요합니다.",
+  "user_data_scopes.set.description": "사용자별 데이터 범위 재정의를 설정하거나 해제합니다(테넌트 쪽만). 재정의는 역할의 데이터 범위를 완전히 대체합니다. access.user-data-scopes.update 권한이 필요합니다.",
+  "access.grant.window_invalid": "유효 기간이 올바르지 않습니다: 종료({expiresAt})는 시작({effectiveAt})보다 늦어야 합니다.",
+  "access.user_data_scope.tenant_only": "사용자별 데이터 범위는 테넌트 쪽에서만 설정할 수 있습니다.",
+  "access.user_data_scope.departments": "사용자 지정 데이터 범위에는 부서가 있어야 하고, 다른 범위에는 부서를 둘 수 없습니다."
 }

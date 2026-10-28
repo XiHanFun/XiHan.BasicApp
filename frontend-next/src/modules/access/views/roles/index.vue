@@ -66,6 +66,13 @@ function formatNullable(value: unknown): string {
   return value === null || value === undefined || value === '' ? '-' : String(value)
 }
 
+/** 4.x 的「{from} 至 {to}」：两端都没有即不限 */
+function validityRange(from?: null | string, to?: null | string): string {
+  if (!from && !to)
+    return t('access.roles.validity_unlimited')
+  return t('access.roles.validity_range', { from: from ? formatDate(from) : '-', to: to ? formatDate(to) : '-' })
+}
+
 const statusOptions = computed<SelectOption[]>(() => ROLE_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
 const dataScopeOptions = computed<SelectOption[]>(() => (['All', 'DepartmentAndChildren', 'DepartmentOnly', 'SelfOnly', 'Custom'] as const).map(scope => ({ label: dataScopeLabel(scope), value: scope })))
 
@@ -335,14 +342,18 @@ async function saveScope() {
                     <tr>
                       <th>{{ t('access.roles.th.permission') }}</th>
                       <th>{{ t('access.roles.th.code') }}</th>
-                      <th>{{ t('access.roles.th.description') }}</th>
+                      <th>{{ t('access.roles.th.action') }}</th>
+                      <th>{{ t('access.roles.th.validity') }}</th>
+                      <th>{{ t('access.roles.th.reason') }}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="item in detailView.permissions.value" :key="item.code">
+                    <tr v-for="item in detailView.permissions.value" :key="`${item.action}-${item.code}`">
                       <td>{{ item.displayName }}</td>
                       <td>{{ item.code }}</td>
-                      <td>{{ formatNullable(item.description) }}</td>
+                      <td>{{ item.action === 'Deny' ? t('access.roles.action_deny') : t('access.roles.action_grant') }}</td>
+                      <td>{{ validityRange(item.effectiveAt, item.expiresAt) }}</td>
+                      <td>{{ formatNullable(item.reason) }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -385,6 +396,7 @@ async function saveScope() {
                       <th>{{ t('access.roles.th.user_name') }}</th>
                       <th>{{ t('access.roles.th.status') }}</th>
                       <th>{{ t('access.roles.th.assigned_at') }}</th>
+                      <th>{{ t('access.roles.th.validity') }}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -393,6 +405,7 @@ async function saveScope() {
                       <td>{{ item.userName }}</td>
                       <td>{{ memberStatusLabel(item.status) }}</td>
                       <td>{{ formatDate(item.assignedAt) }}</td>
+                      <td>{{ validityRange(item.effectiveAt, item.expiresAt) }}</td>
                     </tr>
                   </tbody>
                 </table>

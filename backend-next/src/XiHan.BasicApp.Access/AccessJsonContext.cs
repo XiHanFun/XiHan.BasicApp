@@ -6,6 +6,8 @@ using XiHan.BasicApp.Access.Operations.Auth;
 using XiHan.BasicApp.Access.Operations.Menus;
 using XiHan.BasicApp.Access.Operations.Permissions;
 using XiHan.BasicApp.Access.Operations.Roles;
+using XiHan.BasicApp.Access.Operations.UserDataScopes;
+using XiHan.BasicApp.Access.Operations.UserGrants;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
 
@@ -34,6 +36,15 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(PageResult<RoleResponse>))]
 [JsonSerializable(typeof(BatchResult))]
 [JsonSerializable(typeof(PermissionBatchResult))]
+[JsonSerializable(typeof(PermissionRuleResponse))]
+[JsonSerializable(typeof(RoleMemberWindowRequest))]
+[JsonSerializable(typeof(RoleMemberResponse))]
+[JsonSerializable(typeof(UserGrantsRequest))]
+[JsonSerializable(typeof(UserPermissionsRequest))]
+[JsonSerializable(typeof(UserGrantsResponse))]
+[JsonSerializable(typeof(UserDataScopeRequest))]
+[JsonSerializable(typeof(SetUserDataScopeRequest))]
+[JsonSerializable(typeof(UserDataScopeResponse))]
 [JsonSerializable(typeof(RoleMembersResponse))]
 [JsonSerializable(typeof(ListPermissionsRequest))]
 [JsonSerializable(typeof(PermissionCatalogResponse))]

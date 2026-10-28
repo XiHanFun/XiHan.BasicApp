@@ -39,5 +39,16 @@
   "access.menu.page_managed": "页面菜单由页面登记生成：不能新建，路由、组件、权限与外链也不能改。",
   "access.menu.title_required": "目录与外链必须有标题。",
   "access.menu.not_page": "'{code}' 不是页面菜单，没有可恢复的默认值。",
-  "access.menu.platform_only": "菜单只能在平台侧管理。"
+  "access.menu.platform_only": "菜单只能在平台侧管理。",
+  "roles.deny.description": "让角色拒绝权限：撤掉同码的授予、写 Deny（可带有效期与原因）；角色上的拒绝只拿走这个角色自己的授予。需要 access.roles.grant 权限。",
+  "roles.update_member.description": "改成员指派的有效期；到期或改到未来生效的指派立即从判定里拿掉。需要 access.roles.assign 权限。",
+  "user_grants.list.description": "列出用户在当前这一侧的直接授予与拒绝（含有效期与原因）。需要 access.user-grants.read 权限。",
+  "user_grants.grant.description": "给用户直接授予权限（可带有效期与原因）。需要 access.user-grants.grant 权限。",
+  "user_grants.deny.description": "给用户直接拒绝权限：用户上的拒绝压过一切授予。需要 access.user-grants.grant 权限。",
+  "user_grants.revoke.description": "撤销用户的直接授予或拒绝。需要 access.user-grants.grant 权限。",
+  "user_data_scopes.get.description": "读用户级数据范围覆盖（只在租户侧）；没有覆盖即按角色。需要 access.user-data-scopes.read 权限。",
+  "user_data_scopes.set.description": "设置或清除用户级数据范围覆盖（只在租户侧）；覆盖完全取代角色的数据范围。需要 access.user-data-scopes.update 权限。",
+  "access.grant.window_invalid": "有效期不合法：到期时间（{expiresAt}）必须晚于生效时间（{effectiveAt}）。",
+  "access.user_data_scope.tenant_only": "用户级数据范围只在租户侧设置。",
+  "access.user_data_scope.departments": "自定义数据范围要列出部门，其他范围不能带部门。"
 }

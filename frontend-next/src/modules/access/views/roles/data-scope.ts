@@ -15,6 +15,12 @@ export interface DataScopeDraft {
   departments: ScopeDepartment[]
 }
 
+/** 成员（用户级覆盖）的数据范围草稿：档位为空即「跟随角色」（4.x 的成员覆盖） */
+export interface MemberDataScopeDraft {
+  dataScope: DataScopeValue | null
+  departments: ScopeDepartment[]
+}
+
 /** 档位的展示顺序：从宽到窄，自定义垫底（与 4.x 一致） */
 export const DATA_SCOPE_LEVELS: readonly DataScopeValue[] = ['All', 'DepartmentAndChildren', 'DepartmentOnly', 'SelfOnly', 'Custom']
 

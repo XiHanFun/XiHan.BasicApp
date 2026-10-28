@@ -23,5 +23,13 @@ public static class AccessPages
     /// <summary>
     /// 全部顶层页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Menus];
+    /// <summary>
+    /// 权限目录（只读）：各包登记的权限码按包分组。
+    /// </summary>
+    public static PageDescriptor Permissions { get; } = new("access.permissions", "/access/permissions", "access.permissions.title", "lucide:key-round", 205, AccessPermissions.PermissionsRead);
+
+    /// <summary>
+    /// 全部页面。
+    /// </summary>
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, Menus];
 }

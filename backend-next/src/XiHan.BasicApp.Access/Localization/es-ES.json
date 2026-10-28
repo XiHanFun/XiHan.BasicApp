@@ -39,5 +39,16 @@
   "access.menu.page_managed": "Los menús de página vienen de los registros de páginas: no se pueden crear y su ruta, componente, permiso y enlace no se pueden cambiar.",
   "access.menu.title_required": "Los directorios y enlaces necesitan un título.",
   "access.menu.not_page": "'{code}' no es un menú de página y no tiene valores predeterminados que restablecer.",
-  "access.menu.platform_only": "Los menús solo se pueden gestionar en el lado de la plataforma."
+  "access.menu.platform_only": "Los menús solo se pueden gestionar en el lado de la plataforma.",
+  "roles.deny.description": "Denegar permisos en un rol: revoca las mismas concesiones y escribe reglas Deny (vigencia y motivo opcionales); la denegación de un rol solo quita las concesiones propias de ese rol. Requiere access.roles.grant.",
+  "roles.update_member.description": "Cambiar la vigencia de una asignación de miembro; las asignaciones vencidas o futuras dejan de contar de inmediato. Requiere access.roles.assign.",
+  "user_grants.list.description": "Listar los permisos concedidos o denegados directamente a un usuario en el lado actual, con vigencia y motivo. Requiere access.user-grants.read.",
+  "user_grants.grant.description": "Conceder permisos directamente a un usuario (vigencia y motivo opcionales). Requiere access.user-grants.grant.",
+  "user_grants.deny.description": "Denegar permisos directamente a un usuario; la denegación de usuario prevalece sobre toda concesión. Requiere access.user-grants.grant.",
+  "user_grants.revoke.description": "Revocar concesiones o denegaciones directas de un usuario. Requiere access.user-grants.grant.",
+  "user_data_scopes.get.description": "Leer la anulación del ámbito de datos de un usuario (solo lado del inquilino); sin ella deciden los roles. Requiere access.user-data-scopes.read.",
+  "user_data_scopes.set.description": "Establecer o quitar la anulación del ámbito de datos de un usuario (solo lado del inquilino); sustituye por completo los ámbitos de los roles. Requiere access.user-data-scopes.update.",
+  "access.grant.window_invalid": "Vigencia no válida: el vencimiento ({expiresAt}) debe ser posterior al inicio ({effectiveAt}).",
+  "access.user_data_scope.tenant_only": "Los ámbitos de datos de usuario solo se establecen en el lado del inquilino.",
+  "access.user_data_scope.departments": "Un ámbito de datos personalizado debe indicar departamentos; los demás ámbitos no pueden llevarlos."
 }

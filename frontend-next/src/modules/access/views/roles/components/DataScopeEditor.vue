@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import type { DataScopeDraft, DataScopeValue, DepartmentNode } from '../data-scope'
+<script setup lang="ts" generic="TDraft extends DataScopeDraft | MemberDataScopeDraft">
+import type { DataScopeDraft, DataScopeValue, DepartmentNode, MemberDataScopeDraft } from '../data-scope'
 import { XhButton, XhRadioGroupItem, XhRadioGroupItemDescription, XhRadioGroupItemText, XhRadioGroupLabel, XhRadioGroupRoot, XhSwitch } from '@xihan-ui/vue'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -8,20 +8,26 @@ import { buildNameMap, buildParentMap, DATA_SCOPE_LEVELS, findCoveredDepartments
 
 /**
  * 数据范围编辑（4.x 的 DataScopeEditor 搬入，按 6.0 的部门树与档位改型）：先选档位；自定义时在部门树里勾部门，已选部门逐项设「含下级」。
- * 6.0 只有角色有数据范围，没有成员覆盖与「跟随角色」档。
+ * 角色与成员共用——成员多一个「跟随角色」档（`allowInherit`，档位为空即不覆盖，与 4.x 相同）。
  */
 defineOptions({ name: 'AccessRoleDataScopeEditor' })
 
 const props = withDefaults(defineProps<{
   /** 自定义档位的候选部门（本租户的部门树） */
   departmentTree?: DepartmentNode[]
+  /** 提供「跟随角色」档位（成员覆盖用） */
+  allowInherit?: boolean
   readonly?: boolean
 }>(), {
   departmentTree: () => [],
+  allowInherit: false,
   readonly: false,
 })
 
-const draft = defineModel<DataScopeDraft>({ required: true })
+const draft = defineModel<TDraft>({ required: true })
+
+/** 单选组只认字符串：「跟随角色」用哨兵值，提交时还原为 null */
+const INHERIT = '__inherit__'
 
 const { t } = useI18n()
 
@@ -46,12 +52,19 @@ function levelHint(scope: DataScopeValue): string {
   }
 }
 
-const levels = computed(() => DATA_SCOPE_LEVELS.map(scope => ({ value: scope as string, label: levelLabel(scope), hint: levelHint(scope) })))
+const levels = computed(() => {
+  const list = DATA_SCOPE_LEVELS.map(scope => ({ value: scope as string, label: levelLabel(scope), hint: levelHint(scope) }))
+  return props.allowInherit
+    ? [{ value: INHERIT, label: t('access.roles.scope_editor.inherit'), hint: t('access.roles.scope_editor.hint_inherit') }, ...list]
+    : list
+})
+
+const selectedLevel = computed(() => draft.value.dataScope ?? INHERIT)
 
 function onLevelChange(value: null | string) {
   if (value === null || props.readonly)
     return
-  draft.value = { ...draft.value, dataScope: value as DataScopeValue }
+  draft.value = { ...draft.value, dataScope: value === INHERIT ? null : value as DataScopeValue } as TDraft
 }
 
 const isCustom = computed(() => draft.value.dataScope === 'Custom')
@@ -90,13 +103,13 @@ function departmentName(departmentId: string): string {
 function onPick(keys: string[]) {
   if (props.readonly)
     return
-  draft.value = { ...draft.value, departments: syncPickedDepartments(draft.value.departments, keys) }
+  draft.value = { ...draft.value, departments: syncPickedDepartments(draft.value.departments, keys) } as TDraft
 }
 
 function onIncludeChildren(departmentId: string, includeChildren: boolean) {
   if (props.readonly)
     return
-  draft.value = { ...draft.value, departments: setIncludeChildren(draft.value.departments, departmentId, includeChildren) }
+  draft.value = { ...draft.value, departments: setIncludeChildren(draft.value.departments, departmentId, includeChildren) } as TDraft
 }
 
 function remove(departmentId: string) {
@@ -108,7 +121,7 @@ function remove(departmentId: string) {
   <div class="data-scope-editor">
     <!-- 逐项手写条目时 label 属性不渲染，组名要写成 label 部件 -->
     <XhRadioGroupRoot
-      :value="draft.dataScope"
+      :value="selectedLevel"
       :disabled="readonly"
       orientation="vertical"
       class="data-scope-levels"

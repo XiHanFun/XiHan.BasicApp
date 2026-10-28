@@ -39,5 +39,16 @@
   "access.menu.page_managed": "Page menus come from page registrations: they cannot be created, and their route, component, permission and link cannot be changed.",
   "access.menu.title_required": "Directories and links need a title.",
   "access.menu.not_page": "'{code}' is not a page menu and has no defaults to restore.",
-  "access.menu.platform_only": "Menus can only be managed on the platform side."
+  "access.menu.platform_only": "Menus can only be managed on the platform side.",
+  "roles.deny.description": "Deny permissions on a role: revokes the same grants and writes Deny rules (optional validity window and reason); a role deny only removes that role's own grants. Requires access.roles.grant.",
+  "roles.update_member.description": "Change the validity window of a member assignment; expired or future assignments are dropped from decisions at once. Requires access.roles.assign.",
+  "user_grants.list.description": "List the permissions granted or denied directly to a user on the current side, with windows and reasons. Requires access.user-grants.read.",
+  "user_grants.grant.description": "Grant permissions directly to a user (optional validity window and reason). Requires access.user-grants.grant.",
+  "user_grants.deny.description": "Deny permissions directly on a user; a user deny overrides every grant. Requires access.user-grants.grant.",
+  "user_grants.revoke.description": "Revoke direct grants or denies of a user. Requires access.user-grants.grant.",
+  "user_data_scopes.get.description": "Read a user's data scope override (tenant side only); without one the roles decide. Requires access.user-data-scopes.read.",
+  "user_data_scopes.set.description": "Set or clear a user's data scope override (tenant side only); the override replaces the roles' scopes entirely. Requires access.user-data-scopes.update.",
+  "access.grant.window_invalid": "Invalid validity window: the expiry ({expiresAt}) must be later than the start ({effectiveAt}).",
+  "access.user_data_scope.tenant_only": "User data scopes are set on the tenant side only.",
+  "access.user_data_scope.departments": "A custom data scope must list departments; other scopes must not."
 }

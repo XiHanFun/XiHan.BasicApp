@@ -28,7 +28,7 @@ namespace XiHan.BasicApp.Access;
 /// <summary>
 /// 授权能力包（Tier 1）：角色与成员、角色授予（写框架 <c>PermissionGrantRecord</c>，判定仍由框架 <c>PermissionChecker</c> 完成）、权限目录（汇总各包登记）、菜单（种子汇总各包页面登记，<c>menus.*</c> 调展示、建目录与外链）、<c>auth.permissions</c>。
 /// 给 Identity 提供 <see cref="IUserRoleResolver"/>：登录 / 刷新把用户的角色 ID 放进令牌。套餐门控：<see cref="EditionPermissionFilter"/> 接进框架的权限判定，<c>auth.permissions</c> 与权限目录同样按套餐白名单收窄。
-/// 角色继承、Deny、委托、ABAC 随后续批次加入。
+/// Deny、授予与指派的有效期、用户直接授权与用户级数据范围由 <see cref="AccessPermissionFilter"/> 与 <see cref="DataScopeResolver"/> 接进判定；角色继承、委托、ABAC 随后续批次加入。
 /// </summary>
 public sealed class AccessFeature : IFeature
 {
@@ -68,7 +68,15 @@ public sealed class AccessFeature : IFeature
         context.Services.AddScoped<RoleService>();
         context.Services.AddScoped<MenuService>();
         context.Services.AddScoped<RoleGrants>();
+        context.Services.AddScoped<UserGrants>();
+        context.Services.AddScoped<PermissionRuleWriter>();
+        context.Services.AddScoped<UserDataScopeService>();
         context.Services.AddScoped<EffectivePermissions>();
+        context.Services.AddSingleton<PermissionRules>();
+        context.Services.AddSingleton<RoleAssignments>();
+        context.Services.AddSingleton<GrantEvaluator>();
+        // 先按本包规则收窄（Deny、有效期、此刻算数的角色），再按套餐白名单收窄
+        context.Services.AddSingleton<IPermissionFilter, AccessPermissionFilter>();
         context.Services.AddSingleton<IPermissionFilter, EditionPermissionFilter>();
         context.Services.AddScoped<RoleQueries>();
         context.Services.AddScoped<IUserRoleResolver, UserRoleResolver>();

@@ -41,7 +41,10 @@ export type NumberingScope = (typeof NumberingScope)[number]
 export const OrganizationStatus = ['Active', 'Disabled'] as const
 export type OrganizationStatus = (typeof OrganizationStatus)[number]
 
-export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition'] as const
+export const PermissionAction = ['Grant', 'Deny'] as const
+export type PermissionAction = (typeof PermissionAction)[number]
+
+export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope'] as const
 export type PermissionChangeType = (typeof PermissionChangeType)[number]
 
 export const PermissionScope = ['Platform', 'Tenant', 'Both'] as const
@@ -92,6 +95,7 @@ export const enums = {
   NumberingResetCycle,
   NumberingScope,
   OrganizationStatus,
+  PermissionAction,
   PermissionChangeType,
   PermissionScope,
   RoleStatus,

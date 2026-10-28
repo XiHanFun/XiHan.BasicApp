@@ -9831,13 +9831,20 @@
                       "items": {
                         "$ref": "#/components/schemas/DataScopeDepartmentRequest"
                       }
+                    },
+                    "rules": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PermissionRuleResponse"
+                      }
                     }
                   },
                   "required": [
                     "role",
                     "permissions",
                     "memberCount",
-                    "customDepartments"
+                    "customDepartments",
+                    "rules"
                   ]
                 }
               }
@@ -10049,6 +10056,20 @@
                     },
                     "minItems": 1,
                     "maxItems": 100
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
                   }
                 },
                 "required": [
@@ -10079,6 +10100,119 @@
                       "type": "array",
                       "items": {
                         "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roles/{id}:deny": {
+      "post": {
+        "operationId": "roles.deny",
+        "tags": [
+          "roles"
+        ],
+        "summary": "Deny permissions on a role: revokes the same grants and writes Deny rules (optional validity window and reason); a role deny only removes that role\u0027s own grants. Requires access.roles.grant.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.roles.grant",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RolePermissionsRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 200
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  }
+                },
+                "required": [
+                  "id",
+                  "permissions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PermissionBatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PermissionFailure"
                       }
                     }
                   },
@@ -10142,6 +10276,27 @@
                     },
                     "minItems": 1,
                     "maxItems": 200
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
                   }
                 },
                 "required": [
@@ -10295,6 +10450,27 @@
                     },
                     "minItems": 1,
                     "maxItems": 200
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
                   }
                 },
                 "required": [
@@ -10388,6 +10564,20 @@
                     },
                     "minItems": 1,
                     "maxItems": 100
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
                   }
                 },
                 "required": [
@@ -10424,6 +10614,130 @@
                   "required": [
                     "succeeded",
                     "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/roles/{id}:update-member": {
+      "post": {
+        "operationId": "roles.update-member",
+        "tags": [
+          "roles"
+        ],
+        "summary": "Change the validity window of a member assignment; expired or future assignments are dropped from decisions at once. Requires access.roles.assign.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.roles.assign",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "RoleMemberWindowRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "id",
+                  "userId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "RoleMemberResponse",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": "string"
+                    },
+                    "displayName": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/UserStatus"
+                    },
+                    "assignedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "effectiveAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "userName",
+                    "displayName",
+                    "status",
+                    "assignedAt"
                   ]
                 }
               }
@@ -11935,6 +12249,547 @@
                     "counts",
                     "truncated",
                     "total"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user-data-scopes": {
+      "get": {
+        "operationId": "user-data-scopes.get",
+        "tags": [
+          "user-data-scopes"
+        ],
+        "summary": "Read a user\u0027s data scope override (tenant side only); without one the roles decide. Requires access.user-data-scopes.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.user-data-scopes.read",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "UserDataScopeResponse",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "dataScope": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/DataScope"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "departments": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DataScopeDepartmentRequest"
+                      }
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "departments"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user-data-scopes:set": {
+      "post": {
+        "operationId": "user-data-scopes.set",
+        "tags": [
+          "user-data-scopes"
+        ],
+        "summary": "Set or clear a user\u0027s data scope override (tenant side only); the override replaces the roles\u0027 scopes entirely. Requires access.user-data-scopes.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.user-data-scopes.update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetUserDataScopeRequest",
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "dataScope": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/components/schemas/DataScope"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "departments": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/DataScopeDepartmentRequest"
+                    }
+                  }
+                },
+                "required": [
+                  "userId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "UserDataScopeResponse",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "dataScope": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/DataScope"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "departments": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DataScopeDepartmentRequest"
+                      }
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "departments"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user-grants": {
+      "get": {
+        "operationId": "user-grants.list",
+        "tags": [
+          "user-grants"
+        ],
+        "summary": "List the permissions granted or denied directly to a user on the current side, with windows and reasons. Requires access.user-grants.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.user-grants.read",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "UserGrantsResponse",
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "grants": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/UserGrantResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "grants"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user-grants:deny": {
+      "post": {
+        "operationId": "user-grants.deny",
+        "tags": [
+          "user-grants"
+        ],
+        "summary": "Deny permissions directly on a user; a user deny overrides every grant. Requires access.user-grants.grant.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.user-grants.grant",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UserPermissionsRequest",
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 200
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  }
+                },
+                "required": [
+                  "userId",
+                  "permissions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PermissionBatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PermissionFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user-grants:grant": {
+      "post": {
+        "operationId": "user-grants.grant",
+        "tags": [
+          "user-grants"
+        ],
+        "summary": "Grant permissions directly to a user (optional validity window and reason). Requires access.user-grants.grant.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.user-grants.grant",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UserPermissionsRequest",
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 200
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  }
+                },
+                "required": [
+                  "userId",
+                  "permissions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PermissionBatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PermissionFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/user-grants:revoke": {
+      "post": {
+        "operationId": "user-grants.revoke",
+        "tags": [
+          "user-grants"
+        ],
+        "summary": "Revoke direct grants or denies of a user. Requires access.user-grants.grant.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.user-grants.grant",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UserPermissionsRequest",
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 200
+                  },
+                  "effectiveAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "expiresAt": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date-time"
+                  },
+                  "reason": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  }
+                },
+                "required": [
+                  "userId",
+                  "permissions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PermissionBatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PermissionFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
                   ]
                 }
               }
@@ -14883,6 +15738,13 @@
           "field"
         ]
       },
+      "PermissionAction": {
+        "type": "string",
+        "enum": [
+          "Grant",
+          "Deny"
+        ]
+      },
       "PermissionChangeLogResponse": {
         "type": "object",
         "properties": {
@@ -15007,7 +15869,13 @@
           "RoleDataScope",
           "RoleDelete",
           "EditionPermissions",
-          "TenantEdition"
+          "TenantEdition",
+          "RoleDeny",
+          "RoleAssignmentWindow",
+          "UserGrant",
+          "UserDeny",
+          "UserRevoke",
+          "UserDataScope"
         ]
       },
       "PermissionFailure": {
@@ -15064,6 +15932,41 @@
           "action",
           "scope",
           "audited"
+        ]
+      },
+      "PermissionRuleResponse": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/PermissionAction"
+          },
+          "effectiveAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "permission",
+          "action"
         ]
       },
       "PermissionScope": {
@@ -15132,6 +16035,20 @@
           },
           "assignedAt": {
             "type": "string",
+            "format": "date-time"
+          },
+          "effectiveAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date-time"
           }
         },
@@ -15586,6 +16503,41 @@
           "Phone"
         ]
       },
+      "UserGrantResponse": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/PermissionAction"
+          },
+          "effectiveAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "permission",
+          "action"
+        ]
+      },
       "UserResponse": {
         "type": "object",
         "properties": {
@@ -15722,6 +16674,26 @@
         "code": "access.roles.update",
         "displayName": "Update roles",
         "description": "Edit role names, descriptions, order and status."
+      },
+      "access.user-data-scopes.read": {
+        "code": "access.user-data-scopes.read",
+        "displayName": "Read user data scopes",
+        "description": "View per-user data scope overrides."
+      },
+      "access.user-data-scopes.update": {
+        "code": "access.user-data-scopes.update",
+        "displayName": "Update user data scopes",
+        "description": "Override a user\u0027s data scope in place of their roles\u0027 scopes, or clear the override."
+      },
+      "access.user-grants.grant": {
+        "code": "access.user-grants.grant",
+        "displayName": "Manage user grants",
+        "description": "Grant, deny and revoke permissions directly on users, with optional validity windows."
+      },
+      "access.user-grants.read": {
+        "code": "access.user-grants.read",
+        "displayName": "Read user grants",
+        "description": "View the permissions granted or denied directly to users."
       },
       "auditing.access-logs.read": {
         "code": "auditing.access-logs.read",

@@ -18,11 +18,12 @@ namespace XiHan.BasicApp.Access.Operations.Auth;
 /// 当前主体的权限 <c>auth.permissions</c>（自助操作，只要求已认证）：有效权限码、角色、按权限裁剪的菜单树与页面码。
 /// </summary>
 /// <param name="effective">有效权限解析。</param>
+/// <param name="evaluator">授予全貌（此刻算数的角色）。</param>
 /// <param name="roles">角色仓储。</param>
 /// <param name="menus">菜单仓储。</param>
 /// <param name="options">安全选项（角色声明名）。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
-public sealed class CurrentPermissions(EffectivePermissions effective, IRepository<SysRole, Guid> roles, IRepository<SysMenu, Guid> menus, SecurityOptions options) : IOperation<PermissionsRequest, PermissionsResponse>
+public sealed class CurrentPermissions(EffectivePermissions effective, GrantEvaluator evaluator, IRepository<SysRole, Guid> roles, IRepository<SysMenu, Guid> menus, SecurityOptions options) : IOperation<PermissionsRequest, PermissionsResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -37,7 +38,10 @@ public sealed class CurrentPermissions(EffectivePermissions effective, IReposito
         var security = context.GetSecurity();
         var permissions = await effective.ResolveAsync(security, context.CancellationToken).ConfigureAwait(false);
 
-        var roleIds = security.Principal.ClaimValues(options.RoleClaim).Select(static value => Guid.TryParse(value, out var id) ? id : (Guid?)null).OfType<Guid>().Distinct().ToList();
+        // 角色列表与判定同源：令牌声明里此刻仍算数的（指派在有效期内、角色启用）；外部主体退回令牌声明
+        var roleIds = await evaluator.ViewAsync(security, context.CancellationToken).ConfigureAwait(false) is { } view
+            ? view.Roles.Select(static r => r.RoleId).ToList()
+            : security.Principal.ClaimValues(options.RoleClaim).Select(static value => Guid.TryParse(value, out var id) ? id : (Guid?)null).OfType<Guid>().Distinct().ToList();
         var summaries = roleIds.Count == 0
             ? []
             : (await roles.FindManyAsync(roleIds, context.CancellationToken).ConfigureAwait(false))

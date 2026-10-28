@@ -220,6 +220,61 @@ public static class AccessMessages
     /// </summary>
     public const string MenuPlatformOnly = "access.menu.platform_only";
 
+    /// <summary>
+    /// 操作 <c>roles.deny</c> 的说明。
+    /// </summary>
+    public const string DenyRoleDescription = "roles.deny.description";
+
+    /// <summary>
+    /// 操作 <c>roles.update-member</c> 的说明。
+    /// </summary>
+    public const string UpdateRoleMemberDescription = "roles.update_member.description";
+
+    /// <summary>
+    /// 操作 <c>user-grants.list</c> 的说明。
+    /// </summary>
+    public const string ListUserGrantsDescription = "user_grants.list.description";
+
+    /// <summary>
+    /// 操作 <c>user-grants.grant</c> 的说明。
+    /// </summary>
+    public const string GrantUserDescription = "user_grants.grant.description";
+
+    /// <summary>
+    /// 操作 <c>user-grants.deny</c> 的说明。
+    /// </summary>
+    public const string DenyUserDescription = "user_grants.deny.description";
+
+    /// <summary>
+    /// 操作 <c>user-grants.revoke</c> 的说明。
+    /// </summary>
+    public const string RevokeUserDescription = "user_grants.revoke.description";
+
+    /// <summary>
+    /// 操作 <c>user-data-scopes.get</c> 的说明。
+    /// </summary>
+    public const string GetUserDataScopeDescription = "user_data_scopes.get.description";
+
+    /// <summary>
+    /// 操作 <c>user-data-scopes.set</c> 的说明。
+    /// </summary>
+    public const string SetUserDataScopeDescription = "user_data_scopes.set.description";
+
+    /// <summary>
+    /// 有效期不合法；参数 <c>effectiveAt</c>、<c>expiresAt</c>。
+    /// </summary>
+    public const string WindowInvalid = "access.grant.window_invalid";
+
+    /// <summary>
+    /// 用户级数据范围只在租户侧。
+    /// </summary>
+    public const string UserDataScopeTenantOnly = "access.user_data_scope.tenant_only";
+
+    /// <summary>
+    /// 自定义范围与部门不匹配。
+    /// </summary>
+    public const string UserDataScopeDepartments = "access.user_data_scope.departments";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

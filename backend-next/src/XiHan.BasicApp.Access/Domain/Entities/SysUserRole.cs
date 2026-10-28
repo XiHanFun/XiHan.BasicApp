@@ -7,6 +7,7 @@ namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
 /// 用户与角色的指派（平台库实体）：<see cref="OwnerTenantId"/> 与角色相同，用户的注册地必须是同一侧。
+/// 可带生效与到期时间：不在有效期内的指派不进令牌，也不参与判定（令牌里已有的角色到期即由权限过滤器拿掉）。
 /// </summary>
 public sealed class SysUserRole : AppRecord, IOwnedByTenant
 {
@@ -22,4 +23,19 @@ public sealed class SysUserRole : AppRecord, IOwnedByTenant
     /// 角色 ID。
     /// </summary>
     public Guid RoleId { get; set; }
+
+    /// <summary>
+    /// 生效时间；为空即立即生效。
+    /// </summary>
+    public DateTimeOffset? EffectiveAt { get; set; }
+
+    /// <summary>
+    /// 到期时间（不含）；为空即长期有效。
+    /// </summary>
+    public DateTimeOffset? ExpiresAt { get; set; }
+
+    /// <summary>
+    /// 此刻是否在有效期内。
+    /// </summary>
+    public bool IsEffectiveAt(DateTimeOffset now) => (EffectiveAt is null || EffectiveAt <= now) && (ExpiresAt is null || ExpiresAt > now);
 }

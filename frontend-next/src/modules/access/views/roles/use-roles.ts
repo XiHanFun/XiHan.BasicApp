@@ -444,14 +444,39 @@ export function useRoleDataScopeEditor() {
 
 // ── 详情 ──
 
-/** 详情里的一条已授权限：显示名取生成的权限定义表，不在表里的原样显示权限码 */
-export interface GrantedPermission {
+export type PermissionRule = RoleDetail['rules'][number]
+
+/** 详情里的一条权限分配（4.x 的「动作 / 有效期」两列）：显示名取生成的权限定义表，不在表里的原样显示权限码 */
+export interface RolePermissionEntry {
   code: string
   displayName: string
-  description: null | string
+  action: PermissionRule['action']
+  effectiveAt: null | string
+  expiresAt: null | string
+  reason: null | string
 }
 
-/** 详情抽屉：角色概览、已授权限、自定义部门（租户侧）与成员 */
+/**
+ * 授予取 `permissions`（带有效期或原因的另有同码的 Grant 规则补上这两项），拒绝只在 `rules` 里；
+ * 两者按权限码互斥（后端写拒绝即撤掉同码授予），先列授予再列拒绝。
+ */
+export function rolePermissionEntries(permissions: readonly string[], rules: readonly PermissionRule[]): RolePermissionEntry[] {
+  const grantRules = new Map(rules.filter(rule => rule.action === 'Grant').map(rule => [rule.permission, rule] as const))
+  const entry = (code: string, action: PermissionRule['action'], rule?: PermissionRule): RolePermissionEntry => ({
+    code,
+    displayName: definitions[code]?.displayName ?? code,
+    action,
+    effectiveAt: rule?.effectiveAt ?? null,
+    expiresAt: rule?.expiresAt ?? null,
+    reason: rule?.reason ?? null,
+  })
+  return [
+    ...permissions.map(code => entry(code, 'Grant', grantRules.get(code))),
+    ...rules.filter(rule => rule.action === 'Deny').map(rule => entry(rule.permission, 'Deny', rule)),
+  ]
+}
+
+/** 详情抽屉：角色概览、权限分配、自定义部门（租户侧）与成员 */
 export function useRoleDetail() {
   const open = ref(false)
   const loading = ref(false)
@@ -459,11 +484,7 @@ export function useRoleDetail() {
   const members = ref<RoleMember[]>([])
   const departmentNames = ref<Map<string, string>>(new Map())
 
-  const permissions = computed<GrantedPermission[]>(() => (detail.value?.permissions ?? []).map(code => ({
-    code,
-    displayName: definitions[code]?.displayName ?? code,
-    description: definitions[code]?.description ?? null,
-  })))
+  const permissions = computed<RolePermissionEntry[]>(() => detail.value ? rolePermissionEntries(detail.value.permissions, detail.value.rules) : [])
 
   async function start(row: RoleRow, canReadDepartments: boolean): Promise<void> {
     open.value = true

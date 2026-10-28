@@ -39,5 +39,16 @@
   "access.menu.page_managed": "ページメニューはページ登録から生成されます。作成できず、ルート・コンポーネント・権限・リンクも変更できません。",
   "access.menu.title_required": "ディレクトリと外部リンクにはタイトルが必要です。",
   "access.menu.not_page": "'{code}' はページメニューではないため、戻す既定値がありません。",
-  "access.menu.platform_only": "メニューはプラットフォーム側でのみ管理できます。"
+  "access.menu.platform_only": "メニューはプラットフォーム側でのみ管理できます。",
+  "roles.deny.description": "ロールで権限を拒否：同じ権限の付与を取り消して Deny を書き込みます（有効期間と理由は任意）。ロールの拒否はそのロール自身の付与だけを取り除きます。access.roles.grant 権限が必要です。",
+  "roles.update_member.description": "メンバー割り当ての有効期間を変更します。期限切れや将来開始の割り当ては直ちに判定から外れます。access.roles.assign 権限が必要です。",
+  "user_grants.list.description": "現在の側でユーザーに直接付与・拒否された権限を一覧します（有効期間と理由を含む）。access.user-grants.read 権限が必要です。",
+  "user_grants.grant.description": "ユーザーに権限を直接付与します（有効期間と理由は任意）。access.user-grants.grant 権限が必要です。",
+  "user_grants.deny.description": "ユーザーの権限を直接拒否します。ユーザーの拒否はすべての付与に優先します。access.user-grants.grant 権限が必要です。",
+  "user_grants.revoke.description": "ユーザーへの直接の付与または拒否を取り消します。access.user-grants.grant 権限が必要です。",
+  "user_data_scopes.get.description": "ユーザー単位のデータ範囲の上書きを読み取ります（テナント側のみ）。上書きがなければロールに従います。access.user-data-scopes.read 権限が必要です。",
+  "user_data_scopes.set.description": "ユーザー単位のデータ範囲の上書きを設定または解除します（テナント側のみ）。上書きはロールのデータ範囲を完全に置き換えます。access.user-data-scopes.update 権限が必要です。",
+  "access.grant.window_invalid": "有効期間が不正です：終了（{expiresAt}）は開始（{effectiveAt}）より後でなければなりません。",
+  "access.user_data_scope.tenant_only": "ユーザー単位のデータ範囲はテナント側でのみ設定できます。",
+  "access.user_data_scope.departments": "カスタムのデータ範囲には部門が必要で、それ以外の範囲には部門を指定できません。"
 }
