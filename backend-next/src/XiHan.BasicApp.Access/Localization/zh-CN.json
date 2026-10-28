@@ -9,7 +9,7 @@
   "roles.assign.description": "给角色指派成员；用户须与角色同一侧。最迟在用户下次刷新令牌时生效。需要 access.roles.assign 权限。",
   "roles.unassign.description": "解除角色成员。最迟在用户下次刷新令牌时生效。需要 access.roles.assign 权限。",
   "roles.members.description": "列出角色的成员。需要 access.roles.read 权限。",
-  "permissions.list.description": "列出当前作用侧可授予的权限目录。需要 access.permissions.read 权限。",
+  "permissions.list.description": "列出可授予的权限目录：缺省取调用方的作用侧，平台主体可用 side=tenant 取租户侧（编辑套餐白名单用）；租户主体的目录再按其套餐白名单收窄。需要 access.permissions.read 权限。",
   "auth.permissions.description": "返回当前主体的有效权限码、角色、菜单树与页面码。",
   "access.role.not_found": "角色 '{id}' 不存在。",
   "access.role.code_taken": "角色码 '{code}' 在本侧已被占用。",
@@ -22,5 +22,6 @@
   "roles.by_user.description": "列出某个用户在当前作用侧（平台或租户）持有的角色。需要 access.roles.read 权限。",
   "access.role.data_scope_not_applicable": "平台角色 '{code}' 的数据范围只能是全部，且不能带自定义部门。",
   "access.role.custom_scope_empty": "角色 '{code}' 用自定义数据范围却没有列出任何部门。",
-  "access.department.not_found": "部门 '{id}' 不在当前租户。"
+  "access.department.not_found": "部门 '{id}' 不在当前租户。",
+  "access.permission.side_denied": "租户主体只能查看租户侧的权限目录。"
 }

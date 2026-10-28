@@ -9,7 +9,7 @@
   "roles.assign.description": "ロールにユーザーを割り当てます。ユーザーはロールと同じ側に属している必要があり、次回のトークン更新時に反映されます。access.roles.assign 権限が必要です。",
   "roles.unassign.description": "ロールからユーザーを外します。次回のトークン更新時に反映されます。access.roles.assign 権限が必要です。",
   "roles.members.description": "ロールのメンバーを一覧します。access.roles.read 権限が必要です。",
-  "permissions.list.description": "現在の側で付与できる権限カタログを一覧します。access.permissions.read 権限が必要です。",
+  "permissions.list.description": "付与できる権限カタログを一覧します。既定は呼び出し元の側で、プラットフォームの主体は side=tenant でテナント側を取得できます（エディションのホワイトリスト編集用）。テナントの主体ではエディションのホワイトリストでさらに絞り込みます。access.permissions.read 権限が必要です。",
   "auth.permissions.description": "現在の主体の有効な権限コード、ロール、メニューツリー、ページコードを返します。",
   "access.role.not_found": "ロール '{id}' は存在しません。",
   "access.role.code_taken": "ロールコード '{code}' はこの側で既に使用されています。",
@@ -22,5 +22,6 @@
   "roles.by_user.description": "ユーザーが現在の側（プラットフォームまたはテナント）で持つロールを一覧します。access.roles.read 権限が必要です。",
   "access.role.data_scope_not_applicable": "プラットフォームロール '{code}' のデータ範囲は「すべて」のみで、カスタム部門は指定できません。",
   "access.role.custom_scope_empty": "ロール '{code}' はカスタムデータ範囲ですが部門が指定されていません。",
-  "access.department.not_found": "部門 '{id}' はこのテナントに存在しません。"
+  "access.department.not_found": "部門 '{id}' はこのテナントに存在しません。",
+  "access.permission.side_denied": "テナントの主体はテナント側の権限カタログしか参照できません。"
 }

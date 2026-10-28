@@ -135,6 +135,11 @@ public static class AccessMessages
     /// </summary>
     public const string DepartmentNotFound = "access.department.not_found";
 
+    /// <summary>
+    /// 租户主体只能看租户侧的权限目录。
+    /// </summary>
+    public const string PlatformSideDenied = "access.permission.side_denied";
+
     private static readonly Lazy<MessageCatalog> _catalog = new(static () => MessageCatalog.FromEmbeddedResources(CatalogName, typeof(AccessMessages)));
 
     /// <summary>

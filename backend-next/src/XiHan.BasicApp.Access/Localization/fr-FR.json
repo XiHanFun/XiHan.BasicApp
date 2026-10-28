@@ -9,7 +9,7 @@
   "roles.assign.description": "Affecte des utilisateurs à un rôle ; ils doivent appartenir au côté du rôle. Prend effet au prochain rafraîchissement du jeton de l'utilisateur. Nécessite access.roles.assign.",
   "roles.unassign.description": "Retire des utilisateurs d'un rôle. Prend effet au prochain rafraîchissement du jeton de l'utilisateur. Nécessite access.roles.assign.",
   "roles.members.description": "Liste les membres d'un rôle. Nécessite access.roles.read.",
-  "permissions.list.description": "Liste le catalogue des permissions accordables du côté courant. Nécessite access.permissions.read.",
+  "permissions.list.description": "Liste le catalogue des permissions accordables : par défaut le côté de l'appelant ; les principaux de la plateforme peuvent passer side=tenant pour le côté locataire (pour éditer les listes blanches d'édition) ; pour les principaux d'un locataire, le catalogue est restreint par leur édition. Nécessite access.permissions.read.",
   "auth.permissions.description": "Renvoie les permissions effectives, les rôles, l'arborescence des menus et les codes de page du principal courant.",
   "access.role.not_found": "Le rôle '{id}' n'existe pas.",
   "access.role.code_taken": "Le code de rôle '{code}' est déjà utilisé de ce côté.",
@@ -22,5 +22,6 @@
   "roles.by_user.description": "Liste les rôles qu'un utilisateur détient du côté courant (plateforme ou locataire). Nécessite access.roles.read.",
   "access.role.data_scope_not_applicable": "Le rôle de plateforme '{code}' ne peut avoir que la portée de données « Tout » et aucun service personnalisé.",
   "access.role.custom_scope_empty": "Le rôle '{code}' utilise une portée de données personnalisée sans indiquer de service.",
-  "access.department.not_found": "Le service '{id}' n'existe pas dans ce locataire."
+  "access.department.not_found": "Le service '{id}' n'existe pas dans ce locataire.",
+  "access.permission.side_denied": "Les principaux d'un locataire ne peuvent consulter que le catalogue de permissions côté locataire."
 }

@@ -9,7 +9,7 @@
   "roles.assign.description": "Assign users to a role; users must belong to the role's side. Takes effect at the user's next token refresh. Requires access.roles.assign.",
   "roles.unassign.description": "Remove users from a role. Takes effect at the user's next token refresh. Requires access.roles.assign.",
   "roles.members.description": "List the members of a role. Requires access.roles.read.",
-  "permissions.list.description": "List the permission catalog grantable on the current side. Requires access.permissions.read.",
+  "permissions.list.description": "List the grantable permission catalog: the caller's side by default; platform principals may pass side=tenant for the tenant side (used to edit edition whitelists); for tenant principals the catalog is narrowed by their edition. Requires access.permissions.read.",
   "auth.permissions.description": "Return the current principal's effective permissions, roles, menu tree and page codes.",
   "access.role.not_found": "Role '{id}' does not exist.",
   "access.role.code_taken": "Role code '{code}' is already taken on this side.",
@@ -22,5 +22,6 @@
   "roles.by_user.description": "List the roles a user holds on the current side (platform or tenant). Requires access.roles.read.",
   "access.role.data_scope_not_applicable": "Platform role '{code}' can only have the data scope 'All' and no custom departments.",
   "access.role.custom_scope_empty": "Role '{code}' uses a custom data scope but lists no department.",
-  "access.department.not_found": "Department '{id}' does not exist in this tenant."
+  "access.department.not_found": "Department '{id}' does not exist in this tenant.",
+  "access.permission.side_denied": "Tenant principals can only view the tenant-side permission catalog."
 }

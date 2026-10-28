@@ -9,7 +9,7 @@
   "roles.assign.description": "Asigna usuarios a un rol; los usuarios deben pertenecer al lado del rol. Surte efecto en la próxima renovación del token del usuario. Requiere access.roles.assign.",
   "roles.unassign.description": "Quita usuarios de un rol. Surte efecto en la próxima renovación del token del usuario. Requiere access.roles.assign.",
   "roles.members.description": "Lista los miembros de un rol. Requiere access.roles.read.",
-  "permissions.list.description": "Lista el catálogo de permisos concedibles en el lado actual. Requiere access.permissions.read.",
+  "permissions.list.description": "Lista el catálogo de permisos concedibles: por defecto el lado del llamante; los principales de plataforma pueden pasar side=tenant para el lado del inquilino (para editar listas blancas de ediciones); para los principales de inquilino el catálogo se reduce según su edición. Requiere access.permissions.read.",
   "auth.permissions.description": "Devuelve los permisos efectivos, los roles, el árbol de menús y los códigos de página del principal actual.",
   "access.role.not_found": "El rol '{id}' no existe.",
   "access.role.code_taken": "El código de rol '{code}' ya está en uso en este lado.",
@@ -22,5 +22,6 @@
   "roles.by_user.description": "Lista los roles que un usuario tiene en el lado actual (plataforma o inquilino). Requiere access.roles.read.",
   "access.role.data_scope_not_applicable": "El rol de plataforma '{code}' solo puede tener el ámbito de datos 'Todo' y sin departamentos personalizados.",
   "access.role.custom_scope_empty": "El rol '{code}' usa un ámbito de datos personalizado pero no indica ningún departamento.",
-  "access.department.not_found": "El departamento '{id}' no existe en este inquilino."
+  "access.department.not_found": "El departamento '{id}' no existe en este inquilino.",
+  "access.permission.side_denied": "Los principales de inquilino solo pueden ver el catálogo de permisos del lado del inquilino."
 }
