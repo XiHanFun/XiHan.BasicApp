@@ -3,7 +3,6 @@ export default {
   settings: {
     configs: {
       title: 'Parámetros',
-      description: 'Parámetros de la plataforma y los suyos: uno de inquilino con la misma clave sobrescribe el de la plataforma; los valores cifrados nunca se muestran.',
       search: 'Buscar',
       fields: {
         key: 'Clave',
@@ -18,6 +17,8 @@ export default {
         status: 'Estado',
         encrypted: 'Cifrar al guardar',
         allow_tenant_override: 'Los inquilinos pueden sobrescribir',
+        created_at: 'Creado',
+        modified_at: 'Modificado',
       },
       data_types: {
         text: 'Texto',
@@ -36,18 +37,16 @@ export default {
       },
       actions: {
         create: 'Crear parámetro',
-        save: 'Guardar',
-        delete: 'Eliminar parámetro',
-        search: 'Buscar',
         override: 'Sobrescribir',
+        toggle: 'Activar / desactivar',
       },
-      empty: 'Aún no hay parámetros.',
-      total: '{total} parámetros',
-      saved: 'Parámetro guardado.',
       built_in: 'Integrado',
       encrypted_value: '(cifrado)',
       encrypted_hint: 'Los valores cifrados no se muestran; déjelo vacío para conservar el actual.',
-      other_side_hint: 'Este parámetro pertenece al otro lado y es de solo lectura.',
+      keyword_placeholder: 'Clave o nombre',
+      create_title: 'Crear parámetro',
+      edit_title: 'Editar parámetro',
+      override_title: 'Sobrescribir parámetro de la plataforma',
     },
     dicts: {
       title: 'Diccionarios',

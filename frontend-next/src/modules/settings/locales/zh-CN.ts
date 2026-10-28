@@ -3,7 +3,6 @@ export default {
   settings: {
     configs: {
       title: '参数配置',
-      description: '平台参数与本侧参数：租户用相同的键新建即覆盖平台参数；加密值不回显。',
       search: '搜索',
       fields: {
         key: '键',
@@ -18,6 +17,8 @@ export default {
         status: '状态',
         encrypted: '加密存储',
         allow_tenant_override: '允许租户覆盖',
+        created_at: '创建时间',
+        modified_at: '修改时间',
       },
       data_types: {
         text: '文本',
@@ -36,18 +37,16 @@ export default {
       },
       actions: {
         create: '新建参数',
-        save: '保存',
-        delete: '删除参数',
-        search: '搜索',
         override: '覆盖此参数',
+        toggle: '启停',
       },
-      empty: '还没有参数。',
-      total: '共 {total} 个参数',
-      saved: '参数已保存。',
       built_in: '内建',
       encrypted_value: '（已加密）',
       encrypted_hint: '加密值不回显；留空即保留原值。',
-      other_side_hint: '这是另一侧的参数，只读。',
+      keyword_placeholder: '键或名称',
+      create_title: '新建参数',
+      edit_title: '编辑参数',
+      override_title: '覆盖平台参数',
     },
     dicts: {
       title: '字典管理',

@@ -3,7 +3,6 @@ export default {
   settings: {
     configs: {
       title: 'Konfiguration',
-      description: 'Plattformeinträge und Ihre eigenen: Ein Mandanteneintrag mit gleichem Schlüssel überschreibt den der Plattform; verschlüsselte Werte werden nie angezeigt.',
       search: 'Suche',
       fields: {
         key: 'Schlüssel',
@@ -18,6 +17,8 @@ export default {
         status: 'Status',
         encrypted: 'Verschlüsselt speichern',
         allow_tenant_override: 'Mandanten dürfen überschreiben',
+        created_at: 'Erstellt am',
+        modified_at: 'Geändert am',
       },
       data_types: {
         text: 'Text',
@@ -36,18 +37,16 @@ export default {
       },
       actions: {
         create: 'Eintrag anlegen',
-        save: 'Speichern',
-        delete: 'Eintrag löschen',
-        search: 'Suchen',
         override: 'Überschreiben',
+        toggle: 'Aktivieren / Deaktivieren',
       },
-      empty: 'Noch keine Einträge.',
-      total: '{total} Einträge',
-      saved: 'Eintrag gespeichert.',
       built_in: 'Integriert',
       encrypted_value: '(verschlüsselt)',
       encrypted_hint: 'Verschlüsselte Werte werden nicht angezeigt; leer lassen behält den aktuellen Wert.',
-      other_side_hint: 'Dieser Eintrag gehört zur anderen Seite und ist schreibgeschützt.',
+      keyword_placeholder: 'Schlüssel oder Name',
+      create_title: 'Eintrag anlegen',
+      edit_title: 'Eintrag bearbeiten',
+      override_title: 'Plattformeintrag überschreiben',
     },
     dicts: {
       title: 'Wörterbücher',

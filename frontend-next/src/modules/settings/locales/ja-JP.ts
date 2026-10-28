@@ -3,7 +3,6 @@ export default {
   settings: {
     configs: {
       title: 'パラメーター設定',
-      description: 'プラットフォームと自分の側のパラメーター。テナントが同じキーで作成するとプラットフォームの値を上書きします。暗号化値は表示しません。',
       search: '検索',
       fields: {
         key: 'キー',
@@ -18,6 +17,8 @@ export default {
         status: '状態',
         encrypted: '暗号化して保存',
         allow_tenant_override: 'テナントの上書きを許可',
+        created_at: '作成日時',
+        modified_at: '更新日時',
       },
       data_types: {
         text: 'テキスト',
@@ -36,18 +37,16 @@ export default {
       },
       actions: {
         create: 'パラメーターを作成',
-        save: '保存',
-        delete: 'パラメーターを削除',
-        search: '検索',
         override: 'このパラメーターを上書き',
+        toggle: '有効 / 無効',
       },
-      empty: 'パラメーターはまだありません。',
-      total: '{total} 件のパラメーター',
-      saved: 'パラメーターを保存しました。',
       built_in: '組み込み',
       encrypted_value: '（暗号化済み）',
       encrypted_hint: '暗号化値は表示しません。空のままなら現在の値を保持します。',
-      other_side_hint: 'これは別の側のパラメーターで、読み取り専用です。',
+      keyword_placeholder: 'キーまたは名前',
+      create_title: 'パラメーターを作成',
+      edit_title: 'パラメーターを編集',
+      override_title: 'プラットフォームのパラメーターを上書き',
     },
     dicts: {
       title: '辞書管理',

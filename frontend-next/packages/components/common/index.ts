@@ -12,6 +12,7 @@ export { default as XPageShell } from './PageShell.vue'
 export type { PermissionGrantItem, PermissionGroup } from './permission-grant-panel'
 export { groupPermissions } from './permission-grant-panel'
 export { default as XPermissionTransfer } from './PermissionTransfer.vue'
+export { renderTag } from './tag-cell'
 export { default as XUserAvatar } from './UserAvatar.vue'
 // 把 (row) => VNodeChild 这类渲染函数塞进模板的稳定壳子
 export { VNodeRender } from './VNodeRender'
