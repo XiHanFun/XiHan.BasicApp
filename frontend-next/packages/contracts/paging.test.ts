@@ -19,6 +19,28 @@ describe('schemaPage ↔ PageRequest', () => {
   it('没登记运算符的搜索字段、区间与多选条件直接报错，不静默丢掉', () => {
     expect(() => toPageRequest({ page: 1, pageSize: 20, filters: { owner: 'platform' } })).toThrow(/owner/)
     expect(() => toPageRequest({ page: 1, pageSize: 20, filters: {}, conditionFilters: [{ field: 'status', operator: QueryOperator.In, values: ['Active'] }] })).toThrow(/searchMultiple/)
+    expect(() => toPageRequest({ page: 1, pageSize: 20, filters: {}, conditionFilters: [{ field: 'occurredAt', operator: QueryOperator.Between, values: ['a', 'b'] }] }, { multiples: ['occurredAt'] })).toThrow(/searchRange/)
+  })
+
+  it('登记过的区间拆成 ge / le，多选合成逗号分隔的 in；它们的原始值不再按普通筛选下发', () => {
+    const request = toPageRequest(
+      {
+        page: 1,
+        pageSize: 20,
+        filters: { occurredAt: [1, 2], result: ['Success', 'Forbidden'], userName: 'alice' },
+        conditionFilters: [
+          { field: 'occurredAt', operator: QueryOperator.Between, values: ['2026-10-01T00:00:00.000Z', '2026-10-02T00:00:00.000Z'] },
+          { field: 'result', operator: QueryOperator.In, values: ['Success', 'Forbidden'] },
+        ],
+      },
+      { filters: { userName: 'contains' }, ranges: ['occurredAt'], multiples: ['result'] },
+    )
+    expect(request.filters).toEqual([
+      { field: 'occurredAt', operator: 'ge', value: '2026-10-01T00:00:00.000Z' },
+      { field: 'occurredAt', operator: 'le', value: '2026-10-02T00:00:00.000Z' },
+      { field: 'result', operator: 'in', value: 'Success,Forbidden' },
+      { field: 'userName', operator: 'contains', value: 'alice' },
+    ])
   })
 
   it('分页结果换成 SchemaPage 读的 PageResult：总数、页码与首末记录', () => {

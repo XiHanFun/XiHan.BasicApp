@@ -5,6 +5,267 @@
     "version": "6.0.0-preview.1"
   },
   "paths": {
+    "/api/access-logs/{id}": {
+      "get": {
+        "operationId": "access-logs.get",
+        "tags": [
+          "access-logs"
+        ],
+        "summary": "Get an access log of the caller\u2019s side. Requires auditing.access-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.access-logs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "AccessLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "traceId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientIp": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userAgent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "operationId": {
+                      "type": "string"
+                    },
+                    "protocol": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "method": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "path": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "result": {
+                      "$ref": "#/components/schemas/AccessResult"
+                    },
+                    "statusCode": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int32"
+                    },
+                    "errorCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "errorMessage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "durationMs": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "browser": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "os": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "device": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "referer": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "occurredAt",
+                    "traceId",
+                    "operationId",
+                    "result",
+                    "durationMs"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/access-logs:list": {
+      "post": {
+        "operationId": "access-logs.list",
+        "tags": [
+          "access-logs"
+        ],
+        "summary": "List access logs page by page: every operation call of the caller\u2019s side with its result, duration and client; filter by time range, trace, user, session, operation, result and status code. Requires auditing.access-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.access-logs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfAccessLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AccessLogResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/auth:login": {
       "post": {
         "operationId": "auth.login",
@@ -537,6 +798,255 @@
                     "sessionId",
                     "mustChangePassword",
                     "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/condition-hits/{id}": {
+      "get": {
+        "operationId": "condition-hits.get",
+        "tags": [
+          "condition-hits"
+        ],
+        "summary": "Get a condition hit of the caller\u2019s side. Requires auditing.condition-hits.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.condition-hits.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConditionHitResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "traceId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientIp": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userAgent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "source": {
+                      "$ref": "#/components/schemas/ConditionHitSource"
+                    },
+                    "policyId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "policyCode": {
+                      "type": "string"
+                    },
+                    "policyName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/ConditionHitAction"
+                    },
+                    "phase": {
+                      "$ref": "#/components/schemas/ConditionHitPhase"
+                    },
+                    "isBlocked": {
+                      "type": "boolean"
+                    },
+                    "operationId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "method": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "path": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "permissionCodes": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hitCount": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "occurredAt",
+                    "traceId",
+                    "source",
+                    "policyCode",
+                    "action",
+                    "phase",
+                    "isBlocked",
+                    "hitCount"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/condition-hits:list": {
+      "post": {
+        "operationId": "condition-hits.list",
+        "tags": [
+          "condition-hits"
+        ],
+        "summary": "List condition hits page by page: access policy and permission condition hits of the caller\u2019s side. Requires auditing.condition-hits.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.condition-hits.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfConditionHitResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConditionHitResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
                   ]
                 }
               }
@@ -3043,6 +3553,237 @@
         }
       }
     },
+    "/api/diff-logs/{id}": {
+      "get": {
+        "operationId": "diff-logs.get",
+        "tags": [
+          "diff-logs"
+        ],
+        "summary": "Get a data change log of the caller\u2019s side with field-level before and after values. Requires auditing.diff-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.diff-logs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "DiffLogDetailResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "traceId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientIp": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userAgent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "operationId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "kind": {
+                      "$ref": "#/components/schemas/DiffKind"
+                    },
+                    "entityType": {
+                      "type": "string"
+                    },
+                    "tableName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "entityId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "changedFields": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "before": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "after": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "occurredAt",
+                    "traceId",
+                    "kind",
+                    "entityType"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/diff-logs:list": {
+      "post": {
+        "operationId": "diff-logs.list",
+        "tags": [
+          "diff-logs"
+        ],
+        "summary": "List data change logs page by page: entity inserts, updates and deletes of the caller\u2019s side. Requires auditing.diff-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.diff-logs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfDiffLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DiffLogResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/editions": {
       "delete": {
         "operationId": "editions.delete",
@@ -3506,6 +4247,261 @@
         }
       }
     },
+    "/api/exception-logs/{id}": {
+      "get": {
+        "operationId": "exception-logs.get",
+        "tags": [
+          "exception-logs"
+        ],
+        "summary": "Get an exception log of the caller\u2019s side, including the full stack trace. Requires auditing.exception-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.exception-logs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ExceptionLogDetailResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "traceId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientIp": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userAgent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "operationId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "protocol": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "method": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "path": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "exceptionType": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "location": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "machineName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "environmentName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "appVersion": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "stackTrace": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "occurredAt",
+                    "traceId",
+                    "exceptionType",
+                    "message"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exception-logs:list": {
+      "post": {
+        "operationId": "exception-logs.list",
+        "tags": [
+          "exception-logs"
+        ],
+        "summary": "List exception logs page by page: unhandled exceptions of the caller\u2019s side with type, message and location. Requires auditing.exception-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.exception-logs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfExceptionLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ExceptionLogResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/impersonation:candidates": {
       "get": {
         "operationId": "impersonation.candidates",
@@ -3781,6 +4777,250 @@
                     "sessionId",
                     "mustChangePassword",
                     "user"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login-logs/{id}": {
+      "get": {
+        "operationId": "login-logs.get",
+        "tags": [
+          "login-logs"
+        ],
+        "summary": "Get a sign-in log of the caller\u2019s side. Requires auditing.login-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.login-logs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "LoginLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "traceId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientIp": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userAgent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "event": {
+                      "$ref": "#/components/schemas/LoginEvent"
+                    },
+                    "succeeded": {
+                      "type": "boolean"
+                    },
+                    "errorCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "errorMessage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "accountTenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "impersonatorUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "detail": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "browser": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "os": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "device": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "occurredAt",
+                    "traceId",
+                    "event",
+                    "succeeded"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/login-logs:list": {
+      "post": {
+        "operationId": "login-logs.list",
+        "tags": [
+          "login-logs"
+        ],
+        "summary": "List sign-in logs page by page: sign-in, refresh, sign-out, tenant switch, impersonation and password change events of the caller\u2019s side, successful or not. Requires auditing.login-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.login-logs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfLoginLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LoginLogResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
                   ]
                 }
               }
@@ -6403,6 +7643,744 @@
                   "required": [
                     "numbers",
                     "periodKey"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/open-api-logs/{id}": {
+      "get": {
+        "operationId": "open-api-logs.get",
+        "tags": [
+          "open-api-logs"
+        ],
+        "summary": "Get an open API log of the caller\u2019s side. Requires auditing.open-api-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.open-api-logs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OpenApiLogDetailResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "traceId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientIp": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userAgent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "clientId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "appName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "operationId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "method": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "signatureAlgorithm": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "signatureValid": {
+                      "type": "boolean"
+                    },
+                    "statusCode": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "succeeded": {
+                      "type": "boolean"
+                    },
+                    "errorCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "errorMessage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "durationMs": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "requestSize": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "responseSize": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "requestBody": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "responseBody": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "occurredAt",
+                    "traceId",
+                    "method",
+                    "path",
+                    "signatureValid",
+                    "statusCode",
+                    "succeeded",
+                    "durationMs",
+                    "requestSize",
+                    "responseSize"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/open-api-logs:list": {
+      "post": {
+        "operationId": "open-api-logs.list",
+        "tags": [
+          "open-api-logs"
+        ],
+        "summary": "List open API logs page by page: signed open API calls of the caller\u2019s side with their signature checks. Requires auditing.open-api-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.open-api-logs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfOpenApiLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OpenApiLogResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/operation-logs/{id}": {
+      "get": {
+        "operationId": "operation-logs.get",
+        "tags": [
+          "operation-logs"
+        ],
+        "summary": "Get an operation log of the caller\u2019s side, including its details. Requires auditing.operation-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.operation-logs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "OperationLogDetailResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "traceId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "operationId": {
+                      "type": "string"
+                    },
+                    "succeeded": {
+                      "type": "boolean"
+                    },
+                    "errorCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "errorMessage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "resource": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "durationMs": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ],
+                      "format": "int64"
+                    },
+                    "sequence": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "details": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "occurredAt",
+                    "traceId",
+                    "operationId",
+                    "succeeded",
+                    "sequence"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/operation-logs:list": {
+      "post": {
+        "operationId": "operation-logs.list",
+        "tags": [
+          "operation-logs"
+        ],
+        "summary": "List operation logs page by page: audited business operations of the caller\u2019s side with their results and durations. Requires auditing.operation-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.operation-logs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfOperationLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/OperationLogResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/permission-change-logs/{id}": {
+      "get": {
+        "operationId": "permission-change-logs.get",
+        "tags": [
+          "permission-change-logs"
+        ],
+        "summary": "Get a permission change log of the caller\u2019s side. Requires auditing.permission-change-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.permission-change-logs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PermissionChangeLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "occurredAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "traceId": {
+                      "type": "string"
+                    },
+                    "userId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "sessionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "clientIp": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userAgent": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "changeType": {
+                      "$ref": "#/components/schemas/PermissionChangeType"
+                    },
+                    "roleId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "roleName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "targetUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "targetUserName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "editionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "editionCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "targetTenantId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "permissionCodes": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "detail": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "occurredAt",
+                    "traceId",
+                    "changeType"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/permission-change-logs:list": {
+      "post": {
+        "operationId": "permission-change-logs.list",
+        "tags": [
+          "permission-change-logs"
+        ],
+        "summary": "List permission change logs page by page: grants, revocations, role membership, data scope and edition changes of the caller\u2019s side. Requires auditing.permission-change-logs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.permission-change-logs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfPermissionChangeLogResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PermissionChangeLogResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
                   ]
                 }
               }
@@ -9276,6 +11254,137 @@
         }
       }
     },
+    "/api/traces:timeline": {
+      "get": {
+        "operationId": "traces.timeline",
+        "tags": [
+          "traces"
+        ],
+        "summary": "Aggregate the logs of the caller\u2019s side by trace, user, session or client address into one timeline, oldest first, with counts per log type. Requires auditing.traces.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "auditing.traces.read",
+        "parameters": [
+          {
+            "name": "dimension",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/TraceDimension"
+            }
+          },
+          {
+            "name": "value",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "logTypes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "array",
+                "null"
+              ],
+              "items": {
+                "$ref": "#/components/schemas/TraceLogType"
+              },
+              "maxItems": 8
+            }
+          },
+          {
+            "name": "maxPerType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "minimum": 1,
+              "maximum": 500
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TraceTimelineResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TraceTimelineItem"
+                      }
+                    },
+                    "counts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TraceTypeCount"
+                      }
+                    },
+                    "truncated": {
+                      "type": "boolean"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int32"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "counts",
+                    "truncated",
+                    "total"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/user-settings": {
       "get": {
         "operationId": "user-settings.get",
@@ -10294,6 +12403,144 @@
           "code"
         ]
       },
+      "AccessLogResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "clientIp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userAgent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "operationId": {
+            "type": "string"
+          },
+          "protocol": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "result": {
+            "$ref": "#/components/schemas/AccessResult"
+          },
+          "statusCode": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "browser": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "os": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "referer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "occurredAt",
+          "traceId",
+          "operationId",
+          "result",
+          "durationMs"
+        ]
+      },
+      "AccessResult": {
+        "type": "string",
+        "enum": [
+          "Success",
+          "Failed",
+          "Forbidden",
+          "Unauthorized",
+          "NotFound",
+          "ServerError"
+        ]
+      },
       "AvailableTenantResponse": {
         "type": "object",
         "properties": {
@@ -10341,6 +12588,145 @@
         "required": [
           "id",
           "code"
+        ]
+      },
+      "ConditionHitAction": {
+        "type": "string",
+        "enum": [
+          "LogOnly",
+          "Deny",
+          "Allow"
+        ]
+      },
+      "ConditionHitPhase": {
+        "type": "string",
+        "enum": [
+          "BeforeAuthentication",
+          "AfterAuthentication",
+          "Login",
+          "Authorization"
+        ]
+      },
+      "ConditionHitResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "clientIp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userAgent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source": {
+            "$ref": "#/components/schemas/ConditionHitSource"
+          },
+          "policyId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "policyCode": {
+            "type": "string"
+          },
+          "policyName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "action": {
+            "$ref": "#/components/schemas/ConditionHitAction"
+          },
+          "phase": {
+            "$ref": "#/components/schemas/ConditionHitPhase"
+          },
+          "isBlocked": {
+            "type": "boolean"
+          },
+          "operationId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "permissionCodes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hitCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "id",
+          "occurredAt",
+          "traceId",
+          "source",
+          "policyCode",
+          "action",
+          "phase",
+          "isBlocked",
+          "hitCount"
+        ]
+      },
+      "ConditionHitSource": {
+        "type": "string",
+        "enum": [
+          "AccessPolicy",
+          "PermissionCondition"
         ]
       },
       "ConfigDataType": {
@@ -10708,6 +13094,99 @@
           "createdAt"
         ]
       },
+      "DiffKind": {
+        "type": "string",
+        "enum": [
+          "Insert",
+          "Update",
+          "Delete"
+        ]
+      },
+      "DiffLogResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "clientIp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userAgent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "operationId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "kind": {
+            "$ref": "#/components/schemas/DiffKind"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "tableName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "entityId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "changedFields": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "occurredAt",
+          "traceId",
+          "kind",
+          "entityType"
+        ]
+      },
       "EditionResponse": {
         "type": "object",
         "properties": {
@@ -10758,6 +13237,121 @@
           "createdAt"
         ]
       },
+      "ExceptionLogResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "clientIp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userAgent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "operationId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "protocol": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "exceptionType": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "machineName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "environmentName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "appVersion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "occurredAt",
+          "traceId",
+          "exceptionType",
+          "message"
+        ]
+      },
       "ImpersonationCandidateResponse": {
         "type": "object",
         "properties": {
@@ -10780,6 +13374,128 @@
           "userName",
           "displayName",
           "homeTenantId"
+        ]
+      },
+      "LoginEvent": {
+        "type": "string",
+        "enum": [
+          "Login",
+          "Refresh",
+          "Logout",
+          "SwitchTenant",
+          "ImpersonationStart",
+          "ImpersonationStop",
+          "ChangePassword"
+        ]
+      },
+      "LoginLogResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "clientIp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userAgent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "event": {
+            "$ref": "#/components/schemas/LoginEvent"
+          },
+          "succeeded": {
+            "type": "boolean"
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "accountTenantId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "impersonatorUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "browser": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "os": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "device": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "occurredAt",
+          "traceId",
+          "event",
+          "succeeded"
         ]
       },
       "MembershipResponse": {
@@ -11236,6 +13952,205 @@
           "Platform"
         ]
       },
+      "OpenApiLogResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "clientIp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userAgent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "clientId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "appName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "operationId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "signatureAlgorithm": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signatureValid": {
+            "type": "boolean"
+          },
+          "statusCode": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "succeeded": {
+            "type": "boolean"
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "durationMs": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "requestSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "responseSize": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": [
+          "id",
+          "occurredAt",
+          "traceId",
+          "method",
+          "path",
+          "signatureValid",
+          "statusCode",
+          "succeeded",
+          "durationMs",
+          "requestSize",
+          "responseSize"
+        ]
+      },
+      "OperationLogResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "operationId": {
+            "type": "string"
+          },
+          "succeeded": {
+            "type": "boolean"
+          },
+          "errorCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "resource": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "durationMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          }
+        },
+        "required": [
+          "id",
+          "occurredAt",
+          "traceId",
+          "operationId",
+          "succeeded"
+        ]
+      },
       "OrganizationStatus": {
         "type": "string",
         "enum": [
@@ -11300,6 +14215,133 @@
         },
         "required": [
           "field"
+        ]
+      },
+      "PermissionChangeLogResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "clientIp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userAgent": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "changeType": {
+            "$ref": "#/components/schemas/PermissionChangeType"
+          },
+          "roleId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "roleName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetUserId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "targetUserName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "editionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "editionCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "targetTenantId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "permissionCodes": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "detail": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "occurredAt",
+          "traceId",
+          "changeType"
+        ]
+      },
+      "PermissionChangeType": {
+        "type": "string",
+        "enum": [
+          "RoleGrant",
+          "RoleRevoke",
+          "RoleAssign",
+          "RoleUnassign",
+          "RoleDataScope",
+          "RoleDelete",
+          "EditionPermissions",
+          "TenantEdition"
         ]
       },
       "PermissionFailure": {
@@ -11638,6 +14680,145 @@
           "Suspended"
         ]
       },
+      "TraceDimension": {
+        "type": "string",
+        "enum": [
+          "TraceId",
+          "UserId",
+          "UserName",
+          "SessionId",
+          "ClientIp"
+        ]
+      },
+      "TraceItemStatus": {
+        "type": "string",
+        "enum": [
+          "Success",
+          "Info",
+          "Warning",
+          "Failure"
+        ]
+      },
+      "TraceLogType": {
+        "type": "string",
+        "enum": [
+          "Access",
+          "OpenApi",
+          "Operation",
+          "Login",
+          "Exception",
+          "Diff",
+          "PermissionChange",
+          "ConditionHit"
+        ]
+      },
+      "TraceTimelineItem": {
+        "type": "object",
+        "properties": {
+          "logType": {
+            "$ref": "#/components/schemas/TraceLogType"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/TraceItemStatus"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "userId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sessionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "clientIp": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "path": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "statusCode": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "durationMs": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int64"
+          }
+        },
+        "required": [
+          "logType",
+          "id",
+          "occurredAt",
+          "title",
+          "status",
+          "traceId"
+        ]
+      },
+      "TraceTypeCount": {
+        "type": "object",
+        "properties": {
+          "logType": {
+            "$ref": "#/components/schemas/TraceLogType"
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "required": [
+          "logType",
+          "count"
+        ]
+      },
       "UserResponse": {
         "type": "object",
         "properties": {
@@ -11774,6 +14955,51 @@
         "code": "access.roles.update",
         "displayName": "Update roles",
         "description": "Edit role names, descriptions, order and status."
+      },
+      "auditing.access-logs.read": {
+        "code": "auditing.access-logs.read",
+        "displayName": "Read access logs",
+        "description": "View every operation call of the caller\u0027s side with its result, duration and client."
+      },
+      "auditing.condition-hits.read": {
+        "code": "auditing.condition-hits.read",
+        "displayName": "Read condition hits",
+        "description": "View access policy and permission condition hits of the caller\u0027s side."
+      },
+      "auditing.diff-logs.read": {
+        "code": "auditing.diff-logs.read",
+        "displayName": "Read data change logs",
+        "description": "View entity inserts, updates and deletes of the caller\u0027s side with field-level before and after values."
+      },
+      "auditing.exception-logs.read": {
+        "code": "auditing.exception-logs.read",
+        "displayName": "Read exception logs",
+        "description": "View unhandled exceptions of the caller\u0027s side, including stack traces."
+      },
+      "auditing.login-logs.read": {
+        "code": "auditing.login-logs.read",
+        "displayName": "Read sign-in logs",
+        "description": "View sign-in, refresh, sign-out, tenant switch, impersonation and password change events of the caller\u0027s side."
+      },
+      "auditing.open-api-logs.read": {
+        "code": "auditing.open-api-logs.read",
+        "displayName": "Read open API logs",
+        "description": "View signed open API calls of the caller\u0027s side with their signature checks."
+      },
+      "auditing.operation-logs.read": {
+        "code": "auditing.operation-logs.read",
+        "displayName": "Read operation logs",
+        "description": "View audited business operations of the caller\u0027s side with their results."
+      },
+      "auditing.permission-change-logs.read": {
+        "code": "auditing.permission-change-logs.read",
+        "displayName": "Read permission change logs",
+        "description": "View grants, revocations, role membership, data scope and edition changes of the caller\u0027s side."
+      },
+      "auditing.traces.read": {
+        "code": "auditing.traces.read",
+        "displayName": "Read traces",
+        "description": "Aggregate the logs of the caller\u0027s side by trace, user, session or client address into one timeline."
       },
       "identity.impersonation.start": {
         "code": "identity.impersonation.start",

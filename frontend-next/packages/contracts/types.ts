@@ -1,6 +1,40 @@
 // 由 scripts/gen-contracts.mjs 从 contracts/openapi.json 生成；不要手改，改后端契约后执行 pnpm gen:contracts。
 /* eslint-disable */
 export interface paths {
+    "/api/access-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an access log of the caller’s side. Requires auditing.access-logs.read. */
+        get: operations["access-logs.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/access-logs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List access logs page by page: every operation call of the caller’s side with its result, duration and client; filter by time range, trace, user, session, operation, result and status code. Requires auditing.access-logs.read. */
+        post: operations["access-logs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth:login": {
         parameters: {
             query?: never;
@@ -97,6 +131,40 @@ export interface paths {
         put?: never;
         /** Switch the current session to another tenant (home tenant or a tenant the user is a member of) or back to the platform (platform accounts only); returns new tokens. */
         post: operations["auth.switch-tenant"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/condition-hits/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a condition hit of the caller’s side. Requires auditing.condition-hits.read. */
+        get: operations["condition-hits.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/condition-hits:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List condition hits page by page: access policy and permission condition hits of the caller’s side. Requires auditing.condition-hits.read. */
+        post: operations["condition-hits.list"];
         delete?: never;
         options?: never;
         head?: never;
@@ -333,6 +401,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/diff-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a data change log of the caller’s side with field-level before and after values. Requires auditing.diff-logs.read. */
+        get: operations["diff-logs.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/diff-logs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List data change logs page by page: entity inserts, updates and deletes of the caller’s side. Requires auditing.diff-logs.read. */
+        post: operations["diff-logs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/editions": {
         parameters: {
             query?: never;
@@ -387,6 +489,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/exception-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an exception log of the caller’s side, including the full stack trace. Requires auditing.exception-logs.read. */
+        get: operations["exception-logs.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exception-logs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List exception logs page by page: unhandled exceptions of the caller’s side with type, message and location. Requires auditing.exception-logs.read. */
+        post: operations["exception-logs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/impersonation:candidates": {
         parameters: {
             query?: never;
@@ -432,6 +568,40 @@ export interface paths {
         put?: never;
         /** End impersonation: revokes the impersonation session and returns tokens for the actor's original session. */
         post: operations["impersonation.stop"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/login-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a sign-in log of the caller’s side. Requires auditing.login-logs.read. */
+        get: operations["login-logs.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/login-logs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List sign-in logs page by page: sign-in, refresh, sign-out, tenant switch, impersonation and password change events of the caller’s side, successful or not. Requires auditing.login-logs.read. */
+        post: operations["login-logs.list"];
         delete?: never;
         options?: never;
         head?: never;
@@ -659,6 +829,108 @@ export interface paths {
         get: operations["numbering-rules.preview"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/open-api-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an open API log of the caller’s side. Requires auditing.open-api-logs.read. */
+        get: operations["open-api-logs.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/open-api-logs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List open API logs page by page: signed open API calls of the caller’s side with their signature checks. Requires auditing.open-api-logs.read. */
+        post: operations["open-api-logs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/operation-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get an operation log of the caller’s side, including its details. Requires auditing.operation-logs.read. */
+        get: operations["operation-logs.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/operation-logs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List operation logs page by page: audited business operations of the caller’s side with their results and durations. Requires auditing.operation-logs.read. */
+        post: operations["operation-logs.list"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-change-logs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a permission change log of the caller’s side. Requires auditing.permission-change-logs.read. */
+        get: operations["permission-change-logs.get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permission-change-logs:list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** List permission change logs page by page: grants, revocations, role membership, data scope and edition changes of the caller’s side. Requires auditing.permission-change-logs.read. */
+        post: operations["permission-change-logs.list"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1064,6 +1336,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/traces:timeline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Aggregate the logs of the caller’s side by trace, user, session or client address into one timeline, oldest first, with counts per log type. Requires auditing.traces.read. */
+        get: operations["traces.timeline"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/user-settings": {
         parameters: {
             query?: never;
@@ -1205,6 +1494,37 @@ export interface components {
                 [key: string]: string | number | boolean | null;
             };
         };
+        AccessLogResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            traceId: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: uuid */
+            sessionId?: string | null;
+            clientIp?: string | null;
+            userAgent?: string | null;
+            operationId: string;
+            protocol?: string | null;
+            method?: string | null;
+            path?: string | null;
+            result: components["schemas"]["AccessResult"];
+            /** Format: int32 */
+            statusCode?: number | null;
+            errorCode?: string | null;
+            errorMessage?: string | null;
+            /** Format: int64 */
+            durationMs: number;
+            browser?: string | null;
+            os?: string | null;
+            device?: string | null;
+            referer?: string | null;
+        };
+        /** @enum {string} */
+        AccessResult: "Success" | "Failed" | "Forbidden" | "Unauthorized" | "NotFound" | "ServerError";
         AvailableTenantResponse: {
             tenantId: string;
             name: string;
@@ -1217,6 +1537,40 @@ export interface components {
             id: string;
             code: string;
         };
+        /** @enum {string} */
+        ConditionHitAction: "LogOnly" | "Deny" | "Allow";
+        /** @enum {string} */
+        ConditionHitPhase: "BeforeAuthentication" | "AfterAuthentication" | "Login" | "Authorization";
+        ConditionHitResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            traceId: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: uuid */
+            sessionId?: string | null;
+            clientIp?: string | null;
+            userAgent?: string | null;
+            source: components["schemas"]["ConditionHitSource"];
+            /** Format: uuid */
+            policyId?: string | null;
+            policyCode: string;
+            policyName?: string | null;
+            action: components["schemas"]["ConditionHitAction"];
+            phase: components["schemas"]["ConditionHitPhase"];
+            isBlocked: boolean;
+            operationId?: string | null;
+            method?: string | null;
+            path?: string | null;
+            permissionCodes?: string | null;
+            /** Format: int32 */
+            hitCount: number;
+        };
+        /** @enum {string} */
+        ConditionHitSource: "AccessPolicy" | "PermissionCondition";
         /** @enum {string} */
         ConfigDataType: "Text" | "Number" | "Boolean" | "Json" | "Array";
         ConfigResponse: {
@@ -1316,6 +1670,28 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        /** @enum {string} */
+        DiffKind: "Insert" | "Update" | "Delete";
+        DiffLogResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            traceId: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: uuid */
+            sessionId?: string | null;
+            clientIp?: string | null;
+            userAgent?: string | null;
+            operationId?: string | null;
+            kind: components["schemas"]["DiffKind"];
+            entityType: string;
+            tableName?: string | null;
+            entityId?: string | null;
+            changedFields?: string | null;
+        };
         EditionResponse: {
             /** Format: uuid */
             id: string;
@@ -1332,12 +1708,64 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        ExceptionLogResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            traceId: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: uuid */
+            sessionId?: string | null;
+            clientIp?: string | null;
+            userAgent?: string | null;
+            operationId?: string | null;
+            protocol?: string | null;
+            method?: string | null;
+            path?: string | null;
+            exceptionType: string;
+            message: string;
+            source?: string | null;
+            location?: string | null;
+            machineName?: string | null;
+            environmentName?: string | null;
+            appVersion?: string | null;
+        };
         ImpersonationCandidateResponse: {
             /** Format: uuid */
             id: string;
             userName: string;
             displayName: string;
             homeTenantId: string;
+        };
+        /** @enum {string} */
+        LoginEvent: "Login" | "Refresh" | "Logout" | "SwitchTenant" | "ImpersonationStart" | "ImpersonationStop" | "ChangePassword";
+        LoginLogResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            traceId: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: uuid */
+            sessionId?: string | null;
+            clientIp?: string | null;
+            userAgent?: string | null;
+            event: components["schemas"]["LoginEvent"];
+            succeeded: boolean;
+            errorCode?: string | null;
+            errorMessage?: string | null;
+            accountTenantId?: string | null;
+            /** Format: uuid */
+            impersonatorUserId?: string | null;
+            detail?: string | null;
+            browser?: string | null;
+            os?: string | null;
+            device?: string | null;
         };
         MembershipResponse: {
             /** Format: uuid */
@@ -1458,6 +1886,57 @@ export interface components {
         };
         /** @enum {string} */
         NumberingScope: "Auto" | "Tenant" | "Platform";
+        OpenApiLogResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            traceId: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: uuid */
+            sessionId?: string | null;
+            clientIp?: string | null;
+            userAgent?: string | null;
+            clientId?: string | null;
+            appName?: string | null;
+            operationId?: string | null;
+            method: string;
+            path: string;
+            signatureAlgorithm?: string | null;
+            signatureValid: boolean;
+            /** Format: int32 */
+            statusCode: number;
+            succeeded: boolean;
+            errorCode?: string | null;
+            errorMessage?: string | null;
+            /** Format: int64 */
+            durationMs: number;
+            /** Format: int64 */
+            requestSize: number;
+            /** Format: int64 */
+            responseSize: number;
+        };
+        OperationLogResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            traceId: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: uuid */
+            sessionId?: string | null;
+            operationId: string;
+            succeeded: boolean;
+            errorCode?: string | null;
+            errorMessage?: string | null;
+            resource?: string | null;
+            /** Format: int64 */
+            durationMs?: number | null;
+        };
         /** @enum {string} */
         OrganizationStatus: "Active" | "Disabled";
         PageFilter: {
@@ -1475,6 +1954,35 @@ export interface components {
             field: string;
             descending?: boolean;
         };
+        PermissionChangeLogResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            traceId: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: uuid */
+            sessionId?: string | null;
+            clientIp?: string | null;
+            userAgent?: string | null;
+            changeType: components["schemas"]["PermissionChangeType"];
+            /** Format: uuid */
+            roleId?: string | null;
+            roleName?: string | null;
+            /** Format: uuid */
+            targetUserId?: string | null;
+            targetUserName?: string | null;
+            /** Format: uuid */
+            editionId?: string | null;
+            editionCode?: string | null;
+            targetTenantId?: string | null;
+            permissionCodes?: string | null;
+            detail?: string | null;
+        };
+        /** @enum {string} */
+        PermissionChangeType: "RoleGrant" | "RoleRevoke" | "RoleAssign" | "RoleUnassign" | "RoleDataScope" | "RoleDelete" | "EditionPermissions" | "TenantEdition";
         PermissionFailure: {
             permission: string;
             code: string;
@@ -1572,6 +2080,40 @@ export interface components {
         };
         /** @enum {string} */
         TenantStatus: "Active" | "Suspended";
+        /** @enum {string} */
+        TraceDimension: "TraceId" | "UserId" | "UserName" | "SessionId" | "ClientIp";
+        /** @enum {string} */
+        TraceItemStatus: "Success" | "Info" | "Warning" | "Failure";
+        /** @enum {string} */
+        TraceLogType: "Access" | "OpenApi" | "Operation" | "Login" | "Exception" | "Diff" | "PermissionChange" | "ConditionHit";
+        TraceTimelineItem: {
+            logType: components["schemas"]["TraceLogType"];
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            occurredAt: string;
+            title: string;
+            summary?: string | null;
+            status: components["schemas"]["TraceItemStatus"];
+            traceId: string;
+            /** Format: uuid */
+            userId?: string | null;
+            userName?: string | null;
+            /** Format: uuid */
+            sessionId?: string | null;
+            clientIp?: string | null;
+            method?: string | null;
+            path?: string | null;
+            /** Format: int32 */
+            statusCode?: number | null;
+            /** Format: int64 */
+            durationMs?: number | null;
+        };
+        TraceTypeCount: {
+            logType: components["schemas"]["TraceLogType"];
+            /** Format: int32 */
+            count: number;
+        };
         UserResponse: {
             /** Format: uuid */
             id: string;
@@ -1600,6 +2142,108 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "access-logs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: date-time */
+                        occurredAt: string;
+                        traceId: string;
+                        /** Format: uuid */
+                        userId?: string | null;
+                        userName?: string | null;
+                        /** Format: uuid */
+                        sessionId?: string | null;
+                        clientIp?: string | null;
+                        userAgent?: string | null;
+                        operationId: string;
+                        protocol?: string | null;
+                        method?: string | null;
+                        path?: string | null;
+                        result: components["schemas"]["AccessResult"];
+                        /** Format: int32 */
+                        statusCode?: number | null;
+                        errorCode?: string | null;
+                        errorMessage?: string | null;
+                        /** Format: int64 */
+                        durationMs: number;
+                        browser?: string | null;
+                        os?: string | null;
+                        device?: string | null;
+                        referer?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "access-logs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["AccessLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "auth.login": {
         parameters: {
             query?: never;
@@ -1846,6 +2490,107 @@ export interface operations {
                         user: components["schemas"]["UserResponse"];
                         tenantName?: string | null;
                         impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "condition-hits.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: date-time */
+                        occurredAt: string;
+                        traceId: string;
+                        /** Format: uuid */
+                        userId?: string | null;
+                        userName?: string | null;
+                        /** Format: uuid */
+                        sessionId?: string | null;
+                        clientIp?: string | null;
+                        userAgent?: string | null;
+                        source: components["schemas"]["ConditionHitSource"];
+                        /** Format: uuid */
+                        policyId?: string | null;
+                        policyCode: string;
+                        policyName?: string | null;
+                        action: components["schemas"]["ConditionHitAction"];
+                        phase: components["schemas"]["ConditionHitPhase"];
+                        isBlocked: boolean;
+                        operationId?: string | null;
+                        method?: string | null;
+                        path?: string | null;
+                        permissionCodes?: string | null;
+                        /** Format: int32 */
+                        hitCount: number;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "condition-hits.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ConditionHitResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };
@@ -2932,6 +3677,101 @@ export interface operations {
             };
         };
     };
+    "diff-logs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: date-time */
+                        occurredAt: string;
+                        traceId: string;
+                        /** Format: uuid */
+                        userId?: string | null;
+                        userName?: string | null;
+                        /** Format: uuid */
+                        sessionId?: string | null;
+                        clientIp?: string | null;
+                        userAgent?: string | null;
+                        operationId?: string | null;
+                        kind: components["schemas"]["DiffKind"];
+                        entityType: string;
+                        tableName?: string | null;
+                        entityId?: string | null;
+                        changedFields?: string | null;
+                        before?: string | null;
+                        after?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "diff-logs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["DiffLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "editions.list": {
         parameters: {
             query?: never;
@@ -3163,6 +4003,105 @@ export interface operations {
             };
         };
     };
+    "exception-logs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: date-time */
+                        occurredAt: string;
+                        traceId: string;
+                        /** Format: uuid */
+                        userId?: string | null;
+                        userName?: string | null;
+                        /** Format: uuid */
+                        sessionId?: string | null;
+                        clientIp?: string | null;
+                        userAgent?: string | null;
+                        operationId?: string | null;
+                        protocol?: string | null;
+                        method?: string | null;
+                        path?: string | null;
+                        exceptionType: string;
+                        message: string;
+                        source?: string | null;
+                        location?: string | null;
+                        machineName?: string | null;
+                        environmentName?: string | null;
+                        appVersion?: string | null;
+                        stackTrace?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "exception-logs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["ExceptionLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     "impersonation.candidates": {
         parameters: {
             query?: {
@@ -3282,6 +4221,104 @@ export interface operations {
                         user: components["schemas"]["UserResponse"];
                         tenantName?: string | null;
                         impersonatorUserName?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "login-logs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: date-time */
+                        occurredAt: string;
+                        traceId: string;
+                        /** Format: uuid */
+                        userId?: string | null;
+                        userName?: string | null;
+                        /** Format: uuid */
+                        sessionId?: string | null;
+                        clientIp?: string | null;
+                        userAgent?: string | null;
+                        event: components["schemas"]["LoginEvent"];
+                        succeeded: boolean;
+                        errorCode?: string | null;
+                        errorMessage?: string | null;
+                        accountTenantId?: string | null;
+                        /** Format: uuid */
+                        impersonatorUserId?: string | null;
+                        detail?: string | null;
+                        browser?: string | null;
+                        os?: string | null;
+                        device?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "login-logs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["LoginLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };
@@ -4316,6 +5353,308 @@ export interface operations {
                         numbers: string[];
                         periodKey: string;
                         dateText?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "open-api-logs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: date-time */
+                        occurredAt: string;
+                        traceId: string;
+                        /** Format: uuid */
+                        userId?: string | null;
+                        userName?: string | null;
+                        /** Format: uuid */
+                        sessionId?: string | null;
+                        clientIp?: string | null;
+                        userAgent?: string | null;
+                        clientId?: string | null;
+                        appName?: string | null;
+                        operationId?: string | null;
+                        method: string;
+                        path: string;
+                        signatureAlgorithm?: string | null;
+                        signatureValid: boolean;
+                        /** Format: int32 */
+                        statusCode: number;
+                        succeeded: boolean;
+                        errorCode?: string | null;
+                        errorMessage?: string | null;
+                        /** Format: int64 */
+                        durationMs: number;
+                        /** Format: int64 */
+                        requestSize: number;
+                        /** Format: int64 */
+                        responseSize: number;
+                        requestBody?: string | null;
+                        responseBody?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "open-api-logs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OpenApiLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "operation-logs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: date-time */
+                        occurredAt: string;
+                        traceId: string;
+                        /** Format: uuid */
+                        userId?: string | null;
+                        userName?: string | null;
+                        /** Format: uuid */
+                        sessionId?: string | null;
+                        operationId: string;
+                        succeeded: boolean;
+                        errorCode?: string | null;
+                        errorMessage?: string | null;
+                        resource?: string | null;
+                        /** Format: int64 */
+                        durationMs?: number | null;
+                        /** Format: int64 */
+                        sequence: number;
+                        details?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "operation-logs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["OperationLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-change-logs.get": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: date-time */
+                        occurredAt: string;
+                        traceId: string;
+                        /** Format: uuid */
+                        userId?: string | null;
+                        userName?: string | null;
+                        /** Format: uuid */
+                        sessionId?: string | null;
+                        clientIp?: string | null;
+                        userAgent?: string | null;
+                        changeType: components["schemas"]["PermissionChangeType"];
+                        /** Format: uuid */
+                        roleId?: string | null;
+                        roleName?: string | null;
+                        /** Format: uuid */
+                        targetUserId?: string | null;
+                        targetUserName?: string | null;
+                        /** Format: uuid */
+                        editionId?: string | null;
+                        editionCode?: string | null;
+                        targetTenantId?: string | null;
+                        permissionCodes?: string | null;
+                        detail?: string | null;
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "permission-change-logs.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    page?: components["schemas"]["PageInfo"];
+                    filters?: components["schemas"]["PageFilter"][];
+                    keyword?: string | null;
+                    sorts?: components["schemas"]["PageSort"][];
+                };
+            };
+        };
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["PermissionChangeLogResponse"][];
+                        /** Format: int64 */
+                        total: number;
+                        page: components["schemas"]["PageInfo"];
                     };
                 };
             };
@@ -5650,6 +6989,48 @@ export interface operations {
                     "application/json": {
                         succeeded: string[];
                         failed: components["schemas"]["BatchFailure"][];
+                    };
+                };
+            };
+            /** @description Error */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    "traces.timeline": {
+        parameters: {
+            query: {
+                dimension?: components["schemas"]["TraceDimension"];
+                value: string;
+                from?: string | null;
+                to?: string | null;
+                logTypes?: components["schemas"]["TraceLogType"][] | null;
+                maxPerType?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Success */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: components["schemas"]["TraceTimelineItem"][];
+                        counts: components["schemas"]["TraceTypeCount"][];
+                        truncated: boolean;
+                        /** Format: int32 */
+                        total: number;
                     };
                 };
             };
