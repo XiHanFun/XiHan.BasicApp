@@ -12,7 +12,9 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Seeds;
 
 /// <summary>
-/// 菜单种子（号段 400，目录类每次对齐元数据）：各包的页面登记 → <see cref="SysMenu"/>。按页面码匹配：有则对齐字段，没有则新增，登记里已不存在的删除；子页面挂到父页面。
+/// 菜单种子（号段 400，目录类每次对齐元数据）：各包的页面登记 → 页面节点。按页面码匹配：有则对齐，没有则新增，登记里已不存在的页面节点删除；子页面挂到父页面。
+/// 登记的字段（包、路由、组件、标题键、权限、子页面的上级）每次对齐；展示字段（图标、排序、顶层页面的上级等）只在节点没被运营定制时对齐。
+/// 运营建的目录与外链节点不碰。
 /// </summary>
 /// <param name="menus">菜单仓储。</param>
 /// <param name="sections">各包的页面登记。</param>
@@ -40,7 +42,7 @@ public sealed class MenuSeeder(IRepository<SysMenu, Guid> menus, IEnumerable<Pag
             }
         }
 
-        var stale = existing.Values.Where(m => !seen.Contains(m.Code)).ToList();
+        var stale = existing.Values.Where(m => m.Kind == MenuKind.Page && !seen.Contains(m.Code)).ToList();
         if (stale.Count > 0)
         {
             foreach (var outcome in await menus.RemoveRangeAsync(stale, context.CancellationToken).ConfigureAwait(false))
@@ -75,7 +77,7 @@ public sealed class MenuSeeder(IRepository<SysMenu, Guid> menus, IEnumerable<Pag
             }
             else
             {
-                row = new SysMenu { Id = ids.NewId(), Code = page.Code };
+                row = new SysMenu { Id = ids.NewId(), Code = page.Code, Kind = MenuKind.Page };
                 Apply(row, page, package, parentId);
                 written = await menus.AddAsync(row, cancellationToken).ConfigureAwait(false);
                 existing[page.Code] = row;
@@ -96,25 +98,37 @@ public sealed class MenuSeeder(IRepository<SysMenu, Guid> menus, IEnumerable<Pag
         return Result.Success();
     }
 
+    // 子页面的上级归登记；顶层页面的上级是展示字段（可挂到运营目录下）
     private static bool Differs(SysMenu row, PageDescriptor page, string package, Guid? parentId)
-        => !string.Equals(row.Package, package, StringComparison.Ordinal)
-           || row.ParentId != parentId
+        => row.Kind != MenuKind.Page
+           || !string.Equals(row.Package, package, StringComparison.Ordinal)
            || !string.Equals(row.Route, page.Route, StringComparison.Ordinal)
            || !string.Equals(row.Component, page.Component, StringComparison.Ordinal)
            || !string.Equals(row.TitleKey, page.TitleKey, StringComparison.Ordinal)
-           || !string.Equals(row.Icon, page.Icon, StringComparison.Ordinal)
-           || row.Order != page.Order
-           || !string.Equals(row.Permission, page.Permission, StringComparison.Ordinal);
+           || !string.Equals(row.Permission, page.Permission, StringComparison.Ordinal)
+           || row.ExternalUrl is not null
+           || (parentId is not null && row.ParentId != parentId)
+           || (!row.IsCustomized && (row.ParentId != parentId || !string.Equals(row.Icon, page.Icon, StringComparison.Ordinal) || row.Order != page.Order));
 
     private static void Apply(SysMenu row, PageDescriptor page, string package, Guid? parentId)
     {
+        row.Kind = MenuKind.Page;
         row.Package = package;
-        row.ParentId = parentId;
         row.Route = page.Route;
         row.Component = page.Component;
         row.TitleKey = page.TitleKey;
-        row.Icon = page.Icon;
-        row.Order = page.Order;
         row.Permission = page.Permission;
+        row.ExternalUrl = null;
+        if (parentId is not null)
+        {
+            row.ParentId = parentId;
+        }
+
+        if (!row.IsCustomized)
+        {
+            row.ParentId = parentId;
+            row.Icon = page.Icon;
+            row.Order = page.Order;
+        }
     }
 }

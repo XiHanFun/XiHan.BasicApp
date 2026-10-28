@@ -62,4 +62,54 @@ public static class AccessErrors
     /// 租户主体要看平台侧的权限目录。
     /// </summary>
     public const string PlatformSideDenied = "ACCESS_DENIED_001";
+
+    /// <summary>
+    /// 菜单只能在平台侧管理。
+    /// </summary>
+    public const string MenuPlatformOnly = "ACCESS_DENIED_002";
+
+    /// <summary>
+    /// 菜单节点不存在。
+    /// </summary>
+    public const string MenuNotFound = "ACCESS_NOTFOUND_004";
+
+    /// <summary>
+    /// 菜单编码已被占用。
+    /// </summary>
+    public const string MenuCodeTaken = "ACCESS_CONFLICT_003";
+
+    /// <summary>
+    /// 页面菜单由页面登记生成，不能删除。
+    /// </summary>
+    public const string MenuBuiltIn = "ACCESS_CONFLICT_004";
+
+    /// <summary>
+    /// 目录下还有节点，不能删除。
+    /// </summary>
+    public const string MenuHasChildren = "ACCESS_CONFLICT_005";
+
+    /// <summary>
+    /// 上级节点不合规。
+    /// </summary>
+    public const string MenuParentInvalid = "ACCESS_VALIDATION_006";
+
+    /// <summary>
+    /// 外链地址不合规（外链须是 http / https 绝对地址，目录不能有）。
+    /// </summary>
+    public const string MenuUrlInvalid = "ACCESS_VALIDATION_007";
+
+    /// <summary>
+    /// 页面菜单的来源字段（新建、路由、组件、权限、外链）归页面登记。
+    /// </summary>
+    public const string MenuPageManaged = "ACCESS_VALIDATION_008";
+
+    /// <summary>
+    /// 目录与外链必须有标题。
+    /// </summary>
+    public const string MenuTitleRequired = "ACCESS_VALIDATION_009";
+
+    /// <summary>
+    /// 只有页面菜单能恢复默认。
+    /// </summary>
+    public const string MenuNotPage = "ACCESS_VALIDATION_010";
 }

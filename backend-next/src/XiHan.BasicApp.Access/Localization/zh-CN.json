@@ -23,5 +23,21 @@
   "access.role.data_scope_not_applicable": "平台角色 '{code}' 的数据范围只能是全部，且不能带自定义部门。",
   "access.role.custom_scope_empty": "角色 '{code}' 用自定义数据范围却没有列出任何部门。",
   "access.department.not_found": "部门 '{id}' 不在当前租户。",
-  "access.permission.side_denied": "租户主体只能查看租户侧的权限目录。"
+  "access.permission.side_denied": "租户主体只能查看租户侧的权限目录。",
+  "menus.list.description": "列出整棵菜单树（含隐藏节点、运营建的目录与外链、页面节点的定制标记）。只在平台侧；需要 access.menus.read 权限。",
+  "menus.get.description": "取一个菜单节点。需要 access.menus.read 权限。",
+  "menus.create.description": "新建运营节点：目录（只在顶层）或外链（http / https，可挂目录下）；页面节点由页面登记生成，不能新建。需要 access.menus.create 权限。",
+  "menus.update.description": "修改菜单节点：页面节点只改展示（标题、图标、排序、所属目录、可见、缓存、固定标签）并标为已定制；运营节点另可改外链与权限。需要 access.menus.update 权限。",
+  "menus.reset.description": "把页面节点的展示恢复为页面登记的值并清掉定制标记。需要 access.menus.update 权限。",
+  "menus.delete.description": "批量删除运营节点；页面节点与还有子节点的目录逐项拒绝。需要 access.menus.delete 权限。",
+  "access.menu.not_found": "菜单 '{id}' 不存在。",
+  "access.menu.code_taken": "菜单编码 '{code}' 已被占用。",
+  "access.menu.built_in": "菜单 '{code}' 由页面登记生成，不能删除；不想显示可以设为隐藏。",
+  "access.menu.has_children": "目录 '{code}' 下还有菜单，不能删除。",
+  "access.menu.parent_invalid": "上级不合规：目录只能在顶层，外链与顶层页面只能挂在目录下，子页面不能离开登记的父页面。",
+  "access.menu.url_invalid": "外链地址须是 http 或 https 的绝对地址；目录不能有外链地址。",
+  "access.menu.page_managed": "页面菜单由页面登记生成：不能新建，路由、组件、权限与外链也不能改。",
+  "access.menu.title_required": "目录与外链必须有标题。",
+  "access.menu.not_page": "'{code}' 不是页面菜单，没有可恢复的默认值。",
+  "access.menu.platform_only": "菜单只能在平台侧管理。"
 }

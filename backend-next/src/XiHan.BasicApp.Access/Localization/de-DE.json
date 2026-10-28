@@ -23,5 +23,21 @@
   "access.role.data_scope_not_applicable": "Die Plattformrolle '{code}' kann nur den Datenbereich 'Alle' und keine eigenen Abteilungen haben.",
   "access.role.custom_scope_empty": "Die Rolle '{code}' nutzt einen eigenen Datenbereich, nennt aber keine Abteilung.",
   "access.department.not_found": "Die Abteilung '{id}' existiert in diesem Mandanten nicht.",
-  "access.permission.side_denied": "Mandantenprinzipale können nur den mandantenseitigen Berechtigungskatalog einsehen."
+  "access.permission.side_denied": "Mandantenprinzipale können nur den mandantenseitigen Berechtigungskatalog einsehen.",
+  "menus.list.description": "Listet den gesamten Menübaum (ausgeblendete Knoten, vom Betrieb angelegte Verzeichnisse und Links sowie das Anpassungskennzeichen von Seitenknoten). Nur plattformseitig; erfordert access.menus.read.",
+  "menus.get.description": "Ruft einen Menüknoten ab. Erfordert access.menus.read.",
+  "menus.create.description": "Legt einen Betriebsknoten an: ein Verzeichnis (nur oberste Ebene) oder einen externen Link (http / https, auch in einem Verzeichnis); Seitenknoten entstehen aus Seitenregistrierungen und können nicht angelegt werden. Erfordert access.menus.create.",
+  "menus.update.description": "Ändert einen Menüknoten: Seitenknoten ändern nur die Darstellung (Titel, Symbol, Reihenfolge, Verzeichnis, Sichtbarkeit, Zwischenspeicher, angeheftete Registerkarte) und gelten danach als angepasst; Betriebsknoten können auch Link und Berechtigung ändern. Erfordert access.menus.update.",
+  "menus.reset.description": "Setzt die Darstellung eines Seitenknotens auf seine Registrierung zurück und entfernt das Anpassungskennzeichen. Erfordert access.menus.update.",
+  "menus.delete.description": "Löscht Betriebsknoten stapelweise; Seitenknoten und Verzeichnisse mit Unterknoten werden einzeln abgelehnt. Erfordert access.menus.delete.",
+  "access.menu.not_found": "Menü '{id}' existiert nicht.",
+  "access.menu.code_taken": "Der Menücode '{code}' ist bereits vergeben.",
+  "access.menu.built_in": "Menü '{code}' stammt aus einer Seitenregistrierung und kann nicht gelöscht werden; blenden Sie es stattdessen aus.",
+  "access.menu.has_children": "Verzeichnis '{code}' enthält noch Menüs und kann nicht gelöscht werden.",
+  "access.menu.parent_invalid": "Ungültiges übergeordnetes Element: Verzeichnisse bleiben auf oberster Ebene, Links und Seiten der obersten Ebene dürfen nur in einem Verzeichnis liegen, Unterseiten können ihre registrierte Elternseite nicht verlassen.",
+  "access.menu.url_invalid": "Ein externer Link muss eine absolute http- oder https-Adresse sein; Verzeichnisse haben keine.",
+  "access.menu.page_managed": "Seitenmenüs stammen aus Seitenregistrierungen: Sie können nicht angelegt werden, und Route, Komponente, Berechtigung und Link sind unveränderlich.",
+  "access.menu.title_required": "Verzeichnisse und Links brauchen einen Titel.",
+  "access.menu.not_page": "'{code}' ist kein Seitenmenü und hat keine Standardwerte zum Wiederherstellen.",
+  "access.menu.platform_only": "Menüs können nur plattformseitig verwaltet werden."
 }

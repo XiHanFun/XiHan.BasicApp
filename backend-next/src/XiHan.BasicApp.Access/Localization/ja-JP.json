@@ -23,5 +23,21 @@
   "access.role.data_scope_not_applicable": "プラットフォームロール '{code}' のデータ範囲は「すべて」のみで、カスタム部門は指定できません。",
   "access.role.custom_scope_empty": "ロール '{code}' はカスタムデータ範囲ですが部門が指定されていません。",
   "access.department.not_found": "部門 '{id}' はこのテナントに存在しません。",
-  "access.permission.side_denied": "テナントの主体はテナント側の権限カタログしか参照できません。"
+  "access.permission.side_denied": "テナントの主体はテナント側の権限カタログしか参照できません。",
+  "menus.list.description": "メニューツリー全体（非表示ノード、運用で作成したディレクトリと外部リンク、ページノードのカスタマイズ印を含む）を一覧します。プラットフォーム側のみ。access.menus.read 権限が必要です。",
+  "menus.get.description": "メニューノードを 1 件取得します。access.menus.read 権限が必要です。",
+  "menus.create.description": "運用ノードを作成します。ディレクトリ（トップレベルのみ）または外部リンク（http / https、ディレクトリ配下も可）。ページノードはページ登録から生成され、作成できません。access.menus.create 権限が必要です。",
+  "menus.update.description": "メニューノードを変更します。ページノードは表示（タイトル、アイコン、並び順、所属ディレクトリ、表示、キャッシュ、タブ固定）だけを変更し、カスタマイズ済みになります。運用ノードはリンクと権限も変更できます。access.menus.update 権限が必要です。",
+  "menus.reset.description": "ページノードの表示をページ登録の値に戻し、カスタマイズ印を外します。access.menus.update 権限が必要です。",
+  "menus.delete.description": "運用ノードを一括削除します。ページノードと子ノードが残るディレクトリは項目ごとに拒否します。access.menus.delete 権限が必要です。",
+  "access.menu.not_found": "メニュー '{id}' は存在しません。",
+  "access.menu.code_taken": "メニューコード '{code}' は既に使われています。",
+  "access.menu.built_in": "メニュー '{code}' はページ登録から生成されるため削除できません。表示したくない場合は非表示にしてください。",
+  "access.menu.has_children": "ディレクトリ '{code}' にはまだメニューがあるため削除できません。",
+  "access.menu.parent_invalid": "親が不正です。ディレクトリはトップレベルのみ、外部リンクとトップレベルのページはディレクトリ配下のみ、子ページは登録された親ページから移動できません。",
+  "access.menu.url_invalid": "外部リンクは http または https の絶対アドレスにしてください。ディレクトリには付けられません。",
+  "access.menu.page_managed": "ページメニューはページ登録から生成されます。作成できず、ルート・コンポーネント・権限・リンクも変更できません。",
+  "access.menu.title_required": "ディレクトリと外部リンクにはタイトルが必要です。",
+  "access.menu.not_page": "'{code}' はページメニューではないため、戻す既定値がありません。",
+  "access.menu.platform_only": "メニューはプラットフォーム側でのみ管理できます。"
 }

@@ -23,5 +23,21 @@
   "access.role.data_scope_not_applicable": "Platform role '{code}' can only have the data scope 'All' and no custom departments.",
   "access.role.custom_scope_empty": "Role '{code}' uses a custom data scope but lists no department.",
   "access.department.not_found": "Department '{id}' does not exist in this tenant.",
-  "access.permission.side_denied": "Tenant principals can only view the tenant-side permission catalog."
+  "access.permission.side_denied": "Tenant principals can only view the tenant-side permission catalog.",
+  "menus.list.description": "List the whole menu tree (hidden nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only; requires access.menus.read.",
+  "menus.get.description": "Get one menu node. Requires access.menus.read.",
+  "menus.create.description": "Create an operator node: a directory (top level only) or an external link (http / https, may sit in a directory); page nodes come from page registrations and cannot be created. Requires access.menus.create.",
+  "menus.update.description": "Update a menu node: page nodes only change presentation (title, icon, order, directory, visibility, caching, pinned tab) and become customized; operator nodes may also change their link and permission. Requires access.menus.update.",
+  "menus.reset.description": "Restore a page node's presentation to its registration and clear the customization flag. Requires access.menus.update.",
+  "menus.delete.description": "Delete operator nodes in batch; page nodes and directories that still have children are rejected item by item. Requires access.menus.delete.",
+  "access.menu.not_found": "Menu '{id}' does not exist.",
+  "access.menu.code_taken": "Menu code '{code}' is already taken.",
+  "access.menu.built_in": "Menu '{code}' comes from a page registration and cannot be deleted; hide it instead.",
+  "access.menu.has_children": "Directory '{code}' still contains menus and cannot be deleted.",
+  "access.menu.parent_invalid": "Invalid parent: directories stay at the top level, links and top-level pages may only sit in a directory, and child pages cannot leave their registered parent.",
+  "access.menu.url_invalid": "An external link must be an absolute http or https address; directories cannot have one.",
+  "access.menu.page_managed": "Page menus come from page registrations: they cannot be created, and their route, component, permission and link cannot be changed.",
+  "access.menu.title_required": "Directories and links need a title.",
+  "access.menu.not_page": "'{code}' is not a page menu and has no defaults to restore.",
+  "access.menu.platform_only": "Menus can only be managed on the platform side."
 }

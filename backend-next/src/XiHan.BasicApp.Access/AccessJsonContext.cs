@@ -3,6 +3,7 @@
 
 using System.Text.Json.Serialization;
 using XiHan.BasicApp.Access.Operations.Auth;
+using XiHan.BasicApp.Access.Operations.Menus;
 using XiHan.BasicApp.Access.Operations.Permissions;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Contracts.Batch;
@@ -38,4 +39,12 @@ namespace XiHan.BasicApp.Access;
 [JsonSerializable(typeof(PermissionCatalogResponse))]
 [JsonSerializable(typeof(PermissionsRequest))]
 [JsonSerializable(typeof(PermissionsResponse))]
+[JsonSerializable(typeof(ListMenusRequest))]
+[JsonSerializable(typeof(GetMenuRequest))]
+[JsonSerializable(typeof(CreateMenuRequest))]
+[JsonSerializable(typeof(UpdateMenuRequest))]
+[JsonSerializable(typeof(ResetMenuRequest))]
+[JsonSerializable(typeof(MenuIdsRequest))]
+[JsonSerializable(typeof(MenuResponse))]
+[JsonSerializable(typeof(MenusResponse))]
 public sealed partial class AccessJsonContext : JsonSerializerContext;

@@ -23,5 +23,21 @@
   "access.role.data_scope_not_applicable": "O papel de plataforma '{code}' só pode ter o escopo de dados 'Tudo' e nenhum departamento personalizado.",
   "access.role.custom_scope_empty": "O papel '{code}' usa escopo de dados personalizado, mas não informa nenhum departamento.",
   "access.department.not_found": "O departamento '{id}' não existe neste locatário.",
-  "access.permission.side_denied": "Principais de locatário só podem ver o catálogo de permissões do lado do locatário."
+  "access.permission.side_denied": "Principais de locatário só podem ver o catálogo de permissões do lado do locatário.",
+  "menus.list.description": "Lista toda a árvore de menus (nós ocultos, diretórios e links criados pela operação e o indicador de personalização dos nós de página). Somente no lado da plataforma; requer access.menus.read.",
+  "menus.get.description": "Obtém um nó de menu. Requer access.menus.read.",
+  "menus.create.description": "Cria um nó de operação: um diretório (somente no nível superior) ou um link externo (http / https, pode ficar em um diretório); nós de página vêm dos registros de páginas e não podem ser criados. Requer access.menus.create.",
+  "menus.update.description": "Altera um nó de menu: nós de página só mudam a apresentação (título, ícone, ordem, diretório, visibilidade, cache, aba fixa) e passam a ser personalizados; nós de operação também podem mudar link e permissão. Requer access.menus.update.",
+  "menus.reset.description": "Restaura a apresentação de um nó de página ao seu registro e remove o indicador de personalização. Requer access.menus.update.",
+  "menus.delete.description": "Exclui nós de operação em lote; nós de página e diretórios que ainda têm filhos são recusados item a item. Requer access.menus.delete.",
+  "access.menu.not_found": "O menu '{id}' não existe.",
+  "access.menu.code_taken": "O código de menu '{code}' já está em uso.",
+  "access.menu.built_in": "O menu '{code}' vem de um registro de página e não pode ser excluído; oculte-o em vez disso.",
+  "access.menu.has_children": "O diretório '{code}' ainda contém menus e não pode ser excluído.",
+  "access.menu.parent_invalid": "Pai inválido: diretórios ficam no nível superior, links e páginas de nível superior só podem ficar em um diretório e subpáginas não podem sair da página pai registrada.",
+  "access.menu.url_invalid": "Um link externo deve ser um endereço absoluto http ou https; diretórios não têm.",
+  "access.menu.page_managed": "Menus de página vêm dos registros de páginas: não podem ser criados, e rota, componente, permissão e link não podem mudar.",
+  "access.menu.title_required": "Diretórios e links precisam de um título.",
+  "access.menu.not_page": "'{code}' não é um menu de página e não tem padrões para restaurar.",
+  "access.menu.platform_only": "Os menus só podem ser gerenciados no lado da plataforma."
 }

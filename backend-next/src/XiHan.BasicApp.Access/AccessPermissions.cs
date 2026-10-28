@@ -46,6 +46,26 @@ public static class AccessPermissions
     public const string PermissionsRead = "access.permissions.read";
 
     /// <summary>
+    /// 查看菜单：<c>menus.list / get</c>。
+    /// </summary>
+    public const string MenusRead = "access.menus.read";
+
+    /// <summary>
+    /// 新建目录与外链：<c>menus.create</c>。
+    /// </summary>
+    public const string MenusCreate = "access.menus.create";
+
+    /// <summary>
+    /// 修改菜单与恢复页面默认：<c>menus.update / reset</c>。
+    /// </summary>
+    public const string MenusUpdate = "access.menus.update";
+
+    /// <summary>
+    /// 删除目录与外链：<c>menus.delete</c>。
+    /// </summary>
+    public const string MenusDelete = "access.menus.delete";
+
+    /// <summary>
     /// 全部权限描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -57,5 +77,9 @@ public static class AccessPermissions
         new(RolesGrant, "Grant permissions", PermissionScope.Both, audited: true, description: "Grant permissions to roles and revoke them."),
         new(RolesAssign, "Assign members", PermissionScope.Both, audited: true, description: "Assign users to roles and remove them."),
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
+        new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
+        new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),
+        new(MenusUpdate, "Update menus", PermissionScope.Platform, audited: true, description: "Change how menu nodes are presented and restore page defaults."),
+        new(MenusDelete, "Delete menus", PermissionScope.Platform, audited: true, description: "Delete operator-created directories and links."),
     ];
 }
