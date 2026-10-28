@@ -1,115 +1,115 @@
+import type { DataScopeDraft, DataScopeValue, DepartmentNode } from './data-scope'
+import type { PermissionGrantItem, SchemaQueryParams, SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { departments as departmentsApi, permissions as permissionsApi, roles as rolesApi, users as usersApi } from '~/contracts'
+import { departments as departmentsApi, permissionDefinitions, permissions as permissionsApi, roles as rolesApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
+import { buildNameMap, isDataScopeComplete, isDataScopeDirty, toDataScopePayload } from './data-scope'
 
 export type RoleRow = ResponseOf<'roles.list'>['items'][number]
 export type RoleDetail = ResponseOf<'roles.get'>
-export type DataScopeValue = RoleRow['dataScope']
+export type RoleStatus = RoleRow['status']
 export type PermissionItem = ResponseOf<'permissions.list'>['items'][number]
 export type RoleMember = ResponseOf<'roles.members'>['items'][number]
 export type UserOption = ResponseOf<'users.list'>['items'][number]
-export type DepartmentNode = ResponseOf<'departments.tree'>['items'][number]
+export type { DataScopeValue, DepartmentNode }
 
-/** 部门树展平后的候选项（自定义数据范围的勾选列表） */
-export interface DepartmentOption {
-  id: string
-  name: string
-  depth: number
+export const ROLE_STATUSES: readonly RoleStatus[] = ['Active', 'Disabled']
+
+/** 候选用户一次取的上限（后端 PageInfo 的页大小上限，与 4.x 的成员目录同为 500） */
+const CANDIDATE_LIMIT = 500
+
+/** 权限定义表（生成物）：详情与目录外的已授权限按它取显示名 */
+const definitions: Readonly<Record<string, { displayName: string, description: string } | undefined>> = permissionDefinitions
+
+function blankToNull(value: string): null | string {
+  return value.trim() === '' ? null : value.trim()
 }
 
-function flattenDepartments(nodes: DepartmentNode[], depth: number, out: DepartmentOption[]): DepartmentOption[] {
-  for (const node of nodes) {
-    out.push({ id: node.department.id, name: node.department.name, depth })
-    flattenDepartments(node.children, depth + 1, out)
-  }
-  return out
+/** 批量删除 / 指派的结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
+function failedCodes(result: { failed: { code: string }[] }): void {
+  if (result.failed.length > 0)
+    throw new Error(result.failed.map(f => f.code).join('; '))
 }
 
-export interface CreateRoleForm {
-  code: string
-  name: string
-  description: string
-}
-
-function describe(error: unknown): string {
-  return error instanceof ApiError ? error.detail : String(error)
+/** 修改角色是整体覆盖名称 / 说明 / 排序 / 状态；数据范围与自定义部门不传即保留 */
+function updateBody(role: RoleDetail['role'], patch: { status?: RoleStatus } = {}) {
+  return { id: role.id, name: role.name, description: role.description ?? null, order: role.order, status: patch.status ?? role.status }
 }
 
 /**
- * 角色页的状态与动作：分页列表、创建表单、选中角色的详情（授予草稿按包分组、保存时按差异授予 / 撤销）、成员增删、删除。
- * 契约类型来自生成物；错误只看 `code`、`detail` 与字段级 `errors`。
+ * SchemaPage 的资源：分页（作用侧 = 当前租户或平台）、删除、启停。
+ * 搜索按后端白名单：关键字匹配角色码与名称，状态精确匹配；排序只放角色码、名称、排序与创建时间。
  */
-export function useRoles(pageSize = 20) {
-  const items = ref<RoleRow[]>([])
-  const total = ref(0)
-  const pageIndex = ref(1)
-  const loading = ref(false)
-  const listError = ref<string | null>(null)
-  const pageCount = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
+export function rolesResource(): SchemaResource<RoleRow> {
+  return {
+    page: async (params: SchemaQueryParams) => toSchemaPageResult(
+      await rolesApi.list(toPageRequest(params, { filters: { status: 'eq' } })),
+      params,
+    ),
+    // 内建角色由后端逐项拒绝（ACCESS_CONFLICT_002）
+    remove: async id => failedCodes(await rolesApi.delete({ ids: [String(id)] })),
+    // 先取当前值再只改状态
+    updateStatus: async (id, enabled) => {
+      const { role } = await rolesApi.get({ id: String(id) })
+      return rolesApi.update(updateBody(role, { status: enabled ? 'Active' : 'Disabled' }))
+    },
+  }
+}
 
-  const form = reactive<CreateRoleForm>({ code: '', name: '', description: '' })
+// ── 新建 / 编辑 ──
+
+/** 弹窗表单：新建与编辑共用一份（角色码只在新建时可填，状态只在编辑时可改） */
+export interface RoleForm {
+  code: string
+  name: string
+  description: string
+  order: number
+  status: RoleStatus
+}
+
+export type RoleEditorMode = 'create' | 'edit'
+
+function emptyForm(): RoleForm {
+  return { code: '', name: '', description: '', order: 0, status: 'Active' }
+}
+
+/**
+ * 角色的编辑弹窗：新建（数据范围按侧取缺省，另在「数据范围」里改）、编辑名称 / 说明 / 排序 / 状态。
+ * 字段级错误挂回对应字段，其余错误给整条提示。
+ */
+export function useRoleEditor() {
+  const open = ref(false)
+  const mode = ref<RoleEditorMode>('create')
+  const editing = ref<RoleRow | null>(null)
+  const form = reactive<RoleForm>(emptyForm())
   const fieldErrors = ref<Record<string, string[]>>({})
-  const submitError = ref<string | null>(null)
+  const submitError = ref<null | string>(null)
   const submitting = ref(false)
 
-  const catalog = ref<PermissionItem[]>([])
-  const selected = ref<RoleDetail | null>(null)
-  const draft = ref<Set<string>>(new Set())
-  const members = ref<RoleMember[]>([])
-  const userOptions = ref<UserOption[]>([])
-  const detailError = ref<string | null>(null)
-  const notice = ref<string | null>(null)
-  const working = ref(false)
+  const isEdit = computed(() => mode.value === 'edit')
 
-  // 数据范围草稿：范围值 + 自定义部门（id → 是否含子部门）
-  const scopeDraft = ref<DataScopeValue>('SelfOnly')
-  const customDraft = ref<Map<string, boolean>>(new Map())
-  const departmentOptions = ref<DepartmentOption[]>([])
-  const scopeDirty = computed(() => {
-    const role = selected.value
-    if (!role)
-      return false
-    if (role.role.dataScope !== scopeDraft.value)
-      return true
-    if (scopeDraft.value !== 'Custom')
-      return false
-    const current = new Map(role.customDepartments.map(d => [d.departmentId, d.includeChildren ?? false]))
-    return current.size !== customDraft.value.size || [...customDraft.value].some(([id, children]) => current.get(id) !== children)
-  })
-
-  /** 目录按包分组，供复选框渲染 */
-  const groups = computed(() => {
-    const byPackage = new Map<string, PermissionItem[]>()
-    for (const item of catalog.value)
-      byPackage.set(item.package, [...(byPackage.get(item.package) ?? []), item])
-    return [...byPackage.entries()].map(([pkg, list]) => ({ package: pkg, items: list }))
-  })
-  const dirty = computed(() => {
-    const current = new Set(selected.value?.permissions ?? [])
-    return current.size !== draft.value.size || [...draft.value].some(code => !current.has(code))
-  })
-
-  async function load(index = pageIndex.value) {
-    loading.value = true
-    listError.value = null
-    try {
-      const result = await rolesApi.list({ page: { index, size: pageSize }, filters: [], sorts: [{ field: 'order' }, { field: 'code' }] })
-      items.value = result.items
-      total.value = Number(result.total)
-      pageIndex.value = result.page.index ?? index
-    }
-    catch (error) {
-      items.value = []
-      total.value = 0
-      listError.value = describe(error)
-    }
-    finally {
-      loading.value = false
-    }
+  function reset(next: Partial<RoleForm> = {}) {
+    Object.assign(form, emptyForm(), next)
+    fieldErrors.value = {}
+    submitError.value = null
   }
 
-  function fieldError(field: keyof CreateRoleForm): string | undefined {
+  function startCreate() {
+    mode.value = 'create'
+    editing.value = null
+    reset()
+    open.value = true
+  }
+
+  function startEdit(row: RoleRow) {
+    mode.value = 'edit'
+    editing.value = row
+    reset({ code: row.code, name: row.name, description: row.description ?? '', order: row.order, status: row.status })
+    open.value = true
+  }
+
+  function fieldError(field: keyof RoleForm): string | undefined {
     return fieldErrors.value[field]?.[0]
   }
 
@@ -118,12 +118,14 @@ export function useRoles(pageSize = 20) {
     submitError.value = null
     fieldErrors.value = {}
     try {
-      const created = await rolesApi.create({ code: form.code.trim(), name: form.name.trim(), description: form.description.trim() || null })
-      form.code = ''
-      form.name = ''
-      form.description = ''
-      await load(1)
-      await select(created.id)
+      const current = editing.value
+      if (mode.value === 'edit' && current) {
+        await rolesApi.update({ id: current.id, name: form.name.trim(), description: blankToNull(form.description), order: form.order, status: form.status })
+      }
+      else {
+        await rolesApi.create({ code: form.code.trim(), name: form.name.trim(), description: blankToNull(form.description), order: form.order })
+      }
+      open.value = false
       return true
     }
     catch (error) {
@@ -142,240 +144,350 @@ export function useRoles(pageSize = 20) {
     }
   }
 
-  async function loadCatalog() {
-    if (catalog.value.length === 0)
-      catalog.value = (await permissionsApi.list({})).items
-  }
+  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, startCreate, startEdit, submit }
+}
 
-  async function loadMembers(id: string) {
-    members.value = (await rolesApi.members({ id })).items
-  }
+// ── 权限分配（穿梭框） ──
 
-  /** 候选用户（本侧前 100 个）：只有能读用户的主体才会调用 */
-  async function loadUserOptions() {
-    const result = await usersApi.list({ page: { index: 1, size: 100 }, filters: [], sorts: [{ field: 'userName' }] })
-    userOptions.value = result.items
-  }
+/** 权限穿梭框条目：主键即权限码 */
+export interface RolePermissionItem extends PermissionGrantItem {
+  basicId: string
+}
 
-  async function select(id: string) {
-    detailError.value = null
-    notice.value = null
-    try {
-      const detail = await rolesApi.get({ id })
-      selected.value = detail
-      draft.value = new Set(detail.permissions)
-      scopeDraft.value = detail.role.dataScope
-      customDraft.value = new Map(detail.customDepartments.map(d => [d.departmentId, d.includeChildren ?? false]))
-      await Promise.all([loadCatalog(), loadMembers(id)])
-    }
-    catch (error) {
-      selected.value = null
-      detailError.value = describe(error)
-    }
-  }
+/** 权限码的「包.资源」段即穿梭框的分段（identity.users.read → identity.users） */
+function groupOf(code: string): string {
+  return code.split('.').slice(0, 2).join('.')
+}
 
-  function togglePermission(code: string) {
-    const next = new Set(draft.value)
-    if (next.has(code))
-      next.delete(code)
-    else next.add(code)
-    draft.value = next
+/**
+ * 权限目录 → 穿梭框条目（按「包.资源」分段）。已授予却不在目录里的（例如套餐收窄后目录不再列出）补进来：
+ * 穿梭框只认条目里有的键，不补进来，一动穿梭框这些授权就从草稿里掉出去，保存时被当成收回
+ */
+export function toPermissionItems(catalog: readonly PermissionItem[], granted: readonly string[]): RolePermissionItem[] {
+  const items: RolePermissionItem[] = catalog.map(item => ({
+    basicId: item.code,
+    permissionCode: item.code,
+    permissionName: item.displayName,
+    groupCode: `${item.package}.${item.resource}`,
+    groupName: `${item.package}.${item.resource}`,
+  }))
+  const known = new Set(items.map(item => item.basicId))
+  for (const code of granted) {
+    if (!known.has(code))
+      items.push({ basicId: code, permissionCode: code, permissionName: definitions[code]?.displayName ?? code, groupCode: groupOf(code), groupName: groupOf(code) })
   }
+  return items
+}
 
-  /** 按差异提交：新勾的授予、取消的撤销；逐项失败以错误码显示 */
-  async function savePermissions(): Promise<boolean> {
-    const role = selected.value
-    if (!role)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      const current = new Set(role.permissions)
-      const toGrant = [...draft.value].filter(code => !current.has(code))
-      const toRevoke = role.permissions.filter(code => !draft.value.has(code))
-      const failed: string[] = []
-      if (toGrant.length > 0)
-        failed.push(...(await rolesApi.grant({ id: role.role.id, permissions: toGrant })).failed.map(f => `${f.permission}: ${f.code}`))
-      if (toRevoke.length > 0)
-        failed.push(...(await rolesApi.revoke({ id: role.role.id, permissions: toRevoke })).failed.map(f => `${f.permission}: ${f.code}`))
-      await select(role.role.id)
-      if (failed.length > 0) {
-        detailError.value = failed.join('; ')
-        return false
-      }
-      notice.value = 'saved'
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  async function addMember(userId: string): Promise<boolean> {
-    const role = selected.value
-    if (!role || !userId)
-      return false
-    working.value = true
-    detailError.value = null
-    try {
-      const result = await rolesApi.assign({ id: role.role.id, userIds: [userId] })
-      if (result.failed.length > 0)
-        detailError.value = result.failed.map(f => f.code).join('; ')
-      await select(role.role.id)
-      return result.failed.length === 0
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  async function removeMember(userId: string): Promise<boolean> {
-    const role = selected.value
-    if (!role)
-      return false
-    working.value = true
-    detailError.value = null
-    try {
-      await rolesApi.unassign({ id: role.role.id, userIds: [userId] })
-      await select(role.role.id)
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  /** 自定义数据范围的候选部门（本租户的树展平）：只有能读部门的租户侧主体才会调用 */
-  async function loadDepartmentOptions() {
-    if (departmentOptions.value.length === 0)
-      departmentOptions.value = flattenDepartments((await departmentsApi.tree({})).items, 0, [])
-  }
-
-  function toggleCustomDepartment(id: string) {
-    const next = new Map(customDraft.value)
-    if (next.has(id))
-      next.delete(id)
-    else next.set(id, false)
-    customDraft.value = next
-  }
-
-  function toggleIncludeChildren(id: string) {
-    if (!customDraft.value.has(id))
-      return
-    const next = new Map(customDraft.value)
-    next.set(id, !next.get(id))
-    customDraft.value = next
-  }
-
-  /** 保存数据范围：roles.update 整体回传（名称等原样），自定义部门整体替换 */
-  async function saveDataScope(): Promise<boolean> {
-    const role = selected.value
-    if (!role)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      await rolesApi.update({
-        id: role.role.id,
-        name: role.role.name,
-        description: role.role.description ?? null,
-        order: role.role.order,
-        status: role.role.status,
-        dataScope: scopeDraft.value,
-        customDepartments: scopeDraft.value === 'Custom' ? [...customDraft.value].map(([departmentId, includeChildren]) => ({ departmentId, includeChildren })) : [],
-      })
-      await select(role.role.id)
-      notice.value = 'data_scope_saved'
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  async function remove(): Promise<boolean> {
-    const role = selected.value
-    if (!role)
-      return false
-    working.value = true
-    detailError.value = null
-    try {
-      const result = await rolesApi.delete({ ids: [role.role.id] })
-      if (result.failed.length > 0) {
-        detailError.value = result.failed.map(f => f.code).join('; ')
-        return false
-      }
-      selected.value = null
-      members.value = []
-      await load(1)
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
+/** 草稿与已授予比出差量：新勾的授予、取消的撤销 */
+export function diffGrants(draft: readonly string[], granted: readonly string[]): { grant: string[], revoke: string[] } {
+  const current = new Set(granted)
+  const next = new Set(draft)
   return {
-    items,
-    total,
-    pageIndex,
-    pageCount,
-    pageSize,
-    loading,
-    listError,
-    form,
-    fieldErrors,
-    fieldError,
-    submitError,
-    submitting,
-    catalog,
-    groups,
-    selected,
-    draft,
-    dirty,
-    members,
-    userOptions,
-    detailError,
-    notice,
-    working,
-    scopeDraft,
-    customDraft,
-    scopeDirty,
-    departmentOptions,
-    load,
-    submit,
-    select,
-    loadUserOptions,
-    loadDepartmentOptions,
-    togglePermission,
-    savePermissions,
-    toggleCustomDepartment,
-    toggleIncludeChildren,
-    saveDataScope,
-    addMember,
-    removeMember,
-    remove,
+    grant: draft.filter(code => !current.has(code)),
+    revoke: granted.filter(code => !next.has(code)),
   }
+}
+
+/** 一次保存的结果：成功授予 / 撤销的条数，逐项失败（权限码: 错误码） */
+export interface ChangeOutcome {
+  added: number
+  removed: number
+  failures: string[]
+}
+
+/** 权限分配抽屉：目录一次取全并缓存，草稿只改本地，保存时按差量授予 / 撤销 */
+export function useRolePermissionEditor() {
+  const open = ref(false)
+  const role = ref<RoleRow | null>(null)
+  const catalog = ref<PermissionItem[]>([])
+  const granted = ref<string[]>([])
+  const draft = ref<string[]>([])
+  const loading = ref(false)
+  const saving = ref(false)
+
+  const items = computed(() => toPermissionItems(catalog.value, granted.value))
+  const dirty = computed(() => {
+    const { grant, revoke } = diffGrants(draft.value, granted.value)
+    return grant.length > 0 || revoke.length > 0
+  })
+
+  function applyGranted(codes: string[]) {
+    granted.value = codes
+    draft.value = [...codes]
+  }
+
+  async function start(row: RoleRow): Promise<void> {
+    role.value = row
+    applyGranted([])
+    open.value = true
+    loading.value = true
+    try {
+      const [list, detail] = await Promise.all([
+        catalog.value.length > 0 ? Promise.resolve(null) : permissionsApi.list({}),
+        rolesApi.get({ id: row.id }),
+      ])
+      if (list)
+        catalog.value = list.items
+      applyGranted(detail.permissions)
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /** 没有改动返回 null；请求失败照常抛出 */
+  async function save(): Promise<ChangeOutcome | null> {
+    const current = role.value
+    if (!current)
+      return null
+    const { grant, revoke } = diffGrants(draft.value, granted.value)
+    if (grant.length === 0 && revoke.length === 0)
+      return null
+    saving.value = true
+    try {
+      const outcome: ChangeOutcome = { added: 0, removed: 0, failures: [] }
+      if (grant.length > 0) {
+        const result = await rolesApi.grant({ id: current.id, permissions: grant })
+        outcome.added = result.succeeded.length
+        outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.code}`))
+      }
+      if (revoke.length > 0) {
+        const result = await rolesApi.revoke({ id: current.id, permissions: revoke })
+        outcome.removed = result.succeeded.length
+        outcome.failures.push(...result.failed.map(f => `${f.permission}: ${f.code}`))
+      }
+      applyGranted((await rolesApi.get({ id: current.id })).permissions)
+      return outcome
+    }
+    finally {
+      saving.value = false
+    }
+  }
+
+  return { open, role, catalog, granted, draft, items, dirty, loading, saving, start, save }
+}
+
+// ── 角色成员（穿梭框） ──
+
+/** 成员穿梭框的一项：主键即用户主键 */
+export interface MemberCandidate {
+  basicId: string
+  displayName: string
+  userName: string
+}
+
+/**
+ * 候选人（本侧用户）并上现有成员：候选有上限，也可能读不到用户目录，已在角色里的人不在候选里就会在穿梭框里「消失」，
+ * 保存时被当成移出
+ */
+export function mergeMemberCandidates(users: readonly UserOption[], members: readonly RoleMember[]): MemberCandidate[] {
+  const items: MemberCandidate[] = users.map(user => ({ basicId: user.id, displayName: user.displayName, userName: user.userName }))
+  const known = new Set(items.map(item => item.basicId))
+  for (const member of members) {
+    if (!known.has(member.userId))
+      items.push({ basicId: member.userId, displayName: member.displayName, userName: member.userName })
+  }
+  return items
+}
+
+/** 草稿与现有成员比出差量：新加入的指派、移出的撤销（6.0 两边都按用户主键） */
+export function diffMembers(draft: readonly string[], members: readonly RoleMember[]): { assign: string[], unassign: string[] } {
+  const current = new Set(members.map(member => member.userId))
+  const next = new Set(draft)
+  return {
+    assign: draft.filter(userId => !current.has(userId)),
+    unassign: members.filter(member => !next.has(member.userId)).map(member => member.userId),
+  }
+}
+
+/** 角色成员抽屉：挪好后一次提交加入与移出；读不到用户目录时只能移出现有成员 */
+export function useRoleMemberEditor() {
+  const open = ref(false)
+  const role = ref<RoleRow | null>(null)
+  const members = ref<RoleMember[]>([])
+  const users = ref<UserOption[]>([])
+  const draft = ref<string[]>([])
+  const loading = ref(false)
+  const saving = ref(false)
+
+  const items = computed(() => mergeMemberCandidates(users.value, members.value))
+  const dirty = computed(() => {
+    const { assign, unassign } = diffMembers(draft.value, members.value)
+    return assign.length > 0 || unassign.length > 0
+  })
+
+  function applyMembers(current: RoleMember[]) {
+    members.value = current
+    draft.value = current.map(member => member.userId)
+  }
+
+  async function start(row: RoleRow, canListUsers: boolean): Promise<void> {
+    role.value = row
+    users.value = []
+    applyMembers([])
+    open.value = true
+    loading.value = true
+    try {
+      const [current, candidates] = await Promise.all([
+        rolesApi.members({ id: row.id }),
+        canListUsers ? usersApi.list({ page: { index: 1, size: CANDIDATE_LIMIT }, filters: [], sorts: [{ field: 'userName' }] }) : Promise.resolve(null),
+      ])
+      users.value = candidates?.items ?? []
+      applyMembers(current.items)
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  async function save(): Promise<ChangeOutcome | null> {
+    const current = role.value
+    if (!current)
+      return null
+    const { assign, unassign } = diffMembers(draft.value, members.value)
+    if (assign.length === 0 && unassign.length === 0)
+      return null
+    saving.value = true
+    try {
+      const outcome: ChangeOutcome = { added: 0, removed: 0, failures: [] }
+      if (assign.length > 0) {
+        const result = await rolesApi.assign({ id: current.id, userIds: assign })
+        outcome.added = result.succeeded.length
+        outcome.failures.push(...result.failed.map(f => `${f.id}: ${f.code}`))
+      }
+      if (unassign.length > 0) {
+        const result = await rolesApi.unassign({ id: current.id, userIds: unassign })
+        outcome.removed = result.succeeded.length
+        outcome.failures.push(...result.failed.map(f => `${f.id}: ${f.code}`))
+      }
+      applyMembers((await rolesApi.members({ id: current.id })).items)
+      return outcome
+    }
+    finally {
+      saving.value = false
+    }
+  }
+
+  return { open, role, members, users, draft, items, dirty, loading, saving, start, save }
+}
+
+// ── 数据范围 ──
+
+/**
+ * 数据范围抽屉（只在租户侧：平台角色固定为全部）：档位与自定义部门一次保存。
+ * 保存走 roles.update，名称 / 说明 / 排序 / 状态按打开时取到的详情原样回传，自定义部门整体替换。
+ */
+export function useRoleDataScopeEditor() {
+  const open = ref(false)
+  const role = ref<RoleRow | null>(null)
+  const detail = ref<RoleDetail | null>(null)
+  const tree = ref<DepartmentNode[]>([])
+  const draft = ref<DataScopeDraft>({ dataScope: 'SelfOnly', departments: [] })
+  /** 打开时的现状，保存钮只在有改动时可用 */
+  const original = ref<DataScopeDraft>({ dataScope: 'SelfOnly', departments: [] })
+  const loading = ref(false)
+  const saving = ref(false)
+
+  const dirty = computed(() => isDataScopeDirty(draft.value, original.value))
+  const complete = computed(() => isDataScopeComplete(draft.value))
+
+  function applyDraft(next: DataScopeDraft) {
+    draft.value = next
+    original.value = next
+  }
+
+  async function start(row: RoleRow, canReadDepartments: boolean): Promise<void> {
+    role.value = row
+    detail.value = null
+    tree.value = []
+    applyDraft({ dataScope: row.dataScope, departments: [] })
+    open.value = true
+    loading.value = true
+    try {
+      const [current, departments] = await Promise.all([
+        rolesApi.get({ id: row.id }),
+        canReadDepartments ? departmentsApi.tree({}) : Promise.resolve(null),
+      ])
+      detail.value = current
+      tree.value = departments?.items ?? []
+      applyDraft({
+        dataScope: current.role.dataScope,
+        departments: current.role.dataScope === 'Custom'
+          ? current.customDepartments.map(item => ({ departmentId: item.departmentId, includeChildren: item.includeChildren ?? false }))
+          : [],
+      })
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  /** 不完整（自定义却没选部门）不提交；请求失败照常抛出 */
+  async function save(): Promise<boolean> {
+    const current = detail.value
+    if (!current || !complete.value)
+      return false
+    saving.value = true
+    try {
+      await rolesApi.update({ ...updateBody(current.role), ...toDataScopePayload(draft.value) })
+      open.value = false
+      return true
+    }
+    finally {
+      saving.value = false
+    }
+  }
+
+  return { open, role, detail, tree, draft, dirty, complete, loading, saving, start, save }
+}
+
+// ── 详情 ──
+
+/** 详情里的一条已授权限：显示名取生成的权限定义表，不在表里的原样显示权限码 */
+export interface GrantedPermission {
+  code: string
+  displayName: string
+  description: null | string
+}
+
+/** 详情抽屉：角色概览、已授权限、自定义部门（租户侧）与成员 */
+export function useRoleDetail() {
+  const open = ref(false)
+  const loading = ref(false)
+  const detail = ref<RoleDetail | null>(null)
+  const members = ref<RoleMember[]>([])
+  const departmentNames = ref<Map<string, string>>(new Map())
+
+  const permissions = computed<GrantedPermission[]>(() => (detail.value?.permissions ?? []).map(code => ({
+    code,
+    displayName: definitions[code]?.displayName ?? code,
+    description: definitions[code]?.description ?? null,
+  })))
+
+  async function start(row: RoleRow, canReadDepartments: boolean): Promise<void> {
+    open.value = true
+    loading.value = true
+    detail.value = null
+    members.value = []
+    try {
+      const [current, list, departments] = await Promise.all([
+        rolesApi.get({ id: row.id }),
+        rolesApi.members({ id: row.id }),
+        canReadDepartments && row.dataScope === 'Custom' ? departmentsApi.tree({}) : Promise.resolve(null),
+      ])
+      detail.value = current
+      members.value = list.items
+      departmentNames.value = departments ? buildNameMap(departments.items) : new Map()
+    }
+    finally {
+      loading.value = false
+    }
+  }
+
+  function departmentName(id: string): string {
+    return departmentNames.value.get(id) ?? id
+  }
+
+  return { open, loading, detail, members, permissions, start, departmentName }
 }

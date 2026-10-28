@@ -1,272 +1,592 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch } from 'vue'
+import type { ChangeOutcome, DataScopeValue, MemberCandidate, RoleMember, RoleRow, RoleStatus } from './use-roles'
+import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance } from '~/components'
+import type { SelectOption } from '~/types'
+import { XhButton, XhButtonIndicator, XhButtonLabel, XhDescriptionsItem, XhDescriptionsLabel, XhDescriptionsRoot, XhDescriptionsValue, XhDrawerBody, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerFooter, XhDrawerHeader, XhDrawerRoot, XhDrawerTitle, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhFieldControl, XhFieldErrorText, XhFieldLabel, XhFieldRoot, XhFormRoot, XhSpinner, XhTabsContent, XhTabsIndicator, XhTabsList, XhTabsRoot, XhTabsTrigger } from '@xihan-ui/vue'
+import { computed, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { deleteConfirmText, Icon, renderTag, SchemaPage, statusConfirmText, XEditModal, XGrantTransfer, XInput, XNumberInput, XPermissionTransfer, XSelect } from '~/components'
+import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
-import { useRoles } from './use-roles'
+import { formatDate } from '~/utils'
+import DataScopeEditor from './components/DataScopeEditor.vue'
+import { ROLE_STATUSES, rolesResource, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from './use-roles'
 
 defineOptions({ name: 'AccessRolesView' })
 
 const { t } = useI18n()
 const auth = useAuthStore()
-const page = useRoles(20)
-const memberToAdd = ref('')
+/** 平台角色的数据范围固定为全部、平台没有部门：数据范围只在租户侧出现 */
+const isTenantCaller = computed(() => auth.tenantId !== null)
+const resource = rolesResource()
+const editor = useRoleEditor()
+const detailView = useRoleDetail()
+const permissionEditor = useRolePermissionEditor()
+const memberEditor = useRoleMemberEditor()
+const scopeEditor = useRoleDataScopeEditor()
 
-// 手写结构的表格每一行各自伸缩：列宽基准写在 width 里，表头与各行才按同一基准分剩余空间；不写就按各格内容定基准，整列对不齐
-const columns = [
-  { id: 'code', label: 'access.roles.fields.code', width: '6rem' },
-  { id: 'name', label: 'access.roles.fields.name', width: '7rem' },
-  { id: 'status', label: 'access.roles.fields.status', width: '4rem' },
-  { id: 'builtIn', label: 'access.roles.fields.built_in', width: '4rem' },
-  { id: 'createdAt', label: 'access.roles.fields.created_at', width: '10rem' },
-] as const
+/** 编辑弹窗的保存钮靠这个 id 关联到表单，点它才会走整表提交 */
+const editFormId = useId()
+const schemaPageRef = ref<SchemaPageInstance | null>(null)
 
-onMounted(() => {
-  void page.load()
-})
-
-// 选中角色后装候选用户（只有能读用户的主体）与候选部门（租户侧、能读部门的主体；平台没有部门也没有数据范围）
-watch(() => page.selected.value?.role.id, (id) => {
-  memberToAdd.value = ''
-  if (id && auth.can('identity.users.read') && auth.can('access.roles.assign'))
-    void page.loadUserOptions()
-  if (id && auth.tenantId !== null && auth.can('organization.departments.read'))
-    void page.loadDepartmentOptions()
-})
-
-// 数据范围的下拉项：契约枚举值 → 静态文案键（i18n 门禁核对）
-const scopeOptions = [
-  { value: 'SelfOnly', label: 'access.roles.data_scope.self_only' },
-  { value: 'DepartmentOnly', label: 'access.roles.data_scope.department_only' },
-  { value: 'DepartmentAndChildren', label: 'access.roles.data_scope.department_and_children' },
-  { value: 'All', label: 'access.roles.data_scope.all' },
-  { value: 'Custom', label: 'access.roles.data_scope.custom' },
-] as const
-
-function formatTime(value: string): string {
-  return new Date(value).toLocaleString()
+function reload() {
+  void schemaPageRef.value?.reload()
 }
 
-async function addMember() {
-  if (await page.addMember(memberToAdd.value))
-    memberToAdd.value = ''
+// 枚举值是契约字面量，文案键静态写出以便 i18n 门禁核对
+function statusLabel(status: RoleStatus): string {
+  return status === 'Disabled' ? t('access.roles.status.disabled') : t('access.roles.status.active')
+}
+
+function dataScopeLabel(scope: DataScopeValue): string {
+  switch (scope) {
+    case 'All': return t('access.roles.data_scope.all')
+    case 'DepartmentAndChildren': return t('access.roles.data_scope.department_and_children')
+    case 'DepartmentOnly': return t('access.roles.data_scope.department_only')
+    case 'Custom': return t('access.roles.data_scope.custom')
+    default: return t('access.roles.data_scope.self_only')
+  }
+}
+
+function memberStatusLabel(status: RoleMember['status']): string {
+  if (status === 'Locked')
+    return t('access.roles.member_status.locked')
+  return status === 'Disabled' ? t('access.roles.member_status.disabled') : t('access.roles.member_status.active')
+}
+
+function ownerLabel(owner: string): string {
+  return owner === 'platform' ? t('access.roles.owner_platform') : owner
+}
+
+function formatBoolean(value: boolean): string {
+  return value ? t('common.statuses.yes') : t('common.statuses.no')
+}
+
+function formatNullable(value: unknown): string {
+  return value === null || value === undefined || value === '' ? '-' : String(value)
+}
+
+const statusOptions = computed<SelectOption[]>(() => ROLE_STATUSES.map(status => ({ label: statusLabel(status), value: status })))
+const dataScopeOptions = computed<SelectOption[]>(() => (['All', 'DepartmentAndChildren', 'DepartmentOnly', 'SelfOnly', 'Custom'] as const).map(scope => ({ label: dataScopeLabel(scope), value: scope })))
+
+// ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；order 控顺序；可排序的只放后端白名单里的） ──
+// SchemaPage 的行类型在框架边界放宽（Record）：回调里按本页的行类型取用
+const asRow = (row: object) => row as RoleRow
+
+const fields = computed<ListFieldSchema[]>(() => [
+  { key: 'keyword', title: t('access.roles.search'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('access.roles.keyword_placeholder'), order: 0 },
+  { key: 'name', title: t('access.roles.fields.name'), dataType: 'string', sortable: true, exportable: true, minWidth: 150, order: 1 },
+  { key: 'code', title: t('access.roles.fields.code'), dataType: 'string', sortable: true, exportable: true, minWidth: 150, order: 2 },
+  { key: 'description', title: t('access.roles.fields.description'), dataType: 'text', exportable: true, ellipsis: true, minWidth: 220, order: 3 },
+  { key: 'dataScope', title: t('access.roles.fields.data_scope'), dataType: 'enum', exportable: true, options: dataScopeOptions.value, render: row => dataScopeLabel(asRow(row).dataScope), minWidth: 130, order: 4 },
+  { key: 'isBuiltIn', title: t('access.roles.fields.built_in'), dataType: 'boolean', exportable: true, render: row => renderTag(formatBoolean(asRow(row).isBuiltIn), asRow(row).isBuiltIn ? 'warning' : 'neutral'), width: 82, order: 5 },
+  { key: 'order', title: t('access.roles.fields.order'), dataType: 'number', sortable: true, exportable: true, width: 80, order: 6 },
+  { key: 'status', title: t('access.roles.fields.status'), dataType: 'enum', searchable: true, exportable: true, options: statusOptions.value, render: row => renderTag(statusLabel(asRow(row).status), asRow(row).status === 'Active' ? 'success' : 'danger'), width: 90, order: 7 },
+  { key: 'createdAt', title: t('access.roles.fields.created_at'), dataType: 'datetime', sortable: true, exportable: true, minWidth: 170, order: 8 },
+])
+
+const schema = computed<PageSchema>(() => ({
+  pageCode: 'access.roles',
+  pageName: t('access.roles.title'),
+  exportPermission: 'access.roles.read',
+  batchRemovable: true,
+  removePermission: 'access.roles.delete',
+  statusPermission: 'access.roles.update',
+  rowKey: 'id',
+  fields: fields.value,
+  resource: resource as unknown as PageSchema['resource'],
+  actions: [
+    { key: 'create', title: t('access.roles.actions.create'), scope: 'page', tone: 'brand', icon: 'lucide:plus', permission: 'access.roles.create' },
+    { key: 'view', title: t('common.actions.view'), scope: 'row', icon: 'lucide:eye' },
+    { key: 'edit', title: t('common.actions.edit'), scope: 'row', icon: 'lucide:pencil', permission: 'access.roles.update' },
+    // 权限分配要读权限目录（套餐收窄后的本侧目录）
+    { key: 'assignPermission', title: t('access.roles.actions.assign_permission'), scope: 'row', icon: 'lucide:key-round', visible: () => auth.can('access.permissions.read'), permission: 'access.roles.grant' },
+    { key: 'members', title: t('access.roles.actions.members'), scope: 'row', icon: 'lucide:users', permission: 'access.roles.assign' },
+    { key: 'assignDataScope', title: t('access.roles.actions.data_scope'), scope: 'row', icon: 'lucide:building-2', visible: () => isTenantCaller.value, permission: 'access.roles.update' },
+    { key: 'toggle', title: t('access.roles.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'access.roles.update' },
+    // 内建角色后端不许删
+    { key: 'delete', title: t('common.actions.delete'), scope: 'row', icon: 'lucide:trash-2', tone: 'danger', confirm: true, confirmText: row => deleteConfirmText(t, asRow(row).name), visible: row => !asRow(row).isBuiltIn, permission: 'access.roles.delete' },
+  ],
+}))
+
+// ── 行 / 页面操作分发 ──
+function onAction(payload: SchemaActionPayload) {
+  const row = payload.row ? asRow(payload.row) : undefined
+  switch (payload.key) {
+    case 'create':
+      editor.startCreate()
+      break
+    case 'view':
+      if (row)
+        void run(detailView.start(row, auth.can('organization.departments.read')), t('access.roles.detail_load_failed'))
+      break
+    case 'edit':
+      if (row)
+        editor.startEdit(row)
+      break
+    case 'assignPermission':
+      if (row)
+        void run(permissionEditor.start(row), t('access.roles.perm_load_failed'))
+      break
+    case 'members':
+      if (row)
+        void run(memberEditor.start(row, auth.can('identity.users.read')), t('access.roles.members_load_failed'))
+      break
+    case 'assignDataScope':
+      if (row)
+        void run(scopeEditor.start(row, auth.can('organization.departments.read')), t('access.roles.scope_editor.load_failed'))
+      break
+    case 'toggle':
+      if (row)
+        void toggleStatus(row)
+      break
+    case 'delete':
+      if (row)
+        void removeRow(row)
+      break
+  }
+}
+
+async function run(task: Promise<unknown>, fallback: string) {
+  try {
+    await task
+  }
+  catch (error) {
+    toast.danger((error as Error).message || fallback)
+  }
+}
+
+const modalTitle = computed(() => (editor.isEdit.value ? t('access.roles.edit_title') : t('access.roles.create_title')))
+
+async function onSubmit() {
+  if (await editor.submit()) {
+    toast.success(t('common.messages.save_success'))
+    reload()
+  }
+}
+
+async function removeRow(row: RoleRow) {
+  try {
+    await resource.remove?.(row.id)
+    toast.success(t('common.messages.delete_success'))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.delete_failed'))
+  }
+}
+
+async function toggleStatus(row: RoleRow) {
+  try {
+    await resource.updateStatus?.(row.id, row.status !== 'Active')
+    toast.success(t('common.messages.status_updated'))
+    reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.status_failed'))
+  }
+}
+
+/** 授予 / 指派的结果：逐项失败单独提示（错误码），其余按条数报成功 */
+function reportOutcome(outcome: ChangeOutcome | null, saved: (grant: number, revoke: number) => string, noChange: string) {
+  if (!outcome) {
+    toast.info(noChange)
+    return
+  }
+  if (outcome.failures.length > 0)
+    toast.warning(t('access.roles.partial_failed', { failures: outcome.failures.join('; ') }))
+  else
+    toast.success(saved(outcome.added, outcome.removed))
+}
+
+// ── 权限分配 ──
+async function savePermissions() {
+  try {
+    reportOutcome(await permissionEditor.save(), (grant, revoke) => t('access.roles.perm_saved', { grant, revoke }), t('access.roles.perm_no_change'))
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.save_failed'))
+  }
+}
+
+// ── 角色成员 ──
+/** 读不到用户目录时候选里只有现有成员：只能移出 */
+const canListUsers = computed(() => auth.can('identity.users.read'))
+const memberGroups = computed(() => [{ key: 'members', name: '', items: memberEditor.items.value }])
+
+function memberDescription(item: MemberCandidate): string {
+  return `@${item.userName}`
+}
+
+async function saveMembers() {
+  try {
+    reportOutcome(await memberEditor.save(), (grant, revoke) => t('access.roles.members_saved', { grant, revoke }), t('access.roles.members_no_change'))
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.save_failed'))
+  }
+}
+
+// ── 数据范围 ──
+async function saveScope() {
+  if (!scopeEditor.complete.value) {
+    toast.warning(t('access.roles.scope_editor.custom_required'))
+    return
+  }
+  try {
+    if (await scopeEditor.save()) {
+      toast.success(t('access.roles.scope_editor.saved'))
+      reload()
+    }
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.save_failed'))
+  }
 }
 </script>
 
 <template>
-  <section class="flex flex-col gap-4">
-    <XhPageHeaderRoot size="sm">
-      <XhPageHeaderTitle>{{ t('access.roles.title') }}</XhPageHeaderTitle>
-      <XhPageHeaderDescription>{{ t('access.roles.description') }}</XhPageHeaderDescription>
-    </XhPageHeaderRoot>
-
-    <!-- 创建：按钮即操作，门控用操作的权限码；校验以后端为准，字段级 errors 落到对应字段 -->
-    <form v-if="auth.can('access.roles.create')" class="grid gap-3 rounded-surface border border-border bg-surface p-4 md:grid-cols-4" data-testid="create-role" novalidate @submit.prevent="page.submit()">
-      <XhFieldRoot :label="t('access.roles.fields.code')" :error-text="page.fieldError('code')" :invalid="!!page.fieldError('code')" required>
-        <template #control>
-          <XhTextFieldRoot v-model:value="page.form.code" name="code" autocomplete="off" />
-        </template>
-      </XhFieldRoot>
-      <XhFieldRoot :label="t('access.roles.fields.name')" :error-text="page.fieldError('name')" :invalid="!!page.fieldError('name')" required>
-        <template #control>
-          <XhTextFieldRoot v-model:value="page.form.name" name="name" />
-        </template>
-      </XhFieldRoot>
-      <XhFieldRoot :label="t('access.roles.fields.description')" :error-text="page.fieldError('description')" :invalid="!!page.fieldError('description')">
-        <template #control>
-          <XhTextFieldRoot v-model:value="page.form.description" name="description" />
-        </template>
-      </XhFieldRoot>
-      <div class="flex items-end gap-2">
-        <XhButton type="submit" variant="solid" :loading="page.submitting.value" :disabled="page.submitting.value">
-          {{ t('access.roles.actions.create') }}
-        </XhButton>
-        <XhButton type="button" :disabled="page.loading.value" @click="page.load()">
-          {{ t('common.actions.refresh') }}
-        </XhButton>
-      </div>
-      <p v-if="page.submitError.value" class="text-caption text-fg-danger md:col-span-4" role="alert">
-        {{ page.submitError.value }}
-      </p>
-    </form>
-
-    <p v-if="page.listError.value" class="text-caption text-fg-danger" role="alert">
-      {{ page.listError.value }}
-    </p>
-
-    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      <div class="flex flex-col gap-3">
-        <XhTableRoot
-          :columns="columns.map(c => ({ ...c, label: t(c.label) }))"
-          :rows="page.items.value.map(row => ({ id: row.id }))"
-          :loading="page.loading.value"
-          size="sm"
-          ruled
-        >
-          <XhTableHeader>
-            <XhTableRow>
-              <XhTableColumnHeader v-for="column in columns" :key="column.id" :value="column.id">
-                <XhTableColumnLabel>{{ t(column.label) }}</XhTableColumnLabel>
-              </XhTableColumnHeader>
-            </XhTableRow>
-          </XhTableHeader>
-          <XhTableBody>
-            <XhTableRow v-for="row in page.items.value" :key="row.id" :value="row.id" :class="page.selected.value?.role.id === row.id ? 'bg-brand-subtle' : 'cursor-pointer'" @click="page.select(row.id)">
-              <XhTableCell value="code">
-                <button type="button" class="text-fg-brand underline-offset-2 hover:underline" :aria-pressed="page.selected.value?.role.id === row.id" @click.stop="page.select(row.id)">
-                  {{ row.code }}
-                </button>
-              </XhTableCell>
-              <XhTableCell value="name">
-                {{ row.name }}
-              </XhTableCell>
-              <XhTableCell value="status">
-                {{ row.status }}
-              </XhTableCell>
-              <XhTableCell value="builtIn">
-                {{ row.isBuiltIn ? t('access.roles.built_in_badge') : '-' }}
-              </XhTableCell>
-              <XhTableCell value="createdAt">
-                {{ formatTime(row.createdAt) }}
-              </XhTableCell>
-            </XhTableRow>
-            <XhTableEmpty v-if="!page.loading.value && page.items.value.length === 0">
-              {{ t('access.roles.empty') }}
-            </XhTableEmpty>
-          </XhTableBody>
-        </XhTableRoot>
-        <div class="flex items-center gap-3 text-caption text-fg-muted">
-          <span>{{ t('access.roles.total', { total: page.total.value }) }}</span>
-          <XhButton size="sm" :disabled="page.pageIndex.value <= 1 || page.loading.value" @click="page.load(page.pageIndex.value - 1)">
-            {{ t('common.actions.previous') }}
-          </XhButton>
-          <span>{{ page.pageIndex.value }} / {{ page.pageCount.value }}</span>
-          <XhButton size="sm" :disabled="page.pageIndex.value >= page.pageCount.value || page.loading.value" @click="page.load(page.pageIndex.value + 1)">
-            {{ t('common.actions.next') }}
-          </XhButton>
-        </div>
-      </div>
-
-      <!-- 详情：授予草稿按包分组，保存按差异授予 / 撤销；成员增删；删除（内建不可删） -->
-      <section v-if="page.selected.value" class="flex flex-col gap-4 rounded-surface border border-border bg-surface p-4" data-testid="role-detail">
-        <header class="flex flex-wrap items-center gap-2">
-          <h2 class="text-label font-semibold">
-            {{ page.selected.value.role.name }}
-          </h2>
-          <span class="text-caption text-fg-muted">{{ page.selected.value.role.code }} · {{ page.selected.value.role.ownerTenantId }}</span>
-          <span v-if="page.selected.value.role.isBuiltIn" class="rounded-control bg-subtle px-2 py-1 text-caption text-fg-muted">{{ t('access.roles.built_in_badge') }}</span>
-          <XhButton v-if="auth.can('access.roles.delete') && !page.selected.value.role.isBuiltIn" class="ml-auto" size="sm" :disabled="page.working.value" @click="page.remove()">
-            {{ t('access.roles.actions.delete') }}
-          </XhButton>
-        </header>
-        <p v-if="page.detailError.value" class="text-caption text-fg-danger" role="alert">
-          {{ page.detailError.value }}
-        </p>
-        <p v-if="page.notice.value === 'saved'" class="text-caption text-fg-success" role="status">
-          {{ t('access.roles.saved') }}
-        </p>
-        <p v-if="page.notice.value === 'data_scope_saved'" class="text-caption text-fg-success" role="status">
-          {{ t('access.roles.data_scope_saved') }}
-        </p>
-
-        <!-- 数据范围：只在租户侧（平台角色固定为全部）；自定义时勾部门并可含子部门 -->
-        <div v-if="auth.tenantId !== null" class="flex flex-col gap-2" data-testid="role-data-scope">
-          <h3 class="text-body font-semibold">
-            {{ t('access.roles.sections.data_scope') }}
-          </h3>
-          <label class="flex flex-col gap-1 text-caption text-fg-muted" for="role-data-scope">
-            {{ t('access.roles.sections.data_scope') }}
-            <select id="role-data-scope" v-model="page.scopeDraft.value" class="rounded-control border border-border bg-surface px-2 py-1 text-body text-fg" :disabled="!auth.can('access.roles.update') || page.working.value">
-              <option v-for="option in scopeOptions" :key="option.value" :value="option.value">
-                {{ t(option.label) }}
-              </option>
-            </select>
-          </label>
-          <fieldset v-if="page.scopeDraft.value === 'Custom'" class="flex flex-col gap-1 rounded-control border border-border-subtle p-2">
-            <legend class="px-1 text-caption text-fg-muted">
-              {{ t('access.roles.custom_departments') }}
-            </legend>
-            <div v-for="department in page.departmentOptions.value" :key="department.id" class="flex flex-wrap items-center gap-3 text-body">
-              <label class="flex items-center gap-2">
-                <input type="checkbox" :checked="page.customDraft.value.has(department.id)" :disabled="!auth.can('access.roles.update') || page.working.value" @change="page.toggleCustomDepartment(department.id)">
-                <span>{{ '· '.repeat(department.depth) }}{{ department.name }}</span>
-              </label>
-              <label v-if="page.customDraft.value.has(department.id)" class="flex items-center gap-2 text-caption text-fg-muted">
-                <input type="checkbox" :checked="page.customDraft.value.get(department.id) === true" :disabled="!auth.can('access.roles.update') || page.working.value" @change="page.toggleIncludeChildren(department.id)">
-                {{ t('access.roles.include_children') }}
-              </label>
-            </div>
-          </fieldset>
-          <div v-if="auth.can('access.roles.update')">
-            <XhButton size="sm" variant="solid" :disabled="!page.scopeDirty.value || page.working.value" :loading="page.working.value" @click="page.saveDataScope()">
-              {{ t('access.roles.actions.save_data_scope') }}
-            </XhButton>
+  <SchemaPage
+    ref="schemaPageRef"
+    :schema="schema"
+    @action="onAction"
+  >
+    <!-- 详情 -->
+    <XhDrawerRoot v-model:open="detailView.open.value" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 900px">
+        <XhDrawerTitle>{{ t('access.roles.detail_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div class="xh-loading-stage" :class="{ 'is-loading': detailView.loading.value }">
+          <div class="xh-loading-stage__veil">
+            <XhSpinner />
+          </div>
+          <XhEmptyStateRoot v-if="!detailView.loading.value && !detailView.detail.value" class="role-empty">
+            <XhEmptyStateIndicator>
+              <Icon icon="lucide:inbox" width="28" />
+            </XhEmptyStateIndicator>
+            <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('access.roles.detail_empty') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+          <div v-else-if="detailView.detail.value" class="xh-scroll-area" style="max-height: calc(100vh - 120px)">
+            <!-- 面板内容各不相同，标签与面板手摆而不喂 collection -->
+            <XhTabsRoot default-value="overview" variant="line">
+              <XhTabsList>
+                <XhTabsTrigger value="overview">
+                  {{ t('access.roles.tabs.overview') }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="permissions">
+                  {{ t('access.roles.tabs.permissions', { count: detailView.permissions.value.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger v-if="detailView.detail.value.role.dataScope === 'Custom'" value="dataScopes">
+                  {{ t('access.roles.tabs.data_scopes', { count: detailView.detail.value.customDepartments.length }) }}
+                </XhTabsTrigger>
+                <XhTabsTrigger value="members">
+                  {{ t('access.roles.tabs.members', { count: detailView.members.value.length }) }}
+                </XhTabsTrigger>
+                <XhTabsIndicator />
+              </XhTabsList>
+              <XhTabsContent value="overview">
+                <XhDescriptionsRoot :columns="2" variant="outline" size="sm">
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.name') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ detailView.detail.value.role.name }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.code') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ detailView.detail.value.role.code }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.owner') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ ownerLabel(detailView.detail.value.role.ownerTenantId) }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.data_scope') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ dataScopeLabel(detailView.detail.value.role.dataScope) }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.built_in') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ formatBoolean(detailView.detail.value.role.isBuiltIn) }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.status') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ statusLabel(detailView.detail.value.role.status) }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.member_count') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ detailView.detail.value.memberCount }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.order') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ detailView.detail.value.role.order }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.created_at') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ formatDate(detailView.detail.value.role.createdAt) }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                  <XhDescriptionsItem>
+                    <XhDescriptionsLabel>{{ t('access.roles.fields.description') }}</XhDescriptionsLabel>
+                    <XhDescriptionsValue>{{ formatNullable(detailView.detail.value.role.description) }}</XhDescriptionsValue>
+                  </XhDescriptionsItem>
+                </XhDescriptionsRoot>
+              </XhTabsContent>
+              <XhTabsContent value="permissions">
+                <table v-if="detailView.permissions.value.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>{{ t('access.roles.th.permission') }}</th>
+                      <th>{{ t('access.roles.th.code') }}</th>
+                      <th>{{ t('access.roles.th.description') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in detailView.permissions.value" :key="item.code">
+                      <td>{{ item.displayName }}</td>
+                      <td>{{ item.code }}</td>
+                      <td>{{ formatNullable(item.description) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <XhEmptyStateRoot v-else class="role-tab-empty">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('access.roles.empty_permissions') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent v-if="detailView.detail.value.role.dataScope === 'Custom'" value="dataScopes">
+                <table v-if="detailView.detail.value.customDepartments.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>{{ t('access.roles.th.department') }}</th>
+                      <th>{{ t('access.roles.th.include_children') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in detailView.detail.value.customDepartments" :key="item.departmentId">
+                      <td>{{ detailView.departmentName(item.departmentId) }}</td>
+                      <td>{{ formatBoolean(item.includeChildren ?? false) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <XhEmptyStateRoot v-else class="role-tab-empty">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('access.roles.empty_data_scopes') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+              <XhTabsContent value="members">
+                <table v-if="detailView.members.value.length" class="xh-detail-table">
+                  <thead>
+                    <tr>
+                      <th>{{ t('access.roles.th.user') }}</th>
+                      <th>{{ t('access.roles.th.user_name') }}</th>
+                      <th>{{ t('access.roles.th.status') }}</th>
+                      <th>{{ t('access.roles.th.assigned_at') }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in detailView.members.value" :key="item.userId">
+                      <td>{{ item.displayName }}</td>
+                      <td>{{ item.userName }}</td>
+                      <td>{{ memberStatusLabel(item.status) }}</td>
+                      <td>{{ formatDate(item.assignedAt) }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                <XhEmptyStateRoot v-else class="role-tab-empty">
+                  <XhEmptyStateIndicator>
+                    <Icon icon="lucide:inbox" width="28" />
+                  </XhEmptyStateIndicator>
+                  <XhEmptyStateTitle>{{ t('common.empty') }}</XhEmptyStateTitle>
+                  <XhEmptyStateDescription>{{ t('access.roles.empty_members') }}</XhEmptyStateDescription>
+                </XhEmptyStateRoot>
+              </XhTabsContent>
+            </XhTabsRoot>
           </div>
         </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
 
-        <div class="flex flex-col gap-2">
-          <h3 class="text-body font-semibold">
-            {{ t('access.roles.sections.permissions') }}
-          </h3>
-          <fieldset v-for="group in page.groups.value" :key="group.package" class="flex flex-col gap-1 rounded-control border border-border-subtle p-2">
-            <legend class="px-1 text-caption text-fg-muted">
-              {{ group.package }}
-            </legend>
-            <label v-for="item in group.items" :key="item.code" class="flex items-start gap-2 text-body">
-              <input
-                type="checkbox"
-                class="mt-1"
-                :checked="page.draft.value.has(item.code)"
-                :disabled="!auth.can('access.roles.grant') || page.working.value"
-                @change="page.togglePermission(item.code)"
-              >
-              <span>
-                <span class="font-medium">{{ item.displayName }}</span>
-                <span class="text-caption text-fg-muted"> {{ item.code }}</span>
-                <span v-if="item.description" class="block text-caption text-fg-muted">{{ item.description }}</span>
-              </span>
-            </label>
-          </fieldset>
-          <div v-if="auth.can('access.roles.grant')">
-            <XhButton size="sm" variant="solid" :disabled="!page.dirty.value || page.working.value" :loading="page.working.value" @click="page.savePermissions()">
-              {{ t('access.roles.actions.save_permissions') }}
-            </XhButton>
-          </div>
-        </div>
+    <!-- 新建 / 编辑 -->
+    <XEditModal
+      v-model:show="editor.open.value"
+      :title="modalTitle"
+      :loading="editor.submitting.value"
+      :form-id="editFormId"
+    >
+      <XhFormRoot :id="editFormId" class="xh-edit-form-grid" data-testid="role-form" @submit="onSubmit">
+        <XhFieldRoot :invalid="!!editor.fieldError('name')" required>
+          <XhFieldLabel>{{ t('access.roles.fields.name') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.name" name="name" clearable :placeholder="t('access.roles.name_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('name')">
+            {{ editor.fieldError('name') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('code')" :required="!editor.isEdit.value">
+          <XhFieldLabel>{{ t('access.roles.fields.code') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.code" name="code" clearable autocomplete="off" :disabled="editor.isEdit.value" :placeholder="t('access.roles.code_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('code')">
+            {{ editor.fieldError('code') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot :invalid="!!editor.fieldError('order')">
+          <XhFieldLabel>{{ t('access.roles.fields.order') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XNumberInput v-model:value="editor.form.order" name="order" :min="0" :max="100000" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('order')">
+            {{ editor.fieldError('order') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot v-if="editor.isEdit.value" :invalid="!!editor.fieldError('status')">
+          <XhFieldLabel>{{ t('access.roles.fields.status') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XSelect v-model:value="editor.form.status" name="status" :options="statusOptions" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('status')">
+            {{ editor.fieldError('status') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <XhFieldRoot class="xh-span-2" :invalid="!!editor.fieldError('description')">
+          <XhFieldLabel>{{ t('access.roles.fields.description') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XInput v-model:value="editor.form.description" name="description" type="textarea" :rows="3" clearable :placeholder="t('access.roles.description_placeholder')" />
+          </XhFieldControl>
+          <XhFieldErrorText v-if="editor.fieldError('description')">
+            {{ editor.fieldError('description') }}
+          </XhFieldErrorText>
+        </XhFieldRoot>
+        <p v-if="editor.submitError.value" class="xh-span-2 text-caption text-fg-danger" role="alert">
+          {{ editor.submitError.value }}
+        </p>
+      </XhFormRoot>
+    </XEditModal>
 
-        <div class="flex flex-col gap-2">
-          <h3 class="text-body font-semibold">
-            {{ t('access.roles.sections.members') }} · {{ page.members.value.length }}
-          </h3>
-          <ul v-if="page.members.value.length > 0" class="flex flex-col divide-y divide-border-subtle">
-            <li v-for="member in page.members.value" :key="member.userId" class="flex items-center gap-2 py-1 text-body">
-              <span>{{ member.displayName }}</span>
-              <span class="text-caption text-fg-muted">{{ member.userName }}</span>
-              <XhButton v-if="auth.can('access.roles.assign')" class="ml-auto" size="sm" :disabled="page.working.value" @click="page.removeMember(member.userId)">
-                {{ t('access.roles.actions.remove_member') }}
-              </XhButton>
-            </li>
-          </ul>
-          <p v-else class="text-caption text-fg-muted">
-            {{ t('access.roles.no_members') }}
+    <!-- 权限分配 -->
+    <XhDrawerRoot v-model:open="permissionEditor.open.value" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 980px">
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('access.roles.perm_drawer_title', { name: permissionEditor.role.value?.name ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
+        <XhDrawerCloseTrigger />
+        <XhDrawerBody class="xh-overlay-body">
+          <XPermissionTransfer
+            :items="permissionEditor.items.value"
+            :value="permissionEditor.draft.value"
+            :loading="permissionEditor.loading.value"
+            :disabled="permissionEditor.loading.value || permissionEditor.saving.value"
+            :source-title="t('access.roles.perm_available')"
+            :target-title="t('access.roles.perm_granted')"
+            :search-placeholder="t('access.roles.perm_search')"
+            :other-group-label="t('access.roles.perm_group_other')"
+            @update:value="value => (permissionEditor.draft.value = value)"
+          />
+        </XhDrawerBody>
+        <XhDrawerFooter>
+          <XhButton variant="subtle" @click="permissionEditor.open.value = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton variant="subtle" tone="brand" :loading="permissionEditor.saving.value" :disabled="!permissionEditor.dirty.value || permissionEditor.loading.value" @click="savePermissions">
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('access.roles.perm_save') }}</XhButtonLabel>
+          </XhButton>
+        </XhDrawerFooter>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+
+    <!-- 角色成员 -->
+    <XhDrawerRoot v-model:open="memberEditor.open.value" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 720px">
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('access.roles.members_title', { name: memberEditor.role.value?.name ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
+        <XhDrawerCloseTrigger />
+        <XhDrawerBody class="xh-overlay-body">
+          <p class="drawer-tip">
+            {{ canListUsers ? t('access.roles.members_tip') : t('access.roles.members_tip_readonly') }}
           </p>
-          <form v-if="auth.can('access.roles.assign') && auth.can('identity.users.read')" class="flex items-end gap-2" novalidate @submit.prevent="addMember">
-            <label class="flex flex-col gap-1 text-caption text-fg-muted" for="member-to-add">
-              {{ t('access.roles.select_user') }}
-              <select id="member-to-add" v-model="memberToAdd" class="rounded-control border border-border bg-surface px-2 py-1 text-body text-fg">
-                <option value="">
-                  -
-                </option>
-                <option v-for="user in page.userOptions.value" :key="user.id" :value="user.id">
-                  {{ user.displayName }} ({{ user.userName }})
-                </option>
-              </select>
-            </label>
-            <XhButton type="submit" size="sm" :disabled="!memberToAdd || page.working.value">
-              {{ t('access.roles.actions.add_member') }}
-            </XhButton>
-          </form>
-        </div>
-      </section>
-    </div>
-  </section>
+          <XGrantTransfer
+            :items="memberEditor.items.value"
+            :value="memberEditor.draft.value"
+            :groups="memberGroups"
+            :get-label="item => item.displayName"
+            :get-description="memberDescription"
+            :loading="memberEditor.loading.value"
+            :disabled="memberEditor.loading.value || memberEditor.saving.value"
+            :source-title="t('access.roles.members_source')"
+            :target-title="t('access.roles.members_target')"
+            :search-placeholder="t('access.roles.members_search')"
+            @update:value="value => (memberEditor.draft.value = value)"
+          />
+        </XhDrawerBody>
+        <XhDrawerFooter>
+          <XhButton variant="subtle" @click="memberEditor.open.value = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton variant="subtle" tone="brand" :loading="memberEditor.saving.value" :disabled="!memberEditor.dirty.value || memberEditor.loading.value" @click="saveMembers">
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('access.roles.members_save') }}</XhButtonLabel>
+          </XhButton>
+        </XhDrawerFooter>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+
+    <!-- 数据范围（租户侧） -->
+    <XhDrawerRoot v-model:open="scopeEditor.open.value" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 640px">
+        <XhDrawerHeader>
+          <XhDrawerTitle>{{ t('access.roles.scope_editor.drawer_title', { name: scopeEditor.role.value?.name ?? '' }) }}</XhDrawerTitle>
+        </XhDrawerHeader>
+        <XhDrawerCloseTrigger />
+        <XhDrawerBody class="xh-overlay-body">
+          <div class="xh-loading-stage scope-stage" :class="{ 'is-loading': scopeEditor.loading.value }">
+            <div class="xh-loading-stage__veil">
+              <XhSpinner />
+            </div>
+            <DataScopeEditor v-model="scopeEditor.draft.value" :department-tree="scopeEditor.tree.value" :readonly="scopeEditor.saving.value" />
+          </div>
+        </XhDrawerBody>
+        <XhDrawerFooter>
+          <XhButton variant="subtle" @click="scopeEditor.open.value = false">
+            {{ t('common.actions.cancel') }}
+          </XhButton>
+          <XhButton variant="subtle" tone="brand" :loading="scopeEditor.saving.value" :disabled="!scopeEditor.dirty.value || scopeEditor.loading.value" @click="saveScope">
+            <XhButtonIndicator />
+            <XhButtonLabel>{{ t('access.roles.scope_editor.save') }}</XhButtonLabel>
+          </XhButton>
+        </XhDrawerFooter>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+  </SchemaPage>
 </template>
+
+<style scoped>
+.role-empty {
+  padding-block: var(--xh-space-8);
+}
+
+.role-tab-empty {
+  padding-block: var(--xh-space-6);
+}
+
+/* 抽屉顶部的说明（角色成员） */
+.drawer-tip {
+  margin: 0;
+  color: var(--xh-fg-muted);
+  font-size: var(--xh-text-caption-size);
+}
+
+/* 数据范围抽屉：编辑区撑满抽屉剩余高度，保存 / 取消落在抽屉底部；部门多时在这里滚动 */
+.scope-stage {
+  flex: 1;
+  min-block-size: 0;
+  overflow-y: auto;
+}
+</style>
