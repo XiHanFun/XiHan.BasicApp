@@ -1,9 +1,11 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.ComponentModel.DataAnnotations;
 using SqlSugar;
 using XiHan.Framework.Kernel.Hosting;
 using XiHan.Framework.MultiTenancy.Abstractions.Sharding;
+using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Runtime.Persistence;
@@ -56,12 +58,18 @@ public static class SqlSugarRuntime
             column.DbColumnName = SnakeCaseNaming.Of(property.Name);
         }
 
-        // 建表（Development 的 InitTables）时字符串列缺省 varchar(255)，装不下契约允许的 256 字符：没写长度与类型的字符串列一律 512；更长的字段显式写 [SugarColumn]
-        if (property.PropertyType == typeof(string) && column.Length == 0 && string.IsNullOrEmpty(column.DataType))
+        // 建表（Development 的 InitTables）时字符串列缺省 varchar(255)，装不下契约允许的 256 字符：没写长度与类型的字符串列一律 512。
+        // 写了 [LongText] / [StringLength] / [MaxLength] 的列留给框架约定：它在这个回调之后施加、只处理长度仍为 0 的列，这里先填了长度会把长文本建成 varchar(512)
+        if (property.PropertyType == typeof(string) && column.Length == 0 && string.IsNullOrEmpty(column.DataType) && !HasLengthAnnotation(property))
         {
             column.Length = DefaultStringLength;
         }
     }
+
+    private static bool HasLengthAnnotation(System.Reflection.PropertyInfo property) =>
+        property.IsDefined(typeof(LongTextAttribute), inherit: true)
+        || property.IsDefined(typeof(StringLengthAttribute), inherit: true)
+        || property.IsDefined(typeof(MaxLengthAttribute), inherit: true);
 
     /// <summary>
     /// 没有显式长度的字符串列的建表长度。
