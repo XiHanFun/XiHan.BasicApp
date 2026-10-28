@@ -8,6 +8,7 @@ Tier 0 基座：把框架的持久化、租户与管道接到 BasicApp 的约定
 | `AuditorStampMiddleware` + `AuditorStamp` | Transaction 阶段把当前主体 ID 放进异步本地值，回调据此填 `CreatedBy` / `ModifiedBy` / `DeletedBy`。方式一的 `ConnectionConfig` 在装配时只建一份、没有作用域，回调拿不到作用域服务，异步本地值是能读到当前主体的方式（N0 冒烟结论） |
 | `TenantScopedQuery.For<T>` | 包内 `Queries/` 的起手式：按实体落点取连接（`SqlSugarUnitOfWork.ConnectionFor`），补软删除与租户条件；`OwnedByCurrentTenantOrPlatform` / `OwnedByCurrentTenant` 给 `IOwnedByTenant` 实体用 |
 | `DatabaseProviders` / `SnakeCaseNaming` | 库类型名映射；命名约定 |
+| `ISecretProtector` | 可逆加密（ASP.NET Core Data Protection）：按用途隔离，密文带 `dp:` 前缀，解不开即失败、不回退明文；多实例共享密钥时配 `BasicApp:DataProtection:KeysDirectory` |
 
 ## 配置
 
