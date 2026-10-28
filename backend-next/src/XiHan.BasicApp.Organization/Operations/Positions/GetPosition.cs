@@ -11,9 +11,10 @@ namespace XiHan.BasicApp.Organization.Operations.Positions;
 
 /// <summary>
 /// 岗位详情：<c>GET /api/positions/{id}</c>。
+/// 只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。
 /// </summary>
 /// <param name="positions">岗位仓储。</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.PositionsRead)]
+[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.PositionsRead)]
 public sealed class GetPosition(IRepository<SysPosition, Guid> positions) : IOperation<GetPositionRequest, PositionResponse>
 {
     /// <summary>

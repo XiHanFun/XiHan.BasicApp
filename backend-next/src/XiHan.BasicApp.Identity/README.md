@@ -11,8 +11,7 @@ Tier 1 身份能力包。N0 是最小切片，用来验证骨架：一个带租�
 | `Operations/Users` | `users.create`（`POST /api/users`，201）、`users.get`（`GET /api/users/{id}`）、`users.list`（`POST /api/users:list`，带 `PageRequest`）；每个操作显式写 `Expose` |
 | `Queries/UserQueries` | 直接用 SqlSugar 客户端的分页查询，以 `TenantScopedQuery.For<SysUser>` 起手 |
 
-## N0 的暂定项（N1 收口）
+## 暴露面（方案 5.4 操作表）
 
-- `users.create` 同时暴露到 HTTP / gRPC / MCP 只为验证三种协议；按方案 5.4，管理类写操作最终只 `Http`，内部服务需要时再加 `Grpc`。
-- 创建用户要求当前租户（租户主体自助建用户）；平台主体代建的入参形态随 N1 的操作表定。
-- 没有登录、令牌签发与种子：测试用 `JwtOptions` 的密钥自签令牌，开发环境按 Host README 手工准备租户与授权行。
+- 管理类写操作只 `Http`；`users.get` / `users.list` 是用户目录，另加 `Mcp | Ai` 与 `Grpc`（内部服务查用户），gRPC 与 MCP 的冒烟落在这两个上。
+- 操作表由 `Architecture.Tests` 的 `OperationExposureTests` 守住：超出 `Http` 的操作逐个登记，没登记的必须恰好是 `Http`。

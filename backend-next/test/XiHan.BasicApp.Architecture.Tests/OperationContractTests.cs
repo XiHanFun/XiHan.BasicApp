@@ -20,7 +20,7 @@ public sealed partial class OperationContractTests
     /// </summary>
     private static readonly HashSet<string> _anonymousOperations = new(StringComparer.Ordinal) { "auth.login", "auth.refresh" };
 
-    private static IEnumerable<(Type Type, OperationAttribute Attribute, string Package)> Operations()
+    internal static IEnumerable<(Type Type, OperationAttribute Attribute, string Package)> Operations()
         => Packages.Assemblies
             .SelectMany(static a => a.GetTypes().Select(t => (Type: t, Attribute: t.GetCustomAttribute<OperationAttribute>(), Package: Packages.ShortName(a.GetName().Name!))))
             .Where(static x => x.Attribute is not null)
