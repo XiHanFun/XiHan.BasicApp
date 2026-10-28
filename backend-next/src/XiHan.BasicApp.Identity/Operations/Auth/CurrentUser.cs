@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="users">用户仓储。</param>
 /// <param name="accounts">账号域服务。</param>
 /// <param name="tenants">框架租户目录（取当前租户的显示名）。</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class CurrentUser(IRepository<SysUser, Guid> users, UserAccountService accounts, ITenantStore tenants) : IOperation<MeRequest, MeResponse>
 {
     /// <summary>

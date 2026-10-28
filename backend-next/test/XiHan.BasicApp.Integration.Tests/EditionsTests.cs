@@ -71,7 +71,7 @@ public sealed class EditionsTests : IDisposable
 
         async Task<List<string?>> EffectiveAsync()
         {
-            var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", tenantAdmin));
+            var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: tenantAdmin));
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             return Codes(body, "permissions");
         }

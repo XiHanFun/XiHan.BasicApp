@@ -19,6 +19,8 @@ tab_width = 4
 dotnet_diagnostic.IDE1006.severity = warning
 # 未使用的 using
 dotnet_diagnostic.IDE0005.severity = warning
+# 每个操作显式写 Expose（方案 5.4 / 第 10 节第 8 项）：框架生成器诊断，不写程序集级 OperationDefaults（ADR-0041）
+dotnet_diagnostic.XHG004.severity = error
 
 # 私有常量 PascalCase（先于下面的静态字段规则匹配，const 也带 static 修饰）
 dotnet_naming_rule.private_constants_should_be_pascal_case.severity = warning

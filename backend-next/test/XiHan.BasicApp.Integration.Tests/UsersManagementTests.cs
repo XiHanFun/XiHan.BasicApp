@@ -56,7 +56,7 @@ public sealed class UsersManagementTests : IDisposable
         Assert.Equal("IDENTITY_NOTFOUND_001", failed[1].GetProperty("code").GetString());
 
         // 锁定即吊销会话、拒绝登录
-        var (revoked, revokedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", bob));
+        var (revoked, revokedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: bob));
         Assert.Equal(HttpStatusCode.Forbidden, revoked.StatusCode);
         Assert.Equal("IDENTITY_DENIED_001", revokedBody.GetProperty("code").GetString());
         var (lockedLogin, lockedLoginBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", """{"userName":"bob","password":"Bob@123456","tenant":"acme"}""", acceptLanguage: "en-US"));
@@ -79,7 +79,7 @@ public sealed class UsersManagementTests : IDisposable
         var (reset, resetBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/users/{bobId}:reset-password", """{"newPassword":"Bob@999999"}""", admin));
         Assert.Equal(HttpStatusCode.OK, reset.StatusCode);
         Assert.True(resetBody.GetProperty("sessionsRevoked").GetBoolean());
-        var (afterReset, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", bob));
+        var (afterReset, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: bob));
         Assert.Equal(HttpStatusCode.Forbidden, afterReset.StatusCode);
         var (oldPassword, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", """{"userName":"bob","password":"Bob@123456","tenant":"acme"}"""));
         Assert.Equal(HttpStatusCode.Forbidden, oldPassword.StatusCode);

@@ -46,7 +46,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
       { tenantId: 'demo', tenantName: 'Demo Tenant', isHome: false, memberType: 'Owner', isCurrent: false },
       { tenantId: 'acme', tenantName: 'Acme', isHome: true, memberType: null, isCurrent: true },
     ])
-    expect(calls).toEqual([{ method: 'POST', url: '/api/tenants:mine', body: {} }])
+    expect(calls).toEqual([{ method: 'GET', url: '/api/tenants:mine', body: null }])
   })
 
   it('切换租户：进入租户带 tenantId，回平台传 null', async () => {
@@ -63,7 +63,7 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     record(calls, (url) => {
       if (url.endsWith('/api/tenants:list'))
         return json(200, { items: [{ id: 't-1', tenantId: 'demo', name: 'Demo Tenant', status: 'Active', order: 0, createdAt: '2026-10-28T00:00:00Z' }], total: 1, page: { index: 1, size: 500 } })
-      if (url.endsWith('/api/impersonation:candidates'))
+      if (url.includes('/api/impersonation:candidates'))
         return json(200, { items: [{ id: 'u-2', userName: 'bob', displayName: 'Bob', homeTenantId: 'demo' }] })
       return json(200, { accessToken: 'a-9' })
     })
@@ -72,9 +72,10 @@ describe('应用上下文：壳层接口接到 6.0 操作', () => {
     expect(calls[0]).toEqual({ method: 'POST', url: '/api/tenants:list', body: { page: { index: 1, size: 500 }, filters: [{ field: 'status', operator: 'eq', value: 'Active' }] } })
 
     expect(await impersonationApi.candidates({ keyword: 'bo', tenantId: 'demo' })).toEqual([{ basicId: 'u-2', userName: 'bob', nickName: 'Bob' }])
-    expect(calls[1]).toMatchObject({ url: '/api/impersonation:candidates', body: { tenantId: 'demo', keyword: 'bo' } })
+    expect(calls[1]).toEqual({ method: 'GET', url: '/api/impersonation:candidates?tenantId=demo&keyword=bo', body: null })
     await impersonationApi.candidates({})
-    expect(calls[2]!.body).toEqual({ tenantId: null, keyword: null })
+    // 不填即当前上下文：空值不进查询串
+    expect(calls[2]).toEqual({ method: 'GET', url: '/api/impersonation:candidates', body: null })
 
     await impersonationApi.start({ targetUserId: 'u-2', tenantId: 'demo', reason: 'ticket 42' })
     expect(calls[3]).toMatchObject({ url: '/api/impersonation:start', body: { targetUserId: 'u-2', tenantId: 'demo', reason: 'ticket 42' } })

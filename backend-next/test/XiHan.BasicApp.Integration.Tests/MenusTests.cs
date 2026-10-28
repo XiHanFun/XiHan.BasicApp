@@ -76,7 +76,7 @@ public sealed class MenusTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, hidden.StatusCode);
 
         // auth.permissions：目录成组（子节点按排序）、外链带地址、隐藏页面照常下发并标 hidden（仍可直接访问），页面码不含运营节点
-        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", superadmin));
+        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         var menus = permissionsBody.GetProperty("menus");
         Assert.Equal(["workbench.dashboard", "identity.users", "custom.system", "access.menus", "tenancy.tenants", "tenancy.editions"], Codes(menus));
@@ -101,7 +101,7 @@ public sealed class MenusTests : IDisposable
         // 空目录不下发
         var (empty, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/menus", """{"kind":"Directory","code":"empty","title":"Empty"}""", superadmin));
         Assert.Equal(HttpStatusCode.Created, empty.StatusCode);
-        var (again, againBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", superadmin));
+        var (again, againBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, again.StatusCode);
         Assert.DoesNotContain("custom.empty", Codes(againBody.GetProperty("menus")));
 
@@ -150,7 +150,7 @@ public sealed class MenusTests : IDisposable
         await server.SeedDefaultsAsync();
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
-        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", superadmin));
+        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         Assert.Equal("identity.users", Codes(permissionsBody.GetProperty("menus"))[0]);
         Assert.DoesNotContain("workbench.dashboard", permissionsBody.GetProperty("pages").EnumerateArray().Select(static p => p.GetString()));

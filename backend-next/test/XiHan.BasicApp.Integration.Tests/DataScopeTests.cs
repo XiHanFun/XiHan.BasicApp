@@ -33,7 +33,7 @@ public sealed class DataScopeTests : IDisposable
         var (initialized, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{tenantId}:initialize-admin", """{"userName":"admin","password":"Admin@123456"}""", superadmin));
         Assert.Equal(HttpStatusCode.OK, initialized.StatusCode);
         var admin = (await AuthFlowTests.LoginAsync(server, "admin", "Admin@123456", "contoso")).GetProperty("accessToken").GetString()!;
-        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", admin));
+        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: admin));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         Assert.Equal(["admin"], permissionsBody.GetProperty("roles").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
         var (roleList, roleListBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/roles:list", "{}", admin));
@@ -67,7 +67,7 @@ public sealed class DataScopeTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, granted.StatusCode);
         var (assigned, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{lead}:assign", $$"""{"userIds":["{{dave}}"]}""", admin));
         Assert.Equal(HttpStatusCode.OK, assigned.StatusCode);
-        var (byUser, byUserBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/roles:by-user", $$"""{"userId":"{{dave}}"}""", admin));
+        var (byUser, byUserBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/roles:by-user?userId={dave}", token: admin));
         Assert.Equal(HttpStatusCode.OK, byUser.StatusCode);
         Assert.Equal(["lead"], byUserBody.GetProperty("items").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
 

@@ -26,7 +26,7 @@ describe('useUserDetail', () => {
           return json(200, { ...user, status })
         if (path.endsWith('/api/roles:list'))
           return json(200, { items: [role('r-1', 'viewer'), role('r-2', 'lead')], total: 2, page: { index: 1, size: 100 } })
-        if (path.endsWith('/api/roles:by-user'))
+        if (path.endsWith('/api/roles:by-user?userId=u-1'))
           return json(200, { items: [role('r-1', 'viewer')] })
         if (path.endsWith('/api/roles/r-2:assign') || path.endsWith('/api/roles/r-1:unassign'))
           return json(200, { succeeded: body.userIds, failed: [] })
