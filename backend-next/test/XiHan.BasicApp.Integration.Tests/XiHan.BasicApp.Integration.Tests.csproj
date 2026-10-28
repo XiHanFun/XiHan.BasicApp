@@ -18,6 +18,8 @@
     <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Database" />
     <XiHanFrameworkReference Include="XiHan.Framework.Security.Jwt" />
+    <XiHanFrameworkReference Include="XiHan.Framework.MultiTenancy.Conformance" />
+    <XiHanFrameworkReference Include="XiHan.Framework.Security.Conformance" />
   </ItemGroup>
 
   <ItemGroup>
