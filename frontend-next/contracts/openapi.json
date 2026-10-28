@@ -1192,6 +1192,469 @@
         }
       }
     },
+    "/api/editions": {
+      "delete": {
+        "operationId": "editions.delete",
+        "tags": [
+          "editions"
+        ],
+        "summary": "Delete editions and their whitelists in batch; editions still used by tenants are rejected item by item. Requires tenancy.editions.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.editions.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "editions.list",
+        "tags": [
+          "editions"
+        ],
+        "summary": "List every edition (by order, then code) with its whitelist size and the number of tenants on it. Platform side only; requires tenancy.editions.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.editions.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EditionsResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EditionResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "editions.create",
+        "tags": [
+          "editions"
+        ],
+        "summary": "Create an edition with an initial whitelist (tenant-side permissions only); it can become the default edition for new tenants. Requires tenancy.editions.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.editions.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateEditionRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 32,
+                    "pattern": "^[a-z][a-z0-9-]{1,31}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "isDefault": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "permissions": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EditionDetailResponse",
+                  "type": "object",
+                  "properties": {
+                    "edition": {
+                      "$ref": "#/components/schemas/EditionResponse"
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "edition",
+                    "permissions"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/editions/{id}": {
+      "get": {
+        "operationId": "editions.get",
+        "tags": [
+          "editions"
+        ],
+        "summary": "Get an edition with its permission whitelist. Requires tenancy.editions.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.editions.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EditionDetailResponse",
+                  "type": "object",
+                  "properties": {
+                    "edition": {
+                      "$ref": "#/components/schemas/EditionResponse"
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "edition",
+                    "permissions"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "editions.update",
+        "tags": [
+          "editions"
+        ],
+        "summary": "Update an edition\u0027s name, description, default flag and order; the code cannot change. Requires tenancy.editions.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.editions.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateEditionRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "isDefault": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EditionDetailResponse",
+                  "type": "object",
+                  "properties": {
+                    "edition": {
+                      "$ref": "#/components/schemas/EditionResponse"
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "edition",
+                    "permissions"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/editions/{id}:set-permissions": {
+      "post": {
+        "operationId": "editions.set-permissions",
+        "tags": [
+          "editions"
+        ],
+        "summary": "Replace an edition\u0027s permission whitelist; the effective permissions of tenants on it narrow or widen immediately. Requires tenancy.editions.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.editions.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "SetEditionPermissionsRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "permissions": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "permissions"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EditionDetailResponse",
+                  "type": "object",
+                  "properties": {
+                    "edition": {
+                      "$ref": "#/components/schemas/EditionResponse"
+                    },
+                    "permissions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "edition",
+                    "permissions"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/impersonation:candidates": {
       "post": {
         "operationId": "impersonation.candidates",
@@ -2005,10 +2468,23 @@
         "tags": [
           "permissions"
         ],
-        "summary": "List the permission catalog grantable on the current side. Requires access.permissions.read.",
+        "summary": "List the grantable permission catalog: the caller\u0027s side by default; platform principals may pass side=tenant for the tenant side (used to edit edition whitelists); for tenant principals the catalog is narrowed by their edition. Requires access.permissions.read.",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "access.permissions.read",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "side",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^(platform|tenant)$"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -3645,6 +4121,7 @@
         "tags": [
           "tenant-members"
         ],
+        "summary": "Remove tenant members in batch; they can no longer switch into the tenant. Platform side only; requires tenancy.tenant-members.delete.",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "tenancy.tenant-members.delete",
         "parameters": [
@@ -3711,6 +4188,7 @@
         "tags": [
           "tenant-members"
         ],
+        "summary": "List a tenant\u0027s members (users whose home tenant is elsewhere and who enter it by membership) with user name and display name. Platform side only; requires tenancy.tenant-members.read.",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "tenancy.tenant-members.read",
         "parameters": [
@@ -3765,6 +4243,7 @@
         "tags": [
           "tenant-members"
         ],
+        "summary": "Add a user as a tenant member; rejected when the user is already a member or the tenant is the user\u0027s home. Platform side only; requires tenancy.tenant-members.create.",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "tenancy.tenant-members.create",
         "parameters": [],
@@ -3934,7 +4413,7 @@
         "tags": [
           "tenants"
         ],
-        "summary": "Provision a tenant: write the tenant and register it (enabled) in the tenant directory; the administrator is created with tenants.initialize-admin. Platform side only; requires tenancy.tenants.create.",
+        "summary": "Provision a tenant: write the tenant and register it (enabled) in the tenant directory; the administrator is created with tenants.initialize-admin. Platform side only; requires tenancy.tenants.create. Without an edition the default edition applies (an error if there is none).",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "tenancy.tenants.create",
         "parameters": [],
@@ -3976,6 +4455,13 @@
                     "format": "int32",
                     "minimum": 0,
                     "maximum": 100000
+                  },
+                  "editionId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
                   }
                 },
                 "required": [
@@ -4022,6 +4508,13 @@
                       "format": "date-time"
                     },
                     "adminUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "editionId": {
                       "type": [
                         "string",
                         "null"
@@ -4226,6 +4719,143 @@
                       "format": "date-time"
                     },
                     "adminUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "editionId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "tenantId",
+                    "name",
+                    "status",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tenants/{id}:change-edition": {
+      "post": {
+        "operationId": "tenants.change-edition",
+        "tags": [
+          "tenants"
+        ],
+        "summary": "Move a tenant to another edition, or lift edition limits; its users\u0027 effective permissions follow the new whitelist immediately. Requires tenancy.tenants.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "tenancy.tenants.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ChangeTenantEditionRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "editionId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "TenantResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "tenantId": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/TenantStatus"
+                    },
+                    "expiresAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "adminUserId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "editionId": {
                       "type": [
                         "string",
                         "null"
@@ -5727,6 +6357,56 @@
           "createdAt"
         ]
       },
+      "EditionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "permissionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tenantCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "isDefault",
+          "order",
+          "permissionCount",
+          "tenantCount",
+          "createdAt"
+        ]
+      },
       "ImpersonationCandidateResponse": {
         "type": "object",
         "properties": {
@@ -6241,6 +6921,13 @@
             ],
             "format": "uuid"
           },
+          "editionId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
           "order": {
             "type": "integer",
             "format": "int32"
@@ -6470,6 +7157,26 @@
         "code": "organization.positions.update",
         "displayName": "Update positions",
         "description": "Edit and disable positions."
+      },
+      "tenancy.editions.create": {
+        "code": "tenancy.editions.create",
+        "displayName": "Create editions",
+        "description": "Create editions with an initial permission whitelist."
+      },
+      "tenancy.editions.delete": {
+        "code": "tenancy.editions.delete",
+        "displayName": "Delete editions",
+        "description": "Delete editions that no tenant uses."
+      },
+      "tenancy.editions.read": {
+        "code": "tenancy.editions.read",
+        "displayName": "Read editions",
+        "description": "View editions and their permission whitelists."
+      },
+      "tenancy.editions.update": {
+        "code": "tenancy.editions.update",
+        "displayName": "Update editions",
+        "description": "Edit editions and replace their permission whitelists; tenants on them follow immediately."
       },
       "tenancy.tenant-members.create": {
         "code": "tenancy.tenant-members.create",

@@ -18,6 +18,12 @@ export const routes = {
   'departments.move': { method: 'POST', template: '/api/departments/{id}:move', path: ['id'], query: [], success: 200 },
   'departments.tree': { method: 'POST', template: '/api/departments:tree', path: [], query: [], success: 200 },
   'departments.update': { method: 'PUT', template: '/api/departments/{id}', path: ['id'], query: [], success: 200 },
+  'editions.create': { method: 'POST', template: '/api/editions', path: [], query: [], success: 201 },
+  'editions.delete': { method: 'DELETE', template: '/api/editions', path: [], query: ['ids'], success: 200 },
+  'editions.get': { method: 'GET', template: '/api/editions/{id}', path: ['id'], query: [], success: 200 },
+  'editions.list': { method: 'GET', template: '/api/editions', path: [], query: [], success: 200 },
+  'editions.set-permissions': { method: 'POST', template: '/api/editions/{id}:set-permissions', path: ['id'], query: [], success: 200 },
+  'editions.update': { method: 'PUT', template: '/api/editions/{id}', path: ['id'], query: [], success: 200 },
   'impersonation.candidates': { method: 'POST', template: '/api/impersonation:candidates', path: [], query: [], success: 200 },
   'impersonation.start': { method: 'POST', template: '/api/impersonation:start', path: [], query: [], success: 200 },
   'impersonation.stop': { method: 'POST', template: '/api/impersonation:stop', path: [], query: [], success: 200 },
@@ -25,7 +31,7 @@ export const routes = {
   'memberships.delete': { method: 'DELETE', template: '/api/memberships', path: [], query: ['ids'], success: 200 },
   'memberships.list': { method: 'POST', template: '/api/memberships:list', path: [], query: [], success: 200 },
   'memberships.update': { method: 'PUT', template: '/api/memberships/{id}', path: ['id'], query: [], success: 200 },
-  'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: [], success: 200 },
+  'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
   'positions.create': { method: 'POST', template: '/api/positions', path: [], query: [], success: 201 },
   'positions.delete': { method: 'DELETE', template: '/api/positions', path: [], query: ['ids'], success: 200 },
   'positions.get': { method: 'GET', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
@@ -46,6 +52,7 @@ export const routes = {
   'tenant-members.create': { method: 'POST', template: '/api/tenant-members', path: [], query: [], success: 201 },
   'tenant-members.delete': { method: 'DELETE', template: '/api/tenant-members', path: [], query: ['ids'], success: 200 },
   'tenant-members.list': { method: 'GET', template: '/api/tenant-members', path: [], query: ['tenantId'], success: 200 },
+  'tenants.change-edition': { method: 'POST', template: '/api/tenants/{id}:change-edition', path: ['id'], query: [], success: 200 },
   'tenants.create': { method: 'POST', template: '/api/tenants', path: [], query: [], success: 201 },
   'tenants.delete': { method: 'DELETE', template: '/api/tenants', path: [], query: ['ids'], success: 200 },
   'tenants.get': { method: 'GET', template: '/api/tenants/{id}', path: ['id'], query: [], success: 200 },
@@ -94,6 +101,16 @@ export const departments = {
   move: (request: RequestOf<'departments.move'>, options?: CallOptions) => invoke<RequestOf<'departments.move'>, ResponseOf<'departments.move'>>('departments.move', routes['departments.move'], request, options),
   tree: (request: RequestOf<'departments.tree'>, options?: CallOptions) => invoke<RequestOf<'departments.tree'>, ResponseOf<'departments.tree'>>('departments.tree', routes['departments.tree'], request, options),
   update: (request: RequestOf<'departments.update'>, options?: CallOptions) => invoke<RequestOf<'departments.update'>, ResponseOf<'departments.update'>>('departments.update', routes['departments.update'], request, options),
+}
+
+/** 资源 `editions` 的操作。 */
+export const editions = {
+  create: (request: RequestOf<'editions.create'>, options?: CallOptions) => invoke<RequestOf<'editions.create'>, ResponseOf<'editions.create'>>('editions.create', routes['editions.create'], request, options),
+  delete: (request: RequestOf<'editions.delete'>, options?: CallOptions) => invoke<RequestOf<'editions.delete'>, ResponseOf<'editions.delete'>>('editions.delete', routes['editions.delete'], request, options),
+  get: (request: RequestOf<'editions.get'>, options?: CallOptions) => invoke<RequestOf<'editions.get'>, ResponseOf<'editions.get'>>('editions.get', routes['editions.get'], request, options),
+  list: (request: RequestOf<'editions.list'>, options?: CallOptions) => invoke<RequestOf<'editions.list'>, ResponseOf<'editions.list'>>('editions.list', routes['editions.list'], request, options),
+  setPermissions: (request: RequestOf<'editions.set-permissions'>, options?: CallOptions) => invoke<RequestOf<'editions.set-permissions'>, ResponseOf<'editions.set-permissions'>>('editions.set-permissions', routes['editions.set-permissions'], request, options),
+  update: (request: RequestOf<'editions.update'>, options?: CallOptions) => invoke<RequestOf<'editions.update'>, ResponseOf<'editions.update'>>('editions.update', routes['editions.update'], request, options),
 }
 
 /** 资源 `impersonation` 的操作。 */
@@ -154,6 +171,7 @@ export const tenantMembers = {
 
 /** 资源 `tenants` 的操作。 */
 export const tenants = {
+  changeEdition: (request: RequestOf<'tenants.change-edition'>, options?: CallOptions) => invoke<RequestOf<'tenants.change-edition'>, ResponseOf<'tenants.change-edition'>>('tenants.change-edition', routes['tenants.change-edition'], request, options),
   create: (request: RequestOf<'tenants.create'>, options?: CallOptions) => invoke<RequestOf<'tenants.create'>, ResponseOf<'tenants.create'>>('tenants.create', routes['tenants.create'], request, options),
   delete: (request: RequestOf<'tenants.delete'>, options?: CallOptions) => invoke<RequestOf<'tenants.delete'>, ResponseOf<'tenants.delete'>>('tenants.delete', routes['tenants.delete'], request, options),
   get: (request: RequestOf<'tenants.get'>, options?: CallOptions) => invoke<RequestOf<'tenants.get'>, ResponseOf<'tenants.get'>>('tenants.get', routes['tenants.get'], request, options),

@@ -14,6 +14,7 @@ const columns = [
   { id: 'tenantId', label: 'tenancy.tenants.fields.tenant_id' },
   { id: 'name', label: 'tenancy.tenants.fields.name' },
   { id: 'status', label: 'tenancy.tenants.fields.status' },
+  { id: 'edition', label: 'tenancy.tenants.fields.edition' },
   { id: 'admin', label: 'tenancy.tenants.fields.admin' },
   { id: 'expiresAt', label: 'tenancy.tenants.fields.expires_at' },
   { id: 'createdAt', label: 'tenancy.tenants.fields.created_at' },
@@ -21,6 +22,8 @@ const columns = [
 
 onMounted(() => {
   void page.load()
+  if (auth.can('tenancy.editions.read'))
+    void page.loadEditions()
 })
 
 function formatTime(value: string | null | undefined): string {
@@ -41,7 +44,7 @@ function statusLabel(status: 'Active' | 'Suspended'): string {
     </XhPageHeaderRoot>
 
     <!-- 开通：按钮即操作，门控用操作的权限码；校验以后端为准，字段级 errors 落到对应字段 -->
-    <form v-if="auth.can('tenancy.tenants.create')" class="grid gap-3 rounded-surface border border-border bg-surface p-4 md:grid-cols-5" data-testid="create-tenant" novalidate @submit.prevent="page.submit()">
+    <form v-if="auth.can('tenancy.tenants.create')" class="grid gap-3 rounded-surface border border-border bg-surface p-4 md:grid-cols-6" data-testid="create-tenant" novalidate @submit.prevent="page.submit()">
       <XhFieldRoot :label="t('tenancy.tenants.fields.tenant_id')" :error-text="page.fieldError('tenantId')" :invalid="!!page.fieldError('tenantId')" required>
         <template #control>
           <XhTextFieldRoot v-model:value="page.form.tenantId" name="tenantId" autocomplete="off" />
@@ -62,6 +65,17 @@ function statusLabel(status: 'Active' | 'Suspended'): string {
           <XhNumberFieldRoot v-model:value="page.form.order" name="order" :step="1" />
         </template>
       </XhFieldRoot>
+      <label class="flex flex-col gap-1 text-caption text-fg-muted" for="create-tenant-edition">
+        {{ t('tenancy.tenants.fields.edition') }}
+        <select id="create-tenant-edition" v-model="page.form.editionId" name="editionId" class="rounded-control border border-border bg-surface px-2 py-1 text-body text-fg">
+          <option value="">
+            {{ t('tenancy.tenants.edition_default') }}
+          </option>
+          <option v-for="edition in page.editions.value" :key="edition.id" :value="edition.id">
+            {{ edition.name }}
+          </option>
+        </select>
+      </label>
       <div class="flex items-end gap-2">
         <XhButton type="submit" variant="solid" :loading="page.submitting.value" :disabled="page.submitting.value">
           {{ t('tenancy.tenants.actions.create') }}
@@ -70,7 +84,7 @@ function statusLabel(status: 'Active' | 'Suspended'): string {
           {{ t('common.actions.refresh') }}
         </XhButton>
       </div>
-      <p v-if="page.submitError.value" class="text-caption text-fg-danger md:col-span-5" role="alert">
+      <p v-if="page.submitError.value" class="text-caption text-fg-danger md:col-span-6" role="alert">
         {{ page.submitError.value }}
       </p>
     </form>
@@ -107,6 +121,9 @@ function statusLabel(status: 'Active' | 'Suspended'): string {
               </XhTableCell>
               <XhTableCell value="status">
                 <span :class="row.status === 'Suspended' ? 'text-fg-danger' : ''">{{ statusLabel(row.status) }}</span>
+              </XhTableCell>
+              <XhTableCell value="edition">
+                {{ page.editionName(row.editionId) ?? t('tenancy.tenants.edition_unrestricted') }}
               </XhTableCell>
               <XhTableCell value="admin">
                 {{ row.adminUserId ? '✓' : t('tenancy.tenants.no_admin') }}
@@ -163,6 +180,35 @@ function statusLabel(status: 'Active' | 'Suspended'): string {
         <p v-if="page.notice.value === 'admin_created'" class="text-caption text-fg-success" role="status">
           {{ t('tenancy.tenants.admin_created') }}
         </p>
+        <p v-if="page.notice.value === 'edition_changed'" class="text-caption text-fg-success" role="status">
+          {{ t('tenancy.tenants.edition_changed') }}
+        </p>
+
+        <!-- 套餐：有效权限与白名单求交；空选即不受套餐限制（显式选择） -->
+        <div class="flex flex-col gap-2" data-testid="tenant-edition">
+          <h3 class="text-body font-semibold">
+            {{ t('tenancy.tenants.sections.edition') }}
+          </h3>
+          <p class="text-caption text-fg-muted">
+            {{ t('tenancy.tenants.edition_hint') }}
+          </p>
+          <div class="flex flex-wrap items-end gap-2">
+            <label class="flex flex-col gap-1 text-caption text-fg-muted" for="tenant-edition">
+              {{ t('tenancy.tenants.fields.edition') }}
+              <select id="tenant-edition" v-model="page.editionDraft.value" class="rounded-control border border-border bg-surface px-2 py-1 text-body text-fg" :disabled="!auth.can('tenancy.tenants.update') || page.working.value">
+                <option value="">
+                  {{ t('tenancy.tenants.edition_unrestricted') }}
+                </option>
+                <option v-for="edition in page.editions.value" :key="edition.id" :value="edition.id">
+                  {{ edition.name }}
+                </option>
+              </select>
+            </label>
+            <XhButton v-if="auth.can('tenancy.tenants.update')" size="sm" variant="solid" :disabled="page.working.value || page.editionDraft.value === (page.selected.value.tenant.editionId ?? '')" @click="page.changeEdition()">
+              {{ t('tenancy.tenants.actions.change_edition') }}
+            </XhButton>
+          </div>
+        </div>
 
         <form class="flex flex-col gap-2" data-testid="edit-tenant" novalidate @submit.prevent="page.save()">
           <h3 class="text-body font-semibold">
