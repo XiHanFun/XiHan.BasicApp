@@ -11,13 +11,14 @@ const { t, te } = useI18n()
 const auth = useAuthStore()
 const page = useMenus()
 
+// 手写结构的表格每一行各自伸缩：列宽基准写在 width 里，表头与各行才按同一基准分剩余空间；不写就按各格内容定基准，整列对不齐
 const columns = [
-  { id: 'title', label: 'access.menus.fields.title' },
-  { id: 'kind', label: 'access.menus.fields.kind' },
-  { id: 'target', label: 'access.menus.fields.target' },
-  { id: 'permission', label: 'access.menus.fields.permission' },
-  { id: 'order', label: 'access.menus.fields.order' },
-  { id: 'state', label: 'access.menus.fields.state' },
+  { id: 'title', label: 'access.menus.fields.title', width: '7rem' },
+  { id: 'kind', label: 'access.menus.fields.kind', width: '4rem' },
+  { id: 'target', label: 'access.menus.fields.target', width: '10rem' },
+  { id: 'permission', label: 'access.menus.fields.permission', width: '11rem' },
+  { id: 'order', label: 'access.menus.fields.order', width: '4rem' },
+  { id: 'state', label: 'access.menus.fields.state', width: '5rem' },
 ] as const
 
 onMounted(() => {
@@ -123,9 +124,9 @@ function registeredTitle(node: MenuRow): string {
       {{ page.listError.value }}
     </p>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
       <XhTableRoot
-        :columns="columns.map(c => ({ id: c.id, label: t(c.label) }))"
+        :columns="columns.map(c => ({ ...c, label: t(c.label) }))"
         :rows="page.flat.value.map(row => ({ id: row.node.id }))"
         :loading="page.loading.value"
         size="sm"
