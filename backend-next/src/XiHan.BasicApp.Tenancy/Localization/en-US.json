@@ -1,5 +1,5 @@
 {
-  "tenants.create.description": "Provision a tenant: write the tenant and register it (enabled) in the tenant directory; the administrator is created with tenants.initialize-admin. Platform side only; requires tenancy.tenants.create.",
+  "tenants.create.description": "Provision a tenant: write the tenant and register it (enabled) in the tenant directory; the administrator is created with tenants.initialize-admin. Platform side only; requires tenancy.tenants.create. Without an edition the default edition applies (an error if there is none).",
   "tenants.get.description": "Get a tenant with its administrator's user name and user count. Requires tenancy.tenants.read.",
   "tenants.list.description": "List tenants with paging, filters, keyword and sorting. Requires tenancy.tenants.read.",
   "tenants.update.description": "Update a tenant's name, description, expiry and order; the name is mirrored to the directory. Requires tenancy.tenants.update.",
@@ -22,5 +22,17 @@
   "tenant_members.delete.description": "Remove tenant members in batch; they can no longer switch into the tenant. Platform side only; requires tenancy.tenant-members.delete.",
   "tenancy.member.exists": "User '{userId}' is already a member of tenant '{tenantId}' (or it is their home tenant).",
   "tenancy.member.not_found": "Member '{id}' does not exist.",
-  "tenancy.member.user_not_found": "User '{userId}' does not exist."
+  "tenancy.member.user_not_found": "User '{userId}' does not exist.",
+  "editions.list.description": "List every edition (by order, then code) with its whitelist size and the number of tenants on it. Platform side only; requires tenancy.editions.read.",
+  "editions.get.description": "Get an edition with its permission whitelist. Requires tenancy.editions.read.",
+  "editions.create.description": "Create an edition with an initial whitelist (tenant-side permissions only); it can become the default edition for new tenants. Requires tenancy.editions.create.",
+  "editions.update.description": "Update an edition's name, description, default flag and order; the code cannot change. Requires tenancy.editions.update.",
+  "editions.set_permissions.description": "Replace an edition's permission whitelist; the effective permissions of tenants on it narrow or widen immediately. Requires tenancy.editions.update.",
+  "editions.delete.description": "Delete editions and their whitelists in batch; editions still used by tenants are rejected item by item. Requires tenancy.editions.delete.",
+  "tenants.change_edition.description": "Move a tenant to another edition, or lift edition limits; its users' effective permissions follow the new whitelist immediately. Requires tenancy.tenants.update.",
+  "tenancy.edition.not_found": "Edition '{id}' does not exist.",
+  "tenancy.edition.code_taken": "Edition code '{code}' is already taken.",
+  "tenancy.edition.in_use": "Edition '{code}' is still used by tenants and cannot be deleted.",
+  "tenancy.edition.permission_invalid": "Permission '{code}' is not a tenant-side permission in the catalog and cannot be put into an edition.",
+  "tenancy.edition.no_default": "There is no default edition; specify one when creating a tenant."
 }

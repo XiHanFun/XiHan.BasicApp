@@ -1,5 +1,5 @@
 {
-  "tenants.create.description": "Aprovisiona un inquilino: escribe el inquilino y lo registra (habilitado) en el directorio; el administrador se crea con tenants.initialize-admin. Solo lado de plataforma; requiere tenancy.tenants.create.",
+  "tenants.create.description": "Aprovisiona un inquilino: escribe el inquilino y lo registra (habilitado) en el directorio; el administrador se crea con tenants.initialize-admin. Solo lado de plataforma; requiere tenancy.tenants.create. Sin edición se aplica la predeterminada (error si no la hay).",
   "tenants.get.description": "Obtiene un inquilino con el nombre de usuario de su administrador y el número de usuarios. Requiere tenancy.tenants.read.",
   "tenants.list.description": "Lista inquilinos con paginación, filtros, palabra clave y ordenación. Requiere tenancy.tenants.read.",
   "tenants.update.description": "Actualiza el nombre, la descripción, la caducidad y el orden de un inquilino; el nombre se refleja en el directorio. Requiere tenancy.tenants.update.",
@@ -22,5 +22,17 @@
   "tenant_members.delete.description": "Quita miembros de un inquilino por lotes; después ya no pueden cambiar a ese inquilino. Solo en el lado de la plataforma; requiere tenancy.tenant-members.delete.",
   "tenancy.member.exists": "El usuario '{userId}' ya es miembro del inquilino '{tenantId}' (o es su inquilino de origen).",
   "tenancy.member.not_found": "El miembro '{id}' no existe.",
-  "tenancy.member.user_not_found": "El usuario '{userId}' no existe."
+  "tenancy.member.user_not_found": "El usuario '{userId}' no existe.",
+  "editions.list.description": "Lista todas las ediciones (por orden y luego código) con el tamaño de su lista blanca y el número de inquilinos que la usan. Solo en el lado de la plataforma; requiere tenancy.editions.read.",
+  "editions.get.description": "Obtiene una edición con su lista blanca de permisos. Requiere tenancy.editions.read.",
+  "editions.create.description": "Crea una edición con una lista blanca inicial (solo permisos del lado del inquilino); puede ser la edición predeterminada de los nuevos inquilinos. Requiere tenancy.editions.create.",
+  "editions.update.description": "Modifica el nombre, la descripción, la marca de predeterminada y el orden de una edición; el código no cambia. Requiere tenancy.editions.update.",
+  "editions.set_permissions.description": "Sustituye la lista blanca de permisos de una edición; los permisos efectivos de los inquilinos que la usan se reducen o amplían al momento. Requiere tenancy.editions.update.",
+  "editions.delete.description": "Elimina ediciones y sus listas blancas por lotes; las que aún usan inquilinos se rechazan elemento a elemento. Requiere tenancy.editions.delete.",
+  "tenants.change_edition.description": "Cambia un inquilino a otra edición o le quita los límites de edición; los permisos efectivos de sus usuarios siguen al momento la nueva lista blanca. Requiere tenancy.tenants.update.",
+  "tenancy.edition.not_found": "La edición '{id}' no existe.",
+  "tenancy.edition.code_taken": "El código de edición '{code}' ya está en uso.",
+  "tenancy.edition.in_use": "La edición '{code}' aún la usan inquilinos y no se puede eliminar.",
+  "tenancy.edition.permission_invalid": "El permiso '{code}' no es un permiso del lado del inquilino del catálogo y no puede incluirse en una edición.",
+  "tenancy.edition.no_default": "No hay edición predeterminada; indica una al crear un inquilino."
 }

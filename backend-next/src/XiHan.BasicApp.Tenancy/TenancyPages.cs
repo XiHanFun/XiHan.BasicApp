@@ -16,7 +16,12 @@ public static class TenancyPages
     public static PageDescriptor Tenants { get; } = new("tenancy.tenants", "/tenancy/tenants", "tenancy.tenants.title", "lucide:building", 300, TenancyPermissions.TenantsRead);
 
     /// <summary>
+    /// 套餐页。
+    /// </summary>
+    public static PageDescriptor Editions { get; } = new("tenancy.editions", "/tenancy/editions", "tenancy.editions.title", "lucide:package", 310, TenancyPermissions.EditionsRead);
+
+    /// <summary>
     /// 全部顶层页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Tenants];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Tenants, Editions];
 }

@@ -19,7 +19,7 @@ namespace XiHan.BasicApp.Tenancy.Seeds;
 
 /// <summary>
 /// 演示租户种子（号段 900 + 模块偏移 10，<c>BasicApp:Seed:EnableDemoData</c> 打开才写）：租户 <c>demo</c>、它的管理员 <c>admin</c>（密码 <c>Demo@123456</c>，首次登录须改密），
-/// 以及平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿）。运营数据只首写。
+/// 以及平台超级管理员在 <c>demo</c> 的成员身份（演示切换租户与模仿）。新建时绑定企业版套餐（套餐种子在前一阶段写入；没有企业版即不绑定）。运营数据只首写。
 /// </summary>
 /// <param name="tenants">租户仓储。</param>
 /// <param name="members">成员仓储。</param>
@@ -27,6 +27,7 @@ namespace XiHan.BasicApp.Tenancy.Seeds;
 /// <param name="accounts">账号域服务。</param>
 /// <param name="initializers">租户初始化扩展（Access 实现：内建角色与指派）。</param>
 /// <param name="service">租户域服务。</param>
+/// <param name="editions">套餐域服务。</param>
 /// <param name="options">种子配置。</param>
 /// <param name="ids">标识生成器。</param>
 public sealed class DemoTenantSeeder(
@@ -36,6 +37,7 @@ public sealed class DemoTenantSeeder(
     UserAccountService accounts,
     IEnumerable<ITenantInitializer> initializers,
     TenantService service,
+    EditionService editions,
     SeedOptions options,
     IIdGenerator<Guid> ids) : ISeeder
 {
@@ -76,7 +78,16 @@ public sealed class DemoTenantSeeder(
         }
         else
         {
-            tenant = new SysTenant { Id = ids.NewId(), TenantId = DemoTenantId, Name = "Demo Tenant", Description = "Seeded when BasicApp:Seed:EnableDemoData is on.", Order = 900 };
+            var enterprise = await editions.FindByCodeAsync(EditionSeeder.Enterprise, context.CancellationToken).ConfigureAwait(false);
+            tenant = new SysTenant
+            {
+                Id = ids.NewId(),
+                TenantId = DemoTenantId,
+                Name = "Demo Tenant",
+                Description = "Seeded when BasicApp:Seed:EnableDemoData is on.",
+                Order = 900,
+                EditionId = enterprise.TryGetValue(out var edition) ? edition.Id : null,
+            };
             var added = await tenants.AddAsync(tenant, context.CancellationToken).ConfigureAwait(false);
             if (added.IsFailure)
             {

@@ -15,6 +15,7 @@ namespace XiHan.BasicApp.Tenancy.Operations.Tenants;
 /// <param name="Status">状态。</param>
 /// <param name="ExpiresAt">到期时间（UTC）。</param>
 /// <param name="AdminUserId">租户管理员；为空即未初始化。</param>
+/// <param name="EditionId">套餐；为空即不受套餐限制。</param>
 /// <param name="Order">排序号。</param>
 /// <param name="CreatedAt">创建时间（UTC）。</param>
 public sealed record TenantResponse(
@@ -25,6 +26,7 @@ public sealed record TenantResponse(
     TenantStatus Status,
     DateTimeOffset? ExpiresAt,
     Guid? AdminUserId,
+    Guid? EditionId,
     int Order,
     DateTimeOffset CreatedAt)
 {
@@ -34,6 +36,6 @@ public sealed record TenantResponse(
     public static TenantResponse From(SysTenant tenant)
     {
         ArgumentNullException.ThrowIfNull(tenant);
-        return new TenantResponse(tenant.Id, tenant.TenantId, tenant.Name, tenant.Description, tenant.Status, tenant.ExpiresAt, tenant.AdminUserId, tenant.Order, tenant.CreatedAt);
+        return new TenantResponse(tenant.Id, tenant.TenantId, tenant.Name, tenant.Description, tenant.Status, tenant.ExpiresAt, tenant.AdminUserId, tenant.EditionId, tenant.Order, tenant.CreatedAt);
     }
 }

@@ -56,6 +56,26 @@ public static class TenancyPermissions
     public const string TenantMembersDelete = "tenancy.tenant-members.delete";
 
     /// <summary>
+    /// 查看套餐：<c>editions.list / get</c>。
+    /// </summary>
+    public const string EditionsRead = "tenancy.editions.read";
+
+    /// <summary>
+    /// 新建套餐：<c>editions.create</c>。
+    /// </summary>
+    public const string EditionsCreate = "tenancy.editions.create";
+
+    /// <summary>
+    /// 修改套餐与白名单：<c>editions.update / set-permissions</c>。
+    /// </summary>
+    public const string EditionsUpdate = "tenancy.editions.update";
+
+    /// <summary>
+    /// 删除套餐：<c>editions.delete</c>。
+    /// </summary>
+    public const string EditionsDelete = "tenancy.editions.delete";
+
+    /// <summary>
     /// 全部权限描述。
     /// </summary>
     public static IReadOnlyList<PermissionDescriptor> All { get; } =
@@ -69,5 +89,9 @@ public static class TenancyPermissions
         new(TenantMembersRead, "Read tenant members", PermissionScope.Platform, description: "View which users may enter a tenant as members."),
         new(TenantMembersCreate, "Add tenant members", PermissionScope.Platform, audited: true, description: "Let a user whose home tenant is elsewhere enter a tenant."),
         new(TenantMembersDelete, "Remove tenant members", PermissionScope.Platform, audited: true, description: "Revoke a member's access to a tenant."),
+        new(EditionsRead, "Read editions", PermissionScope.Platform, description: "View editions and their permission whitelists."),
+        new(EditionsCreate, "Create editions", PermissionScope.Platform, audited: true, description: "Create editions with an initial permission whitelist."),
+        new(EditionsUpdate, "Update editions", PermissionScope.Platform, audited: true, description: "Edit editions and replace their permission whitelists; tenants on them follow immediately."),
+        new(EditionsDelete, "Delete editions", PermissionScope.Platform, audited: true, description: "Delete editions that no tenant uses."),
     ];
 }

@@ -49,6 +49,31 @@ public static class TenancyErrors
     public const string MemberExists = "TENANCY_CONFLICT_005";
 
     /// <summary>
+    /// 套餐不存在。
+    /// </summary>
+    public const string EditionNotFound = "TENANCY_NOTFOUND_004";
+
+    /// <summary>
+    /// 套餐编码已被占用。
+    /// </summary>
+    public const string EditionCodeTaken = "TENANCY_CONFLICT_006";
+
+    /// <summary>
+    /// 套餐还有租户在用，不能删除。
+    /// </summary>
+    public const string EditionInUse = "TENANCY_CONFLICT_007";
+
+    /// <summary>
+    /// 套餐白名单里有不是租户能生效的权限。
+    /// </summary>
+    public const string EditionPermissionInvalid = "TENANCY_VALIDATION_002";
+
+    /// <summary>
+    /// 开通租户没指定套餐，也没有缺省套餐。
+    /// </summary>
+    public const string NoDefaultEdition = "TENANCY_VALIDATION_003";
+
+    /// <summary>
     /// 只有平台主体能管理租户。
     /// </summary>
     public const string PlatformOnly = "TENANCY_DENIED_001";

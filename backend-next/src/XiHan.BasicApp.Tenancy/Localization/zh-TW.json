@@ -1,5 +1,5 @@
 {
-  "tenants.create.description": "開通租戶：寫入租戶並登記進租戶目錄（啟用）；管理員由 tenants.initialize-admin 初始化。只在平台側；需要 tenancy.tenants.create 權限。",
+  "tenants.create.description": "開通租戶：寫入租戶並登記進租戶目錄（啟用）；管理員由 tenants.initialize-admin 初始化。只在平台側；需要 tenancy.tenants.create 權限。未指定套餐時使用預設套餐（沒有預設套餐即報錯）。",
   "tenants.get.description": "取得租戶詳情：管理員登入名與使用者數。需要 tenancy.tenants.read 權限。",
   "tenants.list.description": "分頁列出租戶，支援篩選、關鍵字與排序。需要 tenancy.tenants.read 權限。",
   "tenants.update.description": "修改租戶的名稱、說明、到期與排序；名稱同步到目錄。需要 tenancy.tenants.update 權限。",
@@ -22,5 +22,17 @@
   "tenant_members.delete.description": "批次移除租戶成員，之後不能再切換進該租戶。只在平台側；需要 tenancy.tenant-members.delete 權限。",
   "tenancy.member.exists": "使用者 '{userId}' 已是租戶 '{tenantId}' 的成員（或註冊地就在該租戶）。",
   "tenancy.member.not_found": "成員 '{id}' 不存在。",
-  "tenancy.member.user_not_found": "使用者 '{userId}' 不存在。"
+  "tenancy.member.user_not_found": "使用者 '{userId}' 不存在。",
+  "editions.list.description": "列出全部套餐（依排序號、編碼排列），附白名單權限數與綁定租戶數。只在平台側；需要 tenancy.editions.read 權限。",
+  "editions.get.description": "取得套餐詳情與白名單。需要 tenancy.editions.read 權限。",
+  "editions.create.description": "新增套餐並給出初始白名單（只能是租戶能生效的權限）；可設為新租戶的預設套餐。需要 tenancy.editions.create 權限。",
+  "editions.update.description": "修改套餐的名稱、說明、預設標記與排序；編碼不可改。需要 tenancy.editions.update 權限。",
+  "editions.set_permissions.description": "整體替換套餐白名單；綁定該套餐的租戶的有效權限隨即依新白名單收窄或放寬。需要 tenancy.editions.update 權限。",
+  "editions.delete.description": "批次刪除套餐及其白名單；仍有租戶綁定的套餐逐項拒絕。需要 tenancy.editions.delete 權限。",
+  "tenants.change_edition.description": "替租戶更換套餐，或設為不受套餐限制；其使用者的有效權限隨即依新白名單計算。需要 tenancy.tenants.update 權限。",
+  "tenancy.edition.not_found": "套餐 '{id}' 不存在。",
+  "tenancy.edition.code_taken": "套餐編碼 '{code}' 已被佔用。",
+  "tenancy.edition.in_use": "套餐 '{code}' 仍有租戶在用，不能刪除。",
+  "tenancy.edition.permission_invalid": "權限 '{code}' 不在租戶能生效的權限目錄裡，不能放進套餐。",
+  "tenancy.edition.no_default": "沒有預設套餐，開通租戶時請指定套餐。"
 }

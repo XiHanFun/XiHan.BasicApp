@@ -1,5 +1,5 @@
 {
-  "tenants.create.description": "开通租户：写入租户并登记进租户目录（启用）；管理员由 tenants.initialize-admin 初始化。只在平台侧；需要 tenancy.tenants.create 权限。",
+  "tenants.create.description": "开通租户：写入租户并登记进租户目录（启用）；管理员由 tenants.initialize-admin 初始化。只在平台侧；需要 tenancy.tenants.create 权限。不指定套餐时用缺省套餐（没有缺省套餐即报错）。",
   "tenants.get.description": "取租户详情：管理员登录名与用户数。需要 tenancy.tenants.read 权限。",
   "tenants.list.description": "分页列出租户，支持筛选、关键字与排序。需要 tenancy.tenants.read 权限。",
   "tenants.update.description": "修改租户的名称、说明、到期与排序；名称同步到目录。需要 tenancy.tenants.update 权限。",
@@ -22,5 +22,17 @@
   "tenant_members.delete.description": "批量移除租户成员，之后不能再切换进该租户。只在平台侧；需要 tenancy.tenant-members.delete 权限。",
   "tenancy.member.exists": "用户 '{userId}' 已是租户 '{tenantId}' 的成员（或注册地就在该租户）。",
   "tenancy.member.not_found": "成员 '{id}' 不存在。",
-  "tenancy.member.user_not_found": "用户 '{userId}' 不存在。"
+  "tenancy.member.user_not_found": "用户 '{userId}' 不存在。",
+  "editions.list.description": "列出全部套餐（按排序号、编码排列），带白名单权限数与绑定租户数。只在平台侧；需要 tenancy.editions.read 权限。",
+  "editions.get.description": "取套餐详情与白名单。需要 tenancy.editions.read 权限。",
+  "editions.create.description": "新建套餐并给出初始白名单（只能是租户能生效的权限）；可设为新租户的缺省套餐。需要 tenancy.editions.create 权限。",
+  "editions.update.description": "修改套餐的名称、说明、缺省标记与排序；编码不可改。需要 tenancy.editions.update 权限。",
+  "editions.set_permissions.description": "整体替换套餐白名单；绑定该套餐的租户的有效权限随即按新白名单收窄或放宽。需要 tenancy.editions.update 权限。",
+  "editions.delete.description": "批量删除套餐及其白名单；还有租户绑定的套餐逐项拒绝。需要 tenancy.editions.delete 权限。",
+  "tenants.change_edition.description": "给租户换套餐，或设为不受套餐限制；其用户的有效权限随即按新白名单计算。需要 tenancy.tenants.update 权限。",
+  "tenancy.edition.not_found": "套餐 '{id}' 不存在。",
+  "tenancy.edition.code_taken": "套餐编码 '{code}' 已被占用。",
+  "tenancy.edition.in_use": "套餐 '{code}' 还有租户在用，不能删除。",
+  "tenancy.edition.permission_invalid": "权限 '{code}' 不在租户能生效的权限目录里，不能放进套餐。",
+  "tenancy.edition.no_default": "没有缺省套餐，开通租户时请指定套餐。"
 }
