@@ -17,3 +17,5 @@ Tier 0 基座：把框架的持久化、租户与管道接到 BasicApp 的约定
 ```
 
 数据库是启动硬要求：绑定缺失以 `RUNTIME_VALIDATION_001` 中断启动，不回退到任何内存实现。
+
+建表时没写长度与类型的字符串列一律 `varchar(512)`（`SqlSugarRuntime.DefaultStringLength`）；写了 `[LongText]` / `[StringLength]` / `[MaxLength]` 的列交给框架约定（长文本或声明的长度），集成测试 `PersistenceMappingTests` 守住。
