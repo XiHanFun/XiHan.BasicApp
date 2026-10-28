@@ -39,7 +39,8 @@ public static class SqlSugarRuntime
         config.ConfigureExternalServices ??= new ConfigureExternalServices();
         config.ConfigureExternalServices.EntityNameService = ApplyTableName;
         config.ConfigureExternalServices.EntityService = ApplyColumnName;
-        config.AopEvents = new AopEvents { DataExecuting = AuditorStamp.OnDataExecuting };
+        // 差异日志只对宿主按 DiffLogBuffer.IsLogged 开启的实体触发（SqlSugarPersistenceFeature.DiffLog）
+        config.AopEvents = new AopEvents { DataExecuting = AuditorStamp.OnDataExecuting, OnDiffLogEvent = DiffLogBuffer.OnDiffLog };
     }
 
     private static void ApplyTableName(Type type, EntityInfo entity)

@@ -10,6 +10,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// 用户设置（平台库实体，跟着账号走，不分租户）：按（用户, 场景, 设置键）存一段 JSON，供前端跨端同步偏好、收藏与页面设置。
 /// 后端不解释 <see cref="Value"/> 的语义，由前端按版本兼容解析；同一键整体覆盖写入。
 /// </summary>
+[DiffLogIgnored]
 public sealed class SysUserSetting : AppAuditedEntity
 {
     /// <summary>

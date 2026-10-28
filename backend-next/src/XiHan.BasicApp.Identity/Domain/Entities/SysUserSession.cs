@@ -8,6 +8,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// <summary>
 /// 登录会话（平台库，表 <c>sys_user_session</c>）：会话 ID 即访问令牌的 <c>sid</c> 声明，刷新令牌不透明、只存散列。吊销即置 <see cref="RevokedAt"/>，由会话门禁在 Authenticate 阶段拒绝。
 /// </summary>
+[DiffLogIgnored]
 public sealed class SysUserSession : AppAuditedEntity
 {
     /// <summary>

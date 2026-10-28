@@ -8,13 +8,16 @@ using XiHan.BasicApp.Auditing.Domain.Entities;
 using XiHan.BasicApp.Auditing.Domain.Services;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
+using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Auditing.Abstractions.Pipeline;
+using XiHan.Framework.Hosting.AspNetCore;
 using XiHan.Framework.Kernel;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Pipeline;
 using XiHan.Framework.Localization.Abstractions.Messages;
 using XiHan.Framework.Persistence.Abstractions.Identifiers;
 using XiHan.Framework.Primitives;
+using XiHan.Framework.Protocols.Http.Routing;
 using XiHan.Framework.Security.Abstractions;
 
 namespace XiHan.BasicApp.Auditing.Middleware;
@@ -22,7 +25,8 @@ namespace XiHan.BasicApp.Auditing.Middleware;
 /// <summary>
 /// Observe 阶段的审计日志中间件，排在框架 <c>AuditMiddleware</c> 里面：
 /// 调用开始前对标了审计的操作显式声明审计动作（操作日志）；调用结束后补上耗时、登录名与会话等细节（框架随即把操作审计落库），
-/// 再按最终结果写访问日志、异常日志，以及调用里登记的登录日志与权限变更日志（只在成功时记）。日志只进有界队列，不影响调用结果。
+/// 再按最终结果写访问日志、异常日志、调用里登记的登录日志与权限变更日志（只在成功时记），以及仓储写入的数据变更（只在成功时记）。
+/// 客户端地址、User-Agent、协议与请求目标取调用来源（ADR-0043）。日志只进有界队列，不影响调用结果。
 /// </summary>
 /// <param name="queue">日志队列。</param>
 /// <param name="options">日志选项。</param>
@@ -68,6 +72,9 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
         var occurredAt = clock.GetUtcNow().UtcDateTime;
         var outcome = OutcomeOf(context, thrown);
         var caller = AuditCaller.From(context);
+        var origin = context.GetOrigin().TryGetValue(out var source) ? source : null;
+        var (method, path) = TargetOf(origin);
+        var agent = UserAgentInfo.Parse(origin?.UserAgent);
 
         // 操作审计的细节：框架的审计中间件在本中间件返回之后才写事件
         if (context.GetAuditAction().HasValue)
@@ -82,12 +89,20 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
             var access = new SysAccessLog
             {
                 OperationId = operation.Id,
+                Protocol = Clip(origin?.Protocol, 16),
+                Method = Clip(method, 16),
+                Path = Clip(path, 512),
                 Result = ResultOf(outcome),
+                StatusCode = origin?.Protocol == InvocationProtocols.Http ? StatusCodeOf(operation, outcome) : null,
                 ErrorCode = outcome.Error?.Code,
                 ErrorMessage = MessageOf(context, outcome),
                 DurationMs = durationMs,
+                Browser = agent.Browser,
+                Os = agent.Os,
+                Device = agent.Device,
+                Referer = Clip(origin?.Referer, 1024),
             };
-            Enqueue(access, caller, context, occurredAt);
+            Enqueue(access, caller, origin, context, occurredAt);
         }
 
         if (thrown is not null and not OperationCanceledException)
@@ -95,6 +110,9 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
             var failure = new SysExceptionLog
             {
                 OperationId = operation?.Id,
+                Protocol = Clip(origin?.Protocol, 16),
+                Method = Clip(method, 16),
+                Path = Clip(path, 512),
                 ExceptionType = Clip(thrown.GetType().FullName ?? thrown.GetType().Name, 256)!,
                 Message = thrown.Message,
                 StackTrace = thrown.ToString(),
@@ -104,7 +122,7 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
                 EnvironmentName = Clip(_environmentName, 64),
                 AppVersion = AppInfo.Version,
             };
-            Enqueue(failure, caller, context, occurredAt);
+            Enqueue(failure, caller, origin, context, occurredAt);
         }
 
         foreach (var entry in context.GetAuditLogs())
@@ -122,6 +140,9 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
                         AccountTenantId = Clip(login.AccountTenantId, 64),
                         ImpersonatorUserId = login.ImpersonatorUserId,
                         Detail = Clip(login.Detail, 512),
+                        Browser = agent.Browser,
+                        Os = agent.Os,
+                        Device = agent.Device,
                     };
                     Enqueue(log, caller with
                     {
@@ -129,7 +150,7 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
                         UserId = login.UserId ?? caller.UserId,
                         UserName = login.UserName ?? caller.UserName,
                         SessionId = login.SessionId ?? caller.SessionId,
-                    }, context, occurredAt);
+                    }, origin, context, occurredAt);
                     break;
                 case PermissionChangeLogEntry change when outcome.IsSuccess:
                     var changed = new SysPermissionChangeLog
@@ -145,15 +166,30 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
                         PermissionCodes = change.PermissionCodes.Count == 0 ? null : string.Join(',', change.PermissionCodes),
                         Detail = Clip(change.Detail, 512),
                     };
-                    Enqueue(changed, caller with { TenantId = change.TenantId ?? caller.TenantId }, context, occurredAt);
+                    Enqueue(changed, caller with { TenantId = change.TenantId ?? caller.TenantId }, origin, context, occurredAt);
                     break;
+            }
+        }
+
+        // 数据变更：只记操作调用、且调用成功的（失败的已回滚）；作业与种子的写入不记。缓冲每次都取空，不留给同一作用域的下一次调用
+        if (context.Services.GetService<DiffLogBuffer>() is { } buffer)
+        {
+            var changes = buffer.Drain();
+            if (operation is not null && outcome.IsSuccess)
+            {
+                foreach (var diff in changes.SelectMany(model => DiffLogRows.From(model, operation.Id)))
+                {
+                    Enqueue(diff, caller, origin, context, occurredAt);
+                }
             }
         }
     }
 
-    private void Enqueue(AuditLogRecord record, AuditCaller caller, InvocationContext context, DateTime occurredAt)
+    private void Enqueue(AuditLogRecord record, AuditCaller caller, InvocationOrigin? origin, InvocationContext context, DateTime occurredAt)
     {
         caller.Stamp(record);
+        record.ClientIp = Clip(origin?.RemoteAddress, 64);
+        record.UserAgent = Clip(origin?.UserAgent, 512);
         record.Id = ids.NewId();
         record.OccurredAt = occurredAt;
         record.TraceId = context.TraceId;
@@ -198,6 +234,30 @@ public sealed class AuditLogMiddleware(AuditLogWriter queue, AuditLogOptions opt
             _ => AccessResult.ServerError,
         };
     }
+
+    /// <summary>
+    /// 请求目标拆成方法与路径：HTTP 的目标是「方法 路径」，其他协议（gRPC 方法全名、MCP 工具名、作业名…）整段当路径。
+    /// </summary>
+    private static (string? Method, string? Path) TargetOf(InvocationOrigin? origin)
+    {
+        if (origin is null)
+        {
+            return (null, null);
+        }
+
+        if (origin.Protocol == InvocationProtocols.Http && origin.Target.IndexOf(' ', StringComparison.Ordinal) is var space and > 0)
+        {
+            return (origin.Target[..space], origin.Target[(space + 1)..]);
+        }
+
+        return (null, origin.Target);
+    }
+
+    /// <summary>
+    /// HTTP 状态码：按框架 HTTP 适配器的同一套映射推出（成功取操作的成功状态，失败按错误类别），不另写一份规则。
+    /// </summary>
+    private static int StatusCodeOf(OperationDescriptor operation, Result outcome)
+        => outcome.IsSuccess ? HttpRouteConvention.SuccessStatusCode(operation.Contract) : ProblemResponse.StatusCodeFor(outcome.Error!);
 
     private static string? MessageOf(InvocationContext context, Result outcome)
         => outcome.IsFailure ? Clip(context.Localize(outcome.Error!), 1024) : null;

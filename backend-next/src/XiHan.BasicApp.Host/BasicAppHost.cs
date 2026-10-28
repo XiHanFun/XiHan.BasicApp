@@ -52,8 +52,8 @@ public static class BasicAppHost
         {
             xihan
             .UseFullProfile()
-            // 方式一：回调设库类型、连接串、AopEvents（操作人）与 snake_case 命名；协议约定由框架随后施加
-            .UseFeature(new SqlSugarPersistenceFeature(SqlSugarRuntime.Configure))
+            // 方式一：回调设库类型、连接串、AopEvents（操作人、差异日志）与 snake_case 命名；协议约定由框架随后施加。全审计实体的写入带差异日志（ADR-0044）
+            .UseFeature(new SqlSugarPersistenceFeature(SqlSugarRuntime.Configure) { DiffLog = DiffLogBuffer.IsLogged })
             .UseFeature<JwtSecurityFeature>()
             .UseFeature<DatabaseMultiTenancyFeature>()
             .UseFeature<DatabaseSecurityFeature>()

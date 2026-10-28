@@ -8,6 +8,7 @@ namespace XiHan.BasicApp.Identity.Domain.Entities;
 /// <summary>
 /// 账号安全（平台库，表 <c>sys_user_security</c>，与用户一对一）：密码散列、失败计数与锁定、安全戳。与用户资料分开，列表与详情永远碰不到散列。
 /// </summary>
+[DiffLogIgnored]
 public sealed class SysUserSecurity : AppAuditedEntity
 {
     /// <summary>

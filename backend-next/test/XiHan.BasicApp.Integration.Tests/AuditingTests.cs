@@ -9,6 +9,7 @@ using XiHan.BasicApp.Auditing.Domain.Services;
 using XiHan.BasicApp.Auditing.Jobs;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Auditing;
+using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.Framework.Auditing.Database.Trail;
 using XiHan.Framework.Kernel.Diagnostics;
@@ -97,6 +98,62 @@ public sealed class AuditingTests : IDisposable
         var (hidden, hiddenBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/operation-logs/{provision.GetProperty("id").GetString()}", token: tenant));
         Assert.Equal(HttpStatusCode.NotFound, hidden.StatusCode);
         Assert.Equal("AUDITING_NOTFOUND_001", hiddenBody.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Logs_CarryTheInvocationOrigin_AndDataChangesKeepBeforeAndAfter()
+    {
+        var (server, platform, _) = await SettingsTestHost.StartAsync(_database.ConnectionString);
+        await using var running = server;
+        const string chrome = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36";
+
+        // 带 User-Agent 的登录：登录日志与访问日志解析出浏览器和系统，会话记下客户端信息
+        var signIn = BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", """{"userName":"superadmin","password":"SuperAdmin@123"}""");
+        signIn.Headers.UserAgent.ParseAdd(chrome);
+        var (signedIn, signedInBody) = await server.SendAsync(signIn);
+        Assert.Equal(HttpStatusCode.OK, signedIn.StatusCode);
+        var sessionId = Guid.Parse(signedInBody.GetProperty("sessionId").GetString()!);
+        var session = await SettingsTestHost.InvokeAsync(server, null, async ctx => (await ctx.Services.GetRequiredService<IRepository<SysUserSession, Guid>>().FindAsync(sessionId, ctx.CancellationToken)).ValueOrThrow());
+        Assert.Equal(chrome, session.ClientInfo);
+
+        // 数据变更：新建与修改各一条，修改带前后值与变化的列；失败的修改（值不合数据类型）不记
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/configs", """{"key":"demo.limit","name":"Limit","dataType":"Number","value":"10"}""", platform));
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+        var configId = createdBody.GetProperty("id").GetString()!;
+        var (updated, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{configId}", """{"name":"Limit","dataType":"Number","value":"20"}""", platform));
+        Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
+        var (rejected, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/configs/{configId}", """{"name":"Limit","dataType":"Number","value":"lots"}""", platform));
+        Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+        await FlushAsync(server);
+
+        var logins = await ListAsync(server, "login-logs", platform);
+        var login = Assert.Single(logins, l => l.GetProperty("sessionId").GetString() == sessionId.ToString("D"));
+        Assert.Equal(("Chrome", "Windows", "Desktop"), (login.GetProperty("browser").GetString(), login.GetProperty("os").GetString(), login.GetProperty("device").GetString()));
+        Assert.Equal(chrome, login.GetProperty("userAgent").GetString());
+
+        // 访问日志：HTTP 调用带协议、方法、路径（不含查询串）与状态码，状态码与 HTTP 响应一致
+        var access = await ListAsync(server, "access-logs", platform);
+        var create = Assert.Single(access, a => a.GetProperty("operationId").GetString() == "configs.create");
+        Assert.Equal(("http", "POST", "/api/configs", 201), (create.GetProperty("protocol").GetString(), create.GetProperty("method").GetString(), create.GetProperty("path").GetString(), create.GetProperty("statusCode").GetInt32()));
+        var failed = Assert.Single(access, a => a.GetProperty("operationId").GetString() == "configs.update" && a.GetProperty("result").GetString() == "Failed");
+        Assert.Equal(400, failed.GetProperty("statusCode").GetInt32());
+        Assert.Equal($"/api/configs/{configId}", failed.GetProperty("path").GetString());
+
+        var diffs = await ListAsync(server, "diff-logs", platform, """{"filters":[{"field":"entityType","operator":"contains","value":"SysConfig"}],"sorts":[{"field":"occurredAt"}]}""");
+        Assert.Equal(["Insert", "Update"], diffs.Select(static d => d.GetProperty("kind").GetString()).ToList());
+        Assert.All(diffs, d => Assert.Equal(configId, d.GetProperty("entityId").GetString(), ignoreCase: true));
+        Assert.Contains("value", diffs[1].GetProperty("changedFields").GetString()!.Split(','));
+        var (detail, detailBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/diff-logs/{diffs[1].GetProperty("id").GetString()}", token: platform));
+        Assert.Equal(HttpStatusCode.OK, detail.StatusCode);
+        Assert.Equal("10", JsonDocument.Parse(detailBody.GetProperty("before").GetString()!).RootElement.GetProperty("value").GetString());
+        Assert.Equal("20", JsonDocument.Parse(detailBody.GetProperty("after").GetString()!).RootElement.GetProperty("value").GetString());
+        Assert.Equal("configs.update", diffs[1].GetProperty("operationId").GetString());
+
+        // 登录只改了最后登录时间（随写入就变的列）：不算数据变更；会话与账号安全标了不记，开通管理员新建的用户照记
+        var allDiffs = await ListAsync(server, "diff-logs", platform);
+        Assert.DoesNotContain(allDiffs, d => d.GetProperty("operationId").GetString() == "auth.login");
+        Assert.DoesNotContain(allDiffs, d => d.GetProperty("entityType").GetString()!.EndsWith(".SysUserSession", StringComparison.Ordinal));
+        Assert.Contains(allDiffs, d => d.GetProperty("entityType").GetString()!.EndsWith(".SysUser", StringComparison.Ordinal) && d.GetProperty("kind").GetString() == "Insert" && d.GetProperty("operationId").GetString() == "tenants.initialize-admin");
     }
 
     [Fact]
