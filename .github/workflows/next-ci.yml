@@ -46,9 +46,15 @@ jobs:
         with:
           path: XiHan.BasicApp
 
+      # props 锁的是短 SHA；actions/checkout 只把 40 位 SHA 当提交，短 SHA 会被当成分支名去取而失败，所以先经 GitHub API 换成完整 SHA（取不到即失败）
       - name: 读取锁定的框架提交
         id: framework
-        run: echo "commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend-next/props/framework.props)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          short=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend-next/props/framework.props)
+          sha=$(gh api "repos/XiHanFun/XiHan.Framework/commits/$short" --jq .sha)
+          echo "commit=$sha" >> "$GITHUB_OUTPUT"
 
       # 同级目录 XiHan.Framework：props/framework.props 的缺省 ProjectReference 路径；检出锁定的提交，Architecture.Tests 核对 HEAD
       - name: 检出 XiHan.Framework（锁定提交）
@@ -92,9 +98,15 @@ jobs:
         with:
           path: XiHan.BasicApp
 
+      # props 锁的是短 SHA；actions/checkout 只把 40 位 SHA 当提交，短 SHA 会被当成分支名去取而失败，所以先经 GitHub API 换成完整 SHA（取不到即失败）
       - name: 读取锁定的框架提交
         id: framework
-        run: echo "commit=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend-next/props/framework.props)" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          short=$(grep -oP '(?<=<XiHanFrameworkCommit>)[0-9a-f]+' XiHan.BasicApp/backend-next/props/framework.props)
+          sha=$(gh api "repos/XiHanFun/XiHan.Framework/commits/$short" --jq .sha)
+          echo "commit=$sha" >> "$GITHUB_OUTPUT"
 
       - name: 检出 XiHan.Framework（锁定提交）
         uses: actions/checkout@v7
