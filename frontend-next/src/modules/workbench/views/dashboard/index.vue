@@ -1,0 +1,443 @@
+<script setup lang="ts">
+import type { BoardItem } from './components'
+import { XhButton, XhDrawerCloseTrigger, XhDrawerContent, XhDrawerRoot, XhDrawerTitle, XhEmptyStateAction, XhEmptyStateDescription, XhEmptyStateIndicator, XhEmptyStateRoot, XhEmptyStateTitle, XhPopoverContent, XhPopoverPositioner, XhPopoverRoot, XhPopoverTrigger, XhSortableItem, XhSortableItemDragTrigger, XhSortableLiveRegion, XhSortableRoot } from '@xihan-ui/vue'
+import { computed, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { usePermission } from '~/hooks'
+import { Icon } from '~/iconify'
+import { DEFAULT_BOARD, WIDGET_MAP, WIDGETS } from './components'
+
+defineOptions({ name: 'WorkbenchDashboardPage' })
+
+const GRID_COLS = 12
+const MIN_SPAN = 1
+// 尺寸选项：12 等分全部列宽（1/12…1/1），边缘拖拽实时吸附到最近的一档（每一档都吸）
+const SIZE_OPTIONS = Array.from({ length: GRID_COLS - MIN_SPAN + 1 }, (_, i) => MIN_SPAN + i)
+
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b)
+}
+// 用最简分数 x/x 表示宽度（占整行比例）：3/12→1/4、5/12→5/12、12/12→1/1
+function spanLabel(span: number): string {
+  const g = gcd(span, GRID_COLS)
+  return `${span / g}/${GRID_COLS / g}`
+}
+
+const { t } = useI18n()
+const { hasPermission } = usePermission()
+// 看板布局存在本机（键沿用 4.x）；跨端同步要等 6.0 的用户设置后端，接上前不显示同步徽标
+
+// 小组件是否对当前用户可见：未声明权限码则人人可见，声明则按权限码门控
+function canShow(key: string): boolean {
+  const def = WIDGET_MAP[key]
+  return !!def && (!def.permission || hasPermission(def.permission))
+}
+function clampSpan(span: number) {
+  if (!Number.isFinite(span))
+    return 6
+  return Math.min(GRID_COLS, Math.max(MIN_SPAN, Math.round(span)))
+}
+function sanitize(items: BoardItem[]): BoardItem[] {
+  return items.filter(item => canShow(item.key)).map(item => ({ key: item.key, span: clampSpan(item.span) }))
+}
+
+const LOCAL_BOARD_KEY = 'xh:workbench:widgets:board'
+
+// 空数组也是用户存下的布局（全部移除），不能当成「没存过」回落到缺省
+const board = ref<BoardItem[]>(sanitize(readLocalBoard() ?? DEFAULT_BOARD))
+const customizing = ref(false)
+const showAdd = ref(false)
+// 悬浮操作栏开合：折叠时右侧只露半隐藏按钮，点击展开为半透明毛玻璃操作栏
+const panelOpen = ref(false)
+function onPanelEsc(event: KeyboardEvent) {
+  if (event.key === 'Escape' && panelOpen.value)
+    panelOpen.value = false
+}
+window.addEventListener('keydown', onPanelEsc)
+// 编辑期间是否有改动：只有点「完成」且确有改动时才落地一次
+const dirty = ref(false)
+
+// 工具栏可上下自由拖动（避免挡住小组件操作）：竖向偏移量，按本地记忆，跨刷新保留
+const TOOLBAR_OFFSET_KEY = 'xh:workbench:widgets:toolbar-offset'
+function clampOffset(value: number): number {
+  return Math.min(Math.max(0, window.innerHeight - 160), Math.max(0, value))
+}
+const toolbarOffsetY = ref(clampOffset(Number(localStorage.getItem(TOOLBAR_OFFSET_KEY)) || 0))
+const draggingToolbar = ref(false)
+let toolbarDrag: { y: number, base: number } | null = null
+function onToolbarDragMove(event: PointerEvent) {
+  if (!toolbarDrag)
+    return
+  toolbarOffsetY.value = clampOffset(toolbarDrag.base + (event.clientY - toolbarDrag.y))
+}
+function onToolbarDragEnd() {
+  window.removeEventListener('pointermove', onToolbarDragMove)
+  toolbarDrag = null
+  draggingToolbar.value = false
+  try {
+    localStorage.setItem(TOOLBAR_OFFSET_KEY, String(toolbarOffsetY.value))
+  }
+  catch {
+    // 忽略本地存储异常
+  }
+}
+function onToolbarDragStart(event: PointerEvent) {
+  event.preventDefault()
+  toolbarDrag = { y: event.clientY, base: toolbarOffsetY.value }
+  draggingToolbar.value = true
+  window.addEventListener('pointermove', onToolbarDragMove)
+  window.addEventListener('pointerup', onToolbarDragEnd, { once: true })
+}
+
+function readLocalBoard(): BoardItem[] | null {
+  try {
+    const raw = localStorage.getItem(LOCAL_BOARD_KEY)
+    const parsed = raw ? (JSON.parse(raw) as { items?: BoardItem[] }) : null
+    return Array.isArray(parsed?.items) ? parsed.items : null
+  }
+  catch {
+    return null
+  }
+}
+function writeLocalBoard(items: BoardItem[]) {
+  try {
+    localStorage.setItem(LOCAL_BOARD_KEY, JSON.stringify({ items }))
+  }
+  catch {
+    // 忽略本地存储异常（隐私模式等）
+  }
+}
+function persist() {
+  writeLocalBoard(board.value)
+}
+onUnmounted(() => {
+  window.removeEventListener('keydown', onPanelEsc)
+  window.removeEventListener('pointermove', onToolbarDragMove)
+})
+
+const activeKeys = computed(() => new Set(board.value.map(item => item.key)))
+const available = computed(() => WIDGETS.filter(widget => !activeKeys.value.has(widget.key) && canShow(widget.key)))
+const ids = computed(() => board.value.map(item => item.key))
+
+function onSort(move: { from: number, to: number }) {
+  const next = board.value.slice()
+  const [moved] = next.splice(move.from, 1)
+  if (!moved)
+    return
+  next.splice(move.to, 0, moved)
+  board.value = next
+  dirty.value = true
+}
+function addWidget(key: string) {
+  const def = WIDGET_MAP[key]
+  if (!def)
+    return
+  board.value = [...board.value, { key, span: def.defaultSpan }]
+  dirty.value = true
+}
+function removeWidget(key: string) {
+  board.value = board.value.filter(item => item.key !== key)
+  dirty.value = true
+}
+function setSpan(item: BoardItem, span: number) {
+  item.span = span
+  dirty.value = true
+}
+/** 清空看板：与其它编辑一样只在内存预览，点「完成」才落地；点错了可「恢复默认」或不点完成直接刷新 */
+function clearBoard() {
+  board.value = []
+  dirty.value = true
+}
+function resetBoard() {
+  board.value = sanitize(DEFAULT_BOARD)
+  dirty.value = true
+}
+// 编辑期间所有改动只在内存预览；点「完成」才落地 localStorage 一次（无改动则跳过）
+function finishCustomize() {
+  customizing.value = false
+  panelOpen.value = false
+  if (!dirty.value)
+    return
+  dirty.value = false
+  persist()
+}
+
+// 边缘拖拽调宽：把像素位移换算成栅格列数，实时跟随光标；靠近预设档位时磁吸（左把手方向取反）
+const gridHostRef = ref<{ $el?: HTMLElement } | null>(null)
+/** 网格根节点。ref 落在组件上得到的是实例，按栅格折算宽度要的是那个元素。 */
+const gridRef = computed<HTMLElement | null>(() => gridHostRef.value?.$el ?? null)
+let resize: { item: BoardItem, startX: number, startSpan: number, colUnit: number, sign: number } | null = null
+
+// 实时列数 → 落地列数：吸附到最近的尺寸档位（全部列宽都吸）
+function resolveSpan(cols: number): number {
+  const clamped = Math.min(GRID_COLS, Math.max(MIN_SPAN, cols))
+  return SIZE_OPTIONS.reduce((best, span) => (Math.abs(span - clamped) < Math.abs(best - clamped) ? span : best), SIZE_OPTIONS[0] ?? MIN_SPAN)
+}
+function onResizeMove(event: PointerEvent) {
+  if (!resize)
+    return
+  const delta = (event.clientX - resize.startX) * resize.sign
+  const next = resolveSpan(resize.startSpan + delta / resize.colUnit)
+  if (next !== resize.item.span) {
+    resize.item.span = next
+    dirty.value = true
+  }
+}
+function onResizeEnd() {
+  window.removeEventListener('pointermove', onResizeMove)
+  resize = null
+}
+function onResizeStart(event: PointerEvent, item: BoardItem, side: 'left' | 'right') {
+  const width = gridRef.value?.offsetWidth ?? 0
+  if (width <= 0)
+    return
+  event.preventDefault()
+  event.stopPropagation()
+  resize = { item, startX: event.clientX, startSpan: item.span, colUnit: width / 12, sign: side === 'left' ? -1 : 1 }
+  window.addEventListener('pointermove', onResizeMove)
+  window.addEventListener('pointerup', onResizeEnd, { once: true })
+}
+
+onUnmounted(() => window.removeEventListener('pointermove', onResizeMove))
+</script>
+
+<template>
+  <div class="flex flex-col gap-4 p-4 sm:p-5">
+    <!-- 悬浮控制：sticky 跟随滚动、零高度不占空间。折叠=右侧半隐藏按钮；展开=半透明毛玻璃操作栏 -->
+    <div class="pointer-events-none sticky top-2 z-40 -mb-4 -mr-4 flex h-0 items-start justify-end overflow-x-clip sm:-mb-5 sm:-mr-5">
+      <div
+        class="flex justify-end"
+        :style="{ transform: `translateY(${toolbarOffsetY}px)`, transition: draggingToolbar ? 'none' : 'transform var(--xh-motion-duration-nudge) var(--xh-motion-ease-enter)' }"
+      >
+        <!-- 折叠态：右侧半隐藏按钮，悬停滑出 -->
+        <Transition
+          enter-active-class="transition-opacity duration-[var(--xh-motion-duration-enter)]"
+          enter-from-class="opacity-0"
+          leave-active-class="transition-opacity duration-[var(--xh-motion-duration-exit)]"
+          leave-to-class="opacity-0"
+        >
+          <button
+            v-if="!panelOpen"
+            type="button"
+            :title="t('workbench.widgets.customize')"
+            class="board-fab group pointer-events-auto mt-2 flex h-9 translate-x-[40%] items-center gap-1.5 rounded-l-xl border border-r-0 border-border/60 bg-background/55 pl-3 pr-2 text-muted-foreground shadow-sm backdrop-blur-md hover:translate-x-0 hover:bg-background/90 hover:text-foreground"
+            @click="panelOpen = true"
+          >
+            <Icon icon="lucide:settings-2" width="16" />
+            <Icon icon="lucide:chevron-left" width="14" class="opacity-50 transition-opacity group-hover:opacity-90" />
+          </button>
+        </Transition>
+        <!-- 展开态：半透明毛玻璃悬浮操作栏。进出场的位移量取幅度令牌：减弱动效下归零，只剩淡变 -->
+        <Transition
+          enter-active-class="transition duration-[var(--xh-motion-duration-enter)] ease-[var(--xh-motion-ease-enter)]"
+          enter-from-class="translate-x-[var(--xh-motion-distance-lg)] opacity-0"
+          leave-active-class="transition duration-[var(--xh-motion-duration-exit)] ease-[var(--xh-motion-ease-exit)]"
+          leave-to-class="translate-x-[var(--xh-motion-distance-lg)] opacity-0"
+        >
+          <div
+            v-if="panelOpen"
+            class="pointer-events-auto mr-4 mt-2 flex flex-wrap items-center gap-2 rounded-2xl border border-border/60 bg-background/80 p-1.5 pl-2 shadow-lg shadow-black/5 backdrop-blur-xl sm:mr-5"
+          >
+            <span
+              class="flex h-7 w-4 shrink-0 cursor-grab touch-none items-center justify-center rounded text-muted-foreground/50 transition-colors hover:text-foreground active:cursor-grabbing"
+              :title="t('workbench.widgets.drag_toolbar')"
+              @pointerdown="onToolbarDragStart"
+            >
+              <Icon icon="lucide:grip-vertical" width="14" />
+            </span>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-foreground">{{ t('workbench.dashboard.title') }}</span>
+            </div>
+            <div class="mx-0.5 h-5 w-px bg-border/70" />
+            <template v-if="customizing">
+              <XhButton variant="subtle" size="sm" @click="showAdd = true">
+                <Icon icon="lucide:plus" />
+                {{ t('workbench.widgets.add') }}
+              </XhButton>
+              <XhButton variant="subtle" size="sm" :disabled="!board.length" @click="clearBoard">
+                <Icon icon="lucide:eraser" />
+                {{ t('workbench.widgets.clear') }}
+              </XhButton>
+              <XhButton variant="subtle" size="sm" @click="resetBoard">
+                <Icon icon="lucide:rotate-ccw" />
+                {{ t('workbench.widgets.reset') }}
+              </XhButton>
+              <XhButton variant="subtle" size="sm" tone="brand" @click="finishCustomize">
+                <Icon icon="lucide:check" />
+                {{ t('workbench.widgets.done') }}
+              </XhButton>
+            </template>
+            <template v-else>
+              <XhButton size="sm" variant="subtle" @click="customizing = true">
+                <Icon icon="lucide:layout-grid" />
+                {{ t('workbench.widgets.customize') }}
+              </XhButton>
+              <button
+                type="button"
+                :title="t('workbench.widgets.collapse')"
+                class="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                @click="panelOpen = false"
+              >
+                <Icon icon="lucide:chevron-right" width="16" />
+              </button>
+            </template>
+          </div>
+        </Transition>
+      </div>
+    </div>
+
+    <div v-if="!board.length" class="py-20">
+      <XhEmptyStateRoot>
+        <XhEmptyStateIndicator>
+          <Icon icon="lucide:inbox" width="28" />
+        </XhEmptyStateIndicator>
+        <XhEmptyStateTitle>{{ t('workbench.widgets.empty_title') }}</XhEmptyStateTitle>
+        <XhEmptyStateDescription>{{ t('workbench.widgets.empty') }}</XhEmptyStateDescription>
+        <XhEmptyStateAction>
+          <XhButton variant="subtle" size="sm" @click="customizing = true; showAdd = true">
+            {{ t('workbench.widgets.add') }}
+          </XhButton>
+        </XhEmptyStateAction>
+      </XhEmptyStateRoot>
+    </div>
+
+    <XhSortableRoot
+      v-else
+      ref="gridHostRef"
+      :ids="ids"
+      orientation="both"
+      :disabled="!customizing"
+      class="grid grid-cols-1 gap-4 md:grid-cols-12"
+      style="--xh-sortable-gap: 0"
+      @sort="onSort"
+    >
+      <XhSortableItem
+        v-for="item in board"
+        :key="item.key"
+        :item-id="item.key"
+        class="widget-cell min-w-0"
+        :style="{ '--widget-span': item.span }"
+      >
+        <div class="relative h-full" :class="customizing ? 'rounded-xl ring-1 ring-dashed ring-[hsl(var(--primary)/0.45)]' : ''">
+          <component :is="WIDGET_MAP[item.key]?.component" />
+          <!-- 边缘拖拽调宽：左右各一把手，拖动按 12 栅格吸附到最近档位（Windows 窗口式） -->
+          <template v-if="customizing">
+            <div
+              class="group/lh absolute left-0 top-0 z-10 flex h-full w-2.5 cursor-ew-resize touch-none items-center justify-start"
+              :title="t('workbench.widgets.resize')"
+              @pointerdown="onResizeStart($event, item, 'left')"
+            >
+              <span class="h-10 w-1 rounded-full bg-border transition-colors group-hover/lh:bg-[hsl(var(--primary))]" />
+            </div>
+            <div
+              class="group/rh absolute right-0 top-0 z-10 flex h-full w-2.5 cursor-ew-resize touch-none items-center justify-end"
+              :title="t('workbench.widgets.resize')"
+              @pointerdown="onResizeStart($event, item, 'right')"
+            >
+              <span class="h-10 w-1 rounded-full bg-border transition-colors group-hover/rh:bg-[hsl(var(--primary))]" />
+            </div>
+          </template>
+          <!-- 自定义工具条：始终在 DOM（v-show），仅手柄 span 可拖（非交互元素 + handle 选择器） -->
+          <div
+            v-show="customizing"
+            class="absolute right-2 top-2 z-20 flex items-center gap-0.5 rounded-lg border border-border bg-card/95 px-1 py-0.5 shadow-sm backdrop-blur"
+          >
+            <XhSortableItemDragTrigger
+              :item-id="item.key"
+              class="widget-drag-handle flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted"
+              :title="t('workbench.widgets.drag')"
+            >
+              <Icon icon="lucide:grip-vertical" width="15" />
+            </XhSortableItemDragTrigger>
+            <XhPopoverRoot placement="bottom-end">
+              <XhPopoverTrigger class="xh-linklike-trigger">
+                {{ spanLabel(item.span) }}
+              </XhPopoverTrigger>
+              <XhPopoverPositioner>
+                <XhPopoverContent :aria-label="t('workbench.widgets.span')">
+                  <div class="grid grid-cols-6 gap-1">
+                    <button
+                      v-for="s in SIZE_OPTIONS"
+                      :key="s"
+                      type="button"
+                      class="flex h-7 min-w-[2.75rem] items-center justify-center rounded px-1 text-xs transition-colors"
+                      :class="s === item.span ? 'bg-[hsl(var(--primary))] text-primary-foreground' : 'text-muted-foreground hover:bg-muted'"
+                      @click="setSpan(item, s)"
+                    >
+                      {{ spanLabel(s) }}
+                    </button>
+                  </div>
+                </XhPopoverContent>
+              </XhPopoverPositioner>
+            </XhPopoverRoot>
+            <button
+              type="button"
+              class="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-[hsl(var(--destructive))]"
+              :aria-label="t('workbench.widgets.remove')"
+              @click="removeWidget(item.key)"
+            >
+              <Icon icon="lucide:x" width="15" />
+            </button>
+          </div>
+        </div>
+      </XhSortableItem>
+      <XhSortableLiveRegion />
+    </XhSortableRoot>
+
+    <XhDrawerRoot v-model:open="showAdd" side="right">
+      <XhDrawerContent style="--xh-drawer-size: 340px">
+        <XhDrawerTitle>{{ t('workbench.widgets.add_panel_title') }}</XhDrawerTitle>
+        <XhDrawerCloseTrigger />
+        <div v-if="!available.length" class="py-10">
+          <XhEmptyStateRoot size="sm">
+            <XhEmptyStateIndicator>
+              <Icon icon="lucide:inbox" width="24" />
+            </XhEmptyStateIndicator>
+            <XhEmptyStateTitle>{{ t('workbench.widgets.all_added_title') }}</XhEmptyStateTitle>
+            <XhEmptyStateDescription>{{ t('workbench.widgets.all_added') }}</XhEmptyStateDescription>
+          </XhEmptyStateRoot>
+        </div>
+        <div v-else class="flex flex-col gap-2">
+          <div v-for="widget in available" :key="widget.key" class="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-[hsl(var(--primary))]">
+              <Icon :icon="widget.icon" width="18" />
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="text-sm font-medium text-foreground">
+                {{ t(widget.titleKey) }}
+              </div>
+              <div class="truncate text-xs text-muted-foreground">
+                {{ t(widget.descKey) }}
+              </div>
+            </div>
+            <XhButton icon-only size="sm" tone="brand" variant="subtle" :aria-label="t('workbench.widgets.add')" @click="addWidget(widget.key)">
+              <Icon icon="lucide:plus" />
+            </XhButton>
+          </div>
+        </div>
+      </XhDrawerContent>
+    </XhDrawerRoot>
+  </div>
+</template>
+
+<style scoped>
+/* 折叠态的半隐藏按钮：悬停滑出是几何变化，位移走 move（减弱动效下 1ms，直接到位）；
+   换面换字是状态变化，仍按 enter 淡变。enter 在减弱动效下不降档，不能拿来驱动位移 */
+.board-fab {
+  transition:
+    translate var(--xh-motion-duration-move) var(--xh-motion-ease-enter),
+    background-color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    color var(--xh-motion-duration-enter) var(--xh-motion-ease-enter);
+}
+
+/* 小屏（<md）忽略用户设定的小组件宽度，一律整行铺满；md 及以上按 12 栅格自定义宽度 */
+.widget-cell {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  .widget-cell {
+    grid-column: span var(--widget-span);
+  }
+}
+</style>

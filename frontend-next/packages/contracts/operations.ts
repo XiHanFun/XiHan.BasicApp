@@ -31,6 +31,12 @@ export const routes = {
   'memberships.delete': { method: 'DELETE', template: '/api/memberships', path: [], query: ['ids'], success: 200 },
   'memberships.list': { method: 'POST', template: '/api/memberships:list', path: [], query: [], success: 200 },
   'memberships.update': { method: 'PUT', template: '/api/memberships/{id}', path: ['id'], query: [], success: 200 },
+  'menus.create': { method: 'POST', template: '/api/menus', path: [], query: [], success: 201 },
+  'menus.delete': { method: 'DELETE', template: '/api/menus', path: [], query: ['ids'], success: 200 },
+  'menus.get': { method: 'GET', template: '/api/menus/{id}', path: ['id'], query: [], success: 200 },
+  'menus.list': { method: 'GET', template: '/api/menus', path: [], query: [], success: 200 },
+  'menus.reset': { method: 'POST', template: '/api/menus/{id}:reset', path: ['id'], query: [], success: 200 },
+  'menus.update': { method: 'PUT', template: '/api/menus/{id}', path: ['id'], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
   'positions.create': { method: 'POST', template: '/api/positions', path: [], query: [], success: 201 },
   'positions.delete': { method: 'DELETE', template: '/api/positions', path: [], query: ['ids'], success: 200 },
@@ -126,6 +132,16 @@ export const memberships = {
   delete: (request: RequestOf<'memberships.delete'>, options?: CallOptions) => invoke<RequestOf<'memberships.delete'>, ResponseOf<'memberships.delete'>>('memberships.delete', routes['memberships.delete'], request, options),
   list: (request: RequestOf<'memberships.list'>, options?: CallOptions) => invoke<RequestOf<'memberships.list'>, ResponseOf<'memberships.list'>>('memberships.list', routes['memberships.list'], request, options),
   update: (request: RequestOf<'memberships.update'>, options?: CallOptions) => invoke<RequestOf<'memberships.update'>, ResponseOf<'memberships.update'>>('memberships.update', routes['memberships.update'], request, options),
+}
+
+/** 资源 `menus` 的操作。 */
+export const menus = {
+  create: (request: RequestOf<'menus.create'>, options?: CallOptions) => invoke<RequestOf<'menus.create'>, ResponseOf<'menus.create'>>('menus.create', routes['menus.create'], request, options),
+  delete: (request: RequestOf<'menus.delete'>, options?: CallOptions) => invoke<RequestOf<'menus.delete'>, ResponseOf<'menus.delete'>>('menus.delete', routes['menus.delete'], request, options),
+  get: (request: RequestOf<'menus.get'>, options?: CallOptions) => invoke<RequestOf<'menus.get'>, ResponseOf<'menus.get'>>('menus.get', routes['menus.get'], request, options),
+  list: (request: RequestOf<'menus.list'>, options?: CallOptions) => invoke<RequestOf<'menus.list'>, ResponseOf<'menus.list'>>('menus.list', routes['menus.list'], request, options),
+  reset: (request: RequestOf<'menus.reset'>, options?: CallOptions) => invoke<RequestOf<'menus.reset'>, ResponseOf<'menus.reset'>>('menus.reset', routes['menus.reset'], request, options),
+  update: (request: RequestOf<'menus.update'>, options?: CallOptions) => invoke<RequestOf<'menus.update'>, ResponseOf<'menus.update'>>('menus.update', routes['menus.update'], request, options),
 }
 
 /** 资源 `permissions` 的操作。 */

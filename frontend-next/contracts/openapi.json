@@ -2462,6 +2462,812 @@
         }
       }
     },
+    "/api/menus": {
+      "delete": {
+        "operationId": "menus.delete",
+        "tags": [
+          "menus"
+        ],
+        "summary": "Delete operator nodes in batch; page nodes and directories that still have children are rejected item by item. Requires access.menus.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.menus.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "menus.list",
+        "tags": [
+          "menus"
+        ],
+        "summary": "List the whole menu tree (hidden nodes, operator-created directories and links, and the customization flag of page nodes). Platform side only; requires access.menus.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.menus.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MenusResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MenuResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "menus.create",
+        "tags": [
+          "menus"
+        ],
+        "summary": "Create an operator node: a directory (top level only) or an external link (http / https, may sit in a directory); page nodes come from page registrations and cannot be created. Requires access.menus.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.menus.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateMenuRequest",
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "$ref": "#/components/schemas/MenuKind"
+                  },
+                  "code": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 32,
+                    "pattern": "^[a-z][a-z0-9-]{1,31}$"
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "parentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "externalUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1024
+                  },
+                  "permission": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  },
+                  "isVisible": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "code",
+                  "title"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MenuResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "$ref": "#/components/schemas/MenuKind"
+                    },
+                    "package": {
+                      "type": "string"
+                    },
+                    "parentId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "route": {
+                      "type": "string"
+                    },
+                    "component": {
+                      "type": "string"
+                    },
+                    "titleKey": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "icon": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "permission": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "externalUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isVisible": {
+                      "type": "boolean"
+                    },
+                    "keepAlive": {
+                      "type": "boolean"
+                    },
+                    "isAffix": {
+                      "type": "boolean"
+                    },
+                    "isCustomized": {
+                      "type": "boolean"
+                    },
+                    "children": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MenuResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "kind",
+                    "package",
+                    "route",
+                    "component",
+                    "titleKey",
+                    "order",
+                    "isVisible",
+                    "keepAlive",
+                    "isAffix",
+                    "isCustomized",
+                    "children"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/menus/{id}": {
+      "get": {
+        "operationId": "menus.get",
+        "tags": [
+          "menus"
+        ],
+        "summary": "Get one menu node. Requires access.menus.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.menus.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MenuResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "$ref": "#/components/schemas/MenuKind"
+                    },
+                    "package": {
+                      "type": "string"
+                    },
+                    "parentId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "route": {
+                      "type": "string"
+                    },
+                    "component": {
+                      "type": "string"
+                    },
+                    "titleKey": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "icon": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "permission": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "externalUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isVisible": {
+                      "type": "boolean"
+                    },
+                    "keepAlive": {
+                      "type": "boolean"
+                    },
+                    "isAffix": {
+                      "type": "boolean"
+                    },
+                    "isCustomized": {
+                      "type": "boolean"
+                    },
+                    "children": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MenuResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "kind",
+                    "package",
+                    "route",
+                    "component",
+                    "titleKey",
+                    "order",
+                    "isVisible",
+                    "keepAlive",
+                    "isAffix",
+                    "isCustomized",
+                    "children"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "menus.update",
+        "tags": [
+          "menus"
+        ],
+        "summary": "Update a menu node: page nodes only change presentation (title, icon, order, directory, visibility, caching, pinned tab) and become customized; operator nodes may also change their link and permission. Requires access.menus.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.menus.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateMenuRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "title": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "icon": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "parentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uuid"
+                  },
+                  "isVisible": {
+                    "type": "boolean"
+                  },
+                  "keepAlive": {
+                    "type": "boolean"
+                  },
+                  "isAffix": {
+                    "type": "boolean"
+                  },
+                  "externalUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 1024
+                  },
+                  "permission": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MenuResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "$ref": "#/components/schemas/MenuKind"
+                    },
+                    "package": {
+                      "type": "string"
+                    },
+                    "parentId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "route": {
+                      "type": "string"
+                    },
+                    "component": {
+                      "type": "string"
+                    },
+                    "titleKey": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "icon": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "permission": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "externalUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isVisible": {
+                      "type": "boolean"
+                    },
+                    "keepAlive": {
+                      "type": "boolean"
+                    },
+                    "isAffix": {
+                      "type": "boolean"
+                    },
+                    "isCustomized": {
+                      "type": "boolean"
+                    },
+                    "children": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MenuResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "kind",
+                    "package",
+                    "route",
+                    "component",
+                    "titleKey",
+                    "order",
+                    "isVisible",
+                    "keepAlive",
+                    "isAffix",
+                    "isCustomized",
+                    "children"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/menus/{id}:reset": {
+      "post": {
+        "operationId": "menus.reset",
+        "tags": [
+          "menus"
+        ],
+        "summary": "Restore a page node\u0027s presentation to its registration and clear the customization flag. Requires access.menus.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.menus.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "ResetMenuRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MenuResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "kind": {
+                      "$ref": "#/components/schemas/MenuKind"
+                    },
+                    "package": {
+                      "type": "string"
+                    },
+                    "parentId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "route": {
+                      "type": "string"
+                    },
+                    "component": {
+                      "type": "string"
+                    },
+                    "titleKey": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "icon": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "permission": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "externalUrl": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isVisible": {
+                      "type": "boolean"
+                    },
+                    "keepAlive": {
+                      "type": "boolean"
+                    },
+                    "isAffix": {
+                      "type": "boolean"
+                    },
+                    "isCustomized": {
+                      "type": "boolean"
+                    },
+                    "children": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MenuResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "kind",
+                    "package",
+                    "route",
+                    "component",
+                    "titleKey",
+                    "order",
+                    "isVisible",
+                    "keepAlive",
+                    "isAffix",
+                    "isCustomized",
+                    "children"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/permissions": {
       "get": {
         "operationId": "permissions.list",
@@ -6511,11 +7317,22 @@
           "createdAt"
         ]
       },
+      "MenuKind": {
+        "type": "string",
+        "enum": [
+          "Page",
+          "Directory",
+          "Link"
+        ]
+      },
       "MenuNode": {
         "type": "object",
         "properties": {
           "code": {
             "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/MenuKind"
           },
           "route": {
             "type": "string"
@@ -6525,6 +7342,12 @@
           },
           "titleKey": {
             "type": "string"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "icon": {
             "type": [
@@ -6542,6 +7365,21 @@
               "null"
             ]
           },
+          "externalUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "keepAlive": {
+            "type": "boolean"
+          },
+          "affix": {
+            "type": "boolean"
+          },
           "children": {
             "type": "array",
             "items": {
@@ -6551,10 +7389,109 @@
         },
         "required": [
           "code",
+          "kind",
           "route",
           "component",
           "titleKey",
           "order",
+          "hidden",
+          "keepAlive",
+          "affix",
+          "children"
+        ]
+      },
+      "MenuResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/MenuKind"
+          },
+          "package": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "route": {
+            "type": "string"
+          },
+          "component": {
+            "type": "string"
+          },
+          "titleKey": {
+            "type": "string"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "permission": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "externalUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isVisible": {
+            "type": "boolean"
+          },
+          "keepAlive": {
+            "type": "boolean"
+          },
+          "isAffix": {
+            "type": "boolean"
+          },
+          "isCustomized": {
+            "type": "boolean"
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MenuResponse"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "kind",
+          "package",
+          "route",
+          "component",
+          "titleKey",
+          "order",
+          "isVisible",
+          "keepAlive",
+          "isAffix",
+          "isCustomized",
           "children"
         ]
       },
@@ -7028,6 +7965,26 @@
       }
     },
     "x-xihan-permissions": {
+      "access.menus.create": {
+        "code": "access.menus.create",
+        "displayName": "Create menus",
+        "description": "Create directories and external links in the menu."
+      },
+      "access.menus.delete": {
+        "code": "access.menus.delete",
+        "displayName": "Delete menus",
+        "description": "Delete operator-created directories and links."
+      },
+      "access.menus.read": {
+        "code": "access.menus.read",
+        "displayName": "Read menus",
+        "description": "View the whole menu tree, including hidden and operator-created nodes."
+      },
+      "access.menus.update": {
+        "code": "access.menus.update",
+        "displayName": "Update menus",
+        "description": "Change how menu nodes are presented and restore page defaults."
+      },
       "access.permissions.read": {
         "code": "access.permissions.read",
         "displayName": "Read permissions",
