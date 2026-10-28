@@ -25,8 +25,9 @@ public sealed class DataScopeTests : IDisposable
         await server.RunSeedersAsync();
         var superadmin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
 
-        // 开通租户并初始化管理员：管理员的权限来自内建租户角色 admin（* / 数据范围全部），不再是用户级授予
-        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", """{"tenantId":"contoso","name":"Contoso"}""", superadmin));
+        // 开通租户（企业版：白名单是租户侧全部）并初始化管理员：管理员的权限来自内建租户角色 admin（* / 数据范围全部），不再是用户级授予
+        var enterpriseId = await EditionsTests.EditionIdAsync(server, superadmin, "enterprise");
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", $$"""{"tenantId":"contoso","name":"Contoso","editionId":"{{enterpriseId}}"}""", superadmin));
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         var tenantId = createdBody.GetProperty("id").GetString()!;
         var (initialized, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/tenants/{tenantId}:initialize-admin", """{"userName":"admin","password":"Admin@123456"}""", superadmin));

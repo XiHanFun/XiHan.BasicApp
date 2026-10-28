@@ -30,12 +30,19 @@ public sealed class TenantsTests : IDisposable
         await using var server = await StartAsync();
         var admin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
 
+        // 套餐种子：企业版放行租户侧全部权限，免费版是缺省
+        var (editions, editionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/editions", token: admin));
+        Assert.Equal(HttpStatusCode.OK, editions.StatusCode);
+        var enterpriseId = editionsBody.GetProperty("items").EnumerateArray().Single(static e => e.GetProperty("code").GetString() == "enterprise").GetProperty("id").GetString()!;
+        var freeId = editionsBody.GetProperty("items").EnumerateArray().Single(static e => e.GetProperty("isDefault").GetBoolean()).GetProperty("id").GetString()!;
+
         // 开通：业务实体 + 目录（启用）；重复 / 保留 ID 冲突；文法在 Validate 阶段拒绝
-        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", """{"tenantId":"contoso","name":"Contoso","order":10}""", admin));
+        var (created, createdBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", $$"""{"tenantId":"contoso","name":"Contoso","order":10,"editionId":"{{enterpriseId}}"}""", admin));
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         Assert.Equal("contoso", createdBody.GetProperty("tenantId").GetString());
         Assert.Equal("Active", createdBody.GetProperty("status").GetString());
         Assert.Equal(JsonValueKind.Null, createdBody.GetProperty("adminUserId").ValueKind);
+        Assert.Equal(enterpriseId, createdBody.GetProperty("editionId").GetString());
         var id = createdBody.GetProperty("id").GetString()!;
         var (duplicate, duplicateBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", """{"tenantId":"contoso","name":"Again"}""", admin));
         Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
@@ -78,13 +85,13 @@ public sealed class TenantsTests : IDisposable
         Assert.DoesNotContain("tenancy.tenants.read", codes);
         Assert.Equal(["identity.users", "organization.departments", "organization.positions", "access.roles"], permissionsBody.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
 
-        // 在本租户内工作：只看到本租户的用户；平台专属操作即使持有 * 也被操作本身拒绝
+        // 在本租户内工作：只看到本租户的用户；平台专属权限不在任何套餐白名单里，持有 * 也在授权阶段被收窄
         var (list, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", tenantAdmin));
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         Assert.Equal(1, listBody.GetProperty("total").GetInt64());
         var (platformOnly, platformOnlyBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants:list", "{}", tenantAdmin));
         Assert.Equal(HttpStatusCode.Forbidden, platformOnly.StatusCode);
-        Assert.Equal("TENANCY_DENIED_001", platformOnlyBody.GetProperty("code").GetString());
+        Assert.Equal("SECURITY_DENIED_004", platformOnlyBody.GetProperty("code").GetString());
 
         // 停用：目录禁用 → 带租户的调用被框架拒绝、登录被拒；恢复后恢复
         var (suspended, suspendedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants:suspend", $$"""{"ids":["{{id}}","{{Guid.NewGuid()}}"]}""", admin));
@@ -120,6 +127,7 @@ public sealed class TenantsTests : IDisposable
         Assert.Equal("TENANCY_CONFLICT_003", deleteBusyBody.GetProperty("failed")[0].GetProperty("code").GetString());
         var (empty, emptyBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants", """{"tenantId":"empty","name":"Empty"}""", admin));
         Assert.Equal(HttpStatusCode.Created, empty.StatusCode);
+        Assert.Equal(freeId, emptyBody.GetProperty("editionId").GetString());
         var (deleted, deletedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Delete, $"/api/tenants?ids={emptyBody.GetProperty("id").GetString()}", token: admin));
         Assert.Equal(HttpStatusCode.OK, deleted.StatusCode);
         Assert.Equal(1, deletedBody.GetProperty("succeeded").GetArrayLength());
