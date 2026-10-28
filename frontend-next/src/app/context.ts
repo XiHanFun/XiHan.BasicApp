@@ -85,6 +85,12 @@ export function registerApplicationContext(router: Router): void {
     },
     getFilePresignedUrlApi: () => notAvailable('getFilePresignedUrlApi'),
     timeZoneApi: { options: timeZoneOptions },
+    // 导入历史与导出中心归 Files 批次；导入历史失败时导入弹窗本就静默为空，导出只在页面声明 resource.export 时才走导出中心
+    importHistoryApi: {
+      create: () => notAvailable('importHistoryApi.create'),
+      recent: () => notAvailable('importHistoryApi.recent'),
+    },
+    exportTaskApi: { submit: () => notAvailable('exportTaskApi.submit') },
     enumApi: {
       getBatch: () => notAvailable('enumApi.getBatch'),
       getByName: () => notAvailable('enumApi.getByName'),

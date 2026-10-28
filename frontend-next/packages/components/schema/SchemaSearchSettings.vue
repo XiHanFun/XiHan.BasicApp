@@ -1,0 +1,206 @@
+<script setup lang="ts">
+import type { SearchFieldSetting } from './useSearchSettings'
+import {
+  XhButton,
+  XhCheckbox,
+  XhPopoverContent,
+  XhPopoverPositioner,
+  XhPopoverRoot,
+  XhPopoverTitle,
+  XhPopoverTrigger,
+  XhSeparator,
+  XhSwitch,
+} from '@xihan-ui/vue'
+import { useI18n } from 'vue-i18n'
+import { Icon } from '~/iconify'
+import { useAppStore } from '~/stores'
+import SyncStatusBadge from '../common/SyncStatusBadge.vue'
+import XTooltip from '../common/XTooltip.vue'
+
+defineOptions({ name: 'SchemaSearchSettings' })
+
+defineProps<{
+  /** 搜索字段设置（来自 useSearchSettings.settings） */
+  settings: SearchFieldSetting[]
+}>()
+
+const emit = defineEmits<{
+  togglePin: [key: string, value: boolean]
+  toggleVisible: [key: string, value: boolean]
+  move: [fromIndex: number, toIndex: number]
+  reset: []
+  save: []
+}>()
+
+const { t } = useI18n()
+const appStore = useAppStore()
+
+// ── 拖拽排序（仅手柄可拖） ──────────────────────────────────────
+function onSort(details: { from: number, to: number }) {
+  emit('move', details.from, details.to)
+}
+</script>
+
+<template>
+  <XhPopoverRoot placement="bottom-end">
+    <!-- 浮层触发器合到组件库的纯图标按钮上，与同排的 XIconButton 同为 sm 档、同高 -->
+    <XhPopoverTrigger as-child>
+      <XhButton
+        class="x-icon-btn"
+        variant="ghost"
+        size="sm"
+        icon-only
+        :aria-label="t('component.search_settings.title')"
+      >
+        <Icon icon="lucide:settings-2" />
+      </XhButton>
+    </XhPopoverTrigger>
+    <XhPopoverPositioner>
+      <XhPopoverContent class="xh-set-panel">
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <!-- 标题部件给浮层起名（content 的 aria-labelledby 指向它） -->
+              <XhPopoverTitle class="text-base font-semibold text-foreground">
+                {{ t('component.search_settings.title') }}
+              </XhPopoverTitle>
+              <SyncStatusBadge :synced="appStore.searchSyncEnabled" />
+            </div>
+            <div class="flex gap-2">
+              <XhButton size="sm" variant="outline" @click="emit('reset')">
+                {{ t('component.search_settings.reset') }}
+              </XhButton>
+              <XhButton size="sm" variant="solid" @click="emit('save')">
+                {{ t('component.search_settings.save') }}
+              </XhButton>
+            </div>
+          </div>
+
+          <XhSeparator class="my-1" />
+
+          <!-- 表头 -->
+          <div class="xh-set-head flex gap-2 items-center">
+            <span class="xh-set-head__handle" />
+            <span class="flex-1">{{ t('component.search_settings.column_header') }}</span>
+            <span class="xh-set-head__col">{{ t('component.search_settings.mode_header') }}</span>
+          </div>
+
+          <XhSortableRoot
+            :ids="settings.map(x => x.key)"
+            class="flex flex-col max-h-72 overflow-auto"
+            style="--xh-sortable-gap: 0"
+            @sort="onSort"
+          >
+            <XhSortableItem
+              v-for="item in settings"
+              :key="item.key"
+              :item-id="item.key"
+              class="xh-set-row flex gap-2 items-center"
+            >
+              <XhSortableItemDragTrigger
+                :item-id="item.key"
+                class="xh-set-drag-handle flex items-center text-foreground/40"
+                :title="t('component.search_settings.drag_sort')"
+              >
+                <Icon icon="lucide:grip-vertical" />
+              </XhSortableItemDragTrigger>
+              <!-- 勾选框只有框本身，标签是并排的一段文字，点它也切换 -->
+              <XhCheckbox
+                :checked="item.visible"
+                :aria-label="item.title"
+                @update:checked="(value: boolean) => emit('toggleVisible', item.key, value)"
+              />
+              <span
+                class="xh-set-row__label flex-1"
+                @click="emit('toggleVisible', item.key, !item.visible)"
+              >
+                {{ item.title }}
+              </span>
+              <XTooltip :content="item.pinned ? t('component.search_settings.tip_pinned') : t('component.search_settings.tip_advanced')">
+                <span
+                  class="xh-set-row__switch"
+                >
+                  <XhSwitch
+                    :checked="item.pinned"
+                    :disabled="!item.visible"
+                    size="sm"
+                    :aria-label="`${item.title} · ${t('component.search_settings.tip_pinned')}`"
+                    @update:checked="(value: boolean) => emit('togglePin', item.key, value)"
+                  />
+                </span>
+              </XTooltip>
+            </XhSortableItem>
+            <XhSortableLiveRegion />
+          </XhSortableRoot>
+
+          <XhSeparator class="my-1" />
+          <span class="text-xs text-foreground/40">{{ t('component.search_settings.hint') }}</span>
+        </div>
+      </XhPopoverContent>
+    </XhPopoverPositioner>
+  </XhPopoverRoot>
+</template>
+
+<style scoped>
+.xh-set-panel {
+  /* 皮肤给浮层的宽高上限是 rem 值，本应用根字号 14px 会把它们压到 280px / 224px，
+     不显式盖掉的话这个面板会被夹窄、列清单也露不出来 */
+  inline-size: 340px;
+  max-inline-size: 340px;
+  --xh-popover-max-h: 560px;
+}
+
+/* 表头 */
+.xh-set-head {
+  padding: 2px 6px 6px;
+  font-size: 12px;
+  color: var(--xh-fg-subtle);
+  border-bottom: 1px solid rgb(var(--primary) / 0.08);
+}
+
+.xh-set-head__handle {
+  width: 14px;
+  flex-shrink: 0;
+}
+
+.xh-set-head__col {
+  width: 64px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* 开关列：与表头「常用/高级」列等宽居中对齐 */
+.xh-set-row__switch {
+  width: 64px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* 统一设置弹窗行样式（与列设置一致） */
+.xh-set-row {
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+/* 行标题钉死 14px，与列设置行标题字号一致 */
+.xh-set-row__label {
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.xh-set-row:hover {
+  background: rgb(var(--primary) / 0.06);
+}
+
+.xh-set-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* 拖拽中的行（sortable 在被拖那一项上写 data-dragging） */
+.xh-set-row[data-dragging] {
+  opacity: 0.5;
+  background: rgb(var(--primary) / 0.08);
+}
+</style>

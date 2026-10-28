@@ -97,13 +97,13 @@ describe('默认值', () => {
     expect(store.appTimezone).toBe('Asia/Shanghai')
   })
 
-  it('偏好与收藏的后端同步缺省开（已接 user-settings），搜索 / 表格 / 看板仍缺省关', () => {
+  it('偏好、收藏与搜索 / 表格设置的后端同步缺省开（已接 user-settings），看板仍缺省关', () => {
     const store = freshStore()
 
     expect(store.preferenceSyncEnabled).toBe(true)
     expect(store.favoritesSyncEnabled).toBe(true)
-    expect(store.searchSyncEnabled).toBe(false)
-    expect(store.tableSyncEnabled).toBe(false)
+    expect(store.searchSyncEnabled).toBe(true)
+    expect(store.tableSyncEnabled).toBe(true)
     expect(store.widgetsSyncEnabled).toBe(false)
   })
 

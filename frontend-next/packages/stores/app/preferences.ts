@@ -73,11 +73,11 @@ export function createPreferencesSlice() {
   const locale = ref<string>(resolveInitialLocale())
   const dynamicTitle = ref<boolean>(LocalStorage.get<boolean>(DYNAMIC_TITLE_KEY) ?? true)
   // 各类后端同步开关：默认开启（保存时上行后端并实时推送多端），关闭后仅本地存储
-  // 偏好与收藏的同步已接 Identity 的 user-settings（N2 第二批），缺省开；搜索 / 表格随 SchemaPage、看板随 Workbench 批次接入，仍缺省关
+  // 偏好、收藏与 SchemaPage 的搜索 / 表格设置都已接 Identity 的 user-settings，缺省开（与 4.x 相同）；看板随 Workbench 批次接入，仍缺省关
   const preferenceSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(PREFERENCE_SYNC_KEY) ?? true)
   const favoritesSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(FAVORITES_SYNC_KEY) ?? true)
-  const searchSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_SYNC_KEY) ?? false)
-  const tableSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(TABLE_SYNC_KEY) ?? false)
+  const searchSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(SEARCH_SYNC_KEY) ?? true)
+  const tableSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(TABLE_SYNC_KEY) ?? true)
   const widgetsSyncEnabled = ref<boolean>(LocalStorage.get<boolean>(WIDGETS_SYNC_KEY) ?? false)
   // 表格行悬停速览（Peek & Pop）：悬停行浮出全字段详情卡，默认开启
   const tableRowPeek = ref<boolean>(LocalStorage.get<boolean>(TABLE_ROW_PEEK_KEY) ?? true)

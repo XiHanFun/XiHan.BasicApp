@@ -10,6 +10,7 @@ import * as utils from './index'
 
 const SUB_MODULES = [
   () => import('./common'),
+  () => import('./csv'),
   () => import('./download'),
   () => import('./file-url'),
   () => import('./navigation'),
