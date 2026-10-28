@@ -38,6 +38,7 @@ export default {
         lock: 'Bloquear',
         unlock: 'Desbloquear',
         reset_password: 'Redefinir senha',
+        reset_two_factor: 'Redefinir dois fatores',
         impersonate: 'Personificar',
         generate_password: 'Gerar novamente',
         add_department: 'Adicionar ao departamento',
@@ -49,6 +50,8 @@ export default {
       confirm_unlock: 'Desbloquear “{name}”?',
       locked: 'Conta bloqueada',
       unlocked: 'Conta desbloqueada',
+      confirm_reset_two_factor: 'Redefinir a autenticação de dois fatores de "{name}"? O vínculo do autenticador é apagado; o próximo login será só com a senha e será preciso vincular de novo.',
+      two_factor_reset: 'Dois fatores redefinidos',
       impersonate_content: 'Você entrará como “{name}” para investigar o problema dessa pessoa. As ações feitas nesse período são auditadas.',
       impersonate_failed: 'Não foi possível iniciar a personificação',
       reset_title: 'Redefinir senha · {name}',
@@ -75,38 +78,6 @@ export default {
       member_form: {
         department: 'Departamento',
         position: 'Cargo',
-      },
-    },
-    login: {
-      title: 'Entrar',
-      description: 'Entre com seu nome de usuário e senha.',
-      fields: {
-        tenant: 'Locatário',
-        user_name: 'Nome de usuário',
-        password: 'Senha',
-      },
-      tenant_placeholder: 'Deixe vazio para uma conta de plataforma',
-      subtitle: 'Informe seu usuário e senha para entrar',
-      user_name_placeholder: 'Usuário ou e-mail',
-      password_placeholder: 'Senha',
-      actions: {
-        sign_in: 'Entrar',
-      },
-    },
-    profile: {
-      change_password: {
-        title: 'Alterar senha',
-        description: 'Informe a senha atual e uma nova (pelo menos 8 caracteres com letras e dígitos). Suas outras sessões serão encerradas.',
-        fields: {
-          current_password: 'Senha atual',
-          new_password: 'Nova senha',
-          confirm_password: 'Confirmar nova senha',
-        },
-        mismatch: 'As duas novas senhas não coincidem.',
-        success: 'Senha alterada; suas outras sessões foram encerradas.',
-        actions: {
-          submit: 'Alterar senha',
-        },
       },
     },
   },

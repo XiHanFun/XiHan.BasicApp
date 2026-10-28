@@ -38,6 +38,7 @@ export default {
         lock: 'Lock',
         unlock: 'Unlock',
         reset_password: 'Reset password',
+        reset_two_factor: 'Reset two-factor',
         impersonate: 'Impersonate',
         generate_password: 'Regenerate',
         add_department: 'Add to department',
@@ -49,6 +50,8 @@ export default {
       confirm_unlock: 'Unlock "{name}"?',
       locked: 'Account locked',
       unlocked: 'Account unlocked',
+      confirm_reset_two_factor: 'Reset two-factor for "{name}"? Their authenticator binding is cleared; they sign in with the password next time and must bind again.',
+      two_factor_reset: 'Two-factor reset',
       impersonate_content: 'You will sign in as "{name}" to troubleshoot their issue. Actions taken meanwhile are audited.',
       impersonate_failed: 'Failed to start impersonation',
       reset_title: 'Reset password · {name}',
@@ -75,38 +78,6 @@ export default {
       member_form: {
         department: 'Department',
         position: 'Position',
-      },
-    },
-    login: {
-      title: 'Sign in',
-      description: 'Sign in with your user name and password.',
-      fields: {
-        tenant: 'Tenant',
-        user_name: 'User name',
-        password: 'Password',
-      },
-      tenant_placeholder: 'Leave empty for a platform account',
-      subtitle: 'Enter your user name and password to sign in',
-      user_name_placeholder: 'User name or email',
-      password_placeholder: 'Password',
-      actions: {
-        sign_in: 'Sign in',
-      },
-    },
-    profile: {
-      change_password: {
-        title: 'Change password',
-        description: 'Enter the current password and a new one (at least 8 characters with letters and digits). Your other sessions will be signed out.',
-        fields: {
-          current_password: 'Current password',
-          new_password: 'New password',
-          confirm_password: 'Confirm new password',
-        },
-        mismatch: 'The two new passwords do not match.',
-        success: 'Password changed; your other sessions were signed out.',
-        actions: {
-          submit: 'Change password',
-        },
       },
     },
   },

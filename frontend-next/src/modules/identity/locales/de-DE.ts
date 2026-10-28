@@ -38,6 +38,7 @@ export default {
         lock: 'Sperren',
         unlock: 'Entsperren',
         reset_password: 'Passwort zurücksetzen',
+        reset_two_factor: 'Zwei-Faktor zurücksetzen',
         impersonate: 'Identität übernehmen',
         generate_password: 'Neu erzeugen',
         add_department: 'Zur Abteilung hinzufügen',
@@ -49,6 +50,8 @@ export default {
       confirm_unlock: '„{name}“ entsperren?',
       locked: 'Konto gesperrt',
       unlocked: 'Konto entsperrt',
+      confirm_reset_two_factor: 'Zwei-Faktor für „{name}“ zurücksetzen? Die Authenticator-Verknüpfung wird gelöscht; die Anmeldung erfolgt beim nächsten Mal nur mit dem Passwort, danach muss neu verknüpft werden.',
+      two_factor_reset: 'Zwei-Faktor zurückgesetzt',
       impersonate_content: 'Sie melden sich als „{name}“ an, um dessen Problem zu untersuchen. Aktionen in dieser Zeit werden protokolliert.',
       impersonate_failed: 'Identitätsübernahme konnte nicht gestartet werden',
       reset_title: 'Passwort zurücksetzen · {name}',
@@ -75,38 +78,6 @@ export default {
       member_form: {
         department: 'Abteilung',
         position: 'Stelle',
-      },
-    },
-    login: {
-      title: 'Anmelden',
-      description: 'Melden Sie sich mit Benutzername und Passwort an.',
-      fields: {
-        tenant: 'Mandant',
-        user_name: 'Benutzername',
-        password: 'Passwort',
-      },
-      tenant_placeholder: 'Für ein Plattformkonto leer lassen',
-      subtitle: 'Geben Sie Benutzername und Passwort ein, um sich anzumelden',
-      user_name_placeholder: 'Benutzername oder E-Mail',
-      password_placeholder: 'Passwort',
-      actions: {
-        sign_in: 'Anmelden',
-      },
-    },
-    profile: {
-      change_password: {
-        title: 'Passwort ändern',
-        description: 'Geben Sie das aktuelle und ein neues Passwort ein (mindestens 8 Zeichen mit Buchstaben und Ziffern). Ihre übrigen Sitzungen werden abgemeldet.',
-        fields: {
-          current_password: 'Aktuelles Passwort',
-          new_password: 'Neues Passwort',
-          confirm_password: 'Neues Passwort bestätigen',
-        },
-        mismatch: 'Die beiden neuen Passwörter stimmen nicht überein.',
-        success: 'Passwort geändert; Ihre übrigen Sitzungen wurden abgemeldet.',
-        actions: {
-          submit: 'Passwort ändern',
-        },
       },
     },
   },

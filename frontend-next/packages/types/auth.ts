@@ -85,6 +85,8 @@ export interface LoginConfig {
 
 /** 登录参数（先登录后选租户：登录不携带租户，落点由后端按成员关系决定） */
 export interface LoginParams {
+  /** 注册地租户（6.0：用户名在租户内唯一，租户账号须填；平台账号留空） */
+  tenant?: string
   /** 登录账号（邮箱，全平台唯一；平台账号也可用用户名） */
   username: string
   password: string
@@ -161,7 +163,7 @@ export interface LoginResponse {
 
 /** 鉴权令牌 */
 /** 登录 / 切换租户 / 模仿登录拿回的会话（后端 `TokenResponse`：令牌对、会话 ID、当前租户与用户资料） */
-export type LoginToken = ResponseOf<'auth.login'>
+export type LoginToken = ResponseOf<'auth.refresh'>
 
 export interface PermissionInfo {
   /** 可用按钮码：页面按钮是否可见由服务端判定后下发，前端不持有权限码。缺省视为一个都没有（fail-closed） */

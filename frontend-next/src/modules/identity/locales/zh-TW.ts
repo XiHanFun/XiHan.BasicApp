@@ -38,6 +38,7 @@ export default {
         lock: '鎖定',
         unlock: '解鎖',
         reset_password: '重設密碼',
+        reset_two_factor: '重設雙重驗證',
         impersonate: '模擬登入',
         generate_password: '重新產生',
         add_department: '加入部門',
@@ -49,6 +50,8 @@ export default {
       confirm_unlock: '確定解鎖「{name}」？',
       locked: '已鎖定帳號',
       unlocked: '已解除帳號鎖定',
+      confirm_reset_two_factor: '確定重設「{name}」的雙重驗證？其驗證器綁定將被清除，下次只憑密碼登入，需要自行重新綁定。',
+      two_factor_reset: '雙重驗證已重設',
       impersonate_content: '將以「{name}」的身分登入，用於排查對方遇到的問題。期間的操作會記入稽核。',
       impersonate_failed: '發起模擬登入失敗',
       reset_title: '重設密碼 · {name}',
@@ -75,38 +78,6 @@ export default {
       member_form: {
         department: '部門',
         position: '職位',
-      },
-    },
-    login: {
-      title: '登入',
-      description: '以使用者名稱與密碼登入。',
-      fields: {
-        tenant: '租戶',
-        user_name: '使用者名稱',
-        password: '密碼',
-      },
-      tenant_placeholder: '平台帳號留空',
-      subtitle: '請輸入您的帳號密碼以登入系統',
-      user_name_placeholder: '請輸入使用者名稱或電子郵件',
-      password_placeholder: '請輸入密碼',
-      actions: {
-        sign_in: '登入',
-      },
-    },
-    profile: {
-      change_password: {
-        title: '變更密碼',
-        description: '輸入目前密碼與新密碼（至少 8 位，含字母與數字）；本人的其他工作階段將被登出。',
-        fields: {
-          current_password: '目前密碼',
-          new_password: '新密碼',
-          confirm_password: '確認新密碼',
-        },
-        mismatch: '兩次輸入的新密碼不一致。',
-        success: '密碼已變更，其他工作階段已登出。',
-        actions: {
-          submit: '變更密碼',
-        },
       },
     },
   },

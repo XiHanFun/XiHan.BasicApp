@@ -38,6 +38,7 @@ export default {
         lock: 'Verrouiller',
         unlock: 'Déverrouiller',
         reset_password: 'Réinitialiser le mot de passe',
+        reset_two_factor: 'Réinitialiser la double authentification',
         impersonate: 'Se connecter en tant que',
         generate_password: 'Régénérer',
         add_department: 'Ajouter au service',
@@ -49,6 +50,8 @@ export default {
       confirm_unlock: 'Déverrouiller « {name} » ?',
       locked: 'Compte verrouillé',
       unlocked: 'Compte déverrouillé',
+      confirm_reset_two_factor: 'Réinitialiser la double authentification de « {name} » ? La liaison de l\'application d\'authentification est effacée ; la prochaine connexion se fera avec le seul mot de passe, puis il faudra la lier à nouveau.',
+      two_factor_reset: 'Double authentification réinitialisée',
       impersonate_content: 'Vous allez vous connecter en tant que « {name} » pour analyser son problème. Les actions effectuées pendant ce temps sont auditées.',
       impersonate_failed: 'Impossible de se connecter en tant que cet utilisateur',
       reset_title: 'Réinitialiser le mot de passe · {name}',
@@ -75,38 +78,6 @@ export default {
       member_form: {
         department: 'Service',
         position: 'Poste',
-      },
-    },
-    login: {
-      title: 'Connexion',
-      description: 'Connectez-vous avec votre nom d\'utilisateur et votre mot de passe.',
-      fields: {
-        tenant: 'Locataire',
-        user_name: 'Nom d\'utilisateur',
-        password: 'Mot de passe',
-      },
-      tenant_placeholder: 'Laissez vide pour un compte de plateforme',
-      subtitle: 'Saisissez votre identifiant et votre mot de passe pour vous connecter',
-      user_name_placeholder: 'Identifiant ou e-mail',
-      password_placeholder: 'Mot de passe',
-      actions: {
-        sign_in: 'Se connecter',
-      },
-    },
-    profile: {
-      change_password: {
-        title: 'Changer le mot de passe',
-        description: 'Saisissez le mot de passe actuel et un nouveau (au moins 8 caractères avec lettres et chiffres). Vos autres sessions seront déconnectées.',
-        fields: {
-          current_password: 'Mot de passe actuel',
-          new_password: 'Nouveau mot de passe',
-          confirm_password: 'Confirmer le nouveau mot de passe',
-        },
-        mismatch: 'Les deux nouveaux mots de passe ne correspondent pas.',
-        success: 'Mot de passe changé ; vos autres sessions ont été déconnectées.',
-        actions: {
-          submit: 'Changer le mot de passe',
-        },
       },
     },
   },

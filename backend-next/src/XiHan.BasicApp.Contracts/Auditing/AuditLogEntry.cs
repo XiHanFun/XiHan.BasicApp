@@ -30,9 +30,9 @@ public sealed class LoginLogEntry : AuditLogEntry
     }
 
     /// <summary>
-    /// 事件。
+    /// 事件；处理过程中可以改判（密码通过但要第二步时，登录改记为 <see cref="LoginEvent.TwoFactorChallenge"/>）。
     /// </summary>
-    public LoginEvent Event { get; }
+    public LoginEvent Event { get; set; }
 
     /// <summary>
     /// 账号所在的租户（登录时填的租户）；平台账号为 <see cref="TenantIds.Platform"/>。目录里不存在或停用的租户，日志落在平台一侧，这里留着原值供排查。

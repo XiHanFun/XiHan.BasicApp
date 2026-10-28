@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using XiHan.BasicApp.Contracts;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
@@ -70,6 +71,12 @@ public sealed class IdentityFeature : IFeature
         context.Services.AddSingleton<AccessTokenIssuer>();
         context.Services.AddSingleton<SessionGate>();
         context.Services.AddSingleton<LoginAttempts>();
+        context.Services.TryAddSingleton<ICaptchaCodeSource, RandomCaptchaCodes>();
+        context.Services.AddSingleton<Captchas>();
+        context.Services.AddSingleton<LoginThrottle>();
+        context.Services.AddSingleton<TwoFactorTickets>();
+        context.Services.AddSingleton<TotpEnrollments>();
+        context.Services.AddScoped<LoginSessions>();
         context.Services.AddScoped<UserAccountService>();
         context.Services.AddScoped<UserQueries>();
         context.Services.AddSeeder<PlatformIdentitySeeder>();

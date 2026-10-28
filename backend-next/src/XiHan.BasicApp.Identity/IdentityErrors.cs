@@ -87,4 +87,49 @@ public static class IdentityErrors
     /// 模仿目标不可用：不存在、非正常状态、是自己，或不在目标上下文里。
     /// </summary>
     public const string ImpersonationTargetUnavailable = "IDENTITY_DENIED_007";
+
+    /// <summary>
+    /// 图形验证码缺失、错误、过期或已用过。
+    /// </summary>
+    public const string CaptchaInvalid = "IDENTITY_VALIDATION_007";
+
+    /// <summary>
+    /// 双因素方式不可用（目前只有认证器能开启与验证）。
+    /// </summary>
+    public const string TwoFactorMethodUnavailable = "IDENTITY_VALIDATION_008";
+
+    /// <summary>
+    /// 没有待确认的认证器密钥（没生成或已过期）。
+    /// </summary>
+    public const string TotpSetupMissing = "IDENTITY_VALIDATION_009";
+
+    /// <summary>
+    /// 个人中心开关双因素时验证码不对。
+    /// </summary>
+    public const string TwoFactorCodeRejected = "IDENTITY_VALIDATION_010";
+
+    /// <summary>
+    /// 认证器已经绑定（换设备须先关闭）。
+    /// </summary>
+    public const string TotpAlreadyEnabled = "IDENTITY_CONFLICT_004";
+
+    /// <summary>
+    /// 两步验证票据不存在、已过期或已作废，须重新登录。
+    /// </summary>
+    public const string TwoFactorTicketInvalid = "IDENTITY_DENIED_008";
+
+    /// <summary>
+    /// 登录第二步的验证码不对。
+    /// </summary>
+    public const string TwoFactorCodeInvalid = "IDENTITY_DENIED_009";
+
+    /// <summary>
+    /// 账号开着双因素却没有可用的方式（如认证器密钥丢失），须管理员重置。
+    /// </summary>
+    public const string TwoFactorUnavailable = "IDENTITY_DENIED_010";
+
+    /// <summary>
+    /// 登录失败太频繁，本窗口内暂停尝试；参数 <c>retryAfter</c> 秒。
+    /// </summary>
+    public const string LoginThrottled = "IDENTITY_UNAVAILABLE_001";
 }

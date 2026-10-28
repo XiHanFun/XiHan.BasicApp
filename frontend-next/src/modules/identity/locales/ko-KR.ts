@@ -38,6 +38,7 @@ export default {
         lock: '잠금',
         unlock: '잠금 해제',
         reset_password: '비밀번호 초기화',
+        reset_two_factor: '2단계 인증 초기화',
         impersonate: '대리 로그인',
         generate_password: '다시 생성',
         add_department: '부서에 추가',
@@ -49,6 +50,8 @@ export default {
       confirm_unlock: '“{name}”의 잠금을 해제할까요?',
       locked: '계정을 잠갔어요',
       unlocked: '계정 잠금을 해제했어요',
+      confirm_reset_two_factor: '"{name}"의 2단계 인증을 초기화할까요? 인증 앱 등록이 지워지며, 다음에는 비밀번호만으로 로그인하고 직접 다시 등록해야 합니다.',
+      two_factor_reset: '2단계 인증을 초기화했습니다',
       impersonate_content: '「{name}」 계정으로 로그인해 해당 사용자의 문제를 확인해요. 이 기간의 작업은 감사 로그에 기록돼요.',
       impersonate_failed: '대리 로그인을 시작하지 못했어요',
       reset_title: '비밀번호 초기화 · {name}',
@@ -75,38 +78,6 @@ export default {
       member_form: {
         department: '부서',
         position: '직위',
-      },
-    },
-    login: {
-      title: '로그인',
-      description: '사용자 이름과 비밀번호로 로그인합니다.',
-      fields: {
-        tenant: '테넌트',
-        user_name: '사용자 이름',
-        password: '비밀번호',
-      },
-      tenant_placeholder: '플랫폼 계정은 비워 두세요',
-      subtitle: '사용자 이름과 비밀번호를 입력해 로그인하세요',
-      user_name_placeholder: '사용자 이름 또는 이메일',
-      password_placeholder: '비밀번호',
-      actions: {
-        sign_in: '로그인',
-      },
-    },
-    profile: {
-      change_password: {
-        title: '비밀번호 변경',
-        description: '현재 비밀번호와 새 비밀번호(8자 이상, 영문자와 숫자 포함)를 입력하세요. 다른 세션은 로그아웃됩니다.',
-        fields: {
-          current_password: '현재 비밀번호',
-          new_password: '새 비밀번호',
-          confirm_password: '새 비밀번호 확인',
-        },
-        mismatch: '새 비밀번호가 서로 일치하지 않습니다.',
-        success: '비밀번호가 변경되었고 다른 세션은 로그아웃되었습니다.',
-        actions: {
-          submit: '비밀번호 변경',
-        },
       },
     },
   },

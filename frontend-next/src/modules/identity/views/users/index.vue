@@ -16,7 +16,7 @@ import { formatDate } from '~/utils'
 import { useUserDepartments } from './use-user-departments'
 import { useUserDetail } from './use-user-detail'
 import { useUserRoles } from './use-user-roles'
-import { displayNameOf, setUserLocked, usePasswordReset, USER_STATUSES, usersResource, useUserEditor } from './use-users'
+import { displayNameOf, resetUserTwoFactor, setUserLocked, usePasswordReset, USER_STATUSES, usersResource, useUserEditor } from './use-users'
 
 defineOptions({ name: 'IdentityUsersView' })
 
@@ -116,6 +116,7 @@ const schema = computed<PageSchema>(() => ({
     { key: 'lock', title: t('identity.users.actions.lock'), scope: 'row', tone: 'warning', icon: 'lucide:lock', confirm: true, confirmText: row => t('identity.users.confirm_lock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status !== 'Locked' && !isSelf(asRow(row)), permission: 'identity.users.lock' },
     { key: 'unlock', title: t('identity.users.actions.unlock'), scope: 'row', icon: 'lucide:lock-open', confirm: true, confirmText: row => t('identity.users.confirm_unlock', { name: displayNameOf(asRow(row)) }), visible: row => asRow(row).status === 'Locked', permission: 'identity.users.lock' },
     { key: 'resetPassword', title: t('identity.users.actions.reset_password'), scope: 'row', tone: 'danger', icon: 'lucide:key-square', permission: 'identity.users.reset-password' },
+    { key: 'resetTwoFactor', title: t('identity.users.actions.reset_two_factor'), scope: 'row', tone: 'warning', icon: 'lucide:shield-off', confirm: true, confirmText: row => t('identity.users.confirm_reset_two_factor', { name: displayNameOf(asRow(row)) }), visible: row => !isSelf(asRow(row)), permission: 'identity.users.reset-two-factor' },
     // 模仿态里不能再模仿；目标须是正常状态的他人
     { key: 'impersonate', title: t('identity.users.actions.impersonate'), scope: 'row', icon: 'lucide:user-round-cog', confirm: true, confirmText: row => t('identity.users.impersonate_content', { name: displayNameOf(asRow(row)) }), visible: row => userStore.userInfo?.canImpersonate === true && asRow(row).status === 'Active' && !isSelf(asRow(row)), permission: 'identity.impersonation.start' },
     { key: 'delete', title: t('common.actions.delete'), scope: 'row', tone: 'danger', icon: 'lucide:trash-2', confirm: true, confirmText: row => deleteConfirmText(t, displayNameOf(asRow(row))), visible: row => !isSelf(asRow(row)), permission: 'identity.users.delete' },
@@ -154,6 +155,10 @@ function onAction(payload: SchemaActionPayload) {
       if (row)
         passwordReset.start(row)
       break
+    case 'resetTwoFactor':
+      if (row)
+        void resetTwoFactor(row)
+      break
     case 'impersonate':
       if (row)
         void impersonate(row)
@@ -183,6 +188,16 @@ async function toggleLock(row: UserRow, locked: boolean) {
     await setUserLocked(row.id, locked)
     toast.success(locked ? t('identity.users.locked') : t('identity.users.unlocked'))
     reload()
+  }
+  catch (error) {
+    toast.danger((error as Error).message || t('common.messages.operation_failed'))
+  }
+}
+
+async function resetTwoFactor(row: UserRow) {
+  try {
+    await resetUserTwoFactor(row.id)
+    toast.success(t('identity.users.two_factor_reset'))
   }
   catch (error) {
     toast.danger((error as Error).message || t('common.messages.operation_failed'))

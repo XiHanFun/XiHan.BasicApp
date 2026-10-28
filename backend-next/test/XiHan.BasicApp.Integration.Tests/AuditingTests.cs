@@ -116,7 +116,7 @@ public sealed class AuditingTests : IDisposable
         signIn.Headers.UserAgent.ParseAdd(chrome);
         var (signedIn, signedInBody) = await server.SendAsync(signIn);
         Assert.Equal(HttpStatusCode.OK, signedIn.StatusCode);
-        var sessionId = Guid.Parse(signedInBody.GetProperty("sessionId").GetString()!);
+        var sessionId = Guid.Parse(signedInBody.GetProperty("token").GetProperty("sessionId").GetString()!);
         var session = await SettingsTestHost.InvokeAsync(server, null, async ctx => (await ctx.Services.GetRequiredService<IRepository<SysUserSession, Guid>>().FindAsync(sessionId, ctx.CancellationToken)).ValueOrThrow());
         Assert.Equal(chrome, session.ClientInfo);
 

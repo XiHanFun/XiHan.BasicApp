@@ -6,41 +6,38 @@ using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
-using XiHan.BasicApp.Identity.Operations.Users;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
-using XiHan.Framework.Persistence.Abstractions.Identifiers;
-using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Identity.Operations.Auth;
 
 /// <summary>
-/// 密码登录（匿名操作，登记在架构测试的匿名白名单）：按注册地租户与登录名找账号，校验状态、锁定期与密码；成功即开一个会话并签发访问令牌与刷新令牌。
+/// 密码登录（匿名操作，登记在架构测试的匿名白名单）：按注册地租户与登录名找账号，校验状态、锁定期与密码。
+/// 依次过三道关：登录节流（<see cref="LoginThrottle"/>，超限直接拒绝）、图形验证码（开启时，一次性）、账号与密码；
+/// 账号开了双因素即签发两步验证票据、不开会话（日志记为 <see cref="LoginEvent.TwoFactorChallenge"/>），否则开会话并签发令牌对。
 /// 失败计数在独立作用域里提交（<see cref="LoginAttempts"/>），否则随本次失败调用一起回滚。用户名或密码错误不区分哪一个。
 /// </summary>
 /// <param name="accounts">账号域服务。</param>
-/// <param name="users">用户仓储。</param>
-/// <param name="securities">账号安全仓储。</param>
-/// <param name="sessions">会话仓储。</param>
-/// <param name="attempts">失败计数。</param>
-/// <param name="issuer">令牌签发器。</param>
+/// <param name="attempts">账号的失败计数与锁定。</param>
+/// <param name="throttle">登录节流。</param>
+/// <param name="captchas">图形验证码。</param>
+/// <param name="tickets">两步验证票据。</param>
+/// <param name="logins">登录完成（开会话、签令牌）。</param>
 /// <param name="options">身份配置。</param>
-/// <param name="ids">标识生成器。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="tenants">框架租户目录：租户账号登录前先确认租户存在且启用。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http)]
 public sealed class Login(
     UserAccountService accounts,
-    IRepository<SysUser, Guid> users,
-    IRepository<SysUserSecurity, Guid> securities,
-    IRepository<SysUserSession, Guid> sessions,
     LoginAttempts attempts,
-    AccessTokenIssuer issuer,
+    LoginThrottle throttle,
+    Captchas captchas,
+    TwoFactorTickets tickets,
+    LoginSessions logins,
     IdentityOptions options,
-    IIdGenerator<Guid> ids,
     TimeProvider clock,
-    ITenantStore tenants) : IOperation<LoginRequest, TokenResponse>
+    ITenantStore tenants) : IOperation<LoginRequest, LoginResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -48,15 +45,29 @@ public sealed class Login(
     public const string Id = "auth.login";
 
     /// <inheritdoc />
-    public async ValueTask<Result<TokenResponse>> HandleAsync(LoginRequest request, InvocationContext context)
+    public async ValueTask<Result<LoginResponse>> HandleAsync(LoginRequest request, InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentNullException.ThrowIfNull(context);
         var tenant = string.IsNullOrWhiteSpace(request.Tenant) ? TenantIds.Platform : request.Tenant.Trim();
         var userName = request.UserName.Trim().ToLowerInvariant();
-        // 登录日志成败都记（成败取调用结果）：租户核实之前落在平台一侧，账号所在租户留原值供排查
+        // 登录日志成败都记（成败取调用结果，节流与验证码的拒绝也在内）：租户核实之前落在平台一侧，账号所在租户留原值供排查
         var log = new LoginLogEntry(LoginEvent.Login) { AccountTenantId = tenant, UserName = userName };
         context.AddAuditLog(log);
+        var account = ThrottleKeyOf(tenant, userName);
+        var address = SessionClient.AddressOf(context);
+        var allowed = await throttle.CheckAsync(account, address, context.CancellationToken).ConfigureAwait(false);
+        if (allowed.IsFailure)
+        {
+            return allowed.Error!;
+        }
+
+        if (options.CaptchaEnabled && !await captchas.ConsumeAsync(request.CaptchaId, request.CaptchaCode, context.CancellationToken).ConfigureAwait(false))
+        {
+            await throttle.RecordFailureAsync(account, address, context.CancellationToken).ConfigureAwait(false);
+            return Error.Validation(IdentityErrors.CaptchaInvalid, IdentityMessages.CaptchaInvalid);
+        }
+
         string? tenantName = null;
         // 租户账号：租户须在目录里且启用（停用的租户连用户名都不核对，直接拒绝）
         if (!string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal))
@@ -74,12 +85,12 @@ public sealed class Login(
         var found = await accounts.FindByNameAsync(tenant, userName, context.CancellationToken).ConfigureAwait(false);
         if (!found.TryGetValue(out var user))
         {
+            await throttle.RecordFailureAsync(account, address, context.CancellationToken).ConfigureAwait(false);
             return Error.Denied(IdentityErrors.InvalidCredentials, IdentityMessages.InvalidCredentials);
         }
 
         log.UserId = user.Id;
         log.UserName = user.UserName;
-
         if (user.Status != UserStatus.Active)
         {
             return Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.AccountUnavailable, MessageArguments.Of(("status", user.Status.ToString())));
@@ -100,48 +111,34 @@ public sealed class Login(
         if (!PasswordHasher.Verify(request.Password, security.PasswordHash))
         {
             // 调用以失败结束时工作单元会回滚，计数在独立作用域里提交
+            await throttle.RecordFailureAsync(account, address, context.CancellationToken).ConfigureAwait(false);
             var lockedOut = await attempts.RecordFailureAsync(security.Id, context.CancellationToken).ConfigureAwait(false);
             return lockedOut ? LockedOut(options.LockoutDuration) : Error.Denied(IdentityErrors.InvalidCredentials, IdentityMessages.InvalidCredentials);
         }
 
-        security.FailedAccessCount = 0;
-        security.LockoutEndAt = null;
-        var securityUpdated = await securities.UpdateAsync(security, context.CancellationToken).ConfigureAwait(false);
-        if (securityUpdated.IsFailure)
+        var sessionTenant = string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal) ? null : tenant;
+        if (security.TwoFactorEnabled)
         {
-            return securityUpdated.Error!;
+            // 失败计数与锁定等第二步通过才清零：只知道密码的人不能靠反复登录把计数清掉
+            var methods = TwoFactorSettings.UsableAt(security);
+            if (methods.Count == 0)
+            {
+                return Error.Denied(IdentityErrors.TwoFactorUnavailable, IdentityMessages.TwoFactorUnavailable);
+            }
+
+            var (ticket, expiresAt) = await tickets.IssueAsync(user.Id, sessionTenant, context.CancellationToken).ConfigureAwait(false);
+            log.Event = LoginEvent.TwoFactorChallenge;
+            return new LoginResponse(null, new TwoFactorChallengeResponse(ticket, methods, methods.Count == 1 ? methods[0] : null, CodeSent: false, expiresAt));
         }
 
-        user.LastLoginAt = now;
-        var userUpdated = await users.UpdateAsync(user, context.CancellationToken).ConfigureAwait(false);
-        if (userUpdated.IsFailure)
-        {
-            return userUpdated.Error!;
-        }
-
-        var refreshToken = RefreshTokens.Generate();
-        var session = new SysUserSession
-        {
-            Id = ids.NewId(),
-            UserId = user.Id,
-            ActiveTenantId = string.Equals(tenant, TenantIds.Platform, StringComparison.Ordinal) ? null : tenant,
-            RefreshTokenHash = RefreshTokens.Hash(refreshToken),
-            IssuedAt = now,
-            RefreshExpiresAt = now + options.RefreshTokenLifetime,
-            IpAddress = SessionClient.AddressOf(context),
-            ClientInfo = SessionClient.AgentOf(context),
-        };
-        var added = await sessions.AddAsync(session, context.CancellationToken).ConfigureAwait(false);
-        if (added.IsFailure)
-        {
-            return added.Error!;
-        }
-
-        log.SessionId = session.Id;
-        var roles = await accounts.RolesOfAsync(user.Id, session.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
-        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles);
-        return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName);
+        var token = await logins.StartAsync(user, security, sessionTenant, tenantName, log, context).ConfigureAwait(false);
+        return token.TryGetValue(out var issued) ? new LoginResponse(issued, null) : token.Error!;
     }
+
+    /// <summary>
+    /// 节流的账号键：注册地租户与登录名（第二步按同一个键计）。
+    /// </summary>
+    internal static string ThrottleKeyOf(string tenant, string userName) => tenant + "/" + userName;
 
     private static Error LockedOut(TimeSpan remaining)
         => Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.LockedOut, MessageArguments.Of(("seconds", (int)Math.Ceiling(remaining.TotalSeconds))));

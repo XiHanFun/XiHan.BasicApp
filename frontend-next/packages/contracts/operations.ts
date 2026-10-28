@@ -8,12 +8,15 @@ import type { operations } from './types'
 export const routes = {
   'access-logs.get': { method: 'GET', template: '/api/access-logs/{id}', path: ['id'], query: [], success: 200 },
   'access-logs.list': { method: 'POST', template: '/api/access-logs:list', path: [], query: [], success: 200 },
+  'auth.captcha': { method: 'POST', template: '/api/auth:captcha', path: [], query: [], success: 200 },
   'auth.login': { method: 'POST', template: '/api/auth:login', path: [], query: [], success: 200 },
+  'auth.login-config': { method: 'GET', template: '/api/auth:login-config', path: [], query: [], success: 200 },
   'auth.logout': { method: 'POST', template: '/api/auth:logout', path: [], query: [], success: 200 },
   'auth.me': { method: 'GET', template: '/api/auth:me', path: [], query: [], success: 200 },
   'auth.permissions': { method: 'GET', template: '/api/auth:permissions', path: [], query: [], success: 200 },
   'auth.refresh': { method: 'POST', template: '/api/auth:refresh', path: [], query: [], success: 200 },
   'auth.switch-tenant': { method: 'POST', template: '/api/auth:switch-tenant', path: [], query: [], success: 200 },
+  'auth.verify-two-factor': { method: 'POST', template: '/api/auth:verify-two-factor', path: [], query: [], success: 200 },
   'condition-hits.get': { method: 'GET', template: '/api/condition-hits/{id}', path: ['id'], query: [], success: 200 },
   'condition-hits.list': { method: 'POST', template: '/api/condition-hits:list', path: [], query: [], success: 200 },
   'configs.create': { method: 'POST', template: '/api/configs', path: [], query: [], success: 201 },
@@ -85,6 +88,10 @@ export const routes = {
   'positions.list': { method: 'POST', template: '/api/positions:list', path: [], query: [], success: 200 },
   'positions.update': { method: 'PUT', template: '/api/positions/{id}', path: ['id'], query: [], success: 200 },
   'profile.change-password': { method: 'POST', template: '/api/profile:change-password', path: [], query: [], success: 200 },
+  'profile.disable-two-factor': { method: 'POST', template: '/api/profile:disable-two-factor', path: [], query: [], success: 200 },
+  'profile.enable-two-factor': { method: 'POST', template: '/api/profile:enable-two-factor', path: [], query: [], success: 200 },
+  'profile.get': { method: 'GET', template: '/api/profile', path: [], query: [], success: 200 },
+  'profile.setup-totp': { method: 'POST', template: '/api/profile:setup-totp', path: [], query: [], success: 200 },
   'roles.assign': { method: 'POST', template: '/api/roles/{id}:assign', path: ['id'], query: [], success: 200 },
   'roles.by-user': { method: 'GET', template: '/api/roles:by-user', path: [], query: ['userId'], success: 200 },
   'roles.create': { method: 'POST', template: '/api/roles', path: [], query: [], success: 201 },
@@ -118,6 +125,7 @@ export const routes = {
   'users.list': { method: 'POST', template: '/api/users:list', path: [], query: [], success: 200 },
   'users.lock': { method: 'POST', template: '/api/users:lock', path: [], query: [], success: 200 },
   'users.reset-password': { method: 'POST', template: '/api/users/{id}:reset-password', path: ['id'], query: [], success: 200 },
+  'users.reset-two-factor': { method: 'POST', template: '/api/users:reset-two-factor', path: [], query: [], success: 200 },
   'users.unlock': { method: 'POST', template: '/api/users:unlock', path: [], query: [], success: 200 },
   'users.update': { method: 'PUT', template: '/api/users/{id}', path: ['id'], query: [], success: 200 },
 } as const satisfies Record<string, RouteDef>
@@ -141,12 +149,15 @@ export const accessLogs = {
 
 /** 资源 `auth` 的操作。 */
 export const auth = {
+  captcha: (request: RequestOf<'auth.captcha'>, options?: CallOptions) => invoke<RequestOf<'auth.captcha'>, ResponseOf<'auth.captcha'>>('auth.captcha', routes['auth.captcha'], request, options),
   login: (request: RequestOf<'auth.login'>, options?: CallOptions) => invoke<RequestOf<'auth.login'>, ResponseOf<'auth.login'>>('auth.login', routes['auth.login'], request, options),
+  loginConfig: (request: RequestOf<'auth.login-config'>, options?: CallOptions) => invoke<RequestOf<'auth.login-config'>, ResponseOf<'auth.login-config'>>('auth.login-config', routes['auth.login-config'], request, options),
   logout: (request: RequestOf<'auth.logout'>, options?: CallOptions) => invoke<RequestOf<'auth.logout'>, ResponseOf<'auth.logout'>>('auth.logout', routes['auth.logout'], request, options),
   me: (request: RequestOf<'auth.me'>, options?: CallOptions) => invoke<RequestOf<'auth.me'>, ResponseOf<'auth.me'>>('auth.me', routes['auth.me'], request, options),
   permissions: (request: RequestOf<'auth.permissions'>, options?: CallOptions) => invoke<RequestOf<'auth.permissions'>, ResponseOf<'auth.permissions'>>('auth.permissions', routes['auth.permissions'], request, options),
   refresh: (request: RequestOf<'auth.refresh'>, options?: CallOptions) => invoke<RequestOf<'auth.refresh'>, ResponseOf<'auth.refresh'>>('auth.refresh', routes['auth.refresh'], request, options),
   switchTenant: (request: RequestOf<'auth.switch-tenant'>, options?: CallOptions) => invoke<RequestOf<'auth.switch-tenant'>, ResponseOf<'auth.switch-tenant'>>('auth.switch-tenant', routes['auth.switch-tenant'], request, options),
+  verifyTwoFactor: (request: RequestOf<'auth.verify-two-factor'>, options?: CallOptions) => invoke<RequestOf<'auth.verify-two-factor'>, ResponseOf<'auth.verify-two-factor'>>('auth.verify-two-factor', routes['auth.verify-two-factor'], request, options),
 }
 
 /** 资源 `condition-hits` 的操作。 */
@@ -294,6 +305,10 @@ export const positions = {
 /** 资源 `profile` 的操作。 */
 export const profile = {
   changePassword: (request: RequestOf<'profile.change-password'>, options?: CallOptions) => invoke<RequestOf<'profile.change-password'>, ResponseOf<'profile.change-password'>>('profile.change-password', routes['profile.change-password'], request, options),
+  disableTwoFactor: (request: RequestOf<'profile.disable-two-factor'>, options?: CallOptions) => invoke<RequestOf<'profile.disable-two-factor'>, ResponseOf<'profile.disable-two-factor'>>('profile.disable-two-factor', routes['profile.disable-two-factor'], request, options),
+  enableTwoFactor: (request: RequestOf<'profile.enable-two-factor'>, options?: CallOptions) => invoke<RequestOf<'profile.enable-two-factor'>, ResponseOf<'profile.enable-two-factor'>>('profile.enable-two-factor', routes['profile.enable-two-factor'], request, options),
+  get: (request: RequestOf<'profile.get'>, options?: CallOptions) => invoke<RequestOf<'profile.get'>, ResponseOf<'profile.get'>>('profile.get', routes['profile.get'], request, options),
+  setupTotp: (request: RequestOf<'profile.setup-totp'>, options?: CallOptions) => invoke<RequestOf<'profile.setup-totp'>, ResponseOf<'profile.setup-totp'>>('profile.setup-totp', routes['profile.setup-totp'], request, options),
 }
 
 /** 资源 `roles` 的操作。 */
@@ -351,6 +366,7 @@ export const users = {
   list: (request: RequestOf<'users.list'>, options?: CallOptions) => invoke<RequestOf<'users.list'>, ResponseOf<'users.list'>>('users.list', routes['users.list'], request, options),
   lock: (request: RequestOf<'users.lock'>, options?: CallOptions) => invoke<RequestOf<'users.lock'>, ResponseOf<'users.lock'>>('users.lock', routes['users.lock'], request, options),
   resetPassword: (request: RequestOf<'users.reset-password'>, options?: CallOptions) => invoke<RequestOf<'users.reset-password'>, ResponseOf<'users.reset-password'>>('users.reset-password', routes['users.reset-password'], request, options),
+  resetTwoFactor: (request: RequestOf<'users.reset-two-factor'>, options?: CallOptions) => invoke<RequestOf<'users.reset-two-factor'>, ResponseOf<'users.reset-two-factor'>>('users.reset-two-factor', routes['users.reset-two-factor'], request, options),
   unlock: (request: RequestOf<'users.unlock'>, options?: CallOptions) => invoke<RequestOf<'users.unlock'>, ResponseOf<'users.unlock'>>('users.unlock', routes['users.unlock'], request, options),
   update: (request: RequestOf<'users.update'>, options?: CallOptions) => invoke<RequestOf<'users.update'>, ResponseOf<'users.update'>>('users.update', routes['users.update'], request, options),
 }

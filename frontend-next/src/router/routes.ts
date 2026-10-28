@@ -1,9 +1,10 @@
 import type { RouteRecordRaw } from 'vue-router'
 import { HOME_PATH } from '~/constants'
 import BasicLayout from '~/layouts/basic/index.vue'
-import { coreRoutes, resolveView } from '~/router'
+import { coreRoutes } from '~/router'
 
 const ControlCenterPage = () => import('~/views/_core/control-center/index.vue')
+const ProfilePage = () => import('~/views/_core/profile/index.vue')
 
 export const staticRoutes: RouteRecordRaw[] = [
   {
@@ -13,11 +14,11 @@ export const staticRoutes: RouteRecordRaw[] = [
     redirect: HOME_PATH,
     children: [
       {
-        // 改密页：个人中心页随 Identity 的后续批次补，顶栏用户菜单的「个人中心」暂指向这里
-        path: '/identity/profile/change-password',
-        name: 'identity.profile.change-password',
-        component: resolveView('identity/profile/change-password/index'),
-        meta: { title: 'identity.profile.change_password.title' },
+        // 个人中心（4.x 原样搬入，目前只接了账号安全页签）：顶栏用户菜单的「个人中心」指向这里，人人可进，不进菜单
+        path: '/profile',
+        name: 'Profile',
+        component: ProfilePage,
+        meta: { title: 'component.profile.title', hidden: true },
       },
     ],
   },

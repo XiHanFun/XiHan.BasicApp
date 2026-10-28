@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 namespace XiHan.BasicApp.Identity;
 
 /// <summary>
-/// 身份包配置 <c>BasicApp:Auth</c>：令牌有效期、登录失败锁定、密码策略、会话门禁缓存。
+/// 身份包配置 <c>BasicApp:Auth</c>：令牌有效期、登录失败锁定、密码策略、会话门禁缓存、图形验证码、登录节流与双因素。
 /// </summary>
 public sealed record IdentityOptions
 {
@@ -52,6 +52,46 @@ public sealed record IdentityOptions
     public TimeSpan SessionCacheTimeToLive { get; init; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
+    /// 密码登录是否要求图形验证码（<c>CaptchaEnabled</c>，缺省开）。
+    /// </summary>
+    public bool CaptchaEnabled { get; init; } = true;
+
+    /// <summary>
+    /// 图形验证码有效期（<c>CaptchaSeconds</c>，缺省 300 秒）。
+    /// </summary>
+    public TimeSpan CaptchaLifetime { get; init; } = TimeSpan.FromSeconds(300);
+
+    /// <summary>
+    /// 登录节流的固定窗口（<c>LoginThrottleWindowSeconds</c>，缺省 60 秒）。
+    /// </summary>
+    public TimeSpan LoginThrottleWindow { get; init; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>
+    /// 同一账号在同一地址上每个窗口允许的失败次数（<c>LoginThrottleAccountLimit</c>，缺省 5）。
+    /// </summary>
+    public int LoginThrottleAccountLimit { get; init; } = 5;
+
+    /// <summary>
+    /// 同一地址每个窗口允许的失败次数，跨账号累计（<c>LoginThrottleIpLimit</c>，缺省 30）。
+    /// </summary>
+    public int LoginThrottleIpLimit { get; init; } = 30;
+
+    /// <summary>
+    /// 两步验证票据有效期（<c>TwoFactorTicketMinutes</c>，缺省 10 分钟），从签发起算、不顺延。
+    /// </summary>
+    public TimeSpan TwoFactorTicketLifetime { get; init; } = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// 一张票据允许输错验证码的次数（<c>TwoFactorTicketMaxFailures</c>，缺省 5），用完即作废、须重新登录。
+    /// </summary>
+    public int TwoFactorTicketMaxFailures { get; init; } = 5;
+
+    /// <summary>
+    /// 认证器里显示的签发方（<c>TotpIssuer</c>，缺省 <c>XiHan BasicApp</c>）。
+    /// </summary>
+    public string TotpIssuer { get; init; } = "XiHan BasicApp";
+
+    /// <summary>
     /// 从配置读取；不合法的值是装配错误，直接抛出。
     /// </summary>
     public static IdentityOptions FromConfiguration(IConfiguration configuration)
@@ -94,7 +134,58 @@ public sealed record IdentityOptions
             options = options with { SessionCacheTimeToLive = TimeSpan.FromSeconds(cacheSeconds) };
         }
 
+        if (ReadBoolean(section, "CaptchaEnabled") is { } captchaEnabled)
+        {
+            options = options with { CaptchaEnabled = captchaEnabled };
+        }
+
+        if (ReadPositive(section, "CaptchaSeconds") is { } captchaSeconds)
+        {
+            options = options with { CaptchaLifetime = TimeSpan.FromSeconds(captchaSeconds) };
+        }
+
+        if (ReadPositive(section, "LoginThrottleWindowSeconds") is { } windowSeconds)
+        {
+            options = options with { LoginThrottleWindow = TimeSpan.FromSeconds(windowSeconds) };
+        }
+
+        if (ReadPositive(section, "LoginThrottleAccountLimit") is { } accountLimit)
+        {
+            options = options with { LoginThrottleAccountLimit = (int)accountLimit };
+        }
+
+        if (ReadPositive(section, "LoginThrottleIpLimit") is { } ipLimit)
+        {
+            options = options with { LoginThrottleIpLimit = (int)ipLimit };
+        }
+
+        if (ReadPositive(section, "TwoFactorTicketMinutes") is { } ticketMinutes)
+        {
+            options = options with { TwoFactorTicketLifetime = TimeSpan.FromMinutes(ticketMinutes) };
+        }
+
+        if (ReadPositive(section, "TwoFactorTicketMaxFailures") is { } ticketFailures)
+        {
+            options = options with { TwoFactorTicketMaxFailures = (int)ticketFailures };
+        }
+
+        if (section["TotpIssuer"] is { } issuer)
+        {
+            options = options with { TotpIssuer = !string.IsNullOrWhiteSpace(issuer) && !issuer.Contains(':', StringComparison.Ordinal) ? issuer.Trim() : throw new ArgumentException($"'{ConfigurationSection}:TotpIssuer' must be non-blank and must not contain ':', but was '{issuer}'.") };
+        }
+
         return options;
+    }
+
+    private static bool? ReadBoolean(IConfiguration section, string key)
+    {
+        var raw = section[key];
+        if (string.IsNullOrEmpty(raw))
+        {
+            return null;
+        }
+
+        return bool.TryParse(raw, out var value) ? value : throw new ArgumentException($"'{ConfigurationSection}:{key}' must be 'true' or 'false', but was '{raw}'.");
     }
 
     private static double? ReadPositive(IConfiguration section, string key)

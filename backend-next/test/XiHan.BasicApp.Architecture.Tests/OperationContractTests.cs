@@ -17,7 +17,7 @@ public sealed class OperationContractTests
     /// <summary>
     /// 不写 Permission 也不写 Policy 的操作（登录、刷新令牌；之后的验证码、找回密码）在这里登记。
     /// </summary>
-    private static readonly HashSet<string> _anonymousOperations = new(StringComparer.Ordinal) { "auth.login", "auth.refresh" };
+    private static readonly HashSet<string> _anonymousOperations = new(StringComparer.Ordinal) { "auth.login", "auth.refresh", "auth.verify-two-factor", "auth.captcha", "auth.login-config" };
 
     internal static IEnumerable<(Type Type, OperationAttribute Attribute, string Package)> Operations()
         => Packages.Assemblies

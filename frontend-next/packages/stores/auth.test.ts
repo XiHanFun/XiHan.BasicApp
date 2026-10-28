@@ -1,3 +1,4 @@
+import type { Router } from 'vue-router'
 import type { AppContextApis } from '~/types'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -26,7 +27,7 @@ describe('auth store', () => {
     vi.mocked(relaunchApp).mockClear()
   })
 
-  it('logs in anonymously, persists the session and signs out', async () => {
+  it('logs in anonymously, persists the session, follows the redirect and signs out', async () => {
     const calls: { url: string, authorization?: string }[] = []
     configureRequest({
       baseUrl: '',
@@ -34,14 +35,17 @@ describe('auth store', () => {
       fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
         calls.push({ url: String(url), authorization: (init!.headers as Record<string, string>).Authorization })
         if (String(url).endsWith('/api/auth:login'))
-          return json(200, session('a-1', 'r-1'))
+          return json(200, { token: session('a-1', 'r-1'), twoFactor: null })
         return json(200, { sessionId: 's-1', revokedAt: '2026-10-28T01:00:00Z' })
       }) as unknown as typeof fetch,
     })
+    const replace = vi.fn(async () => {})
+    registerAppContext({ getRouter: () => Promise.resolve({ replace, currentRoute: { value: { path: '/' } } } as unknown as Router) })
     const store = useAuthStore()
     expect(store.isAuthenticated).toBe(false)
 
-    await store.login({ userName: 'alice', password: 'Alice@12345', tenant: 'acme' })
+    expect(await store.login({ username: 'alice', password: 'Alice@12345', tenant: 'acme' }, '/settings/configs')).toBeNull()
+    expect(replace).toHaveBeenCalledWith('/settings/configs')
     expect(store.isAuthenticated).toBe(true)
     expect(store.accessToken).toBe('a-1')
     expect(store.user?.displayName).toBe('Alice')
@@ -53,6 +57,34 @@ describe('auth store', () => {
     expect(calls[1]?.url).toBe('/api/auth:logout')
     expect(store.isAuthenticated).toBe(false)
     expect(localStorage.getItem('xihan.next.session')).toBeNull()
+  })
+
+  it('returns the two-factor challenge without a session, then finishes with the ticket and code', async () => {
+    const bodies: { url: string, body: unknown }[] = []
+    configureRequest({
+      baseUrl: '',
+      getToken: () => null,
+      fetch: (async (url: RequestInfo | URL, init?: RequestInit) => {
+        bodies.push({ url: String(url), body: JSON.parse(String(init!.body)) })
+        if (String(url).endsWith('/api/auth:login'))
+          return json(200, { token: null, twoFactor: { ticket: 't-1', methods: ['Totp'], method: 'Totp', codeSent: false, expiresAt: '2026-10-28T00:10:00Z' } })
+        return json(200, session('a-1', 'r-1'))
+      }) as unknown as typeof fetch,
+    })
+    const replace = vi.fn(async () => {})
+    registerAppContext({ getRouter: () => Promise.resolve({ replace, currentRoute: { value: { path: '/' } } } as unknown as Router) })
+    const store = useAuthStore()
+
+    const challenge = await store.login({ username: ' alice ', password: 'Alice@12345', captchaId: 'c-1', captchaCode: '1234' })
+    expect(challenge).toEqual({ requiresTwoFactor: true, availableTwoFactorMethods: ['totp'], twoFactorMethod: 'totp', codeSent: false, twoFactorTicket: 't-1', token: null })
+    expect(bodies[0]?.body).toEqual({ userName: 'alice', password: 'Alice@12345', tenant: null, captchaId: 'c-1', captchaCode: '1234' })
+    expect(store.isAuthenticated).toBe(false)
+
+    // 第二段：外部回跳地址一律落回首页
+    expect(await store.login({ username: 'alice', password: 'Alice@12345', twoFactorTicket: 't-1', twoFactorMethod: 'totp', twoFactorCode: '654321' }, '//evil.example')).toBeNull()
+    expect(bodies[1]).toEqual({ url: '/api/auth:verify-two-factor', body: { ticket: 't-1', method: 'Totp', code: '654321' } })
+    expect(store.accessToken).toBe('a-1')
+    expect(replace).toHaveBeenCalledWith('/')
   })
 
   it('refreshes once for concurrent callers and rotates the refresh token', async () => {
