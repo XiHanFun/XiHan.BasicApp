@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Reflection;
-using System.Text.RegularExpressions;
 using XiHan.BasicApp.Architecture.Tests.Model;
 using XiHan.BasicApp.Contracts.Security;
 using XiHan.Framework.Kernel.Operations;
@@ -11,9 +10,9 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Architecture.Tests;
 
 /// <summary>
-/// 方案 5.4 / 第 10 节第 8 项：每个操作显式写 <c>Expose</c>；权限码点分三段且资源段与操作 ID 同词；匿名操作只能在白名单里。
+/// 方案 5.4 / 第 10 节第 8 项：每个操作显式写 <c>Expose</c>（编译期 XHG004）；权限码点分三段且资源段与操作 ID 同词；匿名操作只能在白名单里。
 /// </summary>
-public sealed partial class OperationContractTests
+public sealed class OperationContractTests
 {
     /// <summary>
     /// 不写 Permission 也不写 Policy 的操作（登录、刷新令牌；之后的验证码、找回密码）在这里登记。
@@ -35,26 +34,12 @@ public sealed partial class OperationContractTests
     [Fact]
     public void EveryOperation_WritesExposeExplicitly()
     {
-        // 特性缺省是 All 且 sealed，反射分不出「显式写了 All」与「没写」：按源码判，Operations 目录下每个 [Operation(...)] 的文本必须带 Expose =
-        var violations = new List<string>();
-        foreach (var file in Directory.EnumerateFiles(Packages.SourceRoot, "*.cs", SearchOption.AllDirectories))
+        // 显式写 Expose 由框架生成器诊断 XHG004（.editorconfig 设为 error）在编译期强制；程序集级 OperationDefaults 会让它不再报告，所以不许声明
+        foreach (var assembly in Packages.Assemblies)
         {
-            if (file.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal) || file.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            var source = File.ReadAllText(file);
-            foreach (Match match in OperationAttributeText().Matches(source))
-            {
-                if (!match.Value.Contains("Expose =", StringComparison.Ordinal))
-                {
-                    violations.Add($"{Path.GetRelativePath(Packages.SourceRoot, file)}: {match.Value.Split('\n')[0].Trim()}");
-                }
-            }
+            Assert.True(assembly.GetCustomAttribute<OperationDefaultsAttribute>() is null, $"{assembly.GetName().Name}: BasicApp writes Expose on every operation (XHG004); an assembly-level OperationDefaults would silence that check");
         }
 
-        Assert.True(violations.Count == 0, "Operations without an explicit Expose:" + Environment.NewLine + string.Join(Environment.NewLine, violations));
         foreach (var (type, attribute, _) in Operations())
         {
             Assert.True(attribute.Expose != Expose.None, $"{type.FullName}: Expose.None publishes nothing");
@@ -112,7 +97,4 @@ public sealed partial class OperationContractTests
 
     private static string ToPascal(string kebab)
         => string.Concat(kebab.Split('-').Select(static part => char.ToUpperInvariant(part[0]) + part[1..]));
-
-    [GeneratedRegex(@"\[Operation\((?:[^()]|\((?:[^()]|\([^()]*\))*\))*\)\]")]
-    private static partial Regex OperationAttributeText();
 }

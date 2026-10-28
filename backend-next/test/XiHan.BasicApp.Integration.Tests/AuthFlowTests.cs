@@ -42,7 +42,7 @@ public sealed class AuthFlowTests : IDisposable
         Assert.True(body.GetProperty("accessExpiresAt").GetDateTimeOffset() > DateTimeOffset.UtcNow);
         var sessionId = body.GetProperty("sessionId").GetString();
 
-        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", access));
+        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: access));
         Assert.Equal(HttpStatusCode.OK, me.StatusCode);
         Assert.Equal("superadmin", meBody.GetProperty("user").GetProperty("userName").GetString());
         Assert.Equal(sessionId, meBody.GetProperty("sessionId").GetString());
@@ -55,7 +55,7 @@ public sealed class AuthFlowTests : IDisposable
         Assert.Equal(1, listBody.GetProperty("total").GetInt64());
 
         // 自助操作只要求已认证：匿名是未认证
-        var (anonymous, anonymousBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}"));
+        var (anonymous, anonymousBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me"));
         Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
         Assert.Equal("SECURITY_DENIED_001", anonymousBody.GetProperty("code").GetString());
     }
@@ -120,7 +120,7 @@ public sealed class AuthFlowTests : IDisposable
         Assert.Equal(first.GetProperty("sessionId").GetString(), logoutBody.GetProperty("sessionId").GetString());
 
         // 会话已吊销：访问令牌在 Authenticate 阶段被会话门禁拒绝，刷新令牌也不再可用
-        var (gone, goneBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", access));
+        var (gone, goneBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: access));
         Assert.Equal(HttpStatusCode.Forbidden, gone.StatusCode);
         Assert.Equal("IDENTITY_DENIED_001", goneBody.GetProperty("code").GetString());
         var (noRefresh, noRefreshBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:refresh", $$"""{"refreshToken":"{{refreshedBody.GetProperty("refreshToken").GetString()}}"}"""));
@@ -152,7 +152,7 @@ public sealed class AuthFlowTests : IDisposable
         var access = login.GetProperty("accessToken").GetString()!;
 
         // 租户声明进入主体：me 带租户；没有授予的管理操作被拒绝
-        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", access));
+        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: access));
         Assert.Equal(HttpStatusCode.OK, me.StatusCode);
         Assert.Equal("acme", meBody.GetProperty("tenantId").GetString());
         var (forbidden, forbiddenBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", access));
@@ -173,7 +173,7 @@ public sealed class AuthFlowTests : IDisposable
         var (changed, changedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/profile:change-password", """{"currentPassword":"Alice@12345","newPassword":"Alice@67890"}""", access));
         Assert.Equal(HttpStatusCode.OK, changed.StatusCode);
         Assert.Equal(createdBody.GetProperty("id").GetString(), changedBody.GetProperty("userId").GetString());
-        var (stillValid, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", access));
+        var (stillValid, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: access));
         Assert.Equal(HttpStatusCode.OK, stillValid.StatusCode);
         var (oldPassword, oldPasswordBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", """{"userName":"alice","password":"Alice@12345","tenant":"acme"}"""));
         Assert.Equal(HttpStatusCode.Forbidden, oldPassword.StatusCode);

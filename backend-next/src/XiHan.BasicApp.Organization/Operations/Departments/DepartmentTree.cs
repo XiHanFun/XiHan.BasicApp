@@ -11,11 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Operations.Departments;
 
 /// <summary>
-/// 部门树：<c>POST /api/departments:tree</c>。一次取出当前租户全部部门与归属行，在内存里组树并数直接成员（一个租户的部门数以百计，不分页）。
+/// 部门树：<c>GET /api/departments:tree</c>（声明只读，请求没有嵌套对象，按 ADR-0041 走 GET）。只读目录类操作，同时作为 MCP / AI 工具暴露（5.4）。一次取出当前租户全部部门与归属行，在内存里组树并数直接成员（一个租户的部门数以百计，不分页）。
 /// </summary>
 /// <param name="departments">部门仓储。</param>
 /// <param name="memberships">归属仓储。</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = OrganizationPermissions.DepartmentsRead)]
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http | Expose.Mcp | Expose.Ai, Permission = OrganizationPermissions.DepartmentsRead)]
 public sealed class DepartmentTree(IRepository<SysDepartment, Guid> departments, IRepository<SysUserDepartment, Guid> memberships) : IOperation<DepartmentTreeRequest, DepartmentTreeResponse>
 {
     /// <summary>

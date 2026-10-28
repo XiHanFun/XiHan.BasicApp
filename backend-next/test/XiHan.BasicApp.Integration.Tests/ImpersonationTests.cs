@@ -42,12 +42,12 @@ public sealed class ImpersonationTests : IDisposable
         var helperId = helperBody.GetProperty("id").GetString()!;
 
         // 候选：平台里有 helper（不含自己）；demo 里有管理员 admin，关键字收窄
-        var (platformCandidates, platformBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:candidates", "{}", superadmin));
+        var (platformCandidates, platformBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/impersonation:candidates", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, platformCandidates.StatusCode);
         var platformNames = platformBody.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("userName").GetString()).ToList();
         Assert.Contains("helper", platformNames);
         Assert.DoesNotContain("superadmin", platformNames);
-        var (demoCandidates, demoCandidatesBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:candidates", """{"tenantId":"demo","keyword":"adm"}""", superadmin));
+        var (demoCandidates, demoCandidatesBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/impersonation:candidates?tenantId=demo&keyword=adm", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, demoCandidates.StatusCode);
         Assert.Equal(["admin"], demoCandidatesBody.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("userName").GetString()).ToList());
 
@@ -67,11 +67,11 @@ public sealed class ImpersonationTests : IDisposable
         Assert.Equal("superadmin", startedBody.GetProperty("impersonatorUserName").GetString());
         Assert.NotEqual(superadminLogin.GetProperty("sessionId").GetString(), startedBody.GetProperty("sessionId").GetString());
         var impersonating = startedBody.GetProperty("accessToken").GetString()!;
-        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", impersonating));
+        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: impersonating));
         Assert.Equal(HttpStatusCode.OK, me.StatusCode);
         Assert.Equal("superadmin", meBody.GetProperty("impersonatorUserName").GetString());
         Assert.Equal("Demo Tenant", meBody.GetProperty("tenantName").GetString());
-        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", impersonating));
+        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: impersonating));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         Assert.False(permissionsBody.GetProperty("isPlatform").GetBoolean());
         Assert.Contains("identity.users.create", permissionsBody.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()));
@@ -101,7 +101,7 @@ public sealed class ImpersonationTests : IDisposable
         Assert.Equal("superadmin", stoppedBody.GetProperty("user").GetProperty("userName").GetString());
         Assert.Equal(superadminLogin.GetProperty("sessionId").GetString(), stoppedBody.GetProperty("sessionId").GetString());
         Assert.Equal(JsonValueKind.Null, stoppedBody.GetProperty("impersonatorUserName").ValueKind);
-        var (dead, deadBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", refreshedToken));
+        var (dead, deadBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: refreshedToken));
         Assert.Equal(HttpStatusCode.Forbidden, dead.StatusCode);
         Assert.Equal("IDENTITY_DENIED_001", deadBody.GetProperty("code").GetString());
 
@@ -111,7 +111,7 @@ public sealed class ImpersonationTests : IDisposable
         var clerkId = memberBody.GetProperty("id").GetString()!;
         var demoAdminLogin = await AuthFlowTests.LoginAsync(server, "admin", "Demo@123456", "demo");
         var demoAdmin = demoAdminLogin.GetProperty("accessToken").GetString()!;
-        var (ownCandidates, ownCandidatesBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/impersonation:candidates", "{}", demoAdmin));
+        var (ownCandidates, ownCandidatesBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/impersonation:candidates", token: demoAdmin));
         Assert.Equal(HttpStatusCode.OK, ownCandidates.StatusCode);
         // 超管是 demo 的成员（演示种子），也在候选里
         Assert.Equal(["clerk", "superadmin"], ownCandidatesBody.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("userName").GetString()).ToList());
@@ -125,11 +125,11 @@ public sealed class ImpersonationTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, inside.StatusCode);
         Assert.Equal("clerk", insideBody.GetProperty("user").GetProperty("userName").GetString());
         var asClerk = insideBody.GetProperty("accessToken").GetString()!;
-        var (clerkMe, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", asClerk));
+        var (clerkMe, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: asClerk));
         Assert.Equal(HttpStatusCode.OK, clerkMe.StatusCode);
         var (logout, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:logout", "{}", demoAdmin));
         Assert.Equal(HttpStatusCode.OK, logout.StatusCode);
-        var (orphan, orphanBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", asClerk));
+        var (orphan, orphanBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: asClerk));
         Assert.Equal(HttpStatusCode.Forbidden, orphan.StatusCode);
         Assert.Equal("IDENTITY_DENIED_001", orphanBody.GetProperty("code").GetString());
     }

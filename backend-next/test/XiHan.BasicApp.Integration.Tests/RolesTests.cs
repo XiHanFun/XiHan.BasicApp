@@ -33,7 +33,7 @@ public sealed class RolesTests : IDisposable
         var admin = adminLogin.GetProperty("accessToken").GetString()!;
 
         // 超级管理员的令牌带内建 admin 角色（种子指派）
-        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", admin));
+        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: admin));
         Assert.Equal(HttpStatusCode.OK, me.StatusCode);
         Assert.Equal(1, meBody.GetProperty("roles").GetArrayLength());
         Assert.True(Guid.TryParse(meBody.GetProperty("roles")[0].GetString(), out _));
@@ -71,7 +71,7 @@ public sealed class RolesTests : IDisposable
         Assert.Equal([bobId], assignedBody.GetProperty("succeeded").EnumerateArray().Select(static e => e.GetString()).ToList());
         Assert.Equal("ACCESS_NOTFOUND_002", assignedBody.GetProperty("failed")[0].GetProperty("code").GetString());
 
-        var (members, membersBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:members", "{}", admin));
+        var (members, membersBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, $"/api/roles/{roleId}:members", token: admin));
         Assert.Equal(HttpStatusCode.OK, members.StatusCode);
         Assert.Equal(1, membersBody.GetProperty("total").GetInt64());
         Assert.Equal("bob", membersBody.GetProperty("items")[0].GetProperty("userName").GetString());
@@ -79,7 +79,7 @@ public sealed class RolesTests : IDisposable
         // bob 登录：令牌带角色 ID，经角色授予能列用户、不能建用户
         var bobLogin = await AuthFlowTests.LoginAsync(server, "bob", "Bob@123456");
         var bob = bobLogin.GetProperty("accessToken").GetString()!;
-        var (bobMe, bobMeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", bob));
+        var (bobMe, bobMeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: bob));
         Assert.Equal(roleId, bobMeBody.GetProperty("roles")[0].GetString());
         var (list, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", bob));
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
@@ -166,7 +166,7 @@ public sealed class RolesTests : IDisposable
         // erin 以租户登录：令牌带租户角色，能在本租户列用户
         var erinLogin = await AuthFlowTests.LoginAsync(server, "erin", "Erin@123456", "acme");
         var erinToken = erinLogin.GetProperty("accessToken").GetString()!;
-        var (erinMe, erinMeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", erinToken));
+        var (erinMe, erinMeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: erinToken));
         Assert.Equal(HttpStatusCode.OK, erinMe.StatusCode);
         Assert.Equal([roleId], erinMeBody.GetProperty("roles").EnumerateArray().Select(static r => r.GetString()).ToList());
         var (list, listBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/users:list", "{}", erinToken));

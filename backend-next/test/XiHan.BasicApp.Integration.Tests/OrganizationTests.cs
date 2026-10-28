@@ -34,7 +34,7 @@ public sealed class OrganizationTests : IDisposable
         var acme = TestTokens.Issue("alice", "acme", "admin");
 
         // 平台主体即使持有 * 也进不来：组织只在租户侧
-        var (platform, platformBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments:tree", "{}", TestTokens.Issue("root", null, "root")));
+        var (platform, platformBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: TestTokens.Issue("root", null, "root")));
         Assert.Equal(HttpStatusCode.Forbidden, platform.StatusCode);
         Assert.Equal("ORGANIZATION_DENIED_001", platformBody.GetProperty("code").GetString());
 
@@ -68,7 +68,7 @@ public sealed class OrganizationTests : IDisposable
         Assert.Equal("ORGANIZATION_VALIDATION_001", foreignLeaderBody.GetProperty("code").GetString());
 
         // 树与详情（祖先链、负责人、子部门数）
-        var (tree, treeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments:tree", "{}", acme));
+        var (tree, treeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: acme));
         Assert.Equal(HttpStatusCode.OK, tree.StatusCode);
         Assert.Equal(3, treeBody.GetProperty("total").GetInt64());
         var root = Assert.Single(treeBody.GetProperty("items").EnumerateArray());
@@ -118,7 +118,7 @@ public sealed class OrganizationTests : IDisposable
         var (byDepartment, byDepartmentBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/memberships:list", $$"""{"filters":[{"field":"departmentId","operator":"eq","value":"{{rd}}"}]}""", acme));
         Assert.Equal(HttpStatusCode.OK, byDepartment.StatusCode);
         Assert.Equal(["bob", "carol"], byDepartmentBody.GetProperty("items").EnumerateArray().Select(static m => m.GetProperty("userName").GetString()).OrderBy(static n => n, StringComparer.Ordinal).ToList());
-        var (treeAfter, treeAfterBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments:tree", "{}", acme));
+        var (treeAfter, treeAfterBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: acme));
         Assert.Equal(HttpStatusCode.OK, treeAfter.StatusCode);
         var rootAfter = Assert.Single(treeAfterBody.GetProperty("items").EnumerateArray());
         Assert.Equal(1, rootAfter.GetProperty("memberCount").GetInt64());
@@ -145,7 +145,7 @@ public sealed class OrganizationTests : IDisposable
         var (toTop, toTopBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/departments/{rd}:move", "{}", acme));
         Assert.Equal(HttpStatusCode.OK, toTop.StatusCode);
         Assert.Equal(JsonValueKind.Null, toTopBody.GetProperty("parentId").ValueKind);
-        var (treeMoved, treeMovedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments:tree", "{}", acme));
+        var (treeMoved, treeMovedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: acme));
         Assert.Equal(HttpStatusCode.OK, treeMoved.StatusCode);
         Assert.Equal(["hq", "rd"], treeMovedBody.GetProperty("items").EnumerateArray().Select(static n => n.GetProperty("department").GetProperty("code").GetString()).ToList());
 
@@ -174,7 +174,7 @@ public sealed class OrganizationTests : IDisposable
         Assert.Equal(1, deletedBody.GetProperty("succeeded").GetArrayLength());
 
         // 租户隔离：globex 什么都看不到
-        var (other, otherBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments:tree", "{}", TestTokens.Issue("gina", "globex", "admin")));
+        var (other, otherBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: TestTokens.Issue("gina", "globex", "admin")));
         Assert.Equal(HttpStatusCode.OK, other.StatusCode);
         Assert.Equal(0, otherBody.GetProperty("total").GetInt64());
     }
@@ -186,7 +186,7 @@ public sealed class OrganizationTests : IDisposable
         await server.RunSeedersAsync();
         await server.RunSeedersAsync();
         var admin = (await AuthFlowTests.LoginAsync(server, "admin", "Demo@123456", "demo")).GetProperty("accessToken").GetString()!;
-        var (tree, treeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/departments:tree", "{}", admin));
+        var (tree, treeBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/departments:tree", token: admin));
         Assert.Equal(HttpStatusCode.OK, tree.StatusCode);
         Assert.Equal(3, treeBody.GetProperty("total").GetInt64());
         var root = Assert.Single(treeBody.GetProperty("items").EnumerateArray());

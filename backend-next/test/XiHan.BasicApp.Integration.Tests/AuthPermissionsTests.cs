@@ -32,7 +32,7 @@ public sealed class AuthPermissionsTests : IDisposable
         await server.RunSeedersAsync();
         var admin = (await AuthFlowTests.LoginAsync(server, "superadmin", "SuperAdmin@123")).GetProperty("accessToken").GetString()!;
 
-        var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", admin));
+        var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: admin));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.True(body.GetProperty("isPlatform").GetBoolean());
         var permissions = body.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList();
@@ -74,7 +74,7 @@ public sealed class AuthPermissionsTests : IDisposable
         await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, $"/api/roles/{roleId}:assign", $$"""{"userIds":["{{bobBody.GetProperty("id").GetString()}}"]}""", admin));
 
         var token = (await AuthFlowTests.LoginAsync(server, "bob", "Bob@123456")).GetProperty("accessToken").GetString()!;
-        var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", token));
+        var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: token));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(["identity.users.read"], body.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList());
         Assert.Equal(["viewer"], body.GetProperty("roles").EnumerateArray().Select(static r => r.GetProperty("code").GetString()).ToList());
@@ -92,14 +92,14 @@ public sealed class AuthPermissionsTests : IDisposable
     {
         await using var server = await StartAsync();
         // 测试令牌的 role 声明是字符串角色名，与种子的全局授予（identity.users.read / create）对接
-        var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", TestTokens.Issue("alice", "acme", "admin")));
+        var (response, body) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: TestTokens.Issue("alice", "acme", "admin")));
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.False(body.GetProperty("isPlatform").GetBoolean());
         Assert.Equal(["identity.users.create", "identity.users.read"], body.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList());
         Assert.Equal(0, body.GetProperty("roles").GetArrayLength());
         Assert.Equal(["workbench.dashboard", "identity.users"], body.GetProperty("menus").EnumerateArray().Select(static m => m.GetProperty("code").GetString()).ToList());
 
-        var (anonymous, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}"));
+        var (anonymous, _) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions"));
         Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
     }
 }

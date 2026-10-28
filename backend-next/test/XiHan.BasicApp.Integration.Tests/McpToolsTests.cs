@@ -27,7 +27,7 @@ public sealed class McpToolsTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, list.StatusCode);
         var tools = listBody.GetProperty("result").GetProperty("tools").EnumerateArray().ToDictionary(static t => t.GetProperty("name").GetString()!, static t => t);
         // 写操作（users_create 之类）不在 MCP 面上
-        Assert.Equal(["departments_get", "memberships_list", "permissions_list", "positions_get", "positions_list", "users_get", "users_list"], tools.Keys.Order(StringComparer.Ordinal));
+        Assert.Equal(["departments_get", "departments_tree", "memberships_list", "permissions_list", "positions_get", "positions_list", "users_get", "users_list"], tools.Keys.Order(StringComparer.Ordinal));
         Assert.StartsWith("分页列出用户", tools["users_list"].GetProperty("description").GetString(), StringComparison.Ordinal);
         Assert.Equal("object", tools["users_get"].GetProperty("inputSchema").GetProperty("type").GetString());
         foreach (var (name, tool) in tools)

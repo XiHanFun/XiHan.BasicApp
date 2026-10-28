@@ -47,7 +47,7 @@ public sealed class TenantSwitchTests : IDisposable
         var operatorId = operatorBody.GetProperty("id").GetString()!;
 
         // 我的租户：超管能进平台；成员租户里只有演示种子给的 demo
-        var (mine, mineBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants:mine", "{}", superadmin));
+        var (mine, mineBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/tenants:mine", token: superadmin));
         Assert.Equal(HttpStatusCode.OK, mine.StatusCode);
         Assert.True(mineBody.GetProperty("canAccessPlatform").GetBoolean());
         Assert.True(mineBody.GetProperty("platformIsCurrent").GetBoolean());
@@ -83,7 +83,7 @@ public sealed class TenantSwitchTests : IDisposable
         var operatorLogin = await AuthFlowTests.LoginAsync(server, "operator", "Operator@123");
         var operatorToken = operatorLogin.GetProperty("accessToken").GetString()!;
         var operatorRefresh = operatorLogin.GetProperty("refreshToken").GetString()!;
-        var (operatorMine, operatorMineBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants:mine", "{}", operatorToken));
+        var (operatorMine, operatorMineBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/tenants:mine", token: operatorToken));
         Assert.Equal(HttpStatusCode.OK, operatorMine.StatusCode);
         Assert.Equal(["contoso"], operatorMineBody.GetProperty("tenants").EnumerateArray().Select(static t => t.GetProperty("tenantId").GetString()).ToList());
         Assert.False(operatorMineBody.GetProperty("tenants")[0].GetProperty("isHome").GetBoolean());
@@ -103,16 +103,16 @@ public sealed class TenantSwitchTests : IDisposable
         var (staleRefresh, staleRefreshBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:refresh", $$"""{"refreshToken":"{{operatorRefresh}}"}"""));
         Assert.Equal(HttpStatusCode.Forbidden, staleRefresh.StatusCode);
         Assert.Equal("IDENTITY_DENIED_001", staleRefreshBody.GetProperty("code").GetString());
-        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:me", "{}", inContoso));
+        var (me, meBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:me", token: inContoso));
         Assert.Equal(HttpStatusCode.OK, me.StatusCode);
         Assert.Equal("contoso", meBody.GetProperty("tenantId").GetString());
         Assert.Equal("Contoso", meBody.GetProperty("tenantName").GetString());
         Assert.Equal(JsonValueKind.Null, meBody.GetProperty("impersonatorUserName").ValueKind);
-        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", inContoso));
+        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: inContoso));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         Assert.False(permissionsBody.GetProperty("isPlatform").GetBoolean());
         Assert.Empty(permissionsBody.GetProperty("permissions").EnumerateArray());
-        var (mineInside, mineInsideBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/tenants:mine", "{}", inContoso));
+        var (mineInside, mineInsideBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/tenants:mine", token: inContoso));
         Assert.Equal(HttpStatusCode.OK, mineInside.StatusCode);
         Assert.False(mineInsideBody.GetProperty("platformIsCurrent").GetBoolean());
         Assert.True(mineInsideBody.GetProperty("tenants")[0].GetProperty("isCurrent").GetBoolean());

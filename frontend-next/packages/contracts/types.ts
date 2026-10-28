@@ -42,10 +42,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** Return the current user, tenant, session and roles. */
-        post: operations["auth.me"];
+        get: operations["auth.me"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -59,10 +59,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** Return the current principal's effective permissions, roles, menu tree and page codes. */
-        post: operations["auth.permissions"];
+        get: operations["auth.permissions"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -163,10 +163,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** The whole department tree of the current tenant with direct member counts. Requires organization.departments.read. */
-        post: operations["departments.tree"];
+        get: operations["departments.tree"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -234,10 +234,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** List up to 20 active users that can be impersonated in a tenant (or the platform), matched by keyword. Requires identity.impersonation.start. */
-        post: operations["impersonation.candidates"];
+        get: operations["impersonation.candidates"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -548,10 +548,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** List the members of a role. Requires access.roles.read. */
-        post: operations["roles.members"];
+        get: operations["roles.members"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -599,10 +599,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** List the roles a user holds on the current side (platform or tenant). Requires access.roles.read. */
-        post: operations["roles.by-user"];
+        get: operations["roles.by-user"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -739,10 +739,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /** Tenants the current user can enter (home tenant and memberships, active only) and whether the platform is available; the control center switches with auth.switch-tenant. */
-        post: operations["tenants.mine"];
+        get: operations["tenants.mine"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1269,11 +1269,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": Record<string, never>;
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Success */
             200: {
@@ -1311,11 +1307,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": Record<string, never>;
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Success */
             200: {
@@ -1694,11 +1686,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": Record<string, never>;
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Success */
             200: {
@@ -1957,19 +1945,15 @@ export interface operations {
     };
     "impersonation.candidates": {
         parameters: {
-            query?: never;
+            query?: {
+                tenantId?: string | null;
+                keyword?: string | null;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": {
-                    tenantId?: string | null;
-                    keyword?: string | null;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Success */
             200: {
@@ -3198,14 +3182,7 @@ export interface operations {
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    id: string;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Success */
             200: {
@@ -3317,19 +3294,14 @@ export interface operations {
     };
     "roles.by-user": {
         parameters: {
-            query?: never;
+            query: {
+                userId: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": {
-                    /** Format: uuid */
-                    userId: string;
-                };
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Success */
             200: {
@@ -3867,11 +3839,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": Record<string, never>;
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Success */
             200: {

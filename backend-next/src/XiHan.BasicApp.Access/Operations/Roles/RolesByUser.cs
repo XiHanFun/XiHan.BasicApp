@@ -12,11 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 某个用户在当前作用侧的角色：<c>POST /api/roles:by-user</c>（用户页的角色入口用它回显，再按差异 <c>roles.assign / unassign</c>）。
+/// 某个用户在当前作用侧的角色：<c>GET /api/roles:by-user?userId=…</c>（声明只读，ADR-0041）（用户页的角色入口用它回显，再按差异 <c>roles.assign / unassign</c>）。
 /// </summary>
 /// <param name="members">指派仓储。</param>
 /// <param name="service">角色域服务。</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
 public sealed class RolesByUser(IRepository<SysUserRole, Guid> members, RoleService service) : IOperation<RolesByUserRequest, RolesByUserResponse>
 {
     /// <summary>

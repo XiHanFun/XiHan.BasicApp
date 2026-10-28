@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Access.Operations.Auth;
 /// <param name="roles">角色仓储。</param>
 /// <param name="menus">菜单仓储。</param>
 /// <param name="options">安全选项（角色声明名）。</param>
-[Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
+[Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class CurrentPermissions(EffectivePermissions effective, IRepository<SysRole, Guid> roles, IRepository<SysMenu, Guid> menus, SecurityOptions options) : IOperation<PermissionsRequest, PermissionsResponse>
 {
     /// <summary>

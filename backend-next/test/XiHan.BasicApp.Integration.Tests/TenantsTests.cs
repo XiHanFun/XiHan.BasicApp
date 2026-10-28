@@ -76,7 +76,7 @@ public sealed class TenantsTests : IDisposable
         Assert.True(login.GetProperty("mustChangePassword").GetBoolean());
         Assert.Equal("contoso", login.GetProperty("tenantId").GetString());
         var tenantAdmin = login.GetProperty("accessToken").GetString()!;
-        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:permissions", "{}", tenantAdmin));
+        var (permissions, permissionsBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/auth:permissions", token: tenantAdmin));
         Assert.Equal(HttpStatusCode.OK, permissions.StatusCode);
         Assert.False(permissionsBody.GetProperty("isPlatform").GetBoolean());
         var codes = permissionsBody.GetProperty("permissions").EnumerateArray().Select(static p => p.GetString()).ToList();

@@ -189,7 +189,7 @@
       }
     },
     "/api/auth:me": {
-      "post": {
+      "get": {
         "operationId": "auth.me",
         "tags": [
           "auth"
@@ -198,18 +198,6 @@
         "x-xihan-stability": "Preview",
         "x-xihan-policy": "authenticated",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "title": "MeRequest",
-                "type": "object",
-                "properties": {}
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Success",
@@ -280,7 +268,7 @@
       }
     },
     "/api/auth:permissions": {
-      "post": {
+      "get": {
         "operationId": "auth.permissions",
         "tags": [
           "auth"
@@ -289,18 +277,6 @@
         "x-xihan-stability": "Preview",
         "x-xihan-policy": "authenticated",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "title": "PermissionsRequest",
-                "type": "object",
-                "properties": {}
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Success",
@@ -1130,7 +1106,7 @@
       }
     },
     "/api/departments:tree": {
-      "post": {
+      "get": {
         "operationId": "departments.tree",
         "tags": [
           "departments"
@@ -1139,18 +1115,6 @@
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "organization.departments.read",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "title": "DepartmentTreeRequest",
-                "type": "object",
-                "properties": {}
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Success",
@@ -1656,7 +1620,7 @@
       }
     },
     "/api/impersonation:candidates": {
-      "post": {
+      "get": {
         "operationId": "impersonation.candidates",
         "tags": [
           "impersonation"
@@ -1664,34 +1628,32 @@
         "summary": "List up to 20 active users that can be impersonated in a tenant (or the platform), matched by keyword. Requires identity.impersonation.start.",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "identity.impersonation.start",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "title": "ImpersonationCandidatesRequest",
-                "type": "object",
-                "properties": {
-                  "tenantId": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
-                  },
-                  "keyword": {
-                    "type": [
-                      "string",
-                      "null"
-                    ],
-                    "maxLength": 64
-                  }
-                }
-              }
+        "parameters": [
+          {
+            "name": "tenantId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+            }
+          },
+          {
+            "name": "keyword",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 64
             }
           }
-        },
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -4497,7 +4459,7 @@
       }
     },
     "/api/roles/{id}:members": {
-      "post": {
+      "get": {
         "operationId": "roles.members",
         "tags": [
           "roles"
@@ -4516,26 +4478,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "title": "RoleMembersQueryRequest",
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                },
-                "required": [
-                  "id"
-                ]
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Success",
@@ -4764,7 +4706,7 @@
       }
     },
     "/api/roles:by-user": {
-      "post": {
+      "get": {
         "operationId": "roles.by-user",
         "tags": [
           "roles"
@@ -4772,27 +4714,17 @@
         "summary": "List the roles a user holds on the current side (platform or tenant). Requires access.roles.read.",
         "x-xihan-stability": "Preview",
         "x-xihan-permission": "access.roles.read",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "title": "RolesByUserRequest",
-                "type": "object",
-                "properties": {
-                  "userId": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                },
-                "required": [
-                  "userId"
-                ]
-              }
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
-        },
+        ],
         "responses": {
           "200": {
             "description": "Success",
@@ -5942,7 +5874,7 @@
       }
     },
     "/api/tenants:mine": {
-      "post": {
+      "get": {
         "operationId": "tenants.mine",
         "tags": [
           "tenants"
@@ -5951,18 +5883,6 @@
         "x-xihan-stability": "Preview",
         "x-xihan-policy": "authenticated",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "title": "MyTenantsRequest",
-                "type": "object",
-                "properties": {}
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "Success",
