@@ -1,149 +1,266 @@
+import type { SchemaResource } from '~/components'
 import type { ResponseOf } from '~/contracts'
 import { computed, reactive, ref } from 'vue'
-import { editions as editionsApi, tenants as tenantsApi } from '~/contracts'
+import { editions as editionsApi, tenantMembers as tenantMembersApi, tenants as tenantsApi, toPageRequest, toSchemaPageResult, users as usersApi } from '~/contracts'
 import { ApiError } from '~/request'
 
 export type TenantRow = ResponseOf<'tenants.list'>['items'][number]
 export type TenantDetail = ResponseOf<'tenants.get'>
 export type EditionOption = ResponseOf<'editions.list'>['items'][number]
+export type TenantMember = ResponseOf<'tenant-members.list'>['items'][number]
+export type TenantStatus = TenantRow['status']
+export type TenantMemberType = TenantMember['memberType']
 
-export interface CreateTenantForm {
+export const TENANT_STATUSES: readonly TenantStatus[] = ['Active', 'Suspended']
+export const TENANT_MEMBER_TYPES: readonly TenantMemberType[] = ['Member', 'Owner']
+
+/** 成员弹窗里用户候选每次取回的条数 */
+export const MEMBER_USER_PAGE_SIZE = 20
+
+/** 弹窗表单：开通与编辑共用一份（租户 ID 只在开通时可填） */
+export interface TenantForm {
   tenantId: string
   name: string
   description: string
-  order: string
-  /** 套餐主键；空串即用缺省套餐 */
-  editionId: string
+  /** 到期时间（毫秒时间戳，日期选择的取值）；空即长期有效 */
+  expiresAt: number | null
+  order: number
+  /** 套餐主键：开通时空即缺省套餐，编辑时空即不受套餐限制 */
+  editionId: null | string
 }
 
-export interface EditTenantForm {
-  name: string
-  description: string
-  order: string
-}
+export type TenantEditorMode = 'create' | 'edit'
 
-export interface InitializeAdminForm {
+export interface AdminForm {
   userName: string
   password: string
   displayName: string
+  email: string
+}
+
+export interface MemberForm {
+  userId: null | string
+  memberType: TenantMemberType
+}
+
+function blankToNull(value: string): null | string {
+  const trimmed = value.trim()
+  return trimmed === '' ? null : trimmed
+}
+
+function toTimestamp(value: null | string | undefined): number | null {
+  return value ? new Date(value).getTime() : null
+}
+
+function toIso(value: number | null): null | string {
+  return value === null ? null : new Date(value).toISOString()
 }
 
 function describe(error: unknown): string {
   return error instanceof ApiError ? error.detail : String(error)
 }
 
-function toOrder(value: string): number {
-  return value.trim() === '' ? 0 : Number(value)
+/** 批量结果里只有失败项的错误码：逐项拒绝的原因拼成一条报错 */
+function failedCodes(result: { failed: { code: string }[] }): void {
+  if (result.failed.length > 0)
+    throw new Error(result.failed.map(f => f.code).join('; '))
+}
+
+/** 提交失败的落点：字段级错误挂回字段，其余给整条提示 */
+function captureErrors(error: unknown, fieldErrors: { value: Record<string, string[]> }, submitError: { value: null | string }) {
+  if (error instanceof ApiError) {
+    fieldErrors.value = error.errors ?? {}
+    if (!error.hasFieldErrors)
+      submitError.value = error.detail
+  }
+  else {
+    submitError.value = String(error)
+  }
 }
 
 /**
- * 租户页的状态与动作（平台侧）：分页列表、开通表单（可选套餐，不选即缺省套餐）、选中租户的详情与编辑、换套餐（含不受限）、管理员初始化、停用 / 恢复、删除。
- * 契约类型来自生成物；错误只看 `code`、`detail` 与字段级 `errors`；批量操作逐项失败以错误码显示。
+ * SchemaPage 的资源：分页、删除与启停（启用即恢复、停用即停用；都是集合操作，逐项拒绝以错误码抛出）。
+ * 搜索字段按后端白名单下发：关键字匹配租户 ID 与名称，状态精确匹配；排序只放后端接受的租户 ID / 名称 / 排序 / 到期 / 创建时间。
  */
-export function useTenants(pageSize = 20) {
-  const items = ref<TenantRow[]>([])
-  const total = ref(0)
-  const pageIndex = ref(1)
-  const loading = ref(false)
-  const listError = ref<string | null>(null)
-  const pageCount = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
-
-  const form = reactive<CreateTenantForm>({ tenantId: '', name: '', description: '', order: '', editionId: '' })
-  const editions = ref<EditionOption[]>([])
-  /** 详情里的套餐选择；空串即不受套餐限制 */
-  const editionDraft = ref('')
-  const fieldErrors = ref<Record<string, string[]>>({})
-  const submitError = ref<string | null>(null)
-  const submitting = ref(false)
-
-  const selected = ref<TenantDetail | null>(null)
-  const edit = reactive<EditTenantForm>({ name: '', description: '', order: '' })
-  const editErrors = ref<Record<string, string[]>>({})
-  const adminForm = reactive<InitializeAdminForm>({ userName: '', password: '', displayName: '' })
-  const adminErrors = ref<Record<string, string[]>>({})
-  const detailError = ref<string | null>(null)
-  const notice = ref<'saved' | 'admin_created' | 'edition_changed' | null>(null)
-  const working = ref(false)
-
-  async function load(index = pageIndex.value) {
-    loading.value = true
-    listError.value = null
-    try {
-      const result = await tenantsApi.list({ page: { index, size: pageSize }, filters: [], sorts: [{ field: 'order' }, { field: 'tenantId' }] })
-      items.value = result.items
-      total.value = Number(result.total)
-      pageIndex.value = result.page.index ?? index
-    }
-    catch (error) {
-      items.value = []
-      total.value = 0
-      listError.value = describe(error)
-    }
-    finally {
-      loading.value = false
-    }
+export function tenantsResource(): SchemaResource<TenantRow> {
+  return {
+    page: async params => toSchemaPageResult(await tenantsApi.list(toPageRequest(params, { filters: { status: 'eq' } })), params),
+    // 还有用户的租户由后端逐项拒绝（TENANCY_CONFLICT_003）
+    remove: async id => failedCodes(await tenantsApi.delete({ ids: [String(id)] })),
+    updateStatus: async (id, enabled) => failedCodes(await (enabled ? tenantsApi.resume : tenantsApi.suspend)({ ids: [String(id)] })),
   }
+}
 
-  /** 套餐选项（需要 tenancy.editions.read；页面按权限决定是否加载） */
-  async function loadEditions() {
+/**
+ * 套餐选项（需要 tenancy.editions.read；页面按权限决定是否加载）：开通 / 编辑弹窗的下拉与列表里的套餐名。
+ */
+export function useEditionOptions() {
+  const editions = ref<EditionOption[]>([])
+  const error = ref<null | string>(null)
+
+  async function load() {
+    error.value = null
     try {
       editions.value = (await editionsApi.list({})).items
     }
-    catch (error) {
+    catch (e) {
       editions.value = []
-      listError.value = describe(error)
+      error.value = describe(e)
     }
   }
 
-  /** 列表里的套餐名：没绑定即不受限，绑定的没在选项里（没有读套餐的权限）就显示主键 */
-  function editionName(id: string | null | undefined): string | null {
+  /** 套餐名：没绑定即不受限（返回 null），绑定的不在选项里（没有读套餐的权限）就显示主键 */
+  function editionName(id: null | string | undefined): null | string {
     if (!id)
       return null
     return editions.value.find(e => e.id === id)?.name ?? id
   }
 
-  function fieldError(field: keyof CreateTenantForm): string | undefined {
+  return { editions, error, load, editionName }
+}
+
+function emptyForm(): TenantForm {
+  return { tenantId: '', name: '', description: '', expiresAt: null, order: 0, editionId: null }
+}
+
+/**
+ * 开通 / 编辑弹窗。编辑时套餐与资料分属两个操作（`tenants.update` 不含套餐，换套餐走 `tenants.change-edition`）：
+ * 先存资料，套餐变了再换，与 4.x 编辑弹窗里改状态的做法相同。字段级错误挂回对应字段。
+ */
+export function useTenantEditor() {
+  const open = ref(false)
+  const mode = ref<TenantEditorMode>('create')
+  const editing = ref<TenantRow | null>(null)
+  const form = reactive<TenantForm>(emptyForm())
+  const fieldErrors = ref<Record<string, string[]>>({})
+  const submitError = ref<null | string>(null)
+  const submitting = ref(false)
+
+  const isEdit = computed(() => mode.value === 'edit')
+
+  function reset(next: Partial<TenantForm> = {}) {
+    Object.assign(form, emptyForm(), next)
+    fieldErrors.value = {}
+    submitError.value = null
+  }
+
+  function startCreate() {
+    mode.value = 'create'
+    editing.value = null
+    reset()
+    open.value = true
+  }
+
+  function startEdit(row: TenantRow) {
+    mode.value = 'edit'
+    editing.value = row
+    reset({
+      tenantId: row.tenantId,
+      name: row.name,
+      description: row.description ?? '',
+      expiresAt: toTimestamp(row.expiresAt),
+      order: row.order,
+      editionId: row.editionId ?? null,
+    })
+    open.value = true
+  }
+
+  function fieldError(field: keyof TenantForm): string | undefined {
     return fieldErrors.value[field]?.[0]
   }
 
-  function editError(field: keyof EditTenantForm): string | undefined {
-    return editErrors.value[field]?.[0]
-  }
-
-  function adminError(field: keyof InitializeAdminForm): string | undefined {
-    return adminErrors.value[field]?.[0]
-  }
-
-  async function submit(): Promise<boolean> {
+  /** 保存成功返回保存后的租户（开通时页面据此接着初始化管理员），失败返回 null、弹窗保持打开 */
+  async function submit(): Promise<null | TenantRow> {
     submitting.value = true
     submitError.value = null
     fieldErrors.value = {}
     try {
-      const created = await tenantsApi.create({
-        tenantId: form.tenantId.trim(),
-        name: form.name.trim(),
-        description: form.description.trim() || null,
-        order: toOrder(form.order),
-        editionId: form.editionId || null,
+      const current = editing.value
+      let saved: TenantRow
+      if (mode.value === 'edit' && current) {
+        saved = await tenantsApi.update({
+          id: current.id,
+          name: form.name.trim(),
+          description: blankToNull(form.description),
+          expiresAt: toIso(form.expiresAt),
+          order: form.order,
+        })
+        // 空选即不受套餐限制（显式选择）；后端写入后立即失效该租户的门控缓存
+        if ((form.editionId ?? null) !== (current.editionId ?? null))
+          saved = await tenantsApi.changeEdition({ id: current.id, editionId: form.editionId })
+      }
+      else {
+        saved = await tenantsApi.create({
+          tenantId: form.tenantId.trim(),
+          name: form.name.trim(),
+          description: blankToNull(form.description),
+          expiresAt: toIso(form.expiresAt),
+          order: form.order,
+          editionId: form.editionId,
+        })
+      }
+      open.value = false
+      return saved
+    }
+    catch (error) {
+      captureErrors(error, fieldErrors, submitError)
+      return null
+    }
+    finally {
+      submitting.value = false
+    }
+  }
+
+  return { open, mode, isEdit, editing, form, fieldError, submitError, submitting, startCreate, startEdit, submit }
+}
+
+function emptyAdminForm(): AdminForm {
+  return { userName: '', password: '', displayName: '', email: '' }
+}
+
+/**
+ * 初始化管理员弹窗：每个租户一次（后端拒绝重复初始化）；建的用户持有租户侧全部权限、首次登录须改密。
+ */
+export function useAdminInitializer() {
+  const open = ref(false)
+  const tenant = ref<TenantRow | null>(null)
+  const form = reactive<AdminForm>(emptyAdminForm())
+  const fieldErrors = ref<Record<string, string[]>>({})
+  const submitError = ref<null | string>(null)
+  const submitting = ref(false)
+
+  function start(row: TenantRow) {
+    tenant.value = row
+    Object.assign(form, emptyAdminForm())
+    fieldErrors.value = {}
+    submitError.value = null
+    open.value = true
+  }
+
+  function fieldError(field: keyof AdminForm): string | undefined {
+    return fieldErrors.value[field]?.[0]
+  }
+
+  async function submit(): Promise<boolean> {
+    const current = tenant.value
+    if (!current)
+      return false
+    submitting.value = true
+    submitError.value = null
+    fieldErrors.value = {}
+    try {
+      await tenantsApi.initializeAdmin({
+        id: current.id,
+        userName: form.userName.trim(),
+        password: form.password,
+        displayName: blankToNull(form.displayName),
+        email: blankToNull(form.email),
       })
-      form.tenantId = ''
-      form.name = ''
-      form.description = ''
-      form.order = ''
-      form.editionId = ''
-      await load(1)
-      await select(created.id)
+      open.value = false
       return true
     }
     catch (error) {
-      if (error instanceof ApiError) {
-        fieldErrors.value = error.errors ?? {}
-        if (!error.hasFieldErrors)
-          submitError.value = error.detail
-      }
-      else {
-        submitError.value = String(error)
-      }
+      captureErrors(error, fieldErrors, submitError)
       return false
     }
     finally {
@@ -151,204 +268,133 @@ export function useTenants(pageSize = 20) {
     }
   }
 
-  async function select(id: string) {
-    detailError.value = null
-    notice.value = null
-    editErrors.value = {}
-    adminErrors.value = {}
+  return { open, tenant, form, fieldError, submitError, submitting, start, submit }
+}
+
+/**
+ * 详情抽屉：概览（`tenants.get` 带管理员登录名与用户数）与成员（`tenant-members.list`，一次全列，按加入时间排）。
+ * 成员按 tenancy.tenant-members.read 门控，没有权限就不取。
+ */
+export function useTenantDetail(canReadMembers: () => boolean) {
+  const open = ref(false)
+  const loading = ref(false)
+  const detail = ref<null | TenantDetail>(null)
+  const error = ref<null | string>(null)
+  const members = ref<TenantMember[]>([])
+  const membersLoading = ref(false)
+  const membersError = ref<null | string>(null)
+
+  async function loadMembers() {
+    const current = detail.value
+    if (!current)
+      return
+    membersLoading.value = true
+    membersError.value = null
     try {
-      const detail = await tenantsApi.get({ id })
-      selected.value = detail
-      edit.name = detail.tenant.name
-      edit.description = detail.tenant.description ?? ''
-      edit.order = String(detail.tenant.order)
-      editionDraft.value = detail.tenant.editionId ?? ''
-      adminForm.userName = ''
-      adminForm.password = ''
-      adminForm.displayName = ''
+      members.value = (await tenantMembersApi.list({ tenantId: current.tenant.tenantId })).items
     }
-    catch (error) {
-      selected.value = null
-      detailError.value = describe(error)
+    catch (e) {
+      members.value = []
+      membersError.value = describe(e)
+    }
+    finally {
+      membersLoading.value = false
     }
   }
 
-  /** 编辑：名称、说明、排序；名称由后端同步到租户目录 */
-  async function save(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    editErrors.value = {}
+  async function show(row: TenantRow) {
+    open.value = true
+    loading.value = true
+    error.value = null
+    detail.value = null
+    members.value = []
+    membersError.value = null
     try {
-      await tenantsApi.update({ id: current.tenant.id, name: edit.name.trim(), description: edit.description.trim() || null, order: toOrder(edit.order) })
-      await Promise.all([load(), select(current.tenant.id)])
-      notice.value = 'saved'
+      detail.value = await tenantsApi.get({ id: row.id })
+    }
+    catch (e) {
+      error.value = describe(e)
+    }
+    finally {
+      loading.value = false
+    }
+    if (detail.value && canReadMembers())
+      await loadMembers()
+  }
+
+  /** 移除成员：成员行不存在由后端逐项拒绝（TENANCY_NOTFOUND_002），以错误码抛出；成功后重取成员 */
+  async function removeMember(member: TenantMember) {
+    failedCodes(await tenantMembersApi.delete({ ids: [member.id] }))
+    await loadMembers()
+  }
+
+  return { open, loading, detail, error, members, membersLoading, membersError, show, loadMembers, removeMember }
+}
+
+/**
+ * 添加成员弹窗：用户从平台可见的用户里远程检索（`users.list` 关键字匹配登录名与显示名），成员类型缺省为成员。
+ * 注册地就是该租户的用户与已有成员由后端拒绝（TENANCY_CONFLICT_005）。
+ */
+export function useMemberEditor() {
+  const open = ref(false)
+  const form = reactive<MemberForm>({ userId: null, memberType: 'Member' })
+  const userOptions = ref<{ label: string, value: string, description: string }[]>([])
+  const userLoading = ref(false)
+  const userError = ref<null | string>(null)
+  const fieldErrors = ref<Record<string, string[]>>({})
+  const submitError = ref<null | string>(null)
+  const submitting = ref(false)
+
+  async function searchUsers(keyword: string) {
+    userLoading.value = true
+    userError.value = null
+    try {
+      const result = await usersApi.list({ page: { index: 1, size: MEMBER_USER_PAGE_SIZE }, filters: [], sorts: [], keyword: blankToNull(keyword) })
+      userOptions.value = result.items.map(user => ({ label: user.userName, value: user.id, description: `${user.displayName} · ${user.homeTenantId}` }))
+    }
+    catch (e) {
+      userOptions.value = []
+      userError.value = describe(e)
+    }
+    finally {
+      userLoading.value = false
+    }
+  }
+
+  function start() {
+    form.userId = null
+    form.memberType = 'Member'
+    fieldErrors.value = {}
+    submitError.value = null
+    userOptions.value = []
+    open.value = true
+    void searchUsers('')
+  }
+
+  function fieldError(field: keyof MemberForm): string | undefined {
+    return fieldErrors.value[field]?.[0]
+  }
+
+  /** 加进目录键为 tenantId 的租户（成员按目录键挂，不是租户主键） */
+  async function submit(tenantId: string): Promise<boolean> {
+    if (!form.userId)
+      return false
+    submitting.value = true
+    submitError.value = null
+    fieldErrors.value = {}
+    try {
+      await tenantMembersApi.create({ tenantId, userId: form.userId, memberType: form.memberType })
+      open.value = false
       return true
     }
     catch (error) {
-      if (error instanceof ApiError) {
-        editErrors.value = error.errors ?? {}
-        if (!error.hasFieldErrors)
-          detailError.value = error.detail
-      }
-      else {
-        detailError.value = String(error)
-      }
+      captureErrors(error, fieldErrors, submitError)
       return false
     }
     finally {
-      working.value = false
+      submitting.value = false
     }
   }
 
-  /** 换套餐：空选即不受套餐限制；后端写入后立即失效该租户的门控缓存 */
-  async function changeEdition(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      await tenantsApi.changeEdition({ id: current.tenant.id, editionId: editionDraft.value || null })
-      await Promise.all([load(), select(current.tenant.id)])
-      notice.value = 'edition_changed'
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  /** 初始化管理员：每个租户一次；成功后详情显示管理员登录名 */
-  async function initializeAdmin(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    adminErrors.value = {}
-    try {
-      await tenantsApi.initializeAdmin({
-        id: current.tenant.id,
-        userName: adminForm.userName.trim(),
-        password: adminForm.password,
-        displayName: adminForm.displayName.trim() || null,
-      })
-      await Promise.all([load(), select(current.tenant.id)])
-      notice.value = 'admin_created'
-      return true
-    }
-    catch (error) {
-      if (error instanceof ApiError) {
-        adminErrors.value = error.errors ?? {}
-        if (!error.hasFieldErrors)
-          detailError.value = error.detail
-      }
-      else {
-        detailError.value = String(error)
-      }
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  async function setStatus(action: 'suspend' | 'resume'): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      const result = await (action === 'suspend' ? tenantsApi.suspend : tenantsApi.resume)({ ids: [current.tenant.id] })
-      if (result.failed.length > 0)
-        detailError.value = result.failed.map(f => f.code).join('; ')
-      await Promise.all([load(), select(current.tenant.id)])
-      return result.failed.length === 0
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  const suspend = () => setStatus('suspend')
-  const resume = () => setStatus('resume')
-
-  /** 删除：还有用户的租户由后端逐项拒绝（TENANCY_CONFLICT_003） */
-  async function remove(): Promise<boolean> {
-    const current = selected.value
-    if (!current)
-      return false
-    working.value = true
-    detailError.value = null
-    notice.value = null
-    try {
-      const result = await tenantsApi.delete({ ids: [current.tenant.id] })
-      if (result.failed.length > 0) {
-        detailError.value = result.failed.map(f => f.code).join('; ')
-        return false
-      }
-      selected.value = null
-      await load(1)
-      return true
-    }
-    catch (error) {
-      detailError.value = describe(error)
-      return false
-    }
-    finally {
-      working.value = false
-    }
-  }
-
-  return {
-    items,
-    total,
-    pageIndex,
-    pageCount,
-    pageSize,
-    loading,
-    listError,
-    form,
-    editions,
-    editionDraft,
-    editionName,
-    fieldErrors,
-    fieldError,
-    submitError,
-    submitting,
-    selected,
-    edit,
-    editError,
-    adminForm,
-    adminError,
-    detailError,
-    notice,
-    working,
-    load,
-    loadEditions,
-    submit,
-    changeEdition,
-    select,
-    save,
-    initializeAdmin,
-    suspend,
-    resume,
-    remove,
-  }
+  return { open, form, userOptions, userLoading, userError, fieldError, submitError, submitting, searchUsers, start, submit }
 }
