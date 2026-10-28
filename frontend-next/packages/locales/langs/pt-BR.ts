@@ -23,14 +23,6 @@ export default {
     nav: {
       label: 'Navegação',
     },
-    status: {
-      forbidden: 'Acesso negado',
-      forbidden_hint: 'Você não tem permissão para esta página.',
-      not_found: 'Página não encontrada',
-      not_found_hint: 'O endereço não corresponde a nenhuma página.',
-      home: 'Nenhuma página disponível',
-      home_hint: 'Peça a um administrador que lhe atribua um papel.',
-    },
     messages: {
       load_failed: 'Falha ao carregar',
       operation_failed: 'A operação falhou',
@@ -74,6 +66,16 @@ export default {
       center: 'Centro',
       right: 'Direita',
     },
+  },
+  error: {
+    not_found: 'Página não encontrada',
+    not_found_desc: 'Desculpe, a página que você acessou não existe',
+    forbidden: 'Acesso negado',
+    forbidden_desc: 'Desculpe, você não tem permissão para acessar esta página',
+    server_error: 'Erro no servidor',
+    server_error_desc: 'Desculpe, o servidor encontrou um erro. Tente novamente mais tarde',
+    back_home: 'Voltar ao início',
+    back_prev: 'Voltar',
   },
   header: {
     context: {

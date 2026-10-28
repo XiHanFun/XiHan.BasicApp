@@ -23,14 +23,6 @@ export default {
     nav: {
       label: 'ナビゲーション',
     },
-    status: {
-      forbidden: 'アクセス拒否',
-      forbidden_hint: 'このページの権限がありません。',
-      not_found: 'ページが見つかりません',
-      not_found_hint: 'このアドレスに対応するページはありません。',
-      home: '利用できるページがありません',
-      home_hint: '管理者にロールの割り当てを依頼してください。',
-    },
     messages: {
       load_failed: '読み込みに失敗しました',
       operation_failed: '操作に失敗しました',
@@ -74,6 +66,16 @@ export default {
       center: '中央',
       right: '右寄せ',
     },
+  },
+  error: {
+    not_found: 'ページが見つかりません',
+    not_found_desc: '申し訳ありません。アクセスしたページは存在しません',
+    forbidden: 'アクセス権限がありません',
+    forbidden_desc: '申し訳ありません。このページにアクセスする権限がありません',
+    server_error: 'サーバーエラー',
+    server_error_desc: '申し訳ありません。サーバーでエラーが発生しました。しばらくしてからお試しください',
+    back_home: 'ホームに戻る',
+    back_prev: '前のページに戻る',
   },
   header: {
     context: {

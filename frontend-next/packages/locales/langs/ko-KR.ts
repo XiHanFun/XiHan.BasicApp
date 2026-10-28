@@ -23,14 +23,6 @@ export default {
     nav: {
       label: '탐색',
     },
-    status: {
-      forbidden: '접근 거부',
-      forbidden_hint: '이 페이지에 대한 권한이 없습니다.',
-      not_found: '페이지를 찾을 수 없습니다',
-      not_found_hint: '이 주소에 해당하는 페이지가 없습니다.',
-      home: '접근 가능한 페이지가 없습니다',
-      home_hint: '관리자에게 역할 배정을 요청하세요.',
-    },
     messages: {
       load_failed: '불러오지 못했어요',
       operation_failed: '작업에 실패했어요',
@@ -74,6 +66,16 @@ export default {
       center: '가운데',
       right: '오른쪽',
     },
+  },
+  error: {
+    not_found: '페이지를 찾을 수 없어요',
+    not_found_desc: '죄송해요. 요청하신 페이지가 없어요',
+    forbidden: '접근 권한이 없어요',
+    forbidden_desc: '죄송해요. 이 페이지에 접근할 권한이 없어요',
+    server_error: '서버 오류',
+    server_error_desc: '죄송해요. 서버에 오류가 발생했어요. 잠시 후 다시 시도해 주세요',
+    back_home: '홈으로 돌아가기',
+    back_prev: '이전 페이지로',
   },
   header: {
     context: {

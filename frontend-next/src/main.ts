@@ -1,13 +1,15 @@
 import { createPinia } from 'pinia'
 import { createApp } from 'vue'
+import { LOGIN_PATH } from '~/constants'
 import { setupIconifyOffline } from '~/iconify'
 import { DEFAULT_LOCALE, isLocale, setLocale, setupI18n } from '~/locales'
 import { configureRequest } from '~/request'
-import { LOGIN_ROUTE, router } from '~/router'
+import { setupRouterGuard } from '~/router/guard'
 import { useAppStore, useAuthStore } from '~/stores'
 import { resetSetupStorePlugin } from '~/stores/plugins'
 import App from './App.vue'
 import { registerApplicationContext } from './app/context'
+import { router } from './router'
 import './styles/index.css'
 
 async function bootstrap() {
@@ -27,8 +29,8 @@ async function bootstrap() {
   const appStore = useAppStore()
   const toLogin = () => {
     auth.clear()
-    if (router.currentRoute.value.name !== LOGIN_ROUTE)
-      void router.replace({ name: LOGIN_ROUTE, query: { redirect: router.currentRoute.value.fullPath } })
+    if (router.currentRoute.value.path !== LOGIN_PATH)
+      void router.replace({ path: LOGIN_PATH, query: { redirect: router.currentRoute.value.fullPath } })
   }
   configureRequest({
     baseUrl: import.meta.env.VITE_API_BASE_URL ?? '',
@@ -51,6 +53,7 @@ async function bootstrap() {
 
   // 壳层要的接口实现、路由实例与应用路由（packages 不直接依赖 src）
   registerApplicationContext(router)
+  setupRouterGuard(router)
   app.use(router)
   await router.isReady()
   app.mount('#app')

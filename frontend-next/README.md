@@ -36,9 +36,9 @@ frontend-next/
 
 ## 会话、权限与菜单
 
-`/login`：租户（平台账号留空）、用户名、密码 → `auth.login`；会话（访问令牌、刷新令牌、会话 ID、租户、用户资料）由 `~/stores` 的 `auth` 保存在 `localStorage`，路由守卫把未登录的访问带回跳地址送到登录页。顶栏显示当前用户与租户、修改密码入口（`/identity/profile/change-password`，`profile.change-password`）与退出（`auth.logout`）；管理员重置过密码的账号登录后顶栏提示先改密。初始账号由后端 `seed` 命令写入（`superadmin`，见 `backend-next/src/XiHan.BasicApp.Host/README.md`）。
+`/auth/login`：租户（平台账号留空）、用户名、密码 → `auth.login`；会话（访问令牌、刷新令牌、会话 ID、租户、用户资料）由 `~/stores` 的 `auth` 保存在 `localStorage`，路由守卫把未登录的访问带回跳地址送到登录页。顶栏显示当前用户与租户、修改密码入口（`/identity/profile/change-password`，`profile.change-password`）与退出（`auth.logout`）；管理员重置过密码的账号登录后顶栏提示先改密。初始账号由后端 `seed` 命令写入（`superadmin`，见 `backend-next/src/XiHan.BasicApp.Host/README.md`）。
 
-登录后守卫首次进入时调 `auth.permissions`（有效权限码、角色、按权限裁剪的菜单树、页面码），把菜单树装成动态路由（`packages/router/menus.ts`：节点的 `component` 是 `<包>/<路径>/index`，按 `src/modules/*/views/**/index.vue` 精确解析），侧栏导航由同一棵树渲染，`/` 落到第一个菜单；`meta.permission` 不在有效权限里进 `/forbidden`。按钮即操作：`auth.can('identity.users.create')` 精确匹配操作的权限码控制可见性，安全边界仍在后端。刷新令牌后权限清空、下一次导航重取（角色指派的变化随之生效）。静态核心路由只有登录、改密与状态页（`packages/router/status-view.ts`）。
+路由与 4.x 相同：`packages/router` 的守卫（`guard.ts`）、菜单 → 路由（`dynamic.ts`）与核心路由（`routes/core.ts`：认证壳与 403 / 404 / 500），应用侧 `src/router` 用 RootLayout（管理端壳）承载业务页，地址缺省走 hash（`VITE_ROUTER_HISTORY=history` 切 HTML5 历史）。登录后守卫首次进入时调 `auth.permissions`（有效权限码、角色、按权限裁剪的菜单树、页面码），把菜单树装成动态路由（节点的 `component` 是 `<包>/<路径>/index`，按 `src/modules/*/views/**/index.vue` 精确解析，找不到落 404 兜底并报错；页面包一层「名字 = 路由名」的壳组件供 KeepAlive 命中），侧栏导航由同一棵树渲染，`/` 落到第一个菜单；`meta.permissions` 不在有效权限里进 `/403`；访问过的页面进标签栏（首页与固定标签不可关）。按钮即操作：`auth.can('identity.users.create')` 精确匹配操作的权限码控制可见性，安全边界仍在后端。刷新令牌后权限清空、下一次导航重取（角色指派的变化随之生效）。
 
 ## XiHan.UI 本地联调
 

@@ -23,14 +23,6 @@ export default {
     nav: {
       label: 'Navigation',
     },
-    status: {
-      forbidden: 'Zugriff verweigert',
-      forbidden_hint: 'Sie haben keine Berechtigung für diese Seite.',
-      not_found: 'Seite nicht gefunden',
-      not_found_hint: 'Unter dieser Adresse gibt es keine Seite.',
-      home: 'Keine Seiten verfügbar',
-      home_hint: 'Bitten Sie einen Administrator, Ihnen eine Rolle zuzuweisen.',
-    },
     messages: {
       load_failed: 'Laden fehlgeschlagen',
       operation_failed: 'Vorgang fehlgeschlagen',
@@ -74,6 +66,16 @@ export default {
       center: 'Mitte',
       right: 'Rechts',
     },
+  },
+  error: {
+    not_found: 'Seite nicht gefunden',
+    not_found_desc: 'Entschuldigung, die von Ihnen aufgerufene Seite existiert nicht',
+    forbidden: 'Zugriff verweigert',
+    forbidden_desc: 'Entschuldigung, Sie haben keine Berechtigung, auf diese Seite zuzugreifen',
+    server_error: 'Serverfehler',
+    server_error_desc: 'Entschuldigung, auf dem Server ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut',
+    back_home: 'Zurück zur Startseite',
+    back_prev: 'Zurück',
   },
   header: {
     context: {

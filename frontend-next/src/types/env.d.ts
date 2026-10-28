@@ -18,6 +18,10 @@ interface ImportMetaEnv {
   readonly VITE_APP_DESCRIPTION?: string
   /** 首页兜底路径（壳层固定首页标签、守卫重定向） */
   readonly VITE_HOME_PATH?: string
+  /** 路由模式：history 用 HTML5 历史，其余（缺省 hash）用 # 路由；静态托管不配回退规则时用 hash */
+  readonly VITE_ROUTER_HISTORY?: string
+  /** 部署子路径（缺省 /） */
+  readonly VITE_BASE?: string
   /** 实时 Hub 路径；为空即不建实时连接 */
   readonly VITE_REALTIME_HUB?: string
   readonly VITE_API_PREFIX?: string

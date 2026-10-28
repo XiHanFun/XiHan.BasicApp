@@ -23,14 +23,6 @@ export default {
     nav: {
       label: '導覽',
     },
-    status: {
-      forbidden: '無權存取',
-      forbidden_hint: '你沒有這個頁面的權限。',
-      not_found: '頁面不存在',
-      not_found_hint: '這個網址沒有對應的頁面。',
-      home: '沒有可存取的頁面',
-      home_hint: '請管理員為你指派角色。',
-    },
     messages: {
       load_failed: '載入失敗',
       operation_failed: '操作失敗',
@@ -74,6 +66,16 @@ export default {
       center: '置中',
       right: '靠右',
     },
+  },
+  error: {
+    not_found: '頁面不存在',
+    not_found_desc: '抱歉，您存取的頁面不存在',
+    forbidden: '無權限存取',
+    forbidden_desc: '抱歉，您沒有權限存取這個頁面',
+    server_error: '伺服器錯誤',
+    server_error_desc: '抱歉，伺服器發生錯誤，請稍後再試',
+    back_home: '返回首頁',
+    back_prev: '返回上一頁',
   },
   header: {
     context: {

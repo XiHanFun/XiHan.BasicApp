@@ -23,14 +23,6 @@ export default {
     nav: {
       label: 'Navegación',
     },
-    status: {
-      forbidden: 'Acceso denegado',
-      forbidden_hint: 'No tiene permiso para esta página.',
-      not_found: 'Página no encontrada',
-      not_found_hint: 'La dirección no corresponde a ninguna página.',
-      home: 'No hay páginas disponibles',
-      home_hint: 'Pida a un administrador que le asigne un rol.',
-    },
     messages: {
       load_failed: 'Error al cargar',
       operation_failed: 'La operación falló',
@@ -74,6 +66,16 @@ export default {
       center: 'Centro',
       right: 'Derecha',
     },
+  },
+  error: {
+    not_found: 'Página no encontrada',
+    not_found_desc: 'Lo sentimos, la página que has visitado no existe',
+    forbidden: 'Acceso denegado',
+    forbidden_desc: 'Lo sentimos, no tienes permiso para acceder a esta página',
+    server_error: 'Error del servidor',
+    server_error_desc: 'Lo sentimos, el servidor ha encontrado un error. Inténtalo de nuevo más tarde',
+    back_home: 'Volver al inicio',
+    back_prev: 'Volver',
   },
   header: {
     context: {
