@@ -23,14 +23,6 @@ export default {
     nav: {
       label: 'Navigation',
     },
-    status: {
-      forbidden: 'Accès refusé',
-      forbidden_hint: 'Vous n\'avez pas la permission d\'accéder à cette page.',
-      not_found: 'Page introuvable',
-      not_found_hint: 'L\'adresse ne correspond à aucune page.',
-      home: 'Aucune page disponible',
-      home_hint: 'Demandez à un administrateur de vous attribuer un rôle.',
-    },
     messages: {
       load_failed: 'Échec du chargement',
       operation_failed: 'L\'opération a échoué',
@@ -74,6 +66,16 @@ export default {
       center: 'Centre',
       right: 'Droite',
     },
+  },
+  error: {
+    not_found: 'Page introuvable',
+    not_found_desc: 'Désolé, la page que vous avez demandée n\'existe pas',
+    forbidden: 'Accès refusé',
+    forbidden_desc: 'Désolé, vous n\'avez pas l\'autorisation d\'accéder à cette page',
+    server_error: 'Erreur du serveur',
+    server_error_desc: 'Désolé, le serveur a rencontré une erreur. Veuillez réessayer plus tard',
+    back_home: 'Retour à l\'accueil',
+    back_prev: 'Retour',
   },
   header: {
     context: {

@@ -23,14 +23,6 @@ export default {
     nav: {
       label: '导航',
     },
-    status: {
-      forbidden: '无权访问',
-      forbidden_hint: '你没有这个页面的权限。',
-      not_found: '页面不存在',
-      not_found_hint: '这个地址没有对应的页面。',
-      home: '没有可访问的页面',
-      home_hint: '请管理员给你指派角色。',
-    },
     messages: {
       load_failed: '加载失败',
       operation_failed: '操作失败',
@@ -74,6 +66,16 @@ export default {
       center: '居中',
       right: '居右',
     },
+  },
+  error: {
+    not_found: '页面不存在',
+    not_found_desc: '抱歉，您访问的页面不存在',
+    forbidden: '无权限访问',
+    forbidden_desc: '抱歉，您没有权限访问该页面',
+    server_error: '服务器错误',
+    server_error_desc: '抱歉，服务器发生了错误，请稍后重试',
+    back_home: '返回首页',
+    back_prev: '返回上一页',
   },
   header: {
     context: {
