@@ -1,0 +1,115 @@
+<script setup lang="ts" generic="TRow extends object">
+import type { MenuNode } from '@xihan-ui/headless'
+import type { ActionSchema } from './types'
+import { XhButton, XhMenuRoot } from '@xihan-ui/vue'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useIsMobile } from '~/composables'
+import { usePermission } from '~/hooks'
+import { Icon } from '~/iconify'
+import { VNodeRender } from '../common/VNodeRender'
+import XIconButton from '../common/XIconButton.vue'
+import { actionMenuPrefix } from './action-menu'
+import { actionMenuTone } from './action-tone'
+
+defineOptions({ name: 'SchemaActionPanel' })
+
+const props = withDefaults(defineProps<{
+  /** 页面级操作（scope='page'） */
+  actions: ActionSchema<TRow>[]
+  /** 超过该数量的按钮收入「更多」，默认 4 */
+  maxButtons?: number
+}>(), {
+  maxButtons: 4,
+})
+
+const emit = defineEmits<{
+  action: [key: string]
+}>()
+
+const { hasPermission } = usePermission()
+
+const { t } = useI18n()
+
+/** 小屏断点（max-width:767px） */
+const { isMobile } = useIsMobile()
+
+/** 小屏且按钮含图标时转为圆形纯图标按钮（无图标的按钮兜底保留文字） */
+function isIconOnly(action: ActionSchema<TRow>): boolean {
+  return isMobile.value && !!action.icon
+}
+
+/** 有权限的页面操作 */
+const permitted = computed(() =>
+  props.actions.filter(a => a.scope === 'page' && (!a.permission || hasPermission(a.permission))),
+)
+
+/** 直接展示的按钮 */
+const primaryActions = computed(() => permitted.value.slice(0, props.maxButtons))
+
+/** 收入「更多」的操作 */
+const moreActions = computed(() => permitted.value.slice(props.maxButtons))
+
+const moreOptions = computed<MenuNode[]>(() =>
+  moreActions.value.map(a => ({ value: a.key, label: a.title, tone: actionMenuTone(a.tone) })),
+)
+
+/** 「更多」里的行首图标；没有一条声明图标时为空，不铺这一列 */
+const moreItemPrefix = computed(() => actionMenuPrefix(moreActions.value))
+</script>
+
+<template>
+  <div class="flex flex-wrap gap-2 items-center">
+    <!-- 前置插槽：页面级上下文标签（如主从页当前所属对象），排在操作按钮之前 -->
+    <slot name="leading" />
+    <template v-for="action in primaryActions" :key="action.key">
+      <!-- 小屏收成纯图标钮，文案退到提示里；宽屏照常出文字 -->
+      <XIconButton
+        v-if="isIconOnly(action)"
+        :icon="action.icon!"
+        :label="action.title"
+        @click="emit('action', action.key)"
+      />
+      <XhButton
+        v-else
+        size="sm"
+        :variant="action.tone && action.tone !== 'neutral' ? 'solid' : 'outline'"
+        :tone="action.tone ?? 'neutral'"
+        :aria-label="action.title"
+        @click="emit('action', action.key)"
+      >
+        <Icon v-if="action.icon" :icon="action.icon" />
+        {{ action.title }}
+      </XhButton>
+    </template>
+
+    <!-- 「更多」的触发器就是一颗普通描边按钮，与左侧一排同高同款 -->
+    <XhMenuRoot
+      v-if="moreOptions.length"
+      trigger-as-child
+      :collection="moreOptions"
+      @item-select="(details: { value: string }) => emit('action', details.value)"
+    >
+      <template #trigger>
+        <!-- 窄屏只剩省略号图标：转成图标钮并补名字 -->
+        <XhButton
+          size="sm"
+          variant="outline"
+          :icon-only="isMobile"
+          :aria-label="isMobile ? t('component.schema_page.more') : undefined"
+        >
+          <Icon :icon="isMobile ? 'lucide:ellipsis' : 'lucide:chevron-down'" />
+          <span v-if="!isMobile">{{ t('component.schema_page.more') }}</span>
+        </XhButton>
+      </template>
+      <template v-if="moreItemPrefix" #item-prefix="node">
+        <VNodeRender :content="moreItemPrefix!(node)" />
+      </template>
+    </XhMenuRoot>
+
+    <div class="flex-1" />
+
+    <!-- 右侧工具栏插槽：刷新 / 密度 / 全屏 / 列设置 -->
+    <slot name="toolbar" />
+  </div>
+</template>

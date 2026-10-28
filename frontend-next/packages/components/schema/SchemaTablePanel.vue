@@ -1,0 +1,579 @@
+<script setup lang="ts" generic="TRow extends object">
+import type { TableColumnDef, TableRowDef, TableSelection, TableSortDescriptor } from '@xihan-ui/headless'
+import type { VNodeChild } from 'vue'
+import type { ListFieldSchema, SchemaColumn, SchemaSortRule } from './types'
+import {
+  XhTableBody,
+  XhTableCell,
+  XhTableColumnHeader,
+  XhTableColumnLabel,
+  XhTableEmpty,
+  XhTableExpandedRow,
+  XhTableExpandTrigger,
+  XhTableHeader,
+  XhTableLoading,
+  XhTableRoot,
+  XhTableRow,
+  XhTableRowSelectTrigger,
+  XhTableSelectAllTrigger,
+  XhTableSortTrigger,
+} from '@xihan-ui/vue'
+import { computed, mergeProps, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useIsMobile } from '~/composables'
+import { Icon } from '~/iconify'
+import { VNodeRender } from '../common/VNodeRender'
+import SchemaPagination from './SchemaPagination.vue'
+import SchemaRowPeek from './SchemaRowPeek.vue'
+import { useRowPeek } from './useRowPeek'
+
+defineOptions({ name: 'SchemaTablePanel' })
+
+const props = withDefaults(defineProps<{
+  /** 列定义（由 selectors.toColumns 派生） */
+  columns: SchemaColumn<TRow>[]
+  /** 数据行；树形模式下是嵌套数组 */
+  data: TRow[]
+  /** 加载态 */
+  loading?: boolean
+  /** 行主键字段 */
+  rowKey?: string
+  /** 总条数 */
+  total?: number
+  /** 当前页 */
+  page?: number
+  /** 每页数量 */
+  pageSize?: number
+  /** 每页可选数量 */
+  pageSizes?: number[]
+  /** 是否启用多选 */
+  selectable?: boolean
+  /** 是否显示序号列 */
+  showIndex?: boolean
+  /** 已选行主键 */
+  checkedKeys?: Array<string | number>
+  /** 当前多字段排序（受控回显各列箭头与优先级） */
+  sorts?: ReadonlyArray<SchemaSortRule>
+  /** 密度 */
+  density?: 'sm' | 'md' | 'lg'
+  /** 斑马纹（条纹） */
+  striped?: boolean
+  /** 边框 */
+  bordered?: boolean
+  /** 列之间的竖线 */
+  ruled?: boolean
+  /** 数据列的对齐（表格设置里选的那一档），缺省靠起始边 */
+  align?: 'left' | 'center' | 'right'
+  /** 树形模式（启用后不分页、按 childrenKey 展开子行） */
+  tree?: boolean
+  /** 子节点字段名（默认 children） */
+  childrenKey?: string
+  /** 默认展开全部（默认 true） */
+  defaultExpandAll?: boolean
+  /** 重挂载令牌：变化即重建表格（用于清空展开态与拖拽列宽，如「恢复默认」） */
+  remountKey?: number
+  /** 悬停速览字段（提供即启用：悬停行 ~450ms 浮出全字段详情卡） */
+  peekFields?: ListFieldSchema<TRow>[]
+  /** 行展开渲染（提供即启用：行前出现展开箭头，展开后显示自定义内容） */
+  renderExpand?: (row: TRow) => VNodeChild
+  /** 行是否可展开（默认全部可展开） */
+  rowExpandable?: (row: TRow) => boolean
+  /** 逐行附加属性（class / style / 事件），主从页用它做整行点选与当前行高亮 */
+  rowProps?: (row: TRow, rowIndex: number) => Record<string, unknown>
+}>(), {
+  loading: false,
+  rowKey: 'basicId',
+  total: 0,
+  page: 1,
+  pageSize: 20,
+  pageSizes: () => [10, 20, 50, 100],
+  selectable: false,
+  showIndex: false,
+  checkedKeys: () => [],
+  sorts: () => [],
+  density: 'sm',
+  striped: false,
+  bordered: true,
+  ruled: false,
+  align: 'left',
+  tree: false,
+  childrenKey: 'children',
+  defaultExpandAll: true,
+  remountKey: 0,
+  peekFields: undefined,
+  renderExpand: undefined,
+  rowExpandable: undefined,
+  rowProps: undefined,
+})
+const emit = defineEmits<{
+  'update:page': [value: number]
+  'update:pageSize': [value: number]
+  'update:checkedKeys': [keys: Array<string | number>]
+  'sort': [sorts: SchemaSortRule[]]
+  'resizeColumn': [key: string, width: number]
+}>()
+/** 多选列、展开列、序号列的列 id：与数据列同处一个列号空间，故取不会撞车的名字 */
+const SELECT_COL = '__select__'
+const EXPAND_COL = '__expand__'
+const INDEX_COL = '__index__'
+const ACTION_COL = '__actions__'
+/** 展开列与勾选列的宽度。取皮肤给单元格的下限 3rem，声明值与渲染值一致，吸附偏移才累加得准 */
+const PREFIX_COL_W = 48
+
+const { t } = useI18n()
+const { isMobile } = useIsMobile()
+
+// ── 悬停速览（Peek & Pop）：移动端 / 未提供字段时禁用 ──────────────
+const peek = useRowPeek<TRow>({
+  enabled: () => !isMobile.value && (props.peekFields?.length ?? 0) > 0,
+})
+const peekEnabled = computed(() => (props.peekFields?.length ?? 0) > 0)
+
+function rowKeyOf(row: TRow): string {
+  return String((row as Record<string, unknown>)[props.rowKey])
+}
+
+function childrenOf(row: TRow): TRow[] | undefined {
+  return (row as Record<string, unknown>)[props.childrenKey] as TRow[] | undefined
+}
+
+// ── 行铺平 ────────────────────────────────────────────────────────────
+/** 铺平后的一行：树形模式带层级与展开态，列表模式层级恒为 0 */
+interface FlatRow {
+  key: string
+  row: TRow
+  level: number
+  /** 大纲编号（树形）或全局序号（列表） */
+  indexLabel: string
+  /** 有子节点 */
+  branch: boolean
+}
+
+/** 树形展开集合。收起的分支其子树整段不进序列，行号因此始终连续 */
+const treeExpanded = ref<Set<string> | null>(null)
+
+function isTreeOpen(key: string): boolean {
+  // null 表示还没人动过：按 defaultExpandAll 决定
+  return treeExpanded.value === null ? props.defaultExpandAll : treeExpanded.value.has(key)
+}
+
+function toggleTreeRow(key: string): void {
+  if (treeExpanded.value === null) {
+    // 首次交互：把当前的隐式展开态摊成显式集合，再翻这一行
+    const seed = new Set<string>()
+    if (props.defaultExpandAll) {
+      const walk = (nodes: TRow[]) => {
+        for (const node of nodes) {
+          const children = childrenOf(node)
+          if (children?.length) {
+            seed.add(rowKeyOf(node))
+            walk(children)
+          }
+        }
+      }
+      walk(props.data)
+    }
+    treeExpanded.value = seed
+  }
+  const set = treeExpanded.value
+  if (set.has(key)) {
+    set.delete(key)
+  }
+  else {
+    set.add(key)
+  }
+  treeExpanded.value = new Set(set)
+}
+
+const flatRows = computed<FlatRow[]>(() => {
+  const out: FlatRow[] = []
+  if (!props.tree) {
+    props.data.forEach((row, i) => {
+      out.push({
+        key: rowKeyOf(row),
+        row,
+        level: 0,
+        indexLabel: String((props.page - 1) * props.pageSize + i + 1),
+        branch: false,
+      })
+    })
+    return out
+  }
+  const walk = (nodes: TRow[], level: number, prefix: string) => {
+    nodes.forEach((node, i) => {
+      const key = rowKeyOf(node)
+      const label = prefix ? `${prefix}.${i + 1}` : `${i + 1}`
+      const children = childrenOf(node)
+      const branch = !!children?.length
+      out.push({ key, row: node, level, indexLabel: label, branch })
+      if (branch && isTreeOpen(key)) {
+        walk(children!, level + 1, label)
+      }
+    })
+  }
+  walk(props.data, 0, '')
+  return out
+})
+
+// ── 列 ────────────────────────────────────────────────────────────────
+/** 列首前缀：展开列、多选列、序号列（按需依次插入到数据列之前） */
+const prefixColumns = computed<Array<{ id: string, width: number }>>(() => {
+  const list: Array<{ id: string, width: number }> = []
+  if (props.renderExpand) {
+    list.push({ id: EXPAND_COL, width: PREFIX_COL_W })
+  }
+  if (props.selectable) {
+    list.push({ id: SELECT_COL, width: PREFIX_COL_W })
+  }
+  if (props.showIndex) {
+    list.push({ id: INDEX_COL, width: props.tree ? 90 : 60 })
+  }
+  return list
+})
+
+function widthOf(column: SchemaColumn<TRow>): number | undefined {
+  return column.width
+}
+
+/**
+ * 喂给组件库的确定列宽。组件库只认 width：没写 width 的列 flex-basis 退回该单元格自己的内容宽度，
+ * 而表头行与每条数据行各是一个独立的 flex 容器，于是逐行各分各的宽、列边界对不齐。
+ * minWidth 在这里坍缩成初始宽，容器的余量仍由 flex-grow 均摊，每行摊法一致。
+ */
+function declaredWidthOf(column: SchemaColumn<TRow>): number {
+  return widthOf(column) ?? column.minWidth ?? 120
+}
+
+/** 表格设置里的对齐词汇换成组件库的逻辑方向：左右跟着书写方向走 */
+const COLUMN_ALIGN = { left: 'start', center: 'center', right: 'end' } as const
+
+/**
+ * 喂给组件库的列契约：列号、列宽、上下限、可排序与吸附的唯一事实源。
+ * 前缀列也必须在此声明，否则右侧所有列的 aria-colindex 串位。
+ *
+ * width 只是 flex 基准，容器不够时各列按比例压缩；minWidth 由库写到表头格与表体格上，
+ * 布局压缩与拖动改宽都不越过它。没写 minWidth 的列以自己的声明宽为下限，不写就会跌到皮肤的全局兜底值。
+ * 前缀列（展开/勾选/序号）与操作列不吃余量：上下限都写成声明宽，即一列定宽。
+ */
+const tableColumns = computed<TableColumnDef[]>(() => {
+  // 有业务列左固定时，前面的勾选/序号/展开列也钉在行首侧，业务列的偏移才接得上
+  const pinPrefix = props.columns.some(column => column.fixed === 'left')
+  return [
+    ...prefixColumns.value.map<TableColumnDef>(c => ({
+      id: c.id,
+      width: c.width,
+      minWidth: c.width,
+      maxWidth: c.width,
+      ...(pinPrefix ? { sticky: 'start' } : {}),
+    })),
+    ...props.columns.map<TableColumnDef>((column) => {
+      const width = declaredWidthOf(column)
+      return {
+        id: column.key,
+        label: column.title,
+        ...(column.sortable ? { sortable: true } : {}),
+        // 吸附偏移由库按列宽累加，这里只报侧别
+        ...(column.fixed ? { sticky: column.fixed === 'right' ? 'end' : 'start' } : {}),
+        // 对齐交给库落到列头与数据格上（data-align），起始边是库的缺省，不必写出来
+        ...(props.align === 'left' ? {} : { align: COLUMN_ALIGN[props.align] }),
+        width,
+        minWidth: column.minWidth ?? width,
+        // 操作列不给拖：它的宽度跟着按钮走，拖窄了按钮会被挤掉
+        ...(column.key === ACTION_COL ? { maxWidth: width } : {}),
+        // 改宽由库接管：它按下那一刻量出各列的实际宽度做基线，因此钉住的一瞬间视觉不跳
+        ...(column.resizable === false || column.key === ACTION_COL ? {} : { resizable: true }),
+      }
+    }),
+  ]
+})
+
+/**
+ * 列宽由库写进列偏好，这里只把变化转成既有的 resizeColumn 出口。
+ * 库在按下那一刻会把同排各列的实际宽度一并写进去当基线，因此这里只报真正变过的那些。
+ */
+const lastWidths = ref<Record<string, number>>({})
+function onColumnPreferenceChange(details: { value: { widths?: Record<string, number | string> } }): void {
+  const widths = details.value.widths ?? {}
+  for (const [key, raw] of Object.entries(widths)) {
+    const width = typeof raw === 'number' ? raw : Number.NaN
+    if (Number.isFinite(width) && lastWidths.value[key] !== width) {
+      lastWidths.value = { ...lastWidths.value, [key]: width }
+      // 前缀列不归业务侧管，它们的宽度是固定的
+      if (!key.startsWith('__'))
+        emit('resizeColumn', key, width)
+    }
+  }
+}
+
+const tableRows = computed<TableRowDef[]>(() => flatRows.value.map(r => ({
+  id: r.key,
+  ...(props.renderExpand && (props.rowExpandable?.(r.row) ?? true) ? { expandable: true } : {}),
+})))
+
+// ── 排序 ──────────────────────────────────────────────────────────────
+/** 应用侧的 { field, order } 与组件库的 { id, direction } 互转；数组顺序即优先级 */
+const sortChain = computed<TableSortDescriptor[]>(() =>
+  props.sorts.map(rule => ({ id: rule.field, direction: rule.order === 'asc' ? 'asc' : 'desc' })),
+)
+
+function onSortChange(chain: TableSortDescriptor[]): void {
+  emit('sort', chain.map(item => ({ field: item.id, order: item.direction === 'asc' ? 'asc' : 'desc' })))
+}
+
+// ── 多选 ──────────────────────────────────────────────────────────────
+const selection = computed<TableSelection>(() => props.checkedKeys.map(String))
+
+function onSelectionChange(next: TableSelection): void {
+  // 裸 'all' 摊成当前页的显式键：上层按键数组做批量操作
+  const keys = next === 'all' ? flatRows.value.map(r => r.key) : next
+  emit('update:checkedKeys', keys)
+}
+
+// 行属性：悬停速览的事件（未启用时不挂，省掉每行三个监听）与页面附加属性合并，同名事件都保留
+function rowAttrs(row: TRow, rowIndex: number) {
+  const peekHandlers = peekEnabled.value ? peek.rowProps(row) : {}
+  const extra = props.rowProps?.(row, rowIndex)
+  return extra ? mergeProps(peekHandlers, extra) : peekHandlers
+}
+</script>
+
+<template>
+  <!-- 定高 flex 列：表格占满中段并在内部滚动，分页栏固定底部，整体不撑破父容器 -->
+  <div class="xh-table-panel">
+    <XhTableRoot
+      :key="remountKey"
+      class="xh-table-panel__grid"
+      :columns="tableColumns"
+      :rows="tableRows"
+      :sort="sortChain"
+      :selection="selection"
+      :selection-mode="selectable ? 'multiple' : 'none'"
+      :loading="loading"
+      :size="density"
+      sticky-header
+      :striped="striped"
+      :variant="bordered ? 'outline' : 'ghost'"
+      :ruled="ruled"
+      @column-preference-change="onColumnPreferenceChange"
+      @update:sort="onSortChange"
+      @update:selection="onSelectionChange"
+    >
+      <XhTableHeader>
+        <XhTableRow>
+          <XhTableColumnHeader v-if="renderExpand" :value="EXPAND_COL" />
+          <XhTableColumnHeader v-if="selectable" :value="SELECT_COL">
+            <XhTableSelectAllTrigger />
+          </XhTableColumnHeader>
+          <XhTableColumnHeader v-if="showIndex" :value="INDEX_COL">
+            <XhTableColumnLabel>{{ t('component.schema_table.index') }}</XhTableColumnLabel>
+          </XhTableColumnHeader>
+          <XhTableColumnHeader
+            v-for="column in columns"
+            :key="column.key"
+            :value="column.key"
+          >
+            <!-- 列名一律放进 column-label：它是列头里唯一可收窄的一格，超宽出省略号；
+                 排序钮与调宽把手都是它的兄弟，排在列名之后被推到行尾并排。点列名不排序，点钮才排序 -->
+            <XhTableColumnLabel>{{ column.title }}</XhTableColumnLabel>
+            <!-- 定尺图标钮，不包列名；箭头由皮肤按当前方向兜底画，可及名由库的 translations.sort(列名) 给 -->
+            <XhTableSortTrigger v-if="column.sortable" :title="t('component.schema_table.sort_tip')" />
+            <!-- 调宽把手与排序钮是兄弟节点，拖它不会连带触发排序 -->
+            <XhTableColumnResizeTrigger :title="t('component.schema_table.resize_tip')" />
+          </XhTableColumnHeader>
+        </XhTableRow>
+      </XhTableHeader>
+
+      <XhTableBody>
+        <template v-for="(item, rowIndex) in flatRows" :key="item.key">
+          <XhTableRow :value="item.key" v-bind="rowAttrs(item.row, rowIndex)">
+            <XhTableCell v-if="renderExpand" :value="EXPAND_COL">
+              <XhTableExpandTrigger />
+            </XhTableCell>
+            <XhTableCell v-if="selectable" :value="SELECT_COL">
+              <XhTableRowSelectTrigger />
+            </XhTableCell>
+            <XhTableCell v-if="showIndex" :value="INDEX_COL">
+              {{ item.indexLabel }}
+            </XhTableCell>
+            <XhTableCell
+              v-for="column in columns"
+              :key="column.key"
+              :value="column.key"
+            >
+              <!-- 树形列：缩进 + 展开箭头，其余列照常渲染 -->
+              <template v-if="tree && column.tree">
+                <span class="xh-table-panel__indent" :style="{ inlineSize: `${item.level * 16}px` }" />
+                <button
+                  v-if="item.branch"
+                  type="button"
+                  class="xh-table-panel__tree-toggle"
+                  :aria-expanded="isTreeOpen(item.key)"
+                  @click="toggleTreeRow(item.key)"
+                >
+                  <Icon :icon="isTreeOpen(item.key) ? 'lucide:chevron-down' : 'lucide:chevron-right'" width="14" height="14" />
+                </button>
+                <span v-else class="xh-table-panel__tree-toggle xh-table-panel__tree-toggle--leaf" />
+              </template>
+              <!-- 截断要落在单元格内部的行内块上：单元格自身是 flex 容器，text-overflow 在它上面不生效 -->
+              <span v-if="column.ellipsis" class="xh-table-panel__cell-text">
+                <VNodeRender :content="column.render(item.row, rowIndex)" />
+              </span>
+              <VNodeRender v-else :content="column.render(item.row, rowIndex)" />
+            </XhTableCell>
+          </XhTableRow>
+
+          <!-- 详情行的内容也要装在单元格里：从首列（展开列）起跨满全部列，读屏才把它当作一行里的一格 -->
+          <XhTableExpandedRow v-if="renderExpand" :value="item.key">
+            <XhTableCell :value="EXPAND_COL" :colspan="tableColumns.length">
+              <VNodeRender :content="renderExpand(item.row)" />
+            </XhTableCell>
+          </XhTableExpandedRow>
+        </template>
+      </XhTableBody>
+
+      <XhTableEmpty>{{ t('component.schema_table.empty') }}</XhTableEmpty>
+      <XhTableLoading>{{ t('component.schema_table.loading') }}</XhTableLoading>
+    </XhTableRoot>
+
+    <!-- 悬停速览卡（Teleport 到 body，pointer-events none 不干扰交互） -->
+    <SchemaRowPeek
+      :visible="peek.visible.value"
+      :row="peek.row.value"
+      :fields="peekFields ?? []"
+      :x="peek.x.value"
+      :y="peek.y.value"
+    />
+
+    <div class="xh-table-panel__footer">
+      <!-- 底部左侧：数据量/页码提示 + 批量操作浮条（选中后在此展示，避免挤压表格） -->
+      <div class="xh-table-panel__footer-left">
+        <div class="xh-table__count">
+          <template v-if="tree">
+            {{ t('component.schema_table.total_prefix') }} <strong>{{ total }}</strong> {{ t('component.schema_table.total_suffix') }}
+          </template>
+          <template v-else>
+            {{ t('component.schema_table.total_prefix') }} <strong>{{ total }}</strong> {{ t('component.schema_table.total_suffix') }}{{ t('component.schema_table.page_sep') }} <strong>{{ page }}</strong> {{ t('component.schema_table.page_of', { pageCount: Math.max(1, Math.ceil(total / pageSize)) }) }}
+          </template>
+        </div>
+        <slot name="footer-actions" />
+      </div>
+      <SchemaPagination
+        v-if="!tree"
+        class="xh-table-panel__pagination"
+        :total="total"
+        :page="page"
+        :page-size="pageSize"
+        :page-sizes="pageSizes"
+        :compact="isMobile"
+        @update:page="(value: number) => emit('update:page', value)"
+        @update:page-size="(value: number) => emit('update:pageSize', value)"
+      />
+    </div>
+  </div>
+</template>
+
+<style scoped>
+/* 占满父级（SchemaPage 的定高表格卡片）剩余高度，自身再分为表格 + 底部栏 */
+.xh-table-panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+/* 以下三条都从 .xh-table-panel 用 :deep() 打进去，不能直接写 .xh-table-panel__grid。
+ * XhTableRoot 的 render 返回的是 Fragment（表格根 div + aria 播报区两个兄弟节点），
+ * 而 Vue 只会把父组件的 scoped 属性打到「单根」子组件的根元素上，fragment 根拿不到 data-v-x。
+ * 于是 `.xh-table-panel__grid { ... }` 编译出的 .xh-table-panel__grid[data-v-x] 永远选不中表格根：
+ * class 确实挂上去了（attrs 被 mergeProps 合进根 div），但属性选择器那一半不成立。
+ * 这条链断了之后，表格既拿不到 flex:1、也拿不到 --xh-table-max-h 改写，
+ * 一直吃皮肤的缺省上限 24rem —— 卡片再高，表格也只显示 384px 一截。 */
+
+/* 表格占满中段，内部纵向滚动而非撑高外层。高度全部交给 flex 分配，皮肤那道上限直接撤掉。
+ * 溢出滚动皮肤已经给了，这里不重复声明。 */
+.xh-table-panel :deep([data-scope='table'][data-part='root']) {
+  flex: 1;
+  min-block-size: 0;
+  max-block-size: none;
+}
+
+/* 区段的下限从 max-content 换成 min-content：
+   max-content 等于各列声明宽之和，容器再窄也不压缩、必出横向滚动；
+   0 则让区段收到容器宽，而单元格压到各自下限后仍溢出行盒，行底色（斑马纹）就在中途断掉。
+   min-content 正是各列下限之和：既允许按比例压缩，行盒又始终罩得住所有单元格 */
+.xh-table-panel :deep([data-scope='table'][data-part='header']),
+.xh-table-panel :deep([data-scope='table'][data-part='body']) {
+  min-inline-size: min-content;
+}
+
+/* 紧凑密度下中档表格的行距收紧在 design/ui.css：与弹窗里的次级表格（XDataTable）共用同一把尺 */
+
+/* 前缀列与操作列的定宽、各列的下限都写在列契约（tableColumns）里，由组件库落到表头格与表体格上 */
+
+/* 单元格里的文字段：超宽出省略号 */
+.xh-table-panel__cell-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 树形缩进与展开箭头 */
+.xh-table-panel__indent {
+  flex: none;
+}
+
+.xh-table-panel__tree-toggle {
+  flex: none;
+  inline-size: 16px;
+  block-size: 16px;
+  margin-inline-end: 4px;
+  border: 0;
+  background: transparent;
+  color: var(--xh-fg-muted);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.xh-table-panel__tree-toggle--leaf {
+  cursor: default;
+}
+
+/* 底部统计 + 分页：固定在底，不随表格滚动 */
+.xh-table-panel__footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--xh-space-2);
+}
+
+/* 左侧：统计 + 批量浮条 */
+.xh-table-panel__footer-left {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-width: 0;
+}
+
+/* 分页：限制不超过页脚宽度；页数极多时靠分页条自己的 flex-wrap 折行。
+   不能在这里开 overflow-x: auto——那会连带把 overflow-y 变成 auto，粗指针下页码钮的 44px 热区伪元素
+   竖向探出 8px 就冒出一条竖向滚动条，手机上页码右侧那根「竖线」就是它 */
+.xh-table-panel__pagination {
+  max-width: 100%;
+}
+
+.xh-table__count {
+  font-size: 13px;
+  color: var(--xh-fg-default);
+  white-space: nowrap;
+}
+
+.xh-table__count strong {
+  font-weight: 600;
+}
+</style>

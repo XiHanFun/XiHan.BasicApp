@@ -5,6 +5,10 @@
   "private": true,
   "dependencies": {
     "@xihan/constants": "workspace:*",
-    "dayjs": "catalog:"
+    "dayjs": "catalog:",
+    "papaparse": "catalog:"
+  },
+  "devDependencies": {
+    "@types/papaparse": "catalog:"
   }
 }

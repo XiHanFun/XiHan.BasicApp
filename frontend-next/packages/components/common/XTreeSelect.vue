@@ -1,0 +1,89 @@
+<script lang="ts" setup>
+import type { Size } from '@xihan-ui/core'
+import type { TreeSelectOption } from '~/types'
+import { XhTreeSelectClearTrigger, XhTreeSelectContent, XhTreeSelectControl, XhTreeSelectIndicator, XhTreeSelectPositioner, XhTreeSelectRoot, XhTreeSelectTree, XhTreeSelectTrigger, XhTreeSelectValueText } from '@xihan-ui/vue'
+import { computed } from 'vue'
+import { useControlAttrs } from './control-attrs'
+import XTreeSelectNodes from './XTreeSelectNodes.vue'
+
+defineOptions({ name: 'XTreeSelect', inheritAttrs: false })
+
+const props = withDefaults(defineProps<{
+  /** 选中值（v-model:value），单选 */
+  value?: string | number | null | undefined
+  options?: TreeSelectOption[]
+  placeholder?: string
+  /** 不写时随外层 Field / Form 的 disabled 走；写了以本处为准 */
+  disabled?: boolean
+  clearable?: boolean
+  loading?: boolean
+  /** 与表单里的其它字段同一档：缺省 sm，与 XInput / XSelect 一致 */
+  size?: Size
+}>(), {
+  value: null,
+  options: () => [],
+  placeholder: undefined,
+  disabled: undefined,
+  clearable: false,
+  loading: false,
+  size: 'sm',
+})
+
+const emit = defineEmits<{
+  (e: 'update:value', value: string | number | null): void
+}>()
+
+// 字段挂来的 id 与 aria-* 转交给触发器，见 control-attrs.ts
+const { attrs, controlAttrs } = useControlAttrs()
+
+/** 根只收字符串数组，单选就是长度 0 或 1 */
+const selected = computed<string[]>(() => (props.value == null || props.value === '' ? [] : [String(props.value)]))
+
+/** 树的值恒为字符串，数字 id 在喂进去前统一转一道 */
+function toNodes(options: TreeSelectOption[]): { value: string, label: string, disabled?: boolean, children?: ReturnType<typeof toNodes> }[] {
+  return options.map(o => ({
+    value: String(o.value),
+    label: o.label,
+    disabled: o.disabled,
+    ...(o.children?.length ? { children: toNodes(o.children) } : {}),
+  }))
+}
+
+/** 分支节点也要能被值解析到，整棵树都喂过去 */
+const collection = computed(() => toNodes(props.options))
+
+function handleChange(next: string[]) {
+  emit('update:value', next[0] ?? null)
+}
+</script>
+
+<template>
+  <XhTreeSelectRoot
+    :class="attrs.class"
+    :style="attrs.style"
+    :value="selected"
+    :collection="collection"
+    :placeholder="placeholder"
+    :disabled="loading ? true : disabled"
+    :size="size"
+    @update:value="handleChange"
+  >
+    <!-- 视觉盒在 Control 上；清空钮是 Trigger 的兄弟，塞进去会变成按钮套按钮、且点它会冒泡把浮层打开 -->
+    <XhTreeSelectControl>
+      <XhTreeSelectTrigger v-bind="controlAttrs">
+        <XhTreeSelectValueText />
+        <!-- 不写内容：字形由组件库出，展开时它自己翻转 -->
+        <XhTreeSelectIndicator />
+      </XhTreeSelectTrigger>
+      <!-- 不写内容：字形由组件库出；无值或禁用时它自己收起 -->
+      <XhTreeSelectClearTrigger v-if="clearable" />
+    </XhTreeSelectControl>
+    <XhTreeSelectPositioner>
+      <XhTreeSelectContent>
+        <XhTreeSelectTree>
+          <XTreeSelectNodes :nodes="options" />
+        </XhTreeSelectTree>
+      </XhTreeSelectContent>
+    </XhTreeSelectPositioner>
+  </XhTreeSelectRoot>
+</template>

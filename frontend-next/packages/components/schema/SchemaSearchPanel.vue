@@ -1,0 +1,209 @@
+<script setup lang="ts" generic="TRow extends object">
+import type { ListFieldSchema } from './types'
+import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useIsMobile } from '~/composables'
+import XIconButton from '../common/XIconButton.vue'
+import SchemaSearchField from './SchemaSearchField.vue'
+
+defineOptions({ name: 'SchemaSearchPanel' })
+
+const props = defineProps<{
+  /** 常用搜索字段（始终展示） */
+  commonFields: ListFieldSchema<TRow>[]
+  /** 高级搜索字段（展开后展示，内部滑入） */
+  advancedFields: ListFieldSchema<TRow>[]
+  /** 过滤条件模型（来自 useSchemaTable.filters） */
+  model: Record<string, unknown>
+}>()
+
+const emit = defineEmits<{
+  search: []
+  reset: []
+}>()
+
+const { t } = useI18n()
+
+/** 高级条件展开状态 */
+const expanded = ref(false)
+
+/** 小屏断点（max-width:767px，与组件内媒体查询一致） */
+const { isMobile } = useIsMobile()
+
+// 小屏：常用区清空，所有搜索条件收入高级区（仅保留操作按钮行，点「高级搜索」展开）
+const effectiveCommonFields = computed(() => isMobile.value ? [] : props.commonFields)
+const effectiveAdvancedFields = computed(() =>
+  isMobile.value ? [...props.commonFields, ...props.advancedFields] : props.advancedFields,
+)
+
+const hasAdvanced = computed(() => effectiveAdvancedFields.value.length > 0)
+
+function toggleExpand() {
+  expanded.value = !expanded.value
+}
+</script>
+
+<template>
+  <div class="xh-search">
+    <!-- 常用条件 + 操作按钮：同一 flex-wrap 流，按钮组随条件自适应流动并在所在行靠右 -->
+    <div class="xh-search__bar">
+      <!-- 字段部件把条件名与控件接成一组：标签的 for 与控件的 id、aria-* 由它生成 -->
+      <XhFieldRoot
+        v-for="field in effectiveCommonFields"
+        :key="field.key"
+        class="xh-search__item"
+      >
+        <XhFieldLabel class="xh-search__label">
+          {{ field.title }}
+        </XhFieldLabel>
+        <XhFieldControl>
+          <SchemaSearchField :field="field" :model="model" @search="emit('search')" />
+        </XhFieldControl>
+      </XhFieldRoot>
+
+      <!-- 操作按钮：纯图标 + 提示，作为流的最后一项，margin-left:auto 推到所在行右侧 -->
+      <div class="xh-search__actions">
+        <!-- 查询是搜索行的主操作：品牌实心，与旁边两颗透明底图标钮拉开层级 -->
+        <XIconButton
+          variant="solid"
+          icon="lucide:search"
+          :label="t('component.search_panel.search')"
+          @click="emit('search')"
+        />
+        <XIconButton
+          icon="lucide:rotate-ccw"
+          :label="t('component.search_panel.reset')"
+          @click="emit('reset')"
+        />
+        <!-- 搜索设置（排序/固定）插槽 -->
+        <slot name="settings" />
+        <XIconButton
+          v-if="hasAdvanced"
+          :icon="expanded ? 'lucide:chevron-up' : 'lucide:sliders-horizontal'"
+          :label="expanded ? t('component.search_panel.hide_conditions') : t('component.search_panel.advanced_search')"
+          @click="toggleExpand"
+        />
+      </div>
+    </div>
+
+    <!-- 高级条件：上层浮层滑入，不占文档流（不推动下方按钮/列表） -->
+    <Transition name="xh-search-expand">
+      <div v-if="expanded && hasAdvanced" class="xh-search__advanced">
+        <XhFieldRoot
+          v-for="field in effectiveAdvancedFields"
+          :key="field.key"
+          class="xh-search__item"
+        >
+          <XhFieldLabel class="xh-search__label">
+            {{ field.title }}
+          </XhFieldLabel>
+          <XhFieldControl>
+            <SchemaSearchField :field="field" :model="model" @search="emit('search')" />
+          </XhFieldControl>
+        </XhFieldRoot>
+      </div>
+    </Transition>
+  </div>
+</template>
+
+<style scoped>
+/* 搜索区作为高级浮层的定位上下文（外层卡片提供容器与内边距） */
+.xh-search {
+  /* 标准搜索项宽与项间横距：区间字段的宽由这两者推出，改一处整排一起对齐。
+     标准宽至少够一个控件的最小宽：控件的下限随字号走，写死像素时字号一调大，
+     控件就撑出条目盒、相邻两列糊在一起 */
+  --xh-search-item-w: max(180px, var(--xh-control-min-w));
+  --xh-search-gap-x: 12px;
+
+  position: relative;
+}
+
+/* 常用条件 + 按钮组：同一 flex-wrap 流，底对齐（按钮与控件底边平齐） */
+.xh-search__bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px var(--xh-search-gap-x);
+  align-items: flex-end;
+}
+
+/* 单个搜索项：上下布局（标题在上、控件在下），常用/高级统一宽度。
+   项本身就是字段根，字段族控件由组件库铺满字段宽；小屏项占满整行时控件跟着铺开 */
+.xh-search__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  inline-size: var(--xh-search-item-w);
+}
+
+/* 搜索标题：小字号、常规字重、紧靠控件 */
+.xh-search__label {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--xh-fg-subtle);
+}
+
+/* 操作按钮：作为流最后一项，margin-left:auto 推到所在行右侧，随条件自适应流动 */
+.xh-search__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* 高级条件区：绝对定位浮层，叠在内容上层，不占文档流（不推动按钮/列表）。
+   left/right 用负值抵消外层卡片内容内边距（16px），使浮层铺满卡片宽度；
+   自身 padding 再以同样 16px 内缩，让高级字段左边缘与常用字段严格对齐。 */
+.xh-search__advanced {
+  position: absolute;
+  top: 100%;
+  right: -16px;
+  left: -16px;
+  z-index: var(--z-page-overlay);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px var(--xh-search-gap-x);
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--xh-border-default);
+  border-radius: var(--xh-shape-surface);
+  background: var(--xh-bg-surface);
+  box-shadow: var(--xh-shadow-md);
+  /* 限制浮层高度并内部滚动：字段过多时也不会撑出视口、盖住下方列表 */
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 展开/收起动画 */
+.xh-search-expand-enter-active,
+.xh-search-expand-leave-active {
+  transition:
+    opacity var(--xh-motion-duration-enter) var(--xh-motion-ease-enter),
+    transform var(--xh-motion-duration-move) var(--xh-motion-ease-slide);
+}
+
+.xh-search-expand-enter-from,
+.xh-search-expand-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+
+/* 移动端：常用条件项占满整行；按钮组仍为右对齐的圆形图标按钮（不拉伸成整行） */
+@media (max-width: 767px) {
+  .xh-search__item {
+    width: 100%;
+  }
+
+  /* 按钮组保持紧凑右对齐：margin-left:auto 推到右侧，按钮维持圆形不被拉伸 */
+  .xh-search__actions {
+    margin-left: auto;
+  }
+
+  /* 移动端字段纵向堆叠极易过高：浮层最多占 60% 屏高并内部滚动，下方列表仍可见 */
+  .xh-search__advanced {
+    max-height: 60vh;
+  }
+}
+</style>

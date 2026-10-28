@@ -64,7 +64,7 @@ function lastSavedSnapshot(): Record<string, unknown> {
 }
 
 beforeEach(() => {
-  // 6.0 的五个同步开关缺省关闭（后端还没接）：这套用例测的是开着时的同步行为，先按开着落地
+  // 看板同步缺省关闭（随 Workbench 批次接入）：这套用例测的是五个开关都开着时的同步行为，先按开着落地
   for (const key of [PREFERENCE_SYNC_KEY, FAVORITES_SYNC_KEY, SEARCH_SYNC_KEY, TABLE_SYNC_KEY, WIDGETS_SYNC_KEY])
     localStorage.setItem(key, 'true')
   // 模块级同步门 / 草稿态在用例之间必须复位，否则测试顺序会影响结果
@@ -125,15 +125,15 @@ describe('构建时间变化时作废本地偏好缓存', () => {
 })
 
 describe('五个同步开关：缺省值与设备本地维度', () => {
-  it('新装用户：偏好与收藏缺省开（已接 user-settings），搜索 / 表格 / 看板缺省关', () => {
+  it('新装用户：偏好、收藏与搜索 / 表格缺省开（已接 user-settings），看板缺省关', () => {
     for (const key of [PREFERENCE_SYNC_KEY, FAVORITES_SYNC_KEY, SEARCH_SYNC_KEY, TABLE_SYNC_KEY, WIDGETS_SYNC_KEY])
       localStorage.removeItem(key)
     freshAppStore()
 
     expect(isPreferenceSyncEnabled()).toBe(true)
     expect(isFavoritesSyncEnabled()).toBe(true)
-    expect(isSearchSyncEnabled()).toBe(false)
-    expect(isTableSyncEnabled()).toBe(false)
+    expect(isSearchSyncEnabled()).toBe(true)
+    expect(isTableSyncEnabled()).toBe(true)
     expect(isWidgetsSyncEnabled()).toBe(false)
   })
 
