@@ -8,9 +8,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// OAuth 应用：平台「应用管理」建机密 / 公开客户端（密钥只返回一次、公开客户端没有密钥也不能重置），ClientId 全局唯一，授权类型、范围、回调地址与主页按规则校验；
-/// 个人中心「我的应用」只看得到、改得了本人的，授权类型与范围固定、改资料不动它们；平台列表看得到用户建的；租户管理员没有平台的应用管理权限。
+/// 验证 OAuth 应用的平台管理与个人中心「我的应用」。
 /// </summary>
+/// <remarks>
+/// 平台「应用管理」建机密 / 公开客户端（密钥只返回一次、公开客户端没有密钥也不能重置），ClientId 全局唯一，授权类型、范围、回调地址与主页按规则校验；
+/// 个人中心「我的应用」只看得到、改得了本人的，授权类型与范围固定、改资料不动它们；平台列表看得到用户建的；租户管理员没有平台的应用管理权限。
+/// </remarks>
 public sealed class OAuthAppsTests : IDisposable
 {
     private static readonly string[] _toolCallback = ["https://tool.example.com/cb"];

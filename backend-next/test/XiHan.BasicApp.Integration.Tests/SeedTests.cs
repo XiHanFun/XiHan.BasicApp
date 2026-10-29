@@ -13,8 +13,11 @@ using XiHan.Framework.Hosting.CommandLine.Runtime;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 种子：可重复执行、运营数据只首写；<c>seed</c> 命令经框架的命令行运行器分发，stdout 是 JSON 报告，用法错误退出码 64。
+/// 验证种子的可重复执行与 <c>seed</c> 命令。
 /// </summary>
+/// <remarks>
+/// 可重复执行、运营数据只首写；<c>seed</c> 命令经框架的命令行运行器分发，stdout 是 JSON 报告，用法错误退出码 64。
+/// </remarks>
 public sealed class SeedTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

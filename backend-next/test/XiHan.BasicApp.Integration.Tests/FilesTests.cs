@@ -15,9 +15,12 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 文件：上传（multipart 普通端点）、签名下载地址与按身份读取、访问级别、两侧隔离、相同内容共用对象（删到最后一条才删对象）、秒传、归档、副本校验与主副本，
-/// 普通端点的访问日志与操作审计；存储配置的校验、缺省配置的保护、还有副本的配置不能删、租户自己的缺省配置优先于平台的。
+/// 验证文件的上传、下载、隔离、去重与存储配置。
 /// </summary>
+/// <remarks>
+/// 上传（multipart 普通端点）、签名下载地址与按身份读取、访问级别、两侧隔离、相同内容共用对象（删到最后一条才删对象）、秒传、归档、副本校验与主副本，
+/// 普通端点的访问日志与操作审计；存储配置的校验、缺省配置的保护、还有副本的配置不能删、租户自己的缺省配置优先于平台的。
+/// </remarks>
 public sealed class FilesTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

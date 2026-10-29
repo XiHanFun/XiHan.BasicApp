@@ -8,8 +8,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 用户设置（偏好、收藏与页面设置的跨端同步存储）：没存过即空值、整体覆盖写入、按（用户, 场景, 键）隔离、空值清空、键的文法、未登录被拒。
+/// 验证用户设置的读写、隔离与校验。
 /// </summary>
+/// <remarks>
+/// 用户设置是偏好、收藏与页面设置的跨端同步存储。
+/// 没存过即空值、整体覆盖写入、按（用户, 场景, 键）隔离、空值清空、键的文法、未登录被拒。
+/// </remarks>
 public sealed class UserSettingsTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

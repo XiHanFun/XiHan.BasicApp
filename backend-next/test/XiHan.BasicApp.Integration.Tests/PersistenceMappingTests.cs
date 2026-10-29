@@ -16,10 +16,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 建表列映射：宿主装进来的 BasicApp 实体与框架数据库记录，写了 <c>[LongText]</c> 的字符串列建成长文本、<c>[StringLength(n)]</c> 建成长度 n，
+/// 验证建表列映射的字符串列长度。
+/// </summary>
+/// <remarks>
+/// 宿主装进来的 BasicApp 实体与框架数据库记录，写了 <c>[LongText]</c> 的字符串列建成长文本、<c>[StringLength(n)]</c> 建成长度 n，
 /// 不被 <see cref="SqlSugarRuntime"/> 的缺省长度盖掉；没注解的字符串列是 <see cref="SqlSugarRuntime.DefaultStringLength"/>。
 /// SQLite 不校验 varchar 长度，这一条只靠映射元数据守住（PostgreSQL 上超长写入报 22001）。
-/// </summary>
+/// </remarks>
 public sealed class PersistenceMappingTests
 {
     [Fact]

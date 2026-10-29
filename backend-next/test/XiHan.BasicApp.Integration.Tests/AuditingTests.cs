@@ -25,11 +25,14 @@ using XiHan.Framework.Scheduling.Abstractions.Schedulers;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 审计日志：日志严格按上下文隔离（平台主体看平台一侧，租户主体看本租户）；登录日志成败都记、找不到的租户落平台一侧；
+/// 验证审计日志的隔离、各类日志的记录、查询与保留清理。
+/// </summary>
+/// <remarks>
+/// 日志严格按上下文隔离（平台主体看平台一侧，租户主体看本租户）；登录日志成败都记、找不到的租户落平台一侧；
 /// 访问日志每次操作调用一条、结果按错误类别归并；操作日志只记标了审计的操作并带上中间件补的细节；权限变更只在真正生效时记；
 /// 链路按 trace-id 与会话聚合；未处理异常进异常日志；查询拒绝白名单外的筛选；保留清理删过期的分表日志与操作审计、参数不合法即失败；
 /// 差异缓冲在回调里复制一份，SqlSugar 复用的差异模型改不到已收集的变更。
-/// </summary>
+/// </remarks>
 public sealed class AuditingTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

@@ -14,10 +14,13 @@ using XiHan.BasicApp.Notification.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 群机器人：Webhook 只认各服务商的官方 https 地址；每个服务商一个缺省，缺省的不能删、停用或换服务商；签名密钥不回显；
+/// 验证群机器人的配置约束、通知投递与各通道载荷。
+/// </summary>
+/// <remarks>
+/// Webhook 只认各服务商的官方 https 地址；每个服务商一个缺省，缺省的不能删、停用或换服务商；签名密钥不回显；
 /// 通知的机器人渠道发到本侧每个服务商的缺省机器人（经发件箱，由发送循环发出），租户没有自己的机器人即不可用（不借平台的）；
 /// Telegram 机器人只在平台、令牌不回显，广播到每个启用的机器人的每个广播群；三家群机器人通道的地址、签名与载荷（Telegram 的出站在 TelegramTests）。
-/// </summary>
+/// </remarks>
 public sealed class BotTests : IDisposable
 {
     private const string TelegramToken = "123456789:AAEexampleTOKEN_for-tests-only0";

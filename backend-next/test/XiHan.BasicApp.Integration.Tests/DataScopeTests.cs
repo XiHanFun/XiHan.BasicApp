@@ -8,9 +8,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 数据范围与角色化租户管理员：开通的管理员经内建租户角色 <c>admin</c> 拿到 <c>*</c>（角色进令牌、数据范围全部）；
-/// 普通角色按本部门 / 本部门及子部门 / 自定义 / 只看自己缩小用户列表、单条读取与批量操作，归属列表随之缩小；平台角色只能全部。
+/// 验证数据范围与角色化租户管理员。
 /// </summary>
+/// <remarks>
+/// 开通的管理员经内建租户角色 <c>admin</c> 拿到 <c>*</c>（角色进令牌、数据范围全部）；
+/// 普通角色按本部门 / 本部门及子部门 / 自定义 / 只看自己缩小用户列表、单条读取与批量操作，归属列表随之缩小；平台角色只能全部。
+/// </remarks>
 public sealed class DataScopeTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

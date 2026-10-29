@@ -11,9 +11,12 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 约束规则：静态职责分离（含继承展开）、基数（角色成员数与用户角色数）、权限互斥与条件在指派、授予、继承与委托时判定，拦截类违规即这一项不做（ACCESS_CONFLICT_012），
-/// 警告与只记录类放行并记权限变更日志；动态职责分离在会话激活时判定：登录只激活同组排序最前的，切换角色换激活集，续签按当前规则重新核对。
+/// 验证约束规则在指派、授予、继承、委托与会话激活时的判定。
 /// </summary>
+/// <remarks>
+/// 静态职责分离（含继承展开）、基数（角色成员数与用户角色数）、权限互斥与条件在指派、授予、继承与委托时判定，拦截类违规即这一项不做（ACCESS_CONFLICT_012），
+/// 警告与只记录类放行并记权限变更日志；动态职责分离在会话激活时判定：登录只激活同组排序最前的，切换角色换激活集，续签按当前规则重新核对。
+/// </remarks>
 public sealed class ConstraintRuleTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

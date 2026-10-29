@@ -8,9 +8,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 通知偏好：没保存过即缺省全收；整体覆盖保存；发布时站内信只发给愿意收这类通知的人（安全、待办各一类，其余算公告），强制阅读与紧急通知不筛（4.x 同）；
-/// 关掉站内信即只剩强制与紧急。
+/// 验证通知偏好的保存与发布时的筛选。
 /// </summary>
+/// <remarks>
+/// 没保存过即缺省全收；整体覆盖保存；发布时站内信只发给愿意收这类通知的人（安全、待办各一类，其余算公告），强制阅读与紧急通知不筛（4.x 同）；
+/// 关掉站内信即只剩强制与紧急。
+/// </remarks>
 public sealed class NotificationPreferenceTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

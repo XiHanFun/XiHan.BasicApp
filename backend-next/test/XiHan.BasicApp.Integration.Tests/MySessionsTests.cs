@@ -11,9 +11,12 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 个人中心「登录设备」与「登录日志」：只看本人（别人模仿本人开的会话也算本人的设备，4.x 同）；当前会话在最前、不能在这里下线，别人的会话即不存在；
-/// 下线一台后它的令牌立即失效；下线其他全部设备连同本人发起的模仿会话；登录日志只有本人的，每页最多 50 条；活跃度按请求的时区分天、只算本人成功的登录。
+/// 验证个人中心的「登录设备」与「登录日志」。
 /// </summary>
+/// <remarks>
+/// 只看本人（别人模仿本人开的会话也算本人的设备，4.x 同）；当前会话在最前、不能在这里下线，别人的会话即不存在；
+/// 下线一台后它的令牌立即失效；下线其他全部设备连同本人发起的模仿会话；登录日志只有本人的，每页最多 50 条；活跃度按请求的时区分天、只算本人成功的登录。
+/// </remarks>
 public sealed class MySessionsTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

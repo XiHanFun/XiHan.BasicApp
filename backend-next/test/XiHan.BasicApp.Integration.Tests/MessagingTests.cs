@@ -13,10 +13,13 @@ using XiHan.BasicApp.Notification.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 邮件与短信：平台的 8 个模板种子、模板语法检查与编码唯一、租户的同编码模板覆盖平台的；渠道配置的缺省与密钥不回显；
+/// 验证邮件与短信的模板、渠道配置、排队发送与重试。
+/// </summary>
+/// <remarks>
+/// 平台的 8 个模板种子、模板语法检查与编码唯一、租户的同编码模板覆盖平台的；渠道配置的缺省与密钥不回显；
 /// 通知按投递渠道给有邮箱 / 手机号的接收人排队，后台循环用缺省配置（租户没有取平台的）发出、HTML 模板转义参数、短信按映射取服务商模板；
 /// 失败按次数退避直到失败、重发后再发；发送中的不能删、只有排队中的能取消；发送记录只看本侧。
-/// </summary>
+/// </remarks>
 public sealed class MessagingTests : IDisposable
 {
     private static readonly string[] _allChannels = ["InApp", "Email", "Sms"];

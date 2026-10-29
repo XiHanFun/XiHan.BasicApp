@@ -8,8 +8,11 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 租户：开通写目录、管理员初始化（租户侧全部权限）、租户管理员在本租户内工作、平台专属操作对租户主体拒绝、停用 / 恢复影响登录与调用、删除受用户数约束。
+/// 验证租户的开通、管理员初始化、启停与删除。
 /// </summary>
+/// <remarks>
+/// 开通写目录、管理员初始化（租户侧全部权限）、租户管理员在本租户内工作、平台专属操作对租户主体拒绝、停用 / 恢复影响登录与调用、删除受用户数约束。
+/// </remarks>
 public sealed class TenantsTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

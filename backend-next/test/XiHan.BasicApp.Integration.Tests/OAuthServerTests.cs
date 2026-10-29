@@ -14,10 +14,13 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// OAuth 2.0 / OIDC 服务端：授权端点把查询串带去同意页；同意页预览校验请求（客户端、回调地址、PKCE、openid）；同意发授权码、记下同意，再来即不必确认；
+/// 验证 OAuth 2.0 / OIDC 服务端的授权、令牌与吊销。
+/// </summary>
+/// <remarks>
+/// 授权端点把查询串带去同意页；同意页预览校验请求（客户端、回调地址、PKCE、openid）；同意发授权码、记下同意，再来即不必确认；
 /// 令牌端点（机密客户端 Basic / 表单认证、公开客户端 PKCE）发不透明的访问令牌与刷新令牌和 RS256 的 id_token（受众 ClientId、nonce、按范围的声明，用 JWKS 验得过）；
 /// 授权码重放与作废的刷新令牌再用都整族吊销；撤销与撤销同意立即让令牌失效；第三方的访问令牌后台接口不认；拒绝只跳回登记过的地址。
-/// </summary>
+/// </remarks>
 public sealed class OAuthServerTests : IDisposable
 {
     private const string Callback = "https://rp.example.com/cb";

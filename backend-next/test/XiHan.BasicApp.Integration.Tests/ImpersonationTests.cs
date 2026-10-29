@@ -8,9 +8,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 模仿登录：候选范围、发起（独立会话、<c>act</c> 声明、目标身份与租户的权限）、模仿态里的限制（不能再模仿、不能切租户）、
-/// 结束模仿回到发起人原会话、发起人注销后模仿令牌随之失效、租户主体钉在自己的租户。
+/// 验证模仿登录的发起、限制与结束。
 /// </summary>
+/// <remarks>
+/// 候选范围、发起（独立会话、<c>act</c> 声明、目标身份与租户的权限）、模仿态里的限制（不能再模仿、不能切租户）、
+/// 结束模仿回到发起人原会话、发起人注销后模仿令牌随之失效、租户主体钉在自己的租户。
+/// </remarks>
 public sealed class ImpersonationTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

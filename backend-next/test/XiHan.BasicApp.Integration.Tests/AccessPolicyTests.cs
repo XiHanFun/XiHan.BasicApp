@@ -11,10 +11,13 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 访问策略：平台种子写入六个预置策略；新建一律只记录，改成拒绝即按请求属性拦下（403 并记命中），同层的放行压过拒绝；
+/// 验证访问策略的预置、拦截、防自锁、试运行与分层判定。
+/// </summary>
+/// <remarks>
+/// 平台种子写入六个预置策略；新建一律只记录，改成拒绝即按请求属性拦下（403 并记命中），同层的放行压过拒绝；
 /// 会拦下发起修改的这次请求时拒绝保存（防自锁）；只引用认证前属性的平台策略连未登录的调用也拦；试运行逐组逐条件说明。
 /// 租户策略只管本租户已登录的调用，平台策略管全部调用，平台拒绝时不看租户层。
-/// </summary>
+/// </remarks>
 public sealed class AccessPolicyTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

@@ -10,8 +10,11 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 组织：部门树与闭包表（创建、移动、循环拒绝、删除受子部门 / 成员约束）、岗位（编码唯一、被引用不能删）、归属（注册地核对、主部门唯一、按部门列出带名称）、租户隔离、平台主体被拒、演示种子。
+/// 验证组织包的部门、岗位与归属。
 /// </summary>
+/// <remarks>
+/// 部门树与闭包表（创建、移动、循环拒绝、删除受子部门 / 成员约束）、岗位（编码唯一、被引用不能删）、归属（注册地核对、主部门唯一、按部门列出带名称）、租户隔离、平台主体被拒、演示种子。
+/// </remarks>
 public sealed class OrganizationTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

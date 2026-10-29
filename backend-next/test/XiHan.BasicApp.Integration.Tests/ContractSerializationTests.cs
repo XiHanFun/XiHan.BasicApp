@@ -8,8 +8,11 @@ using XiHan.BasicApp.Identity;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 契约 DTO 经源生成上下文往返：缺省值、camelCase、字符串枚举、派生属性不进 JSON。
+/// 验证契约 DTO 经源生成上下文的序列化往返。
 /// </summary>
+/// <remarks>
+/// 缺省值、camelCase、字符串枚举、派生属性不进 JSON。
+/// </remarks>
 public sealed class ContractSerializationTests
 {
     [Theory]

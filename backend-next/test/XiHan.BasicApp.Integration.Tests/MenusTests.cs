@@ -8,9 +8,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 菜单管理：页面节点来自页面登记（只调展示、改过即定制、种子不覆盖、可恢复），运营建目录与外链，<c>auth.permissions</c> 按种类下发（目录分组、外链、隐藏页面），
-/// 删除只针对运营节点，租户主体碰不到；工作台模块可经 <c>BasicApp:Modules:Workbench:Enabled</c> 关掉。
+/// 验证菜单管理的页面节点、运营节点与按种类下发。
 /// </summary>
+/// <remarks>
+/// 页面节点来自页面登记（只调展示、改过即定制、种子不覆盖、可恢复），运营建目录与外链，<c>auth.permissions</c> 按种类下发（目录分组、外链、隐藏页面），
+/// 删除只针对运营节点，租户主体碰不到；工作台模块可经 <c>BasicApp:Modules:Workbench:Enabled</c> 关掉。
+/// </remarks>
 public sealed class MenusTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

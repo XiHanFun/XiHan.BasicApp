@@ -12,9 +12,12 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 系统参数：平台参数与租户同键覆盖（不允许覆盖时被拒）、值按数据类型校验、加密值不回显也不明文落库、更新时加密的保留与开关、
-/// 读共享写不共享（另一侧的参数改不了也删不了）、生效值读取器（租户优先、停用即回落平台、空值回落缺省值）。
+/// 验证系统参数的覆盖、校验、加密与生效值读取。
 /// </summary>
+/// <remarks>
+/// 平台参数与租户同键覆盖（不允许覆盖时被拒）、值按数据类型校验、加密值不回显也不明文落库、更新时加密的保留与开关、
+/// 读共享写不共享（另一侧的参数改不了也删不了）、生效值读取器（租户优先、停用即回落平台、空值回落缺省值）。
+/// </remarks>
 public sealed class SettingsConfigsTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

@@ -11,9 +11,12 @@ using XiHan.Framework.Auditing.Database.Trail;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 角色继承与限时委托：上级的授予传给下级角色的持有人、上级的拒绝作用于整条链、停用的上级截断继承，写入防环与防冗余、仍被继承的角色不能删；
-/// 委托人此刻持有才能委托、委托人失去即委托失效、未到生效时间的到点自动生效、到期与撤销立即失效；这些变更都进权限变更日志。
+/// 验证角色继承与限时委托。
 /// </summary>
+/// <remarks>
+/// 上级的授予传给下级角色的持有人、上级的拒绝作用于整条链、停用的上级截断继承，写入防环与防冗余、仍被继承的角色不能删；
+/// 委托人此刻持有才能委托、委托人失去即委托失效、未到生效时间的到点自动生效、到期与撤销立即失效；这些变更都进权限变更日志。
+/// </remarks>
 public sealed class InheritanceDelegationTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();

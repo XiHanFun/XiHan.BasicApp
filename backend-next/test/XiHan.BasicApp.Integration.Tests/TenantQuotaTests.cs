@@ -11,9 +11,12 @@ using XiHan.BasicApp.Integration.Tests.Infrastructure;
 namespace XiHan.BasicApp.Integration.Tests;
 
 /// <summary>
-/// 租户配额与订阅：套餐的价格、周期与配额（免费套餐不能标价），租户自己的上限覆盖套餐的；租户一侧建用户占席位、上传与秒传占存储，超额即拒绝，
-/// 平台代租户建用户不受限（超额只在配额审计里报告）；我的订阅只在租户侧，配额审计只在平台侧。
+/// 验证租户配额与订阅。
 /// </summary>
+/// <remarks>
+/// 套餐的价格、周期与配额（免费套餐不能标价），租户自己的上限覆盖套餐的；租户一侧建用户占席位、上传与秒传占存储，超额即拒绝，
+/// 平台代租户建用户不受限（超额只在配额审计里报告）；我的订阅只在租户侧，配额审计只在平台侧。
+/// </remarks>
 public sealed class TenantQuotaTests : IDisposable
 {
     private readonly SqliteDatabase _database = new();
