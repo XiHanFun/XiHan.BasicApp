@@ -86,5 +86,16 @@
   "access.delegation.role_invalid": "Role {name} is disabled or built in and cannot be delegated.",
   "access.delegation.taken": "An identical delegation is already pending or active; revoke that one first.",
   "access.delegation.closed": "Delegation {id} has already been revoked or has expired.",
-  "access.delegation.not_found": "Delegation {id} does not exist."
+  "access.delegation.not_found": "Delegation {id} does not exist.",
+  "permission_conditions.attributes.description": "List the condition attribute catalog (shared by permission conditions and access policies), with the operators each allows and whether it is known before authentication. Requires access.permission-conditions.read.",
+  "permission_conditions.list.description": "List the grant bindings of a role or user and the condition clauses on them. Requires access.permission-conditions.read.",
+  "permission_conditions.create.description": "Add a condition clause to a grant or denial: met to grant on a grant, met to deny on a denial. Requires access.permission-conditions.create.",
+  "permission_conditions.update.description": "Edit a condition clause, including enabling and disabling it. Requires access.permission-conditions.update.",
+  "permission_conditions.delete.description": "Delete condition clauses. Requires access.permission-conditions.delete.",
+  "access.condition.binding_missing": "The subject has no {action} on {permission} to put a condition on.",
+  "access.condition.subject_invalid": "Role {name} is disabled or built in and cannot carry conditions.",
+  "access.condition.groups_exceeded": "A grant can have at most {max} condition groups.",
+  "access.condition.clauses_exceeded": "A condition group can have at most {max} conditions.",
+  "access.condition.not_found": "Permission condition {id} does not exist.",
+  "access.condition.not_met": "This operation is not allowed under the current conditions."
 }

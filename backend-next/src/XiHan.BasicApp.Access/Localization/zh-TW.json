@@ -86,5 +86,16 @@
   "access.delegation.role_invalid": "角色 {name} 已停用或是內建角色，不能委託。",
   "access.delegation.taken": "已有一條相同且未到期的委託，請先撤銷那一條。",
   "access.delegation.closed": "委託 {id} 已撤銷或已到期。",
-  "access.delegation.not_found": "委託 {id} 不存在。"
+  "access.delegation.not_found": "委託 {id} 不存在。",
+  "permission_conditions.attributes.description": "列出條件屬性目錄（權限條件與存取策略共用），帶可用的運算子與認證前能否取得。需要 access.permission-conditions.read 權限。",
+  "permission_conditions.list.description": "列出一個角色或使用者此刻的授權繫結與上面的條件子句。需要 access.permission-conditions.read 權限。",
+  "permission_conditions.create.description": "在授予或拒絕上加一條條件子句：授予上滿足才授予，拒絕上滿足才拒絕。需要 access.permission-conditions.create 權限。",
+  "permission_conditions.update.description": "修改條件子句（含啟停）。需要 access.permission-conditions.update 權限。",
+  "permission_conditions.delete.description": "刪除條件子句。需要 access.permission-conditions.delete 權限。",
+  "access.condition.binding_missing": "主體在 {permission} 上沒有這條{action}，不能掛條件。",
+  "access.condition.subject_invalid": "角色 {name} 已停用或是內建角色，不能掛條件。",
+  "access.condition.groups_exceeded": "一條授權最多 {max} 個條件組。",
+  "access.condition.clauses_exceeded": "一個條件組最多 {max} 條條件。",
+  "access.condition.not_found": "權限條件 {id} 不存在。",
+  "access.condition.not_met": "目前條件下不允許此操作。"
 }

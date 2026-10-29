@@ -129,3 +129,61 @@ public sealed class PermissionChangeLogEntry : AuditLogEntry
     /// </summary>
     public string? Detail { get; set; }
 }
+
+/// <summary>
+/// 一条条件命中：访问策略或权限条件在一次调用上的判定结果（方案 5.12）。由 Auditing 落进按月分表的条件命中日志，同一批落库里键相同、同一分钟的合并计数。
+/// </summary>
+public sealed class ConditionHitLogEntry : AuditLogEntry
+{
+    /// <summary>
+    /// 创建。
+    /// </summary>
+    /// <param name="source">命中来源。</param>
+    /// <param name="policyCode">策略码（权限条件为权限码）。</param>
+    public ConditionHitLogEntry(ConditionHitSource source, string policyCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(policyCode);
+        Source = source;
+        PolicyCode = policyCode;
+    }
+
+    /// <summary>
+    /// 命中来源。
+    /// </summary>
+    public ConditionHitSource Source { get; }
+
+    /// <summary>
+    /// 策略码（权限条件为权限码）。
+    /// </summary>
+    public string PolicyCode { get; }
+
+    /// <summary>
+    /// 策略（权限条件没有）。
+    /// </summary>
+    public Guid? PolicyId { get; set; }
+
+    /// <summary>
+    /// 策略名称（写入时的快照）。
+    /// </summary>
+    public string? PolicyName { get; set; }
+
+    /// <summary>
+    /// 命中的动作。
+    /// </summary>
+    public ConditionHitAction Action { get; set; }
+
+    /// <summary>
+    /// 判定的时机。
+    /// </summary>
+    public ConditionHitPhase Phase { get; set; }
+
+    /// <summary>
+    /// 是否拦下了这次调用。
+    /// </summary>
+    public bool IsBlocked { get; set; }
+
+    /// <summary>
+    /// 涉及的权限码。
+    /// </summary>
+    public IReadOnlyList<string> PermissionCodes { get; set; } = [];
+}

@@ -198,6 +198,7 @@ export default {
         field_security: 'フィールドセキュリティルール',
         role_inheritance: 'ロールの継承',
         delegation: '権限の委任',
+        condition_change: '権限条件',
       },
       role_id: 'ロール ID',
       role_name: 'ロール',

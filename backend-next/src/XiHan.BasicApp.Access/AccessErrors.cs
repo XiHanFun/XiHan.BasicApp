@@ -247,4 +247,34 @@ public static class AccessErrors
     /// 委托不存在；参数 <c>id</c>。
     /// </summary>
     public const string DelegationNotFound = "ACCESS_NOTFOUND_006";
+
+    /// <summary>
+    /// 主体在权限码上没有这条授予或拒绝；参数 <c>permission</c>、<c>action</c>。
+    /// </summary>
+    public const string ConditionBindingMissing = "ACCESS_VALIDATION_032";
+
+    /// <summary>
+    /// 角色停用或是内置角色，不能挂条件；参数 <c>name</c>。
+    /// </summary>
+    public const string ConditionSubjectInvalid = "ACCESS_VALIDATION_033";
+
+    /// <summary>
+    /// 一个绑定的条件组超出上限；参数 <c>max</c>。
+    /// </summary>
+    public const string ConditionGroupsExceeded = "ACCESS_VALIDATION_034";
+
+    /// <summary>
+    /// 一个条件组的子句超出上限；参数 <c>max</c>。
+    /// </summary>
+    public const string ConditionClausesExceeded = "ACCESS_VALIDATION_035";
+
+    /// <summary>
+    /// 权限条件不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string ConditionNotFound = "ACCESS_NOTFOUND_007";
+
+    /// <summary>
+    /// 当前条件下不允许此操作；参数 <c>permission</c>。
+    /// </summary>
+    public const string ConditionNotMet = "ACCESS_DENIED_003";
 }

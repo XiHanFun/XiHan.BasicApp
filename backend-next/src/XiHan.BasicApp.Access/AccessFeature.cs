@@ -4,6 +4,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Access.Domain.Services;
 using XiHan.BasicApp.Access.Infrastructure;
+using XiHan.BasicApp.Access.Middleware;
 using XiHan.BasicApp.Access.Operations.Roles;
 using XiHan.BasicApp.Access.Queries;
 using XiHan.BasicApp.Access.Seeds;
@@ -22,6 +23,8 @@ using XiHan.Framework.Persistence.Abstractions;
 using XiHan.Framework.Primitives;
 using XiHan.Framework.Primitives.Manifests;
 using XiHan.Framework.Security.Abstractions;
+using XiHan.Framework.Security.Abstractions.Authorization;
+using XiHan.Framework.Security.Abstractions.Conditions;
 using XiHan.Framework.Security.Abstractions.Permissions;
 
 namespace XiHan.BasicApp.Access;
@@ -54,6 +57,7 @@ public sealed class AccessFeature : IFeature
         ],
         Contributes = new Contributions
         {
+            Pipeline = [new PipelineContribution(typeof(PermissionConditionMiddleware).FullName!, PipelineStage.Authorize, After: [typeof(AuthorizationMiddleware).FullName!])],
             Permissions = AccessPermissions.All.Select(static p => p.Code).ToList(),
         },
         Entry = typeof(AccessFeature).FullName,
@@ -64,6 +68,11 @@ public sealed class AccessFeature : IFeature
     {
         ArgumentNullException.ThrowIfNull(context);
         context.Services.AddMessageCatalog(AccessMessages.Catalog);
+        context.Services.AddSingleton(AccessOptions.FromConfiguration(context.Configuration));
+        context.Services.AddConditionAttributes([.. AccessConditionAttributes.All]);
+        context.Services.AddSingleton<PermissionConditions>();
+        context.Services.AddSingleton<ConditionDecider>();
+        context.Services.AddScoped<PermissionConditionService>();
         context.Services.AddGeneratedRepositories();
         context.Services.AddSingleton<PermissionCatalog>();
         context.Services.AddScoped<RoleService>();
@@ -106,6 +115,9 @@ public sealed class AccessFeature : IFeature
             context.AddPermission(permission.ToDefinition());
         }
 
+        // 权限条件按请求属性判定：框架授权之后、校验之前
+        context.AddMiddleware<PermissionConditionMiddleware>(PipelineStage.Authorize);
+        context.Pipeline.After<PermissionConditionMiddleware, AuthorizationMiddleware>();
         context.AddGeneratedOperations();
     }
 }

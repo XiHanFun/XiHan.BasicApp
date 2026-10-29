@@ -198,6 +198,7 @@ export default {
         field_security: 'Feldsicherheitsregel',
         role_inheritance: 'Rollenvererbung',
         delegation: 'Delegierung',
+        condition_change: 'Berechtigungsbedingung',
       },
       role_id: 'Rollen-ID',
       role_name: 'Rolle',

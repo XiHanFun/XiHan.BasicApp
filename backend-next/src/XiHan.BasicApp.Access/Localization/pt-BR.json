@@ -86,5 +86,16 @@
   "access.delegation.role_invalid": "A função {name} está desativada ou é interna e não pode ser delegada.",
   "access.delegation.taken": "Já existe uma delegação idêntica não expirada; revogue-a primeiro.",
   "access.delegation.closed": "A delegação {id} já foi revogada ou expirou.",
-  "access.delegation.not_found": "A delegação {id} não existe."
+  "access.delegation.not_found": "A delegação {id} não existe.",
+  "permission_conditions.attributes.description": "Listar o catálogo de atributos de condição (compartilhado por condições de permissão e políticas de acesso), com os operadores permitidos e se é conhecido antes da autenticação. Requer access.permission-conditions.read.",
+  "permission_conditions.list.description": "Listar os vínculos de permissão de uma função ou usuário e as condições sobre eles. Requer access.permission-conditions.read.",
+  "permission_conditions.create.description": "Adicionar uma condição a uma concessão ou negação: na concessão, concede só se atendida; na negação, nega só se atendida. Requer access.permission-conditions.create.",
+  "permission_conditions.update.description": "Editar uma condição, incluindo ativá-la e desativá-la. Requer access.permission-conditions.update.",
+  "permission_conditions.delete.description": "Excluir condições. Requer access.permission-conditions.delete.",
+  "access.condition.binding_missing": "O sujeito não tem essa {action} em {permission} para receber uma condição.",
+  "access.condition.subject_invalid": "A função {name} está desativada ou é interna e não pode ter condições.",
+  "access.condition.groups_exceeded": "Uma permissão pode ter no máximo {max} grupos de condições.",
+  "access.condition.clauses_exceeded": "Um grupo de condições pode ter no máximo {max} condições.",
+  "access.condition.not_found": "A condição de permissão {id} não existe.",
+  "access.condition.not_met": "Esta operação não é permitida nas condições atuais."
 }

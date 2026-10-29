@@ -198,6 +198,7 @@ export default {
         field_security: '欄位安全規則',
         role_inheritance: '角色繼承',
         delegation: '權限委託',
+        condition_change: '權限條件',
       },
       role_id: '角色 ID',
       role_name: '角色',

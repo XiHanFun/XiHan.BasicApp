@@ -86,5 +86,16 @@
   "access.delegation.role_invalid": "역할 {name}은(는) 사용 중지되었거나 기본 제공 역할이어서 위임할 수 없습니다.",
   "access.delegation.taken": "같은 내용의 만료되지 않은 위임이 이미 있습니다. 그 위임을 먼저 철회하세요.",
   "access.delegation.closed": "위임 {id}은(는) 이미 철회되었거나 만료되었습니다.",
-  "access.delegation.not_found": "위임 {id}이(가) 없습니다."
+  "access.delegation.not_found": "위임 {id}이(가) 없습니다.",
+  "permission_conditions.attributes.description": "조건 속성 목록(권한 조건과 접근 정책이 공유)을 사용 가능한 연산자, 인증 전 취득 가능 여부와 함께 반환합니다. access.permission-conditions.read 권한이 필요합니다.",
+  "permission_conditions.list.description": "역할 또는 사용자의 현재 권한 바인딩과 그 위의 조건 절을 나열합니다. access.permission-conditions.read 권한이 필요합니다.",
+  "permission_conditions.create.description": "부여 또는 거부에 조건 절을 추가합니다: 부여에서는 충족해야 부여하고, 거부에서는 충족하면 거부합니다. access.permission-conditions.create 권한이 필요합니다.",
+  "permission_conditions.update.description": "조건 절을 수정합니다(사용·중지 포함). access.permission-conditions.update 권한이 필요합니다.",
+  "permission_conditions.delete.description": "조건 절을 삭제합니다. access.permission-conditions.delete 권한이 필요합니다.",
+  "access.condition.binding_missing": "주체에게 {permission}에 대한 이 {action}이(가) 없어 조건을 걸 수 없습니다.",
+  "access.condition.subject_invalid": "역할 {name}은(는) 사용 중지되었거나 기본 제공 역할이어서 조건을 걸 수 없습니다.",
+  "access.condition.groups_exceeded": "하나의 권한에는 조건 그룹을 최대 {max}개까지 둘 수 있습니다.",
+  "access.condition.clauses_exceeded": "하나의 조건 그룹에는 조건을 최대 {max}개까지 둘 수 있습니다.",
+  "access.condition.not_found": "권한 조건 {id}이(가) 없습니다.",
+  "access.condition.not_met": "현재 조건에서는 이 작업을 할 수 없습니다."
 }

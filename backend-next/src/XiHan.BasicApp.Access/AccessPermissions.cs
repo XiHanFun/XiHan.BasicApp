@@ -106,6 +106,26 @@ public static class AccessPermissions
     public const string DelegationsDelete = "access.delegations.delete";
 
     /// <summary>
+    /// 查看权限条件与条件属性目录。
+    /// </summary>
+    public const string PermissionConditionsRead = "access.permission-conditions.read";
+
+    /// <summary>
+    /// 新建权限条件。
+    /// </summary>
+    public const string PermissionConditionsCreate = "access.permission-conditions.create";
+
+    /// <summary>
+    /// 修改与启停权限条件。
+    /// </summary>
+    public const string PermissionConditionsUpdate = "access.permission-conditions.update";
+
+    /// <summary>
+    /// 删除权限条件。
+    /// </summary>
+    public const string PermissionConditionsDelete = "access.permission-conditions.delete";
+
+    /// <summary>
     /// 查看权限目录。
     /// </summary>
     public const string PermissionsRead = "access.permissions.read";
@@ -154,6 +174,10 @@ public static class AccessPermissions
         new(DelegationsCreate, "Create delegations", PermissionScope.Both, audited: true, description: "Let a user hand one of their permissions or roles to another user for a limited time."),
         new(DelegationsRevoke, "Revoke delegations", PermissionScope.Both, audited: true, description: "End a pending or active delegation before it expires."),
         new(DelegationsDelete, "Delete delegations", PermissionScope.Both, audited: true, description: "Delete delegation records; an active one stops taking effect."),
+        new(PermissionConditionsRead, "Read permission conditions", PermissionScope.Both, description: "View the conditions on role and user grants and the condition attribute catalog."),
+        new(PermissionConditionsCreate, "Create permission conditions", PermissionScope.Both, audited: true, description: "Add conditions to a role or user grant or denial: met to grant, or met to deny."),
+        new(PermissionConditionsUpdate, "Update permission conditions", PermissionScope.Both, audited: true, description: "Edit, enable and disable permission conditions."),
+        new(PermissionConditionsDelete, "Delete permission conditions", PermissionScope.Both, audited: true, description: "Delete permission conditions."),
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
         new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
         new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),

@@ -14,6 +14,15 @@ export type ConditionHitPhase = (typeof ConditionHitPhase)[number]
 export const ConditionHitSource = ['AccessPolicy', 'PermissionCondition'] as const
 export type ConditionHitSource = (typeof ConditionHitSource)[number]
 
+export const ConditionOperator = ['Equals', 'NotEquals', 'GreaterThan', 'GreaterThanOrEquals', 'LessThan', 'LessThanOrEquals', 'Contains', 'NotContains', 'In', 'NotIn', 'Between', 'StartsWith', 'EndsWith', 'IsNull', 'IsNotNull'] as const
+export type ConditionOperator = (typeof ConditionOperator)[number]
+
+export const ConditionStatus = ['Active', 'Disabled'] as const
+export type ConditionStatus = (typeof ConditionStatus)[number]
+
+export const ConditionValueKind = ['String', 'Number', 'Boolean', 'DateTime', 'Date', 'TimeOfDay', 'IpAddress'] as const
+export type ConditionValueKind = (typeof ConditionValueKind)[number]
+
 export const ConfigDataType = ['Text', 'Number', 'Boolean', 'Json', 'Array'] as const
 export type ConfigDataType = (typeof ConfigDataType)[number]
 
@@ -34,6 +43,9 @@ export type FieldRuleStatus = (typeof FieldRuleStatus)[number]
 
 export const FieldSecurityTargetKind = ['Role', 'User', 'Department'] as const
 export type FieldSecurityTargetKind = (typeof FieldSecurityTargetKind)[number]
+
+export const GrantSubjectKind = ['Role', 'User'] as const
+export type GrantSubjectKind = (typeof GrantSubjectKind)[number]
 
 export const LoginEvent = ['Login', 'Refresh', 'Logout', 'SwitchTenant', 'ImpersonationStart', 'ImpersonationStop', 'ChangePassword', 'TwoFactorChallenge', 'TwoFactorEnable', 'TwoFactorDisable', 'TwoFactorReset'] as const
 export type LoginEvent = (typeof LoginEvent)[number]
@@ -56,7 +68,7 @@ export type OrganizationStatus = (typeof OrganizationStatus)[number]
 export const PermissionAction = ['Grant', 'Deny'] as const
 export type PermissionAction = (typeof PermissionAction)[number]
 
-export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity', 'RoleInheritance', 'Delegation'] as const
+export const PermissionChangeType = ['RoleGrant', 'RoleRevoke', 'RoleAssign', 'RoleUnassign', 'RoleDataScope', 'RoleDelete', 'EditionPermissions', 'TenantEdition', 'RoleDeny', 'RoleAssignmentWindow', 'UserGrant', 'UserDeny', 'UserRevoke', 'UserDataScope', 'FieldSecurity', 'RoleInheritance', 'Delegation', 'ConditionChange'] as const
 export type PermissionChangeType = (typeof PermissionChangeType)[number]
 
 export const PermissionScope = ['Platform', 'Tenant', 'Both'] as const
@@ -98,6 +110,9 @@ export const enums = {
   ConditionHitAction,
   ConditionHitPhase,
   ConditionHitSource,
+  ConditionOperator,
+  ConditionStatus,
+  ConditionValueKind,
   ConfigDataType,
   DataScope,
   DelegationStatus,
@@ -105,6 +120,7 @@ export const enums = {
   FieldMaskStrategy,
   FieldRuleStatus,
   FieldSecurityTargetKind,
+  GrantSubjectKind,
   LoginEvent,
   MenuKind,
   NumberingDateFormat,

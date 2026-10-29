@@ -9821,6 +9821,513 @@
         }
       }
     },
+    "/api/permission-conditions": {
+      "delete": {
+        "operationId": "permission-conditions.delete",
+        "tags": [
+          "permission-conditions"
+        ],
+        "summary": "Delete condition clauses. Requires access.permission-conditions.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.permission-conditions.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "permission-conditions.list",
+        "tags": [
+          "permission-conditions"
+        ],
+        "summary": "List the grant bindings of a role or user and the condition clauses on them. Requires access.permission-conditions.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.permission-conditions.read",
+        "parameters": [
+          {
+            "name": "subjectKind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/GrantSubjectKind"
+            }
+          },
+          {
+            "name": "subjectId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PermissionConditionsResponse",
+                  "type": "object",
+                  "properties": {
+                    "subjectKind": {
+                      "$ref": "#/components/schemas/GrantSubjectKind"
+                    },
+                    "subjectId": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "bindings": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConditionBindingResponse"
+                      }
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/PermissionConditionResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "subjectKind",
+                    "subjectId",
+                    "bindings",
+                    "conditions"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "permission-conditions.create",
+        "tags": [
+          "permission-conditions"
+        ],
+        "summary": "Add a condition clause to a grant or denial: met to grant on a grant, met to deny on a denial. Requires access.permission-conditions.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.permission-conditions.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreatePermissionConditionRequest",
+                "type": "object",
+                "properties": {
+                  "subjectKind": {
+                    "$ref": "#/components/schemas/GrantSubjectKind"
+                  },
+                  "subjectId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "permission": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "action": {
+                    "$ref": "#/components/schemas/PermissionAction"
+                  },
+                  "attributeName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "operator": {
+                    "$ref": "#/components/schemas/ConditionOperator"
+                  },
+                  "groupNo": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 99
+                  },
+                  "isNegated": {
+                    "type": "boolean"
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/ConditionStatus"
+                  }
+                },
+                "required": [
+                  "subjectKind",
+                  "subjectId",
+                  "permission",
+                  "action",
+                  "attributeName",
+                  "operator"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PermissionConditionResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "permission": {
+                      "type": "string"
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/PermissionAction"
+                    },
+                    "groupNo": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "attributeName": {
+                      "type": "string"
+                    },
+                    "operator": {
+                      "$ref": "#/components/schemas/ConditionOperator"
+                    },
+                    "isNegated": {
+                      "type": "boolean"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ConditionStatus"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "permission",
+                    "action",
+                    "groupNo",
+                    "attributeName",
+                    "operator",
+                    "isNegated",
+                    "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/permission-conditions/{id}": {
+      "put": {
+        "operationId": "permission-conditions.update",
+        "tags": [
+          "permission-conditions"
+        ],
+        "summary": "Edit a condition clause, including enabling and disabling it. Requires access.permission-conditions.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.permission-conditions.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdatePermissionConditionRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "attributeName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "operator": {
+                    "$ref": "#/components/schemas/ConditionOperator"
+                  },
+                  "groupNo": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 99
+                  },
+                  "isNegated": {
+                    "type": "boolean"
+                  },
+                  "value": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 2000
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  },
+                  "status": {
+                    "$ref": "#/components/schemas/ConditionStatus"
+                  }
+                },
+                "required": [
+                  "id",
+                  "attributeName",
+                  "operator"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PermissionConditionResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "permission": {
+                      "type": "string"
+                    },
+                    "action": {
+                      "$ref": "#/components/schemas/PermissionAction"
+                    },
+                    "groupNo": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "attributeName": {
+                      "type": "string"
+                    },
+                    "operator": {
+                      "$ref": "#/components/schemas/ConditionOperator"
+                    },
+                    "isNegated": {
+                      "type": "boolean"
+                    },
+                    "value": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/ConditionStatus"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "permission",
+                    "action",
+                    "groupNo",
+                    "attributeName",
+                    "operator",
+                    "isNegated",
+                    "status",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/permission-conditions:attributes": {
+      "get": {
+        "operationId": "permission-conditions.attributes",
+        "tags": [
+          "permission-conditions"
+        ],
+        "summary": "List the condition attribute catalog (shared by permission conditions and access policies), with the operators each allows and whether it is known before authentication. Requires access.permission-conditions.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "access.permission-conditions.read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "ConditionAttributesResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ConditionAttributeResponse"
+                      }
+                    }
+                  },
+                  "required": [
+                    "items"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/permissions": {
       "get": {
         "operationId": "permissions.list",
@@ -15470,6 +15977,76 @@
           "code"
         ]
       },
+      "ConditionAttributeResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ConditionValueKind"
+          },
+          "isMultiValued": {
+            "type": "boolean"
+          },
+          "isFamily": {
+            "type": "boolean"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "operators": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConditionOperator"
+            }
+          },
+          "isBeforeAuthentication": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "kind",
+          "isMultiValued",
+          "isFamily",
+          "aliases",
+          "operators",
+          "isBeforeAuthentication"
+        ]
+      },
+      "ConditionBindingResponse": {
+        "type": "object",
+        "properties": {
+          "permission": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/PermissionAction"
+          },
+          "effectiveAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "permission",
+          "action"
+        ]
+      },
       "ConditionHitAction": {
         "type": "string",
         "enum": [
@@ -15607,6 +16184,45 @@
         "enum": [
           "AccessPolicy",
           "PermissionCondition"
+        ]
+      },
+      "ConditionOperator": {
+        "type": "string",
+        "enum": [
+          "Equals",
+          "NotEquals",
+          "GreaterThan",
+          "GreaterThanOrEquals",
+          "LessThan",
+          "LessThanOrEquals",
+          "Contains",
+          "NotContains",
+          "In",
+          "NotIn",
+          "Between",
+          "StartsWith",
+          "EndsWith",
+          "IsNull",
+          "IsNotNull"
+        ]
+      },
+      "ConditionStatus": {
+        "type": "string",
+        "enum": [
+          "Active",
+          "Disabled"
+        ]
+      },
+      "ConditionValueKind": {
+        "type": "string",
+        "enum": [
+          "String",
+          "Number",
+          "Boolean",
+          "DateTime",
+          "Date",
+          "TimeOfDay",
+          "IpAddress"
         ]
       },
       "ConfigDataType": {
@@ -16475,6 +17091,13 @@
           "Role",
           "User",
           "Department"
+        ]
+      },
+      "GrantSubjectKind": {
+        "type": "string",
+        "enum": [
+          "Role",
+          "User"
         ]
       },
       "ImpersonationCandidateResponse": {
@@ -17530,7 +18153,66 @@
           "UserDataScope",
           "FieldSecurity",
           "RoleInheritance",
-          "Delegation"
+          "Delegation",
+          "ConditionChange"
+        ]
+      },
+      "PermissionConditionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "permission": {
+            "type": "string"
+          },
+          "action": {
+            "$ref": "#/components/schemas/PermissionAction"
+          },
+          "groupNo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "attributeName": {
+            "type": "string"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/ConditionOperator"
+          },
+          "isNegated": {
+            "type": "boolean"
+          },
+          "value": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/ConditionStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "permission",
+          "action",
+          "groupNo",
+          "attributeName",
+          "operator",
+          "isNegated",
+          "status",
+          "createdAt"
         ]
       },
       "PermissionFailure": {
@@ -18374,6 +19056,26 @@
         "code": "access.menus.update",
         "displayName": "Update menus",
         "description": "Change how menu nodes are presented and restore page defaults."
+      },
+      "access.permission-conditions.create": {
+        "code": "access.permission-conditions.create",
+        "displayName": "Create permission conditions",
+        "description": "Add conditions to a role or user grant or denial: met to grant, or met to deny."
+      },
+      "access.permission-conditions.delete": {
+        "code": "access.permission-conditions.delete",
+        "displayName": "Delete permission conditions",
+        "description": "Delete permission conditions."
+      },
+      "access.permission-conditions.read": {
+        "code": "access.permission-conditions.read",
+        "displayName": "Read permission conditions",
+        "description": "View the conditions on role and user grants and the condition attribute catalog."
+      },
+      "access.permission-conditions.update": {
+        "code": "access.permission-conditions.update",
+        "displayName": "Update permission conditions",
+        "description": "Edit, enable and disable permission conditions."
       },
       "access.permissions.read": {
         "code": "access.permissions.read",

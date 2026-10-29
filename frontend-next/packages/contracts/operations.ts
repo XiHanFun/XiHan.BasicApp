@@ -91,6 +91,11 @@ export const routes = {
   'operation-logs.list': { method: 'POST', template: '/api/operation-logs:list', path: [], query: [], success: 200 },
   'permission-change-logs.get': { method: 'GET', template: '/api/permission-change-logs/{id}', path: ['id'], query: [], success: 200 },
   'permission-change-logs.list': { method: 'POST', template: '/api/permission-change-logs:list', path: [], query: [], success: 200 },
+  'permission-conditions.attributes': { method: 'GET', template: '/api/permission-conditions:attributes', path: [], query: [], success: 200 },
+  'permission-conditions.create': { method: 'POST', template: '/api/permission-conditions', path: [], query: [], success: 201 },
+  'permission-conditions.delete': { method: 'DELETE', template: '/api/permission-conditions', path: [], query: ['ids'], success: 200 },
+  'permission-conditions.list': { method: 'GET', template: '/api/permission-conditions', path: [], query: ['subjectKind', 'subjectId'], success: 200 },
+  'permission-conditions.update': { method: 'PUT', template: '/api/permission-conditions/{id}', path: ['id'], query: [], success: 200 },
   'permissions.list': { method: 'GET', template: '/api/permissions', path: [], query: ['side'], success: 200 },
   'positions.create': { method: 'POST', template: '/api/positions', path: [], query: [], success: 201 },
   'positions.delete': { method: 'DELETE', template: '/api/positions', path: [], query: ['ids'], success: 200 },
@@ -324,6 +329,15 @@ export const operationLogs = {
 export const permissionChangeLogs = {
   get: (request: RequestOf<'permission-change-logs.get'>, options?: CallOptions) => invoke<RequestOf<'permission-change-logs.get'>, ResponseOf<'permission-change-logs.get'>>('permission-change-logs.get', routes['permission-change-logs.get'], request, options),
   list: (request: RequestOf<'permission-change-logs.list'>, options?: CallOptions) => invoke<RequestOf<'permission-change-logs.list'>, ResponseOf<'permission-change-logs.list'>>('permission-change-logs.list', routes['permission-change-logs.list'], request, options),
+}
+
+/** 资源 `permission-conditions` 的操作。 */
+export const permissionConditions = {
+  attributes: (request: RequestOf<'permission-conditions.attributes'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.attributes'>, ResponseOf<'permission-conditions.attributes'>>('permission-conditions.attributes', routes['permission-conditions.attributes'], request, options),
+  create: (request: RequestOf<'permission-conditions.create'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.create'>, ResponseOf<'permission-conditions.create'>>('permission-conditions.create', routes['permission-conditions.create'], request, options),
+  delete: (request: RequestOf<'permission-conditions.delete'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.delete'>, ResponseOf<'permission-conditions.delete'>>('permission-conditions.delete', routes['permission-conditions.delete'], request, options),
+  list: (request: RequestOf<'permission-conditions.list'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.list'>, ResponseOf<'permission-conditions.list'>>('permission-conditions.list', routes['permission-conditions.list'], request, options),
+  update: (request: RequestOf<'permission-conditions.update'>, options?: CallOptions) => invoke<RequestOf<'permission-conditions.update'>, ResponseOf<'permission-conditions.update'>>('permission-conditions.update', routes['permission-conditions.update'], request, options),
 }
 
 /** 资源 `permissions` 的操作。 */

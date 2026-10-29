@@ -10,6 +10,7 @@ import { toast } from '~/composables'
 import { useAuthStore } from '~/stores'
 import { formatDate } from '~/utils'
 import DataScopeEditor from './components/DataScopeEditor.vue'
+import GrantConditionsDrawer from './components/GrantConditionsDrawer.vue'
 import RoleParentsDialog from './components/RoleParentsDialog.vue'
 import { ROLE_STATUSES, rolesResource, useRoleDataScopeEditor, useRoleDetail, useRoleEditor, useRoleMemberEditor, useRolePermissionEditor } from './use-roles'
 
@@ -32,6 +33,9 @@ const schemaPageRef = ref<SchemaPageInstance | null>(null)
 /** 设置上级弹窗 */
 const parentsVisible = ref(false)
 const parentsRole = ref<RoleRow | null>(null)
+/** 授权条件抽屉 */
+const conditionsVisible = ref(false)
+const conditionsRole = ref<RoleRow | null>(null)
 
 function reload() {
   void schemaPageRef.value?.reload()
@@ -118,7 +122,8 @@ const schema = computed<PageSchema>(() => ({
     // 权限分配要读权限目录（套餐收窄后的本侧目录）
     { key: 'assignPermission', title: t('access.roles.actions.assign_permission'), scope: 'row', icon: 'lucide:key-round', visible: () => auth.can('access.permissions.read'), permission: 'access.roles.grant' },
     { key: 'members', title: t('access.roles.actions.members'), scope: 'row', icon: 'lucide:users', permission: 'access.roles.assign' },
-    // 内建角色不参与继承
+    // 内建角色不挂条件、不参与继承
+    { key: 'conditions', title: t('access.conditions.open'), scope: 'row', icon: 'lucide:filter', visible: row => !asRow(row).isBuiltIn, permission: 'access.permission-conditions.read' },
     { key: 'parents', title: t('access.roles.actions.parents'), scope: 'row', icon: 'lucide:git-fork', visible: row => !asRow(row).isBuiltIn, permission: 'access.roles.set-parents' },
     { key: 'assignDataScope', title: t('access.roles.actions.data_scope'), scope: 'row', icon: 'lucide:building-2', visible: () => isTenantCaller.value, permission: 'access.roles.update' },
     { key: 'toggle', title: t('access.roles.actions.toggle'), scope: 'row', icon: 'lucide:power', confirm: true, confirmText: row => statusConfirmText(t, asRow(row).status === 'Active', asRow(row).name), permission: 'access.roles.update' },
@@ -149,6 +154,12 @@ function onAction(payload: SchemaActionPayload) {
     case 'members':
       if (row)
         void run(memberEditor.start(row, auth.can('identity.users.read')), t('access.roles.members_load_failed'))
+      break
+    case 'conditions':
+      if (row) {
+        conditionsRole.value = row
+        conditionsVisible.value = true
+      }
       break
     case 'parents':
       if (row) {
@@ -735,6 +746,7 @@ async function saveScope() {
     </XhDrawerRoot>
 
     <RoleParentsDialog v-model:show="parentsVisible" :role="parentsRole" @saved="reload" />
+    <GrantConditionsDrawer v-model:open="conditionsVisible" :title="t('access.conditions.drawer_title', { name: conditionsRole?.name ?? '' })" subject-kind="Role" :subject-id="conditionsRole?.id ?? null" />
   </SchemaPage>
 </template>
 
