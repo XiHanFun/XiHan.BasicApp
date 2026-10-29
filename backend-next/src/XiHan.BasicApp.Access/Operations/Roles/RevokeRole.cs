@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 撤销角色的权限：<c>POST /api/roles/{id}:revoke</c>。撤掉授予，连同这些权限码上的规则（有效期、原因、Deny）；
-/// 只有 Deny 没有授予的权限码撤销即解除拒绝，算成功；既没有授予也没有规则的是 NotFound。
+/// 撤销角色的权限。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/roles/{id}:revoke</c>。撤掉授予，连同这些权限码上的规则（有效期、原因、Deny）；
+/// 只有 Deny 没有授予的权限码撤销即解除拒绝，算成功；既没有授予也没有规则的是 NotFound。
+/// </remarks>
 /// <param name="service">角色域服务。</param>
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">角色授予。</param>

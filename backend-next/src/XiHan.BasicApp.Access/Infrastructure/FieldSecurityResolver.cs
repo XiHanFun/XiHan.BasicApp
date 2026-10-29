@@ -15,10 +15,14 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// <see cref="IFieldSecurity"/> 的实现（方案 5.9，语义沿用 4.x）：取当前一侧在实体上的启用规则，按目标命中当前主体后合并——
+/// <see cref="IFieldSecurity"/> 的实现。
+/// </summary>
+/// <remarks>
+/// 见方案 5.9，语义沿用 4.x。
+/// 取当前一侧在实体上的启用规则，按目标命中当前主体后合并——
 /// 用户规则认本人；角色规则认此刻持有的角色（令牌里的角色声明与有效指派的交集，角色启用，只认直接持有）；部门规则认所在部门及其上级（只在租户侧，停用的部门不算）。
 /// 同一次调用（作用域）内按（侧、主体、实体）缓存结果。
-/// </summary>
+/// </remarks>
 /// <param name="catalog">字段安全实体目录。</param>
 /// <param name="rules">字段安全规则。</param>
 /// <param name="assignments">角色指派。</param>

@@ -10,10 +10,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Menus;
 
 /// <summary>
-/// 修改菜单节点：<c>PUT /api/menus/{id}</c>（平台侧）。
+/// 修改菜单节点。
+/// </summary>
+/// <remarks>
+/// <c>PUT /api/menus/{id}</c>（平台侧）。
 /// 页面节点只改展示并标为已定制（种子此后不覆盖展示字段，<c>menus.reset</c> 恢复）；外链与权限来自页面登记，请求里给了即 <c>ACCESS_VALIDATION_008</c>；子页面不能离开登记的父页面。
 /// 运营节点标题必填（<c>ACCESS_VALIDATION_009</c>），上级、外链与权限的规则同新建。
-/// </summary>
+/// </remarks>
 /// <param name="menus">菜单仓储。</param>
 /// <param name="service">菜单域服务。</param>
 /// <param name="catalog">权限目录。</param>

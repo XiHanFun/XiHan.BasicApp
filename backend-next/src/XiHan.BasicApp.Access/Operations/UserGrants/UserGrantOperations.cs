@@ -15,8 +15,11 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Access.Operations.UserGrants;
 
 /// <summary>
-/// 一个用户在当前这一侧的直接授权：<c>GET /api/user-grants?userId=</c>。授予来自框架授予存储（含别的包直接写入的，如超管的 <c>*</c>），拒绝与有效期来自授予规则。
+/// 列出一个用户在当前这一侧的直接授权。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/user-grants?userId=</c>。授予来自框架授予存储（含别的包直接写入的，如超管的 <c>*</c>），拒绝与有效期来自授予规则。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="grants">用户直接授予。</param>
 /// <param name="rules">授予规则。</param>
@@ -54,8 +57,11 @@ public sealed class ListUserGrants(IRepository<SysUser, Guid> users, Infrastruct
 }
 
 /// <summary>
-/// 给用户直接授予：<c>POST /api/user-grants:grant</c>。权限码须在目录里且作用侧相符；已有的授予算成功。带有效期或原因时写 Grant 规则（原来的 Deny 一并改成授予）。
+/// 给用户直接授予。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/user-grants:grant</c>。权限码须在目录里且作用侧相符；已有的授予算成功。带有效期或原因时写 Grant 规则（原来的 Deny 一并改成授予）。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">用户直接授予。</param>
@@ -94,8 +100,11 @@ public sealed class GrantUser(IRepository<SysUser, Guid> users, PermissionCatalo
 }
 
 /// <summary>
-/// 给用户直接拒绝：<c>POST /api/user-grants:deny</c>。用户上的 Deny 压过一切授予（角色、直接授予）；同码的直接授予撤掉，换成 Deny 规则（可带有效期与原因）。
+/// 给用户直接拒绝。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/user-grants:deny</c>。用户上的 Deny 压过一切授予（角色、直接授予）；同码的直接授予撤掉，换成 Deny 规则（可带有效期与原因）。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">用户直接授予。</param>
@@ -131,8 +140,11 @@ public sealed class DenyUser(IRepository<SysUser, Guid> users, PermissionCatalog
 }
 
 /// <summary>
-/// 撤销用户的直接授予或拒绝：<c>POST /api/user-grants:revoke</c>。连同这些权限码上的规则一起删；只有 Deny 的撤销即解除拒绝，算成功；两者都没有的是 NotFound。
+/// 撤销用户的直接授予或拒绝。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/user-grants:revoke</c>。连同这些权限码上的规则一起删；只有 Deny 的撤销即解除拒绝，算成功；两者都没有的是 NotFound。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">用户直接授予。</param>

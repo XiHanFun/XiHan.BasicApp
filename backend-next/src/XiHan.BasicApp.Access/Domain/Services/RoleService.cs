@@ -13,8 +13,11 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 角色域服务（作用域）：作用侧解析（当前租户或平台）、按侧找角色、角色码唯一、角色对应的授予主体与授予行的租户列。
+/// 角色域服务（作用域）。
 /// </summary>
+/// <remarks>
+/// 作用侧解析（当前租户或平台）、按侧找角色、角色码唯一、角色对应的授予主体与授予行的租户列。
+/// </remarks>
 /// <param name="roles">角色仓储。</param>
 public sealed class RoleService(IRepository<SysRole, Guid> roles)
 {
@@ -33,8 +36,9 @@ public sealed class RoleService(IRepository<SysRole, Guid> roles)
     public static bool IsPlatform(string owner) => string.Equals(owner, TenantIds.Platform, StringComparison.Ordinal);
 
     /// <summary>
-    /// 角色的授予主体：<c>role:&lt;ID&gt;</c>，与访问令牌里的 <c>role</c> 声明一致。
+    /// 取角色的授予主体。
     /// </summary>
+    /// <returns><c>role:&lt;ID&gt;</c>，与访问令牌里的 <c>role</c> 声明一致。</returns>
     public static GrantSubject SubjectOf(SysRole role)
     {
         ArgumentNullException.ThrowIfNull(role);
@@ -51,8 +55,11 @@ public sealed class RoleService(IRepository<SysRole, Guid> roles)
     }
 
     /// <summary>
-    /// 按 ID 在作用侧内找角色；别的侧的角色视为不存在。
+    /// 按 ID 在作用侧内找角色。
     /// </summary>
+    /// <remarks>
+    /// 别的侧的角色视为不存在。
+    /// </remarks>
     public async Task<Maybe<SysRole>> FindAsync(Guid id, string owner, CancellationToken cancellationToken)
     {
         var found = await roles.FindAsync(id, cancellationToken).ConfigureAwait(false);

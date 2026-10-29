@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 菜单域服务：只在平台侧管理、页面登记的查找（恢复默认用）、上级节点的规则、外链地址的规则。
-/// 规则：目录只在顶层；外链与顶层页面可在顶层或目录下；子页面钉在登记的父页面下。
+/// 菜单域服务。
 /// </summary>
+/// <remarks>
+/// 只在平台侧管理、页面登记的查找（恢复默认用）、上级节点的规则、外链地址的规则。
+/// 规则：目录只在顶层；外链与顶层页面可在顶层或目录下；子页面钉在登记的父页面下。
+/// </remarks>
 /// <param name="menus">菜单仓储。</param>
 /// <param name="sections">各包的页面登记。</param>
 public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<PageCatalogSection> sections)
@@ -24,8 +27,11 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
     public const string CustomPackage = "custom";
 
     /// <summary>
-    /// 菜单只在平台侧管理（权限是平台侧的；不受套餐限制的租户持有 <c>*</c> 也在这里拒绝）。
+    /// 要求菜单只在平台侧管理。
     /// </summary>
+    /// <remarks>
+    /// 权限是平台侧的；不受套餐限制的租户持有 <c>*</c> 也在这里拒绝。
+    /// </remarks>
     public static Error? RequirePlatform(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);
@@ -43,8 +49,9 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
     public Task<IReadOnlyList<SysMenu>> ListAsync(CancellationToken cancellationToken) => menus.ListAsync(EntityQuery.All<SysMenu>(), cancellationToken);
 
     /// <summary>
-    /// 在页面登记里找页面：返回登记与父页面码（顶层为空）；登记里没有即空。
+    /// 在页面登记里找页面。
     /// </summary>
+    /// <returns>登记与父页面码（顶层为空）；登记里没有即空。</returns>
     public (PageDescriptor Page, string? ParentCode)? FindRegistered(string code)
     {
         foreach (var section in sections)
@@ -77,8 +84,11 @@ public sealed class MenuService(IRepository<SysMenu, Guid> menus, IEnumerable<Pa
     }
 
     /// <summary>
-    /// 校验上级节点：种类为 <paramref name="kind"/> 的节点改挂到 <paramref name="parentId"/> 是否合规（见类说明）；<paramref name="registeredChild"/> 为真时只能留在 <paramref name="currentParentId"/>。
+    /// 校验上级节点。
     /// </summary>
+    /// <remarks>
+    /// 种类为 <paramref name="kind"/> 的节点改挂到 <paramref name="parentId"/> 是否合规（见类说明）；<paramref name="registeredChild"/> 为真时只能留在 <paramref name="currentParentId"/>。
+    /// </remarks>
     public static Error? CheckParent(MenuKind kind, bool registeredChild, Guid? currentParentId, Guid? parentId, IReadOnlyList<SysMenu> rows)
     {
         ArgumentNullException.ThrowIfNull(rows);

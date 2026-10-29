@@ -34,10 +34,13 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access;
 
 /// <summary>
-/// 授权能力包（Tier 1）：角色与成员、角色授予（写框架 <c>PermissionGrantRecord</c>，判定仍由框架 <c>PermissionChecker</c> 完成）、权限目录（汇总各包登记）、菜单（种子汇总各包页面登记，<c>menus.*</c> 调展示、建目录与外链）、<c>auth.permissions</c>。
+/// 授权能力包（Tier 1）。
+/// </summary>
+/// <remarks>
+/// 角色与成员、角色授予（写框架 <c>PermissionGrantRecord</c>，判定仍由框架 <c>PermissionChecker</c> 完成）、权限目录（汇总各包登记）、菜单（种子汇总各包页面登记，<c>menus.*</c> 调展示、建目录与外链）、<c>auth.permissions</c>。
 /// 给 Identity 提供 <see cref="IUserRoleResolver"/>：登录 / 刷新把用户的角色 ID 放进令牌。套餐门控：<see cref="EditionPermissionFilter"/> 接进框架的权限判定，<c>auth.permissions</c> 与权限目录同样按套餐白名单收窄。
 /// Deny、授予与指派的有效期、用户直接授权与用户级数据范围由 <see cref="AccessPermissionFilter"/> 与 <see cref="DataScopeResolver"/> 接进判定；字段安全由 <see cref="FieldSecurityResolver"/> 实现 <see cref="IFieldSecurity"/>，各包在投影、查询与写入处套用；角色继承、委托、ABAC 随后续批次加入。
-/// </summary>
+/// </remarks>
 public sealed class AccessFeature : IFeature
 {
     /// <inheritdoc />

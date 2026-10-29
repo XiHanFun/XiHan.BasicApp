@@ -28,8 +28,11 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 public sealed record ConditionClauseView(Guid Id, string Permission, PermissionAction Action, int GroupNo, string AttributeName, ConditionOperator Operator, bool IsNegated, string? Value)
 {
     /// <summary>
-    /// 一组子句（同一绑定）转成条件引擎的条件集：按组号分组、组内按写入顺序，子句键为子句 ID。
+    /// 把一组子句（同一绑定）转成条件引擎的条件集。
     /// </summary>
+    /// <remarks>
+    /// 按组号分组、组内按写入顺序，子句键为子句 ID。
+    /// </remarks>
     public static ConditionSet ToSet(IEnumerable<ConditionClauseView> clauses)
         => new([.. clauses.GroupBy(static c => c.GroupNo).OrderBy(static g => g.Key).Select(static g => new ConditionGroup(
             [.. g.Select(static c => new ConditionClause(c.AttributeName, c.Operator, c.Value, c.IsNegated, c.Id.ToString("N")))],
@@ -37,8 +40,11 @@ public sealed record ConditionClauseView(Guid Id, string Permission, PermissionA
 }
 
 /// <summary>
-/// 主体上启用的条件子句（单例）：按（侧、主体类别、主体）放在共享缓存里 60 秒，写入即失效。
+/// 主体上启用的条件子句（单例）。
 /// </summary>
+/// <remarks>
+/// 按（侧、主体类别、主体）放在共享缓存里 60 秒，写入即失效。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）。</param>
 public sealed class PermissionConditions(ISharedCache cache, IServiceScopeFactory scopes)

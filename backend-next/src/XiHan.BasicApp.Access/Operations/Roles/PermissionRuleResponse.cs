@@ -7,8 +7,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 一条授予规则：权限码上的 Deny，或带有效期 / 原因的 Grant（普通授予没有规则行）。
+/// 一条授予规则。
 /// </summary>
+/// <remarks>
+/// 权限码上的 Deny，或带有效期 / 原因的 Grant（普通授予没有规则行）。
+/// </remarks>
 /// <param name="Permission">权限码。</param>
 /// <param name="Action">授予还是拒绝。</param>
 /// <param name="EffectiveAt">生效时间。</param>

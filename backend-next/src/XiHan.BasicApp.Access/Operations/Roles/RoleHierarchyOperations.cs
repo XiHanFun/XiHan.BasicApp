@@ -12,8 +12,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// <c>roles.set-parents</c> 的请求：把角色的直接上级整体设为给定的一组（空即解除全部继承）。
+/// <c>roles.set-parents</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 把角色的直接上级整体设为给定的一组（空即解除全部继承）。
+/// </remarks>
 /// <param name="Id">角色 ID。</param>
 /// <param name="ParentIds">直接上级，最多 50 个。</param>
 public sealed record SetRoleParentsRequest([Required] Guid Id, [Required, MaxLength(50)] IReadOnlyList<Guid> ParentIds);
@@ -31,8 +34,11 @@ public sealed record SetRoleParentsRequest([Required] Guid Id, [Required, MaxLen
 public sealed record RoleRelativeResponse(Guid RoleId, string Code, string Name, RoleStatus Status, int Depth, IReadOnlyList<string> Path, bool IsEffective);
 
 /// <summary>
-/// 从此刻传得到授予的上级继承来的一条授予或拒绝；同一权限码来自多个上级时逐条列出。
+/// 从此刻传得到授予的上级继承来的一条授予或拒绝。
 /// </summary>
+/// <remarks>
+/// 同一权限码来自多个上级时逐条列出。
+/// </remarks>
 /// <param name="Permission">权限码。</param>
 /// <param name="Action">授予或拒绝（上级的拒绝同样作用于本角色）。</param>
 /// <param name="SourceRoleId">来源上级。</param>
@@ -50,8 +56,11 @@ public sealed record InheritedPermissionResponse(string Permission, PermissionAc
 public sealed record RoleHierarchyResponse(Guid RoleId, IReadOnlyList<RoleRelativeResponse> Ancestors, IReadOnlyList<RoleRelativeResponse> Descendants, IReadOnlyList<InheritedPermissionResponse> Inherited);
 
 /// <summary>
-/// 角色的继承关系：<c>GET /api/roles:hierarchy?id=</c>。数据范围与字段安全不继承，这里只列授予。
+/// 取角色的继承关系。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/roles:hierarchy?id=</c>。数据范围与字段安全不继承，这里只列授予。
+/// </remarks>
 /// <param name="service">角色查找。</param>
 /// <param name="reader">继承关系的组装。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.RolesRead)]
@@ -77,10 +86,13 @@ public sealed class GetRoleHierarchy(RoleService service, RoleHierarchyReader re
 }
 
 /// <summary>
-/// 设置角色的直接上级：<c>POST /api/roles:set-parents</c>。本角色的持有人随即拿到上级（及其上级）的授予，上级的拒绝同样作用于本角色；
+/// 设置角色的直接上级。
+/// </summary>
+/// <remarks>
+/// <c>POST /api/roles:set-parents</c>。本角色的持有人随即拿到上级（及其上级）的授予，上级的拒绝同样作用于本角色；
 /// 只在同一侧的角色之间，内置角色不参与，停用的角色不能新设为上级，不能成环，直接上级之间不能互为祖先。
 /// 新加的上级会让持有本角色及其下级的用户多持有角色：按静态职责分离重查，拦截类违规即整体不做（<c>ACCESS_CONFLICT_012</c>，4.x 同）。
-/// </summary>
+/// </remarks>
 /// <param name="service">角色查找。</param>
 /// <param name="hierarchy">继承写入。</param>
 /// <param name="reader">继承关系的组装。</param>

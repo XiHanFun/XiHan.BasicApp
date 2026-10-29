@@ -107,8 +107,11 @@ public sealed record AccessPolicyResponse(
 public sealed record GetAccessPolicyRequest([Required] Guid Id);
 
 /// <summary>
-/// <c>policies.create</c> 的请求：新建一律只记录、启用，动作与状态另有操作。
+/// <c>policies.create</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 新建一律只记录、启用，动作与状态另有操作。
+/// </remarks>
 /// <param name="Code">编码（同一侧唯一，不含空白）。</param>
 /// <param name="Name">名称。</param>
 /// <param name="Conditions">条件，1 到 100 条、最多 20 个组。</param>
@@ -216,8 +219,11 @@ public sealed record AccessPolicyTemplateResponse(string Code, string Name, stri
 public sealed record AccessPolicyTemplatesResponse(IReadOnlyList<AccessPolicyTemplateResponse> Items);
 
 /// <summary>
-/// <c>policies.trial</c> 的请求：已有策略（<paramref name="PolicyId"/>）或草稿条件（<paramref name="Conditions"/>），按给定的请求情形只求这一条、不看有效期。
+/// <c>policies.trial</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 已有策略（<paramref name="PolicyId"/>）或草稿条件（<paramref name="Conditions"/>），按给定的请求情形只求这一条、不看有效期。
+/// </remarks>
 /// <param name="PolicyId">已有策略；给了草稿条件即以草稿为准。</param>
 /// <param name="Action">按哪个动作试；不填即策略的动作（草稿为只记录）。</param>
 /// <param name="Conditions">草稿条件。</param>

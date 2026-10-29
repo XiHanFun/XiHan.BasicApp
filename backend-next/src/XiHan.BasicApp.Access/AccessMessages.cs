@@ -6,8 +6,11 @@ using XiHan.Framework.Localization.Abstractions.Messages;
 namespace XiHan.BasicApp.Access;
 
 /// <summary>
-/// 授权包的消息键；各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（<c>-</c> 换成 <c>_</c>）。
+/// 授权包的消息键。
 /// </summary>
+/// <remarks>
+/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>（<c>-</c> 换成 <c>_</c>）。
+/// </remarks>
 public static class AccessMessages
 {
     /// <summary>
@@ -76,43 +79,67 @@ public static class AccessMessages
     public const string PermissionsDescription = "auth.permissions.description";
 
     /// <summary>
-    /// 角色不存在；参数 <c>id</c>。
+    /// 角色不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string RoleNotFound = "access.role.not_found";
 
     /// <summary>
-    /// 角色码已被占用；参数 <c>code</c>。
+    /// 角色码已被占用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string RoleCodeTaken = "access.role.code_taken";
 
     /// <summary>
-    /// 内建角色不能删除；参数 <c>code</c>。
+    /// 内建角色不能删除。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string BuiltInRole = "access.role.built_in";
 
     /// <summary>
-    /// 列表筛选不受支持；参数 <c>field</c>、<c>operator</c>。
+    /// 列表筛选不受支持。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>、<c>operator</c>。
+    /// </remarks>
     public const string FilterUnsupported = "access.role.filter_unsupported";
 
     /// <summary>
-    /// 列表排序字段不受支持；参数 <c>field</c>。
+    /// 列表排序字段不受支持。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
     public const string SortUnsupported = "access.role.sort_unsupported";
 
     /// <summary>
-    /// 权限码不在目录里；参数 <c>code</c>。
+    /// 权限码不在目录里。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PermissionUnknown = "access.permission.unknown";
 
     /// <summary>
-    /// 权限作用侧不符；参数 <c>code</c>、<c>side</c>。
+    /// 权限作用侧不符。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>、<c>side</c>。
+    /// </remarks>
     public const string PermissionScopeMismatch = "access.permission.scope_mismatch";
 
     /// <summary>
-    /// 用户不存在或不在角色所属租户；参数 <c>id</c>。
+    /// 用户不存在或不在角色所属租户。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string MemberNotFound = "access.member.not_found";
 
     /// <summary>
@@ -121,18 +148,27 @@ public static class AccessMessages
     public const string RolesByUserDescription = "roles.by_user.description";
 
     /// <summary>
-    /// 平台角色的数据范围只能是全部；参数 <c>code</c>。
+    /// 平台角色的数据范围只能是全部。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string DataScopeNotApplicable = "access.role.data_scope_not_applicable";
 
     /// <summary>
-    /// 自定义数据范围至少一个部门；参数 <c>code</c>。
+    /// 自定义数据范围至少一个部门。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string CustomScopeEmpty = "access.role.custom_scope_empty";
 
     /// <summary>
-    /// 部门不在当前租户；参数 <c>id</c>。
+    /// 部门不在当前租户。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string DepartmentNotFound = "access.department.not_found";
 
     /// <summary>
@@ -171,23 +207,35 @@ public static class AccessMessages
     public const string DeleteMenusDescription = "menus.delete.description";
 
     /// <summary>
-    /// 菜单节点不存在；参数 <c>id</c>。
+    /// 菜单节点不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string MenuNotFound = "access.menu.not_found";
 
     /// <summary>
-    /// 菜单编码已被占用；参数 <c>code</c>。
+    /// 菜单编码已被占用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string MenuCodeTaken = "access.menu.code_taken";
 
     /// <summary>
-    /// 页面菜单不能删除；参数 <c>code</c>。
+    /// 页面菜单不能删除。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string MenuBuiltIn = "access.menu.built_in";
 
     /// <summary>
-    /// 目录下还有节点；参数 <c>code</c>。
+    /// 目录下还有节点。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string MenuHasChildren = "access.menu.has_children";
 
     /// <summary>
@@ -211,8 +259,11 @@ public static class AccessMessages
     public const string MenuTitleRequired = "access.menu.title_required";
 
     /// <summary>
-    /// 不是页面菜单，没有默认值可恢复；参数 <c>code</c>。
+    /// 不是页面菜单，没有默认值可恢复。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string MenuNotPage = "access.menu.not_page";
 
     /// <summary>
@@ -261,8 +312,11 @@ public static class AccessMessages
     public const string SetUserDataScopeDescription = "user_data_scopes.set.description";
 
     /// <summary>
-    /// 有效期不合法；参数 <c>effectiveAt</c>、<c>expiresAt</c>。
+    /// 有效期不合法。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>effectiveAt</c>、<c>expiresAt</c>。
+    /// </remarks>
     public const string WindowInvalid = "access.grant.window_invalid";
 
     /// <summary>
@@ -306,28 +360,43 @@ public static class AccessMessages
     public const string DeleteFieldSecurityRulesDescription = "field_security.delete.description";
 
     /// <summary>
-    /// 字段安全规则不存在；参数 <c>id</c>。
+    /// 字段安全规则不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string FieldRuleNotFound = "access.field_security.not_found";
 
     /// <summary>
-    /// 目标在字段上已有规则；参数 <c>entity</c>、<c>field</c>。
+    /// 目标在字段上已有规则。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>entity</c>、<c>field</c>。
+    /// </remarks>
     public const string FieldRuleTaken = "access.field_security.taken";
 
     /// <summary>
-    /// 实体没有登记字段安全；参数 <c>entity</c>。
+    /// 实体没有登记字段安全。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>entity</c>。
+    /// </remarks>
     public const string FieldEntityUnknown = "access.field_security.entity_unknown";
 
     /// <summary>
-    /// 实体没有这个字段；参数 <c>entity</c>、<c>field</c>。
+    /// 实体没有这个字段。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>entity</c>、<c>field</c>。
+    /// </remarks>
     public const string FieldUnknown = "access.field_security.field_unknown";
 
     /// <summary>
-    /// 读取方式不适用；参数 <c>field</c>、<c>strategy</c>。
+    /// 读取方式不适用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>、<c>strategy</c>。
+    /// </remarks>
     public const string FieldStrategyNotApplicable = "access.field_security.strategy_not_applicable";
 
     /// <summary>
@@ -336,13 +405,19 @@ public static class AccessMessages
     public const string FieldRuleNoEffect = "access.field_security.no_effect";
 
     /// <summary>
-    /// 部分脱敏保留位数不合规；参数 <c>max</c>。
+    /// 部分脱敏保留位数不合规。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string FieldKeepInvalid = "access.field_security.keep_invalid";
 
     /// <summary>
-    /// 固定文本缺失或过长；参数 <c>max</c>。
+    /// 固定文本缺失或过长。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string FieldReplacementInvalid = "access.field_security.replacement_invalid";
 
     /// <summary>
@@ -351,8 +426,11 @@ public static class AccessMessages
     public const string FieldTargetTenantOnly = "access.field_security.target_tenant_only";
 
     /// <summary>
-    /// 目标已停用；参数 <c>kind</c>、<c>id</c>。
+    /// 目标已停用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>kind</c>、<c>id</c>。
+    /// </remarks>
     public const string FieldTargetDisabled = "access.field_security.target_disabled";
 
     /// <summary>
@@ -391,28 +469,43 @@ public static class AccessMessages
     public const string RoleSelfParent = "access.role.self_parent";
 
     /// <summary>
-    /// 内置角色不参与继承；参数 <c>name</c>。
+    /// 内置角色不参与继承。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string InheritanceBuiltIn = "access.role.inheritance_built_in";
 
     /// <summary>
-    /// 停用的角色不能设为上级；参数 <c>name</c>。
+    /// 停用的角色不能设为上级。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string ParentDisabled = "access.role.parent_disabled";
 
     /// <summary>
-    /// 设为上级会形成环路；参数 <c>name</c>。
+    /// 设为上级会形成环路。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string InheritanceCycle = "access.role.inheritance_cycle";
 
     /// <summary>
-    /// 已经间接继承；参数 <c>name</c>。
+    /// 已经间接继承。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string InheritanceRedundant = "access.role.inheritance_redundant";
 
     /// <summary>
-    /// 角色仍被其他角色继承；参数 <c>name</c>。
+    /// 角色仍被其他角色继承。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string RoleHasChildren = "access.role.has_children";
 
     /// <summary>
@@ -426,18 +519,27 @@ public static class AccessMessages
     public const string DelegationTargetInvalid = "access.delegation.target_invalid";
 
     /// <summary>
-    /// 委托的有效期不合规；参数 <c>effectiveAt</c>、<c>expiresAt</c>。
+    /// 委托的有效期不合规。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>effectiveAt</c>、<c>expiresAt</c>。
+    /// </remarks>
     public const string DelegationWindowInvalid = "access.delegation.window_invalid";
 
     /// <summary>
-    /// 委托人此刻没有所委托的权限或角色；参数 <c>target</c>。
+    /// 委托人此刻没有所委托的权限或角色。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>target</c>。
+    /// </remarks>
     public const string DelegatorNotHolding = "access.delegation.delegator_not_holding";
 
     /// <summary>
-    /// 委托的角色停用或是内置角色；参数 <c>name</c>。
+    /// 委托的角色停用或是内置角色。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string DelegationRoleInvalid = "access.delegation.role_invalid";
 
     /// <summary>
@@ -446,13 +548,19 @@ public static class AccessMessages
     public const string DelegationTaken = "access.delegation.taken";
 
     /// <summary>
-    /// 委托已撤销或已到期；参数 <c>id</c>。
+    /// 委托已撤销或已到期。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string DelegationClosed = "access.delegation.closed";
 
     /// <summary>
-    /// 委托不存在；参数 <c>id</c>。
+    /// 委托不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string DelegationNotFound = "access.delegation.not_found";
 
     /// <summary>
@@ -481,38 +589,59 @@ public static class AccessMessages
     public const string DeletePermissionConditionsDescription = "permission_conditions.delete.description";
 
     /// <summary>
-    /// 主体在权限码上没有这条授予或拒绝；参数 <c>permission</c>、<c>action</c>。
+    /// 主体在权限码上没有这条授予或拒绝。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>permission</c>、<c>action</c>。
+    /// </remarks>
     public const string ConditionBindingMissing = "access.condition.binding_missing";
 
     /// <summary>
-    /// 角色停用或是内置角色；参数 <c>name</c>。
+    /// 角色停用或是内置角色。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string ConditionSubjectInvalid = "access.condition.subject_invalid";
 
     /// <summary>
-    /// 条件组超出上限；参数 <c>max</c>。
+    /// 条件组超出上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string ConditionGroupsExceeded = "access.condition.groups_exceeded";
 
     /// <summary>
-    /// 子句超出上限；参数 <c>max</c>。
+    /// 子句超出上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string ConditionClausesExceeded = "access.condition.clauses_exceeded";
 
     /// <summary>
-    /// 权限条件不存在；参数 <c>id</c>。
+    /// 权限条件不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string ConditionNotFound = "access.condition.not_found";
 
     /// <summary>
-    /// 当前条件下不允许此操作；参数 <c>permission</c>。
+    /// 当前条件下不允许此操作。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>permission</c>。
+    /// </remarks>
     public const string ConditionNotMet = "access.condition.not_met";
 
     /// <summary>
-    /// 试算的客户端地址写错；参数 <c>ip</c>。
+    /// 试算的客户端地址写错。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>ip</c>。
+    /// </remarks>
     public const string TrialIpInvalid = "access.condition.trial_ip_invalid";
 
     /// <summary>
@@ -521,8 +650,11 @@ public static class AccessMessages
     public const string TrialPermissionConditionDescription = "permission_conditions.trial.description";
 
     /// <summary>
-    /// 操作 <c>permission-conditions.batch-trial</c> 的说明。
+    /// 权限条件批量试算操作的说明。
     /// </summary>
+    /// <remarks>
+    /// 操作 ID 为 <c>permission-conditions.batch-trial</c>。
+    /// </remarks>
     public const string BatchTrialPermissionConditionDescription = "permission_conditions.batch_trial.description";
 
     /// <summary>
@@ -531,8 +663,11 @@ public static class AccessMessages
     public const string PermissionConditionInventoryDescription = "permission_conditions.inventory.description";
 
     /// <summary>
-    /// 访问策略编码含空白；参数 <c>code</c>。
+    /// 访问策略编码含空白。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PolicyCodeInvalid = "access.policy.code_invalid";
 
     /// <summary>
@@ -541,8 +676,11 @@ public static class AccessMessages
     public const string PolicyConditionsRequired = "access.policy.conditions_required";
 
     /// <summary>
-    /// 访问策略的条件组或条件超过上限；参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// 访问策略的条件组或条件超过上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// </remarks>
     public const string PolicyConditionsExceeded = "access.policy.conditions_exceeded";
 
     /// <summary>
@@ -551,23 +689,35 @@ public static class AccessMessages
     public const string PolicyWindowInvalid = "access.policy.window_invalid";
 
     /// <summary>
-    /// 启用中的拒绝策略会拦下当前这次请求；参数 <c>code</c>。
+    /// 启用中的拒绝策略会拦下当前这次请求。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PolicySelfLockout = "access.policy.self_lockout";
 
     /// <summary>
-    /// 访问策略的模板不存在；参数 <c>code</c>。
+    /// 访问策略的模板不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PolicyTemplateUnknown = "access.policy.template_unknown";
 
     /// <summary>
-    /// 访问策略编码在这一侧已存在；参数 <c>code</c>。
+    /// 访问策略编码在这一侧已存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PolicyCodeTaken = "access.policy.code_taken";
 
     /// <summary>
-    /// 访问策略不存在；参数 <c>id</c>。
+    /// 访问策略不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string PolicyNotFound = "access.policy.not_found";
 
     /// <summary>
@@ -581,18 +731,27 @@ public static class AccessMessages
     public const string PolicyLoginDenied = "access.policy.login_denied";
 
     /// <summary>
-    /// 登录失败自动封禁的参数写错；参数 <c>key</c>。
+    /// 登录失败自动封禁的参数写错。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>。
+    /// </remarks>
     public const string LoginAutoBanInvalid = "access.login_ban.settings_invalid";
 
     /// <summary>
-    /// 要解封的地址没有被封禁；参数 <c>ip</c>。
+    /// 要解封的地址没有被封禁。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>ip</c>。
+    /// </remarks>
     public const string LoginBanNotFound = "access.login_ban.not_found";
 
     /// <summary>
-    /// 来源地址因登录失败次数过多被暂时封禁；参数 <c>retryAfter</c>（秒）。
+    /// 来源地址因登录失败次数过多被暂时封禁。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>retryAfter</c>（秒）。
+    /// </remarks>
     public const string LoginBanned = "access.login_ban.banned";
 
     /// <summary>
@@ -606,58 +765,91 @@ public static class AccessMessages
     public const string LiftLoginBanDescription = "login_bans.lift.description";
 
     /// <summary>
-    /// 约束规则编码含空白；参数 <c>code</c>。
+    /// 约束规则编码含空白。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string ConstraintCodeInvalid = "access.constraint.code_invalid";
 
     /// <summary>
-    /// 约束类型用不了这种目标类型；参数 <c>type</c>、<c>targetType</c>。
+    /// 约束类型用不了这种目标类型。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>type</c>、<c>targetType</c>。
+    /// </remarks>
     public const string ConstraintTargetMismatch = "access.constraint.target_mismatch";
 
     /// <summary>
-    /// 规则项太少；参数 <c>min</c>。
+    /// 规则项太少。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>min</c>。
+    /// </remarks>
     public const string ConstraintItemsTooFew = "access.constraint.items_too_few";
 
     /// <summary>
-    /// 规则项目标重复；参数 <c>target</c>。
+    /// 规则项目标重复。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>target</c>。
+    /// </remarks>
     public const string ConstraintItemDuplicate = "access.constraint.item_duplicate";
 
     /// <summary>
-    /// 规则项目标不在这一侧或不可用；参数 <c>target</c>。
+    /// 规则项目标不在这一侧或不可用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>target</c>。
+    /// </remarks>
     public const string ConstraintTargetInvalid = "access.constraint.target_invalid";
 
     /// <summary>
-    /// 条件类约束没有条件，或条件超过上限；参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// 条件类约束没有条件，或条件超过上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// </remarks>
     public const string ConstraintConditionsRequired = "access.constraint.conditions_required";
 
     /// <summary>
-    /// 要激活的角色此刻不持有；参数 <c>id</c>。
+    /// 要激活的角色此刻不持有。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string ActivationRoleNotHeld = "access.activation.not_held";
 
     /// <summary>
-    /// 约束规则编码在这一侧已存在；参数 <c>code</c>。
+    /// 约束规则编码在这一侧已存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string ConstraintCodeTaken = "access.constraint.code_taken";
 
     /// <summary>
-    /// 违反了拦截类的约束规则，这次变更没做；参数 <c>code</c>、<c>name</c>。
+    /// 违反了拦截类的约束规则，这次变更没做。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>、<c>name</c>。
+    /// </remarks>
     public const string ConstraintViolated = "access.constraint.violated";
 
     /// <summary>
-    /// 约束规则不存在；参数 <c>id</c>。
+    /// 约束规则不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string ConstraintRuleNotFound = "access.constraint.not_found";
 
     /// <summary>
-    /// 会话角色记录不存在；参数 <c>id</c>。
+    /// 会话角色记录不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string SessionRoleNotFound = "access.session_role.not_found";
 
     /// <summary>

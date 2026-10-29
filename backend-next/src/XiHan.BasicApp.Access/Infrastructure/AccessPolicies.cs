@@ -55,8 +55,11 @@ public sealed record AccessPolicyView(Guid Id, string Code, string Name, AccessP
 }
 
 /// <summary>
-/// 一侧启用的访问策略（单例）：放在共享缓存里 60 秒，写入即失效；按优先级（越小越先）与编码排列，有效期在判定时比较。
+/// 一侧启用的访问策略（单例）。
 /// </summary>
+/// <remarks>
+/// 放在共享缓存里 60 秒，写入即失效；按优先级（越小越先）与编码排列，有效期在判定时比较。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）。</param>
 public sealed class AccessPolicies(ISharedCache cache, IServiceScopeFactory scopes)
@@ -120,9 +123,13 @@ public sealed record AccessPolicyHit(AccessPolicyView Policy, ConditionHitPhase 
 public sealed record AccessPolicyLayer(IReadOnlyList<AccessPolicyHit> Hits, bool Allowed, AccessPolicyView? BlockedBy);
 
 /// <summary>
-/// 访问策略的求值（单例，4.x 的 AccessPolicyEvaluator）：逐条求值一层里此刻有效的策略，命中全部记下；同层有放行命中即不拒绝，否则第一条命中的拒绝拦下。
-/// 编译结果按条件内容记住（策略改了内容就是新的一份）；编译不过的策略不命中。
+/// 访问策略的求值（单例）。
 /// </summary>
+/// <remarks>
+/// 对应 4.x 的 AccessPolicyEvaluator。
+/// 逐条求值一层里此刻有效的策略，命中全部记下；同层有放行命中即不拒绝，否则第一条命中的拒绝拦下。
+/// 编译结果按条件内容记住（策略改了内容就是新的一份）；编译不过的策略不命中。
+/// </remarks>
 /// <param name="compiler">条件编译器。</param>
 /// <param name="evaluator">条件求值器。</param>
 /// <param name="options">授权包配置（时区）。</param>
@@ -185,8 +192,11 @@ public sealed class AccessPolicyEvaluator(IConditionCompiler compiler, IConditio
     }
 
     /// <summary>
-    /// 时机：平台策略只引用认证前就取得到的属性即认证前，否则认证后；租户策略一律认证后。
+    /// 判定策略的求值时机。
     /// </summary>
+    /// <remarks>
+    /// 平台策略只引用认证前就取得到的属性即认证前，否则认证后；租户策略一律认证后。
+    /// </remarks>
     public static ConditionHitPhase PhaseOf(CompiledConditionSet compiled, bool platform)
     {
         ArgumentNullException.ThrowIfNull(compiled);

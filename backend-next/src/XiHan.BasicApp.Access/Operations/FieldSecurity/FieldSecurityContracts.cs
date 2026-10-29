@@ -31,8 +31,11 @@ public sealed record FieldSecurityFieldResponse(string Name, string TitleKey, bo
 public sealed record FieldSecurityEntityResponse(string Code, string TitleKey, IReadOnlyList<FieldSecurityFieldResponse> Fields);
 
 /// <summary>
-/// <c>field-security.entities</c> 的响应：各包登记的实体与字段（按实体码排序）。
+/// <c>field-security.entities</c> 的响应。
 /// </summary>
+/// <remarks>
+/// 各包登记的实体与字段（按实体码排序）。
+/// </remarks>
 /// <param name="Items">实体。</param>
 public sealed record FieldSecurityEntitiesResponse(IReadOnlyList<FieldSecurityEntityResponse> Items);
 
@@ -82,8 +85,11 @@ public sealed record CreateFieldSecurityRuleRequest(
 }
 
 /// <summary>
-/// <c>field-security.update</c> 的请求：整体修改规则（含状态）。标识由路由值 <c>{id}</c> 绑定。
+/// <c>field-security.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 整体修改规则（含状态）。标识由路由值 <c>{id}</c> 绑定。
+/// </remarks>
 /// <param name="Id">规则 ID。</param>
 /// <param name="TargetKind">目标类型。</param>
 /// <param name="TargetId">目标 ID。</param>

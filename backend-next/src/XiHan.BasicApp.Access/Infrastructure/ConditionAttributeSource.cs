@@ -48,9 +48,13 @@ public sealed record ConditionRequest(
     DateTimeOffset Time);
 
 /// <summary>
-/// 按请求事实给出条件属性（4.x 的 SaasConditionAttributeSource）：主体、资源与环境三族；主体的角色码、部门与岗位按需查库（部门与岗位只在租户侧），
-/// 归属地经 <see cref="IIpRegionResolver"/>（宿主没装即取不到）；空白一律算取不到。外面套 <see cref="MemoizingConditionAttributeSource"/>，每个属性一次调用只取一次。
+/// 按请求事实给出条件属性。
 /// </summary>
+/// <remarks>
+/// 对应 4.x 的 SaasConditionAttributeSource。
+/// 主体、资源与环境三族；主体的角色码、部门与岗位按需查库（部门与岗位只在租户侧），
+/// 归属地经 <see cref="IIpRegionResolver"/>（宿主没装即取不到）；空白一律算取不到。外面套 <see cref="MemoizingConditionAttributeSource"/>，每个属性一次调用只取一次。
+/// </remarks>
 public sealed class ConditionAttributeSource : IConditionAttributeSource
 {
     private readonly ConditionRequest _request;

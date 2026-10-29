@@ -34,8 +34,11 @@ public static class AccessErrors
     public const string PermissionUnknown = "ACCESS_VALIDATION_001";
 
     /// <summary>
-    /// 权限的作用侧与角色所在侧不符（平台角色只能授平台 / 两侧权限，租户角色只能授租户 / 两侧权限）。
+    /// 权限的作用侧与角色所在侧不符。
     /// </summary>
+    /// <remarks>
+    /// 平台角色只能授平台 / 两侧权限，租户角色只能授租户 / 两侧权限。
+    /// </remarks>
     public const string PermissionScopeMismatch = "ACCESS_VALIDATION_002";
 
     /// <summary>
@@ -129,28 +132,44 @@ public static class AccessErrors
     public const string UserDataScopeDepartments = "ACCESS_VALIDATION_013";
 
     /// <summary>
-    /// 字段安全规则不存在；参数 <c>id</c>。
+    /// 字段安全规则不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string FieldRuleNotFound = "ACCESS_NOTFOUND_005";
 
     /// <summary>
-    /// 这一侧这个目标在这个字段上已有规则；参数 <c>entity</c>、<c>field</c>。
+    /// 这一侧这个目标在这个字段上已有规则。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>entity</c>、<c>field</c>。
+    /// </remarks>
     public const string FieldRuleTaken = "ACCESS_CONFLICT_006";
 
     /// <summary>
-    /// 实体没有登记字段安全；参数 <c>entity</c>。
+    /// 实体没有登记字段安全。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>entity</c>。
+    /// </remarks>
     public const string FieldEntityUnknown = "ACCESS_VALIDATION_014";
 
     /// <summary>
-    /// 实体没有这个可配置字段；参数 <c>entity</c>、<c>field</c>。
+    /// 实体没有这个可配置字段。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>entity</c>、<c>field</c>。
+    /// </remarks>
     public const string FieldUnknown = "ACCESS_VALIDATION_015";
 
     /// <summary>
-    /// 读取方式不适用于这个字段（非文本只能明文或隐藏，不可空的不能隐藏）；参数 <c>field</c>、<c>strategy</c>。
+    /// 读取方式不适用于这个字段。
     /// </summary>
+    /// <remarks>
+    /// 非文本只能明文或隐藏，不可空的不能隐藏。
+    /// 参数 <c>field</c>、<c>strategy</c>。
+    /// </remarks>
     public const string FieldStrategyNotApplicable = "ACCESS_VALIDATION_016";
 
     /// <summary>
@@ -159,13 +178,19 @@ public static class AccessErrors
     public const string FieldRuleNoEffect = "ACCESS_VALIDATION_017";
 
     /// <summary>
-    /// 部分脱敏的保留位数不合规；参数 <c>max</c>。
+    /// 部分脱敏的保留位数不合规。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string FieldKeepInvalid = "ACCESS_VALIDATION_018";
 
     /// <summary>
-    /// 固定文本缺失或过长；参数 <c>max</c>。
+    /// 固定文本缺失或过长。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string FieldReplacementInvalid = "ACCESS_VALIDATION_019";
 
     /// <summary>
@@ -174,8 +199,11 @@ public static class AccessErrors
     public const string FieldTargetTenantOnly = "ACCESS_VALIDATION_020";
 
     /// <summary>
-    /// 目标（角色或部门）已停用；参数 <c>kind</c>、<c>id</c>。
+    /// 目标（角色或部门）已停用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>kind</c>、<c>id</c>。
+    /// </remarks>
     public const string FieldTargetDisabled = "ACCESS_VALIDATION_021";
 
     /// <summary>
@@ -184,23 +212,35 @@ public static class AccessErrors
     public const string RoleSelfParent = "ACCESS_VALIDATION_022";
 
     /// <summary>
-    /// 内置角色不参与继承；参数 <c>name</c>。
+    /// 内置角色不参与继承。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string InheritanceBuiltIn = "ACCESS_VALIDATION_023";
 
     /// <summary>
-    /// 停用的角色不能设为上级；参数 <c>name</c>。
+    /// 停用的角色不能设为上级。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string ParentDisabled = "ACCESS_VALIDATION_024";
 
     /// <summary>
-    /// 设为上级会形成环路；参数 <c>name</c>。
+    /// 设为上级会形成环路。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string InheritanceCycle = "ACCESS_VALIDATION_025";
 
     /// <summary>
-    /// 已经间接继承，不必再直接继承；参数 <c>name</c>。
+    /// 已经间接继承，不必再直接继承。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string InheritanceRedundant = "ACCESS_VALIDATION_026";
 
     /// <summary>
@@ -219,13 +259,19 @@ public static class AccessErrors
     public const string DelegationWindowInvalid = "ACCESS_VALIDATION_029";
 
     /// <summary>
-    /// 委托人此刻没有所委托的权限或角色；参数 <c>target</c>。
+    /// 委托人此刻没有所委托的权限或角色。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>target</c>。
+    /// </remarks>
     public const string DelegatorNotHolding = "ACCESS_VALIDATION_030";
 
     /// <summary>
-    /// 委托的角色停用或是内置角色；参数 <c>name</c>。
+    /// 委托的角色停用或是内置角色。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string DelegationRoleInvalid = "ACCESS_VALIDATION_031";
 
     /// <summary>
@@ -239,53 +285,83 @@ public static class AccessErrors
     public const string RoleHasChildren = "ACCESS_CONFLICT_008";
 
     /// <summary>
-    /// 委托已撤销或已到期；参数 <c>id</c>。
+    /// 委托已撤销或已到期。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string DelegationClosed = "ACCESS_CONFLICT_009";
 
     /// <summary>
-    /// 委托不存在；参数 <c>id</c>。
+    /// 委托不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string DelegationNotFound = "ACCESS_NOTFOUND_006";
 
     /// <summary>
-    /// 主体在权限码上没有这条授予或拒绝；参数 <c>permission</c>、<c>action</c>。
+    /// 主体在权限码上没有这条授予或拒绝。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>permission</c>、<c>action</c>。
+    /// </remarks>
     public const string ConditionBindingMissing = "ACCESS_VALIDATION_032";
 
     /// <summary>
-    /// 角色停用或是内置角色，不能挂条件；参数 <c>name</c>。
+    /// 角色停用或是内置角色，不能挂条件。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>name</c>。
+    /// </remarks>
     public const string ConditionSubjectInvalid = "ACCESS_VALIDATION_033";
 
     /// <summary>
-    /// 一个绑定的条件组超出上限；参数 <c>max</c>。
+    /// 一个绑定的条件组超出上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string ConditionGroupsExceeded = "ACCESS_VALIDATION_034";
 
     /// <summary>
-    /// 一个条件组的子句超出上限；参数 <c>max</c>。
+    /// 一个条件组的子句超出上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>max</c>。
+    /// </remarks>
     public const string ConditionClausesExceeded = "ACCESS_VALIDATION_035";
 
     /// <summary>
-    /// 权限条件不存在；参数 <c>id</c>。
+    /// 权限条件不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string ConditionNotFound = "ACCESS_NOTFOUND_007";
 
     /// <summary>
-    /// 当前条件下不允许此操作；参数 <c>permission</c>。
+    /// 当前条件下不允许此操作。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>permission</c>。
+    /// </remarks>
     public const string ConditionNotMet = "ACCESS_DENIED_003";
 
     /// <summary>
-    /// 客户端地址写错（试算、解封）；参数 <c>ip</c>。
+    /// 客户端地址写错（试算、解封）。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>ip</c>。
+    /// </remarks>
     public const string TrialIpInvalid = "ACCESS_VALIDATION_036";
 
     /// <summary>
-    /// 访问策略编码含空白；参数 <c>code</c>。
+    /// 访问策略编码含空白。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PolicyCodeInvalid = "ACCESS_VALIDATION_037";
 
     /// <summary>
@@ -294,8 +370,11 @@ public static class AccessErrors
     public const string PolicyConditionsRequired = "ACCESS_VALIDATION_038";
 
     /// <summary>
-    /// 访问策略的条件组或条件超过上限；参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// 访问策略的条件组或条件超过上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// </remarks>
     public const string PolicyConditionsExceeded = "ACCESS_VALIDATION_039";
 
     /// <summary>
@@ -304,23 +383,35 @@ public static class AccessErrors
     public const string PolicyWindowInvalid = "ACCESS_VALIDATION_040";
 
     /// <summary>
-    /// 启用中的拒绝策略会拦下当前这次请求（防自锁）；参数 <c>code</c>。
+    /// 启用中的拒绝策略会拦下当前这次请求（防自锁）。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PolicySelfLockout = "ACCESS_VALIDATION_041";
 
     /// <summary>
-    /// 访问策略的模板不存在；参数 <c>code</c>。
+    /// 访问策略的模板不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PolicyTemplateUnknown = "ACCESS_VALIDATION_042";
 
     /// <summary>
-    /// 访问策略编码在这一侧已存在；参数 <c>code</c>。
+    /// 访问策略编码在这一侧已存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PolicyCodeTaken = "ACCESS_CONFLICT_010";
 
     /// <summary>
-    /// 访问策略不存在；参数 <c>id</c>。
+    /// 访问策略不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string PolicyNotFound = "ACCESS_NOTFOUND_008";
 
     /// <summary>
@@ -334,72 +425,114 @@ public static class AccessErrors
     public const string PolicyLoginDenied = "ACCESS_DENIED_005";
 
     /// <summary>
-    /// 登录失败自动封禁的参数写错；参数 <c>key</c>。
+    /// 登录失败自动封禁的参数写错。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>key</c>。
+    /// </remarks>
     public const string LoginAutoBanInvalid = "ACCESS_VALIDATION_043";
 
     /// <summary>
-    /// 要解封的地址没有被封禁；参数 <c>ip</c>。
+    /// 要解封的地址没有被封禁。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>ip</c>。
+    /// </remarks>
     public const string LoginBanNotFound = "ACCESS_NOTFOUND_009";
 
     /// <summary>
-    /// 来源地址因登录失败次数过多被暂时封禁；参数 <c>retryAfter</c>（秒）。
+    /// 来源地址因登录失败次数过多被暂时封禁。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>retryAfter</c>（秒）。
+    /// </remarks>
     public const string LoginBanned = "ACCESS_UNAVAILABLE_001";
 
     /// <summary>
-    /// 约束规则编码含空白；参数 <c>code</c>。
+    /// 约束规则编码含空白。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string ConstraintCodeInvalid = "ACCESS_VALIDATION_044";
 
     /// <summary>
-    /// 约束类型用不了这种目标类型；参数 <c>type</c>、<c>targetType</c>。
+    /// 约束类型用不了这种目标类型。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>type</c>、<c>targetType</c>。
+    /// </remarks>
     public const string ConstraintTargetMismatch = "ACCESS_VALIDATION_045";
 
     /// <summary>
-    /// 规则项太少；参数 <c>min</c>。
+    /// 规则项太少。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>min</c>。
+    /// </remarks>
     public const string ConstraintItemsTooFew = "ACCESS_VALIDATION_046";
 
     /// <summary>
-    /// 规则项目标重复；参数 <c>target</c>。
+    /// 规则项目标重复。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>target</c>。
+    /// </remarks>
     public const string ConstraintItemDuplicate = "ACCESS_VALIDATION_047";
 
     /// <summary>
-    /// 规则项目标不在这一侧或不可用；参数 <c>target</c>。
+    /// 规则项目标不在这一侧或不可用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>target</c>。
+    /// </remarks>
     public const string ConstraintTargetInvalid = "ACCESS_VALIDATION_048";
 
     /// <summary>
-    /// 条件类约束没有条件，或条件超过上限；参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// 条件类约束没有条件，或条件超过上限。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// </remarks>
     public const string ConstraintConditionsRequired = "ACCESS_VALIDATION_049";
 
     /// <summary>
-    /// 要激活的角色此刻不持有；参数 <c>id</c>。
+    /// 要激活的角色此刻不持有。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string ActivationRoleNotHeld = "ACCESS_VALIDATION_050";
 
     /// <summary>
-    /// 约束规则编码在这一侧已存在；参数 <c>code</c>。
+    /// 约束规则编码在这一侧已存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string ConstraintCodeTaken = "ACCESS_CONFLICT_011";
 
     /// <summary>
-    /// 违反了拦截类的约束规则，这次变更没做；参数 <c>code</c>、<c>name</c>。
+    /// 违反了拦截类的约束规则，这次变更没做。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>、<c>name</c>。
+    /// </remarks>
     public const string ConstraintViolated = "ACCESS_CONFLICT_012";
 
     /// <summary>
-    /// 约束规则不存在；参数 <c>id</c>。
+    /// 约束规则不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string ConstraintRuleNotFound = "ACCESS_NOTFOUND_010";
 
     /// <summary>
-    /// 会话角色记录不存在；参数 <c>id</c>。
+    /// 会话角色记录不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string SessionRoleNotFound = "ACCESS_NOTFOUND_011";
 }

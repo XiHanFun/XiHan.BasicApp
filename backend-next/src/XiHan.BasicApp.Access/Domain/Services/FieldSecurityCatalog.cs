@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 字段安全的实体目录（单例）：汇总各包登记的 <see cref="FieldSecurityCatalogSection"/>，按实体码排序；两个包登记同一实体码即装配失败。
+/// 字段安全的实体目录（单例）。
 /// </summary>
+/// <remarks>
+/// 汇总各包登记的 <see cref="FieldSecurityCatalogSection"/>，按实体码排序；两个包登记同一实体码即装配失败。
+/// </remarks>
 public sealed class FieldSecurityCatalog
 {
     private readonly Dictionary<string, FieldSecurityEntityDescriptor> _byCode;
@@ -36,7 +39,8 @@ public sealed class FieldSecurityCatalog
     public IReadOnlyList<FieldSecurityEntityDescriptor> Entities { get; }
 
     /// <summary>
-    /// 按实体码找实体；没登记即为空。
+    /// 按实体码找实体。
     /// </summary>
+    /// <returns>找到的实体；没登记即为空。</returns>
     public FieldSecurityEntityDescriptor? Find(string code) => _byCode.GetValueOrDefault(code);
 }

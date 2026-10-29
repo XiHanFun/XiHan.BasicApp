@@ -21,7 +21,10 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 public sealed record ConstraintViolation(ConstraintRuleView Rule, int? GroupNo, IReadOnlyList<string> Targets);
 
 /// <summary>
-/// 约束规则的求值（4.x 的 ConstraintRuleEnforcementDomainService，补齐非 SSD 类型）：
+/// 约束规则的求值。
+/// </summary>
+/// <remarks>
+/// 对应 4.x 的 ConstraintRuleEnforcementDomainService，补齐非 SSD 类型。
 /// <list type="bullet">
 /// <item>静态职责分离：用户持有的角色（没过期的指派与没过期的角色委托，按继承展开上级）里，同一组超过上限即违规；</item>
 /// <item>动态职责分离：会话激活的角色（同样按继承展开）同理；</item>
@@ -31,7 +34,7 @@ public sealed record ConstraintViolation(ConstraintRuleView Rule, int? GroupNo, 
 /// </list>
 /// 只报这次变更带进来的违规（变更之前已有的不拦，4.x 是整组重判）；静态的判定不看角色启停，按结构判定（4.x 同）。
 /// 违规按规则的处理方式落地（<see cref="Settle"/>）：拒绝与需审批的拦下变更，警告与只记录的放行并记权限变更日志。
-/// </summary>
+/// </remarks>
 /// <param name="rules">规则缓存。</param>
 /// <param name="hierarchy">继承图（按本次工作单元读，继承刚改过也看得到）。</param>
 /// <param name="members">指派仓储。</param>
@@ -53,8 +56,12 @@ public sealed class ConstraintEnforcer(
     TimeProvider clock)
 {
     /// <summary>
-    /// 用户在这一侧持有的角色（静态职责分离与基数用）：没过期的指派（还没生效的也算）与没过期的角色委托。
+    /// 取用户在这一侧持有的角色。
     /// </summary>
+    /// <remarks>
+    /// 静态职责分离与基数用。
+    /// 没过期的指派（还没生效的也算）与没过期的角色委托。
+    /// </remarks>
     public async Task<HashSet<Guid>> HeldRolesAsync(string owner, Guid userId, CancellationToken cancellationToken)
     {
         var now = clock.GetUtcNow();
@@ -165,8 +172,11 @@ public sealed class ConstraintEnforcer(
     }
 
     /// <summary>
-    /// 一批要直接授予的权限码逐个过权限互斥（前面放行的算已持有）：拦截类违规的挑出来，警告与只记录的放行并记日志。
+    /// 让一批要直接授予的权限码逐个过权限互斥。
     /// </summary>
+    /// <remarks>
+    /// 前面放行的算已持有；拦截类违规的挑出来，警告与只记录的放行并记日志。
+    /// </remarks>
     /// <param name="owner">所属侧。</param>
     /// <param name="held">主体此刻直接持有的权限码。</param>
     /// <param name="candidates">要授予的权限码。</param>
@@ -202,8 +212,11 @@ public sealed class ConstraintEnforcer(
     }
 
     /// <summary>
-    /// 一组角色的上级（含它们自己）要多出一些上级：静态职责分离（继承变更后，持有这个角色或它的下级的用户）。
+    /// 检查角色多出上级后的静态职责分离。
     /// </summary>
+    /// <remarks>
+    /// 一组角色的上级（含它们自己）要多出一些上级：静态职责分离（继承变更后，持有这个角色或它的下级的用户）。
+    /// </remarks>
     /// <param name="owner">所属侧。</param>
     /// <param name="roleId">改了上级的角色。</param>
     /// <param name="addedParents">新加的直接上级。</param>
@@ -237,8 +250,11 @@ public sealed class ConstraintEnforcer(
     }
 
     /// <summary>
-    /// 动态职责分离：按顺序逐个尝试激活，加上它会违反拦截类 DSD 规则的不激活（同一组只留排序最前的）；警告与只记录类的违规照样激活并交回记录。
+    /// 按动态职责分离选出要激活的角色。
     /// </summary>
+    /// <remarks>
+    /// 按顺序逐个尝试激活，加上它会违反拦截类 DSD 规则的不激活（同一组只留排序最前的）；警告与只记录类的违规照样激活并交回记录。
+    /// </remarks>
     /// <param name="owner">会话的一侧。</param>
     /// <param name="ordered">候选角色，按优先顺序。</param>
     /// <param name="cancellationToken">取消令牌。</param>
@@ -289,8 +305,11 @@ public sealed class ConstraintEnforcer(
     }
 
     /// <summary>
-    /// 按处理方式落地：有拦截类的违规即返回错误（这次变更不做，警告也不记）；否则警告与只记录的各记一条权限变更日志。
+    /// 按处理方式落地违规。
     /// </summary>
+    /// <remarks>
+    /// 有拦截类的违规即返回错误（这次变更不做，警告也不记）；否则警告与只记录的各记一条权限变更日志。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="violations">违规。</param>
     /// <param name="roleId">变更涉及的角色。</param>

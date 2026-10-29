@@ -15,14 +15,20 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.UserDataScopes;
 
 /// <summary>
-/// <c>user-data-scopes.get</c> 的请求：一个用户（查询串 <c>userId</c>）。
+/// <c>user-data-scopes.get</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 一个用户（查询串 <c>userId</c>）。
+/// </remarks>
 /// <param name="UserId">用户 ID。</param>
 public sealed record UserDataScopeRequest([Required] Guid UserId);
 
 /// <summary>
-/// <c>user-data-scopes.set</c> 的请求：覆盖为一种数据范围，或清除覆盖回到按角色。
+/// <c>user-data-scopes.set</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 覆盖为一种数据范围，或清除覆盖回到按角色。
+/// </remarks>
 /// <param name="UserId">用户 ID；注册地须是当前租户。</param>
 /// <param name="DataScope">覆盖后的数据范围；为空即清除覆盖、按角色。</param>
 /// <param name="Departments">自定义范围的部门（只有 <c>Custom</c> 时给，至少一个）。</param>
@@ -37,8 +43,11 @@ public sealed record SetUserDataScopeRequest([Required] Guid UserId, DataScope? 
 public sealed record UserDataScopeResponse(Guid UserId, DataScope? DataScope, IReadOnlyList<DataScopeDepartmentRequest> Departments);
 
 /// <summary>
-/// 一个用户的数据范围覆盖：<c>GET /api/user-data-scopes?userId=</c>。只在租户侧。
+/// 取一个用户的数据范围覆盖。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/user-data-scopes?userId=</c>。只在租户侧。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="scopes">用户级数据范围覆盖服务。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.UserDataScopesRead)]
@@ -73,8 +82,11 @@ public sealed class GetUserDataScope(IRepository<SysUser, Guid> users, UserDataS
 }
 
 /// <summary>
-/// 设置用户的数据范围覆盖：<c>POST /api/user-data-scopes:set</c>。覆盖完全取代该用户所有角色的数据范围（不取并集）；不带数据范围即清除覆盖。只在租户侧。
+/// 设置用户的数据范围覆盖。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/user-data-scopes:set</c>。覆盖完全取代该用户所有角色的数据范围（不取并集）；不带数据范围即清除覆盖。只在租户侧。
+/// </remarks>
 /// <param name="users">用户仓储。</param>
 /// <param name="scopes">用户级数据范围覆盖服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.UserDataScopesUpdate)]

@@ -9,8 +9,11 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Operations.PermissionConditions;
 
 /// <summary>
-/// <c>permission-conditions.trial</c> 的请求：一个用户在一个权限码上、按给定的请求情形判定（4.x 的条件试算）。不填的情形即取不到。
+/// <c>permission-conditions.trial</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 一个用户在一个权限码上、按给定的请求情形判定（4.x 的条件试算）。不填的情形即取不到。
+/// </remarks>
 /// <param name="UserId">用户：这一侧的用户，按他此刻的有效指派与委托。</param>
 /// <param name="Permission">权限码。</param>
 /// <param name="Ip">客户端地址。</param>
@@ -91,8 +94,11 @@ public sealed record ConditionTrialPathResponse(string Source, Guid? RoleId, str
 public sealed record ConditionTrialResponse(ConditionVerdict Verdict, Guid UserId, string UserName, string Permission, string? Ip, DateTimeOffset Time, string TimeZone, IReadOnlyList<ConditionTrialSetResponse> Denies, IReadOnlyList<ConditionTrialPathResponse> Paths);
 
 /// <summary>
-/// <c>permission-conditions.batch-trial</c> 的请求：一个绑定影响到的人此刻各自的结论（4.x 的影响试算，最多列 200 人）。
+/// <c>permission-conditions.batch-trial</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 一个绑定影响到的人此刻各自的结论（4.x 的影响试算，最多列 200 人）。
+/// </remarks>
 /// <param name="SubjectKind">主体类别：角色即它及其下级角色的有效成员，用户即本人。</param>
 /// <param name="SubjectId">主体 ID。</param>
 /// <param name="Permission">权限码。</param>
@@ -129,13 +135,19 @@ public sealed record ConditionBatchTrialItemResponse(Guid UserId, string UserNam
 public sealed record ConditionBatchTrialResponse(string Permission, int TotalUsers, bool Truncated, IReadOnlyList<ConditionBatchTrialItemResponse> Items);
 
 /// <summary>
-/// <c>permission-conditions.inventory</c> 的请求（无参数）。
+/// <c>permission-conditions.inventory</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 无参数。
+/// </remarks>
 public sealed record ConditionInventoryRequest;
 
 /// <summary>
-/// 盘点诊断（4.x 同，去掉 6.0 不会出现的「绑定不明」）。
+/// 盘点诊断。
 /// </summary>
+/// <remarks>
+/// 4.x 同，去掉 6.0 不会出现的「绑定不明」。
+/// </remarks>
 public enum ConditionDiagnostic
 {
     /// <summary>
@@ -206,8 +218,11 @@ public enum ConditionGroupConclusion
 public sealed record ConditionInventoryItemResponse(Guid ConditionId, GrantSubjectKind SubjectKind, Guid SubjectId, string? SubjectName, string Permission, PermissionAction Action, int GroupNo, string AttributeName, ConditionOperator Operator, bool IsNegated, string? Value, ConditionStatus Status, IReadOnlyList<ConditionDiagnostic> Diagnostics, string? Message, ConditionGroupConclusion GroupConclusion);
 
 /// <summary>
-/// <c>permission-conditions.inventory</c> 的响应：当前一侧全部条件子句的诊断与各组结论。
+/// <c>permission-conditions.inventory</c> 的响应。
 /// </summary>
+/// <remarks>
+/// 当前一侧全部条件子句的诊断与各组结论。
+/// </remarks>
 /// <param name="GeneratedAt">生成时间。</param>
 /// <param name="ConditionCount">子句数。</param>
 /// <param name="BindingCount">挂了条件的绑定数。</param>

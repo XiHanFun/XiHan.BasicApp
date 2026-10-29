@@ -7,10 +7,13 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 限时委托（平台库实体，随所属侧）：委托人在有效期内把一个权限码或一个角色交给被委托人（方案 5.9）。
+/// 限时委托（平台库实体，随所属侧）。
+/// </summary>
+/// <remarks>
+/// 委托人在有效期内把一个权限码或一个角色交给被委托人（方案 5.9）。
 /// 状态不落库，按撤销时间与有效期推出（<see cref="StatusAt"/>）：到了生效时间自动生效，过了到期时间自动失效；撤销保留记录。
 /// 判定时委托人此刻仍须持有所委托的权限或角色，否则不算数。
-/// </summary>
+/// </remarks>
 public sealed class SysPermissionDelegation : AppAuditedEntity, IOwnedByTenant
 {
     /// <inheritdoc />
@@ -33,13 +36,19 @@ public sealed class SysPermissionDelegation : AppAuditedEntity, IOwnedByTenant
     public string? Permission { get; set; }
 
     /// <summary>
-    /// 委托的角色（与 <see cref="Permission"/> 二选一）：被委托人按这个角色的继承链拿到授予，不拿数据范围与字段安全。
+    /// 委托的角色（与 <see cref="Permission"/> 二选一）。
     /// </summary>
+    /// <remarks>
+    /// 被委托人按这个角色的继承链拿到授予，不拿数据范围与字段安全。
+    /// </remarks>
     public Guid? RoleId { get; set; }
 
     /// <summary>
-    /// 生效时间；为空即创建即生效。
+    /// 生效时间。
     /// </summary>
+    /// <remarks>
+    /// 为空即创建即生效。
+    /// </remarks>
     public DateTimeOffset? EffectiveAt { get; set; }
 
     /// <summary>
@@ -54,8 +63,11 @@ public sealed class SysPermissionDelegation : AppAuditedEntity, IOwnedByTenant
     public string? Reason { get; set; }
 
     /// <summary>
-    /// 撤销时间；为空即未撤销。
+    /// 撤销时间。
     /// </summary>
+    /// <remarks>
+    /// 为空即未撤销。
+    /// </remarks>
     public DateTimeOffset? RevokedAt { get; set; }
 
     /// <summary>

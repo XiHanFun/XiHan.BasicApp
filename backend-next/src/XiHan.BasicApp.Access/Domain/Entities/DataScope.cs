@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 角色的数据范围（方案 5.6）。一个用户有多个角色时取并集，任一为 <see cref="All"/> 即不受限；平台侧角色只能是 <see cref="All"/>（平台没有部门）。
+/// 角色的数据范围。
 /// </summary>
+/// <remarks>
+/// 见方案 5.6。一个用户有多个角色时取并集，任一为 <see cref="All"/> 即不受限；平台侧角色只能是 <see cref="All"/>（平台没有部门）。
+/// </remarks>
 public enum DataScope
 {
     /// <summary>

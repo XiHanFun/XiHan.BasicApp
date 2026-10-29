@@ -55,8 +55,11 @@ public sealed record LiftLoginBanRequest([Required, StringLength(64, MinimumLeng
 public sealed record LiftLoginBanResponse(string Ip);
 
 /// <summary>
-/// 登录失败自动封禁的参数与当前封禁：<c>GET /api/login-bans</c>（只在平台，4.x 同）。参数在系统参数 <c>access.security.login-auto-ban</c>，缺省关。
+/// 取登录失败自动封禁的参数与当前封禁。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/login-bans</c>（只在平台，4.x 同）。参数在系统参数 <c>access.security.login-auto-ban</c>，缺省关。
+/// </remarks>
 /// <param name="bans">封禁存储。</param>
 /// <param name="clock">时间源。</param>
 [Operation(Id, Stability = Stability.Preview, ReadOnly = true, Expose = Expose.Http, Permission = AccessPermissions.LoginBansRead)]
@@ -85,8 +88,11 @@ public sealed class ListLoginBans(Infrastructure.LoginBans bans, TimeProvider cl
 }
 
 /// <summary>
-/// 解封一个地址：<c>POST /api/login-bans:lift</c>（只在平台），连同它这一窗口的失败计数；没封着即 <c>ACCESS_NOTFOUND_009</c>。
+/// 解封一个地址。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/login-bans:lift</c>（只在平台），连同它这一窗口的失败计数；没封着即 <c>ACCESS_NOTFOUND_009</c>。
+/// </remarks>
 /// <param name="bans">封禁存储。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.LoginBansLift)]
 public sealed class LiftLoginBan(Infrastructure.LoginBans bans) : IOperation<LiftLoginBanRequest, LiftLoginBanResponse>

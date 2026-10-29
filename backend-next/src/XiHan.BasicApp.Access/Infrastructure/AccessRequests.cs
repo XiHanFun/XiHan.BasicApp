@@ -13,9 +13,12 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 调用上下文 → 判定用的请求事实（权限条件与访问策略共用）：HTTP 的请求目标是「方法 路径」，其他协议只有目标（gRPC 方法全名、MCP 工具名等）；
-/// 客户端类型未登录为 <c>anonymous</c>，否则为调用协议。
+/// 调用上下文 → 判定用的请求事实（权限条件与访问策略共用）。
 /// </summary>
+/// <remarks>
+/// HTTP 的请求目标是「方法 路径」，其他协议只有目标（gRPC 方法全名、MCP 工具名等）；
+/// 客户端类型未登录为 <c>anonymous</c>，否则为调用协议。
+/// </remarks>
 public static class AccessRequests
 {
     /// <summary>
@@ -49,8 +52,11 @@ public static class AccessRequests
     }
 
     /// <summary>
-    /// 登录时机看到的这次调用：主体取即将签发令牌的账号（调用本身还是匿名的），没有权限码，客户端类型为调用协议。
+    /// 登录时机看到的这次调用。
     /// </summary>
+    /// <remarks>
+    /// 主体取即将签发令牌的账号（调用本身还是匿名的），没有权限码，客户端类型为调用协议。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="attempt">这次登录。</param>
     /// <param name="now">判定时刻。</param>
@@ -77,8 +83,11 @@ public static class AccessRequests
     }
 
     /// <summary>
-    /// 约束规则的条件类看到的一次指派：主体是被指派的用户（变更之后持有的角色），环境是发起这次指派的请求。
+    /// 约束规则的条件类看到的一次指派。
     /// </summary>
+    /// <remarks>
+    /// 主体是被指派的用户（变更之后持有的角色），环境是发起这次指派的请求。
+    /// </remarks>
     /// <param name="context">调用上下文。</param>
     /// <param name="owner">所属侧。</param>
     /// <param name="userId">被指派的用户。</param>

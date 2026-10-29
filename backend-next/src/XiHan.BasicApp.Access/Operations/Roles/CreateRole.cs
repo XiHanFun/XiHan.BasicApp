@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 创建角色：<c>POST /api/roles</c>。角色码在作用侧内唯一。
+/// 创建角色。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/roles</c>。角色码在作用侧内唯一。
+/// </remarks>
 /// <param name="roles">角色仓储。</param>
 /// <param name="service">角色域服务。</param>
 /// <param name="scopes">角色数据范围服务。</param>

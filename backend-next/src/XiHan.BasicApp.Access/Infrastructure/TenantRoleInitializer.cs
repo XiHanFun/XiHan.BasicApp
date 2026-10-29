@@ -15,9 +15,12 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// <see cref="ITenantInitializer"/> 的实现：为新租户建内建角色 <c>admin</c>（租户侧、<c>*</c>、数据范围全部），并把管理员指派进去。
-/// 角色与授予都走租户侧（授予主体 <c>role:&lt;角色 ID&gt;</c>、租户列为该租户），与平台的内建管理员角色同构。幂等：已有即复用。
+/// <see cref="ITenantInitializer"/> 的实现，为新租户建内建角色。
 /// </summary>
+/// <remarks>
+/// 为新租户建内建角色 <c>admin</c>（租户侧、<c>*</c>、数据范围全部），并把管理员指派进去。
+/// 角色与授予都走租户侧（授予主体 <c>role:&lt;角色 ID&gt;</c>、租户列为该租户），与平台的内建管理员角色同构。幂等：已有即复用。
+/// </remarks>
 /// <param name="roles">角色仓储。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="service">角色域服务。</param>

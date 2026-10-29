@@ -30,8 +30,11 @@ public sealed record DelegationView(Guid DelegatorId, string? Permission, Guid? 
 }
 
 /// <summary>
-/// 被委托人名下未撤销、未到期的委托（单例）：按（侧、被委托人）放在共享缓存里 60 秒，新建、撤销与删除时失效；有效期在判定时比较。
+/// 被委托人名下未撤销、未到期的委托（单例）。
 /// </summary>
+/// <remarks>
+/// 按（侧、被委托人）放在共享缓存里 60 秒，新建、撤销与删除时失效；有效期在判定时比较。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）。</param>
 /// <param name="clock">时间源。</param>

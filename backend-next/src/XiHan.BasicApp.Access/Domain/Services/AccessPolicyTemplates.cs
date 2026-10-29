@@ -21,9 +21,13 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 public sealed record AccessPolicyTemplate(string Code, string Name, string Description, AccessPolicyAction Action, AccessPolicyStatus Status, int Priority, IReadOnlyList<PolicyConditionDefinition> Conditions);
 
 /// <summary>
-/// 访问策略的预置模板（4.x 同六个）：平台种子按它写入预置策略，平台与租户都能在页面上从模板新建（新建一律只记录）。
-/// 办公网段用文档保留网段 <c>203.0.113.0/24</c> 占位，启用拦截前要换成真实网段；国家取离线地址库的中文名，港澳台在库里归中国。
+/// 访问策略的预置模板。
 /// </summary>
+/// <remarks>
+/// 共六个，4.x 同。
+/// 平台种子按它写入预置策略，平台与租户都能在页面上从模板新建（新建一律只记录）。
+/// 办公网段用文档保留网段 <c>203.0.113.0/24</c> 占位，启用拦截前要换成真实网段；国家取离线地址库的中文名，港澳台在库里归中国。
+/// </remarks>
 public static class AccessPolicyTemplates
 {
     /// <summary>

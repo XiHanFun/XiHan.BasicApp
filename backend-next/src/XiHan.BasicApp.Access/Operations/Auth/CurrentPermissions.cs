@@ -15,8 +15,12 @@ using XiHan.Framework.Security.Abstractions;
 namespace XiHan.BasicApp.Access.Operations.Auth;
 
 /// <summary>
-/// 当前主体的权限 <c>auth.permissions</c>（自助操作，只要求已认证）：有效权限码、角色、按权限裁剪的菜单树与页面码。
+/// 取当前主体的权限。
 /// </summary>
+/// <remarks>
+/// 操作 <c>auth.permissions</c>，自助操作，只要求已认证。
+/// 有效权限码、角色、按权限裁剪的菜单树与页面码。
+/// </remarks>
 /// <param name="effective">有效权限解析。</param>
 /// <param name="evaluator">授予全貌（此刻算数的角色）。</param>
 /// <param name="roles">角色仓储。</param>

@@ -6,9 +6,12 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 用户级数据范围覆盖（平台库实体，只在租户侧）：有这一行时完全取代该用户所有角色的数据范围（不取并集），没有即按角色。
-/// <see cref="DataScope.Custom"/> 的部门在 <see cref="SysUserDataScopeDepartment"/>。
+/// 用户级数据范围覆盖（平台库实体，只在租户侧）。
 /// </summary>
+/// <remarks>
+/// 有这一行时完全取代该用户所有角色的数据范围（不取并集），没有即按角色。
+/// <see cref="DataScope.Custom"/> 的部门在 <see cref="SysUserDataScopeDepartment"/>。
+/// </remarks>
 public sealed class SysUserDataScope : AppRecord, IOwnedByTenant
 {
     /// <inheritdoc />

@@ -8,20 +8,29 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 权限条件的一条子句（平台库实体，随所属侧）：挂在一个授权绑定（侧 × 主体 × 权限码 × 授予或拒绝）上，方案 5.9 的 ABAC。
+/// 权限条件的一条子句（平台库实体，随所属侧）。
+/// </summary>
+/// <remarks>
+/// 挂在一个授权绑定（侧 × 主体 × 权限码 × 授予或拒绝）上，方案 5.9 的 ABAC。
 /// 同一绑定里同组的子句取且、组之间取或；挂在授予上是「满足才授予」，挂在拒绝上是「满足才拒绝」。绑定按键直接对应，不经规则行（普通授予没有规则行）；
 /// 绑定没了（撤销、授予换成拒绝或反过来、删角色）即连同删除。值种类由属性登记决定，不另存值类型（4.x 的 ValueType）。
-/// </summary>
+/// </remarks>
 public sealed class SysPermissionCondition : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>
-    /// 每个绑定最多几组（4.x 同）。
+    /// 每个绑定最多几组。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const int MaxGroups = 5;
 
     /// <summary>
-    /// 每组最多几条（4.x 同）。
+    /// 每组最多几条。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const int MaxClausesPerGroup = 10;
 
     /// <summary>

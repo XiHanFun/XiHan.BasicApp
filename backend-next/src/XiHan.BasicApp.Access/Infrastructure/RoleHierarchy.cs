@@ -22,8 +22,11 @@ namespace XiHan.BasicApp.Access.Infrastructure;
 public sealed record RoleRelative(Guid RoleId, int Depth, IReadOnlyList<Guid> Path, bool IsEffective);
 
 /// <summary>
-/// 一侧的角色继承图：直接边与边上角色的启停。祖先按广度优先展开，停用的上级不传下授予、也截断经过它的继承（4.x 同）。
+/// 一侧的角色继承图。
 /// </summary>
+/// <remarks>
+/// 直接边与边上角色的启停。祖先按广度优先展开，停用的上级不传下授予、也截断经过它的继承（4.x 同）。
+/// </remarks>
 public sealed class RoleGraph
 {
     private readonly Dictionary<Guid, List<Guid>> _parents = [];
@@ -59,8 +62,11 @@ public sealed class RoleGraph
     public bool HasChildren(Guid roleId) => _children.ContainsKey(roleId);
 
     /// <summary>
-    /// 此刻传得到授予的上级与深度（不含自身）：只经过启用的上级，停用的上级与它之上的不算。
+    /// 取此刻传得到授予的上级与深度（不含自身）。
     /// </summary>
+    /// <remarks>
+    /// 只经过启用的上级，停用的上级与它之上的不算。
+    /// </remarks>
     public IReadOnlyList<(Guid RoleId, int Depth)> EffectiveAncestorsOf(Guid roleId)
     {
         var found = new List<(Guid, int)>();
@@ -94,8 +100,11 @@ public sealed class RoleGraph
     }
 
     /// <summary>
-    /// 全部下级（不含自身），按深度排列；本角色停用时都不传到。
+    /// 取全部下级（不含自身），按深度排列。
     /// </summary>
+    /// <remarks>
+    /// 本角色停用时都不传到。
+    /// </remarks>
     public IReadOnlyList<RoleRelative> DescendantsOf(Guid roleId)
     {
         var effective = new HashSet<Guid>();
@@ -158,8 +167,11 @@ public sealed class RoleGraph
 }
 
 /// <summary>
-/// 角色继承图的缓存（单例）：每侧一份，放在共享缓存里 60 秒，继承变更与角色启停、删除时失效。
+/// 角色继承图的缓存（单例）。
 /// </summary>
+/// <remarks>
+/// 每侧一份，放在共享缓存里 60 秒，继承变更与角色启停、删除时失效。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="scopes">作用域工厂（缓存未命中时用只读工作单元查库）。</param>
 public sealed class RoleHierarchy(ISharedCache cache, IServiceScopeFactory scopes)

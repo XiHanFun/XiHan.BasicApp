@@ -8,19 +8,28 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 访问策略（平台库实体，随所属侧，方案 5.9）：按请求属性（地址、归属地、时段、User-Agent、主体、路径等）只记录、拒绝或放行。
-/// 平台层管全部调用，租户层管本租户已登录的调用；层内放行压过拒绝、平台拒绝不看租户层（4.x 同）。新建一律只记录，动作与状态另有操作修改。
+/// 访问策略（平台库实体，随所属侧）。
 /// </summary>
+/// <remarks>
+/// 见方案 5.9。按请求属性（地址、归属地、时段、User-Agent、主体、路径等）只记录、拒绝或放行。
+/// 平台层管全部调用，租户层管本租户已登录的调用；层内放行压过拒绝、平台拒绝不看租户层（4.x 同）。新建一律只记录，动作与状态另有操作修改。
+/// </remarks>
 public sealed class SysAccessPolicy : AppAuditedEntity, IOwnedByTenant
 {
     /// <summary>
-    /// 每条策略最多几个条件组（4.x 同）。
+    /// 每条策略最多几个条件组。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const int MaxGroups = 20;
 
     /// <summary>
-    /// 每条策略最多几条条件（4.x 同）。
+    /// 每条策略最多几条条件。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const int MaxConditions = 100;
 
     /// <inheritdoc />
@@ -60,13 +69,19 @@ public sealed class SysAccessPolicy : AppAuditedEntity, IOwnedByTenant
     public AccessPolicyStatus Status { get; set; } = AccessPolicyStatus.Active;
 
     /// <summary>
-    /// 生效时间；为空即不限。
+    /// 生效时间。
     /// </summary>
+    /// <remarks>
+    /// 为空即不限。
+    /// </remarks>
     public DateTimeOffset? EffectiveAt { get; set; }
 
     /// <summary>
-    /// 失效时间；为空即不限。
+    /// 失效时间。
     /// </summary>
+    /// <remarks>
+    /// 为空即不限。
+    /// </remarks>
     public DateTimeOffset? ExpiresAt { get; set; }
 
     /// <summary>
@@ -140,8 +155,11 @@ public sealed class SysAccessPolicyCondition : AppRecord, IOwnedByTenant
 }
 
 /// <summary>
-/// 访问策略命中时的动作（4.x 同）。
+/// 访问策略命中时的动作。
 /// </summary>
+/// <remarks>
+/// 4.x 同。
+/// </remarks>
 public enum AccessPolicyAction
 {
     /// <summary>

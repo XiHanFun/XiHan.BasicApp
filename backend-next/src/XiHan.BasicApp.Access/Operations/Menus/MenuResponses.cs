@@ -6,8 +6,11 @@ using XiHan.BasicApp.Access.Domain.Entities;
 namespace XiHan.BasicApp.Access.Operations.Menus;
 
 /// <summary>
-/// 菜单节点的管理视图（<c>menus.*</c>）：含隐藏节点与定制标记；<c>menus.list</c> 里带子节点，其余操作的 <see cref="Children"/> 为空。
+/// 菜单节点的管理视图（<c>menus.*</c>）。
 /// </summary>
+/// <remarks>
+/// 含隐藏节点与定制标记；<c>menus.list</c> 里带子节点，其余操作的 <see cref="Children"/> 为空。
+/// </remarks>
 /// <param name="Id">主键。</param>
 /// <param name="Code">编码（页面码或 <c>custom.&lt;名&gt;</c>）。</param>
 /// <param name="Kind">种类。</param>

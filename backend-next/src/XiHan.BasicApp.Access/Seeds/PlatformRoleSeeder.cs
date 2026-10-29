@@ -18,8 +18,12 @@ using XiHan.Framework.Security.Abstractions.Permissions;
 namespace XiHan.BasicApp.Access.Seeds;
 
 /// <summary>
-/// 平台角色种子（号段 100 + 模块偏移 10，在平台身份种子之后）：内建平台角色 <c>admin</c>（全局授予 <c>*</c>）并把 <c>superadmin</c> 指派进去。运营数据只首写：已有的角色不改名、不改授予。
+/// 平台角色种子。
 /// </summary>
+/// <remarks>
+/// 号段 100 + 模块偏移 10，在平台身份种子之后。
+/// 内建平台角色 <c>admin</c>（全局授予 <c>*</c>）并把 <c>superadmin</c> 指派进去。运营数据只首写：已有的角色不改名、不改授予。
+/// </remarks>
 /// <param name="roles">角色仓储。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="service">角色域服务。</param>

@@ -15,8 +15,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 批量删除角色：<c>DELETE /api/roles?ids=...</c>。内建角色不能删；连同成员指派与授予一起清掉，逐项结果。
+/// 批量删除角色。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/roles?ids=...</c>。内建角色不能删；连同成员指派与授予一起清掉，逐项结果。
+/// </remarks>
 /// <param name="roles">角色仓储。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="service">角色域服务。</param>

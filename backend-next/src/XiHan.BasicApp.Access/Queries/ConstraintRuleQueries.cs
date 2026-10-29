@@ -12,9 +12,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Queries;
 
 /// <summary>
-/// 约束规则列表（SqlSugar 直查，作用侧 = 当前租户或平台）：关键字匹配编码、名称、说明与备注；
-/// 筛选 <c>type / targetType / violationAction / status</c> 的 <c>eq / in</c>；排序 <c>code / name / type / priority / status / createdAt</c>，缺省按优先级从大到小、再按编码（即求值顺序）。
+/// 约束规则列表查询。
 /// </summary>
+/// <remarks>
+/// SqlSugar 直查，作用侧 = 当前租户或平台。
+/// 关键字匹配编码、名称、说明与备注；
+/// 筛选 <c>type / targetType / violationAction / status</c> 的 <c>eq / in</c>；排序 <c>code / name / type / priority / status / createdAt</c>，缺省按优先级从大到小、再按编码（即求值顺序）。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 /// <param name="projection">规则投影。</param>
 public sealed class ConstraintRuleQueries(SqlSugarUnitOfWork unitOfWork, ConstraintRuleProjection projection)
@@ -96,8 +100,9 @@ public sealed class ConstraintRuleQueries(SqlSugarUnitOfWork unitOfWork, Constra
     }
 
     /// <summary>
-    /// 逗号分隔的枚举名；有一个认不出即为空（交给不支持的筛选报错）。
+    /// 解析逗号分隔的枚举名。
     /// </summary>
+    /// <returns>枚举值；有一个认不出即为空（交给不支持的筛选报错）。</returns>
     private static List<TEnum>? EnumsOf<TEnum>(string value) where TEnum : struct, Enum
     {
         var parts = value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

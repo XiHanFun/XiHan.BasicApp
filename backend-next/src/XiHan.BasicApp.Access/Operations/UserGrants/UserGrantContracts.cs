@@ -13,8 +13,11 @@ namespace XiHan.BasicApp.Access.Operations.UserGrants;
 public sealed record UserGrantsRequest([Required] Guid UserId);
 
 /// <summary>
-/// <c>user-grants.grant / deny / revoke</c> 的请求：用户与一批权限码；授予与拒绝可带有效期与原因（撤销忽略它们）。
+/// <c>user-grants.grant / deny / revoke</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 用户与一批权限码；授予与拒绝可带有效期与原因（撤销忽略它们）。
+/// </remarks>
 /// <param name="UserId">用户 ID；注册地须是当前这一侧。</param>
 /// <param name="Permissions">权限码，1 到 200 个。</param>
 /// <param name="EffectiveAt">生效时间；为空即立即生效。</param>

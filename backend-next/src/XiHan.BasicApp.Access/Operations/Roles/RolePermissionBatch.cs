@@ -10,8 +10,11 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 授予 / 撤销的共同骨架：找角色、逐项校验权限码（在目录里、作用侧相符），授予时再过一道筛选（约束规则），通过的一次交给框架授予存储，逐项结果合并；真正生效的权限码登记一条权限变更日志。
+/// 角色授予 / 撤销的共同骨架。
 /// </summary>
+/// <remarks>
+/// 找角色、逐项校验权限码（在目录里、作用侧相符），授予时再过一道筛选（约束规则），通过的一次交给框架授予存储，逐项结果合并；真正生效的权限码登记一条权限变更日志。
+/// </remarks>
 internal static class RolePermissionBatch
 {
     /// <summary>

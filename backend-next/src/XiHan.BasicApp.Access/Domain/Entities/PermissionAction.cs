@@ -4,8 +4,11 @@
 namespace XiHan.BasicApp.Access.Domain.Entities;
 
 /// <summary>
-/// 授予规则的动作。JSON 上是字符串枚举。
+/// 授予规则的动作。
 /// </summary>
+/// <remarks>
+/// JSON 上是字符串枚举。
+/// </remarks>
 public enum PermissionAction
 {
     /// <summary>
@@ -14,14 +17,20 @@ public enum PermissionAction
     Grant = 0,
 
     /// <summary>
-    /// 拒绝：用户上的拒绝压过一切授予；角色上的拒绝只拿走这个角色自己的授予。
+    /// 拒绝。
     /// </summary>
+    /// <remarks>
+    /// 用户上的拒绝压过一切授予；角色上的拒绝只拿走这个角色自己的授予。
+    /// </remarks>
     Deny = 1,
 }
 
 /// <summary>
-/// 授予规则的主体类型。JSON 上是字符串枚举。
+/// 授予规则的主体类型。
 /// </summary>
+/// <remarks>
+/// JSON 上是字符串枚举。
+/// </remarks>
 public enum GrantSubjectKind
 {
     /// <summary>

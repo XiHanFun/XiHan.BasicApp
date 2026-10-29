@@ -11,9 +11,12 @@ using XiHan.Framework.Persistence.Abstractions.Repositories;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 给 Identity 的登录 / 刷新提供用户的角色 ID：取该侧此刻在有效期内的指派，只要启用的角色。
-/// 签发之后才生效的指派要等下次刷新令牌才进令牌；到期的由权限过滤器立即拿掉。
+/// 给 Identity 的登录 / 刷新提供用户的角色 ID。
 /// </summary>
+/// <remarks>
+/// 取该侧此刻在有效期内的指派，只要启用的角色。
+/// 签发之后才生效的指派要等下次刷新令牌才进令牌；到期的由权限过滤器立即拿掉。
+/// </remarks>
 /// <param name="userRoles">指派仓储。</param>
 /// <param name="roles">角色仓储。</param>
 /// <param name="clock">时间源。</param>

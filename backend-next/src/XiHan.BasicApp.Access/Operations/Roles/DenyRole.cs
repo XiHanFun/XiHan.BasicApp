@@ -13,9 +13,12 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 让角色拒绝权限：<c>POST /api/roles/{id}:deny</c>。同一角色在一个权限码上只能是授予或拒绝之一：原有的授予撤掉、换成 Deny 规则（可带有效期与原因）。
-/// 角色上的 Deny 只拿走这个角色自己的授予；同一用户经别的角色或直接授权拿到的同一权限码不受影响（用户级 Deny 才压过一切）。
+/// 让角色拒绝权限。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/roles/{id}:deny</c>。同一角色在一个权限码上只能是授予或拒绝之一：原有的授予撤掉、换成 Deny 规则（可带有效期与原因）。
+/// 角色上的 Deny 只拿走这个角色自己的授予；同一用户经别的角色或直接授权拿到的同一权限码不受影响（用户级 Deny 才压过一切）。
+/// </remarks>
 /// <param name="service">角色域服务。</param>
 /// <param name="catalog">权限目录。</param>
 /// <param name="grants">角色授予。</param>

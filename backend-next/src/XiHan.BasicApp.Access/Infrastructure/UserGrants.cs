@@ -9,9 +9,12 @@ using XiHan.Framework.Security.Database.Grants;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 用户的直接授予：读写框架的 <c>PermissionGrantRecord</c>（主体 <c>user:&lt;ID&gt;</c>，租户列按侧——平台侧为全局，租户侧为该租户）。
-/// 与 Identity 种子写给超管的 <c>*</c> 同一处存放，所以这里列出的也包括别的包直接写入的授予。
+/// 用户的直接授予。
 /// </summary>
+/// <remarks>
+/// 读写框架的 <c>PermissionGrantRecord</c>（主体 <c>user:&lt;ID&gt;</c>，租户列按侧——平台侧为全局，租户侧为该租户）。
+/// 与 Identity 种子写给超管的 <c>*</c> 同一处存放，所以这里列出的也包括别的包直接写入的授予。
+/// </remarks>
 /// <param name="store">框架授予存储。</param>
 public sealed class UserGrants(PermissionGrantRecordStore store)
 {
@@ -36,14 +39,16 @@ public sealed class UserGrants(PermissionGrantRecordStore store)
     }
 
     /// <summary>
-    /// 授予；逐项结果与入参同序。
+    /// 给用户授予权限。
     /// </summary>
+    /// <returns>逐项结果与入参同序。</returns>
     public ValueTask<IReadOnlyList<PermissionGrantResult>> GrantAsync(Guid userId, string owner, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
         => store.GrantAsync(permissions.Select(p => new PermissionGrant(SubjectOf(userId), p, TenantOf(owner))).ToList(), cancellationToken);
 
     /// <summary>
-    /// 撤销；逐项结果与入参同序（没有的授予是 NotFound）。
+    /// 撤销用户的权限。
     /// </summary>
+    /// <returns>逐项结果与入参同序（没有的授予是 NotFound）。</returns>
     public ValueTask<IReadOnlyList<PermissionGrantResult>> RevokeAsync(Guid userId, string owner, IReadOnlyList<string> permissions, CancellationToken cancellationToken)
         => store.RevokeAsync(permissions.Select(p => new PermissionGrant(SubjectOf(userId), p, TenantOf(owner))).ToList(), cancellationToken);
 }

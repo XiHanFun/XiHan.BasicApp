@@ -9,8 +9,11 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Operations.PermissionConditions;
 
 /// <summary>
-/// <c>permission-conditions.attributes</c> 的请求（无参数）。
+/// <c>permission-conditions.attributes</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 无参数。
+/// </remarks>
 public sealed record ConditionAttributesRequest;
 
 /// <summary>
@@ -32,8 +35,11 @@ public sealed record ConditionAttributeResponse(string Name, ConditionValueKind 
 public sealed record ConditionAttributesResponse(IReadOnlyList<ConditionAttributeResponse> Items);
 
 /// <summary>
-/// <c>permission-conditions.list</c> 的请求：一个主体上的授权绑定与条件。
+/// <c>permission-conditions.list</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 一个主体上的授权绑定与条件。
+/// </remarks>
 /// <param name="SubjectKind">主体类别。</param>
 /// <param name="SubjectId">主体 ID：这一侧的角色或用户。</param>
 public sealed record PermissionConditionsRequest(GrantSubjectKind SubjectKind, [Required] Guid SubjectId);
@@ -83,8 +89,11 @@ public sealed record PermissionConditionResponse(Guid Id, string Permission, Per
 public sealed record PermissionConditionsResponse(GrantSubjectKind SubjectKind, Guid SubjectId, IReadOnlyList<ConditionBindingResponse> Bindings, IReadOnlyList<PermissionConditionResponse> Conditions);
 
 /// <summary>
-/// <c>permission-conditions.create</c> 的请求：在一个授权绑定上加一条子句。
+/// <c>permission-conditions.create</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 在一个授权绑定上加一条子句。
+/// </remarks>
 /// <param name="SubjectKind">主体类别。</param>
 /// <param name="SubjectId">主体 ID。</param>
 /// <param name="Permission">绑定的权限码。</param>
@@ -116,8 +125,11 @@ public sealed record CreatePermissionConditionRequest(
 }
 
 /// <summary>
-/// <c>permission-conditions.update</c> 的请求：整体修改一条子句（含启停），绑定不变。
+/// <c>permission-conditions.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 整体修改一条子句（含启停），绑定不变。
+/// </remarks>
 /// <param name="Id">子句 ID。</param>
 /// <param name="AttributeName">属性名。</param>
 /// <param name="Operator">运算符。</param>

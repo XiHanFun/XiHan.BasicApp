@@ -12,9 +12,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 角色继承的写入规则（方案 5.9，沿用 4.x）：只在同一侧的角色之间；内置角色不参与；停用的角色不能新设为上级（已有的停用上级保留，只是不传下授予）；
-/// 新上级不能是本角色的下级（防环），本角色的直接上级之间不能互为祖先（防冗余）。结构校验按库里的边，不按缓存。
+/// 角色继承的写入规则。
 /// </summary>
+/// <remarks>
+/// 见方案 5.9，沿用 4.x。
+/// 只在同一侧的角色之间；内置角色不参与；停用的角色不能新设为上级（已有的停用上级保留，只是不传下授予）；
+/// 新上级不能是本角色的下级（防环），本角色的直接上级之间不能互为祖先（防冗余）。结构校验按库里的边，不按缓存。
+/// </remarks>
 /// <param name="edges">继承边仓储。</param>
 /// <param name="roles">角色查找。</param>
 /// <param name="hierarchy">继承图缓存（写入后失效）。</param>
@@ -22,8 +26,11 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 public sealed class RoleHierarchyService(IRepository<SysRoleInheritance, Guid> edges, RoleService roles, RoleHierarchy hierarchy, IIdGenerator<Guid> ids)
 {
     /// <summary>
-    /// 一侧库里的继承图（带启停），按本次调用的工作单元读：写入之后的读取看得到未提交的边，也不会把旧图填回缓存。
+    /// 读一侧库里的继承图（带启停）。
     /// </summary>
+    /// <remarks>
+    /// 按本次调用的工作单元读：写入之后的读取看得到未提交的边，也不会把旧图填回缓存。
+    /// </remarks>
     public async Task<RoleGraph> GraphOfAsync(string owner, CancellationToken cancellationToken)
     {
         var rows = await ListAsync(owner, cancellationToken).ConfigureAwait(false);
@@ -33,8 +40,9 @@ public sealed class RoleHierarchyService(IRepository<SysRoleInheritance, Guid> e
     }
 
     /// <summary>
-    /// 把角色的直接上级整体设为 <paramref name="parentIds"/>；返回新增与解除的上级。
+    /// 把角色的直接上级整体设为 <paramref name="parentIds"/>。
     /// </summary>
+    /// <returns>新增与解除的上级。</returns>
     public async Task<Result<(IReadOnlyList<SysRole> Added, IReadOnlyList<SysRole> Removed)>> SetParentsAsync(SysRole role, IReadOnlyList<Guid> parentIds, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(role);
@@ -135,8 +143,9 @@ public sealed class RoleHierarchyService(IRepository<SysRoleInheritance, Guid> e
     }
 
     /// <summary>
-    /// 删除角色时去掉它作为下级的边；它若还是别的角色的上级，返回 <see langword="false"/>（不能删除）。
+    /// 删除角色时去掉它作为下级的边。
     /// </summary>
+    /// <returns>它若还是别的角色的上级，返回 <see langword="false"/>（不能删除）。</returns>
     public async Task<Result<bool>> DetachAsync(SysRole role, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(role);

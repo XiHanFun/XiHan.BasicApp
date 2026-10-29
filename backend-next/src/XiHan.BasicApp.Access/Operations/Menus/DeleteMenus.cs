@@ -11,9 +11,12 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Menus;
 
 /// <summary>
-/// 批量删除运营节点：<c>DELETE /api/menus?ids=...</c>（平台侧）。页面节点由页面登记生成，不能删（逐项 <c>ACCESS_CONFLICT_004</c>，要不显示就设为隐藏）；
-/// 还有子节点的目录不能删（逐项 <c>ACCESS_CONFLICT_005</c>）。
+/// 批量删除运营节点。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/menus?ids=...</c>（平台侧）。页面节点由页面登记生成，不能删（逐项 <c>ACCESS_CONFLICT_004</c>，要不显示就设为隐藏）；
+/// 还有子节点的目录不能删（逐项 <c>ACCESS_CONFLICT_005</c>）。
+/// </remarks>
 /// <param name="menus">菜单仓储。</param>
 /// <param name="service">菜单域服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.MenusDelete)]

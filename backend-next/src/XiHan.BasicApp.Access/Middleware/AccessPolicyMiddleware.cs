@@ -16,13 +16,17 @@ using XiHan.Framework.Security.Abstractions.Conditions;
 namespace XiHan.BasicApp.Access.Middleware;
 
 /// <summary>
-/// 访问策略的判定（Tenant 阶段，排在租户解析之后：认证与租户都已知）：先求平台层（管全部调用），平台层拦下即不看租户层；
+/// 访问策略的判定（Tenant 阶段）。
+/// </summary>
+/// <remarks>
+/// 排在租户解析之后：认证与租户都已知。
+/// 先求平台层（管全部调用），平台层拦下即不看租户层；
 /// 再求已登录租户调用的租户层。层内有放行命中即不拒绝，否则第一条命中的拒绝策略拦下（403 <c>ACCESS_DENIED_004</c>）。
 /// 每条命中都记一条条件命中（平台层的落在平台一侧），时机按策略引用的属性推出认证前 / 认证后。
 /// 4.x 分认证前、认证后两个中间件；6.0 认证在 Tenant 阶段之前，合成一个，认证失败的调用不再经过策略。判定本身出错时放行并记警告（4.x 同）。
 /// 策略之前先看登录失败自动封禁（<see cref="LoginBans"/>）：来源地址封禁中即 503 <c>ACCESS_UNAVAILABLE_001</c>（带重试秒数），记一条编码 <c>login-auto-ban</c> 的命中。
 /// 平台层有放行命中时在调用上下文里留标记（<see cref="PlatformAllowedKey"/>），这次调用的认证失败不计入封禁（4.x 同）。
-/// </summary>
+/// </remarks>
 /// <param name="policies">策略缓存。</param>
 /// <param name="evaluator">策略求值。</param>
 /// <param name="bans">登录失败自动封禁。</param>
@@ -33,8 +37,11 @@ namespace XiHan.BasicApp.Access.Middleware;
 public sealed partial class AccessPolicyMiddleware(AccessPolicies policies, AccessPolicyEvaluator evaluator, LoginBans bans, AccessOptions options, SecurityOptions security, TimeProvider clock, ILogger<AccessPolicyMiddleware> logger) : IPipelineMiddleware
 {
     /// <summary>
-    /// 自动封禁命中的编码（4.x 同）。
+    /// 自动封禁命中的编码。
     /// </summary>
+    /// <remarks>
+    /// 4.x 同。
+    /// </remarks>
     public const string AutoBanCode = "login-auto-ban";
 
     /// <summary>

@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Security;
 namespace XiHan.BasicApp.Access;
 
 /// <summary>
-/// 授权包的权限码（<c>access.&lt;资源&gt;.&lt;动作&gt;</c>）与它们的描述；在 <see cref="AccessFeature.Configure"/> 登记进内核，并进入权限目录。
+/// 授权包的权限码与它们的描述。
 /// </summary>
+/// <remarks>
+/// 权限码形如 <c>access.&lt;资源&gt;.&lt;动作&gt;</c>；在 <see cref="AccessFeature.Configure"/> 登记进内核，并进入权限目录。
+/// </remarks>
 public static class AccessPermissions
 {
     /// <summary>
@@ -51,8 +54,11 @@ public static class AccessPermissions
     public const string UserGrantsRead = "access.user-grants.read";
 
     /// <summary>
-    /// 给用户直接授予、拒绝与撤销：<c>user-grants.grant / deny / revoke</c>。
+    /// 给用户直接授予、拒绝与撤销。
     /// </summary>
+    /// <remarks>
+    /// 对应操作 <c>user-grants.grant / deny / revoke</c>。
+    /// </remarks>
     public const string UserGrantsGrant = "access.user-grants.grant";
 
     /// <summary>
@@ -61,13 +67,19 @@ public static class AccessPermissions
     public const string UserDataScopesRead = "access.user-data-scopes.read";
 
     /// <summary>
-    /// 设置或清除用户级数据范围覆盖：<c>user-data-scopes.set</c>（只在租户侧）。
+    /// 设置或清除用户级数据范围覆盖。
     /// </summary>
+    /// <remarks>
+    /// 对应操作 <c>user-data-scopes.set</c>（只在租户侧）。
+    /// </remarks>
     public const string UserDataScopesUpdate = "access.user-data-scopes.update";
 
     /// <summary>
-    /// 查看字段安全规则与实体目录：<c>field-security.list / get / entities</c>。
+    /// 查看字段安全规则与实体目录。
     /// </summary>
+    /// <remarks>
+    /// 对应操作 <c>field-security.list / get / entities</c>。
+    /// </remarks>
     public const string FieldSecurityRead = "access.field-security.read";
 
     /// <summary>
@@ -131,8 +143,11 @@ public static class AccessPermissions
     public const string PermissionConditionsTrial = "access.permission-conditions.trial";
 
     /// <summary>
-    /// 查看访问策略与模板：<c>policies.list / get / templates</c>。
+    /// 查看访问策略与模板。
     /// </summary>
+    /// <remarks>
+    /// 对应操作 <c>policies.list / get / templates</c>。
+    /// </remarks>
     public const string PoliciesRead = "access.policies.read";
 
     /// <summary>
@@ -141,8 +156,11 @@ public static class AccessPermissions
     public const string PoliciesCreate = "access.policies.create";
 
     /// <summary>
-    /// 修改访问策略、改动作与启停：<c>policies.update / set-action / set-status</c>。
+    /// 修改访问策略、改动作与启停。
     /// </summary>
+    /// <remarks>
+    /// 对应操作 <c>policies.update / set-action / set-status</c>。
+    /// </remarks>
     public const string PoliciesUpdate = "access.policies.update";
 
     /// <summary>
@@ -156,8 +174,11 @@ public static class AccessPermissions
     public const string PoliciesTrial = "access.policies.trial";
 
     /// <summary>
-    /// 查看登录失败自动封禁的参数与当前封禁（只在平台）：<c>login-bans.list</c>。
+    /// 查看登录失败自动封禁的参数与当前封禁（只在平台）。
     /// </summary>
+    /// <remarks>
+    /// 对应操作 <c>login-bans.list</c>。
+    /// </remarks>
     public const string LoginBansRead = "access.login-bans.read";
 
     /// <summary>
@@ -176,8 +197,11 @@ public static class AccessPermissions
     public const string ConstraintRulesCreate = "access.constraint-rules.create";
 
     /// <summary>
-    /// 修改与启停约束规则：<c>constraint-rules.update / set-status</c>。
+    /// 修改与启停约束规则。
     /// </summary>
+    /// <remarks>
+    /// 对应操作 <c>constraint-rules.update / set-status</c>。
+    /// </remarks>
     public const string ConstraintRulesUpdate = "access.constraint-rules.update";
 
     /// <summary>

@@ -15,11 +15,14 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Infrastructure;
 
 /// <summary>
-/// 登录守卫（Access 对 <see cref="ILoginGuard"/> 的实现，4.x 的登录时机访问策略与登录失败自动封禁）。
+/// 登录守卫（Access 对 <see cref="ILoginGuard"/> 的实现）。
+/// </summary>
+/// <remarks>
+/// 对应 4.x 的登录时机访问策略与登录失败自动封禁。
 /// 签发前：按要进入的一侧与账号此刻的角色，求平台层（只记认证后的那些，认证前的本次调用已在中间件里求过）与租户层，拦下即不签发（<c>ACCESS_DENIED_005</c>），命中的时机记为登录时。
 /// 认证失败：按调用来源地址计数（参数 <see cref="LoginAutoBanSettings.ConfigKey"/>，缺省关；本次调用命中了平台层的放行策略不计，4.x 同）。
 /// 判定或计数本身出错时放行并记警告，与访问策略中间件一致。
-/// </summary>
+/// </remarks>
 /// <param name="policies">策略缓存。</param>
 /// <param name="evaluator">策略求值。</param>
 /// <param name="bans">封禁存储。</param>
@@ -83,8 +86,11 @@ public sealed partial class LoginDefense(AccessPolicies policies, AccessPolicyEv
     }
 
     /// <summary>
-    /// 自动封禁的参数：没装 Settings 或没建参数即缺省值（关）；JSON 写错或超出范围即 <c>ACCESS_VALIDATION_043</c>。
+    /// 读取自动封禁的参数。
     /// </summary>
+    /// <remarks>
+    /// 没装 Settings 或没建参数即缺省值（关）；JSON 写错或超出范围即 <c>ACCESS_VALIDATION_043</c>。
+    /// </remarks>
     public static async ValueTask<Result<LoginAutoBanSettings>> SettingsAsync(InvocationContext context)
     {
         ArgumentNullException.ThrowIfNull(context);

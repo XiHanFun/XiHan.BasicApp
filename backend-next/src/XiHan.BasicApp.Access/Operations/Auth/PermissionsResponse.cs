@@ -6,8 +6,11 @@ using XiHan.BasicApp.Access.Domain.Entities;
 namespace XiHan.BasicApp.Access.Operations.Auth;
 
 /// <summary>
-/// <c>auth.permissions</c> 的响应：当前主体的有效权限码、角色、按权限裁剪过的菜单树与页面码；前端据此门控按钮、装载动态路由、渲染导航。
+/// <c>auth.permissions</c> 的响应。
 /// </summary>
+/// <remarks>
+/// 当前主体的有效权限码、角色、按权限裁剪过的菜单树与页面码；前端据此门控按钮、装载动态路由、渲染导航。
+/// </remarks>
 /// <param name="Permissions">有效权限码（<c>*</c> 已展开为本侧目录的全部码），按码排序。</param>
 /// <param name="Roles">令牌里的角色（本侧生效的）。</param>
 /// <param name="Menus">菜单树。</param>
@@ -29,8 +32,11 @@ public sealed record PermissionsResponse(
 public sealed record RoleSummary(Guid Id, string Code, string Name);
 
 /// <summary>
-/// 菜单节点：页面生成路由记录；目录只做分组；外链在新标签打开、不生成路由。
+/// 菜单节点。
 /// </summary>
+/// <remarks>
+/// 页面生成路由记录；目录只做分组；外链在新标签打开、不生成路由。
+/// </remarks>
 /// <param name="Code">节点编码（页面码或 <c>custom.&lt;名&gt;</c>）。</param>
 /// <param name="Kind">种类。</param>
 /// <param name="Route">路由路径；目录与外链为空。</param>

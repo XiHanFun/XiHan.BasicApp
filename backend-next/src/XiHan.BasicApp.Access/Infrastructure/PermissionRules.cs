@@ -29,9 +29,12 @@ public sealed record PermissionRuleView(string Permission, PermissionAction Acti
 }
 
 /// <summary>
-/// 授予规则的读取（单例）：按（侧、主体）缓存在共享缓存里，写入后由写入方失效；有效期在判定时按当前时间比较，到点生效与到期不必重建缓存。
-/// 缓存存成文本行，不依赖缓存的对象序列化。
+/// 授予规则的读取（单例）。
 /// </summary>
+/// <remarks>
+/// 按（侧、主体）缓存在共享缓存里，写入后由写入方失效；有效期在判定时按当前时间比较，到点生效与到期不必重建缓存。
+/// 缓存存成文本行，不依赖缓存的对象序列化。
+/// </remarks>
 /// <param name="cache">共享缓存。</param>
 /// <param name="scopes">作用域工厂（在独立的只读作用域里读仓储）。</param>
 public sealed class PermissionRules(ISharedCache cache, IServiceScopeFactory scopes)

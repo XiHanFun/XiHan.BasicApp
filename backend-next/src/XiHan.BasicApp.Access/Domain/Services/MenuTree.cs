@@ -7,9 +7,12 @@ using XiHan.BasicApp.Access.Operations.Auth;
 namespace XiHan.BasicApp.Access.Domain.Services;
 
 /// <summary>
-/// 菜单行 → 树，并按有效权限裁剪：节点要求的权限不在集合里即连同子树去掉；没有要求权限的节点登录即可见；裁剪后没有子节点的目录不下发。
-/// 隐藏的节点（<see cref="SysMenu.IsVisible"/> 为假）照常下发并标 <see cref="MenuNode.Hidden"/>：页面仍可直接访问，导航里不显示。
+/// 菜单行 → 树，并按有效权限裁剪。
 /// </summary>
+/// <remarks>
+/// 节点要求的权限不在集合里即连同子树去掉；没有要求权限的节点登录即可见；裁剪后没有子节点的目录不下发。
+/// 隐藏的节点（<see cref="SysMenu.IsVisible"/> 为假）照常下发并标 <see cref="MenuNode.Hidden"/>：页面仍可直接访问，导航里不显示。
+/// </remarks>
 public static class MenuTree
 {
     /// <summary>
@@ -29,8 +32,11 @@ public static class MenuTree
     }
 
     /// <summary>
-    /// 按有效权限裁剪；裁剪后没有子节点的目录一并去掉。
+    /// 按有效权限裁剪。
     /// </summary>
+    /// <remarks>
+    /// 裁剪后没有子节点的目录一并去掉。
+    /// </remarks>
     public static IReadOnlyList<MenuNode> Prune(IReadOnlyList<MenuNode> nodes, IReadOnlySet<string> permissions)
     {
         ArgumentNullException.ThrowIfNull(nodes);

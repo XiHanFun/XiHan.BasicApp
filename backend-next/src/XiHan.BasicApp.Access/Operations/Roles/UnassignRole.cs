@@ -16,8 +16,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.Roles;
 
 /// <summary>
-/// 解除角色成员：<c>POST /api/roles/{id}:unassign</c>。不是成员的算成功（幂等）。解除最迟在用户下一次刷新令牌时生效。
+/// 解除角色成员。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/roles/{id}:unassign</c>。不是成员的算成功（幂等）。解除最迟在用户下一次刷新令牌时生效。
+/// </remarks>
 /// <param name="service">角色域服务。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="users">用户仓储（权限变更日志记目标用户的登录名）。</param>

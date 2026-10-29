@@ -123,8 +123,11 @@ public sealed record CreateConstraintRuleRequest(
 }
 
 /// <summary>
-/// <c>constraint-rules.update</c> 的请求：整体修改（含启停与规则项）。
+/// <c>constraint-rules.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 整体修改（含启停与规则项）。
+/// </remarks>
 /// <param name="Id">规则 ID。</param>
 /// <param name="Code">编码。</param>
 /// <param name="Name">名称。</param>

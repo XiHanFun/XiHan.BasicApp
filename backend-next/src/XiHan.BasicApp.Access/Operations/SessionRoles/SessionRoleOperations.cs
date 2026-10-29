@@ -34,8 +34,11 @@ public sealed record SessionRoleResponse(Guid Id, Guid SessionId, Guid UserId, s
 public sealed record GetSessionRoleRequest([Required] Guid Id);
 
 /// <summary>
-/// 分页列出当前一侧的会话角色：<c>POST /api/session-roles:list</c>（4.x 的 SessionRoleQueryService，只读）。缺省按激活时间倒序。
+/// 分页列出当前一侧的会话角色。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/session-roles:list</c>（4.x 的 SessionRoleQueryService，只读）。缺省按激活时间倒序。
+/// </remarks>
 /// <param name="queries">会话角色查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.SessionRolesRead)]
 public sealed class ListSessionRoles(SessionRoleQueries queries) : IOperation<PageRequest, PageResult<SessionRoleResponse>>
@@ -55,8 +58,11 @@ public sealed class ListSessionRoles(SessionRoleQueries queries) : IOperation<Pa
 }
 
 /// <summary>
-/// 按 ID 取当前一侧的一行会话角色：<c>GET /api/session-roles/{id}</c>。
+/// 按 ID 取当前一侧的一行会话角色。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/session-roles/{id}</c>。
+/// </remarks>
 /// <param name="queries">会话角色查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.SessionRolesRead)]
 public sealed class GetSessionRole(SessionRoleQueries queries) : IOperation<GetSessionRoleRequest, SessionRoleResponse>

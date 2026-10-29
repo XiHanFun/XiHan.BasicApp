@@ -25,9 +25,13 @@ namespace XiHan.BasicApp.Access.Domain.Services;
 public sealed record DelegationDefinition(Guid DelegatorId, Guid DelegateeId, string? Permission, Guid? RoleId, DateTimeOffset? EffectiveAt, DateTimeOffset ExpiresAt, string? Reason);
 
 /// <summary>
-/// 委托的写入规则（方案 5.9）。比 4.x 多三条：新建时委托人此刻须持有所委托的权限或角色；未到生效时间的到点自动生效（状态按时间推出）；
-/// 重复只看同一委托人、被委托人与目标上未撤销、未到期的那条，撤销或到期后可以重建。委托的角色须启用且不是内置角色。
+/// 委托的写入规则。
 /// </summary>
+/// <remarks>
+/// 见方案 5.9。
+/// 比 4.x 多三条：新建时委托人此刻须持有所委托的权限或角色；未到生效时间的到点自动生效（状态按时间推出）；
+/// 重复只看同一委托人、被委托人与目标上未撤销、未到期的那条，撤销或到期后可以重建。委托的角色须启用且不是内置角色。
+/// </remarks>
 /// <param name="delegations">委托仓储。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="roles">角色查找。</param>

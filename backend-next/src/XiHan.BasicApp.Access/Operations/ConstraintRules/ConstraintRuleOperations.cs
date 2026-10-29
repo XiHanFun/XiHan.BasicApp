@@ -11,8 +11,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Access.Operations.ConstraintRules;
 
 /// <summary>
-/// 分页列出当前一侧的约束规则：<c>POST /api/constraint-rules:list</c>。缺省按求值顺序（优先级从大到小、再按编码）。
+/// 分页列出当前一侧的约束规则。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/constraint-rules:list</c>。缺省按求值顺序（优先级从大到小、再按编码）。
+/// </remarks>
 /// <param name="queries">规则查询。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesRead)]
 public sealed class ListConstraintRules(ConstraintRuleQueries queries) : IOperation<PageRequest, PageResult<ConstraintRuleResponse>>
@@ -32,8 +35,11 @@ public sealed class ListConstraintRules(ConstraintRuleQueries queries) : IOperat
 }
 
 /// <summary>
-/// 按 ID 取当前一侧的约束规则：<c>GET /api/constraint-rules/{id}</c>。
+/// 按 ID 取当前一侧的约束规则。
 /// </summary>
+/// <remarks>
+/// <c>GET /api/constraint-rules/{id}</c>。
+/// </remarks>
 /// <param name="service">规则服务。</param>
 /// <param name="projection">规则投影。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesRead)]
@@ -59,8 +65,11 @@ public sealed class GetConstraintRule(ConstraintRuleService service, ConstraintR
 }
 
 /// <summary>
-/// 在当前一侧新建约束规则：<c>POST /api/constraint-rules</c>。之后的指派、授予、继承、委托与会话激活按它判定（已有的不回头检查，4.x 同）。
+/// 在当前一侧新建约束规则。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/constraint-rules</c>。之后的指派、授予、继承、委托与会话激活按它判定（已有的不回头检查，4.x 同）。
+/// </remarks>
 /// <param name="service">规则服务。</param>
 /// <param name="projection">规则投影。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesCreate)]
@@ -87,8 +96,11 @@ public sealed class CreateConstraintRule(ConstraintRuleService service, Constrai
 }
 
 /// <summary>
-/// 整体修改当前一侧的约束规则（含启停与规则项）：<c>PUT /api/constraint-rules/{id}</c>。
+/// 整体修改当前一侧的约束规则（含启停与规则项）。
 /// </summary>
+/// <remarks>
+/// <c>PUT /api/constraint-rules/{id}</c>。
+/// </remarks>
 /// <param name="service">规则服务。</param>
 /// <param name="projection">规则投影。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesUpdate)]
@@ -120,8 +132,11 @@ public sealed class UpdateConstraintRule(ConstraintRuleService service, Constrai
 }
 
 /// <summary>
-/// 启用或停用约束规则：<c>POST /api/constraint-rules/{id}:set-status</c>。启用时重新校验规则项。
+/// 启用或停用约束规则。
 /// </summary>
+/// <remarks>
+/// <c>POST /api/constraint-rules/{id}:set-status</c>。启用时重新校验规则项。
+/// </remarks>
 /// <param name="service">规则服务。</param>
 /// <param name="projection">规则投影。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesUpdate)]
@@ -153,8 +168,11 @@ public sealed class SetConstraintRuleStatus(ConstraintRuleService service, Const
 }
 
 /// <summary>
-/// 批量删除当前一侧的约束规则：<c>DELETE /api/constraint-rules?ids=...</c>，逐项结果。
+/// 批量删除当前一侧的约束规则。
 /// </summary>
+/// <remarks>
+/// <c>DELETE /api/constraint-rules?ids=...</c>，逐项结果。
+/// </remarks>
 /// <param name="service">规则服务。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.ConstraintRulesDelete)]
 public sealed class DeleteConstraintRules(ConstraintRuleService service) : IOperation<ConstraintRuleIdsRequest, BatchResult>
