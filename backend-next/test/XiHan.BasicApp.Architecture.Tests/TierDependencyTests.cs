@@ -6,8 +6,11 @@ using XiHan.BasicApp.Architecture.Tests.Model;
 namespace XiHan.BasicApp.Architecture.Tests;
 
 /// <summary>
-/// 方案 D2：包间只能向下依赖、同层不引用；跨层协作经 Contracts 的接口与消息主题。
+/// 检查包间只向下依赖、同层不引用。
 /// </summary>
+/// <remarks>
+/// 方案 D2：包间只能向下依赖、同层不引用；跨层协作经 Contracts 的接口与消息主题。
+/// </remarks>
 public sealed class TierDependencyTests
 {
     [Fact]

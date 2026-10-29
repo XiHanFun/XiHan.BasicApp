@@ -10,13 +10,19 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Architecture.Tests;
 
 /// <summary>
-/// 方案 5.4 / 第 10 节第 8 项：每个操作显式写 <c>Expose</c>（编译期 XHG004）；权限码点分三段且资源段与操作 ID 同词；匿名操作只能在白名单里。
+/// 检查每个操作的暴露声明、权限码与匿名白名单。
 /// </summary>
+/// <remarks>
+/// 方案 5.4 / 第 10 节第 8 项：每个操作显式写 <c>Expose</c>（编译期 XHG004）；权限码点分三段且资源段与操作 ID 同词；匿名操作只能在白名单里。
+/// </remarks>
 public sealed class OperationContractTests
 {
     /// <summary>
-    /// 不写 Permission 也不写 Policy 的操作（登录、刷新令牌；之后的验证码、找回密码）在这里登记。签名开放接口（<c>open.*</c>）的调用方不成为主体，验签在 Authenticate 阶段做，也登记在这里。
+    /// 不写 Permission 也不写 Policy 的操作白名单。
     /// </summary>
+    /// <remarks>
+    /// 这类操作（登录、刷新令牌；之后的验证码、找回密码）在这里登记。签名开放接口（<c>open.*</c>）的调用方不成为主体，验签在 Authenticate 阶段做，也登记在这里。
+    /// </remarks>
     private static readonly HashSet<string> _anonymousOperations = new(StringComparer.Ordinal) { "auth.login", "auth.refresh", "auth.verify-two-factor", "auth.captcha", "auth.login-config", "auth.external-login", "open.ping", "open.echo" };
 
     internal static IEnumerable<(Type Type, OperationAttribute Attribute, string Package)> Operations()

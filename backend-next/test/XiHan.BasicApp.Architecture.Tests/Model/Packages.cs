@@ -21,15 +21,21 @@ using XiHan.BasicApp.Workbench;
 namespace XiHan.BasicApp.Architecture.Tests.Model;
 
 /// <summary>
-/// 方案 D2 的包目录与层级：只能向下依赖、同层之间不引用。秩相同即同层（Tier 2 与 Tier 3 内部互不引用），Tier 0 / Tier 1 的链按箭头逐个递增。
+/// 包目录与层级。
 /// </summary>
+/// <remarks>
+/// 方案 D2：只能向下依赖、同层之间不引用。秩相同即同层（Tier 2 与 Tier 3 内部互不引用），Tier 0 / Tier 1 的链按箭头逐个递增。
+/// </remarks>
 public static class Packages
 {
     public const string Prefix = "XiHan.BasicApp.";
 
     /// <summary>
-    /// 包名（去前缀）→ 秩；引用只能指向秩更小的包。
+    /// 包名（去前缀）到秩的映射。
     /// </summary>
+    /// <remarks>
+    /// 引用只能指向秩更小的包。
+    /// </remarks>
     public static IReadOnlyDictionary<string, int> Ranks { get; } = new Dictionary<string, int>(StringComparer.Ordinal)
     {
         // Tier 0：Contracts → Runtime

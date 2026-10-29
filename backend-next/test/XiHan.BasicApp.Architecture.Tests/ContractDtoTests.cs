@@ -8,9 +8,12 @@ using XiHan.BasicApp.Architecture.Tests.Model;
 namespace XiHan.BasicApp.Architecture.Tests;
 
 /// <summary>
-/// 请求 / 响应 DTO 的写法：有公开无参构造函数的类型不得用 <c>init</c> 属性——源生成的序列化把 init 属性当构造参数，JSON 里没写的成员会以 null 覆盖属性初始化器给的缺省值（分页的 <c>Filters = []</c> 变成 null）。
-/// 位置记录（主构造函数）不受影响。
+/// 检查请求 / 响应 DTO 的写法。
 /// </summary>
+/// <remarks>
+/// 有公开无参构造函数的类型不得用 <c>init</c> 属性——源生成的序列化把 init 属性当构造参数，JSON 里没写的成员会以 null 覆盖属性初始化器给的缺省值（分页的 <c>Filters = []</c> 变成 null）。
+/// 位置记录（主构造函数）不受影响。
+/// </remarks>
 public sealed class ContractDtoTests
 {
     [Fact]
