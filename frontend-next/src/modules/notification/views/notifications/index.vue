@@ -1,10 +1,14 @@
 <script lang="ts" setup>
 import type { NotificationDetail, NotificationForm, NotificationRow, ReadStats, RecipientRow } from './notification'
 import type { ListFieldSchema, PageSchema, SchemaActionPayload, SchemaPageInstance, XDataTableColumn } from '~/components'
-import type { NotificationRecipientFilter, NotificationTargetType } from '~/contracts'
+import type { DeliveryChannel, NotificationRecipientFilter, NotificationTargetType } from '~/contracts'
 import type { SelectOption } from '~/types'
 import type { NotificationContentFormat as ShellContentFormat } from '~/types/enums'
 import {
+  XhCheckboxGroupIndicator,
+  XhCheckboxGroupItem,
+  XhCheckboxGroupItemText,
+  XhCheckboxGroupRoot,
   XhDescriptionsItem,
   XhDescriptionsLabel,
   XhDescriptionsRoot,
@@ -28,14 +32,14 @@ import {
   XhTagLabel,
   XhTagRoot,
 } from '@xihan-ui/vue'
-import { computed, reactive, ref, useId } from 'vue'
+import { computed, h, reactive, ref, useId } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { NotificationContent, renderTag, SchemaPage, XDataTable, XDatePicker, XEditModal, XInput, XPopconfirm, XSegmented, XSelect, XTagsInput } from '~/components'
 import { dialog, toast } from '~/composables'
-import { NotificationContentFormat as CONTENT_FORMATS, notifications as notificationsApi, NotificationPriority as PRIORITIES, NotificationTargetType as TARGET_TYPES, NotificationType as TYPES } from '~/contracts'
+import { NotificationContentFormat as CONTENT_FORMATS, DeliveryChannel as DELIVERY_CHANNELS, notifications as notificationsApi, NotificationPriority as PRIORITIES, NotificationTargetType as TARGET_TYPES, NotificationType as TYPES } from '~/contracts'
 import { useAuthStore } from '~/stores'
 import { downloadBlob, formatDate } from '~/utils'
-import { contentFormatLabel, errorText, notificationTypeLabel, notificationTypeTone, priorityLabel, targetTypeLabel } from '../../labels'
+import { contentFormatLabel, deliveryChannelLabel, errorText, notificationTypeLabel, notificationTypeTone, priorityLabel, targetTypeLabel } from '../../labels'
 import {
   emptyNotificationForm,
   findNotificationProblem,
@@ -44,6 +48,7 @@ import {
   loadRoleOptions,
   loadUnreadForExport,
   needsTargets,
+  normalizeChannels,
   notificationResource,
   problemMessage,
   readRate,
@@ -91,12 +96,25 @@ function publishedTag(published: boolean) {
   return renderTag(published ? t('notification.notifications.published') : t('notification.notifications.unpublished'), published ? 'success' : 'neutral')
 }
 
+/** 投递渠道的勾选项：站内信始终投递，固定勾选、不可取消（4.x 同） */
+const deliveryChannelOptions = computed(() => DELIVERY_CHANNELS.map(channel => ({ label: deliveryChannelLabel(t, channel), value: channel, disabled: channel === 'InApp' })))
+
+/** 列表里的渠道标签（4.x 同）：站内信 neutral，其余 info；h() 节点不带页面 scope，样式写 :deep() */
+function channelTags(channels: readonly DeliveryChannel[]) {
+  return h('span', { class: 'notification-channels' }, normalizeChannels(channels).map(channel => renderTag(deliveryChannelLabel(t, channel), channel === 'InApp' ? 'neutral' : 'info')))
+}
+
+function formatChannels(channels: readonly DeliveryChannel[]): string {
+  return normalizeChannels(channels).map(channel => deliveryChannelLabel(t, channel)).join(' / ')
+}
+
 // ── 字段单一事实源（列 + 搜索；仅搜索字段 visible:false；可排序的只放后端白名单里的：发布时间、创建时间） ──
 const fields = computed<ListFieldSchema[]>(() => [
   { key: 'keyword', title: t('notification.notifications.col_keyword'), dataType: 'string', visible: false, searchable: true, searchPlaceholder: t('notification.notifications.search_keyword_placeholder'), order: 0 },
   { key: 'title', title: t('notification.notifications.col_title'), dataType: 'string', minWidth: 220, order: 10 },
   { key: 'notificationType', title: t('notification.notifications.col_type'), dataType: 'enum', searchable: true, searchMultiple: true, options: typeOptions.value, searchPlaceholder: t('notification.notifications.search_type_placeholder'), width: 110, order: 11, render: row => renderTag(notificationTypeLabel(t, asRow(row).notificationType), notificationTypeTone(asRow(row).notificationType)) },
   { key: 'targetType', title: t('notification.notifications.col_target_type'), dataType: 'enum', options: targetTypeOptions.value, width: 110, order: 12, render: row => targetTypeLabel(t, asRow(row).targetType) },
+  { key: 'deliveryChannels', title: t('notification.notifications.col_delivery_channels'), dataType: 'string', width: 170, order: 13, render: row => channelTags(asRow(row).deliveryChannels) },
   { key: 'isPublished', title: t('notification.notifications.col_is_published'), dataType: 'enum', searchable: true, options: publishedOptions.value, searchPlaceholder: t('notification.notifications.search_published_placeholder'), width: 100, order: 14, render: row => publishedTag(asRow(row).isPublished) },
   { key: 'publishedAt', title: t('notification.notifications.col_send_time'), dataType: 'datetime', sortable: true, minWidth: 170, order: 15 },
   { key: 'expiresAt', title: t('notification.notifications.col_expiration_time'), dataType: 'datetime', minWidth: 170, order: 16 },
@@ -233,6 +251,11 @@ function changeTargetType(value: unknown) {
 
 function changeTargetIds(value: unknown) {
   form.targetIds = Array.isArray(value) ? value.map(String) : []
+}
+
+/** 勾选渠道：站内信总在内 */
+function changeChannels(value: string[]) {
+  form.deliveryChannels = normalizeChannels(value)
 }
 
 async function onSubmit() {
@@ -460,6 +483,18 @@ async function exportUnread() {
             <XSelect :value="form.targetType" name="targetType" :options="formTargetTypeOptions" @update:value="changeTargetType" />
           </XhFieldControl>
         </XhFieldRoot>
+        <XhFieldRoot class="xh-span-2">
+          <XhFieldLabel>{{ t('notification.notifications.form_delivery_channels') }}</XhFieldLabel>
+          <XhFieldControl>
+            <XhCheckboxGroupRoot class="notification-channel-picker" orientation="horizontal" name="deliveryChannels" :value="form.deliveryChannels" @update:value="changeChannels">
+              <XhCheckboxGroupItem v-for="option in deliveryChannelOptions" :key="option.value" :value="option.value" :disabled="option.disabled">
+                <XhCheckboxGroupIndicator />
+                <XhCheckboxGroupItemText>{{ option.label }}</XhCheckboxGroupItemText>
+              </XhCheckboxGroupItem>
+            </XhCheckboxGroupRoot>
+          </XhFieldControl>
+          <XhFieldDescription>{{ t('notification.notifications.form_delivery_channels_hint') }}</XhFieldDescription>
+        </XhFieldRoot>
         <XhFieldRoot v-if="form.targetType === 'User'" class="xh-span-2" required>
           <XhFieldLabel>{{ t('notification.notifications.form_user_ids') }}</XhFieldLabel>
           <XhFieldControl>
@@ -553,6 +588,10 @@ async function exportUnread() {
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('notification.notifications.detail.label.target_type') }}</XhDescriptionsLabel>
               <XhDescriptionsValue>{{ targetTypeLabel(t, currentDetail.targetType) }}</XhDescriptionsValue>
+            </XhDescriptionsItem>
+            <XhDescriptionsItem>
+              <XhDescriptionsLabel>{{ t('notification.notifications.detail.label.delivery_channels') }}</XhDescriptionsLabel>
+              <XhDescriptionsValue>{{ formatChannels(currentDetail.deliveryChannels) }}</XhDescriptionsValue>
             </XhDescriptionsItem>
             <XhDescriptionsItem>
               <XhDescriptionsLabel>{{ t('notification.notifications.detail.label.is_published') }}</XhDescriptionsLabel>
@@ -714,6 +753,17 @@ async function exportUnread() {
 </template>
 
 <style scoped>
+/* 列表里的渠道标签：h() 渲染的节点不带页面 scope，经 :deep() 命中 */
+:deep(.notification-channels) {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--xh-space-1);
+}
+
+.notification-channel-picker {
+  --xh-checkbox-group-gap: var(--xh-space-3);
+}
+
 /* 描述列表里跨两列的项（标题、备注、正文） */
 .notification-detail__wide {
   grid-column: span 2;

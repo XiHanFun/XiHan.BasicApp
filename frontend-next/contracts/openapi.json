@@ -6140,6 +6140,1338 @@
         }
       }
     },
+    "/api/email-configs": {
+      "delete": {
+        "operationId": "email-configs.delete",
+        "tags": [
+          "email-configs"
+        ],
+        "summary": "Delete email configurations in bulk. Requires notification.email-configs.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.email-configs.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "email-configs.create",
+        "tags": [
+          "email-configs"
+        ],
+        "summary": "Create email configurations on the caller\u0027s side; codes are unique per side. Requires notification.email-configs.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.email-configs.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateEmailConfigRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "smtpHost": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "fromEmail": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 256
+                  },
+                  "smtpPort": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 65535
+                  },
+                  "useSsl": {
+                    "type": "boolean"
+                  },
+                  "acceptInvalidCertificate": {
+                    "type": "boolean"
+                  },
+                  "fromName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  },
+                  "userName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "password": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "smtpHost",
+                  "fromEmail"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EmailConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "smtpHost": {
+                      "type": "string"
+                    },
+                    "smtpPort": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "useSsl": {
+                      "type": "boolean"
+                    },
+                    "acceptInvalidCertificate": {
+                      "type": "boolean"
+                    },
+                    "fromEmail": {
+                      "type": "string"
+                    },
+                    "fromName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasPassword": {
+                      "type": "boolean"
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "smtpHost",
+                    "smtpPort",
+                    "useSsl",
+                    "acceptInvalidCertificate",
+                    "fromEmail",
+                    "hasPassword",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/email-configs/{id}": {
+      "get": {
+        "operationId": "email-configs.get",
+        "tags": [
+          "email-configs"
+        ],
+        "summary": "Get one of the email configurations. Requires notification.email-configs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.email-configs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EmailConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "smtpHost": {
+                      "type": "string"
+                    },
+                    "smtpPort": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "useSsl": {
+                      "type": "boolean"
+                    },
+                    "acceptInvalidCertificate": {
+                      "type": "boolean"
+                    },
+                    "fromEmail": {
+                      "type": "string"
+                    },
+                    "fromName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasPassword": {
+                      "type": "boolean"
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "smtpHost",
+                    "smtpPort",
+                    "useSsl",
+                    "acceptInvalidCertificate",
+                    "fromEmail",
+                    "hasPassword",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "email-configs.update",
+        "tags": [
+          "email-configs"
+        ],
+        "summary": "Edit email configurations; the code does not change. Requires notification.email-configs.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.email-configs.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateEmailConfigRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "smtpHost": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "fromEmail": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 256
+                  },
+                  "smtpPort": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 1,
+                    "maximum": 65535
+                  },
+                  "useSsl": {
+                    "type": "boolean"
+                  },
+                  "acceptInvalidCertificate": {
+                    "type": "boolean"
+                  },
+                  "fromName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 128
+                  },
+                  "userName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "password": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "smtpHost",
+                  "fromEmail"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EmailConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "smtpHost": {
+                      "type": "string"
+                    },
+                    "smtpPort": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "useSsl": {
+                      "type": "boolean"
+                    },
+                    "acceptInvalidCertificate": {
+                      "type": "boolean"
+                    },
+                    "fromEmail": {
+                      "type": "string"
+                    },
+                    "fromName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasPassword": {
+                      "type": "boolean"
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "smtpHost",
+                    "smtpPort",
+                    "useSsl",
+                    "acceptInvalidCertificate",
+                    "fromEmail",
+                    "hasPassword",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/email-configs/{id}:set-default": {
+      "post": {
+        "operationId": "email-configs.set-default",
+        "tags": [
+          "email-configs"
+        ],
+        "summary": "Make an enabled entry of the email configurations the caller\u0027s side default used for sending. Requires notification.email-configs.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.email-configs.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MessagingIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EmailConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "smtpHost": {
+                      "type": "string"
+                    },
+                    "smtpPort": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "useSsl": {
+                      "type": "boolean"
+                    },
+                    "acceptInvalidCertificate": {
+                      "type": "boolean"
+                    },
+                    "fromEmail": {
+                      "type": "string"
+                    },
+                    "fromName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "userName": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "hasPassword": {
+                      "type": "boolean"
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "smtpHost",
+                    "smtpPort",
+                    "useSsl",
+                    "acceptInvalidCertificate",
+                    "fromEmail",
+                    "hasPassword",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/email-configs:list": {
+      "post": {
+        "operationId": "email-configs.list",
+        "tags": [
+          "email-configs"
+        ],
+        "summary": "Page through the email configurations of the caller\u0027s side. Requires notification.email-configs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.email-configs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfEmailConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EmailConfigResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emails": {
+      "delete": {
+        "operationId": "emails.delete",
+        "tags": [
+          "emails"
+        ],
+        "summary": "Delete email send records in bulk. Requires notification.emails.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.emails.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emails/{id}": {
+      "get": {
+        "operationId": "emails.get",
+        "tags": [
+          "emails"
+        ],
+        "summary": "Get one of the email send records. Requires notification.emails.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.emails.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "EmailRecordResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "toEmail": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isHtml": {
+                      "type": "boolean"
+                    },
+                    "templateCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/MessageSendStatus"
+                    },
+                    "attempts": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "maxAttempts": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "nextAttemptAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "sentAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "errorMessage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "configId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "senderId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "receiverId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "businessType": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "toEmail",
+                    "subject",
+                    "isHtml",
+                    "status",
+                    "attempts",
+                    "maxAttempts",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emails:cancel": {
+      "post": {
+        "operationId": "emails.cancel",
+        "tags": [
+          "emails"
+        ],
+        "summary": "Cancel queued email send records. Requires notification.emails.resend.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.emails.resend",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MessagingIdsRequest",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emails:list": {
+      "post": {
+        "operationId": "emails.list",
+        "tags": [
+          "emails"
+        ],
+        "summary": "Page through the email send records of the caller\u0027s side. Requires notification.emails.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.emails.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfEmailRecordResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/EmailRecordResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/emails:resend": {
+      "post": {
+        "operationId": "emails.resend",
+        "tags": [
+          "emails"
+        ],
+        "summary": "Resend email send records: back to queued with the attempt count reset; queued and sending ones are rejected. Requires notification.emails.resend.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.emails.resend",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MessagingIdsRequest",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/exception-logs/{id}": {
       "get": {
         "operationId": "exception-logs.get",
@@ -11886,6 +13218,628 @@
         }
       }
     },
+    "/api/message-templates": {
+      "delete": {
+        "operationId": "message-templates.delete",
+        "tags": [
+          "message-templates"
+        ],
+        "summary": "Delete message templates in bulk. Requires notification.message-templates.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.message-templates.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "message-templates.create",
+        "tags": [
+          "message-templates"
+        ],
+        "summary": "Create message templates on the caller\u0027s side; codes are unique per side. Requires notification.message-templates.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.message-templates.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateMessageTemplateRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+                  },
+                  "channel": {
+                    "$ref": "#/components/schemas/TemplateChannel"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100000
+                  },
+                  "subject": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "isHtml": {
+                    "type": "boolean"
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "channel",
+                  "name",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MessageTemplateResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "channel": {
+                      "$ref": "#/components/schemas/TemplateChannel"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "isHtml": {
+                      "type": "boolean"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "channel",
+                    "name",
+                    "content",
+                    "isHtml",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/message-templates/{id}": {
+      "get": {
+        "operationId": "message-templates.get",
+        "tags": [
+          "message-templates"
+        ],
+        "summary": "Get one of the message templates. Requires notification.message-templates.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.message-templates.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MessageTemplateResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "channel": {
+                      "$ref": "#/components/schemas/TemplateChannel"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "isHtml": {
+                      "type": "boolean"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "channel",
+                    "name",
+                    "content",
+                    "isHtml",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "message-templates.update",
+        "tags": [
+          "message-templates"
+        ],
+        "summary": "Edit message templates; the code does not change. Requires notification.message-templates.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.message-templates.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateMessageTemplateRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "content": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100000
+                  },
+                  "subject": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "isHtml": {
+                    "type": "boolean"
+                  },
+                  "description": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "MessageTemplateResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "channel": {
+                      "$ref": "#/components/schemas/TemplateChannel"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "isHtml": {
+                      "type": "boolean"
+                    },
+                    "description": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "channel",
+                    "name",
+                    "content",
+                    "isHtml",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/message-templates:list": {
+      "post": {
+        "operationId": "message-templates.list",
+        "tags": [
+          "message-templates"
+        ],
+        "summary": "Page through the message templates of the caller\u0027s side. Requires notification.message-templates.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.message-templates.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfMessageTemplateResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MessageTemplateResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/notifications": {
       "delete": {
         "operationId": "notifications.delete",
@@ -12067,6 +14021,16 @@
                     ],
                     "maxLength": 500
                   },
+                  "deliveryChannels": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/DeliveryChannel"
+                    },
+                    "maxItems": 3
+                  },
                   "publishImmediately": {
                     "type": "boolean"
                   }
@@ -12132,6 +14096,12 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "deliveryChannels": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DeliveryChannel"
+                      }
                     },
                     "targetType": {
                       "$ref": "#/components/schemas/NotificationTargetType"
@@ -12214,6 +14184,7 @@
                     "contentFormat",
                     "notificationType",
                     "priority",
+                    "deliveryChannels",
                     "targetType",
                     "targetIds",
                     "needConfirm",
@@ -12316,6 +14287,12 @@
                         "null"
                       ]
                     },
+                    "deliveryChannels": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DeliveryChannel"
+                      }
+                    },
                     "targetType": {
                       "$ref": "#/components/schemas/NotificationTargetType"
                     },
@@ -12397,6 +14374,7 @@
                     "contentFormat",
                     "notificationType",
                     "priority",
+                    "deliveryChannels",
                     "targetType",
                     "targetIds",
                     "needConfirm",
@@ -12549,6 +14527,16 @@
                       "null"
                     ],
                     "maxLength": 500
+                  },
+                  "deliveryChannels": {
+                    "type": [
+                      "array",
+                      "null"
+                    ],
+                    "items": {
+                      "$ref": "#/components/schemas/DeliveryChannel"
+                    },
+                    "maxItems": 3
                   }
                 },
                 "required": [
@@ -12613,6 +14601,12 @@
                         "string",
                         "null"
                       ]
+                    },
+                    "deliveryChannels": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DeliveryChannel"
+                      }
                     },
                     "targetType": {
                       "$ref": "#/components/schemas/NotificationTargetType"
@@ -12695,6 +14689,7 @@
                     "contentFormat",
                     "notificationType",
                     "priority",
+                    "deliveryChannels",
                     "targetType",
                     "targetIds",
                     "needConfirm",
@@ -20305,6 +22300,1336 @@
         }
       }
     },
+    "/api/sms": {
+      "delete": {
+        "operationId": "sms.delete",
+        "tags": [
+          "sms"
+        ],
+        "summary": "Delete SMS send records in bulk. Requires notification.sms.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sms-configs": {
+      "delete": {
+        "operationId": "sms-configs.delete",
+        "tags": [
+          "sms-configs"
+        ],
+        "summary": "Delete SMS configurations in bulk. Requires notification.sms-configs.delete.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms-configs.delete",
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "sms-configs.create",
+        "tags": [
+          "sms-configs"
+        ],
+        "summary": "Create SMS configurations on the caller\u0027s side; codes are unique per side. Requires notification.sms-configs.create.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms-configs.create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "CreateSmsConfigRequest",
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64,
+                    "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "provider": {
+                    "$ref": "#/components/schemas/SmsProvider"
+                  },
+                  "accessKeyId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "signName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "accessKeySecret": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "sdkAppId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "region": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "templateMap": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 20000
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "provider",
+                  "accessKeyId",
+                  "signName"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SmsConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "$ref": "#/components/schemas/SmsProvider"
+                    },
+                    "accessKeyId": {
+                      "type": "string"
+                    },
+                    "hasAccessKeySecret": {
+                      "type": "boolean"
+                    },
+                    "sdkAppId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "signName": {
+                      "type": "string"
+                    },
+                    "region": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateMap": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "provider",
+                    "accessKeyId",
+                    "hasAccessKeySecret",
+                    "signName",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sms-configs/{id}": {
+      "get": {
+        "operationId": "sms-configs.get",
+        "tags": [
+          "sms-configs"
+        ],
+        "summary": "Get one of the SMS configurations. Requires notification.sms-configs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms-configs.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SmsConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "$ref": "#/components/schemas/SmsProvider"
+                    },
+                    "accessKeyId": {
+                      "type": "string"
+                    },
+                    "hasAccessKeySecret": {
+                      "type": "boolean"
+                    },
+                    "sdkAppId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "signName": {
+                      "type": "string"
+                    },
+                    "region": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateMap": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "provider",
+                    "accessKeyId",
+                    "hasAccessKeySecret",
+                    "signName",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "sms-configs.update",
+        "tags": [
+          "sms-configs"
+        ],
+        "summary": "Edit SMS configurations; the code does not change. Requires notification.sms-configs.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms-configs.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "UpdateSmsConfigRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "provider": {
+                    "$ref": "#/components/schemas/SmsProvider"
+                  },
+                  "accessKeyId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "signName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "accessKeySecret": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 512
+                  },
+                  "sdkAppId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "region": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 64
+                  },
+                  "templateMap": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 20000
+                  },
+                  "isEnabled": {
+                    "type": "boolean"
+                  },
+                  "order": {
+                    "type": "integer",
+                    "format": "int32",
+                    "minimum": 0,
+                    "maximum": 100000
+                  },
+                  "remark": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "provider",
+                  "accessKeyId",
+                  "signName"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SmsConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "$ref": "#/components/schemas/SmsProvider"
+                    },
+                    "accessKeyId": {
+                      "type": "string"
+                    },
+                    "hasAccessKeySecret": {
+                      "type": "boolean"
+                    },
+                    "sdkAppId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "signName": {
+                      "type": "string"
+                    },
+                    "region": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateMap": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "provider",
+                    "accessKeyId",
+                    "hasAccessKeySecret",
+                    "signName",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sms-configs/{id}:set-default": {
+      "post": {
+        "operationId": "sms-configs.set-default",
+        "tags": [
+          "sms-configs"
+        ],
+        "summary": "Make an enabled entry of the SMS configurations the caller\u0027s side default used for sending. Requires notification.sms-configs.update.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms-configs.update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MessagingIdRequest",
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SmsConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "$ref": "#/components/schemas/SmsProvider"
+                    },
+                    "accessKeyId": {
+                      "type": "string"
+                    },
+                    "hasAccessKeySecret": {
+                      "type": "boolean"
+                    },
+                    "sdkAppId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "signName": {
+                      "type": "string"
+                    },
+                    "region": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateMap": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "isDefault": {
+                      "type": "boolean"
+                    },
+                    "isEnabled": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "remark": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "modifiedAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "provider",
+                    "accessKeyId",
+                    "hasAccessKeySecret",
+                    "signName",
+                    "isDefault",
+                    "isEnabled",
+                    "order",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sms-configs:list": {
+      "post": {
+        "operationId": "sms-configs.list",
+        "tags": [
+          "sms-configs"
+        ],
+        "summary": "Page through the SMS configurations of the caller\u0027s side. Requires notification.sms-configs.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms-configs.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfSmsConfigResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SmsConfigResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sms/{id}": {
+      "get": {
+        "operationId": "sms.get",
+        "tags": [
+          "sms"
+        ],
+        "summary": "Get one of the SMS send records. Requires notification.sms.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms.read",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "SmsRecordResponse",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "toPhone": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "templateCode": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "templateParams": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "provider": {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/SmsProvider"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "providerMessageId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "status": {
+                      "$ref": "#/components/schemas/MessageSendStatus"
+                    },
+                    "attempts": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "maxAttempts": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "nextAttemptAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "sentAt": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "date-time"
+                    },
+                    "errorMessage": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "configId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "senderId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "receiverId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "format": "uuid"
+                    },
+                    "businessType": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "businessId": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "toPhone",
+                    "content",
+                    "status",
+                    "attempts",
+                    "maxAttempts",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sms:cancel": {
+      "post": {
+        "operationId": "sms.cancel",
+        "tags": [
+          "sms"
+        ],
+        "summary": "Cancel queued SMS send records. Requires notification.sms.resend.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms.resend",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MessagingIdsRequest",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sms:list": {
+      "post": {
+        "operationId": "sms.list",
+        "tags": [
+          "sms"
+        ],
+        "summary": "Page through the SMS send records of the caller\u0027s side. Requires notification.sms.read.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms.read",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "PageRequest",
+                "type": "object",
+                "properties": {
+                  "page": {
+                    "$ref": "#/components/schemas/PageInfo"
+                  },
+                  "filters": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageFilter"
+                    },
+                    "maxItems": 32
+                  },
+                  "keyword": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 256
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/PageSort"
+                    },
+                    "maxItems": 8
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "PageResultOfSmsRecordResponse",
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SmsRecordResponse"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "format": "int64"
+                    },
+                    "page": {
+                      "$ref": "#/components/schemas/PageInfo"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sms:resend": {
+      "post": {
+        "operationId": "sms.resend",
+        "tags": [
+          "sms"
+        ],
+        "summary": "Resend SMS send records: back to queued with the attempt count reset; queued and sending ones are rejected. Requires notification.sms.resend.",
+        "x-xihan-stability": "Preview",
+        "x-xihan-permission": "notification.sms.resend",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "title": "MessagingIdsRequest",
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "title": "BatchResult",
+                  "type": "object",
+                  "properties": {
+                    "succeeded": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uuid"
+                      }
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/BatchFailure"
+                      }
+                    }
+                  },
+                  "required": [
+                    "succeeded",
+                    "failed"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/storage-configs": {
       "delete": {
         "operationId": "storage-configs.delete",
@@ -25938,6 +29263,14 @@
           "Revoked"
         ]
       },
+      "DeliveryChannel": {
+        "type": "string",
+        "enum": [
+          "InApp",
+          "Email",
+          "Sms"
+        ]
+      },
       "DepartmentNode": {
         "type": "object",
         "properties": {
@@ -26348,6 +29681,202 @@
           "tenantCount",
           "createdAt",
           "isFree"
+        ]
+      },
+      "EmailConfigResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "smtpHost": {
+            "type": "string"
+          },
+          "smtpPort": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "useSsl": {
+            "type": "boolean"
+          },
+          "acceptInvalidCertificate": {
+            "type": "boolean"
+          },
+          "fromEmail": {
+            "type": "string"
+          },
+          "fromName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "userName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hasPassword": {
+            "type": "boolean"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "smtpHost",
+          "smtpPort",
+          "useSsl",
+          "acceptInvalidCertificate",
+          "fromEmail",
+          "hasPassword",
+          "isDefault",
+          "isEnabled",
+          "order",
+          "createdAt"
+        ]
+      },
+      "EmailRecordResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toEmail": {
+            "type": "string"
+          },
+          "subject": {
+            "type": "string"
+          },
+          "content": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isHtml": {
+            "type": "boolean"
+          },
+          "templateCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/MessageSendStatus"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextAttemptAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "configId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "senderId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "receiverId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "businessType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "businessId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "toEmail",
+          "subject",
+          "isHtml",
+          "status",
+          "attempts",
+          "maxAttempts",
+          "createdAt"
         ]
       },
       "ExceptionLogResponse": {
@@ -27643,6 +31172,87 @@
           "children"
         ]
       },
+      "MessageSendStatus": {
+        "type": "string",
+        "enum": [
+          "Pending",
+          "Sending",
+          "Success",
+          "Failed",
+          "Cancelled"
+        ]
+      },
+      "MessageTemplateResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/TemplateChannel"
+          },
+          "name": {
+            "type": "string"
+          },
+          "subject": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "isHtml": {
+            "type": "boolean"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "channel",
+          "name",
+          "content",
+          "isHtml",
+          "isEnabled",
+          "order",
+          "createdAt"
+        ]
+      },
       "NotificationContentFormat": {
         "type": "string",
         "enum": [
@@ -27761,6 +31371,12 @@
               "null"
             ]
           },
+          "deliveryChannels": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeliveryChannel"
+            }
+          },
           "targetType": {
             "$ref": "#/components/schemas/NotificationTargetType"
           },
@@ -27842,6 +31458,7 @@
           "contentFormat",
           "notificationType",
           "priority",
+          "deliveryChannels",
           "targetType",
           "targetIds",
           "needConfirm",
@@ -29023,6 +32640,218 @@
           "Disabled"
         ]
       },
+      "SmsConfigResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "provider": {
+            "$ref": "#/components/schemas/SmsProvider"
+          },
+          "accessKeyId": {
+            "type": "string"
+          },
+          "hasAccessKeySecret": {
+            "type": "boolean"
+          },
+          "sdkAppId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signName": {
+            "type": "string"
+          },
+          "region": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "templateMap": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "remark": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "modifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "provider",
+          "accessKeyId",
+          "hasAccessKeySecret",
+          "signName",
+          "isDefault",
+          "isEnabled",
+          "order",
+          "createdAt"
+        ]
+      },
+      "SmsProvider": {
+        "type": "string",
+        "enum": [
+          "Aliyun",
+          "Tencent"
+        ]
+      },
+      "SmsRecordResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "toPhone": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "templateCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "templateParams": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SmsProvider"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "providerMessageId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/MessageSendStatus"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxAttempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "nextAttemptAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "sentAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "errorMessage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "configId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "senderId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "receiverId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "businessType": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "businessId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "toPhone",
+          "content",
+          "status",
+          "attempts",
+          "maxAttempts",
+          "createdAt"
+        ]
+      },
       "StorageConfigResponse": {
         "type": "object",
         "properties": {
@@ -29119,6 +32948,13 @@
           "Oss",
           "Cos",
           "MinIO"
+        ]
+      },
+      "TemplateChannel": {
+        "type": "string",
+        "enum": [
+          "Email",
+          "Sms"
         ]
       },
       "TenantMemberResponse": {
@@ -30015,6 +33851,61 @@
         "displayName": "Update users",
         "description": "Edit user profiles of the current tenant."
       },
+      "notification.email-configs.create": {
+        "code": "notification.email-configs.create",
+        "displayName": "Create email configurations",
+        "description": "Create SMTP configurations on the caller\u0027s side."
+      },
+      "notification.email-configs.delete": {
+        "code": "notification.email-configs.delete",
+        "displayName": "Delete email configurations",
+        "description": "Delete SMTP configurations on the caller\u0027s side other than the default."
+      },
+      "notification.email-configs.read": {
+        "code": "notification.email-configs.read",
+        "displayName": "Read email configurations",
+        "description": "View the SMTP configurations of the caller\u0027s side; passwords are never shown."
+      },
+      "notification.email-configs.update": {
+        "code": "notification.email-configs.update",
+        "displayName": "Update email configurations",
+        "description": "Edit SMTP configurations and choose the default one of the caller\u0027s side."
+      },
+      "notification.emails.delete": {
+        "code": "notification.emails.delete",
+        "displayName": "Delete sent emails",
+        "description": "Delete email send records of the caller\u0027s side."
+      },
+      "notification.emails.read": {
+        "code": "notification.emails.read",
+        "displayName": "Read sent emails",
+        "description": "View the email send records of the caller\u0027s side."
+      },
+      "notification.emails.resend": {
+        "code": "notification.emails.resend",
+        "displayName": "Resend emails",
+        "description": "Resend failed, cancelled or sent emails, and cancel queued ones."
+      },
+      "notification.message-templates.create": {
+        "code": "notification.message-templates.create",
+        "displayName": "Create message templates",
+        "description": "Create email and SMS templates on the caller\u0027s side."
+      },
+      "notification.message-templates.delete": {
+        "code": "notification.message-templates.delete",
+        "displayName": "Delete message templates",
+        "description": "Delete message templates on the caller\u0027s side; tenants fall back to the platform template of the same code."
+      },
+      "notification.message-templates.read": {
+        "code": "notification.message-templates.read",
+        "displayName": "Read message templates",
+        "description": "View the email and SMS templates of the caller\u0027s side."
+      },
+      "notification.message-templates.update": {
+        "code": "notification.message-templates.update",
+        "displayName": "Update message templates",
+        "description": "Edit, enable and disable message templates on the caller\u0027s side."
+      },
       "notification.notifications.create": {
         "code": "notification.notifications.create",
         "displayName": "Create notifications",
@@ -30039,6 +33930,41 @@
         "code": "notification.notifications.update",
         "displayName": "Update notifications",
         "description": "Edit notification drafts; published notifications cannot be changed."
+      },
+      "notification.sms-configs.create": {
+        "code": "notification.sms-configs.create",
+        "displayName": "Create SMS configurations",
+        "description": "Create SMS provider configurations on the caller\u0027s side."
+      },
+      "notification.sms-configs.delete": {
+        "code": "notification.sms-configs.delete",
+        "displayName": "Delete SMS configurations",
+        "description": "Delete SMS provider configurations on the caller\u0027s side other than the default."
+      },
+      "notification.sms-configs.read": {
+        "code": "notification.sms-configs.read",
+        "displayName": "Read SMS configurations",
+        "description": "View the SMS provider configurations of the caller\u0027s side; access keys are never shown."
+      },
+      "notification.sms-configs.update": {
+        "code": "notification.sms-configs.update",
+        "displayName": "Update SMS configurations",
+        "description": "Edit SMS provider configurations and choose the default one of the caller\u0027s side."
+      },
+      "notification.sms.delete": {
+        "code": "notification.sms.delete",
+        "displayName": "Delete sent SMS",
+        "description": "Delete SMS send records of the caller\u0027s side."
+      },
+      "notification.sms.read": {
+        "code": "notification.sms.read",
+        "displayName": "Read sent SMS",
+        "description": "View the SMS send records of the caller\u0027s side."
+      },
+      "notification.sms.resend": {
+        "code": "notification.sms.resend",
+        "displayName": "Resend SMS",
+        "description": "Resend failed, cancelled or sent SMS, and cancel queued ones."
       },
       "organization.departments.create": {
         "code": "organization.departments.create",

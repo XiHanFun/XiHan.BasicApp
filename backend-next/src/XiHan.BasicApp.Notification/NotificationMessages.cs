@@ -106,6 +106,141 @@ public static class NotificationMessages
     public const string DeleteInboxDescription = "inbox.delete.description";
 
     /// <summary>
+    /// 操作 <c>message-templates.list</c> 的说明。
+    /// </summary>
+    public const string ListMessageTemplatesDescription = "message_templates.list.description";
+
+    /// <summary>
+    /// 操作 <c>message-templates.get</c> 的说明。
+    /// </summary>
+    public const string GetMessageTemplateDescription = "message_templates.get.description";
+
+    /// <summary>
+    /// 操作 <c>message-templates.create</c> 的说明。
+    /// </summary>
+    public const string CreateMessageTemplateDescription = "message_templates.create.description";
+
+    /// <summary>
+    /// 操作 <c>message-templates.update</c> 的说明。
+    /// </summary>
+    public const string UpdateMessageTemplateDescription = "message_templates.update.description";
+
+    /// <summary>
+    /// 操作 <c>message-templates.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteMessageTemplatesDescription = "message_templates.delete.description";
+
+    /// <summary>
+    /// 操作 <c>email-configs.list</c> 的说明。
+    /// </summary>
+    public const string ListEmailConfigsDescription = "email_configs.list.description";
+
+    /// <summary>
+    /// 操作 <c>email-configs.get</c> 的说明。
+    /// </summary>
+    public const string GetEmailConfigDescription = "email_configs.get.description";
+
+    /// <summary>
+    /// 操作 <c>email-configs.create</c> 的说明。
+    /// </summary>
+    public const string CreateEmailConfigDescription = "email_configs.create.description";
+
+    /// <summary>
+    /// 操作 <c>email-configs.update</c> 的说明。
+    /// </summary>
+    public const string UpdateEmailConfigDescription = "email_configs.update.description";
+
+    /// <summary>
+    /// 操作 <c>email-configs.set-default</c> 的说明。
+    /// </summary>
+    public const string SetDefaultEmailConfigDescription = "email_configs.set_default.description";
+
+    /// <summary>
+    /// 操作 <c>email-configs.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteEmailConfigsDescription = "email_configs.delete.description";
+
+    /// <summary>
+    /// 操作 <c>sms-configs.list</c> 的说明。
+    /// </summary>
+    public const string ListSmsConfigsDescription = "sms_configs.list.description";
+
+    /// <summary>
+    /// 操作 <c>sms-configs.get</c> 的说明。
+    /// </summary>
+    public const string GetSmsConfigDescription = "sms_configs.get.description";
+
+    /// <summary>
+    /// 操作 <c>sms-configs.create</c> 的说明。
+    /// </summary>
+    public const string CreateSmsConfigDescription = "sms_configs.create.description";
+
+    /// <summary>
+    /// 操作 <c>sms-configs.update</c> 的说明。
+    /// </summary>
+    public const string UpdateSmsConfigDescription = "sms_configs.update.description";
+
+    /// <summary>
+    /// 操作 <c>sms-configs.set-default</c> 的说明。
+    /// </summary>
+    public const string SetDefaultSmsConfigDescription = "sms_configs.set_default.description";
+
+    /// <summary>
+    /// 操作 <c>sms-configs.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteSmsConfigsDescription = "sms_configs.delete.description";
+
+    /// <summary>
+    /// 操作 <c>emails.list</c> 的说明。
+    /// </summary>
+    public const string ListEmailsDescription = "emails.list.description";
+
+    /// <summary>
+    /// 操作 <c>emails.get</c> 的说明。
+    /// </summary>
+    public const string GetEmailDescription = "emails.get.description";
+
+    /// <summary>
+    /// 操作 <c>emails.resend</c> 的说明。
+    /// </summary>
+    public const string ResendEmailsDescription = "emails.resend.description";
+
+    /// <summary>
+    /// 操作 <c>emails.cancel</c> 的说明。
+    /// </summary>
+    public const string CancelEmailsDescription = "emails.cancel.description";
+
+    /// <summary>
+    /// 操作 <c>emails.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteEmailsDescription = "emails.delete.description";
+
+    /// <summary>
+    /// 操作 <c>sms.list</c> 的说明。
+    /// </summary>
+    public const string ListSmsDescription = "sms.list.description";
+
+    /// <summary>
+    /// 操作 <c>sms.get</c> 的说明。
+    /// </summary>
+    public const string GetSmsDescription = "sms.get.description";
+
+    /// <summary>
+    /// 操作 <c>sms.resend</c> 的说明。
+    /// </summary>
+    public const string ResendSmsDescription = "sms.resend.description";
+
+    /// <summary>
+    /// 操作 <c>sms.cancel</c> 的说明。
+    /// </summary>
+    public const string CancelSmsDescription = "sms.cancel.description";
+
+    /// <summary>
+    /// 操作 <c>sms.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteSmsDescription = "sms.delete.description";
+
+    /// <summary>
     /// 通知不存在（或不在当前一侧）；参数 <c>id</c>。
     /// </summary>
     public const string NotificationNotFound = "notification.notification.not_found";
@@ -144,6 +279,86 @@ public static class NotificationMessages
     /// 按目标解析不出任何正常的接收人，不能发布。
     /// </summary>
     public const string NoRecipients = "notification.recipients.none";
+
+    /// <summary>
+    /// 消息模板不存在（或不在当前一侧）；参数 <c>id</c>。
+    /// </summary>
+    public const string TemplateNotFound = "notification.template.not_found";
+
+    /// <summary>
+    /// 邮件配置不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string EmailConfigNotFound = "notification.email_config.not_found";
+
+    /// <summary>
+    /// 短信配置不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string SmsConfigNotFound = "notification.sms_config.not_found";
+
+    /// <summary>
+    /// 邮件发送记录不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string EmailRecordNotFound = "notification.email.not_found";
+
+    /// <summary>
+    /// 短信发送记录不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string SmsRecordNotFound = "notification.sms.not_found";
+
+    /// <summary>
+    /// 同一侧、同一渠道里已有这个编码的模板；参数 <c>code</c>。
+    /// </summary>
+    public const string TemplateCodeTaken = "notification.template.code_taken";
+
+    /// <summary>
+    /// 本侧已有这个编码的配置；参数 <c>code</c>。
+    /// </summary>
+    public const string ConfigCodeTaken = "notification.config.code_taken";
+
+    /// <summary>
+    /// 缺省配置须启用，不能停用或删除；停用的配置不能设为缺省；参数 <c>code</c>。
+    /// </summary>
+    public const string DefaultConfigLocked = "notification.config.default_locked";
+
+    /// <summary>
+    /// 记录正在排队或发送中。
+    /// </summary>
+    public const string RecordBusy = "notification.record.busy";
+
+    /// <summary>
+    /// 只有排队中的记录能取消。
+    /// </summary>
+    public const string RecordNotPending = "notification.record.not_pending";
+
+    /// <summary>
+    /// 模板语法错误或渲染失败；参数 <c>detail</c>。
+    /// </summary>
+    public const string TemplateInvalid = "notification.template.invalid";
+
+    /// <summary>
+    /// 邮件地址格式不对；参数 <c>address</c>。
+    /// </summary>
+    public const string EmailAddressInvalid = "notification.email.address_invalid";
+
+    /// <summary>
+    /// 模板映射须是字符串到字符串的 JSON 对象。
+    /// </summary>
+    public const string TemplateMapInvalid = "notification.sms_config.template_map_invalid";
+
+    /// <summary>
+    /// 投递渠道须包含站内信。
+    /// </summary>
+    public const string ChannelsInvalid = "notification.channels.invalid";
+
+    /// <summary>
+    /// 当前一侧与平台都没有启用的这个模板；参数 <c>code</c>。
+    /// </summary>
+    public const string TemplateMissing = "notification.template.missing";
+
+    /// <summary>
+    /// 当前一侧与平台都没有启用的缺省配置；参数 <c>kind</c>。
+    /// </summary>
+    public const string ChannelUnavailable = "notification.channel.unavailable";
 
     /// <summary>
     /// 标题不能只有空白。

@@ -61,6 +61,17 @@ export const routes = {
   'editions.list': { method: 'GET', template: '/api/editions', path: [], query: [], success: 200 },
   'editions.set-permissions': { method: 'POST', template: '/api/editions/{id}:set-permissions', path: ['id'], query: [], success: 200 },
   'editions.update': { method: 'PUT', template: '/api/editions/{id}', path: ['id'], query: [], success: 200 },
+  'email-configs.create': { method: 'POST', template: '/api/email-configs', path: [], query: [], success: 201 },
+  'email-configs.delete': { method: 'DELETE', template: '/api/email-configs', path: [], query: ['ids'], success: 200 },
+  'email-configs.get': { method: 'GET', template: '/api/email-configs/{id}', path: ['id'], query: [], success: 200 },
+  'email-configs.list': { method: 'POST', template: '/api/email-configs:list', path: [], query: [], success: 200 },
+  'email-configs.set-default': { method: 'POST', template: '/api/email-configs/{id}:set-default', path: ['id'], query: [], success: 200 },
+  'email-configs.update': { method: 'PUT', template: '/api/email-configs/{id}', path: ['id'], query: [], success: 200 },
+  'emails.cancel': { method: 'POST', template: '/api/emails:cancel', path: [], query: [], success: 200 },
+  'emails.delete': { method: 'DELETE', template: '/api/emails', path: [], query: ['ids'], success: 200 },
+  'emails.get': { method: 'GET', template: '/api/emails/{id}', path: ['id'], query: [], success: 200 },
+  'emails.list': { method: 'POST', template: '/api/emails:list', path: [], query: [], success: 200 },
+  'emails.resend': { method: 'POST', template: '/api/emails:resend', path: [], query: [], success: 200 },
   'exception-logs.get': { method: 'GET', template: '/api/exception-logs/{id}', path: ['id'], query: [], success: 200 },
   'exception-logs.list': { method: 'POST', template: '/api/exception-logs:list', path: [], query: [], success: 200 },
   'export-tasks.cancel': { method: 'POST', template: '/api/export-tasks/{id}:cancel', path: ['id'], query: [], success: 200 },
@@ -113,6 +124,11 @@ export const routes = {
   'menus.list': { method: 'GET', template: '/api/menus', path: [], query: [], success: 200 },
   'menus.reset': { method: 'POST', template: '/api/menus/{id}:reset', path: ['id'], query: [], success: 200 },
   'menus.update': { method: 'PUT', template: '/api/menus/{id}', path: ['id'], query: [], success: 200 },
+  'message-templates.create': { method: 'POST', template: '/api/message-templates', path: [], query: [], success: 201 },
+  'message-templates.delete': { method: 'DELETE', template: '/api/message-templates', path: [], query: ['ids'], success: 200 },
+  'message-templates.get': { method: 'GET', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
+  'message-templates.list': { method: 'POST', template: '/api/message-templates:list', path: [], query: [], success: 200 },
+  'message-templates.update': { method: 'PUT', template: '/api/message-templates/{id}', path: ['id'], query: [], success: 200 },
   'notifications.create': { method: 'POST', template: '/api/notifications', path: [], query: [], success: 201 },
   'notifications.delete': { method: 'DELETE', template: '/api/notifications', path: [], query: ['ids'], success: 200 },
   'notifications.get': { method: 'GET', template: '/api/notifications/{id}', path: ['id'], query: [], success: 200 },
@@ -186,6 +202,17 @@ export const routes = {
   'sessions.list': { method: 'POST', template: '/api/sessions:list', path: [], query: [], success: 200 },
   'sessions.revoke': { method: 'POST', template: '/api/sessions:revoke', path: [], query: [], success: 200 },
   'sessions.summary': { method: 'GET', template: '/api/sessions:summary', path: [], query: [], success: 200 },
+  'sms-configs.create': { method: 'POST', template: '/api/sms-configs', path: [], query: [], success: 201 },
+  'sms-configs.delete': { method: 'DELETE', template: '/api/sms-configs', path: [], query: ['ids'], success: 200 },
+  'sms-configs.get': { method: 'GET', template: '/api/sms-configs/{id}', path: ['id'], query: [], success: 200 },
+  'sms-configs.list': { method: 'POST', template: '/api/sms-configs:list', path: [], query: [], success: 200 },
+  'sms-configs.set-default': { method: 'POST', template: '/api/sms-configs/{id}:set-default', path: ['id'], query: [], success: 200 },
+  'sms-configs.update': { method: 'PUT', template: '/api/sms-configs/{id}', path: ['id'], query: [], success: 200 },
+  'sms.cancel': { method: 'POST', template: '/api/sms:cancel', path: [], query: [], success: 200 },
+  'sms.delete': { method: 'DELETE', template: '/api/sms', path: [], query: ['ids'], success: 200 },
+  'sms.get': { method: 'GET', template: '/api/sms/{id}', path: ['id'], query: [], success: 200 },
+  'sms.list': { method: 'POST', template: '/api/sms:list', path: [], query: [], success: 200 },
+  'sms.resend': { method: 'POST', template: '/api/sms:resend', path: [], query: [], success: 200 },
   'storage-configs.create': { method: 'POST', template: '/api/storage-configs', path: [], query: [], success: 201 },
   'storage-configs.delete': { method: 'DELETE', template: '/api/storage-configs', path: [], query: ['ids'], success: 200 },
   'storage-configs.get': { method: 'GET', template: '/api/storage-configs/{id}', path: ['id'], query: [], success: 200 },
@@ -338,6 +365,25 @@ export const editions = {
   update: (request: RequestOf<'editions.update'>, options?: CallOptions) => invoke<RequestOf<'editions.update'>, ResponseOf<'editions.update'>>('editions.update', routes['editions.update'], request, options),
 }
 
+/** 资源 `email-configs` 的操作。 */
+export const emailConfigs = {
+  create: (request: RequestOf<'email-configs.create'>, options?: CallOptions) => invoke<RequestOf<'email-configs.create'>, ResponseOf<'email-configs.create'>>('email-configs.create', routes['email-configs.create'], request, options),
+  delete: (request: RequestOf<'email-configs.delete'>, options?: CallOptions) => invoke<RequestOf<'email-configs.delete'>, ResponseOf<'email-configs.delete'>>('email-configs.delete', routes['email-configs.delete'], request, options),
+  get: (request: RequestOf<'email-configs.get'>, options?: CallOptions) => invoke<RequestOf<'email-configs.get'>, ResponseOf<'email-configs.get'>>('email-configs.get', routes['email-configs.get'], request, options),
+  list: (request: RequestOf<'email-configs.list'>, options?: CallOptions) => invoke<RequestOf<'email-configs.list'>, ResponseOf<'email-configs.list'>>('email-configs.list', routes['email-configs.list'], request, options),
+  setDefault: (request: RequestOf<'email-configs.set-default'>, options?: CallOptions) => invoke<RequestOf<'email-configs.set-default'>, ResponseOf<'email-configs.set-default'>>('email-configs.set-default', routes['email-configs.set-default'], request, options),
+  update: (request: RequestOf<'email-configs.update'>, options?: CallOptions) => invoke<RequestOf<'email-configs.update'>, ResponseOf<'email-configs.update'>>('email-configs.update', routes['email-configs.update'], request, options),
+}
+
+/** 资源 `emails` 的操作。 */
+export const emails = {
+  cancel: (request: RequestOf<'emails.cancel'>, options?: CallOptions) => invoke<RequestOf<'emails.cancel'>, ResponseOf<'emails.cancel'>>('emails.cancel', routes['emails.cancel'], request, options),
+  delete: (request: RequestOf<'emails.delete'>, options?: CallOptions) => invoke<RequestOf<'emails.delete'>, ResponseOf<'emails.delete'>>('emails.delete', routes['emails.delete'], request, options),
+  get: (request: RequestOf<'emails.get'>, options?: CallOptions) => invoke<RequestOf<'emails.get'>, ResponseOf<'emails.get'>>('emails.get', routes['emails.get'], request, options),
+  list: (request: RequestOf<'emails.list'>, options?: CallOptions) => invoke<RequestOf<'emails.list'>, ResponseOf<'emails.list'>>('emails.list', routes['emails.list'], request, options),
+  resend: (request: RequestOf<'emails.resend'>, options?: CallOptions) => invoke<RequestOf<'emails.resend'>, ResponseOf<'emails.resend'>>('emails.resend', routes['emails.resend'], request, options),
+}
+
 /** 资源 `exception-logs` 的操作。 */
 export const exceptionLogs = {
   get: (request: RequestOf<'exception-logs.get'>, options?: CallOptions) => invoke<RequestOf<'exception-logs.get'>, ResponseOf<'exception-logs.get'>>('exception-logs.get', routes['exception-logs.get'], request, options),
@@ -432,6 +478,15 @@ export const menus = {
   list: (request: RequestOf<'menus.list'>, options?: CallOptions) => invoke<RequestOf<'menus.list'>, ResponseOf<'menus.list'>>('menus.list', routes['menus.list'], request, options),
   reset: (request: RequestOf<'menus.reset'>, options?: CallOptions) => invoke<RequestOf<'menus.reset'>, ResponseOf<'menus.reset'>>('menus.reset', routes['menus.reset'], request, options),
   update: (request: RequestOf<'menus.update'>, options?: CallOptions) => invoke<RequestOf<'menus.update'>, ResponseOf<'menus.update'>>('menus.update', routes['menus.update'], request, options),
+}
+
+/** 资源 `message-templates` 的操作。 */
+export const messageTemplates = {
+  create: (request: RequestOf<'message-templates.create'>, options?: CallOptions) => invoke<RequestOf<'message-templates.create'>, ResponseOf<'message-templates.create'>>('message-templates.create', routes['message-templates.create'], request, options),
+  delete: (request: RequestOf<'message-templates.delete'>, options?: CallOptions) => invoke<RequestOf<'message-templates.delete'>, ResponseOf<'message-templates.delete'>>('message-templates.delete', routes['message-templates.delete'], request, options),
+  get: (request: RequestOf<'message-templates.get'>, options?: CallOptions) => invoke<RequestOf<'message-templates.get'>, ResponseOf<'message-templates.get'>>('message-templates.get', routes['message-templates.get'], request, options),
+  list: (request: RequestOf<'message-templates.list'>, options?: CallOptions) => invoke<RequestOf<'message-templates.list'>, ResponseOf<'message-templates.list'>>('message-templates.list', routes['message-templates.list'], request, options),
+  update: (request: RequestOf<'message-templates.update'>, options?: CallOptions) => invoke<RequestOf<'message-templates.update'>, ResponseOf<'message-templates.update'>>('message-templates.update', routes['message-templates.update'], request, options),
 }
 
 /** 资源 `notifications` 的操作。 */
@@ -557,6 +612,25 @@ export const sessions = {
   list: (request: RequestOf<'sessions.list'>, options?: CallOptions) => invoke<RequestOf<'sessions.list'>, ResponseOf<'sessions.list'>>('sessions.list', routes['sessions.list'], request, options),
   revoke: (request: RequestOf<'sessions.revoke'>, options?: CallOptions) => invoke<RequestOf<'sessions.revoke'>, ResponseOf<'sessions.revoke'>>('sessions.revoke', routes['sessions.revoke'], request, options),
   summary: (request: RequestOf<'sessions.summary'>, options?: CallOptions) => invoke<RequestOf<'sessions.summary'>, ResponseOf<'sessions.summary'>>('sessions.summary', routes['sessions.summary'], request, options),
+}
+
+/** 资源 `sms-configs` 的操作。 */
+export const smsConfigs = {
+  create: (request: RequestOf<'sms-configs.create'>, options?: CallOptions) => invoke<RequestOf<'sms-configs.create'>, ResponseOf<'sms-configs.create'>>('sms-configs.create', routes['sms-configs.create'], request, options),
+  delete: (request: RequestOf<'sms-configs.delete'>, options?: CallOptions) => invoke<RequestOf<'sms-configs.delete'>, ResponseOf<'sms-configs.delete'>>('sms-configs.delete', routes['sms-configs.delete'], request, options),
+  get: (request: RequestOf<'sms-configs.get'>, options?: CallOptions) => invoke<RequestOf<'sms-configs.get'>, ResponseOf<'sms-configs.get'>>('sms-configs.get', routes['sms-configs.get'], request, options),
+  list: (request: RequestOf<'sms-configs.list'>, options?: CallOptions) => invoke<RequestOf<'sms-configs.list'>, ResponseOf<'sms-configs.list'>>('sms-configs.list', routes['sms-configs.list'], request, options),
+  setDefault: (request: RequestOf<'sms-configs.set-default'>, options?: CallOptions) => invoke<RequestOf<'sms-configs.set-default'>, ResponseOf<'sms-configs.set-default'>>('sms-configs.set-default', routes['sms-configs.set-default'], request, options),
+  update: (request: RequestOf<'sms-configs.update'>, options?: CallOptions) => invoke<RequestOf<'sms-configs.update'>, ResponseOf<'sms-configs.update'>>('sms-configs.update', routes['sms-configs.update'], request, options),
+}
+
+/** 资源 `sms` 的操作。 */
+export const sms = {
+  cancel: (request: RequestOf<'sms.cancel'>, options?: CallOptions) => invoke<RequestOf<'sms.cancel'>, ResponseOf<'sms.cancel'>>('sms.cancel', routes['sms.cancel'], request, options),
+  delete: (request: RequestOf<'sms.delete'>, options?: CallOptions) => invoke<RequestOf<'sms.delete'>, ResponseOf<'sms.delete'>>('sms.delete', routes['sms.delete'], request, options),
+  get: (request: RequestOf<'sms.get'>, options?: CallOptions) => invoke<RequestOf<'sms.get'>, ResponseOf<'sms.get'>>('sms.get', routes['sms.get'], request, options),
+  list: (request: RequestOf<'sms.list'>, options?: CallOptions) => invoke<RequestOf<'sms.list'>, ResponseOf<'sms.list'>>('sms.list', routes['sms.list'], request, options),
+  resend: (request: RequestOf<'sms.resend'>, options?: CallOptions) => invoke<RequestOf<'sms.resend'>, ResponseOf<'sms.resend'>>('sms.resend', routes['sms.resend'], request, options),
 }
 
 /** 资源 `storage-configs` 的操作。 */

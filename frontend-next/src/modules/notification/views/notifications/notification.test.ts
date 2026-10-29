@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { toPageRequest } from '~/contracts'
 import { configureRequest } from '~/request'
 import { QueryOperator } from '~/types/contracts'
-import { contentFormatLabel, notificationTypeLabel, notificationTypeTone, priorityLabel, targetTypeLabel } from '../../labels'
+import { contentFormatLabel, deliveryChannelLabel, notificationTypeLabel, notificationTypeTone, priorityLabel, targetTypeLabel } from '../../labels'
 import {
   emptyNotificationForm,
   EXPORT_LIMIT,
@@ -13,6 +13,7 @@ import {
   loadRecipients,
   loadRoleOptions,
   loadUnreadForExport,
+  normalizeChannels,
   NOTIFICATION_QUERY,
   notificationResource,
   problemMessage,
@@ -123,6 +124,7 @@ describe('通知公告的表单', () => {
       priority: 'Normal',
       targetType: 'User',
       targetIds: [USER_A, USER_B],
+      deliveryChannels: ['InApp'],
       icon: 'lucide:megaphone',
       link: null,
       businessType: null,
@@ -151,6 +153,7 @@ describe('通知公告的表单', () => {
       link: '/workbench',
       businessType: 'drill',
       businessId: 'd-1',
+      deliveryChannels: ['Sms', 'InApp'],
       targetType: 'Role',
       targetIds: ['r1', 'r2'],
       needConfirm: true,
@@ -168,10 +171,25 @@ describe('通知公告的表单', () => {
       modifiedAt: null,
     }
     const filled = toNotificationForm(detail)
-    expect(filled).toMatchObject({ id: 'n1', targetType: 'Role', targetIds: ['r1', 'r2'], icon: '', link: '/workbench', startsAt: null, expiresAt: Date.parse('2026-12-31T16:00:00Z') })
+    expect(filled).toMatchObject({ id: 'n1', targetType: 'Role', targetIds: ['r1', 'r2'], deliveryChannels: ['InApp', 'Sms'], icon: '', link: '/workbench', startsAt: null, expiresAt: Date.parse('2026-12-31T16:00:00Z') })
     const body = toUpdateBody({ ...filled, id: 'n1' })
-    expect(body).toMatchObject({ id: 'n1', targetIds: ['r1', 'r2'], businessType: 'drill', businessId: 'd-1', remark: '季度演练', expiresAt: '2026-12-31T16:00:00.000Z' })
+    expect(body).toMatchObject({ id: 'n1', targetIds: ['r1', 'r2'], deliveryChannels: ['InApp', 'Sms'], businessType: 'drill', businessId: 'd-1', remark: '季度演练', expiresAt: '2026-12-31T16:00:00.000Z' })
     expect(body).not.toHaveProperty('publishImmediately')
+  })
+})
+
+describe('通知公告的投递渠道', () => {
+  it('站内信总在内、去重并按契约顺序排；缺省只有站内信', () => {
+    expect(emptyNotificationForm().deliveryChannels).toEqual(['InApp'])
+    expect(normalizeChannels(['Sms', 'Email', 'Sms'])).toEqual(['InApp', 'Email', 'Sms'])
+    expect(normalizeChannels([])).toEqual(['InApp'])
+    expect(normalizeChannels(null)).toEqual(['InApp'])
+    // 不认得的值不带上去
+    expect(normalizeChannels(['Bot'])).toEqual(['InApp'])
+    // 表单里被取消的站内信在提交时补回（后端拒绝不含站内信的 NOTIFICATION_VALIDATION_010）
+    expect(toCreateBody(form({ deliveryChannels: ['Email'] })).deliveryChannels).toEqual(['InApp', 'Email'])
+    expect(deliveryChannelLabel(t, 'Sms')).toBe('notification.notifications.channel_sms')
+    expect(deliveryChannelLabel(t, 'InApp')).toBe('notification.notifications.channel_in_app')
   })
 })
 

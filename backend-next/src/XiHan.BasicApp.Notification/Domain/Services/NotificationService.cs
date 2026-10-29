@@ -3,6 +3,7 @@
 
 using System.Text.Json;
 using XiHan.BasicApp.Contracts.Batch;
+using XiHan.BasicApp.Contracts.Notification;
 using XiHan.BasicApp.Contracts.Realtime;
 using XiHan.BasicApp.Contracts.Users;
 using XiHan.BasicApp.Notification.Domain.Entities;
@@ -34,6 +35,7 @@ namespace XiHan.BasicApp.Notification.Domain.Services;
 /// <param name="StartsAt">可见起始时间。</param>
 /// <param name="ExpiresAt">到期时间。</param>
 /// <param name="Remark">备注。</param>
+/// <param name="Channels">投递渠道。</param>
 public sealed record NotificationDraft(
     string Title,
     string? Content,
@@ -52,7 +54,33 @@ public sealed record NotificationDraft(
     bool IsPopup,
     DateTimeOffset? StartsAt,
     DateTimeOffset? ExpiresAt,
-    string? Remark);
+    string? Remark,
+    MessageChannels Channels);
+
+/// <summary>
+/// 投递渠道在请求与响应里按名称列出，在实体里按位组合。
+/// </summary>
+public static class NotificationChannelSet
+{
+    /// <summary>
+    /// 列表 → 按位组合；没给即只有站内信。
+    /// </summary>
+    /// <param name="channels">渠道。</param>
+    /// <returns>按位组合。</returns>
+    public static MessageChannels FromList(IReadOnlyList<DeliveryChannel>? channels)
+        => channels is null ? MessageChannels.InApp : channels.Aggregate(MessageChannels.None, static (all, c) => all | (MessageChannels)(int)c);
+
+    /// <summary>
+    /// 按位组合 → 列表（4.x 的老数据为 0 时按只有站内信）。
+    /// </summary>
+    /// <param name="channels">按位组合。</param>
+    /// <returns>渠道。</returns>
+    public static IReadOnlyList<DeliveryChannel> ToList(MessageChannels channels)
+    {
+        var effective = channels == MessageChannels.None ? MessageChannels.InApp : channels;
+        return [.. Enum.GetValues<DeliveryChannel>().Where(c => effective.HasFlag((MessageChannels)(int)c))];
+    }
+}
 
 /// <summary>
 /// 目标 ID 在实体里存成 JSON 数组。
@@ -114,10 +142,23 @@ public sealed record NotificationPushPayload(string Type, string Title, string? 
 /// <param name="clock">时钟。</param>
 /// <param name="sources">接收人来源。</param>
 /// <param name="pushes">实时推送（没装 Realtime 即没有）。</param>
-public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, TimeProvider clock, IEnumerable<IRecipientSource> sources, IEnumerable<IRealtimePush> pushes)
+/// <param name="sender">邮件与短信的发送（扇出）。</param>
+/// <param name="directory">用户目录（接收人的邮箱与手机号）。</param>
+public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, TimeProvider clock, IEnumerable<IRecipientSource> sources, IEnumerable<IRealtimePush> pushes, IMessageSender sender, IEnumerable<IUserDirectory> directory)
 {
+    /// <summary>
+    /// 通知邮件的模板编码（4.x 同）。
+    /// </summary>
+    public const string EmailTemplate = "notification-email";
+
+    /// <summary>
+    /// 通知短信的模板编码（4.x 同）。
+    /// </summary>
+    public const string SmsTemplate = "notification-sms";
+
     private readonly IRecipientSource[] _sources = sources.ToArray();
     private readonly IRealtimePush? _push = pushes.FirstOrDefault();
+    private readonly IUserDirectory? _directory = directory.FirstOrDefault();
 
     /// <summary>
     /// 调用方本人（访问令牌的 <c>sub</c>）。
@@ -153,6 +194,11 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         if (draft.TargetType != NotificationTargetType.All && draft.TargetIds.Count == 0)
         {
             return Error.Validation(NotificationErrors.TargetsRequired, NotificationMessages.TargetsRequired, MessageArguments.Of(("targetType", draft.TargetType.ToString())));
+        }
+
+        if (!draft.Channels.HasFlag(MessageChannels.InApp))
+        {
+            return Error.Validation(NotificationErrors.ChannelsInvalid, NotificationMessages.ChannelsInvalid);
         }
 
         if (draft.TargetType == NotificationTargetType.Department && context.GetSecurity().Tenant is null)
@@ -252,6 +298,16 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             return Error.Validation(NotificationErrors.NoRecipients, NotificationMessages.NoRecipients);
         }
 
+        // 渠道先核对能发再写：开了邮件或短信却没有可用的配置与模板即整次发布失败，不悄悄只发站内信
+        var channels = notification.DeliveryChannels == MessageChannels.None ? MessageChannels.InApp : notification.DeliveryChannels;
+        foreach (var (flag, kind, template) in new[] { (MessageChannels.Email, MessageKind.Email, EmailTemplate), (MessageChannels.Sms, MessageKind.Sms, SmsTemplate) })
+        {
+            if (channels.HasFlag(flag) && !await sender.CanSendAsync(context, kind, template).ConfigureAwait(false))
+            {
+                return Error.Unavailable(NotificationErrors.ChannelUnavailable, NotificationMessages.ChannelUnavailable, MessageArguments.Of(("kind", kind.ToString())));
+            }
+        }
+
         var side = SideRows.SideOf(context);
         var inbox = recipients.Select(userId => new SysUserNotification { Id = ids.NewId(), TenantId = side, NotificationId = notification.Id, UserId = userId }).ToList();
         await rows.InsertRangeAsync(inbox, context.CancellationToken).ConfigureAwait(false);
@@ -260,6 +316,12 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         notification.PublisherId = CallerOf(context);
         notification.RecipientCount = recipients.Count;
         await rows.UpdateAsync(notification, context.CancellationToken).ConfigureAwait(false);
+        var fanned = await FanOutAsync(context, notification, channels, recipients).ConfigureAwait(false);
+        if (fanned.IsFailure)
+        {
+            return fanned.Error!;
+        }
+
         await PushAsync(context, notification, recipients).ConfigureAwait(false);
         return recipients.Count;
     }
@@ -353,6 +415,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         notification.StartsAt = draft.StartsAt;
         notification.ExpiresAt = draft.ExpiresAt;
         notification.Remark = Blank(draft.Remark);
+        notification.DeliveryChannels = draft.Channels;
     }
 
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
@@ -370,7 +433,7 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
             _ => RecipientKind.All,
         };
         var targets = NotificationTargets.Parse(notification.TargetIds);
-        var draft = new NotificationDraft(notification.Title, null, notification.ContentFormat, notification.NotificationType, notification.Priority, notification.TargetType, targets, null, null, null, null, false, false, false, false, notification.StartsAt, notification.ExpiresAt, null);
+        var draft = new NotificationDraft(notification.Title, null, notification.ContentFormat, notification.NotificationType, notification.Priority, notification.TargetType, targets, null, null, null, null, false, false, false, false, notification.StartsAt, notification.ExpiresAt, null, MessageChannels.InApp);
         var valid = Validate(context, draft);
         if (valid.IsFailure)
         {
@@ -388,6 +451,42 @@ public sealed class NotificationService(SideRows rows, IIdGenerator<Guid> ids, T
         return kind is RecipientKind.User or RecipientKind.All
             ? Result.Success(candidates)
             : Result.Success(await filter.ResolveAsync(context, candidates).ConfigureAwait(false));
+    }
+
+    /// <summary>
+    /// 邮件与短信的扇出：给有邮箱（手机号）的接收人各排队一封（一条），没有的跳过；随发布一起提交，由发送循环发出。
+    /// </summary>
+    private async Task<Result> FanOutAsync(InvocationContext context, SysNotification notification, MessageChannels channels, IReadOnlyCollection<Guid> recipients)
+    {
+        if (!channels.HasFlag(MessageChannels.Email) && !channels.HasFlag(MessageChannels.Sms))
+        {
+            return Result.Success();
+        }
+
+        var contacts = _directory is null ? new Dictionary<Guid, UserSummary>() : await _directory.FindAsync(recipients, context.CancellationToken).ConfigureAwait(false);
+        var id = notification.Id.ToString("D");
+        foreach (var user in contacts.Values)
+        {
+            if (channels.HasFlag(MessageChannels.Email) && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                var queued = await sender.EnqueueAsync(context, new OutgoingMessage(MessageKind.Email, user.Email, EmailTemplate, [new("title", notification.Title), new("content", notification.Content), new("link", notification.Link)], user.Id, "notification", id)).ConfigureAwait(false);
+                if (queued.IsFailure)
+                {
+                    return queued.Error!;
+                }
+            }
+
+            if (channels.HasFlag(MessageChannels.Sms) && !string.IsNullOrWhiteSpace(user.PhoneNumber))
+            {
+                var queued = await sender.EnqueueAsync(context, new OutgoingMessage(MessageKind.Sms, user.PhoneNumber, SmsTemplate, [new("title", notification.Title)], user.Id, "notification", id)).ConfigureAwait(false);
+                if (queued.IsFailure)
+                {
+                    return queued.Error!;
+                }
+            }
+        }
+
+        return Result.Success();
     }
 
     private async Task PushAsync(InvocationContext context, SysNotification notification, IReadOnlyCollection<Guid> users)

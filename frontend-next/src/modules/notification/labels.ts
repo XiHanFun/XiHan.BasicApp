@@ -1,9 +1,9 @@
 /**
- * 通知包两页（通知公告、我的消息）共用的枚举文案、语气与报错文案。6.0 没有枚举元数据接口，取值是契约字面量，
- * 文案键按字面量逐个静态写出，供 i18n 门禁核对。
+ * 通知包各页（通知公告、发送记录、消息模板、邮件 / 短信配置、我的消息）共用的枚举文案、语气与报错文案。
+ * 6.0 没有枚举元数据接口，取值是契约字面量，文案键按字面量逐个静态写出，供 i18n 门禁核对。
  */
 import type { Tone } from '@xihan-ui/core'
-import type { NotificationContentFormat, NotificationPriority, NotificationTargetType, NotificationType } from '~/contracts'
+import type { DeliveryChannel, MessageSendStatus, NotificationContentFormat, NotificationPriority, NotificationTargetType, NotificationType, SmsProvider, TemplateChannel } from '~/contracts'
 import { ApiError } from '~/request'
 
 export type Translate = (key: string, values?: Record<string, unknown>) => string
@@ -60,4 +60,77 @@ export function contentFormatLabel(t: Translate, format: NotificationContentForm
     case 'Html': return t('notification.notifications.format_html')
     default: return t('notification.notifications.format_text')
   }
+}
+
+export function deliveryChannelLabel(t: Translate, channel: DeliveryChannel): string {
+  switch (channel) {
+    case 'Email': return t('notification.notifications.channel_email')
+    case 'Sms': return t('notification.notifications.channel_sms')
+    default: return t('notification.notifications.channel_in_app')
+  }
+}
+
+export function sendStatusLabel(t: Translate, status: MessageSendStatus): string {
+  switch (status) {
+    case 'Sending': return t('notification.messaging.statuses.sending')
+    case 'Success': return t('notification.messaging.statuses.success')
+    case 'Failed': return t('notification.messaging.statuses.failed')
+    case 'Cancelled': return t('notification.messaging.statuses.cancelled')
+    default: return t('notification.messaging.statuses.pending')
+  }
+}
+
+/** 发送状态的语气（4.x 同）：排队中 info、发送中 warning、成功 success、失败 danger、已取消 neutral */
+export function sendStatusTone(status: MessageSendStatus): Tone {
+  switch (status) {
+    case 'Sending': return 'warning'
+    case 'Success': return 'success'
+    case 'Failed': return 'danger'
+    case 'Cancelled': return 'neutral'
+    default: return 'info'
+  }
+}
+
+export function templateChannelLabel(t: Translate, channel: TemplateChannel): string {
+  return channel === 'Sms' ? t('notification.messaging.channels.sms') : t('notification.messaging.channels.email')
+}
+
+export function smsProviderLabel(t: Translate, provider: SmsProvider): string {
+  return provider === 'Tencent' ? t('notification.messaging.providers.tencent') : t('notification.messaging.providers.aliyun')
+}
+
+/** 启用状态的搜索选项：后端按 `isEnabled eq true / false` 精确匹配 */
+export function enabledOptions(t: Translate): { label: string, value: string }[] {
+  return [
+    { label: t('notification.messaging.enabled'), value: 'true' },
+    { label: t('notification.messaging.disabled'), value: 'false' },
+  ]
+}
+
+export function enabledLabel(t: Translate, enabled: boolean): string {
+  return enabled ? t('notification.messaging.enabled') : t('notification.messaging.disabled')
+}
+
+/** 模板与配置的编码文法（与后端 `MessagingCodes.Pattern` 一致） */
+export const MESSAGING_CODE_PATTERN = /^[a-z0-9][a-z0-9._-]{0,63}$/
+
+/** 发送记录、模板与配置的批量操作只回失败项的错误码：认得的翻成文案，其余原样 */
+export function messagingFailureMessage(t: Translate, code: string): string {
+  switch (code) {
+    case 'NOTIFICATION_NOTFOUND_003': return t('notification.messaging.failures.template_not_found')
+    case 'NOTIFICATION_NOTFOUND_004':
+    case 'NOTIFICATION_NOTFOUND_005': return t('notification.messaging.failures.config_not_found')
+    case 'NOTIFICATION_NOTFOUND_006':
+    case 'NOTIFICATION_NOTFOUND_007': return t('notification.messaging.failures.record_not_found')
+    case 'NOTIFICATION_CONFLICT_005': return t('notification.messaging.failures.default_locked')
+    case 'NOTIFICATION_CONFLICT_006': return t('notification.messaging.failures.record_busy')
+    case 'NOTIFICATION_CONFLICT_007': return t('notification.messaging.failures.record_not_pending')
+    default: return code
+  }
+}
+
+/** 批量结果里有失败项即抛错：逐项原因去重后拼成一条 */
+export function assertBatch(t: Translate, result: { failed: readonly { code: string }[] }): void {
+  if (result.failed.length > 0)
+    throw new Error([...new Set(result.failed.map(failure => messagingFailureMessage(t, failure.code)))].join('; '))
 }

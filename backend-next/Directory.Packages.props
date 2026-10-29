@@ -23,6 +23,12 @@
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
   </ItemGroup>
 
+  <!-- 通知：邮件走 SMTP（MailKit），模板按 Scriban 渲染（框架不包装，方案 5.11） -->
+  <ItemGroup Label="Notification">
+    <PackageVersion Include="MailKit" Version="4.18.1" />
+    <PackageVersion Include="Scriban" Version="7.5.1" />
+  </ItemGroup>
+
   <!-- 测试 -->
   <ItemGroup Label="Test">
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.13" />

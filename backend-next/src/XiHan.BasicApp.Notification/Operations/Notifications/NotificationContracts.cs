@@ -21,6 +21,7 @@ namespace XiHan.BasicApp.Notification.Operations.Notifications;
 /// <param name="Link">链接。</param>
 /// <param name="BusinessType">关联的业务类型。</param>
 /// <param name="BusinessId">关联的业务 ID。</param>
+/// <param name="DeliveryChannels">投递渠道。</param>
 /// <param name="TargetType">投递目标。</param>
 /// <param name="TargetIds">目标 ID（角色、部门或用户）。</param>
 /// <param name="NeedConfirm">需要确认。</param>
@@ -47,6 +48,7 @@ public sealed record NotificationResponse(
     string? Link,
     string? BusinessType,
     string? BusinessId,
+    IReadOnlyList<DeliveryChannel> DeliveryChannels,
     NotificationTargetType TargetType,
     IReadOnlyList<Guid> TargetIds,
     bool NeedConfirm,
@@ -73,7 +75,7 @@ public sealed record NotificationResponse(
         ArgumentNullException.ThrowIfNull(n);
         return new NotificationResponse(
             n.Id, n.Title, n.Content, n.ContentFormat, n.NotificationType, n.Priority, n.Icon, n.Link, n.BusinessType, n.BusinessId,
-            n.TargetType, NotificationTargets.Parse(n.TargetIds), n.NeedConfirm, n.IsMandatory, n.IsBanner, n.IsPopup, n.StartsAt, n.ExpiresAt,
+            NotificationChannelSet.ToList(n.DeliveryChannels), n.TargetType, NotificationTargets.Parse(n.TargetIds), n.NeedConfirm, n.IsMandatory, n.IsBanner, n.IsPopup, n.StartsAt, n.ExpiresAt,
             n.IsPublished, n.PublishedAt, n.PublisherId, n.RecipientCount, n.Remark, n.CreatedAt, n.ModifiedAt);
     }
 }
@@ -99,6 +101,7 @@ public sealed record NotificationResponse(
 /// <param name="StartsAt">可见起始时间。</param>
 /// <param name="ExpiresAt">到期时间。</param>
 /// <param name="Remark">备注。</param>
+/// <param name="DeliveryChannels">投递渠道（缺省只有站内信；须包含站内信）。</param>
 /// <param name="PublishImmediately">建好即发布（另需发布权限）。</param>
 public sealed record CreateNotificationRequest(
     [Required, StringLength(200, MinimumLength = 1)] string Title,
@@ -119,6 +122,7 @@ public sealed record CreateNotificationRequest(
     DateTimeOffset? StartsAt = null,
     DateTimeOffset? ExpiresAt = null,
     [StringLength(500)] string? Remark = null,
+    [MaxLength(3)] IReadOnlyList<DeliveryChannel>? DeliveryChannels = null,
     bool PublishImmediately = false)
 {
     /// <summary>
@@ -127,7 +131,7 @@ public sealed record CreateNotificationRequest(
     /// <returns>草稿。</returns>
     public NotificationDraft ToDraft() => new(
         Title, Content, ContentFormat, NotificationType, Priority, TargetType, TargetIds ?? [], Icon, Link, BusinessType, BusinessId,
-        NeedConfirm, IsMandatory, IsBanner, IsPopup, StartsAt, ExpiresAt, Remark);
+        NeedConfirm, IsMandatory, IsBanner, IsPopup, StartsAt, ExpiresAt, Remark, NotificationChannelSet.FromList(DeliveryChannels));
 }
 
 /// <summary>
@@ -152,6 +156,7 @@ public sealed record CreateNotificationRequest(
 /// <param name="StartsAt">可见起始时间。</param>
 /// <param name="ExpiresAt">到期时间。</param>
 /// <param name="Remark">备注。</param>
+/// <param name="DeliveryChannels">投递渠道（缺省只有站内信；须包含站内信）。</param>
 public sealed record UpdateNotificationRequest(
     Guid Id,
     [Required, StringLength(200, MinimumLength = 1)] string Title,
@@ -171,7 +176,8 @@ public sealed record UpdateNotificationRequest(
     bool IsPopup = false,
     DateTimeOffset? StartsAt = null,
     DateTimeOffset? ExpiresAt = null,
-    [StringLength(500)] string? Remark = null)
+    [StringLength(500)] string? Remark = null,
+    [MaxLength(3)] IReadOnlyList<DeliveryChannel>? DeliveryChannels = null)
 {
     /// <summary>
     /// 转成草稿内容。
@@ -179,7 +185,7 @@ public sealed record UpdateNotificationRequest(
     /// <returns>草稿。</returns>
     public NotificationDraft ToDraft() => new(
         Title, Content, ContentFormat, NotificationType, Priority, TargetType, TargetIds ?? [], Icon, Link, BusinessType, BusinessId,
-        NeedConfirm, IsMandatory, IsBanner, IsPopup, StartsAt, ExpiresAt, Remark);
+        NeedConfirm, IsMandatory, IsBanner, IsPopup, StartsAt, ExpiresAt, Remark, NotificationChannelSet.FromList(DeliveryChannels));
 }
 
 /// <summary>

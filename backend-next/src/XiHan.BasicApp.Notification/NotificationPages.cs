@@ -16,6 +16,26 @@ public static class NotificationPages
     public static PageDescriptor Notifications { get; } = new("notification.notifications", "/notification/notifications", "notification.notifications.title", "lucide:megaphone", 480, NotificationPermissions.NotificationsRead);
 
     /// <summary>
+    /// 邮件短信记录页。
+    /// </summary>
+    public static PageDescriptor Messages { get; } = new("notification.messages", "/notification/messages", "notification.messages.title", "lucide:send", 482, NotificationPermissions.EmailsRead);
+
+    /// <summary>
+    /// 消息模板页。
+    /// </summary>
+    public static PageDescriptor Templates { get; } = new("notification.templates", "/notification/templates", "notification.templates.title", "lucide:file-code-2", 484, NotificationPermissions.TemplatesRead);
+
+    /// <summary>
+    /// 邮件配置页。
+    /// </summary>
+    public static PageDescriptor EmailConfigs { get; } = new("notification.email-configs", "/notification/email-configs", "notification.email_configs.title", "lucide:mail-plus", 486, NotificationPermissions.EmailConfigsRead);
+
+    /// <summary>
+    /// 短信配置页。
+    /// </summary>
+    public static PageDescriptor SmsConfigs { get; } = new("notification.sms-configs", "/notification/sms-configs", "notification.sms_configs.title", "lucide:message-square-code", 488, NotificationPermissions.SmsConfigsRead);
+
+    /// <summary>
     /// 我的消息页（本人的收件箱，登录即可；4.x 同不设权限）。
     /// </summary>
     public static PageDescriptor Inbox { get; } = new("notification.inbox", "/notification/inbox", "notification.inbox.title", "lucide:inbox", 490);
@@ -23,5 +43,5 @@ public static class NotificationPages
     /// <summary>
     /// 本包全部页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Notifications, Inbox];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Notifications, Messages, Templates, EmailConfigs, SmsConfigs, Inbox];
 }

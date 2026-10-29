@@ -49,6 +49,86 @@ public static class NotificationErrors
     public const string NoRecipients = "NOTIFICATION_VALIDATION_004";
 
     /// <summary>
+    /// 消息模板不存在（或不在当前一侧）；参数 <c>id</c>。
+    /// </summary>
+    public const string TemplateNotFound = "NOTIFICATION_NOTFOUND_003";
+
+    /// <summary>
+    /// 邮件配置不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string EmailConfigNotFound = "NOTIFICATION_NOTFOUND_004";
+
+    /// <summary>
+    /// 短信配置不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string SmsConfigNotFound = "NOTIFICATION_NOTFOUND_005";
+
+    /// <summary>
+    /// 邮件发送记录不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string EmailRecordNotFound = "NOTIFICATION_NOTFOUND_006";
+
+    /// <summary>
+    /// 短信发送记录不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string SmsRecordNotFound = "NOTIFICATION_NOTFOUND_007";
+
+    /// <summary>
+    /// 同一侧、同一渠道里已有这个编码的模板；参数 <c>code</c>。
+    /// </summary>
+    public const string TemplateCodeTaken = "NOTIFICATION_CONFLICT_003";
+
+    /// <summary>
+    /// 本侧已有这个编码的配置；参数 <c>code</c>。
+    /// </summary>
+    public const string ConfigCodeTaken = "NOTIFICATION_CONFLICT_004";
+
+    /// <summary>
+    /// 缺省配置须启用，不能停用或删除；停用的配置不能设为缺省；参数 <c>code</c>。
+    /// </summary>
+    public const string DefaultConfigLocked = "NOTIFICATION_CONFLICT_005";
+
+    /// <summary>
+    /// 记录正在排队或发送中。
+    /// </summary>
+    public const string RecordBusy = "NOTIFICATION_CONFLICT_006";
+
+    /// <summary>
+    /// 只有排队中的记录能取消。
+    /// </summary>
+    public const string RecordNotPending = "NOTIFICATION_CONFLICT_007";
+
+    /// <summary>
+    /// 模板语法错误或渲染失败；参数 <c>detail</c>。
+    /// </summary>
+    public const string TemplateInvalid = "NOTIFICATION_VALIDATION_007";
+
+    /// <summary>
+    /// 邮件地址格式不对；参数 <c>address</c>。
+    /// </summary>
+    public const string EmailAddressInvalid = "NOTIFICATION_VALIDATION_008";
+
+    /// <summary>
+    /// 模板映射须是字符串到字符串的 JSON 对象。
+    /// </summary>
+    public const string TemplateMapInvalid = "NOTIFICATION_VALIDATION_009";
+
+    /// <summary>
+    /// 投递渠道须包含站内信。
+    /// </summary>
+    public const string ChannelsInvalid = "NOTIFICATION_VALIDATION_010";
+
+    /// <summary>
+    /// 当前一侧与平台都没有启用的这个模板；参数 <c>code</c>。
+    /// </summary>
+    public const string TemplateMissing = "NOTIFICATION_UNAVAILABLE_002";
+
+    /// <summary>
+    /// 当前一侧与平台都没有启用的缺省配置；参数 <c>kind</c>。
+    /// </summary>
+    public const string ChannelUnavailable = "NOTIFICATION_UNAVAILABLE_003";
+
+    /// <summary>
     /// 不支持的筛选或排序。
     /// </summary>
     public const string QueryUnsupported = "NOTIFICATION_VALIDATION_005";

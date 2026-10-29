@@ -1,7 +1,7 @@
 import type { Translate } from '../../labels'
 import type { SchemaQueryParams, SchemaResource } from '~/components'
-import type { NotificationContentFormat, NotificationPriority, NotificationRecipientFilter, NotificationTargetType, NotificationType, PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
-import { departments as departmentsApi, notifications as notificationsApi, roles as rolesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
+import type { DeliveryChannel, NotificationContentFormat, NotificationPriority, NotificationRecipientFilter, NotificationTargetType, NotificationType, PageQueryMapping, RequestOf, ResponseOf } from '~/contracts'
+import { DeliveryChannel as DELIVERY_CHANNELS, departments as departmentsApi, notifications as notificationsApi, roles as rolesApi, toPageRequest, toSchemaPageResult } from '~/contracts'
 
 export type NotificationRow = ResponseOf<'notifications.list'>['items'][number]
 export type NotificationDetail = ResponseOf<'notifications.get'>
@@ -31,6 +31,15 @@ export function needsTargets(type: NotificationTargetType): boolean {
   return type !== 'All'
 }
 
+/**
+ * 勾选的渠道 → 提交与展示用的渠道：并入站内信、去重、按契约顺序排。
+ * 站内信始终投递（后端拒绝不含站内信的 NOTIFICATION_VALIDATION_010），邮件、短信可叠加。
+ */
+export function normalizeChannels(channels: readonly string[] | null | undefined): DeliveryChannel[] {
+  const picked = new Set<string>(channels ?? [])
+  return DELIVERY_CHANNELS.filter(channel => channel === 'InApp' || picked.has(channel))
+}
+
 /** 编辑弹窗的表单（时间是毫秒时间戳，喂日期选择器） */
 export interface NotificationForm {
   id: null | string
@@ -42,6 +51,8 @@ export interface NotificationForm {
   targetType: NotificationTargetType
   /** 角色、部门或用户的 ID；全员时不带 */
   targetIds: string[]
+  /** 投递渠道（站内信固定在内） */
+  deliveryChannels: DeliveryChannel[]
   icon: string
   link: string
   startsAt: null | number
@@ -66,6 +77,7 @@ export function emptyNotificationForm(): NotificationForm {
     priority: 'Normal',
     targetType: 'All',
     targetIds: [],
+    deliveryChannels: ['InApp'],
     icon: '',
     link: '',
     startsAt: null,
@@ -98,6 +110,7 @@ export function toNotificationForm(detail: NotificationDetail): NotificationForm
     priority: detail.priority,
     targetType: detail.targetType,
     targetIds: needsTargets(detail.targetType) ? [...detail.targetIds] : [],
+    deliveryChannels: normalizeChannels(detail.deliveryChannels),
     icon: detail.icon ?? '',
     link: detail.link ?? '',
     startsAt: toTimestamp(detail.startsAt),
@@ -152,7 +165,7 @@ function toIso(value: null | number): null | string {
   return value === null ? null : new Date(value).toISOString()
 }
 
-/** 新建与修改共用的字段；目标 ID 去空白、去重，全员时为空 */
+/** 新建与修改共用的字段；目标 ID 去空白、去重，全员时为空；渠道总带站内信 */
 function commonBody(form: NotificationForm) {
   return {
     title: form.title.trim(),
@@ -162,6 +175,7 @@ function commonBody(form: NotificationForm) {
     priority: form.priority,
     targetType: form.targetType,
     targetIds: needsTargets(form.targetType) ? [...new Set(form.targetIds.map(id => id.trim()).filter(Boolean))] : [],
+    deliveryChannels: normalizeChannels(form.deliveryChannels),
     icon: blankToNull(form.icon),
     link: blankToNull(form.link),
     businessType: form.businessType,
