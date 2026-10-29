@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Organization.Domain.Entities;
 
 /// <summary>
-/// 部门（租户库实体，严格按租户过滤）。层级用 <see cref="ParentId"/> 表示直接上级，祖先 / 子孙关系由闭包表 <see cref="SysDepartmentHierarchy"/> 维护（数据范围「本部门及子部门」用它联查）。
+/// 部门（租户库实体，严格按租户过滤）。
 /// </summary>
+/// <remarks>
+/// 层级用 <see cref="ParentId"/> 表示直接上级，祖先 / 子孙关系由闭包表 <see cref="SysDepartmentHierarchy"/> 维护（数据范围「本部门及子部门」用它联查）。
+/// </remarks>
 public sealed class SysDepartment : TenantScopedAuditedEntity
 {
     /// <summary>
@@ -21,13 +24,19 @@ public sealed class SysDepartment : TenantScopedAuditedEntity
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// 直接上级部门；为空即顶层。
+    /// 直接上级部门。
     /// </summary>
+    /// <remarks>
+    /// 为空即顶层。
+    /// </remarks>
     public Guid? ParentId { get; set; }
 
     /// <summary>
-    /// 负责人（本租户的用户）；为空即未指定。
+    /// 负责人（本租户的用户）。
     /// </summary>
+    /// <remarks>
+    /// 为空即未指定。
+    /// </remarks>
     public Guid? LeaderUserId { get; set; }
 
     /// <summary>

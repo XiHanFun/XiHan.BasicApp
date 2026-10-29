@@ -27,8 +27,11 @@ public sealed record CreateMembershipRequest(
     [Range(0, 100_000)] int Order = 0);
 
 /// <summary>
-/// <c>memberships.update</c> 的请求：用户与部门不在这里改（换部门即删了再加）。
+/// <c>memberships.update</c> 的请求。
 /// </summary>
+/// <remarks>
+/// 用户与部门不在这里改（换部门即删了再加）。
+/// </remarks>
 /// <param name="Id">归属主键。</param>
 /// <param name="PositionId">岗位；为空即清除。</param>
 /// <param name="IsPrimary">设为主部门；主部门不能在这里取消（给另一条设主即可）。</param>

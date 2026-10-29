@@ -18,9 +18,13 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Seeds;
 
 /// <summary>
-/// 演示组织种子（号段 900 + 模块偏移 20，<c>BasicApp:Seed:EnableDemoData</c> 打开才写）：在演示租户 <c>demo</c> 里建「总部 → 研发部 / 市场部」、岗位「经理 / 工程师」，并把演示管理员放进总部（经理、主部门）。
-/// 部门是租户库实体，种子调用本身没有租户，所以经 <see cref="ITenantScopeRunner"/> 以 <c>demo</c> 另起一次调用写入；租户里已有部门即跳过（只首写）。
+/// 演示组织种子。
 /// </summary>
+/// <remarks>
+/// 号段 900 + 模块偏移 20，<c>BasicApp:Seed:EnableDemoData</c> 打开才写。
+/// 在演示租户 <c>demo</c> 里建「总部 → 研发部 / 市场部」、岗位「经理 / 工程师」，并把演示管理员放进总部（经理、主部门）。
+/// 部门是租户库实体，种子调用本身没有租户，所以经 <see cref="ITenantScopeRunner"/> 以 <c>demo</c> 另起一次调用写入；租户里已有部门即跳过（只首写）。
+/// </remarks>
 /// <param name="runner">按租户发起调用的运行器。</param>
 /// <param name="options">种子配置。</param>
 public sealed class DemoOrganizationSeeder(ITenantScopeRunner runner, SeedOptions options) : ISeeder

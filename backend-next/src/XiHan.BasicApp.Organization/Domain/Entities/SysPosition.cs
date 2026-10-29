@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Organization.Domain.Entities;
 
 /// <summary>
-/// 岗位（租户库实体）：归属记录引用它；被引用时不能删除。
+/// 岗位（租户库实体）。
 /// </summary>
+/// <remarks>
+/// 归属记录引用它；被引用时不能删除。
+/// </remarks>
 public sealed class SysPosition : TenantScopedAuditedEntity
 {
     /// <summary>

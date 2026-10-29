@@ -13,8 +13,11 @@ using XiHan.Framework.Primitives;
 namespace XiHan.BasicApp.Organization.Queries;
 
 /// <summary>
-/// 归属列表查询（SqlSugar 直查，租户库）：筛选 <c>departmentId</c> / <c>userId</c> / <c>positionId</c>（eq）、<c>isPrimary</c>（eq）；排序 <c>order</c>、<c>createdAt</c>、<c>hiredAt</c>；名称由 <see cref="MembershipService.ComposeAsync"/> 按主键补齐。
+/// 归属列表查询（SqlSugar 直查，租户库）。
 /// </summary>
+/// <remarks>
+/// 筛选 <c>departmentId</c> / <c>userId</c> / <c>positionId</c>（eq）、<c>isPrimary</c>（eq）；排序 <c>order</c>、<c>createdAt</c>、<c>hiredAt</c>；名称由 <see cref="MembershipService.ComposeAsync"/> 按主键补齐。
+/// </remarks>
 /// <param name="unitOfWork">SqlSugar 工作单元。</param>
 /// <param name="service">归属域服务。</param>
 public sealed class MembershipQueries(SqlSugarUnitOfWork unitOfWork, MembershipService service)

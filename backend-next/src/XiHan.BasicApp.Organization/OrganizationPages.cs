@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Pages;
 namespace XiHan.BasicApp.Organization;
 
 /// <summary>
-/// 组织包的页面登记（权限只在租户侧，平台主体的菜单树里自然没有）。归属在部门页里维护，不单独成页。
+/// 组织包的页面登记。
 /// </summary>
+/// <remarks>
+/// 权限只在租户侧，平台主体的菜单树里自然没有。归属在部门页里维护，不单独成页。
+/// </remarks>
 public static class OrganizationPages
 {
     /// <summary>

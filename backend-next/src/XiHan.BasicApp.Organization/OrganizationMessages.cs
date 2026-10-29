@@ -6,8 +6,11 @@ using XiHan.Framework.Localization.Abstractions.Messages;
 namespace XiHan.BasicApp.Organization;
 
 /// <summary>
-/// 组织包的消息键；各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>。
+/// 组织包的消息键。
 /// </summary>
+/// <remarks>
+/// 各区域文案在 <c>Localization/&lt;区域&gt;.json</c>。操作说明用约定键 <c>&lt;操作 ID&gt;.description</c>。
+/// </remarks>
 public static class OrganizationMessages
 {
     /// <summary>
@@ -91,63 +94,99 @@ public static class OrganizationMessages
     public const string DeleteMembershipsDescription = "memberships.delete.description";
 
     /// <summary>
-    /// 部门不存在；参数 <c>id</c>。
+    /// 部门不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string DepartmentNotFound = "organization.department.not_found";
 
     /// <summary>
-    /// 部门编码被占用；参数 <c>code</c>。
+    /// 部门编码被占用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string DepartmentCodeTaken = "organization.department.code_taken";
 
     /// <summary>
-    /// 部门还有子部门或成员；参数 <c>id</c>。
+    /// 部门还有子部门或成员。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string DepartmentInUse = "organization.department.in_use";
 
     /// <summary>
-    /// 部门不能移到自己或子孙之下；参数 <c>id</c>。
+    /// 部门不能移到自己或子孙之下。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string CyclicMove = "organization.department.cyclic_move";
 
     /// <summary>
-    /// 岗位不存在；参数 <c>id</c>。
+    /// 岗位不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string PositionNotFound = "organization.position.not_found";
 
     /// <summary>
-    /// 岗位编码被占用；参数 <c>code</c>。
+    /// 岗位编码被占用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>code</c>。
+    /// </remarks>
     public const string PositionCodeTaken = "organization.position.code_taken";
 
     /// <summary>
-    /// 岗位还被引用；参数 <c>id</c>、<c>count</c>。
+    /// 岗位还被引用。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>、<c>count</c>。
+    /// </remarks>
     public const string PositionInUse = "organization.position.in_use";
 
     /// <summary>
-    /// 归属记录不存在；参数 <c>id</c>。
+    /// 归属记录不存在。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>id</c>。
+    /// </remarks>
     public const string MembershipNotFound = "organization.membership.not_found";
 
     /// <summary>
-    /// 用户已在该部门；参数 <c>userId</c>、<c>departmentId</c>。
+    /// 用户已在该部门。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>userId</c>、<c>departmentId</c>。
+    /// </remarks>
     public const string MembershipExists = "organization.membership.exists";
 
     /// <summary>
-    /// 用户不属于当前租户；参数 <c>userId</c>。
+    /// 用户不属于当前租户。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>userId</c>。
+    /// </remarks>
     public const string UserNotInTenant = "organization.membership.user_not_in_tenant";
 
     /// <summary>
-    /// 筛选不支持；参数 <c>field</c>、<c>operator</c>。
+    /// 筛选不支持。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>、<c>operator</c>。
+    /// </remarks>
     public const string FilterUnsupported = "organization.query.filter_unsupported";
 
     /// <summary>
-    /// 排序不支持；参数 <c>field</c>。
+    /// 排序不支持。
     /// </summary>
+    /// <remarks>
+    /// 参数 <c>field</c>。
+    /// </remarks>
     public const string SortUnsupported = "organization.query.sort_unsupported";
 
     /// <summary>

@@ -6,8 +6,11 @@ using XiHan.BasicApp.Contracts.Entities;
 namespace XiHan.BasicApp.Organization.Domain.Entities;
 
 /// <summary>
-/// 用户部门归属（租户库实体）：一个用户可在多个部门，恰有一个主部门（<see cref="IsPrimary"/>）；用户是平台库的 <c>SysUser</c>（注册地必须是当前租户），这里只存主键。
+/// 用户部门归属（租户库实体）。
 /// </summary>
+/// <remarks>
+/// 一个用户可在多个部门，恰有一个主部门（<see cref="IsPrimary"/>）；用户是平台库的 <c>SysUser</c>（注册地必须是当前租户），这里只存主键。
+/// </remarks>
 public sealed class SysUserDepartment : TenantScopedAuditedEntity
 {
     /// <summary>
@@ -21,8 +24,11 @@ public sealed class SysUserDepartment : TenantScopedAuditedEntity
     public Guid DepartmentId { get; set; }
 
     /// <summary>
-    /// 在该部门的岗位；为空即未指定。
+    /// 在该部门的岗位。
     /// </summary>
+    /// <remarks>
+    /// 为空即未指定。
+    /// </remarks>
     public Guid? PositionId { get; set; }
 
     /// <summary>

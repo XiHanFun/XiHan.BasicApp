@@ -11,8 +11,11 @@ using XiHan.BasicApp.Organization.Operations.Positions;
 namespace XiHan.BasicApp.Organization;
 
 /// <summary>
-/// 组织包操作的请求 / 响应序列化上下文（源生成；枚举按字符串）。
+/// 组织包操作的请求 / 响应序列化上下文。
 /// </summary>
+/// <remarks>
+/// 源生成；枚举按字符串。
+/// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     PropertyNameCaseInsensitive = true,
