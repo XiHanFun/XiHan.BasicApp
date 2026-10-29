@@ -14,11 +14,13 @@ import { emptyRow, newKey, phaseLabel, phaseOf } from '../access-policy'
  */
 defineOptions({ name: 'AccessPolicyConditionEditor' })
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   catalog: readonly ConditionAttribute[]
   /** 是否平台侧（只有平台策略分认证前时机） */
   platform: boolean
-}>()
+  /** 是否显示时机（约束规则的条件不分时机） */
+  showPhase?: boolean
+}>(), { showPhase: true })
 
 const groups = defineModel<ConditionGroupModel[]>('groups', { required: true })
 
@@ -70,11 +72,11 @@ function removeRow(group: ConditionGroupModel, index: number) {
   <div class="policy-conditions" data-testid="policy-condition-editor">
     <div class="policy-conditions__head">
       <span class="policy-conditions__title">{{ t('access.policies.editor.title') }}</span>
-      <XhTagRoot variant="subtle" size="sm" :tone="phase === 'BeforeAuthentication' ? 'info' : 'warning'">
+      <XhTagRoot v-if="showPhase" variant="subtle" size="sm" :tone="phase === 'BeforeAuthentication' ? 'info' : 'warning'">
         <XhTagLabel>{{ phaseLabel(t, phase) }}</XhTagLabel>
       </XhTagRoot>
     </div>
-    <p class="policy-conditions__hint">
+    <p v-if="showPhase" class="policy-conditions__hint">
       {{ platform ? t('access.policies.editor.hint_platform') : t('access.policies.editor.hint_tenant') }}
     </p>
 

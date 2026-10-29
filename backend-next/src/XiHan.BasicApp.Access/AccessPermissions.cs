@@ -166,6 +166,31 @@ public static class AccessPermissions
     public const string LoginBansLift = "access.login-bans.lift";
 
     /// <summary>
+    /// 查看约束规则：<c>constraint-rules.list / get</c>。
+    /// </summary>
+    public const string ConstraintRulesRead = "access.constraint-rules.read";
+
+    /// <summary>
+    /// 新建约束规则：<c>constraint-rules.create</c>。
+    /// </summary>
+    public const string ConstraintRulesCreate = "access.constraint-rules.create";
+
+    /// <summary>
+    /// 修改与启停约束规则：<c>constraint-rules.update / set-status</c>。
+    /// </summary>
+    public const string ConstraintRulesUpdate = "access.constraint-rules.update";
+
+    /// <summary>
+    /// 删除约束规则：<c>constraint-rules.delete</c>。
+    /// </summary>
+    public const string ConstraintRulesDelete = "access.constraint-rules.delete";
+
+    /// <summary>
+    /// 查看会话激活的角色：<c>session-roles.list / get</c>。
+    /// </summary>
+    public const string SessionRolesRead = "access.session-roles.read";
+
+    /// <summary>
     /// 查看权限目录。
     /// </summary>
     public const string PermissionsRead = "access.permissions.read";
@@ -226,6 +251,11 @@ public static class AccessPermissions
         new(PoliciesTrial, "Trial access policies", PermissionScope.Both, description: "Try how a saved or draft access policy decides for a given request."),
         new(LoginBansRead, "Read login bans", PermissionScope.Platform, description: "View the login auto-ban settings and the addresses banned for too many failed sign-ins."),
         new(LoginBansLift, "Lift login bans", PermissionScope.Platform, audited: true, description: "Lift the ban on an address before it expires, together with its current failure count."),
+        new(ConstraintRulesRead, "Read constraint rules", PermissionScope.Both, description: "View separation of duty, mutual exclusion, cardinality and condition rules and their items."),
+        new(ConstraintRulesCreate, "Create constraint rules", PermissionScope.Both, audited: true, description: "Create constraint rules on roles, permissions or users."),
+        new(ConstraintRulesUpdate, "Update constraint rules", PermissionScope.Both, audited: true, description: "Edit, enable and disable constraint rules."),
+        new(ConstraintRulesDelete, "Delete constraint rules", PermissionScope.Both, audited: true, description: "Delete constraint rules together with their items."),
+        new(SessionRolesRead, "Read session roles", PermissionScope.Both, description: "View which roles each session has activated and why roles were deactivated."),
         new(PermissionsRead, "Read permissions", PermissionScope.Both, description: "View the permission catalog of the current side."),
         new(MenusRead, "Read menus", PermissionScope.Platform, description: "View the whole menu tree, including hidden and operator-created nodes."),
         new(MenusCreate, "Create menus", PermissionScope.Platform, audited: true, description: "Create directories and external links in the menu."),

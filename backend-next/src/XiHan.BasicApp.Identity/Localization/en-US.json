@@ -56,5 +56,6 @@
   "identity.two_factor.totp_already_enabled": "An authenticator is already bound; turn it off first to switch devices.",
   "identity.two_factor.totp_setup_missing": "The authenticator binding has expired or was not started. Generate a new key.",
   "identity.field_security.protected": "Field {field} is protected by field security and cannot be used to filter or sort.",
-  "identity.field_security.read_only": "Field {field} is read-only for you and cannot be filled in or changed."
+  "identity.field_security.read_only": "Field {field} is read-only for you and cannot be filled in or changed.",
+  "auth.activate_roles.description": "Change the roles the current session has activated (all held right now and not violating dynamic separation of duty); returns new tokens."
 }

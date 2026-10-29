@@ -56,5 +56,6 @@
   "identity.two_factor.totp_already_enabled": "Já existe um autenticador vinculado; desative-o primeiro para trocar de aparelho.",
   "identity.two_factor.totp_setup_missing": "A vinculação do autenticador expirou ou não foi iniciada. Gere uma nova chave.",
   "identity.field_security.protected": "O campo {field} é protegido pela segurança de campos e não pode ser usado para filtrar ou ordenar.",
-  "identity.field_security.read_only": "O campo {field} é somente leitura para você e não pode ser preenchido nem alterado."
+  "identity.field_security.read_only": "O campo {field} é somente leitura para você e não pode ser preenchido nem alterado.",
+  "auth.activate_roles.description": "Trocar as funções ativadas na sessão atual (todas mantidas agora e sem violar a separação dinâmica de funções); retorna novos tokens."
 }

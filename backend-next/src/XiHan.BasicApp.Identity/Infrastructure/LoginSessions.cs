@@ -24,6 +24,7 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// <param name="sessions">会话仓储。</param>
 /// <param name="issuer">令牌签发器。</param>
 /// <param name="guards">登录守卫。</param>
+/// <param name="activators">会话角色激活（令牌只带激活的角色）。</param>
 /// <param name="options">身份配置。</param>
 /// <param name="ids">标识生成器。</param>
 /// <param name="clock">时间源。</param>
@@ -34,6 +35,7 @@ public sealed class LoginSessions(
     IRepository<SysUserSession, Guid> sessions,
     AccessTokenIssuer issuer,
     IEnumerable<ILoginGuard> guards,
+    IEnumerable<ISessionRoleActivator> activators,
     IdentityOptions options,
     IIdGenerator<Guid> ids,
     TimeProvider clock)
@@ -95,7 +97,8 @@ public sealed class LoginSessions(
         }
 
         log.SessionId = session.Id;
-        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, roles);
+        var active = await activators.StartAsync(session.Id, user.Id, session.ActiveTenantId, roles, context).ConfigureAwait(false);
+        var access = issuer.Issue(user, session.Id, session.ActiveTenantId, active);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, session.RefreshExpiresAt, session.Id, session.ActiveTenantId, security.MustChangePassword, UserResponse.From(user), tenantName);
     }
 }

@@ -519,6 +519,17 @@ export default {
         close: '關閉',
       },
     },
+    switch_roles: {
+      entry: '切換角色',
+      title: '切換角色',
+      hint: '選擇本次工作階段要啟用的角色，權限只依啟用的角色計算。互斥的角色不能同時啟用。',
+      empty: '目前沒有可啟用的角色',
+      pick_one: '至少選擇一個角色',
+      load_failed: '載入角色失敗',
+      save_failed: '切換角色失敗',
+      cancel: '取消',
+      save: '切換',
+    },
   },
   island: {
     title: '動態',

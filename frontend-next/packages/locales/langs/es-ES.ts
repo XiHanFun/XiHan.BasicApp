@@ -519,6 +519,17 @@ export default {
         close: 'Cerrar',
       },
     },
+    switch_roles: {
+      entry: 'Cambiar roles',
+      title: 'Cambiar roles',
+      hint: 'Elija los roles que activa esta sesión; los permisos solo provienen de los roles activados. Los roles excluyentes no pueden estar activos a la vez.',
+      empty: 'Ahora no hay roles que activar',
+      pick_one: 'Seleccione al menos un rol',
+      load_failed: 'No se pudieron cargar los roles',
+      save_failed: 'No se pudieron cambiar los roles',
+      cancel: 'Cancelar',
+      save: 'Cambiar',
+    },
   },
   island: {
     title: 'Actividad',

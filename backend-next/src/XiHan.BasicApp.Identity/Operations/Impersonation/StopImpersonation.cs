@@ -28,6 +28,7 @@ namespace XiHan.BasicApp.Identity.Operations.Impersonation;
 /// <param name="options">身份配置。</param>
 /// <param name="clock">时间源。</param>
 /// <param name="tenants">框架租户目录。</param>
+/// <param name="activators">会话角色激活（令牌只带激活的角色）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Policy = Policies.Authenticated)]
 public sealed class StopImpersonation(
     IRepository<SysUser, Guid> users,
@@ -37,7 +38,8 @@ public sealed class StopImpersonation(
     AccessTokenIssuer issuer,
     IdentityOptions options,
     TimeProvider clock,
-    ITenantStore tenants) : IOperation<StopImpersonationRequest, TokenResponse>
+    ITenantStore tenants,
+    IEnumerable<ISessionRoleActivator> activators) : IOperation<StopImpersonationRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -107,7 +109,8 @@ public sealed class StopImpersonation(
         }
 
         var roles = await accounts.RolesOfAsync(actor.Id, origin.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
-        var access = issuer.Issue(actor, origin.Id, origin.ActiveTenantId, roles);
+        var active = await activators.RefreshAsync(origin.Id, actor.Id, origin.ActiveTenantId, roles, context).ConfigureAwait(false);
+        var access = issuer.Issue(actor, origin.Id, origin.ActiveTenantId, active);
         var tenantName = await TenantNames.ResolveAsync(tenants, origin.ActiveTenantId, context.CancellationToken).ConfigureAwait(false);
         return new TokenResponse(access.Token, access.ExpiresAt, refreshToken, origin.RefreshExpiresAt, origin.Id, origin.ActiveTenantId, security.MustChangePassword, UserResponse.From(actor), tenantName);
     }

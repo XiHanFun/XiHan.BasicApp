@@ -519,6 +519,17 @@ export default {
         close: '关闭',
       },
     },
+    switch_roles: {
+      entry: '切换角色',
+      title: '切换角色',
+      hint: '选择本次会话要激活的角色，权限只按激活的角色计算。互斥的角色不能同时激活。',
+      empty: '当前没有可激活的角色',
+      pick_one: '至少选择一个角色',
+      load_failed: '加载角色失败',
+      save_failed: '切换角色失败',
+      cancel: '取消',
+      save: '切换',
+    },
   },
   island: {
     title: '动态',

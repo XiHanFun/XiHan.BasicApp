@@ -97,4 +97,9 @@ public enum PermissionChangeType
     /// 新建、修改、启停或删除权限条件。
     /// </summary>
     ConditionChange = 17,
+
+    /// <summary>
+    /// 违反了处理方式为警告或只记录的约束规则（拒绝与需审批的不落地，调用直接失败）。
+    /// </summary>
+    ConstraintViolation = 18,
 }

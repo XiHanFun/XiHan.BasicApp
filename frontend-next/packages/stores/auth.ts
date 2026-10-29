@@ -1,5 +1,5 @@
 import type { ResponseOf, TwoFactorMethod } from '~/contracts'
-import type { ImpersonationCandidate, ImpersonationCandidateQuery, ImpersonationTenantOption, LoginParams, LoginResponse, OAuthProviderItem, StartImpersonationParams } from '~/types'
+import type { ImpersonationCandidate, ImpersonationCandidateQuery, ImpersonationTenantOption, LoginParams, LoginResponse, OAuthProviderItem, SessionRoleOption, StartImpersonationParams } from '~/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { LOGIN_PATH } from '~/constants'
@@ -231,6 +231,17 @@ export const useAuthStore = defineStore('auth', () => {
     relaunchApp()
   }
 
+  // ---- 切换角色（壳层入口；接口经应用上下文注入）----
+  function sessionRoles(): Promise<SessionRoleOption[]> {
+    return useAppContext().apis.sessionRoleApi.list()
+  }
+
+  /** 换本会话激活的角色：后端续接同一会话、签发新令牌；本地存下后整页重建（与切换租户同一条路） */
+  async function activateRoles(roleIds: string[]): Promise<void> {
+    store(await useAppContext().apis.sessionRoleApi.activate(roleIds))
+    relaunchApp()
+  }
+
   // ---- 模仿登录（壳层入口；接口经应用上下文注入）----
   const impersonationLoading = ref(false)
 
@@ -289,6 +300,8 @@ export const useAuthStore = defineStore('auth', () => {
     markPasswordChanged,
     clear,
     switchTenant,
+    sessionRoles,
+    activateRoles,
     impersonationLoading,
     impersonationCandidates,
     impersonationTenants,

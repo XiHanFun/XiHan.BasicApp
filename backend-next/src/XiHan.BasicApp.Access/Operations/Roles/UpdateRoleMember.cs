@@ -27,14 +27,16 @@ public sealed record RoleMemberWindowRequest(Guid Id, [Required] Guid UserId, Da
 
 /// <summary>
 /// 改成员指派的有效期：<c>POST /api/roles/{id}:update-member</c>。到期或改到未来生效的指派立即从判定里拿掉（令牌里的角色声明由权限过滤器按指派求交）；
-/// 改成此刻有效的要等下次刷新令牌才进令牌。
+/// 改成此刻有效的要等下次刷新令牌才进令牌。已到期的指派改回有效等于重新持有这个角色：过静态职责分离、基数与条件（4.x 的单条指派生效同样判定）。
 /// </summary>
 /// <param name="service">角色域服务。</param>
 /// <param name="members">指派仓储。</param>
 /// <param name="users">用户仓储。</param>
 /// <param name="assignments">指派缓存。</param>
+/// <param name="enforcer">约束规则求值。</param>
+/// <param name="clock">时间源。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesAssign)]
-public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users, RoleAssignments assignments) : IOperation<RoleMemberWindowRequest, RoleMemberResponse>
+public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRole, Guid> members, IRepository<SysUser, Guid> users, RoleAssignments assignments, ConstraintEnforcer enforcer, TimeProvider clock) : IOperation<RoleMemberWindowRequest, RoleMemberResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -67,6 +69,19 @@ public sealed class UpdateRoleMember(RoleService service, IRepository<SysUserRol
         }
 
         var row = rows[0];
+        var now = clock.GetUtcNow();
+        if (row.ExpiresAt is { } expired && expired <= now && (request.ExpiresAt is null || request.ExpiresAt > now))
+        {
+            var held = await enforcer.HeldRolesAsync(owner, userId, context.CancellationToken).ConfigureAwait(false);
+            held.Add(roleId);
+            var violations = new List<ConstraintViolation>(await enforcer.CheckUserRolesAsync(owner, userId, user.UserName, held, [roleId], context).ConfigureAwait(false));
+            violations.AddRange(await enforcer.CheckRoleMembersAsync(owner, roleId, await enforcer.MemberCountAsync(owner, roleId, context.CancellationToken).ConfigureAwait(false) + 1, context.CancellationToken).ConfigureAwait(false));
+            if (ConstraintEnforcer.Settle(context, violations, roleId, userId) is { } blocked)
+            {
+                return blocked;
+            }
+        }
+
         row.EffectiveAt = request.EffectiveAt;
         row.ExpiresAt = request.ExpiresAt;
         var updated = await members.UpdateAsync(row, context.CancellationToken).ConfigureAwait(false);

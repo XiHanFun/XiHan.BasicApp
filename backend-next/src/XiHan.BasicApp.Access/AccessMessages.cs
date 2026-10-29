@@ -606,6 +606,106 @@ public static class AccessMessages
     public const string LiftLoginBanDescription = "login_bans.lift.description";
 
     /// <summary>
+    /// 约束规则编码含空白；参数 <c>code</c>。
+    /// </summary>
+    public const string ConstraintCodeInvalid = "access.constraint.code_invalid";
+
+    /// <summary>
+    /// 约束类型用不了这种目标类型；参数 <c>type</c>、<c>targetType</c>。
+    /// </summary>
+    public const string ConstraintTargetMismatch = "access.constraint.target_mismatch";
+
+    /// <summary>
+    /// 规则项太少；参数 <c>min</c>。
+    /// </summary>
+    public const string ConstraintItemsTooFew = "access.constraint.items_too_few";
+
+    /// <summary>
+    /// 规则项目标重复；参数 <c>target</c>。
+    /// </summary>
+    public const string ConstraintItemDuplicate = "access.constraint.item_duplicate";
+
+    /// <summary>
+    /// 规则项目标不在这一侧或不可用；参数 <c>target</c>。
+    /// </summary>
+    public const string ConstraintTargetInvalid = "access.constraint.target_invalid";
+
+    /// <summary>
+    /// 条件类约束没有条件，或条件超过上限；参数 <c>maxGroups</c>、<c>maxConditions</c>。
+    /// </summary>
+    public const string ConstraintConditionsRequired = "access.constraint.conditions_required";
+
+    /// <summary>
+    /// 要激活的角色此刻不持有；参数 <c>id</c>。
+    /// </summary>
+    public const string ActivationRoleNotHeld = "access.activation.not_held";
+
+    /// <summary>
+    /// 约束规则编码在这一侧已存在；参数 <c>code</c>。
+    /// </summary>
+    public const string ConstraintCodeTaken = "access.constraint.code_taken";
+
+    /// <summary>
+    /// 违反了拦截类的约束规则，这次变更没做；参数 <c>code</c>、<c>name</c>。
+    /// </summary>
+    public const string ConstraintViolated = "access.constraint.violated";
+
+    /// <summary>
+    /// 约束规则不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string ConstraintRuleNotFound = "access.constraint.not_found";
+
+    /// <summary>
+    /// 会话角色记录不存在；参数 <c>id</c>。
+    /// </summary>
+    public const string SessionRoleNotFound = "access.session_role.not_found";
+
+    /// <summary>
+    /// 操作 <c>constraint-rules.list</c> 的说明。
+    /// </summary>
+    public const string ListConstraintRulesDescription = "constraint_rules.list.description";
+
+    /// <summary>
+    /// 操作 <c>constraint-rules.get</c> 的说明。
+    /// </summary>
+    public const string GetConstraintRuleDescription = "constraint_rules.get.description";
+
+    /// <summary>
+    /// 操作 <c>constraint-rules.create</c> 的说明。
+    /// </summary>
+    public const string CreateConstraintRuleDescription = "constraint_rules.create.description";
+
+    /// <summary>
+    /// 操作 <c>constraint-rules.update</c> 的说明。
+    /// </summary>
+    public const string UpdateConstraintRuleDescription = "constraint_rules.update.description";
+
+    /// <summary>
+    /// 操作 <c>constraint-rules.set-status</c> 的说明。
+    /// </summary>
+    public const string SetConstraintRuleStatusDescription = "constraint_rules.set_status.description";
+
+    /// <summary>
+    /// 操作 <c>constraint-rules.delete</c> 的说明。
+    /// </summary>
+    public const string DeleteConstraintRulesDescription = "constraint_rules.delete.description";
+
+    /// <summary>
+    /// 操作 <c>session-roles.list</c> 的说明。
+    /// </summary>
+    public const string ListSessionRolesDescription = "session_roles.list.description";
+
+    /// <summary>
+    /// 操作 <c>session-roles.get</c> 的说明。
+    /// </summary>
+    public const string GetSessionRoleDescription = "session_roles.get.description";
+
+    /// <summary>
+    /// 操作 <c>auth.session-roles</c> 的说明。
+    /// </summary>
+    public const string CurrentSessionRolesDescription = "auth.session_roles.description";
+
+    /// <summary>
     /// 操作 <c>policies.list</c> 的说明。
     /// </summary>
     public const string ListAccessPoliciesDescription = "policies.list.description";

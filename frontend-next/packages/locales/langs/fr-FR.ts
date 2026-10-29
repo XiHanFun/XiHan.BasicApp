@@ -519,6 +519,17 @@ export default {
         close: 'Fermer',
       },
     },
+    switch_roles: {
+      entry: 'Changer de rôles',
+      title: 'Changer de rôles',
+      hint: 'Choisissez les rôles activés par cette session ; les permissions ne viennent que des rôles activés. Des rôles mutuellement exclusifs ne peuvent pas être actifs ensemble.',
+      empty: 'Aucun rôle à activer pour l’instant',
+      pick_one: 'Choisissez au moins un rôle',
+      load_failed: 'Échec du chargement des rôles',
+      save_failed: 'Échec du changement de rôles',
+      cancel: 'Annuler',
+      save: 'Changer',
+    },
   },
   island: {
     title: 'Activité',

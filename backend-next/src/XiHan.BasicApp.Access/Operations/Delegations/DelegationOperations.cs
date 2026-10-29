@@ -7,8 +7,10 @@ using XiHan.BasicApp.Access.Queries;
 using XiHan.BasicApp.Contracts.Auditing;
 using XiHan.BasicApp.Contracts.Batch;
 using XiHan.BasicApp.Contracts.Paging;
+using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.Kernel.Security;
+using XiHan.Framework.Persistence.Abstractions.Repositories;
 using XiHan.Framework.Primitives;
 
 namespace XiHan.BasicApp.Access.Operations.Delegations;
@@ -36,10 +38,13 @@ public sealed class ListDelegations(DelegationQueries queries) : IOperation<Page
 
 /// <summary>
 /// 新建委托：<c>POST /api/delegations:create</c>。委托人此刻须持有所委托的权限码或角色；被委托人在有效期内按无条件授予拿到权限码，或按角色的继承链拿到授予（不拿数据范围与字段安全）。
+/// 委托角色等于被委托人多持有一个角色：过静态职责分离、基数与条件（4.x 的权限申请通过时同样判定）。
 /// </summary>
 /// <param name="service">委托服务。</param>
+/// <param name="enforcer">约束规则求值。</param>
+/// <param name="users">用户仓储（被委托人的登录名）。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.DelegationsCreate)]
-public sealed class CreateDelegation(DelegationService service) : IOperation<CreateDelegationRequest, DelegationResponse>
+public sealed class CreateDelegation(DelegationService service, ConstraintEnforcer enforcer, IRepository<SysUser, Guid> users) : IOperation<CreateDelegationRequest, DelegationResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -55,6 +60,18 @@ public sealed class CreateDelegation(DelegationService service) : IOperation<Cre
         if (!created.TryGetValue(out var delegation))
         {
             return created.Error!;
+        }
+
+        if (delegation.RoleId is { } roleId)
+        {
+            var held = await enforcer.HeldRolesAsync(delegation.OwnerTenantId, delegation.DelegateeId, context.CancellationToken).ConfigureAwait(false);
+            held.Add(roleId);
+            var delegatee = await users.FindAsync(delegation.DelegateeId, context.CancellationToken).ConfigureAwait(false);
+            var violations = await enforcer.CheckUserRolesAsync(delegation.OwnerTenantId, delegation.DelegateeId, delegatee.TryGetValue(out var user) ? user.UserName : null, held, [roleId], context).ConfigureAwait(false);
+            if (ConstraintEnforcer.Settle(context, violations, roleId, delegation.DelegateeId) is { } blocked)
+            {
+                return blocked;
+            }
         }
 
         DelegationLog.Record(context, delegation, "create");

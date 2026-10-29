@@ -41,7 +41,12 @@ public static class AccessPages
     public static PageDescriptor Policies { get; } = new("access.policies", "/access/policies", "access.policies.title", "lucide:shield-alert", 208, AccessPermissions.PoliciesRead);
 
     /// <summary>
+    /// 约束规则页（Access 包）。
+    /// </summary>
+    public static PageDescriptor ConstraintRules { get; } = new("access.constraint-rules", "/access/constraint-rules", "access.constraint_rules.title", "lucide:split", 209, AccessPermissions.ConstraintRulesRead);
+
+    /// <summary>
     /// 全部页面。
     /// </summary>
-    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, Delegations, FieldSecurity, Policies, Menus];
+    public static IReadOnlyList<PageDescriptor> All { get; } = [Roles, Permissions, Delegations, FieldSecurity, Policies, ConstraintRules, Menus];
 }

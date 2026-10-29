@@ -4,6 +4,10 @@ import type { OperationId } from './operations'
 
 /** 权限定义表（码、显示名、说明）：授权界面按它生成。 */
 export const permissionDefinitions = {
+  'access.constraint-rules.create': { code: 'access.constraint-rules.create', displayName: 'Create constraint rules', description: 'Create constraint rules on roles, permissions or users.' },
+  'access.constraint-rules.delete': { code: 'access.constraint-rules.delete', displayName: 'Delete constraint rules', description: 'Delete constraint rules together with their items.' },
+  'access.constraint-rules.read': { code: 'access.constraint-rules.read', displayName: 'Read constraint rules', description: 'View separation of duty, mutual exclusion, cardinality and condition rules and their items.' },
+  'access.constraint-rules.update': { code: 'access.constraint-rules.update', displayName: 'Update constraint rules', description: 'Edit, enable and disable constraint rules.' },
   'access.delegations.create': { code: 'access.delegations.create', displayName: 'Create delegations', description: 'Let a user hand one of their permissions or roles to another user for a limited time.' },
   'access.delegations.delete': { code: 'access.delegations.delete', displayName: 'Delete delegations', description: 'Delete delegation records; an active one stops taking effect.' },
   'access.delegations.read': { code: 'access.delegations.read', displayName: 'Read delegations', description: 'View time-limited delegations of permissions and roles between users.' },
@@ -36,6 +40,7 @@ export const permissionDefinitions = {
   'access.roles.read': { code: 'access.roles.read', displayName: 'Read roles', description: 'View roles, their members and their permissions.' },
   'access.roles.set-parents': { code: 'access.roles.set-parents', displayName: 'Set role parents', description: 'Make roles inherit the permissions of other roles on the same side, and remove that inheritance.' },
   'access.roles.update': { code: 'access.roles.update', displayName: 'Update roles', description: 'Edit role names, descriptions, order and status.' },
+  'access.session-roles.read': { code: 'access.session-roles.read', displayName: 'Read session roles', description: 'View which roles each session has activated and why roles were deactivated.' },
   'access.user-data-scopes.read': { code: 'access.user-data-scopes.read', displayName: 'Read user data scopes', description: 'View per-user data scope overrides.' },
   'access.user-data-scopes.update': { code: 'access.user-data-scopes.update', displayName: 'Update user data scopes', description: 'Override a user\'s data scope in place of their roles\' scopes, or clear the override.' },
   'access.user-grants.grant': { code: 'access.user-grants.grant', displayName: 'Manage user grants', description: 'Grant, deny and revoke permissions directly on users, with optional validity windows.' },
@@ -116,6 +121,12 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'configs.get': 'settings.configs.read',
   'configs.list': 'settings.configs.read',
   'configs.update': 'settings.configs.update',
+  'constraint-rules.create': 'access.constraint-rules.create',
+  'constraint-rules.delete': 'access.constraint-rules.delete',
+  'constraint-rules.get': 'access.constraint-rules.read',
+  'constraint-rules.list': 'access.constraint-rules.read',
+  'constraint-rules.set-status': 'access.constraint-rules.update',
+  'constraint-rules.update': 'access.constraint-rules.update',
   'delegations.create': 'access.delegations.create',
   'delegations.delete': 'access.delegations.delete',
   'delegations.list': 'access.delegations.read',
@@ -222,6 +233,8 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
   'roles.unassign': 'access.roles.assign',
   'roles.update': 'access.roles.update',
   'roles.update-member': 'access.roles.assign',
+  'session-roles.get': 'access.session-roles.read',
+  'session-roles.list': 'access.session-roles.read',
   'tenant-members.create': 'tenancy.tenant-members.create',
   'tenant-members.delete': 'tenancy.tenant-members.delete',
   'tenant-members.list': 'tenancy.tenant-members.read',
@@ -254,9 +267,11 @@ export const operationPermission: Partial<Record<OperationId, Permission>> = {
 
 /** 操作 → 策略名（如 `authenticated`）；与权限码二选一。 */
 export const operationPolicy: Partial<Record<OperationId, string>> = {
+  'auth.activate-roles': 'authenticated',
   'auth.logout': 'authenticated',
   'auth.me': 'authenticated',
   'auth.permissions': 'authenticated',
+  'auth.session-roles': 'authenticated',
   'auth.switch-tenant': 'authenticated',
   'dicts.options': 'authenticated',
   'impersonation.stop': 'authenticated',

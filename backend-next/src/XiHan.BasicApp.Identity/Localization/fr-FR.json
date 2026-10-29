@@ -56,5 +56,6 @@
   "identity.two_factor.totp_already_enabled": "Une application d'authentification est déjà liée ; désactivez-la d'abord pour changer d'appareil.",
   "identity.two_factor.totp_setup_missing": "La liaison de l'application d'authentification a expiré ou n'a pas commencé. Générez une nouvelle clé.",
   "identity.field_security.protected": "Le champ {field} est protégé par la sécurité des champs et ne peut pas servir à filtrer ni à trier.",
-  "identity.field_security.read_only": "Le champ {field} est en lecture seule pour vous et ne peut être ni rempli ni modifié."
+  "identity.field_security.read_only": "Le champ {field} est en lecture seule pour vous et ne peut être ni rempli ni modifié.",
+  "auth.activate_roles.description": "Changer les rôles activés dans la session courante (tous détenus actuellement et sans violer la séparation dynamique des tâches) ; renvoie de nouveaux jetons."
 }

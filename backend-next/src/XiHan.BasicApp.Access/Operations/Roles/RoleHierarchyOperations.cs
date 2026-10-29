@@ -79,12 +79,14 @@ public sealed class GetRoleHierarchy(RoleService service, RoleHierarchyReader re
 /// <summary>
 /// 设置角色的直接上级：<c>POST /api/roles:set-parents</c>。本角色的持有人随即拿到上级（及其上级）的授予，上级的拒绝同样作用于本角色；
 /// 只在同一侧的角色之间，内置角色不参与，停用的角色不能新设为上级，不能成环，直接上级之间不能互为祖先。
+/// 新加的上级会让持有本角色及其下级的用户多持有角色：按静态职责分离重查，拦截类违规即整体不做（<c>ACCESS_CONFLICT_012</c>，4.x 同）。
 /// </summary>
 /// <param name="service">角色查找。</param>
 /// <param name="hierarchy">继承写入。</param>
 /// <param name="reader">继承关系的组装。</param>
+/// <param name="enforcer">约束规则求值。</param>
 [Operation(Id, Stability = Stability.Preview, Expose = Expose.Http, Permission = AccessPermissions.RolesSetParents)]
-public sealed class SetRoleParents(RoleService service, RoleHierarchyService hierarchy, RoleHierarchyReader reader) : IOperation<SetRoleParentsRequest, RoleHierarchyResponse>
+public sealed class SetRoleParents(RoleService service, RoleHierarchyService hierarchy, RoleHierarchyReader reader, ConstraintEnforcer enforcer) : IOperation<SetRoleParentsRequest, RoleHierarchyResponse>
 {
     /// <summary>
     /// 操作 ID。
@@ -105,6 +107,17 @@ public sealed class SetRoleParents(RoleService service, RoleHierarchyService hie
         if (!changed.TryGetValue(out var change))
         {
             return changed.Error!;
+        }
+
+        var violations = await enforcer.CheckInheritanceAsync(role.OwnerTenantId, role.Id, [.. change.Added.Select(static r => r.Id)], context.CancellationToken).ConfigureAwait(false);
+        if (violations.Select(static v => v.Violation).FirstOrDefault(static v => v.Rule.IsBlocking) is { } blocking)
+        {
+            return ConstraintEnforcer.Settle(context, [blocking])!;
+        }
+
+        foreach (var (userId, violation) in violations)
+        {
+            ConstraintEnforcer.Record(context, violation, role.Id, userId);
         }
 
         if (change.Added.Count > 0 || change.Removed.Count > 0)

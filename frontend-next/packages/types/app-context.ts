@@ -6,6 +6,7 @@ import type {
   LoginConfig,
   LoginToken,
   PermissionInfo,
+  SessionRoleOption,
   StartImpersonationParams,
   SwitchTenantParams,
   UserInfo,
@@ -154,6 +155,11 @@ export interface AppContextApis {
   tenantApi: {
     myAvailableTenants: () => Promise<AppTenantSwitcherItem[]>
     switchTenant: (input: SwitchTenantParams) => Promise<LoginToken>
+  }
+  /** 切换角色：本会话此刻持有的角色与激活着哪些；换激活集即换签令牌（同一动态职责分离组的角色不能同时激活） */
+  sessionRoleApi: {
+    list: () => Promise<SessionRoleOption[]>
+    activate: (roleIds: string[]) => Promise<LoginToken>
   }
   /** 用户设置（按 用户 × 场景 × 设置键 全场景跨端同步，载荷为 JSON 字符串；clientId 供后端推送回显过滤） */
   userSettingApi: {
